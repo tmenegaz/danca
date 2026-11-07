@@ -918,3 +918,12 @@ experimentos/modelo-formulario/*
 # entra, um elenco sem acto e sem Turma não entra, o recorte viaja, e a aluna aparece com a sala
 # ANTES de a Turma ser regravada (a janela em que o vínculo «sumia»).
 !experimentos/provar-aluna-nova-no-elenco.js
+
+# O PASSO 1 DO VERBETE, E AS TRÊS NAVEGAÇÕES (07/11/2026). Ela relatou duas coisas na mesma tela:
+# «o botão Seguir está habilitado e não executa nenhuma ação» e «os campos do termo aparecem
+# vazios». Não tinham nada a ver uma com a outra, e nenhuma das duas se lê no código do bloco em
+# causa: a página dos Bastidores é UMA folha de `function`, e a turma, o verbete e a linha de base
+# declaravam o mesmo `irParaPasso` — a última vencia. A prova é a primeira do projeto que mede uma
+# regra sobre o PRÓPRIO script (nenhum nome de topo declarado duas vezes, com contraprova do
+# detector) antes de medir a tela num navegador de verdade.
+!experimentos/provar-passo-um-do-verbete.js

@@ -236,7 +236,7 @@ const RITMO = {
     return script.slice(i, j === -1 ? i + 200 : j);
   })();
   conferir('VER não é AVANÇAR: o passo 2 abre sem anamnese, o 3 e o 4 não',
-    /passo === 2 && !haAnamnese\(\)/.test(corpoDoVer) && /return podeIrPara\(passo\)/.test(corpoDoVer),
+    /passo === 2 && !haAnamnese\(\)/.test(corpoDoVer) && /return podeIrParaLb\(passo\)/.test(corpoDoVer),
     corpoDoVer.slice(0, 200));
   conferir('…e a tira usa a regra de VER (senão a explicação nunca aparecia)',
     /!podeVerPasso\(n\)/.test(script), null);

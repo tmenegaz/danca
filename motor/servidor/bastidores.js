@@ -4345,6 +4345,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="vb-frase">O que acontece — a definição do exercício</label>' +
     '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
     '<p class="nota" id="vb-frase-nota"></p>' +
+    /* A DEFINIÇÃO OFICIAL FICA À VISTA, E NÃO NO CAMPO (07/11/2026).
+     *
+     * O CAMPO ACIMA É DO PROFESSOR: é a frase dele, é ela que os trechos levam, e ela nunca se
+     * bloqueia. Foi o que ela pediu hoje — «a definição oficial do dicionário deve ser exibida
+     * como referência (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas
+     * personalizadas do professor deve estar liberado e interativo».
+     *
+     * A REFERÊNCIA É PRECISO VER. Se a única cópia da definição do dicionário fosse o campo
+     * editável, o oficial desapareceria no instante em que ela ajustasse a frase — e é
+     * exactamente aí que se precisa de o ter à frente para comparar. Esta linha mostra-o, e não
+     * se edita.
+     *
+     * A PEÇA É A MESMA DO RESTO DO PASSO (`.nota`): nenhuma classe nova, nenhum desenho novo. */
+    '<p class="nota" id="vb-oficial"></p>' +
     /* OS QUATRO CAMPOS DO PASSO 1 SÃO UM BLOCO, E O NOME É A CHAVE (02/11/2026).
      *
      * O pedido dela, e a segunda vez que o fez: «os campos Categoria, Tradição de Referência e O
@@ -4826,7 +4840,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * lista, e qualquer Turma o pode receber.
      *
      * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
-     * `podeIrPara(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
+     * `podeIrParaVerbete(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
      * com falta nos anteriores — nem o clique na tira, nem o «Seguir», nem o passo lembrado ao
      * reabrir a página.
      *
@@ -5258,7 +5272,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '}' +
     'function mostrarPasso(qual){' +
-    // A TRAVA VALE PARA TODOS OS CAMINHOS — os botões de cima, o `irParaPasso` do «Avançar»
+    // A TRAVA VALE PARA TODOS OS CAMINHOS — os botões de cima, o `irParaPassoTurma` do «Avançar»
     // e o passo lembrado ao reabrir. Quem tenta chegar a um passo adiante sem a turma
     // completa fica no passo 1: é lá que está o que falta.
     '  var faltaTurma = faltaDaTurma();' +
@@ -5296,7 +5310,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // passo RECARREGAVA a página, e o formulário voltava vazio: quem estava a preencher a
     // turma perdia tudo ao espiar a rubrica e voltar. A regra vale para os TRÊS caminhos —
     // «Avançar», «Voltar» e o clique direto nas etapas de cima —, porque todos passam por
-    // `irParaPasso`.
+    // `irParaPassoTurma`.
     //
     // São duas metades: (a) trocar de passo NÃO recarrega (o DOM fica); e (b) o conteúdo
     // dos três formulários é gravado no `sessionStorage` a cada alteração, para sobreviver
@@ -5403,9 +5417,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '  }' +
     '}' +
-    // Trocar de passo é SÓ trocar de painel. Antes recarregava, e é isso que apagava o que
+    // TROCAR DE PASSO É SÓ TROCAR DE PAINEL. Antes recarregava, e é isso que apagava o que
     // estava escrito — a correção não é «guardar antes de recarregar», é NÃO recarregar.
-    'function irParaPasso(qual){' +
+    //
+    /* TRÊS ASSISTENTES, TRÊS NOMES — E O NOME TEM DE SER ÚNICO (07/11/2026).
+     *
+     * A PÁGINA DOS BASTIDORES É UMA SÓ FOLHA DE `function`. A turma, o verbete e a linha de base
+     * têm cada um a sua navegação por passos, e todos nasceram com o mesmo nome: `irParaPasso`.
+     * Em JavaScript a última declaração vence — e a última era a da LINHA DE BASE. A partir de
+     * 05/11/2026 (quando ela chegou), o «Seguir» do verbete e o «Avançar» da turma chamavam a
+     * navegação da linha de base: mudavam de painel para um sítio que não era o deles, ou não
+     * mudavam nada. O sintoma que ela relatou foi «o botão Seguir está habilitado e não executa
+     * nenhuma ação» — e era isto.
+     *
+     * O DEFEITO NÃO FOI ESCREVER TRÊS VEZES A MESMA IDEIA (são três coisas diferentes, com
+     * regras diferentes). Foi DAR-LHES O MESMO NOME numa folha onde o nome é global. Por isso
+     * cada uma passa a dizer de quem é: `…Turma`, `…Verbete`, `…Lb`. E o mesmo vale para
+     * `podeIrPara`, que sofria do mesmo mal pelo mesmo motivo.
+     *
+     * A REGRA QUE FICA: nesta página, um nome de topo pertence a UMA superfície. Um nome novo
+     * que já exista não dá erro nenhum — apaga a função anterior em silêncio, e o defeito
+     * aparece longe, como «um botão que não faz nada». */
+    'function irParaPassoTurma(qual){' +
     '  gravarEstado();' +
     '  mostrarPasso(qual);' +
     '  try { location.hash = "#turmas"; } catch (err) {}' +
@@ -6640,7 +6673,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("rubr-niveis").appendChild(linhaDaReguaNoDom(""));' +
     '  gravarEstado();' +
     '});' +
-    'document.getElementById("rubr-voltar").addEventListener("click", function(){ irParaPasso("turma"); });' +
+    'document.getElementById("rubr-voltar").addEventListener("click", function(){ irParaPassoTurma("turma"); });' +
     // O «EDITAR RUBRICA» SAIU DA LISTAGEM (18/10/2026). Ele era um segundo botão de edição,
     // dentro do painel da régua, e o dono do produto foi explícito: o único botão que aciona
     // edição é o «Editar» do cartão da turma — e ele abre os três passos, rubrica incluída.
@@ -6651,7 +6684,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var niveis = reguaDoEditor("rubr-niveis");' +
     // O PASSO É OBRIGATÓRIO DE PASSAR, OPCIONAL DE PREENCHER: com nome, grava e segue; sem nada,
     // segue sem criar. Nome sem níveis (ou níveis sem nome) é preenchimento pela metade.
-    '  if (!nome && !niveis.length) { irParaPasso("vincular"); return; }' +
+    '  if (!nome && !niveis.length) { irParaPassoTurma("vincular"); return; }' +
     '  if (!nome) { alert("Dê um nome à rubrica antes de avançar — ou remova os níveis para passar sem criar."); return; }' +
     '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
     '  enviar("/api/bastidores/rubrica", {' +
@@ -6761,7 +6794,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!confirm("Desassociar a rubrica desta turma? Ela volta a ser medida pela régua padrão.")) return;' +
     '  enviar("/api/bastidores/turma-rubrica", {turma: turma}, "desassociando a rubrica...", true);' +
     '});' +
-    'document.getElementById("vinc-voltar").addEventListener("click", function(){ irParaPasso("rubrica"); });' +
+    'document.getElementById("vinc-voltar").addEventListener("click", function(){ irParaPassoTurma("rubrica"); });' +
     // «GRAVAR TURMA» É O FIM DA SEQUÊNCIA (18/10/2026). Grava a régua escolhida (se alguma) e
     // conclui: limpa o modo edição e volta ao passo 1. A turma em si já foi gravada no passo 1.
     'document.getElementById("vinc-gravar").addEventListener("click", function(){' +
@@ -7852,8 +7885,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // E A NAVEGAÇÃO DIZ O QUE AINDA NÃO SE PODE FAZER (02/11/2026). Ver `pintarNavegacao`.
     '  pintarNavegacao();' +
     '}' +
-    'function irParaPasso(n){' +
-    // O `irParaPasso` É O COLOCADOR DO ESTADO, e não a guarda. Quem guarda é a INTERFACE: a tira
+    'function irParaPassoVerbete(n){' +
+    // O `irParaPassoVerbete` É O COLOCADOR DO ESTADO, e não a guarda. Quem guarda é a INTERFACE: a tira
     // desactiva os passos que ainda não se abrem, e o «Seguir» desactiva-se quando falta algo no
     // passo actual (ver `pintarNavegacao`). A distinção é de propósito — há chamadas internas que
     // precisam de pôr o passo sem passar pelo caminho do utilizador (o «Editar» de um verbete vai
@@ -7903,7 +7936,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  for (var i = 1; i < n; i++) faltas = faltas.concat(faltasDoPasso(i));' +
     '  return faltas;' +
     '}' +
-    'function podeIrPara(n){ return faltasAntesDe(Number(n) || 1).length === 0; }' +
+    'function podeIrParaVerbete(n){ return faltasAntesDe(Number(n) || 1).length === 0; }' +
     /* O «ACRESCENTAR TRECHO» TAMBÉM ESPERA (02/11/2026). O pedido: «o botão "Acrescentar Trecho"
      * só deve ser habilitado quando todos os campos obrigatórios dos steps anteriores (1 a 5)
      * estiverem devidamente preenchidos e válidos». O `submit` já recusava — e recusar ao fim de
@@ -7923,7 +7956,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // anteriores ficam sempre abertos.
     '  Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
-    '    var fechado = (n > PASSO) && !podeIrPara(n);' +
+    '    var fechado = (n > PASSO) && !podeIrParaVerbete(n);' +
     '    b.disabled = fechado;' +
     '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
     '    if (fechado) b.setAttribute("title", "Falta " + faltasAntesDe(n).join(", ") + ".");' +
@@ -8001,7 +8034,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var lista = CELULAS[dir] || [];' +
     '  var c = lista[Number(k)];' +
     '  if (!c) return;' +
-    // A CORRECÇÃO NÃO MUDA DE PASSO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`, e o
+    // A CORRECÇÃO NÃO MUDA DE PASSO (02/11/2026). Era `irParaPassoVerbete(PASSOS_DO_TRECHO[0])`, e o
     // efeito era o relatado: carregar em «Editar» na tabela atirava o utilizador para o passo 4 e
     // ele perdia de vista a linha que estava a corrigir. Agora o formulário vem ter com ele.
     '  EM_EDICAO = { dir: dir, k: Number(k) };' +
@@ -8069,30 +8102,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE FALTA DIZ-SE POR NOME, e todos de uma vez: um `alert` que pede um campo, e depois
      * outro, e depois outro, é o mesmo pedido feito três vezes.
      */
-    /* O BLOCO DO PASSO 1: EM VIGOR, FORA DELE, OU CONGELADO (02/11/2026).
+    /* O BLOCO DO PASSO 1: EM VIGOR, FORA DELE, OU CONGELADO (02/11/2026 — e o que congela
+     * mudou a 07/11/2026).
      *
-     * TRÊS ESTADOS, e não dois — o terceiro é a correcção da tarde:
+     * TRÊS ESTADOS, e não dois:
      *
-     *   1. **Sem exercício e sem nome** — os três estão DESACTIVADOS (e o `disabled` é a sério: um
-     *      campo esbatido continua a competir por atenção e a receber foco) e a nota diz porquê.
-     *   2. **Com nome de exercício novo** — os três ficam em vigor e são obrigatórios: é o passo 1
-     *      a criar a definição que o dicionário passa a guardar.
-     *   3. **Com um exercício ESCOLHIDO no passo 2 e sem nome novo** — os três ficam
-     *      **CONGELADOS**: preenchidos a partir do dicionário e com `disabled`. O pedido dela:
-     *      «o sistema deve carregar e preencher automaticamente no Step 1 os dados cadastrados:
-     *      Categoria, Tradição de Referência e O que acontece (significado)» e «esses três campos
-     *      devem ficar rigorosamente bloqueados para edição, pois pertencem à definição oficial
-     *      congelada do exercício no dicionário».
+     *   1. **Sem exercício e sem nome** — os campos estão DESACTIVADOS (e o `disabled` é a sério:
+     *      um campo esbatido continua a competir por atenção e a receber foco) e a nota diz porquê.
+     *   2. **Com nome de exercício novo** — em vigor e obrigatórios: é o passo 1 a criar a
+     *      definição que o dicionário passa a guardar.
+     *   3. **Com um exercício ESCOLHIDO e sem nome novo** — a CATEGORIA e a TRADIÇÃO ficam
+     *      **CONGELADAS**: são a classificação do termo no dicionário, preenchem-se a partir dele
+     *      e não se editam aqui.
      *
-     * A DEFINIÇÃO CONGELADA NÃO SE REESCREVE POR AQUI, e é isso que o `disabled` diz sem precisar
-     * de sermão: para a mudar, edita-se o TERMO (no vocabulário), e a mudança chega a todos os
-     * verbetes que o usam. Deixar o campo aberto daria duas verdades para a mesma definição — a
-     * do dicionário e a que alguém ajustou num verbete —, e a segunda a vencer sem que ninguém
-     * saiba qual é a oficial.
+     * O QUE DEIXOU DE CONGELAR, E PORQUÊ (07/11/2026). Ela mandou os três congelados a 02/11 —
+     * e a 07/11 corrigiu: «a definição oficial do dicionário deve ser exibida como referência
+     * (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas personalizadas do
+     * professor deve estar liberado e interativo». As duas coisas só cabem se forem dois sítios:
+     * a definição oficial fica na linha `#vb-oficial`, que ninguém edita; a frase escrita no
+     * campo é DO PROFESSOR — é ela que os trechos levam, e ela não se bloqueia.
+     *
+     * E o congelamento da frase era uma contradição visível: a nota do passo 2 dizia «ajuste à
+     * vontade: é a sua frase que fica gravada» com o campo desactivado por baixo. Um campo que
+     * convida e recusa é pior do que um campo que só recusa, porque o convite é a última coisa
+     * que se lê.
      *
      * A FRASE GRAVADA VENCE A DO DICIONÁRIO (P-03/P-04), e por isso o campo é preenchido com o
-     * que está gravado quando há verbete, e com a definição do dicionário quando não há. O que
-     * fica congelado é aquilo que se vê — e a nota diz de onde veio.
+     * que está gravado quando há verbete, e com a definição do dicionário quando não há — pronta
+     * a ser ajustada, que é o gesto que ele serve.
      */
     'function alternarPasso1(){' +
     '  var novo = document.getElementById("vnnome");' +
@@ -8101,27 +8138,55 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var temExercicio = Boolean(escolhido && String(escolhido.value || "").trim());' +
     '  var congelado = temExercicio && !temNome;' +
     '  var emVigor = temNome || congelado;' +
-    '  ["vncategoria", "vntradicao", "vb-frase"].forEach(function(id){' +
+    // A CLASSIFICAÇÃO É DO TERMO: congelada quando há exercício escolhido.
+    '  ["vncategoria", "vntradicao"].forEach(function(id){' +
     '    var el = document.getElementById(id);' +
     '    if (!el) return;' +
-    // CONGELADO É MAIS DO QUE «EM VIGOR»: o campo tem valor, conta como obrigatório — e é
-    // `disabled` mesmo assim, porque o valor não se edita aqui (02/11/2026).
     '    el.disabled = congelado || !emVigor;' +
     '    el.setAttribute("aria-disabled", (congelado || !emVigor) ? "true" : "false");' +
     '    if (congelado) el.setAttribute("data-congelado", "sim");' +
     '    else el.removeAttribute("data-congelado");' +
     '  });' +
+    // A FRASE É DE QUEM ESCREVE: só se apaga quando não há exercício nenhum para ela descrever.
+    '  var campoDaFrase = document.getElementById("vb-frase");' +
+    '  if (campoDaFrase) {' +
+    '    campoDaFrase.disabled = !emVigor;' +
+    '    campoDaFrase.setAttribute("aria-disabled", emVigor ? "false" : "true");' +
+    '    campoDaFrase.removeAttribute("data-congelado");' +
+    '  }' +
+    // A DEFINIÇÃO OFICIAL, À VISTA E FORA DO CAMPO — é esta que o `disabled` protege.
+    '  pintarOficial();' +
     '  var nota = document.getElementById("vb-vigor-nota");' +
     '  if (nota) {' +
     '    nota.textContent = congelado' +
-    '      ? ("Estes três campos são a definição do exercício «" + String(escolhido.value || "") +' +
-    '         "» no dicionário, e ficam bloqueados aqui — para os mudar, edite o termo no vocabulário.")' +
+    '      ? ("A categoria e a tradição são a classificação do exercício «" + String(escolhido.value || "") +' +
+    '         "» no dicionário, e ficam bloqueadas aqui — para as mudar, edite o termo no vocabulário." +' +
+    '         " A frase acima é a sua: é ela que fica gravada neste verbete.")' +
     '      : (emVigor ? "" :' +
     '        "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
     '        escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.");' +
     '  }' +
     // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Seguir» e a tira repintam-se com ele.
     '  pintarNavegacao();' +
+    '}' +
+    /* A DEFINIÇÃO OFICIAL, COMO REFERÊNCIA (07/11/2026).
+     *
+     * Ela existe para poder ser LIDA ao lado da frase que se está a escrever — e é por isso que
+     * não pode ser o próprio campo: assim que a professora ajustasse a frase, o oficial
+     * desaparecia, precisamente quando se precisa de comparar.
+     *
+     * QUANDO NÃO HÁ O QUE MOSTRAR, a linha fica vazia: uma nota a explicar o vazio que se vê é
+     * ruído, e o passo 2 já diz, com todas as letras, que este exercício ainda não tem definição
+     * no dicionário.
+     */
+    'function pintarOficial(){' +
+    '  var el = document.getElementById("vb-oficial");' +
+    '  if (!el) return;' +
+    '  var ex = definicaoDoExercicio();' +
+    '  el.textContent = ex' +
+    '    ? ("Definição no dicionário" + (ex.fonte ? " (" + ex.fonte + ")" : "") + " — «" + ex.texto +' +
+    '       "». Fica aqui como referência e não se edita por aqui: para a mudar, edite o termo no vocabulário.")' +
+    '    : "";' +
     '}' +
     /* O PASSO 1 LÊ O PASSO 2 (02/11/2026) — o pedido dela, na letra: «ao selecionar um exercício
      * na listagem do Step 2, preencha automaticamente a Categoria, Tradição e "O que acontece" no
@@ -8225,6 +8290,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      }' +
     '    }' +
     '    if (nomes) nomes.value = d.termo;' +
+    /* O TERMO ENTRA TAMBÉM NO DICIONÁRIO DA PÁGINA (07/11/2026).
+     *
+     * A LISTA QUE O PASSO 1 LÊ NASCEU COM A PÁGINA. `VERBETES.exerciciosDoVocabulario` é a
+     * fotografia do vocabulário no instante do carregamento, e um exercício criado — ou
+     * encontrado — agora não está nela. Sem esta linha, a tela acrescentava o `<option>` e mais
+     * nada: o exercício aparecia escolhido, e a categoria, a tradição e a definição ficavam
+     * VAZIAS, com a nota ao lado a afirmar que eram «a definição do exercício no dicionário».
+     * Era essa a contradição — caixas bloqueadas e vazias a dizer que vinham do dicionário.
+     *
+     * O QUE NÃO SE FAZ: substituir o registo de um termo que já esteja na lista. Se ele lá está,
+     * a página já o conhece e o que veio agora é a mesma coisa; reescrevê-lo seria deixar uma
+     * resposta de formulário corrigir o dicionário por baixo. Acrescenta-se só o que falta. */
+    '    if (d.dados && d.dados.termo && VERBETES && VERBETES.exerciciosDoVocabulario) {' +
+    '      var jaNoDicionario = false;' +
+    '      VERBETES.exerciciosDoVocabulario.forEach(function(t){' +
+    '        if (t && t.termo === d.dados.termo) jaNoDicionario = true;' +
+    '      });' +
+    '      if (!jaNoDicionario) VERBETES.exerciciosDoVocabulario.push(d.dados);' +
+    '    }' +
     '    if (campo) campo.value = "";' +
     '    if (res) { res.className = "res"; res.textContent = ""; }' +
     /* O QUE JÁ ESTAVA NÃO SE ANUNCIA COMO NOVO (07/11/2026). A rota passou a APROVEITAR o termo
@@ -8257,6 +8341,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (campoF) campoF.value = fraseDoTermo;' +
     '      pintarNotaDaFrase();' +
     '    }' +
+    /* A CATEGORIA E A TRADIÇÃO VÊM DO TERMO, E AGORA VÊM MESMO (07/11/2026). Elas são
+     * preenchidas por `sincronizarPasso1ComExercicio`, que só corria no `change` do `select` — e
+     * um `select` mudado por código não dispara `change`. Como o exercício passou a ser escolhido
+     * aqui, por código, os dois campos ficavam vazios sobre um exercício escolhido. */
+    '    sincronizarPasso1ComExercicio();' +
     '    pintarTira();' +
     '    if (depois) depois(true);' +
     '  }).catch(function(e){' +
@@ -8695,7 +8784,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // para o 2 deixaria o comportamento certo (não encher campos fora do ecrã) com o sítio errado.
     // O seletor do exercício continua a um clique na tira.
     '  MUSICA_ABERTA = chave;' +
-    '  irParaPasso(1);' +
+    '  irParaPassoVerbete(1);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     // ESTA CONTA NUNCA CORREU (03/11/2026). Ela chamava-se `temposDaContagem` — o mesmo nome da que
@@ -8741,7 +8830,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      EM_EDICAO = null; MUSICA_ABERTA = ""; CELULAS = {}; SINAIS = [];' +
     '      var f = document.getElementById("form-verbete"); if (f) f.reset();' +
     '      document.getElementById("vbacao").value = "criar";' +
-    '      irParaPasso(1);' +
+    '      irParaPassoVerbete(1);' +
     '      carregarRascunho();' +
     '    }' +
     '    carregarVerbetes();' +
@@ -8937,7 +9026,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  campoNovo.addEventListener("keydown", function(ev){' +
     '    if (ev.key !== "Enter") return;' +
     '    ev.preventDefault();' +
-    '    criarExercicioDoPasso1(function(){ irParaPasso(2); });' +
+    '    criarExercicioDoPasso1(function(){ irParaPassoVerbete(2); });' +
     '  });' +
     '}' +
     'var novoVerbete = document.getElementById("vbnovo");' +
@@ -8953,7 +9042,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // escrever outro nome — quem quer criar um exercício vai ao 1 de propósito.
     '  EM_EDICAO = null;' +
     '  MUSICA_ABERTA = "";' +
-    '  irParaPasso(2);' +
+    '  irParaPassoVerbete(2);' +
     '  carregarRascunho();' +
     '});' +
     // A TABELA ACOMPANHA A ESCOLHA. Ela depende de três campos — exercício, tempos e compasso —,
@@ -9008,6 +9097,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarNotaDaFrase();' +
     '    pintarTira();' +
     '    pintarFica();' +
+    /* ESCREVER A DEFINIÇÃO TEM DE ACORDAR O «SEGUIR» (07/11/2026). A frase é um dos quatro
+     * obrigatórios do passo 1 — e era a única que não repintava a navegação. Quem escrevia o
+     * nome, escolhia categoria e tradição e deixava a definição para o fim ficava com o «Seguir»
+     * apagado e a dizer «falta o que acontece», já com a frase escrita: o botão nunca mais
+     * acordava, porque nada voltava a chamar `pintarNavegacao`. */
+    '    pintarNavegacao();' +
     '  });' +
     '})();' +
     // O OUVINTE QUE REPINTAVA A TIRA AO MUDAR A POSIÇÃO SAIU (02/11/2026): não há campo de posição
@@ -9056,18 +9151,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE NÃO MUDA: o passo actual e os anteriores continuam abertos. Espiar o que já se
      * decidiu não perde nada; espiar o que ainda não se pode decidir era o que ela quis travar. */
     'Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
-    '  b.addEventListener("click", function(){ irParaPasso(b.getAttribute("data-passo")); });' +
+    '  b.addEventListener("click", function(){ irParaPassoVerbete(b.getAttribute("data-passo")); });' +
     '});' +
     'var bVoltar = document.getElementById("vb-voltar");' +
-    'if (bVoltar) bVoltar.addEventListener("click", function(){ irParaPasso(PASSO - 1); });' +
+    'if (bVoltar) bVoltar.addEventListener("click", function(){ irParaPassoVerbete(PASSO - 1); });' +
     /* O «SEGUIR» GRAVA O EXERCÍCIO QUANDO ESTÁ NO PASSO 1 (02/11/2026). É o único ponto do
      * formulário em que avançar tem um efeito além de avançar — e tem de ter: o passo 2 escolhe
      * de uma lista que ainda não tem o exercício que se acabou de escrever. Nos outros passos
      * continua a ser só navegação. */
     'var bSeguir = document.getElementById("vb-seguir");' +
     'if (bSeguir) bSeguir.addEventListener("click", function(){' +
-    '  if (PASSO === 1) { criarExercicioDoPasso1(function(){ irParaPasso(2); }); return; }' +
-    '  irParaPasso(PASSO + 1);' +
+    '  if (PASSO === 1) { criarExercicioDoPasso1(function(){ irParaPassoVerbete(2); }); return; }' +
+    '  irParaPassoVerbete(PASSO + 1);' +
     '});' +
     '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
@@ -9179,7 +9274,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarChips();' +
     '    pintarTabela();' +
     '    pintarTira();' +
-    // ACRESCENTAR OU GUARDAR NÃO MUDA DE PASSO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`,
+    // ACRESCENTAR OU GUARDAR NÃO MUDA DE PASSO (02/11/2026). Era `irParaPassoVerbete(PASSOS_DO_TRECHO[0])`,
     // e o efeito era o relatado: carregar em «Acrescentar trecho» dentro da decomposição atirava o
     // utilizador de volta para o passo 4 (ou para o 5, se fosse de lá que vinha), e ele tinha de
     // voltar ao 6 para ver o que tinha acabado de acrescentar. Fica-se onde se está: o que se
@@ -9567,7 +9662,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function alunasMarcadas() { return marcados("lb-aluna"); }' +
     // O QUE **ESTE** PASSO EXIGE. A primeira versão respondia «o que falta nos passos anteriores», e
-    // o passo 1 nunca tinha falta nenhuma — de modo que `podeIrPara(2)` era verdadeiro sempre, e o
+    // o passo 1 nunca tinha falta nenhuma — de modo que `podeIrParaLb(2)` era verdadeiro sempre, e o
     // formulário deixava avançar sem nome nem professor. A prova a correr apanhou-o: a marcação
     // estava certa e a regra não. Agora cada passo declara a SUA falta, e quem quer saber o que
     // falta antes de N soma as de todos os anteriores (`faltasAntesDeLb`).
@@ -9611,7 +9706,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var LEITURA_FEITA = false;' +
     // CHEGAR AO PASSO `n` EXIGE TODOS OS ANTERIORES COMPLETOS.
-    'function podeIrPara(n) { return faltasAntesDeLb(Number(n) || 1).length === 0; }' +
+    'function podeIrParaLb(n) { return faltasAntesDeLb(Number(n) || 1).length === 0; }' +
     /* VER NÃO É AVANÇAR (07/11/2026).
      *
      * UMA EXCEPÇÃO, E ELA TEM NOME: O PASSO 2 NUMA ESCOLA SEM UM ÚNICO RETRATO. A regra de
@@ -9631,7 +9726,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var passo = Number(n) || 1;' +
     '  if (passo <= LB_PASSO) return true;' +
     '  if (passo === 2 && !haAnamnese()) return true;' +
-    '  return podeIrPara(passo);' +
+    '  return podeIrParaLb(passo);' +
     '}' +
     'function faltasAntesDeLb(n) {' +
     '  var todas = [];' +
@@ -9680,7 +9775,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * neste estado (o 2 sem retrato nenhum), e é ele que carrega a explicação. Sem esta linha, o
      * botão ficava aceso e mudo, e a razão da espera desaparecia com o `title` que o ramo de
      * baixo removia. */
-    '    var soLeitura = !fechado && n > LB_PASSO && !podeIrPara(n);' +
+    '    var soLeitura = !fechado && n > LB_PASSO && !podeIrParaLb(n);' +
     '    b.disabled = fechado;' +
     '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
     '    if (fechado) {' +
@@ -9776,7 +9871,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * Falhar a gravação NÃO AVANÇA. O `corpoRes` diz o motivo, e o professor fica no passo onde
      * está com o que escreveu — em vez de seguir para uma leitura que não poderia ser guardada. */
-    'function irParaPasso(qual) {' +
+    'function irParaPassoLb(qual) {' +
     '  var alvo = Number(qual) || 1;' +
     '  if (alvo <= LB_PASSO) { mostrarPassoLb(alvo); return; }' +
     /* O PASSO 2 ABRE MESMO VAZIO — É LÁ QUE ESTÁ A EXPLICAÇÃO (07/11/2026).
@@ -9788,7 +9883,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O que separa VER de AVANÇAR é `podeVerPasso` — ver a nota dela. Aqui, chegar a um passo que
      * só se pode ler NÃO grava nada: o professor está a ir ver o que falta, não a decidir. */
-    '  if (!podeIrPara(alvo)) {' +
+    '  if (!podeIrParaLb(alvo)) {' +
     '    if (podeVerPasso(alvo)) { mostrarPassoLb(alvo); return; }' +
     '    corpoRes("aviso", "Este passo ainda não abre: falta " + faltasAntesDeLb(alvo).join(", ") + ".");' +
     '    pintarTravasLb();' +
@@ -10646,18 +10741,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest && e.target.closest("#lb-tira button.passo");' +
     '  if (!b || b.disabled) return;' +
-    /* A TIRA PASSA PELO `irParaPasso`, e não pelo `mostrarPassoLb` (05/11/2026). Era esta a
+    /* A TIRA PASSA PELO `irParaPassoLb`, e não pelo `mostrarPassoLb` (05/11/2026). Era esta a
      * porta por onde se chegava ao passo 3 sem nada estar gravado: a tira trocava de painel e
      * mais nada, e o «Ler as anamneses» respondia «grave a linha de base primeiro» a quem tinha
-     * acabado de preencher os passos 1 e 2. Quem grava é o `irParaPasso`, e é um sítio só. */
-    '  irParaPasso(b.getAttribute("data-passo"));' +
+     * acabado de preencher os passos 1 e 2. Quem grava é o `irParaPassoLb`, e é um sítio só. */
+    '  irParaPassoLb(b.getAttribute("data-passo"));' +
     '});' +
     'var lbSeguir = document.getElementById("lb-seguir");' +
     'if (lbSeguir) lbSeguir.addEventListener("click", function(){' +
     // O «SEGUIR» PASSA PELO MESMO SÍTIO (05/11/2026). Antes ele gravava no 1 e no 4 e nos outros
     // dois não gravava nada — a regra vivia em dois `if` e faltava nos três passos onde também é
     // precisa. Agora há uma passagem, e ela grava antes de avançar.
-    '  irParaPasso(LB_PASSO + 1);' +
+    '  irParaPassoLb(LB_PASSO + 1);' +
     '});' +
     'var lbVoltar = document.getElementById("lb-voltar");' +
     'if (lbVoltar) lbVoltar.addEventListener("click", function(){ mostrarPassoLb(LB_PASSO - 1); });' +
@@ -13002,11 +13097,31 @@ async function fetch(request, env) {
     if (!r.ok) {
       return json(r.status || 400, { ok: false, erro: r.erro, erros: r.erros, termo: r.termo });
     }
-    /* DOIS DESFECHOS, E O `201` DIZ QUAL. Criado é `201`; aproveitado é `200` com `jaExistia` —
-     * e é o mesmo corpo, para a tela não ter dois caminhos para o mesmo gesto. O `commit` nulo no
-     * segundo caso é o que impede a tela de anunciar uma gravação que não houve. */
+    /* O TERMO VAI INTEIRO, E NÃO SÓ O NOME (07/11/2026).
+     *
+     * A TELA PRECISA DO DICIONÁRIO QUE ELA AINDA NÃO TEM. O passo 1 preenche a categoria, a
+     * tradição e a definição a partir de `VERBETES.exerciciosDoVocabulario` — a lista que veio no
+     * carregamento da página. Um termo criado (ou encontrado) AGORA não está nessa lista, e a
+     * tela acrescentava só o `<option>` do nome: o exercício aparecia escolhido, os três campos
+     * ficavam VAZIOS, e a nota ao lado dizia «estes três campos são a definição do exercício no
+     * dicionário». Era essa a contradição que ela viu.
+     *
+     * O nome sozinho não serve para preencher nada; o registo serve. Vai o que o formulário lê:
+     * `categoria`, `tradicao` (com o rótulo), `descricao` e `fonte` — e vai também quando o termo
+     * já existia, porque é o caso em que a página MENOS sabe dele. */
+    const termoMesmo = r.termo || {};
     return json(r.jaExistia ? 200 : 201, {
-      ok: true, termo: r.termo.termo, id: r.termo.id, commit: r.commit,
+      ok: true, termo: termoMesmo.termo, id: termoMesmo.id, commit: r.commit,
+      dados: {
+        id: termoMesmo.id,
+        termo: termoMesmo.termo,
+        categoria: termoMesmo.categoria || '',
+        tradicao: termoMesmo.tradicao || '',
+        tradicaoRotulo: termoMesmo.tradicao ? rotuloDaTradicao(termoMesmo.tradicao) : '',
+        descricao: termoMesmo.descricao || '',
+        fonte: termoMesmo.fonte || '',
+        escola: termoMesmo.escola || '',
+      },
       ...(r.jaExistia ? { jaExistia: true } : {}),
     });
   }

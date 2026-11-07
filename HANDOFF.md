@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T19:44:26-0300`
-Commit atual: `08a088e1` — feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
+Gerado em: `2026-11-07T20:05:50-0300`
+Commit atual: `7e7d660f` — fix(estrutura): o termo que já existe é aproveitado, e não recusado
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,7 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+7e7d660f fix(estrutura): o termo que já existe é aproveitado, e não recusado
 08a088e1 feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
 44ee2828 chore(estrutura): regerar os índices derivados
 e851b964 feat(linha de base): índice — tami 20261107-2229
@@ -90,7 +91,6 @@ a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
 b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
 21a6884a feat(po): o PO elicitado vira a fonte do ciclo
 0a25b3c0 feat(acervo): envelope/po-20261107-1911.json
-76d4f731 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -162,80 +162,107 @@ b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num 
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O termo que já existe é aproveitado, e não recusado
+## 07/11/2026 — O «Seguir» do verbete não andava porque havia três `irParaPasso`
 
-**O que motivou.** Na escola `batata`, ela escreveu «Battement jeté» no passo 1 do exercício, com a
-definição e a categoria, e o «Seguir» respondeu
+**O que motivou.** Na `batata`, depois de passar o passo 1, ela viu uma tela de detalhamento com
+caixas bloqueadas — «a definição do dicionário para «Battement jeté» vale para todos os trechos
+deste verbete», «estes três campos são a definição do exercício no dicionário e ficam bloqueados
+aqui» — **vazias**, e o «Seguir» habilitado a **não fazer nada**. Duas queixas, e nenhuma relação
+entre elas.
+
+**A primeira causa: a navegação do verbete estava morta, e não por um erro de sintaxe.** A página
+dos Bastidores é **uma só folha de `function`** — turma, verbete e linha de base vivem no mesmo
+`<script>`. Cada uma declarou a sua navegação com o mesmo nome:
 
 ```
-409 «Battement jeté» já está no vocabulário desta escola
+turma          function irParaPasso(qual)   (18/10)
+verbete        function irParaPasso(n)      (31/10)
+linha de base  function irParaPasso(qual)   (05/11 — 449dc3dc)
 ```
 
-A requisição abortou, a tela ficou no passo 1, e o exercício — que **é** o que ela quer usar —
-não podia ser escolhido no passo 2. O termo estava lá desde as 22:31 daquele dia, criado por ela
-(`08a088e1`): o sistema recusou-lhe o que ela própria tinha acabado de cadastrar.
+Em JavaScript a **última declaração vence**. Desde 05/11 o «Seguir» do verbete e o «Avançar» da
+turma chamavam a navegação da **linha de base**: `alvo = Number("turma") || 1` dava 1, e o painel
+da linha de base é que mudava. A tela que ela descreveu — «avança visualmente para uma etapa de
+detalhamento» — era isso: o passo 2 do PO («Nenhuma aluna com anamnese…»), não o do verbete. O
+mesmo acontecia com `podeIrPara`, declarado duas vezes: a tira do verbete passou a fechar os passos
+pelas regras da linha de base.
 
-**O diagnóstico.** A rota `POST /api/bastidores/termo` existia para **acrescentar**, e por isso
-tratava a colisão como erro. Mas o passo 1 não é «criar um termo novo»: é «dizer **qual** é o
-exercício». Um formulário que pede o nome de uma coisa que pode já existir não colidiu — encontrou-a.
-A regra de unicidade estava certa (o ficheiro não pode acumular repetições); o **desfecho** é que
-estava errado.
+**Porque é que isto não aparecia a ler o código.** Cada bloco está certo lido sozinho. O defeito é
+a **convivência dos nomes**, e só se vê contando-os — que é o que a prova nova faz primeiro, sobre
+o script servido, e não sobre o fonte.
 
-O cliente confirmava o defeito por construção: em `!d.ok` escrevia o erro em `[data-res=vb-novo]` e
-**retornava sem chamar `depois`** — e é `depois(true)` que faz `irParaPasso(2)`. Não era a tela que
-travava: era a rota que a mandava travar.
+**A segunda causa: os três campos eram preenchidos a partir de uma lista que a página não tinha.**
+`VERBETES.exerciciosDoVocabulario` é a fotografia do vocabulário no instante do carregamento. Um
+exercício criado (ou encontrado) depois disso não está nela, e o passo 1 acrescentava só o
+`<option>` do nome — a categoria, a tradição e a definição ficavam vazias, **bloqueadas**, com a
+nota ao lado a afirmar que eram «a definição do exercício no dicionário». A rota passou a devolver
+o **registo** e não só o nome (`dados`), e o cliente inscreve-o no dicionário da página quando ele
+lá não está.
 
-**O que foi decidido.** Três camadas, e a decisão importante está na primeira:
+**O terceiro defeito, do mesmo passo e também medido.** A frase era o único dos quatro obrigatórios
+que não repintava a navegação: quem escrevia o nome, escolhia categoria e tradição e deixava a
+definição para o fim ficava com o «Seguir» **apagado** e o `title` a dizer «falta o que acontece»,
+já com a frase escrita e sem nada que o voltasse a acender.
 
-1. **A recusa continua a ser o padrão do repositório.** `criarTermo` ganhou `reutilizar`, e só
-   quando ele vem a `true` é que a colisão no mesmo dono devolve o registo existente
-   (`{ok:true, status:200, jaExistia:true, termo, commit:null}`). Sem a opção, o mesmo par continua
-   a dar **409** — a camada que garante a unicidade não foi enfraquecida, foi apenas informada de
-   que quem chama quer encontrar-e-usar.
-2. **A rota pede o reuso** — é ela que sabe que o pedido vem do passo 1 — e responde **201** quando
-   criou e **200 + `jaExistia`** quando encontrou. O código de estado passa a dizer a verdade.
-3. **A tela di-lo.** Com `jaExistia`, o passo 1 diz ««X» já estava no vocabulário — reaproveitado»,
-   e o fluxo avança. Se ela escreveu uma definição, a tela avisa que **a guardada é que fica** e que
-   o caminho para a mudar é editar o termo.
+**O que foi decidido.**
 
-**A definição NÃO é reescrita, e é de propósito (P-03).** O termo é uma fonte partilhada por todas as
-turmas da escola; sobrescrevê-la com o que veio num formulário de aula faria com que a mesma palavra
-significasse coisas diferentes conforme a aula em que alguém a escreveu. A recusa em silêncio seria
-pior; a tela diz o que aconteceu.
+1. **Um nome, uma superfície.** As três navegações passam a dizer de quem são —
+   `irParaPassoTurma`, `irParaPassoVerbete`, `irParaPassoLb` — e o mesmo para `podeIrPara`. A regra
+   que fica escrita no código: nesta página um nome de topo pertence a uma só superfície, porque um
+   nome repetido não dá erro nenhum e apaga a função anterior em silêncio.
+2. **O que congela mudou de tamanho (07/11/2026).** A 02/11 ela mandou congelar os três campos
+   («pertencem à definição oficial»); hoje corrigiu: «a definição oficial do dicionário deve ser
+   exibida como referência (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas
+   personalizadas do professor deve estar liberado e interativo». As duas coisas só cabem em dois
+   sítios: a **categoria e a tradição** ficam bloqueadas (são a classificação do termo) e a
+   **frase é do professor** — é ela que os trechos levam. A definição oficial passa a uma linha
+   própria, `#vb-oficial`, que se lê e não se edita. E some a contradição que ela viu: a nota do
+   passo 2 dizia «ajuste à vontade: é a sua frase que fica gravada» **por cima de um campo
+   desactivado**.
+3. **Escrever a definição repinta a navegação.**
 
-**Onde entrou.** `motor/servidor/termo-repo.js` (`reutilizar`, com o porquê escrito) ·
-`motor/servidor/bastidores.js` (a rota passa `reutilizar: true` e escolhe o estado; o cliente, no
-caminho do sucesso, com o recado) · `experimentos/provar-verbete.js` (secção **F** no repositório e
-secção **G** na **rota**) · `ESTADO-ATUAL.md` (§11).
+**Onde entrou.** `motor/servidor/bastidores.js` (as três navegações, o registo do termo no
+dicionário da página, `sincronizarPasso1ComExercicio` no fim do passo 1, `pintarOficial`, o
+`input` da frase e a nota do bloco) · `motor/servidor/bastidores.js` (a rota do termo devolve
+`dados`) · `experimentos/provar-passo-um-do-verbete.js` (nova, 30 asserções) ·
+`experimentos/provar-celula.js` e `provar-salas-e-elencos.js` (apontadas aos nomes novos) ·
+`ESTADO-ATUAL.md` (§11).
 
-**Validação.** `provar-verbete` — as **13** asserções novas passam, e a única que falha («o documento
-datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no baseline**, com os três
-ficheiros em `stash`. A secção G corre a **rota**, e não a função: é a rota que decide o
-`reutilizar`, e uma prova sobre a função passaria mesmo que a rota continuasse a pedir o 409 — que
-era exactamente o caso antes de hoje. Mede o primeiro «Seguir» de um nome novo (**201**, com
-`commit`), o «Seguir» sobre o termo que a escola já tem — **«Battement jeté», o caso dela** — (**200**
-com `jaExistia`, `commit: null`, sem segundo termo no ficheiro, sem reescrever a definição), um
-terceiro «Seguir» (continua **200**: idempotência que só funcionasse à segunda não seria
-idempotência), e um nome novo com tudo ligado (**201**, sem `jaExistia`).
+**Validação.** A prova nova **30/30**, e é a primeira do projeto que **mede o próprio script**:
+nenhum nome de topo declarado duas vezes, com **contraprova do detector** (um nome repetido de
+propósito tem de ser apanhado, senão o detector quebrado elogiava a página), e os três nomes a
+existir. Depois, num navegador de verdade: os quatro obrigatórios (e a definição, escrita por
+último, a acordar o «Seguir»), o clique a levar ao passo **do verbete**, os três campos preenchidos
+a partir do termo que a página não tinha, a classificação bloqueada e a frase editável, o oficial à
+vista, e as navegações da turma e da linha de base a continuarem a ser delas.
 
-**O A/B.** Posta a rota a pedir `reutilizar: false`, a asserção nova falha com **exactamente** o que
-ela viu — `409 «Battement jeté» já está no vocabulário desta escola`. A prova mede o que diz medir.
+**Os dois A/B, cirúrgicos.** Desligada a inscrição no dicionário: **23/30** — e falham exactamente
+as sete asserções dos campos vazios e da referência («escolhido na lista, a categoria enche-se» →
+`""`). Desligado o repintar da navegação ao escrever a frase: **15/30** — e a primeira que falha é
+«escrever a definição ACORDA o Seguir», com o `title` a dizer «falta o que acontece» com a frase
+escrita, que é o defeito ao pé da letra.
 
-**Sem regressão.** `provar-producao` **166/166** · `provar-compasso-limpo` **verde** ·
-`provar-celula` e `provar-listas-sem-repeticao` falham **identicamente no baseline** (comparadas
-`FALHOU` a `FALHOU`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
-`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
-`wrangler deploy --dry-run` **compila** em `wrangler.danca.jsonc` e em `wrangler.batata.jsonc`.
+**Sem regressão.** `provar-producao` **166/166** · `provar-salas-e-elencos` **65/65** ·
+`provar-compasso-limpo` **verde** · `provar-menu-da-producao` **verde** · `provar-verbete`: a única
+falha («o documento datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no
+baseline** · `check-identidade` **0 erros** (a linha nova usa a peça `.nota`, que já existia) ·
+`check-schemas` **verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** · o
+script **servido** compila · `wrangler deploy --dry-run` **compila nos dois Workers**.
 
-**O que fica por resolver, declarado.**
+**O que fica declarado.**
 
-- **O vocabulário tem agora dois `battement-jete`** — um do catálogo e um de que a `batata` é dona.
-  É legal (a colisão é por `(dono, id)` e o `compor` faz o da escola ganhar), mas é conteúdo
-  duplicado no ficheiro. Não é defeito desta correção: nasceu de o termo ter sido criado na escola
-  quando já existia no catálogo. A faxina é decisão dela.
-- **A definição escrita no formulário não é aplicada** ao termo que já existe — deliberado, e a tela
-  di-lo. Se quiser substituí-la, o caminho é editar o termo.
-- **A conferência ao ar é do próximo deploy.** A página corre o servidor empacotado no Worker.
+- **`provar-celula` continua vermelho, e agora sabe-se porquê.** Ele é a bancada do verbete e está
+  a falhar desde 05/11 — a data em que a navegação morreu. Ele chamava `irParaPasso` pelo nome
+  antigo (o global, que resolveu para a função da linha de base) e as secções seguintes mediam uma
+  tela que nunca chegava ao passo pedido. Ficou apontado aos nomes novos, mas continua a parar na
+  secção 2: `#vb-tabela` não tem tabela depois de escolher o exercício, e isso é um defeito
+  próprio, anterior e distinto, que não foi investigado nesta sessão.
+- **A edição do termo não tem ecrã.** Ela pediu «um link direto ou atalho para a edição do termo
+  no vocabulário»; a linha `#vb-oficial` diz **onde** («edite o termo no vocabulário»), mas não há
+  hoje nenhuma página que o faça — a rota `PUT /api/bastidores/termo` existe e nada a chama. Um
+  ecrã de edição de termos é trabalho por fazer, não um link que falte colocar.
+- **O `Unexpected token '<'` que a página já dava** (o cliente tenta ler como JSON uma resposta que
+  a bancada serve como HTML) é anterior e está nomeado na prova para não se confundir com isto.
 
 ## O que está pendente
 

@@ -1118,7 +1118,7 @@ async function aOrigemDoVocabulario() {
     && !/vb-cancelar-exercicio/.test(script) && !/modoExercicio/.test(script));
   checar('e o Enter no nome cria o exercício, em vez de submeter o formulário',
     /ev\.key !== "Enter"/.test(script)
-    && /criarExercicioDoPasso1\(function\(\)\{ irParaPasso\(2\); \}\)/.test(script));
+    && /criarExercicioDoPasso1\(function\(\)\{ irParaPassoVerbete\(2\); \}\)/.test(script));
   checar('e o exercício criado fica escolhido no campo do passo 2',
     /nomes\.value = d\.termo/.test(script)
     && /já está na lista do passo 2/.test(script));

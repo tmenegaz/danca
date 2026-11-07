@@ -1,0 +1,356 @@
+#!/usr/bin/env node
+'use strict';
+
+/**
+ * provar-passo-um-do-verbete.js — o passo 1 do verbete, num navegador de verdade.
+ *
+ * O QUE ELA MEDE, e porquê. Ela relatou duas coisas na mesma tela (07/11/2026):
+ *
+ *   «o botão Seguir encontra-se habilitado, porém ao ser clicado não executa nenhuma ação»; e
+ *   «a listagem/campos referentes ao termo no vocabulário aparecem vazios».
+ *
+ * As duas eram verdade, e não tinham nada a ver uma com a outra:
+ *
+ *   1. **A NAVEGAÇÃO DO VERBETE ESTAVA MORTA.** A página dos Bastidores é UMA folha de
+ *      `function`, e a turma, o verbete e a linha de base declaravam cada uma o seu
+ *      `irParaPasso`. Em JavaScript a última vence — e a última era a da LINHA DE BASE. O
+ *      «Seguir» chamava a navegação de outra superfície. Isto não se vê a ler o código de cada
+ *      bloco: vê-se a contar os nomes. Por isso a secção A é estática e é a primeira.
+ *
+ *   2. **OS TRÊS CAMPOS ERAM PREENCHIDOS DE UMA LISTA QUE A PÁGINA NÃO TINHA.** A categoria, a
+ *      tradição e a definição vêm de `VERBETES.exerciciosDoVocabulario`, a fotografia do
+ *      vocabulário no instante do carregamento. Um exercício criado (ou encontrado) depois disso
+ *      não está lá: a tela acrescentava o `<option>` do nome e mais nada — caixas bloqueadas,
+ *      vazias, com uma nota ao lado a afirmar que eram «a definição do exercício no dicionário».
+ *
+ * A bancada é LOCAL: um `http.createServer` em porta efémera serve a página que o módulo monta,
+ * a folha e as respostas de `/api` stubadas. **Nada aqui toca no ar.**
+ *
+ * Requer Chrome/Chromium (puppeteer-core vem com o marp-cli global). Sem ele: NÃO FEITO.
+ *
+ *   uso: node experimentos/provar-passo-um-do-verbete.js
+ */
+
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const raiz = path.join(__dirname, '..');
+const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
+
+let falhas = 0;
+let total = 0;
+function conferir(rotulo, condicao, detalhe) {
+  total += 1;
+  if (condicao) {
+    console.log('  ✓ ' + rotulo);
+  } else {
+    falhas += 1;
+    console.log('  ✗ ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
+  }
+}
+
+/* O VOCABULÁRIO DA BANCADA ESTÁ VAZIO DE PROPÓSITO. É o caso real: a página foi carregada
+ * antes de o exercício existir, e é o único em que os três campos podem aparecer vazios. Uma
+ * fixture que já trouxesse o termo mediria o caminho fácil e não veria o defeito. */
+const ALFABETO = {
+  ok: true,
+  versao: 5,
+  exercicios: [],
+  verbetes: {},
+  exerciciosDoVocabulario: [],
+  posicoes: [],
+  direcoes: [{ termo: 'devant', nome: 'à frente', glifo: '+' }],
+  orientacoes: [{ termo: 'en-face', nome: 'de frente', tradicao: 'en face', glifo: 'en-face' }],
+  categoriasDeBloco: ['Pé'],
+  descricoes: {},
+  sinais: [{ sinal: '→', nome: 'conduz a', grupo: 'Movimento' }],
+};
+
+/** O TERMO QUE A ROTA DEVOLVE — o mesmo que o `batata` guarda no vocabulário. */
+const TERMO = {
+  id: 'battement-jete',
+  termo: 'Battement jeté',
+  categoria: 'passo',
+  tradicao: 'RAD',
+  tradicaoRotulo: 'RAD',
+  descricao: 'Lançamento rápido da perna estendida a uma altura baixa (45 graus), escovando o chão.',
+  fonte: 'Redigida no projeto',
+  escola: 'batata',
+};
+
+const PEDIDOS = [];
+
+function servir(html) {
+  const srv = http.createServer((req, res) => {
+    const caminho = decodeURIComponent(req.url).split('?')[0];
+    const ok = (tipo, corpo) => {
+      res.writeHead(200, { 'content-type': tipo, 'cache-control': 'no-store' });
+      res.end(corpo);
+    };
+    if (caminho.endsWith('/assets/style.css')) {
+      return ok('text/css; charset=utf-8', fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css')));
+    }
+    if (caminho.endsWith('/assets/nav.js')) {
+      return ok('text/javascript', fs.readFileSync(path.join(raiz, 'tools/templates/nav.js')));
+    }
+    if (caminho === '/api/bastidores/termo') {
+      let cru = '';
+      req.on('data', (t) => { cru += t; });
+      return req.on('end', () => {
+        let corpo = null;
+        try { corpo = JSON.parse(cru); } catch { corpo = null; }
+        PEDIDOS.push(corpo);
+        // O QUE A ROTA DE HOJE RESPONDE A UM TERMO QUE JÁ EXISTE: 200, `jaExistia`, e o registo.
+        return ok('application/json', JSON.stringify({
+          ok: true, termo: TERMO.termo, id: TERMO.id, commit: null, jaExistia: true, dados: TERMO,
+        }));
+      });
+    }
+    if (caminho === '/api/bastidores/verbete') return ok('application/json', JSON.stringify(ALFABETO));
+    if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
+    ok('text/html; charset=utf-8', html);
+  });
+  return new Promise((pronto) => srv.listen(0, '127.0.0.1', () => pronto({
+    srv, base: 'http://127.0.0.1:' + srv.address().port,
+  })));
+}
+
+/** A contagem de nomes de topo repetidos — a regra da secção A, isolada para se poder medir. */
+function nomesRepetidos(script) {
+  const contagem = {};
+  for (const m of script.matchAll(/function ([A-Za-z_$][\w$]*)\s*\(/g)) {
+    contagem[m[1]] = (contagem[m[1]] || 0) + 1;
+  }
+  return Object.entries(contagem).filter(([, n]) => n > 1).map(([nome]) => nome);
+}
+
+(async () => {
+  const html = bastidores.paginaProducao('batata', { professor: 'dedao-aberto', ciclo: '01', query: '' },
+    [], [], 'Tiago', 'tiago', [], [], [], [], [], []);
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const script = scripts.slice().sort((a, b) => b.length - a.length)[0];
+
+  console.log('\nA. UMA PÁGINA, UM NOME — nenhuma função de topo é declarada duas vezes');
+  const repetidos = nomesRepetidos(script);
+  conferir('nenhuma função do script é declarada duas vezes', repetidos.length === 0, repetidos);
+  /* A CONTRAPROVA, no lugar: o detector tem de apanhar o que diz apanhar. Sem esta linha, um
+   * detector quebrado (um regex que deixasse de casar) passaria a elogiar a página. */
+  const artificial = 'function x(){}\nfunction y(){}\nfunction x(){ return 2; }';
+  conferir('contraprova: o detector apanha um nome repetido de propósito',
+    JSON.stringify(nomesRepetidos(artificial)) === JSON.stringify(['x']), nomesRepetidos(artificial));
+  /* E os três nomes têm de existir: se alguém os «unificar» outra vez, isto reprova antes de a
+   * navegação morrer em silêncio. */
+  conferir('as três navegações são três nomes: turma, verbete e linha de base',
+    ['irParaPassoTurma', 'irParaPassoVerbete', 'irParaPassoLb'].every((n) => new RegExp('function ' + n + '\\b').test(script)),
+    ['irParaPassoTurma', 'irParaPassoVerbete', 'irParaPassoLb'].filter((n) => !new RegExp('function ' + n + '\\b').test(script)));
+  conferir('…e o mesmo para os três «pode ir para»',
+    ['podeIrParaVerbete', 'podeIrParaLb'].every((n) => new RegExp('function ' + n + '\\b').test(script)));
+
+  const executavel = process.env.CHROME_PATH
+    || ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].find((p) => fs.existsSync(p));
+  if (!executavel) {
+    console.error('provar-passo-um-do-verbete: Chrome/Chromium não encontrado — NÃO FEITO.');
+    process.exit(1);
+  }
+  const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team/marp-cli');
+  const puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+
+  const { srv, base } = await servir(html);
+  const browser = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox'] });
+  const page = await browser.newPage();
+  const erros = [];
+  page.on('pageerror', (e) => erros.push(e.message));
+
+  const estado = () => page.evaluate(() => {
+    const q = (id) => document.getElementById(id);
+    const visivel = (e) => Boolean(e) && !e.hidden && getComputedStyle(e).display !== 'none'
+      && e.getBoundingClientRect().height > 0;
+    const painelDoVerbete = (n) => document.querySelector('#form-verbete .passo-painel[data-passo="' + n + '"]')
+      || document.querySelector('#vb-modo-verbete .passo-painel[data-passo="' + n + '"]');
+    const seguir = q('vb-seguir');
+    return {
+      passo: window.PASSO,
+      passo1: visivel(painelDoVerbete(1)),
+      passo2: visivel(painelDoVerbete(2)),
+      categoria: (q('vncategoria') || {}).value,
+      tradicao: (q('vntradicao') || {}).value,
+      frase: (q('vb-frase') || {}).value || '',
+      bloqueados: ['vncategoria', 'vntradicao', 'vb-frase'].map((id) => Boolean((q(id) || {}).disabled)),
+      oficial: ((q('vb-oficial') || {}).textContent || '').trim(),
+      notaDaFrase: ((q('vb-frase-nota') || {}).textContent || '').trim(),
+      notoDoBloqueio: ((q('vb-vigor-nota') || {}).textContent || '').trim(),
+      seguir: seguir ? { disabled: seguir.disabled, titulo: seguir.getAttribute('title') || '' } : null,
+      dicionario: (window.VERBETES && window.VERBETES.exerciciosDoVocabulario || []).map((t) => t && t.termo),
+    };
+  });
+  const dispara = (id, tipo) => page.evaluate((i, t) => {
+    document.getElementById(i).dispatchEvent(new Event(t, { bubbles: true }));
+  }, id, tipo);
+
+  try {
+    await page.setViewport({ width: 1280, height: 950 });
+    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    // A Produção é uma página de sessão: `abrirSessao` é o que o login faz ao vivo.
+    await page.evaluate(() => {
+      if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
+      location.hash = '#verbetes';
+      if (typeof mostrarSecao === 'function') mostrarSecao();
+    });
+    await new Promise((r) => setTimeout(r, 700));
+
+    console.log('\nB. OS QUATRO OBRIGATÓRIOS — e o «Seguir» acorda com o último');
+    // A ORDEM DELA: o nome, a categoria, a tradição — e a definição por último. É a ordem que
+    // deixa o «Seguir» apagado, e era aqui que ele ficava apagado para sempre.
+    await page.evaluate(() => { document.getElementById('vnnome').value = 'Battement jeté'; });
+    await dispara('vnnome', 'input');
+    await page.evaluate(() => { document.getElementById('vncategoria').value = 'passo'; });
+    await dispara('vncategoria', 'change');
+    await page.evaluate(() => { document.getElementById('vntradicao').value = 'RAD'; });
+    await dispara('vntradicao', 'change');
+    const semFrase = await estado();
+    conferir('com nome, categoria e tradição mas sem a definição, o «Seguir» está bloqueado',
+      semFrase.seguir && semFrase.seguir.disabled === true, semFrase.seguir);
+    conferir('…e diz o que falta, pelo nome',
+      /o que acontece/.test(semFrase.seguir.titulo), semFrase.seguir.titulo);
+
+    await page.evaluate(() => {
+      document.getElementById('vb-frase').value = 'Lançamento rápido da perna estendida.';
+    });
+    await dispara('vb-frase', 'input');
+    const comFrase = await estado();
+    conferir('escrever a definição ACORDA o «Seguir» (era o último obrigatório e o único que não repintava)',
+      comFrase.seguir && comFrase.seguir.disabled === false, comFrase.seguir);
+    conferir('…e o título que dizia faltar o que já está desaparece',
+      comFrase.seguir.titulo === '', comFrase.seguir.titulo);
+
+    console.log('\nC. O «SEGUIR» ANDA — e anda para o passo do VERBETE');
+    await page.click('#vb-seguir');
+    await new Promise((r) => setTimeout(r, 800));
+    const depois = await estado();
+    conferir('o clique levou o formulário ao passo 2', depois.passo === 2, depois.passo);
+    conferir('…e é o painel 2 do VERBETE que está à vista', depois.passo2 === true && depois.passo1 === false,
+      { p1: depois.passo1, p2: depois.passo2 });
+    conferir('…e o pedido foi feito uma vez, com o nome e a definição que ela escreveu',
+      PEDIDOS.length === 1 && PEDIDOS[0].termo === 'Battement jeté'
+      && PEDIDOS[0].descricao === 'Lançamento rápido da perna estendida.', PEDIDOS);
+
+    console.log('\nD. OS TRÊS CAMPOS — a classificação congela, a frase é dela, o oficial fica à vista');
+    conferir('a categoria veio do termo, e está preenchida', depois.categoria === 'passo', depois.categoria);
+    conferir('a tradição veio do termo, e está preenchida', depois.tradicao === 'RAD', depois.tradicao);
+    conferir('a categoria e a tradição ficam BLOQUEADAS — são a classificação do dicionário',
+      depois.bloqueados[0] === true && depois.bloqueados[1] === true, depois.bloqueados);
+    /* A DEFINIÇÃO NÃO SE BLOQUEIA (07/11/2026): «o espaço para notas/anotações pedagógicas
+     * personalizadas do professor deve estar liberado e interativo». */
+    conferir('a frase do professor NÃO é bloqueada', depois.bloqueados[2] === false, depois.bloqueados);
+    conferir('…e é a que ela escreveu que fica no campo', depois.frase === 'Lançamento rápido da perna estendida.',
+      depois.frase);
+    conferir('a definição oficial aparece como REFERÊNCIA, e é a do dicionário',
+      /Lançamento rápido da perna estendida a uma altura baixa/.test(depois.oficial), depois.oficial);
+    conferir('…e diz que não se edita por ali — para a mudar, edita-se o termo',
+      /edite o termo no vocabulário/.test(depois.oficial), depois.oficial);
+    conferir('a nota do bloqueio fala da categoria e da tradição, e já não promete «três campos»',
+      /categoria e a tradição/.test(depois.notoDoBloqueio)
+      && !/três campos/.test(depois.notoDoBloqueio), depois.notoDoBloqueio);
+    conferir('…e diz que a frase acima é dela', /A frase acima é a sua/.test(depois.notoDoBloqueio),
+      depois.notoDoBloqueio);
+    conferir('o termo encontrado entrou no dicionário da PÁGINA — é dele que os campos se enchem',
+      depois.dicionario.indexOf('Battement jeté') !== -1, depois.dicionario);
+
+    console.log('\nE. AS OUTRAS DUAS NAVEGAÇÕES CONTINUAM A SER DELAS');
+    /* A TURMA. Ela era a primeira a ser sombreada (o verbete vinha depois), e por isso o
+     * «Avançar» da turma já chamava a navegação de outra superfície desde 02/11. */
+    /* A TURMA TEM UMA TRAVA PRÓPRIA — sem a turma completa, qualquer passo pedido cai no passo
+     * «turma». É por isso que esta asserção não mede «chegou à rubrica»: mede o que distingue a
+     * navegação CERTA da errada. Com a navegação da turma, o passo do VERBETE fica onde está (é
+     * outra superfície); com a do verbete, `PASSO` mudava para 1 (`Number("vincular") || 1`); com
+     * a da linha de base, os painéis dela mudavam. */
+    const daTurma = await page.evaluate(() => {
+      if (typeof irParaPassoTurma !== 'function') return { erro: 'irParaPassoTurma não existe' };
+      const antes = { passoDoVerbete: window.PASSO, lb: window.LB_PASSO };
+      irParaPassoTurma('vincular');
+      return {
+        antes,
+        depois: { passoDoVerbete: window.PASSO, lb: window.LB_PASSO },
+        turmaAVista: document.getElementById('passo-turma').hidden === false,
+        rubricaEscondida: document.getElementById('passo-rubrica').hidden === true,
+      };
+    });
+    conferir('«irParaPassoTurma» governa o painel da TURMA e não toca no do verbete',
+      daTurma.turmaAVista === true && daTurma.depois.passoDoVerbete === daTurma.antes.passoDoVerbete,
+      daTurma);
+    conferir('…e a trava da turma continua a mandar: sem a turma completa, o passo pedido cai no 1',
+      daTurma.rubricaEscondida === true, daTurma);
+
+    /* A LINHA DE BASE. É a que estava a vencer por ser a última — e continua a funcionar. */
+    const daLinha = await page.evaluate(() => {
+      if (typeof irParaPassoLb !== 'function') return { erro: 'irParaPassoLb não existe' };
+      const paineis = () => [...document.querySelectorAll('#corpo-miolo .passo-painel')]
+        .map((p) => p.getAttribute('data-passo') + ':' + (p.hidden ? 'escondido' : 'à-vista'));
+      const antes = paineis();
+      irParaPassoLb(1);
+      return { antes, depois: paineis(), lbPasso: window.LB_PASSO };
+    });
+    conferir('«irParaPassoLb» continua a abrir o passo 1 da linha de base',
+      daLinha.lbPasso === 1 && /1:à-vista/.test(daLinha.depois.join(' ')), daLinha);
+
+    console.log('\nF. ESCOLHER O EXERCÍCIO NO PASSO 2 ENCHE OS TRÊS CAMPOS');
+    /* O CASO DELA, AO PÉ DA LETRA: as caixas apareciam VAZIAS. É o que acontece quando o
+     * exercício é escolhido na lista em vez de escrito — não há nada digitado para ficar no
+     * campo, e a única fonte possível é o dicionário. Sem o termo na lista da página, os três
+     * ficam vazios e bloqueados, com a nota a dizer que são «a definição do dicionário». */
+    await page.evaluate(() => {
+      // Limpa o passo 1: o nome novo sai, e o exercício fica escolhido só pela lista.
+      const novo = document.getElementById('vnnome');
+      novo.value = '';
+      novo.dispatchEvent(new Event('input', { bubbles: true }));
+      const cat = document.getElementById('vncategoria'); cat.value = '';
+      cat.dispatchEvent(new Event('change', { bubbles: true }));
+      const tra = document.getElementById('vntradicao'); tra.value = '';
+      tra.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    // O gesto do passo 2: escolher da lista — e é o `change` que a tela escuta.
+    const daLista = await page.evaluate(() => {
+      const sel = document.getElementById('vbnome');
+      sel.value = 'Battement jeté';
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      const q = (id) => document.getElementById(id);
+      return {
+        categoria: (q('vncategoria') || {}).value,
+        tradicao: (q('vntradicao') || {}).value,
+        // A FRASE: preenchida a partir do dicionário quando não há nada gravado (P-03/P-04).
+        frase: (q('vb-frase') || {}).value || '',
+        oficial: ((q('vb-oficial') || {}).textContent || '').trim(),
+        bloqueados: ['vncategoria', 'vntradicao', 'vb-frase'].map((id) => Boolean((q(id) || {}).disabled)),
+      };
+    });
+    conferir('escolhido na lista, a categoria enche-se — e não fica vazia',
+      daLista.categoria === 'passo', daLista.categoria);
+    conferir('…a tradição idem', daLista.tradicao === 'RAD', daLista.tradicao);
+    conferir('…a frase nasce com a definição do dicionário, pronta a ajustar',
+      /Lançamento rápido da perna estendida/.test(daLista.frase), daLista.frase);
+    conferir('…e a categoria e a tradição ficam bloqueadas, mas a frase não',
+      daLista.bloqueados[0] === true && daLista.bloqueados[1] === true && daLista.bloqueados[2] === false,
+      daLista.bloqueados);
+    conferir('…e a definição oficial continua à vista como referência',
+      /altura baixa/.test(daLista.oficial), daLista.oficial);
+
+    console.log('\nG. NENHUM ERRO DE JAVASCRIPT');
+    /* O `Unexpected token '<'` que a página já dava antes desta correção é do `perfil` — a rota
+     * responde HTML nesta bancada e o cliente tenta lê-la como JSON. Está aqui nomeado para não
+     * se confundir com um defeito desta correção nem esconder um que venha a aparecer. */
+    const inesperados = erros.filter((m) => !/Unexpected token '<'/.test(m));
+    conferir('nenhum erro de JavaScript além do que já existia', inesperados.length === 0, inesperados);
+  } finally {
+    await browser.close();
+    srv.close();
+  }
+
+  console.log('\n' + (falhas === 0 ? 'PASSOU' : 'FALHOU') + ' — ' + (total - falhas) + ' de ' + total + ' asserções');
+  process.exit(falhas === 0 ? 0 : 1);
+})().catch((e) => {
+  console.error('erro na prova:', e.message);
+  console.error(e.stack);
+  process.exit(1);
+});

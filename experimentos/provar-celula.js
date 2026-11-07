@@ -447,7 +447,7 @@ function estado() {
   // mudou de tamanho. (`let`, e não `const`: a página ainda está em `about:blank` aqui.)
   let ULTIMO = null;
   const irA = async (n) => {
-    await page.evaluate((k) => { if (typeof irParaPasso === 'function') irParaPasso(k); }, n);
+    await page.evaluate((k) => { if (typeof irParaPasso === 'function') irParaPassoVerbete(k); }, n);
     await new Promise((r) => setTimeout(r, 150));
   };
   const noPassoDe = async (seletor) => {
@@ -1578,7 +1578,7 @@ function estado() {
       const t = document.getElementById('vbtempos');
       t.value = '8';
       t.dispatchEvent(new Event('input'));
-      irParaPasso(6);
+      irParaPassoVerbete(6);
       return { nota: document.getElementById('vb-gravar-nota').textContent,
         caixa: document.getElementById('vb-como-nova-caixa').hidden,
         substitui: substituiMusica() };
@@ -1592,7 +1592,7 @@ function estado() {
       const guardado = MUSICA_ABERTA;
       MUSICA_ABERTA = '4|4/4';
       pintarComoNova();
-      irParaPasso(6);
+      irParaPassoVerbete(6);
       const r = {
         substitui: substituiMusica(),
         nota: document.getElementById('vb-gravar-nota').textContent,
@@ -2079,7 +2079,7 @@ function estado() {
       if (f) f.reset();
       document.getElementById('vbacao').value = 'criar';
       window.CELULAS = {}; window.SINAIS = [];
-      irParaPasso(1);
+      irParaPassoVerbete(1);
       alternarPasso1();
       const q = (id) => document.getElementById(id);
       return {
@@ -2206,7 +2206,7 @@ function estado() {
     // consolidada na Tabela de Decomposição (Step 6).»
     await page.evaluate(() => {
       window.CELULAS = {}; window.SINAIS = [];
-      irParaPasso(6);
+      irParaPassoVerbete(6);
       pintarGravar();
     });
     const semTrechos = await page.evaluate(() => {
@@ -2269,7 +2269,7 @@ function estado() {
       window.CELULAS = {}; window.SINAIS = [];
       const t = document.getElementById('vbtempos');
       t.value = ''; t.dispatchEvent(new Event('input'));
-      irParaPasso(1);
+      irParaPassoVerbete(1);
       pintarPassos();
       const passos = Array.prototype.slice
         .call(document.querySelectorAll('#vb-tira button.passo'))
@@ -2293,7 +2293,7 @@ function estado() {
       const sel = document.getElementById('vbnome');
       sel.value = 'Battement tendu';
       sel.dispatchEvent(new Event('change'));
-      irParaPasso(2);
+      irParaPassoVerbete(2);
       pintarPassos();
       const t = document.getElementById('vbtempos');
       const selP = Array.prototype.slice
@@ -2313,7 +2313,7 @@ function estado() {
     const semMusica = await page.evaluate(() => {
       document.getElementById('vbtempos').value = '';
       document.getElementById('vbtempos').dispatchEvent(new Event('input'));
-      irParaPasso(3);
+      irParaPassoVerbete(3);
       pintarPassos();
       const b = document.getElementById('vb-seguir');
       return { desactivado: b.disabled, titulo: b.getAttribute('title') || '' };

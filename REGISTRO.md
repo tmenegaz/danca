@@ -40163,3 +40163,105 @@ ela viu — `409 «Battement jeté» já está no vocabulário desta escola`. A 
 - **A definição escrita no formulário não é aplicada** ao termo que já existe — deliberado, e a tela
   di-lo. Se quiser substituí-la, o caminho é editar o termo.
 - **A conferência ao ar é do próximo deploy.** A página corre o servidor empacotado no Worker.
+
+## 07/11/2026 — O «Seguir» do verbete não andava porque havia três `irParaPasso`
+
+**O que motivou.** Na `batata`, depois de passar o passo 1, ela viu uma tela de detalhamento com
+caixas bloqueadas — «a definição do dicionário para «Battement jeté» vale para todos os trechos
+deste verbete», «estes três campos são a definição do exercício no dicionário e ficam bloqueados
+aqui» — **vazias**, e o «Seguir» habilitado a **não fazer nada**. Duas queixas, e nenhuma relação
+entre elas.
+
+**A primeira causa: a navegação do verbete estava morta, e não por um erro de sintaxe.** A página
+dos Bastidores é **uma só folha de `function`** — turma, verbete e linha de base vivem no mesmo
+`<script>`. Cada uma declarou a sua navegação com o mesmo nome:
+
+```
+turma          function irParaPasso(qual)   (18/10)
+verbete        function irParaPasso(n)      (31/10)
+linha de base  function irParaPasso(qual)   (05/11 — 449dc3dc)
+```
+
+Em JavaScript a **última declaração vence**. Desde 05/11 o «Seguir» do verbete e o «Avançar» da
+turma chamavam a navegação da **linha de base**: `alvo = Number("turma") || 1` dava 1, e o painel
+da linha de base é que mudava. A tela que ela descreveu — «avança visualmente para uma etapa de
+detalhamento» — era isso: o passo 2 do PO («Nenhuma aluna com anamnese…»), não o do verbete. O
+mesmo acontecia com `podeIrPara`, declarado duas vezes: a tira do verbete passou a fechar os passos
+pelas regras da linha de base.
+
+**Porque é que isto não aparecia a ler o código.** Cada bloco está certo lido sozinho. O defeito é
+a **convivência dos nomes**, e só se vê contando-os — que é o que a prova nova faz primeiro, sobre
+o script servido, e não sobre o fonte.
+
+**A segunda causa: os três campos eram preenchidos a partir de uma lista que a página não tinha.**
+`VERBETES.exerciciosDoVocabulario` é a fotografia do vocabulário no instante do carregamento. Um
+exercício criado (ou encontrado) depois disso não está nela, e o passo 1 acrescentava só o
+`<option>` do nome — a categoria, a tradição e a definição ficavam vazias, **bloqueadas**, com a
+nota ao lado a afirmar que eram «a definição do exercício no dicionário». A rota passou a devolver
+o **registo** e não só o nome (`dados`), e o cliente inscreve-o no dicionário da página quando ele
+lá não está.
+
+**O terceiro defeito, do mesmo passo e também medido.** A frase era o único dos quatro obrigatórios
+que não repintava a navegação: quem escrevia o nome, escolhia categoria e tradição e deixava a
+definição para o fim ficava com o «Seguir» **apagado** e o `title` a dizer «falta o que acontece»,
+já com a frase escrita e sem nada que o voltasse a acender.
+
+**O que foi decidido.**
+
+1. **Um nome, uma superfície.** As três navegações passam a dizer de quem são —
+   `irParaPassoTurma`, `irParaPassoVerbete`, `irParaPassoLb` — e o mesmo para `podeIrPara`. A regra
+   que fica escrita no código: nesta página um nome de topo pertence a uma só superfície, porque um
+   nome repetido não dá erro nenhum e apaga a função anterior em silêncio.
+2. **O que congela mudou de tamanho (07/11/2026).** A 02/11 ela mandou congelar os três campos
+   («pertencem à definição oficial»); hoje corrigiu: «a definição oficial do dicionário deve ser
+   exibida como referência (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas
+   personalizadas do professor deve estar liberado e interativo». As duas coisas só cabem em dois
+   sítios: a **categoria e a tradição** ficam bloqueadas (são a classificação do termo) e a
+   **frase é do professor** — é ela que os trechos levam. A definição oficial passa a uma linha
+   própria, `#vb-oficial`, que se lê e não se edita. E some a contradição que ela viu: a nota do
+   passo 2 dizia «ajuste à vontade: é a sua frase que fica gravada» **por cima de um campo
+   desactivado**.
+3. **Escrever a definição repinta a navegação.**
+
+**Onde entrou.** `motor/servidor/bastidores.js` (as três navegações, o registo do termo no
+dicionário da página, `sincronizarPasso1ComExercicio` no fim do passo 1, `pintarOficial`, o
+`input` da frase e a nota do bloco) · `motor/servidor/bastidores.js` (a rota do termo devolve
+`dados`) · `experimentos/provar-passo-um-do-verbete.js` (nova, 30 asserções) ·
+`experimentos/provar-celula.js` e `provar-salas-e-elencos.js` (apontadas aos nomes novos) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** A prova nova **30/30**, e é a primeira do projeto que **mede o próprio script**:
+nenhum nome de topo declarado duas vezes, com **contraprova do detector** (um nome repetido de
+propósito tem de ser apanhado, senão o detector quebrado elogiava a página), e os três nomes a
+existir. Depois, num navegador de verdade: os quatro obrigatórios (e a definição, escrita por
+último, a acordar o «Seguir»), o clique a levar ao passo **do verbete**, os três campos preenchidos
+a partir do termo que a página não tinha, a classificação bloqueada e a frase editável, o oficial à
+vista, e as navegações da turma e da linha de base a continuarem a ser delas.
+
+**Os dois A/B, cirúrgicos.** Desligada a inscrição no dicionário: **23/30** — e falham exactamente
+as sete asserções dos campos vazios e da referência («escolhido na lista, a categoria enche-se» →
+`""`). Desligado o repintar da navegação ao escrever a frase: **15/30** — e a primeira que falha é
+«escrever a definição ACORDA o Seguir», com o `title` a dizer «falta o que acontece» com a frase
+escrita, que é o defeito ao pé da letra.
+
+**Sem regressão.** `provar-producao` **166/166** · `provar-salas-e-elencos` **65/65** ·
+`provar-compasso-limpo` **verde** · `provar-menu-da-producao` **verde** · `provar-verbete`: a única
+falha («o documento datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no
+baseline** · `check-identidade` **0 erros** (a linha nova usa a peça `.nota`, que já existia) ·
+`check-schemas` **verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** · o
+script **servido** compila · `wrangler deploy --dry-run` **compila nos dois Workers**.
+
+**O que fica declarado.**
+
+- **`provar-celula` continua vermelho, e agora sabe-se porquê.** Ele é a bancada do verbete e está
+  a falhar desde 05/11 — a data em que a navegação morreu. Ele chamava `irParaPasso` pelo nome
+  antigo (o global, que resolveu para a função da linha de base) e as secções seguintes mediam uma
+  tela que nunca chegava ao passo pedido. Ficou apontado aos nomes novos, mas continua a parar na
+  secção 2: `#vb-tabela` não tem tabela depois de escolher o exercício, e isso é um defeito
+  próprio, anterior e distinto, que não foi investigado nesta sessão.
+- **A edição do termo não tem ecrã.** Ela pediu «um link direto ou atalho para a edição do termo
+  no vocabulário»; a linha `#vb-oficial` diz **onde** («edite o termo no vocabulário»), mas não há
+  hoje nenhuma página que o faça — a rota `PUT /api/bastidores/termo` existe e nada a chama. Um
+  ecrã de edição de termos é trabalho por fazer, não um link que falte colocar.
+- **O `Unexpected token '<'` que a página já dava** (o cliente tenta ler como JSON uma resposta que
+  a bancada serve como HTML) é anterior e está nomeado na prova para não se confundir com isto.

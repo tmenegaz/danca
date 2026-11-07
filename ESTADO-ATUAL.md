@@ -4064,6 +4064,28 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **O «Seguir» do verbete não andava porque havia três `irParaPasso`.** Ela
+  relatou duas coisas na mesma tela: caixas bloqueadas **vazias** («a definição do dicionário para
+  «Battement jeté»…») e um «Seguir» habilitado que **não fazia nada**. **CONFIRMADO** que são dois
+  defeitos independentes. (a) A página dos Bastidores é **uma folha de `function`**, e turma,
+  verbete e linha de base declaravam **o mesmo nome** `irParaPasso` — em JavaScript a última vence,
+  e desde 05/11 (`449dc3dc`) o «Seguir» do verbete e o «Avançar» da turma chamavam a navegação da
+  **linha de base**: `Number("turma") || 1` dava 1, e o painel que mudava era o do PO. O mesmo com
+  `podeIrPara` (2 declarações). (b) Os três campos do passo 1 são preenchidos a partir de
+  `VERBETES.exerciciosDoVocabulario` — a fotografia do vocabulário no carregamento —, e um termo
+  criado ou encontrado depois disso **não está lá**: a tela acrescentava o `<option>` e mais nada.
+  (c) A frase era o único obrigatório que não repintava a navegação, e escrevê-la por último deixava
+  o «Seguir» apagado. **DECIDIDO:** um nome, uma superfície (`irParaPassoTurma`,
+  `irParaPassoVerbete`, `irParaPassoLb`; `podeIrParaVerbete`, `podeIrParaLb`); a rota do termo
+  devolve o **registo** (`dados`) e o cliente inscreve-o no dicionário da página; o `input` da
+  frase repinta a navegação. **E o que congela mudou de tamanho:** a 02/11 os três campos ficaram
+  congelados, e a 07/11 ela corrigiu — a definição oficial é **referência bloqueada**
+  (`#vb-oficial`) e a **frase é do professor**, editável; categoria e tradição continuam
+  bloqueadas. Prova nova `provar-passo-um-do-verbete` **30/30**, a primeira que mede **o próprio
+  script** (nenhum nome de topo repetido, com contraprova do detector), com dois A/B cirúrgicos
+  (23/30 e 15/30). **PENDENTE:** a edição do termo não tem ecrã (a rota `PUT` existe e nada a
+  chama), e `provar-celula` continua vermelho por um defeito próprio na secção 2.
+
 - **07/11/2026** — **O termo que já existe é aproveitado, e não recusado.** Na `batata`, o passo 1
   do exercício respondeu `409 «Battement jeté» já está no vocabulário desta escola` e a tela ficou
   no passo 1 — sobre um termo que **ela própria** tinha criado horas antes (`08a088e1`).
