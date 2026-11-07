@@ -6,7 +6,8 @@
     "plano-20261107-1314.json",
     "plano-20261107-1501.json",
     "po-20261107-1315.json",
-    "po-20261107-1501.json"
+    "po-20261107-1501.json",
+    "po-20261107-1502.json"
   ],
   "resumos": {
     "anamnese-20261107-1308.json": {
@@ -84,6 +85,21 @@
       "ciclo": "01",
       "ajuste_de": "po-20261107-1315",
       "gerado_em": "2026-11-07T15:01",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261107-1501"
+      ]
+    },
+    "po-20261107-1502.json": {
+      "id": "po-20261107-1502",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "colo-de-pe",
+      "ciclo": "01",
+      "ajuste_de": "po-20261107-1501",
+      "gerado_em": "2026-11-07T15:02",
       "sujeitos": [
         "Aluna A"
       ],
