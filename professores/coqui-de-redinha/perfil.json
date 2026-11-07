@@ -1,10 +1,10 @@
 {
   "_nota": "O PERFIL DO PROFESSOR — a habilitação é da PESSOA, não da escola (03/11/2026). `modalidades` é o que este professor declara saber ensinar; a escola oferece o que os professores dela declaram, por derivação. O expurgo de uma escola NÃO apaga este ficheiro: a competência de quem ensina não é dado do tenant.",
   "slug": "coqui-de-redinha",
-  "nome": "Coqui de Redinha",
+  "nome": "Coqui De Redinha",
   "modalidades": [
-    "bale-classico"
+    "contemporaneo"
   ],
   "criado": "2026-11-03",
-  "atualizado": "2026-11-03"
+  "atualizado": "2026-11-07"
 }
