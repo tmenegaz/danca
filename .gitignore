@@ -211,6 +211,12 @@ experimentos/propostas/*
 # de antes. É citada por nome no REGISTRO.
 !experimentos/provar-elo-do-expurgo.js
 
+# DE QUEM É A ESCOLA, QUANDO O EXPURGO VAI APAGAR (07/11/2026). Nasceu do `ciclo-01.conf` do
+# `pe-torto`, que sobreviveu ao expurgo da `batata`: a metade do expurgo que escreve no
+# repositório perguntava à árvore quem era o dono, e a árvore respondia o professor secundário.
+# Mede a correção (dono pelo inventário) e as duas degradações declaradas. Citada no `REGISTRO.md`.
+!experimentos/provar-dono-do-expurgo.js
+
 # A PROVA DAS ESCOLAS DE TESTE (19/10/2026): o fixture que nasce do sufixo do slug e a
 # regra «só preenche, não envia» — a prova que separa o atalho de teste de uma escrita no
 # motor. É citada pelo nome no README e no `experimentos/README.md`.

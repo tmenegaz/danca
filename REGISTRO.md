@@ -39028,3 +39028,61 @@ expurgo anterior). Nenhum deles foi tocado por esta limpeza.
 inexistente) e nenhum ciclo tem pacote: as três escolas «mantidas» são memória, não instâncias
 vivas. A prova ao vivo do ajuste Turma/Elenco (`e1d6dc5e`) continua a depender da **primeira
 escola criada** — é ela que valida o motor novo.
+
+## 07/11/2026 — O `ciclo-01.conf` que sobreviveu ao expurgo, e o dono que a árvore inventava
+
+**O que motivou.** A pesquisadora viu, depois da limpeza, um `professores/pe-torto/ciclos/ciclo-01.conf`
+— o manifesto base da `batata` — sozinho entre três professores sem escola. As outras escolas de
+teste não tinham o seu: o `sapo-bailarino` e o `tela-de-celular` perderam os deles nos seus
+expurgos. «Foi uma falha do expurgo no passado?» Foi, e é reproduzível.
+
+**A causa, medida.** O expurgo que roda na página (`motor/servidor/repo-escola.js`,
+`apagarEscolaDoRepoUmaVez`) perguntava à ÁRVORE quem era o dono da escola: `escolaDosCaminhos`
+atribui a escola ao **primeiro** professor que aparece nos caminhos, em ordem de árvore. Uma escola
+pode ter vários professores — o dono e os que receberam turma em curadoria —, e os arquivos do
+secundário (o pacote do ciclo, gerado no nome dele) vêm antes no alfabeto. No último expurgo da
+`batata` (02/11/2026, elo `aeb2b2c1`), a árvore tinha `professores/pe-junto/ciclos/ciclo-01-batata-…`
+e `professores/pe-torto/ciclos/ciclo-01-batata.conf`; a atribuição caiu em `pe-junto`, o expurgo
+procurou `professores/pe-junto/ciclos/ciclo-01.conf`, não o achou, e devolveu lista vazia. O elo do
+expurgo prova-o: das 67 remoções, constam `pe-torto/ciclos/ciclo-01-batata.conf` (a variante) e
+**não** `pe-torto/ciclos/ciclo-01.conf` (a base). Reproduzido sobre a árvore de `aeb2b2c1^`:
+professor derivado `pe-junto`, manifesto `[]`.
+
+**A regra certa já existia, no lugar errado.** `responsavelDoInventario` (núcleo dos índices) lê o
+elo **mais recente** de `recriação[]` — a encarnação que está a ser expurgada — e só cai no
+`professor` do topo quando não há elo. O `escola/expurgar.js` local já a usava; a metade que escreve
+no repositório, não. Duas derivações do mesmo facto divergem, e a que divergia era a destrutiva.
+
+**O que foi decidido.** (1) O expurgo da página passa a perguntar ao INVENTÁRIO quem responde pela
+escola, com recurso à árvore só quando não há inventário — a degradação declarada, não uma falha em
+silêncio. (2) O `ciclo-01.conf` do `pe-torto` sai: era resíduo, não memória; `tools/criar-escola.sh`
+recria-o quando nascer a próxima escola daquele professor. (3) Nasce a prova
+`experimentos/provar-dono-do-expurgo.js`, com o controle negativo da regra antiga e as duas
+degradações (dono com outra escola viva no ciclo; sem inventário).
+
+**O que fica declarado, e não se corrigiu.** O `arquivos` do topo de `escola/<slug>/indice.json` é o
+inventário da **primeira** criação e nunca é reescrito — `comElo` recebe `arquivos` e usa-o só no elo
+(`apagado`). Por isso o tombstone da `batata` ainda nomeia `professores/tiago-menegaz/…`. É memória
+(P-03), não erro de leitura: o que decide o expurgo é a árvore + o dono do inventário, e o que os
+elos registam é o que cada expurgo apagou. Se um dia se quiser o inventário «de hoje» no topo, é
+acrescentar um campo — não reescrever este.
+
+**Onde entrou.** `motor/servidor/repo-escola.js` (o dono vem do inventário; o `require` da regra
+única) · `experimentos/provar-dono-do-expurgo.js` (novo, 11 asserções) · `.gitignore` (a prova
+entra no Git) · `professores/pe-torto/ciclos/ciclo-01.conf` (removido).
+
+**Validação.** `provar-dono-do-expurgo` **11/11** · `provar-recriacao-da-escola` verde ·
+`provar-elo-do-expurgo` verde · `provar-expurgo-sem-listagem` **49/49** ·
+`provar-corrida-da-escrita` **30/30** · `check-schemas` verde · `check-indices` **16/16** ·
+`gerar-indices --check` **0** · `gerar-relacoes --check` **0** · `check-identidade --sem-pacotes`
+**0 erros** · `check-github-headers` **5/5**. O `motor/servidor/raiz.js`, o `workers/raiz.js` e o
+`wrangler.danca.jsonc` **não** foram tocados: o acesso à raiz (`tmenegaz` + o secret `SENHA_RAIZ`)
+não vive no repositório e nenhum comando desta sessão apaga secrets.
+
+**O que ainda não está feito — a declaração por variante.** `_declaracao.porVariante` (a chave
+estável de cada coluna da folha de captura, derivada do PO da escola) mora dentro do
+`professores/<prof>/ciclos/ciclo-NN-captura-schema.json` — um arquivo que é CÓPIA do molde e que o
+expurgo PRESERVA de propósito. Isso já custou um defeito medido (a geração da `batata` parou a
+20/10/2026 porque a entrada de uma ronda antiga sobreviveu à escola e contradisse o PO novo), e a
+correção foi um merge, não uma mudança de casa. A decisão de onde ela deve viver é dela
+(pesquisadora): fica registada, e não se move sem essa palavra.

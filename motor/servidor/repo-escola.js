@@ -39,6 +39,10 @@ const { decodificarBase64 } = require('./escrever-plano.js');
 // a pasta mudar.
 const acervoEnvelopes = require('./acervo-envelopes.js');
 const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
+// QUEM RESPONDE PELA ESCOLA HOJE (07/11/2026) — a MESMA função que o índice do acervo e o
+// `escola/expurgar.js` local usam. Antes desta linha, esta metade do expurgo derivava o dono da
+// ORDEM DA ÁRVORE, e o descompasso deixou o `ciclo-01.conf` de um professor no repositório.
+const { responsavelDoInventario } = require('../nucleo/indices.js');
 
 /** A raiz NÃO é escola: ela tem `wrangler.danca.jsonc` e serve a porta de entrada. */
 const NAO_ESCOLAS = new Set(['danca']);
@@ -592,19 +596,47 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
   const escola = escolaDosCaminhos(slug, caminhos);
   const { commitSha, treeSha } = await baseDoGit({ token, dono, repo, ref, fetchImpl });
 
+  /* QUEM RESPONDE PELA ESCOLA — E POR QUE NÃO SE PERGUNTA À ÁRVORE (07/11/2026).
+   *
+   * O DEFEITO, medido no expurgo da `batata` a 02/11/2026. `escolaDosCaminhos` atribui a escola ao
+   * primeiro professor que aparece nos caminhos, em ordem de árvore — e a árvore tem os caminhos
+   * de TODOS os professores que trabalharam na escola. Quando um professor secundário gerou o
+   * pacote do ciclo (`professores/pe-junto/ciclos/ciclo-01-batata-…`), `pe-junto` vem antes de
+   * `pe-torto` no alfabeto e passou a ser «o dono». O expurgo então procurou o manifesto base em
+   * `professores/pe-junto/ciclos/ciclo-01.conf` — que não existe —, devolveu lista vazia, e o
+   * `professores/pe-torto/ciclos/ciclo-01.conf` **ficou no repositório** para sempre. Reproduzido
+   * sobre a árvore de `aeb2b2c1^`: professor derivado `pe-junto`, manifesto `[]`, e o
+   * `ciclo-01.conf` do `pe-torto` presente.
+   *
+   * A REGRA CERTA JÁ EXISTIA — no lugar errado. `responsavelDoInventario` (núcleo dos índices) lê
+   * o elo MAIS RECENTE de `recriacao[]`, que é a encarnação que está a ser expurgada, e só cai no
+   * `professor` do topo quando não há elo («o elo novo vale, o antigo fica como memória»). O
+   * `escola/expurgar.js` local já a usa; esta metade, que roda na página, não — e era a única que
+   * escreve no repositório. Duas derivações do mesmo facto divergem: passa a haver uma.
+   */
+  const caminhoIndice = 'escola/' + slug + '/indice.json';
+  const indiceAtual = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
+  let inventario = null;
+  try { inventario = indiceAtual ? JSON.parse(indiceAtual) : null; } catch { inventario = null; }
+  const donoDoInventario = responsavelDoInventario(inventario);
+  /* O INVENTÁRIO MANDA; A ÁRVORE É O RECURSO. Sem índice (escola criada por um caminho antigo que
+   * não o escreveu) vale a derivação de antes, para não deixar de apagar nada por falta de registro. */
+  const professor = donoDoInventario.slug || escola.professor;
+  const ciclo = escola.ciclo || donoDoInventario.ciclo;
+
   // O manifesto base do ciclo sai junto SÓ quando o professor ficou sem outra escola NAQUELE
   // ciclo: com outra viva, o manifesto é dela também. OS SCHEMAS NÃO SAEM — são o modelo de
   // que nasce toda escola nova (ver `SO_MANIFESTO_BASE`). `apagados` é o que o commit apaga;
   // os demais campos são relato.
   const outras = escolasDosCaminhos(caminhos)
-    .filter((e) => e.slug !== slug && e.professor === escola.professor && e.ciclo === escola.ciclo);
+    .filter((e) => e.slug !== slug && e.professor === professor && e.ciclo === ciclo);
   const manifesto = outras.length === 0
-    ? manifestoBaseDoCiclo(caminhos, escola.professor, escola.ciclo)
+    ? manifestoBaseDoCiclo(caminhos, professor, ciclo)
     : [];
   const apagados = escola.arquivos.concat(manifesto);
   // A GUARDA DO PERFIL, aplicada à lista que vai ser apagada — ver `semPerfisNaLista`.
   semPerfisNaLista(apagados);
-  const classificados = classificarPreservados(caminhos, escola.professor, slug);
+  const classificados = classificarPreservados(caminhos, professor, slug);
   const semApagados = (lista) => lista.filter((c) => !apagados.includes(c));
   const preservadosPorTipo = {
     modelo: semApagados(classificados.modelo),
@@ -614,18 +646,16 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
   };
   const preservados = preservadosPorTipo.modelo
     .concat(preservadosPorTipo.doProfessor, preservadosPorTipo.deOutrasEscolas)
-    .filter((c) => !c.startsWith('professores/' + escola.professor + '/ciclos/ciclo-' + escola.ciclo + '-' + slug))
+    .filter((c) => !c.startsWith('professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + slug))
     .sort();
   // O PERFIL DO PROFESSOR, nomeado no relatório: quem lê o commit do expurgo tem de ver que ele
   // sobreviveu E porquê — uma preservação que ninguém anuncia é indistinguível de um esquecimento.
   const perfisPreservados = preservados.filter((c) => ehPerfilDoProfessor(c));
 
-  const caminhoIndice = 'escola/' + slug + '/indice.json';
-  const indiceAtual = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
   const indiceNovo = comElo(indiceAtual, {
     slug,
-    professor: escola.professor,
-    ciclo: escola.ciclo,
+    professor,
+    ciclo,
     arquivos: apagados,
     motivo,
     quando,
