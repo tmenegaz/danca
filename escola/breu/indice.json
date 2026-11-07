@@ -3,10 +3,10 @@
   "worker": "breu",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "coqui-de-redinha",
-    "nome": "Coqui De Redinha"
+    "slug": "colo-de-pe",
+    "nome": "Colo De Pe"
   },
-  "responsavel": "Coqui De Redinha",
+  "responsavel": "Colo De Pe",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -508,13 +508,21 @@
       },
       "responsavel": "Coqui De Redinha",
       "ciclo": "01"
+    },
+    {
+      "em": "2026-11-07T16:03:29.499378+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "colo-de-pe",
+        "nome": "Colo De Pe"
+      },
+      "responsavel": "Colo De Pe",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "coqui-de-redinha",
+        "nome": "Coqui De Redinha"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "colo-de-pe",
-      "nome": "Colo de Pé",
-      "desde": "2026-11-07T13:21:32.343Z"
-    }
-  ]
+  "professores": []
 }

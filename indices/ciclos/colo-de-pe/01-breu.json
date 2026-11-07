@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-07",
+    "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
+      "professores/colo-de-pe/ciclos/ciclo-01.conf"
+    ],
+    "hash": "a7711bd178b7f4555171d35c7aabbfa3b3d5f1e8e0915432b1a0367d689e63e0",
+    "hash_conteudo": "f0cd2bcfe849b2b5c567a57c34e13bbd55c02a34534f4b4d8574ad3f92832fdc",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/colo-de-pe/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "31e1560"
+  },
+  "gerado_em": "2026-11-07T16:03",
+  "id": "ciclo:colo-de-pe/01/breu",
+  "professor": "colo-de-pe",
+  "versao": 6
+}
