@@ -10,9 +10,9 @@ type: Ciclo
 professor: colo-de-pe
 ciclo: 01
 variante: breu-sala-rosa
-hash_conteudo: d1ffcfcd77345ec9683c9674eca42be6566e0af1f44e3172173251e440358baf
+hash_conteudo: 9ac32c31910c82d44b2c5d679a381a7f01580b26326864e9190160f8f97c7a7a
 parentHash: 
-hash: 92db75300dd360695395b664d05aabdd68005332b1ff8c27f6348dce272c073c
+hash: 2722e5677b88f314190af646903886996e0a59e611e67a7a841eb741e07aedb5
 algoritmo: SHA-256
 po: professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md
 po_state: Input_PO_Aguardando
