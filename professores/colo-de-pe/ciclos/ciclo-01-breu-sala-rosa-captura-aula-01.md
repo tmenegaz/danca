@@ -13,7 +13,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 > ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA
 > (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
-**Data:** `___/___/____` · **Presentes:** ☐ Aluna A · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
+**Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
 ## Condições de contorno
 
@@ -26,30 +26,35 @@ subtitle: "Folha de marcação para uso durante a aula"
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
 
 ## Bloco 2 — Barra
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
 
 ## Bloco 3 — Centro
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
 
 ## Bloco 4 — Musicalidade
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
 
 ## Bloco 5 — Expressão
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
 
 ## Linha de base revisitada
 
@@ -58,6 +63,12 @@ subtitle: "Folha de marcação para uso durante a aula"
 > mostrou.
 
 ### Aluna A
+
+| O que a aula mostrou | Observado na aula |
+|:--|:--:|
+| | |
+
+### Aluna B
 
 | O que a aula mostrou | Observado na aula |
 |:--|:--:|

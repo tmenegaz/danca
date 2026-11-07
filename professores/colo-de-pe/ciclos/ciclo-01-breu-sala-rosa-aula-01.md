@@ -58,7 +58,18 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| Aspecto físico — o que a turma mostra | [A decidir: esta turma ainda não tem aspectos do corpo escolhidos. A escolha faz-se na linha de base do Corpo, e o que se observa em cada aspecto aparece aqui.] |
+| 1ª posição — pés | 1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 2ª posição — pés | 1 de 2 em «Bom» (por consciência própria) · 1 de 2 em «razoável» (com toque) — ponto de atenção |
+| 1ª posição — braços | 1 de 2 em «razoável» (por consciência própria) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção |
+| 2ª posição — braços | 1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 3ª posição — braços | 1 de 2 em «Bom» (por consciência própria) · 1 de 2 em «razoável» (com toque) — ponto de atenção |
+| en dehors (rotação externa) | 1 de 2 em «Bom» (com toque) · 1 de 2 em «razoável» (com a barra como apoio) — ponto de atenção |
+| Mobilidade de quadril (en dehors de origem) | 1 de 2 em «Origem clara no quadril» · 1 de 2 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção |
+| Flexibilidade dos adutores | 1 de 2 em «Abertura completa (180°+)» · 1 de 2 em «Abertura parcial» — ponto de atenção |
+| Rotação e amplitude dos ombros | 1 de 2 em «Completa e fluida» · 1 de 2 em «Limitada por tensão» — ponto de atenção |
+| Articulação e força intrínseca dos dedos | 1 de 2 em «Flexíveis e articulados» · 1 de 2 em «Rígidos em garra / sem tônus» — ponto de atenção |
+| Musicalidade e pulsação rítmica | 1 de 2 em «Domina» · 1 de 2 em «Domínio parcial» — ponto de atenção |
+| Orientação espacial básica | 1 de 2 em «Desloca com precisão (frente, trás, lados, diagonais)» · 1 de 2 em «Perde a referência ao mudar de direção» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -79,19 +90,21 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-1823-2?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-1823?formato=html)** — Teste
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-1846-2?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-1845?formato=html)** — Teste
 
 **Anamnese de cada aluna**
 
-A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
 ```{=html}
 <select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
 <option value="">— escolha a aluna —</option>
 <option value="Aluna A">Aluna A</option>
+<option value="Aluna B">Aluna B</option>
 </select>
 <div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=colo-de-pe&amp;ciclo=01&amp;novo=anamnese-20261107-1308&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261107-1308?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=colo-de-pe&amp;ciclo=01&amp;editar=anamnese-20261107-1345&amp;aluna=Aluna%20B">editar</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261107-1345?formato=html">imprimir</a></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");
