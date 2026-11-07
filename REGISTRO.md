@@ -38910,3 +38910,56 @@ aberto — **não** o formulário.
 **O que fica por decidir (dela).** Se o item do menu deve existir antes do primeiro lançamento (hoje
 existe, e a página vazia diz a frase — um item que só aparece depois obrigaria a saber que existe);
 quais dos cinco entregáveis permanecem; e a forma do índice que se gera com cada um.
+
+## 07/11/2026 — O expurgo da última escola derrubava o job: «nada a fazer» lido como erro
+
+**O que motivou.** A pesquisadora expurgou a `calango` — a escola viva, a última com pacote — e o
+run `42371912795` (`Regerar os índices`) ficou vermelho. O log dizia o essencial, e dizia-o na
+ordem errada: o índice divergia (esperado num expurgo), o gerador escrevia os onze arquivos,
+removia o fantasma do ciclo e, no fim, `gerar-relacoes: nenhum ciclo com pacote — nada a fazer.` —
+com **exit 1**. O passo roda sob `set -e`, e morreu ALI: antes de escrever `mudou=sim`, antes do
+`check-indices`, antes do commit. O `main` ficou com os índices a descrever um ciclo que já não
+existia, com dois mapas de relações do ciclo expurgado, e sem ninguém para os apanhar.
+
+**O que foi decidido.** Três coisas, e a terceira é a que faltava desde 05/11:
+
+1. **ZERO CICLOS NÃO É ERRO** — quando nenhum ciclo foi PEDIDO. É o estado legítimo entre o expurgo
+   e a criação da próxima escola, e o `reancorar.yml` já o tinha aprendido para os manifestos
+   («zero manifestos não é erro», 19/10/2026). A regra é a mesma, aplicada ao outro derivado.
+2. **PEDIR UM CICLO QUE NÃO EXISTE CONTINUA A SER ERRO** — `gerar-relacoes.js <prof> <ciclo>
+   <variante>` com um nome que não está no disco sai com 1 e diz em qual dos três não achou. É a
+   diferença entre «não há nenhum» e «não há o que você pediu», e sem ela uma gralha no
+   `gerar-ciclo.yml` passaria em silêncio.
+3. **O GERADOR DE RELAÇÕES É QUEM APAGA O MAPA DO CICLO EXPURGADO.** `indices/relacoes/` é saída
+   dele, e o gerador de índices salta-a de propósito (`orfaosNoDisco` só olha o que ele próprio
+   produz). Sem esta remoção, o mapa de um ciclo expurgado ficava no disco e a verificação 1 do
+   `check-indices.js` chamava-lhe órfão — as duas ferramentas a discordar sobre o mesmo diretório,
+   e a que conserta sem ver o que a outra acusa. É a mesma correção que o gerador irmão fez em
+   20/10/2026, quando o expurgo da `breu` deixou `indices/ciclos/sapo-bailarino/01-breu.json`.
+
+E o `--check` passou a julgar o que faltava julgar: os **órfãos**. Antes dizia «em dia» com mapas
+de ciclos inexistentes no disco; agora nomeia-os como faz o irmão, com a mesma frase.
+
+**Onde entrou.** `tools/gerar-relacoes.js` (o estado vazio, a remoção do fantasma e os órfãos no
+`--check`) · `experimentos/provar-relacoes.js` (secção G, nova: o fantasma medido num diretório
+temporário e no repositório) · `indices/` (o derivado do expurgo, no commit seguinte, com a
+mensagem que o job teria escrito).
+
+**Motivo declarado — os congelados.** `tools/` (`CONGELAMENTO.md`) muda porque o gerador classificava
+como erro um estado que o próprio sistema produz — o expurgo da última escola —, e porque a saída
+que ele escreve não tinha quem a apagasse. **O que não muda:** a fórmula de hash e a cobertura da
+âncora, os validadores, as regras e as pétreas, e o formato do mapa (mesma `versao`, mesmos nós,
+mesmas arestas, mesmo `canonico`). Nenhum ficheiro de ciclo foi tocado como fonte, e não há
+reancoragem.
+
+**Validação.** `gerar-relacoes --check` **0** no estado actual e **1** com um fantasma no disco (a
+contraprova, na secção G da prova) · `gerar-indices --check` **0** · `check-indices` **16/16** ·
+`check-identidade --sem-pacotes` **0 erros** · o passo do workflow, **reproduzido num worktree** do
+`b6473a6b` com a correção: sai **0**, escreve os onze arquivos, remove os três fantasmas, e o
+`check-indices` seguinte passa 16/16 — que é exactamente o que o run vermelho não chegou a fazer.
+
+**O que ainda não está feito.** O ajuste da **Turma/Elenco** (`e1d6dc5e`, 07/11/2026) continua
+**não verificado ao vivo**: foi feito só no motor, de propósito, e a prova é a próxima escola de
+teste — a `calango` já não existe. E `provar-relacoes` fica declaradamente **incompleto** (A–F
+«NÃO FEITAS») enquanto não houver ciclo com pacote, porque essas secções medem um ciclo real e
+inventar um seria medir a prova, não o mundo.

@@ -36,6 +36,22 @@
  *   node tools/gerar-relacoes.js --check               não escreve; falha se divergir
  *   node tools/gerar-relacoes.js --json                resumo legível por máquina
  *
+ * ZERO CICLOS NÃO É ERRO, E OS ÓRFÃOS SÃO DELE (07/11/2026). Expurgar a ÚLTIMA escola deixa o
+ * repositório sem pacote nenhum — um estado legítimo, o mesmo que existe entre o expurgo e a
+ * criação da próxima. Aqui ele saía com 1 (`nenhum ciclo com pacote — nada a fazer`), e o
+ * `regerar-indices.yml` roda este gerador com `set -e`: o passo morria ANTES de escrever
+ * `mudou=sim`, e o índice recém-regerado — com os fantasmas já removidos pelo gerador irmão —
+ * nunca era commitado. Medido no run 42371912795, no expurgo da `calango`: o `main` ficou com
+ * `indices/ciclos/rabo-gramde/01-calango.json` e dois mapas de relações a descrever um ciclo que
+ * já não existia. É a mesma lição que o `reancorar.yml` já tinha aprendido («zero manifestos não
+ * é erro»), aplicada ao outro derivado.
+ *
+ * E ele é quem APAGA os mapas que já não têm ciclo: `indices/relacoes/` é saída dele, e o gerador
+ * de índices salta-a de propósito (`orfaosNoDisco`, que só olha o que ele próprio produz). Sem
+ * esta remoção, o mapa de um ciclo expurgado ficava no disco e o `check-indices.js` — verificação
+ * 1 — chamava-lhe órfão: duas ferramentas a discordar sobre o mesmo diretório, e a que conserta
+ * sem ver o que a outra acusa.
+ *
  * MOTIVO DECLARADO (CONGELAMENTO.md). `tools/` é congelado. Este ficheiro é NOVO e nenhum script
  * existente o chama: o gerador de índices, os validadores, a âncora, as regras e as pétreas ficam
  * exactamente como estavam. A integração (chamá-lo no `regerar-indices.yml` e no `gerar-ciclo.yml`)
@@ -422,6 +438,60 @@ function mapaDoCiclo({ professor, ciclo, variante, pasta }) {
 const caminhoDoMapa = ({ professor, ciclo, variante }) =>
   path.join('indices', 'relacoes', professor, `${ciclo}-${variante}.json`);
 
+/** A forma com que os caminhos se comparam: `path.join` usa `\` no Windows, e o disco é o mesmo. */
+const relativo = (rel) => String(rel).split(path.sep).join('/');
+
+/**
+ * TUDO O QUE ESTÁ EM `indices/relacoes/` E NÃO TEM CICLO QUE O PRODUZA (07/11/2026).
+ *
+ * O conjunto de referência é o que o gerador produz a partir do disco — nunca uma lista de
+ * excepções. É o espelho de `orfaosNoDisco` do gerador de índices, com uma diferença que é a
+ * razão de existir: aquele salta `indices/relacoes/` inteiro (é saída DE OUTRO gerador), e por
+ * isso o fantasma de um ciclo expurgado não tinha quem o apanhasse.
+ *
+ * `raiz` é parâmetro para a prova poder apontar a um diretório temporário sem tocar no
+ * repositório.
+ */
+function orfaosNoDisco(produzidos, raiz) {
+  const base = path.join(raiz || RAIZ, 'indices', 'relacoes');
+  const orfaos = [];
+  const andar = (abs, rel) => {
+    let entradas;
+    try { entradas = fs.readdirSync(abs, { withFileTypes: true }); } catch { return; }
+    for (const entrada of entradas) {
+      const absFilho = path.join(abs, entrada.name);
+      const relFilho = rel + '/' + entrada.name;
+      if (entrada.isDirectory()) { andar(absFilho, relFilho); continue; }
+      if (!/\.json$/.test(relFilho)) continue;
+      if (!produzidos.has(relFilho)) orfaos.push(relFilho);
+    }
+  };
+  andar(base, 'indices/relacoes');
+  return orfaos.sort();
+}
+
+/**
+ * O FILTRO LIMITA O QUE SE APAGA, NUNCA O QUE EXISTE — a mesma regra do gerador irmão.
+ *
+ * Quem manda gerar UM ciclo não pode apagar os mapas dos outros: o `gerar-ciclo.yml` chama este
+ * script com `professor ciclo variante`. Por isso o filtro recorta a lista de órfãos pelo caminho
+ * que ele mesmo declara (`indices/relacoes/<prof>/<NN>-<variante>.json`).
+ */
+function orfaoDoAlvo(rel, { prof, ciclo, variante }) {
+  if (!prof && !ciclo && !variante) return true;
+  const partes = String(rel).split('/');
+  if (partes[0] !== 'indices' || partes[1] !== 'relacoes') return false;
+  if (prof && partes[2] !== prof) return false;
+  const arquivo = partes[3] || '';
+  const m = /^(\d{2})-(.+)\.json$/.exec(arquivo);
+  if (!m) return false;
+  const cicloDoArquivo = m[1];
+  const varianteDoArquivo = m[2];
+  if (ciclo && cicloDoArquivo !== String(ciclo).padStart(2, '0')) return false;
+  if (variante && varianteDoArquivo !== variante) return false;
+  return true;
+}
+
 function serializar(objeto) {
   // O `canonico` do motor garante a ordem das chaves — a mesma função dos índices do acervo.
   return JSON.stringify(JSON.parse(indices.canonico(objeto)), null, 2) + '\n';
@@ -444,15 +514,54 @@ function main(argv) {
   const posicionais = argv.filter((a) => !a.startsWith('--'));
   const [prof, ciclo, variante] = posicionais;
 
-  let alvos = ciclosNoDisco();
+  const todos = ciclosNoDisco();
+  let alvos = todos;
   if (prof) alvos = alvos.filter((c) => c.professor === prof);
   if (ciclo) alvos = alvos.filter((c) => c.ciclo === String(ciclo).padStart(2, '0'));
   if (variante) alvos = alvos.filter((c) => c.variante === variante);
 
+  // O QUE O GERADOR PRODUZ HOJE, a partir do disco inteiro — o conjunto de referência dos órfãos.
+  const produzidos = new Set(todos.map((c) => relativo(caminhoDoMapa(c))));
+  const orfaos = orfaosNoDisco(produzidos).filter((rel) => orfaoDoAlvo(rel, { prof, ciclo, variante }));
+  const apagar = () => {
+    const removidos = [];
+    for (const rel of orfaos) {
+      try { fs.unlinkSync(path.join(RAIZ, rel)); removidos.push(rel); } catch { /* já não está */ }
+    }
+    return removidos;
+  };
+
+  /*
+   * ZERO CICLOS, E NENHUM PEDIDO: o repositório está sem escola (entre o expurgo e a próxima).
+   * Não há o que escrever, mas há o que APAGAR — e é só isso que este estado tem para fazer.
+   * Pedir um ciclo que não existe continua a ser erro: um nome com gralha não pode passar em
+   * silêncio, e é a diferença entre «não há nenhum» e «não há o que você pediu».
+   */
   if (!alvos.length) {
-    console.error('gerar-relacoes: nenhum ciclo com pacote' + (prof ? ` em ${prof}/${ciclo}/${variante}` : '')
-      + ' — nada a fazer.');
-    return 1;
+    if (prof || ciclo || variante) {
+      console.error('gerar-relacoes: nenhum ciclo com pacote em ' + [prof, ciclo, variante]
+        .filter(Boolean).join('/') + ' — nada a fazer.');
+      return 1;
+    }
+    if (conferir) {
+      if (orfaos.length) {
+        for (const rel of orfaos) console.error('  órfão (o gerador não o produz): ' + rel);
+        console.error('gerar-relacoes: ' + orfaos.length + ' mapa(s) sem ciclo —'
+          + ' rode `node tools/gerar-relacoes.js`');
+        return 1;
+      }
+      if (json) console.log(JSON.stringify({ escritos: [], removidos: [], divergentes: [], orfaos: [] }, null, 2));
+      else console.log('gerar-relacoes: ok — nenhum ciclo com pacote, e nenhum mapa órfão.');
+      return 0;
+    }
+    const removidos = apagar();
+    if (json) console.log(JSON.stringify({ escritos: [], removidos, divergentes: [], orfaos }, null, 2));
+    else {
+      for (const rel of removidos) console.log('  (sai) ' + rel);
+      console.log('gerar-relacoes: nenhum ciclo com pacote — '
+        + (removidos.length ? removidos.length + ' mapa(s) órfão(s) removido(s).' : 'nada a fazer.'));
+    }
+    return 0;
   }
 
   const escritos = [];
@@ -476,23 +585,42 @@ function main(argv) {
     escritos.push(rel);
   }
 
+  const removidos = conferir ? [] : apagar();
+
   if (json) {
-    process.stdout.write(JSON.stringify({ escritos, divergentes }, null, 2) + '\n');
+    process.stdout.write(JSON.stringify({
+      escritos,
+      removidos,
+      divergentes: divergentes.concat(orfaos.map((rel) => ({ arquivo: rel, motivo: 'órfão (o gerador não o produz)' }))),
+      orfaos,
+    }, null, 2) + '\n');
   } else if (conferir) {
-    if (divergentes.length) {
+    /* OS ÓRFÃOS ENTRAM NO `--check` (07/11/2026). Sem eles, este verificador dizia «em dia»
+     * enquanto o `check-indices.js` reprovava o mesmo diretório — duas ferramentas a medir coisas
+     * diferentes, e a que conserta sem ver o que a outra acusa. É a mesma correção que o gerador
+     * irmão já tinha feito em 20/10/2026. */
+    if (divergentes.length || orfaos.length) {
       for (const d of divergentes) console.error(`  ${d.motivo}: ${d.arquivo}`);
-      console.error(`gerar-relacoes: ${divergentes.length} mapa(s) fora do estado —`
+      for (const rel of orfaos) console.error('  órfão (o gerador não o produz): ' + rel);
+      console.error(`gerar-relacoes: ${divergentes.length + orfaos.length} mapa(s) fora do estado —`
         + ' rode `node tools/gerar-relacoes.js`');
       return 1;
     }
     console.log(`gerar-relacoes: ${alvos.length} mapa(s) em dia.`);
   } else {
     for (const e of escritos) console.log(`  ${e}`);
-    console.log(`gerar-relacoes: ${escritos.length} mapa(s) escrito(s).`);
+    for (const rel of removidos) console.log('  (sai) ' + rel);
+    console.log(`gerar-relacoes: ${escritos.length} mapa(s) escrito(s)`
+      + (removidos.length ? ' e ' + removidos.length + ' órfão(s) removido(s).' : '.'));
   }
   return 0;
 }
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));
 
-module.exports = { mapaDoCiclo, ciclosNoDisco, caminhoDoMapa, gerarEmMemoria, slug };
+module.exports = {
+  mapaDoCiclo, ciclosNoDisco, caminhoDoMapa, gerarEmMemoria, slug,
+  // A REMOÇÃO DO FANTASMA (07/11/2026) — exportada para a prova poder medi-la num diretório
+  // temporário, sem tocar no `indices/` do repositório.
+  orfaosNoDisco,
+};

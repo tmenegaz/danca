@@ -38,7 +38,9 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
-const { mapaDoCiclo, ciclosNoDisco, caminhoDoMapa, slug } = require(path.join(RAIZ, 'tools/gerar-relacoes.js'));
+const {
+  mapaDoCiclo, ciclosNoDisco, caminhoDoMapa, slug, orfaosNoDisco,
+} = require(path.join(RAIZ, 'tools/gerar-relacoes.js'));
 
 let total = 0;
 let falhas = 0;
@@ -66,9 +68,69 @@ function adjacencia(mapa) {
   return { saindo, entrando };
 }
 
+/**
+ * G. O FANTASMA DO EXPURGO (07/11/2026) — o mapa de um ciclo que já não existe não fica no disco.
+ *
+ * A FALHA QUE ISTO MEDE, e ela custou um run vermelho. Ao expurgar a ÚLTIMA escola (a `calango`),
+ * o gerador saía com 1 por não haver ciclo nenhum — «nada a fazer» lido como erro —, e o
+ * `regerar-indices.yml` roda-o sob `set -e`: o passo morria ANTES de escrever `mudou=sim`, e o
+ * índice recém-regerado nunca era commitado. O `main` ficou com o índice de um ciclo expurgado e
+ * com dois mapas de relações a descrever um ciclo que já não existia (run 42371912795).
+ *
+ * A secção não depende do ciclo de referência, e por isso corre nos dois estados: com escola e
+ * sem escola nenhuma — que é, hoje, o estado do repositório entre o expurgo e a criação da
+ * próxima.
+ */
+function secaoFantasma() {
+  console.log('\nG. O fantasma do expurgo — e o repositório sem escola nenhuma');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'relacoes-'));
+  try {
+    const produzido = 'indices/relacoes/prof/01-variante.json';
+    const fantasma = 'indices/relacoes/prof/01-expurgada.json';
+    for (const rel of [produzido, fantasma]) {
+      const abs = path.join(tmp, rel);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, '{}\n');
+    }
+    const orfaos = orfaosNoDisco(new Set([produzido]), tmp);
+    provar('o mapa que o gerador PRODUZ não é órfão', !orfaos.includes(produzido), orfaos);
+    provar('…e o mapa de um ciclo que já não existe é — e é nomeado',
+      orfaos.length === 1 && orfaos[0] === fantasma, orfaos);
+    provar('…e a referência é o conjunto produzido, nunca uma lista de excepções:'
+      + ' com nada produzido, os dois são fantasmas',
+      orfaosNoDisco(new Set(), tmp).length === 2, orfaosNoDisco(new Set(), tmp));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  /* O REPOSITÓRIO, que é o que interessa: o `indices/relacoes/` no disco é o que o gerador
+   * produz. Se não for, o `check-indices.js` (verificação 1) reprova o mesmo diretório — e é
+   * esta a medida que faz as duas ferramentas concordarem. */
+  const produzidos = new Set(ciclosNoDisco().map((c) => caminhoDoMapa(c).split(path.sep).join('/')));
+  const noRepositorio = orfaosNoDisco(produzidos);
+  provar('o `indices/relacoes/` do repositório não tem fantasma', noRepositorio.length === 0, noRepositorio);
+
+  let codigo = 0, saida = '';
+  try {
+    saida = execSync('node tools/gerar-relacoes.js --check', { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) { codigo = e.status || 1; saida = String((e.stdout || '') + (e.stderr || '')); }
+  provar('o `--check` passa no estado actual do disco', codigo === 0,
+    { codigo, saida: saida.trim().split('\n').slice(-2) });
+  if (!ciclosNoDisco().length) {
+    provar('…e SEM escola nenhuma ele diz o que há para dizer, e não «erro»',
+      /nenhum ciclo com pacote/.test(saida) && /ok/.test(saida), saida.trim());
+  }
+}
+
 (async () => {
   if (!fs.existsSync(PASTA)) {
-    console.error('provar-relacoes: o ciclo da calango não está no disco — NÃO FEITO.');
+    /* O CICLO DE REFERÊNCIA SAIU DO DISCO — é o que acontece a seguir a um expurgo. As secções
+     * A–F medem um ciclo REAL (o dela), e inventar um seria medir a prova, não o mundo. O que
+     * não depende dele — o fantasma do expurgo — corre na mesma, e o resto fica declarado. */
+    secaoFantasma();
+    console.log('');
+    console.error('provar-relacoes: o ciclo da calango não está no disco — A–F NÃO FEITAS'
+      + ' (a ' + falhas + ' falha(s) em ' + total + ' asserção(ões), só da secção G).');
     process.exit(1);
   }
 
@@ -302,6 +364,8 @@ function adjacencia(mapa) {
       { nos: vazio.nos.length, arestas: vazio.arestas.length });
   }
 
+  secaoFantasma();
+
   console.log('');
   if (falhas) {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
@@ -311,7 +375,8 @@ function adjacencia(mapa) {
     + ' o campo que a produziu; nenhum conteúdo entra nele; a ponte entre os dois vocabulários liga'
     + ' 4 de 4 e DESAPARECE quando um nome muda (com a lacuna declarada); a travessia do aspecto à'
     + ' aluna e o caminho inverso funcionam; o mapa é determinístico e o `--check` acusa-o quando'
-    + ' está velho; e um ciclo vazio declara o que lhe falta em vez de inventar.');
+    + ' está velho; um ciclo vazio declara o que lhe falta em vez de inventar; e o mapa de um ciclo'
+    + ' expurgado não fica no disco.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);
