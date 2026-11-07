@@ -10,9 +10,9 @@ professor: colo-de-pe
 ciclo: 01
 variante: breu-sala-rosa
 aula: 01
-hash_conteudo: 9320e1eac9aab924ff069848d0e5cd9b50ba839d76ea7170bf36a4a303d60a8c
+hash_conteudo: 65baa64dafc63da4f17bb2780f10a735ca6365d33656084d950f61f041459512
 parentHash: 
-hash: 14e3574f330f6033223d9048c1828cf8d2da6c8537c4f0c41d616d5e869154a6
+hash: cf97b6346eb81e221a458452b3b4cb0b076ae7c9fa4608a89567cc863057086c
 algoritmo: SHA-256
 ancorado_em: 2026-11-07
 cobertura:
