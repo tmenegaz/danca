@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "a14199322a3995d8758c5fc792f6a1329c9cd0f3e3e2d423bcb3dcb842583269",
+        "hash": "92db75300dd360695395b664d05aabdd68005332b1ff8c27f6348dce272c073c",
         "id": "ciclo-01-breu-sala-rosa",
         "lida": true,
         "parent_hash": ""
@@ -258,9 +258,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4cffa54"
+    "commit": "0065d78"
   },
-  "gerado_em": "2026-11-07T16:17",
+  "gerado_em": "2026-11-07T16:25",
   "nao_indexado": [
     {
       "familia": "conteudo",
