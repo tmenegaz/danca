@@ -4787,7 +4787,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Audições</h3>' +
+    '<h3>Elencos</h3>' +
     /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
      * `.lista li` é `display:flex` — as linhas simples do gabinete são UMA fita, e o cartão é
      * uma COLUNA. Medido com o contentor antigo: as três caixas ficavam com 110px numa coluna
@@ -9254,6 +9254,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  q.setAttribute("aria-expanded", abertoAgora ? "false" : "true");' +
     '});' +
     'document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharPaineis(null); });' +
+    /* O «MOSTRAR MAIS» DO QUADRO DO RECORTE (07/11/2026). Delegado no `document` porque os
+     * acordeões são redesenhados a cada resposta da lista — um ouvinte por botão morreria no
+     * primeiro `innerHTML`. O alvo é o `data-mais`, e não a classe: `.acao` é de meia dúzia de
+     * botões desta página, e nenhum deles quer este comportamento. */
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest("#lb-indice button[data-mais]");' +
+    '  if (!b) return;' +
+    '  e.preventDefault();' +
+    '  maisAspectos(b);' +
+    '});' +
     'document.addEventListener("click", function(e){' +
     '  var ed = e.target.closest("button.editar");' +
     '  if (ed) { editarProfessor(ed.getAttribute("data-alvo")); return; }' +
@@ -9951,7 +9961,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
-    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhuma audição ainda — a primeira nasce ' +
+    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhum elenco ainda — o primeiro nasce ' +
     'no formulário, no passo 1)</li>";' +
     '    return;' +
     '  }' +
@@ -10015,14 +10025,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          return "<span>" + escHtml(a) + "</span>"; }).join("") + "</div>"' +
     '      : "<p class=\\"trio-nota\\">Nenhuma aluna neste recorte — o corpo que se observa é o ' +
     'DELAS.</p>";' +
-    '    var painelTurma = usadaPor.length' +
-    '      ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turmas</span>" +' +
-    '        "<span class=\\"trio-v\\">" + escHtml(usadaPor.join(" · ")) + "</span></div></div>"' +
-    '      : (l.turma' +
-    '        ? "<p class=\\"trio-nota\\">Enviado para «" + escHtml(l.turma) + "» num registo antigo. ' +
+    /* O PAINEL DO ELENCO — o que a caixa «Turmas» dizia, agora dentro da caixa que dá nome ao
+     * cartão (07/11/2026).
+     *
+     * A COLUNA «Turmas» SAIU da lista. Ela contava o que a Turma já diz — e a Turma é onde essa
+     * relação se declara; repeti-la no cartão do elenco era a mesma verdade em dois lugares, e o
+     * segundo é o que fica para trás. Mas a informação não se deita fora: ela passa a ser o que a
+     * caixa «Elenco» abre. Quem procura «onde é que este elenco está a ser usado?» continua a
+     * encontrar a resposta, num clique, e a lista fica com as três colunas que ela pediu: o
+     * Elenco, as Alunas e o Recorte. */
+    '    var painelElenco = (usadaPor.length' +
+    '        ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turmas</span>" +' +
+    '          "<span class=\\"trio-v\\">" + escHtml(usadaPor.join(" · ")) + "</span></div></div>"' +
+    '        : (l.turma' +
+    '          ? "<p class=\\"trio-nota\\">Enviado para «" + escHtml(l.turma) + "» num registo antigo. ' +
     'Escolha este elenco numa Turma para o associar a uma sala pelo fluxo novo.</p>"' +
-    '        : "<p class=\\"trio-nota\\">Ainda não está em nenhuma turma — escolha este elenco no ' +
-    'formulário da Turma, junto com a sala.</p>");' +
+    '          : "<p class=\\"trio-nota\\">Ainda não está em nenhuma turma — escolha este elenco no ' +
+    'formulário da Turma, junto com a sala.</p>"));' +
     '    var id = String(indice + 1);' +
     '    var caixa = function(rotulo, valor, dica, chave){' +
     '      chave = chave || rotulo.toLowerCase();' +
@@ -10044,13 +10063,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
     '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
     '      "<div class=\\"trio\\">" +' +
+    '        caixa("Elenco", l.nome, "ver o elenco, o professor e as turmas que o usam", "elenco") +' +
     '        caixa("Alunas", String(m), "ver as alunas deste elenco") +' +
     '        caixa("Recorte", String(n), "ver os aspectos observados") +' +
-    '        caixa("Turmas", usadaPor.join(" · ") || l.turma || "—", "ver as turmas que usam este elenco", "turma") +' +
     '      "</div>" +' +
+    '      "<div class=\\"trio-painel\\" data-painel=\\"elenco\\" id=\\"lb-p-elenco-" + id + "\\" hidden>" + painelElenco + "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"alunas\\" id=\\"lb-p-alunas-" + id + "\\" hidden>" + painelAlunas + "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"recorte\\" id=\\"lb-p-recorte-" + id + "\\" hidden>" + painelRecorte + "</div>" +' +
-    '      "<div class=\\"trio-painel\\" data-painel=\\"turma\\" id=\\"lb-p-turma-" + id + "\\" hidden>" + painelTurma + "</div>" +' +
     '      "</li>";' +
     '  }).join("");' +
     '  Array.prototype.slice.call(alvo.querySelectorAll("[data-lb-editar]")).forEach(function(b){' +
@@ -10085,23 +10104,74 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * decisão (o ponto cego), depois o que pede revisão da anamnese (o nunca escolhido), e só no
      * fim o ranque — que é leitura, não trabalho.
      */
-    /* OS CHIPS, COM UM LIMITE DITO. Uma lista de 43 aspectos não se lê, e esconder o resto sem o
-     * dizer seria a pior das duas coisas. Mostram-se os quinze primeiros — a ordem é a da atenção,
-     * então os que importam vêm à frente —, e a frase diz quantos ficaram e onde está a lista
-     * inteira. Não é um corte de dados: é o mesmo `indice` que a rota serve.
+    /* O QUADRO DO RECORTE: DOIS ACORDEÕES FECHADOS E UM RANQUE À VISTA (07/11/2026).
      *
-     * A contagem entre parênteses é a ATENÇÃO vista na leitura, e não a escolha: é ela que diz
+     * O QUE ELA VIU. As três listas eram chips abertos de uma vez — até quinze por lista —, e a
+     * que sobrava vinha com uma frase que não é para ser lida: «e mais 7 — a lista inteira em
+     * `api/bastidores/indice/recorte`». Isso é endereço de rota, não informação de professor: quem
+     * observa o corpo não vai abrir uma API, e o nome da rota na tela é lixo de depuração que
+     * ficou. Sai.
+     *
+     * O QUE ENTRA. «Pontos cegos» e «Nunca escolhidos» passam a `<details>` — a peça de bloco da
+     * casa, a MESMA que o passo 4 usa para os grupos da anamnese — e nascem FECHADOS: são
+     * perguntas, não um painel de leitura, e a página abre no ranque, que é o que se olha de
+     * passagem. Dentro, os chips aparecem TRÊS a três, e «Mostrar mais» acrescenta mais três. O
+     * passo é curto de propósito: três nomes lêem-se sem contar, e quem quer a lista inteira chega
+     * lá com quatro cliques, em vez de a receber toda de uma vez.
+     *
+     * NÃO SE GASTA UM PEDIDO: o `indice` já veio inteiro na resposta da lista que a página pede
+     * (`carregarLinhas`). O que se esconde é o DESENHO, não o dado — e esconder desenho é o que o
+     * `<details>` faz sem uma linha de JavaScript.
+     *
+     * «Mais escolhidos» fica em TABELA, como estava: é um ranque, lê-se de cima para baixo e a
+     * coluna dos números alinha. Um acordeão por cima de doze linhas ordenadas só acrescentaria um
+     * clique ao que já se vê.
+     *
+     * A CONTAGEM ENTRE PARÊNTESES é a ATENÇÃO vista na leitura, e não a escolha: é ela que diz
      * quanto pesa um aspecto que ninguém escolheu. */
-    'function chipsDeAspectos(lista){' +
-    '  var LIMITE = 15;' +
-    '  var vistos = (lista || []).slice(0, LIMITE).map(function(a){' +
+    'var INDICE_ASPECTOS = {};' +
+    'var PASSOS_DE_CHIPS = 3;' +
+    'function chipsDeAspectos(lista, quantos){' +
+    '  return (lista || []).slice(0, quantos).map(function(a){' +
     '    return "<span>" + escHtml(a.nome) +' +
     '      (a.atencao_em ? " (" + a.atencao_em + ")" : "") + "</span>";' +
     '  }).join("");' +
-    '  var resto = (lista || []).length - LIMITE;' +
-    '  if (resto <= 0) return vistos;' +
-    '  return vistos + "<span class=\\"dono\\">e mais " + resto + " — a lista inteira em " +' +
-    '    "<code>api/bastidores/indice/recorte</code></span>";' +
+    '}' +
+    /* O ACORDEÃO DE UMA LISTA — fechado, com os primeiros três e o botão que acrescenta três.
+     * O botão diz quanto falta («Mostrar mais (12)»), e NÃO desaparece enquanto houver o que
+     * mostrar: um botão que some sem aviso deixa o professor a perguntar se a lista acabou ou se
+     * ele se enganou. */
+    'function acordeaoDeAspectos(chave, rotulo, explicacao, lista){' +
+    '  if (!lista || !lista.length) return "";' +
+    '  INDICE_ASPECTOS[chave] = lista;' +
+    '  var mostra = Math.min(PASSOS_DE_CHIPS, lista.length);' +
+    '  var falta = lista.length - mostra;' +
+    '  return "<details class=\\"bloco-lista\\" data-aspectos=\\"" + chave + "\\">" +' +
+    '    "<summary class=\\"bloco-cabeca\\">" +' +
+    '    "<span class=\\"bloco-titulo\\">" + escHtml(rotulo) + " (" + lista.length + ")</span>" +' +
+    '    "<span class=\\"seta-do-ato\\" aria-hidden=\\"true\\">\\u25be</span></summary>" +' +
+    '    "<div class=\\"bloco-corpo\\">" +' +
+    '    "<p class=\\"sub\\">" + escHtml(explicacao) + "</p>" +' +
+    '    "<div class=\\"trio-chips\\" data-chips=\\"" + chave + "\\">" +' +
+    '    chipsDeAspectos(lista, mostra) + "</div>" +' +
+    '    (falta ? "<p class=\\"par-botoes\\"><button type=\\"button\\" " +' +
+    '      "class=\\"acao secundario pequena\\" data-mais=\\"" + chave + "\\">" +' +
+    '      "Mostrar mais (" + falta + ")</button></p>" : "") +' +
+    '    "</div></details>";' +
+    '}' +
+    /* «MOSTRAR MAIS» ACRESCENTA TRÊS, e o botão fica a dizer quantos faltam. O limite é o
+     * tamanho da lista — e quando ela acaba, o botão sai em vez de ficar aceso a prometer mais. */
+    'function maisAspectos(botao){' +
+    '  var chave = botao.getAttribute("data-mais");' +
+    '  var lista = INDICE_ASPECTOS[chave] || [];' +
+    '  var caixa = document.querySelector("#lb-indice [data-chips=\\"" + chave + "\\"]");' +
+    '  if (!caixa) return;' +
+    '  var jaMostrados = caixa.querySelectorAll("span").length;' +
+    '  var mostra = Math.min(jaMostrados + PASSOS_DE_CHIPS, lista.length);' +
+    '  caixa.innerHTML = chipsDeAspectos(lista, mostra);' +
+    '  var falta = lista.length - mostra;' +
+    '  if (falta > 0) botao.textContent = "Mostrar mais (" + falta + ")";' +
+    '  else if (botao.parentNode) botao.parentNode.removeChild(botao);' +
     '}' +
     'function pintarIndiceDoRecorte(indice){' +
     '  var alvo = document.getElementById("lb-indice");' +
@@ -10119,18 +10189,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    (p.linhas_com_leitura ? "" : " Nenhuma tem leitura guardada — o cruzamento com o passo 3 aparece depois de ler.") +' +
     '    "</p>";' +
     // 1. OS PONTOS CEGOS — o corpo mostrou, o recorte não olhou.
-    '  if (indice.cegos && indice.cegos.length) {' +
-    '    html += "<h4>Pontos cegos (" + indice.cegos.length + ")</h4>" +' +
-    '      "<p class=\\"sub\\">A leitura marcou como ponto de atenção e nenhum recorte os escolheu.</p>" +' +
-    '      "<div class=\\"trio-chips\\">" + chipsDeAspectos(indice.cegos) + "</div>";' +
-    '  }' +
+    '  html += acordeaoDeAspectos("cegos", "Pontos cegos",' +
+    '    "A leitura marcou como ponto de atenção e nenhum recorte os escolheu.", indice.cegos);' +
     // 2. OS NUNCA ESCOLHIDOS.
-    '  if (indice.nunca && indice.nunca.length) {' +
-    '    html += "<h4>Nunca escolhidos (" + indice.nunca.length + ")</h4>" +' +
-    '      "<p class=\\"sub\\">A anamnese mede e nenhum recorte olhou: ou não interessam, ou são um " +' +
-    '      "ponto cego do olhar.</p>" +' +
-    '      "<div class=\\"trio-chips\\">" + chipsDeAspectos(indice.nunca) + "</div>";' +
-    '  }' +
+    '  html += acordeaoDeAspectos("nunca", "Nunca escolhidos",' +
+    '    "A anamnese mede e nenhum recorte olhou: ou não interessam, ou são um ponto cego do olhar.",' +
+    '    indice.nunca);' +
     // 3. O RANQUE — só os escolhidos, e só os que aparecem mais de uma vez ou em todas.
     '  var usados = (indice.aspectos || []).filter(function(a){ return a.recortes > 0; });' +
     '  if (usados.length) {' +

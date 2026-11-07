@@ -400,8 +400,60 @@ console.log('\n7. AS ROTAS — a lista que já existe, e a rota própria');
     assert.ok(/Nunca escolhidos/.test(texto), 'os nunca escolhidos aparecem');
     assert.ok(/Mais escolhidos/.test(texto), 'o ranque aparece');
     assert.ok(/Equilíbrio unipodal/.test(texto), 'com o nome do aspecto, e não o id');
-    // O LIMITE É DITO: 42 nunca escolhidos, 15 mostrados, e a frase que diz quantos ficaram.
-    assert.ok(/e mais \d+/.test(texto), 'o que não cabe é contado, não escondido: ' + texto.slice(-160));
+
+    /* O ACORDEÃO E O CARREGAMENTO DE TRÊS EM TRÊS (07/11/2026).
+     *
+     * O QUE ELA RECUSOU: as duas listas abertas de uma vez, com o resto resumido por uma frase
+     * que é endereço de rota — «e mais 7 — a lista inteira em `api/bastidores/indice/recorte`».
+     * Isso é lixo de depuração na tela do professor. E o que ela pediu: acordeão que NASCE
+     * FECHADO, e dentro dele três de cada vez, com «Mostrar mais».
+     *
+     * A prova mede as duas metades: o texto não traz mais a frase, e o bloco é um `<details>` sem
+     * `open` — que é a marcação que nasce fechada. Um `<details open>` passaria numa prova que só
+     * olhasse para a existência do elemento. */
+    assert.strictEqual(/e mais \d+/.test(texto), false, 'a frase de depuração saiu de vez: ' + texto.slice(-160));
+    assert.strictEqual(/api\/bastidores\/indice\/recorte/.test(texto), false,
+      'o endereço da rota não é texto de tela');
+    const cegos = win.document.querySelector('#lb-indice details[data-aspectos="cegos"]');
+    const nunca = win.document.querySelector('#lb-indice details[data-aspectos="nunca"]');
+    assert.ok(cegos && nunca, 'as duas listas viraram acordeões');
+    assert.strictEqual(cegos.open, false, '«Pontos cegos» nasce FECHADO');
+    assert.strictEqual(nunca.open, false, '«Nunca escolhidos» nasce FECHADO');
+    const chipsDe = (d) => d.querySelectorAll('[data-chips] span').length;
+    assert.strictEqual(chipsDe(nunca), 3, 'fechado ou aberto, o acordeão começa com TRÊS chips');
+    assert.ok(chipsDe(nunca) < win.INDICE_ASPECTOS.nunca.length,
+      'e a lista tem mais do que três — senão não havia o que mostrar');
+    const mais = nunca.querySelector('button[data-mais]');
+    assert.ok(mais, 'e há o botão «Mostrar mais»');
+    assert.ok(/\(\d+\)/.test(mais.textContent), 'que diz quantos faltam: ' + mais.textContent);
+    // O RANQUE NÃO VIRA ACORDEÃO: é tabela, e continua à vista.
+    assert.strictEqual(win.document.querySelectorAll('#lb-indice details').length, 2,
+      'só as duas perguntas são acordeão; o ranque fica em tabela');
+    assert.ok(win.document.querySelector('#lb-indice table'), 'e a tabela do ranque está lá');
+
+    /* O CLIQUE ACRESCENTA TRÊS — medido a correr, e não lido do código. O ouvinte é delegado no
+     * `document` (os acordeões são redesenhados a cada resposta da lista), e um `dispatchEvent`
+     * é o caminho que o navegador faria. */
+    const antes = chipsDe(nunca);
+    mais.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => win.setTimeout(r, 30));
+    assert.strictEqual(chipsDe(nunca), antes + 3, 'um clique mostra mais três');
+    assert.ok(/Mostrar mais \(\d+\)/.test(
+      (nunca.querySelector('button[data-mais]') || {}).textContent || ''),
+    'e o botão passa a dizer o novo resto');
+    /* E QUANDO A LISTA ACABA, O BOTÃO SAI: um botão aceso a prometer o que já está à vista é a
+     * mesma mentira que a frase de depuração, só que muda. */
+    for (let volta = 0; volta < 30; volta += 1) {
+      const b = nunca.querySelector('button[data-mais]');
+      if (!b) break;
+      b.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => win.setTimeout(r, 10));
+    }
+    assert.strictEqual(nunca.querySelector('button[data-mais]'), null,
+      'no fim, o botão desaparece em vez de ficar aceso');
+    assert.strictEqual(chipsDe(nunca), win.INDICE_ASPECTOS.nunca.length,
+      'e todos os aspectos ficaram à vista');
+
     // E o apelido da aluna NÃO chega ao ecrã por esta via — o índice não o traz.
     assert.strictEqual(texto.indexOf('Aluna A'), -1, 'nenhum apelido no bloco do índice');
     win.close();

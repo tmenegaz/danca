@@ -291,9 +291,15 @@ const RITMO = {
   conferir('…e o campo da Turma continua «Elenco»', /for="cuelenco">Elenco</.test(html), null);
   conferir('…e o professor responsável continua com o seu rótulo',
     /for="lb-professor">Professor responsável</.test(html), null);
-  conferir('a lista da Audição passou a «Audições»', /<h3>Audições<\/h3>/.test(html), null);
-  conferir('…e o estado vazio dela acompanha («nenhuma audição ainda»)',
-    /nenhuma audição ainda/.test(html), null);
+  /* «O NOME DA LISTAGEM DEVE SER ELENCOS E NÃO AUDIÇÕES» (07/11/2026) — a correção dela, na
+   * mesma sessão em que o rótulo da secção virou Audição. A AUDIÇÃO É O ATO; a lista é dos ELENCOS
+   * que saíram dele. A distinção do §2 vale também aqui, e é por isso que ela voltou atrás na
+   * primeira passagem: uma lista de «Audições» promete o ato, e o que está lá dentro são os
+   * elencos já constituídos. */
+  conferir('a listagem chama-se «Elencos» (e não «Audições»)',
+    /<h3>Elencos<\/h3>/.test(html) && !/<h3>Audições<\/h3>/.test(html), null);
+  conferir('…e o estado vazio dela diz «nenhum elenco ainda»',
+    /nenhum elenco ainda/.test(html), null);
   /* A LISTA DO ESTILO FICA COM «Exercícios com verbete»: «verbete» é a ficha da notação, não o
    * nome da secção — a decisão de 07/11/2026 foi explícita nisso. */
   conferir('a lista do Estilo continuou «Exercícios com verbete»',
@@ -303,6 +309,98 @@ const RITMO = {
   conferir('…e não diz mais «Conteúdo da aula»', !/Conteúdo da aula/.test(html), null);
   conferir('os `id` das secções NÃO mudaram (são âncoras de link e de prova)',
     /id="sec-corpo"/.test(html) && /id="sec-verbetes"/.test(html) && /id="sec-curadorias"/.test(html), null);
+
+  /* -------------------------------------------------------------------------------------------
+   * E. O PASSO 4 — OS BASILARES SÃO UM BLOCO, E O CARTÃO TEM TRÊS COLUNAS (07/11/2026).
+   *
+   * O QUE ELA VIU, no passo 4: «en dehors (rotação externa) (1)», «o tendu (1)», «o passé (1)»,
+   * «a meia ponta (1)», «a musicalidade (1)» — cinco blocos para cinco caixas, cada um com o
+   * título repetido no rótulo da única caixa que tinha dentro. A anamnese não os apresenta assim:
+   * lá os seis elementos da observação inicial são UMA secção, e o único que se desmembra («as
+   * cinco posições») é que ganha um bloco com os seus subitens.
+   *
+   * A regra passou a ser a do documento, e vive no NÚCLEO (`camposDaObservacaoInicial`) — não é
+   * cosmética de tela: o `grupo` viaja para a leitura, para o recorte gravado e para o documento
+   * derivado, que imprime «os mesmos grupos que a folha do passo 4 mostra». */
+  console.log('\nE. O passo 4 — os basilares num bloco, e o cartão do elenco com três colunas');
+  const lbNucleo = require('../motor/nucleo/linha-de-base.js');
+  const ANAMNESE = require('../porta/conteudo/anamnese.json');
+  const universo = lbNucleo.camposDisponiveis(ANAMNESE);
+  const grupos = [...new Set(universo.map((c) => c.grupo))];
+  conferir('a anamnese continua a medir 45 aspectos (o agrupamento não perde nenhum)',
+    universo.length === 45, universo.length);
+  conferir('«Os elementos basilares» é UM grupo, e não cinco',
+    grupos.filter((g) => g === 'Os elementos basilares').length === 1, grupos);
+  const basilares = universo.filter((c) => c.grupo === 'Os elementos basilares');
+  const idsBasilares = basilares.map((c) => c.id).sort();
+  conferir('…e é nele que estão en dehors, tendu, passé, meia ponta e musicalidade',
+    ['en-dehors', 'meia-ponta', 'musicalidade', 'passe', 'tendu'].every((id) => idsBasilares.includes(id))
+      && idsBasilares.length === 5, idsBasilares);
+  /* «AS CINCO POSIÇÕES» NÃO ENTRA NO BLOCO DOS BASILARES: ela é a que se desmembra, e o bloco dela
+   * é o dele — com os dez subitens dentro, como sempre esteve. */
+  const cinco = universo.filter((c) => /cinco posições/i.test(c.grupo || ''));
+  conferir('«as cinco posições» mantém o seu bloco, com os dez subitens',
+    cinco.length === 10, cinco.length);
+  conferir('o rótulo é o mesmo que a porta já usa para eles («Os elementos basilares»)',
+    /Os elementos basilares/.test(
+      fs.readFileSync(path.join(RAIZ, 'porta', 'index.html'), 'utf8')), null);
+  // E a ORDEM é a do documento: a observação inicial abre a lista.
+  conferir('…e são os primeiros da lista, como no documento',
+    grupos[0] === 'as cinco posições: uma visão geral' && grupos[1] === 'Os elementos basilares',
+    grupos.slice(0, 3));
+
+  /* O CARTÃO DO ELENCO vive no CLIENTE (`pintarLinhas`) — não está no HTML servido, e por isso
+   * não se mede aqui: a prova que o desenha de verdade é a `provar-linha-de-base.js`, em jsdom,
+   * que lê as três caixas e as abre. Aqui mede-se o que é do NÚCLEO e da marcação estática. */
+  conferir('o cartão do elenco é desenhado pelo cliente, com as três caixas novas',
+    /caixa\("Elenco", l\.nome/.test(html) &&
+    /data-painel=\\"elenco\\"/.test(html), null);
+  conferir('…e a caixa «Turmas» já não é desenhada nesse cartão',
+    !/caixa\("Turmas"/.test(html), null);
+
+  /* O PASSO 4 A CORRER, em jsdom, com os 45 campos de verdade. Uma prova que lesse o núcleo e
+   * ficasse por aí diria que o agrupamento está certo e não que a TELA o desenha — e o defeito
+   * que ela viu era de tela. O que se mede: dez blocos (e não catorze), e o dos basilares com as
+   * cinco caixas dentro, com o título dito UMA vez. */
+  {
+    let JSDOM, VirtualConsole;
+    try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { throw new Error('jsdom ausente: ' + e.message); }
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {});
+    vc.on('error', () => {});
+    const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: BASE + '/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true;
+        w.alert = () => {};
+        w.fetch = (u) => {
+          const url = String(u);
+          const corpo = url.indexOf('campos-do-corpo') !== -1
+            ? { ok: true, campos: universo, grupos: grupos }
+            : { ok: true, alunas: [], linhas: [], divergentes: [] };
+          return Promise.resolve({ ok: true, status: 200,
+            json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 300));
+    const blocos = [...win.document.querySelectorAll('#lb-campos details')];
+    conferir('o passo 4 desenha UM bloco por grupo — dez, e não catorze',
+      blocos.length === 10, blocos.length);
+    const doBasilares = blocos.find((b) => /Os elementos basilares/.test(b.textContent || ''));
+    conferir('há um bloco «Os elementos basilares»', Boolean(doBasilares), null);
+    conferir('…e dentro dele estão as cinco caixas, e não uma',
+      Boolean(doBasilares) && doBasilares.querySelectorAll('input[name="lb-campo"]').length === 5,
+      doBasilares && doBasilares.querySelectorAll('input[name="lb-campo"]').length);
+    conferir('…e o título aparece UMA vez, no cabeçalho do bloco, e não repetido em cada caixa',
+      Boolean(doBasilares) && (String(doBasilares.textContent).match(/Os elementos basilares/g) || []).length === 1,
+      doBasilares && String(doBasilares.textContent).replace(/\s+/g, ' ').trim().slice(0, 200));
+    win.close();
+  }
 
   console.log('\nC. O que uma SALA desobstrui — e o que não existe para desobstruir');
 
@@ -340,8 +438,9 @@ const RITMO = {
     + ' emite conteúdos em lugar nenhum; o elenco cria-se sem anamnese e sem turma, e o cliente'
     + ' deixou de desligar o nome; o passo 2 do elenco abre para explicar a falta e leva à'
     + ' anamnese; a sala sem ritmo não recebe turma e a com ritmo recebe — e a Tabela de'
-    + ' atividades segue como plano, não como código. E a nomenclatura: Audição e Estilo no menu'
-    + ' e nos títulos, elenco nos campos, Conteúdo do Estilo na Turma.');
+    + ' atividades segue como plano, não como código; os basilares são um bloco no passo 4; e a'
+    + ' nomenclatura: Audição e Estilo no menu e nos títulos, elenco nos campos, Elencos na'
+    + ' listagem, Conteúdo do Estilo na Turma.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);

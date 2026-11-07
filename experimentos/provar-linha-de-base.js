@@ -1948,18 +1948,30 @@ async function chamar(env, caminho, opcoes) {
       const caixas = li.querySelectorAll('.trio .trio-item');
       assert.strictEqual(caixas.length, 3,
         'o cartão tem as três caixas do percurso: ' + caixas.length);
+      /* AS TRÊS COLUNAS DO CARTÃO DO ELENCO (07/11/2026): o NOME, as alunas e o recorte.
+       * A caixa «Turmas» saiu — a relação com a turma declara-se na Turma, e o que ela dizia
+       * passou a ser o que a caixa «Elenco» abre. A ordem é a do percurso: quem é, de quem é o
+       * corpo, o que se olha nele. */
       const rotulos = [...caixas].map((c) => c.getAttribute('data-balao'));
-      assert.deepStrictEqual([...rotulos], ['alunas', 'recorte', 'turma'],
+      assert.deepStrictEqual([...rotulos], ['elenco', 'alunas', 'recorte'],
         'na ordem do percurso, não na do gosto: ' + rotulos.join(', '));
       assert.strictEqual(li.querySelectorAll('.trio-painel').length, 3,
         'e um painel para cada caixa');
+      /* «TURMAS» SAIU DESTE CARTÃO (07/11/2026). A coluna repetia o que a Turma já declara, e a
+       * informação que ela dava — em que turmas este elenco está — passou a ser o que a caixa
+       * «Elenco» abre. A prova mede as duas metades: o painel da turma não existe, e o do elenco
+       * existe a dizer o que a coluna dizia. */
+      assert.strictEqual(li.querySelector('.trio-painel[data-painel="turma"]'), null,
+        'a caixa «Turmas» não existe mais neste cartão');
+      assert.ok(li.querySelector('.trio-painel[data-painel="elenco"]'),
+        'e o painel do elenco é o que ficou no lugar dela');
       /* E AS CAIXAS ABREM: o handler é o mesmo das Turmas, e foi solto de `li.turma` para o
        * `<li>` da linha — sem isso, abrir o painel de um cartão fecharia o de outro. */
-      caixas[1].click();
+      caixas[2].click();
       await new Promise((r) => win.setTimeout(r, 30));
       const recorte = li.querySelector('.trio-painel[data-painel="recorte"]');
       assert.strictEqual(recorte.hidden, false, 'a caixa «Recorte» abre o painel dela');
-      assert.strictEqual(caixas[1].getAttribute('aria-expanded'), 'true',
+      assert.strictEqual(caixas[2].getAttribute('aria-expanded'), 'true',
         'e o estado fica no aria-expanded, que é o que o leitor de ecrã anuncia');
       win.close();
     });

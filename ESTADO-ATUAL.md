@@ -4027,13 +4027,28 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **Os basilares são um bloco no passo 4, o quadro do recorte virou acordeão, e a
+  lista dos elencos ficou com três colunas.** O agrupamento é do NÚCLEO (`camposDaObservacaoInicial`):
+  quem tem `subitens` é um bloco, e os cinco basilares (en dehors, tendu, passé, meia ponta,
+  musicalidade) partilham **«Os elementos basilares»** — o rótulo que a porta já usava; o passo 4
+  passa de **catorze blocos a dez**, e o universo continua **45 aspectos**. O `grupo` viaja para a
+  leitura, para o recorte e para o documento derivado, e por isso a arrumação vale nos três.
+  «Pontos cegos» e «Nunca escolhidos» passaram a **acordeão que nasce fechado**, com os chips a
+  aparecerem **três a três** e «Mostrar mais (N)» a acrescentar três (sem pedido novo: o `indice` já
+  vinha inteiro); a frase de depuração que apontava `api/bastidores/indice/recorte` **saiu**.
+  «Mais escolhidos» continua em tabela. No cartão do elenco a caixa «Turmas» **saiu** — o cartão tem
+  **Elenco (nome), Alunas e Recorte**, e «em que turmas está» passou a ser o que a caixa «Elenco»
+  abre. A listagem voltou a chamar-se **«Elencos»** (a de «Audições» foi corrigida no mesmo dia; ver
+  a entrada de cima). **CONFIRMADO** no código e em jsdom; a conferência ao ar fica para o deploy.
+
 - **07/11/2026** — **A nomenclatura de Pedagogia mudou: «Elenco» passou a «Audição» e «Verbetes da
   notação» a «Estilo».** É ajuste de **rótulo**, não de modelo: a secção onde o professor faz a
   seleção e a configuração chama-se agora **Audição**, e a que define os exercícios que conduzem o
   elenco ao domínio de um estilo chama-se **Estilo**. A **entidade continua a chamar-se elenco** —
-  o campo do formulário é «Nome do elenco», o da Turma é «Elenco», e a lista dentro da Audição
-  passou a «Audições»; a lista dentro do Estilo ficou «Exercícios com verbete», porque «verbete» é
-  a ficha da notação e não o nome da secção. Na **Turma**, o antigo «conteúdo da aula» passou a
+  o campo do formulário é «Nome do elenco» e o da Turma é «Elenco»; a lista dentro da Audição
+  chamou-se «Audições» por um dia e **voltou a «Elencos»** no mesmo dia (ver a entrada seguinte); a
+  lista dentro do Estilo ficou «Exercícios com verbete», porque «verbete» é a ficha da notação e não
+  o nome da secção. Na **Turma**, o antigo «conteúdo da aula» passou a
   **«Conteúdo do Estilo»**; a seleção (Elenco, Sala, Nível, Grau, Tradição, Modalidade, Professor)
   não mudou. Os `id` das secções ficaram (`#corpo`, `#verbetes`, `#curadorias`) — são âncoras de
   link e de prova. **CONFIRMADO** no código (`motor/servidor/bastidores.js`); a conferência ao ar

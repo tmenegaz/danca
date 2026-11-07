@@ -39407,6 +39407,15 @@ a secção.
    «Exercícios com verbete» fica, porque «verbete» é a ficha da notação e não o nome da secção.
    Mesma regra para os textos de ajuda que dizem «abrir este verbete no formulário»: são sobre a
    ficha.
+
+   > **Correção de 07/11/2026 (mesmo dia).** A primeira redação deste ponto dizia que a LISTA passava
+   > a «Audições». **Está errado, e ela corrigiu-o na sessão seguinte**: «o nome da listagem deve ser
+   > Elencos e não Audições». A distinção do ponto 2 vale também aqui, e é ela que decide — a
+   > Audição é o ATO, e o que está na lista são os ELENCOS que saíram dele. Uma lista de «Audições»
+   > promete o ato e mostra o produto. O `<h3>` e o estado vazio voltaram a «Elencos» / «nenhum
+   > elenco ainda». **O que não mudou:** o rótulo da secção («Audição»), o do menu e todos os campos.
+   > A redação anterior não é apagada: fica como o elo que registra o que se pensou antes de a
+   > sessão seguinte o corrigir.
 4. **Na Turma, «Conteúdo da aula» → «Conteúdo do Estilo».** O campo não mudou de lugar nem de
    conteúdo: é a lista de exercícios que a turma declara, e o nome estava a chamar «aula» ao que a
    Turma guarda. A seleção (Elenco, Sala, Nível, Grau, Tradição, Modalidade, Professor) não foi
@@ -39431,3 +39440,76 @@ assets substituído por um vazio, porque `publicacao/breu` não é versionado) �
 e as provas leem o HTML servido, mas o «ao ar» só se confirma depois de publicado. E o `IDEIA-
 PAINEL-ESCOLA.md` e o `PLANEJAMENTO-LASTRO.md` continuam a dizer «Verbetes da notação» — são
 documentos de ideia e de percurso, e reescrevê-los seria reescrever o passado, não a fotografia.
+
+## 07/11/2026 — Os basilares num bloco, o quadro do recorte em acordeão, e a lista com três colunas
+
+**O que motivou.** Três relatos da mesma sessão de teste, e os três são do mesmo tipo de defeito:
+uma tela que mostra o dado certo de uma maneira que não serve a quem o lê.
+
+1. **No passo 4, os basilares vinham em cinco blocos de uma caixa cada.** «en dehors (rotação
+   externa) (1)», «o tendu (1)», «o passé (1)», «a meia ponta (1)», «a musicalidade (1)» — e dentro
+   de cada um, uma única caixa cujo rótulo repetia o título. A anamnese não os apresenta assim: no
+   documento, os seis elementos da observação inicial são UMA secção, e o único que se desmembra
+   («as cinco posições») é que ganha um bloco com os seus subitens. **A tela tinha inventado uma
+   arrumação que o documento não tem.**
+2. **No quadro do recorte, três listas abertas de uma vez** — até quinze chips por lista — e, para o
+   que sobrava, uma frase que não é para ser lida: «e mais 7 — a lista inteira em
+   `api/bastidores/indice/recorte`». **Endereço de rota na tela do professor é lixo de depuração
+   que ficou**; quem observa o corpo não vai abrir uma API.
+3. **Na lista dos elencos, a coluna «Turmas»** repetia o que a Turma já declara, e uma das caixas
+   não era do que o cartão trata. E o título tinha virado «Audições» na sessão anterior — correção
+   registada na entrada de cima.
+
+**O que foi decidido.**
+
+1. **A regra do agrupamento vive no NÚCLEO, e é a do documento.** Em `camposDaObservacaoInicial`:
+   quem tem `subitens` é um bloco (o grupo é o nome dele); quem não tem é basilar, e os basilares
+   partilham o grupo **«Os elementos basilares»** — o MESMO rótulo que a porta já usa para eles
+   (`grupoDoNo`, em `porta/index.html`). Duas telas do mesmo sistema não podem chamar coisas
+   diferentes à mesma coisa. O passo 4 passa de catorze blocos a **dez**, e o dos basilares tem as
+   cinco caixas com o título dito uma vez. **Não é cosmética de tela:** o `grupo` viaja para a
+   leitura (o painel do passo 3), para o recorte gravado e para o documento derivado, que imprime
+   «os mesmos grupos que a folha do passo 4 mostra» (`agruparRecorte`, em `derivar-po.js`).
+   Arrumar aqui é arrumar nos três. O universo continua a ser **45 aspectos** — agrupar não perde
+   nenhum.
+2. **«Pontos cegos» e «Nunca escolhidos» viram `<details>` — a peça de bloco da casa, a mesma que o
+   passo 4 usa —, e nascem FECHADOS.** Dentro, os chips aparecem **três a três**, e «Mostrar mais
+   (N)» acrescenta três, com o resto no rótulo do botão; quando a lista acaba, o botão **sai** em
+   vez de ficar aceso a prometer o que já está à vista. **Não se gasta um pedido**: o `indice` já
+   vem inteiro na resposta da lista que a página pede — o que se esconde é o DESENHO, e esconder
+   desenho é o que o `<details>` faz sem uma linha de JavaScript. A frase de depuração **saiu**.
+3. **«Mais escolhidos» continua em tabela.** É um ranque, lê-se de cima para baixo e a coluna dos
+   números alinha; um acordeão por cima de doze linhas ordenadas só acrescentaria um clique ao que
+   já se vê.
+4. **O cartão do elenco fica com as três colunas que ela pediu: Elenco (nome), Alunas e Recorte.**
+   A caixa «Turmas» saiu — a relação declara-se na Turma, e repeti-la aqui era a mesma verdade em
+   dois lugares, sendo o segundo o que fica para trás. **A informação não se deitou fora:** «em que
+   turmas este elenco está» passou a ser o que a caixa **«Elenco»** abre, num clique. Nada se
+   perdeu, e o cartão passou a ter as três colunas do percurso: quem é, de quem é o corpo, o que se
+   olha nele.
+5. **A listagem volta a chamar-se «Elencos»** — ver a nota de correção na entrada de cima, que é
+   onde a decisão de «Audições» foi tomada e onde ela é corrigida.
+
+**Onde entrou.** `motor/nucleo/linha-de-base.js` (`camposDaObservacaoInicial`: o grupo dos
+basilares) · `motor/servidor/bastidores.js` (`chipsDeAspectos` com quantidade explícita,
+`acordeaoDeAspectos`, `maisAspectos` e o ouvinte delegado do «Mostrar mais»; `pintarIndiceDoRecorte`
+com dois acordeões e o ranque em tabela; o cartão do elenco com `caixa("Elenco", …)` e o
+`painelElenco`; o `<h3>Elencos</h3>`) · `experimentos/provar-indice-do-recorte.js` (o acordeão
+fechado, os três chips, o clique que acrescenta três e o botão que sai no fim; a frase de depuração
+medida como AUSENTE) · `experimentos/provar-salas-e-elencos.js` (secção E — o agrupamento no núcleo,
+o passo 4 desenhado em jsdom, e o cartão com as três caixas) · `experimentos/provar-linha-de-base.js`
+(as três caixas passam a `elenco, alunas, recorte`, e o painel `turma` medido como ausente) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-salas-e-elencos` **62/62** · `provar-indice-do-recorte` **24/24** ·
+`provar-linha-de-base` **102/102** · `provar-producao` **166/166** · `provar-acordeoes` **verde** ·
+`provar-celular` **15/15** · `provar-conteudos-e-estado-da-turma` e `provar-enquadramento-da-turma`
+**verdes** · `check-identidade` **21 verificações, 0 erros** · `wrangler deploy --dry-run` da raiz
+**compila**. O script servido foi extraído e compilado à parte (`new Function`): um erro de sintaxe
+no cliente não se vê no `node --check` do servidor, e foi assim que ele apareceu — um parêntese a
+menos na concatenação do cartão.
+
+**O que ainda não está feito.** A conferência ao ar é do próximo deploy. E o cartão do elenco, sem
+a coluna «Turmas», deixa de dizer de relance em que turmas o elenco está — quem quiser sabê-lo abre
+a caixa «Elenco». Foi a troca pedida, mas é uma troca: se ao usar ela sentir falta do número à
+vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.

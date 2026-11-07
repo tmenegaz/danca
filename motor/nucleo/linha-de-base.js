@@ -147,14 +147,37 @@ function camposDaObservacaoInicial(conteudo) {
     : [];
   const saida = [];
   const vistos = new Set();
+  /* OS BASILARES SÃO UM BLOCO, E NÃO CINCO (07/11/2026).
+   *
+   * O DEFEITO, na tela do passo 4: cada elemento da observação inicial virava um `<details>`
+   * próprio — «en dehors (rotação externa) (1)», «o tendu (1)», «o passé (1)», «a meia ponta (1)»,
+   * «a musicalidade (1)» —, cada um com UMA caixa dentro cujo rótulo repetia o título do bloco.
+   * Cinco blocos para cinco caixas, e o mesmo nome dito duas vezes em cada um.
+   *
+   * A ANAMNESE NÃO OS APRESENTA ASSIM. Lá, os seis elementos da observação inicial são UMA secção
+   * — «A observação inicial — os elementos basilares» —, e o único que se desmembra («as cinco
+   * posições») é que ganha um bloco com os seus subitens dentro. A tela tinha inventado uma
+   * arrumação que o documento não tem.
+   *
+   * A REGRA PASSA A SER A DO DOCUMENTO: quem tem `subitens` é um bloco (o grupo é o nome dele);
+   * quem não tem é basilar, e os basilares partilham o grupo «Os elementos basilares» — o MESMO
+   * rótulo que a porta já usa para eles (`grupoDoNo`, em `porta/index.html`). Duas telas do mesmo
+   * sistema não podem chamar coisas diferentes à mesma coisa.
+   *
+   * E O `grupo` NÃO É ORNAMENTO: ele viaja para a leitura (o painel do passo 3), para o recorte
+   * gravado e para o documento derivado, que imprime «os mesmos grupos que a folha do passo 4
+   * mostra» (`agruparRecorte`, em `derivar-po.js`). Arrumar aqui é arrumar nos três. */
+  const GRUPO_DOS_BASILARES = 'Os elementos basilares';
   for (const elemento of elementos) {
     if (!elemento || !elemento.id) continue;
     const opcoes = opcoesDaForma(elemento.forma);
     // Um elemento sem régua declarada não se mede, e medi-lo seria inventar-lhe níveis.
     if (!opcoes.length) continue;
     const dimensao = String(elemento.dimensao || (elemento.id === 'musicalidade' ? 'musicalidade' : 'tecnica'));
-    const grupo = String(elemento.elemento || elemento.id);
     const subitens = Array.isArray(elemento.subitens) ? elemento.subitens : [];
+    const grupo = subitens.length
+      ? String(elemento.elemento || elemento.id)
+      : GRUPO_DOS_BASILARES;
     const itens = subitens.length ? subitens : [elemento];
     for (const item of itens) {
       if (!item || !item.id || vistos.has(String(item.id))) continue;
