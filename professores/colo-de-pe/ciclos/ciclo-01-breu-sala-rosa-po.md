@@ -7,14 +7,14 @@ responsavel: Colo De Pe
 professor: Colo De Pe
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Aguardando
-envelope: po-20261107-1823-2
+envelope: po-20261107-1846
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261107-1823
+plano-20261107-1845
 
 ## Horizonte
 
@@ -48,7 +48,14 @@ Calendário: 2027-03-03 → 2027-04-30 · Volume de trabalho: 3–6 séries · C
 
 | Eixo | Dimensão | Itens |
 |:--|:--|:--|
-| Corpo | **Recorte do corpo** | [a decidir: a linha de base da turma ainda não tem recorte — ele é o passo 4 do Corpo] |
+| Corpo | **as cinco posições: uma visão geral** | 1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços |
+| Corpo | **Os elementos basilares** | en dehors (rotação externa) |
+| Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
+| Corpo | **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
+| Corpo | **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
+| Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| Corpo | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
+| Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Orientação espacial básica |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | Teste |
 | Técnica | **Barra** | Teste |
@@ -63,6 +70,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 ## Sujeitos
 
 - Aluna A
+- Aluna B
 
 ## Norma estabelecida
 
@@ -72,7 +80,14 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 | Grupo | Aspectos observados |
 |:--|:--|
-| — | [a decidir: a linha de base da turma não tem recorte do corpo] |
+| **as cinco posições: uma visão geral** | 1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços |
+| **Os elementos basilares** | en dehors (rotação externa) |
+| **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
+| **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
+| **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
+| **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
+| **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Orientação espacial básica |
 
 ## Restrições físicas declaradas
 
@@ -80,11 +95,18 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Critérios de inclusão
 
-- [a decidir]
+- as cinco posições: uma visão geral: 1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços
+- Os elementos basilares: en dehors (rotação externa)
+- Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)
+- Flexibilidade e Amplitude Articular: Flexibilidade dos adutores
+- Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros
+- Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos
+- Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica
+- Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Orientação espacial básica
 
 ## Critérios de exclusão
 
-- [a decidir]
+- Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte
 
 ## Justificativa
 
