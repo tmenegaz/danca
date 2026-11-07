@@ -1,0 +1,24 @@
+{
+  "versao": 1,
+  "escola": "batata",
+  "versoes": {
+    "tami--20261107-2229.json": {
+      "id": "tami",
+      "carimbo": "20261107-2229",
+      "arquivo": "escola/batata/linhas-de-base/tami--20261107-2229.json",
+      "nome": "tami",
+      "professor": "dedao-aberto",
+      "turma": null,
+      "atualizada_em": "2026-11-07T22:29:37.817Z",
+      "enviada_em": "2026-11-07T22:29:38.464Z",
+      "aspectos": [
+        "tendu",
+        "formato-anatomico-dos-joelhos",
+        "rotacao-e-amplitude-dos-ombros",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "estabilidade-vestibular-e-deslocamento"
+      ],
+      "alunas": 1
+    }
+  }
+}
