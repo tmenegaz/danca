@@ -38963,3 +38963,68 @@ contraprova, na secção G da prova) · `gerar-indices --check` **0** · `check-
 teste — a `calango` já não existe. E `provar-relacoes` fica declaradamente **incompleto** (A–F
 «NÃO FEITAS») enquanto não houver ciclo com pacote, porque essas secções medem um ciclo real e
 inventar um seria medir a prova, não o mundo.
+
+## 07/11/2026 — O repositório limpo para o novo ciclo de testes: três escolas, e mais nada
+
+**O que motivou.** Depois do expurgo da `calango`, o repositório ficou num estado que não é
+«vazio» nem «em uso»: dez tombstone de escolas todas expurgadas, vinte pastas de professor das
+quais quinze não tinham escola nenhuma, um acervo que listava 23 professores — inclusive três
+(`leticia`, `fokini2`, `tiago`) que nunca tiveram pasta alguma —, e um `escolas-habilitadas.json`
+com a `maria` ainda marcada como habilitada. A pesquisadora pediu limpeza cirúrgica para começar
+os testes oficiais com **Calango, Breu e Batata**, sem que o domínio de dança nascça poluído com
+nomes antigos. E pediu, explicitamente, que a regra do expurgo permaneça intacta.
+
+**O que foi decidido.**
+
+1. **Ficam três tombstone**, e só três: `escola/{calango,breu,batata}/indice.json`. Não têm dado
+   — as três já estavam expurgadas —, e é isso que «manter» significa aqui: manter a memória de
+   que existiram, que é o que o expurgo preserva por desenho (§2 do `expurgar-escola.js`). Os
+   outros sete (`barra`, `calando-teste-1`, `diaghilev2`, `fita`, `maria`, `ponta`, `valse`)
+   saíram, com os seus índices derivados.
+2. **Ficam três professores**, os únicos ligados a essas escolas: `pe-torto` (batata),
+   `coqui-de-redinha` (breu) e `rabo-gramde` (calango). As outras dezassete pastas saíram —
+   eram arcabouço de escola morta (cinco schemas cada, cópia do `modelo/`), e um professor com
+   pasta e sem escola é precisamente o que aparecia nas listas de escolha.
+3. **Ficam os três fixtures de teste** (`teste/{calango,breu,batata}.json`): são sintéticos e são
+   o que distingue as escolas de teste das demais — a palavra no nome da escola é o gatilho.
+4. **O andaime ficou limpo**: `raiz/escolas-habilitadas.json` perdeu a entrada `maria`, e
+   `publicacao/{batata,breu,calango}` (saída gerada, fora do Git) e `tools/__pycache__` foram
+   apagados. `publicacao/produtos/` **não** foi tocado: é saída do `motor/produtos.js`, não é
+   dado de escola, e o `.gitignore` já o exclui.
+5. **A memória histórica preservada é a que a regra manda preservar.** O `REGISTRO.md`, o
+   `HANDOFF.md`, o `ESTADO-ATUAL.md` e os documentos de arquitetura continuam a nomear as escolas
+   e os professores apagados (P-03: a proveniência acrescenta, não edita). O que saiu foi o
+   **registro operacional** — o tombstone que diz «esta escola existe no acervo» —, não o relato
+   do que aconteceu.
+
+**O que se perdeu, e é declarado.** Os `captura-schema` dos professores guardam
+`_declaracao.porVariante`, e duas variantes existiam **só** em pastas apagadas:
+`batata-bale-nivel-2-teste-2` (só em `cafe-no-bule`) e `calango-bale-nivel-2-teste-1` (só em
+`perna-boa`). A declaração some com a pasta; o schema é regenerado por
+`motor/servidor/schemas-do-ciclo.js` quando a escola voltar a capturar aquela variante, e os
+fixtures dos testes oficiais trazem as três salas de cada escola. Não é recuperável do Git sem
+reverter este commit — fica dito para quem procurar.
+
+**Onde entrou.** `escola/` (sete tombstone removidos) · `professores/` (dezassete pastas
+removidas) · `raiz/escolas-habilitadas.json` (a entrada `maria`) · `indices/` (regenerado) ·
+`experimentos/provar-aula-e-plano-legiveis.js` (a prova lia os schemas de `professores/tiago-menegaz/`,
+pasta que deixou de existir; passou a **descobrir** um professor com os cinco schemas, em vez de
+nomear um — a mesma razão pela qual a lista de professores nunca é escrita à mão).
+
+**Validação.** `check-indices` **16/16** · `check-schemas` **verde** · `gerar-indices --check`
+**0** · `gerar-relacoes --check` **0** · `check-identidade --sem-pacotes` **0 erros** ·
+`check-github-headers` **5/5** · `provar-aula-e-plano-legiveis` **12/12** (a que o cleanup
+quebrou) · `provar-recriacao-da-escola`, `provar-elo-do-expurgo`, `provar-expurgo-sem-listagem`,
+`provar-expurgo-leitura-atrasada`, `provar-acervo-envelopes`, `provar-indice-de-proveniencia`
+**60/60**, `provar-habilitacao-do-professor`, `provar-apagar-professor-livre` **56/56**,
+`provar-cadastro-visivel` **12/12** — todos verdes. **Vermelhos que já estavam vermelhos antes
+deste commit**, medidos contra um worktree do `43043233`: `provar-indices` **50/54**,
+`provar-declaracoes-do-indice` **22/24**, `provar-bancadas-e-expurgo` **20/21**,
+`provar-identidade-da-escola-recriada` **22/23**, `provar-homonimo` (depende do tombstone da
+`ponta`, e já falhava), e três provas de envelope que leem `escola/breu/envelopes` (apagado num
+expurgo anterior). Nenhum deles foi tocado por esta limpeza.
+
+**O que ainda não está feito.** Nenhuma escola está configurada (`wrangler.<escola>.jsonc`
+inexistente) e nenhum ciclo tem pacote: as três escolas «mantidas» são memória, não instâncias
+vivas. A prova ao vivo do ajuste Turma/Elenco (`e1d6dc5e`) continua a depender da **primeira
+escola criada** — é ela que valida o motor novo.

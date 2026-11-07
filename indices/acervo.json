@@ -13,32 +13,6 @@
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-10-13T11:19:19.854587+00:00",
-      "expurgada": true,
-      "expurgada_em": "2026-10-15T17:15:02.992Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:barra",
-      "nome": "barra",
-      "professor": "leticia",
-      "professores": [
-        "leticia"
-      ],
-      "registros": [],
-      "slug": "barra"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
       "criada_em": "2026-11-01T22:29:37.341655+00:00",
       "expurgada": true,
       "expurgada_em": "2026-11-02T16:53:47.077Z",
@@ -107,32 +81,6 @@
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-10-19T12:31:36.783282+00:00",
-      "expurgada": true,
-      "expurgada_em": "2026-10-19T16:18:23.098Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:calando-teste-1",
-      "nome": "calando-teste-1",
-      "professor": "sapo-bailarino",
-      "professores": [
-        "sapo-bailarino"
-      ],
-      "registros": [],
-      "slug": "calando-teste-1"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
       "criada_em": "2026-11-05T13:06:46.674863+00:00",
       "expurgada": true,
       "expurgada_em": "2026-11-07T12:18:45.087Z",
@@ -152,146 +100,11 @@
       ],
       "registros": [],
       "slug": "calango"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": null,
-      "expurgada": true,
-      "expurgada_em": "2026-10-13T00:07:04.191Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:diaghilev2",
-      "nome": "diaghilev2",
-      "professor": "fokini2",
-      "professores": [
-        "fokini2"
-      ],
-      "registros": [],
-      "slug": "diaghilev2"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": "2026-10-15T18:13:45.796290+00:00",
-      "expurgada": true,
-      "expurgada_em": "2026-10-19T10:20:42.834Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:fita",
-      "nome": "fita",
-      "professor": "tiago-menegaz",
-      "professores": [
-        "tiago-menegaz"
-      ],
-      "registros": [],
-      "slug": "fita"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": null,
-      "expurgada": true,
-      "expurgada_em": "2026-10-15T16:40:21.611Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:maria",
-      "nome": "maria",
-      "professor": "tiago",
-      "professores": [
-        "tiago"
-      ],
-      "registros": [],
-      "slug": "maria"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": "2026-10-15T17:39:44.721678+00:00",
-      "expurgada": true,
-      "expurgada_em": "2026-10-15T17:53:18.035Z",
-      "expurgos": 1,
-      "habilitada": false,
-      "id": "escola:ponta",
-      "nome": "ponta",
-      "professor": "tiago",
-      "professores": [
-        "tiago"
-      ],
-      "registros": [],
-      "slug": "ponta"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": "2026-10-17T19:45:14.655288-03:00",
-      "expurgada": true,
-      "expurgada_em": "2026-10-19T12:28:13.390Z",
-      "expurgos": 2,
-      "habilitada": false,
-      "id": "escola:valse",
-      "nome": "valse",
-      "professor": "tiago-menegaz",
-      "professores": [
-        "tiago-menegaz"
-      ],
-      "registros": [],
-      "slug": "valse"
     }
   ],
   "filtros": {
     "anos": [],
     "escolas": [
-      {
-        "contagem": 1,
-        "rotulo": "barra",
-        "valor": "barra"
-      },
       {
         "contagem": 1,
         "rotulo": "batata",
@@ -304,38 +117,8 @@
       },
       {
         "contagem": 1,
-        "rotulo": "calando-teste-1",
-        "valor": "calando-teste-1"
-      },
-      {
-        "contagem": 1,
         "rotulo": "calango",
         "valor": "calango"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "diaghilev2",
-        "valor": "diaghilev2"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "fita",
-        "valor": "fita"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "maria",
-        "valor": "maria"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "ponta",
-        "valor": "ponta"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "valse",
-        "valor": "valse"
       }
     ],
     "estados": [],
@@ -354,16 +137,6 @@
         "contagem": 1,
         "rotulo": "Coqui de Redinha",
         "valor": "coqui-de-redinha"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "fokini2",
-        "valor": "fokini2"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Letícia",
-        "valor": "leticia"
       },
       {
         "contagem": 1,
@@ -411,17 +184,12 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 0,
-        "rotulo": "pirueta-aberta",
-        "valor": "pirueta-aberta"
-      },
-      {
         "contagem": 1,
         "rotulo": "Rabo Gramde",
         "valor": "rabo-gramde"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -431,23 +199,13 @@
         "valor": "so-para-direita"
       },
       {
-        "contagem": 0,
-        "rotulo": "teclado-abnt",
-        "valor": "teclado-abnt"
-      },
-      {
         "contagem": 1,
         "rotulo": "tela-de-celular",
         "valor": "tela-de-celular"
       },
       {
-        "contagem": 2,
-        "rotulo": "Tiago",
-        "valor": "tiago"
-      },
-      {
-        "contagem": 5,
-        "rotulo": "Tiago",
+        "contagem": 3,
+        "rotulo": "tiago-menegaz",
         "valor": "tiago-menegaz"
       },
       {
@@ -460,9 +218,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b6473a6b"
+    "commit": "43043233"
   },
-  "gerado_em": "2026-11-07T12:23",
+  "gerado_em": "2026-11-07T12:41",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -513,24 +271,6 @@
       "id": "professor:coqui-de-redinha",
       "nome": "Coqui de Redinha",
       "slug": "coqui-de-redinha"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "diaghilev2"
-      ],
-      "id": "professor:fokini2",
-      "nome": null,
-      "slug": "fokini2"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "barra"
-      ],
-      "id": "professor:leticia",
-      "nome": "Letícia",
-      "slug": "leticia"
     },
     {
       "ciclos": [],
@@ -617,13 +357,6 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
-      "id": "professor:pirueta-aberta",
-      "nome": null,
-      "slug": "pirueta-aberta"
-    },
-    {
-      "ciclos": [],
       "escolas": [
         "calango"
       ],
@@ -636,7 +369,6 @@
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1",
         "calango"
       ],
       "id": "professor:sapo-bailarino",
@@ -654,13 +386,6 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
-      "id": "professor:teclado-abnt",
-      "nome": null,
-      "slug": "teclado-abnt"
-    },
-    {
-      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -671,24 +396,12 @@
     {
       "ciclos": [],
       "escolas": [
-        "maria",
-        "ponta"
-      ],
-      "id": "professor:tiago",
-      "nome": "Tiago",
-      "slug": "tiago"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
         "batata",
         "breu",
-        "calango",
-        "fita",
-        "valse"
+        "calango"
       ],
       "id": "professor:tiago-menegaz",
-      "nome": "Tiago",
+      "nome": null,
       "slug": "tiago-menegaz"
     },
     {

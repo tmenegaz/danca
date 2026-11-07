@@ -1,6 +1,3 @@
 {
-  "_nota": "ANDAIME do expurgo (IDEIA-PAINEL-ESCOLA.md §17.5). A pesquisadora edita à mão e reimplanta a raiz. `habilitada:false` + `desde` (ISO) = escola aguardando o prazo de expurgo (3 min no teste). `pagante:true` impede o expurgo. `worker` (opcional) é o nome do script/subdomínio no Cloudflare quando difere do slug. `kv` (namespaceId + prefixos) é opcional: `prefixos` é a LISTA de prefixos da escola no KV compartilhado — uma escola vive sob DOIS (`<slug>/` e `bastidores/<slug>/`, ver `prefixosDaEscola` em motor/servidor/expurgar-escola.js). Sem `prefixos`, valem os da escola. Quando a Produção nascer, este arquivo SAI e a flag passa a viver no ESCOLA.conf.",
-  "maria": {
-    "habilitada": true
-  }
+  "_nota": "ANDAIME do expurgo (IDEIA-PAINEL-ESCOLA.md §17.5). A pesquisadora edita à mão e reimplanta a raiz. `habilitada:false` + `desde` (ISO) = escola aguardando o prazo de expurgo (3 min no teste). `pagante:true` impede o expurgo. `worker` (opcional) é o nome do script/subdomínio no Cloudflare quando difere do slug. `kv` (namespaceId + prefixos) é opcional: `prefixos` é a LISTA de prefixos da escola no KV compartilhado — uma escola vive sob DOIS (`<slug>/` e `bastidores/<slug>/`, ver `prefixosDaEscola` em motor/servidor/expurgar-escola.js). Sem `prefixos`, valem os da escola. Quando a Produção nascer, este arquivo SAI e a flag passa a viver no ESCOLA.conf."
 }

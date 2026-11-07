@@ -44,6 +44,29 @@ const RAIZ = path.join(__dirname, '..');
 const { derivarAula01, derivarCaptura, declaracaoDeCaptura } = require('../motor/nucleo/derivar-ciclo.js');
 const { derivarPlano } = require('../motor/nucleo/derivar-plano-ciclo.js');
 
+/**
+ * O PROFESSOR DE QUE SE PEGAM OS SCHEMAS — descoberto, e não nomeado (07/11/2026).
+ *
+ * Aqui esteve `professores/tiago-menegaz/`, escrito à mão em quatro sítios. A limpeza do
+ * repositório apagou essa pasta, e a prova morreu num ENOENT que nada dizia sobre o contrato
+ * que ela mede — o dos validadores com a derivação. Não importa QUAL professor: o conteúdo dos
+ * schemas varia por escola, não por pessoa, e a variante que esta prova acrescenta é a dela.
+ * Descobrir em vez de nomear é o que impede a prova de morrer quando um professor sai.
+ */
+function professorDeProva() {
+  const base = path.join(RAIZ, 'professores');
+  const faltando = (slug) => ['aula', 'plano', 'captura']
+    .some((t) => !fs.existsSync(path.join(base, slug, 'ciclos', `ciclo-01-${t}-schema.json`)));
+  for (const slug of fs.readdirSync(base).sort()) {
+    if (!faltando(slug)) return slug;
+  }
+  console.error('provar-aula-e-plano-legiveis: nenhum professor com os cinco schemas do ciclo'
+    + ' — sem uma base real, a prova não mede o que diz medir.');
+  process.exit(1);
+}
+
+const PROFESSOR = professorDeProva();
+
 let n = 0;
 let falhas = 0;
 function checar(rotulo, ok, detalhe) {
@@ -55,7 +78,7 @@ function checar(rotulo, ok, detalhe) {
 
 // --------------------------------------------------------------- as fontes de prova
 
-const CONTEXTO = { escola: 'Batata', professor: 'tiago-menegaz', ciclo: '01', turma: 'Balé Nível 1' };
+const CONTEXTO = { escola: 'Batata', professor: PROFESSOR, ciclo: '01', turma: 'Balé Nível 1' };
 
 /** A resposta no formato do envelope. */
 const r = (valor) => ({ valor: valor, origem: 'perguntado', respondente: 'professor', nota: null });
@@ -165,7 +188,7 @@ function principal() {
   console.log('\n1. A AULA derivada é legível pelo validador da aula');
   const aula = derivarAula01({ plano: PLANO, po: PO, contexto: CONTEXTO, calibracao: CALIBRACAO });
   const mdAula = escrever('aula.md', aula.markdown || aula);
-  const vAula = validarJson('validar-aula-ciclo.js', 'professores/tiago-menegaz/ciclos/ciclo-01-aula-schema.json', mdAula);
+  const vAula = validarJson('validar-aula-ciclo.js', `professores/${PROFESSOR}/ciclos/ciclo-01-aula-schema.json`, mdAula);
   checar('o validador da aula aceita o documento que o gerador escreveu', vAula.codigo === 0, vAula.saida.trim().split('\n').slice(-3));
   const dadosAula = vAula.dados || {};
 
@@ -196,7 +219,7 @@ function principal() {
   console.log('\n2. O PLANO derivado é legível pelo validador do plano');
   const plano = derivarPlano(PLANO);
   const mdPlano = escrever('plano.md', plano.markdown || plano);
-  const vPlano = validarJson('validar-plano-ciclo.js', 'professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json', mdPlano);
+  const vPlano = validarJson('validar-plano-ciclo.js', `professores/${PROFESSOR}/ciclos/ciclo-01-plano-schema.json`, mdPlano);
   checar('o validador do plano aceita o documento que o gerador escreveu', vPlano.codigo === 0,
     vPlano.saida.trim().split('\n').slice(-3));
   const dadosPlano = vPlano.dados || {};
@@ -215,7 +238,11 @@ function principal() {
   const declaracao = declaracaoDeCaptura({ po: PO, escola: 'Batata' });
   // O schema em disco é o das variantes reais; para esta prova, a declaração é a que o PO desta
   // prova produz — é a mesma que o «Guardar» grava no schema.
-  const schemaDaProva = JSON.parse(fs.readFileSync(path.join(RAIZ, 'professores/tiago-menegaz/ciclos/ciclo-01-captura-schema.json'), 'utf8'));
+  //
+  // O schema em disco é o das variantes reais (`professorDeProva`, no topo): a variante que
+  // interessa é a que esta prova acrescenta (`prova-legiveis`), e a base vem de quem existe.
+  const schemaDaProva = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, `professores/${PROFESSOR}/ciclos/ciclo-01-captura-schema.json`), 'utf8'));
   schemaDaProva._declaracao = schemaDaProva._declaracao || {};
   schemaDaProva._declaracao.porVariante = schemaDaProva._declaracao.porVariante || {};
   schemaDaProva._declaracao.porVariante['prova-legiveis'] = declaracao;
