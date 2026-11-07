@@ -265,6 +265,53 @@ const RECORTE = ['cinco-posicoes-1a-pes', 'cinco-posicoes-2a-pes'];
     mapaAntes.get('Aluna B') === SALA,
     { 'Aluna A': mapaAntes.get('Aluna A'), 'Aluna B': mapaAntes.get('Aluna B') });
 
+  // -------------------------------------------------------------------------------------------
+  bloco('\n5. O ATO TERMINA NA GERAÇÃO — a metade que faltava');
+
+  /* O DEFEITO QUE ISTO MEDE, e é o que ela viu. O ato do elenco estava certo no repositório e o
+   * lançamento só oferecia a Aluna A, porque o site serve o PACOTE e a última geração era de
+   * vinte e cinco minutos antes. Concluir o elenco gravava e parava. Agora concluir dispara a
+   * geração das variantes que ESCOLHERAM o elenco — e a resposta diz qual dos desfechos houve. */
+  const FONTE = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
+  const trecho = (() => {
+    const i = FONTE.indexOf('async function gerarOsCiclosDoElenco');
+    return i === -1 ? '' : FONTE.slice(i, i + 3000);
+  })();
+  provar('a conclusão do elenco dispara a geração', /gerarOsCiclosDoElenco\(env, escola, decidido\.linha\.id\)/.test(FONTE));
+  provar('e o disparo é o MESMO da ponte, não um segundo (`criarDisparador` de `disparar.js`)',
+    /criarDisparador\(/.test(trecho) && /workflow: 'gerar-ciclo\.yml'/.test(trecho));
+  provar('só as variantes que ESCOLHERAM o elenco são geradas',
+    /c\.linhaDeBase \|\| ''\) !== String\(idElenco\)/.test(trecho), trecho.slice(0, 0) || 'não achou');
+  provar('e o ciclo vem do índice dos planos, que já traz (professor, turma, ciclo)',
+    /paresComPlano\(env, escola\)/.test(trecho) && /p\.turma === turma && p\.ciclo/.test(trecho));
+  provar('sem Turma, não se dispara — e diz-se porquê (não é um silêncio)',
+    /nenhuma Turma escolheu este elenco/.test(trecho), trecho.slice(0, 0) || 'não achou');
+  provar('sem plano, também não — o ciclo ainda não existe, e isso também se diz',
+    /ainda não tem plano de ensino/.test(trecho));
+  provar('a falha do disparo NÃO desfaz o ato: o elenco fica concluído',
+    /O elenco fica concluído e a resposta leva o que falhou/.test(FONTE)
+    || /falha do disparo não desfaz/.test(FONTE), 'a nota não está escrita');
+
+  /* O DESFECHO NA TELA. «concluído» sozinho lê-se como «está no ar», e não está: o site serve o
+   * pacote. A mensagem tem de dizer qual dos três casos houve. */
+  /* A PÁGINA SERVIDA, para ler o que a mensagem diz sem navegador: as três frases do desfecho
+   * estão no script que o servidor emite, e é ele que o professor lê. */
+  const PAGINA = bastidores.paginaProducao('escola-de-prova',
+    { nome: 'Escola de Prova', modalidade: 'bale-classico' }, [], [], 'Dono', 'dono',
+    [], [], {}, [], [], [],
+    { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() },
+    { modo: 'clara', paleta: 'bordo' }, '', []);
+  provar('a mensagem do «Concluir» diz que a geração PARTIU quando partiu',
+    /A geração do ciclo partiu/.test(PAGINA));
+  provar('…e diz que NÃO partiu, com a variante e o erro, quando falha',
+    /A geração NÃO partiu para/.test(PAGINA));
+  provar('…e repete o motivo quando não havia ciclo nenhum a gerar',
+    /ULTIMO_DISPARO/.test(PAGINA) && /g\.aviso/.test(PAGINA));
+
+  /* A CONTRAPROVA: sem a chamada, a prova do fluxo continua verde — é esta secção que a prende. */
+  provar('a chamada está DENTRO do caminho da conclusão, e não ao lado',
+    /const geracao = await gerarOsCiclosDoElenco\(env, escola, decidido\.linha\.id\);/.test(FONTE));
+
   console.log('\n' + (falhas
     ? 'FALHOU — ' + falhas + ' de ' + total + ' asserções'
     : 'TUDO CERTO — ' + total + ' asserções, 0 falha(s)') + '.');

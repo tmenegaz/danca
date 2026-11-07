@@ -4064,6 +4064,24 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **O elenco é fonte do ciclo, e concluí-lo passa a terminar na geração.** Ela
+  refez o fluxo inteiro e o lançamento da aula continuou a oferecer só a **Aluna A**. **CONFIRMADO**
+  que a correção anterior estava certa e **incompleta**: o ato do elenco tem as duas
+  (`tami--20261107-2150.json`), a derivação sobre o envelope real devolve `{aluna_a, aluna_b}`, e o
+  `-dados.json` FONTE tem as duas desde as 18:47. O que estava para trás era o **PACOTE** — última
+  geração às **18:23**, e é a cópia do pacote que o lançamento lê
+  (`publicacao/<escola>/<variante>/…-dados.json`). A causa estrutural: concluir o elenco gravava o
+  ato **e parava**; quem mandava gerar era o «Guardar» do PO, e neste ciclo esse disparo não partiu
+  (nenhuma execução entre 18:47 e 21:54). Agora `gerarOsCiclosDoElenco` acha as **Turmas que
+  escolheram o elenco**, resolve o ciclo pelo índice dos planos, e dispara a geração pela **mesma**
+  peça da ponte (`criarDisparador`) — «o ato termina na geração», a frase que o `cloudflare.js` já
+  tinha para o resgate do lançamento. A falha do disparo **não desfaz o ato**; os três silêncios
+  (sem Turma, sem plano, sem token) são ditos, e a mensagem da tela distingue **partiu / não
+  partiu / não havia o que gerar**. `provar-aluna-nova-no-elenco` **34/34** (eram 23), com A/B.
+  **O estado dela foi corrigido:** disparei a geração à mão (HTTP 204), ela correu verde às 21:54Z e
+  o pacote passou a ter as duas (`{aluna_a, aluna_b}`, e o `po-01.json` publicado com
+  `subjects: [Aluna A, Aluna B]`).
+
 - **07/11/2026** — **A declaração da captura entra no índice, e o workflow deixa de travar.** O
   `Regerar os índices` estava **vermelho** em `362e8621` — o passo «Conferir o índice novo»
   reprovava e o commit do índice era saltado. A causa era a verificação 8 do `check-indices`:

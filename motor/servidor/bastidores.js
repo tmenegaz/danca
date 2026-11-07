@@ -125,6 +125,12 @@ const paginacao = require('../nucleo/paginacao.js');
 const linhaDeBaseNucleo = require('../nucleo/linha-de-base.js');
 const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 const githubApi = require('./github-api.js');
+/* O DISPARO DA GERAÇÃO, a partir da Produção (07/11/2026). O elenco é FONTE do ciclo — alimenta
+ * o `-dados.json` (os apelidos), a captura e a Aula 01 —, e concluí-lo não pode terminar no
+ * repositório: o site serve o PACOTE. É a mesma peça e a mesma regra do `cloudflare.js` («o acto
+ * termina na geração»), importada e não reescrita. */
+const { criarDisparador } = require('./disparar.js');
+const { varianteDoContexto } = require('./escrever-po.js');
 const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
@@ -760,6 +766,83 @@ async function paresComPlano(env, escola, jaLido) {
     pares.push({ professor, turma, ciclo });
   }
   return pares;
+}
+
+/**
+ * GERAR OS CICLOS QUE USAM ESTE ELENCO (07/11/2026).
+ *
+ * O DEFEITO QUE ISTO FECHA, medido a 07/11/2026. Ela concluiu o elenco (com as duas alunas), a
+ * Turma, o plano de ensino e o plano de observação — e ao abrir o lançamento da aula só havia a
+ * **Aluna A**. Não era o dado: o `-dados.json` FONTE tinha as duas desde as 18:47, e o ato do
+ * elenco no repositório também. Era o PACOTE: a última geração era de 18:25, e o lançamento lê a
+ * cópia do pacote (`publicacao/<escola>/<variante>/…-dados.json`).
+ *
+ * O QUE FALTAVA, dito por inteiro. O elenco é fonte do ciclo — dele saem os `apelidos` do
+ * `-dados.json`, a captura e a §6 da Aula 01. Mas concluí-lo gravava o ato e mais nada: quem
+ * mandava gerar era o «Guardar» do PO, e um só caminho para uma fonte que tem dois é a receita
+ * para o pacote ficar para trás. A frase já estava escrita no `cloudflare.js`, para o resgate do
+ * lançamento, e vale igual aqui: **«o ato termina na geração»** — gravar a fonte é metade.
+ *
+ * QUEM É GERADO, e porquê só essas variantes. As Turmas que ESCOLHERAM este elenco — são as
+ * únicas que ele alimenta. O ciclo de cada uma vem dos pares (professor, turma, ciclo) que o
+ * índice dos planos já traz; sem plano, não há ciclo para regerar, e nada se dispara (e diz-se).
+ *
+ * A FALHA DO DISPARO NÃO DESFAZ O ATO. O elenco fica concluído e a resposta leva o que falhou:
+ * um disparo que não partiu é um facto a mostrar, não um motivo para perder o trabalho.
+ */
+async function gerarOsCiclosDoElenco(env, escola, idElenco) {
+  const disparos = [];
+  const curs = await curadorias(env.PADD_KV, escola);
+  const turmas = [];
+  for (const c of (Array.isArray(curs) ? curs : [])) {
+    if (!c || c.substituidaPor || String(c.linhaDeBase || '') !== String(idElenco)) continue;
+    for (const t of turmasDaCuradoria(c)) if (t && turmas.indexOf(t) === -1) turmas.push(t);
+  }
+  if (!turmas.length) {
+    return {
+      disparos,
+      aviso: 'nenhuma Turma escolheu este elenco ainda — ele não chega a ciclo nenhum, e por isso '
+        + 'nada foi gerado. Escolha-o numa Turma e a geração parte desse ato.',
+    };
+  }
+  const pares = await paresComPlano(env, escola);
+  const alvos = [];
+  for (const turma of turmas) {
+    const doPar = (Array.isArray(pares) ? pares : []).filter((p) => p && p.turma === turma && p.ciclo);
+    if (!doPar.length) continue;
+    for (const p of doPar) {
+      const chave = p.professor + '/' + p.ciclo + '/' + turma;
+      if (!alvos.some((a) => a.chave === chave)) alvos.push({ chave, professor: p.professor, ciclo: p.ciclo, turma });
+    }
+  }
+  if (!alvos.length) {
+    return {
+      disparos,
+      aviso: 'a Turma que usa este elenco ainda não tem plano de ensino — não há ciclo para gerar. '
+        + 'A geração parte do «Guardar» do plano ou do PO.',
+    };
+  }
+  const disparar = criarDisparador({
+    token: (env && env.GITHUB_TOKEN) || null, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
+  });
+  if (typeof disparar !== 'function') {
+    return { disparos, aviso: 'sem GITHUB_TOKEN neste Worker: o elenco ficou gravado e o pacote não foi gerado.' };
+  }
+  for (const a of alvos) {
+    try {
+      const r = await disparar({
+        professor: a.professor, ciclo: a.ciclo, escola,
+        variante: varianteDoContexto({ escola, turma: a.turma }),
+      });
+      disparos.push(Object.assign({ variante: varianteDoContexto({ escola, turma: a.turma }) }, r));
+    } catch (erro) {
+      disparos.push({
+        variante: varianteDoContexto({ escola, turma: a.turma }),
+        ok: false, erro: erro && erro.message ? erro.message : String(erro),
+      });
+    }
+  }
+  return { disparos };
 }
 
 /**
@@ -6170,6 +6253,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var ELENCOS = ' + JSON.stringify(elencosDaEscola) + ';' +
     // AS DUAS OPÇÕES VAZIAS VÊM DO SERVIDOR (07/11/2026), e não são escritas aqui: o `<select>`
     // é redesenhado depois de cada gravação, e a frase tem de ser a mesma do primeiro desenho.
+    /* O DESFECHO DO ÚLTIMO «CONCLUIR» (07/11/2026). O `gravarLinha` devolve um booleano, porque é
+     * isso que os passos do formulário precisam de saber; o que a geração fez chega pela mesma
+     * resposta e fica aqui, para a mensagem do «Concluir» o poder dizer. */
+    'var ULTIMO_DISPARO = null;' +
     'var ELENCO_ESCOLHER = ' + JSON.stringify(ROTULO_ESCOLHER_ELENCO) + ';' +
     'var ELENCO_NENHUM = ' + JSON.stringify(ROTULO_NENHUM_ELENCO) + ';' +
     // AS ALUNAS DA ESCOLA, e o mapa de quem já está comprometida numa modalidade (16/10/2026).
@@ -10448,6 +10535,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (`/api/revalidacao`), que é quem sabe a ordem: nada aqui é um segundo juízo sobre o mesmo
      * dado. NÃO se navega por ele: quem decide se o ajuste é pertinente é o professor. */
     '      if (d.linha && d.linha.turma) avisarCascata(d.linha.turma);' +
+    '      ULTIMO_DISPARO = { disparos: (d && d.disparos) || [], aviso: (d && d.aviso) || "" };' +
     '      return true;' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); return false; });' +
@@ -10508,7 +10596,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!modo || !modo.value) { corpoRes("aviso", "Preencha o elenco antes de o concluir."); return; }' +
     '  return gravarLinha(false, "lb-enviar", true).then(function(ok){' +
     '    if (!ok) return false;' +
-    '    corpoRes("ok", "elenco concluído. Para o associar a uma sala, escolha-o numa Turma.");' +
+    /* O ELENCO É FONTE DO CICLO, E A CONCLUSÃO DIZ O QUE ACONTECEU À GERAÇÃO (07/11/2026). Sem
+     * esta frase, «concluído» lê-se como «está no ar» — e não está: o site serve o PACOTE, que só
+     * muda quando a geração corre. Foi o que a fez procurar a aluna B no lançamento e não a
+     * encontrar. A mensagem diz QUAL dos três desfechos houve: gerou, não havia ciclo, ou falhou. */
+    '    var g = ULTIMO_DISPARO || {};' +
+    '    var d = g.disparos || [];' +
+    '    var feitos = d.filter(function(x){ return x && x.ok; }).length;' +
+    '    var falhos = d.filter(function(x){ return x && x.ok === false; });' +
+    '    var frase = "elenco concluído. Para o associar a uma sala, escolha-o numa Turma.";' +
+    '    if (feitos) frase += " A geração do ciclo partiu (" + feitos + (feitos === 1' +
+    '      ? " variante" : " variantes") + "): o pacote fica em dia em alguns minutos.";' +
+    '    if (falhos.length) frase += " A geração NÃO partiu para " + falhos.map(function(x){' +
+    '      return x.variante + (x.erro ? " (" + x.erro + ")" : ""); }).join(", ")' +
+    '      + " — o elenco está gravado; regere pelo «Guardar» do plano ou do PO.";' +
+    '    if (!feitos && !falhos.length && g.aviso) frase += " " + g.aviso;' +
+    '    corpoRes("ok", frase);' +
     '    carregarLinhas();' +
     '    carregarAlunasComAnamnese();' +
     '    return true;' +
@@ -12146,16 +12249,22 @@ async function fetch(request, env) {
         });
       }
       const quando = new Date().toISOString();
-      const fechar = (linha, gravado, extra) => {
+      const fechar = async (linha, gravado, extra) => {
         // O RASCUNHO SAI DO KV quando o acto ficou escrito no repositório. Sem isto, a mesma
         // linha viveria nos dois sítios e o da tela seria o que fica para trás.
         const restantes = gravado === 'repositorio'
           ? lista.filter((l) => l && l.id !== decidido.linha.id)
           : lista.map((l) => (l && l.id === decidido.linha.id ? linha : l));
-        return kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(restantes))
-          .then(() => json(idx === -1 ? 201 : 200, Object.assign({
-            ok: true, linha, criada: idx === -1, gravado,
-          }, extra || {})));
+        await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(restantes));
+        /* E O ATO TERMINA NA GERAÇÃO (07/11/2026). O elenco é fonte do ciclo: o `-dados.json` do
+         * pacote (os apelidos que o lançamento oferece), a captura e a §6 da Aula 01 saem dele.
+         * Gravá-lo e parar deixaria o site a servir o pacote de antes — que foi exactamente o
+         * defeito que ela viu: o ato certo no repositório e a Aluna A sozinha no lançamento.
+         * Corre depois da gravação e nunca a desfaz: o que falhar vem na resposta. */
+        const geracao = await gerarOsCiclosDoElenco(env, escola, decidido.linha.id);
+        return json(idx === -1 ? 201 : 200, Object.assign({
+          ok: true, linha, criada: idx === -1, gravado,
+        }, extra || {}, geracao));
       };
       if (!repoLinhas.activo) {
         /* O CARIMBO LOCAL, e não um `enviada_em` que já não se usa: o leitor da porta reconhece

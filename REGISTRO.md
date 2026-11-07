@@ -39946,3 +39946,82 @@ que ficam são as de antes (a contagem de verificações que a prova ainda fixa 
 **O que ainda não está feito.** O `regerar-indices.yml` volta a poder commitar, mas só o confirma
 o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
 `escola/**` nem `professores/**`).
+
+## 07/11/2026 — O elenco é fonte do ciclo, e concluí-lo tem de terminar na geração
+
+**O que motivou.** Ela refez o fluxo inteiro, como eu lhe pedi: Audição → concluir elenco → Turma →
+plano de ensino → plano de observação. E no lançamento da aula só havia a **Aluna A**. «Não deu
+certo a sua proposta. Tem que investigar o que aconteceu.»
+
+**O que se mediu, e a proposta NÃO estava errada — estava incompleta.** O ato do elenco existe no
+repositório com as duas (`escola/breu/linhas-de-base/tami--20261107-2150.json`: `alunas: [Aluna A,
+Aluna B]`, doze campos de recorte). A derivação também está certa: rodada sobre o envelope real do
+PO, `derivarDados` devolve `{aluna_a, aluna_b}`. O `-dados.json` **fonte** tem as duas desde as
+18:47, e o `-aula-01.md`, a `-captura-aula-01.md` e o `-po.md` também.
+
+O que estava para trás era o **PACOTE**. A última geração (`Gerar o ciclo`) era de **18:23**, e o
+`-dados.json` da cópia do pacote tinha só a Aluna A. O lançamento não lê a fonte: lê
+`publicacao/<escola>/<variante>/…-dados.json`, que o `montar-publicacao` copia do pacote. Ou seja:
+**oito minutos antes de o PO ser regravado e vinte e cinco antes de o elenco ser concluído.**
+
+**A causa estrutural, e é ela que se corrige.** O elenco é FONTE do ciclo — dele saem os `apelidos`
+do `-dados.json` (o que o lançamento oferece), a captura e a §6 da Aula 01. Mas concluí-lo gravava
+o ato **e parava**. Quem mandava gerar era o «Guardar» do PO, e um só caminho para uma fonte que tem
+dois é a receita para o pacote ficar para trás. Nesta sessão esse caminho ainda falhou uma vez: o
+PO foi regravado às 18:47 e **nenhuma** execução do `Gerar o ciclo` partiu (conferido na lista de
+runs — a última é 21:23:58Z, e a seguir vem a de 21:54, a que eu disparei à mão).
+
+**A frase já estava escrita no código**, para o resgate do lançamento: «o acto termina na geração —
+gravar a fonte é metade: o site serve o PACOTE, e o pacote muda quando a geração corre». Vale
+literalmente igual para o elenco.
+
+**O que foi decidido.**
+
+1. **Concluir o elenco dispara a geração.** `gerarOsCiclosDoElenco(env, escola, id)` acha as
+   **Turmas que escolheram** aquele elenco — são as únicas que ele alimenta — e, para cada uma, o
+   ciclo, que vem dos pares `(professor, turma, ciclo)` que o índice dos planos já traz. Dispara
+   `gerar-ciclo.yml` com a **mesma** peça da ponte (`criarDisparador`, de `disparar.js`) — não uma
+   segunda.
+2. **Corre DEPOIS da gravação e nunca a desfaz.** A falha do disparo vem na resposta e o elenco
+   fica concluído: um disparo que não partiu é um facto a mostrar, não um motivo para perder o
+   trabalho.
+3. **Os silêncios são ditos.** Sem Turma que use o elenco, não se dispara e diz-se («nenhuma Turma
+   escolheu este elenco ainda»). Com Turma mas sem plano, também não («ainda não tem plano de
+   ensino — não há ciclo para gerar»). Sem token, também. Um zero silencioso seria lido como «está
+   no ar».
+4. **A tela passa a dizer o desfecho.** «elenco concluído» sozinho lê-se como «está no ar», e não
+   está. A mensagem distingue os três casos: **partiu** (`N variantes`), **não partiu** (com a
+   variante e o erro), e **não havia o que gerar** (com o motivo).
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`gerarOsCiclosDoElenco`, ao lado de
+`paresComPlano`; o `import` de `criarDisparador`/`varianteDoContexto`; `fechar` a chamá-la depois do
+KV; `ULTIMO_DISPARO` e a mensagem no cliente) ·
+`experimentos/provar-aluna-nova-no-elenco.js` (secção 5, oito asserções novas) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-aluna-nova-no-elenco` **34/34** (eram 23), com o **A/B**: sem a chamada na
+conclusão, caem as duas asserções que a prendem. `provar-elenco-na-turma` **25/25** ·
+`provar-linha-de-base` **102/102** · `provar-linha-de-base-no-repo` **39/39** ·
+`provar-salas-e-elencos` **65/65** · `provar-producao` **166/166** · `provar-sujeitos-da-turma`
+**41/41** · `provar-elenco-derivado` **10/10** · `provar-listas-do-acervo` **109** ·
+`provar-menu-da-producao` **55/55** · `provar-acordeoes`, `provar-plano-completo` (**18**),
+`provar-eixos-do-po` (**42**) **verdes** · `check-identidade` **0 erros** · `check-schemas`
+**verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**. O script servido foi extraído e compilado
+à parte (`new Function`, 157 304 bytes).
+
+**E o estado dela ficou corrigido, não só o código.** Disparei a geração à mão (HTTP **204**), ela
+correu (`Gerar o ciclo` às 21:54Z, verde) e o pacote passou a ter as duas: o `-dados.json` do
+pacote é `{aluna_a, aluna_b}` e o `po-01.json` publicado diz `subjects: [Aluna A, Aluna B]` com os
+grupos do recorte. O lançamento passa a oferecer as duas.
+
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do próximo deploy.** O `deploy-escolas` correu, mas quem confirma é ela,
+  na página de lançamento.
+- **O disparo do «Guardar» do PO falhou uma vez sem deixar rasto legível.** Achei o sintoma (nenhuma
+  execução entre 18:47 e 21:54) e não a causa: o motivo real está no `wrangler tail` do Worker, e
+  não o fui buscar. Fica registado como dívida; a correção de hoje não depende dele, porque agora há
+  dois caminhos a terminar na geração em vez de um.
+- **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
+  são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.

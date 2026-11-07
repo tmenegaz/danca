@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T18:36:51-0300`
-Commit atual: `e1b1da84` — fix(estrutura): a aluna que entra num elenco existente chega à cadeia
+Gerado em: `2026-11-07T18:58:55-0300`
+Commit atual: `16f5b2bf` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,26 +70,26 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
-e1b1da84 fix(estrutura): a aluna que entra num elenco existente chega à cadeia
-bbf2a289 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-aba6ab35 chore(estrutura): reancorar a cadeia das fontes alteradas
-362e8621 feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
-d1be3de2 feat(po): o PO elicitado vira a fonte do ciclo
-ebcb19ac feat(acervo): envelope/po-20261107-1823-2.json
-62600aa9 feat(acervo): envelope/.indice.json
-d66ba466 chore(estrutura): reancorar a cadeia das fontes alteradas
-53ee2111 feat(po): o PO elicitado vira a fonte do ciclo
-4d888c25 feat(acervo): envelope/po-20261107-1823.json
-ae4ac38f feat(acervo): envelope/.indice.json
-f44888f4 feat(plano): o plano elicitado vira a fonte do ciclo
-b42635d9 feat(acervo): envelope/plano-20261107-1823.json
-564c09c7 feat(acervo): envelope/.indice.json
-b8d2165c feat(biblioteca): acrescentar «Plié» ao vocabulário do balé clássico
-02ac8096 feat(biblioteca): acrescentar «Tandu» ao vocabulário do balé clássico
-922caf36 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
-0728f258 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
-9e042393 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
+16f5b2bf chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+71741175 chore(estrutura): regerar os índices derivados
+481e2fd8 feat(linha de base): índice — tami 20261107-2150
+4d017073 feat(elenco): tami — concluído
+2a53cb78 feat(linha de base): índice — tami 20261107-2150
+36c18ee2 feat(elenco): tami — concluído
+25cc5669 chore(estrutura): regerar os índices derivados
+01f07273 chore(estrutura): reancorar a cadeia das fontes alteradas
+46bf7a9a feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
+7ee8dc3f feat(po): o PO elicitado vira a fonte do ciclo
+af3503c4 feat(acervo): envelope/po-20261107-1846-2.json
+b1e13d0c feat(acervo): envelope/.indice.json
+250c89a7 chore(estrutura): regerar os índices derivados
+705d8746 chore(estrutura): reancorar a cadeia das fontes alteradas
+8bd02091 feat(po): o PO elicitado vira a fonte do ciclo
+c83cdfbf feat(acervo): envelope/po-20261107-1846.json
+11da5610 feat(acervo): envelope/.indice.json
+7416c999 feat(plano): o plano elicitado vira a fonte do ciclo
+63c71a7c feat(acervo): envelope/plano-20261107-1845.json
+8e61661f feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -106,7 +106,7 @@ d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `a7711bd178b7` | (vazio) | — |
-| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `bde953b89c88` | (vazio) | Input_PO_Aguardando |
+| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `d3333b26d4cb` | (vazio) | Input_PO_Aguardando |
 
 ### coqui-de-redinha — 0 ciclo(s)
 
@@ -161,66 +161,86 @@ d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — A declaração da captura entra no índice (e o workflow deixa de travar)
+## 07/11/2026 — O elenco é fonte do ciclo, e concluí-lo tem de terminar na geração
 
-**O que motivou.** Ao conferir os workflows do push anterior, o `Regerar os índices` estava
-**vermelho** em `362e8621`: o passo «Conferir o índice novo» reprovava, e o commit do índice era
-saltado. A causa não era o índice — era a verificação 8 do `check-indices` a acusar
-`professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-declaracao.json: sem tipo
-declarado`. O documento nasceu a 07/11/2026 (a declaração diz que colunas da captura são marcas,
-mora ao lado das fontes com o nome da variante, e o expurgo a leva com a escola), e **nem o
-`tipos.json` nem o motor o conheciam**: `-captura.json$` não casa um nome que tem `-declaracao` no
-meio. E o mesmo tipo de defeito que os derivados do PO tiveram a 20/10/2026 — registado no
-comentário do `tipoDoDocumento`, que é onde a correção foi escrita agora.
+**O que motivou.** Ela refez o fluxo inteiro, como eu lhe pedi: Audição → concluir elenco → Turma →
+plano de ensino → plano de observação. E no lançamento da aula só havia a **Aluna A**. «Não deu
+certo a sua proposta. Tem que investigar o que aconteceu.»
 
-**Porque se corrige aqui, e não se deixa para depois.** Um índice que não fecha não é só um
-vermelho no painel: é o derivado a ficar para trás das fontes, e a próxima sessão a ler um acervo
-que já não corresponde ao repositório — a mesma família de erro que o `AGENTS.md` descreve («o
-worktree não sabe que o remoto mudou»). A correção é de duas linhas de declaração e uma de
-classificação.
+**O que se mediu, e a proposta NÃO estava errada — estava incompleta.** O ato do elenco existe no
+repositório com as duas (`escola/breu/linhas-de-base/tami--20261107-2150.json`: `alunas: [Aluna A,
+Aluna B]`, doze campos de recorte). A derivação também está certa: rodada sobre o envelope real do
+PO, `derivarDados` devolve `{aluna_a, aluna_b}`. O `-dados.json` **fonte** tem as duas desde as
+18:47, e o `-aula-01.md`, a `-captura-aula-01.md` e o `-po.md` também.
+
+O que estava para trás era o **PACOTE**. A última geração (`Gerar o ciclo`) era de **18:23**, e o
+`-dados.json` da cópia do pacote tinha só a Aluna A. O lançamento não lê a fonte: lê
+`publicacao/<escola>/<variante>/…-dados.json`, que o `montar-publicacao` copia do pacote. Ou seja:
+**oito minutos antes de o PO ser regravado e vinte e cinco antes de o elenco ser concluído.**
+
+**A causa estrutural, e é ela que se corrige.** O elenco é FONTE do ciclo — dele saem os `apelidos`
+do `-dados.json` (o que o lançamento oferece), a captura e a §6 da Aula 01. Mas concluí-lo gravava
+o ato **e parava**. Quem mandava gerar era o «Guardar» do PO, e um só caminho para uma fonte que tem
+dois é a receita para o pacote ficar para trás. Nesta sessão esse caminho ainda falhou uma vez: o
+PO foi regravado às 18:47 e **nenhuma** execução do `Gerar o ciclo` partiu (conferido na lista de
+runs — a última é 21:23:58Z, e a seguir vem a de 21:54, a que eu disparei à mão).
+
+**A frase já estava escrita no código**, para o resgate do lançamento: «o acto termina na geração —
+gravar a fonte é metade: o site serve o PACOTE, e o pacote muda quando a geração corre». Vale
+literalmente igual para o elenco.
 
 **O que foi decidido.**
 
-1. **A declaração é um TIPO PRÓPRIO** (`declaracao`, família `registro`, `publico: false`), e não
-   um alargamento do padrão `captura`: são documentos diferentes — a captura é o que se marcou, a
-   declaração é o que se pode marcar.
-2. **O motor classifica-o antes da captura**, porque a ordem é «o primeiro padrão que casar vence»
-   e `-captura-declaracao.json` também termina em `.json`.
-3. **O índice foi regerado** e o `check-indices` passa a dar **16 verificações, 0 falhas** — era
-   1 falha antes.
+1. **Concluir o elenco dispara a geração.** `gerarOsCiclosDoElenco(env, escola, id)` acha as
+   **Turmas que escolheram** aquele elenco — são as únicas que ele alimenta — e, para cada uma, o
+   ciclo, que vem dos pares `(professor, turma, ciclo)` que o índice dos planos já traz. Dispara
+   `gerar-ciclo.yml` com a **mesma** peça da ponte (`criarDisparador`, de `disparar.js`) — não uma
+   segunda.
+2. **Corre DEPOIS da gravação e nunca a desfaz.** A falha do disparo vem na resposta e o elenco
+   fica concluído: um disparo que não partiu é um facto a mostrar, não um motivo para perder o
+   trabalho.
+3. **Os silêncios são ditos.** Sem Turma que use o elenco, não se dispara e diz-se («nenhuma Turma
+   escolheu este elenco ainda»). Com Turma mas sem plano, também não («ainda não tem plano de
+   ensino — não há ciclo para gerar»). Sem token, também. Um zero silencioso seria lido como «está
+   no ar».
+4. **A tela passa a dizer o desfecho.** «elenco concluído» sozinho lê-se como «está no ar», e não
+   está. A mensagem distingue os três casos: **partiu** (`N variantes`), **não partiu** (com a
+   variante e o erro), e **não havia o que gerar** (com o motivo).
 
-**Onde entrou.** `indices/esquema/tipos.json` (o tipo `declaracao`) ·
-`motor/nucleo/indices.js` (`TIPOS_DE_DOCUMENTO` e `tipoDoDocumento`) ·
-`indices/acervo.json`, `indices/escolas/*.json` e `indices/ciclos/colo-de-pe/01-breu.json`
-(regenerados) · `REGISTRO.md`.
+**Onde entrou.** `motor/servidor/bastidores.js` (`gerarOsCiclosDoElenco`, ao lado de
+`paresComPlano`; o `import` de `criarDisparador`/`varianteDoContexto`; `fechar` a chamá-la depois do
+KV; `ULTIMO_DISPARO` e a mensagem no cliente) ·
+`experimentos/provar-aluna-nova-no-elenco.js` (secção 5, oito asserções novas) ·
+`ESTADO-ATUAL.md` (§11).
 
-**Validação.** `check-indices` **16/0** · `gerar-indices --check` **em dia** ·
-`provar-recorte-no-indice` **42/42** · `provar-declaracao-da-captura` **12/12** ·
-`provar-proveniencia-do-expurgo` **21/21** · `provar-listas-do-acervo` **109** ·
-`check-schemas` **verde** · `check-identidade` **0 erros**. `provar-indices` passa de **5 para 4**
-falhas de 60 e `provar-declaracoes-do-indice` de **2 para 1** de 23 — medido com `git stash`, e as
-que ficam são as de antes (a contagem de verificações que a prova ainda fixa em 14, e o `perfil`).
+**Validação.** `provar-aluna-nova-no-elenco` **34/34** (eram 23), com o **A/B**: sem a chamada na
+conclusão, caem as duas asserções que a prendem. `provar-elenco-na-turma` **25/25** ·
+`provar-linha-de-base` **102/102** · `provar-linha-de-base-no-repo` **39/39** ·
+`provar-salas-e-elencos` **65/65** · `provar-producao` **166/166** · `provar-sujeitos-da-turma`
+**41/41** · `provar-elenco-derivado` **10/10** · `provar-listas-do-acervo` **109** ·
+`provar-menu-da-producao` **55/55** · `provar-acordeoes`, `provar-plano-completo` (**18**),
+`provar-eixos-do-po` (**42**) **verdes** · `check-identidade` **0 erros** · `check-schemas`
+**verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**. O script servido foi extraído e compilado
+à parte (`new Function`, 157 304 bytes).
 
-**O que ainda não está feito.** O `regerar-indices.yml` volta a poder commitar, mas só o confirma
-o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
-`escola/**` nem `professores/**`).
+**E o estado dela ficou corrigido, não só o código.** Disparei a geração à mão (HTTP **204**), ela
+correu (`Gerar o ciclo` às 21:54Z, verde) e o pacote passou a ter as duas: o `-dados.json` do
+pacote é `{aluna_a, aluna_b}` e o `po-01.json` publicado diz `subjects: [Aluna A, Aluna B]` com os
+grupos do recorte. O lançamento passa a oferecer as duas.
+
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do próximo deploy.** O `deploy-escolas` correu, mas quem confirma é ela,
+  na página de lançamento.
+- **O disparo do «Guardar» do PO falhou uma vez sem deixar rasto legível.** Achei o sintoma (nenhuma
+  execução entre 18:47 e 21:54) e não a causa: o motivo real está no `wrangler tail` do Worker, e
+  não o fui buscar. Fica registado como dívida; a correção de hoje não depende dele, porque agora há
+  dois caminhos a terminar na geração em vez de um.
+- **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
+  são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
 
 ## O que está pendente
-
-## 07/11/2026 — O Bloco 10 sai do plano: o corpo mora na Audição e no PO
-
-
-- **O corpo perdeu o seu link próprio para a Aula 01.** A secção removida era a única que apontava
-  para a **secção «Corpo» da aula** (`#corpo`); o plano continua a ligar à Aula 01 por «Objetivos por
-  bloco e por aula», mas não ao corpo em particular. Não se repôs o link noutro sítio, e é uma troca
-  que fica declarada: se ela sentir falta dele, o lugar é o PO — que é onde o corpo se observa — e
-  não o plano.
-- **A conferência ao ar é do próximo deploy.** As provas são locais; a página serve o `bastidores.js`
-  que o Worker empacota.
-- **`aspectoFisico` continua no `ciclo-01-plano-schema.json`** como leitura do passado — mesmo
-  tratamento que `estruturaDeCadaAula`. Sai quando não houver envelope antigo a citá-lo.
-- **Qualquer plano já publicado com a secção** «## Aspecto físico» mantém-na até ser regerado; o
-  validador continua a extraí-la, e é de propósito.
 
 ## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
 
@@ -253,6 +273,18 @@ página serve o `bastidores.js` que o Worker empacota.
 O `regerar-indices.yml` volta a poder commitar, mas só o confirma
 o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
 `escola/**` nem `professores/**`).
+
+## 07/11/2026 — O elenco é fonte do ciclo, e concluí-lo tem de terminar na geração
+
+
+- **A conferência ao ar é do próximo deploy.** O `deploy-escolas` correu, mas quem confirma é ela,
+  na página de lançamento.
+- **O disparo do «Guardar» do PO falhou uma vez sem deixar rasto legível.** Achei o sintoma (nenhuma
+  execução entre 18:47 e 21:54) e não a causa: o motivo real está no `wrangler tail` do Worker, e
+  não o fui buscar. Fica registado como dívida; a correção de hoje não depende dele, porque agora há
+  dois caminhos a terminar na geração em vez de um.
+- **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
+  são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
 
 ## Pendências anteriores (índice)
 
@@ -635,6 +667,7 @@ o próximo push que toque nas fontes do índice — este commit não o dispara (
 - **07/11/2026** — «Elenco» passa a «Audição» e «Verbetes da notação» a… → `REGISTRO.md` L39387
 - **07/11/2026** — Os basilares num bloco, o quadro do recorte em acordeão, e… → `REGISTRO.md` L39444
 - **07/11/2026** — O cartão do elenco fica com duas caixas: as alunas e o… → `REGISTRO.md` L39517
+- **07/11/2026** — O Bloco 10 sai do plano: o corpo mora na Audição e no PO → `REGISTRO.md` L39567
 - PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
