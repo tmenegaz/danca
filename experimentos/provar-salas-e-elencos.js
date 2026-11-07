@@ -195,6 +195,61 @@ const RITMO = {
     /Pode nomear o elenco|Pode nomear o elenco e/.test(script)
       || /nomear o elenco/.test(script), null);
 
+  /* -------------------------------------------------------------------------------------------
+   * O PASSO 2 SEM RETRATO: DIZ O QUE FALTA, E LEVA LÁ (07/11/2026).
+   *
+   * O PEDIDO. «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam anamnese
+   * preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» O que havia era
+   * um travessão — «— nenhuma aluna com anamnese.» — e o passo, além disso, NÃO ABRIA: a
+   * explicação existia num sítio a que ninguém chegava.
+   *
+   * O que se mede aqui é o que o cliente SERVIDO faz, e não o que se pretendeu:
+   *   · há um estado vazio próprio, que NOMEIA a falta e diz que a anamnese é obrigatória;
+   *   · ele traz uma LIGAÇÃO para a Área do Professor — e o endereço vem do servidor, com a
+   *     escola e o professor na query (`urlDaPorta`), e não escrito à mão no cliente;
+   *   · o passo 2 abre MESMO sem anamnese (`podeVerPasso`), e o 3 e o 4 continuam fechados;
+   *   · a volta é automática: a janela que reganha o foco relê a lista (`haRetratoNovo`);
+   *   · a razão de o «Seguir» estar apagado está à vista, não só no `title`. */
+  const estadoVazio = (() => {
+    const i = script.indexOf('function estadoVazioDeAlunas()');
+    if (i === -1) return '';
+    const j = script.indexOf('function pintarAlunas(', i);
+    return j === -1 ? script.slice(i, i + 2000) : script.slice(i, j);
+  })();
+  conferir('o passo 2 tem um estado vazio próprio (deixou de ser um travessão)',
+    Boolean(estadoVazio) && !/— nenhuma aluna com anamnese/.test(script), estadoVazio.slice(0, 120));
+  conferir('…que NOMEIA a falta', /Nenhuma aluna com anamnese/.test(estadoVazio), null);
+  conferir('…que diz que a anamnese é OBRIGATÓRIA', /obrigat[óo]ria/i.test(estadoVazio), null);
+  conferir('…que diz a REGRA DE AVANÇO (uma aluna basta para abrir o passo)',
+    /UMA aluna|uma aluna/.test(estadoVazio), null);
+  conferir('…e que traz a LIGAÇÃO para a anamnese, como peça da casa',
+    /a\.acao|class=\\?"acao/.test(estadoVazio) && /ANAMNESE_DO_ALUNO/.test(estadoVazio), null);
+  conferir('o endereço da anamnese vem do SERVIDOR, com a escola e o professor',
+    /var ANAMNESE_DO_ALUNO = "\/anamnese\/\?/.test(script) && /escola=/.test(
+      (script.match(/var ANAMNESE_DO_ALUNO = "([^"]*)"/) || [])[1] || ''), null);
+  conferir('o estado vazio é o que se desenha quando não há retrato (e não o travessão)',
+    /alvo\.innerHTML = estadoVazioDeAlunas\(\)/.test(script), null);
+  const corpoDoVer = (() => {
+    const i = script.indexOf('function podeVerPasso(');
+    if (i === -1) return '';
+    const j = script.indexOf('\n', script.indexOf('}', i));
+    return script.slice(i, j === -1 ? i + 200 : j);
+  })();
+  conferir('VER não é AVANÇAR: o passo 2 abre sem anamnese, o 3 e o 4 não',
+    /passo === 2 && !haAnamnese\(\)/.test(corpoDoVer) && /return podeIrPara\(passo\)/.test(corpoDoVer),
+    corpoDoVer.slice(0, 200));
+  conferir('…e a tira usa a regra de VER (senão a explicação nunca aparecia)',
+    /!podeVerPasso\(n\)/.test(script), null);
+  conferir('a volta da anamnese relê a lista sozinha (foco da janela)',
+    /visibilitychange/.test(script) && /function haRetratoNovo/.test(script)
+      && /addEventListener\("focus", haRetratoNovo\)/.test(script), null);
+  conferir('…sem gastar pedido quando já há retrato',
+    /if \(ALUNAS_COM_ANAMNESE\.length\) return;/.test(script), null);
+  conferir('a razão de não avançar está À VISTA, e não só no `title`',
+    /id="lb-seguir-nota"/.test(script) && /notaSeguir\.textContent/.test(script), null);
+  conferir('…e uma falta não é contada duas vezes na mesma frase',
+    /function faltasAntesDeLb/.test(script) && /todas\.indexOf\(f\) === -1/.test(script), null);
+
   // -------------------------------------------------------------------------------------------
   console.log('\nC. O que uma SALA desobstrui — e o que não existe para desobstruir');
 

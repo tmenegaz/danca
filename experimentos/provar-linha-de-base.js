@@ -1241,11 +1241,32 @@ async function chamar(env, caminho, opcoes) {
     const passo = (n) => win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
     assert.strictEqual(passo(1).disabled, false,
       'o passo 1 abre sem anamnese — nome e professor não vêm de retrato nenhum');
-    for (const n of [2, 3, 4]) {
+    /* O PASSO 2 ABRE PARA EXPLICAR (07/11/2026). A regra de esperar pela anamnese continua a
+     * valer — o «Seguir» está fechado e o passo 3 e o 4 também —, mas o painel do 2 passou a ser
+     * LEGÍVEL: é dentro dele que estão a explicação e a ligação para a anamnese. Numa escola sem
+     * retrato nenhum ele não tem lista para mostrar, e tem tudo para dizer; fechá-lo era esconder
+     * a razão de estar fechado. */
+    assert.strictEqual(passo(2).disabled, false,
+      'o passo 2 abre para explicar — é lá que está o porquê e a ligação para a anamnese');
+    assert.ok(/anamnese|falta/i.test(passo(2).getAttribute('title') || ''),
+      'e continua a declarar o que falta');
+    for (const n of [3, 4]) {
       assert.strictEqual(passo(n).disabled, true, 'o passo ' + n + ' espera a anamnese');
       assert.ok(/anamnese/i.test(passo(n).getAttribute('title') || ''),
         'o passo ' + n + ' diz que espera a anamnese, e não só que está fechado');
     }
+    /* …E O QUE SE LÊ LÁ DENTRO É O CAMINHO, NÃO UM TRAVESSÃO. */
+    win.mostrarPassoLb(2);
+    assert.strictEqual(win.LB_PASSO, 2, 'o passo 2 deixa-se abrir');
+    const caixaDasAlunas = win.document.getElementById('lb-alunas');
+    assert.ok(/Nenhuma aluna com anamnese/.test(caixaDasAlunas.textContent || ''),
+      'o estado vazio nomeia a falta: ' + (caixaDasAlunas.textContent || '').slice(0, 120));
+    assert.ok(/obrigat/i.test(caixaDasAlunas.textContent || ''),
+      'e diz que a anamnese é obrigatória');
+    const ligacaoParaAnamnese = caixaDasAlunas.querySelector('a');
+    assert.ok(ligacaoParaAnamnese && /\/anamnese\//.test(ligacaoParaAnamnese.getAttribute('href') || ''),
+      'e leva à anamnese: ' + (ligacaoParaAnamnese && ligacaoParaAnamnese.getAttribute('href')));
+    win.mostrarPassoLb(1);
     /* «SEGUIR» FECHADO, MAS PELO MOTIVO CERTO: falta o NOME (e o professor), não a anamnese.
      * É a diferença entre um formulário que pede o que precisa e um que pede o que não tem. */
     assert.strictEqual(win.document.getElementById('lb-seguir').disabled, true);
