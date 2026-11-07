@@ -1,5 +1,56 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "estabilidade-vestibular-e-deslocamento",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2229",
+      "ultima": "20261107-2229",
+      "versoes": 1
+    },
+    {
+      "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2229",
+      "ultima": "20261107-2229",
+      "versoes": 1
+    },
+    {
+      "aspecto": "formato-anatomico-dos-joelhos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2229",
+      "ultima": "20261107-2229",
+      "versoes": 1
+    },
+    {
+      "aspecto": "rotacao-e-amplitude-dos-ombros",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2229",
+      "ultima": "20261107-2229",
+      "versoes": 1
+    },
+    {
+      "aspecto": "tendu",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2229",
+      "ultima": "20261107-2229",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +128,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-07T22:25:15.564899+00:00",
@@ -107,7 +158,48 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "estabilidade-vestibular-e-deslocamento",
+        "valor": "estabilidade-vestibular-e-deslocamento"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "forca-excentrica-recuo-na-flexao-de-tronco",
+        "valor": "forca-excentrica-recuo-na-flexao-de-tronco"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "formato-anatomico-dos-joelhos",
+        "valor": "formato-anatomico-dos-joelhos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "rotacao-e-amplitude-dos-ombros",
+        "valor": "rotacao-e-amplitude-dos-ombros"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "tendu",
+        "valor": "tendu"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +242,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0e599e8"
+    "commit": "e851b96"
   },
-  "gerado_em": "2026-11-07T22:28",
+  "gerado_em": "2026-11-07T22:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +267,41 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "estabilidade-vestibular-e-deslocamento",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "formato-anatomico-dos-joelhos",
+        "rotacao-e-amplitude-dos-ombros",
+        "tendu"
+      ],
+      "atualizada_em": "2026-11-07T22:29:37.817Z",
+      "enviada_em": "2026-11-07T22:29:38.464Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "dedao-aberto",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/batata/linhas-de-base/tami--20261107-2229.json",
+          "aspectos": [
+            "tendu",
+            "formato-anatomico-dos-joelhos",
+            "rotacao-e-amplitude-dos-ombros",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-07T22:29:38.464Z",
+          "versao": "20261107-2229"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
