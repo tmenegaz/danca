@@ -4036,10 +4036,13 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   «Pontos cegos» e «Nunca escolhidos» passaram a **acordeão que nasce fechado**, com os chips a
   aparecerem **três a três** e «Mostrar mais (N)» a acrescentar três (sem pedido novo: o `indice` já
   vinha inteiro); a frase de depuração que apontava `api/bastidores/indice/recorte` **saiu**.
-  «Mais escolhidos» continua em tabela. No cartão do elenco a caixa «Turmas» **saiu** — o cartão tem
-  **Elenco (nome), Alunas e Recorte**, e «em que turmas está» passou a ser o que a caixa «Elenco»
-  abre. A listagem voltou a chamar-se **«Elencos»** (a de «Audições» foi corrigida no mesmo dia; ver
-  a entrada de cima). **CONFIRMADO** no código e em jsdom; a conferência ao ar fica para o deploy.
+  «Mais escolhidos» continua em tabela. No cartão do elenco saíram **as caixas «Turmas» e «Elenco»**:
+  ficam **Alunas e Recorte** (a grelha é a de dois, `.trio.trio-duo`), porque o nome do elenco já
+  está no topo do cartão e repeti-lo numa caixa era a mesma palavra duas vezes. O «em que turmas
+  está» não se perdeu — passou a **facto da linha `.fatos`** («em N turmas»), e os nomes leem-se em
+  «Turmas». A listagem voltou a chamar-se **«Elencos»** (a de «Audições» foi corrigida no mesmo dia;
+  ver a entrada de cima). **CONFIRMADO** no código e em jsdom; a conferência ao ar fica para o
+  deploy.
 
 - **07/11/2026** — **A nomenclatura de Pedagogia mudou: «Elenco» passou a «Audição» e «Verbetes da
   notação» a «Estilo».** É ajuste de **rótulo**, não de modelo: a secção onde o professor faz a

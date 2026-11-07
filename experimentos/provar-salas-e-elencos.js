@@ -322,7 +322,7 @@ const RITMO = {
    * A regra passou a ser a do documento, e vive no NÚCLEO (`camposDaObservacaoInicial`) — não é
    * cosmética de tela: o `grupo` viaja para a leitura, para o recorte gravado e para o documento
    * derivado, que imprime «os mesmos grupos que a folha do passo 4 mostra». */
-  console.log('\nE. O passo 4 — os basilares num bloco, e o cartão do elenco com três colunas');
+  console.log('\nE. O passo 4 — os basilares num bloco, e o cartão do elenco com duas caixas');
   const lbNucleo = require('../motor/nucleo/linha-de-base.js');
   const ANAMNESE = require('../porta/conteudo/anamnese.json');
   const universo = lbNucleo.camposDisponiveis(ANAMNESE);
@@ -352,11 +352,22 @@ const RITMO = {
   /* O CARTÃO DO ELENCO vive no CLIENTE (`pintarLinhas`) — não está no HTML servido, e por isso
    * não se mede aqui: a prova que o desenha de verdade é a `provar-linha-de-base.js`, em jsdom,
    * que lê as três caixas e as abre. Aqui mede-se o que é do NÚCLEO e da marcação estática. */
-  conferir('o cartão do elenco é desenhado pelo cliente, com as três caixas novas',
-    /caixa\("Elenco", l\.nome/.test(html) &&
-    /data-painel=\\"elenco\\"/.test(html), null);
-  conferir('…e a caixa «Turmas» já não é desenhada nesse cartão',
+  /* DUAS CAIXAS NO CARTÃO, E SÓ DUAS (07/11/2026). A «Turmas» saiu primeiro, e o que ela dizia
+   * foi para uma caixa «Elenco»; esta sessão removeu também essa — o NOME do elenco já está no
+   * topo do cartão, e uma caixa a repeti-lo é a mesma palavra duas vezes na mesma linha de
+   * leitura. As caixas ficam com o que só elas podem abrir: as alunas e o recorte. */
+  conferir('o cartão do elenco é desenhado pelo cliente com as DUAS caixas',
+    /caixa\("Alunas", String\(m\)/.test(html) && /caixa\("Recorte", String\(n\)/.test(html), null);
+  conferir('…e a caixa «Elenco» NÃO é desenhada (o nome já está no topo)',
+    !/caixa\("Elenco"/.test(html), null);
+  conferir('…nem a caixa «Turmas»',
     !/caixa\("Turmas"/.test(html), null);
+  conferir('…e a grelha dessas duas é a de DOIS, e não a de três',
+    /"<div class=\\"trio trio-duo\\">" \+/.test(html), null);
+  /* O FACTO QUE A CAIXA DIZIA NÃO SE PERDEU: «em N turmas» desce para a linha dos factos, que é
+   * «o que se lê sem abrir». */
+  conferir('…e «em N turmas» passa a ser um facto da linha que se lê sem abrir',
+    /var onde = usadaPor\.length/.test(html) && /em " \+ usadaPor\.length \+ " turmas/.test(html), null);
 
   /* O PASSO 4 A CORRER, em jsdom, com os 45 campos de verdade. Uma prova que lesse o núcleo e
    * ficasse por aí diria que o agrupamento está certo e não que a TELA o desenha — e o defeito

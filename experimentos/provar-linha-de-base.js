@@ -1944,35 +1944,56 @@ async function chamar(env, caminho, opcoes) {
       assert.ok(!/passo 4/.test(li.textContent),
         'a lista não fala de passos — quem está a preencher é que sabe em que passo está: '
         + li.textContent);
-      /* AS TRÊS CAIXAS, com o «?» que promete o que está lá dentro, e um painel para cada. */
+      /* DUAS CAIXAS, E SÓ DUAS (07/11/2026): as ALUNAS e o RECORTE — o corpo e o que se olha
+       * nele. Cada uma com o «?» que promete o que está lá dentro, e um painel para cada.
+       *
+       * A caixa «Turmas» saiu primeiro (a relação declara-se na Turma), e o que ela dizia passou
+       * para uma caixa «Elenco»; esta sessão removeu também essa, porque o NOME do elenco já
+       * está no topo do cartão e uma caixa a repeti-lo é a mesma palavra duas vezes na mesma
+       * linha de leitura. O «em que turmas» desceu para a linha dos factos — «o que se lê sem
+       * abrir» —, e é isso que a asserção do `.fatos` guarda: sem ela, apagar o painel teria
+       * levado a informação consigo, em silêncio. */
       const caixas = li.querySelectorAll('.trio .trio-item');
-      assert.strictEqual(caixas.length, 3,
-        'o cartão tem as três caixas do percurso: ' + caixas.length);
-      /* AS TRÊS COLUNAS DO CARTÃO DO ELENCO (07/11/2026): o NOME, as alunas e o recorte.
-       * A caixa «Turmas» saiu — a relação com a turma declara-se na Turma, e o que ela dizia
-       * passou a ser o que a caixa «Elenco» abre. A ordem é a do percurso: quem é, de quem é o
-       * corpo, o que se olha nele. */
+      assert.strictEqual(caixas.length, 2,
+        'o cartão tem as duas caixas do percurso: ' + caixas.length);
       const rotulos = [...caixas].map((c) => c.getAttribute('data-balao'));
-      assert.deepStrictEqual([...rotulos], ['elenco', 'alunas', 'recorte'],
-        'na ordem do percurso, não na do gosto: ' + rotulos.join(', '));
-      assert.strictEqual(li.querySelectorAll('.trio-painel').length, 3,
+      assert.deepStrictEqual([...rotulos], ['alunas', 'recorte'],
+        'as duas que restam, na ordem do percurso: ' + rotulos.join(', '));
+      /* A GRELHA É A DE DOIS. Com a `.trio` de três, o cartão ficava com uma coluna vazia à
+       * direita — e o `.trio.trio-duo` é a peça que a folha já tem para isso (a mesma do cartão
+       * da sala), com a cedência de 360px escrita ao lado. */
+      assert.ok(li.querySelector('.trio.trio-duo'),
+        'a grelha é a de DOIS — com a de três sobrava uma coluna vazia');
+      assert.strictEqual(li.querySelectorAll('.trio-painel').length, 2,
         'e um painel para cada caixa');
-      /* «TURMAS» SAIU DESTE CARTÃO (07/11/2026). A coluna repetia o que a Turma já declara, e a
-       * informação que ela dava — em que turmas este elenco está — passou a ser o que a caixa
-       * «Elenco» abre. A prova mede as duas metades: o painel da turma não existe, e o do elenco
-       * existe a dizer o que a coluna dizia. */
       assert.strictEqual(li.querySelector('.trio-painel[data-painel="turma"]'), null,
         'a caixa «Turmas» não existe mais neste cartão');
-      assert.ok(li.querySelector('.trio-painel[data-painel="elenco"]'),
-        'e o painel do elenco é o que ficou no lugar dela');
+      assert.strictEqual(li.querySelector('.trio-painel[data-painel="elenco"]'), null,
+        'nem a «Elenco»: o nome já está no topo do cartão');
       /* E AS CAIXAS ABREM: o handler é o mesmo das Turmas, e foi solto de `li.turma` para o
        * `<li>` da linha — sem isso, abrir o painel de um cartão fecharia o de outro. */
-      caixas[2].click();
+      caixas[1].click();
       await new Promise((r) => win.setTimeout(r, 30));
       const recorte = li.querySelector('.trio-painel[data-painel="recorte"]');
       assert.strictEqual(recorte.hidden, false, 'a caixa «Recorte» abre o painel dela');
-      assert.strictEqual(caixas[2].getAttribute('aria-expanded'), 'true',
+      assert.strictEqual(caixas[1].getAttribute('aria-expanded'), 'true',
         'e o estado fica no aria-expanded, que é o que o leitor de ecrã anuncia');
+      /* E O QUE A CAIXA DIZIA CONTINUA LEGÍVEL, num sítio que não pede clique. A linha dos
+       * factos é a peça que a casa usa para isso («o que se lê sem abrir»). Aqui força-se uma
+       * curadoria a apontar para este elenco e repinta-se: o cartão tem de passar a dizer «em 1
+       * turma». Sem esta metade, remover o painel teria apagado a informação em silêncio — que é
+       * o defeito que a asserção anterior existe para impedir. */
+      const antes = li.querySelector('.fatos').textContent;
+      assert.ok(/\d+ alunas?/.test(antes), 'os factos trazem o corpo: ' + antes);
+      const idDaLinha = win.LINHAS_DE_BASE[0].id;
+      win.CURADORIAS = [{ id: 'cu-prova', modalidade: 'Balé clássico', turma: 'Sala de Prova',
+        linhaDeBase: idDaLinha, turmas: ['Sala de Prova'] }];
+      win.pintarLinhas();
+      const comTurma = win.document.querySelector('#lb-lista li .fatos').textContent;
+      assert.ok(/em 1 turma/.test(comTurma),
+        'com a curadoria apontada, o facto diz «em 1 turma»: ' + comTurma);
+      assert.strictEqual(win.document.querySelectorAll('#lb-lista li .trio-item').length, 2,
+        'e o cartão continua com duas caixas — o facto não virou caixa outra vez');
       win.close();
     });
 

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T11:55:30-0300`
-Commit atual: `a8fb64e0` — fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
+Gerado em: `2026-11-07T12:01:59-0300`
+Commit atual: `085c9184` — fix(estrutura): os basilares num bloco, o recorte em acordeão, e o cartão com três colunas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,6 +70,7 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
+085c9184 fix(estrutura): os basilares num bloco, o recorte em acordeão, e o cartão com três colunas
 a8fb64e0 fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
 98b82752 chore(estrutura): regerar os índices derivados
 a53ef798 feat(acervo): envelope/anamnese-20261107-1133.json
@@ -89,7 +90,6 @@ a36b4a24 chore(estrutura): regerar os índices derivados
 c451a967 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 38796150 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 c5d79e6f feat(schema): os schemas do ciclo na pasta de colo-de-pe
-3e4dff1e feat(schema): os schemas do ciclo na pasta de colo-de-pe
 ```
 
 ## Por professor
@@ -159,85 +159,57 @@ c5d79e6f feat(schema): os schemas do ciclo na pasta de colo-de-pe
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — Os basilares num bloco, o quadro do recorte em acordeão, e a lista com três colunas
+## 07/11/2026 — O cartão do elenco fica com duas caixas: as alunas e o recorte
 
-**O que motivou.** Três relatos da mesma sessão de teste, e os três são do mesmo tipo de defeito:
-uma tela que mostra o dado certo de uma maneira que não serve a quem o lê.
+**O que motivou.** «No audition, onde eu tenho a listagem de elencos, ficou assim agora: alunas e
+recorte. Pode tirar esse bloco elenco daqui que não precisa, está redundante com o que já está lá
+em cima dizendo que é o elenco. Vai ficar somente alunas e recorte.»
 
-1. **No passo 4, os basilares vinham em cinco blocos de uma caixa cada.** «en dehors (rotação
-   externa) (1)», «o tendu (1)», «o passé (1)», «a meia ponta (1)», «a musicalidade (1)» — e dentro
-   de cada um, uma única caixa cujo rótulo repetia o título. A anamnese não os apresenta assim: no
-   documento, os seis elementos da observação inicial são UMA secção, e o único que se desmembra
-   («as cinco posições») é que ganha um bloco com os seus subitens. **A tela tinha inventado uma
-   arrumação que o documento não tem.**
-2. **No quadro do recorte, três listas abertas de uma vez** — até quinze chips por lista — e, para o
-   que sobrava, uma frase que não é para ser lida: «e mais 7 — a lista inteira em
-   `api/bastidores/indice/recorte`». **Endereço de rota na tela do professor é lixo de depuração
-   que ficou**; quem observa o corpo não vai abrir uma API.
-3. **Na lista dos elencos, a coluna «Turmas»** repetia o que a Turma já declara, e uma das caixas
-   não era do que o cartão trata. E o título tinha virado «Audições» na sessão anterior — correção
-   registada na entrada de cima.
+A caixa «Elenco» tinha nascido duas horas antes, e a culpa é da correção anterior: eu tirei a coluna
+«Turmas» e, para não deitar fora o que ela dizia, arrumei-a dentro de uma caixa nova — a que leva o
+nome. O nome já estava no topo do cartão, em `<b>`. Era a mesma palavra duas vezes na mesma linha de
+leitura, e uma caixa que abre apenas o que o título já diz não abre nada.
 
 **O que foi decidido.**
 
-1. **A regra do agrupamento vive no NÚCLEO, e é a do documento.** Em `camposDaObservacaoInicial`:
-   quem tem `subitens` é um bloco (o grupo é o nome dele); quem não tem é basilar, e os basilares
-   partilham o grupo **«Os elementos basilares»** — o MESMO rótulo que a porta já usa para eles
-   (`grupoDoNo`, em `porta/index.html`). Duas telas do mesmo sistema não podem chamar coisas
-   diferentes à mesma coisa. O passo 4 passa de catorze blocos a **dez**, e o dos basilares tem as
-   cinco caixas com o título dito uma vez. **Não é cosmética de tela:** o `grupo` viaja para a
-   leitura (o painel do passo 3), para o recorte gravado e para o documento derivado, que imprime
-   «os mesmos grupos que a folha do passo 4 mostra» (`agruparRecorte`, em `derivar-po.js`).
-   Arrumar aqui é arrumar nos três. O universo continua a ser **45 aspectos** — agrupar não perde
-   nenhum.
-2. **«Pontos cegos» e «Nunca escolhidos» viram `<details>` — a peça de bloco da casa, a mesma que o
-   passo 4 usa —, e nascem FECHADOS.** Dentro, os chips aparecem **três a três**, e «Mostrar mais
-   (N)» acrescenta três, com o resto no rótulo do botão; quando a lista acaba, o botão **sai** em
-   vez de ficar aceso a prometer o que já está à vista. **Não se gasta um pedido**: o `indice` já
-   vem inteiro na resposta da lista que a página pede — o que se esconde é o DESENHO, e esconder
-   desenho é o que o `<details>` faz sem uma linha de JavaScript. A frase de depuração **saiu**.
-3. **«Mais escolhidos» continua em tabela.** É um ranque, lê-se de cima para baixo e a coluna dos
-   números alinha; um acordeão por cima de doze linhas ordenadas só acrescentaria um clique ao que
-   já se vê.
-4. **O cartão do elenco fica com as três colunas que ela pediu: Elenco (nome), Alunas e Recorte.**
-   A caixa «Turmas» saiu — a relação declara-se na Turma, e repeti-la aqui era a mesma verdade em
-   dois lugares, sendo o segundo o que fica para trás. **A informação não se deitou fora:** «em que
-   turmas este elenco está» passou a ser o que a caixa **«Elenco»** abre, num clique. Nada se
-   perdeu, e o cartão passou a ter as três colunas do percurso: quem é, de quem é o corpo, o que se
-   olha nele.
-5. **A listagem volta a chamar-se «Elencos»** — ver a nota de correção na entrada de cima, que é
-   onde a decisão de «Audições» foi tomada e onde ela é corrigida.
+1. **A caixa «Elenco» sai, com o seu painel.** O cartão fica com **duas** caixas: **Alunas** e
+   **Recorte** — o corpo e o que se olha nele, que é o que só elas podem abrir.
+2. **A grelha passa a `.trio.trio-duo`.** Com a `.trio` de três, duas caixas deixariam uma coluna
+   vazia à direita. A peça já existia (nasceu no cartão da sala) e traz a cedência de 360px escrita
+   ao lado, porque `.trio.trio-duo` tem duas classes e vence a regra de uma do bloco de cima.
+3. **O «em que turmas» não se perde — desce para a linha dos factos.** `.fatos` é, por definição da
+   própria peça, «o que se lê sem abrir»; passa a dizer «em 1 turma» / «em N turmas», e o registo
+   antigo (`l.turma`) fica «enviado para «X» num registo antigo». **Não se repõe a caixa:** a lista
+   de «Turmas» é onde essa relação se lê por inteiro, com os nomes, e repeti-la aqui seria dizer a
+   Turma duas vezes — que é exactamente o que ela mandou tirar.
+4. **O que se perde, e é declarado:** o cartão deixa de ter, num clique, a lista dos nomes das
+   turmas que usam este elenco. Quem quiser os nomes vai a «Turmas». Foi uma troca pedida, e fica
+   registada como troca.
 
-**Onde entrou.** `motor/nucleo/linha-de-base.js` (`camposDaObservacaoInicial`: o grupo dos
-basilares) · `motor/servidor/bastidores.js` (`chipsDeAspectos` com quantidade explícita,
-`acordeaoDeAspectos`, `maisAspectos` e o ouvinte delegado do «Mostrar mais»; `pintarIndiceDoRecorte`
-com dois acordeões e o ranque em tabela; o cartão do elenco com `caixa("Elenco", …)` e o
-`painelElenco`; o `<h3>Elencos</h3>`) · `experimentos/provar-indice-do-recorte.js` (o acordeão
-fechado, os três chips, o clique que acrescenta três e o botão que sai no fim; a frase de depuração
-medida como AUSENTE) · `experimentos/provar-salas-e-elencos.js` (secção E — o agrupamento no núcleo,
-o passo 4 desenhado em jsdom, e o cartão com as três caixas) · `experimentos/provar-linha-de-base.js`
-(as três caixas passam a `elenco, alunas, recorte`, e o painel `turma` medido como ausente) ·
+**Onde entrou.** `motor/servidor/bastidores.js` (`fatos` com o facto de turmas; `painelElenco`
+removido; `caixa("Alunas"…)` e `caixa("Recorte"…)` dentro de `<div class="trio trio-duo">`) ·
+`experimentos/provar-linha-de-base.js` (as duas caixas, a grelha de dois, a ausência das duas que
+saíram, e — a metade que impede a perda silenciosa — o facto «em 1 turma» medido DEPOIS de a
+curadoria ser apontada ao elenco) · `experimentos/provar-salas-e-elencos.js` (secção E) ·
 `ESTADO-ATUAL.md` (§11).
 
-**Validação.** `provar-salas-e-elencos` **62/62** · `provar-indice-do-recorte` **24/24** ·
-`provar-linha-de-base` **102/102** · `provar-producao` **166/166** · `provar-acordeoes` **verde** ·
-`provar-celular` **15/15** · `provar-conteudos-e-estado-da-turma` e `provar-enquadramento-da-turma`
-**verdes** · `check-identidade` **21 verificações, 0 erros** · `wrangler deploy --dry-run` da raiz
-**compila**. O script servido foi extraído e compilado à parte (`new Function`): um erro de sintaxe
-no cliente não se vê no `node --check` do servidor, e foi assim que ele apareceu — um parêntese a
-menos na concatenação do cartão.
+**Um erro de ordem na própria prova, que vale a nota.** A asserção do facto foi escrita antes do
+clique que abre a caixa, e o clique passou a falhar: `pintarLinhas()` redesenha o `<ul>` e os nós
+antigos ficam soltos, de modo que `caixas[1].click()` já não atingia nada. Moveu-se a asserção para
+depois do clique. É a mesma família da lição de 06/11: uma prova que falha por ordem de operações
+não está a medir a regra — está a medir o tempo.
 
-**O que ainda não está feito.** A conferência ao ar é do próximo deploy. E o cartão do elenco, sem
-a coluna «Turmas», deixa de dizer de relance em que turmas o elenco está — quem quiser sabê-lo abre
-a caixa «Elenco». Foi a troca pedida, mas é uma troca: se ao usar ela sentir falta do número à
-vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.
+**Validação.** `provar-linha-de-base` **102/102** · `provar-salas-e-elencos` **65/65** ·
+`provar-producao` **166/166** · `provar-indice-do-recorte` **24/24** · `provar-celular` **15/15** ·
+`provar-acordeoes`, `provar-apagar-da-listagem`, `provar-etiqueta-da-aluna` e
+`provar-listas-do-acervo` **verdes** · `check-identidade` **0 erros** · `provar-cartao-da-turma`
+**2 falhas, as duas anteriores** · o script servido extraído e compilado à parte (`new Function`):
+o cliente compila, e o emitido confirma `trio trio-duo`, zero `caixa("Elenco"` e zero
+`data-painel="elenco"`.
+
+**O que ainda não está feito.** A conferência ao ar é do próximo deploy.
 
 ## O que está pendente
-
-## 07/11/2026 — A sala diz o que é dela, e o elenco deixa de esperar por uma anamnese
-
-A prova ao vivo é a próxima escola criada: só ela exercita o passo 1
-aberto numa escola sem retratos, com o elenco a ser nomeado e gravado a partir do nada.
 
 ## 07/11/2026 — A proveniência é auditada antes do expurgo — e o elo guarda o que existia
 
@@ -267,6 +239,10 @@ A conferência ao ar é do próximo deploy. E o cartão do elenco, sem
 a coluna «Turmas», deixa de dizer de relance em que turmas o elenco está — quem quiser sabê-lo abre
 a caixa «Elenco». Foi a troca pedida, mas é uma troca: se ao usar ela sentir falta do número à
 vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.
+
+## 07/11/2026 — O cartão do elenco fica com duas caixas: as alunas e o recorte
+
+A conferência ao ar é do próximo deploy.
 
 ## Pendências anteriores (índice)
 
@@ -643,6 +619,7 @@ vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.
 - **07/11/2026** — O repositório limpo para o novo ciclo de testes: três… → `REGISTRO.md` L38967
 - **07/11/2026** — O `ciclo-01.conf` que sobreviveu ao expurgo, e o dono que a… → `REGISTRO.md` L39032
 - **07/11/2026** — A declaração da captura mudou de casa, e o molde deixou de… → `REGISTRO.md` L39090
+- **07/11/2026** — A sala diz o que é dela, e o elenco deixa de esperar por… → `REGISTRO.md` L39158
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

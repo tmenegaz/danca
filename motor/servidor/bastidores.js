@@ -10009,8 +10009,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        ? "<span class=\\"selo livre\\" title=\\"ainda não está em nenhuma turma\\">livre</span>"' +
     '        : "<span class=\\"selo alerta\\" title=\\"ainda não tem os aspectos escolhidos — sem eles ' +
     'o plano de ensino não tem corpo para importar\\">por completar</span>");' +
+    /* ONDE ESTE ELENCO ESTÁ — UM FACTO, E NÃO UMA CAIXA (07/11/2026).
+     *
+     * A caixa «Turmas» saiu a 07/11 e o que ela dizia passou para a caixa «Elenco»; esta sessão
+     * removeu também a caixa «Elenco», porque o NOME já está no topo do cartão e uma caixa a
+     * repeti-lo é a mesma palavra duas vezes na mesma linha de leitura. As caixas ficam com o que
+     * só elas podem abrir: as ALUNAS e o RECORTE.
+     *
+     * O FACTO NÃO SE PERDE — desce para a linha dos factos, que é, por definição desta peça, «o
+     * que se lê sem abrir» (`.fatos`). E é um facto, não um teaser: diz QUANTAS turmas, e a lista
+     * inteira — com os nomes — lê-se em «Turmas», que é onde essa relação se declara. Repor aqui
+     * uma caixa com os nomes seria dizer a Turma duas vezes, que é o que ela mandou tirar. */
+    '    var onde = usadaPor.length' +
+    '      ? (usadaPor.length === 1 ? "em 1 turma" : "em " + usadaPor.length + " turmas")' +
+    '      : (l.turma ? "enviado para «" + l.turma + "» num registo antigo" : "");' +
     '    var fatos = [n ? (n === 1 ? "1 aspecto" : n + " aspectos") : "sem recorte",' +
-    '      (m === 1 ? "1 aluna" : m + " alunas")].map(function(f){' +
+    '      (m === 1 ? "1 aluna" : m + " alunas")].concat(onde ? [onde] : []).map(function(f){' +
     '        return "<span>" + escHtml(f) + "</span>"; }).join("");' +
     /* A CAIXA «RECORTE» É A LISTA DOS NOMES, e não a contagem outra vez: quem abre o cartão
      * quer saber QUAIS aspectos, não quantos — o quantos já está na linha de cima. Vazia, diz o
@@ -10025,23 +10039,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          return "<span>" + escHtml(a) + "</span>"; }).join("") + "</div>"' +
     '      : "<p class=\\"trio-nota\\">Nenhuma aluna neste recorte — o corpo que se observa é o ' +
     'DELAS.</p>";' +
-    /* O PAINEL DO ELENCO — o que a caixa «Turmas» dizia, agora dentro da caixa que dá nome ao
-     * cartão (07/11/2026).
-     *
-     * A COLUNA «Turmas» SAIU da lista. Ela contava o que a Turma já diz — e a Turma é onde essa
-     * relação se declara; repeti-la no cartão do elenco era a mesma verdade em dois lugares, e o
-     * segundo é o que fica para trás. Mas a informação não se deita fora: ela passa a ser o que a
-     * caixa «Elenco» abre. Quem procura «onde é que este elenco está a ser usado?» continua a
-     * encontrar a resposta, num clique, e a lista fica com as três colunas que ela pediu: o
-     * Elenco, as Alunas e o Recorte. */
-    '    var painelElenco = (usadaPor.length' +
-    '        ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turmas</span>" +' +
-    '          "<span class=\\"trio-v\\">" + escHtml(usadaPor.join(" · ")) + "</span></div></div>"' +
-    '        : (l.turma' +
-    '          ? "<p class=\\"trio-nota\\">Enviado para «" + escHtml(l.turma) + "» num registo antigo. ' +
-    'Escolha este elenco numa Turma para o associar a uma sala pelo fluxo novo.</p>"' +
-    '          : "<p class=\\"trio-nota\\">Ainda não está em nenhuma turma — escolha este elenco no ' +
-    'formulário da Turma, junto com a sala.</p>"));' +
     '    var id = String(indice + 1);' +
     '    var caixa = function(rotulo, valor, dica, chave){' +
     '      chave = chave || rotulo.toLowerCase();' +
@@ -10062,12 +10059,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "\\" title=\\"Excluir este elenco\\">Excluir</button></span></div>" +' +
     '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
     '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
-    '      "<div class=\\"trio\\">" +' +
-    '        caixa("Elenco", l.nome, "ver o elenco, o professor e as turmas que o usam", "elenco") +' +
+    '      "<div class=\\"trio trio-duo\\">" +' +
     '        caixa("Alunas", String(m), "ver as alunas deste elenco") +' +
     '        caixa("Recorte", String(n), "ver os aspectos observados") +' +
     '      "</div>" +' +
-    '      "<div class=\\"trio-painel\\" data-painel=\\"elenco\\" id=\\"lb-p-elenco-" + id + "\\" hidden>" + painelElenco + "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"alunas\\" id=\\"lb-p-alunas-" + id + "\\" hidden>" + painelAlunas + "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"recorte\\" id=\\"lb-p-recorte-" + id + "\\" hidden>" + painelRecorte + "</div>" +' +
     '      "</li>";' +

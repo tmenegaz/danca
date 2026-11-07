@@ -39513,3 +39513,53 @@ menos na concatenação do cartão.
 a coluna «Turmas», deixa de dizer de relance em que turmas o elenco está — quem quiser sabê-lo abre
 a caixa «Elenco». Foi a troca pedida, mas é uma troca: se ao usar ela sentir falta do número à
 vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.
+
+## 07/11/2026 — O cartão do elenco fica com duas caixas: as alunas e o recorte
+
+**O que motivou.** «No audition, onde eu tenho a listagem de elencos, ficou assim agora: alunas e
+recorte. Pode tirar esse bloco elenco daqui que não precisa, está redundante com o que já está lá
+em cima dizendo que é o elenco. Vai ficar somente alunas e recorte.»
+
+A caixa «Elenco» tinha nascido duas horas antes, e a culpa é da correção anterior: eu tirei a coluna
+«Turmas» e, para não deitar fora o que ela dizia, arrumei-a dentro de uma caixa nova — a que leva o
+nome. O nome já estava no topo do cartão, em `<b>`. Era a mesma palavra duas vezes na mesma linha de
+leitura, e uma caixa que abre apenas o que o título já diz não abre nada.
+
+**O que foi decidido.**
+
+1. **A caixa «Elenco» sai, com o seu painel.** O cartão fica com **duas** caixas: **Alunas** e
+   **Recorte** — o corpo e o que se olha nele, que é o que só elas podem abrir.
+2. **A grelha passa a `.trio.trio-duo`.** Com a `.trio` de três, duas caixas deixariam uma coluna
+   vazia à direita. A peça já existia (nasceu no cartão da sala) e traz a cedência de 360px escrita
+   ao lado, porque `.trio.trio-duo` tem duas classes e vence a regra de uma do bloco de cima.
+3. **O «em que turmas» não se perde — desce para a linha dos factos.** `.fatos` é, por definição da
+   própria peça, «o que se lê sem abrir»; passa a dizer «em 1 turma» / «em N turmas», e o registo
+   antigo (`l.turma`) fica «enviado para «X» num registo antigo». **Não se repõe a caixa:** a lista
+   de «Turmas» é onde essa relação se lê por inteiro, com os nomes, e repeti-la aqui seria dizer a
+   Turma duas vezes — que é exactamente o que ela mandou tirar.
+4. **O que se perde, e é declarado:** o cartão deixa de ter, num clique, a lista dos nomes das
+   turmas que usam este elenco. Quem quiser os nomes vai a «Turmas». Foi uma troca pedida, e fica
+   registada como troca.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`fatos` com o facto de turmas; `painelElenco`
+removido; `caixa("Alunas"…)` e `caixa("Recorte"…)` dentro de `<div class="trio trio-duo">`) ·
+`experimentos/provar-linha-de-base.js` (as duas caixas, a grelha de dois, a ausência das duas que
+saíram, e — a metade que impede a perda silenciosa — o facto «em 1 turma» medido DEPOIS de a
+curadoria ser apontada ao elenco) · `experimentos/provar-salas-e-elencos.js` (secção E) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Um erro de ordem na própria prova, que vale a nota.** A asserção do facto foi escrita antes do
+clique que abre a caixa, e o clique passou a falhar: `pintarLinhas()` redesenha o `<ul>` e os nós
+antigos ficam soltos, de modo que `caixas[1].click()` já não atingia nada. Moveu-se a asserção para
+depois do clique. É a mesma família da lição de 06/11: uma prova que falha por ordem de operações
+não está a medir a regra — está a medir o tempo.
+
+**Validação.** `provar-linha-de-base` **102/102** · `provar-salas-e-elencos` **65/65** ·
+`provar-producao` **166/166** · `provar-indice-do-recorte` **24/24** · `provar-celular` **15/15** ·
+`provar-acordeoes`, `provar-apagar-da-listagem`, `provar-etiqueta-da-aluna` e
+`provar-listas-do-acervo` **verdes** · `check-identidade` **0 erros** · `provar-cartao-da-turma`
+**2 falhas, as duas anteriores** · o script servido extraído e compilado à parte (`new Function`):
+o cliente compila, e o emitido confirma `trio trio-duo`, zero `caixa("Elenco"` e zero
+`data-painel="elenco"`.
+
+**O que ainda não está feito.** A conferência ao ar é do próximo deploy.
