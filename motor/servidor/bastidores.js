@@ -10406,7 +10406,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // e encheria a lista enquanto se escreve um nome. Grava-se no INSTANTE EM QUE O ESTADO VAI SER
     // USADO: ao mudar de passo, ao ler as anamneses, ao concluir. É o mesmo princípio dos outros
     // formulários — o que a tela mostra é o que o servidor tem.
-    'function gravarLinha(seguir, idDoBotao) {' +
+    'function gravarLinha(seguir, idDoBotao, concluir) {' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var corpo = {' +
     '    nome: nomeDoFormulario(),' +
@@ -10421,6 +10421,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * 3. O rascunho não se envia para a turma (a rota `enviar` recusa-o) e o selo cai quando o
      * recorte é escolhido. */
     '    rascunho: !marcados("lb-campo").length,' +
+    /* CONCLUIR VAI NO CORPO (07/11/2026). O «Concluir elenco» não é um «Gravar» a mais: é o acto
+     * que escreve a versão no repositório, e é dela que o Plano de Observação, o plano de ensino,
+     * a Aula 01 e a geração leem o corpo. Sem esta bandeira o servidor grava só o rascunho, e o
+     * elenco fica visível na tela e invisível para a cadeia — o defeito medido em 07/11/2026. */
+    '    concluir: !!concluir,' +
     '    token: TOKEN' +
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
@@ -10501,9 +10506,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function concluirElenco() {' +
     '  var modo = document.getElementById("lb-modo");' +
     '  if (!modo || !modo.value) { corpoRes("aviso", "Preencha o elenco antes de o concluir."); return; }' +
-    '  return gravarLinha(false, "lb-enviar").then(function(ok){' +
+    '  return gravarLinha(false, "lb-enviar", true).then(function(ok){' +
     '    if (!ok) return false;' +
-    '    corpoRes("ok", "elenco gravado. Para o associar a uma sala, escolha-o numa Turma.");' +
+    '    corpoRes("ok", "elenco concluído. Para o associar a uma sala, escolha-o numa Turma.");' +
     '    carregarLinhas();' +
     '    carregarAlunasComAnamnese();' +
     '    return true;' +
@@ -12107,6 +12112,76 @@ async function fetch(request, env) {
     }
     if (idx === -1) lista.push(decidido.linha); else lista[idx] = decidido.linha;
     await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+
+    /* ==========================================================================================
+     * CONCLUIR O ELENCO É UM ACTO — e voltou a sê-lo a 07/11/2026 (defeito medido).
+     *
+     * O QUE SE PARTIU. A 07/11/2026 o passo 5 («Turma de destino») saiu do formulário, e a
+     * atribuição passou para a Turma, que escolhe o Elenco. Estava certo — mas o passo 5 era
+     * também a ÚNICA coisa que escrevia o elenco no REPOSITÓRIO (`repoLinhas.concluir`), e
+     * ninguém tomou o lugar dele: o «Concluir elenco» passou a gravar só o rascunho no KV, sem
+     * `carimbo` e sem `turma`.
+     *
+     * O EFEITO, medido: `cloudflare.lerLinhasDeBaseDoEnv` só aceitava do KV o registo com
+     * `turma` (a marca do fluxo antigo), e o `repo.vigentes()` não tinha nada. Resultado: o
+     * elenco existia na Produção e NÃO existia para a porta — o Plano de Observação, o plano de
+     * ensino, a Aula 01 e a geração do pacote liam uma lista sem ele. O recorte e o elenco
+     * desapareciam da cadeia, e a aluna que entrou depois não chegava ao documento nem ao
+     * lançamento. Não era perda de dado: era um ACTO que deixou de ser escrito.
+     *
+     * O QUE FICA. Concluir escreve a versão no repositório (uma por acto, `carimbo` no nome), e
+     * é isso que a porta, o gerador e o `tools/regerar-derivados.js` leem. O rascunho sai do KV
+     * no mesmo passo, como no passo 5 antigo: duas cópias do mesmo facto divergem na primeira
+     * correcção. Sem repositório (escola sem token), o acto fica no KV com `concluida_em` e
+     * `carimbo` — a marca que os leitores passam a reconhecer —, e a resposta di-lo.
+     *
+     * A `turma` NÃO ENTRA AQUI. Quem declara a sala é a Turma (07/11/2026); o elenco declara o
+     * corpo. Escrevê-la daqui seria voltar a ter duas fontes do mesmo vínculo.
+     * ========================================================================================== */
+    if (corpo.concluir === true) {
+      if (!decidido.linha.campos.length) {
+        return json(400, {
+          ok: false,
+          erro: 'este elenco ainda não tem recorte — escolha pelo menos um aspecto no passo 4',
+        });
+      }
+      const quando = new Date().toISOString();
+      const fechar = (linha, gravado, extra) => {
+        // O RASCUNHO SAI DO KV quando o acto ficou escrito no repositório. Sem isto, a mesma
+        // linha viveria nos dois sítios e o da tela seria o que fica para trás.
+        const restantes = gravado === 'repositorio'
+          ? lista.filter((l) => l && l.id !== decidido.linha.id)
+          : lista.map((l) => (l && l.id === decidido.linha.id ? linha : l));
+        return kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(restantes))
+          .then(() => json(idx === -1 ? 201 : 200, Object.assign({
+            ok: true, linha, criada: idx === -1, gravado,
+          }, extra || {})));
+      };
+      if (!repoLinhas.activo) {
+        /* O CARIMBO LOCAL, e não um `enviada_em` que já não se usa: o leitor da porta reconhece
+         * o que está concluído por `carimbo`/`concluida_em`/`turma`, e um carimbo inventado aqui
+         * é o mesmo formato do que o repositório escreve (`AAAAMMDD-HHMM`). */
+        const carimbo = quando.replace(/[-:T]/g, '').slice(0, 13);
+        const linhaDoKv = Object.assign({}, decidido.linha, { concluida_em: quando, carimbo });
+        return fechar(linhaDoKv, 'kv', {
+          aviso: 'esta escola não tem repositório configurado (' + (repoLinhas.motivo || 'sem token')
+            + '): o elenco concluído ficou no KV da escola, e a série de versões só existe no repositório.',
+        });
+      }
+      const gravado = await repoLinhas.concluir(decidido.linha, {
+        quando,
+        mensagem: 'feat(elenco): ' + decidido.linha.id + ' — concluído',
+      });
+      if (!gravado.ok) {
+        return json(502, {
+          ok: false,
+          erro: 'não consegui gravar o elenco no repositório: ' + (gravado.erro || 'erro')
+            + '. O rascunho está guardado — nada se perdeu; tente de novo.',
+          repo: { activo: repoLinhas.activo, motivo: repoLinhas.motivo },
+        });
+      }
+      return fechar(gravado.linha, 'repositorio', { carimbo: gravado.carimbo || null });
+    }
     return json(idx === -1 ? 201 : 200, { ok: true, linha: decidido.linha, criada: idx === -1 });
   }
 

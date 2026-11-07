@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T13:29:07-0300`
-Commit atual: `4f0f5c29` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+Gerado em: `2026-11-07T18:33:26-0300`
+Commit atual: `aba6ab35` — chore(estrutura): reancorar a cadeia das fontes alteradas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,26 +70,26 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
-4f0f5c29 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-f6f25559 chore(estrutura): reancorar a cadeia das fontes alteradas
-2581e511 feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
-ff9af311 feat(po): o PO elicitado vira a fonte do ciclo
-fdeb635b feat(acervo): envelope/po-20261107-1315.json
-b365377a feat(acervo): envelope/.indice.json
-d14c872b chore(estrutura): reancorar a cadeia das fontes alteradas
-705286b5 chore(estrutura): regerar os índices derivados
-c6cf7909 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-8fc300b5 feat(plano): o plano elicitado vira a fonte do ciclo
-f9ef573b feat(acervo): envelope/plano-20261107-1314.json
-7e891f0d feat(acervo): envelope/.indice.json
-5a4f4b2e chore(estrutura): regerar os índices derivados
-378472dc feat(acervo): envelope/anamnese-20261107-1308.json
-70035030 feat(acervo): envelope/.indice.json
-43fd448a feat(estrutura): habilitar colo-de-pe em bale-classico
-25ef82bd chore(estrutura): regerar os índices derivados
-89a91944 feat(acervo): envelope/.indice.json
-9550084b feat(estrutura): criar a escola breu (motor completo)
-31e15603 fix(estrutura): o expurgo passa a levar o historico/ — e a prova da calango media a chave
+aba6ab35 chore(estrutura): reancorar a cadeia das fontes alteradas
+362e8621 feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
+d1be3de2 feat(po): o PO elicitado vira a fonte do ciclo
+ebcb19ac feat(acervo): envelope/po-20261107-1823-2.json
+62600aa9 feat(acervo): envelope/.indice.json
+d66ba466 chore(estrutura): reancorar a cadeia das fontes alteradas
+53ee2111 feat(po): o PO elicitado vira a fonte do ciclo
+4d888c25 feat(acervo): envelope/po-20261107-1823.json
+ae4ac38f feat(acervo): envelope/.indice.json
+f44888f4 feat(plano): o plano elicitado vira a fonte do ciclo
+b42635d9 feat(acervo): envelope/plano-20261107-1823.json
+564c09c7 feat(acervo): envelope/.indice.json
+b8d2165c feat(biblioteca): acrescentar «Plié» ao vocabulário do balé clássico
+02ac8096 feat(biblioteca): acrescentar «Tandu» ao vocabulário do balé clássico
+922caf36 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
+0728f258 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
+9e042393 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
+317607f2 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+77eb2ad4 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -106,7 +106,7 @@ f9ef573b feat(acervo): envelope/plano-20261107-1314.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `a7711bd178b7` | (vazio) | — |
-| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `a14199322a39` | (vazio) | Input_PO_Aguardando |
+| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `bde953b89c88` | (vazio) | Input_PO_Aguardando |
 
 ### coqui-de-redinha — 0 ciclo(s)
 
@@ -161,86 +161,105 @@ f9ef573b feat(acervo): envelope/plano-20261107-1314.json
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
+## 07/11/2026 — A aluna que entra num elenco existente chega à cadeia: concluir voltou a ser um ato
 
-**O que motivou.** «Quando o professor cria uma Audição (que define o elenco) e logo em seguida vai
-atribuir esse elenco na Turma, o elenco recém-criado não aparece na lista de seleção. Atualmente, o
-professor é obrigado a recarregar a página manualmente para que o dado apareça.»
+**O que motivou.** «É frequente a entrada de uma nova aluna num elenco que já existe e já está
+associado a uma turma em funcionamento.» O professor edita o elenco, lê as anamneses, escolhe o
+recorte, conclui, regrava a Turma e revê os planos. E «o vínculo da aluna B some — ela continua
+aparecendo como livre na anamnese e não é contabilizada na aula para o lançamento de dados».
 
-**A causa não era o dado — era o TEMPO da lista.** A rota `/api/bastidores/linhas-de-base` já
-devolvia o elenco novo no instante seguinte à gravação, e o `carregarLinhas()` do cliente já a pedia
-outra vez a cada gravação. O que estava fechado eram **duas** cópias da lista, ambas escritas no HTML
-no instante em que a página nasceu: as `<option>` do `<select id="cuelenco">` e o `var ELENCOS` — a
-lista que a nota do elenco escolhido consulta. Consertar uma só deixaria a outra a mentir sobre um
-elenco que já se podia escolher, e o sintoma mudaria de sítio em vez de desaparecer.
+**A causa raiz, e não é perda de dado: é um ACTO que deixou de ser escrito.** A 07/11/2026, horas
+antes, o passo 5 da Audição («Turma de destino») saiu do formulário e a atribuição passou para a
+Turma, que escolhe o elenco. Estava certo — mas o passo 5 era também a **única** coisa que escrevia
+o elenco no **repositório** (`repoLinhas.concluir`), e ninguém tomou o lugar dele: o «Concluir
+elenco» passou a gravar só o rascunho no KV, sem `carimbo` e sem `turma`.
 
-**Medido antes de mexer,** e é a parte que importa: a página foi carregada em jsdom sem elenco
-nenhum; depois o `fetch` passou a devolver um elenco e o `carregarLinhas()` correu. Resultado:
-`opções: 1 | ELENCOS: 0 | tem "Tami": false`. O defeito, a correr, exactamente como ela o descreveu.
+**O que isso partiu, medido e não suposto.** O leitor da porta
+(`cloudflare.lerLinhasDeBaseDoEnv`) só aceitava do KV o registo com `turma` — a marca do regime
+antigo —, e o `repo.vigentes()` não tinha nada. Resultado: o elenco existia na **Produção** e
+**não existia para a porta**. E é a porta que alimenta o Plano de Observação, o plano de ensino, a
+Aula 01 e a geração do pacote. O corpo (o recorte) e o elenco desapareciam da cadeia; a aluna que
+entrou depois não chegava a documento nenhum nem ao lançamento.
+
+A bancada mediu-o com o fluxo inteiro contra o servidor, com um KV falso e sem repositório:
+
+```
+2. AS DUAS LEITURAS DA MESMA LISTA — a Produção e a porta
+  ok    a PRODUÇÃO vê o elenco
+  FALHA a PORTA vê o mesmo elenco  → []
+```
+
+**O segundo defeito, menor e do mesmo dia.** A listagem da anamnese perguntava a turma de cada
+aluna a `filiacaoDasAlunas`, que só a sabia ler de `l.turma` — a marca que o passo 5 escrevia. Sem
+o passo 5, nenhum elenco novo a tem, e a resposta dependia inteiramente de a Turma já ter sido
+regravada. Na janela entre concluir o elenco e regravar a Turma — que é o gesto seguinte, mas não o
+mesmo instante — a aluna nova aparecia **sem sala**: era o «continua como livre».
 
 **O que foi decidido.**
 
-1. **A regra é UMA, e é do servidor.** `elencosParaATurma(linhas)` decide o que é um elenco (linha de
-   base não apagada), o que é rascunho (não ter recorte) e **como se rotula** («Tami — 2 alunas»,
-   com o «(rascunho)» quando é o caso). Ela é usada pelo `paginaProducao`, que desenha o HTML, e é
-   devolvida pronta na rota, para o cliente se repintar. **O cliente não ganhou uma cópia da regra** —
-   ganhou a lista já decidida. Duas cópias divergem ao primeiro campo novo, e o sintoma seria uma
-   página que muda de conteúdo ao primeiro refresh.
-2. **A repintura mora no `carregarLinhas()`**, e não em cada gravação. É por ali que passam **todas**
-   — criar, editar, concluir, apagar, ler as anamneses —, e um caminho que se acrescente amanhã fica
-   coberto sem ninguém se lembrar desta linha.
-3. **A escolha em curso não se perde.** Quem está a editar uma Turma, vai à Audição criar um elenco e
-   volta, encontra o formulário como o deixou. Limpar-lhe a escolha seria trocar um defeito por
-   outro. Só quando o elenco escolhido **deixa de existir** o `<select>` fica em branco — e a nota
-   com ele, porque já não há estado para dizer.
-4. **As duas opções vazias também vêm do servidor** (`— escolher —` / `— nenhum elenco —`). São duas
-   frases curtas, mas o `<select>` é redesenhado: escritas nos dois lados, um dia uma delas mudava.
-5. **O que NÃO se fez, e sabe-se.** Não se acrescentou um refresh ao ganhar o foco da janela. O
-   caso que ela relatou é o da mesma página, e esse está fechado; um refresh a cada `focus` custaria
-   uma leitura de KV por mudança de aba, e o ar é recurso escasso. Se o caso de duas abas aparecer,
-   é uma decisão à parte — e a peça para isso já existe (`haRetratoNovo`, da anamnese).
+1. **Concluir o elenco volta a escrever um ACTO.** O «Concluir elenco» manda `concluir: true`, e o
+   servidor escreve a versão no repositório (`repoLinhas.concluir`), com `carimbo`, e **tira o
+   rascunho do KV no mesmo passo**. Sem repositório, o acto fica no KV com `concluida_em` e
+   `carimbo` — a marca que os leitores passam a reconhecer — e a resposta di-lo. É o desenho do
+   passo 5, sem a turma: **quem declara a sala é a Turma** (07/11/2026), e escrevê-la aqui seria
+   voltar a ter duas fontes do mesmo vínculo.
+2. **O leitor da porta reconhece o acto pela marca, e não pelo regime.** «Concluído» passa a ser
+   `carimbo` **ou** `concluida_em` **ou** `turma` — os dois primeiros do fluxo novo, o último do
+   antigo (P-03). O rascunho a meio dos passos continua de fora, e a contraprova prende-o.
+3. **E um elenco escolhido por uma Turma é um facto** (a migração sem migração). Os elencos criados
+   nesta janela ficaram sem marcas nenhumas; exigir-lhes o acto obrigaria cada escola a abrir o
+   elenco e concluí-lo outra vez. Como a Turma **já o declarou**, essa declaração basta — um
+   `kv.get` da chave das curadorias, que a Produção já lê em cada pedido. A contraprova garante que
+   um elenco **sem acto e sem Turma** continua de fora: a lista não aceita tudo.
+4. **A filiação aprende a relação Turma → Elenco.** `filiacaoDasAlunas(linhas, curadorias)` lê
+   `l.turma` primeiro (o passado continua legível) e, quando não há, a sala da Turma que escolheu
+   aquele elenco. É o que faz a aluna nova aparecer **com a sala antes de a Turma ser regravada** —
+   e é a única leitura que não depende de dois gestos acontecerem no mesmo instante.
+5. **Nada disto mudou o que a Turma declara.** A Turma continua a escolher o elenco e a carimbar as
+   alunas; a derivação continua a ler o elenco primeiro (`elencoEscolhidoPelaTurma`). O que mudou é
+   que agora **todos os leitores conseguem ver o elenco**.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (`elencosParaATurma` + as duas constantes, ao lado
-de `turmasDaCuradoria`; `paginaProducao` a usá-la; `elencos` na resposta da rota;
-`ELENCO_ESCOLHER`/`ELENCO_NENHUM` no cliente; `pintarElencosNaTurma`; a chamada dentro de
-`carregarLinhas`; as três exportações para a prova) · `experimentos/provar-elenco-na-turma.js`
-(novo, 25 asserções) · `.gitignore` (a prova entra no conjunto versionado) ·
-`experimentos/README.md` (a linha da tabela) · `ESTADO-ATUAL.md` (§11).
+**Onde entrou.** `motor/servidor/bastidores.js` (a conclusão como acto na rota do elenco; o
+`concluir` no corpo do cliente e no `concluirElenco()`; a mensagem passa a «elenco concluído») ·
+`motor/servidor/cloudflare.js` (o filtro do leitor da porta e a leitura das curadorias; a função
+exportada para a prova) · `motor/nucleo/linha-de-base.js` (`filiacaoDasAlunas` com a relação
+Turma → Elenco, e o `em` a cair em `concluida_em`/`gravada_em`) ·
+`motor/servidor/listas-do-acervo.js` (os dois chamadores passam as curadorias) ·
+`experimentos/provar-aluna-nova-no-elenco.js` (novo, 23 asserções) · `.gitignore` ·
+`experimentos/README.md` · `ESTADO-ATUAL.md` (§11).
 
-**Validação.** `provar-elenco-na-turma` **25/25** · o **A/B**: com a repintura desligada a mesma
-prova dá **17 de 25**, e as oito falhas são todas do mesmo facto — a lista fica em «— nenhum
-elenco —». Sem o A/B, um verde diria apenas que a marcação existe.
-`provar-producao` **166/166** · `provar-linha-de-base` **102/102** · `provar-salas-e-elencos`
-**65/65** · `provar-menu-da-producao` **55/55** · `provar-indice-do-recorte` **24/24** ·
-`provar-acordeoes` verde · `provar-curadoria-e-limpeza` verde · `provar-elenco-derivado` **10/10** ·
-`provar-enquadramento-da-turma`, `provar-linhas-da-lista`, `provar-manifesto-da-turma`,
-`provar-plano-da-turma` (**46**), `provar-proveniencia-e-turma` (**53**),
-`provar-sujeitos-da-turma` (**41**), `provar-linha-de-base-no-repo` (**39**) e
-`provar-conteudos-e-estado-da-turma` **verdes** · `check-identidade` **0 erros** ·
-`check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
-`wrangler deploy --dry-run` **compila nos dois Workers** — a raiz (`danca`) e a escola (`breu`, com
-um pacote de ensaio, porque `publicacao/` não é versionada). O script servido foi extraído e
-compilado à parte (`new Function`, 156 452 bytes): é a lição de 07/11 mais cedo — um erro de sintaxe
-no cliente não se vê no `node --check` do servidor, e ele apareceu mesmo, num `\"` a menos.
+**Validação.** `provar-aluna-nova-no-elenco` **23/23**, com **quatro A/B** medidos um a um:
+desligado o filtro novo do leitor → **4 falhas**; desligada a relação Turma → Elenco na filiação →
+**1**; desligada a conclusão como acto → **5**; desligada a cura pela Turma → **1**. Sem os A/B, um
+verde diria apenas que o ficheiro compila.
 
-**Vermelhos que se medem em vez de se herdarem.** `provar-cartao-da-turma` **2 falhas**,
-`provar-proposta-da-linha-de-base` **4 de 16**, `provar-derivacao-da-turma` e
-`provar-turmas-do-professor` a rebentar, e `check-indices` a reprovar a verificação 8 — todos
-**medidos no `origin/main`** (`4f0f5c29`) num worktree limpo, e todos iguais antes e depois. O
-último vem com a escola nova: `…-breu-sala-rosa-captura-declaracao.json: sem tipo declarado` — é do
-conteúdo que a geração gravou, não deste conserto, e fica dito para não passar por novo.
+`provar-linha-de-base-no-repo` **39/39** · `provar-linha-de-base` **102/102** ·
+`provar-sujeitos-da-turma` **41/41** · `provar-salas-e-elencos` **65/65** ·
+`provar-producao` **166/166** · `provar-elenco-na-turma` **25/25** · `provar-elenco-derivado`
+**10/10** · `provar-plano-completo` **18/18** · `provar-eixos-do-po` **42/42** ·
+`provar-corpo-da-linha-de-base` **30/30** · `provar-derivados-da-sequencia` **26/26** ·
+`provar-indice-do-recorte` **24/24** · `provar-etiqueta-da-aluna` **20/20** ·
+`provar-listas-do-acervo` **109** · `provar-curadoria-e-limpeza`, `provar-acordeoes`,
+`provar-painel`, `provar-menu-da-producao` (**55**), `provar-acervo-envelopes` (**52**),
+`provar-proveniencia-e-turma` (**53**), `provar-plano-da-turma` (**46**),
+`provar-conteudos-e-estado-da-turma`, `provar-enquadramento-da-turma`, `provar-linhas-da-lista`
+**verdes** · `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · `gerar-relacoes --check` **2 em dia** ·
+`wrangler deploy --dry-run` **compila nos dois Workers** (raiz e escola). O script servido foi
+extraído e compilado à parte (`new Function`, 156 495 bytes).
 
-**O que ainda não está feito.** A conferência ao ar é do próximo deploy: as provas são locais e a
-página serve o `bastidores.js` que o Worker empacota.
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do próximo deploy.** As provas são locais; a página e a porta servem o
+  código que o Worker empacota.
+- **O elenco da `breu` que já existe só ganha o acto na próxima conclusão.** Ele é lido a partir de
+  agora (a cura pela Turma), mas a versão no repositório só nasce quando ela abrir o elenco e
+  carregar em «Concluir elenco» — que é o gesto normal, e agora faz o que o nome diz.
+- **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
+  devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
+  não se inventou uma recusa que ninguém pediu.
 
 ## O que está pendente
-
-## 07/11/2026 — Os basilares num bloco, o quadro do recorte em acordeão, e a lista com três colunas
-
-A conferência ao ar é do próximo deploy. E o cartão do elenco, sem
-a coluna «Turmas», deixa de dizer de relance em que turmas o elenco está — quem quiser sabê-lo abre
-a caixa «Elenco». Foi a troca pedida, mas é uma troca: se ao usar ela sentir falta do número à
-vista, o caminho é voltar a pôr o valor na linha `.fatos`, e não a coluna.
 
 ## 07/11/2026 — O cartão do elenco fica com duas caixas: as alunas e o recorte
 
@@ -274,6 +293,18 @@ A conferência ao ar é do próximo deploy.
 
 A conferência ao ar é do próximo deploy: as provas são locais e a
 página serve o `bastidores.js` que o Worker empacota.
+
+## 07/11/2026 — A aluna que entra num elenco existente chega à cadeia: concluir voltou a ser um ato
+
+
+- **A conferência ao ar é do próximo deploy.** As provas são locais; a página e a porta servem o
+  código que o Worker empacota.
+- **O elenco da `breu` que já existe só ganha o acto na próxima conclusão.** Ele é lido a partir de
+  agora (a cura pela Turma), mas a versão no repositório só nasce quando ela abrir o elenco e
+  carregar em «Concluir elenco» — que é o gesto normal, e agora faz o que o nome diz.
+- **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
+  devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
+  não se inventou uma recusa que ninguém pediu.
 
 ## Pendências anteriores (índice)
 
@@ -654,6 +685,7 @@ página serve o `bastidores.js` que o Worker empacota.
 - **07/11/2026** — A proveniência é auditada antes do expurgo — e o elo guarda… → `REGISTRO.md` L39237
 - **07/11/2026** — O passo 2 do Elenco diz o que falta, e leva lá → `REGISTRO.md` L39333
 - **07/11/2026** — «Elenco» passa a «Audição» e «Verbetes da notação» a… → `REGISTRO.md` L39387
+- **07/11/2026** — Os basilares num bloco, o quadro do recorte em acordeão, e… → `REGISTRO.md` L39444
 - PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

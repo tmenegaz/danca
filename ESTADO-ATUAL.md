@@ -4064,6 +4064,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A aluna que entra num elenco existente chega à cadeia inteira — e a causa era
+  um ato que deixou de ser escrito.** O professor editava o elenco, punha a aluna B, concluía,
+  regravava a Turma e revia os planos — e «o vínculo da aluna B some». **CONFIRMADO**: a saída do
+  passo 5 (07/11/2026, horas antes) levou consigo a **única** escrita do elenco no repositório, e o
+  «Concluir elenco» passou a gravar só o rascunho no KV. O leitor da porta
+  (`cloudflare.lerLinhasDeBaseDoEnv`) só aceitava do KV o registo com `turma` — a marca do regime
+  antigo —, e por isso o elenco existia na **Produção** e **não existia para a porta**, que é quem
+  alimenta o PO, o plano de ensino, a Aula 01 e a geração. Medido em bancada com o fluxo inteiro:
+  «a PRODUÇÃO vê o elenco / a PORTA não → `[]`». Quatro correções: **concluir volta a escrever um
+  acto** (carimbo, versão no repositório, rascunho fora do KV no mesmo passo); **o leitor reconhece
+  o acto pela marca** (`carimbo`/`concluida_em`/`turma`) e não pelo regime; **um elenco escolhido
+  por uma Turma é um facto** (a migração sem migração — os elencos da janela passam a ser lidos sem
+  ter de ser reconcluídos); e a **filiação aprende a relação Turma → Elenco**, que é o que faz a
+  aluna nova aparecer com a sala **antes** de a Turma ser regravada. Nada disto mudou o que a Turma
+  declara. `provar-aluna-nova-no-elenco` **23/23**, com **quatro A/B** (4, 1, 5 e 1 falhas ao
+  desligar cada regra). Fica por conferir ao ar: é do próximo deploy.
+
 - **07/11/2026** — **O elenco recém-criado chega à Turma sem F5.** O professor concluía a Audição,
   ia à Turma escolher o elenco, e o que acabara de criar **não estava no `<select>`** — era preciso
   recarregar a página. A causa não era o dado (a rota já o devolvia): era a **lista estar fechada no

@@ -909,3 +909,12 @@ experimentos/modelo-formulario/*
 # curso sobrevive a uma repintura, o elenco apagado sai da lista e da nota, e o primeiro desenho do
 # servidor diz o mesmo que a repintura do cliente (se divergirem, a página muda ao primeiro refresh).
 !experimentos/provar-elenco-na-turma.js
+
+# A ALUNA QUE ENTRA NUM ELENCO QUE JÁ EXISTE (07/11/2026). A prova corre o fluxo inteiro contra o
+# servidor de verdade — criar o elenco, atribuí-lo numa Turma, acrescentar a segunda aluna,
+# regravar a Turma — e mede o que cada leitor da MESMA lista responde: a Produção e a porta (que é
+# quem o PO, o plano, a aula e a geração leem). Foi a discordância entre as duas que fez o elenco
+# existir na tela e desaparecer da cadeia. Tem as quatro contraprovas: um rascunho sem recorte não
+# entra, um elenco sem acto e sem Turma não entra, o recorte viaja, e a aluna aparece com a sala
+# ANTES de a Turma ser regravada (a janela em que o vínculo «sumia»).
+!experimentos/provar-aluna-nova-no-elenco.js

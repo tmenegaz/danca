@@ -289,8 +289,35 @@ function lerLinhasDeBaseDoEnv(env) {
     }
     const porId = new Map();
     for (const l of doRepo) porId.set(l.id, l);
-    /* SÓ OS ACTOS DO KV ENTRAM POR BAIXO: um rascunho não declara elenco nem resolve um plano. */
-    for (const l of doKv) if (!porId.has(l.id) && l.turma) porId.set(l.id, l);
+    /* SÓ OS ACTOS DO KV ENTRAM POR BAIXO: um rascunho não declara elenco nem resolve um plano.
+     *
+     * O QUE CONTA COMO ACTO MUDOU A 07/11/2026, e a mudança é a correcção de um defeito medido.
+     * A condição era `l.turma` — a marca do regime em que o passo 5 «enviava» o elenco para uma
+     * sala. Com a nomenclatura nova, quem declara a sala é a TURMA e o elenco nunca ganha
+     * `turma`: um elenco concluído continuava a ser reconhecido por `carimbo` (o acto escrito no
+     * repositório) e, sem repositório, por `concluida_em`. Sem esta linha, TODOS os elencos
+     * criados desde 07/11 ficavam invisíveis para a porta — o PO, o plano, a aula e a geração —,
+     * e a aluna que entrasse depois não chegava a documento nenhum.
+     *
+     * `turma` FICA: um registo antigo do KV que a tem é um acto do regime anterior, e continua a
+     * ler-se (P-03). O que sai de fora é o rascunho a meio dos passos — que é `campos` sem
+     * `carimbo` e sem `concluida_em`, e não declara elenco nenhum. */
+    /* E O ELENCO QUE UMA TURMA ESCOLHEU É UM FACTO (07/11/2026) — mesmo que o acto ainda não
+     * tenha sido reescrito. Os elencos criados entre a saída do passo 5 e esta correcção ficaram
+     * no KV sem `carimbo` e sem `concluida_em`; deixá-los de fora obrigaria cada escola a abrir o
+     * elenco e concluí-lo outra vez para o corpo voltar à cadeia. A Turma já o declarou — e uma
+     * declaração da Turma é o que o resto do sistema trata como facto. A leitura é uma só chave
+     * do KV, e é a mesma que a Produção já lê em cada pedido. */
+    let escolhidos = new Set();
+    try {
+      const curs = await lerCuradoriasDoEnv(env)(slug);
+      escolhidos = new Set((Array.isArray(curs) ? curs : [])
+        .filter((c) => c && !c.substituidaPor && c.linhaDeBase)
+        .map((c) => String(c.linhaDeBase)));
+    } catch (erro) { escolhidos = new Set(); }
+    const concluida = (l) => Boolean(l.carimbo || l.concluida_em || l.turma)
+      || escolhidos.has(String(l.id));
+    for (const l of doKv) if (!porId.has(l.id) && concluida(l)) porId.set(l.id, l);
     return [...porId.values()];
   };
 }
@@ -483,4 +510,9 @@ async function fetch(request, env, opcoes) {
  * KV depois, e a combinação que o `acervo` monta. Uma segunda forma de ler o mesmo acervo
  * divergiria no dia em que uma das duas mudasse, e o sintoma seria uma lista a mostrar registos
  * que a porta já não encontra. */
-module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico, criarArmazenamento };
+/* O LEITOR DAS LINHAS DE BASE, exportado (07/11/2026). A porta o constrói internamente, e é ele
+ * que o Plano de Observação, o plano de ensino e a geração usam — a lista que resolve o elenco de
+ * uma turma. Exportá-lo permite à bancada medir AS DUAS leituras da mesma lista (esta e a da
+ * Produção) contra o mesmo KV, que é a única forma de provar que elas dizem o mesmo: uma prova que
+ * reconstruísse o leitor mediria a prova, não a regra. */
+module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico, criarArmazenamento, lerLinhasDeBaseDoEnv };

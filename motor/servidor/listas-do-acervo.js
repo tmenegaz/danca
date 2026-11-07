@@ -77,7 +77,7 @@ function turmaDaAluna(curadorias) {
  */
 function turmasDasAlunas(curadorias, linhasDeBase) {
   const mapa = turmaDaAluna(curadorias);
-  for (const [apelido, f] of linhaDeBase.filiacaoDasAlunas(linhasDeBase)) {
+  for (const [apelido, f] of linhaDeBase.filiacaoDasAlunas(linhasDeBase, curadorias)) {
     if (f.turma) mapa.set(apelido, f.turma);
   }
   return mapa;
@@ -1803,7 +1803,7 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
    * e é dela que saem a turma e a etiqueta «linha de base «…»» de cada aluna. Sem ela — quando
    * quem chama não a passa, como nas bancadas antigas —, a turma continua a vir só da curadoria, e
    * é esse o comportamento de antes: a lista não inventa o que não conseguiu ler. */
-  const filiacao = linhaDeBase.filiacaoDasAlunas(chave === 'anamnese' ? linhasDeBase : []);
+  const filiacao = linhaDeBase.filiacaoDasAlunas(chave === 'anamnese' ? linhasDeBase : [], curadorias);
   const linhas = linhasDe(chave, registos, estados, turmasDasAlunas(curadorias, linhasDeBase),
     turmaDoPlano, { gerados, historico, revalidar }, filiacao);
   const titulo = familia.titulo;

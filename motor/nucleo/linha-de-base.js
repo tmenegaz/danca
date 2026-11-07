@@ -927,8 +927,30 @@ function elencoDaTurma(linhas, turma) {
  * dela já existe — mesmo antes de o passo 5 a mandar para uma turma. O que o rascunho não faz é
  * dizer «esta aluna está naquela turma»: isso é o envio, e o envio é datado.
  */
-function filiacaoDasAlunas(linhas) {
+function filiacaoDasAlunas(linhas, curadorias) {
   const por = new Map();
+  /* A SALA DO ELENCO, QUANDO É A TURMA QUE A DECLARA (07/11/2026).
+   *
+   * A 07/11/2026 a atribuição mudou de casa: o elenco deixou de ser «enviado» para uma sala
+   * (o passo 5, que escrevia `turma` no registo) e passou a ser ESCOLHIDO pela Turma. O efeito
+   * colateral, medido: `l.turma` deixou de existir em todos os elencos novos, e a listagem da
+   * anamnese — que pergunta a esta função a turma de cada aluna — passou a responder «sem turma»
+   * a quem está numa. Uma aluna que entra num elenco já atribuído ficava «livre» até a Turma ser
+   * regravada, e o vínculo dela desaparecia por uma janela de dois gestos.
+   *
+   * A LEITURA NOVA: o elenco diz o CORPO, a Turma diz a SALA, e a relação é uma só — a Turma que
+   * escolheu esse elenco. Ler `l.turma` primeiro mantém o passado legível (P-03): numa escola com
+   * o vínculo antigo, é o registo que manda. Sem `curadorias` (as bancadas antigas), nada muda.
+   */
+  const turmaDoElenco = new Map();
+  for (const c of (Array.isArray(curadorias) ? curadorias : [])) {
+    if (!c || c.substituidaPor || !c.linhaDeBase) continue;
+    const nomes = Array.isArray(c.turmas) && c.turmas.length
+      ? c.turmas.map((t) => String(t == null ? '' : t).trim())
+      : [String(c.turma == null ? '' : c.turma).trim()];
+    const sala = nomes.filter(Boolean)[0];
+    if (sala && !turmaDoElenco.has(String(c.linhaDeBase))) turmaDoElenco.set(String(c.linhaDeBase), sala);
+  }
   const lista = (Array.isArray(linhas) ? linhas : [])
     .filter((l) => l && l.id)
     .slice()
@@ -936,8 +958,9 @@ function filiacaoDasAlunas(linhas) {
       .localeCompare(String(a.enviada_em || a.atualizada_em || '')));
   for (const l of lista) {
     const nome = String(l.nome == null ? '' : l.nome).trim();
-    const turma = String(l.turma == null ? '' : l.turma).trim();
-    const em = String(l.enviada_em || '').trim();
+    const turma = String(l.turma == null ? '' : l.turma).trim()
+      || (turmaDoElenco.get(String(l.id)) || '');
+    const em = String(l.enviada_em || l.concluida_em || l.gravada_em || '').trim();
     for (const a of (Array.isArray(l.alunas) ? l.alunas : [])) {
       const apelido = String(a == null ? '' : a).trim();
       if (!apelido) continue;
