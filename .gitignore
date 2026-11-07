@@ -902,3 +902,10 @@ experimentos/modelo-formulario/*
 # defeito, a correr), e sem leitura a ponte diz «não sei» em vez de «não há».
 !experimentos/provar-aulas-dadas.js
 !experimentos/provar-proveniencia-do-expurgo.js
+
+# O ELENCO RECÉM-CRIADO CHEGA À TURMA SEM F5 (07/11/2026). A prova abre a página da Produção em
+# jsdom, nasce SEM elenco nenhum, cria um (o `fetch` passa a devolvê-lo) e exige a `<option>` a
+# aparecer — o defeito que ela relatou, medido onde ele vivia. E as contraprovas: a escolha em
+# curso sobrevive a uma repintura, o elenco apagado sai da lista e da nota, e o primeiro desenho do
+# servidor diz o mesmo que a repintura do cliente (se divergirem, a página muda ao primeiro refresh).
+!experimentos/provar-elenco-na-turma.js

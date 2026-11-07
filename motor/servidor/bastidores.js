@@ -923,6 +923,45 @@ function professorPreso(curs, usos, p) {
   return professorCurado(curs, p) || professorVinculadoA(usos, p);
 }
 
+/* OS ELENCOS QUE A TURMA PODE ESCOLHER — uma regra, dois chamadores (07/11/2026).
+ *
+ * PORQUE ESTA FUNÇÃO EXISTE. Ela nasceu de um defeito medido: o professor criava a Audição,
+ * ia logo à Turma, e o elenco recém-criado não estava no `<select>`. Não era falta de dado — o
+ * servidor já o tinha —, era a lista fechada no instante em que a página nasceu. O conserto
+ * obriga a lista a ser recalculada no cliente, e aí a pergunta fica: quem sabe QUE linhas são
+ * elencos e COMO se rotulam? Se o cliente tivesse a sua própria cópia, teríamos duas — e duas
+ * divergem ao primeiro campo novo. Por isso a regra é UMA, aqui, e viaja pronta para os dois
+ * lados: o `paginaProducao` desenha o HTML com ela, e a rota `…/linhas-de-base` devolve-a para
+ * o cliente se repintar depois de cada gravação.
+ *
+ * O QUE É UM ELENCO. Uma linha de base que não foi apagada (`apagada_em` é a lápide), com o
+ * nome, as alunas em texto e a marca de RASCUNHO — rascunho é não ter recorte escolhido
+ * (`campos` vazio), que é o que a porta grava antes do passo 4.
+ */
+function elencosParaATurma(linhas) {
+  return (Array.isArray(linhas) ? linhas : [])
+    .filter((l) => l && l.id && !l.apagada_em)
+    .map((l) => {
+      const alunas = (Array.isArray(l.alunas) ? l.alunas : []).map(String);
+      const rascunho = !(Array.isArray(l.campos) && l.campos.length);
+      const nome = String(l.nome || l.id);
+      return {
+        id: String(l.id),
+        nome,
+        alunas,
+        rascunho,
+        /* O RÓTULO SAI DAQUI, e não do cliente. É uma frase curta, mas é a MESMA frase nos dois
+         * sítios: escrita duas vezes, um dia diz «3 alunas» num e «3 aluno(s)» no outro. */
+        rotulo: nome + ' — ' + alunas.length + (alunas.length === 1 ? ' aluna' : ' alunas')
+          + (rascunho ? ' (rascunho)' : ''),
+      };
+    });
+}
+
+/** As duas opções vazias do `<select>` da Turma. Constantes para o cliente dizer o mesmo. */
+const ROTULO_ESCOLHER_ELENCO = '— escolher —';
+const ROTULO_NENHUM_ELENCO = '— nenhum elenco —';
+
 /** As turmas de uma curadoria, lidas dos DOIS formatos: o novo (`turma`, um nome) e o antigo
  *  (`turmas`, uma lista — que os registos já gravados têm). */
 function turmasDaCuradoria(c) {
@@ -2748,20 +2787,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * A lista é a das linhas de base da escola — o mesmo leitor (`linhasDeBase`) que alimenta a
    * secção Elenco. Uma segunda leitura da chave, com a sua própria forma, divergiria à primeira
    * gravação. */
-  const elencosDaEscola = (Array.isArray(linhas) ? linhas : [])
-    .filter((l) => l && l.id && !l.apagada_em)
-    .map((l) => ({
-      id: String(l.id),
-      nome: String(l.nome || l.id),
-      alunas: (Array.isArray(l.alunas) ? l.alunas : []).map(String),
-      rascunho: !(Array.isArray(l.campos) && l.campos.length),
-    }));
+  const elencosDaEscola = elencosParaATurma(linhas);
   const opcoesElencoCuradoria = elencosDaEscola.length
-    ? '<option value="">— escolher —</option>' +
-      elencosDaEscola.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.nome) +
-        ' — ' + e.alunas.length + (e.alunas.length === 1 ? ' aluna' : ' alunas') +
-        (e.rascunho ? ' (rascunho)' : '') + '</option>').join('')
-    : '<option value="">— nenhum elenco —</option>';
+    ? '<option value="">' + ROTULO_ESCOLHER_ELENCO + '</option>' +
+      elencosDaEscola.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('')
+    : '<option value="">' + ROTULO_NENHUM_ELENCO + '</option>';
   // A DISPONIBILIDADE NO CATÁLOGO (07/11/2026) — derivada dos dados que a Turma já declara.
   // Não é um juízo: é a lista do que falta para a Turma poder ser ofertada, e cada falta diz o
   // campo que a resolve. A modalidade é o EIXO do catálogo e entra na lista como qualquer outra
@@ -6138,6 +6168,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * as curadorias e as turmas: o `<select>` já a tem, e a nota do elenco não precisa de uma
      * ida ao servidor para dizer quantas alunas ele tem. */
     'var ELENCOS = ' + JSON.stringify(elencosDaEscola) + ';' +
+    // AS DUAS OPÇÕES VAZIAS VÊM DO SERVIDOR (07/11/2026), e não são escritas aqui: o `<select>`
+    // é redesenhado depois de cada gravação, e a frase tem de ser a mesma do primeiro desenho.
+    'var ELENCO_ESCOLHER = ' + JSON.stringify(ROTULO_ESCOLHER_ELENCO) + ';' +
+    'var ELENCO_NENHUM = ' + JSON.stringify(ROTULO_NENHUM_ELENCO) + ';' +
     // AS ALUNAS DA ESCOLA, e o mapa de quem já está comprometida numa modalidade (16/10/2026).
     // A lista de alunas do formulário é FILTRADA pela modalidade e pela turma escolhidas: uma
     // aluna pertence a UMA turma por modalidade, e oferecê-la outra vez era deixar a escola
@@ -6183,6 +6217,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      (e.alunas.length === 1 ? " aluna" : " alunas") + "." +' +
     '      (e.rascunho ? " Ainda é rascunho: falta-lhe o recorte." : "")' +
     '    : "O elenco «" + e.nome + "» ainda não tem alunas.";' +
+    '}' +
+    /* O ELENCO NOVO CHEGA À TURMA SEM RECARREGAR A PÁGINA (07/11/2026).
+     *
+     * O DEFEITO, medido. O professor concluía a Audição, ia à Turma escolher o elenco, e o que
+     * acabara de criar não estava no `<select>` — era preciso F5. A causa não era o dado: a
+     * rota já o devolvia. Era a lista estar fechada no instante em que a página nasceu, em DOIS
+     * sítios ao mesmo tempo — as `<option>` escritas pelo servidor, e o `ELENCOS` que a nota do
+     * elenco consulta. Atualizar um só deixaria a nota a mentir sobre um elenco que já se pode
+     * escolher.
+     *
+     * QUEM MANDA NO QUE É UM ELENCO É O SERVIDOR. A lista chega pronta em `d.elencos`, feita
+     * pela MESMA função que desenhou a página; aqui só se escrevem as `<option>`. Se o cliente
+     * filtrasse ou rotulasse por conta própria, haveria duas regras — e elas divergem.
+     *
+     * A ESCOLHA EM CURSO NÃO SE PERDE. Quem está a editar uma Turma e vai à Audição criar um
+     * elenco volta com o formulário preenchido; apagar-lhe a escolha seria trocar um defeito por
+     * outro. Se o elenco escolhido deixou de existir (foi apagado), aí sim o `<select>` fica em
+     * branco — e a nota com ele, porque já não há estado para dizer.
+     */
+    'function pintarElencosNaTurma(elencos) {' +
+    '  if (elencos) ELENCOS = elencos;' +
+    '  var sel = document.getElementById("cuelenco");' +
+    '  if (!sel) return;' +
+    '  var escolhido = sel.value;' +
+    "  var html = '<option value=\"\">' + escHtml(ELENCOS.length ? ELENCO_ESCOLHER : ELENCO_NENHUM) + '</option>';" +
+    '  var aindaExiste = false;' +
+    '  for (var i = 0; i < ELENCOS.length; i++) {' +
+    '    var e = ELENCOS[i];' +
+    '    if (!e) continue;' +
+    "    html += '<option value=\"' + escHtml(e.id) + '\">' + escHtml(e.rotulo) + '</option>';" +
+    '    if (e.id === escolhido) aindaExiste = true;' +
+    '  }' +
+    '  sel.innerHTML = html;' +
+    '  sel.value = aindaExiste ? escolhido : "";' +
+    '  mostrarElenco(sel.value);' +
     '}' +
     'function refiltrarAlunas() {' +
     '  var el = document.getElementById("esc-alunas");' +
@@ -10081,6 +10150,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      LINHAS_DE_BASE = (d && d.linhas) || [];' +
     '      pintarLinhas();' +
     '      pintarIndiceDoRecorte(d && d.indice);' +
+    // A TURMA FICA A VER O MESMO (07/11/2026). `carregarLinhas` é por onde passa TODA a
+    // gravação do elenco — criar, editar, concluir, apagar, ler as anamneses —, e é por isso que
+    // a repintura entra aqui e não em cada uma: um caminho novo que se acrescente amanhã fica
+    // coberto sem ninguém se lembrar desta linha.
+    '      pintarElencosNaTurma(d && d.elencos);' +
     // A CURADORIA É O PRIMEIRO PASSO DA CASCATA, e tem de o dizer na lista onde ela se abre. O
     // servidor já fez a conta (`divergentes` — o elenco da turma contra o que a curadoria declara);
     // aqui só se marca a linha, sem repetir a regra.
@@ -11924,6 +11998,12 @@ async function fetch(request, env) {
      * função: uma segunda implementação divergiria da primeira ao primeiro campo novo. */
     return json(200, {
       ok: true, escola, linhas: lista, divergentes,
+      /* OS ELENCOS DA TURMA VÃO JUNTO, PRONTOS (07/11/2026). É a MESMA função que desenha a
+       * página (`elencosParaATurma`), chamada aqui para o cliente poder repintar o `<select>`
+       * da Turma sem recarregar a página — que era o defeito: criar a Audição, ir à Turma, e o
+       * elenco novo não estar lá. Custa ZERO leituras: a lista já veio. Uma segunda regra no
+       * cliente divergiria da primeira ao primeiro campo novo, e é por isso que ela viaja. */
+      elencos: elencosParaATurma(lista),
       /* O ESTADO DO REPOSITÓRIO DIZ-SE (05/11/2026). É daqui que sai a SÉRIE TEMPORAL: cada acto é
        * um ficheiro com carimbo, e a estante mostra a vigente de cada linha. Se o repositório não
        * estiver alcançável (sem token, GitHub fora), o acto do próximo envio fica no KV — e sem
@@ -13449,6 +13529,12 @@ module.exports = {
   // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
   // texto do HTML: mede-se a posição do elemento — antes e depois do clique.
   paginaProducao,
+  /* A REGRA DO ELENCO NA TURMA, exportada para a prova (07/11/2026). O cliente repinta o
+   * `<select>` com o que a rota devolve, e a bancada tem de poder construir a mesma resposta sem
+   * subir o Worker — uma resposta escrita à mão na prova mediria a prova, não a regra. */
+  elencosParaATurma,
+  ROTULO_ESCOLHER_ELENCO,
+  ROTULO_NENHUM_ELENCO,
   // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para
   // ela poder receber um plano, e a frase que diz isso em português (16/10/2026).
   faltaNoRitmoDaTurma,

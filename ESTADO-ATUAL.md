@@ -4064,6 +4064,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **O elenco recém-criado chega à Turma sem F5.** O professor concluía a Audição,
+  ia à Turma escolher o elenco, e o que acabara de criar **não estava no `<select>`** — era preciso
+  recarregar a página. A causa não era o dado (a rota já o devolvia): era a **lista estar fechada no
+  instante em que a página nasceu**, e em **dois** sítios — as `<option>` escritas pelo servidor e o
+  `ELENCOS` que a nota do elenco consulta. Atualizar um só deixaria a nota a mentir sobre um elenco
+  que já se podia escolher. **CONFIRMADO** a 07/11/2026: a regra que decide o que é um elenco e como
+  se rotula passou a ser **uma só** (`elencosParaATurma`, no servidor, exportada), usada pelo
+  `paginaProducao` **e** devolvida pronta na rota `…/linhas-de-base`; o cliente repinta o `<select>`
+  de dentro do `carregarLinhas()` — por onde passa **toda** a gravação do elenco (criar, editar,
+  concluir, apagar, ler as anamneses) —, com a **escolha em curso preservada** e o elenco **apagado
+  a sair** da lista e da nota. O cliente **não** ganhou uma segunda cópia da regra: se ganhasse,
+  as duas divergiriam ao primeiro campo novo. `provar-elenco-na-turma` **25/25** em jsdom, com o
+  **A/B** medido: desligada a repintura, a prova cai para 17 de 25 — a primeira asserção volta a ver
+  «— nenhum elenco —», que é o defeito a correr. Fica por conferir ao ar: é do próximo deploy.
+
 - **07/11/2026** — **A escola `breu` foi expurgada, e o expurgo deixou cinco ficheiros dela para
   trás — o buraco está fechado.** O expurgo da página correu certo: 22 ficheiros, 5 chaves de KV
   apagadas (0 restantes), as duas âncoras registadas **com os hashes antes de desaparecerem**, a

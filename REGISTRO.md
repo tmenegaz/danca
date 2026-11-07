@@ -39732,3 +39732,75 @@ OUTRA escola do mesmo professor e a da pasta que não é levada por inteiro) ·
   verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
 - **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
   quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
+
+## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
+
+**O que motivou.** «Quando o professor cria uma Audição (que define o elenco) e logo em seguida vai
+atribuir esse elenco na Turma, o elenco recém-criado não aparece na lista de seleção. Atualmente, o
+professor é obrigado a recarregar a página manualmente para que o dado apareça.»
+
+**A causa não era o dado — era o TEMPO da lista.** A rota `/api/bastidores/linhas-de-base` já
+devolvia o elenco novo no instante seguinte à gravação, e o `carregarLinhas()` do cliente já a pedia
+outra vez a cada gravação. O que estava fechado eram **duas** cópias da lista, ambas escritas no HTML
+no instante em que a página nasceu: as `<option>` do `<select id="cuelenco">` e o `var ELENCOS` — a
+lista que a nota do elenco escolhido consulta. Consertar uma só deixaria a outra a mentir sobre um
+elenco que já se podia escolher, e o sintoma mudaria de sítio em vez de desaparecer.
+
+**Medido antes de mexer,** e é a parte que importa: a página foi carregada em jsdom sem elenco
+nenhum; depois o `fetch` passou a devolver um elenco e o `carregarLinhas()` correu. Resultado:
+`opções: 1 | ELENCOS: 0 | tem "Tami": false`. O defeito, a correr, exactamente como ela o descreveu.
+
+**O que foi decidido.**
+
+1. **A regra é UMA, e é do servidor.** `elencosParaATurma(linhas)` decide o que é um elenco (linha de
+   base não apagada), o que é rascunho (não ter recorte) e **como se rotula** («Tami — 2 alunas»,
+   com o «(rascunho)» quando é o caso). Ela é usada pelo `paginaProducao`, que desenha o HTML, e é
+   devolvida pronta na rota, para o cliente se repintar. **O cliente não ganhou uma cópia da regra** —
+   ganhou a lista já decidida. Duas cópias divergem ao primeiro campo novo, e o sintoma seria uma
+   página que muda de conteúdo ao primeiro refresh.
+2. **A repintura mora no `carregarLinhas()`**, e não em cada gravação. É por ali que passam **todas**
+   — criar, editar, concluir, apagar, ler as anamneses —, e um caminho que se acrescente amanhã fica
+   coberto sem ninguém se lembrar desta linha.
+3. **A escolha em curso não se perde.** Quem está a editar uma Turma, vai à Audição criar um elenco e
+   volta, encontra o formulário como o deixou. Limpar-lhe a escolha seria trocar um defeito por
+   outro. Só quando o elenco escolhido **deixa de existir** o `<select>` fica em branco — e a nota
+   com ele, porque já não há estado para dizer.
+4. **As duas opções vazias também vêm do servidor** (`— escolher —` / `— nenhum elenco —`). São duas
+   frases curtas, mas o `<select>` é redesenhado: escritas nos dois lados, um dia uma delas mudava.
+5. **O que NÃO se fez, e sabe-se.** Não se acrescentou um refresh ao ganhar o foco da janela. O
+   caso que ela relatou é o da mesma página, e esse está fechado; um refresh a cada `focus` custaria
+   uma leitura de KV por mudança de aba, e o ar é recurso escasso. Se o caso de duas abas aparecer,
+   é uma decisão à parte — e a peça para isso já existe (`haRetratoNovo`, da anamnese).
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`elencosParaATurma` + as duas constantes, ao lado
+de `turmasDaCuradoria`; `paginaProducao` a usá-la; `elencos` na resposta da rota;
+`ELENCO_ESCOLHER`/`ELENCO_NENHUM` no cliente; `pintarElencosNaTurma`; a chamada dentro de
+`carregarLinhas`; as três exportações para a prova) · `experimentos/provar-elenco-na-turma.js`
+(novo, 25 asserções) · `.gitignore` (a prova entra no conjunto versionado) ·
+`experimentos/README.md` (a linha da tabela) · `ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-elenco-na-turma` **25/25** · o **A/B**: com a repintura desligada a mesma
+prova dá **17 de 25**, e as oito falhas são todas do mesmo facto — a lista fica em «— nenhum
+elenco —». Sem o A/B, um verde diria apenas que a marcação existe.
+`provar-producao` **166/166** · `provar-linha-de-base` **102/102** · `provar-salas-e-elencos`
+**65/65** · `provar-menu-da-producao` **55/55** · `provar-indice-do-recorte` **24/24** ·
+`provar-acordeoes` verde · `provar-curadoria-e-limpeza` verde · `provar-elenco-derivado` **10/10** ·
+`provar-enquadramento-da-turma`, `provar-linhas-da-lista`, `provar-manifesto-da-turma`,
+`provar-plano-da-turma` (**46**), `provar-proveniencia-e-turma` (**53**),
+`provar-sujeitos-da-turma` (**41**), `provar-linha-de-base-no-repo` (**39**) e
+`provar-conteudos-e-estado-da-turma` **verdes** · `check-identidade` **0 erros** ·
+`check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
+`wrangler deploy --dry-run` **compila nos dois Workers** — a raiz (`danca`) e a escola (`breu`, com
+um pacote de ensaio, porque `publicacao/` não é versionada). O script servido foi extraído e
+compilado à parte (`new Function`, 156 452 bytes): é a lição de 07/11 mais cedo — um erro de sintaxe
+no cliente não se vê no `node --check` do servidor, e ele apareceu mesmo, num `\"` a menos.
+
+**Vermelhos que se medem em vez de se herdarem.** `provar-cartao-da-turma` **2 falhas**,
+`provar-proposta-da-linha-de-base` **4 de 16**, `provar-derivacao-da-turma` e
+`provar-turmas-do-professor` a rebentar, e `check-indices` a reprovar a verificação 8 — todos
+**medidos no `origin/main`** (`4f0f5c29`) num worktree limpo, e todos iguais antes e depois. O
+último vem com a escola nova: `…-breu-sala-rosa-captura-declaracao.json: sem tipo declarado` — é do
+conteúdo que a geração gravou, não deste conserto, e fica dito para não passar por novo.
+
+**O que ainda não está feito.** A conferência ao ar é do próximo deploy: as provas são locais e a
+página serve o `bastidores.js` que o Worker empacota.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T12:59:40-0300`
-Commit atual: `58bc02f0` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-07T13:29:07-0300`
+Commit atual: `4f0f5c29` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -53,8 +53,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 coqui-de-redinha
 pe-torto
 rabo-gramde (4)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -71,31 +70,43 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
-58bc02f0 chore(estrutura): regerar os índices derivados
-6027f213 chore(estrutura): expurgar a escola breu
-94085052 chore(estrutura): regerar os índices derivados
-f1182e19 fix(estrutura): o Bloco 10 sai do plano — o corpo mora na Audição e no PO
-98bf71b6 chore(estrutura): reancorar a cadeia das fontes alteradas
-9165155a chore(estrutura): regerar os índices derivados
-16aaf059 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-07183c6c feat(plano): o plano elicitado vira a fonte do ciclo
-58ac9237 feat(acervo): envelope/plano-20261107-1217.json
-448929cf feat(acervo): envelope/.indice.json
-abf7bc8e fix(estrutura): o cartão do elenco fica com duas caixas — alunas e recorte
-085c9184 fix(estrutura): os basilares num bloco, o recorte em acordeão, e o cartão com três colunas
-a8fb64e0 fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
-98b82752 chore(estrutura): regerar os índices derivados
-a53ef798 feat(acervo): envelope/anamnese-20261107-1133.json
-e9363143 feat(acervo): envelope/.indice.json
-1ea51ab9 fix(tools): a impressão da proveniência usa a Web Crypto, e o Worker volta a compilar
-d9c8adba docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
-b5cf7636 fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
-e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e guarda-a no elo
+4f0f5c29 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+f6f25559 chore(estrutura): reancorar a cadeia das fontes alteradas
+2581e511 feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
+ff9af311 feat(po): o PO elicitado vira a fonte do ciclo
+fdeb635b feat(acervo): envelope/po-20261107-1315.json
+b365377a feat(acervo): envelope/.indice.json
+d14c872b chore(estrutura): reancorar a cadeia das fontes alteradas
+705286b5 chore(estrutura): regerar os índices derivados
+c6cf7909 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+8fc300b5 feat(plano): o plano elicitado vira a fonte do ciclo
+f9ef573b feat(acervo): envelope/plano-20261107-1314.json
+7e891f0d feat(acervo): envelope/.indice.json
+5a4f4b2e chore(estrutura): regerar os índices derivados
+378472dc feat(acervo): envelope/anamnese-20261107-1308.json
+70035030 feat(acervo): envelope/.indice.json
+43fd448a feat(estrutura): habilitar colo-de-pe em bale-classico
+25ef82bd chore(estrutura): regerar os índices derivados
+89a91944 feat(acervo): envelope/.indice.json
+9550084b feat(estrutura): criar a escola breu (motor completo)
+31e15603 fix(estrutura): o expurgo passa a levar o historico/ — e a prova da calango media a chave
 ```
 
 ## Por professor
 
-### colo-de-pe — 0 ciclo(s)
+### colo-de-pe — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu, breu-sala-rosa
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+| breu | ciclo-01-breu-sala-rosa-po.md | Input_PO_Aguardando | 1 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `a7711bd178b7` | (vazio) | — |
+| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `a14199322a39` | (vazio) | Input_PO_Aguardando |
 
 ### coqui-de-redinha — 0 ciclo(s)
 
@@ -150,87 +161,79 @@ e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e g
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
+## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
 
-**O que motivou.** Depois de ela expurgar a `breu` pela página, a conferência do remoto — a regra
-«o remoto primeiro» — mostrou o expurgo correto e **incompleto num ponto**: 22 ficheiros apagados,
-5 chaves de KV (0 restantes), as duas âncoras registadas com os hashes **antes** de desaparecerem,
-a escola marcada `expurgada: true` / `habilitada: false` no índice que sobrevive, e
-`breu.<conta>.workers.dev` a responder **404**. Mas `professores/coqui-de-redinha/ciclos/historico/`
-ainda tinha **cinco ficheiros dela**: quatro `-dados.antes-de-po-*.json` (com o mapa de apelidos das
-alunas dentro) e uma `-aula-01.antes-de-po-*.md`. Uma escola que sai deixando os elos dos seus dados
-não saiu.
+**O que motivou.** «Quando o professor cria uma Audição (que define o elenco) e logo em seguida vai
+atribuir esse elenco na Turma, o elenco recém-criado não aparece na lista de seleção. Atualmente, o
+professor é obrigado a recarregar a página manualmente para que o dado apareça.»
 
-**A causa, medida.** Tanto a página (`ehArquivoDaEscola`, `motor/servidor/repo-escola.js`) como o
-CLI (`escola/expurgar.js`) varrem o **primeiro nível** de `ciclos/`: a regex exige
-`ciclos/ciclo-NN-<slug>` e o filtro do CLI é um `startsWith` sobre uma listagem plana. O elo mora
-uma pasta ao lado (`ciclos/historico/`), e por isso não casava com nenhum dos dois. Não havia
-decisão escrita em contrário — era um buraco, e o buraco só apareceu porque ela expurgou.
+**A causa não era o dado — era o TEMPO da lista.** A rota `/api/bastidores/linhas-de-base` já
+devolvia o elenco novo no instante seguinte à gravação, e o `carregarLinhas()` do cliente já a pedia
+outra vez a cada gravação. O que estava fechado eram **duas** cópias da lista, ambas escritas no HTML
+no instante em que a página nasceu: as `<option>` do `<select id="cuelenco">` e o `var ELENCOS` — a
+lista que a nota do elenco escolhido consulta. Consertar uma só deixaria a outra a mentir sobre um
+elenco que já se podia escolher, e o sintoma mudaria de sítio em vez de desaparecer.
 
-**O que foi decidido** (a pergunta foi feita, e ela escolheu as três coisas).
+**Medido antes de mexer,** e é a parte que importa: a página foi carregada em jsdom sem elenco
+nenhum; depois o `fetch` passou a devolver um elenco e o `carregarLinhas()` correu. Resultado:
+`opções: 1 | ELENCOS: 0 | tem "Tami": false`. O defeito, a correr, exactamente como ela o descreveu.
 
-1. **O `historico/` é da ESCOLA, como a fonte é.** O `historico/` é opcional na regex do Worker, e o
-   CLI passa a varrer `ciclos/historico/` pelo **prefixo** — nunca por nome completo, porque um elo
-   tem o carimbo colado ao fim. A alternativa não abre nada: ela só existe entre `ciclos/` e
-   `ciclo-NN-`, e o resto do padrão (o slug e a fronteira `$|[/.-]`) é o mesmo de antes.
-2. **Os cinco ficheiros saem agora**, e a pasta fica vazia (e removida).
-3. **A `publicacao/breu/` local sai** — 956 KB do pacote construído da escola expurgada. É
-   `gitignore`, e o `montar-publicacao.js` faz `rmSync` da pasta antes de reconstruir, de modo que
-   não havia risco de servir conteúdo velho: era peso morto, e era dado da escola em disco.
-   **O expurgo NÃO a limpa, e sabe-se:** nenhum dos dois caminhos toca em `publicacao/`.
+**O que foi decidido.**
 
-**O que NÃO se alargou, e é deliberado.** O `artefatosDaEscola` da auditoria de proveniência
-(`motor/nucleo/proveniencia.js`) tem a sua própria regex — `^professores/<p>/ciclos/<nome>$` —, e
-continua a ver só as fontes e as âncoras. O elo **não é fonte** e não entra na âncora; se ele
-entrasse, a verificação «fonte sem cobertura» passaria a acusar todos os elos de todas as escolas.
-A mudança de hoje é da lista de APAGAR, e só dela.
+1. **A regra é UMA, e é do servidor.** `elencosParaATurma(linhas)` decide o que é um elenco (linha de
+   base não apagada), o que é rascunho (não ter recorte) e **como se rotula** («Tami — 2 alunas»,
+   com o «(rascunho)» quando é o caso). Ela é usada pelo `paginaProducao`, que desenha o HTML, e é
+   devolvida pronta na rota, para o cliente se repintar. **O cliente não ganhou uma cópia da regra** —
+   ganhou a lista já decidida. Duas cópias divergem ao primeiro campo novo, e o sintoma seria uma
+   página que muda de conteúdo ao primeiro refresh.
+2. **A repintura mora no `carregarLinhas()`**, e não em cada gravação. É por ali que passam **todas**
+   — criar, editar, concluir, apagar, ler as anamneses —, e um caminho que se acrescente amanhã fica
+   coberto sem ninguém se lembrar desta linha.
+3. **A escolha em curso não se perde.** Quem está a editar uma Turma, vai à Audição criar um elenco e
+   volta, encontra o formulário como o deixou. Limpar-lhe a escolha seria trocar um defeito por
+   outro. Só quando o elenco escolhido **deixa de existir** o `<select>` fica em branco — e a nota
+   com ele, porque já não há estado para dizer.
+4. **As duas opções vazias também vêm do servidor** (`— escolher —` / `— nenhum elenco —`). São duas
+   frases curtas, mas o `<select>` é redesenhado: escritas nos dois lados, um dia uma delas mudava.
+5. **O que NÃO se fez, e sabe-se.** Não se acrescentou um refresh ao ganhar o foco da janela. O
+   caso que ela relatou é o da mesma página, e esse está fechado; um refresh a cada `focus` custaria
+   uma leitura de KV por mudança de aba, e o ar é recurso escasso. Se o caso de duas abas aparecer,
+   é uma decisão à parte — e a peça para isso já existe (`haRetratoNovo`, da anamnese).
 
-**O vermelho da `calango`, que era da prova e não do dado.** A `provar-identidade-da-escola-recriada`
-falhava **1 de 23** sobre o elo real da `calango`: exigia `professores_anteriores` (a lista
-acumulada) e o elo tem `professor_anterior` (o professor do topo). O registrador grava **duas coisas
-diferentes**: a lista quando havia vínculos em `professores[]`, e o professor do topo quando ele
-muda. A `calango` mudou de topo sem ter lista — e a informação **está lá**, com o slug e o nome de
-«Meia Ponta». A prova media onde o dado mora em vez de medir se ele existe. Passa a exigir o facto,
-e a lista dos «fantasmas» passa a sair das **duas** chaves — o que **fortalece** a conferência: com
-só a plural, o professor do topo ficava invisível a ela, e era exactamente ele que a `calango` tinha
-para mostrar. Vermelho de antes, confirmado como anterior (o `escola/calango/indice.json` não é
-tocado desde `b6473a6b`, de 05/11, muito antes desta sessão).
+**Onde entrou.** `motor/servidor/bastidores.js` (`elencosParaATurma` + as duas constantes, ao lado
+de `turmasDaCuradoria`; `paginaProducao` a usá-la; `elencos` na resposta da rota;
+`ELENCO_ESCOLHER`/`ELENCO_NENHUM` no cliente; `pintarElencosNaTurma`; a chamada dentro de
+`carregarLinhas`; as três exportações para a prova) · `experimentos/provar-elenco-na-turma.js`
+(novo, 25 asserções) · `.gitignore` (a prova entra no conjunto versionado) ·
+`experimentos/README.md` (a linha da tabela) · `ESTADO-ATUAL.md` (§11).
 
-**Onde entrou.** `motor/servidor/repo-escola.js` (`ehArquivoDaEscola` aceita `historico/`;
-`escolaDosCaminhos` idem — sem a segunda, a primeira não bastava, e é a armadilha) ·
-`escola/expurgar.js` (a varredura de `ciclos/historico/` pelo prefixo) ·
-`experimentos/provar-acervo-envelopes.js` (secção G: quatro asserções, com a contraprova do elo de
-OUTRA escola do mesmo professor e a da pasta que não é levada por inteiro) ·
-`experimentos/provar-identidade-da-escola-recriada.js` (a asserção e a lista dos fantasmas) ·
-`ESTADO-ATUAL.md` (§11).
+**Validação.** `provar-elenco-na-turma` **25/25** · o **A/B**: com a repintura desligada a mesma
+prova dá **17 de 25**, e as oito falhas são todas do mesmo facto — a lista fica em «— nenhum
+elenco —». Sem o A/B, um verde diria apenas que a marcação existe.
+`provar-producao` **166/166** · `provar-linha-de-base` **102/102** · `provar-salas-e-elencos`
+**65/65** · `provar-menu-da-producao` **55/55** · `provar-indice-do-recorte` **24/24** ·
+`provar-acordeoes` verde · `provar-curadoria-e-limpeza` verde · `provar-elenco-derivado` **10/10** ·
+`provar-enquadramento-da-turma`, `provar-linhas-da-lista`, `provar-manifesto-da-turma`,
+`provar-plano-da-turma` (**46**), `provar-proveniencia-e-turma` (**53**),
+`provar-sujeitos-da-turma` (**41**), `provar-linha-de-base-no-repo` (**39**) e
+`provar-conteudos-e-estado-da-turma` **verdes** · `check-identidade` **0 erros** ·
+`check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
+`wrangler deploy --dry-run` **compila nos dois Workers** — a raiz (`danca`) e a escola (`breu`, com
+um pacote de ensaio, porque `publicacao/` não é versionada). O script servido foi extraído e
+compilado à parte (`new Function`, 156 452 bytes): é a lição de 07/11 mais cedo — um erro de sintaxe
+no cliente não se vê no `node --check` do servidor, e ele apareceu mesmo, num `\"` a menos.
 
-**Validação.** `provar-acervo-envelopes` **52/52** (eram 48) · `provar-identidade-da-escola-recriada`
-**23/23** (era 22 de 23) · `provar-expurgo-sem-listagem` **49/49** · `provar-proveniencia-do-expurgo`
-**21/21** · `provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** ·
-`provar-apagar-o-ciclo` **33/33** · `provar-apagar-professor-livre` **56/56** ·
-`provar-declaracao-da-captura` **12/12** · `provar-producao` **166/166** ·
-`provar-linha-de-base` **102/102** · `provar-salas-e-elencos` **65/65** ·
-`provar-indice-do-recorte` **24/24** · `check-indices` **16/0** · `gerar-indices --check` **4 em dia**
-· `check-identidade` **0 erros** · `wrangler deploy --dry-run` do `wrangler.danca.jsonc` **compila**
-(587 KiB, 138 KiB gzip). Continuam vermelhas, e pelas mesmas razões de antes:
-`provar-bancadas-e-expurgo` **1 de 21** e `provar-indices` **4 de 54** — medidas antes desta entrega.
+**Vermelhos que se medem em vez de se herdarem.** `provar-cartao-da-turma` **2 falhas**,
+`provar-proposta-da-linha-de-base` **4 de 16**, `provar-derivacao-da-turma` e
+`provar-turmas-do-professor` a rebentar, e `check-indices` a reprovar a verificação 8 — todos
+**medidos no `origin/main`** (`4f0f5c29`) num worktree limpo, e todos iguais antes e depois. O
+último vem com a escola nova: `…-breu-sala-rosa-captura-declaracao.json: sem tipo declarado` — é do
+conteúdo que a geração gravou, não deste conserto, e fica dito para não passar por novo.
 
-**O que ainda não está feito.**
-
-- **Nenhum expurgo foi corrido de ponta a ponta com a regra nova.** A `breu` foi expurgada com a
-  regra velha; os cinco ficheiros que sobraram saíram à mão, no mesmo commit. A regra nova é
-  verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
-- **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
-  quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
+**O que ainda não está feito.** A conferência ao ar é do próximo deploy: as provas são locais e a
+página serve o `bastidores.js` que o Worker empacota.
 
 ## O que está pendente
-
-## 07/11/2026 — «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
-
-A conferência ao ar fica para o deploy: o rótulo é do HTML servido,
-e as provas leem o HTML servido, mas o «ao ar» só se confirma depois de publicado. E o `IDEIA-
-PAINEL-ESCOLA.md` e o `PLANEJAMENTO-LASTRO.md` continuam a dizer «Verbetes da notação» — são
-documentos de ideia e de percurso, e reescrevê-los seria reescrever o passado, não a fotografia.
 
 ## 07/11/2026 — Os basilares num bloco, o quadro do recorte em acordeão, e a lista com três colunas
 
@@ -266,6 +269,11 @@ A conferência ao ar é do próximo deploy.
   verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
 - **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
   quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
+
+## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
+
+A conferência ao ar é do próximo deploy: as provas são locais e a
+página serve o `bastidores.js` que o Worker empacota.
 
 ## Pendências anteriores (índice)
 
@@ -645,6 +653,9 @@ A conferência ao ar é do próximo deploy.
 - **07/11/2026** — A sala diz o que é dela, e o elenco deixa de esperar por… → `REGISTRO.md` L39158
 - **07/11/2026** — A proveniência é auditada antes do expurgo — e o elo guarda… → `REGISTRO.md` L39237
 - **07/11/2026** — O passo 2 do Elenco diz o que falta, e leva lá → `REGISTRO.md` L39333
+- **07/11/2026** — «Elenco» passa a «Audição» e «Verbetes da notação» a… → `REGISTRO.md` L39387
+- PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
