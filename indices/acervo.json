@@ -77,6 +77,7 @@
       "nome": "breu",
       "professor": "coqui-de-redinha",
       "professores": [
+        "colo-de-pe",
         "coqui-de-redinha"
       ],
       "registros": [],
@@ -154,6 +155,11 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Colo de Pé",
+        "valor": "colo-de-pe"
+      },
+      {
+        "contagem": 1,
         "rotulo": "Coqui de Redinha",
         "valor": "coqui-de-redinha"
       },
@@ -227,9 +233,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "37267f5"
+    "commit": "8f1a884"
   },
-  "gerado_em": "2026-11-07T13:20",
+  "gerado_em": "2026-11-07T13:22",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -270,6 +276,15 @@
       "id": "professor:cafe-no-bule",
       "nome": "Cafe No Bule",
       "slug": "cafe-no-bule"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:colo-de-pe",
+      "nome": "Colo de Pé",
+      "slug": "colo-de-pe"
     },
     {
       "ciclos": [
