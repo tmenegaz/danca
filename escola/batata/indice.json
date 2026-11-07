@@ -3,10 +3,10 @@
   "worker": "batata",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "pe-torto",
-    "nome": "Pe Torto"
+    "slug": "dedao-aberto",
+    "nome": "Dedão Aberto"
   },
-  "responsavel": "Pe Torto",
+  "responsavel": "Dedão Aberto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -762,13 +762,28 @@
         "slug": "perna-boa",
         "nome": "Perna Boa"
       }
+    },
+    {
+      "em": "2026-11-07T22:25:15.564899+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "dedao-aberto",
+        "nome": "Dedão Aberto"
+      },
+      "responsavel": "Dedão Aberto",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "pe-junto",
+          "nome": "Pé Junto",
+          "desde": "2026-11-01T22:32:03.304Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "pe-torto",
+        "nome": "Pe Torto"
+      }
     }
   ],
-  "professores": [
-    {
-      "slug": "pe-junto",
-      "nome": "Pé Junto",
-      "desde": "2026-11-01T22:32:03.304Z"
-    }
-  ]
+  "professores": []
 }

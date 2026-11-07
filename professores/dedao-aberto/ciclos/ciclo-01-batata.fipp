@@ -1,0 +1,22 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/dedao-aberto/ciclos/ciclo-01-batata.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-batata
+type: Ciclo
+professor: Dedão Aberto
+ciclo: 01
+variante: batata
+hash_conteudo: bac28ecc292e96d9d83877c29655834a64c7eed29f1876fe41dc95b05815eff2
+parentHash: 
+hash: b0ca72014397dd695d9c53ef8a4808c7cc6d545cacacf98a34c1d47f27065796
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-07
+cobertura:
+  - professores/dedao-aberto/ciclos/ciclo-01-batata.conf
+  - professores/dedao-aberto/ciclos/ciclo-01.conf
