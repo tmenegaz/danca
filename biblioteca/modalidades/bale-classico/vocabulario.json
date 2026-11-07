@@ -1108,5 +1108,17 @@
     "observacoes": "",
     "estado": "documentado",
     "escola": "breu"
+  },
+  {
+    "id": "battement-jete",
+    "termo": "Battement jeté",
+    "categoria": "passo",
+    "tradicao": "RAD",
+    "alternativos": [],
+    "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado",
+    "escola": "batata"
   }
 ]
