@@ -2,20 +2,22 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-11-07",
-    "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
+    "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
     "cobertura": [
-      "professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
+      "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-plano.md",
+      "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
       "professores/colo-de-pe/ciclos/ciclo-01.conf"
     ],
-    "hash": "a7711bd178b7f4555171d35c7aabbfa3b3d5f1e8e0915432b1a0367d689e63e0",
-    "hash_conteudo": "f0cd2bcfe849b2b5c567a57c34e13bbd55c02a34534f4b4d8574ad3f92832fdc",
-    "id": "ciclo-01-breu",
+    "hash": "60f8eeb8c87d597b4539faa95fbc6a2241b1c06dacf5bb836681cec9b6cc4ea8",
+    "hash_conteudo": "1df018aef56932ac28a3f42ad4f03702a3fa8c3383dc5402adf28836f2ee3516",
+    "id": "ciclo-01-breu-sala-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
     "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
     "documento:manifesto:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
     "documento:manifesto:professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
