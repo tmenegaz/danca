@@ -451,6 +451,29 @@ async function main() {
     checar('e o índice da escola sobrevive (é o elo)',
       escola.arquivos.indexOf('escola/calango/indice.json') === -1);
 
+    /* OS ELOS DE `historico/` SAEM COM A ESCOLA (07/11/2026). Medido no expurgo da `breu`, feito
+       pela página: cinco ficheiros dela ficaram para trás — quatro `-dados` com o mapa de apelidos
+       das alunas e uma `-aula-01.md` —, porque a varredura é do PRIMEIRO nível de `ciclos/` e o
+       elo mora numa pasta ao lado. A contraprova é o elo de OUTRA escola do mesmo professor, que
+       não pode entrar: é o que separa «levar os elos desta escola» de «varrer a pasta». */
+    const comElos = caminhos.concat([
+      'professores/sapo-bailarino/ciclos/historico/ciclo-01-calango-dados.antes-de-po-20261022-1108.json',
+      'professores/sapo-bailarino/ciclos/historico/ciclo-01-calango-aula-01.antes-de-po-20261022-1108.md',
+      'professores/sapo-bailarino/ciclos/historico/ciclo-01-batata-dados.antes-de-po-20261022-1108.json',
+    ]);
+    const comHistorico = escolaDosCaminhos('calango', comElos);
+    checar('o elo de `historico/` da escola entra no expurgo',
+      comHistorico.arquivos.indexOf('professores/sapo-bailarino/ciclos/historico/ciclo-01-calango-dados.antes-de-po-20261022-1108.json') !== -1,
+      comHistorico.arquivos);
+    checar('…e o elo com carimbo de aula também',
+      comHistorico.arquivos.indexOf('professores/sapo-bailarino/ciclos/historico/ciclo-01-calango-aula-01.antes-de-po-20261022-1108.md') !== -1);
+    checar('o elo de OUTRA escola do mesmo professor NÃO entra',
+      comHistorico.arquivos.indexOf('professores/sapo-bailarino/ciclos/historico/ciclo-01-batata-dados.antes-de-po-20261022-1108.json') === -1);
+    checar('e a pasta `historico/` não é levada por inteiro',
+      comHistorico.arquivos.every((a) => a.indexOf('ciclos/historico/') === -1
+        || a.indexOf('/historico/ciclo-01-calango') !== -1),
+      comHistorico.arquivos.filter((a) => a.indexOf('ciclos/historico/') !== -1));
+
     // A GRAVAÇÃO QUE FALHA: o nome fica órfão no índice? Não — a ordem é índice, registro, e a
     // falha do registro limpa o nome. O que nunca acontece é o contrário: registro gravado e
     // invisível na estante.

@@ -97,7 +97,17 @@ async function pedir(f, url, token, opcoes) {
  */
 function ehArquivoDaEscola(caminho, slug, ciclo) {
   const nn = ciclo ? String(ciclo).padStart(2, '0') : '[0-9]{2}';
-  const re = new RegExp('^professores/[^/]+/ciclos/ciclo-' + nn + '-' + slug + '(?=$|[/.-])');
+  /* O `historico/` TAMBÉM É DA ESCOLA (07/11/2026). Ele guarda os ELOS da derivação — a versão
+   * de uma fonte que um PO novo substituiu, com o carimbo no nome —, e o elo é da escola como a
+   * fonte: `ciclo-01-breu-…-dados.antes-de-po-….json` carrega o mesmo slug e o mesmo mapa de
+   * apelidos das alunas. A regex não o via porque ele mora uma pasta ao lado, e o expurgo da
+   * `breu` deixou cinco ficheiros dela no repositório (medido: quatro `-dados` com `apelidos` e
+   * uma `-aula-01.md`). Uma escola que sai deixando os elos dos seus dados não saiu.
+   *
+   * O `historico/` é OPCIONAL na regex, e isso não abre nada: a alternativa só existe entre
+   * `ciclos/` e `ciclo-NN-`, e o resto do padrão (o slug e a fronteira) é o mesmo. */
+  const re = new RegExp('^professores/[^/]+/ciclos/(?:historico/)?ciclo-' + nn + '-' + slug
+    + '(?=$|[/.-])');
   return re.test(caminho);
 }
 
@@ -154,7 +164,9 @@ function escolaDosCaminhos(slug, caminhos) {
       arquivos.push(caminho);
       continue;
     }
-    const m = /^professores\/([^/]+)\/ciclos\/ciclo-([0-9]{2})-/.exec(caminho);
+    // O `historico/` entra aqui desde 07/11/2026 pela razão escrita em `ehArquivoDaEscola`:
+    // sem esta alternativa o `arquivos` continuava a não o ver, e a regex sozinha não bastava.
+    const m = /^professores\/([^/]+)\/ciclos\/(?:historico\/)?ciclo-([0-9]{2})-/.exec(caminho);
     if (m && ehArquivoDaEscola(caminho, slug, m[2])) {
       arquivos.push(caminho);
       professor = professor || m[1];

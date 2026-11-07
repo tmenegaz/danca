@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T12:33:41-0300`
-Commit atual: `93791855` — fix(estrutura): o Bloco 10 sai do plano — o corpo mora na Audição e no PO
+Gerado em: `2026-11-07T12:59:40-0300`
+Commit atual: `58bc02f0` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -53,7 +53,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 coqui-de-redinha
 pe-torto
 rabo-gramde (4)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -70,7 +71,16 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
-93791855 fix(estrutura): o Bloco 10 sai do plano — o corpo mora na Audição e no PO
+58bc02f0 chore(estrutura): regerar os índices derivados
+6027f213 chore(estrutura): expurgar a escola breu
+94085052 chore(estrutura): regerar os índices derivados
+f1182e19 fix(estrutura): o Bloco 10 sai do plano — o corpo mora na Audição e no PO
+98bf71b6 chore(estrutura): reancorar a cadeia das fontes alteradas
+9165155a chore(estrutura): regerar os índices derivados
+16aaf059 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+07183c6c feat(plano): o plano elicitado vira a fonte do ciclo
+58ac9237 feat(acervo): envelope/plano-20261107-1217.json
+448929cf feat(acervo): envelope/.indice.json
 abf7bc8e fix(estrutura): o cartão do elenco fica com duas caixas — alunas e recorte
 085c9184 fix(estrutura): os basilares num bloco, o recorte em acordeão, e o cartão com três colunas
 a8fb64e0 fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
@@ -81,32 +91,13 @@ e9363143 feat(acervo): envelope/.indice.json
 d9c8adba docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
 b5cf7636 fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
 e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e guarda-a no elo
-f633dce2 feat(tools): a proveniência é auditada antes de o expurgo apagar
-1e8b0789 fix(estrutura): o cartão da sala diz dois, e o elenco deixa de esperar pela anamnese
-aee75ba0 chore(estrutura): regerar os índices derivados
-1804797e feat(estrutura): habilitar coqui-de-redinha em contemporaneo
-a36b4a24 chore(estrutura): regerar os índices derivados
-8f1a8848 feat(estrutura): habilitar coqui-de-redinha em contemporaneo
-5190ff05 feat(estrutura): habilitar colo-de-pe em bale-classico
-55af9c86 feat(escola): a escola breu declara o professor colo-de-pe
-c451a967 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 ```
 
 ## Por professor
 
 ### colo-de-pe — 0 ciclo(s)
 
-### coqui-de-redinha — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `b7cd94a54e67` | (vazio) | — |
+### coqui-de-redinha — 0 ciclo(s)
 
 ### pe-torto — 0 ciclo(s)
 
@@ -159,110 +150,80 @@ c451a967 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O Bloco 10 sai do plano: o corpo mora na Audição e no PO
+## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
 
-**O que motivou.** «No Plano de Ensino (roteiro e formulário), os campos referentes ao Bloco 10
-('Linha de base do corpo' e 'Aspecto físico da turma') tornaram-se redundantes. Essas informações já
-são definidas nativamente na **Audição/Elenco** e são tratadas diretamente no **Plano de
-Observação**.» E o pedido foi explícito quanto ao método: **investigar primeiro** as dependências
-rígidas no motor, nos modelos e nos dois planos, e só depois agir — porque a pergunta dela não era
-«apaga», era «isto parte alguma coisa?».
+**O que motivou.** Depois de ela expurgar a `breu` pela página, a conferência do remoto — a regra
+«o remoto primeiro» — mostrou o expurgo correto e **incompleto num ponto**: 22 ficheiros apagados,
+5 chaves de KV (0 restantes), as duas âncoras registadas com os hashes **antes** de desaparecerem,
+a escola marcada `expurgada: true` / `habilitada: false` no índice que sobrevive, e
+`breu.<conta>.workers.dev` a responder **404**. Mas `professores/coqui-de-redinha/ciclos/historico/`
+ainda tinha **cinco ficheiros dela**: quatro `-dados.antes-de-po-*.json` (com o mapa de apelidos das
+alunas dentro) e uma `-aula-01.antes-de-po-*.md`. Uma escola que sai deixando os elos dos seus dados
+não saiu.
 
-A investigação respondeu que não. Os dois nós do bloco 10 eram `linha-de-base-alvo` (um `<select>`
-cujas opções vinham de `api/linhas-de-base`) e `aspecto-fisico` (a tabela do aspecto físico). O
-encadeamento que os alimentava — Turma → Elenco → a linha de base do ciclo — foi lido sítio a sítio:
-o `derivar-plano-ciclo.js` **já sabia** cair no `linhaDeBase.recorte` quando o campo do plano vinha
-vazio, e nenhum envelope real do repositório tinha as duas chaves preenchidas. O schema
-(`ciclo-01-plano-schema.json`) não as exige (três campos obrigatórios, nenhum deles este), o
-conteúdo declara `additionalProperties: true`, e a resposta é chaveada pelo **`id` do campo** e não
-pela posição — de modo que renumerar não mexe em dado guardado. Nada partia.
+**A causa, medida.** Tanto a página (`ehArquivoDaEscola`, `motor/servidor/repo-escola.js`) como o
+CLI (`escola/expurgar.js`) varrem o **primeiro nível** de `ciclos/`: a regex exige
+`ciclos/ciclo-NN-<slug>` e o filtro do CLI é um `startsWith` sobre uma listagem plana. O elo mora
+uma pasta ao lado (`ciclos/historico/`), e por isso não casava com nenhum dos dois. Não havia
+decisão escrita em contrário — era um buraco, e o buraco só apareceu porque ela expurgou.
 
-**O que foi decidido.**
+**O que foi decidido** (a pergunta foi feita, e ela escolheu as três coisas).
 
-1. **O bloco 10 sai do plano de ensino.** «Aspecto físico — o corpo» deixa de se perguntar, com os
-   dois nós. O plano perguntava pela terceira vez o que a Audição/Elenco já declara e o PO já
-   observa; a fronteira é essa, e é dela.
-2. **Os blocos foram renumerados 1..11, sem falhas.** Antes eram 1, 3..13 — o 2 já não existia (o
-   bloco físico da aluna é da anamnese). A renumeração **não** é cosmética: os números aparecem no
-   roteiro e no documento derivado, e uma sequência com um salto a mais lê-se como um bloco perdido.
-3. **A secção saiu também do documento derivado.** Em `derivar-plano-ciclo.js`, o bloco do
-   `## Aspecto físico — força e flexibilidade` foi substituído por um comentário que explica a
-   ausência, e o `opcoes.linhaDeBase` — que só ele lia — saiu. Foi a escolha dela entre as duas que
-   lhe apresentei: deixar o documento a dizer «sem leitura» para sempre, ou deixá-lo deixar de falar
-   do que já não se pergunta. Escolheu a segunda.
-4. **A memória não se apaga, e é a regra que fica.** Um envelope **já gravado** com `aspecto-fisico`
-   continua a alimentar o **eixo do Corpo da Aula 01**: a leitura em `derivar-ciclo.js` fica, com o
-   motivo escrito — apagá-la faria o passado perder o que declarou, o contrário de «a proveniência
-   acrescenta». O que **deixa** de o imprimir é o **plano** derivado, e isso é a decisão: o plano é
-   hoje o documento que não fala do corpo. No mesmo sentido, o `MAPA_SECOES` do
-   `validar-plano-ciclo.js` mantém o alias «aspecto físico» → `aspectoFisico` **com a razão ao
-   lado**: um documento antigo tem de continuar a extrair as suas secções. Um plano novo não tem a
-   chave, e a Aula 01 cai no `recorte`.
-5. **As três cópias do conteúdo ficam iguais.** A fonte (`porta/plano/conteudo/plano.json`), a do
-   ciclo da `breu` (`plano-observacao/plano/conteudo/plano.json`) e a do pacote publicado. Não se
-   editou meia dúzia: sincronizaram-se por cópia e conferiu-se por md5 (`dcf185f0…`, os três).
-   **A `breu` não se pode regerar pelo gerador** — o `.conf` dela tem `DOCS=""` com o pacote
-   existente, e o `gerar-ciclo.sh` recusa; a cópia é o caminho, e é o que já se fazia.
-6. **Dois comentários que passaram a mentir foram corrigidos, e não deixados a apodrecer.** O de
-   `elicitar.js` dizia que «o nó `aspecto-fisico` do plano declara o que o alimenta» — o nó já não
-   existe, mas o **repasse** `lidoDaLinhaDeBase`/`opcoesDe` fica, e fica por uma razão que não
-   depende daquele nó: `descritores()` é uma lista fechada, e uma chave que o conteúdo declare e o
-   motor não repasse morre em silêncio (a tela mostra os primeiros campos crus e ninguém percebe).
-   O de `derivar-ciclo.js` passou a dizer que a primeira das três fontes do Corpo é **histórica**.
+1. **O `historico/` é da ESCOLA, como a fonte é.** O `historico/` é opcional na regex do Worker, e o
+   CLI passa a varrer `ciclos/historico/` pelo **prefixo** — nunca por nome completo, porque um elo
+   tem o carimbo colado ao fim. A alternativa não abre nada: ela só existe entre `ciclos/` e
+   `ciclo-NN-`, e o resto do padrão (o slug e a fronteira `$|[/.-]`) é o mesmo de antes.
+2. **Os cinco ficheiros saem agora**, e a pasta fica vazia (e removida).
+3. **A `publicacao/breu/` local sai** — 956 KB do pacote construído da escola expurgada. É
+   `gitignore`, e o `montar-publicacao.js` faz `rmSync` da pasta antes de reconstruir, de modo que
+   não havia risco de servir conteúdo velho: era peso morto, e era dado da escola em disco.
+   **O expurgo NÃO a limpa, e sabe-se:** nenhum dos dois caminhos toca em `publicacao/`.
 
-**Onde entrou.** `porta/plano/conteudo/plano.json` (bloco 10 fora, blocos 1..11) ·
-`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json` e
-`publicacao/breu/plano-observacao/plano/conteudo/plano.json` (sincronizados) ·
-`motor/nucleo/derivar-plano-ciclo.js` (a secção fora; o `opcoes.linhaDeBase` fora) ·
-`motor/nucleo/derivar-ciclo.js` (a leitura histórica documentada) · `motor/nucleo/elicitar.js` (o
-comentário do repasse) · `tools/validar-plano-ciclo.js` (alias com motivo) ·
-`experimentos/provar-corpo-da-linha-de-base.js` (secção B reescrita como «O PLANO JÁ NÃO FALA DO
-CORPO», secção D como «A FONTE ÚNICA») · `experimentos/provar-linha-de-base.js` (secção 7) ·
-`experimentos/provar-eixos-e-tempo-da-aula.js` (asserções invertidas) · `ESTADO-ATUAL.md` (§2, §6
-com a decisão 119, §8, §9, §11 e a linha da última fotografia) · `PLANEJAMENTO-LASTRO.md` (duas
-linhas do mapa dos eixos, que citavam o bloco 10 do corpo e os números antigos do repertório e do
-vídeo).
+**O que NÃO se alargou, e é deliberado.** O `artefatosDaEscola` da auditoria de proveniência
+(`motor/nucleo/proveniencia.js`) tem a sua própria regex — `^professores/<p>/ciclos/<nome>$` —, e
+continua a ver só as fontes e as âncoras. O elo **não é fonte** e não entra na âncora; se ele
+entrasse, a verificação «fonte sem cobertura» passaria a acusar todos os elos de todas as escolas.
+A mudança de hoje é da lista de APAGAR, e só dela.
 
-**Validação.** `provar-plano-completo` **18/18** · `provar-corpo-da-linha-de-base` **30/30** ·
-`provar-linha-de-base` **102/102** · `provar-eixos-do-po` **42/42** ·
-`provar-derivados-da-sequencia` **26/26** · `provar-salas-e-elencos` **65/65** ·
-`provar-producao` **166/166** · `provar-indice-do-recorte` **24/24** · `provar-acordeoes` **verde** ·
-`check-identidade` **0 erros** · `check-schemas` **verde** · o plano derivado valida contra o
-`ciclo-01-plano-schema.json` (3 obrigatórios, 12 secções extraídas) · `hash-ciclo --check`
-**intacta** (`b7cd94a5…`) · `gerar-indices --check` **0** · `gerar-relacoes --check` **0** ·
-`wrangler deploy --dry-run` do `wrangler.danca.jsonc` **compila**. `provar-eixos-e-tempo-da-aula`
-fica com **4 falhas de 52** — as **mesmas de antes** (medidas no `abf7bc8e` com `git stash`: 4 de
-51), e nenhuma delas toca no bloco 10.
+**O vermelho da `calango`, que era da prova e não do dado.** A `provar-identidade-da-escola-recriada`
+falhava **1 de 23** sobre o elo real da `calango`: exigia `professores_anteriores` (a lista
+acumulada) e o elo tem `professor_anterior` (o professor do topo). O registrador grava **duas coisas
+diferentes**: a lista quando havia vínculos em `professores[]`, e o professor do topo quando ele
+muda. A `calango` mudou de topo sem ter lista — e a informação **está lá**, com o slug e o nome de
+«Meia Ponta». A prova media onde o dado mora em vez de medir se ele existe. Passa a exigir o facto,
+e a lista dos «fantasmas» passa a sair das **duas** chaves — o que **fortalece** a conferência: com
+só a plural, o professor do topo ficava invisível a ela, e era exactamente ele que a `calango` tinha
+para mostrar. Vermelho de antes, confirmado como anterior (o `escola/calango/indice.json` não é
+tocado desde `b6473a6b`, de 05/11, muito antes desta sessão).
 
-**Um vermelho de antes, que se mede e se escreve em vez de se herdar.** O `ESTADO-ATUAL.md` citava a
-`provar-forca-e-flexibilidade` como «17 asserções, 0 falhas» na linha do corpo. Hoje essa prova
-**para** a meio — `Cannot read properties of undefined (reading 'registroDaAnamnese')`, no mapa do
-PO — e para **igual** no `abf7bc8e`, com as alterações em `stash`. Não é desta entrega e não se
-corrigiu aqui: mudou-se a linha do estado para dizer o que se mediu. Promover a verde o que não
-correu é a falta que o próprio `ESTADO-ATUAL.md` proíbe.
+**Onde entrou.** `motor/servidor/repo-escola.js` (`ehArquivoDaEscola` aceita `historico/`;
+`escolaDosCaminhos` idem — sem a segunda, a primeira não bastava, e é a armadilha) ·
+`escola/expurgar.js` (a varredura de `ciclos/historico/` pelo prefixo) ·
+`experimentos/provar-acervo-envelopes.js` (secção G: quatro asserções, com a contraprova do elo de
+OUTRA escola do mesmo professor e a da pasta que não é levada por inteiro) ·
+`experimentos/provar-identidade-da-escola-recriada.js` (a asserção e a lista dos fantasmas) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-acervo-envelopes` **52/52** (eram 48) · `provar-identidade-da-escola-recriada`
+**23/23** (era 22 de 23) · `provar-expurgo-sem-listagem` **49/49** · `provar-proveniencia-do-expurgo`
+**21/21** · `provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** ·
+`provar-apagar-o-ciclo` **33/33** · `provar-apagar-professor-livre` **56/56** ·
+`provar-declaracao-da-captura` **12/12** · `provar-producao` **166/166** ·
+`provar-linha-de-base` **102/102** · `provar-salas-e-elencos` **65/65** ·
+`provar-indice-do-recorte` **24/24** · `check-indices` **16/0** · `gerar-indices --check` **4 em dia**
+· `check-identidade` **0 erros** · `wrangler deploy --dry-run` do `wrangler.danca.jsonc` **compila**
+(587 KiB, 138 KiB gzip). Continuam vermelhas, e pelas mesmas razões de antes:
+`provar-bancadas-e-expurgo` **1 de 21** e `provar-indices` **4 de 54** — medidas antes desta entrega.
 
 **O que ainda não está feito.**
 
-- **O corpo perdeu o seu link próprio para a Aula 01.** A secção removida era a única que apontava
-  para a **secção «Corpo» da aula** (`#corpo`); o plano continua a ligar à Aula 01 por «Objetivos por
-  bloco e por aula», mas não ao corpo em particular. Não se repôs o link noutro sítio, e é uma troca
-  que fica declarada: se ela sentir falta dele, o lugar é o PO — que é onde o corpo se observa — e
-  não o plano.
-- **A conferência ao ar é do próximo deploy.** As provas são locais; a página serve o `bastidores.js`
-  que o Worker empacota.
-- **`aspectoFisico` continua no `ciclo-01-plano-schema.json`** como leitura do passado — mesmo
-  tratamento que `estruturaDeCadaAula`. Sai quando não houver envelope antigo a citá-lo.
-- **Qualquer plano já publicado com a secção** «## Aspecto físico» mantém-na até ser regerado; o
-  validador continua a extraí-la, e é de propósito.
+- **Nenhum expurgo foi corrido de ponta a ponta com a regra nova.** A `breu` foi expurgada com a
+  regra velha; os cinco ficheiros que sobraram saíram à mão, no mesmo commit. A regra nova é
+  verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
+- **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
+  quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
 
 ## O que está pendente
-
-## 07/11/2026 — O passo 2 do Elenco diz o que falta, e leva lá
-
-A prova ao vivo é a próxima escola criada sem anamneses: só ela
-exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
-separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
-mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
 
 ## 07/11/2026 — «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
 
@@ -296,6 +257,15 @@ A conferência ao ar é do próximo deploy.
   tratamento que `estruturaDeCadaAula`. Sai quando não houver envelope antigo a citá-lo.
 - **Qualquer plano já publicado com a secção** «## Aspecto físico» mantém-na até ser regerado; o
   validador continua a extraí-la, e é de propósito.
+
+## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
+
+
+- **Nenhum expurgo foi corrido de ponta a ponta com a regra nova.** A `breu` foi expurgada com a
+  regra velha; os cinco ficheiros que sobraram saíram à mão, no mesmo commit. A regra nova é
+  verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
+- **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
+  quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
 
 ## Pendências anteriores (índice)
 
@@ -674,7 +644,7 @@ A conferência ao ar é do próximo deploy.
 - **07/11/2026** — A declaração da captura mudou de casa, e o molde deixou de… → `REGISTRO.md` L39090
 - **07/11/2026** — A sala diz o que é dela, e o elenco deixa de esperar por… → `REGISTRO.md` L39158
 - **07/11/2026** — A proveniência é auditada antes do expurgo — e o elo guarda… → `REGISTRO.md` L39237
-- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **07/11/2026** — O passo 2 do Elenco diz o que falta, e leva lá → `REGISTRO.md` L39333
 
 ## Documentos-chave (para leitura)
 

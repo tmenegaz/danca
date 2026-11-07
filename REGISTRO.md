@@ -39659,3 +39659,76 @@ correu é a falta que o próprio `ESTADO-ATUAL.md` proíbe.
   tratamento que `estruturaDeCadaAula`. Sai quando não houver envelope antigo a citá-lo.
 - **Qualquer plano já publicado com a secção** «## Aspecto físico» mantém-na até ser regerado; o
   validador continua a extraí-la, e é de propósito.
+
+## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
+
+**O que motivou.** Depois de ela expurgar a `breu` pela página, a conferência do remoto — a regra
+«o remoto primeiro» — mostrou o expurgo correto e **incompleto num ponto**: 22 ficheiros apagados,
+5 chaves de KV (0 restantes), as duas âncoras registadas com os hashes **antes** de desaparecerem,
+a escola marcada `expurgada: true` / `habilitada: false` no índice que sobrevive, e
+`breu.<conta>.workers.dev` a responder **404**. Mas `professores/coqui-de-redinha/ciclos/historico/`
+ainda tinha **cinco ficheiros dela**: quatro `-dados.antes-de-po-*.json` (com o mapa de apelidos das
+alunas dentro) e uma `-aula-01.antes-de-po-*.md`. Uma escola que sai deixando os elos dos seus dados
+não saiu.
+
+**A causa, medida.** Tanto a página (`ehArquivoDaEscola`, `motor/servidor/repo-escola.js`) como o
+CLI (`escola/expurgar.js`) varrem o **primeiro nível** de `ciclos/`: a regex exige
+`ciclos/ciclo-NN-<slug>` e o filtro do CLI é um `startsWith` sobre uma listagem plana. O elo mora
+uma pasta ao lado (`ciclos/historico/`), e por isso não casava com nenhum dos dois. Não havia
+decisão escrita em contrário — era um buraco, e o buraco só apareceu porque ela expurgou.
+
+**O que foi decidido** (a pergunta foi feita, e ela escolheu as três coisas).
+
+1. **O `historico/` é da ESCOLA, como a fonte é.** O `historico/` é opcional na regex do Worker, e o
+   CLI passa a varrer `ciclos/historico/` pelo **prefixo** — nunca por nome completo, porque um elo
+   tem o carimbo colado ao fim. A alternativa não abre nada: ela só existe entre `ciclos/` e
+   `ciclo-NN-`, e o resto do padrão (o slug e a fronteira `$|[/.-]`) é o mesmo de antes.
+2. **Os cinco ficheiros saem agora**, e a pasta fica vazia (e removida).
+3. **A `publicacao/breu/` local sai** — 956 KB do pacote construído da escola expurgada. É
+   `gitignore`, e o `montar-publicacao.js` faz `rmSync` da pasta antes de reconstruir, de modo que
+   não havia risco de servir conteúdo velho: era peso morto, e era dado da escola em disco.
+   **O expurgo NÃO a limpa, e sabe-se:** nenhum dos dois caminhos toca em `publicacao/`.
+
+**O que NÃO se alargou, e é deliberado.** O `artefatosDaEscola` da auditoria de proveniência
+(`motor/nucleo/proveniencia.js`) tem a sua própria regex — `^professores/<p>/ciclos/<nome>$` —, e
+continua a ver só as fontes e as âncoras. O elo **não é fonte** e não entra na âncora; se ele
+entrasse, a verificação «fonte sem cobertura» passaria a acusar todos os elos de todas as escolas.
+A mudança de hoje é da lista de APAGAR, e só dela.
+
+**O vermelho da `calango`, que era da prova e não do dado.** A `provar-identidade-da-escola-recriada`
+falhava **1 de 23** sobre o elo real da `calango`: exigia `professores_anteriores` (a lista
+acumulada) e o elo tem `professor_anterior` (o professor do topo). O registrador grava **duas coisas
+diferentes**: a lista quando havia vínculos em `professores[]`, e o professor do topo quando ele
+muda. A `calango` mudou de topo sem ter lista — e a informação **está lá**, com o slug e o nome de
+«Meia Ponta». A prova media onde o dado mora em vez de medir se ele existe. Passa a exigir o facto,
+e a lista dos «fantasmas» passa a sair das **duas** chaves — o que **fortalece** a conferência: com
+só a plural, o professor do topo ficava invisível a ela, e era exactamente ele que a `calango` tinha
+para mostrar. Vermelho de antes, confirmado como anterior (o `escola/calango/indice.json` não é
+tocado desde `b6473a6b`, de 05/11, muito antes desta sessão).
+
+**Onde entrou.** `motor/servidor/repo-escola.js` (`ehArquivoDaEscola` aceita `historico/`;
+`escolaDosCaminhos` idem — sem a segunda, a primeira não bastava, e é a armadilha) ·
+`escola/expurgar.js` (a varredura de `ciclos/historico/` pelo prefixo) ·
+`experimentos/provar-acervo-envelopes.js` (secção G: quatro asserções, com a contraprova do elo de
+OUTRA escola do mesmo professor e a da pasta que não é levada por inteiro) ·
+`experimentos/provar-identidade-da-escola-recriada.js` (a asserção e a lista dos fantasmas) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-acervo-envelopes` **52/52** (eram 48) · `provar-identidade-da-escola-recriada`
+**23/23** (era 22 de 23) · `provar-expurgo-sem-listagem` **49/49** · `provar-proveniencia-do-expurgo`
+**21/21** · `provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** ·
+`provar-apagar-o-ciclo` **33/33** · `provar-apagar-professor-livre` **56/56** ·
+`provar-declaracao-da-captura` **12/12** · `provar-producao` **166/166** ·
+`provar-linha-de-base` **102/102** · `provar-salas-e-elencos` **65/65** ·
+`provar-indice-do-recorte` **24/24** · `check-indices` **16/0** · `gerar-indices --check` **4 em dia**
+· `check-identidade` **0 erros** · `wrangler deploy --dry-run` do `wrangler.danca.jsonc` **compila**
+(587 KiB, 138 KiB gzip). Continuam vermelhas, e pelas mesmas razões de antes:
+`provar-bancadas-e-expurgo` **1 de 21** e `provar-indices` **4 de 54** — medidas antes desta entrega.
+
+**O que ainda não está feito.**
+
+- **Nenhum expurgo foi corrido de ponta a ponta com a regra nova.** A `breu` foi expurgada com a
+  regra velha; os cinco ficheiros que sobraram saíram à mão, no mesmo commit. A regra nova é
+  verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
+- **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
+  quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.

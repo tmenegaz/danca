@@ -4064,6 +4064,29 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A escola `breu` foi expurgada, e o expurgo deixou cinco ficheiros dela para
+  trás — o buraco está fechado.** O expurgo da página correu certo: 22 ficheiros, 5 chaves de KV
+  apagadas (0 restantes), as duas âncoras registadas **com os hashes antes de desaparecerem**, a
+  escola marcada `expurgada: true` / `habilitada: false` no índice que sobrevive (a memória de que
+  existiu), `breu.<conta>.workers.dev` a responder **404** e a raiz `danca` a **401** (viva, atrás
+  da senha). Sobraram **cinco** ficheiros em `professores/coqui-de-redinha/ciclos/historico/` —
+  quatro `-dados.antes-de-po-*.json` com o mapa de apelidos das alunas e uma `-aula-01.md` —, porque
+  tanto a página como o CLI varriam só o primeiro nível de `ciclos/`. **CONFIRMADO** a 07/11/2026:
+  `ehArquivoDaEscola` passou a aceitar `historico/` e o `escolaDosCaminhos` também (sem a segunda, a
+  primeira não bastava), o `escola/expurgar.js` varre a pasta pelo prefixo, e os cinco saíram. A
+  auditoria de proveniência **não** mudou: `artefatosDaEscola` tem regex própria e continua a ver só
+  fontes e âncoras — o elo não entra na âncora. `provar-acervo-envelopes` **52/52** (com quatro
+  asserções novas e três contraprovas). Também saiu a `publicacao/breu/` local (956 KB, `gitignore`,
+  dado da escola em disco); **o expurgo não a limpa**, e fica registado como lacuna.
+
+- **07/11/2026** — **A `provar-identidade-da-escola-recriada` estava vermelha sobre um elo
+  correto.** Ela exigia `professores_anteriores` (a lista acumulada) no elo real da `calango`, que
+  tem `professor_anterior` (o professor do topo) — o registrador grava as duas coisas em casos
+  diferentes, e a informação **estava** registada. Passa a exigir o facto e não a chave, e a lista
+  dos «fantasmas» passa a sair das duas — o que **fortalece** a conferência (o professor do topo
+  estava invisível a ela). **CONFIRMADO**: **23/23**, e o vermelho era anterior (o
+  `escola/calango/indice.json` não é tocado desde `b6473a6b`, de 05/11).
+
 - **07/11/2026** — **O Bloco 10 saiu do plano de ensino: «Aspecto físico — o corpo» deixou de se
   perguntar.** Os dois nós que o compunham (`linha-de-base-alvo` e `aspecto-fisico`) saíram de
   `porta/plano/conteudo/plano.json`, e os blocos foram **renumerados 1..11 sem falhas** (antes eram

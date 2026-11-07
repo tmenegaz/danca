@@ -303,6 +303,18 @@ async function main() {
     const fontes = fs.readdirSync(base).filter((n) => n.startsWith(prefixo) && n !== prefixo);
     fontes.forEach((n) => confere('fonte ' + n, apagar(path.join(base, n))));
 
+    /* OS ELOS DE `historico/` SAEM TAMBÉM (07/11/2026). A pasta guarda a versão de uma fonte que
+     * um PO novo substituiu — `…-dados.antes-de-po-<carimbo>.json`, com o mapa de apelidos das
+     * alunas dentro —, e é da escola como a fonte é. O expurgo da `breu`, feito pela página,
+     * deixou lá cinco ficheiros dela porque tanto aqui como no Worker a varredura é do primeiro
+     * nível de `ciclos/`. A varredura leva o PREFIXO, e não o nome completo: um elo tem o carimbo
+     * colado ao fim e nunca se chamaria igual ao que se apaga por nome. */
+    const dirHistorico = path.join(base, 'historico');
+    if (fs.existsSync(dirHistorico)) {
+      const elos = fs.readdirSync(dirHistorico).filter((n) => n.startsWith(prefixo));
+      elos.forEach((n) => confere('elo ' + n, apagar(path.join(dirHistorico, n))));
+    }
+
     // O MANIFESTO BASE do ciclo sai junto quando NÃO sobra outra escola daquele professor
     // NAQUELE ciclo: ele não é da escola, é do ciclo — mas carrega o nome dela dentro
     // (`NOME="Ciclo 01 — Maria"`) e ainda BLOQUEIA a criação de uma escola nova, porque o

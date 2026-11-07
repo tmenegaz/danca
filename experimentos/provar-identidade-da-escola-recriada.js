@@ -214,10 +214,21 @@ provar('o responsável da `calango` é quem a recriou',
 provar('a lista `professores[]` não tem o responsável repetido',
   !(inventario.professores || []).some((p) => p && p.slug === inventario.professor.slug),
   inventario.professores);
-/* O campos guardados no elo, e a nota datada — a correção não se fez passar por um evento novo. */
+/* O QUE SE PERDEU VAI PARA O ELO, EM UMA DE DUAS CHAVES — e a prova passou a exigir o FACTO, e
+   não a chave (07/11/2026). O registrador grava duas coisas diferentes: `professores_anteriores`
+   (a lista acumulada de vínculos, com o `desde`) e `professor_anterior` (o professor do topo,
+   quando muda). Numa escola em que o topo mudou mas a lista `professores[]` não tinha ninguém —
+   o caso real da `calango` —, só a SEGUNDA é escrita, e a informação está lá: o elo diz «meia
+   ponta» e não a esconde. A redação anterior exigia a lista e reprovava sobre um elo correto,
+   porque media onde o dado mora em vez de medir se ele existe. Vermelho de antes, medido no
+   `58bc02f0`, e corrigido aqui por decisão dela. */
+const perdidos = [
+  ...(Array.isArray(ultimoElo.professores_anteriores) ? ultimoElo.professores_anteriores : []),
+  ...(ultimoElo.professor_anterior ? [ultimoElo.professor_anterior] : []),
+].filter((p) => p && p.slug);
 provar('o elo da recriação diz o que se perdeu, em vez de o apagar em silêncio',
-  Array.isArray(ultimoElo.professores_anteriores) && ultimoElo.professores_anteriores.length > 0,
-  ultimoElo.professores_anteriores);
+  perdidos.length > 0,
+  { professores_anteriores: ultimoElo.professores_anteriores, professor_anterior: ultimoElo.professor_anterior });
 
 if (!negativo) {
   const acervo = JSON.parse(fs.readFileSync(path.join(RAIZ, 'indices/acervo.json'), 'utf8'));
@@ -231,7 +242,10 @@ if (!negativo) {
      todos os que o elo prova: é a história de quem passou por ali (`indices.js`, regra de 22/10 —
      «o elo do expurgo só prova quem trabalha numa escola apagada»). O fantasma só é fantasma
      enquanto a escola está viva; depois de apagada, ele é memória, e a memória é para ficar. */
-  const fantasmas = new Set((ultimoElo.professores_anteriores || []).map((p) => p.slug));
+  /* A lista dos fantasmas sai das DUAS chaves, pela mesma razão da asserção de cima: com só a
+     plural, o professor do topo ficava invisível a esta conferência — e era exactamente ele que
+     a `calango` tinha para mostrar. */
+  const fantasmas = new Set(perdidos.map((p) => p.slug));
   if (calango && calango.expurgada) {
     provar('apagada: a lista inclui quem o elo prova — história, não fantasma',
       (calango.professores || []).length > 1, calango.professores);
