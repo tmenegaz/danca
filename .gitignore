@@ -901,3 +901,4 @@ experimentos/modelo-formulario/*
 # já dada, o link a abrir a aula que aponta — e as contraprovas: sem o índice, o formulário volta (o
 # defeito, a correr), e sem leitura a ponte diz «não sei» em vez de «não há».
 !experimentos/provar-aulas-dadas.js
+!experimentos/provar-proveniencia-do-expurgo.js

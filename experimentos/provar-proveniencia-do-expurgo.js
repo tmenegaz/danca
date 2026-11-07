@@ -1,0 +1,319 @@
+#!/usr/bin/env node
+'use strict';
+
+/*
+ * provar-proveniencia-do-expurgo.js — a proveniência existe, e está bem registada, ANTES de
+ * o expurgo apagar seja o que for.
+ *
+ * O QUE ISTO PROTEGE. O expurgo é irreversível e leva as âncoras (`.fipp`). Se alguma fonte
+ * estiver por ancorar no minuto em que ele corre, o que se perde não é «um arquivo»: é a prova
+ * de que aquilo existiu — e depois já não há como distinguir «nunca foi ancorado» de «foi
+ * ancorado e apagado». A auditoria (`motor/nucleo/proveniencia.js`) responde à pergunta antes,
+ * e o expurgo pára quando a resposta é negativa.
+ *
+ * O QUE ESTA PROVA MEDE, e em três camadas, porque a regra atravessa as três:
+ *
+ *   A. o NÚCLEO (puro) — cada verificação reprova pelo seu motivo, e o conjunto saudável passa;
+ *   B. a leitura da ÁRVORE (`auditarProvenienciaDaEscola`) — as âncoras são lidas com o MESMO
+ *      parser do índice, e as fases que esta metade não alcança são DITAS, não fingidas;
+ *   C. o ELO — o que se apaga deixa registado o que existia: âncoras, hashes, impressão. E a
+ *      rota `/api/apagar-escola` recusa com 409 sem tocar em nada, e só avança forçada com
+ *      motivo declarado.
+ *
+ * O CONTROLE NEGATIVO é a secção C: o commit do expurgo NÃO chega a ser montado quando a
+ * auditoria reprova. Sem essa medida, um «recusou» que ainda assim apagasse passaria por verde.
+ *
+ *   node experimentos/provar-proveniencia-do-expurgo.js
+ */
+
+const repo = require('../motor/servidor/repo-escola.js');
+const prov = require('../motor/nucleo/proveniencia.js');
+
+let n = 0;
+let falhas = 0;
+function checar(rotulo, ok, detalhe) {
+  n += 1;
+  if (ok) { console.log('  ok    ' + rotulo); return; }
+  falhas += 1;
+  console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
+}
+
+const b64 = (texto) => Buffer.from(texto, 'utf8').toString('base64');
+
+const HASH_A = 'a'.repeat(64);
+const HASH_B = 'b'.repeat(64);
+
+/** Uma âncora bem formada, na gramática que o `lerAncora` lê. */
+const ancoraTexto = ({ id, hash = HASH_A, conteudo = HASH_B, cobertura = [], algoritmo = 'SHA-256' }) => [
+  '# âncora de prova',
+  'id: ' + id,
+  'type: Ciclo',
+  'hash_conteudo: ' + conteudo,
+  'parentHash: ',
+  'hash: ' + hash,
+  'algoritmo: ' + algoritmo,
+  'ancorado_em: 2026-11-07',
+  'cobertura:',
+  ...cobertura.map((c) => '  - ' + c),
+  '',
+].join('\n');
+
+/**
+ * A ÁRVORE de uma escola saudável: elo com criação declarada, uma variante com fontes, a
+ * âncora a cobrir as duas, e os três derivados no lugar. É a base de todas as secções — cada
+ * uma lhe tira ou estraga UMA coisa, e é essa diferença que se mede.
+ */
+const ARVORE_SAUDAVEL = [
+  'escola/zzz/indice.json',
+  'wrangler.zzz.jsonc',
+  'professores/pp/ciclos/ciclo-01.conf',
+  'professores/pp/ciclos/ciclo-01-zzz.conf',
+  'professores/pp/ciclos/ciclo-01-zzz-po.md',
+  'professores/pp/ciclos/ciclo-01-zzz.fipp',
+  'indices/escolas/zzz.json',
+  'indices/ciclos/pp/01-zzz.json',
+];
+
+const INVENTARIO = {
+  escola: 'zzz',
+  professor: { slug: 'pp', nome: 'P P' },
+  ciclo: '01',
+  arquivos: [],
+  expurgo: [],
+  recriacao: [{ em: '2026-11-07T00:00:00.000Z', professor: { slug: 'pp', nome: 'P P' }, ciclo: '01' }],
+};
+
+const ANCORA = {
+  'professores/pp/ciclos/ciclo-01-zzz.fipp': ancoraTexto({
+    id: 'ciclo-01-zzz',
+    cobertura: ['professores/pp/ciclos/ciclo-01-zzz.conf', 'professores/pp/ciclos/ciclo-01.conf',
+      'professores/pp/ciclos/ciclo-01-zzz-po.md'],
+  }),
+};
+
+/** Um GitHub falso: serve a árvore e os ficheiros que a auditoria e o expurgo leem. */
+function githubFalso({ arvore, arquivos }) {
+  const estado = { corposDeArvore: [], commits: 0, leituras: [] };
+  estado.fetch = async (url, init) => {
+    const metodo = (init && init.method) || 'GET';
+    const responde = (status, corpo) => ({ ok: status >= 200 && status < 300, status, json: async () => corpo });
+    const u = String(url);
+
+    if (u.indexOf('/git/trees/') !== -1 && metodo === 'GET') {
+      return responde(200, { tree: arvore.map((p) => ({ type: 'blob', path: p })) });
+    }
+    if (u.indexOf('/contents/') !== -1 && metodo === 'GET') {
+      const m = /\/contents\/([^?]+)/.exec(u);
+      const caminho = m ? decodeURIComponent(m[1]) : '';
+      estado.leituras.push(caminho);
+      if (arquivos[caminho] === undefined) return responde(404, { message: 'Not Found' });
+      const cru = typeof arquivos[caminho] === 'string' ? arquivos[caminho] : JSON.stringify(arquivos[caminho], null, 2);
+      return responde(200, { content: b64(cru) });
+    }
+    if (u.indexOf('/git/ref/heads/') !== -1 && metodo === 'GET') {
+      return responde(200, { object: { sha: 'commit-base' } });
+    }
+    if (u.indexOf('/git/commits/') !== -1 && metodo === 'GET') {
+      return responde(200, { sha: 'commit-base', tree: { sha: 'arvore-base' } });
+    }
+    if (u.indexOf('/git/trees') !== -1 && metodo === 'POST') {
+      estado.corposDeArvore.push(JSON.parse(init.body));
+      return responde(201, { sha: 'arvore-nova' });
+    }
+    if (u.indexOf('/git/commits') !== -1 && metodo === 'POST') {
+      estado.commits += 1;
+      return responde(201, { sha: 'commit-novo' });
+    }
+    if (u.indexOf('/git/refs/heads/') !== -1 && metodo === 'PATCH') {
+      return responde(200, { object: { sha: 'commit-novo' } });
+    }
+    return responde(200, {});
+  };
+  return estado;
+}
+
+const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
+  token: 'x', dono: 'd', repo: 'r', ref: 'main', slug: 'zzz',
+  caminhos: arvore, fetchImpl: estado.fetch,
+});
+
+(async () => {
+  console.log('\nA. O NÚCLEO — cada verificação reprova pelo seu motivo, e o saudável passa');
+
+  const lerAncora = (texto) => require('../motor/servidor/indice-acervo.js').lerAncora(texto);
+  const ancorasLidas = (mapa) => Object.fromEntries(
+    Object.entries(mapa).map(([c, t]) => [c, lerAncora(t)]));
+
+  const saudavel = prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
+  });
+  checar('a árvore saudável passa, e diz por quê (1 âncora, 2 fontes)',
+    saudavel.ok && saudavel.resumo.ancoras === 1 && saudavel.resumo.fontes === 2, saudavel.problemas);
+  checar('a impressão é SHA-256 do conjunto de âncoras',
+    /^[0-9a-f]{64}$/.test(String(saudavel.impressao)), saudavel.impressao);
+
+  const semAncora = prov.auditar({
+    slug: 'zzz',
+    caminhos: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
+    indice: INVENTARIO, ancoras: {},
+  });
+  checar('sem a âncora, reprova por «sem-ancora»',
+    !semAncora.ok && semAncora.problemas.some((p) => p.codigo === 'sem-ancora'),
+    semAncora.problemas.map((p) => p.codigo));
+
+  const hashMau = JSON.parse(JSON.stringify(ANCORA));
+  hashMau['professores/pp/ciclos/ciclo-01-zzz.fipp'] = ancoraTexto({ id: 'ciclo-01-zzz', hash: 'xyz',
+    cobertura: ['professores/pp/ciclos/ciclo-01-zzz.conf', 'professores/pp/ciclos/ciclo-01.conf',
+      'professores/pp/ciclos/ciclo-01-zzz-po.md'] });
+  checar('com um hash que não é SHA-256, reprova por «ancora-hash»',
+    prov.auditar({ slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: INVENTARIO, ancoras: ancorasLidas(hashMau) })
+      .problemas.some((p) => p.codigo === 'ancora-hash'), null);
+
+  const semRecriacao = prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: { escola: 'zzz', expurgo: [] }, ancoras: ancorasLidas(ANCORA),
+  });
+  checar('um elo sem `recriacao[]` reprova por «sem-recriacao» (a escola nunca nasceu)',
+    semRecriacao.problemas.some((p) => p.codigo === 'sem-recriacao'), semRecriacao.problemas.map((p) => p.codigo));
+
+  const semCobertura = prov.auditar({
+    slug: 'zzz',
+    caminhos: ARVORE_SAUDAVEL.concat(['professores/pp/ciclos/ciclo-01-zzz-plano.md']),
+    indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
+  });
+  checar('uma fonte que nenhuma âncora cobre reprova por «fonte-sem-cobertura» (a âncora é velha)',
+    semCobertura.problemas.some((p) => p.codigo === 'fonte-sem-cobertura'),
+    semCobertura.problemas.map((p) => p.codigo));
+
+  const semDerivado = prov.auditar({
+    slug: 'zzz',
+    caminhos: ARVORE_SAUDAVEL.filter((c) => !c.startsWith('indices/')),
+    indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
+  });
+  checar('sem os derivados, reprova por «indexacao-pendente» (a derivação ficou para trás)',
+    semDerivado.problemas.filter((p) => p.codigo === 'indexacao-pendente').length === 2,
+    semDerivado.problemas.map((p) => p.codigo));
+
+  console.log('\nB. A ÁRVORE — a âncora é lida pelo MESMO parser do índice, e as fases são ditas');
+
+  const estadoSaudavel = githubFalso({
+    arvore: ARVORE_SAUDAVEL,
+    arquivos: Object.assign({ 'escola/zzz/indice.json': INVENTARIO }, ANCORA),
+  });
+  const daArvore = await auditarArvore(estadoSaudavel, ARVORE_SAUDAVEL);
+  checar('a auditoria sobre a árvore passa, e traz as âncoras com id e hash',
+    daArvore.ok && daArvore.ancoras.length === 1 && daArvore.ancoras[0].id === 'ciclo-01-zzz',
+    daArvore.problemas);
+  checar('as fases que a metade do repositório NÃO alcança são declaradas',
+    daArvore.fases && daArvore.fases.ancora === 'nao-recalculada' && daArvore.fases.derivacao === 'nao-conferida',
+    daArvore.fases);
+  checar('só os ficheiros que a auditoria precisa foram lidos (o elo e a âncora)',
+    estadoSaudavel.leituras.length === 2, estadoSaudavel.leituras);
+
+  const estadoQuebrado = githubFalso({
+    arvore: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
+    arquivos: { 'escola/zzz/indice.json': INVENTARIO },
+  });
+  const daArvoreQuebrada = await auditarArvore(estadoQuebrado, ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')));
+  checar('sem a âncora na árvore, a auditoria da árvore reprova',
+    !daArvoreQuebrada.ok, daArvoreQuebrada.problemas.map((p) => p.codigo));
+
+  console.log('\nC. O ELO — o que existia fica registado; e a rota recusa sem apagar');
+
+  const estadoElo = githubFalso({
+    arvore: ARVORE_SAUDAVEL,
+    arquivos: Object.assign({ 'escola/zzz/indice.json': INVENTARIO }, ANCORA),
+  });
+  const r = await repo.apagarEscolaDoRepo({
+    token: 'x', dono: 'd', repo: 'r', ref: 'main',
+    slug: 'zzz', confirmacao: 'zzz', motivo: 'prova', quando: '2026-11-07T00:00:00.000Z',
+    proveniencia: daArvore, fetchImpl: estadoElo.fetch,
+  });
+  const corpo = estadoElo.corposDeArvore[estadoElo.corposDeArvore.length - 1] || { tree: [] };
+  const doIndice = (corpo.tree || []).find((t) => t.path === 'escola/zzz/indice.json');
+  const indiceNovo = doIndice && doIndice.content ? JSON.parse(doIndice.content) : null;
+  const elo = indiceNovo && indiceNovo.expurgo ? indiceNovo.expurgo[indiceNovo.expurgo.length - 1] : null;
+  checar('o expurgo entra (o commit é montado)', r.ok === true, r);
+  checar('o elo registra a proveniência que existia — âncoras, hashes e impressão',
+    Boolean(elo && elo.proveniencia && elo.proveniencia.ancoras.length === 1
+      && elo.proveniencia.ancoras[0].hash === HASH_A
+      && /^[0-9a-f]{64}$/.test(String(elo.proveniencia.impressao))),
+    elo && elo.proveniencia);
+  checar('…e diz que foi auditada', Boolean(elo && elo.proveniencia && elo.proveniencia.auditada === true),
+    elo && elo.proveniencia);
+  checar('a âncora sai no commit (a proveniência é apagada, depois de registada)',
+    (corpo.tree || []).some((t) => t.path === 'professores/pp/ciclos/ciclo-01-zzz.fipp' && t.sha === null),
+    (corpo.tree || []).map((t) => t.path));
+
+  /* A ROTA. O `fetch` global é substituído porque é ele que `raiz.js` usa: o GitHub responde
+   * pelo falso, e o Cloudflare LANÇA — o que é a medida certa, porque na recusa (409) ele nem
+   * chega a ser chamado. Se fosse chamado, o relatório diria. */
+  const raiz = require('../motor/servidor/raiz.js');
+  const autorizacao = { Authorization: 'Basic ' + Buffer.from('tmenegaz:segredo').toString('base64') };
+  const envDaRota = { SENHA_RAIZ: 'segredo', GITHUB_TOKEN: 'x', CLOUDFLARE_API_TOKEN: 'y', ASSETS: null };
+  const pedirExpurgo = async (corpo, estado) => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async (url, init) => {
+      const u = String(url);
+      if (u.indexOf('api.github.com') !== -1) return estado.fetch(url, init);
+      throw new Error('Cloudflare não devia ser chamado nesta prova');
+    };
+    try {
+      const req = new Request('https://danca.internal/api/apagar-escola', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, autorizacao),
+        body: JSON.stringify(Object.assign({ escola: 'zzz', confirmacao: 'zzz' }, corpo)),
+      });
+      const res = await raiz.fetch(req, envDaRota);
+      let json = null;
+      try { json = await res.json(); } catch { json = null; }
+      return { status: res.status, corpo: json };
+    } finally {
+      globalThis.fetch = original;
+    }
+  };
+
+  const estadoRecusa = githubFalso({
+    arvore: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
+    arquivos: { 'escola/zzz/indice.json': INVENTARIO },
+  });
+  const recusa = await pedirExpurgo({}, estadoRecusa);
+  checar('a rota recusa com 409 quando a proveniência não está em ordem',
+    recusa.status === 409, { status: recusa.status, erro: recusa.corpo && recusa.corpo.erro });
+  checar('…e NÃO monta commit nenhum (nada foi apagado)',
+    estadoRecusa.corposDeArvore.length === 0 && estadoRecusa.commits === 0,
+    { arvores: estadoRecusa.corposDeArvore.length, commits: estadoRecusa.commits });
+  checar('…e o relatório traz os bloqueios, um a um',
+    Boolean(recusa.corpo && recusa.corpo.proveniencia && recusa.corpo.proveniencia.problemas
+      && recusa.corpo.proveniencia.problemas.length),
+    recusa.corpo && recusa.corpo.proveniencia);
+
+  const estadoSemMotivo = githubFalso({
+    arvore: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
+    arquivos: { 'escola/zzz/indice.json': INVENTARIO },
+  });
+  const semMotivo = await pedirExpurgo({ forcar: true }, estadoSemMotivo);
+  checar('forçar SEM motivo é recusado com 400 — quem força, declara',
+    semMotivo.status === 400 && estadoSemMotivo.corposDeArvore.length === 0,
+    { status: semMotivo.status, arvores: estadoSemMotivo.corposDeArvore.length });
+
+  const estadoForcado = githubFalso({
+    arvore: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
+    arquivos: { 'escola/zzz/indice.json': INVENTARIO, 'wrangler.zzz.jsonc': '{ "name": "zzz" }' },
+  });
+  const forcado = await pedirExpurgo({ forcar: true, motivoDoForcar: 'escola de teste, registo perdido' }, estadoForcado);
+  const corpoForcado = estadoForcado.corposDeArvore[estadoForcado.corposDeArvore.length - 1] || { tree: [] };
+  const doIndiceForcado = (corpoForcado.tree || []).find((t) => t.path === 'escola/zzz/indice.json');
+  const indiceForcado = doIndiceForcado && doIndiceForcado.content ? JSON.parse(doIndiceForcado.content) : null;
+  const eloForcado = indiceForcado && indiceForcado.expurgo
+    ? indiceForcado.expurgo[indiceForcado.expurgo.length - 1] : null;
+  checar('forçado com motivo, o expurgo do repositório avança',
+    Boolean(forcado.corpo && forcado.corpo.repositorio && forcado.corpo.repositorio.ok),
+    forcado.corpo && forcado.corpo.repositorio);
+  checar('…e o elo diz que foi FORÇADO, com o motivo e os bloqueios',
+    Boolean(eloForcado && eloForcado.proveniencia && eloForcado.proveniencia.forcada === 'escola de teste, registo perdido'
+      && Array.isArray(eloForcado.proveniencia.problemas) && eloForcado.proveniencia.problemas.length),
+    eloForcado && eloForcado.proveniencia);
+
+  console.log('\n' + (falhas ? falhas + ' FALHA(S) em ' + n + ' verificações' : n + '/' + n + ' ok'));
+  process.exit(falhas ? 1 : 0);
+})();
