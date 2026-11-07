@@ -234,10 +234,30 @@ async function auditar({ slug, caminhos, indice, ancoras }) {
           + '`, que já não existe na árvore — a cadeia está partida');
       }
     }
-    // 6. A ÂNCORA ÓRFÃ: certifica um documento que já não está lá.
-    if (!existe.has(base + '.conf')) {
-      bloqueia('ancora-orfa', '`' + a.caminho + '` não tem o manifesto `' + base.split('/').pop()
-        + '.conf`: a âncora certifica uma variante que já não existe');
+    /* 6. A ÂNCORA ÓRFÃ: certifica uma variante que já não está lá.
+     *
+     * A ÂNCORA DE UMA AULA NÃO TEM MANIFESTO PRÓPRIO (07/11/2026), e a regra não sabia disso. Ela
+     * exigia `base + '.conf'` de TODA a âncora, e para uma `…-aula-01.fipp` isso é
+     * `…-aula-01.conf` — um ficheiro que não existe nem pode existir: o manifesto é o da VARIANTE
+     * (`…-sala-rosa.conf`), e a âncora da aula é ADITIVA a ele, com `parentHash` vazio e cobertura
+     * restrita às fontes daquela aula (ver o `hash-ciclo.sh`, §5.2/§5c).
+     *
+     * O EFEITO, medido no expurgo da `breu`: a auditoria reprovava por `ancora-orfa` uma cadeia
+     * que estava íntegra — o `hash-ciclo --check` da mesma variante passava, todas as coberturas
+     * existiam —, e o expurgo foi RECUSADO com «corrija primeiro». A instrução era impossível de
+     * cumprir: reancorar não muda o nome do manifesto, porque o manifesto errado era o que a
+     * regra procurava. Um falso bloqueio no passo que antecede a operação mais destrutiva do
+     * sistema custa caro dos dois lados: impede o expurgo legítimo, e ensina a usar o `--forcar`.
+     *
+     * O que se procura para uma âncora de aula é o manifesto DA VARIANTE — o mesmo `-aula-NN`
+     * removido do caminho. Para a do ciclo nada muda: `base + '.conf'` já é o manifesto. */
+    const manifesto = a.aula
+      ? a.caminho.replace(new RegExp('-aula-' + a.aula + '\\.fipp$'), '.conf')
+      : base + '.conf';
+    if (!existe.has(manifesto)) {
+      bloqueia('ancora-orfa', '`' + a.caminho + '` não tem o manifesto `'
+        + manifesto.split('/').pop()
+        + '`: a âncora certifica uma variante que já não existe');
     }
   }
 

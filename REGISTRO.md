@@ -40025,3 +40025,66 @@ grupos do recorte. O lançamento passa a oferecer as duas.
   dois caminhos a terminar na geração em vez de um.
 - **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
   são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
+
+## 07/11/2026 — A âncora de uma aula não tem manifesto próprio: o expurgo da `breu` estava a ser recusado por um falso positivo
+
+**O que motivou.** Ela mandou expurgar a `breu` e a página recusou: «a proveniência da escola «breu»
+não está em ordem — nada foi apagado», com um bloqueio só:
+
+```
+[ancora-orfa] `professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp`
+não tem o manifesto `ciclo-01-breu-sala-rosa-aula-01.conf`: a âncora certifica uma
+variante que já não existe
+```
+
+**A CADEIA ESTAVA ÍNTEGRA, e o defeito era meu — de hoje.** A auditoria de proveniência nasceu
+nesta sessão (`f633dce2`), com sete verificações. A número 6 — «a âncora órfã» — exigia
+`base + '.conf'` de **toda** a âncora. Para uma `…-aula-01.fipp` isso é `…-aula-01.conf`, um
+ficheiro que **não existe nem pode existir**: o manifesto é o da VARIANTE
+(`…-sala-rosa.conf`), e a âncora da aula é **aditiva** a ele, com `parentHash` vazio e cobertura
+restrita às fontes daquela aula — está escrito no `tools/hash-ciclo.sh`, §5.2 e §5c, e o caminho
+que ele grava é `$BASE/ciclo-$CICLO-$VARIANTE-aula-$nn.fipp`.
+
+**O que se mediu, para não confundir «regra errada» com «cadeia partida».** Antes de tocar em nada:
+`bash tools/hash-ciclo.sh colo-de-pe 01 breu-sala-rosa --check` → **«íntegro; cadeia intacta»**
+(`4cdecb50…`); o mesmo para o ciclo base (`a7711bd1…`); as coberturas das três âncoras citam
+ficheiros que existem (`cobertura-quebrada` não dispara); e `gerar-indices --check` / `check-indices`
+davam **5 em dia** e **16/0**. Ou seja: a instrução que a tela dava — «reancorar e regerar os
+índices» — **era impossível de cumprir**, porque reancorar não muda o nome do manifesto que a regra
+procurava. O bloqueio não protegia nada; impedia um expurgo legítimo.
+
+**Porque é que isto importa mais do que parece.** É o passo 0 da operação mais destrutiva do
+sistema. Um falso bloqueio ali custa dos dois lados: impede o expurgo que devia correr, e — pior —
+ensina a usar o `--forcar`, que é exactamente o que a auditoria existe para tornar desnecessário.
+
+**O que foi decidido.**
+
+1. **A âncora da aula procura o manifesto DA VARIANTE** — o mesmo `-aula-NN` removido do caminho.
+   Para a âncora do ciclo nada muda: `base + '.conf'` já é o manifesto.
+2. **A regra não foi aliviada.** Continua a exigir um manifesto, agora o certo: tirado o
+   `…-sala-rosa.conf` da árvore, as duas âncoras reprovam por `ancora-orfa` — a da aula e a do
+   ciclo —, e a mensagem nomeia o manifesto que falta.
+
+**Onde entrou.** `motor/nucleo/proveniencia.js` (a verificação 6, com o porquê escrito) ·
+`experimentos/provar-proveniencia-do-expurgo.js` (quatro asserções novas e a contraprova) ·
+`ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-proveniencia-do-expurgo` **25/25** (eram 21), com o **A/B**: reposta a regra
+antiga, a asserção nova falha com **exactamente** a mensagem que ela viu na tela
+(`não tem o manifesto ciclo-01-zzz-aula-01.conf`). E a auditoria sobre a **árvore real do GitHub**,
+pela função que a página usa (`repo-escola.auditarProvenienciaDaEscola`) — não pelo disco —, devolve
+**`ok: true`, 3 âncoras, 10 fontes**. `provar-producao` **166/166** · `provar-elenco-na-turma`
+**25/25** · `provar-aluna-nova-no-elenco` **34/34** · `provar-linha-de-base` **102/102** ·
+`provar-expurgo-sem-listagem` **49/49** · `provar-bancadas-e-expurgo` **16/16** ·
+`provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** · `check-identidade`
+**0 erros** · `check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
+`gerar-relacoes --check` **2 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**.
+
+**O que ainda não está feito.**
+
+- **O expurgo em si é dela, e não meu.** Não o corri: é a operação mais destrutiva do sistema, apaga
+  o Worker e o KV da escola, e o gesto — com a confirmação e o motivo — é de quem decide. O que
+  ficou pronto é a recusa que já não acontece.
+- **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
+  `deploy-raiz` leva esta correção.

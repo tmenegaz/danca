@@ -189,6 +189,67 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
     caminhos: ARVORE_SAUDAVEL.filter((c) => !c.startsWith('indices/')),
     indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
   });
+  /* A ÂNCORA DE UMA AULA NÃO TEM MANIFESTO PRÓPRIO (07/11/2026) — e a regra exigia um.
+   *
+   * O DEFEITO, medido no expurgo da `breu`: uma `…-aula-01.fipp` era reprovada por
+   * `ancora-orfa` porque não existia `…-aula-01.conf` — um ficheiro que não existe nem pode
+   * existir, já que o manifesto é o da VARIANTE e a âncora da aula é aditiva a ele. A auditoria
+   * recusava uma cadeia íntegra e mandava «reancorar», que não podia resolver nada: o nome do
+   * manifesto não muda por se reancorar. O expurgo ficou bloqueado por um falso positivo.
+   *
+   * A árvore daqui é a saudável MAIS uma âncora de aula e a sua fonte — o manifesto que se
+   * procura é o `ciclo-01-zzz.conf`, que já lá está. */
+  const ARVORE_COM_AULA = ARVORE_SAUDAVEL.concat([
+    'professores/pp/ciclos/ciclo-01-zzz-aula-01.md',
+    'professores/pp/ciclos/ciclo-01-zzz-aula-01.fipp',
+  ]);
+  const ancoraDeAula = ancoraTexto({
+    id: 'ciclo-01-zzz-aula-01',
+    cobertura: ['professores/pp/ciclos/ciclo-01-zzz-aula-01.md'],
+  });
+  const ANCORA_COM_AULA = Object.assign({}, ANCORA, {
+    'professores/pp/ciclos/ciclo-01-zzz-aula-01.fipp': ancoraDeAula,
+  });
+  /* A COBERTURA DA ÂNCORA DO CICLO cresce com a fonte nova — senão o bloqueio seria
+   * «fonte-sem-cobertura», e estaríamos a medir outra coisa. */
+  ANCORA_COM_AULA['professores/pp/ciclos/ciclo-01-zzz.fipp'] = ancoraTexto({
+    id: 'ciclo-01-zzz',
+    cobertura: ['professores/pp/ciclos/ciclo-01-zzz.conf', 'professores/pp/ciclos/ciclo-01.conf',
+      'professores/pp/ciclos/ciclo-01-zzz-po.md', 'professores/pp/ciclos/ciclo-01-zzz-aula-01.md'],
+  });
+
+  const comAula = await prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_COM_AULA, indice: INVENTARIO, ancoras: ancorasLidas(ANCORA_COM_AULA),
+  });
+  checar('uma âncora de AULA com o manifesto da VARIANTE no lugar é aprovada (não há órfã)',
+    comAula.ok, comAula.problemas);
+  checar('…e as duas âncoras contam, e a da aula é reconhecida como tal',
+    comAula.resumo.ancoras === 2 && comAula.ancoras.some((a) => a.aula === '01'),
+    comAula.ancoras.map((a) => [a.id, a.aula]));
+
+  /* A CONTRAPROVA, e é ela que impede a correção de ser um alívio da regra: tirado o manifesto
+   * DA VARIANTE, a âncora da aula tem de reprovar — por órfã, e não por outra coisa. */
+  const semManifestoDaVariante = await prov.auditar({
+    slug: 'zzz',
+    caminhos: ARVORE_COM_AULA.filter((c) => c !== 'professores/pp/ciclos/ciclo-01-zzz.conf'),
+    indice: INVENTARIO, ancoras: ancorasLidas(ANCORA_COM_AULA),
+  });
+  checar('tirado o manifesto da variante, a âncora da aula REPROVA por «ancora-orfa»',
+    !semManifestoDaVariante.ok
+    && semManifestoDaVariante.problemas.some((p) => p.codigo === 'ancora-orfa'
+      && p.mensagem.indexOf('ciclo-01-zzz.conf') !== -1),
+    semManifestoDaVariante.problemas.map((p) => [p.codigo, p.mensagem]));
+
+  /* E a âncora do CICLO continua a exigir o manifesto dela — a correção não tocou nessa. */
+  const semManifestoDoCiclo = await prov.auditar({
+    slug: 'zzz',
+    caminhos: ARVORE_COM_AULA.filter((c) => c !== 'professores/pp/ciclos/ciclo-01-zzz.conf'),
+    indice: INVENTARIO, ancoras: ancorasLidas(ANCORA_COM_AULA),
+  });
+  checar('…e a do ciclo também, as duas pelo mesmo motivo (duas órfãs, não uma)',
+    semManifestoDoCiclo.problemas.filter((p) => p.codigo === 'ancora-orfa').length === 2,
+    semManifestoDoCiclo.problemas.filter((p) => p.codigo === 'ancora-orfa').map((p) => p.mensagem));
+
   checar('sem os derivados, reprova por «indexacao-pendente» (a derivação ficou para trás)',
     semDerivado.problemas.filter((p) => p.codigo === 'indexacao-pendente').length === 2,
     semDerivado.problemas.map((p) => p.codigo));

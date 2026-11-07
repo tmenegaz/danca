@@ -4064,6 +4064,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A âncora de uma aula não tem manifesto próprio — e a auditoria exigia um, o
+  que recusou o expurgo da `breu`.** A página respondeu «a proveniência não está em ordem — nada foi
+  apagado», com um bloqueio só: `[ancora-orfa] …-aula-01.fipp não tem o manifesto
+  …-aula-01.conf`. **CONFIRMADO que a cadeia estava íntegra** e que o defeito era da verificação 6,
+  nascida nesta sessão: ela exigia `base + '.conf'` de toda a âncora, e para uma âncora de AULA o
+  manifesto é o da **variante** (`…-sala-rosa.conf`) — a âncora da aula é aditiva a ele. Medido
+  antes de mexer: `hash-ciclo --check` das duas variantes **íntegro**, coberturas todas a existir,
+  `gerar-indices --check` 5 em dia, `check-indices` 16/0. A instrução da tela («reancorar e regerar
+  os índices») era **impossível de cumprir**: reancorar não muda o nome que a regra procurava.
+  Corrigido — a âncora de aula procura o manifesto da variante —, e a regra **não foi aliviada**:
+  tirado o manifesto da variante, as duas âncoras reprovam por `ancora-orfa`.
+  `provar-proveniencia-do-expurgo` **25/25** (eram 21), com A/B a reproduzir a mensagem exacta que
+  ela viu; e a auditoria sobre a **árvore real do GitHub**, pela função que a página usa, devolve
+  `ok: true`. O expurgo em si fica com ela.
+
 - **07/11/2026** — **O elenco é fonte do ciclo, e concluí-lo passa a terminar na geração.** Ela
   refez o fluxo inteiro e o lançamento da aula continuou a oferecer só a **Aluna A**. **CONFIRMADO**
   que a correção anterior estava certa e **incompleta**: o ato do elenco tem as duas

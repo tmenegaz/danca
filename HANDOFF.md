@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T18:58:55-0300`
-Commit atual: `16f5b2bf` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+Gerado em: `2026-11-07T19:17:10-0300`
+Commit atual: `1fa3e33a` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,26 +70,26 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
-16f5b2bf chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-71741175 chore(estrutura): regerar os índices derivados
-481e2fd8 feat(linha de base): índice — tami 20261107-2150
-4d017073 feat(elenco): tami — concluído
-2a53cb78 feat(linha de base): índice — tami 20261107-2150
-36c18ee2 feat(elenco): tami — concluído
-25cc5669 chore(estrutura): regerar os índices derivados
-01f07273 chore(estrutura): reancorar a cadeia das fontes alteradas
-46bf7a9a feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
-7ee8dc3f feat(po): o PO elicitado vira a fonte do ciclo
-af3503c4 feat(acervo): envelope/po-20261107-1846-2.json
-b1e13d0c feat(acervo): envelope/.indice.json
-250c89a7 chore(estrutura): regerar os índices derivados
-705d8746 chore(estrutura): reancorar a cadeia das fontes alteradas
-8bd02091 feat(po): o PO elicitado vira a fonte do ciclo
-c83cdfbf feat(acervo): envelope/po-20261107-1846.json
-11da5610 feat(acervo): envelope/.indice.json
-7416c999 feat(plano): o plano elicitado vira a fonte do ciclo
-63c71a7c feat(acervo): envelope/plano-20261107-1845.json
-8e61661f feat(acervo): envelope/.indice.json
+1fa3e33a chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+a9a8a50b chore(estrutura): regerar os índices derivados
+a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
+b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
+21a6884a feat(po): o PO elicitado vira a fonte do ciclo
+0a25b3c0 feat(acervo): envelope/po-20261107-1911.json
+76d4f731 feat(acervo): envelope/.indice.json
+35c938d6 chore(estrutura): reancorar a cadeia das fontes alteradas
+16623784 chore(estrutura): regerar os índices derivados
+b62026a7 feat(po): o PO elicitado vira a fonte do ciclo
+4d0d7e58 feat(acervo): envelope/po-20261107-1910.json
+81322b30 feat(acervo): envelope/.indice.json
+7b1ddaa4 feat(plano): o plano elicitado vira a fonte do ciclo
+548b54da feat(acervo): envelope/plano-20261107-1910.json
+07b2b927 feat(acervo): envelope/.indice.json
+8360c87e chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+829d5a53 chore(estrutura): regerar os índices derivados
+302ff809 feat(linha de base): índice — tami 20261107-2208
+046dc81d feat(elenco): tami — concluído
+93a91e06 fix(estrutura): concluir o elenco termina na geração do ciclo
 ```
 
 ## Por professor
@@ -106,7 +106,7 @@ c83cdfbf feat(acervo): envelope/po-20261107-1846.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `a7711bd178b7` | (vazio) | — |
-| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `d3333b26d4cb` | (vazio) | Input_PO_Aguardando |
+| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `4cdecb5087cb` | (vazio) | Input_PO_Aguardando |
 
 ### coqui-de-redinha — 0 ciclo(s)
 
@@ -161,95 +161,70 @@ c83cdfbf feat(acervo): envelope/po-20261107-1846.json
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O elenco é fonte do ciclo, e concluí-lo tem de terminar na geração
+## 07/11/2026 — A âncora de uma aula não tem manifesto próprio: o expurgo da `breu` estava a ser recusado por um falso positivo
 
-**O que motivou.** Ela refez o fluxo inteiro, como eu lhe pedi: Audição → concluir elenco → Turma →
-plano de ensino → plano de observação. E no lançamento da aula só havia a **Aluna A**. «Não deu
-certo a sua proposta. Tem que investigar o que aconteceu.»
+**O que motivou.** Ela mandou expurgar a `breu` e a página recusou: «a proveniência da escola «breu»
+não está em ordem — nada foi apagado», com um bloqueio só:
 
-**O que se mediu, e a proposta NÃO estava errada — estava incompleta.** O ato do elenco existe no
-repositório com as duas (`escola/breu/linhas-de-base/tami--20261107-2150.json`: `alunas: [Aluna A,
-Aluna B]`, doze campos de recorte). A derivação também está certa: rodada sobre o envelope real do
-PO, `derivarDados` devolve `{aluna_a, aluna_b}`. O `-dados.json` **fonte** tem as duas desde as
-18:47, e o `-aula-01.md`, a `-captura-aula-01.md` e o `-po.md` também.
+```
+[ancora-orfa] `professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp`
+não tem o manifesto `ciclo-01-breu-sala-rosa-aula-01.conf`: a âncora certifica uma
+variante que já não existe
+```
 
-O que estava para trás era o **PACOTE**. A última geração (`Gerar o ciclo`) era de **18:23**, e o
-`-dados.json` da cópia do pacote tinha só a Aluna A. O lançamento não lê a fonte: lê
-`publicacao/<escola>/<variante>/…-dados.json`, que o `montar-publicacao` copia do pacote. Ou seja:
-**oito minutos antes de o PO ser regravado e vinte e cinco antes de o elenco ser concluído.**
+**A CADEIA ESTAVA ÍNTEGRA, e o defeito era meu — de hoje.** A auditoria de proveniência nasceu
+nesta sessão (`f633dce2`), com sete verificações. A número 6 — «a âncora órfã» — exigia
+`base + '.conf'` de **toda** a âncora. Para uma `…-aula-01.fipp` isso é `…-aula-01.conf`, um
+ficheiro que **não existe nem pode existir**: o manifesto é o da VARIANTE
+(`…-sala-rosa.conf`), e a âncora da aula é **aditiva** a ele, com `parentHash` vazio e cobertura
+restrita às fontes daquela aula — está escrito no `tools/hash-ciclo.sh`, §5.2 e §5c, e o caminho
+que ele grava é `$BASE/ciclo-$CICLO-$VARIANTE-aula-$nn.fipp`.
 
-**A causa estrutural, e é ela que se corrige.** O elenco é FONTE do ciclo — dele saem os `apelidos`
-do `-dados.json` (o que o lançamento oferece), a captura e a §6 da Aula 01. Mas concluí-lo gravava
-o ato **e parava**. Quem mandava gerar era o «Guardar» do PO, e um só caminho para uma fonte que tem
-dois é a receita para o pacote ficar para trás. Nesta sessão esse caminho ainda falhou uma vez: o
-PO foi regravado às 18:47 e **nenhuma** execução do `Gerar o ciclo` partiu (conferido na lista de
-runs — a última é 21:23:58Z, e a seguir vem a de 21:54, a que eu disparei à mão).
+**O que se mediu, para não confundir «regra errada» com «cadeia partida».** Antes de tocar em nada:
+`bash tools/hash-ciclo.sh colo-de-pe 01 breu-sala-rosa --check` → **«íntegro; cadeia intacta»**
+(`4cdecb50…`); o mesmo para o ciclo base (`a7711bd1…`); as coberturas das três âncoras citam
+ficheiros que existem (`cobertura-quebrada` não dispara); e `gerar-indices --check` / `check-indices`
+davam **5 em dia** e **16/0**. Ou seja: a instrução que a tela dava — «reancorar e regerar os
+índices» — **era impossível de cumprir**, porque reancorar não muda o nome do manifesto que a regra
+procurava. O bloqueio não protegia nada; impedia um expurgo legítimo.
 
-**A frase já estava escrita no código**, para o resgate do lançamento: «o acto termina na geração —
-gravar a fonte é metade: o site serve o PACOTE, e o pacote muda quando a geração corre». Vale
-literalmente igual para o elenco.
+**Porque é que isto importa mais do que parece.** É o passo 0 da operação mais destrutiva do
+sistema. Um falso bloqueio ali custa dos dois lados: impede o expurgo que devia correr, e — pior —
+ensina a usar o `--forcar`, que é exactamente o que a auditoria existe para tornar desnecessário.
 
 **O que foi decidido.**
 
-1. **Concluir o elenco dispara a geração.** `gerarOsCiclosDoElenco(env, escola, id)` acha as
-   **Turmas que escolheram** aquele elenco — são as únicas que ele alimenta — e, para cada uma, o
-   ciclo, que vem dos pares `(professor, turma, ciclo)` que o índice dos planos já traz. Dispara
-   `gerar-ciclo.yml` com a **mesma** peça da ponte (`criarDisparador`, de `disparar.js`) — não uma
-   segunda.
-2. **Corre DEPOIS da gravação e nunca a desfaz.** A falha do disparo vem na resposta e o elenco
-   fica concluído: um disparo que não partiu é um facto a mostrar, não um motivo para perder o
-   trabalho.
-3. **Os silêncios são ditos.** Sem Turma que use o elenco, não se dispara e diz-se («nenhuma Turma
-   escolheu este elenco ainda»). Com Turma mas sem plano, também não («ainda não tem plano de
-   ensino — não há ciclo para gerar»). Sem token, também. Um zero silencioso seria lido como «está
-   no ar».
-4. **A tela passa a dizer o desfecho.** «elenco concluído» sozinho lê-se como «está no ar», e não
-   está. A mensagem distingue os três casos: **partiu** (`N variantes`), **não partiu** (com a
-   variante e o erro), e **não havia o que gerar** (com o motivo).
+1. **A âncora da aula procura o manifesto DA VARIANTE** — o mesmo `-aula-NN` removido do caminho.
+   Para a âncora do ciclo nada muda: `base + '.conf'` já é o manifesto.
+2. **A regra não foi aliviada.** Continua a exigir um manifesto, agora o certo: tirado o
+   `…-sala-rosa.conf` da árvore, as duas âncoras reprovam por `ancora-orfa` — a da aula e a do
+   ciclo —, e a mensagem nomeia o manifesto que falta.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (`gerarOsCiclosDoElenco`, ao lado de
-`paresComPlano`; o `import` de `criarDisparador`/`varianteDoContexto`; `fechar` a chamá-la depois do
-KV; `ULTIMO_DISPARO` e a mensagem no cliente) ·
-`experimentos/provar-aluna-nova-no-elenco.js` (secção 5, oito asserções novas) ·
+**Onde entrou.** `motor/nucleo/proveniencia.js` (a verificação 6, com o porquê escrito) ·
+`experimentos/provar-proveniencia-do-expurgo.js` (quatro asserções novas e a contraprova) ·
 `ESTADO-ATUAL.md` (§11).
 
-**Validação.** `provar-aluna-nova-no-elenco` **34/34** (eram 23), com o **A/B**: sem a chamada na
-conclusão, caem as duas asserções que a prendem. `provar-elenco-na-turma` **25/25** ·
-`provar-linha-de-base` **102/102** · `provar-linha-de-base-no-repo` **39/39** ·
-`provar-salas-e-elencos` **65/65** · `provar-producao` **166/166** · `provar-sujeitos-da-turma`
-**41/41** · `provar-elenco-derivado` **10/10** · `provar-listas-do-acervo` **109** ·
-`provar-menu-da-producao` **55/55** · `provar-acordeoes`, `provar-plano-completo` (**18**),
-`provar-eixos-do-po` (**42**) **verdes** · `check-identidade` **0 erros** · `check-schemas`
-**verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
-`wrangler deploy --dry-run` **compila nos dois Workers**. O script servido foi extraído e compilado
-à parte (`new Function`, 157 304 bytes).
-
-**E o estado dela ficou corrigido, não só o código.** Disparei a geração à mão (HTTP **204**), ela
-correu (`Gerar o ciclo` às 21:54Z, verde) e o pacote passou a ter as duas: o `-dados.json` do
-pacote é `{aluna_a, aluna_b}` e o `po-01.json` publicado diz `subjects: [Aluna A, Aluna B]` com os
-grupos do recorte. O lançamento passa a oferecer as duas.
+**Validação.** `provar-proveniencia-do-expurgo` **25/25** (eram 21), com o **A/B**: reposta a regra
+antiga, a asserção nova falha com **exactamente** a mensagem que ela viu na tela
+(`não tem o manifesto ciclo-01-zzz-aula-01.conf`). E a auditoria sobre a **árvore real do GitHub**,
+pela função que a página usa (`repo-escola.auditarProvenienciaDaEscola`) — não pelo disco —, devolve
+**`ok: true`, 3 âncoras, 10 fontes**. `provar-producao` **166/166** · `provar-elenco-na-turma`
+**25/25** · `provar-aluna-nova-no-elenco` **34/34** · `provar-linha-de-base` **102/102** ·
+`provar-expurgo-sem-listagem` **49/49** · `provar-bancadas-e-expurgo` **16/16** ·
+`provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** · `check-identidade`
+**0 erros** · `check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
+`gerar-relacoes --check` **2 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**.
 
 **O que ainda não está feito.**
 
-- **A conferência ao ar é do próximo deploy.** O `deploy-escolas` correu, mas quem confirma é ela,
-  na página de lançamento.
-- **O disparo do «Guardar» do PO falhou uma vez sem deixar rasto legível.** Achei o sintoma (nenhuma
-  execução entre 18:47 e 21:54) e não a causa: o motivo real está no `wrangler tail` do Worker, e
-  não o fui buscar. Fica registado como dívida; a correção de hoje não depende dele, porque agora há
-  dois caminhos a terminar na geração em vez de um.
-- **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
-  são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
+- **O expurgo em si é dela, e não meu.** Não o corri: é a operação mais destrutiva do sistema, apaga
+  o Worker e o KV da escola, e o gesto — com a confirmação e o motivo — é de quem decide. O que
+  ficou pronto é a recusa que já não acontece.
+- **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
+  `deploy-raiz` leva esta correção.
 
 ## O que está pendente
-
-## 07/11/2026 — O expurgo passa a levar o `historico/`, e o vermelho da `calango` era da prova
-
-
-- **Nenhum expurgo foi corrido de ponta a ponta com a regra nova.** A `breu` foi expurgada com a
-  regra velha; os cinco ficheiros que sobraram saíram à mão, no mesmo commit. A regra nova é
-  verificada pela prova (e por três contraprovas), não por um expurgo real — o próximo o fará.
-- **A `publicacao/<escola>/` continua fora do expurgo.** Fica registado como lacuna conhecida: se
-  quiser, o CLI local limpa-a, porque é saída de construção e o montador a apaga de qualquer forma.
 
 ## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
 
@@ -285,6 +260,15 @@ o próximo push que toque nas fontes do índice — este commit não o dispara (
   dois caminhos a terminar na geração em vez de um.
 - **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
   são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
+
+## 07/11/2026 — A âncora de uma aula não tem manifesto próprio: o expurgo da `breu` estava a ser recusado por um falso positivo
+
+
+- **O expurgo em si é dela, e não meu.** Não o corri: é a operação mais destrutiva do sistema, apaga
+  o Worker e o KV da escola, e o gesto — com a confirmação e o motivo — é de quem decide. O que
+  ficou pronto é a recusa que já não acontece.
+- **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
+  `deploy-raiz` leva esta correção.
 
 ## Pendências anteriores (índice)
 
@@ -668,6 +652,7 @@ o próximo push que toque nas fontes do índice — este commit não o dispara (
 - **07/11/2026** — Os basilares num bloco, o quadro do recorte em acordeão, e… → `REGISTRO.md` L39444
 - **07/11/2026** — O cartão do elenco fica com duas caixas: as alunas e o… → `REGISTRO.md` L39517
 - **07/11/2026** — O Bloco 10 sai do plano: o corpo mora na Audição e no PO → `REGISTRO.md` L39567
+- **07/11/2026** — O expurgo passa a levar o `historico/`, e o vermelho da… → `REGISTRO.md` L39663
 - PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
