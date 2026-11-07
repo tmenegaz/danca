@@ -17,7 +17,7 @@ const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = requir
 const { excluirEscola, apagarChavesDeEscola, prefixosDaEscola } = require('./expurgar-escola.js');
 const {
   listarEscolas, listarEscolasPeloIndice, listarProfessores, listarProfessoresPeloIndice,
-  apagarEscolaDoRepo, lerArquivo,
+  apagarEscolaDoRepo, lerArquivo, auditarProvenienciaDaEscola,
   pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
 } = require('./repo-escola.js');
 const painel = require('./painel-html.js');
@@ -588,7 +588,11 @@ async function fetch(request, env) {
 
     const cfToken = env && env.CLOUDFLARE_API_TOKEN;
     const ghToken = env && env.GITHUB_TOKEN;
-    const relatorio = { escola: slug, motivo, cloudflare: null, repositorio: null };
+    // FORÇAR EXIGE DECLARAR. O mesmo contrato do `escola/expurgar.js`: quem manda apagar sobre
+    // uma proveniência quebrada diz por quê, e a razão entra no elo. Não é um interruptor.
+    const forcar = corpo && corpo.forcar === true;
+    const motivoDoForcar = String((corpo && corpo.motivoDoForcar) || '').trim();
+    const relatorio = { escola: slug, motivo, proveniencia: null, cloudflare: null, repositorio: null };
 
     // 1. SEM OS DOIS TOKENS NÃO SE COMEÇA. Meio expurgo é pior que nenhum: é a escola fora do
     // ar com o dado dela no sistema.
@@ -599,6 +603,65 @@ async function fetch(request, env) {
       relatorio.cloudflare = cfToken ? null : { erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' };
       relatorio.repositorio = ghToken ? null : { erro: 'GITHUB_TOKEN ausente no Worker' };
       return responderJson(Object.assign(relatorio, { ok: false, faltando, noRepositorio: false, noCloudflare: false }), 500);
+    }
+
+    /* 0. A PROVENIÊNCIA, ANTES DE QUALQUER APAGAMENTO (07/11/2026).
+     *
+     * ESTA É A PRIMEIRA COISA QUE ACONTECE — antes do Cloudflare, antes do repositório. O
+     * expurgo leva as âncoras (`.fipp`), e uma âncora que já não conferia com as fontes não se
+     * recupera depois de apagada: perde-se a prova de que o ciclo existiu, e o registro passa a
+     * dizer «expurgada» sobre uma cadeia que já estava partida. Falhando a auditoria, NADA é
+     * apagado — nem o Worker. Corrigir vem primeiro.
+     *
+     * O `forcar` existe porque uma guarda que nunca se pode contrariar torna o expurgo
+     * impossível no estado em que ele mais é preciso (o de uma escola cujo registro se perdeu).
+     * Mas ele não é um interruptor: exige `motivoDoForcar`, e o motivo e os bloqueios vão para
+     * o elo. O `escola/expurgar.js` local tem o mesmo contrato, com os mesmos nomes.
+     */
+    try {
+      const auditoria = await auditarProvenienciaDaEscola({
+        token: ghToken, dono: DONO, repo: REPO, ref: REF, slug,
+      });
+      relatorio.proveniencia = {
+        auditada: auditoria.ok,
+        em: new Date().toISOString(),
+        ancoras: auditoria.ancoras.map((a) => ({ caminho: a.caminho, id: a.id, hash: a.hash, tipo: a.tipo })),
+        fontes: auditoria.fontes.length,
+        impressao: auditoria.impressao,
+        resumo: auditoria.resumo,
+        fases: auditoria.fases,
+      };
+      if (!auditoria.ok) {
+        relatorio.proveniencia.problemas = auditoria.problemas;
+        if (!forcar) {
+          return responderJson(Object.assign(relatorio, {
+            ok: false,
+            erro: 'a proveniência da escola «' + slug + '» não está em ordem — nada foi apagado. '
+              + 'Corrige primeiro (reancorar, regerar os índices) e volta a tentar.',
+            noRepositorio: false,
+            noCloudflare: false,
+          }), 409);
+        }
+        if (!motivoDoForcar) {
+          return responderJson(Object.assign(relatorio, {
+            ok: false,
+            erro: 'forçar o expurgo exige declarar o motivo (`motivoDoForcar`) — nada foi apagado.',
+            noRepositorio: false,
+            noCloudflare: false,
+          }), 400);
+        }
+        relatorio.proveniencia.forcada = motivoDoForcar;
+      }
+    } catch (err) {
+      // NÃO SE APAGA O QUE NÃO SE CONSEGUIU AUDITAR. Uma falha de rede aqui é indistinguível de
+      // «a proveniência está partida» do ponto de vista de quem vai apagar — e o custo de parar
+      // é uma nova tentativa, enquanto o de avançar é irreversível.
+      return responderJson(Object.assign(relatorio, {
+        ok: false,
+        erro: 'não consegui auditar a proveniência: ' + ((err && err.message) || String(err)) + ' — nada foi apagado',
+        noRepositorio: false,
+        noCloudflare: false,
+      }), 500);
     }
 
     // 2. ONDE A ESCOLA VIVE, antes de apagar qualquer coisa. O `wrangler.<slug>.jsonc` diz o
@@ -668,6 +731,9 @@ async function fetch(request, env) {
       relatorio.repositorio = await apagarEscolaDoRepo({
         token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
         kv: desfechoKv,
+        // A PROVENIÊNCIA VAI PARA O ELO. É o que sobra das âncoras depois de apagadas: o que
+        // existia, com que hashes, e a impressão do conjunto — ver `comElo`.
+        proveniencia: relatorio.proveniencia,
       });
     } catch (err) {
       relatorio.repositorio = { erro: (err && err.message) || String(err) };

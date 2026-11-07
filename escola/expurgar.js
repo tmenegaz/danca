@@ -9,13 +9,14 @@
  * no AMBIENTE DE DESENVOLVIMENTO, na próxima sincronização — a "Norma — limpeza" do
  * §17.5. Roda à mão ou por um hook `post-merge`.
  *
- *   uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>]
+ *   uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>] [--forcar --motivo "<razão>"]
  *
  * O `--professor` e o `--ciclo` podem ser omitidos: o índice da escola
  * (`escola/<slug>/indice.json`, gerado pelo criar-escola.sh) já os carrega. Os
  * argumentos só vencem quando o índice não existe (criação antiga).
  *
  * Checklist (a norma da limpeza):
+ *   0. AUDITA A PROVENIÊNCIA antes de tocar em nada (07/11/2026) — ver `auditarProveniencia`;
  *   1. verifica «não está a pagar» — o índice carrega a flag; se `pagante:true`, NÃO apaga;
  *   2. `SENHA_<SLUG>` em tools/.senhas-locais;
  *   3. `LOGIN_<SLUG>` no MESMO arquivo — a senha de ACESSO da direção da escola, que é
@@ -44,7 +45,56 @@ const path = require('path');
 // duas cópias da regra divergiriam, e esta decide de QUE PASTA se apagam os arquivos.
 const { responsavelDoInventario } = require('../motor/nucleo/indices.js');
 
+/* A AUDITORIA É A MESMA DAS DUAS METADES (07/11/2026). O `tools/auditar-proveniencia.js` é o
+ * dono da leitura do disco (árvore, âncoras, e as três fases), e esta metade local chama-o em
+ * vez de repetir a lógica: o que se apaga aqui é o que a outra metade apaga lá, e uma auditoria
+ * que discordasse de si mesma não auditava nada. */
+const { auditarEscola } = require('../tools/auditar-proveniencia.js');
+
 const RAIZ = path.resolve(__dirname, '..');
+
+/**
+ * A PROVENIÊNCIA EXISTE, E ESTÁ BEM REGISTADA? (07/11/2026)
+ *
+ * POR QUE ANTES DE APAGAR. O expurgo leva as âncoras (`.fipp`). Se alguma fonte estiver por
+ * ancorar no minuto em que ele corre, o que se perde não é «um arquivo» — é a prova de que
+ * aquilo existiu, e não há como reconstruir a cadeia nem distinguir «nunca foi ancorado» de
+ * «foi ancorado e apagado». A pergunta é feita antes, e a resposta negativa PARA o expurgo:
+ * corrige-se primeiro (reancorar, regerar os índices) e expurga-se depois.
+ *
+ * O `--forcar` existe porque uma auditoria que nunca se pode contrariar torna o expurgo
+ * impossível no estado em que ele mais é preciso — o de uma escola cujo registo se perdeu. Mas
+ * ele NÃO é um interruptor: exige `--motivo`, e o motivo vai para o elo. Quem força, declara.
+ */
+function auditarProveniencia(slug, { forcar, motivoDoForcar }) {
+  const auditoria = auditarEscola(slug, { semFundo: false });
+  const registro = {
+    auditada: auditoria.ok,
+    em: new Date().toISOString(),
+    ancoras: auditoria.ancoras.map((a) => ({ caminho: a.caminho, id: a.id, hash: a.hash, tipo: a.tipo })),
+    fontes: auditoria.fontes.length,
+    impressao: auditoria.impressao,
+    resumo: auditoria.resumo,
+  };
+  if (auditoria.ok) return registro;
+  registro.problemas = auditoria.problemas;
+  if (!forcar) {
+    console.error('recusado: a proveniência da escola "' + slug + '" não está em ordem — nada foi apagado.');
+    for (const p of auditoria.problemas) console.error('  [' + p.codigo + '] ' + p.mensagem);
+    console.error('  corrige e volta a correr: `tools/hash-ciclo.sh <professor> <ciclo> <variante>` para');
+    console.error('  reancorar, `node tools/gerar-indices.js` para o derivado. Se o expurgo tem de');
+    console.error('  avançar sem isto, declara-o: --forcar --motivo "…".');
+    process.exit(1);
+  }
+  if (!motivoDoForcar) {
+    console.error('erro: --forcar exige --motivo "<razão>" — quem força, declara.');
+    process.exit(2);
+  }
+  registro.forcada = motivoDoForcar;
+  console.error('aviso: a proveniência não está em ordem e o expurgo foi FORÇADO: ' + motivoDoForcar);
+  for (const p of auditoria.problemas) console.error('  [' + p.codigo + '] ' + p.mensagem);
+  return registro;
+}
 
 function lerArgs(argv) {
   const slug = argv[0];
@@ -53,7 +103,13 @@ function lerArgs(argv) {
     const i = resto.indexOf(nome);
     return i >= 0 && resto[i + 1] ? resto[i + 1] : null;
   };
-  return { slug, professor: pega('--professor'), ciclo: pega('--ciclo') };
+  return {
+    slug,
+    professor: pega('--professor'),
+    ciclo: pega('--ciclo'),
+    forcar: resto.includes('--forcar'),
+    motivoDoForcar: pega('--motivo'),
+  };
 }
 
 function caminhoDaEscola(slug) {
@@ -147,12 +203,14 @@ function registrarElo(slug, professor, ciclo, relatorio) {
     arquivos: [],
   };
   indice.expurgo = indice.expurgo || [];
-  indice.expurgo.push({
+  const elo = {
     em: new Date().toISOString(),
-    motivo: 'desabilitada + prazo de expurgo vencido',
+    motivo: relatorio.motivo || 'desabilitada + prazo de expurgo vencido',
     apagado: relatorio.apagado,
     naoApagado: relatorio.naoApagado,
-  });
+  };
+  if (relatorio.proveniencia) elo.proveniencia = relatorio.proveniencia;
+  indice.expurgo.push(elo);
   fs.writeFileSync(arq, JSON.stringify(indice, null, 2) + '\n');
   return arq;
 }
@@ -163,7 +221,7 @@ function main() {
     console.error('uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>]');
     process.exit(2);
   }
-  const { slug, professor: profArg, ciclo: cicloArg } = lerArgs(args);
+  const { slug, professor: profArg, ciclo: cicloArg, forcar, motivoDoForcar } = lerArgs(args);
   if (!slug) {
     console.error('erro: informe o slug da escola.');
     process.exit(2);
@@ -198,7 +256,13 @@ function main() {
     process.exit(1);
   }
 
-  const relatorio = { apagado: [], naoApagado: [] };
+  /* 0. A PROVENIÊNCIA, ANTES DE QUALQUER APAGAMENTO — e depois das duas recusas que nada têm a
+   * ver com ela (escola pagante, escola recriada): não vale a pena auditar o que já se decidiu
+   * não apagar. O que se vai apagar são as âncoras, e sem elas não há prova de que a escola
+   * existiu. Falhando aqui, o processo PÁRA — ver `auditarProveniencia`. */
+  const proveniencia = auditarProveniencia(slug, { forcar, motivoDoForcar });
+
+  const relatorio = { apagado: [], naoApagado: [], proveniencia, motivo: motivoDoForcar || undefined };
   const confere = (rotulo, feito) => (feito ? relatorio.apagado : relatorio.naoApagado).push(rotulo);
 
   // O índice (gerado pelo criar-escola.sh) é a fonte da chave da senha e do nome do Worker.
@@ -260,6 +324,9 @@ function main() {
 
   const arqIndice = registrarElo(slug, professor, ciclo, relatorio);
   console.log('expurgado:', slug);
+  console.log('  proveniência:', proveniencia.auditada
+    ? 'auditada — ' + proveniencia.ancoras.length + ' âncora(s) registada(s) no elo'
+    : 'NÃO estava em ordem — o expurgo foi forçado (' + proveniencia.forcada + ')');
   console.log('  apagado:', relatorio.apagado.length ? relatorio.apagado.join(', ') : '(nada)');
   console.log('  não apagado (já não existia):', relatorio.naoApagado.length ? relatorio.naoApagado.join(', ') : '(nada)');
   console.log('  elo registrado em:', path.relative(RAIZ, arqIndice));

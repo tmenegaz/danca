@@ -43,6 +43,11 @@ const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 // `escola/expurgar.js` local usam. Antes desta linha, esta metade do expurgo derivava o dono da
 // ORDEM DA ÁRVORE, e o descompasso deixou o `ciclo-01.conf` de um professor no repositório.
 const { responsavelDoInventario } = require('../nucleo/indices.js');
+const proveniencia = require('../nucleo/proveniencia.js');
+/* O PARSER DO `.fipp` É O MESMO DO ÍNDICE. A âncora tem uma gramática só, e a auditoria que
+ * corre aqui tem de ler exatamente o que o índice lê — senão diria «bem formada» sobre um
+ * arquivo que o índice não entende. */
+const { lerAncora } = require('./indice-acervo.js');
 
 /** A raiz NÃO é escola: ela tem `wrangler.danca.jsonc` e serve a porta de entrada. */
 const NAO_ESCOLAS = new Set(['danca']);
@@ -513,7 +518,7 @@ async function lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }) {
  * expurgada. Um arquivo ganha a entrada nova, ele não é reescrito — a proveniência
  * acrescenta. Criado se não existir (a `maria` não tem índice).
  */
-function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv }) {
+function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv, proveniencia }) {
   let indice = null;
   try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
   if (!indice || typeof indice !== 'object') {
@@ -554,8 +559,70 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
     if (kv.erro) elo.kv.erro = String(kv.erro);
     if (kv.ok !== true) elo.kv.pendente = true;
   }
+  /* A PROVENIÊNCIA QUE EXISTIA, REGISTADA ANTES DE SER APAGADA (07/11/2026).
+   *
+   * Este bloco é o que sobra das âncoras depois do expurgo: o `id` e o `hash` de cada uma, a
+   * contagem de fontes e a IMPRESSÃO do conjunto. As âncoras vão-se; a prova de que existiram e
+   * do que certificavam fica. Sem isto, «expurgada» e «nunca ancorada» passariam a ser a mesma
+   * coisa no registro — e o expurgo deixaria de servir como auditoria da própria cadeia, que é
+   * metade do que ele passou a valer.
+   *
+   * Quando a auditoria FALHOU e alguém forçou o expurgo (`forcada`), os bloqueios vão junto: quem
+   * força, declara, e quem lê o elo meses depois vê o que estava mal naquele dia. */
+  if (proveniencia) {
+    elo.proveniencia = Object.assign({}, proveniencia);
+    /* `auditada` É O CAMPO QUE SE LÊ, e é o único que não pode faltar: quem abre o elo meses
+     * depois pergunta «isto foi conferido?». O chamador pode passar o relatório cru da
+     * auditoria (que diz `ok`) ou já o registo (`auditada`) — as duas formas chegam aqui, e é
+     * aqui que ficam uma só. Duas normalizações divergiriam no dia em que uma mudasse. */
+    if (typeof elo.proveniencia.auditada !== 'boolean') {
+      elo.proveniencia.auditada = elo.proveniencia.ok === true;
+    }
+    delete elo.proveniencia.ok;
+  }
   indice.expurgo.push(elo);
   return JSON.stringify(indice, null, 2) + '\n';
+}
+
+/**
+ * A PROVENIÊNCIA EXISTE, E ESTÁ BEM REGISTADA? — a metade do REPOSITÓRIO (07/11/2026).
+ *
+ * POR QUE ISTO EXISTE, E POR QUE ANTES DE APAGAR. O expurgo leva as âncoras (`.fipp`). Se
+ * alguma fonte estiver por ancorar no minuto em que ele corre, o que se perde não é «um
+ * arquivo»: é a prova de que aquilo existiu — e depois já não há como distinguir «nunca foi
+ * ancorado» de «foi ancorado e apagado». A pergunta é feita ANTES, e a resposta negativa PARA o
+ * expurgo. É a mesma auditoria que o `escola/expurgar.js` local corre e que o
+ * `tools/auditar-proveniencia.js` expõe à mão: `motor/nucleo/proveniencia.js` é o dono da regra,
+ * e uma segunda cópia divergiria na primeira correção.
+ *
+ * O QUE AQUI NÃO SE PODE CONFERIR, e o relatório di-lo (`fases`): o `hash-ciclo.sh --check`, que
+ * recalcula o hash sobre as FONTES VIVAS, e o `gerar-indices --check`. Os dois são subprocessos
+ * de Node num checkout; este código corre no runtime dos Workers. O que fica conferido é a
+ * ESTRUTURA — elo, criação declarada, âncora por variante, cobertura completa, nada citado que
+ * não exista, e os três derivados presentes.
+ *
+ * CUSTO: uma leitura da árvore (que o expurgo já ia fazer) mais uma por âncora da escola — as
+ * âncoras de um ciclo são poucas, e nenhuma é grande.
+ */
+async function auditarProvenienciaDaEscola({ token, dono, repo, ref, slug, caminhos, fetchImpl }) {
+  const arvore = caminhos || await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
+  const caminhoIndice = 'escola/' + slug + '/indice.json';
+  const textoIndice = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
+  let indice = null;
+  try { indice = textoIndice ? JSON.parse(textoIndice) : null; } catch { indice = null; }
+
+  const ancoras = {};
+  for (const a of proveniencia.artefatosDaEscola(slug, arvore).ancoras) {
+    const texto = await lerArquivo({ token, dono, repo, ref, caminho: a.caminho, fetchImpl });
+    if (texto === null) continue;
+    ancoras[a.caminho] = lerAncora(texto);
+  }
+
+  const relatorio = proveniencia.auditar({ slug, caminhos: arvore, indice, ancoras });
+  // AS FASES QUE ESTA METADE NÃO ALCANÇA — ditas, para que ninguém leia «ok» como «o hash
+  // confere». A auditoria de estrutura não é menos rigorosa: é outra, e o nome tem de ser honesto.
+  relatorio.fases = { estrutura: 'feita', ancora: 'nao-recalculada', derivacao: 'nao-conferida' };
+  return relatorio;
 }
 
 /**
@@ -585,7 +652,7 @@ async function apagarEscolaDoRepo(opcoes) {
   return { ok: false, erro: ultimo, expurgoNoRepositorio: 'não entrou depois de 3 tentativas' };
 }
 
-async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, fetchImpl }) {
+async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, proveniencia, fetchImpl }) {
   const f = fetchImpl || fetch;
   if (!slug) throw new Error('informe a escola');
   if (String(confirmacao) !== slug) {
@@ -660,6 +727,7 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
     motivo,
     quando,
     kv,
+    proveniencia,
   });
 
   const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;
@@ -1465,5 +1533,6 @@ module.exports = {
   comElo,
   arvoreDeCaminhos,
   lerArquivo,
+  auditarProvenienciaDaEscola,
   NAO_ESCOLAS,
 };

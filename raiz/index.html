@@ -992,6 +992,43 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 ? "A escola «" + slug + "» saiu do ar e do registro — mas NÃO foi tudo: veja o que sobrou abaixo."
                 : "O expurgo de «" + slug + "» NÃO se completou — o que falhou está abaixo.")));
 
+            // O MOTIVO DA RECUSA, ANTES DE TUDO (07/11/2026). A rota recusa por várias razões —
+            // não há `wrangler.<slug>.jsonc`, a proveniência não está em ordem — e o relatório
+            // só mostrava o que cada metade fez. Sem esta linha, a pessoa via «Cloudflare: não
+            // removido · Worker não apagado» e não sabia por quê.
+            if (d.erro) cx.appendChild(par(d.erro));
+
+            /* A PROVENIÊNCIA — A PRIMEIRA COISA QUE A ROTA VERIFICA (07/11/2026).
+             *
+             * Ela é mostrada ANTES das metades porque é anterior a elas: quando reprova, nada
+             * foi apagado — nem o Worker —, e a lista dos bloqueios é o que há para corrigir.
+             * Quando passa, o que se lê é o que ficou no elo: as âncoras que existiam e a
+             * impressão do conjunto. É a diferença entre «expurgada» e «nunca ancorada». */
+            var prov = d.proveniencia;
+            if (prov) {
+              if (prov.auditada === false) {
+                cx.appendChild(par("Proveniência: NÃO está em ordem — "
+                  + (prov.forcada ? "o expurgo foi FORÇADO («" + prov.forcada + "»)." : "nada foi apagado.")));
+                (prov.problemas || []).forEach(function (p) {
+                  cx.appendChild(par("   [" + p.codigo + "] " + p.mensagem));
+                });
+                if (!prov.forcada) {
+                  cx.appendChild(par("   Corrija primeiro: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`"
+                    + " reancora, `node tools/gerar-indices.js` regera o derivado."));
+                }
+              } else {
+                var quantas = (prov.ancoras || []).length;
+                cx.appendChild(par("Proveniência: conferida — " + quantas + " âncora(s) registada(s) no elo"
+                  + (prov.impressao ? " · impressão " + String(prov.impressao).slice(0, 16) + "…" : "")
+                  + (quantas ? "." : " (não havia fontes a ancorar).")));
+              }
+            }
+
+            // AS DUAS METADES SÓ SE RELATAM QUANDO FORAM TENTADAS (07/11/2026). Quando a
+            // proveniência reprova, a rota pára ANTES do Cloudflare e do repositório: dizer
+            // «subdomínio não removido · Worker não apagado» seria lido como falha das duas
+            // metades, e não é — elas nem chegaram a correr.
+            if (d.cloudflare || d.repositorio) {
             var cf = d.cloudflare || {};
             if (cf.erro) {
               cx.appendChild(par("Cloudflare: " + cf.erro));
@@ -1130,6 +1167,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 a.rel = "noopener";
                 cx.appendChild(a);
               }
+            }
             }
 
             resApagar.appendChild(cx);
