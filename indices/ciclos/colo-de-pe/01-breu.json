@@ -16,8 +16,8 @@
       "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
       "professores/colo-de-pe/ciclos/ciclo-01.conf"
     ],
-    "hash": "2722e5677b88f314190af646903886996e0a59e611e67a7a841eb741e07aedb5",
-    "hash_conteudo": "9ac32c31910c82d44b2c5d679a381a7f01580b26326864e9190160f8f97c7a7a",
+    "hash": "5028d821ee82ac88d6c2f25675e1df261ce4f17b8872e707786b8dc76df644b9",
+    "hash_conteudo": "44b24c636bee3dcf37253e485cadb0f6cdc449943078808d3dccf0546de42452",
     "id": "ciclo-01-breu-sala-rosa",
     "lida": true,
     "parent_hash": ""
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "10fe52c"
+    "commit": "bdede4c"
   },
-  "gerado_em": "2026-11-07T18:02",
+  "gerado_em": "2026-11-07T18:03",
   "id": "ciclo:colo-de-pe/01/breu",
   "professor": "colo-de-pe",
   "versao": 6

@@ -10,8 +10,8 @@
           "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
           "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md"
         ],
-        "hash": "ee32bcb67a1cb5a840d9ee2e0a048a9fbc656a9c2e4969b4c29559d56d063367",
-        "hash_conteudo": "47596c4b3a15d1c1224eca79d8a61ec81e6b623909d4aead1de925c1e29f32e1",
+        "hash": "3857fda768bf481bf5db7999f5b49186e3e522ed4d03c526d6c09d5ceb9edd0c",
+        "hash_conteudo": "82b9e12b614a6308df4dc962a7664518238d87077605d6731cf7d92d86e104b6",
         "id": "ciclo-01-breu-sala-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -41,8 +41,8 @@
           "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
           "professores/colo-de-pe/ciclos/ciclo-01.conf"
         ],
-        "hash": "2722e5677b88f314190af646903886996e0a59e611e67a7a841eb741e07aedb5",
-        "hash_conteudo": "9ac32c31910c82d44b2c5d679a381a7f01580b26326864e9190160f8f97c7a7a",
+        "hash": "5028d821ee82ac88d6c2f25675e1df261ce4f17b8872e707786b8dc76df644b9",
+        "hash_conteudo": "44b24c636bee3dcf37253e485cadb0f6cdc449943078808d3dccf0546de42452",
         "id": "ciclo-01-breu-sala-rosa",
         "lida": true,
         "parent_hash": ""
@@ -57,8 +57,8 @@
               "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
               "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md"
             ],
-            "hash": "ee32bcb67a1cb5a840d9ee2e0a048a9fbc656a9c2e4969b4c29559d56d063367",
-            "hash_conteudo": "47596c4b3a15d1c1224eca79d8a61ec81e6b623909d4aead1de925c1e29f32e1",
+            "hash": "3857fda768bf481bf5db7999f5b49186e3e522ed4d03c526d6c09d5ceb9edd0c",
+            "hash_conteudo": "82b9e12b614a6308df4dc962a7664518238d87077605d6731cf7d92d86e104b6",
             "id": "ciclo-01-breu-sala-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -295,9 +295,9 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 2,
-      "pos": 2,
+      "pos": 3,
       "recortes": 0,
-      "registros": 6
+      "registros": 7
     },
     "criada_em": "2026-11-07T16:03:29.499378+00:00",
     "expurgada": false,
@@ -316,21 +316,23 @@
       "plano:plano-20261107-1314",
       "plano:plano-20261107-1501",
       "po:po-20261107-1315",
-      "po:po-20261107-1501"
+      "po:po-20261107-1501",
+      "po:po-20261107-1502"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "ids": [
           "anamnese:anamnese-20261107-1308",
           "anamnese:anamnese-20261107-1345",
           "plano:plano-20261107-1314",
           "plano:plano-20261107-1501",
           "po:po-20261107-1315",
-          "po:po-20261107-1501"
+          "po:po-20261107-1501",
+          "po:po-20261107-1502"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -349,7 +351,7 @@
     ],
     "professores": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "ids": [
           "anamnese:anamnese-20261107-1308",
           "anamnese:anamnese-20261107-1345",
@@ -357,7 +359,8 @@
           "plano:plano-20261107-1314",
           "plano:plano-20261107-1501",
           "po:po-20261107-1315",
-          "po:po-20261107-1501"
+          "po:po-20261107-1501",
+          "po:po-20261107-1502"
         ],
         "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
@@ -391,10 +394,11 @@
         "valor": "plano"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "po:po-20261107-1315",
-          "po:po-20261107-1501"
+          "po:po-20261107-1501",
+          "po:po-20261107-1502"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -403,9 +407,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "10fe52c"
+    "commit": "bdede4c"
   },
-  "gerado_em": "2026-11-07T18:02",
+  "gerado_em": "2026-11-07T18:03",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -491,6 +495,16 @@
       "ciclo": "01",
       "data": "2026-11-07T15:01",
       "id": "po:po-20261107-1501",
+      "professor": "colo-de-pe",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261107-1501",
+      "ano": "2026",
+      "carimbo": "po-20261107-1502",
+      "ciclo": "01",
+      "data": "2026-11-07T15:02",
+      "id": "po:po-20261107-1502",
       "professor": "colo-de-pe",
       "tipo": "po"
     }
