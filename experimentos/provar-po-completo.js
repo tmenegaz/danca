@@ -375,18 +375,22 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
      * do ciclo e genérico; o molde é `modelo/ciclos/`, de onde `criar-escola.sh` copia o de cada
      * um. O que se valida é o CONTRATO. */
     path.join(RAIZ, 'modelo/ciclos/ciclo-01-captura-schema.json'), 'utf8'));
-  const comDerivada = JSON.parse(JSON.stringify(schemaCaptura));
-  comDerivada._declaracao.porVariante = { provaderivada: declaracao };
+  /* A DECLARAÇÃO VAI NO ARQUIVO DELA (07/11/2026), como em produção: `--declaracao`. O schema é
+   * o MOLDE, sem dado de escola nenhum — é essa a separação que a mudança de casa criou, e uma
+   * prova que ainda a injetasse no schema mediria o caminho antigo. */
   const caminhoFolha = path.join(os.tmpdir(), `folha-derivada-${process.pid}.md`);
   const caminhoSchema = path.join(os.tmpdir(), `schema-derivado-${process.pid}.json`);
+  const caminhoDeclaracao = path.join(os.tmpdir(), `declaracao-derivada-${process.pid}.json`);
   fs.writeFileSync(caminhoFolha, folha);
-  fs.writeFileSync(caminhoSchema, JSON.stringify(comDerivada));
+  fs.writeFileSync(caminhoSchema, JSON.stringify(schemaCaptura));
+  fs.writeFileSync(caminhoDeclaracao, JSON.stringify(declaracao));
   const saida = execFileSync(process.execPath,
     [path.join(RAIZ, 'tools/validar-captura-ciclo.js'), caminhoSchema, caminhoFolha,
-      '--variante', 'provaderivada'],
+      '--variante', 'provaderivada', '--declaracao', caminhoDeclaracao],
     { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   fs.rmSync(caminhoFolha, { force: true });
   fs.rmSync(caminhoSchema, { force: true });
+  fs.rmSync(caminhoDeclaracao, { force: true });
   assert.ok(/OK: 0 erro/.test(saida),
     'a folha derivada tem de passar no validador da captura:\n' + saida);
   ok('a folha derivada do PO passa pelo `validar-captura-ciclo.js` (0 erros)');

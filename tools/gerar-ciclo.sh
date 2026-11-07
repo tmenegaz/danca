@@ -604,11 +604,18 @@ PY
 # variante vence a compartilhada. O `[ -f ]` é obrigatório: `fonte_md` devolve caminho mesmo quando
 # o arquivo não existe, e o NN pode ter entrado no glob pela folha de OUTRA escola.
 CAP_SCHEMA="$CICLOS/ciclo-$CICLO-captura-schema.json"
+# A DECLARAÇÃO DA CAPTURA MORA COM A VARIANTE (07/11/2026), não no schema: o schema é cópia do
+# molde e o expurgo preserva-o, e por isso a declaração de uma escola sobrevivia à escola. O
+# caminho é o mesmo que `motor/servidor/escrever-ciclo.js` grava
+# (`caminhoDaDeclaracaoDeCaptura`), e é reconhecido pelo expurgo (`ehArquivoDaEscola`).
+CAP_DECLARACAO="$CICLOS/ciclo-$CICLO-$VARIANTE-captura-declaracao.json"
+CAP_DECL_ARGS=()
+[ -f "$CAP_DECLARACAO" ] && CAP_DECL_ARGS=(--declaracao "$CAP_DECLARACAO")
 for cap_nn in $(familias_por_aula captura-aula); do
   cap_src="$(fonte_md "captura-aula-$cap_nn")"
   [ -f "$cap_src" ] || continue
   node "$RAIZ/tools/validar-captura-ciclo.js" "$CAP_SCHEMA" "$cap_src" \
-    --variante "$VARIANTE" --json > "$PACOTE/captura-aula-$cap_nn.json" \
+    --variante "$VARIANTE" "${CAP_DECL_ARGS[@]}" --json > "$PACOTE/captura-aula-$cap_nn.json" \
     || { echo "erro: a folha de captura da aula $cap_nn não fechou com o schema (captura-aula-$cap_nn.json) — veja o relatório acima." >&2; exit 1; }
 done
 

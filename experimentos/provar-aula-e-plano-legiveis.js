@@ -236,23 +236,21 @@ function principal() {
   const folha = derivarCaptura({ po: PO, contexto: CONTEXTO });
   const mdCaptura = escrever('captura.md', folha.markdown || folha);
   const declaracao = declaracaoDeCaptura({ po: PO, escola: 'Batata' });
-  // O schema em disco é o das variantes reais; para esta prova, a declaração é a que o PO desta
-  // prova produz — é a mesma que o «Guardar» grava no schema.
-  //
-  // O schema em disco é o das variantes reais (`professorDeProva`, no topo): a variante que
-  // interessa é a que esta prova acrescenta (`prova-legiveis`), e a base vem de quem existe.
+  /* A DECLARAÇÃO DA VARIANTE TEM ARQUIVO PRÓPRIO (07/11/2026) — e é por `--declaracao` que o
+   * validador a lê, exactamente como o `gerar-ciclo.sh` faz. O schema vai o de um professor real
+   * (`professorDeProva`, no topo), que desde a migração é igual ao molde: sem dado de escola.
+   * A prova que injetasse a declaração no schema estaria a medir o caminho antigo. */
   const schemaDaProva = JSON.parse(fs.readFileSync(
     path.join(RAIZ, `professores/${PROFESSOR}/ciclos/ciclo-01-captura-schema.json`), 'utf8'));
-  schemaDaProva._declaracao = schemaDaProva._declaracao || {};
-  schemaDaProva._declaracao.porVariante = schemaDaProva._declaracao.porVariante || {};
-  schemaDaProva._declaracao.porVariante['prova-legiveis'] = declaracao;
   const caminhoSchema = escrever('captura-schema.json', JSON.stringify(schemaDaProva, null, 2) + '\n');
+  const caminhoDeclaracao = escrever('captura-declaracao.json', JSON.stringify(declaracao, null, 2) + '\n');
   // `validar()` resolve o schema por `path.join(RAIZ, schema)` — aqui o schema é um TEMPORÁRIO, e
   // por isso a chamada é directa: o caminho absoluto não passa pela raiz do repositório.
   const vCaptura2 = (() => {
     try {
       const saida = execFileSync(process.execPath, [
         path.join(RAIZ, 'tools/validar-captura-ciclo.js'), caminhoSchema, mdCaptura, '--variante', 'prova-legiveis',
+        '--declaracao', caminhoDeclaracao,
       ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
       return { codigo: 0, saida };
     } catch (e) {

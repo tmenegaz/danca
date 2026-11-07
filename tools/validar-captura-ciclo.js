@@ -206,14 +206,20 @@ function main() {
   // `--variante <slug>` tem valor: não pode cair no balde dos posicionais.
   const posicionais = [];
   let variante = '';
+  /* A DECLARAÇÃO TEM ARQUIVO PRÓPRIO (07/11/2026). Ela nasceu dentro do schema — cópia do molde
+   * que o expurgo preserva —, e por isso sobrevivia à escola que a produziu. Passa a ser um
+   * `ciclo-NN-<variante>-captura-declaracao.json` ao lado das fontes, que o expurgo apaga com
+   * elas. `--declaracao` é opcional: sem ele, tudo o que existia continua a ler-se do schema. */
+  let caminhoDeclaracao = '';
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--variante') { variante = args[i + 1] || ''; i++; continue; }
+    if (args[i] === '--declaracao') { caminhoDeclaracao = args[i + 1] || ''; i++; continue; }
     if (!args[i].startsWith('--')) posicionais.push(args[i]);
   }
   const [caminhoSchema, caminhoCaptura] = posicionais;
   if (!caminhoSchema || !caminhoCaptura) {
     console.error('uso: node tools/validar-captura-ciclo.js <schema.json>'
-      + ' <ciclo-XX-<escola>-captura-aula-NN.md> [--variante <slug>] [--json]');
+      + ' <ciclo-XX-<escola>-captura-aula-NN.md> [--variante <slug>] [--declaracao <arquivo.json>] [--json]');
     return 2;
   }
 
@@ -239,7 +245,19 @@ function main() {
 
   const meta = lerYamlCabecalho(linhas);
   const declaracao = schema._declaracao || null;
-  const porVariante = (declaracao && declaracao.porVariante) || {};
+  let porVariante = (declaracao && declaracao.porVariante) || {};
+  let declaracaoDoArquivo = null;
+  if (caminhoDeclaracao) {
+    try {
+      declaracaoDoArquivo = JSON.parse(fs.readFileSync(caminhoDeclaracao, 'utf8'));
+    } catch (e) {
+      console.error(`erro: não consegui ler a declaração ${caminhoDeclaracao} (${e.message})`);
+      return 1;
+    }
+    /* O ARQUIVO MANDA, E O SCHEMA É O RECURSO. A forma do arquivo é a da entrada antiga
+     * (`{ escola, blocos }`), para o resto deste validador não saber que a casa mudou — e a
+     * escolha é feita em `decl`, abaixo, sem depender de a variante vir no `--variante`. */
+  }
   const avisos = [];
 
   // QUAL variante: o `--variante` manda (é o que o gerador passa, do VARIANTE do .conf). Sem ele,
@@ -253,9 +271,10 @@ function main() {
     else if (declaracao) avisos.push(`nenhuma variante declara a escola '${meta.escola}':`
       + ' as colunas saem sem chave — declare-a no _declaracao.porVariante');
   }
-  const decl = porVariante[variante] || null;
-  if (declaracao && variante && !decl) {
-    avisos.push(`a variante '${variante}' não está declarada no schema`);
+  // O ARQUIVO DA VARIANTE VENCE (07/11/2026); o schema responde por quem ainda não o tem.
+  const decl = declaracaoDoArquivo || porVariante[variante] || null;
+  if (declaracao && variante && !decl && !declaracaoDoArquivo) {
+    avisos.push(`a variante '${variante}' não está declarada no schema nem tem declaração própria`);
   }
   if (decl && decl.escola && decl.escola !== (meta.escola || '')) {
     avisos.push(`a declaração da variante '${variante}' diz escola '${decl.escola}' e a folha diz`

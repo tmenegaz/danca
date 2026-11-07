@@ -45,7 +45,11 @@ const CONF = [
   'DIAS="segunda 18:00"',
 ].join('\n') + '\n';
 
-const SCHEMA = JSON.stringify({ _declaracao: { porVariante: {} } }, null, 2);
+/* O SCHEMA MIGRADO (07/11/2026): sem `porVariante`. A declaração da variante passou a ser um
+ * arquivo próprio (`ciclo-NN-<variante>-captura-declaracao.json`), e o schema voltou a ser o
+ * molde. O fixture reflete o estado de PRODUÇÃO — um schema que ainda carregasse declarações
+ * faria o escritor limpá-lo, e a prova mediria uma migração que já não acontece. */
+const SCHEMA = JSON.stringify({ _declaracao: { _nota: 'a declaração da variante tem arquivo próprio' } }, null, 2);
 
 /**
  * O GitHub falso: serve o `.conf` e o schema de captura, responde 404 ao resto das fontes (é o
@@ -125,9 +129,9 @@ async function principais() {
       porContents.length === 0, porContents.map((c) => c.url));
     conferir('…e UM único commit', commits.length === 1, commits.length);
     conferir('…com as OITO gravações na mesma árvore', inventario.arquivos.length === 8, inventario.arquivos);
-    conferir('…incluindo o `.conf` e o schema de captura',
+    conferir('…incluindo o `.conf` e a declaração da variante',
       inventario.arquivos.some((p) => /\.conf$/.test(p))
-        && inventario.arquivos.some((p) => /captura-schema\.json$/.test(p)), inventario.arquivos);
+        && inventario.arquivos.some((p) => /-captura-declaracao\.json$/.test(p)), inventario.arquivos);
     conferir('…e o pai do commit é a referência lida', inventario.commit && inventario.commit.parents[0] === 'c0',
       inventario.commit && inventario.commit.parents);
     conferir('…sobre a `base_tree` lida (o que impede apagar o resto do repositório)',
@@ -139,13 +143,14 @@ async function principais() {
     conferir('o relatório traz o commit', relatorio.commit && relatorio.commit.ok === true, relatorio.commit);
     conferir('…com o número de arquivos', relatorio.commit && relatorio.commit.arquivos === 8, relatorio.commit);
     // SEIS no relatório (as cinco fontes derivadas + a cópia cifrada) e OITO no commit (mais o
-    // `.conf` e o schema de captura, que não são «escritas» para o relatório mas são gravações).
+    // `.conf` e a declaração da variante, que não são «escritas» para o relatório mas são
+    // gravações).
     conferir('…e as seis escritas do relatório com `ok` (dito só depois de o repositório aceitar)',
       relatorio.escritas.length === 6 && relatorio.escritas.every((e) => e.ok === true),
       relatorio.escritas.map((e) => e.ok));
     conferir('o `.conf` foi composto e gravado', relatorio.docs && relatorio.docs.ok === true, relatorio.docs);
     conferir('a cópia cifrada foi gravada', relatorio.cifrado && relatorio.cifrado.ok === true, relatorio.cifrado);
-    conferir('a variante foi declarada no schema de captura',
+    conferir('a variante foi declarada no arquivo da variante',
       relatorio.schema && relatorio.schema.ok === true, relatorio.schema);
   }
 

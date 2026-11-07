@@ -57,6 +57,34 @@ function caminhoDoSchemaDeCaptura(contexto) {
   return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-captura-schema.json';
 }
 
+/**
+ * O CAMINHO DA DECLARAÇÃO DA CAPTURA — por VARIANTE, ao lado das fontes dela (07/11/2026).
+ *
+ * PORQUE SAIU DO SCHEMA. A declaração (`{ escola, blocos }` — o par rótulo ↔ chave e o tipo de
+ * cada coluna) nasceu dentro do `ciclo-NN-captura-schema.json`, que é uma CÓPIA do molde e que o
+ * expurgo PRESERVA de propósito: «os schemas não se apagam, são o modelo de que nasce escola
+ * nova». O resultado era dado de ESCOLA a viver num ficheiro que sobrevive à escola — e o preço
+ * foi medido a 20/10/2026, quando a entrada de uma ronda antiga sobreviveu ao expurgo da `batata`
+ * e contradisse o PO novo (a geração parou em «coluna da folha não declarada no schema»). O
+ * remédio de então foi um merge; o remédio certo é a casa.
+ *
+ * A CASA É A DAS FONTES DA VARIANTE. `professores/<prof>/ciclos/ciclo-NN-<variante>-*` é o
+ * endereço que o expurgo já reconhece (`ehArquivoDaEscola`), e por isso a declaração passa a sair
+ * com a escola, sem exceção nenhuma a lembrar. O schema volta a ser cópia exata do molde, e o
+ * `check-schemas.js` compara-o como compara os outros quatro.
+ */
+function caminhoDaDeclaracaoDeCaptura(contexto) {
+  const professor = String(contexto.professor || '').trim();
+  const ciclo = String(contexto.ciclo || '').trim().padStart(2, '0');
+  const variante = varianteDoContexto(contexto);
+  if (!professor || !ciclo || !variante) {
+    throw new Error('contexto incompleto para a declaração da captura: precisa de professor,'
+      + ' ciclo e escola');
+  }
+  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante
+    + '-captura-declaracao.json';
+}
+
 /** Lê um arquivo remoto (GET). Devolve `{ existe, sha, texto }`; `existe:false` em 404. */
 async function lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl }) {
   const f = fetchImpl || fetch;
@@ -620,9 +648,9 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         if (relatorio.contexto) relatorio.contexto.gravado = ok;
       });
     }
-
-    // 5. Declara a variante no schema de captura, se ainda não declarada.
+    // 5. Declara a variante na DECLARAÇÃO DA CAPTURA — o arquivo da variante, não o schema.
     const schemaPath = caminhoDoSchemaDeCaptura(ctx);
+    const declaracaoPath = caminhoDaDeclaracaoDeCaptura(ctx);
     const schema = await lerArquivoRemoto({ token, dono, repo, ref, caminho: schemaPath, fetchImpl });
     if (!schema.existe) {
       relatorio.schema = { ok: false, erro: 'schema de captura não encontrado em ' + schemaPath };
@@ -632,7 +660,6 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       if (!dados || !dados._declaracao) {
         relatorio.schema = { ok: false, erro: 'schema de captura sem `_declaracao`' };
       } else {
-        const porVariante = dados._declaracao.porVariante || (dados._declaracao.porVariante = {});
         /*
          * A CHAVE É A VARIANTE, NÃO A ESCOLA (19/10/2026).
          *
@@ -643,9 +670,6 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
          * e o validador recusava: «bloco da folha não declarado no schema». É o mesmo engano
          * do disparo (`disparar.js`), que mandava a escola onde o gerador queria a variante —
          * e é por isso que os dois estão juntos: um sem o outro não gera nada.
-         *
-         * As chaves antigas (as escolas de uma turma só: `maria`, `diaghilev`) continuam
-         * válidas — nelas `varianteDoContexto` devolve a própria escola. Nada a migrar.
          */
         const slug = varianteDoContexto(ctx) || String(ctx.escola || '').trim();
         /*
@@ -665,18 +689,41 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
          */
         const derivada = declaracaoDeCaptura({ po, plano,
           escola: ctx.escolaNome || escolaNome });
-        const jaDeclarada = Boolean(porVariante[slug]);
-        const nova = mesclarDeclaracao(porVariante[slug], derivada);
-        if (!precisaGravar(porVariante[slug], nova)) {
+        /*
+         * O ARQUIVO DA VARIANTE É A FONTE (07/11/2026), E O SCHEMA É LIMPO NO MESMO COMMIT.
+         *
+         * Ele é lido primeiro. A entrada antiga no schema serve de base ao merge enquanto houver
+         * escolas anteriores a esta mudança, e é RETIRADA no mesmo commit — migração que não
+         * deixa duas verdades. Um schema que ainda declare variantes de OUTRAS escolas é limpo
+         * delas também: são fantasmas de escolas que o expurgo já levou, e é exatamente o lixo
+         * que esta mudança existe para não voltar a acumular.
+         */
+        const anteriorNoSchema = (dados._declaracao.porVariante || {})[slug];
+        const arquivoDaDeclaracao = await lerArquivoRemoto({
+          token, dono, repo, ref, caminho: declaracaoPath, fetchImpl,
+        });
+        let anteriorNoArquivo = null;
+        if (arquivoDaDeclaracao.existe) {
+          try { anteriorNoArquivo = JSON.parse(arquivoDaDeclaracao.texto); } catch { anteriorNoArquivo = null; }
+        }
+        const anterior = anteriorNoArquivo || anteriorNoSchema || null;
+        const jaDeclarada = Boolean(anterior);
+        const nova = mesclarDeclaracao(anterior, derivada);
+
+        if (dados._declaracao.porVariante) {
+          delete dados._declaracao.porVariante;
+          juntar(schemaPath, JSON.stringify(dados, null, 2) + '\n', () => {});
+        }
+
+        if (!precisaGravar(anterior, nova)) {
           relatorio.schema = {
             ok: true,
             nota: jaDeclarada ? 'variante ' + slug + ' já declarada, e em dia' : 'sem declaração',
           };
         } else {
-          porVariante[slug] = nova;
-          // A DECLARAÇÃO DO SCHEMA entra no MESMO commit das fontes. Ela é o último passo que
-          // valida o pacote, e separá-la era a mesma coisa que escrever o ciclo em duas metades.
-          juntar(schemaPath, JSON.stringify(dados, null, 2) + '\n', (ok) => {
+          // A DECLARAÇÃO entra no MESMO commit das fontes. Ela é o último passo que valida o
+          // pacote, e separá-la era a mesma coisa que escrever o ciclo em duas metades.
+          juntar(declaracaoPath, JSON.stringify(nova, null, 2) + '\n', (ok) => {
             relatorio.schema = { ok, actualizada: jaDeclarada };
           });
           // Ainda NÃO está gravado: o `ok` é decidido no commit único, no fim. Dizer `true` aqui
@@ -721,6 +768,7 @@ module.exports = {
   criarEscritorDeCiclo,
   caminhoDaFonte,
   caminhoDoSchemaDeCaptura,
+  caminhoDaDeclaracaoDeCaptura,
   calibracaoDoConf,
   docsGerados,
   docsAtuais,
