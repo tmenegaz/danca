@@ -4027,6 +4027,18 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A nomenclatura de Pedagogia mudou: «Elenco» passou a «Audição» e «Verbetes da
+  notação» a «Estilo».** É ajuste de **rótulo**, não de modelo: a secção onde o professor faz a
+  seleção e a configuração chama-se agora **Audição**, e a que define os exercícios que conduzem o
+  elenco ao domínio de um estilo chama-se **Estilo**. A **entidade continua a chamar-se elenco** —
+  o campo do formulário é «Nome do elenco», o da Turma é «Elenco», e a lista dentro da Audição
+  passou a «Audições»; a lista dentro do Estilo ficou «Exercícios com verbete», porque «verbete» é
+  a ficha da notação e não o nome da secção. Na **Turma**, o antigo «conteúdo da aula» passou a
+  **«Conteúdo do Estilo»**; a seleção (Elenco, Sala, Nível, Grau, Tradição, Modalidade, Professor)
+  não mudou. Os `id` das secções ficaram (`#corpo`, `#verbetes`, `#curadorias`) — são âncoras de
+  link e de prova. **CONFIRMADO** no código (`motor/servidor/bastidores.js`); a conferência ao ar
+  fica para o deploy. O porquê e o alcance estão na entrada de 07/11/2026 do `REGISTRO.md`.
+
 - **05/11/2026** — **Nasceu o índice do recorte (o passo 4), e com ele os pontos cegos do olhar.** O
   recorte mora no KV, e por isso o índice é da família **VIVA** (`PLANO-INDICES.md` §4.5 e a nova
   §4.12), não de `indices/`: o gerador do acervo não alcança o KV, e pô-lo lá seria uma segunda fonte.

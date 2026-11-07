@@ -39383,3 +39383,51 @@ abrir o passo 2 em jsdom e ler o estado vazio, o texto e o `href` da ligação) 
 exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
 separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
 mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
+
+## 07/11/2026 — «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
+
+**O que motivou.** A nomenclatura de Pedagogia tinha ficado a meio. As três secções diziam o que
+acontece («Salas», «Elenco», «Verbetes da notação», «Turmas»), mas duas delas diziam-no pelo NOME DO
+OBJETO e não pelo ATO: o professor não «faz elenco», ele **faz a audição** — escolhe os corpos, lê
+os retratos, recorta. E o espaço dos exercícios não é um glossário de sinais: é onde se define **o
+que conduz o elenco ao domínio de um estilo**. O rótulo «Verbetes da notação» descrevia a ficha, não
+a secção.
+
+**O que foi decidido.**
+
+1. **Menu e títulos das secções:** «Elenco» → **Audição**; «Verbetes da notação» → **Estilo**. As
+   duas trocas são de rótulo, no menu da Pedagogia e no `<h2>` de cada secção.
+2. **A ENTIDADE CONTINUA A CHAMAR-SE ELENCO.** O campo do formulário é «Nome do elenco», o da Turma
+   é «Elenco», e o professor responsável mantém o seu rótulo. A Audição é o ATO; o elenco é o que
+   fica dele. Renomear os campos teria partido a frase que organiza o modelo — «cada sala recebe um
+   elenco, formando assim uma turma em funcionamento» —, e a nomenclatura pedida é a dos menus e dos
+   títulos, não a dos dados.
+3. **A lista dentro da Audição acompanha** (`<h3>Audições</h3>`, e o estado vazio «nenhuma audição
+   ainda»): ela é o produto do ato que dá nome à secção. **A lista dentro do Estilo NÃO acompanha** —
+   «Exercícios com verbete» fica, porque «verbete» é a ficha da notação e não o nome da secção.
+   Mesma regra para os textos de ajuda que dizem «abrir este verbete no formulário»: são sobre a
+   ficha.
+4. **Na Turma, «Conteúdo da aula» → «Conteúdo do Estilo».** O campo não mudou de lugar nem de
+   conteúdo: é a lista de exercícios que a turma declara, e o nome estava a chamar «aula» ao que a
+   Turma guarda. A seleção (Elenco, Sala, Nível, Grau, Tradição, Modalidade, Professor) não foi
+   tocada.
+5. **Os `id` das secções ficaram** (`#corpo`, `#verbetes`, `#curadorias`). São âncoras de link e de
+   prova — mudá-los partiria atalhos e provas sem mudar nada do que se lê. A barra de sessão (`S5`)
+   lê o texto do menu, portanto acompanha sozinha: não há segunda fonte do nome da página.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o menu da Pedagogia, os dois `<h2>`, o `<h3>` e o
+estado vazio da lista, o rótulo da Turma) · `experimentos/provar-salas-e-elencos.js` (a secção D —
+16 asserções novas, que medem o rótulo novo E a permanência do vocabulário de dados) ·
+`ESTADO-ATUAL.md` (§11, entrada nova; a de 28/10/2026 não se reescreve — o histórico acrescenta).
+
+**Validação.** `provar-salas-e-elencos` **50/50** · `provar-producao` **166/166** ·
+`provar-linha-de-base` **102/102** · `provar-acordeoes` **verde** · `provar-celular` **15/15** ·
+`check-identidade` **21 verificações, 0 erros** · `provar-cartao-da-turma` **2 falhas, as duas
+anteriores** · `provar-barra-unica` **3 falhas, as três anteriores** (medidas com `git stash` na
+mesma árvore) · `wrangler deploy --dry-run` da raiz **e do Worker de escola** (com o diretório de
+assets substituído por um vazio, porque `publicacao/breu` não é versionado) — os dois compilam.
+
+**O que ainda não está feito.** A conferência ao ar fica para o deploy: o rótulo é do HTML servido,
+e as provas leem o HTML servido, mas o «ao ar» só se confirma depois de publicado. E o `IDEIA-
+PAINEL-ESCOLA.md` e o `PLANEJAMENTO-LASTRO.md` continuam a dizer «Verbetes da notação» — são
+documentos de ideia e de percurso, e reescrevê-los seria reescrever o passado, não a fotografia.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T11:25:18-0300`
-Commit atual: `d9c8adba` — docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
+Gerado em: `2026-11-07T11:40:48-0300`
+Commit atual: `87295a33` — fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,6 +70,11 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
+87295a33 fix(estrutura): «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
+98b82752 chore(estrutura): regerar os índices derivados
+a53ef798 feat(acervo): envelope/anamnese-20261107-1133.json
+e9363143 feat(acervo): envelope/.indice.json
+1ea51ab9 fix(tools): a impressão da proveniência usa a Web Crypto, e o Worker volta a compilar
 d9c8adba docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
 b5cf7636 fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
 e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e guarda-a no elo
@@ -85,11 +90,6 @@ c451a967 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 38796150 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 c5d79e6f feat(schema): os schemas do ciclo na pasta de colo-de-pe
 3e4dff1e feat(schema): os schemas do ciclo na pasta de colo-de-pe
-c4cc6d50 feat(schema): os schemas do ciclo na pasta de colo-de-pe
-7fe65a58 chore(estrutura): regerar os índices derivados
-37267f5e feat(acervo): envelope/.indice.json
-ae3222d2 feat(estrutura): criar a escola breu (motor completo)
-5da88620 fix(schema): o molde deixa de carregar escolas dentro, e a captura perde a exceção
 ```
 
 ## Por professor
@@ -159,71 +159,55 @@ ae3222d2 feat(estrutura): criar a escola breu (motor completo)
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O passo 2 do Elenco diz o que falta, e leva lá
+## 07/11/2026 — «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
 
-**O que motivou.** «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam anamnese
-preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» O que havia era um
-travessão — «— nenhuma aluna com anamnese.» — dentro da caixa das alunas. E, pior, o painel do passo
-2 **não abria**: a trava estava certa (sem retrato não há corpo para recortar) mas escondia a sua
-própria razão. Uma trava que esconde a razão de estar fechada não trava: tranca.
+**O que motivou.** A nomenclatura de Pedagogia tinha ficado a meio. As três secções diziam o que
+acontece («Salas», «Elenco», «Verbetes da notação», «Turmas»), mas duas delas diziam-no pelo NOME DO
+OBJETO e não pelo ATO: o professor não «faz elenco», ele **faz a audição** — escolhe os corpos, lê
+os retratos, recorta. E o espaço dos exercícios não é um glossário de sinais: é onde se define **o
+que conduz o elenco ao domínio de um estilo**. O rótulo «Verbetes da notação» descrevia a ficha, não
+a secção.
 
 **O que foi decidido.**
 
-1. **O passo 2 deixa-se LER quando não há um único retrato.** `podeVerPasso` separa VER de AVANÇAR:
-   a excepção é o passo 2 numa escola sem anamnese nenhuma — é o único estado em que o painel não
-   tem lista para mostrar (não há aluna para listar) e tem tudo para explicar. A regra de sempre
-   continua a valer para tudo o resto, incluindo o passo 2 quando há anamnese e falta o nome. Os
-   passos 3 e 4 continuam fechados: eles leem retratos, e abri-los sobre uma lista vazia seria uma
-   tabela sobre ninguém. O botão que abre só para ler ganha um `title` próprio («Abre para explicar
-   o que falta»), em vez de ficar aceso e mudo.
-2. **O estado vazio NOMEIA, EXPLICA, DIZ A REGRA e LEVA LÁ.** «Nenhuma aluna com anamnese», a razão
-   de ser obrigatória (o corpo que se recorta É o das alunas), a regra de avanço (uma basta), o
-   vínculo para a Área do Professor — e a garantia de que o elenco nomeado não se perde. As peças
-   são as da casa: `.aviso.alerta`, `a.acao.secundario.pequena`, `.par-botoes`, `.sub`. Nenhuma
-   classe nova, nenhuma regra de folha.
-3. **O endereço da anamnese vem do servidor.** `urlDaPorta('/anamnese/', contexto)`, a mesma função
-   do menu, com professor e escola na query. Uma segunda cópia escrita à mão no cliente apontaria
-   para outra escola no dia em que o contexto mudasse.
-4. **A volta é automática.** A anamnese vive outra página; voltar dela recarregava a Produção e a
-   lista continuava vazia — o professor via «nenhuma aluna com anamnese» depois de ter feito
-   exactamente o que lhe pediram. A secção passa a reler a lista quando a janela reganha o foco
-   (`visibilitychange` e `focus`), e só quando não há retrato nenhum: é o único estado em que a
-   resposta muda o que está no ecrã, e não se gasta um pedido por nada. O que ele escreveu não é
-   pisado — `pintarAlunas` recebe as marcações de agora, e o passo em que estava fica onde está.
-5. **A razão de não avançar está à vista.** O motivo de o «Seguir» estar apagado vivia num `title`,
-   que não aparece no telemóvel e só se lê com o rato em cima. Passa a haver uma linha (`#lb-seguir-nota`)
-   com a mesma frase, que só existe quando o botão está visível e há falta.
-6. **Uma falta não se conta duas vezes.** `faltasAntesDeLb` deduplica, e o passo 2 pede a anamnese
-   OU a aluna, não as duas — a mensagem saía «falta a anamnese de pelo menos uma aluna, pelo menos
-   uma aluna», que é o mesmo pedido dito duas vezes.
+1. **Menu e títulos das secções:** «Elenco» → **Audição**; «Verbetes da notação» → **Estilo**. As
+   duas trocas são de rótulo, no menu da Pedagogia e no `<h2>` de cada secção.
+2. **A ENTIDADE CONTINUA A CHAMAR-SE ELENCO.** O campo do formulário é «Nome do elenco», o da Turma
+   é «Elenco», e o professor responsável mantém o seu rótulo. A Audição é o ATO; o elenco é o que
+   fica dele. Renomear os campos teria partido a frase que organiza o modelo — «cada sala recebe um
+   elenco, formando assim uma turma em funcionamento» —, e a nomenclatura pedida é a dos menus e dos
+   títulos, não a dos dados.
+3. **A lista dentro da Audição acompanha** (`<h3>Audições</h3>`, e o estado vazio «nenhuma audição
+   ainda»): ela é o produto do ato que dá nome à secção. **A lista dentro do Estilo NÃO acompanha** —
+   «Exercícios com verbete» fica, porque «verbete» é a ficha da notação e não o nome da secção.
+   Mesma regra para os textos de ajuda que dizem «abrir este verbete no formulário»: são sobre a
+   ficha.
+4. **Na Turma, «Conteúdo da aula» → «Conteúdo do Estilo».** O campo não mudou de lugar nem de
+   conteúdo: é a lista de exercícios que a turma declara, e o nome estava a chamar «aula» ao que a
+   Turma guarda. A seleção (Elenco, Sala, Nível, Grau, Tradição, Modalidade, Professor) não foi
+   tocada.
+5. **Os `id` das secções ficaram** (`#corpo`, `#verbetes`, `#curadorias`). São âncoras de link e de
+   prova — mudá-los partiria atalhos e provas sem mudar nada do que se lê. A barra de sessão (`S5`)
+   lê o texto do menu, portanto acompanha sozinha: não há segunda fonte do nome da página.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (o estado vazio, `podeVerPasso`, a tira, a nota do
-«Seguir», `haRetratoNovo`, `faltasAntesDeLb`) · `experimentos/provar-salas-e-elencos.js` (21 → 34
-asserções) · `experimentos/provar-linha-de-base.js` (a asserção do passo 2 passa a medir a regra
-nova, e mede o que se lê lá dentro).
+**Onde entrou.** `motor/servidor/bastidores.js` (o menu da Pedagogia, os dois `<h2>`, o `<h3>` e o
+estado vazio da lista, o rótulo da Turma) · `experimentos/provar-salas-e-elencos.js` (a secção D —
+16 asserções novas, que medem o rótulo novo E a permanência do vocabulário de dados) ·
+`ESTADO-ATUAL.md` (§11, entrada nova; a de 28/10/2026 não se reescreve — o histórico acrescenta).
 
-**Validação.** `provar-salas-e-elencos` **34/34** · `provar-linha-de-base` **102/102** (inclui
-abrir o passo 2 em jsdom e ler o estado vazio, o texto e o `href` da ligação) · `provar-producao`
-**166/166** · `provar-celular` **15/15** · `provar-cartao-da-turma` **2 falhas, as duas anteriores** ·
-`check-identidade` **0 erros** (a checagem 8 «Peça» incluída, com os pacotes) · `check-indices`
-**16/16** · `gerar-indices --check` **0**.
+**Validação.** `provar-salas-e-elencos` **50/50** · `provar-producao` **166/166** ·
+`provar-linha-de-base` **102/102** · `provar-acordeoes` **verde** · `provar-celular` **15/15** ·
+`check-identidade` **21 verificações, 0 erros** · `provar-cartao-da-turma` **2 falhas, as duas
+anteriores** · `provar-barra-unica` **3 falhas, as três anteriores** (medidas com `git stash` na
+mesma árvore) · `wrangler deploy --dry-run` da raiz **e do Worker de escola** (com o diretório de
+assets substituído por um vazio, porque `publicacao/breu` não é versionado) — os dois compilam.
 
-**O que ainda não está feito.** A prova ao vivo é a próxima escola criada sem anamneses: só ela
-exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
-separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
-mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
+**O que ainda não está feito.** A conferência ao ar fica para o deploy: o rótulo é do HTML servido,
+e as provas leem o HTML servido, mas o «ao ar» só se confirma depois de publicado. E o `IDEIA-
+PAINEL-ESCOLA.md` e o `PLANEJAMENTO-LASTRO.md` continuam a dizer «Verbetes da notação» — são
+documentos de ideia e de percurso, e reescrevê-los seria reescrever o passado, não a fotografia.
 
 ## O que está pendente
-
-## 07/11/2026 — O `ciclo-01.conf` que sobreviveu ao expurgo, e o dono que a árvore inventava
-
-`_declaracao.porVariante` (a chave
-estável de cada coluna da folha de captura, derivada do PO da escola) mora dentro do
-`professores/<prof>/ciclos/ciclo-NN-captura-schema.json` — um arquivo que é CÓPIA do molde e que o
-expurgo PRESERVA de propósito. Isso já custou um defeito medido (a geração da `batata` parou a
-20/10/2026 porque a entrada de uma ronda antiga sobreviveu à escola e contradisse o PO novo), e a
-correção foi um merge, não uma mudança de casa. A decisão de onde ela deve viver é dela
-(pesquisadora): fica registada, e não se move sem essa palavra.
 
 ## 07/11/2026 — A declaração da captura mudou de casa, e o molde deixou de carregar escolas
 
@@ -250,6 +234,13 @@ A prova ao vivo é a próxima escola criada sem anamneses: só ela
 exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
 separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
 mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
+
+## 07/11/2026 — «Elenco» passa a «Audição» e «Verbetes da notação» a «Estilo»
+
+A conferência ao ar fica para o deploy: o rótulo é do HTML servido,
+e as provas leem o HTML servido, mas o «ao ar» só se confirma depois de publicado. E o `IDEIA-
+PAINEL-ESCOLA.md` e o `PLANEJAMENTO-LASTRO.md` continuam a dizer «Verbetes da notação» — são
+documentos de ideia e de percurso, e reescrevê-los seria reescrever o passado, não a fotografia.
 
 ## Pendências anteriores (índice)
 
@@ -624,6 +615,7 @@ mais o reler automático; um parâmetro novo na porta seria outra mudança, nout
 - **06/11/2026** — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e… → `REGISTRO.md` L37373
 - **07/11/2026** — O expurgo da última escola derrubava o job: «nada a fazer»… → `REGISTRO.md` L38914
 - **07/11/2026** — O repositório limpo para o novo ciclo de testes: três… → `REGISTRO.md` L38967
+- **07/11/2026** — O `ciclo-01.conf` que sobreviveu ao expurgo, e o dono que a… → `REGISTRO.md` L39032
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

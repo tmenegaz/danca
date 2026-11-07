@@ -3643,14 +3643,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *   antigo «Linha de base» → ELENCO (o corpo de alunas e o recorte observado)
      *   antigo «Curadoria»  → TURMA  (a relação: professor × modalidade × sala × elenco)
      *
+     * E DEPOIS OS RÓTULOS, NO MESMO DIA — A COISA NÃO MUDOU, O NOME SIM.
+     *
+     *   secção «Elenco»          → AUDIÇÃO  (onde o professor FAZ a seleção e a configuração:
+     *                                        escolhe os corpos, lê os retratos, recorta)
+     *   secção «Verbetes da Notação» → ESTILO (o espaço onde se definem os exercícios que
+     *                                        conduzem o elenco ao domínio daquele estilo)
+     *
+     * A ENTIDADE CONTINUA A CHAMAR-SE ELENCO, e é por isso que o campo do formulário é «Nome do
+     * elenco» e o da Turma é «Elenco»: a Audição é o ATO, o elenco é o que fica dele. Renomear o
+     * campo teria partido a frase dela — «cada sala recebe um elenco, formando uma turma em
+     * funcionamento» —, e a nomenclatura pedida é a dos menus e dos títulos, não a dos dados.
+     *
      * Os IDS das secções ficam (`#turmas`, `#corpo`, `#curadorias`): são âncoras de link e de
      * prova, não rótulos. Mudá-los partiria atalhos e provas sem mudar nada do que se lê. */
     grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Salas'],
       // O ELENCO ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ele não é operação nem
       // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
       // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
-      ['#corpo', 'corpo', 'Elenco'],
-      ['#verbetes', 'verbetes', 'Verbetes da notação'],
+      ['#corpo', 'corpo', 'Audição'],
+      ['#verbetes', 'verbetes', 'Estilo'],
       ['#curadorias', 'curadorias', 'Turmas']]) +
     '</div>' +
     '<div class="lateral-veu" id="lateral-veu"></div>' +
@@ -4101,7 +4113,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // é conveniência; a guarda é o servidor (`motor/servidor/verbete.js`).
     // ---------------------------------------------------------------------------
     '<section class="secao" id="sec-verbetes" hidden>' +
-    tituloComAcordeao('sec-verbetes', 'Verbetes da Notação', 'verbetes-miolo') +
+    tituloComAcordeao('sec-verbetes', 'Estilo', 'verbetes-miolo') +
     // A TIRA DOS PASSOS É A PRIMEIRA LINHA DA SECÇÃO (01/11/2026). Ela nasceu fora do
     // formulário — «os steps vão ficar fora do formulário, igual o modelo que a gente tem na
     // turma» —, mas ficou na COLUNA do formulário: a pesquisadora viu o resultado e disse o
@@ -4628,7 +4640,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // SÓ O RÓTULO, SEM EXPLICAÇÃO (a regra da casa: nenhum formulário traz parágrafo
     // explicativo — rótulo, campo e placeholder, e nada mais). O que a lista significa diz-se
     // onde ela é LIDA, não onde é preenchida.
-    '<label class="campo-rotulo">Conteúdo da aula</label>' +
+    '<label class="campo-rotulo">Conteúdo do Estilo</label>' +
     escolarConteudosCuradoria +
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
@@ -4657,7 +4669,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `data-acordeao="<secção>"`. O handler do clique bifurca por esse atributo: com ele recolhe a
      * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
      * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
-    tituloComAcordeao('sec-corpo', 'Elenco', 'corpo-miolo') +
+    tituloComAcordeao('sec-corpo', 'Audição', 'corpo-miolo') +
     '<div class="turmas-corpo">' +
     '<div class="turmas-faixa">' +
     /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
@@ -4775,7 +4787,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Elencos</h3>' +
+    '<h3>Audições</h3>' +
     /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
      * `.lista li` é `display:flex` — as linhas simples do gabinete são UMA fita, e o cartão é
      * uma COLUNA. Medido com o contentor antigo: as três caixas ficavam com 110px numa coluna
@@ -9939,7 +9951,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
-    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhum elenco ainda — o primeiro nasce ' +
+    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhuma audição ainda — a primeira nasce ' +
     'no formulário, no passo 1)</li>";' +
     '    return;' +
     '  }' +

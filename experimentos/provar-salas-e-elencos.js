@@ -251,6 +251,59 @@ const RITMO = {
     /function faltasAntesDeLb/.test(script) && /todas\.indexOf\(f\) === -1/.test(script), null);
 
   // -------------------------------------------------------------------------------------------
+  /* -------------------------------------------------------------------------------------------
+   * D. A NOMENCLATURA DOS RÓTULOS — «Audição» e «Estilo» (07/11/2026).
+   *
+   * O PEDIDO. «Elenco: no menu e títulos principais, passa a se chamar Audiação» (a seleção e a
+   * configuração do elenco); «Verbetes da Notação: no menu e títulos internos, passa a se chamar
+   * Estilo»; e, na Turma, «o antigo conteúdo da aula passa a Conteúdo do Estilo».
+   *
+   * O QUE ESTA PROVA PROTEGE, e é a parte que envelhece mal se ninguém a medir: a ENTIDADE
+   * continua a chamar-se ELENCO. O campo do formulário é «Nome do elenco», o da Turma é «Elenco»,
+   * e a lista dentro da Audição passou a «Audições». Se uma próxima passagem de nomenclatura
+   * levar o rótulo até aos dados, a frase dela — «cada sala recebe um elenco, formando assim uma
+   * turma em funcionamento» — deixa de fazer sentido, e é isso que se mede aqui. */
+  console.log('\nD. A nomenclatura: Audição e Estilo no menu e nos títulos, elenco nos campos');
+  const menu = (() => {
+    const i = html.indexOf('data-grupo="pedagogia"');
+    return i === -1 ? '' : html.slice(i, i + 900);
+  })();
+  conferir('o menu de Pedagogia existe', menu.length > 0, null);
+  conferir('…e diz «Audição» (e não «Elenco»)', />Audição</.test(menu), (menu.match(/>[A-ZÁÉÍÓÚÂÊÔÃÕ][^<]*</g) || []));
+  conferir('…e diz «Estilo» (e não «Verbetes da notação»)', />Estilo</.test(menu), null);
+  conferir('…e as outras duas ficam como estavam (Salas e Turmas)',
+    />Salas</.test(menu) && />Turmas</.test(menu), null);
+  conferir('o menu NÃO diz «Verbetes da notação» em lugar nenhum',
+    !/Verbetes da nota/i.test(html), null);
+  const tituloDa = (id) => {
+    const i = html.indexOf('id="' + id + '"');
+    if (i === -1) return '';
+    const j = html.indexOf('</h2>', i);
+    return j === -1 ? html.slice(i, i + 400) : html.slice(i, j);
+  };
+  conferir('o título da secção do corpo é «Audição»', />Audição</.test(tituloDa('sec-corpo')),
+    tituloDa('sec-corpo').replace(/<[^>]*>/g, ' ').trim().slice(0, 120));
+  conferir('o título da secção dos verbetes é «Estilo»', />Estilo</.test(tituloDa('sec-verbetes')),
+    tituloDa('sec-verbetes').replace(/<[^>]*>/g, ' ').trim().slice(0, 120));
+  // A ENTIDADE NÃO SE RENOMEOU — e é o que não pode escorregar.
+  conferir('o campo do formulário continua «Nome do elenco»',
+    /for="lb-nome">Nome do elenco</.test(html), null);
+  conferir('…e o campo da Turma continua «Elenco»', /for="cuelenco">Elenco</.test(html), null);
+  conferir('…e o professor responsável continua com o seu rótulo',
+    /for="lb-professor">Professor responsável</.test(html), null);
+  conferir('a lista da Audição passou a «Audições»', /<h3>Audições<\/h3>/.test(html), null);
+  conferir('…e o estado vazio dela acompanha («nenhuma audição ainda»)',
+    /nenhuma audição ainda/.test(html), null);
+  /* A LISTA DO ESTILO FICA COM «Exercícios com verbete»: «verbete» é a ficha da notação, não o
+   * nome da secção — a decisão de 07/11/2026 foi explícita nisso. */
+  conferir('a lista do Estilo continuou «Exercícios com verbete»',
+    /<h3>Exercícios com verbete<\/h3>/.test(html), null);
+  conferir('a Turma passou a dizer «Conteúdo do Estilo»',
+    /class="campo-rotulo">Conteúdo do Estilo</.test(html), null);
+  conferir('…e não diz mais «Conteúdo da aula»', !/Conteúdo da aula/.test(html), null);
+  conferir('os `id` das secções NÃO mudaram (são âncoras de link e de prova)',
+    /id="sec-corpo"/.test(html) && /id="sec-verbetes"/.test(html) && /id="sec-curadorias"/.test(html), null);
+
   console.log('\nC. O que uma SALA desobstrui — e o que não existe para desobstruir');
 
   /* A SALA SEM RITMO NÃO SE ATRIBUI: é o elo que a criação da sala desobstrui. */
@@ -285,8 +338,10 @@ const RITMO = {
   }
   console.log('TUDO CERTO — ' + n + ' asserções: o cartão da sala diz dois (ritmo e régua) e não'
     + ' emite conteúdos em lugar nenhum; o elenco cria-se sem anamnese e sem turma, e o cliente'
-    + ' deixou de desligar o nome; a sala sem ritmo não recebe turma e a com ritmo recebe — e a'
-    + ' Tabela de atividades segue como plano, não como código.');
+    + ' deixou de desligar o nome; o passo 2 do elenco abre para explicar a falta e leva à'
+    + ' anamnese; a sala sem ritmo não recebe turma e a com ritmo recebe — e a Tabela de'
+    + ' atividades segue como plano, não como código. E a nomenclatura: Audição e Estilo no menu'
+    + ' e nos títulos, elenco nos campos, Conteúdo do Estilo na Turma.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);
