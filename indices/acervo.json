@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 5,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:colo-de-pe/01/breu",
@@ -63,10 +63,10 @@
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 0,
+        "planos": 1,
         "pos": 0,
         "recortes": 0,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-11-07T16:03:29.499378+00:00",
       "expurgada": false,
@@ -80,7 +80,8 @@
         "colo-de-pe"
       ],
       "registros": [
-        "anamnese:anamnese-20261107-1308"
+        "anamnese:anamnese-20261107-1308",
+        "plano:plano-20261107-1314"
       ],
       "slug": "breu"
     },
@@ -120,7 +121,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -241,14 +242,19 @@
         "contagem": 1,
         "rotulo": "Anamnese",
         "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "378472d"
+    "commit": "c6cf790"
   },
-  "gerado_em": "2026-11-07T16:08",
+  "gerado_em": "2026-11-07T16:14",
   "nao_indexado": [
     {
       "familia": "conteudo",
