@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 38,
+  "versao": 39,
   "aplicaseA": [
     "benesh"
   ],
@@ -607,6 +607,31 @@
           ]
         },
         "escola": "breu"
+      }
+    },
+    "Battement jeté": {
+      "4|4/4@batata": {
+        "cobre": 4,
+        "posicao": null,
+        "metodo": "RAD",
+        "celulas": {
+          "a-la-seconde": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "1ª",
+                "○",
+                "●",
+                "1ª"
+              ],
+              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Perna, varredura para fora, primeira posição, abre, fecha, primeira posição.",
+              "repeticoes": 2
+            }
+          ]
+        },
+        "escola": "batata"
       }
     }
   }
