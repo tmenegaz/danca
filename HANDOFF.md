@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T11:22:54-0300`
-Commit atual: `b5cf7636` — fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
+Gerado em: `2026-11-07T11:25:18-0300`
+Commit atual: `d9c8adba` — docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,6 +70,7 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
+d9c8adba docs(registro): a proveniência auditada antes do expurgo, e o passo 2 do elenco
 b5cf7636 fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
 e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e guarda-a no elo
 f633dce2 feat(tools): a proveniência é auditada antes de o expurgo apagar
@@ -89,7 +90,6 @@ c4cc6d50 feat(schema): os schemas do ciclo na pasta de colo-de-pe
 37267f5e feat(acervo): envelope/.indice.json
 ae3222d2 feat(estrutura): criar a escola breu (motor completo)
 5da88620 fix(schema): o molde deixa de carregar escolas dentro, e a captura perde a exceção
-9296cbf8 feat(tools): a declaração da captura passa a morar com a variante
 ```
 
 ## Por professor

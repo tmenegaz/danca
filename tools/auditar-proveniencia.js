@@ -132,13 +132,13 @@ function conferirDerivacao(problemas) {
   }
 }
 
-function auditarEscola(slug, { semFundo } = {}) {
+async function auditarEscola(slug, { semFundo } = {}) {
   const caminhos = caminhosDoDisco();
   const ancoras = ancorasDoDisco(caminhos);
   let indice = null;
   try { indice = JSON.parse(lerTexto('escola/' + slug + '/indice.json') || 'null'); } catch { indice = null; }
 
-  const relatorio = prov.auditar({ slug, caminhos, indice, ancoras });
+  const relatorio = await prov.auditar({ slug, caminhos, indice, ancoras });
   relatorio.fases = { estrutura: 'feita', ancora: semFundo ? 'saltada' : 'feita', derivacao: semFundo ? 'saltada' : 'feita' };
 
   if (!semFundo) {
@@ -172,7 +172,7 @@ function imprimir(r) {
   for (const p of r.problemas) linha('    [' + p.codigo + '] ' + p.mensagem);
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const slug = args.find((a) => !a.startsWith('--'));
   const json = args.includes('--json');
@@ -181,7 +181,7 @@ function main() {
     process.stderr.write('uso: node tools/auditar-proveniencia.js <escola> [--json] [--sem-fundo]\n');
     process.exit(2);
   }
-  const relatorio = auditarEscola(slug, { semFundo });
+  const relatorio = await auditarEscola(slug, { semFundo });
   if (json) {
     process.stdout.write(JSON.stringify(relatorio, null, 2) + '\n');
   } else {

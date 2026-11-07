@@ -144,7 +144,7 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
   const ancorasLidas = (mapa) => Object.fromEntries(
     Object.entries(mapa).map(([c, t]) => [c, lerAncora(t)]));
 
-  const saudavel = prov.auditar({
+  const saudavel = await prov.auditar({
     slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
   });
   checar('a árvore saudável passa, e diz por quê (1 âncora, 2 fontes)',
@@ -152,7 +152,7 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
   checar('a impressão é SHA-256 do conjunto de âncoras',
     /^[0-9a-f]{64}$/.test(String(saudavel.impressao)), saudavel.impressao);
 
-  const semAncora = prov.auditar({
+  const semAncora = await prov.auditar({
     slug: 'zzz',
     caminhos: ARVORE_SAUDAVEL.filter((c) => !c.endsWith('.fipp')),
     indice: INVENTARIO, ancoras: {},
@@ -166,16 +166,16 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
     cobertura: ['professores/pp/ciclos/ciclo-01-zzz.conf', 'professores/pp/ciclos/ciclo-01.conf',
       'professores/pp/ciclos/ciclo-01-zzz-po.md'] });
   checar('com um hash que não é SHA-256, reprova por «ancora-hash»',
-    prov.auditar({ slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: INVENTARIO, ancoras: ancorasLidas(hashMau) })
+    (await prov.auditar({ slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: INVENTARIO, ancoras: ancorasLidas(hashMau) }))
       .problemas.some((p) => p.codigo === 'ancora-hash'), null);
 
-  const semRecriacao = prov.auditar({
+  const semRecriacao = await prov.auditar({
     slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: { escola: 'zzz', expurgo: [] }, ancoras: ancorasLidas(ANCORA),
   });
   checar('um elo sem `recriacao[]` reprova por «sem-recriacao» (a escola nunca nasceu)',
     semRecriacao.problemas.some((p) => p.codigo === 'sem-recriacao'), semRecriacao.problemas.map((p) => p.codigo));
 
-  const semCobertura = prov.auditar({
+  const semCobertura = await prov.auditar({
     slug: 'zzz',
     caminhos: ARVORE_SAUDAVEL.concat(['professores/pp/ciclos/ciclo-01-zzz-plano.md']),
     indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),
@@ -184,7 +184,7 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
     semCobertura.problemas.some((p) => p.codigo === 'fonte-sem-cobertura'),
     semCobertura.problemas.map((p) => p.codigo));
 
-  const semDerivado = prov.auditar({
+  const semDerivado = await prov.auditar({
     slug: 'zzz',
     caminhos: ARVORE_SAUDAVEL.filter((c) => !c.startsWith('indices/')),
     indice: INVENTARIO, ancoras: ancorasLidas(ANCORA),

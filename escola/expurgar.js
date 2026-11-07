@@ -66,8 +66,8 @@ const RAIZ = path.resolve(__dirname, '..');
  * impossível no estado em que ele mais é preciso — o de uma escola cujo registo se perdeu. Mas
  * ele NÃO é um interruptor: exige `--motivo`, e o motivo vai para o elo. Quem força, declara.
  */
-function auditarProveniencia(slug, { forcar, motivoDoForcar }) {
-  const auditoria = auditarEscola(slug, { semFundo: false });
+async function auditarProveniencia(slug, { forcar, motivoDoForcar }) {
+  const auditoria = await auditarEscola(slug, { semFundo: false });
   const registro = {
     auditada: auditoria.ok,
     em: new Date().toISOString(),
@@ -215,7 +215,7 @@ function registrarElo(slug, professor, ciclo, relatorio) {
   return arq;
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
     console.error('uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>]');
@@ -260,7 +260,7 @@ function main() {
    * ver com ela (escola pagante, escola recriada): não vale a pena auditar o que já se decidiu
    * não apagar. O que se vai apagar são as âncoras, e sem elas não há prova de que a escola
    * existiu. Falhando aqui, o processo PÁRA — ver `auditarProveniencia`. */
-  const proveniencia = auditarProveniencia(slug, { forcar, motivoDoForcar });
+  const proveniencia = await auditarProveniencia(slug, { forcar, motivoDoForcar });
 
   const relatorio = { apagado: [], naoApagado: [], proveniencia, motivo: motivoDoForcar || undefined };
   const confere = (rotulo, feito) => (feito ? relatorio.apagado : relatorio.naoApagado).push(rotulo);
@@ -337,4 +337,7 @@ function main() {
 // e a que decide apagar é a que importa.
 module.exports = { foiRecriada };
 
-if (require.main === module) main();
+if (require.main === module) main().catch((err) => {
+  console.error('erro: ' + ((err && err.message) || String(err)));
+  process.exit(1);
+});

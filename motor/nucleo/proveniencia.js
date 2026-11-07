@@ -38,7 +38,6 @@
  * e a auditoria local corre-o por variante.
  */
 
-const crypto = require('crypto');
 const { cicloDoCaminho, escolaDoSufixo } = require('./indices.js');
 
 /** O nome de um arquivo DIRECTAMENTE dentro de `professores/<p>/ciclos/` — e só esses são
@@ -116,21 +115,41 @@ function pacotesDaEscola(slug, caminhos) {
 }
 
 /**
- * A IMPRESSÃO da proveniência — o que existia, num só hash.
+ * O SHA-256 DO CONJUNTO — pela Web Crypto, e não pelo `require('crypto')` (07/11/2026).
  *
- * Não substitui as âncoras: depois do expurgo elas já não estão, e o que fica no elo é isto. É
- * um resumo verificável do conjunto (id + hash de cada âncora, em ordem), não uma cópia: quem
- * tiver o mesmo conjunto chega ao mesmo valor, e quem tiver outro vê que não bate.
+ * O DEFEITO, medido no deploy: `require('crypto')` é um módulo DO NODE, e o runtime dos Workers
+ * não o tem — o build morria com «Could not resolve "crypto"» e as duas publicações ficavam
+ * vermelhas. `globalThis.crypto.subtle` existe nos dois lados (é o que o `bastidores.js` já usa
+ * para o hash da senha), e é essa a razão de a impressão ser ASSÍNCRONA: o `subtle.digest`
+ * devolve uma promessa.
+ *
+ * A ASSINCRONIA FICA AQUI, e não espalhada: `auditar` passa a ser `async`, e os três chamadores
+ * já eram (a metade do repositório e o `escola/expurgar.js` são assíncronos de qualquer forma; o
+ * `tools/auditar-proveniencia.js` é um script, e um `await` no topo não custa nada).
  */
-function impressao(ancoras) {
+async function impressao(ancoras) {
   const linhas = ancoras
     .map((a) => String(a.id || a.caminho) + ':' + String(a.hash || ''))
     .sort();
-  return crypto.createHash('sha256').update(linhas.join('\n'), 'utf8').digest('hex');
+  const bytes = new TextEncoder().encode(linhas.join('\n'));
+  const digesto = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  let hex = '';
+  for (const b of new Uint8Array(digesto)) hex += b.toString(16).padStart(2, '0');
+  return hex;
 }
 
 /**
- * A AUDITORIA. Devolve `{ok, problemas, ancoras, fontes, impressao, resumo}` — nunca lança por
+ * A IMPRESSÃO da proveniência — o que existia, num só hash.
+ *
+ * Não substitui as âncoras: depois do expurgo elas já não estão, e o que fica no elo é isto. É
+ * um resumo verificável do conjunto (id + hash de cada âncora, em ordem): quem tiver o mesmo
+ * conjunto chega ao mesmo valor, e quem tiver outro vê que não bate.
+ *
+ * (A implementação está acima, junto da nota do porquê de ser assíncrona.)
+ */
+
+/**
+ * A AUDITORIA. Devolve `{ok, problemas, ancoras, fontes, impressao, resumo}` — nunca rejeita por
  * um dado em falta: a falta É o resultado.
  *
  *   slug ...... a escola que se quer expurgar
@@ -138,7 +157,7 @@ function impressao(ancoras) {
  *   indice .... o `escola/<slug>/indice.json` já analisado, ou null
  *   ancoras ... `{ [caminho]: campos }` — o que o `lerAncora` devolveu de cada `.fipp`
  */
-function auditar({ slug, caminhos, indice, ancoras }) {
+async function auditar({ slug, caminhos, indice, ancoras }) {
   const arvore = Array.isArray(caminhos) ? caminhos : [];
   const lidas = ancoras || {};
   const existe = new Set(arvore);
@@ -282,7 +301,7 @@ function auditar({ slug, caminhos, indice, ancoras }) {
     problemas,
     ancoras: resumoDasAncoras,
     fontes: fontes.map((f) => f.caminho),
-    impressao: resumoDasAncoras.length ? impressao(resumoDasAncoras) : null,
+    impressao: resumoDasAncoras.length ? await impressao(resumoDasAncoras) : null,
     resumo: {
       ancoras: resumoDasAncoras.length,
       fontes: fontes.length,

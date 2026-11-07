@@ -618,7 +618,7 @@ async function auditarProvenienciaDaEscola({ token, dono, repo, ref, slug, camin
     ancoras[a.caminho] = lerAncora(texto);
   }
 
-  const relatorio = proveniencia.auditar({ slug, caminhos: arvore, indice, ancoras });
+  const relatorio = await proveniencia.auditar({ slug, caminhos: arvore, indice, ancoras });
   // AS FASES QUE ESTA METADE NÃO ALCANÇA — ditas, para que ninguém leia «ok» como «o hash
   // confere». A auditoria de estrutura não é menos rigorosa: é outra, e o nome tem de ser honesto.
   relatorio.fases = { estrutura: 'feita', ancora: 'nao-recalculada', derivacao: 'nao-conferida' };

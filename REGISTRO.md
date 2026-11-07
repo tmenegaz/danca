@@ -39277,6 +39277,18 @@ contrário disso.
    empilhamento de proveniências (preservar o histórico em vez de limpar) fica para quando a
    pesquisa lá chegar — e o elo já tem, desde agora, o que ela vai precisar.
 
+> **Correção de 07/11/2026 (mesmo dia).** A primeira redação desta entrada dizia que a impressão
+> era um SHA-256 calculado com `require('crypto')`. **Está errado para o runtime que serve o
+> sistema**: `crypto` é um módulo do Node, e o build do Worker morreu com «Could not resolve
+> "crypto"» — as duas publicações (`a raiz` e `as escolas`) ficaram vermelhas no commit
+> `d9c8adba`, e o erro só apareceu no deploy, porque localmente o Node tem o módulo e a prova
+> passava. A impressão passou a usar `globalThis.crypto.subtle` — o mesmo que o `bastidores.js`
+> já usa para o hash da senha —, e por isso `auditar` é **assíncrona**: a assincronia fica na
+> impressão, e não espalhada; os três chamadores já eram assíncronos. O valor é o mesmo
+> (`370359ab…` para a âncora da escola viva, antes e depois), o que confirma que a troca não
+> mudou o que se mede. **A lição, para a próxima:** uma prova local não vê o que o Worker não
+> tem; `wrangler deploy --dry-run` é a bancada que vê.
+
 **Uma escola já expurgada passa.** Sem fontes não há nada a ancorar, e o elo é a memória. Reprovar
 nesse caso tornaria o expurgo impossível de repetir depois de um meio-expurgo — o estado em que ele
 mais falta. O que a auditoria exige é o que EXISTE estar coberto, não que exista sempre.
@@ -39304,7 +39316,9 @@ gravar a razão) · `provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo
 `corpo.local` também em `origin/main`** (medido: o ramo dos dois tokens ausentes devolve antes de
 `local` ser calculado — anterior a esta mudança, não corrigido por não ser desta pauta) ·
 `provar-expurgo-kv` **11 falhas, as mesmas de `origin/main`** · `gerar-indices --check` **0** ·
-`gerar-relacoes --check` **0** · `check-indices` **16/16**. A auditoria correu à mão sobre as três
+`gerar-relacoes --check` **0** · `check-indices` **16/16** · `wrangler deploy --dry-run` da raiz
+**compila depois da correção da impressão** (antes dela: «Could not resolve "crypto"», que é o que
+derrubou as duas publicações de `d9c8adba`). A auditoria correu à mão sobre as três
 escolas do repositório: a viva (`breu`) **passa** com 1 âncora e 2 fontes cobertas; as duas
 expurgadas (`batata`, `calango`) passam sem âncoras, como devem. O expurgo local foi exercido de
 ponta a ponta num `git worktree` descartável: escola fabricada sem âncora → **recusado, nada
