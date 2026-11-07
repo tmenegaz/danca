@@ -180,7 +180,7 @@ function turmasSemHabilitacao(turmas, curadorias, perfil, { professor } = {}) {
 /**
  * O RESUMO DO ENQUADRAMENTO, para a listagem de turmas — «quem ensina o quê, em que nível».
  *
- * Uma turma sem curadoria diz «sem curadoria atribuída», e não um vazio: a ausência é um estado
+ * Uma sala sem turma diz «sem turma atribuída», e não um vazio: a ausência é um estado
  * operacional (a turma existe, o ensino ainda não foi atribuído), e um espaço em branco lê-se
  * como esquecimento.
  */
@@ -202,11 +202,11 @@ function resumoDoEnquadramento(turma, curadorias) {
   let texto;
   if (!enq.curadoria) {
     const memoria = nivel.rotulo ? ' · ' + nivel.rotulo + ' (da turma)' : '';
-    texto = 'sem curadoria atribuída' + memoria;
+    texto = 'sem turma atribuída' + memoria;
   } else if (partes.length) {
     texto = partes.join(' · ');
   } else {
-    texto = 'curadoria sem modalidade declarada';
+    texto = 'turma sem modalidade declarada';
   }
   return {
     professor: enq.professor,

@@ -1411,7 +1411,7 @@ const servidor = http.createServer(async (req, res) => {
     });
     ok('a coluna dos Bastidores acende o grupo da secção, e a barra diz onde se está',
       grupoAtual.grupos.filter((x) => x === 'sim').length === 1
-      && grupoAtual.barra === 'Pedagogia' && grupoAtual.nome === 'Turmas', grupoAtual);
+      && grupoAtual.barra === 'Pedagogia' && grupoAtual.nome === 'Salas', grupoAtual);
   }
 
   /* ── 17. A MARCA DE «ONDE ESTOU» NÃO SE PERDE AO APROFUNDAR ────────────────────────────

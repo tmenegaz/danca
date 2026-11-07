@@ -57,8 +57,35 @@ function idsDeModalidade() {
 
 /** O nome de exibição de uma modalidade; sem ele, o próprio id — legível e não vazio. */
 function nomeDaModalidade(id) {
-  const achada = LISTA_DE_MODALIDADES.find((m) => m && m.id === id);
+  const achada = LISTA_DE_MODALIDADES.find((m) => m && m.id === id)
+    || LISTA_DE_MODALIDADES.find((m) => m && m.nome === id);
   return achada ? achada.nome : String(id || '');
+}
+
+/**
+ * O ID DE UMA MODALIDADE, ACEITANDO O ID OU O NOME (07/11/2026).
+ *
+ * PORQUE ISTO EXISTE. O perfil do professor guarda **ids** (`bale-classico`) e a Turma guarda o
+ * **nome** que o formulário oferece (`Balé clássico`) — o `<option>` da modalidade leva o nome no
+ * `value`, e é ele que vai no corpo. Comparar as duas coisas dava sempre «não declara», e a marca
+ * de «sem quem a ensine» acendia em turmas que o professor ensina todos os dias. Nenhum teste
+ * apanhava: a função do núcleo era chamada com ids nas provas e com nomes em produção.
+ *
+ * A CONVERSÃO É TOLERANTE E NÃO INVENTA: um valor que não casa com nenhuma modalidade volta como
+ * veio — quem compara decide o que fazer com um id desconhecido, e inventar um seria pior.
+ * A comparação por nome ignora acentos e caixa, porque o mesmo rótulo já foi escrito das duas
+ * maneiras em registos que existem.
+ */
+function idDaModalidade(valor) {
+  const cru = String(valor == null ? '' : valor).trim();
+  if (!cru) return '';
+  const porId = LISTA_DE_MODALIDADES.find((m) => m && m.id === cru);
+  if (porId) return porId.id;
+  const semAcento = (s) => String(s == null ? '' : s).trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const alvo = semAcento(cru);
+  const porNome = LISTA_DE_MODALIDADES.find((m) => m && semAcento(m.nome) === alvo);
+  return porNome ? porNome.id : cru;
 }
 
 /** Se a modalidade tem repertório na biblioteca — a tela diz isso, e é dado do catálogo. */
@@ -152,7 +179,7 @@ function modalidadesDoPerfil(perfil) {
  */
 function estadoDaHabilitacao(perfil, modalidade) {
   if (!perfil || !Array.isArray(perfil.modalidades)) return 'sem-perfil';
-  const id = String(modalidade || '').trim();
+  const id = idDaModalidade(modalidade);
   if (!id) return 'sem-modalidade';
   return modalidadesDoPerfil(perfil).indexOf(id) !== -1 ? 'habilitado' : 'perdeu';
 }
@@ -210,6 +237,9 @@ module.exports = {
   modalidadePrincipal,
   idsDeModalidade,
   nomeDaModalidade,
+  // A TOLERÂNCIA ID ↔ NOME (07/11/2026): o perfil guarda ids e a Turma guarda o nome do
+  // catálogo. Quem compara modalidades passa por aqui, para as duas formas valerem.
+  idDaModalidade,
   modalidadeTemConteudo,
   perfilVazio,
   normalizarPerfil,

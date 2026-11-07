@@ -395,7 +395,7 @@ console.log('\n7. AS ROTAS — a lista que já existe, e a rota própria');
     await new Promise((r) => win.setTimeout(r, 300));
     const alvo2 = win.document.getElementById('lb-indice');
     const texto = String(alvo2.textContent || '');
-    assert.ok(/linhas de base/.test(texto), 'o panorama diz quantas linhas: ' + texto.slice(0, 120));
+    assert.ok(/elencos/.test(texto), 'o panorama diz quantos elencos: ' + texto.slice(0, 120));
     assert.ok(/Pontos cegos/.test(texto), 'os pontos cegos aparecem');
     assert.ok(/Nunca escolhidos/.test(texto), 'os nunca escolhidos aparecem');
     assert.ok(/Mais escolhidos/.test(texto), 'o ranque aparece');

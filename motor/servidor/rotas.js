@@ -1653,6 +1653,14 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     if (!alvo || typeof lerLinhasDeBase !== 'function') return null;
     try {
       const linhas = await lerLinhasDeBase(escolaDoWorker || identidade.escola);
+      /* 1. O ELENCO QUE A TURMA ESCOLHEU (07/11/2026). A Turma declara `linhaDeBase`; é esse o
+       * acto que o PO, o plano e o documento derivado devem ler. A procura pelo nome da sala
+       * continua como recurso para as escolas que ainda têm o vínculo antigo. */
+      if (typeof lerCuradorias === 'function') {
+        const curs = await lerCuradorias(escolaDoWorker || identidade.escola);
+        const escolhido = porta.elencoEscolhidoPelaTurma(curs, alvo, '', linhas);
+        if (escolhido) return porta.linhaDeBaseDoElenco(linhas, escolhido.id);
+      }
       return porta.linhaDeBaseDaTurma(linhas, alvo);
     } catch (erro) { return null; }
   };

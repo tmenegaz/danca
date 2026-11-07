@@ -627,10 +627,10 @@ async function principal() {
   // sobre uma lista vazia compara duas listas vazias, ou nenhumas. Agora começa no `aria-label`
   // da própria faixa, que é o que a identifica.
   conferir('…e os títulos são os que a direção lê',
-    (html.slice(html.indexOf('aria-label="Etapas da turma"'), html.indexOf('id="turmas-paineis"'))
+    (html.slice(html.indexOf('aria-label="Etapas da sala"'), html.indexOf('id="turmas-paineis"'))
       .match(/class="passo-t">([^<]+)</g) || [])
       .map((s) => s.replace(/^[\s\S]*?>/, '').replace(/<$/, '').trim()),
-    ['Turma', 'Rubricas', 'Associar']);
+    ['Sala', 'Rubricas', 'Associar']);
   // «SÓ A PRIMEIRA NASCE VISÍVEL» lê o `hidden` de cada painel, e não o texto à volta do
   // `id`: uma janela de 60 caracteres a partir do `id` apanha também o conteúdo do painel,
   // e a asserção media outra coisa.
@@ -993,7 +993,7 @@ async function principal() {
   // lista MENTIA: quem marcava duas turmas dizia que as alunas de uma são as da outra. O que
   // esta prova trava agora é o contrário do que travava antes — e é de propósito.
   conferir('a turma da curadoria é um `select` de UMA, não um escolhedor de várias',
-    /<label class="campo-rotulo" for="cuturma">Turma<\/label>\s*<select id="cuturma">/.test(html), true);
+    /<label class="campo-rotulo" for="cuturma">Sala<\/label>\s*<select id="cuturma">/.test(html), true);
   conferir('…e o escolhedor das turmas já não existe na página',
     html.includes('id="esc-turmas"'), false);
   conferir('…e a modalidade e a tradição continuam `select` (o mesmo formato)',
@@ -1290,7 +1290,7 @@ async function principal() {
     conferir('a recusa nomeia os campos em português, e não em código',
       /falta a tradição/.test(semTradicao.erro), true);
     conferir('…e diz onde se resolve o que falta',
-      /aba Turmas/.test(semTurma.erro), true);
+      /aba Salas/.test(semTurma.erro), true);
     /* A CONTAGEM MUDOU COM A REGRA: a gravação «sem alunas» é agora LEGÍTIMA — e por isso a
      * lista tem uma curadoria a mais, não zero. O que continua a valer é o fundo da asserção:
      * as três recusas de cima (professor, modalidade, tradição, turma) não gravaram nada. */
@@ -1308,6 +1308,51 @@ async function principal() {
      * honesto de uma escola que atribui a curadoria antes de mandar alunos para a turma. */
     conferir('…e o elenco vem carimbado da turma (vazio, sem linha de base enviada)',
       (gravada.alunas || []).length, 0);
+
+    /* O ELENCO ESCOLHIDO NA TURMA (07/11/2026). A associação deixou de depender de um envio
+     * para a sala: a Turma declara o elenco, e o servidor deriva dele as alunas. O que se mede:
+     * a gravação aceita o id, guarda o nome, e carimba as alunas do elenco escolhido. */
+    await kv.put('bastidores/barra/linhas-de-base', JSON.stringify([{
+      id: 'elenco-da-prova', nome: 'Elenco da Prova', professor: 'curador',
+      alunas: ['Aluna Um'], campos: [{ id: 'a', nome: 'A' }], enviada_em: '2026-11-01T10:00:00Z',
+    }]));
+    const comElenco = await postar('/api/bastidores/curadoria', Object.assign({}, completa, {
+      linhaDeBase: 'elenco-da-prova',
+    }));
+    const corpoComElenco = await comElenco.json();
+    conferir('a curadoria aceita o ELENCO escolhido na Turma', comElenco.status, 201);
+    conferir('…e guarda o id e o nome do elenco',
+      [corpoComElenco.curadoria.linhaDeBase, corpoComElenco.curadoria.linhaDeBaseNome],
+      ['elenco-da-prova', 'Elenco da Prova']);
+    conferir('…e deriva dele as alunas',
+      corpoComElenco.curadoria.alunas, ['Aluna Um']);
+    const daTurma = await (await pedir(envC,
+      '/api/bastidores/alunas-da-turma?turma=' + encodeURIComponent('Turma da Curadoria'))).json();
+    conferir('…e a leitura da SALA devolve as alunas do elenco escolhido',
+      daTurma.alunas, ['Aluna Um']);
+    conferir('…e diz de onde veio (a Turma, e não o envio antigo)', daTurma.fonte, 'turma');
+
+    /* A DISPONIBILIDADE NO CATÁLOGO (07/11/2026). A Turma é oferecida quando reúne modalidade,
+     * tradição, nível, sala e elenco com gente. O estado diz-se em português, e a falta nomeia
+     * o campo — não é um selo mudo. */
+    const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
+    const paginaCom = (c) => bastidores.paginaProducao('barra', { escola: 'barra' },
+      [{ nome: 'Curador' }], ['Aluna Um'], 'Dono', 'dono', [{ nome: 'Turma da Curadoria' }],
+      [], {}, [c], [], [], usos, { modo: 'clara', paleta: 'bordo' }, '',
+      [{ id: 'elenco-da-prova', nome: 'Elenco da Prova', alunas: ['Aluna Um'], campos: [{ id: 'a' }] }]);
+    const disponivel = paginaCom({
+      id: 'turma-ok', professor: 'curador', modalidade: 'bale-classico', tradicao: 'RAD',
+      grau: '3', nivel: '1', turmas: ['Turma da Curadoria'],
+      linhaDeBase: 'elenco-da-prova', linhaDeBaseNome: 'Elenco da Prova', alunas: ['Aluna Um'],
+    });
+    conferir('a Turma completa diz «disponível no catálogo»',
+      /disponível no catálogo/.test(disponivel), true);
+    const semElenco = paginaCom({
+      id: 'turma-sem-elenco', professor: 'curador', modalidade: 'bale-classico', tradicao: 'RAD',
+      grau: '3', nivel: '1', turmas: ['Turma da Curadoria'], alunas: [],
+    });
+    conferir('a Turma sem elenco diz o que falta, e não fica em branco',
+      /indisponível — falta o elenco/.test(semElenco), true);
 
     /* E A VERSÃO DERIVADA TAMBÉM NASCE COMPLETA: o que se confere é o que vai FICAR escrito,
        não o que veio no corpo — uma derivada de uma curadoria antiga sem tradição não pode

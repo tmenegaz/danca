@@ -271,7 +271,7 @@ function estado() {
     provar('a folha FECHA ao escolher', r.aberta === 'nao' && r.expandido === 'false',
       { aberta: r.aberta, expandido: r.expandido });
     provar('a barra passa a dizer o grupo e a página do destino',
-      r.grupo === 'Pedagogia' && r.nome === 'Curadorias', { grupo: r.grupo, nome: r.nome });
+      r.grupo === 'Pedagogia' && r.nome === 'Turmas', { grupo: r.grupo, nome: r.nome });
     provar('a rolagem do fundo volta ao normal', r.overflowBody === '', r.overflowBody);
     provar('e a folha volta para fora da tela',
       Boolean(r.lista) && r.lista.top >= r.janela - 1,
@@ -301,7 +301,7 @@ function estado() {
       };
     });
     provar('a secção visível abre pelo seu próprio título',
-      topo.tituloDaSecao === 'Curadorias' && topo.primeiroFilho === 'H2', topo);
+      topo.tituloDaSecao === 'Turmas' && topo.primeiroFilho === 'H2', topo);
     provar('…e NÃO há «Produção» visível acima dela', topo.tituloNoPrincipal === false, topo.tituloNoPrincipal);
     provar('…mas o `h1` continua na árvore, invisível, para o leitor de ecrã',
       topo.h1ParaLeitorDeEcra === true, topo.h1ParaLeitorDeEcra);

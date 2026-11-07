@@ -805,6 +805,33 @@ function mostraDaLeitura(leitura) {
  * escolhidos; o que a turma mostrava em cada um ficava preso à tela do passo 3 — e o plano, sem a
  * sugestão carregada à mão, declarava a lacuna sobre um dado que já existia.
  */
+function formaDaLinhaDeBase(linha, turma) {
+  if (!linha) return null;
+  const campos = Array.isArray(linha.campos) ? linha.campos : [];
+  const recorte_ = campos
+    .filter((c) => c && typeof c === 'object')
+    .map((c) => ({
+      id: String(c.id || ''),
+      nome: String(c.nome || c.id || ''),
+      grupo: String(c.grupo || ''),
+    }))
+    .filter((c) => c.id || c.nome);
+  return {
+    id: linha.id || null,
+    nome: linha.nome || linha.id || null,
+    em: linha.enviada_em || linha.atualizada_em || null,
+    turma: String(turma == null ? (linha.turma || '') : turma).trim(),
+    alunas: (Array.isArray(linha.alunas) ? linha.alunas : [])
+      .map((a) => String(a == null ? '' : a).trim()).filter(Boolean),
+    recorte: recorte_,
+    /* SÓ OS ASPECTOS DO RECORTE, e não os quarenta e nove da anamnese: o documento imprime os que
+     * o professor escolheu olhar, e carregar os outros seria transportar para o derivador um dado
+     * que ele não usa. */
+    mostra: mostraDaLeitura(linha.leitura)
+      .filter((m) => recorte_.some((c) => c.id === m.id)),
+  };
+}
+
 function linhaDeBaseDaTurma(linhas, turma) {
   const alvo = String(turma == null ? '' : turma).trim();
   if (!alvo) return null;
@@ -819,29 +846,24 @@ function linhaDeBaseDaTurma(linhas, turma) {
     if (ea !== eb) return ea < eb ? 1 : -1;
     return String(b.carimbo || '') < String(a.carimbo || '') ? 1 : -1;
   })[0];
-  const campos = Array.isArray(maisRecente.campos) ? maisRecente.campos : [];
-  const recorte_ = campos
-    .filter((c) => c && typeof c === 'object')
-    .map((c) => ({
-      id: String(c.id || ''),
-      nome: String(c.nome || c.id || ''),
-      grupo: String(c.grupo || ''),
-    }))
-    .filter((c) => c.id || c.nome);
-  return {
-    id: maisRecente.id || null,
-    nome: maisRecente.nome || maisRecente.id || null,
-    em: maisRecente.enviada_em || null,
-    turma: alvo,
-    alunas: (Array.isArray(maisRecente.alunas) ? maisRecente.alunas : [])
-      .map((a) => String(a == null ? '' : a).trim()).filter(Boolean),
-    recorte: recorte_,
-    /* SÓ OS ASPECTOS DO RECORTE, e não os quarenta e nove da anamnese: o documento imprime os que
-     * o professor escolheu olhar, e carregar os outros seria transportar para o derivador um dado
-     * que ele não usa. */
-    mostra: mostraDaLeitura(maisRecente.leitura)
-      .filter((m) => recorte_.some((c) => c.id === m.id)),
-  };
+  return formaDaLinhaDeBase(maisRecente, alvo);
+}
+
+/**
+ * A LINHA DE BASE ESCOLHIDA PELA TURMA, PELO ID (07/11/2026).
+ *
+ * A Turma deixou de herdar o elenco de um envio para a sala: passou a escolhê-lo, e guarda o id
+ * em `linhaDeBase`. Quem precisa da forma completa da linha (o cabeçalho do PO, o painel do corpo,
+ * o documento derivado) procura-a por esse id — e não pelo nome da sala, que já não a identifica.
+ * A forma devolvida é a MESMA de `linhaDeBaseDaTurma`: uma segunda construção divergiria à
+ * primeira correcção.
+ */
+function linhaDeBaseDoElenco(linhas, id) {
+  const alvo = String(id == null ? '' : id).trim();
+  if (!alvo) return null;
+  const linha = (Array.isArray(linhas) ? linhas : [])
+    .find((l) => l && String(l.id == null ? '' : l.id).trim() === alvo && !l.apagada_em);
+  return linha ? formaDaLinhaDeBase(linha, linha.turma || '') : null;
 }
 
 function elencoDaTurma(linhas, turma) {
@@ -963,6 +985,8 @@ module.exports = {
   envelheceu,
   elencoDaTurma,
   linhaDeBaseDaTurma,
+  linhaDeBaseDoElenco,
+  formaDaLinhaDeBase,
   elencoDiferente,
   filiacaoDasAlunas,
   alunasComLinhaDeBase,

@@ -579,8 +579,8 @@ const LI = 'li.turma[data-turma="tu1"]';
   })));
   provar('são três passos, nesta ordem: turma, rubrica, associar',
     passos.length === 3 && passos.map((p) => p.qual).join(',') === 'turma,rubrica,vincular', passos.map((p) => p.qual));
-  provar('…e os rótulos são «Turma», «Rubricas» e «Associar»',
-    passos.map((p) => p.rotulo.replace(/^\d\s*/, '')).join('|') === 'Turma|Rubricas|Associar', passos.map((p) => p.rotulo));
+  provar('…e os rótulos são «Sala», «Rubricas» e «Associar»',
+    passos.map((p) => p.rotulo.replace(/^\d\s*/, '')).join('|') === 'Sala|Rubricas|Associar', passos.map((p) => p.rotulo));
 
   // O «!» DE EDIÇÃO NOS PASSOS (18/10/2026). Saiu do cartão da turma: agora vive nos três
   // PASSOS, e só aparece quando se está a editar — fora da edição não há «!» nenhum. É o
@@ -846,7 +846,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   }));
   provar('a curadoria nasce sem «Cancelar» e sem texto de aviso',
     curadoriaAntes.cancelarEscondido === true && curadoriaAntes.textoDeAviso === false &&
-    curadoriaAntes.vigenciaEscondida === true && curadoriaAntes.botao === 'Atribuir curadoria',
+    curadoriaAntes.vigenciaEscondida === true && curadoriaAntes.botao === 'Atribuir turma',
     curadoriaAntes);
 
   await pg.evaluate(() => {
@@ -865,7 +865,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   }));
   provar('«Editar» mostra o «Cancelar» ao lado do botão, e nada explica o modo',
     curadoriaEditando.cancelarVisivel && curadoriaEditando.mesmaFileira &&
-    curadoriaEditando.botao === 'Gravar curadoria', curadoriaEditando);
+    curadoriaEditando.botao === 'Gravar turma', curadoriaEditando);
   provar('…com as alunas da curadoria já nas fichas',
     curadoriaEditando.alunas.length > 0 && curadoriaEditando.professorTravado === true,
     curadoriaEditando);
@@ -879,7 +879,7 @@ const LI = 'li.turma[data-turma="tu1"]';
     vigenciaEscondida: document.getElementById('cu-vigencia-campo').hidden,
   }));
   provar('cancelar a curadoria devolve o formulário a «Atribuir curadoria»',
-    curadoriaCancelada.cancelarEscondido && curadoriaCancelada.botao === 'Atribuir curadoria' &&
+    curadoriaCancelada.cancelarEscondido && curadoriaCancelada.botao === 'Atribuir turma' &&
     curadoriaCancelada.professorDestravado && curadoriaCancelada.alunas === 0 &&
     curadoriaCancelada.vigenciaEscondida, curadoriaCancelada);
 

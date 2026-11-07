@@ -1573,7 +1573,7 @@ function faltaNaCuradoria({ professor, modalidade, tradicao, turmas }) {
   if (!String(modalidade || '').trim()) falta.push(['modalidade', 'a modalidade']);
   if (!String(tradicao || '').trim()) falta.push(['tradicao', 'a tradição']);
   const t = (Array.isArray(turmas) ? turmas : [turmas]).map((x) => String(x || '').trim()).filter(Boolean);
-  if (!t.length) falta.push(['turma', 'a turma']);
+  if (!t.length) falta.push(['turma', 'a sala']);
   /* AS ALUNAS SAÍRAM DA LISTA (05/11/2026). A pesquisadora: «tem que tirar o campo alunas,
    * porque agora ele não faz mais parte da curadoria. Ele vai ser embutido dentro da turma por
    * meio da linha de base.» Exigir aqui uma aluna que já não se escolhe neste formulário era
@@ -1589,10 +1589,54 @@ function fraseDaCuradoriaIncompleta(falta) {
   if (falta.some(([campo]) => campo === 'professor')) onde.push('no Professor');
   if (falta.some(([campo]) => campo === 'modalidade')) onde.push('na Modalidade');
   if (falta.some(([campo]) => campo === 'tradicao')) onde.push('na Tradição');
-  if (falta.some(([campo]) => campo === 'turma')) onde.push('em Turma (aba Turmas)');
-  return 'a curadoria não se atribui incompleta — falta ' + nomes.join(', ') + '. ' +
-    'A curadoria é o que autoriza o plano de uma turma. Preencha ' + onde.join(', ') +
+  if (falta.some(([campo]) => campo === 'turma')) onde.push('em Sala (aba Salas)');
+  return 'a turma não se atribui incompleta — falta ' + nomes.join(', ') + '. ' +
+    'A turma é o que autoriza o plano de uma sala. Preencha ' + onde.join(', ') +
     ', e atribua depois.';
+}
+
+/**
+ * O PROFESSOR PODE ENSINAR ESTA MODALIDADE? (07/11/2026)
+ *
+ * A REGRA, nas palavras dela: «a modalidade nasce da competência/habilidade do professor. A escola
+ * só incorpora e oferta uma modalidade se possuir professores habilitados para lecioná-la.» A tela
+ * já filtra o `<select>` pelas habilitações — mas um filtro de cliente não é uma regra: a rota é
+ * pública para quem tem a senha da direção, e é ela que escreve. Sem esta guarda, uma requisição à
+ * mão põe um professor de balé clássico a ensinar jazz, e o catálogo passa a oferecer uma Turma
+ * sem quem a ensine.
+ *
+ * DEGRADA, NÃO REBENTA — e a distinção é a da casa. Três estados, e só um recusa:
+ *   · `sem-perfil`  — o professor ainda não declarou nada: NÃO se pronuncia. A ausência de um
+ *     dado não é a negação dele, e bloquear aqui travaria toda a escola recém-criada;
+ *   · `perfil ilegível` (GitHub fora, token expirado) — também não se pronuncia: uma falha de
+ *     leitura não pode virar uma recusa de pedagogia;
+ *   · `perdeu` — o perfil existe e não declara a modalidade: RECUSA, com o caminho de resolução.
+ *
+ * Devolve `null` quando não há nada a dizer, ou a frase da recusa.
+ */
+async function recusaPorHabilitacao(env, professor, modalidade) {
+  const slug = String(professor || '').trim();
+  if (!slug || !String(modalidade || '').trim()) return null;
+  try {
+    const { lerPerfil } = require('./perfil-professor.js');
+    const lido = await lerPerfil({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main', slug,
+    });
+    if (!lido || !lido.ok || !lido.existe) return null;
+    if (perfilNucleo.estadoDaHabilitacao(lido.perfil, modalidade) !== 'perdeu') return null;
+    const declaradas = perfilNucleo.modalidadesDoPerfil(lido.perfil)
+      .map((id) => perfilNucleo.nomeDaModalidade(id));
+    return 'o professor «' + slug + '» não declara «' + perfilNucleo.nomeDaModalidade(modalidade) +
+      '» nas habilitações dele' +
+      (declaradas.length
+        ? ' — hoje declara ' + declaradas.join(', ') + '.'
+        : ' — hoje não declara nenhuma modalidade.') +
+      ' A escola só oferece uma modalidade que tenha quem a ensine: ajuste as habilitações do ' +
+      'professor (Professores → Editar), ou escolha outro professor para esta turma.';
+  } catch (erro) {
+    return null;
+  }
 }
 
 /**
@@ -1639,7 +1683,7 @@ function acharCuradoria(lista, professor, modalidade, turma) {
 /**
  * AS ALUNAS QUE JÁ ESTÃO COMPROMETIDAS NA MESMA MODALIDADE (16/10/2026).
  *
- * Uma aluna pertence a UMA turma por modalidade — é a mesma razão que fez a turma virar
+ * Uma aluna pertence a UMA sala por modalidade — é a mesma razão que fez a turma virar
  * «uma por curadoria»: se ela aparecesse em duas, o plano de uma diria as alunas da outra.
  * A regra vale por MODALIDADE: a mesma pessoa pode estar no balé da turma A e no jazz da
  * turma B, porque são aulas diferentes.
@@ -1850,17 +1894,23 @@ const PASSOS_DO_VERBETE = [
 ];
 
 /**
- * OS CINCO PASSOS DA LINHA DE BASE (05/11/2026). A ordem é a do RACIOCÍNIO, não a de arrumação:
- * identificar → escolher os corpos → ler o que eles mostram juntos → decidir o recorte → mandar
- * para a turma. Cada um tem uma falta declarada em `faltasDoPassoLb`, e é essa lista que trava a
- * tira — a mesma técnica do verbete.
+ * OS QUATRO PASSOS DO ELENCO (05/11/2026; quatro desde 07/11/2026).
+ *
+ * A ordem é a do RACIOCÍNIO, não a de arrumação: identificar → escolher os corpos → ler o que
+ * eles mostram juntos → decidir o recorte. Cada um tem uma falta declarada em `faltasDoPassoLb`,
+ * e é essa lista que trava a tira — a mesma técnica do verbete.
+ *
+ * O QUINTO PASSO SAIU A 07/11/2026. Ele era «Turma» — para onde as alunas iam —, e a atribuição
+ * mudou de casa: a TURMA (antiga curadoria) é que escolhe o ELENCO, e não o contrário. O Elenco
+ * continua a ser um acto completo no passo 4: grava-se, e fica disponível para qualquer Turma.
+ * Manter o passo 5 seria pedir duas vezes a mesma relação, e a segunda ficaria a mentir quando a
+ * primeira mudasse.
  */
 const LB_PASSOS = [
   [1, 'Identificação'],
   [2, 'Alunas'],
   [3, 'Leitura'],
   [4, 'Recorte'],
-  [5, 'Turma'],
 ];
 
 /* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
@@ -2124,7 +2174,7 @@ function paginaEstudio(escola, contexto, aparencia) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas) {
   /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
    *
    * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
@@ -2394,7 +2444,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   //
   // UMA LISTAGEM SÓ, A MESMA NOS TRÊS (18/10/2026). Antes cada passo tinha a sua — turmas,
   // rubricas, vínculos —, e eram três listas diferentes para a mesma pergunta («o que existe
-  // nesta escola?»). A direção pediu uma só: «Turmas cadastradas», sempre. É ela que liga os
+  // nesta escola?»). A direção pediu uma só: «Salas cadastradas», sempre. É ela que liga os
   // três passos, e é nela que se vê o que já foi cadastrado enquanto se preenche o resto.
 
   // OS BLOCOS OCULTOS DE CONTEÚDOS SAÍRAM A 03/11/2026. Eles existiam para o formulário CLONAR,
@@ -2434,7 +2484,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * Eles sairam do cadastro da turma — entao nao e aqui que se mostram como se fossem
          * dela. O que aparece no lugar e «quem ensina o que, em que nivel», lido da
          * CURADORIA que enquadra esta turma (`enquadramento.resumoDoEnquadramento`). Uma
-         * turma sem curadoria diz «sem curadoria atribuida», e nao um vazio: a ausencia e um
+         * sala sem turma atribuída diz «sem turma atribuída», e nao um vazio: a ausencia e um
          * estado operacional, e um espaco em branco le-se como esquecimento.
          *
          * O `nivelReferencia` que uma turma antiga guarda NAO se perde: se a curadoria nao
@@ -2688,6 +2738,47 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       (falta.length ? ' — falta ' + esc(fraseDaFalta(falta)) + ' (não pode ser atribuída)' : '') +
       '</option>';
   }).join('');
+  /* O ELENCO PASSOU A SER ESCOLHIDO NA TURMA (07/11/2026).
+   *
+   * A nomenclatura mudou, e com ela o fluxo: a SALA (antiga turma) é o ritmo; o ELENCO (antiga
+   * linha de base) é o corpo de alunas; e a TURMA (antiga curadoria) é o que junta os dois. Antes,
+   * o elenco era enviado para uma sala (passo 5 da linha de base), e a curadoria herdava-o. Agora
+   * a atribuição é explícita: a Turma escolhe o Elenco, e o servidor deriva dele as alunas.
+   *
+   * A lista é a das linhas de base da escola — o mesmo leitor (`linhasDeBase`) que alimenta a
+   * secção Elenco. Uma segunda leitura da chave, com a sua própria forma, divergiria à primeira
+   * gravação. */
+  const elencosDaEscola = (Array.isArray(linhas) ? linhas : [])
+    .filter((l) => l && l.id && !l.apagada_em)
+    .map((l) => ({
+      id: String(l.id),
+      nome: String(l.nome || l.id),
+      alunas: (Array.isArray(l.alunas) ? l.alunas : []).map(String),
+      rascunho: !(Array.isArray(l.campos) && l.campos.length),
+    }));
+  const opcoesElencoCuradoria = elencosDaEscola.length
+    ? '<option value="">— escolher —</option>' +
+      elencosDaEscola.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.nome) +
+        ' — ' + e.alunas.length + (e.alunas.length === 1 ? ' aluna' : ' alunas') +
+        (e.rascunho ? ' (rascunho)' : '') + '</option>').join('')
+    : '<option value="">— nenhum elenco —</option>';
+  // A DISPONIBILIDADE NO CATÁLOGO (07/11/2026) — derivada dos dados que a Turma já declara.
+  // Não é um juízo: é a lista do que falta para a Turma poder ser ofertada, e cada falta diz o
+  // campo que a resolve. A modalidade é o EIXO do catálogo e entra na lista como qualquer outra
+  // falta: uma Turma sem modalidade não tem por onde ser procurada.
+  const disponibilidadeDaTurma = (c) => {
+    const faltas = [];
+    if (!String(c.modalidade || '').trim()) faltas.push('a modalidade');
+    if (!String(c.tradicao || '').trim()) faltas.push('a tradição');
+    if (!String(c.grau || c.nivel || c.nivelReferencia || '').trim()) faltas.push('o grau/nível');
+    if (!turmasDaCuradoria(c).length) faltas.push('a sala');
+    const elenco = c.linhaDeBase
+      ? elencosDaEscola.find((e) => e.id === String(c.linhaDeBase))
+      : null;
+    const quantas = elenco ? elenco.alunas.length : (Array.isArray(c.alunas) ? c.alunas.length : 0);
+    if (!quantas) faltas.push('o elenco');
+    return { disponivel: faltas.length === 0, faltas };
+  };
   const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
 
   // A LISTA DE NÍVEIS SAIU DAQUI (03/11/2026). Ela alimentava o escolhedor `esc-niveis` do
@@ -2706,13 +2797,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * aqui que ele passou a viver. A ordem é a da pergunta que a escola faz ao olhar a lista:
          * em que linha se ensina (a tradição), em que grau (o nível), a que turma, e a quem. */
         const nivelDaCuradoria = enquadramento.nivelEfetivo(null, c);
+        /* O ELENCO DA TURMA (07/11/2026) — o corpo que ela escolheu. A contagem vem do elenco
+         * escolhido; as curadorias antigas, que ainda não declaram `linhaDeBase`, continuam a
+         * mostrar o elenco que o servidor carimbou em `alunas` (P-03: o passado não se reescreve). */
+        const elencoDaCuradoria = c.linhaDeBase
+          ? elencosDaEscola.find((e) => e.id === String(c.linhaDeBase))
+          : null;
+        const nomeDoElenco = elencoDaCuradoria
+          ? elencoDaCuradoria.nome
+          : String(c.linhaDeBaseNome || '').trim();
+        const quantasAlunas = elencoDaCuradoria
+          ? elencoDaCuradoria.alunas.length
+          : (Array.isArray(c.alunas) ? c.alunas.length : 0);
+        /* A DISPONIBILIDADE AO PÚBLICO (07/11/2026). O catálogo procura pela modalidade; a Turma
+         * é oferecida quando tem modalidade, tradição, nível, sala e elenco com gente. O estado
+         * entra no COMPLEMENTO, e não como um terceiro selo na primeira linha: a 320px a linha do
+         * nome já tem o estado de proveniência, e um selo a mais empurrava os botões (medido: 42px
+         * de estouro). A frase diz o que falta, campo a campo, sem abrir o formulário. */
+        const disp = disponibilidadeDaTurma(c);
+        const estadoDoCatalogo = disp.disponivel
+          ? 'disponível no catálogo'
+          : 'indisponível — falta ' + disp.faltas.join(', ');
         const resumo = [
-          // O RÓTULO, e não a chave crua (02/11/2026). Antes lia-se «francesa · 8A · 12 aluna(s)»;
-          // agora lê-se «FRANCESA · 8A · 12 aluna(s)», que é a mesma padronização dos selectores.
+          perfilNucleo.nomeDaModalidade(c.modalidade) || c.modalidade,
           rotuloDaTradicao(c.tradicao),
           nivelDaCuradoria.rotulo,
           turmas.length ? turmas.join(' · ') : '',
-          (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
+          nomeDoElenco || '',
+          quantasAlunas ? (quantasAlunas + ' aluna(s)') : '',
+          estadoDoCatalogo,
         ].filter(Boolean).join(' · ');
         // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
         // nenhum plano de ensino nasceu desta curadoria, o registo edita-se; depois, deriva.
@@ -2766,20 +2879,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             '</ul></details>'
           : '';
         // DUAS LINHAS, como as demais listas: o professor e os selos em cima; modalidade,
-        // tradição, turmas, passos e alunas embaixo, num complemento só. A modalidade
-        // subiu para a segunda linha porque na primeira ela competia com o nome — e era
-        // ela que fazia a linha oscilar de altura entre uma curadoria e outra.
-        const complemento = [c.modalidade].concat(resumo ? [resumo] : []).filter(Boolean).join(' · ');
-        return '<li data-curadoria="' + esc(c.id) + '"><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : ''), urlDoPlanoDaCuradoria) +
+        // tradição, sala, elenco e alunas embaixo, num complemento só. A modalidade já entra no
+        // `resumo` (com o rótulo do catálogo), e repeti-la aqui faria a linha dizer duas vezes.
+        const complemento = resumo;
+        return '<li data-curadoria="' + esc(c.id) + '" data-disponivel="' + (disp.disponivel ? 'sim' : 'nao') + '"><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : ''), urlDoPlanoDaCuradoria) +
           (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           (vinculada
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
-            : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button>') +
+            : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover turma">Excluir</button>') +
           '</span>' +
           historico + '</li>';
       }).join('')
-    : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
+    : '<li class="vazia">(nenhuma turma atribuída)</li>';
 
   return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }, teste) +
     '<style>' +
@@ -3525,13 +3637,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência']]) +
     grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
       ['#alunas', 'alunas', 'Alunas']]) +
-    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Turmas'],
-      // A LINHA DE BASE ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ela não é operação nem
-      // configuração da casa: é a RÉGUA DO CORPO com que se lê a turma, ao lado da régua de
-      // rubrica (que vive dentro de Turmas). Duas réguas, dois assuntos, o mesmo grupo.
-      ['#corpo', 'corpo', 'Corpo — linha de base'],
+    /* OS NOMES MUDARAM A 07/11/2026, E A ESTRUTURA COM ELES.
+     *
+     *   antigo «Turma»      → SALA   (o ritmo: dias, horários, duração, período)
+     *   antigo «Linha de base» → ELENCO (o corpo de alunas e o recorte observado)
+     *   antigo «Curadoria»  → TURMA  (a relação: professor × modalidade × sala × elenco)
+     *
+     * Os IDS das secções ficam (`#turmas`, `#corpo`, `#curadorias`): são âncoras de link e de
+     * prova, não rótulos. Mudá-los partiria atalhos e provas sem mudar nada do que se lê. */
+    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Salas'],
+      // O ELENCO ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ele não é operação nem
+      // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
+      // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
+      ['#corpo', 'corpo', 'Elenco'],
       ['#verbetes', 'verbetes', 'Verbetes da notação'],
-      ['#curadorias', 'curadorias', 'Curadorias']]) +
+      ['#curadorias', 'curadorias', 'Turmas']]) +
     '</div>' +
     '<div class="lateral-veu" id="lateral-veu"></div>' +
     '</nav>' +
@@ -3706,7 +3826,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // têm o botão de colapsar ou expandir na mesma linha dos steps […] nos demais, o botão
     // está no título». Agora é a MESMA peça em todas — e o que a seta daqui recolhe continua
     // a ser o miolo dos passos, não o corpo: a faixa fica, e é ela que diz onde se está.
-    tituloComAcordeao('sec-turmas', 'Turmas', 'turmas-paineis', 'alternar-form') +
+    tituloComAcordeao('sec-turmas', 'Salas', 'turmas-paineis', 'alternar-form') +
     // A FAIXA DOS PASSOS SAIU DE DENTRO DO FORMULÁRIO (01/11/2026), e é a segunda metade do
     // mesmo pedido: «os steps não vão ser posicionados apenas sobre o formulário […] vão ficar
     // num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». Aqui ela é
@@ -3719,12 +3839,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // deixou de existir quando a seta subiu ao título.
     '<div class="turmas-corpo">' +
     '<div class="turmas-faixa">' +
-    '<ol class="passos" aria-label="Etapas da turma" data-editando="nao">' +
+    '<ol class="passos" aria-label="Etapas da sala" data-editando="nao">' +
     // O RÓTULO VAI DENTRO DE UM `<span>` (18/10/2026): é ele que pode encurtar com
     // reticências quando a faixa não couber — um texto solto dentro do botão não encolhe, e
     // era isso que empurrava «Associar» para a segunda linha no telefone.
     '<li><button type="button" class="passo ativo" data-passo="turma" aria-current="step">' +
-    '<span class="passo-n">1</span> <span class="passo-t">Turma</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
+    '<span class="passo-n">1</span> <span class="passo-t">Sala</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     '<li><button type="button" class="passo" data-passo="rubrica">' +
     '<span class="passo-n">2</span> <span class="passo-t">Rubricas</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026), porque o passo passou a ter
@@ -3744,7 +3864,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O MIOLO — os três painéis. É ele que recolhe; a faixa fica.
     '<div id="turmas-paineis">' +
     // O CORPO DA SECÇÃO: à esquerda o FORMULÁRIO DO PASSO (um de cada vez), à direita a
-    // LISTAGEM. A listagem é a MESMA nos três passos — «Turmas cadastradas» — e por isso ela
+    // LISTAGEM. A listagem é a MESMA nos três passos — «Salas cadastradas» — e por isso ela
     // vive FORA dos painéis: trocar de passo troca o formulário, nunca a lista.
     // PASSO 1 — A TURMA. Só o que é da turma: quem, quando, com que frequência e por quanto
     // tempo. A régua SAIU daqui: ela é da escola, e mora no passo seguinte.
@@ -3764,7 +3884,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="tvigencia">Vale a partir de</label>' +
     '<input id="tvigencia" type="date" autocomplete="off">' +
     '</div>' +
-    '<label class="campo-rotulo" for="tnome">Nome da turma</label>' +
+    '<label class="campo-rotulo" for="tnome">Nome da sala</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
     // «POSIÇÃO NA LISTA» SAIU (18/10/2026). Era um número que a direção tinha de inventar para
     // dizer o que já sabia: a turma nova é a que acabou de ser criada. O servidor põe cada
@@ -3891,7 +4011,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // são sempre DELA.
     '<p class="turma-em-foco" id="vinc-turma-nome" hidden></p>' +
     '<fieldset class="bloco-assoc">' +
-    '<legend>Com que régua esta turma é medida</legend>' +
+    '<legend>Com que régua esta sala é medida</legend>' +
     '<label class="campo-rotulo" for="vinc-rubrica">Rubrica</label>' +
     '<select id="vinc-rubrica">' +
     // O VAZIO É O PADRÃO (18/10/2026): sem escolha explícita, «Gravar turma» não habilita.
@@ -3928,7 +4048,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // que permite associar aqui —, e o botão diz o que a direção sente: «terminei esta turma».
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vinc-voltar">Voltar</button>' +
-    '<button type="button" class="acao grande" id="vinc-gravar" disabled>Gravar turma</button>' +
+    '<button type="button" class="acao grande" id="vinc-gravar" disabled>Gravar sala</button>' +
     '<button type="button" class="acao secundario cancelar-edicao" id="vinc-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '<p class="nota-pendencia" id="vinc-pendencia" hidden></p>' +
@@ -3940,7 +4060,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A LISTAGEM ÚNICA — a mesma nos três passos. Ela mora FORA dos painéis de propósito:
     // trocar de passo troca o formulário, e a lista continua ali, sem piscar.
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Turmas cadastradas</h3>' +
+    '<h3>Salas cadastradas</h3>' +
     // O AVISO DO FILTRO (18/10/2026). Ele só existe quando a lista chegou filtrada pelo
     // «turmas» de um professor, de uma aluna ou de um termo — e diz de quem são, para não
     // parecer que a escola perdeu as outras turmas.
@@ -4426,7 +4546,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-curadorias" hidden>' +
-    tituloComAcordeao('sec-curadorias', 'Curadorias', 'curadorias-miolo') +
+    tituloComAcordeao('sec-curadorias', 'Turmas', 'curadorias-miolo') +
     '<div class="col-form" id="curadorias-miolo">' +
     '<form id="form-curadoria">' +
     // O MODO: criar, editar (só a curadoria livre) ou derivar (a vinculada) — a mesma regra da
@@ -4480,27 +4600,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<select id="cugrau"><option value=""></option></select>' +
     '<label class="campo-rotulo" for="cunivel">Nível</label>' +
     '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
-    '<label class="campo-rotulo" for="cuturma">Turma</label>' +
+    '<label class="campo-rotulo" for="cuturma">Sala</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
-    /* A NOTA DIZ DE ONDE VEM O ELENCO — e não há campo para o escolher (05/11/2026).
+    /* O ELENCO PASSOU A SER ESCOLHIDO AQUI (07/11/2026).
      *
-     * A pesquisadora: «tem que tirar o campo alunas, porque agora ele não faz mais parte da
-     * curadoria. Ele vai ser embutido dentro da turma por meio da linha de base.» A ordem é a
-     * dela: o elenco nasce na linha de base (passo 5 — «estas alunas, com este recorte, vão para
-     * esta turma»), e a curadoria escolhe a TURMA, não as pessoas.
+     * A nomenclatura nova ordenou o modelo: a SALA é o ritmo, o ELENCO é o corpo de alunas, e a
+     * TURMA é a relação que junta os dois. Antes, o elenco era enviado para a sala (passo 5 da
+     * linha de base) e a curadoria herdava-o dessa sala; o campo não existia porque a atribuição
+     * era implícita. Agora é explícita: a Turma escolhe o Elenco, e o servidor deriva dele as
+     * alunas. É o que permite a uma sala receber mais de um elenco ao longo do ano sem reescrever
+     * o vínculo, e é o que dá sentido à frase dela: «cada sala recebe um elenco, formando assim
+     * uma turma em funcionamento».
      *
-     * A NOTA FICA, e é o que impede a mudança de ser um silêncio: sem o campo, quem chega aqui
-     * precisa de saber QUE a turma já traz gente, de QUE linha de base, e que para mudar o elenco
-     * se vai à linha de base — não a este formulário. Não é um parágrafo explicativo de
-     * formulário (a regra da casa); é o estado do dado escolhido, e muda com ele.
-     *
-     * O QUE ACONTECE ÀS CURADORIAS ANTIGAS, e é o que impede a mudança de partir o que já existe:
-     * elas continuam a guardar `alunas` no registo — o passado não se reescreve (P-03) —, e é
-     * delas que a cascata do «rever» continua a comparar. O SERVIDOR passa a carimbar essa lista a
-     * partir do elenco derivado da turma no momento em que a curadoria é gravada (ver
-     * `POST /api/bastidores/curadoria`): a curadoria deixa de DECLARAR quem está na turma e passa
-     * a REGISTAR quem lá estava quando foi atribuída. Sem esse carimbo a comparação não teria
-     * contra o que diferir, e o aviso de cascata — que ela pediu — desapareceria em silêncio. */
+     * A NOTA continua a existir, mas mudou de ofício: já não explica de onde vem o elenco — diz o
+     * ESTADO do elenco escolhido (quantas alunas, se é rascunho). É o mesmo `.nota` que o resto
+     * do gabinete usa para dizer um facto sobre o dado, e não um parágrafo de ajuda. */
+    '<label class="campo-rotulo" for="cuelenco">Elenco</label>' +
+    '<select id="cuelenco">' + opcoesElencoCuradoria + '</select>' +
     '<p class="nota" id="cu-elenco-nota" hidden></p>' +
     // O «REPERTÓRIO» VOLTOU A ESTE FORMULÁRIO A 03/11/2026 — e não é a reversão que parece.
     //
@@ -4512,7 +4628,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // SÓ O RÓTULO, SEM EXPLICAÇÃO (a regra da casa: nenhum formulário traz parágrafo
     // explicativo — rótulo, campo e placeholder, e nada mais). O que a lista significa diz-se
     // onde ela é LIDA, não onde é preenchida.
-    '<label class="campo-rotulo">Conteúdos desta curadoria</label>' +
+    '<label class="campo-rotulo">Conteúdo da aula</label>' +
     escolarConteudosCuradoria +
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
@@ -4523,13 +4639,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // PADRÃO da folha — filete na marca, fundo de papel — e por isso tinha outra cor e outra
     // altura que o «Cadastrar professor» ao lado, na mesma página. A ação que grava é a
     // principal das três, e é a peça `.acao` que a desenha.
-    '<button type="submit" class="acao grande" id="cu-enviar">Atribuir curadoria</button>' +
+    '<button type="submit" class="acao grande" id="cu-enviar">Atribuir turma</button>' +
     '<button type="button" class="acao secundario" id="cu-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Curadorias atribuídas</h3>' +
+    '<h3>Turmas atribuídas</h3>' +
     '<div class="rolagem"><ul class="lista" id="cu-lista">' + itensCuradorias + '</ul></div>' +
     rodapePaginacao() +
     '</div>' +
@@ -4541,7 +4657,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `data-acordeao="<secção>"`. O handler do clique bifurca por esse atributo: com ele recolhe a
      * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
      * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
-    tituloComAcordeao('sec-corpo', 'Corpo — linha de base', 'corpo-miolo') +
+    tituloComAcordeao('sec-corpo', 'Elenco', 'corpo-miolo') +
     '<div class="turmas-corpo">' +
     '<div class="turmas-faixa">' +
     /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
@@ -4564,13 +4680,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
      * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
-    /* ---------------------------------------------- A LINHA DE BASE, EM CINCO PASSOS
+    /* ---------------------------------------------- O ELENCO, EM QUATRO PASSOS
      *
-     * (05/11/2026, terceira passagem.) A secção nasceu como um formulário só, e ela organizou-a:
-     * «ele vai ser por steps, assim como a gente fez no verbete da anotação». A ORDEM dos passos
-     * não é arrumação de ecrã — é a ordem em que o professor PENSA:
+     * (05/11/2026, terceira passagem; quatro desde 07/11/2026.) A secção nasceu como um
+     * formulário só, e ela organizou-a: «ele vai ser por steps, assim como a gente fez no verbete
+     * da anotação». A ORDEM dos passos não é arrumação de ecrã — é a ordem em que o professor
+     * PENSA:
      *
-     *   1. Identificação — que linha de base é esta, e de quem.
+     *   1. Identificação — que elenco é este, e de quem.
      *   2. Alunas — de quem é o corpo que se vai olhar. É antes do resto porque sem corpos não há
      *      o que cruzar. Dez de cada vez, com rolagem: a escola pode ter quatrocentos alunos, e
      *      uma lista de quatrocentas caixas não se lê.
@@ -4578,7 +4695,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *      de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em comum.
      *   4. Recorte — o que ESTE ciclo vai observar. Depois da leitura, e é isso que dá sentido à
      *      escolha: antes de ver, escolher seria adivinhar.
-     *   5. Turma — para onde vão estas alunas com esta linha de base.
+     *
+     * O QUINTO PASSO («Turma») SAIU A 07/11/2026 — a atribuição passou para a TURMA, que escolhe
+     * o Elenco no próprio formulário. Gravar o elenco é o fim deste acto: ele fica disponível na
+     * lista, e qualquer Turma o pode receber.
      *
      * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
      * `podeIrPara(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
@@ -4589,7 +4709,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que se chegar: sem retratos não há alunas para escolher, e a secção diz isso em vez de
      * mostrar um formulário que não leva a lado nenhum.
      */
-    '<ol class="passos" id="lb-tira" aria-label="Passos da linha de base" data-editando="nao">' +
+    '<ol class="passos" id="lb-tira" aria-label="Passos do elenco" data-editando="nao">' +
     LB_PASSOS.map(([n, t]) =>
       '<li><button type="button" class="passo" data-passo="' + n + '">' +
         '<span class="passo-n">' + n + '</span> ' +
@@ -4603,14 +4723,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<form id="form-linha-base">' +
     '<input type="hidden" id="lb-modo" value="">' +
     '<div class="passo-painel" data-passo="1">' +
-    '<label class="campo-rotulo" for="lb-nome">Nome da linha de base</label>' +
+    '<label class="campo-rotulo" for="lb-nome">Nome do elenco</label>' +
     '<input id="lb-nome" name="nome" autocomplete="off" placeholder="ex.: Nível 1 — mobilidade e pés">' +
-    '<p class="sub">O nome é como o plano de ensino a vai referir. Use um nome que diga para que ' +
-    'serve: a mesma turma pode ter mais de uma ao longo do ano.</p>' +
+    '<p class="sub">O nome é como a turma vai referir este elenco. Use um nome que diga para que ' +
+    'serve: a mesma sala pode receber mais de um ao longo do ano.</p>' +
     '<label class="campo-rotulo" for="lb-professor">Professor responsável</label>' +
     '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
-    '<p class="sub">A linha de base é de quem avalia: é o professor que observa estas alunas. As de ' +
-    'outros professores ficam visíveis na lista — quem assume lê o que estava antes, e faz a sua.</p>' +
+    '<p class="sub">O elenco é de quem avalia: é o professor que observa estas alunas. Os de ' +
+    'outros professores ficam visíveis na lista — quem assume lê o que estava antes, e faz o seu.</p>' +
     '</div>' +
     '<div class="passo-painel" data-passo="2" hidden>' +
     '<label class="campo-rotulo">Alunas deste recorte</label>' +
@@ -4633,47 +4753,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div id="lb-campos"><p class="sub">carregando os aspectos da anamnese…</p></div>' +
     '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
     '</div>' +
-    '<div class="passo-painel" data-passo="5" hidden>' +
-    /* SEM TURMA CADASTRADA, O PASSO 5 NÃO PEDE — DIZ O QUE FALTA (05/11/2026).
-     *
-     * A pesquisadora, numa escola recém-criada: «eu não tenho nenhuma turma. […] ele tem que
-     * mostrar uma mensagem dizendo: olha, ainda não existe nenhuma turma. Crie uma turma antes de
-     * definir a linha de base.» Um `select` com uma única opção («— escolher —») não diz isso:
-     * diz que o professor não escolheu, quando o que falta é o cadastro. São estados diferentes, e
-     * confundi-los manda procurar um defeito que não existe.
-     *
-     * O AVISO ENTRA NO LUGAR DO CAMPO, e não ao lado dele: um campo que não se pode preencher é
-     * ruído. O caminho para resolver fica escrito e é um link — a secção Turmas é a mesma página,
-     * e o gesto é o que ela pediu («crie uma turma antes»). O «Concluir» continua travado, e a
-     * falta dele diz o mesmo na tira e no `title`. */
-    (listaTurmas.length
-      ? '<label class="campo-rotulo" for="lb-turma-destino">Turma de destino</label>' +
-        '<select id="lb-turma-destino"><option value="">— escolher —</option>' +
-        listaTurmas.map((t) => '<option value="' + esc(t.nome) + '">' + esc(t.nome) + '</option>').join('') +
-        '</select>' +
-        '<p class="sub">Ao concluir, estas alunas passam a ser as alunas desta turma — e a ' +
-        'curadoria deixa de as pedir uma a uma: escolhe a turma e recebe o elenco e a linha de ' +
-        'base. A turma continua a ser o ritmo; o vínculo fica registado aqui, com a data.</p>'
-      : '<p class="aviso" id="lb-sem-turma">Ainda não existe nenhuma turma cadastrada. ' +
-        'Crie uma turma antes de definir a linha de base — é para lá que estas alunas vão, e é ' +
-        'aí que a curadoria as encontra. <a href="#sec-turmas" data-ir-para-turmas>Ir a Turmas</a>' +
-        '.</p>' +
-        '<input type="hidden" id="lb-turma-destino" value="">') +
-    '<div id="lb-vinculo"></div>' +
-    '</div>' +
+    /* O PASSO 5 («Turma de destino») SAIU A 07/11/2026. A atribuição do elenco a uma sala passou
+     * para a TURMA (antiga curadoria), que escolhe o Elenco no próprio formulário. Aqui o acto
+     * termina no recorte: gravar o elenco é concluí-lo, e ele fica disponível para qualquer Turma.
+     * A rota antiga (`/linha-de-base/enviar`) fica por compatibilidade — as provas e os registos
+     * antigos ainda a podem chamar —, mas o formulário já não a usa. */
     '<div class="res" data-res="linha-base"></div>' +
     '<span class="par-botoes" id="lb-nav">' +
     '<button type="button" class="acao secundario" id="lb-voltar" hidden>← Voltar</button>' +
     '<button type="button" class="acao" id="lb-seguir">Seguir →</button>' +
-    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Concluir e enviar ' +
-    'para a turma</button>' +
+    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Concluir elenco</button>' +
     '</span>' +
     '<p class="par-botoes" id="lb-linha-cancelar" hidden><button type="button" ' +
     'class="acao secundario pequena" id="lb-cancelar">Cancelar</button></p>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Linhas de base</h3>' +
+    '<h3>Elencos</h3>' +
     /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
      * `.lista li` é `display:flex` — as linhas simples do gabinete são UMA fita, e o cartão é
      * uma COLUNA. Medido com o contentor antigo: as três caixas ficavam com 110px numa coluna
@@ -6014,6 +6110,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS CURADORIAS VIGENTES, para o «Editar»/«Derivar» as abrir no formulário sem pedir ao
     // servidor (16/10/2026): o mapa já veio com a página.
     'var CURADORIAS = ' + JSON.stringify(listaCuradorias) + ';' +
+    /* OS ELENCOS DA ESCOLA (07/11/2026) — a lista que a Turma escolhe. Vai com a página, como
+     * as curadorias e as turmas: o `<select>` já a tem, e a nota do elenco não precisa de uma
+     * ida ao servidor para dizer quantas alunas ele tem. */
+    'var ELENCOS = ' + JSON.stringify(elencosDaEscola) + ';' +
     // AS ALUNAS DA ESCOLA, e o mapa de quem já está comprometida numa modalidade (16/10/2026).
     // A lista de alunas do formulário é FILTRADA pela modalidade e pela turma escolhidas: uma
     // aluna pertence a UMA turma por modalidade, e oferecê-la outra vez era deixar a escola
@@ -6038,44 +6138,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return onde;' +
     '}' +
-    // O REFILTRO: reconstrói o menu das alunas com o que está livre, e TIRA as fichas que
-    // passaram a estar ocupadas (trocar a modalidade depois de escolher é o caso que as cria).
-    // O ELENCO DA TURMA, lido das linhas de base que a ela foram enviadas.
+    // A NOTA DO ELENCO ESCOLHIDO (07/11/2026) — já não é uma herança, é uma leitura.
     //
-    // A TURMA NÃO GUARDA ALUNAS: ela é o ritmo (decisão de 03/11/2026), e pôr-lhe um campo
-    // `alunas` seria reverter essa decisão. O vínculo mora na LINHA DE BASE — «estas alunas, com
-    // este recorte, foram para esta turma neste dia» —, e é de lá que esta leitura sai.
-    //
-    // A PARTIR DE 05/11/2026 ELA SÓ ESCREVE A NOTA. Havia aqui um escolhedor de alunas que as
-    // fichas preenchiam; o campo saiu da curadoria por decisão dela («ele vai ser embutido dentro
-    // da turma por meio da linha de base»), e transportar fichas para dentro de um campo que já
-    // não existe seria trabalho para o vazio. O que fica é o que sempre devia ter sido: dizer de
-    // ONDE vem o elenco e quantos são, para quem está a atribuir a curadoria saber que a turma
-    // não está vazia — e que para a mudar se vai à linha de base.
-    'function herdarAlunasDaTurma(turma) {' +
+    // Até 05/11 o elenco vinha da sala, e a nota dizia «a turma X recebeu N alunas da linha de
+    // base Y». Agora a TURMA escolhe o ELENCO, e o que a nota diz é o estado do que foi
+    // escolhido: quantas alunas tem, e se ainda é rascunho. A lista vem com a página (`ELENCOS`),
+    // e por isso não há uma ida ao servidor por cada mudança do `<select>`.
+    'function mostrarElenco(id) {' +
     '  var nota = document.getElementById("cu-elenco-nota");' +
     '  if (nota) { nota.hidden = true; nota.textContent = ""; }' +
-    '  if (!nota || !turma) return;' +
-    '  fetch("/api/bastidores/alunas-da-turma?turma=" + encodeURIComponent(turma))' +
-    '    .then(function(r){ return r.json(); })' +
-    '    .then(function(d){' +
-    '      if (!d || !d.ok) return;' +
-    '      if (!(d.alunas || []).length) {' +
-    /* A TURMA SEM ELENCO DIZ-SE, e não fica em branco. É o estado exacto de quem ainda não mandou
-     * nenhuma linha de base para esta turma: a curadoria pode ser atribuída, mas ninguém está lá
-     * — e quem for fazer o plano precisa de o saber antes, não depois. */
-    '        nota.hidden = false;' +
-    '        nota.textContent = "Esta turma ainda não recebeu nenhuma aluna — o elenco nasce na " +' +
-    '          "linha de base (Corpo → passo 5).";' +
-    '        return;' +
-    '      }' +
-    '      nota.hidden = false;' +
-    '      nota.textContent = "A turma «" + d.turma + "» recebeu " + d.alunas.length +' +
-    '        (d.alunas.length === 1 ? " aluna" : " alunas") + " da linha de base «" +' +
-    '        ((d.linhaDeBase && d.linhaDeBase.nome) || "—") + "». Para mudar o elenco, edite " +' +
-    '        "a linha de base.";' +
-    '    })' +
-    '    .catch(function(){});' +
+    '  if (!nota || !id) return;' +
+    '  var e = null;' +
+    '  for (var i = 0; i < ELENCOS.length; i++) {' +
+    '    if (ELENCOS[i] && ELENCOS[i].id === id) { e = ELENCOS[i]; break; }' +
+    '  }' +
+    '  if (!e) return;' +
+    '  nota.hidden = false;' +
+    '  nota.textContent = e.alunas.length' +
+    '    ? "O elenco «" + e.nome + "» tem " + e.alunas.length +' +
+    '      (e.alunas.length === 1 ? " aluna" : " alunas") + "." +' +
+    '      (e.rascunho ? " Ainda é rascunho: falta-lhe o recorte." : "")' +
+    '    : "O elenco «" + e.nome + "» ainda não tem alunas.";' +
     '}' +
     'function refiltrarAlunas() {' +
     '  var el = document.getElementById("esc-alunas");' +
@@ -6244,18 +6327,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Trocar a modalidade ou a turma refiltra — e limpar o par também repõe a lista toda.
     'document.addEventListener("change", function(e){' +
     '  var alvo = e.target;' +
-    '  if (alvo && (alvo.id === "cumodalidade" || alvo.id === "cuturma")) refiltrarAlunas();' +
-    // A CURADORIA HERDA O ELENCO DA TURMA (05/11/2026).
-    //
-    // A pesquisadora: «quando eu termino a linha de base, aí eu vou dizer: ah, esses alunos então
-    // vão para a turma X. […] lá na curadoria eu apenas digo qual é a turma, e a turma já carrega
-    // junto quais são os alunos dela». O passo 5 da linha de base gravou esse vínculo (com data,
-    // porque é um acto); aqui ele é LIDO.
-    //
-    // O QUE ACONTECE ÀS FICHAS QUE JÁ ESTAVAM: nada é retirado. As que vieram da turma são
-    // ACRESCENTADAS, e as que o professor tinha posto à mão ficam — quem está a editar uma
-    // curadoria antiga não perde o que lá estava por a turma agora declarar outra coisa.
-    '  if (alvo && alvo.id === "cuturma") herdarAlunasDaTurma(alvo.value);' +
+    '  if (alvo && (alvo.id === "cumodalidade" || alvo.id === "cuturma" || alvo.id === "cuelenco")) refiltrarAlunas();' +
+    // A NOTA DO ELENCO (07/11/2026). O elenco deixou de ser herdado da sala: é escolhido aqui,
+    // e a nota diz o seu estado (quantas alunas, se é rascunho). O servidor volta a conferir o
+    // elenco na gravação — esta nota é a leitura, não a regra.
+    '  if (alvo && alvo.id === "cuelenco") mostrarElenco(alvo.value);' +
     '});' +
     'refiltrarAlunas();' +
     // O BOTÃO DE UMA CURADORIA — a MESMA regra e o MESMO desenho da turma: «Editar» quando
@@ -6268,14 +6344,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function ajustarCuradoria(id, modo) {' +
     '  var c = null;' +
     '  for (var i = 0; i < CURADORIAS.length; i++) { if (CURADORIAS[i] && CURADORIAS[i].id === id) { c = CURADORIAS[i]; break; } }' +
-    '  if (!c) { alert("Curadoria não encontrada na lista."); return; }' +
+    '  if (!c) { alert("Turma não encontrada na lista."); return; }' +
     '  var derivar = modo !== "editar";' +
     '  document.getElementById("cuderivar").value = c.id;' +
     '  document.getElementById("cumodo").value = derivar ? "derivar" : "editar";' +
     // A DATA SÓ NA DERIVAÇÃO, e o «Cancelar» aparece por haver edição em curso.
     '  document.getElementById("cu-vigencia-campo").hidden = !derivar;' +
     '  document.getElementById("cu-cancelar").hidden = false;' +
-    '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar curadoria";' +
+    '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar turma";' +
     // Os três `select` ficam travados: o par identifica a curadoria, e a turma é o que ela
     // declara hoje — mudar de turma é derivar, não editar por baixo.
     '  document.getElementById("cuprofessor").value = c.professor;' +
@@ -6314,9 +6390,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var hoje = new Date();' +
     '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
     '  document.getElementById("cuvigencia").value = iso;' +
-    // A NOTA DO ELENCO TAMBÉM SE REPÕE (05/11/2026): quem abre uma curadoria para a corrigir tem
-    // de ver que a turma trouxe alunas — e a caixa tem de voltar, porque em edição a lista é dele.
-    '  herdarAlunasDaTurma(document.getElementById("cuturma").value || "");' +
+    // O ELENCO VEM DA TURMA (07/11/2026) — o registo declara-o; a nota mostra o estado dele.
+    '  var elencoDaCuradoria = c.linhaDeBase || "";' +
+    '  var seletorElenco = document.getElementById("cuelenco");' +
+    '  if (seletorElenco) seletorElenco.value = elencoDaCuradoria;' +
+    '  mostrarElenco(elencoDaCuradoria);' +
     '  document.getElementById("form-curadoria").scrollIntoView({block: "start"});' +
     '  (derivar ? document.getElementById("cuvigencia") : document.getElementById("cu-enviar")).focus();' +
     '}' +
@@ -6328,7 +6406,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cumodo").value = "";' +
     '    document.getElementById("cu-vigencia-campo").hidden = true;' +
     '    document.getElementById("cu-cancelar").hidden = true;' +
-    '    document.getElementById("cu-enviar").textContent = "Atribuir curadoria";' +
+    '    document.getElementById("cu-enviar").textContent = "Atribuir turma";' +
     '    document.getElementById("cuprofessor").disabled = false;' +
     '    document.getElementById("cumodalidade").disabled = false;' +
     '    document.getElementById("form-curadoria").reset();' +
@@ -6345,10 +6423,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // as opções que o script escreveu.
     '    pintarModalidades(listaDoCatalogo(), "");' +
     '    filtrarPorHabilitacao();' +
-    // E O CAMPO DAS ALUNAS VOLTA A SER O DA CRIAÇÃO (05/11/2026): sem edição em curso, se a turma
-    // trouxer elenco da linha de base, o escolhedor some outra vez — o cancelamento não pode
-    // deixar o formulário num estado que a criação não tem.
-    '    herdarAlunasDaTurma(document.getElementById("cuturma").value || "");' +
+    // E O ELENCO VOLTA A SER O DA CRIAÇÃO (07/11/2026): sem edição em curso, o `<select>` fica
+    // vazio e a nota desaparece — o cancelamento não pode deixar o formulário num estado que a
+    // criação não tem.
+    '    var seletorElenco = document.getElementById("cuelenco");' +
+    '    if (seletorElenco) seletorElenco.value = "";' +
+    '    mostrarElenco("");' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -9033,16 +9113,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.getElementById("semear").addEventListener("click", function(e){' +
     '  if (!confirm("Carregar as turmas iniciais?\\n\\n' +
     'Vem o nome e o nível de referência de cada turma — NÃO vem o ritmo (dias, hora, duração ' +
-    'e período). Uma turma carregada assim serve para a curadoria, mas ainda não gera ciclo: ' +
+    'e período). Uma sala carregada assim serve para a turma, mas ainda não gera ciclo: ' +
     'complete o cadastro dela antes de eliciar o plano.\\n\\n' +
     'Turmas já existentes não são duplicadas.")) return;' +
     '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
     '});' +
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    // A TURMA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
-    // que o plano já lê. As ALUNAS e o REPERTÓRIO continuam múltiplos.
+    // A SALA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
+    // que o plano já lê. O ELENCO também é um — o corpo que esta sala recebe.
     '  var umaTurma = document.getElementById("cuturma").value;' +
+    '  var umElenco = document.getElementById("cuelenco").value;' +
     // OS CAMPOS SÃO OBRIGATÓRIOS, E O FORMULÁRIO DIZ QUAIS FALTAM (23/10/2026). A mesma regra do
     // servidor (`faltaNaCuradoria`), aqui para a recusa chegar antes de a pessoa esperar por uma
     // ida à rede. Um `alert` que diz «faltam campos» não serve: a pessoa fica a olhar para o
@@ -9055,10 +9136,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!document.getElementById("cuprofessor").value) faltando.push("o professor");' +
     '  if (!document.getElementById("cumodalidade").value) faltando.push("a modalidade");' +
     '  if (!document.getElementById("cutradicao").value) faltando.push("a tradição");' +
-    '  if (!umaTurma) faltando.push("a turma");' +
+    '  if (!umaTurma) faltando.push("a sala");' +
+    '  if (!umElenco && ELENCOS.length) faltando.push("o elenco");' +
     '  if (faltando.length) {' +
-    '    alert("A curadoria não se atribui incompleta — falta " + faltando.join(", ") + ". " +' +
-    '      "Ela é o que autoriza o plano de uma turma; os quatro campos são obrigatórios.");' +
+    '    alert("A turma não se atribui incompleta — falta " + faltando.join(", ") + ". " +' +
+    '      "Ela é o que autoriza o plano de uma sala; os campos são obrigatórios.");' +
     '    return;' +
     '  }' +
     // O NÍVEL VAI NO CORPO (03/11/2026), e vai SEMPRE — mesmo vazio. É o que distingue «não
@@ -9072,6 +9154,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    grau: document.getElementById("cugrau").value,' +
     '    nivel: document.getElementById("cunivel").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
+    // O ELENCO VAI NO CORPO (07/11/2026). É a associação que a Turma declara: a sala recebe
+    // este corpo. Vai sempre, mesmo vazio — o servidor distingue «não trouxe» de «retirou».
+    '    linhaDeBase: umElenco,' +
     /* AS ALUNAS NÃO VÃO NO CORPO (05/11/2026). Quem as declara é a linha de base enviada para a
      * turma; o servidor carimba na curadoria o elenco derivado do momento, para a cascata ter
      * contra o que comparar depois. Mandar daqui uma lista que o formulário já não mostra seria
@@ -9087,19 +9172,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = (document.getElementById("cuderivar") || {}).value || "";' +
     '  var modo = (document.getElementById("cumodo") || {}).value || "";' +
     '  if (!alvo) {' +
-    '    enviar("/api/bastidores/curadoria", campos, "atribuindo curadoria...", true); return;' +
+    '    enviar("/api/bastidores/curadoria", campos, "atribuindo turma...", true); return;' +
     '  }' +
     '  if (modo === "editar") {' +
     // A origem vai declarada: com a turma editável, o trio novo pode já não casar com o
     // registo de onde se partiu, e o servidor criaria uma curadoria ao lado da antiga.
     '    campos.idAntigo = alvo;' +
-    '    enviar("/api/bastidores/curadoria", campos, "gravando curadoria...", true); return;' +
+    '    enviar("/api/bastidores/curadoria", campos, "gravando turma...", true); return;' +
     '  }' +
     '  var vig = document.getElementById("cuvigencia").value;' +
-    '  if (!vig) { alert("Informe a data a partir da qual a curadoria ajustada vale."); return; }' +
+    '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
     '  campos.derivarDe = alvo;' +
     '  campos.vigencia = vig;' +
-    '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando curadoria...", true);' +
+    '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando turma...", true);' +
     '});' +
     // O HANDLER DELEGADO DA ASSOCIAÇÃO SAIU A 03/11/2026. Ele servia os botões
     // `button.associar`/`button.desassociar` dos chips por turma — e os chips por turma
@@ -9252,11 +9337,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
     'var LB_PASSO = 1;' +
     'var LB_TOTAL = ' + LB_PASSOS.length + ';' +
-    /* A ESCOLA TEM TURMA? (05/11/2026). É o servidor que sabe, e a tela não adivinha: sem nenhuma
-     * turma cadastrada, o passo 5 não pede uma escolha — diz que falta o cadastro e leva lá. O
-     * passo 1 continua a pedir o nome (a regra dela: «enquanto não colocar um nome, tudo está
-     * bloqueado»), mas o último passo não fica à espera de uma opção que não existe. */
-    'var LB_TEM_TURMA = ' + (listaTurmas.length ? 'true' : 'false') + ';' +
     // QUANTAS ALUNAS SE MOSTRAM — dez de cada vez, e cresce. A escola pode ter quatrocentos
     // alunos; uma lista de quatrocentas caixas não se lê, e a rolagem resolve o resto.
     'var LB_POR_VEZ = 10;' +
@@ -9279,9 +9359,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  return String((document.getElementById("lb-professor") || {}).value || "").trim();' +
     '}' +
     'function alunasMarcadas() { return marcados("lb-aluna"); }' +
-    'function turmaDeDestino() {' +
-    '  return String((document.getElementById("lb-turma-destino") || {}).value || "").trim();' +
-    '}' +
     // O QUE **ESTE** PASSO EXIGE. A primeira versão respondia «o que falta nos passos anteriores», e
     // o passo 1 nunca tinha falta nenhuma — de modo que `podeIrPara(2)` era verdadeiro sempre, e o
     // formulário deixava avançar sem nome nem professor. A prova a correr apanhou-o: a marcação
@@ -9301,14 +9378,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (!LEITURA_FEITA) faltas.push("a leitura das anamneses");' +
     '  } else if (n === 4) {' +
     '    if (!marcados("lb-campo").length) faltas.push("pelo menos um aspecto");' +
-    '  } else if (n === 5) {' +
-    /* SEM TURMA CADASTRADA, A FALTA NÃO É «A TURMA DE DESTINO» (05/11/2026). Era a mesma frase
-     * para dois estados diferentes: «não escolhi a turma» e «não há turma nenhuma para escolher».
-     * A segunda não se resolve no passo 5 — resolve-se na secção Turmas —, e é isso que a frase
-     * tem de dizer, aqui e no `title` do «Concluir». O `LB_TEM_TURMA` vem do servidor: é ele que
-     * sabe quantas turmas a escola tem, e a tela não adivinha. */
-    '    if (!LB_TEM_TURMA) faltas.push("uma turma cadastrada (secção Turmas)");' +
-    '    else if (!turmaDeDestino()) faltas.push("a turma de destino");' +
     '  }' +
     '  return faltas;' +
     '}' +
@@ -9331,8 +9400,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    1: nome || "a nomear",' +
     '    2: quantas ? (quantas === 1 ? "1 aluna" : quantas + " alunas") : "a escolher",' +
     '    3: LEITURA_FEITA ? "lida" : "por ler",' +
-    '    4: campos ? (campos === 1 ? "1 aspecto" : campos + " aspectos") : "a escolher",' +
-    '    5: turmaDeDestino() || "a escolher"' +
+    '    4: campos ? (campos === 1 ? "1 aspecto" : campos + " aspectos") : "a escolher"' +
     '  };' +
     '  Object.keys(valores).forEach(function(n){' +
     '    var el = document.getElementById("lb-v" + n);' +
@@ -9456,7 +9524,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A ETIQUETA «NOVO» AO LADO DO NOME: uma aluna cuja anamnese ainda não foi lida por nenhuma
     // linha de base. É proveniência, e o servidor é quem a decide — a tela só a mostra.
     '    var selo = a.novo' +
-    '      ? "<span class=\\"selo\\" title=\\"Anamnese ainda não lida por nenhuma linha de base\\">novo</span>"' +
+    '      ? "<span class=\\"selo\\" title=\\"Anamnese ainda não lida por nenhum elenco\\">novo</span>"' +
     '      : "";' +
     '    return "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"lb-aluna\\" value=\\"" +' +
     '      escHtml(a.aluna) + "\\"" + marcada + "><span>" + escHtml(a.aluna) + " " + selo +' +
@@ -9494,7 +9562,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (aviso) {' +
     '        aviso.hidden = ALUNAS_COM_ANAMNESE.length > 0;' +
     '        aviso.textContent = ALUNAS_COM_ANAMNESE.length ? "" :' +
-    '          "Ainda não há nenhuma anamnese registada nesta escola. A linha de base é um recorte ' +
+    '          "Ainda não há nenhuma anamnese registada nesta escola. O elenco é um recorte ' +
     'lido dos retratos das alunas — sem retrato não há o que recortar, e nenhum passo se abre. ' +
     'Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».";' +
     '      }' +
@@ -9659,7 +9727,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
     '  if (!LINHAS_DE_BASE.length) {' +
-    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhuma linha de base ainda — a primeira nasce ' +
+    '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhum elenco ainda — o primeiro nasce ' +
     'no formulário, no passo 1)</li>";' +
     '    return;' +
     '  }' +
@@ -9694,11 +9762,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  alvo.innerHTML = LINHAS_DE_BASE.map(function(l, indice){' +
     '    var n = (l.campos || []).length;' +
     '    var m = (l.alunas || []).length;' +
-    '    var selo = l.turma' +
-    '      ? "<span class=\\"selo vinculada\\" title=\\"já foi enviada para uma turma: a curadoria e ' +
-    'os planos leem-na a partir daí\\">vinculada</span>"' +
+    /* AS TURMAS QUE USAM ESTE ELENCO (07/11/2026). O vínculo mudou de lado: já não é o elenco
+     * que diz para onde foi, é a Turma que diz qual elenco escolheu. A lista lê-o das curadorias
+     * que a página já trouxe — a mesma fonte do formulário, sem uma segunda leitura. */
+    '    var usadaPor = CURADORIAS.filter(function(c){' +
+    '      return c && String(c.linhaDeBase || "") === String(l.id);' +
+    '    }).map(function(c){ return turmasDeUma(c)[0] || ""; }).filter(Boolean);' +
+    '    var selo = usadaPor.length' +
+    '      ? "<span class=\\"selo vinculada\\" title=\\"já está numa turma: a turma e ' +
+    'os planos leem-na a partir daí\\">em turma</span>"' +
     '      : (n' +
-    '        ? "<span class=\\"selo livre\\" title=\\"ainda não foi enviada para nenhuma turma\\">livre</span>"' +
+    '        ? "<span class=\\"selo livre\\" title=\\"ainda não está em nenhuma turma\\">livre</span>"' +
     '        : "<span class=\\"selo alerta\\" title=\\"ainda não tem os aspectos escolhidos — sem eles ' +
     'o plano de ensino não tem corpo para importar\\">por completar</span>");' +
     '    var fatos = [n ? (n === 1 ? "1 aspecto" : n + " aspectos") : "sem recorte",' +
@@ -9717,16 +9791,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          return "<span>" + escHtml(a) + "</span>"; }).join("") + "</div>"' +
     '      : "<p class=\\"trio-nota\\">Nenhuma aluna neste recorte — o corpo que se observa é o ' +
     'DELAS.</p>";' +
-    '    var painelTurma = l.turma' +
-    '      ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turma</span>" +' +
-    '        "<span class=\\"trio-v\\">" + escHtml(l.turma) + "</span></div>" +' +
-    '        (l.enviada_em ? "<div><span class=\\"trio-k\\">Enviada em</span><span class=\\"trio-v\\">" +' +
-    '          escHtml(String(l.enviada_em).slice(0, 10)) + "</span></div>" : "") + "</div>"' +
-    '      : "<p class=\\"trio-nota\\">Ainda não foi enviada para nenhuma turma — é por este envio ' +
-    'que a curadoria recebe o elenco sem o pedir aluna a aluna.</p>";' +
+    '    var painelTurma = usadaPor.length' +
+    '      ? "<div class=\\"trio-grade\\"><div><span class=\\"trio-k\\">Turmas</span>" +' +
+    '        "<span class=\\"trio-v\\">" + escHtml(usadaPor.join(" · ")) + "</span></div></div>"' +
+    '      : (l.turma' +
+    '        ? "<p class=\\"trio-nota\\">Enviado para «" + escHtml(l.turma) + "» num registo antigo. ' +
+    'Escolha este elenco numa Turma para o associar a uma sala pelo fluxo novo.</p>"' +
+    '        : "<p class=\\"trio-nota\\">Ainda não está em nenhuma turma — escolha este elenco no ' +
+    'formulário da Turma, junto com a sala.</p>");' +
     '    var id = String(indice + 1);' +
-    '    var caixa = function(rotulo, valor, dica){' +
-    '      var chave = rotulo.toLowerCase();' +
+    '    var caixa = function(rotulo, valor, dica, chave){' +
+    '      chave = chave || rotulo.toLowerCase();' +
     '      return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + chave + "\\" " +' +
     '        "aria-expanded=\\"false\\" aria-controls=\\"lb-p-" + chave + "-" + id + "\\" " +' +
     '        "aria-label=\\"" + dica + "\\"><span class=\\"trio-k\\">" + rotulo + "</span>" +' +
@@ -9738,16 +9813,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + "</span>" +' +
     '      "<span class=\\"trio-acoes\\">" +' +
     '      "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
-    '      "\\" title=\\"Abrir esta linha de base para corrigir\\">Editar</button>" +' +
+    '      "\\" title=\\"Abrir este elenco para corrigir\\">Editar</button>" +' +
     '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-lb-apagar=\\"" +' +
     '      escHtml(l.id) + "\\" data-nome=\\"" + escHtml(l.nome) +' +
-    '      "\\" title=\\"Excluir esta linha de base\\">Excluir</button></span></div>" +' +
+    '      "\\" title=\\"Excluir este elenco\\">Excluir</button></span></div>" +' +
     '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
     '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
     '      "<div class=\\"trio\\">" +' +
-    '        caixa("Alunas", String(m), "ver as alunas desta linha de base") +' +
+    '        caixa("Alunas", String(m), "ver as alunas deste elenco") +' +
     '        caixa("Recorte", String(n), "ver os aspectos observados") +' +
-    '        caixa("Turma", l.turma || "—", "ver a turma de destino") +' +
+    '        caixa("Turmas", usadaPor.join(" · ") || l.turma || "—", "ver as turmas que usam este elenco", "turma") +' +
     '      "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"alunas\\" id=\\"lb-p-alunas-" + id + "\\" hidden>" + painelAlunas + "</div>" +' +
     '      "<div class=\\"trio-painel\\" data-painel=\\"recorte\\" id=\\"lb-p-recorte-" + id + "\\" hidden>" + painelRecorte + "</div>" +' +
@@ -9813,7 +9888,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '  var p = indice.panorama;' +
-    '  var html = "<p class=\\"sub\\">" + p.linhas + (p.linhas === 1 ? " linha de base" : " linhas de base") +' +
+    '  var html = "<p class=\\"sub\\">" + p.linhas + (p.linhas === 1 ? " elenco" : " elencos") +' +
     '    (p.com_recorte !== p.linhas ? " (" + p.com_recorte + " com recorte, " + p.rascunhos + " por concluir)" : "") +' +
     '    " · " + p.escolhas + (p.escolhas === 1 ? " escolha" : " escolhas") +' +
     '    " em " + p.aspectos_oferecidos + " aspectos que a anamnese mede." +' +
@@ -9862,7 +9937,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (!nome) continue;' +
     '    var selo = document.createElement("span");' +
     '    selo.className = "selo discreto selo-rever";' +
-    '    selo.title = "O elenco da turma «" + porId[id] + "» mudou na linha de base: esta curadoria "' +
+    '    selo.title = "O elenco da turma «" + porId[id] + "» mudou no elenco: esta turma "' +
     '      + "declara um corpo que a turma já não tem. Reveja-a antes do plano de ensino.";' +
     '    selo.textContent = "rever";' +
     '    nome.insertBefore(selo, nome.firstChild);' +
@@ -9870,12 +9945,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // ------------------------------------------------------------------ EDITAR E APAGAR
     'function limparForm() {' +
-    '  ["lb-modo", "lb-nome", "lb-turma-destino"].forEach(function(id){' +
+    '  ["lb-modo", "lb-nome"].forEach(function(id){' +
     '    var e = document.getElementById(id);' +
     '    if (e) e.value = "";' +
     '  });' +
-    '  var vinculo = document.getElementById("lb-vinculo");' +
-    '  if (vinculo) vinculo.innerHTML = "";' +
     '  var leitura = document.getElementById("lb-leitura");' +
     '  if (leitura) leitura.innerHTML = "<p class=\\"sub\\">ainda sem leitura.</p>";' +
     '  LB_MOSTRADAS = 10;' +
@@ -9925,16 +9998,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    LEITURA_FEITA = false;' +
     '    pintarClassificacao(null);' +
     '  }' +
-    '  var destino = document.getElementById("lb-turma-destino");' +
-    '  if (destino) destino.value = alvo.turma || "";' +
-    '  var vinculo = document.getElementById("lb-vinculo");' +
-    '  if (vinculo) {' +
-    '    vinculo.innerHTML = alvo.turma' +
-    '      ? "<p class=\\"aviso\\">Enviada para «" + escHtml(alvo.turma) + "». Mudar o elenco " +' +
-    '        "aqui obriga a passar pela curadoria, pelo plano de ensino e pelo plano de " +' +
-    '        "observação — o sistema diz-lhe onde, e não o faz sozinho.</p>"' +
-    '      : "";' +
-    '  }' +
+    /* O ELENCO NÃO GUARDA MAIS A SALA DE DESTINO (07/11/2026). O vínculo passou para a Turma.
+     * Um elenco antigo ainda pode trazer `turma` no registo — é proveniência, e não se apaga —,
+     * mas o formulário já não o oferece nem o reescreve. Quem quiser associá-lo a uma sala fá-lo
+     * na Turma, escolhendo este elenco. */
     /* ABRE NO PRINCÍPIO, COMO UM REGISTO QUE SE EDITA (05/11/2026). Ia para o passo 2 — e o passo
      * 2, num registo ainda sem alunas, mostrava a lista por marcar, o que se lia como «perdi a
      * aluna que tinha escolhido». A edição começa onde a criação começa: identificação, e a tira
@@ -9946,11 +10013,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function apagarLinha(id) {' +
     '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
     '  if (!alvo) return;' +
-    '  if (!confirm("Excluir a linha de base «" + alvo.nome + "»? Os planos que já a usaram " +' +
+    '  if (!confirm("Excluir o elenco «" + alvo.nome + "»? Os planos que já o usaram " +' +
     '    "mantêm o que consolidaram — o dado é proveniência e não se reescreve.")) return;' +
     /* O FORMULÁRIO FECHA-SE COM A LINHA (05/11/2026), e este era o erro que ela viu: «se eu clico
      * em apagar, ele apaga aqui da listagem e continua no step dois e não elimina o nome do step
-     * um», e a seguir «linha de base não encontrada: teste». O `lb-modo` continuava a apontar para
+     * um», e a seguir «elenco não encontrado: teste». O `lb-modo` continuava a apontar para
      * o registo apagado, e o gesto seguinte (ler, ou gravar) ia procurá-lo ao servidor. Um
      * formulário aberto sobre um registo que já não existe não é um formulário — é uma promessa
      * quebrada. Se a linha apagada é a que está aberta, limpa-se tudo e volta-se ao passo 1. */
@@ -9962,7 +10029,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(d){' +
     '      if (d && d.ok) {' +
     '        if (aberta) limparForm();' +
-    '        corpoRes("ok", "linha de base excluída" +' +
+    '        corpoRes("ok", "elenco excluído" +' +
     '          (d.planosQueAUsavam ? " — " + d.planosQueAUsavam + " plano(s) apontavam para ela" : "") + ".");' +
     '        carregarLinhas();' +
     '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
@@ -9982,7 +10049,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // e encheria a lista enquanto se escreve um nome. Grava-se no INSTANTE EM QUE O ESTADO VAI SER
     // USADO: ao mudar de passo, ao ler as anamneses, ao concluir. É o mesmo princípio dos outros
     // formulários — o que a tela mostra é o que o servidor tem.
-    'function gravarLinha(seguir) {' +
+    'function gravarLinha(seguir, idDoBotao) {' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var corpo = {' +
     '    nome: nomeDoFormulario(),' +
@@ -10000,7 +10067,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    token: TOKEN' +
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
-    '  var botao = document.getElementById("lb-seguir");' +
+    '  var botao = document.getElementById(idDoBotao || "lb-seguir");' +
     '  var antes = ocuparBotao(botao, "gravando...", "button");' +
     '  return fetch("/api/bastidores/linha-de-base", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
@@ -10028,7 +10095,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // plano fixou. Um aviso que dissesse só «reveja» mandaria o professor ao segundo passo.
     'var FAMILIA_DA_ORDEM = {"curadoria": "curadoria", "plano-de-ensino": "plano",' +
     '  "plano-de-observacao": "po"};' +
-    'var ROTULO_DO_PASSO = {"curadoria": "a curadoria", "plano": "o plano de ensino",' +
+    'var ROTULO_DO_PASSO = {"curadoria": "a turma", "plano": "o plano de ensino",' +
     '  "po": "o plano de observação"};' +
     'function avisarCascata(turma) {' +
     '  if (!turma) return;' +
@@ -10063,38 +10130,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        }' +
     '      }' +
     '      if (!fila.length) return;' +
-    '      corpoRes("ok", "gravado. O elenco de «" + turma + "» mudou: passe por " +' +
-    '        fila.join(", depois por ") + " — por essa ordem, e com o seu olhar em cada um. " +' +
+    '      corpoRes("ok", "gravado. O elenco de «" + turma + "» mudou: a ordem é " +' +
+    '        fila.join(", depois ") + " — por essa ordem, e com o seu olhar em cada um. " +' +
     '        "O sistema não faz essa travessia sozinho: é a decisão que ele não toma.");' +
     '    })' +
     '    .catch(function(){});' +
     '}' +
-    'function concluirEnvio() {' +
+    /* CONCLUIR É GRAVAR (07/11/2026). O passo 5 saiu, e com ele o envio para uma sala: o elenco
+     * termina em si mesmo. A rota antiga (`/linha-de-base/enviar`) continua a existir para os
+     * registos e provas antigos, mas o botão deixou de a chamar — quem associa o elenco a uma
+     * sala é a TURMA, no formulário dela. Gravar com o recorte escolhido é a conclusão do acto;
+     * o servidor já trata `rascunho: false` como versão completa. */
+    'function concluirElenco() {' +
     '  var modo = document.getElementById("lb-modo");' +
-    '  var turma = turmaDeDestino();' +
-    '  if (!modo || !modo.value) { corpoRes("aviso", "Grave a linha de base antes de a enviar."); return; }' +
-    '  var botao = document.getElementById("lb-enviar");' +
-    '  var antes = ocuparBotao(botao, "enviando...", "button");' +
-    '  fetch("/api/bastidores/linha-de-base/enviar", {method: "POST",' +
-    '    headers: {"Content-Type": "application/json"},' +
-    '    body: JSON.stringify({id: modo.value, turma: turma, token: TOKEN})})' +
-    '    .then(function(r){ return r.json(); })' +
-    '    .then(function(d){' +
-    '      liberarBotao(antes);' +
-    '      if (d && d.ok) {' +
-    '        corpoRes("ok", "concluído — " + (d.alunas || []).length + " aluna(s) e a linha de base " +' +
-    '          "foram para «" + d.turma + "». A curadoria já não as pede uma a uma.");' +
-    '        var vinculo = document.getElementById("lb-vinculo");' +
-    '        if (vinculo) {' +
-    '          vinculo.innerHTML = "<p class=\\"aviso\\">Enviada para «" + escHtml(d.turma) + "» com " +' +
-    '            (d.alunas || []).length + " aluna(s). Abra a Curadoria e escolha essa " +' +
-    '            "turma — o elenco vem com ela.</p>";' +
-    '        }' +
-    '        carregarLinhas();' +
-    '        carregarAlunasComAnamnese();' +
-    '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
-    '    })' +
-    '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); });' +
+    '  if (!modo || !modo.value) { corpoRes("aviso", "Preencha o elenco antes de o concluir."); return; }' +
+    '  return gravarLinha(false, "lb-enviar").then(function(ok){' +
+    '    if (!ok) return false;' +
+    '    corpoRes("ok", "elenco gravado. Para o associar a uma sala, escolha-o numa Turma.");' +
+    '    carregarLinhas();' +
+    '    carregarAlunasComAnamnese();' +
+    '    return true;' +
+    '  });' +
     '}' +
     // ------------------------------------------------------------------ O ARRANQUE
     'var formLB = document.getElementById("form-linha-base");' +
@@ -10131,7 +10187,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarAlunas(alunasMarcadas());' +
     '});' +
     'var lbEnviar = document.getElementById("lb-enviar");' +
-    'if (lbEnviar) lbEnviar.addEventListener("click", concluirEnvio);' +
+    'if (lbEnviar) lbEnviar.addEventListener("click", concluirElenco);' +
     'var lbCancelar = document.getElementById("lb-cancelar");' +
     'if (lbCancelar) lbCancelar.addEventListener("click", function(){ corpoRes("", ""); limparForm(); });' +
     'if (document.getElementById("lb-campos")) {' +
@@ -10207,12 +10263,20 @@ async function fetch(request, env) {
     // O QUE OS PLANOS JÁ USARAM — a regra de proveniência que a curadoria já aplicava,
     // estendida a professores, alunas, turmas e vocabulário (18/10/2026).
     const usos = await usosDosPlanos(env, escola);
+    /* OS ELENCOS ENTRAM NA PÁGINA (07/11/2026). A Turma escolhe um Elenco, e o formulário
+     * precisa da lista. É a mesma função que a secção Elenco usa, chamada uma vez por pedido —
+     * a tree do repositório já está em `repoLinhas`, e o store a lê uma vez só. Carrega-se em
+     * paralelo com a aparência: são duas leituras independentes. */
+    const [aparencia, linhas] = await Promise.all([
+      aparenciaDaEscola(kv, escola),
+      linhasDeBase(kv, escola, repoLinhas),
+    ]);
     // O ATALHO «VER A TURMA» VEM COM O NOME DELA (22/10/2026). O plano de ensino da porta
     // conhece a turma pelo NOME; a Produção filtra a listagem por ID. A resolução é aqui,
     // onde a lista das turmas já está carregada — a tela não compõe o identificador.
     const turmaEmFoco = String(url.searchParams.get('turma') || '').trim();
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      await aparenciaDaEscola(kv, escola), turmaEmFoco));
+      aparencia, turmaEmFoco, linhas));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -11533,9 +11597,23 @@ async function fetch(request, env) {
     let divergentes = [];
     try {
       const enviadas = lista.filter((l) => l && l.id && String(l.turma || '').trim());
-      const todas = enviadas.length ? await curadorias(kv, escola) : [];
+      const todas = await curadorias(kv, escola);
       for (const c of (Array.isArray(todas) ? todas : [])) {
         if (!c || !c.id || c.substituidaPor) continue;
+        /* A TURMA COM ELENCO PRÓPRIO COMPARA-SE COM ELE (07/11/2026). Desde que a Turma escolhe
+         * o Elenco, a pergunta deixou de ser «a sala recebeu outra linha de base?» e passou a ser
+         * «o elenco que a Turma declarou ainda tem as mesmas alunas?». A comparação antiga fica
+         * como recurso para as curadorias que ainda não declaram `linhaDeBase` (P-03). */
+        if (c.linhaDeBase) {
+          const elenco = lista.find((l) => l && l.id === String(c.linhaDeBase) && !l.apagada_em);
+          if (!elenco) continue;
+          const derivado = (Array.isArray(elenco.alunas) ? elenco.alunas : []).map(String);
+          if (!derivado.length) continue;
+          if (linhaDeBaseNucleo.elencoDiferente(c.alunas, derivado).mudou) {
+            divergentes.push({ curadoria: c.id, turma: (turmasDaCuradoria(c)[0] || '') });
+          }
+          continue;
+        }
         const turmasDaCuradoria = Array.isArray(c.turmas) && c.turmas.length
           ? c.turmas : (c.turma ? [c.turma] : []);
         for (const t of turmasDaCuradoria) {
@@ -11679,7 +11757,7 @@ async function fetch(request, env) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
     const id = String(corpo.id || idDe(String(corpo.nome || '')) || '').trim();
-    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    if (!id) return json(400, { ok: false, erro: 'informe o elenco' });
     /* A LINHA PODE ESTAR EM DOIS SÍTIOS: o acto no repositório, o rascunho no KV. Apagar olha
      * os dois — e o `removida` é o que se mostra na resposta, com o nome e o estado que a pessoa
      * tinha à frente. */
@@ -11688,7 +11766,7 @@ async function fetch(request, env) {
     const doActo = await (repoLinhas.activo
       ? repoLinhas.vigente(id).catch(() => null) : Promise.resolve(null));
     if (idx === -1 && !doActo) {
-      return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+      return json(404, { ok: false, erro: 'elenco não encontrado: ' + id });
     }
     const removida = idx !== -1 ? lista[idx] : Object.assign({}, doActo, { carimbo: doActo.carimbo });
     /* APAGAR UM ACTO É UM ACTO (05/11/2026). O que já foi concluído não se apaga do repositório:
@@ -11717,7 +11795,7 @@ async function fetch(request, env) {
     const usos = await linhasDeBaseEmUso(env, escola, id);
     return json(200, {
       ok: true, linha: removida.nome, planosQueAUsavam: usos, eraActo,
-      ...(eraActo ? { lapide: 'ficou registado no repositório que esta linha de base foi apagada' } : {}),
+      ...(eraActo ? { lapide: 'ficou registado no repositório que este elenco foi apagado' } : {}),
     });
   }
 
@@ -11738,7 +11816,7 @@ async function fetch(request, env) {
     const id = String((pedido && pedido.get('id')) || '').trim();
     const pedidas = String((pedido && pedido.get('alunas')) || '')
       .split(',').map((a) => a.trim()).filter(Boolean);
-    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    if (!id) return json(400, { ok: false, erro: 'informe o elenco' });
     /* A LEITURA GRAVA — logo, opera na lista do KV (ver `rascunhosDe`). Se a linha só existe como
      * acto no repositório, cria-se aqui o rascunho a partir dele: ler uma linha concluída é o
      * primeiro passo de a ajustar, e o ajuste é um rascunho até ser concluído outra vez. */
@@ -11748,7 +11826,7 @@ async function fetch(request, env) {
       const doActo = await repoLinhas.vigente(id).catch(() => null);
       if (doActo) { lista.push(Object.assign({}, doActo)); idx = lista.length - 1; }
     }
-    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    if (idx === -1) return json(404, { ok: false, erro: 'elenco não encontrado: ' + id });
 
     const alunas = pedidas.length ? pedidas
       : (Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : []);
@@ -11822,7 +11900,7 @@ async function fetch(request, env) {
     }
     const id = String(corpo.id || '').trim();
     const turma = String(corpo.turma || '').trim();
-    if (!id) return json(400, { ok: false, erro: 'informe a linha de base' });
+    if (!id) return json(400, { ok: false, erro: 'informe o elenco' });
     if (!turma) return json(400, { ok: false, erro: 'informe a turma de destino' });
     /* AS ROTAS QUE ESCREVEM OPERAM NA LISTA DO KV, E SÓ NELA (05/11/2026). Ler a lista FUNDIDA e
      * gravá-la de volta copiaria todos os actos do repositório para dentro do rascunho — duas
@@ -11836,12 +11914,12 @@ async function fetch(request, env) {
       const doActo = await repoLinhas.vigente(id).catch(() => null);
       if (doActo) { lista.push(Object.assign({}, doActo)); idx = lista.length - 1; }
     }
-    if (idx === -1) return json(404, { ok: false, erro: 'linha de base não encontrada: ' + id });
+    if (idx === -1) return json(404, { ok: false, erro: 'elenco não encontrado: ' + id });
     /* A ORDEM DAS CONFERÊNCIAS É A DO PASSO: as alunas vêm do 2, a turma é a do 5. Recusar pela
      * turma primeiro mandaria o professor ao sítio errado — o que falta é o elenco. */
     const alunas = Array.isArray(lista[idx].alunas) ? lista[idx].alunas.map(String) : [];
     if (!alunas.length) {
-      return json(400, { ok: false, erro: 'esta linha de base ainda não tem alunas — escolha-as no passo 2' });
+      return json(400, { ok: false, erro: 'este elenco ainda não tem alunas — escolha-as no passo 2' });
     }
     /* O RASCUNHO NÃO VIAJA (05/11/2026). A linha de base em cinco passos é gravada no passo 1 sem
      * recorte (para a leitura do passo 3 ter onde ficar); enviá-la agora levaria à turma um recorte
@@ -11849,7 +11927,7 @@ async function fetch(request, env) {
      * e a recusa di-lo por essa ordem: primeiro o elenco, depois o recorte, só então a turma. */
     const campos = Array.isArray(lista[idx].campos) ? lista[idx].campos : [];
     if (!campos.length) {
-      return json(400, { ok: false, erro: 'esta linha de base ainda não tem recorte — escolha pelo menos um aspecto no passo 4' });
+      return json(400, { ok: false, erro: 'este elenco ainda não tem recorte — escolha pelo menos um aspecto no passo 4' });
     }
     const todas = await turmas(kv, escola);
     if (!todas.some((t) => t && t.nome === turma)) {
@@ -11897,12 +11975,12 @@ async function fetch(request, env) {
 
     const gravado = await repoLinhas.concluir(linhaDoActo, {
       quando,
-      mensagem: 'feat(linha de base): ' + id + ' → ' + turma,
+      mensagem: 'feat(elenco): ' + id + ' → ' + turma,
     });
     if (!gravado.ok) {
       return json(502, {
         ok: false,
-        erro: 'não consegui gravar a linha de base no repositório: ' + (gravado.erro || 'erro')
+        erro: 'não consegui gravar o elenco no repositório: ' + (gravado.erro || 'erro')
           + '. O rascunho está guardado — nada se perdeu; tente de novo.',
         repo: { activo: repoLinhas.activo, motivo: repoLinhas.motivo },
       });
@@ -11972,7 +12050,32 @@ async function fetch(request, env) {
   // enviada mais recentemente), para a curadoria poder dizer de onde vêm.
   if (path === '/api/bastidores/alunas-da-turma') {
     const turma = String((url.searchParams.get('turma') || '')).trim();
-    if (!turma) return json(400, { ok: false, erro: 'informe a turma' });
+    if (!turma) return json(400, { ok: false, erro: 'informe a sala' });
+    const professorPedido = String(url.searchParams.get('professor') || '').trim();
+    /* 1. O ELENCO QUE A TURMA ESCOLHEU (07/11/2026). É a fonte nova, e vem primeiro: a Turma
+     * declara `linhaDeBase`, e é esse o corpo que a sala recebe. As fontes antigas só respondem
+     * quando não há escolha — o passado continua legível, mas não manda no presente. */
+    const todasAsLinhas = await linhasDeBase(kv, escola, repoLinhas);
+    const curs = await curadorias(kv, escola);
+    const escolhido = porta.elencoEscolhidoPelaTurma
+      ? porta.elencoEscolhidoPelaTurma(curs, turma, professorPedido, todasAsLinhas)
+      : null;
+    if (escolhido) {
+      const alunas = (Array.isArray(escolhido.alunas) ? escolhido.alunas : [])
+        .map((a) => String(a || '').trim()).filter(Boolean);
+      return json(200, {
+        ok: true, escola, turma, alunas,
+        linhaDeBase: {
+          id: escolhido.id,
+          nome: escolhido.nome,
+          em: escolhido.enviada_em || escolhido.atualizada_em || null,
+        },
+        recorte: Array.isArray(escolhido.campos) ? escolhido.campos : [],
+        fonte: 'turma',
+      });
+    }
+    /* 2. O FLUXO ANTIGO — as linhas de base enviadas para a sala. Continua a ler-se para as
+     * escolas que já tinham o vínculo gravado antes de a Turma passar a escolher o elenco. */
     const lista = await linhasConcluidas(kv, escola, repoLinhas);
     const enviadas = lista
       .filter((l) => l && String(l.turma || '') === turma)
@@ -12597,10 +12700,19 @@ async function fetch(request, env) {
     if (falta.length) {
       return json(400, { ok: false, erro: fraseDaCuradoriaIncompleta(falta), falta: falta.map(([c]) => c) });
     }
+    /* A HABILITAÇÃO DO PROFESSOR É UMA REGRA DO SERVIDOR (07/11/2026) — ver
+     * `recusaPorHabilitacao`. A tela já filtra o `<select>`; aqui é a mesma regra, aplicada a
+     * quem escreve por outro caminho. Não se pronuncia sem perfil, nem quando o perfil não se
+     * consegue ler: só recusa quando o perfil existe e diz que o professor não ensina isto. */
+    const recusaHabilitacao = await recusaPorHabilitacao(env, professor, modalidade);
+    if (recusaHabilitacao) {
+      return json(409, { ok: false, erro: recusaHabilitacao, falta: ['modalidade'],
+        habilitacao: true });
+    }
     if (turmasPedidas.length > 1) {
       return json(400, {
         ok: false,
-        erro: 'a curadoria é de UMA turma por vez: as alunas de uma turma não são as da outra, ' +
+        erro: 'a turma é de UMA sala por vez: as alunas de uma sala não são as da outra, ' +
           'e a lista faria o plano de uma dizer as alunas da outra. Atribua a segunda turma numa ' +
           'curadoria própria.',
         turmas: turmasPedidas,
@@ -12622,8 +12734,8 @@ async function fetch(request, env) {
       if (faltando.length) {
         return json(400, {
           ok: false,
-          erro: 'não se atribui uma turma sem o ritmo declarado: ' + faltando.join('; ') +
-            '. Declare a frequência, os dias, a duração e o período no cadastro da turma (aba Turmas), ' +
+          erro: 'não se atribui uma sala sem o ritmo declarado: ' + faltando.join('; ') +
+            '. Declare a frequência, os dias, a duração e o período no cadastro da sala (aba Salas), ' +
             'e atribua depois.',
           turmas: faltando,
         });
@@ -12660,7 +12772,7 @@ async function fetch(request, env) {
       if (curadoriaVinculadaA(pares, atual)) {
         return json(409, {
           ok: false,
-          erro: 'a curadoria do professor «' + atual.professor + '» em «' + atual.modalidade +
+          erro: 'a turma do professor «' + atual.professor + '» em «' + atual.modalidade +
             '» (' + turmasDaCuradoria(atual).join(', ') + ') já tem plano de ensino — ela não se ' +
             'edita: derive uma versão nova, que passa a valer a partir de uma data e deixa a ' +
             'anterior como referência do passado.',
@@ -12686,9 +12798,51 @@ async function fetch(request, env) {
      * TURMA SEM ELENCO: guarda-se o que a curadoria já tinha (ou nada). Atribuir uma curadoria a
      * uma turma a que ninguém foi enviado é legítimo — é a ordem natural numa escola nova —, e
      * inventar alunas seria pior do que ficar sem elas. */
-    const elencoAgora = linhaDeBaseNucleo.elencoDaTurma(
-      await linhasConcluidas(kv, escola, repoLinhas), turmasPedidas[0] || '');
-    const alunasPedidas = elencoAgora.length ? elencoAgora : ((atual && atual.alunas) || []);
+    /* O ELENCO ESCOLHIDO NA TURMA (07/11/2026) — a atribuição mudou de casa.
+     *
+     * Até 05/11/2026 o elenco era enviado para uma SALA (o passo 5 da linha de base), e a
+     * curadoria herdava-o dessa sala. Com a nomenclatura nova, a TURMA (antiga curadoria) é que
+     * junta os dois: escolhe a SALA (o ritmo) e o ELENCO (o corpo). O vínculo passa a ser
+     * explícito, e deixa de depender de um envio anterior.
+     *
+     * O QUE NÃO SE PERDE: as curadorias antigas não declaram `linhaDeBase` e continuam a ler o
+     * elenco derivado da sala (P-03). Quando o corpo não traz o campo, a versão anterior é
+     * mantida; quando traz vazio, é uma declaração — o elenco foi retirado. */
+    /* O CAMPO É PRESERVADO QUANDO NÃO VEM (P-03). `linhaDeBase` ausente do corpo = «não mexi
+     * neste campo»; presente e vazio = «retirei o elenco». Duas coisas diferentes, e o registo
+     * tem de as distinguir — inclusive para as ALUNAS: editar a tradição de uma turma que já
+     * escolheu um elenco não pode recarimbar o corpo a partir da sala. */
+    const elencoNaoMexido = corpo.linhaDeBase === undefined;
+    const elencoPedido = elencoNaoMexido
+      ? String((atual && atual.linhaDeBase) || '').trim()
+      : String(corpo.linhaDeBase || '').trim();
+    const elencosDaEscola = await linhasDeBase(kv, escola, repoLinhas);
+    const elencoEscolhido = elencoPedido
+      ? elencosDaEscola.find((l) => l && l.id === elencoPedido && !l.apagada_em) || null
+      : null;
+    if (elencoPedido && !elencoEscolhido && !elencoNaoMexido) {
+      return json(400, { ok: false, erro: 'elenco não encontrado: ' + elencoPedido, falta: ['elenco'] });
+    }
+    /* O ELENCO É EXIGIDO NA TELA, E NÃO NA ROTA (07/11/2026). A regra de produto é «cada sala
+     * recebe um elenco», e o formulário a aplica: quando há elencos, o `<select>` é obrigatório.
+     * A rota aceita a ausência porque há dois casos legítimos — a escola que ainda não gravou
+     * nenhum elenco, e as curadorias antigas que nunca declararam `linhaDeBase` —, e recusá-los
+     * criaria um beco sem saída. A listagem diz o estado («indisponível — falta o elenco»), e é
+     * isso que impede o silêncio. */
+
+    const elencoAgora = elencoEscolhido
+      ? (Array.isArray(elencoEscolhido.alunas) ? elencoEscolhido.alunas.map(String) : [])
+      : linhaDeBaseNucleo.elencoDaTurma(
+        await linhasConcluidas(kv, escola, repoLinhas), turmasPedidas[0] || '');
+    const alunasPedidas = elencoEscolhido
+      ? elencoAgora
+      : (elencoAgora.length ? elencoAgora : ((atual && atual.alunas) || []));
+    const linhaDeBaseFinal = elencoEscolhido
+      ? elencoEscolhido.id
+      : (elencoNaoMexido && atual ? (atual.linhaDeBase || '') : '');
+    const linhaDeBaseNomeFinal = elencoEscolhido
+      ? String(elencoEscolhido.nome || elencoEscolhido.id)
+      : (elencoNaoMexido && atual ? (atual.linhaDeBaseNome || '') : '');
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
     // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
     // dela. A recusa diz ONDE ela está; o caminho é tirá-la de lá (ou não a pôr aqui).
@@ -12697,9 +12851,9 @@ async function fetch(request, env) {
     if (repetidas.length) {
       return json(409, {
         ok: false,
-        erro: 'estas alunas já estão noutra turma de «' + modalidade + '»: ' +
+        erro: 'estas alunas já estão noutra sala de «' + modalidade + '»: ' +
           repetidas.map((a) => a + ' (em ' + ocupadas[a] + ')').join('; ') +
-          '. Uma aluna pertence a UMA turma por modalidade — é o que faz o plano de cada uma ' +
+          '. Uma aluna pertence a UMA sala por modalidade — é o que faz o plano de cada uma ' +
           'dizer as alunas certas. Tire-a da outra curadoria, ou não a ponha nesta.',
         alunas: repetidas.map((a) => ({ aluna: a, turma: ocupadas[a] })),
       });
@@ -12740,6 +12894,11 @@ async function fetch(request, env) {
       nivel: niveis.nivel,
       nivelReferencia: niveis.nivelReferencia,
       turmas: turmasPedidas,
+      // O ELENCO DA TURMA (07/11/2026) — o corpo que a sala recebe. O nome vai junto porque a
+      // listagem o mostra mesmo quando o elenco já não está na lista (apagado, ou de uma versão
+      // antiga): o registo é proveniência, e um id sem nome obrigaria a uma segunda leitura.
+      linhaDeBase: linhaDeBaseFinal,
+      linhaDeBaseNome: linhaDeBaseNomeFinal,
       // O REPERTÓRIO NÃO SE PEDE MAIS (19/10/2026) — e por isso não se escreve. Se o corpo
       // não o traz, a curadoria que está a ser editada FICA COM O QUE TINHA: a regra é a
       // mesma do derivar (abaixo), e a razão também — a proveniência acrescenta, não edita
@@ -12782,7 +12941,7 @@ async function fetch(request, env) {
     }
     const vigencia = String(corpo.vigencia || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
-      return json(400, { ok: false, erro: 'informe a data a partir da qual a curadoria ajustada vale (AAAA-MM-DD)' });
+      return json(400, { ok: false, erro: 'informe a data a partir da qual a turma ajustada vale (AAAA-MM-DD)' });
     }
     const turmasPedidas = Array.isArray(corpo.turmas)
       ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
@@ -12790,7 +12949,7 @@ async function fetch(request, env) {
     if (turmasPedidas.length > 1) {
       return json(400, {
         ok: false,
-        erro: 'a curadoria é de UMA turma por vez: as alunas de uma turma não são as da outra.',
+        erro: 'a turma é de UMA sala por vez: as alunas de uma sala não são as da outra.',
         turmas: turmasPedidas,
       });
     }
@@ -12806,7 +12965,7 @@ async function fetch(request, env) {
       if (faltando.length) {
         return json(400, {
           ok: false,
-          erro: 'não se atribui uma turma sem o ritmo declarado: ' + faltando.join('; ') + '.',
+          erro: 'não se atribui uma sala sem o ritmo declarado: ' + faltando.join('; ') + '.',
           turmas: faltando,
         });
       }
@@ -12820,9 +12979,23 @@ async function fetch(request, env) {
      * como divergente no minuto seguinte, e o aviso nunca cairia. Lê-se do mesmo sítio que a
      * curadoria lê (`alunas-da-turma`), e quando a turma ainda não recebeu ninguém herda-se o que
      * a anterior tinha: o passado não se inventa nem se apaga. */
-    const elencoDerivado = linhaDeBaseNucleo.elencoDaTurma(
-      await linhasConcluidas(kv, escola, repoLinhas), turmaFinal);
-    const alunasFinais = elencoDerivado.length ? elencoDerivado : (anterior.alunas || []);
+    const elencoPedido = corpo.linhaDeBase === undefined
+      ? String(anterior.linhaDeBase || '').trim()
+      : String(corpo.linhaDeBase || '').trim();
+    const elencosDeriv = await linhasDeBase(kv, escola, repoLinhas);
+    const elencoEscolhido = elencoPedido
+      ? elencosDeriv.find((l) => l && l.id === elencoPedido && !l.apagada_em) || null
+      : null;
+    if (elencoPedido && !elencoEscolhido) {
+      return json(400, { ok: false, erro: 'elenco não encontrado: ' + elencoPedido, falta: ['elenco'] });
+    }
+    const elencoDerivado = elencoEscolhido
+      ? (Array.isArray(elencoEscolhido.alunas) ? elencoEscolhido.alunas.map(String) : [])
+      : linhaDeBaseNucleo.elencoDaTurma(
+        await linhasConcluidas(kv, escola, repoLinhas), turmaFinal);
+    const alunasFinais = elencoEscolhido
+      ? elencoDerivado
+      : (elencoDerivado.length ? elencoDerivado : (anterior.alunas || []));
     /* A VERSÃO NOVA TAMBÉM NASCE COMPLETA (23/10/2026). O que se confere é o que VAI FICAR
        escrito — `turmaFinal` e `alunasFinais` já resolvem o que não veio no corpo a partir da
        curadoria anterior. Conferir o corpo em vez do resultado deixaria passar uma derivada
@@ -12840,6 +13013,17 @@ async function fetch(request, env) {
         ok: false, erro: fraseDaCuradoriaIncompleta(faltaDeriv), falta: faltaDeriv.map(([c]) => c),
       });
     }
+    /* DERIVAR TAMBÉM CONFERE A HABILITAÇÃO (07/11/2026). A modalidade não muda na derivação, mas
+     * o PERFIL pode ter mudado desde a versão anterior — e é exactamente esse o caso que a
+     * derivação existe para tratar: o professor deixou de declarar a modalidade, e a turma
+     * precisa de uma versão nova. Recusar aqui não tranca o passado (a versão antiga fica); diz
+     * que a escola tem de resolver a habilitação antes de prolongar a atribuição. */
+    const recusaHabDeriv = await recusaPorHabilitacao(env, anterior.professor, anterior.modalidade);
+    if (recusaHabDeriv) {
+      return json(409, {
+        ok: false, erro: recusaHabDeriv, falta: ['modalidade'], habilitacao: true,
+      });
+    }
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar. A curadoria que se está
     // a derivar não conta (é a de origem, `anterior.id`): as alunas dela não competem consigo.
     const ocupadasDeriv = alunasComprometidas(lista, String(anterior.modalidade || ''), anterior.id);
@@ -12847,9 +13031,9 @@ async function fetch(request, env) {
     if (repetidasDeriv.length) {
       return json(409, {
         ok: false,
-        erro: 'estas alunas já estão noutra turma de «' + String(anterior.modalidade || '') + '»: ' +
+        erro: 'estas alunas já estão noutra sala de «' + String(anterior.modalidade || '') + '»: ' +
           repetidasDeriv.map((a) => a + ' (em ' + ocupadasDeriv[a] + ')').join('; ') +
-          '. Uma aluna pertence a UMA turma por modalidade.',
+          '. Uma aluna pertence a UMA sala por modalidade.',
         alunas: repetidasDeriv.map((a) => ({ aluna: a, turma: ocupadasDeriv[a] })),
       });
     }
@@ -12875,6 +13059,15 @@ async function fetch(request, env) {
       nivel: niveisDeriv.nivel,
       nivelReferencia: niveisDeriv.nivelReferencia,
       turmas: turmaFinal ? [turmaFinal] : [],
+      // O ELENCO ACOMPANHA A DERIVAÇÃO (07/11/2026): a versão nova nasce com o elenco que a
+      // anterior tinha, salvo se o corpo declarar outro. O nome é o do elenco escolhido, e o da
+      // anterior quando ele não mudou — o registo não perde a etiqueta do corpo que declarou.
+      linhaDeBase: elencoEscolhido
+        ? elencoEscolhido.id
+        : (corpo.linhaDeBase === undefined ? String(anterior.linhaDeBase || '') : ''),
+      linhaDeBaseNome: elencoEscolhido
+        ? String(elencoEscolhido.nome || elencoEscolhido.id)
+        : (corpo.linhaDeBase === undefined ? String(anterior.linhaDeBaseNome || '') : ''),
       repertorio: Array.isArray(corpo.repertorio)
         ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
         : (anterior.repertorio || []),

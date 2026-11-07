@@ -801,8 +801,40 @@ async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadori
   const curadoriasVigentes = (Array.isArray(curadorias) ? curadorias : [])
     .filter((c) => c && c.id && !c.substituidaPor);
   const turmasComElencoPendente = new Set();
+  /* A TURMA QUE ESCOLHEU O ELENCO (07/11/2026) — a comparação nova. O elenco declarado pela
+   * Turma (`linhaDeBase`) é comparado com o que ela carimbou em `alunas`; se o elenco mudou, a
+   * cascata abre-se a partir daí. A comparação antiga (por linha de base enviada para a sala)
+   * continua a correr para as curadorias que ainda não declaram `linhaDeBase`. */
+  for (const c of curadoriasVigentes) {
+    if (!c || !c.linhaDeBase) continue;
+    const elenco = linhas.find((l) => l && String(l.id) === String(c.linhaDeBase) && !l.apagada_em);
+    if (!elenco) continue;
+    const derivado = (Array.isArray(elenco.alunas) ? elenco.alunas : [])
+      .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
+    if (!derivado.length) continue;
+    const diferenca = recorte.elencoDiferente(c.alunas, derivado);
+    if (!diferenca.mudou) continue;
+    const nome = String((Array.isArray(c.turmas) && c.turmas.length ? c.turmas[0] : c.turma) || '').trim();
+    const partes = [];
+    if (diferenca.saiu.length) partes.push('saiu ' + diferenca.saiu.join(', '));
+    if (diferenca.entrou.length) partes.push('entrou ' + diferenca.entrou.join(', '));
+    pendentes.set('curadoria:' + c.id, {
+      familia: 'curadoria',
+      motivo: 'O elenco da turma «' + nome + '» mudou — ' + partes.join('; ')
+        + '. Reveja a turma: é dela que o plano de ensino e o plano de observação recebem '
+        + 'quem observam.',
+      onde: 'bastidores',
+      curadoria: c.id,
+      turma: nome,
+      saiu: diferenca.saiu,
+      entrou: diferenca.entrou,
+    });
+    if (nome) turmasComElencoPendente.add(nome);
+  }
   if (linhasEnviadas.length && curadoriasVigentes.length) {
     for (const c of curadoriasVigentes) {
+      // AS QUE JÁ DECLARAM ELENCO FORAM TRATADAS ACIMA — não se comparam duas vezes.
+      if (c.linhaDeBase) continue;
       const turmasDaCuradoria = Array.isArray(c.turmas) && c.turmas.length
         ? c.turmas : (c.turma ? [c.turma] : []);
       for (const t of turmasDaCuradoria) {
@@ -1407,6 +1439,32 @@ async function apagarEnvelope(armazenamento, id) {
  * selecionou o sujeito no nó `sujeitos`. É DERIVADO — varre-se os envelopes de
  * PO e vê-se quem declara o apelido; não se grava nada na anamnese.
  */
+/**
+ * O ELENCO QUE A TURMA ESCOLHEU (07/11/2026) — a fonte nova do vínculo.
+ *
+ * A TURMA (antiga curadoria) declara `linhaDeBase`: o id do elenco que aquela sala recebe. A
+ * função procura a curadoria vigente que cobre a sala (e, quando indicado, o professor) e devolve
+ * a linha de base correspondente, se ela ainda existir e não estiver apagada. `null` quando a
+ * Turma não declarou elenco — e aí quem chama usa as fontes antigas, por ordem.
+ */
+function elencoEscolhidoPelaTurma(curadorias, turma, professor, linhas) {
+  const alvo = String(turma || '').trim();
+  const prof = String(professor || '').trim();
+  if (!alvo) return null;
+  const vigentes = (Array.isArray(curadorias) ? curadorias : [])
+    .filter((c) => c && !c.substituidaPor && c.linhaDeBase);
+  const daTurma = vigentes.find((c) => {
+    if (prof && String(c.professor || '').trim() !== prof) return false;
+    const nomes = Array.isArray(c.turmas) && c.turmas.length
+      ? c.turmas.map((t) => String(t == null ? '' : t).trim())
+      : [String(c.turma == null ? '' : c.turma).trim()];
+    return nomes.indexOf(alvo) !== -1;
+  });
+  if (!daTurma) return null;
+  return (Array.isArray(linhas) ? linhas : [])
+    .find((l) => l && String(l.id) === String(daTurma.linhaDeBase) && !l.apagada_em) || null;
+}
+
 /*
  * QUEM ESTÁ NUMA TURMA — e por que isto não é a mesma pergunta do `daCuradoria` (20/10/2026).
  *
@@ -1454,6 +1512,20 @@ async function apagarEnvelope(armazenamento, id) {
 function alunasDaTurma(curadorias, alvo, linhas) {
   const turma = String((alvo && alvo.turma) || '').trim();
   if (!turma) return null;
+  /* A TURMA ESCOLHE O ELENCO (07/11/2026) — E ESSA É A PRIMEIRA FONTE.
+   *
+   * Com a nomenclatura nova, a SALA é o ritmo e o ELENCO é o corpo; a TURMA (antiga curadoria)
+   * declara qual elenco a sala recebe. A leitura passa a ser, por ordem: (1) o elenco que a
+   * turma escolheu; (2) a linha de base enviada para a sala (o fluxo antigo, que continua a
+   * ler-se); (3) a curadoria como recurso. A ordem importa: se houver um elenco escolhido, é ele
+   * que manda — e as duas fontes antigas só respondem quando a nova não tem resposta. */
+  if (Array.isArray(curadorias) && Array.isArray(linhas)) {
+    const escolhido = elencoEscolhidoPelaTurma(curadorias, turma, (alvo && alvo.professor) || '', linhas);
+    if (escolhido) {
+      return (Array.isArray(escolhido.alunas) ? escolhido.alunas : [])
+        .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
+    }
+  }
   /* A LINHA DE BASE, QUANDO ELA EXISTE. `elencoDaTurma` é a MESMA leitura que
    * `/api/bastidores/alunas-da-turma` usa para dizer à curadoria quem a turma recebeu: uma
    * segunda derivação do mesmo facto divergiria da primeira. */
@@ -2272,10 +2344,14 @@ module.exports = {
   apagarEnvelope,
   vinculos,
   alunasDaTurma,
+  // O ELENCO ESCOLHIDO PELA TURMA (07/11/2026) — a fonte nova do vínculo, antes das antigas.
+  elencoEscolhidoPelaTurma,
   alunasDoProfessor,
   /* A LINHA DE BASE DA TURMA, com o recorte (06/11/2026) — a mesma leitura para o cabeçalho do PO,
    * para o painel do corpo e para o documento derivado. */
   linhaDeBaseDaTurma: recorte.linhaDeBaseDaTurma,
+  // A LINHA DE BASE ESCOLHIDA PELA TURMA (07/11/2026) — procurada pelo id que a Turma declara.
+  linhaDeBaseDoElenco: recorte.linhaDeBaseDoElenco,
   /* O UNIVERSO do corpo: os campos que a anamnese oferece. É o denominador «N de M» do documento —
    * sem ele o recorte não tem contra o que se medir. */
   camposDoCorpo: recorte.camposDisponiveis,

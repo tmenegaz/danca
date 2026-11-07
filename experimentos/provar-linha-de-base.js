@@ -1085,11 +1085,11 @@ async function chamar(env, caminho, opcoes) {
       'a rota aceita uma linha de base ainda sem recorte — é o passo 3, antes do 4');
   });
 
-  console.log('\n11. A TELA — os cinco passos, a trava e a rolagem');
+  console.log('\n11. A TELA — os quatro passos, a trava e a rolagem');
 
-  ok('a secção tem a tira de cinco passos e os cinco painéis', () => {
+  ok('a secção tem a tira de quatro passos e os quatro painéis', () => {
     assert.ok(/id="lb-tira"/.test(PAGINA), 'a tira dos passos tem de estar');
-    for (const n of [1, 2, 3, 4, 5]) {
+    for (const n of [1, 2, 3, 4]) {
       assert.ok(new RegExp('class="passo-painel" data-passo="' + n + '"').test(PAGINA),
         'o painel do passo ' + n + ' tem de existir');
     }
@@ -1098,7 +1098,7 @@ async function chamar(env, caminho, opcoes) {
   ok('a navegação é a do verbete: Seguir, Voltar e o Concluir só no último', () => {
     assert.ok(/id="lb-seguir"/.test(PAGINA) && /id="lb-voltar"/.test(PAGINA));
     assert.ok(/id="lb-enviar"[^>]*hidden[^>]*disabled/.test(PAGINA),
-      'o «Concluir» nasce escondido e desabilitado: só existe no passo 5');
+      'o «Concluir» nasce escondido e desabilitado: só existe no passo 4');
   });
 
   ok('a lista de alunas tem rolagem própria e um botão de carregar mais', () => {
@@ -1191,8 +1191,8 @@ async function chamar(env, caminho, opcoes) {
     const seguir = win.document.getElementById('lb-seguir');
     win.pintarTravasLb();
     assert.strictEqual(seguir.disabled, true, 'o Seguir está desabilitado com falta');
-    const passo5 = win.document.querySelector('#lb-tira button[data-passo="5"]');
-    assert.strictEqual(passo5.disabled, true, 'e o passo 5 está fechado na tira');
+    const passo4 = win.document.querySelector('#lb-tira button[data-passo="4"]');
+    assert.strictEqual(passo4.disabled, true, 'e o passo 4 está fechado na tira');
 
     dom.window.close();
   });
@@ -1224,7 +1224,7 @@ async function chamar(env, caminho, opcoes) {
     const aviso = win.document.getElementById('lb-sem-anamnese');
     assert.strictEqual(aviso.hidden, false, 'o aviso do estado vazio tem de aparecer');
     assert.ok(/anamnese/i.test(aviso.textContent), 'e tem de dizer que falta a anamnese');
-    for (const n of [1, 2, 3, 4, 5]) {
+    for (const n of [1, 2, 3, 4]) {
       const b = win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
       assert.strictEqual(b.disabled, true, 'o passo ' + n + ' fica fechado');
     }
@@ -1371,8 +1371,8 @@ async function chamar(env, caminho, opcoes) {
     const curadorias = d.getElementById('sec-curadorias');
     ok('a secção Corpo existe e não está vazia', () => {
       assert.ok(corpo, '#sec-corpo tem de existir');
-      assert.strictEqual(corpo.querySelectorAll('.passo-painel').length, 5,
-        'os cinco painéis têm de ser filhos de #sec-corpo');
+      assert.strictEqual(corpo.querySelectorAll('.passo-painel').length, 4,
+        'os quatro painéis têm de ser filhos de #sec-corpo');
     });
     ok('a tira, o formulário e a lista estão DENTRO de #sec-corpo', () => {
       for (const id of ['lb-tira', 'corpo-miolo', 'lb-lista', 'form-linha-base', 'lb-campos']) {
@@ -1553,10 +1553,10 @@ async function chamar(env, caminho, opcoes) {
       await new Promise((r) => win.setTimeout(r, 50));
       const alvo = win.document.querySelector('[data-res="linha-base"]');
       const texto = (alvo && alvo.textContent) || '';
-      assert.ok(/a curadoria/.test(texto), 'a curadoria entra: ' + texto);
+      assert.ok(/a turma/.test(texto), 'a turma entra: ' + texto);
       assert.ok(/o plano de ensino/.test(texto), 'o plano de ensino entra: ' + texto);
       assert.ok(/o plano de observação/.test(texto), 'e o PO também: ' + texto);
-      assert.ok(texto.indexOf('a curadoria') < texto.indexOf('o plano de ensino')
+      assert.ok(texto.indexOf('a turma') < texto.indexOf('o plano de ensino')
         && texto.indexOf('o plano de ensino') < texto.indexOf('o plano de observação'),
         'na ORDEM da dependência, não na ordem do mapa: ' + texto);
       assert.ok(texto.indexOf('po-2') === -1 && texto.indexOf('plano-de-outra-turma') === -1,
@@ -1952,88 +1952,46 @@ async function chamar(env, caminho, opcoes) {
    *
    * A prova mede a página EMITIDA com zero turmas: o aviso, o caminho para as Turmas, e o
    * «Concluir» travado com o motivo certo — «uma turma cadastrada», e não «a turma de destino». */
-  console.log('\n18. SEM TURMA CADASTRADA — o passo 5 diz o que falta e leva às Turmas');
+  console.log('\n18. O ELENCO TERMINA NO RECORTE — a atribuição passou para a Turma');
   {
-    const semTurmas = (() => {
+    const semElenco = (() => {
       const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
       const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
       return b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
         [], ['Aluna A'], 'Dono', 'dono', [], [], {}, [], [], [], usos,
-        { modo: 'clara', paleta: 'bordo' }, '');
+        { modo: 'clara', paleta: 'bordo' }, '', []);
     })();
 
-    ok('a escola sem turma recebe a MENSAGEM, e não um select de uma opção', () => {
-      assert.ok(/id="lb-sem-turma"/.test(semTurmas),
-        'o aviso do estado vazio tem de estar na marcação');
-      assert.ok(/Ainda não existe nenhuma turma cadastrada/.test(semTurmas),
-        'e tem de dizer o que falta, por palavras');
-      assert.ok(/antes de definir a linha de base/.test(semTurmas),
-        'e quando é que se resolve: antes');
+    ok('o passo 5 e o envio para a turma saíram do Elenco', () => {
+      assert.strictEqual(/<select id="lb-turma-destino">/.test(semElenco), false,
+        'o campo de atribuição antigo não pode continuar na marcação');
+      assert.strictEqual(/data-passo="5"/.test(semElenco.match(/id="lb-tira"[\s\S]*?<\/ol>/)[0]), false,
+        'e não há um quinto painel vazio');
+      assert.ok(/Concluir elenco/.test(semElenco),
+        'o acto termina no recorte, e o botão diz o que faz');
     });
 
-    ok('e o caminho para resolver está escrito — um link para as Turmas', () => {
-      assert.ok(/data-ir-para-turmas/.test(semTurmas),
-        'o aviso leva à secção Turmas; um aviso sem caminho é um beco');
-      assert.ok(/Ir a Turmas/.test(semTurmas), 'com um rótulo que diz para onde vai');
+    ok('a Turma tem os dois campos do modelo novo — Sala e Elenco', () => {
+      assert.ok(/for="cuturma">Sala</.test(semElenco), 'o campo do ritmo chama-se Sala');
+      assert.ok(/for="cuelenco">Elenco</.test(semElenco), 'e o corpo chama-se Elenco');
+      assert.ok(/id="cu-elenco-nota"/.test(semElenco), 'a nota do elenco escolhido continua');
     });
 
-    ok('o «Concluir» fica travado', () => {
-      assert.ok(/id="lb-enviar"[^>]*disabled/.test(semTurmas),
-        'sem turma não há para onde enviar');
+    ok('sem nenhum elenco na escola, o select di-lo — e não finge uma opção', () => {
+      assert.ok(/— nenhum elenco —/.test(semElenco),
+        'a ausência é um estado, não uma escolha');
     });
 
-    /* A FALTA DO PASSO 5 TEM DE NOMEAR O CADASTRO, e isto mede-se a CORRER, não na marcação:
-     * a frase «uma turma cadastrada (secção Turmas)» está escrita no `<script>` em qualquer caso —
-     * é código —, e procurá-la na página passava com o `LB_TEM_TURMA` desligado. Foi o A/B que o
-     * disse: a asserção anterior dava verde com o defeito lá. Agora a função é chamada. */
-    await okAsync('a falta do passo 5 diz «uma turma cadastrada», e não «a turma de destino»', async () => {
-      let JSDOM, VirtualConsole;
-      ({ JSDOM, VirtualConsole } = require('jsdom'));
-      const vc = new VirtualConsole();
-      vc.on('jsdomError', () => {}); vc.on('error', () => {});
-      const dom = new JSDOM(semTurmas.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
-        pretendToBeVisual: true, virtualConsole: vc,
-        beforeParse(w) {
-          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
-            addListener() {}, removeListener() {} });
-          w.confirm = () => true; w.alert = () => {};
-          w.fetch = () => Promise.resolve({ ok: true, status: 200,
-            json: () => Promise.resolve({ ok: true, linhas: [], divergentes: [], campos: [],
-              grupos: [], alunas: [{ aluna: 'Aluna A', carimbo: 'anamnese-20260801-1000', novo: true }] }),
-            text: () => Promise.resolve('') });
-        },
-      });
-      const win = dom.window;
-      await new Promise((r) => win.setTimeout(r, 250));
-      assert.strictEqual(win.LB_TEM_TURMA, false, 'sem turma na escola, a flag diz que não há');
-      const falta = [...win.faltasDoPassoLb(5)].join(' ');
-      assert.ok(/turma cadastrada/i.test(falta),
-        'a falta é do CADASTRO: ' + falta);
-      assert.strictEqual(/turma de destino/.test(falta), false,
-        'e não é «escolher uma turma que não existe»: ' + falta);
-      dom.window.close();
-    });
-
-    ok('e o formulário do passo 5 continua completo (um input escondido, não um campo morto)', () => {
-      assert.ok(/id="lb-turma-destino"/.test(semTurmas),
-        'a função que envia continua a ter o que ler — sem valor');
-      assert.strictEqual(/<select id="lb-turma-destino">/.test(semTurmas), false,
-        'e não há um select que não se pode preencher');
-    });
-
-    /* O CONTROLE POSITIVO, na outra ponta: com turma, o select volta e o aviso não existe. Sem
-     * isto, um `if` trocado deixaria as duas escolas iguais e esta secção passaria. */
-    await okAsync('CONTROLE: com turma cadastrada, o select volta e o aviso desaparece', async () => {
+    await okAsync('CONTROLE: com um elenco, ele aparece na lista da Turma', async () => {
       const b = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
       const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
-      const comTurma = b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
-        [], ['Aluna A'], 'Dono', 'dono', [{ nome: 'Balé 1' }], [], {}, [], [], [], usos,
-        { modo: 'clara', paleta: 'bordo' }, '');
-      assert.ok(/<select id="lb-turma-destino">/.test(comTurma), 'com turma, há o que escolher');
-      assert.strictEqual(comTurma.indexOf('id="lb-sem-turma"'), -1,
-        'e o aviso do vazio não aparece');
-      assert.ok(/Balé 1/.test(comTurma), 'a turma da escola está na lista');
+      const comElenco = b.paginaProducao('calango', { nome: 'Calango', modalidade: 'bale-classico' },
+        [], ['Aluna A'], 'Dono', 'dono', [], [], {}, [], [], [], usos,
+        { modo: 'clara', paleta: 'bordo' }, '',
+        [{ id: 'elenco-1', nome: 'Elenco 1', alunas: ['Aluna A'], campos: [{ id: 'a', nome: 'A' }] }]);
+      assert.ok(/<option value="elenco-1">Elenco 1/.test(comElenco),
+        'o elenco gravado tem de estar no select da Turma');
+      assert.ok(/1 aluna/.test(comElenco), 'e o rótulo diz quantas alunas traz');
     });
   }
 

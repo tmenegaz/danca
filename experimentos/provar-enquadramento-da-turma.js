@@ -137,6 +137,29 @@ function oNucleo() {
   checar('e um professor SEM perfil não descontinua turma nenhuma',
     enq.turmasSemHabilitacao(turmas, curs, null, { professor: 'braco' }).length === 0);
 
+  /* A TOLERÂNCIA ID ↔ NOME (07/11/2026). O perfil guarda IDS (`bale-classico`); a Turma guarda o
+   * NOME que o formulário oferece (`Balé clássico`). Comparar as duas formas dava sempre «não
+   * declara», e a marca acendia em turmas que o professor ensina todos os dias. As três leituras
+   * abaixo são a mesma pergunta feita de três maneiras — e todas têm de dar o mesmo. */
+  const perfilNucleo = require(path.join(RAIZ, 'motor/nucleo/perfil-do-professor.js'));
+  checar('o id é reconhecido como id', perfilNucleo.idDaModalidade('bale-classico'), 'bale-classico');
+  checar('…e o NOME do catálogo é convertido no id', perfilNucleo.idDaModalidade('Balé clássico'),
+    'bale-classico');
+  checar('…e a comparação por nome ignora acentos e caixa',
+    perfilNucleo.idDaModalidade('BALE CLASSICO'), 'bale-classico');
+  checar('a turma cuja modalidade está escrita por NOME continua habilitada',
+    enq.turmasSemHabilitacao(
+      [{ id: 't1', nome: 'Balé 1' }],
+      [{ id: 'c1', professor: 'braco', modalidade: 'Balé clássico', turmas: ['Balé 1'] }],
+      perfil, { professor: 'braco' }).length === 0);
+  checar('…e a mesma turma com a modalidade que ele NÃO declara é apontada',
+    enq.turmasSemHabilitacao(
+      [{ id: 't2', nome: 'Jazz 1' }],
+      [{ id: 'c2', professor: 'braco', modalidade: 'Jazz', turmas: ['Jazz 1'] }],
+      perfil, { professor: 'braco' }).length === 1);
+  checar('…e um id desconhecido volta como veio (não se inventa modalidade)',
+    perfilNucleo.idDaModalidade('kuduro'), 'kuduro');
+
   /* O DEFEITO QUE O MÓDULO EXISTE PARA NÃO TER. Antes, a leitura era `t.modalidade` e
    * `t.professor` — campos que o cadastro novo já não tem. Um `undefined` numa comparação não dá
    * erro: dá `false`, e a marca deixa de acender. Mede-se a diferença. */
@@ -151,15 +174,15 @@ function oNucleo() {
   const resumo = enq.resumoDoEnquadramento(turmas[0], curs);
   checar('o resumo da turma diz quem ensina o quê, em que nível',
     resumo.texto === 'bale-classico · RAD · Grade 3', resumo.texto);
-  checar('uma turma sem curadoria diz «sem curadoria atribuída» — e não um vazio',
-    enq.resumoDoEnquadramento({ id: 'x', nome: 'x' }, curs).texto === 'sem curadoria atribuída',
+  checar('uma turma sem curadoria diz «sem turma atribuída» — e não um vazio',
+    enq.resumoDoEnquadramento({ id: 'x', nome: 'x' }, curs).texto === 'sem turma atribuída',
     enq.resumoDoEnquadramento({ id: 'x', nome: 'x' }, curs).texto);
   /* E, quando ela guarda um nível antigo, diz AS DUAS COISAS: que não há ensino atribuído e que
    * nível ficou. Mostrar só o nível esconderia a ausência; mostrar só a ausência esconderia o
    * nível — e um nível que veio da memória é um nível que ninguém reviu desde a mudança de casa. */
   const semCuradoriaComMemoria = enq.resumoDoEnquadramento(turmas[2], curs).texto;
   checar('…e, guardando um nível antigo, di-lo ao lado — com a origem',
-    /^sem curadoria atribuída · Vaganova 4 \(da turma\)$/.test(semCuradoriaComMemoria),
+    /^sem turma atribuída · Vaganova 4 \(da turma\)$/.test(semCuradoriaComMemoria),
     semCuradoriaComMemoria);
 }
 
@@ -338,11 +361,94 @@ function aTela() {
   checar('o script da página compila', compila);
 }
 
+/**
+ * E. A HABILITAÇÃO DO PROFESSOR É UMA REGRA DO SERVIDOR (07/11/2026).
+ *
+ * A decisão, nas palavras dela: «a escola só incorpora e oferta uma modalidade se possuir
+ * professores habilitados para lecioná-la». A tela já filtra o `<select>`; a rota, não — e um
+ * filtro de cliente não é uma regra. Aqui mede-se a ROTA, com o repositório substituído por um
+ * `fetch` de mentira: é a única forma de exercitar a leitura do perfil sem rede.
+ *
+ * E mede-se também o que ela NÃO faz: sem perfil, ou com o perfil ilegível, a rota não se
+ * pronuncia. Uma falha de leitura não pode virar uma recusa de pedagogia — e uma escola
+ * recém-criada, cujo professor ainda não declarou nada, não pode ficar sem poder atribuir turma.
+ */
+async function aHabilitacao() {
+  console.log('\nE. A HABILITAÇÃO — só se oferece a modalidade que alguém declara ensinar');
+
+  const kv = criarKv({
+    'bastidores/breu/turmas': JSON.stringify([{
+      id: 'bale-nivel-1', nome: 'Balé Nível 1', ordem: 1,
+      dias: ['ter'], horarios: { ter: '19:00' }, frequencia: 1, duracaoMin: 60,
+      periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
+    }]),
+    'bastidores/breu/alunas': JSON.stringify(['Vavá']),
+    'bastidores/breu/professores': JSON.stringify([{ nome: 'Braço em Quinta' }]),
+  });
+  const env = { ESCOLA_SLUG: 'breu', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x', GITHUB_TOKEN: 't', PADD_KV: kv };
+  const BASE = 'https://breu.tmenegaz77.workers.dev';
+
+  const fetchDeVerdade = globalThis.fetch;
+  const comPerfil = (perfil) => {
+    globalThis.fetch = async () => (perfil === null
+      ? { status: 404, ok: false, text: async () => '', json: async () => ({}) }
+      : (perfil === 'erro'
+        ? { status: 500, ok: false, text: async () => 'boom', json: async () => ({}) }
+        : {
+          status: 200,
+          ok: true,
+          text: async () => '',
+          json: async () => ({ sha: 'abc', content: Buffer.from(JSON.stringify(perfil)).toString('base64') }),
+        }));
+  };
+  const gravar = async (corpo) => {
+    const r = await bastidores.fetch(new Request(BASE + '/api/bastidores/curadoria', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({
+        senhaDirecao: 'x', professor: 'braco-em-quinta', turmas: ['Balé Nível 1'],
+      }, corpo)),
+    }), env);
+    return { status: r.status, d: await r.json() };
+  };
+
+  try {
+    // 1. O perfil existe e declara SÓ balé clássico.
+    comPerfil({ slug: 'braco-em-quinta', nome: 'Braço em Quinta', modalidades: ['bale-classico'] });
+    const jazz = await gravar({ modalidade: 'Jazz', tradicao: 'RAD', nivel: '1' });
+    checar('o professor que não declara «Jazz» não pode ensiná-lo — a rota recusa',
+      jazz.status === 409 && jazz.d.habilitacao === true, { status: jazz.status, d: jazz.d });
+    checar('…e a recusa diz o que ele declara hoje, e onde se resolve',
+      /não declara «Jazz»/.test(jazz.d.erro) && /Balé clássico/.test(jazz.d.erro)
+      && /Professores/.test(jazz.d.erro), jazz.d.erro);
+
+    // 2. A MESMA modalidade escrita por NOME (é o que o formulário manda) passa.
+    const bale = await gravar({ modalidade: 'Balé clássico', tradicao: 'RAD', nivel: '1' });
+    checar('…e a modalidade que ele declara passa, mesmo escrita por NOME («Balé clássico»)',
+      bale.status === 201, { status: bale.status, d: bale.d });
+
+    // 3. SEM PERFIL, a rota não se pronuncia — a ausência de um dado não é a sua negação.
+    comPerfil(null);
+    const semPerfil = await gravar({ modalidade: 'Jazz', tradicao: 'RAD', nivel: '2' });
+    checar('…e um professor SEM perfil não é travado (não declarado ≠ não habilitado)',
+      semPerfil.status === 201, { status: semPerfil.status, d: semPerfil.d });
+
+    // 4. PERFIL ILEGÍVEL também não trava: uma falha de leitura não é uma recusa.
+    comPerfil('erro');
+    const ilegivel = await gravar({ modalidade: 'Contemporâneo', tradicao: 'RAD', nivel: '1' });
+    checar('…e um perfil que não se consegue ler também não trava a atribuição',
+      ilegivel.status === 201, { status: ilegivel.status, d: ilegivel.d });
+  } finally {
+    globalThis.fetch = fetchDeVerdade;
+  }
+}
+
 oNucleo();
 aTela();
 aTurma()
   .then(aMemoria)
   .then(aCuradoria)
+  .then(aHabilitacao)
   .then(() => {
     console.log('');
     if (falhas) { console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).'); process.exit(1); }
