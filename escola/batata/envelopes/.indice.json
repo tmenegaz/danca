@@ -1,5 +1,18 @@
 {
   "versao": 4,
-  "nomes": [],
-  "resumos": {}
+  "nomes": [
+    "anamnese-20261107-1928.json"
+  ],
+  "resumos": {
+    "anamnese-20261107-1928.json": {
+      "id": "anamnese-20261107-1928",
+      "fonte": "anamnese",
+      "escola": "batata",
+      "professor": "dedao-aberto",
+      "ciclo": null,
+      "ajuste_de": null,
+      "gerado_em": "2026-11-07T19:28",
+      "aluna": "Aluna A"
+    }
+  }
 }
