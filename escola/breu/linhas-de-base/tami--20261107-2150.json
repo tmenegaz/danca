@@ -68,7 +68,7 @@
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal"
     }
   ],
-  "atualizada_em": "2026-11-07T21:50:15.462Z",
+  "atualizada_em": "2026-11-07T21:50:25.260Z",
   "lida": {
     "Aluna A": "anamnese-20261107-1308",
     "Aluna B": "anamnese-20261107-1345"
@@ -1642,6 +1642,7 @@
     }
   },
   "carimbo": "20261107-2150",
-  "enviada_em": "2026-11-07T21:50:15.979Z",
-  "gravada_em": "2026-11-07T21:50:15.979Z"
+  "enviada_em": "2026-11-07T21:50:26.689Z",
+  "anterior": "tami--20261107-2150.json",
+  "gravada_em": "2026-11-07T21:50:26.689Z"
 }
