@@ -770,12 +770,175 @@ async function aOrigemDoVocabulario() {
     !mesmaNaMesma.ok && mesmaNaMesma.status === 409
       && /desta escola/.test(String(mesmaNaMesma.erro || '')), mesmaNaMesma);
 
+  /* O FORMULÁRIO NÃO COLIDE — ENCONTRA (07/11/2026).
+   *
+   * O DEFEITO, medido na `batata`: o professor escrevia «Battement jeté» no passo 1 do verbete e
+   * o «Seguir» respondia `409 «Battement jeté» já está no vocabulário desta escola`. A tela ficava
+   * no passo 1, e o exercício que ele queria usar não podia ser escolhido no passo 2 — o fluxo
+   * pedagógico parava por causa de uma unicidade que já estava satisfeita.
+   *
+   * A CAMADA DE REPOSITÓRIO CONTINUA A RECUSAR POR OMISSÃO, e é a asserção acima. O que muda é o
+   * que a ROTA pede: `reutilizar`. Aqui mede-se o contrato novo, e a contraprova que impede a
+   * correção de ser um alívio geral: sem `reutilizar`, o mesmo par continua a ser 409. */
+  const antesDoReuso = JSON.stringify(JSON.parse(repo.arquivos.get(Caminho).conteudo).length);
+  const reusado = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne fermée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'breu', reutilizar: true,
+  }));
+  checar('com `reutilizar`, o termo que já existe é APROVEITADO em vez de recusado',
+    reusado.ok === true && reusado.jaExistia === true && reusado.status === 200, reusado);
+  checar('…e vem o registo existente, com o `id` e o dono — é ele que o passo 2 vai escolher',
+    reusado.termo && reusado.termo.id === 'sissonne-fermee' && reusado.termo.escola === 'breu',
+    reusado.termo);
+  checar('…sem escrever nada no repositório (o `commit` é nulo e o ficheiro não cresce)',
+    reusado.commit === null
+    && JSON.stringify(JSON.parse(repo.arquivos.get(Caminho).conteudo).length) === antesDoReuso,
+    { commit: reusado.commit, antes: antesDoReuso, depois: JSON.parse(repo.arquivos.get(Caminho).conteudo).length });
+  checar('…e a definição que já estava NÃO é reescrita pelo que veio no corpo (P-03)',
+    reusado.termo.descricao !== 'uma definição nova escrita no formulário', reusado.termo.descricao);
+
+  /* A CONTRAPROVA, no lugar: sem `reutilizar`, o MESMO par recusa. Sem esta linha, «aproveitado»
+   * poderia ser apenas «a colisão deixou de ser detetada» — e aí a escola passaria a acumular
+   * termos repetidos sem que ninguém soubesse. */
+  const semReuso = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne fermée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'breu',
+  }));
+  checar('contraprova: sem `reutilizar`, o mesmo par continua a colidir com 409',
+    !semReuso.ok && semReuso.status === 409, semReuso);
+
+  /* E UM NOME REALMENTE NOVO, com `reutilizar`, continua a CRIAR — a opção não transforma a rota
+   * num «devolve o que houver». */
+  const novoComReuso = await termoRepo.criarTermo(Object.assign({}, base, {
+    corpo: { termo: 'Sissonne tombée', categoria: 'salto', tradicao: 'compartilhada' },
+    tradicoes: TRADICOES, escola: 'breu', reutilizar: true,
+  }));
+  checar('com `reutilizar`, um nome NOVO continua a ser criado (e sem `jaExistia`)',
+    novoComReuso.ok === true && !novoComReuso.jaExistia && novoComReuso.status === 201
+    && novoComReuso.termo.id === 'sissonne-tombee', novoComReuso);
+
   const editado = await termoRepo.editarNomeDoTermo(Object.assign({}, base, {
     idAntigo: 'sissonne-ouverte', novoNome: 'Sissonne ouverte simple',
   }));
   checar('editar o nome é aceito', editado.ok, editado);
   checar('e o `id` acompanha o nome (o `id` deriva dele)',
     editado.ok && editado.de === 'sissonne-ouverte' && editado.para === 'sissonne-ouverte-simple', editado);
+
+  /* ==========================================================================================
+   * G. A ROTA DO PASSO 1 — o exercício que já existe NÃO trava o fluxo
+   *
+   * O DEFEITO, tal como ela o relatou na `batata`: escreveu «Battement jeté», a definição e a
+   * categoria, e o «Seguir» respondeu `409 «Battement jeté» já está no vocabulário desta escola`.
+   * A requisição abortou, a tela ficou no passo 1, e o exercício — que já estava cadastrado, e
+   * que é o que ela quer usar — não podia ser escolhido no passo 2.
+   *
+   * AQUI CORRE-SE A ROTA, e não a função: é a rota que decide o `reutilizar`, e é a resposta dela
+   * que a tela lê. Uma prova sobre a função passaria mesmo que a rota continuasse a pedir o
+   * 409 — que era exactamente o caso antes de hoje.
+   * ========================================================================================== */
+  console.log('\nG. A ROTA DO PASSO 1 — o termo que já existe é reaproveitado');
+
+  const bastidoresDaRota = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+
+  const repoDaRota = githubFalso({
+    [Caminho]: { sha: 'sha-voc', conteudo: JSON.stringify(VOCABULARIO, null, 2) + '\n' },
+  });
+  const envDaRota = {
+    ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'senha-da-direcao',
+    GITHUB_TOKEN: 'token-de-prova',
+    // O KV DA ESCOLA — inerte: a rota do termo grava no REPOSITÓRIO, e é isso que se quer medir.
+    // Sem ele a moldura responde 500 («PADD_KV ausente») e a prova mediria a moldura.
+    PADD_KV: { async get() { return null; }, async put() {}, async delete() {},
+      async list() { return { keys: [], list_complete: true }; } },
+  };
+  const fetchOriginal = globalThis.fetch;
+  globalThis.fetch = repoDaRota.f;
+  const postarTermo = async (corpo) => {
+    const r = await bastidoresDaRota.fetch(new Request('https://e.workers.dev/api/bastidores/termo', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      // Sem `token`: com ele a rota toma o caminho do token, e quem se quer medir é a senha.
+      body: JSON.stringify(Object.assign({ senhaDirecao: 'senha-da-direcao' }, corpo)),
+    }), envDaRota);
+    let json = null;
+    try { json = await r.json(); } catch { json = null; }
+    return { status: r.status, corpo: json };
+  };
+  try {
+    /* O PRIMEIRO «Seguir» é de um nome que a escola ainda não tem — senão não haveria criação
+     * nenhuma para comparar. `Battement frappé` existe no catálogo e não é da `batata`. */
+    const primeiro = await postarTermo({
+      termo: 'Battement frappé', categoria: 'passo', tradicao: 'RAD',
+      descricao: 'batida rápida do pé no tornozelo de apoio',
+    });
+    checar('o primeiro «Seguir», de um nome novo, cria o termo (201)',
+      primeiro.status === 201 && primeiro.corpo.ok === true && !primeiro.corpo.jaExistia,
+      primeiro);
+    checar('…e o `commit` vem preenchido — houve escrita',
+      typeof primeiro.corpo.commit === 'string' && primeiro.corpo.commit.length > 0,
+      primeiro.corpo.commit);
+
+    /* O SEGUNDO «Seguir» é O GESTO QUE A TRAVAVA: «Battement jeté», que a `batata` já tem (é o
+     * termo que ela criou antes). Antes de hoje isto era `409 «Battement jeté» já está no
+     * vocabulário desta escola`, e a tela ficava no passo 1. */
+    const segundo = await postarTermo({
+      termo: 'Battement jeté', categoria: 'passo', tradicao: 'RAD',
+      descricao: 'outra definição qualquer',
+    });
+    checar('o «Seguir» sobre o termo que a escola JÁ tem não é 409 — responde 200 e ok',
+      segundo.status === 200 && segundo.corpo.ok === true, segundo);
+    checar('…e diz que já existia, com o termo e o `id` para o passo 2 escolher',
+      segundo.corpo.jaExistia === true && segundo.corpo.termo === 'Battement jeté'
+      && segundo.corpo.id === 'battement-jete', segundo.corpo);
+    checar('…e o `commit` é nulo: na segunda vez nada foi escrito',
+      segundo.corpo.commit === null, segundo.corpo.commit);
+
+    /* A DEFINIÇÃO DA ESCOLA, e não a do catálogo: o `battement-jete` existe nos dois, e é a
+     * sobreposição da escola que a Produção grava — comparar com o primeiro da lista mediria o
+     * termo errado. */
+    const daEscola = () => JSON.parse(repoDaRota.arquivos.get(Caminho).conteudo)
+      .filter((t) => t.id === 'battement-jete' && t.escola === 'batata');
+    checar('…e a definição guardada continua a ser a que lá estava (P-03)',
+      daEscola().length === 1 && !/outra definição qualquer/.test(String(daEscola()[0].descricao)),
+      daEscola().map((t) => t.descricao));
+    checar('…e a escola não acumulou um segundo termo com o mesmo id',
+      daEscola().length === 1,
+      JSON.parse(repoDaRota.arquivos.get(Caminho).conteudo)
+        .filter((t) => t.id === 'battement-jete').map((t) => t.escola || 'catálogo'));
+
+    /* TRÊS VEZES, porque um professor que insiste é o caso real — e uma idempotência que só
+     * funciona à segunda não é idempotência. */
+    const terceiro = await postarTermo({ termo: 'Battement jeté', categoria: 'passo', tradicao: 'RAD' });
+    checar('um terceiro «Seguir» também passa (200)', terceiro.status === 200
+      && terceiro.corpo.jaExistia === true, terceiro);
+
+    /* A CONTRAPROVA DO OUTRO LADO: um nome novo continua a criar, e não a reaproveitar o que
+     * houver. Sem isto, «reaproveitado» poderia ser «a rota devolve sempre o primeiro termo». */
+    const outro = await postarTermo({ termo: 'Battement soutenu', categoria: 'passo', tradicao: 'RAD' });
+    checar('e um nome novo continua a ser CRIADO pela rota (201, sem `jaExistia`)',
+      outro.status === 201 && outro.corpo.ok === true && !outro.corpo.jaExistia, outro);
+  } finally {
+    globalThis.fetch = fetchOriginal;
+  }
+
+  /* O CLIENTE. O passo 1 avança em `depois(true)`, e a ramificação de reaproveitamento está no
+   * caminho do SUCESSO — não no do erro. É esta posição que faz o fluxo andar: no caminho do
+   * erro, a tela mostra o recado e fica onde está, que era o defeito. */
+  const paginaDoVerbete = bastidoresDaRota.paginaProducao('batata',
+    { nome: 'Batata', modalidade: 'bale-classico' }, [], [], 'Dono', 'dono', [], [], {}, [], [], [],
+    { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() },
+    { modo: 'clara', paleta: 'bordo' }, '', []);
+  const corpoDoPasso1 = (() => {
+    const i = paginaDoVerbete.indexOf('function criarExercicioDoPasso1');
+    return i === -1 ? '' : paginaDoVerbete.slice(i, i + 4000);
+  })();
+  checar('o cliente trata o reaproveitamento no caminho do SUCESSO',
+    corpoDoPasso1.indexOf('d.jaExistia') !== -1, corpoDoPasso1.slice(0, 0) || 'não achou');
+  checar('…e diz que o termo já estava, em vez de anunciar uma gravação que não houve',
+    /já estava no vocabulário/.test(corpoDoPasso1));
+  checar('…e o avanço para o passo 2 continua a ser chamado no fim do caminho bom',
+    /depois\(true\)/.test(corpoDoPasso1));
+  checar('e o `409` já não aparece como desfecho possível deste formulário',
+    corpoDoPasso1.indexOf('já está no vocabulário') === -1);
 
   const semMembro = termoRepo.validarTermo({ termo: 'Première position', categoria: 'posicao' }, TRADICOES);
   checar('uma posição sem `membro` é recusada — pés e braços não partilham o nome',

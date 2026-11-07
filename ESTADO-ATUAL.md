@@ -4064,6 +4064,24 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **O termo que já existe é aproveitado, e não recusado.** Na `batata`, o passo 1
+  do exercício respondeu `409 «Battement jeté» já está no vocabulário desta escola` e a tela ficou
+  no passo 1 — sobre um termo que **ela própria** tinha criado horas antes (`08a088e1`).
+  **CONFIRMADO** que a rota tratava a colisão como erro porque nasceu para *acrescentar*, e que o
+  cliente, em `!d.ok`, escrevia o erro e **retornava sem chamar `depois`** — era a rota que mandava
+  a tela travar. O passo 1 não pede um termo *novo*: pede **qual** é o exercício, e um formulário
+  que nomeia uma coisa que pode já existir não colidiu — encontrou-a. **DECIDIDO** que a recusa
+  continua a ser o padrão do repositório: `criarTermo` ganhou `reutilizar`, e só com ele a `true` a
+  colisão no mesmo dono devolve `{ok:true, status:200, jaExistia:true, termo, commit:null}`; sem a
+  opção o mesmo par continua a dar **409**. A rota pede o reuso e responde **201** quando criou e
+  **200 + `jaExistia`** quando encontrou; a tela di-lo e o fluxo avança. **A definição guardada não
+  é reescrita (P-03)** — o termo é fonte partilhada por todas as turmas da escola — e a tela avisa
+  que o caminho para a mudar é editar o termo. `provar-verbete` com **13** asserções novas, secção
+  **G** a correr a **rota** (e não a função, senão a prova passaria com a rota a pedir 409 — que era
+  o caso antes de hoje), e o **A/B** a devolver a mensagem exacta que ela viu. **PENDENTE:** o
+  vocabulário tem agora **dois** `battement-jete` (catálogo + `batata`), legal pela regra
+  `(dono, id)` mas conteúdo duplicado — a faxina é decisão dela.
+
 - **07/11/2026** — **A âncora de uma aula não tem manifesto próprio — e a auditoria exigia um, o
   que recusou o expurgo da `breu`.** A página respondeu «a proveniência não está em ordem — nada foi
   apagado», com um bloqueio só: `[ancora-orfa] …-aula-01.fipp não tem o manifesto

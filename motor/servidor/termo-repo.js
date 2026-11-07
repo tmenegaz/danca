@@ -173,8 +173,24 @@ function validarTermo(corpo, tradicoes) {
   };
 }
 
-/** Cria um termo. Recusa quando ele já existe — o `id` é derivado do nome, e o nome é a chave. */
-async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola }) {
+/**
+ * Cria um termo — ou APROVEITA o que já existe, quando quem chama o pede.
+ *
+ * O `id` é derivado do nome, e o nome é a chave: criar duas vezes o mesmo nome nunca foi escrever
+ * dois termos, foi escrever o mesmo duas vezes. Por omissão a função RECUSA (`409`), e é o
+ * contrato certo para quem escreve em lote e precisa de saber que colidiu.
+ *
+ * `reutilizar: true` muda a resposta, e não a regra (07/11/2026). Quando o termo já existe para o
+ * MESMO dono, devolve-o com `ok: true` e `jaExistia: true`, sem escrever nada no repositório. É o
+ * que o formulário precisa: o professor escreve um exercício que já está no vocabulário, e a
+ * resposta certa não é «erro» — é o termo, para o passo seguinte o poder escolher.
+ *
+ * PORQUE O PADRÃO CONTINUA A SER RECUSAR. A recusa é a única coisa que impede um cliente de
+ * acreditar que gravou quando não gravou. Quem quer find-or-create diz que quer; quem não diz
+ * recebe o facto. Uma inversão do padrão teria apagado a diferença entre «criei» e «já estava»
+ * em todos os chamadores, incluindo os que escrevem às cegas.
+ */
+async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola, reutilizar }) {
   const conferido = validarTermo(corpo, tradicoes);
   if (!conferido.ok) return { ok: false, status: 400, erro: 'termo inválido', erros: conferido.erros };
   // O DONO VAI NO TERMO. Um termo criado na Produção de uma escola é DELA — a licença, §4 —, e o
@@ -195,6 +211,12 @@ async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola 
   const existente = lido.termos.find((t) => t && t.id === conferido.termo.id
     && String(t.escola || '').trim() === donoDoTermo);
   if (existente) {
+    if (reutilizar === true) {
+      /* `commit: null` DIZ QUE NADA FOI ESCRITO. Quem mostra a resposta ao professor usa-o para
+       * não anunciar uma gravação que não houve — e o `jaExistia` é o mesmo facto, dito a quem só
+       * quer saber se pode avançar. */
+      return { ok: true, status: 200, jaExistia: true, termo: existente, commit: null };
+    }
     return { ok: false, status: 409, erro: '«' + existente.termo + '» já está no vocabulário'
       + (donoDoTermo ? ' desta escola' : ''), termo: existente };
   }

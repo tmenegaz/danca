@@ -40088,3 +40088,78 @@ pela função que a página usa (`repo-escola.auditarProvenienciaDaEscola`) — 
   ficou pronto é a recusa que já não acontece.
 - **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
   `deploy-raiz` leva esta correção.
+
+## 07/11/2026 — O termo que já existe é aproveitado, e não recusado
+
+**O que motivou.** Na escola `batata`, ela escreveu «Battement jeté» no passo 1 do exercício, com a
+definição e a categoria, e o «Seguir» respondeu
+
+```
+409 «Battement jeté» já está no vocabulário desta escola
+```
+
+A requisição abortou, a tela ficou no passo 1, e o exercício — que **é** o que ela quer usar —
+não podia ser escolhido no passo 2. O termo estava lá desde as 22:31 daquele dia, criado por ela
+(`08a088e1`): o sistema recusou-lhe o que ela própria tinha acabado de cadastrar.
+
+**O diagnóstico.** A rota `POST /api/bastidores/termo` existia para **acrescentar**, e por isso
+tratava a colisão como erro. Mas o passo 1 não é «criar um termo novo»: é «dizer **qual** é o
+exercício». Um formulário que pede o nome de uma coisa que pode já existir não colidiu — encontrou-a.
+A regra de unicidade estava certa (o ficheiro não pode acumular repetições); o **desfecho** é que
+estava errado.
+
+O cliente confirmava o defeito por construção: em `!d.ok` escrevia o erro em `[data-res=vb-novo]` e
+**retornava sem chamar `depois`** — e é `depois(true)` que faz `irParaPasso(2)`. Não era a tela que
+travava: era a rota que a mandava travar.
+
+**O que foi decidido.** Três camadas, e a decisão importante está na primeira:
+
+1. **A recusa continua a ser o padrão do repositório.** `criarTermo` ganhou `reutilizar`, e só
+   quando ele vem a `true` é que a colisão no mesmo dono devolve o registo existente
+   (`{ok:true, status:200, jaExistia:true, termo, commit:null}`). Sem a opção, o mesmo par continua
+   a dar **409** — a camada que garante a unicidade não foi enfraquecida, foi apenas informada de
+   que quem chama quer encontrar-e-usar.
+2. **A rota pede o reuso** — é ela que sabe que o pedido vem do passo 1 — e responde **201** quando
+   criou e **200 + `jaExistia`** quando encontrou. O código de estado passa a dizer a verdade.
+3. **A tela di-lo.** Com `jaExistia`, o passo 1 diz ««X» já estava no vocabulário — reaproveitado»,
+   e o fluxo avança. Se ela escreveu uma definição, a tela avisa que **a guardada é que fica** e que
+   o caminho para a mudar é editar o termo.
+
+**A definição NÃO é reescrita, e é de propósito (P-03).** O termo é uma fonte partilhada por todas as
+turmas da escola; sobrescrevê-la com o que veio num formulário de aula faria com que a mesma palavra
+significasse coisas diferentes conforme a aula em que alguém a escreveu. A recusa em silêncio seria
+pior; a tela diz o que aconteceu.
+
+**Onde entrou.** `motor/servidor/termo-repo.js` (`reutilizar`, com o porquê escrito) ·
+`motor/servidor/bastidores.js` (a rota passa `reutilizar: true` e escolhe o estado; o cliente, no
+caminho do sucesso, com o recado) · `experimentos/provar-verbete.js` (secção **F** no repositório e
+secção **G** na **rota**) · `ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-verbete` — as **13** asserções novas passam, e a única que falha («o documento
+datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no baseline**, com os três
+ficheiros em `stash`. A secção G corre a **rota**, e não a função: é a rota que decide o
+`reutilizar`, e uma prova sobre a função passaria mesmo que a rota continuasse a pedir o 409 — que
+era exactamente o caso antes de hoje. Mede o primeiro «Seguir» de um nome novo (**201**, com
+`commit`), o «Seguir» sobre o termo que a escola já tem — **«Battement jeté», o caso dela** — (**200**
+com `jaExistia`, `commit: null`, sem segundo termo no ficheiro, sem reescrever a definição), um
+terceiro «Seguir» (continua **200**: idempotência que só funcionasse à segunda não seria
+idempotência), e um nome novo com tudo ligado (**201**, sem `jaExistia`).
+
+**O A/B.** Posta a rota a pedir `reutilizar: false`, a asserção nova falha com **exactamente** o que
+ela viu — `409 «Battement jeté» já está no vocabulário desta escola`. A prova mede o que diz medir.
+
+**Sem regressão.** `provar-producao` **166/166** · `provar-compasso-limpo` **verde** ·
+`provar-celula` e `provar-listas-sem-repeticao` falham **identicamente no baseline** (comparadas
+`FALHOU` a `FALHOU`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila** em `wrangler.danca.jsonc` e em `wrangler.batata.jsonc`.
+
+**O que fica por resolver, declarado.**
+
+- **O vocabulário tem agora dois `battement-jete`** — um do catálogo e um de que a `batata` é dona.
+  É legal (a colisão é por `(dono, id)` e o `compor` faz o da escola ganhar), mas é conteúdo
+  duplicado no ficheiro. Não é defeito desta correção: nasceu de o termo ter sido criado na escola
+  quando já existia no catálogo. A faxina é decisão dela.
+- **A definição escrita no formulário não é aplicada** ao termo que já existe — deliberado, e a tela
+  di-lo. Se quiser substituí-la, o caminho é editar o termo.
+- **A conferência ao ar é do próximo deploy.** A página corre o servidor empacotado no Worker.

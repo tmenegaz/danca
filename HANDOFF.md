@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T19:17:10-0300`
-Commit atual: `1fa3e33a` — chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
+Gerado em: `2026-11-07T19:44:26-0300`
+Commit atual: `08a088e1` — feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -51,9 +51,10 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** colo-de-pe
 coqui-de-redinha
+dedao-aberto
 pe-torto
-rabo-gramde (4)
-- **Ciclos com manifesto:** 2 variante(s)
+rabo-gramde (5)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -70,6 +71,19 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
+08a088e1 feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
+44ee2828 chore(estrutura): regerar os índices derivados
+e851b964 feat(linha de base): índice — tami 20261107-2229
+3f91a748 feat(elenco): tami — concluído
+c28d94b8 chore(estrutura): regerar os índices derivados
+0e599e8f feat(acervo): envelope/anamnese-20261107-1928.json
+da9984b6 feat(acervo): envelope/.indice.json
+9203614b chore(estrutura): regerar os índices derivados
+6478f441 feat(acervo): envelope/.indice.json
+a2a0e571 feat(estrutura): criar a escola batata (motor completo)
+70987074 chore(estrutura): regerar os índices derivados
+5e83dfb3 chore(estrutura): expurgar a escola breu
+59ee26fa fix(tools): a âncora de uma aula não tem manifesto próprio — o expurgo da breu
 1fa3e33a chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 a9a8a50b chore(estrutura): regerar os índices derivados
 a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -77,38 +91,25 @@ b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num 
 21a6884a feat(po): o PO elicitado vira a fonte do ciclo
 0a25b3c0 feat(acervo): envelope/po-20261107-1911.json
 76d4f731 feat(acervo): envelope/.indice.json
-35c938d6 chore(estrutura): reancorar a cadeia das fontes alteradas
-16623784 chore(estrutura): regerar os índices derivados
-b62026a7 feat(po): o PO elicitado vira a fonte do ciclo
-4d0d7e58 feat(acervo): envelope/po-20261107-1910.json
-81322b30 feat(acervo): envelope/.indice.json
-7b1ddaa4 feat(plano): o plano elicitado vira a fonte do ciclo
-548b54da feat(acervo): envelope/plano-20261107-1910.json
-07b2b927 feat(acervo): envelope/.indice.json
-8360c87e chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-829d5a53 chore(estrutura): regerar os índices derivados
-302ff809 feat(linha de base): índice — tami 20261107-2208
-046dc81d feat(elenco): tami — concluído
-93a91e06 fix(estrutura): concluir o elenco termina na geração do ciclo
 ```
 
 ## Por professor
 
-### colo-de-pe — 1 ciclo(s)
+### colo-de-pe — 0 ciclo(s)
 
-**Ciclo 01** — variante(s): breu, breu-sala-rosa
+### coqui-de-redinha — 0 ciclo(s)
+
+### dedao-aberto — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-| breu | ciclo-01-breu-sala-rosa-po.md | Input_PO_Aguardando | 1 |
+| batata | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `a7711bd178b7` | (vazio) | — |
-| breu-sala-rosa | ciclo-01-breu-sala-rosa.fipp | `4cdecb5087cb` | (vazio) | Input_PO_Aguardando |
-
-### coqui-de-redinha — 0 ciclo(s)
+| batata | ciclo-01-batata.fipp | `b0ca72014397` | (vazio) | — |
 
 ### pe-torto — 0 ciclo(s)
 
@@ -161,68 +162,80 @@ b62026a7 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — A âncora de uma aula não tem manifesto próprio: o expurgo da `breu` estava a ser recusado por um falso positivo
+## 07/11/2026 — O termo que já existe é aproveitado, e não recusado
 
-**O que motivou.** Ela mandou expurgar a `breu` e a página recusou: «a proveniência da escola «breu»
-não está em ordem — nada foi apagado», com um bloqueio só:
+**O que motivou.** Na escola `batata`, ela escreveu «Battement jeté» no passo 1 do exercício, com a
+definição e a categoria, e o «Seguir» respondeu
 
 ```
-[ancora-orfa] `professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp`
-não tem o manifesto `ciclo-01-breu-sala-rosa-aula-01.conf`: a âncora certifica uma
-variante que já não existe
+409 «Battement jeté» já está no vocabulário desta escola
 ```
 
-**A CADEIA ESTAVA ÍNTEGRA, e o defeito era meu — de hoje.** A auditoria de proveniência nasceu
-nesta sessão (`f633dce2`), com sete verificações. A número 6 — «a âncora órfã» — exigia
-`base + '.conf'` de **toda** a âncora. Para uma `…-aula-01.fipp` isso é `…-aula-01.conf`, um
-ficheiro que **não existe nem pode existir**: o manifesto é o da VARIANTE
-(`…-sala-rosa.conf`), e a âncora da aula é **aditiva** a ele, com `parentHash` vazio e cobertura
-restrita às fontes daquela aula — está escrito no `tools/hash-ciclo.sh`, §5.2 e §5c, e o caminho
-que ele grava é `$BASE/ciclo-$CICLO-$VARIANTE-aula-$nn.fipp`.
+A requisição abortou, a tela ficou no passo 1, e o exercício — que **é** o que ela quer usar —
+não podia ser escolhido no passo 2. O termo estava lá desde as 22:31 daquele dia, criado por ela
+(`08a088e1`): o sistema recusou-lhe o que ela própria tinha acabado de cadastrar.
 
-**O que se mediu, para não confundir «regra errada» com «cadeia partida».** Antes de tocar em nada:
-`bash tools/hash-ciclo.sh colo-de-pe 01 breu-sala-rosa --check` → **«íntegro; cadeia intacta»**
-(`4cdecb50…`); o mesmo para o ciclo base (`a7711bd1…`); as coberturas das três âncoras citam
-ficheiros que existem (`cobertura-quebrada` não dispara); e `gerar-indices --check` / `check-indices`
-davam **5 em dia** e **16/0**. Ou seja: a instrução que a tela dava — «reancorar e regerar os
-índices» — **era impossível de cumprir**, porque reancorar não muda o nome do manifesto que a regra
-procurava. O bloqueio não protegia nada; impedia um expurgo legítimo.
+**O diagnóstico.** A rota `POST /api/bastidores/termo` existia para **acrescentar**, e por isso
+tratava a colisão como erro. Mas o passo 1 não é «criar um termo novo»: é «dizer **qual** é o
+exercício». Um formulário que pede o nome de uma coisa que pode já existir não colidiu — encontrou-a.
+A regra de unicidade estava certa (o ficheiro não pode acumular repetições); o **desfecho** é que
+estava errado.
 
-**Porque é que isto importa mais do que parece.** É o passo 0 da operação mais destrutiva do
-sistema. Um falso bloqueio ali custa dos dois lados: impede o expurgo que devia correr, e — pior —
-ensina a usar o `--forcar`, que é exactamente o que a auditoria existe para tornar desnecessário.
+O cliente confirmava o defeito por construção: em `!d.ok` escrevia o erro em `[data-res=vb-novo]` e
+**retornava sem chamar `depois`** — e é `depois(true)` que faz `irParaPasso(2)`. Não era a tela que
+travava: era a rota que a mandava travar.
 
-**O que foi decidido.**
+**O que foi decidido.** Três camadas, e a decisão importante está na primeira:
 
-1. **A âncora da aula procura o manifesto DA VARIANTE** — o mesmo `-aula-NN` removido do caminho.
-   Para a âncora do ciclo nada muda: `base + '.conf'` já é o manifesto.
-2. **A regra não foi aliviada.** Continua a exigir um manifesto, agora o certo: tirado o
-   `…-sala-rosa.conf` da árvore, as duas âncoras reprovam por `ancora-orfa` — a da aula e a do
-   ciclo —, e a mensagem nomeia o manifesto que falta.
+1. **A recusa continua a ser o padrão do repositório.** `criarTermo` ganhou `reutilizar`, e só
+   quando ele vem a `true` é que a colisão no mesmo dono devolve o registo existente
+   (`{ok:true, status:200, jaExistia:true, termo, commit:null}`). Sem a opção, o mesmo par continua
+   a dar **409** — a camada que garante a unicidade não foi enfraquecida, foi apenas informada de
+   que quem chama quer encontrar-e-usar.
+2. **A rota pede o reuso** — é ela que sabe que o pedido vem do passo 1 — e responde **201** quando
+   criou e **200 + `jaExistia`** quando encontrou. O código de estado passa a dizer a verdade.
+3. **A tela di-lo.** Com `jaExistia`, o passo 1 diz ««X» já estava no vocabulário — reaproveitado»,
+   e o fluxo avança. Se ela escreveu uma definição, a tela avisa que **a guardada é que fica** e que
+   o caminho para a mudar é editar o termo.
 
-**Onde entrou.** `motor/nucleo/proveniencia.js` (a verificação 6, com o porquê escrito) ·
-`experimentos/provar-proveniencia-do-expurgo.js` (quatro asserções novas e a contraprova) ·
-`ESTADO-ATUAL.md` (§11).
+**A definição NÃO é reescrita, e é de propósito (P-03).** O termo é uma fonte partilhada por todas as
+turmas da escola; sobrescrevê-la com o que veio num formulário de aula faria com que a mesma palavra
+significasse coisas diferentes conforme a aula em que alguém a escreveu. A recusa em silêncio seria
+pior; a tela diz o que aconteceu.
 
-**Validação.** `provar-proveniencia-do-expurgo` **25/25** (eram 21), com o **A/B**: reposta a regra
-antiga, a asserção nova falha com **exactamente** a mensagem que ela viu na tela
-(`não tem o manifesto ciclo-01-zzz-aula-01.conf`). E a auditoria sobre a **árvore real do GitHub**,
-pela função que a página usa (`repo-escola.auditarProvenienciaDaEscola`) — não pelo disco —, devolve
-**`ok: true`, 3 âncoras, 10 fontes**. `provar-producao` **166/166** · `provar-elenco-na-turma`
-**25/25** · `provar-aluna-nova-no-elenco` **34/34** · `provar-linha-de-base` **102/102** ·
-`provar-expurgo-sem-listagem` **49/49** · `provar-bancadas-e-expurgo` **16/16** ·
-`provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` **todas** · `check-identidade`
-**0 erros** · `check-schemas` **verde** · `gerar-indices --check` **5 em dia** ·
-`gerar-relacoes --check` **2 em dia** · `check-indices` **16/0** ·
-`wrangler deploy --dry-run` **compila nos dois Workers**.
+**Onde entrou.** `motor/servidor/termo-repo.js` (`reutilizar`, com o porquê escrito) ·
+`motor/servidor/bastidores.js` (a rota passa `reutilizar: true` e escolhe o estado; o cliente, no
+caminho do sucesso, com o recado) · `experimentos/provar-verbete.js` (secção **F** no repositório e
+secção **G** na **rota**) · `ESTADO-ATUAL.md` (§11).
 
-**O que ainda não está feito.**
+**Validação.** `provar-verbete` — as **13** asserções novas passam, e a única que falha («o documento
+datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no baseline**, com os três
+ficheiros em `stash`. A secção G corre a **rota**, e não a função: é a rota que decide o
+`reutilizar`, e uma prova sobre a função passaria mesmo que a rota continuasse a pedir o 409 — que
+era exactamente o caso antes de hoje. Mede o primeiro «Seguir» de um nome novo (**201**, com
+`commit`), o «Seguir» sobre o termo que a escola já tem — **«Battement jeté», o caso dela** — (**200**
+com `jaExistia`, `commit: null`, sem segundo termo no ficheiro, sem reescrever a definição), um
+terceiro «Seguir» (continua **200**: idempotência que só funcionasse à segunda não seria
+idempotência), e um nome novo com tudo ligado (**201**, sem `jaExistia`).
 
-- **O expurgo em si é dela, e não meu.** Não o corri: é a operação mais destrutiva do sistema, apaga
-  o Worker e o KV da escola, e o gesto — com a confirmação e o motivo — é de quem decide. O que
-  ficou pronto é a recusa que já não acontece.
-- **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
-  `deploy-raiz` leva esta correção.
+**O A/B.** Posta a rota a pedir `reutilizar: false`, a asserção nova falha com **exactamente** o que
+ela viu — `409 «Battement jeté» já está no vocabulário desta escola`. A prova mede o que diz medir.
+
+**Sem regressão.** `provar-producao` **166/166** · `provar-compasso-limpo` **verde** ·
+`provar-celula` e `provar-listas-sem-repeticao` falham **identicamente no baseline** (comparadas
+`FALHOU` a `FALHOU`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila** em `wrangler.danca.jsonc` e em `wrangler.batata.jsonc`.
+
+**O que fica por resolver, declarado.**
+
+- **O vocabulário tem agora dois `battement-jete`** — um do catálogo e um de que a `batata` é dona.
+  É legal (a colisão é por `(dono, id)` e o `compor` faz o da escola ganhar), mas é conteúdo
+  duplicado no ficheiro. Não é defeito desta correção: nasceu de o termo ter sido criado na escola
+  quando já existia no catálogo. A faxina é decisão dela.
+- **A definição escrita no formulário não é aplicada** ao termo que já existe — deliberado, e a tela
+  di-lo. Se quiser substituí-la, o caminho é editar o termo.
+- **A conferência ao ar é do próximo deploy.** A página corre o servidor empacotado no Worker.
 
 ## O que está pendente
 
@@ -653,8 +666,7 @@ o próximo push que toque nas fontes do índice — este commit não o dispara (
 - **07/11/2026** — O cartão do elenco fica com duas caixas: as alunas e o… → `REGISTRO.md` L39517
 - **07/11/2026** — O Bloco 10 sai do plano: o corpo mora na Audição e no PO → `REGISTRO.md` L39567
 - **07/11/2026** — O expurgo passa a levar o `historico/`, e o vermelho da… → `REGISTRO.md` L39663
-- PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **dedao-aberto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

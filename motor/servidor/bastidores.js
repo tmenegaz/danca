@@ -8227,7 +8227,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (nomes) nomes.value = d.termo;' +
     '    if (campo) campo.value = "";' +
     '    if (res) { res.className = "res"; res.textContent = ""; }' +
-    '    recado("ok", "exercício gravado: " + d.termo + " — já está na lista do passo 2.");' +
+    /* O QUE JÁ ESTAVA NÃO SE ANUNCIA COMO NOVO (07/11/2026). A rota passou a APROVEITAR o termo
+     * que já existe (`jaExistia`), e o gesto tem de dizer a verdade: «gravado» sobre um termo que
+     * ninguém gravou agora é a mesma família de mentira que «enviado» sobre um ficheiro que não
+     * existe. E diz-se mais uma coisa, que é a que evita a dúvida seguinte: a definição que fica
+     * é a que já estava. O que se escreveu no campo não é apagado do vocabulário nem por cima
+     * dele — quem quiser mudar a definição edita o termo.
+     *
+     * O `fraseDoTermo` NÃO SE IMPÕE, e é de propósito. A tentação era gravar a definição nova
+     * sobre o termo existente — mas isso é REESCREVER o que já era facto (P-03). O termo é uma
+     * fonte partilhada por todas as turmas daquela escola; corrigi-la a partir de um formulário
+     * que só queria escolher o exercício é o tipo de efeito colateral que ninguém pediu. */
+    '    if (d.jaExistia) {' +
+    '      recado("ok", "«" + d.termo + "» já estava no vocabulário — reaproveitado, e já está na " +' +
+    '        "lista do passo 2." + (fraseDoTermo ? " A definição guardada é a que já existia; " +' +
+    '        "para a mudar, edite o termo." : ""));' +
+    '    } else {' +
+    '      recado("ok", "exercício gravado: " + d.termo + " — já está na lista do passo 2.");' +
+    '    }' +
     // A FRASE VOLTA PARA O CAMPO DEPOIS DE `carregarRascunho` (02/11/2026). A função recarrega a
     // frase quando o exercício muda — e acabou de mudar. Sem esta linha, a definição que a
     // professora escreveu no passo 1 era substituída pela do dicionário (ou por nada) no instante
@@ -12969,11 +12986,29 @@ async function fetch(request, env) {
       // O TERMO NASCE DA ESCOLA QUE O CRIOU (02/11/2026). É o `ESCOLA_SLUG` do Worker, e não o
       // parâmetro `escola` do pedido: o dono de um termo não se escolhe na tela.
       escola: (env && env.ESCOLA_SLUG) || escola || '',
+      /* E O QUE JÁ EXISTE É APROVEITADO, E NÃO RECUSADO (07/11/2026).
+       *
+       * O DEFEITO, medido: o professor escrevia «Battement jeté» no passo 1 do verbete, a
+       * definição e a categoria, e o «Seguir» respondia `409 «Battement jeté» já está no
+       * vocabulário desta escola`. A requisição abortava, a tela ficava no passo 1, e o exercício
+       * que já estava cadastrado — o que ele quer usar — não podia ser escolhido no passo 2. O
+       * passo 1 é «que exercício é este»; se ele JÁ EXISTE, a resposta certa é ele, não o erro.
+       *
+       * Aqui é o sítio do `reutilizar`: a rota é um FORMULÁRIO, e um formulário que pergunta o
+       * nome de uma coisa existente não colidiu — encontrou. A camada de repositório continua a
+       * recusar por omissão, porque quem escreve em lote precisa de saber que colidiu. */
+      reutilizar: true,
     });
     if (!r.ok) {
       return json(r.status || 400, { ok: false, erro: r.erro, erros: r.erros, termo: r.termo });
     }
-    return json(201, { ok: true, termo: r.termo.termo, id: r.termo.id, commit: r.commit });
+    /* DOIS DESFECHOS, E O `201` DIZ QUAL. Criado é `201`; aproveitado é `200` com `jaExistia` —
+     * e é o mesmo corpo, para a tela não ter dois caminhos para o mesmo gesto. O `commit` nulo no
+     * segundo caso é o que impede a tela de anunciar uma gravação que não houve. */
+    return json(r.jaExistia ? 200 : 201, {
+      ok: true, termo: r.termo.termo, id: r.termo.id, commit: r.commit,
+      ...(r.jaExistia ? { jaExistia: true } : {}),
+    });
   }
 
   // PUT /api/bastidores/termo — editar o NOME de um termo (28/10/2026).
