@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261107-1823",
+  "planoDeEnsino": "plano-20261107-1845",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -17,8 +17,43 @@
   "itensPorDimensao": [
     {
       "eixo": "Corpo",
-      "dimensao": "Recorte do corpo",
-      "itens": "[a decidir: a linha de base da turma ainda não tem recorte — ele é o passo 4 do Corpo]"
+      "dimensao": "as cinco posições: uma visão geral",
+      "itens": "1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Os elementos basilares",
+      "itens": "en dehors (rotação externa)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "itens": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Flexibilidade e Amplitude Articular",
+      "itens": "Flexibilidade dos adutores"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Complexo Escapulo-Umeral e Cervical",
+      "itens": "Rotação e amplitude dos ombros"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "itens": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Aptidões Coordenadas e Cognitivo-Musicais",
+      "itens": "Musicalidade e pulsação rítmica"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "itens": "Orientação espacial básica"
     },
     {
       "eixo": "Corpo",
@@ -53,23 +88,59 @@
   ],
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
   "subjects": [
-    "Aluna A"
+    "Aluna A",
+    "Aluna B"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
     {
-      "grupo": "—",
-      "aspectosObservados": "[a decidir: a linha de base da turma não tem recorte do corpo]"
+      "grupo": "as cinco posições: uma visão geral",
+      "aspectosObservados": "1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços"
+    },
+    {
+      "grupo": "Os elementos basilares",
+      "aspectosObservados": "en dehors (rotação externa)"
+    },
+    {
+      "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "aspectosObservados": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
+      "grupo": "Flexibilidade e Amplitude Articular",
+      "aspectosObservados": "Flexibilidade dos adutores"
+    },
+    {
+      "grupo": "Complexo Escapulo-Umeral e Cervical",
+      "aspectosObservados": "Rotação e amplitude dos ombros"
+    },
+    {
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "aspectosObservados": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+      "aspectosObservados": "Musicalidade e pulsação rítmica"
+    },
+    {
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "aspectosObservados": "Orientação espacial básica"
     }
   ],
   "restricoes": [
     "[a decidir]"
   ],
   "inclusionCriteria": [
-    "[a decidir]"
+    "as cinco posições: uma visão geral: 1ª posição — pés; 2ª posição — pés; 1ª posição — braços; 2ª posição — braços; 3ª posição — braços",
+    "Os elementos basilares: en dehors (rotação externa)",
+    "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)",
+    "Flexibilidade e Amplitude Articular: Flexibilidade dos adutores",
+    "Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros",
+    "Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos",
+    "Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica",
+    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Orientação espacial básica"
   ],
   "exclusionCriteria": [
-    "[a decidir]"
+    "Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte"
   ],
   "justification": {
     "referenceToProblem": "O problema é o en dehors que sai do joelho: três das cinco posições mostram rotação forçada a partir do tornozelo, e o tendu perde a saída do calcanhar.",
