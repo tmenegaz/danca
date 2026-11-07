@@ -90,12 +90,32 @@ function curadoriasQueEnsinam(curadorias, turma) {
 }
 
 /**
- * OS CONTEÚDOS DE UMA TURMA — a união, com a proveniência de cada um.
+ * OS CONTEÚDOS DE UMA TURMA — o que ela aprende, com a proveniência de cada um.
  *
- * Devolve `{ ids, doLegado, daCuradoria }`. `doLegado` é o que veio do mapa antigo (`turma-
- * conteudos`); `daCuradoria`, o que as curadorias dela declaram. `ids` é a união, na ordem em que
- * apareceram — a ordem é a da declaração, e não a alfabética: o professor associa na ordem em que
- * ensina.
+ * Devolve `{ ids, doLegado, daCuradoria, declarada }`. `doLegado` é o que veio do mapa antigo
+ * (`turma-conteudos`); `daCuradoria`, o que as curadorias dela declaram. `ids` está na ordem em
+ * que apareceu — a ordem é a da declaração, e não a alfabética: o professor associa na ordem em
+ * que ensina.
+ *
+ * A DECLARAÇÃO VIVA VENCE A MEMÓRIA (07/11/2026). Até hoje `ids` era a UNIÃO das duas camadas, e
+ * a razão era boa: nenhuma escola perdia, por uma decisão de Novembro, o que tinha associado em
+ * Outubro. Mas a união tem um custo que ela viu na tela: a `batata` declarou `Plié` e
+ * `Battement jeté` na Audição, e o plano de ensino ofereceu QUATRO parâmetros — os dois dela e
+ * mais `Battement tendu` e `Battement fondu`, que eram o mapa antigo de uma rodada de testes
+ * anterior, nunca declarados por ninguém. «O professor olha no estilo que tem exercício A e B,
+ * vai para o plano de ensino e encontra A, B, C e D. Não pode ser assim.»
+ *
+ * A REGRA QUE FICA: a partir do momento em que existe uma curadoria VIGENTE para a turma, é ela
+ * que diz o que a turma aprende — mesmo que declare pouco, e mesmo que declare nada. O mapa
+ * antigo é memória, e a memória não fala por cima de quem declarou. Ele continua a ser a fonte
+ * das turmas que nunca tiveram curadoria (é o que mantém vivas as escolas de Outubro sem
+ * migração nenhuma), e continua a ser devolvido em `doLegado` para quem precisa de saber o que
+ * lá estava.
+ *
+ * E NÃO É UM APAGAMENTO. Nada se reescreve: o mapa antigo fica no KV exactamente como está. O
+ * que muda é quem manda na leitura — e a regra é a mesma que já governava as curadorias
+ * substituídas: «a versão nova herdou o repertório, e se ela o reduziu foi uma decisão
+ * declarada». Uma redução declarada é uma decisão; uma soma silenciosa não é de ninguém.
  *
  * `legado` é o mapa inteiro (não a lista daquela turma) porque é assim que ele está gravado; a
  * chave é o id da turma. Um mapa em que a turma apareça pela chave antiga (o id do nome de antes
@@ -111,23 +131,29 @@ function conteudosDaTurma(turma, { legado, curadorias } = {}) {
     const v = idDeTermo(x);
     if (v) doLegado.push(v);
   }
-  // SÓ AS CURADORIAS VIGENTES ENTRAM NA UNIÃO. Uma curadoria substituída continua a ser memória
-  // — mas a versão nova herdou-lhe o repertório, e se o reduziu foi uma decisão declarada. Somar
-  // as duas faria o termo que o professor tirou voltar pela porta do elo antigo, e ninguém daria
-  // por isso: a lista apareceria maior do que ele a deixou.
+  // SÓ AS CURADORIAS VIGENTES ENTRAM. Uma curadoria substituída continua a ser memória — mas a
+  // versão nova herdou-lhe o repertório, e se o reduziu foi uma decisão declarada. Somar as duas
+  // faria o termo que o professor tirou voltar pela porta do elo antigo, e ninguém daria por
+  // isso: a lista apareceria maior do que ele a deixou.
   const daCuradoria = [];
+  let declarada = false;
   for (const c of curadoriasQueEnsinam(curadorias, t)) {
     if (c.substituidaPor) continue;
+    // A EXISTÊNCIA DA CURADORIA JÁ É UMA DECLARAÇÃO — mesmo vazia. É o que separa «esta turma
+    // ainda não tem conteúdo» (a tela diz isso, e o professor preenche) de «esta turma tem o que
+    // ficou de Outubro» (a memória). Sem esta linha, esvaziar o repertório faria os termos
+    // antigos voltarem sozinhos pela porta do mapa — que é o mesmo defeito, ao contrário.
+    declarada = true;
     for (const x of conteudosDaCuradoria(c)) daCuradoria.push(x);
   }
   const vistos = new Set();
   const ids = [];
-  for (const x of doLegado.concat(daCuradoria)) {
+  for (const x of (declarada ? daCuradoria : doLegado.concat(daCuradoria))) {
     if (vistos.has(x)) continue;
     vistos.add(x);
     ids.push(x);
   }
-  return { ids, doLegado, daCuradoria };
+  return { ids, doLegado, daCuradoria, declarada };
 }
 
 /**
@@ -140,17 +166,36 @@ function conteudosDaTurma(turma, { legado, curadorias } = {}) {
 function mapaDeConteudos({ legado, curadorias, turmas } = {}) {
   const mapa = {};
   const antigo = legado && typeof legado === 'object' ? legado : {};
+  const lista = Array.isArray(turmas) ? turmas : [];
+  /* A TURMA QUE DECLAROU NÃO HERDA A MEMÓRIA (07/11/2026). São duas passagens — primeiro
+   * descobrir quem declarou, depois compor —, e a ordem é obrigatória: o `mapa` copia o antigo
+   * ANTES de somar as curadorias, e um `continue` na primeira passagem é o que impede o
+   * `concat` da segunda de juntar o resíduo ao que foi declarado. Fazer a poda depois seria
+   * escrever a mesma regra duas vezes, e as duas divergiriam ao primeiro caso de borda. */
+  const declararam = new Set();
+  for (const t of lista) {
+    if (!t) continue;
+    const id = String(t.id || '').trim() || idDaTurma(t.nome);
+    if (!id) continue;
+    if (conteudosDaTurma(t, { legado: null, curadorias }).declarada) declararam.add(id);
+  }
   for (const [id, ids] of Object.entries(antigo)) {
     if (!Array.isArray(ids)) continue;
+    if (declararam.has(id)) continue;
     const limpos = ids.map(idDeTermo).filter(Boolean);
     if (limpos.length) mapa[id] = limpos.slice();
   }
-  for (const t of (Array.isArray(turmas) ? turmas : [])) {
+  for (const t of lista) {
     if (!t) continue;
     const id = String(t.id || '').trim() || idDaTurma(t.nome);
     if (!id) continue;
     const { ids } = conteudosDaTurma(t, { legado: null, curadorias });
-    if (!ids.length) continue;
+    if (!ids.length) {
+      // A DECLARAÇÃO VAZIA TAMBÉM MANDA: a turma que declarou nada não fica com o resíduo, e a
+      // chave sai do mapa — para o leitor ver «sem conteúdo» e não a memória de Outubro.
+      if (declararam.has(id)) delete mapa[id];
+      continue;
+    }
     const atuais = mapa[id] || [];
     const vistos = new Set(atuais);
     mapa[id] = atuais.concat(ids.filter((x) => !vistos.has(x)));

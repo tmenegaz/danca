@@ -118,16 +118,33 @@ function oNucleoDosConteudos() {
   ];
 
   const daBale = conteudos.conteudosDaTurma(turmas[0], { legado, curadorias: curs });
-  checar('o conteúdo da turma é a UNIÃO — o antigo e o da curadoria',
-    daBale.ids.join('|') === 'plie|battement-tendu|saute', daBale.ids);
+  /* A REGRA MUDOU A 07/11/2026 — e a asserção que estava aqui media a regra ANTERIOR («o conteúdo
+   * é a UNIÃO — o antigo e o da curadoria»). A união tinha uma razão boa (nenhuma escola perdia,
+   * por uma decisão de Novembro, o que associou em Outubro) e um custo que ela viu na tela: na
+   * `batata`, o plano de ensino ofereceu QUATRO parâmetros sobre dois declarados, e os dois a
+   * mais eram o mapa antigo de uma rodada de testes anterior. «O professor olha no estilo que tem
+   * exercício A e B, vai para o plano de ensino e encontra A, B, C e D. Não pode ser assim.»
+   *
+   * A PARTIR DE AGORA: a curadoria vigente diz o que a turma aprende; o mapa antigo é memória e
+   * só fala quando não há quem declare. A prova inteira da regra — com as duas contraprovas — é
+   * `experimentos/provar-escopo-do-plano.js`; aqui fica o caso deste fixture. */
+  checar('a turma que DECLAROU aprende o que declarou (a memória não fala por cima)',
+    daBale.ids.join('|') === 'battement-tendu|saute', daBale.ids);
   checar('…e a origem de cada lado é dita, não inferida',
     daBale.doLegado.join('|') === 'plie|battement-tendu' && daBale.daCuradoria.join('|') === 'battement-tendu|saute',
     daBale);
-  /* O MESMO TERMO NOS DOIS SÍTIOS CONTA UMA VEZ. «Battement tendu» (nome, com acento) e
-   * `battement-tendu` (id) são a mesma coisa: a normalização é o que impede a lista de crescer
-   * com duplicados que o professor não vê. */
+  checar('…e `declarada` diz que houve quem declarasse', daBale.declarada === true, daBale.declarada);
+  /* «Battement tendu» (nome) e `battement-tendu` (id) são o mesmo termo; ele está nos dois sítios
+   * e conta uma vez — a normalização continua a ser o que impede uma lista de crescer com
+   * duplicados que o professor não vê. */
   checar('o mesmo termo nos dois sítios conta UMA vez (nome e id são a mesma coisa)',
     daBale.ids.filter((x) => x === 'battement-tendu').length === 1, daBale.ids);
+  /* A CONTRAPROVA, no lugar: sem curadoria para esta turma, o mapa antigo volta a valer. É o que
+   * mantém vivas — sem migração nenhuma — as escolas que associavam conteúdos antes de 03/11. */
+  const semDeclaracao = conteudos.conteudosDaTurma(turmas[0], { legado, curadorias: [] });
+  checar('contraprova: sem curadoria, o mapa antigo volta a ser a lista',
+    semDeclaracao.ids.join('|') === 'plie|battement-tendu' && semDeclaracao.declarada === false,
+    semDeclaracao);
   const daJazz = conteudos.conteudosDaTurma(turmas[1], { legado, curadorias: curs });
   checar('uma turma sem mapa antigo e com curadoria vazia não inventa conteúdos',
     daJazz.ids.length === 0, daJazz.ids);
@@ -147,8 +164,11 @@ function oNucleoDosConteudos() {
   const mapa = conteudos.mapaDeConteudos({ legado, curadorias: curs, turmas });
   checar('o mapa composto tem uma chave por turma que aprende alguma coisa',
     Object.keys(mapa).sort().join('|') === 'bale-nivel-1', Object.keys(mapa));
-  checar('…e o mapa antigo continua lá, somado e não substituído',
-    mapa['bale-nivel-1'].join('|') === 'plie|battement-tendu|saute', mapa['bale-nivel-1']);
+  checar('…e o mapa antigo NÃO é somado a quem declarou (a declaração vence)',
+    mapa['bale-nivel-1'].join('|') === 'battement-tendu|saute', mapa['bale-nivel-1']);
+  const mapaSemCuradoria = conteudos.mapaDeConteudos({ legado, curadorias: [], turmas });
+  checar('…e continua a ser somado — isto é, sozinho — quando ninguém declarou',
+    mapaSemCuradoria['bale-nivel-1'].join('|') === 'plie|battement-tendu', mapaSemCuradoria['bale-nivel-1']);
 
   // A LIGAÇÃO POR NOME, e o id como recurso — a curadoria guarda o NOME da turma.
   checar('a curadoria encontra a turma pelo NOME',
@@ -325,11 +345,18 @@ async function aTela() {
     (() => {
       const bloco = (html.match(/id="esc-conteudos"[\s\S]*?<\/select>/) || [''])[0];
       const n = (bloco.match(/<option /g) || []).length;
+      /* A CONTAGEM É A DA PÁGINA, e a página filtra POR ESCOLA (`registosDaEscola`). Esta
+       * expectativa contava o alfabeto inteiro e passou a divergir a 07/11/2026, quando o
+       * «Battement jeté» ganhou trechos marcados com a escola `batata`: o exercício existe no
+       * alfabeto, mas não é desta escola. O filtro não é um detalhe do fixture — é a regra que a
+       * lista do «Conteúdo do Estilo» segue, e o fixture tem de a seguir também. */
       const alfabeto = require(path.join(RAIZ, 'biblioteca/modalidades/bale-classico/notacao.json'));
+      const notacao = require(path.join(RAIZ, 'motor/nucleo/notacao.js'));
+      const ESCOLA_DA_TELA = 'breu';
       const comNotacao = Object.keys(alfabeto.verbetes || {}).filter((nome) => {
         if (nome.startsWith('_')) return false;
-        const musicas = alfabeto.verbetes[nome] || {};
-        return Object.keys(musicas).filter((k) => /^\d+\|/.test(k)).some((k) => {
+        const musicas = notacao.registosDaEscola(alfabeto.verbetes[nome] || {}, ESCOLA_DA_TELA);
+        return Object.keys(musicas).some((k) => {
           const celulas = (musicas[k] && musicas[k].celulas) || {};
           return Object.keys(celulas).some((d) => (celulas[d] || []).length > 0);
         });

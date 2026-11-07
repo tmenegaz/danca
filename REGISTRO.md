@@ -40265,3 +40265,86 @@ script **servido** compila · `wrangler deploy --dry-run` **compila nos dois Wor
   ecrã de edição de termos é trabalho por fazer, não um link que falte colocar.
 - **O `Unexpected token '<'` que a página já dava** (o cliente tenta ler como JSON uma resposta que
   a bancada serve como HTML) é anterior e está nomeado na prova para não se confundir com isto.
+
+## 07/11/2026 — O plano de ensino oferecia quatro exercícios onde a escola declarou dois
+
+**O que motivou.** Na `batata`, no §9 do Plano de Ensino («Parâmetro de medição»), a lista de
+exercícios trazia quatro: `Plié`, `Battement jeté` — os dois que ela declarou — e **`Battement
+tendu`** e **`Battement fondu`**, que ela não declarou em lugar nenhum. Na tela, lidos à pressa,
+foram estes os nomes que ela transcreveu: «batmatondi» e «batma fondi». «O professor olha no estilo
+que tem exercício A e B, vai para o plano de ensino e encontra A, B, C e D. Não pode ser assim.»
+
+**O que os dados diziam, lidos do KV da escola — não supostos:**
+
+```
+bastidores/batata/turma-conteudos  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
+bastidores/batata/curadorias       [{ turmas:["sala rosa"], repertorio:["Battement jeté","Plié"] }]
+```
+
+A composição somava as duas camadas — decisão de 03/11/2026, e com uma razão boa: nenhuma escola
+devia perder, por uma decisão de Novembro, o que tinha associado em Outubro. O resultado, aqui, era
+uma lista **maior do que a declaração**: os três ids do **mapa antigo** (`turma-conteudos`, o
+registo do regime em que o conteúdo se gravava no passo 3 da turma) eram resíduo de uma rodada de
+testes anterior, e nunca tinham sido declarados por ninguém. Não vinham de outra escola, nem de um
+índice mal aplicado — vinham da própria escola, de um regime que já não escreve.
+
+**O que foi decidido.** A partir do momento em que existe uma curadoria **vigente** para a turma,
+é ela que diz o que a turma aprende — mesmo que declare pouco, e mesmo que declare **nada**. O mapa
+antigo é memória, e a memória não fala por cima de quem declarou.
+
+- **Nada se reescreve.** O `turma-conteudos` fica no KV exactamente como está: o que muda é quem
+  manda na leitura. E `conteudosDaTurma` continua a devolver `doLegado` — a memória não se finge
+  que não existiu; ela só não manda.
+- **As escolas de Outubro continuam a funcionar sem migração.** Uma turma sem curadoria nenhuma
+  segue a ler o mapa antigo. É o caso que impede «a memória não manda» de virar «a memória
+  desapareceu».
+- **A declaração vazia também manda.** Sem isso, esvaziar o «Conteúdo do Estilo» faria os termos
+  antigos voltarem sozinhos — o mesmo defeito ao contrário, e igualmente invisível.
+- **A regra de 03/11 sobre as substituídas fica de pé**: uma curadoria substituída continua a não
+  somar. A regra nova é a mesma ideia, aplicada um nível acima: uma redução *declarada* é uma
+  decisão; uma soma silenciosa não é de ninguém.
+
+**Onde entrou.** `motor/nucleo/conteudos.js` (`conteudosDaTurma` devolve `declarada`, e `ids` deixa
+de ser a união; `mapaDeConteudos` não copia o antigo da turma que declarou — e apaga a chave quando
+a declaração é vazia) · `experimentos/provar-escopo-do-plano.js` (nova, 25 asserções) ·
+`experimentos/provar-conteudos-e-estado-da-turma.js` (as asserções que mediam a união, corrigidas
+para a regra nova, com as duas contraprovas no lugar) · `ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-escopo-do-plano` **25/25**, em três camadas — o núcleo, a rota
+(`/api/bastidores/turma-conteudos` sobre um KV com os valores reais da `batata`) e a **página**: o
+`porta/index.html` servido a um Chrome, com os payloads do servidor, a resolver o nó
+`aula-1-parametro` pelo próprio código e a desenhar a tabela. É a única camada que mede o que ela
+viu. E as contraprovas estão todas lá: sem curadoria o antigo volta (na página também, com três
+linhas), a declaração vazia não ressuscita o antigo, e a substituída continua a não somar.
+
+**O A/B.** Reposto o ficheiro antigo, a prova falha **12 de 25**, e a asserção da tabela desenhada
+devolve exactamente o que ela viu: `["Battement fondu","Battement tendu","Plié","Battement jeté"]` —
+quatro linhas, os dois resíduos à frente.
+
+**Sem regressão.** `provar-producao` **166/166** · `provar-salas-e-elencos` **65/65** ·
+`provar-passo-um-do-verbete` **30/30** · `provar-conteudos-e-estado-da-turma` **TUDO CERTO** ·
+`provar-plano-matriz` **52/52** · `provar-linha-de-base` **102/102** · `provar-compasso-limpo`,
+`provar-derivados-da-sequencia`, `provar-metodologia-no-cabecalho`,
+`provar-expurgo-sem-listagem` e `provar-expurgo-leitura-atrasada` **verdes** ·
+`provar-listas-sem-repeticao`, `provar-musica-no-plano`, `provar-leituras-do-po`,
+`provar-bancadas-e-expurgo` e `provar-verbete` falham **identicamente no baseline** (comparadas
+`✗` a `✗`, com o ficheiro em `stash`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**.
+
+**Uma prova corrigida no mesmo gesto, e porquê.** `provar-conteudos-e-estado-da-turma` contava os
+exercícios «que têm notação» sobre o alfabeto **inteiro**, sem o filtro de escola que a página usa
+(`registosDaEscola`). Passou a divergir às 20:15 de hoje, quando o «Battement jeté» ganhou trechos
+marcados com a escola `batata` (`676d611b`): o exercício passou a existir no alfabeto sem ser desta
+escola, e a prova — que já falhava **antes** desta alteração, medida com o ficheiro em `stash` —
+passou a medir a regra errada. Ficou a medir a regra certa.
+
+**O que fica declarado, e não escondido.**
+
+- **O resíduo da `batata` continua no KV.** `turma-conteudos` fica com os três ids antigos, como
+  memória: não mandam em nada enquanto a curadoria existir. Apagá-lo é uma escrita no KV — e o
+  expurgo da escola, que é dela, leva-o de qualquer maneira.
+- **A segunda camada de escopo não foi tocada.** O «Conteúdo do Estilo» oferece só exercícios com
+  notação (`exerciciosComNotacao`); o plano mostra o que a turma **declarou**, e um termo
+  declarado que perca a notação continua a aparecer — é o que está gravado, e P-03/P-04 mandam
+  lê-lo. O que a correção garante é que o plano e o Estilo digam a mesma coisa sobre o presente.

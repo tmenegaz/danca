@@ -927,3 +927,12 @@ experimentos/modelo-formulario/*
 # regra sobre o PRÓPRIO script (nenhum nome de topo declarado duas vezes, com contraprova do
 # detector) antes de medir a tela num navegador de verdade.
 !experimentos/provar-passo-um-do-verbete.js
+
+# O ESCOPO DO PLANO DE ENSINO (07/11/2026). Ela viu, no §9 «Parâmetro de medição» da `batata`,
+# quatro exercícios onde só dois tinham sido declarados — e os dois a mais (`Battement tendu`,
+# `Battement fondu`) não vinham de outra escola: vinham do mapa antigo `turma-conteudos`, o
+# registo do regime em que o conteúdo se gravava no passo 3 da turma, que ficou com três ids de
+# uma rodada de testes anterior. A prova lê os valores REAIS do KV da `batata` e mede as três
+# camadas: o núcleo (com as contraprovas das escolas de Outubro e da declaração vazia), a rota, e
+# a PÁGINA — o `porta/index.html` num navegador, a resolver o nó que ela abriu.
+!experimentos/provar-escopo-do-plano.js

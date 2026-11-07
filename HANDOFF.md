@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T20:05:50-0300`
-Commit atual: `7e7d660f` — fix(estrutura): o termo que já existe é aproveitado, e não recusado
+Gerado em: `2026-11-07T20:57:08-0300`
+Commit atual: `676d611b` — feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,8 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+676d611b feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
+b63eff41 fix(estrutura): o «Seguir» do verbete andava para o painel da linha de base
 7e7d660f fix(estrutura): o termo que já existe é aproveitado, e não recusado
 08a088e1 feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
 44ee2828 chore(estrutura): regerar os índices derivados
@@ -89,8 +91,6 @@ a2a0e571 feat(estrutura): criar a escola batata (motor completo)
 a9a8a50b chore(estrutura): regerar os índices derivados
 a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
 b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
-21a6884a feat(po): o PO elicitado vira a fonte do ciclo
-0a25b3c0 feat(acervo): envelope/po-20261107-1911.json
 ```
 
 ## Por professor
@@ -162,107 +162,88 @@ b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num 
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O «Seguir» do verbete não andava porque havia três `irParaPasso`
+## 07/11/2026 — O plano de ensino oferecia quatro exercícios onde a escola declarou dois
 
-**O que motivou.** Na `batata`, depois de passar o passo 1, ela viu uma tela de detalhamento com
-caixas bloqueadas — «a definição do dicionário para «Battement jeté» vale para todos os trechos
-deste verbete», «estes três campos são a definição do exercício no dicionário e ficam bloqueados
-aqui» — **vazias**, e o «Seguir» habilitado a **não fazer nada**. Duas queixas, e nenhuma relação
-entre elas.
+**O que motivou.** Na `batata`, no §9 do Plano de Ensino («Parâmetro de medição»), a lista de
+exercícios trazia quatro: `Plié`, `Battement jeté` — os dois que ela declarou — e **`Battement
+tendu`** e **`Battement fondu`**, que ela não declarou em lugar nenhum. Na tela, lidos à pressa,
+foram estes os nomes que ela transcreveu: «batmatondi» e «batma fondi». «O professor olha no estilo
+que tem exercício A e B, vai para o plano de ensino e encontra A, B, C e D. Não pode ser assim.»
 
-**A primeira causa: a navegação do verbete estava morta, e não por um erro de sintaxe.** A página
-dos Bastidores é **uma só folha de `function`** — turma, verbete e linha de base vivem no mesmo
-`<script>`. Cada uma declarou a sua navegação com o mesmo nome:
+**O que os dados diziam, lidos do KV da escola — não supostos:**
 
 ```
-turma          function irParaPasso(qual)   (18/10)
-verbete        function irParaPasso(n)      (31/10)
-linha de base  function irParaPasso(qual)   (05/11 — 449dc3dc)
+bastidores/batata/turma-conteudos  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
+bastidores/batata/curadorias       [{ turmas:["sala rosa"], repertorio:["Battement jeté","Plié"] }]
 ```
 
-Em JavaScript a **última declaração vence**. Desde 05/11 o «Seguir» do verbete e o «Avançar» da
-turma chamavam a navegação da **linha de base**: `alvo = Number("turma") || 1` dava 1, e o painel
-da linha de base é que mudava. A tela que ela descreveu — «avança visualmente para uma etapa de
-detalhamento» — era isso: o passo 2 do PO («Nenhuma aluna com anamnese…»), não o do verbete. O
-mesmo acontecia com `podeIrPara`, declarado duas vezes: a tira do verbete passou a fechar os passos
-pelas regras da linha de base.
+A composição somava as duas camadas — decisão de 03/11/2026, e com uma razão boa: nenhuma escola
+devia perder, por uma decisão de Novembro, o que tinha associado em Outubro. O resultado, aqui, era
+uma lista **maior do que a declaração**: os três ids do **mapa antigo** (`turma-conteudos`, o
+registo do regime em que o conteúdo se gravava no passo 3 da turma) eram resíduo de uma rodada de
+testes anterior, e nunca tinham sido declarados por ninguém. Não vinham de outra escola, nem de um
+índice mal aplicado — vinham da própria escola, de um regime que já não escreve.
 
-**Porque é que isto não aparecia a ler o código.** Cada bloco está certo lido sozinho. O defeito é
-a **convivência dos nomes**, e só se vê contando-os — que é o que a prova nova faz primeiro, sobre
-o script servido, e não sobre o fonte.
+**O que foi decidido.** A partir do momento em que existe uma curadoria **vigente** para a turma,
+é ela que diz o que a turma aprende — mesmo que declare pouco, e mesmo que declare **nada**. O mapa
+antigo é memória, e a memória não fala por cima de quem declarou.
 
-**A segunda causa: os três campos eram preenchidos a partir de uma lista que a página não tinha.**
-`VERBETES.exerciciosDoVocabulario` é a fotografia do vocabulário no instante do carregamento. Um
-exercício criado (ou encontrado) depois disso não está nela, e o passo 1 acrescentava só o
-`<option>` do nome — a categoria, a tradição e a definição ficavam vazias, **bloqueadas**, com a
-nota ao lado a afirmar que eram «a definição do exercício no dicionário». A rota passou a devolver
-o **registo** e não só o nome (`dados`), e o cliente inscreve-o no dicionário da página quando ele
-lá não está.
+- **Nada se reescreve.** O `turma-conteudos` fica no KV exactamente como está: o que muda é quem
+  manda na leitura. E `conteudosDaTurma` continua a devolver `doLegado` — a memória não se finge
+  que não existiu; ela só não manda.
+- **As escolas de Outubro continuam a funcionar sem migração.** Uma turma sem curadoria nenhuma
+  segue a ler o mapa antigo. É o caso que impede «a memória não manda» de virar «a memória
+  desapareceu».
+- **A declaração vazia também manda.** Sem isso, esvaziar o «Conteúdo do Estilo» faria os termos
+  antigos voltarem sozinhos — o mesmo defeito ao contrário, e igualmente invisível.
+- **A regra de 03/11 sobre as substituídas fica de pé**: uma curadoria substituída continua a não
+  somar. A regra nova é a mesma ideia, aplicada um nível acima: uma redução *declarada* é uma
+  decisão; uma soma silenciosa não é de ninguém.
 
-**O terceiro defeito, do mesmo passo e também medido.** A frase era o único dos quatro obrigatórios
-que não repintava a navegação: quem escrevia o nome, escolhia categoria e tradição e deixava a
-definição para o fim ficava com o «Seguir» **apagado** e o `title` a dizer «falta o que acontece»,
-já com a frase escrita e sem nada que o voltasse a acender.
+**Onde entrou.** `motor/nucleo/conteudos.js` (`conteudosDaTurma` devolve `declarada`, e `ids` deixa
+de ser a união; `mapaDeConteudos` não copia o antigo da turma que declarou — e apaga a chave quando
+a declaração é vazia) · `experimentos/provar-escopo-do-plano.js` (nova, 25 asserções) ·
+`experimentos/provar-conteudos-e-estado-da-turma.js` (as asserções que mediam a união, corrigidas
+para a regra nova, com as duas contraprovas no lugar) · `ESTADO-ATUAL.md` (§11).
 
-**O que foi decidido.**
+**Validação.** `provar-escopo-do-plano` **25/25**, em três camadas — o núcleo, a rota
+(`/api/bastidores/turma-conteudos` sobre um KV com os valores reais da `batata`) e a **página**: o
+`porta/index.html` servido a um Chrome, com os payloads do servidor, a resolver o nó
+`aula-1-parametro` pelo próprio código e a desenhar a tabela. É a única camada que mede o que ela
+viu. E as contraprovas estão todas lá: sem curadoria o antigo volta (na página também, com três
+linhas), a declaração vazia não ressuscita o antigo, e a substituída continua a não somar.
 
-1. **Um nome, uma superfície.** As três navegações passam a dizer de quem são —
-   `irParaPassoTurma`, `irParaPassoVerbete`, `irParaPassoLb` — e o mesmo para `podeIrPara`. A regra
-   que fica escrita no código: nesta página um nome de topo pertence a uma só superfície, porque um
-   nome repetido não dá erro nenhum e apaga a função anterior em silêncio.
-2. **O que congela mudou de tamanho (07/11/2026).** A 02/11 ela mandou congelar os três campos
-   («pertencem à definição oficial»); hoje corrigiu: «a definição oficial do dicionário deve ser
-   exibida como referência (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas
-   personalizadas do professor deve estar liberado e interativo». As duas coisas só cabem em dois
-   sítios: a **categoria e a tradição** ficam bloqueadas (são a classificação do termo) e a
-   **frase é do professor** — é ela que os trechos levam. A definição oficial passa a uma linha
-   própria, `#vb-oficial`, que se lê e não se edita. E some a contradição que ela viu: a nota do
-   passo 2 dizia «ajuste à vontade: é a sua frase que fica gravada» **por cima de um campo
-   desactivado**.
-3. **Escrever a definição repinta a navegação.**
-
-**Onde entrou.** `motor/servidor/bastidores.js` (as três navegações, o registo do termo no
-dicionário da página, `sincronizarPasso1ComExercicio` no fim do passo 1, `pintarOficial`, o
-`input` da frase e a nota do bloco) · `motor/servidor/bastidores.js` (a rota do termo devolve
-`dados`) · `experimentos/provar-passo-um-do-verbete.js` (nova, 30 asserções) ·
-`experimentos/provar-celula.js` e `provar-salas-e-elencos.js` (apontadas aos nomes novos) ·
-`ESTADO-ATUAL.md` (§11).
-
-**Validação.** A prova nova **30/30**, e é a primeira do projeto que **mede o próprio script**:
-nenhum nome de topo declarado duas vezes, com **contraprova do detector** (um nome repetido de
-propósito tem de ser apanhado, senão o detector quebrado elogiava a página), e os três nomes a
-existir. Depois, num navegador de verdade: os quatro obrigatórios (e a definição, escrita por
-último, a acordar o «Seguir»), o clique a levar ao passo **do verbete**, os três campos preenchidos
-a partir do termo que a página não tinha, a classificação bloqueada e a frase editável, o oficial à
-vista, e as navegações da turma e da linha de base a continuarem a ser delas.
-
-**Os dois A/B, cirúrgicos.** Desligada a inscrição no dicionário: **23/30** — e falham exactamente
-as sete asserções dos campos vazios e da referência («escolhido na lista, a categoria enche-se» →
-`""`). Desligado o repintar da navegação ao escrever a frase: **15/30** — e a primeira que falha é
-«escrever a definição ACORDA o Seguir», com o `title` a dizer «falta o que acontece» com a frase
-escrita, que é o defeito ao pé da letra.
+**O A/B.** Reposto o ficheiro antigo, a prova falha **12 de 25**, e a asserção da tabela desenhada
+devolve exactamente o que ela viu: `["Battement fondu","Battement tendu","Plié","Battement jeté"]` —
+quatro linhas, os dois resíduos à frente.
 
 **Sem regressão.** `provar-producao` **166/166** · `provar-salas-e-elencos` **65/65** ·
-`provar-compasso-limpo` **verde** · `provar-menu-da-producao` **verde** · `provar-verbete`: a única
-falha («o documento datado de ANTES do ajuste sai com a notação ANTIGA») falha **igual no
-baseline** · `check-identidade` **0 erros** (a linha nova usa a peça `.nota`, que já existia) ·
-`check-schemas` **verde** · `gerar-indices --check` **5 em dia** · `check-indices` **16/0** · o
-script **servido** compila · `wrangler deploy --dry-run` **compila nos dois Workers**.
+`provar-passo-um-do-verbete` **30/30** · `provar-conteudos-e-estado-da-turma` **TUDO CERTO** ·
+`provar-plano-matriz` **52/52** · `provar-linha-de-base` **102/102** · `provar-compasso-limpo`,
+`provar-derivados-da-sequencia`, `provar-metodologia-no-cabecalho`,
+`provar-expurgo-sem-listagem` e `provar-expurgo-leitura-atrasada` **verdes** ·
+`provar-listas-sem-repeticao`, `provar-musica-no-plano`, `provar-leituras-do-po`,
+`provar-bancadas-e-expurgo` e `provar-verbete` falham **identicamente no baseline** (comparadas
+`✗` a `✗`, com o ficheiro em `stash`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
+`wrangler deploy --dry-run` **compila nos dois Workers**.
 
-**O que fica declarado.**
+**Uma prova corrigida no mesmo gesto, e porquê.** `provar-conteudos-e-estado-da-turma` contava os
+exercícios «que têm notação» sobre o alfabeto **inteiro**, sem o filtro de escola que a página usa
+(`registosDaEscola`). Passou a divergir às 20:15 de hoje, quando o «Battement jeté» ganhou trechos
+marcados com a escola `batata` (`676d611b`): o exercício passou a existir no alfabeto sem ser desta
+escola, e a prova — que já falhava **antes** desta alteração, medida com o ficheiro em `stash` —
+passou a medir a regra errada. Ficou a medir a regra certa.
 
-- **`provar-celula` continua vermelho, e agora sabe-se porquê.** Ele é a bancada do verbete e está
-  a falhar desde 05/11 — a data em que a navegação morreu. Ele chamava `irParaPasso` pelo nome
-  antigo (o global, que resolveu para a função da linha de base) e as secções seguintes mediam uma
-  tela que nunca chegava ao passo pedido. Ficou apontado aos nomes novos, mas continua a parar na
-  secção 2: `#vb-tabela` não tem tabela depois de escolher o exercício, e isso é um defeito
-  próprio, anterior e distinto, que não foi investigado nesta sessão.
-- **A edição do termo não tem ecrã.** Ela pediu «um link direto ou atalho para a edição do termo
-  no vocabulário»; a linha `#vb-oficial` diz **onde** («edite o termo no vocabulário»), mas não há
-  hoje nenhuma página que o faça — a rota `PUT /api/bastidores/termo` existe e nada a chama. Um
-  ecrã de edição de termos é trabalho por fazer, não um link que falte colocar.
-- **O `Unexpected token '<'` que a página já dava** (o cliente tenta ler como JSON uma resposta que
-  a bancada serve como HTML) é anterior e está nomeado na prova para não se confundir com isto.
+**O que fica declarado, e não escondido.**
+
+- **O resíduo da `batata` continua no KV.** `turma-conteudos` fica com os três ids antigos, como
+  memória: não mandam em nada enquanto a curadoria existir. Apagá-lo é uma escrita no KV — e o
+  expurgo da escola, que é dela, leva-o de qualquer maneira.
+- **A segunda camada de escopo não foi tocada.** O «Conteúdo do Estilo» oferece só exercícios com
+  notação (`exerciciosComNotacao`); o plano mostra o que a turma **declarou**, e um termo
+  declarado que perca a notação continua a aparecer — é o que está gravado, e P-03/P-04 mandam
+  lê-lo. O que a correção garante é que o plano e o Estilo digam a mesma coisa sobre o presente.
 
 ## O que está pendente
 

@@ -4064,6 +4064,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **O plano de ensino oferecia quatro exercícios onde a escola declarou dois.** No
+  §9 «Parâmetro de medição» da `batata`, a lista trazia `Battement tendu` e `Battement fondu` além
+  dos dois declarados. **CONFIRMADO**, lendo o KV e não supondo: o mapa antigo
+  `turma-conteudos` = `{sala-rosa: [battement-fondu, battement-tendu, plie]}` era **somado** ao
+  `repertorio` da curadoria (`[Battement jeté, Plié]`) — a composição decidida a 03/11/2026, com a
+  razão boa de não perder o que se associou em Outubro, e com o custo de a lista poder ser maior do
+  que a declaração. Os três ids antigos eram resíduo de uma rodada de testes anterior: não vinham
+  de outra escola, nem de um índice mal aplicado. **DECIDIDO** que a curadoria **vigente** diz o
+  que a turma aprende — mesmo que declare pouco, e mesmo que declare nada — e que o mapa antigo é
+  memória: continua a ser a fonte das turmas **sem** curadoria (escolas de Outubro, sem migração),
+  continua a ser devolvido em `doLegado`, e **nada é reescrito** no KV. A regra de 03/11 sobre as
+  curadorias substituídas fica de pé. `provar-escopo-do-plano` **25/25** em três camadas (núcleo ·
+  rota · a PÁGINA num Chrome, a resolver `aula-1-parametro` pelo próprio código e a desenhar a
+  tabela), com o A/B a devolver as quatro linhas que ela viu; e as contraprovas: sem curadoria o
+  antigo volta, a declaração vazia não o ressuscita. **PENDENTE:** o resíduo continua no KV da
+  `batata` (inerte) — apagá-lo é escrita no KV, e o expurgo da escola leva-o.
+
 - **07/11/2026** — **O «Seguir» do verbete não andava porque havia três `irParaPasso`.** Ela
   relatou duas coisas na mesma tela: caixas bloqueadas **vazias** («a definição do dicionário para
   «Battement jeté»…») e um «Seguir» habilitado que **não fazia nada**. **CONFIRMADO** que são dois
