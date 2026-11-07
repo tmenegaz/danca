@@ -1,36 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-07",
+        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+          "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
+        ],
+        "hash": "b7cd94a54e67bb234ed151415e7a398d4d4558f21bd4846b27fbeda2764f427f",
+        "hash_conteudo": "ef01099105646d8204a9d3ed485d58b3ba115aa175e12b8432942336cb44ad4b",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:coqui-de-redinha/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "coqui-de-redinha",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+      "professor": "coqui-de-redinha",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+      "professor": "coqui-de-redinha",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:coqui-de-redinha/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-02T16:59:08.409473+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-07T13:19:48.138002+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-05T12:08:38.221Z",
     "expurgos": 6,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "coqui-de-redinha",
     "professores": [
-      "cafe-no-bule",
-      "coqui-de-redinha",
-      "luz-azul",
-      "pe-torto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "coqui-de-redinha"
     ],
     "registros": [],
     "slug": "breu"
@@ -38,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/breu"
+        ],
+        "rotulo": "coqui-de-redinha",
+        "valor": "coqui-de-redinha"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "43043233"
+    "commit": "5da8862"
   },
-  "gerado_em": "2026-11-07T12:41",
+  "gerado_em": "2026-11-07T13:19",
   "nao_indexado": [
     {
       "familia": "conteudo",

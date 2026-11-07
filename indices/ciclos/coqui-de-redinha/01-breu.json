@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-07",
+    "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+      "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
+    ],
+    "hash": "b7cd94a54e67bb234ed151415e7a398d4d4558f21bd4846b27fbeda2764f427f",
+    "hash_conteudo": "ef01099105646d8204a9d3ed485d58b3ba115aa175e12b8432942336cb44ad4b",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "5da8862"
+  },
+  "gerado_em": "2026-11-07T13:19",
+  "id": "ciclo:coqui-de-redinha/01/breu",
+  "professor": "coqui-de-redinha",
+  "versao": 6
+}
