@@ -270,8 +270,8 @@ function escolaDoSufixo(sufixo, slugs) {
  * declarado com o motor sem adivinhar.
  */
 const TIPOS_DE_DOCUMENTO = [
-  'ancora', 'schema', 'manifesto', 'plano', 'po', 'aula', 'dados', 'captura', 'indice',
-  'harmonizacao', 'notacao', 'glossario', 'referencias',
+  'ancora', 'schema', 'manifesto', 'plano', 'po', 'aula', 'dados', 'declaracao', 'captura',
+  'indice', 'harmonizacao', 'notacao', 'glossario', 'referencias',
 ];
 
 /** Um documento do ciclo, classificado pelo NOME (não pelo conteúdo). */
@@ -283,6 +283,14 @@ function tipoDoDocumento(caminho, escola) {
   if (/-plano\.md$/.test(base)) return 'plano';
   if (/-aula-[0-9]{2}\.md$/.test(base)) return 'aula';
   if (/-dados\.cifrado\.json$/.test(base) || /-dados\.json$/.test(base)) return 'dados';
+  /* A DECLARAÇÃO DA CAPTURA É UM DOCUMENTO PRÓPRIO (07/11/2026). Ela nasceu a 07/11 e diz que
+   * colunas da captura são marcas — mora ao lado das fontes, com o nome da variante, e o expurgo
+   * a leva com a escola. Não casava `-captura.json` (o nome tem `-declaracao` no meio), e o
+   * efeito era o mesmo dos derivados do PO a 20/10/2026: o ficheiro ficava «sem tipo declarado»,
+   * a verificação 8 do `check-indices` reprovava, e a reprovação **travava o workflow que
+   * commita o índice** — o derivado deixava de fechar. O padrão vem ANTES do da captura, porque
+   * `-captura-declaracao.json` também termina em `.json` e a ordem é «o primeiro que casar vence». */
+  if (/-captura-declaracao\.json$/.test(base)) return 'declaracao';
   if (/-captura\.md$/.test(base) || /-captura\.json$/.test(base)) return 'captura';
   // OS DERIVADOS DO PO (20/10/2026). O «Guardar» do PO passou a escrever quatro documentos ao
   // lado das fontes — harmonização das normas, notação do ciclo, glossário da notação e

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T18:33:26-0300`
-Commit atual: `aba6ab35` — chore(estrutura): reancorar a cadeia das fontes alteradas
+Gerado em: `2026-11-07T18:36:51-0300`
+Commit atual: `e1b1da84` — fix(estrutura): a aluna que entra num elenco existente chega à cadeia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -70,6 +70,8 @@ rabo-gramde (4)
 ## Últimos commits
 
 ```
+e1b1da84 fix(estrutura): a aluna que entra num elenco existente chega à cadeia
+bbf2a289 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 aba6ab35 chore(estrutura): reancorar a cadeia das fontes alteradas
 362e8621 feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
 d1be3de2 feat(po): o PO elicitado vira a fonte do ciclo
@@ -88,8 +90,6 @@ b8d2165c feat(biblioteca): acrescentar «Plié» ao vocabulário do balé cláss
 d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
 0728f258 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
 9e042393 feat(lancamento): a aula 01 de breu/colo-de-pe/breu-sala-rosa
-317607f2 chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-77eb2ad4 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -161,109 +161,51 @@ d52f2b9e chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — A aluna que entra num elenco existente chega à cadeia: concluir voltou a ser um ato
+## 07/11/2026 — A declaração da captura entra no índice (e o workflow deixa de travar)
 
-**O que motivou.** «É frequente a entrada de uma nova aluna num elenco que já existe e já está
-associado a uma turma em funcionamento.» O professor edita o elenco, lê as anamneses, escolhe o
-recorte, conclui, regrava a Turma e revê os planos. E «o vínculo da aluna B some — ela continua
-aparecendo como livre na anamnese e não é contabilizada na aula para o lançamento de dados».
+**O que motivou.** Ao conferir os workflows do push anterior, o `Regerar os índices` estava
+**vermelho** em `362e8621`: o passo «Conferir o índice novo» reprovava, e o commit do índice era
+saltado. A causa não era o índice — era a verificação 8 do `check-indices` a acusar
+`professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-declaracao.json: sem tipo
+declarado`. O documento nasceu a 07/11/2026 (a declaração diz que colunas da captura são marcas,
+mora ao lado das fontes com o nome da variante, e o expurgo a leva com a escola), e **nem o
+`tipos.json` nem o motor o conheciam**: `-captura.json$` não casa um nome que tem `-declaracao` no
+meio. E o mesmo tipo de defeito que os derivados do PO tiveram a 20/10/2026 — registado no
+comentário do `tipoDoDocumento`, que é onde a correção foi escrita agora.
 
-**A causa raiz, e não é perda de dado: é um ACTO que deixou de ser escrito.** A 07/11/2026, horas
-antes, o passo 5 da Audição («Turma de destino») saiu do formulário e a atribuição passou para a
-Turma, que escolhe o elenco. Estava certo — mas o passo 5 era também a **única** coisa que escrevia
-o elenco no **repositório** (`repoLinhas.concluir`), e ninguém tomou o lugar dele: o «Concluir
-elenco» passou a gravar só o rascunho no KV, sem `carimbo` e sem `turma`.
-
-**O que isso partiu, medido e não suposto.** O leitor da porta
-(`cloudflare.lerLinhasDeBaseDoEnv`) só aceitava do KV o registo com `turma` — a marca do regime
-antigo —, e o `repo.vigentes()` não tinha nada. Resultado: o elenco existia na **Produção** e
-**não existia para a porta**. E é a porta que alimenta o Plano de Observação, o plano de ensino, a
-Aula 01 e a geração do pacote. O corpo (o recorte) e o elenco desapareciam da cadeia; a aluna que
-entrou depois não chegava a documento nenhum nem ao lançamento.
-
-A bancada mediu-o com o fluxo inteiro contra o servidor, com um KV falso e sem repositório:
-
-```
-2. AS DUAS LEITURAS DA MESMA LISTA — a Produção e a porta
-  ok    a PRODUÇÃO vê o elenco
-  FALHA a PORTA vê o mesmo elenco  → []
-```
-
-**O segundo defeito, menor e do mesmo dia.** A listagem da anamnese perguntava a turma de cada
-aluna a `filiacaoDasAlunas`, que só a sabia ler de `l.turma` — a marca que o passo 5 escrevia. Sem
-o passo 5, nenhum elenco novo a tem, e a resposta dependia inteiramente de a Turma já ter sido
-regravada. Na janela entre concluir o elenco e regravar a Turma — que é o gesto seguinte, mas não o
-mesmo instante — a aluna nova aparecia **sem sala**: era o «continua como livre».
+**Porque se corrige aqui, e não se deixa para depois.** Um índice que não fecha não é só um
+vermelho no painel: é o derivado a ficar para trás das fontes, e a próxima sessão a ler um acervo
+que já não corresponde ao repositório — a mesma família de erro que o `AGENTS.md` descreve («o
+worktree não sabe que o remoto mudou»). A correção é de duas linhas de declaração e uma de
+classificação.
 
 **O que foi decidido.**
 
-1. **Concluir o elenco volta a escrever um ACTO.** O «Concluir elenco» manda `concluir: true`, e o
-   servidor escreve a versão no repositório (`repoLinhas.concluir`), com `carimbo`, e **tira o
-   rascunho do KV no mesmo passo**. Sem repositório, o acto fica no KV com `concluida_em` e
-   `carimbo` — a marca que os leitores passam a reconhecer — e a resposta di-lo. É o desenho do
-   passo 5, sem a turma: **quem declara a sala é a Turma** (07/11/2026), e escrevê-la aqui seria
-   voltar a ter duas fontes do mesmo vínculo.
-2. **O leitor da porta reconhece o acto pela marca, e não pelo regime.** «Concluído» passa a ser
-   `carimbo` **ou** `concluida_em` **ou** `turma` — os dois primeiros do fluxo novo, o último do
-   antigo (P-03). O rascunho a meio dos passos continua de fora, e a contraprova prende-o.
-3. **E um elenco escolhido por uma Turma é um facto** (a migração sem migração). Os elencos criados
-   nesta janela ficaram sem marcas nenhumas; exigir-lhes o acto obrigaria cada escola a abrir o
-   elenco e concluí-lo outra vez. Como a Turma **já o declarou**, essa declaração basta — um
-   `kv.get` da chave das curadorias, que a Produção já lê em cada pedido. A contraprova garante que
-   um elenco **sem acto e sem Turma** continua de fora: a lista não aceita tudo.
-4. **A filiação aprende a relação Turma → Elenco.** `filiacaoDasAlunas(linhas, curadorias)` lê
-   `l.turma` primeiro (o passado continua legível) e, quando não há, a sala da Turma que escolheu
-   aquele elenco. É o que faz a aluna nova aparecer **com a sala antes de a Turma ser regravada** —
-   e é a única leitura que não depende de dois gestos acontecerem no mesmo instante.
-5. **Nada disto mudou o que a Turma declara.** A Turma continua a escolher o elenco e a carimbar as
-   alunas; a derivação continua a ler o elenco primeiro (`elencoEscolhidoPelaTurma`). O que mudou é
-   que agora **todos os leitores conseguem ver o elenco**.
+1. **A declaração é um TIPO PRÓPRIO** (`declaracao`, família `registro`, `publico: false`), e não
+   um alargamento do padrão `captura`: são documentos diferentes — a captura é o que se marcou, a
+   declaração é o que se pode marcar.
+2. **O motor classifica-o antes da captura**, porque a ordem é «o primeiro padrão que casar vence»
+   e `-captura-declaracao.json` também termina em `.json`.
+3. **O índice foi regerado** e o `check-indices` passa a dar **16 verificações, 0 falhas** — era
+   1 falha antes.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (a conclusão como acto na rota do elenco; o
-`concluir` no corpo do cliente e no `concluirElenco()`; a mensagem passa a «elenco concluído») ·
-`motor/servidor/cloudflare.js` (o filtro do leitor da porta e a leitura das curadorias; a função
-exportada para a prova) · `motor/nucleo/linha-de-base.js` (`filiacaoDasAlunas` com a relação
-Turma → Elenco, e o `em` a cair em `concluida_em`/`gravada_em`) ·
-`motor/servidor/listas-do-acervo.js` (os dois chamadores passam as curadorias) ·
-`experimentos/provar-aluna-nova-no-elenco.js` (novo, 23 asserções) · `.gitignore` ·
-`experimentos/README.md` · `ESTADO-ATUAL.md` (§11).
+**Onde entrou.** `indices/esquema/tipos.json` (o tipo `declaracao`) ·
+`motor/nucleo/indices.js` (`TIPOS_DE_DOCUMENTO` e `tipoDoDocumento`) ·
+`indices/acervo.json`, `indices/escolas/*.json` e `indices/ciclos/colo-de-pe/01-breu.json`
+(regenerados) · `REGISTRO.md`.
 
-**Validação.** `provar-aluna-nova-no-elenco` **23/23**, com **quatro A/B** medidos um a um:
-desligado o filtro novo do leitor → **4 falhas**; desligada a relação Turma → Elenco na filiação →
-**1**; desligada a conclusão como acto → **5**; desligada a cura pela Turma → **1**. Sem os A/B, um
-verde diria apenas que o ficheiro compila.
+**Validação.** `check-indices` **16/0** · `gerar-indices --check` **em dia** ·
+`provar-recorte-no-indice` **42/42** · `provar-declaracao-da-captura` **12/12** ·
+`provar-proveniencia-do-expurgo` **21/21** · `provar-listas-do-acervo` **109** ·
+`check-schemas` **verde** · `check-identidade` **0 erros**. `provar-indices` passa de **5 para 4**
+falhas de 60 e `provar-declaracoes-do-indice` de **2 para 1** de 23 — medido com `git stash`, e as
+que ficam são as de antes (a contagem de verificações que a prova ainda fixa em 14, e o `perfil`).
 
-`provar-linha-de-base-no-repo` **39/39** · `provar-linha-de-base` **102/102** ·
-`provar-sujeitos-da-turma` **41/41** · `provar-salas-e-elencos` **65/65** ·
-`provar-producao` **166/166** · `provar-elenco-na-turma` **25/25** · `provar-elenco-derivado`
-**10/10** · `provar-plano-completo` **18/18** · `provar-eixos-do-po` **42/42** ·
-`provar-corpo-da-linha-de-base` **30/30** · `provar-derivados-da-sequencia` **26/26** ·
-`provar-indice-do-recorte` **24/24** · `provar-etiqueta-da-aluna` **20/20** ·
-`provar-listas-do-acervo` **109** · `provar-curadoria-e-limpeza`, `provar-acordeoes`,
-`provar-painel`, `provar-menu-da-producao` (**55**), `provar-acervo-envelopes` (**52**),
-`provar-proveniencia-e-turma` (**53**), `provar-plano-da-turma` (**46**),
-`provar-conteudos-e-estado-da-turma`, `provar-enquadramento-da-turma`, `provar-linhas-da-lista`
-**verdes** · `check-identidade` **0 erros** · `check-schemas` **verde** ·
-`gerar-indices --check` **5 em dia** · `gerar-relacoes --check` **2 em dia** ·
-`wrangler deploy --dry-run` **compila nos dois Workers** (raiz e escola). O script servido foi
-extraído e compilado à parte (`new Function`, 156 495 bytes).
-
-**O que ainda não está feito.**
-
-- **A conferência ao ar é do próximo deploy.** As provas são locais; a página e a porta servem o
-  código que o Worker empacota.
-- **O elenco da `breu` que já existe só ganha o acto na próxima conclusão.** Ele é lido a partir de
-  agora (a cura pela Turma), mas a versão no repositório só nasce quando ela abrir o elenco e
-  carregar em «Concluir elenco» — que é o gesto normal, e agora faz o que o nome diz.
-- **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
-  devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
-  não se inventou uma recusa que ninguém pediu.
+**O que ainda não está feito.** O `regerar-indices.yml` volta a poder commitar, mas só o confirma
+o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
+`escola/**` nem `professores/**`).
 
 ## O que está pendente
-
-## 07/11/2026 — O cartão do elenco fica com duas caixas: as alunas e o recorte
-
-A conferência ao ar é do próximo deploy.
 
 ## 07/11/2026 — O Bloco 10 sai do plano: o corpo mora na Audição e no PO
 
@@ -305,6 +247,12 @@ página serve o `bastidores.js` que o Worker empacota.
 - **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
   devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
   não se inventou uma recusa que ninguém pediu.
+
+## 07/11/2026 — A declaração da captura entra no índice (e o workflow deixa de travar)
+
+O `regerar-indices.yml` volta a poder commitar, mas só o confirma
+o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
+`escola/**` nem `professores/**`).
 
 ## Pendências anteriores (índice)
 
@@ -686,6 +634,7 @@ página serve o `bastidores.js` que o Worker empacota.
 - **07/11/2026** — O passo 2 do Elenco diz o que falta, e leva lá → `REGISTRO.md` L39333
 - **07/11/2026** — «Elenco» passa a «Audição» e «Verbetes da notação» a… → `REGISTRO.md` L39387
 - **07/11/2026** — Os basilares num bloco, o quadro do recorte em acordeão, e… → `REGISTRO.md` L39444
+- **07/11/2026** — O cartão do elenco fica com duas caixas: as alunas e o… → `REGISTRO.md` L39517
 - PO de **colo-de-pe · breu-sala-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **colo-de-pe · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

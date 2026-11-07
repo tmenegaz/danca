@@ -77,6 +77,15 @@
       "latente": true
     },
     {
+      "id": "declaracao",
+      "rotulo": "Declaração da captura",
+      "familia": "registro",
+      "padrao": "-captura-declaracao\\.json$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
       "id": "captura",
       "rotulo": "Captura da aula",
       "familia": "registro",

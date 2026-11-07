@@ -4064,6 +4064,18 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A declaração da captura entra no índice, e o workflow deixa de travar.** O
+  `Regerar os índices` estava **vermelho** em `362e8621` — o passo «Conferir o índice novo»
+  reprovava e o commit do índice era saltado. A causa era a verificação 8 do `check-indices`:
+  `…-breu-sala-rosa-captura-declaracao.json: sem tipo declarado`. O documento nasceu a 07/11/2026 e
+  nem o `tipos.json` nem o motor o conheciam (`-captura.json$` não casa um nome com `-declaracao`
+  no meio) — o mesmo defeito dos derivados do PO a 20/10/2026. **CONFIRMADO**: passa a haver o tipo
+  `declaracao` (família `registro`, `publico: false`), o motor classifica-o **antes** da captura
+  (a ordem é «o primeiro que casar vence»), e o índice foi regerado. `check-indices` passa de **1
+  falha a 16 verificações / 0 falhas**; `provar-indices` de **5 para 4** falhas de 60 e
+  `provar-declaracoes-do-indice` de **2 para 1** de 23 — medido com `git stash`, e as que ficam são
+  as de antes.
+
 - **07/11/2026** — **A aluna que entra num elenco existente chega à cadeia inteira — e a causa era
   um ato que deixou de ser escrito.** O professor editava o elenco, punha a aluna B, concluía,
   regravava a Turma e revia os planos — e «o vínculo da aluna B some». **CONFIRMADO**: a saída do

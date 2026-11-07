@@ -39902,3 +39902,47 @@ extraído e compilado à parte (`new Function`, 156 495 bytes).
 - **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
   devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
   não se inventou uma recusa que ninguém pediu.
+
+## 07/11/2026 — A declaração da captura entra no índice (e o workflow deixa de travar)
+
+**O que motivou.** Ao conferir os workflows do push anterior, o `Regerar os índices` estava
+**vermelho** em `362e8621`: o passo «Conferir o índice novo» reprovava, e o commit do índice era
+saltado. A causa não era o índice — era a verificação 8 do `check-indices` a acusar
+`professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-declaracao.json: sem tipo
+declarado`. O documento nasceu a 07/11/2026 (a declaração diz que colunas da captura são marcas,
+mora ao lado das fontes com o nome da variante, e o expurgo a leva com a escola), e **nem o
+`tipos.json` nem o motor o conheciam**: `-captura.json$` não casa um nome que tem `-declaracao` no
+meio. E o mesmo tipo de defeito que os derivados do PO tiveram a 20/10/2026 — registado no
+comentário do `tipoDoDocumento`, que é onde a correção foi escrita agora.
+
+**Porque se corrige aqui, e não se deixa para depois.** Um índice que não fecha não é só um
+vermelho no painel: é o derivado a ficar para trás das fontes, e a próxima sessão a ler um acervo
+que já não corresponde ao repositório — a mesma família de erro que o `AGENTS.md` descreve («o
+worktree não sabe que o remoto mudou»). A correção é de duas linhas de declaração e uma de
+classificação.
+
+**O que foi decidido.**
+
+1. **A declaração é um TIPO PRÓPRIO** (`declaracao`, família `registro`, `publico: false`), e não
+   um alargamento do padrão `captura`: são documentos diferentes — a captura é o que se marcou, a
+   declaração é o que se pode marcar.
+2. **O motor classifica-o antes da captura**, porque a ordem é «o primeiro padrão que casar vence»
+   e `-captura-declaracao.json` também termina em `.json`.
+3. **O índice foi regerado** e o `check-indices` passa a dar **16 verificações, 0 falhas** — era
+   1 falha antes.
+
+**Onde entrou.** `indices/esquema/tipos.json` (o tipo `declaracao`) ·
+`motor/nucleo/indices.js` (`TIPOS_DE_DOCUMENTO` e `tipoDoDocumento`) ·
+`indices/acervo.json`, `indices/escolas/*.json` e `indices/ciclos/colo-de-pe/01-breu.json`
+(regenerados) · `REGISTRO.md`.
+
+**Validação.** `check-indices` **16/0** · `gerar-indices --check` **em dia** ·
+`provar-recorte-no-indice` **42/42** · `provar-declaracao-da-captura` **12/12** ·
+`provar-proveniencia-do-expurgo` **21/21** · `provar-listas-do-acervo` **109** ·
+`check-schemas` **verde** · `check-identidade` **0 erros**. `provar-indices` passa de **5 para 4**
+falhas de 60 e `provar-declaracoes-do-indice` de **2 para 1** de 23 — medido com `git stash`, e as
+que ficam são as de antes (a contagem de verificações que a prova ainda fixa em 14, e o `perfil`).
+
+**O que ainda não está feito.** O `regerar-indices.yml` volta a poder commitar, mas só o confirma
+o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
+`escola/**` nem `professores/**`).
