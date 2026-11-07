@@ -71,14 +71,14 @@
       "ciclo:colo-de-pe/01/breu"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-07T16:03:29.499378+00:00",
     "expurgada": false,
@@ -91,11 +91,22 @@
     "professores": [
       "colo-de-pe"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261107-1308"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261107-1308"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
     "estados": [
       {
@@ -109,8 +120,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261107-1308",
           "ciclo:colo-de-pe/01/breu"
         ],
         "rotulo": "colo-de-pe",
@@ -118,6 +130,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261107-1308"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -130,9 +150,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "89a9194"
+    "commit": "378472d"
   },
-  "gerado_em": "2026-11-07T16:04",
+  "gerado_em": "2026-11-07T16:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -156,6 +176,17 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261107-1308",
+      "ciclo": null,
+      "data": "2026-11-07T13:08",
+      "id": "anamnese:anamnese-20261107-1308",
+      "professor": "colo-de-pe",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
