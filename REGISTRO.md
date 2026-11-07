@@ -39086,3 +39086,71 @@ expurgo PRESERVA de propósito. Isso já custou um defeito medido (a geração d
 20/10/2026 porque a entrada de uma ronda antiga sobreviveu à escola e contradisse o PO novo), e a
 correção foi um merge, não uma mudança de casa. A decisão de onde ela deve viver é dela
 (pesquisadora): fica registada, e não se move sem essa palavra.
+
+## 07/11/2026 — A declaração da captura mudou de casa, e o molde deixou de carregar escolas
+
+**O que motivou.** A pergunta veio da limpeza: «variáveis ou declarações não devem ser
+exclusividade de nenhuma escola — o projeto baseia-se num motor e em moldes unificados». A
+investigação achou três coisas, e a terceira é a que dói:
+
+1. `_declaracao.porVariante[<escola>-<turma>]` é o **dicionário da folha de captura**: para cada
+   bloco e coluna, a `chave` estável (é ela que o lançamento grava na marca) e o `tipo`
+   (`rubrica` ou `marca`). É derivada do **PO da escola** por `declaracaoDeCaptura`, e é lida
+   por `tools/validar-captura-ciclo.js` — sem ela, as colunas saem `chave: null` e a geração
+   para. **Por escola é o certo**; o que estava errado era o endereço.
+2. Ela morava dentro de `professores/<prof>/ciclos/ciclo-NN-captura-schema.json` — uma **cópia do
+   molde**, num arquivo que o expurgo **preserva de propósito**. Dado de escola num ficheiro que
+   sobrevive à escola. Custou uma geração (a `batata` parou a 20/10/2026), e o remédio de então
+   foi um merge — não a mudança de casa. O próprio código o reconhecia.
+3. **O MOLDE TAMBÉM ESTAVA POLUÍDO**: `modelo/ciclos/ciclo-01-captura-schema.json` carregava as
+   variantes `diaghilev` e `maria` — 15 blocos de duas escolas extintas que **passavam a toda
+   escola nova**. E os três professores carregavam `diaghilev` e `maria` sem terem escola alguma
+   delas. Era o isolamento indevido que ela suspeitava, medido.
+
+**O que foi decidido.**
+
+1. A declaração passa a ser um arquivo **da variante**, ao lado das fontes dela:
+   `professores/<prof>/ciclos/ciclo-NN-<variante>-captura-declaracao.json`. O caminho cai na regra
+   `ehArquivoDaEscola`, que é a do expurgo — logo **sai com a escola**, sem exceção a lembrar.
+2. O **schema volta a ser o molde**: `caminhoDoSchemaDeCaptura` continua a ser o contrato, e o
+   escritor o limpa de qualquer `porVariante` que encontre (migração no mesmo commit das fontes).
+3. O validador ganha `--declaracao`, e o `gerar-ciclo.sh` passa o arquivo quando ele existe. O
+   schema fica como recurso: o que existia antes continua a ler-se — a mudança não parte nada.
+4. `tools/check-schemas.js` **perde a exceção** da captura: os cinco schemas passam a ser
+   comparados com o molde pelo que dizem. Deixou de haver um arquivo de contrato que ninguém
+   comparava.
+
+**A migração dos dados, e o que se perdeu.** As três declarações existentes (`diaghilev`, `maria`
+e uma variante viva por professor) foram **retiradas dos schemas** e não geraram arquivo: **nenhuma
+tinha fontes no disco** — as escolas a que pertenciam já estavam expurgadas, e o PO de cada uma já
+não existe. Um arquivo de declaração para uma variante sem fontes seria dado órfão, exatamente o
+que esta mudança existe para não acumular. Quando uma escola nova nascer, o «Guardar» do PO
+escreve a declaração dela no sítio certo, e o expurgo a leva quando ela sair.
+
+**Motivo declarado — os congelados.** `tools/` (`CONGELAMENTO.md`) muda porque o endereço da
+declaração era o defeito: dado de escola numa cópia do molde que o expurgo preserva, e um molde
+com escolas dentro. **O que não muda:** a fórmula de hash e a cobertura da âncora (nenhum `.fipp`
+é tocado), os validadores do PO, do plano e da aula, as regras e as pétreas, e o formato da
+declaração (`{ escola, blocos }` — o mesmo que o merge já conhecia). Nenhum conteúdo pedagógico
+foi editado: o que mudou é onde mora um dado derivado.
+
+**Onde entrou.** `motor/servidor/escrever-ciclo.js` (o caminho novo, a escrita e a limpeza do
+schema) · `tools/validar-captura-ciclo.js` (`--declaracao`) · `tools/gerar-ciclo.sh` (passa o
+arquivo) · `tools/check-schemas.js` (a exceção sai) · `modelo/ciclos/ciclo-01-captura-schema.json`
+e os três `professores/*/ciclos/ciclo-01-captura-schema.json` (limpos) ·
+`experimentos/provar-declaracao-da-captura.js` (novo, 12 asserções) · `provar-aula-e-plano-legiveis`,
+`provar-po-completo`, `provar-um-commit-por-guardar` (passam a medir o caminho de produção) ·
+`.gitignore` (a prova nova entra no Git).
+
+**Validação.** `provar-declaracao-da-captura` **12/12** · `check-schemas` **verde com os cinco
+comparados** · `provar-aula-e-plano-legiveis` **12/12** · `provar-po-completo` **20/20** ·
+`provar-um-commit-por-guardar` **21/21** · `provar-derivados-do-po` **16/16** ·
+`provar-observacao-do-professor` **20/20** · `provar-schemas-do-professor` **24/24** ·
+`provar-geracao-do-ciclo` 14/15 (a #12, «o acordo com o workflow», **já falhava antes desta
+mudança** — medida no `20981a49`) · `check-indices` **16/16** · `gerar-indices --check` **0** ·
+`gerar-relacoes --check` **0** · `check-identidade --sem-pacotes` **0 erros** ·
+`check-github-headers` **5/5**.
+
+**O que ainda não está feito.** A prova ao vivo continua a ser a primeira escola criada: é ela que
+exercita o escritor a gravar a declaração no arquivo novo e o `gerar-ciclo.sh` a passá-la ao
+validador, de ponta a ponta. Até lá, o que está provado é o contrato e o caminho, não a geração.

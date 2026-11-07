@@ -217,6 +217,13 @@ experimentos/propostas/*
 # Mede a correção (dono pelo inventário) e as duas degradações declaradas. Citada no `REGISTRO.md`.
 !experimentos/provar-dono-do-expurgo.js
 
+# A DECLARAÇÃO DA CAPTURA MUDOU DE CASA (07/11/2026). Ela vivia dentro do `captura-schema.json` —
+# cópia do molde que o expurgo preserva —, e por isso dado de ESCOLA sobrevivia à escola. Passou
+# para `ciclo-NN-<variante>-captura-declaracao.json`, ao lado das fontes da variante, que o
+# expurgo apaga com ela. Mede o caminho, o molde limpo e a leitura por `--declaracao`, com o
+# controle negativo do schema sozinho. Citada no `REGISTRO.md`.
+!experimentos/provar-declaracao-da-captura.js
+
 # A PROVA DAS ESCOLAS DE TESTE (19/10/2026): o fixture que nasce do sufixo do slug e a
 # regra «só preenche, não envia» — a prova que separa o atalho de teste de uma escrita no
 # motor. É citada pelo nome no README e no `experimentos/README.md`.

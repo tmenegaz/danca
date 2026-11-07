@@ -76,8 +76,21 @@ const SUFIXOS = schemas.SUFIXOS;
 const CICLO_DO_MOLDE = schemas.CICLO_BASE;
 const MOLDE = path.join(raiz, 'modelo', 'ciclos');
 
-// O ÚNICO que carrega dado de uma escola, e por isso o único que não se compara byte a byte.
-const COM_DADO_DA_ESCOLA = new Set(['captura-schema']);
+/* NENHUM CARREGA DADO DE ESCOLA — DESDE 07/11/2026, E ISSO PASSOU A SER VERIFICADO.
+ *
+ * Aqui havia uma exceção: a `captura-schema` guardava `_declaracao.porVariante`, com o par
+ * rótulo ↔ chave de cada escola, e por isso não se comparava com o molde. A exceção era a
+ * cicatriz de um erro de casa — dado da ESCOLA dentro de uma CÓPIA do MOLDE, num ficheiro que o
+ * expurgo preserva de propósito. Ela já tinha custado uma geração (a `batata` parou a
+ * 20/10/2026, quando a entrada de uma ronda antiga sobreviveu à escola e contradisse o PO novo),
+ * e o remédio de então foi um merge — não a mudança de casa.
+ *
+ * A declaração passou para `ciclo-NN-<variante>-captura-declaracao.json`, ao lado das fontes da
+ * variante (o expurgo apaga-a com a escola). O schema voltou a ser o MOLDE, e a exceção sai: os
+ * cinco passam a ser comparados pelo que dizem. Um ficheiro que carregue declarações de variante
+ * é, agora, um ficheiro que ficou atrás.
+ */
+const COM_DADO_DA_ESCOLA = new Set();
 
 const erros = [];
 const ok = [];
