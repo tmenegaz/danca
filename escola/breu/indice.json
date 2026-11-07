@@ -440,5 +440,11 @@
       "ciclo": "01"
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "colo-de-pe",
+      "nome": "Colo de Pé",
+      "desde": "2026-11-07T13:21:32.343Z"
+    }
+  ]
 }
