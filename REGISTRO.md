@@ -39233,3 +39233,139 @@ fichas») · `provar-enquadramento-da-turma` **verde** · `provar-conteudos-e-es
 
 **O que ainda não está feito.** A prova ao vivo é a próxima escola criada: só ela exercita o passo 1
 aberto numa escola sem retratos, com o elenco a ser nomeado e gravado a partir do nada.
+
+## 07/11/2026 — A proveniência é auditada antes do expurgo — e o elo guarda o que existia
+
+**O que motivou.** O expurgo é a operação mais irreversível do sistema e é também a única que
+**apaga as âncoras** (`.fipp`). Até aqui ele não perguntava nada: apagava o `wrangler.<escola>.jsonc`,
+o pacote, as fontes, os envelopes, as linhas de base e as âncoras. Se alguma fonte estivesse por
+ancorar no minuto em que ele corresse, o que se perdia não era «um arquivo» — era a prova de que
+aquilo existiu, sem maneira de distinguir depois «nunca foi ancorado» de «foi ancorado e apagado».
+A pesquisa entrou em fase de provar a cadeia passo a passo antes de a usar; apagar sem conferir é o
+contrário disso.
+
+**O que foi decidido.**
+
+1. **Há uma auditoria, e ela é uma só.** `motor/nucleo/proveniencia.js` (puro: caminhos, inventário
+   e âncoras já lidas) responde a sete perguntas — elo presente, criação declarada em `recriacao[]`,
+   âncora por variante com fontes, âncora bem formada (`id` = nome do arquivo, `hash` e
+   `hash_conteudo` em SHA-256, `algoritmo`, cobertura não vazia), cobertura que não cita o que já
+   não existe, âncora órfã, **toda fonte coberta** e os três derivados em dia. As três metades do
+   sistema chamam a MESMA função: o `escola/expurgar.js` local, a metade do repositório
+   (`auditarProvenienciaDaEscola`) e o `tools/auditar-proveniencia.js`, que a expõe à mão.
+2. **Falhando, não se apaga nada — nem no Cloudflare.** Em `/api/apagar-escola` a auditoria é o
+   **passo 0**, antes do Worker e do repositório: uma escola que sai do ar com a cadeia partida não
+   volta a ter o que se perdeu. Recusa com **409** e a lista dos bloqueios.
+3. **Forçar exige declarar.** `--forcar --motivo "…"` (local) e `forcar` + `motivoDoForcar` (rota).
+   Sem motivo, 400/2. O motivo e os bloqueios vão para o elo do expurgo: quem força, declara — e
+   quem abrir o registro meses depois vê o que estava mal naquele dia. Uma guarda que nunca se pode
+   contrariar torna o expurgo impossível no estado em que ele mais é preciso.
+4. **O que existia fica registado antes de ser apagado.** O elo `expurgo[]` ganha um bloco
+   `proveniencia` com `id` e `hash` de cada âncora, a contagem de fontes e a **impressão** do
+   conjunto (SHA-256 de `id:hash` ordenados). As âncoras vão-se; a prova de que existiram e do que
+   certificavam fica. `auditada` é normalizado num sítio só (`comElo`), para as duas formas de
+   relatório não divergirem.
+5. **O expurgo passou a ser a ferramenta de auditoria do dia-a-dia.** `node
+   tools/auditar-proveniencia.js <escola>` corre as três fases: estrutura (a função pura), âncora
+   (`hash-ciclo.sh --check`, por variante, sobre as fontes vivas) e derivação (`gerar-indices
+   --check` e `gerar-relacoes --check`). As duas últimas são subprocessos e o relatório DIZ quando
+   foram saltadas (`--sem-fundo`, e a metade do Worker, que não os tem): um «ok» que não confere o
+   hash não pode ler-se como se tivesse conferido.
+6. **A limpeza profunda continua a ser o comportamento de agora.** As âncoras, as fontes, o pacote,
+   os envelopes e as linhas de base saem com a escola; os schemas do modelo não, como sempre. O que
+   muda é que saem **depois** de auditados e **com o resumo deles no elo**. A fase em que se testa o
+   empilhamento de proveniências (preservar o histórico em vez de limpar) fica para quando a
+   pesquisa lá chegar — e o elo já tem, desde agora, o que ela vai precisar.
+
+**Uma escola já expurgada passa.** Sem fontes não há nada a ancorar, e o elo é a memória. Reprovar
+nesse caso tornaria o expurgo impossível de repetir depois de um meio-expurgo — o estado em que ele
+mais falta. O que a auditoria exige é o que EXISTE estar coberto, não que exista sempre.
+
+**Onde entrou.** `motor/nucleo/proveniencia.js` (novo — as sete verificações e a impressão) ·
+`tools/auditar-proveniencia.js` (novo — as três fases sobre o disco) · `motor/servidor/repo-escola.js`
+(`auditarProvenienciaDaEscola`, `proveniencia` no `comElo`) · `motor/servidor/raiz.js` (o passo 0 da
+rota, e a proveniência no elo) · `escola/expurgar.js` (a auditoria antes de apagar, `--forcar
+--motivo`) · `raiz/index.html` (o relatório mostra os bloqueios, e cala as metades que nem correram)
+· `experimentos/provar-proveniencia-do-expurgo.js` (novo, 21 asserções) · `.gitignore`.
+
+**Motivo declarado — os congelados.** `tools/` (`CONGELAMENTO.md`) ganha um arquivo novo,
+`tools/auditar-proveniencia.js`. O congelamento existe para proteger o que decide proveniência de
+mudar em silêncio; aqui o que entra é o **instrumento que a confere**, e ele é justamente o que o
+expurgo passa a exigir antes de apagar. **O que não muda:** a fórmula do hash (`tools/hash-ciclo.sh`
+não foi tocado), a cobertura das âncoras, os validadores e as regras e pétreas. O arquivo novo não
+gera nem altera âncora nenhuma: lê, confere e relata.
+
+**Validação.** `provar-proveniencia-do-expurgo` **21/21** (as sete reprovações, uma a uma; a
+auditoria sobre a árvore com as fases declaradas; o elo com âncoras, hashes e impressão; a rota a
+recusar com 409 **sem montar commit**; `forcar` sem motivo a 400; forçado com motivo a avançar e a
+gravar a razão) · `provar-dono-do-expurgo` **11/11** · `provar-elo-do-expurgo` verde ·
+`provar-expurgo-sem-listagem` **49/49** · `provar-expurgo-leitura-atrasada` **45/45** ·
+`provar-bancadas-e-expurgo` **20/21**, a falha anterior · `provar-expurgo-raiz` **explode em
+`corpo.local` também em `origin/main`** (medido: o ramo dos dois tokens ausentes devolve antes de
+`local` ser calculado — anterior a esta mudança, não corrigido por não ser desta pauta) ·
+`provar-expurgo-kv` **11 falhas, as mesmas de `origin/main`** · `gerar-indices --check` **0** ·
+`gerar-relacoes --check` **0** · `check-indices` **16/16**. A auditoria correu à mão sobre as três
+escolas do repositório: a viva (`breu`) **passa** com 1 âncora e 2 fontes cobertas; as duas
+expurgadas (`batata`, `calango`) passam sem âncoras, como devem. O expurgo local foi exercido de
+ponta a ponta num `git worktree` descartável: escola fabricada sem âncora → **recusado, nada
+apagado**; reancorada e com os índices regerados → apagada, com a proveniência no elo.
+
+**O que ainda não está feito.** A auditoria da metade do repositório **não recalcula o hash** (é
+subprocesso de Node; o Worker não os corre) — confere estrutura, e diz isso no campo `fases`. A
+prova ao vivo do 409 é a próxima escola a expurgar pela página: até lá, o caminho está medido com um
+GitHub falso. E o `provar-expurgo-raiz` continua a explodir no ramo dos tokens ausentes, por um
+defeito anterior que ficou registado e não corrigido.
+
+## 07/11/2026 — O passo 2 do Elenco diz o que falta, e leva lá
+
+**O que motivou.** «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam anamnese
+preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» O que havia era um
+travessão — «— nenhuma aluna com anamnese.» — dentro da caixa das alunas. E, pior, o painel do passo
+2 **não abria**: a trava estava certa (sem retrato não há corpo para recortar) mas escondia a sua
+própria razão. Uma trava que esconde a razão de estar fechada não trava: tranca.
+
+**O que foi decidido.**
+
+1. **O passo 2 deixa-se LER quando não há um único retrato.** `podeVerPasso` separa VER de AVANÇAR:
+   a excepção é o passo 2 numa escola sem anamnese nenhuma — é o único estado em que o painel não
+   tem lista para mostrar (não há aluna para listar) e tem tudo para explicar. A regra de sempre
+   continua a valer para tudo o resto, incluindo o passo 2 quando há anamnese e falta o nome. Os
+   passos 3 e 4 continuam fechados: eles leem retratos, e abri-los sobre uma lista vazia seria uma
+   tabela sobre ninguém. O botão que abre só para ler ganha um `title` próprio («Abre para explicar
+   o que falta»), em vez de ficar aceso e mudo.
+2. **O estado vazio NOMEIA, EXPLICA, DIZ A REGRA e LEVA LÁ.** «Nenhuma aluna com anamnese», a razão
+   de ser obrigatória (o corpo que se recorta É o das alunas), a regra de avanço (uma basta), o
+   vínculo para a Área do Professor — e a garantia de que o elenco nomeado não se perde. As peças
+   são as da casa: `.aviso.alerta`, `a.acao.secundario.pequena`, `.par-botoes`, `.sub`. Nenhuma
+   classe nova, nenhuma regra de folha.
+3. **O endereço da anamnese vem do servidor.** `urlDaPorta('/anamnese/', contexto)`, a mesma função
+   do menu, com professor e escola na query. Uma segunda cópia escrita à mão no cliente apontaria
+   para outra escola no dia em que o contexto mudasse.
+4. **A volta é automática.** A anamnese vive outra página; voltar dela recarregava a Produção e a
+   lista continuava vazia — o professor via «nenhuma aluna com anamnese» depois de ter feito
+   exactamente o que lhe pediram. A secção passa a reler a lista quando a janela reganha o foco
+   (`visibilitychange` e `focus`), e só quando não há retrato nenhum: é o único estado em que a
+   resposta muda o que está no ecrã, e não se gasta um pedido por nada. O que ele escreveu não é
+   pisado — `pintarAlunas` recebe as marcações de agora, e o passo em que estava fica onde está.
+5. **A razão de não avançar está à vista.** O motivo de o «Seguir» estar apagado vivia num `title`,
+   que não aparece no telemóvel e só se lê com o rato em cima. Passa a haver uma linha (`#lb-seguir-nota`)
+   com a mesma frase, que só existe quando o botão está visível e há falta.
+6. **Uma falta não se conta duas vezes.** `faltasAntesDeLb` deduplica, e o passo 2 pede a anamnese
+   OU a aluna, não as duas — a mensagem saía «falta a anamnese de pelo menos uma aluna, pelo menos
+   uma aluna», que é o mesmo pedido dito duas vezes.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o estado vazio, `podeVerPasso`, a tira, a nota do
+«Seguir», `haRetratoNovo`, `faltasAntesDeLb`) · `experimentos/provar-salas-e-elencos.js` (21 → 34
+asserções) · `experimentos/provar-linha-de-base.js` (a asserção do passo 2 passa a medir a regra
+nova, e mede o que se lê lá dentro).
+
+**Validação.** `provar-salas-e-elencos` **34/34** · `provar-linha-de-base` **102/102** (inclui
+abrir o passo 2 em jsdom e ler o estado vazio, o texto e o `href` da ligação) · `provar-producao`
+**166/166** · `provar-celular` **15/15** · `provar-cartao-da-turma` **2 falhas, as duas anteriores** ·
+`check-identidade` **0 erros** (a checagem 8 «Peça» incluída, com os pacotes) · `check-indices`
+**16/16** · `gerar-indices --check` **0**.
+
+**O que ainda não está feito.** A prova ao vivo é a próxima escola criada sem anamneses: só ela
+exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
+separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
+mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.

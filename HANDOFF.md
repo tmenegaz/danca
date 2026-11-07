@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-06T15:41:12-0300`
-Commit atual: `47a861df` — chore(estrutura): regerar os indices — e o mapa de relacoes entra no mesmo commit
+Gerado em: `2026-11-07T11:22:54-0300`
+Commit atual: `b5cf7636` — fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -49,27 +49,11 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** acucar-branco
-cafe-no-bule
+- **Professores:** colo-de-pe
 coqui-de-redinha
-luz-azul
-manga-curta
-meia-cortada
-meia-ponta
-murisoca-baiana
-oculos-redondo
-pe-junto
 pe-torto
-perna-boa
-pirueta-aberta
-rabo-gramde
-sapo-bailarino
-so-para-direita
-teclado-abnt
-tela-de-celular
-tiago-menegaz
-vaso-bonito (20)
-- **Ciclos com manifesto:** 2 variante(s)
+rabo-gramde (4)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -86,105 +70,47 @@ vaso-bonito (20)
 ## Últimos commits
 
 ```
-47a861df chore(estrutura): regerar os indices — e o mapa de relacoes entra no mesmo commit
-418322cd feat(experimentos): a prova do mapa de relacoes, e contraprova
-c2ba19f5 feat(tools): o mapa de relacoes do ciclo, e a ponte entre os dois vocabularios
-daf0d94a chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-28dfacde docs(registro): a arquitetura de indices, e a resposta medida a pergunta dos grafos
-ca2b4055 fix(tools): a matriz que nao cabe rola dentro de si, com as setas a dizer que ha mais
-9bc187c0 chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-6c5d44be docs(registro): o indice de lancamentos, e o que fica em aberto
-955eee0c feat(tools): o indice de lancamentos, e a chave que faz a marca encadear
-1302d8ad chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-f5fd5a71 docs(registro): a matriz do lancamento, com a contraprova e o que fica em aberto
-1d75cc7f fix(tools): a matriz do lancamento — as alunas por linha, os aspectos por coluna
-ac97436e fix(estrutura): a escola nao e a variante, e a conferencia corre antes de gerar
-75a542db chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-d4c6c2fc chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-f439eaba docs(registro): o lancamento marcado, com a prova e a contraprova
-11bf28c9 fix(tools): o lancamento entra na identidade, e o que se marca sai do PO
-9b608179 fix(po): o elenco da aula vem da linha de base, e nao do PO
-7c7007cd chore(entrega): gerar o pacote de rabo-gramde/01/calango-bale-nivel-1-teste-1
-bbc45599 docs(registro): o HANDOFF aponta para a auditoria do ar das paginas
+b5cf7636 fix(estrutura): o passo 2 do elenco diz o que falta, e leva à anamnese
+e9031326 feat(estrutura): o expurgo confere a proveniência antes de apagar, e guarda-a no elo
+f633dce2 feat(tools): a proveniência é auditada antes de o expurgo apagar
+1e8b0789 fix(estrutura): o cartão da sala diz dois, e o elenco deixa de esperar pela anamnese
+aee75ba0 chore(estrutura): regerar os índices derivados
+1804797e feat(estrutura): habilitar coqui-de-redinha em contemporaneo
+a36b4a24 chore(estrutura): regerar os índices derivados
+8f1a8848 feat(estrutura): habilitar coqui-de-redinha em contemporaneo
+5190ff05 feat(estrutura): habilitar colo-de-pe em bale-classico
+55af9c86 feat(escola): a escola breu declara o professor colo-de-pe
+c451a967 feat(schema): os schemas do ciclo na pasta de colo-de-pe
+38796150 feat(schema): os schemas do ciclo na pasta de colo-de-pe
+c5d79e6f feat(schema): os schemas do ciclo na pasta de colo-de-pe
+3e4dff1e feat(schema): os schemas do ciclo na pasta de colo-de-pe
+c4cc6d50 feat(schema): os schemas do ciclo na pasta de colo-de-pe
+7fe65a58 chore(estrutura): regerar os índices derivados
+37267f5e feat(acervo): envelope/.indice.json
+ae3222d2 feat(estrutura): criar a escola breu (motor completo)
+5da88620 fix(schema): o molde deixa de carregar escolas dentro, e a captura perde a exceção
+9296cbf8 feat(tools): a declaração da captura passa a morar com a variante
 ```
 
 ## Por professor
 
-### acucar-branco — 0 ciclo(s)
+### colo-de-pe — 0 ciclo(s)
 
-### cafe-no-bule — 0 ciclo(s)
+### coqui-de-redinha — 1 ciclo(s)
 
-### coqui-de-redinha — 0 ciclo(s)
-
-### luz-azul — 0 ciclo(s)
-
-### manga-curta — 0 ciclo(s)
-
-### meia-cortada — 0 ciclo(s)
-
-### meia-ponta — 0 ciclo(s)
-
-### murisoca-baiana — 0 ciclo(s)
-
-### oculos-redondo — 0 ciclo(s)
-
-### pe-junto — 0 ciclo(s)
-
-### pe-torto — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): 
+**Ciclo 01** — variante(s): breu
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `b7cd94a54e67` | (vazio) | — |
 
-### perna-boa — 0 ciclo(s)
+### pe-torto — 0 ciclo(s)
 
-### pirueta-aberta — 0 ciclo(s)
-
-### rabo-gramde — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | ciclo-01-calango.fipp | `31de8f746770` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ad5e094cf52e` | (vazio) | Input_PO_Aguardando |
-
-### sapo-bailarino — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): 
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-
-### so-para-direita — 0 ciclo(s)
-
-### teclado-abnt — 0 ciclo(s)
-
-### tela-de-celular — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): 
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-
-### tiago-menegaz — 0 ciclo(s)
-
-### vaso-bonito — 0 ciclo(s)
+### rabo-gramde — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -233,135 +159,97 @@ bbc45599 docs(registro): o HANDOFF aponta para a auditoria do ar das paginas
 
 ## Última entrada do REGISTRO
 
-## 06/11/2026 — O mapa de relações: as arestas deixaram de estar espalhadas
+## 07/11/2026 — O passo 2 do Elenco diz o que falta, e leva lá
 
-**A decisão que faltava era de calendário, e ela deu-a em duas respostas curtas:** *«1. Gerar
-`relacoes.json` agora, ou só quando houver a primeira pergunta de caminho? A minha recomendação:
-agora, pequeno e derivado — uma aresta descoberta tarde é uma ligação que ninguém testou, e o custo é
-um gerador, não um serviço. Agora. 2. O grafo é do acervo inteiro ou por ciclo? […] Por ciclo.»*
+**O que motivou.** «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam anamnese
+preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» O que havia era um
+travessão — «— nenhuma aluna com anamnese.» — dentro da caixa das alunas. E, pior, o painel do passo
+2 **não abria**: a trava estava certa (sem retrato não há corpo para recortar) mas escondia a sua
+própria razão. Uma trava que esconde a razão de estar fechada não trava: tranca.
 
-**A recomendação que era minha voltou como decisão dela, e está cumprida nos dois pontos.** O que
-existe agora é `tools/gerar-relacoes.js`, que escreve um mapa **por ciclo** em
-`indices/relacoes/<professor>/<NN>-<variante>.json`. O escopo é o ciclo porque a travessia que ela
-descreveu é dentro de um ciclo: «de um nó ao outro até um objetivo» atravessa aula, marco e captura,
-e os três vivem num ciclo.
+**O que foi decidido.**
 
-**Medido no ciclo completo** (`01-calango-bale-nivel-1-teste-1`): **48 nós, 55 arestas, 0 lacunas**;
-por tipo, 18 aulas, 8 documentos, 6 aspectos, 4 campos, 2 anamneses, 2 âncoras, 2 marcos, 1 ciclo,
-1 escola, 1 professor, 1 turma, 1 linha de base, 1 captura. A ponte entre os dois vocabulários liga
-**4 de 4** aspectos. **Medido no scaffold** (`01-calango`): **6 nós, 5 arestas e 3 lacunas** — sem
-`contexto-turma` não há turma, sem turma não se escolhe linha de base, sem PO não há vocabulário de
-observação. As lacunas são **declaradas**, com o motivo, e não preenchidas.
+1. **O passo 2 deixa-se LER quando não há um único retrato.** `podeVerPasso` separa VER de AVANÇAR:
+   a excepção é o passo 2 numa escola sem anamnese nenhuma — é o único estado em que o painel não
+   tem lista para mostrar (não há aluna para listar) e tem tudo para explicar. A regra de sempre
+   continua a valer para tudo o resto, incluindo o passo 2 quando há anamnese e falta o nome. Os
+   passos 3 e 4 continuam fechados: eles leem retratos, e abri-los sobre uma lista vazia seria uma
+   tabela sobre ninguém. O botão que abre só para ler ganha um `title` próprio («Abre para explicar
+   o que falta»), em vez de ficar aceso e mudo.
+2. **O estado vazio NOMEIA, EXPLICA, DIZ A REGRA e LEVA LÁ.** «Nenhuma aluna com anamnese», a razão
+   de ser obrigatória (o corpo que se recorta É o das alunas), a regra de avanço (uma basta), o
+   vínculo para a Área do Professor — e a garantia de que o elenco nomeado não se perde. As peças
+   são as da casa: `.aviso.alerta`, `a.acao.secundario.pequena`, `.par-botoes`, `.sub`. Nenhuma
+   classe nova, nenhuma regra de folha.
+3. **O endereço da anamnese vem do servidor.** `urlDaPorta('/anamnese/', contexto)`, a mesma função
+   do menu, com professor e escola na query. Uma segunda cópia escrita à mão no cliente apontaria
+   para outra escola no dia em que o contexto mudasse.
+4. **A volta é automática.** A anamnese vive outra página; voltar dela recarregava a Produção e a
+   lista continuava vazia — o professor via «nenhuma aluna com anamnese» depois de ter feito
+   exactamente o que lhe pediram. A secção passa a reler a lista quando a janela reganha o foco
+   (`visibilitychange` e `focus`), e só quando não há retrato nenhum: é o único estado em que a
+   resposta muda o que está no ecrã, e não se gasta um pedido por nada. O que ele escreveu não é
+   pisado — `pintarAlunas` recebe as marcações de agora, e o passo em que estava fica onde está.
+5. **A razão de não avançar está à vista.** O motivo de o «Seguir» estar apagado vivia num `title`,
+   que não aparece no telemóvel e só se lê com o rato em cima. Passa a haver uma linha (`#lb-seguir-nota`)
+   com a mesma frase, que só existe quando o botão está visível e há falta.
+6. **Uma falta não se conta duas vezes.** `faltasAntesDeLb` deduplica, e o passo 2 pede a anamnese
+   OU a aluna, não as duas — a mensagem saía «falta a anamnese de pelo menos uma aluna, pelo menos
+   uma aluna», que é o mesmo pedido dito duas vezes.
 
-**Três coisas que o gerador obrigou a ver, e que eram invisíveis enquanto as arestas estavam
-espalhadas:**
+**Onde entrou.** `motor/servidor/bastidores.js` (o estado vazio, `podeVerPasso`, a tira, a nota do
+«Seguir», `haRetratoNovo`, `faltasAntesDeLb`) · `experimentos/provar-salas-e-elencos.js` (21 → 34
+asserções) · `experimentos/provar-linha-de-base.js` (a asserção do passo 2 passa a medir a regra
+nova, e mede o que se lê lá dentro).
 
-1. **Um aspecto tem dois nomes, e a ponte é pelo nome.** O campo da anamnese é
-   `cinco-posicoes-1a-bracos` (o id do universo, com hífenes); a marca do lançamento é
-   `1_posicao_bracos` (o slug do `chaveDoItem`, com sublinhados). São o mesmo aspecto escrito por
-   duas máquinas que não se conhecem. A aresta `mesmo_aspecto` casa-os **pelo nome**, e essa é a
-   costura mais frágil da cadeia: mudar um nome de um lado **não dá erro** — a aresta desaparece e
-   no lugar dela fica uma lacuna. É o comportamento correcto. Uma ponte que se recompusesse por
-   posição ligaria a coisa errada e mentiria sem avisar.
-2. **A turma vive em duas formas, e ler só uma dá um mapa sem turma.** A derivada
-   (`plano-XX.json` → `contexto.turmaObservada`) e a crua (`respostas['contexto-turma'].valor`).
-   Lendo só a primeira, o mapa saía com **zero** arestas de elenco e aparência de completo.
-3. **O ELENCO NÃO É UM NÓ — e foi o `check-indices` a dizê-lo.** A primeira versão criava nós
-   `aluna` com o nome no rótulo, e a verificação 7 reprovou três vezes: *«campo proibido «aluna»»*.
-   A correcção não foi esconder o campo, foi perceber o que a regra protege: `indices/` é servido
-   pelo Worker, e nenhum índice do acervo nomeia aluna, **nem pelo apelido**. O elenco não é uma
-   relação — é conteúdo da linha de base — e a pessoa entra na cadeia pela **anamnese**, cujo
-   carimbo (`anamnese-20261105-2301`) já é livre de nome. A pessoa é a **porta**, não um nó do meio:
-   ela escolhe a aluna pelo nome no ecrã, o ecrã resolve o nome para o carimbo, e daí para dentro o
-   mapa anda sem nomes. **Por isso o mapa pode ser publicado sem expor o elenco.**
+**Validação.** `provar-salas-e-elencos` **34/34** · `provar-linha-de-base` **102/102** (inclui
+abrir o passo 2 em jsdom e ler o estado vazio, o texto e o `href` da ligação) · `provar-producao`
+**166/166** · `provar-celular` **15/15** · `provar-cartao-da-turma` **2 falhas, as duas anteriores** ·
+`check-identidade` **0 erros** (a checagem 8 «Peça» incluída, com os pacotes) · `check-indices`
+**16/16** · `gerar-indices --check` **0**.
 
-**Um quarto erro, e este era meu, na bancada:** a travessia inversa usava o `de` da aresta `recorta`
-onde era o `para` — e voltava a si mesma. É a mesma família de erro dos outros dois: *a direção de
-uma aresta não se adivinha.*
-
-**A prova:** `experimentos/provar-relacoes.js`, **35 asserções** em seis secções. Mede que cada
-aresta **nomeia o campo que a produziu**, que nenhuma aponta para um nó inexistente nem para si
-mesma, que **nenhum conteúdo entra no mapa** e que **o nome de nenhuma aluna do elenco aparece — nem
-no rótulo, nem num id** (procura-se o **valor**, não a chave: uma regra que só olha nomes de campo
-deixava passar `rotulo: "Aluna A"`), que a ponte liga 4/4 **pelo nome** e **desaparece** quando o
-nome muda de um lado (com a lacuna a nomear o órfão), a travessia que ela descreveu **nos dois
-sentidos**, o determinismo e o `--check` a acusar uma aresta removida e a passar quando ela volta, e
-que um ciclo vazio **declara** as lacunas. **Contraprova: 2 de 35** — devolver o apelido a um nó
-reprova a lista fechada de chaves **e** a prova de privacidade; inventar a turma e deixar de nomear a
-chave reprovam **4 de 35** (medido antes da correcção do elenco, sobre 34 asserções).
-
-**A integração não é um serviço.** O mapa entra no **mesmo commit** dos índices, nos dois sítios onde
-eles já entram: `regerar-indices.yml` (o `--check` dos **dois** decide se há trabalho, e os dois
-geradores escrevem dentro de `indices/` antes do mesmo `git add`) e o commit do `gerar-ciclo.yml`,
-que usa o `GITHUB_TOKEN` e por isso não redispara o outro workflow. Um mapa atrasado aponta para um
-acervo que já mudou — é a mesma razão pela qual o índice entra lá.
-
-**E os dois ficheiros congelados que tiveram de aprender isto.** `check-indices.js` passou a correr
-**os dois geradores** no mesmo laço; sem isso a verificação 1 chamava «arquivo órfão» a cada mapa, e
-um vermelho permanente é um vermelho que se aprende a ignorar. `gerar-indices.js` aprendeu que
-`indices/relacoes/` **é saída de outro gerador** (como já sabia de `indices/esquema/`), e o
-`gerarEmMemoria()` dos dois passou a devolver a mesma forma (`{ arquivos }`) para o laço do
-verificador não ter de saber qual é qual. Motivo declarado, porque `tools/` é congelado.
-
-**O que fica em aberto, e é honesto dizê-lo:** `marcas: 0`. Nenhuma aula foi lançada, portanto os nós
-de marca e a pergunta que os originou — «em quantas aulas ela demorou a estabilizar o adágio?» — ainda
-não têm dado real. O mapa está pronto para receber esse dado quando o formulário de lançamento for
-usado a sério. E o `indices/esquema/relacoes.json` continua a ser o **contrato escrito à mão** das 15
-relações (algumas ainda `prevista`): o gerador realiza as que já existem, não inventa as que faltam.
-
-**Validação:** `provar-relacoes` **35/35**, contraprova **2/35**; `gerar-relacoes.js --check`
-**passa**; `gerar-indices.js --check` **12 arquivos em dia**; `check-indices` **16/16, 0 falha(s)**
-(com contraprova: mapa apagado → verificação 1 reprova); `provar-formulario-da-aula` **48/48**;
-`provar-indice-de-lancamentos` **24/24**; `check-identidade` **0 erros**.
+**O que ainda não está feito.** A prova ao vivo é a próxima escola criada sem anamneses: só ela
+exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
+separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
+mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
 
 ## O que está pendente
 
-## 05/11/2026 — O cabeçalho que faltava: uma lista de `User-Agent`, e um guarda que reprova
+## 07/11/2026 — O `ciclo-01.conf` que sobreviveu ao expurgo, e o dono que a árvore inventava
 
-(1) As **nove** outras cópias da lista continuam a existir — cada uma
-põe o `User-Agent` à mão (o guarda confere que o põe, não que seja a mesma lista); migrá-las para
-`github-api.js` é trabalho de outra sessão, e fazê-lo agora seria mexer em nove caminhos de escrita
-no dia em que um deles está a ser testado ao vivo. (2) O `sondar` ainda não tem ecrã: existe como
-rota, e é por `curl` que se lê. (3) O envio **ainda não foi confirmado em produção** com o
-cabeçalho posto — é o próximo gesto dela, e é o que fecha este fio.
+`_declaracao.porVariante` (a chave
+estável de cada coluna da folha de captura, derivada do PO da escola) mora dentro do
+`professores/<prof>/ciclos/ciclo-NN-captura-schema.json` — um arquivo que é CÓPIA do molde e que o
+expurgo PRESERVA de propósito. Isso já custou um defeito medido (a geração da `batata` parou a
+20/10/2026 porque a entrada de uma ronda antiga sobreviveu à escola e contradisse o PO novo), e a
+correção foi um merge, não uma mudança de casa. A decisão de onde ela deve viver é dela
+(pesquisadora): fica registada, e não se move sem essa palavra.
 
-## 06/11/2026 — O índice não é recorte: o ficheiro da casa entrou como dado do professor
+## 07/11/2026 — A declaração da captura mudou de casa, e o molde deixou de carregar escolas
 
-Os índices regerados são um commit do `chore(estrutura)`, e a
-Action volta a escrevê-los na próxima vez que alguém gravar um acto — o que é o desenho, não uma
-lacuna. E o `recorte:teste` está `vigente: false` porque a linha foi **apagada** por ela às 01:23;
-a série fica (dois actos), o ranque não conta. É o comportamento certo, e é o primeiro caso real
-da lápide num índice publicado.
+A prova ao vivo continua a ser a primeira escola criada: é ela que
+exercita o escritor a gravar a declaração no arquivo novo e o `gerar-ciclo.sh` a passá-la ao
+validador, de ponta a ponta. Até lá, o que está provado é o contrato e o caminho, não a geração.
 
-## 06/11/2026 — O ciclo do Plano de Observação deixa de se escrever
+## 07/11/2026 — A sala diz o que é dela, e o elenco deixa de esperar por uma anamnese
 
-(1) `provar-novo-registo-e-ciclo.js` e `provar-cabecalho-do-ato.js`
-dependem do Chrome, e neste ambiente o `goto` expira — **antes desta mudança também expirava** (medido
-com `git stash`), e um deles lê um envelope da escola `breu`, que já foi expurgada. O ciclo do PO
-nessas duas provas (que exigiam a LISTA) fica por actualizar quando houver navegador. (2) A ordem
-visual: o ciclo aparece ANTES do plano no cabeçalho, e o valor só existe depois de o plano ser
-escolhido no primeiro bloco — é o que ela descreveu («quando eu escolho ele, automaticamente ele tem
-que preencher»), mas quem abrir a página verá «—» até escolher. Se incomodar, o plano sobe para o
-cabeçalho; não se fez porque o cabeçalho é do AMBIENTE (quem, onde, que ciclo) e o plano é conteúdo.
+A prova ao vivo é a próxima escola criada: só ela exercita o passo 1
+aberto numa escola sem retratos, com o elenco a ser nomeado e gravado a partir do nada.
 
-## 06/11/2026 — O Plano de Observação enxuga: sete nós saem, e o recorte do corpo entra
+## 07/11/2026 — A proveniência é auditada antes do expurgo — e o elo guarda o que existia
 
-(1) O **pré-preenchimento** dos itens de cada dimensão a partir dos
-parâmetros do plano — depende de ela decidir. (2) `provar-expurgo-raiz` **explode** numa asserção
-(`local.em`), `provar-numeros-do-roteiro` reprova **6 de 29** e `provar-leituras-do-po` **nem corre**
-(lê `escola/batata/envelopes/plano-20261027-1025.json`, e a escola foi expurgada) — os três **já
-falhavam antes desta mudança** (medidos com `git stash`, no HEAD); não foram tocados, e ficam
-registados para não passarem por regressão. (3) A
-frase do cabeçalho do PO para a turma sem linha de base diz «nenhuma — esta turma ainda não recebeu
-linha de base (Corpo → passo 5)»: com o painel do corpo a dizer o mesmo por outras palavras, as duas
-merecem unificar-se quando alguém passar por lá.
+A auditoria da metade do repositório **não recalcula o hash** (é
+subprocesso de Node; o Worker não os corre) — confere estrutura, e diz isso no campo `fases`. A
+prova ao vivo do 409 é a próxima escola a expurgar pela página: até lá, o caminho está medido com um
+GitHub falso. E o `provar-expurgo-raiz` continua a explodir no ramo dos tokens ausentes, por um
+defeito anterior que ficou registado e não corrigido.
 
----
+## 07/11/2026 — O passo 2 do Elenco diz o que falta, e leva lá
 
-## 06/11/2026 — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e era o sítio que faltava)
-
-(1) `provar-painel-do-ato` (Chrome) continua **NÃO FEITO** nesta
-máquina — «nenhuma publicação para servir», porque a escola publicada foi expurgada. A bancada foi
+A prova ao vivo é a próxima escola criada sem anamneses: só ela
+exercita o estado vazio a correr, e a volta do foco depois de a anamnese ser preenchida no outro
+separador. O `?voltar=` na página da anamnese **não** foi acrescentado — a volta é a do navegador,
+mais o reler automático; um parâmetro novo na porta seria outra mudança, noutra superfície.
 
 ## Pendências anteriores (índice)
 
@@ -729,11 +617,14 @@ máquina — «nenhuma publicação para servir», porque a escola publicada foi
 - **05/11/2026** — «O que já é bom» ficava vazio porque o apoio da observação… → `REGISTRO.md` L36452
 - **05/11/2026** — «O que já é bom» passa a ser o que ALGUMA aluna tem de bom,… → `REGISTRO.md` L36519
 - **05/11/2026** — O índice do recorte: o que os professores olham no corpo, e… → `REGISTRO.md` L36578
-- **pe-torto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- PO de **rabo-gramde · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **rabo-gramde · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **05/11/2026** — O cabeçalho que faltava: uma lista de `User-Agent`, e um… → `REGISTRO.md` L37035
+- **06/11/2026** — O índice não é recorte: o ficheiro da casa entrou como dado… → `REGISTRO.md` L37142
+- **06/11/2026** — O ciclo do Plano de Observação deixa de se escrever → `REGISTRO.md` L37177
+- **06/11/2026** — O Plano de Observação enxuga: sete nós saem, e o recorte do… → `REGISTRO.md` L37266
+- **06/11/2026** — O ciclo do PO também não se escreve NA ÁREA DO PROFESSOR (e… → `REGISTRO.md` L37373
+- **07/11/2026** — O expurgo da última escola derrubava o job: «nada a fazer»… → `REGISTRO.md` L38914
+- **07/11/2026** — O repositório limpo para o novo ciclo de testes: três… → `REGISTRO.md` L38967
+- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
