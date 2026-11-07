@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "b37006f81d3b500f8d4689eb3fc9fbea3cc25313607b2dea084316d2f2da3c8c",
+        "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:colo-de-pe/01/breu",
       "numero": "01",
       "professor": "colo-de-pe",
-      "sem_ancora": true
+      "sem_ancora": false
     },
     {
       "ancora": {
@@ -74,7 +79,7 @@
         "anamneses": 1,
         "aulas": 0,
         "ciclos": 2,
-        "ciclos_com_ancora": 1,
+        "ciclos_com_ancora": 2,
         "planos": 1,
         "pos": 0,
         "recortes": 0,
@@ -158,14 +163,9 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -270,9 +270,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "16aaf05"
+    "commit": "f1182e1"
   },
-  "gerado_em": "2026-11-07T15:17",
+  "gerado_em": "2026-11-07T15:34",
   "nao_indexado": [
     {
       "familia": "conteudo",

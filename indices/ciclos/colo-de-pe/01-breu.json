@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-07",
+    "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+    "cobertura": [
+      "professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
+    ],
+    "hash": "b37006f81d3b500f8d4689eb3fc9fbea3cc25313607b2dea084316d2f2da3c8c",
+    "hash_conteudo": "f721cf587a96bf3ff5b0e93a55c68bf6fa8d699bfedf164d43dedeb9fa0a635e",
+    "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "documento:manifesto:professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
     "documento:plano:professores/colo-de-pe/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md"
   ],
   "escola": "breu",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "16aaf05"
+    "commit": "f1182e1"
   },
-  "gerado_em": "2026-11-07T15:17",
+  "gerado_em": "2026-11-07T15:34",
   "id": "ciclo:colo-de-pe/01/breu",
   "professor": "colo-de-pe",
   "versao": 6
