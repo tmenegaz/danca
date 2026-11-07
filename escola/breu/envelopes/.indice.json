@@ -1,7 +1,8 @@
 {
   "versao": 4,
   "nomes": [
-    "anamnese-20261107-1308.json"
+    "anamnese-20261107-1308.json",
+    "plano-20261107-1314.json"
   ],
   "resumos": {
     "anamnese-20261107-1308.json": {
@@ -13,6 +14,22 @@
       "ajuste_de": null,
       "gerado_em": "2026-11-07T13:08",
       "aluna": "Aluna A"
+    },
+    "plano-20261107-1314.json": {
+      "id": "plano-20261107-1314",
+      "fonte": "plano",
+      "escola": "breu",
+      "professor": "colo-de-pe",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-07T13:14",
+      "objetivo": "Teste",
+      "turma": "Sala Rosa",
+      "repertorio": [
+        "Battement tendu",
+        "Plié"
+      ],
+      "professorNome": "colo-de-pe"
     }
   }
 }
