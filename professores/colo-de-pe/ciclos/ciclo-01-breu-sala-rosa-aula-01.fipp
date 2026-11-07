@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-breu-sala-rosa: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-breu-sala-rosa-aula-01
+type: Aula
+professor: colo-de-pe
+ciclo: 01
+variante: breu-sala-rosa
+aula: 01
+hash_conteudo: 47596c4b3a15d1c1224eca79d8a61ec81e6b623909d4aead1de925c1e29f32e1
+parentHash: 
+hash: ee32bcb67a1cb5a840d9ee2e0a048a9fbc656a9c2e4969b4c29559d56d063367
+algoritmo: SHA-256
+ancorado_em: 2026-11-07
+cobertura:
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md

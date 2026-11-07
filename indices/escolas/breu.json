@@ -1,26 +1,87 @@
 {
   "aspectos": [],
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-07",
+        "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp",
+        "cobertura": [
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md"
+        ],
+        "hash": "ee32bcb67a1cb5a840d9ee2e0a048a9fbc656a9c2e4969b4c29559d56d063367",
+        "hash_conteudo": "47596c4b3a15d1c1224eca79d8a61ec81e6b623909d4aead1de925c1e29f32e1",
+        "id": "ciclo-01-breu-sala-rosa-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "documento": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+      "id": "ciclo:colo-de-pe/01/breu/aula-01",
+      "numero": "01"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
         "algoritmo": "SHA-256",
         "ancorado_em": "2026-11-07",
-        "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
+        "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
         "cobertura": [
-          "professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.json",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-glossario-benesh.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-harmonizacao.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-notacao.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-plano.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-referencias.md",
+          "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
           "professores/colo-de-pe/ciclos/ciclo-01.conf"
         ],
-        "hash": "a7711bd178b7f4555171d35c7aabbfa3b3d5f1e8e0915432b1a0367d689e63e0",
-        "hash_conteudo": "f0cd2bcfe849b2b5c567a57c34e13bbd55c02a34534f4b4d8574ad3f92832fdc",
-        "id": "ciclo-01-breu",
+        "hash": "a14199322a3995d8758c5fc792f6a1329c9cd0f3e3e2d423bcb3dcb842583269",
+        "hash_conteudo": "774449f13754c1c29123f0c56d237204180669b99f4aaa59b45d4b588c34610c",
+        "id": "ciclo-01-breu-sala-rosa",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-07",
+            "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp",
+            "cobertura": [
+              "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+              "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md"
+            ],
+            "hash": "ee32bcb67a1cb5a840d9ee2e0a048a9fbc656a9c2e4969b4c29559d56d063367",
+            "hash_conteudo": "47596c4b3a15d1c1224eca79d8a61ec81e6b623909d4aead1de925c1e29f32e1",
+            "id": "ciclo-01-breu-sala-rosa-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+          "id": "ciclo:colo-de-pe/01/breu/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.cifrado.json",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.json",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-glossario-benesh.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-harmonizacao.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-notacao.md",
         "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-plano.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-referencias.md",
         "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
+        "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
         "professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
         "professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
         "professores/colo-de-pe/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -34,15 +95,40 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
+        "aula",
+        "dados",
+        "glossario",
+        "harmonizacao",
         "manifesto",
+        "notacao",
         "plano",
+        "po",
+        "referencias",
         "schema"
       ]
     }
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.fipp",
+      "professor": "colo-de-pe",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.fipp",
+      "professor": "colo-de-pe",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
       "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu.fipp",
       "ciclo_id": "ciclo:colo-de-pe/01/breu",
       "escola": "breu",
@@ -51,7 +137,61 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md",
+      "professor": "colo-de-pe",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md",
+      "professor": "colo-de-pe",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.cifrado.json",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.cifrado.json",
+      "professor": "colo-de-pe",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.json",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.json",
+      "professor": "colo-de-pe",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-glossario-benesh.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:glossario:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-glossario-benesh.md",
+      "professor": "colo-de-pe",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-harmonizacao.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:harmonizacao:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-harmonizacao.md",
+      "professor": "colo-de-pe",
+      "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
       "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf",
       "ciclo_id": "ciclo:colo-de-pe/01/breu",
       "escola": "breu",
@@ -60,7 +200,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-sala-rosa",
       "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:colo-de-pe/01/breu",
       "escola": "breu",
@@ -69,7 +209,16 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-notacao.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:notacao:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-notacao.md",
+      "professor": "colo-de-pe",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
       "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-plano.md",
       "ciclo_id": "ciclo:colo-de-pe/01/breu",
       "escola": "breu",
@@ -78,7 +227,25 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:po:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md",
+      "professor": "colo-de-pe",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
+      "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-referencias.md",
+      "ciclo_id": "ciclo:colo-de-pe/01/breu",
+      "escola": "breu",
+      "id": "documento:referencias:professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-referencias.md",
+      "professor": "colo-de-pe",
+      "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-sala-rosa",
       "caminho": "professores/colo-de-pe/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:colo-de-pe/01/breu",
       "escola": "breu",
@@ -93,13 +260,13 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 0,
+      "pos": 1,
       "recortes": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-07T16:03:29.499378+00:00",
     "expurgada": false,
@@ -114,17 +281,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261107-1308",
-      "plano:plano-20261107-1314"
+      "plano:plano-20261107-1314",
+      "po:po-20261107-1315"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261107-1308",
-          "plano:plano-20261107-1314"
+          "plano:plano-20261107-1314",
+          "po:po-20261107-1315"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -143,11 +312,12 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261107-1308",
           "ciclo:colo-de-pe/01/breu",
-          "plano:plano-20261107-1314"
+          "plano:plano-20261107-1314",
+          "po:po-20261107-1315"
         ],
         "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
@@ -177,14 +347,22 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "po:po-20261107-1315"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "c6cf790"
+    "commit": "6775610"
   },
-  "gerado_em": "2026-11-07T16:14",
+  "gerado_em": "2026-11-07T16:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -230,6 +408,16 @@
       "professor": "colo-de-pe",
       "tipo": "plano",
       "turma": "Sala Rosa"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261107-1315",
+      "ciclo": "01",
+      "data": "2026-11-07T13:15",
+      "id": "po:po-20261107-1315",
+      "professor": "colo-de-pe",
+      "tipo": "po"
     }
   ],
   "versao": 6

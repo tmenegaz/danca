@@ -10,12 +10,12 @@ type: Ciclo
 professor: colo-de-pe
 ciclo: 01
 variante: breu-sala-rosa
-hash_conteudo: 1df018aef56932ac28a3f42ad4f03702a3fa8c3383dc5402adf28836f2ee3516
+hash_conteudo: 774449f13754c1c29123f0c56d237204180669b99f4aaa59b45d4b588c34610c
 parentHash: 
-hash: 60f8eeb8c87d597b4539faa95fbc6a2241b1c06dacf5bb836681cec9b6cc4ea8
+hash: a14199322a3995d8758c5fc792f6a1329c9cd0f3e3e2d423bcb3dcb842583269
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-07
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 38
 notacao_sha: 7f9abec14ccacfbb35864a1f8e307518683a23794e3cb80a1fb8573e2d3e81b6
 cobertura:
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-aula-01.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-captura-aula-01.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-dados.json
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-glossario-benesh.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-harmonizacao.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-notacao.md
   - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-plano.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-po.md
+  - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa-referencias.md
   - professores/colo-de-pe/ciclos/ciclo-01-breu-sala-rosa.conf
   - professores/colo-de-pe/ciclos/ciclo-01.conf
