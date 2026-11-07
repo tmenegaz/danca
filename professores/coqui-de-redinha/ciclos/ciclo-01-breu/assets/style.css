@@ -1847,11 +1847,30 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .paginas-info { font: 13px/1 var(--ui); letter-spacing: .04em; }
 
 .trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0 0; }
-/* EM 320px TRÊS COLUNAS NÃO CABEM: cada uma fica com 78px, e «CONTEÚDOS» a .66rem com
+/* EM 320px TRÊS COLUNAS NÃO CABEM: cada uma fica com 78px, e o rótulo a .66rem com
    `letter-spacing` precisa de mais do que isso — medido, transbordava 7px. Abaixo de 360 a fila
    passa a uma coluna e a célula fica larga; é o único ponto em que o desenho cede à largura em
    vez de truncar a palavra. */
 @media (max-width: 360px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+
+/* DUAS COLUNAS — O CARTÃO QUE FICOU COM DOIS FACTOS (07/11/2026).
+ *
+ * A `.trio` é de TRÊS porque é essa a forma de todas as listas do acervo: a primeira caixa diz
+ * «de quem é», a segunda «quem fez», a terceira «quando» (ver `motor/nucleo/lista-html.js`). O
+ * cartão da SALA não tem três: ficou com o RITMO em que a aula ocorre e a RÉGUA com que se mede —
+ * o terceiro número era «Conteúdos», e o conteúdo da aula passou a ser da Turma.
+ *
+ * Deixá-lo na `.trio` faria o desenho dizer o que já não é verdade: duas caixas de um terço cada
+ * e um TERÇO VAZIO à direita, que se lê como dado em falta. A modificação existe para o cartão
+ * dizer «dois» sem inventar um terceiro, e sem que as outras listas percam a forma delas.
+ *
+ * O nome é o da classe que a acompanha (`trio-duo`), e não um `:has()`: o desenho não adivinha
+ * quantos filhos tem — quem emite a marcação sabe. */
+.trio.trio-duo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* A MESMA CEDÊNCIA DE 360px, e tem de ser escrita: `.trio.trio-duo` tem DUAS classes e vence a
+   regra de uma do bloco de cima, tenha ela `@media` ou não — a especificidade não olha para a
+   largura. Sem esta linha, o cartão da sala ficaria com duas colunas num telefone de 320px. */
+@media (max-width: 360px) { .trio.trio-duo { grid-template-columns: minmax(0, 1fr); } }
 
 /* A CÉLULA É O CONTROLE. Na Produção era uma `<div>` com um `<button class="q">` de 20px
    dentro; o alvo de toque medido era o do «?», e não o da caixa. Um alvo de 20px num telefone

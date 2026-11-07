@@ -224,6 +224,12 @@ experimentos/propostas/*
 # controle negativo do schema sozinho. Citada no `REGISTRO.md`.
 !experimentos/provar-declaracao-da-captura.js
 
+# A SALA, O ELENCO E A TURMA SÃO TRÊS COISAS INDEPENDENTES (07/11/2026). A trava antiga pedia uma
+# «sala» (turma) para deixar criar um elenco, e o campo «Nome do elenco» nascia morto numa escola
+# nova. Mede o cartão da sala sem a coluna dos conteúdos, a criação do elenco pelo `POST` sem
+# anamnese e sem turma, o passo 1 aberto e o 2 fechado, e a sala que só recebe turma com ritmo.
+!experimentos/provar-salas-e-elencos.js
+
 # A PROVA DAS ESCOLAS DE TESTE (19/10/2026): o fixture que nasce do sufixo do slug e a
 # regra «só preenche, não envia» — a prova que separa o atalho de teste de uma escrita no
 # motor. É citada pelo nome no README e no `experimentos/README.md`.

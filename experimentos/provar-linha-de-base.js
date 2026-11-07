@@ -1197,7 +1197,17 @@ async function chamar(env, caminho, opcoes) {
     dom.window.close();
   });
 
-  await okAsync('sem anamnese nenhuma, a página fecha tudo e diz porquê', async () => {
+  /* SEM ANAMNESE, O QUE ABRE E O QUE ESPERA (07/11/2026).
+   *
+   * A PROVA DE ANTES MEDIA A TRAVA ANTIGA: «nenhum passo se abre sem anamnese», e o passo 1
+   * incluído. Era essa a trava que impedia criar um elenco numa escola recém-criada — o campo
+   * «Nome do elenco» nascia morto, e não havia como nomear o elenco antes do primeiro retrato.
+   * A regra passou a ser a do que cada passo PRECISA: nome e professor não vêm de retrato nenhum
+   * (passo 1 abre); o corpo que se recorta é o das alunas (passos 2, 3 e 4 esperam a anamnese).
+   *
+   * A prova deixou de afirmar «tudo fechado» e passou a afirmar as duas metades: o que abre sem
+   * retrato, e o que declara por que espera. */
+  await okAsync('sem anamnese nenhuma, o passo 1 abre e os passos 2 a 4 dizem por que esperam', async () => {
     let JSDOM, VirtualConsole;
     ({ JSDOM, VirtualConsole } = require('jsdom'));
     const vc = new VirtualConsole();
@@ -1224,12 +1234,24 @@ async function chamar(env, caminho, opcoes) {
     const aviso = win.document.getElementById('lb-sem-anamnese');
     assert.strictEqual(aviso.hidden, false, 'o aviso do estado vazio tem de aparecer');
     assert.ok(/anamnese/i.test(aviso.textContent), 'e tem de dizer que falta a anamnese');
-    for (const n of [1, 2, 3, 4]) {
-      const b = win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
-      assert.strictEqual(b.disabled, true, 'o passo ' + n + ' fica fechado');
+    // O aviso não pode dizer «nenhum passo se abre»: ele agora mente, e quem o lê desiste do
+    // que podia fazer. Tem de dizer que o elenco PODE ser nomeado.
+    assert.ok(/elenco/i.test(aviso.textContent) && /nomear|gravar/i.test(aviso.textContent),
+      'o aviso tem de dizer que o elenco pode ser nomeado agora');
+    const passo = (n) => win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
+    assert.strictEqual(passo(1).disabled, false,
+      'o passo 1 abre sem anamnese — nome e professor não vêm de retrato nenhum');
+    for (const n of [2, 3, 4]) {
+      assert.strictEqual(passo(n).disabled, true, 'o passo ' + n + ' espera a anamnese');
+      assert.ok(/anamnese/i.test(passo(n).getAttribute('title') || ''),
+        'o passo ' + n + ' diz que espera a anamnese, e não só que está fechado');
     }
+    /* «SEGUIR» FECHADO, MAS PELO MOTIVO CERTO: falta o NOME (e o professor), não a anamnese.
+     * É a diferença entre um formulário que pede o que precisa e um que pede o que não tem. */
     assert.strictEqual(win.document.getElementById('lb-seguir').disabled, true);
-    assert.ok(win.faltasDoPassoLb(1).length > 0, 'todos os passos têm falta declarada');
+    assert.ok(win.faltasDoPassoLb(1).length > 0, 'o passo 1 declara o que lhe falta — o nome');
+    assert.ok(!win.faltasDoPassoLb(1).some((f) => /anamnese/i.test(f)),
+      'e o que lhe falta não é a anamnese');
     dom.window.close();
   });
 

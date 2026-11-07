@@ -19,7 +19,8 @@
  *
  * O que se prova:
  *
- *   1. três métricas por cartão, com a MESMA largura, e nenhuma transborda — em 1280,
+ *   1. DUAS métricas por cartão — RITMO e RÉGUA, com a MESMA largura, e nenhuma transborda —
+ *      em 1280,
  *      1024, 768, 414, 390 e 320px;
  *   2. a página não estoura na horizontal em nenhuma dessas larguras;
  *   3. abrir o painel da régua abre SÓ o da régua, e a célula acende;
@@ -246,12 +247,15 @@ const LI = 'li.turma[data-turma="tu1"]';
         estouroDaPagina: document.documentElement.scrollWidth - window.innerWidth,
       };
     }, LI);
-    provar(`@${w} · o cartão da turma existe e tem três métricas`, r.existe && r.quantas === 3, r.quantas);
-    // As três métricas são `1fr` cada: a diferença entre elas é o arredondamento, não o desenho.
-    provar(`@${w} · as três métricas têm a mesma largura`,
+    /* DUAS, E NÃO TRÊS (07/11/2026). O cartão da sala tinha Ritmo, Régua e Conteúdos; o
+     * terceiro número saiu porque o conteúdo da aula é da TURMA, e uma sala que diz «Conteúdos:
+     * N» afirma o que já não é dela. O cartão passou a `trio trio-duo`, e é isso que se mede. */
+    provar(`@${w} · o cartão da sala existe e tem DUAS métricas`, r.existe && r.quantas === 2, r.quantas);
+    // As duas métricas são `1fr` cada: a diferença entre elas é o arredondamento, não o desenho.
+    provar(`@${w} · as duas métricas têm a mesma largura`,
       r.existe && Math.max(...r.larg) - Math.min(...r.larg) <= 2, r.larg);
     // A altura igual importa: uma métrica mais alta que as outras desalinha a fila.
-    provar(`@${w} · as três métricas têm a mesma altura`,
+    provar(`@${w} · as duas métricas têm a mesma altura`,
       r.existe && Math.max(...r.alturas) - Math.min(...r.alturas) <= 1, r.alturas);
     provar(`@${w} · nenhuma métrica transborda`,
       r.existe && r.transborda.every((x) => x <= 1), r.transborda);
@@ -286,9 +290,9 @@ const LI = 'li.turma[data-turma="tu1"]';
   const inicial = await estado();
   // `estado()` devolve `null` quando o cartão não existe, e `.every` num array vazio PASSA:
   // era assim que esta prova se dava por boa sem ter medido nada. O `inicial &&` corta isso.
-  provar('os três painéis nascem FECHADOS, e o cartão tem os três «?»',
-    Boolean(inicial) && inicial.paineis.length === 3 && inicial.paineis.every((p) => p.oculto)
-      && inicial.botoes.length === 3,
+  provar('os DOIS painéis nascem FECHADOS, e o cartão tem os dois «?»',
+    Boolean(inicial) && inicial.paineis.length === 2 && inicial.paineis.every((p) => p.oculto)
+      && inicial.botoes.length === 2,
     inicial && { paineis: inicial.paineis.length, botoes: inicial.botoes.length });
 
   await abrir('regua');
@@ -298,26 +302,29 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e a célula diz que está aberta',
     botao(e, 'regua').expandido === 'true');
 
-  await abrir('conteudos');
+  /* ABRIR UM FECHA O OUTRO — agora com DOIS. O par que se mede é (régua, ritmo): o dos conteúdos
+   * saiu a 07/11/2026, e uma prova que o abrisse estaria a medir um botão que não existe (o
+   * `abrir` engole o clique que não acha o alvo, e quem reprovaria seria a asserção seguinte). */
+  await abrir('ritmo');
   e = await estado();
-  provar('abrir o dos conteúdos FECHA o da régua', painel(e, 'regua').oculto === true);
-  provar('…e o dos conteúdos abre', painel(e, 'conteudos').oculto === false);
+  provar('abrir o do ritmo FECHA o da régua', painel(e, 'regua').oculto === true);
+  provar('…e o do ritmo abre', painel(e, 'ritmo').oculto === false);
   provar('…e a célula anterior apaga', botao(e, 'regua').expandido === 'false');
 
-  await abrir('conteudos');
+  await abrir('ritmo');
   e = await estado();
-  // Os três `.length === 3` não são zelo: `.every` num array VAZIO PASSA, e sem eles as
+  // Os dois `.length === 2` não são zelo: `.every` num array VAZIO PASSA, e sem eles as
   // duas provas abaixo davam «ok» no controle negativo, onde não há painel nem botão nenhum.
   provar('tocar outra vez no mesmo «?» fecha',
-    Boolean(e) && e.paineis.length === 3 && e.paineis.every((p) => p.oculto));
+    Boolean(e) && e.paineis.length === 2 && e.paineis.every((p) => p.oculto));
   provar('…e nenhuma célula fica acesa',
-    Boolean(e) && e.botoes.length === 3 && e.botoes.every((b) => b.expandido === 'false'));
+    Boolean(e) && e.botoes.length === 2 && e.botoes.every((b) => b.expandido === 'false'));
 
   await abrir('ritmo');
   await pg.keyboard.press('Escape');
   const depoisDoEscape = await estado();
   provar('`Escape` fecha o painel',
-    Boolean(depoisDoEscape) && depoisDoEscape.paineis.length === 3
+    Boolean(depoisDoEscape) && depoisDoEscape.paineis.length === 2
       && depoisDoEscape.paineis.every((p) => p.oculto === true));
 
   // ---- 7: a escala da régua, com a cor certa POR NOME --------------------------------
@@ -521,8 +528,9 @@ const LI = 'li.turma[data-turma="tu1"]';
   //   3. (03/11/2026) e a dos CONTEÚDOS saiu do passo 3 também: o conteúdo é ato pedagógico, e
   //      o passo 3 ficou só com a régua. Ver `provar-conteudos-e-estado-da-turma.js`.
   //
-  // As provas abaixo medem as três coisas: o que o painel do cartão deixou de ter, o que os
-  // dois formulários deixaram de ter, e o que o passo 3 passou a ter.
+  // As provas abaixo medem as três coisas: o que o painel do cartão deixou de ter (e, desde
+  // 07/11/2026, que ele já não existe), o que os dois formulários deixaram de ter, e o que o
+  // passo 3 passou a ter.
 
   await pg.evaluate(() => { location.hash = '#turmas'; });
   await pg.waitForFunction(() => {
@@ -530,24 +538,28 @@ const LI = 'li.turma[data-turma="tu1"]';
     return s && !s.hidden;
   }, { timeout: 5000 });
 
+  /* O PAINEL DOS CONTEÚDOS SAIU INTEIRO A 07/11/2026 — e as quatro asserções acima, que mediam o
+   * que ele deixou de ter, passam a medir que ele NÃO EXISTE. A ordem é a mesma das outras: o
+   * cartão da sala não fala de conteúdos em nenhum sítio, nem no número nem no painel.
+   *
+   * O que continua a valer, e continua a ser medido abaixo: o conteúdo da aula é da TURMA
+   * (`#esc-conteudos`), e o formulário da sala não tem o bloco. */
   const painelDeConteudos = await pg.evaluate((sel) => {
     const l = document.querySelector(sel);
     if (!l) return null;
-    const p = l.querySelector('.trio-painel[data-painel="conteudos"]');
-    if (!p) return { tem: false };
     return {
-      tem: true,
-      chips: p.querySelectorAll('.chip').length,
-      temSeletor: Boolean(p.querySelector('.sel-termo')),
-      temAssociar: Boolean(p.querySelector('.associar')),
-      temRemover: p.querySelectorAll('button.desassociar').length,
+      temPainel: Boolean(l.querySelector('.trio-painel[data-painel="conteudos"]')),
+      temBotao: Boolean(l.querySelector('.trio-item[data-balao="conteudos"]')),
+      quantosPaineis: l.querySelectorAll('.trio-painel').length,
+      quantosBotoes: l.querySelectorAll('.trio-item').length,
     };
   }, LI);
-  provar('o painel dos conteúdos mostra os chips',
-    painelDeConteudos && painelDeConteudos.tem && painelDeConteudos.chips === 2, painelDeConteudos);
-  provar('…e NÃO tem o seletor de associação', painelDeConteudos && painelDeConteudos.temSeletor === false, painelDeConteudos);
-  provar('…nem o botão «Associar»', painelDeConteudos && painelDeConteudos.temAssociar === false, painelDeConteudos);
-  provar('…nem o «×» de remover', painelDeConteudos && painelDeConteudos.temRemover === 0, painelDeConteudos);
+  provar('o cartão da sala NÃO tem o painel dos conteúdos',
+    painelDeConteudos && painelDeConteudos.temPainel === false, painelDeConteudos);
+  provar('…nem o botão que o abria', painelDeConteudos && painelDeConteudos.temBotao === false, painelDeConteudos);
+  provar('…e os painéis e os botões são DOIS, um por facto que a sala tem',
+    painelDeConteudos && painelDeConteudos.quantosPaineis === 2 && painelDeConteudos.quantosBotoes === 2,
+    painelDeConteudos);
 
   // O FORMULÁRIO DA TURMA NÃO TEM MAIS O BLOCO — ele só cria a turma.
   const noCadastro = await pg.evaluate(() => ({

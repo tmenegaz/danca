@@ -39154,3 +39154,82 @@ mudança** — medida no `20981a49`) · `check-indices` **16/16** · `gerar-indi
 **O que ainda não está feito.** A prova ao vivo continua a ser a primeira escola criada: é ela que
 exercita o escritor a gravar a declaração no arquivo novo e o `gerar-ciclo.sh` a passá-la ao
 validador, de ponta a ponta. Até lá, o que está provado é o contrato e o caminho, não a geração.
+
+## 07/11/2026 — A sala diz o que é dela, e o elenco deixa de esperar por uma anamnese
+
+**O que motivou.** Três pedidos, feitos juntos, sobre o fluxo de produção da escola que está a ser
+testada:
+
+1. Tirar da listagem das salas a coluna **«Conteúdos»**, que já não existe, e deixar só o **ritmo**
+   e a **régua**.
+2. Tirar a trava antiga que impedia criar um **elenco** quando não havia «sala» (a antiga turma) —
+   e tornar visível e editável o campo **«Nome do elenco»**.
+3. Verificar se criar uma **sala** está a desobstruir e a ativar o plano da **tabela de
+   atividades**.
+
+**O que a investigação achou.**
+
+1. **A coluna era um terceiro número num cartão de dois factos.** O conteúdo da aula deixou de ser
+   da sala a 03/11/2026 (passou a `repertorio` da turma), e a associação já tinha saído da listagem
+   a 18/10/2026 — mas o cartão continuava a mostrar «Conteúdos: N», com os chips por trás de um
+   «?». Não era um dado velho a limpar: era uma **afirmação falsa** sobre quem é o conteúdo.
+2. **A trava não estava onde parecia.** `faltasDoPassoLb` começava com `if (!haAnamnese()) return
+   [...]` — para **todos** os passos, incluindo o primeiro. `travarTudo` desligava o campo
+   `lb-nome`, e o passo 1 nunca abria. Numa escola recém-criada (antes do primeiro retrato) a
+   secção do Elenco nascia **morta**: não havia como nomear o elenco que se queria criar. O
+   servidor, esse, sempre aceitou o rascunho sem campos (`rascunho: true`): a trava era só da
+   página.
+3. **A tabela de atividades não existe como código.** `PLANO-TABELA-DE-ATIVIDADES.md` diz «nada foi
+   implementado», e não há arquivo em `motor/servidor/` que a trate. O que criar uma sala
+   desobstrui é outra coisa, e está medido: a **turma** não se atribui a uma sala sem ritmo e
+   atribui-se a uma que o tenha; e é a turma que o **plano de ensino** lê.
+
+**O que foi decidido.**
+
+1. O cartão da sala fica com **duas** caixas — Ritmo e Régua — e a marcação passa a `trio trio-duo`.
+   A modificação nasce na folha, com a cedência de 360px escrita ao lado (`.trio.trio-duo` tem duas
+   classes e vence a regra de uma do bloco de cima, `@media` ou não). O `relObj` continua calculado:
+   é o formulário da turma que o lê.
+2. **O que cada passo precisa é o que o fecha.** O passo 1 pede nome e professor — a identificação
+   do ato, que não vem de retrato nenhum. Os passos 2 e 3 pedem a anamnese de pelo menos uma aluna;
+   o 4, o recorte. `travarTudo` deixa de desligar `lb-nome` e `lb-professor`, e passa a fechar só os
+   botões que leem o acervo (`lb-ler`, `lb-mais`); «Seguir» e «Concluir» ficam com `pintarTravasLb`,
+   que conhece a regra de cada passo — e que agora também corre no caminho de erro da busca.
+3. Quando o passo não abre, **diz-se por quê**: o «Seguir» sem nome escreve o motivo na resposta, e
+   o elenco gravado informa que falta para seguir. O aviso de escola sem anamnese deixou de dizer
+   «nenhum passo se abre» — diz o que abre (nomear e gravar o elenco) e o que espera (os passos 2 a
+   4). Um aviso que mente sobre o que está disponível faz desistir do que se podia fazer.
+
+**O achado que fica registado, e não foi corrigido aqui.** O `.conf` da escola viva está com
+`DOCS=""` e o pacote dela tem conteúdo: `tools/gerar-ciclo.sh` **recusa** regerá-lo («o ciclo não
+tem fonte nenhuma»). O pacote vem de `tools/criar-escola.sh`, que monta as páginas de ferramenta
+sem documentos. Não é um defeito desta mudança, mas é a razão pela qual a cópia da folha no pacote
+foi sincronizada por `cp` — a mesma operação que o gerador faz —, e não por uma geração. O
+`check-pacote` desse pacote falha por oito razões da mesma família (sem aulas, sem PDF, sem dados),
+todas anteriores a este commit.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` (`CONGELAMENTO.md`) muda porque
+a folha é **a única** fonte do desenho: a coluna que saiu do cartão arrastava a `.trio` de três para
+duas caixas, e a alternativa seria a marcação do motor carregar estilo próprio — exatamente o que a
+folha existe para impedir. A `.trio` de três continua intacta (é a forma de todas as listas do
+acervo); o que nasce é uma **modificação** dela. **O que não muda:** nenhuma classe existente, nenhum
+token, nenhuma peça desenhada — só uma regra nova e a cedência de 360px que a especificidade exige.
+`raiz/assets/style.css` e a cópia no pacote são regenerações da mesma fonte.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o cartão, a tira, as travas, os avisos) ·
+`tools/templates/ciclo.css` (`.trio.trio-duo`) · `raiz/assets/style.css` e a cópia no pacote da
+escola (regeneradas) · `experimentos/provar-salas-e-elencos.js` (novo, 21 asserções) ·
+`experimentos/provar-cartao-da-turma.js` e `provar-linha-de-base.js` (passam a medir a regra nova) ·
+`.gitignore` (a prova nova entra no Git).
+
+**Validação.** `provar-salas-e-elencos` **21/21** · `provar-producao` **166/166** ·
+`provar-linha-de-base` **102/102** · `provar-cartao-da-turma` **2 falhas, as duas anteriores**
+(medidas em `origin/main`: «o termo mostra TODAS as turmas» e «com as alunas da curadoria já nas
+fichas») · `provar-enquadramento-da-turma` **verde** · `provar-conteudos-e-estado-da-turma`
+**verde** · `provar-celular` **15/15** · `check-identidade` **0 erros, com os pacotes** ·
+`check-indices` **16/16** · `gerar-indices --check` **0** · `gerar-relacoes --check` **0** ·
+`check-github-headers` **5/5** · `hash-ciclo --check` da escola viva **íntegro** (a âncora cobre
+`.conf` e `.md`, não os assets).
+
+**O que ainda não está feito.** A prova ao vivo é a próxima escola criada: só ela exercita o passo 1
+aberto numa escola sem retratos, com o elenco a ser nomeado e gravado a partir do nada.

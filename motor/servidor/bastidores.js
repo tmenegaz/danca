@@ -2453,19 +2453,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // hidden>` por turma que ninguém lê é peso morto na página.
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
-        const associados = Array.isArray(relObj[t.id]) ? relObj[t.id] : [];
-        const nomesAssociados = associados.map((tid) => {
-          const o = termoPorId.get(tid);
-          return o ? o.termo : tid;
-        });
-        // A ASSOCIAÇÃO SAIU DA LISTAGEM (18/10/2026), e o cartão ficou de LEITURA: quem abre o
-        // «?» dos conteúdos vê QUAIS são, e mais nada.
-        //
-        // E A 03/11/2026 O CARTÃO PASSOU A LER O MAPA COMPOSTO (`relObj` já vem de
-        // `conteudosDaEscola`): o que a turma aprende é o mapa antigo somado ao que as curadorias
-        // dela declaram. O cartão não mudou de desenho; mudou de fonte, e passou a mostrar a
-        // verdade inteira sem que ninguém tenha migrado nada.
-        const chips = nomesAssociados.map((n) => '<span class="chip">' + esc(n) + '</span>').join(' ');
+        /* A COLUNA «CONTEÚDOS» SAIU DO CARTÃO A 07/11/2026 — e com ela o que só ela lia.
+         *
+         * A ASSOCIAÇÃO já tinha saído da listagem a 18/10/2026 (o cartão ficou de LEITURA), e o
+         * mapa composto entrou a 03/11/2026. Mas o cartão continuava a mostrar um TERCEIRO número
+         * — «Conteúdos: N» com os chips por trás — numa entidade que já não tem conteúdos: o
+         * conteúdo da aula passou a ser da TURMA (antiga curadoria), no campo `repertorio` dela.
+         *
+         * A SALA DIZ O QUE É DELA: o RITMO em que a aula ocorre, e a RÉGUA com que se mede. Os
+         * dois são do cadastro da sala; o conteúdo é de quem ensina.
+         *
+         * O QUE FICA: `relObj` continua calculado (o formulário da Turma e a lista de termos leem
+         * o mapa composto), e `termoPorId` continua a servir quem o lê. O que sai daqui é apenas
+         * a leitura que não tem mais onde aparecer.
+         */
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
         const diasTexto = (t.dias && t.dias.length)
@@ -2632,11 +2633,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // mostrar a escala — o painel é LEITURA. A edição da rubrica passou a ser uma das
         // três coisas que o «Editar» do cartão da turma abre, e um segundo botão de edição
         // era exatamente a duplicação que o dono do produto mandou remover.
-        // Os chips do painel NÃO levam a classe `.chip`: quem os desenha é `.trio-chips span`,
-        // na folha. O `.chip` continua a ser da folha de formulário (o bloco `bloco-assoc`), e
-        // assim há uma regra para cada contexto em vez de duas a competir pelo mesmo `<span>`.
-        const painelConteudos = '<div class="trio-chips">' +
-          (chips || '<span class="dono">(nenhum conteúdo associado)</span>') + '</div>';
+        //
+        // O PAINEL DOS CONTEÚDOS SAIU A 07/11/2026, com a coluna que o abria — ver a nota acima.
+        // Um painel sem botão que o abra é peso morto na página, e o conteúdo da aula não é da
+        // sala.
         // A CAIXA INTEIRA É O CONTROLE (23/10/2026). Era um `<div>` com um `<button class="q">`
         // de 20px dentro: o alvo de toque era o do «?», não o da caixa, e num telefone um alvo de
         // 20px pede pontaria. Agora a caixa É o botão — medido, 48 × 221 px —, e o «?» fica como
@@ -2669,14 +2669,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span></div>' +
           (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
           (avisoDeRitmo || '') +
-          '<div class="trio">' +
+          // DUAS CAIXAS, E NÃO TRÊS: a sala diz o RITMO e a RÉGUA. O terceiro número era
+          // «Conteúdos», e o conteúdo da aula é da Turma (ver a nota em `itensTurmas`).
+          '<div class="trio trio-duo">' +
           metrica('Ritmo', valorRitmo || '—', 'ritmo', 'ver o ritmo desta turma') +
           metrica('Régua', regua.length === 1 ? '1 nível' : regua.length + ' níveis', 'regua', 'ver a régua desta turma') +
-          metrica('Conteúdos', String(associados.length), 'conteudos', 'ver os conteúdos desta turma') +
           '</div>' +
           '<div class="trio-painel" data-painel="ritmo" hidden>' + painelRitmo + '</div>' +
           '<div class="trio-painel" data-painel="regua" hidden>' + painelRegua + '</div>' +
-          '<div class="trio-painel" data-painel="conteudos" hidden>' + painelConteudos + '</div>' +
           historico +
           '</li>';
       }).join('')
@@ -9365,16 +9365,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // estava certa e a regra não. Agora cada passo declara a SUA falta, e quem quer saber o que
     // falta antes de N soma as de todos os anteriores (`faltasAntesDeLb`).
     'function faltasDoPassoLb(n) {' +
-    // SEM ANAMNESE NADA SE PODE FAZER. A falta é de TODOS os passos: sem retratos não há aluna
-    // para escolher, e um formulário que avança para uma lista vazia é pior do que um fechado.
-    '  if (!haAnamnese()) return ["a anamnese de pelo menos uma aluna"];' +
+    /* SEM ANAMNESE, O PASSO 1 CONTINUA ABERTO (07/11/2026).
+     *
+     * Aqui esteve `if (!haAnamnese()) return ["a anamnese de pelo menos uma aluna"]` — para TODOS
+     * os passos, incluindo o primeiro. O efeito era o que ela viu: numa escola recém-criada, antes
+     * do primeiro retrato, a secção do Elenco nascia morta — `travarTudo` desligava o campo «Nome
+     * do elenco» e nenhum passo abria. Não se podia CRIAR um elenco; só se podia esperar por uma
+     * anamnese que ainda não existia.
+     *
+     * A regra certa é a do que cada passo PRECISA. O NOME e o PROFESSOR não vêm de retrato
+     * nenhum: são a identificação do ato, e podem ser gravados como rascunho desde o primeiro
+     * minuto — como o servidor sempre aceitou (`rascunho: true`, sem campos). Quem precisa de
+     * retratos é o passo 2, porque o corpo que se recorta É o das alunas: sem anamnese não há
+     * aluna para escolher, e uma lista vazia é pior do que uma trava que diz por quê.
+     *
+     * É também a separação que ela pediu: SALA, ELENCO e TURMA são entidades independentes, e
+     * criar o elenco não pode depender de outra coisa existir. */
     '  var faltas = [];' +
     '  if (n === 1) {' +
     '    if (!nomeDoFormulario()) faltas.push("o nome");' +
     '    if (!professorDoFormulario()) faltas.push("o professor");' +
     '  } else if (n === 2) {' +
+    '    if (!haAnamnese()) faltas.push("a anamnese de pelo menos uma aluna");' +
     '    if (!alunasMarcadas().length) faltas.push("pelo menos uma aluna");' +
     '  } else if (n === 3) {' +
+    '    if (!haAnamnese()) faltas.push("a anamnese de pelo menos uma aluna");' +
     '    if (!LEITURA_FEITA) faltas.push("a leitura das anamneses");' +
     '  } else if (n === 4) {' +
     '    if (!marcados("lb-campo").length) faltas.push("pelo menos um aspecto");' +
@@ -9411,17 +9426,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o `input`/`change` da página também — senão quem preenche o nome via o botão continuar
     // apagado, e quem apagava um campo via-o continuar aceso.
     'function pintarTravasLb() {' +
-    '  var semNada = !haAnamnese();' +
+    '  var semRetrato = !haAnamnese();' +
     '  Array.prototype.slice.call(document.querySelectorAll("#lb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
-    // SEM ANAMNESE, TODOS OS PASSOS FECHADOS — e é AQUI que isso se decide, não numa função à
-    // parte. A primeira versão tinha um `travarTudo` que esta função desfazia na linha seguinte: o
-    // sintoma era uma tira clicável numa escola sem retratos.
-    '    var fechado = semNada || ((n > LB_PASSO) && !podeIrPara(n));' +
+    /* O QUE FECHA UM PASSO É O QUE ELE PRECISA (07/11/2026).
+     *
+     * Era `semNada || (...)` — a ausência de anamnese fechava a TIRA INTEIRA, e com ela o passo 1,
+     * onde não se lê retrato nenhum. Agora quem fecha é `podeIrPara(n)`, que pergunta a cada passo
+     * o que lhe falta: ao 2, a anamnese de pelo menos uma aluna; ao 3, a leitura; ao 4, o recorte.
+     * O passo 1 só pede nome e professor — e por isso abre numa escola sem retratos. */
+    '    var fechado = (n > LB_PASSO) && !podeIrPara(n);' +
     '    b.disabled = fechado;' +
     '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
-    '    if (fechado) b.setAttribute("title", semNada ? "Sem anamnese não há o que recortar."' +
-    '      : "Falta " + faltasAntesDeLb(n).join(", ") + ".");' +
+    '    if (fechado) {' +
+    '      var razao = faltasAntesDeLb(n).join(", ");' +
+    '      b.setAttribute("title", (semRetrato && n > 1 ? "Sem anamnese não há o que recortar. " : "")' +
+    '        + (razao ? "Falta " + razao + "." : ""));' +
+    '    }' +
     '    else b.removeAttribute("title");' +
     '  });' +
     '  var faltas = faltasDoPassoLb(LB_PASSO);' +
@@ -9444,7 +9465,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * prometer uma tabela sobre ninguém. O `title` diz qual das duas coisas falta. */
     '  var ler = document.getElementById("lb-ler");' +
     '  if (ler) {' +
-    '    var faltaLer = semNada ? "sem anamnese nesta escola não há o que ler"' +
+    '    var faltaLer = semRetrato ? "sem anamnese nesta escola não há o que ler"' +
     '      : (!alunasMarcadas().length ? "escolha pelo menos uma aluna no passo 2"' +
     '        : "");' +
     '    ler.disabled = !!faltaLer;' +
@@ -9500,8 +9521,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function irParaPasso(qual) {' +
     '  var alvo = Number(qual) || 1;' +
     '  if (alvo <= LB_PASSO) { mostrarPassoLb(alvo); return; }' +
-    '  if (!nomeDoFormulario() || !professorDoFormulario()) { mostrarPassoLb(alvo); return; }' +
-    '  gravarLinha().then(function(ok){ if (ok) mostrarPassoLb(alvo); });' +
+    /* SEM NOME OU SEM PROFESSOR NÃO SE GRAVA — e a falta diz-se (07/11/2026). Antes o clique não
+     * fazia nada e o botão podia continuar aceso; agora o motivo é escrito onde o professor está
+     * a olhar. */
+    '  if (!nomeDoFormulario() || !professorDoFormulario()) {' +
+    '    corpoRes("aviso", "Para gravar o elenco, falta: " +' +
+    '      (nomeDoFormulario() ? "" : "o nome") +' +
+    '      (!nomeDoFormulario() && !professorDoFormulario() ? " e " : "") +' +
+    '      (professorDoFormulario() ? "" : "o professor") + ".");' +
+    '    pintarTravasLb();' +
+    '    return;' +
+    '  }' +
+    '  gravarLinha().then(function(ok){' +
+    '    if (!ok) return;' +
+    /* O PASSO QUE NÃO ABRE DIZ POR QUÊ (07/11/2026). Sem anamnese, o passo 2 está fechado — e o
+     * elenco ACABA DE SER GRAVADO como rascunho. Sem esta frase, o professor via o passo não mudar
+     * e não sabia se tinha gravado. */
+    '    var faltas = faltasAntesDeLb(Math.min(alvo, LB_TOTAL));' +
+    '    if (alvo > LB_PASSO && faltas.length) {' +
+    '      corpoRes("ok", "elenco gravado. Para seguir, falta " + faltas.join(", ") + ".");' +
+    '      pintarTravasLb();' +
+    '      return;' +
+    '    }' +
+    '    mostrarPassoLb(alvo);' +
+    '  });' +
     '}' +
     // ------------------------------------------------------------------ PASSO 2 — AS ALUNAS
     //
@@ -9562,9 +9605,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (aviso) {' +
     '        aviso.hidden = ALUNAS_COM_ANAMNESE.length > 0;' +
     '        aviso.textContent = ALUNAS_COM_ANAMNESE.length ? "" :' +
-    '          "Ainda não há nenhuma anamnese registada nesta escola. O elenco é um recorte ' +
-    'lido dos retratos das alunas — sem retrato não há o que recortar, e nenhum passo se abre. ' +
-    'Faça primeiro a anamnese de pelo menos uma aluna, em «Anamnese do aluno».";' +
+    /* O TEXTO DIZ O QUE AINDA ABRE E O QUE ESPERA (07/11/2026). Dizia «nenhum passo se abre», e
+     * desde que o passo 1 deixou de depender de retrato isso passou a ser falso — e um aviso que
+     * mente sobre o que está disponível faz o professor desistir do que podia fazer. */
+    '          "Ainda não há nenhuma anamnese registada nesta escola. Pode nomear o elenco e ' +
+    'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas, e sem retrato n\u00e3o h\u00e1 ' +
+    'o que recortar — os passos 2 a 4 abrem quando houver a anamnese de pelo menos uma aluna, ' +
+    'em «Anamnese do aluno».";' +
     '      }' +
     '      if (!ALUNAS_COM_ANAMNESE.length) { travarTudo(); }' +
     '      pintarTravasLb();' +
@@ -9572,15 +9619,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .catch(function(){' +
     '      ALUNAS_COM_ANAMNESE = [];' +
     '      travarTudo();' +
+    /* E A REGRA DE CADA PASSO TAMBÉM, QUE `travarTudo` JÁ NÃO FAZ (07/11/2026). Ele fechava a tira
+     * inteira; agora só fecha os botões que leem o acervo, e quem fecha «Seguir» e «Concluir» é
+     * `pintarTravasLb`. Sem esta linha, uma resposta de rede falhada deixava os dois acesos. */
+    '      pintarTravasLb();' +
     '    });' +
     '}' +
-    // SEM ANAMNESE, TUDO FECHADO: a tira, os botões, o formulário. Não é um aviso — é o estado.
+    /* SEM ANAMNESE, O QUE FECHA SÃO OS CONTROLES QUE LEEM RETRATOS (07/11/2026).
+     *
+     * Era «tudo fechado», e incluía `lb-nome` e `lb-professor`. Aqueles dois campos não leem
+     * retrato nenhum — são a identificação do ato, e é por eles que o elenco passa a existir.
+     * Desligá-los era a razão de o campo «Nome do elenco» aparecer morto numa escola nova, e de
+     * não haver como criar elenco nenhum antes da primeira anamnese.
+     *
+     * O QUE CONTINUA FECHADO: os botões que dependem do acervo — ler as anamneses, carregar mais
+     * alunas, e o «Seguir» enquanto o passo actual tiver falta (quem o decide é `pintarTravasLb`,
+     * que corre logo depois e conhece a regra de cada passo). */
     'function travarTudo() {' +
-    '  ["lb-seguir", "lb-enviar", "lb-ler", "lb-mais"].forEach(function(id){' +
-    '    var e = document.getElementById(id);' +
-    '    if (e) e.disabled = true;' +
-    '  });' +
-    '  ["lb-nome", "lb-professor"].forEach(function(id){' +
+    '  ["lb-ler", "lb-mais"].forEach(function(id){' +
     '    var e = document.getElementById(id);' +
     '    if (e) e.disabled = true;' +
     '  });' +
