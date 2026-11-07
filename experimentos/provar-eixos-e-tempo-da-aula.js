@@ -475,13 +475,25 @@ console.log('\nI. O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA, O PONTEIRO NO PL
   provar('e nenhuma linha do corpo é o retrato de uma aluna',
     !/o que traz|a desenvolver|Aluna A|Restrições/.test(mdTres), corpoTres);
 
+  /* A SECÇÃO SAIU DO PLANO A 07/11/2026 — asserções INVERTIDAS, não apagadas.
+   *
+   * Elas mediam que o plano mantinha a secção «## Aspecto físico», em versão macro. A pesquisadora
+   * decidiu que não: «essas informações já são definidas nativamente na Audição/Elenco e são
+   * tratadas diretamente no Plano de Observação». O que estas asserções guardam agora é a AUSÊNCIA
+   * — e o controlo positivo do mesmo facto: o documento continua a apontar para a Aula 01, que é
+   * onde o corpo se lê. Uma asserção que some não guarda nada; uma invertida guarda a decisão. */
   const planoSemAspecto = secaoDoPlano(derivarPlano(envelopeDoPlano(planoCom(volumeCompleto).respostas)).markdown);
-  provar('o plano mantém a secção, e ela já não se chama «força e flexibilidade»',
-    Boolean(planoSemAspecto) && planoSemAspecto.titulo === '## Aspecto físico', planoSemAspecto && planoSemAspecto.titulo);
-  provar('o plano aponta para a secção do corpo da Aula 01',
-    /\]\(aula-01\.html#corpo\)/.test(planoSemAspecto.corpo), planoSemAspecto.corpo);
-  provar('e o plano NÃO repete a tabela dos aspectos',
-    !/Flexibilidade dos isquiotibiais/.test(planoSemAspecto.corpo), planoSemAspecto.corpo);
+  provar('o plano JÁ NÃO tem a secção «## Aspecto físico»',
+    planoSemAspecto === null, planoSemAspecto && planoSemAspecto.titulo);
+  provar('…e não repete a tabela dos aspectos em lugar nenhum',
+    !/Flexibilidade dos isquiotibiais/.test(derivarPlano(envelopeDoPlano(planoCom(volumeCompleto).respostas)).markdown));
+  /* E JÁ NÃO APONTA PARA A AULA — e isso é a decisão, não um esquecimento. O ponteiro existia
+   * dentro da secção que saiu; um plano que deixou de falar do corpo não tem para onde apontar.
+   * Quem lê o corpo abre a Aula 01 (ou o Plano de Observação) pelo menu, que é o caminho de
+   * sempre. Repor um link solto seria manter a última relíquia do Bloco 10 num documento que já
+   * não o tem. */
+  provar('…e já não aponta para a aula: um plano que não fala do corpo não tem para onde apontar',
+    !/aula-01\.html/.test(derivarPlano(envelopeDoPlano(planoCom(volumeCompleto).respostas)).markdown));
   provar('o âncora do link existe do lado da aula (`### Corpo` → `#corpo`)',
     /^### Corpo$/m.test(derivarAula01({ plano: planoCom(volumeCompleto), po: poCom(),
       contexto: CONTEXTO, calibracao: CALIBRACAO })));
@@ -499,10 +511,13 @@ console.log('\nI. O CORPO TEM UMA FONTE SÓ: O DETALHE NA AULA, O PONTEIRO NO PL
   provar('sem aspecto consolidado, a aula declara a lacuna e o caminho de volta',
     /\[A decidir:/.test(vazioAula) && /linha de base/.test(vazioAula),
     vazioAula.split('\n').filter((l) => /A decidir/.test(l)));
+  /* O PLANO SEM ASPECTO NENHUM: nem lacuna, porque já não há secção onde a declarar. A lacuna
+   * vive onde o dado vive — na Aula 01 (duas asserções acima) e no corpo do elenco. */
   const vazioPlano = secaoDoPlano(derivarPlano(envelopeDoPlano(planoVazio.respostas)).markdown);
-  provar('e o plano também — e continua a apontar para a aula',
-    Boolean(vazioPlano) && /\[A decidir:/.test(vazioPlano.corpo) && /aula-01\.html#corpo/.test(vazioPlano.corpo),
-    vazioPlano && vazioPlano.corpo);
+  provar('…e o plano não abre uma lacuna para um campo que já não tem',
+    vazioPlano === null, vazioPlano && vazioPlano.corpo);
+  provar('…e, sem fumo nenhum, o documento inteiro não muda por isso',
+    !/Aspecto físico/.test(derivarPlano(envelopeDoPlano(planoVazio.respostas)).markdown));
 }
 
 // ------------------------------------------------- J: a origem do corpo, no envelope real

@@ -188,42 +188,43 @@ const linhasDaTabela = (tabela) => (tabela || [])
   }
 
   // -------------------------------------------------------------------------------------------
-  bloco('B. O PLANO — macro, em língua de professor');
+  /* A SECÇÃO SAIU DO PLANO A 07/11/2026 — o bloco passou de «o plano diz» para «o plano não diz,
+   * e o corpo continua inteiro onde sempre esteve». Um bloco de prova que se apaga não guarda
+   * nada; este passa a guardar a AUSÊNCIA e o controlo positivo dela (a secção C, logo abaixo,
+   * mede a Aula 01 com as mesmas três linhas). */
+  bloco('B. O PLANO JÁ NÃO FALA DO CORPO — e não é por esquecimento');
   {
     const lb = linhaDeBaseDaTurma([LINHA], TURMA);
-    const plano = secaoDoPlano(derivarPlano(PLANO, { linhaDeBase: lb }).markdown, 'Aspecto físico');
-    provar('a secção existe', Boolean(plano));
-    provar('diz QUANTOS aspectos o ciclo observa', /3 aspectos do corpo em observação/.test(plano), plano);
-    provar('nomeia cada um deles',
-      /1ª posição — braços/.test(plano)
-      && /Sustentação ativa de MMII \(força de adágio\)/.test(plano)
-      && /Resistência de MMSS \(port de bras prolongado\)/.test(plano), plano);
-    provar('e continua a apontar para a secção do corpo da Aula 01',
-      /\]\(aula-01\.html#corpo\)/.test(plano), plano);
-
-    /* A LÍNGUA. As duas frases que ela leu e recusou não podem voltar a um documento. */
+    const comLb = derivarPlano(PLANO, { linhaDeBase: lb }).markdown;
+    provar('a secção «Aspecto físico» JÁ NÃO EXISTE no plano',
+      secaoDoPlano(comLb, 'Aspecto físico') === null);
+    provar('…nem com a linha de base presente, que era o que a alimentava',
+      !/3 aspectos do corpo em observação/.test(comLb), comLb.slice(0, 200));
+    provar('…nem nomeia os aspectos do recorte',
+      !/1ª posição — braços/.test(comLb) && !/Sustentação ativa de MMII/.test(comLb));
+    /* O QUE SAIU NÃO DEIXOU SAUDADE EM FORMA DE LIXO: nem instrução de formulário, nem raciocínio
+     * de arquitectura — as duas frases que ela leu e recusou num documento. */
     provar('NÃO imprime a instrução de formulário («carregue a sugestão…»)',
-      !/carregue a sugestão/i.test(plano), plano);
+      !/carregue a sugestão/i.test(comLb));
     provar('…nem o raciocínio de arquitectura («a tabela vive num lugar só»)',
-      !/a tabela vive num lugar só/i.test(plano), plano);
-    provar('…e diz, em língua de professor, onde as marcas se fazem',
-      /está no Plano de Observação/.test(plano), plano);
-
-    /* SEM a linha de base, a lacuna declara-se — e é de professor, não de programador. */
-    const semLb = secaoDoPlano(derivarPlano(PLANO).markdown, 'Aspecto físico');
-    provar('sem linha de base, a lacuna diz-se sem instrução de formulário',
-      /\[A decidir:/.test(semLb) && !/carregue a sugestão/i.test(semLb), semLb);
-    provar('…e continua a apontar para a aula', /\]\(aula-01\.html#corpo\)/.test(semLb), semLb);
-
-    /* O CAMPO DO PLANO MANDA QUANDO EXISTE — o professor pode tê-lo consolidado e corrigido. */
+      !/a tabela vive num lugar só/i.test(comLb));
+    /* UM ENVELOPE ANTIGO, COM O CAMPO PREENCHIDO, TAMBÉM NÃO O FAZ VOLTAR: a resposta continua
+     * guardada (a proveniência acrescenta, não apaga), mas o documento já não a imprime. É o
+     * mesmo tratamento de `estruturaDeCadaAula` — o campo fica no schema, como leitura do passado. */
     const comCampo = JSON.parse(JSON.stringify(PLANO));
     comCampo.respostas['aspecto-fisico'] = { valor: [
       { Aspecto: 'Alongamento de isquiotibiais', 'Como está a turma': '2 de 2 em «encurtado»' },
     ] };
-    const comCampoLb = secaoDoPlano(derivarPlano(comCampo, { linhaDeBase: lb }).markdown, 'Aspecto físico');
-    provar('com o campo preenchido, é ele que o plano conta (1, e não 3)',
-      /1 aspecto físico de referência/.test(comCampoLb) && !/3 aspectos do corpo/.test(comCampoLb),
-      comCampoLb);
+    provar('um plano antigo com o campo preenchido também já não imprime a secção',
+      secaoDoPlano(derivarPlano(comCampo, { linhaDeBase: lb }).markdown, 'Aspecto físico') === null);
+    provar('…mas o envelope antigo não é reescrito: a resposta continua lá',
+      Array.isArray(comCampo.respostas['aspecto-fisico'].valor)
+      && comCampo.respostas['aspecto-fisico'].valor.length === 1);
+    /* SEM a linha de base, o plano é o MESMO documento — não abre uma lacuna para um campo que
+     * já não tem. A lacuna do corpo vive na Aula 01, e a secção C mede-a. */
+    const semLb = derivarPlano(PLANO).markdown;
+    provar('sem linha de base, o plano não abre lacuna nenhuma por causa do corpo',
+      secaoDoPlano(semLb, 'Aspecto físico') === null && !/\[A decidir:.*corpo/i.test(semLb));
   }
 
   // -------------------------------------------------------------------------------------------
@@ -278,19 +279,24 @@ const linhasDaTabela = (tabela) => (tabela || [])
   }
 
   // -------------------------------------------------------------------------------------------
-  bloco('D. OS DOIS DOCUMENTOS DIZEM O MESMO — é o que impede a divergência');
+  /* O BLOCO D MEDIA A CONCORDÂNCIA ENTRE DOIS DOCUMENTOS QUE IMPRIMIAM O MESMO. Com a secção do
+   * plano fora (07/11/2026), não há dois — há um, e o que se mede passa a ser a fonte ÚNICA: a
+   * Aula 01 diz exatamente o recorte do elenco, sem acrescentar nem perder. É a mesma pergunta de
+   * antes («algum deles inventa um aspecto?»), feita agora a quem ficou. */
+  bloco('D. A FONTE ÚNICA — a Aula 01 diz o recorte do elenco, e nada mais');
   {
     const lb = linhaDeBaseDaTurma([LINHA], TURMA);
-    const plano = secaoDoPlano(derivarPlano(PLANO, { linhaDeBase: lb }).markdown, 'Aspecto físico');
-    const nomesNoPlano = (plano.match(/^- (.+)$/gm) || []).map((l) => l.replace(/^- /, '').trim());
     const linhasNaAula = linhasDaTabela(tabelaDoEixo(
       derivarAula01({ plano: PLANO, po: PO, contexto: CONTEXTO, linhaDeBase: lb }), 'Corpo'));
     const nomesNaAula = linhasNaAula.map((l) => l[0]);
-    provar('o conjunto de aspectos do plano e o da aula são o MESMO',
-      nomesNoPlano.slice().sort().join(' | ') === nomesNaAula.slice().sort().join(' | '),
-      { nomesNoPlano, nomesNaAula });
-    provar('…e nenhum dos dois inventa um aspecto que não esteja no recorte',
+    provar('o conjunto de aspectos da aula é o do recorte do elenco',
+      nomesNaAula.slice().sort().join(' | ')
+        === lb.recorte.map((c) => c.nome).sort().join(' | '),
+      { nomesNaAula, recorte: lb.recorte.map((c) => c.nome) });
+    provar('…e não inventa um aspecto que não esteja no recorte',
       nomesNaAula.every((n) => lb.recorte.some((c) => c.nome === n)), nomesNaAula);
+    provar('…nem perde nenhum dos que o elenco escolheu',
+      lb.recorte.every((c) => nomesNaAula.includes(c.nome)), nomesNaAula);
   }
 
   // -------------------------------------------------------------------------------------------
@@ -309,9 +315,10 @@ const linhasDaTabela = (tabela) => (tabela || [])
     process.exit(1);
   }
   console.log('TUDO CERTO — ' + total + ' asserções: o recorte do passo 4 e a leitura do passo 3 '
-    + 'atravessam a linha de base da turma até ao plano (macro, em língua de professor) e à Aula 01 '
-    + '(linha a linha), os dois documentos dizem o mesmo conjunto de aspectos, e sem linha de base '
-    + 'a lacuna declara-se sem instruções de formulário.');
+    + 'atravessam a linha de base da turma até à Aula 01, que é a fonte ÚNICA do corpo desde '
+    + '07/11/2026 — o plano deixou de o repetir, e um envelope antigo com o campo preenchido '
+    + 'também já não faz voltar a secção; a aula diz exatamente o recorte, sem inventar nem '
+    + 'perder um aspecto; e sem linha de base a lacuna declara-se sem instruções de formulário.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);

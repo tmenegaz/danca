@@ -305,13 +305,16 @@ function descritores(campo) {
     // mostra os primeiros campos crus, que foi o que aconteceu).
     registroDaAnamnese: campo.registroDaAnamnese || null,
     // O QUE A TURMA MOSTRA NO CORPO, LIDO DAS ANAMNESES (02/11/2026; recortado pela linha de base
-    // a 05/11/2026). O nó `aspecto-fisico` do plano declara o que o alimenta. Até 05/11 eram os
-    // campos fixos (`lidoDasAnamneses`) — a mesma lista de quinze para toda a escola e todo o
-    // ciclo. Agora é `lidoDaLinhaDeBase`: o recorte que o professor escolheu na Produção, e que a
-    // tela vai buscar à linha de base apontada por `linha-de-base-alvo`. O motor não escolhe os
-    // campos nem interpreta os níveis: repassa a declaração. Sem esta linha a chave morreria
-    // aqui — `descritores()` é uma lista fechada, e o sintoma é mudo (a tela mostra os primeiros
-    // campos crus, que foi o que aconteceu).
+    // a 05/11/2026). Até 05/11 eram os campos fixos (`lidoDasAnamneses`) — a mesma lista de
+    // quinze para toda a escola e todo o ciclo. Depois passou a `lidoDaLinhaDeBase`: o recorte que
+    // o professor escolheu na Produção, buscado à linha de base que o nó aponta.
+    //
+    // O NÓ QUE O USAVA SAIU A 07/11/2026 — o `aspecto-fisico` do plano deixou de existir (o corpo
+    // do ciclo vive na Audição/Elenco e no Plano de Observação), e com ele a dupla
+    // `lidoDaLinhaDeBase`/`opcoesDe` abaixo. O REPASSE FICA, e é a linguagem do CONTEÚDO, não
+    // daquele nó: `descritores()` é uma lista fechada, e uma chave que o conteúdo declare e o
+    // motor não repasse morre em silêncio — a tela mostra os primeiros campos crus e ninguém
+    // percebe. Um formulário futuro que volte a precisar de ler o recorte encontra as duas.
     lidoDaLinhaDeBase: campo.lidoDaLinhaDeBase || null,
     // A LISTA DE ONDE VÊM AS OPÇÕES (05/11/2026). Um `<select>` cujas escolhas não são fixas — a
     // linha de base é criada pela escola, não pelo conteúdo — declara a ROTA, e é a tela que a

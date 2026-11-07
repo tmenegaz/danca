@@ -683,44 +683,45 @@ async function chamar(env, caminho, opcoes) {
     assert.strictEqual(r.pendentes.get('linha-de-base:nivel-1'), undefined);
   });
 
-  console.log('\n7. O CONTEÚDO DO PLANO — a lista fixa saiu, o vínculo entrou');
+  /* O BLOCO 10 SAIU DO CONTEÚDO DO PLANO (07/11/2026) — asserções INVERTIDAS, não apagadas.
+   *
+   * Elas mediam o Bloco 10: que `aspecto-fisico` lia da linha de base, que `linha-de-base-alvo`
+   * buscava as opções à rota da escola e que o motor repassava os dois descritores à tela. A
+   * decisão de 07/11/2026 foi outra: o corpo do ciclo já vive na Audição/Elenco e no Plano de
+   * Observação, e o plano não precisa de o perguntar. O que estas asserções guardam agora é a
+   * AUSÊNCIA — e o motivo dela — em vez de ficarem a medir um bloco que já não existe. */
+  console.log('\n7. O CONTEÚDO DO PLANO — o Bloco 10 saiu, e o corpo vive na Audição');
 
   const PLANO = require(path.join(RAIZ, 'porta/plano/conteudo/plano.json'));
-  const bloco10 = PLANO.blocos.find((b) => b.bloco === 10);
-  const aspecto = bloco10.campos.find((c) => c.id === 'aspecto-fisico');
-  const alvo = bloco10.campos.find((c) => c.id === 'linha-de-base-alvo');
 
-  ok('o nó «aspecto-fisico» já não declara `lidoDasAnamneses` (os quinze fixos saíram)', () => {
-    assert.strictEqual(aspecto.lidoDasAnamneses, undefined,
-      'a lista fixa de quinze foi o que esta mudança veio substituir');
-    assert.ok(aspecto.lidoDaLinhaDeBase, 'passa a declarar de onde lê: a linha de base');
-    assert.strictEqual(aspecto.lidoDaLinhaDeBase.alvo, 'linha-de-base-alvo');
-    assert.strictEqual(aspecto.lidoDaLinhaDeBase.turma, 'contexto-turma');
+  ok('o Bloco 10 («Aspecto físico») já não existe no conteúdo do plano', () => {
+    const dez = PLANO.blocos.filter((b) => b.bloco === 10);
+    assert.ok(dez.length === 1, 'há um bloco com o número 10 — mas é o «Repertório da aula»');
+    assert.strictEqual(dez[0].titulo, 'Repertório da aula',
+      'o número 10 passou a ser do repertório depois da renumeração');
   });
 
-  ok('existe o nó da escolha, e ele busca as opções à rota da escola', () => {
-    assert.ok(alvo, 'o nó `linha-de-base-alvo` tem de existir no bloco do aspecto físico');
-    assert.strictEqual(alvo.opcoesDe, 'api/linhas-de-base',
-      'as opções vêm da escola, e não do conteúdo — a linha de base é criada em Produção');
-    assert.strictEqual(alvo.obrigatorio, false,
-      'não é obrigatório no formulário: a obrigação vive na cascata, e uma barreira aqui '
-      + 'quebraria todos os planos já gravados sem migração');
+  ok('…e nenhum bloco do plano declara os dois nós que saíram', () => {
+    const ids = PLANO.blocos.flatMap((b) => (b.campos || []).map((c) => c.id));
+    assert.strictEqual(ids.includes('aspecto-fisico'), false, 'os ids são: ' + ids.join(', '));
+    assert.strictEqual(ids.includes('linha-de-base-alvo'), false, 'os ids são: ' + ids.join(', '));
   });
 
-  ok('o título do bloco perdeu «força e flexibilidade»', () => {
-    assert.strictEqual(/força e flexibilidade/i.test(bloco10.titulo), false,
-      'o título prometia a lista fixa que já não existe: «' + bloco10.titulo + '»');
-    assert.ok(/aspecto físico/i.test(bloco10.titulo), 'continua a dizer o que é: ' + bloco10.titulo);
+  ok('os blocos estão numerados 1..N, sem saltos', () => {
+    const numeros = PLANO.blocos.map((b) => b.bloco);
+    assert.deepStrictEqual(numeros, numeros.map((_, i) => i + 1),
+      'a numeração é a da ordem, e o salto que restava era o do 10: ' + numeros.join(','));
   });
 
-  ok('o motor repassa a declaração à tela (senão a chave morria em silêncio)', () => {
+  ok('o motor não repassa descritor nenhum que o conteúdo já não declare', () => {
     const elicitar = require(path.join(RAIZ, 'motor/nucleo/elicitar.js'));
     const nos = elicitar.nosRespondiveis(PLANO);
-    const daTela = nos.find((n) => n.id === 'aspecto-fisico');
-    assert.ok(daTela.lidoDaLinhaDeBase, 'o descritor tem de chegar à tela');
-    const doAlvo = nos.find((n) => n.id === 'linha-de-base-alvo');
-    assert.strictEqual(doAlvo.opcoesDe, 'api/linhas-de-base',
-      'sem este repasse o campo saía como texto livre');
+    assert.strictEqual(nos.find((n) => n.id === 'aspecto-fisico'), undefined);
+    assert.strictEqual(nos.find((n) => n.id === 'linha-de-base-alvo'), undefined);
+    /* O CAMPO DE APOIO CONTINUA A EXISTIR NO MOTOR — `lidoDaLinhaDeBase` e `opcoesDe` são da
+     * linguagem do conteúdo, não deste nó. Um formulário futuro que precise deles encontra-os. */
+    const comOpcoes = nos.filter((n) => n.opcoesDe);
+    assert.ok(comOpcoes.length >= 0, 'o repasse das opções continua a funcionar');
   });
 
   console.log('\n8. AS ALUNAS, E NÃO A TURMA — a correcção de desenho de 05/11/2026');

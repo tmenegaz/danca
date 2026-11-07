@@ -985,9 +985,9 @@ e come os dois blocos que não são lugares na sala.
 
 | Eixo | Onde já existe | O que lhe falta para ser eixo |
 |:--|:--|:--|
-| **Corpo** | anamnese (15 campos: 7 de flexibilidade, 8 de força) · PO `linha-de-base` e `restricoes` · PO `inclusao`/`exclusao` · plano bloco 10 `aspecto-fisico` · Regra 4 | a **ligação ao exercício**: nenhum verbete diz o que o movimento exige do corpo |
+| **Corpo** | anamnese (15 campos: 7 de flexibilidade, 8 de força) · PO `linha-de-base` e `restricoes` · PO `inclusao`/`exclusao` · o recorte da **Audição/Elenco** · Regra 4 (o plano deixou de perguntar o corpo a 07/11/2026) | a **ligação ao exercício**: nenhum verbete diz o que o movimento exige do corpo |
 | **Técnica / código** | `notacao.json` (verbetes, gramática, sinais) · `vocabulario.json` (93 termos, 8 categorias) · `progressao.json` · plano (blocos, volume, sequência) · PO (dimensões e itens) | a **haste declarada**: nada diz que estes são ramos do mesmo eixo |
-| **Expressão / poiésis** | música (verbete + sequência + §4) · repertório (bloco 12) · vídeo de referência (bloco 11) · 4 termos de `qualidade` · as dimensões «Musicalidade» e «Expressão» do PO | um **lugar declarado**; e o que não existe mesmo: **oralidade, história da dança, carácter** |
+| **Expressão / poiésis** | música (verbete + sequência + §4) · repertório (bloco 10) · vídeo de referência (bloco 9) · 4 termos de `qualidade` · as dimensões «Musicalidade» e «Expressão» do PO | um **lugar declarado**; e o que não existe mesmo: **oralidade, história da dança, carácter** |
 
 **E o objetivo, que a pesquisadora apontou como o sítio do «olhar», não é um quarto eixo — é o
 cruzamento.** Já existe, duas vezes, no plano: `estrutura-de-cada-aula` marca «onde cada objetivo é

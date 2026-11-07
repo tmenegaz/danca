@@ -97,6 +97,13 @@ const MAPA_SECOES = {
   // «Aspecto físico» (04/11/2026): o título perdeu «força e flexibilidade» e o detalhe migrou
   // para a Aula 1 — o plano passa a publicar o ponteiro. O alias antigo fica: há plano escrito
   // com o título comprido, e ele continua a extrair.
+  //
+  // A SECÇÃO SAIU DO PLANO A 07/11/2026, e o mapa FICA. A derivação já não a emite (o corpo do
+  // ciclo vive na Audição/Elenco, na Aula 01 e no Plano de Observação), mas há documentos no
+  // repositório escritos com ela — o `experimentos/simulacao-marau` e os planos de antes desta
+  // data —, e uma secção fora do mapa é descartada em SILÊNCIO. Manter o alias é o que faz esses
+  // documentos continuarem a extrair o que sempre extraíram; apagá-lo seria reescrever o passado
+  // por arrumação. O campo `aspectoFisico` fica no schema pelo mesmo motivo.
   'aspecto físico — força e flexibilidade': 'aspectoFisico',
   'aspecto físico': 'aspectoFisico',
   'música e vídeo de referência': 'musicasVideos',

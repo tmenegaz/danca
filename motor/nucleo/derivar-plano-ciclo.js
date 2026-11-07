@@ -534,13 +534,14 @@ function tabelaDeContexto(envelope) {
  */
 function derivarPlano(envelope, opcoes) {
   const contexto = (envelope && envelope.contexto) || {};
-  /* A LINHA DE BASE DA TURMA, quando quem deriva a tem (06/11/2026). O `derivarPlano` nasceu
-   * como uma função de um argumento só — o envelope —, e o plano é o documento que MAIS depende
-   * do acto: a turma, o elenco e o recorte do corpo vêm de lá. Sem ela, a secção «Aspecto físico»
-   * declarava uma lacuna sobre um dado que já existia (ver o bloco dessa secção). Opcional, e não
-   * obrigatória: um plano derivado fora do Worker (uma bancada, o adaptador local) continua a
-   * sair — com a lacuna declarada, que é o honesto quando a linha de base não é alcançável. */
-  const linhaDeBase = (opcoes && opcoes.linhaDeBase) || null;
+  /* A `opcoes.linhaDeBase` DEIXOU DE SER LIDA AQUI (07/11/2026). Ela entrava por um motivo só: a
+   * secção «## Aspecto físico», que publicava os NOMES do recorte do elenco. A secção saiu — o
+   * corpo do ciclo vive na Audição/Elenco, na Aula 01 e no Plano de Observação —, e um parâmetro
+   * que ninguém lê é a próxima coisa a divergir: alguém o passa a achar que muda o documento.
+   * A assinatura fica como está (`opcoes` continua a existir para o que vier), mas o plano já não
+   * depende do acto para sair inteiro. Quem ainda o passa — `escrever-plano.js` — não estraga
+   * nada, e o `linhaDeBase` continua a chegar a quem o usa: o `derivarCiclo` e o `derivarPO`.
+   */
   const saida = [];
 
   const referencias = emLista(respostaDo(envelope, 'referencias')).join('; ');
@@ -770,76 +771,30 @@ function derivarPlano(envelope, opcoes) {
    * prometia o repertório, que é a secção seguinte. A pesquisadora: «aqui continua sendo música e
    * vídeo de referência; o repertório é o próximo item». As duas coisas passam a ter nomes
    * próprios, iguais nos dois lados. */
-  /* O ASPECTO FÍSICO — FORÇA E FLEXIBILIDADE (02/11/2026). É o primeiro dos três eixos do que se
-   * observa em dança (o corpo, a técnica, a poiese), e a Regra 4 pede-o declarado. Fica ANTES da
-   * música e do repertório, e imediatamente antes: é o que se lê a seguir às condições do espaço,
-   * porque é da MESMA família — o que a aula precisa para acontecer.
+  /* O «## ASPECTO FÍSICO» SAIU DO PLANO (07/11/2026).
    *
-   * A tabela saía do que o formulário consolidou a partir das anamneses das alunas da turma — o
-   * que elas mostram JUNTAS, nunca uma linha por aluna. Sem a leitura, a secção declarava a
-   * lacuna com o caminho de volta, e não inventava um ponto de atenção que ninguém viu.
+   * O QUE ELE ERA. A secção macro do eixo do corpo: listava os aspectos que a turma observa e
+   * publicava o ponteiro para a «Aula 01 — Corpo». Nasceu a 02/11/2026, encolheu a 04/11 (o
+   * detalhe migrou para a Aula 1) e a 06/11 passou a ler o recorte do elenco em vez do campo do
+   * formulário — porque o campo pedia ao professor que copiasse à mão o que o sistema já sabia.
    *
-   * O DETALHE MIGROU PARA A AULA (04/11/2026, à noite). A pesquisadora: «o corpo tem de ter uma
-   * única fonte de verdade; o detalhe fica na Aula 1, e o plano do ciclo trata o aspecto físico de
-   * forma macro — um texto curto e um link para a secção do corpo na aula». Ela está certa, e o
-   * defeito era de DUPLICAÇÃO: o plano e a aula imprimiam a mesma tabela de quinze linhas, lado a
-   * lado, a partir da MESMA chave do envelope. Duas cópias do mesmo dado são duas versões à espera
-   * de divergir — e a que se lê primeiro é a do plano, que é o documento de leitura.
+   * PORQUE SAI AGORA. A pesquisadora, a 07/11/2026: «essas informações já são definidas nativamente
+   * na Audição/Elenco e são tratadas diretamente no Plano de Observação». É verdade, e a secção
+   * era o último resto do Bloco 10 no documento: o corpo de cada ciclo já é o RECORTE do elenco
+   * (passo 4 da Audição), o que a turma mostra em cada aspecto é a LEITURA do passo 3, e o que se
+   * marca aluna a aluna é o Plano de Observação. Uma quarta cópia macro, num documento que já
+   * aponta para a Aula 01, era a mesma verdade a caminho de divergir.
    *
-   * E o TÍTULO perdeu «força e flexibilidade». A nomenclatura passa a ser estrutural — «Aspecto
-   * físico» —, porque o que a secção declara é o eixo do corpo, e não a lista de capacidades que
-   * o compõem: essa lista é a da aula, e nomeá-la aqui prometia a tabela que saiu.
+   * O QUE NÃO SE PERDE. A Aula 01 continua a imprimir o eixo do Corpo inteiro — o recorte, a
+   * leitura e os pontos de atenção (`eixosDaObservacao`, em `derivar-ciclo.js`, que lê
+   * `linhaDeBase.recorte` e `linhaDeBase.mostra`) —, e o documento do plano continua a apontar
+   * para lá pelo `## Objetivos por bloco e por aula`. O dado nunca dependeu desta secção.
    *
-   * O LINK SÓ EXISTE QUANDO A PÁGINA EXISTE — a regra de `tools/tabela-objetivos.js`, e a mesma
-   * razão: âncora morta é pior do que âncora nenhuma. A aula 01 é um dos documentos que a geração
-   * sempre produz (`DOCS`, em `escrever-ciclo.js`), e o âncora `#corpo` nasce do título `### Corpo`
-   * que `derivar-ciclo.js` emite em todos os eixos; a bancada confere os dois. */
-  {
-    const linhas = linhasDaTabela(respostaDo(envelope, 'aspecto-fisico'))
-      .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
-    const quantos = linhas.length;
-    /* O QUE ESTA SECÇÃO DIZ QUANDO O CAMPO ESTÁ VAZIO (06/11/2026). Ela dizia uma INSTRUÇÃO DE
-     * FORMULÁRIO — «carregue a sugestão a partir das anamneses da turma, no bloco «Aspecto
-     * físico»…» —, e a pesquisadora leu-a no documento e perguntou por ela: «por que que você
-     * colocou essa mensagem aqui?». É uma frase que só faz sentido dentro do formulário; num
-     * documento que se lê e se imprime, ela não diz nada a quem lê.
-     *
-     * E O DADO JÁ EXISTIA. Os aspectos do corpo deste ciclo não são uma escrita nova: são os que
-     * o professor escolheu no passo 4 da linha de base da turma, e o que a turma mostra em cada um
-     * já foi lido no passo 3. O plano é macro de propósito desde 04/11 (o detalhe vive na aula), e
-     * macro é o NOME deles — não uma lacuna a pedir que se copie à mão o que o sistema já sabe. */
-    const recorte = ((linhaDeBase && Array.isArray(linhaDeBase.recorte)) ? linhaDeBase.recorte : [])
-      .map((c) => String((c && c.nome) || '').trim()).filter(Boolean);
-    const corpo = [];
-    if (quantos) {
-      corpo.push('**' + quantos + (quantos === 1 ? ' aspecto físico de referência' : ' aspectos físicos de referência')
-        + '** — o eixo do CORPO, o primeiro dos três do que se observa em dança. O detalhe, aspecto a'
-        + ' aspecto e com o que esta turma mostra em cada um, está na **Aula 01**:');
-    } else if (recorte.length) {
-      corpo.push('**' + recorte.length
-        + (recorte.length === 1 ? ' aspecto do corpo em observação' : ' aspectos do corpo em observação')
-        + '** — os que a linha de base desta turma escolheu. O que a turma mostra em cada um, e o '
-        + 'que se marca aluna a aluna, está na **Aula 01**:');
-      corpo.push('');
-      for (const nome of recorte) corpo.push('- ' + nome);
-    } else {
-      corpo.push('[A decidir: esta turma ainda não tem aspectos do corpo escolhidos. A escolha '
-        + 'faz-se na linha de base do Corpo — é ela que diz o que este ciclo observa —, e a lista '
-        + 'aparece então aqui e na Aula 01.]');
-    }
-    corpo.push('');
-    corpo.push('[Aula 01 — Corpo](aula-01.html#corpo)');
-    corpo.push('');
-    /* A FRASE QUE EXPLICA O QUE É O CORPO DO CICLO FICA; a que explicava COMO O CÓDIGO O ARRUMAVA
-     * sai. «Aqui fica o ponteiro — a tabela vive num lugar só» era raciocínio de arquitectura, e
-     * a pesquisadora disse-o por palavras: «essa informação que você colocou aqui também é uma
-     * informação para a gente, para programador e para você». O que se põe no lugar é o que o
-     * professor precisa de saber: onde é que as marcas se fazem. */
-    corpo.push('O que a turma mostra no corpo, lido das anamneses das alunas, é um **ponto de '
-      + 'atenção** do ciclo — o que se vai olhar, e não uma avaliação de ninguém. O que se marca '
-      + 'em cada aula, aluna a aluna, está no Plano de Observação.');
-    secao('Aspecto físico', corpo);
-  }
+   * E O QUE JÁ ESTAVA ESCRITO NÃO SE REESCREVE: um plano antigo cujo envelope tenha
+   * `aspecto-fisico` guardado continua a ter a resposta no envelope (a proveniência acrescenta,
+   * não apaga); o que deixa de existir é a secção que a imprimia. O `aspectoFisico` fica no
+   * schema, como leitura do passado — o mesmo tratamento de `estruturaDeCadaAula`.
+   */
 
   /* A MÚSICA É A DOS EXERCÍCIOS QUE AINDA EXISTEM (03/11/2026). A sequência guarda uma linha por
    * par objetivo × bloco × exercício, e a linha de um objetivo que a pessoa apagou não é memória:

@@ -39563,3 +39563,99 @@ o cliente compila, e o emitido confirma `trio trio-duo`, zero `caixa("Elenco"` e
 `data-painel="elenco"`.
 
 **O que ainda não está feito.** A conferência ao ar é do próximo deploy.
+
+## 07/11/2026 — O Bloco 10 sai do plano: o corpo mora na Audição e no PO
+
+**O que motivou.** «No Plano de Ensino (roteiro e formulário), os campos referentes ao Bloco 10
+('Linha de base do corpo' e 'Aspecto físico da turma') tornaram-se redundantes. Essas informações já
+são definidas nativamente na **Audição/Elenco** e são tratadas diretamente no **Plano de
+Observação**.» E o pedido foi explícito quanto ao método: **investigar primeiro** as dependências
+rígidas no motor, nos modelos e nos dois planos, e só depois agir — porque a pergunta dela não era
+«apaga», era «isto parte alguma coisa?».
+
+A investigação respondeu que não. Os dois nós do bloco 10 eram `linha-de-base-alvo` (um `<select>`
+cujas opções vinham de `api/linhas-de-base`) e `aspecto-fisico` (a tabela do aspecto físico). O
+encadeamento que os alimentava — Turma → Elenco → a linha de base do ciclo — foi lido sítio a sítio:
+o `derivar-plano-ciclo.js` **já sabia** cair no `linhaDeBase.recorte` quando o campo do plano vinha
+vazio, e nenhum envelope real do repositório tinha as duas chaves preenchidas. O schema
+(`ciclo-01-plano-schema.json`) não as exige (três campos obrigatórios, nenhum deles este), o
+conteúdo declara `additionalProperties: true`, e a resposta é chaveada pelo **`id` do campo** e não
+pela posição — de modo que renumerar não mexe em dado guardado. Nada partia.
+
+**O que foi decidido.**
+
+1. **O bloco 10 sai do plano de ensino.** «Aspecto físico — o corpo» deixa de se perguntar, com os
+   dois nós. O plano perguntava pela terceira vez o que a Audição/Elenco já declara e o PO já
+   observa; a fronteira é essa, e é dela.
+2. **Os blocos foram renumerados 1..11, sem falhas.** Antes eram 1, 3..13 — o 2 já não existia (o
+   bloco físico da aluna é da anamnese). A renumeração **não** é cosmética: os números aparecem no
+   roteiro e no documento derivado, e uma sequência com um salto a mais lê-se como um bloco perdido.
+3. **A secção saiu também do documento derivado.** Em `derivar-plano-ciclo.js`, o bloco do
+   `## Aspecto físico — força e flexibilidade` foi substituído por um comentário que explica a
+   ausência, e o `opcoes.linhaDeBase` — que só ele lia — saiu. Foi a escolha dela entre as duas que
+   lhe apresentei: deixar o documento a dizer «sem leitura» para sempre, ou deixá-lo deixar de falar
+   do que já não se pergunta. Escolheu a segunda.
+4. **A memória não se apaga, e é a regra que fica.** Um envelope **já gravado** com `aspecto-fisico`
+   continua a alimentar o **eixo do Corpo da Aula 01**: a leitura em `derivar-ciclo.js` fica, com o
+   motivo escrito — apagá-la faria o passado perder o que declarou, o contrário de «a proveniência
+   acrescenta». O que **deixa** de o imprimir é o **plano** derivado, e isso é a decisão: o plano é
+   hoje o documento que não fala do corpo. No mesmo sentido, o `MAPA_SECOES` do
+   `validar-plano-ciclo.js` mantém o alias «aspecto físico» → `aspectoFisico` **com a razão ao
+   lado**: um documento antigo tem de continuar a extrair as suas secções. Um plano novo não tem a
+   chave, e a Aula 01 cai no `recorte`.
+5. **As três cópias do conteúdo ficam iguais.** A fonte (`porta/plano/conteudo/plano.json`), a do
+   ciclo da `breu` (`plano-observacao/plano/conteudo/plano.json`) e a do pacote publicado. Não se
+   editou meia dúzia: sincronizaram-se por cópia e conferiu-se por md5 (`dcf185f0…`, os três).
+   **A `breu` não se pode regerar pelo gerador** — o `.conf` dela tem `DOCS=""` com o pacote
+   existente, e o `gerar-ciclo.sh` recusa; a cópia é o caminho, e é o que já se fazia.
+6. **Dois comentários que passaram a mentir foram corrigidos, e não deixados a apodrecer.** O de
+   `elicitar.js` dizia que «o nó `aspecto-fisico` do plano declara o que o alimenta» — o nó já não
+   existe, mas o **repasse** `lidoDaLinhaDeBase`/`opcoesDe` fica, e fica por uma razão que não
+   depende daquele nó: `descritores()` é uma lista fechada, e uma chave que o conteúdo declare e o
+   motor não repasse morre em silêncio (a tela mostra os primeiros campos crus e ninguém percebe).
+   O de `derivar-ciclo.js` passou a dizer que a primeira das três fontes do Corpo é **histórica**.
+
+**Onde entrou.** `porta/plano/conteudo/plano.json` (bloco 10 fora, blocos 1..11) ·
+`professores/coqui-de-redinha/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json` e
+`publicacao/breu/plano-observacao/plano/conteudo/plano.json` (sincronizados) ·
+`motor/nucleo/derivar-plano-ciclo.js` (a secção fora; o `opcoes.linhaDeBase` fora) ·
+`motor/nucleo/derivar-ciclo.js` (a leitura histórica documentada) · `motor/nucleo/elicitar.js` (o
+comentário do repasse) · `tools/validar-plano-ciclo.js` (alias com motivo) ·
+`experimentos/provar-corpo-da-linha-de-base.js` (secção B reescrita como «O PLANO JÁ NÃO FALA DO
+CORPO», secção D como «A FONTE ÚNICA») · `experimentos/provar-linha-de-base.js` (secção 7) ·
+`experimentos/provar-eixos-e-tempo-da-aula.js` (asserções invertidas) · `ESTADO-ATUAL.md` (§2, §6
+com a decisão 119, §8, §9, §11 e a linha da última fotografia) · `PLANEJAMENTO-LASTRO.md` (duas
+linhas do mapa dos eixos, que citavam o bloco 10 do corpo e os números antigos do repertório e do
+vídeo).
+
+**Validação.** `provar-plano-completo` **18/18** · `provar-corpo-da-linha-de-base` **30/30** ·
+`provar-linha-de-base` **102/102** · `provar-eixos-do-po` **42/42** ·
+`provar-derivados-da-sequencia` **26/26** · `provar-salas-e-elencos` **65/65** ·
+`provar-producao` **166/166** · `provar-indice-do-recorte` **24/24** · `provar-acordeoes` **verde** ·
+`check-identidade` **0 erros** · `check-schemas` **verde** · o plano derivado valida contra o
+`ciclo-01-plano-schema.json` (3 obrigatórios, 12 secções extraídas) · `hash-ciclo --check`
+**intacta** (`b7cd94a5…`) · `gerar-indices --check` **0** · `gerar-relacoes --check` **0** ·
+`wrangler deploy --dry-run` do `wrangler.danca.jsonc` **compila**. `provar-eixos-e-tempo-da-aula`
+fica com **4 falhas de 52** — as **mesmas de antes** (medidas no `abf7bc8e` com `git stash`: 4 de
+51), e nenhuma delas toca no bloco 10.
+
+**Um vermelho de antes, que se mede e se escreve em vez de se herdar.** O `ESTADO-ATUAL.md` citava a
+`provar-forca-e-flexibilidade` como «17 asserções, 0 falhas» na linha do corpo. Hoje essa prova
+**para** a meio — `Cannot read properties of undefined (reading 'registroDaAnamnese')`, no mapa do
+PO — e para **igual** no `abf7bc8e`, com as alterações em `stash`. Não é desta entrega e não se
+corrigiu aqui: mudou-se a linha do estado para dizer o que se mediu. Promover a verde o que não
+correu é a falta que o próprio `ESTADO-ATUAL.md` proíbe.
+
+**O que ainda não está feito.**
+
+- **O corpo perdeu o seu link próprio para a Aula 01.** A secção removida era a única que apontava
+  para a **secção «Corpo» da aula** (`#corpo`); o plano continua a ligar à Aula 01 por «Objetivos por
+  bloco e por aula», mas não ao corpo em particular. Não se repôs o link noutro sítio, e é uma troca
+  que fica declarada: se ela sentir falta dele, o lugar é o PO — que é onde o corpo se observa — e
+  não o plano.
+- **A conferência ao ar é do próximo deploy.** As provas são locais; a página serve o `bastidores.js`
+  que o Worker empacota.
+- **`aspectoFisico` continua no `ciclo-01-plano-schema.json`** como leitura do passado — mesmo
+  tratamento que `estruturaDeCadaAula`. Sai quando não houver envelope antigo a citá-lo.
+- **Qualquer plano já publicado com a secção** «## Aspecto físico» mantém-na até ser regerado; o
+  validador continua a extraí-la, e é de propósito.

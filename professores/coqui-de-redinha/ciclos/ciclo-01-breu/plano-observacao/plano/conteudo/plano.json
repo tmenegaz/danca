@@ -245,7 +245,7 @@
       ]
     },
     {
-      "bloco": 3,
+      "bloco": 2,
       "titulo": "Objetivos específicos do ciclo",
       "objetivo": "declarar o que fica pronto em cada objetivo, e em que aula ele é perseguido",
       "campos": [
@@ -283,7 +283,7 @@
       ]
     },
     {
-      "bloco": 4,
+      "bloco": 3,
       "titulo": "Onde cada objetivo é trabalhado",
       "objetivo": "dizer em que bloco da aula cada objetivo específico é trabalhado",
       "campos": [
@@ -311,7 +311,7 @@
       ]
     },
     {
-      "bloco": 5,
+      "bloco": 4,
       "titulo": "Blocos da aula e distribuição do volume",
       "objetivo": "calibrar o volume de trabalho ativo por bloco",
       "campos": [
@@ -368,7 +368,7 @@
       ]
     },
     {
-      "bloco": 6,
+      "bloco": 5,
       "titulo": "A Aula 1",
       "objetivo": "fechar a primeira aula: o parâmetro de medição e a sequência (o objetivo específico é o marco parcial 1, que o plano lê do bloco dos marcos)",
       "campos": [
@@ -456,7 +456,7 @@
       ]
     },
     {
-      "bloco": 7,
+      "bloco": 6,
       "titulo": "Condições preliminares",
       "objetivo": "declarar o que o espaço e o material precisam ter",
       "campos": [
@@ -473,7 +473,7 @@
       ]
     },
     {
-      "bloco": 8,
+      "bloco": 7,
       "titulo": "Rubrica de avaliação final",
       "objetivo": "declarar os critérios e os quatro níveis de desempenho",
       "campos": [
@@ -493,7 +493,7 @@
       ]
     },
     {
-      "bloco": 9,
+      "bloco": 8,
       "titulo": "Extensão e referências",
       "objetivo": "declarar se o ciclo estende e com que material",
       "campos": [
@@ -520,53 +520,7 @@
       ]
     },
     {
-      "bloco": 10,
-      "titulo": "Aspecto físico — o corpo",
-      "objetivo": "declarar o que a turma mostra de força e flexibilidade que vai ser observado — o aspecto do corpo",
-      "campos": [
-        {
-          "id": "linha-de-base-alvo",
-          "campo": "Linha de base do corpo",
-          "obrigatorio": false,
-          "opcoesDe": "api/linhas-de-base",
-          "explicacao": {
-            "oQueE": "O RECORTE do corpo que este ciclo observa — escolhido em Bastidores → Corpo, pelo professor, de entre os aspectos que a anamnese recolhe.",
-            "preencher": "Escolha uma das linhas de base da escola. A lista mostra o nome, quantos aspectos cada uma tem e de que professor é; as de outros professores aparecem, porque quem assume precisa de ler o que estava antes. Se nenhuma serve, crie a sua em Bastidores → Corpo e volte aqui.",
-            "porQue": "Até 05/11/2026 o plano lia sempre os MESMOS quinze aspectos de força e flexibilidade — a mesma lista para todos os professores, todas as turmas e todos os ciclos. Isso deixava de fora, por exemplo, o formato anatómico dos joelhos e a arquitetura do arco plantar, que em balé clássico não são acessórios. O que se observa no corpo é uma decisão pedagógica do professor, e não uma constante do sistema.",
-            "oQueNaoE": "Não é o registo da aluna: o que CADA aluna mostra vive na anamnese, e o que CADA aluna precisa de desenvolver vive no Plano de Observação. Aqui declara-se o RECORTE — o que este ciclo vai olhar."
-          }
-        },
-        {
-          "id": "aspecto-fisico",
-          "campo": "Aspecto físico da turma",
-          "obrigatorio": false,
-          "tabela": {
-            "colunas": [
-              "Aspecto",
-              "Como está a turma"
-            ],
-            "minimo": 1,
-            "textoLargo": [
-              "Como está a turma"
-            ],
-            "acrescentavel": true,
-            "removivel": true
-          },
-          "explicacao": {
-            "oQueE": "O aspecto do CORPO: o que esta turma mostra de força e flexibilidade, e que por isso vai ser olhado durante o ciclo. É o primeiro dos três eixos do que se observa em dança — o corpo, a técnica e a poiese.",
-            "preencher": "Carregue a sugestão a partir das anamneses da turma e corrija: é o que as alunas mostram JUNTAS, não uma linha por aluna. Se a anamnese de uma aluna estiver errada, corrija na anamnese — o dado decide-se lá.",
-            "porQue": "Porque sem o ponto de partida do corpo, «melhorou» não quer dizer nada: a mesma aula não produz o mesmo efeito em duas alunas que partem de lugares diferentes. E porque a força e a flexibilidade são o que a Regra 4 pede declarado — este é o sítio onde isso está."
-          },
-          "lidoDaLinhaDeBase": {
-            "alvo": "linha-de-base-alvo",
-            "turma": "contexto-turma",
-            "nota": "Lido das anamneses das alunas desta turma, mas só nos aspectos que a linha de base escolheu. Não é por aluna: é o que a turma mostra em cada aspecto. Corrige-se na anamnese, que é onde o dado se decide."
-          }
-        }
-      ]
-    },
-    {
-      "bloco": 11,
+      "bloco": 9,
       "titulo": "Música e vídeo de referência",
       "objetivo": "declarar o vídeo de referência desta aula e mostrar a música que cada exercício já tem",
       "campos": [
@@ -589,7 +543,7 @@
       ]
     },
     {
-      "bloco": 12,
+      "bloco": 10,
       "titulo": "Repertório da aula",
       "objetivo": "mostrar os exercícios que esta aula usa — lidos da sequência, não escritos",
       "campos": [
@@ -613,7 +567,7 @@
       ]
     },
     {
-      "bloco": 13,
+      "bloco": 11,
       "titulo": "Origem",
       "objetivo": "declarar a base pedagógica do plano",
       "campos": [

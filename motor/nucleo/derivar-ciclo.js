@@ -305,7 +305,14 @@ function eixosDaObservacao(dims, plano, po, linhaDeBase) {
   const conta = (lista) => lista.reduce((s, d) => s + d.itens.length, 0);
   const nomes = (lista) => lista.map((d) => d.bloco).filter(Boolean);
 
-  // O CORPO — três fontes, nenhuma inventada.
+  /* O CORPO — três fontes, nenhuma inventada.
+   *
+   * A PRIMEIRA DELAS É HISTÓRICA (07/11/2026). `aspecto-fisico` era o campo do Bloco 10 do plano,
+   * e o formulário que o preenchia saiu — o corpo do ciclo vive na Audição/Elenco (o recorte) e
+   * no Plano de Observação. A leitura FICA, e por uma razão de proveniência: um envelope já
+   * gravado com a tabela preenchida continua a ter a resposta, e o documento que ele gera
+   * continua a imprimi-la. Apagar a leitura faria o passado perder o que declarou — o contrário
+   * de «a proveniência acrescenta». Planos novos não têm a chave, e caem no `recorte` abaixo. */
   const aspectos = linhasDaTabela(resp(plano, 'aspecto-fisico'))
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l));
   const restricoes = String(resp(po, 'restricoes') || '').trim();

@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 06/11/2026 (árvore limpa, `d1901268`). Nesta entrega, **o lançamento da
+> **Última fotografia:** 07/11/2026 (árvore limpa, `abf7bc8e`). Nesta entrega, **quatro ajustes de
+> Pedagogia, todos de rótulo, arrumação e fronteira — nenhum de modelo**: «Elenco» passou a
+> **Audição** e «Verbetes da notação» a **Estilo**; os cinco elementos basilares passaram a **um
+> bloco** no passo 4 (catorze blocos a dez, os mesmos 45 aspectos), o quadro do recorte virou
+> **acordeão que nasce fechado** a carregar **três a três**, e o cartão do elenco ficou com **duas
+> caixas** (alunas e recorte); e **o Bloco 10 saiu do plano de ensino** — «Aspecto físico — o corpo»
+> deixou de se perguntar porque a Audição/Elenco já o declara e o Plano de Observação já o observa,
+> com a secção «## Aspecto físico» a sair também do documento derivado e os blocos renumerados
+> (1..11, sem falhas). Ver a decisão 119.
+>
+> **Fotografia anterior (06/11/2026, `d1901268`).** Nesta entrega, **o lançamento da
 > aula deixou de ir para o KV** — que ninguém lê — e passou a gravar o `-dados.json` canónico no
 > repositório, **fundindo por aula** e **disparando a geração**. A causa do relato dela («a tela
 > disse lançada, e ao recarregar não havia aula nem caderno») era de uma linha: o armazenamento
@@ -1312,13 +1322,19 @@ Verificado nesta fotografia, com os comandos da §9.
   2×/semana numa escola e 3× noutra: o ritmo não é do conteúdo, é da contratação. É o que fecha a
   **C19** pela negativa — a turma pronta vende-se **sem** ritmo, e o ritmo entra onde já entra hoje.
   **DECIDIDO** em 02/11/2026, e registado no `PLANEJAMENTO-LASTRO.md` (C19 e L14).
-- **O corpo está no ciclo em cinco sítios, e só falta a ligação ao exercício.** Anamnese (15 campos,
-  7 de flexibilidade e 8 de força) → PO `linha-de-base` (os mesmos 15, **pelo nome**, mais «o que
-  traz / o que precisa desenvolver») → PO `restricoes` → PO `inclusao`/`exclusao` (critérios
-  **sugeridos a partir da anamnese**) → plano **bloco 10** `aspecto-fisico` → «## Aspecto físico —
-  força e flexibilidade». O que **não** existe é o verbete a declarar o que **o exercício** exige do
-  corpo — e é **de conteúdo** (P-16), não de código. **CONFIRMADO** em 02/11/2026 por
-  `provar-forca-e-flexibilidade` (17 asserções) e pela leitura dos cinco sítios.
+- **O corpo está no ciclo, e só falta a ligação ao exercício.** Anamnese (15 campos, 7 de
+  flexibilidade e 8 de força) → PO `linha-de-base` (os mesmos 15, **pelo nome**, mais «o que traz /
+  o que precisa desenvolver») → PO `restricoes` → PO `inclusao`/`exclusao` (critérios **sugeridos a
+  partir da anamnese**) → o **recorte** que o professor escolhe na **Audição/Elenco**, e que o PO
+  lê. O que **não** existe é o verbete a declarar o que **o exercício** exige do corpo — e é **de
+  conteúdo** (P-16), não de código. **CONFIRMADO** em 02/11/2026 pela leitura dos cinco sítios.
+  **Correção de 07/11/2026:** o **quinto sítio saiu** — o plano de ensino deixou de perguntar o
+  corpo (`bloco 10`, `aspecto-fisico`), porque a Audição/Elenco já o declara e o PO já o observa.
+  Desde então são **quatro** os sítios, e a `provar-forca-e-flexibilidade` — a prova citada aqui —
+  **hoje não corre até ao fim**: para com `Cannot read properties of undefined (reading
+  'registroDaAnamnese')` na leitura do mapa do PO. É **vermelho de antes** desta entrega (medido no
+  `abf7bc8e` com `git stash`), e fica registado em vez de herdado: não se promove a verde o que não
+  correu.
 - **O modelo tem TRÊS eixos, e a palavra «eixo» aparecer uma vez não diz o contrário.** É **prefixo
   por concatenação** (`doPlano.eixo` + `" — "` + bloco): o envelope real da `batata` traz
   `["Técnica — Barra", "Técnica — Centro", "Técnica — Musicalidade", "Técnica — Expressão"]`, e o
@@ -1367,7 +1383,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | Aula 01: Guia preenchido com os itens do PO, Notação com a estrutura da Aula e PDF individual | **CONFIRMADO no pacote e no ar** — a variante é hoje `pe-junto/01/batata-bale-nivel-1-teste-2` (`/bale-nivel-1-teste-2/aula-01`, HTTP 200). O caminho antigo (`perna-boa`) foi expurgado em 01–02/11/2026 | `professores/pe-junto/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md`, `tools/gerar-aula-prosa.js`, `tools/gerar-ciclo.sh`, `tools/montar-publicacao.js` |
 | **A aula regenera-se das fontes com um comando, e diz o que muda** | **CONFIRMADO** 02/11/2026 — `tools/regerar-derivados.js <professor> <ciclo> <variante>` reescreve a aula, o plano, a captura, a harmonização, as referências, a notação e o glossário a partir dos envelopes; **não grava sem `--escrever`** e **não toca no `-dados.json`** (que é estado, não derivação). Antes dele, pôr um ciclo em dia exigia repetir à mão o que o Worker faz | `tools/regerar-derivados.js` |
 | **A geração é reprodutível** | **CONFIRMADO** 02/11/2026 — duas gerações seguidas do mesmo ciclo dão o mesmo md5 nos dois PDFs e o `git status` fica limpo | `tools/gerar-ciclo.sh`, `tools/templates/ciclo-cabecalho.tex` |
-| **Música e vídeo de referência** e **Repertório da aula** são dois blocos no plano | **CONFIRMADO** 02/11/2026 — o bloco 10 chamava-se «música e repertório» e prometia os dois; o repertório passou a bloco próprio (11) e a Origem desceu para 12 | `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` |
+| **Música e vídeo de referência** e **Repertório da aula** são dois blocos no plano | **CONFIRMADO** 02/11/2026 — o bloco 10 chamava-se «música e repertório» e prometia os dois; o repertório passou a bloco próprio (11) e a Origem desceu para 12. **Correção de 07/11/2026:** com a saída do Bloco 10 (`aspecto-fisico`) os blocos foram **renumerados** — «Música e vídeo de referência» é hoje o **9**, «Repertório da aula» o **10** e «Origem» o **11**; os números desta linha valem para 02/11/2026 | `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` |
 | **O ponto de partida lê a anamnese** (força e flexibilidade, 15 campos) | **CONFIRMADO** 02/11/2026 — a caixa mostra os campos pelo **nome** e pelo **valor**, e o «abrir o registro completo» leva à anamnese da aluna noutra aba com o contexto do ato | `porta/po/conteudo/po.json`, `motor/nucleo/elicitar.js`, `porta/index.html` |
 | As três listas da Área do Professor **com o contexto do ato dentro da listagem** | **CONFIRMADO** 25/10/2026 — painel com a caixinha do «Turma» e a seta, a regra dos três botões executada, o contexto guardado, o aviso da senha errada; 43 verificações no browser | `motor/servidor/listas-do-acervo.js` |
 | As três listas do acervo pela ponte | **CONFIRMADO** | `motor/servidor/listas-do-acervo.js` |
@@ -1385,7 +1401,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | A §4 da aula como vista consolidada da musicalidade, por compasso | **CONFIRMADO** 02/11/2026 — uma linha por exercício (o mesmo em Barra, Centro e Expressão é uma só), com `Tempos` e a contagem *e* o que cai nela; `conferir` onde a grade do verbete não fecha. Medido no `.md` gerado e nas cinco asserções do `provar-o-que-vem-do-dado`. | `motor/nucleo/derivar-ciclo.js` (§4) |
 | O exercício novo como passo 1 do verbete — seis passos, sem «+» nem botões próprios | **CONFIRMADO** 02/11/2026 — o passo 1 tem os quatro controlos e mais nada; «Seguir →» grava o termo no vocabulário do repositório e avança para o passo 2 com ele escolhido; avançar sem nome não grava nada; «Limpar» e «Editar» levam ao passo 2. **Zero KV.** | `motor/servidor/bastidores.js`, `motor/servidor/termo-repo.js` |
 | A gravação do verbete confere a música | **CONFIRMADO** 02/11/2026 — as células têm de somar os tempos da música declarada; a recusa nomeia os passos 2 e 3, e o servidor recusa também (`validarVerbete` recebe a música). | `motor/servidor/verbete.js`, `motor/servidor/bastidores.js` |
-| O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. | `porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js` |
+| O aspecto físico — força e flexibilidade — no PLANO, lido das anamneses da turma | **CONFIRMADO** 02/11/2026 — bloco 10 do plano (`aspecto-fisico`, descritor `lidoDasAnamneses`, quinze campos em dois grupos); a porta consolida por aspecto e marca o ponto de atenção pela ordem das opções da anamnese. Sem leitura, a secção declara a lacuna. **Correção de 07/11/2026: este bloco deixou de existir.** Ela decidiu que ele era redundante — o corpo do ciclo é declarado na **Audição/Elenco** e observado no **Plano de Observação** —, e o `## Aspecto físico` saiu também do documento derivado. A chave `aspecto-fisico` **continua a ser lida** quando um envelope antigo a tem (proveniência: o passado não se reescreve). | `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` |
 | **O dicionário como produto** — o vocabulário do catálogo com a decomposição | **CONFIRMADO** 02/11/2026 na bancada (`provar-produtos`, 52 asserções): agrupado por categoria na ordem de aula, com definição, origem, tradição e alternativos; a decomposição em tabela com o **compasso por pista**; o verbete que não fecha em `[conferir]` **com o motivo**, sem publicar a contagem; as adições de escola **excluídas por omissão**. Gerado por `node motor/produtos.js dicionario`. | `motor/nucleo/produtos/dicionario.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
 | **O syllabus como produto** — a sequência por nível, com a camada pedagógica | **CONFIRMADO** 02/11/2026 na bancada (73 asserções, com o dicionário): um documento por nível na **ordem declarada** em `progressao.json`, mais um índice com as contagens; `exige` · `ensina` · `expressa` **herdados do termo ou sobrepostos pela relação**, com a origem escrita ao lado (`(herdado do termo)` / `(declarado no nível)`); `[Preencher]` só quando **nenhum dos dois** declara; o nível sem unidades diz que é a lacuna; `--nivel` gera um só, e um nível inexistente é **recusado**. Gerado por `node motor/produtos.js syllabus`. | `motor/nucleo/produtos/syllabus.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
 | **A licença é lida e a condição de conteúdo é executável** | **CONFIRMADO** 02/11/2026 na bancada: o nome da licença vem do **título** de `biblioteca/LICENSE.md` (o manifesto cita o caminho, e a lacuna `sem-licenca` desapareceu); e `--edicao paga` deixa de fora a definição **sem `fonte`**, di-lo no sítio dela, mantém o termo, e conta — **25** no catálogo de hoje, o mesmo número que a §10.4 mediu à mão. | `motor/produtos.js` (`licencaDoDisco`), `motor/nucleo/produtos/dicionario.js` |
@@ -1613,7 +1629,8 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     «Adicionar linha» — sem os dois, um plano cuja turma não tem conteúdo associado não podia ser
     composto. **Ela não sai do formulário**: é dela que a página da aula lê a sequência
     (`sequenciaComoObjetos`). **DECIDIDO** 01/11/2026.
-31. **O QUE A SEQUÊNCIA JÁ RESPONDE NÃO SE ESCREVE OUTRA VEZ.** O bloco 10 do plano deixou de
+31. **O QUE A SEQUÊNCIA JÁ RESPONDE NÃO SE ESCREVE OUTRA VEZ.** O bloco do plano que hoje se chama
+    **«Música e vídeo de referência»** (era o 10 em 01/11/2026; é o **9** desde 07/11/2026) deixou de
     perguntar a música: ela **sobe da sequência**, exercício por exercício, do **verbete** de cada um,
     e é mostrada acima do campo. O campo do nó 24 passou a ser o **link do vídeo** («Vídeo de
     referência»), que é a única parte que não existia em lugar nenhum. O **«Repertório desta aula»**
@@ -1741,7 +1758,7 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     envelope real da `batata` mostra `["Técnica — Barra", "Técnica — Centro", "Técnica —
     Musicalidade", "Técnica — Expressão"]`. O eixo **come** os dois blocos que não são lugares na
     sala, e o conteúdo deles é **poiésis** com o rótulo da técnica por cima. Os três existem — corpo
-    (anamnese → PO → bloco 10), técnica (`notacao`/`vocabulario`/`progressao`), expressão (música,
+    (anamnese → PO → o recorte da Audição), técnica (`notacao`/`vocabulario`/`progressao`), expressão (música,
     repertório, vídeo, 4 termos de `qualidade`) — e **nenhum está declarado como eixo**. **O objetivo
     não é um quarto eixo: é o cruzamento**, e já existe duas vezes (`estrutura-de-cada-aula` marca o
     objetivo por bloco, `aula-1-sequencia` amarra objetivo + bloco + tempos + compasso por linha).
@@ -2324,6 +2341,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `.conf`-esqueleto da escola e a geração morria. **CONFIRMADO** por
      `experimentos/provar-familia-do-lancamento.js` (**44 asserções**, contraprova **6 de 44**).
 
+119. **O BLOCO 10 SAI DO PLANO DE ENSINO; O CORPO MORA NA AUDIÇÃO E NO PO.** «Aspecto físico — o
+     corpo» (`linha-de-base-alvo` e `aspecto-fisico`) deixou de se perguntar no plano, e com ele
+     saiu do documento derivado a secção «## Aspecto físico — força e flexibilidade». Os blocos
+     foram **renumerados 1..11, sem falhas**. **DECIDIDO** 07/11/2026, por decisão dela: as duas
+     informações já estão onde se decide sobre elas — a linha de base do corpo na **Audição/Elenco**
+     e as particularidades na **observação**. O plano perguntava duas vezes o que já sabia. Três
+     regras que não se negociam depois: (a) **a chave não é apagada da memória** — um envelope já
+     gravado com `aspecto-fisico` continua a alimentar o eixo do Corpo da **Aula 01** (o que deixa
+     de a imprimir é o plano derivado, e é a decisão), e o `MAPA_SECOES` do validador mantém o
+     alias «aspecto físico» → `aspectoFisico` **com o motivo escrito**, porque um documento antigo
+     tem de continuar a extrair as suas secções; (b) **a derivação não perde a fonte** — o eixo do
+     Corpo lê `aspecto-fisico` **quando existe** e cai no `recorte` da linha de base quando não,
+     que é o caso de todos os planos novos; (c) **o endereço da resposta muda de forma inofensiva**
+     — `endereco` é `blocos[N].campo` mas as respostas são chaveadas pelo `id` do campo, e por isso
+     a renumeração não toca em dado guardado. A prova é `provar-corpo-da-linha-de-base` (**30
+     asserções**), `provar-linha-de-base` (**102**) e `provar-plano-completo` (**18**) — verdes, com
+     o plano derivado a validar contra o `ciclo-01-plano-schema.json` e a âncora de proveniência
+     intacta (`hash-ciclo --check`). **Fica por fazer, e sabe-se:** a secção removida era a única
+     que apontava para a **Aula 01** no que toca ao corpo, e o link não foi reposto noutro sítio.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -2832,8 +2869,8 @@ Expressão» — poiésis medida com o rótulo da técnica por cima. **CONFIRMAD
 
 Os três existem, em sítios diferentes, e **nenhum está declarado como eixo**:
 
-- **corpo** — anamnese (15 campos) → PO `linha-de-base` e `restricoes` → plano bloco 10
-  `aspecto-fisico`. Falta a **ligação ao exercício**;
+- **corpo** — anamnese (15 campos) → PO `linha-de-base` e `restricoes` → o recorte da
+  **Audição/Elenco**, que o PO lê. Falta a **ligação ao exercício**;
 - **técnica** — `notacao.json`, `vocabulario.json`, `progressao.json`, plano e PO. Falta a **haste
   declarada**;
 - **expressão** — música (verbete + sequência + §4), repertório, vídeo de referência, 4 termos de
@@ -3516,7 +3553,7 @@ partir.
 |:--|:--|
 | **o modelo tem três eixos** — leitura do envelope real da `batata` | `"eixo"` aparece **uma vez** (`porta/po/conteudo/po.json:196`) e o rótulo é **prefixo por concatenação**: `["Técnica — Barra", "Técnica — Centro", "Técnica — Musicalidade", "Técnica — Expressão"]` |
 | **o ritmo é obrigatório** — leitura das quatro portas de recusa | `faltaNoRitmoDaTurma` (`bastidores.js:829`) é chamada ao **gravar a turma** (`:7402`), ao **atribuir** (`:7463`, `:7554`) e ao **gerar o ciclo** (`:8203`, `:8343`); o formulário pede dias + hora, duração e período (`:3174`–`:3190`), e a frequência é derivada (`frequenciaDaTurma`, `:822`) |
-| **o corpo está no ciclo** | os cinco sítios lidos um a um (anamnese → `linha-de-base` → `restricoes` → `inclusao`/`exclusao` → plano bloco 10); `provar-forca-e-flexibilidade` **17 asserções, 0 falhas** |
+| **o corpo está no ciclo** | medido a 02/11/2026: os cinco sítios lidos um a um (anamnese → `linha-de-base` → `restricoes` → `inclusao`/`exclusao` → plano bloco 10). **07/11/2026:** o quinto saiu (decisão 119), e são **quatro**. A `provar-forca-e-flexibilidade` citada nesta linha **não corre hoje até ao fim** — para em `Cannot read properties of undefined (reading 'registroDaAnamnese')`; vermelho de antes, medido no `abf7bc8e`. As provas do corpo que **correm e passam** a 07/11/2026 são `provar-corpo-da-linha-de-base` (**30 asserções**) e `provar-linha-de-base` (**102**) |
 | **o átomo, medido para a C22** | `notacao.json` **v15**: 11 verbetes, 13 músicas, 43 células, 11 com `posicao`, 8 dos 13 pares `cobre == tempos`; `vocabulario.json`: 93 termos, 59 com descrição, 30 com `fonte`; `progressao.json`: 13 turmas, 9 associações |
 | **as duas leituras do vocabulário** | `lerModalidade` (`verbete.js`) lê do **GitHub**; `termos()` (`bastidores.js:364`) lê do **bundle** — é a razão de o termo criado não chegar ao plano antes do deploy |
 | **o catálogo é um ficheiro só** | `termo-repo.js`: `CAMINHO = 'biblioteca/modalidades/bale-classico/vocabulario.json'` — o que a escola acrescenta vai para o catálogo |
@@ -4026,6 +4063,27 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **07/11/2026** — **O Bloco 10 saiu do plano de ensino: «Aspecto físico — o corpo» deixou de se
+  perguntar.** Os dois nós que o compunham (`linha-de-base-alvo` e `aspecto-fisico`) saíram de
+  `porta/plano/conteudo/plano.json`, e os blocos foram **renumerados 1..11 sem falhas** (antes eram
+  1, 3..13 — o 2 já não existia, porque o bloco físico da aluna é da anamnese). A razão é de
+  fronteira, e é dela: o corpo do ciclo é **declarado na Audição/Elenco** (a linha de base e o
+  recorte) e **observado no Plano de Observação**; o plano perguntava pela terceira vez o que já
+  sabia. O `## Aspecto físico — força e flexibilidade` saiu **também do documento derivado**
+  (`derivar-plano-ciclo.js`), com o `opcoes.linhaDeBase` que só ele usava. **A memória fica**: a
+  chave `aspecto-fisico` continua a ser lida quando um envelope antigo a tem (o eixo do Corpo cai no
+  `recorte` quando não tem, que é o caso novo), e o `MAPA_SECOES` do validador mantém o alias com o
+  motivo escrito — um documento antigo tem de continuar a extrair as suas secções. As três cópias do
+  conteúdo (a fonte, a do ciclo da `breu` e a do pacote publicado) ficaram **idênticas** (md5
+  `dcf185f0…`). **CONFIRMADO** a 07/11/2026: `provar-corpo-da-linha-de-base` **30/30**,
+  `provar-linha-de-base` **102/102**, `provar-plano-completo` **18/18**, `provar-eixos-do-po`
+  **42/42**, `provar-derivados-da-sequencia` **26/26**, `provar-salas-e-elencos` **65/65**,
+  `provar-producao` **166/166**, `check-identidade` **0 erros**, `gerar-indices --check` **0**,
+  `hash-ciclo --check` **intacta**, e o plano derivado valida contra o `ciclo-01-plano-schema.json`.
+  `provar-eixos-e-tempo-da-aula` fica com **4 falhas de 52** — as **mesmas de antes** (medido com
+  `git stash`: 4 de 51). **O que se perde, e sabe-se:** a secção removida era a única que, no que
+  toca ao corpo, apontava para a **Aula 01**, e o link não foi reposto noutro lugar.
 
 - **07/11/2026** — **Os basilares são um bloco no passo 4, o quadro do recorte virou acordeão, e a
   lista dos elencos ficou com três colunas.** O agrupamento é do NÚCLEO (`camposDaObservacaoInicial`):
