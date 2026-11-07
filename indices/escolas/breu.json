@@ -1,5 +1,126 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "articulacao-e-forca-intrinseca-dos-dedos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-1a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-1a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-2a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-2a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-3a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "en-dehors",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "flexibilidade-dos-adutores",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "musicalidade-e-pulsacao-ritmica",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "orientacao-espacial-basica",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    },
+    {
+      "aspecto": "rotacao-e-amplitude-dos-ombros",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261107-2150",
+      "ultima": "20261107-2150",
+      "versoes": 1
+    }
+  ],
   "aulas": [
     {
       "ancora": {
@@ -307,7 +428,7 @@
       "ciclos_com_ancora": 1,
       "planos": 4,
       "pos": 7,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 13
     },
     "criada_em": "2026-11-07T16:03:29.499378+00:00",
@@ -361,7 +482,104 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "articulacao-e-forca-intrinseca-dos-dedos",
+        "valor": "articulacao-e-forca-intrinseca-dos-dedos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-1a-bracos",
+        "valor": "cinco-posicoes-1a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-1a-pes",
+        "valor": "cinco-posicoes-1a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-2a-bracos",
+        "valor": "cinco-posicoes-2a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-2a-pes",
+        "valor": "cinco-posicoes-2a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-3a-bracos",
+        "valor": "cinco-posicoes-3a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "en-dehors",
+        "valor": "en-dehors"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "flexibilidade-dos-adutores",
+        "valor": "flexibilidade-dos-adutores"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
+        "valor": "mobilidade-de-quadril-en-dehors-de-origem"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "musicalidade-e-pulsacao-ritmica",
+        "valor": "musicalidade-e-pulsacao-ritmica"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "orientacao-espacial-basica",
+        "valor": "orientacao-espacial-basica"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "rotacao-e-amplitude-dos-ombros",
+        "valor": "rotacao-e-amplitude-dos-ombros"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -442,9 +660,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "01f0727"
+    "commit": "481e2fd"
   },
-  "gerado_em": "2026-11-07T21:47",
+  "gerado_em": "2026-11-07T21:50",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -467,7 +685,55 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 2,
+      "aspectos": [
+        "articulacao-e-forca-intrinseca-dos-dedos",
+        "cinco-posicoes-1a-bracos",
+        "cinco-posicoes-1a-pes",
+        "cinco-posicoes-2a-bracos",
+        "cinco-posicoes-2a-pes",
+        "cinco-posicoes-3a-bracos",
+        "en-dehors",
+        "flexibilidade-dos-adutores",
+        "mobilidade-de-quadril-en-dehors-de-origem",
+        "musicalidade-e-pulsacao-ritmica",
+        "orientacao-espacial-basica",
+        "rotacao-e-amplitude-dos-ombros"
+      ],
+      "atualizada_em": "2026-11-07T21:50:25.260Z",
+      "enviada_em": "2026-11-07T21:50:26.689Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "colo-de-pe",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261107-2150.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-2a-pes",
+            "cinco-posicoes-1a-bracos",
+            "cinco-posicoes-2a-bracos",
+            "cinco-posicoes-3a-bracos",
+            "en-dehors",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "flexibilidade-dos-adutores",
+            "rotacao-e-amplitude-dos-ombros",
+            "articulacao-e-forca-intrinseca-dos-dedos",
+            "musicalidade-e-pulsacao-ritmica",
+            "orientacao-espacial-basica"
+          ],
+          "enviada_em": "2026-11-07T21:50:26.689Z",
+          "versao": "20261107-2150"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
