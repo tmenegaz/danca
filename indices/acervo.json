@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "a2b4b9763508e30681c21f59b5b07272f7b6ee4ffc0b35a8388541eac27ed91f",
-        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 19,
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:rabo-gramde/01/calango",
-      "numero": "01",
-      "professor": "rabo-gramde",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -139,37 +122,35 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [
-        "ciclo:rabo-gramde/01/calango"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 3,
-        "aulas": 1,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 1,
-        "pos": 1,
-        "recortes": 1,
-        "registros": 5
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "recortes": 0,
+        "registros": 0
       },
       "criada_em": "2026-11-05T13:06:46.674863+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-11-01T19:00:27.721Z",
-      "expurgos": 9,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-07T12:18:45.087Z",
+      "expurgos": 10,
+      "habilitada": false,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "rabo-gramde",
       "professores": [
-        "rabo-gramde"
+        "meia-ponta",
+        "murisoca-baiana",
+        "oculos-redondo",
+        "perna-boa",
+        "rabo-gramde",
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261105-2031",
-        "anamnese:anamnese-20261105-2301",
-        "anamnese:anamnese-20261106-1944",
-        "plano:plano-20261106-0744",
-        "po:po-20261106-1108"
-      ],
+      "registros": [],
       "slug": "calango"
     },
     {
@@ -304,13 +285,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 5,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -363,13 +338,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -412,18 +381,18 @@
         "valor": "meia-cortada"
       },
       {
-        "contagem": 0,
-        "rotulo": "meia-ponta",
+        "contagem": 1,
+        "rotulo": "Meia Ponta",
         "valor": "meia-ponta"
       },
       {
-        "contagem": 0,
-        "rotulo": "murisoca-baiana",
+        "contagem": 1,
+        "rotulo": "Murisoca Baiana",
         "valor": "murisoca-baiana"
       },
       {
-        "contagem": 0,
-        "rotulo": "oculos-redondo",
+        "contagem": 1,
+        "rotulo": "Oculos Redondo",
         "valor": "oculos-redondo"
       },
       {
@@ -437,7 +406,7 @@
         "valor": "pe-torto"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Perna Boa",
         "valor": "perna-boa"
       },
@@ -452,7 +421,7 @@
         "valor": "rabo-gramde"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -477,7 +446,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
@@ -487,29 +456,13 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 3,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "1ee97bd"
+    "commit": "b6473a6b"
   },
-  "gerado_em": "2026-11-06T22:45",
+  "gerado_em": "2026-11-07T12:23",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -608,23 +561,29 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:meia-ponta",
-      "nome": null,
+      "nome": "Meia Ponta",
       "slug": "meia-ponta"
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:murisoca-baiana",
-      "nome": null,
+      "nome": "Murisoca Baiana",
       "slug": "murisoca-baiana"
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:oculos-redondo",
-      "nome": null,
+      "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
     },
     {
@@ -649,7 +608,8 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata"
+        "batata",
+        "calango"
       ],
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
@@ -663,9 +623,7 @@
       "slug": "pirueta-aberta"
     },
     {
-      "ciclos": [
-        "ciclo:rabo-gramde/01/calango"
-      ],
+      "ciclos": [],
       "escolas": [
         "calango"
       ],
@@ -678,7 +636,8 @@
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1"
+        "calando-teste-1",
+        "calango"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -724,6 +683,7 @@
       "escolas": [
         "batata",
         "breu",
+        "calango",
         "fita",
         "valse"
       ],
