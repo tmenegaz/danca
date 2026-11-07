@@ -71,14 +71,14 @@
       "ciclo:coqui-de-redinha/01/breu"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-07T13:19:48.138002+00:00",
     "expurgada": false,
@@ -92,11 +92,22 @@
       "colo-de-pe",
       "coqui-de-redinha"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261107-1133"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261107-1133"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
     "estados": [
       {
@@ -110,8 +121,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261107-1133",
           "ciclo:coqui-de-redinha/01/breu"
         ],
         "rotulo": "coqui-de-redinha",
@@ -119,6 +131,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261107-1133"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -131,9 +151,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1804797"
+    "commit": "a53ef79"
   },
-  "gerado_em": "2026-11-07T13:22",
+  "gerado_em": "2026-11-07T14:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -157,6 +177,17 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261107-1133",
+      "ciclo": null,
+      "data": "2026-11-07T11:33",
+      "id": "anamnese:anamnese-20261107-1133",
+      "professor": "coqui-de-redinha",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }

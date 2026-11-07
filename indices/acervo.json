@@ -59,14 +59,14 @@
         "ciclo:coqui-de-redinha/01/breu"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-07T13:19:48.138002+00:00",
       "expurgada": false,
@@ -80,7 +80,9 @@
         "colo-de-pe",
         "coqui-de-redinha"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261107-1133"
+      ],
       "slug": "breu"
     },
     {
@@ -117,7 +119,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -229,13 +237,19 @@
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "1804797"
+    "commit": "a53ef79"
   },
-  "gerado_em": "2026-11-07T13:22",
+  "gerado_em": "2026-11-07T14:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
