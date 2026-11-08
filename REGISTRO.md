@@ -40804,3 +40804,51 @@ do **mesmo texto**, e é aí que a Aluna C entra nos documentos.
   que estava a estourar — plano e PO, que é onde a geração é disparada.
 - **`provar-aparencia` (76/77) e `provar-tema` (37/38) falham igualmente no `HEAD`** — pré-existentes,
   comparadas falha a falha.
+
+## 08/11/2026 — O Worker voltou a falar com a rede: o `fetch` da ponte era ela mesma
+
+**O que motivou.** A pesquisadora criou a escola nova (a `calango`) e a anamnese da Aluna A não
+gravava: «Erro 500 informando que não há acesso ao envelope». A resposta do servidor era
+`{"ok": false, "erro": "acervo: leitura de envelope/.indice.json: HTTP 500"}`, e as listas
+respondiam 503 com a mesma frase. O diagnóstico natural era permissão, token, escola nova.
+
+**O diagnóstico, medido.** Não era nada disso. A ponte (`motor/servidor/cloudflare.js`) exporta o seu
+**entrypoint** com o nome `fetch` — é o que o `workers/principal.js` importa. Quando o §5.26 de hoje
+passou a embrulhar o `fetch` para contar subpedidos, embrulhou **esse nome**, e dentro daquele módulo
+`fetch` é o entrypoint e não a rede:
+
+    const subpedidos = contarSubpedidos(fetch, …);   // ← o entrypoint, não a plataforma
+
+Cada leitura do acervo virou uma **chamada recursiva** à própria função, com uma `Request` que era
+uma string e um `env` que era o `init`. A recursão não chegava ao GitHub: caía no bootstrap, que
+responde **500** quando o conteúdo não veio do ASSETS («conteúdo ou esquema ausentes») — e o acervo
+reportava esse 500 como se fosse do GitHub. Nenhum pedido ao repositório saiu do Worker.
+
+**O defeito é desta manhã, e é meu.** Ele nasceu na entrega do orçamento de subpedidos (`123dad0e`) e
+é a razão de a `calango` nunca ter conseguido gravar nada: a escola foi criada já com a linha errada.
+A `batata`, que existia antes, foi expurgada no mesmo dia — por isso o sintoma apareceu exactamente
+na escola nova, e parecia um problema de provisionamento.
+
+**O que foi decidido.** Um alias para a rede, e a regra que o explica: quem precisa do `fetch` da
+plataforma pede-o a `globalThis.fetch`, **explicitamente**, em tempo de chamada. Um nome só para
+duas coisas (o entrypoint e a rede) é a armadilha; o alias é o que a desarma. E a prova passa a ser
+do entrypoint VERDADEIRO com a rede substituída — o que faltava: as bancadas passavam um `fetch`
+falso ao escritor, e o caminho por onde a ponte o ia buscar nunca era percorrido.
+
+**Onde entrou.** `motor/servidor/cloudflare.js` (`buscarNaRede`, e o comentário que diz porque não se
+usa o nome `fetch` ali dentro) · `experimentos/provar-ponte-do-worker.js` (**novo**).
+
+**Validação.** `provar-ponte-do-worker` (**nova**) **13/13**: com a rede substituída, o entrypoint
+real do `/api/envelopes` chama `api.github.com` no endereço do acervo da escola do pedido, responde
+**200** com os nomes do índice, **sem** a assinatura da recursão; `/api/planos` e
+`/api/anamnese-estados` — as duas listas que respondiam 503 — respondem **200** com o contrato
+`ok: true`; e o «Guardar» da anamnese grava o envelope por um `PUT` na mesma rede.
+**Contraprova:** no `HEAD` de antes da correcção, **3 de 13** — e a mensagem que sai é, ao carácter,
+a que ela viu: `acervo: leitura de envelope/.indice.json: HTTP 500`.
+Sem regressão: `provar-trava-da-operacao` **19** · `provar-painel-do-ato` **183** ·
+`provar-listas-do-acervo` **109** · `check-identidade` **0 erros** · `check-schemas` verde.
+
+**O que ainda não está feito, e sabe-se.** Três provas de hoje — `provar-vinculo-do-elenco`,
+`provar-remocao-do-elenco` e `provar-estante-do-po` — leem os envelopes **reais** da `batata`, que o
+expurgo de hoje apagou. Elas deixam de correr (não reprovam: não têm fixture). O arranjo é dar-lhes
+fixtures próprias, e é trabalho de outra entrada — está registado aqui para não se perder.

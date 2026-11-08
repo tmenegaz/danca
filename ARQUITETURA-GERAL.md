@@ -1838,6 +1838,18 @@ sobre o `main` novo quando esse número não é zero. É o mesmo princípio do �
 subpedidos, e a recusa sem escrita; **8 de 16** no `HEAD`) e `provar-trava-da-operacao` **19**, num
 Chrome sobre a porta publicada (o véu cobre, diz, tranca e sai; **2 de 19** no `HEAD`).
 
+**E o defeito que esta secção introduziu, no mesmo dia.** A ponte (`cloudflare.js`) exporta o seu
+entrypoint com o nome `fetch` — e dentro daquele módulo `fetch` é **o entrypoint**, não a rede.
+Embrulhar o nome para contar subpedidos embrulhou a função errada: cada leitura do acervo virou uma
+chamada recursiva à própria ponte, que respondia o **500** do bootstrap («conteúdo ou esquema
+ausentes no ASSETS»). O acervo reportava-o como `acervo: leitura de envelope/.indice.json: HTTP 500`
+— e a escola criada nesse dia (`calango`) não gravou nada, com o sintoma a parecer permissão de
+token. A regra que fica: **quem precisa da rede pede-a a `globalThis.fetch`**, explicitamente e em
+tempo de chamada (`buscarNaRede`); um nome só para duas coisas é a armadilha. A prova
+(`provar-ponte-do-worker`, **13**) mede o entrypoint **verdadeiro** com a rede substituída — o que as
+bancadas anteriores não faziam, porque passavam o `fetch` falso directamente ao escritor e nunca
+percorriam o caminho por onde a ponte o ia buscar.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

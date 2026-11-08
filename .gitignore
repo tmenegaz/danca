@@ -955,3 +955,4 @@ experimentos/modelo-formulario/*
 !experimentos/provar-remocao-do-elenco.js
 !experimentos/provar-orcamento-do-guardar.js
 !experimentos/provar-trava-da-operacao.js
+!experimentos/provar-ponte-do-worker.js

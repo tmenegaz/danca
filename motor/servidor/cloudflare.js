@@ -398,6 +398,34 @@ function freioDaEscola(env) {
     '<p>Esta escola está desabilitada para resolver problemas diversos.</p>', 503);
 }
 
+/**
+ * O `fetch` DA REDE — e não o DESTE módulo (08/11/2026).
+ *
+ * O DEFEITO, medido em produção. Esta ponte exporta o entrypoint como `fetch`, e por isso dentro
+ * deste arquivo o nome `fetch` é o ENTRYPOINT, não o `fetch` da plataforma. Quando o orçamento de
+ * subpedidos passou a embrulhar `fetch` (`contarSubpedidos(fetch, …)`), embrulhou o entrypoint: cada
+ * leitura do acervo virava uma CHAMADA RECURSIVA a esta própria função, com uma `Request` que era
+ * uma string e um `env` que era o `init` do `fetch`. A recursão não lia o GitHub — devolvia o 500 do
+ * bootstrap («conteúdo ou esquema ausentes no ASSETS»), e o acervo o reportava como
+ * `acervo: leitura de envelope/.indice.json: HTTP 500`.
+ *
+ * O SINTOMA, na tela da pesquisadora: a anamnese da escola nova não gravava, «não há acesso ao
+ * envelope», e as listas respondiam 503. Nada tinha a ver com escola, token ou permissão — o
+ * Worker não estava a falar com o GitHub de sítio nenhum.
+ *
+ * A REGRA: quem precisa da REDE pede-a a `globalThis`, explicitamente. Um nome só para duas coisas
+ * (o entrypoint e a rede) é a armadilha; este alias é o que a desarma.
+ */
+const buscarNaRede = (url, init) => {
+  const rede = typeof globalThis !== 'undefined' ? globalThis.fetch : null;
+  if (typeof rede !== 'function') {
+    throw new Error('ponte: não há `fetch` de rede neste runtime — o orçamento de subpedidos '
+      + 'não pode contar o que não acontece');
+  }
+  // Chamado COMO MÉTODO de `globalThis`: o receptor é o que faz `fetch` ser o da plataforma.
+  return globalThis.fetch(url, init);
+};
+
 async function fetch(request, env, opcoes) {
   const prefixo = (opcoes && opcoes.prefixo) || '';
 
@@ -427,7 +455,7 @@ async function fetch(request, env, opcoes) {
    * código); sem ela vale o do plano gratuito, 50. É conservador de propósito: por baixo, o
    * «Guardar» recusa e diz porquê; por cima, ele morre a meio — e foi assim que o `-po.md` de
    * 08/11/2026 ficou gravado com as fontes do ciclo por gravar. */
-  const subpedidos = contarSubpedidos(fetch, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
+  const subpedidos = contarSubpedidos(buscarNaRede, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
   const { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao } = passosDeGeracao(env, subpedidos);
   // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
   // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
