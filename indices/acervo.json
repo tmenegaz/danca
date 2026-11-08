@@ -98,9 +98,9 @@
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 2,
-        "pos": 2,
+        "pos": 3,
         "recortes": 1,
-        "registros": 7
+        "registros": 8
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -120,7 +120,8 @@
         "plano:plano-20261108-1303",
         "plano:plano-20261108-1317",
         "po:po-20261108-1304",
-        "po:po-20261108-1318"
+        "po:po-20261108-1318",
+        "po:po-20261108-1319"
       ],
       "slug": "calango"
     }
@@ -128,7 +129,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -256,7 +257,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -264,9 +265,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b6a73c9"
+    "commit": "ce065c0"
   },
-  "gerado_em": "2026-11-08T16:18",
+  "gerado_em": "2026-11-08T16:19",
   "nao_indexado": [
     {
       "familia": "conteudo",
