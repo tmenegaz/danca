@@ -2,7 +2,8 @@
   "versao": 4,
   "nomes": [
     "anamnese-20261108-1259.json",
-    "plano-20261108-1303.json"
+    "plano-20261108-1303.json",
+    "po-20261108-1304.json"
   ],
   "resumos": {
     "anamnese-20261108-1259.json": {
@@ -30,6 +31,23 @@
         "Plié"
       ],
       "professorNome": "pe-torto"
+    },
+    "po-20261108-1304.json": {
+      "id": "po-20261108-1304",
+      "fonte": "po",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-08T13:04",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261108-1303"
+      ]
     }
   }
 }
