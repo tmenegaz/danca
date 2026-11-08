@@ -4,6 +4,7 @@
     "anamnese-20261107-1928.json",
     "anamnese-20261107-2204.json",
     "plano-20261107-2201.json",
+    "plano-20261107-2206.json",
     "po-20261107-2202.json"
   ],
   "resumos": {
@@ -35,6 +36,22 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-07T22:01",
+      "objetivo": "Teste",
+      "turma": "sala rosa",
+      "repertorio": [
+        "Battement jeté",
+        "Plié"
+      ],
+      "professorNome": "dedao-aberto"
+    },
+    "plano-20261107-2206.json": {
+      "id": "plano-20261107-2206",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "dedao-aberto",
+      "ciclo": "01",
+      "ajuste_de": "plano-20261107-2201",
+      "gerado_em": "2026-11-07T22:06",
       "objetivo": "Teste",
       "turma": "sala rosa",
       "repertorio": [
