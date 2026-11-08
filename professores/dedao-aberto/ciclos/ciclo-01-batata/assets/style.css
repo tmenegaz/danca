@@ -2257,6 +2257,54 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .modal-x:hover { background: none; color: var(--marca); }
 .modal-acoes { display: flex; justify-content: flex-end; gap: var(--esp-3); margin-top: var(--esp-5); }
 
+/* ---------- o véu da OPERAÇÃO (08/11/2026) -------------------------------
+   A CADEIA DO CICLO É DEPENDENTE, E A TELA TEM DE O DIZER. Criar a aluna, fazer a anamnese,
+   pô-la no elenco, concluir a turma, gravar o plano e gravar o PO: cada passo LÊ o que o
+   anterior gravou, e o último escreve no repositório e dispara a geração do pacote num
+   workflow. Clicados em sequência rápida, os gestos entram uns sobre os outros, duas gerações
+   disputam o mesmo `main` e o pacote sai pela metade — foi o que aconteceu a 08/11/2026.
+
+   Esta peça faz duas coisas, e as duas são de segurança, não de enfeite:
+     · COBRE — o véu é opaco, do papel do fundo, e ocupa a janela inteira: o ponteiro não chega
+       ao que está por baixo. (O `inert` que o script põe no conteúdo fecha o teclado e o leitor
+       de ecrã — `pointer-events` sozinho não fecha nenhum dos dois.)
+     · DIZ — o texto nomeia a operação e o passo. Um `cursor: wait` sem palavra é
+       indistinguível de uma página pendurada.
+
+   É ESTADO, e não classe: `data-ocupado` diz o que está a acontecer ao elemento, e a classe
+   `.veu` diz o que ele é — a mesma distinção do `data-apagando` da linha que se apaga.
+   O `prefers-reduced-motion` não desliga o véu (ele informa), desliga só o giro. */
+.veu {
+  position: fixed; inset: 0; z-index: 120;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: var(--esp-4);
+  background: var(--fundo);
+  padding: var(--esp-5);
+  text-align: center;
+  /* Enquanto o véu está de pé, o ponteiro não passa — e quem o recebe é ele. */
+  pointer-events: auto;
+  cursor: progress;
+}
+.veu[data-ocupado="sim"] { display: flex; }
+.veu::before {
+  content: '';
+  width: 22px; height: 22px;
+  border: 3px solid var(--borda);
+  border-top-color: var(--marca-texto);
+  border-radius: 50%;
+  animation: veu-gira 900ms linear infinite;
+}
+@keyframes veu-gira { to { transform: rotate(360deg); } }
+.veu-texto {
+  margin: 0; max-width: 46ch;
+  font: 400 .95rem/1.5 var(--ui);
+  color: var(--texto-suave);
+}
+@media (prefers-reduced-motion: reduce) {
+  .veu::before { animation: none; }
+}
+
 /* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
 .topo {
   position: fixed; right: 18px; bottom: 18px; z-index: 20;

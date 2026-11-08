@@ -10,9 +10,9 @@ type: Ciclo
 professor: dedao-aberto
 ciclo: 01
 variante: batata-sala-rosa
-hash_conteudo: a5e98ec81a257fb9c058a531f809ff646816b0bdc822e0803614c92934e18e79
+hash_conteudo: d7fccabe9ebccb389b98c0f9676dde7e9728ab069a7871c5635a26936cd34a59
 parentHash: 
-hash: 5d67b5a67accc55cec791b7fb14b93620f9016ecb007c19358bdd7afb6df1b4a
+hash: 80be8ce5411349d13f0707d9344dda89212c1acc8a964764a9a0b91f394a3942
 algoritmo: SHA-256
 po: professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-po.md
 po_state: Input_PO_Aguardando
