@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261107-2201",
+  "planoDeEnsino": "plano-20261107-2206",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -27,6 +27,11 @@
     },
     {
       "eixo": "Corpo",
+      "dimensao": "Flexibilidade e Amplitude Articular",
+      "itens": "Flexibilidade dos adutores"
+    },
+    {
+      "eixo": "Corpo",
       "dimensao": "Complexo Escapulo-Umeral e Cervical",
       "itens": "Rotação e amplitude dos ombros"
     },
@@ -34,6 +39,11 @@
       "eixo": "Corpo",
       "dimensao": "Força Ativa, Potência e Controle Dinâmico",
       "itens": "Força excêntrica / recuo na flexão de tronco"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "itens": "Força de empurrar (push-ups)"
     },
     {
       "eixo": "Corpo",
@@ -73,7 +83,8 @@
   ],
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
   "subjects": [
-    "Aluna A"
+    "Aluna A",
+    "Aluna B"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
@@ -86,12 +97,20 @@
       "aspectosObservados": "Formato anatômico dos joelhos"
     },
     {
+      "grupo": "Flexibilidade e Amplitude Articular",
+      "aspectosObservados": "Flexibilidade dos adutores"
+    },
+    {
       "grupo": "Complexo Escapulo-Umeral e Cervical",
       "aspectosObservados": "Rotação e amplitude dos ombros"
     },
     {
       "grupo": "Força Ativa, Potência e Controle Dinâmico",
       "aspectosObservados": "Força excêntrica / recuo na flexão de tronco"
+    },
+    {
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "aspectosObservados": "Força de empurrar (push-ups)"
     },
     {
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
@@ -104,8 +123,10 @@
   "inclusionCriteria": [
     "Os elementos basilares: o tendu",
     "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Formato anatômico dos joelhos",
+    "Flexibilidade e Amplitude Articular: Flexibilidade dos adutores",
     "Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros",
     "Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco",
+    "Equilíbrio, Sustentação e Força de MMSS/Core: Força de empurrar (push-ups)",
     "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento"
   ],
   "exclusionCriteria": [
