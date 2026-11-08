@@ -7,14 +7,14 @@ responsavel: Dedão Aberto
 professor: Dedão Aberto
 title: "Plano de Observação do Ciclo 01 — batata"
 state: Input_PO_Aguardando
-envelope: po-20261107-2202
+envelope: po-20261107-2206
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261107-2201
+plano-20261107-2206
 
 ## Horizonte
 
@@ -50,8 +50,10 @@ Calendário: 2027-02-01 → 2027-02-02 · Volume de trabalho: 3–6 séries · C
 |:--|:--|:--|
 | Corpo | **Os elementos basilares** | o tendu |
 | Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos |
+| Corpo | **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
 | Corpo | **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
 | Corpo | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
+| Corpo | **Equilíbrio, Sustentação e Força de MMSS/Core** | Força de empurrar (push-ups) |
 | Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | Teste |
@@ -67,6 +69,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 ## Sujeitos
 
 - Aluna A
+- Aluna B
 
 ## Norma estabelecida
 
@@ -78,8 +81,10 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 |:--|:--|
 | **Os elementos basilares** | o tendu |
 | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos |
+| **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
 | **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
 | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
+| **Equilíbrio, Sustentação e Força de MMSS/Core** | Força de empurrar (push-ups) |
 | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento |
 
 ## Restrições físicas declaradas
@@ -90,8 +95,10 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 - Os elementos basilares: o tendu
 - Estrutura Óssea e Alinhamento Global (Membros Inferiores): Formato anatômico dos joelhos
+- Flexibilidade e Amplitude Articular: Flexibilidade dos adutores
 - Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros
 - Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco
+- Equilíbrio, Sustentação e Força de MMSS/Core: Força de empurrar (push-ups)
 - Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento
 
 ## Critérios de exclusão
