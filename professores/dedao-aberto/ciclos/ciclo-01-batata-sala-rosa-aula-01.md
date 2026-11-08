@@ -58,11 +58,13 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| Formato anatômico dos joelhos | 1 de 1 em «Valgo ("X")» — ponto de atenção |
-| Rotação e amplitude dos ombros | 1 de 1 em «Limitada por tensão» — ponto de atenção |
-| Estabilidade vestibular e deslocamento | 1 de 1 em «Perde o prumo» — ponto de atenção |
-| o tendu | 1 de 1 em «Bom» (com toque) |
-| Força excêntrica / recuo na flexão de tronco | 1 de 1 em «Desce e retorna com coluna reta» |
+| Formato anatômico dos joelhos | 1 de 2 em «Valgo ("X")» · 1 de 2 em «Varo ("arqueado")» — ponto de atenção |
+| Flexibilidade dos adutores | 1 de 2 em «Abertura completa (180°+)» · 1 de 2 em «Rigidez acentuada» — ponto de atenção |
+| Rotação e amplitude dos ombros | 1 de 2 em «Completa e fluida» · 1 de 2 em «Limitada por tensão» — ponto de atenção |
+| Força excêntrica / recuo na flexão de tronco | 1 de 2 em «Desce e retorna com coluna reta» · 1 de 2 em «Retorna enrolando (roll-up)» — ponto de atenção |
+| Força de empurrar (push-ups) | 1 de 2 em «Adaptadas (joelhos)» · 1 de 2 em «Incapacidade» — ponto de atenção |
+| Estabilidade vestibular e deslocamento | 1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção |
+| o tendu | 2 de 2 em «Bom» |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -83,19 +85,21 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-2202?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-2201?formato=html)** — Teste
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-2211?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-2206?formato=html)** — Teste
 
 **Anamnese de cada aluna**
 
-A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
 ```{=html}
 <select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
 <option value="">— escolha a aluna —</option>
 <option value="Aluna A">Aluna A</option>
+<option value="Aluna B">Aluna B</option>
 </select>
 <div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=dedao-aberto&amp;ciclo=01&amp;novo=anamnese-20261107-1928&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261107-1928?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=dedao-aberto&amp;ciclo=01&amp;editar=anamnese-20261107-2204&amp;aluna=Aluna%20B">editar</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261107-2204?formato=html">imprimir</a></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");
