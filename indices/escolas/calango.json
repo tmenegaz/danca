@@ -382,14 +382,14 @@
       "ciclo:pe-torto/01/calango"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 3,
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
       "pos": 1,
       "recortes": 1,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -405,6 +405,7 @@
     "registros": [
       "anamnese:anamnese-20261108-1259",
       "anamnese:anamnese-20261108-1314",
+      "anamnese:anamnese-20261108-1315",
       "plano:plano-20261108-1303",
       "po:po-20261108-1304"
     ],
@@ -413,10 +414,11 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
+          "anamnese:anamnese-20261108-1315",
           "plano:plano-20261108-1303",
           "po:po-20261108-1304"
         ],
@@ -502,10 +504,11 @@
     ],
     "professores": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
+          "anamnese:anamnese-20261108-1315",
           "ciclo:pe-torto/01/calango",
           "plano:plano-20261108-1303",
           "po:po-20261108-1304"
@@ -516,10 +519,11 @@
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261108-1259",
-          "anamnese:anamnese-20261108-1314"
+          "anamnese:anamnese-20261108-1314",
+          "anamnese:anamnese-20261108-1315"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -552,7 +556,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fbe236b"
+    "commit": "94e0809"
   },
   "gerado_em": "2026-11-08T16:15",
   "nao_indexado": [
@@ -636,6 +640,16 @@
       "ciclo": null,
       "data": "2026-11-08T13:14",
       "id": "anamnese:anamnese-20261108-1314",
+      "professor": "pe-torto",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261108-1315",
+      "ciclo": null,
+      "data": "2026-11-08T13:15",
+      "id": "anamnese:anamnese-20261108-1315",
       "professor": "pe-torto",
       "tipo": "anamnese"
     },
