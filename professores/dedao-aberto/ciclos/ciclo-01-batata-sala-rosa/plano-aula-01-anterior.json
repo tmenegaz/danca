@@ -28,23 +28,31 @@
     "Corpo": [
       {
         "criterio": "Formato anatômico dos joelhos",
-        "oQueSeObserva": "1 de 1 em «Valgo (\"X\")» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Valgo (\"X\")» · 1 de 2 em «Varo (\"arqueado\")» — ponto de atenção"
+      },
+      {
+        "criterio": "Flexibilidade dos adutores",
+        "oQueSeObserva": "1 de 2 em «Abertura completa (180°+)» · 1 de 2 em «Rigidez acentuada» — ponto de atenção"
       },
       {
         "criterio": "Rotação e amplitude dos ombros",
-        "oQueSeObserva": "1 de 1 em «Limitada por tensão» — ponto de atenção"
-      },
-      {
-        "criterio": "Estabilidade vestibular e deslocamento",
-        "oQueSeObserva": "1 de 1 em «Perde o prumo» — ponto de atenção"
-      },
-      {
-        "criterio": "o tendu",
-        "oQueSeObserva": "1 de 1 em «Bom» (com toque)"
+        "oQueSeObserva": "1 de 2 em «Completa e fluida» · 1 de 2 em «Limitada por tensão» — ponto de atenção"
       },
       {
         "criterio": "Força excêntrica / recuo na flexão de tronco",
-        "oQueSeObserva": "1 de 1 em «Desce e retorna com coluna reta»"
+        "oQueSeObserva": "1 de 2 em «Desce e retorna com coluna reta» · 1 de 2 em «Retorna enrolando (roll-up)» — ponto de atenção"
+      },
+      {
+        "criterio": "Força de empurrar (push-ups)",
+        "oQueSeObserva": "1 de 2 em «Adaptadas (joelhos)» · 1 de 2 em «Incapacidade» — ponto de atenção"
+      },
+      {
+        "criterio": "Estabilidade vestibular e deslocamento",
+        "oQueSeObserva": "1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção"
+      },
+      {
+        "criterio": "o tendu",
+        "oQueSeObserva": "2 de 2 em «Bom»"
       }
     ],
     "Técnica": [
@@ -72,7 +80,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-2202?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-2201?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261107-2211?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261107-2206?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
