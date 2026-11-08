@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "01741d14bd68f418c7e77bad1871dfaff041bd4c1f217c458d6378d36832b7f6",
-        "id": "ciclo-01-calango",
+        "hash": "02b5525ba61f2b0af3f9dc399f1698b2683f0f8d47bcd0166d7c13569ca2e3bf",
+        "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 5,
+      "documentos": 16,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:pe-torto/01/calango",
@@ -98,9 +98,9 @@
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 1,
-        "pos": 0,
+        "pos": 1,
         "recortes": 1,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -115,7 +115,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261108-1259",
-        "plano:plano-20261108-1303"
+        "plano:plano-20261108-1303",
+        "po:po-20261108-1304"
       ],
       "slug": "calango"
     }
@@ -123,7 +124,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -249,12 +250,17 @@
         "contagem": 1,
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "28a63da"
+    "commit": "9d6c867"
   },
   "gerado_em": "2026-11-08T16:04",
   "nao_indexado": [
