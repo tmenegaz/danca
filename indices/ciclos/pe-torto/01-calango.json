@@ -17,7 +17,9 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango.fipp",
+    "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango.conf",
+    "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
     "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
@@ -30,9 +32,14 @@
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +50,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "739573a"
+    "commit": "28a63da"
   },
-  "gerado_em": "2026-11-08T16:00",
+  "gerado_em": "2026-11-08T16:04",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6
