@@ -1,5 +1,86 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "cinco-posicoes-1a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-1a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "estabilidade-vestibular-e-deslocamento",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "flexibilidade-anteroposterior-grand-ecart",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "forca-de-empurrar-push-ups",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "memoria-e-retencao-de-sequencias",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    },
+    {
+      "aspecto": "passe",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1600",
+      "ultima": "20261108-1600",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +158,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
@@ -107,7 +188,72 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-1a-bracos",
+        "valor": "cinco-posicoes-1a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-1a-pes",
+        "valor": "cinco-posicoes-1a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "estabilidade-vestibular-e-deslocamento",
+        "valor": "estabilidade-vestibular-e-deslocamento"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "flexibilidade-anteroposterior-grand-ecart",
+        "valor": "flexibilidade-anteroposterior-grand-ecart"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "forca-de-empurrar-push-ups",
+        "valor": "forca-de-empurrar-push-ups"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "memoria-e-retencao-de-sequencias",
+        "valor": "memoria-e-retencao-de-sequencias"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "mobilidade-de-flexao-extensao-do-tornozelo",
+        "valor": "mobilidade-de-flexao-extensao-do-tornozelo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "passe",
+        "valor": "passe"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +296,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fc345de"
+    "commit": "739573a"
   },
-  "gerado_em": "2026-11-08T15:59",
+  "gerado_em": "2026-11-08T16:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +321,47 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "cinco-posicoes-1a-bracos",
+        "cinco-posicoes-1a-pes",
+        "estabilidade-vestibular-e-deslocamento",
+        "flexibilidade-anteroposterior-grand-ecart",
+        "forca-de-empurrar-push-ups",
+        "memoria-e-retencao-de-sequencias",
+        "mobilidade-de-flexao-extensao-do-tornozelo",
+        "passe"
+      ],
+      "atualizada_em": "2026-11-08T16:00:33.007Z",
+      "enviada_em": "2026-11-08T16:00:33.578Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "pe-torto",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/calango/linhas-de-base/tami--20261108-1600.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "memoria-e-retencao-de-sequencias",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-08T16:00:33.578Z",
+          "versao": "20261108-1600"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,

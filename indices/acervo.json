@@ -99,7 +99,7 @@
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "recortes": 0,
+        "recortes": 1,
         "registros": 1
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
@@ -248,9 +248,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "fc345de"
+    "commit": "739573a"
   },
-  "gerado_em": "2026-11-08T15:59",
+  "gerado_em": "2026-11-08T16:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
