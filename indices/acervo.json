@@ -93,14 +93,14 @@
         "ciclo:pe-torto/01/calango"
       ],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 2,
         "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 1,
         "pos": 1,
         "recortes": 1,
-        "registros": 3
+        "registros": 4
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -115,6 +115,7 @@
       ],
       "registros": [
         "anamnese:anamnese-20261108-1259",
+        "anamnese:anamnese-20261108-1314",
         "plano:plano-20261108-1303",
         "po:po-20261108-1304"
       ],
@@ -124,7 +125,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -242,7 +243,7 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       },
@@ -260,9 +261,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7346b97"
+    "commit": "fbe236b"
   },
-  "gerado_em": "2026-11-08T16:06",
+  "gerado_em": "2026-11-08T16:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
