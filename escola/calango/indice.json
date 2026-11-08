@@ -3,10 +3,10 @@
   "worker": "calango",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "rabo-gramde",
-    "nome": "Rabo Grande"
+    "slug": "pe-torto",
+    "nome": "Pe Torto"
   },
-  "responsavel": "Rabo Gramde",
+  "responsavel": "Pe Torto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -729,6 +729,20 @@
       "professor_anterior": {
         "slug": "meia-ponta",
         "nome": "Meia Ponta"
+      }
+    },
+    {
+      "em": "2026-11-08T15:18:17.804671+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "pe-torto",
+        "nome": "Pe Torto"
+      },
+      "responsavel": "Pe Torto",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "rabo-gramde",
+        "nome": "Rabo Grande"
       }
     }
   ],

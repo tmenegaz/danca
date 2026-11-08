@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-08",
+    "caminho": "professores/pe-torto/ciclos/ciclo-01-calango.fipp",
+    "cobertura": [
+      "professores/pe-torto/ciclos/ciclo-01-calango.conf",
+      "professores/pe-torto/ciclos/ciclo-01.conf"
+    ],
+    "hash": "01741d14bd68f418c7e77bad1871dfaff041bd4c1f217c458d6378d36832b7f6",
+    "hash_conteudo": "cc08080d3b322e533f9ff4823f10bddae94c97453f8cb770a70152ec166b24ae",
+    "id": "ciclo-01-calango",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango.fipp",
+    "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango.conf",
+    "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "calango",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "49caa09"
+  },
+  "gerado_em": "2026-11-08T15:18",
+  "id": "ciclo:pe-torto/01/calango",
+  "professor": "pe-torto",
+  "versao": 6
+}
