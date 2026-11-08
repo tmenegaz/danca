@@ -2,11 +2,10 @@
   "_cifrado": {
     "algoritmo": "PBKDF2-SHA256+AES-GCM",
     "iteracoes": 100000,
-    "endereco": "9EP/RPd/3QBw6andm91/sSYNF28snAS/LsFjIZCurPU+IBuP27cyhU7RIoG3aH0RSDQu2JJtpks8qs1SgtOkIUXMpgh3ua2YfzFG9c4VTOOsXkJ8aeh9VfFAxPYmaaM7WbPaFSerbmhMQCYfS0eJlXmxAX3Q8xiMSjTk10T3OJZ5k3jHnz0nklrHWQEqmHQKj+lvhwq25pZ4nQhn2KtvgyT+WJ9ayE+FrWYUEaajZPgTHovF35wxb7XnrPZ39DUbfxXGDNCP3rlsyFo4XNBcIYhmkI9zdM7tYIAdbky6cyvhaqYT0nEQlej1XksHzanwJzYLBKd52rXQRwqAMs1iXBMhkgr0aKabQUXMeh8bip8djbNW1nKivPk58+z69F1Oj6tu2XkKPveRsl+AsfBK0A5nl5gUfW+3A6G0ZzDQic/eQ2DJstOvxjlgey2L3GkElVs9yKYYmsJ8MOJn3IaI3tlNhVolnU0AohQrL2+Eu62gp+qURDPB2rd0Wk8JlaGRT1gLt60szV3RMmgAxsWRIE9AIELj/utjPWp77Th3jsS1vUh2iNW30ITK7Qgg9XjmJumNc0A3Q6zy4Rb/OnxtCasgU+1fq9sOGy7WsEFPZrv8+uK+ZVUpPSH94pK26BCR0ETu1vOwI6O57SlMCObRyzkIUhUlYocbZet05sHTK0oQ7FSavTtGskGSuf9wOB21sOClczuapuk+U3K3p0shyTbItBOjcsXsXdb2+w=="
+    "endereco": "7gH+t1kFXg/Z2GG/z7fyZfmp0D5CjPq1194bn4P/vZXgus575sr2/3oMWrhWc3Xfk1ZdnfKtU56HjgFZoB1+j+yTbZxaWlfLDsL5i+jrHqiGwaVYb2POQaV+zKCnXaFB4COqDUCL1Fgr1+O0PkB0dYbrlcAmKbZ3V7kbspUWOa7QbqoNmEevevo1H8kAN+o3D8soPDYhlDITb8S2h2NuxZyQvPlFDFwaFsVvIvFxOuM7ImX7Bp+f9e8YGd4K7aHNVx/wS/KWhNI5eKhBTZr+JLeFA7ZDmqmzOgWIpgJefNGoAGAPhBwGAG6nGaYa0CBnKiAuVq2a3PHxNI2j3cyzuqh1OJVKUFBjgWzQ9DDZWq9u4NpKj73oas0WASUwS78YVtFQf+s97yUsyEmbNFGtq3Rg90gVbAGexswIOcCqEs3lmoaWTAOnQiOuV31UBYqheAjlJugMzHfNSzJ57vkZ1B2Up7fn94bZXGJBx1TF3hDgsmY9B9aax/CypDJvXK2a4NaskgJovUBWfxOUcFJjdBtaVZpg3mFKCBzosA6NrU1B1lx0P5awy7Ugow791Kzx9QP9ZIAyy7yhLxpX9BEOf5pf7Q0WEsfqiicVW9uHLGgzpdpWkWCgViA8F09/ent7F4nao71csXd6o0tg2BSwGIJ2ju8yZGjf8VY4iGdPrt3613A="
   },
   "lancamentos": 0,
   "apelidos": {
-    "aluna_a": "Aluna A",
     "aluna_b": "Aluna B",
     "aluna_c": "Aluna C"
   },

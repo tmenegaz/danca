@@ -28,47 +28,47 @@
     "Corpo": [
       {
         "criterio": "1ª posição — pés",
-        "oQueSeObserva": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «razoável» (com a barra como apoio) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "1ª posição — braços",
-        "oQueSeObserva": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque) — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Bom» (com a barra como apoio) · 1 de 2 em «razoável» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de quadril (en dehors de origem)",
-        "oQueSeObserva": "1 de 3 em «Origem clara no quadril» · 2 de 3 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Origem clara no quadril» · 1 de 2 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
       },
       {
         "criterio": "Flexibilidade anteroposterior (grand écart)",
-        "oQueSeObserva": "1 de 3 em «Completo» · 2 de 3 em «Parcial (elevação do quadril)» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Completo» · 1 de 2 em «Parcial (elevação do quadril)» — ponto de atenção"
       },
       {
         "criterio": "Rotação e amplitude dos ombros",
-        "oQueSeObserva": "2 de 3 em «Completa e fluida» · 1 de 3 em «Limitada por tensão» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Completa e fluida» · 1 de 2 em «Limitada por tensão» — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de flexão/extensão do tornozelo",
-        "oQueSeObserva": "1 de 3 em «Excelente (instep / coup-de-pied)» · 1 de 3 em «Moderada» · 1 de 3 em «Duro (restrição frontal)» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Excelente (instep / coup-de-pied)» · 1 de 2 em «Moderada» — ponto de atenção"
       },
       {
         "criterio": "Memória e retenção de sequências",
-        "oQueSeObserva": "1 de 3 em «Retém sequências de 3 a 4 passos» · 2 de 3 em «Precisa de apoio visual prolongado» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Retém sequências de 3 a 4 passos» · 1 de 2 em «Precisa de apoio visual prolongado» — ponto de atenção"
       },
       {
         "criterio": "Impulsão e absorção (allegro)",
-        "oQueSeObserva": "2 de 3 em «Boa elasticidade e potência» · 1 de 3 em «Rigidez / aterrissagem dura» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Boa elasticidade e potência» · 1 de 2 em «Rigidez / aterrissagem dura» — ponto de atenção"
       },
       {
         "criterio": "Força de empurrar (push-ups)",
-        "oQueSeObserva": "1 de 3 em «Completas com prancha» · 1 de 3 em «Adaptadas (joelhos)» · 1 de 3 em «Incapacidade» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Adaptadas (joelhos)» · 1 de 2 em «Incapacidade» — ponto de atenção"
       },
       {
         "criterio": "Estabilidade vestibular e deslocamento",
-        "oQueSeObserva": "2 de 3 em «Caminha virando a cabeça sem desviar» · 1 de 3 em «Perde o prumo» — ponto de atenção"
+        "oQueSeObserva": "1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção"
       },
       {
         "criterio": "o passé",
-        "oQueSeObserva": "3 de 3 em «Bom» (por consciência própria)"
+        "oQueSeObserva": "2 de 2 em «Bom» (por consciência própria)"
       }
     ],
     "Técnica": [
@@ -156,7 +156,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261108-1319?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261108-1317?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 3 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261108-1335?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261108-1334?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
