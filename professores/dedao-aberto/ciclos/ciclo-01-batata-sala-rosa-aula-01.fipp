@@ -10,9 +10,9 @@ professor: dedao-aberto
 ciclo: 01
 variante: batata-sala-rosa
 aula: 01
-hash_conteudo: f17778bfb6f42befde72d4015e178177f1575e19d7d0b79baa7ba5b808959b19
+hash_conteudo: 56a957b4711cd562899c62d449c1de287691db634cdc584cd9d2e32fe55fee9d
 parentHash: 
-hash: 661007a57ed89ab19a069ba9b9b0e3e9581019720d2aff4be43e1e4e6209dbc8
+hash: cafd84112bf991b51734112059aa073c90d9593658be049a52542d6cfbb01fcc
 algoritmo: SHA-256
 ancorado_em: 2026-11-08
 cobertura:

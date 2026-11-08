@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "bb10ee93a61f10b62be84a5a3fc3298be703604b1cffca0c9973c4fae766d6a8",
+        "hash": "9dac1f49a106ce4dac2ebd6751b809d168b25153fd22373a8aee4ce9bde55eb3",
         "id": "ciclo-01-batata-sala-rosa",
         "lida": true,
         "parent_hash": ""
@@ -28,9 +28,9 @@
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 2,
-        "pos": 2,
+        "pos": 3,
         "recortes": 1,
-        "registros": 6
+        "registros": 7
       },
       "criada_em": "2026-11-07T22:25:15.564899+00:00",
       "expurgada": false,
@@ -49,7 +49,8 @@
         "plano:plano-20261107-2201",
         "plano:plano-20261107-2206",
         "po:po-20261107-2202",
-        "po:po-20261107-2206"
+        "po:po-20261107-2206",
+        "po:po-20261107-2211"
       ],
       "slug": "batata"
     },
@@ -122,7 +123,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -235,7 +236,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -243,9 +244,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0e7b05e"
+    "commit": "9785d29"
   },
-  "gerado_em": "2026-11-08T01:07",
+  "gerado_em": "2026-11-08T01:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
