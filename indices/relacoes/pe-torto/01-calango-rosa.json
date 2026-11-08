@@ -233,10 +233,10 @@
   "contagens": {
     "arestas": 37,
     "marcas": 0,
-    "nos": 38,
+    "nos": 41,
     "porTipo": {
       "ancora": 2,
-      "aspecto": 9,
+      "aspecto": 12,
       "aula": 13,
       "captura": 1,
       "ciclo": 1,
@@ -295,6 +295,12 @@
     },
     {
       "eixo": "Corpo",
+      "id": "aspecto:impulsao_e_absorcao_allegro",
+      "rotulo": "Impulsão e absorção (allegro)",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
       "id": "aspecto:memoria_e_retencao_de_sequencias",
       "rotulo": "Memória e retenção de sequências",
       "tipo": "aspecto"
@@ -307,8 +313,20 @@
     },
     {
       "eixo": "Corpo",
+      "id": "aspecto:mobilidade_de_quadril_en_dehors_de_origem",
+      "rotulo": "Mobilidade de quadril (en dehors de origem)",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
       "id": "aspecto:o_passe",
       "rotulo": "o passé",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:rotacao_e_amplitude_dos_ombros",
+      "rotulo": "Rotação e amplitude dos ombros",
       "tipo": "aspecto"
     },
     {

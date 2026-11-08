@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261108-1303",
+  "planoDeEnsino": "plano-20261108-1317",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -27,8 +27,18 @@
     },
     {
       "eixo": "Corpo",
+      "dimensao": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "itens": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
+      "eixo": "Corpo",
       "dimensao": "Flexibilidade e Amplitude Articular",
       "itens": "Flexibilidade anteroposterior (grand écart)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Complexo Escapulo-Umeral e Cervical",
+      "itens": "Rotação e amplitude dos ombros"
     },
     {
       "eixo": "Corpo",
@@ -39,6 +49,11 @@
       "eixo": "Corpo",
       "dimensao": "Aptidões Coordenadas e Cognitivo-Musicais",
       "itens": "Memória e retenção de sequências"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Força Ativa, Potência e Controle Dinâmico",
+      "itens": "Impulsão e absorção (allegro)"
     },
     {
       "eixo": "Corpo",
@@ -83,7 +98,9 @@
   ],
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
   "subjects": [
-    "Aluna A"
+    "Aluna A",
+    "Aluna B",
+    "Aluna C"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
@@ -96,8 +113,16 @@
       "aspectosObservados": "o passé"
     },
     {
+      "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "aspectosObservados": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
       "grupo": "Flexibilidade e Amplitude Articular",
       "aspectosObservados": "Flexibilidade anteroposterior (grand écart)"
+    },
+    {
+      "grupo": "Complexo Escapulo-Umeral e Cervical",
+      "aspectosObservados": "Rotação e amplitude dos ombros"
     },
     {
       "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
@@ -106,6 +131,10 @@
     {
       "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
       "aspectosObservados": "Memória e retenção de sequências"
+    },
+    {
+      "grupo": "Força Ativa, Potência e Controle Dinâmico",
+      "aspectosObservados": "Impulsão e absorção (allegro)"
     },
     {
       "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
@@ -122,9 +151,12 @@
   "inclusionCriteria": [
     "as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços",
     "Os elementos basilares: o passé",
+    "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)",
     "Flexibilidade e Amplitude Articular: Flexibilidade anteroposterior (grand écart)",
+    "Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros",
     "Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo",
     "Aptidões Coordenadas e Cognitivo-Musicais: Memória e retenção de sequências",
+    "Força Ativa, Potência e Controle Dinâmico: Impulsão e absorção (allegro)",
     "Equilíbrio, Sustentação e Força de MMSS/Core: Força de empurrar (push-ups)",
     "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento"
   ],
