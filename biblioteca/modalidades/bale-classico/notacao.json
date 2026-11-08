@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 41,
+  "versao": 42,
   "aplicaseA": [
     "benesh"
   ],
@@ -607,6 +607,50 @@
           ]
         },
         "escola": "breu"
+      },
+      "8|2/4@calango": {
+        "cobre": 8,
+        "posicao": null,
+        "metodo": "compartilhada",
+        "celulas": {
+          "a-la-seconde": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "5ª",
+                "cp",
+                "+",
+                "→",
+                "-",
+                "→",
+                "×",
+                "cp"
+              ],
+              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, quinta posição, coupé, à frente, conduz a, ao lado, conduz a, atrás, coupé.",
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "5ª",
+                "cp",
+                "×",
+                "→",
+                "-",
+                "→",
+                "+",
+                "cp"
+              ],
+              "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, quinta posição, coupé, atrás, conduz a, ao lado, conduz a, à frente, coupé.",
+              "repeticoes": 2
+            }
+          ]
+        },
+        "escola": "calango"
       }
     },
     "Battement jeté": {
