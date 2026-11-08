@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-1252",
-      "versoes": 3
+      "ultima": "20261108-1253",
+      "versoes": 4
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-1252",
-      "versoes": 3
+      "ultima": "20261108-1253",
+      "versoes": 4
     },
     {
       "aspecto": "formato-anatomico-dos-joelhos",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-1252",
-      "versoes": 3
+      "ultima": "20261108-1253",
+      "versoes": 4
     },
     {
       "aspecto": "rotacao-e-amplitude-dos-ombros",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-1252",
-      "versoes": 3
+      "ultima": "20261108-1253",
+      "versoes": 4
     },
     {
       "aspecto": "tendu",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-1252",
-      "versoes": 3
+      "ultima": "20261108-1253",
+      "versoes": 4
     },
     {
       "aspecto": "flexibilidade-dos-adutores",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-0105",
-      "ultima": "20261108-1252",
-      "versoes": 2
+      "ultima": "20261108-1253",
+      "versoes": 3
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -67,8 +67,28 @@
         "recorte:tami"
       ],
       "primeira": "20261108-0105",
-      "ultima": "20261108-1252",
-      "versoes": 2
+      "ultima": "20261108-1253",
+      "versoes": 3
+    },
+    {
+      "aspecto": "cinco-posicoes-1a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1253",
+      "ultima": "20261108-1253",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-1a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1253",
+      "ultima": "20261108-1253",
+      "versoes": 1
     }
   ],
   "aulas": [
@@ -428,6 +448,22 @@
         "ids": [
           "recorte:tami"
         ],
+        "rotulo": "cinco-posicoes-1a-bracos",
+        "valor": "cinco-posicoes-1a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-1a-pes",
+        "valor": "cinco-posicoes-1a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
         "rotulo": "estabilidade-vestibular-e-deslocamento",
         "valor": "estabilidade-vestibular-e-deslocamento"
       },
@@ -550,9 +586,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9db785d"
+    "commit": "9c0753d"
   },
-  "gerado_em": "2026-11-08T12:53",
+  "gerado_em": "2026-11-08T12:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -579,6 +615,8 @@
     {
       "alunas": 3,
       "aspectos": [
+        "cinco-posicoes-1a-bracos",
+        "cinco-posicoes-1a-pes",
         "estabilidade-vestibular-e-deslocamento",
         "flexibilidade-dos-adutores",
         "forca-de-empurrar-push-ups",
@@ -587,14 +625,31 @@
         "rotacao-e-amplitude-dos-ombros",
         "tendu"
       ],
-      "atualizada_em": "2026-11-08T12:52:58.375Z",
-      "enviada_em": "2026-11-08T12:52:58.892Z",
+      "atualizada_em": "2026-11-08T12:53:48.755Z",
+      "enviada_em": "2026-11-08T12:53:49.737Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "tami",
       "professor": "dedao-aberto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/batata/linhas-de-base/tami--20261108-1253.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "tendu",
+            "formato-anatomico-dos-joelhos",
+            "flexibilidade-dos-adutores",
+            "rotacao-e-amplitude-dos-ombros",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-08T12:53:49.737Z",
+          "versao": "20261108-1253"
+        },
         {
           "alunas": 3,
           "arquivo": "escola/batata/linhas-de-base/tami--20261108-1252.json",
