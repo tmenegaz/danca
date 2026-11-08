@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-08T13:21:21-0300`
-Commit atual: `8a81448e` — docs(estrutura): o fluxo da escola num só desenho, e as duas portas do elenco
+Gerado em: `2026-11-08T14:20:17-0300`
+Commit atual: `954af21d` — feat(estrutura): o professor que passou a turma a outro fica «sem turma»
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,26 +71,26 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
-8a81448e docs(estrutura): o fluxo da escola num só desenho, e as duas portas do elenco
-33d8874f chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-6e28d1f4 chore(estrutura): reancorar a cadeia das fontes alteradas
-f49d6d23 chore(estrutura): regerar os índices derivados
-ce065c03 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
-cbd56cd8 feat(po): o PO elicitado vira a fonte do ciclo
-8a73593f feat(acervo): envelope/po-20261108-1319.json
-5db08053 feat(acervo): envelope/.indice.json
-6cef6c9c chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-05c07723 chore(estrutura): regerar os índices derivados
-bc956b27 chore(estrutura): reancorar a cadeia das fontes alteradas
-4599d328 feat(po): o PO elicitado vira a fonte do ciclo
-ea04bc88 feat(acervo): envelope/po-20261108-1318.json
-17f80ff0 feat(acervo): envelope/.indice.json
-d30c8970 feat(plano): o plano elicitado vira a fonte do ciclo
-7ae15359 feat(acervo): envelope/plano-20261108-1317.json
-db4bd2f7 feat(acervo): envelope/.indice.json
-69d2c1bd chore(estrutura): regerar os índices derivados
-9fc7b795 feat(linha de base): índice — tami 20261108-1616
-6bed3e53 feat(elenco): tami — concluído
+954af21d feat(estrutura): o professor que passou a turma a outro fica «sem turma»
+ecc8a46f feat(estrutura): a aluna desligada, e a turma que muda de sala
+f8da8bc5 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+f7e6920d chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+4db8fd4a chore(estrutura): regerar os índices derivados
+8a183580 chore(estrutura): reancorar a cadeia das fontes alteradas
+03ab38fd feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
+3749bee0 feat(po): o PO elicitado vira a fonte do ciclo
+df3e1dea feat(acervo): envelope/po-20261108-1335.json
+901414f9 feat(acervo): envelope/.indice.json
+d1f23329 chore(estrutura): regerar os índices derivados
+8eb7afbd chore(estrutura): reancorar a cadeia das fontes alteradas
+75df981c feat(po): o PO elicitado vira a fonte do ciclo
+dd7d1e99 feat(acervo): envelope/po-20261108-1334.json
+318c4d57 feat(acervo): envelope/.indice.json
+fd45ca34 feat(plano): o plano elicitado vira a fonte do ciclo
+a334a437 feat(acervo): envelope/plano-20261108-1334.json
+b8259f40 feat(acervo): envelope/.indice.json
+6ba0d660 chore(estrutura): regerar os índices derivados
+2458fa5b feat(linha de base): índice — tami 20261108-1633
 ```
 
 ## Por professor
@@ -113,7 +113,7 @@ db4bd2f7 feat(acervo): envelope/.indice.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `ebeb573096ee` | (vazio) | Input_PO_Aguardando |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `8292d82d724d` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -164,92 +164,108 @@ db4bd2f7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 08/11/2026 — O fluxo da escola, num só desenho — e as duas portas do elenco
+## 08/11/2026 — A aluna desligada, e a turma que muda de sala
 
-**O que motivou.** A pesquisadora descreveu a **rotina principal de uma escola** — escola + sala +
-estilo → alunas (anamneses) → audição (elenco) → turma → plano de ensino → plano de observação →
-formulário da aula dada —, com as duas portas do elenco (a aluna que entra e a que sai), e pediu que
-ficasse documentada **na arquitetura, com um fluxo**, como **retrato do que existe**. E pediu o
-contrário do elogio: onde a descrição dela divergisse do sistema, o que se escrevesse era o sistema.
+**O que motivou.** A pesquisadora seguiu o fluxo documentado para remover uma aluna do elenco — ela
+deixou de fazer aula e saiu da escola — e mediu o resultado na produção: a aluna continuava no
+cadastro (a remoção da pessoa é opcional), a anamnese dela **continuava travada** («um PO já a
+usa»), e a linha dizia **«aluna nova — sem turma e sem linha de base»**. As palavras dela: «Eu
+preciso de uma etiqueta que diga exatamente o status dela atual. Ela já não é mais uma aluna
+vinculada e nem tampouco ela é uma aluna nova/livre, porque nós temos a regra da proveniência. […]
+Ela é desligada, porque indica que ela não é nova, que ela não está vinculada, mas dá a entender que
+ela já fez parte de algum elenco, mas agora ela está desligada.» E pediu o mesmo pensamento para o
+professor na proveniência, e o fluxo de **mudança de sala** de uma turma existente documentado e
+avaliado.
 
-**O diagnóstico, da leitura do código.** O fluxo existia em pedaços — §2.4 (a sala é o ritmo), §5.9
-(os dois planos), §5.10 (PE antes do PO), §5.17–5.25 (o corpo, o elenco, o vínculo, a remoção) — e
-não num lugar que se pudesse ler de cima. E a leitura de cima encontrou **cinco divergências** entre
-a rotina descrita e o código:
+**O que foi decidido, e onde se vê no código.**
 
-- **A ordem do fluxo de saída é a inversa.** A pessoa (Alunas) **não** se apaga primeiro: o `DELETE`
-  responde **409** enquanto ela estiver numa Turma com plano de ensino, e o ato substantivo é o do
-  elenco. Apagar o apelido é **o último passo e é opcional**.
-- **«Sem elenco → Livre» não é o que o sistema faz.** A aluna que sai continua **vinculada** enquanto
-  um PO a declarar em `sujeitos` — as duas fontes **somam-se** (§5.24), e o cadeado não abre porque
-  uma delas esqueceu um nome.
-- **Não há «atualizar a anamnese da turma».** A anamnese é **da aluna e datada**, sem ciclo; refazê-la
-  é «Novo registo», e editá-la é **409** quando vinculada (§5.4.2).
-- **«Regerar a turma» é regerar a TURMA, não a Sala.** A relação (`curadorias`) deriva em elo novo;
-  o ritmo (`turmas`) não se toca.
-- **A Sala precede a Turma**, e o **Estilo** só entra a jusante, no plano e na notação — não na
-  escolha do elenco.
+- **«Desligada» é o quarto estado da aluna, e é DERIVADO** (`motor/nucleo/desligamento.js`,
+  `estadoDaAluna`): não está em nenhum elenco vigente, não está em nenhuma Turma vigente, **e já
+  esteve** — por um PO que a declarou em `sujeitos`, por uma Turma **substituída** que a declarava,
+  ou por uma versão com `transferida`/`recebida`. Nada se marca; o estado **cai sozinho** quando ela
+  volta a um elenco. É a diferença com o **professor**, que sai por **ato** (data e motivo) e por
+  isso é marcado — as duas dizem a mesma coisa nas palavras («não é novo, não está vinculado, já fez
+  parte») e chegam lá por mecanismos diferentes, porque os factos são diferentes.
+- **O selo usa a classe `legado`** (o traço ponteado da folha; nenhuma classe nova), e é o mesmo
+  vocabulário do professor desligado — `desligada`/`desligado`.
+- **O GESTO não muda.** O «Excluir» do cadastro continua habilitado (apagar o apelido é limpeza, e
+  não remove nada dos elencos, dos planos nem da anamnese), o «Novo registo» continua disponível («se
+  ela for entrar de novo ela é um novo registro»), e a anamnese continua travada enquanto um PO a
+  declarar. A etiqueta mentia sobre a **pessoa**; a guarda do **documento** estava certa.
+- **A lista de pessoas passa a ler o rasto do PO** (`alunasDosPlanosDeObservacao`, uma leitura do
+  índice como as outras da página): era o único sinal que sobrevive quando a Turma foi regravada sem
+  ela e o elenco também já não a declara.
+- **A mudança de sala, documentada e avaliada** no `§3.3`: o caminho é `turma-editar` (Sala livre) ou
+  `turma-derivar` (curada/vinculada), o nome não muda para não partir a Turma e o plano, e a relação
+  turma↔conteúdo migra para o id novo. **Veredito: atende ao registo e não atende à cadeia** — a
+  cascata (`revalidacaoPendente`) não conhece a Sala, e `vigenteDe` é declarado mas não é respeitado
+  na escolha do vigente (uma vigência para 01/12 já é a Sala de hoje).
 
-**O que foi decidido.** Uma secção nova, o §3.3 do `ARQUITETURA-GERAL.md` — **«O fluxo da escola —
-da fundação à aula dada, e as duas portas do elenco»** —, com:
+**Onde entrou.** `motor/nucleo/desligamento.js` (o cabeçalho passa a ser «quem sai», e entra o
+`estadoDaAluna`) · `motor/servidor/listas-do-acervo.js` (o selo, a linha e o painel da anamnese) ·
+`motor/servidor/bastidores.js` (o selo da lista de pessoas, o rasto do PO) ·
+`experimentos/provar-etiqueta-da-aluna.js` (a secção D, nova) · `ARQUITETURA-GERAL.md` (§3.3: «a
+aluna desligada», «a turma que muda de sala» com a tabela de avaliação, e três linhas nas tabelas de
+fronteira) · `ESTADO-ATUAL.md`.
 
-- a cadeia em uma linha e o **diagrama** (Mermaid, que renderiza no GitHub, mais o ASCII para o PDF);
-- a **tabela de nomes** que mudaram a 07/11/2026 (Sala, Audição/Elenco, Turma, Estilo) e o que cada
-  entidade **não** é;
-- a tabela **de cada passo ao que ele grava** (rota, artefato, quem lê) — dez linhas, da escola ao
-  lançamento;
-- as **duas portas**, com a ordem de dependência `elenco → turma → plano → PO` e o que distingue a
-  saída da entrada;
-- a fronteira **entre o que acontece sozinho e o que exige o olhar do professor** — incluindo o que
-  já é automático e se sabia pouco: concluir o elenco **regenera os ciclos** que o usam
-  (`gerarOsCiclosDoElenco`), e gravar o plano ajustado **deriva o elo novo do PO**;
-- o **piso** que o sistema exige e o **teto** que ele não verifica — o princípio «quem pode mais, pode
-  menos» é regra de conduta, e hoje quem a garante é o olhar de quem ensina, não o código;
-- o **fluxo automático**, que não existe, e a entrada que ele já tem (`revalidacaoPendente.ordem`) —
-  com a decisão dela de que não é um botão;
-- a tabela das **cinco divergências** acima, para o retrato não herdar a leitura errada.
+**Validação.** `provar-etiqueta-da-aluna` **36/36** (20 de antes + 16 novas: o núcleo com os três
+rastos e três controlos negativos, a página com o selo e o gesto, o controlo do «volta a ser nova»
+sem rasto, a lista de pessoas com e sem o rasto do PO). Sem regressão: `provar-listas-do-acervo`
+**109** · `provar-transferencia-e-desligamento` **62/62** · `provar-elenco-na-turma` **25** ·
+`provar-curadoria-e-limpeza` verde · `provar-enquadramento-da-turma` verde ·
+`provar-habilitacao-do-professor` verde. `check-identidade` **0 erros** (10 estados de selo em uso,
+todos na fonte). `provar-cartao-da-turma` tem **2 falhas que já estavam em `origin/main`** (termos e
+fichas; conferido num worktree limpo do `origin/main`), e não são desta mudança.
 
-**Uma nota de leitura, e não uma correcção.** O §4.1 do `ARQUITETURA-PE.md` desenha a integração
-PE ⇄ PO entre repositórios com a elicitação a alimentar os dois. No produto a ordem é **PE primeiro,
-PO depois**, imposta pelo servidor (§5.10). O §4.1 **não se reescreveu** (P-03/P-04: o publicado
-acrescenta-se, não se edita); o §3.3 diz qual é a ordem de uso e remete para ele.
+**O que ainda não está feito, e sabe-se.** (1) O rasto do elenco **não** é lido: uma versão anterior
+que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna continua a ler-se «nova»
+até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
+alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
+vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
+**nenhum** PO declarou continua a poder ser apagada (é a regra do «solta»), e isso não foi mudado.
 
-**Onde entrou.** `ARQUITETURA-GERAL.md` (§3.3, nova) · `ESTADO-ATUAL.md` (§11, uma linha) ·
-`REGISTRO.md` (esta entrada).
-
-**Com o quê.** Documentação apenas: nenhuma linha de código, nenhum schema, nenhuma âncora de ciclo
-tocada — não há reancoragem a declarar.
-
-**O que ainda não está feito, e sabe-se.** O **fluxo automático** de entrada/saída continua a não
-existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
-plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
-conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
+> **Acréscimo de 08/11/2026 (mesmo dia), dentro da entrada acima.** O pedido tinha duas metades, e a
+> primeira redação desta entrada só documentou a da aluna: «o mesmo pensamento dessa etiqueta deve
+> ser adoptado para o professor na proveniência». A segunda metade foi feita depois, e a redação
+> anterior não é apagada — fica como o elo que diz o que se pensou primeiro.
+>
+> O DEFEITO, medido no código antes de o corrigir: `professorCurado` perguntava a **todas** as
+> curadorias, inclusive às **substituídas**. Quando outro professor assumia a turma, a curadoria
+> anterior descia para o histórico com `substituidaPor` — e o que saiu ficava **«curado» para
+> sempre**, sem turma nenhuma na coluna e com o «Excluir» travado por um trabalho que já não era
+> dele. É o mesmo defeito da aluna, do outro lado: o selo respondia ao passado e lia-se como
+> presente.
+>
+> A DECISÃO: o quarto selo do professor é **`sem turma`** — **derivado**
+> (`desligamento.estadoDoProfessor`: sem curadoria vigente, sem plano que o cite, e com uma
+> curadoria substituída que o nomeia), com a classe `legado` da folha. **Não** se chama `desligado`:
+> essa palavra já significa sair da **escola**, com data e motivo, e usá-la aqui faria a direção
+> procurar um desligamento que não houve. E `professorCurado` passa a contar **só as vigentes** — o
+> que a torna o que sempre quis dizer: «tem trabalho atribuído **hoje**».
+>
+> O «Excluir» fica travado, e a razão é de dados, não de gosto: a curadoria guarda o **slug** e o
+> nome legível só existe no registro — apagá-lo deixaria o histórico a apontar para um slug sem
+> nome. (Na aluna é o contrário, e por isso lá a exclusão é permitida: a curadoria guarda o
+> **apelido**, e o registro dela vive também no elenco e na anamnese.)
+>
+> ONDE ENTROU, o que muda a lista de ficheiros da entrada acima: `motor/nucleo/desligamento.js`
+> ganha também o `estadoDoProfessor` · `motor/servidor/bastidores.js` (o selo, a guarda do
+> «Excluir», e `professorCurado` a filtrar as substituídas) · `experimentos/provar-etiqueta-da-aluna.js`
+> ganha a secção E · `ARQUITETURA-GERAL.md` (§3.3: «o professor que passou a turma a outro», e duas
+> linhas novas nas tabelas de fronteira).
+>
+> VALIDAÇÃO da segunda metade: `provar-etiqueta-da-aluna` **44/44** (36 da primeira + 8 novas: o
+> núcleo com o slug, dois controlos negativos e a precedência do plano; a página com os dois selos e
+> a guarda). Sem regressão: `provar-transferencia-e-desligamento` **62/62** ·
+> `provar-habilitacao-do-professor` verde · `provar-curadoria-e-limpeza` verde ·
+> `provar-listas-do-acervo` **109** · `check-identidade` **0 erros**.
+>
+> O QUE AINDA NÃO ESTÁ FEITO nesta metade: o professor «sem turma» **continua** a aparecer nas listas
+> de escolha (Turma, elenco, habilitações) — e é o correcto, porque ele está na escola e pode
+> assumir outra; só o **desligado** sai dessas listas. E a **atribuição** de uma turma a outro
+> professor continua a ser o ato manual da direção que a entrada acima já descreve.
 
 ## O que está pendente
-
-## 08/11/2026 — O vínculo da anamnese passa a ler o elenco: a aluna que entra depois fica vinculada
-
-
-- **A conferência ao ar é do deploy desta entrada.** As provas são locais; a página e a porta servem
-  o código que o Worker empacota. A leitura de produção que fundamenta o diagnóstico foi **uma** (a
-  curadoria do professor, `08/11/2026`), e a conclusão não depende de novas leituras.
-- **O `sujeitos` do PO continua a ser o do dia em que foi gravado.** Não se re-semeia (re-semeá-lo
-  inscreveria no documento de ontem uma turma que mudou hoje) — o PO vive com as duas fontes a
-  concordar **por derivação**, não por cópia.
-- **Nenhuma fonte de ciclo mudou**, por isso não há reancoragem de `.fipp` nem regeração de pacote.
-
-## 08/11/2026 — A aluna que sai do elenco sai da aula — e o que ela já lançou continua a ler-se
-
-
-- **A conferência ao ar é do deploy desta entrada**, e é **uma** leitura por endpoint.
-- **A remoção não reescreve o `sujeitos` do PO antigo.** Ela desce ao PO para que o professor o
-  reveja — e o PO que for gravado depois já não a declara, mas o documento de ontem continua a
-  dizer o que observou ontem. É proveniência: o elo novo acrescenta, não corrige.
-- **O caso da aluna que sai com aulas lançadas não tem ainda dado real neste repositório** (a `tami`
-  tem o ciclo em `aula 01`, sem lançamento). A prova cobre-o com um `-dados.json` semeado, que é o
-  que se pode fazer sem inventar dado pedagógico.
-- **O pacote da `batata-sala-rosa` continua a misturar dois POs** — ver acima. Não é desta entrega e
-  não foi forçado: a cópia cifrada é derivada e só a chave da escola a produz.
 
 ## 08/11/2026 — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa de se atropelar
 
@@ -278,6 +294,22 @@ O **fluxo automático** de entrada/saída continua a não
 existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
 plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
 conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
+
+## 08/11/2026 — As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que sai
+
+A **substituição automática** da turma por um professor
+apto é o fluxo futuro da Direção — hoje ela é um ato manual (Turma → nova direção pedagógica), com a
+habilitação como filtro. A **sucessão formal do dono** não existe: ele não se desliga, e é essa a
+razão de a recusa o dizer. E o **remanejamento de modalidade** (aula recreativa/ensaio) é decisão da
+escola, não do motor: o sistema marca a turma e diz porquê, e não escolhe pedagogia.
+
+## 08/11/2026 — A aluna desligada, e a turma que muda de sala
+
+(1) O rasto do elenco **não** é lido: uma versão anterior
+que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna continua a ler-se «nova»
+até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
+alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
+vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
 
 ## Pendências anteriores (índice)
 
@@ -668,6 +700,8 @@ conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta j�
 - **07/11/2026** — O elenco é fonte do ciclo, e concluí-lo tem de terminar na… → `REGISTRO.md` L39950
 - **07/11/2026** — A âncora de uma aula não tem manifesto próprio: o expurgo… → `REGISTRO.md` L40029
 - **08/11/2026** — O plano que já foi ajustado não se oferece duas vezes, e o… → `REGISTRO.md` L40457
+- **08/11/2026** — O vínculo da anamnese passa a ler o elenco: a aluna que… → `REGISTRO.md` L40520
+- **08/11/2026** — A aluna que sai do elenco sai da aula — e o que ela já… → `REGISTRO.md` L40586
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
