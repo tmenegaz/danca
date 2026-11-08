@@ -16,8 +16,8 @@
       "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
       "professores/dedao-aberto/ciclos/ciclo-01.conf"
     ],
-    "hash": "142e87211b75bc7753b3f9997b52a12a34bea2b0467d5eb68d5460df0c319a8c",
-    "hash_conteudo": "c8b2c72c85d3ee135a5ec8fae0aa96731971c0292948c62f409167e69079a5f1",
+    "hash": "2b911fd9d7f4402ce7f5b537c72f415f913664c9683df5fb95c5d9fc4af1a8a6",
+    "hash_conteudo": "e9cee4d68cba1b69ac1952ea39ef75bf7ce16414c529d85a8d3a48d8ea41e1a8",
     "id": "ciclo-01-batata-sala-rosa",
     "lida": true,
     "parent_hash": ""
@@ -121,7 +121,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "324de65"
+    "commit": "06bd359"
   },
   "gerado_em": "2026-11-08T12:56",
   "id": "ciclo:dedao-aberto/01/batata",

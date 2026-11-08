@@ -132,8 +132,8 @@
           "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
           "professores/dedao-aberto/ciclos/ciclo-01.conf"
         ],
-        "hash": "142e87211b75bc7753b3f9997b52a12a34bea2b0467d5eb68d5460df0c319a8c",
-        "hash_conteudo": "c8b2c72c85d3ee135a5ec8fae0aa96731971c0292948c62f409167e69079a5f1",
+        "hash": "2b911fd9d7f4402ce7f5b537c72f415f913664c9683df5fb95c5d9fc4af1a8a6",
+        "hash_conteudo": "e9cee4d68cba1b69ac1952ea39ef75bf7ce16414c529d85a8d3a48d8ea41e1a8",
         "id": "ciclo-01-batata-sala-rosa",
         "lida": true,
         "parent_hash": ""
@@ -397,9 +397,9 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 3,
-      "pos": 4,
+      "pos": 5,
       "recortes": 1,
-      "registros": 10
+      "registros": 11
     },
     "criada_em": "2026-11-07T22:25:15.564899+00:00",
     "expurgada": false,
@@ -422,14 +422,15 @@
       "po:po-20261107-2202",
       "po:po-20261107-2206",
       "po:po-20261107-2211",
-      "po:po-20261108-0955"
+      "po:po-20261108-0955",
+      "po:po-20261108-0956"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 10,
+        "contagem": 11,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
@@ -440,7 +441,8 @@
           "po:po-20261107-2202",
           "po:po-20261107-2206",
           "po:po-20261107-2211",
-          "po:po-20261108-0955"
+          "po:po-20261108-0955",
+          "po:po-20261108-0956"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -532,7 +534,7 @@
     ],
     "professores": [
       {
-        "contagem": 11,
+        "contagem": 12,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
@@ -544,7 +546,8 @@
           "po:po-20261107-2202",
           "po:po-20261107-2206",
           "po:po-20261107-2211",
-          "po:po-20261108-0955"
+          "po:po-20261108-0955",
+          "po:po-20261108-0956"
         ],
         "rotulo": "dedao-aberto",
         "valor": "dedao-aberto"
@@ -580,12 +583,13 @@
         "valor": "plano"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "po:po-20261107-2202",
           "po:po-20261107-2206",
           "po:po-20261107-2211",
-          "po:po-20261108-0955"
+          "po:po-20261108-0955",
+          "po:po-20261108-0956"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -594,7 +598,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "324de65"
+    "commit": "06bd359"
   },
   "gerado_em": "2026-11-08T12:56",
   "nao_indexado": [
@@ -809,6 +813,16 @@
       "ciclo": "01",
       "data": "2026-11-08T09:55",
       "id": "po:po-20261108-0955",
+      "professor": "dedao-aberto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261108-0955",
+      "ano": "2026",
+      "carimbo": "po-20261108-0956",
+      "ciclo": "01",
+      "data": "2026-11-08T09:56",
+      "id": "po:po-20261108-0956",
       "professor": "dedao-aberto",
       "tipo": "po"
     }
