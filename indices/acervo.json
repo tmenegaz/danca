@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "02b5525ba61f2b0af3f9dc399f1698b2683f0f8d47bcd0166d7c13569ca2e3bf",
+        "hash": "e8d893f5868378704ae54ac08584747525272550275968d2870cb503bd51e2b8",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 16,
+      "aulas": 1,
+      "documentos": 20,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:pe-torto/01/calango",
@@ -94,7 +94,7 @@
       ],
       "contagens": {
         "anamneses": 1,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 1,
@@ -260,9 +260,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9d6c867"
+    "commit": "7346b97"
   },
-  "gerado_em": "2026-11-08T16:04",
+  "gerado_em": "2026-11-08T16:06",
   "nao_indexado": [
     {
       "familia": "conteudo",

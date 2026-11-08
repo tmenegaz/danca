@@ -81,7 +81,28 @@
       "versoes": 1
     }
   ],
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-08",
+        "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+        "cobertura": [
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
+        ],
+        "hash": "2799d544311013964a15b2c2dfc0a9f2ea5539aa53ec03b8faf3b2cc36654fd4",
+        "hash_conteudo": "70c853b622b0ed3ee9b7ce18febc22305c55ff623e6c1076ce47940bfc7c1a74",
+        "id": "ciclo-01-calango-rosa-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "documento": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
+      "id": "ciclo:pe-torto/01/calango/aula-01",
+      "numero": "01"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
@@ -89,18 +110,47 @@
         "ancorado_em": "2026-11-08",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
         "cobertura": [
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-dados.json",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md",
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md",
+          "professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "02b5525ba61f2b0af3f9dc399f1698b2683f0f8d47bcd0166d7c13569ca2e3bf",
-        "hash_conteudo": "043e3edc1acfb8f098973fea7548102e9ca6c97ad0150d98438800edc993c6bb",
+        "hash": "e8d893f5868378704ae54ac08584747525272550275968d2870cb503bd51e2b8",
+        "hash_conteudo": "757033ff30acd397b7070239f55d5eab4744b77deab7168e2f68b4d96b30a7a2",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-08",
+            "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+            "cobertura": [
+              "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
+              "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
+            ],
+            "hash": "2799d544311013964a15b2c2dfc0a9f2ea5539aa53ec03b8faf3b2cc36654fd4",
+            "hash_conteudo": "70c853b622b0ed3ee9b7ce18febc22305c55ff623e6c1076ce47940bfc7c1a74",
+            "id": "ciclo-01-calango-rosa-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "id": "ciclo:pe-torto/01/calango/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
@@ -114,6 +164,9 @@
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
+        "professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
+        "professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclos.json",
+        "professores/pe-torto/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json",
         "professores/pe-torto/ciclos/ciclo-01-calango.conf",
         "professores/pe-torto/ciclos/ciclo-01-calango.fipp",
         "professores/pe-torto/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -132,6 +185,7 @@
         "declaracao",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -142,6 +196,15 @@
     }
   ],
   "documentos": [
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+      "professor": "pe-torto",
+      "tipo": "ancora"
+    },
     {
       "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
@@ -198,6 +261,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
+      "professor": "pe-torto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -222,6 +294,15 @@
       "id": "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
       "professor": "pe-torto",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclos.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:indice:professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclos.json",
+      "professor": "pe-torto",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
@@ -279,6 +360,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "pe-torto",
+      "tipo": "schema"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -293,7 +383,7 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
@@ -458,9 +548,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9d6c867"
+    "commit": "7346b97"
   },
-  "gerado_em": "2026-11-08T16:04",
+  "gerado_em": "2026-11-08T16:06",
   "nao_indexado": [
     {
       "familia": "conteudo",
