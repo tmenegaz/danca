@@ -3,14 +3,12 @@
   "escola": "calango",
   "professor": "pe-torto",
   "criado_em": "2026-11-08",
-  "po": "po-20261108-1319",
+  "po": "po-20261108-1335",
   "apelidos": {
-    "aluna_a": "Aluna A",
     "aluna_b": "Aluna B",
     "aluna_c": "Aluna C"
   },
   "elenco": [
-    "aluna_a",
     "aluna_b",
     "aluna_c"
   ],
