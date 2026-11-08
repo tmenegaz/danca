@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 40,
+  "versao": 41,
   "aplicaseA": [
     "benesh"
   ],
@@ -632,33 +632,6 @@
           ]
         },
         "escola": "batata"
-      }
-    },
-    "Battement fondu": {
-      "8|2/4@calango": {
-        "cobre": 2,
-        "posicao": null,
-        "metodo": "francesa",
-        "celulas": {
-          "a-la-seconde": [
-            {
-              "contagem": "1",
-              "categoria": "Perna",
-              "sinais": [
-                "ED",
-                "5ª",
-                "cp",
-                "→",
-                "-",
-                "→",
-                "cp"
-              ],
-              "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'\nLê-se: Perna, varredura para fora, quinta posição, coupé, conduz a, ao lado, conduz a, coupé.",
-              "repeticoes": 2
-            }
-          ]
-        },
-        "escola": "calango"
       }
     }
   }
