@@ -40582,3 +40582,95 @@ comparadas `FALHOU` a `FALHOU`).
   inscreveria no documento de ontem uma turma que mudou hoje) — o PO vive com as duas fontes a
   concordar **por derivação**, não por cópia.
 - **Nenhuma fonte de ciclo mudou**, por isso não há reancoragem de `.fipp` nem regeração de pacote.
+
+## 08/11/2026 — A aluna que sai do elenco sai da aula — e o que ela já lançou continua a ler-se
+
+**O que motivou.** Ela pôs o caso do mundo real, com a Aluna C a caminho: «uma aluna decide sair da
+escola. Então eu preciso remover ela do elenco. […] Da mesma forma como quando eu incluo uma aluna eu
+preciso rever o plano de ensino e o plano de observação, eu vou precisar também rever […] e aí essa
+aluna não faz mais parte do formulário que eu vou usar para lançar os dados coletados da aula dada.
+[…] E digamos que ela tenha saído antes da aula acontecer. […] o que foi feito dela nas aulas passadas,
+aquele registro dela pela nossa lógica de proveniência deve continuar existindo.» E pediu a garantia
+antes de testar.
+
+**O que já estava garantido — e o que não estava. Medido, não suposto.**
+
+1. **A cascata existia.** `porta.revalidacaoPendente` compara o elenco que a Turma carimbou (`alunas`)
+   com o da linha de base e, quando alguém sai, marca `linha-de-base → curadoria → plano-de-ensino →
+   plano-de-observacao`, nessa ordem, com o `saiu: [...]` na curadoria. Nada a fazer: era o mesmo
+   caminho que a inclusão percorre, e é o que a captura de ecrã dela mostra a funcionar.
+2. **A fonte `-dados.json` perdia as aulas.** `derivarDados` escrevia `aulas: {}` em **toda** a
+   geração — e a geração é disparada pelo «Guardar» do Plano de Observação, que é exactamente o gesto
+   que a cascata exige. Tirar uma aluna e regravar o PO **apagava as aulas lançadas** da fonte: elas
+   sobreviviam só no elo de `historico/`, que ninguém lê. O passado do ciclo desaparecia por causa de
+   uma correcção do presente — o oposto do que a casa promete. É o defeito mais grave desta entrada, e
+   não tinha sintoma visível no dia em que foi introduzido: só apareceria na primeira remoção.
+3. **O formulário oferecia o mapa, não a turma.** `apelidosDoCiclo` lia `dados.apelidos`, que é o mapa
+   de **nomes** e tem de guardar quem já foi lançada (as aulas guardam chaves). Consequência dupla:
+   a aluna que saiu continuava a ser oferecida para marcar na aula seguinte, e — pior, porque é
+   silencioso — sem ela no mapa os relatórios passariam a imprimir `aluna_a` no lugar do apelido.
+
+**O que foi decidido — uma regra, três sítios.**
+
+- **`elenco`** é quem a turma observa **agora**: é o que o formulário oferece para marcar. Campo novo
+  do `-dados.json`, derivado da linha de base pelo caminho que já existia (`elencoDoCiclo`).
+- **`apelidos`** é o mapa de nomes de hoje **mais** o de quem aparece numa aula lançada — o passado
+  continua legível, com nome.
+- **`aulas`** são **preservadas** na geração: um derivado não reescreve o material. A regra vale para
+  o `-dados.json` e para a cópia cifrada, que passam a sair do **mesmo texto** (é o que o
+  `check-pacote` compara, e agora compara o que deve).
+- **Degrada, não inventa.** Um `-dados.json` sem `elenco` (anterior a esta regra) lista o mapa
+  inteiro, como sempre foi; e numa aula **já lançada** a lista é o elenco de hoje **mais** quem aquela
+  aula registou — a leitura de uma aula antiga não fica mais pobre porque a turma mudou.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`derivarDados` recebe `anteriores`, preserva
+`aulas`, soma os nomes e emite `elenco`) · `motor/servidor/escrever-ciclo.js` (lê o `-dados.json`
+corrente antes de derivar — memoizado por chamada — e serve o mesmo texto à cópia cifrada) ·
+`tools/templates/lancamento.html` (`apelidosDoCiclo` honra o `elenco`; `pessoasDaAula(dados, a)` para
+a presença, a matriz e os `selects` de apelido).
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` (`CONGELAMENTO.md`) muda
+porque é ele que monta as listas de presença, da matriz e do campo `aluno` — e era ali que a aluna que
+saiu continuava a ser oferecida. O que **não** muda: a fórmula do hash (`.fipp`), a cobertura, os
+validadores, as 17 regras e as 22 pétreas. Nenhuma fonte de ciclo foi editada à mão; a âncora
+`.fipp` saiu **idêntica** e não há reancoragem nem reancoragem de escola.
+
+**Um achado de tabela, corrigido de passagem.** O pacote `ciclo-01-batata-sala-rosa` estava a
+**misturar dois POs** — `-po.md` de `po-20261108-0955` e `-dados.json` de `po-20261107-2211` —, porque
+a geração automática de `08/11/2026` (`9c0753d0`, «Gerar o ciclo») **falhou** no passo «Commitar o
+pacote gerado», com conflito material em `aula-01.pdf` e no PDF do ciclo: só o `-po.md` foi
+commitado. `check-pacote` e `gerar-ciclo.sh` recusavam o pacote por isso, e a recusa reproduz-se
+**idêntica** no `HEAD` — é pré-existente, não foi esta mudança que a criou. O `-dados.json` foi
+re-derivado do PO corrente (com o `derivarDados` novo, que preserva as aulas: zero lançamentos) e o
+pacote foi regerado, ficando a apontar `po-20261108-0955` / `plano-20261108-0955`.
+
+**Validação.** `provar-remocao-do-elenco` (**nova**, `experimentos/`) **26/26**: (A) a cascata no
+núcleo, com o `saiu` na curadoria a descer ao plano e ao PO; (B) a geração, com as aulas a
+sobreviverem a um «Guardar» de PO que rode com o elenco novo, o elenco a encolher, o mapa de nomes a
+manter quem já foi lançada e a cópia cifrada a cifrar o mesmo texto; (C) o formulário **num Chrome**
+— aula nova oferece só o elenco, aula lançada mostra quem lá esteve com o nome; (D) a compatibilidade
+sem `elenco`; (E) o acervo, com a anamnese de quem saiu a continuar **vinculada**.
+**Contraprova:** no `HEAD`, num worktree à parte, **FALHOU — 16 de 26** (10 falham). Sem regressão:
+`provar-derivados-do-po` **16** · `provar-senha-do-lancamento` **19** · `provar-familia-do-lancamento`
+**44** · `provar-um-commit-por-guardar` **21** · `provar-vinculo-do-elenco` **26** ·
+`provar-listas-do-acervo` **109** · `provar-painel-do-ato` **183** · `check-identidade` **0 erros** ·
+`check-schemas` verde · `check-indices` **16/16** · `gerar-indices`/`gerar-relacoes` sem pendências.
+`provar-formulario-da-aula` falha **5 de 48 identicamente no `HEAD`** (pré-existente, comparada
+`FALHA` a `FALHA`), e `provar-lancamento` falha por `ENOENT` num `professores/tiago/` que não existe.
+
+**Uma prova deixou de congelar a contagem.** `provar-estante-do-po` afirmava «a estante da `batata`
+traz os DOIS planos» e «o ajuste É o vigente» — verdade em 07/11, e falsa em 08/11 porque **ela
+própria** ajustou o plano outra vez (`plano-20261108-0955`) e o `2206` ganhou sucessor. Passou a
+afirmar a **regra**: a cadeia inteira aparece, cada elo substituído vem marcado, e o topo é **um só** —
+o único que ninguém declara ter ajustado. **30/30**; contraprova com a marca removida do núcleo:
+**23/30**.
+
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do deploy desta entrada**, e é **uma** leitura por endpoint.
+- **A remoção não reescreve o `sujeitos` do PO antigo.** Ela desce ao PO para que o professor o
+  reveja — e o PO que for gravado depois já não a declara, mas o documento de ontem continua a
+  dizer o que observou ontem. É proveniência: o elo novo acrescenta, não corrige.
+- **O caso da aluna que sai com aulas lançadas não tem ainda dado real neste repositório** (a `tami`
+  tem o ciclo em `aula 01`, sem lançamento). A prova cobre-o com um `-dados.json` semeado, que é o
+  que se pode fazer sem inventar dado pedagógico.

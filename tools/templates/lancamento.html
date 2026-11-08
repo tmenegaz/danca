@@ -1135,8 +1135,44 @@ function nivelDaRegua(v) {
 const opcoesDe = (pares, valor) => pares.map(([v, t]) =>
   `<option value="${esc(v)}"${v === (valor || '') ? ' selected' : ''}>${esc(t)}</option>`).join('');
 
-const apelidosDoCiclo = (dados) =>
-  Object.entries(dados.apelidos).sort((a, b) => a[1].localeCompare(b[1]));
+/* QUEM SE OFERECE HOJE — O ELENCO, E NÃO O MAPA DE NOMES (08/11/2026).
+ *
+ * O DEFEITO, medido: quando uma aluna sai da turma, ela continua no `apelidos` — e tem de
+ * continuar, porque as aulas já lançadas guardam CHAVES e o nome é o que as torna legíveis. Mas o
+ * formulário oferecia tudo o que estava no mapa, e a aluna que já não é da turma voltava a
+ * aparecer para ser marcada na aula seguinte.
+ *
+ * O DADO PASSOU A DIZER AS DUAS COISAS: `elenco` é quem a turma observa AGORA (o que se oferece);
+ * `apelidos` é o mapa de nomes de hoje mais o de quem já apareceu numa aula lançada (o que se
+ * lê). Sem `elenco` — um ficheiro de antes desta regra —, vale o mapa inteiro, como sempre foi.
+ */
+const apelidosDoCiclo = (dados) => {
+  const mapa = (dados && dados.apelidos) || {};
+  const chaves = Array.isArray(dados && dados.elenco) ? dados.elenco : Object.keys(mapa);
+  return chaves.filter((k) => k in mapa).map((k) => [k, mapa[k]])
+    .sort((a, b) => a[1].localeCompare(b[1]));
+};
+
+/* QUEM A AULA PODE MOSTRAR — o elenco de hoje MAIS quem ESTA aula registou.
+ *
+ * A leitura de uma aula antiga não pode ficar mais pobre porque a turma mudou: se a aluna estava
+ * presente numa aula lançada, a linha dela tem de continuar a aparecer ali, com o nome. É o mesmo
+ * princípio do resto do sistema — o passado não se reescreve —, aplicado a esta lista. */
+const pessoasDaAula = (dados, a) => {
+  const base = apelidosDoCiclo(dados);
+  if (!a) return base;
+  const mapa = (dados && dados.apelidos) || {};
+  const vistos = new Set(base.map(([k]) => k));
+  const daAula = new Set([
+    ...(Array.isArray(a.presentes) ? a.presentes : []),
+    ...(Array.isArray(a.ausentes) ? a.ausentes : []),
+    ...Object.keys(a.marcas || {}),
+  ]);
+  const extras = [...daAula]
+    .filter((k) => !vistos.has(k) && mapa[k])
+    .map((k) => [k, mapa[k]]);
+  return base.concat(extras).sort((x, y) => x[1].localeCompare(y[1]));
+};
 
 /* ---------------------------------------------------------------- OS TRÊS EIXOS
  *
@@ -1559,7 +1595,9 @@ function blocoDoDepois(a) {
  * percorrer a lista com os olhos.
  */
 function blocoPresentes(dados, a) {
-  const todos = apelidosDoCiclo(dados);
+  /* A LISTA É A DESTA AULA (08/11/2026): o elenco de hoje e, numa aula já lançada, também quem
+   * ela registou — a aluna que saiu da turma continua a ler-se na aula em que esteve. */
+  const todos = pessoasDaAula(dados, a);
   const marcado = (k) => (presencaAoVivo ? presencaAoVivo.has(k)
     : (!a || a.presentes.includes(k)));
   const quantos = todos.filter(([k]) => marcado(k)).length;
@@ -1620,7 +1658,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     if (tipo === 'rubrica') return `<select id="${esc(idCampo)}">${opcoesDaRegua(valor)}</select>`;
     return `<select id="${esc(idCampo)}">${opcoesDe(MARCAS, valor)}</select>`;
   };
-  const opcoesDeApelido = (sel) => '<option value=""></option>' + apelidosDoCiclo(dados)
+  const opcoesDeApelido = (sel) => '<option value=""></option>' + pessoasDaAula(dados, a)
     .map(([k, nome]) => `<option value="${esc(k)}"${k === sel ? ' selected' : ''
       }>${esc(nome)}</option>`).join('');
 
@@ -1669,7 +1707,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   // linhas de quem veio, sem recarregar a página e sem 50 linhas de selects para percorrer. O
   // `presencaAoVivo` é a lista que os checkboxes dizem AGORA; sem ele (primeira renderização, ou
   // troca de aula) vale o que está gravado.
-  const presentes = apelidosDoCiclo(dados).filter(([k]) => (presencaAoVivo
+  const presentes = pessoasDaAula(dados, a).filter(([k]) => (presencaAoVivo
     ? presencaAoVivo.has(k) : (!a || a.presentes.includes(k))));
 
   // A MATRIZ DE UM BLOCO: as colunas da folha são as colunas, a aluna é a linha.
