@@ -61,6 +61,29 @@
       ],
       "alunas": 3,
       "anterior": "tami--20261108-0105.json"
+    },
+    "tami--20261108-1253.json": {
+      "id": "tami",
+      "carimbo": "20261108-1253",
+      "arquivo": "escola/batata/linhas-de-base/tami--20261108-1253.json",
+      "nome": "tami",
+      "professor": "dedao-aberto",
+      "turma": null,
+      "atualizada_em": "2026-11-08T12:53:37.306Z",
+      "enviada_em": "2026-11-08T12:53:37.787Z",
+      "aspectos": [
+        "cinco-posicoes-1a-pes",
+        "cinco-posicoes-1a-bracos",
+        "tendu",
+        "formato-anatomico-dos-joelhos",
+        "flexibilidade-dos-adutores",
+        "rotacao-e-amplitude-dos-ombros",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "forca-de-empurrar-push-ups",
+        "estabilidade-vestibular-e-deslocamento"
+      ],
+      "alunas": 3,
+      "anterior": "tami--20261108-1252.json"
     }
   }
 }
