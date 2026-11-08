@@ -132,8 +132,8 @@
           "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
           "professores/dedao-aberto/ciclos/ciclo-01.conf"
         ],
-        "hash": "9dac1f49a106ce4dac2ebd6751b809d168b25153fd22373a8aee4ce9bde55eb3",
-        "hash_conteudo": "9632e7aedd8ea84af6ab5a4d8aa150a169b4c576a04747e7a339ef817b8fe895",
+        "hash": "142e87211b75bc7753b3f9997b52a12a34bea2b0467d5eb68d5460df0c319a8c",
+        "hash_conteudo": "c8b2c72c85d3ee135a5ec8fae0aa96731971c0292948c62f409167e69079a5f1",
         "id": "ciclo-01-batata-sala-rosa",
         "lida": true,
         "parent_hash": ""
@@ -396,10 +396,10 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 2,
-      "pos": 3,
+      "planos": 3,
+      "pos": 4,
       "recortes": 1,
-      "registros": 8
+      "registros": 10
     },
     "criada_em": "2026-11-07T22:25:15.564899+00:00",
     "expurgada": false,
@@ -418,25 +418,29 @@
       "anamnese:anamnese-20261108-0952",
       "plano:plano-20261107-2201",
       "plano:plano-20261107-2206",
+      "plano:plano-20261108-0955",
       "po:po-20261107-2202",
       "po:po-20261107-2206",
-      "po:po-20261107-2211"
+      "po:po-20261107-2211",
+      "po:po-20261108-0955"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 8,
+        "contagem": 10,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
           "anamnese:anamnese-20261108-0952",
           "plano:plano-20261107-2201",
           "plano:plano-20261107-2206",
+          "plano:plano-20261108-0955",
           "po:po-20261107-2202",
           "po:po-20261107-2206",
-          "po:po-20261107-2211"
+          "po:po-20261107-2211",
+          "po:po-20261108-0955"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -528,7 +532,7 @@
     ],
     "professores": [
       {
-        "contagem": 9,
+        "contagem": 11,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
@@ -536,9 +540,11 @@
           "ciclo:dedao-aberto/01/batata",
           "plano:plano-20261107-2201",
           "plano:plano-20261107-2206",
+          "plano:plano-20261108-0955",
           "po:po-20261107-2202",
           "po:po-20261107-2206",
-          "po:po-20261107-2211"
+          "po:po-20261107-2211",
+          "po:po-20261108-0955"
         ],
         "rotulo": "dedao-aberto",
         "valor": "dedao-aberto"
@@ -564,20 +570,22 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "plano:plano-20261107-2201",
-          "plano:plano-20261107-2206"
+          "plano:plano-20261107-2206",
+          "plano:plano-20261108-0955"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "po:po-20261107-2202",
           "po:po-20261107-2206",
-          "po:po-20261107-2211"
+          "po:po-20261107-2211",
+          "po:po-20261108-0955"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -586,9 +594,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "79f001f"
+    "commit": "ab78511"
   },
-  "gerado_em": "2026-11-08T12:54",
+  "gerado_em": "2026-11-08T12:56",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -753,6 +761,18 @@
       "turma": "sala rosa"
     },
     {
+      "ajuste_de": "plano-20261107-2206",
+      "ano": "2026",
+      "carimbo": "plano-20261108-0955",
+      "ciclo": "01",
+      "data": "2026-11-08T09:55",
+      "id": "plano:plano-20261108-0955",
+      "objetivo": "Teste",
+      "professor": "dedao-aberto",
+      "tipo": "plano",
+      "turma": "sala rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261107-2202",
@@ -779,6 +799,16 @@
       "ciclo": "01",
       "data": "2026-11-07T22:11",
       "id": "po:po-20261107-2211",
+      "professor": "dedao-aberto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261107-2211",
+      "ano": "2026",
+      "carimbo": "po-20261108-0955",
+      "ciclo": "01",
+      "data": "2026-11-08T09:55",
+      "id": "po:po-20261108-0955",
       "professor": "dedao-aberto",
       "tipo": "po"
     }
