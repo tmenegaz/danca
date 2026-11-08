@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "flexibilidade-anteroposterior-grand-ecart",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "memoria-e-retencao-de-sequencias",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
-      "versoes": 1
+      "ultima": "20261108-1616",
+      "versoes": 2
     },
     {
       "aspecto": "passe",
@@ -77,7 +77,37 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261108-1600",
+      "ultima": "20261108-1616",
+      "versoes": 2
+    },
+    {
+      "aspecto": "impulsao-e-absorcao-allegro",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1616",
+      "ultima": "20261108-1616",
+      "versoes": 1
+    },
+    {
+      "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1616",
+      "ultima": "20261108-1616",
+      "versoes": 1
+    },
+    {
+      "aspecto": "rotacao-e-amplitude-dos-ombros",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261108-1616",
+      "ultima": "20261108-1616",
       "versoes": 1
     }
   ],
@@ -472,6 +502,14 @@
         "ids": [
           "recorte:tami"
         ],
+        "rotulo": "impulsao-e-absorcao-allegro",
+        "valor": "impulsao-e-absorcao-allegro"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
         "rotulo": "memoria-e-retencao-de-sequencias",
         "valor": "memoria-e-retencao-de-sequencias"
       },
@@ -488,8 +526,24 @@
         "ids": [
           "recorte:tami"
         ],
+        "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
+        "valor": "mobilidade-de-quadril-en-dehors-de-origem"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
         "rotulo": "passe",
         "valor": "passe"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "rotacao-e-amplitude-dos-ombros",
+        "valor": "rotacao-e-amplitude-dos-ombros"
       }
     ],
     "estados": [
@@ -556,9 +610,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "94e0809"
+    "commit": "9fc7b79"
   },
-  "gerado_em": "2026-11-08T16:15",
+  "gerado_em": "2026-11-08T16:17",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -583,25 +637,47 @@
   ],
   "recortes": [
     {
-      "alunas": 1,
+      "alunas": 3,
       "aspectos": [
         "cinco-posicoes-1a-bracos",
         "cinco-posicoes-1a-pes",
         "estabilidade-vestibular-e-deslocamento",
         "flexibilidade-anteroposterior-grand-ecart",
         "forca-de-empurrar-push-ups",
+        "impulsao-e-absorcao-allegro",
         "memoria-e-retencao-de-sequencias",
         "mobilidade-de-flexao-extensao-do-tornozelo",
-        "passe"
+        "mobilidade-de-quadril-en-dehors-de-origem",
+        "passe",
+        "rotacao-e-amplitude-dos-ombros"
       ],
-      "atualizada_em": "2026-11-08T16:00:33.007Z",
-      "enviada_em": "2026-11-08T16:00:33.578Z",
+      "atualizada_em": "2026-11-08T16:16:55.575Z",
+      "enviada_em": "2026-11-08T16:16:56.126Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "tami",
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/calango/linhas-de-base/tami--20261108-1616.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "rotacao-e-amplitude-dos-ombros",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "memoria-e-retencao-de-sequencias",
+            "impulsao-e-absorcao-allegro",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-08T16:16:56.126Z",
+          "versao": "20261108-1616"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/calango/linhas-de-base/tami--20261108-1600.json",
