@@ -952,3 +952,4 @@ experimentos/modelo-formulario/*
 # base REAIS da `batata`: o cadeado que impede editar e apagar está aberto quando a aluna entra no
 # elenco depois de o Plano de Observação estar gravado, e as rotas de escrita aceitavam o gesto.
 !experimentos/provar-vinculo-do-elenco.js
+!experimentos/provar-remocao-do-elenco.js

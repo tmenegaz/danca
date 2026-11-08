@@ -470,6 +470,39 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       .filter(Boolean)
       .map((m) => m[1]);
 
+    /* AS AULAS JÁ LANÇADAS SÃO LIDAS ANTES DE A FONTE SER DERIVADA (08/11/2026).
+     *
+     * O DEFEITO, medido: `derivarDados` escrevia `aulas: {}` sempre — e esta geração é disparada
+     * pelo «Guardar» do PO, que é exactamente o gesto que a cascata do elenco exige. Tirar uma
+     * aluna do elenco e regravar o PO deixava a fonte com `aulas: {}`: as aulas lançadas só
+     * sobreviviam no elo de `historico/`, que ninguém lê, e o ciclo perdia o passado por causa de
+     * uma correcção do presente. O `-dados.json` atual é, por isso, uma ENTRADA da derivação — e
+     * não um arquivo a substituir às cegas. O texto derivado é guardado aqui porque o passo 3b
+     * (a cópia cifrada) tem de cifrar ESTE texto, e não uma segunda derivação dele. */
+    const caminhoDados = caminhoDaFonte(ctx, '-dados.json');
+    /* A LEITURA É MEMOIZADA PARA ESTA GRAVAÇÃO. O ficheiro é lido aqui (para preservar as aulas) e
+     * outra vez pelo passo 3 (para decidir se mudou); duas idas ao GitHub pelo mesmo ficheiro no
+     * mesmo pedido são cota gasta sem informação nova. O mapa é local a esta chamada — nada
+     * envelhece entre pedidos. */
+    const lidos = new Map();
+    const lerFonte = (caminho) => {
+      if (!lidos.has(caminho)) {
+        lidos.set(caminho, lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl }));
+      }
+      return lidos.get(caminho);
+    };
+    const dadosAtuais = await lerFonte(caminhoDados);
+    if (dadosAtuais.erro) {
+      return Object.assign(relatorio, { erro: 'não consegui ler ' + caminhoDados + ': ' + dadosAtuais.erro });
+    }
+    let dadosAnteriores = null;
+    if (dadosAtuais.existe) {
+      try { dadosAnteriores = JSON.parse(dadosAtuais.texto); } catch (e) { dadosAnteriores = null; }
+    }
+    const dadosDerivados = derivarDados({
+      po, contexto: ctx, linhaDeBase, anteriores: dadosAnteriores,
+    });
+
     const fontes = [
       /* A LINHA DE BASE DA TURMA VAI AO GUIA (06/11/2026). O eixo do Corpo da Aula 01 é o
        * recorte do passo 4 e a leitura do passo 3, e este escritor não os passava: o guia só
@@ -497,7 +530,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       { sufixo: '-captura-aula-01.md',
         md: derivarCaptura({ po, plano, contexto: ctx, linhaDeBase }) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
-      { sufixo: '-dados.json', md: derivarDados({ po, contexto: ctx, linhaDeBase }) },
+      { sufixo: '-dados.json', md: dadosDerivados },
     ];
     const notacao = notacaoEscolhida(plano);
     if (notacao) {
@@ -561,7 +594,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     //    que já está igual (idempotente — «Guardar» duas vezes sem mudar nada não faz commit).
     for (const fonte of fontes) {
       const caminho = caminhoDaFonte(ctx, fonte.sufixo);
-      const atual = await lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl });
+      const atual = await lerFonte(caminho);
       if (atual.erro) {
         relatorio.escritas.push({ caminho, ok: false, erro: atual.erro });
         continue;
@@ -605,8 +638,10 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         relatorio.cifrado = { ok: true, caminho: caminhoCifrado, nota: 'a cópia já existia' };
       } else {
         try {
-          const envelope = await cifrarEnvelopeDeDados(
-            derivarDados({ po, contexto: ctx, linhaDeBase }), senhaCripto);
+          /* O MESMO TEXTO que a fonte acabou de receber — e não uma segunda derivação. Duas
+           * derivações do mesmo dado é a porta para a cópia divergir da fonte, e o
+           * `check-pacote.js` compara as duas (`lancamentos` e `apelidos`). */
+          const envelope = await cifrarEnvelopeDeDados(dadosDerivados, senhaCripto);
           juntar(caminhoCifrado, JSON.stringify(envelope, null, 2) + '\n', (ok, erro) => {
             relatorio.cifrado = ok ? { ok: true, caminho: caminhoCifrado } : { ok: false, caminho: caminhoCifrado, erro };
           });

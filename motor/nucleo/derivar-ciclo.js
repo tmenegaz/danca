@@ -1319,20 +1319,73 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
 // ---------------------------------------------------------------------------
 
 /**
- * A FONTE `-dados.json` do ciclo «do zero»: `aulas` vazio (nenhuma aula lançada
- * ainda) e os `apelidos` do PO (P-12) — é exatamente o que o `tools/cifrar-dados.js`
- * lê para publicar a cópia cifrada no pacote, e o que o `check-pacote.js` exige.
- * Sem ela, um ciclo recém-gerado sairia do pacote sem o JSON de dados.
+ * A FONTE `-dados.json` do ciclo — o elenco de HOJE, as aulas de ONTEM, e o mapa de nomes dos dois.
+ *
+ * O QUE ELA É. O formulário de lançamento lê este ficheiro para saber QUEM oferecer (a lista de
+ * presença) e o que já foi lançado (as aulas). O `check-pacote.js` exige-o, e o `cifrar-dados.js`
+ * publica a cópia cifrada do pacote a partir dele.
+ *
+ * A REMOÇÃO DE UMA ALUNA DO ELENCO (08/11/2026) — e são três coisas que este ficheiro tem de
+ * dizer ao mesmo tempo, e dizia duas:
+ *
+ *   · **quem se observa AGORA** é o elenco (a linha de base, §5.20): quem saiu deixa de ser
+ *     oferecido no formulário. Era o que já acontecia, porque o `apelidos` saía do elenco.
+ *   · **o que já foi lançado NÃO SE PERDE.** O `aulas` era escrito VAZIO em toda a geração — e a
+ *     geração é disparada pelo «Guardar» do PO, que é justamente o gesto que a cascata do elenco
+ *     exige. Medido: tirar uma aluna do elenco e regravar o PO deixava a fonte com `aulas: {}`, e
+ *     as aulas lançadas só sobreviviam no elo de `historico/`, que ninguém lê. O registo do
+ *     passado desaparecia do ciclo por causa de uma correcção do presente. Agora o `aulas` que
+ *     já existe é PRESERVADO (é o mesmo critério do `fundirAulas` do lançamento: o acto não se
+ *     reescreve por um derivado).
+ *   · **o nome de quem saiu continua legível.** O `apelidos` é o mapa `chave → apelido`, e as
+ *     aulas guardam CHAVES. Esquecer o nome de quem já foi lançada deixaria os relatórios e o
+ *     caderno a imprimir `aluna_c` no lugar de «Aluna C». Por isso o mapa é a UNIÃO: o elenco de
+ *     hoje, mais quem aparece em alguma aula lançada.
+ *
+ * E POR ISSO ENTRA O `elenco`. Com o mapa a ser união, ele já não diz quem se oferece — quem o
+ * diz é a lista explícita das chaves do elenco atual. O formulário lista `elenco` e usa `apelidos`
+ * para os nomes: uma coisa é «quem está na turma», outra é «como se chama quem já passou por ela».
  */
-function derivarDados({ po, contexto, linhaDeBase }) {
+function derivarDados({ po, contexto, linhaDeBase, anteriores }) {
   /* O ELENCO VEM DA LINHA DE BASE (06/11/2026) — ver `elencoDoCiclo`. Era o defeito que ela viu no
    * formulário: «presentes aluno A, B e C», com a turma a ter duas. */
   const sujeitos = elencoDoCiclo(po, linhaDeBase);
-  const apelidos = {};
+  const doElenco = [];
+  const vistos = new Set();
   for (const s of sujeitos) {
     const slug = slugDe(s);
-    if (slug && !(slug in apelidos)) apelidos[slug] = s;
+    if (!slug || vistos.has(slug)) continue;
+    vistos.add(slug);
+    doElenco.push([slug, s]);
   }
+  const nomeDe = Object.fromEntries(doElenco);
+
+  /* AS AULAS QUE JÁ EXISTEM FICAM — e o mapa de nomes cresce com quem elas nomeiam. Uma fonte
+   * derivada não apaga o material: o passado é o do lançamento, não o desta geração. */
+  const aulas = {};
+  const antes = anteriores && typeof anteriores === 'object' ? anteriores : null;
+  if (antes && antes.aulas && typeof antes.aulas === 'object') {
+    for (const [nn, aula] of Object.entries(antes.aulas)) {
+      if (aula && typeof aula === 'object') aulas[nn] = aula;
+    }
+  }
+  const usados = new Set();
+  for (const aula of Object.values(aulas)) {
+    for (const k of (Array.isArray(aula.presentes) ? aula.presentes : [])) usados.add(String(k));
+    for (const k of (Array.isArray(aula.ausentes) ? aula.ausentes : [])) usados.add(String(k));
+    for (const k of Object.keys(aula.marcas || {})) usados.add(String(k));
+  }
+  const nomesAntigos = antes && antes.apelidos && typeof antes.apelidos === 'object' ? antes.apelidos : {};
+  const apelidos = {};
+  /* Quem já foi lançada primeiro (o mapa antigo), e o elenco por cima — o nome de hoje vence, e o
+   * de quem saiu fica para as aulas em que ela aparece. */
+  for (const k of usados) {
+    const nome = String(nomesAntigos[k] == null ? '' : nomesAntigos[k]).trim();
+    if (nome) apelidos[k] = nome;
+  }
+  Object.assign(apelidos, nomeDe);
+
+  const lancadas = Object.keys(aulas).length;
   const dados = {
     ciclo: String((contexto && contexto.ciclo) || 'NN'),
     escola: String((contexto && contexto.escola) || 'Escola'),
@@ -1343,9 +1396,18 @@ function derivarDados({ po, contexto, linhaDeBase }) {
     // POs (um na fonte, outro nos derivados). É essa comparação que o `check-pacote.js` faz.
     po: (po && (po.id || po.carimbo)) || null,
     apelidos,
-    aulas: {},
-    _nota: 'JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um '
-      + 'ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO.',
+    /* QUEM SE OFERECE HOJE — a lista explícita, para o formulário não ter de adivinhar quem saiu
+     * pelo mapa de nomes (que é união, de propósito). Sem ela (um ficheiro anterior a esta
+     * regra), o formulário lista o mapa inteiro, como sempre fez. */
+    elenco: doElenco.map(([slug]) => slug),
+    aulas,
+    _nota: (lancadas
+      ? 'JSON de dados do ciclo: `aulas` traz as ' + lancadas + ' aula(s) já lançada(s), '
+        + 'PRESERVADAS por esta geração; `elenco` é quem a turma observa HOJE, e `apelidos` '
+        + 'é o mapa de nomes de hoje mais o de quem já apareceu nas aulas. Gerado pelo '
+        + '«Guardar» do PO.'
+      : 'JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um '
+        + 'ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO.'),
   };
   return JSON.stringify(dados, null, 2) + '\n';
 }

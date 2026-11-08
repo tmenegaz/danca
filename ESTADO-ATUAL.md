@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 08/11/2026 (árvore limpa, `a5f89d85` + esta entrega). Nesta entrega, **a
+> **Última fotografia:** 08/11/2026 (árvore limpa, `26975678` + esta entrega). Nesta entrega, **a
+> aluna que SAI do elenco passa a sair da aula — e o que ela já lançou continua legível**. A cascata
+> que ela descreveu (`elenco → plano → PO`) **já existia**; o que não existia era o resto: `derivarDados`
+> escrevia `aulas: {}` em toda a geração, e a geração é disparada pelo «Guardar» do PO — exactamente o
+> gesto que a cascata exige. Tirar uma aluna e regravar o PO **apagava as aulas lançadas** da fonte,
+> que só sobreviviam num elo de `historico/` que ninguém lê. Passa a haver três campos com três
+> sentidos: `elenco` (quem se oferece hoje), `apelidos` (nomes de hoje **mais** os de quem já foi
+> lançada) e `aulas` (preservadas). Ver a decisão 121 e o §5.25 do `ARQUITETURA-GERAL.md`.
+>
+> **Fotografia anterior (08/11/2026, `a5f89d85`).** Nesta entrega, **a
 > anamnese da aluna que entra no elenco deixa de ficar «livre»**: o vínculo que a protege (não se
 > edita, não se apaga) passou a ler o **elenco da turma que o Plano de Observação observa** — a linha
 > de base —, e não só o `sujeitos` do PO, que é a herança do dia em que ele foi gravado. Medido na
@@ -2391,6 +2400,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      turma que mudou hoje), e por isso o PO vive com as duas fontes a concordar por derivação, não
      por cópia.
 
+121. **A ALUNA QUE SAI DO ELENCO SAI DA AULA — E O QUE ELA JÁ LANÇOU NÃO SE PERDE.** A cascata de
+     revalidação (`linha-de-base → curadoria → plano-de-ensino → plano-de-observacao`) **já existia**
+     para a remoção, e é o mesmo caminho da inclusão com o sinal trocado. **CONFIRMADO** no núcleo
+     (`porta.revalidacaoPendente`), e é o que a tela dela mostra. O que **não** existia era a
+     integridade do derivado: `derivarDados` escrevia `aulas: {}` em **toda** a geração, e a geração
+     é disparada pelo «Guardar» do PO — exactamente o gesto que a cascata exige. Remover uma aluna e
+     regravar o PO **apagava as aulas lançadas** da fonte `-dados.json`; elas sobreviviam apenas no
+     elo de `historico/`, que ninguém lê. E o formulário oferecia `dados.apelidos` — o mapa de
+     **nomes** — como se fosse a lista de quem marcar: sem a aluna que saiu, os relatórios das aulas
+     antigas imprimiriam `aluna_a` no lugar do apelido. **DECIDIDO** 08/11/2026: três campos, três
+     sentidos — `elenco` é quem a turma observa **agora** (o que se oferece), `apelidos` é o mapa de
+     hoje **mais** o de quem aparece numa aula lançada, e `aulas` é **preservado** na geração (um
+     derivado não reescreve o material; a fonte e a cópia cifrada passam a sair do **mesmo** texto).
+     Numa aula já lançada a lista é a **daquela** aula (elenco + quem ela registou); sem `elenco` — um
+     ficheiro de antes desta regra — vale o mapa inteiro. A anamnese de quem saiu continua
+     **vinculada**: o cadeado não se abre só porque a turma mudou. Prova:
+     `provar-remocao-do-elenco` (**26**, com um `-dados.json` semeado e o formulário num Chrome;
+     **10 falham** no `HEAD`). **O que fica por fazer, e sabe-se:** o `sujeitos` do PO antigo não se
+     reescreve — o elo novo acrescenta, não corrige; e a remoção **com aulas lançadas** ainda não tem
+     dado real neste repositório (o ciclo da `tami` está em `aula 01`, sem lançamento).
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3037,7 +3067,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (08/11/2026 — o vínculo da anamnese lê o elenco)
+### Executado nesta fotografia (08/11/2026 — a aluna que sai do elenco)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-remocao-do-elenco` (**nova**) | **PASSOU — 26 asserções**. (A) a cascata no núcleo: o `saiu` na curadoria a descer ao plano e ao PO; (B) a geração: as aulas **sobrevivem** a um «Guardar» de PO que rode com o elenco novo, o elenco encolhe, o mapa de nomes mantém quem já foi lançada e a cópia cifrada cifra o **mesmo** texto; (C) o formulário **num Chrome**: aula nova oferece só o elenco, aula lançada mostra quem lá esteve, com nome; (D) um `-dados.json` **sem** `elenco` lista o mapa inteiro; (E) o acervo: a anamnese de quem saiu continua **vinculada** |
+| **a contraprova** | no `HEAD` (worktree à parte): **FALHOU — 16 de 26** (10 falham) |
+| `provar-estante-do-po` (alterada) | **30/30** — deixou de congelar a contagem («os DOIS planos») e passou a afirmar a regra: a cadeia inteira aparece, cada elo substituído vem marcado, o topo é **um só**. Contraprova com a marca removida do núcleo: **23/30** |
+| `provar-derivados-do-po` · `provar-senha-do-lancamento` · `provar-familia-do-lancamento` · `provar-um-commit-por-guardar` · `provar-vinculo-do-elenco` | **16 · 19 · 44 · 21 · 26** — verdes |
+| `provar-listas-do-acervo` · `provar-painel-do-ato` | **109 · 183** — verdes |
+| `check-identidade` · `check-schemas` · `check-indices` · `gerar-indices` · `gerar-relacoes` | **0 erros** · verde · **16/16** · sem pendências · sem pendências |
+| **o que NÃO mede / não passa** | `provar-formulario-da-aula` falha **5 de 48 identicamente no `HEAD`** (pré-existente, comparada `FALHA` a `FALHA`), e `provar-lancamento` falha por `ENOENT` num `professores/tiago/` que não existe. O **ao ar** confirma-se no deploy desta entrega |
+
+### Executado na fotografia anterior (08/11/2026 — o vínculo da anamnese lê o elenco)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4106,6 +4148,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **08/11/2026** — **A aluna que sai do elenco sai da aula, e o que ela já lançou não se perde.** Ela
+  pôs o caso do mundo real antes de testar com a Aluna C: remover do elenco, rever plano e PO, deixar
+  de a oferecer no formulário, e **nada do passado se perder**. A cascata (`elenco → plano → PO`)
+  **já existia**; o que não existia era a integridade do derivado — `derivarDados` escrevia
+  `aulas: {}` em toda a geração, e a geração é disparada pelo «Guardar» do PO, o gesto que a cascata
+  exige: remover e regravar **apagava as aulas lançadas**. E o formulário oferecia o mapa de **nomes**
+  como lista de quem marcar, o que também faria os relatórios antigos imprimirem `aluna_a`.
+  **DECIDIDO**: `elenco` (quem se oferece hoje), `apelidos` (hoje **mais** quem já foi lançada) e
+  `aulas` **preservadas** — a fonte e a cópia cifrada saem do mesmo texto; numa aula lançada a lista é
+  a **daquela** aula. `provar-remocao-do-elenco` **26/26**, contraprova a reprovar **10** no `HEAD`;
+  `provar-estante-do-po` passou a afirmar a **regra** em vez da contagem (**30/30**). Fica registado
+  um achado **pré-existente e por resolver**: o pacote `ciclo-01-batata-sala-rosa` **mistura dois
+  POs** (`-po.md` de `po-…-0956`, `-dados.json` de `po-…-2211`) porque a escrita das fontes no
+  «Guardar» do PO não apareceu — só o `-po.md` foi commitado. Re-derivar a fonte destrava o
+  `check-pacote`, mas a **cópia cifrada** só quem tem a chave da escola a produz, e deixá-la velha
+  seria fabricar um derivado: o pacote ficou como estava. Ver a decisão 121 e o §5.25 do
+  `ARQUITETURA-GERAL.md`.
 - **08/11/2026** — **A aluna que entra no elenco deixa de ficar «livre».** Ela relatou que a Aluna B
   «já está sendo observada e a etiqueta ainda está como livre», com «editar» e «apagar» a funcionar.
   **CONFIRMADO** com os envelopes reais: o `po-…-2211` (22:11 de 07/11) declara `[Aluna A]`, a linha

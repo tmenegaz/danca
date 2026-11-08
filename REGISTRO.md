@@ -40635,14 +40635,27 @@ saiu continuava a ser oferecida. O que **não** muda: a fórmula do hash (`.fipp
 validadores, as 17 regras e as 22 pétreas. Nenhuma fonte de ciclo foi editada à mão; a âncora
 `.fipp` saiu **idêntica** e não há reancoragem nem reancoragem de escola.
 
-**Um achado de tabela, corrigido de passagem.** O pacote `ciclo-01-batata-sala-rosa` estava a
-**misturar dois POs** — `-po.md` de `po-20261108-0955` e `-dados.json` de `po-20261107-2211` —, porque
-a geração automática de `08/11/2026` (`9c0753d0`, «Gerar o ciclo») **falhou** no passo «Commitar o
-pacote gerado», com conflito material em `aula-01.pdf` e no PDF do ciclo: só o `-po.md` foi
-commitado. `check-pacote` e `gerar-ciclo.sh` recusavam o pacote por isso, e a recusa reproduz-se
-**idêntica** no `HEAD` — é pré-existente, não foi esta mudança que a criou. O `-dados.json` foi
-re-derivado do PO corrente (com o `derivarDados` novo, que preserva as aulas: zero lançamentos) e o
-pacote foi regerado, ficando a apontar `po-20261108-0955` / `plano-20261108-0955`.
+**Um achado de tabela, que fica por resolver — e por que não foi resolvido à força.** O pacote
+`ciclo-01-batata-sala-rosa` está a **misturar dois POs**: `-po.md` de `po-20261108-0956` e
+`-dados.json` de `po-20261107-2211`. A causa não é a geração: é o passo anterior, a escrita das
+fontes do ciclo no «Guardar» do PO. O «Guardar» de 09:56 produziu dois commits — o envelope
+(`b7b5a66f`) e o `-po.md` (`06bd359d`, do `escreverPO`) —, e **nenhum** commit
+`feat(ciclo): o «Guardar» do PO grava as fontes…`, que é o do `escrever-ciclo.js`. Sem ele, o
+`-po.md` aponta para um PO que as fontes não descrevem, e `check-pacote` e `gerar-ciclo.sh` recusam o
+pacote — a recusa é **pré-existente** a esta entrega e reproduz-se **idêntica** no `HEAD`.
+
+Re-derivei o `-dados.json` do PO corrente para destravar (as fontes derivadas saíam coerentes), mas a
+**cópia cifrada** não: ela é DERIVADA da fonte e só quem tem a chave da escola a produz — o Worker
+(`SENHA_CRIPTO`) ou a máquina que tem `tools/.senhas-locais`, que esta não tem. Escrever o envelope
+com o `apelidos` novo e a cifra velha seria fabricar um derivado, e o `check-pacote` só não o veria
+porque compara a ESTRUTURA, não os bytes. Preferi **não** deixar o pacote meio-derivado: as fontes e
+o pacote voltaram ao estado do `origin/main`, e o que esta entrega muda é código, prova e documento.
+
+**O que destrava, e é um gesto só:** com este núcleo publicado, o próximo «Guardar» do PO escreve a
+fonte **e** a cópia cifrada do **mesmo texto** — é o que o passo 3b faz —, e o `-po.md` passa a
+apontar para um PO que as fontes descrevem. Se a escrita das fontes continuar a não aparecer, o
+motivo lê-se em `npx wrangler tail --config wrangler.batata.jsonc` **durante** um «Guardar» — não se
+adivinha, e não se recarrega a página à procura dele.
 
 **Validação.** `provar-remocao-do-elenco` (**nova**, `experimentos/`) **26/26**: (A) a cascata no
 núcleo, com o `saiu` na curadoria a descer ao plano e ao PO; (B) a geração, com as aulas a
@@ -40674,3 +40687,5 @@ o único que ninguém declara ter ajustado. **30/30**; contraprova com a marca r
 - **O caso da aluna que sai com aulas lançadas não tem ainda dado real neste repositório** (a `tami`
   tem o ciclo em `aula 01`, sem lançamento). A prova cobre-o com um `-dados.json` semeado, que é o
   que se pode fazer sem inventar dado pedagógico.
+- **O pacote da `batata-sala-rosa` continua a misturar dois POs** — ver acima. Não é desta entrega e
+  não foi forçado: a cópia cifrada é derivada e só a chave da escola a produz.

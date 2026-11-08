@@ -1721,6 +1721,66 @@ vínculo.
 
 **Contraprova.** Contra o núcleo de `HEAD`, **reprova 15 de 26**.
 
+### 5.25 A aluna que SAI do elenco — e o passado do ciclo, que a geração não reescreve
+
+O §5.24 fechou o cadeado de quem **entra**. Este fecha o outro lado da mesma porta: a aluna que
+**sai** da turma.
+
+**O que já estava garantido.** A cascata, e ela existia antes desta secção: `porta.revalidacaoPendente`
+compara o elenco que a Turma carimbou (`alunas`) com o da linha de base e, quando alguém sai, marca
+`linha-de-base → curadoria → plano-de-ensino → plano-de-observacao`, nessa ordem, com `saiu: [...]` na
+curadoria. Rever o plano e o PO depois de mexer no elenco é o caminho que a **inclusão** já percorria;
+a remoção é o mesmo caminho com o sinal trocado.
+
+**O que não estava, e era grave.** `derivarDados` escrevia `aulas: {}` em **toda** a geração — e a
+geração é disparada pelo «Guardar» do Plano de Observação, que é exactamente o gesto que a cascata
+exige. Tirar uma aluna do elenco e regravar o PO **apagava as aulas lançadas** da fonte
+(`-dados.json`); elas sobreviviam apenas no elo de `historico/`, que ninguém lê. O passado do ciclo
+desaparecia por causa de uma correcção do presente — o contrário do que a proveniência promete. O defeito não
+tinha sintoma no dia em que nasceu: só apareceria na primeira remoção, e o primeiro a notá-lo seria o
+professor à procura de uma aula que lançou.
+
+Havia um segundo, mais silencioso: `apelidosDoCiclo` lia `dados.apelidos` — o mapa de **nomes** — como
+se fosse a lista de quem marcar. Sem a aluna que saiu no mapa, os relatórios das aulas antigas
+passariam a imprimir `aluna_a` no lugar do apelido.
+
+**A regra, e são três campos que dizem três coisas.**
+
+- **`elenco`** — quem a turma observa **agora**: é o que o formulário oferece para marcar. Derivado da
+  linha de base pelo caminho que já existia (`elencoDoCiclo`, §5.20).
+- **`apelidos`** — o mapa de nomes de hoje **mais** o de quem aparece numa aula lançada: o passado
+  continua legível, com nome.
+- **`aulas`** — **preservadas** na geração. Um derivado não reescreve o material; a regra vale para a
+  fonte e para a cópia cifrada, que passam a sair do **mesmo texto** (é o que o `check-pacote` compara
+  — antes comparava duas derivações independentes e podia passar com o conteúdo errado).
+
+**Numa aula já lançada, a lista é a daquela aula.** `pessoasDaAula(dados, a)` é o elenco de hoje mais
+quem aquela aula registou: a leitura de uma aula antiga não fica mais pobre porque a turma mudou. E um
+`-dados.json` sem `elenco` — de antes desta regra — lista o mapa inteiro, como sempre foi: **degrada,
+não inventa**.
+
+**A prova.** `provar-remocao-do-elenco` **26**: a cascata no núcleo (o `saiu` na curadoria a descer ao
+plano e ao PO); a geração com as aulas a sobreviverem a um «Guardar» de PO que rode com o elenco novo;
+o formulário **num Chrome** (aula nova só com o elenco, aula lançada com quem lá esteve e o nome); a
+compatibilidade sem `elenco`; e o acervo, com a anamnese de quem saiu a continuar **vinculada** — o que
+impede o registo de ser apagado. **Contraprova:** no `HEAD`, **reprova 10 de 26**.
+
+**Um achado, e o que NÃO se fez com ele.** O pacote da `batata-sala-rosa` está a misturar dois POs
+(`-po.md` de `po-…-0956`, `-dados.json` de `po-…-2211`), porque o «Guardar» escreveu o `-po.md`
+(`escreverPO`) e **não** escreveu as fontes do ciclo (`escrever-ciclo.js`) — o commit que faltava não
+existe no histórico. Re-derivar o `-dados.json` do PO corrente faz o `check-pacote` passar, mas a
+cópia cifrada é **derivada** e só quem tem a chave da escola a produz (o Worker, por `SENHA_CRIPTO`,
+ou a máquina com `tools/.senhas-locais`). Escrever o envelope com a estrutura nova e a cifra velha
+passaria a conferência — que compara a estrutura, não os bytes — e seria a mesma família de defeito
+que esta entrega corrige. O pacote ficou como estava; o gesto que o destrava é um «Guardar» do PO com
+este núcleo publicado, que reescreve fonte e cópia do **mesmo** texto.
+
+**E uma prova deixou de congelar a contagem.** `provar-estante-do-po` afirmava «a estante traz os DOIS
+planos»; em 08/11/2026 ela própria ajustou o plano outra vez e o elo que era o topo ganhou sucessor.
+A prova passou a afirmar a **regra** — a cadeia inteira aparece, cada elo substituído vem marcado, e o
+topo é um só, o único que ninguém declara ter ajustado. Uma prova que envelhece com o uso do sistema
+não estava a medir a regra.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|
