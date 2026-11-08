@@ -58,14 +58,17 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| 1ª posição — braços | 1 de 1 em «precisa desenvolver» (com toque) — ponto de atenção |
-| Flexibilidade anteroposterior (grand écart) | 1 de 1 em «Parcial (elevação do quadril)» — ponto de atenção |
-| Mobilidade de flexão/extensão do tornozelo | 1 de 1 em «Duro (restrição frontal)» — ponto de atenção |
-| Memória e retenção de sequências | 1 de 1 em «Precisa de apoio visual prolongado» — ponto de atenção |
-| 1ª posição — pés | 1 de 1 em «Bom» (por consciência própria) |
-| o passé | 1 de 1 em «Bom» (por consciência própria) |
-| Força de empurrar (push-ups) | 1 de 1 em «Completas com prancha» |
-| Estabilidade vestibular e deslocamento | 1 de 1 em «Caminha virando a cabeça sem desviar» |
+| 1ª posição — pés | 1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 1ª posição — braços | 1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque) — ponto de atenção |
+| Mobilidade de quadril (en dehors de origem) | 1 de 3 em «Origem clara no quadril» · 2 de 3 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção |
+| Flexibilidade anteroposterior (grand écart) | 1 de 3 em «Completo» · 2 de 3 em «Parcial (elevação do quadril)» — ponto de atenção |
+| Rotação e amplitude dos ombros | 2 de 3 em «Completa e fluida» · 1 de 3 em «Limitada por tensão» — ponto de atenção |
+| Mobilidade de flexão/extensão do tornozelo | 1 de 3 em «Excelente (instep / coup-de-pied)» · 1 de 3 em «Moderada» · 1 de 3 em «Duro (restrição frontal)» — ponto de atenção |
+| Memória e retenção de sequências | 1 de 3 em «Retém sequências de 3 a 4 passos» · 2 de 3 em «Precisa de apoio visual prolongado» — ponto de atenção |
+| Impulsão e absorção (allegro) | 2 de 3 em «Boa elasticidade e potência» · 1 de 3 em «Rigidez / aterrissagem dura» — ponto de atenção |
+| Força de empurrar (push-ups) | 1 de 3 em «Completas com prancha» · 1 de 3 em «Adaptadas (joelhos)» · 1 de 3 em «Incapacidade» — ponto de atenção |
+| Estabilidade vestibular e deslocamento | 2 de 3 em «Caminha virando a cabeça sem desviar» · 1 de 3 em «Perde o prumo» — ponto de atenção |
+| o passé | 3 de 3 em «Bom» (por consciência própria) |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -101,19 +104,23 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261108-1304?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261108-1303?formato=html)** — Teste
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261108-1319?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261108-1317?formato=html)** — Teste
 
 **Anamnese de cada aluna**
 
-A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 3 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
 ```{=html}
 <select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
 <option value="">— escolha a aluna —</option>
 <option value="Aluna A">Aluna A</option>
+<option value="Aluna B">Aluna B</option>
+<option value="Aluna C">Aluna C</option>
 </select>
 <div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=pe-torto&amp;ciclo=01&amp;novo=anamnese-20261108-1259&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261108-1259?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=pe-torto&amp;ciclo=01&amp;novo=anamnese-20261108-1314&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261108-1314?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna C"><a class="acao secundario pequena" href="/anamnese/?professor=pe-torto&amp;ciclo=01&amp;novo=anamnese-20261108-1315&amp;aluna=Aluna%20C">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261108-1315?formato=html">imprimir</a></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");

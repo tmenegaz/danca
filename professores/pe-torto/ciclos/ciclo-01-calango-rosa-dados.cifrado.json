@@ -2,11 +2,13 @@
   "_cifrado": {
     "algoritmo": "PBKDF2-SHA256+AES-GCM",
     "iteracoes": 100000,
-    "endereco": "A98G1z+to4YGGS4T23H/O2x7QaaQDg4hwFKpbbfjCwbopBByiPUolOdB3PGZG7tOnVU6c/ueZ9lXmzpQR1o4B0W4rtc3aw9HmRh5oa5STOyNvnIuvooFyGaU4X2GRi56BiVMZeXPTQ3PE0ZmFf0jxiSpoaWOCtYLGQn8NCmk5E+V6i2NCYA9KTpPdiipePQSCVZkfCd752a4cgZfoa1zjezyTbJr2dwlk3DF4iu+V4DIcbSzzXqEr98C3ZgmXgX7l6TytoJauhZK0jwyFKpafHbkEVzgSjUAt5b3ubH3JR0mhS5XrH96ZgT9IlKPYVyV3xOcNbW22oIVvOPGmDbdDYVGMYO8ZxJZjzd+ywoi7v8dXEfdw8ufFfJbWce4o/8iqTsrKdjy/Pro9Z0ILBbxxrHsueH/I+fVYrv4ASze0Nt2tfcTC8fuGfqRjd8GQJMLfYERPJbd+Oc9fPnVHTMrNV2sY9JxpFk89PO24/lXM7IdmnRNMFiWYs77uttQIALNC4Vd4JNrN1VKBGMBrY5BlXOj0gYME0hjDgmPeygRSckLU5tD01oPLdKq9OCekyn6GelNda4hYmshNQ/1J7TW4SRdsXx+UX8UkxkpMwR89H5PUMvExLlkf1nf"
+    "endereco": "9EP/RPd/3QBw6andm91/sSYNF28snAS/LsFjIZCurPU+IBuP27cyhU7RIoG3aH0RSDQu2JJtpks8qs1SgtOkIUXMpgh3ua2YfzFG9c4VTOOsXkJ8aeh9VfFAxPYmaaM7WbPaFSerbmhMQCYfS0eJlXmxAX3Q8xiMSjTk10T3OJZ5k3jHnz0nklrHWQEqmHQKj+lvhwq25pZ4nQhn2KtvgyT+WJ9ayE+FrWYUEaajZPgTHovF35wxb7XnrPZ39DUbfxXGDNCP3rlsyFo4XNBcIYhmkI9zdM7tYIAdbky6cyvhaqYT0nEQlej1XksHzanwJzYLBKd52rXQRwqAMs1iXBMhkgr0aKabQUXMeh8bip8djbNW1nKivPk58+z69F1Oj6tu2XkKPveRsl+AsfBK0A5nl5gUfW+3A6G0ZzDQic/eQ2DJstOvxjlgey2L3GkElVs9yKYYmsJ8MOJn3IaI3tlNhVolnU0AohQrL2+Eu62gp+qURDPB2rd0Wk8JlaGRT1gLt60szV3RMmgAxsWRIE9AIELj/utjPWp77Th3jsS1vUh2iNW30ITK7Qgg9XjmJumNc0A3Q6zy4Rb/OnxtCasgU+1fq9sOGy7WsEFPZrv8+uK+ZVUpPSH94pK26BCR0ETu1vOwI6O57SlMCObRyzkIUhUlYocbZet05sHTK0oQ7FSavTtGskGSuf9wOB21sOClczuapuk+U3K3p0shyTbItBOjcsXsXdb2+w=="
   },
   "lancamentos": 0,
   "apelidos": {
-    "aluna_a": "Aluna A"
+    "aluna_a": "Aluna A",
+    "aluna_b": "Aluna B",
+    "aluna_c": "Aluna C"
   },
   "_nota": "O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): o pacote e publico e ele traz o lancamento por aluna. Quem decifra e o formulario de lancamento, no navegador, com tools/lib-cifra.js. O campo \"lancamentos\" NAO e secreto: diz se ha o que mostrar, para o formulario nao pedir a senha a toa. O campo \"apelidos\" tambem sai em claro: sem ele um ciclo sem lancamento nenhum apareceria sem as alunas. Nao editar a mao."
 }

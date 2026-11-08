@@ -13,7 +13,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 > ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA
 > (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
-**Data:** `___/___/____` · **Presentes:** ☐ Aluna A · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
+**Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B ☐ Aluna C · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
 ## Condições de contorno
 
@@ -26,70 +26,80 @@ subtitle: "Folha de marcação para uso durante a aula"
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
+| Aluna C |   |
 
 ## Bloco 2 — Barra
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
+| Aluna C |   |
 
 ## Bloco 3 — Centro
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
+| Aluna C |   |
 
 ## Bloco 4 — Musicalidade
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
+| Aluna C |   |
 
 ## Bloco 5 — Expressão
 
 | Aluna(o) | Teste |
 |:--|:--:|
 | Aluna A |   |
+| Aluna B |   |
+| Aluna C |   |
 
 ## Bloco 6 — Técnica — Solo
 
-| Critério | Aluna A |
-|:--|:--:|
-| Teste |   |
-| alinhamento do pé de apoio |   |
-| eixo do corpo na preparação |   |
+| Aluna(o) | Teste | alinhamento do pé de apoio | eixo do corpo na preparação |
+|:--|:--:|:--:|:--:|
+| Aluna A |   |   |   |
+| Aluna B |   |   |   |
+| Aluna C |   |   |   |
 
 ## Bloco 7 — Técnica — Barra
 
-| Critério | Aluna A |
-|:--|:--:|
-| Teste |   |
-| saída do calcanhar no tendu |   |
-| quadril sem subir no en dehors |   |
+| Aluna(o) | Teste | saída do calcanhar no tendu | quadril sem subir no en dehors |
+|:--|:--:|:--:|:--:|
+| Aluna A |   |   |   |
+| Aluna B |   |   |   |
+| Aluna C |   |   |   |
 
 ## Bloco 8 — Técnica — Centro
 
-| Critério | Aluna A |
-|:--|:--:|
-| Teste |   |
-| transferência de peso sem perder a verticalidade |   |
-| braço junto do movimento |   |
+| Aluna(o) | Teste | transferência de peso sem perder a verticalidade | braço junto do movimento |
+|:--|:--:|:--:|:--:|
+| Aluna A |   |   |   |
+| Aluna B |   |   |   |
+| Aluna C |   |   |   |
 
 ## Bloco 9 — Técnica — Musicalidade
 
-| Critério | Aluna A |
-|:--|:--:|
-| Teste |   |
-| resposta ao pulso na marcação |   |
-| frase até o fim da música |   |
+| Aluna(o) | Teste | resposta ao pulso na marcação | frase até o fim da música |
+|:--|:--:|:--:|:--:|
+| Aluna A |   |   |   |
+| Aluna B |   |   |   |
+| Aluna C |   |   |   |
 
 ## Bloco 10 — Técnica — Expressão
 
-| Critério | Aluna A |
-|:--|:--:|
-| Teste |   |
-| olhar acompanha o braço |   |
-| presença sem rigidez de rosto |   |
+| Aluna(o) | Teste | olhar acompanha o braço | presença sem rigidez de rosto |
+|:--|:--:|:--:|:--:|
+| Aluna A |   |   |   |
+| Aluna B |   |   |   |
+| Aluna C |   |   |   |
 
 ## Linha de base revisitada
 
@@ -98,6 +108,18 @@ subtitle: "Folha de marcação para uso durante a aula"
 > mostrou.
 
 ### Aluna A
+
+| O que a aula mostrou | Observado na aula |
+|:--|:--:|
+| | |
+
+### Aluna B
+
+| O que a aula mostrou | Observado na aula |
+|:--|:--:|
+| | |
+
+### Aluna C
 
 | O que a aula mostrou | Observado na aula |
 |:--|:--:|
