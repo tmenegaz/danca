@@ -40370,3 +40370,86 @@ passou a medir a regra errada. Ficou a medir a regra certa.
 > continua a trazer o mapa antigo com os três ids: ela descreve o CASO que a regra resolve, não o
 > estado de hoje. Uma fixture «actualizada» para o mapa antigo vazio aprovaria qualquer
 > implementação — inclusive a que soma tudo —, porque sem resíduo não há o que distinguir.
+
+## 07/11/2026 — A escola nova nasce num namespace que já tem história — e agora isso vê-se
+
+**O que motivou.** Depois de a lista do plano de ensino aparecer com quatro exercícios onde dois
+tinham sido declarados, ela fez a pergunta certa: «você tem certeza que o expurgo está limpando o
+KV? porque eu me pergunto como é que esses dois exercícios foram parar na memória do KV da escola
+batata, se a gente expurgou a batata por completo».
+
+**A investigação respondeu outra coisa — e a premissa tinha um furo.** A `batata` **não** foi
+expurgada hoje: o último expurgo dela é de **02/11, 16:53 UTC**; hoje expurgaram-se a `calango`
+(12:18) e a `breu` (22:20). A `batata` foi **criada de novo** hoje às **22:25 UTC** (`a2a0e571`), e
+o Worker dela nasceu às 22:24:47 — **125,5 horas** depois do expurgo. O resíduo era da encarnação
+de hoje, escrita com a escola a funcionar; não sobreviveu a expurgo nenhum.
+
+**E o expurgo limpa mesmo, com uma excepção datada.** A verificação é **por leitura**
+(`lerValorSeguro`), não por listagem — o código já aprendeu que uma listagem omite chaves que
+existem. Os oito elos da `batata`:
+
+| expurgo (UTC) | desfecho do KV |
+|:--|:--|
+| 19/10 18:02 | **elo sem `kv`** — não limpou |
+| 20/10 10:06 | `apagadas: 7`, `restantes: 0` |
+| 21/10 17:07 | `apagadas: 12`, `restantes: 0` |
+| 22/10 19:32 | `apagadas: 9`, `restantes: 0` |
+| 27/10 00:04 | `apagadas: 10`, `restantes: 0` |
+| 01/11 15:55 | `apagadas: 10`, `restantes: 0` |
+| 01/11 20:13 | `apagadas: 6`, `restantes: 0` |
+| 02/11 16:53 | `apagadas: 8`, `restantes: 0` |
+
+A desconfiança dela tinha, portanto, precedente: **o expurgo de 19/10 não limpou** — a cota do
+`kv.list` esgotada a meio, o caso que o próprio `raiz.js` documenta. Sete de oito limparam; o
+oitavo ficou com dado no KV e a escola seguinte herdá-lo-ia em silêncio.
+
+**O que não se conseguiu provar, e fica dito.** *Quem* escreveu aquele `turma-conteudos` hoje. O KV
+não guarda autor nem data. A assinatura do valor — os três termos do catálogo do nível 1, sem o
+`grand-battement`, **por ordem alfabética** — aponta para uma associação em lote, não para uma
+escolha de professor. Não se afirma o caminho.
+
+**O que foi decidido.** A lacuna que a pergunta expôs corrige-se: **a criação de uma escola passa a
+conferir o KV** — e a conferência **avisa, não apaga e não trava**.
+
+1. **Não apaga.** Criar uma escola pode ser **recriar por cima de uma escola viva** (é o caso
+   normal desta casa), e apagar o KV no acto de criar destruiria o cadastro de quem está a
+   trabalhar. Quem decide o que fazer com o resíduo é a pessoa, com as chaves à frente.
+2. **Não trava.** Um aviso que aborta a criação aprende-se a contornar, e aí a conferência deixa de
+   existir. Sai sempre `0`; o que muda é o que diz — e no GitHub a linha `::warning::` põe o recado
+   à vista no resumo do run.
+3. **«Não conferi» nunca sai como «está limpo».** É o ramo mais perigoso dos três, e é a mesma
+   confusão que o expurgo aprendeu a não repetir («não havia» ≠ «não consegui»): sem token, ou com
+   a listagem recusada pela cota, a ferramenta diz que **não conferiu** — nunca que o namespace
+   nasce limpo.
+4. **Os prefixos são os do expurgo, importados do mesmo sítio** (`prefixosDaEscola`). Uma segunda
+   lista divergiria da primeira e a conferência diria «limpo» sobre chaves que o expurgo apagaria.
+5. **O valor das chaves não se imprime** — só o nome. Uma chave dos Bastidores pode ter apelido de
+   aluna, e o log de um workflow lê-se com o repositório à frente.
+
+**Onde entrou.** `escola/conferir-kv.js` (novo — ao lado do `escola/expurgar.js`, que é o gesto
+irmão: este confere, aquele limpa) · `.github/workflows/criar-escola.yml` (o passo «Conferir o KV da
+escola», antes do deploy e com `continue-on-error`) · `experimentos/provar-kv-da-escola-criada.js`
+(nova, 22 asserções) · `ESTADO-ATUAL.md` (§11).
+
+**Validação.** `provar-kv-da-escola-criada` **22/22**, com o `fetch` global substituído por um de
+mentira e um token inventado — nada aqui lê ou escreve o namespace de verdade. Mede a morada (o
+`wrangler.<escola>.jsonc` é jsonc, e o leitor não confunde o `//` de um URL com um comentário), a
+conferência (os dois prefixos, uma listagem por prefixo, o mesmo custo de cota do expurgo), e o que
+não pode acontecer. **Dois A/B, e cada um desliga um ramo só:** com a falta de token a devolver
+`conferido: true`, falham as duas asserções desse caso e o recado passa a «nasce num namespace sem
+chaves suas — conferido por listagem»; com a listagem recusada a ser tratada como vazia, o mesmo —
+que é, ao pé da letra, o cenário de 19/10 transformado em «está limpo».
+
+**Sem regressão.** `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · o bundle do Worker não muda (ninguém importa o verificador —
+é um CLI local, corrido pelo workflow e à mão), e `wrangler deploy --dry-run` continua a compilar.
+
+**O que fica declarado, e não escondido.**
+
+- **A ferramenta correu localmente em «não conferi»**, porque o token do Cloudflare não está no
+  ambiente desta sessão. A validação ao vivo é a do próximo `criar-escola`, no CI, onde o token
+  existe (é o mesmo do `wrangler deploy`). O modo «não conferi» é explícito — e é isso que impede a
+  ausência de token de se ler como namespace limpo.
+- **A chave que sobrou de 19/10 não foi procurada.** Aquele expurgo declarou-se incompleto e a
+  escola foi recriada depois; se ainda houver resíduo dele em alguma escola, é a conferência da
+  próxima criação que o dirá — e nenhuma escola foi criada desde esta alteração.

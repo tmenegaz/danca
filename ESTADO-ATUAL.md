@@ -4064,6 +4064,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **07/11/2026** — **A escola nova nasce num namespace que já tem história — e agora isso vê-se.**
+  Ela perguntou: «você tem certeza que o expurgo está limpando o KV?». **CONFIRMADO que limpa** — a
+  verificação é **por leitura**, e sete dos oito elos da `batata` dizem `restantes: 0`. **Mas há uma
+  excepção datada:** o elo de **19/10/2026 18:02**, o único **sem metade do KV** (a cota do `kv.list`
+  esgotada a meio, o caso que o `raiz.js` documenta). **E a premissa tinha um furo:** a `batata` não
+  foi expurgada hoje — foi **criada de novo às 22:25 UTC** (`a2a0e571`, Worker às 22:24:47), 125,5
+  horas depois do último expurgo (02/11 16:53); o resíduo era da encarnação de hoje. **PENDENTE e
+  declarado:** *quem* escreveu aquela chave não se apura — o KV não guarda autor nem data. **DECIDIDO**
+  que a criação de escola passa a **conferir o KV**, e que a conferência **avisa, não apaga e não
+  trava**: criar pode ser recriar por cima de uma escola viva, e um aviso que aborta aprende-se a
+  contornar. E sobretudo: **«não conferi» nunca sai como «está limpo»** — sem token ou com a listagem
+  recusada, diz que não conferiu. `provar-kv-da-escola-criada` **22/22**, com dois A/B que desligam
+  um ramo cada (o do token e o da listagem recusada — este é o cenário de 19/10 transformado em «está
+  limpo»).
+
 - **07/11/2026** — **O plano de ensino oferecia quatro exercícios onde a escola declarou dois.** No
   §9 «Parâmetro de medição» da `batata`, a lista trazia `Battement tendu` e `Battement fondu` além
   dos dois declarados. **CONFIRMADO**, lendo o KV e não supondo: o mapa antigo

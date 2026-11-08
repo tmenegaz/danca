@@ -936,3 +936,12 @@ experimentos/modelo-formulario/*
 # camadas: o núcleo (com as contraprovas das escolas de Outubro e da declaração vazia), a rota, e
 # a PÁGINA — o `porta/index.html` num navegador, a resolver o nó que ela abriu.
 !experimentos/provar-escopo-do-plano.js
+
+# O KV DA ESCOLA NOVA (07/11/2026). O namespace é COMPARTILHADO, e o expurgo já falhou uma vez de
+# forma declarada (19/10/2026 — o único dos oito elos da `batata` sem metade do KV). Uma escola
+# criada depois disso herda o que ficou, em silêncio. A prova mede a conferência que passou a
+# correr na criação: lê os dois prefixos do expurgo (importados, não copiados), não apaga nada
+# (medido contando os métodos que saem), não trava a criação — e, sobretudo, **«não conferi»
+# nunca sai como «está limpo»**, com os dois A/B a mostrar o contrário: sem token, e com a
+# listagem recusada pela cota, o recado passaria a prometer um namespace limpo que ninguém olhou.
+!experimentos/provar-kv-da-escola-criada.js

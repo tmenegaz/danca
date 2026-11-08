@@ -116,6 +116,25 @@ jobs:
           set -euo pipefail
           node tools/montar-publicacao.js "${{ inputs.escola }}"
 
+      # O KV DA ESCOLA NOVA (07/11/2026). O namespace é COMPARTILHADO por todas as escolas, e o
+      # expurgo já falhou uma vez de forma declarada (19/10/2026 — o elo sem a metade do KV, com
+      # a cota do `kv.list` esgotada a meio). Uma escola criada depois disso herda o que ficou,
+      # em silêncio, e nasce com a aparência de estar nova — foi a pergunta dela: «como é que
+      # estes dois exercícios foram parar à memória do KV da escola?».
+      #
+      # ESTE PASSO LÊ E DIZ. Não apaga nada: criar uma escola pode ser RECRIAR por cima de uma
+      # escola viva (é o caso normal desta casa), e apagar o KV no acto de criar destruiria o
+      # cadastro de quem está a trabalhar. E não falha o build — um aviso que trava a criação
+      # aprende-se a contornar, e aí a conferência deixa de existir.
+      - name: Conferir o KV da escola
+        shell: bash
+        continue-on-error: true
+        run: |
+          node escola/conferir-kv.js --escola "${{ inputs.escola }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
       - name: Subir o motor completo no Cloudflare
         id: motor
         shell: bash

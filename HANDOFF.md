@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T21:10:58-0300`
-Commit atual: `97381099` — fix(estrutura): a declaração da turma vence o mapa antigo — o plano oferecia quatro exercícios onde a escola declarou dois
+Gerado em: `2026-11-07T21:49:07-0300`
+Commit atual: `c8027317` — chore(estrutura): apagar o resíduo do mapa antigo da batata — o valor fica transcrito
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,7 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+c8027317 chore(estrutura): apagar o resíduo do mapa antigo da batata — o valor fica transcrito
 97381099 fix(estrutura): a declaração da turma vence o mapa antigo — o plano oferecia quatro exercícios onde a escola declarou dois
 676d611b feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
 b63eff41 fix(estrutura): o «Seguir» do verbete andava para o painel da linha de base
@@ -90,7 +91,6 @@ a2a0e571 feat(estrutura): criar a escola batata (motor completo)
 59ee26fa fix(tools): a âncora de uma aula não tem manifesto próprio — o expurgo da breu
 1fa3e33a chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 a9a8a50b chore(estrutura): regerar os índices derivados
-a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -162,110 +162,88 @@ a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — O plano de ensino oferecia quatro exercícios onde a escola declarou dois
+## 07/11/2026 — A escola nova nasce num namespace que já tem história — e agora isso vê-se
 
-**O que motivou.** Na `batata`, no §9 do Plano de Ensino («Parâmetro de medição»), a lista de
-exercícios trazia quatro: `Plié`, `Battement jeté` — os dois que ela declarou — e **`Battement
-tendu`** e **`Battement fondu`**, que ela não declarou em lugar nenhum. Na tela, lidos à pressa,
-foram estes os nomes que ela transcreveu: «batmatondi» e «batma fondi». «O professor olha no estilo
-que tem exercício A e B, vai para o plano de ensino e encontra A, B, C e D. Não pode ser assim.»
+**O que motivou.** Depois de a lista do plano de ensino aparecer com quatro exercícios onde dois
+tinham sido declarados, ela fez a pergunta certa: «você tem certeza que o expurgo está limpando o
+KV? porque eu me pergunto como é que esses dois exercícios foram parar na memória do KV da escola
+batata, se a gente expurgou a batata por completo».
 
-**O que os dados diziam, lidos do KV da escola — não supostos:**
+**A investigação respondeu outra coisa — e a premissa tinha um furo.** A `batata` **não** foi
+expurgada hoje: o último expurgo dela é de **02/11, 16:53 UTC**; hoje expurgaram-se a `calango`
+(12:18) e a `breu` (22:20). A `batata` foi **criada de novo** hoje às **22:25 UTC** (`a2a0e571`), e
+o Worker dela nasceu às 22:24:47 — **125,5 horas** depois do expurgo. O resíduo era da encarnação
+de hoje, escrita com a escola a funcionar; não sobreviveu a expurgo nenhum.
 
-```
-bastidores/batata/turma-conteudos  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
-bastidores/batata/curadorias       [{ turmas:["sala rosa"], repertorio:["Battement jeté","Plié"] }]
-```
+**E o expurgo limpa mesmo, com uma excepção datada.** A verificação é **por leitura**
+(`lerValorSeguro`), não por listagem — o código já aprendeu que uma listagem omite chaves que
+existem. Os oito elos da `batata`:
 
-A composição somava as duas camadas — decisão de 03/11/2026, e com uma razão boa: nenhuma escola
-devia perder, por uma decisão de Novembro, o que tinha associado em Outubro. O resultado, aqui, era
-uma lista **maior do que a declaração**: os três ids do **mapa antigo** (`turma-conteudos`, o
-registo do regime em que o conteúdo se gravava no passo 3 da turma) eram resíduo de uma rodada de
-testes anterior, e nunca tinham sido declarados por ninguém. Não vinham de outra escola, nem de um
-índice mal aplicado — vinham da própria escola, de um regime que já não escreve.
+| expurgo (UTC) | desfecho do KV |
+|:--|:--|
+| 19/10 18:02 | **elo sem `kv`** — não limpou |
+| 20/10 10:06 | `apagadas: 7`, `restantes: 0` |
+| 21/10 17:07 | `apagadas: 12`, `restantes: 0` |
+| 22/10 19:32 | `apagadas: 9`, `restantes: 0` |
+| 27/10 00:04 | `apagadas: 10`, `restantes: 0` |
+| 01/11 15:55 | `apagadas: 10`, `restantes: 0` |
+| 01/11 20:13 | `apagadas: 6`, `restantes: 0` |
+| 02/11 16:53 | `apagadas: 8`, `restantes: 0` |
 
-**O que foi decidido.** A partir do momento em que existe uma curadoria **vigente** para a turma,
-é ela que diz o que a turma aprende — mesmo que declare pouco, e mesmo que declare **nada**. O mapa
-antigo é memória, e a memória não fala por cima de quem declarou.
+A desconfiança dela tinha, portanto, precedente: **o expurgo de 19/10 não limpou** — a cota do
+`kv.list` esgotada a meio, o caso que o próprio `raiz.js` documenta. Sete de oito limparam; o
+oitavo ficou com dado no KV e a escola seguinte herdá-lo-ia em silêncio.
 
-- **Nada se reescreve.** O `turma-conteudos` fica no KV exactamente como está: o que muda é quem
-  manda na leitura. E `conteudosDaTurma` continua a devolver `doLegado` — a memória não se finge
-  que não existiu; ela só não manda.
-- **As escolas de Outubro continuam a funcionar sem migração.** Uma turma sem curadoria nenhuma
-  segue a ler o mapa antigo. É o caso que impede «a memória não manda» de virar «a memória
-  desapareceu».
-- **A declaração vazia também manda.** Sem isso, esvaziar o «Conteúdo do Estilo» faria os termos
-  antigos voltarem sozinhos — o mesmo defeito ao contrário, e igualmente invisível.
-- **A regra de 03/11 sobre as substituídas fica de pé**: uma curadoria substituída continua a não
-  somar. A regra nova é a mesma ideia, aplicada um nível acima: uma redução *declarada* é uma
-  decisão; uma soma silenciosa não é de ninguém.
+**O que não se conseguiu provar, e fica dito.** *Quem* escreveu aquele `turma-conteudos` hoje. O KV
+não guarda autor nem data. A assinatura do valor — os três termos do catálogo do nível 1, sem o
+`grand-battement`, **por ordem alfabética** — aponta para uma associação em lote, não para uma
+escolha de professor. Não se afirma o caminho.
 
-**Onde entrou.** `motor/nucleo/conteudos.js` (`conteudosDaTurma` devolve `declarada`, e `ids` deixa
-de ser a união; `mapaDeConteudos` não copia o antigo da turma que declarou — e apaga a chave quando
-a declaração é vazia) · `experimentos/provar-escopo-do-plano.js` (nova, 25 asserções) ·
-`experimentos/provar-conteudos-e-estado-da-turma.js` (as asserções que mediam a união, corrigidas
-para a regra nova, com as duas contraprovas no lugar) · `ESTADO-ATUAL.md` (§11).
+**O que foi decidido.** A lacuna que a pergunta expôs corrige-se: **a criação de uma escola passa a
+conferir o KV** — e a conferência **avisa, não apaga e não trava**.
 
-**Validação.** `provar-escopo-do-plano` **25/25**, em três camadas — o núcleo, a rota
-(`/api/bastidores/turma-conteudos` sobre um KV com os valores reais da `batata`) e a **página**: o
-`porta/index.html` servido a um Chrome, com os payloads do servidor, a resolver o nó
-`aula-1-parametro` pelo próprio código e a desenhar a tabela. É a única camada que mede o que ela
-viu. E as contraprovas estão todas lá: sem curadoria o antigo volta (na página também, com três
-linhas), a declaração vazia não ressuscita o antigo, e a substituída continua a não somar.
+1. **Não apaga.** Criar uma escola pode ser **recriar por cima de uma escola viva** (é o caso
+   normal desta casa), e apagar o KV no acto de criar destruiria o cadastro de quem está a
+   trabalhar. Quem decide o que fazer com o resíduo é a pessoa, com as chaves à frente.
+2. **Não trava.** Um aviso que aborta a criação aprende-se a contornar, e aí a conferência deixa de
+   existir. Sai sempre `0`; o que muda é o que diz — e no GitHub a linha `::warning::` põe o recado
+   à vista no resumo do run.
+3. **«Não conferi» nunca sai como «está limpo».** É o ramo mais perigoso dos três, e é a mesma
+   confusão que o expurgo aprendeu a não repetir («não havia» ≠ «não consegui»): sem token, ou com
+   a listagem recusada pela cota, a ferramenta diz que **não conferiu** — nunca que o namespace
+   nasce limpo.
+4. **Os prefixos são os do expurgo, importados do mesmo sítio** (`prefixosDaEscola`). Uma segunda
+   lista divergiria da primeira e a conferência diria «limpo» sobre chaves que o expurgo apagaria.
+5. **O valor das chaves não se imprime** — só o nome. Uma chave dos Bastidores pode ter apelido de
+   aluna, e o log de um workflow lê-se com o repositório à frente.
 
-**O A/B.** Reposto o ficheiro antigo, a prova falha **12 de 25**, e a asserção da tabela desenhada
-devolve exactamente o que ela viu: `["Battement fondu","Battement tendu","Plié","Battement jeté"]` —
-quatro linhas, os dois resíduos à frente.
+**Onde entrou.** `escola/conferir-kv.js` (novo — ao lado do `escola/expurgar.js`, que é o gesto
+irmão: este confere, aquele limpa) · `.github/workflows/criar-escola.yml` (o passo «Conferir o KV da
+escola», antes do deploy e com `continue-on-error`) · `experimentos/provar-kv-da-escola-criada.js`
+(nova, 22 asserções) · `ESTADO-ATUAL.md` (§11).
 
-**Sem regressão.** `provar-producao` **166/166** · `provar-salas-e-elencos` **65/65** ·
-`provar-passo-um-do-verbete` **30/30** · `provar-conteudos-e-estado-da-turma` **TUDO CERTO** ·
-`provar-plano-matriz` **52/52** · `provar-linha-de-base` **102/102** · `provar-compasso-limpo`,
-`provar-derivados-da-sequencia`, `provar-metodologia-no-cabecalho`,
-`provar-expurgo-sem-listagem` e `provar-expurgo-leitura-atrasada` **verdes** ·
-`provar-listas-sem-repeticao`, `provar-musica-no-plano`, `provar-leituras-do-po`,
-`provar-bancadas-e-expurgo` e `provar-verbete` falham **identicamente no baseline** (comparadas
-`✗` a `✗`, com o ficheiro em `stash`) · `check-identidade` **0 erros** · `check-schemas` **verde** ·
-`gerar-indices --check` **5 em dia** · `check-indices` **16/0** ·
-`wrangler deploy --dry-run` **compila nos dois Workers**.
+**Validação.** `provar-kv-da-escola-criada` **22/22**, com o `fetch` global substituído por um de
+mentira e um token inventado — nada aqui lê ou escreve o namespace de verdade. Mede a morada (o
+`wrangler.<escola>.jsonc` é jsonc, e o leitor não confunde o `//` de um URL com um comentário), a
+conferência (os dois prefixos, uma listagem por prefixo, o mesmo custo de cota do expurgo), e o que
+não pode acontecer. **Dois A/B, e cada um desliga um ramo só:** com a falta de token a devolver
+`conferido: true`, falham as duas asserções desse caso e o recado passa a «nasce num namespace sem
+chaves suas — conferido por listagem»; com a listagem recusada a ser tratada como vazia, o mesmo —
+que é, ao pé da letra, o cenário de 19/10 transformado em «está limpo».
 
-**Uma prova corrigida no mesmo gesto, e porquê.** `provar-conteudos-e-estado-da-turma` contava os
-exercícios «que têm notação» sobre o alfabeto **inteiro**, sem o filtro de escola que a página usa
-(`registosDaEscola`). Passou a divergir às 20:15 de hoje, quando o «Battement jeté» ganhou trechos
-marcados com a escola `batata` (`676d611b`): o exercício passou a existir no alfabeto sem ser desta
-escola, e a prova — que já falhava **antes** desta alteração, medida com o ficheiro em `stash` —
-passou a medir a regra errada. Ficou a medir a regra certa.
+**Sem regressão.** `check-identidade` **0 erros** · `check-schemas` **verde** ·
+`gerar-indices --check` **5 em dia** · o bundle do Worker não muda (ninguém importa o verificador —
+é um CLI local, corrido pelo workflow e à mão), e `wrangler deploy --dry-run` continua a compilar.
 
 **O que fica declarado, e não escondido.**
 
-- **O resíduo da `batata` continuava no KV.** `turma-conteudos` ficava com os três ids antigos,
-  como memória: não mandavam em nada enquanto a curadoria existisse. Apagá-lo é uma escrita no KV —
-  e o expurgo da escola, que é dela, leva-o de qualquer maneira.
-
-- **A segunda camada de escopo não foi tocada.** O «Conteúdo do Estilo» oferece só exercícios com
-  notação (`exerciciosComNotacao`); o plano mostra o que a turma **declarou**, e um termo
-  declarado que perca a notação continua a aparecer — é o que está gravado, e P-03/P-04 mandam
-  lê-lo. O que a correção garante é que o plano e o Estilo digam a mesma coisa sobre o presente.
-
-> **Nota de 07/11/2026, 21:10 (mesmo dia).** Ela pediu a limpeza («limpa agora»), e o resíduo foi
-> apagado. **O que se apagou, e o valor exacto que lá estava:**
->
-> ```
-> chave:  bastidores/batata/turma-conteudos
-> valor:  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
-> ```
->
-> **O que fica escrito aqui é o único sítio onde este valor sobrevive** — a chave não existe mais no
-> KV, e um registo que se apagasse sem se transcrever seria memória perdida, não limpeza. Depois da
-> operação: o namespace ficou com **5 chaves** (alunas, curadorias, linhas-de-base, rubricas,
-> turmas), a chave apagada responde **404**, e a rota ao ar
-> (`/api/bastidores/turma-conteudos`) devolveu **antes e depois** o mesmo —
-> `{"sala-rosa":["battement-jete","plie"]}` —, porque desde a correção de hoje é a **declaração**
-> que manda. A lista do plano não mudou: o que mudou é que já não há resíduo nenhum por trás dela.
->
-> **A fixture da prova NÃO foi actualizada, e é de propósito.** `experimentos/provar-escopo-do-plano.js`
-> continua a trazer o mapa antigo com os três ids: ela descreve o CASO que a regra resolve, não o
-> estado de hoje. Uma fixture «actualizada» para o mapa antigo vazio aprovaria qualquer
-> implementação — inclusive a que soma tudo —, porque sem resíduo não há o que distinguir.
+- **A ferramenta correu localmente em «não conferi»**, porque o token do Cloudflare não está no
+  ambiente desta sessão. A validação ao vivo é a do próximo `criar-escola`, no CI, onde o token
+  existe (é o mesmo do `wrangler deploy`). O modo «não conferi» é explícito — e é isso que impede a
+  ausência de token de se ler como namespace limpo.
+- **A chave que sobrou de 19/10 não foi procurada.** Aquele expurgo declarou-se incompleto e a
+  escola foi recriada depois; se ainda houver resíduo dele em alguma escola, é a conferência da
+  próxima criação que o dirá — e nenhuma escola foi criada desde esta alteração.
 
 ## O que está pendente
 
