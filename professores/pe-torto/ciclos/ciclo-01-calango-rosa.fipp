@@ -10,12 +10,12 @@ type: Ciclo
 professor: pe-torto
 ciclo: 01
 variante: calango-rosa
-hash_conteudo: 043e3edc1acfb8f098973fea7548102e9ca6c97ad0150d98438800edc993c6bb
+hash_conteudo: 757033ff30acd397b7070239f55d5eab4744b77deab7168e2f68b4d96b30a7a2
 parentHash: 
-hash: 02b5525ba61f2b0af3f9dc399f1698b2683f0f8d47bcd0166d7c13569ca2e3bf
+hash: e8d893f5868378704ae54ac08584747525272550275968d2870cb503bd51e2b8
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-08
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 42
 notacao_sha: f4f67f14c34ba66049b615c5b1e3da4221390d2b94cd14d754c79c1a031c2bbc
 cobertura:
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-dados.json
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-glossario-benesh.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf
   - professores/pe-torto/ciclos/ciclo-01.conf
