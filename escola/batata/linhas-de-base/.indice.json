@@ -19,6 +19,27 @@
         "estabilidade-vestibular-e-deslocamento"
       ],
       "alunas": 1
+    },
+    "tami--20261108-0105.json": {
+      "id": "tami",
+      "carimbo": "20261108-0105",
+      "arquivo": "escola/batata/linhas-de-base/tami--20261108-0105.json",
+      "nome": "tami",
+      "professor": "dedao-aberto",
+      "turma": null,
+      "atualizada_em": "2026-11-08T01:05:20.062Z",
+      "enviada_em": "2026-11-08T01:05:20.593Z",
+      "aspectos": [
+        "tendu",
+        "formato-anatomico-dos-joelhos",
+        "flexibilidade-dos-adutores",
+        "rotacao-e-amplitude-dos-ombros",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "forca-de-empurrar-push-ups",
+        "estabilidade-vestibular-e-deslocamento"
+      ],
+      "alunas": 2,
+      "anterior": "tami--20261107-2229.json"
     }
   }
 }
