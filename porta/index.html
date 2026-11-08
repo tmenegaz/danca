@@ -950,7 +950,11 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
   <div class="acoes">
     <button id="anterior" title="Anterior" aria-label="Anterior">←<span> Anterior</span></button>
     <button id="proxima" class="acao">Próxima →</button>
-    <button id="fechar" disabled hidden>Fechar a elicitação</button>
+    <!-- O TEXTO É PROVISÓRIO, e só se lê num instante: `pintarFechar` escreve o nome do ato
+         («Fechar o Plano de Observação», «Fechar o plano de ensino», «Fechar a anamnese») antes
+         de o botão aparecer. Aqui fica o genérico para quem chegue a ver a barra antes do
+         primeiro desenho — e o genérico não promete um ato que não é. -->
+    <button id="fechar" disabled hidden>Fechar</button>
     <button id="sair" title="Salvar para continuar depois" aria-label="Salvar para continuar depois">✕</button>
   </div>
 </section>
@@ -3195,10 +3199,33 @@ function atualizarBarra() {
   if (fechar) {
     fechar.hidden = faltam > 0;
     fechar.disabled = faltam > 0;
+    // O NOME DO ATO É O DO BOTÃO, e não só o do `title`: o `title` é uma explicação que aparece
+    // ao passar o rato e não existe no telefone. Quem lê a barra lê o texto.
+    fechar.textContent = rotuloDeFechar();
     fechar.title = faltam
       ? 'Faltam ' + faltam + (faltam === 1 ? ' obrigatório' : ' obrigatórios')
-      : 'Fechar a elicitação';
+      : rotuloDeFechar();
   }
+}
+
+/* O QUE SE FECHA — E O NOME DO ATO QUE SE ESTÁ A FAZER (07/11/2026).
+ *
+ * O botão dizia «Fechar a elicitação» nas TRÊS superfícies desta página — a anamnese, o plano de
+ * ensino e o plano de observação. «Elicitação» é o nome técnico do acto de elicitar, e não é o
+ * nome de nada que o professor esteja a fechar: quem acabou de preencher um Plano de Observação
+ * lê «fechar a elicitação» e tem de traduzir. O pedido dela, na letra: «o botão é o fechar o
+ * plano de observação».
+ *
+ * O VOCABULÁRIO JÁ EXISTIA, e é ele que manda: `CAMINHO_NA_BARRA` declara, por fonte, o `ato` —
+ * «a anamnese», «o plano de ensino», «o Plano de Observação». A barra já o usa em «Ajustar …» e
+ * «Editar …»; o botão passa a usar o mesmo. Uma regra em vez de três rótulos escritos à mão: um
+ * quarto ato, no dia em que houver, herda o rótulo sem ninguém se lembrar deste botão.
+ *
+ * SEM `FONTE` CONHECIDA fica só «Fechar» — e não «Fechar a elicitação»: um nome genérico é melhor
+ * do que um nome errado, e esta página é servida sob mais de um caminho. */
+function rotuloDeFechar() {
+  const c = CAMINHO_NA_BARRA[FONTE];
+  return c && c.ato ? 'Fechar ' + c.ato : 'Fechar';
 }
 
 // ------------------------------------------------------------------- mapa
@@ -4133,6 +4160,24 @@ function gradeDeOpcoesDinamicas(no) {
   const ep = enderecoDeOpcoes(no);
   let lista = OPCOES.get(ep) || [];
   const erro = OPCOES_ERRO.get(ep);
+
+  /* SÓ O PLANO VIGENTE SE OFERECE (07/11/2026). Ela ajustou o plano de ensino para incluir a
+   * aluna que entrou no elenco, e o PO passou a oferecer DOIS planos — o original e o ajuste, os
+   * dois com o mesmo rótulo («Teste»), indistinguíveis. A estante marca cada substituído
+   * (`anterior`); a lista de ESCOLHA esconde-os, e o histórico continua a ser lido por quem o lê
+   * (a turma e o ciclo deste documento, por exemplo).
+   *
+   * A EXCEPÇÃO É DECLARADA: o plano que ESTE documento já aponta fica. Sem ele o campo
+   * apareceria sem marcação, e a gravação seguinte perdia a referência em silêncio. Fica dito
+   * por extenso, para não se confundir com o vigente. */
+  if (no.opcoesDe === 'api/planos') {
+    const bruto = RESPOSTAS.get(no.id);
+    const escolhido = String((Array.isArray(bruto) ? bruto[0] : bruto) || '').trim();
+    lista = lista.filter((o) => !o.anterior || String(o.valor) === escolhido)
+      .map((o) => (o.anterior
+        ? Object.assign({}, o, { rotulo: (o.rotulo || o.valor) + ' (versão anterior)' })
+        : o));
+  }
 
   /* O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a atribuição
    * da direção: a lista FILTRA para o que é do professor — ele não escolhe entre as turmas da

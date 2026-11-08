@@ -1847,6 +1847,26 @@ async function vinculosDePlano(armazenamento, jaLido) {
  * O plano declara o professor no CONTEXTO (o slug) e na resposta `contexto-professor`
  * (o nome). O recorte compara o valor pedido com os dois — quem chama manda o slug —, e
  * um valor que não casa com nenhum deles não entra.
+ *
+ * A ESTANTE DIZ QUEM FOI SUBSTITUÍDO, E NÃO O ESCONDE (07/11/2026).
+ *
+ * O DEFEITO, medido na `batata`: ela ajustou o plano de ensino para incluir a aluna que entrou
+ * no elenco, e o PO passou a oferecer DOIS planos de ensino — o original e o ajuste, os dois com
+ * o mesmo rótulo («Teste»), indistinguíveis. A proveniência está certa (o ajuste é um elo, e os
+ * dois existem); o erro é a lista de ESCOLHA mostrar a história inteira. Quem escolhe qual plano
+ * observar não está a ler o passado — está a decidir o presente, e ali a versão anterior não é
+ * uma opção: é a mesma coisa, mais velha.
+ *
+ * POR QUE A MARCA E NÃO O CORTE. A estante serve duas coisas: a lista de onde se ESCOLHE, e a
+ * leitura do plano que o documento em mãos DECLARA (a turma e o ciclo do PO saem daqui). São
+ * perguntas diferentes, e cortar a lista no servidor respondia só à primeira — o PO antigo
+ * apontava para um plano que já não vinha, e a turma e o ciclo apareciam vazios. A marca resolve
+ * as duas com um dado só: `anterior` diz quem tem sucessor, e quem ESCOLHE (o `po.json`, a lista
+ * do acervo) esconde as anteriores MENOS a que o documento declara. O histórico fica inteiro
+ * para quem o lê, e a escolha fica curta para quem escolhe.
+ *
+ * `estadosDosPlanos` e a listagem do acervo já devolviam todos, com o `substituido_por`; nada
+ * disso mudou.
  */
 async function planos(armazenamento, recorte) {
   const professor = String((recorte && recorte.professor) || '').trim();
@@ -1876,8 +1896,16 @@ async function planos(armazenamento, recorte) {
       ajuste_de: resumo.ajuste_de || null,
     });
   }
-  opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
-  return opcoes;
+  /* A MARCA DA CADEIA. `ajuste_de` é a seta do elo: um plano que alguém ajustou tem um sucessor
+   * que o nomeia — esse é o `anterior`. Um elo intermédio (A → B → C) também tem sucessor e tem
+   * a mesma marca; quem escolhe esconde-o e mostra o topo. O rótulo fica intacto: é o objetivo do
+   * plano, e o que muda na tela é a lista, não o nome do conteúdo. */
+  const substituidos = new Set(opcoes.map((o) => String(o.ajuste_de || '')).filter(Boolean));
+  const anotadas = opcoes.map((o) => (substituidos.has(o.carimbo)
+    ? Object.assign({}, o, { anterior: true })
+    : o));
+  anotadas.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
+  return anotadas;
 }
 
 /**

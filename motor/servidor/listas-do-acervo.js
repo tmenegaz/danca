@@ -1076,10 +1076,21 @@ function scriptDoPainel(chave, escola) {
      * vivem mesmo na raiz. */
     return pedir(CFG.porta + 'api/planos?professor=' + encodeURIComponent(slug)).then(function (r) {
       PLANOS = (r.dados && (r.dados.opcoes || r.dados.planos)) || [];
-      encher(campo('plano'), PLANOS.map(function (p) {
+      /* SÓ O VIGENTE SE OFERECE (07/11/2026). O plano original e o seu ajuste apareciam os dois,
+       * com o mesmo nome — escolher entre eles era escolher entre a mesma coisa e a mais velha.
+       * A estante marca cada plano substituído ('anterior'); aqui esconde-se o substituído, com
+       * uma excepção declarada: o que ESTE documento já aponta tem de continuar na lista, senão
+       * o campo aparece sem marcação e a gravação seguinte perde a referência em silêncio. Ele
+       * fica, dito por extenso, para não se confundir com o vigente. */
+      var atual = String(valor('plano') || ATOS.plano || '').trim();
+      encher(campo('plano'), PLANOS.filter(function (p) {
+        return !p.anterior || String(p.carimbo || p.valor) === atual;
+      }).map(function (p) {
         var turma = p.turma ? ' · ' + p.turma : '';
-        return { valor: p.carimbo || p.valor, rotulo: (p.rotulo || p.carimbo) + turma };
-      }), null, valor('plano') || ATOS.plano);
+        var nome = p.rotulo || p.carimbo;
+        if (p.anterior && String(p.carimbo || p.valor) === atual) nome += ' (versão anterior)';
+        return { valor: p.carimbo || p.valor, rotulo: nome + turma };
+      }), null, atual);
       pintarDoPlano();
     });
   }

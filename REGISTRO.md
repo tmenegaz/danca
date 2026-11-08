@@ -40453,3 +40453,66 @@ que é, ao pé da letra, o cenário de 19/10 transformado em «está limpo».
 - **A chave que sobrou de 19/10 não foi procurada.** Aquele expurgo declarou-se incompleto e a
   escola foi recriada depois; se ainda houver resíduo dele em alguma escola, é a conferência da
   próxima criação que o dirá — e nenhuma escola foi criada desde esta alteração.
+
+## 08/11/2026 — O plano que já foi ajustado não se oferece duas vezes, e o botão diz que fecha o Plano de Observação
+
+**O que motivou.** Na `batata`, ela incluiu no elenco a aluna que entrou e ajustou o **plano de
+ensino** para a receber — o que criou um elo (`plano-20261107-2206`, com `ajuste_de:
+plano-20261107-2201`). Ao voltar ao **Plano de Observação**, a estante passou a oferecer **dois
+planos de ensino**, ambos com o mesmo rótulo («Teste») e a mesma turma: a escolha entre eles era a
+escolha entre a mesma coisa e a mais velha. Na mesma tarde, o botão que fecha o fluxo dizia «Fechar
+a elicitação» — o nome técnico do ato, e não o nome do documento que ela estava a fechar.
+
+**O diagnóstico.** A proveniência está certa: o ajuste **é** um elo, e os dois planos existem. O
+erro era a lista de ESCOLHA mostrar a história inteira. A estante (`api/planos`) serve, porém,
+**duas** perguntas: de onde se escolhe, e **o que o documento em mãos declara** — é dela que o
+cabeçalho do PO lê a turma e o ciclo. A primeira tentativa cortou a lista no servidor e abriu um
+`?incluir=` para o plano declarado. Mediu-se o efeito colateral: o endereço passou a depender da
+resposta, a cache de opções dividiu-se em duas chaves e a lista ficou presa em «carregando a
+lista…» quando o rascunho era retomado; `provar-ciclo-herdado-do-plano` caiu de **20/20** para
+**16/20** (o ciclo e a turma deixavam de acompanhar a troca de plano).
+
+**O que foi decidido.**
+
+1. **A estante MARCA, e não corta.** `porta.planos` passa a devolver também `anterior: true` em
+   cada plano que tem sucessor (`ajuste_de`). O histórico fica inteiro — quem lê a estante para
+   saber o que o documento declara continua a encontrar o plano, mesmo que ele já tenha sido
+   substituído. O campo é **aditivo**: nenhum consumidor anterior deixa de receber o que recebia.
+2. **Quem escolhe esconde o substituído — menos o que o documento aponta.** As duas listas de
+   escolha (a grade do `po.json` e o `<select>` da lista do acervo) filtram por `anterior`,
+   mantendo o plano que o registo em mãos já declara — dito «(versão anterior)», para não se
+   confundir com o vigente. Sem essa excepção, o campo apareceria sem marcação e a gravação
+   seguinte perderia a referência **em silêncio**.
+3. **O botão fecha o ato que se está a fazer.** `rotuloDeFechar()` lê o `ato` de
+   `CAMINHO_NA_BARRA` — o vocabulário que a barra já usa em «Ajustar …» e «Editar …» —, e o
+   `textContent` passa a ser escrito (não só o `title`, que não existe no telefone). As três
+   superfícies herdam o rótulo: «Fechar a anamnese», «Fechar o plano de ensino», «Fechar o Plano
+   de Observação». Sem `FONTE` conhecida fica «Fechar», e não o nome técnico.
+
+**Onde entrou.** `motor/nucleo/porta.js` (a marca `anterior` em `planos`) · `porta/index.html`
+(o filtro em `gradeDeOpcoesDinamicas`, `rotuloDeFechar` e o texto do `#fechar`) ·
+`motor/servidor/listas-do-acervo.js` (o filtro do `<select>` de plano, dentro do script do painel) ·
+`professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/index.html` e
+`…/ciclo-01-batata-sala-rosa/plano-observacao/index.html` (as duas cópias geradas da porta,
+atualizadas como o `gerar-ciclo` as escreve: `cp` + a injeção do `<nav>`).
+
+**Validação.** `provar-estante-do-po` **29/29** — inclui uma medição em `jsdom` sobre a porta de
+verdade: a lista oferece **um** plano; com o documento a apontar o original, aparecem **dois**, o
+original com «(versão anterior)», e `turmaDoPlanoReferenciado()` continua a responder (a razão de
+ser da marca). `provar-ciclo-herdado-do-plano` **20/20** · `provar-listas-do-acervo` **109** ·
+`provar-painel-do-ato` **183**, na publicação remontada · `provar-publicacao-da-escola` **63/63** ·
+`check-identidade` **0 erros** (21 ok) · `check-schemas` verde · `check-indices` **16/0** ·
+`gerar-indices --check` **5 em dia** · `wrangler deploy --dry-run` **compila** em
+`wrangler.batata.jsonc`. `provar-recorte-do-po` (tempo esgotado no passo 5) e
+`provar-listas-sem-repeticao` **1/16** falham **identicamente no baseline** — comparadas `FALHOU` a
+`FALHOU`, com o `HEAD` num worktree à parte. `check-pacote` do `ciclo-01-batata` **falha 10** no
+baseline e aqui também (é o pacote-esqueleto, sem `-dados.json`).
+
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do deploy desta entrada.** As provas são locais; a página e a porta
+  servem o código que o Worker empacota.
+- **Nenhuma fonte de ciclo mudou**, por isso não há reancoragem de `.fipp` — e as cópias da porta
+  foram atualizadas **sem regerar PDFs nem índices**, porque o conteúdo do ciclo não mudou.
+- **O «(versão anterior)» é rótulo de tela**, não dado: quem lê a API recebe o rótulo do conteúdo
+  (o objetivo) e a marca `anterior`, e decide o que mostrar.
