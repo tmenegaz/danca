@@ -1,5 +1,18 @@
 {
   "versao": 4,
-  "nomes": [],
-  "resumos": {}
+  "nomes": [
+    "anamnese-20261108-1259.json"
+  ],
+  "resumos": {
+    "anamnese-20261108-1259.json": {
+      "id": "anamnese-20261108-1259",
+      "fonte": "anamnese",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": null,
+      "ajuste_de": null,
+      "gerado_em": "2026-11-08T12:59",
+      "aluna": "Aluna A"
+    }
+  }
 }
