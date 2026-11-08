@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-0105",
-      "versoes": 2
+      "ultima": "20261108-1252",
+      "versoes": 3
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-0105",
-      "versoes": 2
+      "ultima": "20261108-1252",
+      "versoes": 3
     },
     {
       "aspecto": "formato-anatomico-dos-joelhos",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-0105",
-      "versoes": 2
+      "ultima": "20261108-1252",
+      "versoes": 3
     },
     {
       "aspecto": "rotacao-e-amplitude-dos-ombros",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-0105",
-      "versoes": 2
+      "ultima": "20261108-1252",
+      "versoes": 3
     },
     {
       "aspecto": "tendu",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261107-2229",
-      "ultima": "20261108-0105",
-      "versoes": 2
+      "ultima": "20261108-1252",
+      "versoes": 3
     },
     {
       "aspecto": "flexibilidade-dos-adutores",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-0105",
-      "ultima": "20261108-0105",
-      "versoes": 1
+      "ultima": "20261108-1252",
+      "versoes": 2
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-0105",
-      "ultima": "20261108-0105",
-      "versoes": 1
+      "ultima": "20261108-1252",
+      "versoes": 2
     }
   ],
   "aulas": [
@@ -550,9 +550,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ffb06e1"
+    "commit": "9db785d"
   },
-  "gerado_em": "2026-11-08T12:52",
+  "gerado_em": "2026-11-08T12:53",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -577,7 +577,7 @@
   ],
   "recortes": [
     {
-      "alunas": 2,
+      "alunas": 3,
       "aspectos": [
         "estabilidade-vestibular-e-deslocamento",
         "flexibilidade-dos-adutores",
@@ -587,14 +587,29 @@
         "rotacao-e-amplitude-dos-ombros",
         "tendu"
       ],
-      "atualizada_em": "2026-11-08T01:05:20.062Z",
-      "enviada_em": "2026-11-08T01:05:20.593Z",
+      "atualizada_em": "2026-11-08T12:52:58.375Z",
+      "enviada_em": "2026-11-08T12:52:58.892Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "tami",
       "professor": "dedao-aberto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/batata/linhas-de-base/tami--20261108-1252.json",
+          "aspectos": [
+            "tendu",
+            "formato-anatomico-dos-joelhos",
+            "flexibilidade-dos-adutores",
+            "rotacao-e-amplitude-dos-ombros",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-08T12:52:58.892Z",
+          "versao": "20261108-1252"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/batata/linhas-de-base/tami--20261108-0105.json",
