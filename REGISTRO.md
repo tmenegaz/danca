@@ -40848,6 +40848,21 @@ a que ela viu: `acervo: leitura de envelope/.indice.json: HTTP 500`.
 Sem regressão: `provar-trava-da-operacao` **19** · `provar-painel-do-ato` **183** ·
 `provar-listas-do-acervo` **109** · `check-identidade` **0 erros** · `check-schemas` verde.
 
+**No ar (08/11/2026, 12:55).** Commitada em `3565e0e3` e publicada nas duas pontes que a servem: a
+`calango` (version `a2406e75-a579-4c1b-be19-49bff106f9a8`) e a raiz `danca` (version
+`deac38b8-7104-4202-8a17-e6468a6dded7`), com a `publicacao/calango` remontada antes do deploy
+(`montar-publicacao.js calango` — sem turmas, que é o que o índice da escola diz). A conferência ao
+ar, uma carga por escola e sem escrever nada: `/anamnese/api/envelopes`,
+`/anamnese/api/anamnese-estados` e `/anamnese/api/planos` respondem **200** com `ok: true`; a lista
+vazia é o retrato verdadeiro, porque a anamnese nunca gravou enquanto o Worker não falava com a
+rede. A raiz responde `{"ok":true,"tipo":"raiz"}` em `/api/saude`.
+
+**A armadilha que fica registada.** O pedido que ela fez à mão trazia `"simular": true` com
+`"fonte": "anamnese"` — e `simular` só curto-circuita o `po` e o `plano` (`rotas.js`): na anamnese
+ele é ignorado, e o «Guardar» grava. Quem repetir aquele `POST` grava as notas de teste na ficha da
+Aluna A. A correcção da ponte não muda isto: a anamnese escreve por desenho, e o ensaio faz-se pela
+bancada (`provar-ponte-do-worker`), não contra o acervo real.
+
 **O que ainda não está feito, e sabe-se.** Três provas de hoje — `provar-vinculo-do-elenco`,
 `provar-remocao-do-elenco` e `provar-estante-do-po` — leem os envelopes **reais** da `batata`, que o
 expurgo de hoje apagou. Elas deixam de correr (não reprovam: não têm fixture). O arranjo é dar-lhes
