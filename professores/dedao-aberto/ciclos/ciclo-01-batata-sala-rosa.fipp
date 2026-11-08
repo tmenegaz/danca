@@ -10,12 +10,12 @@ type: Ciclo
 professor: dedao-aberto
 ciclo: 01
 variante: batata-sala-rosa
-hash_conteudo: 1156fbbbddd4093d588cadcbe7de2ce83886d99b8924848a5d728275c2838737
+hash_conteudo: a31a496f5937736daa84e83ae0a2439d4c3336274499f47d3ae40f7eee9871e9
 parentHash: 
-hash: 0e03f50a743f72253543105613c70c9370cd56e54d77a9ac1d91afc2a91ad3ff
+hash: 92071b5057c965c663dc4503927718faaa53fb7a1afc000766e5e6277b2b9712
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-08
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 39
 notacao_sha: b1a79b7dd06295e2550697b6e40df992c157cde19c8e316a597e94f062b2d97b
 cobertura:
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-aula-01.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-aula-01.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-dados.json
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-glossario-benesh.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-harmonizacao.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-notacao.md
   - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-po.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-referencias.md
   - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf
   - professores/dedao-aberto/ciclos/ciclo-01.conf

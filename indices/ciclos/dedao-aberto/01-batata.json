@@ -4,24 +4,45 @@
     "ancorado_em": "2026-11-08",
     "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.fipp",
     "cobertura": [
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-aula-01.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-aula-01.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-dados.json",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-glossario-benesh.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-harmonizacao.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-notacao.md",
       "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-po.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-referencias.md",
       "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
       "professores/dedao-aberto/ciclos/ciclo-01.conf"
     ],
-    "hash": "0e03f50a743f72253543105613c70c9370cd56e54d77a9ac1d91afc2a91ad3ff",
-    "hash_conteudo": "1156fbbbddd4093d588cadcbe7de2ce83886d99b8924848a5d728275c2838737",
+    "hash": "92071b5057c965c663dc4503927718faaa53fb7a1afc000766e5e6277b2b9712",
+    "hash_conteudo": "a31a496f5937736daa84e83ae0a2439d4c3336274499f47d3ae40f7eee9871e9",
     "id": "ciclo-01-batata-sala-rosa",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:dedao-aberto/01/batata/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-aula-01.fipp",
     "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.fipp",
     "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
+    "documento:aula:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-aula-01.md",
+    "documento:aula:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-aula-01.md",
+    "documento:dados:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-dados.cifrado.json",
+    "documento:dados:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-dados.json",
+    "documento:declaracao:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-declaracao.json",
+    "documento:glossario:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-glossario-benesh.md",
+    "documento:harmonizacao:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-harmonizacao.md",
     "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
     "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
+    "documento:notacao:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-notacao.md",
     "documento:plano:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md",
+    "documento:po:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-po.md",
+    "documento:referencias:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-referencias.md",
     "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -29,9 +50,34 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "declaracao",
+        "valor": "declaracao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
       },
       {
         "contagem": 2,
@@ -40,8 +86,23 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       },
       {
         "contagem": 1,
@@ -52,9 +113,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f8b783f"
+    "commit": "9f2a4ef"
   },
-  "gerado_em": "2026-11-08T01:01",
+  "gerado_em": "2026-11-08T01:02",
   "id": "ciclo:dedao-aberto/01/batata",
   "professor": "dedao-aberto",
   "versao": 6

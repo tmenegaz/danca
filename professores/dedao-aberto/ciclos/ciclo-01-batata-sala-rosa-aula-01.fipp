@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-batata-sala-rosa: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-batata-sala-rosa-aula-01
+type: Aula
+professor: dedao-aberto
+ciclo: 01
+variante: batata-sala-rosa
+aula: 01
+hash_conteudo: f17778bfb6f42befde72d4015e178177f1575e19d7d0b79baa7ba5b808959b19
+parentHash: 
+hash: 661007a57ed89ab19a069ba9b9b0e3e9581019720d2aff4be43e1e4e6209dbc8
+algoritmo: SHA-256
+ancorado_em: 2026-11-08
+cobertura:
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-aula-01.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-aula-01.md
