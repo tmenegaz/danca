@@ -152,8 +152,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "ebeb573096eef29b27dae6b3bacda9b2e7381c467dddeb364a49378446c6e83b",
-        "hash_conteudo": "776f0f3f53459b689c0f3e4cd070ad1e8a8a284ba192a48d39c020beeaf7de03",
+        "hash": "19d847f9ccefa65dc54a93f8d9793cc98f872eafbc342f8f3996f6c51f181dad",
+        "hash_conteudo": "2da7404a1395f81e9c37385a904d63582a57d1826d60685d2dd00d4a30a392d6",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
@@ -416,10 +416,10 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 2,
-      "pos": 3,
+      "planos": 3,
+      "pos": 4,
       "recortes": 1,
-      "registros": 8
+      "registros": 10
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -438,25 +438,29 @@
       "anamnese:anamnese-20261108-1315",
       "plano:plano-20261108-1303",
       "plano:plano-20261108-1317",
+      "plano:plano-20261108-1334",
       "po:po-20261108-1304",
       "po:po-20261108-1318",
-      "po:po-20261108-1319"
+      "po:po-20261108-1319",
+      "po:po-20261108-1334"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 8,
+        "contagem": 10,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
           "anamnese:anamnese-20261108-1315",
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
+          "plano:plano-20261108-1334",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
-          "po:po-20261108-1319"
+          "po:po-20261108-1319",
+          "po:po-20261108-1334"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -564,7 +568,7 @@
     ],
     "professores": [
       {
-        "contagem": 9,
+        "contagem": 11,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -572,9 +576,11 @@
           "ciclo:pe-torto/01/calango",
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
+          "plano:plano-20261108-1334",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
-          "po:po-20261108-1319"
+          "po:po-20261108-1319",
+          "po:po-20261108-1334"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -600,20 +606,22 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "plano:plano-20261108-1303",
-          "plano:plano-20261108-1317"
+          "plano:plano-20261108-1317",
+          "plano:plano-20261108-1334"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
-          "po:po-20261108-1319"
+          "po:po-20261108-1319",
+          "po:po-20261108-1334"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -622,9 +630,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2458fa5"
+    "commit": "75df981"
   },
-  "gerado_em": "2026-11-08T16:33",
+  "gerado_em": "2026-11-08T16:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -785,6 +793,18 @@
       "turma": "Rosa"
     },
     {
+      "ajuste_de": "plano-20261108-1317",
+      "ano": "2026",
+      "carimbo": "plano-20261108-1334",
+      "ciclo": "01",
+      "data": "2026-11-08T13:34",
+      "id": "plano:plano-20261108-1334",
+      "objetivo": "Teste",
+      "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261108-1304",
@@ -811,6 +831,16 @@
       "ciclo": "01",
       "data": "2026-11-08T13:19",
       "id": "po:po-20261108-1319",
+      "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261108-1319",
+      "ano": "2026",
+      "carimbo": "po-20261108-1334",
+      "ciclo": "01",
+      "data": "2026-11-08T13:34",
+      "id": "po:po-20261108-1334",
       "professor": "pe-torto",
       "tipo": "po"
     }
