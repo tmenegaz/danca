@@ -110,6 +110,38 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   // nada disso desfaz a gravação do envelope, e sem token (dev) cada passo
   // simplesmente não existe (`null`).
 
+  /* O ELENCO QUE MANDA NO VÍNCULO DA ANAMNESE (08/11/2026).
+   *
+   * Ver `porta.vinculos`: a aluna fica «vinculada» quando o elenco da turma que o PO observa a
+   * inclui — a linha de base manda, e o `sujeitos` do PO é a reserva do dia em que ele foi
+   * gravado. Sem esta leitura, a aluna que entra no elenco DEPOIS do PO continua «livre», com
+   * «editar» e «apagar» a funcionar sobre o registo de quem já está a ser observada.
+   *
+   * UMA LEITURA POR PEDIDO, e memoizada: três rotas desta casa perguntam a mesma coisa, e a
+   * linha de base custa uma leitura do índice do repositório mais o ficheiro vigente. A memória
+   * é do PEDIDO (o `criarRotas` é por pedido), não do processo — nada envelhece entre pedidos.
+   *
+   * DEGRADA, NÃO REBENTA: sem os leitores (a bancada, o adaptador Node sem repositório), o
+   * elenco sai vazio e `vinculos` cai na derivação de antes. Uma limitação de bancada não pode
+   * virar permissão de editar o que está vinculado — mas também não pode inventar vínculo. */
+  let elencoDoPedido = null;
+  const elencoDaEscola = () => {
+    if (elencoDoPedido) return elencoDoPedido;
+    const slug = escolaDoWorker || (identidade && identidade.escola) || '';
+    const ler = async (fn) => {
+      if (typeof fn !== 'function' || !slug) return [];
+      try {
+        const r = await fn(slug);
+        return Array.isArray(r) ? r : [];
+      } catch (erro) { return []; }
+    };
+    elencoDoPedido = (async () => ({
+      linhas: await ler(lerLinhasDeBase),
+      curadorias: await ler(lerCuradorias),
+    }))();
+    return elencoDoPedido;
+  };
+
   // 1. /assets/style.css — a identidade visual da produção (o FONTE).
   roteador.rota('GET', '/assets/style.css', () => {
     if (!identidade) return recusar('identidade visual não encontrada: tools/templates/ciclo.css', 500);
@@ -324,26 +356,21 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         const plano = await porta.lerEnvelope(armazenamento, planoId);
         turma = porta.turmaDoEnvelope(plano) || '';
       }
+      /* O ELENCO DESTE PEDIDO — uma leitura só, e é a mesma que serve o recorte e o vínculo
+       * (08/11/2026). `undefined` quando o adaptador não tem leitor de linhas de base: aí as
+       * funções do núcleo caem na curadoria, como antes. */
+      const elenco = await elencoDaEscola();
       let recorte = null;
       if (turma || professor) {
-        const curadorias = typeof lerCuradorias === 'function'
-          ? await lerCuradorias(escola)
-          : [];
-        /* O ELENCO VEM DA LINHA DE BASE (05/11/2026) — ver `alunasDaTurma`. A leitura é a MESMA
-         * da Produção (`lerLinhasDeBase`), e não uma segunda: o `get` da chave
-         * `bastidores/<escola>/linhas-de-base` é o único caminho para o facto «estas alunas foram
-         * para esta turma». Sem o leitor (o adaptador Node não o tem), `linhas` fica `undefined` e
-         * as funções caem na curadoria, como antes. */
-        const linhas = typeof lerLinhasDeBase === 'function'
-          ? await lerLinhasDeBase(escola)
-          : undefined;
+        const curadorias = elenco.curadorias;
+        const linhas = typeof lerLinhasDeBase === 'function' ? elenco.linhas : undefined;
         recorte = turma
           ? { alunas: porta.alunasDaTurma(curadorias, { professor, turma }, linhas) || [] }
           : { alunas: porta.alunasDoProfessor(curadorias, professor, linhas) || [] };
       }
       return {
         ok: true,
-        opcoes: await porta.anamneses(armazenamento, recorte),
+        opcoes: await porta.anamneses(armazenamento, recorte, elenco),
         fonte: 'acervo',
         ...(turma ? { turma } : {}),
         ...(recorte ? { recorte: recorte.alunas } : {}),
@@ -479,7 +506,9 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   // 7. /api/anamnese-estados — a lista de gestão (todas, inclusive sem sujeito).
   roteador.rota('GET', '/api/anamnese-estados', async () => {
     try {
-      return { ok: true, estados: await porta.estadosDasAnamneses(armazenamento) };
+      /* O ELENCO VAI JUNTO (08/11/2026) — é ele que faz a aluna que entrou no elenco depois do PO
+       * aparecer «ligada», e não «livre» com «editar» e «apagar» à mão. */
+      return { ok: true, estados: await porta.estadosDasAnamneses(armazenamento, await elencoDaEscola()) };
     } catch (erro) { return falhaDaLista(erro); }
   });
 
@@ -619,14 +648,17 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   roteador.rota('GET', '/api/anamnese-estado/:id', async ({ params }) => {
     const envelope = await porta.lerEnvelope(armazenamento, params.id);
     if (!envelope) return recusar('anamnese não encontrada: ' + params.id, 404);
-    return { ok: true, estado: await porta.estadoDaAnamnese(armazenamento, envelope) };
+    return { ok: true, estado: await porta.estadoDaAnamnese(armazenamento, envelope, await elencoDaEscola()) };
   });
 
   // 9. DELETE /api/anamnese-vinculo/:id — apagar, SÓ a solta.
   roteador.rota('DELETE', '/api/anamnese-vinculo/:id', async ({ params }) => {
     const envelope = await porta.lerEnvelope(armazenamento, params.id);
     if (!envelope) return recusar('anamnese não encontrada: ' + params.id, 404);
-    const estado = await porta.estadoDaAnamnese(armazenamento, envelope);
+    /* A GUARDA LÊ O ELENCO (08/11/2026). Sem ele, a aluna que entrou no elenco depois do PO
+     * passava esta porta: o `DELETE` respondia 200 e o registo de quem já está a ser observada
+     * desaparecia. É a violação que esta rota existe para impedir. */
+    const estado = await porta.estadoDaAnamnese(armazenamento, envelope, await elencoDaEscola());
     if (estado.vinculada) {
       return recusar(
         'a anamnese está VINCULADA (PO: ' + estado.por.join(', ') + ') e a proveniência não a apaga — ' +
@@ -721,7 +753,9 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   roteador.rota('PUT', '/api/anamnese-editar/:id', async ({ request, params }) => {
     const anterior = await porta.lerEnvelope(armazenamento, params.id);
     if (!anterior) return recusar('anamnese não encontrada: ' + params.id, 404);
-    const estado = await porta.estadoDaAnamnese(armazenamento, anterior);
+    /* A MESMA LEITURA DA GUARDA DE APAGAR — e pela mesma razão: editar em sítio uma anamnese
+     * vinculada reescreveria o conteúdo sobre o qual a observação já foi feita. */
+    const estado = await porta.estadoDaAnamnese(armazenamento, anterior, await elencoDaEscola());
     if (estado.vinculada) {
       return recusar(
         'a anamnese está VINCULADA (PO: ' + estado.por.join(', ') + ') e não se edita em sítio — ' +
@@ -1181,7 +1215,12 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     if (recusaDeRelacao) return recusar(recusaDeRelacao.motivo, recusaDeRelacao.status);
 
     try {
-      const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
+      /* O `elenco` ENTRA NA GRAVAÇÃO (08/11/2026): é ele que decide «substitui» vs «empilha» para
+       * a anamnese de um sujeito — o núcleo não vai buscar a linha de base por si. */
+      const resultado = await porta.elicitar(armazenamento, corpo, {
+        conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar,
+        elenco: await elencoDaEscola(),
+      });
 
       // A RECUSA DO NÚCLEO VIRA UM «NÃO» COM STATUS. O PO tem um só (a linha de base dos
       // sujeitos é única), e o segundo é recusado antes de qualquer gravação — nada foi
@@ -1636,7 +1675,9 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     const mapa = {};
     if (!porta || typeof porta.anamneses !== 'function') return mapa;
     try {
-      for (const o of await porta.anamneses(armazenamento)) {
+      /* O ELENCO ENTRA (08/11/2026): sem ele, a §6 da Aula oferecia «editar» sobre a anamnese de
+       * uma aluna que o mesmo documento já trata como sujeito observado. */
+      for (const o of await porta.anamneses(armazenamento, null, await elencoDaEscola())) {
         const aluna = String((o && o.valor) || '').trim();
         const carimbo = String((o && o.carimbo) || '').trim();
         /* `vinculada` VAI JUNTO (06/11/2026): decide se a linha do documento oferece «editar» ou

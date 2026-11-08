@@ -1677,6 +1677,50 @@ por `POST /api/bastidores/indice` com escopo por professor e por ciclo — e é 
 **Contraprova.** Com a chave a deixar de ser slug e o índice a copiar a prosa do ajuste, a
 `provar-indice-de-lancamentos` reprova **7 de 24**.
 
+### 5.24 O vínculo da anamnese passa a ler o ELENCO — e a aluna que entra depois fica vinculada
+
+O §5.20 já tinha decidido **quem é a turma**: a linha de base manda, e o `sujeitos` do PO é a
+herança. Faltava o terceiro consumidor do mesmo facto — o **vínculo da anamnese**, que é o cadeado
+que impede editar ou apagar o registo de uma aluna em observação. Ele derivava só de `po.sujeitos`,
+a cópia do dia em que o PO foi gravado.
+
+**O defeito, medido na `batata` e relatado por ela.** A Aluna B entrou no elenco da turma `tami`
+(a linha de base de 01:05 do dia 08/11) depois de o `po-20261107-2211` existir (22:11 da véspera, com
+`sujeitos: [Aluna A]`). O documento derivado passou a observá-la — o `## Sujeitos` e a §6 da Aula
+listam as duas —, e a anamnese dela continuou «livre»: etiqueta «livre», botões «editar» e
+«apagar», `PUT /api/anamnese-editar` e `DELETE /api/anamnese-vinculo` a responder **200**. Três
+superfícies a dizer o contrário do documento sobre o mesmo facto, e duas delas a deixar apagar o
+registo de uma aluna que já está a ser observada.
+
+**A regra, e é a mesma do §5.20 aplicada uma terceira vez.** Uma aluna está vinculada quando o
+**elenco da turma que o PO observa** a inclui, ou quando o PO a declara em `sujeitos`. As duas
+fontes **somam-se**, e a soma é deliberada: `sujeitos` é o registo do dia (proveniência) e o elenco é
+o presente. Quem sai do elenco continua vinculada porque o PO a observou — um cadeado que se abre
+quando uma das duas fontes esquece um nome não é cadeado.
+
+**Onde entrou, e por que no núcleo.** `porta.vinculos` recebe `{ linhas, curadorias }` — o elenco lê
+a linha de base pela função que já existia (`alunasDaTurma`, §5.20), e a turma de cada PO vem do
+plano que ele referencia, lido do **índice**: nenhum envelope é aberto. Quem chama passa o que já
+tem em mãos: a listagem da Área do Professor recebe a curadoria e as linhas de base da ponte; as
+rotas as leem uma vez por pedido (memoizadas); e sem leitor a derivação **degrada** para o
+`sujeitos`, sem inventar vínculo.
+
+**E a gravação, que era o outro lado e o único que apagava.** A política de persistência da anamnese
+— *substitui enquanto não vinculada, empilha quando vinculada* — perguntava o mesmo estado. Sem o
+elenco, o «Guardar» de uma anamnese nova da Aluna B **sobrescrevia** o registo dela: o único caminho
+desta família que apaga em vez de acrescentar. Ele recebe o elenco pelo `dados` da elicitação e passa
+a criar elo novo (`ajuste_de`).
+
+**A prova.** `provar-vinculo-do-elenco` **26**, com os envelopes e a linha de base **reais** da
+`batata` no A/B: sem o elenco, «solta» (o defeito reproduzido); com ele, «vinculada», com os três
+POs. Mede as rotas (409 no `PUT` e no `DELETE`, e 200 para a aluna que ninguém observa), a gravação
+(elo novo, e o A/B a mostrar que sem o elenco o mesmo gesto sobrescrevia), a listagem servida pelo
+Worker (etiqueta «vinculada», sem «apagar» nem «editar»), e as negativas — a aluna de um elenco sem
+PO continua livre, quem saiu do elenco continua vinculada, e sem linhas de base não se inventa
+vínculo.
+
+**Contraprova.** Contra o núcleo de `HEAD`, **reprova 15 de 26**.
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

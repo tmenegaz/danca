@@ -1707,8 +1707,13 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
   /* O PO PASSOU A TER ESTADO (04/11/2026). Ele era `{}` aqui — e por isso a linha não sabia se o
    * registo tinha sucessor, e o «Apagar» não tinha como existir sem prometer o que o servidor
    * recusaria. O estado é derivado no núcleo (`porta.estadoDoPo`), um por registo. */
+  /* O ELENCO VAI JUNTO (08/11/2026) — e é ele que faz a etiqueta dizer a verdade. A anamnese de
+   * uma aluna que entrou no elenco DEPOIS de o PO ser gravado aparecia «livre», com «editar» e
+   * «apagar» à mão, quando ela já está a ser observada. `porta.vinculos` deriva o vínculo do
+   * elenco da turma que o PO observa, e esta página já recebe as duas fontes do facto
+   * (`curadorias` e `linhasDeBase`) — não há aqui leitura nova, só a que a página já fazia. */
   const estados = chave === 'anamnese'
-    ? await porta.estadosDasAnamneses(armazenamento)
+    ? await porta.estadosDasAnamneses(armazenamento, { linhas: linhasDeBase, curadorias })
     : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento)
       : chave === 'plano-de-observacao'
         ? await estadosDosPos(armazenamento, resumos) : {};

@@ -40516,3 +40516,69 @@ baseline e aqui também (é o pacote-esqueleto, sem `-dados.json`).
   foram atualizadas **sem regerar PDFs nem índices**, porque o conteúdo do ciclo não mudou.
 - **O «(versão anterior)» é rótulo de tela**, não dado: quem lê a API recebe o rótulo do conteúdo
   (o objetivo) e a marca `anterior`, e decide o que mostrar.
+
+## 08/11/2026 — O vínculo da anamnese passa a ler o elenco: a aluna que entra depois fica vinculada
+
+**O que motivou.** Depois de incluir a Aluna B no elenco da turma `tami` e refazer o percurso, ela
+relatou: «a aluna B […] já está sendo observada e a etiqueta ainda está como livre e eu ainda posso
+editar ou apagar essa aluna, e isso é uma falha grave». É: a anamnese sobre a qual já se observou não
+se reescreve nem se apaga — é o que separa memória de rascunho, e é a garantia central desta camada.
+
+**O diagnóstico, com carimbos.** `linha de base tami` de 22:29 (07/11) → elenco `[Aluna A]`;
+`po-20261107-2211` de 22:11 (07/11) → `sujeitos: [Aluna A]`; `linha de base tami` de 01:05 (08/11) →
+elenco `[Aluna A, Aluna B]`. O documento derivado passou a observar as duas — o `## Sujeitos` e a §6
+da Aula listam as duas anamneses —, mas o **vínculo** da anamnese derivava só de `po.sujeitos`, a
+cópia do dia em que o PO foi gravado. As três superfícies discordavam do documento: a etiqueta dizia
+«livre», a listagem oferecia «editar» e «apagar», e `PUT /api/anamnese-editar/:id` e
+`DELETE /api/anamnese-vinculo/:id` respondiam **200** — medido, não suposto.
+
+**O que foi decidido.**
+
+1. **A autoridade é a que a casa já tinha escolhido, aplicada uma terceira vez.** O §5.20/§5.21 do
+   `ARQUITETURA-GERAL.md` e o `elencoDoCiclo` (06/11/2026) já diziam: quem diz quem está na turma é o
+   acto da linha de base, e o `sujeitos` do PO é a herança — «quando herda mal, é a linha de base que
+   está certa». Era o mesmo defeito num terceiro sítio.
+2. **As duas fontes SOMAM-SE.** Está vinculada quem o elenco da turma que o PO observa inclui **ou**
+   quem o PO declara em `sujeitos`. O `sujeitos` é proveniência e não se reescreve; o elenco é o
+   presente. Quem saiu do elenco continua vinculada — um cadeado que se abre quando uma das fontes
+   esquece um nome não é cadeado.
+3. **A gravação obedece à mesma leitura.** A política «substitui enquanto não vinculada, empilha
+   quando vinculada» perguntava o mesmo estado: sem o elenco, o «Guardar» de uma anamnese nova da
+   Aluna B **sobrescrevia** o registo dela — o único caminho desta família que apaga em vez de
+   acrescentar.
+4. **Degrada, não inventa.** Sem leitor de linha de base a derivação é a de antes (`sujeitos`); nunca
+   se marca vinculada uma aluna por ausência de dado.
+
+**Onde entrou.** `motor/nucleo/porta.js` (`vinculos` recebe `{ linhas, curadorias }` e resolve a turma
+de cada PO pelo **índice** — nenhum envelope é aberto; `anamneses`, `estadosDasAnamneses`,
+`estadoDaAnamnese` e `vigenteDoSujeito` aceitam o elenco; `elicitar` recebe-o por `dados.elenco`) ·
+`motor/servidor/rotas.js` (`elencoDaEscola()`, memoizado por pedido, nas guardas `PUT`/`DELETE`, em
+`/api/anamnese-estados`, `/api/anamnese-estado`, `/api/anamneses`, `/api/elicitar` e no mapa de
+carimbos da §6) · `motor/servidor/listas-do-acervo.js` (a listagem passa a curadoria e as linhas de
+base que a ponte já lhe entregava — sem leitura nova).
+
+**Validação.** `provar-vinculo-do-elenco` (**nova**, `experimentos/`) **26/26**, com os envelopes e a
+linha de base **reais** da `batata`: o A/B sem/com elenco, as negativas (elenco de turma sem PO
+continua livre; quem saiu do elenco continua vinculada; sem linhas de base não se inventa vínculo), as
+rotas (409 no `PUT` e no `DELETE`, 200 para a aluna que ninguém observa), a gravação (elo novo, com o
+A/B a mostrar que sem o elenco o mesmo gesto sobrescrevia) e a listagem servida pelo Worker (etiqueta
+«vinculada», sem «apagar» nem «editar»). **Contraprova:** no núcleo de `HEAD`, num worktree à parte,
+**FALHOU — 11 de 26** (15 falham). Sem regressão: `provar-apagar-da-listagem` **51** ·
+`provar-listas-do-acervo` **109** · `provar-anamnese-por-aluna` **15** · `provar-anamnese-sem-cofre`
+**13** · `provar-alunas-da-anamnese` **14** · `provar-producao` **166** · `provar-linha-de-base`
+**102** · `provar-cadeia-do-ajuste` **34** · `provar-ciclo-herdado-do-plano` **20** ·
+`provar-estante-do-po` **29** · `provar-proveniencia-e-turma` **53** · `provar-acervo-envelopes`
+**52** · `provar-po-completo` **20** · `provar-ciclo-do-painel-do-po` **27** · `check-identidade`
+**0 erros** · `check-schemas` verde · `check-indices` **16/16** · `gerar-indices --check` **5 em dia**.
+`provar-ajustes-anamnese` e `provar-recorte-do-po` falham **identicamente no `HEAD`** (pré-existentes,
+comparadas `FALHOU` a `FALHOU`).
+
+**O que ainda não está feito.**
+
+- **A conferência ao ar é do deploy desta entrada.** As provas são locais; a página e a porta servem
+  o código que o Worker empacota. A leitura de produção que fundamenta o diagnóstico foi **uma** (a
+  curadoria do professor, `08/11/2026`), e a conclusão não depende de novas leituras.
+- **O `sujeitos` do PO continua a ser o do dia em que foi gravado.** Não se re-semeia (re-semeá-lo
+  inscreveria no documento de ontem uma turma que mudou hoje) — o PO vive com as duas fontes a
+  concordar **por derivação**, não por cópia.
+- **Nenhuma fonte de ciclo mudou**, por isso não há reancoragem de `.fipp` nem regeração de pacote.

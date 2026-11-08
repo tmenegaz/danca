@@ -945,3 +945,10 @@ experimentos/modelo-formulario/*
 # nunca sai como «está limpo»**, com os dois A/B a mostrar o contrário: sem token, e com a
 # listagem recusada pela cota, o recado passaria a prometer um namespace limpo que ninguém olhou.
 !experimentos/provar-kv-da-escola-criada.js
+
+# O VÍNCULO DA ANAMNESE (08/11/2026). O REGISTRO cita-a por nome («26 asserções», e «15 falham no
+# HEAD»), e uma prova citada que não existe no clone é uma afirmação que ninguém confere. Mede as
+# três superfícies do MESMO facto — o núcleo, as rotas e a listagem — com os envelopes e a linha de
+# base REAIS da `batata`: o cadeado que impede editar e apagar está aberto quando a aluna entra no
+# elenco depois de o Plano de Observação estar gravado, e as rotas de escrita aceitavam o gesto.
+!experimentos/provar-vinculo-do-elenco.js

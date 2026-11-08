@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 07/11/2026 (árvore limpa, `abf7bc8e`). Nesta entrega, **quatro ajustes de
+> **Última fotografia:** 08/11/2026 (árvore limpa, `a5f89d85` + esta entrega). Nesta entrega, **a
+> anamnese da aluna que entra no elenco deixa de ficar «livre»**: o vínculo que a protege (não se
+> edita, não se apaga) passou a ler o **elenco da turma que o Plano de Observação observa** — a linha
+> de base —, e não só o `sujeitos` do PO, que é a herança do dia em que ele foi gravado. Medido na
+> `batata`: a Aluna B entrou no elenco depois do `po-…-2211` e o documento derivado já a observava,
+> enquanto a etiqueta dizia «livre» e as rotas de editar e apagar respondiam **200**. Passa a
+> **409**. Ver a decisão 120 e o §5.24 do `ARQUITETURA-GERAL.md`.
+>
+> **Fotografia anterior (07/11/2026, `abf7bc8e`).** Nesta entrega, **quatro ajustes de
 > Pedagogia, todos de rótulo, arrumação e fronteira — nenhum de modelo**: «Elenco» passou a
 > **Audição** e «Verbetes da notação» a **Estilo**; os cinco elementos basilares passaram a **um
 > bloco** no passo 4 (catorze blocos a dez, os mesmos 45 aspectos), o quadro do recorte virou
@@ -1406,6 +1414,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | **O syllabus como produto** — a sequência por nível, com a camada pedagógica | **CONFIRMADO** 02/11/2026 na bancada (73 asserções, com o dicionário): um documento por nível na **ordem declarada** em `progressao.json`, mais um índice com as contagens; `exige` · `ensina` · `expressa` **herdados do termo ou sobrepostos pela relação**, com a origem escrita ao lado (`(herdado do termo)` / `(declarado no nível)`); `[Preencher]` só quando **nenhum dos dois** declara; o nível sem unidades diz que é a lacuna; `--nivel` gera um só, e um nível inexistente é **recusado**. Gerado por `node motor/produtos.js syllabus`. | `motor/nucleo/produtos/syllabus.js`, `motor/servidor/produtos.js`, `motor/produtos.js` |
 | **A licença é lida e a condição de conteúdo é executável** | **CONFIRMADO** 02/11/2026 na bancada: o nome da licença vem do **título** de `biblioteca/LICENSE.md` (o manifesto cita o caminho, e a lacuna `sem-licenca` desapareceu); e `--edicao paga` deixa de fora a definição **sem `fonte`**, di-lo no sítio dela, mantém o termo, e conta — **25** no catálogo de hoje, o mesmo número que a §10.4 mediu à mão. | `motor/produtos.js` (`licencaDoDisco`), `motor/nucleo/produtos/dicionario.js` |
 | **A composição catálogo × escola** — uma função só | **CONFIRMADO** 02/11/2026: `compor` dá precedência à escola e marca `origem`, mantendo a posição do catálogo na ordem. É a peça de código da fase 1 — **mas os ficheiros continuam um só** (ver §2 e §7). | `motor/nucleo/produtos/comum.js` |
+| **O vínculo da anamnese lê o ELENCO, e não só o `sujeitos` do PO** | **CONFIRMADO** 08/11/2026 (`provar-vinculo-do-elenco`, 26 asserções, com os envelopes e a linha de base **reais** da `batata`): uma aluna está vinculada quando o **elenco da turma que o PO observa** a inclui — a linha de base manda, e o `sujeitos` do PO é a herança —, e as duas fontes **somam-se** (quem saiu do elenco continua vinculada: um cadeado que se abre quando uma das fontes esquece um nome não é cadeado). Sem o elenco, o A/B reproduz o defeito: «solta», `PUT`/`DELETE` a 200, e o «Guardar» a **sobrescrever** o registo. Com ele, a Aluna B passa a «vinculada», as duas rotas dão **409**, e a gravação empilha elo novo. Sem leitor de linha de base a derivação degrada para o `sujeitos`, sem inventar vínculo. | `motor/nucleo/porta.js` (`vinculos`), `motor/servidor/rotas.js`, `motor/servidor/listas-do-acervo.js` |
 | **A turma tem três estados, e a edição pergunta antes** | **CONFIRMADO** 03/11/2026 (`provar-conteudos-e-estado-da-turma`, §B e §C): `livre` · `curada` · `vinculada`. A curada recusa a mudança de **nome** (a curadoria guarda o nome, e renomear partia a ligação em silêncio) e aceita o resto; a vinculada recusa tudo. A tela mostra o selo e desactiva o «Excluir»; a rota é quem decide. | `motor/nucleo/estado-da-turma.js`, `motor/servidor/bastidores.js` |
 | **Os conteúdos são da curadoria — e o mapa antigo continua a ler-se** | **CONFIRMADO** 03/11/2026 (§A, §D, §F): `conteudosDaTurma` e `mapaDeConteudos` compõem `turma-conteudos` com o `repertorio` de cada curadoria, colapsados pelo mesmo `idDe`; a curadoria **substituída** não entra. O passo 3 da turma ficou sem o bloco, e o cartão continua a mostrar a lista. | `motor/nucleo/conteudos.js`, `motor/servidor/bastidores.js` |
 | **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
@@ -2361,6 +2370,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      intacta (`hash-ciclo --check`). **Fica por fazer, e sabe-se:** a secção removida era a única
      que apontava para a **Aula 01** no que toca ao corpo, e o link não foi reposto noutro sítio.
 
+120. **O VÍNCULO DA ANAMNESE LÊ O ELENCO — E NÃO SÓ O `sujeitos` DO PO.** O cadeado que impede
+     editar e apagar o registo de uma aluna em observação derivava de `po.sujeitos`, a cópia do dia
+     em que o PO foi gravado. Quando o elenco cresce depois, a cópia fica para trás — e a aluna que
+     entrou passa a estar a ser observada por um documento que a lista, com a etiqueta a dizer
+     «livre» e as rotas de escrita a aceitarem o gesto. **CONFIRMADO** na `batata` (08/11/2026): o
+     `po-…-2211`, de 22:11, declara `[Aluna A]`; a linha de base `tami` de 01:05 tem `[Aluna A,
+     Aluna B]`; o `## Sujeitos` do documento e a §6 da Aula já listam as duas, e a anamnese da
+     Aluna B respondia `200` ao `PUT` e ao `DELETE`. **DECIDIDO** 08/11/2026: a aluna está vinculada
+     quando o **elenco da turma que o PO observa** a inclui — a linha de base manda, e o `sujeitos`
+     é a herança (é a mesma regra do §5.20/§5.21, aplicada ao terceiro consumidor do facto) —, e as
+     duas fontes **somam-se**, porque quem saiu do elenco foi observada e um cadeado que se abre
+     quando uma das fontes esquece um nome não é cadeado. A mesma leitura decide **substituir vs
+     empilhar** na gravação: sem ela, o «Guardar» de uma anamnese nova da Aluna B **sobrescrevia** o
+     registo dela — o único caminho desta família que apaga em vez de acrescentar. Sem leitor de
+     linha de base a derivação degrada para o `sujeitos`, sem inventar vínculo. Prova:
+     `provar-vinculo-do-elenco` (**26**, com os envelopes e a linha de base reais; **15 falham** no
+     núcleo de `HEAD`). **O que fica por fazer, e sabe-se:** o `sujeitos` do PO **continua** a ser o
+     do dia em que foi gravado — não se re-semeia (re-semeá-lo inscreveria no documento de ontem uma
+     turma que mudou hoje), e por isso o PO vive com as duas fontes a concordar por derivação, não
+     por cópia.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3007,7 +3037,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (04/11/2026 — os ciclos apagam-se de trás para a frente, a sequência, e a anamnese datada)
+### Executado nesta fotografia (08/11/2026 — o vínculo da anamnese lê o elenco)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-vinculo-do-elenco` (**nova**) | **PASSOU — 26 asserções**, com os envelopes e a linha de base **reais** da `batata`. Sem o elenco, a Aluna B sai «solta» (o defeito, reproduzido); com ele, «vinculada», com os três POs, e a Aluna A continua vinculada. As negativas: elenco de turma **sem** PO continua livre, quem saiu do elenco continua vinculada, e sem linhas de base não se inventa vínculo. As rotas: `PUT` e `DELETE` da Aluna B dão **409** (e a recusa nomeia os POs), a aluna que ninguém observa continua a apagar-se (**200**). A gravação: elo novo, e o A/B a mostrar que **sem o elenco o mesmo gesto sobrescrevia** o registo. A listagem servida pelo Worker: etiqueta «vinculada», sem «apagar» nem «editar» |
+| **a contraprova** | no núcleo de `HEAD` (worktree à parte): **FALHOU — 11 de 26** |
+| `provar-apagar-da-listagem` · `provar-listas-do-acervo` · `provar-anamnese-por-aluna` · `provar-anamnese-sem-cofre` · `provar-alunas-da-anamnese` | **51 · 109 · 15 · 13 · 14** — verdes |
+| `provar-producao` · `provar-linha-de-base` · `provar-cadeia-do-ajuste` · `provar-ciclo-herdado-do-plano` · `provar-estante-do-po` | **166 · 102 · 34 · 20 · 29** — verdes |
+| `provar-proveniencia-e-turma` · `provar-acervo-envelopes` · `provar-po-completo` · `provar-ciclo-do-painel-do-po` | **53 · 52 · 20 · 27** — verdes |
+| `check-identidade` · `check-schemas` · `check-indices` · `gerar-indices --check` | **0 erros (21 ok)** · verde · **16/16** · **5 em dia** |
+| **o que NÃO mede / não passa** | `provar-ajustes-anamnese` e `provar-recorte-do-po` falham **identicamente no `HEAD`** (medidas no worktree à parte, comparadas `FALHOU` a `FALHOU`) — pré-existentes. O **ao ar** só se confirma no deploy desta entrega |
+
+### Executado na fotografia anterior (04/11/2026 — os ciclos apagam-se de trás para a frente, a sequência, e a anamnese datada)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4063,6 +4105,18 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **08/11/2026** — **A aluna que entra no elenco deixa de ficar «livre».** Ela relatou que a Aluna B
+  «já está sendo observada e a etiqueta ainda está como livre», com «editar» e «apagar» a funcionar.
+  **CONFIRMADO** com os envelopes reais: o `po-…-2211` (22:11 de 07/11) declara `[Aluna A]`, a linha
+  de base `tami` (01:05 de 08/11) tem as duas, e o documento derivado — `## Sujeitos` e §6 da Aula —
+  já as lista; a anamnese da Aluna B respondia `200` ao `PUT` e ao `DELETE`. **DECIDIDO** que o
+  vínculo lê o **elenco da turma que o PO observa** (a linha de base manda; o `sujeitos` é a
+  herança), somando as duas fontes, e que a mesma leitura decide **substituir vs empilhar** na
+  gravação — o «Guardar» de uma anamnese nova da Aluna B **sobrescrevia** o registo dela. Sem leitor
+  de linha de base a derivação degrada para o `sujeitos`. `provar-vinculo-do-elenco` **26/26**, com
+  a contraprova a reprovar **15** no `HEAD`; e a regressão das catorze bancadas da anamnese, do
+  acervo e do ciclo ficou igual. Ver a decisão 120 e o §5.24 do `ARQUITETURA-GERAL.md`.
 
 - **07/11/2026** — **A escola nova nasce num namespace que já tem história — e agora isso vê-se.**
   Ela perguntou: «você tem certeza que o expurgo está limpando o KV?». **CONFIRMADO que limpa** — a

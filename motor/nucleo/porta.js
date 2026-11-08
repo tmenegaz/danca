@@ -1670,16 +1670,78 @@ function alunasDaAnamnese(curadorias, professor, todas, pedida, comAnamnese) {
   return { alunas, novas };
 }
 
-async function vinculos(armazenamento, jaLido) {
+/*
+ * QUEM OBSERVA QUEM — e o elenco manda (08/11/2026).
+ *
+ * O DEFEITO, medido na `batata`. Ela incluiu a Aluna B no elenco da turma `tami` (a linha de base
+ * da sala rosa, de 01:05) DEPOIS de o Plano de Observação estar gravado (`po-…-2211`, de 22:11 da
+ * véspera). O documento derivado passou a observar as duas — o `## Sujeitos` diz «Aluna A · Aluna
+ * B», e a §6 da Aula mostra as duas. A anamnese da Aluna B, porém, continuou marcada «livre», com
+ * os botões «editar» e «apagar» a funcionar, e as rotas responderam 200 a apagá-la. Uma aluna que
+ * está a ser observada podia ter o registo reescrito ou apagado: é a violação mais grave que esta
+ * camada existe para impedir.
+ *
+ * A CAUSA é uma única: este vínculo derivava de `po.sujeitos` e só de `po.sujeitos`. Ora, o PO
+ * **herda** o elenco e guarda-o como o leu no dia em que foi gravado — e quando o elenco cresce
+ * depois, a cópia fica para trás. A casa já decidiu, duas vezes, qual é a autoridade:
+ *
+ *   · `elencoDoCiclo` (06/11/2026, §5.20/§5.21 do ARQUITETURA-GERAL): «O PO declara sujeitos, mas
+ *     quem diz quem está na turma é o acto do passo 2 da linha de base; o PO herda-a, e quando
+ *     herda mal — envelope anterior à regra, gravação antiga — é a linha de base que está certa.»
+ *   · `alunasDaTurma` (05/11/2026): o elenco lê-se da linha de base, e a curadoria é recurso.
+ *
+ * Era o mesmo defeito, num terceiro sítio — e é o terceiro sítio que este comentário fecha.
+ *
+ * A REGRA, e é uma só: uma aluna está vinculada quando **o elenco da turma que o PO observa** a
+ * inclui, ou quando o PO a declara em `sujeitos`. As duas fontes SOMAM-SE, e a soma é deliberada:
+ * o `sujeitos` é o registo do dia (proveniência — não se reescreve) e o elenco é o presente. Quem
+ * sai do elenco continua vinculada porque o PO a observou; um cadeado que se abre quando uma das
+ * duas fontes esquece um nome não é cadeado.
+ *
+ * O `elenco` CHEGA DE FORA, e não é lido aqui: a linha de base mora no repositório, e o núcleo não
+ * faz I/O que a ponte não declare. Quem chama passa `{ linhas, curadorias }` — o que já tem em
+ * mãos para o resto do pedido. SEM ele, a derivação é a de antes (`sujeitos`), e é o que mantém a
+ * leitura de pé nas escolas que ainda não têm linha de base nenhuma.
+ */
+async function vinculos(armazenamento, jaLido, elenco) {
   const por = new Map();
+  const juntar = (apelido, carimbo) => {
+    const nome = String(apelido == null ? '' : apelido).trim();
+    if (!nome) return;
+    if (!por.has(nome)) por.set(nome, []);
+    if (por.get(nome).indexOf(carimbo) === -1) por.get(nome).push(carimbo);
+  };
   // Do ÍNDICE: o resumo de cada PO já traz os sujeitos que ele declarou. Antes esta função lia
   // TODOS os envelopes de PO para colher uma lista de nomes — e cada lista de anamnese a
   // chamava outra vez (20/10/2026).
-  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido)) {
+  const pos = await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido);
+
+  /* A TURMA DE CADA PLANO, também do índice — e não do envelope. O PO não guarda a turma (ela é
+   * LEITURA do plano, é o que a tela diz); quem a guarda no resumo é o plano. Uma leitura do
+   * índice serve os dois, e nenhum envelope é aberto. */
+  const linhas = elenco && Array.isArray(elenco.linhas) ? elenco.linhas : null;
+  const curadorias = elenco && Array.isArray(elenco.curadorias) ? elenco.curadorias : [];
+  let turmaDoPlano = null;
+  if (linhas) {
+    turmaDoPlano = new Map();
+    for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, jaLido)) {
+      const id = resumo.id || nome.replace(/\.json$/, '');
+      const turma = String(resumo.turma || '').trim();
+      if (turma) turmaDoPlano.set(String(id), turma);
+    }
+  }
+
+  for (const { nome, resumo } of pos) {
     const carimbo = resumo.id || nome.replace(/\.json$/, '');
-    for (const apelido of resumo.sujeitos || []) {
-      if (!por.has(apelido)) por.set(apelido, []);
-      por.get(apelido).push(carimbo);
+    for (const apelido of resumo.sujeitos || []) juntar(apelido, carimbo);
+    if (!turmaDoPlano) continue;
+    /* O ELENCO DA TURMA QUE ELE OBSERVA. Um PO pode declarar mais de um plano (a mesma observação
+     * sobre duas turmas); cada plano traz a sua turma, e o elenco de cada uma entra. */
+    for (const planoId of resumo.plano || []) {
+      const turma = turmaDoPlano.get(String(planoId));
+      if (!turma) continue;
+      const daTurma = alunasDaTurma(curadorias, { turma, professor: resumo.professor || '' }, linhas) || [];
+      for (const apelido of daTurma) juntar(apelido, carimbo);
     }
   }
   return por;
@@ -2001,9 +2063,11 @@ async function estadoDoPlano(armazenamento, envelope) {
  * A LISTA de anamneses já lançadas — um SUJEITO (apelido) por vez, o vigente.
  * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
  */
-async function anamneses(armazenamento, recorte) {
+async function anamneses(armazenamento, recorte, elenco) {
   const indice = await lerIndice(armazenamento);
-  const ligacoes = await vinculos(armazenamento, indice);
+  // O ELENCO ENTRA AQUI (08/11/2026) — ver `vinculos`: a linha de base manda sobre `po.sujeitos`,
+  // e é ela que impede uma aluna em observação de aparecer como «livre».
+  const ligacoes = await vinculos(armazenamento, indice, elenco);
   // O RECORTE DA TURMA (20/10/2026) — ver `alunasDaTurma`. `null`/ausente = sem recorte; um
   // array (mesmo vazio) = só aquelas alunas. A distinção é o que impede «turma sem curadoria»
   // de virar «todas as alunas da escola»: lá o array vem vazio e a lista sai vazia.
@@ -2042,8 +2106,8 @@ async function anamneses(armazenamento, recorte) {
 }
 
 /** O registro VIGENTE de um sujeito — `{carimbo, vinculada}` ou null. */
-async function vigenteDoSujeito(armazenamento, aluna) {
-  const o = (await anamneses(armazenamento)).find((x) => x.valor === aluna);
+async function vigenteDoSujeito(armazenamento, aluna, elenco) {
+  const o = (await anamneses(armazenamento, null, elenco)).find((x) => x.valor === aluna);
   return o ? { carimbo: o.carimbo, vinculada: o.vinculada } : null;
 }
 
@@ -2051,9 +2115,9 @@ async function vigenteDoSujeito(armazenamento, aluna) {
  * O ESTADO de TODAS as anamneses — inclusive as SEM SUJEITO. Uma fonte só para
  * os três estados (solta / legado / vinculada) e o `sem-sujeito`.
  */
-async function estadosDasAnamneses(armazenamento) {
+async function estadosDasAnamneses(armazenamento, elenco) {
   const indice = await lerIndice(armazenamento);
-  const ligacoes = await vinculos(armazenamento, indice);
+  const ligacoes = await vinculos(armazenamento, indice, elenco);
 
   // UMA PASSAGEM, DUAS DERIVAÇÕES. Esta função precisa de tudo o que a `anamneses()`
   // precisa (o vigente de cada apelido) E dos registos que a `anamneses()` descarta (os
@@ -2109,9 +2173,9 @@ async function estadosDasAnamneses(armazenamento) {
 }
 
 /** O ESTADO de uma anamnese, derivado — reusa a derivação da lista de gestão. */
-async function estadoDaAnamnese(armazenamento, envelope) {
+async function estadoDaAnamnese(armazenamento, envelope, elenco) {
   const carimbo = envelope.id || null;
-  const todos = await estadosDasAnamneses(armazenamento);
+  const todos = await estadosDasAnamneses(armazenamento, elenco);
   return todos[carimbo] || {
     estado: 'sem-sujeito',
     carimbo,
@@ -2255,7 +2319,13 @@ async function elicitar(armazenamento, corpo, dados) {
 
   if (!opcoes.id && fonte !== 'po' && fonte !== 'plano') {
     const aluna = corpo && corpo.contexto && corpo.contexto.aluna;
-    const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna) : null;
+    /* O ELENCO MANDA TAMBÉM AQUI (08/11/2026) — e aqui é DADO, não rótulo. A política de gravação
+     * é «substitui enquanto não vinculada, empilha quando vinculada»: com o vínculo derivado só de
+     * `po.sujeitos`, a anamnese de uma aluna que entrou no elenco depois era SOBRESCRITA por cima
+     * do registo dela — o modo de falha que a proveniência existe para impedir, e o único desta
+     * família que apaga em vez de acrescentar. O `elenco` chega pelo `dados`, como o resto do que
+     * a ponte sabe e o núcleo não vai buscar. */
+    const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna, dados.elenco) : null;
     if (vigente && vigente.vinculada) {
       opcoes.ajuste = { de: vigente.carimbo, motivo: (corpo && corpo.motivo) || null };
     } else if (vigente) {
