@@ -2,7 +2,8 @@
   "versao": 4,
   "nomes": [
     "anamnese-20261107-1928.json",
-    "plano-20261107-2201.json"
+    "plano-20261107-2201.json",
+    "po-20261107-2202.json"
   ],
   "resumos": {
     "anamnese-20261107-1928.json": {
@@ -30,6 +31,21 @@
         "Plié"
       ],
       "professorNome": "dedao-aberto"
+    },
+    "po-20261107-2202.json": {
+      "id": "po-20261107-2202",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "dedao-aberto",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-07T22:02",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261107-2201"
+      ]
     }
   }
 }
