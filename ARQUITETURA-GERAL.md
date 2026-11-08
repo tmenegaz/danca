@@ -346,6 +346,190 @@ A geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions
 | `regerar-indices.yml` | Action, a cada push das fontes do acervo |
 | Bastidores · Produção | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
 
+### 3.3 O fluxo da escola — da fundação à aula dada, e as duas portas do elenco
+
+> **Retrato medido em 08/11/2026**, contra o código: `motor/servidor/bastidores.js` (as secções da
+> Produção), `motor/servidor/rotas.js` (a porta), `motor/servidor/escrever-ciclo.js` (as fontes do
+> ciclo) e `motor/nucleo/porta.js` (`revalidacaoPendente`, `vinculos`). Não é o desenho que se
+> pretende: é o que cada gesto grava **hoje**.
+
+**A cadeia, em uma linha** — é a rotina de uma escola, e é a espinha do produto:
+
+```
+Escola + Sala + Estilo → Alunas (anamneses) → Audição (elenco) → Turma
+   → Plano de Ensino → Plano de Observação → fontes do ciclo → formulário da aula dada
+```
+
+**Os quatro nomes que mudaram a 07/11/2026** — a coisa não mudou de sítio, o rótulo mudou. Quem lê
+os documentos antigos encontra os nomes velhos; esta tabela é a tradução:
+
+| Rótulo na Produção | Entidade (onde vive) | O que é | O que **não** é |
+|:--|:--|:--|:--|
+| **Sala** | `turmas` (KV da escola) | o **ritmo**: dias e horários, duração, período, rubrica | não tem professor, modalidade nem nível |
+| **Audição** (o ato) → **Elenco** (o que fica) | `linhas-de-base` (repositório, *append-only*) | os **corpos** escolhidos, a leitura que se fez deles e o **recorte** | não declara ciclo, nem sala, nem nível |
+| **Turma** | `curadorias` (KV da escola) | a **relação**: professor × modalidade × tradição × nível × sala × elenco × conteúdos | não é o ritmo (é da Sala) e não é o elenco (é da Audição) |
+| **Estilo** | `verbetes` (KV da escola) | os exercícios que conduzem o elenco ao domínio daquele estilo | não é a turma nem o elenco; entra no plano pela notação (P-15/P-16) |
+
+**O desenho, com as setas que existem de facto** (Mermaid, renderiza no GitHub):
+
+```mermaid
+flowchart TB
+    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período · rubrica"]
+    E --> P["Professor<br/>habilitado na modalidade"]
+    E --> ST["Estilo<br/>os verbetes da notação"]
+    A["Alunas<br/>o apelido estável"] --> AN["Anamnese<br/>datada · sem ciclo"]
+    AN --> AUD["Audição<br/>1 Identificação · 2 Alunas<br/>3 Leitura · 4 Recorte"]
+    AUD --> EL["Elenco<br/>os corpos + o recorte"]
+    S --> T["Turma<br/>professor · modalidade · nível<br/>sala · elenco · conteúdos"]
+    P --> T
+    EL --> T
+    T --> PE["Plano de Ensino<br/>abre o ciclo · declara a Sala"]
+    PE --> PO["Plano de Observação<br/>observa o Plano de Ensino<br/>sujeitos semeados do elenco"]
+    PO --> G["«Guardar» do PO<br/>deriva e grava as fontes"]
+    G --> D["-plano.md · -aula-01.md<br/>-captura-aula-01.md · -dados.json"]
+    D --> F["Formulário da aula dada"]
+    F --> AD["Aula lançada<br/>o passado, que não se reescreve"]
+```
+
+**ASCII** (mesma estrutura, para o PDF):
+
+```
+Escola — o Worker, o repositório e os segredos
+   │      mais Sala (o ritmo) · Professor (a modalidade) · Estilo (os verbetes)
+   ▼
+Alunas — o apelido estável, e nada mais
+   │
+   ▼
+Anamnese — datada, sem ciclo (uma por aluna)
+   │
+   ▼
+Audição — 1 Identificação · 2 Alunas · 3 Leitura · 4 Recorte
+   │
+   ▼
+Elenco — os corpos + o recorte (um arquivo por ato)
+   │
+   ▼
+Turma — professor · modalidade · nível · sala · elenco · conteúdos
+   │
+   ▼
+Plano de Ensino — abre o ciclo; declara a Sala
+   │
+   ▼
+Plano de Observação — observa o Plano de Ensino; sujeitos semeados do elenco
+   │
+   ▼
+«Guardar» do PO — deriva e grava as fontes do ciclo
+   │
+   ▼
+Formulário da aula dada — oferece o elenco de hoje
+   │
+   ▼
+Aula lançada — o passado, que não se reescreve
+```
+
+**O que cada passo grava, e quem lê** — a tabela que responde «onde é que isto ficou?»:
+
+| # | Passo | Onde (Produção / porta) | O que fica gravado | Quem lê |
+|:--|:--|:--|:--|:--|
+| 0 | **Escola** | página `danca` → `provisionar-escola.js`; `tools/criar-escola.sh` | Worker, segredos, `escola/<slug>/indice.json`, professor já habilitado na modalidade, ciclo e pacote-zero | tudo o resto |
+| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma`) | `turmas`: nome, dias com hora, duração, início e fim do período, rubrica. **Incompleta não grava** (400) | a Turma, o calendário, o prazo do lançamento |
+| 2 | **Estilo** | Produção → **Estilo** (`POST /api/bastidores/verbete`) | `verbetes`: o exercício, a direção, o compasso, a contagem | o Plano de Ensino (notação) e a Aula 01 |
+| 3 | **Alunas** | Produção → **Alunas** (`POST /api/bastidores/aluna`) | `alunas`: **só o apelido estável** — não há nome completo, contacto nem saúde | a Audição (passo 2), a lista de presentes |
+| 4 | **Anamnese** | Área do Professor → `/anamnese/` (`POST /api/elicitar`, `fonte: anamnese`) | envelope `anamnese-<carimbo>.json`, cifrado, **datado e sem ciclo** (é da aluna, §5.4.2) | a Audição (passo 3), o PO, a §6 da Aula |
+| 5 | **Audição → Elenco** | Produção → **Audição**, quatro passos | `escola/<escola>/linhas-de-base/<id>--<carimbo>.json` — **um arquivo por ato**, com `anterior` | a Turma, o Plano de Ensino, o PO, a geração |
+| 6 | **Turma** | Produção → **Turmas** (`POST /api/bastidores/curadoria`) | `curadorias`: enquadramento, sala, elenco (`linhaDeBase`), conteúdos; o servidor **carimba `alunas`** a partir do elenco | o Plano de Ensino, o PO, a cascata |
+| 7 | **Plano de Ensino** | `/plano-ensino/` | envelope `plano-<carimbo>.json`: ciclo, Sala (`contexto-turma`), objetivo, marcos, volume, condições | o PO, as fontes do ciclo |
+| 8 | **Plano de Observação** | `/plano-observacao/` | envelope `po-<carimbo>.json`: o `plano-de-ensino` que observa, os sujeitos **semeados do elenco** (§5.20) | as fontes do ciclo, o lançamento |
+| 9 | **«Guardar» do PO** | `/api/elicitar`, `fonte: po` | `-plano.md`, `-aula-01.md`, `-captura-aula-01.md`, `-dados.json`, `-harmonizacao.md`, `-notacao.md`, `-referencias.md`, `-glossario-*.md` — e a âncora `.fipp` | a página, o PDF, o formulário |
+| 10 | **Aula dada** | `lancamento.html` (`POST /api/dados`) | `-dados.json` → `aulas[n]`: presentes, ausentes, marcas | a aula `lancada`, o caderno, o relatório |
+
+**As duas portas do elenco.** A entrada e a saída de uma aluna são o **mesmo caminho com o sinal
+trocado**, e a ordem não é arrumação de ecrã — é **dependência**:
+
+```
+Elenco (Audição) → Turma → Plano de Ensino → Plano de Observação
+```
+
+O elenco decide que corpos a turma observa; a Turma declara essa relação; o Plano de Ensino fixa
+o que se ensina a esses corpos; o PO mede o que o plano fixou. Revalidar o PO antes do elenco é
+consolidar uma observação sobre uma turma que já não é a dela.
+
+**A aluna que ENTRA** — o gesto, na ordem em que o sistema o aceita:
+
+1. **Alunas** — registar o apelido (se já existe, **409**).
+2. **Anamnese** — um **registo novo** para ela. Não há «atualizar a anamnese da turma»: a anamnese
+   é da aluna, é datada, e o gesto de a refazer é «Novo registo» (§5.4.2).
+3. **Audição** — reabrir o elenco, recebê-la no passo 2, **reler** no passo 3 e ajustar o recorte
+   no 4. A leitura anterior **é descartada** quando o conjunto de corpos muda («um número que já
+   não corresponde ao que se mostra é pior do que nenhum»), e concluir grava uma **versão nova**
+   no repositório, com `anterior` a dizer de qual veio.
+4. **Turma** — a cascata diz «entrou *X*»; o professor reabre a Turma e grava. A derivação cria um
+   **elo novo** (`curadoria-derivar`) e carimba `alunas` do elenco — é este o ato burocrático que
+   a rotina chama «regerar a turma».
+5. **Plano de Ensino** e **Plano de Observação** — marcados «a rever», nesta ordem; o PO, por
+   último, porque observa o que o plano fixou.
+6. **«Guardar» do PO** — as fontes do ciclo passam a descrever o elenco novo, e o formulário da
+   aula dada passa a oferecê-la.
+
+**A aluna que SAI** — o mesmo caminho, com três factos que o distinguem:
+
+- **A pessoa é o último passo, e é opcional.** `DELETE /api/bastidores/aluna` responde **409**
+  enquanto ela estiver numa Turma que já tem plano de ensino — «apagá-la romperia a proveniência».
+  Logo a ordem real é **elenco → Turma → pessoa**, e o ato substantivo é o do elenco; apagar o
+  apelido da lista é limpeza, não remoção.
+- **A anamnese não se apaga.** Ela continua **vinculada** porque o PO a declarou em `sujeitos` —
+  e as duas fontes **somam-se** (§5.24): o `sujeitos` é o registo do dia, o elenco é o presente.
+  Um cadeado que se abrisse quando uma das fontes esquecesse um nome não seria cadeado.
+- **O passado do ciclo fica inteiro.** No `-dados.json`, `aulas` é **preservado** na geração,
+  `elenco` diz quem se oferece **hoje**, e `apelidos` é a **união** (o elenco de hoje mais quem
+  aparece numa aula lançada). Numa aula já lançada, a lista é a **daquela** aula (P-03/P-04).
+
+**O que acontece sozinho, e o que exige o olhar do professor** — a fronteira, que é a pergunta
+que qualquer automação futura vai ter de respeitar:
+
+| Gesto | Acontece sozinho | Exige o professor |
+|:--|:--|:--|
+| **Concluir o elenco** | grava a versão no repositório e **regenera os ciclos** cuja Turma escolheu aquele elenco e que já têm Plano de Ensino (`gerarOsCiclosDoElenco`) | — |
+| **Gravar o Plano de Ensino ajustado** | deriva um **elo novo do PO** que o observava, com a referência ao plano vigente — o PO é leitura do plano | — |
+| **Mudar o elenco** | **marca** a cascata `linha-de-base → curadoria → plano-de-ensino → plano-de-observacao`, com `entrou`/`saiu` no motivo | rever Turma, PE e PO, nesta ordem |
+| **Anamnese nova** | entra no índice e no cálculo do vínculo | decidir se o retrato da turma precisa de ser refeito — o sistema não julga validade nem periodicidade |
+| **Ajustar o PE por causa do elenco** | o PO acompanha (novo elo) | decidir **o que muda no plano**: o sistema não compara necessidade individual com conteúdo |
+
+**A cobertura de necessidades: o que o sistema exige e o que não verifica.** O princípio de que
+«quem pode mais, pode menos» — a inclusão expande as necessidades e a remoção as reduz — é **regra
+de conduta**, e hoje é o olhar de quem ensina que a garante. O que o código faz é o **piso**:
+
+- **Exige**: anamnese para haver corpos a escolher; recorte para concluir o elenco; Sala com ritmo,
+  enquadramento e elenco para haver Turma; Plano de Ensino do mesmo ciclo para haver PO; e a
+  cascata marca o que ficou para trás.
+- **Não verifica**: que o Plano de Ensino tenha **incorporado** as necessidades de quem entrou, nem
+  que tenha deixado de **cobrar** as de quem saiu. O plano é da turma e os conteúdos são do
+  professor; comparar necessidade individual com o plano seria o sistema a decidir pedagogia.
+
+**O fluxo automático não existe — e a entrada dele já está escrita.** `porta.revalidacaoPendente`
+devolve `pendentes` e `ordem`; é exatamente o que uma automação precisaria de ler. Não é um botão,
+e é decisão dela: *«a gente não vai deixar um botão automático que dispara tudo em cadeia porque
+precisa do olhar do professor para tomar as decisões e as medidas que ele julga pertinente»*. Se um
+dia existir, o que já está decidido é o limite: a automação pode **preparar** o passo seguinte
+(derivar a Turma, abrir o PE no ponto certo) e nunca **decidir** o que o plano passa a cobrir nem
+reescrever o que uma aula já registou.
+
+**Onde a rotina descrita diverge do sistema** — os cinco pontos, para o retrato ficar certo:
+
+| O que se descreveu | Como o sistema faz hoje |
+|:--|:--|
+| «Vai na pessoa e remove a aluna; depois vai à audição e tira do elenco» | A ordem é a inversa: a pessoa **só** se apaga depois de a Turma deixar de a declarar (senão 409), e apagar a pessoa é **opcional** — o ato é o do elenco |
+| «Aluna sem elenco/turma → status **Livre**» | **Não.** Quem saiu continua **vinculada** enquanto um PO a declarar em `sujeitos` — o passado não devolve o registo ao estado livre (§5.25) |
+| «Atualiza a anamnese das alunas que existem» | Não há atualização em grupo. A anamnese é **por aluna e datada**; refazê-la é «Novo registo», e editá-la é **409** quando vinculada |
+| «Refaz o processo da turma» | Exato — mas é a **Turma** (a relação) que se grava de novo; a **Sala** (o ritmo) não se regenera |
+| «A aluna vai para uma turma que já existe» | Ela entra no **elenco**, e é a **Turma** que se grava outra vez com esse elenco. Nada a coloca directamente numa turma: a Turma é a relação, e o elenco é o corpo — quem junta os dois é o ato de a gravar |
+
+> **Nota de leitura.** O §4.1 do [`ARQUITETURA-PE.md`](ARQUITETURA-PE.md) desenha a integração
+> PE ⇄ PO entre repositórios, com a elicitação a alimentar os dois documentos. No produto, a ordem
+> de criação é a desta secção — **PE primeiro, PO depois** —, e a relação é imposta pelo servidor
+> (§5.10: sem PE do mesmo ciclo, o PO responde 409). O §4.1 descreve a fronteira entre repositórios;
+> este descreve o uso.
+
 ---
 
 ## 4. Por que sistema de arquivos e não banco de dados

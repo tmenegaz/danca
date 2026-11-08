@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T21:49:07-0300`
-Commit atual: `c8027317` — chore(estrutura): apagar o resíduo do mapa antigo da batata — o valor fica transcrito
+Gerado em: `2026-11-08T13:21:21-0300`
+Commit atual: `8a81448e` — docs(estrutura): o fluxo da escola num só desenho, e as duas portas do elenco
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -54,7 +54,7 @@ coqui-de-redinha
 dedao-aberto
 pe-torto
 rabo-gramde (5)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -71,26 +71,26 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
-c8027317 chore(estrutura): apagar o resíduo do mapa antigo da batata — o valor fica transcrito
-97381099 fix(estrutura): a declaração da turma vence o mapa antigo — o plano oferecia quatro exercícios onde a escola declarou dois
-676d611b feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
-b63eff41 fix(estrutura): o «Seguir» do verbete andava para o painel da linha de base
-7e7d660f fix(estrutura): o termo que já existe é aproveitado, e não recusado
-08a088e1 feat(biblioteca): acrescentar «Battement jeté» ao vocabulário do balé clássico
-44ee2828 chore(estrutura): regerar os índices derivados
-e851b964 feat(linha de base): índice — tami 20261107-2229
-3f91a748 feat(elenco): tami — concluído
-c28d94b8 chore(estrutura): regerar os índices derivados
-0e599e8f feat(acervo): envelope/anamnese-20261107-1928.json
-da9984b6 feat(acervo): envelope/.indice.json
-9203614b chore(estrutura): regerar os índices derivados
-6478f441 feat(acervo): envelope/.indice.json
-a2a0e571 feat(estrutura): criar a escola batata (motor completo)
-70987074 chore(estrutura): regerar os índices derivados
-5e83dfb3 chore(estrutura): expurgar a escola breu
-59ee26fa fix(tools): a âncora de uma aula não tem manifesto próprio — o expurgo da breu
-1fa3e33a chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
-a9a8a50b chore(estrutura): regerar os índices derivados
+8a81448e docs(estrutura): o fluxo da escola num só desenho, e as duas portas do elenco
+33d8874f chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+6e28d1f4 chore(estrutura): reancorar a cadeia das fontes alteradas
+f49d6d23 chore(estrutura): regerar os índices derivados
+ce065c03 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
+cbd56cd8 feat(po): o PO elicitado vira a fonte do ciclo
+8a73593f feat(acervo): envelope/po-20261108-1319.json
+5db08053 feat(acervo): envelope/.indice.json
+6cef6c9c chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+05c07723 chore(estrutura): regerar os índices derivados
+bc956b27 chore(estrutura): reancorar a cadeia das fontes alteradas
+4599d328 feat(po): o PO elicitado vira a fonte do ciclo
+ea04bc88 feat(acervo): envelope/po-20261108-1318.json
+17f80ff0 feat(acervo): envelope/.indice.json
+d30c8970 feat(plano): o plano elicitado vira a fonte do ciclo
+7ae15359 feat(acervo): envelope/plano-20261108-1317.json
+db4bd2f7 feat(acervo): envelope/.indice.json
+69d2c1bd chore(estrutura): regerar os índices derivados
+9fc7b795 feat(linha de base): índice — tami 20261108-1616
+6bed3e53 feat(elenco): tami — concluído
 ```
 
 ## Por professor
@@ -99,19 +99,21 @@ a9a8a50b chore(estrutura): regerar os índices derivados
 
 ### coqui-de-redinha — 0 ciclo(s)
 
-### dedao-aberto — 1 ciclo(s)
+### dedao-aberto — 0 ciclo(s)
 
-**Ciclo 01** — variante(s): batata
+### pe-torto — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): calango, calango-rosa
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
+| calango | (sem PO) | — | — |
+| calango | ciclo-01-calango-rosa-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `b0ca72014397` | (vazio) | — |
-
-### pe-torto — 0 ciclo(s)
+| calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `ebeb573096ee` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -162,134 +164,120 @@ a9a8a50b chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 07/11/2026 — A escola nova nasce num namespace que já tem história — e agora isso vê-se
+## 08/11/2026 — O fluxo da escola, num só desenho — e as duas portas do elenco
 
-**O que motivou.** Depois de a lista do plano de ensino aparecer com quatro exercícios onde dois
-tinham sido declarados, ela fez a pergunta certa: «você tem certeza que o expurgo está limpando o
-KV? porque eu me pergunto como é que esses dois exercícios foram parar na memória do KV da escola
-batata, se a gente expurgou a batata por completo».
+**O que motivou.** A pesquisadora descreveu a **rotina principal de uma escola** — escola + sala +
+estilo → alunas (anamneses) → audição (elenco) → turma → plano de ensino → plano de observação →
+formulário da aula dada —, com as duas portas do elenco (a aluna que entra e a que sai), e pediu que
+ficasse documentada **na arquitetura, com um fluxo**, como **retrato do que existe**. E pediu o
+contrário do elogio: onde a descrição dela divergisse do sistema, o que se escrevesse era o sistema.
 
-**A investigação respondeu outra coisa — e a premissa tinha um furo.** A `batata` **não** foi
-expurgada hoje: o último expurgo dela é de **02/11, 16:53 UTC**; hoje expurgaram-se a `calango`
-(12:18) e a `breu` (22:20). A `batata` foi **criada de novo** hoje às **22:25 UTC** (`a2a0e571`), e
-o Worker dela nasceu às 22:24:47 — **125,5 horas** depois do expurgo. O resíduo era da encarnação
-de hoje, escrita com a escola a funcionar; não sobreviveu a expurgo nenhum.
+**O diagnóstico, da leitura do código.** O fluxo existia em pedaços — §2.4 (a sala é o ritmo), §5.9
+(os dois planos), §5.10 (PE antes do PO), §5.17–5.25 (o corpo, o elenco, o vínculo, a remoção) — e
+não num lugar que se pudesse ler de cima. E a leitura de cima encontrou **cinco divergências** entre
+a rotina descrita e o código:
 
-**E o expurgo limpa mesmo, com uma excepção datada.** A verificação é **por leitura**
-(`lerValorSeguro`), não por listagem — o código já aprendeu que uma listagem omite chaves que
-existem. Os oito elos da `batata`:
+- **A ordem do fluxo de saída é a inversa.** A pessoa (Alunas) **não** se apaga primeiro: o `DELETE`
+  responde **409** enquanto ela estiver numa Turma com plano de ensino, e o ato substantivo é o do
+  elenco. Apagar o apelido é **o último passo e é opcional**.
+- **«Sem elenco → Livre» não é o que o sistema faz.** A aluna que sai continua **vinculada** enquanto
+  um PO a declarar em `sujeitos` — as duas fontes **somam-se** (§5.24), e o cadeado não abre porque
+  uma delas esqueceu um nome.
+- **Não há «atualizar a anamnese da turma».** A anamnese é **da aluna e datada**, sem ciclo; refazê-la
+  é «Novo registo», e editá-la é **409** quando vinculada (§5.4.2).
+- **«Regerar a turma» é regerar a TURMA, não a Sala.** A relação (`curadorias`) deriva em elo novo;
+  o ritmo (`turmas`) não se toca.
+- **A Sala precede a Turma**, e o **Estilo** só entra a jusante, no plano e na notação — não na
+  escolha do elenco.
 
-| expurgo (UTC) | desfecho do KV |
-|:--|:--|
-| 19/10 18:02 | **elo sem `kv`** — não limpou |
-| 20/10 10:06 | `apagadas: 7`, `restantes: 0` |
-| 21/10 17:07 | `apagadas: 12`, `restantes: 0` |
-| 22/10 19:32 | `apagadas: 9`, `restantes: 0` |
-| 27/10 00:04 | `apagadas: 10`, `restantes: 0` |
-| 01/11 15:55 | `apagadas: 10`, `restantes: 0` |
-| 01/11 20:13 | `apagadas: 6`, `restantes: 0` |
-| 02/11 16:53 | `apagadas: 8`, `restantes: 0` |
+**O que foi decidido.** Uma secção nova, o §3.3 do `ARQUITETURA-GERAL.md` — **«O fluxo da escola —
+da fundação à aula dada, e as duas portas do elenco»** —, com:
 
-A desconfiança dela tinha, portanto, precedente: **o expurgo de 19/10 não limpou** — a cota do
-`kv.list` esgotada a meio, o caso que o próprio `raiz.js` documenta. Sete de oito limparam; o
-oitavo ficou com dado no KV e a escola seguinte herdá-lo-ia em silêncio.
+- a cadeia em uma linha e o **diagrama** (Mermaid, que renderiza no GitHub, mais o ASCII para o PDF);
+- a **tabela de nomes** que mudaram a 07/11/2026 (Sala, Audição/Elenco, Turma, Estilo) e o que cada
+  entidade **não** é;
+- a tabela **de cada passo ao que ele grava** (rota, artefato, quem lê) — dez linhas, da escola ao
+  lançamento;
+- as **duas portas**, com a ordem de dependência `elenco → turma → plano → PO` e o que distingue a
+  saída da entrada;
+- a fronteira **entre o que acontece sozinho e o que exige o olhar do professor** — incluindo o que
+  já é automático e se sabia pouco: concluir o elenco **regenera os ciclos** que o usam
+  (`gerarOsCiclosDoElenco`), e gravar o plano ajustado **deriva o elo novo do PO**;
+- o **piso** que o sistema exige e o **teto** que ele não verifica — o princípio «quem pode mais, pode
+  menos» é regra de conduta, e hoje quem a garante é o olhar de quem ensina, não o código;
+- o **fluxo automático**, que não existe, e a entrada que ele já tem (`revalidacaoPendente.ordem`) —
+  com a decisão dela de que não é um botão;
+- a tabela das **cinco divergências** acima, para o retrato não herdar a leitura errada.
 
-**O que não se conseguiu provar, e fica dito.** *Quem* escreveu aquele `turma-conteudos` hoje. O KV
-não guarda autor nem data. A assinatura do valor — os três termos do catálogo do nível 1, sem o
-`grand-battement`, **por ordem alfabética** — aponta para uma associação em lote, não para uma
-escolha de professor. Não se afirma o caminho.
+**Uma nota de leitura, e não uma correcção.** O §4.1 do `ARQUITETURA-PE.md` desenha a integração
+PE ⇄ PO entre repositórios com a elicitação a alimentar os dois. No produto a ordem é **PE primeiro,
+PO depois**, imposta pelo servidor (§5.10). O §4.1 **não se reescreveu** (P-03/P-04: o publicado
+acrescenta-se, não se edita); o §3.3 diz qual é a ordem de uso e remete para ele.
 
-**O que foi decidido.** A lacuna que a pergunta expôs corrige-se: **a criação de uma escola passa a
-conferir o KV** — e a conferência **avisa, não apaga e não trava**.
+**Onde entrou.** `ARQUITETURA-GERAL.md` (§3.3, nova) · `ESTADO-ATUAL.md` (§11, uma linha) ·
+`REGISTRO.md` (esta entrada).
 
-1. **Não apaga.** Criar uma escola pode ser **recriar por cima de uma escola viva** (é o caso
-   normal desta casa), e apagar o KV no acto de criar destruiria o cadastro de quem está a
-   trabalhar. Quem decide o que fazer com o resíduo é a pessoa, com as chaves à frente.
-2. **Não trava.** Um aviso que aborta a criação aprende-se a contornar, e aí a conferência deixa de
-   existir. Sai sempre `0`; o que muda é o que diz — e no GitHub a linha `::warning::` põe o recado
-   à vista no resumo do run.
-3. **«Não conferi» nunca sai como «está limpo».** É o ramo mais perigoso dos três, e é a mesma
-   confusão que o expurgo aprendeu a não repetir («não havia» ≠ «não consegui»): sem token, ou com
-   a listagem recusada pela cota, a ferramenta diz que **não conferiu** — nunca que o namespace
-   nasce limpo.
-4. **Os prefixos são os do expurgo, importados do mesmo sítio** (`prefixosDaEscola`). Uma segunda
-   lista divergiria da primeira e a conferência diria «limpo» sobre chaves que o expurgo apagaria.
-5. **O valor das chaves não se imprime** — só o nome. Uma chave dos Bastidores pode ter apelido de
-   aluna, e o log de um workflow lê-se com o repositório à frente.
+**Com o quê.** Documentação apenas: nenhuma linha de código, nenhum schema, nenhuma âncora de ciclo
+tocada — não há reancoragem a declarar.
 
-**Onde entrou.** `escola/conferir-kv.js` (novo — ao lado do `escola/expurgar.js`, que é o gesto
-irmão: este confere, aquele limpa) · `.github/workflows/criar-escola.yml` (o passo «Conferir o KV da
-escola», antes do deploy e com `continue-on-error`) · `experimentos/provar-kv-da-escola-criada.js`
-(nova, 22 asserções) · `ESTADO-ATUAL.md` (§11).
-
-**Validação.** `provar-kv-da-escola-criada` **22/22**, com o `fetch` global substituído por um de
-mentira e um token inventado — nada aqui lê ou escreve o namespace de verdade. Mede a morada (o
-`wrangler.<escola>.jsonc` é jsonc, e o leitor não confunde o `//` de um URL com um comentário), a
-conferência (os dois prefixos, uma listagem por prefixo, o mesmo custo de cota do expurgo), e o que
-não pode acontecer. **Dois A/B, e cada um desliga um ramo só:** com a falta de token a devolver
-`conferido: true`, falham as duas asserções desse caso e o recado passa a «nasce num namespace sem
-chaves suas — conferido por listagem»; com a listagem recusada a ser tratada como vazia, o mesmo —
-que é, ao pé da letra, o cenário de 19/10 transformado em «está limpo».
-
-**Sem regressão.** `check-identidade` **0 erros** · `check-schemas` **verde** ·
-`gerar-indices --check` **5 em dia** · o bundle do Worker não muda (ninguém importa o verificador —
-é um CLI local, corrido pelo workflow e à mão), e `wrangler deploy --dry-run` continua a compilar.
-
-**O que fica declarado, e não escondido.**
-
-- **A ferramenta correu localmente em «não conferi»**, porque o token do Cloudflare não está no
-  ambiente desta sessão. A validação ao vivo é a do próximo `criar-escola`, no CI, onde o token
-  existe (é o mesmo do `wrangler deploy`). O modo «não conferi» é explícito — e é isso que impede a
-  ausência de token de se ler como namespace limpo.
-- **A chave que sobrou de 19/10 não foi procurada.** Aquele expurgo declarou-se incompleto e a
-  escola foi recriada depois; se ainda houver resíduo dele em alguma escola, é a conferência da
-  próxima criação que o dirá — e nenhuma escola foi criada desde esta alteração.
+**O que ainda não está feito, e sabe-se.** O **fluxo automático** de entrada/saída continua a não
+existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
+plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
+conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
 
 ## O que está pendente
 
-## 07/11/2026 — O elenco recém-criado chega à Turma sem F5
-
-A conferência ao ar é do próximo deploy: as provas são locais e a
-página serve o `bastidores.js` que o Worker empacota.
-
-## 07/11/2026 — A aluna que entra num elenco existente chega à cadeia: concluir voltou a ser um ato
+## 08/11/2026 — O vínculo da anamnese passa a ler o elenco: a aluna que entra depois fica vinculada
 
 
-- **A conferência ao ar é do próximo deploy.** As provas são locais; a página e a porta servem o
-  código que o Worker empacota.
-- **O elenco da `breu` que já existe só ganha o acto na próxima conclusão.** Ele é lido a partir de
-  agora (a cura pela Turma), mas a versão no repositório só nasce quando ela abrir o elenco e
-  carregar em «Concluir elenco» — que é o gesto normal, e agora faz o que o nome diz.
-- **Um elenco pode ser escolhido por mais de uma Turma sem aviso.** `elencoEscolhidoPelaTurma`
-  devolve a primeira; a relação não está declarada como um-para-um. Fica registado como dívida, e
-  não se inventou uma recusa que ninguém pediu.
+- **A conferência ao ar é do deploy desta entrada.** As provas são locais; a página e a porta servem
+  o código que o Worker empacota. A leitura de produção que fundamenta o diagnóstico foi **uma** (a
+  curadoria do professor, `08/11/2026`), e a conclusão não depende de novas leituras.
+- **O `sujeitos` do PO continua a ser o do dia em que foi gravado.** Não se re-semeia (re-semeá-lo
+  inscreveria no documento de ontem uma turma que mudou hoje) — o PO vive com as duas fontes a
+  concordar **por derivação**, não por cópia.
+- **Nenhuma fonte de ciclo mudou**, por isso não há reancoragem de `.fipp` nem regeração de pacote.
 
-## 07/11/2026 — A declaração da captura entra no índice (e o workflow deixa de travar)
-
-O `regerar-indices.yml` volta a poder commitar, mas só o confirma
-o próximo push que toque nas fontes do índice — este commit não o dispara (não toca em
-`escola/**` nem `professores/**`).
-
-## 07/11/2026 — O elenco é fonte do ciclo, e concluí-lo tem de terminar na geração
+## 08/11/2026 — A aluna que sai do elenco sai da aula — e o que ela já lançou continua a ler-se
 
 
-- **A conferência ao ar é do próximo deploy.** O `deploy-escolas` correu, mas quem confirma é ela,
-  na página de lançamento.
-- **O disparo do «Guardar» do PO falhou uma vez sem deixar rasto legível.** Achei o sintoma (nenhuma
-  execução entre 18:47 e 21:54) e não a causa: o motivo real está no `wrangler tail` do Worker, e
-  não o fui buscar. Fica registado como dívida; a correção de hoje não depende dele, porque agora há
-  dois caminhos a terminar na geração em vez de um.
-- **Só o «Concluir elenco» dispara**, não o «Guardar» intermédio — e é de propósito: os passos 1 a 4
-  são intenção, e um disparo por «Seguir» seriam cinco gerações por elenco.
+- **A conferência ao ar é do deploy desta entrada**, e é **uma** leitura por endpoint.
+- **A remoção não reescreve o `sujeitos` do PO antigo.** Ela desce ao PO para que o professor o
+  reveja — e o PO que for gravado depois já não a declara, mas o documento de ontem continua a
+  dizer o que observou ontem. É proveniência: o elo novo acrescenta, não corrige.
+- **O caso da aluna que sai com aulas lançadas não tem ainda dado real neste repositório** (a `tami`
+  tem o ciclo em `aula 01`, sem lançamento). A prova cobre-o com um `-dados.json` semeado, que é o
+  que se pode fazer sem inventar dado pedagógico.
+- **O pacote da `batata-sala-rosa` continua a misturar dois POs** — ver acima. Não é desta entrega e
+  não foi forçado: a cópia cifrada é derivada e só a chave da escola a produz.
 
-## 07/11/2026 — A âncora de uma aula não tem manifesto próprio: o expurgo da `breu` estava a ser recusado por um falso positivo
+## 08/11/2026 — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa de se atropelar
 
 
-- **O expurgo em si é dela, e não meu.** Não o corri: é a operação mais destrutiva do sistema, apaga
-  o Worker e o KV da escola, e o gesto — com a confirmação e o motivo — é de quem decide. O que
-  ficou pronto é a recusa que já não acontece.
-- **A conferência ao ar é do próximo deploy.** A página corre o núcleo empacotado no Worker; o
-  `deploy-raiz` leva esta correção.
+- **A cópia cifrada do pacote é a de antes deste «Guardar».** O `check-pacote` compara a estrutura e
+  passa; quem tem a chave veria o texto do PO 0955 dentro dela. Só o Worker a refaz, e é o gesto
+  seguinte.
+- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
+  turma) têm as suas próprias telas e não passaram por aqui.
+- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
+  turma) têm as suas próprias telas e não passaram por aqui. O que esta entrega garante é a metade
+  que estava a estourar — plano e PO, que é onde a geração é disparada.
+- **`provar-aparencia` (76/77) e `provar-tema` (37/38) falham igualmente no `HEAD`** — pré-existentes,
+  comparadas falha a falha.
+
+## 08/11/2026 — O Worker voltou a falar com a rede: o `fetch` da ponte era ela mesma
+
+Três provas de hoje — `provar-vinculo-do-elenco`,
+`provar-remocao-do-elenco` e `provar-estante-do-po` — leem os envelopes **reais** da `batata`, que o
+expurgo de hoje apagou. Elas deixam de correr (não reprovam: não têm fixture). O arranjo é dar-lhes
+fixtures próprias, e é trabalho de outra entrada — está registado aqui para não se perder.
+
+## 08/11/2026 — O fluxo da escola, num só desenho — e as duas portas do elenco
+
+O **fluxo automático** de entrada/saída continua a não
+existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
+plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
+conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
 
 ## Pendências anteriores (índice)
 
@@ -674,7 +662,14 @@ o próximo push que toque nas fontes do índice — este commit não o dispara (
 - **07/11/2026** — O cartão do elenco fica com duas caixas: as alunas e o… → `REGISTRO.md` L39517
 - **07/11/2026** — O Bloco 10 sai do plano: o corpo mora na Audição e no PO → `REGISTRO.md` L39567
 - **07/11/2026** — O expurgo passa a levar o `historico/`, e o vermelho da… → `REGISTRO.md` L39663
-- **dedao-aberto · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **07/11/2026** — O elenco recém-criado chega à Turma sem F5 → `REGISTRO.md` L39736
+- **07/11/2026** — A aluna que entra num elenco existente chega à cadeia:… → `REGISTRO.md` L39808
+- **07/11/2026** — A declaração da captura entra no índice (e o workflow deixa… → `REGISTRO.md` L39906
+- **07/11/2026** — O elenco é fonte do ciclo, e concluí-lo tem de terminar na… → `REGISTRO.md` L39950
+- **07/11/2026** — A âncora de uma aula não tem manifesto próprio: o expurgo… → `REGISTRO.md` L40029
+- **08/11/2026** — O plano que já foi ajustado não se oferece duas vezes, e o… → `REGISTRO.md` L40457
+- PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

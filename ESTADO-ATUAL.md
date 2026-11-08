@@ -4196,6 +4196,18 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **08/11/2026** — **A rotina da escola passa a estar num só desenho, com as duas portas do elenco.**
+  Ela descreveu o fluxo — escola + sala + estilo → alunas (anamneses) → audição (elenco) → turma →
+  plano de ensino → plano de observação → formulário da aula dada — e pediu-o documentado como
+  **retrato do sistema atual**, com as correções onde a descrição divergisse. **CONFIRMADO** no
+  código: o fluxo existe, mas em pedaços (§2.4, §5.9, §5.10, §5.18–5.25), e **cinco** pontos da
+  descrição divergem — a pessoa só se apaga **depois** da Turma (409 antes disso); quem sai do elenco
+  **continua vinculada** pelo `sujeitos` do PO; não há «atualizar a anamnese da turma» (é por aluna e
+  datada); «regerar a turma» é a **Turma**, não a Sala; e a **Sala precede** a Turma. **DECIDIDO** o
+  §3.3 novo do `ARQUITETURA-GERAL.md` — diagrama (Mermaid + ASCII), tabela de nomes, tabela do que
+  cada passo grava, as duas portas, a fronteira automático × olhar do professor, o **piso** que o
+  sistema exige e o **teto** que ele não verifica, e a tabela das divergências. Documentação apenas —
+  sem código, sem schema, sem reancoragem. Ver a decisão 123 e o §3.3.
 - **08/11/2026** — **O «Guardar» cabe nos 50 subpedidos, e a cadeia deixa de se atropelar.** Ela
   percorreu a cadeia depressa e o «Guardar» do PO respondeu «Too many subrequests by single Worker
   invocation»: o envelope e o `-po.md` entraram, as fontes do ciclo não, e o pacote ficou com dois

@@ -40867,3 +40867,64 @@ bancada (`provar-ponte-do-worker`), não contra o acervo real.
 `provar-remocao-do-elenco` e `provar-estante-do-po` — leem os envelopes **reais** da `batata`, que o
 expurgo de hoje apagou. Elas deixam de correr (não reprovam: não têm fixture). O arranjo é dar-lhes
 fixtures próprias, e é trabalho de outra entrada — está registado aqui para não se perder.
+
+## 08/11/2026 — O fluxo da escola, num só desenho — e as duas portas do elenco
+
+**O que motivou.** A pesquisadora descreveu a **rotina principal de uma escola** — escola + sala +
+estilo → alunas (anamneses) → audição (elenco) → turma → plano de ensino → plano de observação →
+formulário da aula dada —, com as duas portas do elenco (a aluna que entra e a que sai), e pediu que
+ficasse documentada **na arquitetura, com um fluxo**, como **retrato do que existe**. E pediu o
+contrário do elogio: onde a descrição dela divergisse do sistema, o que se escrevesse era o sistema.
+
+**O diagnóstico, da leitura do código.** O fluxo existia em pedaços — §2.4 (a sala é o ritmo), §5.9
+(os dois planos), §5.10 (PE antes do PO), §5.17–5.25 (o corpo, o elenco, o vínculo, a remoção) — e
+não num lugar que se pudesse ler de cima. E a leitura de cima encontrou **cinco divergências** entre
+a rotina descrita e o código:
+
+- **A ordem do fluxo de saída é a inversa.** A pessoa (Alunas) **não** se apaga primeiro: o `DELETE`
+  responde **409** enquanto ela estiver numa Turma com plano de ensino, e o ato substantivo é o do
+  elenco. Apagar o apelido é **o último passo e é opcional**.
+- **«Sem elenco → Livre» não é o que o sistema faz.** A aluna que sai continua **vinculada** enquanto
+  um PO a declarar em `sujeitos` — as duas fontes **somam-se** (§5.24), e o cadeado não abre porque
+  uma delas esqueceu um nome.
+- **Não há «atualizar a anamnese da turma».** A anamnese é **da aluna e datada**, sem ciclo; refazê-la
+  é «Novo registo», e editá-la é **409** quando vinculada (§5.4.2).
+- **«Regerar a turma» é regerar a TURMA, não a Sala.** A relação (`curadorias`) deriva em elo novo;
+  o ritmo (`turmas`) não se toca.
+- **A Sala precede a Turma**, e o **Estilo** só entra a jusante, no plano e na notação — não na
+  escolha do elenco.
+
+**O que foi decidido.** Uma secção nova, o §3.3 do `ARQUITETURA-GERAL.md` — **«O fluxo da escola —
+da fundação à aula dada, e as duas portas do elenco»** —, com:
+
+- a cadeia em uma linha e o **diagrama** (Mermaid, que renderiza no GitHub, mais o ASCII para o PDF);
+- a **tabela de nomes** que mudaram a 07/11/2026 (Sala, Audição/Elenco, Turma, Estilo) e o que cada
+  entidade **não** é;
+- a tabela **de cada passo ao que ele grava** (rota, artefato, quem lê) — dez linhas, da escola ao
+  lançamento;
+- as **duas portas**, com a ordem de dependência `elenco → turma → plano → PO` e o que distingue a
+  saída da entrada;
+- a fronteira **entre o que acontece sozinho e o que exige o olhar do professor** — incluindo o que
+  já é automático e se sabia pouco: concluir o elenco **regenera os ciclos** que o usam
+  (`gerarOsCiclosDoElenco`), e gravar o plano ajustado **deriva o elo novo do PO**;
+- o **piso** que o sistema exige e o **teto** que ele não verifica — o princípio «quem pode mais, pode
+  menos» é regra de conduta, e hoje quem a garante é o olhar de quem ensina, não o código;
+- o **fluxo automático**, que não existe, e a entrada que ele já tem (`revalidacaoPendente.ordem`) —
+  com a decisão dela de que não é um botão;
+- a tabela das **cinco divergências** acima, para o retrato não herdar a leitura errada.
+
+**Uma nota de leitura, e não uma correcção.** O §4.1 do `ARQUITETURA-PE.md` desenha a integração
+PE ⇄ PO entre repositórios com a elicitação a alimentar os dois. No produto a ordem é **PE primeiro,
+PO depois**, imposta pelo servidor (§5.10). O §4.1 **não se reescreveu** (P-03/P-04: o publicado
+acrescenta-se, não se edita); o §3.3 diz qual é a ordem de uso e remete para ele.
+
+**Onde entrou.** `ARQUITETURA-GERAL.md` (§3.3, nova) · `ESTADO-ATUAL.md` (§11, uma linha) ·
+`REGISTRO.md` (esta entrada).
+
+**Com o quê.** Documentação apenas: nenhuma linha de código, nenhum schema, nenhuma âncora de ciclo
+tocada — não há reancoragem a declarar.
+
+**O que ainda não está feito, e sabe-se.** O **fluxo automático** de entrada/saída continua a não
+existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
+plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
+conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
