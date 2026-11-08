@@ -7,14 +7,14 @@ responsavel: pe-torto
 professor: pe-torto
 title: "Plano de Observação do Ciclo 01 — calango"
 state: Input_PO_Aguardando
-envelope: po-20261108-1304
+envelope: po-20261108-1318
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261108-1303
+plano-20261108-1317
 
 ## Horizonte
 
@@ -50,9 +50,12 @@ Calendário: 2026-11-20 → 2026-12-20 · Volume de trabalho: 3–6 séries · C
 |:--|:--|:--|
 | Corpo | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | Corpo | **Os elementos basilares** | o passé |
+| Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
 | Corpo | **Flexibilidade e Amplitude Articular** | Flexibilidade anteroposterior (grand écart) |
+| Corpo | **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
 | Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | Corpo | **Aptidões Coordenadas e Cognitivo-Musicais** | Memória e retenção de sequências |
+| Corpo | **Força Ativa, Potência e Controle Dinâmico** | Impulsão e absorção (allegro) |
 | Corpo | **Equilíbrio, Sustentação e Força de MMSS/Core** | Força de empurrar (push-ups) |
 | Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento |
 | Corpo | **Restrições** | sem restrições declaradas |
@@ -69,6 +72,8 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 ## Sujeitos
 
 - Aluna A
+- Aluna B
+- Aluna C
 
 ## Norma estabelecida
 
@@ -80,9 +85,12 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 |:--|:--|
 | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | **Os elementos basilares** | o passé |
+| **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
 | **Flexibilidade e Amplitude Articular** | Flexibilidade anteroposterior (grand écart) |
+| **Complexo Escapulo-Umeral e Cervical** | Rotação e amplitude dos ombros |
 | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | **Aptidões Coordenadas e Cognitivo-Musicais** | Memória e retenção de sequências |
+| **Força Ativa, Potência e Controle Dinâmico** | Impulsão e absorção (allegro) |
 | **Equilíbrio, Sustentação e Força de MMSS/Core** | Força de empurrar (push-ups) |
 | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento |
 
@@ -94,9 +102,12 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 - as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços
 - Os elementos basilares: o passé
+- Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)
 - Flexibilidade e Amplitude Articular: Flexibilidade anteroposterior (grand écart)
+- Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros
 - Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo
 - Aptidões Coordenadas e Cognitivo-Musicais: Memória e retenção de sequências
+- Força Ativa, Potência e Controle Dinâmico: Impulsão e absorção (allegro)
 - Equilíbrio, Sustentação e Força de MMSS/Core: Força de empurrar (push-ups)
 - Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento
 
