@@ -1,0 +1,28 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-batata-sala-rosa
+type: Ciclo
+professor: dedao-aberto
+ciclo: 01
+variante: batata-sala-rosa
+hash_conteudo: 1156fbbbddd4093d588cadcbe7de2ce83886d99b8924848a5d728275c2838737
+parentHash: 
+hash: 0e03f50a743f72253543105613c70c9370cd56e54d77a9ac1d91afc2a91ad3ff
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-08
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 39
+notacao_sha: b1a79b7dd06295e2550697b6e40df992c157cde19c8e316a597e94f062b2d97b
+cobertura:
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md
+  - professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf
+  - professores/dedao-aberto/ciclos/ciclo-01.conf

@@ -1,23 +1,27 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-07",
-    "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
+    "ancorado_em": "2026-11-08",
+    "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.fipp",
     "cobertura": [
-      "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md",
+      "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
       "professores/dedao-aberto/ciclos/ciclo-01.conf"
     ],
-    "hash": "b0ca72014397dd695d9c53ef8a4808c7cc6d545cacacf98a34c1d47f27065796",
-    "hash_conteudo": "bac28ecc292e96d9d83877c29655834a64c7eed29f1876fe41dc95b05815eff2",
-    "id": "ciclo-01-batata",
+    "hash": "0e03f50a743f72253543105613c70c9370cd56e54d77a9ac1d91afc2a91ad3ff",
+    "hash_conteudo": "1156fbbbddd4093d588cadcbe7de2ce83886d99b8924848a5d728275c2838737",
+    "id": "ciclo-01-batata-sala-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.fipp",
     "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
     "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
+    "documento:plano:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-plano.md",
     "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -25,14 +29,19 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +52,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e851b96"
+    "commit": "917434a"
   },
-  "gerado_em": "2026-11-07T22:29",
+  "gerado_em": "2026-11-08T01:01",
   "id": "ciclo:dedao-aberto/01/batata",
   "professor": "dedao-aberto",
   "versao": 6

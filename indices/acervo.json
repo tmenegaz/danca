@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "b0ca72014397dd695d9c53ef8a4808c7cc6d545cacacf98a34c1d47f27065796",
-        "id": "ciclo-01-batata",
+        "hash": "0e03f50a743f72253543105613c70c9370cd56e54d77a9ac1d91afc2a91ad3ff",
+        "id": "ciclo-01-batata-sala-rosa",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 6,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:dedao-aberto/01/batata",
@@ -27,10 +27,10 @@
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 0,
+        "planos": 1,
         "pos": 0,
         "recortes": 1,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-11-07T22:25:15.564899+00:00",
       "expurgada": false,
@@ -44,7 +44,8 @@
         "dedao-aberto"
       ],
       "registros": [
-        "anamnese:anamnese-20261107-1928"
+        "anamnese:anamnese-20261107-1928",
+        "plano:plano-20261107-2201"
       ],
       "slug": "batata"
     },
@@ -117,7 +118,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -223,14 +224,19 @@
         "contagem": 1,
         "rotulo": "Anamnese",
         "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "e851b96"
+    "commit": "917434a"
   },
-  "gerado_em": "2026-11-07T22:29",
+  "gerado_em": "2026-11-08T01:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
