@@ -1120,5 +1120,17 @@
     "observacoes": "",
     "estado": "documentado",
     "escola": "batata"
+  },
+  {
+    "id": "battement-fondu",
+    "termo": "Battement fondu",
+    "categoria": "passo",
+    "tradicao": "Vaganova",
+    "alternativos": [],
+    "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado",
+    "escola": "calango"
   }
 ]
