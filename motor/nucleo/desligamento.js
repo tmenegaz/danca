@@ -323,10 +323,83 @@ function estadoDaAluna({
   };
 }
 
+/*
+ * =====================================================================================
+ * O PROFESSOR QUE JÁ NÃO DÁ TURMA — «já dirigiu uma, hoje não dirige nenhuma»
+ * =====================================================================================
+ *
+ * O quarto selo do professor, irmão do `desligada` da aluna, e o pedido dela a 08/11/2026 foi o
+ * mesmo pensamento: «O mesmo pensamento dessa etiqueta deve ser adoptado para o professor na
+ * proveniência». O que faltava não era o desligamento (esse é o ato de sair da ESCOLA, e já
+ * existe): era o professor que **deixou uma turma para outro** e continua na escola.
+ *
+ * O DEFEITO, medido no código antes de o corrigir: `professorCurado` perguntava a TODAS as
+ * curadorias, inclusive as substituídas. Quando outro professor assumia a turma, a curadoria
+ * anterior descia para o histórico com `substituidaPor` — e o que saiu ficava «curado» para
+ * sempre, sem turma nenhuma na coluna e com o «Excluir» desabilitado por um trabalho que já não
+ * era dele. O selo respondia ao passado e lia-se como presente: exactamente o defeito da aluna,
+ * do outro lado.
+ *
+ * PORQUE `sem turma` E NÃO `desligado`. A palavra já é deste repositório e significa sair da
+ * escola. Um professor que passou uma turma a outro não se desligou de nada — ele continua
+ * disponível. Dizer a mesma palavra nos dois casos mandaria a direção procurar um desligamento
+ * que não houve.
+ *
+ * O RASTO é o mesmo tipo de prova da aluna: uma curadoria **substituída** que o nomeia. Um Plano
+ * de Ensino que já cita o nome dele conta como vínculo de hoje (`vinculado`, e vem antes) — este
+ * estado é o caso em que a direção pedagógica foi trocada **antes** de haver plano.
+ */
+
+/** O professor é esta pessoa? Aceita o nome de exibição e o slug — as duas formas gravadas. */
+function ehEsteProfessor(c, nome, slug) {
+  if (!c) return false;
+  const de = String(c.professor == null ? '' : c.professor).trim();
+  if (!de) return false;
+  return de === nome || de === slug || de === (nome && slugificar(nome));
+}
+
+/** O slug de um nome de exibição — a mesma regra do cadastro, sem depender do servidor. */
+function slugificar(nome) {
+  return String(nome == null ? '' : nome)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+/** As SALAS de uma curadoria, na forma nova (`turmas`) ou na antiga (`turma`). */
+function salasDaCuradoria(c) {
+  const nomes = Array.isArray(c && c.turmas) && c.turmas.length ? c.turmas : [c && c.turma];
+  return nomes.map((t) => String(t == null ? '' : t).trim()).filter(Boolean);
+}
+
+/**
+ * O ESTADO DO PROFESSOR — `{ semTurma: true, turma, em }`, ou `{ semTurma: false }`.
+ *
+ * Entrada: `{ professor, curadorias, noPlano }`. `curadorias` são TODAS (com as substituídas, que
+ * são a memória de quem dirigiu a turma); `noPlano` é o `professorVinculadoA`, calculado por quem
+ * lê os envelopes — o núcleo não lê o acervo.
+ */
+function estadoDoProfessor({ professor, curadorias, noPlano } = {}) {
+  if (noPlano) return { semTurma: false };
+  const nome = String((professor && professor.nome) || professor || '').trim();
+  const slug = String((professor && professor.slug) || '').trim() || slugificar(nome);
+  const lista = (Array.isArray(curadorias) ? curadorias : []);
+  const minhas = lista.filter((c) => ehEsteProfessor(c, nome, slug));
+  if (!minhas.length) return { semTurma: false };
+  if (minhas.some((c) => !c.substituidaPor)) return { semTurma: false };
+  const anterior = minhas
+    .sort((a, b) => String(b.substituidaEm || '').localeCompare(String(a.substituidaEm || '')))[0] || null;
+  return {
+    semTurma: true,
+    turma: (anterior ? salasDaCuradoria(anterior)[0] : '') || '',
+    em: String((anterior && anterior.substituidaEm) || '').trim(),
+  };
+}
+
 module.exports = {
   acharProfessor,
   estaDesligado,
   desligarProfessor,
   motivoDaRecusaDoDono,
   estadoDaAluna,
+  estadoDoProfessor,
 };

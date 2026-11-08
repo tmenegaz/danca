@@ -570,6 +570,25 @@ E o professor **pode voltar**: o cadastro do mesmo identificador **reactiva** o 
 vínculo institucional renasce), mas **não reabre** a direção encerrada — o intervalo em que ele
 não estava é um facto da história da escola.
 
+**O professor que passou a turma a outro — `sem turma` (08/11/2026).** O desligamento é sair da
+**escola**; há um caso mais frequente que ficava sem nome: o professor que **deixa uma turma para
+outro** e continua na escola. Ele media-se errado — e do mesmo modo que a aluna:
+
+| O que a tela dizia | Por que estava errado |
+|:--|:--|
+| **«curado»** — para sempre | `professorCurado` perguntava a **todas** as curadorias, inclusive as **substituídas**. Quando outro assumia a turma, a anterior descia para o histórico com `substituidaPor`, e o que saiu ficava «curado» eternamente — sem turma nenhuma na coluna, com o «Excluir» travado por um trabalho que já não era dele |
+| **«livre»** — se nunca tivesse curadoria | é o estado correcto de quem nunca fez nada aqui, e o errado de quem já deu turma |
+| **«desligado»** | é sair da **escola**, com data e motivo. Passar uma turma a outro não desliga ninguém: ele continua disponível |
+
+O quarto selo é **`sem turma`** — e o nome não é `desligado` de propósito: dizer a mesma palavra nos
+dois casos mandaria a direção procurar um desligamento que não houve. A derivação é
+`desligamento.estadoDoProfessor`: sem curadoria **vigente**, sem plano que o cite, **e** com uma
+curadoria **substituída** que o nomeia (a data e a turma vêm dela). O selo usa a classe `legado`, e
+o «Excluir» fica travado — porque a curadoria guarda o **slug** e o nome legível só existe no
+registro: apagá-lo deixaria o histórico a apontar para um slug sem nome. (Na aluna é o contrário e
+por isso a exclusão é permitida: a curadoria guarda o **apelido**, e o registo dela vive também no
+elenco e na anamnese.)
+
 **A TURMA QUE MUDA DE SALA — o ritmo muda, a ligação não (08/11/2026).** Numa escola a sala de uma
 turma muda por mil razões — o horário do espaço, a troca de dias, o período que encurta, a duração
 que passa de 60 para 75 minutos —, e a pergunta é o que o sistema faz com isso. Tem duas metades: o
@@ -630,6 +649,7 @@ que qualquer automação futura vai ter de respeitar:
 | **Atribuir a turma a outro professor** | limpa a marca `descontinuada` da turma | escolher quem, entre os **habilitados** naquela modalidade — o `perfil.json` é o filtro |
 | **Mudar a sala de uma turma** | deriva o elo novo (mesmo nome) e a geração passa a ler o ritmo novo | rever o plano de ensino — o **volume** e os **marcos** foram fixados para o calendário anterior, e a cascata ainda não o marca |
 | **Uma aluna sair do elenco** | o selo dela passa a `desligada` — derivado, sem gesto nenhum | — |
+| **Um professor passar a turma a outro** | o selo dele passa a `sem turma` — derivado da curadoria substituída | — |
 
 **A cobertura de necessidades: o que o sistema exige e o que não verifica.** O princípio de que
 «quem pode mais, pode menos» — a inclusão expande as necessidades e a remoção as reduz — é **regra
@@ -663,6 +683,7 @@ reescrever o que uma aula já registou.
 | «Excluir o professor que já deu aula» | **Não se exclui, e não precisa.** O `DELETE` apenas apaga um registo sem trabalho nenhum; quem tem história **desliga-se**, e o registo fica como proveniência do que assinou |
 | «Excluir a aluna que saiu» | **Pode-se, e é limpeza.** Apagar o apelido não apaga o que ficou dela nos elencos, nos planos e na anamnese; o selo dela passa a **desligada**, que é o que impede ler a saída como «nunca esteve aqui» |
 | «Mudo o horário da turma e o plano acompanha» | O **registo** acompanha — a Sala deriva, o nome não muda, e a geração lê o ritmo novo. O **aviso** não vem: o plano não é marcado «a rever» pela mudança de Sala, só pela mudança de elenco |
+| «Troco o professor da turma e o antigo fica livre» | O que fica é **`sem turma`**, não «livre»: ele já fez parte, e o nome dele continua nos documentos que assinou. Livre é quem nunca esteve aqui |
 
 > **O que o fluxo automático faria, e não faz.** A transferência e o desligamento já são **um ato
 > só**, e é isso que um automatizador precisa de chamar. O que continua a exigir o olhar do

@@ -41061,3 +41061,44 @@ até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a muda
 alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
 vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
 **nenhum** PO declarou continua a poder ser apagada (é a regra do «solta»), e isso não foi mudado.
+
+> **Acréscimo de 08/11/2026 (mesmo dia), dentro da entrada acima.** O pedido tinha duas metades, e a
+> primeira redação desta entrada só documentou a da aluna: «o mesmo pensamento dessa etiqueta deve
+> ser adoptado para o professor na proveniência». A segunda metade foi feita depois, e a redação
+> anterior não é apagada — fica como o elo que diz o que se pensou primeiro.
+>
+> O DEFEITO, medido no código antes de o corrigir: `professorCurado` perguntava a **todas** as
+> curadorias, inclusive às **substituídas**. Quando outro professor assumia a turma, a curadoria
+> anterior descia para o histórico com `substituidaPor` — e o que saiu ficava **«curado» para
+> sempre**, sem turma nenhuma na coluna e com o «Excluir» travado por um trabalho que já não era
+> dele. É o mesmo defeito da aluna, do outro lado: o selo respondia ao passado e lia-se como
+> presente.
+>
+> A DECISÃO: o quarto selo do professor é **`sem turma`** — **derivado**
+> (`desligamento.estadoDoProfessor`: sem curadoria vigente, sem plano que o cite, e com uma
+> curadoria substituída que o nomeia), com a classe `legado` da folha. **Não** se chama `desligado`:
+> essa palavra já significa sair da **escola**, com data e motivo, e usá-la aqui faria a direção
+> procurar um desligamento que não houve. E `professorCurado` passa a contar **só as vigentes** — o
+> que a torna o que sempre quis dizer: «tem trabalho atribuído **hoje**».
+>
+> O «Excluir» fica travado, e a razão é de dados, não de gosto: a curadoria guarda o **slug** e o
+> nome legível só existe no registro — apagá-lo deixaria o histórico a apontar para um slug sem
+> nome. (Na aluna é o contrário, e por isso lá a exclusão é permitida: a curadoria guarda o
+> **apelido**, e o registro dela vive também no elenco e na anamnese.)
+>
+> ONDE ENTROU, o que muda a lista de ficheiros da entrada acima: `motor/nucleo/desligamento.js`
+> ganha também o `estadoDoProfessor` · `motor/servidor/bastidores.js` (o selo, a guarda do
+> «Excluir», e `professorCurado` a filtrar as substituídas) · `experimentos/provar-etiqueta-da-aluna.js`
+> ganha a secção E · `ARQUITETURA-GERAL.md` (§3.3: «o professor que passou a turma a outro», e duas
+> linhas novas nas tabelas de fronteira).
+>
+> VALIDAÇÃO da segunda metade: `provar-etiqueta-da-aluna` **44/44** (36 da primeira + 8 novas: o
+> núcleo com o slug, dois controlos negativos e a precedência do plano; a página com os dois selos e
+> a guarda). Sem regressão: `provar-transferencia-e-desligamento` **62/62** ·
+> `provar-habilitacao-do-professor` verde · `provar-curadoria-e-limpeza` verde ·
+> `provar-listas-do-acervo` **109** · `check-identidade` **0 erros**.
+>
+> O QUE AINDA NÃO ESTÁ FEITO nesta metade: o professor «sem turma» **continua** a aparecer nas listas
+> de escolha (Turma, elenco, habilitações) — e é o correcto, porque ele está na escola e pode
+> assumir outra; só o **desligado** sai dessas listas. E a **atribuição** de uma turma a outro
+> professor continua a ser o ato manual da direção que a entrada acima já descreve.

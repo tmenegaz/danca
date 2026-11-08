@@ -12,10 +12,15 @@
 > vigentes, **e com rasto** de que já esteve: um PO, uma Turma substituída, ou uma transferência),
 > com a classe `legado` da folha e o mesmo vocabulário do professor desligado. **O gesto não muda**:
 > o «Excluir» do cadastro continua (é limpeza), o «Novo registo» continua, e a anamnese continua
-> travada enquanto um PO a declarar. E o **fluxo de mudança de sala** de uma turma foi documentado e
-> **avaliado**: atende ao registo (`turma-derivar`, mesmo nome, conteúdos migram) e **não atende à
-> cadeia** (a cascata não vê a Sala; `vigenteDe` é declarado e não respeitado). Ver a decisão 125 e
-> o §3.3 do `ARQUITETURA-GERAL.md`.
+> travada enquanto um PO a declarar. **O mesmo pensamento vale para o professor**, e ele media-se
+> errado do outro lado: `professorCurado` perguntava a **todas** as curadorias — inclusive às
+> **substituídas** —, e por isso quem passava a turma a outro ficava «curado» **para sempre**, com
+> o «Excluir» travado por um trabalho que já não era dele. Entra o quarto selo dele, **`sem turma`**
+> — **DERIVADO** (`desligamento.estadoDoProfessor`) —, e `professorCurado` passa a contar só as
+> vigentes. Não se chama `desligado` de propósito: essa palavra é sair da **escola**. E o **fluxo de
+> mudança de sala** de uma turma foi documentado e **avaliado**: atende ao registo (`turma-derivar`,
+> mesmo nome, conteúdos migram) e **não atende à cadeia** (a cascata não vê a Sala; `vigenteDe` é
+> declarado e não respeitado). Ver a decisão 125 e o §3.3 do `ARQUITETURA-GERAL.md`.
 >
 > **Fotografia anterior (08/11/2026, `ea2c558c`).** Nesta entrega, **o
 > «Guardar» do PO deixa de morrer a meio**: o Cloudflare corta em **50 subpedidos por invocação** (e
@@ -4223,9 +4228,11 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   transferência), o selo e a linha da anamnese, o selo da lista de pessoas e a leitura do rasto do PO
   (`alunasDosPlanosDeObservacao`). A **mudança de sala** ficou documentada e avaliada no §3.3:
   atende ao registo, **não** atende à cadeia (a cascata não vê a Sala; a vigência declarada não é
-  respeitada). `provar-etiqueta-da-aluna` **36/36**; sem regressão nas bancadas da anamnese, do
-  elenco, do desligamento e do enquadramento; `check-identidade` **0 erros**. Ver a decisão 125 e o
-  §3.3.
+  respeitada). **A mesma sorte para o professor**: o selo dele passa a ler `sem turma` quando a
+  turma foi para outro, e `professorCurado` deixa de contar as curadorias substituídas — o defeito
+  era o mesmo, e lia-se do outro lado da lista. `provar-etiqueta-da-aluna` **44/44** (36 da aluna +
+  8 do professor); sem regressão nas bancadas da anamnese, do elenco, do desligamento, do
+  enquadramento e da habilitação; `check-identidade` **0 erros**. Ver a decisão 125 e o §3.3.
 - **08/11/2026** — **As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que
   sai.** Ela pediu o fluxo que faltava ao §3.3. **CONFIRMADO no código**, e eram dois buracos
   silenciosos: mudar uma aluna de elenco eram **dois atos**, e a metade feita deixava-a **fora de

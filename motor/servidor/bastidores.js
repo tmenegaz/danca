@@ -1022,6 +1022,14 @@ function professorVinculadoA(usos, p) {
  * uma turma é um professor com trabalho atribuído, e o nome dele já vai nos documentos dessa
  * curadoria.
  *
+ * SÓ AS CURADORIAS DE HOJE CONTAM (08/11/2026). Ela era `curs.some(...)` sobre a lista inteira, e
+ * uma curadoria SUBSTITUÍDA continuava a contar — para sempre. O efeito media-se na lista: quando
+ * outro professor assumia a turma (a curadoria anterior desce para o histórico com
+ * `substituidaPor`), o que saiu ficava «curado» eternamente, sem turma nenhuma na coluna e com o
+ * «Excluir» desabilitado por um trabalho que já não é dele. É o mesmo defeito da aluna que sai do
+ * elenco, do lado do professor: o selo respondia ao passado e lia-se como presente. Quem ficou no
+ * passado passa a ter o seu próprio nome — `sem turma` (ver `estadoDoProfessor`).
+ *
  * `null` (não deu para ler a lista) conta como curado, pela mesma razão do plano: na dúvida, não
  * se mexe.
  */
@@ -1030,9 +1038,24 @@ function professorCurado(curs, p) {
   const nome = String((p && p.nome) || '').trim();
   const slug = slugDoProfessor(p) || slugificar(nome);
   return curs.some((c) => {
-    if (!c) return false;
+    if (!c || c.substituidaPor) return false;
     const de = String(c.professor || '').trim();
     return de !== '' && (de === nome || de === slug || slugificar(de) === slug);
+  });
+}
+
+/**
+ * O PROFESSOR QUE JÁ NÃO DÁ TURMA — o quarto selo, e o `noPlano` que só o servidor sabe.
+ *
+ * A derivação é do NÚCLEO (`desligamento.estadoDoProfessor`), pela mesma razão de todas as outras:
+ * ela é regra, e a regra é pura. O que fica aqui é a única coisa que ela não pode saber sem ler os
+ * envelopes — se um Plano de Ensino já cita o nome dele (o `vinculado`), que vem antes deste
+ * estado.
+ */
+function estadoDoProfessor(curs, usos, p) {
+  if (!Array.isArray(curs)) return { semTurma: false };
+  return desligamento.estadoDoProfessor({
+    professor: p, curadorias: curs, noPlano: professorVinculadoA(usos, p),
   });
 }
 
@@ -2510,6 +2533,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     const noPlano = professorVinculadoA(usos, p);
     const profPreso = curado || noPlano;
     const desligadoAgora = desligamento.estaDesligado(p);
+    /* O QUARTO SELO (08/11/2026): ele já dirigiu uma turma que passou a outro, e hoje não dirige
+     * nenhuma — mas continua na escola. Ver `estadoDoProfessor` para a derivação e para a razão do
+     * nome (a palavra «desligado» já significa sair da ESCOLA, e são factos diferentes). */
+    const semTurmaAgora = desligadoAgora || noPlano || curado
+      ? { semTurma: false }
+      : estadoDoProfessor(curs, usos, p);
     /* O DESLIGADO É UM ESTADO PRÓPRIO (08/11/2026), e vem primeiro: ele já não está em curadoria
      * activa (foi encerrada) nem recebe turmas novas, mas continua a ser o autor dos documentos que
      * assinou. O selo `legado` — o do traço ponteado, já desenhado na folha — diz «é memória, não é
@@ -2523,7 +2552,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         ? '<span class="selo vinculada" title="este professor já está num plano de ensino; apagá-lo romperia a proveniência">vinculado</span>'
         : curado
           ? '<span class="selo vinculada" title="este professor já está numa curadoria; enquanto a curadoria não gerar plano de ensino, remova a curadoria para poder mexer nele">curado</span>'
-          : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
+          : semTurmaAgora.semTurma
+            ? '<span class="selo legado" title="este professor já dirigiu uma turma nesta escola e hoje não '
+              + 'dirige nenhuma'
+              + (semTurmaAgora.turma ? ' («' + esc(semTurmaAgora.turma) + '», até '
+                + esc(semTurmaAgora.em || '—') + ')' : '')
+              + '; o registo fica porque o nome dele vai nos documentos que assinou — e ele continua '
+              + 'disponível para assumir outra turma">sem turma</span>'
+            : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
     // AS TURMAS DO PROFESSOR: pelo slug do cadastro e, como o plano pode ter gravado o nome
     // em vez do slug, também pelo slug do nome. As duas chaves descrevem a mesma pessoa.
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
@@ -2532,8 +2568,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<span class="acoes">' + (desligadoAgora
         ? '<span class="sub" title="o desligamento não apaga o registo: ele é a memória de quem deu '
           + 'estas aulas">fora da escola</span>'
-        : profPreso
-          ? '<button class="acao secundario pequena" disabled title="Vinculado a um plano de ensino: não se apaga">Excluir</button>'
+        : (profPreso || semTurmaAgora.semTurma)
+          ? '<button class="acao secundario pequena" disabled title="'
+            + (semTurmaAgora.semTurma && !profPreso
+              ? 'Apagá-lo deixaria a curadoria que ele dirigiu a apontar para um slug sem nome: o '
+                + 'registo é onde o nome dele existe. A turma que ele deixou já está com outro '
+                + 'professor — é essa a memória da passagem dele.'
+              : 'Vinculado a um plano de ensino: não se apaga')
+            + '">Excluir</button>'
           : '<button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button>')
       + '</span></li>');
   }

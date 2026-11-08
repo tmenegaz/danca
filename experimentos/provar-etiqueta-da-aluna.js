@@ -328,6 +328,50 @@ async function paginaDasAnamnese(linhasDeBase_, curadorias_, sujeitos_) {
       semRastoNaProducao && semRastoNaProducao.texto === 'livre', semRastoNaProducao);
   }
 
+  console.log('\nE · O professor que passou a turma a outro: «sem turma», e não «curado» (08/11/2026)');
+  {
+    /* O MESMO PENSAMENTO, DO OUTRO LADO. A curadoria de quem saiu desce para o histórico com
+     * `substituidaPor`, e o selo perguntava a TODAS — por isso o que saiu ficava «curado» para
+     * sempre, sem turma nenhuma na coluna e com o «Excluir» travado por um trabalho que já não era
+     * dele. */
+    const CURO = [
+      { id: 'c1', professor: 'ana', turmas: ['Sala 1'], alunas: ['Aluna A'],
+        substituidaPor: 'c2', substituidaEm: '2026-11-01' },
+      { id: 'c2', professor: 'bia', turmas: ['Sala 1'], alunas: ['Aluna A'] },
+    ];
+    const ana = desligamento.estadoDoProfessor({ professor: { nome: 'Ana' }, curadorias: CURO });
+    provar('o núcleo diz que a Ana já não dá turma, e diz de qual e até quando',
+      ana.semTurma === true && ana.turma === 'Sala 1' && ana.em === '2026-11-01', ana);
+    provar('…e resolve pelo SLUG também — o cadastro resolve as duas formas',
+      desligamento.estadoDoProfessor({ professor: { nome: 'Ana Maria', slug: 'ana' }, curadorias: CURO })
+        .semTurma === true);
+    provar('CONTROLE NEGATIVO: quem está numa curadoria vigente não é «sem turma»',
+      desligamento.estadoDoProfessor({ professor: { nome: 'Bia' }, curadorias: CURO }).semTurma === false);
+    provar('CONTROLE NEGATIVO: quem nunca esteve numa curadoria não é «sem turma»',
+      desligamento.estadoDoProfessor({ professor: { nome: 'Zed' }, curadorias: CURO }).semTurma === false);
+    provar('O PLANO MANDA MAIS: quem já está num plano de ensino é «vinculado», não «sem turma»',
+      desligamento.estadoDoProfessor({ professor: { nome: 'Ana' }, curadorias: CURO, noPlano: true })
+        .semTurma === false);
+
+    const html = bastidores.paginaProducao(
+      ESCOLA, { professor: 'tiago-menegaz', ciclo: '01', query: '' },
+      [{ nome: 'Ana', slug: 'ana' }, { nome: 'Bia', slug: 'bia' }], ['Aluna A'], 'Dono', 'dono',
+      [], [], {}, CURO, [], [], { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+      { modo: 'clara', paleta: 'pedra' }, '', [], new Set());
+    const seloDe = (nome) => {
+      const pedaco = new RegExp('<b>' + nome + '</b>\\s*<span class="selo ([^"]*)"[^>]*>([^<]*)</span>').exec(html);
+      return pedaco ? { classe: pedaco[1], texto: pedaco[2] } : null;
+    };
+    const seloAna = seloDe('Ana');
+    provar('na Produção, a Ana lê-se «sem turma», com a classe `legado`',
+      seloAna && seloAna.texto === 'sem turma' && seloAna.classe === 'legado', seloAna);
+    provar('…e o «Excluir» dela fica travado, com o motivo: é onde o nome dela existe',
+      !/data-alvo="Ana"/.test(html) || /data-alvo="Ana"[^>]*disabled/.test(html));
+    const seloBia = seloDe('Bia');
+    provar('CONTROLE: a Bia, que assumiu a turma, continua «curado»',
+      seloBia && seloBia.texto === 'curado', seloBia);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
