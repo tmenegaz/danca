@@ -1781,6 +1781,63 @@ A prova passou a afirmar a **regra** — a cadeia inteira aparece, cada elo subs
 topo é um só, o único que ninguém declara ter ajustado. Uma prova que envelhece com o uso do sistema
 não estava a medir a regra.
 
+### 5.26 O orçamento de subpedidos — e por que o «Guardar» deixou de morrer a meio
+
+O §4 argumenta por que não há banco e o §7.1 conta o que custa cada escrita; esta secção é o outro
+lado dessa conta, e é o único limite desta arquitetura que **não se negocia**.
+
+**O limite.** O Cloudflare conta cada `fetch` que o Worker faz para fora como um **subpedido**, e o
+teto é **por invocação**: 50 no plano gratuito, 10.000 por omissão numa conta paga. O
+`limits.subrequests` do wrangler **só pode subir numa conta paga** — no gratuito, 50 é o máximo.
+Não é um número que se ajuste por gosto: é a fronteira do desenho.
+
+**O que aconteceu (08/11/2026).** A pesquisadora percorreu a cadeia depressa — criar a aluna,
+anamnese, elenco, turma, plano, PO — e o «Guardar» do PO respondeu «Too many subrequests by single
+Worker invocation». O envelope entrou, o `-po.md` entrou, e **as fontes do ciclo não**: o Worker não
+devolve erro quando o teto estoura, ele **aborta a invocação a meio**, e o repositório guarda o que
+já tinha entrado. O pacote passou a ter o `-po.md` a apontar `po-…-0956` e o `-dados.json` a
+descrever `po-…-2211` — dois documentos do mesmo ciclo a discordar, com uma âncora a certificar o
+conjunto.
+
+**O custo, medido.** O escritor do ciclo era **N+1 por construção**: um `POST /git/blobs` por
+arquivo (sete) e um `GET` por nome de elo para saber se colidia (três). Com as fontes reais do
+ciclo: **26 subpedidos só nele** — e a rota ainda gasta os seus antes de lá chegar.
+
+**A regra, e são três partes.**
+
+1. **O N+1 sai.** O `POST /git/trees` cria o blob da entrada que traz `content`: sete subpedidos
+   passam a zero, e o commit continua a ser **um só** (o lote de 22/10/2026, intacto). A colisão do
+   nome do elo pergunta-se **à pasta**, uma vez, em vez de arquivo a arquivo. Medido: **16**.
+2. **O orçamento é UM por pedido, e é contado.** Um contador embrulha o `fetch` da invocação, e o
+   mesmo embrulho é o `fetchImpl` de todos os escritores e do acervo. Um contador por módulo era a
+   leitura que faltava: cada um julgava-se dentro do limite enquanto o conjunto já o tinha passado.
+   O teto vem da `vars` `SUBPEDIDOS`, com o do plano gratuito por omissão — conservador de
+   propósito, porque o custo de errar é assimétrico: por baixo, o «Guardar» recusa e diz porquê; por
+   cima, ele morre a meio e mente sobre o que gravou.
+3. **Não cabe? Não se começa.** O escritor recusa antes do primeiro subpedido, e a **rota** consulta
+   a previsão antes do `-po.md` — a cadeia é atómica na prática: ou entram os dois, ou não entra
+   nenhum. É esta parte que impede a repetição exata do defeito: o `-po.md` sozinho é um ciclo a
+   mentir sobre si mesmo, e a geração seguinte recusa-o (é o que o `check-pacote` faz).
+
+**E a tela, que é a outra metade.** O limite não se resolve só no servidor: um professor que clica
+o passo seguinte antes de o anterior acabar põe duas escritas e duas gerações a competir pelo mesmo
+`main`. A porta ganha o **véu da operação** (`.veu`, no catálogo da identidade visual): cobre, põe o
+conteúdo `inert` — ponteiro, teclado e leitor de ecrã — e **diz** o passo. Dura até o trabalho
+acabar, e não até a resposta chegar: quem sabe se a geração terminou é `/api/geracao`. Um `disabled`
+no botão não bastava: a lista, o menu e os links são caminhos para o mesmo repositório.
+
+**E o CI, que apanhava o resto.** Três gerações do mesmo ciclo em cinquenta segundos fizeram a
+última perder a corrida com «CONFLICT (content)» nos dois PDFs, e o rebase morreu com «conflito de
+MATERIAL». A regra do `.github/scripts/conflito-do-derivado.sh` só conhecia `indices/**` e `*.fipp`
+como derivados; para o `gerar-ciclo.yml` **o pacote do ciclo também é derivado** — ele acabou de o
+correr. O script aceita `DERIVADOS_DO_CHAMADOR` e diz quantos conciliou; o workflow regera o pacote
+sobre o `main` novo quando esse número não é zero. É o mesmo princípio do §5.3 aplicado ao binário:
+**o derivado refaz-se, não se escolhe.**
+
+**A prova.** `provar-orcamento-do-guardar` **16** (zero blobs, uma listagem, um commit, 16
+subpedidos, e a recusa sem escrita; **8 de 16** no `HEAD`) e `provar-trava-da-operacao` **19**, num
+Chrome sobre a porta publicada (o véu cobre, diz, tranca e sai; **2 de 19** no `HEAD`).
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

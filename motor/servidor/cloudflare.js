@@ -24,6 +24,7 @@ const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
+const { contarSubpedidos, LIMITE_PADRAO } = require('./subpedidos.js');
 // A CASCATA DO CICLO — a mesma rotina da Produção (05/11/2026).
 const repoEscola = require('./repo-escola.js');
 const acervo = require('./acervo-envelopes.js');
@@ -179,18 +180,19 @@ function senhaDaEscola(env) {
  * o cache: as três rotas que consultam o índice numa só página pagam UMA ida ao GitHub. O KV
  * entra como `legado` — só para LEITURA, e só do que ainda não migrou.
  */
-function criarArmazenamento(env) {
+function criarArmazenamento(env, fetchImpl) {
   const kv = criarCloudflare(env);
   const lancamentos = criarAcervoDeLancamentos({
     token: (env && env.GITHUB_TOKEN) || null,
     dono: DONO_PADRAO,
     repo: REPO_PADRAO,
     ref: REF_PADRAO,
+    fetchImpl,
     // A `SENHA_CRIPTO` mantém a CÓPIA do pacote em dia com a fonte — é ela que o gerador
     // copia, e a fonte em claro é a que `ler_lancadas()` lê. Ver `acervo-lancamentos.js`.
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
   });
-  return acervo.combinar(acervo.doAmbiente(env, { legado: kv }), kv, {
+  return acervo.combinar(acervo.doAmbiente(env, { legado: kv, fetchImpl }), kv, {
     'lancamento/': lancamentos,
   });
 }
@@ -322,15 +324,21 @@ function lerLinhasDeBaseDoEnv(env) {
   };
 }
 
-function passosDeGeracao(env) {
+function passosDeGeracao(env, fetchImpl) {
   const token = (env && env.GITHUB_TOKEN) || null;
+  /* O ORÇAMENTO DE SUBPEDIDOS É UM SÓ POR PEDIDO (08/11/2026). Todos os escritores recebem o
+   * MESMO `fetch` contado — o `escreverPO`, o `escreverPlano` e o `escreverCiclo` gastam do mesmo
+   * teto, e é isso que permite ao último perguntar o que sobra antes de começar. Um contador por
+   * módulo era a leitura que faltava: cada um julgava-se dentro do limite enquanto o conjunto já
+   * o tinha passado. */
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
-  const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO });
+  const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO, fetchImpl });
   const escreverPlano = criarEscritorDePlano({
     token,
     dono: 'tmenegaz',
     repo: 'danca',
     ref: 'main',
+    fetchImpl,
     // O CADASTRO DA TURMA — sem ele o manifesto da variante não pode ser derivado
     // (19/10/2026). Lê-se pela MESMA função que a rota do plano preenchido usa: uma segunda
     // leitura da mesma chave divergiria no dia em que uma das duas mudasse, e o sintoma seria
@@ -344,6 +352,7 @@ function passosDeGeracao(env) {
     repo: 'danca',
     ref: 'main',
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
+    fetchImpl,
   });
   // O ESTADO DA GERAÇÃO vive no KV da escola, ao lado do cadastro de turmas — e é o
   // mesmo `PADD_KV`, porque é o mesmo armazenamento da mesma escola. Sem o binding, o
@@ -412,7 +421,14 @@ async function fetch(request, env, opcoes) {
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao } = passosDeGeracao(env);
+  /* O ORÇAMENTO DESTE PEDIDO — um contador, um teto, todos os escritores (08/11/2026).
+   *
+   * O teto vem da `vars` `SUBPEDIDOS` quando ela existe (uma conta paga levanta-o sem se tocar no
+   * código); sem ela vale o do plano gratuito, 50. É conservador de propósito: por baixo, o
+   * «Guardar» recusa e diz porquê; por cima, ele morre a meio — e foi assim que o `-po.md` de
+   * 08/11/2026 ficou gravado com as fontes do ciclo por gravar. */
+  const subpedidos = contarSubpedidos(fetch, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
+  const { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao } = passosDeGeracao(env, subpedidos);
   // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
   // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
   // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
@@ -465,7 +481,7 @@ async function fetch(request, env, opcoes) {
     return resultado;
   };
   const responder = montarPorta({
-    armazenamento: criarArmazenamento(env),
+    armazenamento: criarArmazenamento(env, subpedidos),
     conteudoTexto,
     esquemaTexto,
     poTexto,

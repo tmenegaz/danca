@@ -686,7 +686,7 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
  * `legado` é o armazenamento do KV (o que a ponte já construía). Passado aqui, ele nunca é
  * escrito; é a reserva de leitura dos registros que ainda não migraram.
  */
-function doAmbiente(env, { legado, escola, cifrar } = {}) {
+function doAmbiente(env, { legado, escola, cifrar, fetchImpl } = {}) {
   return criarAcervoDeEnvelopes({
     token: (env && env.GITHUB_TOKEN) || null,
     dono: DONO_PADRAO,
@@ -696,6 +696,9 @@ function doAmbiente(env, { legado, escola, cifrar } = {}) {
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
     cifrar,
     legado,
+    /* O FETCH CONTADO DO PEDIDO, quando a ponte o passa (08/11/2026): as leituras do acervo gastam
+     * do MESMO orçamento de subpedidos que as escrituras do ciclo — é o que faz a conta fechar. */
+    fetchImpl,
   });
 }
 

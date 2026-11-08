@@ -953,3 +953,5 @@ experimentos/modelo-formulario/*
 # elenco depois de o Plano de Observação estar gravado, e as rotas de escrita aceitavam o gesto.
 !experimentos/provar-vinculo-do-elenco.js
 !experimentos/provar-remocao-do-elenco.js
+!experimentos/provar-orcamento-do-guardar.js
+!experimentos/provar-trava-da-operacao.js

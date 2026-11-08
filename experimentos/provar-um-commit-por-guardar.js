@@ -86,9 +86,15 @@ function githubFalso({ falharCommit = false } = {}) {
     if (metodo === 'POST' && /\/git\/trees$/.test(u)) {
       inventario.arvore = corpo;
       inventario.arquivos = (corpo.tree || []).map((t) => t.path);
-      // O que cada caminho RECEBEU — é isto que a segunda passagem serve de volta.
+      // O que cada caminho RECEBEU — é isto que a segunda passagem serve de volta. Desde
+      // 08/11/2026 o conteúdo viaja DENTRO da entrada da árvore (`content`), e não num blob à
+      // parte: a árvore cria o blob, e a entrada deixa de trazer `sha`. As duas formas são lidas
+      // aqui porque a prova mede o que o caminho recebeu, não por que porta entrou.
       inventario.porCaminho = {};
-      for (const t of corpo.tree || []) inventario.porCaminho[t.path] = inventario.conteudos[t.sha];
+      for (const t of corpo.tree || []) {
+        inventario.porCaminho[t.path] = t.content !== undefined
+          ? String(t.content) : inventario.conteudos[t.sha];
+      }
       return { status: 201, ok: true, json: async () => ({ sha: 't1' }) };
     }
     if (metodo === 'POST' && /\/git\/commits$/.test(u)) {

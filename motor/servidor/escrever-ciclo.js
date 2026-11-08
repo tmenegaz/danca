@@ -20,6 +20,7 @@
 
 const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto, dicaDeAuth } = require('./escrever-po.js');
 const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
+const { orcamentoDe } = require('./subpedidos.js');
 const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
 const {
@@ -106,7 +107,36 @@ async function lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl }) 
   return { existe: true, sha: dados.sha || null, texto: decodificarBase64(dados.content || '') };
 }
 
-/** Escreve (cria ou atualiza) um arquivo remoto, devolvendo o resultado. */
+/**
+ * OS NOMES QUE JÁ EXISTEM NUMA PASTA REMOTA — UMA leitura para o que eram N (08/11/2026).
+ *
+ * O `caminhoDoElo` perguntava `existe?` POR ARQUIVO: cada fonte que mudava custava um `GET` a
+ * mais para saber se o nome do elo (carimbado com o id do PO) já estava ocupado. Com sete fontes
+ * derivadas eram sete subpedidos — e o nome só colide quando o MESMO PO é gravado duas vezes
+ * seguidas, caso em que a primeira pergunta já responde.
+ *
+ * A LISTAGEM DA PASTA responde por todos de uma vez. `404` é pasta que ainda não existe — nenhum
+ * nome ocupado, e é a resposta certa (não um erro).
+ */
+async function nomesDaPastaRemota({ token, dono, repo, ref, pasta, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + pasta;
+  const cabecalhos = {
+    'Accept': ACEITE,
+    'Authorization': 'Bearer ' + token,
+    'X-GitHub-Api-Version': API_VERSAO,
+    'User-Agent': 'danca-worker',
+  };
+  const res = await f(url, { method: 'GET', headers: cabecalhos });
+  if (res.status === 404) return { existe: false, nomes: new Set() };
+  if (res.status !== 200) return { existe: false, nomes: new Set(), erro: 'HTTP ' + res.status };
+  let dados = null;
+  try { dados = await res.json(); } catch { dados = null; }
+  const nomes = new Set((Array.isArray(dados) ? dados : [])
+    .map((e) => String((e && e.name) || '')).filter(Boolean));
+  return { existe: true, nomes };
+}
+
 /**
  * UM arquivo, um commit — pela API de `contents`.
  *
@@ -196,18 +226,25 @@ async function gravarArquivosNumCommit({ token, dono, repo, ref, arquivos, mensa
       return { ok: false, erro: 'a referência ' + ref + ' não devolveu commit/árvore', escritos: [] };
     }
 
-    // Um blob por arquivo. O conteúdo vai em base64 — a mesma codificação que o `contents` usa.
-    const entradas = [];
-    for (const a of lista) {
-      const blob = await pedir(raiz + '/git/blobs', {
-        method: 'POST',
-        body: JSON.stringify({ content: codificarBase64(a.conteudo), encoding: 'base64' }),
-      });
-      if (!blob.ok) {
-        return { ok: false, status: blob.status, erro: 'não criei o blob de ' + a.caminho + ': HTTP ' + blob.status, escritos: [] };
-      }
-      entradas.push({ path: a.caminho, mode: '100644', type: 'blob', sha: blob.corpo && blob.corpo.sha });
-    }
+    /* O CONTEÚDO VAI DENTRO DA ÁRVORE, E NÃO UM BLOB POR ARQUIVO (08/11/2026).
+     *
+     * MEDIDO, e é o que estourou o orçamento do Worker. O `POST /git/blobs` aceita UM arquivo por
+     * chamada, e cada chamada é um SUBPEDIDO: um «Guardar» de ciclo com oito arquivos gastava oito
+     * subpedidos só a criar blobs. Somados às leituras (fontes, elos, `.conf`, schema, declaração,
+     * `-dados.json`, cópia cifrada), o caminho do «Guardar» chegou a 26 subpedidos SÓ NESTE
+     * escritor — e o plano gratuito do Cloudflare corta em 50 por invocação, contando o que a rota
+     * já gastou antes de cá chegar. Foi assim que o «Guardar» do PO de 08/11/2026 gravou o
+     * envelope e o `-po.md` e NÃO gravou as fontes do ciclo: a última escrita do pedido morreu a
+     * meio, e o pacote ficou com dois POs a discordar.
+     *
+     * A ÁRVORE JÁ SABE CRIAR O BLOB: uma entrada do tipo `blob` com `content` (texto ou base64)
+     * dispensa o `POST /git/blobs` e é criada na mesma chamada que monta a árvore. Oito
+     * subpedidos passam a ZERO, e o commit continua a ser um só — a razão de ser desta função
+     * (22/10/2026) fica intacta.
+     */
+    const entradas = lista.map((a) => ({
+      path: a.caminho, mode: '100644', type: 'blob', content: a.conteudo,
+    }));
 
     const arvore = await pedir(raiz + '/git/trees', {
       method: 'POST',
@@ -424,7 +461,25 @@ function docsGerados({ plano }) {
  */
 function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }) {
   if (!token) return null;
-  return async ({ plano, po, contexto, linhaDeBase, anamneses }) => {
+
+  /* QUANTO CUSTA ESTE TRABALHO, ANTES DE O COMEÇAR (08/11/2026).
+   *
+   * O teto de subpedidos do Cloudflare é POR INVOCAÇÃO (50 no plano gratuito), e o «Guardar» não
+   * é o único a gastar dele: a rota já leu o plano, a linha de base, as curadorias e as anamneses
+   * antes de cá chegar. Quando o teto estoura, a invocação é abortada A MEIO — e foi assim que o
+   * `-po.md` ficou gravado com as fontes do ciclo por gravar.
+   *
+   * Esta conta é deliberadamente generosa (o pior caso): uma leitura por fonte derivada, mais o
+   * `.conf`, o `-dados.json`, o schema, a declaração, a listagem de `historico/` (só quando alguma
+   * fonte muda) e as cinco chamadas do commit único (referência, commit, árvore, commit, referência).
+   * Por cima do real, e não por baixo: recusar a mais custa uma repetição; recusar a menos custa
+   * um ciclo pela metade.
+   */
+  const fontesPrevistas = 7;   // aula, referências, captura, harmonização, dados, notação, glossário
+  const custoPrevisto = 1 + 1 + fontesPrevistas + 1 + 1 + 1 + 1 + 5;
+  const custoDasFontes = (n) => 1 + 1 + n + 1 + 1 + 1 + 1 + 5;
+
+  const escrever = async ({ plano, po, contexto, linhaDeBase, anamneses }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
     const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
@@ -440,6 +495,20 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
      * `lote` guarda o que escrever; `marcas` guarda a quem devolver o resultado — porque o
      * relatório continua a dizer arquivo por arquivo o que entrou.
      */
+    /* A PRIMEIRA PERGUNTA, ANTES ATÉ DA LEITURA DO `.conf` (08/11/2026). Com o orçamento já no
+     * limite, nem os dois `GET` de preparação devem sair: a recusa tem de custar ZERO. A conta
+     * aqui é a do pior caso (sete fontes); a exata volta a ser feita quando o plano já disse
+     * quantas são. */
+    const orcamentoDeFora = orcamentoDe(fetchImpl);
+    if (orcamentoDeFora && !orcamentoDeFora.coube(custoPrevisto)) {
+      return Object.assign(relatorio, {
+        ok: false,
+        motivo: 'orcamento',
+        erro: orcamentoDeFora.motivo(custoPrevisto),
+        orcamento: { usados: orcamentoDeFora.usados, limite: orcamentoDeFora.limite },
+      });
+    }
+
     const lote = [];
     const marcas = [];
     const juntar = (caminho, conteudo, aoOk) => {
@@ -538,6 +607,21 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       fontes.push({ sufixo: '-glossario-' + slugDe(notacao) + '.md', md: derivarGlossario({ plano, contexto: ctx }) });
     }
 
+    /* O ORÇAMENTO, ANTES DO PRIMEIRO SUBPEDIDO DE ESCRITA (08/11/2026).
+     *
+     * Se não couber, NADA é escrito — nem as fontes, nem a cópia cifrada, nem o `.conf`. É a
+     * diferença entre «repita o Guardar» e «o ciclo ficou meio gravado»: a invocação que estoura
+     * o teto é abortada a meio, e o repositório guarda o que já tinha entrado. */
+    const orcamento = orcamentoDe(fetchImpl);
+    if (orcamento && !orcamento.coube(custoDasFontes(fontes.length))) {
+      return Object.assign(relatorio, {
+        ok: false,
+        motivo: 'orcamento',
+        erro: orcamento.motivo(custoDasFontes(fontes.length)),
+        orcamento: { usados: orcamento.usados, limite: orcamento.limite },
+      });
+    }
+
     /*
      * AS FONTES DERIVADAS MUDAM COM O PO — e a versão substituída fica como elo
      * (22/10/2026).
@@ -557,6 +641,10 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
      */
     const carimboDoPO = (po && (po.id || po.carimbo)) || 'po';
     const ocupados = new Set(lote.map((x) => x.caminho));
+    /* A pasta `historico/` é lida UMA vez, à primeira fonte que muda (08/11/2026) — ver
+     * `nomesDaPastaRemota`. Fica `null` enquanto nenhuma fonte mudou: um «Guardar» sem alteração
+     * não paga nem esta leitura. */
+    let daPasta = null;
     const caminhoDoElo = async (caminho) => {
       /*
        * OS ELOS VIVEM EM `historico/`, E NÃO AO LADO DAS FONTES — e isto não é arrumação.
@@ -579,10 +667,21 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       const m = /^(.*?)(\.[a-z0-9]+)$/i.exec(arquivo);
       const base = m ? m[1] : arquivo;
       const ext = m ? m[2] : '';
+      /* A COLISÃO DO NOME PERGUNTA-SE À PASTA, E UMA VEZ SÓ (08/11/2026). Era um `GET` por
+       * arquivo para saber se o nome já existia — sete subpedidos no caminho do «Guardar», que é
+       * justamente o que estourava o orçamento do Worker. A listagem vem em cache local da
+       * chamada: a segunda fonte que muda não paga nada por perguntar. */
+      if (!daPasta) {
+        daPasta = await nomesDaPastaRemota({
+          token, dono, repo, ref, fetchImpl, pasta: dir.replace(/\/+$/, ''),
+        });
+      }
+      const jaExiste = (nome) => ocupados.has(nome)
+        || Boolean(daPasta && daPasta.nomes && daPasta.nomes.has(nome.split('/').pop()));
       let n = 0;
       let alvo = dir + base + '.antes-de-' + carimboDoPO + ext;
       // O mesmo carimbo a substituir duas vezes não pode colidir consigo próprio.
-      while (ocupados.has(alvo) || (await lerArquivoRemoto({ token, dono, repo, ref, caminho: alvo, fetchImpl })).existe) {
+      while (jaExiste(alvo)) {
         n += 1;
         alvo = dir + base + '.antes-de-' + carimboDoPO + '-' + n + ext;
       }
@@ -630,10 +729,15 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     if (!senhaCripto) {
       relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: 'sem SENHA_CRIPTO no Worker' };
     } else {
-      const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado, fetchImpl });
-      if (atualCifrado.erro) {
+      /* A LEITURA DA CÓPIA SÓ SE FAZ QUANDO ELA DECIDE ALGUMA COISA (08/11/2026). Era um `GET`
+       * a mais em TODOS os «Guardar»: quando o `-dados.json` foi regerado nesta gravação, a cópia
+       * vai ser reescrita de qualquer maneira, e perguntar se ela existe não muda nada. Um
+       * subpedido é barato sozinho e caro no fim do orçamento — e este era dos que não pagavam. */
+      const atualCifrado = dadosMudou ? null
+        : await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado, fetchImpl });
+      if (atualCifrado && atualCifrado.erro) {
         relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: atualCifrado.erro };
-      } else if (atualCifrado.existe && !dadosMudou) {
+      } else if (atualCifrado && atualCifrado.existe && !dadosMudou) {
         relatorio.puladas.push(caminhoCifrado);
         relatorio.cifrado = { ok: true, caminho: caminhoCifrado, nota: 'a cópia já existia' };
       } else {
@@ -796,10 +900,21 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
 
     return relatorio;
   };
+
+  /* A PREVISÃO VAI PENDURADA NO ESCRITOR, para quem chama perguntar ANTES de gastar o primeiro
+   * subpedido. `custoDasFontes` é pública pela mesma razão que a conta existe: quem sabe quantas
+   * fontes o plano gera consegue ser exato. */
+  escrever.previsao = () => custoPrevisto;
+  escrever.custoDasFontes = custoDasFontes;
+  /* O ESTADO DO ORÇAMENTO, para quem chama perguntar o que sobra ANTES de gastar (a rota usa-o
+   * para decidir se a cadeia inteira — `-po.md` e fontes — cabe, em vez de gravar metade). */
+  escrever.orcamento = () => orcamentoDe(fetchImpl);
+  return escrever;
 }
 
 module.exports = {
   gravarArquivosNumCommit,
+  nomesDaPastaRemota,
   criarEscritorDeCiclo,
   caminhoDaFonte,
   caminhoDoSchemaDeCaptura,

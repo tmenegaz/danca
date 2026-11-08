@@ -40689,3 +40689,118 @@ o único que ninguém declara ter ajustado. **30/30**; contraprova com a marca r
   que se pode fazer sem inventar dado pedagógico.
 - **O pacote da `batata-sala-rosa` continua a misturar dois POs** — ver acima. Não é desta entrega e
   não foi forçado: a cópia cifrada é derivada e só a chave da escola a produz.
+
+## 08/11/2026 — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa de se atropelar
+
+**O que motivou.** Ela contou como chegou ao estado quebrado: «a aluna C […] eu coloquei ela dentro
+do elenco, depois eu mandei gerar a turma novamente, depois eu fiz o plano de ensino novamente e fiz
+o plano de observação novamente. Só que eu fiz rapidamente, eu fui dando cliques […] e não deu tempo
+do workflow das actions terminarem seus processos.» E a tela respondeu: «A geração do pacote NÃO foi
+disparada: **Too many subrequests by single Worker invocation**». Ia pedir outra vez o mesmo que já
+tinha pedido antes: **um indicador de carga que impeça o passo seguinte enquanto o anterior não
+acaba**.
+
+**O diagnóstico, medido.** O Cloudflare conta cada `fetch` do Worker como um subpedido, e o teto é
+**por invocação: 50** no plano gratuito — o `limits.subrequests` do wrangler só pode subir numa conta
+paga, portanto no gratuito 50 é o máximo e o problema não se resolve por configuração. O caminho do
+«Guardar» gastava mais do que isso, e o escritor do ciclo era **N+1 por construção**: um
+`POST /git/blobs` por arquivo (sete) e um `GET` por nome de elo para saber se colidia (três).
+**Medido com um contador e as fontes reais do ciclo: 26 subpedidos só no escritor.** Quando o teto
+estoura, o Worker não devolve erro — a invocação é **abortada a meio**, e o repositório guarda o que
+já entrou. Foi exatamente o que aconteceu: o envelope entrou (`b7b5a66f`), o `-po.md` entrou
+(`06bd359d`) e as fontes do ciclo não — e o pacote ficou com o `-po.md` a apontar `po-…-0956` e o
+`-dados.json` a descrever `po-…-2211`.
+
+**O que foi decidido.**
+
+1. **O que se muda é o custo, não o teto.** O `POST /git/trees` cria o blob da entrada que traz
+   `content` — sete subpedidos passam a zero, e o commit continua a ser um só (a razão de ser do
+   lote, de 22/10/2026, fica intacta). E a colisão do nome do elo pergunta-se **à pasta**, uma vez,
+   em vez de arquivo a arquivo: `nomesDaPastaRemota`. O escritor desce de **26 para 16**.
+2. **O orçamento passa a ser um só por pedido, e é contado.** `motor/servidor/subpedidos.js`
+   embrulha o `fetch` da invocação com um contador, e o **mesmo** embrulho é o `fetchImpl` de todos
+   os escritores e do acervo — o `escreverPO`, o `escreverPlano` e o `escreverCiclo` gastam do mesmo
+   teto. Um contador por módulo era a leitura que faltava: cada um julgava-se dentro do limite
+   enquanto o conjunto já o tinha passado.
+3. **Não cabe? Não se começa.** Quem sabe o custo pergunta antes: o escritor recusa com
+   `motivo: 'orcamento'` **antes do primeiro subpedido** e a rota consulta a previsão **antes do
+   `-po.md`**, para a cadeia ser atómica na prática — ou entram os dois, ou não entra nenhum. Isto
+   é o que impede a repetição exata do defeito de hoje: o `-po.md` sozinho é um ciclo a mentir sobre
+   si mesmo.
+4. **A tela tranca e diz.** `porta/index.html` ganha o véu da operação (`.veu`, em
+   `tools/templates/ciclo.css`): cobre a janela, põe o conteúdo `inert` — ponteiro, teclado e leitor
+   de ecrã — e nomeia o que está a acontecer. Duras até o trabalho acabar, e não até a resposta
+   chegar: depois de gravar, o PO ainda está a ser gerado no GitHub, e quem sabe se acabou é
+   `/api/geracao`. Um `disabled` no botão não bastava: a lista, o menu e os links continuam a ser
+   caminhos para o mesmo repositório.
+5. **A geração repetida deixa de matar o pacote.** As três gerações do mesmo ciclo em cinquenta
+   segundos (`42482308876`, `42482355995`, `42482370078`) fizeram a terceira perder a corrida com
+   «CONFLICT (content)» nos dois PDFs — e o rebase morreu com «conflito de MATERIAL», porque a regra
+   só conhecia `indices/**` e `*.fipp` como derivados. Para o `gerar-ciclo.yml` **o pacote do ciclo
+   também é derivado**: ele acabou de o correr, e a resposta certa é refazê-lo, não escolher um dos
+   lados. `.github/scripts/conflito-do-derivado.sh` passa a aceitar `DERIVADOS_DO_CHAMADOR` (uma
+   pasta por linha) e a dizer quantos conciliou; o workflow regera o pacote sobre o `main` novo
+   quando o número é maior que zero, e só então.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` (`CONGELAMENTO.md`) ganha a peça
+`.veu` porque não havia nenhuma que trancasse a tela inteira: existia o `data-apagando`, e ele é de
+uma linha, não da página. A peça nasce inteira — desenho com todos os estados, duas linhas no
+catálogo, prova em Chrome e a cópia nas superfícies. O que **não** muda: a fórmula do hash, a
+cobertura, os validadores, as 17 regras e as 22 pétreas.
+
+**Onde entrou.** `motor/servidor/subpedidos.js` (**novo**: o contador, o teto e a frase da recusa) ·
+`motor/servidor/escrever-ciclo.js` (conteúdo na árvore, `nomesDaPastaRemota`, a cópia cifrada só é
+lida quando decide alguma coisa, a previsão e a recusa) · `motor/servidor/rotas.js` (a previsão
+consultada antes do `-po.md`; o motivo do não-disparo passa a viajar para a tela) ·
+`motor/servidor/cloudflare.js` (um contador por pedido, com o teto da `vars` `SUBPEDIDOS`) ·
+`motor/servidor/acervo-envelopes.js` (`doAmbiente` aceita o `fetchImpl` contado) ·
+`motor/servidor/geracao.js` (o motivo em `fontesDoCicloProntas`) · `porta/index.html` (`ocupar`,
+`dizerNoVeu`, `liberar`, `esperarAGeracao`; o «Guardar» tranca e espera) ·
+`tools/templates/ciclo.css` (a peça `.veu`) · `.github/scripts/conflito-do-derivado.sh` e
+`.github/workflows/gerar-ciclo.yml` (o pacote como derivado do chamador, e a regeração depois do
+rebase).
+
+**Validação.** `provar-orcamento-do-guardar` (**nova**) **16/16**: zero `POST /git/blobs`, uma
+listagem de `historico/`, um commit, **16 subpedidos** (eram 26), e a recusa quando não cabe — sem
+nenhuma escrita e sem gastar subpedido a descobrir isso. **Contraprova:** no `HEAD`, **8 de 16**
+(26 subpedidos, sete blobs, e o orçamento curto a escrever na mesma). `provar-trava-da-operacao`
+(**nova**) **19/19**, num Chrome sobre a porta publicada: o véu cobre a janela, diz o passo, o
+conteúdo fica `inert` e o ponteiro encontra o véu mesmo em cima de um botão; `liberar()` devolve
+tudo; `esperarAGeracao` desiste quando não há geração para esperar. **Contraprova:** no `HEAD`,
+**2 de 19**. Sem regressão: `provar-um-commit-por-guardar` **21** (a bancada passou a aceitar as
+duas formas da árvore) · `provar-derivados-do-po` **16** · `provar-remocao-do-elenco` **26** ·
+`provar-vinculo-do-elenco` **26** · `provar-listas-do-acervo` **109** · `provar-painel-do-ato`
+**183** · `provar-acervo-envelopes` **52** · `provar-senha-do-lancamento` **19** ·
+`provar-familia-do-lancamento` **44** · `provar-producao` **166** · `provar-vao-do-botao` **50** ·
+`provar-celular` **15** · `check-identidade` **0 erros** · `check-schemas` verde.
+
+**O pacote da `batata-sala-rosa`, e o que ele obriga a dizer.** Ele estava a misturar dois POs —
+`-po.md` de `po-…-0956` (depois `po-…-1136`), `-dados.json` de `po-…-2211` — porque o «Guardar» que estourou o orçamento
+gravou um e não o outro. Re-derivei a fonte do PO corrente, como manda a regra, e sobrou **um** erro:
+a cópia cifrada do pacote. Ela é derivada com a **chave da escola**, que só existe no Worker
+(`SENHA_CRIPTO`, gerada pela página e não legível: é um segredo write-only); `tools/.senhas-locais`
+está vazio, e nenhuma das senhas de teste abre o envelope. Escrever o `apelidos` novo por dentro do
+envelope sem refazer a cifra passaria o `check-pacote` — que compara estrutura, não bytes — e seria
+exactamente a família de defeito que esta entrega corrige: **um derivado a mentir sobre o próprio
+conteúdo**. Não o fiz.
+
+O que se fez, e é o menos que se pode fazer sem forjar: a fonte foi re-derivada do PO corrente
+(`po-…-1136`, o «Guardar» das 11:36) com o elenco **em vigor quando ele foi gravado** (a linha de
+base de 01:05, `[Aluna A, Aluna B]`) — porque
+é esse o retrato que o PO tem, e derivá-lo com o elenco de hoje poria nos documentos uma turma que
+ele nunca observou. O PO está **pendente de revalidação** desde que a Aluna C entrou (12:52), e é o
+próprio sistema que o diz; o próximo «Guardar» — que agora cabe no orçamento — escreve fonte e cópia
+do **mesmo texto**, e é aí que a Aluna C entra nos documentos.
+
+**O que ainda não está feito, e sabe-se.**
+
+- **A cópia cifrada do pacote é a de antes deste «Guardar».** O `check-pacote` compara a estrutura e
+  passa; quem tem a chave veria o texto do PO 0955 dentro dela. Só o Worker a refaz, e é o gesto
+  seguinte.
+- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
+  turma) têm as suas próprias telas e não passaram por aqui.
+- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
+  turma) têm as suas próprias telas e não passaram por aqui. O que esta entrega garante é a metade
+  que estava a estourar — plano e PO, que é onde a geração é disparada.
+- **`provar-aparencia` (76/77) e `provar-tema` (37/38) falham igualmente no `HEAD`** — pré-existentes,
+  comparadas falha a falha.

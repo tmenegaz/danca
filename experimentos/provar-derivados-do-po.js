@@ -98,7 +98,13 @@ function githubFalso(inicial) {
     }
     if (metodo === 'POST' && /\/git\/trees$/.test(u)) {
       arquivos.__tree = {};
-      for (const t of corpo.tree || []) arquivos.__tree[t.path] = (arquivos.__blob || {})[t.sha];
+      // DESDE 08/11/2026 o conteúdo viaja na própria entrada da árvore (`content`), sem um `POST
+      // /git/blobs` por arquivo — ver `gravarArquivosNumCommit`. As duas formas são aceites aqui:
+      // o que a prova mede é o que cada caminho RECEBEU, e não por que porta entrou.
+      for (const t of corpo.tree || []) {
+        arquivos.__tree[t.path] = t.content !== undefined
+          ? String(t.content) : (arquivos.__blob || {})[t.sha];
+      }
       return { status: 201, ok: true, json: async () => ({ sha: 't1' }) };
     }
     if (metodo === 'POST' && /\/git\/commits$/.test(u)) return { status: 201, ok: true, json: async () => ({ sha: 'c1' }) };

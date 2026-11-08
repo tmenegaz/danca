@@ -3,11 +3,15 @@
   "escola": "batata",
   "professor": "dedao-aberto",
   "criado_em": "2026-11-08",
-  "po": "po-20261107-2211",
+  "po": "po-20261108-1136",
   "apelidos": {
     "aluna_a": "Aluna A",
     "aluna_b": "Aluna B"
   },
+  "elenco": [
+    "aluna_a",
+    "aluna_b"
+  ],
   "aulas": {},
   "_nota": "JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO."
 }

@@ -7634,6 +7634,101 @@ function limparNo(i) {
   if (i === INDICE) renderPergunta();
 }
 
+// ------------------------------------------------------------------ a trava da operação
+
+/*
+ * A CADEIA É DEPENDENTE, E A TELA NÃO SABIA DISSO (08/11/2026).
+ *
+ * O relato dela: «eu fui dando cliques, fazendo de forma bem rápida e não deu tempo do workflow
+ * das actions terminarem seus processos». É literalmente o que acontece — cada gesto grava no
+ * repositório e o último dispara a geração do ciclo, que corre num workflow. Clicar no passo
+ * seguinte antes de o anterior acabar põe duas escritas e duas gerações a competir pelo mesmo
+ * `main`: uma delas perde a corrida e o pacote sai pela metade (foi o estado de 08/11/2026, com
+ * o `-po.md` a apontar um PO e o `-dados.json` a descrever outro).
+ *
+ * Duas coisas, e são as duas necessárias:
+ *   · TRANCAR — o ponteiro não chega ao que está por baixo (o véu cobre), e o teclado e o leitor
+ *     de ecrã também não (`inert`). Um botão desabilitado não basta: a lista, os links e o menu
+ *     continuam a ser caminhos para o mesmo repositório.
+ *   · DIZER — o véu escreve o que está a acontecer e em que passo vai. Esperar sem saber porquê é
+ *     indistinguível de estar pendurado.
+ *
+ * A ESPERA ACABA QUANDO O TRABALHO ACABA, e não quando a resposta chega: depois de gravar, o PO
+ * ainda está a ser gerado no GitHub. Quem sabe se acabou é `/api/geracao` — a mesma rota que a
+ * tela já usava para o cartão da geração. Sem ela (uma bancada, um adaptador sem KV), a espera
+ * não se faz e diz-se isso: melhor do que uma barra a girar para sempre.
+ */
+let OCUPADO = null;
+
+function ocupar(texto) {
+  OCUPADO = { desde: Date.now() };
+  const veu = document.getElementById('veu');
+  if (!veu) return;
+  const alvo = document.getElementById('veu-texto');
+  if (alvo) alvo.textContent = String(texto || 'a trabalhar…');
+  veu.dataset.ocupado = 'sim';
+  // O que está por baixo deixa de responder ao teclado e ao leitor de ecrã. O `pointer-events` do
+  // véu trata do ponteiro; o `inert` trata do resto, e é o que um `disabled` num botão não faz.
+  for (const id of ['principal', 'barra']) {
+    const el = document.getElementById(id);
+    if (el) el.inert = true;
+  }
+}
+
+/** O texto do véu muda sem destrancar nada — a operação é a mesma. */
+function dizerNoVeu(texto) {
+  const alvo = document.getElementById('veu-texto');
+  if (alvo) alvo.textContent = String(texto || '');
+}
+
+function liberar() {
+  OCUPADO = null;
+  const veu = document.getElementById('veu');
+  if (!veu) return;
+  delete veu.dataset.ocupado;
+  for (const id of ['principal', 'barra']) {
+    const el = document.getElementById(id);
+    if (el) el.inert = false;
+  }
+}
+
+/**
+ * Espera a geração do ciclo terminar — a que o «Guardar» do PO/plano disparou.
+ *
+ * Devolve o último estado lido: `{fase, etapaAtual, etapaQueFalhou, run}`. `sem-registro` e
+ * `indisponivel` significam «não há o que esperar» (nada foi disparado, ou esta instância não
+ * sabe responder), e não são erro.
+ */
+async function esperarAGeracao(contexto, limiteMs) {
+  const consulta = contexto.professor && contexto.ciclo
+    ? '?professor=' + encodeURIComponent(contexto.professor) +
+      '&ciclo=' + encodeURIComponent(contexto.ciclo) +
+      '&turma=' + encodeURIComponent(contexto.turma || '')
+    : null;
+  if (!consulta) return { fase: 'sem-registro' };
+  const fim = Date.now() + (limiteMs || 6 * 60 * 1000);
+  let ultima = null;
+  while (Date.now() < fim) {
+    let estado = null;
+    try {
+      const r = await fetch('api/geracao' + consulta);
+      estado = await r.json();
+    } catch (erro) {
+      estado = { fase: 'sem-consulta' };
+    }
+    if (!estado || estado.fase === 'indisponivel' || estado.fase === 'sem-registro'
+        || estado.fase === 'falhou-no-disparo') return estado || { fase: 'sem-registro' };
+    ultima = estado;
+    if (estado.fase === 'concluida' || estado.fase === 'falhou') return estado;
+    dizerNoVeu(estado.fase === 'enfileirada'
+      ? 'na fila do GitHub — a geração do ciclo começa em instantes…'
+      : 'gerando o ciclo' + (estado.etapaAtual ? ' — ' + estado.etapaAtual : '') + '…');
+    // Quatro segundos: uma consulta ao GitHub por volta, e o suficiente para a barra não mentir.
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  }
+  return ultima || { fase: 'sem-consulta' };
+}
+
 // ------------------------------------------------------------------ envio
 
 function pacoteParaEnviar() {
@@ -10061,6 +10156,17 @@ async function iniciar() {
     // O plano EDITA pelo MESMO id (o motor recusa/deriva se vinculado); a
     // derivação já vai no `ajuste_de` que o `enviar` lê de `DERIVANDO`.
     if (FONTE === 'plano' && EDITANDO) carimboPendente = EDITANDO;
+    /*
+     * A TRAVA, E ELA DURA ATÉ O TRABALHO ACABAR (08/11/2026).
+     *
+     * O `disabled` no botão «Guardar» só protegia o próprio botão: a lista, os links do menu e a
+     * barra continuavam a ser caminhos para o mesmo repositório — e cada um deles escreve. O
+     * véu tranca-os todos enquanto a gravação e a geração correm, e é a única forma de a cadeia
+     * «elenco → turma → plano → PO → pacote» não ser atropelada por si mesma.
+     */
+    ocupar(FONTE === 'po'
+      ? 'gravando o Plano de Observação e gerando o ciclo…'
+      : 'gravando…');
     try {
       const dados = await enviar(false, carimboPendente || undefined);
       $('gravacao').innerHTML = mostrarResultado(dados, 'Gravado') +
@@ -10139,10 +10245,47 @@ async function iniciar() {
               'novo, que é o mesmo registro e não um segundo.</p>';
           }
         }
+
+        /*
+         * A GERAÇÃO DO CICLO ACONTECE DEPOIS DA RESPOSTA, NO GITHUB (08/11/2026).
+         *
+         * Enquanto ela corre, o pacote publicado ainda é o de antes — e foi por isso que ela, a
+         * clicar depressa, viu um estado que já não era o do documento que acabara de gravar. O
+         * véu fica até a execução terminar, e diz em que passo vai. Se o estado não vier (uma
+         * bancada, uma instância sem KV), não se espera: uma barra a girar sem informação é pior
+         * do que seguir.
+         */
+        const disparo = dados.disparo || (dados.cadeia && dados.cadeia.disparo);
+        if (disparo && disparo.naoDisparado) {
+          $('gravacao').innerHTML += '<p class="aviso">o ciclo <b>não</b> foi gerado: ' +
+            escapar(disparo.erro || disparo.motivo || 'as fontes do ciclo não ficaram prontas') +
+            '. O que você gravou está salvo.</p>';
+        } else if (disparo && disparo.ok) {
+          const ctxDaGeracao = contextoDaBarra() || {};
+          const estado = await esperarAGeracao({
+            professor: ctxDaGeracao.professor,
+            ciclo: ctxDaGeracao.ciclo,
+            turma: ctxDaGeracao.turma,
+          });
+          if (estado && estado.fase === 'concluida') {
+            $('gravacao').innerHTML += '<p class="ok">o ciclo foi gerado e publicado.</p>';
+          } else if (estado && estado.fase === 'falhou') {
+            $('gravacao').innerHTML += '<p class="erro">a geração do ciclo falhou' +
+              (estado.etapaQueFalhou ? ' em «' + escapar(estado.etapaQueFalhou) + '»' : '') +
+              '. O que você gravou está salvo; o motivo está no GitHub Actions, e o link está ' +
+              'acima.</p>';
+          } else if (estado && estado.fase !== 'indisponivel' && estado.fase !== 'sem-registro'
+              && estado.fase !== 'sem-consulta') {
+            $('gravacao').innerHTML += '<p class="aviso">a geração do ciclo ainda está a correr. ' +
+              'Você pode fechar esta janela: o GitHub termina sozinho.</p>';
+          }
+        }
       }
     } catch (erro) {
       $('gravacao').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
       $('gravar').disabled = false;
+    } finally {
+      liberar();
     }
   });
 }
@@ -10156,6 +10299,21 @@ iniciar();
      já tem. Caminho ABSOLUTO de raiz (`/assets/nav.js`), fora do `<base>`, porque o arquivo
      vive no pacote, um nível acima da porta. -->
 <script src="/assets/nav.js"></script>
+
+<!-- O VÉU DA OPERAÇÃO (08/11/2026).
+     ============================================================================
+     O que motivou: a sequência «criar a aluna → anamnese → elenco → turma → plano →
+     PO» é uma CADEIA — cada passo lê o que o anterior gravou —, e o «Guardar» do PO
+     escreve no repositório e dispara a geração do ciclo num workflow. Feita a correr,
+     como ela fez, os cliques entram enquanto o anterior ainda está a escrever: as
+     gerações se sobrepõem, uma perde a corrida e o pacote fica a meio.
+
+     Esta peça não é decoração: ela TRanca (o ponteiro e o teclado não chegam ao que
+     está por baixo) e DIZ (o que está a acontecer, e em que passo). O desenho está em
+     `tools/templates/ciclo.css` (`[data-ocupado]`), e o texto é escrito pelo script. -->
+<div class="veu" id="veu" role="status" aria-live="polite">
+  <p class="veu-texto" id="veu-texto">a trabalhar…</p>
+</div>
 
 </body>
 </html>

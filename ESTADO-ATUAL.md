@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 08/11/2026 (árvore limpa, `26975678` + esta entrega). Nesta entrega, **a
+> **Última fotografia:** 08/11/2026 (árvore limpa, `ea2c558c` + esta entrega). Nesta entrega, **o
+> «Guardar» do PO deixa de morrer a meio**: o Cloudflare corta em **50 subpedidos por invocação** (e
+> no plano gratuito o `limits.subrequests` não sobe), o caminho do «Guardar» gastava mais — **26 só
+> no escritor do ciclo**, medidos —, e a invocação morria **depois** de gravar o `-po.md` e **antes**
+> de gravar as fontes: o pacote ficava com dois POs a discordar. O escritor desce a **16** (o
+> conteúdo viaja na árvore, o elo pergunta à pasta em vez de arquivo a arquivo), o orçamento passa a
+> ser **um só por pedido e contado**, e quando não cabe ele **recusa antes de escrever**. E a porta
+> ganha o **véu da operação** — cobre, tranca (`inert`) e diz o passo até a geração terminar —, que
+> é o que ela pediu duas vezes. Ver a decisão 122 e o §5.26 do `ARQUITETURA-GERAL.md`.
+>
+> **Fotografia anterior (08/11/2026, `ea2c558c`).** Nesta entrega, **a
 > aluna que SAI do elenco passa a sair da aula — e o que ela já lançou continua legível**. A cascata
 > que ela descreveu (`elenco → plano → PO`) **já existia**; o que não existia era o resto: `derivarDados`
 > escrevia `aulas: {}` em toda a geração, e a geração é disparada pelo «Guardar» do PO — exactamente o
@@ -2421,6 +2431,30 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      reescreve — o elo novo acrescenta, não corrige; e a remoção **com aulas lançadas** ainda não tem
      dado real neste repositório (o ciclo da `tami` está em `aula 01`, sem lançamento).
 
+122. **O «GUARDAR» CABE NOS 50 SUBPEDIDOS — E NÃO SE COMECE O QUE NÃO CABE.** O Cloudflare conta cada
+     `fetch` do Worker como subpedido e corta em **50 por invocação** no plano gratuito; o
+     `limits.subrequests` do wrangler só sobe numa conta paga, portanto o limite **não se configura**.
+     **CONFIRMADO** em 08/11/2026: o «Guardar» do PO respondeu «Too many subrequests by single Worker
+     invocation», o envelope e o `-po.md` entraram e as fontes do ciclo não — o pacote ficou com o
+     `-po.md` de `po-…-0956` e o `-dados.json` de `po-…-2211`. **Medido** com um contador e as fontes
+     reais: **26 subpedidos só no escritor**, dos quais 7 eram um `POST /git/blobs` por arquivo e 3
+     eram um `GET` por nome de elo. **DECIDIDO**: (1) o custo desce — o conteúdo viaja na entrada da
+     árvore (zero blobs) e a colisão do elo pergunta-se à pasta uma vez: **16**; (2) o orçamento é
+     **um só por pedido, contado**, e o mesmo `fetch` contado serve todos os escritores e o acervo
+     (um contador por módulo é o que faz cada um julgar-se dentro do limite enquanto o conjunto já o
+     passou); (3) **não cabe, não se começa** — o escritor recusa antes do primeiro subpedido e a
+     rota consulta a previsão antes do `-po.md`, para a cadeia ser atómica; e (4) a porta ganha o
+     **véu da operação** (`.veu`), que cobre, põe o conteúdo `inert` e diz o passo até a geração
+     terminar — o `disabled` no botão não bastava, porque a lista e o menu são caminhos para o mesmo
+     repositório. No CI, o pacote do ciclo passa a ser **derivado para o `gerar-ciclo.yml`**: o
+     conflito nos PDFs resolve-se regerando, não escolhendo. Prova: `provar-orcamento-do-guardar`
+     (**16**; **8 de 16** no `HEAD`) e `provar-trava-da-operacao` (**19**, num Chrome; **2 de 19** no
+     `HEAD`). **O que fica por fazer, e sabe-se:** a tranca é da porta — os passos da Produção
+     (criar a aluna, elenco, turma) têm as suas telas e não passaram por aqui; e o pacote da
+     `batata-sala-rosa` foi destravado re-derivando a fonte do PO 0956 com o elenco **em vigor
+     quando ele foi gravado** (A,B) — a cópia cifrada só o Worker a refaz, e a Aluna C entra nos
+     documentos no próximo «Guardar», que é o que a revalidação pendente já pede.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3067,7 +3101,21 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (08/11/2026 — a aluna que sai do elenco)
+### Executado nesta fotografia (08/11/2026 — o orçamento de subpedidos e a trava da operação)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-orcamento-do-guardar` (**nova**) | **PASSOU — 16 asserções**. Zero `POST /git/blobs`, uma listagem de `historico/`, um commit só, **16 subpedidos** (eram 26), e a recusa com `motivo: 'orcamento'` sem **nenhuma** escrita e sem gastar subpedido a descobrir isso |
+| **a contraprova** | no `HEAD`: **FALHOU — 8 de 16** (26 subpedidos, sete blobs, e o orçamento curto a escrever na mesma) |
+| `provar-trava-da-operacao` (**nova**) | **PASSOU — 19 asserções**, num Chrome sobre a porta publicada: o véu cobre a janela inteira, diz o passo, o conteúdo fica `inert`, o ponteiro encontra o véu mesmo em cima de um botão; `liberar()` devolve tudo; `esperarAGeracao` desiste quando não há geração; e o «Guardar» tranca antes de escrever e destranca num `finally` |
+| **a contraprova** | no `HEAD`: **FALHOU — 2 de 19** |
+| `provar-um-commit-por-guardar` · `provar-derivados-do-po` · `provar-remocao-do-elenco` · `provar-vinculo-do-elenco` | **21 · 16 · 26 · 26** — verdes |
+| `provar-listas-do-acervo` · `provar-painel-do-ato` · `provar-acervo-envelopes` · `provar-producao` | **109 · 183 · 52 · 166** — verdes |
+| `provar-senha-do-lancamento` · `provar-familia-do-lancamento` · `provar-vao-do-botao` · `provar-celular` | **19 · 44 · 50 · 15** — verdes |
+| `check-identidade` · `check-schemas` | **0 erros** · verde |
+| **o que NÃO mede / não passa** | `provar-aparencia` (76/77) e `provar-tema` (37/38) falham **identicamente no `HEAD`** — pré-existentes, comparadas falha a falha. O **ao ar** confirma-se no deploy desta entrega |
+
+### Executado na fotografia anterior (08/11/2026 — a aluna que sai do elenco)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4148,6 +4196,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **08/11/2026** — **O «Guardar» cabe nos 50 subpedidos, e a cadeia deixa de se atropelar.** Ela
+  percorreu a cadeia depressa e o «Guardar» do PO respondeu «Too many subrequests by single Worker
+  invocation»: o envelope e o `-po.md` entraram, as fontes do ciclo não, e o pacote ficou com dois
+  POs a discordar. **Medido**: 26 subpedidos só no escritor (7 eram um blob por arquivo, 3 eram uma
+  consulta por nome de elo). **DECIDIDO**: o custo desce a **16** (conteúdo na árvore; a pasta
+  responde pelas colisões); o orçamento passa a ser **um por pedido e contado**; **não cabe, não se
+  começa** (a rota consulta a previsão antes do `-po.md`); e a porta ganha o **véu da operação** que
+  cobre, tranca e diz o passo até a geração terminar. No CI, o pacote do ciclo passa a ser derivado
+  para o `gerar-ciclo.yml` — conflito nos PDFs resolve-se regerando. `provar-orcamento-do-guardar`
+  **16** (8 no `HEAD`) e `provar-trava-da-operacao` **19** num Chrome (2 no `HEAD`). Ver a decisão
+  122 e o §5.26 do `ARQUITETURA-GERAL.md`.
 - **08/11/2026** — **A aluna que sai do elenco sai da aula, e o que ela já lançou não se perde.** Ela
   pôs o caso do mundo real antes de testar com a Aluna C: remover do elenco, rever plano e PO, deixar
   de a oferecer no formulário, e **nada do passado se perder**. A cascata (`elenco → plano → PO`)

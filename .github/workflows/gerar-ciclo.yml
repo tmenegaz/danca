@@ -337,15 +337,33 @@ jobs:
             fi
 
             # O rebase parou. O DERIVADO concilia-se; o MATERIAL não — dois donos do mesmo
-            # texto é um problema de desenho, e escondê-lo aqui seria pior. A regra vive num
-            # arquivo só (`.github/scripts/conflito-do-derivado.sh`), partilhado com o
+            # TEXTO escrito à mão é um problema de desenho, e escondê-lo aqui seria pior. A regra
+            # vive num arquivo só (`.github/scripts/conflito-do-derivado.sh`), partilhado com o
             # `reancorar.yml`: o `indices/**` foi a segunda metade do problema (run 39788790994,
             # 22/10/2026), e tratá-la aqui e não lá teria feito as duas versões divergirem.
-            if ! .github/scripts/conflito-do-derivado.sh; then
+            # O PACOTE DESTE CICLO É DERIVADO PARA NÓS (08/11/2026). Somos o gerador dele: um
+            # conflito nos arquivos que o `gerar-ciclo.sh` produz (os PDFs, os JSON, o HTML do
+            # pacote) não é «dois donos do mesmo texto» — é a mesma geração a chegar duas vezes,
+            # e a resposta certa é refazê-la. O script concilia com a versão do `main`; o passo
+            # abaixo REGERA sobre as fontes que o rebase deixar. Ver o cabeçalho do script.
+            export DERIVADOS_DO_CHAMADOR="$pasta"$'\n'
+            if ! conciliacao="$(.github/scripts/conflito-do-derivado.sh)"; then
               git rebase --abort || true
               exit 1
             fi
+            printf '%s\n' "$conciliacao"
             GIT_EDITOR=true git rebase --continue
+
+            # O PACOTE, REGERADO SOBRE O MAIN NOVO (08/11/2026) — e SÓ quando o conflito o tocou.
+            # O script diz quantos arquivos do pacote conciliou (`pacote-do-chamador=N`); com zero,
+            # o pacote não está em causa e nada se regera (o gerador custa minutos de pandoc e
+            # pdflatex). Com N, o commit sairia com os binários do `main` e as fontes desta
+            # execução — dois documentos do mesmo ciclo, que é o defeito que este laço evita. O
+            # gerador é reprodutível (`SOURCE_DATE_EPOCH` e o `/ID` do PDF são fixos).
+            if printf '%s' "$conciliacao" | grep -Eq 'pacote-do-chamador=[1-9]'; then
+              tools/gerar-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
+              git add -A -- "$pasta"
+            fi
 
             # A ÂNCORA REGERADA, a partir das fontes que resultaram do rebase.
             tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
@@ -358,7 +376,11 @@ jobs:
               || { echo "erro: os índices não foram regerados sobre o main novo" >&2; exit 1; }
             git add -A -- indices/
 
-            if ! git diff --quiet -- '*.fipp' || ! git diff --cached --quiet -- indices/; then
+            # O PACOTE ENTRA NA MESMA CONDIÇÃO (08/11/2026): depois de ele ser regerado, o que
+            # mudou está em `git add` — e sem o contar aqui o commit ficaria com a árvore à frente
+            # dele e o push levaria a versão de antes.
+            if ! git diff --quiet -- '*.fipp' || ! git diff --cached --quiet -- indices/ \
+               || ! git diff --cached --quiet -- "$pasta"; then
               git add -- '*.fipp'
               # QUEM DECIDE SE O COMMIT É NOSSO É O SCRIPT, E OLHA A MENSAGEM (23/10/2026).
               # Antes era um `--amend` cego: quando o rebase descartava o commit vazio, o topo

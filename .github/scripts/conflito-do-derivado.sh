@@ -32,12 +32,33 @@
 set -euo pipefail
 
 # Um caminho é derivado quando o repositório o sabe refazer sozinho.
+#
+# OS DERIVADOS DO CHAMADOR (08/11/2026). O `indices/**` e o `*.fipp` são derivados de QUALQUER
+# chamador. Há um terceiro que só o é para quem sabe regerá-lo: o PACOTE de um ciclo é saída de
+# `tools/gerar-ciclo.sh`, e o `gerar-ciclo.yml` acabou de o correr. Quando é ele que está a
+# rebasear, os arquivos do PRÓPRIO pacote (o PDF da aula, o PDF do ciclo, o `ciclos.json`, o
+# `po-01.json`, o `index.html`…) são derivados — e resolver o conflito é refazê-los, nunca
+# escolher um dos dois lados.
+#
+# O QUE ISTO CONSERTA, medido. A 08/11/2026 correram três gerações do mesmo ciclo em cinquenta
+# segundos (o «Guardar» do PO disparava uma a cada gravação). A terceira perdeu a corrida e o
+# rebase parou com «CONFLICT (content)» em `aula-01.pdf` e no PDF do ciclo — dois binários
+# gerados, sem conteúdo a conciliar — e a execução morreu com «conflito de MATERIAL». O pacote
+# ficou entregue pela metade: o `-po.md` de um PO, o `-dados.json` de outro.
+#
+# A FRONTEIRA CONTINUA A EXISTIR: só os caminhos declarados em `$DERIVADOS_DO_CHAMADOR` (uma
+# pasta por linha, prefixo) são tratados assim — e só se lá estiverem. Qualquer outro conflito
+# continua a ser MATERIAL, e o rebase continua a abortar, como deve.
 eh_derivado() {
   case "$1" in
     indices/*) return 0 ;;        # tools/gerar-indices.js
     *.fipp) return 0 ;;           # tools/hash-ciclo.sh
-    *) return 1 ;;
   esac
+  while IFS= read -r prefixo; do
+    [ -n "$prefixo" ] || continue
+    case "$1" in "$prefixo"*) return 0 ;; esac
+  done <<< "${DERIVADOS_DO_CHAMADOR:-}"
+  return 1
 }
 
 conflitos="$(git diff --name-only --diff-filter=U || true)"
@@ -89,14 +110,29 @@ resolver() {
 
 n_indices=0
 n_fipp=0
+n_pacote=0
 while IFS= read -r caminho; do
   [ -n "$caminho" ] || continue
   case "$caminho" in
     indices/*) resolver "$caminho" ours; n_indices=$((n_indices + 1)) ;;
     *.fipp)    resolver "$caminho" theirs; n_fipp=$((n_fipp + 1)) ;;
+    *)
+      # Os do PACOTE do chamador: fica a versão do `main`, e quem chamou REGERA. O `--ours` é o
+      # mesmo critério do `indices/`: o que está a ser aplicado foi gerado sobre um estado que o
+      # rebase vai mudar, e escolher entre duas saídas do mesmo gerador seria escolher o gerador
+      # errado. Regenerar é a única resposta que não inventa.
+      if eh_derivado "$caminho"; then
+        resolver "$caminho" ours
+        n_pacote=$((n_pacote + 1))
+      fi
+      ;;
   esac
 done <<< "$conflitos"
 
 echo "derivado conciliado: ${n_indices} arquivo(s) de indice (ficou o do main, sera regerado)," \
-     "${n_fipp} ancora(s) (ficou a do commit, sera reancorada)"
+     "${n_fipp} ancora(s) (ficou a do commit, sera reancorada)," \
+     "${n_pacote} arquivo(s) do pacote do chamador (ficou o do main, sera REGERADO)"
+# A ÚLTIMA LINHA É PARA O CHAMADOR, e é legível por máquina: é ela que lhe diz se tem de voltar a
+# correr o gerador. Uma frase para humanos obrigaria o workflow a fazer `grep` de prosa.
+echo "pacote-do-chamador=${n_pacote}"
 exit 0

@@ -167,7 +167,12 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
       }
       if (metodo === 'POST' && /\/git\/trees$/.test(u)) {
         arquivos.__tree = {};
-        for (const t of corpo.tree || []) arquivos.__tree[t.path] = (arquivos.__blob || {})[t.sha];
+        // O conteúdo viaja na entrada da árvore desde 08/11/2026 (`content`), sem um blob por
+        // arquivo; as duas formas são aceites — o que se mede é o que cada caminho recebeu.
+        for (const t of corpo.tree || []) {
+          arquivos.__tree[t.path] = t.content !== undefined
+            ? String(t.content) : (arquivos.__blob || {})[t.sha];
+        }
         return { status: 201, ok: true, json: async () => ({ sha: 't1' }) };
       }
       if (metodo === 'POST' && /\/git\/commits$/.test(u)) return { status: 201, ok: true, json: async () => ({ sha: 'c1' }) };

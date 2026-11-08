@@ -1325,7 +1325,27 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
             saida.planoErro = erro.message;
           }
 
-          if (escreverPO) {
+          /* O ORÇAMENTO DE SUBPEDIDOS É CONSULTADO ANTES DA PRIMEIRA ESCRITA DA CADEIA (08/11/2026).
+           *
+           * O `escreverPO` grava o `-po.md` e o `escreverCiclo` grava as fontes do ciclo — dois
+           * passos, dois commits, o mesmo pedido. Quando o segundo estourava o teto do Worker, o
+           * primeiro já tinha entrado: o `-po.md` passava a apontar para um PO que as fontes não
+           * descreviam, o `check-pacote` recusava o pacote, e a geração não publicava nada. Foi o
+           * estado medido em 08/11/2026 (`-po.md` de `po-…-0956`, `-dados.json` de `po-…-2211`).
+           *
+           * Perguntar antes torna o par ATÓMICO na prática: ou entram os dois, ou não entra nenhum
+           * — e a resposta diz qual dos dois foi, em vez de deixar o ciclo meio escrito. */
+          const previsao = (escreverCiclo && typeof escreverCiclo.previsao === 'function')
+            ? escreverCiclo.previsao() : 0;
+          // O `-po.md` custa 2 subpedidos (o `sha` e o `PUT`); os schemas do ciclo, mais 2 ou 3.
+          const CUSTO_DO_PO = 4;
+          const orcamento = (escreverCiclo && typeof escreverCiclo.orcamento === 'function')
+            ? escreverCiclo.orcamento() : null;
+          const naoCabe = Boolean(orcamento && previsao && !orcamento.coube(previsao + CUSTO_DO_PO));
+          if (naoCabe) {
+            saida.fonte = { ok: false, motivo: 'orcamento', erro: orcamento.motivo(previsao + CUSTO_DO_PO) };
+            saida.ciclo = { ok: false, motivo: 'orcamento', erro: orcamento.motivo(previsao + CUSTO_DO_PO) };
+          } else if (escreverPO) {
             try {
               // OS RÓTULOS vêm do CONTEÚDO (o mesmo `conteudoPO` que a rota serve ao formulário):
               // o nome de cada folha do checklist é dado, não código — e é o nome que o professor
@@ -1377,10 +1397,15 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
           if (disparar) {
             const prontas = fontesDoCicloProntas(saida.ciclo);
             if (!prontas) {
+              /* O MOTIVO VAI JUNTO (08/11/2026). «As fontes do ciclo não ficaram prontas» é
+               * verdadeiro e não diz nada a quem está a olhar para a tela. O escritor sabe PORQUÊ
+               * — não caberia no orçamento de subpedidos, o `.conf` não existe —, e essa é a
+               * frase que se mostra. */
               saida.disparo = {
                 ok: false,
                 naoDisparado: true,
                 motivo: 'as fontes do ciclo não ficaram prontas',
+                erro: (saida.ciclo && saida.ciclo.erro) || null,
               };
             } else {
               try {
