@@ -69,8 +69,8 @@
       "nome": "tami",
       "professor": "dedao-aberto",
       "turma": null,
-      "atualizada_em": "2026-11-08T12:53:37.306Z",
-      "enviada_em": "2026-11-08T12:53:37.787Z",
+      "atualizada_em": "2026-11-08T12:53:48.755Z",
+      "enviada_em": "2026-11-08T12:53:49.737Z",
       "aspectos": [
         "cinco-posicoes-1a-pes",
         "cinco-posicoes-1a-bracos",
@@ -83,7 +83,7 @@
         "estabilidade-vestibular-e-deslocamento"
       ],
       "alunas": 3,
-      "anterior": "tami--20261108-1252.json"
+      "anterior": "tami--20261108-1253.json"
     }
   }
 }
