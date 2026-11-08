@@ -372,14 +372,14 @@
       "ciclo:dedao-aberto/01/batata"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 3,
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 2,
       "pos": 3,
       "recortes": 1,
-      "registros": 7
+      "registros": 8
     },
     "criada_em": "2026-11-07T22:25:15.564899+00:00",
     "expurgada": false,
@@ -395,6 +395,7 @@
     "registros": [
       "anamnese:anamnese-20261107-1928",
       "anamnese:anamnese-20261107-2204",
+      "anamnese:anamnese-20261108-0952",
       "plano:plano-20261107-2201",
       "plano:plano-20261107-2206",
       "po:po-20261107-2202",
@@ -406,10 +407,11 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 7,
+        "contagem": 8,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
+          "anamnese:anamnese-20261108-0952",
           "plano:plano-20261107-2201",
           "plano:plano-20261107-2206",
           "po:po-20261107-2202",
@@ -490,10 +492,11 @@
     ],
     "professores": [
       {
-        "contagem": 8,
+        "contagem": 9,
         "ids": [
           "anamnese:anamnese-20261107-1928",
           "anamnese:anamnese-20261107-2204",
+          "anamnese:anamnese-20261108-0952",
           "ciclo:dedao-aberto/01/batata",
           "plano:plano-20261107-2201",
           "plano:plano-20261107-2206",
@@ -507,10 +510,11 @@
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261107-1928",
-          "anamnese:anamnese-20261107-2204"
+          "anamnese:anamnese-20261107-2204",
+          "anamnese:anamnese-20261108-0952"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -546,9 +550,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4921764"
+    "commit": "ffb06e1"
   },
-  "gerado_em": "2026-11-08T01:12",
+  "gerado_em": "2026-11-08T12:52",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -641,6 +645,16 @@
       "ciclo": null,
       "data": "2026-11-07T22:04",
       "id": "anamnese:anamnese-20261107-2204",
+      "professor": "dedao-aberto",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261108-0952",
+      "ciclo": null,
+      "data": "2026-11-08T09:52",
+      "id": "anamnese:anamnese-20261108-0952",
       "professor": "dedao-aberto",
       "tipo": "anamnese"
     },
