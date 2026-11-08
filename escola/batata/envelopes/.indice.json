@@ -3,6 +3,7 @@
   "nomes": [
     "anamnese-20261107-1928.json",
     "anamnese-20261107-2204.json",
+    "anamnese-20261108-0952.json",
     "plano-20261107-2201.json",
     "plano-20261107-2206.json",
     "po-20261107-2202.json",
@@ -29,6 +30,16 @@
       "ajuste_de": null,
       "gerado_em": "2026-11-07T22:04",
       "aluna": "Aluna B"
+    },
+    "anamnese-20261108-0952.json": {
+      "id": "anamnese-20261108-0952",
+      "fonte": "anamnese",
+      "escola": "batata",
+      "professor": "dedao-aberto",
+      "ciclo": null,
+      "ajuste_de": null,
+      "gerado_em": "2026-11-08T09:52",
+      "aluna": "Aluna C"
     },
     "plano-20261107-2201.json": {
       "id": "plano-20261107-2201",
