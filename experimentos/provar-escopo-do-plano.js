@@ -71,6 +71,12 @@ function conferir(rotulo, condicao, detalhe) {
 
 /* ==========================================================================================
  * OS DADOS REAIS DA `batata`, copiados do KV a 07/11/2026 — não inventados.
+ *
+ * A FIXTURE FICA COMO ESTAVA, mesmo depois de o resíduo ter sido APAGADO do KV (07/11/2026,
+ * 21:10 — ver a nota no REGISTRO). Ela não descreve o estado de hoje: descreve o CASO que a
+ * regra existe para resolver, e é ele que tem de continuar a ser medido. Uma fixture «actualizada»
+ * para o mapa antigo vazio aprovaria qualquer implementação — inclusive a que soma tudo —, porque
+ * sem resíduo não há o que distinguir.
  * ========================================================================================== */
 const LEGADO = { 'sala-rosa': ['battement-fondu', 'battement-tendu', 'plie'] };
 const CURADORIA = {

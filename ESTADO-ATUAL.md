@@ -4078,8 +4078,12 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   curadorias substituídas fica de pé. `provar-escopo-do-plano` **25/25** em três camadas (núcleo ·
   rota · a PÁGINA num Chrome, a resolver `aula-1-parametro` pelo próprio código e a desenhar a
   tabela), com o A/B a devolver as quatro linhas que ela viu; e as contraprovas: sem curadoria o
-  antigo volta, a declaração vazia não o ressuscita. **PENDENTE:** o resíduo continua no KV da
-  `batata` (inerte) — apagá-lo é escrita no KV, e o expurgo da escola leva-o.
+  antigo volta, a declaração vazia não o ressuscita. **O resíduo foi APAGADO do KV a pedido dela**
+  (07/11/2026, 21:10): `bastidores/batata/turma-conteudos` =
+  `{"sala-rosa":["battement-fondu","battement-tendu","plie"]}` deixou de existir — o namespace
+  ficou com 5 chaves, a chave responde 404, e a rota ao ar devolveu o mesmo antes e depois
+  (`{"sala-rosa":["battement-jete","plie"]}`), porque quem manda é a declaração. O valor
+  apagado fica transcrito no `REGISTRO.md`: é o único sítio onde sobrevive.
 
 - **07/11/2026** — **O «Seguir» do verbete não andava porque havia três `irParaPasso`.** Ela
   relatou duas coisas na mesma tela: caixas bloqueadas **vazias** («a definição do dicionário para

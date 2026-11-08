@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-07T20:57:08-0300`
-Commit atual: `676d611b` — feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
+Gerado em: `2026-11-07T21:10:58-0300`
+Commit atual: `97381099` — fix(estrutura): a declaração da turma vence o mapa antigo — o plano oferecia quatro exercícios onde a escola declarou dois
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,7 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+97381099 fix(estrutura): a declaração da turma vence o mapa antigo — o plano oferecia quatro exercícios onde a escola declarou dois
 676d611b feat(notacao): declarar «Battement jeté» (4|4/4) no alfabeto bale-classico
 b63eff41 fix(estrutura): o «Seguir» do verbete andava para o painel da linha de base
 7e7d660f fix(estrutura): o termo que já existe é aproveitado, e não recusado
@@ -90,7 +91,6 @@ a2a0e571 feat(estrutura): criar a escola batata (motor completo)
 1fa3e33a chore(entrega): gerar o pacote de colo-de-pe/01/breu-sala-rosa
 a9a8a50b chore(estrutura): regerar os índices derivados
 a26a25fb chore(estrutura): reancorar a cadeia das fontes alteradas
-b2831ade feat(ciclo): o «Guardar» do PO grava as fontes de breu-sala-rosa num commit só
 ```
 
 ## Por professor
@@ -237,13 +237,35 @@ passou a medir a regra errada. Ficou a medir a regra certa.
 
 **O que fica declarado, e não escondido.**
 
-- **O resíduo da `batata` continua no KV.** `turma-conteudos` fica com os três ids antigos, como
-  memória: não mandam em nada enquanto a curadoria existir. Apagá-lo é uma escrita no KV — e o
-  expurgo da escola, que é dela, leva-o de qualquer maneira.
+- **O resíduo da `batata` continuava no KV.** `turma-conteudos` ficava com os três ids antigos,
+  como memória: não mandavam em nada enquanto a curadoria existisse. Apagá-lo é uma escrita no KV —
+  e o expurgo da escola, que é dela, leva-o de qualquer maneira.
+
 - **A segunda camada de escopo não foi tocada.** O «Conteúdo do Estilo» oferece só exercícios com
   notação (`exerciciosComNotacao`); o plano mostra o que a turma **declarou**, e um termo
   declarado que perca a notação continua a aparecer — é o que está gravado, e P-03/P-04 mandam
   lê-lo. O que a correção garante é que o plano e o Estilo digam a mesma coisa sobre o presente.
+
+> **Nota de 07/11/2026, 21:10 (mesmo dia).** Ela pediu a limpeza («limpa agora»), e o resíduo foi
+> apagado. **O que se apagou, e o valor exacto que lá estava:**
+>
+> ```
+> chave:  bastidores/batata/turma-conteudos
+> valor:  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
+> ```
+>
+> **O que fica escrito aqui é o único sítio onde este valor sobrevive** — a chave não existe mais no
+> KV, e um registo que se apagasse sem se transcrever seria memória perdida, não limpeza. Depois da
+> operação: o namespace ficou com **5 chaves** (alunas, curadorias, linhas-de-base, rubricas,
+> turmas), a chave apagada responde **404**, e a rota ao ar
+> (`/api/bastidores/turma-conteudos`) devolveu **antes e depois** o mesmo —
+> `{"sala-rosa":["battement-jete","plie"]}` —, porque desde a correção de hoje é a **declaração**
+> que manda. A lista do plano não mudou: o que mudou é que já não há resíduo nenhum por trás dela.
+>
+> **A fixture da prova NÃO foi actualizada, e é de propósito.** `experimentos/provar-escopo-do-plano.js`
+> continua a trazer o mapa antigo com os três ids: ela descreve o CASO que a regra resolve, não o
+> estado de hoje. Uma fixture «actualizada» para o mapa antigo vazio aprovaria qualquer
+> implementação — inclusive a que soma tudo —, porque sem resíduo não há o que distinguir.
 
 ## O que está pendente
 

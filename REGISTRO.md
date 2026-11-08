@@ -40341,10 +40341,32 @@ passou a medir a regra errada. Ficou a medir a regra certa.
 
 **O que fica declarado, e não escondido.**
 
-- **O resíduo da `batata` continua no KV.** `turma-conteudos` fica com os três ids antigos, como
-  memória: não mandam em nada enquanto a curadoria existir. Apagá-lo é uma escrita no KV — e o
-  expurgo da escola, que é dela, leva-o de qualquer maneira.
+- **O resíduo da `batata` continuava no KV.** `turma-conteudos` ficava com os três ids antigos,
+  como memória: não mandavam em nada enquanto a curadoria existisse. Apagá-lo é uma escrita no KV —
+  e o expurgo da escola, que é dela, leva-o de qualquer maneira.
+
 - **A segunda camada de escopo não foi tocada.** O «Conteúdo do Estilo» oferece só exercícios com
   notação (`exerciciosComNotacao`); o plano mostra o que a turma **declarou**, e um termo
   declarado que perca a notação continua a aparecer — é o que está gravado, e P-03/P-04 mandam
   lê-lo. O que a correção garante é que o plano e o Estilo digam a mesma coisa sobre o presente.
+
+> **Nota de 07/11/2026, 21:10 (mesmo dia).** Ela pediu a limpeza («limpa agora»), e o resíduo foi
+> apagado. **O que se apagou, e o valor exacto que lá estava:**
+>
+> ```
+> chave:  bastidores/batata/turma-conteudos
+> valor:  {"sala-rosa":["battement-fondu","battement-tendu","plie"]}
+> ```
+>
+> **O que fica escrito aqui é o único sítio onde este valor sobrevive** — a chave não existe mais no
+> KV, e um registo que se apagasse sem se transcrever seria memória perdida, não limpeza. Depois da
+> operação: o namespace ficou com **5 chaves** (alunas, curadorias, linhas-de-base, rubricas,
+> turmas), a chave apagada responde **404**, e a rota ao ar
+> (`/api/bastidores/turma-conteudos`) devolveu **antes e depois** o mesmo —
+> `{"sala-rosa":["battement-jete","plie"]}` —, porque desde a correção de hoje é a **declaração**
+> que manda. A lista do plano não mudou: o que mudou é que já não há resíduo nenhum por trás dela.
+>
+> **A fixture da prova NÃO foi actualizada, e é de propósito.** `experimentos/provar-escopo-do-plano.js`
+> continua a trazer o mapa antigo com os três ids: ela descreve o CASO que a regra resolve, não o
+> estado de hoje. Uma fixture «actualizada» para o mapa antigo vazio aprovaria qualquer
+> implementação — inclusive a que soma tudo —, porque sem resíduo não há o que distinguir.
