@@ -134,6 +134,9 @@
         "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-referencias.md",
         "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.conf",
         "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa.fipp",
+        "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclo-01-batata-sala-rosa-dados.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclos.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/plano-observacao/envelope/elicitacao-schema.json",
         "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
         "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
         "professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -152,6 +155,7 @@
         "declaracao",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -227,6 +231,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-sala-rosa",
+      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclo-01-batata-sala-rosa-dados.json",
+      "ciclo_id": "ciclo:dedao-aberto/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclo-01-batata-sala-rosa-dados.json",
+      "professor": "dedao-aberto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-sala-rosa",
       "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-captura-declaracao.json",
       "ciclo_id": "ciclo:dedao-aberto/01/batata",
       "escola": "batata",
@@ -251,6 +264,15 @@
       "id": "documento:harmonizacao:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-harmonizacao.md",
       "professor": "dedao-aberto",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-sala-rosa",
+      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclos.json",
+      "ciclo_id": "ciclo:dedao-aberto/01/batata",
+      "escola": "batata",
+      "id": "documento:indice:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/ciclos.json",
+      "professor": "dedao-aberto",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-batata-sala-rosa",
@@ -305,6 +327,15 @@
       "id": "documento:referencias:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa-referencias.md",
       "professor": "dedao-aberto",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-sala-rosa",
+      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:dedao-aberto/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "dedao-aberto",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-batata-sala-rosa",
@@ -463,9 +494,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "66e60a1"
+    "commit": "59c5197"
   },
-  "gerado_em": "2026-11-08T01:02",
+  "gerado_em": "2026-11-08T01:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
