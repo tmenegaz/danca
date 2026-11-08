@@ -16,8 +16,8 @@
       "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
       "professores/pe-torto/ciclos/ciclo-01.conf"
     ],
-    "hash": "19d847f9ccefa65dc54a93f8d9793cc98f872eafbc342f8f3996f6c51f181dad",
-    "hash_conteudo": "2da7404a1395f81e9c37385a904d63582a57d1826d60685d2dd00d4a30a392d6",
+    "hash": "8292d82d724d9cbb25bbd924bcacfa193ad9cfbfbc8a24ead8cb04e02c38e36e",
+    "hash_conteudo": "618ca94db4d7b5d9fc60d8f55b06d83cd59f87bb984cc890dc649ff2f21dea47",
     "id": "ciclo-01-calango-rosa",
     "lida": true,
     "parent_hash": ""
@@ -121,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8eb7afb"
+    "commit": "03ab38f"
   },
-  "gerado_em": "2026-11-08T16:34",
+  "gerado_em": "2026-11-08T16:35",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6

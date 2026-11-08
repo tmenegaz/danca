@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "19d847f9ccefa65dc54a93f8d9793cc98f872eafbc342f8f3996f6c51f181dad",
+        "hash": "8292d82d724d9cbb25bbd924bcacfa193ad9cfbfbc8a24ead8cb04e02c38e36e",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
@@ -98,9 +98,9 @@
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 3,
-        "pos": 4,
+        "pos": 5,
         "recortes": 1,
-        "registros": 10
+        "registros": 11
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -123,7 +123,8 @@
         "po:po-20261108-1304",
         "po:po-20261108-1318",
         "po:po-20261108-1319",
-        "po:po-20261108-1334"
+        "po:po-20261108-1334",
+        "po:po-20261108-1335"
       ],
       "slug": "calango"
     }
@@ -131,7 +132,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 10,
+        "contagem": 11,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -259,7 +260,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -267,9 +268,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8eb7afb"
+    "commit": "03ab38f"
   },
-  "gerado_em": "2026-11-08T16:34",
+  "gerado_em": "2026-11-08T16:35",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -121,8 +121,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
         ],
-        "hash": "983ce640ff86800bfe8d87611f4ba7da66c6aa01acbd1bad52e8ea8812849dac",
-        "hash_conteudo": "6305f829a6686252cd0236c83fe575d36b8279e105b513548cdd144042dee56c",
+        "hash": "aada46ef66402e72403869a230ec32698926f6f07f03194f91d007614ca1beb6",
+        "hash_conteudo": "23e0a839a50b931eb41e9f6d5ccb3ee562fde0633bea9bd390a9a980299d2854",
         "id": "ciclo-01-calango-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -152,8 +152,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "19d847f9ccefa65dc54a93f8d9793cc98f872eafbc342f8f3996f6c51f181dad",
-        "hash_conteudo": "2da7404a1395f81e9c37385a904d63582a57d1826d60685d2dd00d4a30a392d6",
+        "hash": "8292d82d724d9cbb25bbd924bcacfa193ad9cfbfbc8a24ead8cb04e02c38e36e",
+        "hash_conteudo": "618ca94db4d7b5d9fc60d8f55b06d83cd59f87bb984cc890dc649ff2f21dea47",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
@@ -168,8 +168,8 @@
               "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
               "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
             ],
-            "hash": "983ce640ff86800bfe8d87611f4ba7da66c6aa01acbd1bad52e8ea8812849dac",
-            "hash_conteudo": "6305f829a6686252cd0236c83fe575d36b8279e105b513548cdd144042dee56c",
+            "hash": "aada46ef66402e72403869a230ec32698926f6f07f03194f91d007614ca1beb6",
+            "hash_conteudo": "23e0a839a50b931eb41e9f6d5ccb3ee562fde0633bea9bd390a9a980299d2854",
             "id": "ciclo-01-calango-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -417,9 +417,9 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 3,
-      "pos": 4,
+      "pos": 5,
       "recortes": 1,
-      "registros": 10
+      "registros": 11
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -442,14 +442,15 @@
       "po:po-20261108-1304",
       "po:po-20261108-1318",
       "po:po-20261108-1319",
-      "po:po-20261108-1334"
+      "po:po-20261108-1334",
+      "po:po-20261108-1335"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 10,
+        "contagem": 11,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -460,7 +461,8 @@
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
-          "po:po-20261108-1334"
+          "po:po-20261108-1334",
+          "po:po-20261108-1335"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -568,7 +570,7 @@
     ],
     "professores": [
       {
-        "contagem": 11,
+        "contagem": 12,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -580,7 +582,8 @@
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
-          "po:po-20261108-1334"
+          "po:po-20261108-1334",
+          "po:po-20261108-1335"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -616,12 +619,13 @@
         "valor": "plano"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
-          "po:po-20261108-1334"
+          "po:po-20261108-1334",
+          "po:po-20261108-1335"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -630,9 +634,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8eb7afb"
+    "commit": "03ab38f"
   },
-  "gerado_em": "2026-11-08T16:34",
+  "gerado_em": "2026-11-08T16:35",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -841,6 +845,16 @@
       "ciclo": "01",
       "data": "2026-11-08T13:34",
       "id": "po:po-20261108-1334",
+      "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261108-1334",
+      "ano": "2026",
+      "carimbo": "po-20261108-1335",
+      "ciclo": "01",
+      "data": "2026-11-08T13:35",
+      "id": "po:po-20261108-1335",
       "professor": "pe-torto",
       "tipo": "po"
     }
