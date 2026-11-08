@@ -7,14 +7,14 @@ responsavel: Dedão Aberto
 professor: Dedão Aberto
 title: "Plano de Observação do Ciclo 01 — batata"
 state: Input_PO_Aguardando
-envelope: po-20261107-2211
+envelope: po-20261108-0955
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261107-2206
+plano-20261108-0955
 
 ## Horizonte
 
@@ -48,6 +48,7 @@ Calendário: 2027-02-01 → 2027-02-02 · Volume de trabalho: 3–6 séries · C
 
 | Eixo | Dimensão | Itens |
 |:--|:--|:--|
+| Corpo | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | Corpo | **Os elementos basilares** | o tendu |
 | Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos |
 | Corpo | **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
@@ -70,6 +71,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 - Aluna A
 - Aluna B
+- Aluna C
 
 ## Norma estabelecida
 
@@ -79,6 +81,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 | Grupo | Aspectos observados |
 |:--|:--|
+| **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | **Os elementos basilares** | o tendu |
 | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos |
 | **Flexibilidade e Amplitude Articular** | Flexibilidade dos adutores |
@@ -93,6 +96,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Critérios de inclusão
 
+- as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços
 - Os elementos basilares: o tendu
 - Estrutura Óssea e Alinhamento Global (Membros Inferiores): Formato anatômico dos joelhos
 - Flexibilidade e Amplitude Articular: Flexibilidade dos adutores
