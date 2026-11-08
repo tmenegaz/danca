@@ -38,6 +38,8 @@ const porta = require(path.join(raiz, 'motor/nucleo/porta.js'));
 const linhaDeBase = require(path.join(raiz, 'motor/nucleo/linha-de-base.js'));
 const producao = require(path.join(raiz, 'motor/servidor/producao.js'));
 const listasDoAcervo = require(path.join(raiz, 'motor/servidor/listas-do-acervo.js'));
+const desligamento = require(path.join(raiz, 'motor/nucleo/desligamento.js'));
+const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
 
 let provas = 0;
 let falhas = 0;
@@ -100,8 +102,15 @@ const DA_PRODUCAO = [
   },
 ];
 
-/** A página da anamnese, com as três alunas semeadas e as linhas de base dadas. */
-async function paginaDasAnamnese(linhasDeBase_) {
+/**
+ * A página da anamnese, com as três alunas semeadas e as linhas de base dadas.
+ *
+ * `curadorias` e `sujeitos` entraram a 08/11/2026, para a prova da aluna DESLIGADA: a derivação
+ * dela precisa das duas leituras que a página já recebe — a lista de curadorias (com as
+ * substituídas) e o que os Planos de Observação declaram. Sem elas, o comportamento medido aqui é
+ * o de antes, e é isso que faz o controlo negativo valer.
+ */
+async function paginaDasAnamnese(linhasDeBase_, curadorias_, sujeitos_) {
   const kv = kvDeMentira();
   const env = { ESCOLA_SLUG: ESCOLA, PADD_KV: kv };
   const arm = producao.__armazenamento(env);
@@ -118,18 +127,33 @@ async function paginaDasAnamnese(linhasDeBase_) {
     };
     await porta.gravarEnvelope(arm, doc, relatorioDe(id));
   }
+  /* O PO QUE DECLARA AS ALUNAS — o terceiro rasto da desligada, e o único que a página vê sem
+   * abrir o repositório. A lista de sujeitos é o que `porta.vinculos` lê para dizer «vinculada». */
+  if (Array.isArray(sujeitos_) && sujeitos_.length) {
+    const idPo = 'po-20261106a';
+    await porta.gravarEnvelope(arm, {
+      id: idPo,
+      contexto: { escola: ESCOLA, professor: 'tiago-menegaz', ciclo: '01' },
+      respostas: {
+        sujeitos: { valor: sujeitos_ },
+        'plano-de-ensino': { valor: ['plano-20261106a'] },
+      },
+      gerado_em: '2026-11-06T09:00',
+    }, relatorioDe(idPo));
+  }
   const pagina = await listasDoAcervo.pagina('/area-do-professor/anamnese/', {
-    env, menu: null, escola: ESCOLA, curadorias: [], linhasDeBase: linhasDeBase_,
+    env, menu: null, escola: ESCOLA, curadorias: curadorias_ || [], linhasDeBase: linhasDeBase_,
   });
   const cartoes = (pagina.html.match(/<li class="trio-plano"[\s\S]*?<\/li>/g) || []);
   const porNome = new Map();
   for (const c of cartoes) {
     const nome = (((/<b>([\s\S]*?)<\/b>/.exec(c) || [])[1]) || '').replace(/<[^>]+>/g, '').trim();
     const selo = (/<span class="selo [^"]*">([^<]*)<\/span>/.exec(c) || [])[1] || '';
+    const seloClasse = (/<span class="selo ([^"]*)"/.exec(c) || [])[1] || '';
     const contexto = (/<div class="trio-dono">([^<]*)<\/div>/.exec(c) || [])[1] || '';
     const turma = (/<span class="trio-k">Turma<\/span><span class="trio-v">([^<]*)<\/span>/.exec(c) || [])[1] || '';
     const daLinha = (/<span class="trio-k">Linha de base<\/span><span class="trio-v">([^<]*)<\/span>/.exec(c) || [])[1] || '';
-    porNome.set(nome, { selo, contexto, turma, daLinha, html: c });
+    porNome.set(nome, { selo, seloClasse, contexto, turma, daLinha, html: c });
   }
   return porNome;
 }
@@ -219,6 +243,89 @@ async function paginaDasAnamnese(linhasDeBase_) {
       [{ id: 'lb', nome: 'lb', turma: 'Turma da Linha de Base', enviada_em: '2026-11-05T00:00', alunas: ['Aluna F'], campos: [{ id: 'x' }] }]);
     provar('com as duas, a linha de base vence — é o registo do acto', mapa2.get('Aluna F') === 'Turma da Linha de Base',
       mapa2.get('Aluna F'));
+  }
+
+  console.log('\nD · A aluna que saiu: «desligada», e não «nova» nem «livre» (08/11/2026)');
+  {
+    /* O CASO DELA, montado como ela o descreveu: a aluna saiu, o elenco foi concluído sem ela, a
+     * Turma foi regravada sem ela (e a anterior ficou como substituída), e um PO já a declarou. */
+    const ELENCO_SEM_ELA = [{
+      id: 'teste', nome: 'teste', professor: 'tiago-menegaz',
+      enviada_em: '2026-11-06T10:00:00.000Z', alunas: ['Aluna B'], campos: [{ id: 'x' }],
+    }];
+    const ELENCO_COM_ELA = [{
+      id: 'teste', nome: 'teste', professor: 'tiago-menegaz',
+      enviada_em: '2026-11-06T10:00:00.000Z', alunas: ['Aluna A', 'Aluna B'], campos: [{ id: 'x' }],
+    }];
+    const CURO = [
+      { id: 'c1', professor: 'tiago-menegaz', turma: 'Balé Nível 1 — Teste 1',
+        alunas: ['Aluna A', 'Aluna B'], substituidaPor: 'c2', substituidaEm: '2026-11-08' },
+      { id: 'c2', professor: 'tiago-menegaz', turma: 'Balé Nível 1 — Teste 1', alunas: ['Aluna B'] },
+    ];
+
+    const saiu = desligamento.estadoDaAluna({
+      aluna: 'Aluna A', linhas: ELENCO_SEM_ELA, curadorias: CURO,
+    });
+    provar('o núcleo diz que a Aluna A está desligada, e nomeia a turma de onde saiu',
+      saiu.desligada === true && saiu.sala === 'Balé Nível 1 — Teste 1', saiu);
+    provar('…e diz de onde veio o rasto (a Turma substituída)',
+      saiu.por === 'turma' && saiu.em === '2026-11-08', saiu);
+    const comPo = desligamento.estadoDaAluna({
+      aluna: 'Aluna A', linhas: ELENCO_SEM_ELA, curadorias: [], observada: true,
+    });
+    provar('o PO que a declarou basta, sozinho, para o estado — é o rasto que sobrevive a tudo',
+      comPo.desligada === true && comPo.por === 'plano-de-observacao', comPo);
+    provar('CONTROLE NEGATIVO: quem continua no elenco não é desligada',
+      desligamento.estadoDaAluna({ aluna: 'Aluna B', linhas: ELENCO_SEM_ELA, curadorias: CURO,
+        observada: true }).desligada === false);
+    provar('CONTROLE NEGATIVO: quem nunca esteve em nada não é desligada',
+      desligamento.estadoDaAluna({ aluna: 'Aluna C', linhas: ELENCO_SEM_ELA, curadorias: CURO })
+        .desligada === false);
+    provar('O ESTADO É DERIVADO: de volta ao elenco, ela deixa de estar desligada',
+      desligamento.estadoDaAluna({ aluna: 'Aluna A', linhas: ELENCO_COM_ELA, curadorias: CURO })
+        .desligada === false);
+
+    /* A PÁGINA DA ANAMNESE. O selo muda, e o GESTO não: o documento continua travado pelo PO
+     * («Novo registo» e mais nada), que é o que a pesquisadora pediu — «o novo registro vai ficar
+     * aqui ainda disponível, porque se ela for entrar de novo ela é um novo registro». */
+    const desligada = await paginaDasAnamnese(ELENCO_SEM_ELA, CURO, ['Aluna A']);
+    const a = desligada.get('Aluna A') || {};
+    provar('o selo da anamnese passa a ser «desligada»', a.selo === 'desligada', a.selo);
+    provar('…com a classe `legado` — o traço ponteado que a folha já tem',
+      a.seloClasse === 'legado', a.seloClasse);
+    provar('…e a linha diz que ela já não está em nenhum elenco, e onde esteve',
+      a.contexto === 'desligada — já não está em nenhum elenco · esteve na turma «Balé Nível 1 — Teste 1»',
+      a.contexto);
+    provar('o «Novo registo» continua disponível — voltar é um retrato novo',
+      /Novo registo/.test(a.html));
+    provar('…e o «Editar»/«Apagar» NÃO aparecem: o registro é proveniência',
+      !/Apagar/.test(a.html) && !/>Editar</.test(a.html));
+    const b = desligada.get('Aluna B') || {};
+    provar('CONTROLE: a colega que ficou não mudou de selo', b.selo === 'livre', b.selo);
+    const semRasto = await paginaDasAnamnese(ELENCO_SEM_ELA, [], []);
+    const c = semRasto.get('Aluna A') || {};
+    provar('CONTROLE: sem PO, sem Turma substituída e sem elenco, ela volta a ser «nova»',
+      c.selo === 'nova', c.selo);
+
+    /* A LISTA DE PESSOAS (Produção). O rasto que ela tem é o PO — os Planos de Observação que a
+     * declararam —, e é por isso que o selo deixa de ser «livre». */
+    const htmlDaProducao = (observadas) => bastidores.paginaProducao(
+      ESCOLA, { professor: 'tiago-menegaz', ciclo: '01', query: '' },
+      [], ['Aluna A', 'Aluna B'], 'Tiago Menegaz', 'tiago-menegaz',
+      [], [], {}, [], [], [], { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+      { modo: 'clara', paleta: 'pedra' }, '', ELENCO_SEM_ELA, observadas);
+    const seloDe = (html, nome) => {
+      const pedaco = new RegExp('<b>' + nome + '</b>\\s*<span class="selo ([^"]*)"[^>]*>([^<]*)</span>').exec(html);
+      return pedaco ? { classe: pedaco[1], texto: pedaco[2] } : null;
+    };
+    const comRasto = seloDe(htmlDaProducao(new Set(['Aluna A'])), 'Aluna A');
+    provar('na Produção, a aluna que o PO declarou aparece como «desligada», não como «livre»',
+      comRasto && comRasto.texto === 'desligada' && comRasto.classe === 'legado', comRasto);
+    provar('…e o «Excluir» continua habilitado — apagar o cadastro é limpeza, não remoção',
+      /data-alvo="Aluna A"[^>]*title="Excluir do cadastro/.test(htmlDaProducao(new Set(['Aluna A']))));
+    const semRastoNaProducao = seloDe(htmlDaProducao(new Set()), 'Aluna A');
+    provar('CONTROLE: sem o rasto do PO, a mesma aluna lê-se «livre» — como antes desta regra',
+      semRastoNaProducao && semRastoNaProducao.texto === 'livre', semRastoNaProducao);
   }
 
   console.log('\n' + (falhas === 0

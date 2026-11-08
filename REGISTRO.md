@@ -40928,3 +40928,136 @@ tocada — não há reancoragem a declarar.
 existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
 plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
 conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
+
+## 08/11/2026 — As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que sai
+
+**O que motivou.** A pesquisadora pediu o fluxo que falta à rotina, com base no §3.3 escrito horas
+antes: «quando um aluno ou professor resolve sair de um elenco e ir para outro elenco. E também
+quando o professor deixar a escola». A leitura do código encontrou **dois buracos**, e os dois
+silenciosos:
+
+- **Mudar uma aluna de elenco eram dois atos** (desmarcar em A, marcar em B), e a metade feita não
+  avisava: ela ficava **fora de todos os elencos** sem erro nenhum. Era o único caminho deste
+  sistema por onde uma aluna podia desaparecer.
+- **Um professor que deu uma aula nunca podia sair da escola.** O `DELETE` recusava se ele estivesse
+  numa curadoria; para sair, a curadoria tinha de ser apagada; e a curadoria que já gerou plano de
+  ensino não se apaga. Três guardas certas, cada uma a olhar só o próprio degrau, fechavam a porta.
+
+**As decisões dela, e são a regra.** Para o professor: «a escola não para de arrecadar, a turma
+continua existindo e a direção precisa tomar uma decisão operacional/pedagógica (remanjar
+modalidade temporária, aula recreativa/ensaio ou atribuir novo professor apto)». O remanejamento e
+a substituição ficam **como fluxo futuro da Direção**; o cadastro de habilidades é o **filtro de
+apoio**. Para o dono: «ele nunca abandona nem se exclui do sistema» — o vínculo institucional
+permanece, e ele pode deixar de dar uma turma específica pondo outro professor no lugar.
+
+**O que foi decidido, e onde se vê no código.**
+
+- **A transferência é UM ato** (`POST /api/bastidores/elenco-mover`, `motor/nucleo/transferencia.js`):
+  grava **duas versões** (append-only, cada uma com o seu `anterior`), e cada uma **diz o que
+  aconteceu** (`transferida` na origem, `recebida` no destino — aluna, elenco, data, motivo). A
+  `leitura` do passo 3 **cai nos dois lados**; a `lida` (proveniência) fica. **O destino escreve
+  primeiro**: se a origem falhar, ela está nos **dois** elencos — visível e corrigível; ao
+  contrário, em nenhum, que é o defeito. Sem repositório a rota **recusa** em vez de fingir.
+- **O desligamento** (`POST /api/bastidores/professor-desligar`, `motor/nucleo/desligamento.js`):
+  marca o registo (`desligado_em`/`desligado_motivo` obrigatório/`desligado_por`), **encerra** as
+  curadorias dele com data e motivo (`encerrada_em`, não apaga), e **marca** as turmas que ficaram
+  sem ele (`descontinuada`, com o motivo escrito). **Não** apaga a pasta nem o `perfil.json` — a
+  habilitação é da pessoa, fora do tenant (03/11/2026); **não** toca nos documentos; **não** escolhe
+  o sucessor.
+- **O enquadramento distingue a direção encerrada da vigente** (`enquadramento.js`):
+  `curadoriaDaTurma` prefere a activa; uma encerrada devolve `de: 'encerrada'`, `curadoria: null`, e
+  o resumo diz «sem professor — a direção de *X* foi encerrada em *data*». A marca é **revogável**
+  (uma direção nova limpa o `descontinuada`), e o **dono não se desliga**.
+- **O professor pode voltar**: o cadastro do mesmo identificador **reactiva** o registo (antes
+  colidia consigo mesmo e era impossível), mas **não reabre** a direção encerrada — o intervalo em
+  que ele não estava é um facto da história da escola. O `DELETE` de um desligado é recusado com a
+  frase da proveniência.
+- **Na Produção**: dois blocos novos, com as peças da casa (`bloco-lista`/`bloco-cabeca`/
+  `bloco-corpo`, `campo-rotulo`, `acao`) — «Transferência — a aluna que muda de elenco» na Audição,
+  e «Desligamento — o professor que sai da escola» junto das habilitações. O desligado aparece com o
+  selo `legado` («desligado») e sem botões, e sai das listas de escolha (Turma, elenco,
+  habilitações). Nenhuma classe nova: a folha congelada não se tocou.
+
+**Onde entrou.** `motor/nucleo/transferencia.js` (**novo**) · `motor/nucleo/desligamento.js`
+(**novo**) · `motor/nucleo/enquadramento.js` (a direção encerrada) · `motor/servidor/bastidores.js`
+(as duas rotas, as guardas, a reactivação, a limpeza da marca, os dois blocos e os handlers) ·
+`experimentos/provar-transferencia-e-desligamento.js` (**novo**) · `experimentos/README.md` ·
+`.gitignore` (a prova entra no versionamento) · `ARQUITETURA-GERAL.md` (§3.3: a transferência, o
+desligamento, e as duas linhas novas da tabela de fronteira).
+
+**Validação.** `provar-transferencia-e-desligamento` (**nova**) **62/62** — o núcleo (as duas
+versões, o que fica e o que cai, cinco recusas; o desligamento com as curadorias encerradas, a
+turma marcada, e o enquadramento) e as rotas no **entrypoint verdadeiro** com KV e GitHub em
+memória (a ordem das escritas, o 409 sem repositório, o dono recusado, o motivo obrigatório, a
+atribuição a um desligado recusada, a marca limpa pela direção nova, o `DELETE` recusado e o
+recadastro a reactivar). Sem regressão: `provar-linha-de-base-no-repo` **39** · `provar-linha-de-base`
+**102** · `provar-elenco-na-turma` **25** · `provar-aluna-nova-no-elenco` **34** ·
+`provar-apagar-professor-livre` **56** · `provar-enquadramento-da-turma` verde ·
+`provar-conteudos-e-estado-da-turma` verde · `provar-listas-do-acervo` **109** ·
+`check-identidade` **0 erros** (10 estados de selo em uso, todos na fonte).
+
+**O que ainda não está feito, e sabe-se.** A **substituição automática** da turma por um professor
+apto é o fluxo futuro da Direção — hoje ela é um ato manual (Turma → nova direção pedagógica), com a
+habilitação como filtro. A **sucessão formal do dono** não existe: ele não se desliga, e é essa a
+razão de a recusa o dizer. E o **remanejamento de modalidade** (aula recreativa/ensaio) é decisão da
+escola, não do motor: o sistema marca a turma e diz porquê, e não escolhe pedagogia.
+
+## 08/11/2026 — A aluna desligada, e a turma que muda de sala
+
+**O que motivou.** A pesquisadora seguiu o fluxo documentado para remover uma aluna do elenco — ela
+deixou de fazer aula e saiu da escola — e mediu o resultado na produção: a aluna continuava no
+cadastro (a remoção da pessoa é opcional), a anamnese dela **continuava travada** («um PO já a
+usa»), e a linha dizia **«aluna nova — sem turma e sem linha de base»**. As palavras dela: «Eu
+preciso de uma etiqueta que diga exatamente o status dela atual. Ela já não é mais uma aluna
+vinculada e nem tampouco ela é uma aluna nova/livre, porque nós temos a regra da proveniência. […]
+Ela é desligada, porque indica que ela não é nova, que ela não está vinculada, mas dá a entender que
+ela já fez parte de algum elenco, mas agora ela está desligada.» E pediu o mesmo pensamento para o
+professor na proveniência, e o fluxo de **mudança de sala** de uma turma existente documentado e
+avaliado.
+
+**O que foi decidido, e onde se vê no código.**
+
+- **«Desligada» é o quarto estado da aluna, e é DERIVADO** (`motor/nucleo/desligamento.js`,
+  `estadoDaAluna`): não está em nenhum elenco vigente, não está em nenhuma Turma vigente, **e já
+  esteve** — por um PO que a declarou em `sujeitos`, por uma Turma **substituída** que a declarava,
+  ou por uma versão com `transferida`/`recebida`. Nada se marca; o estado **cai sozinho** quando ela
+  volta a um elenco. É a diferença com o **professor**, que sai por **ato** (data e motivo) e por
+  isso é marcado — as duas dizem a mesma coisa nas palavras («não é novo, não está vinculado, já fez
+  parte») e chegam lá por mecanismos diferentes, porque os factos são diferentes.
+- **O selo usa a classe `legado`** (o traço ponteado da folha; nenhuma classe nova), e é o mesmo
+  vocabulário do professor desligado — `desligada`/`desligado`.
+- **O GESTO não muda.** O «Excluir» do cadastro continua habilitado (apagar o apelido é limpeza, e
+  não remove nada dos elencos, dos planos nem da anamnese), o «Novo registo» continua disponível («se
+  ela for entrar de novo ela é um novo registro»), e a anamnese continua travada enquanto um PO a
+  declarar. A etiqueta mentia sobre a **pessoa**; a guarda do **documento** estava certa.
+- **A lista de pessoas passa a ler o rasto do PO** (`alunasDosPlanosDeObservacao`, uma leitura do
+  índice como as outras da página): era o único sinal que sobrevive quando a Turma foi regravada sem
+  ela e o elenco também já não a declara.
+- **A mudança de sala, documentada e avaliada** no `§3.3`: o caminho é `turma-editar` (Sala livre) ou
+  `turma-derivar` (curada/vinculada), o nome não muda para não partir a Turma e o plano, e a relação
+  turma↔conteúdo migra para o id novo. **Veredito: atende ao registo e não atende à cadeia** — a
+  cascata (`revalidacaoPendente`) não conhece a Sala, e `vigenteDe` é declarado mas não é respeitado
+  na escolha do vigente (uma vigência para 01/12 já é a Sala de hoje).
+
+**Onde entrou.** `motor/nucleo/desligamento.js` (o cabeçalho passa a ser «quem sai», e entra o
+`estadoDaAluna`) · `motor/servidor/listas-do-acervo.js` (o selo, a linha e o painel da anamnese) ·
+`motor/servidor/bastidores.js` (o selo da lista de pessoas, o rasto do PO) ·
+`experimentos/provar-etiqueta-da-aluna.js` (a secção D, nova) · `ARQUITETURA-GERAL.md` (§3.3: «a
+aluna desligada», «a turma que muda de sala» com a tabela de avaliação, e três linhas nas tabelas de
+fronteira) · `ESTADO-ATUAL.md`.
+
+**Validação.** `provar-etiqueta-da-aluna` **36/36** (20 de antes + 16 novas: o núcleo com os três
+rastos e três controlos negativos, a página com o selo e o gesto, o controlo do «volta a ser nova»
+sem rasto, a lista de pessoas com e sem o rasto do PO). Sem regressão: `provar-listas-do-acervo`
+**109** · `provar-transferencia-e-desligamento` **62/62** · `provar-elenco-na-turma` **25** ·
+`provar-curadoria-e-limpeza` verde · `provar-enquadramento-da-turma` verde ·
+`provar-habilitacao-do-professor` verde. `check-identidade` **0 erros** (10 estados de selo em uso,
+todos na fonte). `provar-cartao-da-turma` tem **2 falhas que já estavam em `origin/main`** (termos e
+fichas; conferido num worktree limpo do `origin/main`), e não são desta mudança.
+
+**O que ainda não está feito, e sabe-se.** (1) O rasto do elenco **não** é lido: uma versão anterior
+que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna continua a ler-se «nova»
+até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
+alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
+vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
+**nenhum** PO declarou continua a poder ser apagada (é a regra do «solta»), e isso não foi mudado.

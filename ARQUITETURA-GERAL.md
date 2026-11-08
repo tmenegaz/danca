@@ -484,6 +484,137 @@ consolidar uma observação sobre uma turma que já não é a dela.
   `elenco` diz quem se oferece **hoje**, e `apelidos` é a **união** (o elenco de hoje mais quem
   aparece numa aula lançada). Numa aula já lançada, a lista é a **daquela** aula (P-03/P-04).
 
+**A aluna DESLIGADA — o estado que diz «já fez parte» (08/11/2026).** A saída acima descreve onde
+os registos ficam; não descrevia **o que a tela chama a essa aluna**. Ela leu-o na produção e o
+defeito era o de sempre — dois selos que só sabem perguntar pelo presente:
+
+| O que a tela dizia | Por que estava errado |
+|:--|:--|
+| **«vinculada»** (na anamnese) | é o estado do **documento** (um PO a declarou; não se edita), e continuava verdadeiro — mas respondia a outra pergunta |
+| **«nova — sem turma e sem linha de base»** (na mesma linha) | o **presente** dela é vazio: saiu do elenco, a Turma foi regravada sem ela. Vazio lê-se «nunca esteve aqui», que é falso |
+| **«livre»** (na lista de pessoas, com «Excluir» à vista) | «livre» quer dizer «podes apagar isto, não há história». Há |
+
+O quarto estado é **desligada**, e não é mais um grau dos outros dois: é a **negação dos dois com
+memória** — não está em elenco nenhum, não está em Turma nenhuma, **e já esteve**. O selo usa a
+classe `legado` (o traço ponteado que a folha já tem), e a linha diz o que ele quer dizer: «já não
+está em nenhum elenco · esteve na turma «…»».
+
+**A derivação, e porque não é uma marca** (`motor/nucleo/desligamento.js` → `estadoDaAluna`). A
+pergunta é refeita de cada vez, com o que a página já tem na mão:
+
+| Condição | Fonte |
+|:--|:--|
+| **não** está em nenhum elenco vigente | as linhas de base que a lista lê |
+| **não** está em nenhuma Turma vigente | as curadorias (as que não estão substituídas) |
+| **já esteve** — um dos três rastos | um **PO** que a declarou em `sujeitos` · uma **Turma substituída** que a declarava · uma versão com `transferida`/`recebida` |
+
+O estado **cai sozinho** no dia em que ela volta a um elenco — e é isso que o distingue do
+desligamento do professor, que é um **ato** com data e motivo (§ abaixo). A aluna não tem ato
+próprio a declarar: quem a tira do elenco é uma versão nova do elenco. Marcá-la obrigaria a
+desmarcá-la à mão no regresso, e um sinal que se esquece de limpar é um sinal que mente.
+
+**O que NÃO muda, e é deliberado.** O «Excluir» do cadastro continua habilitado: apagar o
+**apelido** é limpeza, e não remove o que ficou dela nos elencos, nos planos e na anamnese — o ato
+substantivo é o do elenco. O «Novo registo» da anamnese continua disponível, que é o que ela pediu:
+«se ela for entrar de novo ela é um novo registro». E a anamnese continua **travada** enquanto um
+PO a declarar, porque o cadeado é da proveniência, não do vínculo de hoje.
+
+> **O rasto que a derivação não vê, e sabe-se.** Uma versão de elenco anterior que nunca chegou a
+> ser escolhida por uma Turma não deixa rasto em nenhum dos três — e nesse caso ela continua a
+> ler-se «nova» até haver um ato novo. É a fronteira de toda a listagem: a derivação vale o que
+> valem os dados que a página lê, e inventar o que não se leu seria pior.
+
+**A TRANSFERÊNCIA — de um elenco para outro, num ato só (08/11/2026).** A entrada e a saída
+acima descrevem uma aluna que chega ou que parte da escola. O caso mais frequente é outro: ela
+**muda de elenco** — de horário, de turma, de professor — e continua na escola. Até 08/11/2026
+isso eram **dois atos** (desmarcar em A, marcar em B), e a metade feita não avisava: a aluna
+podia ficar **fora de todos os elencos** sem erro nenhum.
+
+Hoje é **um ato** (`POST /api/bastidores/elenco-mover`), e o desenho tem três decisões que se
+vêem no código:
+
+| Decisão | Porquê |
+|:--|:--|
+| **Grava duas versões** — uma por elenco, cada uma com `anterior` | os elencos são *append-only*; a história de cada um continua a ser lida sozinha |
+| **Cada versão diz o que aconteceu** — `transferida` (origem) e `recebida` (destino), com aluna, elenco, data e motivo | a mudança fica legível na proveniência sem abrir o outro ficheiro |
+| **O DESTINO escreve primeiro** | se a segunda escrita falhar, ela está nos **dois** elencos — visível e corrigível. Ao contrário, ficaria em **nenhum**, que é o defeito que o ato fecha |
+
+A `leitura` do passo 3 **cai nos dois lados** (descrevia os corpos que estavam juntos) e a `lida`
+— proveniência, quem leu — **fica**. Depois do ato, a cascata abre-se como em qualquer mudança de
+elenco: **Turma → Plano de Ensino → Plano de Observação**.
+
+**O professor que deixa a escola (08/11/2026).** O `DELETE` de um professor recusava em cascata:
+se ele estava numa curadoria, não saía; para sair, a curadoria tinha de ser apagada; e uma
+curadoria que já gerou plano de ensino **não se apaga**. Conclusão: **um professor que deu uma
+aula nunca podia deixar a escola**, por nenhuma rota — não era uma decisão, era um efeito
+colateral de três guardas certas, cada uma a olhar só o próprio degrau.
+
+A saída passou a ser um **desligamento** (`POST /api/bastidores/professor-desligar`), e a regra é
+a decisão dela: **a Turma não pára**. A escola continua a operar, a sala continua no calendário, e
+a **direção** decide o que fazer com uma turma que ficou sem quem a ensine — remanejar a
+modalidade temporariamente, dar aula recreativa/ensaio, ou atribuir outro professor habilitado
+(o `perfil.json` do professor é o filtro dessa escolha).
+
+| O que o desligamento faz | O que **não** faz |
+|:--|:--|
+| marca o registo: `desligado_em`, `desligado_motivo` (obrigatório), `desligado_por` | **não apaga a pasta** `professores/<slug>/` nem o `perfil.json` — a habilitação é da **pessoa** (03/11/2026), e ele a leva consigo |
+| **encerra** as curadorias dele com data e motivo (`encerrada_em`) — não as apaga | **não toca** nos envelopes, planos, POs, ciclos nem âncoras: o passado pertence à proveniência |
+| **marca** as turmas que ficaram sem ele (`descontinuada`, com o motivo escrito) | **não escolhe o sucessor**: atribuir a turma é um ato da direção, com a habilitação como filtro |
+| tira-o das listas de escolha (Turma, elenco, habilitações) e recusa atribuições novas | **não desliga o dono**: ele é a âncora da escola (decisão de 08/11/2026) |
+
+O **enquadramento** passa a distinguir a direção **encerrada** da vigente: a turma diz «sem
+professor — a direção de *X* foi encerrada em *data*», em vez de mostrar quem já saiu como se
+ainda estivesse a ensinar. A marca é **revogável**: uma direção nova para a mesma turma limpa o
+`descontinuada` — a mesma regra do lado do acender, que já existia para a perda de habilitação.
+E o professor **pode voltar**: o cadastro do mesmo identificador **reactiva** o registo (o
+vínculo institucional renasce), mas **não reabre** a direção encerrada — o intervalo em que ele
+não estava é um facto da história da escola.
+
+**A TURMA QUE MUDA DE SALA — o ritmo muda, a ligação não (08/11/2026).** Numa escola a sala de uma
+turma muda por mil razões — o horário do espaço, a troca de dias, o período que encurta, a duração
+que passa de 60 para 75 minutos —, e a pergunta é o que o sistema faz com isso. Tem duas metades: o
+**cadastro** (o ritmo) e a **cadeia** (o que foi decidido em cima dele).
+
+*O caminho depende do estado da Sala, e é o mesmo dos três estados que a turma já tinha:*
+
+| A Sala está | O gesto | O que o servidor faz |
+|:--|:--|:--|
+| **livre** (nenhuma Turma a declara, nenhum plano a usa) | `POST /api/bastidores/turma-editar` | edita **no lugar** — nome, dias, horários, duração, período. Nada a referencia, nada se reescreve |
+| **curada** (uma Turma a declara) ou **vinculada** (um plano a usa) | `POST /api/bastidores/turma-derivar` | grava um **elo novo**, com o **mesmo nome**, `vigenteDe` (a data a partir da qual vale) e `substitui`; a anterior fica com `substituidaPor`/`substituidaEm`. A relação turma↔conteúdo é copiada para o id novo |
+
+O NOME NÃO MUDA, e é a decisão que faz o resto funcionar: a Turma guarda o **nome** da Sala e o
+Plano de Ensino declara-o em `contexto-turma`. Um elo novo com outro nome partiria as duas ligações
+**em silêncio** — o plano impresso continuaria a dizer «Balé Nível 1» e nada no cadastro se chamaria
+assim. É por isso que o «Editar» de uma Sala vinculada **deriva** em vez de corrigir.
+
+*A avaliação, contra o código de hoje:*
+
+| O que a mudança de sala exige | Hoje |
+|:--|:--|
+| que o ritmo novo passe a valer sem reescrever o antigo | **atende** — `turma-derivar` grava um elo datado; a versão anterior fica na lista, marcada |
+| que a Turma e o plano continuem a encontrar a Sala | **atende** — pelo **nome**, que não muda |
+| que os conteúdos ligados à turma não se percam | **atende** — `turma-conteudos` migra para o id novo |
+| que o plano impresso não minta sobre o ritmo | **atende por omissão** — o plano **não declara** dias, horas nem duração; a geração lê-os da Sala vigente (`compor-conf.js`, `acharTurma`). O que ele fixa é o **volume** e os **marcos** |
+| que o professor saiba que o plano foi fixado para **outro** calendário | **não atende** — `revalidacaoPendente` não conhece a Sala: um plano decidido antes da mudança não é marcado «a rever», ao contrário do que acontece quando é o **elenco** que muda |
+| que a data declarada em `vigenteDe` seja respeitada | **não atende** — `turmasVigentes` e `acharTurma` filtram por `substituidaPor`, não por data: uma vigência declarada para 01/12 já é a Sala de hoje |
+
+**O veredito.** A mudança de sala **atende ao registo e não atende à cadeia**. O elo está certo, a
+ligação sobrevive, o passado fica legível — e o professor não recebe o aviso que a **mesma** mudança
+dá quando é o elenco que muda. A assimetria tem nome: o elenco tem um sinal derivado
+(`recorte.elencoDiferente`, que compara o que a Turma declara com o que a turma tem); a Sala não tem
+equivalente — **nada compara o calendário do plano com o calendário da Sala**.
+
+**O que uma alteração estrutural exigiria — e não se faz sem decisão da direção:**
+
+1. **A cascata passar a ver a Sala.** `revalidacaoPendente` teria de receber as Salas e marcar o
+   plano quando a Sala que ele declarou tiver um elo **posterior** à data do plano — as duas datas
+   existem (`vigenteDe` e o `gerado_em` do envelope). É um passo novo na cascata que já existe, e
+   não uma regra nova: a forma é a de `elencoDiferente`.
+2. **A vigência futura ser respeitada.** Hoje, declarar a vigência a 01/12 faz o sistema mudar de
+   Sala a 08/11 — porque a escolha do vigente não olha à data. Respeitá-la é uma decisão de
+   calendário que o sistema ainda não toma, e tomá-la sem a direção seria o motor a decidir quando
+   é que a escola muda de horário.
+
 **O que acontece sozinho, e o que exige o olhar do professor** — a fronteira, que é a pergunta
 que qualquer automação futura vai ter de respeitar:
 
@@ -494,6 +625,11 @@ que qualquer automação futura vai ter de respeitar:
 | **Mudar o elenco** | **marca** a cascata `linha-de-base → curadoria → plano-de-ensino → plano-de-observacao`, com `entrou`/`saiu` no motivo | rever Turma, PE e PO, nesta ordem |
 | **Anamnese nova** | entra no índice e no cálculo do vínculo | decidir se o retrato da turma precisa de ser refeito — o sistema não julga validade nem periodicidade |
 | **Ajustar o PE por causa do elenco** | o PO acompanha (novo elo) | decidir **o que muda no plano**: o sistema não compara necessidade individual com conteúdo |
+| **Transferir uma aluna de elenco** | grava as **duas** versões e regenera os ciclos dos dois elencos (`elenco-mover`) | reabrir a Turma, o PE e o PO — a mesma cascata de qualquer mudança de elenco |
+| **Desligar um professor** | encerra as curadorias com data e **marca** as turmas que ficaram sem ele (`descontinuada`) | decidir o que fazer com a turma: remanejar a modalidade, aula recreativa/ensaio, ou outro professor habilitado |
+| **Atribuir a turma a outro professor** | limpa a marca `descontinuada` da turma | escolher quem, entre os **habilitados** naquela modalidade — o `perfil.json` é o filtro |
+| **Mudar a sala de uma turma** | deriva o elo novo (mesmo nome) e a geração passa a ler o ritmo novo | rever o plano de ensino — o **volume** e os **marcos** foram fixados para o calendário anterior, e a cascata ainda não o marca |
+| **Uma aluna sair do elenco** | o selo dela passa a `desligada` — derivado, sem gesto nenhum | — |
 
 **A cobertura de necessidades: o que o sistema exige e o que não verifica.** O princípio de que
 «quem pode mais, pode menos» — a inclusão expande as necessidades e a remoção as reduz — é **regra
@@ -523,6 +659,15 @@ reescrever o que uma aula já registou.
 | «Atualiza a anamnese das alunas que existem» | Não há atualização em grupo. A anamnese é **por aluna e datada**; refazê-la é «Novo registo», e editá-la é **409** quando vinculada |
 | «Refaz o processo da turma» | Exato — mas é a **Turma** (a relação) que se grava de novo; a **Sala** (o ritmo) não se regenera |
 | «A aluna vai para uma turma que já existe» | Ela entra no **elenco**, e é a **Turma** que se grava outra vez com esse elenco. Nada a coloca directamente numa turma: a Turma é a relação, e o elenco é o corpo — quem junta os dois é o ato de a gravar |
+| «O professor sai da escola e a turma continua» | **Exato desde 08/11/2026.** O desligamento encerra a direção e marca a turma; a decisão sobre o que fazer com ela (remanejar, recreativa, outro professor) é da direção — o sistema não a toma |
+| «Excluir o professor que já deu aula» | **Não se exclui, e não precisa.** O `DELETE` apenas apaga um registo sem trabalho nenhum; quem tem história **desliga-se**, e o registo fica como proveniência do que assinou |
+| «Excluir a aluna que saiu» | **Pode-se, e é limpeza.** Apagar o apelido não apaga o que ficou dela nos elencos, nos planos e na anamnese; o selo dela passa a **desligada**, que é o que impede ler a saída como «nunca esteve aqui» |
+| «Mudo o horário da turma e o plano acompanha» | O **registo** acompanha — a Sala deriva, o nome não muda, e a geração lê o ritmo novo. O **aviso** não vem: o plano não é marcado «a rever» pela mudança de Sala, só pela mudança de elenco |
+
+> **O que o fluxo automático faria, e não faz.** A transferência e o desligamento já são **um ato
+> só**, e é isso que um automatizador precisa de chamar. O que continua a exigir o olhar do
+> professor é o **conteúdo**: que o plano de ensino incorpore quem entrou e deixe de cobrar quem
+> saiu, e que a turma sem professor receba a decisão certa. O sistema marca; não decide.
 
 > **Nota de leitura.** O §4.1 do [`ARQUITETURA-PE.md`](ARQUITETURA-PE.md) desenha a integração
 > PE ⇄ PO entre repositórios, com a elicitação a alimentar os dois documentos. No produto, a ordem

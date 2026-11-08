@@ -56,6 +56,14 @@ function turmasDaCuradoria(c) {
  * Vigentes primeiro: uma curadoria substituída é passado, e o enquadramento de hoje é o da que
  * vale. Se só houver substituída, ela é devolvida — é a única resposta que existe, e dizer «não
  * há» quando há uma seria perder a informação.
+ *
+ * **A CURADORIA ENCERRADA (08/11/2026).** O desligamento de um professor não apaga a direcção
+ * pedagógica que ele deu: **encerra-a com data** (`encerrada_em`, em `desligamento.js`). Uma
+ * curadoria encerrada não é a direcção de hoje — é a última que houve —, e por isso perde a vez
+ * para qualquer vigente. A ordem é: **activa** → a substituída (memória) → a encerrada. A
+ * distinção não se perde: `enquadramentoDaTurma` devolve-a em `encerrada`, e é isso que a tela
+ * e o resumo leem para dizer «a direção foi encerrada», em vez de mostrarem o professor que já
+ * saiu como se ele ainda estivesse a ensinar.
  */
 function curadoriaDaTurma(curadorias, nomeDaTurma) {
   const nome = String(nomeDaTurma || '').trim();
@@ -63,7 +71,9 @@ function curadoriaDaTurma(curadorias, nomeDaTurma) {
   const lista = (Array.isArray(curadorias) ? curadorias : [])
     .filter((c) => c && typeof c === 'object' && turmasDaCuradoria(c).indexOf(nome) !== -1);
   if (!lista.length) return null;
-  return lista.find((c) => !c.substituidaPor) || lista[0];
+  return lista.find((c) => !c.substituidaPor && !c.encerrada_em)
+    || lista.find((c) => !c.substituidaPor)
+    || lista[0];
 }
 
 /**
@@ -119,6 +129,20 @@ function enquadramentoDaTurma(turma, curadorias) {
   const t = turma && typeof turma === 'object' ? turma : {};
   const c = curadoriaDaTurma(curadorias, t.nome);
   if (c) {
+    /* A CURADORIA ENCERRADA NÃO ENQUADRA HOJE (08/11/2026). Ela é a resposta de quem ensinava — e
+     * é por isso que os campos dela continuam a ser devolvidos: o documento, a listagem e a decisão
+     * da direcção precisam de saber de quem era a turma. O que muda é o `de`: quem lê sabe que não
+     * há direcção activa, e a Turma aparece marcada como `descontinuada` pelo desligamento. */
+    if (c.encerrada_em) {
+      return {
+        professor: String(c.professor || '').trim(),
+        modalidade: String(c.modalidade || '').trim(),
+        tradicao: String(c.tradicao || '').trim(),
+        curadoria: null,
+        encerrada: c,
+        de: 'encerrada',
+      };
+    }
     return {
       professor: String(c.professor || '').trim(),
       modalidade: String(c.modalidade || '').trim(),
@@ -186,7 +210,7 @@ function turmasSemHabilitacao(turmas, curadorias, perfil, { professor } = {}) {
  */
 function resumoDoEnquadramento(turma, curadorias) {
   const enq = enquadramentoDaTurma(turma, curadorias);
-  const nivel = nivelEfetivo(turma, enq.curadoria);
+  const nivel = nivelEfetivo(turma, enq.curadoria || enq.encerrada || null);
   const partes = [];
   if (enq.modalidade) partes.push(enq.modalidade);
   if (enq.tradicao) partes.push(enq.tradicao);
@@ -202,7 +226,14 @@ function resumoDoEnquadramento(turma, curadorias) {
   let texto;
   if (!enq.curadoria) {
     const memoria = nivel.rotulo ? ' · ' + nivel.rotulo + ' (da turma)' : '';
-    texto = 'sem turma atribuída' + memoria;
+    /* A DIREÇÃO ENCERRADA DIZ QUE FOI ENCERRADA — e por quem, se ainda se souber. «Sem turma
+     * atribuída» e «a direção foi encerrada» são dois factos diferentes, e confundi-los mandaria a
+     * direcção procurar um professor que nunca existiu em vez de um que saiu. */
+    const foiEncerrada = enq.encerrada && enq.encerrada.encerrada_em
+      ? 'sem professor — a direção de ' + String(enq.encerrada.professor || '').trim()
+        + ' foi encerrada em ' + String(enq.encerrada.encerrada_em).slice(0, 10)
+      : 'sem turma atribuída';
+    texto = foiEncerrada + memoria;
   } else if (partes.length) {
     texto = partes.join(' · ');
   } else {

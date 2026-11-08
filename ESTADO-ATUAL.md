@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 08/11/2026 (árvore limpa, `ea2c558c` + esta entrega). Nesta entrega, **o
+> **Última fotografia:** 08/11/2026 (`f8da8bc5` + esta entrega). Nesta entrega, **a aluna que sai
+> do elenco deixa de se ler «nova»**: o selo da anamnese e o da lista de pessoas respondiam só ao
+> presente, e o presente de quem saiu é vazio — vazio lia-se «nunca esteve aqui», que é falso e
+> apaga a história de quem já foi observada. Entra o quarto estado, **`desligada`** — **DERIVADO**
+> (`desligamento.estadoDaAluna`: fora de todos os elencos vigentes, fora de todas as Turmas
+> vigentes, **e com rasto** de que já esteve: um PO, uma Turma substituída, ou uma transferência),
+> com a classe `legado` da folha e o mesmo vocabulário do professor desligado. **O gesto não muda**:
+> o «Excluir» do cadastro continua (é limpeza), o «Novo registo» continua, e a anamnese continua
+> travada enquanto um PO a declarar. E o **fluxo de mudança de sala** de uma turma foi documentado e
+> **avaliado**: atende ao registo (`turma-derivar`, mesmo nome, conteúdos migram) e **não atende à
+> cadeia** (a cascata não vê a Sala; `vigenteDe` é declarado e não respeitado). Ver a decisão 125 e
+> o §3.3 do `ARQUITETURA-GERAL.md`.
+>
+> **Fotografia anterior (08/11/2026, `ea2c558c`).** Nesta entrega, **o
 > «Guardar» do PO deixa de morrer a meio**: o Cloudflare corta em **50 subpedidos por invocação** (e
 > no plano gratuito o `limits.subrequests` não sobe), o caminho do «Guardar» gastava mais — **26 só
 > no escritor do ciclo**, medidos —, e a invocação morria **depois** de gravar o `-po.md` e **antes**
@@ -4196,6 +4209,37 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **08/11/2026** — **A aluna desligada, e a turma que muda de sala.** Ela seguiu o fluxo de remover
+  uma aluna do elenco na produção e leu o defeito: a anamnese dizia **«vinculada»** (o documento,
+  travado por um PO) e, na mesma linha, **«aluna nova — sem turma e sem linha de base»** (a pessoa) —
+  e a lista de pessoas dizia **«livre»**, com o «Excluir» à vista. **CONFIRMADO no código**, e as
+  duas leituras estavam certas sobre perguntas diferentes: o selo respondia ao **presente**, e o
+  presente de quem saiu é vazio. **DECIDIDO** — por ela — o nome **`desligada`** («indica que ela
+  não é nova, que ela não está vinculada, mas dá a entender que ela já fez parte de algum elenco»), e
+  o **mesmo pensamento para o professor**: `desligada`/`desligado` partilham o vocabulário e a
+  classe `legado`, mas **não o mecanismo** — o professor sai por **ato** (data e motivo, marcado), a
+  aluna sai por **efeito** de uma versão nova do elenco (derivado, cai sozinho no regresso).
+  **Entregue**: `desligamento.estadoDaAluna` com os três rastos (PO · Turma substituída ·
+  transferência), o selo e a linha da anamnese, o selo da lista de pessoas e a leitura do rasto do PO
+  (`alunasDosPlanosDeObservacao`). A **mudança de sala** ficou documentada e avaliada no §3.3:
+  atende ao registo, **não** atende à cadeia (a cascata não vê a Sala; a vigência declarada não é
+  respeitada). `provar-etiqueta-da-aluna` **36/36**; sem regressão nas bancadas da anamnese, do
+  elenco, do desligamento e do enquadramento; `check-identidade` **0 erros**. Ver a decisão 125 e o
+  §3.3.
+- **08/11/2026** — **As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que
+  sai.** Ela pediu o fluxo que faltava ao §3.3. **CONFIRMADO no código**, e eram dois buracos
+  silenciosos: mudar uma aluna de elenco eram **dois atos**, e a metade feita deixava-a **fora de
+  todos os elencos**; e **um professor que deu aula nunca podia sair da escola** (o `DELETE` exige
+  curadoria removível, e a curadoria com plano não se apaga). **DECIDIDO** — por ela — que a
+  **Turma não pára** (a direção decide remanejar, dar recreativa/ensaio ou nomear outro professor
+  habilitado, e a substituição é fluxo futuro da Direção), e que o **dono não se desliga** (é a
+  âncora; sucessão formal não existe). **Entregue**: `elenco-mover` (duas versões num ato, o destino
+  primeiro, `transferida`/`recebida`), `professor-desligar` (registo marcado, curadorias
+  **encerradas** com data, turmas `descontinuada` com motivo), o enquadramento a distinguir a
+  direção encerrada da vigente, o desligado fora das listas de escolha, o recadastro do mesmo
+  identificador a **reactivar**, e os dois blocos na Produção. `provar-transferencia-e-desligamento`
+  **62/62** (o núcleo e as rotas, no entrypoint verdadeiro). Sem regressão nas sete bancadas do
+  elenco, do professor e do enquadramento; `check-identidade` 0 erros. Ver a decisão 124 e o §3.3.
 - **08/11/2026** — **A rotina da escola passa a estar num só desenho, com as duas portas do elenco.**
   Ela descreveu o fluxo — escola + sala + estilo → alunas (anamneses) → audição (elenco) → turma →
   plano de ensino → plano de observação → formulário da aula dada — e pediu-o documentado como

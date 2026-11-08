@@ -956,3 +956,4 @@ experimentos/modelo-formulario/*
 !experimentos/provar-orcamento-do-guardar.js
 !experimentos/provar-trava-da-operacao.js
 !experimentos/provar-ponte-do-worker.js
+!experimentos/provar-transferencia-e-desligamento.js

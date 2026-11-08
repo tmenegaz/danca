@@ -38,6 +38,11 @@ const CATALOGO = require('./catalogo-seed.js');
 const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis.js');
 // O ENQUADRAMENTO — quem ensina o quê, em que nível, e que turmas ficaram sem quem as ensine.
 const enquadramento = require('../nucleo/enquadramento.js');
+/* A TRANSFERÊNCIA DE UMA ALUNA ENTRE ELENCOS e o DESLIGAMENTO DE UM PROFESSOR (08/11/2026). As
+ * duas regras são puras — recebem as listas e devolvem as versões novas, ou os motivos da recusa —,
+ * e vivem no núcleo pela mesma razão das outras: a rota escreve, o núcleo decide. */
+const transferencia = require('../nucleo/transferencia.js');
+const desligamento = require('../nucleo/desligamento.js');
 // OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
 // continuava editável, e renomeá-la partia a ligação em silêncio (a curadoria guarda o NOME).
@@ -905,6 +910,36 @@ async function alunasComAnamnese(env, escola) {
   } catch (e) {
     return new Set();
   }
+}
+
+/**
+ * AS ALUNAS QUE UM PLANO DE OBSERVAÇÃO JÁ DECLAROU (08/11/2026) — o rasto de quem já foi observada.
+ *
+ * É o terceiro dos rastos de `desligamento.estadoDaAluna`, e o mais forte: um PO que a declarou em
+ * `sujeitos` é a prova de que ela esteve numa turma observada — e essa prova **não desaparece**
+ * quando o elenco ou a Turma deixam de a declarar. É exactamente o caso que a pesquisadora mediu a
+ * 08/11/2026: a aluna saiu da escola, a anamnese dela continua travada («um PO já a usa») e a
+ * lista de pessoas dizia «livre», porque só perguntava ao presente.
+ *
+ * UMA LEITURA DO ÍNDICE, como `alunasComAnamnese` ao lado: o resumo de cada PO já traz `sujeitos`
+ * (é o mesmo campo que `porta.vinculos` usa para decidir o `vinculada` da anamnese). Sem o índice,
+ * o conjunto volta vazio e a etiqueta fica como estava — perder o estado é menos mau do que perder
+ * a lista.
+ */
+async function alunasDosPlanosDeObservacao(env, escola) {
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  const nomes = new Set();
+  try {
+    const pos = await porta.resumosDeEnvelopes(armazenamento, /^po-.*\.json$/);
+    for (const { resumo } of pos) {
+      for (const a of (resumo && Array.isArray(resumo.sujeitos) ? resumo.sujeitos : [])) {
+        const apelido = String(a == null ? '' : a).trim();
+        if (apelido) nomes.add(apelido);
+      }
+    }
+  } catch (e) { /* sem índice, sem rasto: o conjunto fica vazio, e a lista não cai */ }
+  return nomes;
 }
 
 /** As TURMAS que já têm plano — o conjunto que o cartão da turma consulta. */
@@ -2296,7 +2331,7 @@ function paginaEstudio(escola, contexto, aparencia) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas) {
   /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
    *
    * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
@@ -2474,20 +2509,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     const curado = professorCurado(curs, p);
     const noPlano = professorVinculadoA(usos, p);
     const profPreso = curado || noPlano;
-    const seloProf = noPlano
-      ? '<span class="selo vinculada" title="este professor já está num plano de ensino; apagá-lo romperia a proveniência">vinculado</span>'
-      : curado
-        ? '<span class="selo vinculada" title="este professor já está numa curadoria; enquanto a curadoria não gerar plano de ensino, remova a curadoria para poder mexer nele">curado</span>'
-        : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
+    const desligadoAgora = desligamento.estaDesligado(p);
+    /* O DESLIGADO É UM ESTADO PRÓPRIO (08/11/2026), e vem primeiro: ele já não está em curadoria
+     * activa (foi encerrada) nem recebe turmas novas, mas continua a ser o autor dos documentos que
+     * assinou. O selo `legado` — o do traço ponteado, já desenhado na folha — diz «é memória, não é
+     * o presente», que é exactamente o que ele é. Inventar um estado novo no CSS seria mexer na
+     * folha congelada por uma palavra. */
+    const seloProf = desligadoAgora
+      ? '<span class="selo legado" title="este professor desligou-se da escola em '
+        + esc(String(p.desligado_em).slice(0, 10)) + '; o registo fica como proveniência e o nome '
+        + 'continua nos documentos que assinou">desligado</span>'
+      : noPlano
+        ? '<span class="selo vinculada" title="este professor já está num plano de ensino; apagá-lo romperia a proveniência">vinculado</span>'
+        : curado
+          ? '<span class="selo vinculada" title="este professor já está numa curadoria; enquanto a curadoria não gerar plano de ensino, remova a curadoria para poder mexer nele">curado</span>'
+          : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
     // AS TURMAS DO PROFESSOR: pelo slug do cadastro e, como o plano pode ter gravado o nome
     // em vez do slug, também pelo slug do nome. As duas chaves descrevem a mesma pessoa.
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
     linhasProfs.push('<li><span class="nome">' + linhaDoNome(p.nome, seloProf) + '</span>' +
       colunaDeTurmas(turmasDele, p.nome, 'pessoa') +
-      '<span class="acoes">' + (profPreso
-        ? '<button class="acao secundario pequena" disabled title="Vinculado a um plano de ensino: não se apaga">Excluir</button>'
-        : '<button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button>') +
-      '</span></li>');
+      '<span class="acoes">' + (desligadoAgora
+        ? '<span class="sub" title="o desligamento não apaga o registo: ele é a memória de quem deu '
+          + 'estas aulas">fora da escola</span>'
+        : profPreso
+          ? '<button class="acao secundario pequena" disabled title="Vinculado a um plano de ensino: não se apaga">Excluir</button>'
+          : '<button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button>')
+      + '</span></li>');
   }
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
@@ -2504,25 +2552,62 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   }
   for (const p of profs) {
     if (!p || !p.nome) continue;
+    /* QUEM SAIU DA ESCOLA NÃO SE OFERECE (08/11/2026). Desligado, ele deixa de aparecer nas listas
+     * de escolha — a do responsável de um elenco e a das habilitações —, porque não é ele que vai
+     * assumir trabalho novo. O registo continua na lista de professores, com o selo `desligado`:
+     * não se apaga o que é proveniência, mas também não se oferece quem já não está. */
+    if (desligamento.estaDesligado(p)) continue;
     const sl = slugDoProfessor(p);
     if (!sl || sl === donoSlug) continue;
     opcoesDeHabilitacao.push('<option value="' + esc(sl) + '" data-nome="' + esc(p.nome) + '">'
       + esc(p.nome) + '</option>');
   }
+  /* A LISTA DO DESLIGAMENTO (08/11/2026) — os professores que ainda estão na escola, pela ORDEM
+   * INVERSA da lista de escolha: aqui o que se escolhe é quem SAI, e oferecer os desligados seria
+   * pedir duas vezes o mesmo. O dono também não entra: ele não se desliga (`motivoDaRecusaDoDono`),
+   * e uma opção que o servidor recusa é uma promessa que a tela não cumpre. */
+  const opcoesDeDesligamento = profs
+    .filter((p) => p && p.nome && !desligamento.estaDesligado(p)
+      && slugDoProfessor(p) !== donoSlug)
+    .map((p) => '<option value="' + esc(slugDoProfessor(p) || p.nome) + '">' + esc(p.nome) + '</option>')
+    .join('');
+  const temQuemDesligar = opcoesDeDesligamento !== '';
   // AS ALUNAS seguem a MESMA regra (18/10/2026). O plano de ensino é da turma, mas a
   // CURADORIA declara quem está nela — e é a curadoria que tem plano. Então a aluna fica
   // vinculada quando alguma curadoria que a inclui já virou plano de ensino.
+  //
+  // E O QUARTO ESTADO (08/11/2026): «DESLIGADA». O selo respondia só ao presente — vinculada se
+  // uma curadoria com plano a declara, «livre» em todos os outros casos —, e por isso a aluna que
+  // saiu da escola lia-se «livre», que quer dizer «podes apagar isto que não há história». Há:
+  // ela já esteve num elenco, e é isso que o selo `legado` (o do traço ponteado) passa a dizer. A
+  // derivação é a de `desligamento.estadoDaAluna`; a GUARDA do «Excluir» não muda — apagar o
+  // cadastro é limpeza, e o ato substantivo é o do elenco (ver ARQUITETURA-GERAL §3.3).
   const itensAlunas = aluns.length
     ? aluns.map((a) => {
         const presa = alunaVinculadaA(pares, curs, a);
+        const desligada = presa ? { desligada: false } : desligamento.estadoDaAluna({
+          aluna: a,
+          linhas: Array.isArray(linhas) ? linhas : [],
+          curadorias: Array.isArray(curs) ? curs : [],
+          observada: Boolean(alunasObservadas && alunasObservadas.has(String(a).trim())),
+        });
         const selo = presa
           ? '<span class="selo vinculada" title="esta aluna está numa curadoria que já tem plano de ensino; apagá-la romperia a proveniência">vinculada</span>'
-          : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>';
+          : desligada.desligada
+            ? '<span class="selo legado" title="esta aluna já fez parte de um elenco e já não está em nenhum'
+              + (desligada.sala ? ' (esteve na turma «' + esc(desligada.sala) + '»)' : '')
+              + '; o registo fica como proveniência, e apagá-lo é limpeza do cadastro — não apaga '
+              + 'o que ficou dela nos elencos e nos planos">desligada</span>'
+            : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>';
         return '<li><span class="nome">' + linhaDoNome(a, selo) + '</span>'
           + colunaDeTurmas(turmasDaAluna.get(String(a).trim()), a, 'pessoa')
           + '<span class="acoes">' + (presa
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
-            : '<button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button>')
+            : '<button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="'
+              + (desligada.desligada
+                ? 'Excluir do cadastro — é limpeza: o nome dela continua nos elencos, nos planos e na '
+                  + 'anamnese, que é a proveniência'
+                : 'Excluir aluna') + '">Excluir</button>')
           + '</span></li>';
       }).join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
@@ -2828,6 +2913,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   if (donoNome) profsParaCuradoria.push({ valor: donoSlug, rotulo: donoNome });
   for (const p of profs) {
     if (!p || !p.nome) continue;
+    /* O DESLIGADO NÃO SE OFERECE PARA DIRIGIR UMA TURMA (08/11/2026) — a mesma razão da lista das
+     * habilitações: ele não assume trabalho novo, e a direção dele foi encerrada com data. */
+    if (desligamento.estaDesligado(p)) continue;
     const slug = slugDoProfessor(p);
     if (!slug || slug === donoSlug) continue;
     profsParaCuradoria.push({ valor: slug, rotulo: p.nome });
@@ -2875,6 +2963,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     ? '<option value="">' + ROTULO_ESCOLHER_ELENCO + '</option>' +
       elencosDaEscola.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('')
     : '<option value="">' + ROTULO_NENHUM_ELENCO + '</option>';
+  /* OS ELENCOS DA TRANSFERÊNCIA (08/11/2026) — os CONCLUÍDOS, e só eles. Mover uma aluna para um
+   * rascunho daria uma versão que o plano de ensino não lê, e a rota recusa-a; a lista não oferece o
+   * que a rota recusa. É a mesma regra da escolha do elenco na Turma, com o filtro a mais. */
+  const elencosParaMover = elencosDaEscola.filter((e) => !e.rascunho);
+  const opcoesDeElencoParaMover = elencosParaMover
+    .map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
+  const opcoesDeAlunaParaMover = aluns
+    .map((a) => '<option value="' + esc(a) + '">' + esc(a) + '</option>').join('');
   // A DISPONIBILIDADE NO CATÁLOGO (07/11/2026) — derivada dos dados que a Turma já declara.
   // Não é um juízo: é a lista do que falta para a Turma poder ser ofertada, e cada falta diz o
   // campo que a resolve. A modalidade é o EIXO do catálogo e entra na lista como qualquer outra
@@ -3920,6 +4016,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '</div>' +
     '</details>' +
+    /* ------------------------------------------- O DESLIGAMENTO (08/11/2026)
+     *
+     * O SÍTIO É AQUI, e não em «Pessoas»: a saída de um professor é uma decisão sobre a ESCOLA — a
+     * turma fica sem quem a ensine, e a direcção tem de decidir o que fazer —, e não um ajuste de
+     * cadastro. Fica ao lado das habilitações porque é a habilitação dele que filtra quem o pode
+     * substituir; a direcção lê as duas coisas no mesmo lugar.
+     *
+     * O MOTIVO É OBRIGATÓRIO, e é o único campo de texto: é o que a direcção de amanhã vai ter para
+     * saber porque é que aquela turma parou de ter professor. Um desligamento sem motivo é um buraco
+     * na memória da escola. */
+    '<details class="bloco-lista" id="deslig-bloco">' +
+    '<summary class="bloco-cabeca">' +
+    '<span class="bloco-titulo">Desligamento — o professor que sai da escola</span>' +
+    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+    '</summary>' +
+    '<div class="bloco-corpo">' +
+    (temQuemDesligar
+      ? '<form id="form-desligar">' +
+        '<label class="campo-rotulo" for="desl-professor">Professor</label>' +
+        '<select id="desl-professor">' + opcoesDeDesligamento + '</select>' +
+        '<label class="campo-rotulo" for="desl-motivo">Motivo do desligamento</label>' +
+        '<input id="desl-motivo" autocomplete="off" placeholder="ex.: fim do contrato — a turma fica à espera de quem a ensine">' +
+        '<p class="sub">A escola <b>continua a operar</b>. A direção pedagógica dele é encerrada com ' +
+        'data, e as turmas dele ficam marcadas como <b>sem professor</b> — para a direção decidir: ' +
+        'remanejar a modalidade, dar aula recreativa/ensaio, ou atribuir outro professor habilitado. ' +
+        'O registo dele fica: o nome continua nos documentos que assinou.</p>' +
+        '<div class="res" data-res="desligamento"></div>' +
+        '<span class="par-botoes">' +
+        '<button type="submit" class="acao grande" id="desl-enviar">Desligar o professor</button>' +
+        '</span>' +
+        '</form>'
+      : '<p class="sub">Nenhum professor para desligar: o responsável principal não se desliga ' +
+        '(é a âncora da escola), e os outros já saíram ou ainda não foram cadastrados.</p>') +
+    '</div>' +
+    '</details>' +
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-alunas" hidden>' +
@@ -4938,6 +5069,54 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h3>O que os recortes olham</h3>' +
     '<div id="lb-indice"><p class="sub">carregando…</p></div>' +
     '</div>' +
+    /* ------------------------------------------- A TRANSFERÊNCIA (08/11/2026)
+     *
+     * O SÍTIO É AQUI, e não na Turma: o acto muda o CORPO observado, não o ritmo. A lista é a dos
+     * elencos concluídos; a aluna sai de um e entra no outro **num golpe só**, e a rota grava as
+     * duas versões — o destino primeiro, a origem depois — para que nenhuma falha a deixe fora de
+     * todos os elencos. Antes disto, o professor fazia-o em dois actos, e a metade feita não avisava.
+     *
+     * O MOTIVO É OPCIONAL AQUI (ao contrário do desligamento): mudar de turma é rotina, e exigir
+     * uma justificação a cada mudança faria escrever «-» no campo. Quando ela existe, fica na
+     * proveniência dos dois elencos. */
+    (elencosParaMover.length >= 1 && opcoesDeAlunaParaMover
+      ? '<details class="bloco-lista" id="mover-bloco">' +
+        '<summary class="bloco-cabeca">' +
+        '<span class="bloco-titulo">Transferência — a aluna que muda de elenco</span>' +
+        '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+        '</summary>' +
+        '<div class="bloco-corpo">' +
+        '<form id="form-mover">' +
+        '<label class="campo-rotulo" for="mv-aluna">Aluna</label>' +
+        '<select id="mv-aluna">' + opcoesDeAlunaParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-de">Do elenco</label>' +
+        '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-para">Para o elenco</label>' +
+        '<select id="mv-para">' + opcoesDeElencoParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-motivo">Motivo (opcional)</label>' +
+        '<input id="mv-motivo" autocomplete="off" placeholder="ex.: mudou de horário — vai para a turma da tarde">' +
+        '<p class="sub">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> — nunca fica ' +
+        'sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a Turma, ' +
+        'depois o plano de ensino e, por último, o plano de observação.</p>' +
+        '<div class="res" data-res="transferencia"></div>' +
+        '<span class="par-botoes">' +
+        '<button type="submit" class="acao grande" id="mv-enviar">Mover a aluna</button>' +
+        '</span>' +
+        '</form>' +
+        '</div>' +
+        '</details>'
+      : '<details class="bloco-lista" id="mover-bloco">' +
+        '<summary class="bloco-cabeca">' +
+        '<span class="bloco-titulo">Transferência — a aluna que muda de elenco</span>' +
+        '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+        '</summary>' +
+        '<div class="bloco-corpo">' +
+        '<p class="sub">' + (opcoesDeAlunaParaMover ? 'Nenhum elenco concluído ainda: a transferência '
+          + 'precisa de dois elencos com recorte. Conclua um elenco na Audição e ele aparece aqui.'
+          : 'Nenhuma aluna cadastrada: a transferência move uma aluna entre elencos, e não há '
+          + 'ninguém para mover. Cadastre as alunas em «Alunas».') + '</p>' +
+        '</div>' +
+        '</details>') +
     '</section>' +
     '<script>' +
     'var TOKEN = "";' +
@@ -5956,6 +6135,84 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      }' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
+    '});' +
+    /* O DESLIGAMENTO — a confirmação é o MOTIVO, e não um `confirm()` (08/11/2026). O campo
+     * obrigatório já obriga a parar e a escrever; um `confirm()` por cima seria um segundo "tem
+     * certeza?" que se carrega sem ler. O recado final diz o que a escola faz a seguir — a decisão
+     * da direção —, porque é isso que o professor precisa de saber naquele instante. */
+    'var formDesl = document.getElementById("form-desligar");' +
+    'if (formDesl) formDesl.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var res = document.querySelector("[data-res=desligamento]");' +
+    '  var motivo = String((document.getElementById("desl-motivo") || {}).value || "").trim();' +
+    '  if (!motivo) {' +
+    '    if (res) { res.className = "res erro"; res.textContent = "Informe o motivo do ' +
+    'desligamento — é o que fica registado para a direção."; }' +
+    '    return;' +
+    '  }' +
+    '  var corpo = {' +
+    '    professor: (document.getElementById("desl-professor") || {}).value || "",' +
+    '    motivo: motivo,' +
+    '    token: TOKEN' +
+    '  };' +
+    '  var antes = ocuparBotao(formDesl, "desligando...");' +
+    '  fetch("/api/bastidores/professor-desligar", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok) {' +
+    '        if (res) {' +
+    '          res.className = "res ok";' +
+    '          res.textContent = d.professor + " desligado da escola."' +
+    '            + (d.turmasDescontinuadas && d.turmasDescontinuadas.length' +
+    '              ? " Turma(s) agora sem professor: " + d.turmasDescontinuadas.join(", ") + "." : "")' +
+    '            + " " + (d.proximo || "");' +
+    '        }' +
+    '        setTimeout(function(){ location.reload(); }, 3000);' +
+    '      } else if (res) {' +
+    '        res.className = "res erro";' +
+    '        res.textContent = (d && d.erro) || "não foi possível desligar o professor";' +
+    '      }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); if (res) { res.className = "res erro"; ' +
+    'res.textContent = "Erro: " + err.message; } });' +
+    '});' +
+    /* A TRANSFERÊNCIA — o estado parcial tem de ser DITO (08/11/2026). Se a segunda escrita falhar,
+     * a aluna está nos DOIS elencos; a resposta traz `parcial: true` e a tela recarrega mesmo assim,
+     * para a pessoa VER o estado em vez de acreditar num «erro» que sugere que nada aconteceu. */
+    'var formMover = document.getElementById("form-mover");' +
+    'if (formMover) formMover.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var res = document.querySelector("[data-res=transferencia]");' +
+    '  var corpo = {' +
+    '    aluna: (document.getElementById("mv-aluna") || {}).value || "",' +
+    '    de: (document.getElementById("mv-de") || {}).value || "",' +
+    '    para: (document.getElementById("mv-para") || {}).value || "",' +
+    '    motivo: (document.getElementById("mv-motivo") || {}).value || "",' +
+    '    token: TOKEN' +
+    '  };' +
+    '  var antes = ocuparBotao(formMover, "movendo...");' +
+    '  fetch("/api/bastidores/elenco-mover", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberarBotao(antes);' +
+    '      if (d && d.ok) {' +
+    '        if (res) {' +
+    '          res.className = "res ok";' +
+    '          res.textContent = d.aluna + " passou de " + d.de + " para " + d.para + ". "' +
+    '            + (d.proximo || "");' +
+    '        }' +
+    '        setTimeout(function(){ location.reload(); }, 2200);' +
+    '      } else if (res) {' +
+    '        res.className = "res erro";' +
+    '        res.textContent = (d && d.erro) || "não foi possível mover a aluna";' +
+    '        if (d && d.parcial) setTimeout(function(){ location.reload(); }, 3200);' +
+    '      }' +
+    '    })' +
+    '    .catch(function(err){ liberarBotao(antes); if (res) { res.className = "res erro"; ' +
+    'res.textContent = "Erro: " + err.message; } });' +
     '});' +
     // As caixas marcadas de um grupo — usado pelos dias da semana (as pílulas curtas).
     // A leitura é por `input` + `name`, e não pelo seletor `input[name="…"]:checked`: assim
@@ -10844,16 +11101,21 @@ async function fetch(request, env) {
      * precisa da lista. É a mesma função que a secção Elenco usa, chamada uma vez por pedido —
      * a tree do repositório já está em `repoLinhas`, e o store a lê uma vez só. Carrega-se em
      * paralelo com a aparência: são duas leituras independentes. */
-    const [aparencia, linhas] = await Promise.all([
+    /* QUEM OS PLANOS DE OBSERVAÇÃO JÁ DECLARARAM (08/11/2026) entra na mesma espera: é a terceira
+     * leitura independente, e é o rasto mais forte de que uma aluna já esteve numa turma — o único
+     * que sobrevive quando a Turma foi regravada sem ela e a linha de base também já não a
+     * declara. Sem ele, a etiqueta degrada para «livre», que é o comportamento de antes. */
+    const [aparencia, linhas, alunasObservadas] = await Promise.all([
       aparenciaDaEscola(kv, escola),
       linhasDeBase(kv, escola, repoLinhas),
+      alunasDosPlanosDeObservacao(env, escola),
     ]);
     // O ATALHO «VER A TURMA» VEM COM O NOME DELA (22/10/2026). O plano de ensino da porta
     // conhece a turma pelo NOME; a Produção filtra a listagem por ID. A resolução é aqui,
     // onde a lista das turmas já está carregada — a tela não compõe o identificador.
     const turmaEmFoco = String(url.searchParams.get('turma') || '').trim();
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      aparencia, turmaEmFoco, linhas));
+      aparencia, turmaEmFoco, linhas, alunasObservadas));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -11063,7 +11325,14 @@ async function fetch(request, env) {
       });
     }
     const colisao = lista.find((p) => slugDoProfessor(p) === slug);
-    if (colisao) {
+    /* O QUE VOLTA À ESCOLA NÃO COLIDE CONSIGO (08/11/2026). O registo de um professor desligado
+     * fica — é proveniência —, e por isso o cadastro do MESMO identificador colidia com ele: quem
+     * saiu nunca podia voltar. A colisão que se recusa é a de OUTRA pessoa; a do desligado é a
+     * reactivação, e é isso que a escrita abaixo faz (substitui o registo e limpa o desligamento).
+     * A direção pedagógica que foi encerrada NÃO se reabre: quem o traz de volta cria as turmas
+     * novas, porque o intervalo em que ele não estava é um facto da história da escola. */
+    const voltando = colisao && desligamento.estaDesligado(colisao) ? colisao : null;
+    if (colisao && !voltando) {
       return json(409, {
         ok: false,
         erro: 'já existe o professor «' + colisao.nome + '» com o identificador `' + slug + '`. Se for OUTRA pessoa, cadastre com sobrenome ou apelido.',
@@ -11132,11 +11401,15 @@ async function fetch(request, env) {
     }
 
     // O `slug` é GRAVADO: é ele que fica, mesmo que o nome de exibição mude depois.
-    lista.push({ nome: nomeExibido, slug, sal, hash });
+    const novoRegisto = { nome: nomeExibido, slug, sal, hash };
+    const iVolta = voltando ? lista.findIndex((p) => p === voltando) : -1;
+    if (iVolta !== -1) lista[iVolta] = novoRegisto;
+    else lista.push(novoRegisto);
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
-    return json(201, {
+    return json(voltando ? 200 : 201, {
       ok: true,
       professor: nomeExibido,
+      ...(voltando ? { reativado: true, anteriormenteDesligadoEm: voltando.desligado_em } : {}),
       slug,
       // O que foi feito no repositório, e com que ciclo(s). A tela recarrega em caso de `ok`, e
       // por isso o relatório vive aqui: quem precisar dele tem-no; quem não, não é incomodado.
@@ -11231,6 +11504,20 @@ async function fetch(request, env) {
         erro: 'este é o professor dono da escola (criado na página) — ajuste o nome, não o exclua',
       });
     }
+    /* O DESLIGADO NÃO SE APAGA (08/11/2026). O desligamento já o tirou do ensino — a curadoria
+     * encerrada e a turma marcada —, e o registo que fica é a memória de quem deu aquelas aulas.
+     * Apagá-lo agora seria apagar o autor dos documentos, que é exactamente o que a proveniência
+     * não deixa fazer. A saída dele tem outra rota (`professor-desligar`), e é essa que a frase diz. */
+    if (desligamento.estaDesligado(lista[idx])) {
+      return json(409, {
+        ok: false,
+        erro: 'o professor «' + lista[idx].nome + '» já foi desligado desta escola ('
+          + String(lista[idx].desligado_em).slice(0, 10) + ') — o registo dele fica como '
+          + 'proveniência, e o nome continua nos documentos que assinou. Se ele voltar à escola, '
+          + 'cadastre-o outra vez com o mesmo identificador: o cadastro o reactiva.',
+        desligado: true,
+      });
+    }
     /*
      * PROVENIÊNCIA: a guarda é AQUI, e não só no botão. A tela esconde o «Excluir» de quem está
      * preso; esta linha é a regra para um pedido forjado.
@@ -11315,6 +11602,97 @@ async function fetch(request, env) {
         commit: exclusao.commit,
         jaNaoExistia: exclusao.jaNaoExistia === true,
       },
+    });
+  }
+
+  /* POST /api/bastidores/professor-desligar — O PROFESSOR QUE SAI DA ESCOLA (08/11/2026).
+   *
+   * PORQUE ESTA ROTA EXISTE, e não bastava o `DELETE`. O `DELETE` apaga o registo — e só o consegue
+   * fazer enquanto o professor não tem trabalho nenhum. Um professor que deu aula **nunca** podia
+   * sair: a curadoria prendia-o, e a curadoria que já gerou plano de ensino não se apaga. O caminho
+   * não existia, e o silêncio com que ele faltava fazia parecer que o sistema recusava a realidade
+   * («professores não saem») em vez de dizer o que fazer.
+   *
+   * A DECISÃO DELA (08/11/2026): a Turma **não pára**. A escola continua a operar, a sala continua no
+   * calendário, e a direcção decide o que fazer com uma turma que ficou sem quem a ensine — remanejar
+   * a modalidade, dar aula recreativa ou ensaio, ou atribuir outro professor apto. O sistema regista
+   * e marca; **não decide pedagogia**.
+   *
+   * O QUE ELE GRAVA, e é tudo no KV (o repositório não se toca — a pasta, o perfil e os documentos
+   * ficam; ver `motor/nucleo/desligamento.js`):
+   *
+   *   1. o registo do professor com `desligado_em`/`desligado_motivo`/`desligado_por`;
+   *   2. as curadorias dele **encerradas** com data e motivo (não apagadas);
+   *   3. as turmas que ficaram sem ele **marcadas** `descontinuada`, com o motivo escrito.
+   *
+   * A ORDEM DAS TRÊS ESCRITAS É A DO LADO SEGURO: primeiro o que **marca a consequência** (turmas),
+   * depois as curadorias, e o professor **por último**. Se a última falhar, ele continua activo com as
+   * curadorias encerradas — um estado a meio, mas visível e repetível; ao contrário, um professor
+   * desligado com curadorias activas continuaria a dirigir turmas que já não devia.
+   */
+  if (path === '/api/bastidores/professor-desligar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const nomeOuSlug = String(corpo.professor || corpo.nome || '').trim();
+    if (!nomeOuSlug) return json(400, { ok: false, erro: 'informe o professor que deixa a escola' });
+    const lista = await professores(kv, escola);
+    const alvo = desligamento.acharProfessor(lista, nomeOuSlug);
+    /* O DONO É A ÂNCORA (decisão de 08/11/2026). Não é uma guarda de conveniência: é a regra de que
+     * a escola tem sempre um responsável. A sucessão formal não existe ainda, e é essa a razão de a
+     * recusa o dizer — em vez de deixar a escola sem ninguém e sem caminho de volta. */
+    const donoNome = await nomeDoDono(env, kv, escola);
+    const donoSlug = slugDoDono(env);
+    const ehDono = (alvo && String(alvo.nome || '').trim() === String(donoNome || '').trim())
+      || (alvo && String(alvo.slug || '').trim() === String(donoSlug || '').trim())
+      || (!alvo && (nomeOuSlug === String(donoNome || '').trim()
+        || nomeOuSlug === String(donoSlug || '').trim()));
+    if (ehDono) {
+      return json(409, {
+        ok: false,
+        erro: desligamento.motivoDaRecusaDoDono(alvo ? alvo.nome : nomeOuSlug),
+        dono: true,
+      });
+    }
+    if (!alvo) return json(404, { ok: false, erro: 'professor não encontrado: ' + nomeOuSlug });
+
+    const quando = new Date().toISOString();
+    const decisao = desligamento.desligarProfessor({
+      professor: alvo,
+      professores: lista,
+      curadorias: await curadorias(kv, escola),
+      turmas: await turmas(kv, escola),
+      quando,
+      motivo: String(corpo.motivo || '').trim(),
+      por: String(corpo.por || donoNome || '').trim(),
+    });
+    if (!decisao.ok) return json(400, { ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros });
+
+    /* 1. AS TURMAS (a consequência visível), 2. AS CURADORIAS (a direcção que acaba),
+     * 3. O PROFESSOR (o vínculo que se desfaz) — a ordem explicada acima. */
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(decisao.turmas));
+    await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(decisao.curadorias));
+    const idx = lista.findIndex((p) => p && (String(p.nome || '').trim() === String(alvo.nome || '').trim()
+      || (alvo.slug && String(p.slug || '').trim() === String(alvo.slug).trim())));
+    if (idx !== -1) lista[idx] = decisao.professor;
+    else lista.push(decisao.professor);
+    await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
+
+    return json(200, {
+      ok: true,
+      professor: decisao.professor.nome,
+      desligado_em: decisao.professor.desligado_em,
+      motivo: decisao.professor.desligado_motivo,
+      curadoriasEncerradas: decisao.encerradas.length,
+      turmasDescontinuadas: decisao.descontinuadas,
+      turmasSemProfessor: decisao.turmasSemProfessor,
+      /* O QUE A ESCOLA FAZ AGORA — dito, e não sugerido: é a decisão que ficou registada. */
+      proximo: 'A escola continua a operar. Para cada turma marcada como descontinuada, a direção '
+        + 'decide: remanejar a modalidade temporariamente, dar aula recreativa/ensaio, ou atribuir '
+        + 'outro professor habilitado nessa modalidade (Turmas → nova direção pedagógica). O registo '
+        + 'do professor que saiu fica — o nome dele continua nos documentos que assinou.',
     });
   }
 
@@ -12406,6 +12784,114 @@ async function fetch(request, env) {
     return json(idx === -1 ? 201 : 200, { ok: true, linha: decidido.linha, criada: idx === -1 });
   }
 
+  /* POST /api/bastidores/elenco-mover — A ALUNA QUE MUDA DE ELENCO (08/11/2026).
+   *
+   * O DEFEITO QUE ESTA ROTA FECHA. Até aqui, mudar uma aluna de elenco eram DOIS actos: reabrir o
+   * elenco A, desmarcá-la e concluir; reabrir o elenco B, marcá-la e concluir. Funcionava — e falhava
+   * em silêncio quando o professor fazia só a primeira metade: a aluna saía do elenco A e não
+   * entrava em nenhum outro, e nada o dizia. Era o único caminho deste sistema por onde uma aluna
+   * podia **desaparecer** sem erro nenhum.
+   *
+   * A ORDEM DAS ESCRITAS É A DO LADO SEGURO, e é a decisão mais importante desta rota:
+   *
+   *   1. **o DESTINO primeiro** — ela passa a estar no elenco novo;
+   *   2. **a ORIGEM depois** — ela deixa de estar no antigo.
+   *
+   * Se a segunda escrita falhar, ela está nos DOIS elencos. É um estado visível (a lista mostra-a
+   * duas vezes), corrigível (repetir o acto) e — sobretudo — não perde ninguém. Ao contrário, uma
+   * falha na segunda metade deixaria a aluna fora de todos os elencos, que é exactamente o defeito.
+   *
+   * AS DUAS VERSÕES SÃO ESCRITAS COMO ACTOS (`repoLinhas.concluir`), cada uma com o seu `anterior`:
+   * a cadeia de cada elenco continua a ser lida sozinha. O que o acto acrescenta é o que cada
+   * versão DIZ — `transferida` na origem, `recebida` no destino —, e é isso que torna a mudança
+   * legível na proveniência sem abrir o outro ficheiro.
+   */
+  if (path === '/api/bastidores/elenco-mover' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const idOrigem = String(corpo.de || '').trim();
+    const idDestino = String(corpo.para || '').trim();
+    const aluna = String(corpo.aluna || '').trim();
+    /* O ACTO GRAVA VERSÕES NO REPOSITÓRIO, e sem repositório não há série: a resposta di-lo em vez
+     * de fingir uma transferência que não deixou rasto. As escolas de produção têm-no; a bancada
+     * sem token não é o caminho de um acto de proveniência. */
+    if (!repoLinhas.activo) {
+      return json(409, {
+        ok: false, erro: 'esta escola não tem repositório configurado ('
+          + (repoLinhas.motivo || 'sem token') + '): a transferência grava duas versões, e sem '
+          + 'repositório não há série onde as guardar. Nada foi tocado.',
+        repo: { activo: false, motivo: repoLinhas.motivo || null },
+      });
+    }
+    const vigentes = await repoLinhas.vigentes().catch(() => null);
+    if (!Array.isArray(vigentes)) {
+      return json(502, {
+        ok: false,
+        erro: 'não consegui ler os elencos do repositório agora — nada foi tocado. Tente de novo.',
+      });
+    }
+    const origem = vigentes.find((l) => l && String(l.id) === idOrigem) || null;
+    const destino = vigentes.find((l) => l && String(l.id) === idDestino) || null;
+    const quando = new Date().toISOString();
+    const decisao = transferencia.moverAluna({
+      origem, destino, aluna, quando,
+      motivo: String(corpo.motivo || '').trim(),
+    });
+    if (!decisao.ok) return json(400, { ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros });
+
+    const mensagem = (de, para) => 'feat(elenco): ' + aluna + ' passa de ' + de + ' para ' + para;
+    /* 1. O DESTINO. Se falhar, não se escreveu nada — e a resposta di-lo inteira. */
+    const entra = await repoLinhas.concluir(decisao.destino, {
+      quando, mensagem: mensagem(idOrigem, idDestino),
+    });
+    if (!entra.ok) {
+      return json(502, {
+        ok: false,
+        erro: 'não consegui gravar o elenco de destino (' + (entra.erro || 'erro') + '). Nada foi '
+          + 'tocado: a aluna continua no elenco de origem, e pode tentar outra vez.',
+        parcial: false,
+      });
+    }
+    /* 2. A ORIGEM. Se falhar, o estado é o DUPLO e é declarado — nunca se responde `ok` a meia
+     * transferência, e a frase diz exactamente onde ela está. */
+    const sai = await repoLinhas.concluir(decisao.origem, {
+      quando, mensagem: mensagem(idOrigem, idDestino),
+    });
+    if (!sai.ok) {
+      return json(502, {
+        ok: false,
+        parcial: true,
+        erro: 'a aluna «' + aluna + '» JÁ ENTROU em «' + idDestino + '», mas não saiu de «'
+          + idOrigem + '» (' + (sai.erro || 'erro') + '). Ela está nos DOIS elencos agora — nada se '
+          + 'perdeu. Repita a transferência para completar.',
+        destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
+      });
+    }
+    /* 3. A GERAÇÃO, nos dois elencos: o `-dados.json` do destino passa a oferecê-la e o da origem
+     * deixa de a oferecer. É a mesma regra do «Concluir elenco» (`gerarOsCiclosDoElenco`), e corre
+     * depois da gravação: o que falhar vem na resposta e nunca desfaz o acto. */
+    const geracao = {
+      destino: await gerarOsCiclosDoElenco(env, escola, idDestino),
+      origem: await gerarOsCiclosDoElenco(env, escola, idOrigem),
+    };
+    return json(200, {
+      ok: true,
+      aluna,
+      de: idOrigem,
+      para: idDestino,
+      origem: { chave: sai.chave || null, carimbo: sai.carimbo || null },
+      destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
+      geracao,
+      /* O QUE FALTA, dito pela ordem da cascata (a mesma de `revalidacaoPendente`). A rota não
+       * decide nada por ela: a Turma, o plano de ensino e o PO são actos do professor. */
+      proximo: 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino e, '
+        + 'por último, o plano de observação — nesta ordem, que é a de dependência.',
+    });
+  }
+
   // DELETE /api/bastidores/linha-de-base — apagar. Os planos que a referem NÃO são tocados: o
   // que eles já consolidaram está no envelope do plano (é dado, e não se reescreve — P-03). O
   // número sai na resposta para não ser surpresa: quem apaga vê quantos planos apontavam para ela.
@@ -13378,6 +13864,23 @@ async function fetch(request, env) {
     }
     const professor = String(corpo.professor || '').trim();
     const modalidade = String(corpo.modalidade || '').trim();
+    /* QUEM SAIU DA ESCOLA NÃO DIRIGE TURMA (08/11/2026). A guarda é do servidor, e não só do
+     * `<select>`: a lista filtra os desligados, mas um pedido forjado — ou uma página aberta de
+     * ontem — passaria por cima de um filtro. E a recusa diz o caminho, porque a razão não é óbvia:
+     * a direção dele foi encerrada no desligamento, e retomá-la é contratá-lo outra vez. */
+    {
+      const registo = desligamento.acharProfessor(await professores(kv, escola), professor);
+      if (registo && desligamento.estaDesligado(registo)) {
+        return json(409, {
+          ok: false,
+          erro: 'o professor «' + registo.nome + '» desligou-se desta escola em '
+            + String(registo.desligado_em).slice(0, 10) + ' — a direção pedagógica dele foi '
+            + 'encerrada nessa data, e não se retoma: para ele voltar a dirigir uma turma, a '
+            + 'escola tem de o cadastrar outra vez.',
+          desligado: true, falta: ['professor'],
+        });
+      }
+    }
     // A TURMA É UMA SÓ (16/10/2026). Era uma lista, e a lista mentia: quem escolhia duas
     // turmas estava a dizer que as alunas de uma pertencem à outra — e não pertencem. O
     // registo continua a guardar `turmas` (lista de UM) para o plano, que já a lê assim, não
@@ -13610,6 +14113,24 @@ async function fetch(request, env) {
     if (idx === -1) lista.push(nova);
     else lista[idx] = Object.assign({}, atual, nova);
     await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
+    /* A TURMA VOLTOU A TER QUEM A ENSINE (08/11/2026) — e a marca cai. A `descontinuada` tanto
+     * nasce da perda de habilitação (`marcarTurmasSemHabilitacao`) como do desligamento do
+     * professor (`professor-desligar`); nas duas, uma direcção activa que volta a enquadrar a turma
+     * desfaz a marca. Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se
+     * corrige — a regra já estava escrita do lado do acender, e faltava a do apagar. */
+    if (turmaPedida) {
+      const todas = await turmas(kv, escola);
+      const i = todas.findIndex((t) => t && String(t.nome || '') === turmaPedida);
+      if (i !== -1 && todas[i].descontinuada) {
+        const resumo = enquadramento.resumoDoEnquadramento(todas[i], lista);
+        if (resumo.temCuradoria) {
+          const semMarca = Object.assign({}, todas[i]);
+          delete semMarca.descontinuada;
+          todas[i] = semMarca;
+          await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(todas));
+        }
+      }
+    }
     return json(201, { ok: true, curadoria: nova, criada: !atual });
   }
 
@@ -13635,6 +14156,24 @@ async function fetch(request, env) {
     const anterior = curadoriasVigentes(lista).find((c) => c && c.id === alvo);
     if (!anterior) {
       return json(404, { ok: false, erro: 'curadoria não encontrada (ou já substituída): ' + alvo });
+    }
+    /* DERIVAR É PROLONGAR A DIREÇÃO — e a de quem saiu da escola não se prolonga (08/11/2026).
+     * O desligamento encerrou-a com data; derivar seria reabri-la por outro caminho, e o registo
+     * do encerramento passaria a ser falso. Quem retoma a turma é outra pessoa, com uma curadoria
+     * própria — e é isso que a recusa manda fazer. */
+    {
+      const registoAnterior = desligamento.acharProfessor(
+        await professores(kv, escola), anterior.professor);
+      if (registoAnterior && desligamento.estaDesligado(registoAnterior)) {
+        return json(409, {
+          ok: false,
+          erro: 'a direção pedagógica de «' + registoAnterior.nome + '» foi encerrada quando ele '
+            + 'se desligou da escola (' + String(registoAnterior.desligado_em).slice(0, 10) + ') — '
+            + 'não se deriva. Atribua a turma a outro professor habilitado (Turmas → nova direção '
+            + 'pedagógica).',
+          desligado: true,
+        });
+      }
     }
     const vigencia = String(corpo.vigencia || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {

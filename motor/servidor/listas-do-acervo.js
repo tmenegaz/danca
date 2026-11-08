@@ -21,6 +21,7 @@ const listas = require('../nucleo/lista-html.js');
 const porta = require('../nucleo/porta.js');
 const nav = require('../nucleo/nav.js');
 const linhaDeBase = require('../nucleo/linha-de-base.js');
+const desligamento = require('../nucleo/desligamento.js');
 const { criarArmazenamento } = require('./cloudflare.js');
 
 const esc = (t) => String(t == null ? '' : t)
@@ -1503,7 +1504,7 @@ async function estadosDosPos(armazenamento, resumos) {
   return estados;
 }
 
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao, memoriaDaAluna) {
   const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
    * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
@@ -1530,6 +1531,18 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
       const temLinhaDeBase = !!(pertence && pertence.linhas.length);
       const nomeDaLinha = pertence ? pertence.nome : '';
       const quantas = pertence ? pertence.linhas.length : 0;
+      /* O ESTADO DA PESSOA, QUE NÃO É O ESTADO DO DOCUMENTO (08/11/2026). O selo desta linha
+       * respondia a duas perguntas ao mesmo tempo — «posso mexer no registo?» (o documento) e
+       * «quem é esta aluna hoje?» (a pessoa) —, e por isso as duas mentiam juntas para quem saiu:
+       * o documento continua travado (um PO a declarou) e a linha dizia «aluna nova», que é o
+       * contrário de travada. Ver `desligamento.estadoDaAluna` para a derivação e para a razão de
+       * ela não ser uma marca. */
+      const desligada = desligamento.estadoDaAluna({
+        aluna: r.aluna,
+        linhas: (memoriaDaAluna && memoriaDaAluna.linhas) || [],
+        curadorias: (memoriaDaAluna && memoriaDaAluna.curadorias) || [],
+        observada: Boolean(estado.vinculada),
+      });
       return {
         nome: r.aluna || 'Anamnese sem sujeito',
         /* O NOME É O LINK (27/10/2026). É o gesto que a pesquisadora descreveu: passar o mouse
@@ -1553,23 +1566,36 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
          * «NOVA» PRECISOU DE UMA SEGUNDA CONDIÇÃO (05/11/2026). Ela era `!turma`, e a turma vinha
          * só da curadoria — numa escola sem curadorias, TODA a gente era «nova» para sempre,
          * inclusive quem já tinha linha de base feita e enviada. «Ela já não é mais nova, porque
-         * eu já fiz a linha de base dela» é a regra, e é ela que a condição passou a dizer. */
-        selo: estado.vinculada ? 'vinculada'
-          : ((r.aluna && !turma && !temLinhaDeBase) ? 'nova' : 'livre'),
+         * eu já fiz a linha de base dela» é a regra, e é ela que a condição passou a dizer.
+         *
+         * «DESLIGADA» É O QUARTO ESTADO (08/11/2026), e vem primeiro porque é o único que não se
+         * lê do presente: quem saiu não está em elenco nenhum e continua a ter história. O selo
+         * `legado` — o do traço ponteado, que já existe na folha — diz «é memória, não é o
+         * presente», que é exactamente o que a palavra precisa de dizer. Ver
+         * `desligamento.estadoDaAluna`. */
+        selo: desligada.desligada ? 'desligada'
+          : estado.vinculada ? 'vinculada'
+            : ((r.aluna && !turma && !temLinhaDeBase) ? 'nova' : 'livre'),
         /* A CLASSE É A COR, e a cor não distingue «nova» de «livre» de propósito: as duas dizem
          * a mesma coisa a quem vai mexer no registo — pode-se editar. O que distingue é o TEXTO,
          * que é onde está o que a pessoa precisa de saber. Inventar um estado de selo novo na
-         * folha («nova») para uma diferença que não muda o gesto seria desenho a mais. */
-        seloClasse: estado.vinculada ? 'vinculada' : 'livre',
+         * folha («nova») para uma diferença que não muda o gesto seria desenho a mais.
+         *
+         * A DESLIGADA É A EXCEPÇÃO, e por isso usa a classe `legado`: o que ela diz é diferente
+         * do que «livre» diz — não é «podes mexer», é «isto é memória». */
+        seloClasse: desligada.desligada ? 'legado' : (estado.vinculada ? 'vinculada' : 'livre'),
         turma: turma,
         professor: quem,
-        contexto: turma && temLinhaDeBase
-          ? 'turma ' + turma + ' · linha de base «' + nomeDaLinha + '»'
-          : turma
-            ? 'vinculada à turma ' + turma
-            : temLinhaDeBase
-              ? 'linha de base «' + nomeDaLinha + '» — ainda sem turma'
-              : 'aluna nova — sem turma e sem linha de base',
+        contexto: desligada.desligada
+          ? 'desligada — já não está em nenhum elenco'
+            + (desligada.sala ? ' · esteve na turma «' + desligada.sala + '»' : '')
+          : turma && temLinhaDeBase
+            ? 'turma ' + turma + ' · linha de base «' + nomeDaLinha + '»'
+            : turma
+              ? 'vinculada à turma ' + turma
+              : temLinhaDeBase
+                ? 'linha de base «' + nomeDaLinha + '» — ainda sem turma'
+                : 'aluna nova — sem turma e sem linha de base',
         acoes: acoesDaLinha('anamnese', r, estado),
         ...(anteriores ? { fatos: [anteriores] } : {}),
         caixas: [
@@ -1579,7 +1605,11 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
               ['Linha de base', temLinhaDeBase
                 ? (nomeDaLinha || '—') + (quantas > 1 ? ' (e ' + (quantas - 1) + ' anterior(es))' : '')
                 : 'nenhuma'],
-              ['Estado', estado.vinculada ? 'vinculada — um PO já a usa' : (estado.legado ? 'legado' : 'solta')]],
+              ['Estado', desligada.desligada
+                ? (estado.vinculada
+                  ? 'desligada — o registro é proveniência (um PO já a declarou)'
+                  : 'desligada — fora de todos os elencos')
+                : (estado.vinculada ? 'vinculada — um PO já a usa' : (estado.legado ? 'legado' : 'solta'))]],
               turma
                 ? 'A turma vem da linha de base enviada (Corpo → passo 5); sem ela, da curadoria.'
                 : (temLinhaDeBase
@@ -1820,8 +1850,14 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
    * quem chama não a passa, como nas bancadas antigas —, a turma continua a vir só da curadoria, e
    * é esse o comportamento de antes: a lista não inventa o que não conseguiu ler. */
   const filiacao = linhaDeBase.filiacaoDasAlunas(chave === 'anamnese' ? linhasDeBase : [], curadorias);
+  /* A LEITURA QUE A DERIVAÇÃO DA DESLIGADA PRECISA (08/11/2026): as linhas vigentes e a lista de
+   * curadorias — com as substituídas, que são a memória de quem já esteve numa Turma. É a mesma
+   * leitura que a página já fez; não há aqui uma chamada nova. */
+  const memoriaDaAluna = chave === 'anamnese'
+    ? { linhas: Array.isArray(linhasDeBase) ? linhasDeBase : [], curadorias }
+    : null;
   const linhas = linhasDe(chave, registos, estados, turmasDasAlunas(curadorias, linhasDeBase),
-    turmaDoPlano, { gerados, historico, revalidar }, filiacao);
+    turmaDoPlano, { gerados, historico, revalidar }, filiacao, memoriaDaAluna);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 
