@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`03022b9b` + esta entrega). Nesta entrega, **a Audição
+> **Última fotografia:** 09/11/2026 (`49d6eef1` + esta entrega). Nesta entrega, **a Audição
+> ganha a segunda passagem** — os cinco ajustes que ela pediu depois de ver as abas no ar: o
+> **respiro entre os cartões do elenco** (a regra da página vencia a margem da folha e as caixas
+> encostavam; o vão passa a ser o da anamnese, porque é o mesmo `.trio-plano`, **medido no
+> navegador** e com A/B); o **«Concluir elenco» limpa o formulário** (o id sai, e a gravação
+> seguinte já não edita por engano o que acabou de ser criado); o **«O que já é bom» também
+> dobra** (os quatro blocos de achados, e o parâmetro `dobrar` morreu com a exceção); a **aba 3
+> viva** (a lista e a deteção de dois elencos atualizam-se do `carregarLinhas`, sem F5, e a
+> transferência relê a lista em vez de recarregar a página); e a **ordem do acto** na
+> transferência — origem → alunas **dela** → destino (sem a origem e sem os elencos que já têm a
+> aluna) → motivo. Ver a decisão 127.
+>
+> **Fotografia anterior (09/11/2026, `03022b9b`).** Nesta entrega, **a Audição
 > passa a ter três abas**: «Escolha de elenco» (o fluxo atual, inalterado), «Recorte» (o índice
 > que antes ficava empilhado abaixo da lista; o rótulo foi corrigido no mesmo dia — nasceu como
 > «O que os recortes olham», que era descrição e não nome) e «Transferência» (mover uma aluna
@@ -4228,6 +4240,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto.**
+  Depois de usar as três abas, ela pediu cinco ajustes. **CONFIRMADO**: (1) os cartões do elenco
+  estavam encostados porque `.lb-cartoes>li{margin:0}` (0,1,1) vencia `.trio-plano{margin-bottom}`
+  (0,1,0) na folha — a regra de «reset» da página apagava o respiro da peça; sai, e o vão medido
+  passa a ser o da anamnese (9,6px a 1280 e a 320px, com A/B que reinjecta o `margin:0` e o vê
+  cair a zero). (2) O «Concluir elenco» deixava o `#lb-modo` com o id do elenco: a gravação
+  seguinte caía no MESMO elenco — agora `limparForm()` corre no sucesso, e o professor **não** é
+  limpo (é quem está a trabalhar). (3) O «O que já é bom» ganha a dobra que ela pediu; com os
+  quatro a dobrarem, o parâmetro `dobrar` saiu. (4) A aba 3 lê `d.elencos` em cada
+  `carregarLinhas` e repinta-se — um elenco concluído na aba 1 aparece sem F5, e a escolha em
+  curso sobrevive. (5) A ordem é a do acto: origem → alunas **dela** (antes era a escola inteira,
+  e dava para escolher quem não estava no elenco) → destino (sem a origem e sem os elencos que já
+  a têm, os dois casos que o núcleo recusa) → motivo; e o `mv-para` ganhou um `change` próprio,
+  porque o estado do botão depende dos três e escolher o destino deixava o «Mover» apagado.
+  `provar-abas-da-audicao` **67/67** (39 + 28); sem regressão: `provar-producao` 166,
+  `provar-transferencia-e-desligamento` 62, `provar-linha-de-base` 102, `provar-elenco-na-turma`
+  25, `check-identidade` **0 erros**. Ver a decisão 127.
 - **09/11/2026** — **A Audição em três abas, e a transferência que não se oferece a si mesma.** Ela
   olhou a secção do corpo e pediu quatro ajustes: três abas, com a listagem sempre à vista e a
   solução do telemóvel «similar à que existe para a anamnese»; o passo 3 renomeado («leitura lida»

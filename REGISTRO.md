@@ -41200,3 +41200,75 @@ tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o
 > VALIDAÇÃO da correção: `provar-abas-da-audicao` **41/41** (39 + 2 novas: os três rótulos
 > exatos, e a folha a dizer o mesmo que a tira), com a asserção que recusa o rótulo antigo.
 > `check-identidade` **0 erros**.
+
+## 09/11/2026 — A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto
+
+**O que motivou.** Depois de usar as três abas no ar, a pesquisadora pediu cinco ajustes, um a um:
+«Adicionar respiro/margem entre os blocos dos elencos listados para evitar que fiquem colados ou
+encavalados. Pode seguir como referência a listagem da anamnese»; «Ao clicar em 'Concluir elenco',
+o formulário deve ser limpo imediatamente para permitir a criação de um novo elenco, evitando que
+acabe editando o elenco recém-criado por engano»; «Adicionar o botão de colapsar e expandir também
+no conjunto 'O que já é bom'»; «Garantir que a listagem e detecção de múltiplos elencos na aba de
+transferência atualizem dinamicamente sem precisar recarregar a página inteira»; e a ordem do acto
+de transferir — «Primeiro escolhe-se o elenco de origem. Em seguida, o sistema carrega os alunos
+pertencentes exclusivamente a esse elenco. Depois, seleciona-se o elenco de destino para onde os
+alunos escolhidos vão. Por fim, preenche-se o motivo (opcional) e efetua-se a movimentação.»
+
+**O que foi decidido, e onde se vê no código.**
+
+- **O respiro é da peça, não do contentor.** O defeito era de CASCATA, e não de desenho:
+  `.lb-cartoes>li{margin:0}` — o «reset» da página — tem especificidade (0,1,1) e vencia
+  `.trio-plano{margin-bottom:.6rem}` (0,1,0) na folha. A regra ficou sem o `margin`, e o vão
+  volta a ser o da anamnese (é o MESMO `.trio-plano`): **9,6px**, medidos no navegador a 1280 e a
+  320px, com um **A/B** que reinjecta o `margin:0` e mostra o vão a cair a zero — sem ele, «9,6px»
+  não provaria que a medida distingue uma coisa da outra.
+- **O formulário limpa-se ao concluir.** O `limparForm()` que já existia (o do «Cancelar») corre
+  no sucesso: o `#lb-modo` sai (é ele que fazia a gravação seguinte cair no MESMO elenco), o nome
+  sai, as alunas e o recorte desmarcam-se, e o formulário volta ao passo 1. **O professor não se
+  limpa** — é quem está a trabalhar, e o próximo elenco é habitualmente dele; mandá-lo para o
+  primeiro da lista seria uma escolha silenciosa. A frase do resultado **fica à vista**: ela vive
+  fora dos passos, e é o que diz «elenco concluído» e o que aconteceu à geração.
+- **Os quatro blocos de achados dobram** — o «O que já é bom» entrou a pedido dela. Com os quatro
+  a dobrarem, o parâmetro `dobrar` da primeira passagem **saiu**: uma bandeira que só sabia dizer
+  «sim» é a exceção à espera de acontecer.
+- **A aba 3 vive da leitura da lista.** O `carregarLinhas` — por onde passa TODA a gravação do
+  elenco (criar, editar, concluir, apagar, mover) — passa a reescrever `ELENCOS_MOVIVEIS` com
+  `d.elencos` e a chamar `pintarTransferencia()`. Um elenco concluído na aba 1 entra nas origens
+  sem F5; um apagado sai das duas listas; a escolha em curso sobrevive à repintura. E a
+  transferência **relê a lista em vez de recarregar a página** (`location.reload` saiu do
+  handler): recarregar voltava à aba 1 e o professor perdia o fio do que estava a fazer.
+- **A ordem do acto é a dela, e cada campo depende do anterior.** `Do elenco (origem)` →
+  `Aluna` (as alunas **daquele** elenco — antes era a escola inteira, e dava para escolher quem
+  não estava lá) → `Para o elenco (destino)` (sem a origem e **sem os elencos que já têm a
+  aluna**) → `Motivo`. As duas exclusões do destino são a regra do núcleo (`de === para` e «já
+  está no elenco de destino»): o cliente deixa de oferecer, o servidor continua a decidir. A
+  origem, a aluna e o destino nascem **vazios**; o «Mover» nasce apagado e diz o que falta. O
+  `mv-para` ganhou um `change` próprio (`pintarBotaoMover`): o estado do botão depende dos TRÊS
+  `<select>`, e sem esse caminho escolher o destino deixava o botão apagado — medido na bancada.
+- **As frases e os rótulos do estado vazio são DADOS**, como `ELENCOS_MOVIVEIS`: o servidor
+  desenha o painel sem JavaScript, e o cliente repõe as mesmas palavras. Escritas duas vezes,
+  uma diria «dois elencos» e a outra «2 elencos» ao primeiro ajuste.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a regra `.lb-cartoes>li`, o `limparForm` no
+`concluirElenco`, o `blocoDeAchados` sem o `dobrar`, os textos e rótulos da transferência, o
+`ELENCOS_MOVIVEIS` com as alunas, `pintarOrigens`/`pintarAlunasDaOrigem`/`pintarDestinos`/
+`pintarBotaoMover`/`pintarTransferencia`, a chamada no `carregarLinhas` e o handler sem o
+`location.reload`) · `experimentos/provar-abas-da-audicao.js` (as secções D, F, G e H) ·
+`experimentos/README.md` · `ESTADO-ATUAL.md` (§6 e a linha da fotografia).
+
+**Validação.** `provar-abas-da-audicao` **67/67** (39 da primeira passagem + 28): a ordem dos
+campos, a origem vazia, as alunas da origem, o destino sem a origem e sem quem já tem a aluna, o
+pedido que só sai com os três campos, a lista relida depois do ato, o elenco novo a entrar sem F5,
+o formulário a limpar-se (id, nome, marcações) com o professor intacto, os quatro blocos
+`<details open>`, e o **vão entre cartões medido no Chrome** (1280 e 320px) com o A/B do
+`margin:0`. Sem regressão: `provar-producao` **166/166** · `provar-transferencia-e-desligamento`
+**62/62** · `provar-linha-de-base` **102** · `provar-elenco-na-turma` **25** · `check-identidade`
+**0 erros** (21 verificações).
+
+**O que ainda não está feito, e sabe-se.** (1) A transferência move **uma** aluna por ato — «os
+alunos escolhidos» no pedido dela, no plural, continua a ser um acto por aluna; a rota e o núcleo
+trabalham sobre um apelido, e um lote seria um contrato novo (duas versões por elenco, todas ou
+nenhuma). (2) A aluna que está em **dois** elencos pode ser movida de um para o outro, mas a tela
+não diz que ela tem outra casa — a lista de origem mostra-a como as outras. (3) A aba ativa
+continua a **não sobreviver ao recarregar**: a página volta à aba 1, e agora isso já não acontece
+por causa de uma transferência (que relê em sítio), mas continua a acontecer por causa de um F5.
