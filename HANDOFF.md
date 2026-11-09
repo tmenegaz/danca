@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T14:59:37-0300`
-Commit atual: `a7aba998` — docs(registro): a Audição em três abas, e a sinalização do que foi além do pedido
+Gerado em: `2026-11-09T16:21:02-0300`
+Commit atual: `f3b8a396` — docs(registro): a correção do rótulo da aba 2, no mesmo dia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,19 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+f3b8a396 docs(registro): a correção do rótulo da aba 2, no mesmo dia
+38cab0e2 fix(estrutura): a aba 2 da Audição chama-se «Recorte»
+8fa1a714 chore(estrutura): regerar os índices derivados
+8a2a8b6d feat(linha de base): índice — ami 20261109-1918
+670b6db3 feat(elenco): ami — concluído
+4abaecc0 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+7ec5121b chore(estrutura): regerar os índices derivados
+41990312 feat(linha de base): índice — tami 20261109-1917
+4fa73b8e feat(elenco): tami — concluído
+79a9e6a4 chore(estrutura): regerar os índices derivados
+0ce9e52a feat(acervo): envelope/anamnese-20261109-1615.json
+60e704e9 feat(acervo): envelope/.indice.json
+03022b9b chore(estrutura): regerar o HANDOFF
 a7aba998 docs(registro): a Audição em três abas, e a sinalização do que foi além do pedido
 ba76c401 feat(estrutura): a Audição em três abas, com a listagem à vista em todas
 658f88dd chore(estrutura): regerar o HANDOFF
@@ -78,19 +91,6 @@ ba76c401 feat(estrutura): a Audição em três abas, com a listagem à vista em 
 ecc8a46f feat(estrutura): a aluna desligada, e a turma que muda de sala
 f8da8bc5 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 f7e6920d chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-4db8fd4a chore(estrutura): regerar os índices derivados
-8a183580 chore(estrutura): reancorar a cadeia das fontes alteradas
-03ab38fd feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
-3749bee0 feat(po): o PO elicitado vira a fonte do ciclo
-df3e1dea feat(acervo): envelope/po-20261108-1335.json
-901414f9 feat(acervo): envelope/.indice.json
-d1f23329 chore(estrutura): regerar os índices derivados
-8eb7afbd chore(estrutura): reancorar a cadeia das fontes alteradas
-75df981c feat(po): o PO elicitado vira a fonte do ciclo
-dd7d1e99 feat(acervo): envelope/po-20261108-1334.json
-318c4d57 feat(acervo): envelope/.indice.json
-fd45ca34 feat(plano): o plano elicitado vira a fonte do ciclo
-a334a437 feat(acervo): envelope/plano-20261108-1334.json
 ```
 
 ## Por professor
@@ -245,6 +245,23 @@ com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As aba
 página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
 tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
 
+> **Correção de 09/11/2026 (mesmo dia).** A primeira redação desta entrada dizia que a aba 2 se
+> chamava **«O que os recortes olham»**, com o argumento de que era «o nome que o bloco já tinha».
+> **Está incompleto**: o nome que ela usa é **«Recorte»**, e foi ela que o disse — «A Aba 2 deve se
+> chamar Recorte». O rótulo longo era **descrição minha**, e uma aba não se nomeia por descrição:
+> o nome é o do objeto, e «Recorte» é o que o passo 4 e o índice dos recortes já dizem nos
+> documentos. A redação anterior não é apagada: fica como o elo que registra o que se pensou antes
+> da correção.
+>
+> O QUE MUDOU, e é só o nome: a lista das três abas passou a ser **declarada uma vez**
+> (`TITULOS_DAS_ABAS_DA_AUDICAO`, em `motor/servidor/bastidores.js`), e a tira do computador e a
+> folha do telemóvel consomem-na as duas — antes a lista estava escrita duas vezes, e a primeira
+> correção de rótulo deixaria as duas a divergir. Nada de comportamento, de rota ou de dado mudou.
+>
+> VALIDAÇÃO da correção: `provar-abas-da-audicao` **41/41** (39 + 2 novas: os três rótulos
+> exatos, e a folha a dizer o mesmo que a tira), com a asserção que recusa o rótulo antigo.
+> `check-identidade` **0 erros**.
+
 ## O que está pendente
 
 ## 08/11/2026 — O Worker voltou a falar com a rede: o `fetch` da ponte era ela mesma
@@ -285,6 +302,23 @@ fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de
 com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
 página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
 tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
+
+> **Correção de 09/11/2026 (mesmo dia).** A primeira redação desta entrada dizia que a aba 2 se
+> chamava **«O que os recortes olham»**, com o argumento de que era «o nome que o bloco já tinha».
+> **Está incompleto**: o nome que ela usa é **«Recorte»**, e foi ela que o disse — «A Aba 2 deve se
+> chamar Recorte». O rótulo longo era **descrição minha**, e uma aba não se nomeia por descrição:
+> o nome é o do objeto, e «Recorte» é o que o passo 4 e o índice dos recortes já dizem nos
+> documentos. A redação anterior não é apagada: fica como o elo que registra o que se pensou antes
+> da correção.
+>
+> O QUE MUDOU, e é só o nome: a lista das três abas passou a ser **declarada uma vez**
+> (`TITULOS_DAS_ABAS_DA_AUDICAO`, em `motor/servidor/bastidores.js`), e a tira do computador e a
+> folha do telemóvel consomem-na as duas — antes a lista estava escrita duas vezes, e a primeira
+> correção de rótulo deixaria as duas a divergir. Nada de comportamento, de rota ou de dado mudou.
+>
+> VALIDAÇÃO da correção: `provar-abas-da-audicao` **41/41** (39 + 2 novas: os três rótulos
+> exatos, e a folha a dizer o mesmo que a tira), com a asserção que recusa o rótulo antigo.
+> `check-identidade` **0 erros**.
 
 ## Pendências anteriores (índice)
 
