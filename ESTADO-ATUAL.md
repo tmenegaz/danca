@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`e967e2f2` + esta entrega). Nesta entrega, **a transferência
+> **Última fotografia:** 09/11/2026 (`eea49096` + esta entrega). Nesta entrega, **o «Cancelar» da
+> edição de elenco fica direto** — o rótulo passa a «Cancelar», como o da Turma, e a caixa de
+> confirmação sai: um clique descarta o rascunho no servidor e fecha o formulário. E **a derivação
+> de turma passa a aceitar um par novo**: o professor e a modalidade ficam editáveis no «Derivar»
+> (continuam travados no «Editar»), e a rota `curadoria-derivar` confere e grava o par final —
+> habilitação do professor, aluna repetida na modalidade e unicidade do trio. Ver a entrada de
+> 09/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (09/11/2026, `e967e2f2`).** Nesta entrega, **a transferência
 > de aluna deixa de se perder no rascunho** — o defeito que ela viu na produção: a rota gravava as
 > duas versões no repositório e não tocava no rascunho do KV, que é o que a listagem mostra por cima
 > do acto; a contagem mentia nos dois elencos («tami — 2 alunas» com a aluna já no destino) e o
@@ -4253,6 +4261,18 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **O «Cancelar» direto, e a derivação que troca o par professor × modalidade.**
+  **CONFIRMADO no código**: o «Cancelar» do elenco chamava `confirm()` antes de descartar, e o da
+  Turma não — o mesmo gesto de recuo pedia duas confirmações diferentes. Passa a **«Cancelar»**, sem
+  pergunta; o descarte no servidor (`/linha-de-base/descartar`) e o acto ficam como estavam. Na
+  **derivação de turma**, o professor e a modalidade eram `disabled` nos dois modos; passam a
+  **editáveis no «Derivar»** (continuam travados no «Editar», que substitui o registo no lugar), e a
+  rota `curadoria-derivar` lê o par do corpo, guarda o professor como slug, confere a habilitação, a
+  aluna repetida na modalidade **final** e a unicidade do trio, e compõe o id do derivado a partir do
+  par final. O professor novo também não pode estar desligado. `provar-abas-da-audicao` **81/81**;
+  `provar-derivacao-da-turma` **112/132** — as três asserções novas passam, e as 20 falhas restantes
+  são anteriores à mudança e iguais no `HEAD`. `check-identidade` 0 erros. Ver a entrada de
+  09/11/2026 no `REGISTRO.md`.
 - **09/11/2026** — **A transferência que se perdia no rascunho.** Ela transferiu uma aluna de «tami»
   para «ami» e o estado ficou errado. **CONFIRMADO no código e na produção**: `elenco-mover`
   gravava as duas versões no repositório e **não tocava no rascunho do KV** — e é o rascunho que a

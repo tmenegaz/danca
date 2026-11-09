@@ -27,8 +27,8 @@
  *   H. o RESPIRO entre os cartões, medido num navegador de verdade (a cascata era o defeito: uma
  *      regra de página vencia a margem da folha) — e um A/B que devolve o `margin:0` para mostrar
  *      que a medida sabe reprovar;
- *   I. o «Cancelar a edição» — o botão que existia na marcação e nunca aparecia; e o gesto a
- *      DESCARTAR no servidor (o rascunho sai do KV), com o formulário a fechar-se a seguir;
+ *   I. o «Cancelar» — o botão que existia na marcação e nunca aparecia; e o gesto a DESCARTAR no
+ *      servidor (o rascunho sai do KV), com o formulário a fechar-se a seguir, SEM confirmação;
  *   J. o FORMULÁRIO ABERTO ACOMPANHA A TRANSFERÊNCIA — sem isto, a caixa marcada no passo 2
  *      gravaria o elenco velho por cima do acto no «Seguir» seguinte.
  *
@@ -250,6 +250,10 @@ async function principal() {
   vc.on('jsdomError', () => {});
   vc.on('error', () => {});
   const ELENCOS_DA_ROTA = elencosDaRota();
+  /* O `confirm` É CONTADO, e não só respondido (09/11/2026). O «Cancelar» do elenco deixou de
+   * perguntar: o clique cessa a edição, como o da Turma. A prova mede os dois lados — que o
+   * descarte continua a acontecer, e que não houve pergunta pelo caminho. */
+  let confirmacoes = 0;
   /* A LISTA QUE O SERVIDOR DEVOLVE É VIVA, e não uma constante: as secções I e J medem o que a
    * página faz DEPOIS de uma transferência, e para isso a resposta de `linhas-de-base` tem de poder
    * mudar. Uma lista congelada mediria o primeiro desenho para sempre — e o defeito que se mede
@@ -261,7 +265,7 @@ async function principal() {
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
         addListener() {}, removeListener() {} });
-      w.confirm = () => true;
+      w.confirm = () => { confirmacoes += 1; return true; };
       w.alert = () => {};
       w.fetch = (u) => {
         const url = String(u);
@@ -525,7 +529,7 @@ async function principal() {
   console.log('\nH. O respiro entre os cartões do elenco (navegador)');
   await medirRespiro();
 
-  console.log('\nI. O «Cancelar a edição» — o botão que nunca aparecia');
+  console.log('\nI. O «Cancelar» — o botão que nunca aparecia');
 
   const caixaCancelar = doc.getElementById('lb-linha-cancelar');
   win.limparForm();
@@ -533,8 +537,10 @@ async function principal() {
 
   win.editarLinha('elenco-a');
   provar('no modo de edição o «Cancelar» aparece', caixaCancelar.hidden === false);
-  provar('…e o botão diz o que faz',
-    /descartar/i.test(doc.getElementById('lb-cancelar').getAttribute('title') || ''));
+  provar('…e o botão diz o que faz e o nome que a Turma usa',
+    /descartar/i.test(doc.getElementById('lb-cancelar').getAttribute('title') || '') &&
+    doc.getElementById('lb-cancelar').textContent.trim() === 'Cancelar',
+    doc.getElementById('lb-cancelar').textContent.trim());
 
   /* DESCARTAR É UM ATO NO SERVIDOR (09/11/2026). Limpar o ecrã deixava o rascunho no KV — e o
    * rascunho é o que a listagem mostra: o professor «cancelava» e via as alterações lá. */
@@ -552,10 +558,14 @@ async function principal() {
     return fetchAntesDoDescartar(u, init);
   };
   win.editarLinha('elenco-a');
+  const confirmacoesAntesDoCancelar = confirmacoes;
   doc.getElementById('lb-cancelar').click();
   await new Promise((r) => win.setTimeout(r, 120));
   win.fetch = fetchAntesDoDescartar;
 
+  provar('o «Cancelar» NÃO pergunta nada — o clique cessa a edição',
+    confirmacoes === confirmacoesAntesDoCancelar,
+    'confirmações: ' + (confirmacoes - confirmacoesAntesDoCancelar));
   provar('o «Cancelar» descarta no SERVIDOR, com o id do elenco aberto',
     descartes.length === 1 && descartes[0].id === 'elenco-a',
     'pedidos: ' + JSON.stringify(descartes));

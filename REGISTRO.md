@@ -41354,3 +41354,53 @@ acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o form
 gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
 duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
 é um ato manual (um clique), e não uma migração.
+
+## 09/11/2026 — O «Cancelar» direto, e a derivação que troca o par professor × modalidade
+
+**O que motivou.** Dois ajustes pedidos pela pesquisadora, e os dois são de **gesto**: (1) o
+«Cancelar» da edição de elenco devia ser direto e simples — sem a caixa de confirmação, e com o
+nome que a Turma já usa; (2) ao **derivar** uma turma, o professor e a modalidade deviam continuar
+editáveis, para a escola poder trocar quem ensina ou em que modalidade a sala passa a funcionar.
+
+**O que foi decidido.**
+
+- **O «Cancelar» do elenco cessa o ato num clique.** O rótulo passa de «Cancelar a edição» a
+  **«Cancelar»**, como o da Turma, e a pergunta (`confirm`) sai. O descarte no servidor fica: a rota
+  `POST /api/bastidores/linha-de-base/descartar` tira o **rascunho** do KV e deixa o acto de pé. O
+  que muda é o caminho até ele — um clique em vez de dois. Sem elenco aberto, o botão continua a não
+  chamar o servidor: só limpa o formulário.
+- **No «Editar» o par continua travado; no «Derivar» fica livre.** O par `(professor, modalidade)`
+  identifica a curadoria no modo em que o registo é **substituído no lugar** — travá-lo ali evita
+  que a edição crie uma identidade nova por baixo. Na derivação o registo é um **elo novo**, e é
+  exatamente esse o gesto que permite mudar quem dirige a sala. Os dois `<select>` passam a
+  `disabled = !derivar`, e a lista de modalidades volta a filtrar pelas habilitações quando o
+  professor muda (`filtrarPorHabilitacao` deixa de sair cedo no modo `derivar`; continua a sair no
+  `editar`).
+- **O servidor aceita e confere o par final.** `POST /api/bastidores/curadoria-derivar` lê
+  `professor` e `modalidade` do corpo (`undefined` herda o anterior; vazio é recusado por
+  `faltaNaCuradoria`), guarda o professor como slug, confere a **habilitação** do professor final, a
+  **aluna repetida** na modalidade final e a **unicidade** do trio final; o id do derivado nasce do
+  par final. O professor novo também não pode estar desligado. A versão anterior fica no histórico
+  com `substituidaPor`, como sempre. E a marca `descontinuada` da turma cai quando a derivação
+  devolve à sala uma direção válida, como já acontecia na criação.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o rótulo e o handler do `lb-cancelar`; o
+`disabled` do par e o `filtrarPorHabilitacao` no `ajustarCuradoria`; o par final, as guardas e o id
+na rota `curadoria-derivar`; a limpeza de `descontinuada`) ·
+`experimentos/provar-abas-da-audicao.js` (o nome do botão e a ausência de `confirm`, contada) ·
+`experimentos/provar-derivacao-da-turma.js` (o par livre na derivação, a troca de par no servidor, e
+o escolhedor `esc-conteudos` que faltava ao shim).
+
+**Validação.** `provar-abas-da-audicao` **81/81** (80 → 81: o «Cancelar» a não perguntar nada e o
+rótulo a ser o da Turma). `provar-derivacao-da-turma` **112/132**, com **+3** face ao `HEAD`
+(109/132): passam as três asserções novas — o par livre na derivação, o registo a nascer com o par
+novo e o id a nascer do par final. As outras 20 falhas são anteriores a esta mudança e iguais no
+`HEAD` (rótulos e campos que a prova ainda espera de uma versão antiga do formulário, e a regra de
+aluna repetida que a prova mede por um caminho que o código já não usa). `check-identidade` **0
+erros** · `check-github-headers` **5 verificações, tudo certo**.
+
+**O que ainda não está feito.** (1) Derivar a curadoria de um professor **desligado** continua
+recusado — a troca de par não serve para reabrir uma direção encerrada; para esse caso, a criação de
+uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
+as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
+conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.

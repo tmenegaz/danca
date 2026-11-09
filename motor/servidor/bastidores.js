@@ -5240,17 +5240,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * em cima. No telemóvel não aparece de todo. Esta linha diz o mesmo onde o professor está a
      * olhar, e desaparece quando não há nada a dizer. */
     '<p class="sub" id="lb-seguir-nota" hidden></p>' +
-    /* O «CANCELAR» DA EDIÇÃO (09/11/2026). Ele existia na marcação desde 05/11 e **nunca
-     * apareceu**: nenhuma função o mostrava, e o botão ficava `hidden` para sempre. A regra agora
-     * é uma só (`pintarCancelarLb`): há botão quando há um elenco ABERTO para editar.
+    /* O «CANCELAR» DA EDIÇÃO (09/11/2026; simplificado a 09/11/2026). Ele existia na marcação
+     * desde 05/11 e **nunca apareceu**: nenhuma função o mostrava, e o botão ficava `hidden` para
+     * sempre. A regra é uma só (`pintarCancelarLb`): há botão quando há um elenco ABERTO para
+     * editar.
      *
-     * O que ele faz não é «limpar o ecrã» — é DESCARTAR as alterações, e isso inclui o rascunho
+     * O QUE ELE FAZ. Não é «limpar o ecrã» — é DESCARTAR as alterações, e isso inclui o rascunho
      * que já foi para o servidor (cada passagem entre passos grava um). Sem isso, o rascunho ficava
      * no KV e continuava a ser a versão que a listagem mostra — a mesma família de defeito da
-     * transferência. */
+     * transferência. O gesto é DIRETO, como o «Cancelar» da Turma: um clique cessa a edição; não há
+     * caixa de confirmação para responder. */
     '<p class="par-botoes" id="lb-linha-cancelar" hidden><button type="button" ' +
-    'class="acao secundario pequena" id="lb-cancelar" ' +
-    'title="Descartar as alterações a este elenco e sair da edição">Cancelar a edição</button></p>' +
+    'class="acao secundario" id="lb-cancelar" ' +
+    'title="Descartar as alterações a este elenco e sair da edição">Cancelar</button></p>' +
     '</form>' +
     '</div>' +
     /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026, ABA a 09/11/2026).
@@ -7259,10 +7261,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function filtrarPorHabilitacao(){' +
     '  var slug = String((document.getElementById("cuprofessor") || {}).value || "");' +
-    // EM EDIÇÃO NÃO SE REFILTRA. O par (professor, modalidade) de uma curadoria que já existe está
-    // travado, e reconstruir a lista à volta dele apagaria a escolha que está no formulário.
-    '  var emEdicao = String((document.getElementById("cuderivar") || {}).value || "");' +
-    '  if (emEdicao) { return; }' +
+    // NO «EDITAR» NÃO SE REFILTRA. O par (professor, modalidade) de uma curadoria que já existe
+    // está travado, e reconstruir a lista à volta dele apagaria a escolha que está no formulário.
+    // NA DERIVAÇÃO REFILTRA (09/11/2026): o professor passou a ser editável, e trocar de professor
+    // tem de trocar a lista de modalidades — é a mesma regra do professor recém-escolhido.
+    '  var modo = String((document.getElementById("cumodo") || {}).value || "");' +
+    '  if (modo === "editar") { return; }' +
     '  if (!slug) { pintarModalidades(listaDoCatalogo(), ""); return; }' +
     '  if (Object.prototype.hasOwnProperty.call(HABILITACOES, slug)) {' +
     '    aplicarHabilitacao(slug); return;' +
@@ -7327,9 +7331,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ainda não nasceu o plano de ensino dela (o registo é substituído no lugar), «Derivar»
     // quando já nasceu (elo novo, com data, e a anterior no histórico).
     //
-    // O PAR (professor, modalidade) NÃO se edita em nenhum dos modos: é ele que identifica a
-    // curadoria — o id nasce dele —, tal como o nome da turma. No «Editar» os dois ficam
-    // travados; no «Derivar» também, e acresce a data.
+    // O PAR (professor, modalidade) NO «EDITAR» FICA TRAVADO: é ele que identifica a curadoria —
+    // o id nasce dele —, tal como o nome da turma. NO «DERIVAR» FICA LIVRE (09/11/2026): a versão
+    // nova é um elo novo, com identidade própria, e é ao derivar que a escola troca quem ensina ou
+    // em que modalidade a sala passa a funcionar. Travar aqui obrigaria a apagar e recriar a turma
+    // — o que perderia a cadeia.
     'function ajustarCuradoria(id, modo) {' +
     '  var c = null;' +
     '  for (var i = 0; i < CURADORIAS.length; i++) { if (CURADORIAS[i] && CURADORIAS[i].id === id) { c = CURADORIAS[i]; break; } }' +
@@ -7341,12 +7347,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("cu-vigencia-campo").hidden = !derivar;' +
     '  document.getElementById("cu-cancelar").hidden = false;' +
     '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar turma";' +
-    // Os três `select` ficam travados: o par identifica a curadoria, e a turma é o que ela
-    // declara hoje — mudar de turma é derivar, não editar por baixo.
+    // Os dois `select` do par seguem o modo: travados no «Editar» (substitui no lugar), livres no
+    // «Derivar» (elo novo). A sala continua a escolher-se no próprio campo, nos dois modos.
     '  document.getElementById("cuprofessor").value = c.professor;' +
-    '  document.getElementById("cuprofessor").disabled = true;' +
+    '  document.getElementById("cuprofessor").disabled = !derivar;' +
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
-    '  document.getElementById("cumodalidade").disabled = true;' +
+    '  document.getElementById("cumodalidade").disabled = !derivar;' +
     // AS TRADIÇÕES SÃO REPINTADAS PARA A MODALIDADE DELA (03/11/2026), antes de a escolher: desde
     // que a lista depende da modalidade, uma curadoria de outra modalidade poderia ter uma tradição
     // que a lista actual não oferece — e o `value` ficaria a apontar para uma opção inexistente.
@@ -11608,24 +11614,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'var lbEnviar = document.getElementById("lb-enviar");' +
     'if (lbEnviar) lbEnviar.addEventListener("click", concluirElenco);' +
-    /* O «CANCELAR A EDIÇÃO» DESCARTA NO SERVIDOR (09/11/2026).
+    /* O «CANCELAR» DESCARTA NO SERVIDOR (09/11/2026), E FAZ-O DIRETO (09/11/2026).
      *
      * O que ele fazia era limpar o ecrã — e o rascunho ficava no KV, que é a versão que a
      * listagem mostra: o professor «cancelava» e o elenco continuava a aparecer com as alterações
      * que ele julgava ter deitado fora. Agora o gesto é o que a palavra diz: o rascunho sai do
      * servidor (a rota `/linha-de-base/descartar`), e o elenco volta ao que estava concluído.
      *
-     * O CONFIRM SÓ APARECE QUANDO HÁ O QUE PERDER — um elenco aberto. Se o formulário está vazio
-     * (o botão nem aparece, mas o teclado pode chegar lá), não se pergunta nada. */
+     * SEM CONFIRM, tal como o «Cancelar» da Turma: o clique cessa a edição imediatamente. A
+     * pergunta existia só para quem já tinha escolhido «Cancelar» — uma confirmação a mais num
+     * gesto que já é de recuo não protege nada, só adia. */
     'var lbCancelar = document.getElementById("lb-cancelar");' +
     'if (lbCancelar) lbCancelar.addEventListener("click", function(){' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var aberto = (modo && modo.value) || "";' +
     '  if (!aberto) { corpoRes("", ""); limparForm(); return; }' +
-    '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === aberto; })[0];' +
-    '  var nome = (alvo && alvo.nome) || aberto;' +
-    '  if (!confirm("Descartar as alterações a «" + nome + "»? O elenco volta ao que estava " +' +
-    '    "concluído; se ainda não foi concluído nenhuma vez, sai da lista.")) return;' +
     /* O BOTÃO É DESLIGADO À MÃO: o `ocuparBotao` procura um `button[type=submit]` DENTRO de um
      * formulário, e este é um botão solto (`type="button"`). Reutilizá-lo aqui não faria nada —
      * e um «descartando…» que não aparece é pior do que nenhum. */
@@ -14895,11 +14898,14 @@ async function fetch(request, env) {
   // Mesmo invariante da turma: a escola pensa que corrige, e o que fica gravado é um ELO NOVO
   // — a curadoria anterior desce para o histórico com `substituidaPor`/`substituidaEm`, e a
   // nova nasce com a data a partir da qual vale (`vigenteDe`) e com um id que a distingue.
-  // O par (professor, modalidade) NÃO muda: é ele que identifica a curadoria — tal como o nome
-  // da turma. Mudá-lo seria criar outra curadoria, não corrigir esta.
   //
-  // O que se ajusta é o que não nasceu do plano: a turma, a tradição, o repertório e as
-  // alunas. A proveniência do professor e da modalidade fica.
+  // O PAR (professor, modalidade) TAMBÉM SE AJUSTA AQUI (09/11/2026). Antes a derivação só mudava
+  // o que não nascera do plano — a turma, a tradição, o repertório e as alunas —, e o par ficava
+  // preso porque era a identidade do registo. Mas derivar é justamente criar uma identidade NOVA:
+  // quando a escola passa a sala a outro professor, ou muda a modalidade dela, é este o elo que o
+  // registra. Travar o par obrigaria a apagar a curadoria e recriá-la, e a cadeia perderia o elo
+  // entre as duas. O par novo é conferido como o de uma criação — habilitação do professor, aluna
+  // repetida na modalidade e unicidade do trio —, e o id do derivado nasce do par final.
   if (path === '/api/bastidores/curadoria-derivar' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
@@ -14913,6 +14919,16 @@ async function fetch(request, env) {
     if (!anterior) {
       return json(404, { ok: false, erro: 'curadoria não encontrada (ou já substituída): ' + alvo });
     }
+    /* O PAR FINAL (09/11/2026). A derivação pode trocar professor e modalidade: o corpo traz os
+     * dois, e o que não vier herda o anterior. `undefined` é «não mexi»; vazio é uma declaração —
+     * e `faltaNaCuradoria` recusa-a mais adiante. O professor é guardado como slug, como na
+     * criação. */
+    const professorDerivado = corpo.professor === undefined
+      ? String(anterior.professor || '')
+      : slugificar(String(corpo.professor || '').trim());
+    const modalidadeDerivada = corpo.modalidade === undefined
+      ? String(anterior.modalidade || '')
+      : String(corpo.modalidade || '').trim();
     /* DERIVAR É PROLONGAR A DIREÇÃO — e a de quem saiu da escola não se prolonga (08/11/2026).
      * O desligamento encerrou-a com data; derivar seria reabri-la por outro caminho, e o registo
      * do encerramento passaria a ser falso. Quem retoma a turma é outra pessoa, com uma curadoria
@@ -14928,6 +14944,22 @@ async function fetch(request, env) {
             + 'não se deriva. Atribua a turma a outro professor habilitado (Turmas → nova direção '
             + 'pedagógica).',
           desligado: true,
+        });
+      }
+    }
+    /* O PROFESSOR NOVO TAMBÉM NÃO PODE ESTAR DESLIGADO (09/11/2026). A guarda acima olha para a
+     * origem; esta olha para quem passa a dirigir. Sem ela, trocar o par na derivação servia para
+     * contornar a mesma regra pela porta do lado. */
+    if (professorDerivado !== String(anterior.professor || '')) {
+      const registoDerivado = desligamento.acharProfessor(
+        await professores(kv, escola), professorDerivado);
+      if (registoDerivado && desligamento.estaDesligado(registoDerivado)) {
+        return json(409, {
+          ok: false,
+          erro: 'o professor «' + registoDerivado.nome + '» desligou-se desta escola em '
+            + String(registoDerivado.desligado_em).slice(0, 10) + ' — a direção pedagógica dele foi '
+            + 'encerrada nessa data, e não se retoma. Escolha outro professor habilitado.',
+          desligado: true, falta: ['professor'],
         });
       }
     }
@@ -14994,8 +15026,8 @@ async function fetch(request, env) {
        sem turma quando a anterior também não a tinha, que é exactamente a dívida que esta
        regra veio não deixar crescer. */
     const faltaDeriv = faltaNaCuradoria({
-      professor: anterior.professor,
-      modalidade: anterior.modalidade,
+      professor: professorDerivado,
+      modalidade: modalidadeDerivada,
       tradicao: corpo.tradicao === undefined ? anterior.tradicao : corpo.tradicao,
       turmas: [turmaFinal],
       alunas: alunasFinais,
@@ -15005,25 +15037,39 @@ async function fetch(request, env) {
         ok: false, erro: fraseDaCuradoriaIncompleta(faltaDeriv), falta: faltaDeriv.map(([c]) => c),
       });
     }
-    /* DERIVAR TAMBÉM CONFERE A HABILITAÇÃO (07/11/2026). A modalidade não muda na derivação, mas
-     * o PERFIL pode ter mudado desde a versão anterior — e é exactamente esse o caso que a
-     * derivação existe para tratar: o professor deixou de declarar a modalidade, e a turma
-     * precisa de uma versão nova. Recusar aqui não tranca o passado (a versão antiga fica); diz
-     * que a escola tem de resolver a habilitação antes de prolongar a atribuição. */
-    const recusaHabDeriv = await recusaPorHabilitacao(env, anterior.professor, anterior.modalidade);
+    /* DERIVAR TAMBÉM CONFERE A HABILITAÇÃO (07/11/2026; com o par novo a 09/11/2026). O par pode
+     * ter mudado, e a modalidade nova tem de ser uma que o professor final declare. Recusar aqui
+     * não tranca o passado (a versão antiga fica); diz que a escola tem de resolver a habilitação
+     * antes de prolongar a atribuição. */
+    const recusaHabDeriv = await recusaPorHabilitacao(env, professorDerivado, modalidadeDerivada);
     if (recusaHabDeriv) {
       return json(409, {
         ok: false, erro: recusaHabDeriv, falta: ['modalidade'], habilitacao: true,
       });
     }
-    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar. A curadoria que se está
-    // a derivar não conta (é a de origem, `anterior.id`): as alunas dela não competem consigo.
-    const ocupadasDeriv = alunasComprometidas(lista, String(anterior.modalidade || ''), anterior.id);
+    /* O TRIO FINAL NÃO PODE JÁ EXISTIR NOUTRO REGISTO (09/11/2026). Ao trocar o par, o derivado
+     * pode cair sobre uma curadoria vigente que já declara o mesmo professor, a mesma modalidade e
+     * a mesma turma — e duas direções para a mesma sala fariam o plano não saber de qual ler. A
+     * origem fica de fora: derivar a própria curadoria sem trocar nada é o caso normal. */
+    const jaExisteDeriv = acharCuradoria(lista, professorDerivado, modalidadeDerivada, turmaFinal);
+    if (jaExisteDeriv && jaExisteDeriv.id !== anterior.id) {
+      return json(409, {
+        ok: false,
+        erro: 'já existe uma turma vigente para «' + professorDerivado + '» em «' + modalidadeDerivada
+          + '» na sala «' + turmaFinal + '» — duas direções para a mesma sala deixariam o plano sem '
+          + 'saber de qual ler. Ajuste a curadoria existente, ou escolha outro par.',
+        falta: ['professor', 'modalidade'], curadoria: jaExisteDeriv.id,
+      });
+    }
+    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar, e na modalidade FINAL. A
+    // curadoria que se está a derivar não conta (é a de origem, `anterior.id`): as alunas dela não
+    // competem consigo.
+    const ocupadasDeriv = alunasComprometidas(lista, modalidadeDerivada, anterior.id);
     const repetidasDeriv = alunasFinais.filter((a) => ocupadasDeriv[a]);
     if (repetidasDeriv.length) {
       return json(409, {
         ok: false,
-        erro: 'estas alunas já estão noutra sala de «' + String(anterior.modalidade || '') + '»: ' +
+        erro: 'estas alunas já estão noutra sala de «' + modalidadeDerivada + '»: ' +
           repetidasDeriv.map((a) => a + ' (em ' + ocupadasDeriv[a] + ')').join('; ') +
           '. Uma aluna pertence a UMA sala por modalidade.',
         alunas: repetidasDeriv.map((a) => ({ aluna: a, turma: ocupadasDeriv[a] })),
@@ -15041,11 +15087,14 @@ async function fetch(request, env) {
       nivelReferencia: corpo.nivelReferencia === undefined ? anterior.nivelReferencia : corpo.nivelReferencia,
     });
     const nova = Object.assign({}, anterior, {
-      // O id do derivado parte do id do par (professor, modalidade, turma) — não do id antigo,
-      // que pode não ter a turma. Assim a versão nova nasce já com a identidade completa.
+      // O id do derivado parte do id do par final (professor, modalidade, turma) — não do id
+      // antigo, que pode não ter a turma nem o par novo. Assim a versão nova nasce já com a
+      // identidade completa.
       id: idCuradoriaDerivado(
-        idCuradoria(anterior.professor, String(anterior.modalidade || ''), turmaFinal) || anterior.id,
+        idCuradoria(professorDerivado, modalidadeDerivada, turmaFinal) || anterior.id,
         vigencia, lista),
+      professor: professorDerivado,
+      modalidade: modalidadeDerivada,
       tradicao: tradicaoFinal,
       grau: niveisDeriv.grau,
       nivel: niveisDeriv.nivel,
@@ -15076,6 +15125,23 @@ async function fetch(request, env) {
     });
     lista.push(nova);
     await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
+    /* A TURMA VOLTOU A TER QUEM A ENSINE (09/11/2026) — e a marca cai, como na criação.
+     * A `descontinuada` nasce da perda de habilitação ou do desligamento; derivar para um par que
+     * a escola aceita é a escola a resolver o enquadramento. Uma marca que só se acendesse seria
+     * uma pena perpétua por uma decisão que se corrige. */
+    if (turmaFinal) {
+      const todas = await turmas(kv, escola);
+      const i = todas.findIndex((t) => t && String(t.nome || '') === turmaFinal);
+      if (i !== -1 && todas[i].descontinuada) {
+        const resumo = enquadramento.resumoDoEnquadramento(todas[i], lista);
+        if (resumo.temCuradoria) {
+          const semMarca = Object.assign({}, todas[i]);
+          delete semMarca.descontinuada;
+          todas[i] = semMarca;
+          await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(todas));
+        }
+      }
+    }
     return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia });
   }
 

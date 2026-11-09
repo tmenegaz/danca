@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T18:52:23-0300`
-Commit atual: `0d0a1ec9` — docs(registro): a transferência que se perdia no rascunho
+Gerado em: `2026-11-09T19:22:59-0300`
+Commit atual: `eea49096` — chore(estrutura): regerar o HANDOFF
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,7 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+eea49096 chore(estrutura): regerar o HANDOFF
 0d0a1ec9 docs(registro): a transferência que se perdia no rascunho
 3633f726 fix(estrutura): a transferência grava-se nos dois lados, e o «Cancelar» descarta
 e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
@@ -90,7 +91,6 @@ f3b8a396 docs(registro): a correção do rótulo da aba 2, no mesmo dia
 670b6db3 feat(elenco): ami — concluído
 4abaecc0 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 7ec5121b chore(estrutura): regerar os índices derivados
-41990312 feat(linha de base): índice — tami 20261109-1917
 ```
 
 ## Por professor
@@ -164,97 +164,57 @@ f3b8a396 docs(registro): a correção do rótulo da aba 2, no mesmo dia
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
+## 09/11/2026 — O «Cancelar» direto, e a derivação que troca o par professor × modalidade
 
-**O que motivou.** A pesquisadora transferiu uma aluna de «tami» para «ami» e viu o resultado errado:
-«a remoção da aluna da origem e a adição no destino devem ser persistidas corretamente no banco de
-dados/estado, evitando duplicações, perda ou inconsistência na contagem de alunas em cada elenco».
-Pediu também um **Cancelar** na edição de elencos — «permitindo descartar as alterações e sair do
-modo de edição com segurança».
+**O que motivou.** Dois ajustes pedidos pela pesquisadora, e os dois são de **gesto**: (1) o
+«Cancelar» da edição de elenco devia ser direto e simples — sem a caixa de confirmação, e com o
+nome que a Turma já usa; (2) ao **derivar** uma turma, o professor e a modalidade deviam continuar
+editáveis, para a escola poder trocar quem ensina ou em que modalidade a sala passa a funcionar.
 
-**O defeito, medido.** A rota `elenco-mover` gravava as **duas versões no repositório** e não tocava
-no **rascunho do KV**. O rascunho é o que a Produção mostra por cima do acto (`linhasDeBase`), e por
-isso a listagem continuava a dizer «tami — 2 alunas» com a aluna já no destino: a contagem mentia
-nos dois elencos. Pior, e é a **perda**: o «Concluir elenco» seguinte gravava o rascunho velho como
-acto novo, e a transferência era desfeita sem ninguém lhe tocar. E o amplificador: o carimbo é o
-**minuto** (`AAAAMMDD-HHMM`) e o caminho é `<id>--<carimbo>.json`; dois actos no mesmo minuto caíam
-no **mesmo ficheiro**, e o segundo sobrescrevia o primeiro — o oposto de append-only.
+**O que foi decidido.**
 
-Reproduzido na bancada antes de corrigir, e medido **na produção** depois: a
-`/api/bastidores/linhas-de-base` da `calango` devolvia `ami` com `emEdicao: true` e **1 aluna**
-(o acto tem 2) — o retrato exato do defeito, ainda no estado guardado.
+- **O «Cancelar» do elenco cessa o ato num clique.** O rótulo passa de «Cancelar a edição» a
+  **«Cancelar»**, como o da Turma, e a pergunta (`confirm`) sai. O descarte no servidor fica: a rota
+  `POST /api/bastidores/linha-de-base/descartar` tira o **rascunho** do KV e deixa o acto de pé. O
+  que muda é o caminho até ele — um clique em vez de dois. Sem elenco aberto, o botão continua a não
+  chamar o servidor: só limpa o formulário.
+- **No «Editar» o par continua travado; no «Derivar» fica livre.** O par `(professor, modalidade)`
+  identifica a curadoria no modo em que o registo é **substituído no lugar** — travá-lo ali evita
+  que a edição crie uma identidade nova por baixo. Na derivação o registo é um **elo novo**, e é
+  exatamente esse o gesto que permite mudar quem dirige a sala. Os dois `<select>` passam a
+  `disabled = !derivar`, e a lista de modalidades volta a filtrar pelas habilitações quando o
+  professor muda (`filtrarPorHabilitacao` deixa de sair cedo no modo `derivar`; continua a sair no
+  `editar`).
+- **O servidor aceita e confere o par final.** `POST /api/bastidores/curadoria-derivar` lê
+  `professor` e `modalidade` do corpo (`undefined` herda o anterior; vazio é recusado por
+  `faltaNaCuradoria`), guarda o professor como slug, confere a **habilitação** do professor final, a
+  **aluna repetida** na modalidade final e a **unicidade** do trio final; o id do derivado nasce do
+  par final. O professor novo também não pode estar desligado. A versão anterior fica no histórico
+  com `substituidaPor`, como sempre. E a marca `descontinuada` da turma cai quando a derivação
+  devolve à sala uma direção válida, como já acontecia na criação.
 
-**O que foi decidido, e onde se vê no código.**
+**Onde entrou.** `motor/servidor/bastidores.js` (o rótulo e o handler do `lb-cancelar`; o
+`disabled` do par e o `filtrarPorHabilitacao` no `ajustarCuradoria`; o par final, as guardas e o id
+na rota `curadoria-derivar`; a limpeza de `descontinuada`) ·
+`experimentos/provar-abas-da-audicao.js` (o nome do botão e a ausência de `confirm`, contada) ·
+`experimentos/provar-derivacao-da-turma.js` (o par livre na derivação, a troca de par no servidor, e
+o escolhedor `esc-conteudos` que faltava ao shim).
 
-- **O rascunho acompanha o acto** (`transferencia.ajustarRascunho`). Depois das duas escritas, o
-  rascunho de cada elenco é ajustado: a aluna sai da origem e entra no destino **na lista que o
-  rascunho já tem** — o trabalho a meio (um recorte novo, uma aluna acrescentada à mão) **não** é
-  deitado fora, porque a regra é a do menor gesto. A `leitura` cai quando o conjunto muda, pela
-  mesma razão do acto: descrevia outros corpos. O ajustamento corre só com as **duas** escritas
-  feitas: na meia-transferência o rascunho deve descrever o estado parcial, não contrariá-lo.
-- **Dois actos no mesmo minuto são dois ficheiros** (`carimboLivre`, em `linhas-de-base-repo.js`).
-  O carimbo ganha sufixo (`20261109-2144-2`) quando o nome já existe, e a pergunta é feita ao
-  **repositório** — a unicidade tem de valer entre pedidos. `idDeChave`/`carimboDaChave` partem no
-  último `--` e a ordenação lexicográfica continua a pôr `2144-2` entre `2144` e `2145`.
-- **Repetir a transferência deixa de ser um beco sem saída.** Quando os **actos** já dizem o que se
-  pediu (a origem sem ela, o destino com ela), a rota não recusa com «já está no elenco de destino»:
-  acerta os rascunhos atrasados e responde `ok` com `jaEstava: true`, sem escrever nada no
-  repositório — reescrever os actos criaria elos falsos. A mensagem do cliente usa o `aviso`, e não
-  «passou de A para B» de um acto que não houve agora.
-- **O formulário aberto acompanha o acto.** Se o professor estava a editar um dos dois elencos, as
-  caixas do passo 2 ainda tinham a aluna que acabou de mudar, e o «Seguir» seguinte gravaria o
-  elenco velho por cima. Depois da transferência o elenco é **relido** (`editarLinha`), no passo em
-  que ele estava, e a frase do acto volta à vista.
-- **O «Cancelar a edição»** existia na marcação desde 05/11/2026 e **nunca aparecia**: nenhuma função
-  o mostrava. `pintarCancelarLb` passa a governá-lo (há botão quando há elenco aberto, e ele aparece
-  já no primeiro «Gravar» de um elenco novo), e o gesto é o que a palavra diz: chama a rota nova
-  `POST /api/bastidores/linha-de-base/descartar`, que tira o **rascunho** do KV e **deixa o acto de
-  pé**. Não é o `DELETE`: apagar gravaria uma lápide e mataria o elenco que o professor só queria
-  parar de editar. Sem acto (elenco nunca concluído), descartar tira-o da lista — e a resposta di-lo.
+**Validação.** `provar-abas-da-audicao` **81/81** (80 → 81: o «Cancelar» a não perguntar nada e o
+rótulo a ser o da Turma). `provar-derivacao-da-turma` **112/132**, com **+3** face ao `HEAD`
+(109/132): passam as três asserções novas — o par livre na derivação, o registo a nascer com o par
+novo e o id a nascer do par final. As outras 20 falhas são anteriores a esta mudança e iguais no
+`HEAD` (rótulos e campos que a prova ainda espera de uma versão antiga do formulário, e a regra de
+aluna repetida que a prova mede por um caminho que o código já não usa). `check-identidade` **0
+erros** · `check-github-headers` **5 verificações, tudo certo**.
 
-**O que a produção ainda precisa, e é um clique.** O rascunho atrasado que ficou do defeito não se
-corrige sozinho: na `calango`, o elenco **ami** continua `emEdicao` com 1 aluna, e o caminho é
-**Editar → «Cancelar a edição»** (ou repetir a transferência, que agora acerta o rascunho). A
-correção automática na leitura seria escrita em cima de um GET — nunca.
-
-**Onde entrou.** `motor/nucleo/transferencia.js` (`ajustarRascunho`) ·
-`motor/servidor/linhas-de-base-repo.js` (`carimboLivre`, no `concluir` e no `apagar`) ·
-`motor/servidor/bastidores.js` (o ajustamento dos rascunhos e a repetição na rota, a rota
-`/linha-de-base/descartar`, `pintarCancelarLb`, o `lb-cancelar` a descartar, a releitura do
-formulário e a frase do `jaEstava`) · `experimentos/provar-transferencia-e-desligamento.js`
-(secções A2, C1b, C1c, C1d) · `experimentos/provar-abas-da-audicao.js` (secções I e J, e a lista da
-rota a deixar de ser constante) · `experimentos/README.md` · `ESTADO-ATUAL.md`.
-
-**Validação.** `provar-transferencia-e-desligamento` **93/93** (62 → 93: a função pura do rascunho
-com cinco casos e um controlo por id, o rascunho ajustado na rota com a contagem certa depois do
-acto, o «concluir» do rascunho ajustado a **não** desfazer a transferência, as duas versões no mesmo
-minuto com carimbos diferentes, o descartar com acto / sem rascunho / sem acto / sem senha, e a
-repetição idempotente com controlo negativo). `provar-abas-da-audicao` **80/80** (67 → 80: o
-Cancelar a aparecer e a esconder-se, o descarte a ir ao servidor com o id, o formulário a ficar
-limpo, e a releitura depois da transferência com a caixa desmarcada e a frase à vista). Sem
-regressão: `provar-producao` **166/166** · `provar-linha-de-base` **102** ·
-`provar-linha-de-base-no-repo` **39** · `provar-elenco-na-turma` **25** ·
-`provar-aluna-nova-no-elenco` **34** · `provar-remocao-do-elenco` **26** ·
-`provar-escrita-do-acto` **21** · `provar-corrida-da-escrita` **30** · `check-identidade` **0 erros**
-(21 verificações). `provar-orcamento-do-guardar` **não roda** neste worktree (falta
-`escola/batata/envelopes/po-20261108-0956.json`, a escola expurgada) — falha anterior a esta
-mudança, e ela não toca nesse caminho.
-
-**O que ainda não está feito, e sabe-se.** (1) A transferência continua a mover **uma** aluna por
-acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o formulário velho pode
-gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
-duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
-é um ato manual (um clique), e não uma migração.
+**O que ainda não está feito.** (1) Derivar a curadoria de um professor **desligado** continua
+recusado — a troca de par não serve para reabrir uma direção encerrada; para esse caso, a criação de
+uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
+as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
+conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.
 
 ## O que está pendente
-
-## 08/11/2026 — As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que sai
-
-A **substituição automática** da turma por um professor
-apto é o fluxo futuro da Direção — hoje ela é um ato manual (Turma → nova direção pedagógica), com a
-habilitação como filtro. A **sucessão formal do dono** não existe: ele não se desliga, e é essa a
-razão de a recusa o dizer. E o **remanejamento de modalidade** (aula recreativa/ensaio) é decisão da
-escola, não do motor: o sistema marca a turma e diz porquê, e não escolhe pedagogia.
 
 ## 08/11/2026 — A aluna desligada, e a turma que muda de sala
 
@@ -307,6 +267,14 @@ acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o form
 gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
 duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
 é um ato manual (um clique), e não uma migração.
+
+## 09/11/2026 — O «Cancelar» direto, e a derivação que troca o par professor × modalidade
+
+(1) Derivar a curadoria de um professor **desligado** continua
+recusado — a troca de par não serve para reabrir uma direção encerrada; para esse caso, a criação de
+uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
+as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
+conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.
 
 ## Pendências anteriores (índice)
 
@@ -702,6 +670,7 @@ duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho
 - **08/11/2026** — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa… → `REGISTRO.md` L40693
 - **08/11/2026** — O Worker voltou a falar com a rede: o `fetch` da ponte era… → `REGISTRO.md` L40808
 - **08/11/2026** — O fluxo da escola, num só desenho — e as duas portas do… → `REGISTRO.md` L40871
+- **08/11/2026** — As duas portas do fluxo da escola: a aluna que muda de… → `REGISTRO.md` L40932
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

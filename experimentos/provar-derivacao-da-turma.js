@@ -320,6 +320,24 @@ async function principal() {
   conferir('…e a turma da curadoria é um `select`',
     pagina2.includes('<select id="cuturma">'), true);
 
+  // --- 12. O PAR (professor × modalidade) NA DERIVAÇÃO (09/11/2026) -------
+  // A derivação cria uma identidade NOVA, e é ela que permite passar a sala a outro professor ou
+  // mudar a modalidade em que ela funciona. O que se mede: o registo nasce com o par novo, o id
+  // nasce desse par, e a versão anterior continua no histórico a apontar para o elo.
+  const derOutroPar = await json(env, '/api/bastidores/curadoria-derivar', 'POST', {
+    derivarDe: derivada.id, vigencia: '2026-12-01',
+    professor: 'Novo', modalidade: 'Jazz', tradicao: 'RAD', turmas: ['Turma B'],
+  });
+  conferir('a derivação aceita trocar professor e modalidade', derOutroPar.status, 201);
+  const derivadaOutra = (await derOutroPar.json()).curadoria;
+  conferir('…e o registo nasce com o par novo',
+    [derivadaOutra.professor, derivadaOutra.modalidade], ['novo', 'Jazz']);
+  conferir('…e o id nasce do par final', derivadaOutra.id, 'novo-jazz-turma-b-2026-12-01');
+  conferir('…e continua a saber de onde veio', derivadaOutra.substitui, derivada.id);
+  const cruaOutroPar = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]');
+  conferir('…e a versão anterior fica no histórico com o elo',
+    (cruaOutroPar.find((c) => c.id === derivada.id) || {}).substituidaPor, derivadaOutra.id);
+
   // --- 12b. O BUG REPORTADO (16/10/2026): N turmas do mesmo professor ----------
   // O id era `professor + modalidade` SEM a turma. Atribuir a mesma modalidade do mesmo
   // professor a uma segunda turma caía no mesmo id: o `upsert` substituía a curadoria
@@ -419,9 +437,10 @@ async function principal() {
 
   // --- 13. o «Editar»/«Derivar» da curadoria, no SCRIPT SERVIDO ----------
   // O markup já está conferido acima; aqui corre-se o script da página e chamam-se as funções.
-  // O que se trava: o par professor × modalidade fica TRAVADO nos dois modos (é ele que
-  // identifica a curadoria — o id nasce dele), a data só aparece no «Derivar», e as fichas de
-  // alunas e repertório são preenchidas com o que está gravado.
+  // O que se trava: no «Editar» o par professor × modalidade fica TRAVADO (é ele que identifica
+  // a curadoria — o id nasce dele); no «Derivar» fica LIVRE (09/11/2026), para a escola trocar
+  // quem ensina ou a modalidade ao criar o elo novo. A data só aparece no «Derivar», e as fichas
+  // de alunas e repertório são preenchidas com o que está gravado.
   const cen = exercitarCuradoria(pagina2, derivada.id);
   conferir('o script da página exercita as curadorias', cen.ok, true);
   conferir('«Editar» põe o modo e esconde a data', [cen.editar.modo, cen.editar.vigenciaOculta],
@@ -439,6 +458,8 @@ async function principal() {
   conferir('«Derivar» põe o modo e MOSTRA a data', [cen.derivar.modo, cen.derivar.vigenciaOculta],
     ['derivar', false]);
   conferir('…e o botão passa a «Gravar ajuste»', cen.derivar.botao, 'Gravar ajuste');
+  conferir('…e o professor e a modalidade ficam LIVRES na derivação',
+    [cen.derivar.professorTravado, cen.derivar.modalidadeTravada], [false, false]);
   conferir('…e a data nasce com hoje (o caso normal: corrigir agora)',
     /^\d{4}-\d{2}-\d{2}$/.test(cen.derivar.vigencia), true);
 
@@ -585,6 +606,10 @@ function exercitarCuradoria(html, id) {
     return el;
   };
   criarEscolhedor('esc-alunas');
+  // O REPERTÓRIO VOLTOU A ESTE FORMULÁRIO (03/11/2026), e `ajustarCuradoria` volta a marcar as
+  // fichas de `esc-conteudos`. O shim tem de o conhecer: sem ele, `adicionarFicha` procurava um
+  // `.escolhidos` que não existia e a prova morria antes de medir o modo.
+  criarEscolhedor('esc-conteudos');
   const documento = {
     getElementById: doId,
     addEventListener() {},
