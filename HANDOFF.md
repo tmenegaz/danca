@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T16:37:00-0300`
-Commit atual: `f1d266a4` — docs(registro): a segunda passagem da Audição, e o que fica aberto
+Gerado em: `2026-11-09T18:52:23-0300`
+Commit atual: `0d0a1ec9` — docs(registro): a transferência que se perdia no rascunho
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,15 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+0d0a1ec9 docs(registro): a transferência que se perdia no rascunho
+3633f726 fix(estrutura): a transferência grava-se nos dois lados, e o «Cancelar» descarta
+e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+0245e3b8 chore(estrutura): regerar os índices derivados
+91875de0 feat(linha de base): índice — tami 20261109-2139
+739b71cc feat(elenco): Aluna B passa de tami para ami
+0ef8b2cb feat(linha de base): índice — ami 20261109-2139
+ea6149cb feat(elenco): Aluna B passa de tami para ami
+449f930e chore(estrutura): regerar o HANDOFF
 f1d266a4 docs(registro): a segunda passagem da Audição, e o que fica aberto
 d3136fad fix(estrutura): o respiro dos cartões, o formulário limpo e a ordem do ato
 49d6eef1 chore(estrutura): regerar o HANDOFF
@@ -82,15 +91,6 @@ f3b8a396 docs(registro): a correção do rótulo da aba 2, no mesmo dia
 4abaecc0 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 7ec5121b chore(estrutura): regerar os índices derivados
 41990312 feat(linha de base): índice — tami 20261109-1917
-4fa73b8e feat(elenco): tami — concluído
-79a9e6a4 chore(estrutura): regerar os índices derivados
-0ce9e52a feat(acervo): envelope/anamnese-20261109-1615.json
-60e704e9 feat(acervo): envelope/.indice.json
-03022b9b chore(estrutura): regerar o HANDOFF
-a7aba998 docs(registro): a Audição em três abas, e a sinalização do que foi além do pedido
-ba76c401 feat(estrutura): a Audição em três abas, com a listagem à vista em todas
-658f88dd chore(estrutura): regerar o HANDOFF
-954af21d feat(estrutura): o professor que passou a turma a outro fica «sem turma»
 ```
 
 ## Por professor
@@ -164,86 +164,89 @@ ba76c401 feat(estrutura): a Audição em três abas, com a listagem à vista em 
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto
+## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
 
-**O que motivou.** Depois de usar as três abas no ar, a pesquisadora pediu cinco ajustes, um a um:
-«Adicionar respiro/margem entre os blocos dos elencos listados para evitar que fiquem colados ou
-encavalados. Pode seguir como referência a listagem da anamnese»; «Ao clicar em 'Concluir elenco',
-o formulário deve ser limpo imediatamente para permitir a criação de um novo elenco, evitando que
-acabe editando o elenco recém-criado por engano»; «Adicionar o botão de colapsar e expandir também
-no conjunto 'O que já é bom'»; «Garantir que a listagem e detecção de múltiplos elencos na aba de
-transferência atualizem dinamicamente sem precisar recarregar a página inteira»; e a ordem do acto
-de transferir — «Primeiro escolhe-se o elenco de origem. Em seguida, o sistema carrega os alunos
-pertencentes exclusivamente a esse elenco. Depois, seleciona-se o elenco de destino para onde os
-alunos escolhidos vão. Por fim, preenche-se o motivo (opcional) e efetua-se a movimentação.»
+**O que motivou.** A pesquisadora transferiu uma aluna de «tami» para «ami» e viu o resultado errado:
+«a remoção da aluna da origem e a adição no destino devem ser persistidas corretamente no banco de
+dados/estado, evitando duplicações, perda ou inconsistência na contagem de alunas em cada elenco».
+Pediu também um **Cancelar** na edição de elencos — «permitindo descartar as alterações e sair do
+modo de edição com segurança».
+
+**O defeito, medido.** A rota `elenco-mover` gravava as **duas versões no repositório** e não tocava
+no **rascunho do KV**. O rascunho é o que a Produção mostra por cima do acto (`linhasDeBase`), e por
+isso a listagem continuava a dizer «tami — 2 alunas» com a aluna já no destino: a contagem mentia
+nos dois elencos. Pior, e é a **perda**: o «Concluir elenco» seguinte gravava o rascunho velho como
+acto novo, e a transferência era desfeita sem ninguém lhe tocar. E o amplificador: o carimbo é o
+**minuto** (`AAAAMMDD-HHMM`) e o caminho é `<id>--<carimbo>.json`; dois actos no mesmo minuto caíam
+no **mesmo ficheiro**, e o segundo sobrescrevia o primeiro — o oposto de append-only.
+
+Reproduzido na bancada antes de corrigir, e medido **na produção** depois: a
+`/api/bastidores/linhas-de-base` da `calango` devolvia `ami` com `emEdicao: true` e **1 aluna**
+(o acto tem 2) — o retrato exato do defeito, ainda no estado guardado.
 
 **O que foi decidido, e onde se vê no código.**
 
-- **O respiro é da peça, não do contentor.** O defeito era de CASCATA, e não de desenho:
-  `.lb-cartoes>li{margin:0}` — o «reset» da página — tem especificidade (0,1,1) e vencia
-  `.trio-plano{margin-bottom:.6rem}` (0,1,0) na folha. A regra ficou sem o `margin`, e o vão
-  volta a ser o da anamnese (é o MESMO `.trio-plano`): **9,6px**, medidos no navegador a 1280 e a
-  320px, com um **A/B** que reinjecta o `margin:0` e mostra o vão a cair a zero — sem ele, «9,6px»
-  não provaria que a medida distingue uma coisa da outra.
-- **O formulário limpa-se ao concluir.** O `limparForm()` que já existia (o do «Cancelar») corre
-  no sucesso: o `#lb-modo` sai (é ele que fazia a gravação seguinte cair no MESMO elenco), o nome
-  sai, as alunas e o recorte desmarcam-se, e o formulário volta ao passo 1. **O professor não se
-  limpa** — é quem está a trabalhar, e o próximo elenco é habitualmente dele; mandá-lo para o
-  primeiro da lista seria uma escolha silenciosa. A frase do resultado **fica à vista**: ela vive
-  fora dos passos, e é o que diz «elenco concluído» e o que aconteceu à geração.
-- **Os quatro blocos de achados dobram** — o «O que já é bom» entrou a pedido dela. Com os quatro
-  a dobrarem, o parâmetro `dobrar` da primeira passagem **saiu**: uma bandeira que só sabia dizer
-  «sim» é a exceção à espera de acontecer.
-- **A aba 3 vive da leitura da lista.** O `carregarLinhas` — por onde passa TODA a gravação do
-  elenco (criar, editar, concluir, apagar, mover) — passa a reescrever `ELENCOS_MOVIVEIS` com
-  `d.elencos` e a chamar `pintarTransferencia()`. Um elenco concluído na aba 1 entra nas origens
-  sem F5; um apagado sai das duas listas; a escolha em curso sobrevive à repintura. E a
-  transferência **relê a lista em vez de recarregar a página** (`location.reload` saiu do
-  handler): recarregar voltava à aba 1 e o professor perdia o fio do que estava a fazer.
-- **A ordem do acto é a dela, e cada campo depende do anterior.** `Do elenco (origem)` →
-  `Aluna` (as alunas **daquele** elenco — antes era a escola inteira, e dava para escolher quem
-  não estava lá) → `Para o elenco (destino)` (sem a origem e **sem os elencos que já têm a
-  aluna**) → `Motivo`. As duas exclusões do destino são a regra do núcleo (`de === para` e «já
-  está no elenco de destino»): o cliente deixa de oferecer, o servidor continua a decidir. A
-  origem, a aluna e o destino nascem **vazios**; o «Mover» nasce apagado e diz o que falta. O
-  `mv-para` ganhou um `change` próprio (`pintarBotaoMover`): o estado do botão depende dos TRÊS
-  `<select>`, e sem esse caminho escolher o destino deixava o botão apagado — medido na bancada.
-- **As frases e os rótulos do estado vazio são DADOS**, como `ELENCOS_MOVIVEIS`: o servidor
-  desenha o painel sem JavaScript, e o cliente repõe as mesmas palavras. Escritas duas vezes,
-  uma diria «dois elencos» e a outra «2 elencos» ao primeiro ajuste.
+- **O rascunho acompanha o acto** (`transferencia.ajustarRascunho`). Depois das duas escritas, o
+  rascunho de cada elenco é ajustado: a aluna sai da origem e entra no destino **na lista que o
+  rascunho já tem** — o trabalho a meio (um recorte novo, uma aluna acrescentada à mão) **não** é
+  deitado fora, porque a regra é a do menor gesto. A `leitura` cai quando o conjunto muda, pela
+  mesma razão do acto: descrevia outros corpos. O ajustamento corre só com as **duas** escritas
+  feitas: na meia-transferência o rascunho deve descrever o estado parcial, não contrariá-lo.
+- **Dois actos no mesmo minuto são dois ficheiros** (`carimboLivre`, em `linhas-de-base-repo.js`).
+  O carimbo ganha sufixo (`20261109-2144-2`) quando o nome já existe, e a pergunta é feita ao
+  **repositório** — a unicidade tem de valer entre pedidos. `idDeChave`/`carimboDaChave` partem no
+  último `--` e a ordenação lexicográfica continua a pôr `2144-2` entre `2144` e `2145`.
+- **Repetir a transferência deixa de ser um beco sem saída.** Quando os **actos** já dizem o que se
+  pediu (a origem sem ela, o destino com ela), a rota não recusa com «já está no elenco de destino»:
+  acerta os rascunhos atrasados e responde `ok` com `jaEstava: true`, sem escrever nada no
+  repositório — reescrever os actos criaria elos falsos. A mensagem do cliente usa o `aviso`, e não
+  «passou de A para B» de um acto que não houve agora.
+- **O formulário aberto acompanha o acto.** Se o professor estava a editar um dos dois elencos, as
+  caixas do passo 2 ainda tinham a aluna que acabou de mudar, e o «Seguir» seguinte gravaria o
+  elenco velho por cima. Depois da transferência o elenco é **relido** (`editarLinha`), no passo em
+  que ele estava, e a frase do acto volta à vista.
+- **O «Cancelar a edição»** existia na marcação desde 05/11/2026 e **nunca aparecia**: nenhuma função
+  o mostrava. `pintarCancelarLb` passa a governá-lo (há botão quando há elenco aberto, e ele aparece
+  já no primeiro «Gravar» de um elenco novo), e o gesto é o que a palavra diz: chama a rota nova
+  `POST /api/bastidores/linha-de-base/descartar`, que tira o **rascunho** do KV e **deixa o acto de
+  pé**. Não é o `DELETE`: apagar gravaria uma lápide e mataria o elenco que o professor só queria
+  parar de editar. Sem acto (elenco nunca concluído), descartar tira-o da lista — e a resposta di-lo.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (a regra `.lb-cartoes>li`, o `limparForm` no
-`concluirElenco`, o `blocoDeAchados` sem o `dobrar`, os textos e rótulos da transferência, o
-`ELENCOS_MOVIVEIS` com as alunas, `pintarOrigens`/`pintarAlunasDaOrigem`/`pintarDestinos`/
-`pintarBotaoMover`/`pintarTransferencia`, a chamada no `carregarLinhas` e o handler sem o
-`location.reload`) · `experimentos/provar-abas-da-audicao.js` (as secções D, F, G e H) ·
-`experimentos/README.md` · `ESTADO-ATUAL.md` (§6 e a linha da fotografia).
+**O que a produção ainda precisa, e é um clique.** O rascunho atrasado que ficou do defeito não se
+corrige sozinho: na `calango`, o elenco **ami** continua `emEdicao` com 1 aluna, e o caminho é
+**Editar → «Cancelar a edição»** (ou repetir a transferência, que agora acerta o rascunho). A
+correção automática na leitura seria escrita em cima de um GET — nunca.
 
-**Validação.** `provar-abas-da-audicao` **67/67** (39 da primeira passagem + 28): a ordem dos
-campos, a origem vazia, as alunas da origem, o destino sem a origem e sem quem já tem a aluna, o
-pedido que só sai com os três campos, a lista relida depois do ato, o elenco novo a entrar sem F5,
-o formulário a limpar-se (id, nome, marcações) com o professor intacto, os quatro blocos
-`<details open>`, e o **vão entre cartões medido no Chrome** (1280 e 320px) com o A/B do
-`margin:0`. Sem regressão: `provar-producao` **166/166** · `provar-transferencia-e-desligamento`
-**62/62** · `provar-linha-de-base` **102** · `provar-elenco-na-turma` **25** · `check-identidade`
-**0 erros** (21 verificações).
+**Onde entrou.** `motor/nucleo/transferencia.js` (`ajustarRascunho`) ·
+`motor/servidor/linhas-de-base-repo.js` (`carimboLivre`, no `concluir` e no `apagar`) ·
+`motor/servidor/bastidores.js` (o ajustamento dos rascunhos e a repetição na rota, a rota
+`/linha-de-base/descartar`, `pintarCancelarLb`, o `lb-cancelar` a descartar, a releitura do
+formulário e a frase do `jaEstava`) · `experimentos/provar-transferencia-e-desligamento.js`
+(secções A2, C1b, C1c, C1d) · `experimentos/provar-abas-da-audicao.js` (secções I e J, e a lista da
+rota a deixar de ser constante) · `experimentos/README.md` · `ESTADO-ATUAL.md`.
 
-**O que ainda não está feito, e sabe-se.** (1) A transferência move **uma** aluna por ato — «os
-alunos escolhidos» no pedido dela, no plural, continua a ser um acto por aluna; a rota e o núcleo
-trabalham sobre um apelido, e um lote seria um contrato novo (duas versões por elenco, todas ou
-nenhuma). (2) A aluna que está em **dois** elencos pode ser movida de um para o outro, mas a tela
-não diz que ela tem outra casa — a lista de origem mostra-a como as outras. (3) A aba ativa
-continua a **não sobreviver ao recarregar**: a página volta à aba 1, e agora isso já não acontece
-por causa de uma transferência (que relê em sítio), mas continua a acontecer por causa de um F5.
+**Validação.** `provar-transferencia-e-desligamento` **93/93** (62 → 93: a função pura do rascunho
+com cinco casos e um controlo por id, o rascunho ajustado na rota com a contagem certa depois do
+acto, o «concluir» do rascunho ajustado a **não** desfazer a transferência, as duas versões no mesmo
+minuto com carimbos diferentes, o descartar com acto / sem rascunho / sem acto / sem senha, e a
+repetição idempotente com controlo negativo). `provar-abas-da-audicao` **80/80** (67 → 80: o
+Cancelar a aparecer e a esconder-se, o descarte a ir ao servidor com o id, o formulário a ficar
+limpo, e a releitura depois da transferência com a caixa desmarcada e a frase à vista). Sem
+regressão: `provar-producao` **166/166** · `provar-linha-de-base` **102** ·
+`provar-linha-de-base-no-repo` **39** · `provar-elenco-na-turma` **25** ·
+`provar-aluna-nova-no-elenco` **34** · `provar-remocao-do-elenco` **26** ·
+`provar-escrita-do-acto` **21** · `provar-corrida-da-escrita` **30** · `check-identidade` **0 erros**
+(21 verificações). `provar-orcamento-do-guardar` **não roda** neste worktree (falta
+`escola/batata/envelopes/po-20261108-0956.json`, a escola expurgada) — falha anterior a esta
+mudança, e ela não toca nesse caminho.
+
+**O que ainda não está feito, e sabe-se.** (1) A transferência continua a mover **uma** aluna por
+acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o formulário velho pode
+gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
+duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
+é um ato manual (um clique), e não uma migração.
 
 ## O que está pendente
-
-## 08/11/2026 — O fluxo da escola, num só desenho — e as duas portas do elenco
-
-O **fluxo automático** de entrada/saída continua a não
-existir; o que existe é o sinal derivado que ele consumiria. E a **cobertura de necessidades** — que o
-plano incorpore quem entrou e deixe de cobrar quem saiu — não é verificada por nada: é trabalho de
-conteúdo e de decisão, não de motor. Se um dia se quiser medir, a pergunta já está escrita no §3.3.
 
 ## 08/11/2026 — As duas portas do fluxo da escola: a aluna que muda de elenco, e o professor que sai
 
@@ -296,6 +299,14 @@ nenhuma). (2) A aluna que está em **dois** elencos pode ser movida de um para o
 não diz que ela tem outra casa — a lista de origem mostra-a como as outras. (3) A aba ativa
 continua a **não sobreviver ao recarregar**: a página volta à aba 1, e agora isso já não acontece
 por causa de uma transferência (que relê em sítio), mas continua a acontecer por causa de um F5.
+
+## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
+
+(1) A transferência continua a mover **uma** aluna por
+acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o formulário velho pode
+gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
+duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
+é um ato manual (um clique), e não uma migração.
 
 ## Pendências anteriores (índice)
 
@@ -690,6 +701,7 @@ por causa de uma transferência (que relê em sítio), mas continua a acontecer 
 - **08/11/2026** — A aluna que sai do elenco sai da aula — e o que ela já… → `REGISTRO.md` L40586
 - **08/11/2026** — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa… → `REGISTRO.md` L40693
 - **08/11/2026** — O Worker voltou a falar com a rede: o `fetch` da ponte era… → `REGISTRO.md` L40808
+- **08/11/2026** — O fluxo da escola, num só desenho — e as duas portas do… → `REGISTRO.md` L40871
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
