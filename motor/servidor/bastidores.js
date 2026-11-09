@@ -5240,8 +5240,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * em cima. No telemóvel não aparece de todo. Esta linha diz o mesmo onde o professor está a
      * olhar, e desaparece quando não há nada a dizer. */
     '<p class="sub" id="lb-seguir-nota" hidden></p>' +
+    /* O «CANCELAR» DA EDIÇÃO (09/11/2026). Ele existia na marcação desde 05/11 e **nunca
+     * apareceu**: nenhuma função o mostrava, e o botão ficava `hidden` para sempre. A regra agora
+     * é uma só (`pintarCancelarLb`): há botão quando há um elenco ABERTO para editar.
+     *
+     * O que ele faz não é «limpar o ecrã» — é DESCARTAR as alterações, e isso inclui o rascunho
+     * que já foi para o servidor (cada passagem entre passos grava um). Sem isso, o rascunho ficava
+     * no KV e continuava a ser a versão que a listagem mostra — a mesma família de defeito da
+     * transferência. */
     '<p class="par-botoes" id="lb-linha-cancelar" hidden><button type="button" ' +
-    'class="acao secundario pequena" id="lb-cancelar">Cancelar</button></p>' +
+    'class="acao secundario pequena" id="lb-cancelar" ' +
+    'title="Descartar as alterações a este elenco e sair da edição">Cancelar a edição</button></p>' +
     '</form>' +
     '</div>' +
     /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026, ABA a 09/11/2026).
@@ -6681,18 +6690,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (d && d.ok) {' +
     '        if (res) {' +
     '          res.className = "res ok";' +
-    '          res.textContent = d.aluna + " passou de " + d.de + " para " + d.para + ". "' +
-    '            + (d.proximo || "");' +
+    /* A REPETIÇÃO NÃO SE CONTA COMO UM ATO NOVO (09/11/2026). Quando os actos já diziam o que se
+     * pediu, a resposta traz `jaEstava` e a frase é a do aviso — dizer «passou de A para B» sobre
+     * uma transferência que já estava feita faria o professor procurar na série um elo de agora. */
+    '          res.textContent = d.jaEstava' +
+    '            ? (d.aviso || "a transferência já estava feita.")' +
+    '            : (d.aluna + " passou de " + d.de + " para " + d.para + ". " + (d.proximo || ""));' +
     '        }' +
     /* A LISTA RECARREGA-SE, A PÁGINA NÃO (09/11/2026). Era `location.reload()` a seguir a
      * 2,2 segundos: a página voltava à aba 1 e o professor perdia o fio do que estava a fazer. O
      * `carregarLinhas` repinta a listagem E o painel da transferência — o elenco de origem já não
-     * tem a aluna, e o destino já a tem, pelo que nenhum dos dois volta a ser oferecido para ela. */
+     * tem a aluna, e o destino já a tem, pelo que nenhum dos dois volta a ser oferecido para ela.
+     *
+     * E O FORMULÁRIO ABERTO ACOMPANHA (09/11/2026). Se o professor estava a editar um dos dois
+     * elencos, as caixas do passo 2 ainda têm a aluna que acabou de mudar — e o «Seguir» seguinte
+     * gravaria o elenco velho por cima do acto. O estado é relido do servidor (`editarLinha`),
+     * no passo em que ele estava: é a mesma regra da transferência — o que fica no ecrã tem de ser
+     * o que está guardado. */
     '        var origem = document.getElementById("mv-de");' +
     '        var motivo = document.getElementById("mv-motivo");' +
     '        if (origem) origem.value = "";' +
     '        if (motivo) motivo.value = "";' +
-    '        carregarLinhas();' +
+    '        var aberto = (document.getElementById("lb-modo") || {}).value || "";' +
+    '        var passo = LB_PASSO;' +
+    '        var estavaAberta = aberto && (aberto === corpo.de || aberto === corpo.para);' +
+    '        var frase = res ? res.textContent : "";' +
+    '        carregarLinhas().then(function(){' +
+    '          if (!estavaAberta) return;' +
+    /* `editarLinha` procura o elenco na lista que ACABOU de ser lida: chamá-la antes do
+     * `carregarLinhas` acharia a versão antiga. */
+    '          if (!LINHAS_DE_BASE.some(function(l){ return l.id === aberto; })) { limparForm(); return; }' +
+    '          editarLinha(aberto);' +
+    '          mostrarPassoLb(passo);' +
+    '          if (res) { res.className = "res ok"; res.textContent = frase; }' +
+    '        });' +
     '      } else if (res) {' +
     '        res.className = "res erro";' +
     '        res.textContent = (d && d.erro) || "não foi possível mover a aluna";' +
@@ -10577,7 +10608,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    enviar.setAttribute("aria-disabled", faltaEnvio.length ? "true" : "false");' +
     '    enviar.title = faltaEnvio.length ? "Para concluir, falta " + faltaEnvio.join(", ") + "." : "";' +
     '  }' +
+    '  pintarCancelarLb();' +
     '  pintarTiraLb();' +
+    '}' +
+    /* O «CANCELAR A EDIÇÃO» APARECE QUANDO HÁ EDIÇÃO (09/11/2026).
+     *
+     * A regra é uma só, e é esta função: o botão existe enquanto o formulário tem um elenco aberto
+     * (`#lb-modo` com id). Ele nasce escondido na marcação e ficava escondido para sempre — era o
+     * defeito, e a razão de ela pedir o botão que já estava escrito.
+     *
+     * O `hidden` do parágrafo, e não do botão: o `.par-botoes` já é a peça que agrupa, e esconder
+     * o grupo inteiro é o que impede um vão vazio quando o botão não deve estar lá. */
+    'function pintarCancelarLb() {' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var caixa = document.getElementById("lb-linha-cancelar");' +
+    '  if (!caixa) return;' +
+    '  caixa.hidden = !(modo && modo.value);' +
     '}' +
     // TROCAR DE PASSO É SÓ TROCAR DE PAINEL — e a trava vale para TODOS os caminhos: a tira, o
     // «Seguir», o passo lembrado ao reabrir. Quem tenta chegar a um passo com falta nos anteriores
@@ -11416,6 +11462,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        return false;' +
     '      }' +
     '      if (modo) modo.value = d.linha.id;' +
+    /* O ID APARECE AQUI PELA PRIMEIRA VEZ NUM ELENCO NOVO — e é ele que faz aparecer o
+     * «Cancelar a edição» (`pintarCancelarLb`). Sem esta linha, o botão só surgia ao primeiro
+     * `input`/`change`, e o professor acabado de gravar não tinha como recuar. */
+    '      pintarCancelarLb();' +
     '      carregarLinhas();' +
     /* A CASCATA ABRE-SE À FRENTE, E DIZ-SE ONDE (05/11/2026). Se esta linha de base já foi enviada
      * para uma turma, mexer-lhe no elenco muda a composição de corpos que a turma observa — e o que
@@ -11558,8 +11608,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'var lbEnviar = document.getElementById("lb-enviar");' +
     'if (lbEnviar) lbEnviar.addEventListener("click", concluirElenco);' +
+    /* O «CANCELAR A EDIÇÃO» DESCARTA NO SERVIDOR (09/11/2026).
+     *
+     * O que ele fazia era limpar o ecrã — e o rascunho ficava no KV, que é a versão que a
+     * listagem mostra: o professor «cancelava» e o elenco continuava a aparecer com as alterações
+     * que ele julgava ter deitado fora. Agora o gesto é o que a palavra diz: o rascunho sai do
+     * servidor (a rota `/linha-de-base/descartar`), e o elenco volta ao que estava concluído.
+     *
+     * O CONFIRM SÓ APARECE QUANDO HÁ O QUE PERDER — um elenco aberto. Se o formulário está vazio
+     * (o botão nem aparece, mas o teclado pode chegar lá), não se pergunta nada. */
     'var lbCancelar = document.getElementById("lb-cancelar");' +
-    'if (lbCancelar) lbCancelar.addEventListener("click", function(){ corpoRes("", ""); limparForm(); });' +
+    'if (lbCancelar) lbCancelar.addEventListener("click", function(){' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  var aberto = (modo && modo.value) || "";' +
+    '  if (!aberto) { corpoRes("", ""); limparForm(); return; }' +
+    '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === aberto; })[0];' +
+    '  var nome = (alvo && alvo.nome) || aberto;' +
+    '  if (!confirm("Descartar as alterações a «" + nome + "»? O elenco volta ao que estava " +' +
+    '    "concluído; se ainda não foi concluído nenhuma vez, sai da lista.")) return;' +
+    /* O BOTÃO É DESLIGADO À MÃO: o `ocuparBotao` procura um `button[type=submit]` DENTRO de um
+     * formulário, e este é um botão solto (`type="button"`). Reutilizá-lo aqui não faria nada —
+     * e um «descartando…» que não aparece é pior do que nenhum. */
+    '  var rotuloAntes = lbCancelar.textContent;' +
+    '  lbCancelar.disabled = true;' +
+    '  lbCancelar.textContent = "descartando...";' +
+    '  function devolverCancelar() {' +
+    '    lbCancelar.disabled = false;' +
+    '    lbCancelar.textContent = rotuloAntes;' +
+    '  }' +
+    '  fetch("/api/bastidores/linha-de-base/descartar", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({id: aberto, token: TOKEN})})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      devolverCancelar();' +
+    '      if (!d || !d.ok) {' +
+    '        corpoRes("erro", "Erro ao descartar: " + ((d && d.erro) || "desconhecido"));' +
+    '        return;' +
+    '      }' +
+    '      limparForm();' +
+    '      corpoRes("ok", d.aviso || "alterações descartadas.");' +
+    '      carregarLinhas();' +
+    '    })' +
+    '    .catch(function(err){ devolverCancelar(); corpoRes("erro", "Erro: " + err.message); });' +
+    '});' +
     'if (document.getElementById("lb-campos")) {' +
     '  camposDoCorpo();' +
     '  carregarLinhas();' +
@@ -13376,7 +13468,48 @@ async function fetch(request, env) {
       origem, destino, aluna, quando,
       motivo: String(corpo.motivo || '').trim(),
     });
-    if (!decisao.ok) return json(400, { ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros });
+    if (!decisao.ok) {
+      /* O ATO JÁ PODE ESTAR FEITO — e aí repetir não é um pedido inválido (09/11/2026).
+       *
+       * O CASO, medido na produção: a transferência gravou os dois actos e deixou o rascunho do
+       * destino atrasado (o defeito que esta sessão corrige). Os actos ficam certos — a origem sem
+       * ela, o destino com ela —, mas a listagem lê o rascunho, e o professor vê a transferência
+       * como não feita. Repetir o gesto respondia «já está no elenco de destino», que é um beco
+       * sem saída: a mensagem da meia-transferência manda repetir, e repetir recusava.
+       *
+       * A REGRA: quando os ACTOS já dizem o que se pediu, o pedido não é uma segunda transferência
+       * — é o acabamento da primeira. Ajustam-se os rascunhos (a mesma função do passo 3) e
+       * responde-se `ok` com `jaEstava: true`. Nada se escreve no repositório: os actos estão
+       * certos, e reescrevê-los criaria elos falsos na série. */
+      const sem = (l) => (Array.isArray(l && l.alunas) ? l.alunas.map(String) : []);
+      const actosJaDizem = origem && destino && aluna
+        && sem(origem).indexOf(aluna) === -1 && sem(destino).indexOf(aluna) !== -1;
+      if (!actosJaDizem) {
+        return json(400, { ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros });
+      }
+      const rascunhos = await rascunhosDe(kv, escola);
+      let mudou = false;
+      const ajustados = [];
+      const novos = rascunhos.map((r) => {
+        const ajustado = transferencia.ajustarRascunho(r, {
+          de: idOrigem, para: idDestino, aluna,
+        });
+        if (!ajustado) return r;
+        mudou = true;
+        ajustados.push(String(r.id));
+        return ajustado;
+      });
+      if (mudou) await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(novos));
+      return json(200, {
+        ok: true, jaEstava: true, aluna, de: idOrigem, para: idDestino,
+        rascunhosAjustados: ajustados,
+        aviso: mudou
+          ? 'a transferência já estava nos actos; o rascunho que a mostrava atrasada foi acertado.'
+          : 'a transferência já estava feita, e não havia rascunho atrasado a acertar.',
+        proximo: 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino '
+          + 'e, por último, o plano de observação — nesta ordem, que é a de dependência.',
+      });
+    }
 
     const mensagem = (de, para) => 'feat(elenco): ' + aluna + ' passa de ' + de + ' para ' + para;
     /* 1. O DESTINO. Se falhar, não se escreveu nada — e a resposta di-lo inteira. */
@@ -13406,7 +13539,40 @@ async function fetch(request, env) {
         destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
       });
     }
-    /* 3. A GERAÇÃO, nos dois elencos: o `-dados.json` do destino passa a oferecê-la e o da origem
+    /* 3. O RASCUNHO ACOMPANHA O ACTO (09/11/2026) — a correção do defeito medido.
+     *
+     * O QUE SE VIA. A transferência gravava os dois actos e deixava o rascunho do KV como estava.
+     * O rascunho é o que a listagem mostra por cima do acto (`linhasDeBase`), e por isso ela
+     * continuava a dizer «tami — 2 alunas» com a aluna já no destino — a contagem mentia nos DOIS
+     * elencos. E o «Concluir elenco» seguinte gravava o rascunho velho como acto novo: a
+     * transferência era DESFEITA sem ninguém lhe tocar.
+     *
+     * A regra é a do `ajustarRascunho` (§ nucleo/transferencia.js): move-se a aluna, e só ela. O
+     * trabalho a meio do rascunho fica. Corre depois das DUAS escritas — enquanto o acto da origem
+     * não estiver gravado, o estado é o parcial e o rascunho deve descrevê-lo, não o contrariar. */
+    let rascunhosAjustados = [];
+    try {
+      const rascunhos = await rascunhosDe(kv, escola);
+      let mudou = false;
+      const novos = rascunhos.map((r) => {
+        const ajustado = transferencia.ajustarRascunho(r, {
+          de: idOrigem, para: idDestino, aluna,
+        });
+        if (!ajustado) return r;
+        mudou = true;
+        rascunhosAjustados.push(String(r.id));
+        return ajustado;
+      });
+      if (mudou) {
+        await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(novos));
+      }
+    } catch (erro) {
+      /* O RASCUNHO NÃO DERRUBA O ACTO. Se a escrita falhar, a transferência está feita no
+       * repositório e a tela vai mostrar o rascunho velho — o estado que o «Cancelar» da edição
+       * resolve. Dizer o que falhou é melhor do que esconder. */
+      rascunhosAjustados = [];
+    }
+    /* 4. A GERAÇÃO, nos dois elencos: o `-dados.json` do destino passa a oferecê-la e o da origem
      * deixa de a oferecer. É a mesma regra do «Concluir elenco» (`gerarOsCiclosDoElenco`), e corre
      * depois da gravação: o que falhar vem na resposta e nunca desfaz o acto. */
     const geracao = {
@@ -13420,11 +13586,65 @@ async function fetch(request, env) {
       para: idDestino,
       origem: { chave: sai.chave || null, carimbo: sai.carimbo || null },
       destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
+      /* QUAIS RASCUNHOS ACOMPANHARAM O ACTO — o registo de que o estado guardado ficou coerente
+       * com a transferência. Vazio é o caso normal (ninguém estava a editar). */
+      rascunhosAjustados,
       geracao,
       /* O QUE FALTA, dito pela ordem da cascata (a mesma de `revalidacaoPendente`). A rota não
        * decide nada por ela: a Turma, o plano de ensino e o PO são actos do professor. */
       proximo: 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino e, '
         + 'por último, o plano de observação — nesta ordem, que é a de dependência.',
+    });
+  }
+
+  /* POST /api/bastidores/linha-de-base/descartar — O «CANCELAR» DA EDIÇÃO (09/11/2026).
+   *
+   * PORQUE ELE É UMA ROTA, e não um `DELETE`. O «Cancelar» não apaga o elenco: ele deita fora o
+   * RASCUNHO — a intenção que ainda não é facto — e deixa o ACTO do repositório de pé. Usar o
+   * `DELETE` para isto gravaria uma lápide e mataria o elenco que o professor só queria parar de
+   * editar, o que é o oposto do gesto.
+   *
+   * A DISTINÇÃO É A MESMA DO `rascunhosDe`: o KV é intenção, o repositório é facto. Sem acto (um
+   * elenco criado e ainda não concluído), o rascunho é a única existência dele — e descartar tira-o
+   * da estante. Com acto, o elenco volta a ser o que era antes de a edição começar.
+   *
+   * NÃO SE APAGA NADA QUE NÃO EXISTA: sem rascunho, a resposta é `descartado: false` e di-lo — o
+   * professor sai da edição e o elenco fica como estava. É o caso de quem abriu «Editar» e não
+   * mudou nada.
+   */
+  if (path === '/api/bastidores/linha-de-base/descartar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = String(corpo.id || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe o elenco' });
+    const lista = await rascunhosDe(kv, escola);
+    const idx = lista.findIndex((l) => l && l.id === id);
+    if (idx === -1) {
+      const acto = repoLinhas.activo
+        ? await repoLinhas.vigente(id).catch(() => null) : null;
+      return json(200, {
+        ok: true, descartado: false, mantemActo: Boolean(acto),
+        aviso: acto
+          ? 'não havia alterações por descartar — o elenco fica como estava.'
+          : 'não havia alterações por descartar.',
+      });
+    }
+    const removida = lista[idx];
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+    const acto = repoLinhas.activo
+      ? await repoLinhas.vigente(id).catch(() => null) : null;
+    return json(200, {
+      ok: true, descartado: true, nome: removida.nome || id,
+      /* DIZ-SE O QUE FICA. Sem acto, o elenco desapareceu — e quem leu a mensagem tem de saber
+       * que o gesto foi mais fundo do que «cancelar a edição». */
+      mantemActo: Boolean(acto),
+      aviso: acto
+        ? 'alterações descartadas — o elenco voltou à versão concluída.'
+        : 'alterações descartadas — este elenco ainda não tinha sido concluído, e por isso saiu da lista.',
     });
   }
 

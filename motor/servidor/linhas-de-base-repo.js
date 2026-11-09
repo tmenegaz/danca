@@ -316,13 +316,40 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     return ultimo;
   }
 
+  /**
+   * O CARIMBO LIVRE — porque DOIS ACTOS NO MESMO MINUTO NÃO PODEM SER O MESMO ARQUIVO.
+   *
+   * O DEFEITO QUE ISTO FECHA, medido a 09/11/2026. O carimbo é a DATA DO MINUTO
+   * (`AAAAMMDD-HHMM`), e o caminho é `<id>--<carimbo>.json`. Dois actos no mesmo minuto — a
+   * transferência e o «Concluir elenco» a seguir, por exemplo — caíam no MESMO ficheiro, e o
+   * `escrever` (que lê o `sha` antes de gravar) **sobrescrevia-o**: o elo anterior desaparecia da
+   * série, que é a única coisa que este módulo promete não fazer. Medido na bancada: o acto da
+   * transferência foi substituído pelo rascunho antigo, e a aluna ficou nos dois elencos.
+   *
+   * A SAÍDA É O SUFIXO (`20261109-2144-2`), e não um desempate por ordem de chegada em memória:
+   * a unicidade tem de valer entre pedidos diferentes, e por isso pergunta-se ao REPOSITÓRIO.
+   * `carimboDaChave` e `idDeChave` partem no último `--`, e a ordenação lexicográfica continua a
+   * pôr `2144-2` entre `2144` e `2145` — a série lê-se pela mesma regra.
+   */
+  async function carimboLivre(id, em) {
+    const base = carimboDe(em);
+    let carimbo = base;
+    for (let n = 2; n <= 99; n++) {
+      let existe = null;
+      try { existe = await conteudo(chaveDe(id, carimbo)); } catch (erro) { existe = null; }
+      if (!existe) return carimbo;
+      carimbo = base + '-' + n;
+    }
+    return carimbo;
+  }
+
   /** O corpo do acto: calcula o carimbo, lê a versão anterior e grava a nova. */
   async function concluirDeVerdade(linha, { quando, mensagem } = {}) {
     const id = String((linha && linha.id) || '').trim();
     if (!id) return { ok: false, erro: 'a linha de base não tem identificador' };
     const em = String(quando || new Date().toISOString());
-    const carimbo = carimboDe(em);
     const anterior = await this.vigente(id);
+    const carimbo = await carimboLivre(id, em);
     const chave = chaveDe(id, carimbo);
     const corpo = Object.assign({}, linha, {
       id,
@@ -350,7 +377,8 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     const alvo = await this.vigente(id);
     if (!alvo) return { ok: false, erro: 'linha de base não encontrada: ' + id };
     const em = String(quando || new Date().toISOString());
-    const carimbo = carimboDe(em);
+    // A LÁPIDE TAMBÉM PODE CAIR NO MESMO MINUTO — a mesma regra, e ela apagaria um acto.
+    const carimbo = await carimboLivre(String(id), em);
     const chave = chaveDe(String(id), carimbo);
     const corpo = Object.assign({}, alvo, {
       id: String(id),

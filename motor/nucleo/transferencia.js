@@ -117,4 +117,46 @@ function moverAluna({ origem, destino, aluna, quando, motivo } = {}) {
   return { ok: true, erros: [], origem: novaOrigem, destino: novoDestino };
 }
 
-module.exports = { moverAluna };
+/**
+ * O RASCUNHO ACOMPANHA O ACTO — a correção de 09/11/2026.
+ *
+ * O DEFEITO QUE ISTO FECHA, medido na produção: a transferência escrevia as duas versões no
+ * repositório e **deixava o rascunho do KV como estava**. O rascunho é o que a Produção mostra
+ * enquanto o professor está a editar (`linhasDeBase` põe-no por cima do acto), e por isso a
+ * listagem continuava a dizer «tami — 2 alunas» com a aluna já no destino: a contagem mentia nos
+ * DOIS elencos. Pior: o «Concluir elenco» seguinte gravava o rascunho velho como acto novo, e a
+ * transferência era **desfeita** sem ninguém lhe tocar.
+ *
+ * A REGRA É A DO MENOR GESTO: o que se move é a ALUNA, e só ela. O rascunho pode ter trabalho a
+ * meio que ninguém pediu para deitar fora (um recorte diferente, uma aluna acrescentada à mão), e
+ * por isso não se substitui a lista dele pela do acto — retira-se a aluna da origem e põe-se no
+ * destino, **na lista que o rascunho já tem**. O resto fica como o professor o deixou.
+ *
+ * A `leitura` cai quando o conjunto muda, pela mesma razão do acto: ela descreve os corpos juntos,
+ * e um número sobre outros corpos é pior do que nenhum.
+ *
+ * Devolve `null` quando não há nada a fazer — o rascunho não é destes elencos, ou a aluna já não
+ * está na origem (ou já está no destino). Quem chama não precisa de distinguir os casos: `null` é
+ * «deixa-o como está».
+ */
+function ajustarRascunho(rascunho, { de, para, aluna } = {}) {
+  const id = String((rascunho && rascunho.id) || '').trim();
+  const apelido = String(aluna == null ? '' : aluna).trim();
+  const idOrigem = String(de == null ? '' : de).trim();
+  const idDestino = String(para == null ? '' : para).trim();
+  if (!id || !apelido) return null;
+  if (id !== idOrigem && id !== idDestino) return null;
+
+  const antes = alunasDe(rascunho);
+  let depois = antes;
+  if (id === idOrigem) depois = antes.filter((a) => a !== apelido);
+  if (id === idDestino && depois.indexOf(apelido) === -1) depois = depois.concat([apelido]);
+  if (depois.length === antes.length && depois.every((a, i) => a === antes[i])) return null;
+
+  const novo = Object.assign({}, rascunho);
+  novo.alunas = depois;
+  delete novo.leitura;
+  return novo;
+}
+
+module.exports = { moverAluna, ajustarRascunho };

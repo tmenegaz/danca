@@ -26,7 +26,11 @@
  *      acabou de ser criado;
  *   H. o RESPIRO entre os cartões, medido num navegador de verdade (a cascata era o defeito: uma
  *      regra de página vencia a margem da folha) — e um A/B que devolve o `margin:0` para mostrar
- *      que a medida sabe reprovar.
+ *      que a medida sabe reprovar;
+ *   I. o «Cancelar a edição» — o botão que existia na marcação e nunca aparecia; e o gesto a
+ *      DESCARTAR no servidor (o rascunho sai do KV), com o formulário a fechar-se a seguir;
+ *   J. o FORMULÁRIO ABERTO ACOMPANHA A TRANSFERÊNCIA — sem isto, a caixa marcada no passo 2
+ *      gravaria o elenco velho por cima do acto no «Seguir» seguinte.
  *
  *   uso: node experimentos/provar-abas-da-audicao.js
  */
@@ -246,6 +250,11 @@ async function principal() {
   vc.on('jsdomError', () => {});
   vc.on('error', () => {});
   const ELENCOS_DA_ROTA = elencosDaRota();
+  /* A LISTA QUE O SERVIDOR DEVOLVE É VIVA, e não uma constante: as secções I e J medem o que a
+   * página faz DEPOIS de uma transferência, e para isso a resposta de `linhas-de-base` tem de poder
+   * mudar. Uma lista congelada mediria o primeiro desenho para sempre — e o defeito que se mede
+   * aqui é exactamente o de uma tela que não acompanha o servidor. */
+  let linhasNaRota = linhasDaProva();
   const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
     runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/producao',
     pretendToBeVisual: true, virtualConsole: vc,
@@ -261,7 +270,8 @@ async function principal() {
           : url.indexOf('campos-do-corpo') !== -1
             ? { ok: true, campos: [{ id: 'x', nome: 'X', grupo: 'g', eixo: 'Funcional',
                 dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
-            : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [], elencos: ELENCOS_DA_ROTA }
+            : url.indexOf('linhas-de-base') !== -1
+              ? { ok: true, linhas: linhasNaRota, elencos: bastidores.elencosParaATurma(linhasNaRota) }
               : { ok: true };
         return Promise.resolve({ ok: true, status: 200,
           json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
@@ -512,14 +522,149 @@ async function principal() {
   provar('o professor NÃO é limpo — é quem está a trabalhar',
     doc.getElementById('lb-professor').value !== '', doc.getElementById('lb-professor').value);
 
+  console.log('\nH. O respiro entre os cartões do elenco (navegador)');
+  await medirRespiro();
+
+  console.log('\nI. O «Cancelar a edição» — o botão que nunca aparecia');
+
+  const caixaCancelar = doc.getElementById('lb-linha-cancelar');
+  win.limparForm();
+  provar('fora da edição, o «Cancelar» não está à vista', caixaCancelar.hidden === true);
+
+  win.editarLinha('elenco-a');
+  provar('no modo de edição o «Cancelar» aparece', caixaCancelar.hidden === false);
+  provar('…e o botão diz o que faz',
+    /descartar/i.test(doc.getElementById('lb-cancelar').getAttribute('title') || ''));
+
+  /* DESCARTAR É UM ATO NO SERVIDOR (09/11/2026). Limpar o ecrã deixava o rascunho no KV — e o
+   * rascunho é o que a listagem mostra: o professor «cancelava» e via as alterações lá. */
+  let descartes = [];
+  const fetchAntesDoDescartar = win.fetch;
+  win.fetch = (u, init) => {
+    const url = String(u);
+    if (url.indexOf('linha-de-base/descartar') !== -1) {
+      descartes.push(JSON.parse(init.body));
+      return Promise.resolve({ ok: true, status: 200,
+        json: () => Promise.resolve({ ok: true, descartado: true, mantemActo: true,
+          aviso: 'alterações descartadas — o elenco voltou à versão concluída.' }),
+        text: () => Promise.resolve('') });
+    }
+    return fetchAntesDoDescartar(u, init);
+  };
+  win.editarLinha('elenco-a');
+  doc.getElementById('lb-cancelar').click();
+  await new Promise((r) => win.setTimeout(r, 120));
+  win.fetch = fetchAntesDoDescartar;
+
+  provar('o «Cancelar» descarta no SERVIDOR, com o id do elenco aberto',
+    descartes.length === 1 && descartes[0].id === 'elenco-a',
+    'pedidos: ' + JSON.stringify(descartes));
+  provar('…e o formulário fica limpo: o id sai, o nome sai',
+    doc.getElementById('lb-modo').value === '' && doc.getElementById('lb-nome').value === '');
+  provar('…e o botão volta a esconder-se', caixaCancelar.hidden === true);
+  provar('…e a frase diz o que ficou',
+    /descartad/i.test(doc.querySelector('[data-res="linha-base"]').textContent),
+    doc.querySelector('[data-res="linha-base"]').textContent);
+
+  /* SEM NADA ABERTO NÃO SE PEDE CONFIRMAÇÃO NEM SE CHAMA O SERVIDOR — mas o clique não pode
+   * morrer: o teclado chega ao botão mesmo escondido. */
+  let descartesVazios = 0;
+  win.fetch = (u) => {
+    if (String(u).indexOf('linha-de-base/descartar') !== -1) descartesVazios += 1;
+    return fetchAntesDoDescartar(u);
+  };
+  doc.getElementById('lb-cancelar').click();
+  await new Promise((r) => win.setTimeout(r, 60));
+  win.fetch = fetchAntesDoDescartar;
+  provar('sem elenco aberto o «Cancelar» não chama o servidor', descartesVazios === 0);
+
+  console.log('\nJ. O formulário aberto acompanha a transferência');
+
+  /* O DEFEITO, do lado do cliente: o professor edita o elenco A, vai à aba 3 e move uma aluna
+   * DELE. O formulário continua com a caixa marcada, e o «Seguir» seguinte gravaria o elenco velho
+   * por cima do acto. A página relê o elenco depois da lista — mede-se a caixa. */
+  win.editarLinha('elenco-a');
+  const caixaDaAlunaAberta = [...doc.querySelectorAll('input[name="lb-aluna"]')]
+    .find((c) => c.value === 'Aluna Um');
+  provar('antes da transferência a aluna está marcada no formulário',
+    Boolean(caixaDaAlunaAberta && caixaDaAlunaAberta.checked));
+
+  /* O SERVIDOR PASSA A DIZER OUTRA COISA: a origem perdeu a aluna, o destino ganhou-a. É o que a
+   * rota devolve depois do acto, e o que a resposta da transferência traz no teste seguinte. */
+  linhasNaRota = [
+    Object.assign({}, linhasDaProva()[0], { alunas: ['Aluna Dois'] }),
+    Object.assign({}, linhasDaProva()[1], { alunas: ['Aluna Dois', 'Aluna Um'] }),
+  ];
+  const fetchDoMovimento = win.fetch;
+  win.fetch = (u, init) => {
+    if (init && init.method === 'POST' && String(u).indexOf('elenco-mover') !== -1) {
+      return Promise.resolve({ ok: true, status: 200,
+        json: () => Promise.resolve({ ok: true, aluna: 'Aluna Um', de: 'elenco-a', para: 'elenco-b',
+          proximo: '' }), text: () => Promise.resolve('') });
+    }
+    return fetchDoMovimento(u, init);
+  };
+  win.abrirAbaDaAudicao('3');
+  de.value = 'elenco-a';
+  mudar(de);
+  aluna.value = 'Aluna Um';
+  mudar(aluna);
+  para.value = 'elenco-b';
+  mudar(para);
+  formMover.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise((r) => win.setTimeout(r, 250));
+  win.fetch = fetchDoMovimento;
+
+  const caixaDepoisDaTransferencia = [...doc.querySelectorAll('input[name="lb-aluna"]')]
+    .find((c) => c.value === 'Aluna Um');
+  provar('depois do ato a aluna já não está marcada no formulário aberto',
+    Boolean(caixaDepoisDaTransferencia) && caixaDepoisDaTransferencia.checked === false,
+    caixaDepoisDaTransferencia ? 'marcada=' + caixaDepoisDaTransferencia.checked : 'a caixa desapareceu');
+  provar('…e o formulário continua a editar o MESMO elenco (não se perdeu o fio)',
+    doc.getElementById('lb-modo').value === 'elenco-a', doc.getElementById('lb-modo').value);
+  provar('…e a frase da transferência fica à vista depois da releitura',
+    /passou de/.test(doc.querySelector('[data-res="transferencia"]').textContent),
+    doc.querySelector('[data-res="transferencia"]').textContent);
+
+  /* REPETIR UMA TRANSFERÊNCIA JÁ FEITA NÃO SE CONTA COMO ATO NOVO (09/11/2026): o servidor
+   * responde `jaEstava`, e a frase é a do aviso — não «passou de A para B» de um ato que não
+   * aconteceu agora. */
+  const resMoverNovo = doc.querySelector('[data-res="transferencia"]');
+  /* A PÁGINA ATRASADA: o professor tinha a aba aberta de antes. É o único estado em que ele
+   * CONSEGUE repetir o gesto — na página nova a aluna já não está na origem, e a lista não a
+   * oferece. O servidor é quem sabe que os actos já dizem o que se pediu. */
+  linhasNaRota = linhasDaProva();
+  win.ELENCOS_MOVIVEIS = bastidores.elencosParaATurma(linhasNaRota);
+  win.pintarTransferencia();
+  const fetchDaRepeticao = win.fetch;
+  win.fetch = (u, init) => {
+    if (init && init.method === 'POST' && String(u).indexOf('elenco-mover') !== -1) {
+      return Promise.resolve({ ok: true, status: 200,
+        json: () => Promise.resolve({ ok: true, jaEstava: true, aluna: 'Aluna Um',
+          de: 'elenco-a', para: 'elenco-b',
+          aviso: 'a transferência já estava nos actos; o rascunho que a mostrava atrasada foi acertado.' }),
+        text: () => Promise.resolve('') });
+    }
+    return fetchDaRepeticao(u, init);
+  };
+  de.value = 'elenco-a';
+  mudar(de);
+  aluna.value = 'Aluna Um';
+  mudar(aluna);
+  para.value = 'elenco-b';
+  mudar(para);
+  formMover.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise((r) => win.setTimeout(r, 150));
+  win.fetch = fetchDaRepeticao;
+  provar('a repetição mostra o AVISO, e não um «passou de» de um ato que não houve',
+    /já estava/.test(resMoverNovo.textContent) && !/passou de/.test(resMoverNovo.textContent),
+    resMoverNovo.textContent);
+
   /* O FECHO DEPOIS DA ÚLTIMA RESPOSTA. A conclusão disparou leituras assíncronas
    * (`carregarLinhas`), e fechar a janela antes de elas voltarem faz o jsdom chamar
    * `getElementById` num documento morto — uma exceção assíncrona que mata a prova depois de
    * todas as asserções terem passado. Espera-se que a fila esvazie, e fecha-se no fim. */
   await new Promise((r) => win.setTimeout(r, 150));
-
-  console.log('\nH. O respiro entre os cartões do elenco (navegador)');
-  await medirRespiro();
 
   dom.window.close();
 

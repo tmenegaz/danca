@@ -173,6 +173,43 @@ function githubDeBolso(arquivos) {
     provar('recusa: a aluna já está no destino', jaLa.ok === false && /já está no elenco/.test(jaLa.erros.join(' ')), jaLa.erros);
   }
 
+  /* A2. O RASCUNHO ACOMPANHA O ACTO — a função pura (09/11/2026).
+   *
+   * O defeito que ela fecha é o que a produção mostrou: a transferência gravava o acto e deixava o
+   * rascunho com a aluna, e a contagem mentia nos dois elencos. A regra é do núcleo — o que se move
+   * é a ALUNA, e o resto do trabalho a meio fica. */
+  {
+    const rascunhoA = Object.assign({}, linha(), {
+      leitura: { alunos: 3, classificacao: { atencao: [] } },
+      nome: 'a rever',
+    });
+    const ajustado = transferencia.ajustarRascunho(rascunhoA,
+      { de: 'elenco-a', para: 'elenco-b', aluna: 'Aluna B' });
+    provar('o rascunho da ORIGEM perde a aluna',
+      ajustado && JSON.stringify(ajustado.alunas) === JSON.stringify(['Aluna A', 'Aluna C']),
+      ajustado && ajustado.alunas);
+    provar('…e a leitura cai (o conjunto mudou)', ajustado && ajustado.leitura === undefined);
+    provar('…e o resto do trabalho fica (o nome que ele tinha)', ajustado && ajustado.nome === 'a rever');
+    provar('a linha de ENTRADA não é mutada', rascunhoA.alunas.length === 3, rascunhoA.alunas);
+
+    const rascunhoB = Object.assign({}, linha(), { id: 'elenco-b', alunas: ['Aluna D'] });
+    const noDestino = transferencia.ajustarRascunho(rascunhoB,
+      { de: 'elenco-a', para: 'elenco-b', aluna: 'Aluna B' });
+    provar('o rascunho do DESTINO ganha a aluna, no fim da lista dele',
+      noDestino && JSON.stringify(noDestino.alunas) === JSON.stringify(['Aluna D', 'Aluna B']),
+      noDestino && noDestino.alunas);
+
+    provar('um rascunho que já não tem a aluna não muda (nada a fazer)',
+      transferencia.ajustarRascunho(Object.assign({}, linha(), { alunas: ['Aluna A'] }),
+        { de: 'elenco-a', para: 'elenco-b', aluna: 'Aluna B' }) === null);
+    provar('um rascunho do destino que já tem a aluna não muda (não duplica)',
+      transferencia.ajustarRascunho(Object.assign({}, linha(), { id: 'elenco-b', alunas: ['Aluna B'] }),
+        { de: 'elenco-a', para: 'elenco-b', aluna: 'Aluna B' }) === null);
+    provar('um rascunho de OUTRO elenco não é tocado',
+      transferencia.ajustarRascunho(Object.assign({}, linha(), { id: 'elenco-z' }),
+        { de: 'elenco-a', para: 'elenco-b', aluna: 'Aluna B' }) === null);
+  }
+
   // ==========================================================================================
   console.log('\nB. O PROFESSOR DEIXA A ESCOLA — o núcleo');
 
@@ -371,6 +408,207 @@ function githubDeBolso(arquivos) {
     const idsNoIndice = [...new Set(Object.values(indiceFinal.versoes || {}).map((v) => v.id))].sort();
     provar('…e o índice final conhece os dois elencos (a versão antiga fica — é append-only)',
       JSON.stringify(idsNoIndice) === JSON.stringify(['elenco-a', 'elenco-b']), idsNoIndice);
+  }
+
+  /* C1b. O RASCUNHO ACOMPANHA O ACTO — o defeito medido na produção a 09/11/2026.
+   *
+   * A transferência gravava as duas versões e deixava o rascunho do KV como estava. O rascunho é o
+   * que a listagem mostra por cima do acto, e por isso a contagem mentia nos DOIS elencos — e o
+   * «Concluir elenco» seguinte DESFAZIA a transferência. O que se mede aqui é o estado depois:
+   * a lista, o rascunho, e a conclusão do rascunho a seguir. */
+  {
+    const rascunhoDoA = Object.assign({}, elencoA);
+    delete rascunhoDoA.carimbo; delete rascunhoDoA.chave;
+    rascunhoDoA.nome = 'Nível 1 — mobilidade e pés (a rever)';
+    rascunhoDoA.leitura = { alunos: 3, classificacao: { atencao: [] } };
+    const env = prepEnv({
+      kv: { ['bastidores/' + ESCOLA + '/linhas-de-base']: JSON.stringify([rascunhoDoA]) },
+    });
+    const gh = githubDeBolso(arquivosDoRepo());
+    globalThis.fetch = gh.fetchFalso;
+    let r, lista;
+    try {
+      r = await pedir(env, '/api/bastidores/elenco-mover', {
+        aluna: 'Aluna B', de: 'elenco-a', para: 'elenco-b', senhaDirecao: senha,
+      });
+      lista = await pedir(env, '/api/bastidores/linhas-de-base');
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('a transferência com um rascunho aberto responde 200', r.status === 200, r.json);
+    provar('…e diz QUAL rascunho acompanhou o acto',
+      JSON.stringify(r.json && r.json.rascunhosAjustados) === JSON.stringify(['elenco-a']),
+      r.json && r.json.rascunhosAjustados);
+
+    const doKv = JSON.parse(await env.PADD_KV.get('bastidores/' + ESCOLA + '/linhas-de-base'));
+    const guardado = doKv.find((l) => l.id === 'elenco-a');
+    provar('o RASCUNHO perdeu a aluna — deixa de a mostrar na origem',
+      guardado && JSON.stringify(guardado.alunas) === JSON.stringify(['Aluna A', 'Aluna C']),
+      guardado && guardado.alunas);
+    provar('…e a leitura dele caiu (ela descrevia outros corpos)', guardado && !guardado.leitura,
+      guardado && guardado.leitura);
+    provar('…e o trabalho a meio do rascunho FICA (o nome que ele tinha)',
+      guardado && guardado.nome === 'Nível 1 — mobilidade e pés (a rever)', guardado && guardado.nome);
+
+    const contagem = {};
+    for (const l of (lista.json && lista.json.linhas) || []) contagem[l.id] = (l.alunas || []).length;
+    provar('a LISTA conta certo depois do acto: a origem perdeu uma, o destino ganhou',
+      contagem['elenco-a'] === 2 && contagem['elenco-b'] === 2, contagem);
+
+    /* E O «CONCLUIR» DO RASCUNHO JÁ AJUSTADO NÃO DESFAZ A TRANSFERÊNCIA — é o gesto que revertia. */
+    const ajustado = JSON.parse(await env.PADD_KV.get('bastidores/' + ESCOLA + '/linhas-de-base'))
+      .find((l) => l.id === 'elenco-a');
+    const gh2 = githubDeBolso(Object.fromEntries(gh.ficheiros));
+    globalThis.fetch = gh2.fetchFalso;
+    let conclusao, depois;
+    try {
+      conclusao = await pedir(env, '/api/bastidores/linha-de-base', {
+        id: 'elenco-a', nome: ajustado.nome, professor: ajustado.professor,
+        alunas: ajustado.alunas, campos: ajustado.campos,
+        rascunho: false, concluir: true, senhaDirecao: senha,
+      });
+      depois = await pedir(env, '/api/bastidores/linhas-de-base');
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('o rascunho ajustado conclui-se como acto novo', conclusao.status === 200, conclusao.json);
+    const origemDepois = (depois.json.linhas || []).find((l) => l.id === 'elenco-a') || {};
+    provar('…e a aluna NÃO volta para a origem — a transferência está de pé',
+      (origemDepois.alunas || []).indexOf('Aluna B') === -1, origemDepois.alunas);
+    /* AS DUAS ESCRITAS VIVEM EM LIVROS DIFERENTES: a primeira no GitHub da transferência, a
+     * segunda no que foi semeado com os ficheiros dela. O que se mede é a série que ficou no
+     * repositório — os dois livros juntos. */
+    const versoesDoA = gh.escritas.concat(gh2.escritas)
+      .filter((e) => /elenco-a--/.test(e.caminho) && !/\.indice\.json$/.test(e.caminho));
+    provar('…e o acto da transferência FICA na série (duas versões, nenhuma sobrescrita)',
+      versoesDoA.length === 2, versoesDoA.map((v) => v.caminho));
+    provar('…com carimbos DIFERENTES, mesmo acontecendo no mesmo minuto',
+      versoesDoA.length === 2
+        && versoesDoA[0].caminho !== versoesDoA[1].caminho
+        && /-2\.json$/.test(versoesDoA[1].caminho), versoesDoA.map((v) => v.caminho));
+  }
+
+  /* C1c. O «CANCELAR» DA EDIÇÃO — descartar o rascunho, sem tocar no acto (09/11/2026).
+   *
+   * A rota existe porque o gesto NÃO É APAGAR: o professor quer parar de editar e ficar com o que
+   * estava concluído. O `DELETE` gravaria uma lápide e mataria o elenco. */
+  {
+    const rascunho = Object.assign({}, elencoA, { nome: 'em revisão', alunas: ['Aluna A'] });
+    delete rascunho.carimbo; delete rascunho.chave;
+    const env = prepEnv({
+      kv: { ['bastidores/' + ESCOLA + '/linhas-de-base']: JSON.stringify([rascunho]) },
+    });
+    const gh = githubDeBolso(arquivosDoRepo());
+    globalThis.fetch = gh.fetchFalso;
+    let r, lista;
+    try {
+      r = await pedir(env, '/api/bastidores/linha-de-base/descartar',
+        { id: 'elenco-a', senhaDirecao: senha });
+      lista = await pedir(env, '/api/bastidores/linhas-de-base');
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('descartar responde 200 e diz que descartou',
+      r.status === 200 && r.json.descartado === true, r.json);
+    provar('…e o ACTO fica (o elenco não foi apagado)', r.json.mantemActo === true, r.json);
+    provar('…e o rascunho sai do KV',
+      !JSON.parse(await env.PADD_KV.get('bastidores/' + ESCOLA + '/linhas-de-base'))
+        .some((l) => l.id === 'elenco-a'));
+    const daLista = (lista.json.linhas || []).find((l) => l.id === 'elenco-a') || {};
+    provar('…e a lista volta a mostrar a versão CONCLUÍDA (o nome do acto)',
+      daLista.nome === elencoA.nome && (daLista.alunas || []).length === 3, daLista.nome);
+    provar('…e nenhuma versão nova foi escrita (descartar não é acto)',
+      gh.escritas.filter((e) => /elenco-a--/.test(e.caminho)).length === 0,
+      gh.escritas.map((e) => e.caminho));
+
+    /* SEM RASCUNHO: não há nada a descartar — e a resposta di-lo em vez de fingir. O GitHub falso
+     * tem de estar activo para a rota poder dizer que o acto fica. */
+    globalThis.fetch = gh.fetchFalso;
+    let outra;
+    try {
+      outra = await pedir(env, '/api/bastidores/linha-de-base/descartar',
+        { id: 'elenco-a', senhaDirecao: senha });
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('sem alterações por descartar a resposta é honesta (descartado: false)',
+      outra.status === 200 && outra.json.descartado === false && outra.json.mantemActo === true,
+      outra.json);
+
+    /* UM ELENCO QUE NUNCA FOI CONCLUÍDO: descartar tira-o da lista — e diz isso. */
+    const soRascunho = Object.assign({}, elencoA, { id: 'elenco-novo', nome: 'novo', campos: [{ id: 'passe' }] });
+    delete soRascunho.carimbo; delete soRascunho.chave; delete soRascunho.enviada_em;
+    const env2 = prepEnv({
+      kv: { ['bastidores/' + ESCOLA + '/linhas-de-base']: JSON.stringify([soRascunho]) },
+    });
+    globalThis.fetch = githubDeBolso(arquivosDoRepo()).fetchFalso;
+    let semActo;
+    try {
+      semActo = await pedir(env2, '/api/bastidores/linha-de-base/descartar',
+        { id: 'elenco-novo', senhaDirecao: senha });
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('descartar um elenco nunca concluído tira-o da lista — e di-lo',
+      semActo.status === 200 && semActo.json.descartado === true && semActo.json.mantemActo === false
+        && /saiu da lista/.test(semActo.json.aviso || ''), semActo.json);
+
+    globalThis.fetch = gh.fetchFalso;
+    let semSenha;
+    try {
+      semSenha = await pedir(env, '/api/bastidores/linha-de-base/descartar', { id: 'elenco-a' });
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('descartar exige a senha da direção (401)', semSenha.status === 401, semSenha.json);
+  }
+
+  /* C1d. REPETIR A TRANSFERÊNCIA QUANDO OS ACTOS JÁ A DIZEM (09/11/2026).
+   *
+   * O beco sem saída que a produção mostrou: os actos certos, o rascunho atrasado, e a mensagem
+   * da meia-transferência a mandar repetir — e repetir a responder «já está no elenco». Agora o
+   * pedido é lido como o que é: o acabamento da primeira. */
+  {
+    const origemCerta = Object.assign({}, elencoA, {
+      alunas: ['Aluna C'], carimbo: '20261109-1200', chave: 'elenco-a--20261109-1200.json',
+    });
+    const destinoCerto = Object.assign({}, elencoB, {
+      alunas: ['Aluna D', 'Aluna B'], carimbo: '20261109-1200', chave: 'elenco-b--20261109-1200.json',
+    });
+    const indice = {
+      versao: 1, escola: ESCOLA,
+      versoes: Object.fromEntries([origemCerta, destinoCerto].map((l) => [l.id + '--' + l.carimbo + '.json', {
+        id: l.id, carimbo: l.carimbo, arquivo: caminhoDe(l), nome: l.nome, professor: l.professor,
+        turma: null, atualizada_em: l.atualizada_em, enviada_em: l.enviada_em,
+        aspectos: (l.campos || []).map((c) => c.id), alunas: l.alunas.length,
+      }])),
+    };
+    const arquivos = {
+      [caminhoDe(origemCerta)]: JSON.stringify(origemCerta, null, 2) + '\n',
+      [caminhoDe(destinoCerto)]: JSON.stringify(destinoCerto, null, 2) + '\n',
+      ['escola/' + ESCOLA + '/linhas-de-base/.indice.json']: JSON.stringify(indice, null, 2) + '\n',
+    };
+    /* O rascunho atrasado: o do DESTINO, ainda sem ela — o que a produção tem hoje. */
+    const atrasado = Object.assign({}, destinoCerto);
+    delete atrasado.carimbo; delete atrasado.chave;
+    atrasado.alunas = ['Aluna D'];
+    const env = prepEnv({
+      kv: { ['bastidores/' + ESCOLA + '/linhas-de-base']: JSON.stringify([atrasado]) },
+    });
+    const gh = githubDeBolso(arquivos);
+    globalThis.fetch = gh.fetchFalso;
+    let r, lista;
+    try {
+      r = await pedir(env, '/api/bastidores/elenco-mover', {
+        aluna: 'Aluna B', de: 'elenco-a', para: 'elenco-b', senhaDirecao: senha,
+      });
+      lista = await pedir(env, '/api/bastidores/linhas-de-base');
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('repetir uma transferência já feita responde 200 (não é um pedido inválido)',
+      r.status === 200 && r.json.ok === true && r.json.jaEstava === true, r.json);
+    provar('…e NÃO escreve no repositório (os actos já estavam certos)',
+      gh.escritas.length === 0, gh.escritas.map((e) => e.caminho));
+    provar('…e acerta o rascunho atrasado',
+      JSON.stringify(r.json.rascunhosAjustados) === JSON.stringify(['elenco-b']),
+      r.json.rascunhosAjustados);
+    const contagem = {};
+    for (const l of (lista.json && lista.json.linhas) || []) contagem[l.id] = (l.alunas || []).length;
+    provar('…e a lista passa a contar o destino com ela', contagem['elenco-b'] === 2, contagem);
+
+    /* CONTROLO NEGATIVO: uma aluna que NÃO está no destino continua a ser recusada. */
+    const outra = await pedir(env, '/api/bastidores/elenco-mover', {
+      aluna: 'Aluna C', de: 'elenco-a', para: 'elenco-b', senhaDirecao: senha,
+    });
+    provar('CONTROLO: uma aluna fora do destino continua recusada (400)',
+      outra.status === 400, outra.json);
   }
 
   /* C2. Sem repositório não há transferência — e nada é tocado. */
