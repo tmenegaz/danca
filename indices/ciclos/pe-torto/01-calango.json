@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-08",
+    "ancorado_em": "2026-11-09",
     "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
     "cobertura": [
       "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -121,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4199031"
+    "commit": "33431e0"
   },
-  "gerado_em": "2026-11-09T19:17",
+  "gerado_em": "2026-11-09T19:18",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6
