@@ -15,28 +15,41 @@
  *   A. a marcação — a tira, os três painéis, a faixa dos passos fora deles, e a listagem FORA dos
  *      painéis (é ela que tem de ficar à vista nas três abas);
  *   B. a folha do telemóvel — o botão, o véu, os itens, e o corte dos 560px na folha;
- *   C. a troca a correr, em jsdom — clique, teclado e folha chamam a MESMA função: `aria-selected`,
- *      `hidden` dos painéis, e a faixa dos passos a sair fora da aba 1;
- *   D. a transferência — o «para o elenco» nasce VAZIO e sem o elenco de origem, e a lista do
- *      destino é reescrita quando a origem muda (o par inválido deixa de ser oferecido);
+ *   C. a troca a correr, em jsdom — clique, teclado e folha chamam a MESMA função;
+ *   D. a transferência, na ORDEM DO ACTO — a origem, depois as alunas DELA, depois o destino,
+ *      depois o motivo; o destino nunca é a origem nem um elenco que já tem a aluna; a lista
+ *      atualiza-se da leitura da página, sem F5;
  *   E. o passo 3 — «Anamneses», e o estado a concordar («lidas»);
- *   F. os blocos que se dobram — trabalho, musicalidade e o comum nascem `<details open>`; o «O que
- *      já é bom» fica como estava (não foi pedido, e a simetria não é razão).
+ *   F. os quatro blocos que se dobram — inclusive o «O que já é bom», que entrou na segunda
+ *      passagem a pedido dela;
+ *   G. o «Concluir elenco» LIMPA o formulário — a próxima gravação não pode cair no elenco que
+ *      acabou de ser criado;
+ *   H. o RESPIRO entre os cartões, medido num navegador de verdade (a cascata era o defeito: uma
+ *      regra de página vencia a margem da folha) — e um A/B que devolve o `margin:0` para mostrar
+ *      que a medida sabe reprovar.
  *
  *   uso: node experimentos/provar-abas-da-audicao.js
  */
 
+const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const RAIZ = path.join(__dirname, '..');
 const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
 
 let ok = 0;
+const puladas = [];
 const falhas = [];
 function provar(nome, condicao, detalhe) {
   if (condicao) { ok += 1; console.log('  ok  ' + nome); return; }
   falhas.push(nome + (detalhe ? ' — ' + detalhe : ''));
   console.log('  FALHA ' + nome + (detalhe ? ' — ' + detalhe : ''));
+}
+function naoMedida(nome, motivo) {
+  puladas.push(nome);
+  console.log('  —   ' + nome + ': NÃO MEDIDA (' + motivo + ')');
 }
 
 /** Dois elencos concluídos (com recorte), que é o mínimo para a transferência existir. */
@@ -49,11 +62,112 @@ function linhasDaProva() {
   ];
 }
 
+/** Os elencos como a rota `/linhas-de-base` os devolve — o MESMO leitor do servidor. */
+function elencosDaRota() {
+  return bastidores.elencosParaATurma(linhasDaProva());
+}
+
 function montarPagina() {
   const usos = { professores: new Set(), alunas: new Set(), turmas: new Set(), termos: new Set() };
   return bastidores.paginaProducao('barra', { escola: 'barra' }, [{ nome: 'Curador' }],
     ['Aluna Um', 'Aluna Dois'], 'Dono', 'dono', [{ nome: 'Turma X' }], [], {}, [], [], [], usos,
     { modo: 'clara', paleta: 'bordo' }, '', linhasDaProva());
+}
+
+/* ------------------------------------------------------------------ H. a geometria */
+
+/** O CSS da Produção, extraído do próprio JS — nada de cópia que possa envelhecer. */
+function cssDaProducao() {
+  const src = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
+  const i = src.indexOf("'.lateral{position:");
+  // O FIM DO BLOCO: o `</style>` da MESMA vista. Sem aspas no padrão — a linha do arquivo é
+  // `'</style></head><body …`, e uma aspa depois do `>` não existe.
+  const j = src.indexOf("</style></head>", i);
+  if (i < 0 || j < 0) throw new Error('bastidores.js: bloco de estilo da Produção não encontrado');
+  return [...src.slice(i, j).matchAll(/'((?:[^'\\]|\\.)*)'/g)]
+    .map((m) => m[1].replace(/\\'/g, "'"))
+    .join('\n');
+}
+
+/** Uma listagem de elencos em miniatura, com as MESMAS classes que a página emite. */
+function paginaDaLista(comMargemZero) {
+  const folha = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+  const cartao = (nome) => '<li class="trio-plano"><div class="trio-linha">' +
+    '<span class="trio-nome"><b>' + nome + '</b></span></div>' +
+    '<div class="fatos"><span>1 aspecto</span><span>1 aluna</span></div>' +
+    '<div class="trio-dono">curador</div></li>';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<style>' + folha + '</style><style>' + cssDaProducao() + '</style>' +
+    // O A/B: a regra que a página tinha a 09/11/2026 (antes desta correção), reinjetada por
+    // último — é ela que apagava o respiro da folha.
+    (comMargemZero ? '<style>.lb-cartoes>li{margin:0;}</style>' : '') +
+    '</head><body data-layout="painel">' +
+    '<div class="secao"><div class="turmas-corpo"><div class="col-lista">' +
+    '<h3>Elencos</h3><div class="rolagem"><ul class="lb-cartoes" id="lb-lista">' +
+    cartao('Elenco A') + cartao('Elenco B') + cartao('Elenco C') +
+    '</ul></div></div></div></div></body></html>';
+}
+
+async function medirRespiro() {
+  const executablePath = process.env.CHROME_PATH ||
+    ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
+      .find((p) => fs.existsSync(p));
+  if (!executablePath) {
+    naoMedida('o respiro entre os cartões', 'sem Chrome/Chromium');
+    naoMedida('o A/B do respiro', 'sem Chrome/Chromium');
+    return;
+  }
+  let puppeteer;
+  try {
+    const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team/marp-cli');
+    puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+  } catch (e) {
+    naoMedida('o respiro entre os cartões', 'sem puppeteer-core');
+    naoMedida('o A/B do respiro', 'sem puppeteer-core');
+    return;
+  }
+  const semMargem = path.join(os.tmpdir(), 'provar-abas-lista-sem-margem.html');
+  const comMargem = path.join(os.tmpdir(), 'provar-abas-lista.html');
+  fs.writeFileSync(semMargem, paginaDaLista(true));
+  fs.writeFileSync(comMargem, paginaDaLista(false));
+
+  const browser = await puppeteer.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  try {
+    const page = await browser.newPage();
+    /** O vão entre cartões consecutivos, em px, na largura pedida. */
+    const vaos = async (arquivo, largura) => {
+      await page.setViewport({ width: largura, height: 900 });
+      await page.goto('file://' + arquivo, { waitUntil: 'load' });
+      return page.evaluate(() => {
+        const cartoes = [...document.querySelectorAll('#lb-lista > li')];
+        const saida = [];
+        for (let i = 1; i < cartoes.length; i++) {
+          saida.push(Math.round((cartoes[i].getBoundingClientRect().top -
+            cartoes[i - 1].getBoundingClientRect().bottom) * 100) / 100);
+        }
+        return saida;
+      });
+    };
+
+    const noComputador = await vaos(comMargem, 1280);
+    const noCelular = await vaos(comMargem, 320);
+    const minimo = (lista) => Math.min(...lista);
+    provar('os cartões do elenco têm respiro entre si (computador, 1280px)',
+      minimo(noComputador) >= 6, 'vãos medidos: ' + JSON.stringify(noComputador));
+    provar('…e no celular (320px)', minimo(noCelular) >= 6,
+      'vãos medidos: ' + JSON.stringify(noCelular));
+    provar('…e não se encavalam (nenhum vão negativo)',
+      [...noComputador, ...noCelular].every((v) => v >= 0));
+
+    /* O A/B. Sem ele, «o vão é 9,6px» não prova que a medida distingue uma coisa da outra: a
+     * regra que a página tinha antes é reinjectada, e o vão tem de cair a zero. */
+    const antes = minimo(await vaos(semMargem, 1280));
+    provar('CONTROLO A/B: com o `margin:0` de antes, o vão cai a zero', antes === 0,
+      'vão medido com a regra antiga: ' + antes);
+  } finally {
+    await browser.close();
+    try { fs.unlinkSync(semMargem); fs.unlinkSync(comMargem); } catch (e) { /* nada */ }
+  }
 }
 
 async function principal() {
@@ -99,10 +213,6 @@ async function principal() {
   provar('a listagem fica DEPOIS dos três painéis — e fora deles',
     iColLista > iPainel3 && iLista > iColLista,
     'índices: painel3=' + iPainel3 + ', col-lista=' + iColLista + ', lista=' + iLista);
-
-  /* A listagem tem de ser irmã do `.col-form`, e não filha de um painel. O `<div
-   * class="col-lista">` abre depois do último painel, e é isso que a marcação diz: os três
-   * painéis cabem no miolo, e a lista vem a seguir. */
   const trechoPaineis = PAGINA.slice(iPainel1, iColLista);
   provar('os três painéis cabem dentro do `.col-form`, e a lista vem depois',
     /id="lb-painel-1"/.test(trechoPaineis) &&
@@ -135,6 +245,7 @@ async function principal() {
   const vc = new VirtualConsole();
   vc.on('jsdomError', () => {});
   vc.on('error', () => {});
+  const ELENCOS_DA_ROTA = elencosDaRota();
   const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
     runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/producao',
     pretendToBeVisual: true, virtualConsole: vc,
@@ -150,7 +261,8 @@ async function principal() {
           : url.indexOf('campos-do-corpo') !== -1
             ? { ok: true, campos: [{ id: 'x', nome: 'X', grupo: 'g', eixo: 'Funcional',
                 dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
-            : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [] } : { ok: true };
+            : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [], elencos: ELENCOS_DA_ROTA }
+              : { ok: true };
         return Promise.resolve({ ok: true, status: 200,
           json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
       };
@@ -206,41 +318,121 @@ async function principal() {
   veu.click();
   provar('o véu fecha a folha sem trocar de aba', menu.hidden === true && painel(3).hidden === false);
 
-  console.log('\nD. A transferência — o destino nasce vazio, e nunca é a origem');
+  console.log('\nD. A transferência, na ordem do acto');
 
   const de = doc.getElementById('mv-de');
+  const aluna = doc.getElementById('mv-aluna');
   const para = doc.getElementById('mv-para');
-  provar('a origem nasce no primeiro elenco (é o que o servidor desenhou)',
-    de.value === 'elenco-a', 'origem=' + de.value);
-  provar('o destino nasce VAZIO — nada pré-preenchido',
-    para.value === '' && /escolha o elenco de destino/.test(para.options[0].textContent),
-    'destino=' + JSON.stringify(para.value));
-  provar('…e o elenco de origem NÃO está na lista do destino',
-    [...para.options].every((o) => o.value !== 'elenco-a'),
-    'opções: ' + [...para.options].map((o) => o.value).join(','));
-
-  de.value = 'elenco-b';
-  de.dispatchEvent(new win.Event('change', { bubbles: true }));
-  provar('mudar a origem reescreve o destino SEM o novo elenco de origem',
-    [...para.options].every((o) => o.value !== 'elenco-b') &&
-    [...para.options].some((o) => o.value === 'elenco-a'),
-    'opções: ' + [...para.options].map((o) => o.value).join(','));
-
-  para.value = 'elenco-a';
-  de.value = 'elenco-a';
-  de.dispatchEvent(new win.Event('change', { bubbles: true }));
-  provar('voltar a origem ao mesmo elenco apaga a escolha inválida do destino',
-    para.value === '' && [...para.options].every((o) => o.value !== 'elenco-a'));
-
   const formMover = doc.getElementById('form-mover');
+  const semDois = doc.getElementById('mv-sem-dois');
+  const enviarMover = doc.getElementById('mv-enviar');
+  const mudar = (el) => el.dispatchEvent(new win.Event('change', { bubbles: true }));
+  const valores = (el) => [...el.options].map((o) => o.value);
+
+  provar('com dois elencos concluídos o formulário aparece, e o aviso de falta sai',
+    formMover.hidden === false && semDois.hidden === true);
+  provar('os quatro campos estão na ORDEM DO ACTO: origem, aluna, destino, motivo',
+    [...doc.querySelectorAll('#form-mover select, #form-mover input')].map((x) => x.id)
+      .join(',') === 'mv-de,mv-aluna,mv-para,mv-motivo',
+    'ordem: ' + [...doc.querySelectorAll('#form-mover select, #form-mover input')]
+      .map((x) => x.id).join(','));
+  provar('a ORIGEM nasce vazia — é o primeiro campo, e nada está escolhido',
+    de.value === '' && /escolha o elenco de origem/.test(de.options[0].textContent),
+    'origem=' + JSON.stringify(de.value));
+  provar('a ALUNA nasce desligada e diz que a origem vem primeiro',
+    aluna.disabled === true && /origem primeiro/.test(aluna.options[0].textContent));
+  provar('o DESTINO nasce desligado e só com a opção vazia',
+    para.disabled === true && valores(para).join('') === '');
+  provar('o «Mover» nasce desligado', enviarMover.disabled === true);
+
+  de.value = 'elenco-a';
+  mudar(de);
+  provar('escolher a origem carrega SÓ as alunas DELA (não as da escola inteira)',
+    valores(aluna).join(',') === ',Aluna Um' && aluna.disabled === false,
+    'alunas: ' + valores(aluna).join(','));
+  provar('…e o destino continua vazio: a aluna vem antes dele',
+    valores(para).join('') === '' && para.disabled === true);
+
+  aluna.value = 'Aluna Um';
+  mudar(aluna);
+  provar('escolhida a aluna, o destino oferece os outros elencos — e não a origem',
+    valores(para).join(',') === ',elenco-b', 'destinos: ' + valores(para).join(','));
+  provar('…sem vir preenchido', para.value === '');
+  provar('…e o «Mover» ainda espera o destino', enviarMover.disabled === true);
+
+  /* O ELENCO QUE JÁ TEM A ALUNA NÃO É OFERECIDO — o núcleo recusa («já está no elenco»), e a
+   * lista deixa de o propor. O controlo é o `elenco-b` do cenário anterior, que continua a ser
+   * oferecido por não a ter. */
+  win.ELENCOS_MOVIVEIS.push({ id: 'elenco-c', rotulo: 'Elenco C — 1 aluna',
+    alunas: ['Aluna Um'], rascunho: false });
+  win.pintarTransferencia();
+  provar('o elenco que JÁ tem a aluna não aparece no destino',
+    valores(doc.getElementById('mv-para')).join(',') === ',elenco-b',
+    'destinos: ' + valores(doc.getElementById('mv-para')).join(','));
+
+  /* A ABA 3 VIVE DA LEITURA DA LISTA (09/11/2026): um elenco concluído na aba 1 aparece aqui sem
+   * recarregar a página. O caminho é o `carregarLinhas`, por onde passa toda a gravação. */
+  win.ELENCOS_MOVIVEIS = ELENCOS_DA_ROTA.concat([{ id: 'elenco-d', rotulo: 'Elenco D — 2 alunas',
+    alunas: ['Aluna Um', 'Aluna Dois'], rascunho: false }]);
+  win.pintarTransferencia();
+  provar('um elenco concluído depois de a página abrir entra nas ORIGENS sem F5',
+    valores(de).indexOf('elenco-d') !== -1, 'origens: ' + valores(de).join(','));
+  provar('…e a escolha em curso sobrevive à repintura', de.value === 'elenco-a',
+    'origem=' + de.value);
+
+  const salvo = win.ELENCOS_MOVIVEIS;
+  win.ELENCOS_MOVIVEIS = [{ id: 'elenco-a', rotulo: 'Elenco A', alunas: ['Aluna Um'], rascunho: false }];
+  win.pintarTransferencia();
+  provar('com MENOS de dois elencos o formulário sai e a frase diz o que falta',
+    formMover.hidden === true && semDois.hidden === false &&
+    /DOIS elencos concluídos/.test(semDois.textContent), semDois.textContent.slice(0, 60));
+  win.ELENCOS_MOVIVEIS = salvo;
+  win.pintarTransferencia();
+  provar('…e volta quando o segundo elenco existe outra vez', formMover.hidden === false);
+
   const resMover = doc.querySelector('[data-res="transferencia"]');
   let pedidos = 0;
+  let corpoEnviado = null;
   const fetchDaPagina = win.fetch;
-  win.fetch = () => { pedidos += 1; return fetchDaPagina.apply(null, arguments); };
+  win.fetch = (u, init) => {
+    if (init && init.method === 'POST') { pedidos += 1; corpoEnviado = JSON.parse(init.body); }
+    return fetchDaPagina(u, init);
+  };
   formMover.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
-  provar('sem destino escolhido o formulário NÃO chega à rede, e diz porquê',
+  provar('sem destino escolhido o formulário NÃO chega à rede, e diz o que falta',
     pedidos === 0 && resMover.className === 'res erro' && /destino/.test(resMover.textContent),
     'pedidos=' + pedidos + ', res=' + resMover.textContent);
+
+  para.value = 'elenco-b';
+  mudar(para);
+  provar('com o destino escolhido o «Mover» acende', enviarMover.disabled === false);
+
+  /* DEPOIS DO ATO A PÁGINA NÃO RECARREGA: a listagem é que se relê. Mede-se pelo pedido da lista
+   * (`GET …/linhas-de-base`), que passa a contar uma vez mais — e pela ausência do
+   * `location.reload()` que lá estava, agora que o estado se repinta em sítio. */
+  let leiturasDaLista = 0;
+  win.fetch = (u, init) => {
+    const url = String(u);
+    if (init && init.method === 'POST') { pedidos += 1; corpoEnviado = JSON.parse(init.body); }
+    else if (url.indexOf('linhas-de-base') !== -1) leiturasDaLista += 1;
+    return fetchDaPagina(u, init);
+  };
+  const leiturasAntes = leiturasDaLista;
+  formMover.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise((r) => win.setTimeout(r, 60));
+  provar('o pedido leva aluna, origem e destino — os três campos do acto',
+    pedidos === 1 && corpoEnviado && corpoEnviado.aluna === 'Aluna Um' &&
+    corpoEnviado.de === 'elenco-a' && corpoEnviado.para === 'elenco-b',
+    'corpo=' + JSON.stringify(corpoEnviado));
+  provar('…e a LISTA é relida depois do ato (sem recarregar a página)',
+    leiturasDaLista === leiturasAntes + 1,
+    'leituras: ' + leiturasAntes + ' -> ' + leiturasDaLista);
+  const iHandler = PAGINA.indexOf('var formMover');
+  const trechoDoHandler = PAGINA.slice(iHandler,
+    PAGINA.indexOf('function marcados(', iHandler));
+  provar('…e o handler da transferência já não tem `location.reload`',
+    trechoDoHandler.length > 200 && !/location\.reload/.test(trechoDoHandler),
+    'trecho com ' + trechoDoHandler.length + ' caracteres');
   win.fetch = fetchDaPagina;
 
   console.log('\nE. O passo 3 chama-se «Anamneses»');
@@ -248,7 +440,7 @@ async function principal() {
   /* O RÓTULO VIVE NA FONTE (`LB_PASSOS`), e não no HTML que ele gera: a tira desenha os quatro
    * passos a partir da constante, e procurar a string na página encontraria o resultado — que é
    * o mesmo, mas não diz onde a decisão está escrita. */
-  const FONTE = require('fs').readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
+  const FONTE = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
   provar('a tira do passo 3 diz «Anamneses»', /\[3, 'Anamneses'\]/.test(FONTE));
   provar('…e o estado concorda com eles: «lidas»', /LEITURA_FEITA \? "lidas" : "por ler"/.test(PAGINA));
 
@@ -262,27 +454,79 @@ async function principal() {
   });
   const leitura = doc.getElementById('lb-leitura');
   const dobrados = leitura.querySelectorAll('details.bloco-lista');
-  provar('três blocos se dobram: trabalho, musicalidade e o comum',
-    dobrados.length === 3, 'dobrados: ' + dobrados.length);
-  provar('…e os três nascem ABERTOS (o resultado do gesto fica à vista)',
+  provar('os QUATRO blocos da leitura se dobram', dobrados.length === 4,
+    'dobrados: ' + dobrados.length);
+  provar('…e os quatro nascem ABERTOS (o resultado do gesto fica à vista)',
     [...dobrados].every((d) => d.hasAttribute('open')));
   const titulos = [...dobrados].map((d) => d.querySelector('.bloco-titulo').textContent);
-  provar('…com os títulos certos',
+  provar('…com os títulos certos, o «O que já é bom» incluído',
     titulos.some((t) => /precisa de ser trabalhado/.test(t)) &&
+    titulos.some((t) => /já é bom/.test(t)) &&
     titulos.some((t) => /Musicalidade/.test(t)) &&
     titulos.some((t) => /grupo tem em comum/.test(t)),
     titulos.join(' | '));
-  provar('o «O que já é bom» fica fora do acordeão — não foi pedido',
-    /<h4>O que já é bom/.test(leitura.innerHTML) &&
-    !titulos.some((t) => /já é bom/.test(t)));
+  provar('…e nenhum bloco fica com um `h4` por cima do `summary` (o título não se repete)',
+    leitura.querySelectorAll('h4').length === 0,
+    'h4: ' + leitura.querySelectorAll('h4').length);
 
   win.pintarClassificacao({ atencao: [], excelencia: [], musicalidade: [], comuns: [] });
-  provar('mesmo vazio, os três blocos dobrados existem e dizem o que falta',
-    doc.getElementById('lb-leitura').querySelectorAll('details.bloco-lista').length === 3);
+  provar('mesmo vazio, os quatro blocos dobrados existem e dizem o que falta',
+    doc.getElementById('lb-leitura').querySelectorAll('details.bloco-lista').length === 4);
+
+  console.log('\nG. O «Concluir elenco» limpa o formulário');
+
+  const modo = doc.getElementById('lb-modo');
+  const nome = doc.getElementById('lb-nome');
+  modo.value = 'elenco-a';
+  nome.value = 'Recorte de prova';
+  const caixaDaAluna = doc.querySelector('input[name="lb-aluna"]');
+  if (caixaDaAluna) caixaDaAluna.checked = true;
+  const resLB = doc.querySelector('[data-res="linha-base"]');
+
+  const fetchAntesDoConcluir = win.fetch;
+  let postsDoElenco = 0;
+  win.fetch = (u, init) => {
+    if (init && init.method === 'POST') {
+      postsDoElenco += 1;
+      return Promise.resolve({ ok: true, status: 200,
+        json: () => Promise.resolve({ ok: true, linha: { id: 'elenco-a', nome: 'Recorte de prova' },
+          disparos: [], aviso: '' }), text: () => Promise.resolve('') });
+    }
+    return fetchAntesDoConcluir(u, init);
+  };
+  const concluiu = await win.concluirElenco();
+  win.fetch = fetchAntesDoConcluir;
+
+  provar('o «Concluir elenco» grava e devolve verdadeiro', concluiu === true && postsDoElenco === 1,
+    'ok=' + concluiu + ', pedidos=' + postsDoElenco);
+  provar('o id do elenco SAI do formulário — a próxima gravação não edita o recém-criado',
+    modo.value === '', 'modo=' + JSON.stringify(modo.value));
+  provar('o nome sai', nome.value === '', 'nome=' + JSON.stringify(nome.value));
+  provar('as alunas ficam desmarcadas',
+    doc.querySelectorAll('input[name="lb-aluna"]:checked').length === 0);
+  provar('o formulário volta ao passo 1 — pronto para o próximo elenco',
+    win.LB_PASSO === 1 && doc.querySelector('#lb-painel-1 .passo-painel[data-passo="1"]').hidden === false);
+  provar('a frase do resultado fica à vista (não se apaga o que aconteceu)',
+    /concluído/.test(resLB.textContent) && resLB.className === 'res ok',
+    'res=' + resLB.textContent.slice(0, 60));
+  provar('o professor NÃO é limpo — é quem está a trabalhar',
+    doc.getElementById('lb-professor').value !== '', doc.getElementById('lb-professor').value);
+
+  /* O FECHO DEPOIS DA ÚLTIMA RESPOSTA. A conclusão disparou leituras assíncronas
+   * (`carregarLinhas`), e fechar a janela antes de elas voltarem faz o jsdom chamar
+   * `getElementById` num documento morto — uma exceção assíncrona que mata a prova depois de
+   * todas as asserções terem passado. Espera-se que a fila esvazie, e fecha-se no fim. */
+  await new Promise((r) => win.setTimeout(r, 150));
+
+  console.log('\nH. O respiro entre os cartões do elenco (navegador)');
+  await medirRespiro();
 
   dom.window.close();
 
   console.log('');
+  if (puladas.length) {
+    console.log('NÃO MEDIDAS (' + puladas.length + '): ' + puladas.join(' · '));
+  }
   if (falhas.length) {
     console.log('FALHARAM ' + falhas.length + ' de ' + (ok + falhas.length) + ' provas:');
     falhas.forEach((f) => console.log('  - ' + f));

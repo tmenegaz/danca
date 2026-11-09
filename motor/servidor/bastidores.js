@@ -3034,23 +3034,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * rascunho daria uma versão que o plano de ensino não lê, e a rota recusa-a; a lista não oferece o
    * que a rota recusa. É a mesma regra da escolha do elenco na Turma, com o filtro a mais. */
   const elencosParaMover = elencosDaEscola.filter((e) => !e.rascunho);
-  const opcoesDeElencoParaMover = elencosParaMover
-    .map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
-  /* O DESTINO NASCE VAZIO — E SEM O PRIMEIRO (09/11/2026).
+  /* A ORIGEM NASCE VAZIA (09/11/2026), e pela ordem que ela pediu: «Primeiro escolhe-se o elenco de
+   * origem. Em seguida, o sistema carrega os alunos pertencentes […] a esse elenco.» A origem é o
+   * PRIMEIRO campo, e nada está escolhido até ela ser escolhida — a lista de alunas depende dela.
    *
-   * O defeito que ela viu: «o campo 'para o elenco' não deve vir pré-preenchido com o mesmo elenco
-   * de origem». Os dois `<select>` nasciam com a primeira opção escolhida, e a primeira opção era
-   * a MESMA nos dois — a tela oferecia, por omissão, o acto que a rota recusa.
+   * O DESTINO TAMBÉM NASCE VAZIO, e agora nasce só com a opção vazia: quem o preenche é o cliente,
+   * quando já sabe a origem e a aluna (`pintarDestinos`). No servidor não há como saber ainda qual
+   * par é válido — e uma lista escrita aqui seria a segunda cópia de uma regra que já tem dono. */
+  const ROTULO_ORIGEM = '— escolha o elenco de origem —';
+  const ROTULO_ALUNAS_SEM_ORIGEM = '— escolha o elenco de origem primeiro —';
+  const ROTULO_DESTINO = '— escolha o elenco de destino —';
+  const opcoesDeElencoParaMover = '<option value="">' + ROTULO_ORIGEM + '</option>' +
+    elencosParaMover.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
+  const opcoesDeAlunaParaMover = '<option value="">' + ROTULO_ALUNAS_SEM_ORIGEM + '</option>';
+  const opcoesDeDestinoParaMover = '<option value="">' + ROTULO_DESTINO + '</option>';
+  /* O QUE A TELA DIZ QUANDO NÃO HÁ O QUE MOVER — um texto, dois consumidores (09/11/2026).
    *
-   * A correcção tem duas metades, e as duas ficam: aqui o destino nasce com uma opção vazia (nada
-   * preenchido) e SEM o elenco que a origem tem por omissão; no cliente, a lista é reescrita
-   * sempre que a origem muda (`pintarDestinos`, no script da página). Sem JavaScript, a primeira
-   * metade já impede um par inválido por omissão. */
-  const opcoesDeDestinoParaMover = '<option value="">— escolha o elenco de destino —</option>' +
-    elencosParaMover.filter((e) => e.id !== (elencosParaMover[0] || {}).id)
-      .map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
-  const opcoesDeAlunaParaMover = aluns
-    .map((a) => '<option value="' + esc(a) + '">' + esc(a) + '</option>').join('');
+   * O mesmo objeto serve o desenho do servidor (sem JavaScript) e o `pintarTransferencia` do
+   * cliente, que o recebe como DADO. Escrever as frases duas vezes daria a segunda identidade que
+   * este repositório evita: uma delas diria «dois elencos» e a outra «2 elencos» no primeiro dia. */
+  const TEXTOS_DA_TRANSFERENCIA = {
+    faltamDois: 'A transferência precisa de DOIS elencos concluídos: uma aluna sai de um e entra no '
+      + 'outro. Conclua outro elenco na aba «Escolha de elenco» e volte aqui.',
+    semAlunas: 'Nenhuma aluna nos elencos concluídos: a transferência move uma aluna entre elencos, '
+      + 'e não há ninguém para mover. Escolha as alunas na aba «Escolha de elenco».',
+    semAlunasNaOrigem: 'Este elenco não tem alunas — não há ninguém para mover. Escolha outro elenco '
+      + 'de origem.',
+    semDestino: 'Não há destino possível para esta aluna: escolha outro elenco de origem, ou conclua '
+      + 'outro elenco na aba «Escolha de elenco».',
+  };
+  const algumElencoTemAlunas = elencosParaMover.some((e) => e.alunas.length > 0);
+  const podeMover = elencosParaMover.length >= 2 && algumElencoTemAlunas;
+  const textoDeFalta = !algumElencoTemAlunas && elencosParaMover.length >= 2
+    ? TEXTOS_DA_TRANSFERENCIA.semAlunas
+    : TEXTOS_DA_TRANSFERENCIA.faltamDois;
   // A DISPONIBILIDADE NO CATÁLOGO (07/11/2026) — derivada dos dados que a Turma já declara.
   // Não é um juízo: é a lista do que falta para a Turma poder ser ofertada, e cada falta diz o
   // campo que a resolve. A modalidade é o EIXO do catálogo e entra na lista como qualquer outra
@@ -3616,8 +3633,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lista li.vazia{color:var(--texto-suave);font-size:.9rem;}' +
     // A LISTA DOS CARTÕES (05/11/2026) — sem `flex` nas linhas, porque o cartão é uma coluna.
     // Só o reset da lista: a forma de cada cartão vem de `.trio-plano`, na folha.
+    //
+    // O `margin:0` NÃO FICOU (09/11/2026). Ele estava aqui como «reset» e era, sem se ver, a
+    // regra que APAGAVA o respiro entre os cartões: `.lb-cartoes>li` (0,1,1) vence
+    // `.trio-plano{margin-bottom:.6rem}` (0,1,0) na folha, e as caixas encostavam umas às outras
+    // — foi o que ela viu («fiquem colados ou encavalados»). O respiro é da peça, não do contentor:
+    // a listagem de elencos passa a ter o mesmo ar da anamnese, que é a referência que ela deu,
+    // porque é o MESMO `.trio-plano`. Se um dia o respiro mudar, muda num sítio só.
     '.lb-cartoes{list-style:none;margin:0;padding:0;}' +
-    '.lb-cartoes>li{margin:0;padding:0;border-bottom:0;}' +
+    '.lb-cartoes>li{padding:0;border-bottom:0;}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
     'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;margin:0 0 1rem;}' +
 
@@ -5254,36 +5278,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * elenco de origem. A guarda continua no núcleo (recusa `de === para`): o cliente não decide,
      * só não oferece.
      *
+     * A ORDEM DOS CAMPOS É A DO ACTO (09/11/2026), e foi ela que a ditou: «Primeiro escolhe-se o
+     * elenco de origem. Em seguida, o sistema carrega os alunos pertencentes exclusivamente a esse
+     * elenco. Depois, seleciona-se o elenco de destino […] Por fim, preenche-se o motivo.» Era
+     * aluna-primeiro, e a lista de alunas era a da ESCOLA INTEIRA — dava para escolher alguém que
+     * não estava no elenco de origem, e a rota recusava no fim. Agora a aluna só existe depois de
+     * haver origem, e as opções são as dela (`pintarAlunasDaOrigem`).
+     *
      * E A ABA 3 SÓ EXISTE COM DOIS ELENCOS CONCLUÍDOS. Mover precisa de origem e destino; com um
-     * só, o painel diz o que falta em vez de mostrar um formulário que a rota recusaria.
+     * só, o painel diz o que falta em vez de mostrar um formulário que a rota recusaria. O painel
+     * nasce assim do servidor e o `pintarTransferencia` reconcilia-o a cada leitura da lista —
+     * concluir um elenco na aba 1 passa a chegar aqui sem recarregar a página.
      *
      * O MOTIVO É OPCIONAL AQUI (ao contrário do desligamento): mudar de turma é rotina, e exigir
      * uma justificação a cada mudança faria escrever «-» no campo. Quando ela existe, fica na
      * proveniência dos dois elencos. */
     '<div class="aba-painel" id="lb-painel-3" role="tabpanel" aria-labelledby="lb-aba-3" tabindex="0" hidden>' +
-    (elencosParaMover.length >= 2 && opcoesDeAlunaParaMover
-      ? '<form id="form-mover">' +
-        '<label class="campo-rotulo" for="mv-aluna">Aluna</label>' +
-        '<select id="mv-aluna">' + opcoesDeAlunaParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-de">Do elenco</label>' +
-        '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-para">Para o elenco</label>' +
-        '<select id="mv-para">' + opcoesDeDestinoParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-motivo">Motivo (opcional)</label>' +
-        '<input id="mv-motivo" autocomplete="off" placeholder="ex.: mudou de horário — vai para a turma da tarde">' +
-        '<p class="sub">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> — nunca fica ' +
-        'sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a Turma, ' +
-        'depois o plano de ensino e, por último, o plano de observação.</p>' +
-        '<div class="res" data-res="transferencia"></div>' +
-        '<span class="par-botoes">' +
-        '<button type="submit" class="acao grande" id="mv-enviar">Mover a aluna</button>' +
-        '</span>' +
-        '</form>'
-      : '<p class="sub">' + (opcoesDeAlunaParaMover
-          ? 'A transferência precisa de DOIS elencos concluídos: uma aluna sai de um e entra no '
-            + 'outro. Conclua outro elenco na aba «Escolha de elenco» e volte aqui.'
-          : 'Nenhuma aluna cadastrada: a transferência move uma aluna entre elencos, e não há '
-            + 'ninguém para mover. Cadastre as alunas em «Alunas».') + '</p>') +
+    /* A PROSA FICA FORA DO FORMULÁRIO — a mesma regra do «Desligamento» (09/11/2026): rótulo,
+     * campo e placeholder dentro; a explicação do acto antes, na `.aviso`. */
+    '<p class="aviso" id="mv-explica">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> ' +
+    '— nunca fica sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a ' +
+    'Turma, depois o plano de ensino e, por último, o plano de observação.</p>' +
+    '<form id="form-mover"' + (podeMover ? '' : ' hidden') + '>' +
+    '<label class="campo-rotulo" for="mv-de">Do elenco (origem)</label>' +
+    '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
+    '<label class="campo-rotulo" for="mv-aluna">Aluna</label>' +
+    '<select id="mv-aluna">' + opcoesDeAlunaParaMover + '</select>' +
+    '<p class="sub" id="mv-nota" hidden></p>' +
+    '<label class="campo-rotulo" for="mv-para">Para o elenco (destino)</label>' +
+    '<select id="mv-para">' + opcoesDeDestinoParaMover + '</select>' +
+    '<p class="sub" id="mv-nota-destino" hidden></p>' +
+    '<label class="campo-rotulo" for="mv-motivo">Motivo (opcional)</label>' +
+    '<input id="mv-motivo" autocomplete="off" placeholder="ex.: mudou de horário — vai para a turma da tarde">' +
+    '<div class="res" data-res="transferencia"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande" id="mv-enviar">Mover a aluna</button>' +
+    '</span>' +
+    '</form>' +
+    '<p class="sub" id="mv-sem-dois"' + (podeMover ? ' hidden' : '') + '>' +
+    esc(textoDeFalta) + '</p>' +
     '</div>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -5302,10 +5335,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<script>' +
     'var TOKEN = "";' +
     /* OS ELENCOS QUE A TRANSFERÊNCIA PODE OFERECER (09/11/2026). Vai como DADO, e não como HTML:
-     * o cliente reescreve a lista do destino quando a origem muda, e para isso precisa dos pares
-     * (id, rótulo) — não de uma segunda cópia do `<select>` já montado. É a mesma lista que o
-     * servidor usou para desenhar a origem: uma regra, dois consumidores. */
-    'var ELENCOS_MOVIVEIS = ' + JSON.stringify(elencosParaMover.map((e) => ({ id: e.id, rotulo: e.rotulo }))) + ';' +
+     * o cliente reescreve as três listas (origem, alunas dela, destino) quando a origem muda, e
+     * para isso precisa dos pares (id, rótulo) **e das alunas** — não de uma segunda cópia dos
+     * `<select>` já montados. É a mesma lista que o servidor usou para desenhar a origem: uma
+     * regra, dois consumidores.
+     *
+     * O `rascunho` viaja junto porque a regra do que é «concluído» também é do servidor — e o
+     * `carregarLinhas` reescreve esta variável com `d.elencos` a cada leitura, para um elenco
+     * concluído na aba 1 chegar à aba 3 sem recarregar a página. */
+    'var ELENCOS_MOVIVEIS = ' + JSON.stringify(elencosParaMover.map((e) => ({
+      id: e.id, rotulo: e.rotulo, alunas: e.alunas, rascunho: e.rascunho,
+    }))) + ';' +
+    /* AS FRASES DO ESTADO VAZIO DA TRANSFERÊNCIA — do servidor, uma vez (09/11/2026). O painel
+     * nasce com a frase certa sem JavaScript; o `pintarTransferencia` repõe a mesma quando a
+     * lista muda. Uma frase escrita nos dois sítios diria «dois elencos» num e «2 elencos» no
+     * outro ao primeiro ajuste. */
+    'var TEXTOS_DA_TRANSFERENCIA = ' + JSON.stringify(TEXTOS_DA_TRANSFERENCIA) + ';' +
+    /* OS RÓTULOS DAS LISTAS, DO SERVIDOR (09/11/2026) — pela mesma razão das frases: a opção
+     * vazia da origem, da aluna e do destino são as mesmas no desenho do servidor e na repintura
+     * do cliente, e escritas duas vezes divergiriam. */
+    'var ROTULOS_DA_TRANSFERENCIA = ' + JSON.stringify({
+      origem: ROTULO_ORIGEM,
+      aluna: '— escolha a aluna —',
+      semOrigem: ROTULO_ALUNAS_SEM_ORIGEM,
+      destino: ROTULO_DESTINO,
+    }) + ';' +
     /* O CAMINHO DA ANAMNESE, PARA ONDA O PASSO 2 MANDA QUEM AINDA NÃO TEM RETRATO (07/11/2026).
      *
      * Vem do SERVIDOR, e não é escrito à mão aqui: `/anamnese/` é a mesma rota que o menu já
@@ -6436,42 +6490,159 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var novo = document.getElementById("lb-aba-" + ABAS_DA_AUDICAO[i]);' +
     '  if (novo) novo.focus();' +
     '});' +
-    /* O DESTINO DA TRANSFERÊNCIA NÃO PODE SER A ORIGEM (09/11/2026).
+    /* A TRANSFERÊNCIA, NA ORDEM DO ACTO (09/11/2026).
      *
-     * A tela oferecia, por omissão, o par inválido: os dois `<select>` nasciam com a primeira
-     * opção escolhida, e era a mesma. O servidor recusava (o núcleo compara `de` e `para`), mas
-     * um formulário que só ensina a regra ao recusar faz o professor repetir o gesto.
+     * A ORDEM É A D ELA: «Primeiro escolhe-se o elenco de origem. Em seguida, o sistema carrega os
+     * alunos pertencentes exclusivamente a esse elenco. Depois, seleciona-se o elenco de destino
+     * para onde os alunos escolhidos vão. Por fim, preenche-se o motivo (opcional) e efetua-se a
+     * movimentação.» Cada lista depende da anterior, e é isso que estas três funções fazem:
+     * `pintarOrigens` (os elencos concluídos), `pintarAlunasDaOrigem` (AS ALUNAS DELA — antes era
+     * a escola inteira, e dava para escolher quem não estava no elenco) e `pintarDestinos` (os
+     * outros, sem o de origem e sem os que já têm a aluna — o núcleo recusa os dois casos).
      *
-     * Aqui a lista do destino é reescrita a cada mudança de origem, SEM o elenco de origem, e a
-     * escolha volta ao vazio. O servidor continua a decidir — isto só deixa de oferecer o que ele
-     * recusa. */
-    'function pintarDestinos() {' +
-    /* AS OPÇÕES SÃO MARCAÇÃO, E NÃO NÓS CRIADOS — a regra que a página já segue desde 03/11/2026
+     * O SERVODOR CONTINUA A DECIDIR. Isto só deixa de OFERECER o que ele recusa: a guarda do
+     * `de === para` está no núcleo, e o `submit` daqui não chega à rede sem os três campos.
+     *
+     * AS OPÇÕES SÃO MARCAÇÃO, E NÃO NÓS CRIADOS — a regra que a página já segue desde 03/11/2026
      * (ver `pintarGraus`). `createElement`/`appendChild` dariam o mesmo resultado e obrigariam as
      * bancadas a simular mais meia API de DOM; uma bancada que finge metade do DOM mede a metade
      * que fingiu. */
+    'function elencosConcluidos() {' +
+    '  return ELENCOS_MOVIVEIS.filter(function(e){ return e && e.id && !e.rascunho; });' +
+    '}' +
+    'function elencoPorId(id) {' +
+    '  var lista = elencosConcluidos();' +
+    '  for (var i = 0; i < lista.length; i++) if (lista[i].id === id) return lista[i];' +
+    '  return null;' +
+    '}' +
+    'function pintarOrigens() {' +
     '  var de = document.getElementById("mv-de");' +
+    '  if (!de) return;' +
+    '  var escolhido = de.value;' +
+    '  var op = ["<option value=\'\'>" + escHtml(ROTULOS_DA_TRANSFERENCIA.origem) + "</option>"];' +
+    '  elencosConcluidos().forEach(function(e){' +
+    '    op.push("<option value=\'" + escHtml(e.id) + "\'>" + escHtml(e.rotulo) + "</option>");' +
+    '  });' +
+    '  de.innerHTML = op.join("");' +
+    '  de.value = elencoPorId(escolhido) ? escolhido : "";' +
+    '}' +
+    /* AS ALUNAS DA ORIGEM, E SÓ ELAS. A opção vazia diz «escolha o elenco de origem primeiro»
+     * enquanto não há origem — a mesma frase do desenho do servidor. Vazio o elenco, o campo fica
+     * desligado e a nota diz porquê, em vez de uma lista vazia sem explicação. */
+    'function pintarAlunasDaOrigem() {' +
+    '  var de = document.getElementById("mv-de");' +
+    '  var aluna = document.getElementById("mv-aluna");' +
+    '  var nota = document.getElementById("mv-nota");' +
+    '  if (!de || !aluna) return;' +
+    '  var origem = elencoPorId(de.value);' +
+    '  var alunas = origem ? (origem.alunas || []) : [];' +
+    '  var escolhida = aluna.value;' +
+    '  var op = ["<option value=\'\'>" + escHtml(origem' +
+    '    ? ROTULOS_DA_TRANSFERENCIA.aluna : ROTULOS_DA_TRANSFERENCIA.semOrigem) + "</option>"];' +
+    '  alunas.forEach(function(a){' +
+    '    op.push("<option value=\'" + escHtml(a) + "\'>" + escHtml(a) + "</option>");' +
+    '  });' +
+    '  aluna.innerHTML = op.join("");' +
+    '  aluna.value = (escolhida && alunas.indexOf(escolhida) !== -1) ? escolhida : "";' +
+    '  aluna.disabled = !alunas.length;' +
+    '  if (nota) {' +
+    '    nota.hidden = !origem || alunas.length > 0;' +
+    '    nota.textContent = TEXTOS_DA_TRANSFERENCIA.semAlunasNaOrigem;' +
+    '  }' +
+    '}' +
+    /* O DESTINO — sem a origem e sem os elencos que já têm a aluna. As duas exclusões são a regra
+     * do núcleo (`de === para`, e «já está no elenco de destino»), e a lista deixa de as oferecer.
+     * Antes da origem e da aluna não há destino nenhum: a lista fica só com a opção vazia. */
+    'function pintarDestinos() {' +
+    '  var de = document.getElementById("mv-de");' +
+    '  var aluna = document.getElementById("mv-aluna");' +
     '  var para = document.getElementById("mv-para");' +
-    '  if (!de || !para) return;' +
-    '  if (!document.getElementById("form-mover")) return;' +
+    '  if (!de || !aluna || !para) return;' +
     '  var origem = de.value;' +
-    '  var escolhido = para.value;' +
-    '  var op = ["<option value=\'\'>— escolha o elenco de destino —</option>"];' +
-    '  ELENCOS_MOVIVEIS.forEach(function(e){' +
-    '    if (!e || e.id === origem) return;' +
+    '  var quem = aluna.value;' +
+    '  var antes = para.value;' +
+    '  var op = ["<option value=\'\'>" + escHtml(ROTULOS_DA_TRANSFERENCIA.destino) + "</option>"];' +
+    '  var possiveis = 0;' +
+    /* ANTES DA ORIGEM E DA ALUNA NÃO HÁ DESTINO NENHUM — a lista fica só com a opção vazia. A
+     * ordem do acto é a dela, e oferecer destinos antes de se saber de onde a aluna sai voltaria a
+     * pôr no ecrã um par que nenhuma regra pode validar. */
+    '  if (origem && quem) elencosConcluidos().forEach(function(e){' +
+    '    if (e.id === origem) return;' +
+    '    if ((e.alunas || []).indexOf(quem) !== -1) return;' +
+    '    possiveis += 1;' +
     '    op.push("<option value=\'" + escHtml(e.id) + "\'>" + escHtml(e.rotulo) + "</option>");' +
     '  });' +
     '  para.innerHTML = op.join("");' +
-    '  para.value = (escolhido && escolhido !== origem) ? escolhido : "";' +
+    '  para.disabled = !origem || !quem;' +
+    '  var mantem = false;' +
+    '  for (var i = 0; i < para.options.length; i++) if (para.options[i].value === antes) mantem = true;' +
+    '  para.value = (mantem && antes) ? antes : "";' +
+    '  var notaDestino = document.getElementById("mv-nota-destino");' +
+    '  if (notaDestino) {' +
+    '    var semDestino = !!origem && !!quem && !possiveis;' +
+    '    notaDestino.hidden = !semDestino;' +
+    '    notaDestino.textContent = TEXTOS_DA_TRANSFERENCIA.semDestino;' +
+    '  }' +
+    '  pintarBotaoMover();' +
     '}' +
-    'var seletorDaOrigem = document.getElementById("mv-de");' +
-    'if (seletorDaOrigem) {' +
-    '  seletorDaOrigem.addEventListener("change", pintarDestinos);' +
+    /* O BOTÃO DIZ O QUE FALTA, e não espera pelo erro do servidor: a ordem dos quatro campos é a
+     * do acto, e enquanto um deles estiver vazio o «Mover» não promete o que não pode fazer.
+     *
+     * É UMA FUNÇÃO PRÓPRIA porque o estado do botão depende dos TRÊS `<select>`, e o do destino
+     * não repinta as listas — só a si mesmo. Sem este caminho, escolher o destino deixava o botão
+     * apagado (medido na bancada): o `pintarDestinos` corre na origem e na aluna, e um `change` no
+     * destino não passava por lá. */
+    'function pintarBotaoMover() {' +
+    '  var enviar = document.getElementById("mv-enviar");' +
+    '  if (!enviar) return;' +
+    '  var de = document.getElementById("mv-de");' +
+    '  var aluna = document.getElementById("mv-aluna");' +
+    '  var para = document.getElementById("mv-para");' +
+    '  var origem = de ? de.value : "";' +
+    '  var quem = aluna ? aluna.value : "";' +
+    '  var destino = para ? para.value : "";' +
+    '  var falta = !origem ? "o elenco de origem"' +
+    '    : (!quem ? "a aluna"' + ' : (!destino ? "o elenco de destino" : ""));' +
+    '  enviar.disabled = !!falta;' +
+    '  enviar.title = falta ? "Para mover, falta " + falta + "." : "";' +
+    '}' +
+    /* O PAINEL INTEIRO, DEPOIS DE CADA LEITURA DA LISTA (09/11/2026). Ele decide o que se vê — o
+     * formulário ou a frase que diz o que falta — e repinta as três listas. Chamado pelo
+     * `carregarLinhas`, é isto que faz um elenco concluído na aba 1 chegar à aba 3 SEM recarregar
+     * a página; e como o `carregarLinhas` é por onde passa toda a gravação do elenco (criar,
+     * editar, concluir, apagar, mover), nenhum caminho futuro fica de fora. */
+    'function pintarTransferencia() {' +
+    '  var form = document.getElementById("form-mover");' +
+    '  var sem = document.getElementById("mv-sem-dois");' +
+    '  if (!form || !sem) return;' +
+    '  var concluidos = elencosConcluidos();' +
+    '  var alguem = false;' +
+    '  concluidos.forEach(function(e){ if ((e.alunas || []).length) alguem = true; });' +
+    '  var pode = concluidos.length >= 2 && alguem;' +
+    '  form.hidden = !pode;' +
+    '  sem.hidden = pode;' +
+    '  sem.textContent = (concluidos.length >= 2 && !alguem)' +
+    '    ? TEXTOS_DA_TRANSFERENCIA.semAlunas : TEXTOS_DA_TRANSFERENCIA.faltamDois;' +
+    '  if (!pode) return;' +
+    '  pintarOrigens();' +
+    '  pintarAlunasDaOrigem();' +
     '  pintarDestinos();' +
     '}' +
+    'var seletorDaOrigem = document.getElementById("mv-de");' +
+    'if (seletorDaOrigem) seletorDaOrigem.addEventListener("change", function(){' +
+    '  pintarAlunasDaOrigem();' +
+    '  pintarDestinos();' +
+    '});' +
+    'var seletorDaAluna = document.getElementById("mv-aluna");' +
+    'if (seletorDaAluna) seletorDaAluna.addEventListener("change", pintarDestinos);' +
+    // O DESTINO NÃO REPINTA AS LISTAS: só o botão. Ver `pintarBotaoMover`.
+    'var seletorDoDestino = document.getElementById("mv-para");' +
+    'if (seletorDoDestino) seletorDoDestino.addEventListener("change", pintarBotaoMover);' +
+    'if (document.getElementById("form-mover")) pintarTransferencia();' +
     /* A TRANSFERÊNCIA — o estado parcial tem de ser DITO (08/11/2026). Se a segunda escrita falhar,
-     * a aluna está nos DOIS elencos; a resposta traz `parcial: true` e a tela recarrega mesmo assim,
-     * para a pessoa VER o estado em vez de acreditar num «erro» que sugere que nada aconteceu. */
+     * a aluna está nos DOIS elencos; a resposta traz `parcial: true`, e a tela recarrega a lista —
+     * não a página — para a pessoa VER o estado em vez de acreditar num «erro» que sugere que
+     * nada aconteceu. */
     'var formMover = document.getElementById("form-mover");' +
     'if (formMover) formMover.addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -6483,10 +6654,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    motivo: (document.getElementById("mv-motivo") || {}).value || "",' +
     '    token: TOKEN' +
     '  };' +
-    '  if (!corpo.para || corpo.para === corpo.de) {' +
+    /* A ORDEM DAS FALTAS É A DO ACTO: a origem, a aluna, o destino. Uma frase só, e a primeira
+     * que falta — quem ainda não escolheu o elenco não precisa de ler sobre o motivo. */
+    '  var falta = !corpo.de ? "o elenco de origem"' +
+    '    : (!corpo.aluna ? "a aluna"' + ' : (!corpo.para ? "o elenco de destino" : ""));' +
+    '  if (falta) {' +
     '    if (res) {' +
     '      res.className = "res erro";' +
-    '      res.textContent = "Escolha o elenco de destino — a aluna não pode ir para o elenco de onde sai.";' +
+    '      res.textContent = "Para mover, falta " + falta + ".";' +
+    '    }' +
+    '    return;' +
+    '  }' +
+    '  if (corpo.para === corpo.de) {' +
+    '    if (res) {' +
+    '      res.className = "res erro";' +
+    '      res.textContent = "A aluna não pode ir para o elenco de onde sai — escolha outro destino.";' +
     '    }' +
     '    return;' +
     '  }' +
@@ -6502,11 +6684,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          res.textContent = d.aluna + " passou de " + d.de + " para " + d.para + ". "' +
     '            + (d.proximo || "");' +
     '        }' +
-    '        setTimeout(function(){ location.reload(); }, 2200);' +
+    /* A LISTA RECARREGA-SE, A PÁGINA NÃO (09/11/2026). Era `location.reload()` a seguir a
+     * 2,2 segundos: a página voltava à aba 1 e o professor perdia o fio do que estava a fazer. O
+     * `carregarLinhas` repinta a listagem E o painel da transferência — o elenco de origem já não
+     * tem a aluna, e o destino já a tem, pelo que nenhum dos dois volta a ser oferecido para ela. */
+    '        var origem = document.getElementById("mv-de");' +
+    '        var motivo = document.getElementById("mv-motivo");' +
+    '        if (origem) origem.value = "";' +
+    '        if (motivo) motivo.value = "";' +
+    '        carregarLinhas();' +
     '      } else if (res) {' +
     '        res.className = "res erro";' +
     '        res.textContent = (d && d.erro) || "não foi possível mover a aluna";' +
-    '        if (d && d.parcial) setTimeout(function(){ location.reload(); }, 3200);' +
+    '        if (d && d.parcial) carregarLinhas();' +
     '      }' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); if (res) { res.className = "res erro"; ' +
@@ -10657,9 +10847,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * leu, não para o obrigar a abrir o que pediu.
      *
      * O `h4` sai do bloco dobrado: o título passa a ser o `summary`, e dois títulos do mesmo bloco
-     * seriam o segundo clique que a peça recusa. O «O que já é bom» fica como estava — ela não o
-     * pediu, e acrescentá-lo por simetria seria ir além do pedido. */
-    'function blocoDeAchados(titulo, itens, nota, dobrar) {' +
+     * seriam o segundo clique que a peça recusa.
+     *
+     * OS QUATRO DOBRAM DESDE 09/11/2026 (segunda passagem). A primeira redação deixou o «O que já
+     * é bom» de fora, porque ela só tinha pedido três — e foi ela que corrigiu: «Adicionar o botão
+     * de colapsar e expandir também no conjunto 'O que já é bom'». A simetria não era razão; o
+     * pedido é. O parâmetro `dobrar` que a primeira passagem trazia SAIU com esta correcção: com os
+     * quatro a dobrarem, uma bandeira que só sabia dizer «sim» é a exceção à espera de acontecer. */
+    'function blocoDeAchados(titulo, itens, nota) {' +
     '  var corpo;' +
     '  if (!itens || !itens.length) {' +
     '    corpo = "<p class=\\"sub\\">" + escHtml(nota || "nada a registar.") + "</p>";' +
@@ -10672,7 +10867,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      }).join("") + "</tbody></table></div>";' +
     '  }' +
     '  var quantos = itens && itens.length ? " (" + itens.length + ")" : "";' +
-    '  if (!dobrar) return "<h4>" + escHtml(titulo) + quantos + "</h4>" + corpo;' +
     '  return "<details class=\\"bloco-lista\\" open><summary class=\\"bloco-cabeca\\">" +' +
     '    "<span class=\\"bloco-titulo\\">" + escHtml(titulo) + quantos + "</span>" +' +
     '    "<span class=\\"seta-do-ato\\" aria-hidden=\\"true\\">\u25be</span></summary>" +' +
@@ -10686,13 +10880,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    "As quatro leituras são quatro perguntas ao MESMO dado — um aspecto pode estar em " +' +
     '      "mais de uma." + "</p>";' +
     '  html += blocoDeAchados("O que precisa de ser trabalhado", c.atencao,' +
-    '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.", true);' +
+    '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.");' +
     '  html += blocoDeAchados("O que já é bom", c.excelencia,' +
     '    "nenhum aspecto com alguma aluna no melhor nível.");' +
     '  html += blocoDeAchados("Musicalidade", c.musicalidade,' +
-    '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.", true);' +
+    '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.");' +
     '  html += blocoDeAchados("O que o grupo tem em comum", c.comuns,' +
-    '    "nenhum aspecto com a mesma resposta em todas as alunas.", true);' +
+    '    "nenhum aspecto com a mesma resposta em todas as alunas.");' +
     '  if (c.semRegisto && c.semRegisto.length) {' +
     '    html += "<p class=\\"sub\\">Sem registo em " + c.semRegisto.length + " aspecto(s): " +' +
     '      escHtml(c.semRegisto.slice(0, 8).map(function(x){ return x.nome || x; }).join(", ")) +' +
@@ -10928,6 +11122,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // a repintura entra aqui e não em cada uma: um caminho novo que se acrescente amanhã fica
     // coberto sem ninguém se lembrar desta linha.
     '      pintarElencosNaTurma(d && d.elencos);' +
+    /* A ABA 3 VÊ O MESMO QUE A TURMA (09/11/2026). A lista dos elencos que a transferência oferece
+     * é a mesma `elencosParaATurma` que a rota devolve — o servidor já a desenhou na página, e esta
+     * linha é o que a mantém viva sem F5: concluir um elenco na aba 1 o faz aparecer na origem e no
+     * destino; apagar um retira-o das duas. Sem esta linha, a aba 3 mostrava o retrato do instante
+     * em que a página nasceu — a mesma classe de defeito do elenco que não chegava à Turma
+     * (07/11/2026), e a correção é a mesma: uma regra, um caminho. */
+    '      if (d && d.elencos) ELENCOS_MOVIVEIS = d.elencos.filter(function(e){ return e && e.id; });' +
+    '      pintarTransferencia();' +
     // A CURADORIA É O PRIMEIRO PASSO DA CASCATA, e tem de o dizer na lista onde ela se abre. O
     // servidor já fez a conta (`divergentes` — o elenco da turma contra o que a curadoria declara);
     // aqui só se marca a linha, sem repetir a regra.
@@ -11298,6 +11500,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      + " — o elenco está gravado; regere pelo «Guardar» do plano ou do PO.";' +
     '    if (!feitos && !falhos.length && g.aviso) frase += " " + g.aviso;' +
     '    corpoRes("ok", frase);' +
+    /* O FORMULÁRIO FICA VAZIO PARA O PRÓXIMO ELENCO (09/11/2026).
+     *
+     * O DEFEITO QUE ISTO FECHA, e o pedido é dela: «Ao clicar em 'Concluir elenco', o formulário
+     * deve ser limpo imediatamente para permitir a criação de um novo elenco, evitando que acabe
+     * editando o elenco recém-criado por engano.» Depois de concluir, o `#lb-modo` continuava com o
+     * id do elenco — a próxima gravação caía no MESMO elenco —, e o nome e as alunas continuavam no
+     * ecrã como se o trabalho estivesse por fazer.
+     *
+     * O QUE LIMPA É O `limparForm` que já existia (o do «Cancelar»): esvazia o id e o nome, desmarca
+     * as alunas e o recorte, e volta ao passo 1. NÃO se limpa o professor: é quem está a trabalhar,
+     * e o próximo elenco é habitualmente dele — mandá-lo para o primeiro da lista seria uma escolha
+     * silenciosa sobre um campo que ele não pediu para mudar.
+     *
+     * A FRASE DO RESULTADO NÃO SE APAGA. Ela vive fora dos passos (dentro do formulário, mas fora
+     * dos painéis), e por isso continua à vista depois de o formulário voltar ao passo 1 — é ela que
+     * diz «elenco concluído» e o que aconteceu à geração. */
+    '    limparForm();' +
     '    carregarLinhas();' +
     '    carregarAlunasComAnamnese();' +
     '    return true;' +
