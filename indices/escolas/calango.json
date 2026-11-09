@@ -109,6 +109,36 @@
       "primeira": "20261108-1616",
       "ultima": "20261109-1917",
       "versoes": 3
+    },
+    {
+      "aspecto": "cinco-posicoes-5a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:ami"
+      ],
+      "primeira": "20261109-1918",
+      "ultima": "20261109-1918",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-5a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:ami"
+      ],
+      "primeira": "20261109-1918",
+      "ultima": "20261109-1918",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cocoras-profundas-squat",
+      "contagem": 1,
+      "ids": [
+        "recorte:ami"
+      ],
+      "primeira": "20261109-1918",
+      "ultima": "20261109-1918",
+      "versoes": 1
     }
   ],
   "aulas": [
@@ -418,7 +448,7 @@
       "ciclos_com_ancora": 1,
       "planos": 3,
       "pos": 5,
-      "recortes": 1,
+      "recortes": 2,
       "registros": 12
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
@@ -486,6 +516,30 @@
         ],
         "rotulo": "cinco-posicoes-1a-pes",
         "valor": "cinco-posicoes-1a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "cinco-posicoes-5a-bracos",
+        "valor": "cinco-posicoes-5a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "cinco-posicoes-5a-pes",
+        "valor": "cinco-posicoes-5a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "cocoras-profundas-squat",
+        "valor": "cocoras-profundas-squat"
       },
       {
         "contagem": 1,
@@ -638,7 +692,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "33431e0"
+    "commit": "8a2a8b6"
   },
   "gerado_em": "2026-11-09T19:18",
   "nao_indexado": [
@@ -664,6 +718,35 @@
     }
   ],
   "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "cinco-posicoes-5a-bracos",
+        "cinco-posicoes-5a-pes",
+        "cocoras-profundas-squat"
+      ],
+      "atualizada_em": "2026-11-09T19:18:37.748Z",
+      "enviada_em": "2026-11-09T19:18:38.297Z",
+      "id": "recorte:ami",
+      "linha": "ami",
+      "nome": "ami",
+      "professor": "pe-torto",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/calango/linhas-de-base/ami--20261109-1918.json",
+          "aspectos": [
+            "cinco-posicoes-5a-pes",
+            "cinco-posicoes-5a-bracos",
+            "cocoras-profundas-squat"
+          ],
+          "enviada_em": "2026-11-09T19:18:38.297Z",
+          "versao": "20261109-1918"
+        }
+      ],
+      "vigente": true
+    },
     {
       "alunas": 2,
       "aspectos": [

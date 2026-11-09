@@ -99,7 +99,7 @@
         "ciclos_com_ancora": 1,
         "planos": 3,
         "pos": 5,
-        "recortes": 1,
+        "recortes": 2,
         "registros": 12
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
@@ -269,7 +269,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "33431e0"
+    "commit": "8a2a8b6"
   },
   "gerado_em": "2026-11-09T19:18",
   "nao_indexado": [
