@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T19:22:59-0300`
-Commit atual: `eea49096` — chore(estrutura): regerar o HANDOFF
+Gerado em: `2026-11-09T19:25:10-0300`
+Commit atual: `1691cc86` — fix(estrutura): o «Cancelar» direto, e a derivação que troca o par
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,13 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+1691cc86 fix(estrutura): o «Cancelar» direto, e a derivação que troca o par
+87f18fc8 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+124b20c4 chore(estrutura): regerar os índices derivados
+28aebd88 feat(linha de base): índice — ami 20261109-2207
+5e2e12df feat(elenco): Aluna A passa de ami para tami
+2787764d feat(linha de base): índice — tami 20261109-2207
+00421d1c feat(elenco): Aluna A passa de ami para tami
 eea49096 chore(estrutura): regerar o HANDOFF
 0d0a1ec9 docs(registro): a transferência que se perdia no rascunho
 3633f726 fix(estrutura): a transferência grava-se nos dois lados, e o «Cancelar» descarta
@@ -84,13 +91,6 @@ ea6149cb feat(elenco): Aluna B passa de tami para ami
 f1d266a4 docs(registro): a segunda passagem da Audição, e o que fica aberto
 d3136fad fix(estrutura): o respiro dos cartões, o formulário limpo e a ordem do ato
 49d6eef1 chore(estrutura): regerar o HANDOFF
-f3b8a396 docs(registro): a correção do rótulo da aba 2, no mesmo dia
-38cab0e2 fix(estrutura): a aba 2 da Audição chama-se «Recorte»
-8fa1a714 chore(estrutura): regerar os índices derivados
-8a2a8b6d feat(linha de base): índice — ami 20261109-1918
-670b6db3 feat(elenco): ami — concluído
-4abaecc0 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-7ec5121b chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
