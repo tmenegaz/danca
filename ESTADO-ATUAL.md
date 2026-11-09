@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 08/11/2026 (`f8da8bc5` + esta entrega). Nesta entrega, **a aluna que sai
+> **Última fotografia:** 09/11/2026 (`658f88dd` + esta entrega). Nesta entrega, **a Audição
+> passa a ter três abas**: «Escolha de elenco» (o fluxo atual, inalterado), «O que os recortes
+> olham» (o índice que antes ficava empilhado abaixo da lista) e «Transferência» (mover uma aluna
+> entre elencos). A **listagem fica fora dos painéis** — é ela que tem de permanecer visível nas
+> três —, a faixa dos quatro passos só existe na aba 1, e no telemóvel (≤560px) a tira dá lugar à
+> pílula **«Abas»** que sobe uma folha, a mesma peça do «Ações» da anamnese. O passo 3 chama-se
+> **«Anamneses»** e o estado concorda (**«lidas»**), e os blocos de **trabalho**, **musicalidade** e
+> **o que o grupo tem em comum** passam a dobrar (`details open`; o «O que já é bom» fica como
+> estava, porque não foi pedido). Na transferência, o **destino nasce vazio e nunca é a origem** —
+> o cliente reescreve a lista quando a origem muda, e o núcleo continua a recusar `de === para`.
+> Sinalizado por ela, e registado no `REGISTRO.md`: o bloco de transferência (08/11/2026) foi
+> **além do pedido** — o agente do VS Code implementou-o sem ter sido solicitado. Ver a decisão 126.
+>
+> **Fotografia anterior (08/11/2026, `f8da8bc5`).** Nesta entrega, **a aluna que sai
 > do elenco deixa de se ler «nova»**: o selo da anamnese e o da lista de pessoas respondiam só ao
 > presente, e o presente de quem saiu é vazio — vazio lia-se «nunca esteve aqui», que é falso e
 > apaga a história de quem já foi observada. Entra o quarto estado, **`desligada`** — **DERIVADO**
@@ -4214,6 +4227,22 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **A Audição em três abas, e a transferência que não se oferece a si mesma.** Ela
+  olhou a secção do corpo e pediu quatro ajustes: três abas, com a listagem sempre à vista e a
+  solução do telemóvel «similar à que existe para a anamnese»; o passo 3 renomeado («leitura lida»
+  não dizia de que era a leitura); expandir/colapsar em três dos quatro blocos de achados; e o
+  destino da transferência **sem** o elenco de origem. **DECIDIDO** — por ela — que as abas são
+  «Escolha de elenco», «O que os recortes olham» (o nome que o bloco já tinha) e «Transferência»;
+  que a faixa dos quatro passos só existe na aba 1; e que os blocos dobram **abertos**, porque o
+  passo existe para ser lido. **Entregue**: a tira `role="tablist"` com teclado, a folha do
+  telemóvel com as peças do «Ações» (nenhuma classe nova), a listagem e a faixa fora dos painéis, o
+  `pintarDestinos` que reescreve o destino quando a origem muda, a guarda do `submit` (além da do
+  núcleo), `[3, 'Anamneses']` com o estado «lidas», e `blocoDeAchados(dobrar)` — trabalho,
+  musicalidade e o comum, com o «O que já é bom» intacto. Fica **sinalizado**, a pedido dela, no
+  `REGISTRO.md`: o bloco de transferência (08/11/2026) foi além do pedido, implementado pelo agente
+  do VS Code sem solicitação. `provar-abas-da-audicao` **39/39** (nova); sem regressão em
+  `provar-producao` 166, `provar-transferencia-e-desligamento` 62, `provar-linha-de-base` 102 e
+  `provar-elenco-na-turma` 25; `check-identidade` **0 erros**. Ver a decisão 126.
 - **08/11/2026** — **A aluna desligada, e a turma que muda de sala.** Ela seguiu o fluxo de remover
   uma aluna do elenco na produção e leu o defeito: a anamnese dizia **«vinculada»** (o documento,
   travado por um PO) e, na mesma linha, **«aluna nova — sem turma e sem linha de base»** (a pessoa) —

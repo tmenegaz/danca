@@ -41102,3 +41102,84 @@ vigência futura) é uma decisão de calendário da direção. (3) A anamnese de
 > de escolha (Turma, elenco, habilitações) — e é o correcto, porque ele está na escola e pode
 > assumir outra; só o **desligado** sai dessas listas. E a **atribuição** de uma turma a outro
 > professor continua a ser o ato manual da direção que a entrada acima já descreve.
+
+## 09/11/2026 — A Audição em três abas, e a transferência que não se oferece a si mesma
+
+**O que motivou.** A pesquisadora olhou a secção do **corpo** (Audição/Elenco) e pediu quatro
+ajustes em bloco: «reestruturar a página 'corpo' em 3 abas», com «a listagem a permanecer visível
+em todas as abas» e, no telemóvel, uma solução «similar à que existe para a anamnese» (o botão de
+ações que sobe uma folha) «ou […] as abas uma ao lado da outra como se fosse um fichário ou um
+caderno de matérias na horizontal»; renomear o passo 3 — «leitura lida» lia-se sem dizer de que era
+a leitura — para **«Anamneses lidas»**; pôr botões de expandir/colapsar nos blocos de **trabalho,
+musicalidade e o que o grupo tem em comum**; e corrigir a transferência, porque «o campo 'para o
+elenco' não deve vir pré-preenchido com o mesmo elenco de origem» e «não é permitido mover para o
+próprio elenco».
+
+**Sinalização pedida por ela — o que foi além do pedido.** O bloco de **transferência de aluna
+entre elencos** entrou a 08/11/2026 por iniciativa do agente do VS Code, **sem ter sido
+solicitado** naquele momento. Fica registado aqui, a pedido dela, para que o elo não se leia como
+se tivesse sido pedido. O bloco **não se remove**, e a razão é a mesma que impede reescrever o
+passado: a rota (`/api/bastidores/elenco-mover`), o núcleo e os actos já praticados existem, e
+apagá-lo deixaria versões de elenco a apontar para um gesto sem porta. O que se fez foi **dar-lhe
+o sítio certo** (a aba 3) e **corrigir o defeito** que ele trazia.
+
+**O que foi decidido, e onde se vê no código.**
+
+- **Três abas, e a listagem fora delas.** A tira (`#lb-abas`, `role="tablist"`) e os três painéis
+  (`#lb-painel-1/2/3`) vivem na coluna do formulário; a **listagem (`#lb-lista`) e a faixa dos
+  passos ficam fora** — a primeira porque a regra é «visível em todas as abas», a segunda porque
+  os quatro passos são o acto de compor o elenco e não existem nas outras duas. O painel 1 é a
+  «Escolha de elenco» (o fluxo atual, sem mudança de comportamento); o 2 é **«O que os recortes
+  olham»** (o nome que o bloco já tinha nos documentos — dois nomes seriam a segunda identidade
+  que este repositório evita); o 3 é a **Transferência**.
+- **A metáfora é a dela, e é da página.** «Fichário/caderno de matérias»: abas encostadas a uma
+  linha, e a ativa pousa sobre ela (`border-bottom` da aba na cor da superfície). A linha fica no
+  `<nav>`, e não na aba, para não mudar de comprimento a cada clique. Nenhuma classe da folha foi
+  inventada; o que se usou dela são os papéis (`--marca`, `--superficie`, `--borda-campo`,
+  `--texto-suave`, `--raio-1`, `--ui`).
+- **No telemóvel, a peça da anamnese.** Abaixo de **560px** a tira sai e fica a pílula **«Abas»**
+  — `.acoes-da-lista` / `.acoes-do-menu` / `.menu-de-acoes` / `.veu-do-menu` / `.folha-do-menu`,
+  as mesmas classes do «Ações», sem nenhuma nova. A folha sobe de baixo, escolhe a aba e fecha-se;
+  o véu fecha sem trocar. A tira e a folha chamam a **mesma** função (`abrirAbaDaAudicao`), para a
+  primeira correção não deixar a segunda a mentir; o teclado (`ArrowLeft/Right`, `Home`, `End`)
+  muda de aba e move o foco, porque um `role="tablist"` que não responde ao teclado promete o que
+  não cumpre.
+- **Recolhida a secção, as abas saem.** O recolhedor esconde o `.col-form` e com ele os três
+  painéis; uma tira que troca de painel invisível é navegação para nenhum sítio. A regra leva a
+  secção no seletor (`.secao[data-recolhido="sim"] #lb-abas`), para não tocar nas outras quatro.
+- **A transferência não oferece o par que recusa.** O «para o elenco» nasce **vazio** («escolha o
+  elenco de destino») e **sem** o elenco que a origem tem por omissão; quando a origem muda, o
+  cliente reescreve a lista do destino (`pintarDestinos`, a partir de `ELENCOS_MOVIVEIS`, o mesmo
+  dado que o servidor usou) e apaga a escolha que ficou inválida. A aba 3 só mostra o formulário
+  com **dois elencos concluídos**; com um, diz o que falta. As guardas continuam onde decidem: o
+  `submit` do cliente não chama a rede sem destino, e o **núcleo recusa `de === para`** — o cliente
+  não decide, só deixa de oferecer.
+- **O passo 3 chama-se «Anamneses».** `LB_PASSOS` passa a `[3, 'Anamneses']`, e o estado concorda
+  com o objeto (`lidas`/`por ler`) — a tira lê-se «3 Anamneses lidas». O dado (`leitura`,
+  `LEITURA_FEITA`) **não** se renomeia: é o conceito, e renomeá-lo seria migração sem valor.
+- **Três blocos dobram, o quarto não.** `blocoDeAchados(titulo, itens, nota, dobrar)` usa a peça
+  da casa (`details.bloco-lista` + `summary.bloco-cabeca`), **sem JavaScript**; nascem `open`
+  porque o passo existe para ser lido (o botão serve para fechar depois de ler, não para obrigar a
+  abrir o que se pediu). Dobram **trabalho, musicalidade e o comum**; o «O que já é bom» fica como
+  estava — não foi pedido, e acrescentá-lo por simetria seria repetir o erro que esta entrada
+  assinala.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a tira, os três painéis, a folha do telemóvel, o
+CSS das abas e do recolhido, `pintarDestinos`, a guarda do `submit`, `LB_PASSOS` e
+`blocoDeAchados`) · `experimentos/provar-abas-da-audicao.js` (**novo**) · `experimentos/README.md`
+· `ESTADO-ATUAL.md` (§6 e a linha da fotografia).
+
+**Validação.** `provar-abas-da-audicao` (**nova**) **39/39** — a marcação (listagem e faixa fora
+dos painéis), a folha do telemóvel e o corte dos 560px, a troca em jsdom (clique, teclado, folha,
+`aria-selected`, `hidden`, a listagem intacta), o destino vazio e a lista reescrita, o pedido que
+não chega à rede sem destino, e os três blocos `<details open>`. Sem regressão: `provar-producao`
+**166/166** · `provar-transferencia-e-desligamento` **62/62** · `provar-linha-de-base` **102** ·
+`provar-elenco-na-turma` **25** · `check-identidade` **0 erros** (10 estados de selo em uso, todos
+na fonte).
+
+**O que ainda não está feito, e sabe-se.** (1) A aba ativa **não sobrevive ao recarregar** — a
+página volta sempre à aba 1; guardá-la seria fácil e não foi pedido. (2) A listagem, no telemóvel,
+fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de não ser escondida
+com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
+página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
+tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
