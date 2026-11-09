@@ -41272,3 +41272,85 @@ nenhuma). (2) A aluna que está em **dois** elencos pode ser movida de um para o
 não diz que ela tem outra casa — a lista de origem mostra-a como as outras. (3) A aba ativa
 continua a **não sobreviver ao recarregar**: a página volta à aba 1, e agora isso já não acontece
 por causa de uma transferência (que relê em sítio), mas continua a acontecer por causa de um F5.
+
+## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
+
+**O que motivou.** A pesquisadora transferiu uma aluna de «tami» para «ami» e viu o resultado errado:
+«a remoção da aluna da origem e a adição no destino devem ser persistidas corretamente no banco de
+dados/estado, evitando duplicações, perda ou inconsistência na contagem de alunas em cada elenco».
+Pediu também um **Cancelar** na edição de elencos — «permitindo descartar as alterações e sair do
+modo de edição com segurança».
+
+**O defeito, medido.** A rota `elenco-mover` gravava as **duas versões no repositório** e não tocava
+no **rascunho do KV**. O rascunho é o que a Produção mostra por cima do acto (`linhasDeBase`), e por
+isso a listagem continuava a dizer «tami — 2 alunas» com a aluna já no destino: a contagem mentia
+nos dois elencos. Pior, e é a **perda**: o «Concluir elenco» seguinte gravava o rascunho velho como
+acto novo, e a transferência era desfeita sem ninguém lhe tocar. E o amplificador: o carimbo é o
+**minuto** (`AAAAMMDD-HHMM`) e o caminho é `<id>--<carimbo>.json`; dois actos no mesmo minuto caíam
+no **mesmo ficheiro**, e o segundo sobrescrevia o primeiro — o oposto de append-only.
+
+Reproduzido na bancada antes de corrigir, e medido **na produção** depois: a
+`/api/bastidores/linhas-de-base` da `calango` devolvia `ami` com `emEdicao: true` e **1 aluna**
+(o acto tem 2) — o retrato exato do defeito, ainda no estado guardado.
+
+**O que foi decidido, e onde se vê no código.**
+
+- **O rascunho acompanha o acto** (`transferencia.ajustarRascunho`). Depois das duas escritas, o
+  rascunho de cada elenco é ajustado: a aluna sai da origem e entra no destino **na lista que o
+  rascunho já tem** — o trabalho a meio (um recorte novo, uma aluna acrescentada à mão) **não** é
+  deitado fora, porque a regra é a do menor gesto. A `leitura` cai quando o conjunto muda, pela
+  mesma razão do acto: descrevia outros corpos. O ajustamento corre só com as **duas** escritas
+  feitas: na meia-transferência o rascunho deve descrever o estado parcial, não contrariá-lo.
+- **Dois actos no mesmo minuto são dois ficheiros** (`carimboLivre`, em `linhas-de-base-repo.js`).
+  O carimbo ganha sufixo (`20261109-2144-2`) quando o nome já existe, e a pergunta é feita ao
+  **repositório** — a unicidade tem de valer entre pedidos. `idDeChave`/`carimboDaChave` partem no
+  último `--` e a ordenação lexicográfica continua a pôr `2144-2` entre `2144` e `2145`.
+- **Repetir a transferência deixa de ser um beco sem saída.** Quando os **actos** já dizem o que se
+  pediu (a origem sem ela, o destino com ela), a rota não recusa com «já está no elenco de destino»:
+  acerta os rascunhos atrasados e responde `ok` com `jaEstava: true`, sem escrever nada no
+  repositório — reescrever os actos criaria elos falsos. A mensagem do cliente usa o `aviso`, e não
+  «passou de A para B» de um acto que não houve agora.
+- **O formulário aberto acompanha o acto.** Se o professor estava a editar um dos dois elencos, as
+  caixas do passo 2 ainda tinham a aluna que acabou de mudar, e o «Seguir» seguinte gravaria o
+  elenco velho por cima. Depois da transferência o elenco é **relido** (`editarLinha`), no passo em
+  que ele estava, e a frase do acto volta à vista.
+- **O «Cancelar a edição»** existia na marcação desde 05/11/2026 e **nunca aparecia**: nenhuma função
+  o mostrava. `pintarCancelarLb` passa a governá-lo (há botão quando há elenco aberto, e ele aparece
+  já no primeiro «Gravar» de um elenco novo), e o gesto é o que a palavra diz: chama a rota nova
+  `POST /api/bastidores/linha-de-base/descartar`, que tira o **rascunho** do KV e **deixa o acto de
+  pé**. Não é o `DELETE`: apagar gravaria uma lápide e mataria o elenco que o professor só queria
+  parar de editar. Sem acto (elenco nunca concluído), descartar tira-o da lista — e a resposta di-lo.
+
+**O que a produção ainda precisa, e é um clique.** O rascunho atrasado que ficou do defeito não se
+corrige sozinho: na `calango`, o elenco **ami** continua `emEdicao` com 1 aluna, e o caminho é
+**Editar → «Cancelar a edição»** (ou repetir a transferência, que agora acerta o rascunho). A
+correção automática na leitura seria escrita em cima de um GET — nunca.
+
+**Onde entrou.** `motor/nucleo/transferencia.js` (`ajustarRascunho`) ·
+`motor/servidor/linhas-de-base-repo.js` (`carimboLivre`, no `concluir` e no `apagar`) ·
+`motor/servidor/bastidores.js` (o ajustamento dos rascunhos e a repetição na rota, a rota
+`/linha-de-base/descartar`, `pintarCancelarLb`, o `lb-cancelar` a descartar, a releitura do
+formulário e a frase do `jaEstava`) · `experimentos/provar-transferencia-e-desligamento.js`
+(secções A2, C1b, C1c, C1d) · `experimentos/provar-abas-da-audicao.js` (secções I e J, e a lista da
+rota a deixar de ser constante) · `experimentos/README.md` · `ESTADO-ATUAL.md`.
+
+**Validação.** `provar-transferencia-e-desligamento` **93/93** (62 → 93: a função pura do rascunho
+com cinco casos e um controlo por id, o rascunho ajustado na rota com a contagem certa depois do
+acto, o «concluir» do rascunho ajustado a **não** desfazer a transferência, as duas versões no mesmo
+minuto com carimbos diferentes, o descartar com acto / sem rascunho / sem acto / sem senha, e a
+repetição idempotente com controlo negativo). `provar-abas-da-audicao` **80/80** (67 → 80: o
+Cancelar a aparecer e a esconder-se, o descarte a ir ao servidor com o id, o formulário a ficar
+limpo, e a releitura depois da transferência com a caixa desmarcada e a frase à vista). Sem
+regressão: `provar-producao` **166/166** · `provar-linha-de-base` **102** ·
+`provar-linha-de-base-no-repo` **39** · `provar-elenco-na-turma` **25** ·
+`provar-aluna-nova-no-elenco` **34** · `provar-remocao-do-elenco` **26** ·
+`provar-escrita-do-acto` **21** · `provar-corrida-da-escrita` **30** · `check-identidade` **0 erros**
+(21 verificações). `provar-orcamento-do-guardar` **não roda** neste worktree (falta
+`escola/batata/envelopes/po-20261108-0956.json`, a escola expurgada) — falha anterior a esta
+mudança, e ela não toca nesse caminho.
+
+**O que ainda não está feito, e sabe-se.** (1) A transferência continua a mover **uma** aluna por
+acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o formulário velho pode
+gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
+duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
+é um ato manual (um clique), e não uma migração.

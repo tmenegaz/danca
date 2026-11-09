@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`49d6eef1` + esta entrega). Nesta entrega, **a Audição
+> **Última fotografia:** 09/11/2026 (`e967e2f2` + esta entrega). Nesta entrega, **a transferência
+> de aluna deixa de se perder no rascunho** — o defeito que ela viu na produção: a rota gravava as
+> duas versões no repositório e não tocava no rascunho do KV, que é o que a listagem mostra por cima
+> do acto; a contagem mentia nos dois elencos («tami — 2 alunas» com a aluna já no destino) e o
+> «Concluir elenco» seguinte **desfazia** a transferência. Três correções: o rascunho acompanha o
+> acto (`transferencia.ajustarRascunho`, que move a aluna na lista que o rascunho já tem e preserva
+> o trabalho a meio); dois actos no mesmo minuto deixam de ser o mesmo ficheiro (`carimboLivre` —
+> `…-2144`, `…-2144-2`), que era o `append-only` a ser contrariado em silêncio; e repetir uma
+> transferência que os actos já dizem responde `ok` com `jaEstava` em vez de recusar. Entra também o
+> **«Cancelar a edição»**, que existia na marcação desde 05/11 e **nunca aparecia** — e que agora
+> descarta o rascunho **no servidor** (rota nova `/linha-de-base/descartar`: descartar não é apagar,
+> o acto fica). Ver a decisão 128.
+>
+> **Fotografia anterior (09/11/2026, `49d6eef1`).** Nesta entrega, **a Audição
 > ganha a segunda passagem** — os cinco ajustes que ela pediu depois de ver as abas no ar: o
 > **respiro entre os cartões do elenco** (a regra da página vencia a margem da folha e as caixas
 > encostavam; o vão passa a ser o da anamnese, porque é o mesmo `.trio-plano`, **medido no
@@ -4240,6 +4253,26 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **A transferência que se perdia no rascunho.** Ela transferiu uma aluna de «tami»
+  para «ami» e o estado ficou errado. **CONFIRMADO no código e na produção**: `elenco-mover`
+  gravava as duas versões no repositório e **não tocava no rascunho do KV** — e é o rascunho que a
+  `linhasDeBase` põe por cima do acto na listagem. Resultado: contagem errada nos dois elencos, e o
+  «Concluir elenco» seguinte a gravar o rascunho velho como acto novo, **desfazendo** a
+  transferência. O amplificador era o carimbo: o minuto é o nome do ficheiro, e dois actos no mesmo
+  minuto **sobrescreviam-se** (o `escrever` lê o `sha` e regrava). Medido no estado guardado:
+  `GET /api/bastidores/linhas-de-base` da `calango` devolve `ami` com `emEdicao: true` e 1 aluna,
+  sobre um acto de 2. **DECIDIDO**: o rascunho acompanha o acto (`ajustarRascunho` — move a aluna
+  na lista que o rascunho já tem, preserva o resto e derruba a `leitura`); o carimbo ganha sufixo
+  quando o nome existe (`carimboLivre`, perguntado ao repositório); repetir uma transferência já
+  feita responde `ok`/`jaEstava` e acerta só o rascunho; e o formulário aberto **relê** o elenco
+  depois do acto (senão o «Seguir» gravava o elenco velho por cima). Entra o **«Cancelar a edição»**
+  — botão que existia na marcação e nunca aparecia —, com a rota `POST
+  /linha-de-base/descartar`: tira o rascunho do KV e **deixa o acto de pé** (não é o `DELETE`, que
+  gravaria lápide). `provar-transferencia-e-desligamento` **93/93** e `provar-abas-da-audicao`
+  **80/80**; sem regressão em `provar-producao` 166, `provar-linha-de-base` 102,
+  `provar-linha-de-base-no-repo` 39, `provar-elenco-na-turma` 25, `provar-aluna-nova-no-elenco` 34,
+  `provar-remocao-do-elenco` 26 e `check-identidade` 0 erros. **Fica um clique**: o rascunho
+  atrasado da `calango` (`ami`) corrige-se em Editar → «Cancelar a edição». Ver a decisão 128.
 - **09/11/2026** — **A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto.**
   Depois de usar as três abas, ela pediu cinco ajustes. **CONFIRMADO**: (1) os cartões do elenco
   estavam encostados porque `.lb-cartoes>li{margin:0}` (0,1,1) vencia `.trio-plano{margin-bottom}`
