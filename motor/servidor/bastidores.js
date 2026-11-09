@@ -2086,10 +2086,19 @@ const PASSOS_DO_VERBETE = [
  * Manter o passo 5 seria pedir duas vezes a mesma relação, e a segunda ficaria a mentir quando a
  * primeira mudasse.
  */
+/* O PASSO 3 CHAMA-SE «ANAMNESES» DESDE 09/11/2026, e não «Leitura».
+ *
+ * Ela leu «3 Leitura · lida» na tira e o rótulo não dizia de que era a leitura. O passo não lê um
+ * texto: abre a anamnese mais recente de cada aluna escolhida e cruza o que elas mostram. O nome
+ * passa a dizer o OBJETO («Anamneses»), e o estado passa a concordar com ele («lidas» / «por ler»)
+ * — a tira lê-se «3 Anamneses lidas», que é o que ela pediu.
+ *
+ * O termo «leitura» continua no código e nos dados (`leitura`, `LEITURA_FEITA`): o que mudou foi o
+ * rótulo do ecrã, não o conceito. Renomear o dado seria uma migração sem valor. */
 const LB_PASSOS = [
   [1, 'Identificação'],
   [2, 'Alunas'],
-  [3, 'Leitura'],
+  [3, 'Anamneses'],
   [4, 'Recorte'],
 ];
 
@@ -3011,6 +3020,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const elencosParaMover = elencosDaEscola.filter((e) => !e.rascunho);
   const opcoesDeElencoParaMover = elencosParaMover
     .map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
+  /* O DESTINO NASCE VAZIO — E SEM O PRIMEIRO (09/11/2026).
+   *
+   * O defeito que ela viu: «o campo 'para o elenco' não deve vir pré-preenchido com o mesmo elenco
+   * de origem». Os dois `<select>` nasciam com a primeira opção escolhida, e a primeira opção era
+   * a MESMA nos dois — a tela oferecia, por omissão, o acto que a rota recusa.
+   *
+   * A correcção tem duas metades, e as duas ficam: aqui o destino nasce com uma opção vazia (nada
+   * preenchido) e SEM o elenco que a origem tem por omissão; no cliente, a lista é reescrita
+   * sempre que a origem muda (`pintarDestinos`, no script da página). Sem JavaScript, a primeira
+   * metade já impede um par inválido por omissão. */
+  const opcoesDeDestinoParaMover = '<option value="">— escolha o elenco de destino —</option>' +
+    elencosParaMover.filter((e) => e.id !== (elencosParaMover[0] || {}).id)
+      .map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
   const opcoesDeAlunaParaMover = aluns
     .map((a) => '<option value="' + esc(a) + '">' + esc(a) + '</option>').join('');
   // A DISPONIBILIDADE NO CATÁLOGO (07/11/2026) — derivada dos dados que a Turma já declara.
@@ -3264,6 +3286,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `.passo-painel`, e é isso que a mantém a mesma nos três passos.
     '.turmas-corpo{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.turmas-form{min-width:0;}' +
+    /* ------------------------------------------- AS ABAS (09/11/2026)
+     *
+     * O DESENHO É DESTA PÁGINA, como `.passos`, `.turmas-corpo` e `.secao` — a folha é a fonte da
+     * identidade, não o depósito das peças de um ecrã. O que se usa dela são os papéis (`--marca`,
+     * `--superficie`, `--borda-campo`, `--texto-suave`) e a linguagem das pílulas do `.passo`.
+     *
+     * A METÁFORA É A D ELA: «um fichário ou um caderno de matérias na horizontal» — abas encostadas
+     * à linha, e a que está aberta pousa sobre ela. Por isso a aba activa tem fundo e a linha por
+     * baixo dela desaparece (`border-bottom` da própria aba na cor da superfície): é o que faz a
+     * aba «pousar» no conteúdo em vez de flutuar por cima de um filete.
+     *
+     * A LINHA NÃO PERTENCE À ABA, e é por isso que ela está no `<nav>`: um filete que se desenhasse
+     * só na aba activa mudaria de comprimento a cada clique, e a página inteira pareceria tremer. */
+    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:flex-end;gap:.2rem;' +
+    'margin:.2rem 0 0;padding:0 0 0 .15rem;border-bottom:1px solid var(--borda-campo);}' +
+    '.aba{display:inline-flex;align-items:center;gap:.4rem;margin:0 0 -1px;padding:.5rem .9rem;' +
+    'background:transparent;border:1px solid transparent;border-radius:var(--raio-1) var(--raio-1) 0 0;' +
+    'color:var(--texto-suave);font:600 .92rem/1.3 var(--ui);cursor:pointer;}' +
+    '.aba:hover{background:var(--fundo-hover);color:var(--marca-texto);}' +
+    '.aba[aria-selected="true"]{background:var(--superficie);border-color:var(--borda-campo);' +
+    'border-bottom-color:var(--superficie);color:var(--marca);}' +
+    '.aba:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
+    /* O PAINEL DA ABA. Sem desenho próprio: quem desenha é o conteúdo lá dentro (o formulário, a
+       `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
+       `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba 1 traz. */
+    '.aba-painel{min-width:0;}' +
+    /* A FAIXA DOS PASSOS SÓ VIVE NA ABA 1, e o `hidden` precisa da regra própria: `.turmas-faixa`
+       é `display:flex`, e uma regra de autor vence o `display:none` do atributo — é a mesma
+       armadilha que a `.passos[hidden]` já pagou em 01/11/2026. */
+    '.turmas-faixa[hidden]{display:none;}' +
+    /* NO TELEMÓVEL A TIRA SAI E FICA A PÍLULA (09/11/2026). Três rótulos lado a lado a 360px não
+       caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. É o mesmo
+       corte do «Ações» da anamnese (560px), e a mesma folha. */
+    '.turmas-corpo[data-abas="sim"]{row-gap:.7rem;}' +
+    '#lb-abas-folha{grid-column:1/-1;display:none;}' +
+    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha{display:block;margin:0;}}' +
+    /* RECOLHIDA, A SECÇÃO NÃO OFERECE ABAS DE UM FORMULÁRIO QUE NÃO ESTÁ À VISTA
+       (09/11/2026). O recolhedor esconde o `.col-form` — e com ele os três painéis. Uma tira
+       que troca de painel invisível é navegação para nenhum sítio, e o mesmo vale para a
+       pílula do telemóvel. O seletor leva a secção para não tocar nas outras quatro. */
+    '.secao[data-recolhido="sim"] #lb-abas,' +
+    '.secao[data-recolhido="sim"] #lb-abas-folha{display:none;}' +
     // A FAIXA É A PRIMEIRA LINHA DO CORPO (01/11/2026). Os três passos deixaram de viver na
     // coluna do formulário — «os steps não vão ser posicionados apenas sobre o formulário […] vão
     // ficar num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». A
@@ -4074,22 +4138,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
     '</summary>' +
     '<div class="bloco-corpo">' +
+    /* A PROSA FICA FORA DO FORMULÁRIO (09/11/2026), e é a regra da casa, não preferência: «nenhum
+     * formulário traz parágrafo explicativo — rótulo, campo e placeholder, e nada mais». Esta
+     * frase nasceu dentro do `<form>` e a `provar-producao` reprovou-a — com razão. O `.aviso` é
+     * a peça da prosa que explica ANTES de agir (a mesma do `.lb-sem-anamnese`), e é ele que fica
+     * no corpo do bloco, fora do formulário. */
     (temQuemDesligar
-      ? '<form id="form-desligar">' +
+      ? '<p class="aviso">A escola <b>continua a operar</b>. A direção pedagógica dele é encerrada ' +
+        'com data, e as turmas dele ficam marcadas como <b>sem professor</b> — para a direção ' +
+        'decidir: remanejar a modalidade, dar aula recreativa/ensaio, ou atribuir outro professor ' +
+        'habilitado. O registo dele fica: o nome continua nos documentos que assinou.</p>' +
+        '<form id="form-desligar">' +
         '<label class="campo-rotulo" for="desl-professor">Professor</label>' +
         '<select id="desl-professor">' + opcoesDeDesligamento + '</select>' +
         '<label class="campo-rotulo" for="desl-motivo">Motivo do desligamento</label>' +
         '<input id="desl-motivo" autocomplete="off" placeholder="ex.: fim do contrato — a turma fica à espera de quem a ensine">' +
-        '<p class="sub">A escola <b>continua a operar</b>. A direção pedagógica dele é encerrada com ' +
-        'data, e as turmas dele ficam marcadas como <b>sem professor</b> — para a direção decidir: ' +
-        'remanejar a modalidade, dar aula recreativa/ensaio, ou atribuir outro professor habilitado. ' +
-        'O registo dele fica: o nome continua nos documentos que assinou.</p>' +
         '<div class="res" data-res="desligamento"></div>' +
         '<span class="par-botoes">' +
         '<button type="submit" class="acao grande" id="desl-enviar">Desligar o professor</button>' +
         '</span>' +
         '</form>'
-      : '<p class="sub">Nenhum professor para desligar: o responsável principal não se desliga ' +
+      : '<p class="aviso">Nenhum professor para desligar: o responsável principal não se desliga ' +
         '(é a âncora da escola), e os outros já saíram ou ainda não foram cadastrados.</p>') +
     '</div>' +
     '</details>' +
@@ -4970,8 +5039,56 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * SECÇÃO (que tem o `.col-form`); sem ele cai no recolhedor DAS TURMAS, que não está aqui — e
      * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
     tituloComAcordeao('sec-corpo', 'Audição', 'corpo-miolo') +
-    '<div class="turmas-corpo">' +
-    '<div class="turmas-faixa">' +
+    '<div class="turmas-corpo" data-abas="sim">' +
+    /* ---------------------------------------------- AS TRÊS ABAS DA AUDIÇÃO (09/11/2026)
+     *
+     * PORQUE ELAS EXISTEM. A secção cresceu por acrescento e chegou a ter, na mesma coluna, três
+     * trabalhos de naturezas diferentes: o acto de compor o elenco (quatro passos), a LEITURA do
+     * que os recortes da escola cobrem, e a transferência de uma aluna entre elencos. Empilhados,
+     * o professor tinha de rolar por dois blocos que não faziam parte do que estava a fazer.
+     *
+     * A DECISÃO DELA (09/11/2026): três abas, com a listagem SEMPRE à vista — «A listagem deve
+     * permanecer visível em todas as abas». É a mesma regra que a secção Turmas já segue desde
+     * 01/11: os painéis trocam na coluna da esquerda, e a lista fica fora deles, na direita. Quem
+     * está a mover uma aluna vê os elencos enquanto escolhe; quem está a compor um elenco vê os
+     * que já existem.
+     *
+     * O NOME DA ABA 2 É O DO BLOCO, e não um novo: «O que os recortes olham». Dois nomes para a
+     * mesma coisa seriam a segunda identidade que este repositório evita — e o nome já está nos
+     * documentos e nas provas.
+     *
+     * A FAIXA DOS PASSOS SÓ EXISTE NA ABA 1. Os quatro passos são o acto de compor o elenco; nas
+     * outras duas abas não há passo nenhum, e uma tira a dizer «1» sobre uma tabela de cobertura
+     * seria navegação para um sítio que não existe.
+     */
+    '<nav class="abas" role="tablist" aria-label="Audição — seções" id="lb-abas">' +
+    [['1', 'Escolha de elenco'], ['2', 'O que os recortes olham'], ['3', 'Transferência']]
+      .map(([n, t], i) => '<button type="button" class="aba" role="tab" id="lb-aba-' + n + '" ' +
+        'data-aba="' + n + '" aria-controls="lb-painel-' + n + '" ' +
+        'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+        t + '</button>').join('') +
+    '</nav>' +
+    /* O «ABAS» DO TELEMÓVEL — a mesma peça do «Ações» da anamnese (09/11/2026).
+     *
+     * Abaixo de 560px a tira das abas sai e fica esta pílula, que sobe uma folha de baixo para
+     * cima com as três. É o desenho que ela pediu («similar à que existe para a anamnese»), e é a
+     * peça da casa: `.acoes-da-lista`/`.acoes-do-menu`/`.menu-de-acoes`/`.veu-do-menu`. Nenhuma
+     * classe nova — o que muda é o que os itens fazem (trocam de aba, e não abrem um bloco).
+     */
+    '<div class="acoes-da-lista" id="lb-abas-folha">' +
+    '<button type="button" class="acoes-do-menu pilula-do-menu" id="lb-abas-botao" ' +
+    'aria-expanded="false" aria-controls="lb-abas-menu">Abas<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>' +
+    '<div class="veu-do-menu" id="lb-abas-veu" hidden></div>' +
+    '<div class="menu-de-acoes folha-do-menu" id="lb-abas-menu" hidden>' +
+    '<span class="folha-puxador" aria-hidden="true"></span>' +
+    '<ul class="menu-de-acoes-lista">' +
+    [['1', 'Escolha de elenco'], ['2', 'O que os recortes olham'], ['3', 'Transferência']]
+      .map(([n, t]) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
+        t + '</button></li>').join('') +
+    '</ul>' +
+    '</div>' +
+    '</div>' +
+    '<div class="turmas-faixa" id="lb-faixa">' +
     /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
      *
      * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe trinta aspectos — corpo, técnica e poiesis. O plano
@@ -5003,7 +5120,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *   2. Alunas — de quem é o corpo que se vai olhar. É antes do resto porque sem corpos não há
      *      o que cruzar. Dez de cada vez, com rolagem: a escola pode ter quatrocentos alunos, e
      *      uma lista de quatrocentas caixas não se lê.
-     *   3. Leitura — o que o grupo mostra, cruzado nas quatro perguntas que ela fez: o que precisa
+     *   3. Anamneses — o que o grupo mostra, cruzado nas quatro perguntas que ela fez: o que precisa
      *      de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em comum.
      *   4. Recorte — o que ESTE ciclo vai observar. Depois da leitura, e é isso que dá sentido à
      *      escolha: antes de ver, escolher seria adivinhar.
@@ -5031,6 +5148,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</ol>' +
     '</div>' +
     '<div class="col-form" id="corpo-miolo">' +
+    '<div class="aba-painel" id="lb-painel-1" role="tabpanel" aria-labelledby="lb-aba-1" tabindex="0">' +
     '<p class="aviso" id="lb-sem-anamnese" hidden></p>' +
     '<form id="form-linha-base">' +
     '<input type="hidden" id="lb-modo" value="">' +
@@ -5086,6 +5204,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'class="acao secundario pequena" id="lb-cancelar">Cancelar</button></p>' +
     '</form>' +
     '</div>' +
+    /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026, ABA a 09/11/2026).
+     *
+     * NÃO É UM PASSO DO TRABALHO, e por isso nunca foi um passo: os quatro passos da aba 1 compõem
+     * UM elenco; isto é a LEITURA de todos os recortes da escola juntos — o que é olhado, o que
+     * nunca foi escolhido, e os pontos cegos entre a leitura e o recorte. É outra pergunta, e é por
+     * isso que tem aba própria.
+     *
+     * O conteúdo é desenhado pelo script, a partir de `d.indice` (a MESMA resposta da lista, para
+     * não custar uma segunda leitura do KV). A caixa `.caixa` é a peça de bloco de leitura. O
+     * título não se repete aqui: o nome da aba é este.
+     */
+    '<div class="aba-painel" id="lb-painel-2" role="tabpanel" aria-labelledby="lb-aba-2" tabindex="0" hidden>' +
+    '<div class="caixa">' +
+    '<div id="lb-indice"><p class="sub">carregando…</p></div>' +
+    '</div>' +
+    '</div>' +
+    /* ------------------------------------------- A TRANSFERÊNCIA (08/11/2026, ABA a 09/11/2026)
+     *
+     * O SÍTIO É AQUI, e não na Turma: o acto muda o CORPO observado, não o ritmo. A aluna sai de
+     * um elenco e entra no outro **num golpe só**, e a rota grava as duas versões — o destino
+     * primeiro, a origem depois — para que nenhuma falha a deixe fora de todos os elencos.
+     *
+     * O BLOCO DEIXOU DE SER UM `<details>` FECHADO (09/11/2026). Ele era um acordeão dentro da
+     * secção, com o mesmo título do que agora é a aba: dois nomes e dois cliques para a mesma
+     * coisa. A aba é o rótulo; o que resta é a forma.
+     *
+     * O «PARA O ELENCO» NÃO NASCE PREENCHIDO (09/11/2026), e a razão é a regra do próprio acto:
+     * mover uma aluna para o elenco de onde ela sai não é mover — é um pedido que a rota recusa.
+     * Os dois `<select>` nasciam com a primeira opção escolhida, e a primeira opção era a mesma
+     * nos dois: a tela oferecia, por omissão, exactamente o acto inválido. O destino passa a
+     * nascer vazio («escolha o elenco de destino»), e o cliente reescreve a lista dele sem o
+     * elenco de origem. A guarda continua no núcleo (recusa `de === para`): o cliente não decide,
+     * só não oferece.
+     *
+     * E A ABA 3 SÓ EXISTE COM DOIS ELENCOS CONCLUÍDOS. Mover precisa de origem e destino; com um
+     * só, o painel diz o que falta em vez de mostrar um formulário que a rota recusaria.
+     *
+     * O MOTIVO É OPCIONAL AQUI (ao contrário do desligamento): mudar de turma é rotina, e exigir
+     * uma justificação a cada mudança faria escrever «-» no campo. Quando ela existe, fica na
+     * proveniência dos dois elencos. */
+    '<div class="aba-painel" id="lb-painel-3" role="tabpanel" aria-labelledby="lb-aba-3" tabindex="0" hidden>' +
+    (elencosParaMover.length >= 2 && opcoesDeAlunaParaMover
+      ? '<form id="form-mover">' +
+        '<label class="campo-rotulo" for="mv-aluna">Aluna</label>' +
+        '<select id="mv-aluna">' + opcoesDeAlunaParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-de">Do elenco</label>' +
+        '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-para">Para o elenco</label>' +
+        '<select id="mv-para">' + opcoesDeDestinoParaMover + '</select>' +
+        '<label class="campo-rotulo" for="mv-motivo">Motivo (opcional)</label>' +
+        '<input id="mv-motivo" autocomplete="off" placeholder="ex.: mudou de horário — vai para a turma da tarde">' +
+        '<p class="sub">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> — nunca fica ' +
+        'sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a Turma, ' +
+        'depois o plano de ensino e, por último, o plano de observação.</p>' +
+        '<div class="res" data-res="transferencia"></div>' +
+        '<span class="par-botoes">' +
+        '<button type="submit" class="acao grande" id="mv-enviar">Mover a aluna</button>' +
+        '</span>' +
+        '</form>'
+      : '<p class="sub">' + (opcoesDeAlunaParaMover
+          ? 'A transferência precisa de DOIS elencos concluídos: uma aluna sai de um e entra no '
+            + 'outro. Conclua outro elenco na aba «Escolha de elenco» e volte aqui.'
+          : 'Nenhuma aluna cadastrada: a transferência move uma aluna entre elencos, e não há '
+            + 'ninguém para mover. Cadastre as alunas em «Alunas».') + '</p>') +
+    '</div>' +
+    '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Elencos</h3>' +
     /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
@@ -5098,70 +5282,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</div>' +
-    /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026).
-     *
-     * FICA ABAIXO DA LISTA, e não num passo novo: o índice não é uma etapa do trabalho, é a
-     * LEITURA do que as etapas produziram. O passo 4 é a decisão; isto é o retrato de todas as
-     * decisões da escola juntas — e é por isso que não tem trava nem «Seguir».
-     *
-     * O conteúdo é desenhado pelo script, a partir de `d.indice` (a MESMA resposta da lista, para
-     * não custar uma segunda leitura do KV). A caixa `.caixa` é a peça de bloco de leitura; a
-     * tabela e os chips são as da casa. */
-    '<div class="caixa">' +
-    '<h3>O que os recortes olham</h3>' +
-    '<div id="lb-indice"><p class="sub">carregando…</p></div>' +
-    '</div>' +
-    /* ------------------------------------------- A TRANSFERÊNCIA (08/11/2026)
-     *
-     * O SÍTIO É AQUI, e não na Turma: o acto muda o CORPO observado, não o ritmo. A lista é a dos
-     * elencos concluídos; a aluna sai de um e entra no outro **num golpe só**, e a rota grava as
-     * duas versões — o destino primeiro, a origem depois — para que nenhuma falha a deixe fora de
-     * todos os elencos. Antes disto, o professor fazia-o em dois actos, e a metade feita não avisava.
-     *
-     * O MOTIVO É OPCIONAL AQUI (ao contrário do desligamento): mudar de turma é rotina, e exigir
-     * uma justificação a cada mudança faria escrever «-» no campo. Quando ela existe, fica na
-     * proveniência dos dois elencos. */
-    (elencosParaMover.length >= 1 && opcoesDeAlunaParaMover
-      ? '<details class="bloco-lista" id="mover-bloco">' +
-        '<summary class="bloco-cabeca">' +
-        '<span class="bloco-titulo">Transferência — a aluna que muda de elenco</span>' +
-        '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
-        '</summary>' +
-        '<div class="bloco-corpo">' +
-        '<form id="form-mover">' +
-        '<label class="campo-rotulo" for="mv-aluna">Aluna</label>' +
-        '<select id="mv-aluna">' + opcoesDeAlunaParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-de">Do elenco</label>' +
-        '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-para">Para o elenco</label>' +
-        '<select id="mv-para">' + opcoesDeElencoParaMover + '</select>' +
-        '<label class="campo-rotulo" for="mv-motivo">Motivo (opcional)</label>' +
-        '<input id="mv-motivo" autocomplete="off" placeholder="ex.: mudou de horário — vai para a turma da tarde">' +
-        '<p class="sub">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> — nunca fica ' +
-        'sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a Turma, ' +
-        'depois o plano de ensino e, por último, o plano de observação.</p>' +
-        '<div class="res" data-res="transferencia"></div>' +
-        '<span class="par-botoes">' +
-        '<button type="submit" class="acao grande" id="mv-enviar">Mover a aluna</button>' +
-        '</span>' +
-        '</form>' +
-        '</div>' +
-        '</details>'
-      : '<details class="bloco-lista" id="mover-bloco">' +
-        '<summary class="bloco-cabeca">' +
-        '<span class="bloco-titulo">Transferência — a aluna que muda de elenco</span>' +
-        '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
-        '</summary>' +
-        '<div class="bloco-corpo">' +
-        '<p class="sub">' + (opcoesDeAlunaParaMover ? 'Nenhum elenco concluído ainda: a transferência '
-          + 'precisa de dois elencos com recorte. Conclua um elenco na Audição e ele aparece aqui.'
-          : 'Nenhuma aluna cadastrada: a transferência move uma aluna entre elencos, e não há '
-          + 'ninguém para mover. Cadastre as alunas em «Alunas».') + '</p>' +
-        '</div>' +
-        '</details>') +
     '</section>' +
     '<script>' +
     'var TOKEN = "";' +
+    /* OS ELENCOS QUE A TRANSFERÊNCIA PODE OFERECER (09/11/2026). Vai como DADO, e não como HTML:
+     * o cliente reescreve a lista do destino quando a origem muda, e para isso precisa dos pares
+     * (id, rótulo) — não de uma segunda cópia do `<select>` já montado. É a mesma lista que o
+     * servidor usou para desenhar a origem: uma regra, dois consumidores. */
+    'var ELENCOS_MOVIVEIS = ' + JSON.stringify(elencosParaMover.map((e) => ({ id: e.id, rotulo: e.rotulo }))) + ';' +
     /* O CAMINHO DA ANAMNESE, PARA ONDA O PASSO 2 MANDA QUEM AINDA NÃO TEM RETRATO (07/11/2026).
      *
      * Vem do SERVIDOR, e não é escrito à mão aqui: `/anamnese/` é a mesma rota que o menu já
@@ -6220,6 +6348,111 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .catch(function(err){ liberarBotao(antes); if (res) { res.className = "res erro"; ' +
     'res.textContent = "Erro: " + err.message; } });' +
     '});' +
+    /* ------------------------------------------------ AS TRÊS ABAS DA AUDIÇÃO (09/11/2026)
+     *
+     * UMA FUNÇÃO, TRÊS PORTAS. A tira do computador (`#lb-abas`), a folha do telemóvel
+     * (`#lb-abas-menu`) e o teclado chamam `abrirAbaDaAudicao`, e só ela decide — se cada porta
+     * soubesse a regra, a primeira correcção deixaria as outras duas a mentir.
+     *
+     * O QUE MUDA NA TROCA: `aria-selected` nas abas, `hidden` nos painéis, e a FAIXA DOS PASSOS —
+     * que só existe na aba 1 (os quatro passos são o acto de compor o elenco; nas outras duas não
+     * há passo nenhum). A listagem NÃO se toca: ela vive fora dos painéis, e é isso que a mantém
+     * à vista nas três abas.
+     *
+     * `hidden` E NADA DE `display` EM LINHA: quem decide a aparência do painel é a folha, e um
+     * `style` escrito aqui seria a segunda identidade que a checagem 4 recusa. */
+    'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
+    'function fecharFolhaDasAbas() {' +
+    '  var m = document.getElementById("lb-abas-menu");' +
+    '  var v = document.getElementById("lb-abas-veu");' +
+    '  var b = document.getElementById("lb-abas-botao");' +
+    '  if (m) m.hidden = true;' +
+    '  if (v) v.hidden = true;' +
+    '  if (b) b.setAttribute("aria-expanded", "false");' +
+    '}' +
+    'function abrirAbaDaAudicao(n) {' +
+    '  if (ABAS_DA_AUDICAO.indexOf(n) === -1) return;' +
+    '  ABAS_DA_AUDICAO.forEach(function(k){' +
+    '    var b = document.getElementById("lb-aba-" + k);' +
+    '    var p = document.getElementById("lb-painel-" + k);' +
+    '    var eu = k === n;' +
+    '    if (b) {' +
+    '      b.setAttribute("aria-selected", eu ? "true" : "false");' +
+    '      b.setAttribute("tabindex", eu ? "0" : "-1");' +
+    '    }' +
+    '    if (p) p.hidden = !eu;' +
+    '  });' +
+    '  var faixa = document.getElementById("lb-faixa");' +
+    '  if (faixa) faixa.hidden = n !== "1";' +
+    '  fecharFolhaDasAbas();' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var alvo = e.target.closest("[data-aba]");' +
+    '  if (alvo) { abrirAbaDaAudicao(alvo.getAttribute("data-aba")); return; }' +
+    '  if (e.target.closest("#lb-abas-botao")) {' +
+    '    var m = document.getElementById("lb-abas-menu");' +
+    '    var v = document.getElementById("lb-abas-veu");' +
+    '    var b = document.getElementById("lb-abas-botao");' +
+    '    var abrir = !m || m.hidden;' +
+    '    if (m) m.hidden = !abrir;' +
+    '    if (v) v.hidden = !abrir;' +
+    '    if (b) b.setAttribute("aria-expanded", abrir ? "true" : "false");' +
+    '    return;' +
+    '  }' +
+    '  if (e.target.closest("#lb-abas-veu")) { fecharFolhaDasAbas(); }' +
+    '});' +
+    /* O TECLADO, PORQUE UMA TIRA `role="tablist"` VIVE DELE. As setas mudam de aba e movem o
+     * foco; o `Home`/`End` vão às pontas. Sem isto, o `role` prometeria um comportamento que não
+     * existe — e é pior do que não o declarar, porque quem usa leitor de ecrã confia nele. */
+    'var navAbas = document.getElementById("lb-abas");' +
+    'if (navAbas) navAbas.addEventListener("keydown", function(e){' +
+    '  var teclas = ["ArrowRight", "ArrowLeft", "Home", "End"];' +
+    '  if (teclas.indexOf(e.key) === -1) return;' +
+    '  var atual = navAbas.querySelector("[aria-selected=\\"true\\"]");' +
+    '  var i = ABAS_DA_AUDICAO.indexOf(atual && atual.getAttribute("data-aba"));' +
+    '  if (i === -1) i = 0;' +
+    '  if (e.key === "ArrowRight") i = (i + 1) % ABAS_DA_AUDICAO.length;' +
+    '  if (e.key === "ArrowLeft") i = (i - 1 + ABAS_DA_AUDICAO.length) % ABAS_DA_AUDICAO.length;' +
+    '  if (e.key === "Home") i = 0;' +
+    '  if (e.key === "End") i = ABAS_DA_AUDICAO.length - 1;' +
+    '  e.preventDefault();' +
+    '  abrirAbaDaAudicao(ABAS_DA_AUDICAO[i]);' +
+    '  var novo = document.getElementById("lb-aba-" + ABAS_DA_AUDICAO[i]);' +
+    '  if (novo) novo.focus();' +
+    '});' +
+    /* O DESTINO DA TRANSFERÊNCIA NÃO PODE SER A ORIGEM (09/11/2026).
+     *
+     * A tela oferecia, por omissão, o par inválido: os dois `<select>` nasciam com a primeira
+     * opção escolhida, e era a mesma. O servidor recusava (o núcleo compara `de` e `para`), mas
+     * um formulário que só ensina a regra ao recusar faz o professor repetir o gesto.
+     *
+     * Aqui a lista do destino é reescrita a cada mudança de origem, SEM o elenco de origem, e a
+     * escolha volta ao vazio. O servidor continua a decidir — isto só deixa de oferecer o que ele
+     * recusa. */
+    'function pintarDestinos() {' +
+    /* AS OPÇÕES SÃO MARCAÇÃO, E NÃO NÓS CRIADOS — a regra que a página já segue desde 03/11/2026
+     * (ver `pintarGraus`). `createElement`/`appendChild` dariam o mesmo resultado e obrigariam as
+     * bancadas a simular mais meia API de DOM; uma bancada que finge metade do DOM mede a metade
+     * que fingiu. */
+    '  var de = document.getElementById("mv-de");' +
+    '  var para = document.getElementById("mv-para");' +
+    '  if (!de || !para) return;' +
+    '  if (!document.getElementById("form-mover")) return;' +
+    '  var origem = de.value;' +
+    '  var escolhido = para.value;' +
+    '  var op = ["<option value=\'\'>— escolha o elenco de destino —</option>"];' +
+    '  ELENCOS_MOVIVEIS.forEach(function(e){' +
+    '    if (!e || e.id === origem) return;' +
+    '    op.push("<option value=\'" + escHtml(e.id) + "\'>" + escHtml(e.rotulo) + "</option>");' +
+    '  });' +
+    '  para.innerHTML = op.join("");' +
+    '  para.value = (escolhido && escolhido !== origem) ? escolhido : "";' +
+    '}' +
+    'var seletorDaOrigem = document.getElementById("mv-de");' +
+    'if (seletorDaOrigem) {' +
+    '  seletorDaOrigem.addEventListener("change", pintarDestinos);' +
+    '  pintarDestinos();' +
+    '}' +
     /* A TRANSFERÊNCIA — o estado parcial tem de ser DITO (08/11/2026). Se a segunda escrita falhar,
      * a aluna está nos DOIS elencos; a resposta traz `parcial: true` e a tela recarrega mesmo assim,
      * para a pessoa VER o estado em vez de acreditar num «erro» que sugere que nada aconteceu. */
@@ -6234,6 +6467,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    motivo: (document.getElementById("mv-motivo") || {}).value || "",' +
     '    token: TOKEN' +
     '  };' +
+    '  if (!corpo.para || corpo.para === corpo.de) {' +
+    '    if (res) {' +
+    '      res.className = "res erro";' +
+    '      res.textContent = "Escolha o elenco de destino — a aluna não pode ir para o elenco de onde sai.";' +
+    '    }' +
+    '    return;' +
+    '  }' +
     '  var antes = ocuparBotao(formMover, "movendo...");' +
     '  fetch("/api/bastidores/elenco-mover", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
@@ -10047,7 +10287,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var valores = {' +
     '    1: nome || "a nomear",' +
     '    2: quantas ? (quantas === 1 ? "1 aluna" : quantas + " alunas") : "a escolher",' +
-    '    3: LEITURA_FEITA ? "lida" : "por ler",' +
+    '    3: LEITURA_FEITA ? "lidas" : "por ler",' +
     '    4: campos ? (campos === 1 ? "1 aspecto" : campos + " aspectos") : "a escolher"' +
     '  };' +
     '  Object.keys(valores).forEach(function(n){' +
@@ -10391,17 +10631,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS QUATRO EIXOS, e a ordem é a da leitura: primeiro o que pede trabalho, depois o que está
     // bem, depois a musicalidade (que ela quis ver em separado), e por fim o que o grupo tem em
     // comum. Os pontos de atenção vêm primeiro porque são o que se lê para decidir.
-    'function blocoDeAchados(titulo, itens, nota) {' +
+    /* O BLOCO QUE SE DOBRA (09/11/2026). Ela pediu botões de expandir/colapsar em três dos quatro
+     * blocos da leitura — «trabalho, musicalidade e o que o grupo tem em comum» —, e a peça é a da
+     * casa: `details.bloco-lista` com `summary.bloco-cabeca`, a MESMA do índice do recorte e dos
+     * grupos do passo 4. Nada de desenho novo, e nada de JavaScript: quem dobra é o `details`.
+     *
+     * NASCE ABERTO (`open`). O passo existe para ser LIDO, e nascer fechado esconderia o
+     * resultado do gesto que a pessoa acabou de fazer — o botão serve para o FECHAR quando já
+     * leu, não para o obrigar a abrir o que pediu.
+     *
+     * O `h4` sai do bloco dobrado: o título passa a ser o `summary`, e dois títulos do mesmo bloco
+     * seriam o segundo clique que a peça recusa. O «O que já é bom» fica como estava — ela não o
+     * pediu, e acrescentá-lo por simetria seria ir além do pedido. */
+    'function blocoDeAchados(titulo, itens, nota, dobrar) {' +
+    '  var corpo;' +
     '  if (!itens || !itens.length) {' +
-    '    return "<h4>" + escHtml(titulo) + "</h4><p class=\\"sub\\">" + escHtml(nota || "nada a registar.") + "</p>";' +
+    '    corpo = "<p class=\\"sub\\">" + escHtml(nota || "nada a registar.") + "</p>";' +
+    '  } else {' +
+    '    corpo = "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr><th>Aspecto</th>" +' +
+    '      "<th>Eixo</th><th>Como está o grupo</th></tr></thead><tbody>" +' +
+    '      itens.map(function(x){' +
+    '        return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.eixo || "") + "</td><td>" +' +
+    '          escHtml(x.texto) + "</td></tr>";' +
+    '      }).join("") + "</tbody></table></div>";' +
     '  }' +
-    '  return "<h4>" + escHtml(titulo) + " (" + itens.length + ")</h4>" +' +
-    '    "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr><th>Aspecto</th>" +' +
-    '    "<th>Eixo</th><th>Como está o grupo</th></tr></thead><tbody>" +' +
-    '    itens.map(function(x){' +
-    '      return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.eixo || "") + "</td><td>" +' +
-    '        escHtml(x.texto) + "</td></tr>";' +
-    '    }).join("") + "</tbody></table></div>";' +
+    '  var quantos = itens && itens.length ? " (" + itens.length + ")" : "";' +
+    '  if (!dobrar) return "<h4>" + escHtml(titulo) + quantos + "</h4>" + corpo;' +
+    '  return "<details class=\\"bloco-lista\\" open><summary class=\\"bloco-cabeca\\">" +' +
+    '    "<span class=\\"bloco-titulo\\">" + escHtml(titulo) + quantos + "</span>" +' +
+    '    "<span class=\\"seta-do-ato\\" aria-hidden=\\"true\\">\u25be</span></summary>" +' +
+    '    "<div class=\\"bloco-corpo\\">" + corpo + "</div></details>";' +
     '}' +
     'function pintarClassificacao(c) {' +
     '  var alvo = document.getElementById("lb-leitura");' +
@@ -10411,13 +10670,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    "As quatro leituras são quatro perguntas ao MESMO dado — um aspecto pode estar em " +' +
     '      "mais de uma." + "</p>";' +
     '  html += blocoDeAchados("O que precisa de ser trabalhado", c.atencao,' +
-    '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.");' +
+    '    "nenhum aspecto abaixo do melhor nível — o grupo está bem em tudo o que respondeu.", true);' +
     '  html += blocoDeAchados("O que já é bom", c.excelencia,' +
     '    "nenhum aspecto com alguma aluna no melhor nível.");' +
     '  html += blocoDeAchados("Musicalidade", c.musicalidade,' +
-    '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.");' +
+    '    "a anamnese não tem os campos de musicalidade preenchidos para estas alunas.", true);' +
     '  html += blocoDeAchados("O que o grupo tem em comum", c.comuns,' +
-    '    "nenhum aspecto com a mesma resposta em todas as alunas.");' +
+    '    "nenhum aspecto com a mesma resposta em todas as alunas.", true);' +
     '  if (c.semRegisto && c.semRegisto.length) {' +
     '    html += "<p class=\\"sub\\">Sem registo em " + c.semRegisto.length + " aspecto(s): " +' +
     '      escHtml(c.semRegisto.slice(0, 8).map(function(x){ return x.nome || x; }).join(", ")) +' +

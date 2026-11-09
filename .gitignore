@@ -957,3 +957,10 @@ experimentos/modelo-formulario/*
 !experimentos/provar-trava-da-operacao.js
 !experimentos/provar-ponte-do-worker.js
 !experimentos/provar-transferencia-e-desligamento.js
+
+# AS TRÊS ABAS DA AUDIÇÃO (09/11/2026). O REGISTRO cita-a por nome («39 asserções»), e uma prova
+# citada que não existe no clone é uma afirmação que ninguém confere. Mede o que se perde sem dar
+# erro: a listagem a ficar DENTRO do painel que se esconde («tem de permanecer visível em todas as
+# abas»), a folha do telemóvel a abrir uma aba que não muda nada, e o destino da transferência a
+# nascer preenchido com o elenco de onde a aluna sai — o par que o núcleo recusa.
+!experimentos/provar-abas-da-audicao.js
