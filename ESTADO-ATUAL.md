@@ -4,9 +4,10 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`658f88dd` + esta entrega). Nesta entrega, **a Audição
-> passa a ter três abas**: «Escolha de elenco» (o fluxo atual, inalterado), «O que os recortes
-> olham» (o índice que antes ficava empilhado abaixo da lista) e «Transferência» (mover uma aluna
+> **Última fotografia:** 09/11/2026 (`03022b9b` + esta entrega). Nesta entrega, **a Audição
+> passa a ter três abas**: «Escolha de elenco» (o fluxo atual, inalterado), «Recorte» (o índice
+> que antes ficava empilhado abaixo da lista; o rótulo foi corrigido no mesmo dia — nasceu como
+> «O que os recortes olham», que era descrição e não nome) e «Transferência» (mover uma aluna
 > entre elencos). A **listagem fica fora dos painéis** — é ela que tem de permanecer visível nas
 > três —, a faixa dos quatro passos só existe na aba 1, e no telemóvel (≤560px) a tira dá lugar à
 > pílula **«Abas»** que sobe uma folha, a mesma peça do «Ações» da anamnese. O passo 3 chama-se
@@ -4232,7 +4233,8 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   solução do telemóvel «similar à que existe para a anamnese»; o passo 3 renomeado («leitura lida»
   não dizia de que era a leitura); expandir/colapsar em três dos quatro blocos de achados; e o
   destino da transferência **sem** o elenco de origem. **DECIDIDO** — por ela — que as abas são
-  «Escolha de elenco», «O que os recortes olham» (o nome que o bloco já tinha) e «Transferência»;
+  «Escolha de elenco», «Recorte» (o índice dos recortes da escola; nasceu como «O que os recortes
+  olham» e foi corrigido no mesmo dia — ver a nota de correção no `REGISTRO.md`) e «Transferência»;
   que a faixa dos quatro passos só existe na aba 1; e que os blocos dobram **abertos**, porque o
   passo existe para ser lido. **Entregue**: a tira `role="tablist"` com teclado, a folha do
   telemóvel com as peças do «Ações» (nenhuma classe nova), a listagem e a faixa fora dos painéis, o
@@ -4240,7 +4242,7 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   núcleo), `[3, 'Anamneses']` com o estado «lidas», e `blocoDeAchados(dobrar)` — trabalho,
   musicalidade e o comum, com o «O que já é bom» intacto. Fica **sinalizado**, a pedido dela, no
   `REGISTRO.md`: o bloco de transferência (08/11/2026) foi além do pedido, implementado pelo agente
-  do VS Code sem solicitação. `provar-abas-da-audicao` **39/39** (nova); sem regressão em
+  do VS Code sem solicitação. `provar-abas-da-audicao` **41/41** (nova); sem regressão em
   `provar-producao` 166, `provar-transferencia-e-desligamento` 62, `provar-linha-de-base` 102 e
   `provar-elenco-na-turma` 25; `check-identidade` **0 erros**. Ver a decisão 126.
 - **08/11/2026** — **A aluna desligada, e a turma que muda de sala.** Ela seguiu o fluxo de remover

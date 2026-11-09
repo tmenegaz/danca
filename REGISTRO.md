@@ -41183,3 +41183,20 @@ fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de
 com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
 página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
 tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
+
+> **Correção de 09/11/2026 (mesmo dia).** A primeira redação desta entrada dizia que a aba 2 se
+> chamava **«O que os recortes olham»**, com o argumento de que era «o nome que o bloco já tinha».
+> **Está incompleto**: o nome que ela usa é **«Recorte»**, e foi ela que o disse — «A Aba 2 deve se
+> chamar Recorte». O rótulo longo era **descrição minha**, e uma aba não se nomeia por descrição:
+> o nome é o do objeto, e «Recorte» é o que o passo 4 e o índice dos recortes já dizem nos
+> documentos. A redação anterior não é apagada: fica como o elo que registra o que se pensou antes
+> da correção.
+>
+> O QUE MUDOU, e é só o nome: a lista das três abas passou a ser **declarada uma vez**
+> (`TITULOS_DAS_ABAS_DA_AUDICAO`, em `motor/servidor/bastidores.js`), e a tira do computador e a
+> folha do telemóvel consomem-na as duas — antes a lista estava escrita duas vezes, e a primeira
+> correção de rótulo deixaria as duas a divergir. Nada de comportamento, de rota ou de dado mudou.
+>
+> VALIDAÇÃO da correção: `provar-abas-da-audicao` **41/41** (39 + 2 novas: os três rótulos
+> exatos, e a folha a dizer o mesmo que a tira), com a asserção que recusa o rótulo antigo.
+> `check-identidade` **0 erros**.
