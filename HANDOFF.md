@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-08T14:20:17-0300`
-Commit atual: `954af21d` — feat(estrutura): o professor que passou a turma a outro fica «sem turma»
+Gerado em: `2026-11-09T14:59:37-0300`
+Commit atual: `a7aba998` — docs(registro): a Audição em três abas, e a sinalização do que foi além do pedido
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+a7aba998 docs(registro): a Audição em três abas, e a sinalização do que foi além do pedido
+ba76c401 feat(estrutura): a Audição em três abas, com a listagem à vista em todas
+658f88dd chore(estrutura): regerar o HANDOFF
 954af21d feat(estrutura): o professor que passou a turma a outro fica «sem turma»
 ecc8a46f feat(estrutura): a aluna desligada, e a turma que muda de sala
 f8da8bc5 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
@@ -88,9 +91,6 @@ dd7d1e99 feat(acervo): envelope/po-20261108-1334.json
 318c4d57 feat(acervo): envelope/.indice.json
 fd45ca34 feat(plano): o plano elicitado vira a fonte do ciclo
 a334a437 feat(acervo): envelope/plano-20261108-1334.json
-b8259f40 feat(acervo): envelope/.indice.json
-6ba0d660 chore(estrutura): regerar os índices derivados
-2458fa5b feat(linha de base): índice — tami 20261108-1633
 ```
 
 ## Por professor
@@ -164,122 +164,88 @@ b8259f40 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 08/11/2026 — A aluna desligada, e a turma que muda de sala
+## 09/11/2026 — A Audição em três abas, e a transferência que não se oferece a si mesma
 
-**O que motivou.** A pesquisadora seguiu o fluxo documentado para remover uma aluna do elenco — ela
-deixou de fazer aula e saiu da escola — e mediu o resultado na produção: a aluna continuava no
-cadastro (a remoção da pessoa é opcional), a anamnese dela **continuava travada** («um PO já a
-usa»), e a linha dizia **«aluna nova — sem turma e sem linha de base»**. As palavras dela: «Eu
-preciso de uma etiqueta que diga exatamente o status dela atual. Ela já não é mais uma aluna
-vinculada e nem tampouco ela é uma aluna nova/livre, porque nós temos a regra da proveniência. […]
-Ela é desligada, porque indica que ela não é nova, que ela não está vinculada, mas dá a entender que
-ela já fez parte de algum elenco, mas agora ela está desligada.» E pediu o mesmo pensamento para o
-professor na proveniência, e o fluxo de **mudança de sala** de uma turma existente documentado e
-avaliado.
+**O que motivou.** A pesquisadora olhou a secção do **corpo** (Audição/Elenco) e pediu quatro
+ajustes em bloco: «reestruturar a página 'corpo' em 3 abas», com «a listagem a permanecer visível
+em todas as abas» e, no telemóvel, uma solução «similar à que existe para a anamnese» (o botão de
+ações que sobe uma folha) «ou […] as abas uma ao lado da outra como se fosse um fichário ou um
+caderno de matérias na horizontal»; renomear o passo 3 — «leitura lida» lia-se sem dizer de que era
+a leitura — para **«Anamneses lidas»**; pôr botões de expandir/colapsar nos blocos de **trabalho,
+musicalidade e o que o grupo tem em comum**; e corrigir a transferência, porque «o campo 'para o
+elenco' não deve vir pré-preenchido com o mesmo elenco de origem» e «não é permitido mover para o
+próprio elenco».
+
+**Sinalização pedida por ela — o que foi além do pedido.** O bloco de **transferência de aluna
+entre elencos** entrou a 08/11/2026 por iniciativa do agente do VS Code, **sem ter sido
+solicitado** naquele momento. Fica registado aqui, a pedido dela, para que o elo não se leia como
+se tivesse sido pedido. O bloco **não se remove**, e a razão é a mesma que impede reescrever o
+passado: a rota (`/api/bastidores/elenco-mover`), o núcleo e os actos já praticados existem, e
+apagá-lo deixaria versões de elenco a apontar para um gesto sem porta. O que se fez foi **dar-lhe
+o sítio certo** (a aba 3) e **corrigir o defeito** que ele trazia.
 
 **O que foi decidido, e onde se vê no código.**
 
-- **«Desligada» é o quarto estado da aluna, e é DERIVADO** (`motor/nucleo/desligamento.js`,
-  `estadoDaAluna`): não está em nenhum elenco vigente, não está em nenhuma Turma vigente, **e já
-  esteve** — por um PO que a declarou em `sujeitos`, por uma Turma **substituída** que a declarava,
-  ou por uma versão com `transferida`/`recebida`. Nada se marca; o estado **cai sozinho** quando ela
-  volta a um elenco. É a diferença com o **professor**, que sai por **ato** (data e motivo) e por
-  isso é marcado — as duas dizem a mesma coisa nas palavras («não é novo, não está vinculado, já fez
-  parte») e chegam lá por mecanismos diferentes, porque os factos são diferentes.
-- **O selo usa a classe `legado`** (o traço ponteado da folha; nenhuma classe nova), e é o mesmo
-  vocabulário do professor desligado — `desligada`/`desligado`.
-- **O GESTO não muda.** O «Excluir» do cadastro continua habilitado (apagar o apelido é limpeza, e
-  não remove nada dos elencos, dos planos nem da anamnese), o «Novo registo» continua disponível («se
-  ela for entrar de novo ela é um novo registro»), e a anamnese continua travada enquanto um PO a
-  declarar. A etiqueta mentia sobre a **pessoa**; a guarda do **documento** estava certa.
-- **A lista de pessoas passa a ler o rasto do PO** (`alunasDosPlanosDeObservacao`, uma leitura do
-  índice como as outras da página): era o único sinal que sobrevive quando a Turma foi regravada sem
-  ela e o elenco também já não a declara.
-- **A mudança de sala, documentada e avaliada** no `§3.3`: o caminho é `turma-editar` (Sala livre) ou
-  `turma-derivar` (curada/vinculada), o nome não muda para não partir a Turma e o plano, e a relação
-  turma↔conteúdo migra para o id novo. **Veredito: atende ao registo e não atende à cadeia** — a
-  cascata (`revalidacaoPendente`) não conhece a Sala, e `vigenteDe` é declarado mas não é respeitado
-  na escolha do vigente (uma vigência para 01/12 já é a Sala de hoje).
+- **Três abas, e a listagem fora delas.** A tira (`#lb-abas`, `role="tablist"`) e os três painéis
+  (`#lb-painel-1/2/3`) vivem na coluna do formulário; a **listagem (`#lb-lista`) e a faixa dos
+  passos ficam fora** — a primeira porque a regra é «visível em todas as abas», a segunda porque
+  os quatro passos são o acto de compor o elenco e não existem nas outras duas. O painel 1 é a
+  «Escolha de elenco» (o fluxo atual, sem mudança de comportamento); o 2 é **«O que os recortes
+  olham»** (o nome que o bloco já tinha nos documentos — dois nomes seriam a segunda identidade
+  que este repositório evita); o 3 é a **Transferência**.
+- **A metáfora é a dela, e é da página.** «Fichário/caderno de matérias»: abas encostadas a uma
+  linha, e a ativa pousa sobre ela (`border-bottom` da aba na cor da superfície). A linha fica no
+  `<nav>`, e não na aba, para não mudar de comprimento a cada clique. Nenhuma classe da folha foi
+  inventada; o que se usou dela são os papéis (`--marca`, `--superficie`, `--borda-campo`,
+  `--texto-suave`, `--raio-1`, `--ui`).
+- **No telemóvel, a peça da anamnese.** Abaixo de **560px** a tira sai e fica a pílula **«Abas»**
+  — `.acoes-da-lista` / `.acoes-do-menu` / `.menu-de-acoes` / `.veu-do-menu` / `.folha-do-menu`,
+  as mesmas classes do «Ações», sem nenhuma nova. A folha sobe de baixo, escolhe a aba e fecha-se;
+  o véu fecha sem trocar. A tira e a folha chamam a **mesma** função (`abrirAbaDaAudicao`), para a
+  primeira correção não deixar a segunda a mentir; o teclado (`ArrowLeft/Right`, `Home`, `End`)
+  muda de aba e move o foco, porque um `role="tablist"` que não responde ao teclado promete o que
+  não cumpre.
+- **Recolhida a secção, as abas saem.** O recolhedor esconde o `.col-form` e com ele os três
+  painéis; uma tira que troca de painel invisível é navegação para nenhum sítio. A regra leva a
+  secção no seletor (`.secao[data-recolhido="sim"] #lb-abas`), para não tocar nas outras quatro.
+- **A transferência não oferece o par que recusa.** O «para o elenco» nasce **vazio** («escolha o
+  elenco de destino») e **sem** o elenco que a origem tem por omissão; quando a origem muda, o
+  cliente reescreve a lista do destino (`pintarDestinos`, a partir de `ELENCOS_MOVIVEIS`, o mesmo
+  dado que o servidor usou) e apaga a escolha que ficou inválida. A aba 3 só mostra o formulário
+  com **dois elencos concluídos**; com um, diz o que falta. As guardas continuam onde decidem: o
+  `submit` do cliente não chama a rede sem destino, e o **núcleo recusa `de === para`** — o cliente
+  não decide, só deixa de oferecer.
+- **O passo 3 chama-se «Anamneses».** `LB_PASSOS` passa a `[3, 'Anamneses']`, e o estado concorda
+  com o objeto (`lidas`/`por ler`) — a tira lê-se «3 Anamneses lidas». O dado (`leitura`,
+  `LEITURA_FEITA`) **não** se renomeia: é o conceito, e renomeá-lo seria migração sem valor.
+- **Três blocos dobram, o quarto não.** `blocoDeAchados(titulo, itens, nota, dobrar)` usa a peça
+  da casa (`details.bloco-lista` + `summary.bloco-cabeca`), **sem JavaScript**; nascem `open`
+  porque o passo existe para ser lido (o botão serve para fechar depois de ler, não para obrigar a
+  abrir o que se pediu). Dobram **trabalho, musicalidade e o comum**; o «O que já é bom» fica como
+  estava — não foi pedido, e acrescentá-lo por simetria seria repetir o erro que esta entrada
+  assinala.
 
-**Onde entrou.** `motor/nucleo/desligamento.js` (o cabeçalho passa a ser «quem sai», e entra o
-`estadoDaAluna`) · `motor/servidor/listas-do-acervo.js` (o selo, a linha e o painel da anamnese) ·
-`motor/servidor/bastidores.js` (o selo da lista de pessoas, o rasto do PO) ·
-`experimentos/provar-etiqueta-da-aluna.js` (a secção D, nova) · `ARQUITETURA-GERAL.md` (§3.3: «a
-aluna desligada», «a turma que muda de sala» com a tabela de avaliação, e três linhas nas tabelas de
-fronteira) · `ESTADO-ATUAL.md`.
+**Onde entrou.** `motor/servidor/bastidores.js` (a tira, os três painéis, a folha do telemóvel, o
+CSS das abas e do recolhido, `pintarDestinos`, a guarda do `submit`, `LB_PASSOS` e
+`blocoDeAchados`) · `experimentos/provar-abas-da-audicao.js` (**novo**) · `experimentos/README.md`
+· `ESTADO-ATUAL.md` (§6 e a linha da fotografia).
 
-**Validação.** `provar-etiqueta-da-aluna` **36/36** (20 de antes + 16 novas: o núcleo com os três
-rastos e três controlos negativos, a página com o selo e o gesto, o controlo do «volta a ser nova»
-sem rasto, a lista de pessoas com e sem o rasto do PO). Sem regressão: `provar-listas-do-acervo`
-**109** · `provar-transferencia-e-desligamento` **62/62** · `provar-elenco-na-turma` **25** ·
-`provar-curadoria-e-limpeza` verde · `provar-enquadramento-da-turma` verde ·
-`provar-habilitacao-do-professor` verde. `check-identidade` **0 erros** (10 estados de selo em uso,
-todos na fonte). `provar-cartao-da-turma` tem **2 falhas que já estavam em `origin/main`** (termos e
-fichas; conferido num worktree limpo do `origin/main`), e não são desta mudança.
+**Validação.** `provar-abas-da-audicao` (**nova**) **39/39** — a marcação (listagem e faixa fora
+dos painéis), a folha do telemóvel e o corte dos 560px, a troca em jsdom (clique, teclado, folha,
+`aria-selected`, `hidden`, a listagem intacta), o destino vazio e a lista reescrita, o pedido que
+não chega à rede sem destino, e os três blocos `<details open>`. Sem regressão: `provar-producao`
+**166/166** · `provar-transferencia-e-desligamento` **62/62** · `provar-linha-de-base` **102** ·
+`provar-elenco-na-turma` **25** · `check-identidade` **0 erros** (10 estados de selo em uso, todos
+na fonte).
 
-**O que ainda não está feito, e sabe-se.** (1) O rasto do elenco **não** é lido: uma versão anterior
-que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna continua a ler-se «nova»
-até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
-alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
-vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
-**nenhum** PO declarou continua a poder ser apagada (é a regra do «solta»), e isso não foi mudado.
-
-> **Acréscimo de 08/11/2026 (mesmo dia), dentro da entrada acima.** O pedido tinha duas metades, e a
-> primeira redação desta entrada só documentou a da aluna: «o mesmo pensamento dessa etiqueta deve
-> ser adoptado para o professor na proveniência». A segunda metade foi feita depois, e a redação
-> anterior não é apagada — fica como o elo que diz o que se pensou primeiro.
->
-> O DEFEITO, medido no código antes de o corrigir: `professorCurado` perguntava a **todas** as
-> curadorias, inclusive às **substituídas**. Quando outro professor assumia a turma, a curadoria
-> anterior descia para o histórico com `substituidaPor` — e o que saiu ficava **«curado» para
-> sempre**, sem turma nenhuma na coluna e com o «Excluir» travado por um trabalho que já não era
-> dele. É o mesmo defeito da aluna, do outro lado: o selo respondia ao passado e lia-se como
-> presente.
->
-> A DECISÃO: o quarto selo do professor é **`sem turma`** — **derivado**
-> (`desligamento.estadoDoProfessor`: sem curadoria vigente, sem plano que o cite, e com uma
-> curadoria substituída que o nomeia), com a classe `legado` da folha. **Não** se chama `desligado`:
-> essa palavra já significa sair da **escola**, com data e motivo, e usá-la aqui faria a direção
-> procurar um desligamento que não houve. E `professorCurado` passa a contar **só as vigentes** — o
-> que a torna o que sempre quis dizer: «tem trabalho atribuído **hoje**».
->
-> O «Excluir» fica travado, e a razão é de dados, não de gosto: a curadoria guarda o **slug** e o
-> nome legível só existe no registro — apagá-lo deixaria o histórico a apontar para um slug sem
-> nome. (Na aluna é o contrário, e por isso lá a exclusão é permitida: a curadoria guarda o
-> **apelido**, e o registro dela vive também no elenco e na anamnese.)
->
-> ONDE ENTROU, o que muda a lista de ficheiros da entrada acima: `motor/nucleo/desligamento.js`
-> ganha também o `estadoDoProfessor` · `motor/servidor/bastidores.js` (o selo, a guarda do
-> «Excluir», e `professorCurado` a filtrar as substituídas) · `experimentos/provar-etiqueta-da-aluna.js`
-> ganha a secção E · `ARQUITETURA-GERAL.md` (§3.3: «o professor que passou a turma a outro», e duas
-> linhas novas nas tabelas de fronteira).
->
-> VALIDAÇÃO da segunda metade: `provar-etiqueta-da-aluna` **44/44** (36 da primeira + 8 novas: o
-> núcleo com o slug, dois controlos negativos e a precedência do plano; a página com os dois selos e
-> a guarda). Sem regressão: `provar-transferencia-e-desligamento` **62/62** ·
-> `provar-habilitacao-do-professor` verde · `provar-curadoria-e-limpeza` verde ·
-> `provar-listas-do-acervo` **109** · `check-identidade` **0 erros**.
->
-> O QUE AINDA NÃO ESTÁ FEITO nesta metade: o professor «sem turma» **continua** a aparecer nas listas
-> de escolha (Turma, elenco, habilitações) — e é o correcto, porque ele está na escola e pode
-> assumir outra; só o **desligado** sai dessas listas. E a **atribuição** de uma turma a outro
-> professor continua a ser o ato manual da direção que a entrada acima já descreve.
+**O que ainda não está feito, e sabe-se.** (1) A aba ativa **não sobrevive ao recarregar** — a
+página volta sempre à aba 1; guardá-la seria fácil e não foi pedido. (2) A listagem, no telemóvel,
+fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de não ser escondida
+com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
+página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
+tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
 
 ## O que está pendente
-
-## 08/11/2026 — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa de se atropelar
-
-
-- **A cópia cifrada do pacote é a de antes deste «Guardar».** O `check-pacote` compara a estrutura e
-  passa; quem tem a chave veria o texto do PO 0955 dentro dela. Só o Worker a refaz, e é o gesto
-  seguinte.
-- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
-  turma) têm as suas próprias telas e não passaram por aqui.
-- **A tranca é da porta, não de todo o sistema.** Os passos da Produção (criar a aluna, o elenco, a
-  turma) têm as suas próprias telas e não passaram por aqui. O que esta entrega garante é a metade
-  que estava a estourar — plano e PO, que é onde a geração é disparada.
-- **`provar-aparencia` (76/77) e `provar-tema` (37/38) falham igualmente no `HEAD`** — pré-existentes,
-  comparadas falha a falha.
 
 ## 08/11/2026 — O Worker voltou a falar com a rede: o `fetch` da ponte era ela mesma
 
@@ -310,6 +276,15 @@ que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna conti
 até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
 alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
 vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
+
+## 09/11/2026 — A Audição em três abas, e a transferência que não se oferece a si mesma
+
+(1) A aba ativa **não sobrevive ao recarregar** — a
+página volta sempre à aba 1; guardá-la seria fácil e não foi pedido. (2) A listagem, no telemóvel,
+fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de não ser escondida
+com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
+página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
+tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
 
 ## Pendências anteriores (índice)
 
@@ -702,6 +677,7 @@ vigência futura) é uma decisão de calendário da direção. (3) A anamnese de
 - **08/11/2026** — O plano que já foi ajustado não se oferece duas vezes, e o… → `REGISTRO.md` L40457
 - **08/11/2026** — O vínculo da anamnese passa a ler o elenco: a aluna que… → `REGISTRO.md` L40520
 - **08/11/2026** — A aluna que sai do elenco sai da aula — e o que ela já… → `REGISTRO.md` L40586
+- **08/11/2026** — O «Guardar» do PO cabe nos 50 subpedidos, e a cadeia deixa… → `REGISTRO.md` L40693
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
