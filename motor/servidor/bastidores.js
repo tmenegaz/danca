@@ -2102,6 +2102,22 @@ const LB_PASSOS = [
   [4, 'Recorte'],
 ];
 
+/* AS TRÊS ABAS DA AUDIÇÃO, DECLARADAS UMA VEZ (09/11/2026).
+ *
+ * Elas nasceram escritas duas vezes — na tira do computador e na folha do telemóvel —, e a
+ * primeira correção de rótulo deixaria as duas a divergir. A lista é uma só, e os dois desenhos
+ * consomem-na.
+ *
+ * A ABA 2 CHAMA-SE «RECORTE» desde 09/11/2026, por decisão dela. A primeira redação desta
+ * mudança usou «O que os recortes olham» para não inventar um segundo nome para o bloco — e o
+ * argumento continua verdadeiro: «Recorte» é o nome do passo 4 e o nome do índice nos documentos.
+ * A diferença é que «Recorte» é o que ela chama à coisa; o rótulo longo era descrição minha. */
+const TITULOS_DAS_ABAS_DA_AUDICAO = [
+  ['1', 'Escolha de elenco'],
+  ['2', 'Recorte'],
+  ['3', 'Transferência'],
+];
+
 /* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
  * e são eles, e não outros, porque um trecho se corrige na direção, na contagem, na orientação e
  * nos sinais. A fusão de 01/11/2026 puxou-os de 5 e 6 para 3 e 4: os números são estes, e não os
@@ -5053,16 +5069,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * está a mover uma aluna vê os elencos enquanto escolhe; quem está a compor um elenco vê os
      * que já existem.
      *
-     * O NOME DA ABA 2 É O DO BLOCO, e não um novo: «O que os recortes olham». Dois nomes para a
-     * mesma coisa seriam a segunda identidade que este repositório evita — e o nome já está nos
-     * documentos e nas provas.
+     * O NOME DA ABA 2 É «RECORTE» (09/11/2026), e não uma descrição nova. Ela corrigiu o
+     * primeiro rótulo («O que os recortes olham») — descrição minha, e longa para uma aba. O nome
+     * que ela usa é o do bloco: «Recorte» é o passo 4 e é o índice nos documentos.
      *
      * A FAIXA DOS PASSOS SÓ EXISTE NA ABA 1. Os quatro passos são o acto de compor o elenco; nas
      * outras duas abas não há passo nenhum, e uma tira a dizer «1» sobre uma tabela de cobertura
      * seria navegação para um sítio que não existe.
      */
     '<nav class="abas" role="tablist" aria-label="Audição — seções" id="lb-abas">' +
-    [['1', 'Escolha de elenco'], ['2', 'O que os recortes olham'], ['3', 'Transferência']]
+    TITULOS_DAS_ABAS_DA_AUDICAO
       .map(([n, t], i) => '<button type="button" class="aba" role="tab" id="lb-aba-' + n + '" ' +
         'data-aba="' + n + '" aria-controls="lb-painel-' + n + '" ' +
         'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
@@ -5082,7 +5098,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="menu-de-acoes folha-do-menu" id="lb-abas-menu" hidden>' +
     '<span class="folha-puxador" aria-hidden="true"></span>' +
     '<ul class="menu-de-acoes-lista">' +
-    [['1', 'Escolha de elenco'], ['2', 'O que os recortes olham'], ['3', 'Transferência']]
+    TITULOS_DAS_ABAS_DA_AUDICAO
       .map(([n, t]) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
         t + '</button></li>').join('') +
     '</ul>' +

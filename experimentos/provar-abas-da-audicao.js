@@ -72,8 +72,17 @@ async function principal() {
     /id="lb-aba-3"[^>]*aria-selected="false"/.test(PAGINA));
   provar('os três nomes são os que ela pediu',
     /Escolha de elenco<\/button>/.test(PAGINA) &&
-    /O que os recortes olham<\/button>/.test(PAGINA) &&
+    /Recorte<\/button>/.test(PAGINA) &&
     /Transferência<\/button>/.test(PAGINA));
+  provar('a aba 2 chama-se «Recorte» — e não a descrição longa do primeiro rótulo',
+    !/O que os recortes olham<\/button>/.test(PAGINA) &&
+    [...PAGINA.matchAll(/class="aba" role="tab" id="lb-aba-\d"[^>]*>([^<]*)</g)]
+      .map((m) => m[1]).join(' | ') === 'Escolha de elenco | Recorte | Transferência',
+    'abas: ' + [...PAGINA.matchAll(/class="aba" role="tab" id="lb-aba-\d"[^>]*>([^<]*)</g)]
+      .map((m) => m[1]).join(' | '));
+  provar('a folha do telemóvel diz o MESMO que a tira',
+    [...PAGINA.matchAll(/class="menu-de-acoes-item" data-aba="\d">([^<]*)</g)]
+      .map((m) => m[1]).join(' | ') === 'Escolha de elenco | Recorte | Transferência');
 
   provar('o painel 1 nasce à vista, e os outros dois escondidos',
     /<div class="aba-painel" id="lb-painel-1"[^>]*>/.test(PAGINA) &&
