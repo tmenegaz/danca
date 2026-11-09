@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "flexibilidade-anteroposterior-grand-ecart",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "memoria-e-retencao-de-sequencias",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "passe",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2139",
-      "versoes": 5
+      "ultima": "20261109-2207",
+      "versoes": 6
     },
     {
       "aspecto": "impulsao-e-absorcao-allegro",
@@ -87,8 +87,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2139",
-      "versoes": 4
+      "ultima": "20261109-2207",
+      "versoes": 5
     },
     {
       "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
@@ -97,8 +97,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2139",
-      "versoes": 4
+      "ultima": "20261109-2207",
+      "versoes": 5
     },
     {
       "aspecto": "rotacao-e-amplitude-dos-ombros",
@@ -107,8 +107,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2139",
-      "versoes": 4
+      "ultima": "20261109-2207",
+      "versoes": 5
     },
     {
       "aspecto": "cinco-posicoes-5a-bracos",
@@ -117,8 +117,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2139",
-      "versoes": 2
+      "ultima": "20261109-2207",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-5a-pes",
@@ -127,8 +127,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2139",
-      "versoes": 2
+      "ultima": "20261109-2207",
+      "versoes": 3
     },
     {
       "aspecto": "cocoras-profundas-squat",
@@ -137,8 +137,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2139",
-      "versoes": 2
+      "ultima": "20261109-2207",
+      "versoes": 3
     }
   ],
   "aulas": [
@@ -692,9 +692,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6e7424c"
+    "commit": "28aebd8"
   },
-  "gerado_em": "2026-11-09T21:41",
+  "gerado_em": "2026-11-09T22:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -719,13 +719,13 @@
   ],
   "recortes": [
     {
-      "alunas": 2,
+      "alunas": 1,
       "aspectos": [
         "cinco-posicoes-5a-bracos",
         "cinco-posicoes-5a-pes",
         "cocoras-profundas-squat"
       ],
-      "atualizada_em": "2026-11-09T21:39:56.862Z",
+      "atualizada_em": "2026-11-09T22:07:48.918Z",
       "enviada_em": "2026-11-09T19:18:38.297Z",
       "id": "recorte:ami",
       "linha": "ami",
@@ -733,6 +733,17 @@
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/calango/linhas-de-base/ami--20261109-2207.json",
+          "aspectos": [
+            "cinco-posicoes-5a-pes",
+            "cinco-posicoes-5a-bracos",
+            "cocoras-profundas-squat"
+          ],
+          "enviada_em": "2026-11-09T19:18:38.297Z",
+          "versao": "20261109-2207"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/calango/linhas-de-base/ami--20261109-2139.json",
@@ -759,7 +770,7 @@
       "vigente": true
     },
     {
-      "alunas": 1,
+      "alunas": 2,
       "aspectos": [
         "cinco-posicoes-1a-bracos",
         "cinco-posicoes-1a-pes",
@@ -773,7 +784,7 @@
         "passe",
         "rotacao-e-amplitude-dos-ombros"
       ],
-      "atualizada_em": "2026-11-09T21:39:56.862Z",
+      "atualizada_em": "2026-11-09T22:07:48.918Z",
       "enviada_em": "2026-11-09T19:17:15.943Z",
       "id": "recorte:tami",
       "linha": "tami",
@@ -781,6 +792,25 @@
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/calango/linhas-de-base/tami--20261109-2207.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "rotacao-e-amplitude-dos-ombros",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "memoria-e-retencao-de-sequencias",
+            "impulsao-e-absorcao-allegro",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-09T19:17:15.943Z",
+          "versao": "20261109-2207"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/calango/linhas-de-base/tami--20261109-2139.json",
