@@ -35,6 +35,23 @@
       "alunas": 2,
       "anterior": "ami--20261109-1918.json"
     },
+    "ami--20261109-2207.json": {
+      "id": "ami",
+      "carimbo": "20261109-2207",
+      "arquivo": "escola/calango/linhas-de-base/ami--20261109-2207.json",
+      "nome": "ami",
+      "professor": "pe-torto",
+      "turma": null,
+      "atualizada_em": "2026-11-09T22:07:48.918Z",
+      "enviada_em": "2026-11-09T19:18:38.297Z",
+      "aspectos": [
+        "cinco-posicoes-5a-pes",
+        "cinco-posicoes-5a-bracos",
+        "cocoras-profundas-squat"
+      ],
+      "alunas": 1,
+      "anterior": "ami--20261109-2139.json"
+    },
     "tami--20261108-1600.json": {
       "id": "tami",
       "carimbo": "20261108-1600",
