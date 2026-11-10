@@ -984,3 +984,10 @@ experimentos/modelo-formulario/*
 # nome da linha de uma listagem ficava com 163px, e a 768 (telemóvel) tinha 338. Esta prova mede
 # doze larguras, de 320 a 1920, e TEM CONTROLE NEGATIVO: reposta a regra antiga, ela reprova.
 !experimentos/provar-largura-da-lista.js
+
+# O HISTÓRICO DO AJUSTE (10/11/2026). A pesquisadora perguntou para que servia o bloco «versões
+# anteriores» do cartão — e a resposta era «para saber desde quando e o que valia antes», que a
+# tela não dava. Esta prova mede o que passou a dar: o rótulo em português corrente, a DIFERENÇA
+# em vez de duas fotografias, a data num formato só nas duas listas, o motivo quando declarado —
+# e, sobretudo, o que NÃO pode acontecer: um elo herdar a razão do ajuste anterior.
+!experimentos/provar-historico-do-ajuste.js

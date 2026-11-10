@@ -4,11 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **a faixa de 1141 a 1919px deixa
-> de ser território sem prova**: ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a
-> listagem ficou «acavalada» — **CONFIRMADO e medido**: a `.secao` dava ao formulário os 544px
-> inteiros (o tecto funcionava como piso) e ao nome da linha sobravam **163px a 1366**, contra 338px
-> a 768 (telemóvel). O formulário passa a ceder primeiro (`min(34rem, 38%)`) e o nome ganha piso de
+> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **o histórico do ajuste diz a
+> mudança, não duas fotografias**. Ela perguntou para que servia o bloco «versões anteriores» do
+> cartão — e a resposta expôs quatro defeitos: o rótulo `2 versão(ões) anterior(es)`, duas linhas
+> para comparar de olho, a data em **dois formatos** (o bloco era um por lista) e o motivo
+> **ausente** do cartão (só no log da cadeia). **DECIDIDO** — por ela — manter nos dois sítios, com
+> o rótulo em português corrente, a **diferença** calculada («ter, qui: 18:00 → 19:00»), a data em
+> BR nos dois, e o motivo gravado **no elo** num campo opcional. O elo **não herda** a razão do
+> ajuste anterior — é o defeito que o `Object.assign` da derivação criaria, e está provado nos dois
+> sentidos. `provar-historico-do-ajuste` **39/39**. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (10/11/2026).** Nesta entrega, **a faixa de 1141 a 1919px deixa de ser
+> território sem prova**: ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a listagem
+> ficou «acavalada» — **CONFIRMADO e medido**: a `.secao` dava ao formulário os 544px inteiros (o
+> tecto funcionava como piso) e ao nome da linha sobravam **163px a 1366**, contra 338px a 768
+> (telemóvel). O formulário passa a ceder primeiro (`min(34rem, 38%)`) e o nome ganha piso de
 > `11rem`. **A tela larga não mudou**: a 1920 o formulário mede 544px e a listagem 1115px, como
 > antes. `provar-largura-da-lista` **56/56**, com controle negativo. Ver a entrada de 10/11/2026 no
 > `REGISTRO.md` e a secção «A faixa que ninguém media» do `IDENTIDADE-VISUAL.md`.
@@ -3200,7 +3210,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (10/11/2026 — a faixa de 1141 a 1919px)
+### Executado nesta fotografia (10/11/2026 — o histórico do ajuste)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-historico-do-ajuste` (**nova**) | **PASSOU — 39 asserções**, contra o código servido e o KV falso. (A) o rótulo em português corrente, singular e plural, e **nenhum `(ões)`** na página; (B) a **diferença** calculada: a hora agrupada por transição («ter, qui: 18:00 → 19:00», e não repetida por dia), a duração, o dia que entrou, o dia que saiu, o fim do período — e «(sem alteração)» quando nada mudou; (C) a data em **BR nas duas listas** e no selo, sem nenhuma ISO crua; (D) o motivo aparece quando declarado, **cala-se** quando não, e **não é herdado** pelo elo seguinte; (E) as **rotas**: o motivo fica no elo novo com os espaços normalizados, o elo antigo não é tocado, e a segunda derivação sem motivo não herda o da primeira; (F) a Turma nomeia o **professor** (e não o slug), a sala que mudou, a modalidade, a tradição e as alunas. Só o `fetch` é falso (404 — bancada sem GitHub) |
+| `provar-producao` · `provar-largura-da-lista` | **166/166** · **56/56** — verdes |
+| `provar-mudanca-de-sala` · `provar-cadeia-automatica` · `provar-transferencia-e-desligamento` | **41 · 60 · 93** — verdes |
+| `provar-vao-do-botao` · `provar-celular` | **50/50** · **15/15** — verdes (o campo novo é a peça `campo` de sempre, e o vão do botão não mudou) |
+| `check-identidade` | **0 erros (21 ok)** |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão. O **motivo não é obrigatório** — por decisão: quem deriva sem escrever nada continua a ter a diferença, e só não tem a razão |
+
+### Executado na fotografia anterior (10/11/2026 — a faixa de 1141 a 1919px)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4328,6 +4349,22 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **10/11/2026** — **O histórico do ajuste passa a dizer a mudança, e o porquê.** Ela perguntou,
+  como quem opera a escola, para que servia o «versões anteriores» do cartão; a resposta honesta
+  tinha duas metades. O bloco **existia por necessidade**, não por gosto: num registo vinculado a um
+  plano de ensino, o «Editar» **deriva** (P-03/P-04), e a versão anterior tem de aparecer em alguma
+  parte. **Mas não pagava o espaço:** o rótulo `2 versão(ões) anterior(es)` lê-se como defeito, eram
+  duas fotografias para comparar de olho, a data saía em **dois formatos** (o bloco era uma cópia
+  por lista) e o **motivo não estava no cartão** — só no log da cadeia. **DECIDIDO** por ela:
+  manter nos dois sítios, com o rótulo em português corrente, a **diferença** calculada, a data em
+  BR nos dois e o **motivo gravado no elo** (campo opcional ao lado da vigência). O bloco passou a
+  ser **um só** (`historicoDoAjuste`) e a Turma fala **nomes, não slugs**. O defeito que a
+  implementação tinha de evitar — o `Object.assign` da derivação a herdar a razão do ajuste
+  anterior — está provado nos dois sentidos. Saiu também um `turmasSubstituidas` calculado e nunca
+  lido. `provar-historico-do-ajuste` **39/39** (novo); sem regressão em `producao` 166,
+  `largura-da-lista` 56, `mudanca-de-sala` 41, `cadeia-automatica` 60,
+  `transferencia-e-desligamento` 93, `vao-do-botao` 50, `celular` 15, `check-identidade` 0 erros.
+  Ver a entrada de 10/11/2026 no `REGISTRO.md`.
 - **10/11/2026** — **A faixa de 1141 a 1919px deixa de ser território sem prova.** Ela mudou o
   monitor de 1920×1080 para 1366×768 e viu a listagem «acavalada» e as margens das etiquetas
   desaparecidas; no telemóvel funcionava. A hipótese dela (`px` em vez de `rem`, falta de `wrap`)

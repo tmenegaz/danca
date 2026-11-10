@@ -41664,3 +41664,79 @@ página de documento, `main` de 1180px) foi medida e não tem defeito: o documen
 centra-se, e a folha de leitura não estica. (3) As outras listagens do serviço (Turmas,
 Curadorias, Verbetes) foram medidas a 1920/1366/1280 e não transbordam; a que estava apertada era a
 de **alunos e professores**, por causa da etiqueta das turmas com 240px.
+
+## 10/11/2026 — O histórico do ajuste: o rótulo, a diferença e o motivo
+
+**O que motivou.** Ela perguntou, pensando em quem opera a escola: *«em Turmas tem ali um espaço que
+você chamou versões anteriores. Pensando como o professor da turma, o diretor da escola, quem opera
+o sistema, por que a pessoa gostaria de saber isso? Qual foi o seu intuito em fazer isso?»*
+**A pergunta era justa, e a resposta honesta tinha duas metades.**
+
+A primeira metade é o que o bloco **é**: não são versões do conteúdo da turma, é o **ritmo**
+(frequência, dias e horas, duração, período) com a data até à qual cada versão valeu. Ele não nasceu
+como funcionalidade — nasceu como **efeito necessário** de uma regra: num registo já vinculado a um
+plano de ensino, o «Editar» **deriva** em vez de sobrescrever (`substitui`/`vigenteDe` na nova,
+`substituidaPor`/`substituidaEm` na anterior), porque o passado não se reescreve (P-03/P-04). Se a
+versão anterior fica na lista e **não** pode voltar a ser escolhida, ela tem de aparecer de outra
+forma — o `<details>` fechado era esse sítio. O intuito declarado, em 16/10/2026, foi: *«a escola
+precisa de ver que já mexeu nesta turma e o que valia antes»*.
+
+A segunda metade é onde ele **não** se sustentava, e foi o que a pergunta expôs. **CONFIRMADO no
+código:**
+
+- o rótulo era `2 versão(ões) anterior(es)` — o `(ões)`/`(es)` é hesitação de programador, e quem
+  opera uma escola lê aquilo como defeito;
+- eram duas **fotografias** para comparar de olho; a pergunta que a pessoa faz («o que mudou?») não
+  tinha resposta directa;
+- a data saía em **dois formatos**: `01/11/2026` nas Salas e `2026-11-01` nas Turmas — o bloco era
+  **um por lista**, duas cópias que já tinham divergido;
+- o **motivo não existia no cartão**. Ele era escrito no log da cadeia, noutro ecrã. Um histórico
+  sem motivo não é auditoria, é fotografia;
+- e havia um `turmasSubstituidas` calculado e **nunca lido** — resto de uma primeira versão em que o
+  histórico ia para o fim da lista.
+
+**O que foi decidido** (por ela: **A**, nos **dois** sítios, com o motivo **gravado no elo**).
+
+- **O RÓTULO EM PORTUGUÊS CORRENTE:** «1 ajuste anterior» / «2 ajustes anteriores». Nada de
+  `(ões)`.
+- **A DIFERENÇA, NÃO A FOTOGRAFIA.** Uma linha por versão, com o que mudou em relação à que a
+  substituiu: `ter, qui: 18:00 → 19:00`, `60 min → 75 min`, `entrou sex 18:00`, `fim 31/12/2026 →
+  15/12/2026`. As mudanças de hora **agrupam-se por transição** — `ter 18:00 → 19:00 · qui 18:00 →
+  19:00` é a mesma frase dita duas vezes. Uma derivação que não mudou nada diz «(sem alteração)», e
+  não finge uma diferença.
+- **UM BLOCO SÓ, partilhado pelas duas listas** (`historicoDoAjuste`). O que muda é a função que
+  calcula a diferença, porque as duas entidades mudam por eixos diferentes: `diferencaDeRitmo` para
+  a Sala, `diferencaDeCuradoria` para a Turma.
+- **A TURMA FALA NOMES, NÃO SLUGS:** «professor Petorto → Marina Souza», «sala Balé Nível 1 → Balé
+  Nível 2», «elenco X → Y», «1 aluna → 2». O slug é o nome da pasta (`professores/<slug>/`), não
+  uma pessoa.
+- **O MOTIVO FICA NO ELO**, num campo novo (`motivoDoAjuste`), declarado num campo opcional ao lado
+  da data de vigência — a mesma peça do «Motivo (opcional)» da transferência de aluna. **Vazio é
+  vazio: o sistema não inventa razão**, e o bloco cala-se.
+- **A DATA EM BR nos dois sítios**, e no selo «ajustada em».
+- **O `turmasSubstituidas` saiu** — uma variável que se calcula para ninguém é a mentira mais
+  barata que uma página conta a si mesma.
+
+**O DEFEITO QUE A IMPLEMENTAÇÃO TINHA DE EVITAR, e que a prova fixa.** A derivação faz
+`Object.assign({}, anterior, …)`: sem um `delete nova.motivoDoAjuste` antes de a escrever, **o motivo
+do primeiro ajuste viajaria para todos os elos seguintes** — cada versão passaria a exibir a razão
+da primeira, para sempre. Está provado nos dois sentidos: com motivo, ele aparece **uma vez**, na
+linha do elo que o declarou; sem motivo, o elo novo fica sem a chave.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `rotuloDoHistorico`, `motivoDoAjuste`,
+`diferencaDeRitmo`, `diferencaDeCuradoria` e `historicoDoAjuste` (o bloco único), os dois
+`motivoDoAjuste` nas rotas de derivação, o campo opcional nos dois formulários (e no rascunho do
+formulário, que sobrevive ao recarregamento), o `nomeDoProfessor` para traduzir o slug, o `dataBr` no
+selo das Turmas, e a remoção da variável morta · `experimentos/provar-historico-do-ajuste.js`
+(**novo, 39 asserções**) · `.gitignore` (a excepção da prova).
+
+**Validação.** `provar-historico-do-ajuste` **39/39**. Sem regressão: `provar-producao` **166/166**,
+`provar-largura-da-lista` 56/56, `provar-mudanca-de-sala` 41, `provar-cadeia-automatica` 60,
+`provar-transferencia-e-desligamento` 93, `provar-vao-do-botao` 50, `provar-celular` 15,
+`check-identidade` **0 erros (21 ok)**.
+
+**O que ainda não está feito.** (1) **O motivo não é obrigatório**, por decisão: quem deriva sem
+escrever nada continua a ter a diferença no histórico, e só não tem a razão. Uma razão obrigatória
+seria uma pergunta a mais num gesto que já pede uma data. (2) **O histórico continua a ser por
+cartão**, e não uma vista da escola: ver «todos os ajustes do mês» é outra tela, e não foi pedida.
+(3) Não foi conferido **no ar** nesta sessão — a conferência é o passo seguinte ao deploy.

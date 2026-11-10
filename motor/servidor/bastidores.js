@@ -1340,6 +1340,178 @@ function dataBr(iso) {
   return m ? m[3] + '/' + m[2] + '/' + m[1] : texto;
 }
 
+/* ==========================================================================================
+ * O HISTÓRICO DO AJUSTE DIZ A MUDANÇA, NÃO DUAS FOTOGRAFIAS (10/11/2026)
+ *
+ * O bloco existia desde 16/10/2026 e dizia o ritmo de cada versão em texto corrido — duas
+ * linhas que era preciso ler e comparar de olho para descobrir o que tinha mudado. A
+ * pesquisadora perguntou para que servia: «por que a pessoa gostaria de saber isso?». A
+ * resposta honesta era «para saber desde quando e o que valia antes» — e a tela não respondia
+ * a nenhuma das duas de forma directa: a data de validade vinha em dois formatos diferentes
+ * nas duas listas, e a diferença não vinha de todo.
+ *
+ * Aqui ficam as três peças que faltavam: o rótulo em português corrente («2 ajustes
+ * anteriores», e não «2 versão(ões) anterior(es)» — o `(ões)` é hesitação de máquina), a
+ * DIFERENÇA calculada entre a versão e a que a substituiu, e o motivo quando ele foi
+ * declarado. Ainda por medir uma quarta: o bloco é UM só, partilhado pelas duas listas, para
+ * a data não voltar a divergir — era o defeito que o `check-identidade` não apanha, porque a
+ * regra vivia em dois sítios do mesmo ficheiro e não em duas folhas.
+ * ========================================================================================== */
+
+/** O rótulo do histórico, em português — sem `(ões)`/`(es)`. */
+function rotuloDoHistorico(n) {
+  return n === 1 ? '1 ajuste anterior' : n + ' ajustes anteriores';
+}
+
+/** O motivo declarado no ajuste, normalizado. Vazio é vazio: NÃO se inventa razão. */
+function motivoDoAjuste(texto) {
+  return String(texto == null ? '' : texto).replace(/\s+/g, ' ').trim().slice(0, 240);
+}
+
+/**
+ * O QUE MUDOU NO RITMO, de uma versão da Sala para a seguinte.
+ *
+ * Só os campos que a derivação pode mudar (`frequencia`, `dias`, `horarios`, `duracaoMin`,
+ * `periodoInicio`, `periodoFim`) — o nome nunca muda, e é isso que mantém a Turma e o plano a
+ * encontrar a sala depois do ajuste. Devolve `''` quando nada mudou, e quem chama diz
+ * «(sem alteração)» em vez de fingir uma diferença.
+ */
+function diferencaDeRitmo(antes, depois) {
+  const a = antes || {};
+  const d = depois || {};
+  const partes = [];
+  const horasDe = (t) => (t.horarios && typeof t.horarios === 'object') ? t.horarios : {};
+  const diasDe = (t) => (Array.isArray(t.dias) ? t.dias.map(String) : []);
+  const ha = horasDe(a);
+  const hd = horasDe(d);
+  const dA = new Set(diasDe(a));
+  const dD = new Set(diasDe(d));
+  const posicao = (dia) => { const i = DIAS_DA_SEMANA.indexOf(dia); return i === -1 ? 99 : i; };
+  const ordem = [...new Set([...dA, ...dD])]
+    .sort((x, y) => posicao(x) - posicao(y) || String(x).localeCompare(String(y)));
+  /* AS MUDANÇAS DE HORA AGRUPAM-SE POR TRANSIÇÃO. «ter 18:00 → 19:00 · qui 18:00 → 19:00» é a
+   * mesma frase dita duas vezes — e era o que saía antes de agrupar. Quando todos os dias que
+   * ficaram mudaram para a mesma hora, a linha diz os dias de uma vez: «ter, qui: 18:00 → 19:00». */
+  const mudancasDeHora = new Map();
+  const entraram = [];
+  const sairam = [];
+  for (const dia of ordem) {
+    const va = dA.has(dia) ? String(ha[dia] || '').trim() : '';
+    const vd = dD.has(dia) ? String(hd[dia] || '').trim() : '';
+    if (va === vd) continue;
+    if (va && vd) {
+      const chave = va + '→' + vd;
+      if (!mudancasDeHora.has(chave)) mudancasDeHora.set(chave, []);
+      mudancasDeHora.get(chave).push(dia);
+    } else if (vd) entraram.push(dia + (vd ? ' ' + vd : ''));
+    else sairam.push(dia + (va ? ' ' + va : ''));
+  }
+  for (const [chave, dias] of mudancasDeHora) {
+    const [de, para] = chave.split('→');
+    partes.push((dias.length === 1 ? dias[0] : dias.join(', ') + ':') + ' ' + de + ' → ' + para);
+  }
+  if (entraram.length) partes.push('entrou ' + entraram.join(', '));
+  if (sairam.length) partes.push('saiu ' + sairam.join(', '));
+  const nA = Number(a.duracaoMin) || 0;
+  const nD = Number(d.duracaoMin) || 0;
+  if (nA !== nD) {
+    const duracao = (n) => (n ? n + ' min' : 'sem duração');
+    partes.push(duracao(nA) + ' → ' + duracao(nD));
+  }
+  const inicioA = String(a.periodoInicio || '').trim();
+  const inicioD = String(d.periodoInicio || '').trim();
+  if (inicioA !== inicioD) partes.push('início ' + dataBr(inicioA || '—') + ' → ' + dataBr(inicioD || '—'));
+  const fimA = String(a.periodoFim || '').trim();
+  const fimD = String(d.periodoFim || '').trim();
+  if (fimA !== fimD) partes.push('fim ' + dataBr(fimA || '—') + ' → ' + dataBr(fimD || '—'));
+  /* A FREQUÊNCIA é derivada dos dias, e por isso só entra quando os dias não explicam a
+   * diferença — um registo antigo, gravado antes de o servidor a calcular. Dizê-la sempre
+   * seria repetir «entrou qui» com outras palavras. */
+  const fA = Number(a.frequencia) || 0;
+  const fD = Number(d.frequencia) || 0;
+  if (fA !== fD && !entraram.length && !sairam.length) {
+    partes.push(fA + 'x/semana → ' + fD + 'x/semana');
+  }
+  return partes.join(' · ');
+}
+
+/**
+ * O QUE MUDOU NA TURMA (a curadoria), de uma versão para a seguinte.
+ *
+ * A turma muda por outros eixos: o professor, a modalidade, a tradição, o nível, a SALA que ela
+ * ocupa e o elenco. `nomeDoProfessor` traduz o slug no nome que se lê — o histórico é para
+ * gente, e `pe-torto` não é uma pessoa.
+ */
+function diferencaDeCuradoria(antes, depois, nomeDoProfessor) {
+  const a = antes || {};
+  const d = depois || {};
+  const partes = [];
+  const nome = (slug) => {
+    const s = String(slug || '').trim();
+    if (!s) return '(sem professor)';
+    return nomeDoProfessor ? nomeDoProfessor(s) : s;
+  };
+  if (String(a.professor || '') !== String(d.professor || '')) {
+    partes.push('professor ' + nome(a.professor) + ' → ' + nome(d.professor));
+  }
+  const campo = (rotulo, chave) => {
+    const va = String(a[chave] == null ? '' : a[chave]).trim();
+    const vd = String(d[chave] == null ? '' : d[chave]).trim();
+    if (va !== vd) partes.push(rotulo + ' ' + (va || '—') + ' → ' + (vd || '—'));
+  };
+  campo('modalidade', 'modalidade');
+  campo('tradição', 'tradicao');
+  campo('grau', 'grau');
+  campo('nível', 'nivel');
+  const salasA = (Array.isArray(a.turmas) ? a.turmas : []).map(String);
+  const salasD = (Array.isArray(d.turmas) ? d.turmas : []).map(String);
+  const saiu = salasA.filter((x) => salasD.indexOf(x) === -1);
+  const entrou = salasD.filter((x) => salasA.indexOf(x) === -1);
+  if (saiu.length === 1 && entrou.length === 1) {
+    partes.push('sala ' + saiu[0] + ' → ' + entrou[0]);
+  } else {
+    for (const x of saiu) partes.push('saiu a sala ' + x);
+    for (const x of entrou) partes.push('entrou a sala ' + x);
+  }
+  const elencoA = String(a.linhaDeBaseNome || a.linhaDeBase || '').trim();
+  const elencoD = String(d.linhaDeBaseNome || d.linhaDeBase || '').trim();
+  if (elencoA !== elencoD) partes.push('elenco ' + (elencoA || '—') + ' → ' + (elencoD || '—'));
+  const nA = (Array.isArray(a.alunas) ? a.alunas : []).length;
+  const nD = (Array.isArray(d.alunas) ? d.alunas : []).length;
+  if (nA !== nD && elencoA === elencoD) {
+    partes.push(nA + (nA === 1 ? ' aluna' : ' alunas') + ' → ' + nD);
+  }
+  const rA = (Array.isArray(a.repertorio) ? a.repertorio : []).length;
+  const rD = (Array.isArray(d.repertorio) ? d.repertorio : []).length;
+  if (rA !== rD) partes.push('conteúdos ' + rA + ' → ' + rD);
+  return partes.join(' · ');
+}
+
+/**
+ * O BLOCO DO HISTÓRICO — um só, para as duas listas.
+ *
+ * `elos` são pares `{ versao, sucessor }`: a versão antiga e a que tomou o lugar dela. O que se
+ * mostra em cada linha é a data até à qual a versão valeu, a DIFERENÇA para a seguinte, e o
+ * motivo quando a derivação o declarou. `<details>` fechado, como sempre foi: o histórico não
+ * compete com o que está vigente.
+ */
+function historicoDoAjuste(elos, diferenca) {
+  const lista = Array.isArray(elos) ? elos.filter((e) => e && e.versao) : [];
+  if (!lista.length) return '';
+  const itens = lista.map((e) => {
+    const v = e.versao || {};
+    const s = e.sucessor || null;
+    const mudou = s ? diferenca(v, s) : '';
+    const motivo = s ? motivoDoAjuste(s.motivoDoAjuste) : '';
+    const ate = dataBr(v.substituidaEm || '') || '?';
+    return '<li><span class="dono">até ' + esc(ate) + '</span> ' +
+      esc(mudou || '(sem alteração)') +
+      (motivo ? '<br><span class="dono">motivo: «' + esc(motivo) + '»</span>' : '') + '</li>';
+  }).join('');
+  return '<details class="historico"><summary>' + rotuloDoHistorico(lista.length) +
+    '</summary><ul>' + itens + '</ul></details>';
+}
+
 /**
  * UMA LINHA DO EDITOR DA RÉGUA (o cadastro da turma e o formulário da régua): um nome de
  * nível e o botão de tirar. A régua é uma LISTA EDITÁVEL — em comitê a escola pode
@@ -2499,15 +2671,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
   // Os CARTÕES e as opções de curadoria são as turmas VIGENTES (16/10/2026). As substituídas
-  // saem da operação e entram num histórico fechado no fim do cartão — a escola precisa de as
-  // ver para saber que o ajuste foi feito, mas não pode voltar a escolhê-las.
+  // saem da operação e ficam no histórico FECHADO DE CADA CARTÃO (`historicoDoAjuste`) — a
+  // escola precisa de as ver para saber que o ajuste foi feito, mas não pode voltar a
+  // escolhê-las.
+  //
+  // Havia aqui um `turmasSubstituidas` calculado e nunca lido (10/11/2026) — resíduo de uma
+  // primeira versão em que o histórico ia para o fim da LISTA, e não para dentro do cartão. Uma
+  // variável que se calcula para ninguém é a mentira mais barata que uma página conta a si
+  // mesma: diz «há aqui uma decisão» onde já só há um resto.
   //
   // ESTE BLOCO SUBIU PARA ANTES DAS LISTAS (18/10/2026): as linhas de Professor, Aluna e
   // Termo passaram a dizer a que turmas cada um pertence, e para isso precisam do mapa de
   // turmas vigentes — antes ele era calculado depois delas.
   const todasAsTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
   const listaTurmas = turmasVigentes(todasAsTurmas);
-  const turmasSubstituidas = todasAsTurmas.filter((t) => t && t.substituidaPor);
   const listaRubricas = (rbs || []).slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
   const listaTermos = (trmos || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo)));
   const termoPorId = new Map(listaTermos.map((t) => [t.id, t]));
@@ -2853,9 +3030,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // nome mostrava a escala PADRÃO: a resolução precisa da lista para seguir o
         // `rubricaId`. O mapa `reguaPorTurma` já a tem resolvida, e é dele que sai.
         const regua = reguaPorTurma[t.id] || rubricaDaTurma(t, listaRubricas);
-        // O HISTÓRICO do ajuste (16/10/2026): a escola precisa de ver que já mexeu nesta turma
-        // e o que valia antes — e fechado, para não competir com a turma vigente. Sobe a
-        // cadeia por `substitui`, do mais recente para o mais antigo.
+        // O HISTÓRICO do ajuste (16/10/2026, refeito a 10/11/2026): a escola precisa de ver que
+        // já mexeu nesta sala, e o que valia antes. Sobe a cadeia por `substitui`, do mais
+        // recente para o mais antigo, e cada linha diz a DIFERENÇA para quem tomou o lugar dela
+        // — a versão de índice `i` foi substituída pela de `i-1`, e a primeira de todas pela
+        // vigente (`t`). O bloco é UM (ver `historicoDoAjuste`), partilhado com a lista das
+        // Turmas: a data já divergira entre as duas por serem duas cópias.
         const porId = new Map(todasAsTurmas.map((x) => [x && x.id, x]));
         const passado = [];
         let cursor = t.substitui ? porId.get(t.substitui) : null;
@@ -2863,24 +3043,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           passado.push(cursor);
           cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
         }
-        const historico = passado.length
-          ? '<details class="historico"><summary>' +
-            passado.length + ' versão(ões) anterior(es)</summary><ul>' +
-            passado.map((v) => {
-              const r = [
-                frequenciaDaTurma(v) ? frequenciaDaTurma(v) + 'x/semana' : '',
-                (v.dias && v.dias.length)
-                  ? v.dias.map((d) => (v.horarios && v.horarios[d]) ? d + ' ' + v.horarios[d] : d).join(', ')
-                  : '',
-                v.duracaoMin ? v.duracaoMin + ' min' : '',
-                (v.periodoInicio || v.periodoFim)
-                  ? dataBr(v.periodoInicio || '?') + '–' + dataBr(v.periodoFim || '?')
-                  : '',
-              ].filter(Boolean).join(' · ');
-              return '<li><span class="dono">até ' + esc(dataBr(v.substituidaEm || '?')) + '</span> ' +
-                esc(r || '(sem ritmo)') + '</li>';
-            }).join('') + '</ul></details>'
-          : '';
+        const historico = historicoDoAjuste(
+          passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? t : passado[i - 1] })),
+          diferencaDeRitmo);
         const seloVigencia = t.vigenteDe
           ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
             esc(dataBr(t.vigenteDe)) + '</span>'
@@ -3060,6 +3225,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const opcoesProfessorCuradoria = profsParaCuradoria.length
     ? profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
     : '<option value="">— nenhum professor —</option>';
+  /* O HISTÓRICO FALA NOMES, NÃO SLUGS (10/11/2026). A diferença de uma versão para a outra diz
+   * «professor Petorto → Marina», e não «pe-torto → marina»: o bloco é para quem opera a escola,
+   * e o slug é o nome da pasta (`professores/<slug>/`), não uma pessoa. A lista é a mesma do
+   * `<select>` — não há um segundo cadastro de nomes. */
+  const nomeDoProfessor = (slug) => {
+    const s = String(slug || '').trim();
+    const achado = profsParaCuradoria.find((p) => String(p.valor) === s);
+    return achado ? achado.rotulo : s;
+  };
   // O PROFESSOR RESPONSÁVEL DA TURMA (03/11/2026). É a MESMA lista da curadoria — os professores
   // da escola —, e não uma segunda: o elo «quem ensina esta turma» é o mesmo nos dois sítios, e
   // duas listas divergiriam à primeira admissão.
@@ -3231,15 +3405,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           return '/plano-ensino/?' + partes.join('&');
         })();
         const seloVigencia = c.vigenteDe
-          ? '<span class="selo vigencia" title="esta versão da curadoria vale a partir desta data">ajustada em ' +
-            esc(c.vigenteDe) + '</span>'
+          ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
+            esc(dataBr(c.vigenteDe)) + '</span>'
           : '';
         const botaoAjuste = vinculada
           ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
           : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
             'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
-        // O HISTÓRICO do ajuste, fechado — sobe a cadeia por `substitui`.
+        // O HISTÓRICO do ajuste, fechado — sobe a cadeia por `substitui`, e cada linha diz a
+        // DIFERENÇA para a versão que a substituiu. O bloco é o MESMO da lista das Salas (ver
+        // `historicoDoAjuste`); o que muda é a função que calcula a diferença, porque as duas
+        // entidades mudam por eixos diferentes.
         const porId = new Map(todasAsCuradorias.map((x) => [x && x.id, x]));
         const passado = [];
         let cursor = c.substitui ? porId.get(c.substitui) : null;
@@ -3247,13 +3424,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           passado.push(cursor);
           cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
         }
-        const historico = passado.length
-          ? '<details class="historico"><summary>' + passado.length +
-            ' versão(ões) anterior(es)</summary><ul>' +
-            passado.map((v) => '<li><span class="dono">até ' + esc(v.substituidaEm || '?') + '</span> ' +
-              esc(turmasDaCuradoria(v).join(' · ') || '(sem turma)') + '</li>').join('') +
-            '</ul></details>'
-          : '';
+        const historico = historicoDoAjuste(
+          passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? c : passado[i - 1] })),
+          (a, d) => diferencaDeCuradoria(a, d, nomeDoProfessor));
         // DUAS LINHAS, como as demais listas: o professor e os selos em cima; modalidade,
         // tradição, sala, elenco e alunas embaixo, num complemento só. A modalidade já entra no
         // `resumo` (com o rótulo do catálogo), e repeti-la aqui faria a linha dizer duas vezes.
@@ -3871,9 +4044,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.turma .nota-falta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
-    // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
-    // versão da turma nasceu de um ajuste; o histórico, fechado, diz o que valia antes — a
-    // escola precisa de saber que mexeu, e não pode confundir o passado com o presente.
+    // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026, refeito a 10/11/2026). O
+    // selo diz que esta versão nasceu de um ajuste; o histórico, fechado, diz a DIFERENÇA para a
+    // versão que tomou o lugar de cada uma, até quando ela valeu, e o motivo quando foi
+    // declarado — a escola precisa de saber que mexeu, e não pode confundir o passado com o
+    // presente. O bloco é o MESMO nas duas listas (`historicoDoAjuste`): a data já divergira
+    // entre elas por serem duas cópias.
     // LIVRE × VINCULADA (16/10/2026): a mesma pergunta do plano de ensino, feita no cadastro.
     // Âmbar é «ainda podes mexer»; o lilás é «isto é linha de base, deriva».
     'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--texto-suave);}' +
@@ -4395,11 +4571,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input type="hidden" id="tderivar">' +
     '<input type="hidden" id="tmodo">' +
     // O AVISO EXPLICATIVO SAIU (18/10/2026). Quem entra em «Editar» vê o que muda no próprio
-    // formulário e tem o «Cancelar» ao lado do «Avançar». Fica só a DATA, quando ela existe:
-    // é o único campo que o modo de derivação acrescenta.
+    // formulário e tem o «Cancelar» ao lado do «Avançar». Ficam a DATA e o MOTIVO, que é o que
+    // o modo de derivação acrescenta.
+    //
+    // O MOTIVO ENTROU A 10/11/2026, e é OPCIONAL. O histórico do cartão passou a dizer o que
+    // mudou («ter 18:00 → 19:00»); sem o motivo ele dizia o quê e nunca o porquê, e um histórico
+    // sem porquê não é auditoria, é fotografia. A peça é a mesma do «Motivo (opcional)» da
+    // transferência de aluna — rótulo e campo, nada inventado.
     '<div class="aviso-derivar" id="t-vigencia-campo" hidden>' +
     '<label class="campo-rotulo" for="tvigencia">Vale a partir de</label>' +
     '<input id="tvigencia" type="date" autocomplete="off">' +
+    '<label class="campo-rotulo" for="tmotivo">Motivo do ajuste (opcional)</label>' +
+    '<input id="tmotivo" autocomplete="off" placeholder="ex.: a sala mudou para o período da tarde">' +
     '</div>' +
     '<label class="campo-rotulo" for="tnome">Nome da sala</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
@@ -5085,11 +5268,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input type="hidden" id="cuderivar">' +
     '<input type="hidden" id="cumodo">' +
     // O TEXTO EXPLICATIVO SAIU (18/10/2026), pela mesma razão do formulário da turma: quem
-    // entra em «Editar» vê o modo no próprio formulário e cancela ao lado do botão. Fica só a
-    // DATA, que é o único campo que a derivação acrescenta.
+    // entra em «Editar» vê o modo no próprio formulário e cancela ao lado do botão. Ficam a
+    // DATA e o MOTIVO — as duas coisas que a derivação acrescenta, e a segunda é opcional
+    // (10/11/2026), pela mesma razão que na Sala.
     '<div class="aviso-derivar" id="cu-vigencia-campo" hidden>' +
     '<label class="campo-rotulo" for="cuvigencia">Vale a partir de</label>' +
     '<input id="cuvigencia" type="date" autocomplete="off">' +
+    '<label class="campo-rotulo" for="cumotivo">Motivo do ajuste (opcional)</label>' +
+    '<input id="cumotivo" autocomplete="off" placeholder="ex.: a professora passou a assumir a turma">' +
     '</div>' +
     '<label class="campo-rotulo" for="cuprofessor">Professor</label>' +
     '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
@@ -5882,6 +6068,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    t.__derivar = (document.getElementById("tderivar") || {}).value || "";' +
     '    t.__modo = (document.getElementById("tmodo") || {}).value || "";' +
     '    t.__vigencia = (document.getElementById("tvigencia") || {}).value || "";' +
+    // O MOTIVO SOBREVIVE AO RECARREGAMENTO (10/11/2026), como a data: cada operação recarrega a
+    // página, e um motivo escrito e perdido obrigaria a escrevê-lo outra vez — ou, pior, a gravar
+    // o elo sem ele.
+    '    t.__motivo = (document.getElementById("tmotivo") || {}).value || "";' +
     '    e.turma = t;' +
     '  }' +
     '  var rid = document.getElementById("rubr-id");' +
@@ -5920,6 +6110,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("tderivar").value = t.__derivar || "";' +
     '    document.getElementById("tmodo").value = t.__modo || "";' +
     '    document.getElementById("tvigencia").value = t.__vigencia || "";' +
+    '    var campoMotivo = document.getElementById("tmotivo");' +
+    '    if (campoMotivo) campoMotivo.value = t.__motivo || "";' +
     // A DATA SÓ APARECE NA DERIVAÇÃO: a turma vinculada ganha um elo novo com vigência; a
     // livre é corrigida no lugar, e perguntar-lhe «a partir de quando» seria uma pergunta
     // sem resposta. O modo é o que decide, e ele está no estado.
@@ -7087,6 +7279,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
     '  campos.derivarDe = derivando;' +
     '  campos.vigencia = vig;' +
+    // O MOTIVO VAI, E PODE IR VAZIO (10/11/2026): é ele que o histórico do cartão mostra ao lado
+    // do que mudou. Vazio não é um motivo inventado — o elo fica sem a chave, e o bloco não
+    // escreve uma razão que ninguém deu.
+    '  campos.motivo = (document.getElementById("tmotivo") || {}).value || "";' +
     '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a turma...", true, avancarParaRubricas);' +
     '});' +
     /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
@@ -7194,6 +7390,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var hoje = new Date();' +
     '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
     '  document.getElementById("tvigencia").value = iso;' +
+    // O MOTIVO NASCE VAZIO A CADA «DERIVAR» (10/11/2026) — a mesma regra da Turma: ele é desta
+    // derivação, e herdá-lo escreveria no elo novo a razão do ajuste anterior.
+    '  var campoMotivoT = document.getElementById("tmotivo");' +
+    '  if (campoMotivoT) campoMotivoT.value = "";' +
     '  mostrarPasso("turma");' +
     '  if (derivar) document.getElementById("t-vigencia-campo").scrollIntoView({block: "center"});' +
     '  (derivar ? document.getElementById("tvigencia") : nome).focus();' +
@@ -7537,6 +7737,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var hoje = new Date();' +
     '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
     '  document.getElementById("cuvigencia").value = iso;' +
+    // O MOTIVO NASCE VAZIO A CADA «DERIVAR» (10/11/2026): ele é da derivação que se vai fazer, e
+    // não do registo. Herdá-lo seria escrever no elo novo a razão do ajuste anterior.
+    '  var campoMotivoCu = document.getElementById("cumotivo");' +
+    '  if (campoMotivoCu) campoMotivoCu.value = "";' +
     // O ELENCO VEM DA TURMA (07/11/2026) — o registo declara-o; a nota mostra o estado dele.
     '  var elencoDaCuradoria = c.linhaDeBase || "";' +
     '  var seletorElenco = document.getElementById("cuelenco");' +
@@ -10410,6 +10614,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
     '  campos.derivarDe = alvo;' +
     '  campos.vigencia = vig;' +
+    // O MOTIVO (10/11/2026) — a mesma peça e a mesma regra do formulário da Sala: vai, e pode ir
+    // vazio; o sistema não inventa razão nenhuma.
+    '  campos.motivo = (document.getElementById("cumotivo") || {}).value || "";' +
     '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando turma...", true);' +
     '});' +
     // O HANDLER DELEGADO DA ASSOCIAÇÃO SAIU A 03/11/2026. Ele servia os botões
@@ -12968,6 +13175,17 @@ async function fetch(request, env, extras) {
     nova.substitui = anterior.id;
     delete nova.substituidaPor;
     delete nova.substituidaEm;
+    /* O MOTIVO FICA NO ELO (10/11/2026). Ele já existia — mas só no log da cadeia, noutro ecrã,
+     * e o histórico do cartão dizia o QUE mudou sem nunca dizer PORQUÊ. Um histórico sem motivo
+     * não é auditoria, é fotografia. Aqui ele é opcional de propósito: em branco é em branco, e
+     * o bloco não inventa razão nenhuma.
+     *
+     * O `delete` vem PRIMEIRO e não é zelo: o `Object.assign` acima copia o registo anterior
+     * inteiro, e sem ele o motivo do ajuste antigo viajaria para todos os elos seguintes — cada
+     * versão passaria a exibir a razão da primeira, para sempre. */
+    delete nova.motivoDoAjuste;
+    const motivoDoElo = motivoDoAjuste(corpo.motivo);
+    if (motivoDoElo) nova.motivoDoAjuste = motivoDoElo;
     const falta = faltaNoRitmoDaTurma(nova);
     if (falta.length) {
       return json(400, {
@@ -15388,6 +15606,12 @@ async function fetch(request, env, extras) {
     });
     delete nova.substituidaPor;
     delete nova.substituidaEm;
+    /* O MOTIVO FICA NO ELO — a mesma peça da Sala, e o mesmo cuidado: o `Object.assign` acima
+     * copiou o registo anterior inteiro, e sem este `delete` o motivo do primeiro ajuste
+     * viajaria por todos os elos seguintes. */
+    delete nova.motivoDoAjuste;
+    const motivoDoElo = motivoDoAjuste(corpo.motivo);
+    if (motivoDoElo) nova.motivoDoAjuste = motivoDoElo;
     const indice = lista.findIndex((c) => c && c.id === anterior.id);
     lista[indice] = Object.assign({}, anterior, {
       substituidaPor: nova.id,
