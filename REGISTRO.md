@@ -41984,3 +41984,119 @@ grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já d
 `wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
 gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
 repetição é o registo da geração, e só quando o KV tem a chave.
+
+## 10/11/2026 — O ajuste que não se perde no elo vencido, e a variante que não muda com a sala
+
+**O que motivou.** Na Produção → Curadoria, a pesquisadora mudou a sala e depois o estilo de uma
+turma e recebeu, ao gravar, **«curadoria não encontra…»** — e perguntou, com razão, se o sistema
+estava a compor o nome do plano de ensino com o nome da sala ou com o nome do professor.
+
+**CONFIRMADO e medido** (leitura do código, estado real do Worker `calango`, bancada local):
+
+- **O erro é o elo vencido, e é um beco.** Derivar troca a IDENTIDADE do registo: o elo novo nasce
+  com a data (`…-2026-11-10`) e o anterior desce ao histórico com `substituidaPor`. Quando a
+  resposta trazia cadeia por concluir, a página **não recarregava** (decisão de 09/11, para o
+  recado não se perder) — e o formulário continuava a apontar o id de **antes**. O gesto seguinte
+  chegava com um id que já não vale, e a resposta era `curadoria não encontrada (ou já
+  substituída)`: uma porta fechada que não diz onde está a que abre. Medido no estado real: a
+  curadoria vigente do `calango` é `pe-torto-bale-classico-piano-2026-11-10`, e a de `Rosa` — a
+  de onde se partiu — está marcada como substituída.
+- **O nome do plano NÃO mistura o professor.** Nenhum nome gerado usa o nome do professor: a
+  variante é `<escola>-<sala>`, o rótulo da lista é `Plano de ensino — <sala>`, e o `NOME` do
+  `.conf` é `Ciclo NN — <ESCOLA> · <sala>`. O professor aparece só nas linhas próprias
+  (`PROFESSOR`, `RESPONSAVEL`, `professor:`).
+- **Mas o nome do plano usava o ID da sala, e o id de uma Sala derivada leva a data.** O
+  `compor-conf` compunha `escola + '-' + turma.id`. Enquanto a sala é a original, o id é o slug
+  do nome e as contas coincidem; a partir da primeira derivação, o `.conf` passava a declarar
+  `VARIANTE="calango-rosa-2026-11-10"` enquanto `escrever-plano`, `escrever-po`,
+  `escrever-ciclo` e `hash-ciclo.sh` continuavam a usar `calango-rosa` — **um ciclo, dois nomes**,
+  e o gerador (`ID="ciclo-$CICLO-$VARIANTE"`) a procurar fontes que ninguém escreveu.
+
+**O que foi decidido.**
+
+- **A RECUSA APONTA O VIGENTE.** As duas rotas de derivação (curadoria e sala), ao receberem o id
+  de um elo já substituído, respondem **409** com `vigente` — o **topo** da cadeia de
+  substituições (não o vizinho) — e uma frase que diz que a página está um ajuste atrás e que o
+  caminho é recarregá-la. Um id que nunca existiu continua a ser 404.
+- **A PÁGINA RECARREGA DEPOIS DE GRAVAR — E LEVA O RECADO.** A decisão de 09/11 (não recarregar
+  para não perder o recado da cadeia) resolvia o sintoma e criava a causa: sem recarga, a
+  identidade do registo envelhece na página. A correção não escolhe entre as duas coisas: o
+  recado da cadeia vai para o `sessionStorage` com o nome da caixa onde nasceu (`data-res`, e o
+  `#hash` preserva a secção) e é repintado no arranque por `repintarCadeiaGuardada` — que também é
+  quem manda continuar a geração num pedido próprio, se for o caso. A lista, os botões e os ids
+  vêm frescos do servidor.
+- **A VARIANTE É A DO NOME, E NUM SÍTIO SÓ.** `compor-conf` passa a chamar `varianteDoContexto`
+  (de `escrever-po.js`) em vez de repetir a conta: `<escola>-<slug da sala>`. Derivar a sala não
+  muda o nome de nada. Para toda a escola que nunca derivou uma sala, o texto do `.conf` é
+  byte a byte o mesmo — não há reancoragem por esta decisão.
+- **O QUE NÃO SE TOCOU, e porquê.** Os títulos dos documentos (`Plano do Ciclo NN — <slug da
+  escola>`, `Plano de Observação do Ciclo NN — <slug da escola>`) continuam como estão: mudá-los
+  altera a fonte, o hash e o rótulo do menu de todos os ciclos, e o PO não tem sequer subtítulo
+  com a turma. Fica como proposta datada, para decisão, na entrada de avaliação abaixo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`topoDoElo`, `recusaDeEloVencido`, as duas
+recusas de derivação, `enviar` a recarregar sempre, `guardarCadeiaDaGravacao` e
+`repintarCadeiaGuardada`) · `motor/servidor/compor-conf.js` (a variante por `varianteDoContexto`)
+· `experimentos/provar-derivacao-e-identidade.js` (**novo, 19 asserções**, no servidor e no
+navegador, com controle negativo) · `experimentos/provar-derivacao-da-turma.js` (a recusa passou de
+404 a 409, e a prova acompanha) · `.gitignore`.
+
+**Validação.** `provar-derivacao-e-identidade` **19/19**; o **controle negativo** contra o motor
+do `HEAD` reprova **8 de 19** — e reproduz a frase que ela leu, `curadoria não encontrada (ou já
+substituída): pe-torto-bale-classico-rosa`. Sem regressão: `provar-producao` **166/166**,
+`provar-fecho-do-pacote` **42/42**, `provar-mudanca-de-sala` **41/41**, `provar-link-e-fecho`
+**20/20**, `provar-manifesto-da-turma`, `provar-plano-da-turma` 46/46, `provar-escola-do-documento`
+8/8, `check-identidade` **0 erros**. `provar-derivacao-da-turma` **120/140**, e as **20 falhas são
+as mesmas do `HEAD`** (verificado em worktree à parte — dependem de leituras do GitHub).
+
+**O que ainda não está feito.** (1) **A `Rosa` está, no ar, sem curadoria vigente** — a derivação
+que mudou a sala para `Piano` *moveu* a atribuição; o plano de `Rosa` continua lá e a direção que o
+autoriza, não. É estado de dados, não de código: repor exige uma atribuição nova, e é decisão dela.
+(2) **O nome da sala continua a ser texto livre** e é a única chave da atribuição — a avaliação de
+uma chave estável (à parte do `id` e do nome) está na entrada seguinte. (3) Não foi conferido no ar
+nesta sessão; as provas são de bancada.
+
+## 10/11/2026 — Avaliação: a turma precisa de uma identidade que não seja o nome nem o id
+
+**Pergunta.** «O nome do plano de ensino está a ser gerado com o nome da sala ou com o nome do
+professor? Convém um campo próprio de identificação da turma?»
+
+**Resposta medida.** Com o professor, não — em sítio nenhum (ver a entrada anterior). Com a sala,
+sim, e é isso que está certo: a variante é `<escola>-<sala>`, e o ciclo é da sala. O problema não
+era o nome: era o **id** a fazer de nome (corrigido acima) e a **ausência de uma chave estável**
+quando o nome muda.
+
+**O que hoje identifica uma turma, e o que depende disso.**
+
+| Hoje | Onde vive | Muda quando |
+|:--|:--|:--|
+| `nome` (texto livre da direção) | ordem e cartão | só na Sala **livre** (`turma-editar`), e aí a curadoria/plano não existem |
+| `id` = slug do nome | `turmas`, `turma-conteudos` | a cada derivação (ganha a data) |
+| `turmas: [nome]` | curadorias | — |
+| `contexto.turma` = nome | envelopes do plano e do PO | — |
+| variante = `<escola>-<slug do nome>` | `.conf`, `.md`, pasta do pacote, `.fipp` | se o nome mudar |
+
+**O que se conclui.** A ligação está protegida — a Sala só se renomeia quando é `livre`
+(`estado-da-turma.js`), e é por isso que os cinco pontos acima nunca divergiram. O que falta não é
+uma proteção: é uma **chave que sobreviva a uma renomeação**, se um dia a direção precisar de
+corrigir o nome de uma sala já curada (hoje o caminho é remover e recriar a curadoria).
+
+**As três opções, com o custo de cada uma.**
+
+1. **Não fazer nada além do que foi feito.** Um nome = uma turma, e o nome só muda quando não há
+   nada dependente dele. Custo: nenhum. Limite: corrigir o nome de uma sala curada obriga a
+   remover e recriar a atribuição, e as âncoras antigas guardam o nome antigo.
+2. **`chave` estável na turma** (`chave = slug(nome)` na criação, herdada por todos os elos da
+   derivação), com a variante a passar a `<escola>-<chave>` e o `nome` só para exibir. Custo: um
+   campo novo, migração dos registos existentes (derivável na leitura, sem tocar no dado) e um
+   `id` que deixa de precisar da data. Ganho: renomear deixa de partir nada. Risco: muda o nome
+   dos ficheiros se a `chave` de alguma turma diferir do slug actual — não difere enquanto a
+   derivação for a única forma de a turma mudar.
+3. **Pôr o `id` da turma no envelope e no front matter** (`contexto.turmaId`), mantendo o nome como
+   hoje. Custo: um campo em dois esquemas e a reancoragem de todos os ciclos. Ganho: o vínculo
+   deixa de depender do texto. É a opção mais cara e a que menos resolve, porque a variante
+   continuaria a ser o nome.
+
+**Recomendação.** A **2**, e só quando houver um caso real de renomeação — não antes. Hoje a regra
+«o nome não muda» está certa e é barata; a `chave` só passa a valer a pena no dia em que o nome
+precisar de mudar com plano feito.

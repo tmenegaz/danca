@@ -31,6 +31,11 @@
 // duração) vivem LÁ; duplicá-las aqui seria a segunda lista da mesma coisa.
 const ciclo = () => require('./escrever-ciclo.js');
 
+/* A VARIANTE VEM DA MESMA FUNÇÃO QUE TODOS OS ESCRITORES USAM (10/11/2026). `escrever-po` não
+ * requer este módulo, pelo que o `require` de topo não fecha ciclo nenhum — e é ele que impede
+ * esta conta de ser escrita uma segunda vez. Ver o comentário em `comporConf`. */
+const { varianteDoContexto } = require('./escrever-po.js');
+
 /** Uma hora `HH:MM` válida? A hora é obrigatória: sem ela o prazo não tem de onde contar. */
 function horaValida(h) {
   return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(h || '').trim());
@@ -147,13 +152,30 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
   const total = aulasNoPeriodo(turma);
   const inicio = ciclo().dataBrasil(turma.periodoInicio);
   const frequencia = diasConhecidos(turma).length + 'x/semana';
-  const variante = escola + '-' + id;
+  /* A VARIANTE É A DO NOME, E NÃO A DO ID (10/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA, e ele estava armado. A variante é a identidade da fonte, e é ela
+   * que nomeia TUDO — o `.conf`, o `-plano.md`, o `-po.md`, a pasta do pacote e a âncora
+   * `.fipp`. Aqui ela era `escola + '-' + turma.id`. Enquanto a Sala é a original, o id é o
+   * slug do nome e as duas contas coincidem. Mas `turma-derivar` dá ao elo novo um id com a
+   * data (`rosa-2026-11-10`) e mantém o NOME («Rosa»): a partir do primeiro ajuste de horário,
+   * este `.conf` passava a declarar `VARIANTE="calango-rosa-2026-11-10"` enquanto
+   * `escrever-plano`, `escrever-po`, `escrever-ciclo` e `hash-ciclo.sh` continuavam a escrever e
+   * a procurar `ciclo-01-calango-rosa-*`. Um ciclo, dois nomes — e o gerador (`ID="ciclo-$CICLO
+   * -$VARIANTE"`) a procurar fontes que ninguém escreveu.
+   *
+   * A REGRA FICA NUM SÍTIO SÓ. `varianteDoContexto` (em `escrever-po.js`) já compõe
+   * `<escola>-<slug da turma>` a partir do NOME, e é ela que todos os escritores usam. Este
+   * módulo passa a chamá-la, em vez de repetir a conta — duas cópias da mesma regra divergiriam
+   * no dia em que uma delas mudasse.
+   */
+  const nomeDaTurma = String(turma.nome || id);
+  const variante = varianteDoContexto({ escola, turma: nomeDaTurma });
 
   // O CONTEÚDO vem do plano — é o único campo que ele manda aqui. Ausente, fica a lacuna
   // declarada: nunca um texto inventado.
   const { respostaDo } = require('../nucleo/derivar-po.js');
   const objetivo = respostaDo(plano, 'objetivo-geral');
-  const nomeDaTurma = String(turma.nome || id);
 
   // ── a conferência que impede a repetição do defeito medido (quatro valores para um fato) ──
   // Não corrige: AVISA. A turma é a fonte do ritmo, e o `.conf` sai dela.

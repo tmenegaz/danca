@@ -1331,6 +1331,55 @@ function curadoriasVigentes(lista) {
 }
 
 /**
+ * O TOPO DO ELO — a versão que vale AGORA (10/11/2026).
+ *
+ * O DEFEITO QUE ISTO FECHA. Derivar troca a identidade do registo: o elo novo nasce com um id
+ * próprio (`…-2026-11-10`) e o anterior desce ao histórico com `substituidaPor`. Quem tinha a
+ * página aberta fica com o id de ANTES — e o gesto seguinte (ajustar outra vez, mudar a sala
+ * depois do estilo) chegava com um id que já não é o vigente. A resposta era
+ * «curadoria não encontrada (ou já substituída): …» — uma porta fechada sem dizer onde está a
+ * que abre. É o mesmo ida-e-volta que a pesquisadora descreveu como «não encontra».
+ *
+ * A LEITURA SEGUE A SETA. `substituidaPor` pode apontar para outro elo que também já foi
+ * substituído (três ajustes no mesmo dia); o que interessa é o TOPO, e não o vizinho. O
+ * `vistos` corta o ciclo que um dado corrompido pudesse formar — a leitura não pode rodar para
+ * sempre por causa de um registo mal gravado.
+ */
+function topoDoElo(lista, id) {
+  const alvo = String(id || '').trim();
+  if (!alvo) return null;
+  const todos = Array.isArray(lista) ? lista : [];
+  let atual = todos.find((x) => x && x.id === alvo) || null;
+  const vistos = new Set();
+  while (atual && atual.substituidaPor && !vistos.has(atual.id)) {
+    vistos.add(atual.id);
+    const proximo = todos.find((x) => x && x.id === atual.substituidaPor) || null;
+    if (!proximo) break;
+    atual = proximo;
+  }
+  return atual;
+}
+
+/**
+ * A RECUSA QUE APONTA O CAMINHO — quando o pedido traz a identidade de um elo que já foi
+ * ajustado (10/11/2026).
+ *
+ * Duas coisas ao mesmo tempo: diz que a versão chegou velha, e diz QUAL é a que vale. Sem a
+ * segunda, o professor tem de descobrir sozinho que a página dele é anterior ao ajuste — e a
+ * única saída que resta é recarregar sem saber porquê.
+ */
+function recusaDeEloVencido(topo, { substantivo, alvo }) {
+  return json(409, {
+    ok: false,
+    erro: 'esta ' + substantivo + ' já foi ajustada — a versão que vale agora é «' + topo.id
+      + '». A página aberta é anterior a esse ajuste: recarregue-a e ajuste a versão vigente.',
+    substituida: true,
+    vigente: topo.id,
+    alvo,
+  });
+}
+
+/**
  * O ID de uma curadoria DERIVADA — o mesmo esquema do `idDerivado` da turma: base do id
  * original mais a vigência, com sufixo se colidir. O id da curadoria é o slug de
  * `professor + modalidade`; um registo novo com o mesmo par colidiria com o anterior.
@@ -7440,9 +7489,29 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) {' +
     '      if (typeof aoOk === "function") aoOk(d);' +
-    /* A PÁGINA NÃO SE RECARREGA QUANDO HÁ O QUE LER (09/11/2026). A recarga apagaria o recado
-     * da cadeia — e é nele que estão os links do que falta. Fechada a travessia, a recarga
-     * continua a ser o gesto certo: a lista mostra o estado novo. */
+    /* A RECARGA DEPOIS DE GRAVAR VOLTOU A SER A REGRA — E O RECADO DA CADEIA VAI COM ELA
+     * (10/11/2026).
+     *
+     * O DEFEITO MEDIDO. A 09/11/2026 a página deixou de recarregar quando a cadeia tinha algo
+     * por concluir, para o recado (com os links do que falta) não se perder. O que se perdeu foi
+     * outra coisa: a IDENTIDADE do registo. Derivar troca o id — o elo novo nasce com a data, e o
+     * anterior desce ao histórico. Sem recarga, a página continuava a dizer `cuderivar` = o id
+     * ANTIGO; o gesto seguinte (ajustar a sala depois do estilo, por exemplo) chegava com um id
+     * que já não vale, e a resposta era «esta turma já foi ajustada». A pesquisadora leu o
+     * sintoma como «não encontra».
+     *
+     * A CORREÇÃO NÃO ESCOLHE ENTRE AS DUAS COISAS: guarda o recado e recarrega. O recado vai para
+     * o `sessionStorage` com o nome da caixa onde nasceu (a secção visível está no `#hash`, que a
+     * recarga preserva) e é repintado no arranque por `repintarCadeiaGuardada` — que também é
+     * quem manda continuar a geração num pedido próprio, se for esse o caso.
+     *
+     * A LISTA FICA FRESCA SEM F5 DO PROFESSOR: os botões, os ids e o histórico vêm do servidor,
+     * como antes de 09/11. */
+    '      if (recarregar) {' +
+    '        guardarCadeiaDaGravacao(d.cadeia, res);' +
+    '        location.reload();' +
+    '        return;' +
+    '      }' +
     '      var pendente = d.cadeia && d.cadeia.executada !== false' +
     '        && (d.cadeia.faltam || []).length;' +
     '      if (pendente) {' +
@@ -7451,11 +7520,42 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        pintarCadeia(d.cadeia, res);' +
     '        return;' +
     '      }' +
-    '      if (recarregar) { location.reload(); }' +
-    '      else { res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")"; }' +
+    '      res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")";' +
     '    }' +
     '    else { recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
+    '}' +
+    /* O RECADO DA CADEIA ATRAVESSA A RECARGA (10/11/2026).
+     *
+     * `sessionStorage` e não a URL: o recado é grande (a frase, as etapas em falta e os links) e
+     * não cabe num endereço legível. E `chave do registo + data`, porque o que é do gesto anterior
+     * não pode aparecer no gesto seguinte: `repintarCadeiaGuardada` LÊ E APAGA, e um recado
+     * pintado nunca mais volta.
+     *
+     * O alvo é guardado pelo NOME da caixa (`data-res`), e não pelo nó: o nó morre com a página. */
+    'function guardarCadeiaDaGravacao(cadeia, res) {' +
+    '  try {' +
+    '    if (!cadeia || cadeia.executada === false) { sessionStorage.removeItem("producao:cadeia"); return; }' +
+    '    sessionStorage.setItem("producao:cadeia", JSON.stringify({' +
+    '      cadeia: cadeia, alvo: res ? res.getAttribute("data-res") : null }));' +
+    '  } catch (err) {}' +
+    '}' +
+    'function repintarCadeiaGuardada() {' +
+    '  var bruto = null;' +
+    '  try {' +
+    '    bruto = sessionStorage.getItem("producao:cadeia");' +
+    '    sessionStorage.removeItem("producao:cadeia");' +
+    '  } catch (err) { return; }' +
+    '  if (!bruto) return;' +
+    '  var guardado = null;' +
+    '  try { guardado = JSON.parse(bruto); } catch (err) { return; }' +
+    '  if (!guardado || !guardado.cadeia) return;' +
+    '  var res = (guardado.alvo' +
+    '    && document.querySelector(".res[data-res=\\"" + guardado.alvo + "\\"]")) || alvoDoRecado();' +
+    '  if (!res) return;' +
+    '  res.className = "res " + (guardado.cadeia.ok ? "ok" : "aviso");' +
+    '  res.textContent = "";' +
+    '  pintarCadeia(guardado.cadeia, res);' +
     '}' +
     'document.getElementById("form-turma").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -12622,6 +12722,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  carregarLinhas();' +
     '  carregarAlunasComAnamnese().then(function(){ mostrarPassoLb(1); });' +
     '}' +
+    /* O RECADO DA GRAVAÇÃO ANTERIOR, REPINTADO (10/11/2026). Fica no FIM, e por duas razões: as
+     * caixas `[data-res]` já existem no documento (o script é o último da página) e a função
+     * `pintarCadeia` — que também manda continuar a geração num pedido próprio — já está
+     * declarada. Um recado guardado e não consumido seria o pior dos mundos: a página a olhar
+     * para o estado escrito antes da recarga e a acreditar nele. */
+    'repintarCadeiaGuardada();' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
@@ -13735,7 +13841,14 @@ async function fetch(request, env, extras) {
     const alvoId = String(corpo.derivarDe || corpo.id || '').trim();
     const anterior = turmasVigentes(lista).find((t) => t && (t.id === alvoId || t.nome === alvoId));
     if (!anterior) {
-      return json(404, { ok: false, erro: 'turma não encontrada (ou já substituída): ' + (alvoId || '(vazio)') });
+      /* O MESMO BECO DO LADO DA CURADORIA (10/11/2026): a página aberta antes da última derivação
+       * carrega o id do elo que já desceu ao histórico. Dizer «não encontrada» deixa o professor a
+       * procurar; dizer qual é a vigente dá-lhe o caminho. */
+      const topo = topoDoElo(lista, alvoId);
+      if (topo && topo.id !== alvoId) {
+        return recusaDeEloVencido(topo, { substantivo: 'sala', alvo: alvoId });
+      }
+      return json(404, { ok: false, erro: 'turma não encontrada: ' + (alvoId || '(vazio)') });
     }
     const vigencia = String(corpo.vigencia || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
@@ -15985,7 +16098,14 @@ async function fetch(request, env, extras) {
     const lista = await curadorias(kv, escola);
     const anterior = curadoriasVigentes(lista).find((c) => c && c.id === alvo);
     if (!anterior) {
-      return json(404, { ok: false, erro: 'curadoria não encontrada (ou já substituída): ' + alvo });
+      /* A PÁGINA ABERTA ANTES DO ÚLTIMO AJUSTE CHEGA COM O ID DE ANTES (10/11/2026). O elo
+       * vencido não é um erro de quem clicou: é a página a estar um ajuste atrás. A recusa diz
+       * qual é o vigente, em vez de uma porta sem endereço. */
+      const topo = topoDoElo(lista, alvo);
+      if (topo && topo.id !== alvo) {
+        return recusaDeEloVencido(topo, { substantivo: 'turma', alvo });
+      }
+      return json(404, { ok: false, erro: 'curadoria não encontrada: ' + alvo });
     }
     /* O PAR FINAL (09/11/2026). A derivação pode trocar professor e modalidade: o corpo traz os
      * dois, e o que não vier herda o anterior. `undefined` é «não mexi»; vazio é uma declaração —

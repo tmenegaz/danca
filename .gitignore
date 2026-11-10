@@ -1015,3 +1015,10 @@ experimentos/modelo-formulario/*
 # NEGATIVO (o motor de antes reprova 10 das 20 asserções).
 !experimentos/provar-fecho-do-pacote.js
 !experimentos/provar-link-e-fecho.js
+
+# O ELO VENCIDO E A VARIANTE DA SALA DERIVADA (10/11/2026). A pesquisadora ajustou a sala e
+# depois o estilo e leu «curadoria não encontrada (ou já substituída)»: derivar troca o id, e a
+# página aberta ficava com o de antes. E o `compor-conf` compunha a VARIANTE com o id da turma —
+# que numa Sala derivada leva a data —, partindo o nome do ciclo ao meio. Esta prova mede as duas
+# coisas no servidor e no navegador, e tem CONTROLE NEGATIVO: o motor de antes reprova 8 de 19.
+!experimentos/provar-derivacao-e-identidade.js

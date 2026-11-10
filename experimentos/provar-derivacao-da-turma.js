@@ -157,8 +157,18 @@ async function principal() {
   conferir('…e a lista viva tem um só', (await listaViva()).map((t) => t.id), ['teste-2026-12-01']);
 
   // --- 6. uma turma já substituída não se deriva outra vez ----------------
-  conferir('derivar uma turma já substituída é 404',
-    (await derivar({ derivarDe: 'teste', vigencia: '2026-12-15', frequencia: 2 })).status, 404);
+  /* A RECUSA MUDOU DE FORMA A 10/11/2026, e a razão é de quem está do outro lado do ecrã: a
+   * página aberta antes do último ajuste traz este id, e um 404 mudo («turma não encontrada»)
+   * não lhe diz onde está a que abre. O 409 nomeia a VIGENTE — o topo da cadeia, e não o elo
+   * imediatamente seguinte. A recusa continua a ser recusa: nada é gravado. */
+  {
+    const vencida = await derivar({ derivarDe: 'teste', vigencia: '2026-12-15', frequencia: 2 });
+    const corpoVencida = await vencida.json();
+    conferir('derivar uma turma já substituída é recusado (409)', vencida.status, 409);
+    conferir('…e a recusa aponta a turma VIGENTE', corpoVencida.vigente, 'teste-2026-12-01');
+    conferir('…e o id que nunca existiu continua a ser 404',
+      (await derivar({ derivarDe: 'nao-existe', vigencia: '2026-12-15', frequencia: 2 })).status, 404);
+  }
 
   // --- 7. o nome repetido contra a vigente continua a ser recusado --------
   conferir('o nome da turma vigente não se pode cadastrar de novo',
