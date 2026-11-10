@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T15:47:16-0300`
-Commit atual: `9516b64d` — docs(metodo): a matriz de capacidade cobra-se por volume, e a escada desce a cada degrau
+Gerado em: `2026-11-10T19:48:53-0300`
+Commit atual: `4ca5090e` — fix(estrutura): trocar o professor é um ajuste da mesma Turma, e mudar de sala não é
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -53,7 +53,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 coqui-de-redinha
 dedao-aberto
 pe-torto
-rabo-gramde (5)
+rabo-gramde
+redinha-rosa (6)
 - **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
@@ -71,6 +72,16 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+4ca5090e fix(estrutura): trocar o professor é um ajuste da mesma Turma, e mudar de sala não é
+8337a1d9 feat(estrutura): habilitar redinha-rosa em bale-classico
+8e9d9f40 chore(estrutura): regerar os índices derivados
+901200a0 feat(escola): a escola calango declara o professor redinha-rosa
+918fd5af feat(schema): os schemas do ciclo na pasta de redinha-rosa
+a49f0a10 feat(schema): os schemas do ciclo na pasta de redinha-rosa
+c57fb646 feat(schema): os schemas do ciclo na pasta de redinha-rosa
+053f37a5 feat(schema): os schemas do ciclo na pasta de redinha-rosa
+6d96dc90 feat(schema): os schemas do ciclo na pasta de redinha-rosa
+e13df524 chore(estrutura): regerar o HANDOFF
 9516b64d docs(metodo): a matriz de capacidade cobra-se por volume, e a escada desce a cada degrau
 7b39eab0 chore(estrutura): regerar o HANDOFF
 b0c1aac2 fix(estrutura): o elo vencido aponta o vigente, e a variante não muda com a sala
@@ -81,16 +92,6 @@ b0c1aac2 fix(estrutura): o elo vencido aponta o vigente, e a variante não muda 
 e396ba07 chore(estrutura): reancorar a cadeia das fontes alteradas
 85c41146 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
 1ecfaa2b feat(po): o PO elicitado vira a fonte do ciclo
-5ef041f9 feat(acervo): envelope/po-20261110-1309.json
-43ac4ef4 feat(acervo): envelope/.indice.json
-1550ab25 chore(estrutura): regerar os índices derivados
-1106b517 chore(estrutura): reancorar a cadeia das fontes alteradas
-cb518614 feat(po): o PO elicitado vira a fonte do ciclo
-d7d988f1 feat(acervo): envelope/po-20261110-1304.json
-6901ecf4 feat(acervo): envelope/.indice.json
-0e859e74 feat(plano): o elo da cadeia automática
-2f2da362 feat(acervo): envelope/plano-20261110-1304.json
-5d50d66b feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -116,6 +117,8 @@ d7d988f1 feat(acervo): envelope/po-20261110-1304.json
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
+
+### redinha-rosa — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
