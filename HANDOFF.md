@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T22:04:32-0300`
-Commit atual: `e564c29a` — docs(registro): a cadeia automática, e a reversão que ela declara
+Gerado em: `2026-11-09T22:46:48-0300`
+Commit atual: `b47ede10` — docs(registro): a mudança de sala, medida antes e depois
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+b47ede10 docs(registro): a mudança de sala, medida antes e depois
+1a927b0a fix(estrutura): a mudança de sala entra na cadeia, e uma sala recebe uma Turma
+da8085fe chore(estrutura): regerar o HANDOFF
 e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
 4530025f feat(estrutura): a cadeia automática da troca e da saída
 9ed67911 chore(estrutura): regerar o HANDOFF
@@ -88,9 +91,6 @@ eea49096 chore(estrutura): regerar o HANDOFF
 0d0a1ec9 docs(registro): a transferência que se perdia no rascunho
 3633f726 fix(estrutura): a transferência grava-se nos dois lados, e o «Cancelar» descarta
 e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-0245e3b8 chore(estrutura): regerar os índices derivados
-91875de0 feat(linha de base): índice — tami 20261109-2139
-739b71cc feat(elenco): Aluna B passa de tami para ami
 ```
 
 ## Por professor
@@ -164,84 +164,77 @@ e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
+## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
 
-**O que motivou.** A pesquisadora pediu, com estas palavras: «eliminar a necessidade de o professor
-realizar o processo manual ('via crucis') passo a passo para atualizar vínculos e documentos quando
-houver: troca de aluno entre elencos / turmas; exclusão ou abandono de aluno; troca de modalidade ou
-de professor de uma turma» — e que a execução em cadeia atualize os vínculos e etiquetas, regenere
-os documentos na ordem correta, e **mantenha a flexibilidade** para o professor derivar o plano à
-mão quando quiser um ajuste específico. **CONFIRMADO no código**: até aqui, os três gestos deixavam
-a travessia aberta e a resposta dizia «reveja a TURMA, depois o plano de ensino e, por último, o
-plano de observação»; a `revalidacaoPendente` marcava, e o professor percorria. **Esta é uma
-REVERSÃO declarada de uma decisão anterior** — «a gente não vai deixar um botão automático que
-dispara tudo em cadeia porque precisa do olhar do professor para tomar as decisões e as medidas que
-ele julga pertinente» —, e a reversão é dela, com a mesma condição: a automação não decide
-pedagogia.
+**O que motivou.** Depois da cadeia automática, ela perguntou o que faltava para a **mudança de
+sala** — e o diagnóstico estava escrito, e era verdadeiro: *«a mudança de sala atende ao registo e
+não atende à cadeia»* (§3.3 do `ARQUITETURA-GERAL.md`). **CONFIRMADO e medido na bancada local**:
+`turma-derivar` respondia **201**, gravava o elo novo — e **0 subpedidos, 0 disparos**; o `.conf` da
+variante não era recomposto (só o é quando o plano é gravado); o plano **não era marcado**
+(`revalidacaoPendente` não recebia Salas; `pendentes: []`); o plano e o PO continuavam a declarar o
+ritmo antigo (os quatro campos `daTurma` são uma fotografia no envelope); e o `comporConf` **detetava
+os desacordos** — «o plano declara 60 min e a turma declara 75» — mas a tela lia só `ok` e `erro`, e
+o dado morria ali. A vigência declarada também não era respeitada (derivar com `vigenteDe` de 10/11
+já valia a 09/11).
+
+Ela fixou o escopo — as quatro peças, e **manter a vigência como está** —, o ritmo **relido** da
+Sala, e acrescentou uma guarda: **«somente poderá mover se existir ao menos uma outra sala vazia»**.
+Medido antes de a implementar: **duas curadorias activas com a mesma Sala respondiam `201`** — a
+regra não existia.
 
 **O que foi decidido.**
 
-- **Quatro etapas, na ordem da dependência**: `vínculos` (a Turma passa a declarar o corpo do
-  elenco) → `plano-de-ensino` (elo novo com `ajuste_de`) → `plano-de-observacao` (elo novo que
-  observa o plano vigente) → `pacote` (fontes escritas e geração disparada). Cada etapa tem estado
-  **derivado** — `feita`, `pendente` ou `bloqueada` —, e o sinal cai sozinho quando a etapa é feita.
-- **A PORTA DO FLUXO COMPLETO.** A travessia inteira só corre em registos que já têm elenco, Turma,
-  plano e PO. Num registo incompleto, o salvamento é normal, os vínculos fazem-se (é o que depende
-  só do elenco), e a resposta diz o que falta, etapa a etapa, **com o link do sítio onde se
-  resolve**. O sistema não inventa o plano nem o PO que a escola nunca fez.
-- **Pára na primeira etapa que não fecha** — nunca salta para a frente. Um PO derivado sobre um
-  plano que já não vale seria consolidar a observação sobre um corpo que mudou.
-- **A proveniência acrescenta.** Os elos novos apontam os anteriores (`ajuste_de`), o conteúdo
-  respondido é preservado (a cadeia não reinterpreta o que o professor escreveu), e nada é apagado.
-- **Idempotência.** Antes de derivar, cada etapa pergunta se já está em dia; um documento posterior
-  ao gatilho conta como `feita`. Repetir o gesto não empilha elos falsos.
-- **O orçamento é um só por pedido.** O store do repositório e a cadeia partilham o mesmo contador
-  de subpedidos (a lição de 08/11/2026); e a travessia não começa quando o pedido já gastou a maior
-  parte do teto — diz que não correu, e o professor repete o gesto.
-- **O log é do processo.** Cada execução fica em `bastidores/<escola>/cadeia` (teto de 60): quando,
-  que gatilho, que alvos, o estado de cada etapa e porquê parou. Lê-se em
-  `GET /api/bastidores/cadeia`. A tela recebe só o que interessa: sucesso global, ou o que falta
-  com os links — a execução é interna e transparente, como ela pediu.
+- **UMA SALA RECEBE UMA TURMA.** A Sala é o RITMO (dias, horas, duração, período); duas Turmas nela
+  são duas aulas no mesmo horário, no mesmo lugar. A guarda vive nas duas rotas (`curadoria` e
+  `curadoria-derivar`), ignora a versão substituída e a **direção encerrada** (a sala de quem saiu
+  está vaga — foi a prova do desligamento que o apanhou), e a recusa nomeia quem ocupa e **lista as
+  salas livres**; sem nenhuma, diz que o caminho é criar ou liberar uma.
+- **O RITMO É RELIDO DA SALA no elo novo.** `respostasDoRitmo` (`compor-conf.js`) devolve os quatro
+  campos na forma das respostas, e a cadeia substitui-os no elo derivado. **Reler não é
+  reescrever**: no conteúdo do plano os quatro são `daTurma` — não são autoria do professor, são
+  leitura do cadastro (é o próprio formulário que o diz).
+- **A CASCATA VÊ A SALA.** `revalidacaoPendente` ganha a quinta entrada e marca o plano quando o
+  `vigenteDe` do elo é **posterior** ao `gerado_em`. A comparação é por dia e **estrita**: o dia da
+  mudança não se marca, senão o sinal nasceria aceso sobre o trabalho que a cadeia acabou de fazer.
+  Sala sem `vigenteDe` (nunca derivou) não afirma nada.
+- **O GATILHO.** `turma-editar` e `turma-derivar` chamam a cadeia com `mudanca-de-sala` **só quando
+  há Turma na Sala** — uma sala livre mudou de ritmo e não tem plano nem PO a reavaliar; uma
+  travessia sem alvo só produziria uma entrada de erro no log a cada ajuste de horário.
+- **OS DESACORDOS CHEGAM À TELA.** A porta mostra `fonte.conflitos` e `fonte.pendencias`, e diz que
+  **o ritmo que vale é o da Sala** — sem bloquear: o ritmo é da Sala, o conteúdo é do plano.
+- **A VIGÊNCIA FUTURA FICA COMO ESTÁ** — decisão dela. É uma decisão de calendário da escola, e o
+  motor não a toma sozinho.
 
-**Onde entrou.** `motor/nucleo/cadeia.js` (novo — o índice das etapas, a classificação e o resumo) ·
-`motor/servidor/cadeia.js` (novo — a execução: sincronizar vínculos, derivar plano e PO, fechar o
-pacote, gravar o log) · `motor/servidor/concluir-po.js` (novo — o bloco «PO concluído vira fonte,
-gera o ciclo e dispara» extraído de `rotas.js`, agora com **três** consumidores: o «Guardar» do PO,
-o ajuste em cadeia do plano e a cadena automática) · `motor/servidor/rotas.js` (usa a função
-extraída; comportamento inalterado) · `motor/servidor/producao.js` (monta a cadeia só nos gestos
-que a pedem, com o contador de subpedidos do pedido) · `motor/servidor/bastidores.js` (os três
-gatilhos — `elenco-mover`, conclusão do elenco e `curadoria-derivar` —, a rota do log, o render
-na tela) · `motor/servidor/linhas-de-base-repo.js` (`doAmbiente` aceita o `fetchImpl` do pedido) ·
-`experimentos/provar-cadeia-automatica.js` (novo, 60 asserções) · `ARQUITETURA-GERAL.md` (a tabela
-do que acontece sozinho e o parágrafo que dizia «o fluxo automático não existe» — corrigido com a
-reversão declarada) · `motor/nucleo/README.md`.
+**Onde entrou.** `motor/nucleo/estado-da-turma.js` (`salasOcupadas`, `salasLivres`,
+`motivoDaSalaOcupada`) · `motor/nucleo/porta.js` (o passo 4.5 da `revalidacaoPendente`, com a Sala
+como quinta entrada) · `motor/nucleo/cadeia.js` (o rótulo `mudanca-de-sala`) ·
+`motor/servidor/compor-conf.js` (`respostasDoRitmo`) · `motor/servidor/cadeia.js` (`ritmoDaSala` e a
+releitura no `derivarPlano`) · `motor/servidor/bastidores.js` (as duas guardas, os dois gatilhos, a
+quinta entrada da revalidação) · `motor/servidor/producao.js` (as duas rotas no `montarCadeia`) ·
+`porta/index.html` (conflitos e pendências) · `experimentos/provar-mudanca-de-sala.js` (novo, 41
+asserções) · `experimentos/provar-derivacao-da-turma.js` e
+`experimentos/provar-enquadramento-da-turma.js` (as salas novas que a guarda exige nos cenários que
+reusavam a mesma sala) · `professores/pe-torto/ciclos/*/plano-observacao/index.html` (a cópia da
+porta, regenerada) · `ARQUITETURA-GERAL.md` (§3.3 e as duas tabelas) · `motor/nucleo/README.md`.
 
-**Validação.** `provar-cadeia-automatica` **60/60** (novo). Sem regressão: `provar-producao`
-166/166, `provar-cadeia-do-ajuste` 34/34, `provar-transferencia-e-desligamento` 93/93,
-`provar-linha-de-base` 102/102, `provar-linha-de-base-no-repo` 39/39, `provar-elenco-na-turma`
-25/25, `provar-abas-da-audicao` 86/86, `provar-derivacao-da-turma` **112/132** (as mesmas 20
-falhas anteriores à mudança, iguais no `HEAD`), `check-identidade` **0 erros**.
+**Validação.** `provar-mudanca-de-sala` **41/41** (novo). Sem regressão: `provar-cadeia-automatica`
+60/60, `provar-producao` 166/166, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base` 102/102, `provar-abas-da-audicao` 86/86, `provar-enquadramento-da-turma`
+57/57, `provar-conteudos-e-estado-da-turma` 77/78 (a mesma falha anterior à mudança, igual no
+`HEAD`), `provar-derivacao-da-turma` **118/138** — as **mesmas 20 falhas** do `HEAD`, verificadas
+falha a falha num worktree à parte —, `check-identidade` **0 erros (21 ok)** e `check-pacote`
+**0 erros** no pacote regenerado.
 
-**O que ainda não está feito.** (1) A cadeia **não corre** quando o Worker não tem a ponte montada
-(sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
-**mudança de Sala** continua fora da cadeia: o `revalidacaoPendente` já declarava essa lacuna, e a
-cadeia não acrescentou o passo novo (a cascata não vê a Sala). (3) O plano derivado **preserva as
-respostas**: se a aluna que entrou traz necessidades que o plano não cobre, isso continua a ser
-decisão do professor — a cadeia não compara necessidade individual com conteúdo, e é de propósito.
-(4) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção
-é o passo seguinte ao deploy.
+**O que ainda não está feito.** (1) **A vigência futura não é respeitada** — por decisão, registada
+acima; derivar com data futura aplica já. (2) A mudança de sala **não revalida o elenco**: se a
+turma mudou de horário e a aluna deixou de poder, isso é outra cadeia (a do elenco), e o sistema não
+cruza as duas. (3) O total de aulas do plano é **relido** do período × dias; se o professor tiver
+decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`, mas há planos antigos
+com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.
 
 ## O que está pendente
-
-## 09/11/2026 — A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto
-
-(1) A transferência move **uma** aluna por ato — «os
-alunos escolhidos» no pedido dela, no plural, continua a ser um acto por aluna; a rota e o núcleo
-trabalham sobre um apelido, e um lote seria um contrato novo (duas versões por elenco, todas ou
-nenhuma). (2) A aluna que está em **dois** elencos pode ser movida de um para o outro, mas a tela
-não diz que ela tem outra casa — a lista de origem mostra-a como as outras. (3) A aba ativa
-continua a **não sobreviver ao recarregar**: a página volta à aba 1, e agora isso já não acontece
-por causa de uma transferência (que relê em sítio), mas continua a acontecer por causa de um F5.
 
 ## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
 
@@ -272,6 +265,17 @@ sessão: a conferência é local, e o deploy do Worker da escola é o passo segu
 
 (1) A cadeia **não corre** quando o Worker não tem a ponte montada
 (sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
+
+## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
+
+(1) **A vigência futura não é respeitada** — por decisão, registada
+acima; derivar com data futura aplica já. (2) A mudança de sala **não revalida o elenco**: se a
+turma mudou de horário e a aluna deixou de poder, isso é outra cadeia (a do elenco), e o sistema não
+cruza as duas. (3) O total de aulas do plano é **relido** do período × dias; se o professor tiver
+decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`, mas há planos antigos
+com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.
 
 ## Pendências anteriores (índice)
 
@@ -670,6 +674,7 @@ sessão: a conferência é local, e o deploy do Worker da escola é o passo segu
 - **08/11/2026** — As duas portas do fluxo da escola: a aluna que muda de… → `REGISTRO.md` L40932
 - **08/11/2026** — A aluna desligada, e a turma que muda de sala → `REGISTRO.md` L41005
 - **09/11/2026** — A Audição em três abas, e a transferência que não se… → `REGISTRO.md` L41106
+- **09/11/2026** — A Audição, segunda passagem: o respiro, o formulário limpo… → `REGISTRO.md` L41204
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
