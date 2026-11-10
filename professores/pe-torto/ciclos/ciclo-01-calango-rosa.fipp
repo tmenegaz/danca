@@ -10,9 +10,9 @@ type: Ciclo
 professor: pe-torto
 ciclo: 01
 variante: calango-rosa
-hash_conteudo: 45bba2368d281393ea1ef4c1027cdc6008e45d29acd3106bd9fe613189e3a346
+hash_conteudo: 19690289e99be6de6af2e3c7d3a99c90017bddd56126f2fb6e7e948a54bd452d
 parentHash: 
-hash: 63eef8353794f27eb313416972870cdaf050569696c131c173409d51308d2b89
+hash: 27410edd1b5e67e969fbdca69fa0351cafad495b41867be4da3e63266c315712
 algoritmo: SHA-256
 po: professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md
 po_state: Input_PO_Aguardando
@@ -20,8 +20,8 @@ ancorado_em: 2026-11-10
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 42
-notacao_sha: f4f67f14c34ba66049b615c5b1e3da4221390d2b94cd14d754c79c1a031c2bbc
+notacao_versao: 43
+notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
 cobertura:
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md
