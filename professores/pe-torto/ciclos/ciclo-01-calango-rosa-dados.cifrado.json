@@ -2,12 +2,11 @@
   "_cifrado": {
     "algoritmo": "PBKDF2-SHA256+AES-GCM",
     "iteracoes": 100000,
-    "endereco": "7gH+t1kFXg/Z2GG/z7fyZfmp0D5CjPq1194bn4P/vZXgus575sr2/3oMWrhWc3Xfk1ZdnfKtU56HjgFZoB1+j+yTbZxaWlfLDsL5i+jrHqiGwaVYb2POQaV+zKCnXaFB4COqDUCL1Fgr1+O0PkB0dYbrlcAmKbZ3V7kbspUWOa7QbqoNmEevevo1H8kAN+o3D8soPDYhlDITb8S2h2NuxZyQvPlFDFwaFsVvIvFxOuM7ImX7Bp+f9e8YGd4K7aHNVx/wS/KWhNI5eKhBTZr+JLeFA7ZDmqmzOgWIpgJefNGoAGAPhBwGAG6nGaYa0CBnKiAuVq2a3PHxNI2j3cyzuqh1OJVKUFBjgWzQ9DDZWq9u4NpKj73oas0WASUwS78YVtFQf+s97yUsyEmbNFGtq3Rg90gVbAGexswIOcCqEs3lmoaWTAOnQiOuV31UBYqheAjlJugMzHfNSzJ57vkZ1B2Up7fn94bZXGJBx1TF3hDgsmY9B9aax/CypDJvXK2a4NaskgJovUBWfxOUcFJjdBtaVZpg3mFKCBzosA6NrU1B1lx0P5awy7Ugow791Kzx9QP9ZIAyy7yhLxpX9BEOf5pf7Q0WEsfqiicVW9uHLGgzpdpWkWCgViA8F09/ent7F4nao71csXd6o0tg2BSwGIJ2ju8yZGjf8VY4iGdPrt3613A="
+    "endereco": "BbNO0HxGpFhRDrIbeYVqFcSqQFlxP9ZygIkHlYn4olTl+4Q2e7QIbNtZO1ldG3hYe0iQlwkatwsL1xl9dnsNjQahvqgXAQ6yQJb3YtnZivrzDdFSMZsbVPS/a8/0ICMY4sRzaRsbKkYnJJzZu2K9zMq0D+/oRk6RzQnPGPX1ITozDzW/KjSYehv4mmGmWAc4B23APKKKx2FgoScCudBjyEv8CCtFONfx7Q+v6GGMLvCOcsxfcR+DE6G7HvwzNHBGRviZQC4+8XNtNzPsZzyM7yw80WQq+LlEs8wb2ULapR3KW5bI5WpaSRaSJ0E3X628vomzRF2DE1jWXxCn0FGwhH4oQ/ffOTF1TkV8+oJyNW0ZyBFjVn2TZIoQHOXC8fUIEWbA0KnIRJnoYegwP6hGpX0zMQz01KBm5mznTzg5APXLY87WLQ080Ln3577jx4hB8pVr9keItFObgACj981KJmj8WAHYJTMPUnwTznwhIWcME9b6HLOQYGiD8tDojAbdQvnC19YDzrS9IB8jpQuJ0U7xmnzYr/Vy5U5Su+xEs3lOIJtY77QIV2p18SfU6lxUjn3qeRu/i2KbOyIl4vV6PItbxFYwGQffOENdEZmwjLmG5fBMIOLLQQNC"
   },
   "lancamentos": 0,
   "apelidos": {
-    "aluna_b": "Aluna B",
-    "aluna_c": "Aluna C"
+    "aluna_b": "Aluna B"
   },
   "_nota": "O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): o pacote e publico e ele traz o lancamento por aluna. Quem decifra e o formulario de lancamento, no navegador, com tools/lib-cifra.js. O campo \"lancamentos\" NAO e secreto: diz se ha o que mostrar, para o formulario nao pedir a senha a toa. O campo \"apelidos\" tambem sai em claro: sem ele um ciclo sem lancamento nenhum apareceria sem as alunas. Nao editar a mao."
 }
