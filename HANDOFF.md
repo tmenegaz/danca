@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T19:48:53-0300`
-Commit atual: `4ca5090e` — fix(estrutura): trocar o professor é um ajuste da mesma Turma, e mudar de sala não é
+Gerado em: `2026-11-10T20:10:20-0300`
+Commit atual: `728fd6d8` — fix(estrutura): o documento derivado diz quem dirige, o pacote executa-se, e os Bastidores ganham veu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,9 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+728fd6d8 fix(estrutura): o documento derivado diz quem dirige, o pacote executa-se, e os Bastidores ganham veu
+ff0f4ad3 feat(po): o PO elicitado vira a fonte do ciclo
+c3699e7a chore(estrutura): regerar o HANDOFF
 4ca5090e fix(estrutura): trocar o professor é um ajuste da mesma Turma, e mudar de sala não é
 8337a1d9 feat(estrutura): habilitar redinha-rosa em bale-classico
 8e9d9f40 chore(estrutura): regerar os índices derivados
@@ -89,9 +92,6 @@ b0c1aac2 fix(estrutura): o elo vencido aponta o vigente, e a variante não muda 
 74659504 fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
 266e56e4 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 8e3a5deb chore(estrutura): regerar os índices derivados
-e396ba07 chore(estrutura): reancorar a cadeia das fontes alteradas
-85c41146 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
-1ecfaa2b feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
