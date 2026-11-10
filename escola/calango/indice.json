@@ -746,5 +746,11 @@
       }
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "redinha-rosa",
+      "nome": "Redinha Rosa",
+      "desde": "2026-11-10T22:14:54.241Z"
+    }
+  ]
 }
