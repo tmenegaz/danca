@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T12:52:09-0300`
-Commit atual: `9736cdfa` — docs(registro): a ordem que não existia no dado
+Gerado em: `2026-11-10T14:09:50-0300`
+Commit atual: `74659504` — fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,26 +71,26 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+74659504 fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
+266e56e4 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
+8e3a5deb chore(estrutura): regerar os índices derivados
+e396ba07 chore(estrutura): reancorar a cadeia das fontes alteradas
+85c41146 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
+1ecfaa2b feat(po): o PO elicitado vira a fonte do ciclo
+5ef041f9 feat(acervo): envelope/po-20261110-1309.json
+43ac4ef4 feat(acervo): envelope/.indice.json
+1550ab25 chore(estrutura): regerar os índices derivados
+1106b517 chore(estrutura): reancorar a cadeia das fontes alteradas
+cb518614 feat(po): o PO elicitado vira a fonte do ciclo
+d7d988f1 feat(acervo): envelope/po-20261110-1304.json
+6901ecf4 feat(acervo): envelope/.indice.json
+0e859e74 feat(plano): o elo da cadeia automática
+2f2da362 feat(acervo): envelope/plano-20261110-1304.json
+5d50d66b feat(acervo): envelope/.indice.json
+f6ded9b2 feat(notacao): declarar «Battement fondu» (8|2/4) no alfabeto bale-classico
+aebe0759 chore(estrutura): regerar o HANDOFF
 9736cdfa docs(registro): a ordem que não existia no dado
 9cb292e3 fix(estrutura): a decomposição segue a ordem em que foi escrita, e duplica-se uma linha
-aee9897d chore(estrutura): regerar o HANDOFF
-fed8be46 docs(registro): a burla que a busca do exercício fecha
-5da58b13 feat(estrutura): o passo 1 do Estilo procura no vocabulário, e o exercício que existe escolhe-se
-4fc98779 chore(estrutura): regerar o HANDOFF
-96bb2d2b fix(estrutura): o histórico do ajuste diz a mudança, o quando e o porquê
-a412cbba chore(estrutura): regerar o HANDOFF
-2174f47e docs(registro): a faixa que ninguém media, com a tabela que a explica
-25b35308 fix(estrutura): a listagem deixa de encolher até ficar ilegível entre 1141 e 1500px
-4cd8de01 chore(estrutura): regerar os índices derivados
-bc064cb2 chore(estrutura): reancorar a cadeia das fontes alteradas
-3a81f6af feat(po): o PO elicitado vira a fonte do ciclo
-2f74ec0f feat(acervo): envelope/po-20261109-2341.json
-2ecfbc6d feat(acervo): envelope/.indice.json
-b80dd547 feat(plano): o elo da cadeia automática
-2a0a83f6 feat(acervo): envelope/plano-20261109-2341.json
-e9a32c78 feat(acervo): envelope/.indice.json
-2ceac7e1 chore(estrutura): regerar o HANDOFF
-b47ede10 docs(registro): a mudança de sala, medida antes e depois
 ```
 
 ## Por professor
@@ -113,7 +113,7 @@ b47ede10 docs(registro): a mudança de sala, medida antes e depois
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `63eef8353794` | (vazio) | Input_PO_Aguardando |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -164,98 +164,89 @@ b47ede10 docs(registro): a mudança de sala, medida antes e depois
 
 ## Última entrada do REGISTRO
 
-## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
+## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
 
-**O que motivou.** Duas correções na etapa da decomposição do Estilo, e as duas com a mesma raiz:
+**O que motivou.** A pesquisadora migrou um elenco dentro da Turma, em Bastidores → Produção →
+Curadoria, e leu, ao «Guardar»:
 
-1. *«A ordenação dos compassos (1º, 2º, 3º, 4º) deve seguir estritamente a ordem cronológica em que
-   o professor os cria (ex: frente, ao lado, atrás, ao lado), e não ser reagrupada ou reordenada
-   automaticamente com base na direção escolhida.»*
-2. *«Adicionar um seletor/campo para escolher especificamente quais linhas da decomposição devem ser
-   duplicadas (evitando duplicar todas as linhas de uma vez quando houver várias, como 6 linhas).
-   Garantir que a linha duplicada seja posicionada sempre no final.»*
+> *«a cadeia avançou até onde era possível. esta invocação do Worker já gastou 33 dos 50 subpedidos
+> permitidos, e o passo seguinte precisa de 18. Nada do ciclo foi escrito — repita o «Guardar»»*
 
-**CONFIRMADO e medido** (bancada local, e a leitura do código):
+E, no link «abrir»: *«levou direto para o lugar aonde eu precisava clicar, mas depois voltou para a
+listagem»*. O trabalho que ela fez em seguida — abrir o plano de observação, ajustar, **gerar** — deu
+certo; o que se corrige aqui é precisar de o fazer à mão, e o que a frase lhe dizia enquanto o fazia.
 
-- **A ordem não existia no dado.** `celulas` é um mapa com a DIREÇÃO por chave. Percorrer o mapa dá
-  os trechos **agrupados por gaveta** — e um mapa não guarda a ordem entre gavetas: acrescentar à
-  primeira não a põe à frente das outras. Quem escrevesse *frente, ao lado, atrás, ao lado* via
-  *frente, ao lado, ao lado, atrás*. O `compassosDosTrechos` renumera a partir dessa ordem, e por
-  isso a numeração parecia «reordenada por direção»: era a consequência, não uma regra de desenho.
-  A **mesma** iteração existia no motor (`segmentosDe`, em `motor/nucleo/notacao.js`), e por isso o
-  documento publicado tinha a mesma ordem errada — e a correção não podia ser só na tela.
-- **A duplicação era do exercício inteiro.** `duplicarExercicio` copiava todas as células: com seis
-  trechos escritos, repetir um custava seis cópias e cinco remoções.
+**CONFIRMADO e medido** (leitura do código, bancada local, e as provas novas):
+
+- **A frase mentia por omissão, e a conta era uma conta.** `33 + 18 = 51`, contra um teto de 50
+  subpedidos **por invocação** do Worker: nenhum código mais eficiente faz 51 caber em 50. O que não
+  coube foi o **último** passo — os vínculos e os dois elos já estavam gravados —, e «Nada do ciclo
+  foi escrito» lia-se ao contrário: o professor refaz o que está feito.
+- **O «abrir» não tinha alvo.** `cadeia.enderecos()` devolvia `/plano-observacao/` e mais nada. A
+  porta exige professor, escola **e ciclo** para abrir, e `?ajustar=<carimbo>` para abrir *dentro* do
+  documento; a página da Produção **não** traz `?ciclo=`. A porta chegava, não encontrava o
+  documento, e devolvia à listagem — o «titubeio» descrito, ao pé da letra.
+- **A etapa 4 era uma dedução.** «O PO é posterior ao gatilho» não é «os documentos foram gerados»: é
+  exactamente o estado que fica quando o teto corta entre a etapa 3 e a 4. Repetir o gesto dizia «a
+  cadeia fechou» sem nada ter sido gerado — a mentira tranquilizadora, a pior resposta possível.
 
 **O que foi decidido.**
 
-- **A ORDEM PASSA A SER DECLARADA NA CÉLULA** (`ordem`, inteiro), escrita pelo editor no instante
-  em que o trecho nasce. É o único sítio onde ela pode viver: a tela não a pode guardar em memória
-  (um recarregamento perde-a) e o documento é gerado a partir do JSON gravado.
-- **UMA LEITURA SÓ.** `ordemDasCelulas` (motor) e `trechosEmOrdem` (página, espelho declarado) dão a
-  mesma sequência, e por elas passam a tabela, a prévia do que fica, a numeração dos compassos e o
-  documento. Duas contas do mesmo facto divergiriam — a prova mede as duas contra o mesmo verbete.
-- **O QUE JÁ ESTAVA GRAVADO NÃO MUDA DE ORDEM (P-03/P-04).** Uma célula sem `ordem` recebe a posição
-  que a leitura antiga lhe dava (o índice dentro da gaveta, mais a gaveta), e o resultado é
-  **exactamente** o que o documento publicava até hoje. Nenhum verbete existente muda; e um verbete
-  antigo que receba um trecho novo põe-no no fim, porque a próxima ordem é o maior valor **efectivo**
-  mais um — contar só os declarados faria o primeiro trecho novo nascer com `ordem = 1`.
-- **A CORREÇÃO NÃO MUDA A POSIÇÃO.** Editar um trecho do meio não o manda para o fim: a ordem antiga
-  copia-se tal e qual (inclusive quando ela *não* existe — um verbete antigo não passa a declarar
-  ordem só porque um dos seus trechos foi editado).
-- **A DUPLICAÇÃO PASSA A SER DE UMA LINHA**, no botão da própria linha — é ele o «seletor» pedido: a
-  escolha faz-se onde a linha está, sem uma segunda lista de onde a escolher. A cópia recebe a maior
-  ordem mais um **e** é acrescentada ao fim do balde: as duas coisas, porque só a primeira deixaria
-  o ficheiro a gravar uma ordem que o índice dentro da gaveta não acompanha, e só a segunda voltaria
-  a pôr a cópia no meio assim que as outras declarassem ordem.
-- **O «Duplicar o exercício» SAIU**, e é reversão declarada: era ele que duplicava as seis linhas. O
-  que se perde — repetir a barra inteira, agora um clique por trecho — está dito no próprio código;
-  se a barra inteira voltar a ser o caso comum, o caminho é um botão que o diga, e não um que o faça
-  por omissão.
-- **A VALIDAÇÃO APRENDEU A ORDEM.** `ordem` é um inteiro ≥ 1 quando existe; um `2.5` ou um `"três"`
-  gravado por um pedido forjado ficava no ficheiro a parecer uma declaração enquanto a leitura o
-  tratava como se não estivesse lá.
+- **A GERAÇÃO PASSA A CORRER NUMA INVOCAÇÃO PRÓPRIA.** `cadeia.fecharPacotes({ turmas })` corre **só**
+  a etapa 4 — lê o plano e o PO vigentes e chama a mesma `concluirPacote` do «Guardar» — e **não**
+  deriva plano nem PO: derivá-los outra vez empilharia elos gémeos. Duas invocações, dois tetos, um
+  gesto. A rota é `POST /api/bastidores/cadeia-pacote`, montada na ponte da Produção.
+- **A PÁGINA CONTINUA SOZINHA, E UMA TURMA POR PEDIDO.** Quando o que falta é a geração e ela não
+  coube (`porOrcamento`), a própria página pede o fecho — o professor não carrega em mais nada. A
+  fila é **um pedido por turma**, porque o teto é por invocação e duas gerações caberiam mas três não:
+  cada pedido leva os 50 inteiros. Se alguma turma não fechar, é **ela** que fica à vista, e não o
+  «a cadeia fechou» da última que fechou.
+- **A FRASE PASSA A SER MONTADA DO ESTADO REAL.** `montarEstadoDaCadeia` — uma função, os dois
+  chamadores — devolve o que **fechou** (`fecharam`), o que **falta** (`restam`), o mesmo **por
+  turma**, e diz qual etapa falta e porquê. Uma etapa só conta como fechada se fechou em **todas** as
+  turmas do gesto: a união simples dizia «falta nada» com uma turma a meio. O `subpedidos.js` deixa de
+  mandar «repetir»: ele mede o orçamento, e quem sabe o que já entrou é quem chamou.
+- **O «ABRIR» ENTRA NO DOCUMENTO.** `cadeia.enderecoDaEtapa` junta ao endereço o `ciclo=` (lido do
+  plano/PO, porque a página não o traz), o `ajustar=<carimbo>` e o `plano=` que a porta já sabia ler.
+  Quando o que falta é a **geração**, vai **sem** `ajustar=`: o PO está em dia, e ajustá-lo derivaria
+  um elo gémeo do último — um duplicado que ninguém pediu.
+- **O `pacoteEmDia` DEIXOU DE SER DEDUÇÃO.** Passa a ler o registo da geração (`geracao.lerRegistro`,
+  gravado pelo `concluir-po.js`): há pedido posterior ao PO **e** documentos derivados. Sem registo —
+  escola antiga, KV sem a chave, runtime de prova — volta-se à dedução de antes: nada fica a afirmar
+  mais do que se mediu.
+- **O QUE JÁ FOI PINTADO SAI ANTES DO QUE VAI SER PINTADO, e só isso.** A caixa do resultado é a mesma
+  onde o acto escreveu «Fulana passou de A para B»; a marca `data-cadeia` limpa o estado da cadeia e
+  **não** o acto. Dois `pintarCadeia` no mesmo sítio (a gravação e o `carregarLinhas`) pedem a
+  geração **uma** vez — a guarda está no elemento.
 
-**Onde entrou.** `motor/nucleo/notacao.js` (`ordemDasCelulas`, exportada; `segmentosDe` a usá-la e a
-levar a ordem no segmento) · `motor/servidor/verbete.js` (a guarda da ordem em `validarVerbete`) ·
-`motor/servidor/bastidores.js` (`trechosEmOrdem`, `proximaOrdem`, `compassosDosTrechos`, a tabela, a
-prévia, o botão «Duplicar» de cada linha, `duplicarTrecho` — que substitui `duplicarExercicio` —, a
-ordem escrita na célula nova, e a saída do botão global e do `pintarDuplicar`) ·
-`experimentos/provar-ordem-e-duplicacao.js` (**novo, 31 asserções**, com controle negativo) ·
-`experimentos/provar-celula.js` e `experimentos/provar-musica-do-verbete.js` (acompanham o mecanismo
-novo) · `.gitignore`.
+**Onde entrou.** `motor/servidor/cadeia.js` (`pacoteEmDia` pelo registo, `alvosDe` partilhado,
+`fecharPacotes`, `enderecoDaEtapa`, o `id`/`ciclo` nas etapas, e o motivo na etapa que trava) ·
+`motor/servidor/bastidores.js` (`montarEstadoDaCadeia`, `rodarCadeia` a usá-la, `pintarCadeia` com a
+limpeza marcada e a fila por turma, a rota `cadeia-pacote`, e `urlDaPorta` a aceitar lista) ·
+`motor/servidor/producao.js` (a rota nova na lista de gestos que montam a cadeia) ·
+`motor/servidor/subpedidos.js` (a frase que já não instrui) ·
+`experimentos/provar-fecho-do-pacote.js` (**novo, 42 asserções**) ·
+`experimentos/provar-link-e-fecho.js` (**novo, 20 asserções, no navegador, com controle negativo**) ·
+`.gitignore` (as duas provas, uma por uma).
 
-**Validação.** `provar-ordem-e-duplicacao` **31/31** — o motor, a compatibilidade com o gravado, a
-validação, a tabela no navegador (a mesma ordem do motor), a duplicação de uma linha no fim, duas
-duplicações seguidas, a correção que não move, e o **controle negativo** (a leitura por gavetas tem
-de reprovar o caso dela). Sem regressão: `provar-producao` **166/166**, `provar-musica-do-verbete`
-**33/33**, `provar-busca-do-exercicio` 68, `provar-historico-do-ajuste` 39, `provar-largura-da-lista`
-56, `check-identidade` **0 erros (21 ok)**, `check-glossario` consistente. `provar-celula` e
-`provar-notacao` falham **o mesmo número de vezes do `HEAD`** (2 e 13), verificado em worktree à
-parte — são anteriores a esta entrega. `check-pacote` **1 erro, idêntico no `HEAD`** (o pacote do
-`calango-rosa` mistura dois POs, por trabalho que veio do remoto): não é desta entrega e não foi
-tocado.
+**Validação.** `provar-fecho-do-pacote` **42/42** — a frase do estado real, o fecho só da etapa 4 sem
+elos gémeos, o endereço dentro do documento (com ciclo vindo do documento), o `pacoteEmDia` pelo
+registo com o controlo negativo da dedução antiga, a rota no mesmo formato do gesto, e as duas turmas.
+`provar-link-e-fecho` **20/20** — o `ajustar=`/`plano=`/`escola=` no «abrir», a continuação sozinha,
+o acto preservado, uma nota só, uma geração por vez, a fila de duas turmas com a falhada à vista; e o
+**controle negativo** contra o motor do `HEAD` reprova **10 de 20**. Sem regressão:
+`provar-cadeia-automatica` **60/60**, `provar-cadeia-do-ajuste` **34/34**, `provar-mudanca-de-sala`
+**41/41**, `provar-producao` **166/166**, `check-identidade` **0 erros (21 ok)**.
 
-**O que ainda não está feito.** (1) **Não há forma de reordenar à mão**: a ordem é a de criação, e
-corrigi-la obriga a apagar e reescrever os trechos seguintes. Se ela quiser mover uma linha, é a
-próxima peça — e não é um campo de número, é um «mover para cima/baixo» com prova. (2) **O documento
-publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03), mas significa que o
-`notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
-conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
-seguinte ao deploy.
+**O que ainda não está feito.** (1) **Não foi conferido no ar nesta sessão** — as provas são de
+bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
+a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
+grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
+`wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
+gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
+repetição é o registo da geração, e só quando o KV tem a chave.
 
 ## O que está pendente
-
-## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
-
-(1) **A vigência futura não é respeitada** — por decisão, registada
-acima; derivar com data futura aplica já. (2) A mudança de sala **não revalida o elenco**: se a
-turma mudou de horário e a aluna deixou de poder, isso é outra cadeia (a do elenco), e o sistema não
-cruza as duas. (3) O total de aulas do plano é **relido** do período × dias; se o professor tiver
-decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`, mas há planos antigos
-com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
-conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
-seguinte ao deploy.
 
 ## 10/11/2026 — A faixa que ninguém media: 1141 a 1919px
 
@@ -293,6 +284,16 @@ publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03
 `notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
 conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
 seguinte ao deploy.
+
+## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
+
+(1) **Não foi conferido no ar nesta sessão** — as provas são de
+bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
+a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
+grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
+`wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
+gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
+repetição é o registo da geração, e só quando o KV tem a chave.
 
 ## Pendências anteriores (índice)
 
@@ -696,6 +697,7 @@ seguinte ao deploy.
 - **09/11/2026** — O «Cancelar» direto, e a derivação que troca o par… → `REGISTRO.md` L41358
 - **09/11/2026** — O filete pontilhado da listagem de elencos, e o padrão das… → `REGISTRO.md` L41408
 - **09/11/2026** — A cadeia automática: a troca e a saída deixam de ser «via… → `REGISTRO.md` L41458
+- **09/11/2026** — A mudança de sala entra na cadeia, e uma sala passa a… → `REGISTRO.md` L41525
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
