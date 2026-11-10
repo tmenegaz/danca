@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 42,
+  "versao": 43,
   "aplicaseA": [
     "benesh"
   ],
@@ -676,6 +676,74 @@
           ]
         },
         "escola": "batata"
+      }
+    },
+    "Battement fondu": {
+      "8|2/4@calango": {
+        "cobre": 8,
+        "posicao": null,
+        "metodo": "francesa",
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "5ª",
+                "cp",
+                "→",
+                "+"
+              ],
+              "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'\nLê-se: Perna, varredura para fora, quinta posição, coupé, conduz a, à frente.",
+              "ordem": 1
+            }
+          ],
+          "a-la-seconde": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "cp",
+                "+",
+                "→",
+                "-"
+              ],
+              "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'\nLê-se: Perna, coupé, à frente, conduz a, ao lado.",
+              "ordem": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "cp",
+                "×",
+                "→",
+                "-",
+                "cp",
+                "+",
+                "5ª"
+              ],
+              "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'\nLê-se: Perna, coupé, atrás, conduz a, ao lado, coupé, à frente, quinta posição.",
+              "ordem": 4
+            }
+          ],
+          "derriere": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "cp",
+                "×",
+                "→",
+                "×"
+              ],
+              "descricao": "Movimento de flexão e extensão simultânea das duas pernas (a base faz plié enquanto a perna de trabalho articula do cou-de-pied para uma extensão no ar). Significa 'derretido'\nLê-se: Perna, coupé, atrás, conduz a, atrás.",
+              "ordem": 3
+            }
+          ]
+        },
+        "escola": "calango"
       }
     }
   }
