@@ -193,6 +193,17 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
             erros.push(ondeEsta(d) + ': repetição inválida «' + c.repeticoes + '» (use um inteiro ≥ 1)');
           }
         }
+        /* A ORDEM DO TRECHO, quando existe, é um inteiro positivo (10/11/2026). É ela que diz a
+         * sequência da decomposição — e a leitura trata o que não serve como «sem ordem», que é a
+         * posição antiga. Sem esta guarda, um `ordem: 2.5` ou `ordem: "três"` gravado por um
+         * pedido forjado ficava no ficheiro a parecer uma declaração: a tela ordenava-o como se
+         * não estivesse lá, e ninguém sabia porquê. O válido é o que a leitura entende. */
+        if (c.ordem != null && c.ordem !== '') {
+          const o = Number(c.ordem);
+          if (!Number.isInteger(o) || o < 1) {
+            erros.push(ondeEsta(d) + ': ordem do trecho inválida «' + c.ordem + '» (use um inteiro ≥ 1)');
+          }
+        }
         // A NOTAÇÃO VEM DE DOIS CAMPOS (28/10/2026): `categoria` e `sinais`. O `bloco` de texto
         // deixou de existir no dado — «bloco» já queria dizer Solo · Barra · Centro, e pedir a
         // notação escrita à mão era pedir Benesh de cabeça. A validação compõe-na e confere-a

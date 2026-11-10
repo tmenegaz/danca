@@ -5256,15 +5256,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Com dois botões, o que se pode fazer vê-se: em correcção, o «Acrescentar» não está lá.
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vb-cel-acrescentar">Acrescentar trecho</button>' +
-    // DUPLICAR O EXERCÍCIO (02/11/2026). A barra repete a mesma estrutura rítmica e os mesmos
-    // braços mudando só a posição das pernas — 1ª, 2ª, 4ª, 5ª. Escrever os dois compassos vezes
-    // e vezes é trabalho repetido, e o que varia é uma coisa só.
-    //
-    // ELE DUPLICA TAL E QUAL, sem tocar em sinal nenhum: no `Plié` o `1ª` está nas duas pistas
-    // (a perna é `ED 1ª ↓ ↑`, o braço é `⌒ 2ª → 1ª → 2ª`), e uma troca de posição feita por
-    // conta própria escreveria `⌒ 2ª → 2ª → 2ª`. A posição da cópia muda-se a seguir, com o
-    // «Editar» do trecho — que é onde se vê o que se está a mudar.
-    '<button type="button" class="acao secundario" id="vb-cel-duplicar" hidden>Duplicar o exercício</button>' +
+    /* O «DUPLICAR O EXERCÍCIO» SAIU (10/11/2026) — e no lugar dele está o «Duplicar» de CADA LINHA.
+     *
+     * ELE DUPLICAVA TUDO, e era esse o defeito: com seis trechos escritos, quem quer repetir UM
+     * deles recebia os seis em cópia, e depois tinha de apagar cinco. A pesquisadora pediu o
+     * contrário por palavras: «um seletor/campo para escolher especificamente quais linhas devem
+     * ser duplicadas, evitando duplicar todas de uma vez quando houver várias, como 6 linhas». O
+     * seletor é o botão da própria linha — escolhe-se a linha onde ela está, e a cópia vai para o
+     * FIM da decomposição.
+     *
+     * O QUE SE PERDE, e é honesto dizê-lo: repetir a barra inteira passa a ser um clique por
+     * trecho. Ganha-se o que faltava — não pagar seis cópias para repetir uma. Se um dia a barra
+     * inteira voltar a ser o caso comum, o caminho é um botão que diga «duplicar todos» ao lado
+     * deste, e não um que o faça por omissão. */
     '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
     '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
     /* O «APAGAR» SAIU DO PASSO 6 (02/11/2026, segunda correcção do mesmo dia).
@@ -8247,18 +8251,67 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O COMPASSO CORRE POR TODOS OS TRECHOS, na ordem em que foram escritos (01/11/2026). Aqui
     // iterava-se `direcoesDaGramatica()` — as três do alfabeto —, e um trecho SEM direção não
     // entrava na conta: ficava com o compasso errado e não descontava os tempos dos seguintes.
+    /* ==========================================================================================
+     * A ORDEM DOS TRECHOS É A CRONOLÓGICA (10/11/2026)
+     *
+     * `CELULAS` é um mapa com a DIREÇÃO por chave, e percorrê-lo dá os trechos agrupados por
+     * direção. A pesquisadora escreveu *frente, ao lado, atrás, ao lado* e viu a decomposição
+     * apresentar *frente, ao lado, ao lado, atrás* — com os compassos renumerados. O agrupamento
+     * não era um desenho: era a consequência de a ordem não estar em lado nenhum, porque um mapa
+     * não guarda a ordem entre as suas gavetas.
+     *
+     * A ordem passou a ser DECLARADA na célula (`ordem`, inteiro), escrita pelo editor no instante
+     * em que o trecho nasce. Esta função é o espelho da do motor — `ordemDasCelulas`, em
+     * `motor/nucleo/notacao.js`, que é a fonte — e a duplicação é a mesma de sempre: o script da
+     * página não faz `require`. O que a mantém honesta é a prova, que mede as duas contra o mesmo
+     * verbete.
+     *
+     * E O QUE JÁ ESTAVA GRAVADO NÃO MUDA (P-03/P-04): a célula sem `ordem` recebe a posição que a
+     * leitura antiga lhe dava, e o resultado é exactamente o que o documento publicava até hoje.
+     * ========================================================================================== */
+    'function trechosEmOrdem(){' +
+    '  var itens = [];' +
+    '  var legado = 0;' +
+    '  Object.keys(CELULAS).forEach(function(d){' +
+    '    (CELULAS[d] || []).forEach(function(c, k){' +
+    '      var declarada = Number(c && c.ordem);' +
+    '      itens.push({ dir: d, k: k, c: c,' +
+    '        ordem: (isFinite(declarada) && declarada > 0) ? declarada : null, legado: legado });' +
+    '      legado += 1;' +
+    '    });' +
+    '  });' +
+    '  itens.sort(function(a, b){' +
+    '    var oa = a.ordem == null ? a.legado : a.ordem;' +
+    '    var ob = b.ordem == null ? b.legado : b.ordem;' +
+    '    return oa - ob || a.legado - b.legado;' +
+    '  });' +
+    '  return itens;' +
+    '}' +
+    /* A PRÓXIMA ORDEM LIVRE. O maior valor EFECTIVO (declarado ou herdado) mais um: assim um trecho
+     * novo cai sempre depois de todos os que existem — inclusive num verbete antigo, onde os
+     * herdados contam. Contar só os declarados faria o primeiro trecho novo de um verbete antigo
+     * nascer com `ordem = 1` e aparecer à frente do trabalho que já lá estava. */
+    'function proximaOrdem(){' +
+    '  var maior = 0;' +
+    '  trechosEmOrdem().forEach(function(t){' +
+    '    var v = t.ordem == null ? t.legado + 1 : t.ordem;' +
+    '    if (v > maior) maior = v;' +
+    '  });' +
+    '  return maior + 1;' +
+    '}' +
     'function compassosDosTrechos(){' +
     '  var n = numeradorDoCompasso(), mapa = {};' +
     '  var relogios = {};' +
-    '  Object.keys(CELULAS).forEach(function(d){' +
-    '    (CELULAS[d] || []).forEach(function(c, k){' +
     // UM RELÓGIO POR PISTA (02/11/2026) — a mesma conta do motor. Com um relógio só, os braços do
     // `Plié`, que começam em 1, apareciam no compasso 3; e a tela contradizia o documento.
-    '      var pista = String((c && c.categoria) || "").trim() || "(sem categoria)";' +
-    '      var corridos = relogios[pista] || 0;' +
-    '      mapa[d + ":" + k] = Math.floor(corridos / n) + 1;' +
-    '      relogios[pista] = corridos + temposDaCelula(c);' +
-    '    });' +
+    // E A ORDEM É A CRONOLÓGICA (10/11/2026): percorrer o mapa por gavetas renumerava os compassos
+    // sempre que a direção mudava de gaveta.
+    '  trechosEmOrdem().forEach(function(t){' +
+    '    var c = t.c;' +
+    '    var pista = String((c && c.categoria) || "").trim() || "(sem categoria)";' +
+    '    var corridos = relogios[pista] || 0;' +
+    '    mapa[t.dir + ":" + t.k] = Math.floor(corridos / n) + 1;' +
+    '    relogios[pista] = corridos + temposDaCelula(c);' +
     '  });' +
     '  return mapa;' +
     '}' +
@@ -8310,9 +8363,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var mapa = compassosDosTrechos();' +
     '  var linhas = [];' +
-    '  Object.keys(CELULAS).forEach(function(d){' +
-    '    (CELULAS[d] || []).forEach(function(c, k){ linhas.push({dir: d, k: k, c: c}); });' +
-    '  });' +
+    /* AS LINHAS NA ORDEM CRONOLÓGICA (10/11/2026). Era `Object.keys(CELULAS)`, e o resultado era
+     * `frente, ao lado, ao lado, atrás` para quem escreveu `frente, ao lado, atrás, ao lado`. A
+     * numeração dos compassos acompanha — as duas leem `trechosEmOrdem()`. */
+    '  linhas = trechosEmOrdem();' +
     '  if (!linhas.length) {' +
     // SEM TRECHOS, NÃO HÁ DECOMPOSIÇÃO A MOSTRAR. É o estado de um exercício que ainda não foi
     // decomposto — a decomposição «nem aparece», e a partir de 03/11/2026 nem a frase que dizia
@@ -8339,10 +8393,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // coisa que não pode acontecer por engano.
     '    var emMim = Boolean(EM_EDICAO && EM_EDICAO.dir === t.dir && EM_EDICAO.k === t.k);' +
     '    var chave = t.dir + ":" + t.k;' +
+    /* O «DUPLICAR» É DESTA LINHA (10/11/2026) — e é ele que responde ao pedido: «escolher
+     * especificamente quais linhas devem ser duplicadas, evitando duplicar todas de uma vez».
+     * O botão ao lado do trecho é o seletor: escolhe-se a linha onde ela está, sem uma segunda
+     * lista de onde a escolher. A cópia vai para o FIM da decomposição (`duplicarTrecho`).
+     *
+     * EM EDIÇÃO ELE NÃO EXISTE, pela mesma razão que o «Acrescentar» sai de cena: quem está a
+     * corrigir um trecho não está a duplicar nada, e uma coluna de botões que não servem ao gesto
+     * em curso é ruído. */
     '    var acoes = emMim' +
     '      ? "<span class=\\"nota\\">em edição</span> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-cancelar-edicao=\\"1\\">Cancelar</button>"' +
     '      : "<button type=\\"button\\" class=\\"acao secundario pequena\\" data-editar=\\"" + chave +' +
-    '        "\\" title=\\"editar este trecho\\">Editar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + chave +' +
+    '        "\\" title=\\"editar este trecho\\">Editar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-duplicar=\\"" + chave +' +
+    '        "\\" title=\\"duplicar este trecho no fim da decomposição\\">Duplicar</button> <button type=\\"button\\" class=\\"acao secundario pequena\\" data-tirar=\\"" + chave +' +
     '        "\\" title=\\"tirar este trecho\\">×</button>";' +
     // A REPETIÇÃO APARECE AO LADO DA CONTAGEM (02/11/2026): «1–2 ×2» lê-se como «1–2 duas vezes», e
     // uma coluna só para o número gastaria largura numa coisa que existe em poucas linhas.
@@ -8390,7 +8453,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  alvo.innerHTML = html;' +
     '  pintarDesacordo();' +
     '  pintarCobertura();' +
-    '  pintarDuplicar();' +
     // A PRÉVIA DO QUE FICA ESCRITO ACOMPANHA A TABELA: as duas leem as mesmas células, e uma
     // tabela que muda sem a prévia mudar seria a tela a dizer duas coisas do mesmo trecho.
     '  pintarFica();' +
@@ -8547,11 +8609,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // formulário não ensina o que fazer — tem os campos e o botão que faz.
     '  pintarComoNova();' +
     '}' +
-    'function pintarDuplicar(){' +
-    '  var b = document.getElementById("vb-cel-duplicar");' +
-    '  if (!b) return;' +
-    '  b.hidden = (EM_EDICAO !== null) || !cobertura();' +
-    '}' +
+    /* `pintarDuplicar` SAIU COM O BOTÃO (10/11/2026). Ele existia para mostrar e esconder o
+     * «Duplicar o exercício» conforme houvesse trechos e não houvesse edição em curso. O botão
+     * passou a ser o de cada linha, e quem decide se ele aparece é a própria tabela — que já sabe
+     * se a linha está em edição (`emMim`). Uma função a guardar um botão que não existe é a
+     * mentira mais barata que uma página conta a si mesma. */
     // AQUI VIVIA `ondeOExercicioTem` (01/11/2026). Ela respondia «o exercício vai à frente noutra
     // música, mas não nesta» — a frase que separava «não vai» de «falta escrever» nos três blocos
     // por direção. Com a decomposição em lista, os blocos deixaram de existir e não há onde a
@@ -8950,8 +9012,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // TODOS OS TRECHOS, COM OU SEM DIREÇÃO (01/11/2026). Iterava-se a lista da gramática, e um
     // trecho sem direção não chegava a esta prévia — ficava escrito no verbete e invisível na
     // última leitura antes de gravar.
-    '  Object.keys(CELULAS).forEach(function(d){' +
-    '    (CELULAS[d] || []).forEach(function(c, k){' +
+    // A MESMA ORDEM DA TABELA (10/11/2026). A prévia é a última leitura antes de gravar: se ela
+    // listasse os trechos por gaveta e a tabela por tempo, a tela diria duas ordens do mesmo gesto.
+    '  trechosEmOrdem().forEach(function(t){' +
+    '    var d = t.dir, k = t.k, c = t.c;' +
+    '    {' +
     '      var orient = "";' +
     '      orientacoesDaGramatica().forEach(function(o){' +
     '        if (o.termo === (c.orientacao || "")) orient = o.nome;' +
@@ -8981,7 +9046,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          "<span class=\\"nota\\">(sem «lê-se» — sem sinais)</span>") +' +
     '        (antiga ? "<br><span class=\\"nota\\">guardado com a frase com que foi escrito</span>" : "") +' +
     '        "</p></details>");' +
-    '    });' +
+    '    }' +
     '  });' +
     // A FRASE, UMA VEZ, À FRENTE DO QUE VARIA. Sem ela o bloco perdia a metade que é do exercício;
     // com ela em cada linha, era a repetição que ela mandou tirar.
@@ -9061,7 +9126,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // porque são duas acções: acrescentar é o que se faz quando não se está a corrigir nada.
     '  var bAcrescentar = document.getElementById("vb-cel-acrescentar");' +
     '  if (bAcrescentar) bAcrescentar.hidden = (EM_EDICAO !== null);' +
-    '  pintarDuplicar();' +
     '  var bGuardar = document.getElementById("vb-cel-guardar");' +
     '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
     /* O «APAGAR» JÁ NÃO VIVE AQUI (02/11/2026, segunda correcção do mesmo dia). O bloco que
@@ -9787,8 +9851,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  MUSICA_EM_FOCO = (nome && tempos && compasso) ? tempos + "|" + compasso : "";' +
     '  var v = (VERBETES && VERBETES.verbetes && VERBETES.verbetes[nome]) || null;' +
     '  var base = (MUSICA_EM_FOCO && v && v[MUSICA_EM_FOCO] && v[MUSICA_EM_FOCO].celulas) || {};' +
-    // TROCAR A MÚSICA RECOMECE A DECOMPOSIÇÃO, e é a decisão que fica (02/11/2026 — ver a nota da
-    // `duplicarExercicio`, que é quem precisa do contrário e o resolve sem mexer aqui). Cheguei a
+    // TROCAR A MÚSICA RECOMECE A DECOMPOSIÇÃO, e é a decisão que fica (02/11/2026 — a duplicação
+    // de um trecho é quem precisa do contrário, e resolve-o sem mexer aqui, porque cópia a célula
+    // que já está carregada em vez de recarregar a música). Cheguei a
     // conservar as células quando a música ainda não existe, com o argumento de que elas são o
     // gesto; a suite disse o contrário, e com números: treze asserções passaram a medir o
     // exercício anterior. Uma mão que muda os tempos está a declarar OUTRA música, e outra música
@@ -10700,6 +10765,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (faltando.length) { recado("erro", "Falta " + faltando.join(", ") + "."); return; }' +
     '    var celula = {contagem: CONTAGEM, categoria: categoriaEscolhida(),' +
     '      sinais: SINAIS.slice(), descricao: desc};' +
+    /* A ORDEM DO TRECHO GRAVA-SE AQUI (10/11/2026) — é o único instante em que se sabe que este
+     * trecho é novo e em que posição da história ele entra.
+     *
+     * A CORRECÇÃO NÃO MUDA A POSIÇÃO. Um trecho que se está a corrigir já tem lugar; atribuir-lhe
+     * uma ordem nova mandaria para o fim um trecho do compasso 1 só porque se corrigiu um braço —
+     * o mesmo defeito que a 02/11/2026 se corrigiu no `splice`. A ordem antiga copia-se tal e qual
+     * — inclusive quando ela NÃO existe: um verbete antigo não passa a declarar uma ordem só
+     * porque um dos seus trechos foi editado (P-03). */
+    '    if (EM_EDICAO) {' +
+    '      var anteriorEditada = (CELULAS[EM_EDICAO.dir] || [])[EM_EDICAO.k];' +
+    '      if (anteriorEditada && anteriorEditada.ordem != null) celula.ordem = anteriorEditada.ordem;' +
+    '    } else {' +
+    '      celula.ordem = proximaOrdem();' +
+    '    }' +
     // A REPETIÇÃO SÓ SE GRAVA QUANDO NÃO É 1: a omissão já quer dizer «uma vez», e escrevê-la em
     // todas as células seria ruído — a mesma regra da orientação, que só se grava quando não é
     // `en face`.
@@ -10783,16 +10862,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * é reescrever a música sem ninguém pedir. A música é a base rítmica do exercício e define-se
      * no passo 3; o que a cópia muda é o que a decomposição OCUPA, e isso o selo declara.
      */
-    'function duplicarExercicio(){' +
-    '  limparBaldesVazios();' +
-    '  var bloco = cobertura();' +
-    '  if (!bloco) { recado("erro", "Ainda não há trechos para duplicar."); return; }' +
-    '  var alvo = {};' +
-    '  Object.keys(CELULAS).forEach(function(d){' +
-    '    var lista = CELULAS[d] || [];' +
-    '    alvo[d] = lista.concat(JSON.parse(JSON.stringify(lista)));' +
-    '  });' +
-    '  CELULAS = alvo;' +
+    /* DUPLICAR UM TRECHO — O DESTA LINHA, E NO FIM (10/11/2026).
+     *
+     * Era `duplicarExercicio`, e copiava o verbete inteiro: com seis trechos escritos, repetir um
+     * deles custava seis cópias e cinco remoções. O pedido dela é literal — «escolher
+     * especificamente quais linhas devem ser duplicadas» —, e o seletor é o botão da própria
+     * linha.
+     *
+     * A CÓPIA VAI PARA O FIM, e por duas vias que se confirmam: recebe a maior ordem mais um (é o
+     * que a põe depois de todos), e é acrescentada ao fim do balde. Se só a segunda valesse, a
+     * ordem declarada dos outros trechos voltaria a pô-la no meio; se só a primeira valesse, o
+     * índice dentro do balde não seria o do fim e o ficheiro gravaria uma coisa que a tela não
+     * mostra.
+     *
+     * E COPIA-SE TAL E QUAL, sem tocar em sinal nenhum: no `Plié` o `1ª` está nas duas pistas (a
+     * perna é `ED 1ª ↓ ↑`, o braço é `⌒ 2ª → 1ª → 2ª`), e uma troca de posição feita por conta
+     * própria escreveria `⌒ 2ª → 2ª → 2ª`. A posição da cópia muda-se a seguir, com o «Editar» do
+     * trecho — que é onde se vê o que se está a mudar. */
+    'function duplicarTrecho(d, k){' +
+    '  var lista = CELULAS[d] || [];' +
+    '  var original = lista[Number(k)];' +
+    '  if (!original) { recado("erro", "Esse trecho já não está na decomposição."); return; }' +
+    '  var copia = JSON.parse(JSON.stringify(original));' +
+    '  copia.ordem = proximaOrdem();' +
+    '  CELULAS[d] = lista.concat([copia]);' +
     // A MÚSICA NÃO SE TOCA (03/11/2026). Era `novo = declarado + bloco` escrito no campo, e o
     // efeito é o que ela relatou: uma música de 8 tempos ia a 12 ao duplicar um bloco de 4, e a
     // cada duplicação somava outra vez. A música é a BASE RÍTMICA do exercício — quem a define é
@@ -10809,13 +10902,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var aviso = (t > 0 && c !== t)' +
     '    ? ", e a música declara " + t + ". O desacordo está marcado — ajuste a música ou os trechos."' +
     '    : ".";' +
-    '  recado("ok", "trechos duplicados — a decomposição passa a ocupar " + c + " tempos" + aviso +' +
-    '    " Mude a posição na cópia com «Editar».");' +
+    '  recado("ok", "trecho duplicado — a cópia fica no FIM da decomposição, com " + c +' +
+    '    " tempos no total" + aviso + " Mude a posição na cópia com «Editar».");' +
     '}' +
-    '["vb-cel-duplicar"].forEach(function(id){' +
-    '  var b = document.getElementById(id);' +
-    '  if (b) b.addEventListener("click", duplicarExercicio);' +
-    '});' +
     '["vb-cel-acrescentar", "vb-cel-guardar"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
     '  if (b) b.addEventListener("click", acrescentarOuGuardar);' +
@@ -10827,6 +10916,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var bTabela = document.getElementById("vb-tabela");' +
     'if (bTabela) {' +
     '  bTabela.addEventListener("click", function(e){' +
+    // O «DUPLICAR» DE UMA LINHA (10/11/2026). O botão diz que linha é — `data-duplicar="dir:k"` —
+    // e a cópia vai para o fim, com uma ordem nova. Um handler só para a tabela toda, como o «×»
+    // ao lado: são a mesma linha, e dois handlers para a mesma linha envelhecem a par.
+    '    var bDup = e.target.closest ? e.target.closest("button[data-duplicar]") : null;' +
+    '    if (bDup) {' +
+    '      var pd = bDup.getAttribute("data-duplicar").split(":");' +
+    '      duplicarTrecho(pd[0], pd[1]);' +
+    '      return;' +
+    '    }' +
     '    var b = e.target.closest ? e.target.closest("button[data-tirar]") : null;' +
     '    if (!b) return;' +
     '    var p = b.getAttribute("data-tirar").split(":");' +

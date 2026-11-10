@@ -535,6 +535,61 @@ function verbetePara(alfabeto, exercicio, musica, data, escola) {
 }
 
 /**
+ * A ORDEM DOS TRECHOS — a cronológica, e não a das gavetas (10/11/2026).
+ *
+ * O DEFEITO, medido. `celulas` é um mapa com a DIREÇÃO por chave (`devant`, `a-lado`, …), e
+ * percorrer esse mapa dá os trechos agrupados por direção — não na ordem em que foram escritos. A
+ * pesquisadora descreveu o que via: escreveu *frente, ao lado, atrás, ao lado*, e a decomposição
+ * apresentou-lhe *frente, ao lado, ao lado, atrás*, renumerando os compassos. O agrupamento não era
+ * um desenho: era a CONSEQUÊNCIA de a ordem não estar em lado nenhum. O mapa não tem memória da
+ * ordem entre gavetas — acrescentar à primeira gaveta não a põe à frente das outras.
+ *
+ * A SAÍDA É UMA ORDEM DECLARADA, na célula (`ordem`, inteiro). Quem a escreve é o editor, no
+ * instante em que o trecho nasce; quem a lê é esta função, e por ela passam a tabela da página, o
+ * documento e o glossário — uma conta só, como manda a casa.
+ *
+ * E O QUE JÁ ESTAVA GRAVADO NÃO SE REESCREVE (P-03/P-04): uma célula sem `ordem` recebe a posição
+ * que a leitura antiga lhe dava — o índice dentro da gaveta, mais a gaveta —, e o resultado é
+ * EXACTAMENTE o que o documento publicava até hoje. Nenhum verbete existente muda de ordem por
+ * causa desta correção; só os que nascerem daqui para a frente a declaram.
+ */
+function ordemDasCelulas(celulas) {
+  if (!celulas || typeof celulas !== 'object') return [];
+  const direcoes = Object.keys(celulas);
+  const itens = [];
+  let legado = 0;
+  for (const direcao of direcoes) {
+    const lista = Array.isArray(celulas[direcao]) ? celulas[direcao] : [];
+    for (let k = 0; k < lista.length; k += 1) {
+      const c = lista[k];
+      const declarada = Number(c && c.ordem);
+      itens.push({
+        direcao,
+        indice: k,
+        celula: c,
+        // A ORDEM EFECTIVA: a declarada, ou a da leitura antiga. `legado` só avança quando a
+        // célula não declara nada — assim uma célula antiga nunca é empurrada para trás por uma
+        // nova, e uma nova nunca cai no meio das antigas.
+        ordem: Number.isFinite(declarada) && declarada > 0 ? declarada : null,
+        _legado: legado,
+      });
+      legado += 1;
+    }
+  }
+  /* O DESEMPATE, e a razão de ele existir: um verbete que nasceu ANTES desta correção e recebeu um
+   * trecho novo fica com células sem ordem e uma com ordem. Sem desempate, uma célula declarada
+   * com `ordem = 1` (a primeira de um verbete novo) empataria com a primeira antiga, e o
+   * `sort` do JavaScript não promete estabilidade em todos os motores. O desempate usa o índice
+   * de leitura antiga — e é ele que dá a ordem de hoje quando não há `ordem` nenhuma. */
+  itens.sort((a, b) => {
+    const oa = a.ordem == null ? a._legado : a.ordem;
+    const ob = b.ordem == null ? b._legado : b.ordem;
+    return oa - ob || a._legado - b._legado;
+  });
+  return itens;
+}
+
+/**
  * OS SEGMENTOS DE UM VERBETE, na forma nova (28/10/2026).
  *
  * A célula declara a CONTAGEM e o que acontece; o número do COMPASSO é CALCULADO, percorrendo as
@@ -548,49 +603,48 @@ function verbetePara(alfabeto, exercicio, musica, data, escola) {
 function segmentosDe(verbete, numerador) {
   if (!verbete) return [];
   if (verbete.celulas && typeof verbete.celulas === 'object') {
-    // A ORDEM É A DAS CÉLULAS, e é a única lista que existe (28/10/2026). Havia um campo
-    // `direcoes` ao lado, e nas seis entradas do alfabeto ele era — verificado, seis de seis —
-    // exactamente a lista das chaves de `celulas`. Duas listas da mesma coisa divergem ao
-    // primeiro caso que só uma conhece; aqui, o dia em que divergissem, o documento escreveria
-    // uma direção para a qual não tem descrição. O `Object.keys` preserva a ordem de inserção,
-    // que é a ordem em que as células foram escritas — a mesma que `direcoes` declarava.
-    const ordem = Object.keys(verbete.celulas);
+    /* A ORDEM É A CRONOLÓGICA, e não a das gavetas (10/11/2026). Ver `ordemDasCelulas`: era aqui
+     * que a direção reagrupava os trechos, e a página fazia a mesma coisa por sua conta. */
+    const ordem = ordemDasCelulas(verbete.celulas);
     const saida = [];
     // O COMPASSO CORRE POR PISTA (02/11/2026). Antes havia um `corridos` único, somando tudo na
     // ordem do ficheiro — e por isso os braços do `Plié`, que começam em 1, apareciam no compasso
     // 3 (o 12º tempo). Cada categoria tem o seu relógio: as pernas vão no 1º e no 2º compasso
     // enquanto os braços vão no 1º, e é isso que a página da aula tem de dizer.
     const corridosPorPista = new Map();
-    for (const direcao of ordem) {
-      const celulas = Array.isArray(verbete.celulas[direcao]) ? verbete.celulas[direcao] : [];
-      for (const c of celulas) {
-        const pista = String((c && c.categoria) || '').trim() || '(sem categoria)';
-        const corridos = corridosPorPista.get(pista) || 0;
-        saida.push(Object.assign({}, c, {
-          // A NOTAÇÃO DERIVADA. Os leitores a jusante — a tabela do documento, o glossário, a
-          // validação dos sinais — sempre leram `bloco`; ele continua a existir no SEGMENTO,
-          // composto dos dois campos da célula. O que mudou foi onde a verdade mora.
-          bloco: blocoDe(c),
-          // A DIREÇÃO PODE NÃO EXISTIR (01/11/2026). O `relevé` não vai à frente, nem ao lado,
-          // nem atrás — sobe e desce, em primeira posição. Antes, um trecho assim só se
-          // escrevia enfiado debaixo de uma direção que não era a dele (o `Plié` do alfabeto
-          // está todo em `devant`). A chave VAZIA passa a ser a ausência declarada, e o
-          // segmento leva `null` — não `""`, para que quem lê pergunte «tem direção?» e não
-          // «que direção é a string vazia?».
-          direcao: direcao || null,
-          // A ORIENTAÇÃO DO CORPO é outro eixo (28/10/2026): a direção diz para onde a perna vai,
-          // a orientação diz como o corpo está voltado. Ficam separadas porque são coisas
-          // diferentes — «à frente en croisé» é um trecho, não dois. Omitida, é `en-face`.
-          orientacao: c.orientacao || 'en-face',
-          // O compasso começa em 1 e cada `numerador` tempos vira a página.
-          compasso: Math.floor(corridos / numerador) + 1,
-          // A PISTA VAI NO SEGMENTO: é ela que diz a quem o compasso pertence, e sem ela quem lê
-          // a grade não sabe que os dois «compasso 1» são simultâneos e não sucessivos.
-          pista,
-          repeticoes: repeticoesDaCelula(c),
-        }));
-        corridosPorPista.set(pista, corridos + temposDaCelula(c));
-      }
+    for (const item of ordem) {
+      const direcao = item.direcao;
+      const c = item.celula;
+      const pista = String((c && c.categoria) || '').trim() || '(sem categoria)';
+      const corridos = corridosPorPista.get(pista) || 0;
+      saida.push(Object.assign({}, c, {
+        // A NOTAÇÃO DERIVADA. Os leitores a jusante — a tabela do documento, o glossário, a
+        // validação dos sinais — sempre leram `bloco`; ele continua a existir no SEGMENTO,
+        // composto dos dois campos da célula. O que mudou foi onde a verdade mora.
+        bloco: blocoDe(c),
+        // A DIREÇÃO PODE NÃO EXISTIR (01/11/2026). O `relevé` não vai à frente, nem ao lado,
+        // nem atrás — sobe e desce, em primeira posição. Antes, um trecho assim só se
+        // escrevia enfiado debaixo de uma direção que não era a dele (o `Plié` do alfabeto
+        // está todo em `devant`). A chave VAZIA passa a ser a ausência declarada, e o
+        // segmento leva `null` — não `""`, para que quem lê pergunte «tem direção?» e não
+        // «que direção é a string vazia?».
+        direcao: direcao || null,
+        // A ORIENTAÇÃO DO CORPO é outro eixo (28/10/2026): a direção diz para onde a perna vai,
+        // a orientação diz como o corpo está voltado. Ficam separadas porque são coisas
+        // diferentes — «à frente en croisé» é um trecho, não dois. Omitida, é `en-face`.
+        orientacao: c.orientacao || 'en-face',
+        // O compasso começa em 1 e cada `numerador` tempos vira a página.
+        compasso: Math.floor(corridos / numerador) + 1,
+        // A PISTA VAI NO SEGMENTO: é ela que diz a quem o compasso pertence, e sem ela quem lê
+        // a grade não sabe que os dois «compasso 1» são simultâneos e não sucessivos.
+        pista,
+        repeticoes: repeticoesDaCelula(c),
+      }));
+      // A ORDEM DO TRECHO VAI NO SEGMENTO (10/11/2026). É ela que a tabela do documento usa para
+      // se ordenar, e é ela que sobrevive quando alguém copia a lista de segmentos — sem isto, o
+      // documento voltaria a agrupar por direção e a tela não.
+      saida[saida.length - 1].ordem = item.ordem == null ? item._legado : item.ordem;
+      corridosPorPista.set(pista, corridos + temposDaCelula(c));
     }
     return saida;
   }
@@ -823,6 +877,7 @@ module.exports = {
   coberturaDe,
   normalizarMetodo,
   lerMusica,
+  ordemDasCelulas,
   blocoDe,
   orientacaoEmPalavras,
   lerBloco,

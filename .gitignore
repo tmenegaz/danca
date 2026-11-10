@@ -999,3 +999,10 @@ experimentos/modelo-formulario/*
 # encontra por acento, por prefixo e por semelhança; o nome que casa não se cria outra vez; e o
 # exercício novo continua a exigir os três campos.
 !experimentos/provar-busca-do-exercicio.js
+
+# A ORDEM DOS TRECHOS E A DUPLICAÇÃO DE UMA LINHA (10/11/2026). A pesquisadora escreveu frente, ao
+# lado, atrás, ao lado e viu a decomposição reagrupada por direção — porque o mapa de células não
+# guarda a ordem entre gavetas. E o «Duplicar o exercício» copiava as seis linhas quando ela queria
+# uma. Esta prova mede a ordem cronológica declarada, a compatibilidade com o que já está gravado,
+# a duplicação no fim, e tem CONTROLE NEGATIVO: reposta a leitura por gavetas, ela reprova.
+!experimentos/provar-ordem-e-duplicacao.js

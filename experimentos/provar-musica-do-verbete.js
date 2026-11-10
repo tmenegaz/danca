@@ -261,29 +261,40 @@ async function aTela() {
 
   const musicaAntes = tempos.value;
 
-  // 1) DUPLICAR UM TRECHO NÃO MUDA A DURAÇÃO DA MÚSICA.
-  const duplicar = d.getElementById('vb-cel-duplicar');
-  checar('o «Duplicar» está disponível com trechos escritos', Boolean(duplicar) && !duplicar.hidden);
+  /* 1) DUPLICAR UM TRECHO NÃO MUDA A DURAÇÃO DA MÚSICA.
+   *
+   * A DUPLICAÇÃO PASSOU A SER DE UMA LINHA (10/11/2026): o botão global saiu, e cada linha tem o
+   * seu. O que esta secção mede não mudou — que a música não é reescrita pela cópia —, e a
+   * contagem acompanha o mecanismo novo: uma linha copiada, não o dobro das linhas. */
+  const duplicar = d.querySelector('#vb-tabela button[data-duplicar]');
+  checar('o «Duplicar» está disponível em cada linha com trechos escritos', Boolean(duplicar));
   if (duplicar) duplicar.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await espera(40);
 
   checar('duplicar NÃO reescreve os tempos da música', tempos.value === musicaAntes,
     { antes: musicaAntes, depois: tempos.value });
-  checar('…e os trechos duplicaram', linhas() === antesDosTrechos * 2,
-    { antes: antesDosTrechos, depois: linhas() });
+  checar('…e UMA linha foi duplicada (a do botão, não a decomposição inteira)',
+    linhas() === antesDosTrechos + 1, { antes: antesDosTrechos, depois: linhas() });
   checar('…e o selo do desacordo aparece, porque agora ocupam mais do que a música declara',
     selo && selo.hidden === false, { hidden: selo && selo.hidden });
 
-  // 2) MUDAR A MÚSICA NÃO APAGA OS TRECHOS.
+  /* 2) MUDAR A MÚSICA NÃO APAGA OS TRECHOS.
+   *
+   * O NÚMERO DEIXOU DE SER 16 (10/11/2026). Com a duplicação de UMA linha, os trechos passam a
+   * ocupar o que ocupavam MAIS a linha copiada — e não o dobro. Escrever «16» à mão era medir o
+   * mecanismo antigo; o que se mede agora é a REGRA (o selo desaparece quando a música declarada
+   * iguala o que os trechos ocupam), com o número lido da página. */
   const trechosAntesDaMusica = linhas();
-  tempos.value = '16';
+  const coberturaAgora = typeof w.cobertura === 'function' ? w.cobertura() : null;
+  tempos.value = String(coberturaAgora || 16);
   disparar(tempos, 'input');
   await espera(40);
 
   checar('mudar os tempos NÃO apaga a decomposição', linhas() === trechosAntesDaMusica,
     { antes: trechosAntesDaMusica, depois: linhas() });
-  checar('…e, com 16 tempos, o selo desaparece — os trechos passaram a fechar',
-    selo && selo.hidden === true, { hidden: selo && selo.hidden, tempos: tempos.value });
+  checar('…e, declarada a música com os tempos que os trechos ocupam, o selo desaparece',
+    selo && selo.hidden === true,
+    { hidden: selo && selo.hidden, tempos: tempos.value, cobertura: coberturaAgora });
 
   // 3) E O COMPASSO TAMBÉM NÃO APAGA.
   compasso.value = '3/4';

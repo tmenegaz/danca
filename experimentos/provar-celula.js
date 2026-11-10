@@ -1390,6 +1390,12 @@ function estado() {
     // A BARRA REPETE-SE (02/11/2026). O pedido dela: o `Plié` em 1ª, 2ª, 4ª e 5ª — a mesma
     // estrutura rítmica e os mesmos braços, mudando só a posição das pernas. Montar do zero cada
     // compasso de cada posição é trabalho repetido, e o que varia é uma coisa só.
+    /* A DUPLICAÇÃO PASSOU A SER DE UMA LINHA (10/11/2026) — e este bloco acompanha.
+     *
+     * Era `duplicarExercicio`, que copiava o verbete inteiro, e o botão global que o disparava
+     * saiu com ela: com seis trechos escritos, repetir um custava seis cópias e cinco remoções.
+     * O que se mede agora é o que a pesquisadora pediu — a cópia de UMA linha, no FIM, e a
+     * numeração dos compassos a acompanhar. */
     const dup = await page.evaluate(() => {
       const antes = CELULAS;
       const campo = document.getElementById('vbtempos');
@@ -1397,42 +1403,44 @@ function estado() {
       const temposAntes = campo.value, musicaAntes = MUSICA_EM_FOCO, compassoAntes = sel.value;
       campo.value = '4'; sel.value = '4/4';
       CELULAS = { '': [
-        { contagem: '1–2', categoria: 'Perna', sinais: ['ED', '1ª', '↓', '↑'], descricao: 'x', repeticoes: 2 },
-        { contagem: '1–2', categoria: 'Braço', sinais: ['⌒', '2ª', '→', '1ª', '→', '2ª'], descricao: 'y', repeticoes: 2 },
+        { contagem: '1–2', categoria: 'Perna', sinais: ['ED', '1ª', '↓', '↑'], descricao: 'x', repeticoes: 2, ordem: 1 },
+        { contagem: '1–2', categoria: 'Braço', sinais: ['⌒', '2ª', '→', '1ª', '→', '2ª'], descricao: 'y', repeticoes: 2, ordem: 2 },
       ] };
+      pintarTabela();
       const cobAntes = cobertura();
-      const visivelAntes = !document.getElementById('vb-cel-duplicar').hidden;
-      duplicarExercicio();
+      const botaoGlobal = Boolean(document.getElementById('vb-cel-duplicar'));
+      const porLinha = document.querySelectorAll('#vb-tabela button[data-duplicar]').length;
+      duplicarTrecho('', 0);
       const mapa = compassosDosTrechos();
       const linhas = CELULAS[''].map((c, k) => ({
-        cat: c.categoria, comp: mapa[':' + k], sinais: (c.sinais || []).join(' '),
+        cat: c.categoria, comp: mapa[':' + k], ordem: c.ordem,
       }));
       const r = {
         cobAntes, cobDepois: cobertura(), n: CELULAS[''].length,
-        tempos: campo.value, musica: MUSICA_EM_FOCO, linhas, visivelAntes,
+        tempos: campo.value, musica: MUSICA_EM_FOCO, linhas, botaoGlobal, porLinha,
       };
       CELULAS = antes; campo.value = temposAntes; sel.value = compassoAntes;
       MUSICA_EM_FOCO = musicaAntes;
+      pintarTabela();
       return r;
     });
-    conferir('o «Duplicar» aparece quando há trechos', dup.visivelAntes, dup);
-    conferir('duplicar duplica a decomposição e a cobertura',
-      dup.cobAntes === 4 && dup.cobDepois === 8 && dup.n === 4, dup);
-    // OS TEMPOS SOBEM SOZINHOS. Duplicar um bloco de 4 numa música de 4 deixaria a música a
-    // declarar 4 e as células a cobrir 8 — a gravação recusaria com «sobram 4 tempos» o
-    // resultado de uma acção que a própria tela ofereceu.
-    conferir('e a música cresce um bloco — o campo e a música em foco acompanham',
-      dup.tempos === '8' && dup.musica === '8|4/4', dup);
-    // A CÓPIA ENTRA NOS COMPASSOS SEGUINTES, e não a repetir o primeiro: o compasso é derivado
-    // da ordem dentro da pista, e é isso que faz 4 tempos virarem 8 — e 8 virarem 16.
-    conferir('as cópias caem nos compassos seguintes, não repetem o primeiro',
-      dup.linhas.map((l) => l.comp).join(',') === '1,1,2,2', dup.linhas);
-    // NENHUM SINAL É REESCRITO. O `1ª` está nas duas pistas — a perna é `ED 1ª ↓ ↑` e o caminho
-    // do braço é `⌒ 2ª → 1ª → 2ª` —, e uma troca de posição feita pela máquina escreveria
-    // `⌒ 2ª → 2ª → 2ª`. A cópia é tal e qual; a posição muda-se no «Editar», onde se vê o que
-    // se está a mudar.
-    conferir('a cópia é tal e qual: nenhum sinal é trocado — o `1ª` do braço fica onde está',
-      dup.linhas[2].sinais === 'ED 1ª ↓ ↑' && dup.linhas[3].sinais === '⌒ 2ª → 1ª → 2ª', dup.linhas);
+    conferir('o botão que duplicava o exercício inteiro já não existe', dup.botaoGlobal, false);
+    conferir('…e cada linha tem o seu «Duplicar»', dup.porLinha, 2);
+    /* A COBERTURA SOBE UMA PISTA, E NÃO DUAS: a cópia é de uma célula, e a cobertura é a maior
+     * pista (4 → 8, porque a célula copiada tem 2 tempos × 2 repetições). Se a duplicação ainda
+     * fosse a do exercício inteiro, seriam 4 → 8 nas DUAS pistas e quatro linhas em vez de três. */
+    conferir('duplicar UMA linha acrescenta uma linha, e não as duas',
+      dup.n === 3 && dup.cobAntes === 4 && dup.cobDepois === 8, dup);
+    /* A MÚSICA NÃO SE TOCA (03/11/2026) — a regra continua: duplicar um trecho não reescreve a
+     * base rítmica, e quem a define é o passo 3. */
+    conferir('…e a música fica como está — quem a define é o passo 3',
+      dup.tempos === '4' && dup.musica === '4|4/4', { tempos: dup.tempos, musica: dup.musica });
+    /* A CÓPIA ENTRA NO FIM, com a ordem maior. O compasso dela é o SEGUINTE (as duas primeiras
+     * somam 4 tempos = um compasso), e a terceira linha é a cópia. */
+    conferir('a cópia vai para o FIM, com a ordem seguinte à última',
+      dup.linhas[2] && dup.linhas[2].ordem === 3, dup.linhas.map((l) => l.ordem));
+    conferir('…e o compasso dela acompanha, como o de qualquer trecho no fim',
+      dup.linhas.map((l) => l.comp).join(',') === '1,1,2', dup.linhas.map((l) => l.comp));
 
     // O QUE QUASE SE PARTIU, E FICA GUARDADO: trocar de exercício LIMPA as células. Cheguei a
     // conservá-las quando a música ainda não existe, e a suite apanhou treze asserções a medir o
@@ -1905,7 +1913,7 @@ function estado() {
       v23_travada.ariaTempos === 'true' && v23_travada.marca === 'sim',
       { aria: v23_travada.ariaTempos, marca: v23_travada.marca });
     conferir('a nota diz PORQUE está travado, e qual é a saída para outra duração',
-      /Já tem trechos escritos/.test(v23_travada.nota) && /Duplicar o exercício/.test(v23_travada.nota),
+      /Já tem trechos escritos/.test(v23_travada.nota) && /Duplicar/.test(v23_travada.nota),
       v23_travada.nota);
 
     // ---- 23-C. O «LÊ-SE» ATRÁS DE UM CLIQUE, E A FRASE UMA VEZ SÓ ----------------
