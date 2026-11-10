@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`9ed67911` + esta entrega). Nesta entrega, **a troca e a saída
+> **Última fotografia:** 09/11/2026 (`da8085fe` + esta entrega). Nesta entrega, **a mudança de sala
+> entra na cadeia** — o ritmo é relido da Sala no elo novo do plano, o plano fica marcado «a rever»
+> quando a Sala mudou depois dele, os desacordos entre plano e sala chegam à tela, e as duas rotas
+> da Sala disparam a travessia. **E uma sala passa a receber UMA Turma**: até aqui, duas curadorias
+> activas com a mesma Sala respondiam `201` (medido), e a Sala é o ritmo — duas Turmas nela são duas
+> aulas no mesmo horário. A vigência futura do elo continua a **não** ser respeitada, por decisão.
+> Ver a entrada de 09/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (09/11/2026, `9ed67911`).** Nesta entrega, **a troca e a saída
 > deixam de ser «via crucis»** — a cadeia automática percorre `vínculos → plano de ensino → plano de
 > observação → pacote` nos três gestos que mudam o corpo ou a direção de uma turma (transferir uma
 > aluna, concluir o elenco, derivar a curadoria). **É uma reversão declarada**, por ela, da regra
@@ -3183,7 +3191,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (09/11/2026 — a cadeia automática)
+### Executado nesta fotografia (09/11/2026 — a mudança de sala)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-mudanca-de-sala` (**nova**) | **PASSOU — 41 asserções**. (A) a regra pura: sala ocupada, sala livre, a versão substituída e a direção **encerrada** não ocupam; (B) as duas rotas: 409 ao criar ou mover para uma sala ocupada, com quem ocupa e as livres; a Sala livre aceita; derivar mantendo a própria sala é aceite; (C) o ritmo relido: frequência pelos dias, duração em horas/minutos, calendário e total **calculados**; (D) o plano marcado quando a Sala mudou depois dele — e o controlo sem as Salas, que não marcava nada; (E) o gatilho corre com Turma e **não** corre com a sala livre; (F) os conflitos chegam à tela |
+| `provar-derivacao-da-turma` · `provar-enquadramento-da-turma` | **118/138** (as **mesmas 20 falhas** do `HEAD`, comparadas falha a falha num worktree à parte; +6 asserções novas da prova, todas verdes) · **57/57** (as salas novas que a guarda exige nos cenários que reusavam a mesma sala) |
+| `provar-cadeia-automatica` · `provar-producao` · `provar-transferencia-e-desligamento` | **60 · 166 · 93** — verdes |
+| `provar-linha-de-base` · `provar-abas-da-audicao` · `provar-conteudos-e-estado-da-turma` | **102 · 86 · 77/78** (a falha é pré-existente, idêntica no `HEAD`) |
+| `check-identidade` · `check-pacote` | **0 erros (21 ok)** · **0 erros** no pacote regenerado |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão. A **vigência futura** não é respeitada — por decisão dela, registada no `REGISTRO.md` |
+
+### Executado na fotografia anterior (09/11/2026 — a cadeia automática)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4290,6 +4309,19 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **A mudança de sala entra na cadeia, e uma sala recebe uma Turma.** Ela perguntou
+  o que faltava; o diagnóstico do §3.3 era verdadeiro. **CONFIRMADO e medido**: `turma-derivar`
+  respondia 201 com **0 disparos**, o `.conf` não era recomposto, o plano **não era marcado**
+  (`revalidacaoPendente` não recebia Salas) e continuava a declarar o ritmo antigo; o `comporConf`
+  detetava os desacordos e a tela os descartava. **DECIDIDO** — por ela — fechar as quatro peças
+  (gatilho, releitura do ritmo, marcação, conflitos na tela), manter a vigência como está, e
+  acrescentar a guarda: **«somente poderá mover se existir ao menos uma outra sala vazia»** — que
+  expôs um segundo defeito, medido: duas curadorias com a mesma Sala eram aceites. `provar-mudanca-
+  de-sala` **41/41** (novo); sem regressão nas provas de `producao` 166, `cadeia-automatica` 60,
+  `transferencia-e-desligamento` 93, `linha-de-base` 102, `abas-da-audicao` 86,
+  `enquadramento-da-turma` 57 e `conteudos-e-estado-da-turma` 77/78; `provar-derivacao-da-turma`
+  118/138, com as **mesmas 20 falhas** do `HEAD` (medidas num worktree à parte); `check-identidade`
+  0 erros e `check-pacote` 0 erros. Ver a entrada de 09/11/2026 no `REGISTRO.md` e o §3.3.
 - **09/11/2026** — **A cadeia automática: a troca e a saída deixam de ser «via crucis».** Pedido
   dela: eliminar o processo manual passo a passo na troca de aluna, na saída/abandono e na troca de
   professor ou modalidade, mantendo a possibilidade de derivar o plano à mão. **CONFIRMADO no

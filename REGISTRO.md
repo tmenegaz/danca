@@ -41521,3 +41521,73 @@ respostas**: se a aluna que entrou traz necessidades que o plano não cobre, iss
 decisão do professor — a cadeia não compara necessidade individual com conteúdo, e é de propósito.
 (4) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção
 é o passo seguinte ao deploy.
+
+## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
+
+**O que motivou.** Depois da cadeia automática, ela perguntou o que faltava para a **mudança de
+sala** — e o diagnóstico estava escrito, e era verdadeiro: *«a mudança de sala atende ao registo e
+não atende à cadeia»* (§3.3 do `ARQUITETURA-GERAL.md`). **CONFIRMADO e medido na bancada local**:
+`turma-derivar` respondia **201**, gravava o elo novo — e **0 subpedidos, 0 disparos**; o `.conf` da
+variante não era recomposto (só o é quando o plano é gravado); o plano **não era marcado**
+(`revalidacaoPendente` não recebia Salas; `pendentes: []`); o plano e o PO continuavam a declarar o
+ritmo antigo (os quatro campos `daTurma` são uma fotografia no envelope); e o `comporConf` **detetava
+os desacordos** — «o plano declara 60 min e a turma declara 75» — mas a tela lia só `ok` e `erro`, e
+o dado morria ali. A vigência declarada também não era respeitada (derivar com `vigenteDe` de 10/11
+já valia a 09/11).
+
+Ela fixou o escopo — as quatro peças, e **manter a vigência como está** —, o ritmo **relido** da
+Sala, e acrescentou uma guarda: **«somente poderá mover se existir ao menos uma outra sala vazia»**.
+Medido antes de a implementar: **duas curadorias activas com a mesma Sala respondiam `201`** — a
+regra não existia.
+
+**O que foi decidido.**
+
+- **UMA SALA RECEBE UMA TURMA.** A Sala é o RITMO (dias, horas, duração, período); duas Turmas nela
+  são duas aulas no mesmo horário, no mesmo lugar. A guarda vive nas duas rotas (`curadoria` e
+  `curadoria-derivar`), ignora a versão substituída e a **direção encerrada** (a sala de quem saiu
+  está vaga — foi a prova do desligamento que o apanhou), e a recusa nomeia quem ocupa e **lista as
+  salas livres**; sem nenhuma, diz que o caminho é criar ou liberar uma.
+- **O RITMO É RELIDO DA SALA no elo novo.** `respostasDoRitmo` (`compor-conf.js`) devolve os quatro
+  campos na forma das respostas, e a cadeia substitui-os no elo derivado. **Reler não é
+  reescrever**: no conteúdo do plano os quatro são `daTurma` — não são autoria do professor, são
+  leitura do cadastro (é o próprio formulário que o diz).
+- **A CASCATA VÊ A SALA.** `revalidacaoPendente` ganha a quinta entrada e marca o plano quando o
+  `vigenteDe` do elo é **posterior** ao `gerado_em`. A comparação é por dia e **estrita**: o dia da
+  mudança não se marca, senão o sinal nasceria aceso sobre o trabalho que a cadeia acabou de fazer.
+  Sala sem `vigenteDe` (nunca derivou) não afirma nada.
+- **O GATILHO.** `turma-editar` e `turma-derivar` chamam a cadeia com `mudanca-de-sala` **só quando
+  há Turma na Sala** — uma sala livre mudou de ritmo e não tem plano nem PO a reavaliar; uma
+  travessia sem alvo só produziria uma entrada de erro no log a cada ajuste de horário.
+- **OS DESACORDOS CHEGAM À TELA.** A porta mostra `fonte.conflitos` e `fonte.pendencias`, e diz que
+  **o ritmo que vale é o da Sala** — sem bloquear: o ritmo é da Sala, o conteúdo é do plano.
+- **A VIGÊNCIA FUTURA FICA COMO ESTÁ** — decisão dela. É uma decisão de calendário da escola, e o
+  motor não a toma sozinho.
+
+**Onde entrou.** `motor/nucleo/estado-da-turma.js` (`salasOcupadas`, `salasLivres`,
+`motivoDaSalaOcupada`) · `motor/nucleo/porta.js` (o passo 4.5 da `revalidacaoPendente`, com a Sala
+como quinta entrada) · `motor/nucleo/cadeia.js` (o rótulo `mudanca-de-sala`) ·
+`motor/servidor/compor-conf.js` (`respostasDoRitmo`) · `motor/servidor/cadeia.js` (`ritmoDaSala` e a
+releitura no `derivarPlano`) · `motor/servidor/bastidores.js` (as duas guardas, os dois gatilhos, a
+quinta entrada da revalidação) · `motor/servidor/producao.js` (as duas rotas no `montarCadeia`) ·
+`porta/index.html` (conflitos e pendências) · `experimentos/provar-mudanca-de-sala.js` (novo, 41
+asserções) · `experimentos/provar-derivacao-da-turma.js` e
+`experimentos/provar-enquadramento-da-turma.js` (as salas novas que a guarda exige nos cenários que
+reusavam a mesma sala) · `professores/pe-torto/ciclos/*/plano-observacao/index.html` (a cópia da
+porta, regenerada) · `ARQUITETURA-GERAL.md` (§3.3 e as duas tabelas) · `motor/nucleo/README.md`.
+
+**Validação.** `provar-mudanca-de-sala` **41/41** (novo). Sem regressão: `provar-cadeia-automatica`
+60/60, `provar-producao` 166/166, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base` 102/102, `provar-abas-da-audicao` 86/86, `provar-enquadramento-da-turma`
+57/57, `provar-conteudos-e-estado-da-turma` 77/78 (a mesma falha anterior à mudança, igual no
+`HEAD`), `provar-derivacao-da-turma` **118/138** — as **mesmas 20 falhas** do `HEAD`, verificadas
+falha a falha num worktree à parte —, `check-identidade` **0 erros (21 ok)** e `check-pacote`
+**0 erros** no pacote regenerado.
+
+**O que ainda não está feito.** (1) **A vigência futura não é respeitada** — por decisão, registada
+acima; derivar com data futura aplica já. (2) A mudança de sala **não revalida o elenco**: se a
+turma mudou de horário e a aluna deixou de poder, isso é outra cadeia (a do elenco), e o sistema não
+cruza as duas. (3) O total de aulas do plano é **relido** do período × dias; se o professor tiver
+decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`, mas há planos antigos
+com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.

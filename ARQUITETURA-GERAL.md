@@ -614,25 +614,30 @@ assim. É por isso que o «Editar» de uma Sala vinculada **deriva** em vez de c
 | que a Turma e o plano continuem a encontrar a Sala | **atende** — pelo **nome**, que não muda |
 | que os conteúdos ligados à turma não se percam | **atende** — `turma-conteudos` migra para o id novo |
 | que o plano impresso não minta sobre o ritmo | **atende por omissão** — o plano **não declara** dias, horas nem duração; a geração lê-os da Sala vigente (`compor-conf.js`, `acharTurma`). O que ele fixa é o **volume** e os **marcos** |
-| que o professor saiba que o plano foi fixado para **outro** calendário | **não atende** — `revalidacaoPendente` não conhece a Sala: um plano decidido antes da mudança não é marcado «a rever», ao contrário do que acontece quando é o **elenco** que muda |
-| que a data declarada em `vigenteDe` seja respeitada | **não atende** — `turmasVigentes` e `acharTurma` filtram por `substituidaPor`, não por data: uma vigência declarada para 01/12 já é a Sala de hoje |
+| que o professor saiba que o plano foi fixado para **outro** calendário | **atende desde 09/11/2026** — `revalidacaoPendente` recebe as Salas e marca o plano quando o `vigenteDe` do elo é **posterior** ao `gerado_em` do plano (a comparação é por dia, e estrita: o dia da mudança não se marca, para o sinal cair sozinho sobre o trabalho que a cadeia acabou de fazer) |
+| que o elo novo do plano diga o ritmo **novo** | **atende desde 09/11/2026** — os quatro campos do ritmo (`contexto-frequencia`, `-duracao`, `-calendario`, `-total-aulas`) são `daTurma` no conteúdo, e a cadeia **relê-os da Sala vigente** no elo novo (`respostasDoRitmo`, em `compor-conf.js`). Reler não é reescrever: esses campos não são autoria do professor, são leitura do cadastro |
+| que os desacordos entre plano e Sala cheguem a quem assina | **atende desde 09/11/2026** — o `comporConf` já os calculava (`conflitos`/`pendencias`); a porta passou a mostrá-los ao gravar o plano, sem bloquear: o ritmo é da Sala e o conteúdo é do plano |
+| que a data declarada em `vigenteDe` seja respeitada | **não atende, por decisão** — `turmasVigentes` e `acharTurma` filtram por `substituidaPor`, não por data: uma vigência declarada para 01/12 já é a Sala de hoje. **DECIDIDO em 09/11/2026**: manter como está — respeitar a data é uma decisão de calendário da escola, e tomá-la sem a direção seria o motor a decidir quando é que a escola muda de horário |
 
-**O veredito.** A mudança de sala **atende ao registo e não atende à cadeia**. O elo está certo, a
-ligação sobrevive, o passado fica legível — e o professor não recebe o aviso que a **mesma** mudança
-dá quando é o elenco que muda. A assimetria tem nome: o elenco tem um sinal derivado
-(`recorte.elencoDiferente`, que compara o que a Turma declara com o que a turma tem); a Sala não tem
-equivalente — **nada compara o calendário do plano com o calendário da Sala**.
+**O veredito, revisto a 09/11/2026.** A mudança de sala **passou a atender ao registo e à cadeia**.
+Até esta data valia o diagnóstico anterior — «atende ao registo e não atende à cadeia»: o elo estava
+certo e a ligação sobrevivia, mas o professor não recebia o aviso que a **mesma** mudança dá quando
+é o elenco que muda, porque nada comparava o calendário do plano com o calendário da Sala. Três
+peças fecharam a assimetria, e uma quarta ficou decidida em contrário:
 
-**O que uma alteração estrutural exigiria — e não se faz sem decisão da direção:**
+1. **A cascata vê a Sala.** `revalidacaoPendente` recebe as Salas e marca o plano quando o
+   `vigenteDe` do elo é posterior ao `gerado_em` dele.
+2. **O elo novo relê o ritmo.** Os quatro campos `daTurma` do plano são recompostos a partir da Sala
+   vigente — o documento impresso deixa de dizer o horário antigo.
+3. **Os desacordos aparecem.** O `comporConf` já os calculava; a porta passou a mostrá-los.
+4. **A vigência futura continua a não ser respeitada — por decisão.** Ela é uma decisão de
+   calendário da escola, e o motor não a toma sozinho.
 
-1. **A cascata passar a ver a Sala.** `revalidacaoPendente` teria de receber as Salas e marcar o
-   plano quando a Sala que ele declarou tiver um elo **posterior** à data do plano — as duas datas
-   existem (`vigenteDe` e o `gerado_em` do envelope). É um passo novo na cascata que já existe, e
-   não uma regra nova: a forma é a de `elencoDiferente`.
-2. **A vigência futura ser respeitada.** Hoje, declarar a vigência a 01/12 faz o sistema mudar de
-   Sala a 08/11 — porque a escolha do vigente não olha à data. Respeitá-la é uma decisão de
-   calendário que o sistema ainda não toma, e tomá-la sem a direção seria o motor a decidir quando
-   é que a escola muda de horário.
+**E a relação entre Sala e Turma ganhou uma regra explícita:** **uma sala recebe UMA Turma**. Sem
+ela, duas curadorias activas podiam declarar a mesma Sala — e a Sala é o RITMO (dias, horas,
+duração, período): duas Turmas nela são duas aulas no mesmo horário, no mesmo lugar. A guarda vive
+nas duas rotas (`curadoria` e `curadoria-derivar`), ignora a versão substituída e a direção
+**encerrada** (a sala de quem saiu está vaga), e a recusa nomeia quem ocupa e lista as salas livres.
 
 **O que acontece sozinho, e o que exige o olhar do professor** — a fronteira, que é a pergunta
 que qualquer automação futura vai ter de respeitar:
@@ -647,7 +652,7 @@ que qualquer automação futura vai ter de respeitar:
 | **Transferir uma aluna de elenco** | grava as **duas** versões, regenera os ciclos dos dois elencos e **percorre a cadeia** nas duas Turmas (`elenco-mover` → `cadeia.executar`) | — (a travessia é automática; o ajuste fino do conteúdo continua a ser um «derivar» manual) |
 | **Desligar um professor** | encerra as curadorias com data e **marca** as turmas que ficaram sem ele (`descontinuada`) | decidir o que fazer com a turma: remanejar a modalidade, aula recreativa/ensaio, ou outro professor habilitado |
 | **Atribuir a turma a outro professor** | limpa a marca `descontinuada` da turma; na **derivação** da curadoria, troca o par e **percorre a cadeia** (plano e PO com o professor e a modalidade que passam a valer) | escolher quem, entre os **habilitados** naquela modalidade — o `perfil.json` é o filtro |
-| **Mudar a sala de uma turma** | deriva o elo novo (mesmo nome) e a geração passa a ler o ritmo novo | rever o plano de ensino — o **volume** e os **marcos** foram fixados para o calendário anterior, e a cascata ainda não o marca |
+| **Mudar a sala de uma turma** | deriva o elo novo (mesmo nome), **a cadeia relê o ritmo** no plano, deriva o PO e regenera; o plano fica marcado «a rever» | decidir se o **conteúdo** do plano acompanha o calendário novo: o sistema corrige o ritmo, não reinterpreta o que se ensina |
 | **Uma aluna sair do elenco** | o selo dela passa a `desligada` — derivado, sem gesto nenhum | — |
 | **Um professor passar a turma a outro** | o selo dele passa a `sem turma` — derivado da curadoria substituída | — |
 
@@ -698,7 +703,7 @@ derivação e o log) é de `motor/servidor/cadeia.js`. O log das travessias lê-
 | «O professor sai da escola e a turma continua» | **Exato desde 08/11/2026.** O desligamento encerra a direção e marca a turma; a decisão sobre o que fazer com ela (remanejar, recreativa, outro professor) é da direção — o sistema não a toma |
 | «Excluir o professor que já deu aula» | **Não se exclui, e não precisa.** O `DELETE` apenas apaga um registo sem trabalho nenhum; quem tem história **desliga-se**, e o registo fica como proveniência do que assinou |
 | «Excluir a aluna que saiu» | **Pode-se, e é limpeza.** Apagar o apelido não apaga o que ficou dela nos elencos, nos planos e na anamnese; o selo dela passa a **desligada**, que é o que impede ler a saída como «nunca esteve aqui» |
-| «Mudo o horário da turma e o plano acompanha» | O **registo** acompanha — a Sala deriva, o nome não muda, e a geração lê o ritmo novo. O **aviso** não vem: o plano não é marcado «a rever» pela mudança de Sala, só pela mudança de elenco |
+| «Mudo o horário da turma e o plano acompanha» | **Sim, desde 09/11/2026** — a Sala deriva, o nome não muda, a cadeia relê o ritmo no elo novo do plano, deriva o PO e regenera, e o plano é marcado «a rever». O que o sistema **não** faz é decidir se o conteúdo muda |
 | «Troco o professor da turma e o antigo fica livre» | O que fica é **`sem turma`**, não «livre»: ele já fez parte, e o nome dele continua nos documentos que assinou. Livre é quem nunca esteve aqui |
 
 > **O que o fluxo automático faz, e o que continua a exigir o olhar.** Desde 09/11/2026, a
