@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T08:58:26-0300`
-Commit atual: `96bb2d2b` — fix(estrutura): o histórico do ajuste diz a mudança, o quando e o porquê
+Gerado em: `2026-11-10T12:26:32-0300`
+Commit atual: `fed8be46` — docs(registro): a burla que a busca do exercício fecha
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+fed8be46 docs(registro): a burla que a busca do exercício fecha
+5da58b13 feat(estrutura): o passo 1 do Estilo procura no vocabulário, e o exercício que existe escolhe-se
+4fc98779 chore(estrutura): regerar o HANDOFF
 96bb2d2b fix(estrutura): o histórico do ajuste diz a mudança, o quando e o porquê
 a412cbba chore(estrutura): regerar o HANDOFF
 2174f47e docs(registro): a faixa que ninguém media, com a tabela que a explica
@@ -88,9 +91,6 @@ b47ede10 docs(registro): a mudança de sala, medida antes e depois
 1a927b0a fix(estrutura): a mudança de sala entra na cadeia, e uma sala recebe uma Turma
 da8085fe chore(estrutura): regerar o HANDOFF
 e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
-4530025f feat(estrutura): a cadeia automática da troca e da saída
-9ed67911 chore(estrutura): regerar o HANDOFF
-f230c384 docs(registro): o filete pontilhado da listagem de elencos
 ```
 
 ## Por professor
@@ -164,92 +164,89 @@ f230c384 docs(registro): o filete pontilhado da listagem de elencos
 
 ## Última entrada do REGISTRO
 
-## 10/11/2026 — O histórico do ajuste: o rótulo, a diferença e o motivo
+## 10/11/2026 — O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser escolhido
 
-**O que motivou.** Ela perguntou, pensando em quem opera a escola: *«em Turmas tem ali um espaço que
-você chamou versões anteriores. Pensando como o professor da turma, o diretor da escola, quem opera
-o sistema, por que a pessoa gostaria de saber isso? Qual foi o seu intuito em fazer isso?»*
-**A pergunta era justa, e a resposta honesta tinha duas metades.**
+**O que motivou.** Ela descreveu o que fazia para começar um verbete de um exercício que já estava
+no vocabulário — e o que descreveu não era um uso, era um **contorno**: *«como o step 2 está
+bloqueado por padrão, eu não consigo começar o estilo, a menos que seja um estilo novo. Então eu
+tive que burlar. Eu escrevi um nome qualquer no exercício novo, escolhi uma categoria, escolhi a
+tradição e escrevi a letra T no campo que acontece. Aí liberou o step seguinte. […] eu preciso
+evitar esse tipo de problema, que quando eu quero começar e eu sei que já existe, ou se eu não
+souber que já existe, eu também não posso fazer redundante, não posso criar um exercício novo que
+já existe.»*
 
-A primeira metade é o que o bloco **é**: não são versões do conteúdo da turma, é o **ritmo**
-(frequência, dias e horas, duração, período) com a data até à qual cada versão valeu. Ele não nasceu
-como funcionalidade — nasceu como **efeito necessário** de uma regra: num registo já vinculado a um
-plano de ensino, o «Editar» **deriva** em vez de sobrescrever (`substitui`/`vigenteDe` na nova,
-`substituidaPor`/`substituidaEm` na anterior), porque o passado não se reescreve (P-03/P-04). Se a
-versão anterior fica na lista e **não** pode voltar a ser escolhida, ela tem de aparecer de outra
-forma — o `<details>` fechado era esse sítio. O intuito declarado, em 16/10/2026, foi: *«a escola
-precisa de ver que já mexeu nesta turma e o que valia antes»*.
+**CONFIRMADO e medido na bancada local**, e a causa é de uma linha. `oQueFaltaNoPasso1` lia o nome
+escrito como «exercício novo» e passava a exigir categoria, tradição e definição — e fechava o passo
+2, que é **exactamente onde os exercícios existentes se escolhem**. Medido: escrever «Battement
+fondu» no passo 1 dava `passo2Botao.disabled = true`, com o título *«Falta o que acontece (a
+definição do exercício), a categoria, a tradição de referência»*. E `sincronizarPasso1ComExercicio`
+recusava preencher quando havia nome escrito. **O único campo que pergunta «que exercício é este»
+era o que trancava a porta para o responder.**
 
-A segunda metade é onde ele **não** se sustentava, e foi o que a pergunta expôs. **CONFIRMADO no
-código:**
+**O que foi decidido.**
 
-- o rótulo era `2 versão(ões) anterior(es)` — o `(ões)`/`(es)` é hesitação de programador, e quem
-  opera uma escola lê aquilo como defeito;
-- eram duas **fotografias** para comparar de olho; a pergunta que a pessoa faz («o que mudou?») não
-  tinha resposta directa;
-- a data saía em **dois formatos**: `01/11/2026` nas Salas e `2026-11-01` nas Turmas — o bloco era
-  **um por lista**, duas cópias que já tinham divergido;
-- o **motivo não existia no cartão**. Ele era escrito no log da cadeia, noutro ecrã. Um histórico
-  sem motivo não é auditoria, é fotografia;
-- e havia um `turmasSubstituidas` calculado e **nunca lido** — resto de uma primeira versão em que o
-  histórico ia para o fim da lista.
+- **O CAMPO PASSOU A PROCURAR.** Enquanto se escreve, uma lista de sugestões mostra os exercícios do
+  vocabulário que casam — sem acentos, sem maiúsculas, por prefixo, por meio do nome e por
+  semelhança de palavra (`batman` chega a `Battement`, `fondue` a `fondu`). A lista é **marcação
+  nossa**, e não um `<datalist>`: essa tentativa já está registada em 1885 — a janela do `<datalist>`
+  é do navegador, não aceita desenho e sai ao lado de menus que são nossos.
+- **UM NOME QUE CASA NÃO É UM EXERCÍCIO NOVO.** Escolher na lista — ou escrever à letra o nome de um
+  exercício que existe — preenche a categoria, a tradição e o «o que acontece», escolhe o exercício
+  no passo 2 e **mantém o passo 2 aberto**. O método herda a tradição do termo, pela regra que já
+  existia (`sugerirMetodo`). A grafia passa a ser a do dicionário: é ela que o documento publica.
+- **O EXERCÍCIO NOVO CONTINUA A SER NOVO.** Sem resultado, a linha de estado diz que vai ser criado,
+  os três campos ficam **abertos e vazios**, e o passo 2 só abre quando os três estiverem
+  preenchidos. O sistema não inventa classificação.
+- **NÃO SE DUPLICA.** Com um nome que casa, o «Seguir» **não faz `POST /api/bastidores/termo`** — o
+  exercício já está na lista que a página tem, e criar um segundo seria a redundância que ela pediu
+  para evitar. Era a segunda metade do pedido, e é a que evita o custo e a segunda verdade.
+- **UMA PERGUNTA, UMA RESPOSTA.** Escolher no passo 2 escreve o nome no passo 1. Eram dois sítios a
+  responder ao mesmo — e a dizer coisas diferentes: escolher «Plié» no passo 2 deixava «Battement
+  fondu» escrito no passo 1.
+- **A CLASSIFICAÇÃO DEIXOU DE SE CONGELAR — reversão declarada.** Desde 02/11/2026 a categoria e a
+  tradição ficavam bloqueadas sobre um exercício do dicionário, com a nota «para as mudar, edite o
+  termo no vocabulário». **É esta regra que ela mandou levantar**: *«Acontece que essa regra se
+  tornou um impeditivo. […] Então eu tive que burlar.»* Os dois campos passam a ser **editáveis** —
+  é o «ajustes manuais» que ela pediu —, e o que protege o dicionário não é o `disabled` é a rota:
+  `POST /api/bastidores/termo` **aproveita** o termo existente e **não lhe reescreve a definição**
+  (`reutilizar`, 07/11/2026). O ajuste vale para **este verbete** — a frase dos trechos e o «lê-se»
+  que deles se deriva —, e o termo continua a mudar-se no vocabulário, que é onde ele mora.
+  O preenchimento automático **não reescreve** o ajuste dela: só sobrepõe o que ainda é a sugestão
+  anterior (a mesma regra do `METODO_SUGERIDO`, que já existia ao lado).
+- **O RÓTULO DO PASSO 1 MUDOU:** «O exercício novo» → «O exercício», e o passo 2 passou a «O
+  exercício do verbete». O rótulo anunciava a regra que trancava o formulário.
 
-**O que foi decidido** (por ela: **A**, nos **dois** sítios, com o motivo **gravado no elo**).
+**Onde entrou.** `motor/servidor/bastidores.js` — a marcação do passo 1 (campo, lista, linha de
+estado), o desenho da lista no `<style>` da página (o regime da checagem 4: a folha é congelada, e a
+superfície que declara o que usa responde no seu próprio desenho — o mesmo sítio de `.col-lista` e
+de `.lb-cartoes`), e no script: `normalizarBusca`, `pontuacaoDaBusca`, `exerciciosParecidos`,
+`exercicioExistente`, `pintarSugestoes`, `moverSugestao`, `escolherExercicio`,
+`sincronizarNomeDigitado`, `pintarEstadoDoExercicio`, o `alternarPasso1` sem congelamento, o
+`sincronizarPasso1ComExercicio` com a pergunta certa, o `criarExercicioDoPasso1` sem duplicar, e o
+teclado (setas, `Enter`, `Escape`; o clique é `mousedown` porque o `blur` do campo mata o `click`).
+`experimentos/provar-busca-do-exercicio.js` (**novo, 68 asserções**) ·
+`experimentos/provar-celula.js` (as duas asserções do rótulo acompanham) · `.gitignore`.
 
-- **O RÓTULO EM PORTUGUÊS CORRENTE:** «1 ajuste anterior» / «2 ajustes anteriores». Nada de
-  `(ões)`.
-- **A DIFERENÇA, NÃO A FOTOGRAFIA.** Uma linha por versão, com o que mudou em relação à que a
-  substituiu: `ter, qui: 18:00 → 19:00`, `60 min → 75 min`, `entrou sex 18:00`, `fim 31/12/2026 →
-  15/12/2026`. As mudanças de hora **agrupam-se por transição** — `ter 18:00 → 19:00 · qui 18:00 →
-  19:00` é a mesma frase dita duas vezes. Uma derivação que não mudou nada diz «(sem alteração)», e
-  não finge uma diferença.
-- **UM BLOCO SÓ, partilhado pelas duas listas** (`historicoDoAjuste`). O que muda é a função que
-  calcula a diferença, porque as duas entidades mudam por eixos diferentes: `diferencaDeRitmo` para
-  a Sala, `diferencaDeCuradoria` para a Turma.
-- **A TURMA FALA NOMES, NÃO SLUGS:** «professor Petorto → Marina Souza», «sala Balé Nível 1 → Balé
-  Nível 2», «elenco X → Y», «1 aluna → 2». O slug é o nome da pasta (`professores/<slug>/`), não
-  uma pessoa.
-- **O MOTIVO FICA NO ELO**, num campo novo (`motivoDoAjuste`), declarado num campo opcional ao lado
-  da data de vigência — a mesma peça do «Motivo (opcional)» da transferência de aluna. **Vazio é
-  vazio: o sistema não inventa razão**, e o bloco cala-se.
-- **A DATA EM BR nos dois sítios**, e no selo «ajustada em».
-- **O `turmasSubstituidas` saiu** — uma variável que se calcula para ninguém é a mentira mais
-  barata que uma página conta a si mesma.
+**Validação.** `provar-busca-do-exercicio` **68/68**, num Chrome de verdade, com o vocabulário da
+bancada: (A) o caminho que estava fechado; (B) a busca por acento, prefixo e semelhança; (C) a
+escolha pela lista; (D) o exercício novo e os três obrigatórios; (E) não duplicar, **com contraprova**
+— o termo inédito é gravado; (F) o teclado; (G) a classificação editável e o ajuste que sobrevive;
+(H) o passo 1 a acompanhar o passo 2; (I) a geometria — a lista com a largura exacta do campo e 44px
+por sugestão a 1366 e a 390. Sem regressão: `provar-producao` **166/166**, `provar-largura-da-lista`
+56, `provar-vao-do-botao` 50, `provar-abas-da-audicao` 86, `provar-historico-do-ajuste` 39,
+`provar-celular` 15, `check-identidade` **0 erros (21 ok)**. `provar-celula` **não corre até ao fim**, e
+**falha exactamente no mesmo ponto no `HEAD`** («a decomposição pede o exercício antes de o haver» e
+a tabela vazia), verificado num worktree à parte: é anterior a esta entrega.
 
-**O DEFEITO QUE A IMPLEMENTAÇÃO TINHA DE EVITAR, e que a prova fixa.** A derivação faz
-`Object.assign({}, anterior, …)`: sem um `delete nova.motivoDoAjuste` antes de a escrever, **o motivo
-do primeiro ajuste viajaria para todos os elos seguintes** — cada versão passaria a exibir a razão
-da primeira, para sempre. Está provado nos dois sentidos: com motivo, ele aparece **uma vez**, na
-linha do elo que o declarou; sem motivo, o elo novo fica sem a chave.
-
-**Onde entrou.** `motor/servidor/bastidores.js` — `rotuloDoHistorico`, `motivoDoAjuste`,
-`diferencaDeRitmo`, `diferencaDeCuradoria` e `historicoDoAjuste` (o bloco único), os dois
-`motivoDoAjuste` nas rotas de derivação, o campo opcional nos dois formulários (e no rascunho do
-formulário, que sobrevive ao recarregamento), o `nomeDoProfessor` para traduzir o slug, o `dataBr` no
-selo das Turmas, e a remoção da variável morta · `experimentos/provar-historico-do-ajuste.js`
-(**novo, 39 asserções**) · `.gitignore` (a excepção da prova).
-
-**Validação.** `provar-historico-do-ajuste` **39/39**. Sem regressão: `provar-producao` **166/166**,
-`provar-largura-da-lista` 56/56, `provar-mudanca-de-sala` 41, `provar-cadeia-automatica` 60,
-`provar-transferencia-e-desligamento` 93, `provar-vao-do-botao` 50, `provar-celular` 15,
-`check-identidade` **0 erros (21 ok)**.
-
-**O que ainda não está feito.** (1) **O motivo não é obrigatório**, por decisão: quem deriva sem
-escrever nada continua a ter a diferença no histórico, e só não tem a razão. Uma razão obrigatória
-seria uma pergunta a mais num gesto que já pede uma data. (2) **O histórico continua a ser por
-cartão**, e não uma vista da escola: ver «todos os ajustes do mês» é outra tela, e não foi pedida.
-(3) Não foi conferido **no ar** nesta sessão — a conferência é o passo seguinte ao deploy.
+**O que ainda não está feito.** (1) **A busca é local**: procura no vocabulário que a página carregou
+(`GET /api/bastidores/verbete`), e não no repositório a cada tecla — que seria uma requisição por
+letra. Um termo criado por outra sessão só aparece depois de recarregar. (2) **A semelhança é de
+prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no meio da palavra
+(`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
+(3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
+o passo seguinte ao deploy.
 
 ## O que está pendente
-
-## 09/11/2026 — O filete pontilhado da listagem de elencos, e o padrão das listas
-
-(1) A `medir-etiqueta-e-lista` continua a **imprimir** o que mede, e
-não a **reprovar**: ela é bancada de leitura, e quem guarda a regressão é a prova das abas. (2) A
-lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação é de **aresta e
-respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
-fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
-sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
 
 ## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
 
@@ -283,6 +280,16 @@ escrever nada continua a ter a diferença no histórico, e só não tem a razão
 seria uma pergunta a mais num gesto que já pede uma data. (2) **O histórico continua a ser por
 cartão**, e não uma vista da escola: ver «todos os ajustes do mês» é outra tela, e não foi pedida.
 (3) Não foi conferido **no ar** nesta sessão — a conferência é o passo seguinte ao deploy.
+
+## 10/11/2026 — O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser escolhido
+
+(1) **A busca é local**: procura no vocabulário que a página carregou
+(`GET /api/bastidores/verbete`), e não no repositório a cada tecla — que seria uma requisição por
+letra. Um termo criado por outra sessão só aparece depois de recarregar. (2) **A semelhança é de
+prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no meio da palavra
+(`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
+(3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
+o passo seguinte ao deploy.
 
 ## Pendências anteriores (índice)
 
@@ -684,6 +691,7 @@ cartão**, e não uma vista da escola: ver «todos os ajustes do mês» é outra
 - **09/11/2026** — A Audição, segunda passagem: o respiro, o formulário limpo… → `REGISTRO.md` L41204
 - **09/11/2026** — A transferência que se perdia no rascunho, e o «Cancelar»… → `REGISTRO.md` L41276
 - **09/11/2026** — O «Cancelar» direto, e a derivação que troca o par… → `REGISTRO.md` L41358
+- **09/11/2026** — O filete pontilhado da listagem de elencos, e o padrão das… → `REGISTRO.md` L41408
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
