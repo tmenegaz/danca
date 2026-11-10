@@ -241,7 +241,7 @@ aparelho»:
 | Corte | O que muda | Por quê |
 |---:|---|---|
 | **1200px** | o documento ganha a coluna do índice à direita | é onde o texto de 900px **mais** o índice de 17rem cabem sem apertar a medida de leitura |
-| **1140px** | a vista de trabalho (`data-layout="painel"`) passa a uma coluna | é onde o formulário de 34rem e a lista de 24rem deixam de caber lado a lado |
+| **1140px** | a vista de trabalho (`data-layout="painel"`) passa a uma coluna | é onde o formulário e a lista de 24rem deixam de caber lado a lado — e o formulário **cede primeiro** (ver abaixo) |
 | **1024px** | a barra do topo encolhe a fonte e o espaçamento | é o tablet: a barra inteira ainda cabe numa linha |
 | **768px** | a barra colapsa no hamburger **e** o painel vira uma coluna | é o celular — **um** número, usado por todas as folhas |
 
@@ -249,6 +249,52 @@ aparelho»:
 > painel cortava em **760**: entre 761 e 768 o menu do topo já estava no hamburger e o painel
 > ainda tinha duas colunas — navegação em dobro, e 535px para o conteúdo. Dois números para o
 > mesmo conceito é a mesma classe de defeito que o `--gold-borda` em dois fundos.
+
+**A faixa que ninguém media — 1141 a 1919px** *(10/11/2026)*
+
+Entre o corte do painel e a tela grande não há **nenhum** ponto de quebra, e por isso nunca
+houve ali uma prova. A 10/11/2026 a pesquisadora mudou a resolução do monitor de 1920×1080 para
+1366×768 e viu «as margens das etiquetas e o espaçamento» desaparecerem e as coisas
+«acavaladas». Não eram as margens da folha: era a **grade da secção**.
+
+A `.secao` (formulário à esquerda, listagem à direita) declarava
+`minmax(0, 34rem) minmax(24rem, 1fr)`. O tecto do formulário funcionava também como **piso** —
+ele tomava os 544px inteiros e o `1fr` da listagem ficava com o resto. Medido na bancada local,
+com a listagem de alunos de dados realistas:
+
+| janela | coluna da listagem | largura do nome na linha |
+|---:|---:|---:|
+| 1920px | 1115px | 717px |
+| 1600px | 795px | 397px |
+| 1366px | 561px | **163px** |
+| 1280px | 475px | **114px** |
+| 1141px | 384px | **81px** |
+| 1024px (uma coluna) | 792px | 394px |
+| 768px (celular) | 736px | 338px |
+
+A leitura desta tabela é o defeito: **entre 1141 e ~1500 a listagem estava pior do que no
+telemóvel**. No celular funciona porque o corte dos 1140 dá a largura toda à lista; na faixa
+intermédia, a linha tem três partes (o nome, a etiqueta «turmas · …» e os botões) e quem cedia
+era o **nome** — a única sem segunda fonte para o que diz.
+
+Duas peças, e nenhuma delas é uma unidade nova:
+
+1. **O formulário cede primeiro.** O tecto passa a `min(34rem, 38%)` com piso de `20rem`. A 1920
+   manda o `34rem` (544px, exactamente como antes); abaixo de ~1430 o formulário encolhe para a
+   listagem não ser a única a pagar. A 1366 ele fica com 431px — folgado para campos de largura
+   toda — e a listagem sobe de 561 para 674px.
+2. **O nome tem piso de 11rem.** Quem encolhe com reticências é a etiqueta das turmas, que já tem
+   `text-overflow` e um `title` com os nomes todos. A 1141 o nome fica com 176px e a etiqueta
+   desce a 201px.
+
+> **`rem` não é a resposta, e é a armadilha da conversa.** Trocar `px` por `rem`/`em` não torna
+> nada fluido: `1rem` são 16px fixos, e só muda se mudar o corpo da raiz. Quem cede é a **grade**
+> (`%`, `min()`, `1fr`) e a **prioridade** de quem encolhe — a unidade não decide nada. E `gap`
+> não resolve item espremido: `gap` é o vão *entre*, não o espaço *de dentro*.
+
+A prova é `node experimentos/provar-largura-da-lista.js`: doze larguras de 320 a 1920, num
+navegador de verdade, com **controle negativo** — reposta a regra antiga, as asserções têm de
+falhar.
 
 **A navegação da PÁGINA também é escala de tela.** O sistema tem duas navegações, e elas não
 são a mesma coisa:
@@ -280,7 +326,9 @@ deixá-la aberta taparia justamente a secção que se acabou de pedir.
 A prova disto é medida, não lida: `node experimentos/provar-celular.js` abre a vista em 320, 360,
 390, 414, 768 e 1024px, num navegador de verdade, e reprova se algo transbordar, se o nome for
 espremido ou se o menu voltar a ocupar a primeira tela. Ela também mede as outras seis superfícies
-servidas, em 320/390/768, contra transbordo horizontal.
+servidas, em 320/390/768, contra transbordo horizontal. **A faixa de 1141 a 1919 fica com a
+`provar-largura-da-lista.js`** (doze larguras, e um controle negativo) — até 10/11/2026 não havia
+prova nenhuma entre o tablet e a tela grande, e foi por isso que o defeito durou.
 
 ## Tipografia — duas pilhas, e a exceção é restrita
 

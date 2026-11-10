@@ -41591,3 +41591,76 @@ decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`
 com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
 conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
 seguinte ao deploy.
+
+## 10/11/2026 — A faixa que ninguém media: 1141 a 1919px
+
+**O que motivou.** Ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a tela do Lastro
+perdeu «várias das suas margens, margens das etiquetas, espaçamento», e «as coisas ficaram
+acavaladas». No telemóvel funcionava. E perguntou se era defeito ou comportamento — com uma
+hipótese: *«foco excessivo em breakpoints de celular»*, `px` em vez de `rem`, falta de `wrap`.
+**A hipótese estava errada nas três partes, e a resposta só se podia dar a medir.**
+
+**CONFIRMADO e medido na bancada local** (KV falso, servidor local, nada ao ar), com a listagem de
+alunos e dados de forma realista:
+
+| janela | coluna da listagem | largura do nome na linha |
+|---:|---:|---:|
+| 1920px | 1115px | 717px |
+| 1600px | 795px | 397px |
+| 1366px | 561px | **163px** |
+| 1280px | 475px | **114px** |
+| 1141px | 384px | **81px** |
+| 1024px (uma coluna) | 792px | 394px |
+| 768px (telemóvel) | 736px | 338px |
+
+**A causa não era a folha, nem as margens, nem as unidades: era a GRADE da secção.** A `.secao`
+declarava `minmax(0,34rem) minmax(24rem,1fr)` — e o **tecto** do formulário funcionava também como
+**piso**: ele tomava os 544px inteiros e o `1fr` da listagem ficava com o resto. Dentro dessa coluna
+a linha tem três partes que não cediam (o nome, a etiqueta «turmas · …» com os seus 240px, e os
+botões com 65px), e quem cedia era o **nome** — a única sem segunda fonte para o que diz. Daí a
+frase que descreve o defeito: **entre 1141 e ~1500 a listagem estava pior do que no telemóvel.**
+
+A segunda metade da causa é **a ausência de prova**: a `provar-celular.js` mede 320 a 1024, e entre
+1025 e 1919 não havia **nenhuma** medição de geometria. O corte dos 1140 não é um ponto de quebra
+errado — é que abaixo dele a lista recebe a largura toda, e acima dele a grade partilha, sem que
+ninguém verificasse a partilha.
+
+**O que foi decidido.**
+
+- **O formulário cede primeiro.** O tecto passa a `min(34rem, 38%)` com piso de `20rem`. A 1920
+  manda o `34rem` — **544px, exactamente como antes**, e está provado («a 1920 o formulário mede
+  exactamente os 544px de sempre»). Abaixo de ~1430 o formulário encolhe: a 1366 fica com 431px,
+  folgado para campos de largura toda, e a listagem sobe de 561 para 674px.
+- **O nome tem piso de 11rem, e quem encolhe é a etiqueta.** A etiqueta das turmas é a peça certa
+  para ceder: já tem `overflow:hidden`, `text-overflow:ellipsis` e um `title` com os nomes todos.
+  Um nome cortado não tem segunda fonte. A 1141 o nome fica com 176px e a etiqueta desce a 201px.
+  O piso **não alcança o telemóvel**: abaixo de 560px o `.nome` é `display:contents`, e uma caixa
+  dissolvida não tem `min-width` que valha.
+- **Nenhuma media query nova.** O que cede é a grade (`%`, `min()`, `1fr`) e a **prioridade** de
+  quem encolhe. Um corte novo em 1366 seria o mesmo erro do 760×768: um número para um conceito
+  que já tem número.
+- **A conversão `px` → `rem` foi RECUSADA, e é o ponto da conversa.** `1rem` são 16px fixos e só
+  mudam se mudar o corpo da raiz: a unidade não torna nada fluido. E `gap` não resolve item
+  espremido — `gap` é o vão **entre**, não o espaço **de dentro**.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a `.secao` e o `.turmas-corpo`, com o porquê
+medido ao lado de cada uma; e o piso de 11rem no `.lista > li > .nome`) ·
+`experimentos/provar-largura-da-lista.js` (**novo, 56 asserções**, doze larguras de 320 a 1920, com
+**controle negativo**) · `experimentos/provar-producao.js` (a conferência da uniformidade do
+formulário passou a ler a expressão nova — o que ela guarda é o **tecto de 34rem** e a
+uniformidade entre as secções, não a grafia) · `IDENTIDADE-VISUAL.md` (a secção **«A faixa que
+ninguém media»**, com a tabela e a armadilha do `rem`) · `.gitignore` (a excepção da prova).
+
+**Validação.** `provar-largura-da-lista` **56/56**, e o controle negativo **reprova** como deve:
+reposta a regra antiga, a listagem a 1366 desce de 674 para abaixo de 640 e o nome a 1141 desce de
+176 para abaixo de 176. Sem regressão: `provar-producao` **166/166**, `provar-celular` **15/15**,
+`provar-menu-da-producao` **55/55**, `provar-vao-do-botao` **50/50**, `provar-abas-da-audicao`
+**86/86**, `check-identidade` **0 erros (21 ok)**. Medido depois da correção, na mesma bancada:
+a 1366 o nome vai de **163 para 276px** e a 1280 de **114 para 223px**; a 1920 nada mudou.
+
+**O que ainda não está feito.** (1) Não foi conferido **no ar** nesta sessão — a conferência é o
+passo seguinte ao deploy. (2) A faixa dos monitores **muito altos e estreitos** (1440×900 com a
+página de documento, `main` de 1180px) foi medida e não tem defeito: o documento tem tecto e
+centra-se, e a folha de leitura não estica. (3) As outras listagens do serviço (Turmas,
+Curadorias, Verbetes) foram medidas a 1920/1366/1280 e não transbordam; a que estava apertada era a
+de **alunos e professores**, por causa da etiqueta das turmas com 240px.

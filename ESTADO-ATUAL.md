@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`da8085fe` + esta entrega). Nesta entrega, **a mudança de sala
+> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **a faixa de 1141 a 1919px deixa
+> de ser território sem prova**: ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a
+> listagem ficou «acavalada» — **CONFIRMADO e medido**: a `.secao` dava ao formulário os 544px
+> inteiros (o tecto funcionava como piso) e ao nome da linha sobravam **163px a 1366**, contra 338px
+> a 768 (telemóvel). O formulário passa a ceder primeiro (`min(34rem, 38%)`) e o nome ganha piso de
+> `11rem`. **A tela larga não mudou**: a 1920 o formulário mede 544px e a listagem 1115px, como
+> antes. `provar-largura-da-lista` **56/56**, com controle negativo. Ver a entrada de 10/11/2026 no
+> `REGISTRO.md` e a secção «A faixa que ninguém media» do `IDENTIDADE-VISUAL.md`.
+>
+> **Fotografia anterior (09/11/2026, `da8085fe`).** Nesta entrega, **a mudança de sala
 > entra na cadeia** — o ritmo é relido da Sala no elo novo do plano, o plano fica marcado «a rever»
 > quando a Sala mudou depois dele, os desacordos entre plano e sala chegam à tela, e as duas rotas
 > da Sala disparam a travessia. **E uma sala passa a receber UMA Turma**: até aqui, duas curadorias
@@ -3191,7 +3200,17 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (09/11/2026 — a mudança de sala)
+### Executado nesta fotografia (10/11/2026 — a faixa de 1141 a 1919px)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-largura-da-lista` (**nova**) | **PASSOU — 56 asserções**, num Chrome de verdade. Doze larguras (320, 390, 560, 768, 1024, 1141, 1200, 1280, 1366, 1440, 1600, 1920): (A) nada transborda; (B) acima de 1141 o nome da linha nunca desce de `11rem`; (C) ações e etiqueta ficam dentro da linha; (D) a listagem a 1366 tem ≥640px (era 561); (E) o formulário fica entre 20rem e 34rem — e a 1920 mede **exactamente 544px**; (F) a 1920 a listagem (1115px) e o nome (717px) são **os de antes**. **Controle negativo**: reposta a regra antiga, a listagem a 1366 desce abaixo de 640 e o nome a 1141 abaixo de 176 — a prova reprova o código antigo, portanto mede o que diz medir |
+| `provar-producao` · `provar-celular` | **166/166** · **15/15** — verdes (a conferência da uniformidade do formulário passou a ler a expressão nova: o que ela guarda é o tecto de `34rem` e a uniformidade entre as secções, não a grafia) |
+| `provar-menu-da-producao` · `provar-vao-do-botao` · `provar-abas-da-audicao` | **55 · 50 · 86** — verdes |
+| `check-identidade` | **0 erros (21 ok)** |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão. `provar-faixa-do-ato-no-celular` **não correu**: depende de `escola/breu/envelopes/`, que não existe neste clone — declarado, não silenciado |
+
+### Executado na fotografia anterior (09/11/2026 — a mudança de sala)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4309,6 +4328,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **10/11/2026** — **A faixa de 1141 a 1919px deixa de ser território sem prova.** Ela mudou o
+  monitor de 1920×1080 para 1366×768 e viu a listagem «acavalada» e as margens das etiquetas
+  desaparecidas; no telemóvel funcionava. A hipótese dela (`px` em vez de `rem`, falta de `wrap`)
+  foi verificada e **não** era a causa. **CONFIRMADO e medido** na bancada local: a `.secao` dava
+  ao formulário os 544px inteiros — o tecto `minmax(0,34rem)` funcionava como **piso** — e ao nome
+  da linha sobravam **163px a 1366** e **81px a 1141**, contra 338px a 768: entre 1141 e ~1500 a
+  listagem estava **pior do que no telemóvel**. **DECIDIDO**: o formulário cede primeiro
+  (`min(34rem,38%)`, piso `20rem`) e o nome ganha piso de `11rem`, com a **etiqueta das turmas** a
+  ser quem encolhe com reticências (tem `title`, o nome não tem segunda fonte). **Nenhuma media
+  query nova**, e a conversão `px`→`rem` **recusada** — `1rem` são 16px fixos; quem cede é a grade.
+  A 1920 nada mudou (544px de formulário, 1115px de listagem, provado). `provar-largura-da-lista`
+  **56/56** (novo, com controle negativo); sem regressão em `producao` 166, `celular` 15,
+  `menu-da-producao` 55, `vao-do-botao` 50, `abas-da-audicao` 86, `check-identidade` 0 erros.
+  Ver a entrada de 10/11/2026 no `REGISTRO.md` e a secção «A faixa que ninguém media» do
+  `IDENTIDADE-VISUAL.md`.
 - **09/11/2026** — **A mudança de sala entra na cadeia, e uma sala recebe uma Turma.** Ela perguntou
   o que faltava; o diagnóstico do §3.3 era verdadeiro. **CONFIRMADO e medido**: `turma-derivar`
   respondia 201 com **0 disparos**, o `.conf` não era recomposto, o plano **não era marcado**
