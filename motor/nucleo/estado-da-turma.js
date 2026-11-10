@@ -110,10 +110,92 @@ function motivoDaRecusa(estado, nome) {
   return '';
 }
 
+/**
+ * UMA SALA RECEBE UMA TURMA (09/11/2026).
+ *
+ * PORQUE ISTO EXISTE. A Sala é o RITMO — dias, horas, duração, período. Duas Turmas na mesma
+ * Sala seriam duas aulas a acontecer no mesmo horário, no mesmo lugar: o cadastro diria que é
+ * possível, e a escola não tem duas salas físicas com o mesmo nome. Até aqui nada impedia —
+ * medido: duas curadorias activas com a mesma Sala respondiam `201`.
+ *
+ * A REGRA É DE OCUPAÇÃO, e não de exclusividade de professor ou modalidade: o que não se partilha
+ * é a SALA (o tempo e o lugar). É a mesma forma da regra das alunas (`alunasComprometidas`):
+ * comparar o que já existe com o que se está a gravar, e dizer onde está o conflito.
+ *
+ * `excetoId` é a curadoria que se está a editar (ou a versão de onde se deriva): ela não conta
+ * como ocupante da própria Sala, senão editar a tradição de uma Turma seria recusado por ela
+ * mesma.
+ *
+ * Devolve um `Map` nome → { professor, modalidade, id } — a primeira ocupante, que é a que a
+ * mensagem nomeia. `null` quando a lista não se conseguiu ler: quem chama trata como «tudo
+ * ocupado»? NÃO — ao contrário do estado da Sala, aqui a leitura falhada não pode inventar
+ * ocupação (recusaria um acto legítimo por um erro de leitura). Devolve `null`, e quem chama
+ * decide: a rota deixa passar e diz que não conferiu.
+ */
+function salasOcupadas(curadorias, { excetoId } = {}) {
+  if (!Array.isArray(curadorias)) return null;
+  const ocupadas = new Map();
+  for (const c of curadorias) {
+    if (!c || typeof c !== 'object' || c.substituidaPor) continue;
+    /* A DIREÇÃO ENCERRADA NÃO OCUPA A SALA (09/11/2026, medido). O desligamento de um professor
+     * não apaga a direção que ele deu: **encerra-a com data** (`encerrada_em`). Uma sala cuja
+     * Turma saiu com o professor está VAGA — e sem esta linha a escola não podia nomear outra
+     * direção para ela: a nova Turma era recusada por uma que já não existe. Foi o que a prova do
+     * desligamento apanhou, e é a mesma distinção que o `enquadramento` já faz
+     * (`!substituidaPor && !encerrada_em`). */
+    if (c.encerrada_em) continue;
+    if (excetoId && String(c.id) === String(excetoId)) continue;
+    for (const nome of turmasDe(c)) {
+      if (!ocupadas.has(nome)) {
+        ocupadas.set(nome, {
+          id: c.id || null,
+          professor: String(c.professor || '') || null,
+          modalidade: String(c.modalidade || '') || null,
+        });
+      }
+    }
+  }
+  return ocupadas;
+}
+
+/** As Salas de uma lista que NENHUMA Turma activa declara — a lista do que está livre. */
+function salasLivres(salas, curadorias, { excetoId } = {}) {
+  const ocupadas = salasOcupadas(curadorias, { excetoId });
+  const nomes = (Array.isArray(salas) ? salas : [])
+    .filter((t) => t && !t.substituidaPor && String(t.nome || '').trim())
+    .map((t) => String(t.nome).trim());
+  if (ocupadas === null) return nomes;
+  return nomes.filter((n) => !ocupadas.has(n));
+}
+
+/**
+ * A FRASE DA RECUSA — uma só, para as duas rotas (criar e derivar) e para a tela.
+ *
+ * Diz QUEM ocupa a Sala, e diz quais estão livres: sem a segunda metade, o professor ficaria a
+ * saber que não pode e sem saber para onde pode. Sem Salas livres, diz isso mesmo — e que o
+ * caminho é criar uma (aba Salas) ou liberar uma.
+ */
+function motivoDaSalaOcupada(sala, ocupante, livres) {
+  const s = String(sala || 'a sala');
+  const quem = ocupante && ocupante.professor
+    ? 'a Turma de ' + ocupante.professor + (ocupante.modalidade ? ' em ' + ocupante.modalidade : '')
+    : 'outra Turma';
+  const lista = Array.isArray(livres) ? livres : [];
+  const fim = lista.length
+    ? ' As salas livres são: ' + lista.join(', ') + '.'
+    : ' Não há nenhuma outra sala livre nesta escola — crie uma (aba Salas) ou libere uma '
+      + '(mude a Turma que a ocupa para outra sala).';
+  return 'a sala «' + s + '» já está ocupada por ' + quem + '. Uma sala recebe UMA Turma por '
+    + 'vez: duas Turmas na mesma sala são duas aulas no mesmo horário, no mesmo lugar.' + fim;
+}
+
 module.exports = {
   turmasDe,
   turmasCuradas,
   estadoDaTurma,
   podeEditarNoLugar,
   motivoDaRecusa,
+  salasOcupadas,
+  salasLivres,
+  motivoDaSalaOcupada,
 };

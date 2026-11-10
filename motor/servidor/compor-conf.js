@@ -295,8 +295,54 @@ function acharTurma(lista, referencia) {
     null;
 }
 
+/**
+ * O RITMO DA SALA, NAS RESPOSTAS DO PLANO (09/11/2026).
+ *
+ * PORQUE ISTO EXISTE. Os quatro campos do `## Contexto` que a Sala manda — frequência, duração,
+ * calendário e total de aulas — são declarados `daTurma` no conteúdo (`plano.json`): não são
+ * autoria do professor, são LEITURA do cadastro. Mas o que o plano grava é uma FOTOGRAFIA: os
+ * valores entram no envelope quando ele nasce e não se atualizam sozinhos. Quando a Sala muda, o
+ * plano continua a declarar o ritmo antigo, e o `## Contexto` do documento impresso mente.
+ *
+ * O que esta função devolve são exatamente esses quatro valores, na forma das respostas — a mesma
+ * forma que o formulário grava (o `valorDaTurma` do `porta/index.html`, do outro lado). É ela que
+ * a cadeia automática usa para re-ler o ritmo no elo novo, em vez de copiar a fotografia velha.
+ *
+ * O QUE ELA NÃO DEVOLVE. Campo sem valor na Sala (sem dias, sem duração, sem período): a chave
+ * não nasce, e a fotografia anterior fica como está — o silêncio não apaga o que o professor já
+ * tinha. `totalAulas` é CALCULADO do período × dias, como no `.conf` e no formulário.
+ */
+function respostasDoRitmo(turma) {
+  const t = turma || {};
+  const saida = {};
+
+  const dias = Array.isArray(t.dias) ? t.dias.filter(Boolean) : [];
+  const vezes = dias.length || Number(t.frequencia) || 0;
+  if (vezes) saida['contexto-frequencia'] = { vezes: vezes, por: 'semanal', dias: dias };
+
+  const minutos = Number(t.duracaoMin);
+  if (minutos > 0) {
+    const horas = Math.floor(minutos / 60);
+    const resto = minutos % 60;
+    const partes = [];
+    if (horas) partes.push({ numero: horas, unidade: 'hora' });
+    if (resto || !horas) partes.push({ numero: resto, unidade: 'minuto' });
+    saida['contexto-duracao'] = partes;
+  }
+
+  if (t.periodoInicio || t.periodoFim) {
+    saida['contexto-calendario'] = { inicio: t.periodoInicio || null, fim: t.periodoFim || null };
+  }
+
+  const total = aulasNoPeriodo(t);
+  if (total !== null) saida['contexto-total-aulas'] = total;
+
+  return saida;
+}
+
 module.exports = {
   comporConf,
+  respostasDoRitmo,
   faltasDaTurma,
   aulasNoPeriodo,
   diasComHora,

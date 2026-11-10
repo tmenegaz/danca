@@ -971,3 +971,10 @@ experimentos/modelo-formulario/*
 # que já não vale), a inventar o plano que a escola nunca fez, a empilhar elos quando o gesto se
 # repete — e a começar uma cadeia que o orçamento do pedido não deixa acabar.
 !experimentos/provar-cadeia-automatica.js
+
+# A MUDANÇA DE SALA (09/11/2026). O REGISTRO cita-a por nome («41 asserções»), e uma prova citada
+# que não existe no clone é uma afirmação que ninguém confere. Mede o que se perde sem dar erro: a
+# Sala a receber duas Turmas (duas aulas no mesmo horário), o elo novo do plano a nascer com o ritmo
+# velho, o plano a não ser marcado quando o horário mudou — e os desacordos entre plano e sala a
+# morrerem na resposta, sem chegar a quem assina.
+!experimentos/provar-mudanca-de-sala.js

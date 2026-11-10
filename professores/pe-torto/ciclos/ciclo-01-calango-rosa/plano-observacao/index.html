@@ -7963,6 +7963,27 @@ function bastidoresDaGeracao(dados) {
     partes.push(fonte.ok
       ? '<p class="sub">' + qual + ' entrou no repositório.</p>'
       : '<p class="erro">' + qual + ' NÃO entrou: ' + escapar(fonte.erro || 'erro') + '</p>');
+    /* OS DESACORDOS ENTRE O PLANO E A SALA (09/11/2026).
+     *
+     * O `comporConf` JÁ OS CALCULAVA — total de aulas, duração por aula e data de início do
+     * plano contra o que o cadastro da Sala declara — e devolvia-os em `fonte.conflitos`. A tela
+     * lia só `ok` e `erro`, e o dado morria ali: o `.conf` era recomposto com o ritmo novo, o
+     * plano continuava a declarar o antigo, e ninguém via a diferença.
+     *
+     * NÃO BLOQUEIA, e não é o sistema a decidir: o `.conf` é do RITMO (manda a Sala) e o plano é
+     * do CONTEÚDO. O que se faz é dizer que os dois números não coincidem, para o professor
+     * decidir se o plano precisa de ajuste — a mesma fronteira do resto da cadeia. */
+    const conflitos = Array.isArray(fonte.conflitos) ? fonte.conflitos : [];
+    if (conflitos.length) {
+      partes.push('<p class="sub"><b>O plano e a sala não dizem o mesmo:</b></p>');
+      for (const c of conflitos) partes.push('<p class="sub">· ' + escapar(c) + '</p>');
+      partes.push('<p class="sub">O ritmo que vale é o da sala — é dele que a geração lê os dias, ' +
+        'as horas e a duração. Se o número do plano já não serve, ajuste-o e grave outra vez.</p>');
+    }
+    /* E O QUE FICOU POR PREENCHER no manifesto composto (escola ausente, faixa de volume sem
+     * norma). Era devolvido em `fonte.pendencias` e igualmente descartado. */
+    const pendencias = Array.isArray(fonte.pendencias) ? fonte.pendencias : [];
+    for (const p of pendencias) partes.push('<p class="erro">falta no manifesto: ' + escapar(p) + '</p>');
   }
 
   if (ciclo) {

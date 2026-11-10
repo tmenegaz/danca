@@ -241,6 +241,22 @@ async function principal() {
   // As turmas têm de existir E ter ritmo: a curadoria recusa atribuir uma turma sem ele.
   conferir('a turma A é criada', (await novo({ nome: 'Turma A' })).status, 201);
   conferir('a turma B é criada', (await novo({ nome: 'Turma B' })).status, 201);
+  /* DUAS SALAS A MAIS (09/11/2026). A regra nova — «uma sala recebe uma Turma» — ocupa as duas
+   * primeiras: Turma A fica com a curadoria da Leticia (e com a derivação dela) e Turma B com a
+   * derivação do par novo. O caso 12b (N turmas do MESMO professor) precisa de duas salas LIVRES,
+   * e é isso que estas são — o assunto de 12b é o id, não a ocupação. */
+  conferir('a turma C é criada', (await novo({ nome: 'Turma C' })).status, 201);
+  conferir('a turma D é criada', (await novo({ nome: 'Turma D' })).status, 201);
+  // E UMA PARA O CASO DO ID ANTIGO (§ 12b, «mudar a turma de uma curadoria livre»): mudar a
+  // TURMA precisa de um destino LIVRE — com a regra de 09/11/2026, a Turma B já é a do par novo.
+  conferir('a turma E é criada', (await novo({ nome: 'Turma E' })).status, 201);
+  /* E DUAS PARA O § 12c (09/11/2026). Aquelas asserções reusavam a mesma sala para três atos
+   * diferentes — a regra da aluna não os distinguia. Com «uma sala recebe uma Turma», cada caso
+   * precisa do seu lugar; sem isso, o 409 da ocupação mascarava a regra da aluna que a prova
+   * quer medir. */
+  conferir('a turma F é criada', (await novo({ nome: 'Turma F' })).status, 201);
+  conferir('a turma G é criada', (await novo({ nome: 'Turma G' })).status, 201);
+  conferir('a turma H é criada', (await novo({ nome: 'Turma H' })).status, 201);
   const duasTurmas = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
     turmas: ['Turma A', 'Turma B'] });
   conferir('a curadoria recusa DUAS turmas', duasTurmas.status, 400);
@@ -343,21 +359,21 @@ async function principal() {
   // professor a uma segunda turma caía no mesmo id: o `upsert` substituía a curadoria
   // anterior, e a primeira turma desaparecia — em silêncio.
   const outraTurma = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma A'], alunas: ['Gabi'], repertorio: [] });
+    tradicao: 'Jazz', turmas: ['Turma C'], alunas: ['Gabi'], repertorio: [] });
   conferir('a 1ª turma do professor é atribuída', outraTurma.status, 201);
   const idUm = (await outraTurma.json()).curadoria.id;
   const segunda = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma B'], alunas: ['Nina'], repertorio: [] });
+    tradicao: 'Jazz', turmas: ['Turma D'], alunas: ['Nina'], repertorio: [] });
   conferir('a 2ª turma do MESMO professor e modalidade é aceita', segunda.status, 201);
   const idDois = (await segunda.json()).curadoria.id;
   conferir('…e é uma curadoria DIFERENTE (o id leva a turma)', idUm !== idDois, true);
   conferir('…e o id diz qual turma', [idUm, idDois],
-    ['miguel-jazz-turma-a', 'miguel-jazz-turma-b']);
+    ['miguel-jazz-turma-c', 'miguel-jazz-turma-d']);
   const cruasMiguel = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]')
     .filter((c) => c.professor === 'miguel');
   conferir('as DUAS ficam guardadas (a 1ª não foi substituída)', cruasMiguel.length, 2);
   conferir('…e cada uma com a sua turma',
-    cruasMiguel.map((c) => turmasDa(c)[0]).sort(), ['Turma A', 'Turma B']);
+    cruasMiguel.map((c) => turmasDa(c)[0]).sort(), ['Turma C', 'Turma D']);
   conferir('…e a 2ª não substituiu a 1ª', cruasMiguel.some((c) => c.substituidaPor), false);
   const vivasMiguel = (await (await pedir(env, '/api/bastidores/curadorias')).json())
     .curadorias.filter((c) => c.professor === 'miguel');
@@ -381,28 +397,28 @@ async function principal() {
 
   // Mudar a TURMA de uma curadoria livre: o id acompanha o trio, e NÃO fica um órfão.
   const mudaTurma = await curadoria({ professor: 'Velho', modalidade: 'Balé clássico',
-    tradicao: 'Vaganova', turmas: ['Turma B'], alunas: [], repertorio: [], idAntigo: 'velho-bale-classico' });
+    tradicao: 'Vaganova', turmas: ['Turma E'], alunas: [], repertorio: [], idAntigo: 'velho-bale-classico' });
   conferir('mudar a turma de uma curadoria livre é aceite', mudaTurma.status, 201);
   conferir('…e o id passa a dizer a turma nova',
-    (await mudaTurma.json()).curadoria.id, 'velho-bale-classico-turma-b');
+    (await mudaTurma.json()).curadoria.id, 'velho-bale-classico-turma-e');
   const cruasVelho2 = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]')
     .filter((c) => c.professor === 'velho');
   conferir('…e NÃO sobra um órfão no id antigo', cruasVelho2.length, 1);
-  conferir('…e o registo está no id novo', cruasVelho2[0].id, 'velho-bale-classico-turma-b');
-  conferir('…com a turma nova', turmasDa(cruasVelho2[0])[0], 'Turma B');
+  conferir('…e o registo está no id novo', cruasVelho2[0].id, 'velho-bale-classico-turma-e');
+  conferir('…com a turma nova', turmasDa(cruasVelho2[0])[0], 'Turma E');
 
   // --- 12c. A ALUNA NÃO SE REPETE NA MESMA MODALIDADE --------------------
   const repetida = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma B'], alunas: ['Gabi'], repertorio: [] });
+    tradicao: 'Jazz', turmas: ['Turma F'], alunas: ['Gabi'], repertorio: [] });
   conferir('a aluna de outra turma da MESMA modalidade é recusada', repetida.status, 409);
   const erroRepetida = await repetida.json();
   conferir('…e o erro diz ONDE ela está', /Gabi \(em Turma A\)/.test(erroRepetida.erro), true);
   conferir('…e diz qual é a regra', /UMA turma por modalidade/.test(erroRepetida.erro), true);
   const noutraModalidade = await curadoria({ professor: 'Miguel', modalidade: 'Balé clássico',
-    tradicao: 'RAD', turmas: ['Turma B'], alunas: ['Gabi'], repertorio: [] });
+    tradicao: 'RAD', turmas: ['Turma G'], alunas: ['Gabi'], repertorio: [] });
   conferir('a MESMA aluna noutra MODALIDADE é aceita', noutraModalidade.status, 201);
   const mesmoPar = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma B'], alunas: ['Nina'], repertorio: ['Plié'] });
+    tradicao: 'Jazz', turmas: ['Turma H'], alunas: ['Nina'], repertorio: ['Plié'] });
   conferir('…e editar a própria curadoria com as alunas DELA é aceite (não competem consigo)',
     mesmoPar.status, 201);
   conferir('…e a Gabi continua só na Turma A — do JAZZ',

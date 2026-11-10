@@ -666,7 +666,7 @@ function proximoCiclo(ciclos) {
  * anamnese está velha». O controlo de quando se refaz o retrato é política da escola, e um motor
  * que a impusesse estaria a decidir pedagogia por conta própria.
  */
-async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadorias) {
+async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadorias, salas) {
   const indice = jaLido || (await lerIndice(armazenamento));
 
   // 1. A DATA DE CADA SUJEITO — a da anamnese mais recente. A chave é a aluna, não o ciclo: a
@@ -770,6 +770,53 @@ async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadori
         nome: lb.nome || lb.id,
         decisao: decidida,
         anamnese: maisRecente,
+      });
+    }
+  }
+
+  /* 4.5 A SALA MUDOU — o ritmo do plano é uma fotografia (09/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA, e que estava declarado no §3.3 do `ARQUITETURA-GERAL.md`: o plano
+   * declara a frequência, a duração, o calendário e o total de aulas — e esses quatro campos são
+   * `daTurma` no conteúdo. Quando a Sala deriva um elo novo (horário, duração ou período mudou),
+   * NADA marcava o plano: ele continuava a dizer o ritmo antigo no documento impresso, e o
+   * professor não recebia o aviso que recebe quando é o ELENCO que muda. A assimetria tinha
+   * nome: o elenco tem um sinal derivado (`recorte.elencoDiferente`); a Sala não tinha.
+   *
+   * A REGRA É A MESMA FORMA, e é derivada: compara-se o `vigenteDe` do elo da Sala com o
+   * `gerado_em` do plano. Um elo posterior ao plano quer dizer «o plano foi decidido sobre um
+   * ritmo que já não vale» — e é isso que se marca.
+   *
+   * A COMPARAÇÃO É POR DIA, e com `>` estrito: o elo da Sala só declara a DATA (não a hora), e
+   * marcar o que foi decidido no mesmo dia seria marcar o trabalho que acabou de ser feito — a
+   * cadeia automática deriva o plano no mesmo dia da mudança, e um sinal que nasce aceso sobre a
+   * correção de hoje nunca se apagaria sozinho.
+   *
+   * SEM `vigenteDe` NÃO SE AFIRMA NADA: uma Sala que nunca derivou não declara desde quando
+   * vale, e inventar uma data marcaria toda a escola antiga. Sem plano com turma declarada,
+   * também não — a pergunta não tem sujeito.
+   */
+  const salasVigentes = (Array.isArray(salas) ? salas : [])
+    .filter((t) => t && t.id && !t.substituidaPor && String(t.nome || '').trim());
+  if (salasVigentes.length) {
+    const salaPorNome = new Map(salasVigentes.map((t) => [String(t.nome).trim(), t]));
+    for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice)) {
+      const id = resumo.id || nome.replace(/\.json$/, '');
+      if (pendentes.has(id)) continue;
+      const turmaDoPlano = String(resumo.turma || '').trim();
+      if (!turmaDoPlano) continue;
+      const sala = salaPorNome.get(turmaDoPlano);
+      if (!sala || !sala.vigenteDe) continue;
+      const diaDaSala = String(sala.vigenteDe).slice(0, 10);
+      const diaDoPlano = String(resumo.gerado_em || id).slice(0, 10);
+      if (!diaDoPlano || diaDaSala <= diaDoPlano) continue;
+      pendentes.set(id, {
+        familia: 'plano',
+        motivo: 'O ritmo da sala «' + turmaDoPlano + '» mudou em ' + diaDaSala + ' — depois deste '
+          + 'plano (' + diaDoPlano + '). Revalide o plano de ensino: ele declara a frequência, a '
+          + 'duração e o calendário da sala, e esses campos estão na fotografia de ' + diaDoPlano + '.',
+        onde: 'porta',
+        sala: { nome: turmaDoPlano, vigenteDe: diaDaSala },
       });
     }
   }

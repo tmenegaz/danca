@@ -32,6 +32,8 @@
  */
 
 const nucleoCadeia = require('../nucleo/cadeia.js');
+// O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
+const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
 
 /** O prefixo do KV da escola — a mesma raiz dos outros cadastros dos Bastidores. */
 const RAIZ = 'bastidores';
@@ -150,12 +152,49 @@ function criarCadeia({
   }
 
   /**
+   * O RITMO DA SALA VIGENTE — os quatro campos `daTurma` relidos do cadastro (09/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA. O plano grava o ritmo como FOTOGRAFIA: frequência, duração,
+   * calendário e total de aulas entram no envelope quando ele nasce. Quando a Sala muda, o elo
+   * novo — que copia as respostas — nasceria com o ritmo VELHO, e o `## Contexto` do documento
+   * impresso continuaria a mentir. Copiar a fotografia e chamar-lhe «derivar» seria reescrever
+   * sem reler.
+   *
+   * PORQUE RELER NÃO É REESCREVER. No conteúdo do plano, estes quatro campos são declarados
+   * `daTurma`: não são autoria do professor, são leitura do cadastro (é o próprio formulário que
+   * o diz — «vem do cadastro da turma, declarado pela direção na Produção»). Relê-los é
+   * sincronizar a leitura com a fonte, e não tocar numa decisão pedagógica.
+   *
+   * A SALA VIGENTE É A DO NOME. O nome não muda quando se deriva (é a decisão que faz a ligação
+   * sobreviver); quem se procura é o elo que hoje vale.
+   */
+  async function ritmoDaSala(turma) {
+    const nome = String(turma || '').trim();
+    if (!nome || typeof lerTurmas !== 'function') return null;
+    try {
+      const lista = await lerTurmas(escola);
+      const sala = acharTurma(lista, nome);
+      if (!sala) return null;
+      const respostas = respostasDoRitmo(sala);
+      return Object.keys(respostas).length ? respostas : null;
+    } catch (erro) {
+      return null;
+    }
+  }
+
+  /**
    * A ETAPA 2 — O PLANO DE ENSINO. Deriva-se um elo novo a partir do VIGENTE, com o mesmo
    * conteúdo respondido e o contexto corrigido. `ajuste_de` é o que faz o elo apontar para o
    * anterior: o passado não se reescreve.
+   *
+   * O RITMO É RELIDO DA SALA (09/11/2026) — ver `ritmoDaSala`. As respostas do anterior mandam
+   * em tudo menos nos quatro campos que são do cadastro: esses são substituídos pelo valor de
+   * hoje, e é isso que faz o documento novo dizer o horário novo.
    */
   async function derivarPlano({ anterior, curadoria, turma, motivo }) {
-    const respostas = (anterior && anterior.respostas) || {};
+    const respostas = Object.assign({}, (anterior && anterior.respostas) || {});
+    const ritmo = await ritmoDaSala(turma);
+    if (ritmo) Object.assign(respostas, ritmo);
     const contexto = contextoDoElo(anterior, curadoria, turma);
     const r = await porta.elicitar(armazenamento, {
       respostas, contexto, fonte: 'plano', ajuste_de: anterior.id,

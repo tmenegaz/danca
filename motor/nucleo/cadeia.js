@@ -216,6 +216,7 @@ const ROTULOS_DO_GATILHO = {
   'troca-de-aluna': 'troca de aluna entre elencos',
   'saida-de-aluna': 'saída de aluna do elenco',
   'troca-de-direcao': 'troca de professor ou modalidade da turma',
+  'mudanca-de-sala': 'mudança de sala (o ritmo da Turma)',
 };
 
 function rotuloDoGatilho(gatilho) {

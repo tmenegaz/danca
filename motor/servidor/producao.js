@@ -533,6 +533,11 @@ async function fetch(request, env) {
       '/api/bastidores/linha-de-base',
       '/api/bastidores/curadoria',
       '/api/bastidores/curadoria-derivar',
+      // A MUDANÇA DE SALA (09/11/2026) — as duas rotas que mudam o RITMO de uma Sala. A cadeia
+      // relê o ritmo no plano, deriva o PO e fecha o pacote; sem o gatilho, o documento impresso
+      // continuava a declarar o horário antigo (ver `motor/servidor/cadeia.js`).
+      '/api/bastidores/turma-editar',
+      '/api/bastidores/turma-derivar',
     ];
     const pede = (request.method === 'GET' && path === '/api/bastidores/cadeia')
       || (request.method === 'POST' && gestos.indexOf(path) !== -1);

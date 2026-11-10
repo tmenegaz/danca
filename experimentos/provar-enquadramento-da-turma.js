@@ -278,6 +278,18 @@ async function aCuradoria() {
       id: 'bale-nivel-1', nome: 'Balé Nível 1', ordem: 1,
       dias: ['ter'], horarios: { ter: '19:00' }, frequencia: 1, duracaoMin: 60,
       periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
+    /* DUAS SALAS A MAIS (09/11/2026). Os casos 3 e 4 gravam OUTRA Turma para o mesmo professor
+     * noutra modalidade, e a regra nova — «uma sala recebe uma Turma» — recusaria as duas na
+     * primeira. A prova mede a HABILITAÇÃO; cada caso precisa do seu lugar, senão o 409 da
+     * ocupação mascara a regra que se quer medir. */
+    }, {
+      id: 'sala-dois', nome: 'Sala Dois', ordem: 2,
+      dias: ['qua'], horarios: { qua: '19:00' }, frequencia: 1, duracaoMin: 60,
+      periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
+    }, {
+      id: 'sala-tres', nome: 'Sala Três', ordem: 3,
+      dias: ['qui'], horarios: { qui: '19:00' }, frequencia: 1, duracaoMin: 60,
+      periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
     }]),
     'bastidores/breu/alunas': JSON.stringify(['Vavá']),
     'bastidores/breu/professores': JSON.stringify([{ nome: 'Braço em Quinta' }]),
@@ -381,6 +393,18 @@ async function aHabilitacao() {
       id: 'bale-nivel-1', nome: 'Balé Nível 1', ordem: 1,
       dias: ['ter'], horarios: { ter: '19:00' }, frequencia: 1, duracaoMin: 60,
       periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
+    /* DUAS SALAS A MAIS (09/11/2026). Os casos 3 e 4 gravam OUTRA Turma para o mesmo professor
+     * noutra modalidade, e a regra nova — «uma sala recebe uma Turma» — recusaria as duas na
+     * primeira. A prova mede a HABILITAÇÃO; cada caso precisa do seu lugar, senão o 409 da
+     * ocupação mascara a regra que se quer medir. */
+    }, {
+      id: 'sala-dois', nome: 'Sala Dois', ordem: 2,
+      dias: ['qua'], horarios: { qua: '19:00' }, frequencia: 1, duracaoMin: 60,
+      periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
+    }, {
+      id: 'sala-tres', nome: 'Sala Três', ordem: 3,
+      dias: ['qui'], horarios: { qui: '19:00' }, frequencia: 1, duracaoMin: 60,
+      periodoInicio: '2027-02-01', periodoFim: '2027-04-30', ativo: true,
     }]),
     'bastidores/breu/alunas': JSON.stringify(['Vavá']),
     'bastidores/breu/professores': JSON.stringify([{ nome: 'Braço em Quinta' }]),
@@ -429,13 +453,15 @@ async function aHabilitacao() {
 
     // 3. SEM PERFIL, a rota não se pronuncia — a ausência de um dado não é a sua negação.
     comPerfil(null);
-    const semPerfil = await gravar({ modalidade: 'Jazz', tradicao: 'RAD', nivel: '2' });
+    const semPerfil = await gravar({ modalidade: 'Jazz', tradicao: 'RAD', nivel: '2',
+      turmas: ['Sala Dois'] });
     checar('…e um professor SEM perfil não é travado (não declarado ≠ não habilitado)',
       semPerfil.status === 201, { status: semPerfil.status, d: semPerfil.d });
 
     // 4. PERFIL ILEGÍVEL também não trava: uma falha de leitura não é uma recusa.
     comPerfil('erro');
-    const ilegivel = await gravar({ modalidade: 'Contemporâneo', tradicao: 'RAD', nivel: '1' });
+    const ilegivel = await gravar({ modalidade: 'Contemporâneo', tradicao: 'RAD', nivel: '1',
+      turmas: ['Sala Três'] });
     checar('…e um perfil que não se consegue ler também não trava a atribuição',
       ilegivel.status === 201, { status: ilegivel.status, d: ilegivel.d });
   } finally {

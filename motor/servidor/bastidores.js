@@ -49,7 +49,8 @@ const desligamento = require('../nucleo/desligamento.js');
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
 // continuava editável, e renomeá-la partia a ligação em silêncio (a curadoria guarda o NOME).
 const estadoDaTurmaNucleo = require('../nucleo/estado-da-turma.js');
-const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa } = estadoDaTurmaNucleo;
+const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa,
+  salasOcupadas, salasLivres, motivoDaSalaOcupada } = estadoDaTurmaNucleo;
 // O CONTEÚDO MUDOU DE CASA (03/11/2026) — vive na curadoria, e a turma lê a UNIÃO do que ficou
 // gravado no mapa antigo (`turma-conteudos`) com o que as curadorias dela declaram.
 const conteudos = require('../nucleo/conteudos.js');
@@ -12858,7 +12859,19 @@ async function fetch(request, env, extras) {
         }
       } catch (e) { /* best-effort: a turma já está gravada */ }
     }
-    return json(200, { ok: true, turma: novoId, nome: lista[indice].nome, id: novoId, modo: 'editar', eraId: idAntigo });
+    /* A SALA LIVRE NÃO PRECISA DE CADEIA — por definição, nenhuma Turma a declara (é isso que a
+     * deixa ser editada no lugar). Mas a guarda fica escrita e barata, porque um registo antigo
+     * pode declarar a sala sem que o estado a tenha visto: se houver Turma, a travessia corre. */
+    const daSalaEditada = (await curadorias(kv, escola))
+      .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(lista[indice].nome) !== -1);
+    const cadeiaDaEdicao = daSalaEditada.length
+      ? await rodarCadeia(cadeia, contexto, {
+        gatilho: 'mudanca-de-sala',
+        turmas: [lista[indice].nome],
+        motivo: 'o ritmo da sala «' + lista[indice].nome + '» foi ajustado',
+      })
+      : { executada: false, motivo: 'nenhuma Turma ocupa esta sala' };
+    return json(200, { ok: true, turma: novoId, nome: lista[indice].nome, id: novoId, modo: 'editar', eraId: idAntigo, cadeia: cadeiaDaEdicao });
   }
 
   // POST /api/bastidores/turma-derivar — o «EDITAR» DA TURMA VINCULADA (16/10/2026).
@@ -12950,8 +12963,34 @@ async function fetch(request, env, extras) {
       }
     } catch (e) { /* best-effort: a turma já está gravada, e o vínculo reata-se à mão */ }
 
+    /* O RITMO MUDOU, E A CADEIA VAI ATRÁS (09/11/2026).
+     *
+     * A Sala derivada só muda o RITMO: dias, horas, duração, período. O nome fica, e é por isso
+     * que a Turma e o plano continuam a encontrá-la — mas o plano declarava o ritmo ANTIGO (os
+     * quatro campos `daTurma` são uma fotografia no envelope), e nada mais o atualizava. O
+     * professor ficava a saber que o horário mudou e sem saber que o documento impresso ainda
+     * dizia o anterior.
+     *
+     * A cadeia é chamada SÓ QUANDO HÁ TURMA ocupando a Sala: uma Sala livre mudou de ritmo e não
+     * tem plano nem PO a reavaliar, e uma travessia que não tem alvo produziria uma entrada de
+     * erro no log a cada ajuste de horário.
+     */
+    /* O QUE OCUPA A SALA SÃO AS CURADORIAS — e `lista`, aqui, é a lista das SALAS (a rota lê
+     * `turmas(kv, escola)` no início). Duas listas com o mesmo nome de campo e naturezas
+     * diferentes é exactamente a armadilha que este comentário fecha: a primeira versão desta
+     * linha filtrava as Salas por `turmasDaCuradoria` e devolvia sempre zero. */
+    const turmasDaSala = (await curadorias(kv, escola))
+      .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(nova.nome) !== -1);
+    const cadeiaDaSala = turmasDaSala.length
+      ? await rodarCadeia(cadeia, contexto, {
+        gatilho: 'mudanca-de-sala',
+        turmas: [nova.nome],
+        quando: vigencia,
+        motivo: 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia,
+      })
+      : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
     return json(201, { ok: true, turma: nova.nome, nome: nova.nome, id: nova.id, modo: 'derivar',
-      substitui: anterior.id, vigenteDe: vigencia });
+      substitui: anterior.id, vigenteDe: vigencia, cadeia: cadeiaDaSala });
   }
 
   // DELETE /api/bastidores/turma — excluir turma (e limpar a relação).
@@ -14077,10 +14116,14 @@ async function fetch(request, env, extras) {
     try {
       const legado = criarCloudflare(env);
       const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+      /* A SALA ENTRA COMO QUINTA ENTRADA (09/11/2026). Sem ela, o plano não era marcado quando o
+       * RITMO mudava — só quando o elenco mudava. A assimetria era a lacuna do §3.3: a mesma
+       * mudança de sala não produzia aviso nenhum. */
       const r = await porta.revalidacaoPendente(
         armazenamento, null,
         await linhasConcluidas(kv, escola, repoLinhas),
         await curadorias(kv, escola),
+        await turmas(kv, escola),
       );
       return json(200, {
         ok: true,
@@ -14870,6 +14913,34 @@ async function fetch(request, env, extras) {
     const turmaMudou = !!atual && turmaAntiga !== turmaPedida;
     const id = atual ? (turmaMudou ? idDoTrio : atual.id) : idDoTrio;
 
+    /* UMA SALA RECEBE UMA TURMA (09/11/2026) — a guarda, e o caminho quando ela recusa.
+     *
+     * O DEFEITO, medido: duas curadorias activas com a mesma Sala respondiam `201`. A Sala é o
+     * RITMO (dias, horas, duração, período); duas Turmas nela são duas aulas no mesmo horário, no
+     * mesmo lugar — e a escola não tem duas salas com o mesmo nome. O formulário não avisava
+     * porque a lista das Salas não sabia quem as ocupava; e o servidor não conferia, o que é o
+     * mesmo defeito noutro sítio (uma regra que só existe na tela não é uma regra).
+     *
+     * O `excetoId` é a curadoria que se está a gravar: ela não ocupa contra si mesma. Editar a
+     * tradição de uma Turma sem lhe mudar a sala continua a ser um acto legítimo.
+     *
+     * A CONFERÊNCIA NÃO INVENTA OCUPAÇÃO. Se a lista de curadorias não se conhece (leitura
+     * falhada), `salasOcupadas` devolve `null` e a rota segue: recusar um acto legítimo por um
+     * erro de leitura seria pior do que deixar passar uma ocupação que a tela mostra. */
+    if (turmaPedida) {
+      const ocupadas = salasOcupadas(lista, { excetoId: atual ? atual.id : null });
+      if (ocupadas && ocupadas.has(turmaPedida)) {
+        const todasAsSalas = await turmas(kv, escola);
+        return json(409, {
+          ok: false,
+          erro: motivoDaSalaOcupada(turmaPedida, ocupadas.get(turmaPedida),
+            salasLivres(todasAsSalas, lista, { excetoId: atual ? atual.id : null })),
+          sala: turmaPedida,
+          ocupadaPor: ocupadas.get(turmaPedida),
+        });
+      }
+    }
+
     // EDITAR UMA CURADORIA QUE JÁ EXISTE — a mesma regra da turma. Livre (nenhum plano de
     // ensino nasceu dela) edita-se: o registo é substituído no lugar. Vinculada (o professor
     // já fez o plano desta turma) NÃO se edita — deriva-se, senão o plano que está no ar
@@ -15143,6 +15214,23 @@ async function fetch(request, env, extras) {
       }
     }
     const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
+    /* A SALA FINAL TAMBÉM SE CONFERE (09/11/2026) — e o `excetoId` é a versão de ONDE se deriva:
+     * ela deixa de ocupar no momento em que a nova passa a valer, e sem esta exclusão derivar uma
+     * Turma sem lhe tocar na sala seria recusado por ela mesma. A recusa é a do ato de criar: uma
+     * Sala recebe uma Turma, e duas Turmas nela são duas aulas no mesmo horário. */
+    if (turmaFinal) {
+      const ocupadasDeriv = salasOcupadas(lista, { excetoId: anterior.id });
+      if (ocupadasDeriv && ocupadasDeriv.has(turmaFinal)) {
+        const todasAsSalasDeriv = await turmas(kv, escola);
+        return json(409, {
+          ok: false,
+          erro: motivoDaSalaOcupada(turmaFinal, ocupadasDeriv.get(turmaFinal),
+            salasLivres(todasAsSalasDeriv, lista, { excetoId: anterior.id })),
+          sala: turmaFinal,
+          ocupadaPor: ocupadasDeriv.get(turmaFinal),
+        });
+      }
+    }
     /* O ELENCO DO MOMENTO, CARIMBADO — e não declarado por quem edita (05/11/2026).
      *
      * As alunas saíram do formulário da curadoria: quem as declara é a linha de base enviada para
