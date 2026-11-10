@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T12:26:32-0300`
-Commit atual: `fed8be46` — docs(registro): a burla que a busca do exercício fecha
+Gerado em: `2026-11-10T12:52:09-0300`
+Commit atual: `9736cdfa` — docs(registro): a ordem que não existia no dado
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+9736cdfa docs(registro): a ordem que não existia no dado
+9cb292e3 fix(estrutura): a decomposição segue a ordem em que foi escrita, e duplica-se uma linha
+aee9897d chore(estrutura): regerar o HANDOFF
 fed8be46 docs(registro): a burla que a busca do exercício fecha
 5da58b13 feat(estrutura): o passo 1 do Estilo procura no vocabulário, e o exercício que existe escolhe-se
 4fc98779 chore(estrutura): regerar o HANDOFF
@@ -88,9 +91,6 @@ b80dd547 feat(plano): o elo da cadeia automática
 e9a32c78 feat(acervo): envelope/.indice.json
 2ceac7e1 chore(estrutura): regerar o HANDOFF
 b47ede10 docs(registro): a mudança de sala, medida antes e depois
-1a927b0a fix(estrutura): a mudança de sala entra na cadeia, e uma sala recebe uma Turma
-da8085fe chore(estrutura): regerar o HANDOFF
-e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
 ```
 
 ## Por professor
@@ -164,94 +164,87 @@ e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
 
 ## Última entrada do REGISTRO
 
-## 10/11/2026 — O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser escolhido
+## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
 
-**O que motivou.** Ela descreveu o que fazia para começar um verbete de um exercício que já estava
-no vocabulário — e o que descreveu não era um uso, era um **contorno**: *«como o step 2 está
-bloqueado por padrão, eu não consigo começar o estilo, a menos que seja um estilo novo. Então eu
-tive que burlar. Eu escrevi um nome qualquer no exercício novo, escolhi uma categoria, escolhi a
-tradição e escrevi a letra T no campo que acontece. Aí liberou o step seguinte. […] eu preciso
-evitar esse tipo de problema, que quando eu quero começar e eu sei que já existe, ou se eu não
-souber que já existe, eu também não posso fazer redundante, não posso criar um exercício novo que
-já existe.»*
+**O que motivou.** Duas correções na etapa da decomposição do Estilo, e as duas com a mesma raiz:
 
-**CONFIRMADO e medido na bancada local**, e a causa é de uma linha. `oQueFaltaNoPasso1` lia o nome
-escrito como «exercício novo» e passava a exigir categoria, tradição e definição — e fechava o passo
-2, que é **exactamente onde os exercícios existentes se escolhem**. Medido: escrever «Battement
-fondu» no passo 1 dava `passo2Botao.disabled = true`, com o título *«Falta o que acontece (a
-definição do exercício), a categoria, a tradição de referência»*. E `sincronizarPasso1ComExercicio`
-recusava preencher quando havia nome escrito. **O único campo que pergunta «que exercício é este»
-era o que trancava a porta para o responder.**
+1. *«A ordenação dos compassos (1º, 2º, 3º, 4º) deve seguir estritamente a ordem cronológica em que
+   o professor os cria (ex: frente, ao lado, atrás, ao lado), e não ser reagrupada ou reordenada
+   automaticamente com base na direção escolhida.»*
+2. *«Adicionar um seletor/campo para escolher especificamente quais linhas da decomposição devem ser
+   duplicadas (evitando duplicar todas as linhas de uma vez quando houver várias, como 6 linhas).
+   Garantir que a linha duplicada seja posicionada sempre no final.»*
+
+**CONFIRMADO e medido** (bancada local, e a leitura do código):
+
+- **A ordem não existia no dado.** `celulas` é um mapa com a DIREÇÃO por chave. Percorrer o mapa dá
+  os trechos **agrupados por gaveta** — e um mapa não guarda a ordem entre gavetas: acrescentar à
+  primeira não a põe à frente das outras. Quem escrevesse *frente, ao lado, atrás, ao lado* via
+  *frente, ao lado, ao lado, atrás*. O `compassosDosTrechos` renumera a partir dessa ordem, e por
+  isso a numeração parecia «reordenada por direção»: era a consequência, não uma regra de desenho.
+  A **mesma** iteração existia no motor (`segmentosDe`, em `motor/nucleo/notacao.js`), e por isso o
+  documento publicado tinha a mesma ordem errada — e a correção não podia ser só na tela.
+- **A duplicação era do exercício inteiro.** `duplicarExercicio` copiava todas as células: com seis
+  trechos escritos, repetir um custava seis cópias e cinco remoções.
 
 **O que foi decidido.**
 
-- **O CAMPO PASSOU A PROCURAR.** Enquanto se escreve, uma lista de sugestões mostra os exercícios do
-  vocabulário que casam — sem acentos, sem maiúsculas, por prefixo, por meio do nome e por
-  semelhança de palavra (`batman` chega a `Battement`, `fondue` a `fondu`). A lista é **marcação
-  nossa**, e não um `<datalist>`: essa tentativa já está registada em 1885 — a janela do `<datalist>`
-  é do navegador, não aceita desenho e sai ao lado de menus que são nossos.
-- **UM NOME QUE CASA NÃO É UM EXERCÍCIO NOVO.** Escolher na lista — ou escrever à letra o nome de um
-  exercício que existe — preenche a categoria, a tradição e o «o que acontece», escolhe o exercício
-  no passo 2 e **mantém o passo 2 aberto**. O método herda a tradição do termo, pela regra que já
-  existia (`sugerirMetodo`). A grafia passa a ser a do dicionário: é ela que o documento publica.
-- **O EXERCÍCIO NOVO CONTINUA A SER NOVO.** Sem resultado, a linha de estado diz que vai ser criado,
-  os três campos ficam **abertos e vazios**, e o passo 2 só abre quando os três estiverem
-  preenchidos. O sistema não inventa classificação.
-- **NÃO SE DUPLICA.** Com um nome que casa, o «Seguir» **não faz `POST /api/bastidores/termo`** — o
-  exercício já está na lista que a página tem, e criar um segundo seria a redundância que ela pediu
-  para evitar. Era a segunda metade do pedido, e é a que evita o custo e a segunda verdade.
-- **UMA PERGUNTA, UMA RESPOSTA.** Escolher no passo 2 escreve o nome no passo 1. Eram dois sítios a
-  responder ao mesmo — e a dizer coisas diferentes: escolher «Plié» no passo 2 deixava «Battement
-  fondu» escrito no passo 1.
-- **A CLASSIFICAÇÃO DEIXOU DE SE CONGELAR — reversão declarada.** Desde 02/11/2026 a categoria e a
-  tradição ficavam bloqueadas sobre um exercício do dicionário, com a nota «para as mudar, edite o
-  termo no vocabulário». **É esta regra que ela mandou levantar**: *«Acontece que essa regra se
-  tornou um impeditivo. […] Então eu tive que burlar.»* Os dois campos passam a ser **editáveis** —
-  é o «ajustes manuais» que ela pediu —, e o que protege o dicionário não é o `disabled` é a rota:
-  `POST /api/bastidores/termo` **aproveita** o termo existente e **não lhe reescreve a definição**
-  (`reutilizar`, 07/11/2026). O ajuste vale para **este verbete** — a frase dos trechos e o «lê-se»
-  que deles se deriva —, e o termo continua a mudar-se no vocabulário, que é onde ele mora.
-  O preenchimento automático **não reescreve** o ajuste dela: só sobrepõe o que ainda é a sugestão
-  anterior (a mesma regra do `METODO_SUGERIDO`, que já existia ao lado).
-- **O RÓTULO DO PASSO 1 MUDOU:** «O exercício novo» → «O exercício», e o passo 2 passou a «O
-  exercício do verbete». O rótulo anunciava a regra que trancava o formulário.
+- **A ORDEM PASSA A SER DECLARADA NA CÉLULA** (`ordem`, inteiro), escrita pelo editor no instante
+  em que o trecho nasce. É o único sítio onde ela pode viver: a tela não a pode guardar em memória
+  (um recarregamento perde-a) e o documento é gerado a partir do JSON gravado.
+- **UMA LEITURA SÓ.** `ordemDasCelulas` (motor) e `trechosEmOrdem` (página, espelho declarado) dão a
+  mesma sequência, e por elas passam a tabela, a prévia do que fica, a numeração dos compassos e o
+  documento. Duas contas do mesmo facto divergiriam — a prova mede as duas contra o mesmo verbete.
+- **O QUE JÁ ESTAVA GRAVADO NÃO MUDA DE ORDEM (P-03/P-04).** Uma célula sem `ordem` recebe a posição
+  que a leitura antiga lhe dava (o índice dentro da gaveta, mais a gaveta), e o resultado é
+  **exactamente** o que o documento publicava até hoje. Nenhum verbete existente muda; e um verbete
+  antigo que receba um trecho novo põe-no no fim, porque a próxima ordem é o maior valor **efectivo**
+  mais um — contar só os declarados faria o primeiro trecho novo nascer com `ordem = 1`.
+- **A CORREÇÃO NÃO MUDA A POSIÇÃO.** Editar um trecho do meio não o manda para o fim: a ordem antiga
+  copia-se tal e qual (inclusive quando ela *não* existe — um verbete antigo não passa a declarar
+  ordem só porque um dos seus trechos foi editado).
+- **A DUPLICAÇÃO PASSA A SER DE UMA LINHA**, no botão da própria linha — é ele o «seletor» pedido: a
+  escolha faz-se onde a linha está, sem uma segunda lista de onde a escolher. A cópia recebe a maior
+  ordem mais um **e** é acrescentada ao fim do balde: as duas coisas, porque só a primeira deixaria
+  o ficheiro a gravar uma ordem que o índice dentro da gaveta não acompanha, e só a segunda voltaria
+  a pôr a cópia no meio assim que as outras declarassem ordem.
+- **O «Duplicar o exercício» SAIU**, e é reversão declarada: era ele que duplicava as seis linhas. O
+  que se perde — repetir a barra inteira, agora um clique por trecho — está dito no próprio código;
+  se a barra inteira voltar a ser o caso comum, o caminho é um botão que o diga, e não um que o faça
+  por omissão.
+- **A VALIDAÇÃO APRENDEU A ORDEM.** `ordem` é um inteiro ≥ 1 quando existe; um `2.5` ou um `"três"`
+  gravado por um pedido forjado ficava no ficheiro a parecer uma declaração enquanto a leitura o
+  tratava como se não estivesse lá.
 
-**Onde entrou.** `motor/servidor/bastidores.js` — a marcação do passo 1 (campo, lista, linha de
-estado), o desenho da lista no `<style>` da página (o regime da checagem 4: a folha é congelada, e a
-superfície que declara o que usa responde no seu próprio desenho — o mesmo sítio de `.col-lista` e
-de `.lb-cartoes`), e no script: `normalizarBusca`, `pontuacaoDaBusca`, `exerciciosParecidos`,
-`exercicioExistente`, `pintarSugestoes`, `moverSugestao`, `escolherExercicio`,
-`sincronizarNomeDigitado`, `pintarEstadoDoExercicio`, o `alternarPasso1` sem congelamento, o
-`sincronizarPasso1ComExercicio` com a pergunta certa, o `criarExercicioDoPasso1` sem duplicar, e o
-teclado (setas, `Enter`, `Escape`; o clique é `mousedown` porque o `blur` do campo mata o `click`).
-`experimentos/provar-busca-do-exercicio.js` (**novo, 68 asserções**) ·
-`experimentos/provar-celula.js` (as duas asserções do rótulo acompanham) · `.gitignore`.
+**Onde entrou.** `motor/nucleo/notacao.js` (`ordemDasCelulas`, exportada; `segmentosDe` a usá-la e a
+levar a ordem no segmento) · `motor/servidor/verbete.js` (a guarda da ordem em `validarVerbete`) ·
+`motor/servidor/bastidores.js` (`trechosEmOrdem`, `proximaOrdem`, `compassosDosTrechos`, a tabela, a
+prévia, o botão «Duplicar» de cada linha, `duplicarTrecho` — que substitui `duplicarExercicio` —, a
+ordem escrita na célula nova, e a saída do botão global e do `pintarDuplicar`) ·
+`experimentos/provar-ordem-e-duplicacao.js` (**novo, 31 asserções**, com controle negativo) ·
+`experimentos/provar-celula.js` e `experimentos/provar-musica-do-verbete.js` (acompanham o mecanismo
+novo) · `.gitignore`.
 
-**Validação.** `provar-busca-do-exercicio` **68/68**, num Chrome de verdade, com o vocabulário da
-bancada: (A) o caminho que estava fechado; (B) a busca por acento, prefixo e semelhança; (C) a
-escolha pela lista; (D) o exercício novo e os três obrigatórios; (E) não duplicar, **com contraprova**
-— o termo inédito é gravado; (F) o teclado; (G) a classificação editável e o ajuste que sobrevive;
-(H) o passo 1 a acompanhar o passo 2; (I) a geometria — a lista com a largura exacta do campo e 44px
-por sugestão a 1366 e a 390. Sem regressão: `provar-producao` **166/166**, `provar-largura-da-lista`
-56, `provar-vao-do-botao` 50, `provar-abas-da-audicao` 86, `provar-historico-do-ajuste` 39,
-`provar-celular` 15, `check-identidade` **0 erros (21 ok)**. `provar-celula` **não corre até ao fim**, e
-**falha exactamente no mesmo ponto no `HEAD`** («a decomposição pede o exercício antes de o haver» e
-a tabela vazia), verificado num worktree à parte: é anterior a esta entrega.
+**Validação.** `provar-ordem-e-duplicacao` **31/31** — o motor, a compatibilidade com o gravado, a
+validação, a tabela no navegador (a mesma ordem do motor), a duplicação de uma linha no fim, duas
+duplicações seguidas, a correção que não move, e o **controle negativo** (a leitura por gavetas tem
+de reprovar o caso dela). Sem regressão: `provar-producao` **166/166**, `provar-musica-do-verbete`
+**33/33**, `provar-busca-do-exercicio` 68, `provar-historico-do-ajuste` 39, `provar-largura-da-lista`
+56, `check-identidade` **0 erros (21 ok)**, `check-glossario` consistente. `provar-celula` e
+`provar-notacao` falham **o mesmo número de vezes do `HEAD`** (2 e 13), verificado em worktree à
+parte — são anteriores a esta entrega. `check-pacote` **1 erro, idêntico no `HEAD`** (o pacote do
+`calango-rosa` mistura dois POs, por trabalho que veio do remoto): não é desta entrega e não foi
+tocado.
 
-**O que ainda não está feito.** (1) **A busca é local**: procura no vocabulário que a página carregou
-(`GET /api/bastidores/verbete`), e não no repositório a cada tecla — que seria uma requisição por
-letra. Um termo criado por outra sessão só aparece depois de recarregar. (2) **A semelhança é de
-prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no meio da palavra
-(`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
-(3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
-o passo seguinte ao deploy.
+**O que ainda não está feito.** (1) **Não há forma de reordenar à mão**: a ordem é a de criação, e
+corrigi-la obriga a apagar e reescrever os trechos seguintes. Se ela quiser mover uma linha, é a
+próxima peça — e não é um campo de número, é um «mover para cima/baixo» com prova. (2) **O documento
+publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03), mas significa que o
+`notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.
 
 ## O que está pendente
-
-## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
-
-(1) A cadeia **não corre** quando o Worker não tem a ponte montada
-(sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
 
 ## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
 
@@ -290,6 +283,16 @@ prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no
 (`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
 (3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
 o passo seguinte ao deploy.
+
+## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
+
+(1) **Não há forma de reordenar à mão**: a ordem é a de criação, e
+corrigi-la obriga a apagar e reescrever os trechos seguintes. Se ela quiser mover uma linha, é a
+próxima peça — e não é um campo de número, é um «mover para cima/baixo» com prova. (2) **O documento
+publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03), mas significa que o
+`notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.
 
 ## Pendências anteriores (índice)
 
@@ -692,6 +695,7 @@ o passo seguinte ao deploy.
 - **09/11/2026** — A transferência que se perdia no rascunho, e o «Cancelar»… → `REGISTRO.md` L41276
 - **09/11/2026** — O «Cancelar» direto, e a derivação que troca o par… → `REGISTRO.md` L41358
 - **09/11/2026** — O filete pontilhado da listagem de elencos, e o padrão das… → `REGISTRO.md` L41408
+- **09/11/2026** — A cadeia automática: a troca e a saída deixam de ser «via… → `REGISTRO.md` L41458
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
