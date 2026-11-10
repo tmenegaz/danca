@@ -9,6 +9,7 @@
     "plano-20261108-1317.json",
     "plano-20261108-1334.json",
     "plano-20261109-2341.json",
+    "plano-20261110-1304.json",
     "po-20261108-1304.json",
     "po-20261108-1318.json",
     "po-20261108-1319.json",
@@ -113,6 +114,22 @@
       "ciclo": "01",
       "ajuste_de": "plano-20261108-1334",
       "gerado_em": "2026-11-09T23:41",
+      "objetivo": "Teste",
+      "turma": "Rosa",
+      "repertorio": [
+        "Battement tendu",
+        "Plié"
+      ],
+      "professorNome": "pe-torto"
+    },
+    "plano-20261110-1304.json": {
+      "id": "plano-20261110-1304",
+      "fonte": "plano",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": "01",
+      "ajuste_de": "plano-20261109-2341",
+      "gerado_em": "2026-11-10T13:04",
       "objetivo": "Teste",
       "turma": "Rosa",
       "repertorio": [
