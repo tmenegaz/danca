@@ -112,6 +112,34 @@ function criarCadeia({
   }
 
   /**
+   * O PACOTE ESTÁ EM DIA? — A PERGUNTA DEIXOU DE SER UMA DEDUÇÃO (10/11/2026).
+   *
+   * DEFEITO MEDIDO. A etapa 4 perguntava «o PO é posterior ao gatilho?» e concluía daí que os
+   * documentos estavam gerados. Não é a mesma coisa: o PO pode estar em dia e a geração nunca
+   * ter corrido — é exactamente o estado que fica quando o teto de subpedidos corta a cadeia
+   * entre a etapa 3 e a etapa 4. Repetir o gesto nesse estado dizia «a cadeia fechou» sem nada
+   * ter sido gerado, que é a pior resposta possível: a mentira tranquilizadora.
+   *
+   * O REGISTO DA GERAÇÃO é o facto, e já existe (`geracao.lerRegistro`, gravado pelo
+   * `concluir-po.js`): diz QUANDO se pediu a geração e QUAIS documentos ela derivou. A regra
+   * passa a ser «há um pedido de geração posterior ao PO, e ele derivou documentos». Sem registo
+   * — escola antiga, KV sem a chave, runtime de prova sem `geracao` — volta-se à dedução de
+   * antes: nunca se perde o que se sabia, e nada fica a afirmar mais do que se mediu.
+   */
+  async function pacoteEmDia(po, turma, quando) {
+    const deduzido = Boolean(po && quandoDo(po) >= String(quando || ''));
+    if (!po || !geracao || typeof geracao.lerRegistro !== 'function') return deduzido;
+    let registro = null;
+    try {
+      registro = await geracao.lerRegistro(Object.assign({}, po.contexto || {}, { escola, turma }));
+    } catch (erro) { registro = null; }
+    if (!registro) return deduzido;
+    const derivou = Array.isArray(registro.documentos) && registro.documentos.length > 0;
+    const pedidoDepois = String(registro.em || '') >= quandoDo(po);
+    return Boolean(pedidoDepois && derivou);
+  }
+
+  /**
    * O CONTEXTO DO ELO NOVO. O plano e o PO carregam o professor, a turma e o ciclo — e a troca
    * de direção muda o professor. O que se atualiza é o que a curadoria declara AGORA; o resto
    * (o ciclo, a escola, o que o professor escreveu) vem do anterior e não se toca.
@@ -275,10 +303,16 @@ function criarCadeia({
       elenco, curadoria, turma,
       plano, po,
       quando,
-      pacoteEmDia: Boolean(po && quandoDo(po) >= String(quando || '')),
+      pacoteEmDia: await pacoteEmDia(po, turma, quando),
     });
     const etapas = antes.etapas.map((e) => Object.assign({}, e));
-    const resultado = { turma, etapas, ok: false, erro: null };
+    /* O CICLO DA TURMA, lido do documento — é ele que faz a porta abrir o endereço da etapa
+     * (ver `enderecoDaEtapa`). Vem do PO, do plano, ou da curadoria, por esta ordem: o documento
+     * é a autoridade, e a curadoria só responde quando não há nenhum dos dois. */
+    const ciclo = String((po && po.contexto && po.contexto.ciclo)
+      || (plano && plano.contexto && plano.contexto.ciclo)
+      || (curadoria && curadoria.ciclo) || '').trim();
+    const resultado = { turma, ciclo: ciclo || null, etapas, ok: false, erro: null };
 
     // A PORTA DO FLUXO COMPLETO. Sem plano ou sem PO, a cadeia não percorre as etapas
     // seguintes — mas os vínculos, que só dependem do elenco, fazem-se na mesma. É a
@@ -337,7 +371,16 @@ function criarCadeia({
       }
     }
 
-    // 4. PACOTE
+    /* 4. PACOTE
+     *
+     * UM PO DERIVADO AGORA TORNA O PACOTE PENDENTE — MESMO QUE O REGISTO DA GERAÇÃO FOSSE NOVO
+     * (10/11/2026). O índice decide a etapa 4 ANTES de o elo novo existir, e por isso julga-a
+     * contra o PO ANTIGO: um registo de geração posterior a esse PO dava-a por `feita`, e a
+     * geração ficava por fazer sobre um documento que acabou de mudar. É o mesmo defeito de
+     * sempre — julgar o produto pelo insumo —, agora a meio da travessia. O elo novo é o facto:
+     * mudou o PO, mudam os documentos. */
+    const poMudou = Boolean(poNovo && (!po || String(poNovo.id) !== String(po.id)));
+    if (poMudou) marcar('pacote', 'pendente');
     const passoPacote = etapas.find((e) => e.chave === 'pacote');
     if (passoPacote && passoPacote.estado === 'pendente' && poNovo) {
       const contexto = Object.assign({}, (poNovo && poNovo.contexto) || {}, {
@@ -355,6 +398,126 @@ function criarCadeia({
 
     resultado.ok = etapas.every((e) => e.estado === 'feita');
     return resultado;
+  }
+
+  /**
+   * AS TURMAS QUE UMA MUDANÇA TOCOU. `elencos` são os corpos que mudaram; `turmas`, os nomes que
+   * a direção mudou. A mesma leitura serve a travessia inteira e o fecho do pacote — duas cópias
+   * da regra divergiriam no dia em que a curadoria ganhasse um terceiro campo.
+   */
+  async function alvosDe({ elencos = [], turmas = [] } = {}) {
+    const curs = (await lerCuradorias(escola)) || [];
+    const lista = (Array.isArray(curs) ? curs : []).filter((c) => c && !c.substituidaPor);
+    const pedidosElenco = new Set(elencos.map(String));
+    const pedidosTurma = new Set(turmas.map(String));
+    return lista.filter((c) => {
+      if (c.linhaDeBase && pedidosElenco.has(String(c.linhaDeBase))) return true;
+      return turmasDe(c).some((t) => pedidosTurma.has(t));
+    });
+  }
+
+  /**
+   * SÓ O ÚLTIMO PASSO — «GERAR OS DOCUMENTOS», NUMA INVOCAÇÃO PRÓPRIA (10/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA, medido a 10/11/2026. A pesquisadora migrou um elenco dentro da
+   * Turma e recebeu: «esta invocação do Worker já gastou 33 dos 50 subpedidos permitidos, e o
+   * passo seguinte precisa de 18. Nada do ciclo foi escrito — repita o «Guardar»». Os vínculos e
+   * o elo do plano JÁ estavam gravados; o que não coube foi a geração. O caminho que sobrava era
+   * o da via crucis: abrir o plano de observação, ajustar, gerar — à mão.
+   *
+   * A CAUSA NÃO É UM ERRO, É UMA CONTA. O teto de subpedidos do Cloudflare é POR INVOCAÇÃO, e o
+   * gesto que chamou a cadeia já tinha gasto a maior parte dele a gravar os vínculos e os dois
+   * elos. 33 + 18 = 51, contra um teto de 50: falta um. Nenhum código mais eficiente resolve uma
+   * conta que é de orçamento — o que resolve é a geração correr num pedido SÓ DELA, com os 50
+   * inteiros.
+   *
+   * É ISSO QUE ESTA FUNÇÃO É, e é por isso que ela não pergunta ao índice se o pacote está em
+   * dia: quem a chama é o gesto explícito «gerar os documentos». Ela não deriva plano nem PO —
+   * as etapas 1 a 3 já fecharam, e derivá-las outra vez empilharia elos falsos.
+   */
+  async function fecharPacotes({ turmas = [], elencos = [], motivo } = {}) {
+    const agora = carimbar ? carimbar() : new Date().toISOString();
+    const entrada = {
+      em: new Date().toISOString(),
+      gatilho: 'fechar-o-pacote',
+      rotulo: 'Fechar o pacote',
+      elencos: elencos.map(String),
+      turmas: turmas.map(String),
+      motivo: motivo || null,
+      ok: false,
+      alvos: [],
+      erro: null,
+    };
+    try {
+      const alvos = await alvosDe({ elencos, turmas });
+      if (!alvos.length) {
+        entrada.erro = elencos.length
+          ? 'nenhuma Turma escolheu o elenco ' + elencos.join(', ')
+          : 'nenhuma Turma corresponde a ' + turmas.join(', ');
+        const log = await anotar(entrada);
+        return Object.assign({ ok: false, alvos: [], erro: entrada.erro }, { log });
+      }
+      for (const c of alvos) {
+        const turma = turmasDe(c)[0] || '';
+        const plano = await planoVigenteDaTurma(turma);
+        const po = plano ? await poVigenteDaCadeia(plano.id) : null;
+        if (!po) {
+          const falta = !plano
+            ? 'a Turma «' + turma + '» ainda não tem plano de ensino — os documentos nascem dele.'
+            : 'a Turma «' + turma + '» ainda não tem plano de observação — os documentos nascem dele.';
+          entrada.alvos.push({
+            curadoria: c.id, turma, ciclo: (po && po.contexto && po.contexto.ciclo)
+              || (plano && plano.contexto && plano.contexto.ciclo) || null,
+            ok: false, erro: falta,
+            etapas: [
+              { chave: 'vinculos', estado: 'feita' },
+              /* O MOTIVO VAI NA ETAPA QUE TRAVA, E NÃO SÓ NA ÚLTIMA (10/11/2026). Quem lê a
+               * lista por turma lê a PRIMEIRA etapa por concluir: se a frase só estivesse no
+               * pacote, o professor lia «Plano de ensino por concluir: veja o sítio» — e o
+               * sítio é o mesmo que ele acabou de deixar. */
+              {
+                chave: 'plano-de-ensino', estado: plano ? 'feita' : 'bloqueada',
+                id: plano && plano.id, falta: plano ? null : falta,
+              },
+              {
+                chave: 'plano-de-observacao', estado: po ? 'feita' : 'bloqueada',
+                id: po && po.id, falta: (plano && !po) ? falta : null,
+              },
+              { chave: 'pacote', estado: 'bloqueada', falta },
+            ],
+          });
+          continue;
+        }
+        const contexto = Object.assign({}, po.contexto || {}, {
+          escola, turma,
+          professor: (c && c.professor) || (po.contexto && po.contexto.professor),
+        });
+        const r = await concluirPacote({ envelope: po, contexto });
+        entrada.alvos.push({
+          curadoria: c.id, turma, elenco: c.linhaDeBase || null,
+          ciclo: (po.contexto && po.contexto.ciclo) || (plano.contexto && plano.contexto.ciclo) || null,
+          ok: Boolean(r.ok), erro: r.ok ? null : (r.erro || 'a geração não partiu'),
+          etapas: [
+            { chave: 'vinculos', estado: 'feita' },
+            { chave: 'plano-de-ensino', estado: 'feita', id: plano.id },
+            { chave: 'plano-de-observacao', estado: 'feita', id: po.id },
+            {
+              chave: 'pacote', estado: r.ok ? 'feita' : 'pendente',
+              falta: r.ok ? null : (r.erro || 'a geração não partiu'),
+            },
+          ],
+        });
+      }
+      entrada.ok = entrada.alvos.length > 0 && entrada.alvos.every((a) => a.ok);
+      entrada.completa = true;
+      entrada.erro = entrada.ok ? null : (entrada.alvos.find((a) => !a.ok && a.erro) || {}).erro || null;
+      const log = await anotar(entrada);
+      return Object.assign({}, entrada, { log });
+    } catch (erro) {
+      entrada.erro = erro && erro.message ? erro.message : String(erro);
+      const log = await anotar(entrada);
+      return Object.assign({ ok: false, alvos: [], erro: entrada.erro }, { log });
+    }
   }
 
   /**
@@ -399,14 +562,7 @@ function criarCadeia({
     };
 
     try {
-      const curs = (await lerCuradorias(escola)) || [];
-      const lista = (Array.isArray(curs) ? curs : []).filter((c) => c && !c.substituidaPor);
-      const pedidosElenco = new Set(elencos.map(String));
-      const pedidosTurma = new Set(turmas.map(String));
-      const alvos = lista.filter((c) => {
-        if (c.linhaDeBase && pedidosElenco.has(String(c.linhaDeBase))) return true;
-        return turmasDe(c).some((t) => pedidosTurma.has(t));
-      });
+      const alvos = await alvosDe({ elencos, turmas });
 
       if (!alvos.length) {
         entrada.erro = elencos.length
@@ -424,9 +580,16 @@ function criarCadeia({
         const elenco = c.linhaDeBase ? (porId.get(String(c.linhaDeBase)) || null) : null;
         const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo });
         entrada.alvos.push({
-          curadoria: c.id, turma, elenco: c.linhaDeBase || null,
+          curadoria: c.id, turma, ciclo: r.ciclo || null, elenco: c.linhaDeBase || null,
           ok: r.ok, erro: r.erro || null,
-          etapas: r.etapas.map((e) => ({ chave: e.chave, estado: e.estado, falta: e.falta || null, detalhe: e.detalhe || null })),
+          etapas: r.etapas.map((e) => ({
+            chave: e.chave, estado: e.estado, falta: e.falta || null, detalhe: e.detalhe || null,
+            /* O CARIMBO DO DOCUMENTO QUE A ETAPA NOMEIA (10/11/2026) — é ele que faz o link
+             * «abrir» entrar DENTRO do documento, e não na página da porta. Sem isto, a etapa 3
+             * mandava para `/plano-observacao/` sem alvo, e a porta devolvia o professor à
+             * listagem: o «titubeio» que a pesquisadora descreveu. */
+            id: e.id || null,
+          })),
         });
       }
 
@@ -458,7 +621,55 @@ function criarCadeia({
     };
   }
 
-  return { executar, lerLog, anotar, enderecos };
+  /**
+   * O ENDEREÇO DE UMA ETAPA — COM O DOCUMENTO DENTRO, E NÃO A PÁGINA À FRENTE (10/11/2026).
+   *
+   * O QUE ESTAVA MAL. `enderecos` devolvia `/plano-observacao/` e mais nada: sem `ajustar=`, a
+   * porta não tem alvo nenhum, e a trava dela (`podePreencher`) não encontrava o que abrir —
+   * devolvia o professor à listagem. Foi o que a pesquisadora descreveu como «titubeada»: «levou
+   * directo para o lugar aonde eu precisava clicar, mas depois voltou para a listagem».
+   *
+   * O QUE A PORTA JÁ SABIA FAZER. `?ajustar=<carimbo>` abre o documento e põe a página em modo
+   * de derivação (`provar-painel-do-ato.js` mede-o nas três fontes); `?plano=<carimbo>` escolhe
+   * o plano que o PO observa. Faltava levar os carimbos até ao link.
+   *
+   * O QUE NÃO SE FAZ. Não se põe `ajustar=` onde o gesto certo é outro: quando o que falta é a
+   * GERAÇÃO, o PO já está em dia, e `?ajustar=` sobre um documento em dia deriva um elo gémeo do
+   * último — um duplicado que ninguém pediu. Aí o endereço leva só `?plano=`, e é o cartão da
+   * geração que está à vista.
+   */
+  function enderecoDaEtapa(contexto, chave, etapa) {
+    const e = etapa || {};
+    /* O CICLO VEM DO DOCUMENTO, E NÃO SÓ DO PEDIDO (10/11/2026).
+     *
+     * A porta exige professor, ciclo e escola para abrir (`contextoFaltando`), e a página dos
+     * Bastidores NÃO traz `?ciclo=`: quem chega da Produção chega sem ele. Os endereços que ela
+     * montava iam, por isso, sem ciclo — a porta abria, não o encontrava, e devolvia o professor
+     * à listagem. É essa a «titubeada»: a página chegava e voltava. O ciclo está no plano e no
+     * PO que a etapa nomeia, e é daí que ele passa a vir. */
+    const ctx = { professor: (contexto || {}).professor, escola: (contexto || {}).escola };
+    const partes = String((contexto && contexto.query) || '').split('&')
+      .filter((parte) => parte && !/^ciclo=/.test(parte));
+    if (e.ciclo) partes.push('ciclo=' + encodeURIComponent(String(e.ciclo)));
+    ctx.query = partes.join('&');
+    const daPorta = (caminho, extras) => (urlDaPorta ? urlDaPorta(caminho, ctx, extras) : caminho);
+    const id = e.id ? String(e.id) : '';
+    if (chave === 'vinculos') return enderecos(contexto)['producao-turmas'];
+    if (chave === 'plano-de-ensino') {
+      return daPorta('/plano-ensino/', ['fonte=plano'].concat(id ? ['ajustar=' + encodeURIComponent(id)] : []));
+    }
+    // A partir daqui, o plano vigente é o que o PO observa — e é a etapa anterior que o nomeia.
+    const plano = e.plano ? String(e.plano) : '';
+    const doPlano = plano ? ['plano=' + encodeURIComponent(plano)] : [];
+    if (chave === 'plano-de-observacao') {
+      return daPorta('/plano-observacao/', ['fonte=po']
+        .concat(id ? ['ajustar=' + encodeURIComponent(id)] : [])
+        .concat(doPlano));
+    }
+    return daPorta('/plano-observacao/', ['fonte=po'].concat(doPlano));
+  }
+
+  return { executar, fecharPacotes, lerLog, anotar, enderecos, enderecoDaEtapa };
 }
 
 module.exports = { criarCadeia, RAIZ, LIMITE_DO_LOG };

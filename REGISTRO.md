@@ -41902,3 +41902,85 @@ publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03
 `notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
 conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
 seguinte ao deploy.
+
+## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
+
+**O que motivou.** A pesquisadora migrou um elenco dentro da Turma, em Bastidores → Produção →
+Curadoria, e leu, ao «Guardar»:
+
+> *«a cadeia avançou até onde era possível. esta invocação do Worker já gastou 33 dos 50 subpedidos
+> permitidos, e o passo seguinte precisa de 18. Nada do ciclo foi escrito — repita o «Guardar»»*
+
+E, no link «abrir»: *«levou direto para o lugar aonde eu precisava clicar, mas depois voltou para a
+listagem»*. O trabalho que ela fez em seguida — abrir o plano de observação, ajustar, **gerar** — deu
+certo; o que se corrige aqui é precisar de o fazer à mão, e o que a frase lhe dizia enquanto o fazia.
+
+**CONFIRMADO e medido** (leitura do código, bancada local, e as provas novas):
+
+- **A frase mentia por omissão, e a conta era uma conta.** `33 + 18 = 51`, contra um teto de 50
+  subpedidos **por invocação** do Worker: nenhum código mais eficiente faz 51 caber em 50. O que não
+  coube foi o **último** passo — os vínculos e os dois elos já estavam gravados —, e «Nada do ciclo
+  foi escrito» lia-se ao contrário: o professor refaz o que está feito.
+- **O «abrir» não tinha alvo.** `cadeia.enderecos()` devolvia `/plano-observacao/` e mais nada. A
+  porta exige professor, escola **e ciclo** para abrir, e `?ajustar=<carimbo>` para abrir *dentro* do
+  documento; a página da Produção **não** traz `?ciclo=`. A porta chegava, não encontrava o
+  documento, e devolvia à listagem — o «titubeio» descrito, ao pé da letra.
+- **A etapa 4 era uma dedução.** «O PO é posterior ao gatilho» não é «os documentos foram gerados»: é
+  exactamente o estado que fica quando o teto corta entre a etapa 3 e a 4. Repetir o gesto dizia «a
+  cadeia fechou» sem nada ter sido gerado — a mentira tranquilizadora, a pior resposta possível.
+
+**O que foi decidido.**
+
+- **A GERAÇÃO PASSA A CORRER NUMA INVOCAÇÃO PRÓPRIA.** `cadeia.fecharPacotes({ turmas })` corre **só**
+  a etapa 4 — lê o plano e o PO vigentes e chama a mesma `concluirPacote` do «Guardar» — e **não**
+  deriva plano nem PO: derivá-los outra vez empilharia elos gémeos. Duas invocações, dois tetos, um
+  gesto. A rota é `POST /api/bastidores/cadeia-pacote`, montada na ponte da Produção.
+- **A PÁGINA CONTINUA SOZINHA, E UMA TURMA POR PEDIDO.** Quando o que falta é a geração e ela não
+  coube (`porOrcamento`), a própria página pede o fecho — o professor não carrega em mais nada. A
+  fila é **um pedido por turma**, porque o teto é por invocação e duas gerações caberiam mas três não:
+  cada pedido leva os 50 inteiros. Se alguma turma não fechar, é **ela** que fica à vista, e não o
+  «a cadeia fechou» da última que fechou.
+- **A FRASE PASSA A SER MONTADA DO ESTADO REAL.** `montarEstadoDaCadeia` — uma função, os dois
+  chamadores — devolve o que **fechou** (`fecharam`), o que **falta** (`restam`), o mesmo **por
+  turma**, e diz qual etapa falta e porquê. Uma etapa só conta como fechada se fechou em **todas** as
+  turmas do gesto: a união simples dizia «falta nada» com uma turma a meio. O `subpedidos.js` deixa de
+  mandar «repetir»: ele mede o orçamento, e quem sabe o que já entrou é quem chamou.
+- **O «ABRIR» ENTRA NO DOCUMENTO.** `cadeia.enderecoDaEtapa` junta ao endereço o `ciclo=` (lido do
+  plano/PO, porque a página não o traz), o `ajustar=<carimbo>` e o `plano=` que a porta já sabia ler.
+  Quando o que falta é a **geração**, vai **sem** `ajustar=`: o PO está em dia, e ajustá-lo derivaria
+  um elo gémeo do último — um duplicado que ninguém pediu.
+- **O `pacoteEmDia` DEIXOU DE SER DEDUÇÃO.** Passa a ler o registo da geração (`geracao.lerRegistro`,
+  gravado pelo `concluir-po.js`): há pedido posterior ao PO **e** documentos derivados. Sem registo —
+  escola antiga, KV sem a chave, runtime de prova — volta-se à dedução de antes: nada fica a afirmar
+  mais do que se mediu.
+- **O QUE JÁ FOI PINTADO SAI ANTES DO QUE VAI SER PINTADO, e só isso.** A caixa do resultado é a mesma
+  onde o acto escreveu «Fulana passou de A para B»; a marca `data-cadeia` limpa o estado da cadeia e
+  **não** o acto. Dois `pintarCadeia` no mesmo sítio (a gravação e o `carregarLinhas`) pedem a
+  geração **uma** vez — a guarda está no elemento.
+
+**Onde entrou.** `motor/servidor/cadeia.js` (`pacoteEmDia` pelo registo, `alvosDe` partilhado,
+`fecharPacotes`, `enderecoDaEtapa`, o `id`/`ciclo` nas etapas, e o motivo na etapa que trava) ·
+`motor/servidor/bastidores.js` (`montarEstadoDaCadeia`, `rodarCadeia` a usá-la, `pintarCadeia` com a
+limpeza marcada e a fila por turma, a rota `cadeia-pacote`, e `urlDaPorta` a aceitar lista) ·
+`motor/servidor/producao.js` (a rota nova na lista de gestos que montam a cadeia) ·
+`motor/servidor/subpedidos.js` (a frase que já não instrui) ·
+`experimentos/provar-fecho-do-pacote.js` (**novo, 42 asserções**) ·
+`experimentos/provar-link-e-fecho.js` (**novo, 20 asserções, no navegador, com controle negativo**) ·
+`.gitignore` (as duas provas, uma por uma).
+
+**Validação.** `provar-fecho-do-pacote` **42/42** — a frase do estado real, o fecho só da etapa 4 sem
+elos gémeos, o endereço dentro do documento (com ciclo vindo do documento), o `pacoteEmDia` pelo
+registo com o controlo negativo da dedução antiga, a rota no mesmo formato do gesto, e as duas turmas.
+`provar-link-e-fecho` **20/20** — o `ajustar=`/`plano=`/`escola=` no «abrir», a continuação sozinha,
+o acto preservado, uma nota só, uma geração por vez, a fila de duas turmas com a falhada à vista; e o
+**controle negativo** contra o motor do `HEAD` reprova **10 de 20**. Sem regressão:
+`provar-cadeia-automatica` **60/60**, `provar-cadeia-do-ajuste` **34/34**, `provar-mudanca-de-sala`
+**41/41**, `provar-producao` **166/166**, `check-identidade` **0 erros (21 ok)**.
+
+**O que ainda não está feito.** (1) **Não foi conferido no ar nesta sessão** — as provas são de
+bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
+a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
+grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
+`wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
+gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
+repetição é o registo da geração, e só quando o KV tem a chave.

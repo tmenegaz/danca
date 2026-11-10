@@ -538,6 +538,11 @@ async function fetch(request, env) {
       // continuava a declarar o horário antigo (ver `motor/servidor/cadeia.js`).
       '/api/bastidores/turma-editar',
       '/api/bastidores/turma-derivar',
+      // O FECHO DO PACOTE NUMA INVOCAÇÃO PRÓPRIA (10/11/2026) — é ele que dá à geração os 50
+      // subpedidos inteiros, quando o gesto que a pediu já gastou a maior parte do teto. Sem a
+      // montagem aqui, a rota responderia «a cadeia não está montada» e o professor voltava à
+      // via crucis que este caminho existe para acabar.
+      '/api/bastidores/cadeia-pacote',
     ];
     const pede = (request.method === 'GET' && path === '/api/bastidores/cadeia')
       || (request.method === 'POST' && gestos.indexOf(path) !== -1);

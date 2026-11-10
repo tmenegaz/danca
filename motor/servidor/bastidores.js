@@ -799,40 +799,7 @@ async function rodarCadeia(cadeia, contexto, pedido) {
   }
   try {
     const r = await cadeia.executar(pedido);
-    const enderecos = typeof cadeia.enderecos === 'function' ? cadeia.enderecos(contexto) : {};
-    const onde = new Map((nucleoCadeia.ETAPAS || []).map((e) => [e.chave, e.rotulo]));
-    const faltam = [];
-    for (const alvo of (r.alvos || [])) {
-      for (const etapa of (alvo.etapas || [])) {
-        if (etapa.estado === 'feita') continue;
-        faltam.push({
-          turma: alvo.turma || null,
-          chave: etapa.chave,
-          rotulo: onde.get(etapa.chave) || etapa.chave,
-          estado: etapa.estado,
-          falta: etapa.falta || null,
-          href: enderecos[((nucleoCadeia.ETAPAS || []).find((e) => e.chave === etapa.chave) || {}).onde] || null,
-        });
-      }
-    }
-    return {
-      executada: true,
-      ok: Boolean(r.ok),
-      completa: Boolean(r.completa),
-      alvos: (r.alvos || []).map((a) => ({
-        turma: a.turma || null, ok: Boolean(a.ok), erro: a.erro || null,
-        etapas: (a.etapas || []).map((e) => ({ chave: e.chave, estado: e.estado })),
-      })),
-      /* O QUE FALTA, COM O LINK. Vazio é o caso bom: a travessia fechou. */
-      faltam,
-      /* O RECADO GLOBAL, escrito aqui porque é o mesmo em todas as telas. */
-      recado: r.ok
-        ? 'a cadeia fechou: vínculos, plano de ensino, plano de observação e documentos gerados '
-          + 'estão em dia.'
-        : 'a cadeia avançou até onde era possível. ' + (r.erro || 'veja o que falta para concluir.'),
-      erro: r.erro || null,
-      log: r.log || null,
-    };
+    return montarEstadoDaCadeia(cadeia, contexto, r);
   } catch (erro) {
     return {
       executada: true, ok: false, faltam: [],
@@ -841,6 +808,129 @@ async function rodarCadeia(cadeia, contexto, pedido) {
         + 'este, e a travessia pode ser repetida: ' + (erro && erro.message ? erro.message : String(erro)),
     };
   }
+}
+
+/**
+ * O ESTADO DA CADEIA, POSTO EM PALAVRAS E EM ENDEREÇOS (10/11/2026).
+ *
+ * UMA FUNÇÃO, DOIS CHAMADORES. O gesto que dispara a travessia (`rodarCadeia`) e o fecho do
+ * pacote numa invocação própria (`/api/bastidores/cadeia-pacote`) devolvem a MESMA forma — a tela
+ * repinta os dois com a mesma função, e não há duas versões da mesma frase a divergir. Foi por
+ * isso que isto saiu de dentro do `rodarCadeia`: o segundo chamador não tinha como a reutilizar.
+ */
+function montarEstadoDaCadeia(cadeia, contexto, r) {
+  const enderecos = typeof cadeia.enderecos === 'function' ? cadeia.enderecos(contexto) : {};
+  const onde = new Map((nucleoCadeia.ETAPAS || []).map((e) => [e.chave, e.rotulo]));
+  const faltam = [];
+  for (const alvo of (r.alvos || [])) {
+    // O PLANO VIGENTE DAQUELE ALVO vai no endereço de cada etapa que o observa: é ele que o
+    // PO abre por omissão, e sem ele a porta escolhe o primeiro da estante.
+    const doPlano = ((alvo.etapas || []).find((e) => e.chave === 'plano-de-ensino') || {}).id || null;
+    for (const etapa of (alvo.etapas || [])) {
+      if (etapa.estado === 'feita') continue;
+      const comId = Object.assign({}, etapa, { plano: doPlano, ciclo: alvo.ciclo || null });
+      const href = (typeof cadeia.enderecoDaEtapa === 'function')
+        ? cadeia.enderecoDaEtapa(contexto, etapa.chave, comId)
+        : (enderecos[((nucleoCadeia.ETAPAS || []).find((e) => e.chave === etapa.chave) || {}).onde] || null);
+      faltam.push({
+        turma: alvo.turma || null,
+        chave: etapa.chave,
+        rotulo: onde.get(etapa.chave) || etapa.chave,
+        estado: etapa.estado,
+        falta: etapa.falta || null,
+        href,
+      });
+    }
+  }
+  /* O QUE JÁ FECHOU, E O QUE SOBRA — ditos um a um (10/11/2026).
+   *
+   * O RECADO ANTIGO MENTIA POR OMISSÃO. Quando o teto de subpedidos cortava a cadeia entre a
+   * etapa 3 e a etapa 4, a frase que o professor lia era a do `subpedidos.js`: «Nada do ciclo
+   * foi escrito». Nada do CICLO, talvez — mas os vínculos e os dois elos JÁ estavam gravados,
+   * e lê-lo ao contrário faz o professor refazer o que está feito. A frase passa a ser
+   * montada a partir do estado real: o que fechou, o que falta, e porquê. */
+  const porTurma = new Map();
+  const ordem = (nucleoCadeia.ETAPAS || []).map((e) => e.chave);
+  for (const alvo of (r.alvos || [])) {
+    const nome = alvo.turma || 'sem turma';
+    if (!porTurma.has(nome)) porTurma.set(nome, { feitas: [], falta: [] });
+    for (const etapa of (alvo.etapas || [])) {
+      if (etapa.estado === 'feita') {
+        porTurma.get(nome).feitas.push(onde.get(etapa.chave) || etapa.chave);
+      } else {
+        porTurma.get(nome).falta.push({
+          rotulo: onde.get(etapa.chave) || etapa.chave,
+          estado: etapa.estado,
+          falta: etapa.falta || null,
+        });
+      }
+    }
+  }
+  const nomes = (chaves) => chaves.map((c) => onde.get(c) || c);
+  /* A ETAPA SÓ «FECHOU» SE FECHOU EM TODAS AS TURMAS (10/11/2026). Um gesto pode tocar mais de
+   * uma — a migração de um elenco que duas Turmas escolhem, a troca de direção de um professor
+   * com duas —, e a união simples punha na lista do que fechou a etapa que só uma concluiu. A
+   * frase dizia então «falta nada» com uma turma a meio: a mesma mentira tranquilizadora, agora
+   * por agregação. */
+  const etapasDe = (chave) => (r.alvos || [])
+    .map((a) => (a.etapas || []).find((e) => e.chave === chave) || null);
+  const fechouEmTodas = (chave) => {
+    const lista = etapasDe(chave);
+    return lista.length > 0 && lista.every((e) => e && e.estado === 'feita');
+  };
+  const fecharam = nomes(ordem.filter(fechouEmTodas));
+  const restam = nomes(ordem.filter((c) => !fechouEmTodas(c)));
+  // O TETO DE SUBPEDIDOS TEM UM NOME PRÓPRIO: dizer «repita» serve para ele; dizer «repita»
+  // para uma peça que falta na escola seria pedir um gesto que não resolve nada.
+  const porOrcamento = (r.alvos || []).some((a) => (a.etapas || []).some(
+    (e) => e.estado !== 'feita' && /subpedidos/.test(String(e.falta || ''))));
+  let recado;
+  if (r.ok) {
+    recado = 'a cadeia fechou: vínculos, plano de ensino, plano de observação e documentos '
+      + 'gerados estão em dia.';
+  } else if (fecharam.length) {
+    /* COM MAIS DE UMA TURMA, «avançou até X» seria falso para alguma delas: cada uma parou onde
+     * parou. A frase diz o conjunto, e as linhas por turma dizem o resto. */
+    recado = ((r.alvos || []).length > 1 ? 'a cadeia avançou em parte das turmas' : 'a cadeia avançou até «' + fecharam[fecharam.length - 1] + '»')
+      + ', e isso ficou gravado. Falta ' + (restam.length === 1 ? 'só ' : '')
+      + (restam.length ? restam.join(', ') : 'nada') + '.';
+  } else {
+    recado = 'a cadeia não chegou a começar: a primeira etapa não fecha.';
+  }
+  const comFalta = [...porTurma.entries()]
+    .filter(([, v]) => v.falta.length)
+    .map(([nome, v]) => {
+      const primeira = v.falta[0];
+      return '«' + nome + '» — ' + primeira.rotulo + ' por concluir: '
+        + (primeira.falta || 'veja o sítio para saber o que falta') + '.';
+    });
+  return {
+    executada: true,
+    ok: Boolean(r.ok),
+    completa: Boolean(r.completa),
+    /* O QUE JÁ ESTÁ GRAVADO — a lista que o professor precisa para não refazer o feito. */
+    fecharam,
+    restam,
+    /* O MESMO DADO POR TURMA, para a tela poder dizer «nesta turma falta isto». */
+    porTurma: [...porTurma.entries()].map(([turma, v]) => ({
+      turma, fechou: v.feitas, falta: v.falta,
+    })),
+    /* A CADEIA PAROU NO TETO DE SUBPEDIDOS? A tela continua-a sozinha, num pedido novo —
+     * é o único caminho que dá à geração os 50 subpedidos inteiros (ver `fecharPacotes`). */
+    porOrcamento,
+    alvos: (r.alvos || []).map((a) => ({
+      turma: a.turma || null, ok: Boolean(a.ok), erro: a.erro || null,
+      etapas: (a.etapas || []).map((e) => ({ chave: e.chave, estado: e.estado })),
+    })),
+    /* O QUE FALTA, COM O LINK. Vazio é o caso bom: a travessia fechou. */
+    faltam,
+    recado: recado + (comFalta.length ? ' ' + comFalta.join(' ') : '')
+      + (porOrcamento
+        ? ' A geração não cabia neste pedido — ela corre já a seguir, num pedido próprio.'
+        : ''),
+    erro: r.erro || null,
+    log: r.log || null,
+  };
 }
 
 /**
@@ -2482,7 +2572,11 @@ function contextoDaPorta(env, escola, url) {
 /** A URL de uma página da porta com o contexto que se tem — e mais nada. */
 function urlDaPorta(base, contexto, extra) {
   const partes = contexto && contexto.query ? [contexto.query] : [];
-  if (extra) partes.push(extra);
+  // `extra` é uma string (o caso de sempre) ou uma LISTA delas: o endereço de uma etapa junta
+  // `fonte=`, `ajustar=` e `plano=` ao mesmo tempo, e quem as junta não deve ter de saber que o
+  // separador é `&`.
+  const extras = Array.isArray(extra) ? extra.filter(Boolean) : (extra ? [extra] : []);
+  for (const e of extras) partes.push(e);
   return base + (partes.length ? '?' + partes.join('&') : '');
 }
 
@@ -6988,11 +7082,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * quando há algo por concluir, cada etapa em falta com o endereço do sítio onde se resolve.
      *
      * NÃO SE INVENTA CLASSE: a caixa usa `sub` (a nota do sistema) e os links são `a` — a mesma
-     * peça de prosa que a folha já desenha. O que se acrescenta é CONTEÚDO, e não forma. */
-    'function pintarCadeia(c, res) {' +
+     * peça de prosa que a folha já desenha. O que se acrescenta é CONTEÚDO, e não forma.
+     *
+     * A CADEIA CONTINUA-SE SOZINHA (10/11/2026). Quando o que falta é a GERAÇÃO e ela não coube
+     * no pedido do gesto — o teto de subpedidos do Cloudflare é por invocação, e o gesto já
+     * gastou a maior parte dele —, esta função pede o último passo num pedido NOVO, com os 50
+     * subpedidos inteiros, e repinta com o resultado. Antes, esse passo era o professor: abrir o
+     * plano de observação, ajustar, gerar. Era a via crucis outra vez, só que no fim.
+     *
+     * E ELA NÃO PODE DISPARAR EM CICLO. O pedido de fecho devolve `porOrcamento` falso (o fecho
+     * não gasta cadeia), e há uma guarda por elemento: dois `pintarCadeia` no mesmo sítio — a
+     * gravação e o `carregarLinhas` — pintam, mas só um pergunta. */
+    'function pintarCadeia(c, res, jaTentei) {' +
     '  if (!c || c.executada === false || !res) return;' +
+    /* O QUE ESTA FUNÇÃO PINTOU SAI ANTES DO QUE ELA VAI PINTAR — e só isso. O `res` é a mesma
+     * caixa onde o acto escreveu a frase dele («Fulana passou de A para B»), e essa fica: sem a
+     * marca, limpar a caixa apagava o acto para escrever o estado da cadeia. */
+    '  var antigos = res.querySelectorAll("[data-cadeia]");' +
+    '  for (var k = 0; k < antigos.length; k++) res.removeChild(antigos[k]);' +
     '  var nota = document.createElement("p");' +
     '  nota.className = "sub";' +
+    '  nota.setAttribute("data-cadeia", "1");' +
     '  nota.textContent = c.recado || (c.ok ? "a cadeia fechou." : "a cadeia ficou a meio.");' +
     '  res.appendChild(nota);' +
     '  var faltam = c.faltam || [];' +
@@ -7000,6 +7110,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var f = faltam[i];' +
     '    var linha = document.createElement("p");' +
     '    linha.className = "sub";' +
+    '    linha.setAttribute("data-cadeia", "1");' +
     '    linha.textContent = (f.turma ? "\u00ab" + f.turma + "\u00bb \u2014 " : "")' +
     '      + (f.rotulo || f.chave) + ": " + (f.falta || f.estado || "por concluir") + " ";' +
     '    if (f.href) {' +
@@ -7010,6 +7121,56 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    res.appendChild(linha);' +
     '  }' +
+    '  if (!c.porOrcamento || jaTentei || res.getAttribute("data-a-fechar") === "sim") return;' +
+    '  var turmas = (c.alvos || []).map(function(a){ return a.turma; }).filter(Boolean);' +
+    '  if (!turmas.length) return;' +
+    '  res.setAttribute("data-a-fechar", "sim");' +
+    /* UMA TURMA POR PEDIDO (10/11/2026). O teto de subpedidos é POR INVOCAÇÃO, e uma geração
+     * custa 18: duas turmas cabem nos 50, três não. Pedir todas de uma vez deixaria a terceira
+     * exactamente onde a pesquisadora ficou — a lê-la, acreditando que «corre já a seguir». Um
+     * pedido por turma dá a cada uma o teto inteiro, e a fila é o que o gesto tocou, não uma
+     * escolha do professor. */
+    '  var pendentes = turmas.slice();' +
+    '  var ultimaFalha = null;' +
+    '  function aviso(t) {' +
+    '    var e = document.createElement("p");' +
+    '    e.className = "sub";' +
+    '    e.setAttribute("data-cadeia", "1");' +
+    '    e.textContent = t;' +
+    '    res.appendChild(e);' +
+    '    return e;' +
+    '  }' +
+    '  function passo() {' +
+    '    if (!pendentes.length) {' +
+    '      res.removeAttribute("data-a-fechar");' +
+    /* SE ALGUMA TURMA NÃO FECHOU, é ELA que fica à vista — e não o «a cadeia fechou» da última
+     * que fechou. A caixa mostra o que ainda precisa do professor; o que está feito não pede
+     * nada. */
+    '      if (ultimaFalha) pintarCadeia(ultimaFalha, res, true);' +
+    '      return;' +
+    '    }' +
+    '    var turma = pendentes.shift();' +
+    '    var espera = aviso("a gerar os documentos de \u00ab" + turma + "\u00bb, num pedido próprio...");' +
+    '    fetch("/api/bastidores/cadeia-pacote", {method: "POST",' +
+    '      headers: {"Content-Type": "application/json"}, body: JSON.stringify({turmas: [turma]})})' +
+    '      .then(function(r){ return r.json(); })' +
+    '      .then(function(d){' +
+    '        if (!d || !d.cadeia) {' +
+    '          espera.textContent = "a geração de \u00ab" + turma + "\u00bb não partiu: " +' +
+    '            ((d && d.erro) || "sem resposta");' +
+    '          res.removeAttribute("data-a-fechar");' +
+    '          return;' +
+    '        }' +
+    '        pintarCadeia(d.cadeia, res, true);' +
+    '        if (!d.cadeia.ok) ultimaFalha = d.cadeia;' +
+    '        passo();' +
+    '      })' +
+    '      .catch(function(e){' +
+    '        res.removeAttribute("data-a-fechar");' +
+    '        espera.textContent = "a geração de \u00ab" + turma + "\u00bb não partiu: " + e.message;' +
+    '      });' +
+    '  }' +
+    '  passo();' +
     '}' +
     'function pintarTransferencia() {' +
     '  var form = document.getElementById("form-mover");' +
@@ -16136,6 +16297,50 @@ async function fetch(request, env, extras) {
       return json(200, { ok: true, executada: true, log, quantas: log.length });
     } catch (erro) {
       return json(200, { ok: false, log: [], erro: erro && erro.message ? erro.message : String(erro) });
+    }
+  }
+
+  /* POST /api/bastidores/cadeia-pacote — O ÚLTIMO PASSO NUMA INVOCAÇÃO PRÓPRIA (10/11/2026).
+   *
+   * PORQUE ELE EXISTE. O teto de subpedidos do Cloudflare conta POR INVOCAÇÃO, e o gesto que
+   * dispara a cadeia (a transferência, a conclusão do elenco, a troca de direção ou de sala) já
+   * gastou a maior parte dele a gravar os vínculos e os dois elos. Sobram menos do que a geração
+   * precisa — 18 subpedidos —, e a cadeia pára no último passo com a travessia já gravada.
+   *
+   * O QUE ELE FAZ. Recebe as turmas e corre SÓ a etapa 4: lê o plano e o PO vigentes, e chama a
+   * mesma `concluirPacote` do «Guardar» do PO. É a página que o pede, sozinha, logo a seguir — o
+   * professor não carrega em mais nada. Duas invocações, dois tetos, um gesto.
+   *
+   * O QUE ELE NÃO FAZ. Não deriva plano nem PO. As etapas 1 a 3 fecharam no pedido anterior, e
+   * derivá-las outra vez empilharia elos gémeos — o defeito que a idempotência da cadeia evita.
+   */
+  if (path === '/api/bastidores/cadeia-pacote' && request.method === 'POST') {
+    if (!cadeia || typeof cadeia.fecharPacotes !== 'function') {
+      return json(200, {
+        ok: false,
+        motivo: 'a cadeia automática não está montada neste Worker (sem token ou sem os '
+          + 'conteúdos da porta) — os documentos continuam a gerar-se pelo «Guardar» do PO.',
+      });
+    }
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const lista = (corpo && (Array.isArray(corpo.turmas) ? corpo.turmas : [corpo.turma]))
+      .map((t) => String(t || '').trim()).filter(Boolean);
+    if (!lista.length) return json(400, { ok: false, erro: 'diga de que turma são os documentos' });
+    try {
+      const r = await cadeia.fecharPacotes({ turmas: lista, motivo: corpo && corpo.motivo });
+      return json(200, {
+        ok: Boolean(r.ok),
+        /* O MESMO FORMATO DA RESPOSTA DO GESTO: a tela repinta com a mesma função, e o professor
+         * lê uma frase só sobre o conjunto — e não duas versões do mesmo estado. */
+        cadeia: montarEstadoDaCadeia(cadeia, contexto, r),
+        erro: r.erro || null,
+      });
+    } catch (erro) {
+      return json(200, {
+        ok: false,
+        erro: erro && erro.message ? erro.message : String(erro),
+      });
     }
   }
 

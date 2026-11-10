@@ -46,12 +46,22 @@ function contarSubpedidos(baseFetch, limite) {
     get restantes() { return Math.max(0, teto - estado.usados); },
     /** O que já não couber: é o que os escritores perguntam antes de começar. */
     coube(estimativa) { return Number(estimativa) <= estado.restantes; },
-    /** A frase que a tela mostra quando não coube — dita, e não um `undefined`. */
+    /**
+     * A frase que a tela mostra quando não coube — dita, e não um `undefined`.
+     *
+     * O QUE A FRASE NÃO DIZ MAIS (10/11/2026). Dizia «repita o «Guardar»», e a instrução estava
+     * certa e a leitura errada ao mesmo tempo: numa cadeia, o passo que não coube é o ÚLTIMO, e
+     * os anteriores já estão gravados — repetir repete-os também (são idempotentes, mas o
+     * professor não tem como saber). Quem sabe o que já entrou é quem chamou; por isso a frase
+     * passou a declarar só o que ela mede — o orçamento e o passo —, e a instrução é dada onde o
+     * estado é conhecido (`rodarCadeia`, e o fecho automático do pacote).
+     */
     motivo(estimativa) {
       return 'esta invocação do Worker já gastou ' + estado.usados + ' dos ' + teto
         + ' subpedidos permitidos, e o passo seguinte precisa de ' + estimativa
-        + '. Nada do ciclo foi escrito — repita o «Guardar»; se repetir sempre, o teto do plano '
-        + 'do Cloudflare terá de subir (vars `SUBPEDIDOS` em wrangler.<escola>.jsonc).';
+        + '. Este passo não foi escrito — o que veio antes dele está gravado. Se se repetir '
+        + 'sempre, o teto do plano do Cloudflare terá de subir (vars `SUBPEDIDOS` em '
+        + 'wrangler.<escola>.jsonc).';
     },
   };
   const contado = async (url, init) => {

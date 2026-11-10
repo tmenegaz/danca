@@ -1006,3 +1006,12 @@ experimentos/modelo-formulario/*
 # uma. Esta prova mede a ordem cronológica declarada, a compatibilidade com o que já está gravado,
 # a duplicação no fim, e tem CONTROLE NEGATIVO: reposta a leitura por gavetas, ela reprova.
 !experimentos/provar-ordem-e-duplicacao.js
+
+# A CADEIA QUE PÁRA NO TETO, E O «ABRIR» QUE ENTRA NO DOCUMENTO (10/11/2026). A pesquisadora migrou
+# um elenco dentro da Turma e leu «Nada do ciclo foi escrito — repita o «Guardar»» com os vínculos e
+# os dois elos JÁ gravados; o «abrir» levava à página do PO sem alvo e a porta devolvia-a à listagem.
+# As duas provas medem o mecanismo: a frase montada do estado real, o fecho da geração numa invocação
+# própria, o endereço com `ajustar=`/`plano=`/`ciclo=` — e a segunda corre no navegador, com CONTROLE
+# NEGATIVO (o motor de antes reprova 10 das 20 asserções).
+!experimentos/provar-fecho-do-pacote.js
+!experimentos/provar-link-e-fecho.js
