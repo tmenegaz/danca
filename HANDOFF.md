@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T19:25:10-0300`
-Commit atual: `1691cc86` — fix(estrutura): o «Cancelar» direto, e a derivação que troca o par
+Gerado em: `2026-11-09T21:37:15-0300`
+Commit atual: `f230c384` — docs(registro): o filete pontilhado da listagem de elencos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+f230c384 docs(registro): o filete pontilhado da listagem de elencos
+bcdf148b fix(estrutura): o filete pontilhado da listagem de elencos
+fc305563 chore(estrutura): regerar o HANDOFF
 1691cc86 fix(estrutura): o «Cancelar» direto, e a derivação que troca o par
 87f18fc8 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 124b20c4 chore(estrutura): regerar os índices derivados
@@ -88,9 +91,6 @@ e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 0ef8b2cb feat(linha de base): índice — ami 20261109-2139
 ea6149cb feat(elenco): Aluna B passa de tami para ami
 449f930e chore(estrutura): regerar o HANDOFF
-f1d266a4 docs(registro): a segunda passagem da Audição, e o que fica aberto
-d3136fad fix(estrutura): o respiro dos cartões, o formulário limpo e a ordem do ato
-49d6eef1 chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -164,65 +164,57 @@ d3136fad fix(estrutura): o respiro dos cartões, o formulário limpo e a ordem d
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — O «Cancelar» direto, e a derivação que troca o par professor × modalidade
+## 09/11/2026 — O filete pontilhado da listagem de elencos, e o padrão das listas
 
-**O que motivou.** Dois ajustes pedidos pela pesquisadora, e os dois são de **gesto**: (1) o
-«Cancelar» da edição de elenco devia ser direto e simples — sem a caixa de confirmação, e com o
-nome que a Turma já usa; (2) ao **derivar** uma turma, o professor e a modalidade deviam continuar
-editáveis, para a escola poder trocar quem ensina ou em que modalidade a sala passa a funcionar.
+**O que motivou.** Ela relatou que a **listagem de elencos** da Audição («Escolha de elenco», aba 1)
+está **sem o pontilhado inferior** que as outras listagens têm — Estilo, Salas, Professores, Alunos
+—, e pediu que siga «o mesmo padrão e estrutura de estilo (semelhante à lista de exercícios com
+verbete)». **CONFIRMADO no código e medido na bancada local**: a linha de `.lista` (a das
+«Exercícios com verbete») computa `border-bottom: 1px dotted var(--borda-campo)`, e a de
+`.lb-cartoes` computava `0px none` — havia, no bloco de estilo da página, um
+`'.lb-cartoes>li{padding:0;border-bottom:0;}'` de «reset», a **mesma família de regra** que a
+véspera apagou o respiro dos cartões (`.lb-cartoes>li{margin:0}`). O tracejado não se perdia: era
+apagado de propósito, e por uma linha que ninguém lia como decisão de desenho.
 
 **O que foi decidido.**
 
-- **O «Cancelar» do elenco cessa o ato num clique.** O rótulo passa de «Cancelar a edição» a
-  **«Cancelar»**, como o da Turma, e a pergunta (`confirm`) sai. O descarte no servidor fica: a rota
-  `POST /api/bastidores/linha-de-base/descartar` tira o **rascunho** do KV e deixa o acto de pé. O
-  que muda é o caminho até ele — um clique em vez de dois. Sem elenco aberto, o botão continua a não
-  chamar o servidor: só limpa o formulário.
-- **No «Editar» o par continua travado; no «Derivar» fica livre.** O par `(professor, modalidade)`
-  identifica a curadoria no modo em que o registo é **substituído no lugar** — travá-lo ali evita
-  que a edição crie uma identidade nova por baixo. Na derivação o registo é um **elo novo**, e é
-  exatamente esse o gesto que permite mudar quem dirige a sala. Os dois `<select>` passam a
-  `disabled = !derivar`, e a lista de modalidades volta a filtrar pelas habilitações quando o
-  professor muda (`filtrarPorHabilitacao` deixa de sair cedo no modo `derivar`; continua a sair no
-  `editar`).
-- **O servidor aceita e confere o par final.** `POST /api/bastidores/curadoria-derivar` lê
-  `professor` e `modalidade` do corpo (`undefined` herda o anterior; vazio é recusado por
-  `faltaNaCuradoria`), guarda o professor como slug, confere a **habilitação** do professor final, a
-  **aluna repetida** na modalidade final e a **unicidade** do trio final; o id do derivado nasce do
-  par final. O professor novo também não pode estar desligado. A versão anterior fica no histórico
-  com `substituidaPor`, como sempre. E a marca `descontinuada` da turma cai quando a derivação
-  devolve à sala uma direção válida, como já acontecia na criação.
+- **O filete é o das outras listas, e não um novo.** O `li` da listagem de elencos passa a vestir o
+  **mesmo** fio e o **mesmo** respiro de linha de `.lista li` — `padding: .35rem .1rem` e
+  `border-bottom: 1px dotted var(--borda-campo)`. Não nasce peça, não nasce classe, não nasce cor:
+  a `--borda-campo` já é o papel do tracejado em todas as listagens, e o padrão é o da «Exercícios
+  com verbete», que é a referência que ela deu.
+- **O cartão fica.** O que muda é só o que **separa** um cartão do outro: o `.trio-plano` continua
+  a ser a peça do cartão (nome, selo, ações, fatos, as duas caixas) e o `margin-bottom` de `.6rem`
+  continua a ser o respiro entre eles. O filete entra **por baixo** do conteúdo, como nas listas
+  simples.
+- **A medida vira prova.** A bancada `medir-etiqueta-e-lista` já media esta aresta desde a manhã
+  (era a queixa nº 2 dela), e agora `provar-abas-da-audicao` compara-a com a linha de `.lista`:
+  a asserção é de **igualdade entre as duas arestas**, não de um valor escrito à mão — em 1280 e em
+  320px. Dois A/B acompanham: o `margin:0` antigo leva o vão a zero, e o `border-bottom:0` antigo
+  apaga o filete. Sem eles, a prova passaria mesmo sem a correção.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (o rótulo e o handler do `lb-cancelar`; o
-`disabled` do par e o `filtrarPorHabilitacao` no `ajustarCuradoria`; o par final, as guardas e o id
-na rota `curadoria-derivar`; a limpeza de `descontinuada`) ·
-`experimentos/provar-abas-da-audicao.js` (o nome do botão e a ausência de `confirm`, contada) ·
-`experimentos/provar-derivacao-da-turma.js` (o par livre na derivação, a troca de par no servidor, e
-o escolhedor `esc-conteudos` que faltava ao shim).
+**Onde entrou.** `motor/servidor/bastidores.js` (a regra `.lb-cartoes>li` do bloco de estilo da
+Produção: sai o `padding:0;border-bottom:0`, entram o respiro e o filete de `.lista li`, com o
+motivo declarado no comentário) · `experimentos/provar-abas-da-audicao.js` (a referência `.lista` na
+página da bancada, a leitura das duas arestas e os dois A/B — 80 → 86 asserções).
 
-**Validação.** `provar-abas-da-audicao` **81/81** (80 → 81: o «Cancelar» a não perguntar nada e o
-rótulo a ser o da Turma). `provar-derivacao-da-turma` **112/132**, com **+3** face ao `HEAD`
-(109/132): passam as três asserções novas — o par livre na derivação, o registo a nascer com o par
-novo e o id a nascer do par final. As outras 20 falhas são anteriores a esta mudança e iguais no
-`HEAD` (rótulos e campos que a prova ainda espera de uma versão antiga do formulário, e a regra de
-aluna repetida que a prova mede por um caminho que o código já não usa). `check-identidade` **0
-erros** · `check-github-headers` **5 verificações, tudo certo**.
+**Validação.** `medir-etiqueta-e-lista` na bancada local: a listagem de elencos passa de
+`0px none` a `1px dotted rgb(160, 138, 88)`, com `padding: 5.6px 1.6px`, **igual** à linha de
+`.lista` — a 1280, 390 e 320px. `provar-abas-da-audicao` **86/86** (80 → 86: as quatro asserções do
+filete e os dois A/B novos). Sem regressão: `provar-producao` 166/166, `provar-linha-de-base`
+102/102, `provar-elenco-na-turma` 25/25, `provar-aluna-nova-no-elenco` 34/34,
+`provar-remocao-do-elenco` 26/26, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base-no-repo` 39/39, `check-identidade` **0 erros** (Forma, Peça e Aresta
+incluídas).
 
-**O que ainda não está feito.** (1) Derivar a curadoria de um professor **desligado** continua
-recusado — a troca de par não serve para reabrir uma direção encerrada; para esse caso, a criação de
-uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
-as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
-conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.
+**O que ainda não está feito.** (1) A `medir-etiqueta-e-lista` continua a **imprimir** o que mede, e
+não a **reprovar**: ela é bancada de leitura, e quem guarda a regressão é a prova das abas. (2) A
+lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação é de **aresta e
+respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
+fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
+sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
 
 ## O que está pendente
-
-## 08/11/2026 — A aluna desligada, e a turma que muda de sala
-
-(1) O rasto do elenco **não** é lido: uma versão anterior
-que nunca chegou a ser escolhida por uma Turma não deixa sinal, e a aluna continua a ler-se «nova»
-até haver um ato novo — declarado no §3.3. (2) A cascata **não vê** a mudança de Sala: as duas
-alterações que a fechariam estão escritas no §3.3 e não foram feitas, porque a segunda (respeitar a
-vigência futura) é uma decisão de calendário da direção. (3) A anamnese de uma aluna desligada que
 
 ## 09/11/2026 — A Audição em três abas, e a transferência que não se oferece a si mesma
 
@@ -275,6 +267,15 @@ recusado — a troca de par não serve para reabrir uma direção encerrada; par
 uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
 as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
 conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.
+
+## 09/11/2026 — O filete pontilhado da listagem de elencos, e o padrão das listas
+
+(1) A `medir-etiqueta-e-lista` continua a **imprimir** o que mede, e
+não a **reprovar**: ela é bancada de leitura, e quem guarda a regressão é a prova das abas. (2) A
+lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação é de **aresta e
+respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
+fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
+sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
 
 ## Pendências anteriores (índice)
 
@@ -671,6 +672,7 @@ conferida nessa modalidade final, mas não se procura um elenco equivalente na m
 - **08/11/2026** — O Worker voltou a falar com a rede: o `fetch` da ponte era… → `REGISTRO.md` L40808
 - **08/11/2026** — O fluxo da escola, num só desenho — e as duas portas do… → `REGISTRO.md` L40871
 - **08/11/2026** — As duas portas do fluxo da escola: a aluna que muda de… → `REGISTRO.md` L40932
+- **08/11/2026** — A aluna desligada, e a turma que muda de sala → `REGISTRO.md` L41005
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
