@@ -41822,3 +41822,83 @@ prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no
 (`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
 (3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
 o passo seguinte ao deploy.
+
+## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
+
+**O que motivou.** Duas correções na etapa da decomposição do Estilo, e as duas com a mesma raiz:
+
+1. *«A ordenação dos compassos (1º, 2º, 3º, 4º) deve seguir estritamente a ordem cronológica em que
+   o professor os cria (ex: frente, ao lado, atrás, ao lado), e não ser reagrupada ou reordenada
+   automaticamente com base na direção escolhida.»*
+2. *«Adicionar um seletor/campo para escolher especificamente quais linhas da decomposição devem ser
+   duplicadas (evitando duplicar todas as linhas de uma vez quando houver várias, como 6 linhas).
+   Garantir que a linha duplicada seja posicionada sempre no final.»*
+
+**CONFIRMADO e medido** (bancada local, e a leitura do código):
+
+- **A ordem não existia no dado.** `celulas` é um mapa com a DIREÇÃO por chave. Percorrer o mapa dá
+  os trechos **agrupados por gaveta** — e um mapa não guarda a ordem entre gavetas: acrescentar à
+  primeira não a põe à frente das outras. Quem escrevesse *frente, ao lado, atrás, ao lado* via
+  *frente, ao lado, ao lado, atrás*. O `compassosDosTrechos` renumera a partir dessa ordem, e por
+  isso a numeração parecia «reordenada por direção»: era a consequência, não uma regra de desenho.
+  A **mesma** iteração existia no motor (`segmentosDe`, em `motor/nucleo/notacao.js`), e por isso o
+  documento publicado tinha a mesma ordem errada — e a correção não podia ser só na tela.
+- **A duplicação era do exercício inteiro.** `duplicarExercicio` copiava todas as células: com seis
+  trechos escritos, repetir um custava seis cópias e cinco remoções.
+
+**O que foi decidido.**
+
+- **A ORDEM PASSA A SER DECLARADA NA CÉLULA** (`ordem`, inteiro), escrita pelo editor no instante
+  em que o trecho nasce. É o único sítio onde ela pode viver: a tela não a pode guardar em memória
+  (um recarregamento perde-a) e o documento é gerado a partir do JSON gravado.
+- **UMA LEITURA SÓ.** `ordemDasCelulas` (motor) e `trechosEmOrdem` (página, espelho declarado) dão a
+  mesma sequência, e por elas passam a tabela, a prévia do que fica, a numeração dos compassos e o
+  documento. Duas contas do mesmo facto divergiriam — a prova mede as duas contra o mesmo verbete.
+- **O QUE JÁ ESTAVA GRAVADO NÃO MUDA DE ORDEM (P-03/P-04).** Uma célula sem `ordem` recebe a posição
+  que a leitura antiga lhe dava (o índice dentro da gaveta, mais a gaveta), e o resultado é
+  **exactamente** o que o documento publicava até hoje. Nenhum verbete existente muda; e um verbete
+  antigo que receba um trecho novo põe-no no fim, porque a próxima ordem é o maior valor **efectivo**
+  mais um — contar só os declarados faria o primeiro trecho novo nascer com `ordem = 1`.
+- **A CORREÇÃO NÃO MUDA A POSIÇÃO.** Editar um trecho do meio não o manda para o fim: a ordem antiga
+  copia-se tal e qual (inclusive quando ela *não* existe — um verbete antigo não passa a declarar
+  ordem só porque um dos seus trechos foi editado).
+- **A DUPLICAÇÃO PASSA A SER DE UMA LINHA**, no botão da própria linha — é ele o «seletor» pedido: a
+  escolha faz-se onde a linha está, sem uma segunda lista de onde a escolher. A cópia recebe a maior
+  ordem mais um **e** é acrescentada ao fim do balde: as duas coisas, porque só a primeira deixaria
+  o ficheiro a gravar uma ordem que o índice dentro da gaveta não acompanha, e só a segunda voltaria
+  a pôr a cópia no meio assim que as outras declarassem ordem.
+- **O «Duplicar o exercício» SAIU**, e é reversão declarada: era ele que duplicava as seis linhas. O
+  que se perde — repetir a barra inteira, agora um clique por trecho — está dito no próprio código;
+  se a barra inteira voltar a ser o caso comum, o caminho é um botão que o diga, e não um que o faça
+  por omissão.
+- **A VALIDAÇÃO APRENDEU A ORDEM.** `ordem` é um inteiro ≥ 1 quando existe; um `2.5` ou um `"três"`
+  gravado por um pedido forjado ficava no ficheiro a parecer uma declaração enquanto a leitura o
+  tratava como se não estivesse lá.
+
+**Onde entrou.** `motor/nucleo/notacao.js` (`ordemDasCelulas`, exportada; `segmentosDe` a usá-la e a
+levar a ordem no segmento) · `motor/servidor/verbete.js` (a guarda da ordem em `validarVerbete`) ·
+`motor/servidor/bastidores.js` (`trechosEmOrdem`, `proximaOrdem`, `compassosDosTrechos`, a tabela, a
+prévia, o botão «Duplicar» de cada linha, `duplicarTrecho` — que substitui `duplicarExercicio` —, a
+ordem escrita na célula nova, e a saída do botão global e do `pintarDuplicar`) ·
+`experimentos/provar-ordem-e-duplicacao.js` (**novo, 31 asserções**, com controle negativo) ·
+`experimentos/provar-celula.js` e `experimentos/provar-musica-do-verbete.js` (acompanham o mecanismo
+novo) · `.gitignore`.
+
+**Validação.** `provar-ordem-e-duplicacao` **31/31** — o motor, a compatibilidade com o gravado, a
+validação, a tabela no navegador (a mesma ordem do motor), a duplicação de uma linha no fim, duas
+duplicações seguidas, a correção que não move, e o **controle negativo** (a leitura por gavetas tem
+de reprovar o caso dela). Sem regressão: `provar-producao` **166/166**, `provar-musica-do-verbete`
+**33/33**, `provar-busca-do-exercicio` 68, `provar-historico-do-ajuste` 39, `provar-largura-da-lista`
+56, `check-identidade` **0 erros (21 ok)**, `check-glossario` consistente. `provar-celula` e
+`provar-notacao` falham **o mesmo número de vezes do `HEAD`** (2 e 13), verificado em worktree à
+parte — são anteriores a esta entrega. `check-pacote` **1 erro, idêntico no `HEAD`** (o pacote do
+`calango-rosa` mistura dois POs, por trabalho que veio do remoto): não é desta entrega e não foi
+tocado.
+
+**O que ainda não está feito.** (1) **Não há forma de reordenar à mão**: a ordem é a de criação, e
+corrigi-la obriga a apagar e reescrever os trechos seguintes. Se ela quiser mover uma linha, é a
+próxima peça — e não é um campo de número, é um «mover para cima/baixo» com prova. (2) **O documento
+publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03), mas significa que o
+`notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
+conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
+seguinte ao deploy.

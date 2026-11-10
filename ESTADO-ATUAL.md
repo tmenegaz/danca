@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **o passo 1 do Estilo procura no
+> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **a decomposição passou a seguir a
+> ordem em que foi escrita, e a duplicação passou a ser de uma linha**. Ela escreveu *frente, ao
+> lado, atrás, ao lado* e viu a tabela reagrupada por direção — **CONFIRMADO e medido**: `celulas` é
+> um mapa com a direção por chave, e um mapa não guarda a ordem entre gavetas; a mesma iteração
+> existia no motor, e por isso o documento publicado tinha a mesma ordem. **DECIDIDO**: a ordem passa
+> a ser **declarada na célula** (`ordem`), escrita pelo editor quando o trecho nasce, e uma só leitura
+> (`ordemDasCelulas`) serve a tabela, a prévia, os compassos e o documento. **O que já estava gravado
+> não muda de ordem** (P-03/P-04): a célula sem `ordem` recebe a posição antiga e o documento
+> publica exactamente o de hoje. E o **«Duplicar o exercício» saiu** — duplicava as seis linhas
+> quando ela queria uma; o botão passou a ser o de cada linha, e a cópia vai para o **fim**, com a
+> ordem maior. `provar-ordem-e-duplicacao` **31/31**, com controle negativo. Ver a entrada de
+> 10/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (10/11/2026).** Nesta entrega, **o passo 1 do Estilo procura no
 > vocabulário**. Ela contou o que fazia para começar um verbete de um exercício que já existia —
 > inventar um nome, uma categoria e a letra «T» para destrancar o passo 2 — e chamou-lhe
 > **«burlar»**. **CONFIRMADO e medido**: `oQueFaltaNoPasso1` lia o nome escrito como «exercício
@@ -3226,7 +3239,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (10/11/2026 — a busca do exercício no passo 1)
+### Executado nesta fotografia (10/11/2026 — a ordem da decomposição e a duplicação de uma linha)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-ordem-e-duplicacao` (**nova**) | **PASSOU — 31 asserções**, no motor e num Chrome de verdade. (A) o motor devolve os trechos na ordem cronológica declarada, o compasso acompanha (por pista), e a ordem vai em cada segmento; (B) sem `ordem` — o que está gravado até hoje — a leitura é **exactamente** a de antes, e um trecho novo entra no fim; (B2) a validação recusa `ordem` fraccionária ou zero e aceita a ausência; (C) a tabela da página mostra a MESMA ordem do motor, e os compassos nunca descem; (D) cada linha tem o seu «Duplicar», o botão global **não existe**, e a cópia — de uma linha só — vai para o fim, duas vezes seguidas se forem duas; (E) corrigir um trecho do meio não o move; (F) **controle negativo**: a leitura por gavetas reprova o caso dela |
+| `provar-producao` · `provar-musica-do-verbete` | **166/166** · **33/33** — verdes |
+| `provar-busca-do-exercicio` · `provar-historico-do-ajuste` · `provar-largura-da-lista` | **68 · 39 · 56** — verdes |
+| `check-identidade` · `check-glossario` | **0 erros (21 ok)** · consistente (14 símbolos) |
+| `provar-celula` · `provar-notacao` | **as mesmas falhas do `HEAD`** — 2 e 13, contadas igual num worktree à parte; anteriores a esta entrega |
+| `check-pacote` (calango-rosa) | **1 erro, idêntico no `HEAD`**: o pacote mistura dois POs (fontes que vieram do remoto). Não é desta entrega, e o pacote não foi tocado |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão. Não há reordenação manual — a ordem é a de criação, e mover uma linha exige apagar e reescrever as seguintes |
+
+### Executado na fotografia anterior (10/11/2026 — a busca do exercício no passo 1)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4376,6 +4401,22 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **10/11/2026** — **A decomposição segue a ordem em que foi escrita, e a duplicação é de uma
+  linha.** Ela escreveu *frente, ao lado, atrás, ao lado* e viu a tabela reagrupada — **CONFIRMADO e
+  medido**: `celulas` é um mapa com a direção por chave, e um mapa não guarda a ordem entre gavetas;
+  a mesma iteração existia em `segmentosDe`, e por isso o documento publicado tinha a mesma ordem
+  errada. **DECIDIDO**: a ordem passa a ser **declarada na célula** (`ordem`), escrita quando o
+  trecho nasce, e **uma só leitura** — `ordemDasCelulas`, no motor, espelhada na página — serve a
+  tabela, a prévia, os compassos e o documento. **O que já estava gravado não muda** (P-03/P-04): a
+  célula sem `ordem` recebe a posição antiga, e o documento publica exactamente o de hoje; a
+  correcção de um trecho não o move; e o trecho novo entra no fim (a próxima ordem é o maior valor
+  **efectivo** mais um). O **«Duplicar o exercício» saiu** (reversão declarada): duplicava as seis
+  linhas quando ela queria uma — o botão passou a ser o de **cada linha**, e a cópia vai para o
+  **fim**, com ordem nova e no fim do balde. A validação passou a recusar uma `ordem` que não seja
+  inteiro ≥ 1. `provar-ordem-e-duplicacao` **31/31** (novo, com controle negativo); sem regressão em
+  `producao` 166, `musica-do-verbete` 33, `busca-do-exercicio` 68, `historico-do-ajuste` 39,
+  `largura-da-lista` 56, `check-identidade` 0 erros. `provar-celula`, `provar-notacao` e
+  `check-pacote` falham o mesmo que no `HEAD`. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
 - **10/11/2026** — **O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser
   escolhido.** Ela contou o contorno a que foi obrigada: inventar um nome, uma categoria e a letra
   «T» no «o que acontece» para destrancar o passo 2 — e chamou-lhe **«burlar»**. **CONFIRMADO e
