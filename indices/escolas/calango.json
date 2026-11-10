@@ -145,7 +145,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-09",
+        "ancorado_em": "2026-11-10",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
         "cobertura": [
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -167,7 +167,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-09",
+        "ancorado_em": "2026-11-10",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
         "cobertura": [
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -182,8 +182,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "8292d82d724d9cbb25bbd924bcacfa193ad9cfbfbc8a24ead8cb04e02c38e36e",
-        "hash_conteudo": "618ca94db4d7b5d9fc60d8f55b06d83cd59f87bb984cc890dc649ff2f21dea47",
+        "hash": "63eef8353794f27eb313416972870cdaf050569696c131c173409d51308d2b89",
+        "hash_conteudo": "45bba2368d281393ea1ef4c1027cdc6008e45d29acd3106bd9fe613189e3a346",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
@@ -192,7 +192,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-09",
+            "ancorado_em": "2026-11-10",
             "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
             "cobertura": [
               "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -446,10 +446,10 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 3,
-      "pos": 5,
+      "planos": 4,
+      "pos": 6,
       "recortes": 2,
-      "registros": 12
+      "registros": 14
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -470,18 +470,20 @@
       "plano:plano-20261108-1303",
       "plano:plano-20261108-1317",
       "plano:plano-20261108-1334",
+      "plano:plano-20261109-2341",
       "po:po-20261108-1304",
       "po:po-20261108-1318",
       "po:po-20261108-1319",
       "po:po-20261108-1334",
-      "po:po-20261108-1335"
+      "po:po-20261108-1335",
+      "po:po-20261109-2341"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 12,
+        "contagem": 14,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -490,11 +492,13 @@
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
           "plano:plano-20261108-1334",
+          "plano:plano-20261109-2341",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
           "po:po-20261108-1334",
-          "po:po-20261108-1335"
+          "po:po-20261108-1335",
+          "po:po-20261109-2341"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -626,7 +630,7 @@
     ],
     "professores": [
       {
-        "contagem": 13,
+        "contagem": 15,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -636,11 +640,13 @@
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
           "plano:plano-20261108-1334",
+          "plano:plano-20261109-2341",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
           "po:po-20261108-1334",
-          "po:po-20261108-1335"
+          "po:po-20261108-1335",
+          "po:po-20261109-2341"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -667,23 +673,25 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
-          "plano:plano-20261108-1334"
+          "plano:plano-20261108-1334",
+          "plano:plano-20261109-2341"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
           "po:po-20261108-1334",
-          "po:po-20261108-1335"
+          "po:po-20261108-1335",
+          "po:po-20261109-2341"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -692,9 +700,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1e8ec6f"
+    "commit": "3a81f6a"
   },
-  "gerado_em": "2026-11-09T22:09",
+  "gerado_em": "2026-11-10T02:42",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -985,6 +993,18 @@
       "turma": "Rosa"
     },
     {
+      "ajuste_de": "plano-20261108-1334",
+      "ano": "2026",
+      "carimbo": "plano-20261109-2341",
+      "ciclo": "01",
+      "data": "2026-11-09T23:41",
+      "id": "plano:plano-20261109-2341",
+      "objetivo": "Teste",
+      "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261108-1304",
@@ -1031,6 +1051,16 @@
       "ciclo": "01",
       "data": "2026-11-08T13:35",
       "id": "po:po-20261108-1335",
+      "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261108-1335",
+      "ano": "2026",
+      "carimbo": "po-20261109-2341",
+      "ciclo": "01",
+      "data": "2026-11-09T23:41",
+      "id": "po:po-20261109-2341",
       "professor": "pe-torto",
       "tipo": "po"
     }

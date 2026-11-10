@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-09",
+    "ancorado_em": "2026-11-10",
     "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
     "cobertura": [
       "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -16,8 +16,8 @@
       "professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
       "professores/pe-torto/ciclos/ciclo-01.conf"
     ],
-    "hash": "8292d82d724d9cbb25bbd924bcacfa193ad9cfbfbc8a24ead8cb04e02c38e36e",
-    "hash_conteudo": "618ca94db4d7b5d9fc60d8f55b06d83cd59f87bb984cc890dc649ff2f21dea47",
+    "hash": "63eef8353794f27eb313416972870cdaf050569696c131c173409d51308d2b89",
+    "hash_conteudo": "45bba2368d281393ea1ef4c1027cdc6008e45d29acd3106bd9fe613189e3a346",
     "id": "ciclo-01-calango-rosa",
     "lida": true,
     "parent_hash": ""
@@ -121,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1e8ec6f"
+    "commit": "3a81f6a"
   },
-  "gerado_em": "2026-11-09T22:09",
+  "gerado_em": "2026-11-10T02:42",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6

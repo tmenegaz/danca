@@ -14,7 +14,7 @@ hash_conteudo: 23e0a839a50b931eb41e9f6d5ccb3ee562fde0633bea9bd390a9a980299d2854
 parentHash: 
 hash: aada46ef66402e72403869a230ec32698926f6f07f03194f91d007614ca1beb6
 algoritmo: SHA-256
-ancorado_em: 2026-11-09
+ancorado_em: 2026-11-10
 cobertura:
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md
