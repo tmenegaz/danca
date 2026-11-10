@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`fc305563` + esta entrega). Nesta entrega, **a listagem de
+> **Última fotografia:** 09/11/2026 (`9ed67911` + esta entrega). Nesta entrega, **a troca e a saída
+> deixam de ser «via crucis»** — a cadeia automática percorre `vínculos → plano de ensino → plano de
+> observação → pacote` nos três gestos que mudam o corpo ou a direção de uma turma (transferir uma
+> aluna, concluir o elenco, derivar a curadoria). **É uma reversão declarada**, por ela, da regra
+> anterior («não por um botão que dispara tudo»): a automação preserva as respostas, acrescenta elos
+> com `ajuste_de`, não decide pedagogia, só corre em registos com o fluxo completo e pára na
+> primeira etapa que não fecha, dizendo o que falta com o link de cada etapa. O log das travessias
+> lê-se em `GET /api/bastidores/cadeia`. Ver a entrada de 09/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (09/11/2026, `9ed67911`).** Nesta entrega, **a listagem de
 > elencos da Audição ganha o filete pontilhado** que as outras listas já tinham — Estilo, Salas,
 > Professores, Alunos — e que ali era **apagado** por uma regra de «reset» da própria página
 > (`.lb-cartoes>li{border-bottom:0}`). A linha passa a vestir o mesmo fio e o mesmo respiro de
@@ -3174,7 +3183,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (08/11/2026 — o orçamento de subpedidos e a trava da operação)
+### Executado nesta fotografia (09/11/2026 — a cadeia automática)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-cadeia-automatica` (**nova**) | **PASSOU — 60 asserções**. (A) o índice: quatro etapas na ordem da dependência, estados derivados e a porta do fluxo completo; (B) a travessia inteira: um elo novo de plano e um de PO, ambos com `ajuste_de`, a fonte do plano escrita, o pacote fechado e os vínculos sincronizados; (C) o registo **incompleto**: os vínculos fazem-se, nada é inventado, e a etapa bloqueada traz a frase e o caminho; (D) a idempotência: repetir não empilha elos; (E) o log; (F) as rotas: `elenco-mover` entrega os **dois** elencos à cadeia e devolve o resultado, e `GET /api/bastidores/cadeia` lê o log; (G) o orçamento: com o pedido no fim do teto, a travessia **não começa** e a Turma não é tocada |
+| `provar-cadeia-do-ajuste` (o caminho extraído de `rotas.js`) | **34/34** — o bloco «PO concluído vira fonte, gera o ciclo e dispara» passou a `motor/servidor/concluir-po.js` com **três** consumidores, e o comportamento manteve-se |
+| `provar-producao` · `provar-transferencia-e-desligamento` · `provar-linha-de-base` | **166 · 93 · 102** — verdes |
+| `provar-linha-de-base-no-repo` · `provar-elenco-na-turma` · `provar-abas-da-audicao` | **39 · 25 · 86** — verdes |
+| `provar-derivacao-da-turma` | **112/132** — as **mesmas 20 falhas** anteriores à mudança, iguais no `HEAD` (rótulos e campos que a prova ainda espera de uma versão antiga do formulário) |
+| `check-identidade` | **0 erros** (21 verificações) |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo seguinte ao deploy. A cadeia **não corre** num Worker sem `GITHUB_TOKEN` ou sem os conteúdos da porta — a rota diz isso, e o gesto fica gravado |
+
+### Executado na fotografia anterior (08/11/2026 — o orçamento de subpedidos e a trava da operação)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4269,6 +4290,22 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **A cadeia automática: a troca e a saída deixam de ser «via crucis».** Pedido
+  dela: eliminar o processo manual passo a passo na troca de aluna, na saída/abandono e na troca de
+  professor ou modalidade, mantendo a possibilidade de derivar o plano à mão. **CONFIRMADO no
+  código**: os três gestos deixavam a travessia aberta (`proximo: «reveja a TURMA, depois o plano…»`),
+  e a `revalidacaoPendente` apenas marcava. **DECIDIDO** — e é **reversão declarada** da regra «não
+  por um botão que dispara tudo»: a travessia passa a ser automática, com quatro etapas na ordem da
+  dependência (`vínculos → plano-de-ensino → plano-de-observacao → pacote`), estados derivados
+  (`feita`/`pendente`/`bloqueada`), **porta do fluxo completo** (sem plano e sem PO só os vínculos se
+  fazem, e o que falta vem com o link), **paragem na primeira etapa que não fecha**, **elo novo** em
+  cada derivação (`ajuste_de`), idempotência, um orçamento de subpedidos só por pedido, e log em
+  `bastidores/<escola>/cadeia` (`GET /api/bastidores/cadeia`). `provar-cadeia-automatica` **60/60**;
+  sem regressão em `provar-producao` 166, `provar-cadeia-do-ajuste` 34,
+  `provar-transferencia-e-desligamento` 93, `provar-linha-de-base` 102,
+  `provar-linha-de-base-no-repo` 39, `provar-elenco-na-turma` 25, `provar-abas-da-audicao` 86 e
+  `provar-derivacao-da-turma` 112/132 (as mesmas 20 falhas anteriores); `check-identidade` 0 erros.
+  Ver a entrada de 09/11/2026 no `REGISTRO.md` e o §4 do `ARQUITETURA-GERAL.md`.
 - **09/11/2026** — **O filete pontilhado da listagem de elencos.** Ela pediu o tracejado inferior
   que Estilo, Salas, Professores e Alunos têm, e a equiparação com a «Exercícios com verbete».
   **CONFIRMADO no código e medido na bancada local**: a linha de `.lista` computava

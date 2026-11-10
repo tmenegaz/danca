@@ -641,12 +641,12 @@ que qualquer automação futura vai ter de respeitar:
 |:--|:--|:--|
 | **Concluir o elenco** | grava a versão no repositório e **regenera os ciclos** cuja Turma escolheu aquele elenco e que já têm Plano de Ensino (`gerarOsCiclosDoElenco`) | — |
 | **Gravar o Plano de Ensino ajustado** | deriva um **elo novo do PO** que o observava, com a referência ao plano vigente — o PO é leitura do plano | — |
-| **Mudar o elenco** | **marca** a cascata `linha-de-base → curadoria → plano-de-ensino → plano-de-observacao`, com `entrou`/`saiu` no motivo | rever Turma, PE e PO, nesta ordem |
+| **Mudar o elenco** | **percorre a cascata** `vínculos → plano-de-ensino → plano-de-observacao → pacote` (`motor/nucleo/cadeia.js` + `motor/servidor/cadeia.js`): sincroniza a Turma, deriva os elos novos e dispara a geração | decidir **se** o plano deve mudar no conteúdo — a cadeia preserva as respostas e corrige os vínculos, não interpreta a pedagogia |
 | **Anamnese nova** | entra no índice e no cálculo do vínculo | decidir se o retrato da turma precisa de ser refeito — o sistema não julga validade nem periodicidade |
 | **Ajustar o PE por causa do elenco** | o PO acompanha (novo elo) | decidir **o que muda no plano**: o sistema não compara necessidade individual com conteúdo |
-| **Transferir uma aluna de elenco** | grava as **duas** versões e regenera os ciclos dos dois elencos (`elenco-mover`) | reabrir a Turma, o PE e o PO — a mesma cascata de qualquer mudança de elenco |
+| **Transferir uma aluna de elenco** | grava as **duas** versões, regenera os ciclos dos dois elencos e **percorre a cadeia** nas duas Turmas (`elenco-mover` → `cadeia.executar`) | — (a travessia é automática; o ajuste fino do conteúdo continua a ser um «derivar» manual) |
 | **Desligar um professor** | encerra as curadorias com data e **marca** as turmas que ficaram sem ele (`descontinuada`) | decidir o que fazer com a turma: remanejar a modalidade, aula recreativa/ensaio, ou outro professor habilitado |
-| **Atribuir a turma a outro professor** | limpa a marca `descontinuada` da turma | escolher quem, entre os **habilitados** naquela modalidade — o `perfil.json` é o filtro |
+| **Atribuir a turma a outro professor** | limpa a marca `descontinuada` da turma; na **derivação** da curadoria, troca o par e **percorre a cadeia** (plano e PO com o professor e a modalidade que passam a valer) | escolher quem, entre os **habilitados** naquela modalidade — o `perfil.json` é o filtro |
 | **Mudar a sala de uma turma** | deriva o elo novo (mesmo nome) e a geração passa a ler o ritmo novo | rever o plano de ensino — o **volume** e os **marcos** foram fixados para o calendário anterior, e a cascata ainda não o marca |
 | **Uma aluna sair do elenco** | o selo dela passa a `desligada` — derivado, sem gesto nenhum | — |
 | **Um professor passar a turma a outro** | o selo dele passa a `sem turma` — derivado da curadoria substituída | — |
@@ -662,13 +662,29 @@ de conduta**, e hoje é o olhar de quem ensina que a garante. O que o código fa
   que tenha deixado de **cobrar** as de quem saiu. O plano é da turma e os conteúdos são do
   professor; comparar necessidade individual com o plano seria o sistema a decidir pedagogia.
 
-**O fluxo automático não existe — e a entrada dele já está escrita.** `porta.revalidacaoPendente`
-devolve `pendentes` e `ordem`; é exatamente o que uma automação precisaria de ler. Não é um botão,
-e é decisão dela: *«a gente não vai deixar um botão automático que dispara tudo em cadeia porque
-precisa do olhar do professor para tomar as decisões e as medidas que ele julga pertinente»*. Se um
-dia existir, o que já está decidido é o limite: a automação pode **preparar** o passo seguinte
-(derivar a Turma, abrir o PE no ponto certo) e nunca **decidir** o que o plano passa a cobrir nem
-reescrever o que uma aula já registou.
+**O fluxo automático existe desde 09/11/2026 — e a decisão anterior foi revertida, por ela.**
+Até esta data, a regra era *«a gente não vai deixar um botão automático que dispara tudo em cadeia
+porque precisa do olhar do professor para tomar as decisões e as medidas que ele julga
+pertinente»*, e `porta.revalidacaoPendente` apenas **marcava** o que ficou para trás («reveja a
+Turma, depois o PE, depois o PO»). A pesquisadora pediu o contrário: *«eliminar a necessidade de o
+professor realizar o processo manual («via crucis») passo a passo»* — a travessia passa a ser
+automática nos três gestos que mudam o corpo ou a direção de uma turma.
+
+O limite que ela fixou é o mesmo, e é o que a implementação respeita:
+
+- a automação **preserva as respostas** do plano e do PO (nada é reinterpretado) e **acrescenta
+  elos** com `ajuste_de` — a proveniência continua a valer (P-03/P-04);
+- ela **não decide pedagogia**: não escolhe o que o plano passa a cobrir, não reescreve uma aula
+  registada, e não julga a validade das anamneses;
+- **só corre em registos com o fluxo completo** (elenco, Turma, plano e PO). Num registo
+  incompleto, avança até onde é possível — os vínculos — e diz o que falta, com o link de cada
+  etapa pendente;
+- **pára na primeira etapa que não fecha**, e o professor pode sempre **derivar à mão** por cima
+  do que a cadeia fez, para um ajuste específico.
+
+O índice de etapas e a sua avaliação são de `motor/nucleo/cadeia.js`; a execução (os escritores, a
+derivação e o log) é de `motor/servidor/cadeia.js`. O log das travessias lê-se em
+`GET /api/bastidores/cadeia`.
 
 **Onde a rotina descrita diverge do sistema** — os cinco pontos, para o retrato ficar certo:
 
@@ -685,10 +701,12 @@ reescrever o que uma aula já registou.
 | «Mudo o horário da turma e o plano acompanha» | O **registo** acompanha — a Sala deriva, o nome não muda, e a geração lê o ritmo novo. O **aviso** não vem: o plano não é marcado «a rever» pela mudança de Sala, só pela mudança de elenco |
 | «Troco o professor da turma e o antigo fica livre» | O que fica é **`sem turma`**, não «livre»: ele já fez parte, e o nome dele continua nos documentos que assinou. Livre é quem nunca esteve aqui |
 
-> **O que o fluxo automático faria, e não faz.** A transferência e o desligamento já são **um ato
-> só**, e é isso que um automatizador precisa de chamar. O que continua a exigir o olhar do
-> professor é o **conteúdo**: que o plano de ensino incorpore quem entrou e deixe de cobrar quem
-> saiu, e que a turma sem professor receba a decisão certa. O sistema marca; não decide.
+> **O que o fluxo automático faz, e o que continua a exigir o olhar.** Desde 09/11/2026, a
+> transferência e a conclusão do elenco **percorrem a cadeia** (vínculos → plano → PO → pacote),
+> e a derivação da curadoria faz o mesmo para a troca de professor ou modalidade. O que continua a
+> exigir o professor é o **conteúdo**: que o plano de ensino incorpore quem entrou e deixe de
+> cobrar quem saiu, e que a turma sem professor receba a decisão certa. A cadeia preserva as
+> respostas e acrescenta elos; **não decide pedagogia**.
 
 > **Nota de leitura.** O §4.1 do [`ARQUITETURA-PE.md`](ARQUITETURA-PE.md) desenha a integração
 > PE ⇄ PO entre repositórios, com a elicitação a alimentar os dois documentos. No produto, a ordem

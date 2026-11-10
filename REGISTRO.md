@@ -41454,3 +41454,70 @@ lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação
 respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
 fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
 sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
+
+## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
+
+**O que motivou.** A pesquisadora pediu, com estas palavras: «eliminar a necessidade de o professor
+realizar o processo manual ('via crucis') passo a passo para atualizar vínculos e documentos quando
+houver: troca de aluno entre elencos / turmas; exclusão ou abandono de aluno; troca de modalidade ou
+de professor de uma turma» — e que a execução em cadeia atualize os vínculos e etiquetas, regenere
+os documentos na ordem correta, e **mantenha a flexibilidade** para o professor derivar o plano à
+mão quando quiser um ajuste específico. **CONFIRMADO no código**: até aqui, os três gestos deixavam
+a travessia aberta e a resposta dizia «reveja a TURMA, depois o plano de ensino e, por último, o
+plano de observação»; a `revalidacaoPendente` marcava, e o professor percorria. **Esta é uma
+REVERSÃO declarada de uma decisão anterior** — «a gente não vai deixar um botão automático que
+dispara tudo em cadeia porque precisa do olhar do professor para tomar as decisões e as medidas que
+ele julga pertinente» —, e a reversão é dela, com a mesma condição: a automação não decide
+pedagogia.
+
+**O que foi decidido.**
+
+- **Quatro etapas, na ordem da dependência**: `vínculos` (a Turma passa a declarar o corpo do
+  elenco) → `plano-de-ensino` (elo novo com `ajuste_de`) → `plano-de-observacao` (elo novo que
+  observa o plano vigente) → `pacote` (fontes escritas e geração disparada). Cada etapa tem estado
+  **derivado** — `feita`, `pendente` ou `bloqueada` —, e o sinal cai sozinho quando a etapa é feita.
+- **A PORTA DO FLUXO COMPLETO.** A travessia inteira só corre em registos que já têm elenco, Turma,
+  plano e PO. Num registo incompleto, o salvamento é normal, os vínculos fazem-se (é o que depende
+  só do elenco), e a resposta diz o que falta, etapa a etapa, **com o link do sítio onde se
+  resolve**. O sistema não inventa o plano nem o PO que a escola nunca fez.
+- **Pára na primeira etapa que não fecha** — nunca salta para a frente. Um PO derivado sobre um
+  plano que já não vale seria consolidar a observação sobre um corpo que mudou.
+- **A proveniência acrescenta.** Os elos novos apontam os anteriores (`ajuste_de`), o conteúdo
+  respondido é preservado (a cadeia não reinterpreta o que o professor escreveu), e nada é apagado.
+- **Idempotência.** Antes de derivar, cada etapa pergunta se já está em dia; um documento posterior
+  ao gatilho conta como `feita`. Repetir o gesto não empilha elos falsos.
+- **O orçamento é um só por pedido.** O store do repositório e a cadeia partilham o mesmo contador
+  de subpedidos (a lição de 08/11/2026); e a travessia não começa quando o pedido já gastou a maior
+  parte do teto — diz que não correu, e o professor repete o gesto.
+- **O log é do processo.** Cada execução fica em `bastidores/<escola>/cadeia` (teto de 60): quando,
+  que gatilho, que alvos, o estado de cada etapa e porquê parou. Lê-se em
+  `GET /api/bastidores/cadeia`. A tela recebe só o que interessa: sucesso global, ou o que falta
+  com os links — a execução é interna e transparente, como ela pediu.
+
+**Onde entrou.** `motor/nucleo/cadeia.js` (novo — o índice das etapas, a classificação e o resumo) ·
+`motor/servidor/cadeia.js` (novo — a execução: sincronizar vínculos, derivar plano e PO, fechar o
+pacote, gravar o log) · `motor/servidor/concluir-po.js` (novo — o bloco «PO concluído vira fonte,
+gera o ciclo e dispara» extraído de `rotas.js`, agora com **três** consumidores: o «Guardar» do PO,
+o ajuste em cadeia do plano e a cadena automática) · `motor/servidor/rotas.js` (usa a função
+extraída; comportamento inalterado) · `motor/servidor/producao.js` (monta a cadeia só nos gestos
+que a pedem, com o contador de subpedidos do pedido) · `motor/servidor/bastidores.js` (os três
+gatilhos — `elenco-mover`, conclusão do elenco e `curadoria-derivar` —, a rota do log, o render
+na tela) · `motor/servidor/linhas-de-base-repo.js` (`doAmbiente` aceita o `fetchImpl` do pedido) ·
+`experimentos/provar-cadeia-automatica.js` (novo, 60 asserções) · `ARQUITETURA-GERAL.md` (a tabela
+do que acontece sozinho e o parágrafo que dizia «o fluxo automático não existe» — corrigido com a
+reversão declarada) · `motor/nucleo/README.md`.
+
+**Validação.** `provar-cadeia-automatica` **60/60** (novo). Sem regressão: `provar-producao`
+166/166, `provar-cadeia-do-ajuste` 34/34, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base` 102/102, `provar-linha-de-base-no-repo` 39/39, `provar-elenco-na-turma`
+25/25, `provar-abas-da-audicao` 86/86, `provar-derivacao-da-turma` **112/132** (as mesmas 20
+falhas anteriores à mudança, iguais no `HEAD`), `check-identidade` **0 erros**.
+
+**O que ainda não está feito.** (1) A cadeia **não corre** quando o Worker não tem a ponte montada
+(sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
+**mudança de Sala** continua fora da cadeia: o `revalidacaoPendente` já declarava essa lacuna, e a
+cadeia não acrescentou o passo novo (a cascata não vê a Sala). (3) O plano derivado **preserva as
+respostas**: se a aluna que entrou traz necessidades que o plano não cobre, isso continua a ser
+decisão do professor — a cadeia não compara necessidade individual com conteúdo, e é de propósito.
+(4) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção
+é o passo seguinte ao deploy.
