@@ -575,7 +575,7 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
 }
 
 /** O store a partir do `env` do Worker — a única porta que a Produção e a ponte usam. */
-function doAmbiente(env, escola) {
+function doAmbiente(env, escola, fetchImpl) {
   const e = env || {};
   return criarStore({
     token: e.GITHUB_TOKEN,
@@ -583,6 +583,10 @@ function doAmbiente(env, escola) {
     repo: e.GITHUB_REPO || REPO_PADRAO,
     ref: e.GITHUB_REF || REF_PADRAO,
     escola: escola || e.ESCOLA_SLUG,
+    // O ORÇAMENTO DO PEDIDO, quando a ponte o tem (09/11/2026). Sem isto, o store leria o
+    // repositório por fora do contador, e a cadeia — que corre no mesmo pedido — julgaria ter
+    // mais folga do que tem. `null` mantém o caminho das bancadas.
+    fetchImpl: fetchImpl || null,
   });
 }
 

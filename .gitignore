@@ -964,3 +964,10 @@ experimentos/modelo-formulario/*
 # abas»), a folha do telemóvel a abrir uma aba que não muda nada, e o destino da transferência a
 # nascer preenchido com o elenco de onde a aluna sai — o par que o núcleo recusa.
 !experimentos/provar-abas-da-audicao.js
+
+# A CADEIA AUTOMÁTICA (09/11/2026). O REGISTRO e o ESTADO-ATUAL citam-na por nome («60
+# asserções»), e uma prova citada que não existe no clone é uma afirmação que ninguém confere.
+# Mede o que se perde sem dar erro: a travessia a saltar uma etapa (o PO derivado sobre um plano
+# que já não vale), a inventar o plano que a escola nunca fez, a empilhar elos quando o gesto se
+# repete — e a começar uma cadeia que o orçamento do pedido não deixa acabar.
+!experimentos/provar-cadeia-automatica.js

@@ -42,6 +42,8 @@ const enquadramento = require('../nucleo/enquadramento.js');
  * duas regras são puras — recebem as listas e devolvem as versões novas, ou os motivos da recusa —,
  * e vivem no núcleo pela mesma razão das outras: a rota escreve, o núcleo decide. */
 const transferencia = require('../nucleo/transferencia.js');
+// O ÍNDICE DAS ETAPAS da cadeia automática (09/11/2026) — a ordem e os rótulos vivem no núcleo.
+const nucleoCadeia = require('../nucleo/cadeia.js');
 const desligamento = require('../nucleo/desligamento.js');
 // OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
@@ -771,6 +773,73 @@ async function paresComPlano(env, escola, jaLido) {
     pares.push({ professor, turma, ciclo });
   }
   return pares;
+}
+
+/**
+ * A CADEIA AUTOMÁTICA, DEPOIS DO GESTO (09/11/2026).
+ *
+ * O QUE ELA ACRESCENTA À ROTA. Até aqui, cada gesto — a transferência, a conclusão de um elenco,
+ * a troca de direção — deixava a travessia aberta: «reveja a Turma, depois o plano de ensino,
+ * depois o plano de observação», e o professor repetia o percurso a cada mudança. Agora o gesto
+ * percorre a cadeia e devolve o estado em que ela ficou.
+ *
+ * O QUE ELA NUNCA FAZ. Derrubar o gesto que a chamou. A cadeia é automação acessória: o acto que
+ * a disparou já está gravado, e uma falha aqui vem na resposta como `cadeia.ok: false`, com o
+ * motivo — nunca como um 500 que faz parecer que o acto não aconteceu. É o mesmo princípio da
+ * geração e da reancoragem.
+ *
+ * O QUE A TELA RECEBE. Um resumo global (`ok`), o estado de cada etapa por turma, e a lista do
+ * que falta com o ENDEREÇO de cada sítio — é o que a pesquisadora pediu: «o professor só é
+ * alertado sobre o que falta, com links de acesso rápido».
+ */
+async function rodarCadeia(cadeia, contexto, pedido) {
+  if (!cadeia || typeof cadeia.executar !== 'function') {
+    return { executada: false, motivo: 'a cadeia automática não está montada neste Worker' };
+  }
+  try {
+    const r = await cadeia.executar(pedido);
+    const enderecos = typeof cadeia.enderecos === 'function' ? cadeia.enderecos(contexto) : {};
+    const onde = new Map((nucleoCadeia.ETAPAS || []).map((e) => [e.chave, e.rotulo]));
+    const faltam = [];
+    for (const alvo of (r.alvos || [])) {
+      for (const etapa of (alvo.etapas || [])) {
+        if (etapa.estado === 'feita') continue;
+        faltam.push({
+          turma: alvo.turma || null,
+          chave: etapa.chave,
+          rotulo: onde.get(etapa.chave) || etapa.chave,
+          estado: etapa.estado,
+          falta: etapa.falta || null,
+          href: enderecos[((nucleoCadeia.ETAPAS || []).find((e) => e.chave === etapa.chave) || {}).onde] || null,
+        });
+      }
+    }
+    return {
+      executada: true,
+      ok: Boolean(r.ok),
+      completa: Boolean(r.completa),
+      alvos: (r.alvos || []).map((a) => ({
+        turma: a.turma || null, ok: Boolean(a.ok), erro: a.erro || null,
+        etapas: (a.etapas || []).map((e) => ({ chave: e.chave, estado: e.estado })),
+      })),
+      /* O QUE FALTA, COM O LINK. Vazio é o caso bom: a travessia fechou. */
+      faltam,
+      /* O RECADO GLOBAL, escrito aqui porque é o mesmo em todas as telas. */
+      recado: r.ok
+        ? 'a cadeia fechou: vínculos, plano de ensino, plano de observação e documentos gerados '
+          + 'estão em dia.'
+        : 'a cadeia avançou até onde era possível. ' + (r.erro || 'veja o que falta para concluir.'),
+      erro: r.erro || null,
+      log: r.log || null,
+    };
+  } catch (erro) {
+    return {
+      executada: true, ok: false, faltam: [],
+      erro: erro && erro.message ? erro.message : String(erro),
+      recado: 'a cadeia não correu até ao fim, e o gesto que a chamou está gravado. O motivo é '
+        + 'este, e a travessia pode ser repetida: ' + (erro && erro.message ? erro.message : String(erro)),
+    };
+  }
 }
 
 /**
@@ -6628,6 +6697,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `carregarLinhas`, é isto que faz um elenco concluído na aba 1 chegar à aba 3 SEM recarregar
      * a página; e como o `carregarLinhas` é por onde passa toda a gravação do elenco (criar,
      * editar, concluir, apagar, mover), nenhum caminho futuro fica de fora. */
+    /* A CADEIA, NA TELA (09/11/2026). O professor não acompanha ecrã a ecrã — o gesto que ele
+     * fez devolve o estado em que a travessia ficou, e é aqui que ele o lê: o recado global e,
+     * quando há algo por concluir, cada etapa em falta com o endereço do sítio onde se resolve.
+     *
+     * NÃO SE INVENTA CLASSE: a caixa usa `sub` (a nota do sistema) e os links são `a` — a mesma
+     * peça de prosa que a folha já desenha. O que se acrescenta é CONTEÚDO, e não forma. */
+    'function pintarCadeia(c, res) {' +
+    '  if (!c || c.executada === false || !res) return;' +
+    '  var nota = document.createElement("p");' +
+    '  nota.className = "sub";' +
+    '  nota.textContent = c.recado || (c.ok ? "a cadeia fechou." : "a cadeia ficou a meio.");' +
+    '  res.appendChild(nota);' +
+    '  var faltam = c.faltam || [];' +
+    '  for (var i = 0; i < faltam.length; i++) {' +
+    '    var f = faltam[i];' +
+    '    var linha = document.createElement("p");' +
+    '    linha.className = "sub";' +
+    '    linha.textContent = (f.turma ? "\u00ab" + f.turma + "\u00bb \u2014 " : "")' +
+    '      + (f.rotulo || f.chave) + ": " + (f.falta || f.estado || "por concluir") + " ";' +
+    '    if (f.href) {' +
+    '      var a = document.createElement("a");' +
+    '      a.href = f.href;' +
+    '      a.textContent = "abrir";' +
+    '      linha.appendChild(a);' +
+    '    }' +
+    '    res.appendChild(linha);' +
+    '  }' +
+    '}' +
     'function pintarTransferencia() {' +
     '  var form = document.getElementById("form-mover");' +
     '  var sem = document.getElementById("mv-sem-dois");' +
@@ -6704,6 +6801,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          res.textContent = d.jaEstava' +
     '            ? (d.aviso || "a transferência já estava feita.")' +
     '            : (d.aluna + " passou de " + d.de + " para " + d.para + ". " + (d.proximo || ""));' +
+    /* O ESTADO DA CADEIA, DEPOIS DA FRASE DO ACTO (09/11/2026). O `proximo` dizia o percurso
+     * que faltava percorrer; a cadeia já o percorreu, e o que sobra é o que ela não pôde fazer. */
+    '          pintarCadeia(d.cadeia, res);' +
     '        }' +
     /* A LISTA RECARREGA-SE, A PÁGINA NÃO (09/11/2026). Era `location.reload()` a seguir a
      * 2,2 segundos: a página voltava à aba 1 e o professor perdia o fio do que estava a fazer. O
@@ -6893,6 +6993,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) {' +
     '      if (typeof aoOk === "function") aoOk(d);' +
+    /* A PÁGINA NÃO SE RECARREGA QUANDO HÁ O QUE LER (09/11/2026). A recarga apagaria o recado
+     * da cadeia — e é nele que estão os links do que falta. Fechada a travessia, a recarga
+     * continua a ser o gesto certo: a lista mostra o estado novo. */
+    '      var pendente = d.cadeia && d.cadeia.executada !== false' +
+    '        && (d.cadeia.faltam || []).length;' +
+    '      if (pendente) {' +
+    '        res.className = "res " + (d.cadeia.ok ? "ok" : "aviso");' +
+    '        res.textContent = "";' +
+    '        pintarCadeia(d.cadeia, res);' +
+    '        return;' +
+    '      }' +
     '      if (recarregar) { location.reload(); }' +
     '      else { res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")"; }' +
     '    }' +
@@ -11485,7 +11596,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (`/api/revalidacao`), que é quem sabe a ordem: nada aqui é um segundo juízo sobre o mesmo
      * dado. NÃO se navega por ele: quem decide se o ajuste é pertinente é o professor. */
     '      if (d.linha && d.linha.turma) avisarCascata(d.linha.turma);' +
-    '      ULTIMO_DISPARO = { disparos: (d && d.disparos) || [], aviso: (d && d.aviso) || "" };' +
+    '      ULTIMO_DISPARO = { disparos: (d && d.disparos) || [], aviso: (d && d.aviso) || "",' +
+    '        cadeia: (d && d.cadeia) || null };' +
     '      return true;' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); return false; });' +
@@ -11562,6 +11674,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      + " — o elenco está gravado; regere pelo «Guardar» do plano ou do PO.";' +
     '    if (!feitos && !falhos.length && g.aviso) frase += " " + g.aviso;' +
     '    corpoRes("ok", frase);' +
+    /* O QUE A CADEIA FEZ — E O QUE FALTA, COM O CAMINHO (09/11/2026). A frase acima diz o que
+     * aconteceu à GERAÇÃO; esta diz o que aconteceu à travessia: os vínculos, o plano de ensino
+     * e a observação. Quando ela fechou, uma linha; quando não, cada etapa em falta com o
+     * endereço do sítio onde se resolve. */
+    '    pintarCadeia(g.cadeia, document.querySelector("[data-res=\\"linha-base\\"]"));' +
     /* O FORMULÁRIO FICA VAZIO PARA O PRÓXIMO ELENCO (09/11/2026).
      *
      * O DEFEITO QUE ISTO FECHA, e o pedido é dela: «Ao clicar em 'Concluir elenco', o formulário
@@ -11678,9 +11795,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
  * O handler dos Bastidores. Devolve `null` quando o caminho não é dos
  * Bastidores (a ponte de produção segue para o resto).
  */
-async function fetch(request, env) {
+async function fetch(request, env, extras) {
   const url = new URL(request.url);
   const path = url.pathname;
+  /* A CADEIA AUTOMÁTICA, INJETADA PELA PONTE (09/11/2026). Ela precisa de escritores do
+   * repositório e dos conteúdos da porta, que os Bastidores não constroem — quem os tem é a
+   * ponte de produção, e é ela que os passa. Ausente (as bancadas, e a página sem gesto), a
+   * rota funciona como sempre; só não há travessia automática. */
+  const cadeia = (extras && extras.cadeia) || null;
   const ehBastidores = path === '/bastidores'
     || path === '/bastidores/estudio'
     || path === '/bastidores/producao'
@@ -11697,7 +11819,7 @@ async function fetch(request, env) {
    * esta página faz dez leituras das linhas de base no mesmo pedido: construir o store por
    * chamada pagaria dez árvores. Ele guarda o que leu durante a vida do pedido, portanto nunca
    * serve estado de ontem — e é o mesmo desenho do acervo dos envelopes. */
-  const repoLinhas = linhasDeBaseRepo.doAmbiente(env, escola);
+  const repoLinhas = linhasDeBaseRepo.doAmbiente(env, escola, (extras && extras.fetchImpl) || null);
 
   // O grupo «Bastidores» — os DOIS itens: Estúdio (a cena) e Produção (o gabinete).
   //
@@ -13389,9 +13511,19 @@ async function fetch(request, env) {
          * defeito que ela viu: o ato certo no repositório e a Aluna A sozinha no lançamento.
          * Corre depois da gravação e nunca a desfaz: o que falhar vem na resposta. */
         const geracao = await gerarOsCiclosDoElenco(env, escola, decidido.linha.id);
+        /* E A CADEIA INTEIRA, PARA AS TURMAS QUE USAM ESTE ELENCO (09/11/2026). A geração acima
+         * relê o pacote a partir dos documentos que já existem; ela não refaz o plano nem o PO.
+         * É isso que a cadeia acrescenta: quem entrou ou saiu do corpo chega ao plano de ensino
+         * e à observação — com elo novo, sem reescrever o passado. */
+        const cadeiaDoElenco = await rodarCadeia(cadeia, contexto, {
+          gatilho: 'saida-de-aluna',
+          elencos: [decidido.linha.id],
+          quando,
+          motivo: 'o elenco «' + (decidido.linha.nome || decidido.linha.id) + '» foi concluído',
+        });
         return json(idx === -1 ? 201 : 200, Object.assign({
           ok: true, linha, criada: idx === -1, gravado,
-        }, extra || {}, geracao));
+        }, extra || {}, geracao, { cadeia: cadeiaDoElenco }));
       };
       if (!repoLinhas.activo) {
         /* O CARIMBO LOCAL, e não um `enviada_em` que já não se usa: o leitor da porta reconhece
@@ -13588,6 +13720,15 @@ async function fetch(request, env) {
       destino: await gerarOsCiclosDoElenco(env, escola, idDestino),
       origem: await gerarOsCiclosDoElenco(env, escola, idOrigem),
     };
+    /* A TRAVESSIA AUTOMÁTICA (09/11/2026) — as duas Turmas que o elenco serve. A transferência
+     * muda o corpo de DUAS salas (a de origem e a de destino), e é por isso que a cadeia recebe
+     * os dois elencos: um gesto, duas travessias, um resultado só. */
+    const cadeiaDaTroca = await rodarCadeia(cadeia, contexto, {
+      gatilho: 'troca-de-aluna',
+      elencos: [idOrigem, idDestino],
+      quando,
+      motivo: 'a aluna «' + aluna + '» passou de ' + idOrigem + ' para ' + idDestino,
+    });
     return json(200, {
       ok: true,
       aluna,
@@ -13595,6 +13736,7 @@ async function fetch(request, env) {
       para: idDestino,
       origem: { chave: sai.chave || null, carimbo: sai.carimbo || null },
       destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
+      cadeia: cadeiaDaTroca,
       /* QUAIS RASCUNHOS ACOMPANHARAM O ACTO — o registo de que o estado guardado ficou coerente
        * com a transferência. Vazio é o caso normal (ninguém estava a editar). */
       rascunhosAjustados,
@@ -15148,7 +15290,19 @@ async function fetch(request, env) {
         }
       }
     }
-    return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia });
+    /* A TROCA DE DIREÇÃO PERCORRE A CADEIA (09/11/2026). Derivar a curadoria é o gesto que muda
+     * quem ensina ou em que modalidade a sala funciona — e o plano de ensino da turma tem de
+     * nascer de novo, com o professor e a modalidade que passam a valer. O PO vem depois, e o
+     * pacote fecha. */
+    const cadeiaDaDirecao = await rodarCadeia(cadeia, contexto, {
+      gatilho: 'troca-de-direcao',
+      turmas: turmaFinal ? [turmaFinal] : [],
+      quando: vigencia,
+      motivo: 'a direção da turma «' + (turmaFinal || anterior.id) + '» passou a '
+        + professorDerivado + ' · ' + modalidadeDerivada,
+    });
+    return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia,
+      cadeia: cadeiaDaDirecao });
   }
 
   // DELETE /api/bastidores/curadoria — remover a curadoria de um professor.
@@ -15181,6 +15335,28 @@ async function fetch(request, env) {
     return json(200, { ok: true, curadoria: id, removida: true });
   }
 
+  /* GET /api/bastidores/cadeia — O LOG DAS TRAVESSIAS AUTOMÁTICAS (09/11/2026).
+   *
+   * O professor não precisa de o ler para trabalhar — a resposta do gesto já lhe diz o estado.
+   * Ele existe para o terceiro pedido da sessão: RASTREABILIDADE. Quem quiser saber o que a
+   * cadeia fez, quando, por que gatilho e onde parou, lê-o aqui. O teto é de 60 entradas, e o
+   * dado que interessa (os documentos) vive no acervo, não no log. */
+  if (path === '/api/bastidores/cadeia' && request.method === 'GET') {
+    if (!cadeia) {
+      return json(200, {
+        ok: false, executada: false, log: [],
+        motivo: 'a cadeia automática não está montada neste Worker (sem token ou sem os '
+          + 'conteúdos da porta) — os gestos continuam a gravar, e a travessia não correu.',
+      });
+    }
+    try {
+      const log = await cadeia.lerLog();
+      return json(200, { ok: true, executada: true, log, quantas: log.length });
+    } catch (erro) {
+      return json(200, { ok: false, log: [], erro: erro && erro.message ? erro.message : String(erro) });
+    }
+  }
+
   return json(404, { ok: false, erro: 'não encontrado' });
 }
 
@@ -15199,11 +15375,13 @@ async function fetch(request, env) {
  *
  * O `console.error` fica para o `wrangler tail`, que é onde a pilha se lê por inteiro.
  */
-async function fetchComRede(request, env) {
+async function fetchComRede(request, env, extras) {
   const url = new URL(request.url);
   const ehDados = url.pathname.startsWith('/api/bastidores');
   try {
-    return await fetch(request, env);
+    // O `extras` (a cadeia injetada) ATRAVESSA a moldura (09/11/2026): perdido aqui, a rota
+    // responderia «a cadeia não está montada» num Worker onde ela está.
+    return await fetch(request, env, extras);
   } catch (erro) {
     const mensagem = erro && erro.message ? erro.message : String(erro);
     if (typeof console !== 'undefined' && console.error) {
@@ -15265,6 +15443,10 @@ module.exports = {
   // a Produção dizia «enviada para Balé Nível 1» e a listagem dizia «sem turma», sobre o mesmo
   // registo e no mesmo instante — que é o defeito de 05/11/2026.
   linhasDeBase,
+  // O endereço da porta com o contexto (09/11/2026): a cadeia automática monta os links das
+  // etapas pendentes com a MESMA função que a página usa — uma segunda composição de query
+  // apontaria para outra escola no dia em que o contexto mudasse.
+  urlDaPorta,
   // A LISTA PELA PORTA DO `env` (05/11/2026) — para quem chama de fora dos Bastidores (a listagem
   // da anamnese, na ponte) não ter de saber que o store do repositório existe. Uma função, um
   // sítio a construir o store, e o mesmo desenho do `curadorias` logo acima.

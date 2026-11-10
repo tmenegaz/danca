@@ -27,7 +27,21 @@ const bastidores = require('./bastidores.js');
 const { MARCA, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 // A BARRA DE NAVEGAÇÃO — o MESMO desenho que a montagem da publicação usa (20/10/2026).
 const navModulo = require('../nucleo/nav.js');
-const { criarArmazenamento } = require('./cloudflare.js');
+const { criarArmazenamento, carregarEstatico, passosDeGeracao } = require('./cloudflare.js');
+// A CADEIA AUTOMÁTICA (09/11/2026) — a travessia que a troca/saída de aluna e a troca de
+// direção de turma passam a fazer sozinhas. Monta-se só nas rotas que a pedem: carregar os
+// conteúdos da porta em toda a página seria pagar quatro leituras por um gesto que não houve.
+const { criarCadeia } = require('./cadeia.js');
+const { criarConcluirPO } = require('./concluir-po.js');
+const portaNucleo = require('../nucleo/porta.js');
+// O CARIMBO É O DO MOTOR (09/11/2026): `YYYY-MM-DDTHH:MM`, no fuso da escola. O `toISOString()`
+// devolve segundos e milissegundos, e o esquema do envelope recusa — o carimbo é o NOME do
+// documento, e um nome com `:` e `.` não casa no padrão de id.
+const { carimbarAgora } = require('../nucleo/elicitar.js');
+const FUSO_PADRAO = 'America/Sao_Paulo';
+const { contarSubpedidos, LIMITE_PADRAO } = require('./subpedidos.js');
+// O `fontesDoCicloProntas` — a guarda que só deixa disparar com as fontes escritas.
+const { fontesDoCicloProntas } = require('./geracao.js');
 // AS TRÊS LISTAS DO ACERVO (24/10/2026) — a anamnese, o plano de ensino e o PO listam REGISTOS,
 // e os registos vivem no KV. Ver o bloco 0.2 do `fetch`.
 const listasDoAcervo = require('./listas-do-acervo.js');
@@ -302,6 +316,113 @@ async function aparenciaDoEnv(env) {
   return aparenciaDaEscola(kv, escola);
 }
 
+/**
+ * A CADEIA, MONTADA PARA UM PEDIDO (09/11/2026).
+ *
+ * Ela precisa de peças que a página dos Bastidores não tem: os CONTEÚDOS da porta (o plano e o
+ * PO, para o `elicitar` derivar), o armazenamento do acervo, os escritores do repositório e o
+ * disparador. Tudo isso já existe neste Worker — o que faltava era a ponte.
+ *
+ * O ORÇAMENTO É PRÓPRIO E DECLARADO. A cadeia escreve no repositório (envelopes, fontes, um
+ * dispatch), e sem contador repetiria o defeito de 08/11/2026: o teto de subpedidos estoura a
+ * meio e a invocação é abortada sem erro. O contador é o `fetch` da rede embrulhado — o mesmo
+ * desenho do `montarPorta` —, e os escritores perguntam-lhe antes de começar.
+ *
+ * Devolve `null` quando o Worker não tem o que a cadeia precisa (sem token, sem os conteúdos):
+ * a rota dos Bastidores continua a funcionar, e a resposta diz que a travessia não correu —
+ * em vez de a rota falhar por causa de uma automação acessória.
+ */
+async function montarCadeia(env, escola, fetchImpl) {
+  const prefixo = 'plano-observacao/';
+  let conteudoTexto, esquemaTexto, poTexto, planoTexto;
+  try {
+    [conteudoTexto, esquemaTexto, poTexto, planoTexto] = await Promise.all([
+      carregarEstatico(env, 'conteudo/anamnese.json', prefixo),
+      carregarEstatico(env, 'envelope/elicitacao-schema.json', prefixo),
+      carregarEstatico(env, 'po/conteudo/po.json', prefixo),
+      carregarEstatico(env, 'plano/conteudo/plano.json', prefixo),
+    ]);
+  } catch (erro) {
+    return null;
+  }
+  if (!conteudoTexto || !esquemaTexto || !poTexto || !planoTexto) return null;
+  let conteudo, esquema, conteudoPO, conteudoPlano;
+  try {
+    conteudo = JSON.parse(conteudoTexto);
+    esquema = JSON.parse(esquemaTexto);
+    conteudoPO = JSON.parse(poTexto);
+    conteudoPlano = JSON.parse(planoTexto);
+  } catch (erro) {
+    return null;
+  }
+
+  // O CONTADOR É O DO PEDIDO, quando a ponte o passou (09/11/2026): a transferência que
+  // dispara a cadeia gasta do MESMO teto, e é isso que evita a invocação a morrer a meio —
+  // o defeito de 08/11/2026. Sem contador partilhado, um é criado aqui.
+  if (!fetchImpl) {
+    const rede = (url, init) => {
+      if (typeof globalThis.fetch !== 'function') throw new Error('sem `fetch` de rede neste runtime');
+      return globalThis.fetch(url, init);
+    };
+    fetchImpl = contarSubpedidos(rede, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
+  }
+  const { disparar, escreverPO, escreverPlano, escreverCiclo, geracao } = passosDeGeracao(env, fetchImpl);
+  const armazenamento = criarArmazenamento(env, fetchImpl);
+  const kv = (env && env.PADD_KV) || null;
+
+  // OS LEITORES DOS CADASTROS — os mesmos que a página usa (chaves `bastidores/<escola>/…`).
+  const lerLista = async (chave) => {
+    if (!kv) return [];
+    try {
+      const bruto = await kv.get('bastidores/' + escola + '/' + chave);
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) { return []; }
+  };
+  const lerCuradorias = (slug) => lerLista('curadorias');
+  const lerTurmas = (slug) => lerLista('turmas');
+  const lerLinhasDeBase = async () => {
+    // A LEITURA É A MESMA DA PÁGINA: repositório primeiro (é onde os actos vivem), KV por cima
+    // (o rascunho) — e a função que faz isso é a dos Bastidores, não uma segunda. A variante
+    // `linhasDeBaseDaEscola` é a que constrói o store do repositório a partir do `env`.
+    try { return await bastidores.linhasDeBaseDaEscola(env, escola); } catch (erro) { return lerLista('linhas-de-base'); }
+  };
+  const linhaDeBaseDaTurma = async (turma) => {
+    try {
+      const linhas = await lerLinhasDeBase();
+      const curs = await lerCuradorias(escola);
+      const escolhido = portaNucleo.elencoEscolhidoPelaTurma(curs, String(turma || '').trim(), '', linhas);
+      if (escolhido) return portaNucleo.linhaDeBaseDoElenco(linhas, escolhido.id);
+      return portaNucleo.linhaDeBaseDaTurma(linhas, String(turma || '').trim());
+    } catch (erro) { return null; }
+  };
+  const anamnesesDaTurma = async () => {
+    const mapa = {};
+    try {
+      for (const o of await portaNucleo.anamneses(armazenamento, null, null)) {
+        const aluna = String((o && o.valor) || '').trim();
+        const carimbo = String((o && o.carimbo) || '').trim();
+        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada) };
+      }
+    } catch (erro) { /* a §6 declara a lacuna */ }
+    return mapa;
+  };
+  const concluirPO = criarConcluirPO({
+    armazenamento, porta: portaNucleo, escreverPO, escreverCiclo, disparar, geracao,
+    fontesDoCicloProntas,
+    linhaDeBaseDaTurma, anamnesesDaTurma, conteudoPO,
+  });
+
+  return criarCadeia({
+    armazenamento, porta: portaNucleo, conteudo, conteudoPlano, conteudoPO, esquema,
+    carimbar: () => carimbarAgora((env && env.FUSO) || FUSO_PADRAO),
+    escreverPlano, escreverPO, escreverCiclo, disparar, geracao, concluirPO,
+    lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, kv, escola,
+    orcamento: (fetchImpl && fetchImpl.subpedidos) || null,
+    urlDaPorta: bastidores.urlDaPorta,
+  });
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -401,7 +522,35 @@ async function fetch(request, env) {
   //     vivem FORA da porta — a lista de alunas e a senha do professor que a
   //     anamnese consulta. Sem Produção real, este andaime as entrega.
   //     E VESTE A ESCOLA como qualquer outra página: os Bastidores também levam a barra.
-  const bast = await bastidores.fetch(request, env);
+  /* A CADEIA SÓ SE MONTA ONDE É USADA (09/11/2026): os quatro gestos que mudam o corpo ou a
+   * direção de uma turma, e a leitura do log. Em qualquer outro pedido dos Bastidores ela é
+   * `null`, e o custo é zero. */
+  let cadeia = null;
+  let fetchDoPedido = null;
+  if (path.startsWith('/api/bastidores')) {
+    const gestos = [
+      '/api/bastidores/elenco-mover',
+      '/api/bastidores/linha-de-base',
+      '/api/bastidores/curadoria',
+      '/api/bastidores/curadoria-derivar',
+    ];
+    const pede = (request.method === 'GET' && path === '/api/bastidores/cadeia')
+      || (request.method === 'POST' && gestos.indexOf(path) !== -1);
+    if (pede) {
+      /* UM CONTADOR PARA O PEDIDO INTEIRO. A rota que dispara o gesto lê e escreve no
+       * repositório; a cadeia, no mesmo pedido, lê e escreve outra vez. Contadores separados
+       * faziam cada um julgar-se dentro do teto enquanto o conjunto já o tinha passado — a
+       * lição de 08/11/2026. O `fetchDoPedido` é o mesmo para os dois. */
+      fetchDoPedido = contarSubpedidos((url, init) => {
+        if (typeof globalThis.fetch !== 'function') {
+          throw new Error('sem `fetch` de rede neste runtime');
+        }
+        return globalThis.fetch(url, init);
+      }, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
+      cadeia = await montarCadeia(env, env.ESCOLA_SLUG, fetchDoPedido).catch(() => null);
+    }
+  }
+  const bast = await bastidores.fetch(request, env, { cadeia, fetchImpl: fetchDoPedido });
   if (bast) {
     return comAparencia(bast, await aparenciaDoEnv(env),
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
@@ -628,5 +777,8 @@ async function fetch(request, env) {
  * outra forma. Sem isto, ela provaria o adaptador da prova, e não o da produção. */
 module.exports = {
   fetch, comAparencia, aparenciaDoEnv, menuDaEscola,
+  /* A MONTAGEM DA CADEIA, exportada para a prova (09/11/2026). A prova mede a MESMA função que
+   * a ponte usa — reconstruí-la na bancada mediria a bancada, não a ligação. */
+  montarCadeia,
   __armazenamento: (env) => criarArmazenamento(env),
 };
