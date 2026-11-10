@@ -3333,7 +3333,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `esp-6` do `.corpo`), esses 40px sobram e viram uma barra de rolagem de 40px numa página
     // que cabe inteira — e um menu `sticky` andava esses 40px com ela.
     'body:has(.corpo){padding-bottom:0;}' +
-    '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
+    // O FORMULÁRIO CEDE PRIMEIRO, E A LISTAGEM NÃO PAGA TUDO (10/11/2026).
+    //
+    // Era `minmax(0,34rem) minmax(24rem,1fr)`: o formulário tomava os 34rem (544px) INTEIROS
+    // e nunca os largava, e o `1fr` recebia o que sobrava. Acima de 1920 isso não se nota;
+    // a 1366, medido na bancada local com a listagem de alunos de verdade, a coluna da
+    // listagem ficava com 561px — e dentro dela as três partes da linha (nome, «turmas · …»
+    // e os botões) repartiam-se assim: o NOME ficava com **163px** (era 717px a 1920, e 394
+    // a 1024, onde a secção já é uma coluna), enquanto a etiqueta das turmas conservava os
+    // seus 240px e as ações os seus 65px. Ou seja: **entre 1141 e ~1500 a listagem estava
+    // pior do que no telemóvel** — a 768 o nome tem 338px. Era isto que se via como «as
+    // coisas acavaladas» ao mudar a resolução do monitor: um nome espremido entre duas
+    // peças que não cedem, e nenhuma regra da folha entre 1200 e 1920 para o segurar.
+    //
+    // O tecto passa a ser `min(34rem, 38%)`: o formulário continua a ter os 544px sempre que
+    // há largura para isso (a 1920 dá 38% = 641, logo manda o `34rem` e NADA muda), e começa
+    // a ceder quando a página encolhe. A 1366 fica com 431px — folgado para os campos, que
+    // são de largura toda — e a listagem sobe de 561 para 674 (nome: 163 → 276).
+    // O piso de 20rem impede que ele desapareça na cauda estreita da faixa.
+    //
+    // `rem` e `em` NÃO resolvem isto: são medidas FIXAS como o `px` (1rem são 16px, e só
+    // muda se mudar o corpo da raiz). Quem cede é a grade — `%` e `min()` —, e não a unidade.
+    '.secao{display:grid;grid-template-columns:minmax(20rem,min(34rem,38%)) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     // O ACORDEÃO DAS SECÇÕES DE UMA COISA SÓ (18/10/2026). O título é o cabeçalho — não há
     // barra de passos para preservar, e inventar um segundo título seria duplicar o que já
     // está escrito. A seta fica AO LADO do nome, e não na outra ponta da linha: é dele que
@@ -3387,7 +3408,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O CORPO DA SECÇÃO TURMAS: a faixa dos passos na linha de cima, e o formulário do passo
     // à esquerda com a listagem à direita na linha de baixo. A listagem vive FORA dos
     // `.passo-painel`, e é isso que a mantém a mesma nos três passos.
-    '.turmas-corpo{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
+    '.turmas-corpo{grid-column:1/-1;display:grid;grid-template-columns:minmax(20rem,min(34rem,38%)) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.turmas-form{min-width:0;}' +
     /* ------------------------------------------- AS ABAS (09/11/2026)
      *
@@ -3616,7 +3637,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // são distribuídos por linhas ANTES de encolherem, e um item sozinho na sua linha nunca
     // encolhe. Quando o nome e o selo não cabiam juntos, o selo DESCLIA para uma linha
     // própria em vez de o nome encurtar — medido a 390px, três linhas em vez de duas.
-    '.lista > li > .nome:not(.fixo){display:block;flex:1 1 auto;min-width:0;overflow:hidden;}' +
+    // O NOME TEM UM PISO: QUEM ENCOLHE COM RETICÊNCIAS É A ETIQUETA (10/11/2026).
+    //
+    // Era `min-width:0`, e com ele o nome era a única peça da linha disposta a encolher até
+    // zero — enquanto `.turmas-do-nome` conservava os seus 240px (o `max-width:15rem`) e as
+    // ações os seus 65px, porque nada as obrigava a ceder. Medido a 1141px: nome com 137px.
+    //
+    // A etiqueta das turmas é a peça CERTA para ceder: já tem `overflow:hidden`,
+    // `text-overflow:ellipsis` e um `title` com os nomes todos — encolhida, ela continua a
+    // dizer o que é e a poder ser lida. Um nome cortado não tem segunda fonte. Com o piso de
+    // 11rem, a 1141 o nome fica com 176px e a etiqueta desce a 201px; a 1200, 176 e 238.
+    //
+    // O piso NÃO alcança o telemóvel: abaixo de 560px o `.nome` é `display:contents` (a linha
+    // vira grelha de três faixas), e uma caixa dissolvida não tem `min-width` que valha.
+    '.lista > li > .nome:not(.fixo){display:block;flex:1 1 auto;min-width:11rem;overflow:hidden;}' +
     '.lista > li > .nome:not(.fixo) > .linha1{display:flex;align-items:baseline;gap:.4rem;' +
       'min-width:0;overflow:hidden;}' +
     // `0 1 auto`, E NÃO `1 1 auto`: com `flex-grow: 1` o nome absorvia todo o espaço livre e

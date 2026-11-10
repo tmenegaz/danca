@@ -978,3 +978,9 @@ experimentos/modelo-formulario/*
 # velho, o plano a não ser marcado quando o horário mudou — e os desacordos entre plano e sala a
 # morrerem na resposta, sem chegar a quem assina.
 !experimentos/provar-mudanca-de-sala.js
+
+# A FAIXA QUE NINGUÉM MEDIA (10/11/2026). A `provar-celular.js` vai até 1024 e não havia prova
+# nenhuma entre 1025 e 1919 — foi por isso que o defeito da faixa intermediária durou: a 1366 o
+# nome da linha de uma listagem ficava com 163px, e a 768 (telemóvel) tinha 338. Esta prova mede
+# doze larguras, de 320 a 1920, e TEM CONTROLE NEGATIVO: reposta a regra antiga, ela reprova.
+!experimentos/provar-largura-da-lista.js

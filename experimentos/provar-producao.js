@@ -1154,8 +1154,20 @@ async function principal() {
     [lateralDoPainel, lateralDoPadding], ['16px', '16px']);
   conferir('…e NÃO tem teto de largura (em tela larga ele não encosta na borda)',
     /max-width/.test(corpo), false);
-  conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
-    /grid-template-columns:minmax\(0,34rem\)/.test(casa(/\.secao\{[^}]*\}/)), true);
+  /* O FORMULÁRIO CONTINUA A SER UM SÓ, COM TECTO DE 34rem (10/11/2026).
+   *
+   * O que esta conferência guarda é a UNIFORMIDADE: as cinco secções usam a MESMA regra
+   * `.secao`, e o tecto do formulário é 34rem. Ela nasceu de uma regressão real — uma secção
+   * com o formulário de outra largura.
+   *
+   * A grafia mudou hoje, e o motivo está medido na `provar-largura-da-lista.js`: o tecto
+   * `minmax(0,34rem)` também funcionava como PISO — o formulário tomava os 544px inteiros e
+   * a listagem ficava com o resto, o que a 1366 dava 163px ao nome da linha. Agora o tecto é
+   * `min(34rem,38%)`: a 1920 manda o `34rem` (544px, exactamente como antes) e só abaixo de
+   * ~1430 é que o formulário cede, para a listagem não ser a única a pagar. A uniformidade
+   * e o tecto continuam a ser o que se confere — a expressão, não. */
+  conferir('o formulário ficou uniforme nas cinco secções (tecto de 34rem, intacto)',
+    /grid-template-columns:minmax\(20rem,min\(34rem,38%\)\) minmax\(24rem,1fr\)/.test(casa(/\.secao\{[^}]*\}/)), true);
   // SEIS desde 05/11/2026 — a linha de base trouxe a sua lista (as linhas já gravadas), e ela
   // pagina como as outras. As listas de alunas dentro do passo 2 NÃO contam aqui: elas crescem
   // de dez em dez, que é outra régua (a escola pode ter quatrocentas).
