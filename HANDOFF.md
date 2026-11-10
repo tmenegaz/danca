@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T22:46:48-0300`
-Commit atual: `b47ede10` — docs(registro): a mudança de sala, medida antes e depois
+Gerado em: `2026-11-10T07:52:37-0300`
+Commit atual: `2174f47e` — docs(registro): a faixa que ninguém media, com a tabela que a explica
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,17 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+2174f47e docs(registro): a faixa que ninguém media, com a tabela que a explica
+25b35308 fix(estrutura): a listagem deixa de encolher até ficar ilegível entre 1141 e 1500px
+4cd8de01 chore(estrutura): regerar os índices derivados
+bc064cb2 chore(estrutura): reancorar a cadeia das fontes alteradas
+3a81f6af feat(po): o PO elicitado vira a fonte do ciclo
+2f74ec0f feat(acervo): envelope/po-20261109-2341.json
+2ecfbc6d feat(acervo): envelope/.indice.json
+b80dd547 feat(plano): o elo da cadeia automática
+2a0a83f6 feat(acervo): envelope/plano-20261109-2341.json
+e9a32c78 feat(acervo): envelope/.indice.json
+2ceac7e1 chore(estrutura): regerar o HANDOFF
 b47ede10 docs(registro): a mudança de sala, medida antes e depois
 1a927b0a fix(estrutura): a mudança de sala entra na cadeia, e uma sala recebe uma Turma
 da8085fe chore(estrutura): regerar o HANDOFF
@@ -80,17 +91,6 @@ e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
 f230c384 docs(registro): o filete pontilhado da listagem de elencos
 bcdf148b fix(estrutura): o filete pontilhado da listagem de elencos
 fc305563 chore(estrutura): regerar o HANDOFF
-1691cc86 fix(estrutura): o «Cancelar» direto, e a derivação que troca o par
-87f18fc8 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-124b20c4 chore(estrutura): regerar os índices derivados
-28aebd88 feat(linha de base): índice — ami 20261109-2207
-5e2e12df feat(elenco): Aluna A passa de ami para tami
-2787764d feat(linha de base): índice — tami 20261109-2207
-00421d1c feat(elenco): Aluna A passa de ami para tami
-eea49096 chore(estrutura): regerar o HANDOFF
-0d0a1ec9 docs(registro): a transferência que se perdia no rascunho
-3633f726 fix(estrutura): a transferência grava-se nos dois lados, e o «Cancelar» descarta
-e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 ```
 
 ## Por professor
@@ -113,7 +113,7 @@ e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `8292d82d724d` | (vazio) | Input_PO_Aguardando |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `63eef8353794` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -164,85 +164,80 @@ e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — A mudança de sala entra na cadeia, e uma sala passa a receber uma Turma
+## 10/11/2026 — A faixa que ninguém media: 1141 a 1919px
 
-**O que motivou.** Depois da cadeia automática, ela perguntou o que faltava para a **mudança de
-sala** — e o diagnóstico estava escrito, e era verdadeiro: *«a mudança de sala atende ao registo e
-não atende à cadeia»* (§3.3 do `ARQUITETURA-GERAL.md`). **CONFIRMADO e medido na bancada local**:
-`turma-derivar` respondia **201**, gravava o elo novo — e **0 subpedidos, 0 disparos**; o `.conf` da
-variante não era recomposto (só o é quando o plano é gravado); o plano **não era marcado**
-(`revalidacaoPendente` não recebia Salas; `pendentes: []`); o plano e o PO continuavam a declarar o
-ritmo antigo (os quatro campos `daTurma` são uma fotografia no envelope); e o `comporConf` **detetava
-os desacordos** — «o plano declara 60 min e a turma declara 75» — mas a tela lia só `ok` e `erro`, e
-o dado morria ali. A vigência declarada também não era respeitada (derivar com `vigenteDe` de 10/11
-já valia a 09/11).
+**O que motivou.** Ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a tela do Lastro
+perdeu «várias das suas margens, margens das etiquetas, espaçamento», e «as coisas ficaram
+acavaladas». No telemóvel funcionava. E perguntou se era defeito ou comportamento — com uma
+hipótese: *«foco excessivo em breakpoints de celular»*, `px` em vez de `rem`, falta de `wrap`.
+**A hipótese estava errada nas três partes, e a resposta só se podia dar a medir.**
 
-Ela fixou o escopo — as quatro peças, e **manter a vigência como está** —, o ritmo **relido** da
-Sala, e acrescentou uma guarda: **«somente poderá mover se existir ao menos uma outra sala vazia»**.
-Medido antes de a implementar: **duas curadorias activas com a mesma Sala respondiam `201`** — a
-regra não existia.
+**CONFIRMADO e medido na bancada local** (KV falso, servidor local, nada ao ar), com a listagem de
+alunos e dados de forma realista:
+
+| janela | coluna da listagem | largura do nome na linha |
+|---:|---:|---:|
+| 1920px | 1115px | 717px |
+| 1600px | 795px | 397px |
+| 1366px | 561px | **163px** |
+| 1280px | 475px | **114px** |
+| 1141px | 384px | **81px** |
+| 1024px (uma coluna) | 792px | 394px |
+| 768px (telemóvel) | 736px | 338px |
+
+**A causa não era a folha, nem as margens, nem as unidades: era a GRADE da secção.** A `.secao`
+declarava `minmax(0,34rem) minmax(24rem,1fr)` — e o **tecto** do formulário funcionava também como
+**piso**: ele tomava os 544px inteiros e o `1fr` da listagem ficava com o resto. Dentro dessa coluna
+a linha tem três partes que não cediam (o nome, a etiqueta «turmas · …» com os seus 240px, e os
+botões com 65px), e quem cedia era o **nome** — a única sem segunda fonte para o que diz. Daí a
+frase que descreve o defeito: **entre 1141 e ~1500 a listagem estava pior do que no telemóvel.**
+
+A segunda metade da causa é **a ausência de prova**: a `provar-celular.js` mede 320 a 1024, e entre
+1025 e 1919 não havia **nenhuma** medição de geometria. O corte dos 1140 não é um ponto de quebra
+errado — é que abaixo dele a lista recebe a largura toda, e acima dele a grade partilha, sem que
+ninguém verificasse a partilha.
 
 **O que foi decidido.**
 
-- **UMA SALA RECEBE UMA TURMA.** A Sala é o RITMO (dias, horas, duração, período); duas Turmas nela
-  são duas aulas no mesmo horário, no mesmo lugar. A guarda vive nas duas rotas (`curadoria` e
-  `curadoria-derivar`), ignora a versão substituída e a **direção encerrada** (a sala de quem saiu
-  está vaga — foi a prova do desligamento que o apanhou), e a recusa nomeia quem ocupa e **lista as
-  salas livres**; sem nenhuma, diz que o caminho é criar ou liberar uma.
-- **O RITMO É RELIDO DA SALA no elo novo.** `respostasDoRitmo` (`compor-conf.js`) devolve os quatro
-  campos na forma das respostas, e a cadeia substitui-os no elo derivado. **Reler não é
-  reescrever**: no conteúdo do plano os quatro são `daTurma` — não são autoria do professor, são
-  leitura do cadastro (é o próprio formulário que o diz).
-- **A CASCATA VÊ A SALA.** `revalidacaoPendente` ganha a quinta entrada e marca o plano quando o
-  `vigenteDe` do elo é **posterior** ao `gerado_em`. A comparação é por dia e **estrita**: o dia da
-  mudança não se marca, senão o sinal nasceria aceso sobre o trabalho que a cadeia acabou de fazer.
-  Sala sem `vigenteDe` (nunca derivou) não afirma nada.
-- **O GATILHO.** `turma-editar` e `turma-derivar` chamam a cadeia com `mudanca-de-sala` **só quando
-  há Turma na Sala** — uma sala livre mudou de ritmo e não tem plano nem PO a reavaliar; uma
-  travessia sem alvo só produziria uma entrada de erro no log a cada ajuste de horário.
-- **OS DESACORDOS CHEGAM À TELA.** A porta mostra `fonte.conflitos` e `fonte.pendencias`, e diz que
-  **o ritmo que vale é o da Sala** — sem bloquear: o ritmo é da Sala, o conteúdo é do plano.
-- **A VIGÊNCIA FUTURA FICA COMO ESTÁ** — decisão dela. É uma decisão de calendário da escola, e o
-  motor não a toma sozinho.
+- **O formulário cede primeiro.** O tecto passa a `min(34rem, 38%)` com piso de `20rem`. A 1920
+  manda o `34rem` — **544px, exactamente como antes**, e está provado («a 1920 o formulário mede
+  exactamente os 544px de sempre»). Abaixo de ~1430 o formulário encolhe: a 1366 fica com 431px,
+  folgado para campos de largura toda, e a listagem sobe de 561 para 674px.
+- **O nome tem piso de 11rem, e quem encolhe é a etiqueta.** A etiqueta das turmas é a peça certa
+  para ceder: já tem `overflow:hidden`, `text-overflow:ellipsis` e um `title` com os nomes todos.
+  Um nome cortado não tem segunda fonte. A 1141 o nome fica com 176px e a etiqueta desce a 201px.
+  O piso **não alcança o telemóvel**: abaixo de 560px o `.nome` é `display:contents`, e uma caixa
+  dissolvida não tem `min-width` que valha.
+- **Nenhuma media query nova.** O que cede é a grade (`%`, `min()`, `1fr`) e a **prioridade** de
+  quem encolhe. Um corte novo em 1366 seria o mesmo erro do 760×768: um número para um conceito
+  que já tem número.
+- **A conversão `px` → `rem` foi RECUSADA, e é o ponto da conversa.** `1rem` são 16px fixos e só
+  mudam se mudar o corpo da raiz: a unidade não torna nada fluido. E `gap` não resolve item
+  espremido — `gap` é o vão **entre**, não o espaço **de dentro**.
 
-**Onde entrou.** `motor/nucleo/estado-da-turma.js` (`salasOcupadas`, `salasLivres`,
-`motivoDaSalaOcupada`) · `motor/nucleo/porta.js` (o passo 4.5 da `revalidacaoPendente`, com a Sala
-como quinta entrada) · `motor/nucleo/cadeia.js` (o rótulo `mudanca-de-sala`) ·
-`motor/servidor/compor-conf.js` (`respostasDoRitmo`) · `motor/servidor/cadeia.js` (`ritmoDaSala` e a
-releitura no `derivarPlano`) · `motor/servidor/bastidores.js` (as duas guardas, os dois gatilhos, a
-quinta entrada da revalidação) · `motor/servidor/producao.js` (as duas rotas no `montarCadeia`) ·
-`porta/index.html` (conflitos e pendências) · `experimentos/provar-mudanca-de-sala.js` (novo, 41
-asserções) · `experimentos/provar-derivacao-da-turma.js` e
-`experimentos/provar-enquadramento-da-turma.js` (as salas novas que a guarda exige nos cenários que
-reusavam a mesma sala) · `professores/pe-torto/ciclos/*/plano-observacao/index.html` (a cópia da
-porta, regenerada) · `ARQUITETURA-GERAL.md` (§3.3 e as duas tabelas) · `motor/nucleo/README.md`.
+**Onde entrou.** `motor/servidor/bastidores.js` (a `.secao` e o `.turmas-corpo`, com o porquê
+medido ao lado de cada uma; e o piso de 11rem no `.lista > li > .nome`) ·
+`experimentos/provar-largura-da-lista.js` (**novo, 56 asserções**, doze larguras de 320 a 1920, com
+**controle negativo**) · `experimentos/provar-producao.js` (a conferência da uniformidade do
+formulário passou a ler a expressão nova — o que ela guarda é o **tecto de 34rem** e a
+uniformidade entre as secções, não a grafia) · `IDENTIDADE-VISUAL.md` (a secção **«A faixa que
+ninguém media»**, com a tabela e a armadilha do `rem`) · `.gitignore` (a excepção da prova).
 
-**Validação.** `provar-mudanca-de-sala` **41/41** (novo). Sem regressão: `provar-cadeia-automatica`
-60/60, `provar-producao` 166/166, `provar-transferencia-e-desligamento` 93/93,
-`provar-linha-de-base` 102/102, `provar-abas-da-audicao` 86/86, `provar-enquadramento-da-turma`
-57/57, `provar-conteudos-e-estado-da-turma` 77/78 (a mesma falha anterior à mudança, igual no
-`HEAD`), `provar-derivacao-da-turma` **118/138** — as **mesmas 20 falhas** do `HEAD`, verificadas
-falha a falha num worktree à parte —, `check-identidade` **0 erros (21 ok)** e `check-pacote`
-**0 erros** no pacote regenerado.
+**Validação.** `provar-largura-da-lista` **56/56**, e o controle negativo **reprova** como deve:
+reposta a regra antiga, a listagem a 1366 desce de 674 para abaixo de 640 e o nome a 1141 desce de
+176 para abaixo de 176. Sem regressão: `provar-producao` **166/166**, `provar-celular` **15/15**,
+`provar-menu-da-producao` **55/55**, `provar-vao-do-botao` **50/50**, `provar-abas-da-audicao`
+**86/86**, `check-identidade` **0 erros (21 ok)**. Medido depois da correção, na mesma bancada:
+a 1366 o nome vai de **163 para 276px** e a 1280 de **114 para 223px**; a 1920 nada mudou.
 
-**O que ainda não está feito.** (1) **A vigência futura não é respeitada** — por decisão, registada
-acima; derivar com data futura aplica já. (2) A mudança de sala **não revalida o elenco**: se a
-turma mudou de horário e a aluna deixou de poder, isso é outra cadeia (a do elenco), e o sistema não
-cruza as duas. (3) O total de aulas do plano é **relido** do período × dias; se o professor tiver
-decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`, mas há planos antigos
-com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
-conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
-seguinte ao deploy.
+**O que ainda não está feito.** (1) Não foi conferido **no ar** nesta sessão — a conferência é o
+passo seguinte ao deploy. (2) A faixa dos monitores **muito altos e estreitos** (1440×900 com a
+página de documento, `main` de 1180px) foi medida e não tem defeito: o documento tem tecto e
+centra-se, e a folha de leitura não estica. (3) As outras listagens do serviço (Turmas,
+Curadorias, Verbetes) foram medidas a 1920/1366/1280 e não transbordam; a que estava apertada era a
+de **alunos e professores**, por causa da etiqueta das turmas com 240px.
 
 ## O que está pendente
-
-## 09/11/2026 — A transferência que se perdia no rascunho, e o «Cancelar» que nunca apareceu
-
-(1) A transferência continua a mover **uma** aluna por
-acto. (2) O servidor não tem concorrência optimista: uma aba aberta com o formulário velho pode
-gravar por cima de um acto que mudou entretanto — o cliente relê depois de uma transferência, mas
-duas abas em simultâneo continuam a valer-se da última escrita. (3) O rascunho atrasado da produção
-é um ato manual (um clique), e não uma migração.
 
 ## 09/11/2026 — O «Cancelar» direto, e a derivação que troca o par professor × modalidade
 
@@ -276,6 +271,15 @@ decidido um número diferente de propósito (`contexto-total-aulas` é `daTurma`
 com valor próprio), o elo novo passa a usar o da Sala — e o conflito é o que o avisa. (4) Não foi
 conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
 seguinte ao deploy.
+
+## 10/11/2026 — A faixa que ninguém media: 1141 a 1919px
+
+(1) Não foi conferido **no ar** nesta sessão — a conferência é o
+passo seguinte ao deploy. (2) A faixa dos monitores **muito altos e estreitos** (1440×900 com a
+página de documento, `main` de 1180px) foi medida e não tem defeito: o documento tem tecto e
+centra-se, e a folha de leitura não estica. (3) As outras listagens do serviço (Turmas,
+Curadorias, Verbetes) foram medidas a 1920/1366/1280 e não transbordam; a que estava apertada era a
+de **alunos e professores**, por causa da etiqueta das turmas com 240px.
 
 ## Pendências anteriores (índice)
 
@@ -675,6 +679,7 @@ seguinte ao deploy.
 - **08/11/2026** — A aluna desligada, e a turma que muda de sala → `REGISTRO.md` L41005
 - **09/11/2026** — A Audição em três abas, e a transferência que não se… → `REGISTRO.md` L41106
 - **09/11/2026** — A Audição, segunda passagem: o respiro, o formulário limpo… → `REGISTRO.md` L41204
+- **09/11/2026** — A transferência que se perdia no rascunho, e o «Cancelar»… → `REGISTRO.md` L41276
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
