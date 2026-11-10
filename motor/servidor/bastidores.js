@@ -2307,8 +2307,12 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
  * o texto escreve-se uma vez e cada trecho acrescenta-lhe, abaixo, o «lê-se» da sua notação.
  */
 const PASSOS_DO_VERBETE = [
-  ['1', 'O exercício novo'],
-  ['2', 'O exercício'],
+  /* «O EXERCÍCIO NOVO» PASSOU A «O EXERCÍCIO» (10/11/2026). O rótulo dizia a regra que trancava o
+   * formulário: quem já tinha um exercício lia que aquele passo era para os novos, e era o único
+   * campo que perguntava «que exercício é este». Agora o passo 1 procura no vocabulário e aceita um
+   * nome que ainda não existe — as duas coisas —, e o rótulo diz as duas. */
+  ['1', 'O exercício'],
+  ['2', 'O exercício do verbete'],
   ['3', 'A música'],
   ['4', 'Para onde'],
   ['5', 'Os sinais'],
@@ -4056,6 +4060,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'details.historico summary{cursor:pointer;}' +
     'details.historico ul{margin:.25rem 0 0 1rem;padding:0;}' +
     'details.historico li{margin:.1rem 0;}' +
+    /* A LISTA DE SUGESTÕES DO EXERCÍCIO (10/11/2026).
+     *
+     * Ela nasce AQUI e não na folha, e é o regime da checagem 4: `tools/templates/ciclo.css` é
+     * congelado, e a superfície que declara o que usa responde no seu próprio desenho — é o mesmo
+     * sítio e a mesma razão de `.col-lista` e de `.lb-cartoes`.
+     *
+     * O DESENHO É O DA LISTA DA CASA: filete de campo, raio de controlo, superfície, e o item
+     * activo com o fundo da faixa — nenhuma cor nova, nenhum raio novo. A altura tem tecto e rola
+     * por dentro: um vocabulário de 84 termos com quatro casamentos não pode empurrar o formulário
+     * para baixo da vista.
+     *
+     * O `z-index` existe porque a lista sai do fluxo do campo e passa por cima do que vem depois:
+     * sem ele, o rótulo seguinte tapava-a e a lista deixava de se poder clicar — e um campo de
+     * procura cuja lista não se clica é o `<datalist>` outra vez, com mais código. */
+    '.sugestoes-do-exercicio{list-style:none;margin:.25rem 0 0;padding:.2rem 0;' +
+      'max-height:14rem;overflow-y:auto;position:relative;z-index:5;' +
+      'border:1px solid var(--borda-campo);border-radius:var(--raio-1);background:var(--superficie);}' +
+    // O ALVO DE TOQUE TEM 44px (10/11/2026). Uma linha de sugestão não é uma linha de leitura: é
+    // um botão, e no telemóvel o dedo tem de o acertar. Medido: com o `padding` das linhas da
+    // lista dava 39px — abaixo do mínimo, num alvo que se usa a meio de uma frase.
+    '.sugestoes-do-exercicio>li{display:flex;align-items:baseline;gap:.5rem;min-height:44px;' +
+      'padding:.5rem .6rem;cursor:pointer;color:var(--texto);}' +
+    '.sugestoes-do-exercicio>li:hover{background:var(--fundo-faixa);}' +
+    '.sugestoes-do-exercicio>li[aria-selected="true"]{background:var(--fundo-faixa);' +
+      'font-weight:700;outline:2px solid var(--foco);outline-offset:-2px;}' +
+    '.sugestoes-do-exercicio>li .dono{margin-left:auto;font-size:.8rem;color:var(--texto-suave);}' +
     '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid var(--ok);border-left:4px solid var(--ok);border-radius:var(--raio-1);background:var(--ok-fundo);}' +
     '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--texto);line-height:1.45;}' +
     '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--fundo-faixa);color:var(--texto);border:1px solid var(--borda-campo);border-radius:var(--raio-1);font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
@@ -4882,8 +4912,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * acrescenta-o localmente enquanto não há outra leitura.
      */
     '<div class="passo-painel" data-passo="1">' +
-    '<label class="campo-rotulo" for="vnnome">Exercício novo (grafia francesa, com acentos)</label>' +
-    '<input id="vnnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
+    /* O NOME DO EXERCÍCIO É UMA BUSCA, E NÃO UM CADASTRO (10/11/2026).
+     *
+     * O DEFEITO QUE ISTO FECHA, medido na bancada: quem já sabia qual era o exercício escrevia o
+     * nome aqui — o gesto natural, porque é o único campo que pergunta «que exercício é este» — e
+     * ficava trancado. `oQueFaltaNoPasso1` tomava o nome escrito por «exercício novo» e passava a
+     * exigir categoria, tradição e definição; e o passo 2, onde o exercício existente se escolhe,
+     * fechava-se por causa disso. A pesquisadora contornou-o como se contorna uma porta trancada:
+     * escreveu um nome qualquer, escolheu uma categoria, escreveu a letra «T» no «o que acontece»,
+     * abriu o passo 2, escolheu o exercício que queria, e voltou atrás. O sistema pediu-lhe uma
+     * mentira para deixá-la dizer a verdade.
+     *
+     * Agora o campo faz as duas coisas que ele já fazia, e diz qual delas está a fazer: procurar no
+     * vocabulário enquanto se escreve (a lista abaixo do campo) e aceitar um nome que ainda não
+     * existe. Um nome que CASA com um exercício existente não é um exercício novo — é esse
+     * exercício, e o passo 2 abre com ele escolhido.
+     *
+     * A LABEL DEIXOU DE DIZER «Exercício novo»: era ela que anunciava a regra errada. */
+    '<label class="campo-rotulo" for="vnnome">Exercício</label>' +
+    '<input id="vnnome" autocomplete="off" role="combobox" aria-expanded="false" ' +
+    'aria-controls="vn-sugestoes" aria-autocomplete="list" ' +
+    'placeholder="ex.: Battement fondu — ou um nome novo">' +
+    /* A LISTA DE SUGESTÕES NÃO É UM `<datalist>` (1885 já pagou essa tentativa): a janela do
+     * `<datalist>` é do navegador, não aceita estilo e sai ao lado de menus que são nossos. Esta é
+     * marcação nossa, com desenho declarado no `<style>` desta página — o regime da checagem 4. */
+    '<ul class="sugestoes-do-exercicio" id="vn-sugestoes" role="listbox" ' +
+    'aria-label="Exercícios do vocabulário" hidden></ul>' +
+    '<p class="nota" id="vn-estado"></p>' +
     '<label class="campo-rotulo" for="vncategoria">Categoria</label>' +
     // A CATEGORIA E A TRADIÇÃO COMEÇAM VAZIAS (02/11/2026). Os dois `<select>` nasciam com a
     // primeira opção JÁ ESCOLHIDA, e por isso os dois campos que ela mandou tornar obrigatórios
@@ -8748,6 +8803,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * critério da frase do exercício — o que foi escrito por alguém vence o que a máquina sugere.
      */
     'var METODO_SUGERIDO = null;' +
+    /* O QUE VEIO DO DICIONÁRIO DA ÚLTIMA VEZ, NA CATEGORIA E NA TRADIÇÃO (10/11/2026).
+     * Os dois campos passaram a ser EDITÁVEIS — é o «ajustes manuais» que ela pediu —, e sem esta
+     * memória o preenchimento automático reescreveria a correcção dela a cada passagem pelo passo.
+     * A regra é a do `METODO_SUGERIDO`, que já existia ao lado: só se sobrepõe o que ainda é a
+     * sugestão anterior. */
+    'var CATEGORIA_SUGERIDA = "";' +
+    'var TRADICAO_SUGERIDA = "";' +
     'function tradicaoDoExercicio(){' +
     '  var nomes = document.getElementById("vbnome");' +
     '  var nome = nomes ? nomes.value : "";' +
@@ -9272,18 +9334,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function alternarPasso1(){' +
     '  var novo = document.getElementById("vnnome");' +
     '  var escolhido = document.getElementById("vbnome");' +
-    '  var temNome = Boolean(novo && String(novo.value || "").trim());' +
+    '  var digitado = novo ? String(novo.value || "").trim() : "";' +
+    '  var temNome = Boolean(digitado);' +
     '  var temExercicio = Boolean(escolhido && String(escolhido.value || "").trim());' +
-    '  var congelado = temExercicio && !temNome;' +
-    '  var emVigor = temNome || congelado;' +
-    // A CLASSIFICAÇÃO É DO TERMO: congelada quando há exercício escolhido.
+    /* A CLASSIFICAÇÃO NÃO SE CONGELA MAIS (10/11/2026) — e a razão é dela, medida na tela.
+     *
+     * O congelamento existia para a classificação ter uma verdade só: a do termo. Só que ele
+     * tornava o formulário um beco. Quem já sabia qual era o exercício escrevia o nome — e o passo
+     * 2, que é onde os exercícios existentes se escolhem, fechava-se; a única saída era inventar um
+     * nome e uma classificação para destrancar, e depois corrigir tudo. Ela fez exactamente isso e
+     * chamou-lhe «burlar». Um formulário que só abre para quem mente está a pedir a mentira.
+     *
+     * O que protege o dicionário não é o `disabled` — é a rota: `POST /api/bastidores/termo`
+     * APROVEITA o termo existente e não lhe reescreve a definição (`reutilizar`). O ajuste feito
+     * aqui vale para ESTE verbete — a frase dos trechos e o «lê-se» que deles se deriva —, e o que
+     * o dicionário guarda continua a mudar-se no vocabulário, que é onde ele mora. */
+    '  var emVigor = temNome || temExercicio;' +
     '  ["vncategoria", "vntradicao"].forEach(function(id){' +
     '    var el = document.getElementById(id);' +
     '    if (!el) return;' +
-    '    el.disabled = congelado || !emVigor;' +
-    '    el.setAttribute("aria-disabled", (congelado || !emVigor) ? "true" : "false");' +
-    '    if (congelado) el.setAttribute("data-congelado", "sim");' +
-    '    else el.removeAttribute("data-congelado");' +
+    '    el.disabled = !emVigor;' +
+    '    el.setAttribute("aria-disabled", emVigor ? "false" : "true");' +
+    '    el.removeAttribute("data-congelado");' +
     '  });' +
     // A FRASE É DE QUEM ESCREVE: só se apaga quando não há exercício nenhum para ela descrever.
     '  var campoDaFrase = document.getElementById("vb-frase");' +
@@ -9294,18 +9366,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     // A DEFINIÇÃO OFICIAL, À VISTA E FORA DO CAMPO — é esta que o `disabled` protege.
     '  pintarOficial();' +
+    // O ESTADO DA PROCURA, em uma linha: encontrado no vocabulário, ou novo. É a resposta à
+    // pergunta que o campo faz, e sem ela a pessoa não sabe se o que vai criar já existe — que é
+    // exactamente o duplicado que ela pediu para não acontecer.
+    '  pintarEstadoDoExercicio();' +
     '  var nota = document.getElementById("vb-vigor-nota");' +
     '  if (nota) {' +
-    '    nota.textContent = congelado' +
-    '      ? ("A categoria e a tradição são a classificação do exercício «" + String(escolhido.value || "") +' +
-    '         "» no dicionário, e ficam bloqueadas aqui — para as mudar, edite o termo no vocabulário." +' +
-    '         " A frase acima é a sua: é ela que fica gravada neste verbete.")' +
-    '      : (emVigor ? "" :' +
-    '        "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
-    '        escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.");' +
+    '    nota.textContent = emVigor ? "" :' +
+    '      "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
+    '      escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.";' +
     '  }' +
     // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Seguir» e a tira repintam-se com ele.
     '  pintarNavegacao();' +
+    '}' +
+    /* A LINHA QUE DIZ «JÁ EXISTE» OU «É NOVO» (10/11/2026).
+     *
+     * Duas frases, e cada uma faz um trabalho diferente. A primeira impede o duplicado: quem
+     * escreveu «Battement fondu» e vê «já está no vocabulário» não cria um segundo. A segunda
+     * impede a surpresa: quem escreveu «cabriole duplo» fica a saber que vai criar um exercício —
+     * e que os três campos passam a ser obrigatórios, que é a regra do passo.
+     *
+     * A grafia CANÓNICA também se anuncia, porque o documento publica o nome do dicionário: quem
+     * escreveu «battement fondu» fica com «Battement fondu», e vê-lo escrito é o que explica a
+     * correcção em vez de a impor em silêncio. */
+    'function pintarEstadoDoExercicio(){' +
+    '  var el = document.getElementById("vn-estado");' +
+    '  if (!el) return;' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var digitado = campo ? String(campo.value || "").trim() : "";' +
+    '  if (!digitado) { el.textContent = ""; return; }' +
+    '  var achado = exercicioExistente(digitado);' +
+    '  if (achado) {' +
+    '    el.textContent = "«" + achado.termo + "» já está no vocabulário: a categoria, a tradição e " +' +
+    '      "a definição vieram de lá. Pode ajustá-las para este verbete — o termo do dicionário não " +' +
+    '      "é alterado.";' +
+    '    return;' +
+    '  }' +
+    '  el.textContent = "Nenhum exercício com esse nome — «" + digitado + "» vai ser criado como novo, " +' +
+    '    "e a categoria, a tradição e o que acontece passam a ser obrigatórios.";' +
     '}' +
     /* A DEFINIÇÃO OFICIAL, COMO REFERÊNCIA (07/11/2026).
      *
@@ -9341,21 +9439,196 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      */
     'function dadosDoExercicio(nome){' +
     '  var lista = (VERBETES && VERBETES.exerciciosDoVocabulario) || [];' +
+    '  var q = normalizarBusca(nome);' +
     '  var achado = null;' +
-    '  lista.forEach(function(t){ if (t && t.termo === nome) achado = t; });' +
+    '  lista.forEach(function(t){ if (t && !achado && normalizarBusca(t.termo) === q) achado = t; });' +
     '  return achado;' +
+    '}' +
+    /* ==========================================================================================
+     * A BUSCA DO EXERCÍCIO (10/11/2026)
+     *
+     * O campo do passo 1 passou a procurar no vocabulário enquanto se escreve. As três peças:
+     *
+     *   · `normalizarBusca` — a comparação é sem acentos e sem maiúsculas. Escrever «plie» tem de
+     *     encontrar «Plié», e «BATTEMENT» tem de encontrar «Battement tendu»; exigir a grafia
+     *     exacta é exigir que a pessoa saiba de cor o que o dicionário guarda.
+     *   · `pontuacaoDaBusca` — a ordem dos resultados é a da certeza: nome igual, depois começa
+     *     por, depois contém, e por fim «as palavras parecem-se» (prefixo comum de 3+ letras, que
+     *     é o que faz «batman» chegar a «Battement» e «fondue» a «fondu»). Uma busca que devolve
+     *     tudo é tão inútil como uma que não devolve nada.
+     *   · `exercicioExistente` — a pergunta que faltava ao formulário: «este nome é de um exercício
+     *     que já existe?». Era ela que, não sendo feita, obrigava a inventar um nome para destrancar
+     *     o passo 2.
+     * ========================================================================================== */
+    'function normalizarBusca(s){' +
+    '  return String(s == null ? "" : s).normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")' +
+    '    .toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/^ +| +$/g, "");' +
+    '}' +
+    'function pontuacaoDaBusca(consulta, termo){' +
+    '  var q = normalizarBusca(consulta); var t = normalizarBusca(termo);' +
+    '  if (!q || !t) return 0;' +
+    '  if (t === q) return 1000;' +
+    '  if (t.indexOf(q) === 0) return 800;' +
+    '  if (t.indexOf(q) !== -1) return 600;' +
+    '  var palavrasQ = q.split(" ").filter(Boolean);' +
+    '  var palavrasT = t.split(" ").filter(Boolean);' +
+    '  var pontos = 0;' +
+    '  for (var i = 0; i < palavrasQ.length; i++) {' +
+    '    var p = palavrasQ[i]; var melhor = 0;' +
+    '    for (var j = 0; j < palavrasT.length; j++) {' +
+    '      var w = palavrasT[j]; var n = 0;' +
+    '      while (n < p.length && n < w.length && p.charAt(n) === w.charAt(n)) n += 1;' +
+    '      if (n > melhor) melhor = n;' +
+    '    }' +
+    '    if (melhor < 3) return 0;' +
+    '    pontos += melhor;' +
+    '  }' +
+    '  return 100 + pontos;' +
+    '}' +
+    'function exerciciosParecidos(consulta){' +
+    '  var q = normalizarBusca(consulta);' +
+    '  if (q.length < 2) return [];' +
+    '  var saida = [];' +
+    '  ((VERBETES && VERBETES.exerciciosDoVocabulario) || []).forEach(function(t){' +
+    '    if (!t || !t.termo) return;' +
+    '    var p = pontuacaoDaBusca(q, t.termo);' +
+    '    if (p > 0) saida.push({ termo: String(t.termo), categoria: String(t.categoria || ""), pontos: p });' +
+    '  });' +
+    '  saida.sort(function(a, b){' +
+    '    return b.pontos - a.pontos || String(a.termo).localeCompare(String(b.termo));' +
+    '  });' +
+    '  return saida.slice(0, 8);' +
+    '}' +
+    'function exercicioExistente(nome){' +
+    '  var q = normalizarBusca(nome);' +
+    '  if (!q) return null;' +
+    '  var achado = null;' +
+    '  ((VERBETES && VERBETES.exerciciosDoVocabulario) || []).forEach(function(t){' +
+    '    if (t && t.termo && !achado && normalizarBusca(t.termo) === q) achado = t;' +
+    '  });' +
+    '  return achado;' +
+    '}' +
+    'var SUGESTOES = [];' +
+    'var SUGESTAO_ATIVA = -1;' +
+    'function fecharSugestoes(){' +
+    '  var ul = document.getElementById("vn-sugestoes");' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  if (ul) { ul.hidden = true; ul.innerHTML = ""; }' +
+    '  if (campo) campo.setAttribute("aria-expanded", "false");' +
+    '  SUGESTOES = []; SUGESTAO_ATIVA = -1;' +
+    '}' +
+    'function pintarSugestoes(){' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var ul = document.getElementById("vn-sugestoes");' +
+    '  if (!campo || !ul) return;' +
+    '  SUGESTOES = exerciciosParecidos(campo.value);' +
+    '  SUGESTAO_ATIVA = -1;' +
+    '  if (!SUGESTOES.length) { fecharSugestoes(); return; }' +
+    '  var html = "";' +
+    '  SUGESTOES.forEach(function(s, i){' +
+    '    var rot = ROTULO_DE_CATEGORIA[s.categoria] || s.categoria;' +
+    '    html += "<li role=\\"option\\" id=\\"vn-sug-" + i + "\\" aria-selected=\\"false\\" " +' +
+    '      "data-termo=\\"" + escHtml(s.termo) + "\\">" + escHtml(s.termo) +' +
+    '      (rot ? "<span class=\\"dono\\">" + escHtml(rot) + "</span>" : "") + "</li>";' +
+    '  });' +
+    '  ul.innerHTML = html;' +
+    '  ul.hidden = false;' +
+    '  campo.setAttribute("aria-expanded", "true");' +
+    '  campo.removeAttribute("aria-activedescendant");' +
+    '}' +
+    'function moverSugestao(passo){' +
+    '  var ul = document.getElementById("vn-sugestoes");' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  if (!ul || ul.hidden || !SUGESTOES.length) return;' +
+    '  var itens = Array.prototype.slice.call(ul.querySelectorAll("li"));' +
+    '  SUGESTAO_ATIVA = (SUGESTAO_ATIVA + passo + itens.length) % itens.length;' +
+    '  itens.forEach(function(li, i){' +
+    '    li.setAttribute("aria-selected", i === SUGESTAO_ATIVA ? "true" : "false");' +
+    '  });' +
+    '  var ativo = itens[SUGESTAO_ATIVA];' +
+    '  if (campo && ativo) campo.setAttribute("aria-activedescendant", ativo.id);' +
+    '  if (ativo && ativo.scrollIntoView) ativo.scrollIntoView({block: "nearest"});' +
+    '}' +
+    'function escolherExercicio(termo){' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  if (!termo) return;' +
+    '  if (campo) campo.value = termo;' +
+    '  if (nomes) {' +
+    '    var existe = false;' +
+    '    Array.prototype.slice.call(nomes.options).forEach(function(o){ if (o.value === termo) existe = true; });' +
+    '    if (!existe) {' +
+    '      var o = document.createElement("option"); o.value = termo; o.textContent = termo;' +
+    '      nomes.appendChild(o);' +
+    '    }' +
+    '    nomes.value = termo;' +
+    // O `change` é o que põe a máquina em marcha: o método herda a tradição do termo
+    // (`sugerirMetodo`), a decomposição recarrega (`carregarRascunho`) e o passo 1 preenche-se
+    // (`sincronizarPasso1ComExercicio`). Sem ele, tudo isto ficava por fazer — foi o defeito de
+    // 07/11 que este mesmo `dispatchEvent` resolveu do outro lado.
+    '    nomes.dispatchEvent(new Event("change", {bubbles: true}));' +
+    '  }' +
+    '  fecharSugestoes();' +
+    '  sincronizarPasso1ComExercicio();' +
+    '  pintarTira();' +
+    '  pintarNavegacao();' +
+    '}' +
+    /* O NOME DIGITADO, RECONHECIDO À LETRA. Quando o texto CASA (sem acentos, sem maiúsculas) com
+     * um exercício do vocabulário, é esse exercício que fica escolhido — e a grafia passa a ser a
+     * do dicionário, que é a que o documento publica. Quando deixa de casar, a escolha é desfeita:
+     * outro nome é outro exercício, e manter o anterior escolhido por baixo seria o formulário a
+     * dizer uma coisa e a guardar outra. */
+    'function sincronizarNomeDigitado(){' +
+    '  var campo = document.getElementById("vnnome");' +
+    '  var nomes = document.getElementById("vbnome");' +
+    '  if (!campo || !nomes) return;' +
+    '  var digitado = String(campo.value || "").trim();' +
+    '  var achado = exercicioExistente(digitado);' +
+    '  if (achado) {' +
+    '    if (String(campo.value) !== achado.termo) campo.value = achado.termo;' +
+    '    if (nomes.value !== achado.termo) {' +
+    '      var existe = false;' +
+    '      Array.prototype.slice.call(nomes.options).forEach(function(o){ if (o.value === achado.termo) existe = true; });' +
+    '      if (!existe) {' +
+    '        var o = document.createElement("option"); o.value = achado.termo; o.textContent = achado.termo;' +
+    '        nomes.appendChild(o);' +
+    '      }' +
+    '      nomes.value = achado.termo;' +
+    '      nomes.dispatchEvent(new Event("change", {bubbles: true}));' +
+    '    }' +
+    '    sincronizarPasso1ComExercicio();' +
+    '    return;' +
+    '  }' +
+    '  if (nomes.value && normalizarBusca(nomes.value) !== normalizarBusca(digitado)) nomes.value = "";' +
     '}' +
     'function sincronizarPasso1ComExercicio(){' +
     '  var escolhido = document.getElementById("vbnome");' +
     '  var novo = document.getElementById("vnnome");' +
     '  var nome = escolhido ? String(escolhido.value || "").trim() : "";' +
-    '  if (!nome || (novo && String(novo.value || "").trim())) { alternarPasso1(); return; }' +
+    '  var digitado = novo ? String(novo.value || "").trim() : "";' +
+    /* QUANDO SE PREENCHE, E QUANDO NÃO (10/11/2026). A guarda era «não preencher se houver nome
+     * digitado» — e era ela que deixava o formulário num impasse: o único campo que pergunta «que
+     * exercício é este» é o do nome, e escrevê-lo desligava o preenchimento. A pergunta certa é a
+     * que distingue os dois casos: o digitado É este exercício (então preenche-se) ou é outro, um
+     * novo (então não se lhe toca). */
+    '  var mesmo = digitado ? (normalizarBusca(digitado) === normalizarBusca(nome)) : true;' +
+    '  if (!nome || !mesmo) { alternarPasso1(); return; }' +
     '  var dados = dadosDoExercicio(nome);' +
     '  var cat = document.getElementById("vncategoria");' +
     '  var tra = document.getElementById("vntradicao");' +
     '  var frase = document.getElementById("vb-frase");' +
-    '  if (dados && cat && dados.categoria) cat.value = dados.categoria;' +
-    '  if (dados && tra && dados.tradicao) tra.value = dados.tradicao;' +
+    // A CLASSIFICAÇÃO SÓ SE IMPÕE QUANDO AINDA É A SUGESTÃO (10/11/2026). Estando os dois campos
+    // editáveis — é o que ela pediu, «ajustes manuais» —, reescrevê-los a cada passagem apagaria a
+    // correcção dela sem aviso. Guarda-se o que veio do dicionário da última vez: o que é diferente
+    // disso foi escrito por uma pessoa, e não se toca.
+    '  if (dados && cat && dados.categoria) {' +
+    '    if (!cat.value || cat.value === CATEGORIA_SUGERIDA) cat.value = dados.categoria;' +
+    '    CATEGORIA_SUGERIDA = dados.categoria;' +
+    '  }' +
+    '  if (dados && tra && dados.tradicao) {' +
+    '    if (!tra.value || tra.value === TRADICAO_SUGERIDA) tra.value = dados.tradicao;' +
+    '    TRADICAO_SUGERIDA = dados.tradicao;' +
+    '  }' +
     '  if (dados && frase) {' +
     '    var gravada = partirFrase(frase.value || "");' +
     '    var definicao = String(dados.descricao || "").trim();' +
@@ -9383,6 +9656,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var campo = document.getElementById("vnnome");' +
     '  var nome = campo ? campo.value.trim() : "";' +
     '  if (!nome) { if (depois) depois(true); return; }' +
+    /* O EXERCÍCIO QUE JÁ EXISTE NÃO SE CRIA OUTRA VEZ (10/11/2026) — é a segunda metade do pedido
+     * dela: «não posso criar um exercício novo que já existe, sendo que então ele daí não é um
+     * exercício novo».
+     *
+     * O SERVIDOR JÁ O APROVEITAVA (`reutilizar`), mas aproveitar não é o mesmo que não pedir: um
+     * `POST` que devolve o que já lá está custa um pedido ao GitHub e uma volta à rede para dizer
+     * «sim». Aqui o caso resolve-se em casa — o exercício está na lista que a página já tem —, com
+     * a grafia do dicionário a substituir a que foi escrita, e sem escrita nenhuma. */
+    '  var jaExiste = exercicioExistente(nome);' +
+    '  if (jaExiste) {' +
+    '    escolherExercicio(jaExiste.termo);' +
+    '    if (depois) depois(true);' +
+    '    return;' +
+    '  }' +
     '  var falta = oQueFaltaNoPasso1();' +
     '  if (falta.length) {' +
     '    recado("erro", "Para criar «" + nome + "», falta " + falta.join(", ") + ".");' +
@@ -10160,12 +10447,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O BLOCO DO PASSO 1 ACENDE E APAGA COM O NOME (02/11/2026). É `input` e não `change`: a
     // regra é sobre o que está escrito, e `change` só dispara ao sair do campo — durante o
     // preenchimento os três ficariam apagados e ninguém saberia porque.
-    '  campoNovo.addEventListener("input", alternarPasso1);' +
+    //
+    // E CADA TECLA PROCURA (10/11/2026). A ordem é a das consequências: primeiro reconhecer o
+    // nome (que pode escolher o exercício e preencher os três campos), depois pintar a lista, e só
+    // no fim o estado do bloco — que é quem diz se o «Seguir» já pode. Ao contrário, o botão
+    // acendia um instante antes de os campos estarem preenchidos.
+    '  campoNovo.addEventListener("input", function(){' +
+    '    sincronizarNomeDigitado();' +
+    '    pintarSugestoes();' +
+    '    alternarPasso1();' +
+    '  });' +
+    /* O TECLADO DA LISTA — e o `Enter` deixou de ter um sentido só. Fechada a lista, ele é o que
+     * sempre foi (cria/escolhe e avança); aberta, ele escolhe a opção activa, que é o que qualquer
+     * pessoa espera de uma lista de sugestões. O `Escape` fecha sem escolher, e as setas percorrem
+     * — a mesma gramática do `<select>` nativo, que é o que este campo substitui sem perder. */
     '  campoNovo.addEventListener("keydown", function(ev){' +
+    '    var aberta = !(document.getElementById("vn-sugestoes") || {}).hidden;' +
+    '    if (aberta && (ev.key === "ArrowDown" || ev.key === "ArrowUp")) {' +
+    '      ev.preventDefault();' +
+    '      moverSugestao(ev.key === "ArrowDown" ? 1 : -1);' +
+    '      return;' +
+    '    }' +
+    '    if (aberta && ev.key === "Escape") { ev.preventDefault(); fecharSugestoes(); return; }' +
     '    if (ev.key !== "Enter") return;' +
     '    ev.preventDefault();' +
+    '    if (aberta && SUGESTAO_ATIVA >= 0 && SUGESTOES[SUGESTAO_ATIVA]) {' +
+    '      escolherExercicio(SUGESTOES[SUGESTAO_ATIVA].termo);' +
+    '      return;' +
+    '    }' +
+    '    fecharSugestoes();' +
     '    criarExercicioDoPasso1(function(){ irParaPassoVerbete(2); });' +
     '  });' +
+    /* O CLIQUE NA SUGESTÃO É `mousedown`, E NÃO `click` — de propósito. O `blur` do campo fecha a
+     * lista, e um `click` chega DEPOIS do `blur`: o item já não existia quando o rato o largava, e
+     * a escolha perdia-se. O `mousedown` acontece antes de o foco sair. */
+    '  var listaSug = document.getElementById("vn-sugestoes");' +
+    '  if (listaSug) {' +
+    '    listaSug.addEventListener("mousedown", function(ev){' +
+    '      var li = ev.target.closest ? ev.target.closest("li[data-termo]") : null;' +
+    '      if (!li) return;' +
+    '      ev.preventDefault();' +
+    '      escolherExercicio(li.getAttribute("data-termo"));' +
+    '    });' +
+    '  }' +
+    '  campoNovo.addEventListener("blur", function(){ fecharSugestoes(); });' +
     '}' +
     'var novoVerbete = document.getElementById("vbnovo");' +
     'if (novoVerbete) novoVerbete.addEventListener("click", function(){' +
@@ -10202,6 +10527,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // editasse o Plié e depois fosse criar outro exercício levava consigo a memória do Plié — e a
     // gravação seguinte apagava uma música que não tinha nada que ver com o que estava na tela.
     '    if (this && this.id === "vbnome") { MUSICA_ABERTA = ""; sugerirMetodo(); }' +
+    /* O CAMPO DO PASSO 1 ACOMPANHA A ESCOLHA DO PASSO 2 (10/11/2026). Os dois respondem à MESMA
+     * pergunta — que exercício é este —, e ficavam a dizer coisas diferentes: escolher «Plié» no
+     * passo 2 deixava «Battement fondu» escrito no passo 1. Uma pergunta com duas respostas é o
+     * defeito que a casa trata como o pior de todos, porque não dá erro nenhum.
+     *
+     * SÓ QUANDO HÁ ESCOLHA: esvaziar o passo 2 não apaga o que está escrito no passo 1 — quem está
+     * a escrever um nome novo e passa pelo 2 não perde o que escreveu. */
+    '    if (this && this.id === "vbnome" && this.value) {' +
+    '      var campoP1 = document.getElementById("vnnome");' +
+    '      if (campoP1 && normalizarBusca(campoP1.value) !== normalizarBusca(this.value)) {' +
+    '        campoP1.value = this.value;' +
+    '      }' +
+    '    }' +
     '    carregarRascunho();' +
     // O PASSO 1 LÊ O EXERCÍCIO ESCOLHIDO (02/11/2026). Depois de carregar o rascunho — que é
     // quem decide a frase (a gravada vence a do dicionário) —, os três campos do passo 1 são

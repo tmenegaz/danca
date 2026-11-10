@@ -991,3 +991,11 @@ experimentos/modelo-formulario/*
 # em vez de duas fotografias, a data num formato só nas duas listas, o motivo quando declarado —
 # e, sobretudo, o que NÃO pode acontecer: um elo herdar a razão do ajuste anterior.
 !experimentos/provar-historico-do-ajuste.js
+
+# A BUSCA DO EXERCÍCIO NO PASSO 1 (10/11/2026). A pesquisadora contou o que fazia para começar um
+# verbete de um exercício que já existia — inventar um nome, uma categoria e a letra «T» para
+# destrancar o passo 2 — e chamou-lhe «burlar». Esta prova mede o caminho que faltava: escrever o
+# nome de um exercício do vocabulário preenche os três campos e mantém o passo 2 aberto; a lista
+# encontra por acento, por prefixo e por semelhança; o nome que casa não se cria outra vez; e o
+# exercício novo continua a exigir os três campos.
+!experimentos/provar-busca-do-exercicio.js

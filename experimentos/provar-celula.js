@@ -506,8 +506,12 @@ function estado() {
     conferir('e o passo 2 não está', inicial.painel2Visivel === false, inicial.painel2Visivel);
     conferir('a tira mostra os SEIS passos, um de cada vez',
       inicial.rotulosDaTira.length === 6, inicial.rotulosDaTira);
-    conferir('o primeiro é «O exercício novo», e o segundo é o do exercício a escolher',
-      inicial.rotulosDaTira[0] === 'O exercício novo'
+    /* O PRIMEIRO PASSO DEIXOU DE SE CHAMAR «O exercício NOVO» (10/11/2026). O rótulo anunciava a
+     * regra que trancava o formulário: quem já tinha um exercício lia que aquele passo era só para
+     * os novos — e era o único campo que perguntava «que exercício é este». Agora procura no
+     * vocabulário e aceita um nome inédito, e o rótulo diz as duas coisas. */
+    conferir('o primeiro é «O exercício», e o segundo é o do verbete',
+      inicial.rotulosDaTira[0] === 'O exercício'
       && /exerc[ií]cio/i.test(inicial.rotulosDaTira[1]), inicial.rotulosDaTira);
     conferir('o passo 1 tem os quatro controlos: nome, categoria, tradição e as turmas',
       await page.evaluate(() => ['vnnome', 'vncategoria', 'vntradicao', 'semear']
@@ -1676,10 +1680,10 @@ function estado() {
     conferir('a tira tem seis passos, numerados de 1 a 6',
       JSON.stringify(tira.numeros) === JSON.stringify(['1', '2', '3', '4', '5', '6']),
       tira.numeros);
-    conferir('o primeiro é o exercício NOVO — criar deixou de ser um «+»',
-      tira.rotulos[0] === 'O exercício novo', tira.rotulos);
-    conferir('e o segundo é o exercício a escolher — o antigo passo 1',
-      tira.rotulos[1] === 'O exercício', tira.rotulos);
+    conferir('o primeiro é o exercício — criar deixou de ser um «+»',
+      tira.rotulos[0] === 'O exercício', tira.rotulos);
+    conferir('e o segundo é o exercício DO VERBETE — o antigo passo 1',
+      tira.rotulos[1] === 'O exercício do verbete', tira.rotulos);
     conferir('e a música é o terceiro — o resto desceu um número, não mudou de sítio',
       tira.rotulos[2] === 'A música', tira.rotulos);
     // A TIRA LÊ O QUE O SELECT MOSTRA — e o select passou a mostrar a etiqueta localizada
