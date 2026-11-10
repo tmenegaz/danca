@@ -41740,3 +41740,85 @@ escrever nada continua a ter a diferença no histórico, e só não tem a razão
 seria uma pergunta a mais num gesto que já pede uma data. (2) **O histórico continua a ser por
 cartão**, e não uma vista da escola: ver «todos os ajustes do mês» é outra tela, e não foi pedida.
 (3) Não foi conferido **no ar** nesta sessão — a conferência é o passo seguinte ao deploy.
+
+## 10/11/2026 — O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser escolhido
+
+**O que motivou.** Ela descreveu o que fazia para começar um verbete de um exercício que já estava
+no vocabulário — e o que descreveu não era um uso, era um **contorno**: *«como o step 2 está
+bloqueado por padrão, eu não consigo começar o estilo, a menos que seja um estilo novo. Então eu
+tive que burlar. Eu escrevi um nome qualquer no exercício novo, escolhi uma categoria, escolhi a
+tradição e escrevi a letra T no campo que acontece. Aí liberou o step seguinte. […] eu preciso
+evitar esse tipo de problema, que quando eu quero começar e eu sei que já existe, ou se eu não
+souber que já existe, eu também não posso fazer redundante, não posso criar um exercício novo que
+já existe.»*
+
+**CONFIRMADO e medido na bancada local**, e a causa é de uma linha. `oQueFaltaNoPasso1` lia o nome
+escrito como «exercício novo» e passava a exigir categoria, tradição e definição — e fechava o passo
+2, que é **exactamente onde os exercícios existentes se escolhem**. Medido: escrever «Battement
+fondu» no passo 1 dava `passo2Botao.disabled = true`, com o título *«Falta o que acontece (a
+definição do exercício), a categoria, a tradição de referência»*. E `sincronizarPasso1ComExercicio`
+recusava preencher quando havia nome escrito. **O único campo que pergunta «que exercício é este»
+era o que trancava a porta para o responder.**
+
+**O que foi decidido.**
+
+- **O CAMPO PASSOU A PROCURAR.** Enquanto se escreve, uma lista de sugestões mostra os exercícios do
+  vocabulário que casam — sem acentos, sem maiúsculas, por prefixo, por meio do nome e por
+  semelhança de palavra (`batman` chega a `Battement`, `fondue` a `fondu`). A lista é **marcação
+  nossa**, e não um `<datalist>`: essa tentativa já está registada em 1885 — a janela do `<datalist>`
+  é do navegador, não aceita desenho e sai ao lado de menus que são nossos.
+- **UM NOME QUE CASA NÃO É UM EXERCÍCIO NOVO.** Escolher na lista — ou escrever à letra o nome de um
+  exercício que existe — preenche a categoria, a tradição e o «o que acontece», escolhe o exercício
+  no passo 2 e **mantém o passo 2 aberto**. O método herda a tradição do termo, pela regra que já
+  existia (`sugerirMetodo`). A grafia passa a ser a do dicionário: é ela que o documento publica.
+- **O EXERCÍCIO NOVO CONTINUA A SER NOVO.** Sem resultado, a linha de estado diz que vai ser criado,
+  os três campos ficam **abertos e vazios**, e o passo 2 só abre quando os três estiverem
+  preenchidos. O sistema não inventa classificação.
+- **NÃO SE DUPLICA.** Com um nome que casa, o «Seguir» **não faz `POST /api/bastidores/termo`** — o
+  exercício já está na lista que a página tem, e criar um segundo seria a redundância que ela pediu
+  para evitar. Era a segunda metade do pedido, e é a que evita o custo e a segunda verdade.
+- **UMA PERGUNTA, UMA RESPOSTA.** Escolher no passo 2 escreve o nome no passo 1. Eram dois sítios a
+  responder ao mesmo — e a dizer coisas diferentes: escolher «Plié» no passo 2 deixava «Battement
+  fondu» escrito no passo 1.
+- **A CLASSIFICAÇÃO DEIXOU DE SE CONGELAR — reversão declarada.** Desde 02/11/2026 a categoria e a
+  tradição ficavam bloqueadas sobre um exercício do dicionário, com a nota «para as mudar, edite o
+  termo no vocabulário». **É esta regra que ela mandou levantar**: *«Acontece que essa regra se
+  tornou um impeditivo. […] Então eu tive que burlar.»* Os dois campos passam a ser **editáveis** —
+  é o «ajustes manuais» que ela pediu —, e o que protege o dicionário não é o `disabled` é a rota:
+  `POST /api/bastidores/termo` **aproveita** o termo existente e **não lhe reescreve a definição**
+  (`reutilizar`, 07/11/2026). O ajuste vale para **este verbete** — a frase dos trechos e o «lê-se»
+  que deles se deriva —, e o termo continua a mudar-se no vocabulário, que é onde ele mora.
+  O preenchimento automático **não reescreve** o ajuste dela: só sobrepõe o que ainda é a sugestão
+  anterior (a mesma regra do `METODO_SUGERIDO`, que já existia ao lado).
+- **O RÓTULO DO PASSO 1 MUDOU:** «O exercício novo» → «O exercício», e o passo 2 passou a «O
+  exercício do verbete». O rótulo anunciava a regra que trancava o formulário.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — a marcação do passo 1 (campo, lista, linha de
+estado), o desenho da lista no `<style>` da página (o regime da checagem 4: a folha é congelada, e a
+superfície que declara o que usa responde no seu próprio desenho — o mesmo sítio de `.col-lista` e
+de `.lb-cartoes`), e no script: `normalizarBusca`, `pontuacaoDaBusca`, `exerciciosParecidos`,
+`exercicioExistente`, `pintarSugestoes`, `moverSugestao`, `escolherExercicio`,
+`sincronizarNomeDigitado`, `pintarEstadoDoExercicio`, o `alternarPasso1` sem congelamento, o
+`sincronizarPasso1ComExercicio` com a pergunta certa, o `criarExercicioDoPasso1` sem duplicar, e o
+teclado (setas, `Enter`, `Escape`; o clique é `mousedown` porque o `blur` do campo mata o `click`).
+`experimentos/provar-busca-do-exercicio.js` (**novo, 68 asserções**) ·
+`experimentos/provar-celula.js` (as duas asserções do rótulo acompanham) · `.gitignore`.
+
+**Validação.** `provar-busca-do-exercicio` **68/68**, num Chrome de verdade, com o vocabulário da
+bancada: (A) o caminho que estava fechado; (B) a busca por acento, prefixo e semelhança; (C) a
+escolha pela lista; (D) o exercício novo e os três obrigatórios; (E) não duplicar, **com contraprova**
+— o termo inédito é gravado; (F) o teclado; (G) a classificação editável e o ajuste que sobrevive;
+(H) o passo 1 a acompanhar o passo 2; (I) a geometria — a lista com a largura exacta do campo e 44px
+por sugestão a 1366 e a 390. Sem regressão: `provar-producao` **166/166**, `provar-largura-da-lista`
+56, `provar-vao-do-botao` 50, `provar-abas-da-audicao` 86, `provar-historico-do-ajuste` 39,
+`provar-celular` 15, `check-identidade` **0 erros (21 ok)**. `provar-celula` **não corre até ao fim**, e
+**falha exactamente no mesmo ponto no `HEAD`** («a decomposição pede o exercício antes de o haver» e
+a tabela vazia), verificado num worktree à parte: é anterior a esta entrega.
+
+**O que ainda não está feito.** (1) **A busca é local**: procura no vocabulário que a página carregou
+(`GET /api/bastidores/verbete`), e não no repositório a cada tecla — que seria uma requisição por
+letra. Um termo criado por outra sessão só aparece depois de recarregar. (2) **A semelhança é de
+prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no meio da palavra
+(`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
+(3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
+o passo seguinte ao deploy.

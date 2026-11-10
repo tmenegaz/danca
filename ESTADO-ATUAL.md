@@ -4,15 +4,29 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **o histórico do ajuste diz a
-> mudança, não duas fotografias**. Ela perguntou para que servia o bloco «versões anteriores» do
-> cartão — e a resposta expôs quatro defeitos: o rótulo `2 versão(ões) anterior(es)`, duas linhas
-> para comparar de olho, a data em **dois formatos** (o bloco era um por lista) e o motivo
-> **ausente** do cartão (só no log da cadeia). **DECIDIDO** — por ela — manter nos dois sítios, com
-> o rótulo em português corrente, a **diferença** calculada («ter, qui: 18:00 → 19:00»), a data em
-> BR nos dois, e o motivo gravado **no elo** num campo opcional. O elo **não herda** a razão do
-> ajuste anterior — é o defeito que o `Object.assign` da derivação criaria, e está provado nos dois
-> sentidos. `provar-historico-do-ajuste` **39/39**. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
+> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **o passo 1 do Estilo procura no
+> vocabulário**. Ela contou o que fazia para começar um verbete de um exercício que já existia —
+> inventar um nome, uma categoria e a letra «T» para destrancar o passo 2 — e chamou-lhe
+> **«burlar»**. **CONFIRMADO e medido**: `oQueFaltaNoPasso1` lia o nome escrito como «exercício
+> novo» e **fechava o passo 2**, que é onde os exercícios existentes se escolhem; o único campo que
+> pergunta «que exercício é este» trancava a porta para o responder. Agora o campo **procura**
+> enquanto se escreve (sem acentos, por prefixo e por semelhança), um nome que casa **preenche** a
+> categoria, a tradição e a definição, **escolhe** o exercício e **mantém o passo 2 aberto**; um nome
+> inédito mantém os três campos abertos e obrigatórios; e o exercício que já existe **não volta a ser
+> criado**. **DECIDIDO por ela — reversão declarada**: a categoria e a tradição deixam de ficar
+> congeladas (era esta regra o impedimento), e o ajuste vale para o verbete, não para o termo. O
+> rótulo do passo 1 passou de «O exercício novo» a «O exercício». `provar-busca-do-exercicio`
+> **68/68**. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (10/11/2026).** Nesta entrega, **o histórico do ajuste diz a mudança, não
+> duas fotografias**. Ela perguntou para que servia o bloco «versões anteriores» do cartão — e a
+> resposta expôs quatro defeitos: o rótulo `2 versão(ões) anterior(es)`, duas linhas para comparar
+> de olho, a data em **dois formatos** (o bloco era um por lista) e o motivo **ausente** do cartão
+> (só no log da cadeia). **DECIDIDO** — por ela — manter nos dois sítios, com o rótulo em português
+> corrente, a **diferença** calculada («ter, qui: 18:00 → 19:00»), a data em BR nos dois, e o motivo
+> gravado **no elo** num campo opcional. O elo **não herda** a razão do ajuste anterior — é o
+> defeito que o `Object.assign` da derivação criaria, e está provado nos dois sentidos.
+> `provar-historico-do-ajuste` **39/39**. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
 >
 > **Fotografia anterior (10/11/2026).** Nesta entrega, **a faixa de 1141 a 1919px deixa de ser
 > território sem prova**: ela mudou a resolução do monitor de 1920×1080 para 1366×768 e a listagem
@@ -815,8 +829,10 @@ e é a curadoria que diz qual linha de base a turma curada trata. Ela é **do pr
 > **«Apagar o verbete» saiu do passo 6** e vive só na listagem; e a **navegação bloqueia para a
 > frente** — o passo seguinte e o «Seguir» ficam desactivados até os obrigatórios da etapa estarem
 > preenchidos, e o «Voltar» continua livre. O passo 1 passou a **ler o passo 2**: escolhido um
-> exercício existente, categoria, tradição e «o que acontece» vêm do dicionário e ficam
-> **congelados** (`disabled`). Duas correcções de dados: o `ED`/`EI` do alfabeto deixaram de se
+> exercício existente, categoria, tradição e «o que acontece» vêm do dicionário e ficavam
+> **congelados** (`disabled`) — **o congelamento caiu a 10/11/2026**, por decisão dela, porque
+> impedia começar um verbete de um exercício que já existia; ver a entrada dessa data no
+> `REGISTRO.md`. Duas correcções de dados: o `ED`/`EI` do alfabeto deixaram de se
 > chamar «en dehors»/«en dedans» e passaram a **«varredura para fora/dentro»**, e as fixtures do
 > `breu` passaram a **Plié · Battement tendu · Battement fondu**, com a música e a decomposição
 > pré-escritas. Também se corrigiu uma **regressão medida**: o preenchedor de fixtures chamava
@@ -3210,7 +3226,18 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (10/11/2026 — o histórico do ajuste)
+### Executado nesta fotografia (10/11/2026 — a busca do exercício no passo 1)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-busca-do-exercicio` (**nova**) | **PASSOU — 68 asserções**, num Chrome de verdade, contra o código servido e um vocabulário de bancada. (A) o caminho que estava fechado: escrever o nome de um exercício que existe preenche categoria, tradição e definição, escolhe-o no passo 2 e **mantém o passo 2 aberto**; (B) a busca por acento (`plie` → `Plié`), por prefixo (`pli`), por meio (`tendu`) e por semelhança (`batman` → `Battement…`, `fondue` → `…fondu`), e uma letra só não lista nada; (C) a escolha pela lista, com a grafia do dicionário; (D) o exercício **novo**: os três campos abertos, vazios, e o passo 2 fechado até estarem preenchidos; (E) **não duplicar**, com **contraprova** — o termo inédito é gravado; (F) o teclado (setas, `Enter` escolhe sem criar, `Escape` fecha); (G) a classificação **editável** e o ajuste dela a sobreviver ao preenchimento; (H) o passo 1 a acompanhar o passo 2; (I) a geometria — a lista com a largura exacta do campo e **44px** por sugestão, a 1366 e a 390 |
+| `provar-producao` · `provar-largura-da-lista` | **166/166** · **56/56** — verdes |
+| `provar-vao-do-botao` · `provar-abas-da-audicao` · `provar-historico-do-ajuste` · `provar-celular` | **50 · 86 · 39 · 15** — verdes |
+| `check-identidade` | **0 erros (21 ok)** — a lista de sugestões é declarada no `<style>` da própria página, o regime da checagem 4 |
+| `provar-celula` | **NÃO CORRE ATÉ AO FIM** — pára em «a decomposição pede o exercício antes de o haver», e **falha exactamente no mesmo ponto no `HEAD`** (verificado num worktree à parte): é anterior a esta entrega |
+| **o que NÃO mede / não passa** | Nada foi corrido **ao ar** nesta sessão. A busca é **local** (o vocabulário carregado com a página) e a semelhança é de **prefixo** — um erro no meio da palavra não é encontrado |
+
+### Executado na fotografia anterior (10/11/2026 — o histórico do ajuste)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4349,6 +4376,23 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **10/11/2026** — **O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser
+  escolhido.** Ela contou o contorno a que foi obrigada: inventar um nome, uma categoria e a letra
+  «T» no «o que acontece» para destrancar o passo 2 — e chamou-lhe **«burlar»**. **CONFIRMADO e
+  medido** na bancada: `oQueFaltaNoPasso1` lia o nome escrito como «exercício novo» e fechava o
+  passo 2 (o `disabled` com o título «Falta o que acontece…, a categoria, a tradição»), e
+  `sincronizarPasso1ComExercicio` recusava preencher quando havia nome escrito — o campo que
+  pergunta «que exercício é este» era o que trancava a porta. **DECIDIDO**: o campo procura (sem
+  acentos, por prefixo e por semelhança, numa lista nossa e não num `<datalist>`); um nome que casa
+  preenche os três campos, escolhe o exercício e mantém o passo 2 aberto; um nome inédito mantém os
+  três abertos e obrigatórios; e o exercício existente **não volta a ser criado** (o «Seguir» não faz
+  `POST`). **Reversão declarada, por ela**: a categoria e a tradição deixam de ficar **congeladas**
+  sobre um exercício do dicionário — era essa a regra que impedia —, e o ajuste vale para o verbete;
+  o termo não é reescrito (`reutilizar`). O rótulo do passo 1 passou de «O exercício novo» a «O
+  exercício». `provar-busca-do-exercicio` **68/68** (novo, com contraprova em E e geometria em I);
+  sem regressão em `producao` 166, `largura-da-lista` 56, `vao-do-botao` 50, `abas-da-audicao` 86,
+  `historico-do-ajuste` 39, `celular` 15, `check-identidade` 0 erros. `provar-celula` falha no mesmo
+  ponto do `HEAD`. Ver a entrada de 10/11/2026 no `REGISTRO.md`.
 - **10/11/2026** — **O histórico do ajuste passa a dizer a mudança, e o porquê.** Ela perguntou,
   como quem opera a escola, para que servia o «versões anteriores» do cartão; a resposta honesta
   tinha duas metades. O bloco **existia por necessidade**, não por gosto: num registo vinculado a um
