@@ -1031,3 +1031,15 @@ experimentos/modelo-formulario/*
 # troca de sala, a unicidade do id e o reaponte dos ponteiros. CONTROLE NEGATIVO: o motor de antes
 # reprova 17 de 31 — e reproduz o dano.
 !experimentos/provar-troca-de-direcao.js
+
+# A DIREÇÃO DO DOCUMENTO DERIVADO (10/11/2026). A pesquisadora derivou a Turma para a Redinha Rosa e
+# leu no cabeçalho do PO o nome ANTIGO — «se eu mandar gerar, ele vai gerar com aqueles valores». A
+# cadeia dava o plano por em dia porque ele era do MESMO DIA (a data era o único critério), e a
+# identidade do documento vive nas RESPOSTAS, que a derivação não reescrevia. A prova mede as duas
+# causas, e mede que o plano segue a Turma quando ela muda de sala.
+!experimentos/provar-direcao-do-documento.js
+
+# O VÉU NOS BASTIDORES (10/11/2026). «Continuo podendo clicar aí para onde eu quiser […] o usuário
+# fica sem nenhum feedback.» O véu existia na porta e não existia aqui. A prova mede-o no navegador:
+# aparece, diz o passo, deixa a página inerte e sai. CONTROLE NEGATIVO: o motor de antes reprova 8.
+!experimentos/provar-veu-da-operacao.js

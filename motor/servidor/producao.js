@@ -381,6 +381,9 @@ async function montarCadeia(env, escola, fetchImpl) {
   };
   const lerCuradorias = (slug) => lerLista('curadorias');
   const lerTurmas = (slug) => lerLista('turmas');
+  /* O CADASTRO DOS PROFESSORES (10/11/2026) — a cadeia precisa dele para escrever NOME no
+   * documento derivado, e não slug. É a mesma lista que a página lê. */
+  const lerProfessores = (slug) => lerLista('professores');
   const lerLinhasDeBase = async () => {
     // A LEITURA É A MESMA DA PÁGINA: repositório primeiro (é onde os actos vivem), KV por cima
     // (o rascunho) — e a função que faz isso é a dos Bastidores, não uma segunda. A variante
@@ -417,7 +420,8 @@ async function montarCadeia(env, escola, fetchImpl) {
     armazenamento, porta: portaNucleo, conteudo, conteudoPlano, conteudoPO, esquema,
     carimbar: () => carimbarAgora((env && env.FUSO) || FUSO_PADRAO),
     escreverPlano, escreverPO, escreverCiclo, disparar, geracao, concluirPO,
-    lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, kv, escola,
+    lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, lerProfessores,
+    kv, escola,
     orcamento: (fetchImpl && fetchImpl.subpedidos) || null,
     urlDaPorta: bastidores.urlDaPorta,
   });

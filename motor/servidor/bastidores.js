@@ -7142,7 +7142,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * E ELA NÃO PODE DISPARAR EM CICLO. O pedido de fecho devolve `porOrcamento` falso (o fecho
      * não gasta cadeia), e há uma guarda por elemento: dois `pintarCadeia` no mesmo sítio — a
      * gravação e o `carregarLinhas` — pintam, mas só um pergunta. */
-    'function pintarCadeia(c, res, jaTentei) {' +
+    'function pintarCadeia(c, res, jaTentei, manterVeu) {' +
     '  if (!c || c.executada === false || !res) return;' +
     /* O QUE ESTA FUNÇÃO PINTOU SAI ANTES DO QUE ELA VAI PINTAR — e só isso. O `res` é a mesma
      * caixa onde o acto escreveu a frase dele («Fulana passou de A para B»), e essa fica: sem a
@@ -7166,13 +7166,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var a = document.createElement("a");' +
     '      a.href = f.href;' +
     '      a.textContent = "abrir";' +
+    /* A ETAPA DO PACOTE NÃO SE ABRE: EXECUTA-SE (10/11/2026). O que falta ali não é um documento
+     * para ler — é uma geração. A ligação leva a marca da turma, e o clique corre o fecho na
+     * própria página, com o véu de pé. Sem isto, o «abrir» levava à porta, a porta não tinha
+     * documento para carregar, e devolvia o professor à listagem. */
+    '      if (f.chave === "pacote" && f.turma) {' +
+    '        a.setAttribute("data-fechar", f.turma);' +
+    '        a.title = "gerar os documentos de \u00ab" + f.turma + "\u00bb";' +
+    '      }' +
     '      linha.appendChild(a);' +
     '    }' +
     '    res.appendChild(linha);' +
     '  }' +
-    '  if (!c.porOrcamento || jaTentei || res.getAttribute("data-a-fechar") === "sim") return;' +
+    '  if (!c.porOrcamento || jaTentei || res.getAttribute("data-a-fechar") === "sim") {' +
+    '    if (manterVeu) liberar();' +
+    '    return;' +
+    '  }' +
     '  var turmas = (c.alvos || []).map(function(a){ return a.turma; }).filter(Boolean);' +
-    '  if (!turmas.length) return;' +
+    '  if (!turmas.length) { if (manterVeu) liberar(); return; }' +
     '  res.setAttribute("data-a-fechar", "sim");' +
     /* UMA TURMA POR PEDIDO (10/11/2026). O teto de subpedidos é POR INVOCAÇÃO, e uma geração
      * custa 18: duas turmas cabem nos 50, três não. Pedir todas de uma vez deixaria a terceira
@@ -7196,9 +7207,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que fechou. A caixa mostra o que ainda precisa do professor; o que está feito não pede
      * nada. */
     '      if (ultimaFalha) pintarCadeia(ultimaFalha, res, true);' +
+    /* A FILA ACABOU — e o véu sai com ela. É este o único sítio que o levanta quando a geração
+     * corre em continuação: o `enviar` deixou-o de pé de propósito. */
+    '      if (manterVeu) liberar();' +
     '      return;' +
     '    }' +
     '    var turma = pendentes.shift();' +
+    '    if (manterVeu) dizerNoVeu("a gerar os documentos de \u00ab" + turma + "\u00bb\u2026");' +
     '    var espera = aviso("a gerar os documentos de \u00ab" + turma + "\u00bb, num pedido próprio...");' +
     '    fetch("/api/bastidores/cadeia-pacote", {method: "POST",' +
     '      headers: {"Content-Type": "application/json"}, body: JSON.stringify({turmas: [turma]})})' +
@@ -7208,6 +7223,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          espera.textContent = "a geração de \u00ab" + turma + "\u00bb não partiu: " +' +
     '            ((d && d.erro) || "sem resposta");' +
     '          res.removeAttribute("data-a-fechar");' +
+    '          if (manterVeu) liberar();' +
     '          return;' +
     '        }' +
     '        pintarCadeia(d.cadeia, res, true);' +
@@ -7217,10 +7233,46 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      .catch(function(e){' +
     '        res.removeAttribute("data-a-fechar");' +
     '        espera.textContent = "a geração de \u00ab" + turma + "\u00bb não partiu: " + e.message;' +
+    '        if (manterVeu) liberar();' +
     '      });' +
     '  }' +
     '  passo();' +
     '}' +
+    /* O FECHO DO PACOTE PELO LINK (10/11/2026) — a etapa «Documentos gerados» executada onde ela
+     * vive. É o MESMO pedido que a continuação automática faz; o que muda é quem o pede.
+     *
+     * `pintarCadeia(..., true)` no fim: o `jaTentei` impede a fila automática de pedir outra vez o
+     * que acabou de ser pedido — seria um laço. */
+    'function fecharDoEndereco(turma) {' +
+    '  var res = alvoDoRecado();' +
+    '  if (!res) return;' +
+    '  ocupar("a gerar os documentos de \u00ab" + turma + "\u00bb\u2026");' +
+    '  fetch("/api/bastidores/cadeia-pacote", {method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({turmas: [turma], token: TOKEN})})' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      liberar();' +
+    '      if (!d || !d.cadeia) {' +
+    '        recado("erro", "a geração de \u00ab" + turma + "\u00bb não partiu: " +' +
+    '          ((d && d.erro) || "sem resposta"));' +
+    '        return;' +
+    '      }' +
+    '      res.className = "res " + (d.cadeia.ok ? "ok" : "aviso");' +
+    '      res.textContent = "";' +
+    '      pintarCadeia(d.cadeia, res, true);' +
+    '    })' +
+    '    .catch(function(e){' +
+    '      liberar();' +
+    '      recado("erro", "a geração de \u00ab" + turma + "\u00bb não partiu: " + e.message);' +
+    '    });' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var a = e.target.closest ? e.target.closest("[data-fechar]") : null;' +
+    '  if (!a) return;' +
+    '  e.preventDefault();' +
+    '  fecharDoEndereco(a.getAttribute("data-fechar"));' +
+    '});' +
     'function pintarTransferencia() {' +
     '  var form = document.getElementById("form-mover");' +
     '  var sem = document.getElementById("mv-sem-dois");' +
@@ -7478,9 +7530,71 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // E ele só roda em caso de SUCESSO: um «Avançar» que falhou não pode levar ninguém a
     // avançar. É a diferença entre um botão e uma promessa.
+    /* O VÉU DA OPERAÇÃO (10/11/2026).
+     *
+     * A PORTA já o tinha desde 08/11; os Bastidores não tinham nenhum. O que isso custava, na
+     * letra dela: «continuo podendo clicar aí para onde eu quiser, fazer o que eu quiser, e
+     * quando dá errado o processo não tem nenhuma flag». Cada gesto desta página escreve no
+     * repositório e manda correr a cadeia; dois cliques durante o primeiro põem duas escritas a
+     * competir pelo mesmo `main` — foi o defeito de 08/11, com o `-po.md` a apontar um PO e o
+     * `-dados.json` a descrever outro.
+     *
+     * São três funções minúsculas, e cada uma faz uma coisa: `ocupar` cobre e tranca (o ponteiro
+     * pelo véu, o teclado e o leitor de ecrã pelo `inert`), `dizerNoVeu` troca o texto sem
+     * destrancar, `liberar` devolve a página. A peça de desenho é a da folha congelada.
+     *
+     * O QUE O VÉU NÃO FAZ: esconder um erro. Ele sai sempre — no sucesso, no erro e na excepção
+     * —, e o erro fica escrito na caixa do gesto como sempre ficou.
+     */
+    /* O `inert` VAI NOS FILHOS DO `body`, MENOS NO VÉU. Pô-lo no `<body>` trancaria o próprio
+     * véu — que é filho dele —, e o texto deixaria de ser anunciado a quem usa leitor de ecrã.
+     * O que tem de ficar surdo é o que está por BAIXO. */
+    'function trancarATela(trancada) {' +
+    '  var filhos = document.body ? document.body.children : [];' +
+    '  for (var i = 0; i < filhos.length; i++) {' +
+    '    if (filhos[i].id === "veu") continue;' +
+    '    filhos[i].inert = trancada;' +
+    '  }' +
+    '}' +
+    'function ocupar(texto) {' +
+    '  var veu = document.getElementById("veu");' +
+    '  if (!veu) return;' +
+    '  var alvo = document.getElementById("veu-texto");' +
+    '  if (alvo) alvo.textContent = String(texto || "a trabalhar\u2026");' +
+    '  veu.setAttribute("data-ocupado", "sim");' +
+    '  trancarATela(true);' +
+    '} ' +
+    'function dizerNoVeu(texto) {' +
+    '  var alvo = document.getElementById("veu-texto");' +
+    '  if (alvo) alvo.textContent = String(texto || "");' +
+    '}' +
+    'function liberar() {' +
+    '  var veu = document.getElementById("veu");' +
+    '  if (veu) veu.removeAttribute("data-ocupado");' +
+    '  trancarATela(false);' +
+    '}' +
+    /* O TEXTO NOMEIA O QUE ESTÁ A ACONTECER — e o que está a acontecer depende do gesto. A frase
+     * genérica («a trabalhar») é indistinguível de uma página pendurada; a que diz o passo não
+     * é. O mapa é por ENDEREÇO, e o que não estiver nele cai na mensagem que o gesto já passava
+     * (as duas são a mesma informação, uma mais curta do que a outra). */
+    'function textoDoPasso(ep) {' +
+    '  var mapa = {' +
+    '    "/api/bastidores/curadoria-derivar": "a ajustar a Turma, a derivar o plano de ensino e o plano de observação\u2026",' +
+    '    "/api/bastidores/curadoria": "a gravar a Turma e a reavaliar o que depende dela\u2026",' +
+    '    "/api/bastidores/turma-derivar": "a ajustar a sala e a reler o ritmo no plano\u2026",' +
+    '    "/api/bastidores/turma-editar": "a ajustar a sala e a reler o ritmo no plano\u2026",' +
+    '    "/api/bastidores/elenco-mover": "a mover a aluna e a reavaliar a Turma\u2026",' +
+    '    "/api/bastidores/linha-de-base": "a concluir o elenco e a reavaliar as Turmas que o usam\u2026",' +
+    '    "/api/bastidores/cadeia-pacote": "a gerar os documentos\u2026"' +
+    '  };' +
+    '  return mapa[ep] || null;' +
+    '}' +
     'function enviar(ep, corpo, mensagem, recarregar, aoOk) {' +
     '  corpo.token = TOKEN;' +
     '  recado("", mensagem);' +
+    /* A MENSAGEM DO GESTO JÁ É UMA FRASE («gravando o termo…»). O mapa só a troca quando
+     * o passo tem nome próprio; inventar prefixo («a gravando…») seria pior do que não dizer. */
+    '  ocupar(textoDoPasso(ep) || mensagem || "a trabalhar\u2026");' +
     '  var res = alvoDoRecado();' +
     '  return fetch(ep, {' +
     '    method: "POST",' +
@@ -7508,6 +7622,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A LISTA FICA FRESCA SEM F5 DO PROFESSOR: os botões, os ids e o histórico vêm do servidor,
      * como antes de 09/11. */
     '      if (recarregar) {' +
+    /* O VÉU NÃO SAI ANTES DA RECARGA: quem está a olhar não deve ver a página velha destrancada
+     * por um instante. A recarga leva-o, e a página nova nasce sem véu. */
     '        guardarCadeiaDaGravacao(d.cadeia, res);' +
     '        location.reload();' +
     '        return;' +
@@ -7517,13 +7633,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (pendente) {' +
     '        res.className = "res " + (d.cadeia.ok ? "ok" : "aviso");' +
     '        res.textContent = "";' +
-    '        pintarCadeia(d.cadeia, res);' +
+    /* A CONTINUAÇÃO DA GERAÇÃO MANTÉM O VÉU (10/11/2026). `pintarCadeia` manda sozinha o pedido
+     * que fecha o pacote, e é ele que demora. Libertar aqui abria a página exactamente durante a
+     * parte mais longa — e o gesto seguinte entrava a competir com a geração. O véu fica, com o
+     * texto do passo, e quem o levanta é a última resposta. */
+    '        pintarCadeia(d.cadeia, res, false, true);' +
     '        return;' +
     '      }' +
+    '      liberar();' +
     '      res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")";' +
     '    }' +
-    '    else { recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
-    '  }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
+    '    else { liberar(); recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
+    '  }).catch(function(err){ liberar(); recado("erro", "Erro: " + err.message); });' +
     '}' +
     /* O RECADO DA CADEIA ATRAVESSA A RECARGA (10/11/2026).
      *
@@ -8022,17 +8143,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Os dois `select` do par seguem o modo: travados no «Editar» (substitui no lugar), livres no
     // «Derivar» (elo novo).
     //
-    // A SALA DEIXOU DE SER ESCOLHA NO «DERIVAR» (10/11/2026). Aqui esteve escrito «A sala continua
-    // a escolher-se no próprio campo, nos dois modos» — e foi por essa porta que se moveu, sem
-    // querer, uma Turma inteira: bastou trocar a sala no formulário de ajuste para o elo novo
-    // nascer noutra sala, deixando a antiga sem direção e a nova sem plano de ensino, sem PO e
-    // sem documentos. Derivar ajusta a DIREÇÃO (professor e modalidade) da mesma Turma; a sala é
-    // o outro eixo, e o servidor recusa a troca com o mesmo critério. Uma Turma noutra sala é uma
-    // Turma nova, e cria-se pelo botão de criar — onde a cadeia diz o que falta.
-    //
-    // TRAVADA, mas visível: o campo mostra a sala em que a Turma está (é um facto que quem ajusta
-    // precisa de ler), e não oferece as outras. Um campo escondido obrigaria a adivinhar onde a
-    // Turma vive.
+    // A SALA TAMBÉM É LIVRE NO «DERIVAR» (10/11/2026). Ela chegou a ser travada — e a trava era a
+    // resposta errada para o problema certo. Uma escola pode mudar a direção, a sala e o elenco no
+    // mesmo dia (é o caso normal de uma reorganização), e a cadeia passou a saber levar o plano
+    // atrás da Turma: `planoDaTurmaOuDaOrigem` procura o plano da sala de ORIGEM e deriva dele, e
+    // o elo novo nasce com a sala nova na identidade. O que se perde são os documentos da sala
+    // antiga — eles são daquele sítio e daquele ritmo, e a geração nova faz-se sozinha.
     '  document.getElementById("cuprofessor").value = c.professor;' +
     '  document.getElementById("cuprofessor").disabled = !derivar;' +
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
@@ -8056,10 +8172,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarGraus(grauDe);' +
     '  document.getElementById("cunivel").value = nivelDe;' +
     '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
-    // A SALA SEGUE O MODO, como o par: no «Derivar» ela é a da Turma e não se muda (ver o
-    // comentário acima); no «Editar» uma Turma ainda livre pode mudar de sala, e o servidor
-    // confere a identidade e o ponteiro.
-    '  document.getElementById("cuturma").disabled = derivar;' +
     /* SÓ O REPERTÓRIO VOLTA A SER MARCADO (05/11/2026). As alunas saíram do formulário — o elenco
      * vem da turma, pela linha de base — e continuar a preencher um escolhedor que já não existe
      * seria código a falar com um campo ausente. A `c.alunas` da curadoria antiga não se perde: ela
@@ -12750,6 +12862,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
     // atributo `data-escola-teste`, o próprio script não faz nada.
     (teste ? '<script src="/assets/teste-preenchimento.js"></script>' : '') +
+    /* O VÉU DA OPERAÇÃO — a MESMA peça da porta (10/11/2026).
+     *
+     * A PORTA tinha véu desde 08/11; os BASTIDORES não tinham nenhum, e é aqui que ela trabalha
+     * — Turmas, Salas, Elencos, Professores. O sintoma que ela descreveu: «continuo podendo
+     * clicar aí para onde eu quiser, fazer o que eu quiser, e quando dá errado o processo não tem
+     * nenhuma flag». Um gesto destes escreve no repositório e manda correr a cadeia; um segundo
+     * clique durante o primeiro põe duas escritas a competir pelo mesmo `main`.
+     *
+     * A peça é a da folha congelada (`tools/templates/ciclo.css`, `.veu[data-ocupado="sim"]`):
+     * não se inventa desenho novo. O que este sítio traz é o ESTADO e o TEXTO. */
+    '<div class="veu" id="veu" role="status" aria-live="polite">' +
+    '<p class="veu-texto" id="veu-texto">a trabalhar…</p></div>' +
     fimDaVista();
 }
 
@@ -16262,60 +16386,27 @@ async function fetch(request, env, extras) {
       }
     }
     const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
-    /* A SALA NÃO SE MUDA A DERIVAR (10/11/2026) — e a recusa nasceu de um dano medido.
+    /* TROCAR TUDO AO MESMO TEMPO É UM GESTO LEGÍTIMO (10/11/2026).
      *
-     * O QUE ACONTECEU. A pesquisadora abriu «derivar» numa Turma da sala Rosa, trocou o
-     * PROFESSOR e gravou. A derivação aceitou-a e arrastou a Turma para a sala Piano: a Rosa
-     * ficou sem ninguém a dirigi-la, e a Piano nasceu sem plano de ensino, sem PO e sem
-     * documentos — porque os três são da SALA a que o plano pertence, e não vêm atrás de um elo
-     * novo. A cadeia respondeu, com verdade, «A Turma «Piano» ainda não tem plano de ensino. O
-     * primeiro nasce na porta». Lido por quem acabara de trocar um professor, isso diz «criei
-     * outra escola» — e era exactamente o que tinha acontecido.
+     * Aqui esteve uma recusa: derivar não podia mudar a SALA, porque mudar de sala arrastava a
+     * Turma para outro sítio e a cadeia parava em «a Turma «Piano» ainda não tem plano de
+     * ensino». A recusa estava a tratar o sintoma. Uma escola pode mudar a direção, a sala e o
+     * elenco no mesmo dia — é o caso normal de uma reorganização —, e proibir o gesto não é
+     * responder-lhe.
      *
-     * PORQUE É QUE A SALA NÃO É DO PAR QUE SE AJUSTA. Derivar ajusta a DIREÇÃO da mesma Turma: o
-     * professor e a modalidade, que é o que o comentário de cima enumera. A SALA é o outro eixo
-     * — é ela que nomeia a variante (`calango-rosa`), o `.conf`, a pasta do pacote, a âncora e o
-     * vínculo do plano de ensino (`planoVigenteDaTurma` procura por NOME da sala). Mudar a sala
-     * não ajusta a Turma: dá-lhe outro lugar, e o que estava no lugar antigo não a acompanha.
+     * O PROBLEMA REAL ERA O PLANO NÃO SEGUIR A TURMA. O plano é identificado pelo NOME da sala
+     * (`contexto-turma`) e é por ele que `planoVigenteDaTurma` o procura; mudando de sala, o
+     * destino não tinha plano nenhum e a cadeia dizia, com verdade, que o primeiro nasce na
+     * porta. Passa a haver caminho: `planoDaTurmaOuDaOrigem` (cadeia.js) procura o plano da sala
+     * do elo ANTERIOR e deriva dele — o elo novo nasce com a sala nova na identidade, e o antigo
+     * fica a dizer a sala em que valeu. É a mesma regra de sempre: acrescentar, não reescrever.
      *
-     * O CAMINHO PARA QUEM QUER MESMO MUDAR DE SALA fica dito na recusa, e não é este: uma Turma
-     * NOVA na sala de destino — que é o que a derivação estava a fazer por baixo do nome de
-     * «derivar». A assimetria é de propósito: criar deixa rastro e diz o que falta; derivar diz
-     * que ajustou, e é isso que torna o arrasto invisível.
+     * O QUE SE PERDE, e diz-se. Os documentos da sala antiga (o pacote, a âncora, a variante)
+     * ficam onde estão: eles são daquele sítio e daquele ritmo. Quem mudou de sala gera de novo,
+     * e a cadeia faz isso sozinha.
      */
     const salaDaAnterior = turmasDaCuradoria(anterior)[0] || '';
-    // A SALA QUE JÁ NÃO EXISTE NÃO PRENDE A TURMA: se a antiga foi apagada do cadastro, mudar de
-    // sala é a única saída que resta, e recusá-la deixaria a Turma apontada para o nada.
-    const salaAntigaExiste = Boolean(salaDaAnterior && porNome.has(salaDaAnterior));
-    /* A TROCA SÓ É INOCENTE ENQUANTO NADA ESTIVER ESCRITO NA SALA ANTIGA. O que se perde ao
-     * mudar de sala não é a Turma: é o PLANO DE ENSINO da sala de origem — e, com ele, o PO, o
-     * pacote, a âncora e a variante, que todos nomeiam a sala. Enquanto a Turma for LIVRE
-     * (nenhum plano nasceu dela), mudar de sala não parte nada e continua a ser um ajuste; a
-     * partir do primeiro plano, o que existe é outro lugar, e a Turma de lá é outra.
-     *
-     * A CONDIÇÃO É A DA SALA, e não a do par professor·sala: `planoVigenteDaTurma` procura o
-     * plano pelo NOME da sala, e um plano escrito por outro professor naquela sala também é
-     * história que não anda atrás de um elo novo. `curadoriaVinculadaA` responde à pergunta mais
-     * estreita (este professor, esta sala) e deixaria passar exactamente esse caso. */
-    let temPlanoNaSalaAntiga = false;
-    if (turmaFinal && salaDaAnterior && turmaFinal !== salaDaAnterior && salaAntigaExiste) {
-      const pares = await paresComPlano(env, escola);
-      temPlanoNaSalaAntiga = !pares || pares.some((p) => p && p.turma === salaDaAnterior);
-    }
-    if (temPlanoNaSalaAntiga) {
-      return json(409, {
-        ok: false,
-        erro: '«' + salaDaAnterior + '» → «' + turmaFinal + '» não é um ajuste da mesma Turma: é '
-          + 'outra Turma. A sala é o ritmo, e é ela que nomeia o plano de ensino, o plano de '
-          + 'observação e os documentos — nenhum deles vem atrás de um elo novo. O que se ajusta '
-          + 'aqui é a direção (professor e modalidade) da Turma de «' + salaDaAnterior + '». '
-          + 'Para pôr uma Turma na sala «' + turmaFinal + '», crie-a: ela nasce lá, e a cadeia '
-          + 'diz o que falta.',
-        sala: turmaFinal,
-        salaDeOrigem: salaDaAnterior,
-        falta: ['turma'],
-      });
-    }
+    const mudouDeSala = Boolean(turmaFinal && salaDaAnterior && turmaFinal !== salaDaAnterior);
     /* A SALA FINAL TAMBÉM SE CONFERE (09/11/2026) — e o `excetoId` é a versão de ONDE se deriva:
      * ela deixa de ocupar no momento em que a nova passa a valer, e sem esta exclusão derivar uma
      * Turma sem lhe tocar na sala seria recusado por ela mesma. A recusa é a do ato de criar: uma
@@ -16497,10 +16588,15 @@ async function fetch(request, env, extras) {
       gatilho: 'troca-de-direcao',
       turmas: turmaFinal ? [turmaFinal] : [],
       quando: vigencia,
+      /* O MOTIVO DIZ O QUE MUDOU — e a sala, quando mudou. O log da cadeia é o que se lê depois
+       * para saber porque é que um documento nasceu com outro nome; «passou a fulano» sobre uma
+       * Turma que também mudou de sala contaria metade. */
       motivo: 'a direção da turma «' + (turmaFinal || anterior.id) + '» passou a '
-        + professorDerivado + ' · ' + modalidadeDerivada,
+        + professorDerivado + ' · ' + modalidadeDerivada
+        + (mudouDeSala ? ' (e a sala, de «' + salaDaAnterior + '» para «' + turmaFinal + '»)' : ''),
     });
     return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia,
+      mudouDeSala: mudouDeSala ? { de: salaDaAnterior, para: turmaFinal } : null,
       cadeia: cadeiaDaDirecao });
   }
 

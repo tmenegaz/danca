@@ -42,8 +42,8 @@ const LIMITE_DO_LOG = 60;
 function criarCadeia({
   armazenamento, porta, conteudo, conteudoPlano, conteudoPO, esquema, carimbar,
   escreverPlano, escreverPO, escreverCiclo, disparar, geracao, concluirPO,
-  lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, kv, escola, urlDaPorta,
-  orcamento,
+  lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, lerProfessores,
+  kv, escola, urlDaPorta, orcamento,
 }) {
   const chaveDoLog = RAIZ + '/' + escola + '/cadeia';
 
@@ -144,6 +144,57 @@ function criarCadeia({
    * de direção muda o professor. O que se atualiza é o que a curadoria declara AGORA; o resto
    * (o ciclo, a escola, o que o professor escreveu) vem do anterior e não se toca.
    */
+  /**
+   * O NOME DO PROFESSOR QUE PASSA A DIRIGIR (10/11/2026).
+   *
+   * O documento imprime NOME, não slug — e a resposta é a que manda (`derivar-po.js`: «a RESPOSTA
+   * manda, e o contexto é a reserva»). Para reescrever a identidade de um elo derivado é preciso,
+   * portanto, o nome de exibição. O cadastro da escola é quem o tem; o dono da escola vive no
+   * secret `PROFESSOR_NOME` e não nesta lista, e nesse caso a resposta fica com o slug — que é
+   * feio, mas é verdadeiro, e é o que o elo anterior já tinha.
+   */
+  async function nomeDoProfessor(slug) {
+    const alvo = String(slug || '').trim();
+    if (!alvo) return '';
+    try {
+      const lista = typeof lerProfessores === 'function' ? await lerProfessores(escola) : [];
+      const achado = (Array.isArray(lista) ? lista : []).find((p) => p && (
+        String(p.slug || '').trim() === alvo || String(p.nome || '').trim() === alvo));
+      return achado ? String(achado.nome || '').trim() : '';
+    } catch (erro) { return ''; }
+  }
+
+  /**
+   * A IDENTIDADE DO ELO DERIVADO — NAS RESPOSTAS, E NÃO SÓ NO CONTEXTO (10/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA. `contextoDoElo` atualizava `contexto.professor` e `contexto.turma`,
+   * e ficava por aí. Mas os documentos não se imprimem do contexto: o `## Contexto` do plano lê a
+   * RESPOSTA `contexto-professor`, e o cabeçalho do PO lê a RESPOSTA `professor` (o contexto é só
+   * a reserva). Resultado: derivar a Turma para outro professor produzia um elo novo com o
+   * contexto certo e o DOCUMENTO com o nome antigo — a pesquisadora leu-o no cabeçalho do PO:
+   * «ainda aparecia o Pé Torto […] se eu mandar gerar, ele vai gerar com aqueles valores».
+   *
+   * Porque é que a resposta pode ser reescrita aqui, e não é reescrever o passado: as três
+   * respostas são `deContexto` — nascem do cadastro e o formulário diz «vem sugerido da barra,
+   * corrija se for outro». Num elo derivado por mudança de direção, o valor herdado não é uma
+   * decisão do professor: é a leitura de um cadastro que mudou. Corrigi-la é sincronizar a
+   * leitura com a fonte, e é a mesma razão pela qual o ritmo da Sala é relido.
+   *
+   * O elo ANTERIOR não é tocado: ele continua a dizer o professor que tinha, e é isso que faz a
+   * pergunta «quem dirigia em Março» ter resposta.
+   */
+  function identidadeNasRespostas(respostas, campos, valores) {
+    for (const campo of campos) {
+      const valor = valores[campo];
+      if (!valor) continue;
+      const atual = respostas[campo];
+      // `null`/ausente = a pergunta não existe neste mapa; não se inventa resposta para ela.
+      if (atual === undefined) continue;
+      respostas[campo] = Object.assign({}, atual, { valor });
+    }
+    return respostas;
+  }
+
   function contextoDoElo(anterior, curadoria, turma) {
     const base = Object.assign({}, (anterior && anterior.contexto) || {});
     if (escola) base.escola = escola;
@@ -220,9 +271,16 @@ function criarCadeia({
    * hoje, e é isso que faz o documento novo dizer o horário novo.
    */
   async function derivarPlano({ anterior, curadoria, turma, motivo }) {
-    const respostas = Object.assign({}, (anterior && anterior.respostas) || {});
+    const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
     const ritmo = await ritmoDaSala(turma);
     if (ritmo) Object.assign(respostas, ritmo);
+    /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
+     * Sem isto, derivar a Turma para outro professor deixava o `## Contexto` a dizer o antigo. */
+    const professorNovo = String((curadoria && curadoria.professor) || '').trim();
+    identidadeNasRespostas(respostas, ['contexto-professor', 'contexto-turma'], {
+      'contexto-professor': (await nomeDoProfessor(professorNovo)) || professorNovo,
+      'contexto-turma': String(turma || '').trim(),
+    });
     const contexto = contextoDoElo(anterior, curadoria, turma);
     const r = await porta.elicitar(armazenamento, {
       respostas, contexto, fonte: 'plano', ajuste_de: anterior.id,
@@ -253,11 +311,18 @@ function criarCadeia({
    * retargeta a referência para o topo da cadeia, e o `ajuste_de` mantém o elo anterior de pé.
    */
   async function derivarPO({ anterior, planoNovo, curadoria, turma, motivo }) {
-    const respostas = Object.assign({}, (anterior && anterior.respostas) || {}, {
-      'plano-de-ensino': {
-        valor: planoNovo.id, origem: 'perguntado', respondente: 'professor', nota: null,
-      },
+    const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
+    const professorNovo = String((curadoria && curadoria.professor) || '').trim();
+    /* O CABEÇALHO DO PO VEM DESTA RESPOSTA (10/11/2026). O `derivar-po.js` diz, na letra: «a
+     * RESPOSTA manda, e o contexto é a reserva». Atualizar só o contexto dava um elo novo a
+     * declarar `contexto.professor: redinha-rosa` e um documento a imprimir
+     * `responsavel: pe-torto` — exactamente o que a pesquisadora leu no cabeçalho. */
+    identidadeNasRespostas(respostas, ['professor'], {
+      professor: (await nomeDoProfessor(professorNovo)) || professorNovo,
     });
+    respostas['plano-de-ensino'] = {
+      valor: planoNovo.id, origem: 'perguntado', respondente: 'professor', nota: null,
+    };
     // O CONTEXTO ACOMPANHA A DIREÇÃO NOVA (09/11/2026): na troca de professor ou modalidade, o
     // PO derivado tem de dizer quem passou a dirigir — senão o documento novo nasce a apontar
     // para o professor antigo, que é o defeito que a derivação da curadoria existe para corrigir.
@@ -295,8 +360,39 @@ function criarCadeia({
    * UMA TURMA, A CADEIA INTEIRA. Devolve `{turma, etapas, ok, erro}`. A paragem é sempre na
    * primeira etapa que não fecha; as seguintes ficam `pendente`/`bloqueada`, como no índice.
    */
+  /**
+   * O PLANO DA TURMA QUE MUDOU DE SALA (10/11/2026).
+   *
+   * O DEFEITO. `planoVigenteDaTurma` procura por NOME de sala — e é o nome que identifica o plano
+   * (`contexto-turma`) e a variante. Quando a Turma muda de sala, não há plano NENHUM no destino,
+   * e a cadeia parava a dizer «A Turma «Piano» ainda não tem plano de ensino. O primeiro nasce na
+   * porta». Verdadeiro e inútil: o plano existe — na sala de onde a Turma veio.
+   *
+   * A REGRA QUE PASSA A VALER: o plano segue a CADEIA DA TURMA. Se a Turma é um elo derivado
+   * (`substitui`), procura-se o plano da sala do elo anterior, e é ELE o `anterior` do novo elo.
+   * O plano novo nasce com a sala nova na identidade; o antigo fica onde está, a dizer a sala em
+   * que valeu. É a mesma mecânica de sempre — acrescentar um elo, não reescrever —, aplicada ao
+   * eixo que faltava.
+   *
+   * SEM CADEIA, nada muda: uma Turma criada na sala nova não tem plano, e continua a ser verdade
+   * que o primeiro nasce na porta.
+   */
+  async function planoDaTurmaOuDaOrigem(turma, curadoria) {
+    const direto = await planoVigenteDaTurma(turma);
+    if (direto) return { plano: direto, herdado: false, de: turma };
+    const idAnterior = String((curadoria && curadoria.substitui) || '').trim();
+    if (!idAnterior) return { plano: null, herdado: false, de: null };
+    const lista = (await lerCuradorias(escola)) || [];
+    const anterior = (Array.isArray(lista) ? lista : []).find((c) => c && c.id === idAnterior);
+    const salaAnterior = anterior ? (turmasDe(anterior)[0] || '') : '';
+    if (!salaAnterior || salaAnterior === turma) return { plano: null, herdado: false, de: null };
+    const plano = await planoVigenteDaTurma(salaAnterior);
+    return plano ? { plano, herdado: true, de: salaAnterior } : { plano: null, herdado: false, de: null };
+  }
+
   async function porTurma({ turma, curadoria, elenco, quando, motivo }) {
-    const plano = await planoVigenteDaTurma(turma);
+    const achado = await planoDaTurmaOuDaOrigem(turma, curadoria);
+    const plano = achado.plano;
     const po = plano ? await poVigenteDaCadeia(plano.id) : null;
 
     const antes = nucleoCadeia.indice({
@@ -459,7 +555,10 @@ function criarCadeia({
       }
       for (const c of alvos) {
         const turma = turmasDe(c)[0] || '';
-        const plano = await planoVigenteDaTurma(turma);
+        // O MESMO CAMINHO DO `porTurma` (10/11/2026): o plano da sala de origem serve quando a
+        // Turma mudou de sala — sem isto, «fechar o pacote» diria que não há documentos a gerar.
+        const achado = await planoDaTurmaOuDaOrigem(turma, c);
+        const plano = achado.plano;
         const po = plano ? await poVigenteDaCadeia(plano.id) : null;
         if (!po) {
           const falta = !plano
@@ -661,12 +760,18 @@ function criarCadeia({
     // A partir daqui, o plano vigente é o que o PO observa — e é a etapa anterior que o nomeia.
     const plano = e.plano ? String(e.plano) : '';
     const doPlano = plano ? ['plano=' + encodeURIComponent(plano)] : [];
-    if (chave === 'plano-de-observacao') {
-      return daPorta('/plano-observacao/', ['fonte=po']
-        .concat(id ? ['ajustar=' + encodeURIComponent(id)] : [])
-        .concat(doPlano));
-    }
-    return daPorta('/plano-observacao/', ['fonte=po'].concat(doPlano));
+    /* O PACOTE NÃO SE FECHA NA PORTA (10/11/2026) — e a razão é a que a prova do fecho já tinha
+     * escrito: abrir o PO com `ajustar=` para «só gerar» deriva um elo GÉMEO de um documento que
+     * já está em dia. O que falta nesta etapa não é um documento: é uma GERAÇÃO, e a geração tem
+     * rota própria (`/api/bastidores/cadeia-pacote`) e vive nos Bastidores.
+     *
+     * Por isso o endereço é a secção das Turmas, com `data-fechar` na ligação: o clique corre o
+     * fecho ali mesmo, com o véu de pé, e pinta o resultado na caixa do gesto. Era o que faltava
+     * — o link levava à porta, a porta não tinha documento para carregar, e devolvia à listagem. */
+    if (chave === 'pacote') return enderecos(contexto)['producao-turmas'];
+    return daPorta('/plano-observacao/', ['fonte=po']
+      .concat(id ? ['ajustar=' + encodeURIComponent(id)] : [])
+      .concat(doPlano));
   }
 
   return { executar, fecharPacotes, lerLog, anotar, enderecos, enderecoDaEtapa };

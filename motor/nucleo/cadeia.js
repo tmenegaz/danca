@@ -101,6 +101,40 @@ function indice(estado) {
   const novo = (quandoDe) => Boolean(quandoDe) && String(quandoDe) >= quando;
   const passos = [];
 
+  /* A DATA NÃO BASTA: A DIREÇÃO TAMBÉM MANDA (10/11/2026).
+   *
+   * O DEFEITO MEDIDO. A pesquisadora derivou a Turma da sala Rosa trocando o professor (Pé Torto
+   * → Redinha Rosa) a 10/11, e o plano vigente era de 10/11 às 13:04. A pergunta era só «o
+   * documento é anterior à mudança?», e `2026-11-10T13:04 >= 2026-11-10` responde sim: a cadeia
+   * deu o plano por `feita`, não derivou elo nenhum, e o plano — e o PO, e o documento impresso —
+   * continuaram a declarar o professor ANTIGO. A geração correu com o nome errado no cabeçalho.
+   *
+   * O documento é anterior à mudança por outra razão que não a hora: ele declara OUTRA direção.
+   * A data é um indício; a identidade é a prova. Quem manda é a comparação com o que a curadoria
+   * declara AGORA — o professor e a sala —, e ela vale mesmo para um elo do mesmo dia.
+   *
+   * A SALA ENTRA PORQUE O NOME DELA É A IDENTIDADE DO PLANO (`contexto-turma`), e é ele que
+   * nomeia a variante. Uma Turma que muda de sala tem de reescrever essa linha. */
+  const direcao = (doc) => {
+    const ctx = (doc && doc.contexto) || {};
+    return {
+      professor: String(ctx.professor || '').trim(),
+      turma: String(ctx.turma || '').trim(),
+    };
+  };
+  const direcaoDeHoje = {
+    professor: String((e.curadoria && e.curadoria.professor) || '').trim(),
+    turma: String(e.turma || ((e.curadoria && (e.curadoria.turmas || [])[0]) || '')).trim(),
+  };
+  /** O documento declara outra direção? Vazio não conta: um elo antigo que não declara professor
+   *  não é um elo errado — é um elo de antes de haver esse campo. */
+  const direcaoMudou = (doc) => {
+    const d = direcao(doc);
+    if (d.professor && direcaoDeHoje.professor && d.professor !== direcaoDeHoje.professor) return true;
+    if (d.turma && direcaoDeHoje.turma && d.turma !== direcaoDeHoje.turma) return true;
+    return false;
+  };
+
   // 1. OS VÍNCULOS — a Turma tem de declarar o corpo que o elenco declara.
   if (!e.elenco) {
     passos.push({
@@ -132,6 +166,21 @@ function indice(estado) {
         + 'primeiro nasce na porta, e a cadeia não o inventa: o plano fixa decisões pedagógicas '
         + 'que são do professor.',
     });
+  } else if (direcaoMudou(e.plano)) {
+    const d = direcao(e.plano);
+    const oQueMudou = [];
+    if (d.professor && direcaoDeHoje.professor && d.professor !== direcaoDeHoje.professor) {
+      oQueMudou.push('o professor «' + d.professor + '» passou a «' + direcaoDeHoje.professor + '»');
+    }
+    if (d.turma && direcaoDeHoje.turma && d.turma !== direcaoDeHoje.turma) {
+      oQueMudou.push('a sala «' + d.turma + '» passou a «' + direcaoDeHoje.turma + '»');
+    }
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
+      falta: 'O plano de ensino «' + (e.plano.id || '—') + '» declara outra direção — '
+        + oQueMudou.join(' e ') + '. A cadeia deriva um elo novo, com o mesmo conteúdo e a '
+        + 'direção corrigida.',
+    });
   } else if (novo(e.plano.gerado_em || e.plano.id)) {
     passos.push({ chave: 'plano-de-ensino', estado: 'feita', id: e.plano.id || null });
   } else {
@@ -154,6 +203,16 @@ function indice(estado) {
       falta: 'A Turma ainda não tem plano de observação. Ele nasce do plano de ensino, na porta, '
         + 'e a cadeia não o inventa: a linha de base dos sujeitos é uma decisão do professor.',
     });
+  } else if (direcaoMudou(e.po)) {
+    /* O PO CARREGA A DIREÇÃO DUAS VEZES — no `contexto` e na resposta `professor` que o
+     * documento imprime. As duas contam para «declara outra direção», e é por isso que ele é
+     * comparado como o plano: um PO do professor antigo não observa a Turma do professor novo. */
+    passos.push({
+      chave: 'plano-de-observacao', estado: 'pendente', id: e.po.id || null,
+      falta: 'O plano de observação «' + (e.po.id || '—') + '» declara outra direção — a cadeia '
+        + 'deriva um elo novo, que observa o plano de ensino vigente com o professor que passou '
+        + 'a dirigir a Turma.',
+    });
   } else if (novo(e.po.gerado_em || e.po.id)) {
     passos.push({ chave: 'plano-de-observacao', estado: 'feita', id: e.po.id || null });
   } else {
@@ -173,6 +232,15 @@ function indice(estado) {
       falta: 'O pacote lê o plano de ensino e o plano de observação; sem o PO não há o que gerar.',
     });
   } else {
+    /* O «ABRIR» DO PACOTE ENTRA NO DOCUMENTO (10/11/2026).
+     *
+     * A etapa não levava `id` nem `plano`, e sem eles o endereço saía sem `ajustar=`: a porta
+     * abria sem documento para carregar, a trava dela não encontrava o que validar e devolvia o
+     * professor à LISTAGEM. É literalmente o que a pesquisadora descreveu: «me levou até o
+     * ajuste, e quando eu cliquei no botão para fechar e gerar, ele voltou para a listagem».
+     *
+     * O pacote FECHA-SE no PO: é lá que está o «Guardar» que grava as fontes e dispara a
+     * geração. O endereço desta etapa é, por isso, o do PO — com o plano que ele observa. */
     passos.push({
       chave: 'pacote', estado: 'pendente',
       falta: 'Os documentos gerados (HTML e PDF) ainda são os de antes da mudança — a geração '

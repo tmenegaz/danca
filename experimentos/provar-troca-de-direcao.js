@@ -187,66 +187,54 @@ async function provarATrocaDeProfessor(motor) {
 }
 
 /* ------------------------------------------------------------------------------------------
- * B. MUDAR DE SALA — a recusa, e o que ela protege
+ * B. MUDAR DE SALA — agora é um gesto legítimo
  * ---------------------------------------------------------------------------------------- */
 
 async function provarAMudancaDeSala(motor) {
-  console.log('\nB. MUDAR DE SALA NÃO É AJUSTAR A MESMA TURMA (quando há plano na origem)');
+  console.log('\nB. TROCAR PROFESSOR E SALA AO MESMO TEMPO É UM GESTO LEGÍTIMO');
 
+  /* A TRAVA QUE AQUI ESTAVA FOI REMOVIDA A 10/11/2026, e a prova mudou com ela.
+   *
+   * A recusa tratava o sintoma: mudar de sala arrastava a Turma e a cadeia parava em «ainda não
+   * tem plano de ensino», porque o plano é procurado pelo NOME da sala. A causa era o plano não
+   * seguir a Turma — e é isso que passou a haver (`planoDaTurmaOuDaOrigem`). Uma escola pode
+   * mudar a direção, a sala e o elenco no mesmo dia; proibir o gesto não é responder-lhe. */
   const { pedir, ler } = bastidoresDe(motor, sementeComPlano());
   const r = await pedir('/api/bastidores/curadoria-derivar', {
     senhaDirecao: 'prova', derivarDe: VIGENTE, vigencia: '2026-11-10',
     professor: OUTRO, modalidade: 'Balé clássico', turmas: [SALA_LIVRE],
   });
-  provar('a mudança de sala é recusada', r.status === 409, r);
-  const erro = String((r.json || {}).erro || '');
-  provar('…e a frase nomeia as duas salas', erro.indexOf(SALA) !== -1 && erro.indexOf(SALA_LIVRE) !== -1,
-    erro);
-  provar('…e diz que é OUTRA Turma, não um ajuste', /outra Turma/i.test(erro), erro);
-  provar('…e diz porquê: o plano, o PO e os documentos são da sala', /plano de ensino/i.test(erro), erro);
-  provar('…e diz o caminho: criar a Turma na sala de destino', /crie/i.test(erro), erro);
-  provar('…e aponta o campo em falta', JSON.stringify((r.json || {}).falta) === JSON.stringify(['turma']),
-    (r.json || {}).falta);
+  provar('trocar professor E sala no mesmo gesto é aceite', r.status === 201, r);
+  const nova = (r.json || {}).curadoria || {};
+  provar('…e a Turma nasce na sala de destino',
+    JSON.stringify(nova.turmas) === JSON.stringify([SALA_LIVRE]), nova.turmas);
+  provar('…e com o professor novo', nova.professor === OUTRO, nova.professor);
+  provar('…e sabe de onde veio (é isso que faz o plano segui-la)',
+    nova.substitui === VIGENTE, nova.substitui);
+  provar('…e a resposta diz que mudou de sala, com as duas',
+    JSON.stringify((r.json || {}).mudouDeSala) === JSON.stringify({ de: SALA, para: SALA_LIVRE }),
+    (r.json || {}).mudouDeSala);
 
   const lista = await ler('curadorias');
-  provar('NADA foi gravado: a origem continua vigente com a mesma sala',
-    (lista.filter((c) => c && !c.substituidaPor) || []).map((c) => [c.id, c.turmas.join()])
-      .join('|') === VIGENTE + ',' + SALA, lista.map((c) => c.id));
-  provar('…e a lista não ganhou elo nenhum', lista.length === 2, lista.length);
+  provar('…e a origem desce ao histórico a apontar para o elo novo',
+    (lista.find((c) => c && c.id === VIGENTE) || {}).substituidaPor === nova.id,
+    lista.find((c) => c && c.id === VIGENTE));
+  provar('…e sobra UMA direção vigente', lista.filter((c) => c && !c.substituidaPor).length === 1,
+    lista.map((c) => c.id));
+  const inv = invariantes(lista);
+  provar('…sem ids repetidos nem ponteiros mortos',
+    inv.repetidos.length === 0 && inv.mortos.length === 0, inv);
 
-  // O CONTROLE: a troca de sala continua a valer enquanto a Turma for LIVRE.
+  /* O QUE NÃO MUDOU: sem mudança de sala, o gesto é o de sempre. */
   {
-    const livre = bastidoresDe(motor, {
-      ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([
-        curadoria({ id: VIGENTE, vigenteDe: '2026-11-10' })]),
-      ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([sala(), salaPiano()]),
-    });
-    const antes = await livre.pedir('/api/bastidores/curadoria-derivar', {
+    const outro = bastidoresDe(motor, sementeComPlano());
+    const r2 = await outro.pedir('/api/bastidores/curadoria-derivar', {
       senhaDirecao: 'prova', derivarDe: VIGENTE, vigencia: '2026-11-10',
-      professor: DONO, modalidade: 'Balé clássico', turmas: [SALA_LIVRE],
+      professor: OUTRO, modalidade: 'Balé clássico', turmas: [SALA],
     });
-    provar('uma Turma LIVRE continua a poder mudar de sala (nada está escrito na antiga)',
-      antes.status === 201, antes);
-    const l = await livre.ler('curadorias');
-    provar('…e nasce na sala de destino',
-      ((l.find((c) => c && !c.substituidaPor) || {}).turmas || []).join() === SALA_LIVRE,
-      l.map((c) => c.turmas));
-  }
-
-  // A SALA APAGADA não prende a Turma: é a única saída que resta.
-  {
-    const semSala = bastidoresDe(motor, {
-      ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([curadoria({ id: VIGENTE, vigenteDe: '2026-11-10' })]),
-      // A `Rosa` NÃO está no cadastro — foi apagada.
-      ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([salaPiano()]),
-      [ESCOLA + '/envelope/plano-20261109-2341.json']: JSON.stringify(
-        envelopeDoPlano('plano-20261109-2341', SALA, DONO)),
-    });
-    const r2 = await semSala.pedir('/api/bastidores/curadoria-derivar', {
-      senhaDirecao: 'prova', derivarDe: VIGENTE, vigencia: '2026-11-10',
-      professor: DONO, modalidade: 'Balé clássico', turmas: [SALA_LIVRE],
-    });
-    provar('a sala que já não existe no cadastro não prende a Turma', r2.status === 201, r2);
+    provar('sem mudar de sala, a troca de professor continua a ser um ajuste', r2.status === 201, r2);
+    provar('…e a resposta não fala de mudança de sala',
+      (r2.json || {}).mudouDeSala === null, (r2.json || {}).mudouDeSala);
   }
 }
 
@@ -365,7 +353,7 @@ async function provarAIdentidade(motor) {
  * ---------------------------------------------------------------------------------------- */
 
 async function provarAPagina(motor) {
-  console.log('\nD. A PÁGINA TRAVA A SALA NA DERIVAÇÃO (o servidor é que é a regra)');
+  console.log('\nD. A PÁGINA OFERECE A SALA NA DERIVAÇÃO, E TEM VÉU');
 
   const b = require(path.join(motor, 'servidor/bastidores.js'));
   const kv = kvDeMentira(sementeComPlano());
@@ -380,10 +368,19 @@ async function provarAPagina(motor) {
   provar('a página da Produção responde', Boolean(pagina) && pagina.length > 1000, pagina.length);
   provar('…e a sala continua a ser um `select` visível (quem ajusta tem de ler onde a Turma está)',
     pagina.indexOf('<select id="cuturma">') !== -1);
-  provar('…e o campo da sala é travado no modo «derivar»',
-    pagina.indexOf('getElementById("cuturma").disabled = derivar') !== -1);
-  provar('…e é destravado ao cancelar (a Turma volta a poder ser criada noutra sala)',
-    pagina.indexOf('getElementById("cuturma").disabled = false') !== -1);
+  provar('…e a sala NÃO é travada na derivação (mudar tudo ao mesmo tempo é legítimo)',
+    pagina.indexOf('getElementById("cuturma").disabled = derivar') === -1);
+  /* O VÉU — a peça que ela pediu: «continuo podendo clicar aí para onde eu quiser […] o usuário
+   * fica sem nenhum feedback». Ele existia na porta e não existia aqui, onde ela trabalha. */
+  provar('…e a página tem o véu da operação (a mesma peça da folha)',
+    pagina.indexOf('<div class="veu" id="veu"') !== -1);
+  provar('…e o véu fica de pé enquanto o gesto corre, e diz o passo',
+    pagina.indexOf('function ocupar(texto)') !== -1
+      && pagina.indexOf('function liberar()') !== -1
+      && pagina.indexOf('textoDoPasso(ep)') !== -1);
+  provar('…e a ligação do pacote executa o fecho em vez de abrir um documento vazio',
+    pagina.indexOf('function fecharDoEndereco(turma)') !== -1
+      && pagina.indexOf('data-fechar') !== -1);
 }
 
 /* ------------------------------------------------------------------------------------------
@@ -429,6 +426,6 @@ function prepararNegativo() {
     process.exit(0);
   }
   if (falhas) process.exit(1);
-  console.log('TUDO CERTO — trocar o professor é um ajuste da mesma Turma, mudar de sala não é, '
-    + 'e a identidade nunca se repete.');
+  console.log('TUDO CERTO — trocar o professor (e a sala, e tudo) é um ajuste da mesma Turma, '
+    + 'a identidade nunca se repete e a página tem véu.');
 })();

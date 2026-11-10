@@ -330,11 +330,22 @@ const CONTEXTO = {
     provar('…e é a página do PO, e não outra',
       poPendente.indexOf('/plano-observacao/?') === 0, poPendente);
 
+    /* A ETAPA DA GERAÇÃO NÃO ABRE UM DOCUMENTO — EXECUTA-SE (10/11/2026).
+     *
+     * Aqui esteve: «a geração leva ao PO com o plano escolhido — e SEM `ajustar=`». A segunda
+     * metade estava certa e continua a ser a razão desta: abrir o PO com `ajustar=` para «só
+     * gerar» deriva um elo GÉMEO de um documento em dia. A primeira metade é que não servia —
+     * sem `ajustar=`, a porta não tem documento para carregar e devolve o professor à LISTAGEM.
+     * Era o «volta para a listagem» que a pesquisadora relatou.
+     *
+     * O que falta nesta etapa não é um documento: é uma geração. Ela tem rota própria
+     * (`/api/bastidores/cadeia-pacote`) e vive nos Bastidores; o endereço passou a ser a secção
+     * das Turmas, e a ligação carrega `data-fechar` com a turma — o clique corre o fecho ali
+     * mesmo, com o véu de pé. */
     const pacote = href('pacote', { id: PO, plano: PLANO, ciclo: '01' });
-    provar('a geração leva ao PO com o plano escolhido — e SEM `ajustar=`',
-      /\/plano-observacao\/\?/.test(pacote) && /plano=plano-20261103-2200/.test(pacote)
-        && !/ajustar=/.test(pacote), pacote);
-    provar('…porque ajustar um documento em dia derivaria um elo gémeo',
+    provar('a etapa da geração leva à secção onde ela corre, e não a um documento',
+      pacote === '#turmas', pacote);
+    provar('…porque abrir o PO com `ajustar=` para «só gerar» derivaria um elo gémeo',
       !/ajustar=/.test(pacote), pacote);
   }
 
@@ -458,13 +469,13 @@ const CONTEXTO = {
     provar('…e `porOrcamento` é verdadeiro, para a tela saber que pode tentar de novo',
       corpo.cadeia && corpo.cadeia.porOrcamento === true, corpo.cadeia && corpo.cadeia.porOrcamento);
     const falta = ((corpo.cadeia || {}).faltam || [])[0] || {};
-    /* O FIM A FIM DO «TITUBEIO»: o endereço que a ROTA devolve é o que o professor clica, e tem
-     * de trazer o ciclo — que a página da Produção NÃO manda — ou a porta devolve-o à listagem. */
-    provar('…e o «abrir» da etapa que falta aponta para dentro do documento do PO',
-      /\/plano-observacao\/\?/.test(String(falta.href || ''))
-        && /plano=plano-20261103-2200/.test(String(falta.href || '')), falta.href);
-    provar('…com o CICLO que o pedido não trazia (senão a porta volta à listagem)',
-      /ciclo=01/.test(String(falta.href || '')), falta.href);
+    /* O FIM A FIM DO «TITUBEIO». A etapa que falta aqui é o PACOTE, e ela não se abre: executa-se
+     * na secção das Turmas. O que se mede é que o endereço existe, é o sítio certo, e nomeia a
+     * turma — é com esse nome que a página corre o fecho. */
+    provar('…e o «abrir» da etapa que falta leva à secção onde a geração corre',
+      String(falta.href || '') === '#turmas', falta.href);
+    provar('…e nomeia a TURMA, que é o que a página precisa para correr o fecho',
+      falta.chave === 'pacote' && falta.turma === TURMA, { chave: falta.chave, turma: falta.turma });
   }
 
   // ==========================================================================
