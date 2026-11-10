@@ -949,7 +949,7 @@ Produção, seção «Acervo»**. É decisão de **localização**, não de dese
 |:--|:--|
 | **Quem exporta** | a direção, autenticada — a mesma trava da Produção; a exportação não é consulta pública |
 | **O que sai** | o acervo inteiro: fontes, lançamentos, cadastro, índice e programação publicada |
-| **Em que plano** | em **qualquer** plano — o plano limita a **consulta**, não a **saída** (PLANO-PERGUNTAS §5.5) |
+| **Em que plano** | em **qualquer** plano — o plano limita a **consulta**, não a **saída** (PLANO-PERGUNTAS §5.5) — **e a capacidade também não a limita** (10/11/2026): uma escola no teto de alunos exporta o acervo inteiro |
 | **Qual índice serve de manifesto** | o índice de acervo (§4.2): ele já lista tipo, caminho e âncora de cada documento; a exportação não inventa uma segunda lista |
 | **O que a exportação não faz** | não é consulta do catálogo (L6), não mede nada, e não altera o acervo |
 

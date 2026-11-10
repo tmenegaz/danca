@@ -42100,3 +42100,99 @@ corrigir o nome de uma sala já curada (hoje o caminho é remover e recriar a cu
 **Recomendação.** A **2**, e só quando houver um caso real de renomeação — não antes. Hoje a regra
 «o nome não muda» está certa e é barata; a `chave` só passa a valer a pena no dia em que o nome
 precisar de mudar com plano feito.
+
+## 10/11/2026 — A capacidade cobra-se por volume, e a escada da assinatura desce a cada degrau
+
+**O que motivou.** O dono do produto definiu a matriz de capacidade do tenant: a **assinatura**
+(Básica · Intermediária · Avançada) define **funcionalidade**, e a **capacidade** — professores e
+alunos — é um eixo **ortogonal**, cobrado em lotes e **acrescido à mensalidade**. Pediu também a
+mesma lógica de preço para os planos, com o piso em **R$ 69,90**, e perguntou qual plano seria o
+mais vendido.
+
+**CONFIRMADO e medido** (varredura no repositório, aritmética sobre os valores decididos):
+
+- **Não havia cota nenhuma no código**: zero `maxItems` em qualquer schema, zero `max_*` no motor,
+  nenhum limite no KV — `alunas`, `turmas` e `professores` são listas sem teto. O `limiteTurnos =
+  30` é freio de **sessão**. Não havia o que aumentar: havia o que criar.
+- **A capacidade já tinha geometria; a assinatura nunca teve.** Nos dois eixos, triplicar a
+  quantidade custa 5/3 do preço (−44% por unidade): 1 professor por R$ 30 ou 3 por R$ 50; 10 alunos
+  por R$ 30 ou 30 por R$ 50. A escada do texto de origem (62,38 · 99,88 · 137,38) subia **+37,50
+  sempre** — uniforme no preço e irregular na entrega.
+- **A escada é 69,90 · 99,90 · 139,90, e o preço por unidade cai a cada degrau.** Medida em
+  turma-equivalente, a capacidade incluída vai **2 → 7 → 15** e o preço por unidade cai
+  **34,95 → 14,27 → 9,33** — **−59%** e **−35%**. A regra que vale é a essencial (**cai sempre**),
+  não «cai no mesmo percentual»: a constância exigiria `69,90 · 154,13 · 208,07`, e mediu-se que
+  isso **devolve o Básico à liderança** (8 de 15 perfis). A candidata que copia o 5/3 literalmente
+  para o preço (69,90 · 116,50 · 194,20) faz o preço por consulta **subir** no Intermediário, e foi
+  descartada por isso. A unidade da conta das **consultas** é a consulta nova de cada degrau
+  (7 · 14 · 46) — o Núcleo comum (9) dilui o total e faz o degrau do meio parecer caro.
+- **O lote é faixa, e é recorrente.** 25 alunos custam R$ 50 (lote de 30), não R$ 90 (três blocos de
+  10). E a mensalidade é `assinatura + Σ lotes`, todo mês: uma escola no Intermediário com 2
+  professores e 35 alunos paga R$ 129,90/mês, e R$ 389,70 no trimestre. Isto substitui o modelo
+  antigo, em que R$ 49,90 era **implementação única** e só os 20% eram recorrentes.
+- **A régua dos 20% por professor adicional morre.** 20% de R$ 69,90 são R$ 13,98, que não se
+  relaciona com os R$ 30 do lote — e o mesmo professor custaria 2,2× mais só por a escola ter
+  escolhido um plano com mais consultas, o que contradiz «ortogonal».
+- **A aritmética revelou o defeito do degrau do meio — e a decisão que o corrige.** Com a
+  capacidade incluída `2/25 · 4/60`, o passo de preço Básico→Intermediário era **R$ 30**, e um lote
+  de 30 alunos custa os mesmos R$ 30: a capacidade incluída quase não comprava capacidade. Dos
+  quinze perfis medidos, o Intermediário ganhava em **2**. **Decidiu-se subir a capacidade incluída
+  para `1 prof/10 alunos · 3/40 · 6/90`, mantendo o preço** — e ele passa a ganhar em **7 de 15
+  perfis**, em todo o miolo, do solo com duas turmas à direção com três professores. O preço disso:
+  os mesmos
+  quinze perfis rendem **R$ 490 a menos por mês** — e o que se compra com isso é o degrau do meio
+  (§3 **C23**).
+
+**O que foi decidido.**
+
+- **A ASSINATURA E A CAPACIDADE SÃO DOIS EIXOS.** L9 passa a ter **L9a** (funcionalidade — as
+  consultas, sem alteração: 9 · 7 · 14 · 46) e **L9b** (volume — professores × alunos). A
+  distribuição comercial de [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md)
+  §5.5 fica **intacta**; nenhuma consulta muda de plano.
+- **A RECUSA TEM DOIS REMÉDIOS.** A trava é do **motor** (a estratégia §9 é explícita), e a
+  mensagem deixa de ser «o Básico não permite 2 professores» para ser «a capacidade contratada está
+  cheia» — com as duas saídas: **acrescentar um lote** ou **subir de assinatura**. Mensagens
+  diferentes para o mesmo bloqueio escondem que a primeira é reversível.
+- **AS CONTAGENS SÃO DERIVADAS.** Professores = `bastidores/<escola>/professores`; alunos =
+  `bastidores/<escola>/alunas` (o **cadastro** — uma aluna em duas turmas conta uma vez). Nunca um
+  contador guardado: diverge em silêncio.
+- **O LUGAR DA VERDADE.** `escola/<slug>/indice.json → estado.plano`, ao lado de `habilitada`.
+  **Nunca** `professores/<slug>/perfil.json`: esse é a habilitação **da pessoa** e vive fora do
+  tenant, porque o expurgo da escola não o apaga.
+- **NENHUM SCHEMA MUDA.** Verificado que não há `maxItems` em schema nenhum — e o caminho errado
+  seria travar no **array do elenco**, que recusaria a uma escola no teto **re-enviar** o elenco ou
+  registar uma falta. O teto pedagógico («mais de 10 alunos é raro») não é regra de validação: é
+  curva de preço. Se o produto quiser dizê-lo, diz como **aviso**, nunca como recusa.
+- **A CAPACIDADE NÃO LIMITA LEITURA NEM EXPORTAÇÃO.** O plano limita a consulta e a capacidade
+  limita o **cadastro** — o que existe é sempre legível e exportável. E a contagem comercial nunca
+  aparece numa resposta pedagógica: as perguntas de vínculo devolvem nome, não contagem.
+- **AS TRÊS DECISÕES QUE FALTAVAM, tomadas no mesmo dia.** (1) **Subir** a capacidade incluída —
+  `1 prof/10 alunos · 3/40 · 6/90` —, porque era a única alavanca que não mexia no preço;
+  (2) a **aresta dos 30 alunos fica declarada** (de 30 para 31 o lote salta de R$ 50 para R$ 80) e
+  **não se cria um terceiro lote** — a resposta à aresta é a assinatura de cima; (3) a **régua dos
+  20% por professor adicional morre**, porque taxa um eixo em função do outro.
+- **O QUE FICA EM ABERTO, e não é decisão de documento:** o **preço do degrau acima de 30 alunos**
+  (a continuação fiel do 5/3 daria 90 alunos por R$ 83,35 — e não se aplica, porque só serviria a
+  quem já devia estar no Avançado) e a **cobrança real**, que continua fora de escopo (C8, C11,
+  C12). O meio-termo `69,90 · 119,90 · 169,90` está medido e **não foi escolhido**.
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` — §2.9 (a matriz não existe, e a varredura que o prova) ·
+§4 **L8** (as duas camadas, a escada com a geometria decrescente, o lote recorrente, e o
+critério (v)/(vi) do calculador) · §4 **L9** partido em **L9a**/**L9b** (a regra dos lotes, a
+faixa, a capacidade incluída como desconto de pacote, a trava com dois remédios, as contagens
+derivadas, o lugar da verdade, e os critérios (vi)–(x)) · §3 **C23** (novo: a escada e o degrau do
+meio, com a tabela dos quinze perfis) · §5 (a fatia barata do L9b) · §8 (a tabela da matriz) · §9
+(a exceção declarada) ·
+`PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §0, §5.6 e §11.1 (a capacidade é ortogonal e não toca as 76
+perguntas) · `PLANO-INDICES.md` §6.5 (a capacidade também não limita a exportação).
+
+**Validação.** As quinze linhas da tabela de **C23**, os três prémios da capacidade incluída
+(+9,90 · −30,10 · −110,10) e o exemplo da mensalidade foram **recalculados por script** contra a
+regra dos lotes: todas conferem (R$ 129,90 no mês, R$ 389,70 no trimestre). A aritmética que
+sustenta a decisão está reproduzível em comandos `node -e` e não depende de nenhum dado do
+repositório.
+
+**O que ainda não está feito.** (1) **Nada foi implementado** — estas são as frentes L8 e L9b, e
+continuam a ser plano. (2) **O `indice.json` não tem o bloco `plano`** em escola nenhuma: a
+estrutura proposta está escrita, não gravada. (3) **A cobrança, a nota e o faturamento** continuam
+fora de escopo até haver decisão (C8, C11, C12).

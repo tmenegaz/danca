@@ -53,7 +53,8 @@ O que existe **não é um arquivo de planos**: são **frentes** e **decisões** 
 |:--|:--|:--|
 | **Os três planos e os valores** | `PLANEJAMENTO-LASTRO.md` §2.9 (linha ~344) | **Básico R$ 62,38 · Intermediário R$ 99,88 · Avançado R$ 137,38**; compromissos trimestral/semestral/anual; adicional **R$ 49,90 + 20%**; hora técnica **R$ 120,00** |
 | **A composição comercial** | §4 **L8** | Fonte única dos valores, calculador por período, adicionais |
-| **Cotas e limites por plano** | §4 **L9** | Professores, modalidades, consultas, cota de IA — e a regra «o plano não degrada o dado» |
+| **A matriz de capacidade** | §4 **L8** + §4 **L9b** | Desde 10/11/2026: **professores × alunos**, por lote, **ortogonal** à assinatura e **recorrente** na mensalidade (1 prof ou 3 por R$ 30/50 · 10 alunos ou 30 por R$ 30/50) |
+| **Cotas e limites por plano** | §4 **L9a** (funcionalidade) · **L9b** (volume) | Professores e alunos por **contrato**; consultas por **assinatura**; cota de IA à parte — e a regra «o plano não degrada o dado» |
 | **A jornada comercial** | §4 **L12** | Oferta, 3 meses gratuitos do Básico, comunicação, estados |
 | **A distribuição 3 / 7 / todas** | §3 **C5** | **Não decidida** — é a decisão que este documento precisa |
 | **Os valores não estão no repositório** | §3 **C8** | Existem **apenas no texto que originou o planejamento** |
@@ -746,6 +747,23 @@ uma vez no acervo.
 | Usar a consulta para **decidir** sobre a aluna | a fronteira do §2 |
 | **Congelar** a fotografia sem dizer qual é | congelar é a regra (§5.2) — o que não pode é o contrato não nomear a data que congelou |
 
+**A capacidade não toca nenhuma destas seis linhas** (10/11/2026). A matriz de capacidade
+(professores × alunos, cobrada por lote e recorrente na mensalidade — `PLANEJAMENTO-LASTRO.md`
+§L9b) é **ortogonal às consultas**: ela limita o **cadastro** de pessoas, não o que se pergunta ao
+acervo. Em concreto:
+
+- **as 76 perguntas e a distribuição 9 · 7 · 14 · 46 ficam intactas** — nenhuma consulta muda de
+  plano por causa da capacidade;
+- a **exportação** continua a ser capacidade do Núcleo e **não** é limitada por volume: uma escola
+  no teto de alunos exporta tudo o que produziu;
+- as três cotas são **contadores distintos** e não se substituem: a **capacidade** (quantas
+  pessoas cabem no contrato), as **consultas** (quais perguntas a assinatura abre) e a **IA**
+  (quantos turnos por período);
+- **a contagem comercial nunca aparece numa resposta pedagógica.** As perguntas de vínculo
+  devolvem **nome ou vínculo** (`TR11`, `TR13`, `PV08`, `GE09`), nunca «quantos professores esta
+  escola tem» — a verificação 13 do `check-indices` reprova agregação por professor, e o mesmo
+  vale para a agregação que o preço usa.
+
 ### 5.7 O que muda em relação ao texto 2 (3 / 7 / todas)
 
 O texto 2 não errou os números: errou a **unidade**. Ele distribuiu **quantidade de perguntas** sobre
@@ -916,6 +934,7 @@ o que já está decidido, o que não bloqueia nada, e o que **impede** a próxim
 |:--|:--|
 | **C5a — «todas»** | as perguntas **disponíveis na data de vigência** do contrato; o que vier depois fica para renovação ou upgrade (§5.2) |
 | **C5b — a repartição por plano** | **decidida em 19/10/2026**: Básico 7 · Intermediário 14 · Avançado 46 · Núcleo 9 (§5.5) |
+| **Assinatura × capacidade** (10/11/2026) | A **assinatura** define **funcionalidade** (as consultas); a **capacidade** (professores × alunos) é eixo **ortogonal**, por lote e **recorrente** na mensalidade. A distribuição do §5.5 **não muda**; a matriz está em `PLANEJAMENTO-LASTRO.md` §L9b, e o efeito dela no degrau do meio está em §3 **C23** daquele documento |
 | **A unidade da repartição** | é o **poder** (x · x² · x³), não a quantidade de consultas (§5.3, §5.4) |
 | **GE08, OB08, PV07 e GE10** | **Avançado** — decisão de 19/10/2026 (§0.1) |
 | **CT08 e TR14** | **Intermediário** — decisão de 19/10/2026 (§0.1) |

@@ -363,6 +363,15 @@ plano. O que há:
 - Os valores de referência (Básico R$ 62,38 · Intermediário R$ 99,88 · Avançado R$ 137,38; os
   compromissos trimestral/semestral/anual; adicionais R$ 49,90 + 20%; hora técnica R$ 120,00)
   existem **apenas no texto que originou este documento** — **em nenhum lugar do repositório**.
+  **A escada de assinatura foi revista em 10/11/2026** (§L8): passa a **R$ 69,90 · R$ 99,90 ·
+  R$ 139,90** — o piso de R$ 69,90 é decisão do dono do produto.
+- **A MATRIZ DE CAPACIDADE TAMBÉM NÃO EXISTE — nem em prosa** (10/11/2026). A assinatura define
+  **funcionalidade**; a **capacidade** (professores × alunos) é cobrada **por volume**, em dois
+  eixos ortogonais, e **acrescida à mensalidade**. É o §L9b. **A varredura confirma que não há
+  cota nenhuma no código**: zero `maxItems` em qualquer schema (os do ciclo, o de captura e o da
+  elicitação), zero `max_*` no motor, nenhum limite no KV — `alunas`, `turmas` e `professores` são
+  listas sem teto. O `limiteTurnos = 30` (`motor/nucleo/ia.js:32`) é freio de **sessão**, não
+  cota (§L7). Ou seja: **não há o que «aumentar» — há o que criar.**
 
 **O que existe de PRAZO — e a regra dos 30 dias, procurada e não encontrada.** A estratégia de
 16/10/2026 (§L12) fala de «suspensão após 30 dias sem pagamento» como uma «regra existente».
@@ -420,7 +429,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entrou em 10/11/2026: C23** a **assimetria da escada** — a assinatura subiu +37,50 sempre, enquanto a capacidade sobe 3× a quantidade por 5/3 do preço, e o passo de R$ 30 não compra capacidade nenhuma porque um lote de 30 alunos custa os mesmos R$ 30. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -1111,6 +1120,84 @@ viabilidade.
 motor é de **produto**; a da camada pedagógica é de **conteúdo** (P-16); a da separação é de
 **dado**.)*
 
+**C23 — A escada de assinatura: o degrau do meio só se vende com a capacidade que decidiu
+subir.** Aberta e **resolvida a 10/11/2026**, no mesmo dia; o que fica é o registo do que a
+aritmética mostrou — e a pergunta de preço que ela deixa.
+
+**O que está decidido.** A capacidade cobra-se por lote, com **uma só regra**: triplicar a
+quantidade custa 5/3 do preço — 1 professor por R$ 30 ou 3 por R$ 50; 10 alunos por R$ 30 ou 30
+por R$ 50. Em ambos os eixos o preço por unidade cai **−44%** do primeiro lote para o segundo, e o
+lote é **recorrente** (entra na mensalidade, não se paga uma vez). A assinatura é
+R$ **69,90 · 99,90 · 139,90**, com a capacidade incluída de **1 prof/10 alunos · 3/40 · 6/90**.
+
+**O defeito que a medição encontrou, e a correção.** Com a primeira escala (`2/25 · 4/60`), o
+passo de preço do Básico para o Intermediário era **R$ 30** — e um lote de **30 alunos custa os
+mesmos R$ 30**. A capacidade incluída quase não comprava capacidade: o Intermediário ganhava em
+**2 dos 15 perfis**, e o Básico ganhava no **miolo do mercado** (solo, uma a quatro turmas). O solo
+que precisava de alunos ficava no Básico e comprava um lote; o degrau do meio era vendido pelas
+**14 consultas**, e não pela capacidade — contra a intenção declarada.
+
+**A decisão: subir a capacidade incluída e manter o preço.** É a alavanca. Medido sobre quinze
+perfis de escola:
+
+| Perfil | Básico | Intermediário | Avançado | Contrata |
+|:--|--:|--:|--:|:--|
+| 1 prof · 10 alunos | **69,90** | 99,90 | 139,90 | Básico |
+| 1 prof · 20 alunos | **99,90** | **99,90** | 139,90 | empate |
+| 1 prof · 25 alunos | 119,90 | **99,90** | 139,90 | Intermediário |
+| 1 prof · 30 alunos | 119,90 | **99,90** | 139,90 | Intermediário |
+| 1 prof · 40 alunos | 119,90 | **99,90** | 139,90 | Intermediário |
+| 1 prof · 60 alunos | 169,90 | 149,90 | **139,90** | Avançado |
+| 2 prof · 25 alunos | 149,90 | **99,90** | 139,90 | Intermediário |
+| 2 prof · 40 alunos | 149,90 | **99,90** | 139,90 | Intermediário |
+| 3 prof · 40 alunos | 169,90 | **99,90** | 139,90 | Intermediário |
+| 3 prof · 50 alunos | 199,90 | **129,90** | 139,90 | Intermediário |
+| 4 prof · 60 alunos | 219,90 | 179,90 | **139,90** | Avançado |
+| 6 prof · 80 alunos | 299,90 | 229,90 | **139,90** | Avançado |
+| 6 prof · 90 alunos | 319,90 | 249,90 | **139,90** | Avançado |
+| 8 prof · 100 alunos | 349,90 | 299,90 | **219,90** | Avançado |
+| 8 prof · 120 alunos | 399,90 | 349,90 | **239,90** | Avançado |
+
+**O Intermediário passa a ser o plano mais vendido: 7 dos 15 perfis** (era 2), e vence em
+todo o miolo — do solo com duas turmas à direção com três professores. O Básico fica com o
+professor de uma turma; o Avançado, com a escola de três professores para cima. **A intuição do
+dono do produto («no Intermediário fica interessante contratar os dois») realiza-se por
+aritmética**, e não por desconto.
+
+**O preço dessa decisão, medido — e é o que fica em aberto.** A capacidade incluída subiu e o preço
+não; logo, **a escada só perde receita**. Contra a escala anterior (`1/10 · 2/25 · 4/60`), os mesmos
+quinze perfis rendem **R$ 490 a menos por mês** — e a perda concentra-se exatamente onde a decisão
+quis ganhar: **R$ 20** no solo com 30 e com 40 alunos, **R$ 40** no de 2 professores com 40 e no de
+3 com 40, **R$ 10** no de 3 com 50, **R$ 100** em cada uma das escolas de 6 professores (passam a
+pagar R$ 139,90 onde pagavam R$ 239,90) e **R$ 80** em cada uma das de 8. Nos outros **seis perfis
+o preço não muda** — muda só o plano que se contrata. E a geometria **deixa de ser constante**: o
+preço por turma-equivalente cai **−59%** do Básico para o Intermediário e **−35%** do
+Intermediário para o Avançado (era −37% nos dois). A regra que sobrevive é a essencial — **cai
+sempre** —; a que morre é «cai no mesmo percentual».
+
+**A alternativa, para o dia em que a margem apertar** (não aplicada): manter a geometria constante
+exigiria **R$ 69,90 · 154,13 · 208,07** — o que dobra o preço do Intermediário e, medido,
+**devolve o plano ao problema de origem** (o Básico volta a ganhar em 8 de 15 perfis). Ou seja: **a
+constância do desconto e a venda do degrau do meio são incompatíveis** com esta distribuição de
+consultas. Escolheu-se o degrau do meio — e está certo: o produto precisa de um meio, não de uma
+curva bonita. Um meio-termo existe e não foi escolhido: `69,90 · 119,90 · 169,90` dá receita
+intermédia (**+R$ 320** sobre a decisão) ao custo de o Intermediário vencer em 4 de 15 em vez de 7.
+
+**As outras duas decisões, do mesmo dia.**
+
+- **A aresta dos 30 alunos FICA DECLARADA.** De 30 para 31 alunos o lote salta de R$ 50 para
+  R$ 80. Não se cria um terceiro lote: a resposta à aresta é a **assinatura de cima** (o
+  Intermediário inclui 40), e um lote de 90 a R$ 83,35 só serviria a quem já devia estar no
+  Avançado. A tela diz o salto antes do clique; o preço não se esconde.
+- **A régua dos 20% por professor adicional MORRE.** 20% de R$ 69,90 são R$ 13,98, que não fala com
+  os R$ 30 do lote — e o mesmo professor custaria 2,2× mais só por a escola ter escolhido um plano
+  com mais consultas, o que contradiz «ortogonal». A matriz substitui a sobretaxa por um preço
+  unitário; é **mudança comercial declarada**.
+
+*(Afeta §L8 (a escada e o calculador), §L9b (a capacidade incluída) e a distribuição comercial de
+[PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5 — **que não muda**:
+as consultas de cada degrau são as mesmas, 7 · 14 · 46.)*
+
 ---
 
 ## 4. As frentes
@@ -1553,64 +1640,169 @@ decisão.
   atualmente, verificar se há duplicação de regras e propor uma fonte consistente».
 - **Situação atual.** **Não existe** (§2.9). Nem preço, nem plano, nem cota, nem cobrança. A
   única pegada é `pagante: true` no andaime de expurgo.
-- **Lacunas.** Não há fonte de verdade de valores; não há representação de «professor
-  adicional» e «modalidade adicional» (e **não há hoje multiusuário por plano** — o cadastro de
-  professores é uma lista sem limite); não há como representar a diferença entre multa
-  recorrente (20%) e implementação única (R$ 49,90); não há período contratado.
-- **Dependências técnicas e de domínio.** L2 (professor e modalidade com id — o «adicional» é
-  uma quantidade de entidades); decisões comerciais que **não** são minhas (os valores do §2.9
-  do texto 2, e a regra do desconto).
+- **Lacunas.** Não há fonte de verdade de valores; **não há representação da capacidade** — nem
+  «professor adicional», nem «aluno» (o cadastro é uma lista sem limite); não há período
+  contratado. E há uma lacuna de **forma**: a escada de assinatura nunca teve uma **geometria
+  verificável** — os três valores do texto de origem (62,38 · 99,88 · 137,38) sobem **+37,50
+  sempre**, ao passo que a capacidade decidida em 10/11/2026 sobe **3× a quantidade por 5/3 do
+  preço** (−44% por unidade, nos dois eixos). Duas lógicas de preço no mesmo produto é o defeito
+  a corrigir — ver **C23**.
+- **Dependências técnicas e de domínio.** L2 (professor com id — a capacidade é **uma contagem**,
+  e uma contagem de apelidos sem id estável conta o mesmo aluno duas vezes); decisões comerciais
+  que **não** são minhas (os valores do §2.9 do texto 2, e a regra do desconto).
 - **Entregas.** (a) A **fonte única** dos parâmetros comerciais (arquivo versionado, com os
-  valores como **dados** — hoje eles só existem no texto); (b) a representação da composição:
-  plano × capacidades (professores, modalidades, consultas, cota) e adicionais; (c) o
-  **calculador** do valor contratado para qualquer período (mensal/trimestral/semestral/anual),
-  com o acréscimo sobre a **base do período** — o texto 2 §8 é explícito; (d) o registro da
-  demanda personalizada (classificação, orçamento por hora técnica, escopo aprovado).
+  valores como **dados** — hoje eles só existem no texto); (b) a representação da composição, com
+  **duas camadas ortogonais**: a **assinatura** (funcionalidade — as consultas do catálogo) e a
+  **capacidade** (volume — lotes de professores e de alunos, **recorrentes**); (c) o **calculador**
+  do valor contratado para qualquer período (mensal/trimestral/semestral/anual) — **e o calculador
+  da mensalidade como `assinatura + Σ lotes`**, porque o lote **não é pagamento único**: é
+  incorporado no mês; (d) o registro da demanda personalizada (classificação, orçamento por hora
+  técnica, escopo aprovado).
+- **A ESCADA, DECIDIDA A 10/11/2026 — e a regra que ela obedece.** R$ **69,90 · 99,90 · 139,90**,
+  com a capacidade incluída de **1 prof/10 alunos · 3/40 · 6/90**. **A regra é a mesma da
+  capacidade: cada degrau entrega mais por menos, por unidade.** Medida em **turma-equivalente**
+  (1 professor + 10 alunos = 1 turma), a capacidade vai **2 → 7 → 15** e o preço por unidade cai
+  **34,95 → 14,27 → 9,33** — ou seja **−59%** e **−35%**. A unidade da conta **das consultas** é a
+  **consulta nova** de cada degrau (7 · 14 · 46), e não o total com o Núcleo (16 · 23 · 55): o
+  Núcleo é comum e dilui o total, fazendo o Intermediário parecer caro.
+- **O QUE A ESCADA NÃO CONSEGUE SER, e é medido.** O desconto **não é constante**: era −37% nos
+  dois passos com a capacidade anterior (`2/25 · 4/60`), e é −59% / −35% com esta. **A constância
+  e a venda do degrau do meio são incompatíveis** com a distribuição de consultas aprovada
+  (7 · 14 · 46): manter −37% exigiria R$ 69,90 · 154,13 · 208,07, e aí o Básico volta a ganhar em 8
+  de 15 perfis. Escolheu-se o degrau do meio — a regra que vale é a essencial (**cai sempre**), e
+  não a estética do mesmo percentual. Ver **§3 C23**, com a tabela e a conta da receita.
+- **A ESCADA QUE NÃO SE USA.** A que copia o 5/3 do lote para o preço (69,90 · 116,50 · 194,20)
+  faz o preço por consulta **subir** no Intermediário — o oposto do que o produto promete —, e a
+  que mantém −37% constante esvazia o meio. As duas estão registadas para não voltarem como
+  novidade.
 - **Critérios verificáveis.** (i) O calculador reproduz os valores de referência do texto 2 §9
   para os quatro períodos e para 0..N adicionais (tabela de casos, incluindo os descontos de
   5/10/20%); (ii) alterar um valor num lugar só muda o exibido e o calculado — teste que muda a
   fonte e reconfere; (iii) nenhum valor duplicado em código (varredura por número);
-  (iv) a fonte é reconstruível/legível por humano.
+  (iv) a fonte é reconstruível/legível por humano; **(v) a mensalidade é `assinatura + Σ lotes`
+  e o lote é RECORRENTE** — o calculador de um período de N meses multiplica o total mensal, e
+  não soma o lote uma vez (uma escola com o Intermediário, 2 professores e 35 alunos paga
+  R$ 99,90 + R$ 30,00 = **R$ 129,90 por mês**, e R$ 389,70 no trimestre); **(vi) a geometria da
+  escada é conferível**: `preço / consulta nova` cai a cada degrau, e o teste reprova uma escada
+  em que suba.
 - **Riscos e decisões por confirmar.** (a) Os valores são **de referência** — confirmar antes de
   virar dado; (b) a política de desconto (5/10/20 «em relação ao preço mensal de referência») e
   a soma com adicionais precisam de uma regra única (o acréscimo incide sobre a base do
-  período, e o desconto também? a ordem importa); (c) tributação/faturamento — fora de escopo
-  até haver decisão.
+  período, e o desconto também? a ordem importa); **(c) a regra dos 20% por professor adicional
+  está MORTA** com a matriz: 20% de R$ 69,90 são R$ 13,98, que não se relaciona com o lote de
+  R$ 30 — a matriz substitui a sobretaxa por um preço unitário fixo, e isso é **mudança
+  comercial declarada**, não detalhe; (d) tributação/faturamento — fora de escopo até haver
+  decisão.
 - **Prioridade.** **P3** — pode começar em paralelo (é independente das frentes de dado), mas os
   valores precisam da sua confirmação.
 
 ### L9 — Cotas, habilitação e limites por plano
 
-- **Objetivo e justificativa.** Ligar a composição comercial ao acesso: quantos professores e
-  modalidades a escola pode cadastrar, quais consultas do catálogo estão disponíveis, e qual a
-  cota de IA — **sem degradar o dado**: o texto 2 §1 é explícito que «a base de dados e os
-  registros pedagógicos não devem perder qualidade, integridade ou propriedade conforme o plano
-  contratado».
-- **Situação atual.** Não existe habilitação por capacidade. Existe o andaime
-  `raiz/escolas-habilitadas.json` (`habilitada`, e `pagante` como trava de expurgo) lido por
-  `motor/servidor/raiz.js`; existe `ESCOLA_HABILITADA` como variável do Worker; existe
-  `limiteTurnos` de sessão. **Nada** liga plano a capacidade.
+> **A FRENTE PARTIU-SE EM DUAS A 10/11/2026.** A **assinatura** (Básica · Intermediária ·
+> Avançada) define **funcionalidade** — quais consultas do catálogo, e com que profundidade. A
+> **capacidade** (professores × alunos) é um eixo **ortogonal**, cobrado por volume e **acrescido
+> à mensalidade**. **L9a** é a habilitação por funcionalidade — o que esta frente já dizia.
+> **L9b** é a capacidade por volume — novo. A separação não é de arrumação: **é a decisão**, e a
+> razão está em **C23**.
+
+- **Objetivo e justificativa.** Ligar a composição comercial ao acesso — **sem degradar o dado**:
+  o texto 2 §1 é explícito que «a base de dados e os registros pedagógicos não devem perder
+  qualidade, integridade ou propriedade conforme o plano contratado».
+- **Situação atual.** Não existe habilitação por capacidade **nem por funcionalidade**. Existe o
+  andaime `raiz/escolas-habilitadas.json` (`habilitada`, e `pagante` como trava de expurgo) lido
+  por `motor/servidor/raiz.js`; existe `ESCOLA_HABILITADA` como variável do Worker; existe
+  `limiteTurnos` de sessão. **Nada** liga plano a capacidade — e **nada** liga plano a consulta.
 - **Lacunas.** Sem L6 não há catálogo para distribuir; sem L7 não há medição para cortar; sem L8
   não há composição para consultar; e falta decidir **onde** a trava vive (o andaime declara que
-  «quando a Produção nascer, este arquivo SAI e a flag passa a viver no `ESCOLA.conf`»).
-- **Dependências técnicas e de domínio.** L6 + L7 + L8; e a decisão do lugar canónico da
-  habilitação (o `ESCOLA.conf` que a frente B3 já prevê).
-- **Entregas.** (a) A habilitação declarada por escola (plano, capacidades, cota, período) na
-  fonte única; (b) a **trava** no cadastro (não permitir o 2.º professor no Básico — e o que
-  acontece quando a escola **desce** de plano com dados acima do limite: a regra não pode ser
-  apagar dados); (c) a distribuição do catálogo por plano — com o conjunto de consultas
-  disponíveis **derivado** do catálogo, não copiado; (d) a cota de IA efetiva, com aviso antes
-  de esgotar.
-- **Critérios verificáveis.** (i) Numa escola de teste no Básico, cadastrar o 2.º professor é
-  **recusado** com mensagem clara; (ii) o mesmo dado continua **legível e íntegro** depois da
-  recusa (nenhuma remoção de dado; teste que confere contagens antes e depois); (iii) subir de
-  plano **libera** as consultas sem regenerar conteúdo; (iv) descer de plano **não apaga**
-  nada — apenas restringe o acesso automatizado; (v) a cota esgotada não corrompe o registro em
-  curso.
-- **Riscos e decisões por confirmar.** (a) **Risco de produto**: a trava virar punição ao dado
-  da escola — a regra acima existe para impedir; (b) C2 (multi-escola, namespace); (c) C5;
-  (d) o preço e a cobrança reais e o momento de faturamento.
-- **Prioridade.** **P3** — última; depende de L6, L7 e L8.
+  «quando a Produção nascer, este arquivo SAI e a flag passa a viver no `ESCOLA.conf`»). **A
+  lacuna nova do L9b**: não há hoje **como contar** professores nem alunos para comparar com um
+  teto — e as duas listas estão no KV, sem contador.
+
+**L9a — A funcionalidade (o que a assinatura entrega).**
+
+- **Entregas.** (a) A habilitação declarada por escola — `assinatura`, `catalogo` (a fotografia
+  datada de C5a), `capacidade`, `vigencia` — na fonte única; (b) a distribuição do catálogo por
+  plano, com o conjunto de consultas **derivado** do catálogo, não copiado; (c) a cota de IA
+  efetiva, com aviso antes de esgotar.
+- **Critérios verificáveis.** (i) subir de assinatura **libera** as consultas do degrau sem
+  regenerar conteúdo; (ii) descer de assinatura **não apaga** nada — apenas restringe o acesso
+  automatizado; (iii) a cota esgotada não corrompe o registro em curso; (iv) o conjunto de
+  consultas de uma escola é **recomputável** de `catalogo@data` + `assinatura` — e o teste
+  compara-o com o que a rota devolve.
+
+**L9b — A capacidade (o volume, cobrado por lote).**
+
+- **A REGRA, decidida a 10/11/2026.** Dois eixos, cada um com lotes de quantidade e preço, e a
+  **mesma geometria** nos dois:
+  | Eixo | Lote 1 | Lote 2 | Preço por unidade |
+  |:--|--:|--:|:--|
+  | **Professores** | 1 → R$ 30 | 3 → R$ 50 | 30,00 → **16,67** (−44%) |
+  | **Alunos** | 10 → R$ 30 | 30 → R$ 50 | 3,00 → **1,67** (−44%) |
+  Triplicar a quantidade custa **5/3 do preço** — o desconto é sempre o mesmo, e é o que torna o
+  preço explicável ao cliente sem tabela.
+- **O LOTE É RECORRENTE, e não um pagamento único.** A mensalidade é `assinatura + Σ lotes`. Uma
+  escola no Intermediário, com 2 professores e 35 alunos, paga R$ 99,90 + R$ 30,00 = **R$ 129,90
+  por mês** — e não R$ 99,90 uma vez e R$ 30 depois. Isto contrasta com o modelo antigo, em que
+  R$ 49,90 era **implementação única** e só os 20% eram recorrentes (§2.9).
+- **O LOTE É UMA FAIXA, e a escola leva a combinação mais barata que cobre o que precisa.** Não
+  é «bloco de 10 que se multiplica»: 25 alunos custam R$ 50 (lote de 30), e não R$ 90 (três
+  blocos de 10). O único artefacto é a **aresta dos 30**: de 30 para 31 alunos o preço salta de
+  R$ 50 para R$ 80. Está declarado, e **não se cria um terceiro lote**: a resposta à aresta é a
+  assinatura de cima (o Intermediário já inclui 40, o Avançado inclui 90), e um lote de 90 a
+  R$ 83,35 serviria só a quem já devia estar no Avançado. A tela diz o salto antes do clique.
+- **A CAPACIDADE INCLUÍDA NA ASSINATURA é um desconto de pacote, e cresce com o degrau**
+  (1 prof/10 alunos · 3/40 · 6/90). Ao preço do lote, ela vale R$ 60 · R$ 130 · R$ 250; a
+  assinatura custa R$ 69,90 · R$ 99,90 · R$ 139,90. O prêmio é **+R$ 9,90 · −R$ 30,10 ·
+  −R$ 110,10**: no Básico a escola paga o software (+17% sobre a capacidade avulsa); no
+  Intermediário leva-a com 23% de desconto; no Avançado, com **44%**. É a mesma lógica promocional
+  do lote aplicada ao pacote — e é ela, e não o preço, que faz o degrau do meio vender-se (§3
+  **C23**).
+- **A TRAVA É DO MOTOR, e a recusa tem dois remédios.** A estratégia §9 é explícita: «o motor
+  deverá validar o plano e suas permissões; a interface não será considerada mecanismo suficiente
+  de controle de acesso». A recusa de cadastro **não** é «o Básico não permite 2 professores» —
+  é **«a capacidade contratada está cheia»**, e oferece as duas saídas: **acrescentar um lote**
+  ou **subir de assinatura**. Mensagens diferentes para o mesmo bloqueio escondem que a primeira
+  é reversível.
+- **As contagens são DERIVADAS, nunca um contador guardado.** Professores = a lista
+  `bastidores/<escola>/professores`; alunos = `bastidores/<escola>/alunas` (o **cadastro**, não o
+  elenco nem a curadoria — uma aluna em duas turmas conta **uma vez**). Um contador guardado
+  diverge em silêncio, e é o defeito que este projeto já pagou três vezes.
+- **O LIMITE HONESTO, enquanto L2 não fechar.** A aluna não tem id estável: «contar alunas» é
+  contar **apelidos**, e a mesma pessoa pode ter dois. O teto é, até L2, uma **aproximação** — e
+  tem de estar dito na tela, não escondido.
+- **O TETO PEDAGÓGICO NÃO É REGRA DE VALIDAÇÃO.** «Mais de 10 alunos é raro» é a **curva de
+  preço**, não uma proibição. Um grupo de 28 numa turma é legítimo; se o produto quiser dizer
+  isso, diz como **aviso** («o sistema foi pensado para grupos pequenos»), nunca como recusa.
+  **Nenhum schema muda por causa desta frente** — verificado: não há `maxItems` em schema nenhum,
+  e o caminho errado seria travá-lo no **array do elenco**, o que recusaria a uma escola no teto
+  **re-enviar** o elenco dela ou registar uma falta.
+- **O LUGAR DA VERDADE.** `escola/<slug>/indice.json` → `estado.plano`, ao lado de
+  `habilitada`. Três razões medidas: o ficheiro **já existe**, é versionado, e é o que o expurgo
+  lê — e C11 já decidiu «repositório, nunca KV». **Não** em `professores/<slug>/perfil.json`: esse
+  é a habilitação **da pessoa**, e é deliberadamente **fora do tenant** (o expurgo da escola não o
+  apaga); pôr ali a capacidade faria a competência de alguém depender do contrato de uma casa.
+- **Critérios verificáveis.** (vi) Numa escola no teto, cadastrar mais um professor ou aluna é
+  **recusado** com a mensagem que nomeia **as duas saídas**; (vii) o mesmo dado continua **legível
+  e íntegro** depois da recusa (nenhuma remoção; teste que confere contagens antes e depois);
+  (viii) acrescentar um lote **libera** o cadastro sem tocar nos dados; (ix) descer de capacidade
+  **não apaga** ninguém — restringe o cadastro novo; (x) a contagem é a **mesma** que a listagem
+  mostra (uma regra, um sítio).
+- **O que esta frente NÃO faz.** Não limita **leitura** nem **exportação**: a capacidade limita o
+  **cadastro**, não o acesso ao que já existe — a mesma regra do «o plano limita a consulta, não a
+  saída» (§L9a e [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5.6).
+  E não entra em nenhuma **resposta pedagógica**: a contagem comercial não aparece no catálogo de
+  consultas, porque as perguntas de vínculo devolvem **nomes**, nunca contagens por professor
+  (§3 C5, `check-indices` verificação 13).
+- **Riscos e decisões por confirmar.** (a) **Risco de produto**: a trava virar punição ao dado da
+  escola — a regra acima existe para impedir; (b) **C23** — **resolvida a 10/11/2026**: a
+  capacidade incluída subiu para `1 prof/10 alunos · 3/40 · 6/90` e é ela que decide **qual plano
+  se vende**, com o custo de R$ 490/mês nos quinze perfis medidos; (c) o **preço do degrau acima
+  de 30 alunos**, que fica declarado e não decidido; (d) C2 (multi-escola, namespace); (e) C5;
+  (f) o preço e a cobrança reais e o momento de faturamento.
+- **Prioridade.** **P3** para o L9a (depende de L6, L7 e L8). **O L9b tem uma fatia barata que não
+  depende de nada**: contar as duas listas e comparar com `estado.plano.capacidade`. Ela pode
+  entrar antes do resto — é leitura do KV que a Produção já faz, e é o que impede a escola de
+  crescer sem contrato.
 
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
@@ -2334,7 +2526,7 @@ decisão.
 | **1 — a versão e a ponte** | **L5** (versão explícita do plano — **desenho completo**: C3 · S1–S4 · S5–S7) · **L3** (o lançamento e o envelope com leitor — e é ele que **carrega** a referência de versão) | C3 decidida destrava L5 e L3; L5 define **o que** a ponte referencia, L3 constrói **a ponte** — nesta ordem, porque uma referência sem registro onde morar não é consultável, e um registro sem versão não tem o que referenciar |
 | **2 — o encontro** | **L4** (mapa de relações e índice) | é a consequência de L1+L2+L10 aplicada ao dado de L3; sem ela, cada consulta varre tudo |
 | **3 — o valor** | **L6** (catálogo de consultas) | depende de L1–L4 **e de L10** (sem o vocabulário, quatro das oito perguntas não têm como ser respondidas — §7); é onde o produto passa a valer |
-| **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores |
+| **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores. **A fatia barata do L9b** (contar professores e alunos e comparar com a capacidade declarada) não depende de L6, L7 nem L8 completo: lê as duas listas que a Produção já lê, e pode entrar primeiro |
 | **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) · **L12** (a oferta, o período gratuito e a comunicação) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3** o valor, e toda a **L12** — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. **J1 e J3 de L12 não dependem de nada externo** e podem começar desde já |
 | **6 — a forma** | **L13** (a identidade visual como escolha — o catálogo das doze combinações) | **corre em paralelo a tudo o resto**, e é a camada mais independente do documento: não depende do dado, nem do provedor, nem do valor, nem da porta. O que ela espera **não é uma frente** — é a decisão de **C15** (a preferência é de quem), que **precede** o desenho da persistência — **decidida em 18/10/2026: da escola**. **As duas camadas 5 e 6 são as únicas cujo começo não espera por outra camada** |
 
@@ -2553,6 +2745,24 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
 | §7 | Entrada datada no registo cronológico de decisões, no formato já usado | **`REGISTRO.md`**, `## 16/10/2026 — …` |
 | §8 | Os sete critérios de conclusão | **§9** (as pendências) e o resumo da entrega |
 
+### A matriz de capacidade de 10/11/2026 — onde cada item é respondido
+
+Não vem de nenhum dos dois textos: é **decisão do dono do produto**, tomada a 10/11/2026, e é
+registada aqui para que a **assinatura** e a **capacidade** não voltem a ser confundidas.
+
+| O que a matriz decide | Onde é respondido |
+|:--|:--|
+| A assinatura define **funcionalidade**, e só isso | **§L9a** · [PLANO-PERGUNTAS](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5.5 (**inalterado**: 9 · 7 · 14 · 46) |
+| A capacidade (**professores × alunos**) é eixo **ortogonal**, cobrado por lote | **§L9b** — a regra `3× a quantidade por 5/3 do preço`, −44% por unidade |
+| O lote é **recorrente**: a mensalidade é `assinatura + Σ lotes` | **§L8** entrega (c) e critério (v) · **§2.9** |
+| A escada `69,90 · 99,90 · 139,90` com capacidade `1/10 · 3/40 · 6/90` — e o preço por unidade **cai a cada degrau** (−59% · −35%), sem ser constante | **§L8** («A escada, decidida…») · critério (vi) · **§3 C23** |
+| A trava é **do motor**, e a recusa tem **dois remédios** | **§L9b** · a estratégia §9, já citada em §L12 |
+| A capacidade **não** limita leitura nem exportação | **§L9b** («O que esta frente NÃO faz») · [PLANO-INDICES](./PLANO-INDICES.md) §6.5 · [PLANO-PERGUNTAS](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5.6 |
+| Onde vive a verdade da capacidade | **§L9b** («O lugar da verdade»): `escola/<slug>/indice.json → estado.plano` — **nunca** `professores/<slug>/perfil.json` |
+| A régua dos 20% por professor adicional **deixa de existir** | **§L8** risco (c) — mudança comercial **declarada** |
+| A aresta dos 30 alunos **fica declarada**, sem terceiro lote | **§L9b** · **§3 C23** |
+| O que a decisão custou, e o que fica em aberto | **§3 C23** — o Intermediário passa a ser o mais vendido (7 de 15 perfis) **e a escada perde R$ 490/mês** nos quinze perfis medidos |
+
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
 1. **A definição de «contexto», «componente», «intervenção» e «resposta observada»** (§3 C10) —
@@ -2583,7 +2793,13 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
   (§3 C10, §L10) — é decisão de **conteúdo**, e o texto 1 §7 proíbe presumir equivalência entre
   tradições. É a razão pela qual quatro das oito perguntas ficam bloqueadas (§7).
 - **Não inventou** valores comerciais, nem regras de cobrança, nem quais consultas vão em cada
-  plano (§2.9, C5b).
+  plano (§2.9, C5b). **Exceção, a 10/11/2026**: a **escada** (69,90 · 99,90 · 139,90) e a **matriz
+  de capacidade** (lotes de professores e de alunos, recorrentes) são **decisão do dono do
+  produto**, com piso declarado de R$ 69,90 — e entram aqui como **dado a implementar**, não como
+  invenção deste documento. O **tamanho da capacidade incluída em cada degrau** — a pergunta que
+  este documento tinha deixado aberta — foi decidido no mesmo dia: `1 prof/10 alunos · 3/40 ·
+  6/90`, com a tabela dos quinze perfis a prová-lo (§3 C23). O que continua **não** decidido, e é
+  decisão de negócio, é o **preço do degrau de alunos acima de 30** e a **cobrança real**.
 - **Não alterou** nenhum arquivo de produto, nenhuma fonte de ciclo, nem o KV (a leitura foi
   somente leitura) — e **não implementou** a versão explícita decidida em C3: esta fase é
   diagnóstico e planeamento, e as três medidas que delimitam a implementação foram feitas em
