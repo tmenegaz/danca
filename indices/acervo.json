@@ -111,7 +111,8 @@
       "nome": "calango",
       "professor": "pe-torto",
       "professores": [
-        "pe-torto"
+        "pe-torto",
+        "redinha-rosa"
       ],
       "registros": [
         "anamnese:anamnese-20261108-1259",
@@ -229,6 +230,11 @@
         "valor": "rabo-gramde"
       },
       {
+        "contagem": 1,
+        "rotulo": "Redinha Rosa",
+        "valor": "redinha-rosa"
+      },
+      {
         "contagem": 2,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
@@ -274,9 +280,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "d4ec94b"
+    "commit": "901200a"
   },
-  "gerado_em": "2026-11-10T16:11",
+  "gerado_em": "2026-11-10T22:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -410,6 +416,15 @@
       "id": "professor:rabo-gramde",
       "nome": null,
       "slug": "rabo-gramde"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:redinha-rosa",
+      "nome": "Redinha Rosa",
+      "slug": "redinha-rosa"
     },
     {
       "ciclos": [],

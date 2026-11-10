@@ -460,7 +460,8 @@
     "nome": "calango",
     "professor": "pe-torto",
     "professores": [
-      "pe-torto"
+      "pe-torto",
+      "redinha-rosa"
     ],
     "registros": [
       "anamnese:anamnese-20261108-1259",
@@ -712,9 +713,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "d4ec94b"
+    "commit": "901200a"
   },
-  "gerado_em": "2026-11-10T16:11",
+  "gerado_em": "2026-11-10T22:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
