@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 09/11/2026 (`eea49096` + esta entrega). Nesta entrega, **o «Cancelar» da
+> **Última fotografia:** 09/11/2026 (`fc305563` + esta entrega). Nesta entrega, **a listagem de
+> elencos da Audição ganha o filete pontilhado** que as outras listas já tinham — Estilo, Salas,
+> Professores, Alunos — e que ali era **apagado** por uma regra de «reset» da própria página
+> (`.lb-cartoes>li{border-bottom:0}`). A linha passa a vestir o mesmo fio e o mesmo respiro de
+> `.lista li`, que é o padrão da «Exercícios com verbete»: `1px dotted var(--borda-campo)` e
+> `padding: .35rem .1rem`. O cartão (`.trio-plano`) e o respiro entre cartões não mudam. Ver a
+> entrada de 09/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (09/11/2026, `1691cc86`).** Nesta entrega, **o «Cancelar» da
 > edição de elenco fica direto** — o rótulo passa a «Cancelar», como o da Turma, e a caixa de
 > confirmação sai: um clique descarta o rascunho no servidor e fecha o formulário. E **a derivação
 > de turma passa a aceitar um par novo**: o professor e a modalidade ficam editáveis no «Derivar»
@@ -4261,6 +4269,20 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **09/11/2026** — **O filete pontilhado da listagem de elencos.** Ela pediu o tracejado inferior
+  que Estilo, Salas, Professores e Alunos têm, e a equiparação com a «Exercícios com verbete».
+  **CONFIRMADO no código e medido na bancada local**: a linha de `.lista` computava
+  `1px dotted var(--borda-campo)` e a de `.lb-cartoes` computava `0px none` — havia um
+  `'.lb-cartoes>li{padding:0;border-bottom:0;}'` de «reset» no bloco de estilo da página, a mesma
+  família de regra que a véspera apagou o respiro dos cartões. **DECIDIDO**: o `li` da listagem
+  passa a vestir o **mesmo** fio e o **mesmo** respiro de `.lista li` (`.35rem .1rem`), sem peça,
+  classe ou cor novas; o `.trio-plano` e o `margin-bottom` de `.6rem` não mudam. A prova compara as
+  duas arestas por **igualdade** em 1280 e 320px, com dois A/B (o `margin:0` leva o vão a zero; o
+  `border-bottom:0` apaga o filete). `provar-abas-da-audicao` **86/86** (80 → 86); sem regressão em
+  `provar-producao` 166, `provar-linha-de-base` 102, `provar-elenco-na-turma` 25,
+  `provar-aluna-nova-no-elenco` 34, `provar-remocao-do-elenco` 26,
+  `provar-transferencia-e-desligamento` 93, `provar-linha-de-base-no-repo` 39;
+  `check-identidade` **0 erros**. Ver a entrada de 09/11/2026 no `REGISTRO.md`.
 - **09/11/2026** — **O «Cancelar» direto, e a derivação que troca o par professor × modalidade.**
   **CONFIRMADO no código**: o «Cancelar» do elenco chamava `confirm()` antes de descartar, e o da
   Turma não — o mesmo gesto de recuo pedia duas confirmações diferentes. Passa a **«Cancelar»**, sem

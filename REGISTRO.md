@@ -41404,3 +41404,53 @@ recusado — a troca de par não serve para reabrir uma direção encerrada; par
 uma curadoria nova é o caminho. (2) A derivação não revalida o **elenco** contra a modalidade nova:
 as alunas continuam a ser as do elenco escolhido, e a regra de «uma aluna por modalidade» é
 conferida nessa modalidade final, mas não se procura um elenco equivalente na modalidade nova.
+
+## 09/11/2026 — O filete pontilhado da listagem de elencos, e o padrão das listas
+
+**O que motivou.** Ela relatou que a **listagem de elencos** da Audição («Escolha de elenco», aba 1)
+está **sem o pontilhado inferior** que as outras listagens têm — Estilo, Salas, Professores, Alunos
+—, e pediu que siga «o mesmo padrão e estrutura de estilo (semelhante à lista de exercícios com
+verbete)». **CONFIRMADO no código e medido na bancada local**: a linha de `.lista` (a das
+«Exercícios com verbete») computa `border-bottom: 1px dotted var(--borda-campo)`, e a de
+`.lb-cartoes` computava `0px none` — havia, no bloco de estilo da página, um
+`'.lb-cartoes>li{padding:0;border-bottom:0;}'` de «reset», a **mesma família de regra** que a
+véspera apagou o respiro dos cartões (`.lb-cartoes>li{margin:0}`). O tracejado não se perdia: era
+apagado de propósito, e por uma linha que ninguém lia como decisão de desenho.
+
+**O que foi decidido.**
+
+- **O filete é o das outras listas, e não um novo.** O `li` da listagem de elencos passa a vestir o
+  **mesmo** fio e o **mesmo** respiro de linha de `.lista li` — `padding: .35rem .1rem` e
+  `border-bottom: 1px dotted var(--borda-campo)`. Não nasce peça, não nasce classe, não nasce cor:
+  a `--borda-campo` já é o papel do tracejado em todas as listagens, e o padrão é o da «Exercícios
+  com verbete», que é a referência que ela deu.
+- **O cartão fica.** O que muda é só o que **separa** um cartão do outro: o `.trio-plano` continua
+  a ser a peça do cartão (nome, selo, ações, fatos, as duas caixas) e o `margin-bottom` de `.6rem`
+  continua a ser o respiro entre eles. O filete entra **por baixo** do conteúdo, como nas listas
+  simples.
+- **A medida vira prova.** A bancada `medir-etiqueta-e-lista` já media esta aresta desde a manhã
+  (era a queixa nº 2 dela), e agora `provar-abas-da-audicao` compara-a com a linha de `.lista`:
+  a asserção é de **igualdade entre as duas arestas**, não de um valor escrito à mão — em 1280 e em
+  320px. Dois A/B acompanham: o `margin:0` antigo leva o vão a zero, e o `border-bottom:0` antigo
+  apaga o filete. Sem eles, a prova passaria mesmo sem a correção.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a regra `.lb-cartoes>li` do bloco de estilo da
+Produção: sai o `padding:0;border-bottom:0`, entram o respiro e o filete de `.lista li`, com o
+motivo declarado no comentário) · `experimentos/provar-abas-da-audicao.js` (a referência `.lista` na
+página da bancada, a leitura das duas arestas e os dois A/B — 80 → 86 asserções).
+
+**Validação.** `medir-etiqueta-e-lista` na bancada local: a listagem de elencos passa de
+`0px none` a `1px dotted rgb(160, 138, 88)`, com `padding: 5.6px 1.6px`, **igual** à linha de
+`.lista` — a 1280, 390 e 320px. `provar-abas-da-audicao` **86/86** (80 → 86: as quatro asserções do
+filete e os dois A/B novos). Sem regressão: `provar-producao` 166/166, `provar-linha-de-base`
+102/102, `provar-elenco-na-turma` 25/25, `provar-aluna-nova-no-elenco` 34/34,
+`provar-remocao-do-elenco` 26/26, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base-no-repo` 39/39, `check-identidade` **0 erros** (Forma, Peça e Aresta
+incluídas).
+
+**O que ainda não está feito.** (1) A `medir-etiqueta-e-lista` continua a **imprimir** o que mede, e
+não a **reprovar**: ela é bancada de leitura, e quem guarda a regressão é a prova das abas. (2) A
+lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação é de **aresta e
+respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
+fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
+sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
