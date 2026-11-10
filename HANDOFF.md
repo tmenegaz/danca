@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-09T21:37:15-0300`
-Commit atual: `f230c384` — docs(registro): o filete pontilhado da listagem de elencos
+Gerado em: `2026-11-09T22:04:32-0300`
+Commit atual: `e564c29a` — docs(registro): a cadeia automática, e a reversão que ela declara
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,9 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+e564c29a docs(registro): a cadeia automática, e a reversão que ela declara
+4530025f feat(estrutura): a cadeia automática da troca e da saída
+9ed67911 chore(estrutura): regerar o HANDOFF
 f230c384 docs(registro): o filete pontilhado da listagem de elencos
 bcdf148b fix(estrutura): o filete pontilhado da listagem de elencos
 fc305563 chore(estrutura): regerar o HANDOFF
@@ -88,9 +91,6 @@ e967e2f2 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 0245e3b8 chore(estrutura): regerar os índices derivados
 91875de0 feat(linha de base): índice — tami 20261109-2139
 739b71cc feat(elenco): Aluna B passa de tami para ami
-0ef8b2cb feat(linha de base): índice — ami 20261109-2139
-ea6149cb feat(elenco): Aluna B passa de tami para ami
-449f930e chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -164,83 +164,74 @@ ea6149cb feat(elenco): Aluna B passa de tami para ami
 
 ## Última entrada do REGISTRO
 
-## 09/11/2026 — O filete pontilhado da listagem de elencos, e o padrão das listas
+## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
 
-**O que motivou.** Ela relatou que a **listagem de elencos** da Audição («Escolha de elenco», aba 1)
-está **sem o pontilhado inferior** que as outras listagens têm — Estilo, Salas, Professores, Alunos
-—, e pediu que siga «o mesmo padrão e estrutura de estilo (semelhante à lista de exercícios com
-verbete)». **CONFIRMADO no código e medido na bancada local**: a linha de `.lista` (a das
-«Exercícios com verbete») computa `border-bottom: 1px dotted var(--borda-campo)`, e a de
-`.lb-cartoes` computava `0px none` — havia, no bloco de estilo da página, um
-`'.lb-cartoes>li{padding:0;border-bottom:0;}'` de «reset», a **mesma família de regra** que a
-véspera apagou o respiro dos cartões (`.lb-cartoes>li{margin:0}`). O tracejado não se perdia: era
-apagado de propósito, e por uma linha que ninguém lia como decisão de desenho.
+**O que motivou.** A pesquisadora pediu, com estas palavras: «eliminar a necessidade de o professor
+realizar o processo manual ('via crucis') passo a passo para atualizar vínculos e documentos quando
+houver: troca de aluno entre elencos / turmas; exclusão ou abandono de aluno; troca de modalidade ou
+de professor de uma turma» — e que a execução em cadeia atualize os vínculos e etiquetas, regenere
+os documentos na ordem correta, e **mantenha a flexibilidade** para o professor derivar o plano à
+mão quando quiser um ajuste específico. **CONFIRMADO no código**: até aqui, os três gestos deixavam
+a travessia aberta e a resposta dizia «reveja a TURMA, depois o plano de ensino e, por último, o
+plano de observação»; a `revalidacaoPendente` marcava, e o professor percorria. **Esta é uma
+REVERSÃO declarada de uma decisão anterior** — «a gente não vai deixar um botão automático que
+dispara tudo em cadeia porque precisa do olhar do professor para tomar as decisões e as medidas que
+ele julga pertinente» —, e a reversão é dela, com a mesma condição: a automação não decide
+pedagogia.
 
 **O que foi decidido.**
 
-- **O filete é o das outras listas, e não um novo.** O `li` da listagem de elencos passa a vestir o
-  **mesmo** fio e o **mesmo** respiro de linha de `.lista li` — `padding: .35rem .1rem` e
-  `border-bottom: 1px dotted var(--borda-campo)`. Não nasce peça, não nasce classe, não nasce cor:
-  a `--borda-campo` já é o papel do tracejado em todas as listagens, e o padrão é o da «Exercícios
-  com verbete», que é a referência que ela deu.
-- **O cartão fica.** O que muda é só o que **separa** um cartão do outro: o `.trio-plano` continua
-  a ser a peça do cartão (nome, selo, ações, fatos, as duas caixas) e o `margin-bottom` de `.6rem`
-  continua a ser o respiro entre eles. O filete entra **por baixo** do conteúdo, como nas listas
-  simples.
-- **A medida vira prova.** A bancada `medir-etiqueta-e-lista` já media esta aresta desde a manhã
-  (era a queixa nº 2 dela), e agora `provar-abas-da-audicao` compara-a com a linha de `.lista`:
-  a asserção é de **igualdade entre as duas arestas**, não de um valor escrito à mão — em 1280 e em
-  320px. Dois A/B acompanham: o `margin:0` antigo leva o vão a zero, e o `border-bottom:0` antigo
-  apaga o filete. Sem eles, a prova passaria mesmo sem a correção.
+- **Quatro etapas, na ordem da dependência**: `vínculos` (a Turma passa a declarar o corpo do
+  elenco) → `plano-de-ensino` (elo novo com `ajuste_de`) → `plano-de-observacao` (elo novo que
+  observa o plano vigente) → `pacote` (fontes escritas e geração disparada). Cada etapa tem estado
+  **derivado** — `feita`, `pendente` ou `bloqueada` —, e o sinal cai sozinho quando a etapa é feita.
+- **A PORTA DO FLUXO COMPLETO.** A travessia inteira só corre em registos que já têm elenco, Turma,
+  plano e PO. Num registo incompleto, o salvamento é normal, os vínculos fazem-se (é o que depende
+  só do elenco), e a resposta diz o que falta, etapa a etapa, **com o link do sítio onde se
+  resolve**. O sistema não inventa o plano nem o PO que a escola nunca fez.
+- **Pára na primeira etapa que não fecha** — nunca salta para a frente. Um PO derivado sobre um
+  plano que já não vale seria consolidar a observação sobre um corpo que mudou.
+- **A proveniência acrescenta.** Os elos novos apontam os anteriores (`ajuste_de`), o conteúdo
+  respondido é preservado (a cadeia não reinterpreta o que o professor escreveu), e nada é apagado.
+- **Idempotência.** Antes de derivar, cada etapa pergunta se já está em dia; um documento posterior
+  ao gatilho conta como `feita`. Repetir o gesto não empilha elos falsos.
+- **O orçamento é um só por pedido.** O store do repositório e a cadeia partilham o mesmo contador
+  de subpedidos (a lição de 08/11/2026); e a travessia não começa quando o pedido já gastou a maior
+  parte do teto — diz que não correu, e o professor repete o gesto.
+- **O log é do processo.** Cada execução fica em `bastidores/<escola>/cadeia` (teto de 60): quando,
+  que gatilho, que alvos, o estado de cada etapa e porquê parou. Lê-se em
+  `GET /api/bastidores/cadeia`. A tela recebe só o que interessa: sucesso global, ou o que falta
+  com os links — a execução é interna e transparente, como ela pediu.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (a regra `.lb-cartoes>li` do bloco de estilo da
-Produção: sai o `padding:0;border-bottom:0`, entram o respiro e o filete de `.lista li`, com o
-motivo declarado no comentário) · `experimentos/provar-abas-da-audicao.js` (a referência `.lista` na
-página da bancada, a leitura das duas arestas e os dois A/B — 80 → 86 asserções).
+**Onde entrou.** `motor/nucleo/cadeia.js` (novo — o índice das etapas, a classificação e o resumo) ·
+`motor/servidor/cadeia.js` (novo — a execução: sincronizar vínculos, derivar plano e PO, fechar o
+pacote, gravar o log) · `motor/servidor/concluir-po.js` (novo — o bloco «PO concluído vira fonte,
+gera o ciclo e dispara» extraído de `rotas.js`, agora com **três** consumidores: o «Guardar» do PO,
+o ajuste em cadeia do plano e a cadena automática) · `motor/servidor/rotas.js` (usa a função
+extraída; comportamento inalterado) · `motor/servidor/producao.js` (monta a cadeia só nos gestos
+que a pedem, com o contador de subpedidos do pedido) · `motor/servidor/bastidores.js` (os três
+gatilhos — `elenco-mover`, conclusão do elenco e `curadoria-derivar` —, a rota do log, o render
+na tela) · `motor/servidor/linhas-de-base-repo.js` (`doAmbiente` aceita o `fetchImpl` do pedido) ·
+`experimentos/provar-cadeia-automatica.js` (novo, 60 asserções) · `ARQUITETURA-GERAL.md` (a tabela
+do que acontece sozinho e o parágrafo que dizia «o fluxo automático não existe» — corrigido com a
+reversão declarada) · `motor/nucleo/README.md`.
 
-**Validação.** `medir-etiqueta-e-lista` na bancada local: a listagem de elencos passa de
-`0px none` a `1px dotted rgb(160, 138, 88)`, com `padding: 5.6px 1.6px`, **igual** à linha de
-`.lista` — a 1280, 390 e 320px. `provar-abas-da-audicao` **86/86** (80 → 86: as quatro asserções do
-filete e os dois A/B novos). Sem regressão: `provar-producao` 166/166, `provar-linha-de-base`
-102/102, `provar-elenco-na-turma` 25/25, `provar-aluna-nova-no-elenco` 34/34,
-`provar-remocao-do-elenco` 26/26, `provar-transferencia-e-desligamento` 93/93,
-`provar-linha-de-base-no-repo` 39/39, `check-identidade` **0 erros** (Forma, Peça e Aresta
-incluídas).
+**Validação.** `provar-cadeia-automatica` **60/60** (novo). Sem regressão: `provar-producao`
+166/166, `provar-cadeia-do-ajuste` 34/34, `provar-transferencia-e-desligamento` 93/93,
+`provar-linha-de-base` 102/102, `provar-linha-de-base-no-repo` 39/39, `provar-elenco-na-turma`
+25/25, `provar-abas-da-audicao` 86/86, `provar-derivacao-da-turma` **112/132** (as mesmas 20
+falhas anteriores à mudança, iguais no `HEAD`), `check-identidade` **0 erros**.
 
-**O que ainda não está feito.** (1) A `medir-etiqueta-e-lista` continua a **imprimir** o que mede, e
-não a **reprovar**: ela é bancada de leitura, e quem guarda a regressão é a prova das abas. (2) A
-lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação é de **aresta e
-respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
-fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
-sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
+**O que ainda não está feito.** (1) A cadeia **não corre** quando o Worker não tem a ponte montada
+(sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
+**mudança de Sala** continua fora da cadeia: o `revalidacaoPendente` já declarava essa lacuna, e a
+cadeia não acrescentou o passo novo (a cascata não vê a Sala). (3) O plano derivado **preserva as
+respostas**: se a aluna que entrou traz necessidades que o plano não cobre, isso continua a ser
+decisão do professor — a cadeia não compara necessidade individual com conteúdo, e é de propósito.
+(4) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção
+é o passo seguinte ao deploy.
 
 ## O que está pendente
-
-## 09/11/2026 — A Audição em três abas, e a transferência que não se oferece a si mesma
-
-(1) A aba ativa **não sobrevive ao recarregar** — a
-página volta sempre à aba 1; guardá-la seria fácil e não foi pedido. (2) A listagem, no telemóvel,
-fica **abaixo** do painel: «visível em todas as abas» cumpre-se no sentido de não ser escondida
-com o painel, mas quem troca de aba continua a ter de rolar até ela. (3) As abas são **desta
-página**: não nasceu uma peça de folha para elas, e no dia em que outra secção as quiser o desenho
-tem de subir para `tools/templates/ciclo.css` — e aí a folha é congelada e o motivo é declarado.
-
-> **Correção de 09/11/2026 (mesmo dia).** A primeira redação desta entrada dizia que a aba 2 se
-> chamava **«O que os recortes olham»**, com o argumento de que era «o nome que o bloco já tinha».
-> **Está incompleto**: o nome que ela usa é **«Recorte»**, e foi ela que o disse — «A Aba 2 deve se
-> chamar Recorte». O rótulo longo era **descrição minha**, e uma aba não se nomeia por descrição:
-> o nome é o do objeto, e «Recorte» é o que o passo 4 e o índice dos recortes já dizem nos
-> documentos. A redação anterior não é apagada: fica como o elo que registra o que se pensou antes
-> da correção.
->
-> O QUE MUDOU, e é só o nome: a lista das três abas passou a ser **declarada uma vez**
-> (`TITULOS_DAS_ABAS_DA_AUDICAO`, em `motor/servidor/bastidores.js`), e a tira do computador e a
-> folha do telemóvel consomem-na as duas — antes a lista estava escrita duas vezes, e a primeira
-> correção de rótulo deixaria as duas a divergir. Nada de comportamento, de rota ou de dado mudou.
->
-> VALIDAÇÃO da correção: `provar-abas-da-audicao` **41/41** (39 + 2 novas: os três rótulos
-> exatos, e a folha a dizer o mesmo que a tira), com a asserção que recusa o rótulo antigo.
-> `check-identidade` **0 erros**.
 
 ## 09/11/2026 — A Audição, segunda passagem: o respiro, o formulário limpo e a ordem do acto
 
@@ -276,6 +267,11 @@ lista de elencos **não** passou a `ul.lista` com `li.turma` — a equiparação
 respiro**, não de contentor; o contentor próprio (`lb-cartoes`) fica porque o cartão não é uma
 fita de `flex`, e a prova do respiro usa essa classe no A/B. (3) Nada foi conferido **no ar** nesta
 sessão: a conferência é local, e o deploy do Worker da escola é o passo seguinte.
+
+## 09/11/2026 — A cadeia automática: a troca e a saída deixam de ser «via crucis»
+
+(1) A cadeia **não corre** quando o Worker não tem a ponte montada
+(sem `GITHUB_TOKEN` ou sem os conteúdos da porta) — a rota diz isso e o gesto fica gravado. (2) A
 
 ## Pendências anteriores (índice)
 
@@ -673,6 +669,7 @@ sessão: a conferência é local, e o deploy do Worker da escola é o passo segu
 - **08/11/2026** — O fluxo da escola, num só desenho — e as duas portas do… → `REGISTRO.md` L40871
 - **08/11/2026** — As duas portas do fluxo da escola: a aluna que muda de… → `REGISTRO.md` L40932
 - **08/11/2026** — A aluna desligada, e a turma que muda de sala → `REGISTRO.md` L41005
+- **09/11/2026** — A Audição em três abas, e a transferência que não se… → `REGISTRO.md` L41106
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
