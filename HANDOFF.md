@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T14:09:50-0300`
-Commit atual: `74659504` — fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
+Gerado em: `2026-11-10T14:45:06-0300`
+Commit atual: `b0c1aac2` — fix(estrutura): o elo vencido aponta o vigente, e a variante não muda com a sala
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,6 +71,8 @@ rabo-gramde (5)
 ## Últimos commits
 
 ```
+b0c1aac2 fix(estrutura): o elo vencido aponta o vigente, e a variante não muda com a sala
+6a87218c chore(estrutura): regerar o HANDOFF
 74659504 fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
 266e56e4 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
 8e3a5deb chore(estrutura): regerar os índices derivados
@@ -89,8 +91,6 @@ d7d988f1 feat(acervo): envelope/po-20261110-1304.json
 5d50d66b feat(acervo): envelope/.indice.json
 f6ded9b2 feat(notacao): declarar «Battement fondu» (8|2/4) no alfabeto bale-classico
 aebe0759 chore(estrutura): regerar o HANDOFF
-9736cdfa docs(registro): a ordem que não existia no dado
-9cb292e3 fix(estrutura): a decomposição segue a ordem em que foi escrita, e duplica-se uma linha
 ```
 
 ## Por professor
@@ -164,98 +164,52 @@ aebe0759 chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
+## 10/11/2026 — Avaliação: a turma precisa de uma identidade que não seja o nome nem o id
 
-**O que motivou.** A pesquisadora migrou um elenco dentro da Turma, em Bastidores → Produção →
-Curadoria, e leu, ao «Guardar»:
+**Pergunta.** «O nome do plano de ensino está a ser gerado com o nome da sala ou com o nome do
+professor? Convém um campo próprio de identificação da turma?»
 
-> *«a cadeia avançou até onde era possível. esta invocação do Worker já gastou 33 dos 50 subpedidos
-> permitidos, e o passo seguinte precisa de 18. Nada do ciclo foi escrito — repita o «Guardar»»*
+**Resposta medida.** Com o professor, não — em sítio nenhum (ver a entrada anterior). Com a sala,
+sim, e é isso que está certo: a variante é `<escola>-<sala>`, e o ciclo é da sala. O problema não
+era o nome: era o **id** a fazer de nome (corrigido acima) e a **ausência de uma chave estável**
+quando o nome muda.
 
-E, no link «abrir»: *«levou direto para o lugar aonde eu precisava clicar, mas depois voltou para a
-listagem»*. O trabalho que ela fez em seguida — abrir o plano de observação, ajustar, **gerar** — deu
-certo; o que se corrige aqui é precisar de o fazer à mão, e o que a frase lhe dizia enquanto o fazia.
+**O que hoje identifica uma turma, e o que depende disso.**
 
-**CONFIRMADO e medido** (leitura do código, bancada local, e as provas novas):
+| Hoje | Onde vive | Muda quando |
+|:--|:--|:--|
+| `nome` (texto livre da direção) | ordem e cartão | só na Sala **livre** (`turma-editar`), e aí a curadoria/plano não existem |
+| `id` = slug do nome | `turmas`, `turma-conteudos` | a cada derivação (ganha a data) |
+| `turmas: [nome]` | curadorias | — |
+| `contexto.turma` = nome | envelopes do plano e do PO | — |
+| variante = `<escola>-<slug do nome>` | `.conf`, `.md`, pasta do pacote, `.fipp` | se o nome mudar |
 
-- **A frase mentia por omissão, e a conta era uma conta.** `33 + 18 = 51`, contra um teto de 50
-  subpedidos **por invocação** do Worker: nenhum código mais eficiente faz 51 caber em 50. O que não
-  coube foi o **último** passo — os vínculos e os dois elos já estavam gravados —, e «Nada do ciclo
-  foi escrito» lia-se ao contrário: o professor refaz o que está feito.
-- **O «abrir» não tinha alvo.** `cadeia.enderecos()` devolvia `/plano-observacao/` e mais nada. A
-  porta exige professor, escola **e ciclo** para abrir, e `?ajustar=<carimbo>` para abrir *dentro* do
-  documento; a página da Produção **não** traz `?ciclo=`. A porta chegava, não encontrava o
-  documento, e devolvia à listagem — o «titubeio» descrito, ao pé da letra.
-- **A etapa 4 era uma dedução.** «O PO é posterior ao gatilho» não é «os documentos foram gerados»: é
-  exactamente o estado que fica quando o teto corta entre a etapa 3 e a 4. Repetir o gesto dizia «a
-  cadeia fechou» sem nada ter sido gerado — a mentira tranquilizadora, a pior resposta possível.
+**O que se conclui.** A ligação está protegida — a Sala só se renomeia quando é `livre`
+(`estado-da-turma.js`), e é por isso que os cinco pontos acima nunca divergiram. O que falta não é
+uma proteção: é uma **chave que sobreviva a uma renomeação**, se um dia a direção precisar de
+corrigir o nome de uma sala já curada (hoje o caminho é remover e recriar a curadoria).
 
-**O que foi decidido.**
+**As três opções, com o custo de cada uma.**
 
-- **A GERAÇÃO PASSA A CORRER NUMA INVOCAÇÃO PRÓPRIA.** `cadeia.fecharPacotes({ turmas })` corre **só**
-  a etapa 4 — lê o plano e o PO vigentes e chama a mesma `concluirPacote` do «Guardar» — e **não**
-  deriva plano nem PO: derivá-los outra vez empilharia elos gémeos. Duas invocações, dois tetos, um
-  gesto. A rota é `POST /api/bastidores/cadeia-pacote`, montada na ponte da Produção.
-- **A PÁGINA CONTINUA SOZINHA, E UMA TURMA POR PEDIDO.** Quando o que falta é a geração e ela não
-  coube (`porOrcamento`), a própria página pede o fecho — o professor não carrega em mais nada. A
-  fila é **um pedido por turma**, porque o teto é por invocação e duas gerações caberiam mas três não:
-  cada pedido leva os 50 inteiros. Se alguma turma não fechar, é **ela** que fica à vista, e não o
-  «a cadeia fechou» da última que fechou.
-- **A FRASE PASSA A SER MONTADA DO ESTADO REAL.** `montarEstadoDaCadeia` — uma função, os dois
-  chamadores — devolve o que **fechou** (`fecharam`), o que **falta** (`restam`), o mesmo **por
-  turma**, e diz qual etapa falta e porquê. Uma etapa só conta como fechada se fechou em **todas** as
-  turmas do gesto: a união simples dizia «falta nada» com uma turma a meio. O `subpedidos.js` deixa de
-  mandar «repetir»: ele mede o orçamento, e quem sabe o que já entrou é quem chamou.
-- **O «ABRIR» ENTRA NO DOCUMENTO.** `cadeia.enderecoDaEtapa` junta ao endereço o `ciclo=` (lido do
-  plano/PO, porque a página não o traz), o `ajustar=<carimbo>` e o `plano=` que a porta já sabia ler.
-  Quando o que falta é a **geração**, vai **sem** `ajustar=`: o PO está em dia, e ajustá-lo derivaria
-  um elo gémeo do último — um duplicado que ninguém pediu.
-- **O `pacoteEmDia` DEIXOU DE SER DEDUÇÃO.** Passa a ler o registo da geração (`geracao.lerRegistro`,
-  gravado pelo `concluir-po.js`): há pedido posterior ao PO **e** documentos derivados. Sem registo —
-  escola antiga, KV sem a chave, runtime de prova — volta-se à dedução de antes: nada fica a afirmar
-  mais do que se mediu.
-- **O QUE JÁ FOI PINTADO SAI ANTES DO QUE VAI SER PINTADO, e só isso.** A caixa do resultado é a mesma
-  onde o acto escreveu «Fulana passou de A para B»; a marca `data-cadeia` limpa o estado da cadeia e
-  **não** o acto. Dois `pintarCadeia` no mesmo sítio (a gravação e o `carregarLinhas`) pedem a
-  geração **uma** vez — a guarda está no elemento.
+1. **Não fazer nada além do que foi feito.** Um nome = uma turma, e o nome só muda quando não há
+   nada dependente dele. Custo: nenhum. Limite: corrigir o nome de uma sala curada obriga a
+   remover e recriar a atribuição, e as âncoras antigas guardam o nome antigo.
+2. **`chave` estável na turma** (`chave = slug(nome)` na criação, herdada por todos os elos da
+   derivação), com a variante a passar a `<escola>-<chave>` e o `nome` só para exibir. Custo: um
+   campo novo, migração dos registos existentes (derivável na leitura, sem tocar no dado) e um
+   `id` que deixa de precisar da data. Ganho: renomear deixa de partir nada. Risco: muda o nome
+   dos ficheiros se a `chave` de alguma turma diferir do slug actual — não difere enquanto a
+   derivação for a única forma de a turma mudar.
+3. **Pôr o `id` da turma no envelope e no front matter** (`contexto.turmaId`), mantendo o nome como
+   hoje. Custo: um campo em dois esquemas e a reancoragem de todos os ciclos. Ganho: o vínculo
+   deixa de depender do texto. É a opção mais cara e a que menos resolve, porque a variante
+   continuaria a ser o nome.
 
-**Onde entrou.** `motor/servidor/cadeia.js` (`pacoteEmDia` pelo registo, `alvosDe` partilhado,
-`fecharPacotes`, `enderecoDaEtapa`, o `id`/`ciclo` nas etapas, e o motivo na etapa que trava) ·
-`motor/servidor/bastidores.js` (`montarEstadoDaCadeia`, `rodarCadeia` a usá-la, `pintarCadeia` com a
-limpeza marcada e a fila por turma, a rota `cadeia-pacote`, e `urlDaPorta` a aceitar lista) ·
-`motor/servidor/producao.js` (a rota nova na lista de gestos que montam a cadeia) ·
-`motor/servidor/subpedidos.js` (a frase que já não instrui) ·
-`experimentos/provar-fecho-do-pacote.js` (**novo, 42 asserções**) ·
-`experimentos/provar-link-e-fecho.js` (**novo, 20 asserções, no navegador, com controle negativo**) ·
-`.gitignore` (as duas provas, uma por uma).
-
-**Validação.** `provar-fecho-do-pacote` **42/42** — a frase do estado real, o fecho só da etapa 4 sem
-elos gémeos, o endereço dentro do documento (com ciclo vindo do documento), o `pacoteEmDia` pelo
-registo com o controlo negativo da dedução antiga, a rota no mesmo formato do gesto, e as duas turmas.
-`provar-link-e-fecho` **20/20** — o `ajustar=`/`plano=`/`escola=` no «abrir», a continuação sozinha,
-o acto preservado, uma nota só, uma geração por vez, a fila de duas turmas com a falhada à vista; e o
-**controle negativo** contra o motor do `HEAD` reprova **10 de 20**. Sem regressão:
-`provar-cadeia-automatica` **60/60**, `provar-cadeia-do-ajuste` **34/34**, `provar-mudanca-de-sala`
-**41/41**, `provar-producao` **166/166**, `check-identidade` **0 erros (21 ok)**.
-
-**O que ainda não está feito.** (1) **Não foi conferido no ar nesta sessão** — as provas são de
-bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
-a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
-grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
-`wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
-gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
-repetição é o registo da geração, e só quando o KV tem a chave.
+**Recomendação.** A **2**, e só quando houver um caso real de renomeação — não antes. Hoje a regra
+«o nome não muda» está certa e é barata; a `chave` só passa a valer a pena no dia em que o nome
+precisar de mudar com plano feito.
 
 ## O que está pendente
-
-## 10/11/2026 — A faixa que ninguém media: 1141 a 1919px
-
-(1) Não foi conferido **no ar** nesta sessão — a conferência é o
-passo seguinte ao deploy. (2) A faixa dos monitores **muito altos e estreitos** (1440×900 com a
-página de documento, `main` de 1180px) foi medida e não tem defeito: o documento tem tecto e
-centra-se, e a folha de leitura não estica. (3) As outras listagens do serviço (Turmas,
-Curadorias, Verbetes) foram medidas a 1920/1366/1280 e não transbordam; a que estava apertada era a
-de **alunos e professores**, por causa da etiqueta das turmas com 240px.
 
 ## 10/11/2026 — O histórico do ajuste: o rótulo, a diferença e o motivo
 
@@ -294,6 +248,15 @@ grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já d
 `wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
 gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
 repetição é o registo da geração, e só quando o KV tem a chave.
+
+## 10/11/2026 — O ajuste que não se perde no elo vencido, e a variante que não muda com a sala
+
+(1) **A `Rosa` está, no ar, sem curadoria vigente** — a derivação
+que mudou a sala para `Piano` *moveu* a atribuição; o plano de `Rosa` continua lá e a direção que o
+autoriza, não. É estado de dados, não de código: repor exige uma atribuição nova, e é decisão dela.
+(2) **O nome da sala continua a ser texto livre** e é a única chave da atribuição — a avaliação de
+uma chave estável (à parte do `id` e do nome) está na entrada seguinte. (3) Não foi conferido no ar
+nesta sessão; as provas são de bancada.
 
 ## Pendências anteriores (índice)
 
@@ -698,6 +661,7 @@ repetição é o registo da geração, e só quando o KV tem a chave.
 - **09/11/2026** — O filete pontilhado da listagem de elencos, e o padrão das… → `REGISTRO.md` L41408
 - **09/11/2026** — A cadeia automática: a troca e a saída deixam de ser «via… → `REGISTRO.md` L41458
 - **09/11/2026** — A mudança de sala entra na cadeia, e uma sala passa a… → `REGISTRO.md` L41525
+- **10/11/2026** — A faixa que ninguém media: 1141 a 1919px → `REGISTRO.md` L41595
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
