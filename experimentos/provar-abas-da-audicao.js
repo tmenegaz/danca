@@ -26,7 +26,8 @@
  *      acabou de ser criado;
  *   H. o RESPIRO entre os cartões, medido num navegador de verdade (a cascata era o defeito: uma
  *      regra de página vencia a margem da folha) — e um A/B que devolve o `margin:0` para mostrar
- *      que a medida sabe reprovar;
+ *      que a medida sabe reprovar; e o FILETE PONTILHADO da listagem de elencos, comparado com a
+ *      linha da «Exercícios com verbete» (é dela que o tracejado é o mesmo), com A/B próprio;
  *   I. o «Cancelar» — o botão que existia na marcação e nunca aparecia; e o gesto a DESCARTAR no
  *      servidor (o rascunho sai do KV), com o formulário a fechar-se a seguir, SEM confirmação;
  *   J. o FORMULÁRIO ABERTO ACOMPANHA A TRANSFERÊNCIA — sem isto, a caixa marcada no passo 2
@@ -94,7 +95,7 @@ function cssDaProducao() {
 }
 
 /** Uma listagem de elencos em miniatura, com as MESMAS classes que a página emite. */
-function paginaDaLista(comMargemZero) {
+function paginaDaLista({ semMargem = false, semFilete = false } = {}) {
   const folha = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
   const cartao = (nome) => '<li class="trio-plano"><div class="trio-linha">' +
     '<span class="trio-nome"><b>' + nome + '</b></span></div>' +
@@ -102,14 +103,20 @@ function paginaDaLista(comMargemZero) {
     '<div class="trio-dono">curador</div></li>';
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<style>' + folha + '</style><style>' + cssDaProducao() + '</style>' +
-    // O A/B: a regra que a página tinha a 09/11/2026 (antes desta correção), reinjetada por
-    // último — é ela que apagava o respiro da folha.
-    (comMargemZero ? '<style>.lb-cartoes>li{margin:0;}</style>' : '') +
+    // O A/B DO RESPIRO: a regra que a página tinha a 09/11/2026 (antes da correção), reinjetada
+    // por último — é ela que apagava o respiro da folha.
+    (semMargem ? '<style>.lb-cartoes>li{margin:0;}</style>' : '') +
+    // O A/B DO FILETE: a mesma regra de «reset», com o `border-bottom:0` que apagava o tracejado.
+    (semFilete ? '<style>.lb-cartoes>li{padding:0;border-bottom:0;}</style>' : '') +
     '</head><body data-layout="painel">' +
     '<div class="secao"><div class="turmas-corpo"><div class="col-lista">' +
     '<h3>Elencos</h3><div class="rolagem"><ul class="lb-cartoes" id="lb-lista">' +
     cartao('Elenco A') + cartao('Elenco B') + cartao('Elenco C') +
-    '</ul></div></div></div></div></body></html>';
+    '</ul></div>' +
+    // A REFERÊNCIA: uma linha de `.lista` — a das «Exercícios com verbete». É dela que a
+    // listagem de elencos passa a vestir o filete, e é com ela que a medida se compara.
+    '<ul class="lista" id="lista-referencia"><li>Referência</li></ul>' +
+    '</div></div></div></body></html>';
 }
 
 async function medirRespiro() {
@@ -119,6 +126,8 @@ async function medirRespiro() {
   if (!executablePath) {
     naoMedida('o respiro entre os cartões', 'sem Chrome/Chromium');
     naoMedida('o A/B do respiro', 'sem Chrome/Chromium');
+    naoMedida('o filete pontilhado da listagem de elencos', 'sem Chrome/Chromium');
+    naoMedida('o A/B do filete', 'sem Chrome/Chromium');
     return;
   }
   let puppeteer;
@@ -128,12 +137,16 @@ async function medirRespiro() {
   } catch (e) {
     naoMedida('o respiro entre os cartões', 'sem puppeteer-core');
     naoMedida('o A/B do respiro', 'sem puppeteer-core');
+    naoMedida('o filete pontilhado da listagem de elencos', 'sem puppeteer-core');
+    naoMedida('o A/B do filete', 'sem puppeteer-core');
     return;
   }
   const semMargem = path.join(os.tmpdir(), 'provar-abas-lista-sem-margem.html');
+  const semFilete = path.join(os.tmpdir(), 'provar-abas-lista-sem-filete.html');
   const comMargem = path.join(os.tmpdir(), 'provar-abas-lista.html');
-  fs.writeFileSync(semMargem, paginaDaLista(true));
-  fs.writeFileSync(comMargem, paginaDaLista(false));
+  fs.writeFileSync(semMargem, paginaDaLista({ semMargem: true }));
+  fs.writeFileSync(semFilete, paginaDaLista({ semFilete: true }));
+  fs.writeFileSync(comMargem, paginaDaLista());
 
   const browser = await puppeteer.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   try {
@@ -152,6 +165,20 @@ async function medirRespiro() {
         return saida;
       });
     };
+    /** O filete da ÚLTIMA aresta da linha: o que se lê como tracejado por baixo do cartão. */
+    const filetes = async (arquivo, largura) => {
+      await page.setViewport({ width: largura, height: 900 });
+      await page.goto('file://' + arquivo, { waitUntil: 'load' });
+      return page.evaluate(() => {
+        const ler = (sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return null;
+          const cs = getComputedStyle(el);
+          return cs.borderBottomWidth + ' ' + cs.borderBottomStyle + ' ' + cs.borderBottomColor;
+        };
+        return { elenco: ler('#lb-lista > li'), referencia: ler('#lista-referencia > li') };
+      });
+    };
 
     const noComputador = await vaos(comMargem, 1280);
     const noCelular = await vaos(comMargem, 320);
@@ -168,9 +195,30 @@ async function medirRespiro() {
     const antes = minimo(await vaos(semMargem, 1280));
     provar('CONTROLO A/B: com o `margin:0` de antes, o vão cai a zero', antes === 0,
       'vão medido com a regra antiga: ' + antes);
+
+    /* O FILETE. A queixa de 09/11/2026: a listagem de elencos não tinha o tracejado inferior
+     * que Estilo, Salas, Professores e Alunos têm. O padrão é a linha de `.lista` — a das
+     * «Exercícios com verbete» —, e a prova compara as duas arestas, e não um valor escrito à
+     * mão: é a IGUALDADE entre elas que se quer, em qualquer largura. */
+    for (const largura of [1280, 320]) {
+      const { elenco, referencia } = await filetes(comMargem, largura);
+      provar('a listagem de elencos tem filete pontilhado em baixo (' + largura + 'px)',
+        !!elenco && /\bdotted\b/.test(elenco) && !/^0px/.test(elenco),
+        'filete do elenco: ' + elenco + ' · referência .lista: ' + referencia);
+      provar('…e é o MESMO da lista de exercícios com verbete (' + largura + 'px)',
+        !!elenco && elenco === referencia,
+        'elenco: ' + elenco + ' · referência: ' + referencia);
+    }
+
+    /* O A/B DO FILETE: devolve-se o `border-bottom:0` de «reset» que a página tinha e a aresta
+     * tem de desaparecer — senão a medida passaria mesmo sem a correção. */
+    const semOFilete = (await filetes(semFilete, 1280)).elenco;
+    provar('CONTROLO A/B: com o `border-bottom:0` de antes, o filete desaparece',
+      !!semOFilete && /^0px/.test(semOFilete),
+      'filete medido com a regra antiga: ' + semOFilete);
   } finally {
     await browser.close();
-    try { fs.unlinkSync(semMargem); fs.unlinkSync(comMargem); } catch (e) { /* nada */ }
+    try { fs.unlinkSync(semMargem); fs.unlinkSync(semFilete); fs.unlinkSync(comMargem); } catch (e) { /* nada */ }
   }
 }
 

@@ -3641,7 +3641,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // a listagem de elencos passa a ter o mesmo ar da anamnese, que é a referência que ela deu,
     // porque é o MESMO `.trio-plano`. Se um dia o respiro mudar, muda num sítio só.
     '.lb-cartoes{list-style:none;margin:0;padding:0;}' +
-    '.lb-cartoes>li{padding:0;border-bottom:0;}' +
+    /* O FILETE É O DAS OUTRAS LISTAS (09/11/2026). A listagem de elencos nasceu sem o tracejado
+     * inferior que Estilo, Salas, Professores e Alunos têm, porque aqui estava um
+     * `border-bottom:0` de «reset» — a mesma família de regra que apagou o respiro dos cartões.
+     * A linha passa a vestir o `li` de `.lista` (o das «Exercícios com verbete»): o MESMO fio
+     * (1px dotted na `--borda-campo`) e o MESMO respiro da linha. O cartão continua a ser o
+     * `.trio-plano`; o que muda é o fio por baixo dele e o ar que o separa do próximo. */
+    '.lb-cartoes>li{padding:.35rem .1rem;border-bottom:1px dotted var(--borda-campo);}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
     'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;margin:0 0 1rem;}' +
 
