@@ -1022,3 +1022,12 @@ experimentos/modelo-formulario/*
 # que numa Sala derivada leva a data —, partindo o nome do ciclo ao meio. Esta prova mede as duas
 # coisas no servidor e no navegador, e tem CONTROLE NEGATIVO: o motor de antes reprova 8 de 19.
 !experimentos/provar-derivacao-e-identidade.js
+
+# TROCAR O PROFESSOR É UM AJUSTE; MUDAR DE SALA NÃO É (10/11/2026). Derivar uma Turma e trocar-lhe
+# a sala arrastava-a para outra sala — a de origem ficava sem direção e a de destino sem plano de
+# ensino, sem PO e sem documentos. A rota de edição renomeava o id para o trio novo sem conferir se
+# já era de outro: a lista do `calango` ficou com dois registos no mesmo id e um `substituidaPor` a
+# apontar para o vazio. Esta prova mede a troca de professor (o gesto que se queria), a recusa da
+# troca de sala, a unicidade do id e o reaponte dos ponteiros. CONTROLE NEGATIVO: o motor de antes
+# reprova 17 de 31 — e reproduz o dano.
+!experimentos/provar-troca-de-direcao.js

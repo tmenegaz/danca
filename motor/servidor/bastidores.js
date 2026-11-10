@@ -8020,7 +8020,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("cu-cancelar").hidden = false;' +
     '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar turma";' +
     // Os dois `select` do par seguem o modo: travados no «Editar» (substitui no lugar), livres no
-    // «Derivar» (elo novo). A sala continua a escolher-se no próprio campo, nos dois modos.
+    // «Derivar» (elo novo).
+    //
+    // A SALA DEIXOU DE SER ESCOLHA NO «DERIVAR» (10/11/2026). Aqui esteve escrito «A sala continua
+    // a escolher-se no próprio campo, nos dois modos» — e foi por essa porta que se moveu, sem
+    // querer, uma Turma inteira: bastou trocar a sala no formulário de ajuste para o elo novo
+    // nascer noutra sala, deixando a antiga sem direção e a nova sem plano de ensino, sem PO e
+    // sem documentos. Derivar ajusta a DIREÇÃO (professor e modalidade) da mesma Turma; a sala é
+    // o outro eixo, e o servidor recusa a troca com o mesmo critério. Uma Turma noutra sala é uma
+    // Turma nova, e cria-se pelo botão de criar — onde a cadeia diz o que falta.
+    //
+    // TRAVADA, mas visível: o campo mostra a sala em que a Turma está (é um facto que quem ajusta
+    // precisa de ler), e não oferece as outras. Um campo escondido obrigaria a adivinhar onde a
+    // Turma vive.
     '  document.getElementById("cuprofessor").value = c.professor;' +
     '  document.getElementById("cuprofessor").disabled = !derivar;' +
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
@@ -8044,6 +8056,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarGraus(grauDe);' +
     '  document.getElementById("cunivel").value = nivelDe;' +
     '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
+    // A SALA SEGUE O MODO, como o par: no «Derivar» ela é a da Turma e não se muda (ver o
+    // comentário acima); no «Editar» uma Turma ainda livre pode mudar de sala, e o servidor
+    // confere a identidade e o ponteiro.
+    '  document.getElementById("cuturma").disabled = derivar;' +
     /* SÓ O REPERTÓRIO VOLTA A SER MARCADO (05/11/2026). As alunas saíram do formulário — o elenco
      * vem da turma, pela linha de base — e continuar a preencher um escolhedor que já não existe
      * seria código a falar com um campo ausente. A `c.alunas` da curadoria antiga não se perde: ela
@@ -8080,6 +8096,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cu-enviar").textContent = "Atribuir turma";' +
     '    document.getElementById("cuprofessor").disabled = false;' +
     '    document.getElementById("cumodalidade").disabled = false;' +
+    '    document.getElementById("cuturma").disabled = false;' +
     '    document.getElementById("form-curadoria").reset();' +
     '    [["esc-alunas"], ["esc-conteudos"]].forEach(function(par){' +
     '      var el = document.getElementById(par[0]);' +
@@ -15875,6 +15892,43 @@ async function fetch(request, env, extras) {
     const turmaMudou = !!atual && turmaAntiga !== turmaPedida;
     const id = atual ? (turmaMudou ? idDoTrio : atual.id) : idDoTrio;
 
+    /* O ID NUNCA SE REPETE (10/11/2026) — e este guarda nasceu de um dano que estava GRAVADO.
+     *
+     * O QUE SE MEDIU NO AR. A lista da escola tinha dois registos com o mesmo `id`
+     * (`pe-torto-bale-classico-rosa`) e um `substituidaPor` a apontar para um id que já não
+     * existia. A causa foi esta linha: ao mudar a SALA, o registo é renomeado para o id do trio
+     * novo (`idDoTrio`, sem data), e nada conferia se esse id já era de outro. Duas edições
+     * seguidas — sair da sala e voltar — pousaram as duas no mesmo id.
+     *
+     * PORQUE É QUE ISSO NÃO É UM PORMENOR. Todo o código que encontra um elo procura por id
+     * (`findIndex`, `acharCuradoria`, `topoDoElo`). Com dois registos no mesmo id, gravar um
+     * passa a sobrepor o outro, e o histórico deixa de ser uma cadeia: passa a haver um elo que
+     * diz «fui substituído por X» quando X é ele próprio, e a pergunta «que direção valia em
+     * Março» deixa de ter resposta. A identidade é a base da cadeia; duplicá-la é apagá-la.
+     *
+     * A RECUSA É PREFERÍVEL À RENOMEAÇÃO SILENCIOSA. Quem está a editar uma Turma não tem como
+     * saber que o id do trio de destino já pertence a outro registo — e escolher um sufixo por
+     * conta própria inventaria uma identidade que ninguém pediu. A frase diz qual é o registo
+     * que já ocupa o lugar.
+     */
+    if (atual && id !== atual.id) {
+      const ocupanteDoId = lista.find((c) => c && c.id === id && c !== atual);
+      if (ocupanteDoId) {
+        return json(409, {
+          ok: false,
+          erro: 'a identidade «' + id + '» já é de outra Turma desta escola (direção '
+            + (ocupanteDoId.professor || '?') + ' · ' + (ocupanteDoId.modalidade || '?')
+            + ' · ' + (turmasDaCuradoria(ocupanteDoId).join(', ') || 'sem sala') + '). Mudar a '
+            + 'sala desta renomearia-a para uma identidade tomada, e dois elos no mesmo id '
+            + 'partem a cadeia: um passa a sobrepor o outro. Ajuste a Turma que já está nessa '
+            + 'sala, ou derive-a.',
+          id,
+          ocupadoPor: ocupanteDoId.id,
+          falta: ['turma'],
+        });
+      }
+    }
+
     /* UMA SALA RECEBE UMA TURMA (09/11/2026) — a guarda, e o caminho quando ela recusa.
      *
      * O DEFEITO, medido: duas curadorias activas com a mesma Sala respondiam `201`. A Sala é o
@@ -16049,9 +16103,33 @@ async function fetch(request, env, extras) {
         : ((atual && atual.repertorio) || []),
       alunas: alunasPedidas,
     };
-    const idx = atual ? lista.findIndex((c) => c && c.id === atual.id) : -1;
+    /* PROCURA-SE O OBJECTO, NÃO O ID (10/11/2026). Aqui esteve `findIndex((c) => c.id ===
+       atual.id)`, e uma lista com dois registos no mesmo id fazia-o devolver SEMPRE o primeiro:
+       gravar a edição do segundo sobrepunha o primeiro, em silêncio. O `acharCuradoria` já
+       devolveu o objecto — usá-lo é mais curto e não depende de o id ser único para acertar.
+       A unicidade continua a ser uma invariante (a guarda acima recusa duplicá-la); isto é o que
+       impede que uma lista já danificada escolha o elo errado. */
+    const idx = atual ? lista.indexOf(atual) : -1;
     if (idx === -1) lista.push(nova);
     else lista[idx] = Object.assign({}, atual, nova);
+    /* QUEM APONTAVA PARA O ID VELHO PASSA A APONTAR PARA O NOVO (10/11/2026).
+     *
+     * A renomeação por mudança de sala é uma edição da IDENTIDADE, e a cadeia tem dois sentidos:
+     * `substituidaPor` aponta para a frente e `substitui` para trás. Renomear o registo sem
+     * arrastar quem o referencia deixa ponteiros a apontar para um id que já não existe — foi
+     * assim que se mediu, no ar, um `substituidaPor: «…-piano-2026-11-10»` para um registo que a
+     * lista já não tinha. Um ponteiro morto não é um elo: é uma pergunta sem resposta, e o
+     * `topoDoElo` que o segue devolve como «vigente» um registo que já foi substituído.
+     *
+     * Só se reescreve o PONTEIRO, nunca o conteúdo do outro elo: o que se corrige é o nome do
+     * destino, e não a decisão que lá está. */
+    if (atual && id !== atual.id) {
+      for (const c of lista) {
+        if (!c) continue;
+        if (c.substituidaPor === atual.id) c.substituidaPor = id;
+        if (c.substitui === atual.id) c.substitui = id;
+      }
+    }
     await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
     /* A TURMA VOLTOU A TER QUEM A ENSINE (08/11/2026) — e a marca cai. A `descontinuada` tanto
      * nasce da perda de habilitação (`marcarTurmasSemHabilitacao`) como do desligamento do
@@ -16165,9 +16243,10 @@ async function fetch(request, env, extras) {
         turmas: turmasPedidas,
       });
     }
+    /* O CADASTRO DAS SALAS, lido UMA vez: serve à conferência do ritmo e à guarda da sala. */
+    const salasDaEscola = await turmas(kv, escola);
+    const porNome = new Map(salasDaEscola.map((t) => [t.nome, t]));
     if (turmasPedidas.length) {
-      const todas = await turmas(kv, escola);
-      const porNome = new Map(todas.map((t) => [t.nome, t]));
       const faltando = [];
       for (const nome of turmasPedidas) {
         const t = porNome.get(nome);
@@ -16183,6 +16262,60 @@ async function fetch(request, env, extras) {
       }
     }
     const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
+    /* A SALA NÃO SE MUDA A DERIVAR (10/11/2026) — e a recusa nasceu de um dano medido.
+     *
+     * O QUE ACONTECEU. A pesquisadora abriu «derivar» numa Turma da sala Rosa, trocou o
+     * PROFESSOR e gravou. A derivação aceitou-a e arrastou a Turma para a sala Piano: a Rosa
+     * ficou sem ninguém a dirigi-la, e a Piano nasceu sem plano de ensino, sem PO e sem
+     * documentos — porque os três são da SALA a que o plano pertence, e não vêm atrás de um elo
+     * novo. A cadeia respondeu, com verdade, «A Turma «Piano» ainda não tem plano de ensino. O
+     * primeiro nasce na porta». Lido por quem acabara de trocar um professor, isso diz «criei
+     * outra escola» — e era exactamente o que tinha acontecido.
+     *
+     * PORQUE É QUE A SALA NÃO É DO PAR QUE SE AJUSTA. Derivar ajusta a DIREÇÃO da mesma Turma: o
+     * professor e a modalidade, que é o que o comentário de cima enumera. A SALA é o outro eixo
+     * — é ela que nomeia a variante (`calango-rosa`), o `.conf`, a pasta do pacote, a âncora e o
+     * vínculo do plano de ensino (`planoVigenteDaTurma` procura por NOME da sala). Mudar a sala
+     * não ajusta a Turma: dá-lhe outro lugar, e o que estava no lugar antigo não a acompanha.
+     *
+     * O CAMINHO PARA QUEM QUER MESMO MUDAR DE SALA fica dito na recusa, e não é este: uma Turma
+     * NOVA na sala de destino — que é o que a derivação estava a fazer por baixo do nome de
+     * «derivar». A assimetria é de propósito: criar deixa rastro e diz o que falta; derivar diz
+     * que ajustou, e é isso que torna o arrasto invisível.
+     */
+    const salaDaAnterior = turmasDaCuradoria(anterior)[0] || '';
+    // A SALA QUE JÁ NÃO EXISTE NÃO PRENDE A TURMA: se a antiga foi apagada do cadastro, mudar de
+    // sala é a única saída que resta, e recusá-la deixaria a Turma apontada para o nada.
+    const salaAntigaExiste = Boolean(salaDaAnterior && porNome.has(salaDaAnterior));
+    /* A TROCA SÓ É INOCENTE ENQUANTO NADA ESTIVER ESCRITO NA SALA ANTIGA. O que se perde ao
+     * mudar de sala não é a Turma: é o PLANO DE ENSINO da sala de origem — e, com ele, o PO, o
+     * pacote, a âncora e a variante, que todos nomeiam a sala. Enquanto a Turma for LIVRE
+     * (nenhum plano nasceu dela), mudar de sala não parte nada e continua a ser um ajuste; a
+     * partir do primeiro plano, o que existe é outro lugar, e a Turma de lá é outra.
+     *
+     * A CONDIÇÃO É A DA SALA, e não a do par professor·sala: `planoVigenteDaTurma` procura o
+     * plano pelo NOME da sala, e um plano escrito por outro professor naquela sala também é
+     * história que não anda atrás de um elo novo. `curadoriaVinculadaA` responde à pergunta mais
+     * estreita (este professor, esta sala) e deixaria passar exactamente esse caso. */
+    let temPlanoNaSalaAntiga = false;
+    if (turmaFinal && salaDaAnterior && turmaFinal !== salaDaAnterior && salaAntigaExiste) {
+      const pares = await paresComPlano(env, escola);
+      temPlanoNaSalaAntiga = !pares || pares.some((p) => p && p.turma === salaDaAnterior);
+    }
+    if (temPlanoNaSalaAntiga) {
+      return json(409, {
+        ok: false,
+        erro: '«' + salaDaAnterior + '» → «' + turmaFinal + '» não é um ajuste da mesma Turma: é '
+          + 'outra Turma. A sala é o ritmo, e é ela que nomeia o plano de ensino, o plano de '
+          + 'observação e os documentos — nenhum deles vem atrás de um elo novo. O que se ajusta '
+          + 'aqui é a direção (professor e modalidade) da Turma de «' + salaDaAnterior + '». '
+          + 'Para pôr uma Turma na sala «' + turmaFinal + '», crie-a: ela nasce lá, e a cadeia '
+          + 'diz o que falta.',
+        sala: turmaFinal,
+        salaDeOrigem: salaDaAnterior,
+        falta: ['turma'],
+      });
+    }
     /* A SALA FINAL TAMBÉM SE CONFERE (09/11/2026) — e o `excetoId` é a versão de ONDE se deriva:
      * ela deixa de ocupar no momento em que a nova passa a valer, e sem esta exclusão derivar uma
      * Turma sem lhe tocar na sala seria recusado por ela mesma. A recusa é a do ato de criar: uma
@@ -16329,7 +16462,10 @@ async function fetch(request, env, extras) {
     delete nova.motivoDoAjuste;
     const motivoDoElo = motivoDoAjuste(corpo.motivo);
     if (motivoDoElo) nova.motivoDoAjuste = motivoDoElo;
-    const indice = lista.findIndex((c) => c && c.id === anterior.id);
+    // O MESMO CUIDADO DA ROTA DE EDIÇÃO (10/11/2026): marcar a anterior pelo OBJECTO. Com dois
+    // registos no mesmo id, `findIndex` por id marcava o primeiro — foi assim que, no ar, o elo
+    // substituído passou a ser o duplicado errado e o verdadeiro ficou vigente a par do novo.
+    const indice = lista.indexOf(anterior);
     lista[indice] = Object.assign({}, anterior, {
       substituidaPor: nova.id,
       substituidaEm: vigencia,
