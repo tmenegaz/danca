@@ -142,7 +142,7 @@ const curadoria = (extra) => Object.assign({
 
 /** A cadeia, com um teto de subpedidos controlável e um registo de geração opcional. */
 function montar({ linhas = [elenco()], curadorias = [curadoria()], registoDaGeracao = null,
-  coube = true, writerFalhou = false } = {}) {
+  coube = true, writerFalhou = false, semDisparo = false, commitFalhou = false } = {}) {
   const kv = kvDeMentira({ ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curadorias) });
   const visto = { planos: [], pos: [], conclusoes: [], gerou: 0 };
   const arm = criarMemoria();
@@ -194,6 +194,28 @@ function montar({ linhas = [elenco()], curadorias = [curadoria()], registoDaGera
           ciclo: { ok: false, erro: 'não criei o commit: HTTP 500', escritas: [{ caminho: 'x', ok: false }] },
           disparo: { ok: false, naoDisparado: true, motivo: 'as fontes do ciclo não ficaram prontas',
             erro: 'não criei o commit: HTTP 500' },
+        };
+      }
+      /* O COMMIT DAS FONTES REPROVADO — o motivo vive em `commit.erro` e em cada `escrita.erro`,
+       * e NÃO num `relatorio.erro` no topo. É a forma real. */
+      if (commitFalhou) {
+        return {
+          fonte: { ok: true },
+          ciclo: { conf: { ok: true }, docs: { ok: true }, ok: false,
+            commit: { ok: false, erro: 'não criei o commit: HTTP 409' },
+            escritas: [{ caminho: 'x', ok: false, erro: 'não criei o commit: HTTP 409' }] },
+          disparo: { ok: false, naoDisparado: true,
+            motivo: 'as fontes do ciclo não ficaram prontas',
+            erro: 'não criei o commit: HTTP 409' },
+        };
+      }
+      /* SEM DISPARO: `disparar` é `null` (Worker sem `GITHUB_TOKEN`), e o `concluirPO` real nunca
+       * escreve `saida.disparo`. O stub imita-o não devolvendo o campo. */
+      if (semDisparo) {
+        return {
+          fonte: { ok: true },
+          ciclo: { conf: { ok: true }, docs: { ok: true }, schema: { ok: true },
+            escritas: [{ caminho: 'x', ok: true }], elos: [], puladas: [] },
         };
       }
       return {
@@ -560,6 +582,30 @@ const CONTEXTO = {
     provar('quando o escritor reprova, o fecho NÃO diz que fechou', r2.ok === false, r2.erro);
     provar('…e a etapa volta a pendente, com o motivo do escritor',
       /não criei o commit/.test(String(r2.erro || '')), r2.erro);
+
+    /* O VEREDITO FALSO NUNCA SAI SEM MOTIVO (10/11/2026). Um `ok:false` com `erro:null` lê-se
+     * como «a geração não partiu» — verdadeiro e inútil. Este caso é o do Worker SEM token: o
+     * `disparar` é `null`, `saida.disparo` nunca é escrito, e antes disto a resposta não dizia
+     * nada. */
+    {
+      const semToken = montar({ coube: true, semDisparo: true });
+      await semear(semToken.arm);
+      const r3 = await semToken.cadeia.fecharPacotes({ turmas: [TURMA], motivo: 'prova' });
+      provar('sem disparo possível, o veredito é falso', r3.ok === false, r3.ok);
+      provar('…e o motivo NOMEIA a falta (não um silêncio com ar de resposta)',
+        /GITHUB_TOKEN/.test(String(r3.erro || '')), r3.erro);
+    }
+
+    /* O COMMIT DAS FONTES QUE FALHA: o escritor põe o motivo em `commit.erro`/`escrita.erro`, e
+     * não num `relatorio.erro`. Também tem de ser dito. */
+    {
+      const commitFalhou = montar({ coube: true, commitFalhou: true });
+      await semear(commitFalhou.arm);
+      const r4 = await commitFalhou.cadeia.fecharPacotes({ turmas: [TURMA], motivo: 'prova' });
+      provar('com o commit das fontes reprovado, o veredito é falso', r4.ok === false, r4.ok);
+      provar('…e o motivo do commit chega à frase',
+        /não criei o commit/.test(String(r4.erro || '')), r4.erro);
+    }
 
     /* AS DUAS FRASES DO MESMO FACTO (10/11/2026). O Cloudflare diz «Too many subrequests by
      * single Worker invocation»; a nossa diz «…subpedidos…». A pergunta «isto é orçamento?» tem

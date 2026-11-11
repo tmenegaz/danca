@@ -363,13 +363,43 @@ function criarCadeia({
     const ok = Boolean(saida)
       && (!saida.ciclo || saida.ciclo.ok !== false)
       && Boolean(saida.disparo && saida.disparo.ok);
+    /* UM VEREDITO FALSO SEM MOTIVO É OUTRO DEFEITO (10/11/2026).
+     *
+     * Aqui esteve `erro: ciclo.erro || disparo.erro || disparo.motivo || null`, e ele devolvia
+     * `null` em dois casos reais: (a) `disparar` não existe — `criarDisparador` devolve `null`
+     * sem token, e então `saida.disparo` nunca é escrito; (b) o commit das fontes falhou — o
+     * escritor põe `relatorio.ok = false` e o motivo em `relatorio.commit.erro` e em cada
+     * `escrita.erro`, mas NÃO num `relatorio.erro` no topo. Nos dois, a tela lia «a geração não
+     * partiu»: verdadeiro, e inútil para quem tem de resolver.
+     *
+     * Os motivos passam a ser COLHIDOS de todos os sítios onde o escritor os escreve, e quando
+     * não há nenhum diz-se isso mesmo — em vez de um silêncio com ar de resposta. */
+    const motivos = [];
+    const juntar = (v) => { const t = String(v || '').trim(); if (t) motivos.push(t); };
+    if (saida && saida.fonte && saida.fonte.ok === false) juntar(saida.fonte.erro);
+    if (saida && saida.ciclo) {
+      juntar(saida.ciclo.erro);
+      juntar(saida.ciclo.commit && saida.ciclo.commit.erro);
+      for (const e of (Array.isArray(saida.ciclo.escritas) ? saida.ciclo.escritas : [])) {
+        if (e && e.ok === false) juntar(e.erro);
+      }
+    }
+    if (saida && saida.disparo) {
+      juntar(saida.disparo.erro);
+      juntar(saida.disparo.motivo);
+      if (!saida.disparo.ok && saida.disparo.status) juntar('o GitHub recusou (HTTP ' + saida.disparo.status + ')');
+    }
+    if (!saida || !saida.disparo) {
+      juntar('nenhum disparo foi feito neste Worker — sem `GITHUB_TOKEN`, o gerador não é chamado '
+        + '(o que veio antes está gravado)');
+    }
     return {
       ok,
       fonte: saida && saida.fonte ? saida.fonte.ok !== false : null,
       ciclo: saida && saida.ciclo ? saida.ciclo.ok !== false : null,
       disparo: saida && saida.disparo ? saida.disparo : null,
-      erro: (saida && saida.ciclo && saida.ciclo.erro)
-        || (saida && saida.disparo && (saida.disparo.erro || saida.disparo.motivo)) || null,
+      erro: motivos.length ? motivos.join(' · ')
+        : (ok ? null : 'a geração não partiu, e o Worker não soube dizer porquê'),
     };
   }
 
