@@ -37,9 +37,12 @@
     "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
     "documento:harmonizacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
     "documento:indice:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/ciclos.json",
+    "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf",
     "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
     "documento:notacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
+    "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-plano.md",
     "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+    "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-po.md",
     "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
     "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
     "documento:schema:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json"
@@ -84,7 +87,7 @@
         "valor": "indice"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
       },
@@ -94,12 +97,12 @@
         "valor": "notacao"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "plano",
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "po",
         "valor": "po"
       },
@@ -117,9 +120,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a5d0bee"
+    "commit": "7d26293"
   },
-  "gerado_em": "2026-11-11T00:58",
+  "gerado_em": "2026-11-11T11:09",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6
