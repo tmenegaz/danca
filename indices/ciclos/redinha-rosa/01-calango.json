@@ -32,14 +32,17 @@
     "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
     "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
     "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
+    "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
     "documento:declaracao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
     "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
     "documento:harmonizacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+    "documento:indice:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/ciclos.json",
     "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
     "documento:notacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
     "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
     "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
-    "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md"
+    "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
+    "documento:schema:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
   "estado": "ancorado",
@@ -56,7 +59,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -74,6 +77,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 1,
@@ -99,14 +107,19 @@
         "contagem": 1,
         "rotulo": "referencias",
         "valor": "referencias"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "a967d61"
+    "commit": "be16d82"
   },
-  "gerado_em": "2026-11-11T00:47",
+  "gerado_em": "2026-11-11T00:48",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6

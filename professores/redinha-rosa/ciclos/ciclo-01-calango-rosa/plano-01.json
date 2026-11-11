@@ -1,0 +1,76 @@
+{
+  "contexto": {
+    "frequenciaSemanal": "3x semanal — ter e qui e sáb",
+    "duracaoPorAula": "1 hora",
+    "calendario": "2026-11-20 → 2026-12-20",
+    "numeroTotalDeAulas": "13",
+    "professorResponsavel": "Redinha Rosa",
+    "turmaObservada": "Rosa",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: observador externo.",
+    "metodologiaDeReferencia": "RAD",
+    "notacaoDominada": "Benesh"
+  },
+  "objetivoGeral": "Teste",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "Teste",
+      "blocos": "Solo · Barra · Centro · Musicalidade · Expressão"
+    }
+  ],
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "objetivos": "01",
+      "marco": "Teste"
+    }
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Solo",
+      "proporcaoAlvo": "20",
+      "justificativa": "Teste"
+    },
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "10",
+      "justificativa": "Teste"
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "10",
+      "justificativa": "Teste"
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "10",
+      "justificativa": "Teste"
+    },
+    {
+      "bloco": "Expressão",
+      "proporcaoAlvo": "10",
+      "justificativa": "Teste"
+    }
+  ],
+  "condicoesPreliminares": [
+    "[a decidir]"
+  ],
+  "reguaDaRubrica": [
+    "Ótimo",
+    "Bom",
+    "Regular",
+    "Não se aplica"
+  ],
+  "criterioDeExtensao": "Teste",
+  "musicasVideos": [
+    "Battement tendu — 8 tempos em 2/4",
+    "Plié — 4 tempos em 2/4"
+  ],
+  "repertorio": [
+    "Battement tendu",
+    "Plié"
+  ],
+  "proveniencia": "Plano derivado da metodologia RAD; Plano derivado de literatura de apoio sobre corpo e aula",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
+}

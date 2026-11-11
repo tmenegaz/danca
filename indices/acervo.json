@@ -24,7 +24,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 14,
+      "documentos": 17,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:redinha-rosa/01/calango",
@@ -299,9 +299,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a967d61"
+    "commit": "be16d82"
   },
-  "gerado_em": "2026-11-11T00:47",
+  "gerado_em": "2026-11-11T00:48",
   "nao_indexado": [
     {
       "familia": "conteudo",
