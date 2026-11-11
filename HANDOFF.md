@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T08:22:09-0300`
-Commit atual: `0f021296` — fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
+Gerado em: `2026-11-11T08:50:09-0300`
+Commit atual: `a879dcc0` — feat(estrutura): a Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+a879dcc0 feat(estrutura): a Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
+d83afafa chore(estrutura): regerar o HANDOFF
 0f021296 fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
 e9e2401e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 4537dc5e chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -90,8 +92,6 @@ a5d0beed feat(po): o PO elicitado vira a fonte do ciclo
 fc895048 fix(estrutura): um veredito falso nunca sai sem motivo — a geracao diz porque nao partiu
 93930bc1 chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
 5c97c97d feat(po): o PO elicitado vira a fonte do ciclo
-8e8cf864 chore(estrutura): regerar o HANDOFF
-e0884cee fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
 ```
 
 ## Por professor
@@ -167,113 +167,71 @@ e0884cee fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a 
 
 ## Última entrada do REGISTRO
 
-## 10/11/2026 — A capacidade cobra-se por volume, e a escada da assinatura desce a cada degrau
+## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
 
-**O que motivou.** O dono do produto definiu a matriz de capacidade do tenant: a **assinatura**
-(Básica · Intermediária · Avançada) define **funcionalidade**, e a **capacidade** — professores e
-alunos — é um eixo **ortogonal**, cobrado em lotes e **acrescido à mensalidade**. Pediu também a
-mesma lógica de preço para os planos, com o piso em **R$ 69,90**, e perguntou qual plano seria o
-mais vendido.
+**O que motivou.** «A turma na listagem e a construção do index da turma e também da turma em si […]
+está sendo montada com o nome do professor. Eu acho que a turma ela deveria ter um nome. […] no
+mundo real é mais comum a gente dizer que a turma ela é do elenco do que […] que a turma ela é do
+professor. Porque o professor ele pode mudar e a turma ela é mais presente, ela se preserva por mais
+tempo.» E o defeito do nome de quem ensina, dito por ela: «é a turma de ballet do professor Pedro,
+tá, mas qual delas? É a iniciante, a intermediária, a avançada?» — não distingue nada justamente
+quando há mais do que uma.
 
-**CONFIRMADO e medido** (varredura no repositório, aritmética sobre os valores decididos):
-
-- **Não havia cota nenhuma no código**: zero `maxItems` em qualquer schema, zero `max_*` no motor,
-  nenhum limite no KV — `alunas`, `turmas` e `professores` são listas sem teto. O `limiteTurnos =
-  30` é freio de **sessão**. Não havia o que aumentar: havia o que criar.
-- **A capacidade já tinha geometria; a assinatura nunca teve.** Nos dois eixos, triplicar a
-  quantidade custa 5/3 do preço (−44% por unidade): 1 professor por R$ 30 ou 3 por R$ 50; 10 alunos
-  por R$ 30 ou 30 por R$ 50. A escada do texto de origem (62,38 · 99,88 · 137,38) subia **+37,50
-  sempre** — uniforme no preço e irregular na entrega.
-- **A escada é 69,90 · 99,90 · 139,90, e o preço por unidade cai a cada degrau.** Medida em
-  turma-equivalente, a capacidade incluída vai **2 → 7 → 15** e o preço por unidade cai
-  **34,95 → 14,27 → 9,33** — **−59%** e **−35%**. A regra que vale é a essencial (**cai sempre**),
-  não «cai no mesmo percentual»: a constância exigiria `69,90 · 154,13 · 208,07`, e mediu-se que
-  isso **devolve o Básico à liderança** (8 de 15 perfis). A candidata que copia o 5/3 literalmente
-  para o preço (69,90 · 116,50 · 194,20) faz o preço por consulta **subir** no Intermediário, e foi
-  descartada por isso. A unidade da conta das **consultas** é a consulta nova de cada degrau
-  (7 · 14 · 46) — o Núcleo comum (9) dilui o total e faz o degrau do meio parecer caro.
-- **O lote é faixa, e é recorrente.** 25 alunos custam R$ 50 (lote de 30), não R$ 90 (três blocos de
-  10). E a mensalidade é `assinatura + Σ lotes`, todo mês: uma escola no Intermediário com 2
-  professores e 35 alunos paga R$ 129,90/mês, e R$ 389,70 no trimestre. Isto substitui o modelo
-  antigo, em que R$ 49,90 era **implementação única** e só os 20% eram recorrentes.
-- **A régua dos 20% por professor adicional morre.** 20% de R$ 69,90 são R$ 13,98, que não se
-  relaciona com os R$ 30 do lote — e o mesmo professor custaria 2,2× mais só por a escola ter
-  escolhido um plano com mais consultas, o que contradiz «ortogonal».
-- **A aritmética revelou o defeito do degrau do meio — e a decisão que o corrige.** Com a
-  capacidade incluída `2/25 · 4/60`, o passo de preço Básico→Intermediário era **R$ 30**, e um lote
-  de 30 alunos custa os mesmos R$ 30: a capacidade incluída quase não comprava capacidade. Dos
-  quinze perfis medidos, o Intermediário ganhava em **2**. **Decidiu-se subir a capacidade incluída
-  para `1 prof/10 alunos · 3/40 · 6/90`, mantendo o preço** — e ele passa a ganhar em **7 de 15
-  perfis**, em todo o miolo, do solo com duas turmas à direção com três professores. O preço disso:
-  os mesmos
-  quinze perfis rendem **R$ 490 a menos por mês** — e o que se compra com isso é o degrau do meio
-  (§3 **C23**).
+Na mesma leitura, dois defeitos de desenho: «as etiquetas estão aparecendo aqui vinculada e ajustada
+em, estão sem a borda inferior» e «o texto abaixo […] está engolindo a margem inferior das
+etiquetas».
 
 **O que foi decidido.**
 
-- **A ASSINATURA E A CAPACIDADE SÃO DOIS EIXOS.** L9 passa a ter **L9a** (funcionalidade — as
-  consultas, sem alteração: 9 · 7 · 14 · 46) e **L9b** (volume — professores × alunos). A
-  distribuição comercial de [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md)
-  §5.5 fica **intacta**; nenhuma consulta muda de plano.
-- **A RECUSA TEM DOIS REMÉDIOS.** A trava é do **motor** (a estratégia §9 é explícita), e a
-  mensagem deixa de ser «o Básico não permite 2 professores» para ser «a capacidade contratada está
-  cheia» — com as duas saídas: **acrescentar um lote** ou **subir de assinatura**. Mensagens
-  diferentes para o mesmo bloqueio escondem que a primeira é reversível.
-- **AS CONTAGENS SÃO DERIVADAS.** Professores = `bastidores/<escola>/professores`; alunos =
-  `bastidores/<escola>/alunas` (o **cadastro** — uma aluna em duas turmas conta uma vez). Nunca um
-  contador guardado: diverge em silêncio.
-- **O LUGAR DA VERDADE.** `escola/<slug>/indice.json → estado.plano`, ao lado de `habilitada`.
-  **Nunca** `professores/<slug>/perfil.json`: esse é a habilitação **da pessoa** e vive fora do
-  tenant, porque o expurgo da escola não o apaga.
-- **NENHUM SCHEMA MUDA.** Verificado que não há `maxItems` em schema nenhum — e o caminho errado
-  seria travar no **array do elenco**, que recusaria a uma escola no teto **re-enviar** o elenco ou
-  registar uma falta. O teto pedagógico («mais de 10 alunos é raro») não é regra de validação: é
-  curva de preço. Se o produto quiser dizê-lo, diz como **aviso**, nunca como recusa.
-- **A CAPACIDADE NÃO LIMITA LEITURA NEM EXPORTAÇÃO.** O plano limita a consulta e a capacidade
-  limita o **cadastro** — o que existe é sempre legível e exportável. E a contagem comercial nunca
-  aparece numa resposta pedagógica: as perguntas de vínculo devolvem nome, não contagem.
-- **AS TRÊS DECISÕES QUE FALTAVAM, tomadas no mesmo dia.** (1) **Subir** a capacidade incluída —
-  `1 prof/10 alunos · 3/40 · 6/90` —, porque era a única alavanca que não mexia no preço;
-  (2) a **aresta dos 30 alunos fica declarada** (de 30 para 31 o lote salta de R$ 50 para R$ 80) e
-  **não se cria um terceiro lote** — a resposta à aresta é a assinatura de cima; (3) a **régua dos
-  20% por professor adicional morre**, porque taxa um eixo em função do outro.
-- **O QUE FICA EM ABERTO, e não é decisão de documento:** o **preço do degrau acima de 30 alunos**
-  (a continuação fiel do 5/3 daria 90 alunos por R$ 83,35 — e não se aplica, porque só serviria a
-  quem já devia estar no Avançado) e a **cobrança real**, que continua fora de escopo (C8, C11,
-  C12). O meio-termo `69,90 · 119,90 · 169,90` está medido e **não foi escolhido**.
+- **O NOME É O ELENCO.** A ordem é elenco → sala → modalidade, e é a ordem em que o nome *existe*:
+  o corpo escolhido, o nome da sala quando ainda não há corpo, e a modalidade de uma Turma por
+  completar. O **professor não é o nome**: ele é o factor de quem ensina hoje — muda por derivação,
+  e é para mudar que a cadeia existe. Na listagem desce para o complemento, onde continua a ser o
+  atalho para o plano de ensino dele.
+- **O COMPOSTO É PARA QUANDO CABE UMA LINHA.** `rotuloDaTurma` diz **elenco · modalidade · nível ·
+  professor** — o que ela pediu («um nome composto […] elenco, modalidade e professor […] inclusive
+  eu acrescentaria o nível»). Serve ao histórico do ajuste, à frase de uma recusa e ao `title` da
+  linha; **não** serve à listagem, onde o nome é curto em cima e o composto se lê em baixo.
+- **O `id` NÃO MUDA.** É a âncora da cadeia: `substitui`/`substituidaPor` apontam por ele,
+  `porta.js` monta `curadoria:` + id, e as âncoras `.fipp` e as variantes derivam dele. Pôr o
+  elenco e o nível no `id` obrigaria a migrar todos os elos e a renomear a identidade por baixo de
+  quem a referencia — o dano de 10/11 outra vez, e maior. A identidade composta é **rótulo e
+  guarda**, não chave.
+- **A GUARDA DO ELENCO REPETIDO.** «Não dá para ter o mesmo elenco ocupando duas vezes o mesmo
+  nível»: o mesmo corpo não entra duas vezes na mesma modalidade e no mesmo nível. É a regra da
+  aluna um degrau acima, e cobre o que ela não vê — o elenco **sem alunas**, que passava por todas
+  as redes. A recusa diz qual é a outra Turma, a sala dela e quem a ensina. Vale na criação e na
+  derivação, e a Turma que se está a gravar não colide consigo mesma.
 
-**Onde entrou.** `PLANEJAMENTO-LASTRO.md` — §2.9 (a matriz não existe, e a varredura que o prova) ·
-§4 **L8** (as duas camadas, a escada com a geometria decrescente, o lote recorrente, e o
-critério (v)/(vi) do calculador) · §4 **L9** partido em **L9a**/**L9b** (a regra dos lotes, a
-faixa, a capacidade incluída como desconto de pacote, a trava com dois remédios, as contagens
-derivadas, o lugar da verdade, e os critérios (vi)–(x)) · §3 **C23** (novo: a escada e o degrau do
-meio, com a tabela dos quinze perfis) · §5 (a fatia barata do L9b) · §8 (a tabela da matriz) · §9
-(a exceção declarada) ·
-`PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §0, §5.6 e §11.1 (a capacidade é ortogonal e não toca as 76
-perguntas) · `PLANO-INDICES.md` §6.5 (a capacidade também não limita a exportação).
+**Onde entrou.** [motor/nucleo/estado-da-turma.js](./motor/nucleo/estado-da-turma.js) —
+`nomeDaTurma`, `rotuloDaTurma`, `mesmaTurmaPorElenco`, `motivoDoElencoRepetido` (funções puras, ao
+lado das que já respondiam «livre, curada ou vinculada») ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma (o `<b>` passa a
+ser o elenco; o professor desce para o complemento, como `nome-link` quando há plano; `title` com o
+rótulo composto) · a **guarda** nas duas rotas (`POST /api/bastidores/curadoria` e
+`POST /api/bastidores/curadoria-derivar`) · o CSS da listagem (o vão do complemento e a grelha do
+telemóvel) ·
+[experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js) — 51
+provas novas.
 
-**Validação.** As quinze linhas da tabela de **C23**, os três prémios da capacidade incluída
-(+9,90 · −30,10 · −110,10) e o exemplo da mensalidade foram **recalculados por script** contra a
-regra dos lotes: todas conferem (R$ 129,90 no mês, R$ 389,70 no trimestre). A aritmética que
-sustenta a decisão está reproduzível em comandos `node -e` e não depende de nenhum dado do
-repositório.
+**O defeito que ela viu nas etiquetas, e a causa.** Aqui esteve
+`.lista>li:not(.turma)>.nome>.linha1{display:contents}` no telemóvel, com cada `.selo` a receber
+`grid-area:estado`. Com **um** selo funciona; com **dois** — «vinculada» + «ajustada em…», que é o
+estado normal de uma Turma já derivada — os dois caem na mesma faixa da grelha e **sobrepõem-se**.
+Medido a 560px: `livre` em 74,6–130,3 e `ajustada em…` em 74,6–241,8, com o mesmo topo e o mesmo
+fundo — o segundo pinta-se por cima do primeiro, e da primeira etiqueta sobra o texto sem a borda de
+baixo. A 390px o segundo cresce para duas linhas e come o fundo do primeiro. A `linha1` passou a ser
+**um** item da grelha e a sua própria fila flex, que quebra. O vão do complemento (medido: fundo do
+`.linha1` e topo do `.dono` no **mesmo** pixel, 555,3) é agora de 2,4px.
 
-**O que ainda não está feito.** (1) **Nada foi implementado** — estas são as frentes L8 e L9b, e
-continuam a ser plano. (2) **O `indice.json` não tem o bloco `plano`** em escola nenhuma: a
-estrutura proposta está escrita, não gravada. (3) **A cobrança, a nota e o faturamento** continuam
-fora de escopo até haver decisão (C8, C11, C12).
+**O que ainda não está feito.** (1) O `id` continua a ser o do trio professor × modalidade × sala —
+não leva elenco nem nível, pela razão declarada acima. (2) O **índice** da Turma e o **arquivo** dela
+continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou: é a variante
+(`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
+publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
+a entrada de 10/11 sobre a `chave` estável.
 
 ## O que está pendente
-
-## 10/11/2026 — O passo 1 do Estilo procura no vocabulário, e um exercício que existe pode ser escolhido
-
-(1) **A busca é local**: procura no vocabulário que a página carregou
-(`GET /api/bastidores/verbete`), e não no repositório a cada tecla — que seria uma requisição por
-letra. Um termo criado por outra sessão só aparece depois de recarregar. (2) **A semelhança é de
-prefixo**: `batman` chega a `Battement` porque partilha três letras; um erro no meio da palavra
-(`battment`) não é encontrado — a distância de edição exigiria uma biblioteca, e não foi pedida.
-(3) Não foi conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é
-o passo seguinte ao deploy.
 
 ## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
 
@@ -310,6 +268,15 @@ nesta sessão; as provas são de bancada.
 continuam a ser plano. (2) **O `indice.json` não tem o bloco `plano`** em escola nenhuma: a
 estrutura proposta está escrita, não gravada. (3) **A cobrança, a nota e o faturamento** continuam
 fora de escopo até haver decisão (C8, C11, C12).
+
+## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
+
+(1) O `id` continua a ser o do trio professor × modalidade × sala —
+não leva elenco nem nível, pela razão declarada acima. (2) O **índice** da Turma e o **arquivo** dela
+continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou: é a variante
+(`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
+publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
+a entrada de 10/11 sobre a `chave` estável.
 
 ## Pendências anteriores (índice)
 
@@ -716,6 +683,7 @@ fora de escopo até haver decisão (C8, C11, C12).
 - **09/11/2026** — A mudança de sala entra na cadeia, e uma sala passa a… → `REGISTRO.md` L41525
 - **10/11/2026** — A faixa que ninguém media: 1141 a 1919px → `REGISTRO.md` L41595
 - **10/11/2026** — O histórico do ajuste: o rótulo, a diferença e o motivo → `REGISTRO.md` L41668
+- **10/11/2026** — O passo 1 do Estilo procura no vocabulário, e um exercício… → `REGISTRO.md` L41744
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
