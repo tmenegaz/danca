@@ -1,0 +1,191 @@
+{
+  "planoDeEnsino": "plano-20261111-0858",
+  "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
+  "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
+  "phenomenon": [
+    "A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda."
+  ],
+  "field": "Escola / espaço: calango · Turma observada: Piano · Frequência semanal: 3x semanal — seg e qua e sex · Duração por aula: 1 hora",
+  "context": "Calendário: 2026-11-10 → 2026-12-29 · Volume de trabalho: 3–6 séries · Condição de registro: Na sala: professor, alunas da turma · observa: observador externo.",
+  "dimensoesObservadas": [
+    "Solo",
+    "Barra",
+    "Centro",
+    "Musicalidade",
+    "Expressão"
+  ],
+  "itensPorDimensao": [
+    {
+      "eixo": "Corpo",
+      "dimensao": "as cinco posições: uma visão geral",
+      "itens": "1ª posição — pés; 1ª posição — braços"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Os elementos basilares",
+      "itens": "o passé"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "itens": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Flexibilidade e Amplitude Articular",
+      "itens": "Flexibilidade anteroposterior (grand écart)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Complexo Escapulo-Umeral e Cervical",
+      "itens": "Rotação e amplitude dos ombros"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "itens": "Mobilidade de flexão/extensão do tornozelo"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Aptidões Coordenadas e Cognitivo-Musicais",
+      "itens": "Memória e retenção de sequências"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Força Ativa, Potência e Controle Dinâmico",
+      "itens": "Impulsão e absorção (allegro)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "itens": "Força de empurrar (push-ups)"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "itens": "Estabilidade vestibular e deslocamento"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Restrições",
+      "itens": "sem restrições declaradas"
+    },
+    {
+      "eixo": "Técnica",
+      "dimensao": "Solo",
+      "itens": "Teste"
+    },
+    {
+      "eixo": "Técnica",
+      "dimensao": "Barra",
+      "itens": "Teste"
+    },
+    {
+      "eixo": "Técnica",
+      "dimensao": "Centro",
+      "itens": "Teste"
+    },
+    {
+      "eixo": "Poiesis",
+      "dimensao": "Musicalidade",
+      "itens": "Teste"
+    },
+    {
+      "eixo": "Poiesis",
+      "dimensao": "Expressão",
+      "itens": "Teste"
+    }
+  ],
+  "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
+  "subjects": [
+    "Aluna C",
+    "Aluna A"
+  ],
+  "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
+  "linhaDeBase": [
+    {
+      "grupo": "as cinco posições: uma visão geral",
+      "aspectosObservados": "1ª posição — pés; 1ª posição — braços"
+    },
+    {
+      "grupo": "Os elementos basilares",
+      "aspectosObservados": "o passé"
+    },
+    {
+      "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+      "aspectosObservados": "Mobilidade de quadril (en dehors de origem)"
+    },
+    {
+      "grupo": "Flexibilidade e Amplitude Articular",
+      "aspectosObservados": "Flexibilidade anteroposterior (grand écart)"
+    },
+    {
+      "grupo": "Complexo Escapulo-Umeral e Cervical",
+      "aspectosObservados": "Rotação e amplitude dos ombros"
+    },
+    {
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "aspectosObservados": "Mobilidade de flexão/extensão do tornozelo"
+    },
+    {
+      "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+      "aspectosObservados": "Memória e retenção de sequências"
+    },
+    {
+      "grupo": "Força Ativa, Potência e Controle Dinâmico",
+      "aspectosObservados": "Impulsão e absorção (allegro)"
+    },
+    {
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "aspectosObservados": "Força de empurrar (push-ups)"
+    },
+    {
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "aspectosObservados": "Estabilidade vestibular e deslocamento"
+    }
+  ],
+  "restricoes": [
+    "[a decidir]"
+  ],
+  "inclusionCriteria": [
+    "as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços",
+    "Os elementos basilares: o passé",
+    "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)",
+    "Flexibilidade e Amplitude Articular: Flexibilidade anteroposterior (grand écart)",
+    "Complexo Escapulo-Umeral e Cervical: Rotação e amplitude dos ombros",
+    "Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo",
+    "Aptidões Coordenadas e Cognitivo-Musicais: Memória e retenção de sequências",
+    "Força Ativa, Potência e Controle Dinâmico: Impulsão e absorção (allegro)",
+    "Equilíbrio, Sustentação e Força de MMSS/Core: Força de empurrar (push-ups)",
+    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento"
+  ],
+  "exclusionCriteria": [
+    "Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte"
+  ],
+  "justification": {
+    "referenceToProblem": "O problema é o en dehors que sai do joelho: três das cinco posições mostram rotação forçada a partir do tornozelo, e o tendu perde a saída do calcanhar.",
+    "explanationOfCut": "O recorte é a técnica vista através dos cinco blocos da aula — solo, barra, centro, musicalidade e expressão —, um item observável por bloco, marcado por aluna.",
+    "whatIsLeftOut": "Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de repertório: o plano não os marca como bloco, e observar o que não se ensinou não é dado, é suposição.",
+    "theoreticalBasis": "RAD (2015) e material de teste do Projeto Ciclo. O eixo de observação é a técnica, e a leitura do en dehors a partir do quadril segue a descrição anatômica registada na anamnese."
+  },
+  "condicoesDeContorno": "Sala com barra, espelho e aparelho de som; piso adequado. A observação acontece na aula regular, sem aula extra e sem vídeo.",
+  "limitations": [
+    "A observação depende da aula acontecer com barra e espelho; sem espelho, o alinhamento do pé fica por inferência. Uma aluna por aula pode faltar — a lacuna fica declarada, não preenchida."
+  ],
+  "horizonteDoConjunto": {
+    "objetivoGeralDeConjunto": "[a decidir]",
+    "numeroEstimadoDeCiclos": "[a decidir]"
+  },
+  "compromissoDeReavaliacao": {
+    "marcosDecididosAte": "[a decidir]",
+    "criterioDeExtensao": "[a decidir]"
+  },
+  "validationChecklist": {
+    "phenomenonOperationallyDefined": true,
+    "scopeBoundariesClear": true,
+    "normClearlyEstablished": true,
+    "criteriaMutuallyExclusive": false,
+    "justificationGrounded": true,
+    "cutFeasible": true
+  }
+}
