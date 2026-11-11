@@ -10,12 +10,12 @@ type: Ciclo
 professor: Redinha Rosa
 ciclo: 01
 variante: calango-rosa
-hash_conteudo: 773575fdaf83475677b1bf5827c7f88600a04febd2e828b37bc5792e6883d491
+hash_conteudo: 1de876c629954f7c3de8069997bd1b7f8056ca6f8ca0d5ef6fbd0792e3fe70fc
 parentHash: 
-hash: c3e3245bdca313235b8a275f3b1096c1a9a191710ba938f13a09792a832ca85d
+hash: 10c1bb9e85841cb3614ac8e9e28b212b31e032b2842f51e5ac10eebee240ff17
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-11
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,5 +23,13 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 43
 notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
 cobertura:
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf

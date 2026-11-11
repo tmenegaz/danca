@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-calango-rosa: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-calango-rosa-aula-01
+type: Aula
+professor: Redinha Rosa
+ciclo: 01
+variante: calango-rosa
+aula: 01
+hash_conteudo: dca3c0475084a96c835c513731d1fe15972126fa0cd3658a242dd5a03f97ce6b
+parentHash: 
+hash: eb48c38bffa069bf064d9d616bf331696702dabf08587ae90154f378cb5ad184
+algoritmo: SHA-256
+ancorado_em: 2026-11-11
+cobertura:
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md
+  - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md

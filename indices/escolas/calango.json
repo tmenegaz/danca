@@ -161,6 +161,26 @@
       "documento": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
       "id": "ciclo:pe-torto/01/calango/aula-01",
       "numero": "01"
+    },
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-11",
+        "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+        "cobertura": [
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
+        ],
+        "hash": "eb48c38bffa069bf064d9d616bf331696702dabf08587ae90154f378cb5ad184",
+        "hash_conteudo": "dca3c0475084a96c835c513731d1fe15972126fa0cd3658a242dd5a03f97ce6b",
+        "id": "ciclo-01-calango-rosa-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+      "id": "ciclo:redinha-rosa/01/calango/aula-01",
+      "numero": "01"
     }
   ],
   "ciclos": [
@@ -260,18 +280,57 @@
         "ancorado_em": "2026-11-11",
         "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
         "cobertura": [
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf"
         ],
-        "hash": "c3e3245bdca313235b8a275f3b1096c1a9a191710ba938f13a09792a832ca85d",
-        "hash_conteudo": "773575fdaf83475677b1bf5827c7f88600a04febd2e828b37bc5792e6883d491",
+        "hash": "10c1bb9e85841cb3614ac8e9e28b212b31e032b2842f51e5ac10eebee240ff17",
+        "hash_conteudo": "1de876c629954f7c3de8069997bd1b7f8056ca6f8ca0d5ef6fbd0792e3fe70fc",
         "id": "ciclo-01-calango-rosa",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-11",
+            "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+            "cobertura": [
+              "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+              "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md"
+            ],
+            "hash": "eb48c38bffa069bf064d9d616bf331696702dabf08587ae90154f378cb5ad184",
+            "hash_conteudo": "dca3c0475084a96c835c513731d1fe15972126fa0cd3658a242dd5a03f97ce6b",
+            "id": "ciclo-01-calango-rosa-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+          "id": "ciclo:redinha-rosa/01/calango/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
         "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
         "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
         "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp"
       ],
@@ -284,8 +343,16 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
+        "aula",
+        "dados",
+        "declaracao",
+        "glossario",
+        "harmonizacao",
         "manifesto",
-        "plano"
+        "notacao",
+        "plano",
+        "po",
+        "referencias"
       ]
     }
   ],
@@ -319,6 +386,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
+      "professor": "redinha-rosa",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
       "ciclo_id": "ciclo:redinha-rosa/01/calango",
       "escola": "calango",
@@ -342,6 +418,24 @@
       "escola": "calango",
       "id": "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
       "professor": "pe-torto",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
+      "professor": "redinha-rosa",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+      "professor": "redinha-rosa",
       "tipo": "aula"
     },
     {
@@ -373,11 +467,38 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
+      "professor": "redinha-rosa",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
+      "professor": "redinha-rosa",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
       "id": "documento:declaracao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
       "professor": "pe-torto",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:declaracao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
+      "professor": "redinha-rosa",
       "tipo": "declaracao"
     },
     {
@@ -391,11 +512,29 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+      "professor": "redinha-rosa",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
       "id": "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
       "professor": "pe-torto",
+      "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:harmonizacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
+      "professor": "redinha-rosa",
       "tipo": "harmonizacao"
     },
     {
@@ -445,6 +584,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:notacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
+      "professor": "redinha-rosa",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -472,11 +620,29 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
+      "professor": "redinha-rosa",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
       "id": "documento:referencias:professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
       "professor": "pe-torto",
+      "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
+      "professor": "redinha-rosa",
       "tipo": "referencias"
     },
     {
@@ -505,13 +671,13 @@
     ],
     "contagens": {
       "anamneses": 4,
-      "aulas": 1,
+      "aulas": 2,
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 6,
-      "pos": 8,
+      "pos": 9,
       "recortes": 2,
-      "registros": 18
+      "registros": 19
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -543,14 +709,15 @@
       "po:po-20261108-1335",
       "po:po-20261109-2341",
       "po:po-20261110-1304",
-      "po:po-20261110-1309"
+      "po:po-20261110-1309",
+      "po:po-20261110-2145"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 18,
+        "contagem": 19,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -569,7 +736,8 @@
           "po:po-20261108-1335",
           "po:po-20261109-2341",
           "po:po-20261110-1304",
-          "po:po-20261110-1309"
+          "po:po-20261110-1309",
+          "po:po-20261110-2145"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -727,10 +895,11 @@
         "valor": "pe-torto"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "ciclo:redinha-rosa/01/calango",
-          "plano:plano-20261110-2145"
+          "plano:plano-20261110-2145",
+          "po:po-20261110-2145"
         ],
         "rotulo": "redinha-rosa",
         "valor": "redinha-rosa"
@@ -771,7 +940,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 8,
+        "contagem": 9,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
@@ -780,7 +949,8 @@
           "po:po-20261108-1335",
           "po:po-20261109-2341",
           "po:po-20261110-1304",
-          "po:po-20261110-1309"
+          "po:po-20261110-1309",
+          "po:po-20261110-2145"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -789,9 +959,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "c456a80"
+    "commit": "a967d61"
   },
-  "gerado_em": "2026-11-11T00:45",
+  "gerado_em": "2026-11-11T00:47",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1195,6 +1365,16 @@
       "data": "2026-11-10T13:09",
       "id": "po:po-20261110-1309",
       "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261110-1309",
+      "ano": "2026",
+      "carimbo": "po-20261110-2145",
+      "ciclo": "01",
+      "data": "2026-11-10T21:45",
+      "id": "po:po-20261110-2145",
+      "professor": "redinha-rosa",
       "tipo": "po"
     }
   ],
