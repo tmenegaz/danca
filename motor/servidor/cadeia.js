@@ -34,6 +34,9 @@
 const nucleoCadeia = require('../nucleo/cadeia.js');
 // O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
 const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
+/* A pergunta «isto é orçamento?» tem dono — o módulo que conta os subpedidos. Há duas frases
+ * para o mesmo facto (a nossa e a do Cloudflare), e aqui elas são FUNDIDAS numa só. */
+const { ehOrcamento } = require('./subpedidos.js');
 
 /** O prefixo do KV da escola — a mesma raiz dos outros cadastros dos Bastidores. */
 const RAIZ = 'bastidores';
@@ -393,12 +396,28 @@ function criarCadeia({
       juntar('nenhum disparo foi feito neste Worker — sem `GITHUB_TOKEN`, o gerador não é chamado '
         + '(o que veio antes está gravado)');
     }
+    /* UM FACTO, UMA FRASE (11/11/2026).
+     *
+     * MEDIDO NA TELA DELA. O mesmo facto — o teto de subpedidos — aparecia TRÊS vezes, colado
+     * com ` · `: (1) a nossa estimativa («já gastou 29 dos 50, e o passo seguinte precisa de
+     * 22»), (2) a tradução («gastou o teto de 50»), (3) a frase crua do Cloudflare («Too many
+     * subrequests…»). As três dizem o mesmo, e juntas lêem-se como três avarias diferentes.
+     *
+     * A regra: orçamento é UM facto e diz-se UMA vez — com a frase mais informativa (a que tem
+     * os números), que é a que dá o que fazer. O resto dos motivos (uma escrita que falhou, um
+     * commit recusado) são factos DIFERENTES e ficam. */
+    const orcamentos = motivos.filter((m) => ehOrcamento(m));
+    const outros = motivos.filter((m) => !ehOrcamento(m));
+    const orcamentoEscolhido = orcamentos.find((m) => /precisa de/.test(m))
+      || orcamentos.find((m) => /dos \d+ subpedidos/.test(m))
+      || orcamentos[0] || null;
+    const finais = [...new Set((orcamentoEscolhido ? [orcamentoEscolhido] : []).concat(outros))];
     return {
       ok,
       fonte: saida && saida.fonte ? saida.fonte.ok !== false : null,
       ciclo: saida && saida.ciclo ? saida.ciclo.ok !== false : null,
       disparo: saida && saida.disparo ? saida.disparo : null,
-      erro: motivos.length ? motivos.join(' · ')
+      erro: finais.length ? finais.join(' · ')
         : (ok ? null : 'a geração não partiu, e o Worker não soube dizer porquê'),
     };
   }

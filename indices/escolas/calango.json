@@ -158,9 +158,10 @@
         "parent_hash": ""
       },
       "ciclo_id": "ciclo:pe-torto/01/calango",
-      "documento": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
-      "id": "ciclo:pe-torto/01/calango/aula-01",
-      "numero": "01"
+      "documento": null,
+      "id": "ciclo:pe-torto/01/calango/rosa/aula-01",
+      "numero": "01",
+      "variante": "rosa"
     },
     {
       "ancora": {
@@ -178,9 +179,10 @@
         "parent_hash": ""
       },
       "ciclo_id": "ciclo:redinha-rosa/01/calango",
-      "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
-      "id": "ciclo:redinha-rosa/01/calango/aula-01",
-      "numero": "01"
+      "documento": null,
+      "id": "ciclo:redinha-rosa/01/calango/piano/aula-01",
+      "numero": "01",
+      "variante": "piano"
     },
     {
       "ancora": {
@@ -198,9 +200,10 @@
         "parent_hash": ""
       },
       "ciclo_id": "ciclo:redinha-rosa/01/calango",
-      "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
-      "id": "ciclo:redinha-rosa/01/calango/aula-01",
-      "numero": "01"
+      "documento": null,
+      "id": "ciclo:redinha-rosa/01/calango/rosa/aula-01",
+      "numero": "01",
+      "variante": "rosa"
     }
   ],
   "ciclos": [
@@ -244,9 +247,10 @@
             "lida": true,
             "parent_hash": ""
           },
-          "documento": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
-          "id": "ciclo:pe-torto/01/calango/aula-01",
-          "numero": "01"
+          "documento": null,
+          "id": "ciclo:pe-torto/01/calango/rosa/aula-01",
+          "numero": "01",
+          "variante": "rosa"
         }
       ],
       "documentos": [
@@ -333,9 +337,10 @@
             "lida": true,
             "parent_hash": ""
           },
-          "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
-          "id": "ciclo:redinha-rosa/01/calango/aula-01",
-          "numero": "01"
+          "documento": null,
+          "id": "ciclo:redinha-rosa/01/calango/piano/aula-01",
+          "numero": "01",
+          "variante": "piano"
         },
         {
           "ancora": {
@@ -352,9 +357,10 @@
             "lida": true,
             "parent_hash": ""
           },
-          "documento": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
-          "id": "ciclo:redinha-rosa/01/calango/aula-01",
-          "numero": "01"
+          "documento": null,
+          "id": "ciclo:redinha-rosa/01/calango/rosa/aula-01",
+          "numero": "01",
+          "variante": "rosa"
         }
       ],
       "documentos": [
@@ -1208,9 +1214,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "c6ecddf"
+    "commit": "e9e2401e"
   },
-  "gerado_em": "2026-11-11T11:11",
+  "gerado_em": "2026-11-11T11:21",
   "nao_indexado": [
     {
       "familia": "conteudo",

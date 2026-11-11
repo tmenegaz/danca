@@ -89,7 +89,10 @@ const srv = http.createServer((req, res) => {
     // DEMORA DE PROPÓSITO: é durante ela que o véu tem de estar de pé.
     return setTimeout(() => ok('application/json', MD), 700);
   }
-  if (caminho.indexOf('/api/bastidores') === 0) return ok('application/json', '{"ok":true}');
+  /* QUALQUER `/api/**` RESPONDE JSON — inclusive as rotas que esta prova não exercita
+   * (`/api/geracao`, `/api/mapa`): devolver a página HTML a um `fetch` de dados produz
+   * «Unexpected token '<'» no console, e ruído num teste esconde sinal. */
+  if (caminho.indexOf('/api/') === 0) return ok('application/json', '{"ok":true}');
   return ok('text/html; charset=utf-8', html);
 });
 
@@ -182,10 +185,140 @@ const srv = http.createServer((req, res) => {
   provar('…e o resultado fica na caixa do gesto', /a cadeia fechou/.test(depois.caixa), depois.caixa.slice(-160));
   provar('…e o pedido foi feito UMA vez', pedidos === 1, pedidos);
 
+  /* ========================================================================
+   * E. A CONTINUAÇÃO DEPOIS DA RECARGA TAMBÉM TEM VÉU (11/11/2026)
+   *
+   * O DEFEITO REAL, medido. O gesto que grava termina em `location.reload()`, e a recarga leva o
+   * véu consigo. A partir daí a geração corre SOZINHA — e era exactamente aí, na parte mais
+   * longa, que não havia sinal nenhum. A pesquisadora: «não tem o véu […] tem que mostrar um
+   * spinning de que está rodando».
+   * ====================================================================== */
+  {
+    const antesDe = pedidos;
+    await p.evaluate((cadeia) => {
+      // O que o gesto guarda antes de recarregar: a cadeia que parou no teto, e o alvo.
+      /* O `alvo` é o `data-res` da caixa onde o recado nasceu — é por ele que a página o
+       * reencontra depois da recarga, mesmo que a secção ainda não esteja visível. */
+      sessionStorage.setItem('producao:cadeia', JSON.stringify({ cadeia, alvo: 'turmas', em: Date.now() }));
+    }, {
+      executada: true, ok: false, porOrcamento: true,
+      faltam: [{ turma: 'Rosa', chave: 'pacote', rotulo: 'Documentos gerados (HTML e PDF)',
+        estado: 'pendente', falta: 'esta invocação já gastou 29 dos 50 subpedidos',
+        href: '#turmas' }],
+      alvos: [{ turma: 'Rosa', ok: false, etapas: [] }],
+      recado: 'a cadeia avançou até «Plano de observação». A geração corre já a seguir.',
+    });
+    /* A RECARGA — é ela que apagava o véu. Vai com o `#hash` da secção, como o gesto real: é o
+     * hash que faz a secção das Turmas ser a visível, e é o `.res` dela que recebe o recado.
+     *
+     * `goto` com o MESMO endereço e só o `#hash` NÃO recarrega — é navegação no mesmo documento,
+     * e a primeira versão desta prova não recarregava nada (o texto do véu vinha da secção
+     * anterior, e o recado guardado nunca era consumido). O `reload` é explícito, como no gesto. */
+    await p.evaluate(() => { location.hash = 'turmas'; });
+    await p.reload({ waitUntil: 'domcontentloaded' });
+    // Durante a continuação (o stub demora 700 ms), o véu tem de estar de pé.
+    await new Promise((r) => setTimeout(r, 220));
+    const duranteR = await p.evaluate(() => {
+      const v = document.getElementById('veu');
+      const filhos = [...document.body.children].filter((x) => x.id !== 'veu');
+      return {
+        existe: Boolean(v),
+        ocupado: v ? (v.dataset.ocupado || null) : null,
+        display: v ? getComputedStyle(v).display : null,
+        texto: (document.getElementById('veu-texto') || {}).textContent || '',
+        trancados: filhos.filter((x) => x.inert).length,
+        cobertos: filhos.length,
+        caixa: (document.querySelector('.res[data-res=\"turmas\"]') || {}).textContent || '',
+        bruto: sessionStorage.getItem('producao:cadeia') ? 'guardado' : 'consumido',
+      };
+    });
+    provar('depois da recarga a continuação tem véu', duranteR.ocupado === 'sim' && duranteR.display === 'flex', duranteR);
+    provar('…e diz o que está a fazer', /gerar|concluir/i.test(String(duranteR.texto)), duranteR.texto);
+    provar('…e tranca a página enquanto isso', duranteR.trancados === duranteR.cobertos && duranteR.cobertos > 0, duranteR);
+
+    await new Promise((r) => setTimeout(r, 900));
+    const depoisR = await p.evaluate(() => {
+      const v = document.getElementById('veu');
+      const filhos = [...document.body.children].filter((x) => x.id !== 'veu');
+      const caixa = (function () { var r = alvoDoRecado(); return r ? r.textContent : ''; })();
+      return {
+        ocupado: v ? (v.dataset.ocupado || null) : null,
+        trancados: filhos.filter((x) => x.inert).length,
+        caixa,
+      };
+    });
+    provar('…e sai quando a geração acaba', depoisR.ocupado === null, depoisR);
+    provar('…e destranca', depoisR.trancados === 0, depoisR);
+    provar('…e a caixa passa a dizer que fechou', /fechou/.test(depoisR.caixa), depoisR.caixa.slice(-120));
+    provar('…e a recarga pediu a geração (uma vez, não duas)', pedidos === antesDe + 1, pedidos);
+  }
+
+  /* ========================================================================
+   * F. DEPOIS DE GRAVAR, O FORMULÁRIO VOLTA VAZIO (11/11/2026)
+   *
+   * «os campos, quando acabar qualquer processo aqui na turma, os campos do formulário têm que
+   * ficar vazios, só com os placeholders». A memória do preenchimento é reposta depois de cada
+   * recarga, e só se limpa quando o modo de edição sai — as rotas da Turma não o limpavam.
+   * ====================================================================== */
+  {
+    const r = await p.evaluate(() => {
+      // O estado em que a página fica depois de um «Ajustar»: modo ligado e o preenchimento guardado.
+      sessionStorage.setItem('producao:editando', 'turma');
+      sessionStorage.setItem('producao:form', JSON.stringify({ turma: { tnome: 'Rosa', tduracao: '60' } }));
+      const antes = {
+        form: sessionStorage.getItem('producao:form') ? 'guardado' : 'vazio',
+        modo: sessionStorage.getItem('producao:editando') || '',
+      };
+      /* A função que os três envios da Turma passam como `aoOk` (ver a asserção estática
+       * abaixo). No controle negativo ela NÃO EXISTE — e é isso que se mede: guardar a chamada
+       * faz a prova REPROVAR em vez de rebentar, que é o que um controle negativo precisa de
+       * fazer para valer alguma coisa. */
+      if (typeof concluirCuradoria === 'function') concluirCuradoria();
+      return {
+        antes,
+        form: sessionStorage.getItem('producao:form'),
+        modo: sessionStorage.getItem('producao:editando'),
+      };
+    });
+    provar('havia preenchimento guardado e modo de edição', r.antes.form === 'guardado' && r.antes.modo === 'turma', r.antes);
+    provar('concluir a Turma limpa o preenchimento guardado', r.form === null, r.form);
+    provar('…e desliga o modo de edição (é ele que repõe os campos)', r.modo === null, r.modo);
+
+    // A RECARGA seguinte: o formulário tem de nascer vazio.
+    await p.reload({ waitUntil: 'networkidle0' });
+    const campos = await p.evaluate(() => {
+      const f = document.getElementById('form-curadoria');
+      if (!f) return { existe: false };
+      const comValor = [...f.querySelectorAll('input, select')]
+        .filter((x) => String(x.value || '').trim() !== '')
+        .map((x) => x.id || x.name);
+      return { existe: true, comValor };
+    });
+    provar('depois de gravar, o formulário da Turma nasce vazio (só placeholders)',
+      campos.existe === true && campos.comValor.length === 0, campos);
+  }
+
+  /* A LIGAÇÃO QUE FAZ ISTO ACONTECER: os três envios da Turma passam `concluirCuradoria`. Sem
+   * ela, o formulário volta cheio. É o que se confere — o COMPORTAMENTO acima, a ligação aqui. */
+  {
+    const envios = await p.evaluate(() => {
+      const t = document.documentElement.innerHTML;
+      return {
+        atribuir: /curadoria", campos, "atribuindo turma\.\.\.", true, concluirCuradoria/.test(t),
+        gravar: /curadoria", campos, "gravando turma\.\.\.", true, concluirCuradoria/.test(t),
+        derivar: /curadoria-derivar", campos, "ajustando turma\.\.\.", true, concluirCuradoria/.test(t),
+      };
+    });
+    provar('o «Atribuir turma» conclui e limpa', envios.atribuir, envios);
+    provar('o «Gravar turma» conclui e limpa', envios.gravar, envios);
+    provar('o «Gravar ajuste» conclui e limpa', envios.derivar, envios);
+  }
+
   await nav.close();
   srv.close();
   console.log('\n' + (ko ? 'FALHARAM ' + ko + ' de ' + (ok + ko) : 'TUDO CERTO — ' + ok
-    + ' asserções: o véu cobre, tranca, diz o passo e sai.'));
+    + ' asserções: o véu cobre, tranca, diz o passo e sai — também depois da recarga —, e o '
+    + 'formulário volta vazio.'));
   if (negativo) {
     // No controle negativo, falhar É o resultado certo.
     if (ko === 0) { console.log('A PROVA NÃO PROVA NADA: o motor de antes passou tudo.'); process.exit(1); }

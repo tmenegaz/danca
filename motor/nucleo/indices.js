@@ -525,13 +525,35 @@ function construir(entrada) {
       && !/-aula-[0-9]{2}\.fipp$/.test(c));
     const daAula = docs.filter((c) => tipoDoDocumento(c, ciclo.escola) === 'ancora'
       && /-aula-[0-9]{2}\.fipp$/.test(c));
+    /* A AULA É DA VARIANTE, E O ID TEM DE O DIZER (11/11/2026).
+     *
+     * MEDIDO. Derivar a Turma para outra sala cria uma SEGUNDA variante do mesmo ciclo
+     * (`calango-rosa` e `calango-piano`) na pasta do mesmo professor. O ciclo é um só (o id é
+     * `professor/ciclo/escola`), e as duas variantes têm `-aula-01.fipp` — logo, dois registos
+     * com o MESMO id `ciclo:<prof>/01/<escola>/aula-01`. A verificação 4 do `check-indices`
+     * (Unicidade) reprovou, e com razão: duas coisas diferentes com o mesmo nome.
+     *
+     * A variante entra no id — e entra SEMPRE, e não só quando há duas, para o id da aula da
+     * `rosa` não mudar no dia em que a `piano` aparecer. E o `documento` passa a ser procurado
+     * na MESMA variante: antes, a primeira `-aula-NN.md` encontrada podia ser a da outra sala. */
+    const varianteDaAncora = (caminho) => {
+      const base = String(caminho).split('/').pop().replace(/\.fipp$/, '');
+      const semAula = base.replace(/-aula-[0-9]{2}$/, '');
+      const m = new RegExp('^ciclo-[0-9]{2}-' + String(ciclo.escola).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-(.+)$').exec(semAula);
+      return m ? m[1] : '';
+    };
     const aulas = daAula.map((c) => {
       const m = /-aula-([0-9]{2})\.fipp$/.exec(c);
+      const variante = varianteDaAncora(c);
       return {
-        id: ciclo.id + '/aula-' + m[1],
+        id: ciclo.id + '/' + (variante || '_') + '/aula-' + m[1],
+        variante,
         numero: m[1],
         ancora: ancoraDoCaminho(c),
-        documento: docs.find((d) => new RegExp('-aula-' + m[1] + '\\.md$').test(d)) || null,
+        documento: docs.find((d) => {
+          if (!new RegExp('-aula-' + m[1] + '\\.md$').test(d)) return false;
+          return !variante || varianteDaAncora(d) === variante;
+        }) || null,
       };
     });
     ciclos.push({

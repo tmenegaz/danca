@@ -502,10 +502,22 @@ const CONTEXTO = {
     const corpo = await resposta.json();
     provar('o fecho que estoura no teto responde 200 (o acto não é derrubado)',
       resposta.status === 200, resposta.status);
-    provar('…e a frase diz QUAL etapa ficou por fazer, com o motivo',
-      /Documentos gerados/.test(String((corpo.cadeia || {}).recado || ''))
-        && /subpedidos/.test(String((corpo.cadeia || {}).recado || '')),
-      corpo.cadeia && corpo.cadeia.recado);
+    /* O RESUMO NA FRASE, O DETALHE NA LINHA (11/11/2026).
+     *
+     * Aqui exigia-se o motivo DENTRO do recado — e era isso que fazia a tela mostrar o mesmo
+     * parágrafo duas vezes (o recado e a linha da etapa, que é a que tem o «abrir»). O recado diz
+     * ONDE parou e o que vem a seguir; o motivo vive na linha que resolve, e é lá que se mede. */
+    const faltaAqui = ((corpo.cadeia || {}).faltam || [])[0] || {};
+    const recadoAqui = String((corpo.cadeia || {}).recado || '');
+    provar('…e a frase diz QUAL etapa ficou por fazer',
+      /Documentos gerados/.test(recadoAqui), recadoAqui);
+    provar('…e diz o que vem a seguir (a geração num pedido próprio)',
+      /pedido próprio/.test(recadoAqui), recadoAqui);
+    provar('…e NÃO repete na frase o motivo que a linha já traz',
+      !/subpedidos/.test(recadoAqui), recadoAqui);
+    provar('…porque o motivo está na LINHA da etapa, com o link',
+      (faltaAqui.falta || '').length > 0 && /subpedidos/.test(String(faltaAqui.falta || '')),
+      faltaAqui.falta);
     provar('…e a lista do que já fechou vai na resposta',
       Array.isArray((corpo.cadeia || {}).fecharam) && corpo.cadeia.fecharam.length === 3,
       corpo.cadeia && corpo.cadeia.fecharam);
@@ -550,9 +562,12 @@ const CONTEXTO = {
     provar('…nem a frase diz «falta nada»',
       !/falta nada|Falta nada/i.test(String(c.recado || '')) && /Falta /.test(String(c.recado || '')),
       c.recado);
-    provar('…e a turma sem plano é nomeada com o que lhe falta',
-      new RegExp(TURMA_B).test(String(c.recado || ''))
-        && /plano de ensino/.test(String(c.recado || '')), c.recado);
+    /* CADA TURMA É NOMEADA NA SUA PRÓPRIA LINHA — e é isso que se mede, desde 11/11/2026: a
+     * frase é o resumo do conjunto, e a linha diz a turma e o que lhe falta. */
+    const linhasB = (c.faltam || []).filter((f) => f.turma === TURMA_B);
+    provar('…e a turma sem plano é nomeada na sua LINHA, com o que lhe falta',
+      linhasB.length > 0 && linhasB.some((f) => /plano de ensino/.test(String(f.falta || ''))),
+      linhasB);
   }
 
   // ==========================================================================

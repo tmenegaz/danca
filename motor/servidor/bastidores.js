@@ -906,13 +906,6 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
   } else {
     recado = 'a cadeia não chegou a começar: a primeira etapa não fecha.';
   }
-  const comFalta = [...porTurma.entries()]
-    .filter(([, v]) => v.falta.length)
-    .map(([nome, v]) => {
-      const primeira = v.falta[0];
-      return '«' + nome + '» — ' + primeira.rotulo + ' por concluir: '
-        + (primeira.falta || 'veja o sítio para saber o que falta') + '.';
-    });
   return {
     executada: true,
     ok: Boolean(r.ok),
@@ -933,10 +926,16 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
     })),
     /* O QUE FALTA, COM O LINK. Vazio é o caso bom: a travessia fechou. */
     faltam,
-    recado: recado + (comFalta.length ? ' ' + comFalta.join(' ') : '')
-      + (porOrcamento
-        ? ' A geração não cabia neste pedido — ela corre já a seguir, num pedido próprio.'
-        : ''),
+    /* O RECADO É O RESUMO; O DETALHE VAI NA LINHA (11/11/2026).
+     *
+     * Aqui ele repetia, dentro da própria frase, o texto da primeira etapa em falta — e a tela
+     * pinta as duas coisas: o recado (uma nota) e a linha de cada etapa (com o «abrir»). O
+     * professor lia o mesmo parágrafo duas vezes, uma delas sem link, e a impressão era de duas
+     * avarias. O detalhe pertence à LINHA, que é onde ele se resolve; o recado diz onde a cadeia
+     * parou e o que vem a seguir. */
+    recado: recado + (porOrcamento
+      ? ' A geração não cabia neste pedido — ela corre já a seguir, num pedido próprio.'
+      : ''),
     erro: r.erro || null,
     log: r.log || null,
   };
@@ -3378,8 +3377,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     if (!slug || slug === donoSlug) continue;
     profsParaCuradoria.push({ valor: slug, rotulo: p.nome });
   }
+  /* TODO `select` NASCE VAZIO (11/11/2026).
+   *
+   * O DEFEITO, na letra dela: «os campos, quando acabar qualquer processo aqui na turma, os campos
+   * do formulário têm que ficar vazios, só com os placeholders». Limpar a memória do
+   * preenchimento não bastava: sem uma opção vazia, o navegador SELECCIONA a primeira opção real
+   * — o formulário «limpo» abria já com o primeiro professor, a primeira modalidade e a primeira
+   * tradição escolhidos. O vazio tem de existir para poder ser o estado inicial.
+   *
+   * A opção em branco não leva rótulo. É a mesma decisão do `Grau` (03/11/2026): «— sem grau —»
+   * dizia por palavras o que uma opção em branco já diz. Quem valida é o `faltando` do formulário,
+   * que nomeia o que falta. */
+  const VAZIO = '<option value=""></option>';
   const opcoesProfessorCuradoria = profsParaCuradoria.length
-    ? profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
+    ? VAZIO + profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
     : '<option value="">— nenhum professor —</option>';
   /* O HISTÓRICO FALA NOMES, NÃO SLUGS (10/11/2026). A diferença de uma versão para a outra diz
    * «professor Petorto → Marina», e não «pe-torto → marina»: o bloco é para quem opera a escola,
@@ -3394,12 +3405,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // da escola —, e não uma segunda: o elo «quem ensina esta turma» é o mesmo nos dois sítios, e
   // duas listas divergiriam à primeira admissão.
   const opcoesDeProfessorDaTurma = opcoesProfessorCuradoria;
-  const opcoesModalidadeCuradoria = (MODALIDADES.modalidades || []).map((m) =>
+  const opcoesModalidadeCuradoria = VAZIO + (MODALIDADES.modalidades || []).map((m) =>
     '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
   // A MESMA DERIVAÇÃO DA TURMA E DO VERBETE (02/11/2026): chave no valor, rótulo no texto. A
   // lista é a de `tradicoes.json` — acrescentar CUBANA lá pôs-na aqui, sem tocar nesta linha.
-  const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
+  const opcoesTradicaoCuradoria = VAZIO + tradicoesAdotaveis().map((t) =>
     '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('');
   // A TURMA É UM `select` — UMA POR VEZ (16/10/2026), no mesmo formato da modalidade e da
   // tradição. Era um escolhedor de múltiplas, e a lista MENTIA: quem marcava duas turmas
@@ -3409,7 +3420,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // A turma sem ritmo não se atribui — o plano dela nasceria sem dose nem calendário —, e
   // por isso sai ANUNCIADA no rótulo, com o que falta. Ela continua na lista: a direção
   // precisa de a ver para saber o que corrigir.
-  const opcoesTurmaCuradoria = listaTurmas.map((t) => {
+  const opcoesTurmaCuradoria = (listaTurmas.length ? VAZIO : '') + listaTurmas.map((t) => {
     const falta = faltaNoRitmoDaTurma(t);
     return '<option value="' + esc(t.nome) + '">' + esc(t.nome) +
       (falta.length ? ' — falta ' + esc(fraseDaFalta(falta)) + ' (não pode ser atribuída)' : '') +
@@ -6423,6 +6434,39 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // «GRAVAR TURMA» CONCLUI: o formulário fecha e a memória do preenchimento é limpa —
     // senão a próxima turma começaria com os dados da anterior.
+    /* CONCLUIR A TURMA (a curadoria) — E O FORMULÁRIO VOLTA VAZIO (11/11/2026).
+     *
+     * O DEFEITO, na letra dela: «os campos, quando acabar qualquer processo aqui na turma, os
+     * campos do formulário têm que ficar vazios, só com os placeholders».
+     *
+     * A CAUSA. Abrir «Ajustar» liga o modo de edição (`producao:editando`), e é esse modo que
+     * faz `aplicarEstadoDoFormulario` REPOR o último preenchimento depois de cada recarga. As
+     * rotas da Sala limpam-no quando concluem (`concluirTurma`, no fim do fluxo da rubrica); as
+     * da TURMA não limpavam nada — gravavam e recarregavam, e a memória devolvia tudo preenchido.
+     * O professor acabava de derivar a Turma e reencontrava o formulário com os valores da que
+     * acabou de gravar, como se não tivesse concluído.
+     *
+     * O QUE SE LIMPA: a memória do preenchimento e o modo — não a lista, não o registo, não o
+     * recado da cadeia (que é o que diz o que falta). Os campos nascem com os `placeholder`, que
+     * é o estado em que o servidor os serve. */
+    'function concluirCuradoria(){' +
+    '  try {' +
+    '    sessionStorage.removeItem("producao:form");' +
+    '    sessionStorage.removeItem("producao:editando");' +
+    '    sessionStorage.setItem("producao:passo", "turma");' +
+    '  } catch (err) {}' +
+    '  var f = document.getElementById("form-curadoria");' +
+    '  if (f) { try { f.reset(); } catch (err) {} }' +
+    /* AS FICHAS NÃO SÃO CAMPOS: `reset()` não as toca, e ficariam a pairar sobre um formulário
+     * vazio — o mesmo cuidado que o «Cancelar» já tinha. */
+    '  ["esc-conteudos", "esc-alunas"].forEach(function(id){' +
+    '    var el = document.getElementById(id);' +
+    '    if (!el) return;' +
+    '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(x){' +
+    '      x.parentElement.removeChild(x);' +
+    '    });' +
+    '  });' +
+    '}' +
     'function concluirTurma(){' +
     '  try {' +
     '    sessionStorage.removeItem("producao:form");' +
@@ -7666,26 +7710,51 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function guardarCadeiaDaGravacao(cadeia, res) {' +
     '  try {' +
     '    if (!cadeia || cadeia.executada === false) { sessionStorage.removeItem("producao:cadeia"); return; }' +
+    /* O CARIMBO DE QUANDO (11/11/2026) — sem ele, um recado esquecido de ontem seria pintado na
+     * sessão de hoje como se fosse o estado de agora. `repintarCadeiaGuardada` descarta o que
+     * passou de dez minutos. */
     '    sessionStorage.setItem("producao:cadeia", JSON.stringify({' +
-    '      cadeia: cadeia, alvo: res ? res.getAttribute("data-res") : null }));' +
+    '      cadeia: cadeia, alvo: res ? res.getAttribute("data-res") : null, em: Date.now() }));' +
     '  } catch (err) {}' +
     '}' +
     'function repintarCadeiaGuardada() {' +
+    /* O RECADO NÃO SE PERDE POR NÃO HAVER CAIXA (11/11/2026).
+     *
+     * Aqui ele era LIDO E APAGADO antes de se saber se havia onde o pintar: `removeItem` primeiro,
+     * `alvoDoRecado()` depois. Quando a vista aberta não tem `.res` (uma secção escondida, uma
+     * recarga sem `#hash`), o recado — e com ele a continuação da geração — desaparecia em
+     * silêncio. O professor ficava com a página em branco e a geração por fazer, sem saber.
+     *
+     * Agora só se apaga DEPOIS de haver caixa. E há um prazo: um recado com mais de dez minutos
+     * não é desta sessão, e pintá-lo seria contar o passado como presente. */
     '  var bruto = null;' +
-    '  try {' +
-    '    bruto = sessionStorage.getItem("producao:cadeia");' +
-    '    sessionStorage.removeItem("producao:cadeia");' +
-    '  } catch (err) { return; }' +
+    '  try { bruto = sessionStorage.getItem("producao:cadeia"); } catch (err) { return; }' +
     '  if (!bruto) return;' +
     '  var guardado = null;' +
-    '  try { guardado = JSON.parse(bruto); } catch (err) { return; }' +
-    '  if (!guardado || !guardado.cadeia) return;' +
+    '  try { guardado = JSON.parse(bruto); } catch (err) {' +
+    '    try { sessionStorage.removeItem("producao:cadeia"); } catch (e2) {}' +
+    '    return;' +
+    '  }' +
+    '  if (!guardado || !guardado.cadeia) {' +
+    '    try { sessionStorage.removeItem("producao:cadeia"); } catch (e2) {}' +
+    '    return;' +
+    '  }' +
+    '  var quando = Number(guardado.em || 0);' +
+    '  if (quando && (Date.now() - quando) > 600000) {' +
+    '    try { sessionStorage.removeItem("producao:cadeia"); } catch (e2) {}' +
+    '    return;' +
+    '  }' +
     '  var res = (guardado.alvo' +
     '    && document.querySelector(".res[data-res=\\"" + guardado.alvo + "\\"]")) || alvoDoRecado();' +
+    /* SEM CAIXA, NÃO SE GASTA: fica guardado para a próxima carga, que há de ter uma. */
     '  if (!res) return;' +
+    '  try { sessionStorage.removeItem("producao:cadeia"); } catch (err) {}' +
     '  res.className = "res " + (guardado.cadeia.ok ? "ok" : "aviso");' +
     '  res.textContent = "";' +
-    '  pintarCadeia(guardado.cadeia, res);' +
+    '  if (guardado.cadeia.porOrcamento) {' +
+    '    ocupar("a concluir o que faltava — a gerar os documentos…");' +
+    '  }' +
+    '  pintarCadeia(guardado.cadeia, res, false, Boolean(guardado.cadeia.porOrcamento));' +
     '}' +
     'document.getElementById("form-turma").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -8037,7 +8106,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!sel) return;' +
     '  var antes = sel.value;' +
     '  var bloco = TRADICOES_DA_MODALIDADE[modalidade || ""] || {lista: [], de: "compartilhada"};' +
-    '  var partes = [];' +
+    /* A OPÇÃO VAZIA VEM SEMPRE, e é ela que permite ao campo ficar por escolher (11/11/2026).
+     * Sem ela, `sel.value = ""` não selecciona nada e o navegador mantém a primeira tradição
+     * escolhida — o formulário «limpo» abria já preenchido. */
+    '  var partes = ["<option value=\u0027\u0027></option>"];' +
     '  for (var i = 0; i < bloco.lista.length; i++) {' +
     '    var chave = bloco.lista[i];' +
     '    partes.push("<option value=\u0027" + chave + "\u0027>" + (ROTULOS_DE_TRADICAO[chave] || chave) + "</option>");' +
@@ -11437,13 +11509,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = (document.getElementById("cuderivar") || {}).value || "";' +
     '  var modo = (document.getElementById("cumodo") || {}).value || "";' +
     '  if (!alvo) {' +
-    '    enviar("/api/bastidores/curadoria", campos, "atribuindo turma...", true); return;' +
+    '    enviar("/api/bastidores/curadoria", campos, "atribuindo turma...", true, concluirCuradoria); return;' +
     '  }' +
     '  if (modo === "editar") {' +
     // A origem vai declarada: com a turma editável, o trio novo pode já não casar com o
     // registo de onde se partiu, e o servidor criaria uma curadoria ao lado da antiga.
     '    campos.idAntigo = alvo;' +
-    '    enviar("/api/bastidores/curadoria", campos, "gravando turma...", true); return;' +
+    '    enviar("/api/bastidores/curadoria", campos, "gravando turma...", true, concluirCuradoria); return;' +
     '  }' +
     '  var vig = document.getElementById("cuvigencia").value;' +
     '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
@@ -11452,7 +11524,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O MOTIVO (10/11/2026) — a mesma peça e a mesma regra do formulário da Sala: vai, e pode ir
     // vazio; o sistema não inventa razão nenhuma.
     '  campos.motivo = (document.getElementById("cumotivo") || {}).value || "";' +
-    '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando turma...", true);' +
+    '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando turma...", true, concluirCuradoria);' +
     '});' +
     // O HANDLER DELEGADO DA ASSOCIAÇÃO SAIU A 03/11/2026. Ele servia os botões
     // `button.associar`/`button.desassociar` dos chips por turma — e os chips por turma
@@ -12865,7 +12937,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `pintarCadeia` — que também manda continuar a geração num pedido próprio — já está
      * declarada. Um recado guardado e não consumido seria o pior dos mundos: a página a olhar
      * para o estado escrito antes da recarga e a acreditar nele. */
-    'repintarCadeiaGuardada();' +
+    /* O RECADO ESPERA O DOCUMENTO INTEIRO (11/11/2026).
+     *
+     * DEFEITO MEDIDO. O `<div id="veu">` vive DEPOIS deste script, e `repintarCadeiaGuardada`
+     * chama `ocupar` — que procura o véu por id. No instante em que este script corre, o véu
+     * ainda não existe no DOM: `ocupar` devolvia cedo, a continuação da geração corria sem
+     * véu, e o professor ficava a olhar para uma página parada enquanto ela trabalhava.
+     *
+     * É o mesmo cuidado que a porta tomou com a trava (`podePreencher` depois do `ajustar`):
+     * primeiro o documento, depois quem o usa. `DOMContentLoaded` é o instante em que o véu
+     * já está lá. */
+    'if (document.readyState === "loading") {' +
+    '  document.addEventListener("DOMContentLoaded", repintarCadeiaGuardada);' +
+    '} else {' +
+    '  repintarCadeiaGuardada();' +
+    '}' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o

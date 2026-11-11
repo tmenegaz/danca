@@ -22,8 +22,8 @@
     "parent_hash": ""
   },
   "aulas": [
-    "ciclo:redinha-rosa/01/calango/aula-01",
-    "ciclo:redinha-rosa/01/calango/aula-01"
+    "ciclo:redinha-rosa/01/calango/piano/aula-01",
+    "ciclo:redinha-rosa/01/calango/rosa/aula-01"
   ],
   "ciclo": "01",
   "documentos": [
@@ -135,9 +135,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "c6ecddf"
+    "commit": "e9e2401e"
   },
-  "gerado_em": "2026-11-11T11:11",
+  "gerado_em": "2026-11-11T11:21",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6
