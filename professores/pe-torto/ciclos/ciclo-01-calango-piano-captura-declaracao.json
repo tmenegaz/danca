@@ -1,0 +1,166 @@
+{
+  "escola": "Calango",
+  "blocos": {
+    "Bloco 1 — Solo": {
+      "chave": "solo",
+      "rotulo": "Solo",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 2 — Barra": {
+      "chave": "barra",
+      "rotulo": "Barra",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 3 — Centro": {
+      "chave": "centro",
+      "rotulo": "Centro",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 4 — Musicalidade": {
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 5 — Expressão": {
+      "chave": "expressao",
+      "rotulo": "Expressão",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 6 — Técnica — Solo": {
+      "chave": "tecnica_solo",
+      "rotulo": "Técnica — Solo",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        },
+        "alinhamento do pé de apoio": {
+          "chave": "alinhamento_do_pe_de_apoio",
+          "tipo": "rubrica"
+        },
+        "eixo do corpo na preparação": {
+          "chave": "eixo_do_corpo_na_preparacao",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 7 — Técnica — Barra": {
+      "chave": "tecnica_barra",
+      "rotulo": "Técnica — Barra",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        },
+        "saída do calcanhar no tendu": {
+          "chave": "saida_do_calcanhar_no_tendu",
+          "tipo": "rubrica"
+        },
+        "quadril sem subir no en dehors": {
+          "chave": "quadril_sem_subir_no_en_dehors",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 8 — Técnica — Centro": {
+      "chave": "tecnica_centro",
+      "rotulo": "Técnica — Centro",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        },
+        "transferência de peso sem perder a verticalidade": {
+          "chave": "transferencia_de_peso_sem_perder_a_verticalidade",
+          "tipo": "rubrica"
+        },
+        "braço junto do movimento": {
+          "chave": "braco_junto_do_movimento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 9 — Técnica — Musicalidade": {
+      "chave": "tecnica_musicalidade",
+      "rotulo": "Técnica — Musicalidade",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        },
+        "resposta ao pulso na marcação": {
+          "chave": "resposta_ao_pulso_na_marcacao",
+          "tipo": "rubrica"
+        },
+        "frase até o fim da música": {
+          "chave": "frase_ate_o_fim_da_musica",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 10 — Técnica — Expressão": {
+      "chave": "tecnica_expressao",
+      "rotulo": "Técnica — Expressão",
+      "grao": "aluna",
+      "colunas": {
+        "Teste": {
+          "chave": "teste",
+          "tipo": "rubrica"
+        },
+        "olhar acompanha o braço": {
+          "chave": "olhar_acompanha_o_braco",
+          "tipo": "rubrica"
+        },
+        "presença sem rigidez de rosto": {
+          "chave": "presenca_sem_rigidez_de_rosto",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Linha de base revisitada": {
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": {
+        "Observado na aula": {
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      }
+    }
+  }
+}
