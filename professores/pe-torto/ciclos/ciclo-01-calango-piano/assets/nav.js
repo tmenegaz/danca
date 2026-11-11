@@ -522,3 +522,285 @@
   /* Página restaurada do cache do navegador: volta já rolada, com o estado de antes. */
   window.addEventListener('pageshow', function () { pintar(); });
 })();
+
+/* ======================================================================
+ * A OPERAÇÃO QUE ATRAVESSA AS ABAS (11/11/2026)
+ *
+ * O PEDIDO, na letra dela: «se o usuário ele tá com várias abas abertas, então em uma aba ele tem
+ * aqui o ajuste que ele fez no professor, na turma atribuída, ele foi lá e derivou. Aí ele tem
+ * numa outra aba aberto, por exemplo, o plano do ciclo. O plano do ciclo que tem impacto direto
+ * ao que ele ajustou tem que estar inabilitado enquanto estiver processando. A mesma coisa o
+ * plano de observação […] e a mesma coisa os documentos que vão ser derivados a partir do plano
+ * de observação.» E ainda: «precisa colocar uma etiqueta também que indique o que que está
+ * acontecendo […] precisa de um nome semântico equivalente».
+ *
+ * PORQUE AQUI, e não em cada página. O `nav.js` é o ÚNICO script que todas as páginas carregam: a
+ * Produção (Bastidores), a porta (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`) e cada
+ * documento publicado do pacote. Uma regra escrita em cada uma seria seis cópias a divergir na
+ * primeira correcção — e a que ficasse para trás seria justamente a que o professor tem aberta.
+ *
+ * COMO AS ABAS SE FALAM. Duas vias, e as duas são precisas: o `BroadcastChannel` entrega no
+ * instante (é o que faz a outra aba reagir antes de o utilizador a olhar), e o `localStorage` com
+ * o evento `storage` é o que sobrevive a uma aba que abre JÁ a meio da operação — a aba que nasce
+ * não recebe o que foi transmitido antes de ela existir. Nenhuma das duas entrega ao próprio
+ * remetente, e é isso que impede o eco.
+ *
+ * O QUE FICA GRAVADO. `{ aba, etiqueta, texto, em, expira }`. A `aba` é a identidade da ABA e não
+ * do documento (vive no `sessionStorage`, que sobrevive à recarga): sem ela, a página recarregada
+ * lia a operação que ela própria publicara e trancava-se a si mesma por dois minutos. O `expira`
+ * é a rede de segurança de sempre — um véu que tranca para sempre é o pior modo de falha deste
+ * sistema.
+ *
+ * O VÉU É A PEÇA DA FOLHA (`.veu`) e a etiqueta é o `.selo` do catálogo. O que este bloco traz é
+ * o ESTADO, o TEXTO e a travessia entre abas — não um desenho novo.
+ * ====================================================================== */
+(function () {
+  var CHAVE = 'lastro:operacao';
+  var CANAL = 'lastro:operacao';
+  var VALIDADE = 120000;
+  var ROTULO_DE_REPOUSO = 'a processar';
+
+  var MINHA_ABA = (function () {
+    try {
+      var s = sessionStorage.getItem('lastro:aba');
+      if (!s) {
+        s = 'aba-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+        sessionStorage.setItem('lastro:aba', s);
+      }
+      return s;
+    } catch (e) {
+      return 'aba-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    }
+  })();
+
+  var veu = null, alvoEtiqueta = null, alvoTexto = null, alvoNota = null;
+  var temporizador = null;
+  var meu = null;      // a operação que ESTA aba publicou
+  var remota = null;   // a que veio de outra aba e ainda vale
+  var canal = null;
+
+  /**
+   * O VÉU, GARANTIDO NA FORMA CERTA.
+   *
+   * A página da Produção já traz o seu `<div id="veu"><p class="veu-texto">`; as outras não
+   * trazem nada. Em vez de duas marcações (uma por sítio, a divergir), esta função NORMALIZA o
+   * que encontrar: cria o véu quando falta e envolve o que já lá está num `.veu-cartao` com a
+   * etiqueta e o texto. Um só construtor — e a página que já tinha o seu não perde nada.
+   *
+   * E REPARENTA-O PARA O `<body>`. Na Produção o véu nasce dentro do `#conteudo`, e `trancar`
+   * põe `inert` no `#conteudo`: o véu ficava inerte com ele, e o texto que ele diz — que é o
+   * ofício dele — deixava de ser lido por quem usa leitor de ecrã. Como filho directo do `body`,
+   * é o único que fica de fora.
+   */
+  function garantirVeu() {
+    if (veu && document.body && document.body.contains(veu)) return veu;
+    if (!document.body) return null;
+    veu = document.getElementById('veu');
+    if (!veu) {
+      veu = document.createElement('div');
+      veu.id = 'veu';
+      veu.className = 'veu';
+      veu.setAttribute('role', 'status');
+      veu.setAttribute('aria-live', 'polite');
+      document.body.appendChild(veu);
+    } else if (veu.parentElement !== document.body) {
+      document.body.appendChild(veu);
+    }
+    var cartao = veu.querySelector('.veu-cartao');
+    if (!cartao) {
+      cartao = document.createElement('div');
+      cartao.className = 'veu-cartao';
+      while (veu.firstChild) cartao.appendChild(veu.firstChild);
+      veu.appendChild(cartao);
+    }
+    alvoEtiqueta = cartao.querySelector('.veu-etiqueta');
+    if (!alvoEtiqueta) {
+      alvoEtiqueta = document.createElement('span');
+      alvoEtiqueta.className = 'selo veu-etiqueta';
+      alvoEtiqueta.textContent = ROTULO_DE_REPOUSO;
+      cartao.insertBefore(alvoEtiqueta, cartao.firstChild);
+    }
+    alvoTexto = cartao.querySelector('.veu-texto');
+    if (!alvoTexto) {
+      alvoTexto = document.createElement('p');
+      alvoTexto.className = 'veu-texto';
+      cartao.appendChild(alvoTexto);
+    }
+    if (!alvoTexto.id) alvoTexto.id = 'veu-texto';
+    alvoNota = cartao.querySelector('.veu-nota');
+    if (!alvoNota) {
+      alvoNota = document.createElement('p');
+      alvoNota.className = 'veu-nota';
+      alvoNota.textContent = 'A operação começou noutra aba desta escola. Esta página fica travada '
+        + 'até ela terminar — e volta sozinha quando terminar.';
+      cartao.appendChild(alvoNota);
+    }
+    return veu;
+  }
+
+  function trancar(sim) {
+    if (!document.body) return;
+    var filhos = document.body.children;
+    for (var i = 0; i < filhos.length; i++) {
+      if (filhos[i].id === 'veu') continue;
+      filhos[i].inert = sim;
+    }
+  }
+
+  /**
+   * QUEM MANDA NO VÉU, POR ORDEM: a operação desta aba; senão a que veio de outra; senão nada.
+   * Uma função só decide o estado — e é isso que impede o véu de mentir quando as duas coisas
+   * se cruzam (duas abas a trabalhar ao mesmo tempo, ou uma a acabar enquanto a outra começa).
+   */
+  function aplicar() {
+    if (!veu || !document.body || !document.body.contains(veu)) {
+      if (!garantirVeu()) return;
+    }
+    var op = meu || remota;
+    if (!op) {
+      veu.removeAttribute('data-ocupado');
+      veu.removeAttribute('data-remota');
+      trancar(false);
+      return;
+    }
+    alvoEtiqueta.textContent = String(op.etiqueta || ROTULO_DE_REPOUSO);
+    alvoTexto.textContent = String(op.texto || 'a trabalhar\u2026');
+    veu.setAttribute('data-ocupado', 'sim');
+    if (op === remota && !meu) veu.setAttribute('data-remota', 'sim');
+    else veu.removeAttribute('data-remota');
+    trancar(true);
+  }
+
+  function ler() {
+    try {
+      var bruto = localStorage.getItem(CHAVE);
+      return bruto ? JSON.parse(bruto) : null;
+    } catch (e) { return null; }
+  }
+  function escrever(op) {
+    try {
+      if (op) localStorage.setItem(CHAVE, JSON.stringify(op));
+      else localStorage.removeItem(CHAVE);
+    } catch (e) { /* modo privado ou cota: a via do canal continua a valer */ }
+  }
+  function transmitir(mensagem) {
+    try { if (canal) canal.postMessage(mensagem); } catch (e) {}
+  }
+
+  function reagendar() {
+    if (temporizador) { clearTimeout(temporizador); temporizador = null; }
+    var op = meu || remota;
+    if (!op) return;
+    var falta = op.expira ? Math.max(0, op.expira - Date.now()) : VALIDADE;
+    /* A REDE DE SEGURANÇA: um pedido que dura mais do que a validade já não está a correr, está
+       pendurado. Um véu que expira é melhor do que uma tela presa. */
+    temporizador = setTimeout(function () {
+      if (meu) liberar();
+      else { remota = null; aplicar(); }
+    }, falta);
+  }
+
+  function receber(op) {
+    if (!op) return;
+    if (op.fim) {
+      if (op.aba === MINHA_ABA) return;
+      remota = null;
+      aplicar();
+      reagendar();
+      return;
+    }
+    if (op.aba === MINHA_ABA) return;                  // o eco da própria aba não conta
+    if (!op.expira || op.expira <= Date.now()) return; // vencida: não tranca ninguém
+    remota = op;
+    aplicar();
+    reagendar();
+  }
+
+  /** Ocupa ESTA aba e avisa as outras. `rotulo` é a palavra que nomeia a operação. */
+  function ocupar(frase, rotulo) {
+    var agora = Date.now();
+    meu = {
+      aba: MINHA_ABA,
+      etiqueta: String(rotulo || ROTULO_DE_REPOUSO),
+      texto: String(frase || 'a trabalhar\u2026'),
+      em: agora,
+      expira: agora + VALIDADE,
+    };
+    aplicar();
+    escrever(meu);
+    transmitir(meu);
+    reagendar();
+  }
+
+  function dizer(frase) {
+    if (!meu) return;
+    meu.texto = String(frase || '');
+    aplicar();
+    escrever(meu);
+    transmitir(meu);
+  }
+
+  function liberar() {
+    var eraMinha = Boolean(meu);
+    meu = null;
+    if (eraMinha) { escrever(null); transmitir({ fim: true, aba: MINHA_ABA }); }
+    /* A OUTRA ABA PODE AINDA ESTAR A TRABALHAR: terminar a minha operação não é destrancar a
+       página se houver uma segunda de pé. O estado converge pela mesma função de sempre. */
+    var guardada = ler();
+    remota = (guardada && guardada.aba !== MINHA_ABA && guardada.expira > Date.now())
+      ? guardada : null;
+    aplicar();
+    reagendar();
+  }
+
+  window.addEventListener('storage', function (e) {
+    if (e.key !== CHAVE) return;
+    if (!e.newValue) { remota = null; aplicar(); reagendar(); return; }
+    try { receber(JSON.parse(e.newValue)); } catch (err) {}
+  });
+  if (typeof BroadcastChannel === 'function') {
+    try {
+      canal = new BroadcastChannel(CANAL);
+      canal.onmessage = function (e) { receber(e.data); };
+    } catch (e) { canal = null; }
+  }
+
+  /* A ABA QUE ABRE JÁ A MEIO DA OPERAÇÃO tem de a ver. Se a operação gravada é DESTA aba (uma
+     recarga a meio do gesto), não se tranca: o documento que acabou de nascer é a autoridade, e
+     volta a publicar se a cadeia continuar. Sem isto, a página recarregada lia-se a si mesma e
+     ficava dois minutos a olhar para o próprio véu. */
+  (function () {
+    var guardada = ler();
+    if (!guardada) return;
+    if (guardada.aba === MINHA_ABA) { escrever(null); return; }
+    if (!guardada.expira || guardada.expira <= Date.now()) { escrever(null); return; }
+    receber(guardada);
+  })();
+
+  /* O VÉU FICA MONTADO DESDE O ARRANQUE, e não só quando é preciso: assim a página que já o
+     trazia na marcação é normalizada ANTES de alguém o acender — e a primeira vez que se vê já
+     tem a etiqueta e a nota no sítio. */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { garantirVeu(); aplicar(); });
+  } else {
+    garantirVeu();
+    aplicar();
+  }
+
+  window.LastroDaOperacao = {
+    ocupar: ocupar,
+    dizer: dizer,
+    liberar: liberar,
+    /* Só para as provas e para o diagnóstico: diz o que está de pé, sem tocar em nada. */
+    estado: function () {
+      return {
+        aba: MINHA_ABA,
+        minha: meu ? { etiqueta: meu.etiqueta, texto: meu.texto, expira: meu.expira } : null,
+        remota: remota ? { etiqueta: remota.etiqueta, texto: remota.texto } : null,
+        gravada: ler(),
+        visivel: Boolean(veu && veu.getAttribute('data-ocupado') === 'sim'),
+        remotaNaTela: Boolean(veu && veu.getAttribute('data-remota') === 'sim'),
+      };
+    },
+  };
+})();

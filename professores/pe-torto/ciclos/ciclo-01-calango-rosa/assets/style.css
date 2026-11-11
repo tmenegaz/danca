@@ -2279,7 +2279,25 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   display: none;
   align-items: center; justify-content: center;
   flex-direction: column; gap: var(--esp-4);
-  background: var(--fundo);
+  /* O VÉU DEIXA VER A PÁGINA (11/11/2026) — e a razão é dela:
+   *
+   *   «o véu precisa ser bem transparente para o professor que estiver usando perceber que ele
+   *    ainda tá na mesma página e tá processando. E aí ele consegue ver através do véu o
+   *    formulário, ele consegue ver através do véu a listagem.»
+   *
+   * Ele era OPACO (`var(--fundo)`), e um véu opaco responde a «está a acontecer alguma coisa?» com
+   * um sim, mas responde a «onde é que eu estou?» com um não. O que se quer é o contrário: a página
+   * continua reconhecível por baixo, e o que muda é que ela está lavada e não responde.
+   *
+   * A COR É O PAPEL DA VEZ, TRANSLÚCIDO — `color-mix` sobre o token, e não um `rgba` escrito à mão:
+   * escrito à mão seriam três temas × duas variantes de seis valores a manter em sincronia com a
+   * paleta, e o primeiro que ficasse para trás apareceria como uma mancha de outra cor.
+   * O `--veu` é o mesmo papel translúcido que a coluna já usa, e fica como REDE: um navegador sem
+   * `color-mix` (anterior a 2023) mostra o véu escurecido em vez de lavado. Nos dois casos vê-se
+   * a página por baixo, que é o que se pediu. */
+  background: var(--veu);
+  background: color-mix(in srgb, var(--fundo) 45%, transparent);
+  backdrop-filter: blur(1px);
   /* A OPACIDADE TEM DE SER REPOSTA AQUI (11/11/2026) — e a linha vale um defeito medido.
    *
    * Esta folha tem DUAS peças com a mesma classe `.veu`: a da COLUNA (acima, `z-index:55`, que
@@ -2301,7 +2319,23 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   cursor: progress;
 }
 .veu[data-ocupado="sim"] { display: flex; }
-.veu::before {
+/* ============ O CARTÃO DA OPERAÇÃO (11/11/2026) ============
+   Com o véu translúcido, o texto solto sobre a página lavada deixaria de se ler: ele passaria a
+   competir com o formulário que se vê por baixo. O cartão é O QUE SE LÊ — opaco, do papel da
+   superfície, e é ele que carrega o giro, a etiqueta e a frase.
+   A montagem é do `nav.js` (uma função, todas as páginas); aqui está só o desenho. */
+.veu-cartao {
+  display: flex; flex-direction: column; align-items: center; gap: var(--esp-3);
+  max-width: min(34rem, 92vw);
+  padding: var(--esp-5) var(--esp-5) var(--esp-4);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-2);
+  box-shadow: 0 8px 30px rgb(0 0 0 / .12);
+  text-align: center;
+}
+/* O GIRO. Era `::before` do véu; passa a ser do cartão, porque é lá que ele se lê. */
+.veu-cartao::before {
   content: '';
   width: 22px; height: 22px;
   border: 3px solid var(--borda);
@@ -2310,13 +2344,29 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   animation: veu-gira 900ms linear infinite;
 }
 @keyframes veu-gira { to { transform: rotate(360deg); } }
+/* A ETIQUETA — a palavra que nomeia a operação («Derivação», «Vinculação», «Geração dos
+   documentos»). É o `.selo` do catálogo com uma cor de estado, e não uma pílula nova: a peça já
+   existe, e o significado («está a acontecer, e é isto») é o de `.alerta`. */
+.veu-etiqueta {
+  margin: 0; font-size: 11px; letter-spacing: .1em;
+  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+}
 .veu-texto {
   margin: 0; max-width: 46ch;
   font: 400 .95rem/1.5 var(--ui);
+  color: var(--texto);
+}
+/* A NOTA DA OUTRA ABA — só existe quando a operação vem de fora, e só então se mostra. É ela que
+   responde «porque é que esta página está travada se eu não cliquei em nada?». */
+.veu-nota {
+  display: none;
+  margin: 0; max-width: 40ch;
+  font: 400 .82rem/1.45 var(--ui);
   color: var(--texto-suave);
 }
+.veu[data-remota="sim"] .veu-nota { display: block; }
 @media (prefers-reduced-motion: reduce) {
-  .veu::before { animation: none; }
+  .veu-cartao::before { animation: none; }
 }
 
 /* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
