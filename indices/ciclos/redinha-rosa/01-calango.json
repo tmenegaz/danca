@@ -28,22 +28,31 @@
   "documentos": [
     "documento:ancora:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
     "documento:ancora:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
+    "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
+    "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md",
     "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
     "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+    "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-dados.cifrado.json",
+    "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-dados.json",
     "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
     "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-dados.json",
     "documento:dados:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
+    "documento:declaracao:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-declaracao.json",
     "documento:declaracao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
+    "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-glossario-benesh.md",
     "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+    "documento:harmonizacao:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-harmonizacao.md",
     "documento:harmonizacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
     "documento:indice:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/ciclos.json",
     "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf",
     "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
+    "documento:notacao:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-notacao.md",
     "documento:notacao:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-notacao.md",
     "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-plano.md",
     "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
     "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-po.md",
     "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
+    "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-piano-referencias.md",
     "documento:referencias:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md",
     "documento:schema:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json"
   ],
@@ -57,27 +66,27 @@
         "valor": "ancora"
       },
       {
-        "contagem": 2,
+        "contagem": 4,
         "rotulo": "aula",
         "valor": "aula"
       },
       {
-        "contagem": 3,
+        "contagem": 5,
         "rotulo": "dados",
         "valor": "dados"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "declaracao",
         "valor": "declaracao"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "glossario",
         "valor": "glossario"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
       },
@@ -92,7 +101,7 @@
         "valor": "manifesto"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "notacao",
         "valor": "notacao"
       },
@@ -107,7 +116,7 @@
         "valor": "po"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "referencias",
         "valor": "referencias"
       },
@@ -120,9 +129,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7d26293"
+    "commit": "762ff11"
   },
-  "gerado_em": "2026-11-11T11:09",
+  "gerado_em": "2026-11-11T11:10",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6
