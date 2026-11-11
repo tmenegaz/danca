@@ -46,6 +46,8 @@ function contarSubpedidos(baseFetch, limite) {
     get restantes() { return Math.max(0, teto - estado.usados); },
     /** O que já não couber: é o que os escritores perguntam antes de começar. */
     coube(estimativa) { return Number(estimativa) <= estado.restantes; },
+    /** O Cloudflare recusou um `fetch` por teto — a invocação acabou, e já se sabe. */
+    estourou: false,
     /**
      * A frase que a tela mostra quando não coube — dita, e não um `undefined`.
      *
@@ -64,9 +66,34 @@ function contarSubpedidos(baseFetch, limite) {
         + 'wrangler.<escola>.jsonc).';
     },
   };
+  /* O TETO DO CLOUDFLARE FALA OUTRA LÍNGUA, E É AQUI QUE SE TRADUZ (10/11/2026).
+   *
+   * O contador sabe QUANTOS subpedidos foram gastos, mas a invocação pode morrer no teto por um
+   * `fetch` que estoura — e aí o erro que sobe é o do Cloudflare, em inglês:
+   * «Too many subrequests by single Worker invocation». O resto do sistema não o reconhece: a
+   * etapa fica com uma frase crua, `porOrcamento` fica falso, e a continuação automática não
+   * parte — o professor volta exactamente ao estado que a continuação existe para acabar.
+   *
+   * A tradução é feita no ÚNICO sítio que sabe do orçamento: aqui. Uma fronteira, uma frase, e
+   * tudo o que está a jusante — a etapa, a tela, o fecho automático — passa a falar a mesma. */
   const contado = async (url, init) => {
     estado.usados += 1;
-    return base(url, init);
+    try {
+      return await base(url, init);
+    } catch (erro) {
+      const texto = String((erro && erro.message) || erro || '');
+      if (/too many subrequests/i.test(texto)) {
+        estado.estourou = true;
+        const novo = new Error('esta invocação do Worker gastou o teto de ' + teto
+          + ' subpedidos do plano do Cloudflare, e o passo seguinte não coube. O que veio antes '
+          + 'está gravado; repetir o gesto continua de onde parou. Se acontecer sempre, o teto '
+          + 'terá de subir (vars `SUBPEDIDOS` em wrangler.<escola>.jsonc).');
+        novo.subpedidosEsgotados = true;
+        novo.causa = erro;
+        throw novo;
+      }
+      throw erro;
+    }
   };
   contado.subpedidos = estado;
   return contado;
@@ -77,4 +104,14 @@ function orcamentoDe(fetchImpl) {
   return (fetchImpl && fetchImpl.subpedidos) || null;
 }
 
-module.exports = { LIMITE_PADRAO, contarSubpedidos, orcamentoDe };
+/**
+ * A mensagem é de ORÇAMENTO? Uma pergunta, um sítio — porque há duas frases para o mesmo facto: a
+ * nossa (`motivo`) e a do Cloudflare, que a tradução acima deixa passar em forma crua quando o
+ * erro nasce fora do contador. Quem decide se a tela pode tentar de novo pergunta aqui.
+ */
+function ehOrcamento(texto) {
+  const t = String(texto || '');
+  return /subpedidos/.test(t) || /too many subrequests/i.test(t);
+}
+
+module.exports = { LIMITE_PADRAO, contarSubpedidos, orcamentoDe, ehOrcamento };

@@ -142,7 +142,7 @@ const curadoria = (extra) => Object.assign({
 
 /** A cadeia, com um teto de subpedidos controlável e um registo de geração opcional. */
 function montar({ linhas = [elenco()], curadorias = [curadoria()], registoDaGeracao = null,
-  coube = true } = {}) {
+  coube = true, writerFalhou = false } = {}) {
   const kv = kvDeMentira({ ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curadorias) });
   const visto = { planos: [], pos: [], conclusoes: [], gerou: 0 };
   const arm = criarMemoria();
@@ -180,7 +180,28 @@ function montar({ linhas = [elenco()], curadorias = [curadoria()], registoDaGera
           disparo: null,
         };
       }
-      return { fonte: { ok: true }, ciclo: { ok: true }, disparo: { ok: true } };
+      /* A FORMA REAL DO RELATÓRIO (10/11/2026) — e é ela que faltava aqui.
+       *
+       * O `escrever-ciclo.js` devolve `{conf, escritas, puladas, elos, docs, schema}` e NÃO tem
+       * `ok` no topo: só o ganha a `false` quando uma escrita reprova. Este stub dizia
+       * `{ok: true}`, mais generoso do que o escritor, e por isso a prova passava sobre um
+       * defeito que estava no ar: a cadeia julgava com `Boolean(saida.ciclo.ok)`, lia
+       * `undefined`, e escrevia «a geração não partiu» sobre uma geração que tinha corrido. */
+      /* O CONTRAPONTO: o escritor REPROVA — e é aqui que ele põe `ok: false` no relatório. */
+      if (writerFalhou) {
+        return {
+          fonte: { ok: true },
+          ciclo: { ok: false, erro: 'não criei o commit: HTTP 500', escritas: [{ caminho: 'x', ok: false }] },
+          disparo: { ok: false, naoDisparado: true, motivo: 'as fontes do ciclo não ficaram prontas',
+            erro: 'não criei o commit: HTTP 500' },
+        };
+      }
+      return {
+        fonte: { ok: true },
+        ciclo: { conf: { ok: true }, docs: { ok: true }, schema: { ok: true },
+          escritas: [{ caminho: 'x', ok: true }], elos: [], puladas: [] },
+        disparo: { status: 204, ok: true, erro: null },
+      };
     },
     lerCuradorias: async () => JSON.parse(kv._dados.get('bastidores/' + ESCOLA + '/curadorias')),
     lerTurmas: async () => [{ nome: TURMA }],
@@ -510,6 +531,46 @@ const CONTEXTO = {
     provar('…e a turma sem plano é nomeada com o que lhe falta',
       new RegExp(TURMA_B).test(String(c.recado || ''))
         && /plano de ensino/.test(String(c.recado || '')), c.recado);
+  }
+
+  // ==========================================================================
+  console.log('\nH. O RELATÓRIO DO ESCRITOR NÃO TEM `ok` NO TOPO — E O SUCESSO NÃO É FALHA');
+
+  {
+    /* O DEFEITO MEDIDO A 10/11/2026, no ar. A derivação da Turma gravou as fontes e DISPAROU o
+     * workflow (run 42934034454), e a rota respondeu «a geração não partiu». `Boolean(undefined)`
+     * é `false`: o sucesso era lido como falha em todas as gerações — e com ele, `porOrcamento`
+     * ficava falso e a continuação automática não partia.
+     *
+     * A prova abaixo usa o relatório na forma EXATA do escritor. */
+    const caso = montar({ coube: true });
+    await semear(caso.arm);
+    const r = await caso.cadeia.fecharPacotes({ turmas: [TURMA], motivo: 'prova' });
+    provar('com o relatório real do escritor, o fecho diz que fechou', r.ok === true, r.erro);
+    const etapas = ((r.alvos || [])[0] || {}).etapas || [];
+    provar('…e a etapa do pacote fica FEITA',
+      (etapas.find((e) => e.chave === 'pacote') || {}).estado === 'feita', etapas);
+    provar('…e o `ciclo` do relatório não é dado por reprovado',
+      etapas.every((e) => e.estado === 'feita'), etapas.map((e) => [e.chave, e.estado]));
+
+    // O CONTRAPONTO: quando o escritor REPROVA (põe `ok: false`), a etapa tem de voltar a pendente.
+    const reprovado = montar({ coube: true, writerFalhou: true });
+    await semear(reprovado.arm);
+    const r2 = await reprovado.cadeia.fecharPacotes({ turmas: [TURMA], motivo: 'prova' });
+    provar('quando o escritor reprova, o fecho NÃO diz que fechou', r2.ok === false, r2.erro);
+    provar('…e a etapa volta a pendente, com o motivo do escritor',
+      /não criei o commit/.test(String(r2.erro || '')), r2.erro);
+
+    /* AS DUAS FRASES DO MESMO FACTO (10/11/2026). O Cloudflare diz «Too many subrequests by
+     * single Worker invocation»; a nossa diz «…subpedidos…». A pergunta «isto é orçamento?» tem
+     * um dono só, e é ele que decide se a tela pode tentar de novo. */
+    const { ehOrcamento } = require(path.join(RAIZ, 'motor/servidor/subpedidos.js'));
+    provar('a frase do Cloudflare é reconhecida como orçamento',
+      ehOrcamento('Too many subrequests by single Worker invocation. To configure this limit, …'));
+    provar('…e a nossa também',
+      ehOrcamento('esta invocação do Worker já gastou 33 dos 50 subpedidos permitidos'));
+    provar('…e uma falta que NÃO é de orçamento não é confundida',
+      !ehOrcamento('a Turma «Piano» ainda não tem plano de ensino'));
   }
 
   // ==========================================================================

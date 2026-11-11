@@ -75,7 +75,11 @@ const CICLOS = (professor) => path.join(RAIZ, 'professores', professor, 'ciclos'
  * haver ALGO depois do nome da escola. Sem essa distinção, `ciclo-01-calango` entraria como se
  * fosse uma turma.
  */
+/* O QUE FICOU DE FORA, e por quê — lido pela montagem e pelo `--listar`. */
+const achadasDeixadas = [];
+
 function turmasDaEscola(escola) {
+  achadasDeixadas.length = 0;
   const achadas = [];
   const professores = fs.readdirSync(path.join(RAIZ, 'professores'), { withFileTypes: true })
     .filter((d) => d.isDirectory() && d.name !== 'README.md')
@@ -92,7 +96,49 @@ function turmasDaEscola(escola) {
       achadas.push({ professor, ciclo: m[1], variante: m[2], nome, pasta: completo });
     }
   }
-  return achadas;
+  /* UMA VARIANTE, UM PACOTE — E O VENCEDOR NÃO É O DA SORTE ALFABÉTICA (10/11/2026).
+   *
+   * MEDIDO. Derivar a Turma para outro professor cria o elo novo na pasta DELE
+   * (`professores/<novo>/ciclos/ciclo-01-<escola>-<variante>/`) e o pacote antigo fica onde
+   * estava. A montagem encontrava os dois, com a MESMA variante, e o `copiar` do ciclo
+   * seguinte sobrescrevia o anterior — em silêncio. Quem ganhava era quem viesse por último na
+   * ordem das pastas, o que é sorte: `redinha-rosa` vem depois de `pe-torto`, mas bastava a
+   * pasta antiga chamar-se `zzz-…` para o site publicar o documento do professor que já saiu.
+   *
+   * A REGRA ESCOLHIDA É A DO PROJETO: o vigente é o elo que ninguém substituiu. Em disco, quem
+   * diz isso é o carimbo do PO que o pacote declara no `-dados.json` — `po-AAAAMMDD-HHMM` ordena
+   * como texto, e o mais recente é o elo novo. O pacote mais antigo não é apagado: ele fica no
+   * repositório como proveniência, e a montagem DIZ que o deixou de fora.
+   *
+   * Sem carimbo (pacote antigo, ou sem `-dados.json`), o empate fica pela ordem — como antes. */
+  const carimboDoPacote = (pasta, arquivo) => {
+    try {
+      const dados = JSON.parse(fs.readFileSync(path.join(pasta, arquivo), 'utf8'));
+      return String(dados.po || dados.plano || '').trim();
+    } catch (erro) { return ''; }
+  };
+  const porVariante = new Map();
+  for (const t of achadas) {
+    const chave = String(t.ciclo) + '/' + String(t.variante);
+    /* O CARIMBO ESTÁ NO IRMÃO DA PASTA, e não dentro dela — são DOIS ficheiros com o mesmo nome.
+     *
+     * Dentro do pacote, `ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json` é a cópia
+     * PUBLICADA (`_cifrado`, `lancamentos`, `apelidos`). O irmão, em `ciclos/`, é o que a
+     * geração escreve e o que declara `po`, `plano` e `professor`. Ler o de dentro dava
+     * carimbo vazio para os dois pacotes — e, com os dois vazios, ganhava o primeiro por ordem,
+     * que era exactamente a sorte que esta regra veio tirar. */
+    const carimbo = carimboDoPacote(path.dirname(t.pasta), t.nome + '-dados.json');
+    const jaTem = porVariante.get(chave);
+    if (!jaTem) { porVariante.set(chave, Object.assign({}, t, { carimbo })); continue; }
+    // Fica o do carimbo maior; se nenhum tem carimbo, fica o primeiro (o de antes desta regra).
+    if (carimbo && (!jaTem.carimbo || carimbo > jaTem.carimbo)) {
+      achadasDeixadas.push(jaTem);
+      porVariante.set(chave, Object.assign({}, t, { carimbo }));
+    } else {
+      achadasDeixadas.push(Object.assign({}, t, { carimbo }));
+    }
+  }
+  return [...porVariante.values()];
 }
 
 /** O pacote-zero da escola — o esqueleto que traz a apresentação, a pele e a porta. */
@@ -1065,6 +1111,13 @@ function principal() {
     console.log('pacote-zero: ' + (zero ? zero.pasta.replace(RAIZ + path.sep, '') : '(nenhum)'));
     console.log('turmas: ' + turmas.length);
     for (const t of turmas) console.log('  ' + t.variante + '  →  ' + t.nome);
+    /* O QUE A REGRA DEIXOU DE FORA — dito, e não apagado. Derivar para outro professor cria o
+     * elo novo na pasta dele e deixa o pacote antigo onde estava; sem esta linha, o professor
+     * via um site que podia ser o do antecessor e nada lhe dizia que havia dois. */
+    for (const d of achadasDeixadas) {
+      console.log('  (de fora) ' + d.nome + ' de ' + d.professor
+        + (d.carimbo ? ' — substituído (o vigente é o de carimbo maior)' : ''));
+    }
     return;
   }
 
@@ -1081,6 +1134,10 @@ function principal() {
   // 2. AS TURMAS: cada pacote inteiro, no seu sítio. Copiado, não ligado — o que está no ar tem
   //    de ser o que o `check-pacote` aprovou, e um link simbólico não sobrevive a um upload.
   for (const t of turmas) copiar(t.pasta, path.join(destino, t.variante), FORA_DA_PUBLICACAO);
+  for (const d of achadasDeixadas) {
+    console.log('  de fora: ' + d.pasta.replace(RAIZ + path.sep, '') + ' — a variante «'
+      + d.variante + '» já é publicada pelo elo vigente');
+  }
 
   // 3. O MENU, COMO DADO. `nav.json` é o contrato entre a montagem (que lê o disco) e a ponte de
   //    produção (que não tem `fs`): a montagem diz o que existe, a ponte desenha em cada página

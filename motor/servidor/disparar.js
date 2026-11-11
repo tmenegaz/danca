@@ -68,7 +68,16 @@ async function dispararGeracao({
     }),
   });
 
-  return { status: resposta.status, ok: resposta.status >= 200 && resposta.status < 300 };
+  /* O ESTADO VAI NA RESPOSTA (10/11/2026). Sem ele, um disparo recusado virava `{ok:false}` e
+   * mais nada — e a cadeia, que não tinha o que dizer, escrevia «a geração não partiu» sobre um
+   * HTTP 403. Um número não explica tudo, mas é o que diz se é permissão, se é o workflow que não
+   * existe, se é o token — e é a diferença entre pedir ajuda e adivinhar. */
+  const ok = resposta.status >= 200 && resposta.status < 300;
+  return {
+    status: resposta.status,
+    ok,
+    erro: ok ? null : 'o GitHub recusou o disparo (HTTP ' + resposta.status + ')',
+  };
 }
 
 /**

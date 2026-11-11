@@ -59,6 +59,9 @@ const conteudos = require('../nucleo/conteudos.js');
 const tradicoesNucleo = require('../nucleo/tradicoes.js');
 // A HABILITAÇÃO DO PROFESSOR (03/11/2026) — o núcleo puro que diz quem ensina o quê.
 const perfilNucleo = require('../nucleo/perfil-do-professor.js');
+// A pergunta «isto é orçamento?» tem dono próprio (`subpedidos.js`): há duas frases para o mesmo
+// facto — a nossa e a do Cloudflare —, e quem as conhece é o módulo que conta.
+const { ehOrcamento } = require('./subpedidos.js');
 // A COMPOSIÇÃO catálogo × escola é a dos produtos, e é a única (02/11/2026).
 const COMUM = require('../nucleo/produtos/comum.js');
 // E a do ALFABETO é a do núcleo (03/11/2026): `registosDaEscola` decide o que uma escola vê de
@@ -882,8 +885,14 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
   const restam = nomes(ordem.filter((c) => !fechouEmTodas(c)));
   // O TETO DE SUBPEDIDOS TEM UM NOME PRÓPRIO: dizer «repita» serve para ele; dizer «repita»
   // para uma peça que falta na escola seria pedir um gesto que não resolve nada.
+  /* A PERGUNTA PASSOU A TER UM DONO (10/11/2026). Era `/subpedidos/` sobre a frase, e o
+   * Cloudflare tem outra: «Too many subrequests by single Worker invocation». Quando o erro
+   * nascia fora do contador — um `fetch` que estoura —, a etapa ficava com a frase crua,
+   * `porOrcamento` ficava FALSO e a continuação automática não partia: o professor ficava
+   * exatamente no estado que a continuação existe para acabar. O predicado vive agora em
+   * `subpedidos.js`, onde as duas frases são conhecidas. */
   const porOrcamento = (r.alvos || []).some((a) => (a.etapas || []).some(
-    (e) => e.estado !== 'feita' && /subpedidos/.test(String(e.falta || ''))));
+    (e) => e.estado !== 'feita' && ehOrcamento(e.falta)));
   let recado;
   if (r.ok) {
     recado = 'a cadeia fechou: vínculos, plano de ensino, plano de observação e documentos '

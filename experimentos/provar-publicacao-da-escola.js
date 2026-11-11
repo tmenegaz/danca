@@ -554,6 +554,51 @@ function principal() {
       prov.indexOf('npx wrangler deploy') === -1, 'provisionar-escola.js corre wrangler deploy');
   }
 
+  // ------------------------------------------------------------------ F
+  console.log('\nF. DUAS PASTAS PARA A MESMA VARIANTE — o vigente é o do carimbo maior');
+  {
+    /* O CASO QUE A DERIVAÇÃO CRIA (10/11/2026). Trocar o professor de uma Turma cria o elo novo
+     * na pasta DELE (`professores/<novo>/ciclos/…`) e deixa o pacote antigo onde estava. A
+     * montagem encontrava os dois, com a MESMA variante, e o `copiar` do segundo sobrescrevia o
+     * primeiro em silêncio: quem ganhava era quem viesse por último na ordem das pastas — sorte,
+     * e o site podia publicar o documento do professor que já tinha saído. */
+    const casa = fs.mkdtempSync(path.join(os.tmpdir(), 'publicacao-duas-'));
+    const escrever2 = (rel, texto) => escrever(casa, rel, texto);
+    // O pacote-zero, na pasta do professor antigo.
+    escrever2(path.join('professores', 'zzz-antigo', 'ciclos', 'ciclo-01-' + ESCOLA, 'index.html'),
+      '<!DOCTYPE html><html><nav class="topnav"><a href="index.html">Sistema</a></nav>'
+      + '<main><h1>Sistema Lastro</h1></main></html>\n');
+    escrever2(path.join('professores', 'zzz-antigo', 'ciclos', 'ciclo-01-' + ESCOLA + '.conf'),
+      'ESCOLA="Prova Escola"\n');
+    /* A FIXTURE ESTÁ DO LADO DIFÍCIL DE PROPÓSITO. O pacote ANTIGO é o `zzz-antigo` — o ÚLTIMO
+     * na ordem alfabética das pastas —, e o novo é o `aaa-novo`, o primeiro. Assim a ordem antiga
+     * (copiar por ordem, o último sobrescreve) publicava o documento do professor que já saiu; só
+     * a regra do carimbo publica o certo. Ao contrário, a prova passaria sem provar nada. */
+    for (const [prof, carimbo] of [['zzz-antigo', 'po-20261110-1309'], ['aaa-novo', 'po-20261110-2145']]) {
+      const ciclos2 = path.join('professores', prof, 'ciclos');
+      const pacote = path.join(ciclos2, 'ciclo-01-' + ESCOLA + '-rosa');
+      escrever2(path.join(pacote, 'index.html'),
+        '<!DOCTYPE html><html><body>' + prof + '</body></html>\n');
+      escrever2(path.join(ciclos2, 'ciclo-01-' + ESCOLA + '-rosa.conf'),
+        'NOME="Ciclo 01 — Prova Escola · Rosa"\nPROFESSOR="' + prof + '"\n');
+      // O IRMÃO do pacote: é ele que declara o carimbo (o de dentro é a cópia publicada).
+      escrever2(path.join(ciclos2, 'ciclo-01-' + ESCOLA + '-rosa-dados.json'),
+        JSON.stringify({ escola: ESCOLA, professor: prof, po: carimbo }) + '\n');
+    }
+
+    const saida = montar(casa);
+    const pub2 = path.join(casa, 'publicacao', ESCOLA);
+    checar('a variante publicada é a do carimbo MAIOR, e não a da sorte alfabética',
+      ler(pub2, path.join('rosa', 'index.html')).indexOf('aaa-novo') !== -1,
+      ler(pub2, path.join('rosa', 'index.html')).slice(0, 80));
+    checar('e a montagem DIZ qual ficou de fora',
+      /de fora/.test(saida) && /zzz-antigo/.test(saida), saida.split('\n').filter((l) => /fora/.test(l)));
+    checar('o pacote de fora não é apagado do repositório (é proveniência)',
+      fs.existsSync(path.join(casa, 'professores', 'zzz-antigo', 'ciclos',
+        'ciclo-01-' + ESCOLA + '-rosa', 'index.html')));
+    fs.rmSync(casa, { recursive: true, force: true });
+  }
+
   fs.rmSync(raiz, { recursive: true, force: true });
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'

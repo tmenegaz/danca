@@ -344,8 +344,25 @@ function criarCadeia({
   async function concluirPacote({ envelope, contexto }) {
     if (!concluirPO) return { ok: false, erro: 'sem a rotina de conclusão do PO neste Worker' };
     const saida = await concluirPO(envelope, contexto);
-    const ok = Boolean(saida && saida.ciclo && saida.ciclo.ok)
-      && Boolean(saida && saida.disparo && saida.disparo.ok);
+    /* O RELATÓRIO DO ESCRITOR NÃO TEM `ok` NO TOPO — E ISSO FAZIA O SUCESSO PARECER FALHA
+     * (10/11/2026).
+     *
+     * MEDIDO NO AR. A derivação da Turma correu, o escritor gravou as fontes do ciclo e o
+     * workflow foi DISPARADO (run `42934034454`, `workflow_dispatch`, in_progress) — e a rota
+     * respondeu «a geração não partiu». A causa: `escreverCiclo` devolve o `relatorio`, que
+     * nasce `{conf, escritas, puladas, elos, docs, schema}` — SEM `ok` —, e só ganha
+     * `relatorio.ok = false` quando uma escrita reprova. `Boolean(undefined)` é `false`, logo o
+     * sucesso era lido como falha em TODAS as gerações.
+     *
+     * E não era só a frase: `porOrcamento` ficava falso, a continuação automática não partia, e a
+     * etapa aparecia «pendente» sobre documentos que já estavam gravados. O pior dos estados —
+     * o trabalho feito e a tela a dizer que não.
+     *
+     * A REGRA CERTA É A QUE A LINHA SEGUINTE JÁ USAVA (`ok !== false`), e é a do próprio critério
+     * de `fontesDoCicloProntas`: o escritor só reprova o que MARCA como reprovado. */
+    const ok = Boolean(saida)
+      && (!saida.ciclo || saida.ciclo.ok !== false)
+      && Boolean(saida.disparo && saida.disparo.ok);
     return {
       ok,
       fonte: saida && saida.fonte ? saida.fonte.ok !== false : null,
