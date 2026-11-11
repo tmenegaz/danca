@@ -18,7 +18,8 @@
     "po-20261108-1335.json",
     "po-20261109-2341.json",
     "po-20261110-1304.json",
-    "po-20261110-1309.json"
+    "po-20261110-1309.json",
+    "po-20261110-2145.json"
   ],
   "resumos": {
     "anamnese-20261108-1259.json": {
@@ -291,6 +292,23 @@
       ],
       "plano": [
         "plano-20261110-1304"
+      ]
+    },
+    "po-20261110-2145.json": {
+      "id": "po-20261110-2145",
+      "fonte": "po",
+      "escola": "calango",
+      "professor": "redinha-rosa",
+      "ciclo": "01",
+      "ajuste_de": "po-20261110-1309",
+      "gerado_em": "2026-11-10T21:45",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261110-2145"
       ]
     }
   }
