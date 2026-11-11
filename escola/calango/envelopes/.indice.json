@@ -14,6 +14,7 @@
     "plano-20261111-0809.json",
     "plano-20261111-0858.json",
     "plano-20261111-1016.json",
+    "plano-20261111-1527.json",
     "po-20261108-1304.json",
     "po-20261108-1318.json",
     "po-20261108-1319.json",
@@ -211,6 +212,22 @@
         "Plié"
       ],
       "professorNome": "Redinha Rosa"
+    },
+    "plano-20261111-1527.json": {
+      "id": "plano-20261111-1527",
+      "fonte": "plano",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": "01",
+      "ajuste_de": "plano-20261111-1016",
+      "gerado_em": "2026-11-11T15:27",
+      "objetivo": "Teste",
+      "turma": "Piano",
+      "repertorio": [
+        "Battement tendu",
+        "Plié"
+      ],
+      "professorNome": "pe-torto"
     },
     "po-20261108-1304.json": {
       "id": "po-20261108-1304",
