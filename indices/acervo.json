@@ -18,13 +18,13 @@
     },
     {
       "ancora": {
-        "hash": "10c1bb9e85841cb3614ac8e9e28b212b31e032b2842f51e5ac10eebee240ff17",
-        "id": "ciclo-01-calango-rosa",
+        "hash": "b5284fc9027376f2d7f480f84382554f667e39f400e73b15d801bffdf8f1ac69",
+        "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 1,
-      "documentos": 29,
+      "aulas": 2,
+      "documentos": 34,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:redinha-rosa/01/calango",
@@ -111,7 +111,7 @@
       ],
       "contagens": {
         "anamneses": 4,
-        "aulas": 2,
+        "aulas": 3,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 7,
@@ -301,9 +301,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "762ff11"
+    "commit": "c6ecddf"
   },
-  "gerado_em": "2026-11-11T11:10",
+  "gerado_em": "2026-11-11T11:11",
   "nao_indexado": [
     {
       "familia": "conteudo",

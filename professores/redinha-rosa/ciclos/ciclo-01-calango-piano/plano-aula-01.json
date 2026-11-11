@@ -1,0 +1,143 @@
+{
+  "identificacao": {
+    "objetivoEspecifico": "Teste",
+    "parametroDeMedicao": "1 Teste — observa: Battement tendu · Plié",
+    "duracao": "60 minutos (Pré-requisito 4)",
+    "volumeAtivo": "90 tempos (faixa 80–100 da duração de 60 min — Regra 9, etapa 1)",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "[Preencher: condições preliminares de preparação]",
+  "sequenciaDaAula": "Bloco · Tempos · Fatia Solo · 30 · 20 min Barra · 15 · 10 min Centro · 15 · 10 min Musicalidade · 15 · 10 min Expressão · 15 · 10 min **Total** · **90** · **100%**",
+  "blocoDeMusicalidade": [
+    "**Os compassos desta aula.** 2/4.",
+    {
+      "compasso": "2/4",
+      "exercicio": "Battement tendu",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    {
+      "compasso": "2/4",
+      "exercicio": "Plié",
+      "tempos": "4",
+      "contagem": "1–2"
+    },
+    "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício."
+  ],
+  "guiaDeObservacao": {
+    "Corpo": [
+      {
+        "criterio": "5ª posição — pés",
+        "oQueSeObserva": "sem registo na anamnese"
+      },
+      {
+        "criterio": "5ª posição — braços",
+        "oQueSeObserva": "sem registo na anamnese"
+      },
+      {
+        "criterio": "Cócoras profundas (squat)",
+        "oQueSeObserva": "sem registo na anamnese"
+      }
+    ],
+    "Técnica": [
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "alinhamento do pé de apoio"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "eixo do corpo na preparação"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "saída do calcanhar no tendu"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "quadril sem subir no en dehors"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferência de peso sem perder a verticalidade"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "braço junto do movimento"
+      }
+    ],
+    "Poiesis": [
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "resposta ao pulso na marcação"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "frase até o fim da música"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "Teste"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "olhar acompanha o braço"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "presença sem rigidez de rosto"
+      }
+    ]
+  },
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261111-0809?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261111-0809?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 60 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 90 tempos em 80–100"
+    }
+  ],
+  "proximoPasso": "Item · Proposta **Marco da Aula 02** · — o plano declarou apenas um marco; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula 02"
+}
