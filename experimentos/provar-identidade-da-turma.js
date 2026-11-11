@@ -349,9 +349,11 @@ function paginaDaProducao(b, curadorias, pares) {
     { professor: 'pe-torto', escola: 'calango', query: 'professor=pe-torto&escola=calango' },
     [{ nome: 'Redinha Rosa', slug: 'redinha-rosa' }], [], 'Pe Torto', 'pe-torto',
     [salaDaEscola(SALA, 'rosa'), salaDaEscola(OUTRA_SALA, 'piano')], [], [],
-    curadorias, [], pares || [], undefined, undefined,
-    [{ id: 'tami', nome: 'tami', professor: 'pe-torto', alunas: ['Aluna A', 'Aluna B'], campos: [] },
-      { id: 'ami', nome: 'ami', professor: 'pe-torto', alunas: ['Aluna C'], campos: [] }], []);
+    curadorias, [], pares || [], undefined, undefined, undefined,
+    [{ id: 'tami', nome: 'tami', professor: 'pe-torto', alunas: ['Aluna A', 'Aluna B'],
+      campos: [{ id: 'passe', nome: 'o passé', grupo: 'X' }] },
+      { id: 'ami', nome: 'ami', professor: 'pe-torto', alunas: ['Aluna C'],
+        campos: [{ id: 'plie', nome: 'o plié', grupo: 'X' }] }], []);
 }
 
 const CURADORIAS_DA_PROVA = [
@@ -419,7 +421,7 @@ async function provarANavegador() {
 
   const linhas = await p.evaluate(() => [...document.querySelectorAll('#cu-lista li[data-curadoria]')]
     .map((li) => ({
-      b: (li.querySelector('.linha1 > b') || {}).textContent || '',
+      b: (li.querySelector('.linha-turma > .nome > b') || {}).textContent || '',
       dono: (li.querySelector('.dono') || {}).textContent || '',
       donoHtml: (li.querySelector('.dono') || {}).innerHTML || '',
       titulo: li.getAttribute('title') || '',
@@ -448,12 +450,13 @@ async function provarANavegador() {
     const li = document.querySelector('#cu-lista li[data-curadoria]');
     if (!li) return null;
     const r = (el) => {
+      if (!el) return null;
       const x = el.getBoundingClientRect();
       return { t: x.top, b: x.bottom, l: x.left, r: x.right, h: x.height };
     };
-    const linha1 = li.querySelector('.linha1');
+    const linha1 = li.querySelector('.linha-turma');
     const dono = li.querySelector('.dono');
-    const selos = [...li.querySelectorAll('.linha1 > .selo')].map((s) => ({
+    const selos = [...li.querySelectorAll('.linha-turma > .nome > .selo')].map((s) => ({
       texto: s.textContent.trim(), ...r(s),
     }));
     return {
@@ -476,6 +479,10 @@ async function provarANavegador() {
     if (!g) { provar('a ' + largura + 'px: a linha existe', false); continue; }
     provar('a ' + largura + 'px: a Turma tem DUAS etiquetas (livre + ajustada em)',
       g.selos.length === 2, g.selos.map((s) => s.texto));
+    if (!g.linha1) {
+      provar('a ' + largura + 'px: a linha do nome existe (`.linha-turma`)', false, g);
+      continue;
+    }
     // QUALQUER PAR — e não só o primeiro: com três etiquetas (o «rever» incluído) o defeito
     // aparecia na segunda, não na primeira.
     const sobrepostos = [];
@@ -506,18 +513,118 @@ async function provarANavegador() {
     marcarCuradoriasDivergentes([{ curadoria: id, turma: 'Rosa' }]);
     const selo = li.querySelector('.selo-rever');
     if (!selo) return { achou: false };
-    const nome = li.querySelector('.linha1 > b').getBoundingClientRect();
+    const alvoDoNome = li.querySelector('.linha-turma > .nome > b');
+    if (!alvoDoNome) return { achou: true, semNome: true };
+    const nome = alvoDoNome.getBoundingClientRect();
     const caixa = selo.getBoundingClientRect();
     // Uma etiqueta que abre linha própria põe-se ACIMA do nome; a que é do nome fica ao lado.
     return {
       achou: true,
-      dentroDaLinha1: Boolean(selo.closest('.linha1')),
+      dentroDaLinha: Boolean(selo.closest('.linha-turma')),
       acimaDoNome: caixa.bottom <= nome.top + 0.5,
     };
   });
   provar('o selo «rever» existe quando o elenco diverge', rever.achou, rever);
-  provar('…e vive DENTRO da primeira linha, ao lado do nome', rever.dentroDaLinha1, rever);
-  provar('…e não abre uma linha própria por cima do nome', rever.acimaDoNome === false, rever);
+  provar('…e vive DENTRO da linha do nome, ao lado dele',
+    rever.dentroDaLinha === true, rever);
+  provar('…e não abre uma linha própria por cima do nome',
+    rever.acimaDoNome === false, rever);
+
+  console.log('\nE. A LISTAGEM É A MESMA PEÇA DAS OUTRAS (`.turma`), E NÃO UMA VARIANTE');
+
+  const peca = await p.evaluate(() => {
+    const li = document.querySelector('#cu-lista li[data-curadoria]');
+    const salas = document.querySelector('#lista-turmas li.turma, #tb-lista li.turma, li.turma[data-turma]');
+    return {
+      classes: li.className,
+      temLinhaTurma: Boolean(li.querySelector(':scope > .linha-turma')),
+      nomeDentro: Boolean(li.querySelector('.linha-turma > .nome')),
+      acoesDentro: Boolean(li.querySelector('.linha-turma > .acoes')),
+      donoFora: Boolean(li.querySelector(':scope > .dono')),
+      temLinha1: Boolean(li.querySelector('.linha1')),
+      historico: Boolean(li.querySelector('.historico, .ajuste, details')),
+      salas: Boolean(salas),
+    };
+  });
+  provar('a Turma é um `li.turma`', /(^|\s)turma(\s|$)/.test(peca.classes), peca.classes);
+  provar('…com `.linha-turma` a envolver o nome e as ações',
+    peca.temLinhaTurma && peca.nomeDentro && peca.acoesDentro, peca);
+  provar('…e o complemento (`.dono`) por baixo, fora da linha',
+    peca.donoFora, peca);
+  provar('…e sem a marcação antiga (`.linha1`)', peca.temLinha1 === false, peca);
+  provar('…e sem o bloco do histórico do ajuste (é registro, não informação de trabalho)',
+    peca.historico === false, peca);
+
+  console.log('\nF. O VÉU COBRE A TELA INTEIRA, DIZ O QUE FAZ, E TRanca');
+
+  const veu = await p.evaluate(() => {
+    const v = document.getElementById('veu');
+    if (!v) return { existe: false };
+    ocupar('a gravar a Turma…');
+    const cs = getComputedStyle(v);
+    const cx = v.getBoundingClientRect();
+    const texto = (document.getElementById('veu-texto') || {}).textContent || '';
+    const filhos = [...document.body.children].filter((x) => x.id !== 'veu');
+    return {
+      existe: true,
+      visivel: cs.display !== 'none' && Number(cs.opacity) > 0.9,
+      display: cs.display, opacidade: cs.opacity, z: Number(cs.zIndex),
+      cobreATela: Math.abs(cx.width - window.innerWidth) < 1
+        && Math.abs(cx.height - window.innerHeight) < 1,
+      temGiro: Boolean(getComputedStyle(v, '::before').animationName
+        && getComputedStyle(v, '::before').animationName !== 'none'),
+      texto,
+      trancouTudo: filhos.every((x) => x.inert),
+      acimaDeTudo: Math.max(...[...document.querySelectorAll('.lateral, .topnav, header')]
+        .map((x) => Number(getComputedStyle(x).zIndex) || 0)) < Number(cs.zIndex),
+    };
+  });
+  provar('o véu existe na página', veu.existe, veu);
+  provar('…e, ocupado, fica VISÍVEL (opacidade > 0)', veu.visivel, veu);
+  provar('…e cobre a janela inteira', veu.cobreATela, veu);
+  provar('…e fica acima da coluna e da barra', veu.acimaDeTudo, veu);
+  provar('…e tem o giro a rodar', veu.temGiro, veu);
+  provar('…e diz o que está a acontecer', /a gravar a Turma/.test(veu.texto), veu.texto);
+  provar('…e tranca tudo o que está por baixo', veu.trancouTudo, veu);
+
+  const saiu = await p.evaluate(() => {
+    liberar();
+    const v = document.getElementById('veu');
+    const filhos = [...document.body.children].filter((x) => x.id !== 'veu');
+    return { display: getComputedStyle(v).display, trancado: filhos.some((x) => x.inert) };
+  });
+  provar('…e sai quando o trabalho acaba', saiu.display === 'none', saiu);
+  provar('…e destranca a página', saiu.trancado === false, saiu);
+
+  console.log('\nG. OS CAMPOS DO FORMULÁRIO DIZEM «— escolher —» QUANDO ESTÃO VAZIOS');
+
+  const campos = await p.evaluate(() => {
+    const ids = ['cuprofessor', 'cumodalidade', 'cutradicao', 'cuturma', 'cuelenco'];
+    const out = {};
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) { out[id] = null; return; }
+      out[id] = {
+        primeira: (el.options[0] || {}).textContent || '',
+        valor: (el.options[0] || {}).value,
+        seleccionada: el.value,
+      };
+    });
+    // o grau é repovoado pelo cliente: escolhe-se uma tradição e lê-se a primeira opção
+    const trad = document.getElementById('cutradicao');
+    if (trad) { trad.value = 'RAD'; trad.dispatchEvent(new Event('change')); }
+    const g = document.getElementById('cugrau');
+    out.cugrau = g ? { primeira: (g.options[0] || {}).textContent || '', valor: (g.options[0] || {}).value } : null;
+    return out;
+  });
+  for (const id of ['cuprofessor', 'cumodalidade', 'cutradicao', 'cuelenco']) {
+    provar('o campo «' + id + '» abre com «— escolher —»',
+      Boolean(campos[id]) && campos[id].valor === '' && /escolher/.test(campos[id].primeira),
+      campos[id]);
+  }
+  provar('o campo «cugrau» abre com «— escolher —» também depois de repovoado',
+    Boolean(campos.cugrau) && campos.cugrau.valor === '' && /escolher/.test(campos.cugrau.primeira),
+    campos.cugrau);
 
   await nav.close();
   srv.close();

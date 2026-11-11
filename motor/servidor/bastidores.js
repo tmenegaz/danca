@@ -1588,58 +1588,6 @@ function diferencaDeRitmo(antes, depois) {
 }
 
 /**
- * O QUE MUDOU NA TURMA (a curadoria), de uma versão para a seguinte.
- *
- * A turma muda por outros eixos: o professor, a modalidade, a tradição, o nível, a SALA que ela
- * ocupa e o elenco. `nomeDoProfessor` traduz o slug no nome que se lê — o histórico é para
- * gente, e `pe-torto` não é uma pessoa.
- */
-function diferencaDeCuradoria(antes, depois, nomeDoProfessor) {
-  const a = antes || {};
-  const d = depois || {};
-  const partes = [];
-  const nome = (slug) => {
-    const s = String(slug || '').trim();
-    if (!s) return '(sem professor)';
-    return nomeDoProfessor ? nomeDoProfessor(s) : s;
-  };
-  if (String(a.professor || '') !== String(d.professor || '')) {
-    partes.push('professor ' + nome(a.professor) + ' → ' + nome(d.professor));
-  }
-  const campo = (rotulo, chave) => {
-    const va = String(a[chave] == null ? '' : a[chave]).trim();
-    const vd = String(d[chave] == null ? '' : d[chave]).trim();
-    if (va !== vd) partes.push(rotulo + ' ' + (va || '—') + ' → ' + (vd || '—'));
-  };
-  campo('modalidade', 'modalidade');
-  campo('tradição', 'tradicao');
-  campo('grau', 'grau');
-  campo('nível', 'nivel');
-  const salasA = (Array.isArray(a.turmas) ? a.turmas : []).map(String);
-  const salasD = (Array.isArray(d.turmas) ? d.turmas : []).map(String);
-  const saiu = salasA.filter((x) => salasD.indexOf(x) === -1);
-  const entrou = salasD.filter((x) => salasA.indexOf(x) === -1);
-  if (saiu.length === 1 && entrou.length === 1) {
-    partes.push('sala ' + saiu[0] + ' → ' + entrou[0]);
-  } else {
-    for (const x of saiu) partes.push('saiu a sala ' + x);
-    for (const x of entrou) partes.push('entrou a sala ' + x);
-  }
-  const elencoA = String(a.linhaDeBaseNome || a.linhaDeBase || '').trim();
-  const elencoD = String(d.linhaDeBaseNome || d.linhaDeBase || '').trim();
-  if (elencoA !== elencoD) partes.push('elenco ' + (elencoA || '—') + ' → ' + (elencoD || '—'));
-  const nA = (Array.isArray(a.alunas) ? a.alunas : []).length;
-  const nD = (Array.isArray(d.alunas) ? d.alunas : []).length;
-  if (nA !== nD && elencoA === elencoD) {
-    partes.push(nA + (nA === 1 ? ' aluna' : ' alunas') + ' → ' + nD);
-  }
-  const rA = (Array.isArray(a.repertorio) ? a.repertorio : []).length;
-  const rD = (Array.isArray(d.repertorio) ? d.repertorio : []).length;
-  if (rA !== rD) partes.push('conteúdos ' + rA + ' → ' + rD);
-  return partes.join(' · ');
-}
-
-/**
  * O BLOCO DO HISTÓRICO — um só, para as duas listas.
  *
  * `elos` são pares `{ versao, sucessor }`: a versão antiga e a que tomou o lugar dela. O que se
@@ -1739,15 +1687,12 @@ function fraseDaFalta(falta) {
  * Com o grupo em `nowrap`, quem cede é o NOME (reticências) e o selo fica sempre ao lado
  * dele. Duas linhas, sempre — do telefone à tela cheia.
  */
-function linhaDoNome(nome, selos, href) {
-  // `href` É OPCIONAL (18/10/2026): a curadoria liga o nome do professor ao plano de
-  // ensino dele quando ele já existe. O nome continua a ser ESCAPADO — o link é o
-  // invólucro, não uma porta para markup.
-  const dentro = href
-    ? '<a class="nome-link" href="' + esc(href) + '" title="Abrir o plano de ensino deste professor">' +
-      esc(nome) + '</a>'
-    : esc(nome);
-  return '<span class="linha1"><b>' + dentro + '</b>' + (selos ? ' ' + selos : '') + '</span>';
+function linhaDoNome(nome, selos) {
+  /* SEM `href` (11/11/2026). Ele existia para a curadoria ligar o nome do PROFESSOR ao plano de
+   * ensino dele. Com o nome da linha a passar a ser o ELENCO, esse link saiu do `<b>` e foi para
+   * o complemento (`nome-link` dentro do `.dono`), e um parâmetro que ninguém passa é código que
+   * se lê e não se executa. O nome continua a ser ESCAPADO. */
+  return '<span class="linha1"><b>' + esc(nome) + '</b>' + (selos ? ' ' + selos : '') + '</span>';
 }
 
 /** A COR DE CADA DEGRAU DA RÉGUA (18/10/2026). A régua é uma escala, e uma escala sem
@@ -2831,9 +2776,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
   // Os CARTÕES e as opções de curadoria são as turmas VIGENTES (16/10/2026). As substituídas
-  // saem da operação e ficam no histórico FECHADO DE CADA CARTÃO (`historicoDoAjuste`) — a
-  // escola precisa de as ver para saber que o ajuste foi feito, mas não pode voltar a
-  // escolhê-las.
+  // saem da operação: a escola precisa de as ver para saber que o ajuste foi feito, mas não pode
+  // voltar a escolhê-las.
+  //
+  // O HISTÓRICO SAIU DO CARTÃO A 11/11/2026 (ver `itensCuradorias`). Ele continua a existir na
+  // lista das Salas e no formulário do ajuste; o que deixou de existir é a sua exibição
+  // permanente por baixo de cada Turma, que empurrava a lista e só servia de log de quem
+  // programa.
   //
   // Havia aqui um `turmasSubstituidas` calculado e nunca lido (10/11/2026) — resíduo de uma
   // primeira versão em que o histórico ia para o fim da LISTA, e não para dentro do cartão. Uma
@@ -3382,7 +3331,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     if (!slug || slug === donoSlug) continue;
     profsParaCuradoria.push({ valor: slug, rotulo: p.nome });
   }
-  /* TODO `select` NASCE VAZIO (11/11/2026).
+  /* TODO `select` NASCE VAZIO, E AGORA O VAZIO DIZ O QUE FAZER (11/11/2026).
    *
    * O DEFEITO, na letra dela: «os campos, quando acabar qualquer processo aqui na turma, os campos
    * do formulário têm que ficar vazios, só com os placeholders». Limpar a memória do
@@ -3390,17 +3339,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * — o formulário «limpo» abria já com o primeiro professor, a primeira modalidade e a primeira
    * tradição escolhidos. O vazio tem de existir para poder ser o estado inicial.
    *
-   * A opção em branco não leva rótulo. É a mesma decisão do `Grau` (03/11/2026): «— sem grau —»
-   * dizia por palavras o que uma opção em branco já diz. Quem valida é o `faltando` do formulário,
-   * que nomeia o que falta. */
-  const VAZIO = '<option value=""></option>';
+   * E O VAZIO PRECISA DE PALAVRA (11/11/2026): «em modalidade tem escolher, no elenco também tem
+   * escolher […] mas no professor não tem. Tem que preencher com escolher. Tradição também tem que
+   * ter escolher, grau também […] porque o professor olha assim e não sabe o que fazer com isso.»
+   *
+   * A decisão de 03/11 — «uma opção em branco já diz o que uma frase diria» — era sobre um campo
+   * de valor OPCIONAL (o grau), onde o vazio É a resposta. Num campo OBRIGATÓRIO, o vazio não é
+   * resposta: é uma pergunta por responder, e uma linha em branco não se distingue de um campo
+   * avariado. `— escolher —` é a mesma palavra que o Elenco já usava, e é a única coisa que muda
+   * de campo para campo. */
+  const VAZIO = '<option value="">' + ROTULO_ESCOLHER_ELENCO + '</option>';
   const opcoesProfessorCuradoria = profsParaCuradoria.length
     ? VAZIO + profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
     : '<option value="">— nenhum professor —</option>';
   /* O HISTÓRICO FALA NOMES, NÃO SLUGS (10/11/2026). A diferença de uma versão para a outra diz
    * «professor Petorto → Marina», e não «pe-torto → marina»: o bloco é para quem opera a escola,
    * e o slug é o nome da pasta (`professores/<slug>/`), não uma pessoa. A lista é a mesma do
-   * `<select>` — não há um segundo cadastro de nomes. */
+   * `<select>` — não há um segundo cadastro de nomes.
+   *
+   * A CUADORIA DEIXOU DE O USAR a 11/11/2026 (o histórico saiu do cartão da Turma); a lista das
+   * SALAS continua, e é ela que o mantém vivo. */
   const nomeDoProfessor = (slug) => {
     const s = String(slug || '').trim();
     const achado = profsParaCuradoria.find((p) => String(p.valor) === s);
@@ -3510,7 +3468,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // enumeração seria uma segunda lista de níveis, a divergir da primeira.
   //
   // `todasAsCuradorias` SUBIU PARA O TOPO da página (ver o início de `paginaProducao`): o cartão
-  // da turma passou a ler o enquadramento, e o laço dos cartões corre antes deste bloco.
+  // da SALA lê o enquadramento dela, e o laço dos cartões corre antes deste bloco.
   const itensCuradorias = listaCuradorias.length
     ? listaCuradorias.map((c) => {
         const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
@@ -3602,28 +3560,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
           : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
             'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
-        // O HISTÓRICO do ajuste, fechado — sobe a cadeia por `substitui`, e cada linha diz a
-        // DIFERENÇA para a versão que a substituiu. O bloco é o MESMO da lista das Salas (ver
-        // `historicoDoAjuste`); o que muda é a função que calcula a diferença, porque as duas
-        // entidades mudam por eixos diferentes.
-        const porId = new Map(todasAsCuradorias.map((x) => [x && x.id, x]));
-        const passado = [];
-        let cursor = c.substitui ? porId.get(c.substitui) : null;
-        while (cursor && passado.length < 20) {
-          passado.push(cursor);
-          cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
-        }
-        const historico = historicoDoAjuste(
-          passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? c : passado[i - 1] })),
-          (a, d) => diferencaDeCuradoria(a, d, nomeDoProfessor));
-        // DUAS LINHAS, como as demais listas: o ELENCO e os selos em cima; depois modalidade,
-        // tradição, nível, sala, professor, alunas e catálogo, num complemento só. O elenco não se
-        // repete em baixo (é o título), e o professor desce para lá — em linha, e não como título.
+        /* O HISTÓRICO DO AJUSTE SAIU DAQUI (11/11/2026) — e a ordem foi dela, com a razão certa:
+         *
+         *   «esses ajustes anteriores que você tem aqui na listagem das turmas atribuídas, por hora
+         *    me serve apenas como um log meu de programador. Mas vai ter que tirar daqui, não vai
+         *    ficar mais aqui. Isso não tem sentido existir aqui para o professor, ele não vai tomar
+         *    conta, controle disso.»
+         *
+         * O bloco dizia, versão a versão, o que mudou («professor A → B», «sala Rosa → Piano») e o
+         * motivo declarado. É registro de auditoria, não informação de trabalho: quem ensina não
+         * abre a lista de Turmas para ler a cadeia de elos, e cinco linhas abertas por baixo de
+         * cada Turma empurravam a lista para fora do ecrã. A cadeia continua guardada — os elos, o
+         * `substitui`/`substituidaPor` e o motivo — e continua a ler-se onde ela se decide: no
+         * formulário do ajuste. O que sai é a sua exibição permanente na listagem.
+         *
+         * O `historicoDoAjuste` FICA: é a peça da lista das SALAS, que ninguém pediu para apagar.
+         * O `diferencaDeCuradoria` — que só esta lista usava — SAIU com ela: uma função que se
+         * calcula para ninguém é a mentira mais barata que uma página conta a si mesma. */
+        // O CARTÃO É O DAS OUTRAS LISTAS (11/11/2026) — a mesma peça, e não uma variante dela.
         //
-        // O PROFESSOR CONTINUA A SER O ATALHO PARA O PLANO DE ENSINO (18/10/2026, mudou de sítio a
-        // 11/11/2026). Antes era o `<b>` do nome; agora é uma palavra do complemento. O que se
-        // perde é o sublinhado grande; o que se ganha é o nome da linha dizer a TURMA — e um link
-        // que leva ao plano do professor a partir do nome do elenco prometeria o que não entrega.
+        // A pesquisadora leu a diferença e disse-a assim: «você também não fez o padrão de listagem
+        // que a gente usa. Olha como é que é feito no estilo a listagem. É a mesma. Tem que ser
+        // padrão, tem que ser a mesma estrutura.» Tem razão: as Salas e o Estilo usam
+        // `li.turma > .linha-turma > .nome + .acoes`, depois `.dono`; a Turma usava
+        // `li[data-curadoria] > .nome(.linha1 + .dono) + .acoes`, que é o modelo das listas de
+        // PESSOAS (alunas, professores) — e não o dos CARTÕES.
+        //
+        // A DIFERENÇA NÃO ERA SÓ DE DESENHO. As regras do telemóvel são escritas com
+        // `li:not(.turma)`, porque a peça do cartão tem as suas; a Turma, não sendo `.turma`,
+        // caía na regra das pessoas — e era por isso que ela aparecia com a linha do nome
+        // partida de outra maneira. Usar a peça é o que faz a listagem ser a mesma em toda a
+        // parte, e é o que a checagem «Peça» da identidade já exigia.
         const complemento = atributos.map((p) => esc(p));
         const professorNaLinha = urlDoPlanoDaCuradoria
           ? '<a class="nome-link" href="' + esc(urlDoPlanoDaCuradoria) +
@@ -3631,16 +3598,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           : esc(rotuloProfessor);
         if (rotuloProfessor) complemento.push(professorNaLinha);
         for (const p of retrato) complemento.push(esc(p));
-        return '<li data-curadoria="' + esc(c.id) + '" data-disponivel="' + (disp.disponivel ? 'sim' : 'nao') + '"' +
-          ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
-          '<span class="nome">' + linhaDoNome(tituloDaTurma, seloEstado + (seloVigencia ? seloVigencia : '')) +
-          (complemento.length ? '<span class="dono">' + complemento.join(' · ') + '</span>' : '') + '</span>' +
+        return '<li class="turma" data-curadoria="' + esc(c.id) + '" data-disponivel="' +
+            (disp.disponivel ? 'sim' : 'nao') + '"' +
+            ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
+          '<div class="linha-turma">' +
+          '<span class="nome"><b>' + esc(tituloDaTurma) + '</b>' +
+          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           (vinculada
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
             : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover turma">Excluir</button>') +
-          '</span>' +
-          historico + '</li>';
+          '</span></div>' +
+          (complemento.length ? '<div class="dono">' + complemento.join(' · ') + '</div>' : '') +
+          '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma atribuída)</li>';
 
@@ -4171,6 +4141,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
     'li.turma{display:block;margin-bottom:.6rem;}' +
     '.linha-turma{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}' +
+    // O COMPLEMENTO NÃO ENCOSTA NAS ETIQUETAS (11/11/2026) — e vale para os três cartões, que são
+    // a mesma peça (Sala, Turma e Verbete). Medido a 1280px: o fundo do `.linha-turma` e o topo do
+    // `.dono` estavam no MESMO pixel, e a borda de baixo do selo ficava a tocar a primeira letra da
+    // linha de baixo — ela lia-se como cortada. «A parte de baixo está engolindo essas margens»,
+    // foi assim que ela o disse, e é literal: eram 0,00px de vão.
+    'li.turma > .dono{margin-top:.2rem;}' +
     // O NOME NUNCA DISPUTA ESPAÇO COM OS BOTÕES. Era `flex:1 1 auto`: numa tela de
     // 360px o nome ficava com 156px e os dois botões com 126px fixos — o nome quebrava
     // em quatro linhas ao lado deles, e a turma parecia acavalada. Com `flex-basis` de
@@ -5601,7 +5577,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A OPÇÃO VAZIA NÃO SE EXPLICA (03/11/2026): «— sem grau —» dizia por palavras o que a opção
     // em branco já diz, e a regra da casa é rótulo, campo e nada mais. O `value=""` continua a
     // ser o que o servidor lê como «não declarado».
-    '<select id="cugrau"><option value=""></option></select>' +
+    '<select id="cugrau"><option value="">— escolher —</option></select>' +
     '<label class="campo-rotulo" for="cunivel">Nível</label>' +
     '<input id="cunivel" name="cunivel" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 3">' +
     '<label class="campo-rotulo" for="cuturma">Sala</label>' +
@@ -6833,16 +6809,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
  */
 // O BOTÃO OCUPADO — uma função, dois usos (o cadastro e a edição do nome). Guarda o rótulo
 // de antes e devolve-o: no erro o botão volta a ser o que era, e a pessoa pode tentar de novo.
-'function ocuparBotao(form, rotulo) {' +
-    '  if (!form) return null;' +
-    '  var botao = form.querySelector("button[type=submit]");' +
-    '  if (!botao) return null;' +
-    '  var antes = {botao: botao, rotulo: botao.textContent};' +
-    '  botao.disabled = true; botao.textContent = rotulo;' +
-    '  return antes;' +
-    '}' +
+    //
+    // E DESDE 11/11/2026 ELE TAMBÉM LEVANTA O VÉU. O véu existia e só era chamado pelo `enviar` — os
+    // caminhos que passam por aqui (habilitações, desligar o professor, mover a aluna, as linhas de
+    // base, o cadastro) desactivavam o botão e não diziam mais nada: quem olhasse via um botão mudo e
+    // uma lista parada. A pesquisadora pediu-o por todas as telas — «senão o professor não sabe o que
+    // está acontecendo» —, e o `ocuparBotao` é o sítio por onde passam TODAS elas: um sítio, um
+    // comportamento, em vez de uma chamada nova em cada gesto (que se esqueceria no próximo).
+    'function ocuparBotao(form, rotulo) {' +
+        '  if (!form) return null;' +
+        '  var botao = form.querySelector("button[type=submit]");' +
+        '  if (!botao) return null;' +
+        '  var antes = {botao: botao, rotulo: botao.textContent};' +
+        '  botao.disabled = true; botao.textContent = rotulo;' +
+        '  ocupar(rotulo);' +
+        '  return antes;' +
+        '}' +
+    // O `liberarBotao` BASTA-SAÍDO. Todos os `ocuparBotao` desta página libertam nos DOIS ramos
+    // (sucesso e erro); este é o par. Quando o sucesso recarrega a página, ninguém o chama — e é o
+    // que se quer: o véu fica de pé a cobrir a recarga, e não se vê a página velha destrancada.
     'function liberarBotao(antes) {' +
-    '  if (antes && antes.botao) { antes.botao.disabled = false; antes.botao.textContent = antes.rotulo; }' +
+        '  if (antes && antes.botao) { antes.botao.disabled = false; antes.botao.textContent = antes.rotulo; }' +
+        '  liberar();' +
     '}' +
     'function postar(id, corpo) {' +
     '  corpo.token = TOKEN;' +
@@ -7573,6 +7561,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O VALOR QUE JÁ ESTAVA É PRESERVADO quando ainda existe na lista nova: mudar de Vaganova
      * para francesa não pode apagar um grau «Intermediário» que as duas declaram.
      */
+    // A PALAVRA DO VAZIO, uma só para o servidor e o cliente. Está aqui porque é aqui que ela é
+    // usada dos dois lados: o `<select>` do grau nasce vazio no servidor (`<option value=""></option>`)
+    // e é REPOVOADO por esta função a cada mudança de tradição — se as duas não dissessem o mesmo,
+    // o campo mudava de aspecto ao escolher a tradição.
+    'var ROTULO_ESCOLHER = "— escolher —";' +
     'function pintarGraus(manter, idTrad, idGrau, idNivel) {' +
     '  var t = idTrad || "cutradicao", gId = idGrau || "cugrau", nId = idNivel || "cunivel";' +
     '  var sel = document.getElementById(gId);' +
@@ -7586,9 +7579,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `<select>` (`selSinal.innerHTML = opSinal.join("")`). Além de mais curto, não depende de
     // uma API de DOM que as bancadas têm de simular — e uma bancada que finge metade do DOM
     // mede a metade que fingiu.
-    // A PRIMEIRA OPÇÃO É VAZIA E MUDA: sem grau declarado o campo fica em branco, e «— esta
-    // tradição não usa grau —» era um aviso dentro de um `<select>` (03/11/2026).
-    '  var op = ["<option value=\'\'></option>"];' +
+    // A PRIMEIRA OPÇÃO É VAZIA E DIZ O QUE FAZER (03/11/2026; com palavra a 11/11/2026). O
+    // «— esta tradição não usa grau —» saiu porque era um AVISO dentro de um `<select>`; o
+    // `— escolher —` é outra coisa — é a instrução, a mesma dos outros campos.
+    '  var op = ["<option value=\\"\\">" + ROTULO_ESCOLHER + "</option>"];' +
     '  graus.forEach(function(g){' +
     '    op.push("<option value=\'" + g + "\'>" + g + "</option>");' +
     '  });' +
@@ -7667,6 +7661,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O `inert` VAI NOS FILHOS DO `body`, MENOS NO VÉU. Pô-lo no `<body>` trancaria o próprio
      * véu — que é filho dele —, e o texto deixaria de ser anunciado a quem usa leitor de ecrã.
      * O que tem de ficar surdo é o que está por BAIXO. */
+    'var VEU_SEGURANCA = null;' +
     'function trancarATela(trancada) {' +
     '  var filhos = document.body ? document.body.children : [];' +
     '  for (var i = 0; i < filhos.length; i++) {' +
@@ -7681,12 +7676,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (alvo) alvo.textContent = String(texto || "a trabalhar\u2026");' +
     '  veu.setAttribute("data-ocupado", "sim");' +
     '  trancarATela(true);' +
+    // A REDE DE SEGURANÇA (11/11/2026). O véu tranca a página inteira (`inert`); se um caminho
+    // de erro deixar de o libertar, o professor fica com uma tela morta e sem saber porquê — o
+    // pior modo de falha deste sistema, e o mesmo de uma ligação que se parte em silêncio. Um
+    // temporizador devolve a página ao fim de dois minutos: um pedido que dura mais do que isso
+    // já não está a correr, está pendurado. Um véu que expira é melhor do que uma tela presa.
+    '  if (VEU_SEGURANCA) clearTimeout(VEU_SEGURANCA);' +
+    '  VEU_SEGURANCA = setTimeout(function(){ liberar(); }, 120000);' +
     '} ' +
     'function dizerNoVeu(texto) {' +
     '  var alvo = document.getElementById("veu-texto");' +
     '  if (alvo) alvo.textContent = String(texto || "");' +
     '}' +
     'function liberar() {' +
+    '  if (VEU_SEGURANCA) { clearTimeout(VEU_SEGURANCA); VEU_SEGURANCA = null; }' +
     '  var veu = document.getElementById("veu");' +
     '  if (veu) veu.removeAttribute("data-ocupado");' +
     '  trancarATela(false);' +
@@ -8173,17 +8176,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var bloco = TRADICOES_DA_MODALIDADE[modalidade || ""] || {lista: [], de: "compartilhada"};' +
     /* A OPÇÃO VAZIA VEM SEMPRE, e é ela que permite ao campo ficar por escolher (11/11/2026).
      * Sem ela, `sel.value = ""` não selecciona nada e o navegador mantém a primeira tradição
-     * escolhida — o formulário «limpo» abria já preenchido. */
-    '  var partes = ["<option value=\u0027\u0027></option>"];' +
+     * escolhida — o formulário «limpo» abria já preenchido.
+     *
+     * E VEM COM PALAVRA (11/11/2026). Esta lista é REPOVOADA sempre que a modalidade muda, e o
+     * `— escolher —` que o servidor escreve na página era substituído por uma opção em branco no
+     * primeiro `change` — o campo aparecia a dizer «escolher» e depois ficava mudo. A frase é a
+     * mesma constante do grau: as três listas vazias dizem o mesmo, porque são a mesma pergunta. */
+    '  var partes = ["<option value=\u0027\u0027>" + ROTULO_ESCOLHER + "</option>"];' +
     '  for (var i = 0; i < bloco.lista.length; i++) {' +
     '    var chave = bloco.lista[i];' +
     '    partes.push("<option value=\u0027" + chave + "\u0027>" + (ROTULOS_DE_TRADICAO[chave] || chave) + "</option>");' +
     '  }' +
-    // SEM OPÇÃO VAZIA COM TEXTO (03/11/2026): quando a modalidade não tem tradições próprias a
-    // lista vem da compartilhada, e são as opções dela que se mostram. Se não houver nenhuma, o
-    // `<select>` fica com uma opção em branco — e a nota abaixo dele diz porquê, que é o sítio de
-    // o dizer.
-    '  if (!partes.length) partes.push("<option value=\u0027\u0027></option>");' +
+    // O CASO SEM TRADIÇÕES NÃO ACRESCENTA UMA SEGUNDA OPÇÃO VAZIA: a primeira já lá está (ver
+    // acima), e duas opções em branco no mesmo `<select>` são duas maneiras de dizer a mesma
+    // coisa. A nota abaixo do campo é que diz porquê.
+    '  if (partes.length < 2) partes = partes.slice(0, 1);' +
     '  sel.innerHTML = partes.join("");' +
     '  var aindaVale = false;' +
     '  for (var j = 0; j < bloco.lista.length; j++) { if (bloco.lista[j] === antes) aindaVale = true; }' +
@@ -10283,12 +10290,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var fraseDoTermo = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
     '  var res = document.querySelector("[data-res=vb-novo]");' +
     '  if (res) { res.className = "res"; res.textContent = "gravando..."; }' +
+    // CRIAR UM TERMO DO DICIONÁRIO TAMBÉM COBRE A TELA (11/11/2026). O `res` dizia
+    // «gravando...» em letra pequena ao lado do campo, e o resto da página continuava a
+    // responder a cliques — o professor escrevia duas vezes o mesmo termo. O véu é o sinal que
+    // ele pediu, e é o mesmo de todos os gestos.
+    '  ocupar("a gravar o termo \u00ab" + nome + "\u00bb\u2026");' +
     '  fetch("/api/bastidores/termo", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra,' +
     '      descricao: fraseDoTermo})' +
     '  }).then(lerResposta).then(function(d){' +
     '    if (!d.ok) {' +
+    '      liberar();' +
     '      if (res) { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
     '      return;' +
     '    }' +
@@ -10372,8 +10385,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * aqui, por código, os dois campos ficavam vazios sobre um exercício escolhido. */
     '    sincronizarPasso1ComExercicio();' +
     '    pintarTira();' +
+    '    liberar();' +
     '    if (depois) depois(true);' +
     '  }).catch(function(e){' +
+    '    liberar();' +
     '    if (res) { res.className = "res erro"; res.textContent = "Erro: " + e.message; }' +
     '  });' +
     '}' +
@@ -10842,12 +10857,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    passa a sair com a notação em lacuna. O exercício continua no dicionário. " +' +
     '    "Se ele já compõe um plano de ensino, o sistema recusa — e diz porquê.");' +
     '  if (!certo) return;' +
+    // APAGAR UM VERBETE COBRE A TELA (11/11/2026) — é a mesma razão do «Apagar» genérico: o
+    // registo sai, a lista é redesenhada, e sem sinal nenhum o gesto lê-se como «não aconteceu».
+    '  ocupar("a apagar o verbete de \u00ab" + qual + "\u00bb\u2026");' +
     '  fetch("/api/bastidores/verbete", {' +
     '    method: "DELETE", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({token: TOKEN, nome: qual, modalidade: ' +
       JSON.stringify(modalidadeDoCatalogo()) + '})' +
     '  }).then(lerResposta).then(function(d){' +
-    '    if (!d.ok) { recado("erro", d.erro || "não foi possível apagar"); return; }' +
+    '    if (!d.ok) { liberar(); recado("erro", d.erro || "não foi possível apagar"); return; }' +
     '    recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
     // E O FORMULÁRIO SAI DE CIMA DELE: apagar o exercício que está aberto deixaria a tela a compor
     // trechos de um verbete que já não existe, e a gravação seguinte recriava-o sem ninguém pedir.
@@ -10860,7 +10878,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      carregarRascunho();' +
     '    }' +
     '    carregarVerbetes();' +
-    '  }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
+    '    liberar();' +
+    '  }).catch(function(err){ liberar(); recado("erro", "Erro: " + err.message); });' +
     '}' +
     'var listaVerbetes = document.getElementById("lista-verbetes");' +
     'if (listaVerbetes) {' +
@@ -11670,14 +11689,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var corpo = tipo === "aluna" ? {apelido: alvo}' +
     '    : ((tipo === "curadoria" || tipo === "rubrica" || tipo === "turma") ? {id: alvo} : {nome: alvo});' +
     '  corpo.token = TOKEN;' +
+    /* APAGAR TAMBÉM COBRE A TELA (11/11/2026). Este era o gesto mais silencioso de todos: o
+     * registo sai do servidor, a página recarrega, e no meio não havia nada a dizer que algo
+     * estava a acontecer. Se a resposta demorasse, o professor repetia o clique — e o segundo
+     * pedido apagava um registo que já não existia. O véu é o mesmo de todos os gestos. */
+    '  ocupar("a apagar \u00ab" + rotulo + "\u00bb\u2026");' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) { location.reload(); }' +
-    '    else { alert("Erro: " + (d.erro || "desconhecido")); }' +
-    '  }).catch(function(err){ alert("Erro: " + err.message); });' +
+    '    else { liberar(); alert("Erro: " + (d.erro || "desconhecido")); }' +
+    '  }).catch(function(err){ liberar(); alert("Erro: " + err.message); });' +
     '});' +
     // A APARÊNCIA — uma pílula marcada, um valor da escola.
     //
@@ -12655,17 +12679,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    selo.title = "O elenco da turma «" + porId[id] + "» mudou no elenco: esta turma "' +
     '      + "declara um corpo que a turma já não tem. Reveja-a antes do plano de ensino.";' +
     '    selo.textContent = "rever";' +
-    /* O «REVER» É UMA ETIQUETA DO NOME, E VAI PARA DENTRO DA PRIMEIRA LINHA (11/11/2026). Aqui
-     * esteve `nome.insertBefore(selo, nome.firstChild)`, e o resultado era o selo a boiar ACIMA do
-     * nome, numa linha própria: `nome` é uma caixa de bloco e um `inline-block` como primeiro filho
-     * abre uma linha antes da `linha1`. Todas as outras etiquetas desta listagem vivem dentro da
-     * `linha1`, ao lado do nome — e esta é uma delas. O `title` continua a ser o mesmo. */
-    '    var linha = nome.querySelector(".linha1");' +
-    '    if (linha) {' +
-    '      var primeiroSelo = linha.querySelector(".selo");' +
-    '      linha.insertBefore(selo, primeiroSelo || null);' +
+    /* O «REVER» É UMA ETIQUETA DO NOME, E FICA AO LADO DELE (11/11/2026).
+     *
+     * Aqui esteve `nome.insertBefore(selo, nome.firstChild)`, e o resultado era o selo a boiar
+     * ACIMA do nome, numa linha própria: `nome` é uma caixa de bloco e um `inline-block` como
+     * primeiro filho abre uma linha antes do `<b>`. Todas as outras etiquetas desta listagem
+     * vivem AO LADO do nome — e esta é uma delas.
+     *
+     * O SÍTIO CERTO PASSOU A SER DEPOIS DO `<b>` (11/11/2026, com a listagem no padrão `.turma`):
+     * o cartão da Turma passou a ser o mesmo das Salas e do Estilo — `li.turma > .linha-turma >
+     * .nome(<b> + selos) + .acoes` —, e não há `linha1`. O selo entra depois do nome, antes das
+     * outras etiquetas: é a primeira coisa que se lê sobre esta Turma. */
+    '    var b = nome.querySelector("b");' +
+    '    if (b && b.nextSibling) {' +
+    '      nome.insertBefore(selo, b.nextSibling);' +
+    '    } else if (b) {' +
+    '      nome.appendChild(selo);' +
     '    } else {' +
-    '      nome.insertBefore(selo, nome.firstChild);' +
+    '      var primeiroSelo = nome.querySelector(".selo");' +
+    '      nome.insertBefore(selo, primeiroSelo || nome.firstChild);' +
     '    }' +
     '  }' +
     '}' +
@@ -12748,11 +12780,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * formulário aberto sobre um registo que já não existe não é um formulário — é uma promessa
      * quebrada. Se a linha apagada é a que está aberta, limpa-se tudo e volta-se ao passo 1. */
     '  var aberta = ((document.getElementById("lb-modo") || {}).value || "") === id;' +
+    // APAGAR UM ELENCO COBRE A TELA (11/11/2026) — mesma razão do resto: sem sinal, o gesto lê-se
+    // como «não aconteceu», e o professor repete-o.
+    '  ocupar("a apagar o elenco \u00ab" + (alvo.nome || id) + "\u00bb\u2026");' +
     '  fetch("/api/bastidores/linha-de-base", {method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({id: id, token: TOKEN})})' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
+    '      liberar();' +
     '      if (d && d.ok) {' +
     '        if (aberta) limparForm();' +
     '        corpoRes("ok", "elenco excluído" +' +
@@ -12760,7 +12796,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        carregarLinhas();' +
     '      } else { corpoRes("erro", "Erro: " + ((d && d.erro) || "desconhecido")); }' +
     '    })' +
-    '    .catch(function(err){ corpoRes("erro", "Erro: " + err.message); });' +
+    '    .catch(function(err){ liberar(); corpoRes("erro", "Erro: " + err.message); });' +
     '}' +
     // ------------------------------------------------------------------ A GRAVAÇÃO
     //
@@ -12986,7 +13022,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  function devolverCancelar() {' +
     '    lbCancelar.disabled = false;' +
     '    lbCancelar.textContent = rotuloAntes;' +
+    '    liberar();' +
     '  }' +
+    // DESCARTAR ESCREVE NO SERVIDOR, e por isso também cobre a tela (11/11/2026). O botão sozinho
+    // dizia «descartando...» e o resto da página continuava clicável; agora o véu diz o mesmo em
+    // grande, e `devolverCancelar` — que é chamado nos DOIS fins de caminho — é quem o baixa.
+    '  ocupar("a descartar as alterações do elenco\u2026");' +
     '  fetch("/api/bastidores/linha-de-base/descartar", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({id: aberto, token: TOKEN})})' +
