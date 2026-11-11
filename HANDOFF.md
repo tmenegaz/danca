@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T21:53:46-0300`
-Commit atual: `dc1664d7` — fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
+Gerado em: `2026-11-11T08:22:09-0300`
+Commit atual: `0f021296` — fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -55,7 +55,7 @@ dedao-aberto
 pe-torto
 rabo-gramde
 redinha-rosa (6)
-- **Ciclos com manifesto:** 3 variante(s)
+- **Ciclos com manifesto:** 4 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
-dc1664d7 fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
-5c7c0be0 chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
-de86153e chore(estrutura): reancorar a cadeia das fontes alteradas
-a967d618 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
-c65d7e34 feat(po): o PO elicitado vira a fonte do ciclo
-bae30b6f chore(estrutura): reancorar a cadeia das fontes alteradas
-c4ce7da5 feat(acervo): envelope/po-20261110-2145.json
-7a444476 feat(acervo): envelope/.indice.json
-c456a80f feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-b1dfbbc5 feat(plano): o elo da cadeia automática
-8a4502b6 feat(acervo): envelope/plano-20261110-2145.json
-e9b4f605 feat(acervo): envelope/.indice.json
-0244492c chore(estrutura): regerar o HANDOFF
-728fd6d8 fix(estrutura): o documento derivado diz quem dirige, o pacote executa-se, e os Bastidores ganham veu
-ff0f4ad3 feat(po): o PO elicitado vira a fonte do ciclo
-c3699e7a chore(estrutura): regerar o HANDOFF
-4ca5090e fix(estrutura): trocar o professor é um ajuste da mesma Turma, e mudar de sala não é
-8337a1d9 feat(estrutura): habilitar redinha-rosa em bale-classico
-8e9d9f40 chore(estrutura): regerar os índices derivados
-901200a0 feat(escola): a escola calango declara o professor redinha-rosa
+0f021296 fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
+e9e2401e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+4537dc5e chore(estrutura): reancorar a cadeia das fontes alteradas
+48f2c3e9 chore(estrutura): regerar os índices derivados
+762ff112 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+e6f4ad70 chore(estrutura): regerar os índices derivados
+7d262936 feat(po): o PO elicitado vira a fonte do ciclo
+ea94cb88 feat(acervo): envelope/po-20261111-0809.json
+3f20e1b3 feat(acervo): envelope/.indice.json
+cbea9fb0 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+61fbd9de feat(plano): o elo da cadeia automática
+85d848f9 feat(acervo): envelope/plano-20261111-0809.json
+78247630 feat(acervo): envelope/.indice.json
+2298a21c chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
+a5d0beed feat(po): o PO elicitado vira a fonte do ciclo
+fc895048 fix(estrutura): um veredito falso nunca sai sem motivo — a geracao diz porque nao partiu
+93930bc1 chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
+5c97c97d feat(po): o PO elicitado vira a fonte do ciclo
+8e8cf864 chore(estrutura): regerar o HANDOFF
+e0884cee fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
 ```
 
 ## Por professor
