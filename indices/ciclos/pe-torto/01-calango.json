@@ -39,10 +39,13 @@
     "documento:glossario:professores/pe-torto/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
     "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
     "documento:indice:professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclos.json",
+    "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango.conf",
     "documento:notacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md",
+    "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-piano-plano.md",
     "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
+    "documento:po:professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md",
     "documento:po:professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md",
     "documento:referencias:professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
     "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json",
@@ -88,7 +91,7 @@
         "valor": "indice"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "manifesto",
         "valor": "manifesto"
       },
@@ -98,12 +101,12 @@
         "valor": "notacao"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "plano",
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "po",
         "valor": "po"
       },
@@ -121,9 +124,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e9e2401e"
+    "commit": "bc437b1"
   },
-  "gerado_em": "2026-11-11T11:21",
+  "gerado_em": "2026-11-11T11:58",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6
