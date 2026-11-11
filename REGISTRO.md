@@ -42196,3 +42196,67 @@ repositório.
 continuam a ser plano. (2) **O `indice.json` não tem o bloco `plano`** em escola nenhuma: a
 estrutura proposta está escrita, não gravada. (3) **A cobrança, a nota e o faturamento** continuam
 fora de escopo até haver decisão (C8, C11, C12).
+
+## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
+
+**O que motivou.** «A turma na listagem e a construção do index da turma e também da turma em si […]
+está sendo montada com o nome do professor. Eu acho que a turma ela deveria ter um nome. […] no
+mundo real é mais comum a gente dizer que a turma ela é do elenco do que […] que a turma ela é do
+professor. Porque o professor ele pode mudar e a turma ela é mais presente, ela se preserva por mais
+tempo.» E o defeito do nome de quem ensina, dito por ela: «é a turma de ballet do professor Pedro,
+tá, mas qual delas? É a iniciante, a intermediária, a avançada?» — não distingue nada justamente
+quando há mais do que uma.
+
+Na mesma leitura, dois defeitos de desenho: «as etiquetas estão aparecendo aqui vinculada e ajustada
+em, estão sem a borda inferior» e «o texto abaixo […] está engolindo a margem inferior das
+etiquetas».
+
+**O que foi decidido.**
+
+- **O NOME É O ELENCO.** A ordem é elenco → sala → modalidade, e é a ordem em que o nome *existe*:
+  o corpo escolhido, o nome da sala quando ainda não há corpo, e a modalidade de uma Turma por
+  completar. O **professor não é o nome**: ele é o factor de quem ensina hoje — muda por derivação,
+  e é para mudar que a cadeia existe. Na listagem desce para o complemento, onde continua a ser o
+  atalho para o plano de ensino dele.
+- **O COMPOSTO É PARA QUANDO CABE UMA LINHA.** `rotuloDaTurma` diz **elenco · modalidade · nível ·
+  professor** — o que ela pediu («um nome composto […] elenco, modalidade e professor […] inclusive
+  eu acrescentaria o nível»). Serve ao histórico do ajuste, à frase de uma recusa e ao `title` da
+  linha; **não** serve à listagem, onde o nome é curto em cima e o composto se lê em baixo.
+- **O `id` NÃO MUDA.** É a âncora da cadeia: `substitui`/`substituidaPor` apontam por ele,
+  `porta.js` monta `curadoria:` + id, e as âncoras `.fipp` e as variantes derivam dele. Pôr o
+  elenco e o nível no `id` obrigaria a migrar todos os elos e a renomear a identidade por baixo de
+  quem a referencia — o dano de 10/11 outra vez, e maior. A identidade composta é **rótulo e
+  guarda**, não chave.
+- **A GUARDA DO ELENCO REPETIDO.** «Não dá para ter o mesmo elenco ocupando duas vezes o mesmo
+  nível»: o mesmo corpo não entra duas vezes na mesma modalidade e no mesmo nível. É a regra da
+  aluna um degrau acima, e cobre o que ela não vê — o elenco **sem alunas**, que passava por todas
+  as redes. A recusa diz qual é a outra Turma, a sala dela e quem a ensina. Vale na criação e na
+  derivação, e a Turma que se está a gravar não colide consigo mesma.
+
+**Onde entrou.** [motor/nucleo/estado-da-turma.js](./motor/nucleo/estado-da-turma.js) —
+`nomeDaTurma`, `rotuloDaTurma`, `mesmaTurmaPorElenco`, `motivoDoElencoRepetido` (funções puras, ao
+lado das que já respondiam «livre, curada ou vinculada») ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma (o `<b>` passa a
+ser o elenco; o professor desce para o complemento, como `nome-link` quando há plano; `title` com o
+rótulo composto) · a **guarda** nas duas rotas (`POST /api/bastidores/curadoria` e
+`POST /api/bastidores/curadoria-derivar`) · o CSS da listagem (o vão do complemento e a grelha do
+telemóvel) ·
+[experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js) — 51
+provas novas.
+
+**O defeito que ela viu nas etiquetas, e a causa.** Aqui esteve
+`.lista>li:not(.turma)>.nome>.linha1{display:contents}` no telemóvel, com cada `.selo` a receber
+`grid-area:estado`. Com **um** selo funciona; com **dois** — «vinculada» + «ajustada em…», que é o
+estado normal de uma Turma já derivada — os dois caem na mesma faixa da grelha e **sobrepõem-se**.
+Medido a 560px: `livre` em 74,6–130,3 e `ajustada em…` em 74,6–241,8, com o mesmo topo e o mesmo
+fundo — o segundo pinta-se por cima do primeiro, e da primeira etiqueta sobra o texto sem a borda de
+baixo. A 390px o segundo cresce para duas linhas e come o fundo do primeiro. A `linha1` passou a ser
+**um** item da grelha e a sua própria fila flex, que quebra. O vão do complemento (medido: fundo do
+`.linha1` e topo do `.dono` no **mesmo** pixel, 555,3) é agora de 2,4px.
+
+**O que ainda não está feito.** (1) O `id` continua a ser o do trio professor × modalidade × sala —
+não leva elenco nem nível, pela razão declarada acima. (2) O **índice** da Turma e o **arquivo** dela
+continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou: é a variante
+(`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
+publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
+a entrada de 10/11 sobre a `chave` estável.

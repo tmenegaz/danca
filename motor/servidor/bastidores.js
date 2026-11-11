@@ -50,7 +50,12 @@ const desligamento = require('../nucleo/desligamento.js');
 // continuava editável, e renomeá-la partia a ligação em silêncio (a curadoria guarda o NOME).
 const estadoDaTurmaNucleo = require('../nucleo/estado-da-turma.js');
 const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa,
-  salasOcupadas, salasLivres, motivoDaSalaOcupada } = estadoDaTurmaNucleo;
+  salasOcupadas, salasLivres, motivoDaSalaOcupada,
+  // COMO SE CHAMA UMA TURMA (11/11/2026). O nome é do ELENCO — o professor muda, o elenco é a
+  // razão de ser da turma —, e o composto (elenco · modalidade · nível · professor) é a
+  // identidade que se lê quando cabe uma linha só. `mesmaTurmaPorElenco` é a guarda do elenco
+  // repetido na mesma modalidade e no mesmo nível.
+  nomeDaTurma, rotuloDaTurma, mesmaTurmaPorElenco, motivoDoElencoRepetido } = estadoDaTurmaNucleo;
 // O CONTEÚDO MUDOU DE CASA (03/11/2026) — vive na curadoria, e a turma lê a UNIÃO do que ficou
 // gravado no mapa antigo (`turma-conteudos`) com o que as curadorias dela declaram.
 const conteudos = require('../nucleo/conteudos.js');
@@ -3520,9 +3525,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const elencoDaCuradoria = c.linhaDeBase
           ? elencosDaEscola.find((e) => e.id === String(c.linhaDeBase))
           : null;
-        const nomeDoElenco = elencoDaCuradoria
-          ? elencoDaCuradoria.nome
-          : String(c.linhaDeBaseNome || '').trim();
         const quantasAlunas = elencoDaCuradoria
           ? elencoDaCuradoria.alunas.length
           : (Array.isArray(c.alunas) ? c.alunas.length : 0);
@@ -3535,15 +3537,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const estadoDoCatalogo = disp.disponivel
           ? 'disponível no catálogo'
           : 'indisponível — falta ' + disp.faltas.join(', ');
-        const resumo = [
+        /* O NOME DA TURMA É O ELENCO (11/11/2026) — e o professor deixa de ser o título.
+         *
+         * A DEFINIÇÃO, na letra dela: «no mundo real é mais comum a gente dizer que a turma ela é
+         * do elenco do que a gente dizer que a turma ela é do professor. Porque o professor ele
+         * pode mudar e a turma ela é mais presente, ela se preserva por mais tempo.» E o defeito
+         * que o nome do professor tem, dito por ela: «é a turma de ballet do professor Pedro, tá,
+         * mas qual delas? É a iniciante, a intermediária, a avançada?» — o nome de quem ensina não
+         * distingue nada justamente quando há mais do que uma.
+         *
+         * O que muda aqui é só a ORDEM da leitura, e por isso é que é barato: o `.nome` da linha
+         * passa a dizer o ELENCO (e, sem elenco escolhido, a SALA, que é o nome que a Turma então
+         * tem), e o PROFESSOR desce para o complemento, onde continua a ser o atalho para o plano
+         * de ensino dele. A linha fica, de cima para baixo: de quem é a turma, em que estado está,
+         * quem a ensina e como ela está no catálogo. */
+        const tituloDaTurma = nomeDaTurma(c, { elencos: elencosDaEscola });
+        /* A ORDEM DO COMPLEMENTO é a das perguntas que a escola faz ao olhar a lista: em que
+         * linha se ensina (modalidade), em que tradição, em que grau, em que sala — e SÓ ENTÃO
+         * quem a ensina hoje, porque o professor é o que muda; por último o tamanho do corpo e o
+         * estado no catálogo, que são o retrato do momento. */
+        const atributos = [
           perfilNucleo.nomeDaModalidade(c.modalidade) || c.modalidade,
           rotuloDaTradicao(c.tradicao),
           nivelDaCuradoria.rotulo,
           turmas.length ? turmas.join(' · ') : '',
-          nomeDoElenco || '',
+        ].filter(Boolean);
+        const retrato = [
           quantasAlunas ? (quantasAlunas + ' aluna(s)') : '',
           estadoDoCatalogo,
-        ].filter(Boolean).join(' · ');
+        ].filter(Boolean);
         // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
         // nenhum plano de ensino nasceu desta curadoria, o registo edita-se; depois, deriva.
         const vinculada = curadoriaVinculadaA(pares, c);
@@ -3594,12 +3616,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const historico = historicoDoAjuste(
           passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? c : passado[i - 1] })),
           (a, d) => diferencaDeCuradoria(a, d, nomeDoProfessor));
-        // DUAS LINHAS, como as demais listas: o professor e os selos em cima; modalidade,
-        // tradição, sala, elenco e alunas embaixo, num complemento só. A modalidade já entra no
-        // `resumo` (com o rótulo do catálogo), e repeti-la aqui faria a linha dizer duas vezes.
-        const complemento = resumo;
-        return '<li data-curadoria="' + esc(c.id) + '" data-disponivel="' + (disp.disponivel ? 'sim' : 'nao') + '"><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : ''), urlDoPlanoDaCuradoria) +
-          (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
+        // DUAS LINHAS, como as demais listas: o ELENCO e os selos em cima; depois modalidade,
+        // tradição, nível, sala, professor, alunas e catálogo, num complemento só. O elenco não se
+        // repete em baixo (é o título), e o professor desce para lá — em linha, e não como título.
+        //
+        // O PROFESSOR CONTINUA A SER O ATALHO PARA O PLANO DE ENSINO (18/10/2026, mudou de sítio a
+        // 11/11/2026). Antes era o `<b>` do nome; agora é uma palavra do complemento. O que se
+        // perde é o sublinhado grande; o que se ganha é o nome da linha dizer a TURMA — e um link
+        // que leva ao plano do professor a partir do nome do elenco prometeria o que não entrega.
+        const complemento = atributos.map((p) => esc(p));
+        const professorNaLinha = urlDoPlanoDaCuradoria
+          ? '<a class="nome-link" href="' + esc(urlDoPlanoDaCuradoria) +
+            '" title="Abrir o plano de ensino deste professor">' + esc(rotuloProfessor) + '</a>'
+          : esc(rotuloProfessor);
+        if (rotuloProfessor) complemento.push(professorNaLinha);
+        for (const p of retrato) complemento.push(esc(p));
+        return '<li data-curadoria="' + esc(c.id) + '" data-disponivel="' + (disp.disponivel ? 'sim' : 'nao') + '"' +
+          ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
+          '<span class="nome">' + linhaDoNome(tituloDaTurma, seloEstado + (seloVigencia ? seloVigencia : '')) +
+          (complemento.length ? '<span class="dono">' + complemento.join(' · ') + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           (vinculada
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
@@ -4005,15 +4040,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // que é NOME, não um botão: herda o peso e a cor do `<b>`, e só o sublinhado discreto
     // diz que se pode tocar. Sem sublinhado não se descobre; com cor de link, competiria
     // com os botões da linha.
-    '.lista > li > .nome > .linha1 > b > .nome-link{color:inherit;text-decoration:underline;' +
+    //
+    // E DESDE 11/11/2026 ELE VIVE EM DOIS SÍTIOS (o mesmo desenho, as duas regras): na Turma, o
+    // nome da linha passou a ser o ELENCO, e o professor desceu para o complemento — é lá que
+    // está o atalho para o plano dele. Uma segunda regra copiada divergiria na primeira
+    // correcção; por isso o sítio novo entra na lista de cada regra que já existia.
+    '.lista > li > .nome > .linha1 > b > .nome-link,' +
+      '.lista > li > .nome > .dono > .nome-link{color:inherit;text-decoration:underline;' +
       'text-decoration-color:var(--borda-campo);text-underline-offset:.15em;}' +
-    '.lista > li > .nome > .linha1 > b > .nome-link:hover{color:var(--marca);' +
+    '.lista > li > .nome > .linha1 > b > .nome-link:hover,' +
+      '.lista > li > .nome > .dono > .nome-link:hover{color:var(--marca);' +
       'text-decoration-color:currentColor;}' +
-    '.lista > li > .nome > .linha1 > b > .nome-link:focus-visible{outline:2px solid var(--foco);' +
+    '.lista > li > .nome > .linha1 > b > .nome-link:focus-visible,' +
+      '.lista > li > .nome > .dono > .nome-link:focus-visible{outline:2px solid var(--foco);' +
       'outline-offset:2px;border-radius:2px;}' +
     // `nowrap` + reticências é o que impede a terceira linha: o complemento nunca quebra,
     // ele encurta.
-    '.lista > li > .nome:not(.fixo) > .dono{display:block;white-space:nowrap;' +
+    //
+    // E O COMPLEMENTO NÃO ENCOSTA NA ETIQUETA (11/11/2026). Medido a 1280px: o fundo do
+    // `.linha1` e o topo do `.dono` estavam no MESMO pixel (555.3), e a borda de baixo do selo
+    // ficava a tocar a primeira letra da linha de baixo — ela lia-se como cortada. O vão é
+    // pequeno de propósito: é respiro, não uma terceira linha.
+    '.lista > li > .nome:not(.fixo) > .dono{display:block;white-space:nowrap;margin-top:.15rem;' +
       'overflow:hidden;text-overflow:ellipsis;}' +
     // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
     // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
@@ -4042,11 +4090,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // (nome + selo + turmas + ações), e por isso a regra é uma só. Uma lista com duas linhas e
     // a outra com três seria a mesma linha contada de duas maneiras.
     //
-    // O `display:contents` é o que faz isto sem tocar na marcação: `.nome` e `.linha1` são
-    // INVÓLUCROS (existem para o `flex` da tela larga), e dissolvidos no telefone os seus
-    // filhos passam a ser itens da grelha da LINHA — é assim que o selo sai de dentro do
-    // `.linha1` e desce para a segunda linha sem um `<div>` novo e sem duplicar marcação. Em
-    // CSS, um neto não se coloca numa faixa da grelha do avô; dissolver o pai, sim.
+    // O `display:contents` é o que faz isto sem tocar na marcação: `.nome` é um INVÓLUCRO
+    // (existe para o `flex` da tela larga), e dissolvido no telefone os seus filhos passam a ser
+    // itens da grelha da LINHA — é assim que o complemento desce para a sua faixa sem um `<div>`
+    // novo. Em CSS, um neto não se coloca numa faixa da grelha do avô; dissolver o pai, sim.
+    //
+    // MAS A `linha1` NÃO SE DISSOLVE (11/11/2026) — e a razão é um defeito medido, que é o que
+    // ela viu como «as etiquetas estão sem a borda inferior». Aqui esteve
+    // `.lista>li:not(.turma)>.nome>.linha1{display:contents}`, com cada `.selo` a receber
+    // `grid-area:estado`. Com UM selo funciona. Com DOIS — «vinculada» + «ajustada em 08/11/2026»,
+    // que é o estado normal de uma Turma já derivada — os dois caem na MESMA faixa e a grelha os
+    // SOBREPÕE: medido a 560px, `livre` em 74,6–130,3px e `ajustada em…» em 74,6–241,8px, com o
+    // mesmo topo e o mesmo fundo. O segundo pinta-se por cima do primeiro, e da primeira etiqueta
+    // sobra o texto sem a borda de baixo. A 390px o segundo cresce para duas linhas (49,6px) e
+    // come o fundo do primeiro.
+    //
+    // Agora a `linha1` é UM item da grelha e a sua própria fila flex, que quebra: o nome e as
+    // etiquetas ficam na mesma faixa e descem juntos quando não cabem. Duas etiquetas passam a
+    // ser duas etiquetas — nunca uma a tapar a outra. O `grid-area` do `.selo` fica porque o
+    // «rever» (`marcarCuradoriasDivergentes`) é inserido FORA da `linha1`, e é a essa que ele
+    // obedece; dentro de uma fila flex, a propriedade é inerte.
     //
     // A TERCEIRA FAIXA É OPCIONAL (`dono`): os termos e as curadorias trazem um complemento
     // («posição · francesa», «atribuída em 16/10») e as alunas não. Sem item, a faixa tem zero
@@ -4056,10 +4119,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         'grid-template-columns:auto minmax(0,1fr) auto;' +
         'grid-template-areas:"nome nome nome" "dono dono dono" "estado turmas acoes";' +
         'align-items:center;gap:.2rem .5rem;padding:.45rem .1rem;}' +
-      '.lista>li:not(.turma)>.nome,.lista>li:not(.turma)>.nome>.linha1{display:contents;}' +
-      // O nome ocupa a faixa inteira e, se for comprido, encurta com reticências — nunca
-      // empurra o estado nem o botão, que estão na faixa de baixo.
-      '.lista>li:not(.turma)>.nome>.linha1>b{grid-area:nome;min-width:0;' +
+      '.lista>li:not(.turma)>.nome{display:contents;}' +
+      // O nome e as etiquetas numa fila que quebra. O nome encolhe com reticências — nunca
+      // empurra a etiqueta nem o botão, que estão na faixa de baixo.
+      '.lista>li:not(.turma)>.nome>.linha1{grid-area:nome;display:flex;flex-wrap:wrap;' +
+        'align-items:center;gap:.25rem .4rem;min-width:0;overflow:visible;}' +
+      '.lista>li:not(.turma)>.nome>.linha1>b{flex:0 1 auto;min-width:0;' +
         'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
       // O selo alinha à ESQUERDA da sua faixa: é o primeiro item da segunda linha, e é ele
       // que dá o «x» da coluna ao que vem depois.
@@ -12590,7 +12655,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    selo.title = "O elenco da turma «" + porId[id] + "» mudou no elenco: esta turma "' +
     '      + "declara um corpo que a turma já não tem. Reveja-a antes do plano de ensino.";' +
     '    selo.textContent = "rever";' +
-    '    nome.insertBefore(selo, nome.firstChild);' +
+    /* O «REVER» É UMA ETIQUETA DO NOME, E VAI PARA DENTRO DA PRIMEIRA LINHA (11/11/2026). Aqui
+     * esteve `nome.insertBefore(selo, nome.firstChild)`, e o resultado era o selo a boiar ACIMA do
+     * nome, numa linha própria: `nome` é uma caixa de bloco e um `inline-block` como primeiro filho
+     * abre uma linha antes da `linha1`. Todas as outras etiquetas desta listagem vivem dentro da
+     * `linha1`, ao lado do nome — e esta é uma delas. O `title` continua a ser o mesmo. */
+    '    var linha = nome.querySelector(".linha1");' +
+    '    if (linha) {' +
+    '      var primeiroSelo = linha.querySelector(".selo");' +
+    '      linha.insertBefore(selo, primeiroSelo || null);' +
+    '    } else {' +
+    '      nome.insertBefore(selo, nome.firstChild);' +
+    '    }' +
     '  }' +
     '}' +
     // ------------------------------------------------------------------ EDITAR E APAGAR
@@ -16293,6 +16369,43 @@ async function fetch(request, env, extras) {
       nivel: corpo.nivel,
       nivelReferencia: corpo.nivelReferencia,
     });
+    /* O MESMO ELENCO NÃO OCUPA DUAS VEZES A MESMA MODALIDADE E O MESMO NÍVEL (11/11/2026).
+     *
+     * O pedido, na letra dela: «não dá para ter o mesmo elenco ocupando duas vezes o mesmo nível».
+     * A razão é a mesma da aluna repetida, um degrau acima: se o mesmo corpo aparece em duas
+     * Turmas da mesma modalidade e do mesmo nível, as duas produzem planos que dizem as mesmas
+     * pessoas na mesma etapa — e o professor fica sem saber qual é a de hoje. A regra da aluna
+     * apanha o caso em que o elenco já tem gente; esta apanha o resto (elenco recém-criado, sem
+     * ninguém dentro, ou um elenco espalhado por duas salas).
+     *
+     * A comparação NÃO é pelo nome do professor: ele muda — é para isso que a derivação existe —,
+     * e o corpo que se repete é o mesmo corpo. O que identifica a Turma é o elenco com a
+     * modalidade e o nível (ver `nomeDaTurma`/`rotuloDaTurma`, no núcleo).
+     *
+     * `lista` já está lida, e a Turma que se está a gravar fica de fora (`excetoId`): editar a
+     * tradição de uma Turma sem lhe tocar no elenco continua a ser um acto legítimo. */
+    if (linhaDeBaseFinal) {
+      const elencoRepetido = mesmaTurmaPorElenco(lista, {
+        elenco: linhaDeBaseFinal,
+        modalidade,
+        nivel: niveis.nivelReferencia || niveis.nivel || niveis.grau,
+        excetoId: atual ? atual.id : null,
+      });
+      if (elencoRepetido) {
+        return json(409, {
+          ok: false,
+          erro: motivoDoElencoRepetido(elencoRepetido, {
+            nomeDoElenco: linhaDeBaseNomeFinal,
+            elenco: linhaDeBaseFinal,
+            modalidade,
+            nivel: niveis.nivelReferencia,
+          }),
+          elenco: linhaDeBaseFinal,
+          repetidoEm: elencoRepetido.id,
+          falta: ['elenco'],
+        });
+      }
+    }
     const nova = {
       // O id é o do registo que já existe, quando existe — e quando a turma NÃO mudou: um id
       // antigo (sem a turma) não se renomeia por baixo de quem já o referencia. Mudando a
@@ -16610,6 +16723,33 @@ async function fetch(request, env, extras) {
       nivel: corpo.nivel === undefined ? anterior.nivel : corpo.nivel,
       nivelReferencia: corpo.nivelReferencia === undefined ? anterior.nivelReferencia : corpo.nivelReferencia,
     });
+    /* O MESMO ELENCO NÃO OCUPA DUAS VEZES A MESMA MODALIDADE E O MESMO NÍVEL (11/11/2026) — a
+     * guarda da criação, aplicada também aqui, e pela mesma razão: derivar é o gesto com que a
+     * escola troca professor, sala ou elenco, e é por ele que a repetição entraria. O elo de onde
+     * se deriva fica de fora (`excetoId`): ele deixa de ocupar no instante em que a versão nova
+     * passa a valer, e derivar sem tocar no elenco não é repetir. */
+    if (elencoPedido) {
+      const elencoRepetidoDeriv = mesmaTurmaPorElenco(lista, {
+        elenco: elencoPedido,
+        modalidade: modalidadeDerivada,
+        nivel: niveisDeriv.nivelReferencia || niveisDeriv.nivel || niveisDeriv.grau,
+        excetoId: anterior.id,
+      });
+      if (elencoRepetidoDeriv) {
+        return json(409, {
+          ok: false,
+          erro: motivoDoElencoRepetido(elencoRepetidoDeriv, {
+            nomeDoElenco: elencoEscolhido ? elencoEscolhido.nome : anterior.linhaDeBaseNome,
+            elenco: elencoPedido,
+            modalidade: modalidadeDerivada,
+            nivel: niveisDeriv.nivelReferencia,
+          }),
+          elenco: elencoPedido,
+          repetidoEm: elencoRepetidoDeriv.id,
+          falta: ['elenco'],
+        });
+      }
+    }
     const nova = Object.assign({}, anterior, {
       // O id do derivado parte do id do par final (professor, modalidade, turma) — não do id
       // antigo, que pode não ter a turma nem o par novo. Assim a versão nova nasce já com a

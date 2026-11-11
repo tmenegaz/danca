@@ -1043,3 +1043,13 @@ experimentos/modelo-formulario/*
 # fica sem nenhum feedback.» O véu existia na porta e não existia aqui. A prova mede-o no navegador:
 # aparece, diz o passo, deixa a página inerte e sai. CONTROLE NEGATIVO: o motor de antes reprova 8.
 !experimentos/provar-veu-da-operacao.js
+
+# A TURMA CHAMA-SE PELO ELENCO (11/11/2026). A listagem dizia o nome do PROFESSOR como se fosse o
+# nome da Turma — e o nome de quem ensina não distingue nada justamente quando há mais do que uma
+# («é a turma de ballet do professor Pedro, tá, mas qual delas?»). O nome passa a ser o ELENCO, e o
+# professor desce para o complemento, onde continua a ser o atalho para o plano dele. Junto vem a
+# guarda que ela pediu: o mesmo elenco não ocupa duas vezes a mesma modalidade e o mesmo nível. E a
+# causa das «etiquetas sem a borda inferior»: no telemóvel a `linha1` era `display:contents` e os
+# dois selos caíam na MESMA faixa da grelha, um a pintar-se por cima do outro. CONTROLE NEGATIVO: o
+# motor de antes reprova 21 das 51 asserções.
+!experimentos/provar-identidade-da-turma.js

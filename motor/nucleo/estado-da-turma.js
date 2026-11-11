@@ -198,4 +198,114 @@ module.exports = {
   salasOcupadas,
   salasLivres,
   motivoDaSalaOcupada,
+  nomeDaTurma,
+  rotuloDaTurma,
+  mesmaTurmaPorElenco,
+  motivoDoElencoRepetido,
 };
+
+/* ==========================================================================================
+ * COMO SE CHAMA UMA TURMA — E PORQUE NÃO É O NOME DO PROFESSOR (11/11/2026)
+ * ==========================================================================================
+ *
+ * O DEFEITO, na letra da dona do produto: «a turma na listagem e a construção do index da turma e
+ * também da turma em si […] está sendo montada com o nome do professor. Eu acho que a turma ela
+ * deveria ter um nome. […] no mundo real é mais comum a gente dizer que a turma ela é do elenco do
+ * que a gente dizer que a turma ela é do professor. Porque o professor ele pode mudar e a turma ela
+ * é mais presente, ela se preserva por mais tempo. […] é o elenco que é a turma, que é o conjunto
+ * de meninas que dá a razão de ser para o termo turma e não o professor.»
+ *
+ * E o caso que mostra o defeito: «se falar assim, é a turma de ballet do professor Pedro, tá, mas
+ * qual delas? É a iniciante, a intermediária, a avançado?» — o nome do professor não distingue
+ * nada justamente quando há mais do que uma.
+ *
+ * A ORDEM, para o nome dizer o que fica:
+ *
+ *   1. o ELENCO — é o corpo que dá razão ao termo, e é ele que sobrevive à troca de direção;
+ *   2. a SALA — quando a Turma ainda não escolheu elenco, o nome que existe é o da sala;
+ *   3. a MODALIDADE — e é o caso de uma Turma ainda por completar.
+ *
+ * O PROFESSOR NÃO É O NOME — ele é o FACTOR de quem ensina hoje, e a listagem diz o nome dele ao
+ * lado, junto com a modalidade, o nível e a sala. Ele muda (é para isso que existe a derivação); o
+ * nome da Turma não pode mudar com ele.
+ */
+function nomeDaTurma(c, { elencos } = {}) {
+  if (!c || typeof c !== 'object') return '';
+  const lista = Array.isArray(elencos) ? elencos : [];
+  const escolhido = c.linhaDeBase
+    ? lista.find((e) => e && String(e.id) === String(c.linhaDeBase))
+    : null;
+  const doElenco = escolhido ? String(escolhido.nome || '').trim() : String(c.linhaDeBaseNome || '').trim();
+  if (doElenco) return doElenco;
+  return turmasDe(c)[0] || String(c.modalidade || '').trim();
+}
+
+/**
+ * O NOME COMPOSTO — o que a dona do produto pediu: «um nome composto […] que tenha elenco, que
+ * seja feito por elenco, modalidade e professor. […] inclusive eu acrescentaria o nível».
+ *
+ * Serve para onde cabe UMA linha e o nome curto não chega: o histórico do ajuste, a frase de uma
+ * recusa, o título de um documento. Na LISTAGEM não se usa — lá o nome é curto em cima e o
+ * composto se lê em baixo, que é como as outras listas funcionam.
+ *
+ * O que entra e porquê: o ELENCO (a identidade), a MODALIDADE (qual aula), o NÍVEL (qual degrau —
+ * é ele que distingue dois elencos na mesma modalidade) e o PROFESSOR (quem ensina hoje). O que
+ * falta não vira palavra: some, para a frase não dizer «sem isto» três vezes.
+ */
+function rotuloDaTurma(c, { elencos, professor, modalidade, nivel } = {}) {
+  const partes = [
+    nomeDaTurma(c, { elencos }),
+    modalidade || (c && c.modalidade) || '',
+    nivel || (c && (c.nivelReferencia || c.nivel || c.grau)) || '',
+    professor || (c && c.professor) || '',
+  ].map((x) => String(x == null ? '' : x).trim());
+  const vistos = [];
+  for (const p of partes) if (p && vistos.indexOf(p) === -1) vistos.push(p);
+  return vistos.join(' · ');
+}
+
+/**
+ * O MESMO ELENCO, NA MESMA MODALIDADE E NO MESMO NÍVEL — a recusa que ela pediu, na letra:
+ * «não dá para ter o mesmo elenco ocupando duas vezes o mesmo nível».
+ *
+ * PORQUE É PRECISO UMA GUARDA, se o sistema já recusa duas Turmas na mesma sala e a mesma aluna em
+ * duas salas da mesma modalidade. Porque os dois casos que restam passam por essas redes: um elenco
+ * SEM alunas (recém-criado) não colide com ninguém, e um elenco em DUAS SALAS da mesma modalidade
+ * só é apanhado pela regra da aluna — que é do dado, não da Turma. Sem esta guarda, a mesma
+ * direção pode aparecer duas vezes na lista com o mesmo conjunto de meninas: duas Turmas iguais, e
+ * o professor sem saber qual é a de hoje.
+ *
+ * `excetoId` é a Turma que se está a gravar (ela não colide consigo mesma). `null` na lista
+ * (leitura falhada) devolve `null`: não se inventa colisão por erro de leitura.
+ */
+function mesmaTurmaPorElenco(curadorias, { elenco, modalidade, nivel, excetoId } = {}) {
+  if (!Array.isArray(curadorias)) return null;
+  const idElenco = String(elenco || '').trim();
+  if (!idElenco) return null;                     // sem elenco não há o que comparar
+  const mod = String(modalidade || '').trim();
+  const grau = String(nivel || '').trim();
+  for (const c of curadorias) {
+    if (!c || typeof c !== 'object' || c.substituidaPor || c.encerrada_em) continue;
+    if (excetoId && String(c.id) === String(excetoId)) continue;
+    if (String(c.linhaDeBase || '').trim() !== idElenco) continue;
+    if (mod && String(c.modalidade || '').trim() !== mod) continue;
+    const oGrau = String(c.nivelReferencia || c.nivel || c.grau || '').trim();
+    if (grau && oGrau && oGrau !== grau) continue;
+    return c;
+  }
+  return null;
+}
+
+/** A frase da recusa do elenco repetido — e ela diz QUAL é a outra Turma, e onde. */
+function motivoDoElencoRepetido(ocupante, { nomeDoElenco, elenco, modalidade, nivel } = {}) {
+  const o = ocupante || {};
+  const sala = (turmasDe(o) || [])[0] || '';
+  const onde = [o.modalidade, o.nivelReferencia || o.nivel, sala]
+    .map((x) => String(x || '').trim()).filter(Boolean).join(' · ');
+  const nome = String(nomeDoElenco || o.linhaDeBaseNome || elenco || '').trim();
+  return 'o elenco «' + nome + '» já é a Turma' + (onde ? ' de ' + onde : '')
+    + (o.professor ? ' (professor ' + o.professor + ')' : '')
+    + '. O mesmo elenco não pode ocupar duas vezes a mesma modalidade e o mesmo nível: seriam '
+    + 'duas Turmas iguais, e o plano deixaria de saber de qual ler. Ajuste a que já existe'
+    + (sala ? ' — a sala dela é «' + sala + '»' : '') + ' — ou escolha outro elenco.';
+}
