@@ -26,7 +26,8 @@
     "po-20261110-2145.json",
     "po-20261111-0809.json",
     "po-20261111-0858.json",
-    "po-20261111-1017.json"
+    "po-20261111-1017.json",
+    "po-20261111-1528.json"
   ],
   "resumos": {
     "anamnese-20261108-1259.json": {
@@ -431,6 +432,23 @@
       ],
       "plano": [
         "plano-20261111-1016"
+      ]
+    },
+    "po-20261111-1528.json": {
+      "id": "po-20261111-1528",
+      "fonte": "po",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": "01",
+      "ajuste_de": "po-20261111-1017",
+      "gerado_em": "2026-11-11T15:28",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261111-1527"
       ]
     }
   }
