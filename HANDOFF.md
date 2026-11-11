@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T08:50:09-0300`
-Commit atual: `a879dcc0` — feat(estrutura): a Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
+Gerado em: `2026-11-11T09:14:54-0300`
+Commit atual: `6ab32d5d` — chore(template): a folha do pacote que veio do remoto, na fonte de hoje
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -55,7 +55,7 @@ dedao-aberto
 pe-torto
 rabo-gramde
 redinha-rosa (6)
-- **Ciclos com manifesto:** 4 variante(s)
+- **Ciclos com manifesto:** 5 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+6ab32d5d chore(template): a folha do pacote que veio do remoto, na fonte de hoje
+7e2d4b90 fix(estrutura): a listagem da Turma na peca das outras, e o veu em todos os gestos
+61d587ed fix(template): o veu da operacao deixa de ser transparente
+990b9763 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+05628b8f chore(estrutura): reancorar a cadeia das fontes alteradas
+022829cb chore(estrutura): regerar os índices derivados
+2be266d3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+bcdba8a6 chore(estrutura): regerar os índices derivados
+bc437b18 feat(po): o PO elicitado vira a fonte do ciclo
+3968daf6 feat(po): o PO elicitado vira a fonte do ciclo
+58d914f0 feat(acervo): envelope/po-20261111-0858.json
+c0fd915a feat(acervo): envelope/.indice.json
+df690bde feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+a234cc04 feat(plano): o elo da cadeia automática
+e615b0c0 feat(acervo): envelope/plano-20261111-0858.json
+3a15d2ae feat(acervo): envelope/.indice.json
+a7a65aba chore(estrutura): regerar o HANDOFF
 a879dcc0 feat(estrutura): a Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
 d83afafa chore(estrutura): regerar o HANDOFF
 0f021296 fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
-e9e2401e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-4537dc5e chore(estrutura): reancorar a cadeia das fontes alteradas
-48f2c3e9 chore(estrutura): regerar os índices derivados
-762ff112 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-e6f4ad70 chore(estrutura): regerar os índices derivados
-7d262936 feat(po): o PO elicitado vira a fonte do ciclo
-ea94cb88 feat(acervo): envelope/po-20261111-0809.json
-3f20e1b3 feat(acervo): envelope/.indice.json
-cbea9fb0 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-61fbd9de feat(plano): o elo da cadeia automática
-85d848f9 feat(acervo): envelope/plano-20261111-0809.json
-78247630 feat(acervo): envelope/.indice.json
-2298a21c chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
-a5d0beed feat(po): o PO elicitado vira a fonte do ciclo
-fc895048 fix(estrutura): um veredito falso nunca sai sem motivo — a geracao diz porque nao partiu
-93930bc1 chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
-5c97c97d feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -104,16 +104,18 @@ fc895048 fix(estrutura): um veredito falso nunca sai sem motivo — a geracao di
 
 ### pe-torto — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): calango, calango-rosa
+**Ciclo 01** — variante(s): calango, calango-piano, calango-rosa
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | calango | (sem PO) | — | — |
+| calango | ciclo-01-calango-piano-po.md | Input_PO_Aguardando | 1 |
 | calango | ciclo-01-calango-rosa-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
+| calango-piano | ciclo-01-calango-piano.fipp | `cd9912bbcf13` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -167,81 +169,87 @@ fc895048 fix(estrutura): um veredito falso nunca sai sem motivo — a geracao di
 
 ## Última entrada do REGISTRO
 
-## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
+## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
 
-**O que motivou.** «A turma na listagem e a construção do index da turma e também da turma em si […]
-está sendo montada com o nome do professor. Eu acho que a turma ela deveria ter um nome. […] no
-mundo real é mais comum a gente dizer que a turma ela é do elenco do que […] que a turma ela é do
-professor. Porque o professor ele pode mudar e a turma ela é mais presente, ela se preserva por mais
-tempo.» E o defeito do nome de quem ensina, dito por ela: «é a turma de ballet do professor Pedro,
-tá, mas qual delas? É a iniciante, a intermediária, a avançada?» — não distingue nada justamente
-quando há mais do que uma.
+**O que motivou.** Três leituras dela, na mesma sessão, todas de coisas que estavam à frente dos
+olhos e não funcionavam:
 
-Na mesma leitura, dois defeitos de desenho: «as etiquetas estão aparecendo aqui vinculada e ajustada
-em, estão sem a borda inferior» e «o texto abaixo […] está engolindo a margem inferior das
-etiquetas».
+1. «Não tem o véu. O véu tem que cobrir a tela toda. E aí tem que ter um spinning rodando […]
+   isso não está aparecendo. […] senão o professor não sabe o que está acontecendo.»
+2. «Você também não fez o padrão de listagem que a gente usa. Olha como é que é feito no estilo a
+   listagem. É a mesma. Tem que ser padrão, tem que ser a mesma estrutura.»
+3. «Em modalidade tem escolher, no elenco também tem escolher, mas no professor não tem. […]
+   porque o professor olha assim e não sabe o que fazer com isso.»
+
+E ainda: as etiquetas que perdem a borda de baixo ao rolar, e o histórico do ajuste que só servia
+de log de programador na listagem das Turmas.
 
 **O que foi decidido.**
 
-- **O NOME É O ELENCO.** A ordem é elenco → sala → modalidade, e é a ordem em que o nome *existe*:
-  o corpo escolhido, o nome da sala quando ainda não há corpo, e a modalidade de uma Turma por
-  completar. O **professor não é o nome**: ele é o factor de quem ensina hoje — muda por derivação,
-  e é para mudar que a cadeia existe. Na listagem desce para o complemento, onde continua a ser o
-  atalho para o plano de ensino dele.
-- **O COMPOSTO É PARA QUANDO CABE UMA LINHA.** `rotuloDaTurma` diz **elenco · modalidade · nível ·
-  professor** — o que ela pediu («um nome composto […] elenco, modalidade e professor […] inclusive
-  eu acrescentaria o nível»). Serve ao histórico do ajuste, à frase de uma recusa e ao `title` da
-  linha; **não** serve à listagem, onde o nome é curto em cima e o composto se lê em baixo.
-- **O `id` NÃO MUDA.** É a âncora da cadeia: `substitui`/`substituidaPor` apontam por ele,
-  `porta.js` monta `curadoria:` + id, e as âncoras `.fipp` e as variantes derivam dele. Pôr o
-  elenco e o nível no `id` obrigaria a migrar todos os elos e a renomear a identidade por baixo de
-  quem a referencia — o dano de 10/11 outra vez, e maior. A identidade composta é **rótulo e
-  guarda**, não chave.
-- **A GUARDA DO ELENCO REPETIDO.** «Não dá para ter o mesmo elenco ocupando duas vezes o mesmo
-  nível»: o mesmo corpo não entra duas vezes na mesma modalidade e no mesmo nível. É a regra da
-  aluna um degrau acima, e cobre o que ela não vê — o elenco **sem alunas**, que passava por todas
-  as redes. A recusa diz qual é a outra Turma, a sala dela e quem a ensina. Vale na criação e na
-  derivação, e a Turma que se está a gravar não colide consigo mesma.
+- **O VÉU PASSA A VER-SE.** A causa foi medida: a folha tem **duas peças com a mesma classe
+  `.veu`** — a da coluna (`opacity:0`, acesa por `body.coluna-aberta`) e a da operação
+  (`display:none` → `flex` em `data-ocupado`). A da operação repunha `pointer-events` e **não
+  repunha `opacity`**, e herdava o `0` da outra. Medido no navegador: `display:flex`, caixa
+  1280×800 a cobrir a janela, `inert` em tudo por baixo — e **opacidade 0**. O que cobria a
+  página não se via. A correção é uma linha (`opacity:1` na peça da operação); a ambiguidade de
+  duas peças com o mesmo nome fica anotada como dívida, porque a da coluna é usada pelo `nav.js`.
+- **O VÉU PASSA A ESTAR EM TODOS OS GESTOS.** Ele só era chamado pelo `enviar`; os caminhos que
+  passam pelo `ocuparBotao` (habilitações, desligar o professor, mover a aluna, os elencos, o
+  cadastro) desactivavam o botão e não diziam mais nada. Como **todos** passam por ali, a chamada
+  foi para dentro do `ocuparBotao`/`liberarBotao` — um sítio, um comportamento, em vez de uma
+  chamada nova em cada gesto (que se esqueceria no próximo). Os gestos que não passam por lá
+  (apagar, criar um termo do Estilo, apagar um verbete, apagar/descartar um elenco) ganharam a
+  sua. E ficou uma **rede de segurança**: um temporizador de dois minutos devolve a página, porque
+  um véu que tranca a tela para sempre é o pior modo de falha deste sistema.
+- **A LISTAGEM DAS TURMAS É A MESMA PEÇA DAS OUTRAS.** Ela usava `li[data-curadoria] > .nome
+  (.linha1 + .dono) + .acoes` — o modelo das listas de **pessoas** —, e não
+  `li.turma > .linha-turma > .nome + .acoes` + `.dono`, que é o das Salas e do Estilo. A
+  diferença não era de gosto: as regras do telemóvel são escritas com `li:not(.turma)` porque a
+  peça do cartão tem as suas, e a Turma caía na regra das pessoas. Agora é um `li.turma` como os
+  outros. Dentro dela, o `<b>` continua a ser o **elenco** e o professor continua no complemento.
+- **O COMPLEMENTO NÃO ENCOSTA NA ETIQUETA.** Medido: fundo do `.linha-turma` e topo do `.dono` no
+  **mesmo pixel** (0,00px de vão) nos três cartões — Sala, Turma e Verbete. Passa a haver 3,19px,
+  numa regra só (`li.turma > .dono`), e não em cada lista.
+- **O HISTÓRICO DO AJUSTE SAI DA LISTAGEM DAS TURMAS.** «Isso não tem sentido existir aqui para o
+  professor, ele não vai tomar conta, controle disso.» O `historicoDoAjuste` **fica** — é a peça
+  da lista das Salas, e a cadeia continua a ler-se no formulário do ajuste. O que sai é a sua
+  exibição permanente em cada cartão. O `diferencaDeCuradoria`, que só esta lista usava, saiu com
+  ela.
 
-**Onde entrou.** [motor/nucleo/estado-da-turma.js](./motor/nucleo/estado-da-turma.js) —
-`nomeDaTurma`, `rotuloDaTurma`, `mesmaTurmaPorElenco`, `motivoDoElencoRepetido` (funções puras, ao
-lado das que já respondiam «livre, curada ou vinculada») ·
-[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma (o `<b>` passa a
-ser o elenco; o professor desce para o complemento, como `nome-link` quando há plano; `title` com o
-rótulo composto) · a **guarda** nas duas rotas (`POST /api/bastidores/curadoria` e
-`POST /api/bastidores/curadoria-derivar`) · o CSS da listagem (o vão do complemento e a grelha do
-telemóvel) ·
-[experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js) — 51
-provas novas.
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md`, e
+muda por uma razão medida: a peça `.veu` da operação declarava tudo menos a `opacity`, e herdava o
+`0` da peça homónima da coluna — o véu cobria a janela e não se via. A alteração é **uma
+declaração** (`opacity: 1`) e não toca no desenho, na fórmula do hash, na cobertura, nos
+validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cinco cópias da
+folha (a raiz e os quatro pacotes publicados) foram regeradas — `raiz/` por `tools/gerar-raiz.sh`,
+os pacotes por cópia da fonte —, e a âncora `.fipp` **não mudou**, porque ela cobre FONTES
+(`.conf` e `.md`) e os assets não entram na fórmula.
 
-**O defeito que ela viu nas etiquetas, e a causa.** Aqui esteve
-`.lista>li:not(.turma)>.nome>.linha1{display:contents}` no telemóvel, com cada `.selo` a receber
-`grid-area:estado`. Com **um** selo funciona; com **dois** — «vinculada» + «ajustada em…», que é o
-estado normal de uma Turma já derivada — os dois caem na mesma faixa da grelha e **sobrepõem-se**.
-Medido a 560px: `livre` em 74,6–130,3 e `ajustada em…` em 74,6–241,8, com o mesmo topo e o mesmo
-fundo — o segundo pinta-se por cima do primeiro, e da primeira etiqueta sobra o texto sem a borda de
-baixo. A 390px o segundo cresce para duas linhas e come o fundo do primeiro. A `linha1` passou a ser
-**um** item da grelha e a sua própria fila flex, que quebra. O vão do complemento (medido: fundo do
-`.linha1` e topo do `.dono` no **mesmo** pixel, 555,3) é agora de 2,4px.
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a `opacity` do véu ·
+`raiz/assets/style.css` e os quatro `professores/*/ciclos/*/assets/style.css` (cópias da folha) ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma na peça
+`.turma`, o vão do complemento, o «rever» ao lado do nome, o véu no `ocuparBotao` e nos gestos que
+não passam por ele, a rede de segurança de dois minutos, o histórico fora da listagem, e o
+`— escolher —` em todos os `<select>` do formulário (professor, modalidade, tradição, grau, sala,
+elenco) · [experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js)
+— de 54 para **73** provas (o véu, a peça da listagem, o histórico ausente, os rótulos dos campos).
 
-**O que ainda não está feito.** (1) O `id` continua a ser o do trio professor × modalidade × sala —
-não leva elenco nem nível, pela razão declarada acima. (2) O **índice** da Turma e o **arquivo** dela
-continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou: é a variante
-(`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
-publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
-a entrada de 10/11 sobre a `chave` estável.
+**Validação.** Controle negativo contra o `HEAD`: **23 falhas em 65** provas — o véu com opacidade
+0, a listagem sem `.linha-turma`, o histórico presente, quatro `<select>` sem «— escolher —», as
+etiquetas sobrepostas a 560px. Sem regressão: `provar-veu-da-operacao` 23 · `provar-troca-de-
+direcao` 40 · `provar-derivacao-e-identidade` 19 · `provar-link-e-fecho` 20 · `provar-fecho-do-
+pacote` 57 · `provar-direcao-do-documento` 21 · `provar-publicacao-da-escola` 66 ·
+`provar-derivacao-da-turma` 120/140 (as 20 são pré-existentes, iguais ao `HEAD`) ·
+`check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
+
+**O que ainda não está feito.** (1) A dívida das **duas `.veu`** com o mesmo nome continua: a da
+coluna (usada pelo `nav.js`) e a da operação. Renomear uma delas exige tocar no `nav.js`, que é do
+mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada» e a «ajustada em…»
+continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
+o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
+não foi pedido para sair de lá.
 
 ## O que está pendente
-
-## 10/11/2026 — A decomposição pela ordem em que foi escrita, e a duplicação de uma linha
-
-(1) **Não há forma de reordenar à mão**: a ordem é a de criação, e
-corrigi-la obriga a apagar e reescrever os trechos seguintes. Se ela quiser mover uma linha, é a
-próxima peça — e não é um campo de número, é um «mover para cima/baixo» com prova. (2) **O documento
-publicado dos verbetes já existentes não muda** — é o efeito desejado (P-03), mas significa que o
-`notacao.md` do pacote continua na ordem antiga até que aquele verbete seja reeditado. (3) Não foi
-conferido **no ar** nesta sessão: as provas são de bancada, e a conferência em produção é o passo
-seguinte ao deploy.
 
 ## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
 
@@ -277,6 +285,15 @@ continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou:
 (`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
 publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
 a entrada de 10/11 sobre a `chave` estável.
+
+## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
+
+(1) A dívida das **duas `.veu`** com o mesmo nome continua: a da
+coluna (usada pelo `nav.js`) e a da operação. Renomear uma delas exige tocar no `nav.js`, que é do
+mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada» e a «ajustada em…»
+continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
+o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
+não foi pedido para sair de lá.
 
 ## Pendências anteriores (índice)
 
@@ -684,8 +701,10 @@ a entrada de 10/11 sobre a `chave` estável.
 - **10/11/2026** — A faixa que ninguém media: 1141 a 1919px → `REGISTRO.md` L41595
 - **10/11/2026** — O histórico do ajuste: o rótulo, a diferença e o motivo → `REGISTRO.md` L41668
 - **10/11/2026** — O passo 1 do Estilo procura no vocabulário, e um exercício… → `REGISTRO.md` L41744
+- **10/11/2026** — A decomposição pela ordem em que foi escrita, e a… → `REGISTRO.md` L41826
+- PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **pe-torto · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
