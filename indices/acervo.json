@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 23,
+      "documentos": 32,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:pe-torto/01/calango",
@@ -303,9 +303,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bc437b1"
+    "commit": "2be266d"
   },
-  "gerado_em": "2026-11-11T11:58",
+  "gerado_em": "2026-11-11T11:59",
   "nao_indexado": [
     {
       "familia": "conteudo",

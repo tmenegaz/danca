@@ -30,23 +30,32 @@
     "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
     "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango-rosa.fipp",
     "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango.fipp",
+    "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
+    "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md",
     "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
     "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
+    "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.cifrado.json",
+    "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.json",
     "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-rosa-dados.cifrado.json",
     "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-rosa-dados.json",
     "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclo-01-calango-rosa-dados.json",
+    "documento:declaracao:professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-declaracao.json",
     "documento:declaracao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
+    "documento:glossario:professores/pe-torto/ciclos/ciclo-01-calango-piano-glossario-benesh.md",
     "documento:glossario:professores/pe-torto/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
+    "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-piano-harmonizacao.md",
     "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-harmonizacao.md",
     "documento:indice:professores/pe-torto/ciclos/ciclo-01-calango-rosa/ciclos.json",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango-rosa.conf",
     "documento:manifesto:professores/pe-torto/ciclos/ciclo-01-calango.conf",
+    "documento:notacao:professores/pe-torto/ciclos/ciclo-01-calango-piano-notacao.md",
     "documento:notacao:professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md",
     "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-piano-plano.md",
     "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
     "documento:po:professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md",
     "documento:po:professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md",
+    "documento:referencias:professores/pe-torto/ciclos/ciclo-01-calango-piano-referencias.md",
     "documento:referencias:professores/pe-torto/ciclos/ciclo-01-calango-rosa-referencias.md",
     "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango-rosa/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/pe-torto/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -61,27 +70,27 @@
         "valor": "ancora"
       },
       {
-        "contagem": 2,
+        "contagem": 4,
         "rotulo": "aula",
         "valor": "aula"
       },
       {
-        "contagem": 3,
+        "contagem": 5,
         "rotulo": "dados",
         "valor": "dados"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "declaracao",
         "valor": "declaracao"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "glossario",
         "valor": "glossario"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
       },
@@ -96,7 +105,7 @@
         "valor": "manifesto"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "notacao",
         "valor": "notacao"
       },
@@ -111,7 +120,7 @@
         "valor": "po"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "referencias",
         "valor": "referencias"
       },
@@ -124,9 +133,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bc437b1"
+    "commit": "2be266d"
   },
-  "gerado_em": "2026-11-11T11:58",
+  "gerado_em": "2026-11-11T11:59",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6

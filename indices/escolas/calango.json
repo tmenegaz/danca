@@ -254,8 +254,17 @@
         }
       ],
       "documentos": [
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-declaracao.json",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.cifrado.json",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.json",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-glossario-benesh.md",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-harmonizacao.md",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-notacao.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-piano-plano.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md",
+        "professores/pe-torto/ciclos/ciclo-01-calango-piano-referencias.md",
         "professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
         "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -492,6 +501,24 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
+      "professor": "pe-torto",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:aula:professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md",
+      "professor": "pe-torto",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -543,6 +570,24 @@
       "id": "documento:aula:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md",
       "professor": "redinha-rosa",
       "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.cifrado.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.cifrado.json",
+      "professor": "pe-torto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.json",
+      "professor": "pe-torto",
+      "tipo": "dados"
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
@@ -627,6 +672,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-declaracao.json",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:declaracao:professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-declaracao.json",
+      "professor": "pe-torto",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-declaracao.json",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -654,6 +708,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-glossario-benesh.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:glossario:professores/pe-torto/ciclos/ciclo-01-calango-piano-glossario-benesh.md",
+      "professor": "pe-torto",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -678,6 +741,15 @@
       "id": "documento:glossario:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-glossario-benesh.md",
       "professor": "redinha-rosa",
       "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-harmonizacao.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:harmonizacao:professores/pe-torto/ciclos/ciclo-01-calango-piano-harmonizacao.md",
+      "professor": "pe-torto",
+      "tipo": "harmonizacao"
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
@@ -780,6 +852,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-notacao.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:notacao:professores/pe-torto/ciclos/ciclo-01-calango-piano-notacao.md",
+      "professor": "pe-torto",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -876,6 +957,15 @@
       "id": "documento:po:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md",
       "professor": "redinha-rosa",
       "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-referencias.md",
+      "ciclo_id": "ciclo:pe-torto/01/calango",
+      "escola": "calango",
+      "id": "documento:referencias:professores/pe-torto/ciclos/ciclo-01-calango-piano-referencias.md",
+      "professor": "pe-torto",
+      "tipo": "referencias"
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
@@ -1252,9 +1342,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bc437b1"
+    "commit": "2be266d"
   },
-  "gerado_em": "2026-11-11T11:58",
+  "gerado_em": "2026-11-11T11:59",
   "nao_indexado": [
     {
       "familia": "conteudo",
