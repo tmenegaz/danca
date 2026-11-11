@@ -1053,3 +1053,12 @@ experimentos/modelo-formulario/*
 # dois selos caíam na MESMA faixa da grelha, um a pintar-se por cima do outro. CONTROLE NEGATIVO: o
 # motor de antes reprova 21 das 51 asserções.
 !experimentos/provar-identidade-da-turma.js
+
+# A OPERAÇÃO QUE ATRAVESSA AS ABAS (11/11/2026). Com o plano do ciclo aberto numa aba e a Turma a
+# ser derivada na outra, a segunda continuava a aceitar gravações sobre um vínculo que estava a
+# mudar debaixo dos pés. A operação passa a ser publicada (BroadcastChannel + localStorage) e o
+# `nav.js` — o único script que TODAS as páginas carregam — levanta nas outras abas o mesmo véu,
+# com a etiqueta semântica da operação. A prova abre duas abas REAIS na mesma origem, onde o
+# armazenamento e o canal são os verdadeiros. CONTROLE NEGATIVO: o `nav.js` de antes reprova 21
+# das 23 asserções — não tem travessia nenhuma.
+!experimentos/provar-operacao-entre-abas.js

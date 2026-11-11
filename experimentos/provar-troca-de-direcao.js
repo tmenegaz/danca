@@ -374,10 +374,17 @@ async function provarAPagina(motor) {
    * fica sem nenhum feedback». Ele existia na porta e não existia aqui, onde ela trabalha. */
   provar('…e a página tem o véu da operação (a mesma peça da folha)',
     pagina.indexOf('<div class="veu" id="veu"') !== -1);
+  /* O véu passou a ter um só dono — o `nav.js`, que é o script que TODAS as páginas carregam —,
+     e a página da Produção delega nele. O que se mede é a delegação e a ETIQUETA: o passo diz-se
+     numa palavra («Derivação») e numa frase, e é a palavra que se lê de relance noutra aba. */
   provar('…e o véu fica de pé enquanto o gesto corre, e diz o passo',
-    pagina.indexOf('function ocupar(texto)') !== -1
+    pagina.indexOf('function ocupar(texto, etiqueta)') !== -1
+      && pagina.indexOf('window.LastroDaOperacao.ocupar') !== -1
       && pagina.indexOf('function liberar()') !== -1
       && pagina.indexOf('textoDoPasso(ep)') !== -1);
+  provar('…e o passo traz a ETIQUETA semântica, e não só a frase',
+    pagina.indexOf('etiqueta: "Derivação"') !== -1
+      && pagina.indexOf('passo.etiqueta') !== -1);
   provar('…e a ligação do pacote executa o fecho em vez de abrir um documento vazio',
     pagina.indexOf('function fecharDoEndereco(turma)') !== -1
       && pagina.indexOf('data-fechar') !== -1);

@@ -6816,13 +6816,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // uma lista parada. A pesquisadora pediu-o por todas as telas — «senão o professor não sabe o que
     // está acontecendo» —, e o `ocuparBotao` é o sítio por onde passam TODAS elas: um sítio, um
     // comportamento, em vez de uma chamada nova em cada gesto (que se esqueceria no próximo).
-    'function ocuparBotao(form, rotulo) {' +
+    // A ETIQUETA É OPCIONAL E TEM UM NOME DE REPOUSO. Todos estes gestos são GRAVAÇÕES de um
+    // cadastro (professor, aluna, elenco, habilitação) — «Gravação» é a palavra certa para todos,
+    // e um parâmetro obrigatório em cada chamada só faria repetir a mesma palavra seis vezes.
+    'function ocuparBotao(form, rotulo, etiqueta) {' +
         '  if (!form) return null;' +
         '  var botao = form.querySelector("button[type=submit]");' +
         '  if (!botao) return null;' +
         '  var antes = {botao: botao, rotulo: botao.textContent};' +
         '  botao.disabled = true; botao.textContent = rotulo;' +
-        '  ocupar(rotulo);' +
+        '  ocupar(rotulo, etiqueta || "Gravação");' +
         '  return antes;' +
         '}' +
     // O `liberarBotao` BASTA-SAÍDO. Todos os `ocuparBotao` desta página libertam nos DOIS ramos
@@ -6981,7 +6984,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    modalidades: marcados("hab-modalidade"),' +
     '    token: TOKEN' +
     '  };' +
-    '  var antes = ocuparBotao(formHab, "gravando...");' +
+    '  var antes = ocuparBotao(formHab, "gravando...", "Habilitações");' +
     '  fetch("/api/bastidores/perfil", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
     '    .then(function(r){ return r.json(); })' +
@@ -7016,7 +7019,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    motivo: motivo,' +
     '    token: TOKEN' +
     '  };' +
-    '  var antes = ocuparBotao(formDesl, "desligando...");' +
+    '  var antes = ocuparBotao(formDesl, "desligando...", "Desligamento");' +
     '  fetch("/api/bastidores/professor-desligar", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
     '    .then(function(r){ return r.json(); })' +
@@ -7352,7 +7355,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function fecharDoEndereco(turma) {' +
     '  var res = alvoDoRecado();' +
     '  if (!res) return;' +
-    '  ocupar("a gerar os documentos de \u00ab" + turma + "\u00bb\u2026");' +
+    '  ocupar("a gerar os documentos de \u00ab" + turma + "\u00bb\u2026", "Geração dos documentos");' +
     '  fetch("/api/bastidores/cadeia-pacote", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({turmas: [turma], token: TOKEN})})' +
@@ -7440,7 +7443,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    return;' +
     '  }' +
-    '  var antes = ocuparBotao(formMover, "movendo...");' +
+    '  var antes = ocuparBotao(formMover, "movendo...", "Transferência");' +
     '  fetch("/api/bastidores/elenco-mover", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
     '    .then(function(r){ return r.json(); })' +
@@ -7658,55 +7661,78 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE O VÉU NÃO FAZ: esconder um erro. Ele sai sempre — no sucesso, no erro e na excepção
      * —, e o erro fica escrito na caixa do gesto como sempre ficou.
      */
-    /* O `inert` VAI NOS FILHOS DO `body`, MENOS NO VÉU. Pô-lo no `<body>` trancaria o próprio
-     * véu — que é filho dele —, e o texto deixaria de ser anunciado a quem usa leitor de ecrã.
-     * O que tem de ficar surdo é o que está por BAIXO. */
-    'var VEU_SEGURANCA = null;' +
-    'function trancarATela(trancada) {' +
-    '  var filhos = document.body ? document.body.children : [];' +
-    '  for (var i = 0; i < filhos.length; i++) {' +
-    '    if (filhos[i].id === "veu") continue;' +
-    '    filhos[i].inert = trancada;' +
-    '  }' +
-    '}' +
-    'function ocupar(texto) {' +
+    /* O VÉU PASSOU A SER UM SÓ, E É O DO `nav.js` (11/11/2026).
+     *
+     * AQUI ESTAVA a implementação inteira — `ocupar`, `dizerNoVeu`, `liberar`, `trancarATela` e o
+     * temporizador de segurança —, e ela cobria a página em que o gesto nascia. Não cobria as
+     * OUTRAS abas, e eram elas que ficavam a mentir: com o plano do ciclo aberto ao lado, o
+     * professor derivava a Turma numa aba e continuava a poder gravar o plano na outra, sobre um
+     * vínculo que estava a mudar debaixo dos pés.
+     *
+     * O `nav.js` é o único script que TODAS as páginas carregam (Produção, porta do plano e do PO,
+     * documentos publicados), e é lá que a operação passa a viver: ele pinta o véu, tranca a
+     * página, publica a operação para as outras abas e escuta as delas. Aqui ficam três funções
+     * de uma linha, que mantêm os nomes que a página inteira já chamava — mudar as cem chamadas
+     * seria o tipo de edição em massa que parte uma delas sem avisar.
+     *
+     * O `textoDoPasso` continua a ser o DESTA página: é ele que sabe o que cada rota desta escola
+     * faz. O que ele devolve agora são DUAS coisas — a etiqueta semântica (a palavra que nomeia a
+     * operação) e a frase —, porque é isso que o véu mostra. */
+    'function ocupar(texto, etiqueta) {' +
+    '  if (window.LastroDaOperacao) { window.LastroDaOperacao.ocupar(texto, etiqueta); return; }' +
+    // Rede: uma página servida sem o `nav.js` (não existe hoje, mas o custo é uma linha) tranca
+    // pelo caminho antigo em vez de ficar sem sinal nenhum.
     '  var veu = document.getElementById("veu");' +
     '  if (!veu) return;' +
     '  var alvo = document.getElementById("veu-texto");' +
     '  if (alvo) alvo.textContent = String(texto || "a trabalhar\u2026");' +
     '  veu.setAttribute("data-ocupado", "sim");' +
-    '  trancarATela(true);' +
-    // A REDE DE SEGURANÇA (11/11/2026). O véu tranca a página inteira (`inert`); se um caminho
-    // de erro deixar de o libertar, o professor fica com uma tela morta e sem saber porquê — o
-    // pior modo de falha deste sistema, e o mesmo de uma ligação que se parte em silêncio. Um
-    // temporizador devolve a página ao fim de dois minutos: um pedido que dura mais do que isso
-    // já não está a correr, está pendurado. Um véu que expira é melhor do que uma tela presa.
-    '  if (VEU_SEGURANCA) clearTimeout(VEU_SEGURANCA);' +
-    '  VEU_SEGURANCA = setTimeout(function(){ liberar(); }, 120000);' +
-    '} ' +
+    '  var filhos = document.body ? document.body.children : [];' +
+    '  for (var i = 0; i < filhos.length; i++) {' +
+    '    if (filhos[i].id !== "veu") filhos[i].inert = true;' +
+    '  }' +
+    '}' +
     'function dizerNoVeu(texto) {' +
+    '  if (window.LastroDaOperacao) { window.LastroDaOperacao.dizer(texto); return; }' +
     '  var alvo = document.getElementById("veu-texto");' +
     '  if (alvo) alvo.textContent = String(texto || "");' +
     '}' +
     'function liberar() {' +
-    '  if (VEU_SEGURANCA) { clearTimeout(VEU_SEGURANCA); VEU_SEGURANCA = null; }' +
+    '  if (window.LastroDaOperacao) { window.LastroDaOperacao.liberar(); return; }' +
     '  var veu = document.getElementById("veu");' +
     '  if (veu) veu.removeAttribute("data-ocupado");' +
-    '  trancarATela(false);' +
+    '  var filhos = document.body ? document.body.children : [];' +
+    '  for (var i = 0; i < filhos.length; i++) filhos[i].inert = false;' +
     '}' +
-    /* O TEXTO NOMEIA O QUE ESTÁ A ACONTECER — e o que está a acontecer depende do gesto. A frase
-     * genérica («a trabalhar») é indistinguível de uma página pendurada; a que diz o passo não
-     * é. O mapa é por ENDEREÇO, e o que não estiver nele cai na mensagem que o gesto já passava
-     * (as duas são a mesma informação, uma mais curta do que a outra). */
+    /* O PASSO DIZ-SE EM DUAS PEÇAS: A PALAVRA E A FRASE (11/11/2026).
+     *
+     * A frase sozinha («a ajustar a Turma, a derivar o plano de ensino…») diz o que se está a
+     * fazer, mas não se lê de relance: é uma linha comprida, e quem passa os olhos por ela apanha
+     * um verbo no meio. A palavra — «Derivação», «Vinculação», «Geração dos documentos» — é o que
+     * permite saber, num relance e numa aba que não é a nossa, QUE operação é. É a «etiqueta com
+     * um nome semântico» que ela pediu, e é o `.selo` do catálogo a desenhá-la.
+     *
+     * O QUE ENTRA NA PALAVRA. O vocabulário é o da cadeia, e não o dos botões: `Derivação` (o elo
+     * novo que passa a valer), `Vinculação` (a Turma e o que depende dela a serem religados),
+     * `Transferência` (a aluna que muda de elenco), `Ajuste da Sala` (o ritmo), `Elenco` (o corpo),
+     * `Geração dos documentos` (o pacote). Um verbo genérico («A gravar») não distingue o gesto
+     * que muda o vínculo do que só corrige um nome — e é precisamente essa diferença que faz o
+     * professor esperar ou não.
+     *
+     * O mapa é por ENDEREÇO. O que não estiver nele não inventa palavra: cai em «Gravação», e a
+     * frase que o gesto já passava continua a ser a frase. */
     'function textoDoPasso(ep) {' +
     '  var mapa = {' +
-    '    "/api/bastidores/curadoria-derivar": "a ajustar a Turma, a derivar o plano de ensino e o plano de observação\u2026",' +
-    '    "/api/bastidores/curadoria": "a gravar a Turma e a reavaliar o que depende dela\u2026",' +
-    '    "/api/bastidores/turma-derivar": "a ajustar a sala e a reler o ritmo no plano\u2026",' +
-    '    "/api/bastidores/turma-editar": "a ajustar a sala e a reler o ritmo no plano\u2026",' +
-    '    "/api/bastidores/elenco-mover": "a mover a aluna e a reavaliar a Turma\u2026",' +
-    '    "/api/bastidores/linha-de-base": "a concluir o elenco e a reavaliar as Turmas que o usam\u2026",' +
-    '    "/api/bastidores/cadeia-pacote": "a gerar os documentos\u2026"' +
+    '    "/api/bastidores/curadoria-derivar": {etiqueta: "Derivação", texto: "a derivar a Turma e a reencadear o plano de ensino e o plano de observação\u2026"},' +
+    '    "/api/bastidores/curadoria": {etiqueta: "Vinculação", texto: "a gravar a Turma e a revincular o que depende dela\u2026"},' +
+    '    "/api/bastidores/turma-derivar": {etiqueta: "Ajuste da Sala", texto: "a ajustar a Sala e a reler o ritmo no plano\u2026"},' +
+    '    "/api/bastidores/turma-editar": {etiqueta: "Ajuste da Sala", texto: "a ajustar a Sala e a reler o ritmo no plano\u2026"},' +
+    '    "/api/bastidores/elenco-mover": {etiqueta: "Transferência", texto: "a mover a aluna e a revincular a Turma\u2026"},' +
+    '    "/api/bastidores/linha-de-base": {etiqueta: "Elenco", texto: "a concluir o Elenco e a revincular as Turmas que o usam\u2026"},' +
+    '    "/api/bastidores/cadeia-pacote": {etiqueta: "Geração dos documentos", texto: "a gerar os documentos do ciclo\u2026"},' +
+    '    "/api/bastidores/professor-desligar": {etiqueta: "Desligamento", texto: "a encerrar a direção pedagógica e a revincular as Turmas\u2026"},' +
+    '    "/api/bastidores/perfil": {etiqueta: "Habilitações", texto: "a gravar as habilitações e a reavaliar as Turmas do professor\u2026"},' +
+    '    "/api/bastidores/linha-de-base/descartar": {etiqueta: "Elencos", texto: "a descartar as alterações do Elenco\u2026"}' +
     '  };' +
     '  return mapa[ep] || null;' +
     '}' +
@@ -7715,7 +7741,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  recado("", mensagem);' +
     /* A MENSAGEM DO GESTO JÁ É UMA FRASE («gravando o termo…»). O mapa só a troca quando
      * o passo tem nome próprio; inventar prefixo («a gravando…») seria pior do que não dizer. */
-    '  ocupar(textoDoPasso(ep) || mensagem || "a trabalhar\u2026");' +
+    '  var passo = textoDoPasso(ep);' +
+    '  ocupar(passo ? passo.texto : (mensagem || "a trabalhar\u2026"), passo ? passo.etiqueta : null);' +
     '  var res = alvoDoRecado();' +
     '  return fetch(ep, {' +
     '    method: "POST",' +
@@ -7820,7 +7847,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  res.className = "res " + (guardado.cadeia.ok ? "ok" : "aviso");' +
     '  res.textContent = "";' +
     '  if (guardado.cadeia.porOrcamento) {' +
-    '    ocupar("a concluir o que faltava — a gerar os documentos…");' +
+    '    ocupar("a concluir o que faltava — a gerar os documentos…", "Geração dos documentos");' +
     '  }' +
     '  pintarCadeia(guardado.cadeia, res, false, Boolean(guardado.cadeia.porOrcamento));' +
     '}' +
@@ -10294,7 +10321,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // «gravando...» em letra pequena ao lado do campo, e o resto da página continuava a
     // responder a cliques — o professor escrevia duas vezes o mesmo termo. O véu é o sinal que
     // ele pediu, e é o mesmo de todos os gestos.
-    '  ocupar("a gravar o termo \u00ab" + nome + "\u00bb\u2026");' +
+    '  ocupar("a gravar o termo \u00ab" + nome + "\u00bb\u2026", "Vocabulário");' +
     '  fetch("/api/bastidores/termo", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({token: TOKEN, termo: nome, categoria: cat, tradicao: tra,' +
@@ -10859,7 +10886,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!certo) return;' +
     // APAGAR UM VERBETE COBRE A TELA (11/11/2026) — é a mesma razão do «Apagar» genérico: o
     // registo sai, a lista é redesenhada, e sem sinal nenhum o gesto lê-se como «não aconteceu».
-    '  ocupar("a apagar o verbete de \u00ab" + qual + "\u00bb\u2026");' +
+    '  ocupar("a apagar o verbete de \u00ab" + qual + "\u00bb\u2026", "Exclusão");' +
     '  fetch("/api/bastidores/verbete", {' +
     '    method: "DELETE", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({token: TOKEN, nome: qual, modalidade: ' +
@@ -11693,7 +11720,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * registo sai do servidor, a página recarrega, e no meio não havia nada a dizer que algo
      * estava a acontecer. Se a resposta demorasse, o professor repetia o clique — e o segundo
      * pedido apagava um registo que já não existia. O véu é o mesmo de todos os gestos. */
-    '  ocupar("a apagar \u00ab" + rotulo + "\u00bb\u2026");' +
+    '  ocupar("a apagar \u00ab" + rotulo + "\u00bb\u2026", "Exclusão");' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
@@ -12782,7 +12809,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var aberta = ((document.getElementById("lb-modo") || {}).value || "") === id;' +
     // APAGAR UM ELENCO COBRE A TELA (11/11/2026) — mesma razão do resto: sem sinal, o gesto lê-se
     // como «não aconteceu», e o professor repete-o.
-    '  ocupar("a apagar o elenco \u00ab" + (alvo.nome || id) + "\u00bb\u2026");' +
+    '  ocupar("a apagar o elenco \u00ab" + (alvo.nome || id) + "\u00bb\u2026", "Exclusão");' +
     '  fetch("/api/bastidores/linha-de-base", {method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({id: id, token: TOKEN})})' +
@@ -13027,7 +13054,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // DESCARTAR ESCREVE NO SERVIDOR, e por isso também cobre a tela (11/11/2026). O botão sozinho
     // dizia «descartando...» e o resto da página continuava clicável; agora o véu diz o mesmo em
     // grande, e `devolverCancelar` — que é chamado nos DOIS fins de caminho — é quem o baixa.
-    '  ocupar("a descartar as alterações do elenco\u2026");' +
+    '  ocupar("a descartar as alterações do elenco\u2026", "Elencos");' +
     '  fetch("/api/bastidores/linha-de-base/descartar", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({id: aberto, token: TOKEN})})' +

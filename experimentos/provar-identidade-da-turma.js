@@ -560,19 +560,43 @@ async function provarANavegador() {
   const veu = await p.evaluate(() => {
     const v = document.getElementById('veu');
     if (!v) return { existe: false };
-    ocupar('a gravar a Turma…');
+    ocupar('a gravar a Turma…', 'Vinculação');
     const cs = getComputedStyle(v);
     const cx = v.getBoundingClientRect();
     const texto = (document.getElementById('veu-texto') || {}).textContent || '';
+    const cartao = v.querySelector('.veu-cartao');
+    const etiqueta = v.querySelector('.veu-etiqueta');
     const filhos = [...document.body.children].filter((x) => x.id !== 'veu');
+    /* A TRANSPARÊNCIA MEDE-SE NA COR COMPUTADA, e não no que o CSS diz: é o navegador que
+       resolve a `color-mix` para um `rgba`, e é esse valor que a tela pinta. */
+    /* O ALFA, NAS DUAS NOTAÇÕES. O Chrome devolve `rgba(...)` para um `rgba()` escrito à mão e
+       `color(srgb ... / 0.55)` para o resultado de uma `color-mix` — a segunda é a que este véu
+       usa. Ler só a primeira dava `null` e a prova reprovava o que estava certo. */
+    const cor = cs.backgroundColor;
+    const alfa = (function (c) {
+      let mm = c.match(/rgba?\(([^)]+)\)/);
+      if (mm) {
+        const p = mm[1].split(',').map((x) => Number(x.trim()));
+        return p.length === 4 ? p[3] : (p.length === 3 ? 1 : null);
+      }
+      mm = c.match(/\/\s*([\d.]+)\s*%/);
+      if (mm) return Number(mm[1]) / 100;
+      mm = c.match(/\/\s*([\d.]+)\s*\)/);
+      if (mm) return Number(mm[1]);
+      return c === 'transparent' ? 0 : null;
+    })(cor);
     return {
       existe: true,
       visivel: cs.display !== 'none' && Number(cs.opacity) > 0.9,
       display: cs.display, opacidade: cs.opacity, z: Number(cs.zIndex),
       cobreATela: Math.abs(cx.width - window.innerWidth) < 1
         && Math.abs(cx.height - window.innerHeight) < 1,
-      temGiro: Boolean(getComputedStyle(v, '::before').animationName
-        && getComputedStyle(v, '::before').animationName !== 'none'),
+      cor, alfa,
+      temCartao: Boolean(cartao),
+      temGiro: Boolean(cartao && getComputedStyle(cartao, '::before').animationName
+        && getComputedStyle(cartao, '::before').animationName !== 'none'),
+      etiqueta: etiqueta ? etiqueta.textContent : '',
+      etiquetaEhSelo: Boolean(etiqueta && etiqueta.classList.contains('selo')),
       texto,
       trancouTudo: filhos.every((x) => x.inert),
       acimaDeTudo: Math.max(...[...document.querySelectorAll('.lateral, .topnav, header')]
@@ -583,7 +607,12 @@ async function provarANavegador() {
   provar('…e, ocupado, fica VISÍVEL (opacidade > 0)', veu.visivel, veu);
   provar('…e cobre a janela inteira', veu.cobreATela, veu);
   provar('…e fica acima da coluna e da barra', veu.acimaDeTudo, veu);
+  provar('…e é TRANSLÚCIDO: deixa ver a página por baixo (alfa entre 0,3 e 0,8)',
+    typeof veu.alfa === 'number' && veu.alfa >= 0.3 && veu.alfa <= 0.8, { cor: veu.cor, alfa: veu.alfa });
+  provar('…e o que se lê está num cartão opaco', veu.temCartao, veu);
   provar('…e tem o giro a rodar', veu.temGiro, veu);
+  provar('…e traz a etiqueta semântica, que é o selo do catálogo',
+    veu.etiqueta === 'Vinculação' && veu.etiquetaEhSelo, veu);
   provar('…e diz o que está a acontecer', /a gravar a Turma/.test(veu.texto), veu.texto);
   provar('…e tranca tudo o que está por baixo', veu.trancouTudo, veu);
 
