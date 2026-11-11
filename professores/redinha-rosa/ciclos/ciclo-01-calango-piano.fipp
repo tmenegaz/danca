@@ -10,9 +10,9 @@ type: Ciclo
 professor: Redinha Rosa
 ciclo: 01
 variante: calango-piano
-hash_conteudo: 1ffb8ebf3edcecce26981d532e5e8f70b156e1e6e7fd0fec356889be44e2c608
+hash_conteudo: ed4603224182ae510acc390690a139e692496f6d90bc165db620060ad07e4fe0
 parentHash: 
-hash: b5284fc9027376f2d7f480f84382554f667e39f400e73b15d801bffdf8f1ac69
+hash: f5adf2621eed74ad3016684fef12b113b5b75e17f02886714502a904a5cc9e69
 algoritmo: SHA-256
 po: professores/redinha-rosa/ciclos/ciclo-01-calango-piano-po.md
 po_state: Input_PO_Aguardando

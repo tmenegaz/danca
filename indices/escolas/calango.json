@@ -193,8 +193,8 @@
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
         ],
-        "hash": "8d84c873c21332dced731ef99139e23da7637056e2f70702a7b47819d212cdc5",
-        "hash_conteudo": "28ca360854945b4e852e320d4101540d8f07cb3e7d4b258649524230c9997df0",
+        "hash": "5332490b1b0385e4d571a80e880343439ef667254d4b65654298b74a1ec3a4bf",
+        "hash_conteudo": "5034f1c35c89762fd354ca1fd967d8ab04a8349688ce94f05b734d8b443d0e08",
         "id": "ciclo-01-calango-piano-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -373,8 +373,8 @@
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-referencias.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf"
         ],
-        "hash": "b5284fc9027376f2d7f480f84382554f667e39f400e73b15d801bffdf8f1ac69",
-        "hash_conteudo": "1ffb8ebf3edcecce26981d532e5e8f70b156e1e6e7fd0fec356889be44e2c608",
+        "hash": "f5adf2621eed74ad3016684fef12b113b5b75e17f02886714502a904a5cc9e69",
+        "hash_conteudo": "ed4603224182ae510acc390690a139e692496f6d90bc165db620060ad07e4fe0",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -389,8 +389,8 @@
               "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
               "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
             ],
-            "hash": "8d84c873c21332dced731ef99139e23da7637056e2f70702a7b47819d212cdc5",
-            "hash_conteudo": "28ca360854945b4e852e320d4101540d8f07cb3e7d4b258649524230c9997df0",
+            "hash": "5332490b1b0385e4d571a80e880343439ef667254d4b65654298b74a1ec3a4bf",
+            "hash_conteudo": "5034f1c35c89762fd354ca1fd967d8ab04a8349688ce94f05b734d8b443d0e08",
             "id": "ciclo-01-calango-piano-aula-01",
             "lida": true,
             "parent_hash": ""
