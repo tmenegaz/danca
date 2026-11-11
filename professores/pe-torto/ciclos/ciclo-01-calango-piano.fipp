@@ -1,0 +1,36 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/pe-torto/ciclos/ciclo-01-calango-piano.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-calango-piano
+type: Ciclo
+professor: pe-torto
+ciclo: 01
+variante: calango-piano
+hash_conteudo: c7b045df4cb5699983250be4b26b290314357e9973fd03814dd7c5f2341fcbea
+parentHash: 
+hash: cd9912bbcf13cc0f1094537974740814ede7872a5f876165fe0078aed40ca946
+algoritmo: SHA-256
+po: professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
+po_state: Input_PO_Aguardando
+ancorado_em: 2026-11-11
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 43
+notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
+cobertura:
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-dados.json
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-glossario-benesh.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-harmonizacao.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-notacao.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-plano.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano-referencias.md
+  - professores/pe-torto/ciclos/ciclo-01-calango-piano.conf
+  - professores/pe-torto/ciclos/ciclo-01.conf
