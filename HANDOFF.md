@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-10T20:10:20-0300`
-Commit atual: `728fd6d8` — fix(estrutura): o documento derivado diz quem dirige, o pacote executa-se, e os Bastidores ganham veu
+Gerado em: `2026-11-10T21:53:46-0300`
+Commit atual: `dc1664d7` — fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -55,7 +55,7 @@ dedao-aberto
 pe-torto
 rabo-gramde
 redinha-rosa (6)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -72,6 +72,19 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+dc1664d7 fix(estrutura): o sucesso da geracao deixa de ser lido como falha, e a variante tem um dono so
+5c7c0be0 chore(entrega): gerar o pacote de redinha-rosa/01/calango-rosa
+de86153e chore(estrutura): reancorar a cadeia das fontes alteradas
+a967d618 feat(ciclo): o «Guardar» do PO grava as fontes de calango-rosa num commit só
+c65d7e34 feat(po): o PO elicitado vira a fonte do ciclo
+bae30b6f chore(estrutura): reancorar a cadeia das fontes alteradas
+c4ce7da5 feat(acervo): envelope/po-20261110-2145.json
+7a444476 feat(acervo): envelope/.indice.json
+c456a80f feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+b1dfbbc5 feat(plano): o elo da cadeia automática
+8a4502b6 feat(acervo): envelope/plano-20261110-2145.json
+e9b4f605 feat(acervo): envelope/.indice.json
+0244492c chore(estrutura): regerar o HANDOFF
 728fd6d8 fix(estrutura): o documento derivado diz quem dirige, o pacote executa-se, e os Bastidores ganham veu
 ff0f4ad3 feat(po): o PO elicitado vira a fonte do ciclo
 c3699e7a chore(estrutura): regerar o HANDOFF
@@ -79,19 +92,6 @@ c3699e7a chore(estrutura): regerar o HANDOFF
 8337a1d9 feat(estrutura): habilitar redinha-rosa em bale-classico
 8e9d9f40 chore(estrutura): regerar os índices derivados
 901200a0 feat(escola): a escola calango declara o professor redinha-rosa
-918fd5af feat(schema): os schemas do ciclo na pasta de redinha-rosa
-a49f0a10 feat(schema): os schemas do ciclo na pasta de redinha-rosa
-c57fb646 feat(schema): os schemas do ciclo na pasta de redinha-rosa
-053f37a5 feat(schema): os schemas do ciclo na pasta de redinha-rosa
-6d96dc90 feat(schema): os schemas do ciclo na pasta de redinha-rosa
-e13df524 chore(estrutura): regerar o HANDOFF
-9516b64d docs(metodo): a matriz de capacidade cobra-se por volume, e a escada desce a cada degrau
-7b39eab0 chore(estrutura): regerar o HANDOFF
-b0c1aac2 fix(estrutura): o elo vencido aponta o vigente, e a variante não muda com a sala
-6a87218c chore(estrutura): regerar o HANDOFF
-74659504 fix(estrutura): a cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
-266e56e4 chore(entrega): gerar o pacote de pe-torto/01/calango-rosa
-8e3a5deb chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
