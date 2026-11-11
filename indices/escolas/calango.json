@@ -253,6 +253,40 @@
         "referencias",
         "schema"
       ]
+    },
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-11",
+        "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
+        "cobertura": [
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf"
+        ],
+        "hash": "c3e3245bdca313235b8a275f3b1096c1a9a191710ba938f13a09792a832ca85d",
+        "hash_conteudo": "773575fdaf83475677b1bf5827c7f88600a04febd2e828b37bc5792e6883d491",
+        "id": "ciclo-01-calango-rosa",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
+        "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp"
+      ],
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:redinha-rosa/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "redinha-rosa",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "plano"
+      ]
     }
   ],
   "documentos": [
@@ -281,6 +315,15 @@
       "escola": "calango",
       "id": "documento:ancora:professores/pe-torto/ciclos/ciclo-01-calango.fipp",
       "professor": "pe-torto",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.fipp",
+      "professor": "redinha-rosa",
       "tipo": "ancora"
     },
     {
@@ -384,6 +427,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf",
+      "professor": "redinha-rosa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
       "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-rosa-notacao.md",
       "ciclo_id": "ciclo:pe-torto/01/calango",
       "escola": "calango",
@@ -398,6 +450,15 @@
       "escola": "calango",
       "id": "documento:plano:professores/pe-torto/ciclos/ciclo-01-calango-rosa-plano.md",
       "professor": "pe-torto",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-rosa",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+      "ciclo_id": "ciclo:redinha-rosa/01/calango",
+      "escola": "calango",
+      "id": "documento:plano:professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-plano.md",
+      "professor": "redinha-rosa",
       "tipo": "plano"
     },
     {
@@ -439,17 +500,18 @@
   ],
   "escola": {
     "ciclos": [
-      "ciclo:pe-torto/01/calango"
+      "ciclo:pe-torto/01/calango",
+      "ciclo:redinha-rosa/01/calango"
     ],
     "contagens": {
       "anamneses": 4,
       "aulas": 1,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
-      "planos": 5,
+      "ciclos": 2,
+      "ciclos_com_ancora": 2,
+      "planos": 6,
       "pos": 8,
       "recortes": 2,
-      "registros": 17
+      "registros": 18
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -473,6 +535,7 @@
       "plano:plano-20261108-1334",
       "plano:plano-20261109-2341",
       "plano:plano-20261110-1304",
+      "plano:plano-20261110-2145",
       "po:po-20261108-1304",
       "po:po-20261108-1318",
       "po:po-20261108-1319",
@@ -487,7 +550,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 17,
+        "contagem": 18,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -498,6 +561,7 @@
           "plano:plano-20261108-1334",
           "plano:plano-20261109-2341",
           "plano:plano-20261110-1304",
+          "plano:plano-20261110-2145",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
@@ -627,9 +691,10 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:pe-torto/01/calango"
+          "ciclo:pe-torto/01/calango",
+          "ciclo:redinha-rosa/01/calango"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
@@ -660,6 +725,15 @@
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
+      },
+      {
+        "contagem": 2,
+        "ids": [
+          "ciclo:redinha-rosa/01/calango",
+          "plano:plano-20261110-2145"
+        ],
+        "rotulo": "redinha-rosa",
+        "valor": "redinha-rosa"
       }
     ],
     "tipos": [
@@ -675,21 +749,23 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:pe-torto/01/calango"
+          "ciclo:pe-torto/01/calango",
+          "ciclo:redinha-rosa/01/calango"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
       },
       {
-        "contagem": 5,
+        "contagem": 6,
         "ids": [
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
           "plano:plano-20261108-1334",
           "plano:plano-20261109-2341",
-          "plano:plano-20261110-1304"
+          "plano:plano-20261110-1304",
+          "plano:plano-20261110-2145"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -713,9 +789,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "901200a"
+    "commit": "c456a80"
   },
-  "gerado_em": "2026-11-10T22:15",
+  "gerado_em": "2026-11-11T00:45",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1026,6 +1102,18 @@
       "id": "plano:plano-20261110-1304",
       "objetivo": "Teste",
       "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
+      "ajuste_de": "plano-20261110-1304",
+      "ano": "2026",
+      "carimbo": "plano-20261110-2145",
+      "ciclo": "01",
+      "data": "2026-11-10T21:45",
+      "id": "plano:plano-20261110-2145",
+      "objetivo": "Teste",
+      "professor": "redinha-rosa",
       "tipo": "plano",
       "turma": "Rosa"
     },

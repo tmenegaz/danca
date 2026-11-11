@@ -15,6 +15,22 @@
       "numero": "01",
       "professor": "pe-torto",
       "sem_ancora": false
+    },
+    {
+      "ancora": {
+        "hash": "c3e3245bdca313235b8a275f3b1096c1a9a191710ba938f13a09792a832ca85d",
+        "id": "ciclo-01-calango-rosa",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:redinha-rosa/01/calango",
+      "numero": "01",
+      "professor": "redinha-rosa",
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -90,17 +106,18 @@
     },
     {
       "ciclos": [
-        "ciclo:pe-torto/01/calango"
+        "ciclo:pe-torto/01/calango",
+        "ciclo:redinha-rosa/01/calango"
       ],
       "contagens": {
         "anamneses": 4,
         "aulas": 1,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 5,
+        "ciclos": 2,
+        "ciclos_com_ancora": 2,
+        "planos": 6,
         "pos": 8,
         "recortes": 2,
-        "registros": 17
+        "registros": 18
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -124,6 +141,7 @@
         "plano:plano-20261108-1334",
         "plano:plano-20261109-2341",
         "plano:plano-20261110-1304",
+        "plano:plano-20261110-2145",
         "po:po-20261108-1304",
         "po:po-20261108-1318",
         "po:po-20261108-1319",
@@ -139,7 +157,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 17,
+        "contagem": 18,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -163,7 +181,7 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
@@ -267,7 +285,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
@@ -280,9 +298,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "901200a"
+    "commit": "c456a80"
   },
-  "gerado_em": "2026-11-10T22:15",
+  "gerado_em": "2026-11-11T00:45",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -418,7 +436,9 @@
       "slug": "rabo-gramde"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:redinha-rosa/01/calango"
+      ],
       "escolas": [
         "calango"
       ],
