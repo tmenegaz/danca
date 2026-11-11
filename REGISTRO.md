@@ -42260,3 +42260,83 @@ continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou:
 (`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
 publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
 a entrada de 10/11 sobre a `chave` estável.
+
+## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
+
+**O que motivou.** Três leituras dela, na mesma sessão, todas de coisas que estavam à frente dos
+olhos e não funcionavam:
+
+1. «Não tem o véu. O véu tem que cobrir a tela toda. E aí tem que ter um spinning rodando […]
+   isso não está aparecendo. […] senão o professor não sabe o que está acontecendo.»
+2. «Você também não fez o padrão de listagem que a gente usa. Olha como é que é feito no estilo a
+   listagem. É a mesma. Tem que ser padrão, tem que ser a mesma estrutura.»
+3. «Em modalidade tem escolher, no elenco também tem escolher, mas no professor não tem. […]
+   porque o professor olha assim e não sabe o que fazer com isso.»
+
+E ainda: as etiquetas que perdem a borda de baixo ao rolar, e o histórico do ajuste que só servia
+de log de programador na listagem das Turmas.
+
+**O que foi decidido.**
+
+- **O VÉU PASSA A VER-SE.** A causa foi medida: a folha tem **duas peças com a mesma classe
+  `.veu`** — a da coluna (`opacity:0`, acesa por `body.coluna-aberta`) e a da operação
+  (`display:none` → `flex` em `data-ocupado`). A da operação repunha `pointer-events` e **não
+  repunha `opacity`**, e herdava o `0` da outra. Medido no navegador: `display:flex`, caixa
+  1280×800 a cobrir a janela, `inert` em tudo por baixo — e **opacidade 0**. O que cobria a
+  página não se via. A correção é uma linha (`opacity:1` na peça da operação); a ambiguidade de
+  duas peças com o mesmo nome fica anotada como dívida, porque a da coluna é usada pelo `nav.js`.
+- **O VÉU PASSA A ESTAR EM TODOS OS GESTOS.** Ele só era chamado pelo `enviar`; os caminhos que
+  passam pelo `ocuparBotao` (habilitações, desligar o professor, mover a aluna, os elencos, o
+  cadastro) desactivavam o botão e não diziam mais nada. Como **todos** passam por ali, a chamada
+  foi para dentro do `ocuparBotao`/`liberarBotao` — um sítio, um comportamento, em vez de uma
+  chamada nova em cada gesto (que se esqueceria no próximo). Os gestos que não passam por lá
+  (apagar, criar um termo do Estilo, apagar um verbete, apagar/descartar um elenco) ganharam a
+  sua. E ficou uma **rede de segurança**: um temporizador de dois minutos devolve a página, porque
+  um véu que tranca a tela para sempre é o pior modo de falha deste sistema.
+- **A LISTAGEM DAS TURMAS É A MESMA PEÇA DAS OUTRAS.** Ela usava `li[data-curadoria] > .nome
+  (.linha1 + .dono) + .acoes` — o modelo das listas de **pessoas** —, e não
+  `li.turma > .linha-turma > .nome + .acoes` + `.dono`, que é o das Salas e do Estilo. A
+  diferença não era de gosto: as regras do telemóvel são escritas com `li:not(.turma)` porque a
+  peça do cartão tem as suas, e a Turma caía na regra das pessoas. Agora é um `li.turma` como os
+  outros. Dentro dela, o `<b>` continua a ser o **elenco** e o professor continua no complemento.
+- **O COMPLEMENTO NÃO ENCOSTA NA ETIQUETA.** Medido: fundo do `.linha-turma` e topo do `.dono` no
+  **mesmo pixel** (0,00px de vão) nos três cartões — Sala, Turma e Verbete. Passa a haver 3,19px,
+  numa regra só (`li.turma > .dono`), e não em cada lista.
+- **O HISTÓRICO DO AJUSTE SAI DA LISTAGEM DAS TURMAS.** «Isso não tem sentido existir aqui para o
+  professor, ele não vai tomar conta, controle disso.» O `historicoDoAjuste` **fica** — é a peça
+  da lista das Salas, e a cadeia continua a ler-se no formulário do ajuste. O que sai é a sua
+  exibição permanente em cada cartão. O `diferencaDeCuradoria`, que só esta lista usava, saiu com
+  ela.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md`, e
+muda por uma razão medida: a peça `.veu` da operação declarava tudo menos a `opacity`, e herdava o
+`0` da peça homónima da coluna — o véu cobria a janela e não se via. A alteração é **uma
+declaração** (`opacity: 1`) e não toca no desenho, na fórmula do hash, na cobertura, nos
+validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cinco cópias da
+folha (a raiz e os quatro pacotes publicados) foram regeradas — `raiz/` por `tools/gerar-raiz.sh`,
+os pacotes por cópia da fonte —, e a âncora `.fipp` **não mudou**, porque ela cobre FONTES
+(`.conf` e `.md`) e os assets não entram na fórmula.
+
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a `opacity` do véu ·
+`raiz/assets/style.css` e os quatro `professores/*/ciclos/*/assets/style.css` (cópias da folha) ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma na peça
+`.turma`, o vão do complemento, o «rever» ao lado do nome, o véu no `ocuparBotao` e nos gestos que
+não passam por ele, a rede de segurança de dois minutos, o histórico fora da listagem, e o
+`— escolher —` em todos os `<select>` do formulário (professor, modalidade, tradição, grau, sala,
+elenco) · [experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js)
+— de 54 para **73** provas (o véu, a peça da listagem, o histórico ausente, os rótulos dos campos).
+
+**Validação.** Controle negativo contra o `HEAD`: **23 falhas em 65** provas — o véu com opacidade
+0, a listagem sem `.linha-turma`, o histórico presente, quatro `<select>` sem «— escolher —», as
+etiquetas sobrepostas a 560px. Sem regressão: `provar-veu-da-operacao` 23 · `provar-troca-de-
+direcao` 40 · `provar-derivacao-e-identidade` 19 · `provar-link-e-fecho` 20 · `provar-fecho-do-
+pacote` 57 · `provar-direcao-do-documento` 21 · `provar-publicacao-da-escola` 66 ·
+`provar-derivacao-da-turma` 120/140 (as 20 são pré-existentes, iguais ao `HEAD`) ·
+`check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
+
+**O que ainda não está feito.** (1) A dívida das **duas `.veu`** com o mesmo nome continua: a da
+coluna (usada pelo `nav.js`) e a da operação. Renomear uma delas exige tocar no `nav.js`, que é do
+mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada» e a «ajustada em…»
+continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
+o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
+não foi pedido para sair de lá.

@@ -2280,6 +2280,20 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   align-items: center; justify-content: center;
   flex-direction: column; gap: var(--esp-4);
   background: var(--fundo);
+  /* A OPACIDADE TEM DE SER REPOSTA AQUI (11/11/2026) — e a linha vale um defeito medido.
+   *
+   * Esta folha tem DUAS peças com a mesma classe `.veu`: a da COLUNA (acima, `z-index:55`, que
+   * nasce `opacity:0` e é acesa pela classe `body.coluna-aberta` que o `nav.js` põe) e esta, a da
+   * OPERAÇÃO. A da coluna declara `opacity:0; pointer-events:none`, e a da operação repunha
+   * `pointer-events` mas NÃO repunha `opacity`. Resultado, medido no navegador: o véu da operação
+   * ficava `display:flex`, com a caixa certa (1280×800), a cobrir a janela inteira — e
+   * **transparente**. A pesquisadora leu-o como «não tem o véu», e tinha razão: o que cobria a
+   * página não se via.
+   *
+   * A `opacity:1` é a correção mínima e não mexe na peça da coluna: cada uma declara o seu valor.
+   * A ambiguidade de duas peças com o mesmo nome fica anotada como dívida — resolvê-la é renomear
+   * uma das duas, e a da coluna é usada pelo `nav.js`, que é do mesmo congelamento. */
+  opacity: 1;
   padding: var(--esp-5);
   text-align: center;
   /* Enquanto o véu está de pé, o ponteiro não passa — e quem o recebe é ele. */
