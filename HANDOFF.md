@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T09:14:54-0300`
-Commit atual: `6ab32d5d` — chore(template): a folha do pacote que veio do remoto, na fonte de hoje
+Gerado em: `2026-11-11T15:23:41-0300`
+Commit atual: `c1be2d22` — fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
+7b34eb28 fix(template): o veu deixa ver a pagina, e a operacao atravessa as abas
+d2d62ce3 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+737af15b chore(estrutura): reancorar a cadeia das fontes alteradas
+09c008fe chore(estrutura): regerar os índices derivados
+f614cd9d chore(estrutura): regerar os índices derivados
+2f282624 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+20e2491d feat(po): o PO elicitado vira a fonte do ciclo
+b7ad8a73 feat(po): o PO elicitado vira a fonte do ciclo
+47b48a98 feat(acervo): envelope/po-20261111-1017.json
+71b4e1a9 feat(acervo): envelope/.indice.json
+7b381e97 feat(plano): o elo da cadeia automática
+793dcfd5 feat(acervo): envelope/plano-20261111-1016.json
+f03138c3 feat(acervo): envelope/.indice.json
+cfa81e87 chore(estrutura): regerar o HANDOFF
 6ab32d5d chore(template): a folha do pacote que veio do remoto, na fonte de hoje
 7e2d4b90 fix(estrutura): a listagem da Turma na peca das outras, e o veu em todos os gestos
 61d587ed fix(template): o veu da operacao deixa de ser transparente
 990b9763 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
 05628b8f chore(estrutura): reancorar a cadeia das fontes alteradas
-022829cb chore(estrutura): regerar os índices derivados
-2be266d3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-bcdba8a6 chore(estrutura): regerar os índices derivados
-bc437b18 feat(po): o PO elicitado vira a fonte do ciclo
-3968daf6 feat(po): o PO elicitado vira a fonte do ciclo
-58d914f0 feat(acervo): envelope/po-20261111-0858.json
-c0fd915a feat(acervo): envelope/.indice.json
-df690bde feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-a234cc04 feat(plano): o elo da cadeia automática
-e615b0c0 feat(acervo): envelope/plano-20261111-0858.json
-3a15d2ae feat(acervo): envelope/.indice.json
-a7a65aba chore(estrutura): regerar o HANDOFF
-a879dcc0 feat(estrutura): a Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
-d83afafa chore(estrutura): regerar o HANDOFF
-0f021296 fix(estrutura): o veu aparece na continuacao, as mensagens deixam de se repetir, e a turma volta vazia
 ```
 
 ## Por professor
@@ -169,97 +169,98 @@ d83afafa chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
+## 11/11/2026 — A operação atravessa as abas, e o véu deixa ver a página
 
-**O que motivou.** Três leituras dela, na mesma sessão, todas de coisas que estavam à frente dos
-olhos e não funcionavam:
+**O que motivou.** Duas leituras dela, no mesmo dia, sobre o véu que existe desde 10/11:
 
-1. «Não tem o véu. O véu tem que cobrir a tela toda. E aí tem que ter um spinning rodando […]
-   isso não está aparecendo. […] senão o professor não sabe o que está acontecendo.»
-2. «Você também não fez o padrão de listagem que a gente usa. Olha como é que é feito no estilo a
-   listagem. É a mesma. Tem que ser padrão, tem que ser a mesma estrutura.»
-3. «Em modalidade tem escolher, no elenco também tem escolher, mas no professor não tem. […]
-   porque o professor olha assim e não sabe o que fazer com isso.»
+1. «O véu precisa ser bem transparente para o professor que estiver usando perceber que ele ainda
+   tá na mesma página e tá processando. E aí ele consegue ver através do véu o formulário, ele
+   consegue ver através do véu a listagem.»
+2. «Se o usuário ele tá com várias abas abertas […] numa aba ele tem aqui o ajuste que ele fez no
+   professor, na turma atribuída, ele foi lá e derivou. Aí ele tem numa outra aba aberto, por
+   exemplo, o plano do ciclo. O plano do ciclo que tem impacto direto ao que ele ajustou tem que
+   estar inabilitado enquanto estiver processando. A mesma coisa o plano de observação […] e a
+   mesma coisa os documentos que vão ser derivados a partir do plano de observação.»
 
-E ainda: as etiquetas que perdem a borda de baixo ao rolar, e o histórico do ajuste que só servia
-de log de programador na listagem das Turmas.
+E o pedido que fecha os dois: «precisa colocar uma etiqueta também que indique o que que está
+acontecendo […] precisa de um nome semântico equivalente».
 
 **O que foi decidido.**
 
-- **O VÉU PASSA A VER-SE.** A causa foi medida: a folha tem **duas peças com a mesma classe
-  `.veu`** — a da coluna (`opacity:0`, acesa por `body.coluna-aberta`) e a da operação
-  (`display:none` → `flex` em `data-ocupado`). A da operação repunha `pointer-events` e **não
-  repunha `opacity`**, e herdava o `0` da outra. Medido no navegador: `display:flex`, caixa
-  1280×800 a cobrir a janela, `inert` em tudo por baixo — e **opacidade 0**. O que cobria a
-  página não se via. A correção é uma linha (`opacity:1` na peça da operação); a ambiguidade de
-  duas peças com o mesmo nome fica anotada como dívida, porque a da coluna é usada pelo `nav.js`.
-- **O VÉU PASSA A ESTAR EM TODOS OS GESTOS.** Ele só era chamado pelo `enviar`; os caminhos que
-  passam pelo `ocuparBotao` (habilitações, desligar o professor, mover a aluna, os elencos, o
-  cadastro) desactivavam o botão e não diziam mais nada. Como **todos** passam por ali, a chamada
-  foi para dentro do `ocuparBotao`/`liberarBotao` — um sítio, um comportamento, em vez de uma
-  chamada nova em cada gesto (que se esqueceria no próximo). Os gestos que não passam por lá
-  (apagar, criar um termo do Estilo, apagar um verbete, apagar/descartar um elenco) ganharam a
-  sua. E ficou uma **rede de segurança**: um temporizador de dois minutos devolve a página, porque
-  um véu que tranca a tela para sempre é o pior modo de falha deste sistema.
-- **A LISTAGEM DAS TURMAS É A MESMA PEÇA DAS OUTRAS.** Ela usava `li[data-curadoria] > .nome
-  (.linha1 + .dono) + .acoes` — o modelo das listas de **pessoas** —, e não
-  `li.turma > .linha-turma > .nome + .acoes` + `.dono`, que é o das Salas e do Estilo. A
-  diferença não era de gosto: as regras do telemóvel são escritas com `li:not(.turma)` porque a
-  peça do cartão tem as suas, e a Turma caía na regra das pessoas. Agora é um `li.turma` como os
-  outros. Dentro dela, o `<b>` continua a ser o **elenco** e o professor continua no complemento.
-- **O COMPLEMENTO NÃO ENCOSTA NA ETIQUETA.** Medido: fundo do `.linha-turma` e topo do `.dono` no
-  **mesmo pixel** (0,00px de vão) nos três cartões — Sala, Turma e Verbete. Passa a haver 3,19px,
-  numa regra só (`li.turma > .dono`), e não em cada lista.
-- **O HISTÓRICO DO AJUSTE SAI DA LISTAGEM DAS TURMAS.** «Isso não tem sentido existir aqui para o
-  professor, ele não vai tomar conta, controle disso.» O `historicoDoAjuste` **fica** — é a peça
-  da lista das Salas, e a cadeia continua a ler-se no formulário do ajuste. O que sai é a sua
-  exibição permanente em cada cartão. O `diferencaDeCuradoria`, que só esta lista usava, saiu com
-  ela.
+- **O VÉU PASSA A DEIXAR VER.** Ele era opaco (`var(--fundo)`), e um véu opaco responde «está a
+  acontecer alguma coisa?» com um sim e «onde é que eu estou?» com um não. Passa a ser o papel da
+  vez translúcido a **45%** (`color-mix` sobre o token, com `var(--veu)` como rede para quem não
+  tem `color-mix`) e um `backdrop-filter` de 1px. Medido no navegador: o texto do bordô
+  `rgb(107,31,46)` lê-se a `rgb(172,116,123)` através do véu — a página continua reconhecível, e o
+  que muda é que ela está lavada e não responde.
+- **O QUE SE LÊ FICA NUM CARTÃO OPACO.** Com o véu translúcido, a frase solta competiria com o
+  formulário que se vê por baixo. O `.veu-cartao` é do papel da superfície, com filete e sombra, e
+  é ele que carrega o giro, a etiqueta e a frase.
+- **A ETIQUETA É SEMÂNTICA, E É O `.selo` DO CATÁLOGO.** «Derivação», «Vinculação», «Ajuste da
+  Sala», «Transferência», «Elenco», «Geração dos documentos», «Desligamento», «Habilitações»,
+  «Exclusão», «Vocabulário». O vocabulário é o da **cadeia**, não o dos botões: «A gravar» não
+  distingue o gesto que muda o vínculo do que só corrige um nome — e é essa diferença que faz o
+  professor esperar ou não. O `textoDoPasso` devolve agora `{ etiqueta, texto }`.
+- **A OPERAÇÃO ATRAVESSA AS ABAS, E O DONO DELA É O `nav.js`.** Ele é o **único script que todas as
+  páginas carregam** — Produção, porta (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`) e
+  cada documento publicado do pacote. Uma regra escrita em cada página seriam seis cópias a
+  divergir na primeira correcção, e a que ficasse para trás seria justamente a que o professor tem
+  aberta.
+- **DUAS VIAS, E AS DUAS SÃO PRECISAS.** O `BroadcastChannel` entrega no instante; o
+  `localStorage` com o evento `storage` é o que sobrevive a uma aba que abre **já a meio** da
+  operação (a aba que nasce não recebe o que foi transmitido antes de ela existir). Nenhuma das
+  duas entrega ao próprio remetente — é isso que impede o eco.
+- **A IDENTIDADE É DA ABA, NÃO DO DOCUMENTO**, e vive no `sessionStorage`: sobrevive à recarga. Sem
+  isso, a página recarregada a meio do gesto lia a operação que ela própria publicara e trancava-se
+  a si mesma por dois minutos. Com isso, ela reconhece-a como sua, limpa-a, e volta a publicar se a
+  cadeia continuar.
+- **O ESTADO CONVERGE POR UMA FUNÇÃO SÓ.** `aplicar()` decide quem manda no véu: a operação desta
+  aba; senão a que veio de fora; senão nada. É o que impede o véu de mentir quando as duas coisas
+  se cruzam — duas abas a trabalhar, ou uma a acabar enquanto a outra começa.
+- **A REDE DE SEGURANÇA MUDOU DE CASA.** O temporizador de dois minutos que devolve a página
+  passou do `bastidores.js` para o módulo, porque agora é ele que tranca em todas as páginas e em
+  todas as abas. Uma operação vencida não tranca ninguém, e é limpa do armazenamento.
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md`, e
-muda por uma razão medida: a peça `.veu` da operação declarava tudo menos a `opacity`, e herdava o
-`0` da peça homónima da coluna — o véu cobria a janela e não se via. A alteração é **uma
-declaração** (`opacity: 1`) e não toca no desenho, na fórmula do hash, na cobertura, nos
-validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cinco cópias da
-folha (a raiz e os quatro pacotes publicados) foram regeradas — `raiz/` por `tools/gerar-raiz.sh`,
-os pacotes por cópia da fonte —, e a âncora `.fipp` **não mudou**, porque ela cobre FONTES
-(`.conf` e `.md`) e os assets não entram na fórmula.
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` e `tools/templates/nav.js` estão
+em `CONGELAMENTO.md`, e mudam por um motivo medido e duplo: o véu era opaco (não se via a página) e
+a operação não atravessava as abas (o plano do ciclo continuava gravável sobre um vínculo a mudar).
+A alteração **não toca** no desenho da barra, na fórmula do hash, na cobertura das fontes, nos
+validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cópias foram
+regeradas — `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópia das duas fontes —, e a
+âncora `.fipp` **não mudou**: ela cobre FONTES (`.conf` e `.md`), e os assets não entram na fórmula.
 
-**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a `opacity` do véu ·
-`raiz/assets/style.css` e os quatro `professores/*/ciclos/*/assets/style.css` (cópias da folha) ·
-[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o cartão da Turma na peça
-`.turma`, o vão do complemento, o «rever» ao lado do nome, o véu no `ocuparBotao` e nos gestos que
-não passam por ele, a rede de segurança de dois minutos, o histórico fora da listagem, e o
-`— escolher —` em todos os `<select>` do formulário (professor, modalidade, tradição, grau, sala,
-elenco) · [experimentos/provar-identidade-da-turma.js](./experimentos/provar-identidade-da-turma.js)
-— de 54 para **73** provas (o véu, a peça da listagem, o histórico ausente, os rótulos dos campos).
+**Onde entrou.** [tools/templates/nav.js](./tools/templates/nav.js) — o módulo
+`LastroDaOperacao` (garantir o véu, trancar, publicar, escutar, expirar) e a API que o resto usa ·
+[tools/templates/ciclo.css](./tools/templates/ciclo.css) — o véu translúcido, o `.veu-cartao`, a
+`.veu-etiqueta` e a `.veu-nota` · [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) —
+`ocupar`/`liberar`/`dizerNoVeu` delegam no módulo (uma linha cada, sem mudar as cem chamadas), o
+`textoDoPasso` com etiqueta, e as etiquetas dos gestos que não passam pelo `enviar` · as cinco
+cópias de `assets/nav.js` e `assets/style.css` e a da `raiz/` ·
+[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o quadro do véu e a linha da tabela de estados ·
+[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — 23
+provas novas.
 
-**Validação.** Controle negativo contra o `HEAD`: **23 falhas em 65** provas — o véu com opacidade
-0, a listagem sem `.linha-turma`, o histórico presente, quatro `<select>` sem «— escolher —», as
-etiquetas sobrepostas a 560px. Sem regressão: `provar-veu-da-operacao` 23 · `provar-troca-de-
-direcao` 40 · `provar-derivacao-e-identidade` 19 · `provar-link-e-fecho` 20 · `provar-fecho-do-
-pacote` 57 · `provar-direcao-do-documento` 21 · `provar-publicacao-da-escola` 66 ·
+**Validação.** Duas abas **reais**, no mesmo contexto de navegador e na mesma origem — é a única
+forma de o `localStorage` e o `BroadcastChannel` serem os verdadeiros. Medido: a aba da Produção
+ocupa, e a do plano levanta o véu sozinha com a etiqueta «Derivação» e a frase; o alfa medido é
+0,45; o cartão é opaco; a etiqueta é um `.selo`; `elementFromPoint` no centro devolve o véu (o
+clique não passa); a aba que **abre a meio** já o encontra; a operação **vencida** não tranca
+ninguém; e a aba que se **recarrega** a meio do próprio gesto não se tranca a si mesma. Controle
+negativo contra o `HEAD`: **21 falhas em 23** — o `nav.js` de antes não tem travessia nenhuma.
+Sem regressão: `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `provar-derivacao-e-identidade` 19 · `provar-link-e-fecho` 20 ·
+`provar-fecho-do-pacote` 57 · `provar-direcao-do-documento` 21 · `provar-publicacao-da-escola` 66 ·
 `provar-derivacao-da-turma` 120/140 (as 20 são pré-existentes, iguais ao `HEAD`) ·
 `check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
 
-**O que ainda não está feito.** (1) A dívida das **duas `.veu`** com o mesmo nome continua: a da
-coluna (usada pelo `nav.js`) e a da operação. Renomear uma delas exige tocar no `nav.js`, que é do
-mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada» e a «ajustada em…»
-continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
-o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
-não foi pedido para sair de lá.
+**O que ainda não está feito.** (1) A **dívida das duas `.veu`** com o mesmo nome continua — a da
+coluna, usada pelo `nav.js`, e a da operação. (2) O véu **não distingue** «a operação é desta aba»
+de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar de ser mais evidente, é
+uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
+a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
+houver duas na mesma origem, a chave terá de levar o slug.
 
 ## O que está pendente
-
-## 10/11/2026 — A cadeia que pára no teto continua sozinha, e o «abrir» entra no documento
-
-(1) **Não foi conferido no ar nesta sessão** — as provas são de
-bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
-a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
-grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
-`wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
-gesto** continua a gerar outra vez (é idempotente para os elos, não para a geração): quem evita a
-repetição é o registo da geração, e só quando o KV tem a chave.
 
 ## 10/11/2026 — O ajuste que não se perde no elo vencido, e a variante que não muda com a sala
 
@@ -294,6 +295,15 @@ mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada�
 continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
 o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
 não foi pedido para sair de lá.
+
+## 11/11/2026 — A operação atravessa as abas, e o véu deixa ver a página
+
+(1) A **dívida das duas `.veu`** com o mesmo nome continua — a da
+coluna, usada pelo `nav.js`, e a da operação. (2) O véu **não distingue** «a operação é desta aba»
+de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar de ser mais evidente, é
+uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
+a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
+houver duas na mesma origem, a chave terá de levar o slug.
 
 ## Pendências anteriores (índice)
 
@@ -702,6 +712,7 @@ não foi pedido para sair de lá.
 - **10/11/2026** — O histórico do ajuste: o rótulo, a diferença e o motivo → `REGISTRO.md` L41668
 - **10/11/2026** — O passo 1 do Estilo procura no vocabulário, e um exercício… → `REGISTRO.md` L41744
 - **10/11/2026** — A decomposição pela ordem em que foi escrita, e a… → `REGISTRO.md` L41826
+- **10/11/2026** — A cadeia que pára no teto continua sozinha, e o «abrir»… → `REGISTRO.md` L41906
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
