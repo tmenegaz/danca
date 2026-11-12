@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T08:51:47-0300`
-Commit atual: `08ac4e0f` — fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
+Gerado em: `2026-11-12T09:32:41-0300`
+Commit atual: `13da2160` — fix(template): a sala diz o presente, e os tres passos andam
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+13da2160 fix(template): a sala diz o presente, e os tres passos andam
+ad87a0f1 chore(estrutura): regerar o HANDOFF
 08ac4e0f fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
 1bcd3491 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
 86da196e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
@@ -90,8 +92,6 @@ a60c94c7 feat(acervo): envelope/.indice.json
 5120fc3d feat(po): o PO elicitado vira a fonte do ciclo
 f843693d feat(linha de base): índice — ami 20261112-1137-2
 1a46f91c feat(elenco): ami — concluído
-0c901829 feat(po): o PO elicitado vira a fonte do ciclo
-8d1b4e73 feat(acervo): envelope/po-20261112-0837.json
 ```
 
 ## Por professor
@@ -169,88 +169,68 @@ f843693d feat(linha de base): índice — ami 20261112-1137-2
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — Um véu para todos os gestos: elenco, leitura, verbete e sala
+## 12/11/2026 — A sala diz o presente, e os três passos andam
 
-**O que motivou, na letra dela.** «Nós fizemos uma solução na alteração da turma ou na criação da
-turma. E aí a gente tem um véu, tem um spinning e tem a mensagem. […] não podemos ter decisões
-conflitantes, e o conflito está justamente na audição. […] Eu já tenho ali na audição a mesma
-solução quando eu cancelo um processo. Mas quando eu vou concluir o elenco, não, é uma outra solução
-e não pode ser assim. Tem que ser a mesma solução.» E depois, para o Estilo e as Salas: o mesmo, «quer
-a sala esteja vinculada ou não».
+**O que aconteceu.** A pesquisadora, na aba **Salas** da Produção: «eu estou dizendo que a turma ela
+tem a sala piano. E aí a etiqueta que está na sala piano é vinculada e não em turma. […] E agora a
+sala rosa, ela está dizendo que está vinculada. Na verdade ela não está, porque eu só tenho uma
+turma até agora e ela não está em turma.» E, no cadastro da sala: «quando eu estou no step um e clico
+avançar, ele já está criando a sala e não vai para a rubrica, para o step dois […] toda vez que eu
+clico em avançar, ele faz o que tem que fazer e volta para o step um.»
 
-**A CAUSA, medida — e não era uma decisão, era um `return null`.** Dois sítios chamavam
-`ocuparBotao(botao, "gravando...", "button")`: um BOTÃO onde a função esperava um FORMULÁRIO. Ela
-fazia `form.querySelector("button[type=submit]")`, que dentro de um `<button>` não encontra nada, e
-devolvia `null` **antes** de chamar `ocupar`. Nenhum véu, nenhum giro, nenhuma frase — e **nenhum
-erro na consola**, porque `return null` é um caminho legítimo da função. Os dois gestos sem véu eram
-o «Concluir elenco» e o «Ler as anamneses».
-
-E o terceiro argumento era o `id` de um elemento passado no lugar da etiqueta: onde se lia
-`"button"`, a etiqueta do véu diria a palavra «button».
+**O que foi medido, antes de mexer.** As duas salas do ar (`calango`) tinham plano de ensino: o
+`Piano`, dez (do Pé Torto e da Redinha Rosa); o `Rosa`, seis, de 08 a 10/11, quando era ela a sala de
+uma turma. Uma só curadoria activa, e é a do `Piano`. Ou seja: `vinculada` queria dizer «um plano
+de ensino já a cita» — a leitura dela estava certa —, e as duas salas diziam a mesma palavra por
+razões diferentes. O selo respondia a «posso editar no lugar?» a quem perguntava «esta sala está em
+alguma turma?».
 
 **O que foi decidido.**
+- **O selo diz o PRESENTE, a nota diz o PASSADO.** `em turma` quando uma curadoria activa usa a sala
+  (`turmasCuradas`), `livre` quando nenhuma usa; e, quando há planos que a citam, uma **nota** abaixo
+  do nome — «citada por N planos de ensino — ajustar deriva, e o que já foi escrito fica». A escolha
+  entre selo e nota é dela, entre três opções: «sem selo: nota ‘citada por N planos’».
+- **A regra da escrita não mudou.** Quem edita e quem deriva continua a ser `estadoDaTurma`; uma sala
+  `livre` **e** citada continua a ter o botão «Derivar». O que faltava era o cartão dizer **porquê**.
+- **Um selo responde a UMA pergunta** — ficou escrito em [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md):
+  quando há dois factos na mesma linha, o que se compara é selo e o que só se sabe é nota.
 
-- **`ocuparBotao` aceita os dois** — um formulário (e desabilita o botão de submeter) ou um botão.
-  Os dois são legítimos: há gestos com formulário e gestos que são um botão só. E o quarto argumento
-  passou a ser **a frase do véu**, separada do **rótulo do botão**: o botão tem a largura de um botão
-  («gravando...»), o véu tem a linha inteira («a criar o Elenco e a revincular as Turmas que o
-  usam…»). A primeira tentativa juntou-os e o botão esticou-se por uma linha e meia.
-- **AS FRASES VIVEM NUM SÍTIO SÓ** (`textoDoPasso`). Entraram as que faltavam: `/verbete`,
-  `/api/bastidores/turma` (o cadastro — era o único caminho da Sala sem véu semântico),
-  `/linha-de-base/leitura`, e o `/linha-de-base` passou a «a gravar o Elenco…». As duas variantes do
-  elenco (criar / regravar) ficam ao lado, em `passoDoElenco`, porque o mapa é por endereço e este
-  endereço tem dois sentidos.
-- **AS DUAS FRASES DA SALA DIZEM COISAS DIFERENTES.** A LIVRE é substituída no lugar («Gravação da
-  Sala»); a VINCULADA deriva — elo novo, com data, nome que não muda («Ajuste da Sala … a reencadear
-  o PO»). Dizer a mesma frase nos dois casos obrigava o professor a saber qual ia acontecer para a
-  ler.
-- **O BOTÃO DO ELENCO PASSOU A DIZER O QUE FAZ, E A ESCOLHA É DELA.** «Não é concluir elenco, é
-  selecionar um elenco. Na verdade é criar um elenco» — e, entre as duas palavras, **dinâmico**:
-  «Criar elenco» quando é novo, «Gravar elenco» quando há um aberto. O `title` acompanha o verbo
-  («Para criar, falta…» / «Para gravar, falta…»). «Concluir» era uma palavra de processo interno, e
-  não do trabalho de quem ensina.
-- **O VERBETE GANHOU A ETIQUETA «EM TURMA» / «LIVRE».** O pedido é explícito: «um verbete a gente
-  tem que colocar também a etiqueta para saber se ele está ou não vinculado a uma turma». E ela não
-  é ornamento — é o que diz qual dos dois gestos vai acontecer: um verbete **livre** grava-se no
-  lugar; um **em turma** já compõe o repertório de um plano, e a gravação passa a ser um **ajuste**,
-  com o estado anterior no histórico. É o mesmo par de palavras do elenco e da Turma, e não um
-  terceiro nome para o mesmo estado. `turmasPorTermo` lê os planos e devolve os NOMES das turmas;
-  `null` (planos ilegíveis) **não** vira lista vazia — «não se conseguiu olhar» não é «não está em
-  nenhuma».
+**A causa dos três passos — e não era o preenchedor da bancada.** Duas regras certas encontravam-se
+mal. «Fora da edição, o formulário é novo» (19/10) esvazia os campos depois de cada gravação, e no
+caminho de **criar** é isso mesmo que se quer. E a guarda da sequência (18/10) perguntava ao
+**formulário** se a sala estava completa. Depois de gravar, o formulário está vazio e a sala está
+gravada: a guarda concluía «falta tudo» e devolvia ao passo 1 — com os campos vazios, o que se lê
+como «não gravou». O mesmo em `aplicarTravas` (os passos 2 e 3 apagados) e na segunda barreira do
+«Gravar sala» (o `alert` em vez da gravação).
 
-**Uma lição que a prova pagou duas vezes.** A asserção estática procurava o literal `"button"` no
-ficheiro e encontrou o **comentário que narra o defeito**, a citar a chamada antiga. Passou a olhar
-só as linhas EMITIDAS (as que começam por `'`). É a mesma armadilha da prova do elenco sem ninguém:
-uma asserção que procura texto no código encontra também o texto que fala dele.
+**O que ficou.** Os três sítios passaram a perguntar o mesmo: **a sequência pede uma SALA, não um
+formulário preenchido** — e há duas maneiras de a ter, o formulário à frente ou uma sala em foco
+(`turmaEmFoco()`, que sobrevive à recarga). O passo 1 continua a exigir o preenchimento para criar; o
+2 e o 3 abrem com a sala gravada; e o fim (`concluirTurma`) devolve ao passo 1 com os campos vazios e
+sem sala em foco.
 
-**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `ocuparBotao`,
-`textoDoPasso`, `passoDoElenco`, `turmasPorTermo`, o selo do verbete, o rótulo dinâmico do botão e
-as três chamadas corrigidas · [experimentos/provar-o-veu-de-cada-gesto.js](./experimentos/provar-o-veu-de-cada-gesto.js)
-— prova nova · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o alcance do véu.
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o selo e a nota do
+cartão da sala, `mostrarPasso`, `aplicarTravas` e a guarda do «Gravar sala» ·
+[experimentos/provar-o-passo-da-sala.js](./experimentos/provar-o-passo-da-sala.js) — prova nova ·
+[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — o par selo/nota ao lado da tabela dos três estados ·
+[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — a regra «um selo, uma pergunta».
 
-**Validação.** `provar-o-veu-de-cada-gesto` **39/39**; controle negativo contra `fa3bea6a`:
-**27 falhas** — e o negativo mostra o defeito na letra: `ocupado: null`, etiqueta «a processar», e o
-botão a dizer «Concluir elenco». Sem regressão: `provar-elenco-sem-ninguem` 59 ·
-`provar-revisao-do-recorte` 47 · `provar-elenco-na-turma` 26 · `provar-abas-da-audicao` 86 ·
-`provar-transferencia-e-desligamento` 93 · `provar-identidade-da-turma` 76 ·
-`provar-troca-de-direcao` 41 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas` 29 ·
-`check-identidade` 0 erros · `check-indices` 16/16.
+**Validação.** `provar-o-passo-da-sala` **23/23**; controle negativo contra `ad87a0f1`: **10
+falhas** — e o negativo mostra os dois sintomas na letra («depois da recarga, a página está NO PASSO
+2» → `turma`; o `Rosa` a dizer `vinculada`). Sem regressão: `provar-salas-e-elencos` 65 ·
+`provar-identidade-da-turma` 76 · `provar-mudanca-de-sala` 41 · `provar-conteudos-e-estado-da-turma`
+verde · `provar-o-veu-de-cada-gesto` 39 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas`
+29 · `provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `check-identidade` 0 erros.
+As provas que já falhavam antes continuam a falhar o mesmo: `provar-cartao-da-turma` 6,
+`provar-derivacao-da-turma` 20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1 —
+medidas contra o código anterior, para não se lhes atribuir o que não é delas.
 
-**O que ainda não está feito.** (1) O «Avançar» da Sala continua a chamar-se «Avançar»: é o botão de
-uma navegação de três passos, e renomeá-lo é outra decisão. (2) A etiqueta «em turma» do verbete lê
-os planos a cada abertura do Estilo — uma leitura que antes não existia nessa rota; se pesar, a
-alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
-reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
-histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.
+**O que ainda não está feito.** (1) No passo 3 a rubrica criada no passo 2 **não vem escolhida**: o
+professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
+(regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
+falha anterior a esta entrada.
 
 ## O que está pendente
-
-## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
-
-(1) **Nada foi aplicado ao produto** — as três formas são bancada,
-e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
-`--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
-(3) A dívida das duas peças com o mesmo nome `.veu` continua.
 
 ## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
 
@@ -285,6 +265,15 @@ os planos a cada abertura do Estilo — uma leitura que antes não existia nessa
 alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
 reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
 histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.
+
+---
+
+## 12/11/2026 — A sala diz o presente, e os três passos andam
+
+(1) No passo 3 a rubrica criada no passo 2 **não vem escolhida**: o
+professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
+(regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
+falha anterior a esta entrada.
 
 ## Pendências anteriores (índice)
 
@@ -699,6 +688,7 @@ histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo 
 - **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42200
 - **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42264
 - **11/11/2026** — A operação atravessa as abas, e o véu deixa ver a página → `REGISTRO.md` L42344
+- **11/11/2026** — As três formas do véu, e a página que pode pedir uma… → `REGISTRO.md` L42435
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
