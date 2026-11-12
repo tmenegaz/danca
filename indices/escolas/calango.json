@@ -179,8 +179,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
           "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
         ],
-        "hash": "964b016230a218a534ce686b539140b75f0a943cad55efab43a3e93f576acc8b",
-        "hash_conteudo": "5a0619a7f0f848cb2bb23d0abbe05d557024344dae1f6933f91169cac5f53a9b",
+        "hash": "9ec56b81e913a1e3e18b2939600ffdf28d059bb388d84579e8c5e06d8256cad7",
+        "hash_conteudo": "02dac490c5a7676691a5b89fc36cdb49615fbb84d8a83442f3d7e0de9fa28922",
         "id": "ciclo-01-calango-piano-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -274,8 +274,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "e7113594d6b54961a8ec6553f389fea624c35de52e0cbf3d1826e4f93c1c27b1",
-        "hash_conteudo": "01f970fc97732c66c92642b23eaff26848af3807e730928d1a582d4d95a82d3c",
+        "hash": "ea8599ad0bbd96d5292b8b495dfb20782d4870b2679322cb47e6f33f89e89373",
+        "hash_conteudo": "94d9307f11a86a6a288e85a8c4e01ffd6c4088ae5fdf1742a5f6aba53e50681a",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -290,8 +290,8 @@
               "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
               "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
             ],
-            "hash": "964b016230a218a534ce686b539140b75f0a943cad55efab43a3e93f576acc8b",
-            "hash_conteudo": "5a0619a7f0f848cb2bb23d0abbe05d557024344dae1f6933f91169cac5f53a9b",
+            "hash": "9ec56b81e913a1e3e18b2939600ffdf28d059bb388d84579e8c5e06d8256cad7",
+            "hash_conteudo": "02dac490c5a7676691a5b89fc36cdb49615fbb84d8a83442f3d7e0de9fa28922",
             "id": "ciclo-01-calango-piano-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -1465,9 +1465,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "de626e3"
+    "commit": "5e3982f"
   },
-  "gerado_em": "2026-11-12T11:33",
+  "gerado_em": "2026-11-12T11:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
