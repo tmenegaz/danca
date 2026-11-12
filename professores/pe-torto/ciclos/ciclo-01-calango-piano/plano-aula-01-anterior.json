@@ -27,16 +27,24 @@
   "guiaDeObservacao": {
     "Corpo": [
       {
+        "criterio": "4ª posição — pés",
+        "oQueSeObserva": "1 de 2 em «Bom» (com toque) · 1 de 2 em «razoável» (com a barra como apoio) — ponto de atenção"
+      },
+      {
         "criterio": "5ª posição — pés",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «razoável» (com toque) · 1 de 2 em «precisa desenvolver» (com a barra como apoio) — ponto de atenção"
+      },
+      {
+        "criterio": "4ª posição — braços",
+        "oQueSeObserva": "1 de 2 em «Bom» (com a barra como apoio) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção"
       },
       {
         "criterio": "5ª posição — braços",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Bom» (com toque) · 1 de 2 em «razoável» (com a barra como apoio) — ponto de atenção"
       },
       {
         "criterio": "Cócoras profundas (squat)",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Calcanhares apoiados, tronco erguido» · 1 de 2 em «Incapacidade (dorsiflexão / encurtamento)» — ponto de atenção"
       }
     ],
     "Técnica": [
@@ -124,7 +132,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-0833?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-0833?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-0837-2?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-0837-2?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",

@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261112-0833",
+  "planoDeEnsino": "plano-20261112-0837-2",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -18,7 +18,7 @@
     {
       "eixo": "Corpo",
       "dimensao": "as cinco posições: uma visão geral",
-      "itens": "5ª posição — pés; 5ª posição — braços"
+      "itens": "4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços"
     },
     {
       "eixo": "Corpo",
@@ -65,7 +65,7 @@
   "linhaDeBase": [
     {
       "grupo": "as cinco posições: uma visão geral",
-      "aspectosObservados": "5ª posição — pés; 5ª posição — braços"
+      "aspectosObservados": "4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços"
     },
     {
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
@@ -76,7 +76,7 @@
     "[a decidir]"
   ],
   "inclusionCriteria": [
-    "as cinco posições: uma visão geral: 5ª posição — pés; 5ª posição — braços",
+    "as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços",
     "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)"
   ],
   "exclusionCriteria": [
