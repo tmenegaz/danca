@@ -58,9 +58,11 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| 5ª posição — pés | sem registo na anamnese |
-| 5ª posição — braços | sem registo na anamnese |
-| Cócoras profundas (squat) | sem registo na anamnese |
+| 4ª posição — pés | 1 de 2 em «Bom» (com toque) · 1 de 2 em «razoável» (com a barra como apoio) — ponto de atenção |
+| 5ª posição — pés | 1 de 2 em «razoável» (com toque) · 1 de 2 em «precisa desenvolver» (com a barra como apoio) — ponto de atenção |
+| 4ª posição — braços | 1 de 2 em «Bom» (com a barra como apoio) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção |
+| 5ª posição — braços | 1 de 2 em «Bom» (com toque) · 1 de 2 em «razoável» (com a barra como apoio) — ponto de atenção |
+| Cócoras profundas (squat) | 1 de 2 em «Calcanhares apoiados, tronco erguido» · 1 de 2 em «Incapacidade (dorsiflexão / encurtamento)» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -96,8 +98,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-0833?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-0833?formato=html)** — Teste
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-0837?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-0837?formato=html)** — Teste
 
 **Anamnese de cada aluna**
 
