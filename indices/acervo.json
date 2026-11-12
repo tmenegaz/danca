@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "27f01ecd0c52acf40d5b864e9cf5298507794198db3ce0c88f1a7b919960b7dc",
+        "hash": "478bb94551a61602e359713959ada842ac031b3ae8f7d89eaff111620e53302e",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -114,10 +114,10 @@
         "aulas": 4,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
-        "planos": 11,
-        "pos": 14,
+        "planos": 12,
+        "pos": 15,
         "recortes": 2,
-        "registros": 29
+        "registros": 31
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -147,6 +147,7 @@
         "plano:plano-20261111-1016",
         "plano:plano-20261111-1527",
         "plano:plano-20261112-0747",
+        "plano:plano-20261112-0812",
         "po:po-20261108-1304",
         "po:po-20261108-1318",
         "po:po-20261108-1319",
@@ -160,7 +161,8 @@
         "po:po-20261111-0858",
         "po:po-20261111-1017",
         "po:po-20261111-1528",
-        "po:po-20261112-0747"
+        "po:po-20261112-0747",
+        "po:po-20261112-0812"
       ],
       "slug": "calango"
     }
@@ -168,7 +170,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 29,
+        "contagem": 31,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -296,12 +298,12 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 11,
+        "contagem": 12,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 14,
+        "contagem": 15,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -309,9 +311,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6dc9e42"
+    "commit": "3bdcf97"
   },
-  "gerado_em": "2026-11-12T10:51",
+  "gerado_em": "2026-11-12T11:13",
   "nao_indexado": [
     {
       "familia": "conteudo",
