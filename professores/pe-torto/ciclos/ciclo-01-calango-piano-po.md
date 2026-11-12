@@ -7,14 +7,14 @@ responsavel: pe-torto
 professor: pe-torto
 title: "Plano de Observação do Ciclo 01 — calango"
 state: Input_PO_Aguardando
-envelope: po-20261112-0747
+envelope: po-20261112-0812
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261112-0747
+plano-20261112-0812
 
 ## Horizonte
 
@@ -63,8 +63,6 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Sujeitos
 
-- Aluna A
-- Aluna B
 - Aluna C
 
 ## Norma estabelecida
