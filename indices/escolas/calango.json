@@ -2,23 +2,25 @@
   "aspectos": [
     {
       "aspecto": "cinco-posicoes-5a-bracos",
-      "contagem": 1,
+      "contagem": 2,
       "ids": [
-        "recorte:ami"
+        "recorte:ami",
+        "recorte:flores"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261112-1133",
-      "versoes": 8
+      "ultima": "20261112-1136",
+      "versoes": 9
     },
     {
       "aspecto": "cinco-posicoes-5a-pes",
-      "contagem": 1,
+      "contagem": 2,
       "ids": [
-        "recorte:ami"
+        "recorte:ami",
+        "recorte:flores"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261112-1133",
-      "versoes": 8
+      "ultima": "20261112-1136",
+      "versoes": 9
     },
     {
       "aspecto": "cocoras-profundas-squat",
@@ -37,8 +39,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1133",
-      "versoes": 2
+      "ultima": "20261112-1136",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-4a-bracos",
@@ -47,8 +49,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1133",
-      "versoes": 2
+      "ultima": "20261112-1136",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-4a-pes",
@@ -57,8 +59,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1133",
-      "versoes": 2
+      "ultima": "20261112-1136",
+      "versoes": 3
     },
     {
       "aspecto": "equilibrio-unipodal",
@@ -67,8 +69,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1133",
-      "versoes": 2
+      "ultima": "20261112-1136",
+      "versoes": 3
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -77,8 +79,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1133",
-      "versoes": 2
+      "ultima": "20261112-1136",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -1289,17 +1291,19 @@
         "valor": "cinco-posicoes-4a-pes"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "recorte:ami"
+          "recorte:ami",
+          "recorte:flores"
         ],
         "rotulo": "cinco-posicoes-5a-bracos",
         "valor": "cinco-posicoes-5a-bracos"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "recorte:ami"
+          "recorte:ami",
+          "recorte:flores"
         ],
         "rotulo": "cinco-posicoes-5a-pes",
         "valor": "cinco-posicoes-5a-pes"
@@ -1465,7 +1469,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6b28381"
+    "commit": "3b85733"
   },
   "gerado_em": "2026-11-12T11:36",
   "nao_indexado": [
@@ -1603,17 +1607,34 @@
         "articulacao-e-forca-intrinseca-dos-dedos",
         "cinco-posicoes-4a-bracos",
         "cinco-posicoes-4a-pes",
+        "cinco-posicoes-5a-bracos",
+        "cinco-posicoes-5a-pes",
         "equilibrio-unipodal",
         "espiral-rotacao-de-tronco"
       ],
-      "atualizada_em": "2026-11-12T11:33:03.118Z",
-      "enviada_em": "2026-11-12T11:32:19.708Z",
+      "atualizada_em": "2026-11-12T11:36:33.930Z",
+      "enviada_em": "2026-11-12T11:36:34.483Z",
       "id": "recorte:flores",
       "linha": "flores",
       "nome": "flores",
       "professor": "redinha-rosa",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/calango/linhas-de-base/flores--20261112-1136.json",
+          "aspectos": [
+            "cinco-posicoes-4a-pes",
+            "cinco-posicoes-5a-pes",
+            "cinco-posicoes-4a-bracos",
+            "cinco-posicoes-5a-bracos",
+            "articulacao-e-forca-intrinseca-dos-dedos",
+            "equilibrio-unipodal",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-12T11:36:34.483Z",
+          "versao": "20261112-1136"
+        },
         {
           "alunas": 3,
           "arquivo": "escola/calango/linhas-de-base/flores--20261112-1133.json",
