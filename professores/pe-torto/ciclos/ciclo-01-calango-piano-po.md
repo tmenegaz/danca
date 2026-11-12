@@ -7,14 +7,14 @@ responsavel: pe-torto
 professor: pe-torto
 title: "Plano de Observação do Ciclo 01 — calango"
 state: Input_PO_Aguardando
-envelope: po-20261112-0833
+envelope: po-20261112-0837
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261112-0833
+plano-20261112-0837
 
 ## Horizonte
 
@@ -48,7 +48,7 @@ Calendário: 2026-11-10 → 2026-12-29 · Volume de trabalho: 3–6 séries · C
 
 | Eixo | Dimensão | Itens |
 |:--|:--|:--|
-| Corpo | **as cinco posições: uma visão geral** | 5ª posição — pés; 5ª posição — braços |
+| Corpo | **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
 | Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | Teste |
@@ -74,7 +74,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 | Grupo | Aspectos observados |
 |:--|:--|
-| **as cinco posições: uma visão geral** | 5ª posição — pés; 5ª posição — braços |
+| **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
 | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
 
 ## Restrições físicas declaradas
@@ -83,7 +83,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Critérios de inclusão
 
-- as cinco posições: uma visão geral: 5ª posição — pés; 5ª posição — braços
+- as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços
 - Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)
 
 ## Critérios de exclusão
