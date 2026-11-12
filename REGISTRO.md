@@ -42431,3 +42431,64 @@ de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar 
 uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
 a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
 houver duas na mesma origem, a chave terá de levar o slug.
+
+## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
+
+**O que motivou.** O véu da operação foi aprovado no conteúdo e reprovado na forma: «o véu está
+legal. A caixa que você mostra com o texto dizendo que está processando e tal e o spinner ali é
+que está esquisito, está feio. Eu recomendo apenas deixar o spinner rodando sem nenhuma
+informação. Mas eu gostaria que você colocasse lá no experimento para eu ver como é que fica
+algumas opções. A que já está […] uma que é sem nenhuma caixa de texto e outra que é o texto na
+tela como se fosse também um pouco mais forte que uma marca d'água, sem nenhuma caixa, sem borda
+[…] porque ele conta o andamento do processo, ele conta uma história para o usuário.»
+
+**O que foi decidido.**
+
+- **AS FORMAS VÃO PARA A BANCADA, E NÃO PARA O PRODUTO.** Nenhuma das três substitui nada: elas
+  são o **mesmo** elemento — o véu da folha, construído pelo `nav.js` de verdade, com a operação
+  publicada pela API de verdade — e cada opção é um punhado de declarações a mais debaixo de
+  `[data-opcao="…"]`. Escolhida uma, aplicá-la é **mover essas linhas para a folha**. Uma proposta
+  que redescrevesse o desenho à mão poderia aprovar-se a si mesma.
+- **O FUNDO DA BANCADA É A PRODUÇÃO VERDADEIRA.** As secções «Salas» e «Turmas» saem de
+  `paginaProducao`, com um fixture, recortadas por uma leitura com contagem de profundidade (um
+  fecho a mais cortava a secção a meio). O que se julga é se **se reconhece onde se está** através
+  do véu — e isso só se mede sobre o ecrã de todos os dias.
+- **A PÁGINA PODE PEDIR UMA OPERAÇÃO SÓ DELA.** `data-operacao="so-esta-aba"` no `<html>` põe o
+  módulo em modo privado: pinta e tranca como sempre, e **não publica nem escuta** outras abas.
+  Sem isto, abrir a bancada para julgar o véu trancaria as abas de trabalho de quem a abre. É
+  declarado na marcação e não em JavaScript porque o `nav.js` corre **antes** do script da
+  página — uma linha de script chegaria tarde.
+
+**Motivo declarado — os congelados.** `tools/templates/nav.js` está em `CONGELAMENTO.md` e muda
+por seis linhas: três guardas (`ler`, `escrever`, `transmitir`) e duas condições (`storage` e
+`BroadcastChannel`), todas dependentes de uma única leitura do atributo. O que muda no
+comportamento é **só** o de uma página que declare o modo privado; nenhuma outra página deste
+repositório o declara, portanto nada do produto muda. Não toca na fórmula do hash, na cobertura,
+nos validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cópias
+foram regeradas (a `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópia) e a âncora
+`.fipp` não mudou — ela cobre FONTES.
+
+**Onde entrou.** [experimentos/propostas/construir.js](./experimentos/propostas/construir.js) —
+`proporVeu()`, com as três formas, o recorte das secções e um cartão novo no índice ·
+[tools/templates/nav.js](./tools/templates/nav.js) — o modo privado · as cinco cópias de
+`assets/nav.js` e a da `raiz/` ·
+[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
+secção I (27 asserções, eram 23).
+
+**Medido, para escolher com números.** O contraste é medido em **pixéis** da página a correr, e
+não estimado: na opção 2 (o texto solto) o corpo da frase lê-se a **15,64:1** e a palavra bordô a
+**10,42:1** — o halo de papel faz o trabalho que a caixa fazia, e passa AA com folga. Na opção 1 o
+anel lê-se a **10,64:1** contra o seu próprio halo. E o texto da opção 1 **não desaparece para
+quem não vê**: sai da tela por `clip-path`, não por `display:none` — com `display:none` o leitor de
+ecrã perdia também o nome da operação, e ficava um giro mudo para quem ouve a página.
+
+**Validação.** `provar-operacao-entre-abas` 27/27 (as quatro novas medem o modo privado nas duas
+direcções: não tranca as outras, e não se deixa trancar); controlo negativo contra o `HEAD`: 3
+falhas nas novas, porque o módulo de antes não conhece o atributo. Sem regressão:
+`provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 ·
+`check-identidade` 0 erros (21 verificações).
+
+**O que ainda não está feito.** (1) **Nada foi aplicado ao produto** — as três formas são bancada,
+e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
+`--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
+(3) A dívida das duas peças com o mesmo nome `.veu` continua.

@@ -87,9 +87,11 @@ function paginaDaProducao() {
     [], [], [], [], [], []);
 }
 
-/** O «plano do ciclo»: uma página da porta, com a folha e a barra, e conteúdo para se ver. */
-function paginaDoPlano() {
-  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+/** O «plano do ciclo»: uma página da porta, com a folha e a barra, e conteúdo para se ver.
+ *  `?privada=1` põe `data-operacao="so-esta-aba"` — é o modo que a bancada do véu usa. */
+function paginaDoPlano(url) {
+  const privada = String(url || '').indexOf('privada=1') !== -1;
+  return '<!doctype html><html lang="pt-BR"' + (privada ? ' data-operacao="so-esta-aba"' : '') + '><head><meta charset="utf-8">'
     + '<title>Plano de ensino</title><link rel="stylesheet" href="/assets/style.css"></head><body>'
     + '<nav class="topnav"><a class="marca" href="/">Sistema Lastro</a></nav>'
     + '<main class="principal"><h1>Plano de ensino</h1>'
@@ -114,7 +116,7 @@ const srv = http.createServer((req, res) => {
       fs.readFileSync(path.join(raizDoMaterial, 'tools/templates/nav.js')));
   }
   if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
-  if (caminho.indexOf('/plano-ensino') === 0) return ok('text/html; charset=utf-8', paginaDoPlano());
+  if (caminho.indexOf('/plano-ensino') === 0) return ok('text/html; charset=utf-8', paginaDoPlano(req.url));
   ok('text/html; charset=utf-8', paginaDaProducao());
 });
 
@@ -316,6 +318,34 @@ function lerVeu(p) {
     recarregada.visivel === false, recarregada);
   provar('…e a operação dela sai do armazenamento',
     (await b.evaluate(() => localStorage.getItem('lastro:operacao'))) === null);
+
+  /* ======================================================================================
+   * I. A PÁGINA QUE PEDE UMA OPERAÇÃO SÓ DELA
+   * ==================================================================================== */
+  console.log('\nI. `data-operacao="so-esta-aba"` ISOLA A PÁGINA (a bancada das formas do véu)');
+  const privada = await abrir('/plano-ensino/?privada=1');
+  const normal = await abrir('/plano-ensino/');
+
+  const ocupouEmPrivado = await chamar(privada, 'ocupar', 'a mostrar o véu na bancada…', 'Derivação');
+  await esperar(300);
+  provar('a página em modo privado pinta o véu em si mesma',
+    ocupouEmPrivado === true && (await lerVeu(privada)).visivel === true);
+  provar('…e NÃO tranca as outras abas',
+    (await lerVeu(normal)).visivel === false, await lerVeu(normal));
+  provar('…e não escreve a operação no armazenamento partilhado',
+    (await privada.evaluate(() => localStorage.getItem('lastro:operacao'))) === null);
+
+  await chamar(normal, 'ocupar', 'a derivar a Turma…', 'Derivação');
+  await esperar(300);
+  provar('…e também não ESCUTA: uma operação de fora não a tranca',
+    (await lerVeu(privada)).visivel === true
+      && (await lerVeu(privada)).etiqueta === 'Derivação'
+      && (await privada.evaluate(() => LastroDaOperacao.estado().remota)) === null,
+    await lerVeu(privada));
+  await chamar(privada, 'liberar');
+  await chamar(normal, 'liberar');
+  await privada.close();
+  await normal.close();
 
   await nav.close();
   srv.close();

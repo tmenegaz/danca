@@ -559,6 +559,12 @@
   var CANAL = 'lastro:operacao';
   var VALIDADE = 120000;
   var ROTULO_DE_REPOUSO = 'a processar';
+  /* A PÁGINA PODE PEDIR UMA OPERAÇÃO SÓ DELA (11/11/2026) — `data-operacao="so-esta-aba"` no
+   * `<html>`. Existe por um consumidor real: a bancada que compara as formas do véu. Uma bancada
+   * que publicasse a operação trancaria as abas de trabalho de quem a está a abrir — e o véu que
+   * ela mostra nem sequer é o que está a ser decidido. Nesta forma, a página pinta e tranca como
+   * sempre, e não avisa ninguém nem escuta ninguém. */
+  var SO_ESTA_ABA = document.documentElement.getAttribute('data-operacao') === 'so-esta-aba';
 
   var MINHA_ABA = (function () {
     try {
@@ -672,18 +678,21 @@
   }
 
   function ler() {
+    if (SO_ESTA_ABA) return null;
     try {
       var bruto = localStorage.getItem(CHAVE);
       return bruto ? JSON.parse(bruto) : null;
     } catch (e) { return null; }
   }
   function escrever(op) {
+    if (SO_ESTA_ABA) return;
     try {
       if (op) localStorage.setItem(CHAVE, JSON.stringify(op));
       else localStorage.removeItem(CHAVE);
     } catch (e) { /* modo privado ou cota: a via do canal continua a valer */ }
   }
   function transmitir(mensagem) {
+    if (SO_ESTA_ABA) return;
     try { if (canal) canal.postMessage(mensagem); } catch (e) {}
   }
 
@@ -753,12 +762,12 @@
     reagendar();
   }
 
-  window.addEventListener('storage', function (e) {
+  if (!SO_ESTA_ABA) window.addEventListener('storage', function (e) {
     if (e.key !== CHAVE) return;
     if (!e.newValue) { remota = null; aplicar(); reagendar(); return; }
     try { receber(JSON.parse(e.newValue)); } catch (err) {}
   });
-  if (typeof BroadcastChannel === 'function') {
+  if (!SO_ESTA_ABA && typeof BroadcastChannel === 'function') {
     try {
       canal = new BroadcastChannel(CANAL);
       canal.onmessage = function (e) { receber(e.data); };
