@@ -1074,3 +1074,14 @@ experimentos/modelo-formulario/*
 # interruptor tira e repõe o véu, e a nota «noutra aba» — falsa nesta página — não aparece.
 # CONTROLE NEGATIVO: a bancada de antes reprova 16 das 30 asserções.
 !experimentos/provar-bancada-do-veu.js
+
+# ---------------------------------------------------------------------------------------------
+# O VÉU DO PRODUTO É «O TEXTO NA TELA, SEM CAIXA» — 11/11/2026
+#
+# A escolha dela depois de ver as três formas na bancada. A prova mede o que a regra declara e,
+# sobretudo, o que ela deixa de declarar: o `.veu-cartao` sem fundo, filete, sombra e ar; a
+# etiqueta fora do desenho de selo; o halo em três camadas sob a frase; a serifa com `clamp`; e o
+# contraste medido em PIXÉIS da captura (8,70:1), não estimado a partir do token. A secção E
+# garante que a forma nova não levou o ofício: o véu continua a dizer o passo, a trancar e a sair.
+# CONTROLE NEGATIVO: a folha de antes reprova 14 das 25 asserções.
+!experimentos/provar-a-forma-do-veu.js

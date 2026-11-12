@@ -3815,12 +3815,12 @@ ${linhasDeHoje}
  */
 
 const OPCOES_VEU = [
-  { id: 'hoje', n: '0', t: 'A que está — o cartão', m: 'cartão 34 rem',
-    d: 'a etiqueta e a frase dentro de um cartão opaco: diz muito e pesa na tela' },
-  { id: 'giro', n: '1', t: 'Só o giro, sem nada escrito', m: '38 px',
+  { id: 'hoje', n: '0', t: 'A que está — o texto na tela', m: 'duas linhas',
+    d: 'a palavra e a frase soltas, com halo em vez de moldura: é a forma que o produto usa desde 11/11/2026' },
+  { id: 'cartao', n: '1', t: 'O cartão, a forma de antes', m: '34 rem',
+    d: 'a etiqueta e a frase dentro de um cartão opaco: a comparação que justificou a troca' },
+  { id: 'giro', n: '2', t: 'Só o giro, sem nada escrito', m: '38 px',
     d: 'o anel com um halo de papel: lê-se sobre qualquer fundo e não ocupa nada' },
-  { id: 'marca', n: '2', t: 'O texto na tela, sem caixa', m: 'duas linhas',
-    d: 'a palavra e a frase soltas, com halo em vez de moldura: conta a história sem pesar' },
 ];
 
 /** As secções da Produção que servem de fundo — extraídas da página que o servidor monta. */
@@ -3885,8 +3885,12 @@ const CSS_VEU = `
 
    Nenhuma destas linhas inventa um véu: todas são declarações a mais sobre a
    peça da folha, que é a que está de pé na página (construída pelo nav.js
-   verdadeiro, com a operação publicada pela API verdadeira). A opção 0 não tem
-   nada — é o que está hoje no produto, e é a régua de comparação.
+   verdadeiro, com a operação publicada pela API verdadeira).
+
+   A OPÇÃO 0 NÃO TEM NADA — e é isso que a torna a régua: é literalmente a peça
+   que o produto serve, sem uma declaração a mais. Desde 11/11/2026 essa peça é
+   «o texto na tela, sem caixa», que foi a forma escolhida; o cartão ficou como
+   opção 1, para a comparação que justificou a troca não se perder.
    ========================================================================== */
 
 /* A BANCADA SOBE ACIMA DO VÉU. O véu é z-index 120 e cobre a página inteira; sem isto, o painel
@@ -3901,13 +3905,51 @@ const CSS_VEU = `
 .corpo-da-bancada > .secao { margin: 0 0 22px; }
 .corpo-da-bancada .secao-titulo { margin-top: 0; }
 
-/* ---- 1 · SÓ O GIRO, SEM NADA ESCRITO -------------------------------------
-   Sem cartão, sem etiqueta, sem frase. O anel cresce de 22 para 38 px e ganha um
-   halo de papel: sem ele, um anel de 3 px sobre uma listagem cheia de filetes
-   desaparece — e é o halo que faz o giro ler-se sobre QUALQUER fundo, sem
-   desenhar uma caixa. */
-[data-opcao="giro"] .veu-cartao {
-  background: none; border: 0; box-shadow: none; padding: 0; gap: 0;
+/* ---- 1 · O CARTÃO, A FORMA DE ANTES --------------------------------------
+   Guardado porque a comparação é a razão de ser desta bancada: o cartão opaco que o
+   produto usou até 11/11/2026, restituído nas medidas que tinha — superfície do papel,
+   filete, sombra, a etiqueta em selo de alerta e a frase na fonte de interface. Sem ele, a decisão
+   tomada («implementa a opção 2») deixava de poder ser conferida contra o que veio
+   substituir. */
+[data-opcao="cartao"] .veu-cartao {
+  max-width: min(34rem, 92vw);
+  padding: var(--esp-5) var(--esp-5) var(--esp-4);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-2);
+  box-shadow: 0 8px 30px rgb(0 0 0 / .12);
+}
+[data-opcao="cartao"] .veu-cartao::before {
+  width: 22px; height: 22px;
+  border-width: 3px;
+  border-color: var(--borda);
+  border-top-color: var(--marca-texto);
+  box-shadow: none;
+}
+[data-opcao="cartao"] .veu-etiqueta {
+  padding: var(--esp-1) var(--esp-2);
+  font-size: 11px; letter-spacing: .1em;
+  background: var(--alerta-fundo);
+  border: 1px solid var(--alerta); border-radius: var(--raio-1);
+  color: var(--alerta);
+  text-shadow: none;
+}
+[data-opcao="cartao"] .veu-texto {
+  font: 400 .95rem/1.5 var(--ui);
+  text-shadow: none;
+}
+[data-opcao="cartao"] .veu-nota { text-shadow: none; }
+
+/* ---- 2 · SÓ O GIRO, SEM NADA ESCRITO -------------------------------------
+   Sem cartão, sem etiqueta, sem frase. O anel cresce de 30 para 38 px e o halo alarga:
+   sem ele, um anel de 3 px sobre uma listagem cheia de filetes desaparece — e é o halo
+   que faz o giro ler-se sobre QUALQUER fundo, sem desenhar uma caixa. */
+[data-opcao="giro"] .veu-cartao::before {
+  width: 38px; height: 38px; border-width: 3px;
+  border-color: color-mix(in srgb, var(--borda) 45%, transparent);
+  border-top-color: var(--marca);
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--fundo) 60%, transparent),
+              0 0 26px 6px color-mix(in srgb, var(--fundo) 72%, transparent);
 }
 /* O TEXTO NÃO DESAPARECE PARA QUEM NÃO VÊ — sai da TELA, não da árvore. Com
    display:none, o leitor de ecrã perdia também o nome da operação, e ficava um
@@ -3918,45 +3960,6 @@ const CSS_VEU = `
 [data-opcao="giro"] .veu-nota {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
   overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
-}
-[data-opcao="giro"] .veu-cartao::before {
-  width: 38px; height: 38px; border-width: 3px;
-  border-color: color-mix(in srgb, var(--borda) 45%, transparent);
-  border-top-color: var(--marca);
-  box-shadow: 0 0 0 12px color-mix(in srgb, var(--fundo) 60%, transparent),
-              0 0 26px 6px color-mix(in srgb, var(--fundo) 72%, transparent);
-}
-
-/* ---- 2 · O TEXTO NA TELA, SEM CAIXA --------------------------------------
-   A palavra e a frase soltas, e um HALO em vez de moldura: três sombras do papel,
-   cada vez mais largas, que abrem o fundo por baixo das letras sem desenhar nada.
-   É o «um pouco mais forte que uma marca d'água» — a frase continua a contar o que
-   se está a passar, e o que sai é a caixa que a embrulhava. */
-[data-opcao="marca"] .veu-cartao {
-  background: none; border: 0; box-shadow: none; padding: 0;
-  gap: var(--esp-3); max-width: min(46rem, 92vw);
-}
-[data-opcao="marca"] .veu-cartao::before {
-  width: 30px; height: 30px; border-width: 2px;
-  border-color: color-mix(in srgb, var(--borda) 55%, transparent);
-  border-top-color: var(--marca);
-  box-shadow: 0 0 0 10px color-mix(in srgb, var(--fundo) 55%, transparent);
-}
-[data-opcao="marca"] .veu-etiqueta {
-  background: none; border: 0; padding: 0;
-  font: 700 13px/1.2 var(--ui); letter-spacing: .22em;
-  color: var(--marca);
-  text-shadow: 0 0 10px var(--fundo), 0 0 18px var(--fundo), 0 0 30px var(--fundo);
-}
-[data-opcao="marca"] .veu-texto {
-  font: 400 1.45rem/1.4 var(--serif);
-  color: var(--texto);
-  text-shadow: 0 0 12px var(--fundo), 0 0 22px var(--fundo), 0 0 40px var(--fundo),
-               0 0 60px var(--fundo);
-}
-[data-opcao="marca"] .veu-nota {
-  color: var(--texto-suave);
-  text-shadow: 0 0 10px var(--fundo), 0 0 20px var(--fundo);
 }
 
 /* A NOTA DA PÁGINA — o que se está a comparar, com os olhos. */

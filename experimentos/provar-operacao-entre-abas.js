@@ -153,10 +153,15 @@ function lerVeu(p) {
       etiquetaEhSelo: Boolean(etiqueta && etiqueta.classList.contains('selo')),
       texto: corpo ? corpo.textContent.trim() : '',
       cor, alfa,
-      cartaoOpaco: Boolean(cartao) && (() => {
-        const c = getComputedStyle(cartao).backgroundColor;
-        return !/\/\s*0?\.\d+\s*\)/.test(c) && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent';
+      /* A FORMA MUDOU EM 11/11/2026 («implementa a opção 2: o texto na tela, sem caixa»): o cartão
+         opaco que aqui se exigia deixou de existir, e o que protege a leitura é o HALO. O que se
+         mede passa a ser o halo — e a caixa é o que se exige AUSENTE. */
+      cartaoComCaixa: Boolean(cartao) && (() => {
+        const c = getComputedStyle(cartao);
+        return c.borderTopWidth !== '0px' || c.boxShadow !== 'none'
+          || c.backgroundColor !== 'rgba(0, 0, 0, 0)';
       })(),
+      textoComHalo: Boolean(corpo) && /rgb/.test(getComputedStyle(corpo).textShadow || ''),
       trancados: filhos.filter((x) => x.inert).length,
       filhos: filhos.length,
       /* O TESTEMUNHO DO TECLADO: o clique não chega ao que está por baixo. Mede-se no elemento
@@ -252,11 +257,19 @@ function lerVeu(p) {
   provar('o véu é translúcido (alfa entre 0,3 e 0,8) — vê-se o formulário por baixo',
     typeof duranteB.alfa === 'number' && duranteB.alfa >= 0.3 && duranteB.alfa <= 0.8,
     { cor: duranteB.cor, alfa: duranteB.alfa });
-  provar('…e o que se lê está num cartão OPACO (o texto não compete com a página)',
-    duranteB.cartaoOpaco === true, duranteB);
+  provar('…e o texto não está em caixa nenhuma (a forma escolhida não tem cartão)',
+    duranteB.cartaoComCaixa === false, duranteB);
+  provar('…e é o HALO que o protege da página por baixo', duranteB.textoComHalo === true, duranteB);
 
-  console.log('\nD. A ETIQUETA É UMA PEÇA DO CATÁLOGO, E NÃO UMA PÍLULA INVENTADA');
-  provar('a etiqueta é o `.selo` da folha', duranteB.etiquetaEhSelo === true, duranteB);
+  console.log('\nD. A ETIQUETA NOMEIA A OPERAÇÃO, E NÃO É UMA PÍLULA INVENTADA');
+  /* Ela nasce com a classe do `.selo` (é o `nav.js` que a monta, e a classe é a âncora do
+   * catálogo), mas desde 11/11/2026 a folha despe-a do desenho de selo: sem fundo de alerta, sem
+   * filete, sem pílula — a palavra em versalete bordô. Um selo é uma etiqueta colada a um objecto,
+   * e no véu não há objecto a que colar. */
+  provar('a etiqueta é a peça do catálogo (`.selo`), não uma classe inventada',
+    duranteB.etiquetaEhSelo === true, duranteB);
+  provar('…e diz o nome da operação, não um rótulo genérico',
+    /^(Deriva|Vincula|Gera)/.test(duranteB.etiqueta), duranteB.etiqueta);
 
   /* ======================================================================================
    * E. A ABA A LIBERTA

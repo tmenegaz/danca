@@ -129,7 +129,7 @@ const srv = http.createServer((req, res) => {
   const b = await p.evaluate(() => {
     const painel = document.getElementById('bancada');
     const aba = document.getElementById('bancada-aba');
-    const botao = document.querySelector('.bancada-opcoes button[data-escolha="giro"]');
+    const botao = document.querySelector('.bancada-opcoes button[data-escolha="cartao"]');
     const cs = botao && getComputedStyle(botao);
     return {
       painelInert: Boolean(painel && painel.inert),
@@ -151,25 +151,25 @@ const srv = http.createServer((req, res) => {
   provar('a aba NÃO está trancada', b.abaInert === false, b);
   provar('o botão da opção 1 existe e está visível', b.botaoExiste && b.visivel, b);
   provar('…e não está dentro de nada trancado', b.botaoInert === false, b);
-  provar('…e nada o tapa (o clique chega ao botão)', b.porCima === 'giro', b.porCima);
+  provar('…e nada o tapa (o clique chega ao botão)', b.porCima === 'cartao', b.porCima);
 
   // O clique A SÉRIO, como a pesquisadora o dá.
   const antes = await p.evaluate(() => document.documentElement.getAttribute('data-opcao'));
-  await p.click('.bancada-opcoes button[data-escolha="giro"]');
+  await p.click('.bancada-opcoes button[data-escolha="cartao"]');
   await new Promise((r) => setTimeout(r, 150));
   const depoisDoClique = await p.evaluate(() => ({
     opcao: document.documentElement.getAttribute('data-opcao'),
-    cartaoSemCaixa: getComputedStyle(document.querySelector('#veu .veu-cartao')).borderTopWidth,
+    cartaoComCaixa: getComputedStyle(document.querySelector('#veu .veu-cartao')).borderTopWidth,
   }));
-  provar('o clique na opção 1 troca a opção na tela', depoisDoClique.opcao === 'giro',
+  provar('o clique na opção 1 troca a opção na tela', depoisDoClique.opcao === 'cartao',
     { antes, depois: depoisDoClique });
-  provar('…e a opção 1 tira a caixa do cartão', depoisDoClique.cartaoSemCaixa === '0px', depoisDoClique);
+  provar('…e a opção 1 repõe a caixa do cartão', depoisDoClique.cartaoComCaixa === '1px', depoisDoClique);
 
   /* As teclas também: é o caminho que o painel anuncia na nota. */
   await p.keyboard.press('2');
   await new Promise((r) => setTimeout(r, 150));
   const porTecla = await p.evaluate(() => document.documentElement.getAttribute('data-opcao'));
-  provar('a tecla 2 leva à opção 2', porTecla === 'marca', porTecla);
+  provar('a tecla 2 leva à opção 2', porTecla === 'giro', porTecla);
 
   /* ========================================================================
    * C. A NOTA DA OUTRA ABA NÃO APARECE
@@ -235,7 +235,7 @@ const srv = http.createServer((req, res) => {
   provar('há três opções, 0 · 1 · 2',
     e.length === 3 && e.map((x) => x.n).join('') === '012', e);
 
-  for (const opcao of ['hoje', 'giro', 'marca']) {
+  for (const opcao of ['hoje', 'cartao', 'giro']) {
     await p.click('.bancada-opcoes button[data-escolha="' + opcao + '"]');
     await new Promise((r) => setTimeout(r, 120));
     const posto = await p.evaluate(() => document.documentElement.getAttribute('data-opcao'));
