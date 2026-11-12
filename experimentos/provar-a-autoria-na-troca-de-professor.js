@@ -35,7 +35,12 @@
  * existia. Se o negativo passar, a prova não está a medir nada.
  *
  *   node experimentos/provar-a-autoria-na-troca-de-professor.js
- *   node experimentos/provar-a-autoria-na-troca-de-professor.js --contra=HEAD
+ *   node experimentos/provar-a-autoria-na-troca-de-professor.js --contra=7b92544a
+ *
+ * O `--contra` pede o commit ANTERIOR à correcção, e não `HEAD`: o `HEAD` anda, e depois de a
+ * correcção entrar ele passa a ser o código novo — um negativo contra `HEAD` passa a medir nada.
+ * Medido a 12/11/2026: `--contra=HEAD` deu 2 falhas (as duas do servidor), e
+ * `--contra=7b92544a` — o pacote imediatamente antes — dá as **15** que o defeito vale.
  */
 
 const fs = require('fs');
@@ -126,7 +131,10 @@ function planoDoPeTorto() {
     respostas: {
       'objetivo-geral': R('consolidar o alinhamento e a transferência de peso'),
       'contexto-turma': R(TURMA),
-      'contexto-professor': R(NOME_ANTIGO),
+      /* O ENVELOPE DO AR GUARDA O SLUG AQUI (medido: `contexto-professor` = `pe-torto` no
+       * `plano-20261112-0837-2`). O fixture copia-o, para a prova medir o que a tela faz com um
+       * slug — que é capitalizá-lo para ler, e nunca gravá-lo assim. */
+      'contexto-professor': R(ANTIGO),
       repertorio: R(['Battement tendu']),
     },
     gerado_em: '2026-11-12T08:37',

@@ -1179,5 +1179,5 @@ experimentos/modelo-formulario/*
 # A prova mede o que a pesquisadora LÊ: a listagem das duas famílias (o selo, o traço, o «Quem fez»),
 # a condição que faz o selo sair, e o «!» no cabeçalho do plano — este em `jsdom`, sobre o servidor de
 # rotas a sério. CONTROLE NEGATIVO: 14 falhas contra HEAD; lá o plano do Pé Torto aparece «livre» com
-# a turma «Piano» ao lado, e o «!» não existe.
+# a turma «Piano» ao lado, e o «!» não existe — contra 7b92544a, o commit anterior à correcção.
 !experimentos/provar-a-autoria-na-troca-de-professor.js

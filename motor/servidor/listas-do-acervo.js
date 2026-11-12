@@ -33,12 +33,21 @@ function dia(iso) {
   return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
 }
 
-/** O nome de quem fez — o do slug quando não há o nome escrito no formulário. */
+/**
+ * O nome de quem fez — o do slug quando não há o nome escrito no formulário.
+ *
+ * «O NOME» E «O SLUG» NÃO SÃO A MESMA COISA, e o campo `professorNome` do resumo trazia os dois
+ * (12/11/2026). Ele é `contexto-professor` do envelope, e há planos antigos que guardaram ali o
+ * **slug** (`pe-torto`) em vez do nome — a listagem mostrava «Quem fez: pe-torto», que é o código
+ * a falar em público. A regra passa a ser: quando o valor é o próprio slug, ele não é nome
+ * nenhum, e capitaliza-se como sempre (`Pe Torto`); quando é outra coisa, é o nome que o professor
+ * escreveu e não se lhe toca.
+ */
 function nomeDoProfessor(registo) {
-  const nome = String(registo.professorNome || '').trim();
-  if (nome) return nome;
   const slug = String(registo.professor || '').trim();
-  if (!slug) return '';
+  const nome = String(registo.professorNome || '').trim();
+  if (nome && nome !== slug) return nome;
+  if (!slug) return nome;
   return slug.split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
 }
 

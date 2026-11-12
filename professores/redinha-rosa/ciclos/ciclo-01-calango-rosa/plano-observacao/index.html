@@ -2720,6 +2720,21 @@ function turmaDaBarra() {
   return String((Array.isArray(cru) ? cru[0] : cru) || '').trim();
 }
 
+/*
+ * O NOME DE UM PROFESSOR, para ler — e não para gravar.
+ *
+ * O envelope guarda `contexto-professor` ora com o NOME (`Redinha Rosa`), ora com o slug
+ * (`pe-torto`), dependendo da época em que foi escrito. Um slug numa frase é feio e não é o que o
+ * professor se chama. A regra é a MESMA da listagem do acervo (`nomeDoProfessor`, em
+ * `listas-do-acervo.js`): usa-se o nome quando existe, e capitaliza-se o slug quando não.
+ */
+function nomeDeProfessor(valor) {
+  const texto = String(valor || '').trim();
+  if (!texto) return '';
+  if (/\s/.test(texto)) return texto;
+  return texto.split('-').map((p) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : p)).join(' ');
+}
+
 function professorSemOPlanoDaTurma() {
   if (FONTE !== 'plano') return null;
   const professor = professorDaBarra();
@@ -2737,7 +2752,8 @@ function professorSemOPlanoDaTurma() {
     if (o.estado === 'legado') continue;
     if (String(o.professor || '') === professor) return null;   // há um plano dele
     if (!deOutro) {
-      deOutro = { autor: String(o.professorNome || o.professor || ''), carimbo: o.carimbo || '' };
+      deOutro = { autor: nomeDeProfessor(o.professorNome || o.professor),
+        carimbo: o.carimbo || '' };
     }
   }
   return deOutro;

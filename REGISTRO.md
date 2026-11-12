@@ -43190,8 +43190,9 @@ as duas etapas bloqueadas, o pacote que espera ·
 rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
 «!» do professor e o arranque dos estados.
 
-**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra `HEAD`:
-**14 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra
+`7b92544a` (o commit anterior à correcção — `HEAD` anda, e depois de isto entrar passa a ser o código
+novo, que é o que um negativo não pode medir): **15 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
 `provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
 rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
 `provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·
