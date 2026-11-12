@@ -280,6 +280,31 @@ guarda o alvo na memória da aba, a secção abre pelo `hash` de sempre, e o fim
 até à linha e põe o foco na primeira caixa dela. A memória é **lida e apagada**: um alvo esquecido
 voltaria a saltar numa navegação que ninguém pediu.
 
+**A ETIQUETA «EM TURMA» DO ESTILO VEM DA TURMA, NÃO DO PLANO (12/11/2026).** Ela nasceu para dizer o
+que muda no gesto seguinte — um exercício **livre** grava-se no lugar, um **em turma** deriva um
+ajuste —, e a primeira versão perguntava-o aos **planos de ensino**. Errado por um dia de distância:
+a pesquisadora incluiu o `Battement fondu` na Turma, gravou o ajuste, e o Estilo continuou a dizer
+«livre», porque o último plano nascera às 08:37, antes de o exercício entrar. Medido nos dados do ar:
+a Turma declarava **três**, o último plano **dois**.
+
+A causa é de **fonte**, não de cálculo: quem declara o repertório é a **Turma** (a curadoria); o plano
+**lê-o** dela no instante em que nasce. Perguntar ao plano «esta turma usa este exercício?» é
+perguntar a uma fotografia se a pessoa ainda está na sala. `turmasPorTermo` passou a compor:
+
+| Fonte | O que diz | Porque entra |
+|:--|:--|:--|
+| as **Turmas** — `conteudosDaEscola` | o **presente** | é quem declara o repertório, e é o que ela via a faltar |
+| os **planos** | o **passado que ainda manda** | um exercício que a Turma já não declara mas que um documento cita continua a exigir **ajuste**: gravar por cima reescreveria o que está assinado |
+
+A composição das Turmas **não se escreve ali**: `motor/nucleo/conteudos.js` é o dono da união entre o
+mapa antigo (`turma-conteudos`) e o `repertorio` de cada curadoria, e aplica a regra de 07/11 («a
+turma que declarou não herda a memória»). Uma segunda união dentro do `bastidores.js` seria a camada a
+divergir da primeira — o defeito que aquele módulo existe para fechar.
+
+E `null` só quando **nenhuma** das duas fontes se lê: não se afirma «livre» sobre um dado que não se
+viu. Para isso, `jaLido` passou a distinguir **ausente** (manda ler) de **`null`** (tentei e não
+consegui) — antes um `||` tratava-os como a mesma coisa.
+
 **Três leituras ficariam ambíguas sem regra escrita** — e é para isso que existe
 `motor/nucleo/enquadramento.js`, um módulo puro:
 

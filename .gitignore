@@ -1154,3 +1154,16 @@ experimentos/modelo-formulario/*
 # que o link traz a linha certa à vista — uma vez só, porque a memória do alvo é apagada.
 # CONTROLE NEGATIVO: 34 falhas contra 13da2160.
 !experimentos/provar-o-cartao-da-turma-do-trio.js
+
+# ---------------------------------------------------------------------------------------------
+# «EM TURMA» VEM DA TURMA, E NÃO DO PLANO — 12/11/2026
+#
+# «o battement fondu aparece aqui como um desses exercícios, mas lá no estilo, ele não está como em
+# turma, ele está como livre.» Medido: a TURMA declarava os três; o último PLANO de ensino (08:37)
+# declarava dois, porque nasceu antes de o `fondu` entrar. A etiqueta lia os planos — o passado.
+#
+# A prova mede a ROTA (`GET /api/bastidores/verbete`), e não a função: no código de antes a função
+# nem era exportada, e um controlo negativo que rebenta não se lê. O alfabeto vem do repositório
+# local, servido por um `fetch` de bancada — zero rede.
+# CONTROLE NEGATIVO: 8 falhas contra e482873b — e o negativo mostra `["livre","livre","livre"]`.
+!experimentos/provar-o-exercicio-em-turma.js

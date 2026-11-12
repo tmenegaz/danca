@@ -1299,38 +1299,106 @@ async function usosDosPlanos(env, escola, jaLido) {
 }
 
 /**
- * AS TURMAS QUE USAM CADA TERMO — do plano para o verbete (12/11/2026).
+ * AS TURMAS QUE USAM CADA TERMO — pela TURMA, e não pelo plano (12/11/2026).
  *
- * O pedido é dela: «um verbete a gente tem que colocar também a etiqueta para saber se ele está ou
- * não vinculado a uma turma. A gente precisa disso também.» Até aqui a listagem do Estilo dizia a
- * posição, o desacordo dos tempos e de quem era a versão — e não dizia a única coisa que muda o que
- * acontece ao gravar: se aquele exercício já compõe o repertório de um plano.
+ * O DEFEITO, na letra dela: «eu tenho três exercícios como conteúdo — o battement tendu, o plié e
+ * o battement fondu. Mas quando eu vou na listagem de exercícios com verbete, no estilo […] o
+ * battement fondu está como livre. Isso não está certo. […] eu fui derivar, incluí o battement
+ * fondu e atribuí turma, gravei o ajuste, o battement fondu aparece aqui como um desses
+ * exercícios, mas lá no estilo, ele não está como em turma, ele está como livre.»
  *
- * E É O MESMO DADO QUE O SERVIDOR JÁ USA PARA DECIDIR O AJUSTE. `usosDosPlanos` conta os termos em
- * conjunto, porque a pergunta dele é «está usado?»; aqui a pergunta é «usado por QUEM?», e é a
- * resposta que a etiqueta mostra. Uma segunda leitura dos planos, com a sua própria forma,
- * divergiria da primeira ao primeiro campo novo — daí ser a mesma travessia, a devolver nomes.
+ * MEDIDO NOS DADOS DO AR: a TURMA declarava os três (`repertorio: Battement tendu, Plié,
+ * Battement fondu`), e o último PLANO DE ENSINO declarava dois — ele nasceu às 08:37, antes de o
+ * `fondu` entrar. Esta função lia o PLANO, e por isso respondia o passado.
  *
- * `null` quando não se conseguiu ler os planos: não se afirma «livre» sobre um dado que não se viu.
+ * A CAUSA É DE FONTE, NÃO DE CÁLCULO: quem declara o repertório é a TURMA (a curadoria); o plano
+ * o **lê** dela no instante em que nasce. Perguntar ao plano «esta turma usa este exercício?» é
+ * perguntar a uma fotografia se a pessoa ainda está na sala.
+ *
+ * DUAS LEITURAS, E A DIVISÃO É A DO TEMPO:
+ *
+ *   1. O PRESENTE — o que as TURMAS declaram hoje. É `conteudosDaEscola`, e não uma segunda
+ *      composição escrita aqui: aquele módulo é o dono da união entre o mapa antigo
+ *      (`turma-conteudos`) e o `repertorio` de cada curadoria, e aplica a regra de 07/11 («a turma
+ *      que declarou não herda a memória»). Repetir a união nesta função seria a segunda camada a
+ *      divergir da primeira — o defeito que aquele módulo existe para fechar.
+ *   2. O PASSADO QUE AINDA MANDA — os planos de ensino já escritos. Um exercício que a turma já
+ *      não declara mas que um documento CITA continua a precisar de AJUSTE: é a mesma fronteira de
+ *      `termoVinculadoA`, que decide o gesto com `usos.termos` (planos) somado ao mapa. A etiqueta
+ *      diz o que o gesto vai fazer; se dissesse menos, mentiria — e a mentira seria cara, porque
+ *      gravar por cima reescreveria o que já está num plano assinado.
+ *
+ * A UNIÃO NUNCA DIZ «LIVRE» SOBRE O QUE UM PLANO CITA — o lado seguro da proveniência, que é a
+ * regra da casa desde 18/10: na dúvida, o que está escrito manda.
+ *
+ * `null` só quando NENHUMA das duas fontes se leu: não se afirma «livre» sobre um dado que não se
+ * viu. Uma escola sem turmas lê-se bem, e o mapa vazio é a resposta certa.
  */
 async function turmasPorTermo(env, escola, jaLido) {
-  const planos = jaLido || await resumosDosPlanos(env, escola);
-  if (!Array.isArray(planos)) return null;
+  const kv = env && env.PADD_KV;
   const mapa = {};
-  for (const r of planos) {
-    const turma = String((r && r.turma) || '').trim();
-    if (!turma) continue;
-    for (const t of (Array.isArray(r.repertorio) ? r.repertorio : [])) {
-      const nome = String(t == null ? '' : t).trim();
-      if (!nome) continue;
-      /* As duas chaves — o nome e o id — pela mesma razão do `usosDosPlanos`: o plano pode
-       * declarar o termo pela etiqueta ou pela chave, e quem lê não escolhe. */
-      for (const chave of [nome, idDe(nome)]) {
-        const lista = mapa[chave] || (mapa[chave] = []);
-        if (lista.indexOf(turma) === -1) lista.push(turma);
+  /* As duas chaves — o nome e o id — pela mesma razão do `usosDosPlanos`: o dado pode declarar o
+   * termo pela etiqueta ou pela chave, e quem lê não escolhe. */
+  const acrescentar = (termo, turma) => {
+    const nome = String(termo == null ? '' : termo).trim();
+    const t = String(turma == null ? '' : turma).trim();
+    if (!nome || !t) return;
+    for (const chave of [nome, idDe(nome)]) {
+      const lista = mapa[chave] || (mapa[chave] = []);
+      if (lista.indexOf(t) === -1) lista.push(t);
+    }
+  };
+
+  /* 1. O PRESENTE — o que as TURMAS declaram hoje.
+   *
+   * A COMPOSIÇÃO NÃO SE ESCREVE AQUI. `conteudosDaEscola` é o dono dela desde 03/11/2026: une o
+   * mapa antigo (`turma-conteudos`) ao `repertorio` de cada curadoria e aplica a regra de 07/11 —
+   * «a turma que declarou não herda a memória». Uma segunda união escrita nesta função seria a
+   * camada a divergir da primeira, que é exactamente o defeito que aquele módulo existe para
+   * fechar. O que se faz aqui é só uma coisa: trocar o ID da turma pelo NOME, que é o que a
+   * etiqueta mostra. */
+  let leuAsTurmas = false;
+  if (kv) {
+    try {
+      const listaTurmas = await turmas(kv, escola);
+      const porId = new Map(listaTurmas.map((t) => [String(t && t.id), t]));
+      const rel = await conteudosDaEscola(kv, escola, listaTurmas);
+      leuAsTurmas = true;
+      for (const [turmaId, termos] of Object.entries(rel || {})) {
+        const t = porId.get(String(turmaId));
+        // A turma SUBSTITUÍDA não é uma turma: o elo novo é que vale hoje.
+        if (!t || t.substituidaPor) continue;
+        for (const termo of (Array.isArray(termos) ? termos : [])) acrescentar(termo, t.nome);
+      }
+    } catch (e) { leuAsTurmas = false; }
+  }
+
+  /* 2. O PASSADO QUE AINDA MANDA — os planos de ensino já escritos.
+   *
+   * Um exercício que a turma já não declara mas que um documento CITA continua a precisar de
+   * ajuste: é a mesma fronteira de `termoVinculadoA`, que decide o gesto com `usos.termos` (os
+   * planos) somado ao mapa dos conteúdos. A etiqueta diz o que o gesto vai fazer; se dissesse
+   * menos, mentiria — e a mentira seria cara, porque gravar por cima reescreveria o que já está
+   * num plano assinado. */
+  /* `jaLido` AUSENTE É «LEIA»; `jaLido: null` É «TENTEI E NÃO CONSEGUI» (12/11/2026). O `||` que
+   * aqui esteve tratava os dois como a mesma coisa — e uma bancada que quisesse medir a resposta
+   * de «não se leu» voltava a ir ao repositório e recebia uma lista vazia, que é o oposto: «li e
+   * não há nenhum». São duas respostas diferentes, e a etiqueta depende de as distinguir. */
+  const planos = jaLido !== undefined
+    ? jaLido
+    : await resumosDosPlanos(env, escola).catch(() => null);
+  if (Array.isArray(planos)) {
+    for (const r of planos) {
+      for (const termo of (Array.isArray(r && r.repertorio) ? r.repertorio : [])) {
+        acrescentar(termo, r && r.turma);
       }
     }
   }
+
+  /* `null` só quando NENHUMA das fontes se leu: não se afirma «livre» sobre um dado que não se
+   * viu. Uma escola sem turmas nenhumas lê-se bem (`leuAsTurmas`), e o mapa vazio é a resposta
+   * certa — não a ausência de resposta. */
+  if (!leuAsTurmas && !Array.isArray(planos)) return null;
   return mapa;
 }
 
@@ -16474,9 +16542,17 @@ async function fetch(request, env, extras) {
         tradicao: String(t.tradicao || '').trim(),
         tradicaoRotulo: rotuloDaTradicao(t.tradicao),
       }));
-    /* UMA LEITURA, DOIS CONSUMIDORES (12/11/2026). Os planos já eram lidos nesta rota? Não — a
-     * gravação é que os lê. Passa a haver uma leitura aqui, e ela alimenta só a etiqueta «em
-     * turma». É o preço de a listagem poder dizer o que muda no gesto seguinte. */
+    /* A ETIQUETA «EM TURMA» CUSTA UMA LEITURA (12/11/2026), e ela lê a TURMA — não o plano.
+     *
+     * `turmasPorTermo` compõe o presente (`conteudosDaEscola`: mapa antigo + repertório das
+     * curadorias vigentes) com o passado que ainda manda (os planos já escritos). A primeira
+     * versão lia SÓ os planos, e por isso dizia «livre» a um exercício que a Turma já declarava e
+     * o último plano, por ser anterior, ainda não citava — o `Battement fondu` do `calango`.
+     *
+     * O QUE ISTO CUSTA NO AR: três leituras de KV (as turmas, o mapa e as curadorias) mais o
+     * índice dos planos, por cada abertura da aba Estilo. É o preço de a listagem dizer o que
+     * muda no gesto seguinte; se um dia pesar, a alternativa é calculá-la só quando a lista é
+     * pedida com `?comTurmas=1`. */
     const porTermoDaVez = await turmasPorTermo(env, escola).catch(() => null);
     return json(200, {
       ok: true,
@@ -17972,6 +18048,11 @@ module.exports = {
    * constrói a resposta da rota sem subir o Worker, e uma frase escrita à mão na prova mediria a
    * prova em vez da regra. */
   revisoesDosElencos,
+  /* AS TURMAS QUE USAM CADA EXERCÍCIO (12/11/2026) — exportada pela mesma razão das duas acima: a
+   * bancada constrói a resposta da rota sem subir o Worker, e uma lista escrita à mão mediria a
+   * bancada em vez da regra. É ela que decide a etiqueta «em turma» / «livre» do Estilo, e a
+   * diferença entre as duas não é cosmética: uma grava no lugar, a outra deriva um ajuste. */
+  turmasPorTermo,
   ROTULO_ESCOLHER_ELENCO,
   ROTULO_NENHUM_ELENCO,
   // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para

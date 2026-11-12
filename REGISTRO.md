@@ -43045,3 +43045,74 @@ Zero erros de JavaScript.
 porque encontravam o **comentário** que narra o defeito, a citar a regra antiga. Passaram a olhar só
 as linhas **emitidas**. É a mesma armadilha do elenco e do véu — e a regra que fica é que uma
 asserção que procura texto no código encontra também o texto que fala dele.
+
+---
+
+## 12/11/2026 — «Em turma» vem da Turma, e não do plano
+
+**O que aconteceu.** «Eu tenho três exercícios como conteúdo — o battement tendu, o plié e o battement
+fondu. Mas quando eu vou na listagem de exercícios com verbete, no estilo […] o battement fondu está
+como livre. Isso não está certo. […] eu fui derivar, dessa derivação, eu incluí o battement fondu e aí
+atribuir turma, feito o processo, que daí se chama gravar o ajuste. Gravei o ajuste, o battement fondu
+aparece aqui como um desses exercícios, mas lá no estilo, ele não está como em turma, ele está como
+livre.»
+
+**O que foi medido, antes de mexer.** Nos dados do ar, a 12/11/2026:
+
+| | Repertório |
+|:--|:--|
+| a **Turma** (curadoria) | `Battement tendu` · `Plié` · `Battement fondu` — os **três** |
+| o último **plano de ensino** (08:37) | `Battement tendu` · `Plié` — **dois** |
+
+O `fondu` entrou na Turma **depois** de o último plano nascer. A etiqueta lia os planos, e respondia
+o passado. Não era um erro de cálculo: era a **fonte** errada.
+
+**A causa, dita em uma linha.** Quem declara o repertório é a **Turma**; o plano **lê-o** dela no
+instante em que nasce. Perguntar ao plano «esta turma usa este exercício?» é perguntar a uma
+fotografia se a pessoa ainda está na sala.
+
+**O que ficou.** `turmasPorTermo` — a função que alimenta o `emTurma` da rota
+`GET /api/bastidores/verbete` — passou a compor duas leituras:
+
+| Fonte | O que diz | Porque entra |
+|:--|:--|:--|
+| as **Turmas**, por `conteudosDaEscola` | o **presente** | é quem declara o repertório, e é o que faltava |
+| os **planos de ensino** | o **passado que ainda manda** | um exercício que a Turma já não declara mas que um documento cita continua a exigir **ajuste**: gravar por cima reescreveria o que está assinado |
+
+A composição das Turmas **não se escreve no `bastidores.js`**: `motor/nucleo/conteudos.js` é o dono
+da união entre o mapa antigo (`turma-conteudos`) e o `repertorio` de cada curadoria, e aplica a regra
+de 07/11 («a turma que declarou não herda a memória»). Repetir a união ali seria a segunda camada a
+divergir da primeira — o defeito que aquele módulo existe para fechar. O que a função faz de seu é
+uma coisa só: trocar o **id** da turma pelo **nome**, que é o que o selo mostra.
+
+**Um contrato pequeno que estava mal.** `jaLido` era lido com `||`: «não me deram nada» e «tentei ler
+e não consegui» eram a mesma coisa, e a segunda resposta desaparecia dentro de uma lista vazia. Passou
+a distinguir **ausente** (manda ler) de **`null`** (não se conseguiu) — e é isso que permite a função
+devolver `null` quando **nenhuma** das duas fontes se lê, em vez de afirmar «livre» sobre um dado que
+não viu.
+
+**Uma lição de bancada.** A primeira versão da prova chamava a função directamente — e o controlo
+negativo **rebentou** em vez de reprovar, porque no código de antes ela não era exportada. Passou a
+medir a **rota**, que é o que o Estilo recebe e existe nos dois lados: o alfabeto e o vocabulário vêm
+do repositório local, servidos por um `fetch` de bancada, e o GitHub não é tocado. O negativo passou a
+mostrar o defeito na letra: `["livre","livre","livre"]`.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `turmasPorTermo`,
+o `jaLido`, a exportação para a bancada e o comentário da rota ·
+[experimentos/provar-o-exercicio-em-turma.js](./experimentos/provar-o-exercicio-em-turma.js) — prova
+nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a etiqueta e as duas fontes.
+
+**Validação.** `provar-o-exercicio-em-turma` **14/14**; controle negativo contra `e482873b`: **8
+falhas** — e o negativo mostra o `Battement fondu` a dizer «livre». Sem regressão:
+`provar-o-veu-de-cada-gesto` 39 · `provar-conteudos-e-estado-da-turma` verde ·
+`provar-salas-e-elencos` 65 · `provar-identidade-da-turma` 77 · `provar-o-cartao-da-turma-do-trio` 50 ·
+`provar-musica-do-verbete` verde · `check-identidade` 0 erros · `check-indices` 16/16.
+As que já falhavam continuam iguais, medidas contra o código anterior: `provar-verbete` 3,
+`provar-passo-um-do-verbete` 26 de 30, `provar-cartao-da-turma` 6, `provar-derivacao-da-turma` 20,
+`provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
+`provar-producao` 2.
+
+**O que ainda não está feito.** A etiqueta custa, a cada abertura do Estilo, **três leituras de KV**
+(as turmas, o mapa antigo e as curadorias) mais o índice dos planos. É o preço de a listagem dizer o
+que muda no gesto seguinte; se pesar, a alternativa é calculá-la só quando a lista for pedida com
+`?comTurmas=1` — fica declarado, e não feito.
