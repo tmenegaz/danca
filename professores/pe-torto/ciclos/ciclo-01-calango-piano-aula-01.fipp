@@ -10,9 +10,9 @@ professor: pe-torto
 ciclo: 01
 variante: calango-piano
 aula: 01
-hash_conteudo: 02dac490c5a7676691a5b89fc36cdb49615fbb84d8a83442f3d7e0de9fa28922
+hash_conteudo: 098597c86ac02719ed60393b8b77ed6853e3638b91a6c620ae0df5ca5f1dc492
 parentHash: 
-hash: 9ec56b81e913a1e3e18b2939600ffdf28d059bb388d84579e8c5e06d8256cad7
+hash: 0c4b73b203e0720251d8761f9a6c065f0945ba637f728e6a38aa828723fca81c
 algoritmo: SHA-256
 ancorado_em: 2026-11-12
 cobertura:
