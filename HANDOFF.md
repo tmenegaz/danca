@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T23:46:23-0300`
-Commit atual: `831a43e1` — fix(experimentos): a bancada do veu deixa de se trancar a si mesma
+Gerado em: `2026-11-11T23:55:43-0300`
+Commit atual: `d69dae7d` — chore(experimentos): a bancada com a forma implementada como regua
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,9 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+d69dae7d chore(experimentos): a bancada com a forma implementada como regua
+c2ad712e feat(template): o veu sem caixa, com halo
+58de0f79 chore(estrutura): regerar o HANDOFF
 831a43e1 fix(experimentos): a bancada do veu deixa de se trancar a si mesma
 84a14bd4 chore(estrutura): regerar o HANDOFF
 b9781916 feat(experimentos): a bancada das tres formas do veu
@@ -89,9 +92,6 @@ c172a7c2 feat(acervo): envelope/plano-20261111-1527.json
 2a74b1c3 feat(acervo): envelope/.indice.json
 95e9572a chore(estrutura): regerar o HANDOFF
 c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
-7b34eb28 fix(template): o veu deixa ver a pagina, e a operacao atravessa as abas
-d2d62ce3 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-737af15b chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -169,100 +169,73 @@ d2d62ce3 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 
 ## Última entrada do REGISTRO
 
-## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
+## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
 
-**O que motivou.** O véu da operação foi aprovado no conteúdo e reprovado na forma: «o véu está
-legal. A caixa que você mostra com o texto dizendo que está processando e tal e o spinner ali é
-que está esquisito, está feio. Eu recomendo apenas deixar o spinner rodando sem nenhuma
-informação. Mas eu gostaria que você colocasse lá no experimento para eu ver como é que fica
-algumas opções. A que já está […] uma que é sem nenhuma caixa de texto e outra que é o texto na
-tela como se fosse também um pouco mais forte que uma marca d'água, sem nenhuma caixa, sem borda
-[…] porque ele conta o andamento do processo, ele conta uma história para o usuário.»
+**O que motivou.** A escolha foi dela, e foi dita em cinco palavras: «implementa a opção 2: o texto
+na tela, sem caixa». A decisão já estava tomada sobre a bancada, com as três formas à vista e o
+contraste medido em pixéis; o que faltava era aplicá-la, e aplicá-la é mudar a peça da folha.
 
 **O que foi decidido.**
 
-- **AS FORMAS VÃO PARA A BANCADA, E NÃO PARA O PRODUTO.** Nenhuma das três substitui nada: elas
-  são o **mesmo** elemento — o véu da folha, construído pelo `nav.js` de verdade, com a operação
-  publicada pela API de verdade — e cada opção é um punhado de declarações a mais debaixo de
-  `[data-opcao="…"]`. Escolhida uma, aplicá-la é **mover essas linhas para a folha**. Uma proposta
-  que redescrevesse o desenho à mão poderia aprovar-se a si mesma.
-- **O FUNDO DA BANCADA É A PRODUÇÃO VERDADEIRA.** As secções «Salas» e «Turmas» saem de
-  `paginaProducao`, com um fixture, recortadas por uma leitura com contagem de profundidade (um
-  fecho a mais cortava a secção a meio). O que se julga é se **se reconhece onde se está** através
-  do véu — e isso só se mede sobre o ecrã de todos os dias.
-- **A PÁGINA PODE PEDIR UMA OPERAÇÃO SÓ DELA.** `data-operacao="so-esta-aba"` no `<html>` põe o
-  módulo em modo privado: pinta e tranca como sempre, e **não publica nem escuta** outras abas.
-  Sem isto, abrir a bancada para julgar o véu trancaria as abas de trabalho de quem a abre. É
-  declarado na marcação e não em JavaScript porque o `nav.js` corre **antes** do script da
-  página — uma linha de script chegaria tarde.
+- **O CARTÃO SAI, O HALO ENTRA.** O `.veu-cartao` continua na marcação — é ele que agrupa e centra,
+  e é o `nav.js` que o monta — mas deixa de ser superfície: **sem fundo, sem filete, sem sombra, sem
+  ar próprio, sem raio**. O que protege a leitura é `text-shadow` em três camadas de `--fundo` sob a
+  frase e em três sob a etiqueta, e um anel de papel (`box-shadow`) atrás do giro. A caixa existia
+  porque, com o véu translúcido, o texto solto competia com o formulário por baixo; o halo resolve
+  o mesmo problema **sem desenhar uma segunda superfície a tapar a página que se quis deixar ver**.
+- **A ETIQUETA DEIXA DE SER SELO.** Era o `.selo` com a cor de alerta. Um selo é uma etiqueta
+  colada a um objecto, e no véu não há objecto nenhum a que colar: passa a **palavra em versalete
+  bordô** (`--marca`), com `letter-spacing: .22em`, sem pílula nem fundo. A classe `selo` fica na
+  marcação — é a âncora do catálogo, e o `nav.js` é que a põe — mas a folha despe-a do desenho.
+- **A FRASE PASSA À SERIFA DO CORPO, COM `clamp`.** 1,45 rem no ecrã largo (23,2 px, o que foi
+  aprovado) e 1,15 rem no telemóvel (18,4 px), porque a mesma frase tem de caber a 390 px sem
+  partir a palavra. Medido: 533×139 px a 1280 · 342×125 px a 390, sem transbordo horizontal.
+- **NADA DO OFÍCIO MUDA.** O véu continua a cobrir, a trancar (`inert`), a nomear a operação e o
+  passo, a atravessar as abas e a sair sozinho. A forma mudou; o que ele faz, não.
 
-**Nota de correção — 11/11/2026, ao abrir a página.** A bancada foi publicada e **não se podia
-usar**: «está em looping, está carregando o tempo todo e eu não consigo ver as opções […] só me
-mostra o cartão. Eu não consigo ir para a opção um, nem para a opção dois.» Não era a página — era
-o véu a fazer o ofício dele **sobre a própria bancada**. O módulo põe `inert` em **todos** os
-filhos do `body` durante a operação, e o painel que escolhe as opções é um deles: nenhum botão
-respondia ao rato nem ao teclado, e o giro continuava porque a bancada republica a operação para
-não a perder a meio. Medido: `#bancada` com `inert: true`, `display: flex`, e a aba `hidden` — a
-página inteira trancada por baixo de um painel que também estava trancado.
+**A COR DO ACENTO É `--marca`, e não uma cor escrita à mão.** Em todos os temas deste projecto ela
+é declarada como acento legível sobre o fundo — o tema ciano anota-o na própria definição,
+«o acento como TEXTO (5,39:1)». Escrever um `#6b1f2e` na regra daria o tema claro e mentiria nos
+outros quatro.
 
-Três correções, todas **na bancada** e nenhuma no `nav.js`: (1) o painel e a aba são **desafogados**
-depois de cada publicação (`desafogar()`), porque o que se liberta é o painel — a Produção por
-baixo continua trancada, que é ela que se está a julgar; (2) um **interruptor** no rodapé da
-bancada, «Tirar o véu» / «Pôr o véu», que chama `liberar()` e `ocupar()` — sem ele não se podia
-conferir o que o véu esconde, e comparar exige poder tirar e repor; (3) a **nota «a operação
-começou noutra aba»** é removida nesta página, porque aqui seria **falsa** (a operação é desta aba,
-publicada pela própria bancada) e ainda ia ser lida por quem ouve. E a renovação de 45 s passou a
-respeitar `document.hidden`: uma bancada esquecida em segundo plano não fica a publicar uma
-operação que já ninguém está a ver.
+**Medido.** O contraste é medido em **pixéis** da captura (percentil 1 da tinta contra a mediana da
+moldura de halo), e não estimado a partir do token: **8,70:1** no corpo da frase — o halo faz o
+trabalho que a caixa fazia, e passa AA com folga. E na bancada, a 1280: etiqueta 13 px com 2,86 px
+de espaçamento, serifa 23,2 px, cartão 533×139. A 390 px: serifa 18,4 px, cartão 342×125.
 
-**Motivo declarado — os congelados.** `tools/templates/nav.js` está em `CONGELAMENTO.md` e muda
-por seis linhas: três guardas (`ler`, `escrever`, `transmitir`) e duas condições (`storage` e
-`BroadcastChannel`), todas dependentes de uma única leitura do atributo. O que muda no
-comportamento é **só** o de uma página que declare o modo privado; nenhuma outra página deste
-repositório o declara, portanto nada do produto muda. Não toca na fórmula do hash, na cobertura,
-nos validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cópias
-foram regeradas (a `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópia) e a âncora
-`.fipp` não mudou — ela cobre FONTES.
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md` e muda
+na peça `.veu` e nas quatro que dela dependem (`.veu-cartao`, `.veu-cartao::before`,
+`.veu-etiqueta`, `.veu-texto`, `.veu-nota`) — **só o desenho**, nenhuma regra de segurança. A
+cobertura, a fórmula do hash, os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de
+`PROTOCOLO.md` não são tocadas. As cópias foram regeradas — a `raiz/` por `tools/gerar-raiz.sh`, os
+cinco pacotes e as duas árvores de `publicacao/` por cópia — e a âncora `.fipp` não mudou, porque
+cobre FONTES.
 
-**Onde entrou.** [experimentos/propostas/construir.js](./experimentos/propostas/construir.js) —
-`proporVeu()`, com as três formas, o recorte das secções e um cartão novo no índice ·
-[tools/templates/nav.js](./tools/templates/nav.js) — o modo privado · as cinco cópias de
-`assets/nav.js` e a da `raiz/` ·
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a peça `.veu` e as
+quatro que a compõem, com as cópias todas ·
+[experimentos/propostas/construir.js](./experimentos/propostas/construir.js) — a bancada passou a
+ter **a forma implementada como opção 0** (sem uma declaração a mais: é literalmente a peça do
+produto), **o cartão como opção 1** (restituído nas medidas de antes, para a comparação que
+justificou a troca não se perder) e **o giro sozinho como opção 2** ·
+[experimentos/provar-a-forma-do-veu.js](./experimentos/provar-a-forma-do-veu.js) — prova nova ·
 [experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
-secção I (27 asserções, eram 23) ·
-[experimentos/provar-bancada-do-veu.js](./experimentos/provar-bancada-do-veu.js) — 30 asserções
-sobre a bancada (o painel responde, o clique chega ao botão, o interruptor tira e repõe, a nota
-falsa não aparece).
+secção C passou a exigir a **ausência** da caixa e a **presença** do halo, e a secção D deixou de
+poder chamar selo ao que já não é (29 asserções, eram 27) ·
+[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o quadro do véu e a tabela de estados.
 
-**Medido, para escolher com números.** O contraste é medido em **pixéis** da página a correr, e
-não estimado: na opção 2 (o texto solto) o corpo da frase lê-se a **15,64:1** e a palavra bordô a
-**10,42:1** — o halo de papel faz o trabalho que a caixa fazia, e passa AA com folga. Na opção 1 o
-anel lê-se a **10,64:1** contra o seu próprio halo. E o texto da opção 1 **não desaparece para
-quem não vê**: sai da tela por `clip-path`, não por `display:none` — com `display:none` o leitor de
-ecrã perdia também o nome da operação, e ficava um giro mudo para quem ouve a página.
+**Validação.** `provar-a-forma-do-veu` **25/25**; controle negativo contra o `HEAD`: **14 falhas**,
+porque a folha de antes tem o cartão, o selo de alerta e nenhum halo. Sem regressão:
+`provar-operacao-entre-abas` 29/29 (negativo: 2 falhas, as do modo privado) ·
+`provar-bancada-do-veu` 30/30 · `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
 
-**Validação.** `provar-operacao-entre-abas` 27/27 (as quatro novas medem o modo privado nas duas
-direcções: não tranca as outras, e não se deixa trancar); controlo negativo contra o `HEAD`: 3
-falhas nas novas, porque o módulo de antes não conhece o atributo. Sem regressão:
-`provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 ·
-`check-identidade` 0 erros (21 verificações). E **depois da correção**: `provar-bancada-do-veu`
-30/30, com o controle negativo contra o `HEAD` a reprovar **16 de 30** — sem o desafogo, o painel
-continua trancado. No ar, uma carga: o painel abre, o clique na opção 2 aplica, o interruptor
-tira o véu.
-
-**O que ainda não está feito.** (1) **Nada foi aplicado ao produto** — as três formas são bancada,
-e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
-`--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
-(3) A dívida das duas peças com o mesmo nome `.veu` continua.
+**O que ainda não está feito.** (1) A bancada continua em `/propostas/proposta-veu`, agora com a
+forma implementada como régua, montada por `--com-propostas` — passo **temporário** do deploy.
+(2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
+geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
+a leitura por software não.
 
 ## O que está pendente
-
-## 10/11/2026 — A capacidade cobra-se por volume, e a escada da assinatura desce a cada degrau
-
-(1) **Nada foi implementado** — estas são as frentes L8 e L9b, e
-continuam a ser plano. (2) **O `indice.json` não tem o bloco `plano`** em escola nenhuma: a
-estrutura proposta está escrita, não gravada. (3) **A cobrança, a nota e o faturamento** continuam
-fora de escopo até haver decisão (C8, C11, C12).
 
 ## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
 
@@ -297,6 +270,14 @@ houver duas na mesma origem, a chave terá de levar o slug.
 e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
 `--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
 (3) A dívida das duas peças com o mesmo nome `.veu` continua.
+
+## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
+
+(1) A bancada continua em `/propostas/proposta-veu`, agora com a
+forma implementada como régua, montada por `--com-propostas` — passo **temporário** do deploy.
+(2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
+geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
+a leitura por software não.
 
 ## Pendências anteriores (índice)
 
@@ -707,6 +688,7 @@ e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as pro
 - **10/11/2026** — A decomposição pela ordem em que foi escrita, e a… → `REGISTRO.md` L41826
 - **10/11/2026** — A cadeia que pára no teto continua sozinha, e o «abrir»… → `REGISTRO.md` L41906
 - **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L41988
+- **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42104
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
