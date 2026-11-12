@@ -12626,13 +12626,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var usadaPor = CURADORIAS.filter(function(c){' +
     '      return c && String(c.linhaDeBase || "") === String(l.id);' +
     '    }).map(function(c){ return turmasDeUma(c)[0] || ""; }).filter(Boolean);' +
-    '    var selo = usadaPor.length' +
+    /* O ELENCO QUE É A TURMA E NÃO TEM NINGUÉM É UM DEFEITO, E DIZ-SE (12/11/2026).
+     *
+     * A regra nova impede que a transferência o crie — mas os que já existem não se apagam por
+     * decreto, e um deles estava no ar quando esta linha foi escrita («ami — 0 alunas — em turma»).
+     * Deixá-lo com o selo «em turma» e «0 alunas» na linha dos factos é o silêncio que ela
+     * descreveu como o pior modo de falha deste sistema: o dado contradiz-se e nada o diz.
+     *
+     * NÃO É UMA ETIQUETA DE ESTADO NOVO — é o `.alerta`, que já existe, com a frase que resolve:
+     * a Turma precisa de outro elenco. Um elenco livre e vazio continua a não ter selo de alerta
+     * por isto: o que se sinaliza é a contradição (turma sem corpo), não a vacuidade. */
+    '    var selo = (usadaPor.length && !m)' +
+    '      ? "<span class=\\"selo alerta\\" title=\\"esta turma lê este elenco, e o ' +
+    'elenco não tem nenhuma aluna: a turma ficou sem corpo. Escolha outro elenco para a turma, ' +
+    'ou traga as alunas de volta\\">sem alunas</span>"' +
+    '      : (usadaPor.length' +
     '      ? "<span class=\\"selo vinculada\\" title=\\"já está numa turma: a turma e ' +
     'os planos leem-na a partir daí\\">em turma</span>"' +
     '      : (n' +
     '        ? "<span class=\\"selo livre\\" title=\\"ainda não está em nenhuma turma\\">livre</span>"' +
     '        : "<span class=\\"selo alerta\\" title=\\"ainda não tem os aspectos escolhidos — sem eles ' +
-    'o plano de ensino não tem corpo para importar\\">por completar</span>");' +
+    'o plano de ensino não tem corpo para importar\\">por completar</span>"' +
+    /* O FECHO DOS DOIS PARÊNTESES: o `(usadaPor.length` e o `(n` que a condição nova abriu. Um a
+     * menos e o `var selo` do cliente deixa de compilar — a lista ficava em «carregando…» para
+     * sempre, e o erro só aparecia no consola de quem abrisse a página. Foi assim que a prova o
+     * apanhou: o ecrã não dá erro nenhum, a lista é que não pinta. */
+    '));' +
     /* ONDE ESTE ELENCO ESTÁ — UM FACTO, E NÃO UMA CAIXA (07/11/2026).
      *
      * A caixa «Turmas» saiu a 07/11 e o que ela dizia passou para a caixa «Elenco»; esta sessão

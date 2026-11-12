@@ -34,11 +34,16 @@
  *   7. O CLIENTE sabe as turmas de cada elenco (`emTurma` no dado) e tem as duas frases — sem uma
  *      segunda cópia do texto: as frases viajam do núcleo como modelo.
  *
- * CONTROLE NEGATIVO: `--controle-negativo` corre o núcleo e o servidor de `REF_NEGATIVO` (por
- * omissão `HEAD`, que não tem a regra). Espera-se que reprove — se passasse, a prova não provava.
+ * CONTROLE NEGATIVO: `--controle-negativo` corre o núcleo e o servidor de `REF_NEGATIVO`.
+ * Espera-se que reprove — se passasse, a prova não provava.
+ *
+ * ATENÇÃO À REFERÊNCIA. O `HEAD` por omissão **deixa de servir** assim que este commit entra na
+ * história: a partir daí o `HEAD` já tem a regra, a prova passa, e o controle diz «não prova nada»
+ * — o que é verdade e é o comportamento certo. A referência usada foi o commit imediatamente
+ * anterior: `REF_NEGATIVO=d929a753~1`, que reprova 41 das 59.
  *
  *   node experimentos/provar-elenco-sem-ninguem.js
- *   REF_NEGATIVO=HEAD node experimentos/provar-elenco-sem-ninguem.js --controle-negativo
+ *   REF_NEGATIVO=d929a753~1 node experimentos/provar-elenco-sem-ninguem.js --controle-negativo
  */
 
 const fs = require('fs');
@@ -430,6 +435,10 @@ const fetchOriginal = globalThis.fetch;
       let pedidos = 0;
       let confirmacoes = 0;
       let respostaDoConfirm = true;
+      /* As linhas que o `carregarLinhas` do cliente lê. Mudam no meio da prova: a segunda metade
+       * precisa do elenco já VAZIO, que é o estado que a regra nova não deixa criar e que existe
+       * em produção. */
+      let linhasDoFetch = [AME, TAMI];
       const vc = new VirtualConsole();
       vc.on('jsdomError', () => {});
       const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
@@ -443,10 +452,15 @@ const fetchOriginal = globalThis.fetch;
           w.fetch = (u) => {
             const url = String(u);
             if (url.indexOf('elenco-mover') !== -1) pedidos += 1;
+            /* `elencosComAsTurmas` não existe no código de antes — e o controle negativo tem de
+             * REPROVAR, não rebentar. A guarda devolve a lista crua nesse caso: a prova mede
+             * então o que o código de antes fazia de facto, e o cliente mostra o elenco zerado
+             * como «em turma». */
+            const comTurmas = typeof bastidores.elencosComAsTurmas === 'function'
+              ? bastidores.elencosComAsTurmas(linhasDoFetch, [curadoriaCom('ame', 'Piano')])
+              : bastidores.elencosParaATurma(linhasDoFetch);
             const corpo = url.indexOf('linhas-de-base') !== -1
-              ? { ok: true, linhas: [AME, TAMI],
-                elencos: bastidores.elencosComAsTurmas([AME, TAMI],
-                  [curadoriaCom('ame', 'Piano')]) }
+              ? { ok: true, linhas: linhasDoFetch, elencos: comTurmas }
               : { ok: true };
             return Promise.resolve({ ok: true, status: 200,
               json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
@@ -495,6 +509,29 @@ const fetchOriginal = globalThis.fetch;
       form.dispatchEvent(new win.Event('submit', { bubbles: true, cancelable: true }));
       await new Promise((r) => win.setTimeout(r, 80));
       provar('…e, confirmando, o pedido parte UMA vez', pedidos === 1, pedidos);
+
+      /* F2. O ELENCO QUE JÁ ESTÁ NESSE ESTADO É SINALIZADO NA LISTAGEM. A regra impede os
+       * próximos, e não apaga os que existem — o caso estava no ar («ami — 0 alunas — em turma»).
+       * A sonda é o CARTÃO desenhado, e não a string no `<script>`: o script do cliente contém
+       * as duas frases (a condicional inteira), e procurá-las lá mediria o código, não a tela. */
+      /* O CASO REAL: o elenco que É a turma e ficou com ZERO alunas. A regra nova impede os
+       * próximos e não apaga os que existem — e um deles estava no ar (`ami — 0 alunas — em
+       * turma`). O professor tem de o ver, com o caminho: outro elenco para a turma, ou as
+       * alunas de volta. */
+      linhasDoFetch = [Object.assign({}, AME, { alunas: [] }), TAMI];
+      await win.carregarLinhas();
+      await new Promise((r) => win.setTimeout(r, 80));
+      const cartoes = [...doc.querySelectorAll('#lb-lista li.trio-plano')];
+      const doAme = cartoes.find((li) => /AME/.test(li.textContent));
+      provar('o elenco que é a turma e não tem ninguém mostra o alerta «sem alunas»',
+        Boolean(doAme) && /sem alunas/.test(doAme.textContent), doAme && doAme.textContent.trim().slice(0, 80));
+      provar('…e a dica diz o que resolve',
+        Boolean(doAme) && /Escolha outro elenco para a turma/.test(
+          (doAme.querySelector('.selo') || {}).getAttribute
+            ? doAme.querySelector('.selo').getAttribute('title') : ''), 'title do selo');
+      provar('…e não é o selo «em turma»',
+        Boolean(doAme) && !/\bem turma\b/.test(doAme.querySelector('.selo').textContent),
+        doAme && doAme.querySelector('.selo').textContent);
 
       win.close();
     }

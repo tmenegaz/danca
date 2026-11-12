@@ -42638,6 +42638,23 @@ listagem de Elencos (07/11/2026), não um nome novo. E o rótulo vem **pronto do
 primeira repintura**, e o cliente voltava a oferecer como livre um elenco que é o corpo de uma
 turma. Passou a haver `elencosComAsTurmas(linhas, curadorias)`, usada pelos dois caminhos.
 
+**O ELENCO QUE JÁ ESTÁ NESSE ESTADO É SINALIZADO — a regra não apaga o passado.** Quando esta
+linha foi escrita, o estado existia **no ar**: `ami — 0 alunas — em turma`, com a turma «Piano» a
+lê-lo. A regra nova impede os próximos e não apaga os que existem (a limpeza é decisão da
+pesquisadora). O que faltava era o silêncio: o cartão dizia «em turma» e «0 alunas» na linha dos
+factos, e nada os confrontava. Passa a dizer **«sem alunas»**, no `.alerta` que já existe, com a
+dica que resolve: «Escolha outro elenco para a turma, ou traga as alunas de volta». **Não é uma
+etiqueta de estado nova** — é a contradição dita; um elenco livre e vazio continua sem alerta por
+isto.
+
+**Um defeito que a prova apanhou ao medir o selo.** O `var selo` do cliente ficou com **um
+parêntese e uma aspa em falta** quando a condição nova lá entrou. O sintoma não é um erro visível:
+a listagem de Elencos fica em «carregando…» para sempre, porque o `<script>` da página deixa de
+compilar — e o erro só aparece na consola de quem a abre. A prova foi buscar o **cartão desenhado
+no DOM** (e não a string no `<script>`, que contém as duas frases e mediria o código em vez da
+tela), e foi isso que o apanhou. Fica a nota: uma asserção que procura texto no HTML encontra
+também o código que o produz.
+
 **Onde entrou.** [motor/nucleo/transferencia.js](./motor/nucleo/transferencia.js) — `zerada`,
 `turmasDaOrigem`, `motivoDoElencoQueFicariaVazio`, `avisoDoElencoQueSeraExcluido` e os dois modelos ·
 [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `apagarElenco`, `turmasDoElenco`,
@@ -42646,10 +42663,11 @@ a pergunta no cliente ·
 [experimentos/provar-elenco-sem-ninguem.js](./experimentos/provar-elenco-sem-ninguem.js) — prova
 nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela das duas metades.
 
-**Validação.** `provar-elenco-sem-ninguem` **56/56** (núcleo, rota sem e com confirmação, recusa por
-turma, repetição, `DELETE` sem regressão, o dado do cliente e o cliente a correr no jsdom a
-perguntar antes de partir); controle negativo contra o `HEAD`: **38 falhas**, porque o código de
-antes não tem a regra. Sem regressão: `provar-transferencia-e-desligamento` 93/93 ·
+**Validação.** `provar-elenco-sem-ninguem` **59/59** (núcleo, rota sem e com confirmação, recusa por
+turma, repetição, `DELETE` sem regressão, o dado do cliente, o cliente a correr no jsdom a perguntar
+antes de partir, e o cartão do elenco vazio a mostrar «sem alunas»); controle negativo contra
+`d929a753~1`: **41 falhas**, porque o código de antes não tem a regra. (O `HEAD` por omissão deixa
+de servir depois deste commit — a nota está no cabeçalho da prova.) Sem regressão: `provar-transferencia-e-desligamento` 93/93 ·
 `provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 · `provar-identidade-da-turma` 76 ·
 `provar-troca-de-direcao` 41 · `check-identidade` 0 erros · `check-indices` 16/16.
 
