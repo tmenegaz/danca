@@ -1179,6 +1179,6 @@ experimentos/modelo-formulario/*
 # A prova mede o que a pesquisadora LÊ: a listagem das duas famílias (o selo, o traço, o «Quem fez»),
 # a condição que faz o selo sair, o «!» no cabeçalho do plano — este em `jsdom`, sobre o servidor de
 # rotas a sério —, e o elo que JÁ está no acervo com o nome trocado: reconhecido, e não aceite.
-# CONTROLE NEGATIVO: 22 falhas contra 7b92544a (o commit anterior à correcção — não `HEAD`, que
+# CONTROLE NEGATIVO: 24 falhas contra 7b92544a (o commit anterior à correcção — não `HEAD`, que
 # anda: depois de isto entrar, um negativo contra `HEAD` mediria nada).
 !experimentos/provar-a-autoria-na-troca-de-professor.js

@@ -407,6 +407,17 @@ function nomeDaLinha(c) {
       (estados[PLANO] || {}).semTurma === true, estados[PLANO]);
     provar('…mesmo tendo um sucessor, porque o sucessor dele é o elo trocado',
       (estados[PLANO] || {}).substituido_por.indexOf(trocado.id) !== -1, estados[PLANO]);
+    /* AS DUAS LINHAS FICAM À VISTA — é o que ela pediu em letra: «continua existindo na listagem o
+     * plano de ensino que pertence ao pé torto». Um sucessor que trocou de mãos não esconde o
+     * documento verdadeiro; esconder seria aceitar a substituição que ele não pode fazer. */
+    const linhas = r.html.split('<li class="trio-plano"').slice(1);
+    provar('as DUAS linhas ficam na listagem — a do Pé Torto e a do elo trocado',
+      linhas.length === 2, linhas.map((c) => (c.match(/trio-nome[\s\S]{0,180}/) || [])[0]));
+    provar('…e a do Pé Torto diz «sem turma», com o traço',
+      linhas.some((c) => ha(c, trocado.id) === false && ha(c, '>sem turma<')
+        && valorDaCaixa(c, 'turma') === '—'),
+      linhas.map((c) => ({ id: (c.match(/plano-\d{8}-\d{4}(-\d)?/) || [])[0],
+        selo: (c.match(/class="selo [^"]*">[^<]*/) || [])[0] })));
 
     /* NA PORTA: o elo trocado não conta como «o plano desta professora». A turma fica livre para
      * ela escrever o dela, e o «!» tem de aparecer — é o único plano que lá está. */

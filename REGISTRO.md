@@ -43180,6 +43180,11 @@ turma, e reescrever-lhe o autor é afirmar que alguém escreveu o que não escre
   quem dirige hoje. Na linha, leva a marca `.selo.alerta` («!») a dizer quem assinou e quem
   escreveu. E o plano verdadeiro — o do Pé Torto — passa a `sem turma` **mesmo com sucessor**,
   porque o sucessor dele é justamente o elo trocado.
+- **O sucessor inválido não esconde o documento verdadeiro.** `vigentesDaFamilia` deixava o plano do
+  Pé Torto fora da listagem (contava-o como versão anterior), e com ele ia-se a etiqueta `sem turma`.
+  Um sucessor que trocou de mãos não substitui nada: as **duas** linhas ficam à vista — a do Pé
+  Torto, «sem turma», e a do elo trocado, com o «!». É o que ela pediu na letra: «continua existindo
+  na listagem o plano de ensino que pertence ao pé torto».
 
 **Um leitor morto, encontrado pelo caminho.** `carregarEstados` só era chamada por `atualizarFichas`, e
 essa função **sai na primeira linha** quando não há `#lista-fichas` — que é o caso desde 26/10, quando
@@ -43198,9 +43203,10 @@ as duas etapas bloqueadas, o pacote que espera ·
 rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
 «!» do professor e o arranque dos estados.
 
-**Validação.** `provar-a-autoria-na-troca-de-professor` **39/39**, com controlo negativo contra
+**Validação.** `provar-a-autoria-na-troca-de-professor` **41/41**, com controlo negativo contra
 `7b92544a` (o commit anterior à correcção — `HEAD` anda, e depois de isto entrar passa a ser o código
-novo, que é o que um negativo não pode medir): **22 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+novo, que é o que um negativo não pode medir): **24 falhas** — lá o plano do Pé Torto aparece «livre»
+com a turma «Piano» ao lado, o «!» não existe, e o elo trocado passa por verdade.
 `provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
 rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
 `provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·

@@ -1053,12 +1053,28 @@ function vigentesDaFamilia(resumos, familia) {
   const lista = (Array.isArray(resumos) ? resumos : []).filter((r) => r && r.id);
   const porId = new Map(lista.map((r) => [String(r.id), r]));
 
+  /* UM SUCESSOR QUE TROCOU DE MÃOS NÃO SUBSTITUI NADA (12/11/2026).
+   *
+   * Um elo cujo autor não é o autor do seu `ajuste_de` não é «o mesmo documento, mais novo»: é um
+   * documento que assina o texto de outro. Ele existe, e a listagem di-lo — mas não pode ESCONDER
+   * o documento verdadeiro, que é o que a pesquisadora pediu que continuasse à vista: «continua
+   * existindo na listagem o plano de ensino que pertence ao pé torto, porque foi ele que elaborou
+   * […] e vai ficar com outra etiqueta». Com o sucessor inválido a substituir, o plano do Pé Torto
+   * desaparecia na contagem de versões e a etiqueta `sem turma` nunca chegava a ver-se. */
+  const autoresDiferem = (a, b) => {
+    const autorDe = (r) => String((r && r.professor) || '').trim();
+    const um = autorDe(a);
+    const outro = autorDe(b);
+    return Boolean(um && outro && um !== outro);
+  };
+
   // 1. Quem tem SUCESSOR está substituído. Um id repetido no `ajuste_de` (duas tentativas irmãs)
   //    fica com o sucessor mais recente — é ele que a estante mostra.
   const substituidoPor = new Map();
   for (const r of lista) {
     const anterior = r.ajuste_de ? String(r.ajuste_de) : '';
     if (!anterior || anterior === String(r.id) || !porId.has(anterior)) continue;
+    if (autoresDiferem(r, porId.get(anterior))) continue;
     const atual = substituidoPor.get(anterior);
     if (!atual || ordemDoRegisto(r) > ordemDoRegisto(porId.get(atual))) {
       substituidoPor.set(anterior, String(r.id));

@@ -2394,6 +2394,11 @@ toma como sendo de quem a dirige hoje. A linha leva a marca `.selo.alerta` — a
 com a frase que diz quem assinou e quem escreveu. E o documento verdadeiro, o do professor anterior,
 fica `sem turma` **mesmo com sucessor**, porque o sucessor dele é justamente o elo trocado.
 
+E um sucessor que trocou de mãos **não substitui nada**: `vigentesDaFamilia` deixa de o contar como
+o sucessor do documento verdadeiro, e as duas linhas ficam à vista — a do autor que escreveu, com a
+etiqueta `sem turma`, e a do elo que assinou por cima, com a marca. Sem isso, a substituição inválida
+escondia o documento honesto e a etiqueta `sem turma` nunca chegava a ver-se.
+
 A marca apanha a **primeira** troca de cada cadeia. No segundo elo de uma sequência já trocada, o
 pai foi ele próprio reatribuído, e a comparação com o pai não distingue mais nada — fica declarado,
 e não corrigido: uma regra que adivinhasse mais do que mede seria a segunda mentira.
@@ -2410,10 +2415,10 @@ no cabeçalho, e o próprio «!»). Um leitor morto não dá erro: dá uma lista
 que não haver lista. A chamada passou para o arranque, e a carga do plano custa **8 leituras** (o
 orçamento é 9).
 
-**A prova.** `provar-a-autoria-na-troca-de-professor` **39** (a listagem das duas famílias, o selo que
+**A prova.** `provar-a-autoria-na-troca-de-professor` **41** (a listagem das duas famílias, o selo que
 sai quando o plano dela existe, o «!» medido em `jsdom` sobre o servidor de rotas a sério, e o elo
 já trocado a ser reconhecido sem ser aceite), com controlo negativo contra `7b92544a` — o commit
-anterior à correcção, e não `HEAD`, que anda: **22 falhas**. E `provar-direcao-do-documento` foi **reescrita**
+anterior à correcção, e não `HEAD`, que anda: **24 falhas**. E `provar-direcao-do-documento` foi **reescrita**
 (32/32): ela nascera a 10/11 a exigir «o elo novo diz o professor que passou a dirigir», e agora exige
 o contrário — a prova de uma regra e a prova da sua correcção não podem ser o mesmo texto sem que se
 perceba qual está de pé.
