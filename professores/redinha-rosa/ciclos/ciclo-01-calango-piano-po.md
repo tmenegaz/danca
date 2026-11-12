@@ -7,14 +7,14 @@ responsavel: Redinha Rosa
 professor: Redinha Rosa
 title: "Plano de Observação do Ciclo 01 — calango"
 state: Input_PO_Aguardando
-envelope: po-20261111-1017
+envelope: po-20261112-1450
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261111-1016
+plano-20261112-1450
 
 ## Horizonte
 
@@ -48,8 +48,10 @@ Calendário: 2026-11-10 → 2026-12-29 · Volume de trabalho: 3–6 séries · C
 
 | Eixo | Dimensão | Itens |
 |:--|:--|:--|
-| Corpo | **as cinco posições: uma visão geral** | 5ª posição — pés; 5ª posição — braços |
-| Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
+| Corpo | **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
+| Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| Corpo | **Equilíbrio, Sustentação e Força de MMSS/Core** | Equilíbrio unipodal |
+| Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Espiral / rotação de tronco |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | Teste |
 | Técnica | **Barra** | Teste |
@@ -63,7 +65,9 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Sujeitos
 
+- Aluna A
 - Aluna B
+- Aluna C
 
 ## Norma estabelecida
 
@@ -73,8 +77,10 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 | Grupo | Aspectos observados |
 |:--|:--|
-| **as cinco posições: uma visão geral** | 5ª posição — pés; 5ª posição — braços |
-| **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
+| **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
+| **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| **Equilíbrio, Sustentação e Força de MMSS/Core** | Equilíbrio unipodal |
+| **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Espiral / rotação de tronco |
 
 ## Restrições físicas declaradas
 
@@ -82,8 +88,10 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 ## Critérios de inclusão
 
-- as cinco posições: uma visão geral: 5ª posição — pés; 5ª posição — braços
-- Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)
+- as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços
+- Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos
+- Equilíbrio, Sustentação e Força de MMSS/Core: Equilíbrio unipodal
+- Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Espiral / rotação de tronco
 
 ## Critérios de exclusão
 
