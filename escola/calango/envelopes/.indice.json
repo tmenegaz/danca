@@ -16,6 +16,7 @@
     "plano-20261111-1016.json",
     "plano-20261111-1527.json",
     "plano-20261112-0747.json",
+    "plano-20261112-0812.json",
     "po-20261108-1304.json",
     "po-20261108-1318.json",
     "po-20261108-1319.json",
@@ -240,6 +241,22 @@
       "ciclo": "01",
       "ajuste_de": "plano-20261111-1527",
       "gerado_em": "2026-11-12T07:47",
+      "objetivo": "Teste",
+      "turma": "Piano",
+      "repertorio": [
+        "Battement tendu",
+        "Plié"
+      ],
+      "professorNome": "pe-torto"
+    },
+    "plano-20261112-0812.json": {
+      "id": "plano-20261112-0812",
+      "fonte": "plano",
+      "escola": "calango",
+      "professor": "pe-torto",
+      "ciclo": "01",
+      "ajuste_de": "plano-20261112-0747",
+      "gerado_em": "2026-11-12T08:12",
       "objetivo": "Teste",
       "turma": "Piano",
       "repertorio": [
