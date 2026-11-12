@@ -58,9 +58,13 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| 5ª posição — pés | sem registo na anamnese |
-| 5ª posição — braços | sem registo na anamnese |
-| Cócoras profundas (squat) | sem registo na anamnese |
+| 4ª posição — pés | 1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 5ª posição — pés | 1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio) — ponto de atenção |
+| 4ª posição — braços | 1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque) — ponto de atenção |
+| 5ª posição — braços | 1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| Articulação e força intrínseca dos dedos | 2 de 3 em «Flexíveis e articulados» · 1 de 3 em «Rígidos em garra / sem tônus» — ponto de atenção |
+| Equilíbrio unipodal | 2 de 3 em «Mantém > 5 s sem oscilação severa» · 1 de 3 em «Perda rápida» — ponto de atenção |
+| Espiral / rotação de tronco | 1 de 3 em «Compreende e executa torções guiadas» · 2 de 3 em «Rigidez total» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -96,19 +100,23 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261111-1017?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261111-1016?formato=html)** — Teste
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-1450?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-1450?formato=html)** — Teste
 
 **Anamnese de cada aluna**
 
-A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 3 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
 ```{=html}
 <select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
 <option value="">— escolha a aluna —</option>
+<option value="Aluna A">Aluna A</option>
 <option value="Aluna B">Aluna B</option>
+<option value="Aluna C">Aluna C</option>
 </select>
+<div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=redinha-rosa&amp;ciclo=01&amp;novo=anamnese-20261109-1615&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261109-1615?formato=html">imprimir</a></div>
 <div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=redinha-rosa&amp;ciclo=01&amp;novo=anamnese-20261108-1314&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261108-1314?formato=html">imprimir</a></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna C"><a class="acao secundario pequena" href="/anamnese/?professor=redinha-rosa&amp;ciclo=01&amp;novo=anamnese-20261108-1315&amp;aluna=Aluna%20C">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261108-1315?formato=html">imprimir</a></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");
