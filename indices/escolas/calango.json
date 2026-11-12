@@ -225,8 +225,8 @@
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
         ],
-        "hash": "5332490b1b0385e4d571a80e880343439ef667254d4b65654298b74a1ec3a4bf",
-        "hash_conteudo": "5034f1c35c89762fd354ca1fd967d8ab04a8349688ce94f05b734d8b443d0e08",
+        "hash": "1d4dc5c4f5601d7a065d4748639bddd1fc188f0ae5a6b212a01934623381f33f",
+        "hash_conteudo": "31f4e7fce92338d66e8ad48f9169a8ed1a5305acb0c87ea99c7a922375536f05",
         "id": "ciclo-01-calango-piano-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -405,8 +405,8 @@
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-referencias.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf"
         ],
-        "hash": "f5adf2621eed74ad3016684fef12b113b5b75e17f02886714502a904a5cc9e69",
-        "hash_conteudo": "ed4603224182ae510acc390690a139e692496f6d90bc165db620060ad07e4fe0",
+        "hash": "7f65c6a438800b9563527da023b40d6a29f8477898b5852d13b1b67917cde843",
+        "hash_conteudo": "7bbf1a85199375835b7c373816282e7325fe8854f5b30fe516459909afcacc8a",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -421,8 +421,8 @@
               "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
               "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
             ],
-            "hash": "5332490b1b0385e4d571a80e880343439ef667254d4b65654298b74a1ec3a4bf",
-            "hash_conteudo": "5034f1c35c89762fd354ca1fd967d8ab04a8349688ce94f05b734d8b443d0e08",
+            "hash": "1d4dc5c4f5601d7a065d4748639bddd1fc188f0ae5a6b212a01934623381f33f",
+            "hash_conteudo": "31f4e7fce92338d66e8ad48f9169a8ed1a5305acb0c87ea99c7a922375536f05",
             "id": "ciclo-01-calango-piano-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -1497,9 +1497,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0569a3b"
+    "commit": "0a87b50"
   },
-  "gerado_em": "2026-11-12T17:51",
+  "gerado_em": "2026-11-12T17:52",
   "nao_indexado": [
     {
       "familia": "conteudo",

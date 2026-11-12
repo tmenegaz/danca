@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261111-1016",
+  "planoDeEnsino": "plano-20261112-1450",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -18,12 +18,22 @@
     {
       "eixo": "Corpo",
       "dimensao": "as cinco posições: uma visão geral",
-      "itens": "5ª posição — pés; 5ª posição — braços"
+      "itens": "4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "itens": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "itens": "Equilíbrio unipodal"
     },
     {
       "eixo": "Corpo",
       "dimensao": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
-      "itens": "Cócoras profundas (squat)"
+      "itens": "Espiral / rotação de tronco"
     },
     {
       "eixo": "Corpo",
@@ -58,25 +68,37 @@
   ],
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
   "subjects": [
-    "Aluna B"
+    "Aluna A",
+    "Aluna B",
+    "Aluna C"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
     {
       "grupo": "as cinco posições: uma visão geral",
-      "aspectosObservados": "5ª posição — pés; 5ª posição — braços"
+      "aspectosObservados": "4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços"
+    },
+    {
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "aspectosObservados": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "aspectosObservados": "Equilíbrio unipodal"
     },
     {
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
-      "aspectosObservados": "Cócoras profundas (squat)"
+      "aspectosObservados": "Espiral / rotação de tronco"
     }
   ],
   "restricoes": [
     "[a decidir]"
   ],
   "inclusionCriteria": [
-    "as cinco posições: uma visão geral: 5ª posição — pés; 5ª posição — braços",
-    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)"
+    "as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços",
+    "Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos",
+    "Equilíbrio, Sustentação e Força de MMSS/Core: Equilíbrio unipodal",
+    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Espiral / rotação de tronco"
   ],
   "exclusionCriteria": [
     "Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte"

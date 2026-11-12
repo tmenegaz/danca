@@ -15,8 +15,8 @@
       "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-referencias.md",
       "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf"
     ],
-    "hash": "f5adf2621eed74ad3016684fef12b113b5b75e17f02886714502a904a5cc9e69",
-    "hash_conteudo": "ed4603224182ae510acc390690a139e692496f6d90bc165db620060ad07e4fe0",
+    "hash": "7f65c6a438800b9563527da023b40d6a29f8477898b5852d13b1b67917cde843",
+    "hash_conteudo": "7bbf1a85199375835b7c373816282e7325fe8854f5b30fe516459909afcacc8a",
     "id": "ciclo-01-calango-piano",
     "lida": true,
     "parent_hash": ""
@@ -135,9 +135,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0569a3b"
+    "commit": "0a87b50"
   },
-  "gerado_em": "2026-11-12T17:51",
+  "gerado_em": "2026-11-12T17:52",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6
