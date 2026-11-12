@@ -61,13 +61,42 @@ function alunasDe(linha) {
  *
  * `origem` e `destino` são as linhas VIGENTES (o que `repo.vigentes()` devolve). Devolve:
  *
- *   `{ ok: true, origem, destino }`  — as duas versões prontas para `concluir`;
- *   `{ ok: false, erros: [...] }`    — e nada foi tocado.
+ *   `{ ok: true, origem, destino, zerada }`  — as versões prontas para `concluir`;
+ *   `{ ok: false, erros: [...] }`            — e nada foi tocado.
  *
  * As recusas são ditas pela ordem em que o professor as pode resolver — o elenco, a aluna, a
  * presença — porque uma mensagem que manda ao sítio errado custa uma segunda tentativa.
+ *
+ * ==========================================================================================
+ * O ELENCO QUE FICARIA SEM NINGUÉM (12/11/2026) — «não faz sentido um elenco com zero pessoas»
+ * ==========================================================================================
+ *
+ * O DEFEITO, medido na operação: ela compôs a AME, pôs a AME na Turma, e depois transferiu as
+ * alunas todas para a TAMI. A AME ficou com ZERO alunas **e continuou a ser a Turma**. Um elenco
+ * que é o corpo de uma turma e não tem corpo nenhum não é um elenco vazio — é uma contradição: a
+ * turma existe para dar aula a alguém.
+ *
+ * E o outro lado, na letra dela: «Se a gente obriga que para criar um elenco exista pelo menos uma
+ * pessoa, como é que na transferência a gente permite que tenha um elenco com zero pessoas? Não faz
+ * sentido.»
+ *
+ * A REGRA TEM DUAS METADES, e a diferença é o VÍNCULO — e só ele:
+ *
+ *   · **O elenco está numa turma** → a transferência que o esvaziaria é RECUSADA. Esvaziá-lo é
+ *     deixar uma turma sem corpo, e não há gesto nenhum que conserte isso por trás: quem decide
+ *     desvincular a turma é o professor, na Turma. A recusa diz qual turma é e onde se resolve.
+ *   · **O elenco é livre** → a transferência PASSA, e o elenco passa a **`zerada: true`**. Quem
+ *     chama grava a lápide em vez de uma versão vazia (ver a rota): um elenco sem ninguém é o
+ *     mesmo que um elenco excluído — «a gente vai excluir o elenco quando chegar a esse caso».
+ *     A proveniência é a do apagar, e não a de uma versão que nunca existiu como facto.
+ *
+ * A ETIQUETA «NÃO ESCALADO» CHEGOU A SER PROPOSTA E FOI DESCARTADA POR ELA: não se deixa um elenco
+ * zerado à espera de ser escalado. Ou tem gente, ou não existe.
+ *
+ * `turmasDaOrigem` é a lista dos NOMES das turmas que hoje escolhem este elenco (a rota lê-a das
+ * curadorias vigentes). O núcleo não lê o repositório — recebe-a, como recebe as linhas.
  */
-function moverAluna({ origem, destino, aluna, quando, motivo } = {}) {
+function moverAluna({ origem, destino, aluna, quando, motivo, turmasDaOrigem } = {}) {
   const erros = [];
   const apelido = String(aluna == null ? '' : aluna).trim();
   const em = String(quando == null ? '' : quando).trim();
@@ -102,6 +131,23 @@ function moverAluna({ origem, destino, aluna, quando, motivo } = {}) {
   }
   if (!em) return { ok: false, erros: ['informe o instante do acto'] };
 
+  /* A ÚLTIMA ALUNA DE UM ELENCO QUE É A TURMA NÃO SAI (12/11/2026). Ver o cabeçalho: um elenco com
+   * zero alunas não é um elenco vazio, é uma turma sem corpo — e a turma não se desvincula por
+   * tabela. A recusa nomeia a turma e o gesto que a resolve. */
+  const zerada = daOrigem.length === 1;
+  const turmas = (Array.isArray(turmasDaOrigem) ? turmasDaOrigem : [])
+    .map((t) => String(t == null ? '' : t).trim()).filter(Boolean);
+  if (zerada && turmas.length) {
+    /* `recusa: 'turma'` não é decoração: é o que deixa a rota responder 409 (conflito com o que
+     * existe) em vez de 400 (pedido mal formado). O pedido está bem formado — o estado é que não
+     * permite. A distinção muda o que a tela faz com a resposta. */
+    return {
+      ok: false, recusa: 'turma',
+      erros: [motivoDoElencoQueFicariaVazio(
+        { nome: String(origem.nome || idOrigem), turmas })],
+    };
+  }
+
   const novaOrigem = semMarcasDaVersao(origem);
   novaOrigem.alunas = daOrigem.filter((a) => a !== apelido);
   novaOrigem.atualizada_em = em;
@@ -114,7 +160,53 @@ function moverAluna({ origem, destino, aluna, quando, motivo } = {}) {
   delete novoDestino.leitura;
   novoDestino.recebida = { aluna: apelido, de: idOrigem, em, motivo: razao || null };
 
-  return { ok: true, erros: [], origem: novaOrigem, destino: novoDestino };
+  /* `zerada` viaja com a decisão porque é ela que muda o que quem chama GRAVA: uma versão vazia,
+   * ou a lápide do apagar. Sem o sinal, o servidor teria de repetir a conta — e duas contas da
+   * mesma regra divergem ao primeiro caso novo. */
+  return { ok: true, erros: [], origem: novaOrigem, destino: novoDestino, zerada };
+}
+
+/**
+ * AS DUAS FRASES — e as duas são MODELO com marcas, não texto fechado (12/11/2026).
+ *
+ * Porque um modelo: a mesma frase tem de aparecer em DOIS sítios — na resposta do servidor e no
+ * `confirm` do cliente, antes do pedido partir. Escrita duas vezes, a segunda envelhece; escrita
+ * só no servidor, o cliente teria de perguntar depois de já ter começado, e a pergunta certa é
+ * antes do gesto. O modelo viaja com `%ELENCO%` e `%TURMAS%`, e cada lado o preenche com o que já
+ * tem à mão: o servidor com a linha, o cliente com a lista que recebeu.
+ *
+ * `%TURMAS%` já vem com os «» e a concordância feitos — «a Turma «Piano»» / «as Turmas «A», «B»» —
+ * porque a concordância é a parte que se erra ao reescrever a frase à mão.
+ */
+const MODELO_RECUSA_TURMA = 'esta é a última aluna de «%ELENCO%», e o elenco é %TURMAS%: sem ela o '
+  + 'elenco ficaria sem ninguém, e a turma sem corpo. Um elenco que está numa turma não pode ficar '
+  + 'vazio — desvincule a turma (escolha outro elenco para ela) e repita.';
+
+const MODELO_AVISO_EXCLUSAO = 'esta é a última aluna de «%ELENCO%». Com a transferência o elenco '
+  + 'fica sem ninguém, e um elenco sem ninguém é o mesmo que um elenco excluído: ele será EXCLUÍDO '
+  + '(o registo do que existiu fica na proveniência). Confirme para continuar, ou cancele e tome '
+  + 'outra providência.';
+
+/** Troca as marcas pelos valores. Ausente vira o que não mente: o nome vazio é o id, e a lista vazia
+ *  é a frase sem turmas nomeadas — mas essa nunca acontece, porque só se chama com turmas. */
+function preencherModelo(modelo, { nome, turmas } = {}) {
+  const lista = (Array.isArray(turmas) ? turmas : [])
+    .map((t) => String(t == null ? '' : t).trim()).filter(Boolean);
+  const onde = lista.length === 1
+    ? 'a Turma «' + lista[0] + '»'
+    : 'as Turmas «' + lista.join('», «') + '»';
+  return String(modelo).split('%ELENCO%').join(String(nome || ''))
+    .split('%TURMAS%').join(onde);
+}
+
+/** A frase da recusa — diz QUAL turma, porque «não pode» sem o nome obriga a procurar. */
+function motivoDoElencoQueFicariaVazio({ nome, turmas } = {}) {
+  return preencherModelo(MODELO_RECUSA_TURMA, { nome, turmas });
+}
+
+/** O aviso da exclusão — não é recusa: é o preço do gesto, dito antes. */
+function avisoDoElencoQueSeraExcluido({ nome } = {}) {
+  return preencherModelo(MODELO_AVISO_EXCLUSAO, { nome });
 }
 
 /**
@@ -159,4 +251,7 @@ function ajustarRascunho(rascunho, { de, para, aluna } = {}) {
   return novo;
 }
 
-module.exports = { moverAluna, ajustarRascunho };
+module.exports = {
+  moverAluna, ajustarRascunho, motivoDoElencoQueFicariaVazio, avisoDoElencoQueSeraExcluido,
+  MODELO_RECUSA_TURMA, MODELO_AVISO_EXCLUSAO,
+};

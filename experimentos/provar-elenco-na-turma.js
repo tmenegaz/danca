@@ -107,11 +107,21 @@ const ROTA = (() => {
   const i = FONTE.indexOf("if (path === '/api/bastidores/linhas-de-base')");
   return i === -1 ? '' : FONTE.slice(i, i + 9000);
 })();
+/* A FUNÇÃO PASSOU A SER `elencosComAsTurmas` EM 12/11/2026, e a asserção mudou com ela — não
+ * desapareceu. A lista que a rota devolve passou a levar o vínculo de cada elenco com a sua turma
+ * (`emTurma`, `rotuloMover`), para a repintura do cliente não perder o que a página já dizia. O que
+ * se continua a exigir é o essencial: a rota NÃO compõe a lista por sua conta — chama a função que
+ * a página também chama. */
 provar('a resposta da rota inclui `elencos`',
-  /elencos:\s*elencosParaATurma\(/.test(ROTA), ROTA ? 'achou a rota' : 'não achou a rota');
+  /elencos:\s*elencosComAsTurmas\(/.test(ROTA), ROTA ? 'achou a rota' : 'não achou a rota');
 provar('e sai da MESMA função que desenha a página — não de uma segunda cópia',
-  (ROTA.match(/elencosParaATurma\(/g) || []).length === 1,
-  (ROTA.match(/elencosParaATurma\(/g) || []).length);
+  (ROTA.match(/elencosComAsTurmas\(/g) || []).length === 1
+    && (ROTA.match(/elencosParaATurma\(/g) || []).length === 0,
+  { comTurmas: (ROTA.match(/elencosComAsTurmas\(/g) || []).length,
+    crua: (ROTA.match(/elencosParaATurma\(/g) || []).length });
+provar('…e essa função usa a regra única do rótulo (`elencosParaATurma`)',
+  /function elencosComAsTurmas\([\s\S]{0,400}?elencosParaATurma\(/.test(FONTE),
+  'procura no ficheiro');
 
 // ---------------------------------------------------------------------------
 // 3. O CLIENTE A CORRER — o defeito, medido onde ele vivia

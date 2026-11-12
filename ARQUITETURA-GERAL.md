@@ -543,6 +543,25 @@ A `leitura` do passo 3 **cai nos dois lados** (descrevia os corpos que estavam j
 — proveniência, quem leu — **fica**. Depois do ato, a cascata abre-se como em qualquer mudança de
 elenco: **Turma → Plano de Ensino → Plano de Observação**.
 
+**O elenco que ficaria sem ninguém (12/11/2026).** Um elenco que é o **corpo de uma turma** e fica
+com **zero alunas** não é um elenco vazio — é uma turma sem corpo, e a contradição é do dado, não
+do gosto. A regra tem duas metades, e a diferença é o vínculo:
+
+| O elenco, depois da transferência | O que acontece | Porquê |
+|:--|:--|:--|
+| **É o corpo de uma turma** | a transferência é **recusada** (409), com o nome da Turma | esvaziá-lo deixaria a turma sem ninguém, e a turma não se desvincula por tabela — quem decide é o professor, na Turma |
+| **É livre** | a transferência **passa**, e o elenco é **excluído** | «um elenco que não tem pessoas dentro do elenco é o mesmo que excluir um elenco» — a exclusão segue a **proveniência do apagar** (lápide no repositório, rascunho fora do KV), com **confirmação** antes do gesto |
+
+O que se recusa é o **estado** «elenco zerado a aguardar»: a etiqueta «não escalado» foi proposta e
+**descartada** — «não vamos deixar um elenco ali zerado com não escalado. Não faz sentido isso.» Ou
+tem gente, ou não existe.
+
+A confirmação é **do servidor** e não só do ecrã: sem `confirmarExclusao`, a rota responde 409 com
+o aviso e **não escreve nada** — nem o destino, que é o primeiro a escrever. A ordem das escritas
+não muda (destino → origem); o que muda é a **forma** da segunda: uma lápide, e não uma versão com
+zero alunas — essa nunca existiu como facto pedagógico. O cliente faz a pergunta antes de partir e
+o rótulo da origem diz «em turma», para o professor saber antes de tentar.
+
 **O professor que deixa a escola (08/11/2026).** O `DELETE` de um professor recusava em cascata:
 se ele estava numa curadoria, não saía; para sair, a curadoria tinha de ser apagada; e uma
 curadoria que já gerou plano de ensino **não se apaga**. Conclusão: **um professor que deu uma

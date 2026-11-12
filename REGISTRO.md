@@ -42583,3 +42583,83 @@ forma implementada como régua, montada por `--com-propostas` — passo **tempor
 (2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
 geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
 a leitura por software não.
+
+## 12/11/2026 — O elenco que ficaria sem ninguém não existe
+
+**O que motivou, na letra dela.** «Eu tenho nas turmas uma turma vinculada a um elenco, que é o
+elenco AME. Aí eu fui em audição e fiz a transferência de aluno […] e transferi todos para TAMI.
+Então agora não tem mais nenhum aluno na AME aonde tem turma […] Isso não pode acontecer. Se eu
+tiver um elenco que tem uma relação com turma, eu não posso ter zero alunos.»
+
+E a decisão, no turno seguinte: «Um elenco que não tem pessoas dentro do elenco é o mesmo que
+excluir um elenco. […] na transferência, se zerar o elenco, a gente segue o processo da proveniência
+equivalente ao excluir o elenco […] E aí vai avisar que o elenco será excluído, confirma isso […]
+Não vamos deixar um elenco ali zerado com não escalado. Não faz sentido isso.»
+
+**O que foi decidido — duas metades, e a diferença é o VÍNCULO.**
+
+- **O elenco é o corpo de uma TURMA** → a transferência da última aluna é **RECUSADA** (409), com a
+  frase a nomear a Turma e o gesto que resolve (desvincular). Uma turma sem corpo não é um elenco
+  vazio: é uma contradição, e a turma não se desvincula por tabela.
+- **O elenco é LIVRE** → a transferência passa, e o elenco é **EXCLUÍDO** pela **proveniência do
+  apagar** — lápide no repositório (`apagada_em`, `anterior`, o corpo que existia preservado),
+  rascunho fora do KV —, **depois de o professor confirmar**. Sem a confirmação, nada se escreve:
+  nem o destino, que é o primeiro a escrever.
+- **A ETIQUETA «NÃO ESCALADO» FOI DESCARTADA POR ELA.** Chegou a ser proposta nesta sessão e a
+  decisão foi a contrária: «Não vamos deixar um elenco ali zerado com não escalado.» Ou tem gente,
+  ou não existe. Não se inventa um estado para um elenco que ninguém consegue usar.
+
+**A CONFIRMAÇÃO É DO SERVIDOR, E NÃO SÓ DO ECRÃ.** O cliente pergunta antes — é ele que tem a lista
+das alunas à mão —, mas uma regra que só existe no cliente não é uma regra: quem chegar por outro
+caminho apagaria um elenco sem nunca ler o aviso. Sem `confirmarExclusao`, a rota responde 409 com o
+aviso e `precisaConfirmar`, e **não escreve nada**. As duas frases (a recusa e o aviso) vivem no
+núcleo como **modelo** com `%ELENCO%` e `%TURMAS%`, e cada lado preenche o que já tem — escritas
+duas vezes, divergiriam; a concordância («a Turma «X»» / «as Turmas «X», «Y»») é a parte que se erra
+ao reescrever a frase à mão.
+
+**A FORMA DO SEGUNDO ESCRITO DEPENDE DO QUE ELE FICA A SER.** Sobrando alunas, grava-se uma versão
+com `transferida`, como sempre foi. Ficando com zero (e livre, senão a decisão já recusou), **não se
+grava uma versão vazia**: exclui-se o elenco. A ordem das escritas não muda — destino primeiro, que
+é a que nunca perde a aluna.
+
+**A EXCLUSÃO PASSOU A TER UM DONO SÓ.** Ela nasceu dentro do `DELETE`, e a transferência precisava
+da mesma coisa. Copiar as sete linhas da proveniência para a rota vizinha deixaria a segunda a
+envelhecer em silêncio — e o efeito de esquecer a lápide é a **ausência** de um registo, que não se
+nota. Passou a `apagarElenco(env, kv, escola, repoLinhas, id, {por})`, chamada pelos dois caminhos.
+
+**O RÓTULO DA ORIGEM DIZ «EM TURMA».** O professor escolhe a origem antes do gesto, e o gesto
+depende do vínculo. Dizê-lo ali poupa-lhe a tentativa e o erro. É o mesmo vocabulário do selo da
+listagem de Elencos (07/11/2026), não um nome novo. E o rótulo vem **pronto do servidor**
+(`rotuloMover`), para o desenho da página e a repintura do cliente dizerem o mesmo.
+
+**Um defeito que a prova apanhou no caminho.** A rota `…/linhas-de-base` devolvia
+`elencosParaATurma(lista)` — a lista **crua** —, e o `carregarLinhas` do cliente reescreve
+`ELENCOS_MOVIVEIS` com ela. Ou seja: o `emTurma` viajava no desenho da página e **desaparecia na
+primeira repintura**, e o cliente voltava a oferecer como livre um elenco que é o corpo de uma
+turma. Passou a haver `elencosComAsTurmas(linhas, curadorias)`, usada pelos dois caminhos.
+
+**Onde entrou.** [motor/nucleo/transferencia.js](./motor/nucleo/transferencia.js) — `zerada`,
+`turmasDaOrigem`, `motivoDoElencoQueFicariaVazio`, `avisoDoElencoQueSeraExcluido` e os dois modelos ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `apagarElenco`, `turmasDoElenco`,
+`elencosComAsTurmas`, a guarda e a confirmação na rota, o `DELETE` a delegar, o rótulo «em turma» e
+a pergunta no cliente ·
+[experimentos/provar-elenco-sem-ninguem.js](./experimentos/provar-elenco-sem-ninguem.js) — prova
+nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela das duas metades.
+
+**Validação.** `provar-elenco-sem-ninguem` **56/56** (núcleo, rota sem e com confirmação, recusa por
+turma, repetição, `DELETE` sem regressão, o dado do cliente e o cliente a correr no jsdom a
+perguntar antes de partir); controle negativo contra o `HEAD`: **38 falhas**, porque o código de
+antes não tem a regra. Sem regressão: `provar-transferencia-e-desligamento` 93/93 ·
+`provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `check-identidade` 0 erros · `check-indices` 16/16.
+
+**Uma asserção foi trocada, e não apagada.** `provar-elenco-na-turma` exigia que a rota chamasse
+`elencosParaATurma`; passou a exigir `elencosComAsTurmas` **e** que essa função use a regra única do
+rótulo. Uma asserção que codificava a implementação anterior não se remove quando a implementação
+muda de forma — troca-se pela mesma exigência no sítio novo.
+
+**O que ainda não está feito.** (1) A prova mede tudo em bancada (KV e GitHub em memória); não foi
+corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **não** desfaz os elencos
+que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
+ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
+a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.

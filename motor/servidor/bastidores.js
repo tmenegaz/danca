@@ -551,6 +551,72 @@ function indiceDoRecorte(linhas) {
  * Sem acervo não há resposta, e o `null` diz exactamente isso: não se afirma «nenhum plano usa»
  * quando não se conseguiu olhar. Um zero inventado seria uma promessa em nome do repositório.
  */
+/**
+ * APAGAR UM ELENCO — UM CAMINHO, DOIS CHAMADORES (12/11/2026).
+ *
+ * A exclusão nasceu dentro do `DELETE /api/bastidores/linha-de-base`. A transferência que esvazia
+ * um elenco livre passou a precisar da MESMA coisa — «a gente vai excluir o elenco quando chegar a
+ * esse caso» —, e a alternativa era copiar as sete linhas da proveniência para a rota vizinha.
+ * Copiada, a segunda envelheceria: a lápide deixaria de ser gravada num dos caminhos e ninguém
+ * daria por isso, porque o efeito é a ausência de um registo.
+ *
+ * O QUE É A PROVENIÊNCIA DO APAGAR. Um acto concluído não se apaga do repositório: grava-se uma
+ * VERSÃO que diz que foi apagada (`apagada_em`, `apagada_por`, com `anterior` a apontar o elo de
+ * antes), e a versão viva deixa de ser a vigente. O rasto fica — com o recorte que tinha e a turma
+ * para onde foi —, e é isso que impede o sistema de reescrever o passado. O RASCUNHO não precisa
+ * de lápide: nunca foi facto, e apagá-lo é só tirá-lo do KV.
+ *
+ * Devolve `{ ok, removida, usos, eraActo }` ou `{ ok: false, erro }` — e em nenhum caso inventa um
+ * número: `usos` é `null` quando não se conseguiu olhar (ver `linhasDeBaseEmUso`).
+ */
+async function apagarElenco(env, kv, escola, repoLinhas, id, { por } = {}) {
+  const alvo = String(id || '').trim();
+  if (!alvo) return { ok: false, erro: 'informe o elenco', codigo: 400 };
+  const lista = await rascunhosDe(kv, escola);
+  const idx = lista.findIndex((l) => l && l.id === alvo);
+  const doActo = await (repoLinhas.activo
+    ? repoLinhas.vigente(alvo).catch(() => null) : Promise.resolve(null));
+  if (idx === -1 && !doActo) {
+    return { ok: false, erro: 'elenco não encontrado: ' + alvo, codigo: 404 };
+  }
+  const removida = idx !== -1 ? lista[idx] : Object.assign({}, doActo, { carimbo: doActo.carimbo });
+  const eraActo = Boolean(removida.carimbo || removida.turma);
+  if (eraActo && repoLinhas.activo) {
+    const lapide = await repoLinhas.apagar(alvo, { por: por || null });
+    if (!lapide.ok) {
+      return {
+        ok: false, codigo: 502,
+        erro: 'não consegui registar o apagar no repositório: ' + (lapide.erro || 'erro')
+          + '. Nada foi apagado — tente de novo.',
+      };
+    }
+  }
+  if (idx !== -1) {
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
+  }
+  const usos = await linhasDeBaseEmUso(env, escola, alvo);
+  return { ok: true, removida, usos, eraActo };
+}
+
+/**
+ * AS TURMAS QUE HOJE ESCOLHEM UM ELENCO — os nomes das salas, lidos das curadorias vigentes.
+ *
+ * O vínculo mudou de lado a 07/11/2026: já não é o elenco que diz para onde foi, é a TURMA que diz
+ * qual elenco escolheu (`linhaDeBase`). Quem pergunta «este elenco pode ficar vazio?» tem de o
+ * perguntar por aqui — e não ao campo `turma` do registo antigo, que é história, não vínculo.
+ */
+function turmasDoElenco(curadoriasDaEscola, idElenco) {
+  const id = String(idElenco || '').trim();
+  if (!id) return [];
+  const nomes = [];
+  for (const c of curadoriasVigentes(curadoriasDaEscola)) {
+    if (!c || String(c.linhaDeBase || '').trim() !== id) continue;
+    for (const t of turmasDaCuradoria(c)) if (nomes.indexOf(t) === -1) nomes.push(t);
+  }
+  return nomes;
+}
+
 async function linhasDeBaseEmUso(env, escola, id) {
   const legado = criarCloudflare(env);
   const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
@@ -1270,6 +1336,31 @@ function elencosParaATurma(linhas) {
           + (rascunho ? ' (rascunho)' : ''),
       };
     });
+}
+
+/**
+ * OS ELENCOS COM AS TURMAS QUE OS ESCOLHEM (12/11/2026) — a mesma lista, enriquecida.
+ *
+ * PORQUE É UMA FUNÇÃO SÓ, e não duas composições. O vínculo elenco↔turma decide uma coisa concreta:
+ * se o elenco pode ficar sem alunas. Um elenco que é o corpo de uma turma não pode; um elenco livre
+ * pode, e aí ele é excluído. Quem precisa de o saber é a TELA — para avisar antes do gesto —, e a
+ * tela recebe esta lista por DOIS caminhos: o desenho da página e a rota `…/linhas-de-base`, que a
+ * repinta. Se um dos dois a mandasse sem `emTurma`, o cliente perderia o dado na primeira
+ * repintura, e a regra voltaria a existir só no servidor — que é onde ela não pode ficar sozinha,
+ * porque o professor só a descobriria a seguir ao erro.
+ *
+ * `rotuloMover` é o rótulo da TRANSFERÊNCIA, e não o da Turma: lá o que interessa é a contagem de
+ * alunas; aqui, além dela, se o elenco está ou não em turma. Uma vez composto aqui, os dois lados
+ * dizem o mesmo.
+ */
+function elencosComAsTurmas(linhas, curadoriasDaEscola) {
+  return elencosParaATurma(linhas).map((e) => {
+    const emTurma = turmasDoElenco(curadoriasDaEscola, e.id);
+    return Object.assign({}, e, {
+      emTurma,
+      rotuloMover: e.rotulo + (emTurma.length ? ' — em turma' : ''),
+    });
+  });
 }
 
 /** As duas opções vazias do `<select>` da Turma. Constantes para o cliente dizer o mesmo. */
@@ -3407,7 +3498,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   /* OS ELENCOS DA TRANSFERÊNCIA (08/11/2026) — os CONCLUÍDOS, e só eles. Mover uma aluna para um
    * rascunho daria uma versão que o plano de ensino não lê, e a rota recusa-a; a lista não oferece o
    * que a rota recusa. É a mesma regra da escolha do elenco na Turma, com o filtro a mais. */
-  const elencosParaMover = elencosDaEscola.filter((e) => !e.rascunho);
+  /* AS TURMAS DE CADA ELENCO (12/11/2026) — viajam com a lista porque decidem uma coisa só: se o
+   * elenco pode ficar sem alunas. Um elenco que é o corpo de uma turma não pode (a turma ficaria
+   * sem corpo); um elenco livre pode, e aí ele é excluído. O cliente precisa de o saber ANTES de
+   * enviar — é ele que faz a pergunta —, e o vínculo lê-se da TURMA (`linhaDeBase`), que é quem o
+   * declara desde 07/11/2026. A regra em si continua no núcleo e na rota: o que viaja é o dado. */
+  /* A MARCA «EM TURMA» ENTRA NO RÓTULO DA TRANSFERÊNCIA, e não numa etiqueta nova (12/11/2026).
+   * O professor escolhe a origem nesta lista e o gesto seguinte depende do vínculo: um elenco que
+   * é o corpo de uma turma não pode ficar sem alunas. Dizê-lo AQUI poupa-lhe a tentativa e o erro.
+   *
+   * «em turma» é o MESMO vocabulário do selo da listagem de Elencos, que já diz isso desde
+   * 07/11/2026. Não se inventa um segundo nome para o mesmo estado. */
+  const elencosComTurma = elencosComAsTurmas(linhas, listaCuradorias);
+  const elencosParaMover = elencosComTurma.filter((e) => !e.rascunho);
   /* A ORIGEM NASCE VAZIA (09/11/2026), e pela ordem que ela pediu: «Primeiro escolhe-se o elenco de
    * origem. Em seguida, o sistema carrega os alunos pertencentes […] a esse elenco.» A origem é o
    * PRIMEIRO campo, e nada está escolhido até ela ser escolhida — a lista de alunas depende dela.
@@ -3419,7 +3522,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const ROTULO_ALUNAS_SEM_ORIGEM = '— escolha o elenco de origem primeiro —';
   const ROTULO_DESTINO = '— escolha o elenco de destino —';
   const opcoesDeElencoParaMover = '<option value="">' + ROTULO_ORIGEM + '</option>' +
-    elencosParaMover.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotulo) + '</option>').join('');
+    elencosParaMover.map((e) => '<option value="' + esc(e.id) + '">' + esc(e.rotuloMover)
+      + '</option>').join('');
   const opcoesDeAlunaParaMover = '<option value="">' + ROTULO_ALUNAS_SEM_ORIGEM + '</option>';
   const opcoesDeDestinoParaMover = '<option value="">' + ROTULO_DESTINO + '</option>';
   /* O QUE A TELA DIZ QUANDO NÃO HÁ O QUE MOVER — um texto, dois consumidores (09/11/2026).
@@ -5914,13 +6018,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `carregarLinhas` reescreve esta variável com `d.elencos` a cada leitura, para um elenco
      * concluído na aba 1 chegar à aba 3 sem recarregar a página. */
     'var ELENCOS_MOVIVEIS = ' + JSON.stringify(elencosParaMover.map((e) => ({
-      id: e.id, rotulo: e.rotulo, alunas: e.alunas, rascunho: e.rascunho,
+      id: e.id, rotulo: e.rotulo, rotuloMover: e.rotuloMover,
+      alunas: e.alunas, rascunho: e.rascunho,
+      /* `emTurma` é a lista dos NOMES das turmas que hoje escolhem este elenco — vazia para um
+       * elenco livre. É o que o cliente consulta antes de perguntar «confirma a exclusão?». */
+      emTurma: e.emTurma,
     }))) + ';' +
     /* AS FRASES DO ESTADO VAZIO DA TRANSFERÊNCIA — do servidor, uma vez (09/11/2026). O painel
      * nasce com a frase certa sem JavaScript; o `pintarTransferencia` repõe a mesma quando a
      * lista muda. Uma frase escrita nos dois sítios diria «dois elencos» num e «2 elencos» no
      * outro ao primeiro ajuste. */
     'var TEXTOS_DA_TRANSFERENCIA = ' + JSON.stringify(TEXTOS_DA_TRANSFERENCIA) + ';' +
+    /* AS DUAS FRASES DO ELENCO VAZIO — do núcleo, como MODELO (12/11/2026). O `%ELENCO%` e o
+     * `%TURMAS%` são preenchidos aqui com o que a lista já traz; a frase em si (e a sua
+     * concordância) não se reescreve neste ficheiro, senão as duas versões divergiam. */
+    'var MODELOS_DO_ELENCO_VAZIO = ' + JSON.stringify({
+      recusa: transferencia.MODELO_RECUSA_TURMA,
+      aviso: transferencia.MODELO_AVISO_EXCLUSAO,
+    }) + ';' +
     /* OS RÓTULOS DAS LISTAS, DO SERVIDOR (09/11/2026) — pela mesma razão das frases: a opção
      * vazia da origem, da aluna e do destino são as mesmas no desenho do servidor e na repintura
      * do cliente, e escritas duas vezes divergiriam. */
@@ -7131,6 +7246,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (ver `pintarGraus`). `createElement`/`appendChild` dariam o mesmo resultado e obrigariam as
      * bancadas a simular mais meia API de DOM; uma bancada que finge metade do DOM mede a metade
      * que fingiu. */
+    /* AS FRASES DO ELENCO VAZIO — o modelo vem do núcleo, e aqui só se preenchem as marcas
+     * (12/11/2026). As turmas vêm com a concordância já feita («a Turma «X»» / «as Turmas «X», «Y»»),
+     * porque é isso que se erra ao reescrever a frase à mão. */
+    'function fraseDoModelo(modelo, nome, turmas) {' +
+    '  var lista = (turmas || []).filter(function(t){ return t; });' +
+    '  var onde = lista.length === 1' +
+    '    ? "a Turma \u00ab" + lista[0] + "\u00bb"' +
+    '    : "as Turmas \u00ab" + lista.join("\u00bb, \u00ab") + "\u00bb";' +
+    '  return String(modelo || "").split("%ELENCO%").join(String(nome || ""))' +
+    '    .split("%TURMAS%").join(onde);' +
+    '}' +
     'function elencosConcluidos() {' +
     '  return ELENCOS_MOVIVEIS.filter(function(e){ return e && e.id && !e.rascunho; });' +
     '}' +
@@ -7145,7 +7271,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var escolhido = de.value;' +
     '  var op = ["<option value=\'\'>" + escHtml(ROTULOS_DA_TRANSFERENCIA.origem) + "</option>"];' +
     '  elencosConcluidos().forEach(function(e){' +
-    '    op.push("<option value=\'" + escHtml(e.id) + "\'>" + escHtml(e.rotulo) + "</option>");' +
+    '    op.push("<option value=\'" + escHtml(e.id) + "\'>" + escHtml(e.rotuloMover || e.rotulo) + "</option>");' +
     '  });' +
     '  de.innerHTML = op.join("");' +
     '  de.value = elencoPorId(escolhido) ? escolhido : "";' +
@@ -7443,6 +7569,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    return;' +
     '  }' +
+    /* O ELENCO QUE FICARIA SEM NINGUÉM (12/11/2026). Se esta é a última aluna da origem, o gesto
+     * muda de natureza e tem de o dizer ANTES de partir:
+     *
+     *   · o elenco é o corpo de uma TURMA → não pode ficar vazio. A recusa vem do modelo do núcleo,
+     *     e o pedido nem parte: mandá-lo seria pedir ao servidor uma coisa que já se sabe recusada;
+     *   · o elenco é LIVRE → ele será EXCLUÍDO. A pergunta é dela: «vai avisar que o elenco será
+     *     excluído, confirma isso, a pessoa clica em OK […] ou ela cancela e toma outra
+     *     providência.» Cancelado, nada parte.
+     *
+     * A GUARDA DO SERVIDOR NÃO DEPENDE DESTA. Isto poupa uma ida à rede e uma mensagem de erro a
+     * quem já podia saber; a regra é de quem escreve, e está na rota. */
+    '  var origemAgora = elencoPorId(corpo.de);' +
+    '  if (origemAgora && (origemAgora.alunas || []).length === 1) {' +
+    '    var turmasDaOrigem = origemAgora.emTurma || [];' +
+    '    if (turmasDaOrigem.length) {' +
+    '      if (res) {' +
+    '        res.className = "res erro";' +
+    '        res.textContent = fraseDoModelo(MODELOS_DO_ELENCO_VAZIO.recusa, origemAgora.nome, turmasDaOrigem);' +
+    '      }' +
+    '      return;' +
+    '    }' +
+    '    if (!confirm(fraseDoModelo(MODELOS_DO_ELENCO_VAZIO.aviso, origemAgora.nome, []))) return;' +
+    '    corpo.confirmarExclusao = true;' +
+    '  }' +
     '  var antes = ocuparBotao(formMover, "movendo...", "Transferência");' +
     '  fetch("/api/bastidores/elenco-mover", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
@@ -7457,7 +7607,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * uma transferência que já estava feita faria o professor procurar na série um elo de agora. */
     '          res.textContent = d.jaEstava' +
     '            ? (d.aviso || "a transferência já estava feita.")' +
-    '            : (d.aluna + " passou de " + d.de + " para " + d.para + ". " + (d.proximo || ""));' +
+    /* O ELENCO EXCLUÍDO DIZ-SE PRIMEIRO (12/11/2026). Quem esvaziou um elenco tem de saber que ele
+     * deixou de existir — senão procura na lista um elenco que acabou de apagar e conclui que o
+     * sistema o perdeu. */
+    '            : ((d.excluido ? (d.avisoDoElenco + " ") : "") +' +
+    '               d.aluna + " passou de " + d.de + " para " + d.para + ". " + (d.proximo || ""));' +
     /* O ESTADO DA CADEIA, DEPOIS DA FRASE DO ACTO (09/11/2026). O `proximo` dizia o percurso
      * que faltava percorrer; a cadeia já o percorreu, e o que sobra é o que ela não pôde fazer. */
     '          pintarCadeia(d.cadeia, res);' +
@@ -14740,8 +14894,14 @@ async function fetch(request, env, extras) {
        * página (`elencosParaATurma`), chamada aqui para o cliente poder repintar o `<select>`
        * da Turma sem recarregar a página — que era o defeito: criar a Audição, ir à Turma, e o
        * elenco novo não estar lá. Custa ZERO leituras: a lista já veio. Uma segunda regra no
-       * cliente divergiria da primeira ao primeiro campo novo, e é por isso que ela viaja. */
-      elencos: elencosParaATurma(lista),
+       * cliente divergiria da primeira ao primeiro campo novo, e é por isso que ela viaja.
+       *
+       * E VÃO COM AS TURMAS QUE OS ESCOLHEM (12/11/2026). A repintura reescreve a lista da
+       * transferência (`ELENCOS_MOVIVEIS`), e sem `emTurma` ela perdia o vínculo a cada
+       * `carregarLinhas` — o cliente voltava a oferecer como livre um elenco que é o corpo de uma
+       * turma, e só o servidor sabia recusar. É a MESMA função que desenha a página
+       * (`elencosComAsTurmas`), pela mesma razão de sempre: uma regra, um lugar. */
+      elencos: elencosComAsTurmas(lista, curadoriasVigentes(await curadorias(kv, escola))),
       /* O ESTADO DO REPOSITÓRIO DIZ-SE (05/11/2026). É daqui que sai a SÉRIE TEMPORAL: cada acto é
        * um ficheiro com carimbo, e a estante mostra a vigente de cada linha. Se o repositório não
        * estiver alcançável (sem token, GitHub fora), o acto do próximo envio fica no KV — e sem
@@ -14985,11 +15145,36 @@ async function fetch(request, env, extras) {
     }
     const origem = vigentes.find((l) => l && String(l.id) === idOrigem) || null;
     const destino = vigentes.find((l) => l && String(l.id) === idDestino) || null;
+    /* AS TURMAS QUE ESCOLHEM O ELENCO DE ORIGEM (12/11/2026). É o que decide se ele pode ficar
+     * vazio: um elenco que é o corpo de uma turma não pode, um elenco livre pode — e aí ele é
+     * apagado. O vínculo lê-se da TURMA (`linhaDeBase`), que é quem o declara desde 07/11/2026. */
+    const turmasDaOrigem = turmasDoElenco(await curadorias(kv, escola), idOrigem);
     const quando = new Date().toISOString();
     const decisao = transferencia.moverAluna({
       origem, destino, aluna, quando,
       motivo: String(corpo.motivo || '').trim(),
+      turmasDaOrigem,
     });
+    /* O ELENCO LIVRE QUE FICARIA SEM NINGUÉM SÓ SE APAGA COM CONFIRMAÇÃO (12/11/2026).
+     *
+     * A decisão é dela: «vai avisar que o elenco será excluído, confirma isso, a pessoa clica em
+     * OK, confirma que será excluído, ou ela cancela e toma outra providência.»
+     *
+     * A CONFIRMAÇÃO É DO SERVIDOR, e não só do cliente. O cliente pergunta primeiro — é ele que
+     * tem a lista das alunas à mão —, mas uma regra que só existe no ecrã não é uma regra: quem
+     * chegar por outro caminho apagaria um elenco sem nunca ler o aviso. Quando o pedido não traz
+     * a confirmação, a resposta é 409 com o aviso e a marca `precisaConfirmar`, e NADA foi tocado
+     * — nem o destino, que é o primeiro a escrever. */
+    if (decisao.ok && decisao.zerada && corpo.confirmarExclusao !== true) {
+      return json(409, {
+        ok: false,
+        precisaConfirmar: true,
+        vaiExcluir: { id: idOrigem, nome: String((origem && origem.nome) || idOrigem) },
+        erro: transferencia.avisoDoElencoQueSeraExcluido({
+          nome: String((origem && origem.nome) || idOrigem),
+        }),
+      });
+    }
     if (!decisao.ok) {
       /* O ATO JÁ PODE ESTAR FEITO — e aí repetir não é um pedido inválido (09/11/2026).
        *
@@ -15004,10 +15189,23 @@ async function fetch(request, env, extras) {
        * responde-se `ok` com `jaEstava: true`. Nada se escreve no repositório: os actos estão
        * certos, e reescrevê-los criaria elos falsos na série. */
       const sem = (l) => (Array.isArray(l && l.alunas) ? l.alunas.map(String) : []);
-      const actosJaDizem = origem && destino && aluna
-        && sem(origem).indexOf(aluna) === -1 && sem(destino).indexOf(aluna) !== -1;
+      /* A ORIGEM PODE JÁ NÃO EXISTIR (12/11/2026). Quando a transferência anterior esvaziou um
+       * elenco livre, ele foi EXCLUÍDO — e repetir o gesto já não encontra a origem em `vigentes`.
+       * Antes isso caía em «informe o elenco de origem», que manda corrigir um campo que está
+       * certo. Se o destino já tem a aluna, o pedido está satisfeito: é o acabamento, não uma
+       * segunda transferência. */
+      const actosJaDizem = Boolean(destino) && Boolean(aluna)
+        && sem(destino).indexOf(aluna) !== -1
+        && (!origem || sem(origem).indexOf(aluna) === -1);
       if (!actosJaDizem) {
-        return json(400, { ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros });
+        /* 409 QUANDO O CONFLITO É COM O QUE EXISTE, 400 QUANDO O PEDIDO ESTÁ INCOMPLETO (12/11/2026).
+         * «Este elenco é a Turma X» não é um campo em falta: é um estado que não permite o gesto, e
+         * o professor resolve-o na Turma. A distinção é a que a tela usa para decidir se oferece
+         * caminho ou se pede correcção. */
+        return json(decisao.recusa === 'turma' ? 409 : 400, {
+          ok: false, erro: decisao.erros.join(' · '), erros: decisao.erros,
+          ...(decisao.recusa === 'turma' ? { emTurma: true } : {}),
+        });
       }
       const rascunhos = await rascunhosDe(kv, escola);
       let mudou = false;
@@ -15025,9 +15223,12 @@ async function fetch(request, env, extras) {
       return json(200, {
         ok: true, jaEstava: true, aluna, de: idOrigem, para: idDestino,
         rascunhosAjustados: ajustados,
-        aviso: mudou
-          ? 'a transferência já estava nos actos; o rascunho que a mostrava atrasada foi acertado.'
-          : 'a transferência já estava feita, e não havia rascunho atrasado a acertar.',
+        aviso: !origem
+          ? 'o elenco de origem «' + idOrigem + '» já não existe — ele ficou sem nenhuma aluna e '
+            + 'foi excluído. A aluna já está em «' + idDestino + '», e nada há a fazer.'
+          : (mudou
+            ? 'a transferência já estava nos actos; o rascunho que a mostrava atrasada foi acertado.'
+            : 'a transferência já estava feita, e não havia rascunho atrasado a acertar.'),
         proximo: 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino '
           + 'e, por último, o plano de observação — nesta ordem, que é a de dependência.',
       });
@@ -15046,18 +15247,32 @@ async function fetch(request, env, extras) {
         parcial: false,
       });
     }
-    /* 2. A ORIGEM. Se falhar, o estado é o DUPLO e é declarado — nunca se responde `ok` a meia
-     * transferência, e a frase diz exactamente onde ela está. */
-    const sai = await repoLinhas.concluir(decisao.origem, {
-      quando, mensagem: mensagem(idOrigem, idDestino),
-    });
+    /* 2. A ORIGEM — e aqui a forma do segundo passo depende do que ela FICA a ser (12/11/2026).
+     *
+     *   · ficando com outras alunas, grava-se uma VERSÃO nova, com `transferida`;
+     *   · ficando com ZERO (e o elenco é livre — se fosse de uma turma, a decisão acima já a
+     *     recusava), **não se grava uma versão vazia**: exclui-se o elenco, pela mesma
+     *     proveniência do `DELETE`. Um elenco sem ninguém é o mesmo que um elenco excluído, e uma
+     *     versão «com zero alunas» seria um facto que nunca existiu como facto pedagógico.
+     *
+     * A ORDEM NÃO MUDA: o destino escreve primeiro. Se este passo falhar, o estado é o DUPLO —
+     * ela nos dois —, que é visível e corrigível, e nunca «fora de todos». */
+    const sai = decisao.zerada
+      ? await apagarElenco(env, kv, escola, repoLinhas, idOrigem, { por: corpo.professor || null })
+      : await repoLinhas.concluir(decisao.origem, {
+        quando, mensagem: mensagem(idOrigem, idDestino),
+      });
     if (!sai.ok) {
       return json(502, {
         ok: false,
         parcial: true,
-        erro: 'a aluna «' + aluna + '» JÁ ENTROU em «' + idDestino + '», mas não saiu de «'
-          + idOrigem + '» (' + (sai.erro || 'erro') + '). Ela está nos DOIS elencos agora — nada se '
-          + 'perdeu. Repita a transferência para completar.',
+        erro: 'a aluna «' + aluna + '» JÁ ENTROU em «' + idDestino + '», mas '
+          + (decisao.zerada
+            ? 'não consegui excluir o elenco «' + idOrigem + '», que ficou sem ninguém ('
+              + (sai.erro || 'erro') + ').'
+            : 'não saiu de «' + idOrigem + '» (' + (sai.erro || 'erro') + '). Ela está nos DOIS '
+              + 'elencos agora — nada se perdeu. Repita a transferência para completar.')
+          + (decisao.zerada ? ' Nada se perdeu: a aluna está no destino. Repita o gesto.' : ''),
         destino: { chave: entra.chave || null, carimbo: entra.carimbo || null },
       });
     }
@@ -15122,10 +15337,23 @@ async function fetch(request, env, extras) {
        * com a transferência. Vazio é o caso normal (ninguém estava a editar). */
       rascunhosAjustados,
       geracao,
+      /* O ELENCO QUE FICOU SEM NINGUÉM FOI EXCLUÍDO — e a resposta di-lo, com o nome, para o
+       * professor não ficar a procurar na lista um elenco que ele acabou de esvaziar. É o gesto
+       * que ela descreveu: «a gente vai excluir o elenco quando chegar a esse caso». */
+      ...(decisao.zerada ? {
+        excluido: { id: idOrigem, nome: String((origem && origem.nome) || idOrigem) },
+        avisoDoElenco: 'o elenco «' + String((origem && origem.nome) || idOrigem)
+          + '» ficou sem nenhuma aluna e por isso foi excluído — um elenco sem ninguém é o mesmo '
+          + 'que um elenco excluído. O registo do que ele foi fica na proveniência.',
+      } : {}),
       /* O QUE FALTA, dito pela ordem da cascata (a mesma de `revalidacaoPendente`). A rota não
        * decide nada por ela: a Turma, o plano de ensino e o PO são actos do professor. */
-      proximo: 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino e, '
-        + 'por último, o plano de observação — nesta ordem, que é a de dependência.',
+      proximo: decisao.zerada
+        ? 'O elenco de origem foi excluído. Reveja a TURMA de destino (o elenco dela mudou), depois '
+          + 'o plano de ensino e, por último, o plano de observação — nesta ordem, que é a de '
+          + 'dependência.'
+        : 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino e, '
+          + 'por último, o plano de observação — nesta ordem, que é a de dependência.',
     });
   }
 
@@ -15191,44 +15419,22 @@ async function fetch(request, env, extras) {
     }
     const id = String(corpo.id || idDe(String(corpo.nome || '')) || '').trim();
     if (!id) return json(400, { ok: false, erro: 'informe o elenco' });
-    /* A LINHA PODE ESTAR EM DOIS SÍTIOS: o acto no repositório, o rascunho no KV. Apagar olha
-     * os dois — e o `removida` é o que se mostra na resposta, com o nome e o estado que a pessoa
-     * tinha à frente. */
-    const lista = await rascunhosDe(kv, escola);
-    const idx = lista.findIndex((l) => l && l.id === id);
-    const doActo = await (repoLinhas.activo
-      ? repoLinhas.vigente(id).catch(() => null) : Promise.resolve(null));
-    if (idx === -1 && !doActo) {
-      return json(404, { ok: false, erro: 'elenco não encontrado: ' + id });
-    }
-    const removida = idx !== -1 ? lista[idx] : Object.assign({}, doActo, { carimbo: doActo.carimbo });
-    /* APAGAR UM ACTO É UM ACTO (05/11/2026). O que já foi concluído não se apaga do repositório:
-     * grava-se uma VERSÃO que diz que foi apagada, e a versão viva deixa de ser a vigente. O
-     * registo de que a linha existiu — com o recorte que tinha e a turma para onde foi — fica, e
-     * é isso que impede o sistema de reescrever o passado: se um plano já a usou, o `linhasDeBaseEmUso`
-     * abaixo diz quantos, e o `## Linha de base` daquele documento continua a apontar para um id
-     * que já não existe na estante — o que é um facto, e não um erro.
+    /* A PROVENIÊNCIA DO APAGAR VIVE NUMA FUNÇÃO SÓ (12/11/2026) — `apagarElenco`. Ela nasceu aqui
+     * e mudou-se para o lado quando a transferência que esvazia um elenco livre passou a precisar
+     * do mesmo gesto: um elenco sem ninguém é o mesmo que um elenco excluído. As duas rotas
+     * chamam-na, e a lápide do repositório não pode ser gravada num caminho e esquecida no outro —
+     * o efeito de o esquecer é a AUSÊNCIA de um registo, que não se nota.
      *
-     * O RASCUNHO não precisa de lápide: nunca foi facto, e apagá-lo é só tirá-lo do KV. */
-    const eraActo = Boolean(removida.carimbo || removida.turma);
-    if (eraActo && repoLinhas.activo) {
-      const lapide = await repoLinhas.apagar(id, { por: corpo.professor || null });
-      if (!lapide.ok) {
-        return json(502, {
-          ok: false,
-          erro: 'não consegui registar o apagar no repositório: ' + (lapide.erro || 'erro')
-            + '. Nada foi apagado — tente de novo.',
-        });
-      }
-    }
-    if (idx !== -1) {
-      lista.splice(idx, 1);
-      await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(lista));
-    }
-    const usos = await linhasDeBaseEmUso(env, escola, id);
+     * O número de planos que a usavam sai na resposta para não ser surpresa: apagar um elenco não
+     * apaga o que os planos já consolidaram (é proveniência, P-03), e quem apaga vê quantos são. */
+    const apagado = await apagarElenco(env, kv, escola, repoLinhas, id,
+      { por: corpo.professor || null });
+    if (!apagado.ok) return json(apagado.codigo || 400, { ok: false, erro: apagado.erro });
     return json(200, {
-      ok: true, linha: removida.nome, planosQueAUsavam: usos, eraActo,
-      ...(eraActo ? { lapide: 'ficou registado no repositório que este elenco foi apagado' } : {}),
+      ok: true, linha: apagado.removida.nome, planosQueAUsavam: apagado.usos,
+      eraActo: apagado.eraActo,
+      ...(apagado.eraActo
+        ? { lapide: 'ficou registado no repositório que este elenco foi apagado' } : {}),
     });
   }
 
@@ -17054,6 +17260,10 @@ module.exports = {
    * `<select>` com o que a rota devolve, e a bancada tem de poder construir a mesma resposta sem
    * subir o Worker — uma resposta escrita à mão na prova mediria a prova, não a regra. */
   elencosParaATurma,
+  /* A MESMA LISTA, COM AS TURMAS QUE ESCOLHEM CADA ELENCO (12/11/2026) — exportada pela mesma razão
+   * da de cima: a bancada constrói a resposta da rota sem subir o Worker, e uma lista escrita à mão
+   * mediria a bancada em vez da regra. */
+  elencosComAsTurmas,
   ROTULO_ESCOLHER_ELENCO,
   ROTULO_NENHUM_ELENCO,
   // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para

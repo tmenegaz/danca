@@ -1085,3 +1085,16 @@ experimentos/modelo-formulario/*
 # garante que a forma nova não levou o ofício: o véu continua a dizer o passo, a trancar e a sair.
 # CONTROLE NEGATIVO: a folha de antes reprova 14 das 25 asserções.
 !experimentos/provar-a-forma-do-veu.js
+
+# ---------------------------------------------------------------------------------------------
+# O ELENCO QUE FICARIA SEM NINGUÉM NÃO EXISTE — 12/11/2026
+#
+# «Eu transferi todos para TAMI. Então agora não tem mais nenhum aluno na AME aonde tem turma […]
+# Isso não pode acontecer.» A regra tem duas metades, e a diferença é o vínculo: um elenco que é o
+# corpo de uma turma NÃO pode ficar sem alunas (recusa 409, com o nome da Turma); um elenco LIVRE
+# pode, e então é EXCLUÍDO pela proveniência do apagar — com confirmação, e sem escrever nada
+# enquanto ela não vier. A etiqueta «não escalado» foi proposta e descartada por ela: «Não vamos
+# deixar um elenco ali zerado com não escalado.»
+# A prova mede o núcleo, a rota sem e com confirmação, a recusa por turma, a repetição, o `DELETE`
+# sem regressão e o cliente a perguntar antes de o pedido partir. CONTROLE NEGATIVO: 38 falhas.
+!experimentos/provar-elenco-sem-ninguem.js
