@@ -2100,6 +2100,12 @@ async function estadosDosPlanos(armazenamento, opcoes) {
   const ligacoes = await vinculosDePlano(armazenamento, indice);
   const lista = await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice);
   const sucessores = new Map();
+  /* O AUTOR DE CADA ELO, por carimbo — é o que permite perguntar se um elo trocou de mãos. */
+  const autorDe = new Map();
+  for (const { nome, resumo } of lista) {
+    autorDe.set(resumo.id || nome.replace(/\.json$/, ''),
+      String(resumo.professor || '').trim() || null);
+  }
   for (const { nome, resumo } of lista) {
     if (!resumo.ajuste_de) continue;
     if (!sucessores.has(resumo.ajuste_de)) sucessores.set(resumo.ajuste_de, []);
@@ -2116,6 +2122,19 @@ async function estadosDosPlanos(armazenamento, opcoes) {
     else estado = 'solta';
     const autor = String(resumo.professor || '').trim() || null;
     const perdeu = perdeuATurma({ turma: resumo.turma, professor: autor }, direcao);
+    /* O ELO QUE TROCOU DE MÃOS (12/11/2026).
+     *
+     * Um elo e o seu `ajuste_de` são o MESMO documento, mais novo. Se o autor de um não é o autor
+     * do outro, alguém trocou o nome do professor no caminho — foi o que a cadeia fez quatro
+     * vezes, e o acervo do `calango` guarda os elos (`plano-20261110-2145`, `-0858`, `-1016`,
+     * `-1527`, `-1450`, todos com o autor de um e o pai do outro). A regra nova impede os
+     * próximos; este campo diz quais são os que já lá estão.
+     *
+     * E ele NÃO é um selo bonito: é uma admissão. Um elo reatribuído não conta como o plano da
+     * Turma — nem para a ocupar, nem para calar o «!», nem para a cadeia o tomar como sendo de
+     * quem dirige hoje. */
+    const autorDoAnterior = resumo.ajuste_de ? (autorDe.get(String(resumo.ajuste_de)) || null) : null;
+    const trocou = Boolean(resumo.ajuste_de && autorDoAnterior && autor && autorDoAnterior !== autor);
     estados[carimbo] = {
       estado,
       carimbo,
@@ -2130,6 +2149,7 @@ async function estadosDosPlanos(armazenamento, opcoes) {
       por,
       ajuste_de: resumo.ajuste_de || null,
       substituido_por,
+      ...(trocou ? { reatribuido: true, autorDoAnterior } : {}),
       ...(perdeu ? { semTurma: true, turmaDe: perdeu.dono } : {}),
     };
   }
@@ -2171,6 +2191,17 @@ async function estadoDoPo(armazenamento, envelope, opcoes) {
   const turma = String((envelope && envelope.contexto && envelope.contexto.turma) || '').trim();
   const autor = String((envelope && envelope.contexto && envelope.contexto.professor) || '').trim();
   const perdeu = perdeuATurma({ turma, professor: autor }, direcao);
+  /* O ELO QUE TROCOU DE MÃOS — a mesma derivação do plano, e a mesma razão. Custa UMA leitura, e
+   * só quando o PO tem `ajuste_de`: quem lê um PO solto não paga nada por isto. */
+  let reatribuido = false;
+  let autorDoAnterior = null;
+  if (envelope && envelope.ajuste_de) {
+    try {
+      const pai = await lerEnvelope(armazenamento, String(envelope.ajuste_de));
+      autorDoAnterior = String((pai && pai.contexto && pai.contexto.professor) || '').trim() || null;
+      reatribuido = Boolean(autorDoAnterior && autor && autorDoAnterior !== autor);
+    } catch (erro) { reatribuido = false; }
+  }
   return {
     estado: sucessores.length ? 'legado' : 'solta',
     carimbo,
@@ -2179,6 +2210,7 @@ async function estadoDoPo(armazenamento, envelope, opcoes) {
     ajuste_de: envelope.ajuste_de || null,
     substituido_por: sucessores,
     derivado: sucessores.length > 0,
+    ...(reatribuido ? { reatribuido: true, autorDoAnterior } : {}),
     ...(perdeu ? { semTurma: true, turmaDe: perdeu.dono } : {}),
   };
 }

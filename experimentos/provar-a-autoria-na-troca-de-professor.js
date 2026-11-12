@@ -362,6 +362,72 @@ function nomeDaLinha(c) {
     }
   }
 
+  // ==========================================================================================
+  console.log('\nE. O ELO QUE JÁ LÁ ESTÁ COM O NOME TROCADO — a lista admite-o, e não o aceita');
+
+  {
+    /* UM PALCO NOVO, e é o estado do AR a 12/11/2026: a cadeia derivou `plano-20261112-1450` com o
+     * nome da Redinha Rosa sobre o texto do Pé Torto. A regra nova impede os próximos; este já
+     * existe, e o que se mede é que a lista não o apresenta como verdade. */
+    const inicialE = {};
+    inicialE['bastidores/' + ESCOLA + '/curadorias'] = JSON.stringify(curadorias());
+    inicialE['bastidores/' + ESCOLA + '/professores'] = JSON.stringify([
+      { slug: ANTIGO, nome: NOME_ANTIGO }, { slug: NOVO, nome: 'Redinha Rosa' }]);
+    const kvE = kvDeMentira(inicialE);
+    const envE = ambiente(publicacao, ESCOLA, kvE);
+    const armE = producao.__armazenamento(envE);
+    await porta.gravarEnvelope(armE, planoDoPeTorto(), relatorio(PLANO));
+    const trocado = planoDaRedinha('plano-20261112-1450');
+    trocado.ajuste_de = PLANO;
+    await porta.gravarEnvelope(armE, trocado, relatorio(trocado.id));
+
+    const estados = await porta.estadosDosPlanos(armE, {
+      curadorias: JSON.parse(kvE._dados.get('bastidores/' + ESCOLA + '/curadorias')),
+    });
+    const doTrocado = estados[trocado.id] || {};
+    provar('o elo é reconhecido como reatribuído', doTrocado.reatribuido === true, doTrocado);
+    provar('…e a lista sabe quem escreveu, e não só quem assina',
+      doTrocado.professor === NOVO && doTrocado.autorDoAnterior === ANTIGO, doTrocado);
+
+    const r = await (async () => {
+      const resp = await producao.fetch(
+        new Request('https://' + ESCOLA + '.workers.dev/area-do-professor/plano-de-ensino/'), envE);
+      return { status: resp.status, html: await resp.text() };
+    })();
+    const linha = r.html.split('<li class="trio-plano"').slice(1)
+      .filter((c) => ha(c, trocado.id))[0] || '';
+    provar('a linha do elo trocado leva a MARCA do aviso', ha(linha, 'class="selo alerta"'), linha.slice(0, 200));
+    provar('…e a marca diz quem assinou e quem escreveu',
+      ha(linha, 'Redinha Rosa') && ha(linha, NOME_ANTIGO),
+      (linha.match(/title="[^"]*autoria[^"]*"/) || [])[0]);
+    provar('…e ela é legível para quem ouve a página',
+      /role="img"[^>]*aria-label="[^"]*autoria[^"]*"/.test(linha),
+      (linha.match(/aria-label="[^"]*"/) || [])[0]);
+    provar('o plano do Pé Torto, esse, fica «sem turma» — é ele que estava na turma',
+      (estados[PLANO] || {}).semTurma === true, estados[PLANO]);
+    provar('…mesmo tendo um sucessor, porque o sucessor dele é o elo trocado',
+      (estados[PLANO] || {}).substituido_por.indexOf(trocado.id) !== -1, estados[PLANO]);
+
+    /* NA PORTA: o elo trocado não conta como «o plano desta professora». A turma fica livre para
+     * ela escrever o dela, e o «!» tem de aparecer — é o único plano que lá está. */
+    let JSDOMe = null;
+    try { ({ JSDOM: JSDOMe } = require('jsdom')); } catch (e) { JSDOMe = null; }
+    if (!JSDOMe) {
+      console.log('  —   a porta do elo trocado: NÃO MEDIDO (jsdom ausente)');
+    } else {
+      const naPorta = await abrirAPorta(publicacao, ESCOLA, kvE, NOVO);
+      provar('a turma continua ESCOLHÍVEL — o elo trocado não a ocupa',
+        naPorta.ler.opcoesDaturma.filter((o) => o.valor === TURMA && !o.desabilitada).length === 1,
+        naPorta.ler.opcoesDaturma);
+      provar('…e a lista não diz «já tem plano»',
+        !naPorta.ler.opcoesDaturma.some((o) => o.valor === TURMA && /já tem plano/.test(o.texto)),
+        naPorta.ler.opcoesDaturma);
+      provar('…e o «!» aparece, a dizer quem escreveu',
+        Boolean(naPorta.ler.marca) && ha(naPorta.ler.marca.title, NOME_ANTIGO),
+        naPorta.ler.marca && naPorta.ler.marca.title);
+    }
+  }
+
   console.log('\n' + (falhas ? 'FALHARAM ' + falhas + ' de ' + n : 'TUDO CERTO — ' + n
     + ' asserções: o documento que fica sem turma diz «sem turma» e mostra um traço, a autoria não '
     + 'se reescreve, e o «!» no professor chama quem tem de escrever o plano.'));

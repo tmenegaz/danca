@@ -1494,10 +1494,21 @@ async function estadosDosPos(armazenamento, resumos) {
     if (!sucessores.has(pai)) sucessores.set(pai, []);
     sucessores.get(pai).push(resumo.id || nome.replace(/\.json$/, ''));
   }
+  const autorDe = new Map();
+  for (const { nome, resumo } of resumos) {
+    autorDe.set(resumo.id || nome.replace(/\.json$/, ''),
+      String(resumo.professor || '').trim() || null);
+  }
   const estados = {};
   for (const { nome, resumo } of resumos) {
     const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const substituido_por = sucessores.get(carimbo) || [];
+    /* O ELO QUE TROCOU DE MÃOS — a regra é a do núcleo (`porta.estadosDosPlanos`) e não se
+     * repete: um elo e o seu `ajuste_de` são o mesmo documento, e autores diferentes são um nome
+     * trocado no caminho. */
+    const autor = String(resumo.professor || '').trim() || null;
+    const autorDoAnterior = resumo.ajuste_de ? (autorDe.get(String(resumo.ajuste_de)) || null) : null;
+    const trocou = Boolean(resumo.ajuste_de && autorDoAnterior && autor && autorDoAnterior !== autor);
     /* SEM `estado`, DE PROPÓSITO (04/11/2026). O `linhasDe` usa `estado.estado` para o SELO da
      * linha — e um PO nunca teve selo de estado: ele ganhou «gerado» quando gerou o ciclo, e nada
      * mais. Emitir `solta` aqui punha uma etiqueta nova em todas as linhas do PO sem ninguém a ter
@@ -1509,10 +1520,11 @@ async function estadosDosPos(armazenamento, resumos) {
      * que observa, e quem a resolve é o `linhasDe`, que já tem o mapa. */
     estados[carimbo] = {
       carimbo,
-      professor: String(resumo.professor || '').trim() || null,
+      professor: autor,
       ajuste_de: resumo.ajuste_de || null,
       substituido_por,
       derivado: substituido_por.length > 0,
+      ...(trocou ? { reatribuido: true, autorDoAnterior } : {}),
     };
   }
   return estados;
@@ -1663,6 +1675,11 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
       ? (estado.semTurma ? { turma: turmaDeclarada, dono: estado.turmaDe || '' } : null)
       : porta.perdeuATurma({ turma: turmaDeclarada, professor: r.professor }, direcao);
     const turma = perdeu ? '' : turmaDeclarada;
+    /* O ELO QUE TROCOU DE MÃOS (12/11/2026). Ele existe, e a linha diz o que ele é: um documento
+     * que foi gravado com o nome de um professor sobre o texto de outro. Não é um selo de estado
+     * — os estados são do documento; este é um aviso sobre a AUTORIA, e por isso usa a peça do
+     * aviso (`.selo.alerta`, o «!»), com a frase no `title` e no `aria-label`. */
+    const trocado = Boolean(estado.reatribuido);
     /* O PO QUE JÁ GEROU O CICLO DIZ-SE (26/10/2026). «Eu nao tenho aqui uma etiqueta dizendo que
      * gerou o ciclo, que gerou os documentos... e dizer qual foi o ciclo que gerou. Eu acho que
      * essa e uma informacao preciosa pro professor.»
@@ -1704,6 +1721,11 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
        * da cadeia, é a situação do documento, e é o que a pesquisadora precisa de ver primeiro. A
        * classe é `legado`, a que já diz «isto é memória, não é o presente»; a palavra é a que ela
        * usa no mesmo caso — «sem turma». */
+      /* `SEM TURMA` VEM ANTES DA CADEIA (12/11/2026). Ele dizia «derivada» quando um sucessor
+       * existia — e o sucessor pode ser justamente o elo que trocou o nome (ver `reatribuido`),
+       * ou um elo legítimo de um documento que depois perdeu a turma. Nos dois casos o facto que
+       * o professor precisa de ler primeiro é este: o documento já não tem turma. E foi ela que o
+       * disse, na letra: «se não tem turma, você vai mudar a etiqueta e fazer valer o fato». */
       selo: perdeu ? 'sem turma'
         : precisaRever ? 'rever' : (estado.estado || (gerado ? 'gerado' : '')),
       seloClasse: perdeu ? 'legado'
@@ -1711,6 +1733,14 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
           : estado.estado === 'vinculada' ? 'vinculada'
             : estado.estado === 'legado' ? 'discreto'
               : gerado ? 'vigente' : 'livre',
+      /* A MARCA DA AUTORIA TROCADA, ao lado do nome — a mesma peça do «!» que ela pediu para o
+       * cabeçalho e para a revisão do recorte. */
+      marca: trocado
+        ? { texto: '!', titulo: 'gravado com o nome de ' + (quem || '—')
+          + ', mas derivado de um documento de '
+          + (nomeDoProfessor({ professor: estado.autorDoAnterior }) || '—')
+          + ' — a autoria não se reescreve, e a cadeia já não faz isto' }
+        : null,
       fatos: fatos,
       turma: turma,
       professor: quem,

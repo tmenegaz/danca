@@ -129,6 +129,18 @@ function cartaoDaLista(item, indice) {
   const selo = item.selo
     ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '">' + esc(item.selo) + '</span>'
     : '';
+  /* A MARCA DO AVISO, ao lado do nome (12/11/2026).
+   *
+   * Ela não é um selo de estado, e a diferença é a que a folha já distingue: um selo diz O QUE o
+   * registo é (livre, ligado, derivado); a marca diz que há algo a saber sobre ele, e leva a frase
+   * no `title` e no `aria-label`. É a mesma peça `.selo.alerta` que a Produção usa para o «!» da
+   * revisão do recorte e que a porta usa para o professor sem plano — uma peça, três sítios.
+   *
+   * Um «!» sem rótulo é ruído para quem ouve a página; daí o `role="img"` e o `aria-label`. */
+  const marca = item.marca
+    ? ' <span class="selo alerta" role="img" title="' + esc(item.marca.titulo)
+      + '" aria-label="' + esc(item.marca.titulo) + '">' + esc(item.marca.texto || '!') + '</span>'
+    : '';
   /* DUAS ESPÉCIES DE ACÇÃO, e a diferença é o que acontece ao clique (03/11/2026).
    *
    *   · o LINK — leva a outro sítio (o formulário, a ficha), e o destino vai no `href`;
@@ -167,7 +179,7 @@ function cartaoDaLista(item, indice) {
   return '  <li class="trio-plano" data-busca="' + esc(busca) + '"'
     + ' data-prof="' + esc(item.professor || '') + '" data-turma="' + esc(item.turma || '') + '">'
     + '\n    <div class="trio-linha">'
-    + '\n      <span class="trio-nome">' + nomeDaLista(item) + selo + '</span>'
+    + '\n      <span class="trio-nome">' + nomeDaLista(item) + selo + marca + '</span>'
     + '\n      <span class="trio-acoes">' + acoes + '</span>'
     + '\n    </div>'
     + (fatos ? '\n    ' + fatos : '')

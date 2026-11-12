@@ -2384,6 +2384,20 @@ custódia que o resto do sistema sustenta (§5.1, P-03/P-04).
    autor no `title` e no `aria-label`. Sai sozinha quando o plano dele existir — «só vai sair essa
    exclamação […] quando ela já tiver plano».
 
+**Os elos que já existem.** A regra nova fecha a torneira; o acervo do `calango` já tinha os elos
+gravados — e um deles nasceu às 14:50 do mesmo dia, horas antes de esta correcção entrar. Apagá-los
+seria reescrever o passado, que é o que o sistema inteiro recusa. A resposta é outra, e é derivada:
+**um elo cujo autor não é o autor do seu `ajuste_de` trocou de mãos.** Um elo e o seu pai são o mesmo
+documento, mais novo; autores diferentes só têm uma explicação. O campo `reatribuido` diz quais são,
+e um elo assim **não conta como o plano da Turma**: não a ocupa, não cala o «!», e a cadeia não o
+toma como sendo de quem a dirige hoje. A linha leva a marca `.selo.alerta` — a mesma peça do «!» —
+com a frase que diz quem assinou e quem escreveu. E o documento verdadeiro, o do professor anterior,
+fica `sem turma` **mesmo com sucessor**, porque o sucessor dele é justamente o elo trocado.
+
+A marca apanha a **primeira** troca de cada cadeia. No segundo elo de uma sequência já trocada, o
+pai foi ele próprio reatribuído, e a comparação com o pai não distingue mais nada — fica declarado,
+e não corrigido: uma regra que adivinhasse mais do que mede seria a segunda mentira.
+
 **O que isto custa, e é honesto dizê-lo.** O plano antigo não desaparece nem se corrige: fica na
 listagem, «sem turma», à espera de que o autor o reaproveite noutra turma (ajustar + vincular, à mão)
 ou o apague. É mais trabalho do que a reatribuição automática — e é a diferença entre memória e
@@ -2396,9 +2410,10 @@ no cabeçalho, e o próprio «!»). Um leitor morto não dá erro: dá uma lista
 que não haver lista. A chamada passou para o arranque, e a carga do plano custa **8 leituras** (o
 orçamento é 9).
 
-**A prova.** `provar-a-autoria-na-troca-de-professor` **29** (a listagem das duas famílias, o selo que
-sai quando o plano dela existe, e o «!» medido em `jsdom` sobre o servidor de rotas a sério), com
-controlo negativo contra `HEAD`: **14 falhas**. E `provar-direcao-do-documento` foi **reescrita**
+**A prova.** `provar-a-autoria-na-troca-de-professor` **39** (a listagem das duas famílias, o selo que
+sai quando o plano dela existe, o «!» medido em `jsdom` sobre o servidor de rotas a sério, e o elo
+já trocado a ser reconhecido sem ser aceite), com controlo negativo contra `7b92544a` — o commit
+anterior à correcção, e não `HEAD`, que anda: **22 falhas**. E `provar-direcao-do-documento` foi **reescrita**
 (32/32): ela nascera a 10/11 a exigir «o elo novo diz o professor que passou a dirigir», e agora exige
 o contrário — a prova de uma regra e a prova da sua correcção não podem ser o mesmo texto sem que se
 perceba qual está de pé.

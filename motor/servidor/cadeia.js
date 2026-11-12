@@ -92,6 +92,29 @@ function criarCadeia({
   }
 
   /**
+   * OS ELOS QUE TROCARAM DE MÃOS — `Set<carimbo>`, do núcleo da porta.
+   *
+   * A derivação é uma só (`porta.estadosDosPlanos` → `reatribuido`), e é a mesma que a listagem
+   * usa: uma segunda cópia da regra dentro da cadeia divergiria da do ecrã na primeira correcção.
+   * Sem curadorias não há `semTurma`, mas há `reatribuido` — as duas coisas são independentes.
+   */
+  async function estadosDosPlanosAgora() {
+    try { return await porta.estadosDosPlanos(armazenamento); } catch (erro) { return {}; }
+  }
+
+  /**
+   * QUEM ESCREVEU O ELO — o autor de verdade, e não o nome que ele assina.
+   *
+   * Num elo reatribuído o nome foi trocado pela cadeia, e o texto é do autor do elo anterior. É
+   * essa a pessoa a nomear, tanto para decidir «é o plano de quem dirige hoje?» como para a frase
+   * dizer de quem ele é.
+   */
+  function autorDeVerdade(estado, alternativa) {
+    if (estado && estado.reatribuido) return String(estado.autorDoAnterior || '').trim();
+    return String((estado && estado.professor) || alternativa || '').trim();
+  }
+
+  /**
    * OS PLANOS VIGENTES DE UMA SALA, SEPARADOS POR QUEM OS ESCREVEU (12/11/2026).
    *
    * `meu` é o plano do professor que dirige a turma hoje; `deOutro` é o de outro professor, e só
@@ -111,10 +134,32 @@ function criarCadeia({
       const vigentes = (Array.isArray(todos) ? todos : []).filter((p) =>
         p && String(p.turma || '').trim() === alvo && !p.anterior);
       const autor = String(professor || '').trim();
+      /* O ELO QUE TROCOU DE MÃOS NÃO É O PLANO DA TURMA (12/11/2026).
+       *
+       * O acervo do `calango` tem elos gravados pela cadeia com o nome de um professor sobre o
+       * texto de outro (`plano-20261112-1450` diz `redinha-rosa` e é `ajuste_de` um plano do
+       * `pe-torto`). Enquanto ele contasse como «o plano de quem dirige hoje», a cadeia dava a
+       * etapa por feita e a tela repetia a frase que a pesquisadora recusou. O estado é derivado
+       * uma vez, no núcleo (`porta.estadosDosPlanos`), e aqui só se lê. */
+      const estados = await estadosDosPlanosAgora();
+      const deQuem = (p) => autorDeVerdade(estados[String(p.carimbo || '')], p.professor);
+      /* O ELO SAI COM O AUTOR DE VERDADE NO CAMPO `professor` — e com o NOME de exibição ao lado,
+       * para a frase da cadeia dizer «Pé Torto» e não «pe-torto». Um elo reatribuído não leva o
+       * `professorNome` do resumo: aquele nome é o que a cadeia escreveu por cima. */
+      const comAutor = async (p) => {
+        if (!p) return null;
+        const slug = deQuem(p);
+        const estado = estados[String(p.carimbo || '')] || {};
+        const nome = estado.reatribuido ? null : estado.professorNome;
+        return Object.assign({}, p, {
+          professor: slug,
+          professorNome: nome || (await nomeDoProfessor(slug)) || null,
+        });
+      };
       if (!autor) return { meu: vigentes[0] || null, deOutro: null };
       return {
-        meu: vigentes.find((p) => String(p.professor || '').trim() === autor) || null,
-        deOutro: vigentes.find((p) => String(p.professor || '').trim() !== autor) || null,
+        meu: await comAutor(vigentes.find((p) => deQuem(p) === autor)),
+        deOutro: await comAutor(vigentes.find((p) => deQuem(p) !== autor)),
       };
     } catch (erro) { return vazio; }
   }

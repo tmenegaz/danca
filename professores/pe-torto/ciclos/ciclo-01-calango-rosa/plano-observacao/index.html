@@ -2750,9 +2750,15 @@ function professorSemOPlanoDaTurma() {
      * que este precisa de escrever o dele. Saltá-lo aqui calava a marca exactamente quando ela
      * é precisa — foi o primeiro erro desta implementação, medido pela prova. */
     if (o.estado === 'legado') continue;
-    if (String(o.professor || '') === professor) return null;   // há um plano dele
+    /* O ELO QUE TROCOU DE MÃOS NÃO CONTA COMO «O PLANO DELE» (12/11/2026) — o nome que assina não
+     * é o de quem escreveu. E, como é o único que lá está, a marca tem de aparecer: o professor
+     * que dirige hoje continua sem plano para esta turma, e é ele que a tem de escrever. */
+    if (!o.reatribuido && String(o.professor || '') === professor) return null;
     if (!deOutro) {
-      deOutro = { autor: nomeDeProfessor(o.professorNome || o.professor),
+      /* QUEM ESCREVEU, E NÃO QUEM ASSINA. Num elo reatribuído o nome que assina é o da cadeia; o
+       * texto é do autor do elo anterior, e é esse que a frase tem de dizer. */
+      deOutro = { autor: nomeDeProfessor(o.reatribuido
+        ? (o.autorDoAnterior || o.professor) : (o.professorNome || o.professor)),
         carimbo: o.carimbo || '' };
     }
   }
@@ -4226,8 +4232,12 @@ function turmasJaUsadas() {
     /* O PLANO QUE PERDEU A TURMA NÃO A BLOQUEIA (12/11/2026). Ele diz `sem turma` — a turma
      * passou a outro professor —, e se continuasse a ocupá-la aqui, quem a dirige hoje não
      * conseguia escolhê-la para escrever o plano dele. Era o impasse: a tela dizia «já tem plano»
-     * e a cadeia dizia «o plano é de outro». */
-    if (o.semTurma) continue;
+     * e a cadeia dizia «o plano é de outro».
+     *
+     * O ELO QUE TROCOU DE MÃOS TAMBÉM NÃO (12/11/2026). Ele existe, mas o nome que assina não é o
+     * de quem escreveu — e um documento assim não é «o plano desta turma» para efeito nenhum: nem
+     * para a ocupar, nem para calar o «!». */
+    if (o.semTurma || o.reatribuido) continue;
     usadas.set(String(o.turma), {
       carimbo,
       estado: o.estado || (o.vinculada ? 'vinculada' : 'solta'),

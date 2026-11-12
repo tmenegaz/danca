@@ -43172,6 +43172,14 @@ turma, e reescrever-lhe o autor é afirmar que alguém escreveu o que não escre
   contra uma escolha impossível seria ruído; a regra vale lá na cadeia, que é quem deriva.
 - **A turma deixa de estar bloqueada por um plano que já não é dela.** `turmasJaUsadas` salta os
   planos `semTurma` — sem isso o «!» mandava fazer uma coisa que a própria lista impedia.
+- **O elo que JÁ está trocado é reconhecido, e não apagado.** A regra nova impede os próximos; os
+  que lá estão continuam a existir (P-03/P-04). Mas eles não podem continuar a valer: `reatribuido`
+  é derivado comparando o autor de um elo com o do seu `ajuste_de` — um elo e o seu pai são o mesmo
+  documento, mais novo, e autores diferentes são um nome trocado no caminho. Um elo assim **não
+  conta como o plano da Turma**: não a ocupa, não cala o «!», e a cadeia não o toma como sendo de
+  quem dirige hoje. Na linha, leva a marca `.selo.alerta` («!») a dizer quem assinou e quem
+  escreveu. E o plano verdadeiro — o do Pé Torto — passa a `sem turma` **mesmo com sucessor**,
+  porque o sucessor dele é justamente o elo trocado.
 
 **Um leitor morto, encontrado pelo caminho.** `carregarEstados` só era chamada por `atualizarFichas`, e
 essa função **sai na primeira linha** quando não há `#lista-fichas` — que é o caso desde 26/10, quando
@@ -43190,9 +43198,9 @@ as duas etapas bloqueadas, o pacote que espera ·
 rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
 «!» do professor e o arranque dos estados.
 
-**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra
+**Validação.** `provar-a-autoria-na-troca-de-professor` **39/39**, com controlo negativo contra
 `7b92544a` (o commit anterior à correcção — `HEAD` anda, e depois de isto entrar passa a ser o código
-novo, que é o que um negativo não pode medir): **15 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+novo, que é o que um negativo não pode medir): **22 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
 `provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
 rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
 `provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·
@@ -43201,7 +43209,10 @@ rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `prov
 `provar-cartao-da-turma` 6, `provar-derivacao-da-turma` 20, `provar-estante-do-po` (rebenta na
 `escola/batata`, expurgada).
 
-**O que ainda não está feito.** O acervo do `calango` **já tem** os elos falsificados (quatro, medidos
-acima). A regra nova impede os próximos; os que existem ficam, porque a proveniência acrescenta e não
-edita (P-03/P-04). Se a pesquisadora quiser, o caminho é um expurgo declarado — e não uma reescrita.
-Fica também por decidir se o «!» deve aparecer na **Área do Professor** (a lista), e não só na porta.
+**O que ainda não está feito.** O «!» da autoria trocada aparece na listagem e na porta, mas **não
+no cartão da Turma** (Bastidores → Turmas) — ali a Turma ainda mostra o plano vigente sem dizer que
+o nome dele foi trocado. E os elos antigos continuam no acervo: marcados, e não expurgados. O
+expurgo, se ela o quiser, tem de ser declarado — a proveniência acrescenta e não edita (P-03/P-04).
+Um segundo elo da mesma cadeia (`-0809`, `-1016`) já não é distinguível do primeiro pela comparação
+com o pai, porque o pai dele foi ele próprio reatribuído: a marca apanha a primeira troca de cada
+cadeia, não a propagação. Fica declarado.
