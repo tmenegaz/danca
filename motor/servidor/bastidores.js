@@ -1248,6 +1248,42 @@ async function usosDosPlanos(env, escola, jaLido) {
   return usos;
 }
 
+/**
+ * AS TURMAS QUE USAM CADA TERMO — do plano para o verbete (12/11/2026).
+ *
+ * O pedido é dela: «um verbete a gente tem que colocar também a etiqueta para saber se ele está ou
+ * não vinculado a uma turma. A gente precisa disso também.» Até aqui a listagem do Estilo dizia a
+ * posição, o desacordo dos tempos e de quem era a versão — e não dizia a única coisa que muda o que
+ * acontece ao gravar: se aquele exercício já compõe o repertório de um plano.
+ *
+ * E É O MESMO DADO QUE O SERVIDOR JÁ USA PARA DECIDIR O AJUSTE. `usosDosPlanos` conta os termos em
+ * conjunto, porque a pergunta dele é «está usado?»; aqui a pergunta é «usado por QUEM?», e é a
+ * resposta que a etiqueta mostra. Uma segunda leitura dos planos, com a sua própria forma,
+ * divergiria da primeira ao primeiro campo novo — daí ser a mesma travessia, a devolver nomes.
+ *
+ * `null` quando não se conseguiu ler os planos: não se afirma «livre» sobre um dado que não se viu.
+ */
+async function turmasPorTermo(env, escola, jaLido) {
+  const planos = jaLido || await resumosDosPlanos(env, escola);
+  if (!Array.isArray(planos)) return null;
+  const mapa = {};
+  for (const r of planos) {
+    const turma = String((r && r.turma) || '').trim();
+    if (!turma) continue;
+    for (const t of (Array.isArray(r.repertorio) ? r.repertorio : [])) {
+      const nome = String(t == null ? '' : t).trim();
+      if (!nome) continue;
+      /* As duas chaves — o nome e o id — pela mesma razão do `usosDosPlanos`: o plano pode
+       * declarar o termo pela etiqueta ou pela chave, e quem lê não escolhe. */
+      for (const chave of [nome, idDe(nome)]) {
+        const lista = mapa[chave] || (mapa[chave] = []);
+        if (lista.indexOf(turma) === -1) lista.push(turma);
+      }
+    }
+  }
+  return mapa;
+}
+
 /** O professor já está num plano? `null` (não deu para ler) conta como vinculado. */
 function professorVinculadoA(usos, p) {
   if (!usos) return true;
@@ -5962,7 +5998,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<span class="par-botoes" id="lb-nav">' +
     '<button type="button" class="acao secundario" id="lb-voltar" hidden>← Voltar</button>' +
     '<button type="button" class="acao" id="lb-seguir">Seguir →</button>' +
-    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Concluir elenco</button>' +
+    /* O RÓTULO NASCE «Criar elenco» E PASSA A «Gravar elenco» QUANDO HÁ UM ABERTO (12/11/2026).
+     * O `pintarTravasLb` reescreve-o a cada passo e a cada elenco aberto — ver a nota lá. O que
+     * está aqui é só o estado de repouso, para a página nascer certa sem JavaScript. */
+    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Criar elenco</button>' +
     '</span>' +
     /* POR QUE NÃO SE AVANÇA — ESCRITO, E NÃO SÓ NO `title` (07/11/2026).
      *
@@ -7001,13 +7040,49 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A ETIQUETA É OPCIONAL E TEM UM NOME DE REPOUSO. Todos estes gestos são GRAVAÇÕES de um
     // cadastro (professor, aluna, elenco, habilitação) — «Gravação» é a palavra certa para todos,
     // e um parâmetro obrigatório em cada chamada só faria repetir a mesma palavra seis vezes.
-    'function ocuparBotao(form, rotulo, etiqueta) {' +
-        '  if (!form) return null;' +
-        '  var botao = form.querySelector("button[type=submit]");' +
+    /* O BOTÃO PODE SER UM FORMULÁRIO OU UM BOTÃO — e essa é a correção de 12/11/2026.
+     *
+     * O DEFEITO QUE ELA RELATOU: «quando eu finalizo o processo com o botão de concluir elenco, eu
+     * não tenho a mesma solução apresentada, que é o véu, o spinning e a mensagem. […] é uma outra
+     * solução e não pode ser assim.»
+     *
+     * A CAUSA, medida: dois sítios chamavam `ocuparBotao(botao, "gravando...", "button")` — a
+     * passar um BOTÃO onde a função esperava um FORMULÁRIO. Ela fazia `form.querySelector(
+     * "button[type=submit]")`, que dentro de um `<button>` não encontra nada, e devolvia `null`
+     * ANTES de chamar `ocupar`. Resultado: nenhum véu, nenhum giro, nenhuma frase — e nenhum erro
+     * na consola, porque um `return null` é um caminho legítimo da função. O «Concluir elenco» e o
+     * «Ler as anamneses» eram os dois gestos da Audição que ficavam sem véu.
+     *
+     * A função passa a aceitar os dois, porque os dois são legítimos: há gestos que têm
+     * formulário (e aí o botão de submeter é o que se desabilita) e há gestos que são um botão só.
+     *
+     * E O TERCEIRO ARGUMENTO DEIXA DE SER O `id` DE UM BOTÃO. Onde se lia `"button"` — o id do
+     * elemento, passado por engano no lugar da etiqueta — a etiqueta mostrada era a palavra
+     * «button». Nenhum dos dois chamadores passa agora um terceiro argumento: a etiqueta vem do
+     * mapa dos passos, que é o sítio onde as frases do véu vivem. */
+    /* O QUARTO ARGUMENTO É A FRASE DO VÉU, E O RÓTULO É O DO BOTÃO (12/11/2026).
+     *
+     * O botão e o véu dizem coisas diferentes, e têm espaços diferentes. O botão tem a largura de
+     * um botão: «a criar o Elenco e a revincular as Turmas que o usam…» não cabe nele, e um rótulo
+     * que transborda é pior do que um rótulo curto. O véu, esse, tem a linha inteira e é onde a
+     * frase faz falta. Sem este argumento os dois eram a mesma coisa, e a frase do passo tinha de
+     * caber no botão — que é o que a primeira tentativa desta correcção mostrou, com o botão a
+     * esticar-se por uma linha e meia.
+     *
+     * Sem o quarto argumento, o comportamento é o de antes: a frase é o rótulo. Nenhum chamador
+     * antigo muda. */
+    'function ocuparBotao(alvo, rotulo, etiqueta, frase) {' +
+        '  if (!alvo) return null;' +
+        /* Um `<button>` não tem `querySelector` de botão de submeter — ele É o botão. A distinção
+         * é pelo nome da etiqueta, e não por `instanceof`: a página não depende de construtores do
+         * DOM, que é a mesma razão pela qual as opções são marcação e não `createElement`. */
+        '  var botao = String(alvo.tagName || "").toUpperCase() === "BUTTON"' +
+        '    ? alvo' +
+        '    : alvo.querySelector("button[type=submit]");' +
         '  if (!botao) return null;' +
         '  var antes = {botao: botao, rotulo: botao.textContent};' +
         '  botao.disabled = true; botao.textContent = rotulo;' +
-        '  ocupar(rotulo, etiqueta || "Gravação");' +
+        '  ocupar(frase || rotulo, etiqueta || "Gravação");' +
         '  return antes;' +
         '}' +
     // O `liberarBotao` BASTA-SAÍDO. Todos os `ocuparBotao` desta página libertam nos DOIS ramos
@@ -7946,16 +8021,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var mapa = {' +
     '    "/api/bastidores/curadoria-derivar": {etiqueta: "Derivação", texto: "a derivar a Turma e a reencadear o plano de ensino e o plano de observação\u2026"},' +
     '    "/api/bastidores/curadoria": {etiqueta: "Vinculação", texto: "a gravar a Turma e a revincular o que depende dela\u2026"},' +
-    '    "/api/bastidores/turma-derivar": {etiqueta: "Ajuste da Sala", texto: "a ajustar a Sala e a reler o ritmo no plano\u2026"},' +
-    '    "/api/bastidores/turma-editar": {etiqueta: "Ajuste da Sala", texto: "a ajustar a Sala e a reler o ritmo no plano\u2026"},' +
+    /* AS DUAS FRASES DA SALA DIZEM COISAS DIFERENTES (12/11/2026), porque as coisas são diferentes.
+     * A LIVRE é substituída no lugar — o nome pode até mudar. A VINCULADA deriva: nasce um elo
+     * novo, com data, e o nome NÃO muda, porque é ele que o plano referencia. Dizer a mesma frase
+     * nos dois casos obrigava o professor a saber qual dos dois ia acontecer para a ler. A escolha
+     * do caminho é a `tmodo` do formulário, e não o estado — mas a frase segue o caminho que foi. */
+    '    "/api/bastidores/turma-derivar": {etiqueta: "Ajuste da Sala", texto: "a ajustar a Sala, a reler o ritmo no plano e a reencadear o PO\u2026"},' +
+    '    "/api/bastidores/turma-editar": {etiqueta: "Gravação da Sala", texto: "a gravar a Sala e a revincular o que depende dela\u2026"},' +
     '    "/api/bastidores/elenco-mover": {etiqueta: "Transferência", texto: "a mover a aluna e a revincular a Turma\u2026"},' +
-    '    "/api/bastidores/linha-de-base": {etiqueta: "Elenco", texto: "a concluir o Elenco e a revincular as Turmas que o usam\u2026"},' +
+    '    "/api/bastidores/linha-de-base": {etiqueta: "Elenco", texto: "a gravar o Elenco\u2026"},' +
+    /* AS DUAS FRASES DO ELENCO (12/11/2026). O `POST /linha-de-base` tem dois sentidos — guardar o
+     * rascunho e CRIAR a versão —, e o mapa, que é por endereço, não os distingue. As duas ficam
+     * aqui, ao lado do resto, para todas as frases do véu continuarem a viver no mesmo sítio: uma
+     * escrita no cliente voltaria a ser o segundo lugar onde se ajusta a mesma frase.
+     *
+     * O RÓTULO DO BOTÃO ACOMPANHA, e a escolha do nome é dela: «não é concluir elenco, é selecionar
+     * um elenco. Na verdade é criar um elenco» — e depois, entre as duas, «dinâmico: criar quando
+     * é novo, gravar quando já existe». É o que diz a verdade nos dois casos: um elenco novo não se
+     * conclui, cria-se. */
+    '    "/api/bastidores/linha-de-base/leitura": {etiqueta: "Leitura das anamneses", texto: "a ler as anamneses das alunas e a classificar o corpo\u2026"},' +
+    '    "/api/bastidores/verbete": {etiqueta: "Verbete", texto: "a gravar o verbete e a reavaliar as Turmas que o usam\u2026"},' +
+    '    "/api/bastidores/turma": {etiqueta: "Cadastro da Sala", texto: "a cadastrar a Sala e a abrir o caminho do plano\u2026"},' +
     '    "/api/bastidores/cadeia-pacote": {etiqueta: "Geração dos documentos", texto: "a gerar os documentos do ciclo\u2026"},' +
     '    "/api/bastidores/professor-desligar": {etiqueta: "Desligamento", texto: "a encerrar a direção pedagógica e a revincular as Turmas\u2026"},' +
     '    "/api/bastidores/perfil": {etiqueta: "Habilitações", texto: "a gravar as habilitações e a reavaliar as Turmas do professor\u2026"},' +
     '    "/api/bastidores/linha-de-base/descartar": {etiqueta: "Elencos", texto: "a descartar as alterações do Elenco\u2026"}' +
     '  };' +
     '  return mapa[ep] || null;' +
+    '}' +
+    /* O PASSO DO ELENCO, ESCOLHIDO PELO QUE SE ESTÁ A FAZER (12/11/2026) — ver a nota do mapa. */
+    'function passoDoElenco(concluir, novo) {' +
+    '  if (!concluir) return {etiqueta: "Elenco", texto: "a gravar o Elenco\u2026"};' +
+    '  return novo' +
+    '    ? {etiqueta: "Elenco", texto: "a criar o Elenco e a revincular as Turmas que o usam\u2026"}' +
+    '    : {etiqueta: "Elenco", texto: "a gravar a nova versão do Elenco e a revincular as Turmas que o usam\u2026"};' +
     '}' +
     'function enviar(ep, corpo, mensagem, recarregar, aoOk) {' +
     '  corpo.token = TOKEN;' +
@@ -10938,6 +11037,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        if (x.posicao && p.id === x.posicao.termo) posicao = p.nome || p.termo;' +
     '      });' +
     '      var selos = posicao ? "<span class=\\"selo discreto\\">" + posicao + "</span>" : "";' +
+    /* EM TURMA OU LIVRE (12/11/2026) — o mesmo par de palavras do elenco e da Turma, e não um
+     * terceiro nome para o mesmo estado.
+     *
+     * O QUE A ETIQUETA MUDA. Um exercício LIVRE grava-se no lugar: corrigir o texto de um verbete
+     * que ninguém usa não toca em documento nenhum. Um exercício EM TURMA já compõe o repertório de
+     * um plano, e a gravação passa a ser um AJUSTE — o estado anterior fica no histórico com a data
+     * em que deixou de valer, e os documentos dessa data continuam a ler-se como foram escritos.
+     * Sem esta etiqueta, o professor só descobria qual dos dois ia acontecer DEPOIS de gravar. */
+    '      if (x.emTurma !== null && x.emTurma !== undefined) {' +
+    '        selos += " " + (x.emTurma.length' +
+    '          ? "<span class=\\"selo vinculada\\" title=\\"já compõe o repertório de " +' +
+    '            (x.emTurma.length === 1 ? "uma turma: «" + escHtml(x.emTurma[0]) + "»" ' +
+    '              : x.emTurma.length + " turmas: «" + x.emTurma.map(escHtml).join("», «") + "»") +' +
+    '            ". Gravar é um AJUSTE: a versão anterior fica no histórico.\\">em turma</span>"' +
+    '          : "<span class=\\"selo livre\\" title=\\"ainda não compõe o repertório de ' +
+    'nenhuma turma; gravar corrige o verbete no lugar\\">livre</span>");' +
+    '      }' +
     '      if (x.descontinuado) selos += " <span class=\\"selo alerta\\">descontinuado</span>";' +
     // `porMusica` é o que o servidor passou a mandar. Quando ele não vem — uma página antiga
     // contra um servidor novo, ou o contrário — a listagem cai na linha única de antes, em vez
@@ -12215,12 +12331,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    ler.setAttribute("aria-disabled", faltaLer ? "true" : "false");' +
     '    if (faltaLer) ler.title = faltaLer + "."; else ler.removeAttribute("title");' +
     '  }' +
+    /* O BOTÃO DIZ O QUE FAZ, E O QUE FAZ DEPENDE DO QUE ESTÁ ABERTO (12/11/2026).
+     *
+     * A DECISÃO É DELA, e passou por duas palavras antes de assentar: «não é concluir elenco, é
+     * selecionar um elenco. Na verdade é criar um elenco» — e, entre as duas, o pedido de que seja
+     * dinâmico. É o que diz a verdade nos dois casos: um elenco NOVO cria-se; um que já existe
+     * grava-se outra vez. «Concluir» não é nenhuma das duas coisas: é uma palavra de processo
+     * interno, e não do trabalho de quem ensina.
+     *
+     * A etiqueta é lida do `#lb-modo` — o id do elenco aberto —, que é a mesma fonte que o
+     * «Cancelar a edição» consulta. Uma segunda noção de «há um elenco aberto» divergiria dela ao
+     * primeiro caminho novo. */
     '  var enviar = document.getElementById("lb-enviar");' +
     '  if (enviar) {' +
     '    var faltaEnvio = faltasAntesDeLb(LB_TOTAL + 1);' +
+    '    var idAberto = (document.getElementById("lb-modo") || {}).value || "";' +
+    '    var rotuloEnvio = idAberto ? "Gravar elenco" : "Criar elenco";' +
+    '    var verboEnvio = idAberto ? "gravar" : "criar";' +
+    '    enviar.textContent = rotuloEnvio;' +
     '    enviar.disabled = faltaEnvio.length > 0;' +
     '    enviar.setAttribute("aria-disabled", faltaEnvio.length ? "true" : "false");' +
-    '    enviar.title = faltaEnvio.length ? "Para concluir, falta " + faltaEnvio.join(", ") + "." : "";' +
+    '    enviar.title = faltaEnvio.length' +
+    '      ? "Para " + verboEnvio + ", falta " + faltaEnvio.join(", ") + "."' +
+    '      : (idAberto ? "Regravar este elenco e revincular as Turmas que o usam"' +
+    '                  : "Criar o elenco e revincular as Turmas que o usam");' +
     '  }' +
     '  pintarCancelarLb();' +
     '  pintarTiraLb();' +
@@ -12577,7 +12711,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '  var botao = document.getElementById("lb-ler");' +
-    '  var antes = ocuparBotao(botao, "lendo...", "button");' +
+    /* O MESMO VÉU QUE O RESTO DA CASA (12/11/2026). A frase vem do mapa dos passos, como em todos
+     * os outros gestos: antes, esta linha passava `"button"` como etiqueta e um botão como
+     * formulário — e o véu não aparecia. */
+    '  var passoDaLer = textoDoPasso("/api/bastidores/linha-de-base/leitura") ||' +
+    '    {etiqueta: "Leitura das anamneses", texto: "a ler as anamneses das alunas\u2026"};' +
+    '  var antes = ocuparBotao(botao, "lendo...", passoDaLer.etiqueta, passoDaLer.texto);' +
     '  var q = "?id=" + encodeURIComponent(modo.value) +' +
     '    "&alunas=" + encodeURIComponent(escolhidas.join(","));' +
     '  fetch("/api/bastidores/linha-de-base/leitura" + q)' +
@@ -13158,7 +13297,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  };' +
     '  if (modo && modo.value) corpo.id = modo.value;' +
     '  var botao = document.getElementById(idDoBotao || "lb-seguir");' +
-    '  var antes = ocuparBotao(botao, "gravando...", "button");' +
+    /* O VÉU DO ELENCO, IGUAL AO DA TURMA (12/11/2026) — «tem que ser a mesma solução». A frase vem
+     * de `passoDoElenco`, que distingue criar de regravar e nomeia a consequência (as Turmas que o
+     * usam). Antes disto esta linha passava `"button"` como etiqueta e um botão como formulário: o
+     * véu não aparecia, e a etiqueta — se aparecesse — diria a palavra «button». */
+    '  var idAtual = (modo && modo.value) || "";' +
+    '  var passoDoGesto = passoDoElenco(!!concluir, !idAtual);' +
+    '  var antes = ocuparBotao(botao, "gravando...", passoDoGesto.etiqueta, passoDoGesto.texto);' +
     '  return fetch("/api/bastidores/linha-de-base", {method: "POST",' +
     '    headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
     '    .then(function(r){ return r.json(); })' +
@@ -15944,6 +16089,10 @@ async function fetch(request, env, extras) {
         tradicao: String(t.tradicao || '').trim(),
         tradicaoRotulo: rotuloDaTradicao(t.tradicao),
       }));
+    /* UMA LEITURA, DOIS CONSUMIDORES (12/11/2026). Os planos já eram lidos nesta rota? Não — a
+     * gravação é que os lê. Passa a haver uma leitura aqui, e ela alimenta só a etiqueta «em
+     * turma». É o preço de a listagem poder dizer o que muda no gesto seguinte. */
+    const porTermoDaVez = await turmasPorTermo(env, escola).catch(() => null);
     return json(200, {
       ok: true,
       modalidade,
@@ -15956,7 +16105,17 @@ async function fetch(request, env, extras) {
       // escola (`8|4/4` e `8|4/4@breu`), e o que esta resposta serve é o que ESTA escola vê: o
       // catálogo mais o dela, com o dela a vencer. Sem isto, a Produção da `breu` abria com duas
       // músicas iguais e o `editar` de cada uma — duas linhas para o mesmo exercício.
-      exercicios: listarVerbetes(lido.dados, escola),
+      /* CADA EXERCÍCIO SABE SE ESTÁ EM TURMA (12/11/2026) — a etiqueta que ela pediu. O `null` do
+       * `turmasPorTermo` (planos ilegíveis) NÃO vira lista vazia: a listagem distingue «não está em
+       * nenhuma» de «não se conseguiu olhar», pela mesma razão que a estante do acervo o faz. */
+      exercicios: (function () {
+        const porTermo = porTermoDaVez;
+        return listarVerbetes(lido.dados, escola).map((x) => Object.assign({}, x, {
+          emTurma: porTermo === null
+            ? null
+            : (porTermo[x.nome] || porTermo[idDe(x.nome)] || []).slice(),
+        }));
+      })(),
       verbetes: (function () {
         const porExercicio = (lido.dados && lido.dados.verbetes) || {};
         const saida = {};

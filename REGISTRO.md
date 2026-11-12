@@ -42756,3 +42756,77 @@ professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão 
 (o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
 quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
 marca até os refazer outra vez.
+
+## 12/11/2026 — Um véu para todos os gestos: elenco, leitura, verbete e sala
+
+**O que motivou, na letra dela.** «Nós fizemos uma solução na alteração da turma ou na criação da
+turma. E aí a gente tem um véu, tem um spinning e tem a mensagem. […] não podemos ter decisões
+conflitantes, e o conflito está justamente na audição. […] Eu já tenho ali na audição a mesma
+solução quando eu cancelo um processo. Mas quando eu vou concluir o elenco, não, é uma outra solução
+e não pode ser assim. Tem que ser a mesma solução.» E depois, para o Estilo e as Salas: o mesmo, «quer
+a sala esteja vinculada ou não».
+
+**A CAUSA, medida — e não era uma decisão, era um `return null`.** Dois sítios chamavam
+`ocuparBotao(botao, "gravando...", "button")`: um BOTÃO onde a função esperava um FORMULÁRIO. Ela
+fazia `form.querySelector("button[type=submit]")`, que dentro de um `<button>` não encontra nada, e
+devolvia `null` **antes** de chamar `ocupar`. Nenhum véu, nenhum giro, nenhuma frase — e **nenhum
+erro na consola**, porque `return null` é um caminho legítimo da função. Os dois gestos sem véu eram
+o «Concluir elenco» e o «Ler as anamneses».
+
+E o terceiro argumento era o `id` de um elemento passado no lugar da etiqueta: onde se lia
+`"button"`, a etiqueta do véu diria a palavra «button».
+
+**O que foi decidido.**
+
+- **`ocuparBotao` aceita os dois** — um formulário (e desabilita o botão de submeter) ou um botão.
+  Os dois são legítimos: há gestos com formulário e gestos que são um botão só. E o quarto argumento
+  passou a ser **a frase do véu**, separada do **rótulo do botão**: o botão tem a largura de um botão
+  («gravando...»), o véu tem a linha inteira («a criar o Elenco e a revincular as Turmas que o
+  usam…»). A primeira tentativa juntou-os e o botão esticou-se por uma linha e meia.
+- **AS FRASES VIVEM NUM SÍTIO SÓ** (`textoDoPasso`). Entraram as que faltavam: `/verbete`,
+  `/api/bastidores/turma` (o cadastro — era o único caminho da Sala sem véu semântico),
+  `/linha-de-base/leitura`, e o `/linha-de-base` passou a «a gravar o Elenco…». As duas variantes do
+  elenco (criar / regravar) ficam ao lado, em `passoDoElenco`, porque o mapa é por endereço e este
+  endereço tem dois sentidos.
+- **AS DUAS FRASES DA SALA DIZEM COISAS DIFERENTES.** A LIVRE é substituída no lugar («Gravação da
+  Sala»); a VINCULADA deriva — elo novo, com data, nome que não muda («Ajuste da Sala … a reencadear
+  o PO»). Dizer a mesma frase nos dois casos obrigava o professor a saber qual ia acontecer para a
+  ler.
+- **O BOTÃO DO ELENCO PASSOU A DIZER O QUE FAZ, E A ESCOLHA É DELA.** «Não é concluir elenco, é
+  selecionar um elenco. Na verdade é criar um elenco» — e, entre as duas palavras, **dinâmico**:
+  «Criar elenco» quando é novo, «Gravar elenco» quando há um aberto. O `title` acompanha o verbo
+  («Para criar, falta…» / «Para gravar, falta…»). «Concluir» era uma palavra de processo interno, e
+  não do trabalho de quem ensina.
+- **O VERBETE GANHOU A ETIQUETA «EM TURMA» / «LIVRE».** O pedido é explícito: «um verbete a gente
+  tem que colocar também a etiqueta para saber se ele está ou não vinculado a uma turma». E ela não
+  é ornamento — é o que diz qual dos dois gestos vai acontecer: um verbete **livre** grava-se no
+  lugar; um **em turma** já compõe o repertório de um plano, e a gravação passa a ser um **ajuste**,
+  com o estado anterior no histórico. É o mesmo par de palavras do elenco e da Turma, e não um
+  terceiro nome para o mesmo estado. `turmasPorTermo` lê os planos e devolve os NOMES das turmas;
+  `null` (planos ilegíveis) **não** vira lista vazia — «não se conseguiu olhar» não é «não está em
+  nenhuma».
+
+**Uma lição que a prova pagou duas vezes.** A asserção estática procurava o literal `"button"` no
+ficheiro e encontrou o **comentário que narra o defeito**, a citar a chamada antiga. Passou a olhar
+só as linhas EMITIDAS (as que começam por `'`). É a mesma armadilha da prova do elenco sem ninguém:
+uma asserção que procura texto no código encontra também o texto que fala dele.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `ocuparBotao`,
+`textoDoPasso`, `passoDoElenco`, `turmasPorTermo`, o selo do verbete, o rótulo dinâmico do botão e
+as três chamadas corrigidas · [experimentos/provar-o-veu-de-cada-gesto.js](./experimentos/provar-o-veu-de-cada-gesto.js)
+— prova nova · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o alcance do véu.
+
+**Validação.** `provar-o-veu-de-cada-gesto` **39/39**; controle negativo contra `fa3bea6a`:
+**27 falhas** — e o negativo mostra o defeito na letra: `ocupado: null`, etiqueta «a processar», e o
+botão a dizer «Concluir elenco». Sem regressão: `provar-elenco-sem-ninguem` 59 ·
+`provar-revisao-do-recorte` 47 · `provar-elenco-na-turma` 26 · `provar-abas-da-audicao` 86 ·
+`provar-transferencia-e-desligamento` 93 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas` 29 ·
+`check-identidade` 0 erros · `check-indices` 16/16.
+
+**O que ainda não está feito.** (1) O «Avançar» da Sala continua a chamar-se «Avançar»: é o botão de
+uma navegação de três passos, e renomeá-lo é outra decisão. (2) A etiqueta «em turma» do verbete lê
+os planos a cada abertura do Estilo — uma leitura que antes não existia nessa rota; se pesar, a
+alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
+reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
+histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.

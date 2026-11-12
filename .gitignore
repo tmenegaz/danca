@@ -1111,3 +1111,17 @@ experimentos/modelo-formulario/*
 # «revisado» para alguém esquecer de limpar.
 # CONTROLE NEGATIVO: 34 falhas contra o código de antes.
 !experimentos/provar-revisao-do-recorte.js
+
+# ---------------------------------------------------------------------------------------------
+# UM VÉU PARA TODOS OS GESTOS — 12/11/2026
+#
+# «quando eu vou concluir o elenco, não, é uma outra solução e não pode ser assim. Tem que ser a
+# mesma solução.» Não era uma decisão: dois sítios chamavam `ocuparBotao(botao, "...", "button")` —
+# um BOTÃO onde a função esperava um FORMULÁRIO —, ela devolvia `null` antes de chamar `ocupar`, e
+# não havia véu nenhum, nem erro na consola. E o terceiro argumento era um `id` no lugar da
+# etiqueta, que passava a dizer a palavra «button».
+# A prova mede o mesmo véu (`.veu-cartao`, `role=status`) no elenco a criar, a regravar e em
+# rascunho, na leitura das anamneses, no verbete e nos três caminhos da Sala; o selo «em turma /
+# livre» do verbete; e a frase curta no botão contra a frase longa no véu.
+# CONTROLE NEGATIVO: 27 falhas contra o código de antes — `ocupado: null`, «a processar».
+!experimentos/provar-o-veu-de-cada-gesto.js
