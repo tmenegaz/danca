@@ -1,0 +1,89 @@
+{
+  "id": "tami",
+  "nome": "tami",
+  "professor": "pe-torto",
+  "alunas": [
+    "Aluna C",
+    "Aluna A",
+    "Aluna B"
+  ],
+  "campos": [
+    {
+      "id": "cinco-posicoes-1a-pes",
+      "nome": "1ª posição — pés",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "cinco-posicoes-1a-bracos",
+      "nome": "1ª posição — braços",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "passe",
+      "nome": "o passé",
+      "grupo": "Os elementos basilares"
+    },
+    {
+      "id": "mobilidade-de-quadril-en-dehors-de-origem",
+      "nome": "Mobilidade de quadril (en dehors de origem)",
+      "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)"
+    },
+    {
+      "id": "flexibilidade-anteroposterior-grand-ecart",
+      "nome": "Flexibilidade anteroposterior (grand écart)",
+      "grupo": "Flexibilidade e Amplitude Articular"
+    },
+    {
+      "id": "rotacao-e-amplitude-dos-ombros",
+      "nome": "Rotação e amplitude dos ombros",
+      "grupo": "Complexo Escapulo-Umeral e Cervical"
+    },
+    {
+      "id": "mobilidade-de-flexao-extensao-do-tornozelo",
+      "nome": "Mobilidade de flexão/extensão do tornozelo",
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos"
+    },
+    {
+      "id": "memoria-e-retencao-de-sequencias",
+      "nome": "Memória e retenção de sequências",
+      "grupo": "Aptidões Coordenadas e Cognitivo-Musicais"
+    },
+    {
+      "id": "impulsao-e-absorcao-allegro",
+      "nome": "Impulsão e absorção (allegro)",
+      "grupo": "Força Ativa, Potência e Controle Dinâmico"
+    },
+    {
+      "id": "forca-de-empurrar-push-ups",
+      "nome": "Força de empurrar (push-ups)",
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core"
+    },
+    {
+      "id": "estabilidade-vestibular-e-deslocamento",
+      "nome": "Estabilidade vestibular e deslocamento",
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal"
+    }
+  ],
+  "atualizada_em": "2026-11-12T10:47:19.865Z",
+  "lida": {
+    "Aluna A": "anamnese-20261108-1259",
+    "Aluna B": "anamnese-20261108-1314",
+    "Aluna C": "anamnese-20261108-1315"
+  },
+  "enviada_em": "2026-11-09T19:17:15.943Z",
+  "transferida": {
+    "aluna": "Aluna B",
+    "para": "ami",
+    "em": "2026-11-09T21:39:56.862Z",
+    "motivo": null
+  },
+  "recebida": {
+    "aluna": "Aluna B",
+    "de": "ami",
+    "em": "2026-11-12T10:47:19.865Z",
+    "motivo": "Mudou de horário"
+  },
+  "carimbo": "20261112-1047",
+  "anterior": "tami--20261109-2207.json",
+  "gravada_em": "2026-11-12T10:47:19.865Z"
+}
