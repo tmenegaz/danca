@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T15:23:41-0300`
-Commit atual: `c1be2d22` — fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
+Gerado em: `2026-11-11T23:19:08-0300`
+Commit atual: `b9781916` — feat(experimentos): a bancada das tres formas do veu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+b9781916 feat(experimentos): a bancada das tres formas do veu
+a138dd38 feat(template): uma pagina pode pedir a operacao so para si
+7633255a chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+b22f1d3f chore(estrutura): regerar os índices derivados
+fc0e5589 chore(estrutura): reancorar a cadeia das fontes alteradas
+ff42214a feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+f9099c41 feat(po): o PO elicitado vira a fonte do ciclo
+b11b650d feat(po): o PO elicitado vira a fonte do ciclo
+926ec616 feat(acervo): envelope/po-20261111-1528.json
+35e7275f feat(acervo): envelope/.indice.json
+a8224373 feat(plano): o elo da cadeia automática
+c172a7c2 feat(acervo): envelope/plano-20261111-1527.json
+2a74b1c3 feat(acervo): envelope/.indice.json
+95e9572a chore(estrutura): regerar o HANDOFF
 c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
 7b34eb28 fix(template): o veu deixa ver a pagina, e a operacao atravessa as abas
 d2d62ce3 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 737af15b chore(estrutura): reancorar a cadeia das fontes alteradas
 09c008fe chore(estrutura): regerar os índices derivados
 f614cd9d chore(estrutura): regerar os índices derivados
-2f282624 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-20e2491d feat(po): o PO elicitado vira a fonte do ciclo
-b7ad8a73 feat(po): o PO elicitado vira a fonte do ciclo
-47b48a98 feat(acervo): envelope/po-20261111-1017.json
-71b4e1a9 feat(acervo): envelope/.indice.json
-7b381e97 feat(plano): o elo da cadeia automática
-793dcfd5 feat(acervo): envelope/plano-20261111-1016.json
-f03138c3 feat(acervo): envelope/.indice.json
-cfa81e87 chore(estrutura): regerar o HANDOFF
-6ab32d5d chore(template): a folha do pacote que veio do remoto, na fonte de hoje
-7e2d4b90 fix(estrutura): a listagem da Turma na peca das outras, e o veu em todos os gestos
-61d587ed fix(template): o veu da operacao deixa de ser transparente
-990b9763 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-05628b8f chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -115,7 +115,7 @@ cfa81e87 chore(estrutura): regerar o HANDOFF
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `cd9912bbcf13` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `1fd06ad6e784` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -169,107 +169,68 @@ cfa81e87 chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 11/11/2026 — A operação atravessa as abas, e o véu deixa ver a página
+## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
 
-**O que motivou.** Duas leituras dela, no mesmo dia, sobre o véu que existe desde 10/11:
-
-1. «O véu precisa ser bem transparente para o professor que estiver usando perceber que ele ainda
-   tá na mesma página e tá processando. E aí ele consegue ver através do véu o formulário, ele
-   consegue ver através do véu a listagem.»
-2. «Se o usuário ele tá com várias abas abertas […] numa aba ele tem aqui o ajuste que ele fez no
-   professor, na turma atribuída, ele foi lá e derivou. Aí ele tem numa outra aba aberto, por
-   exemplo, o plano do ciclo. O plano do ciclo que tem impacto direto ao que ele ajustou tem que
-   estar inabilitado enquanto estiver processando. A mesma coisa o plano de observação […] e a
-   mesma coisa os documentos que vão ser derivados a partir do plano de observação.»
-
-E o pedido que fecha os dois: «precisa colocar uma etiqueta também que indique o que que está
-acontecendo […] precisa de um nome semântico equivalente».
+**O que motivou.** O véu da operação foi aprovado no conteúdo e reprovado na forma: «o véu está
+legal. A caixa que você mostra com o texto dizendo que está processando e tal e o spinner ali é
+que está esquisito, está feio. Eu recomendo apenas deixar o spinner rodando sem nenhuma
+informação. Mas eu gostaria que você colocasse lá no experimento para eu ver como é que fica
+algumas opções. A que já está […] uma que é sem nenhuma caixa de texto e outra que é o texto na
+tela como se fosse também um pouco mais forte que uma marca d'água, sem nenhuma caixa, sem borda
+[…] porque ele conta o andamento do processo, ele conta uma história para o usuário.»
 
 **O que foi decidido.**
 
-- **O VÉU PASSA A DEIXAR VER.** Ele era opaco (`var(--fundo)`), e um véu opaco responde «está a
-  acontecer alguma coisa?» com um sim e «onde é que eu estou?» com um não. Passa a ser o papel da
-  vez translúcido a **45%** (`color-mix` sobre o token, com `var(--veu)` como rede para quem não
-  tem `color-mix`) e um `backdrop-filter` de 1px. Medido no navegador: o texto do bordô
-  `rgb(107,31,46)` lê-se a `rgb(172,116,123)` através do véu — a página continua reconhecível, e o
-  que muda é que ela está lavada e não responde.
-- **O QUE SE LÊ FICA NUM CARTÃO OPACO.** Com o véu translúcido, a frase solta competiria com o
-  formulário que se vê por baixo. O `.veu-cartao` é do papel da superfície, com filete e sombra, e
-  é ele que carrega o giro, a etiqueta e a frase.
-- **A ETIQUETA É SEMÂNTICA, E É O `.selo` DO CATÁLOGO.** «Derivação», «Vinculação», «Ajuste da
-  Sala», «Transferência», «Elenco», «Geração dos documentos», «Desligamento», «Habilitações»,
-  «Exclusão», «Vocabulário». O vocabulário é o da **cadeia**, não o dos botões: «A gravar» não
-  distingue o gesto que muda o vínculo do que só corrige um nome — e é essa diferença que faz o
-  professor esperar ou não. O `textoDoPasso` devolve agora `{ etiqueta, texto }`.
-- **A OPERAÇÃO ATRAVESSA AS ABAS, E O DONO DELA É O `nav.js`.** Ele é o **único script que todas as
-  páginas carregam** — Produção, porta (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`) e
-  cada documento publicado do pacote. Uma regra escrita em cada página seriam seis cópias a
-  divergir na primeira correcção, e a que ficasse para trás seria justamente a que o professor tem
-  aberta.
-- **DUAS VIAS, E AS DUAS SÃO PRECISAS.** O `BroadcastChannel` entrega no instante; o
-  `localStorage` com o evento `storage` é o que sobrevive a uma aba que abre **já a meio** da
-  operação (a aba que nasce não recebe o que foi transmitido antes de ela existir). Nenhuma das
-  duas entrega ao próprio remetente — é isso que impede o eco.
-- **A IDENTIDADE É DA ABA, NÃO DO DOCUMENTO**, e vive no `sessionStorage`: sobrevive à recarga. Sem
-  isso, a página recarregada a meio do gesto lia a operação que ela própria publicara e trancava-se
-  a si mesma por dois minutos. Com isso, ela reconhece-a como sua, limpa-a, e volta a publicar se a
-  cadeia continuar.
-- **O ESTADO CONVERGE POR UMA FUNÇÃO SÓ.** `aplicar()` decide quem manda no véu: a operação desta
-  aba; senão a que veio de fora; senão nada. É o que impede o véu de mentir quando as duas coisas
-  se cruzam — duas abas a trabalhar, ou uma a acabar enquanto a outra começa.
-- **A REDE DE SEGURANÇA MUDOU DE CASA.** O temporizador de dois minutos que devolve a página
-  passou do `bastidores.js` para o módulo, porque agora é ele que tranca em todas as páginas e em
-  todas as abas. Uma operação vencida não tranca ninguém, e é limpa do armazenamento.
+- **AS FORMAS VÃO PARA A BANCADA, E NÃO PARA O PRODUTO.** Nenhuma das três substitui nada: elas
+  são o **mesmo** elemento — o véu da folha, construído pelo `nav.js` de verdade, com a operação
+  publicada pela API de verdade — e cada opção é um punhado de declarações a mais debaixo de
+  `[data-opcao="…"]`. Escolhida uma, aplicá-la é **mover essas linhas para a folha**. Uma proposta
+  que redescrevesse o desenho à mão poderia aprovar-se a si mesma.
+- **O FUNDO DA BANCADA É A PRODUÇÃO VERDADEIRA.** As secções «Salas» e «Turmas» saem de
+  `paginaProducao`, com um fixture, recortadas por uma leitura com contagem de profundidade (um
+  fecho a mais cortava a secção a meio). O que se julga é se **se reconhece onde se está** através
+  do véu — e isso só se mede sobre o ecrã de todos os dias.
+- **A PÁGINA PODE PEDIR UMA OPERAÇÃO SÓ DELA.** `data-operacao="so-esta-aba"` no `<html>` põe o
+  módulo em modo privado: pinta e tranca como sempre, e **não publica nem escuta** outras abas.
+  Sem isto, abrir a bancada para julgar o véu trancaria as abas de trabalho de quem a abre. É
+  declarado na marcação e não em JavaScript porque o `nav.js` corre **antes** do script da
+  página — uma linha de script chegaria tarde.
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css` e `tools/templates/nav.js` estão
-em `CONGELAMENTO.md`, e mudam por um motivo medido e duplo: o véu era opaco (não se via a página) e
-a operação não atravessava as abas (o plano do ciclo continuava gravável sobre um vínculo a mudar).
-A alteração **não toca** no desenho da barra, na fórmula do hash, na cobertura das fontes, nos
-validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cópias foram
-regeradas — `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópia das duas fontes —, e a
-âncora `.fipp` **não mudou**: ela cobre FONTES (`.conf` e `.md`), e os assets não entram na fórmula.
+**Motivo declarado — os congelados.** `tools/templates/nav.js` está em `CONGELAMENTO.md` e muda
+por seis linhas: três guardas (`ler`, `escrever`, `transmitir`) e duas condições (`storage` e
+`BroadcastChannel`), todas dependentes de uma única leitura do atributo. O que muda no
+comportamento é **só** o de uma página que declare o modo privado; nenhuma outra página deste
+repositório o declara, portanto nada do produto muda. Não toca na fórmula do hash, na cobertura,
+nos validadores, nas 17 regras de `REGRAS.md` nem nas 22 pétreas de `PROTOCOLO.md`. As cópias
+foram regeradas (a `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópia) e a âncora
+`.fipp` não mudou — ela cobre FONTES.
 
-**Onde entrou.** [tools/templates/nav.js](./tools/templates/nav.js) — o módulo
-`LastroDaOperacao` (garantir o véu, trancar, publicar, escutar, expirar) e a API que o resto usa ·
-[tools/templates/ciclo.css](./tools/templates/ciclo.css) — o véu translúcido, o `.veu-cartao`, a
-`.veu-etiqueta` e a `.veu-nota` · [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) —
-`ocupar`/`liberar`/`dizerNoVeu` delegam no módulo (uma linha cada, sem mudar as cem chamadas), o
-`textoDoPasso` com etiqueta, e as etiquetas dos gestos que não passam pelo `enviar` · as cinco
-cópias de `assets/nav.js` e `assets/style.css` e a da `raiz/` ·
-[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o quadro do véu e a linha da tabela de estados ·
-[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — 23
-provas novas.
+**Onde entrou.** [experimentos/propostas/construir.js](./experimentos/propostas/construir.js) —
+`proporVeu()`, com as três formas, o recorte das secções e um cartão novo no índice ·
+[tools/templates/nav.js](./tools/templates/nav.js) — o modo privado · as cinco cópias de
+`assets/nav.js` e a da `raiz/` ·
+[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
+secção I (27 asserções, eram 23).
 
-**Validação.** Duas abas **reais**, no mesmo contexto de navegador e na mesma origem — é a única
-forma de o `localStorage` e o `BroadcastChannel` serem os verdadeiros. Medido: a aba da Produção
-ocupa, e a do plano levanta o véu sozinha com a etiqueta «Derivação» e a frase; o alfa medido é
-0,45; o cartão é opaco; a etiqueta é um `.selo`; `elementFromPoint` no centro devolve o véu (o
-clique não passa); a aba que **abre a meio** já o encontra; a operação **vencida** não tranca
-ninguém; e a aba que se **recarrega** a meio do próprio gesto não se tranca a si mesma. Controle
-negativo contra o `HEAD`: **21 falhas em 23** — o `nav.js` de antes não tem travessia nenhuma.
-Sem regressão: `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 ·
-`provar-troca-de-direcao` 41 · `provar-derivacao-e-identidade` 19 · `provar-link-e-fecho` 20 ·
-`provar-fecho-do-pacote` 57 · `provar-direcao-do-documento` 21 · `provar-publicacao-da-escola` 66 ·
-`provar-derivacao-da-turma` 120/140 (as 20 são pré-existentes, iguais ao `HEAD`) ·
-`check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
+**Medido, para escolher com números.** O contraste é medido em **pixéis** da página a correr, e
+não estimado: na opção 2 (o texto solto) o corpo da frase lê-se a **15,64:1** e a palavra bordô a
+**10,42:1** — o halo de papel faz o trabalho que a caixa fazia, e passa AA com folga. Na opção 1 o
+anel lê-se a **10,64:1** contra o seu próprio halo. E o texto da opção 1 **não desaparece para
+quem não vê**: sai da tela por `clip-path`, não por `display:none` — com `display:none` o leitor de
+ecrã perdia também o nome da operação, e ficava um giro mudo para quem ouve a página.
 
-**O que ainda não está feito.** (1) A **dívida das duas `.veu`** com o mesmo nome continua — a da
-coluna, usada pelo `nav.js`, e a da operação. (2) O véu **não distingue** «a operação é desta aba»
-de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar de ser mais evidente, é
-uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
-a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
-houver duas na mesma origem, a chave terá de levar o slug.
+**Validação.** `provar-operacao-entre-abas` 27/27 (as quatro novas medem o modo privado nas duas
+direcções: não tranca as outras, e não se deixa trancar); controlo negativo contra o `HEAD`: 3
+falhas nas novas, porque o módulo de antes não conhece o atributo. Sem regressão:
+`provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 ·
+`check-identidade` 0 erros (21 verificações).
+
+**O que ainda não está feito.** (1) **Nada foi aplicado ao produto** — as três formas são bancada,
+e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
+`--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
+(3) A dívida das duas peças com o mesmo nome `.veu` continua.
 
 ## O que está pendente
-
-## 10/11/2026 — O ajuste que não se perde no elo vencido, e a variante que não muda com a sala
-
-(1) **A `Rosa` está, no ar, sem curadoria vigente** — a derivação
-que mudou a sala para `Piano` *moveu* a atribuição; o plano de `Rosa` continua lá e a direção que o
-autoriza, não. É estado de dados, não de código: repor exige uma atribuição nova, e é decisão dela.
-(2) **O nome da sala continua a ser texto livre** e é a única chave da atribuição — a avaliação de
-uma chave estável (à parte do `id` e do nome) está na entrada seguinte. (3) Não foi conferido no ar
-nesta sessão; as provas são de bancada.
 
 ## 10/11/2026 — A capacidade cobra-se por volume, e a escada da assinatura desce a cada degrau
 
@@ -304,6 +265,13 @@ de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar 
 uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
 a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
 houver duas na mesma origem, a chave terá de levar o slug.
+
+## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
+
+(1) **Nada foi aplicado ao produto** — as três formas são bancada,
+e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
+`--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
+(3) A dívida das duas peças com o mesmo nome `.veu` continua.
 
 ## Pendências anteriores (índice)
 
@@ -713,6 +681,7 @@ houver duas na mesma origem, a chave terá de levar o slug.
 - **10/11/2026** — O passo 1 do Estilo procura no vocabulário, e um exercício… → `REGISTRO.md` L41744
 - **10/11/2026** — A decomposição pela ordem em que foi escrita, e a… → `REGISTRO.md` L41826
 - **10/11/2026** — A cadeia que pára no teto continua sozinha, e o «abrir»… → `REGISTRO.md` L41906
+- **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L41988
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
