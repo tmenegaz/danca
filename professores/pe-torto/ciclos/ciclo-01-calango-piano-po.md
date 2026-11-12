@@ -49,7 +49,9 @@ Calendário: 2026-11-10 → 2026-12-29 · Volume de trabalho: 3–6 séries · C
 | Eixo | Dimensão | Itens |
 |:--|:--|:--|
 | Corpo | **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
-| Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
+| Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| Corpo | **Equilíbrio, Sustentação e Força de MMSS/Core** | Equilíbrio unipodal |
+| Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Espiral / rotação de tronco |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | Teste |
 | Técnica | **Barra** | Teste |
@@ -65,6 +67,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 - Aluna A
 - Aluna B
+- Aluna C
 
 ## Norma estabelecida
 
@@ -75,7 +78,9 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 | Grupo | Aspectos observados |
 |:--|:--|
 | **as cinco posições: uma visão geral** | 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços |
-| **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Cócoras profundas (squat) |
+| **Morfologia e Funcionalidade dos Pés e Tornozelos** | Articulação e força intrínseca dos dedos |
+| **Equilíbrio, Sustentação e Força de MMSS/Core** | Equilíbrio unipodal |
+| **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Espiral / rotação de tronco |
 
 ## Restrições físicas declaradas
 
@@ -84,7 +89,9 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 ## Critérios de inclusão
 
 - as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços
-- Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)
+- Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos
+- Equilíbrio, Sustentação e Força de MMSS/Core: Equilíbrio unipodal
+- Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Espiral / rotação de tronco
 
 ## Critérios de exclusão
 
