@@ -485,6 +485,18 @@ async function linhasDeBase(kv, escola, repo) {
       r.emEdicao = true;
       r.concluida_em = acto.enviada_em || acto.gravada_em || null;
       r.carimbo = acto.carimbo || null;
+      /* A TROCA DE ALUNA VEM DO ACTO, MESMO COM UM RASCUNHO POR CIMA (12/11/2026).
+       *
+       * O rascunho SUBSTITUI o acto nesta lista (`porId.set`), e o rascunho aberto antes da
+       * transferência não tem as marcas `transferida`/`recebida` — elas nascem no acto. Sem esta
+       * herança, a marca da revisão pendente DESAPARECIA exactamente no caso em que ela é mais
+       * necessária: o professor com o elenco aberto para editar. O sintoma seria silencioso, como
+       * todos os desta família — a marca some, e nada diz que devia estar lá.
+       *
+       * É a mesma regra do `carimbo` e do `concluida_em` acima: o que é do ACTO lê-se do acto, e o
+       * rascunho só acrescenta o que é dele (o recorte em edição). */
+      if (acto.transferida) r.transferida = acto.transferida;
+      if (acto.recebida) r.recebida = acto.recebida;
     }
     porId.set(r.id, r);
   }
@@ -1354,13 +1366,46 @@ function elencosParaATurma(linhas) {
  * dizem o mesmo.
  */
 function elencosComAsTurmas(linhas, curadoriasDaEscola) {
+  const revisoes = revisoesDosElencos(linhas);
   return elencosParaATurma(linhas).map((e) => {
     const emTurma = turmasDoElenco(curadoriasDaEscola, e.id);
     return Object.assign({}, e, {
       emTurma,
       rotuloMover: e.rotulo + (emTurma.length ? ' — em turma' : ''),
+      /* A REVISÃO PENDENTE (12/11/2026) — ver `revisoesDosElencos`. Viaja com a lista porque é a
+       * MESMA lista que a página desenha e que a rota devolve na repintura: se só um dos dois a
+       * trouxesse, a marca desaparecia no primeiro `carregarLinhas`. */
+      revisao: revisoes[e.id] || null,
     });
   });
+}
+
+/**
+ * AS REVISÕES PENDENTES, POR ELENCO (12/11/2026) — o mapa que as duas listas leem.
+ *
+ * A REGRA É DO NÚCLEO (`linhaDeBaseNucleo.revisaoPendente`): uma troca de aluna deixa o elenco com
+ * a leitura descartada e o recorte intacto, e o recorte pode ter sido escolhido por causa de quem
+ * saiu. Aqui só se preenche a data da frase — o `%DATA%` do modelo — porque a língua da tela é
+ * deste lado. Uma segunda cópia da frase no cliente diria outra coisa no primeiro ajuste.
+ *
+ * Uma entrada por elenco, e só para os que TÊM revisão pendente: o mapa vazio é o caso normal, e
+ * é o que diz «nada a assinalar» sem uma condição a mais em cada cartão.
+ */
+function revisoesDosElencos(linhas) {
+  const mapa = {};
+  for (const l of (Array.isArray(linhas) ? linhas : [])) {
+    if (!l || !l.id || l.apagada_em) continue;
+    const r = linhaDeBaseNucleo.revisaoPendente(l);
+    if (!r) continue;
+    mapa[String(l.id)] = {
+      em: r.em,
+      falta: r.falta,
+      movimento: r.movimento,
+      /* `dataBr` lê `AAAA-MM-DD`; o `em` é um instante completo, e é o dia que interessa. */
+      texto: r.texto.split('%DATA%').join(dataBr(String(r.em).slice(0, 10))),
+    };
+  }
+  return mapa;
 }
 
 /** As duas opções vazias do `<select>` da Turma. Constantes para o cliente dizer o mesmo. */
@@ -3509,6 +3554,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    *
    * «em turma» é o MESMO vocabulário do selo da listagem de Elencos, que já diz isso desde
    * 07/11/2026. Não se inventa um segundo nome para o mesmo estado. */
+  const revisoesDosElencosDaEscola = revisoesDosElencos(linhas);
   const elencosComTurma = elencosComAsTurmas(linhas, listaCuradorias);
   const elencosParaMover = elencosComTurma.filter((e) => !e.rascunho);
   /* A ORIGEM NASCE VAZIA (09/11/2026), e pela ordem que ela pediu: «Primeiro escolhe-se o elenco de
@@ -3659,6 +3705,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
             esc(dataBr(c.vigenteDe)) + '</span>'
           : '';
+        /* A MARCA DA REVISÃO, NO CARTÃO DA TURMA (12/11/2026). A troca de aluna acontece no
+         * ELENCO, e o passo 3 e o recorte também são dele — mas quem lê a lista de Turmas é a
+         * direção, e a Turma é o corpo que vai dar aula. Uma turma cujo elenco mudou de corpo e
+         * ainda não foi revisto tem de o dizer AQUI, e não só na aba da Audição: é a mesma frase,
+         * e o caminho para a resolver é o elenco.
+         *
+         * O elemento é DESENHADO SEMPRE (com `hidden` quando não há nada), e não só quando há
+         * revisão. A razão é a repintura: a transferência corre noutra aba da mesma página e o
+         * `carregarLinhas` não recarrega o documento — se a marca só existisse na marcação do
+         * servidor, ela apareceria apenas depois de um F5, que é a forma mais silenciosa de não
+         * existir. */
+        const revisaoDaTurma = c.linhaDeBase
+          ? revisoesDosElencosDaEscola[String(c.linhaDeBase)] || null
+          : null;
+        const marcaDaRevisao = '<span class="selo alerta" data-revisao="'
+          + esc(c.linhaDeBase || '') + '" role="img"'
+          + (revisaoDaTurma
+            ? ' title="' + esc(revisaoDaTurma.texto) + '" aria-label="' + esc(revisaoDaTurma.texto) + '"'
+            : ' hidden')
+          + '>!</span>';
         const botaoAjuste = vinculada
           ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
@@ -3707,7 +3773,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
           '<div class="linha-turma">' +
           '<span class="nome"><b>' + esc(tituloDaTurma) + '</b>' +
-          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
+          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + ' ' + marcaDaRevisao +
+          '</span>' +
           '<span class="acoes">' + botaoAjuste +
           (vinculada
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
@@ -11952,6 +12019,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var CAMPOS_DO_CORPO = [];' +
     'var LINHAS_DE_BASE = [];' +
+    /* AS REVISÕES PENDENTES, POR ELENCO (12/11/2026). Chegam prontas do servidor — a regra é do
+     * núcleo e a frase é composta de lá para cá. O cliente não recalcula nada: duas contas da
+     * mesma regra divergem ao primeiro caso novo, e esta é uma marca que só existe se for exacta
+     * (uma que fica acesa depois de o trabalho estar feito ensina a ignorá-la). */
+    'var REVISOES_DOS_ELENCOS = ' + JSON.stringify(revisoesDosElencosDaEscola) + ';' +
     'var ALUNAS_COM_ANAMNESE = [];' +
     // O PASSO EM QUE SE ESTÁ, e as faltas de cada passo. Uma variável, não um atributo no DOM: é
     // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
@@ -12682,6 +12754,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          return "<span>" + escHtml(a) + "</span>"; }).join("") + "</div>"' +
     '      : "<p class=\\"trio-nota\\">Nenhuma aluna neste recorte — o corpo que se observa é o ' +
     'DELAS.</p>";' +
+    /* A MARCA DA REVISÃO, AO LADO DO SELO (12/11/2026) — o «ponto de exclamação» que ela pediu:
+     * «deixar um ponto de exclamação do lado da turma que perdeu o aluno e também do lado da turma
+     * que recebeu um aluno. Quando o professor coloca o mouse em cima daquele ponto de exclamação,
+     * ele indica que o professor precisa refazer esse step três […] e refazer o recorte.»
+     *
+     * Ela é a mesma peça do selo (`.selo alerta`), e não uma pílula nova. O `role="img"` com
+     * `aria-label` é o que a torna legível para quem ouve a página — um «!» solto, sem rótulo, é
+     * ruído; e o `title` é o que a mostra a quem passa o rato. */
+    '    var revisao = REVISOES_DOS_ELENCOS[String(l.id)];' +
+    '    var marca = revisao' +
+    '      ? " <span class=\\"selo alerta\\" role=\\"img\\" title=\\"" +' +
+    '        escHtml(revisao.texto) + "\\" aria-label=\\"" + escHtml(revisao.texto) +' +
+    '        "\\">!</span>"' +
+    '      : "";' +
     '    var id = String(indice + 1);' +
     '    var caixa = function(rotulo, valor, dica, chave){' +
     '      chave = chave || rotulo.toLowerCase();' +
@@ -12693,7 +12779,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    };' +
     '    return "<li class=\\"trio-plano\\">" +' +
     '      "<div class=\\"trio-linha\\">" +' +
-    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + "</span>" +' +
+    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + marca + "</span>" +' +
     '      "<span class=\\"trio-acoes\\">" +' +
     '      "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
     '      "\\" title=\\"Abrir este elenco para corrigir\\">Editar</button>" +' +
@@ -12717,11 +12803,42 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    b.addEventListener("click", function(){ apagarLinha(this.getAttribute("data-lb-apagar")); });' +
     '  });' +
     '}' +
+    /* AS MARCAS DAS TURMAS, DEPOIS DE CADA LEITURA (12/11/2026).
+     *
+     * Os cartões das Turmas são desenhados pelo SERVIDOR; o que esta função faz é acender ou apagar
+     * o «!» que cada um já traz (com `data-revisao` = o elenco que a Turma lê). Não se reescreve o
+     * cartão: um `innerHTML` novo perderia o foco, os botões e a paginação, e a lista inteira
+     * pisca por causa de um selo.
+     *
+     * Sem `data-revisao` (Turma sem elenco escolhido) não há o que acender — e é o caso legítimo
+     * das Turmas antigas, que leem o corpo da sala (P-03). */
+    'function pintarRevisoesDasTurmas() {' +
+    '  var marcas = document.querySelectorAll("#cu-lista [data-revisao]");' +
+    '  Array.prototype.slice.call(marcas).forEach(function(el){' +
+    '    var id = el.getAttribute("data-revisao") || "";' +
+    '    var rev = id ? REVISOES_DOS_ELENCOS[id] : null;' +
+    '    if (rev) {' +
+    '      el.setAttribute("title", rev.texto);' +
+    '      el.setAttribute("aria-label", rev.texto);' +
+    '      el.hidden = false;' +
+    '    } else {' +
+    '      el.removeAttribute("title");' +
+    '      el.removeAttribute("aria-label");' +
+    '      el.hidden = true;' +
+    '    }' +
+    '  });' +
+    '}' +
     'function carregarLinhas() {' +
     '  return fetch("/api/bastidores/linhas-de-base")' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      LINHAS_DE_BASE = (d && d.linhas) || [];' +
+    /* AS REVISÕES ENTRAM ANTES DE SE PINTAR (12/11/2026) — e a ordem é a diferença entre a marca
+     * funcionar e não funcionar. O `pintarLinhas` desenha os cartões dos elencos e lê o mapa: com
+     * o mapa ainda no valor anterior, a marca ficava acesa depois de o trabalho estar feito (e
+     * apagada depois de passar a haver o que fazer). Foi a prova que o apanhou, porque ela mede o
+     * cartão desenhado e não o pedido. */
+    '      REVISOES_DOS_ELENCOS = (d && d.revisoes) || {};' +
     '      pintarLinhas();' +
     '      pintarIndiceDoRecorte(d && d.indice);' +
     // A TURMA FICA A VER O MESMO (07/11/2026). `carregarLinhas` é por onde passa TODA a
@@ -12736,6 +12853,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * em que a página nasceu — a mesma classe de defeito do elenco que não chegava à Turma
      * (07/11/2026), e a correção é a mesma: uma regra, um caminho. */
     '      if (d && d.elencos) ELENCOS_MOVIVEIS = d.elencos.filter(function(e){ return e && e.id; });' +
+    /* A MARCA ANDA COM A LISTA (12/11/2026). O `pintarLinhas` corre a seguir e já a usa nos
+     * cartões dos elencos; o `pintarRevisoesDasTurmas` é o que faz o mesmo nos cartões das TURMAS,
+     * que o servidor desenhou e esta leitura não volta a desenhar. Sem ele, a marca do lado da
+     * Turma só apareceria depois de recarregar a página — e uma marca que só aparece a seguir ao
+     * F5 é a forma mais silenciosa de não existir. */
+    '      pintarRevisoesDasTurmas();' +
     '      pintarTransferencia();' +
     // A CURADORIA É O PRIMEIRO PASSO DA CASCATA, e tem de o dizer na lista onde ela se abre. O
     // servidor já fez a conta (`divergentes` — o elenco da turma contra o que a curadoria declara);
@@ -14921,6 +15044,9 @@ async function fetch(request, env, extras) {
        * turma, e só o servidor sabia recusar. É a MESMA função que desenha a página
        * (`elencosComAsTurmas`), pela mesma razão de sempre: uma regra, um lugar. */
       elencos: elencosComAsTurmas(lista, curadoriasVigentes(await curadorias(kv, escola))),
+      /* AS REVISÕES VÃO JUNTO (12/11/2026), pela mesma razão dos elencos: a repintura reescreve a
+       * lista dos cartões, e a marca tem de continuar a dizer a verdade depois dela. */
+      revisoes: revisoesDosElencos(lista),
       /* O ESTADO DO REPOSITÓRIO DIZ-SE (05/11/2026). É daqui que sai a SÉRIE TEMPORAL: cada acto é
        * um ficheiro com carimbo, e a estante mostra a vigente de cada linha. Se o repositório não
        * estiver alcançável (sem token, GitHub fora), o acto do próximo envio fica no KV — e sem
@@ -15367,12 +15493,27 @@ async function fetch(request, env, extras) {
       } : {}),
       /* O QUE FALTA, dito pela ordem da cascata (a mesma de `revalidacaoPendente`). A rota não
        * decide nada por ela: a Turma, o plano de ensino e o PO são actos do professor. */
+      /* E O PASSO 3 E O RECORTE, QUE A CADEIA NÃO FAZ (12/11/2026).
+       *
+       * A frase acima é a da CASCATA — vínculos, plano, PO. Ela não fala do que a troca estraga
+       * dentro do elenco: a leitura das anamneses é descartada (descrevia outros corpos) e o
+       * recorte fica como estava, escolhido sobre um corpo que mudou. É a decisão dela que isto
+       * seja MANUAL: «tem que ser manual, não pode ser automático. Cabe a nós apenas sinalizarmos.»
+       *
+       * A frase entra aqui sem leitura nenhuma a mais: depois de uma transferência, os dois elencos
+       * ficam SEMPRE com a revisão pendente — a troca grava `atualizada_em = em` e deita fora a
+       * `leitura`, e nada foi refeito entre o gesto e esta resposta. Dizê-lo é de graça; descobri-lo
+       * pela marca é que custaria uma tentativa. */
       proximo: decisao.zerada
-        ? 'O elenco de origem foi excluído. Reveja a TURMA de destino (o elenco dela mudou), depois '
-          + 'o plano de ensino e, por último, o plano de observação — nesta ordem, que é a de '
-          + 'dependência.'
+        ? 'O elenco de origem foi excluído. Reveja a TURMA de destino (o elenco dela mudou) — e, '
+          + 'nela, refaça a leitura das anamneses (passo 3) e reveja o recorte (passo 4): a troca '
+          + 'mudou o corpo sobre o qual ele foi escolhido. Depois o plano de ensino e, por último, '
+          + 'o plano de observação, nesta ordem, que é a de dependência.'
         : 'A cascata está aberta: reveja a TURMA (o elenco mudou), depois o plano de ensino e, '
-          + 'por último, o plano de observação — nesta ordem, que é a de dependência.',
+          + 'por último, o plano de observação — nesta ordem, que é a de dependência. E, NOS DOIS '
+          + 'elencos, refaça a leitura das anamneses (passo 3) e reveja o recorte (passo 4): a '
+          + 'troca mudou o corpo sobre o qual ele foi escolhido. A lista marca os dois com um «!» '
+          + 'até estar feito.',
     });
   }
 
@@ -17283,6 +17424,10 @@ module.exports = {
    * da de cima: a bancada constrói a resposta da rota sem subir o Worker, e uma lista escrita à mão
    * mediria a bancada em vez da regra. */
   elencosComAsTurmas,
+  /* A REVISÃO DO PASSO 3 E DO RECORTE (12/11/2026) — exportada pela mesma razão: a bancada
+   * constrói a resposta da rota sem subir o Worker, e uma frase escrita à mão na prova mediria a
+   * prova em vez da regra. */
+  revisoesDosElencos,
   ROTULO_ESCOLHER_ELENCO,
   ROTULO_NENHUM_ELENCO,
   // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para

@@ -543,6 +543,26 @@ A `leitura` do passo 3 **cai nos dois lados** (descrevia os corpos que estavam j
 — proveniência, quem leu — **fica**. Depois do ato, a cascata abre-se como em qualquer mudança de
 elenco: **Turma → Plano de Ensino → Plano de Observação**.
 
+**A troca de aluna desfaz o passo 3 e o recorte — e o sistema sinaliza (12/11/2026).** A
+transferência descarta a `leitura` dos dois elencos (descrevia os corpos que estavam juntos) e
+**deixa o recorte (`campos`) intacto**. O segundo facto é o defeito: um aspecto escolhido *por
+causa* de uma aluna que saiu continua marcado, e o documento continua a imprimi-lo. Repor a leitura
+seria automático; **o recorte é decisão pedagógica**, e por isso o sistema **não decide — avisa**.
+
+A marca («!») aparece nos **dois** cartões de elenco e nos **dois** cartões de Turma que os leem, com
+a frase no `title`/`aria-label`. Ela é **derivada**, não guardada:
+
+| Facto | Onde está | O que diz |
+|:--|:--|:--|
+| a troca | `transferida`/`recebida.em`, escrito pela transferência | houve mudança de corpo, e quando |
+| o passo 3 refeito | `leitura.em > troca.em` | a leitura é de DEPOIS da troca |
+| o recorte revisto | `atualizada_em > troca.em` | o recorte foi regravado depois (a troca grava `atualizada_em = em`, daí a comparação estrita) |
+
+Só com os dois é que a marca sai — e nunca antes. Não há um campo «revisado» para alguém esquecer
+de limpar: a marca apaga-se quando o trabalho está feito, e não quando alguém se lembra de a apagar.
+O rascunho aberto herda as marcas do acto (`linhasDeBase`), senão a marca desaparecia exactamente
+com o elenco aberto para editar.
+
 **O elenco que ficaria sem ninguém (12/11/2026).** Um elenco que é o **corpo de uma turma** e fica
 com **zero alunas** não é um elenco vazio — é uma turma sem corpo, e a contradição é do dado, não
 do gosto. A regra tem duas metades, e a diferença é o vínculo:

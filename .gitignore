@@ -1098,3 +1098,16 @@ experimentos/modelo-formulario/*
 # A prova mede o núcleo, a rota sem e com confirmação, a recusa por turma, a repetição, o `DELETE`
 # sem regressão e o cliente a perguntar antes de o pedido partir. CONTROLE NEGATIVO: 38 falhas.
 !experimentos/provar-elenco-sem-ninguem.js
+
+# ---------------------------------------------------------------------------------------------
+# A TROCA DE ALUNA DESFAZ O PASSO 3 E O RECORTE — 12/11/2026
+#
+# «se uma aluna tinha uma certa característica que as outras não tinham e estava selecionada no
+# recorte, não faz mais sentido ter esse item selecionado no recorte.» A transferência descarta a
+# LEITURA dos dois elencos — e deixa o RECORTE intacto, que é o defeito. Repor a leitura seria
+# automático; o recorte é decisão pedagógica, e o sistema só avisa («tem que ser manual, não pode
+# ser automático»). O «!» aparece no cartão do elenco e no da Turma que o lê, e é DERIVADO do rasto
+# datado da troca: sai quando `leitura.em` e `atualizada_em` são posteriores a ela — sem um campo
+# «revisado» para alguém esquecer de limpar.
+# CONTROLE NEGATIVO: 32 falhas contra o código de antes.
+!experimentos/provar-revisao-do-recorte.js

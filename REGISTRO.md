@@ -42681,3 +42681,74 @@ corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **n
 que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
 ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
 a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.
+
+## 12/11/2026 — A troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
+
+**As duas perguntas dela, e as duas respostas medidas no código.** «Quando há a transferência de
+alunas de um elenco para o outro, o cenário da leitura dessas anamneses, ele é modificado. Aí eu
+quero saber o seguinte, esse botão é disparado novamente durante o processo?»
+
+- **Não é disparado — e a leitura é DESCARTADA.** A transferência apaga `leitura` nos dois lados
+  (`delete novaOrigem.leitura` / `delete novoDestino.leitura`), porque ela descrevia os corpos que
+  estavam juntos e deixou de ser verdade. Nada a repõe: o professor tem de voltar ao passo 3.
+- **E o recorte NÃO é tocado.** `campos` fica exactamente como estava. É o defeito que ela
+  identificou sozinha: «se uma aluna tinha uma certa característica que as outras não tinham e
+  estava selecionada no recorte, não faz mais sentido ter esse item selecionado no recorte.»
+
+**Porque não se resolve sozinho.** Repor a leitura seria possível — a rota sabe lê-la. Mas o recorte
+é **decisão pedagógica**: nenhum código sabe se o professor quer manter um aspecto que só aquela
+aluna justificava. Ela foi explícita: «tem que ser manual, não pode ser automático. Cabe a nós apenas
+sinalizarmos.»
+
+**O que foi decidido.**
+
+- **O «!» nos dois lados, em dois sítios.** No cartão do ELENCO (na Audição, onde o trabalho se
+  faz) e no cartão da TURMA que o lê (nas Turmas, onde a direção olha) — «do lado da turma que
+  perdeu o aluno e também do lado da turma que recebeu um aluno». A frase vai no `title` (para o
+  rato) **e** no `aria-label` com `role="img"` (para quem ouve): um «!» sem rótulo é ruído.
+- **A marca é DERIVADA, e não guardada** — a escolha que evita um estado a apodrecer. A
+  transferência já deixa o rasto datado (`transferida` na origem, `recebida` no destino, com `em`).
+  A revisão está feita quando `leitura.em` **e** `atualizada_em` são **posteriores** a esse `em`;
+  antes disso, o «!» está aceso. A comparação do recorte é **estrita** porque a própria troca grava
+  `atualizada_em = em` — um `>=` daria a revisão por feita no instante em que começou a faltar.
+- **A frase é um MODELO** (`%DATA%`), do núcleo, preenchida pelo servidor: escrita dos dois lados,
+  divergiria ao primeiro ajuste.
+- **A RESPOSTA DA TRANSFERÊNCIA DIZ O MESMO**, no `proximo`: a cascata (Turma → plano → PO) não
+  fala do que a troca estraga dentro do elenco. A frase entra sem leitura nenhuma a mais — depois de
+  uma transferência os dois elencos ficam **sempre** com a revisão pendente.
+
+**Dois defeitos apanhados pela prova, e os dois silenciosos.**
+
+1. **O rascunho escondia a marca.** O rascunho substitui o acto em `linhasDeBase`, e as marcas da
+   troca nascem no acto — com o elenco aberto para editar, o «!» desaparecia exactamente quando é
+   mais necessário. Passou a herdá-las, como já herdava `carimbo` e `concluida_em`.
+2. **A repintura usava o mapa velho.** `REVISOES_DOS_ELENCOS` era atribuído **depois** de
+   `pintarLinhas()` — a marca ficava acesa depois de o trabalho estar feito (e apagada depois de
+   passar a haver o que fazer). Passou para antes. Apanhado porque a prova mede o **cartão
+   desenhado**, e não o pedido.
+
+**Uma asserção foi trocada, e não apagada.** `provar-identidade-da-turma` exigia «a Turma tem DUAS
+etiquetas»; o «!» é uma terceira. O que a asserção sempre garantiu — o estado dito na linha e
+**nenhuma sobreposição** — continua exigido, par a par; o número fixo é que proibia o aviso.
+Medido a 1280 e a 390: o «!» fica em 22×30 px, encostado ao selo do estado, sem sobreposição.
+
+**Onde entrou.** [motor/nucleo/linha-de-base.js](./motor/nucleo/linha-de-base.js) —
+`revisaoPendente` e `MODELO_REVISAO` ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `revisoesDosElencos`, a herança
+das marcas em `linhasDeBase`, a marca nos dois cartões, `pintarRevisoesDasTurmas`, a ordem do
+`carregarLinhas` e a frase do `proximo` ·
+[experimentos/provar-revisao-do-recorte.js](./experimentos/provar-revisao-do-recorte.js) — prova
+nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela dos três factos.
+
+**Validação.** `provar-revisao-do-recorte` **45/45**; controle negativo contra `ae04b17a`:
+**32 falhas**. Sem regressão: `provar-elenco-sem-ninguem` 59/59 · `provar-transferencia-e-desligamento`
+93/93 · `provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 ·
+`provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 · `check-identidade` 0 erros ·
+`check-indices` 16/16.
+
+**O que ainda não está feito.** (1) A marca não distingue *qual* aspecto do recorte perdeu a razão
+de ser: o sistema não sabe que o aspecto X foi escolhido por causa da aluna Y — essa leitura é do
+professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão também acendem a marca
+(o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
+quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
+marca até os refazer outra vez.

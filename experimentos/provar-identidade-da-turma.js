@@ -477,8 +477,17 @@ async function provarANavegador() {
     await new Promise((r) => setTimeout(r, 220));
     const g = await medir();
     if (!g) { provar('a ' + largura + 'px: a linha existe', false); continue; }
-    provar('a ' + largura + 'px: a Turma tem DUAS etiquetas (livre + ajustada em)',
-      g.selos.length === 2, g.selos.map((s) => s.texto));
+    /* AS ETIQUETAS DO ESTADO SÃO DUAS — e a terceira, o «!» da revisão pendente (12/11/2026), não é
+     * uma delas: é o aviso de que o passo 3 e o recorte têm de ser refeitos depois de uma troca de
+     * aluna. O que a asserção tem de garantir é o que ela sempre garantiu — que o estado está dito
+     * na linha e que nada se sobrepõe (a verificação abaixo, par a par, é a que mede o defeito de
+     * 11/11). Fixar o número em dois proibiria o aviso; fixá-lo em três proibiria a Turma sem
+     * revisão. Por isso o que se exige são as duas do estado, e o resto é livre. */
+    provar('a ' + largura + 'px: a Turma diz o estado em duas etiquetas (livre/vinculada + ajustada em)',
+      g.selos.length >= 2
+        && g.selos.some((s) => /^(livre|vinculada)$/.test(s.texto))
+        && g.selos.some((s) => /^ajustada em/.test(s.texto)),
+      g.selos.map((s) => s.texto));
     if (!g.linha1) {
       provar('a ' + largura + 'px: a linha do nome existe (`.linha-turma`)', false, g);
       continue;

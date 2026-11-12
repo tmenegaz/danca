@@ -1017,8 +1017,107 @@ function elencoDiferente(declarado, derivado) {
   return { saiu, entrou, mudou: saiu.length > 0 || entrou.length > 0 };
 }
 
+/* ==========================================================================================
+ * O PASSO 3 E O RECORTE DEPOIS DE UMA TROCA DE ALUNA (12/11/2026)
+ * ==========================================================================================
+ *
+ * O QUE MOTIVOU, na letra dela: «quando há a transferência de alunas de um elenco para o outro, o
+ * cenário da leitura dessas anamneses, ele é modificado. […] se uma aluna tinha uma certa
+ * característica que as outras não tinham e estava selecionada no recorte, não faz mais sentido ter
+ * esse item selecionado no recorte. […] a gente não tem como saber se isso foi feito.»
+ *
+ * E O QUE ACONTECE HOJE, medido no código (as respostas às duas perguntas dela):
+ *
+ *   · **o botão «Ler as anamneses dessas alunas» NÃO é disparado pela transferência** — e é mais
+ *     do que isso: a transferência **deita fora a leitura** dos dois lados
+ *     (`delete linha.leitura` em `transferencia.js`), porque ela descrevia os corpos que estavam
+ *     juntos e deixou de ser verdade. A leitura guardada desaparece, e **nada a repõe**;
+ *   · **o recorte (`campos`) fica exactamente como estava.** É o defeito que ela identificou: uma
+ *     característica escolhida POR CAUSA de uma aluna que já não está continua marcada, e o
+ *     documento continua a imprimi-la como se alguém a tivesse decidido para este corpo.
+ *
+ * PORQUE NÃO SE RESOLVE SOZINHO. Repor a leitura automaticamente é possível — a rota sabe lê-la —,
+ * mas o RECORTE é uma decisão pedagógica: nenhum código sabe se o professor quer manter um aspecto
+ * que só aquela aluna justificava. Ela foi explícita: «tem que ser manual, não pode ser automático.
+ * Cabe a nós apenas sinalizarmos.»
+ *
+ * A MARCA É DERIVADA, E NÃO GUARDADA — a escolha que evita um estado a apodrecer. A transferência
+ * já deixa o seu rasto datado (`transferida` na origem, `recebida` no destino, com `em`). A partir
+ * dele, e de dois factos que o elenco já tem, sabe-se se a revisão foi feita:
+ *
+ *   · `leitura.em` posterior ao `em` da troca  → o passo 3 foi refeito DEPOIS;
+ *   · `atualizada_em` posterior ao `em` da troca → o recorte foi regravado DEPOIS (a troca grava
+ *     `atualizada_em = em` exactamente, e é por isso que a comparação é estrita).
+ *
+ * Não há um terceiro campo «revisado» para alguém esquecer de limpar. A marca sai quando os dois
+ * factos forem verdadeiros, e nunca antes — que é a regra dela: «só vai sair o ponto de exclamação
+ * a partir do momento que o professor refizer esse processo».
+ *
+ * `null` significa «nada a revisar» — e também «não há troca nenhuma», que é o caso da maioria.
+ */
+
+/** Um instante em milissegundos, ou `NaN` quando não é uma data legível. */
+function instante(v) {
+  const s = String(v == null ? '' : v).trim();
+  return s ? Date.parse(s) : NaN;
+}
+
+/** A frase é um MODELO: o `%DATA%` é preenchido por quem tem a língua da tela (o servidor). */
+const MODELO_REVISAO = 'o elenco «%ELENCO%» %MOVIMENTO% a aluna «%ALUNA%» %ONDE% em %DATA%. '
+  + 'O corpo mudou, e o recorte foi escolhido sobre outro corpo — refaça a leitura das anamneses '
+  + '(passo 3) e reveja o recorte (passo 4). Por fazer: %FALTA%. A marca sai quando os dois '
+  + 'estiverem refeitos.';
+
+/**
+ * O QUE FALTA REVISAR NESTE ELENCO, se houver uma troca de aluna por revisar. Ver o cabeçalho.
+ *
+ * Devolve `null` (nada a fazer) ou `{ em, movimento, aluna, elenco, falta: ['leitura'|'recorte'],
+ * texto }` — com `%DATA%` ainda por preencher no `texto`.
+ */
+function revisaoPendente(linha) {
+  if (!linha || typeof linha !== 'object') return null;
+  const t = linha.transferida || linha.recebida;
+  if (!t || !t.em) return null;
+  const quando = instante(t.em);
+  if (Number.isNaN(quando)) return null;         // sem data não há como comparar — não se inventa
+
+  const leuDepois = !Number.isNaN(instante(linha.leitura && linha.leitura.em))
+    && instante(linha.leitura.em) > quando;
+  const recorteDepois = !Number.isNaN(instante(linha.atualizada_em))
+    && instante(linha.atualizada_em) > quando;
+  if (leuDepois && recorteDepois) return null;
+
+  const falta = [];
+  if (!leuDepois) falta.push('leitura');
+  if (!recorteDepois) falta.push('recorte');
+  const faltaTexto = falta.length === 2
+    ? 'a leitura das anamneses (passo 3) e o recorte (passo 4)'
+    : (falta[0] === 'leitura' ? 'a leitura das anamneses (passo 3)' : 'o recorte (passo 4)');
+
+  const saiu = Boolean(linha.transferida);
+  const outro = String((saiu ? t.para : t.de) || '').trim();
+  const onde = outro ? (saiu ? '(foi para «' + outro + '»)' : '(veio de «' + outro + '»)') : '';
+  const texto = MODELO_REVISAO
+    .split('%ELENCO%').join(String(linha.nome || linha.id || ''))
+    .split('%MOVIMENTO%').join(saiu ? 'perdeu' : 'recebeu')
+    .split('%ALUNA%').join(String(t.aluna || ''))
+    .split('%ONDE%').join(onde)
+    .split('%FALTA%').join(faltaTexto);
+
+  return {
+    em: String(t.em),
+    movimento: saiu ? 'saiu' : 'entrou',
+    aluna: String(t.aluna || ''),
+    elenco: outro,
+    falta,
+    texto,
+  };
+}
+
 module.exports = {
   DIMENSOES_DA_ANAMNESE,
+  revisaoPendente,
+  MODELO_REVISAO,
   ROTULO_DA_DIMENSAO,
   idDe,
   semAcento,
