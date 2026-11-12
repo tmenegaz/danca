@@ -114,10 +114,10 @@
         "aulas": 4,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
-        "planos": 14,
-        "pos": 16,
+        "planos": 15,
+        "pos": 17,
         "recortes": 2,
-        "registros": 34
+        "registros": 36
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
       "expurgada": false,
@@ -150,6 +150,7 @@
         "plano:plano-20261112-0812",
         "plano:plano-20261112-0814",
         "plano:plano-20261112-0815",
+        "plano:plano-20261112-0833",
         "po:po-20261108-1304",
         "po:po-20261108-1318",
         "po:po-20261108-1319",
@@ -165,7 +166,8 @@
         "po:po-20261111-1528",
         "po:po-20261112-0747",
         "po:po-20261112-0812",
-        "po:po-20261112-0814"
+        "po:po-20261112-0814",
+        "po:po-20261112-0833"
       ],
       "slug": "calango"
     }
@@ -173,7 +175,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 34,
+        "contagem": 36,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -301,12 +303,12 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 14,
+        "contagem": 15,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 16,
+        "contagem": 17,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -314,9 +316,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "12cf52b"
+    "commit": "de626e3"
   },
-  "gerado_em": "2026-11-12T11:32",
+  "gerado_em": "2026-11-12T11:33",
   "nao_indexado": [
     {
       "familia": "conteudo",

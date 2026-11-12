@@ -7,8 +7,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261112-1115",
-      "versoes": 7
+      "ultima": "20261112-1133",
+      "versoes": 8
     },
     {
       "aspecto": "cinco-posicoes-5a-pes",
@@ -17,8 +17,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261112-1115",
-      "versoes": 7
+      "ultima": "20261112-1133",
+      "versoes": 8
     },
     {
       "aspecto": "cocoras-profundas-squat",
@@ -27,8 +27,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261112-1115",
-      "versoes": 7
+      "ultima": "20261112-1133",
+      "versoes": 8
     },
     {
       "aspecto": "articulacao-e-forca-intrinseca-dos-dedos",
@@ -37,8 +37,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1132",
-      "versoes": 1
+      "ultima": "20261112-1133",
+      "versoes": 2
     },
     {
       "aspecto": "cinco-posicoes-4a-bracos",
@@ -47,8 +47,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1132",
-      "versoes": 1
+      "ultima": "20261112-1133",
+      "versoes": 2
     },
     {
       "aspecto": "cinco-posicoes-4a-pes",
@@ -57,8 +57,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1132",
-      "versoes": 1
+      "ultima": "20261112-1133",
+      "versoes": 2
     },
     {
       "aspecto": "equilibrio-unipodal",
@@ -67,8 +67,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1132",
-      "versoes": 1
+      "ultima": "20261112-1133",
+      "versoes": 2
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -77,8 +77,8 @@
         "recorte:flores"
       ],
       "primeira": "20261112-1132",
-      "ultima": "20261112-1132",
-      "versoes": 1
+      "ultima": "20261112-1133",
+      "versoes": 2
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -1160,10 +1160,10 @@
       "aulas": 4,
       "ciclos": 2,
       "ciclos_com_ancora": 2,
-      "planos": 14,
-      "pos": 16,
+      "planos": 15,
+      "pos": 17,
       "recortes": 2,
-      "registros": 34
+      "registros": 36
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -1196,6 +1196,7 @@
       "plano:plano-20261112-0812",
       "plano:plano-20261112-0814",
       "plano:plano-20261112-0815",
+      "plano:plano-20261112-0833",
       "po:po-20261108-1304",
       "po:po-20261108-1318",
       "po:po-20261108-1319",
@@ -1211,14 +1212,15 @@
       "po:po-20261111-1528",
       "po:po-20261112-0747",
       "po:po-20261112-0812",
-      "po:po-20261112-0814"
+      "po:po-20261112-0814",
+      "po:po-20261112-0833"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 34,
+        "contagem": 36,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -1238,6 +1240,7 @@
           "plano:plano-20261112-0812",
           "plano:plano-20261112-0814",
           "plano:plano-20261112-0815",
+          "plano:plano-20261112-0833",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
@@ -1253,7 +1256,8 @@
           "po:po-20261111-1528",
           "po:po-20261112-0747",
           "po:po-20261112-0812",
-          "po:po-20261112-0814"
+          "po:po-20261112-0814",
+          "po:po-20261112-0833"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -1338,7 +1342,7 @@
     ],
     "professores": [
       {
-        "contagem": 29,
+        "contagem": 31,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -1356,6 +1360,7 @@
           "plano:plano-20261112-0812",
           "plano:plano-20261112-0814",
           "plano:plano-20261112-0815",
+          "plano:plano-20261112-0833",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
@@ -1368,7 +1373,8 @@
           "po:po-20261111-1528",
           "po:po-20261112-0747",
           "po:po-20261112-0812",
-          "po:po-20261112-0814"
+          "po:po-20261112-0814",
+          "po:po-20261112-0833"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -1410,7 +1416,7 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 14,
+        "contagem": 15,
         "ids": [
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
@@ -1425,13 +1431,14 @@
           "plano:plano-20261112-0747",
           "plano:plano-20261112-0812",
           "plano:plano-20261112-0814",
-          "plano:plano-20261112-0815"
+          "plano:plano-20261112-0815",
+          "plano:plano-20261112-0833"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 16,
+        "contagem": 17,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
@@ -1448,7 +1455,8 @@
           "po:po-20261111-1528",
           "po:po-20261112-0747",
           "po:po-20261112-0812",
-          "po:po-20261112-0814"
+          "po:po-20261112-0814",
+          "po:po-20261112-0833"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -1457,9 +1465,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "12cf52b"
+    "commit": "de626e3"
   },
-  "gerado_em": "2026-11-12T11:32",
+  "gerado_em": "2026-11-12T11:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1484,13 +1492,13 @@
   ],
   "recortes": [
     {
-      "alunas": 3,
+      "alunas": 2,
       "aspectos": [
         "cinco-posicoes-5a-bracos",
         "cinco-posicoes-5a-pes",
         "cocoras-profundas-squat"
       ],
-      "atualizada_em": "2026-11-12T11:15:00.184Z",
+      "atualizada_em": "2026-11-12T11:33:03.118Z",
       "enviada_em": "2026-11-09T19:18:38.297Z",
       "id": "recorte:ami",
       "linha": "ami",
@@ -1498,6 +1506,17 @@
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/calango/linhas-de-base/ami--20261112-1133.json",
+          "aspectos": [
+            "cinco-posicoes-5a-pes",
+            "cinco-posicoes-5a-bracos",
+            "cocoras-profundas-squat"
+          ],
+          "enviada_em": "2026-11-09T19:18:38.297Z",
+          "versao": "20261112-1133"
+        },
         {
           "alunas": 3,
           "arquivo": "escola/calango/linhas-de-base/ami--20261112-1115.json",
@@ -1579,7 +1598,7 @@
       "vigente": true
     },
     {
-      "alunas": 2,
+      "alunas": 3,
       "aspectos": [
         "articulacao-e-forca-intrinseca-dos-dedos",
         "cinco-posicoes-4a-bracos",
@@ -1587,7 +1606,7 @@
         "equilibrio-unipodal",
         "espiral-rotacao-de-tronco"
       ],
-      "atualizada_em": "2026-11-12T11:32:19.115Z",
+      "atualizada_em": "2026-11-12T11:33:03.118Z",
       "enviada_em": "2026-11-12T11:32:19.708Z",
       "id": "recorte:flores",
       "linha": "flores",
@@ -1595,6 +1614,19 @@
       "professor": "redinha-rosa",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/calango/linhas-de-base/flores--20261112-1133.json",
+          "aspectos": [
+            "cinco-posicoes-4a-pes",
+            "cinco-posicoes-4a-bracos",
+            "articulacao-e-forca-intrinseca-dos-dedos",
+            "equilibrio-unipodal",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-12T11:32:19.708Z",
+          "versao": "20261112-1133"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/calango/linhas-de-base/flores--20261112-1132.json",
@@ -2038,6 +2070,18 @@
       "turma": "Piano"
     },
     {
+      "ajuste_de": "plano-20261112-0815",
+      "ano": "2026",
+      "carimbo": "plano-20261112-0833",
+      "ciclo": "01",
+      "data": "2026-11-12T08:33",
+      "id": "plano:plano-20261112-0833",
+      "objetivo": "Teste",
+      "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Piano"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261108-1304",
@@ -2194,6 +2238,16 @@
       "ciclo": "01",
       "data": "2026-11-12T08:14",
       "id": "po:po-20261112-0814",
+      "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261112-0814",
+      "ano": "2026",
+      "carimbo": "po-20261112-0833",
+      "ciclo": "01",
+      "data": "2026-11-12T08:33",
+      "id": "po:po-20261112-0833",
       "professor": "pe-torto",
       "tipo": "po"
     }
