@@ -2,13 +2,13 @@
   "_cifrado": {
     "algoritmo": "PBKDF2-SHA256+AES-GCM",
     "iteracoes": 100000,
-    "endereco": "3ZrfvnRFyHzceADywIwo2WK7hgG1AdrVBywcfbgpDI8xmUlbHIPuEa0iH0Ofo53M9jbQE9lli9L7pEkLr2OqnkDIokJZzcZp3sM8LVxQQ3a6+o4JTSy7AisFY00gDDKpHyex2KeJQa7Gc7v7JqmHsL0buvLPC4w6wCT0K9BCuZdI+AZpZVjoZAzqhu4EpKlqqHr5BkyE60xZFfqho3MikhHhWKtFs/kWByglgoEszAb9zw3Ap7DL7e1Xe2Mp9ZbcezMBSMjPQwvMkoUARvTjVN8JBIJrWXHbDPJxbl9yxA3zbVtoAzBGkwZ6eQeiTL24dhIswdTvc1Yzq5NJTBelvjgQH/PVESEOv3aFbTxSx1w+rFl6KELsGGkkyl+ybyl/dU5Jpu6JLmdcxkjXZCNd6W9T3bW+NeW24oGb+Ip2b20CHlN0Xm8mhFI1f1n0RJOXLTHeu4t0xWW5zu6h6TC5VmS8zBlSC+kyHqb0qiYkNfyrr95aA4THMG6JZj/H/Xg9M37G8oBFdNiv1oTAKVL2eeuZnnbNnDSNv2Rs52TsO1ok7AdJZ0Haj5O1cjgaW9t/pqKLscL1Dg59hhhQLZgvZOWyY0XIfeD//QLeShwtUlvMhPXU5pBj/xfkYhHcerodJMEVOezBr9cuwGifAfyMqscd7vKRajWXLApLTWoO0Oh8NG9WyCGtPZoJdHYgZ48g+ts8TUWXzdzEJ6uvKauvoylJ6+x39/uBNBaRfQ=="
+    "endereco": "npkPG43aGBbUcPFrLuQZndWIshRPp1U21l+4pxUnDxKJRiStPEK4ZQaY7hl06STcTuh3M2F9tpNA+62AM7aq5RW9XC91Q3UQ6n7ZBd1qy+zKNnXz9DKxQHtDRRvd3ZkFWAqLHanydKXx9bl51GLTwsQ50PjRkGpExtzhWP3ec26BkaklDjQwo0/W//JFI9P9YLUdwDH7VVPOkMCAW1r5Cds7ulCFtjfPNlK7RdZyAswB+6RBYDslV4aUoDI56rPFqN4fnQF565QZAHj+NuYMvGAtJBZ9IEbAiFbT8UjVlqyBDvW/smrvJ+V+n9vW4yh7SxBOhZkxD+Um+qtEiqn5yCpuQVwOk9LHfWEVlHe58UOdMR0oRVW04Q+MsNDgkRnxkvozjuZs2CViHCWFt/adU5Mcon6tdzFKjvb8945gAWHXaLkJYbwnShVD3XLjehqCVBqQNtaw8wHUKn+wi0yfegaYQ3CHnR/xtP5JVesFAzwEsduvE66aL9O9YxwBq8pBeQjzpbEbUqsdC9kD5Rc/5lttUAqktlGgqtvWqDPN66+S2DqPHuZSxsmDAq84g6bny/fsSd5G/3rHpnX7a6o7oPfu2YJP2h0sdg+h3CM9BUMCC4+L+pGaesPA4pnXGE0SenMdXhF/R3wFw6AVxouBkLYlGgCPZGGPNZ/5XCMpZYNOQZFBPJhpG4SWf4B2QuYUHIxLVIdo1qstCVvtRP/xFSmbVqpc/VxphHBKoA=="
   },
   "lancamentos": 0,
   "apelidos": {
+    "aluna_c": "Aluna C",
     "aluna_a": "Aluna A",
-    "aluna_b": "Aluna B",
-    "aluna_c": "Aluna C"
+    "aluna_b": "Aluna B"
   },
   "_nota": "O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): o pacote e publico e ele traz o lancamento por aluna. Quem decifra e o formulario de lancamento, no navegador, com tools/lib-cifra.js. O campo \"lancamentos\" NAO e secreto: diz se ha o que mostrar, para o formulario nao pedir a senha a toa. O campo \"apelidos\" tambem sai em claro: sem ele um ciclo sem lancamento nenhum apareceria sem as alunas. Nao editar a mao."
 }
