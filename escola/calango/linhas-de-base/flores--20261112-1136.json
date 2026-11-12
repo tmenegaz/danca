@@ -1,0 +1,1853 @@
+{
+  "id": "flores",
+  "nome": "flores",
+  "professor": "redinha-rosa",
+  "alunas": [
+    "Aluna A",
+    "Aluna B",
+    "Aluna C"
+  ],
+  "campos": [
+    {
+      "id": "cinco-posicoes-4a-pes",
+      "nome": "4ª posição — pés",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "cinco-posicoes-5a-pes",
+      "nome": "5ª posição — pés",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "cinco-posicoes-4a-bracos",
+      "nome": "4ª posição — braços",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "cinco-posicoes-5a-bracos",
+      "nome": "5ª posição — braços",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "articulacao-e-forca-intrinseca-dos-dedos",
+      "nome": "Articulação e força intrínseca dos dedos",
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos"
+    },
+    {
+      "id": "equilibrio-unipodal",
+      "nome": "Equilíbrio unipodal",
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core"
+    },
+    {
+      "id": "espiral-rotacao-de-tronco",
+      "nome": "Espiral / rotação de tronco",
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal"
+    }
+  ],
+  "atualizada_em": "2026-11-12T11:36:33.930Z",
+  "lida": {
+    "Aluna B": "anamnese-20261108-1314",
+    "Aluna A": "anamnese-20261109-1615",
+    "Aluna C": "anamnese-20261108-1315"
+  },
+  "leitura": {
+    "em": "2026-11-12T11:36:10.880Z",
+    "alunas": [
+      "Aluna B",
+      "Aluna C",
+      "Aluna A"
+    ],
+    "alunos": 3,
+    "atencao": 44,
+    "excelencia": 45,
+    "musicais": 7,
+    "comuns": 1,
+    "semRegisto": [],
+    "classificacao": {
+      "atencao": [
+        {
+          "id": "cinco-posicoes-1a-pes",
+          "nome": "1ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-2a-pes",
+          "nome": "2ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-3a-pes",
+          "nome": "3ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-4a-pes",
+          "nome": "4ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-5a-pes",
+          "nome": "5ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-1a-bracos",
+          "nome": "1ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-2a-bracos",
+          "nome": "2ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-3a-bracos",
+          "nome": "3ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-4a-bracos",
+          "nome": "4ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-5a-bracos",
+          "nome": "5ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "en-dehors",
+          "nome": "en dehors (rotação externa)",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "tendu",
+          "nome": "o tendu",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "meia-ponta",
+          "nome": "a meia ponta",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "musicalidade",
+          "nome": "a musicalidade",
+          "eixo": "Musicalidade",
+          "grupo": "Os elementos basilares",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Domina» · 1 de 3 em «Domínio parcial»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "formato-anatomico-dos-joelhos",
+          "nome": "Formato anatômico dos joelhos",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Normal/alinhado» · 1 de 3 em «Valgo (\"X\")» · 1 de 3 em «Varo (\"arqueado\")»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-de-quadril-en-dehors-de-origem",
+          "nome": "Mobilidade de quadril (en dehors de origem)",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Origem clara no quadril» · 2 de 3 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "mobilidade-de-quadril-pelve",
+          "nome": "Mobilidade de quadril (pelve)",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Controle ativo da pelve» · 1 de 3 em «Tendência à anteversão (hiperlordose)» · 1 de 3 em «Tendência à retroversão»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "flexibilidade-dos-isquiotibiais",
+          "nome": "Flexibilidade dos isquiotibiais",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Alta» · 1 de 3 em «Média» · 1 de 3 em «Baixa (\"dura\")»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "flexibilidade-dos-adutores",
+          "nome": "Flexibilidade dos adutores",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Abertura completa (180°+)» · 1 de 3 em «Abertura parcial» · 1 de 3 em «Rigidez acentuada»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "flexibilidade-anteroposterior-grand-ecart",
+          "nome": "Flexibilidade anteroposterior (grand écart)",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Completo» · 2 de 3 em «Parcial (elevação do quadril)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "mobilidade-das-costas-e-tronco-cambre",
+          "nome": "Mobilidade das costas e tronco (cambre)",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Ampla» · 1 de 3 em «Limitada» · 1 de 3 em «Dor/desconforto»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-e-estabilidade-da-escapula",
+          "nome": "Mobilidade e estabilidade da escápula",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Estabilidade adequada» · 1 de 3 em «Elevação crônica dos ombros» · 1 de 3 em «Aladas/proeminentes»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "rotacao-e-amplitude-dos-ombros",
+          "nome": "Rotação e amplitude dos ombros",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Completa e fluida» · 1 de 3 em «Limitada por tensão»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-da-coluna-cervical-e-cabeca",
+          "nome": "Mobilidade da coluna cervical e cabeça",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Rotação/flexão/extensão lateral limitada» · 1 de 3 em «Flexão/extensão/rotação livre» · 1 de 3 em «Tensão associada»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "arquitetura-do-arco-plantar",
+          "nome": "Arquitetura do arco plantar",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Normal/curvo» · 1 de 3 em «Cavo (arco alto, rigidez)» · 1 de 3 em «Chato/plano (desabamento)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "mobilidade-de-flexao-extensao-do-tornozelo",
+          "nome": "Mobilidade de flexão/extensão do tornozelo",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Excelente (instep / coup-de-pied)» · 1 de 3 em «Moderada» · 1 de 3 em «Duro (restrição frontal)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "articulacao-e-forca-intrinseca-dos-dedos",
+          "nome": "Articulação e força intrínseca dos dedos",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Flexíveis e articulados» · 1 de 3 em «Rígidos em garra / sem tônus»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "musicalidade-e-pulsacao-ritmica",
+          "nome": "Musicalidade e pulsação rítmica",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Domina» · 1 de 3 em «Domínio parcial» · 1 de 3 em «Precisa desenvolver»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "coordenacao-motora-e-dissociacao",
+          "nome": "Coordenação motora e dissociação",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Executa movimentos cruzados» · 1 de 3 em «Confusão motora severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "memoria-e-retencao-de-sequencias",
+          "nome": "Memória e retenção de sequências",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Retém sequências de 3 a 4 passos» · 2 de 3 em «Precisa de apoio visual prolongado»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "controle-de-carga-no-demi-grand-plie",
+          "nome": "Controle de carga no demi/grand plié",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Controla fluido, sem perda de eixo» · 1 de 3 em «Dificuldade na subida» · 1 de 3 em «Instabilidade / en dehors perdido»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "forca-excentrica-recuo-na-flexao-de-tronco",
+          "nome": "Força excêntrica / recuo na flexão de tronco",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Desce e retorna com coluna reta» · 1 de 3 em «Retorna enrolando (roll-up)» · 1 de 3 em «Parcial»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "impulsao-e-absorcao-allegro",
+          "nome": "Impulsão e absorção (allegro)",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Boa elasticidade e potência» · 1 de 3 em «Rigidez / aterrissagem dura»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "sustentacao-ativa-de-mmii-forca-de-adagio",
+          "nome": "Sustentação ativa de MMII (força de adágio)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Sustenta a perna a 90°+ sem apoio» · 2 de 3 em «Incapacidade por colapso»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "equilibrio-unipodal",
+          "nome": "Equilíbrio unipodal",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Mantém > 5 s sem oscilação severa» · 1 de 3 em «Perda rápida»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "forca-de-empurrar-push-ups",
+          "nome": "Força de empurrar (push-ups)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Completas com prancha» · 1 de 3 em «Adaptadas (joelhos)» · 1 de 3 em «Incapacidade»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "forca-de-puxar-tracao",
+          "nome": "Força de puxar (tração)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Tração completa» · 1 de 3 em «Dificuldade severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "resistencia-de-mmss-port-de-bras-prolongado",
+          "nome": "Resistência de MMSS (port de bras prolongado)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Sustenta sem elevar escápulas» · 2 de 3 em «Fadiga rápida com queda»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "discriminacao-de-lateralidade",
+          "nome": "Discriminação de lateralidade",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Executa comandos cruzados» · 1 de 3 em «Hesitação moderada» · 1 de 3 em «Confusão severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "orientacao-espacial-basica",
+          "nome": "Orientação espacial básica",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Desloca com precisão (frente, trás, lados, diagonais)» · 2 de 3 em «Perde a referência ao mudar de direção»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "estabilidade-vestibular-e-deslocamento",
+          "nome": "Estabilidade vestibular e deslocamento",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Caminha virando a cabeça sem desviar» · 1 de 3 em «Perde o prumo»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "coordenacao-fina-dedo-nariz",
+          "nome": "Coordenação fina (dedo-nariz)",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Precisa (olhos abertos/fechados)» · 2 de 3 em «Desorganização / tremor»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cocoras-profundas-squat",
+          "nome": "Cócoras profundas (squat)",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Calcanhares apoiados, tronco erguido» · 1 de 3 em «Incapacidade (dorsiflexão / encurtamento)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "espiral-rotacao-de-tronco",
+          "nome": "Espiral / rotação de tronco",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Compreende e executa torções guiadas» · 2 de 3 em «Rigidez total»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        }
+      ],
+      "excelencia": [
+        {
+          "id": "cinco-posicoes-1a-pes",
+          "nome": "1ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-2a-pes",
+          "nome": "2ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-3a-pes",
+          "nome": "3ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-4a-pes",
+          "nome": "4ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-5a-pes",
+          "nome": "5ª posição — pés",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-1a-bracos",
+          "nome": "1ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-2a-bracos",
+          "nome": "2ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-3a-bracos",
+          "nome": "3ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-4a-bracos",
+          "nome": "4ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cinco-posicoes-5a-bracos",
+          "nome": "5ª posição — braços",
+          "eixo": "Técnica",
+          "grupo": "as cinco posições: uma visão geral",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "en-dehors",
+          "nome": "en dehors (rotação externa)",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "tendu",
+          "nome": "o tendu",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "passe",
+          "nome": "o passé",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "3 de 3 em «Bom» (por consciência própria)",
+          "unanimidade": true,
+          "nivelUnico": "Bom",
+          "noMelhorNivel": true,
+          "temAbaixoDoMelhor": false,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B",
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "meia-ponta",
+          "nome": "a meia ponta",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria)",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "musicalidade",
+          "nome": "a musicalidade",
+          "eixo": "Musicalidade",
+          "grupo": "Os elementos basilares",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Domina» · 1 de 3 em «Domínio parcial»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "formato-anatomico-dos-joelhos",
+          "nome": "Formato anatômico dos joelhos",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Normal/alinhado» · 1 de 3 em «Valgo (\"X\")» · 1 de 3 em «Varo (\"arqueado\")»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-de-quadril-en-dehors-de-origem",
+          "nome": "Mobilidade de quadril (en dehors de origem)",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Origem clara no quadril» · 2 de 3 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "mobilidade-de-quadril-pelve",
+          "nome": "Mobilidade de quadril (pelve)",
+          "eixo": "Técnica",
+          "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Controle ativo da pelve» · 1 de 3 em «Tendência à anteversão (hiperlordose)» · 1 de 3 em «Tendência à retroversão»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "flexibilidade-dos-isquiotibiais",
+          "nome": "Flexibilidade dos isquiotibiais",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Alta» · 1 de 3 em «Média» · 1 de 3 em «Baixa (\"dura\")»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "flexibilidade-dos-adutores",
+          "nome": "Flexibilidade dos adutores",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Abertura completa (180°+)» · 1 de 3 em «Abertura parcial» · 1 de 3 em «Rigidez acentuada»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "flexibilidade-anteroposterior-grand-ecart",
+          "nome": "Flexibilidade anteroposterior (grand écart)",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Completo» · 2 de 3 em «Parcial (elevação do quadril)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "mobilidade-das-costas-e-tronco-cambre",
+          "nome": "Mobilidade das costas e tronco (cambre)",
+          "eixo": "Funcional",
+          "grupo": "Flexibilidade e Amplitude Articular",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Ampla» · 1 de 3 em «Limitada» · 1 de 3 em «Dor/desconforto»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-e-estabilidade-da-escapula",
+          "nome": "Mobilidade e estabilidade da escápula",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Estabilidade adequada» · 1 de 3 em «Elevação crônica dos ombros» · 1 de 3 em «Aladas/proeminentes»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "rotacao-e-amplitude-dos-ombros",
+          "nome": "Rotação e amplitude dos ombros",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Completa e fluida» · 1 de 3 em «Limitada por tensão»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "mobilidade-da-coluna-cervical-e-cabeca",
+          "nome": "Mobilidade da coluna cervical e cabeça",
+          "eixo": "Técnica",
+          "grupo": "Complexo Escapulo-Umeral e Cervical",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Rotação/flexão/extensão lateral limitada» · 1 de 3 em «Flexão/extensão/rotação livre» · 1 de 3 em «Tensão associada»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "arquitetura-do-arco-plantar",
+          "nome": "Arquitetura do arco plantar",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Normal/curvo» · 1 de 3 em «Cavo (arco alto, rigidez)» · 1 de 3 em «Chato/plano (desabamento)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "mobilidade-de-flexao-extensao-do-tornozelo",
+          "nome": "Mobilidade de flexão/extensão do tornozelo",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Excelente (instep / coup-de-pied)» · 1 de 3 em «Moderada» · 1 de 3 em «Duro (restrição frontal)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "articulacao-e-forca-intrinseca-dos-dedos",
+          "nome": "Articulação e força intrínseca dos dedos",
+          "eixo": "Técnica",
+          "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Flexíveis e articulados» · 1 de 3 em «Rígidos em garra / sem tônus»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "musicalidade-e-pulsacao-ritmica",
+          "nome": "Musicalidade e pulsação rítmica",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Domina» · 1 de 3 em «Domínio parcial» · 1 de 3 em «Precisa desenvolver»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "coordenacao-motora-e-dissociacao",
+          "nome": "Coordenação motora e dissociação",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Executa movimentos cruzados» · 1 de 3 em «Confusão motora severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "memoria-e-retencao-de-sequencias",
+          "nome": "Memória e retenção de sequências",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Retém sequências de 3 a 4 passos» · 2 de 3 em «Precisa de apoio visual prolongado»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "controle-de-carga-no-demi-grand-plie",
+          "nome": "Controle de carga no demi/grand plié",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Controla fluido, sem perda de eixo» · 1 de 3 em «Dificuldade na subida» · 1 de 3 em «Instabilidade / en dehors perdido»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "forca-excentrica-recuo-na-flexao-de-tronco",
+          "nome": "Força excêntrica / recuo na flexão de tronco",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Desce e retorna com coluna reta» · 1 de 3 em «Retorna enrolando (roll-up)» · 1 de 3 em «Parcial»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "impulsao-e-absorcao-allegro",
+          "nome": "Impulsão e absorção (allegro)",
+          "eixo": "Funcional",
+          "grupo": "Força Ativa, Potência e Controle Dinâmico",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Boa elasticidade e potência» · 1 de 3 em «Rigidez / aterrissagem dura»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "sustentacao-ativa-de-mmii-forca-de-adagio",
+          "nome": "Sustentação ativa de MMII (força de adágio)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Sustenta a perna a 90°+ sem apoio» · 2 de 3 em «Incapacidade por colapso»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "equilibrio-unipodal",
+          "nome": "Equilíbrio unipodal",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Mantém > 5 s sem oscilação severa» · 1 de 3 em «Perda rápida»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "forca-de-empurrar-push-ups",
+          "nome": "Força de empurrar (push-ups)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Completas com prancha» · 1 de 3 em «Adaptadas (joelhos)» · 1 de 3 em «Incapacidade»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "forca-de-puxar-tracao",
+          "nome": "Força de puxar (tração)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Tração completa» · 1 de 3 em «Dificuldade severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "resistencia-de-mmss-port-de-bras-prolongado",
+          "nome": "Resistência de MMSS (port de bras prolongado)",
+          "eixo": "Funcional",
+          "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Sustenta sem elevar escápulas» · 2 de 3 em «Fadiga rápida com queda»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "discriminacao-de-lateralidade",
+          "nome": "Discriminação de lateralidade",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Executa comandos cruzados» · 1 de 3 em «Hesitação moderada» · 1 de 3 em «Confusão severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "orientacao-espacial-basica",
+          "nome": "Orientação espacial básica",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Desloca com precisão (frente, trás, lados, diagonais)» · 2 de 3 em «Perde a referência ao mudar de direção»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "estabilidade-vestibular-e-deslocamento",
+          "nome": "Estabilidade vestibular e deslocamento",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Caminha virando a cabeça sem desviar» · 1 de 3 em «Perde o prumo»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "coordenacao-fina-dedo-nariz",
+          "nome": "Coordenação fina (dedo-nariz)",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Precisa (olhos abertos/fechados)» · 2 de 3 em «Desorganização / tremor»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "cocoras-profundas-squat",
+          "nome": "Cócoras profundas (squat)",
+          "eixo": "Funcional",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "funcional",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Calcanhares apoiados, tronco erguido» · 1 de 3 em «Incapacidade (dorsiflexão / encurtamento)»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "espiral-rotacao-de-tronco",
+          "nome": "Espiral / rotação de tronco",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Compreende e executa torções guiadas» · 2 de 3 em «Rigidez total»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        }
+      ],
+      "musicalidade": [
+        {
+          "id": "musicalidade",
+          "nome": "a musicalidade",
+          "eixo": "Musicalidade",
+          "grupo": "Os elementos basilares",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Domina» · 1 de 3 em «Domínio parcial»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "musicalidade-e-pulsacao-ritmica",
+          "nome": "Musicalidade e pulsação rítmica",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Domina» · 1 de 3 em «Domínio parcial» · 1 de 3 em «Precisa desenvolver»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C"
+          ]
+        },
+        {
+          "id": "coordenacao-motora-e-dissociacao",
+          "nome": "Coordenação motora e dissociação",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "2 de 3 em «Executa movimentos cruzados» · 1 de 3 em «Confusão motora severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna C",
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "memoria-e-retencao-de-sequencias",
+          "nome": "Memória e retenção de sequências",
+          "eixo": "Musicalidade",
+          "grupo": "Aptidões Coordenadas e Cognitivo-Musicais",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Retém sequências de 3 a 4 passos» · 2 de 3 em «Precisa de apoio visual prolongado»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "discriminacao-de-lateralidade",
+          "nome": "Discriminação de lateralidade",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Executa comandos cruzados» · 1 de 3 em «Hesitação moderada» · 1 de 3 em «Confusão severa»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna A"
+          ]
+        },
+        {
+          "id": "orientacao-espacial-basica",
+          "nome": "Orientação espacial básica",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Desloca com precisão (frente, trás, lados, diagonais)» · 2 de 3 em «Perde a referência ao mudar de direção»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        },
+        {
+          "id": "espiral-rotacao-de-tronco",
+          "nome": "Espiral / rotação de tronco",
+          "eixo": "Musicalidade",
+          "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+          "dimensao": "musicalidade",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "1 de 3 em «Compreende e executa torções guiadas» · 2 de 3 em «Rigidez total»",
+          "unanimidade": false,
+          "nivelUnico": null,
+          "noMelhorNivel": false,
+          "temAbaixoDoMelhor": true,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B"
+          ]
+        }
+      ],
+      "comuns": [
+        {
+          "id": "passe",
+          "nome": "o passé",
+          "eixo": "Técnica",
+          "grupo": "Os elementos basilares",
+          "dimensao": "tecnica",
+          "quantas": 3,
+          "naoMedidos": 0,
+          "texto": "3 de 3 em «Bom» (por consciência própria)",
+          "unanimidade": true,
+          "nivelUnico": "Bom",
+          "noMelhorNivel": true,
+          "temAbaixoDoMelhor": false,
+          "algumNoMelhor": true,
+          "noMelhor": [
+            "Aluna B",
+            "Aluna C",
+            "Aluna A"
+          ]
+        }
+      ],
+      "semRegisto": [],
+      "alunos": 3
+    }
+  },
+  "carimbo": "20261112-1136",
+  "enviada_em": "2026-11-12T11:36:34.483Z",
+  "anterior": "flores--20261112-1133.json",
+  "gravada_em": "2026-11-12T11:36:34.483Z"
+}
