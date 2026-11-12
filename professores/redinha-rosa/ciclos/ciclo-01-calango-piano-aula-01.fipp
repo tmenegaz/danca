@@ -10,9 +10,9 @@ professor: Redinha Rosa
 ciclo: 01
 variante: calango-piano
 aula: 01
-hash_conteudo: 5034f1c35c89762fd354ca1fd967d8ab04a8349688ce94f05b734d8b443d0e08
+hash_conteudo: 31f4e7fce92338d66e8ad48f9169a8ed1a5305acb0c87ea99c7a922375536f05
 parentHash: 
-hash: 5332490b1b0385e4d571a80e880343439ef667254d4b65654298b74a1ec3a4bf
+hash: 1d4dc5c4f5601d7a065d4748639bddd1fc188f0ae5a6b212a01934623381f33f
 algoritmo: SHA-256
 ancorado_em: 2026-11-12
 cobertura:
