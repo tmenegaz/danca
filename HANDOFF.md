@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T08:09:38-0300`
-Commit atual: `b3e2384a` — fix(po): o elenco que ja esta sem ninguem e sinalizado
+Gerado em: `2026-11-12T08:29:14-0300`
+Commit atual: `bfe699d4` — feat(po): a troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
-b3e2384a fix(po): o elenco que ja esta sem ninguem e sinalizado
-32258b53 chore(estrutura): regerar o HANDOFF
-d929a753 fix(po): um elenco sem ninguem nao existe
-7f116231 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-e9ad9778 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-68642499 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-9ea6f515 chore(estrutura): regerar os índices derivados
-2808ad3c chore(estrutura): reancorar a cadeia das fontes alteradas
-88896694 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-9dbd0b4f feat(po): o PO elicitado vira a fonte do ciclo
-91b57b5b feat(acervo): envelope/po-20261112-0747.json
-512be52d feat(acervo): envelope/.indice.json
-11d9916d feat(plano): o elo da cadeia automática
-b897d23e feat(acervo): envelope/plano-20261112-0747.json
-dfcea57d feat(acervo): envelope/.indice.json
-5f7c8351 feat(linha de base): índice — ami 20261112-1047
-3145b7d0 feat(elenco): Aluna B passa de ami para tami
-ed440ab7 feat(linha de base): índice — tami 20261112-1047
-8fb0edf9 feat(elenco): Aluna B passa de ami para tami
-02522a41 chore(estrutura): regerar o HANDOFF
+bfe699d4 feat(po): a troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
+bcd93d18 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+7141d06a chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+949ab434 chore(estrutura): regerar os índices derivados
+76f8fcfc chore(estrutura): reancorar a cadeia das fontes alteradas
+da53dca3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+3c97a762 feat(po): o PO elicitado vira a fonte do ciclo
+1eed1a1a feat(acervo): envelope/plano-20261112-0815.json
+40eb0255 feat(acervo): envelope/.indice.json
+e5bff3b2 chore(linha de base): índice — apagar tami
+268a7a6d chore(linha de base): apagar tami
+7931d288 feat(linha de base): índice — ami 20261112-1115
+fed3067b feat(elenco): Aluna B passa de tami para ami
+7bf247c2 chore(estrutura): reancorar a cadeia das fontes alteradas
+ee8a9cc4 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+c715f9cb feat(po): o PO elicitado vira a fonte do ciclo
+8754295e feat(acervo): envelope/po-20261112-0814.json
+01dfac33 feat(acervo): envelope/.indice.json
+a5ab99b6 feat(plano): o elo da cadeia automática
+617689e7 feat(acervo): envelope/plano-20261112-0814.json
 ```
 
 ## Por professor
@@ -115,7 +115,7 @@ ed440ab7 feat(linha de base): índice — tami 20261112-1047
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `27f01ecd0c52` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `e7113594d6b5` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -169,114 +169,78 @@ ed440ab7 feat(linha de base): índice — tami 20261112-1047
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — O elenco que ficaria sem ninguém não existe
+## 12/11/2026 — A troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
 
-**O que motivou, na letra dela.** «Eu tenho nas turmas uma turma vinculada a um elenco, que é o
-elenco AME. Aí eu fui em audição e fiz a transferência de aluno […] e transferi todos para TAMI.
-Então agora não tem mais nenhum aluno na AME aonde tem turma […] Isso não pode acontecer. Se eu
-tiver um elenco que tem uma relação com turma, eu não posso ter zero alunos.»
+**As duas perguntas dela, e as duas respostas medidas no código.** «Quando há a transferência de
+alunas de um elenco para o outro, o cenário da leitura dessas anamneses, ele é modificado. Aí eu
+quero saber o seguinte, esse botão é disparado novamente durante o processo?»
 
-E a decisão, no turno seguinte: «Um elenco que não tem pessoas dentro do elenco é o mesmo que
-excluir um elenco. […] na transferência, se zerar o elenco, a gente segue o processo da proveniência
-equivalente ao excluir o elenco […] E aí vai avisar que o elenco será excluído, confirma isso […]
-Não vamos deixar um elenco ali zerado com não escalado. Não faz sentido isso.»
+- **Não é disparado — e a leitura é DESCARTADA.** A transferência apaga `leitura` nos dois lados
+  (`delete novaOrigem.leitura` / `delete novoDestino.leitura`), porque ela descrevia os corpos que
+  estavam juntos e deixou de ser verdade. Nada a repõe: o professor tem de voltar ao passo 3.
+- **E o recorte NÃO é tocado.** `campos` fica exactamente como estava. É o defeito que ela
+  identificou sozinha: «se uma aluna tinha uma certa característica que as outras não tinham e
+  estava selecionada no recorte, não faz mais sentido ter esse item selecionado no recorte.»
 
-**O que foi decidido — duas metades, e a diferença é o VÍNCULO.**
+**Porque não se resolve sozinho.** Repor a leitura seria possível — a rota sabe lê-la. Mas o recorte
+é **decisão pedagógica**: nenhum código sabe se o professor quer manter um aspecto que só aquela
+aluna justificava. Ela foi explícita: «tem que ser manual, não pode ser automático. Cabe a nós apenas
+sinalizarmos.»
 
-- **O elenco é o corpo de uma TURMA** → a transferência da última aluna é **RECUSADA** (409), com a
-  frase a nomear a Turma e o gesto que resolve (desvincular). Uma turma sem corpo não é um elenco
-  vazio: é uma contradição, e a turma não se desvincula por tabela.
-- **O elenco é LIVRE** → a transferência passa, e o elenco é **EXCLUÍDO** pela **proveniência do
-  apagar** — lápide no repositório (`apagada_em`, `anterior`, o corpo que existia preservado),
-  rascunho fora do KV —, **depois de o professor confirmar**. Sem a confirmação, nada se escreve:
-  nem o destino, que é o primeiro a escrever.
-- **A ETIQUETA «NÃO ESCALADO» FOI DESCARTADA POR ELA.** Chegou a ser proposta nesta sessão e a
-  decisão foi a contrária: «Não vamos deixar um elenco ali zerado com não escalado.» Ou tem gente,
-  ou não existe. Não se inventa um estado para um elenco que ninguém consegue usar.
+**O que foi decidido.**
 
-**A CONFIRMAÇÃO É DO SERVIDOR, E NÃO SÓ DO ECRÃ.** O cliente pergunta antes — é ele que tem a lista
-das alunas à mão —, mas uma regra que só existe no cliente não é uma regra: quem chegar por outro
-caminho apagaria um elenco sem nunca ler o aviso. Sem `confirmarExclusao`, a rota responde 409 com o
-aviso e `precisaConfirmar`, e **não escreve nada**. As duas frases (a recusa e o aviso) vivem no
-núcleo como **modelo** com `%ELENCO%` e `%TURMAS%`, e cada lado preenche o que já tem — escritas
-duas vezes, divergiriam; a concordância («a Turma «X»» / «as Turmas «X», «Y»») é a parte que se erra
-ao reescrever a frase à mão.
+- **O «!» nos dois lados, em dois sítios.** No cartão do ELENCO (na Audição, onde o trabalho se
+  faz) e no cartão da TURMA que o lê (nas Turmas, onde a direção olha) — «do lado da turma que
+  perdeu o aluno e também do lado da turma que recebeu um aluno». A frase vai no `title` (para o
+  rato) **e** no `aria-label` com `role="img"` (para quem ouve): um «!» sem rótulo é ruído.
+- **A marca é DERIVADA, e não guardada** — a escolha que evita um estado a apodrecer. A
+  transferência já deixa o rasto datado (`transferida` na origem, `recebida` no destino, com `em`).
+  A revisão está feita quando `leitura.em` **e** `atualizada_em` são **posteriores** a esse `em`;
+  antes disso, o «!» está aceso. A comparação do recorte é **estrita** porque a própria troca grava
+  `atualizada_em = em` — um `>=` daria a revisão por feita no instante em que começou a faltar.
+- **A frase é um MODELO** (`%DATA%`), do núcleo, preenchida pelo servidor: escrita dos dois lados,
+  divergiria ao primeiro ajuste.
+- **A RESPOSTA DA TRANSFERÊNCIA DIZ O MESMO**, no `proximo`: a cascata (Turma → plano → PO) não
+  fala do que a troca estraga dentro do elenco. A frase entra sem leitura nenhuma a mais — depois de
+  uma transferência os dois elencos ficam **sempre** com a revisão pendente.
 
-**A FORMA DO SEGUNDO ESCRITO DEPENDE DO QUE ELE FICA A SER.** Sobrando alunas, grava-se uma versão
-com `transferida`, como sempre foi. Ficando com zero (e livre, senão a decisão já recusou), **não se
-grava uma versão vazia**: exclui-se o elenco. A ordem das escritas não muda — destino primeiro, que
-é a que nunca perde a aluna.
+**Dois defeitos apanhados pela prova, e os dois silenciosos.**
 
-**A EXCLUSÃO PASSOU A TER UM DONO SÓ.** Ela nasceu dentro do `DELETE`, e a transferência precisava
-da mesma coisa. Copiar as sete linhas da proveniência para a rota vizinha deixaria a segunda a
-envelhecer em silêncio — e o efeito de esquecer a lápide é a **ausência** de um registo, que não se
-nota. Passou a `apagarElenco(env, kv, escola, repoLinhas, id, {por})`, chamada pelos dois caminhos.
+1. **O rascunho escondia a marca.** O rascunho substitui o acto em `linhasDeBase`, e as marcas da
+   troca nascem no acto — com o elenco aberto para editar, o «!» desaparecia exactamente quando é
+   mais necessário. Passou a herdá-las, como já herdava `carimbo` e `concluida_em`.
+2. **A repintura usava o mapa velho.** `REVISOES_DOS_ELENCOS` era atribuído **depois** de
+   `pintarLinhas()` — a marca ficava acesa depois de o trabalho estar feito (e apagada depois de
+   passar a haver o que fazer). Passou para antes. Apanhado porque a prova mede o **cartão
+   desenhado**, e não o pedido.
 
-**O RÓTULO DA ORIGEM DIZ «EM TURMA».** O professor escolhe a origem antes do gesto, e o gesto
-depende do vínculo. Dizê-lo ali poupa-lhe a tentativa e o erro. É o mesmo vocabulário do selo da
-listagem de Elencos (07/11/2026), não um nome novo. E o rótulo vem **pronto do servidor**
-(`rotuloMover`), para o desenho da página e a repintura do cliente dizerem o mesmo.
+**Uma asserção foi trocada, e não apagada.** `provar-identidade-da-turma` exigia «a Turma tem DUAS
+etiquetas»; o «!» é uma terceira. O que a asserção sempre garantiu — o estado dito na linha e
+**nenhuma sobreposição** — continua exigido, par a par; o número fixo é que proibia o aviso.
+Medido a 1280 e a 390: o «!» fica em 22×30 px, encostado ao selo do estado, sem sobreposição.
 
-**Um defeito que a prova apanhou no caminho.** A rota `…/linhas-de-base` devolvia
-`elencosParaATurma(lista)` — a lista **crua** —, e o `carregarLinhas` do cliente reescreve
-`ELENCOS_MOVIVEIS` com ela. Ou seja: o `emTurma` viajava no desenho da página e **desaparecia na
-primeira repintura**, e o cliente voltava a oferecer como livre um elenco que é o corpo de uma
-turma. Passou a haver `elencosComAsTurmas(linhas, curadorias)`, usada pelos dois caminhos.
+**Onde entrou.** [motor/nucleo/linha-de-base.js](./motor/nucleo/linha-de-base.js) —
+`revisaoPendente` e `MODELO_REVISAO` ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `revisoesDosElencos`, a herança
+das marcas em `linhasDeBase`, a marca nos dois cartões, `pintarRevisoesDasTurmas`, a ordem do
+`carregarLinhas` e a frase do `proximo` ·
+[experimentos/provar-revisao-do-recorte.js](./experimentos/provar-revisao-do-recorte.js) — prova
+nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela dos três factos.
 
-**O ELENCO QUE JÁ ESTÁ NESSE ESTADO É SINALIZADO — a regra não apaga o passado.** Quando esta
-linha foi escrita, o estado existia **no ar**: `ami — 0 alunas — em turma`, com a turma «Piano» a
-lê-lo. A regra nova impede os próximos e não apaga os que existem (a limpeza é decisão da
-pesquisadora). O que faltava era o silêncio: o cartão dizia «em turma» e «0 alunas» na linha dos
-factos, e nada os confrontava. Passa a dizer **«sem alunas»**, no `.alerta` que já existe, com a
-dica que resolve: «Escolha outro elenco para a turma, ou traga as alunas de volta». **Não é uma
-etiqueta de estado nova** — é a contradição dita; um elenco livre e vazio continua sem alerta por
-isto.
+**Validação.** `provar-revisao-do-recorte` **45/45**; controle negativo contra `ae04b17a`:
+**32 falhas**. Sem regressão: `provar-elenco-sem-ninguem` 59/59 · `provar-transferencia-e-desligamento`
+93/93 · `provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 ·
+`provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 · `check-identidade` 0 erros ·
+`check-indices` 16/16.
 
-**Um defeito que a prova apanhou ao medir o selo.** O `var selo` do cliente ficou com **um
-parêntese e uma aspa em falta** quando a condição nova lá entrou. O sintoma não é um erro visível:
-a listagem de Elencos fica em «carregando…» para sempre, porque o `<script>` da página deixa de
-compilar — e o erro só aparece na consola de quem a abre. A prova foi buscar o **cartão desenhado
-no DOM** (e não a string no `<script>`, que contém as duas frases e mediria o código em vez da
-tela), e foi isso que o apanhou. Fica a nota: uma asserção que procura texto no HTML encontra
-também o código que o produz.
-
-**Onde entrou.** [motor/nucleo/transferencia.js](./motor/nucleo/transferencia.js) — `zerada`,
-`turmasDaOrigem`, `motivoDoElencoQueFicariaVazio`, `avisoDoElencoQueSeraExcluido` e os dois modelos ·
-[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `apagarElenco`, `turmasDoElenco`,
-`elencosComAsTurmas`, a guarda e a confirmação na rota, o `DELETE` a delegar, o rótulo «em turma» e
-a pergunta no cliente ·
-[experimentos/provar-elenco-sem-ninguem.js](./experimentos/provar-elenco-sem-ninguem.js) — prova
-nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela das duas metades.
-
-**Validação.** `provar-elenco-sem-ninguem` **59/59** (núcleo, rota sem e com confirmação, recusa por
-turma, repetição, `DELETE` sem regressão, o dado do cliente, o cliente a correr no jsdom a perguntar
-antes de partir, e o cartão do elenco vazio a mostrar «sem alunas»); controle negativo contra
-`d929a753~1`: **41 falhas**, porque o código de antes não tem a regra. (O `HEAD` por omissão deixa
-de servir depois deste commit — a nota está no cabeçalho da prova.) Sem regressão: `provar-transferencia-e-desligamento` 93/93 ·
-`provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 · `provar-identidade-da-turma` 76 ·
-`provar-troca-de-direcao` 41 · `check-identidade` 0 erros · `check-indices` 16/16.
-
-**Uma asserção foi trocada, e não apagada.** `provar-elenco-na-turma` exigia que a rota chamasse
-`elencosParaATurma`; passou a exigir `elencosComAsTurmas` **e** que essa função use a regra única do
-rótulo. Uma asserção que codificava a implementação anterior não se remove quando a implementação
-muda de forma — troca-se pela mesma exigência no sítio novo.
-
-**O que ainda não está feito.** (1) A prova mede tudo em bancada (KV e GitHub em memória); não foi
-corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **não** desfaz os elencos
-que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
-ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
-a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.
+**O que ainda não está feito.** (1) A marca não distingue *qual* aspecto do recorte perdeu a razão
+de ser: o sistema não sabe que o aspecto X foi escolhido por causa da aluna Y — essa leitura é do
+professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão também acendem a marca
+(o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
+quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
+marca até os refazer outra vez.
 
 ## O que está pendente
-
-## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
-
-(1) A dívida das **duas `.veu`** com o mesmo nome continua: a da
-coluna (usada pelo `nav.js`) e a da operação. Renomear uma delas exige tocar no `nav.js`, que é do
-mesmo congelamento — e por isso não se fez agora. (2) A etiqueta «vinculada» e a «ajustada em…»
-continuam a ser duas pílulas na mesma linha; a pedido dela, o que se corrigiu foi a sobreposição e
-o vão, não o número de etiquetas. (3) O histórico do ajuste continua a existir na lista das Salas —
-não foi pedido para sair de lá.
 
 ## 11/11/2026 — A operação atravessa as abas, e o véu deixa ver a página
 
@@ -309,6 +273,15 @@ corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **n
 que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
 ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
 a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.
+
+## 12/11/2026 — A troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
+
+(1) A marca não distingue *qual* aspecto do recorte perdeu a razão
+de ser: o sistema não sabe que o aspecto X foi escolhido por causa da aluna Y — essa leitura é do
+professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão também acendem a marca
+(o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
+quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
+marca até os refazer outra vez.
 
 ## Pendências anteriores (índice)
 
@@ -721,6 +694,7 @@ a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor �
 - **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L41988
 - **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42104
 - **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42200
+- **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42264
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
