@@ -281,10 +281,10 @@
   "contagens": {
     "arestas": 45,
     "marcas": 0,
-    "nos": 43,
+    "nos": 45,
     "porTipo": {
       "ancora": 2,
-      "aspecto": 6,
+      "aspecto": 8,
       "aula": 21,
       "captura": 1,
       "ciclo": 1,
@@ -337,8 +337,20 @@
     },
     {
       "eixo": "Corpo",
-      "id": "aspecto:cocoras_profundas_squat",
-      "rotulo": "Cócoras profundas (squat)",
+      "id": "aspecto:articulacao_e_forca_intrinseca_dos_dedos",
+      "rotulo": "Articulação e força intrínseca dos dedos",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:equilibrio_unipodal",
+      "rotulo": "Equilíbrio unipodal",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:espiral_rotacao_de_tronco",
+      "rotulo": "Espiral / rotação de tronco",
       "tipo": "aspecto"
     },
     {

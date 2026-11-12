@@ -22,8 +22,18 @@
     },
     {
       "eixo": "Corpo",
+      "dimensao": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "itens": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "itens": "Equilíbrio unipodal"
+    },
+    {
+      "eixo": "Corpo",
       "dimensao": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
-      "itens": "Cócoras profundas (squat)"
+      "itens": "Espiral / rotação de tronco"
     },
     {
       "eixo": "Corpo",
@@ -59,7 +69,8 @@
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação dominada: Benesh",
   "subjects": [
     "Aluna A",
-    "Aluna B"
+    "Aluna B",
+    "Aluna C"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
@@ -68,8 +79,16 @@
       "aspectosObservados": "4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços"
     },
     {
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
+      "aspectosObservados": "Articulação e força intrínseca dos dedos"
+    },
+    {
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "aspectosObservados": "Equilíbrio unipodal"
+    },
+    {
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
-      "aspectosObservados": "Cócoras profundas (squat)"
+      "aspectosObservados": "Espiral / rotação de tronco"
     }
   ],
   "restricoes": [
@@ -77,7 +96,9 @@
   ],
   "inclusionCriteria": [
     "as cinco posições: uma visão geral: 4ª posição — pés; 5ª posição — pés; 4ª posição — braços; 5ª posição — braços",
-    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Cócoras profundas (squat)"
+    "Morfologia e Funcionalidade dos Pés e Tornozelos: Articulação e força intrínseca dos dedos",
+    "Equilíbrio, Sustentação e Força de MMSS/Core: Equilíbrio unipodal",
+    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Espiral / rotação de tronco"
   ],
   "exclusionCriteria": [
     "Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte"
