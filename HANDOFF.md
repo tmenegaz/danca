@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T14:24:04-0300`
-Commit atual: `54d88898` — fix(template): «em turma» no Estilo vem da Turma, e nao do plano de ensino
+Gerado em: `2026-11-12T15:46:35-0300`
+Commit atual: `38d1781e` — fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+38d1781e fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
+7b92544a chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+daa44654 chore(estrutura): reancorar a cadeia das fontes alteradas
+b4eb042b chore(estrutura): regerar os índices derivados
+0569a3b2 chore(estrutura): regerar os índices derivados
+48f0727e feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+71dada2b feat(po): o PO elicitado vira a fonte do ciclo
+4dff6d03 feat(po): o PO elicitado vira a fonte do ciclo
+00322a75 feat(acervo): envelope/po-20261112-1450.json
+fb51a6c4 feat(acervo): envelope/.indice.json
+43ce0d43 feat(plano): o elo da cadeia automática
+65e98718 feat(acervo): envelope/plano-20261112-1450.json
+8b8a7a4a feat(acervo): envelope/.indice.json
+1678e2a1 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+c2eca9e7 chore(estrutura): reancorar a cadeia das fontes alteradas
+dd65a016 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+30cbb90f feat(po): o PO elicitado vira a fonte do ciclo
+d73b99a5 chore(estrutura): regerar o HANDOFF
 54d88898 fix(template): «em turma» no Estilo vem da Turma, e nao do plano de ensino
 ce25d26b chore(estrutura): regerar o HANDOFF
-e482873b fix(template): duas colunas no elenco, o rotulo acima da regua, e a base da tabela
-d719a67d chore(estrutura): regerar o HANDOFF
-a7fb7074 feat(template): a Turma diz as suas tres pontas, nos tres blocos das outras listas
-6070d454 chore(estrutura): regerar o HANDOFF
-13da2160 fix(template): a sala diz o presente, e os tres passos andam
-ad87a0f1 chore(estrutura): regerar o HANDOFF
-08ac4e0f fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
-1bcd3491 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-86da196e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-4c6ad050 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-02fb7cec chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-101130ce chore(estrutura): reancorar a cadeia das fontes alteradas
-c4835686 chore(estrutura): regerar os índices derivados
-0871bf71 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-f603985c feat(po): o PO elicitado vira a fonte do ciclo
-e89f34c9 feat(acervo): envelope/po-20261112-0837-2.json
-a3cec80d feat(acervo): envelope/.indice.json
-b60f1a14 feat(plano): o elo da cadeia automática
 ```
 
 ## Por professor
@@ -115,7 +115,7 @@ b60f1a14 feat(plano): o elo da cadeia automática
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `5e3c1933b326` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `6b8d6e01e215` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -169,85 +169,95 @@ b60f1a14 feat(plano): o elo da cadeia automática
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — «Em turma» vem da Turma, e não do plano
+## 12/11/2026 — A autoria não se reescreve: o documento que perde a turma fica «sem turma»
 
-**O que aconteceu.** «Eu tenho três exercícios como conteúdo — o battement tendu, o plié e o battement
-fondu. Mas quando eu vou na listagem de exercícios com verbete, no estilo […] o battement fondu está
-como livre. Isso não está certo. […] eu fui derivar, dessa derivação, eu incluí o battement fondu e aí
-atribuir turma, feito o processo, que daí se chama gravar o ajuste. Gravei o ajuste, o battement fondu
-aparece aqui como um desses exercícios, mas lá no estilo, ele não está como em turma, ele está como
-livre.»
+**O que aconteceu.** «Eu tenho para o professor atual, o professor pé torto, eu tenho o plano de
+ensino e plano de observação. E aí eu troquei para a professora Redinha Rosa […] o plano de ensino,
+ele diz assim, vinculada. E aí ele trocou o nome do plano de ensino atual para quem fez sendo a
+Redinha Rosa e isso não é verdade. A Redinha Rosa não fez o plano de ensino, quem fez foi o pé torto e
+isso é um defeito no nosso sistema.»
 
-**O que foi medido, antes de mexer.** Nos dados do ar, a 12/11/2026:
+A regra, e ela é a mesma para os dois documentos: «No plano de observação a gente tá com o mesmo
+problema […] Vai ser a mesma regra.» E o que fica dito no lugar do nome trocado: «se não tem turma,
+você vai mudar a etiqueta e fazer valer o fato, ele está sem turma. Aí você coloca um traço ali
+porque ele não tem turma.»
 
-| | Repertório |
-|:--|:--|
-| a **Turma** (curadoria) | `Battement tendu` · `Plié` · `Battement fondu` — os **três** |
-| o último **plano de ensino** (08:37) | `Battement tendu` · `Plié` — **dois** |
+**O que foi medido, antes de mexer.** O defeito está nos envelopes do `calango`, e não só no relato:
 
-O `fondu` entrou na Turma **depois** de o último plano nascer. A etiqueta lia os planos, e respondia
-o passado. Não era um erro de cálculo: era a **fonte** errada.
+| Elo | Autor declarado | `ajuste_de` (o anterior) | Autor do anterior |
+|:--|:--|:--|:--|
+| `plano-20261110-2145` | `redinha-rosa` | `plano-20261110-1304` | `pe-torto` |
+| `po-20261110-2145` | `redinha-rosa` | `po-20261110-1309` | `pe-torto` |
+| `plano-20261111-0858` | `pe-torto` | `plano-20261111-0809` | `redinha-rosa` |
 
-**A causa, dita em uma linha.** Quem declara o repertório é a **Turma**; o plano **lê-o** dela no
-instante em que nasce. Perguntar ao plano «esta turma usa este exercício?» é perguntar a uma
-fotografia se a pessoa ainda está na sala.
+E o vai-e-vem continuou: a cadeia reatribuiu a autoria **quatro vezes**, e cada elo novo é o texto do
+professor anterior com o nome do seguinte por cima. O vigente hoje é `plano-20261112-0837-2`, de
+`pe-torto`, para a turma `Piano` — dirigida por `redinha-rosa`.
 
-**O que ficou.** `turmasPorTermo` — a função que alimenta o `emTurma` da rota
-`GET /api/bastidores/verbete` — passou a compor duas leituras:
+**A causa, dita em uma linha.** `direcaoMudou` juntava «a sala mudou de nome» e «o professor mudou»
+numa pergunta só, e a resposta para as duas era «a cadeia deriva um elo novo, com a mesma matéria e a
+direção corrigida». Para a sala está certo: o plano é do MESMO professor e o nome da sala é a
+identidade do documento. Para o professor, não: um plano é o que um professor decidiu sobre uma
+turma, e reescrever-lhe o autor é afirmar que alguém escreveu o que não escreveu.
 
-| Fonte | O que diz | Porque entra |
-|:--|:--|:--|
-| as **Turmas**, por `conteudosDaEscola` | o **presente** | é quem declara o repertório, e é o que faltava |
-| os **planos de ensino** | o **passado que ainda manda** | um exercício que a Turma já não declara mas que um documento cita continua a exigir **ajuste**: gravar por cima reescreveria o que está assinado |
+**O que foi decidido.**
 
-A composição das Turmas **não se escreve no `bastidores.js`**: `motor/nucleo/conteudos.js` é o dono
-da união entre o mapa antigo (`turma-conteudos`) e o `repertorio` de cada curadoria, e aplica a regra
-de 07/11 («a turma que declarou não herda a memória»). Repetir a união ali seria a segunda camada a
-divergir da primeira — o defeito que aquele módulo existe para fechar. O que a função faz de seu é
-uma coisa só: trocar o **id** da turma pelo **nome**, que é o que o selo mostra.
+- **A autoria não se deriva.** `derivarPlano` e `derivarPO` recusam quando o autor do elo anterior não
+  é o professor da curadoria (`autoriaIntacta`), e o elo novo passa a herdar o autor do anterior em
+  vez do professor da curadoria (`autorDoDocumento`). É a guarda do servidor: a tela evita, ele
+  garante.
+- **O plano da Turma é o plano de quem a dirige.** `planosVigentesDaSala` separa os vigentes de uma
+  sala por autor; `planoDaTurmaOuDaOrigem` colhe o do professor de hoje (`meu`) e guarda o do outro
+  (`deOutro`) só para a frase poder dizer o nome dele. Sem isto, a cadeia tomava o plano do professor
+  anterior como se fosse do novo.
+- **A mudança de professor não é mais gatilho de derivação.** No núcleo, `professorMudou` →
+  `bloqueada`, com a razão dita; `salaMudou` → `pendente`, e deriva como antes. Uma Turma que muda de
+  sala **e** de professor não herda nada: o plano da sala de origem não é do novo professor.
+- **O documento que perde a turma fica `sem turma`.** `perdeuATurma` (núcleo da porta) compara o autor
+  do documento com quem a curadoria declara hoje; `estadosDosPlanos` e a listagem do acervo aplicam a
+  regra. Na linha, o selo passa a `sem turma` (classe `legado`), o nome da linha diz «sem turma», e
+  onde dizia a turma fica **um traço**. «Quem fez» continua a ser quem escreveu.
+- **O «!» no professor.** No cabeçalho do plano de ensino, quando a Turma escolhida tem plano e
+  nenhum deles é deste professor, o campo ganha a peça `.selo.alerta` (a mesma do «!» da revisão do
+  recorte na Produção) com o nome do autor no `title` e no `aria-label`. Sai sozinha quando o plano
+  dele existir. No PO não aparece — a estante de planos já chega recortada pelo professor, e uma marca
+  contra uma escolha impossível seria ruído; a regra vale lá na cadeia, que é quem deriva.
+- **A turma deixa de estar bloqueada por um plano que já não é dela.** `turmasJaUsadas` salta os
+  planos `semTurma` — sem isso o «!» mandava fazer uma coisa que a própria lista impedia.
 
-**Um contrato pequeno que estava mal.** `jaLido` era lido com `||`: «não me deram nada» e «tentei ler
-e não consegui» eram a mesma coisa, e a segunda resposta desaparecia dentro de uma lista vazia. Passou
-a distinguir **ausente** (manda ler) de **`null`** (não se conseguiu) — e é isso que permite a função
-devolver `null` quando **nenhuma** das duas fontes se lê, em vez de afirmar «livre» sobre um dado que
-não viu.
+**Um leitor morto, encontrado pelo caminho.** `carregarEstados` só era chamada por `atualizarFichas`, e
+essa função **sai na primeira linha** quando não há `#lista-fichas` — que é o caso desde 26/10, quando
+a estante de fichas saiu da porta. `ESTADOS` ficava vazio nesta página para sempre, e com ele morriam
+duas regras já pedidas: a turma já planeada aparecer bloqueada no cabeçalho («· já tem plano») e o «!».
+Um leitor morto não dá erro — dá uma lista sempre vazia, que é o mesmo que não haver lista. A chamada
+passou para o arranque, depois da curadoria.
 
-**Uma lição de bancada.** A primeira versão da prova chamava a função directamente — e o controlo
-negativo **rebentou** em vez de reprovar, porque no código de antes ela não era exportada. Passou a
-medir a **rota**, que é o que o Estilo recebe e existe nos dois lados: o alfabeto e o vocabulário vêm
-do repositório local, servidos por um `fetch` de bancada, e o GitHub não é tocado. O negativo passou a
-mostrar o defeito na letra: `["livre","livre","livre"]`.
+**Onde entrou.** [motor/nucleo/cadeia.js](./motor/nucleo/cadeia.js) — `professorMudou`, `salaMudou`,
+as duas etapas bloqueadas, o pacote que espera ·
+[motor/nucleo/porta.js](./motor/nucleo/porta.js) — `direcaoDasTurmas`, `perdeuATurma`, o autor e o
+`semTurma` em `estadosDosPlanos`/`estadoDoPo` ·
+[motor/servidor/cadeia.js](./motor/servidor/cadeia.js) — `planosVigentesDaSala`, `autoriaIntacta`,
+`autorDoDocumento`, `fraseDaAutoria` · [motor/servidor/listas-do-acervo.js](./motor/servidor/listas-do-acervo.js)
+— o selo, o traço e o painel · [motor/servidor/rotas.js](./motor/servidor/rotas.js) — as curadorias na
+rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
+«!» do professor e o arranque dos estados.
 
-**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `turmasPorTermo`,
-o `jaLido`, a exportação para a bancada e o comentário da rota ·
-[experimentos/provar-o-exercicio-em-turma.js](./experimentos/provar-o-exercicio-em-turma.js) — prova
-nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a etiqueta e as duas fontes.
+**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra `HEAD`:
+**14 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+`provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
+rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
+`provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·
+`provar-acervo-envelopes` 52 · `provar-apagar-da-listagem` 51 · `provar-listas-sem-repeticao` 1 falha
+(a do `api/envelopes`, que já falhava em `HEAD`). As que já falhavam continuam iguais:
+`provar-cartao-da-turma` 6, `provar-derivacao-da-turma` 20, `provar-estante-do-po` (rebenta na
+`escola/batata`, expurgada).
 
-**Validação.** `provar-o-exercicio-em-turma` **14/14**; controle negativo contra `e482873b`: **8
-falhas** — e o negativo mostra o `Battement fondu` a dizer «livre». Sem regressão:
-`provar-o-veu-de-cada-gesto` 39 · `provar-conteudos-e-estado-da-turma` verde ·
-`provar-salas-e-elencos` 65 · `provar-identidade-da-turma` 77 · `provar-o-cartao-da-turma-do-trio` 50 ·
-`provar-musica-do-verbete` verde · `check-identidade` 0 erros · `check-indices` 16/16.
-As que já falhavam continuam iguais, medidas contra o código anterior: `provar-verbete` 3,
-`provar-passo-um-do-verbete` 26 de 30, `provar-cartao-da-turma` 6, `provar-derivacao-da-turma` 20,
-`provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
-`provar-producao` 2.
-
-**O que ainda não está feito.** A etiqueta custa, a cada abertura do Estilo, **três leituras de KV**
-(as turmas, o mapa antigo e as curadorias) mais o índice dos planos. É o preço de a listagem dizer o
-que muda no gesto seguinte; se pesar, a alternativa é calculá-la só quando a lista for pedida com
-`?comTurmas=1` — fica declarado, e não feito.
+**O que ainda não está feito.** O acervo do `calango` **já tem** os elos falsificados (quatro, medidos
+acima). A regra nova impede os próximos; os que existem ficam, porque a proveniência acrescenta e não
+edita (P-03/P-04). Se a pesquisadora quiser, o caminho é um expurgo declarado — e não uma reescrita.
+Fica também por decidir se o «!» deve aparecer na **Área do Professor** (a lista), e não só na porta.
 
 ## O que está pendente
-
-## 12/11/2026 — A troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
-
-(1) A marca não distingue *qual* aspecto do recorte perdeu a razão
-de ser: o sistema não sabe que o aspecto X foi escolhido por causa da aluna Y — essa leitura é do
-professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão também acendem a marca
-(o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
-quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
-marca até os refazer outra vez.
 
 ## 12/11/2026 — Um véu para todos os gestos: elenco, leitura, verbete e sala
 
@@ -284,6 +294,13 @@ A etiqueta custa, a cada abertura do Estilo, **três leituras de KV**
 (as turmas, o mapa antigo e as curadorias) mais o índice dos planos. É o preço de a listagem dizer o
 que muda no gesto seguinte; se pesar, a alternativa é calculá-la só quando a lista for pedida com
 `?comTurmas=1` — fica declarado, e não feito.
+
+## 12/11/2026 — A autoria não se reescreve: o documento que perde a turma fica «sem turma»
+
+O acervo do `calango` **já tem** os elos falsificados (quatro, medidos
+acima). A regra nova impede os próximos; os que existem ficam, porque a proveniência acrescenta e não
+edita (P-03/P-04). Se a pesquisadora quiser, o caminho é um expurgo declarado — e não uma reescrita.
+Fica também por decidir se o «!» deve aparecer na **Área do Professor** (a lista), e não só na porta.
 
 ## Pendências anteriores (índice)
 
@@ -701,6 +718,7 @@ que muda no gesto seguinte; se pesar, a alternativa é calculá-la só quando a 
 - **11/11/2026** — As três formas do véu, e a página que pode pedir uma… → `REGISTRO.md` L42435
 - **11/11/2026** — O véu do produto passa a «o texto na tela, sem caixa» → `REGISTRO.md` L42521
 - **12/11/2026** — O elenco que ficaria sem ninguém não existe → `REGISTRO.md` L42587
+- **12/11/2026** — A troca de aluna desfaz o passo 3 e o recorte, e a lista… → `REGISTRO.md` L42685
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
