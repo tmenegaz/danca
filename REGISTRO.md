@@ -42517,3 +42517,69 @@ tira o véu.
 e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
 `--com-propostas`, que é um passo **temporário** do deploy: sem essa flag a pasta não é publicada.
 (3) A dívida das duas peças com o mesmo nome `.veu` continua.
+
+## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
+
+**O que motivou.** A escolha foi dela, e foi dita em cinco palavras: «implementa a opção 2: o texto
+na tela, sem caixa». A decisão já estava tomada sobre a bancada, com as três formas à vista e o
+contraste medido em pixéis; o que faltava era aplicá-la, e aplicá-la é mudar a peça da folha.
+
+**O que foi decidido.**
+
+- **O CARTÃO SAI, O HALO ENTRA.** O `.veu-cartao` continua na marcação — é ele que agrupa e centra,
+  e é o `nav.js` que o monta — mas deixa de ser superfície: **sem fundo, sem filete, sem sombra, sem
+  ar próprio, sem raio**. O que protege a leitura é `text-shadow` em três camadas de `--fundo` sob a
+  frase e em três sob a etiqueta, e um anel de papel (`box-shadow`) atrás do giro. A caixa existia
+  porque, com o véu translúcido, o texto solto competia com o formulário por baixo; o halo resolve
+  o mesmo problema **sem desenhar uma segunda superfície a tapar a página que se quis deixar ver**.
+- **A ETIQUETA DEIXA DE SER SELO.** Era o `.selo` com a cor de alerta. Um selo é uma etiqueta
+  colada a um objecto, e no véu não há objecto nenhum a que colar: passa a **palavra em versalete
+  bordô** (`--marca`), com `letter-spacing: .22em`, sem pílula nem fundo. A classe `selo` fica na
+  marcação — é a âncora do catálogo, e o `nav.js` é que a põe — mas a folha despe-a do desenho.
+- **A FRASE PASSA À SERIFA DO CORPO, COM `clamp`.** 1,45 rem no ecrã largo (23,2 px, o que foi
+  aprovado) e 1,15 rem no telemóvel (18,4 px), porque a mesma frase tem de caber a 390 px sem
+  partir a palavra. Medido: 533×139 px a 1280 · 342×125 px a 390, sem transbordo horizontal.
+- **NADA DO OFÍCIO MUDA.** O véu continua a cobrir, a trancar (`inert`), a nomear a operação e o
+  passo, a atravessar as abas e a sair sozinho. A forma mudou; o que ele faz, não.
+
+**A COR DO ACENTO É `--marca`, e não uma cor escrita à mão.** Em todos os temas deste projecto ela
+é declarada como acento legível sobre o fundo — o tema ciano anota-o na própria definição,
+«o acento como TEXTO (5,39:1)». Escrever um `#6b1f2e` na regra daria o tema claro e mentiria nos
+outros quatro.
+
+**Medido.** O contraste é medido em **pixéis** da captura (percentil 1 da tinta contra a mediana da
+moldura de halo), e não estimado a partir do token: **8,70:1** no corpo da frase — o halo faz o
+trabalho que a caixa fazia, e passa AA com folga. E na bancada, a 1280: etiqueta 13 px com 2,86 px
+de espaçamento, serifa 23,2 px, cartão 533×139. A 390 px: serifa 18,4 px, cartão 342×125.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md` e muda
+na peça `.veu` e nas quatro que dela dependem (`.veu-cartao`, `.veu-cartao::before`,
+`.veu-etiqueta`, `.veu-texto`, `.veu-nota`) — **só o desenho**, nenhuma regra de segurança. A
+cobertura, a fórmula do hash, os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de
+`PROTOCOLO.md` não são tocadas. As cópias foram regeradas — a `raiz/` por `tools/gerar-raiz.sh`, os
+cinco pacotes e as duas árvores de `publicacao/` por cópia — e a âncora `.fipp` não mudou, porque
+cobre FONTES.
+
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a peça `.veu` e as
+quatro que a compõem, com as cópias todas ·
+[experimentos/propostas/construir.js](./experimentos/propostas/construir.js) — a bancada passou a
+ter **a forma implementada como opção 0** (sem uma declaração a mais: é literalmente a peça do
+produto), **o cartão como opção 1** (restituído nas medidas de antes, para a comparação que
+justificou a troca não se perder) e **o giro sozinho como opção 2** ·
+[experimentos/provar-a-forma-do-veu.js](./experimentos/provar-a-forma-do-veu.js) — prova nova ·
+[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
+secção C passou a exigir a **ausência** da caixa e a **presença** do halo, e a secção D deixou de
+poder chamar selo ao que já não é (29 asserções, eram 27) ·
+[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o quadro do véu e a tabela de estados.
+
+**Validação.** `provar-a-forma-do-veu` **25/25**; controle negativo contra o `HEAD`: **14 falhas**,
+porque a folha de antes tem o cartão, o selo de alerta e nenhum halo. Sem regressão:
+`provar-operacao-entre-abas` 29/29 (negativo: 2 falhas, as do modo privado) ·
+`provar-bancada-do-veu` 30/30 · `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
+
+**O que ainda não está feito.** (1) A bancada continua em `/propostas/proposta-veu`, agora com a
+forma implementada como régua, montada por `--com-propostas` — passo **temporário** do deploy.
+(2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
+geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
+a leitura por software não.

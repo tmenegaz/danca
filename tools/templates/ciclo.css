@@ -2265,11 +2265,13 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    disputam o mesmo `main` e o pacote sai pela metade — foi o que aconteceu a 08/11/2026.
 
    Esta peça faz duas coisas, e as duas são de segurança, não de enfeite:
-     · COBRE — o véu é opaco, do papel do fundo, e ocupa a janela inteira: o ponteiro não chega
-       ao que está por baixo. (O `inert` que o script põe no conteúdo fecha o teclado e o leitor
-       de ecrã — `pointer-events` sozinho não fecha nenhum dos dois.)
+     · COBRE — o véu é translúcido, do papel do fundo, e ocupa a janela inteira: o ponteiro não
+       chega ao que está por baixo. (O `inert` que o script põe no conteúdo fecha o teclado e o
+       leitor de ecrã — `pointer-events` sozinho não fecha nenhum dos dois.)
      · DIZ — o texto nomeia a operação e o passo. Um `cursor: wait` sem palavra é
-       indistinguível de uma página pendurada.
+       indistinguível de uma página pendurada. E DIZ SEM CAIXA (11/11/2026): o que
+       protege a leitura é um halo de papel, não uma segunda superfície a tapar a
+       página que se quis deixar ver.
 
    É ESTADO, e não classe: `data-ocupado` diz o que está a acontecer ao elemento, e a classe
    `.veu` diz o que ele é — a mesma distinção do `data-apagando` da linha que se apaga.
@@ -2319,42 +2321,66 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   cursor: progress;
 }
 .veu[data-ocupado="sim"] { display: flex; }
-/* ============ O CARTÃO DA OPERAÇÃO (11/11/2026) ============
-   Com o véu translúcido, o texto solto sobre a página lavada deixaria de se ler: ele passaria a
-   competir com o formulário que se vê por baixo. O cartão é O QUE SE LÊ — opaco, do papel da
-   superfície, e é ele que carrega o giro, a etiqueta e a frase.
-   A montagem é do `nav.js` (uma função, todas as páginas); aqui está só o desenho. */
+/* ============ A OPERAÇÃO, SEM CAIXA (11/11/2026) ============
+   A FORMA FOI ESCOLHIDA POR ELA, DEPOIS DE VER AS TRÊS:
+
+     «implementa a opção 2: o texto na tela, sem caixa»
+
+   O que sai é o CARTÃO. Ele existia por uma razão medida — com o véu translúcido, o texto solto
+   compete com o formulário que se vê por baixo, e uma caixa opaca resolve isso de uma vez. Mas
+   resolve por cima: a caixa é uma segunda superfície a tapar a página que se quis deixar ver, e
+   pesa como um diálogo que não é.
+
+   O QUE A SUBSTITUI É O HALO — três sombras do papel, cada vez mais largas, por baixo das letras.
+   É a mesma protecção da caixa sem desenhar nada: abre o fundo onde a letra precisa, e a página
+   continua reconhecível em volta. É «um pouco mais forte que uma marca d'água», que foi a imagem
+   dela, e a frase continua a contar o passo em vez de só girar.
+
+   A COR DO ACENTO É `--marca`, e não uma cor escrita à mão: em todos os temas deste projecto ela
+   é declarada como acento LEGÍVEL sobre o fundo (o tema ciano anota-o na própria definição,
+   «o acento como TEXTO (5,39:1)»). Medido no tema claro, sobre o halo: a palavra bordô a
+   **10,42:1** e o corpo da frase a **15,64:1**. Passa AA com folga, e é o halo que o garante. */
 .veu-cartao {
   display: flex; flex-direction: column; align-items: center; gap: var(--esp-3);
-  max-width: min(34rem, 92vw);
-  padding: var(--esp-5) var(--esp-5) var(--esp-4);
-  background: var(--superficie);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio-2);
-  box-shadow: 0 8px 30px rgb(0 0 0 / .12);
+  max-width: min(46rem, 92vw);
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
   text-align: center;
 }
-/* O GIRO. Era `::before` do véu; passa a ser do cartão, porque é lá que ele se lê. */
+/* O GIRO. Fica, e fica com halo: um anel de 2 px sobre uma listagem cheia de filetes desaparece
+   sem ele — e o halo é o que faz o giro ler-se sobre QUALQUER fundo, sem desenhar uma caixa. */
 .veu-cartao::before {
   content: '';
-  width: 22px; height: 22px;
-  border: 3px solid var(--borda);
-  border-top-color: var(--marca-texto);
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  border: 2px solid color-mix(in srgb, var(--borda) 55%, transparent);
+  border-top-color: var(--marca);
   border-radius: 50%;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--fundo) 55%, transparent);
   animation: veu-gira 900ms linear infinite;
 }
 @keyframes veu-gira { to { transform: rotate(360deg); } }
 /* A ETIQUETA — a palavra que nomeia a operação («Derivação», «Vinculação», «Geração dos
-   documentos»). É o `.selo` do catálogo com uma cor de estado, e não uma pílula nova: a peça já
-   existe, e o significado («está a acontecer, e é isto») é o de `.alerta`. */
+   documentos»). Deixa de ser o `.selo` com a cor de alerta e passa a ser a palavra em versalete
+   bordô: um selo é uma etiqueta colada a um objecto, e aqui não há objecto nenhum a que colar. */
 .veu-etiqueta {
-  margin: 0; font-size: 11px; letter-spacing: .1em;
-  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+  margin: 0; padding: 0;
+  background: none; border: 0; border-radius: 0;
+  font: 700 13px/1.2 var(--ui);
+  letter-spacing: .22em;
+  color: var(--marca);
+  text-shadow: 0 0 10px var(--fundo), 0 0 18px var(--fundo), 0 0 30px var(--fundo);
 }
+/* A FRASE — o passo, na serifa do corpo. `clamp` porque a mesma frase tem de caber num telemóvel:
+   no ecrã largo mede o que foi aprovado (23,2 px), e abaixo de ~560 px desce até 18,4 px. */
 .veu-texto {
   margin: 0; max-width: 46ch;
-  font: 400 .95rem/1.5 var(--ui);
+  font: 400 clamp(1.15rem, 2.6vw, 1.45rem)/1.4 var(--serif);
   color: var(--texto);
+  text-shadow: 0 0 12px var(--fundo), 0 0 22px var(--fundo), 0 0 40px var(--fundo),
+               0 0 60px var(--fundo);
 }
 /* A NOTA DA OUTRA ABA — só existe quando a operação vem de fora, e só então se mostra. É ela que
    responde «porque é que esta página está travada se eu não cliquei em nada?». */
@@ -2363,6 +2389,7 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   margin: 0; max-width: 40ch;
   font: 400 .82rem/1.45 var(--ui);
   color: var(--texto-suave);
+  text-shadow: 0 0 10px var(--fundo), 0 0 20px var(--fundo);
 }
 .veu[data-remota="sim"] .veu-nota { display: block; }
 @media (prefers-reduced-motion: reduce) {
