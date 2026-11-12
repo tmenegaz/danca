@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "flexibilidade-anteroposterior-grand-ecart",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "memoria-e-retencao-de-sequencias",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "passe",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1600",
-      "ultima": "20261109-2207",
-      "versoes": 6
+      "ultima": "20261112-1047",
+      "versoes": 7
     },
     {
       "aspecto": "impulsao-e-absorcao-allegro",
@@ -87,8 +87,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2207",
-      "versoes": 5
+      "ultima": "20261112-1047",
+      "versoes": 6
     },
     {
       "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
@@ -97,8 +97,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2207",
-      "versoes": 5
+      "ultima": "20261112-1047",
+      "versoes": 6
     },
     {
       "aspecto": "rotacao-e-amplitude-dos-ombros",
@@ -107,8 +107,8 @@
         "recorte:tami"
       ],
       "primeira": "20261108-1616",
-      "ultima": "20261109-2207",
-      "versoes": 5
+      "ultima": "20261112-1047",
+      "versoes": 6
     },
     {
       "aspecto": "cinco-posicoes-5a-bracos",
@@ -117,8 +117,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2207",
-      "versoes": 3
+      "ultima": "20261112-1047",
+      "versoes": 4
     },
     {
       "aspecto": "cinco-posicoes-5a-pes",
@@ -127,8 +127,8 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2207",
-      "versoes": 3
+      "ultima": "20261112-1047",
+      "versoes": 4
     },
     {
       "aspecto": "cocoras-profundas-squat",
@@ -137,22 +137,22 @@
         "recorte:ami"
       ],
       "primeira": "20261109-1918",
-      "ultima": "20261109-2207",
-      "versoes": 3
+      "ultima": "20261112-1047",
+      "versoes": 4
     }
   ],
   "aulas": [
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-11",
+        "ancorado_em": "2026-11-12",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.fipp",
         "cobertura": [
           "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
           "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
         ],
-        "hash": "a35fcee13f635762ec5a80fb32d0f6462ff3cc78b72118804da0fd40813e7e12",
-        "hash_conteudo": "10a0ca5ae1ac363d1bd83bc57966244d2ba6b4602bdc72626c6b1a4f219bbc0e",
+        "hash": "3bf281156d75b0cebd94785c94af8072af63dce2d2ac8ccef6ab609bf35eeab2",
+        "hash_conteudo": "0f8aa1e9f1244b56e41dd2bc1151f5f357a25d7c2231ed92ab6464522f178a4b",
         "id": "ciclo-01-calango-piano-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -231,7 +231,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-11",
+        "ancorado_em": "2026-11-12",
         "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano.fipp",
         "cobertura": [
           "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -246,8 +246,8 @@
           "professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
           "professores/pe-torto/ciclos/ciclo-01.conf"
         ],
-        "hash": "1fd06ad6e7848d8570edb5a0d28578fc38f5764cf26e6427ccdbb3e7cf1b5bbf",
-        "hash_conteudo": "a4d7f7a921ec5fbf8af2c626a4657e93ca383777758201b9c4539f7f6f0538e9",
+        "hash": "27f01ecd0c52acf40d5b864e9cf5298507794198db3ce0c88f1a7b919960b7dc",
+        "hash_conteudo": "be43c1ff818c5a3da128b196f141dece3a624d67d39a42a8d753f0fd58e07eee",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -256,14 +256,14 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-11",
+            "ancorado_em": "2026-11-12",
             "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.fipp",
             "cobertura": [
               "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
               "professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md"
             ],
-            "hash": "a35fcee13f635762ec5a80fb32d0f6462ff3cc78b72118804da0fd40813e7e12",
-            "hash_conteudo": "10a0ca5ae1ac363d1bd83bc57966244d2ba6b4602bdc72626c6b1a4f219bbc0e",
+            "hash": "3bf281156d75b0cebd94785c94af8072af63dce2d2ac8ccef6ab609bf35eeab2",
+            "hash_conteudo": "0f8aa1e9f1244b56e41dd2bc1151f5f357a25d7c2231ed92ab6464522f178a4b",
             "id": "ciclo-01-calango-piano-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -1132,10 +1132,10 @@
       "aulas": 4,
       "ciclos": 2,
       "ciclos_com_ancora": 2,
-      "planos": 10,
-      "pos": 13,
+      "planos": 11,
+      "pos": 14,
       "recortes": 2,
-      "registros": 27
+      "registros": 29
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
     "expurgada": false,
@@ -1164,6 +1164,7 @@
       "plano:plano-20261111-0858",
       "plano:plano-20261111-1016",
       "plano:plano-20261111-1527",
+      "plano:plano-20261112-0747",
       "po:po-20261108-1304",
       "po:po-20261108-1318",
       "po:po-20261108-1319",
@@ -1176,14 +1177,15 @@
       "po:po-20261111-0809",
       "po:po-20261111-0858",
       "po:po-20261111-1017",
-      "po:po-20261111-1528"
+      "po:po-20261111-1528",
+      "po:po-20261112-0747"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 27,
+        "contagem": 29,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -1199,6 +1201,7 @@
           "plano:plano-20261111-0858",
           "plano:plano-20261111-1016",
           "plano:plano-20261111-1527",
+          "plano:plano-20261112-0747",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
@@ -1211,7 +1214,8 @@
           "po:po-20261111-0809",
           "po:po-20261111-0858",
           "po:po-20261111-1017",
-          "po:po-20261111-1528"
+          "po:po-20261111-1528",
+          "po:po-20261112-0747"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -1344,7 +1348,7 @@
     ],
     "professores": [
       {
-        "contagem": 22,
+        "contagem": 24,
         "ids": [
           "anamnese:anamnese-20261108-1259",
           "anamnese:anamnese-20261108-1314",
@@ -1358,6 +1362,7 @@
           "plano:plano-20261110-1304",
           "plano:plano-20261111-0858",
           "plano:plano-20261111-1527",
+          "plano:plano-20261112-0747",
           "po:po-20261108-1304",
           "po:po-20261108-1318",
           "po:po-20261108-1319",
@@ -1367,7 +1372,8 @@
           "po:po-20261110-1304",
           "po:po-20261110-1309",
           "po:po-20261111-0858",
-          "po:po-20261111-1528"
+          "po:po-20261111-1528",
+          "po:po-20261112-0747"
         ],
         "rotulo": "pe-torto",
         "valor": "pe-torto"
@@ -1409,7 +1415,7 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 10,
+        "contagem": 11,
         "ids": [
           "plano:plano-20261108-1303",
           "plano:plano-20261108-1317",
@@ -1420,13 +1426,14 @@
           "plano:plano-20261111-0809",
           "plano:plano-20261111-0858",
           "plano:plano-20261111-1016",
-          "plano:plano-20261111-1527"
+          "plano:plano-20261111-1527",
+          "plano:plano-20261112-0747"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 13,
+        "contagem": 14,
         "ids": [
           "po:po-20261108-1304",
           "po:po-20261108-1318",
@@ -1440,7 +1447,8 @@
           "po:po-20261111-0809",
           "po:po-20261111-0858",
           "po:po-20261111-1017",
-          "po:po-20261111-1528"
+          "po:po-20261111-1528",
+          "po:po-20261112-0747"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -1449,9 +1457,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "374fe9a"
+    "commit": "8889669"
   },
-  "gerado_em": "2026-11-11T18:30",
+  "gerado_em": "2026-11-12T10:48",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1476,13 +1484,13 @@
   ],
   "recortes": [
     {
-      "alunas": 1,
+      "alunas": 0,
       "aspectos": [
         "cinco-posicoes-5a-bracos",
         "cinco-posicoes-5a-pes",
         "cocoras-profundas-squat"
       ],
-      "atualizada_em": "2026-11-09T22:07:48.918Z",
+      "atualizada_em": "2026-11-12T10:47:19.865Z",
       "enviada_em": "2026-11-09T19:18:38.297Z",
       "id": "recorte:ami",
       "linha": "ami",
@@ -1490,6 +1498,17 @@
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 0,
+          "arquivo": "escola/calango/linhas-de-base/ami--20261112-1047.json",
+          "aspectos": [
+            "cinco-posicoes-5a-pes",
+            "cinco-posicoes-5a-bracos",
+            "cocoras-profundas-squat"
+          ],
+          "enviada_em": "2026-11-09T19:18:38.297Z",
+          "versao": "20261112-1047"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/calango/linhas-de-base/ami--20261109-2207.json",
@@ -1527,7 +1546,7 @@
       "vigente": true
     },
     {
-      "alunas": 2,
+      "alunas": 3,
       "aspectos": [
         "cinco-posicoes-1a-bracos",
         "cinco-posicoes-1a-pes",
@@ -1541,7 +1560,7 @@
         "passe",
         "rotacao-e-amplitude-dos-ombros"
       ],
-      "atualizada_em": "2026-11-09T22:07:48.918Z",
+      "atualizada_em": "2026-11-12T10:47:19.865Z",
       "enviada_em": "2026-11-09T19:17:15.943Z",
       "id": "recorte:tami",
       "linha": "tami",
@@ -1549,6 +1568,25 @@
       "professor": "pe-torto",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 3,
+          "arquivo": "escola/calango/linhas-de-base/tami--20261112-1047.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "rotacao-e-amplitude-dos-ombros",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "memoria-e-retencao-de-sequencias",
+            "impulsao-e-absorcao-allegro",
+            "forca-de-empurrar-push-ups",
+            "estabilidade-vestibular-e-deslocamento"
+          ],
+          "enviada_em": "2026-11-09T19:17:15.943Z",
+          "versao": "20261112-1047"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/calango/linhas-de-base/tami--20261109-2207.json",
@@ -1826,6 +1864,18 @@
       "turma": "Piano"
     },
     {
+      "ajuste_de": "plano-20261111-1527",
+      "ano": "2026",
+      "carimbo": "plano-20261112-0747",
+      "ciclo": "01",
+      "data": "2026-11-12T07:47",
+      "id": "plano:plano-20261112-0747",
+      "objetivo": "Teste",
+      "professor": "pe-torto",
+      "tipo": "plano",
+      "turma": "Piano"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261108-1304",
@@ -1952,6 +2002,16 @@
       "ciclo": "01",
       "data": "2026-11-11T15:28",
       "id": "po:po-20261111-1528",
+      "professor": "pe-torto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261111-1528",
+      "ano": "2026",
+      "carimbo": "po-20261112-0747",
+      "ciclo": "01",
+      "data": "2026-11-12T07:47",
+      "id": "po:po-20261112-0747",
       "professor": "pe-torto",
       "tipo": "po"
     }

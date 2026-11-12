@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-11",
+    "ancorado_em": "2026-11-12",
     "caminho": "professores/pe-torto/ciclos/ciclo-01-calango-piano.fipp",
     "cobertura": [
       "professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -16,8 +16,8 @@
       "professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
       "professores/pe-torto/ciclos/ciclo-01.conf"
     ],
-    "hash": "1fd06ad6e7848d8570edb5a0d28578fc38f5764cf26e6427ccdbb3e7cf1b5bbf",
-    "hash_conteudo": "a4d7f7a921ec5fbf8af2c626a4657e93ca383777758201b9c4539f7f6f0538e9",
+    "hash": "27f01ecd0c52acf40d5b864e9cf5298507794198db3ce0c88f1a7b919960b7dc",
+    "hash_conteudo": "be43c1ff818c5a3da128b196f141dece3a624d67d39a42a8d753f0fd58e07eee",
     "id": "ciclo-01-calango-piano",
     "lida": true,
     "parent_hash": ""
@@ -139,9 +139,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "374fe9a"
+    "commit": "8889669"
   },
-  "gerado_em": "2026-11-11T18:30",
+  "gerado_em": "2026-11-12T10:48",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6
