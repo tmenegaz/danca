@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-11",
+    "ancorado_em": "2026-11-12",
     "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.fipp",
     "cobertura": [
       "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -135,9 +135,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2808ad3"
+    "commit": "7323b33"
   },
-  "gerado_em": "2026-11-12T10:48",
+  "gerado_em": "2026-11-12T10:49",
   "id": "ciclo:redinha-rosa/01/calango",
   "professor": "redinha-rosa",
   "versao": 6
