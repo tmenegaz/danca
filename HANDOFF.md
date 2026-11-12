@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T11:53:59-0300`
-Commit atual: `a7fb7074` — feat(template): a Turma diz as suas tres pontas, nos tres blocos das outras listas
+Gerado em: `2026-11-12T14:13:12-0300`
+Commit atual: `e482873b` — fix(template): duas colunas no elenco, o rotulo acima da regua, e a base da tabela
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+e482873b fix(template): duas colunas no elenco, o rotulo acima da regua, e a base da tabela
+d719a67d chore(estrutura): regerar o HANDOFF
 a7fb7074 feat(template): a Turma diz as suas tres pontas, nos tres blocos das outras listas
 6070d454 chore(estrutura): regerar o HANDOFF
 13da2160 fix(template): a sala diz o presente, e os tres passos andam
@@ -90,8 +92,6 @@ a3cec80d feat(acervo): envelope/.indice.json
 b60f1a14 feat(plano): o elo da cadeia automática
 dcc8d59c feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
 3c73ab3f feat(acervo): envelope/plano-20261112-0837-2.json
-a60c94c7 feat(acervo): envelope/.indice.json
-5120fc3d feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -169,73 +169,85 @@ a60c94c7 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — A Turma diz as suas três pontas
+## 12/11/2026 — Duas colunas, o rótulo acima, e a base que faltava
 
-**O que aconteceu.** A pesquisadora, na lista das Turmas: «a gente vai usar de forma similar ao que é
-feito nas outras listagens. A gente vai ter três blocos abaixo. […] um dos blocos a gente vai dizer
-qual é a sala e aí a gente vai pegar as informações da sala. […] não são as informações detalhadas de
-quando a gente expande, são as informações globais e um link que leva direto para a sala. […] o
-elenco […] quantos alunos e quais são os recortes e um link que leva também direto para aquele
-elenco. […] E aí a gente vai ter também o conteúdo, que é o terceiro bloco. Aí o conteúdo está no
-estilo.» E, sobre a nota que tinha nascido de manhã na lista das Salas: «essa parte citada que você
-colocou na listagem pode remover. Isso é informação só para nós […] não cabe aqui para o professor.»
+**O que aconteceu.** Três leituras do mesmo cartão, no mesmo dia, e uma delas pela terceira vez:
 
-**O que foi decidido.**
-- **A NOTA «CITADA POR N PLANOS» SAIU** — das duas salas, e não só da que está em turma. A fronteira é
-  a do histórico do ajuste (11/11): a lista mostra o que se precisa de saber para decidir; a
-  contagem de planos é auditoria. O número não se perde — fica no `title` do botão, para quem o
-  procurar (é ele que explica um «Derivar» numa sala livre).
-- **O CARTÃO DA TURMA PASSOU A TER A PEÇA DAS OUTRAS TRÊS LISTAS**, com um `.trio` de três caixas —
-  **Sala**, **Elenco** e **Conteúdo** —, cada uma a abrir o seu painel. Fechadas, dizem o que existe:
-  o nome da sala, «2 alunas», «3 exercícios». Abertas, dizem o resumo e levam ao sítio onde se
-  edita: o ritmo e a régua da sala; as alunas e os aspectos do recorte; e a tabela dos três resumos
-  do conteúdo — música, direção e notação, uma linha por exercício.
-- **O CONTEÚDO FECHADO CONTA EXERCÍCIOS, e não soma tempos** (a escolha dela, entre três formas):
-  somar tempos de exercícios diferentes daria um número que não corresponde a nada que se dance.
-- **O RESUMO NÃO É UM SEGUNDO CÁLCULO.** As três medidas do conteúdo saem de `listarVerbetes` — a
-  mesma função que desenha a listagem do Estilo —, e o alfabeto é o do bundle: nem KV nem rede.
-  Assim o cartão da Turma e o cartão do Estilo não podem discordar sobre o mesmo exercício.
-- **A SALA E O NÚMERO DE ALUNAS SAÍRAM DO COMPLEMENTO** (`.dono`), que fica com o que é do nome:
-  modalidade · tradição · nível · professor · estado no catálogo. Dizê-los duas vezes na mesma linha
-  de leitura é o que a peça evita.
+1. «alunas, duas alunas, aluna A e aluna B. E aí do lado direito eu tenho recorte cinco aspectos.
+   Contudo, o recorte cinco aspectos parece que pertence ao grupo que é alunas […] porque está
+   posicionado extremamente à esquerda.»
+2. «vem a régua do plano. Medido por régua do plano está escrito abaixo da régua […] vai ficar
+   acima. Então esse espaçamento visual é que dá a noção de que ali é um outro bloco.»
+3. «a última linha, a borda da última linha, está sendo engolida […] a borda inferior, que está com
+   problema e esse problema tem sido recorrente […] já documentamos que isso não pode acontecer.»
 
-**O que a prova apanhou, e vale registar.** O painel do Elenco dizia «0 aspectos» num elenco com
-recorte: `elencosParaATurma` compõe `{id, nome, alunas, rascunho, rotulo}` para o `<select>` e **não**
-carrega os `campos` — o recorte não lhe faz falta lá. A leitura passou a ir à linha de base crua.
-Era um zero silencioso, do mesmo tipo do «sem apelido»: o dado existia e a tela dizia que não.
+**O que foi medido, antes de mexer.** Os dois números do elenco estavam numa `.trio-grade` de duas
+colunas, e os dois conjuntos de chips vinham **depois** dela, a toda a largura: os chips das alunas e
+os do recorte começavam os dois no mesmo `x` (715 a 1280px; 88 a 390px). O vão entre o ritmo e a
+régua era de **8px**, e a nota «Medida por…» estava **abaixo** da escala (`notaTopo 480` > `escalaTopo
+445`). E a tabela do conteúdo tinha `border-bottom: 1px` nas duas primeiras linhas e **`0px` na
+última** — a causa era uma regra escrita de boa-fé, `tbody tr:last-child td{border-bottom:0}`.
 
-**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `resumosDoConteudo`,
-as quatro linhas do ritmo partilhadas entre o cartão da Sala e o da Turma, o cartão da Turma com os
-três blocos, o `data-elenco` da linha do elenco e o `data-abrir` que traz a linha à vista ·
+**O que ficou.**
+- **Cada assunto é uma coluna.** O painel do Elenco passou a agrupar rótulo, número e chips na mesma
+  célula: as duas alunas à esquerda, os cinco aspectos à direita, cada conjunto por baixo do seu
+  número. A peça é a mesma (`.trio-grade`); mudou o que está dentro dela.
+- **O rótulo da régua vem primeiro, e a régua é outro bloco.** «Medida por Régua do Plano.» passou a
+  estar **acima** da escala, e a linha da régua vive num agrupador (`.trio-regua`) que leva o ar de
+  cima — o vão subiu de 8px para 16px. O rótulo é do que vem a seguir; chamar «medida por X» ao que
+  está por cima era nomear o que já passou.
+- **A última linha tem a mesma base que as outras.** A regra que apagava o filete saiu. O bloco
+  fecha-se com a aresta, não com a ausência dela.
+
+**A correcção estrutural — porque isto não pode voltar.** A checagem **11 «Base»** do
+`tools/check-identidade.js` passou a reprovar qualquer regra que tire o filete inferior de um
+`:last-child`/`:last-of-type` cujo alvo já recebia filete. E ela mede **também as folhas locais das
+páginas** — os `<style>` que cada superfície emite —, que é onde este defeito viveu sem ninguém o
+ver: a checagem 9 («Aresta») só olha `ciclo.css` e só procura **moldura completa** amputada, e
+`border-bottom` de um lado só é **filete**, não moldura. No dia em que passou a medir, encontrou
+**outro** caso, real e anterior: a `table.tabela-parametros` da **porta** tinha o mesmo
+`border-bottom: 0` na última linha. Também corrigido.
+
+**E um modo que faltava ao scaffolding.** A porta é documento **compartilhado** — copiada de
+`porta/` para todos os pacotes —, exactamente como a apresentação. Quando o CSS dela muda, todos os
+pacotes ficam velhos e a checagem «Circuito» reprova-os; mas só o `gerar-ciclo.sh` regenerava
+pacotes, e o **pacote-zero** (o que nasce com a escola, sem plano e sem aulas) não tem gerador — quem
+o escreve é o `criar-escola.sh`, que **recusa** correr sobre o que já existe. A saída era apagar a
+escola, que é o contrário de proveniência. `tools/criar-escola.sh --somente-porta` faz agora os dois
+passos do scaffolding e só esses: recopia `porta/` e reinjeta a barra. O pacote-zero do `calango` foi
+regenerado por ele.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — os três painéis e
+o CSS local · [tools/check-identidade.js](./tools/check-identidade.js) — a checagem «Base» e
+`arestasQueUmaRegraRemove` extraída para lhe servir · [tools/criar-escola.sh](./tools/criar-escola.sh)
+— `--somente-porta` · [porta/index.html](./porta/index.html) — a base da tabela de parâmetros ·
 [experimentos/provar-o-cartao-da-turma-do-trio.js](./experimentos/provar-o-cartao-da-turma-do-trio.js)
-— prova nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a Turma como relação e a tabela dos
-três blocos.
+— secção 6 nova · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — a checagem 11.
 
-**Validação.** `provar-o-cartao-da-turma-do-trio` **42/42**; controle negativo contra `13da2160`:
-**34 falhas**, e o negativo mostra o cartão velho (sem `.trio-item`, sem a tabela, com a nota). Sem
-regressão: `provar-identidade-da-turma` **77** (uma asserção mudou de sítio — a sala saiu do
-complemento e passou a ser exigida no bloco dela) · `provar-o-passo-da-sala` **24** (duas asserções
-invertidas: a nota deixou de existir, e o número passou a ser exigido no `title`) ·
-`provar-salas-e-elencos` 65 · `provar-elenco-na-turma` 26 · `provar-sujeitos-da-turma` 41 ·
-`provar-enquadramento-da-turma` verde · `provar-conteudos-e-estado-da-turma` verde ·
-`provar-elenco-sem-ninguem` 59 · `provar-revisao-do-recorte` 47 ·
-`provar-transferencia-e-desligamento` 93 · `provar-abas-da-audicao` 86 ·
-`provar-operacao-entre-abas` 29 · `provar-veu-da-operacao` 23 · `provar-o-veu-de-cada-gesto` 39 ·
-`provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `provar-largura-da-lista` 56 ·
-`provar-ficha-na-listagem` 35 · `check-identidade` 0 erros · `check-indices` 16/16.
+**Validação.** `provar-o-cartao-da-turma-do-trio` **50/50** (eram 42; as 8 novas medem as colunas, o
+rótulo acima da régua e a base da tabela); controle negativo contra `a7fb7074`: **5 falhas** — os
+chips fora das colunas, o rótulo depois da escala e a regra que apagava a base. Sem regressão:
+`provar-identidade-da-turma` 77 · `provar-o-passo-da-sala` 24 · `provar-salas-e-elencos` 65 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `provar-ar-das-paginas` verde · `provar-cadastro-visivel`
+12 · `provar-o-veu-de-cada-gesto` 39 · `provar-veu-da-operacao` 23 ·
+`provar-conteudos-e-estado-da-turma` verde · `provar-elenco-sem-ninguem` 59 ·
+`provar-revisao-do-recorte` 47 · `provar-elenco-na-turma` 26 · `provar-sujeitos-da-turma` 41 ·
+`check-identidade` **0 erros, 22 verificações** · `check-indices` 16/16.
+
 As que já falhavam antes continuam iguais: `provar-cartao-da-turma` 6, `provar-derivacao-da-turma`
 20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
-`provar-producao` 2 — medidas contra o código anterior, para não se lhes atribuir o que não é delas.
+`provar-producao` 2, e as que rebentam por módulo ausente (`provar-selo`,
+`provar-turmas-do-professor`, `provar-paginacao`) — medidas contra o código anterior.
 
-**Medido no navegador.** As três caixas ficam iguais (176×48 a 1280, 88×67 a 390); a tabela do
-conteúdo não transborda o painel em nenhuma das quatro larguras (1280, 1024, 768, 390), e abaixo de
-900px rola dentro de si mesma, como a folha manda; nenhuma célula cortada; página sem um único erro
-de JavaScript.
+**Medido no navegador.** Bordas da tabela: `1px · 1px · 1px` (eram `1px · 1px · 0px`). Colunas do
+elenco: chips das alunas em `x=715` e do recorte em `x=981` a 1280px; `88` e `222` a 390px — cada
+conjunto na sua coluna. Régua: vão de **16px**, com «Medida por Régua do Plano.» acima da escala.
+Zero erros de JavaScript.
 
-**O que ainda não está feito.** O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
-(`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
-escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
-primeiro «Gravar».
+**Uma lição, pela terceira vez.** As duas asserções estáticas desta secção reprovaram o código certo
+porque encontravam o **comentário** que narra o defeito, a citar a regra antiga. Passaram a olhar só
+as linhas **emitidas**. É a mesma armadilha do elenco e do véu — e a regra que fica é que uma
+asserção que procura texto no código encontra também o texto que fala dele.
 
 ## O que está pendente
 
@@ -282,6 +294,8 @@ O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
 (`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
 escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
 primeiro «Gravar».
+
+---
 
 ## Pendências anteriores (índice)
 
