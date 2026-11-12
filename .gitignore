@@ -1125,3 +1125,18 @@ experimentos/modelo-formulario/*
 # livre» do verbete; e a frase curta no botão contra a frase longa no véu.
 # CONTROLE NEGATIVO: 27 falhas contra o código de antes — `ocupado: null`, «a processar».
 !experimentos/provar-o-veu-de-cada-gesto.js
+
+# ---------------------------------------------------------------------------------------------
+# A SALA DIZ O PRESENTE, E OS TRÊS PASSOS ANDAM — 12/11/2026
+#
+# «a etiqueta que está na sala piano é vinculada e não em turma […] a sala rosa, ela está dizendo
+# que está vinculada. Na verdade ela não está, porque eu só tenho uma turma» — `vinculada` dizia «um
+# plano de ensino já a cita», que é a proveniência, mas respondia a uma pergunta que não era a dela.
+# O selo passou a dizer o PRESENTE (`em turma` / `livre`) e a citação virou nota.
+#
+# «quando eu estou no step um e clico avançar […] ele faz o que tem que fazer e volta para o step
+# um» — a guarda da sequência perguntava ao FORMULÁRIO se a sala estava completa, e a regra de 19/10
+# esvazia o formulário depois de gravar. A prova segue o caminho inteiro, com a página a recarregar
+# como recarrega: passo 1 → 2 → 3 → fim.
+# CONTROLE NEGATIVO: 10 falhas contra ad87a0f1.
+!experimentos/provar-o-passo-da-sala.js

@@ -645,6 +645,28 @@ Plano de Ensino declara-o em `contexto-turma`. Um elo novo com outro nome partir
 **em silêncio** — o plano impresso continuaria a dizer «Balé Nível 1» e nada no cadastro se chamaria
 assim. É por isso que o «Editar» de uma Sala vinculada **deriva** em vez de corrigir.
 
+**O CARTÃO DIZ O PRESENTE; A NOTA DIZ O PASSADO (12/11/2026).** Os três estados acima são a regra da
+**escrita**, e continuam a decidir quem edita e quem deriva. O que mudou é a **leitura**: o selo do
+cartão dizia `livre` / `curada` / `vinculada`, e as três respondiam a «posso editar no lugar?» — a
+pergunta que a direção faz ao cartão é outra, «**esta sala está em alguma turma?**». Pior: uma sala
+que nenhuma turma usava dizia `vinculada` só porque um plano de ensino antigo a cita, e isso lê-se
+como «está em turma», que é falso. Foi o que aconteceu às duas salas do ar: o `Piano`, da única
+turma da escola, e o `Rosa`, que nenhuma turma usava, diziam a mesma palavra.
+
+O cartão separa agora os dois factos, e cada um no seu lugar:
+
+| O que o cartão diz | O que quer dizer | Onde |
+|:--|:--|:--|
+| `em turma` | uma **curadoria activa** usa esta sala (`turmasCuradas`) | o **selo** |
+| `livre` | nenhuma curadoria a usa hoje | o **selo** |
+| `citada por N planos de ensino` | o **passado** a cita — o plano declara o nome dela em `contexto-turma` | a **nota**, abaixo do nome |
+
+São duas perguntas, e por isso duas peças: um selo responde a uma pergunta só, e o segundo facto
+vai em nota (decisão dela, 12/11/2026). Uma sala `livre` **e** citada continua a ter o botão
+«Derivar» — quem decide a escrita é `estadoDaTurma`, não a palavra do selo —, e agora o cartão diz
+**porquê**. Quando as curadorias não se conseguem ler, o selo fica no lado seguro (`em turma`):
+afirmar `livre` convidaria a uma edição que a regra de proveniência recusa.
+
 *A avaliação, contra o código de hoje:*
 
 | O que a mudança de sala exige | Hoje |

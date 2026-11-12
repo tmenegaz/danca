@@ -49,7 +49,7 @@ const desligamento = require('../nucleo/desligamento.js');
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
 // continuava editável, e renomeá-la partia a ligação em silêncio (a curadoria guarda o NOME).
 const estadoDaTurmaNucleo = require('../nucleo/estado-da-turma.js');
-const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa,
+const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa, turmasCuradas,
   salasOcupadas, salasLivres, motivoDaSalaOcupada,
   // COMO SE CHAMA UMA TURMA (11/11/2026). O nome é do ELENCO — o professor muda, o elenco é a
   // razão de ser da turma —, e o composto (elenco · modalidade · nível · professor) é a
@@ -3363,16 +3363,68 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           curadorias: curs,
         });
         const livre = podeEditarNoLugar(estado);
-        const seloEstado = livre
-          ? '<span class="selo livre" title="esta turma ainda não tem plano de ensino nem curadoria; pode ser corrigida">livre</span>'
-          : estado === 'curada'
-            ? '<span class="selo curada" title="esta turma já está numa curadoria activa; a curadoria guarda o nome dela, por isso deriva-se em vez de se corrigir">curada</span>'
-            : '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>';
+        /* O SELO DEIXOU DE RESPONDER «posso editar?» E PASSA A RESPONDER «está em turma?»
+         * (12/11/2026).
+         *
+         * O DEFEITO, na letra dela: «eu estou dizendo que a turma ela tem a sala piano. E aí a
+         * etiqueta que está na sala piano é vinculada e não em turma. […] E agora a sala rosa, ela
+         * está dizendo que está vinculada. Na verdade ela não está, porque eu só tenho uma turma
+         * até agora e ela não está em turma.»
+         *
+         * Ela estava a ler a palavra certa: `vinculada` queria dizer «um plano de ensino já a
+         * cita» — e as duas salas do ar tinham plano (o Piano, dez; o Rosa, seis, de 08 a 10/11).
+         * Mas a pergunta que se faz a um cartão de salas é OUTRA — «esta sala está em alguma
+         * turma?» —, e a resposta não estava lá em lado nenhum: uma sala que nenhuma turma usa
+         * dizia a mesma palavra que a sala da única turma da escola.
+         *
+         * AS DUAS COISAS SÃO SEPARADAS, e cada uma fica com o seu lugar:
+         *   · o SELO diz o PRESENTE — `em turma` quando uma curadoria activa usa esta sala,
+         *     `livre` quando nenhuma usa. É o mesmo par de palavras do elenco e do verbete;
+         *   · a NOTA diz o PASSADO — quantos planos de ensino a citam. É nota e não segundo selo
+         *     porque é um facto a ler, não um estado a comparar (a decisão dela, 12/11/2026, ao
+         *     escolher a opção «sem selo: nota ‘citada por N planos’»).
+         *
+         * A DECISÃO DE FUNDO NÃO MUDA: quem edita e quem deriva continua a ser `estadoDaTurma`,
+         * e é por isso que uma sala `livre` e citada por planos tem o botão «Derivar». O cartão
+         * passa a dizer PORQUE — e é isso que faltava.
+         *
+         * `turmasCuradas` devolve `null` quando as curadorias não se conseguiram ler; aí o selo
+         * fica no lado seguro (`em turma`), porque afirmar `livre` convidaria a uma edição que a
+         * regra de proveniência recusa. */
+        const curadasDaEscola = turmasCuradas(curs);
+        const nomeDaSala = String(t.nome || '').trim();
+        const emTurma = curadasDaEscola ? curadasDaEscola.has(nomeDaSala) : true;
+        const citacoes = pares
+          ? pares.filter((p) => String(p.turma == null ? '' : p.turma).trim() === nomeDaSala).length
+          : 0;
+        const seloEstado = emTurma
+          ? '<span class="selo vinculada" title="uma turma usa esta sala: mexer-lhe muda o que a '
+            + 'turma e o plano de ensino leem">em turma</span>'
+          : citacoes
+            ? '<span class="selo livre" title="nenhuma turma usa esta sala hoje — mas há planos de '
+              + 'ensino que a citam, por isso o ajuste deriva em vez de corrigir">livre</span>'
+            : '<span class="selo livre" title="nenhuma turma usa esta sala e nenhum plano de ensino a '
+              + 'cita; pode ser corrigida">livre</span>';
         const botaoAjuste = livre
           ? '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
             'title="Editar a turma (ela ainda não tem plano de ensino nem curadoria)">Editar</button>'
           : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
-            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>';
+            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico' +
+            (citacoes ? ' — ' + citacoes + (citacoes === 1 ? ' plano de ensino cita' : ' planos de ensino citam')
+              + ' esta sala' : '') + '">Derivar</button>';
+        /* A NOTA DA CITAÇÃO (12/11/2026) — o FACTO do passado, em nota e não em selo.
+         *
+         * A peça é a `.nota-falta` do próprio cartão: mesma posição (abaixo do nome, acima das
+         * caixas), mesma tipografia, e é a que já diz «há aqui uma consequência que não se lê no
+         * nome». O que muda é a palavra da frente — `citada` em vez de `falta` —, porque não falta
+         * nada: a sala existe, e o que existe é a memória de quem a usou. Âmbar, e não alarme: o
+         * que a nota pede é que se saiba que o ajuste deriva. */
+        const notaCitada = citacoes
+          ? '<div class="nota-falta" title="os planos de ensino leem o ritmo desta sala; ajustá-la '
+            + 'no lugar reescreveria o que eles dizem"><b>citada</b> <span>por ' + citacoes
+            + (citacoes === 1 ? ' plano de ensino' : ' planos de ensino')
+            + ' — ajustar deriva, e o que já foi escrito fica</span></div>'
+          : '';
         // O CARTÃO DA TURMA PASSA A SER O HÍBRIDO (18/10/2026). Ele trazia NOVE faixas de
         // informação todas abertas ao mesmo tempo — nome, nível, programa, ritmo, estado,
         // vigência, o aviso de «falta …», a régua em prosa, os conteúdos em chips, o
@@ -3459,6 +3511,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span></div>' +
           (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
           (avisoDeRitmo || '') +
+          notaCitada +
           // DUAS CAIXAS, E NÃO TRÊS: a sala diz o RITMO e a RÉGUA. O terceiro número era
           // «Conteúdos», e o conteúdo da aula é da Turma (ver a nota em `itensTurmas`).
           '<div class="trio trio-duo">' +
@@ -6432,6 +6485,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function aplicarTravas() {' +
     '  var faltaTurma = faltaDaTurma();' +
     '  var turmaOk = faltaTurma.length === 0;' +
+    /* A MESMA PERGUNTA DO `mostrarPasso`, E A MESMA RESPOSTA (12/11/2026): os passos 2 e 3, e o
+     * «Gravar sala», pedem uma SALA — completa no formulário OU já gravada e em foco. Sem esta
+     * segunda metade, o caminho de criar parava no passo 1: a sala ficava gravada, o formulário
+     * vazio, e o botão do passo 2 apagado, a pedir o que já tinha sido dado.
+     *
+     * O «Avançar» do passo 1 NÃO muda: para criar, o formulário tem de estar preenchido, e é
+     * `turmaOk` que o decide. */
+    '  var temSala = !!turmaEmFoco();' +
+    '  var podeSeguir = turmaOk || temSala;' +
     // Os passos 2 e 3 dependem só da turma. A rubrica é opcional por decisão — ela só se
     // torna obrigatória no «Gravar turma».
     // SÓ A FAIXA DA TURMA (31/10/2026). Era `document.querySelectorAll("button.passo")` — a
@@ -6445,8 +6507,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  Array.prototype.slice.call(document.querySelectorAll("#sec-turmas button.passo")).forEach(function(b){' +
     '    var q = b.getAttribute("data-passo");' +
     '    if (q === "turma") { b.disabled = false; b.removeAttribute("title"); return; }' +
-    '    b.disabled = !turmaOk;' +
-    '    if (!turmaOk) b.setAttribute("title", "Complete a turma antes: falta " + fraseDaFaltaNoCliente(faltaTurma) + ".");' +
+    '    b.disabled = !podeSeguir;' +
+    '    if (!podeSeguir) b.setAttribute("title", "Complete a turma antes: falta " + fraseDaFaltaNoCliente(faltaTurma) + ".");' +
     '    else b.removeAttribute("title");' +
     '  });' +
     '  var avancar = document.getElementById("t-enviar");' +
@@ -6462,31 +6524,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS AÇÕES INTERMÉDIAS DO PASSO 3 também são trancadas pelo que lhes falta: associar uma
     // rubrica sem a ter escolhido era um clique que não fazia nada; desassociar sem turma, idem.
     '  var selR = document.getElementById("vinc-rubrica");' +
-    '  var temTurma = !!turmaEmFoco();' +
     '  var associar = document.getElementById("vinc-associar");' +
-    '  if (associar) associar.disabled = !temTurma || !(selR && String(selR.value || "").trim());' +
+    '  if (associar) associar.disabled = !temSala || !(selR && String(selR.value || "").trim());' +
     '  var desassociar = document.getElementById("vinc-desassociar");' +
-    '  if (desassociar) desassociar.disabled = !temTurma;' +
+    '  if (desassociar) desassociar.disabled = !temSala;' +
     '  var faltaAssoc = faltaDaAssociacao();' +
     '  var gravar = document.getElementById("vinc-gravar");' +
-    '  var tudoOk = turmaOk && faltaAssoc.length === 0;' +
+    // O QUE AINDA FALTA A QUEM GRAVA: o que a sala não tem. Com a sala já gravada — o caminho de
+    // criar, depois do passo 1 —, o formulário vazio não é uma falta: é o passo 1 concluído.
+    '  var faltaAgora = (temSala ? [] : faltaTurma).concat(faltaAssoc);' +
+    '  var tudoOk = podeSeguir && faltaAssoc.length === 0;' +
     '  if (gravar) {' +
     '    gravar.disabled = !tudoOk;' +
-    '    gravar.setAttribute("title", tudoOk ? "" : "Falta " + fraseDaFaltaNoCliente(faltaTurma.concat(faltaAssoc)) + ".");' +
+    '    gravar.setAttribute("title", tudoOk ? "" : "Falta " + fraseDaFaltaNoCliente(faltaAgora) + ".");' +
     '  }' +
     '  var avisoV = document.getElementById("vinc-pendencia");' +
     '  if (avisoV) {' +
     '    avisoV.hidden = tudoOk;' +
-    '    var todas = faltaTurma.concat(faltaAssoc);' +
-    '    avisoV.textContent = tudoOk ? "" : "Para gravar a turma, falta " + fraseDaFaltaNoCliente(todas) + ".";' +
+    '    avisoV.textContent = tudoOk ? "" : "Para gravar a turma, falta " + fraseDaFaltaNoCliente(faltaAgora) + ".";' +
     '  }' +
     '}' +
     'function mostrarPasso(qual){' +
     // A TRAVA VALE PARA TODOS OS CAMINHOS — os botões de cima, o `irParaPassoTurma` do «Avançar»
     // e o passo lembrado ao reabrir. Quem tenta chegar a um passo adiante sem a turma
     // completa fica no passo 1: é lá que está o que falta.
+    //
+    /* MAS «COMPLETA» NÃO QUER DIZER «O FORMULÁRIO TEM OS CAMPOS» (12/11/2026).
+     *
+     * O DEFEITO, na letra dela: «quando eu estou no step um e clico avançar, ele já está criando a
+     * sala e não vai para a rubrica, para o step dois. […] toda vez que eu clico em avançar, ele
+     * faz o que tem que fazer e volta para o step um.»
+     *
+     * Duas regras certas encontravam-se mal. «Fora da edição, o formulário é novo» (19/10) esvazia
+     * os campos depois de cada gravação — e no caminho de CRIAR é isso mesmo que se quer. E esta
+     * guarda perguntava ao formulário se a sala estava completa. Depois de gravar, o formulário
+     * está vazio e a sala está gravada: a guarda concluía «falta tudo» e devolvia ao passo 1.
+     *
+     * O que a sequência exige não é o preenchimento: é a SALA. E há duas maneiras de a ter — o
+     * formulário preenchido à frente (quem está a chegar ao passo 2) ou uma sala em foco (quem
+     * acabou de a gravar). `turmaEmFoco()` é a segunda, e é a única que sobrevive à recarga. */
     '  var faltaTurma = faltaDaTurma();' +
-    '  if (qual !== "turma" && faltaTurma.length) qual = "turma";' +
+    '  var temSala = !!turmaEmFoco();' +
+    '  if (qual !== "turma" && faltaTurma.length && !temSala) qual = "turma";' +
     '  var todos = document.querySelectorAll("#sec-turmas button.passo");' +
     '  for (var i = 0; i < todos.length; i++) {' +
     '    var ativo = todos[i].getAttribute("data-passo") === qual;' +
@@ -8889,7 +8968,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A VALIDAÇÃO MÁXIMA, AQUI TAMBÉM (18/10/2026). O botão já nasce desabilitado e só acende
     // com tudo preenchido; esta guarda é a segunda barreira, para o caso de o `disabled` ser
     // retirado por fora (ferramentas do navegador, uma página antiga em cache).
-    '  var falta = faltaDaTurma().concat(faltaDaAssociacao());' +
+    //
+    // E ELA PERGUNTA O MESMO QUE AS TRAVAS (12/11/2026): a sala em foco já é uma sala. Perguntar
+    // pelo formulário aqui também devolveria o caminho de criar ao passo 1 — o `alert` em vez da
+    // gravação, desta vez.
+    '  var falta = (turma ? [] : faltaDaTurma()).concat(faltaDaAssociacao());' +
     '  if (!turma || falta.length) {' +
     '    alert("Para gravar a turma, falta " + fraseDaFaltaNoCliente(falta) + "."); return;' +
     '  }' +

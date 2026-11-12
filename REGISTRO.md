@@ -42830,3 +42830,66 @@ os planos a cada abertura do Estilo — uma leitura que antes não existia nessa
 alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
 reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
 histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.
+
+---
+
+## 12/11/2026 — A sala diz o presente, e os três passos andam
+
+**O que aconteceu.** A pesquisadora, na aba **Salas** da Produção: «eu estou dizendo que a turma ela
+tem a sala piano. E aí a etiqueta que está na sala piano é vinculada e não em turma. […] E agora a
+sala rosa, ela está dizendo que está vinculada. Na verdade ela não está, porque eu só tenho uma
+turma até agora e ela não está em turma.» E, no cadastro da sala: «quando eu estou no step um e clico
+avançar, ele já está criando a sala e não vai para a rubrica, para o step dois […] toda vez que eu
+clico em avançar, ele faz o que tem que fazer e volta para o step um.»
+
+**O que foi medido, antes de mexer.** As duas salas do ar (`calango`) tinham plano de ensino: o
+`Piano`, dez (do Pé Torto e da Redinha Rosa); o `Rosa`, seis, de 08 a 10/11, quando era ela a sala de
+uma turma. Uma só curadoria activa, e é a do `Piano`. Ou seja: `vinculada` queria dizer «um plano
+de ensino já a cita» — a leitura dela estava certa —, e as duas salas diziam a mesma palavra por
+razões diferentes. O selo respondia a «posso editar no lugar?» a quem perguntava «esta sala está em
+alguma turma?».
+
+**O que foi decidido.**
+- **O selo diz o PRESENTE, a nota diz o PASSADO.** `em turma` quando uma curadoria activa usa a sala
+  (`turmasCuradas`), `livre` quando nenhuma usa; e, quando há planos que a citam, uma **nota** abaixo
+  do nome — «citada por N planos de ensino — ajustar deriva, e o que já foi escrito fica». A escolha
+  entre selo e nota é dela, entre três opções: «sem selo: nota ‘citada por N planos’».
+- **A regra da escrita não mudou.** Quem edita e quem deriva continua a ser `estadoDaTurma`; uma sala
+  `livre` **e** citada continua a ter o botão «Derivar». O que faltava era o cartão dizer **porquê**.
+- **Um selo responde a UMA pergunta** — ficou escrito em [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md):
+  quando há dois factos na mesma linha, o que se compara é selo e o que só se sabe é nota.
+
+**A causa dos três passos — e não era o preenchedor da bancada.** Duas regras certas encontravam-se
+mal. «Fora da edição, o formulário é novo» (19/10) esvazia os campos depois de cada gravação, e no
+caminho de **criar** é isso mesmo que se quer. E a guarda da sequência (18/10) perguntava ao
+**formulário** se a sala estava completa. Depois de gravar, o formulário está vazio e a sala está
+gravada: a guarda concluía «falta tudo» e devolvia ao passo 1 — com os campos vazios, o que se lê
+como «não gravou». O mesmo em `aplicarTravas` (os passos 2 e 3 apagados) e na segunda barreira do
+«Gravar sala» (o `alert` em vez da gravação).
+
+**O que ficou.** Os três sítios passaram a perguntar o mesmo: **a sequência pede uma SALA, não um
+formulário preenchido** — e há duas maneiras de a ter, o formulário à frente ou uma sala em foco
+(`turmaEmFoco()`, que sobrevive à recarga). O passo 1 continua a exigir o preenchimento para criar; o
+2 e o 3 abrem com a sala gravada; e o fim (`concluirTurma`) devolve ao passo 1 com os campos vazios e
+sem sala em foco.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o selo e a nota do
+cartão da sala, `mostrarPasso`, `aplicarTravas` e a guarda do «Gravar sala» ·
+[experimentos/provar-o-passo-da-sala.js](./experimentos/provar-o-passo-da-sala.js) — prova nova ·
+[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — o par selo/nota ao lado da tabela dos três estados ·
+[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — a regra «um selo, uma pergunta».
+
+**Validação.** `provar-o-passo-da-sala` **23/23**; controle negativo contra `ad87a0f1`: **10
+falhas** — e o negativo mostra os dois sintomas na letra («depois da recarga, a página está NO PASSO
+2» → `turma`; o `Rosa` a dizer `vinculada`). Sem regressão: `provar-salas-e-elencos` 65 ·
+`provar-identidade-da-turma` 76 · `provar-mudanca-de-sala` 41 · `provar-conteudos-e-estado-da-turma`
+verde · `provar-o-veu-de-cada-gesto` 39 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas`
+29 · `provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `check-identidade` 0 erros.
+As provas que já falhavam antes continuam a falhar o mesmo: `provar-cartao-da-turma` 6,
+`provar-derivacao-da-turma` 20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1 —
+medidas contra o código anterior, para não se lhes atribuir o que não é delas.
+
+**O que ainda não está feito.** (1) No passo 3 a rubrica criada no passo 2 **não vem escolhida**: o
+professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
+(regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
+falha anterior a esta entrada.
