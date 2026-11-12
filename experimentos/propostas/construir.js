@@ -290,6 +290,11 @@ const CSS_BANCADA = `
 /**
  * O `<script>` da bancada. Recebe as opções e o que cada uma diz; o resto é igual nas duas
  * propostas, e é isso que faz o componente ser um só.
+ *
+ * `atributosDoHtml` (11/11/2026) põe atributos na tag `<html>`. Existe por causa de uma proposta
+ * só — a do véu —, que precisa de dizer «esta página não avisa outras abas» ANTES de o `nav.js`
+ * correr, e o `scriptExtra` corre depois dele. Um atributo declarado na marcação chega a tempo;
+ * uma linha de JavaScript, não.
  */
 function scriptDaBancada(opcoes) {
   return `(function () {
@@ -383,9 +388,9 @@ ${opcoes.map((o) => `      <li><button type="button" data-escolha="${o.id}" aria
 }
 
 /** O esqueleto comum das duas páginas. O CSS do projeto entra AQUI, embutido. */
-function pagina({ titulo, opcaoInicial, corpo, cssExtra, scriptExtra, opcoes, bancada }) {
+function pagina({ titulo, opcaoInicial, corpo, cssExtra, scriptExtra, opcoes, bancada, atributosDoHtml }) {
   return `<!DOCTYPE html>
-<html lang="pt-BR" data-opcao="${opcaoInicial}" data-titulo-fixo="nao" data-titulo-preso="nao" data-titulo-encolhido="nao" data-rolando="sobe">
+<html lang="pt-BR" data-opcao="${opcaoInicial}" data-titulo-fixo="nao" data-titulo-preso="nao" data-titulo-encolhido="nao" data-rolando="sobe"${atributosDoHtml ? ' ' + atributosDoHtml : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -2286,6 +2291,24 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
     <span class="abrir">Abrir a sala de ensaio →</span>
   </a>
 
+  <a class="cartao" href="proposta-veu.html">
+    <p class="sobre">Proposta · o véu da operação</p>
+    <h2>As formas do véu — com o spinner que está feio</h2>
+    <p>O véu de 11/11 está no produto, e a pesquisadora aprovou-o: «ficou do jeito que eu
+    esperava». O que ficou <em>feio</em> foi o <strong>cartão</strong> com a etiqueta e a frase —
+    e a dúvida é se a informação se pode dizer de outra forma. Três desfechos do <strong>mesmo
+    elemento</strong>, construído pelo <code>nav.js</code> de verdade, sobre a Produção de
+    verdade: o cartão de hoje; só o giro, sem nada escrito; e a palavra e a frase soltas, com
+    halo em vez de moldura.</p>
+    <table>
+      <tr><th>Opção</th><th>O que se lê</th><th>Peso</th></tr>
+      <tr><td>0 · a que está</td><td>etiqueta + frase</td><td>cartão opaco, 34 rem</td></tr>
+      <tr><td><strong>1 · só o giro</strong></td><td>nada</td><td>38 px, com halo</td></tr>
+      <tr><td>2 · o texto na tela</td><td>etiqueta + frase</td><td>duas linhas, sem caixa</td></tr>
+    </table>
+    <span class="abrir">Abrir a bancada do véu →</span>
+  </a>
+
   <a class="cartao" href="proposta-acervo.html">
     <p class="sobre">Proposta 6 · o acervo com a porta</p>
     <h2>A Área do Professor numa página</h2>
@@ -3765,6 +3788,268 @@ ${linhasDeHoje}
   });
 }
 
+// ======================================== PROPOSTA: AS FORMAS DO VÉU DA OPERAÇÃO (11/11/2026)
+
+/*
+ * A PROPOSTA, na letra dela: «o véu está legal. A caixa que você mostra com o texto dizendo que
+ * está processando e tal e o spinner ali é que está esquisito, está feio. Eu recomendo apenas
+ * deixar o spinner rodando sem nenhuma informação. Mas eu gostaria que você colocasse lá no
+ * experimento para eu ver como é que fica algumas opções. A que já está, para eu poder comparar,
+ * uma que é sem nenhuma caixa de texto e outra que é o texto na tela como se fosse também um
+ * pouco mais forte que uma marca d'água, sem nenhuma caixa, sem borda […] porque ele conta o
+ * andamento do processo, ele conta uma história para o usuário.»
+ *
+ * O QUE ESTA BANCADA NÃO FAZ: não desenha um véu de mentira. As três formas são o MESMO elemento —
+ * o véu da folha, com o cartão, a etiqueta, o texto e o giro —, construído pelo `nav.js` de
+ * verdade, e a operação é publicada pela API de verdade (`LastroDaOperacao.ocupar`). Cada opção é
+ * um punhado de declarações a mais, debaixo de `[data-opcao="…"]`: escolhida uma, aplicá-la é
+ * mover essas linhas para a folha.
+ *
+ * O QUE ESTÁ POR BAIXO É A PRODUÇÃO, e não uma maquete: as secções «Salas» e «Turmas» saem da
+ * página que o servidor monta (`paginaProducao`), com os dados de um fixture. É o formulário e a
+ * listagem que ela vê todos os dias — e o que se está a decidir é se se vê ATRAVÉS do véu o
+ * bastante para não se perder onde se está.
+ *
+ * E A PÁGINA NÃO AVISA OUTRAS ABAS (`data-operacao="so-esta-aba"`). Uma bancada que publicasse a
+ * operação trancaria as abas de trabalho de quem a abre para a julgar.
+ */
+
+const OPCOES_VEU = [
+  { id: 'hoje', n: '0', t: 'A que está — o cartão', m: 'cartão 34 rem',
+    d: 'a etiqueta e a frase dentro de um cartão opaco: diz muito e pesa na tela' },
+  { id: 'giro', n: '1', t: 'Só o giro, sem nada escrito', m: '38 px',
+    d: 'o anel com um halo de papel: lê-se sobre qualquer fundo e não ocupa nada' },
+  { id: 'marca', n: '2', t: 'O texto na tela, sem caixa', m: 'duas linhas',
+    d: 'a palavra e a frase soltas, com halo em vez de moldura: conta a história sem pesar' },
+];
+
+/** As secções da Produção que servem de fundo — extraídas da página que o servidor monta. */
+function secoesDaProducao() {
+  const sala = (nome, id) => ({
+    id, nome, ordem: 0, frequencia: 2, dias: ['qua'], horarios: { qua: '18:00' },
+    duracaoMin: 60, periodoInicio: '2026-11-20', periodoFim: '2026-12-20', ativo: true,
+    grau: 'Grade 1', nivel: '1', regua: [],
+  });
+  let html = '';
+  try {
+    const bastidores = require(path.join(RAIZ, 'motor', 'servidor', 'bastidores.js'));
+    html = bastidores.paginaProducao(
+      'calango',
+      { professor: 'pe-torto', escola: 'calango', query: 'professor=pe-torto&escola=calango' },
+      [{ nome: 'Redinha Rosa', slug: 'redinha-rosa' }], ['Aluna A', 'Aluna B'],
+      'Pe Torto', 'pe-torto',
+      [sala('Piano', 'piano'), sala('Rosa', 'rosa')], [], [],
+      [{
+        id: 'redinha-rosa-bale-classico-piano-2026-11-11', professor: 'redinha-rosa',
+        modalidade: 'Balé clássico', tradicao: 'RAD', grau: '', nivel: '1',
+        nivelReferencia: 'Grade 1', turmas: ['Piano'], linhaDeBase: 'ami',
+        linhaDeBaseNome: 'ami', repertorio: ['Plié'], alunas: ['Aluna B'],
+        vigenteDe: '2026-11-11',
+      }],
+      [], [], undefined, undefined,
+      [{ id: 'ami', nome: 'ami', professor: 'pe-torto', alunas: ['Aluna B'],
+        campos: [{ id: 'passe', nome: 'o passé', grupo: 'Os elementos basilares' }] }], []);
+  } catch (e) {
+    return { estilo: '', secoes: '' };
+  }
+  const estilo = (/<style>([\s\S]*?)<\/style>/.exec(html) || ['', ''])[1];
+
+  /* AS SECÇÕES, UMA A UMA. Cada uma PODE ter um `<section>` dentro (o cartão de um bloco), e por
+   * isso conta-se a profundidade em vez de procurar o primeiro fecho: um fecho a mais cortava a
+   * secção a meio, e a bancada mostrava um formulário sem a listagem. */
+  const recorta = (id) => {
+    const abre = html.indexOf('<section class="secao" id="' + id + '"');
+    if (abre === -1) return '';
+    let i = abre, nivel = 0;
+    while (i < html.length) {
+      const proxAbre = html.indexOf('<section', i);
+      const proxFecha = html.indexOf('</section>', i);
+      if (proxFecha === -1) return '';
+      if (proxAbre !== -1 && proxAbre < proxFecha) { nivel += 1; i = proxAbre + 8; continue; }
+      nivel -= 1;
+      i = proxFecha + 10;
+      if (nivel === 0) return html.slice(abre, i);
+    }
+    return '';
+  };
+  const secoes = ['sec-turmas', 'sec-curadorias']
+    .map((id) => recorta(id).replace('<section class="secao" id="' + id + '" hidden>',
+      '<section class="secao" id="' + id + '">'))
+    .join('\n');
+  return { estilo, secoes };
+}
+
+const CSS_VEU = `
+/* ============================================================================
+   AS FORMAS DO VÉU — três desfechos do MESMO elemento
+
+   Nenhuma destas linhas inventa um véu: todas são declarações a mais sobre a
+   peça da folha, que é a que está de pé na página (construída pelo nav.js
+   verdadeiro, com a operação publicada pela API verdadeira). A opção 0 não tem
+   nada — é o que está hoje no produto, e é a régua de comparação.
+   ========================================================================== */
+
+/* A BANCADA SOBE ACIMA DO VÉU. O véu é z-index 120 e cobre a página inteira; sem isto, o painel
+   que troca de opção ficaria por baixo dele — e não se avalia um véu sem poder trocar de véu.
+   É a única linha desta proposta que não é sobre o véu, e é sobre a bancada. */
+#bancada { z-index: 200; }
+#bancada-aba { z-index: 190; }
+
+/* O FUNDO — as duas secções da Produção, verdadeiras. O que muda é só a moldura delas: a página
+   da bancada não tem a coluna lateral nem a barra de contexto, e as secções ficam com o ar de cá. */
+.corpo-da-bancada { padding: 8px clamp(12px, 3vw, 36px) 90px; }
+.corpo-da-bancada > .secao { margin: 0 0 22px; }
+.corpo-da-bancada .secao-titulo { margin-top: 0; }
+
+/* ---- 1 · SÓ O GIRO, SEM NADA ESCRITO -------------------------------------
+   Sem cartão, sem etiqueta, sem frase. O anel cresce de 22 para 38 px e ganha um
+   halo de papel: sem ele, um anel de 3 px sobre uma listagem cheia de filetes
+   desaparece — e é o halo que faz o giro ler-se sobre QUALQUER fundo, sem
+   desenhar uma caixa. */
+[data-opcao="giro"] .veu-cartao {
+  background: none; border: 0; box-shadow: none; padding: 0; gap: 0;
+}
+/* O TEXTO NÃO DESAPARECE PARA QUEM NÃO VÊ — sai da TELA, não da árvore. Com
+   display:none, o leitor de ecrã perdia também o nome da operação, e ficava um
+   giro mudo para quem ouve a página. A receita é a do «só para leitor» que a
+   Produção já usa. */
+[data-opcao="giro"] .veu-etiqueta,
+[data-opcao="giro"] .veu-texto,
+[data-opcao="giro"] .veu-nota {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+[data-opcao="giro"] .veu-cartao::before {
+  width: 38px; height: 38px; border-width: 3px;
+  border-color: color-mix(in srgb, var(--borda) 45%, transparent);
+  border-top-color: var(--marca);
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--fundo) 60%, transparent),
+              0 0 26px 6px color-mix(in srgb, var(--fundo) 72%, transparent);
+}
+
+/* ---- 2 · O TEXTO NA TELA, SEM CAIXA --------------------------------------
+   A palavra e a frase soltas, e um HALO em vez de moldura: três sombras do papel,
+   cada vez mais largas, que abrem o fundo por baixo das letras sem desenhar nada.
+   É o «um pouco mais forte que uma marca d'água» — a frase continua a contar o que
+   se está a passar, e o que sai é a caixa que a embrulhava. */
+[data-opcao="marca"] .veu-cartao {
+  background: none; border: 0; box-shadow: none; padding: 0;
+  gap: var(--esp-3); max-width: min(46rem, 92vw);
+}
+[data-opcao="marca"] .veu-cartao::before {
+  width: 30px; height: 30px; border-width: 2px;
+  border-color: color-mix(in srgb, var(--borda) 55%, transparent);
+  border-top-color: var(--marca);
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--fundo) 55%, transparent);
+}
+[data-opcao="marca"] .veu-etiqueta {
+  background: none; border: 0; padding: 0;
+  font: 700 13px/1.2 var(--ui); letter-spacing: .22em;
+  color: var(--marca);
+  text-shadow: 0 0 10px var(--fundo), 0 0 18px var(--fundo), 0 0 30px var(--fundo);
+}
+[data-opcao="marca"] .veu-texto {
+  font: 400 1.45rem/1.4 var(--serif);
+  color: var(--texto);
+  text-shadow: 0 0 12px var(--fundo), 0 0 22px var(--fundo), 0 0 40px var(--fundo),
+               0 0 60px var(--fundo);
+}
+[data-opcao="marca"] .veu-nota {
+  color: var(--texto-suave);
+  text-shadow: 0 0 10px var(--fundo), 0 0 20px var(--fundo);
+}
+
+/* A NOTA DA PÁGINA — o que se está a comparar, com os olhos. */
+.nota-do-veu {
+  max-width: 60rem; margin: 0 0 24px; padding: 14px 18px;
+  border: 1px solid var(--borda); border-left: 3px solid var(--marca);
+  border-radius: var(--raio-1); background: var(--fundo-faixa);
+  font-size: .92rem; line-height: 1.55; color: var(--texto);
+}
+.nota-do-veu h2 { margin: 0 0 6px; font-size: 1.02rem; }
+.nota-do-veu p { margin: 0 0 6px; }
+.nota-do-veu p:last-child { margin-bottom: 0; }
+.nota-do-veu .fina { font-size: .85rem; color: var(--texto-suave); }
+`;
+
+const SCRIPT_VEU = `(function () {
+  /* A OPERAÇÃO É PUBLICADA PELA API VERDADEIRA, e volta a ser publicada de vez em quando: cada
+     publicação vale dois minutos (é a rede de segurança do módulo), e uma bancada que se fica a
+     olhar não pode perder o véu a meio. */
+  var FRASE = 'a derivar a Turma «ami» e a reencadear o plano de ensino e o plano de observação…';
+  var ETIQUETA = 'Derivação';
+  var alarme = null;
+
+  function publicar() {
+    if (!window.LastroDaOperacao) return;
+    window.LastroDaOperacao.ocupar(FRASE, ETIQUETA);
+  }
+
+  function armar() {
+    if (alarme) clearInterval(alarme);
+    publicar();
+    alarme = setInterval(publicar, 45000);
+  }
+
+  /* A BANCADA AVISA QUANDO TROCA DE OPÇÃO, e a frase é a mesma nas três: o que muda é o DESENHO,
+     não o facto. Repetir a publicação serve para o véu não ter expirado enquanto se olha. */
+  window.aoTrocarOpcao = function () { publicar(); };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', armar);
+  } else {
+    armar();
+  }
+})();`;
+
+function proporVeu() {
+  const { estilo, secoes } = secoesDaProducao();
+
+  const corpo = `<header class="doc">
+  <h1>A operação em curso</h1>
+  <p class="subtitulo">Três formas do mesmo véu, sobre a Produção de verdade</p>
+</header>
+<main class="corpo-da-bancada">
+  <div class="nota-do-veu">
+    <h2>O que está a ser comparado</h2>
+    <p>O véu de cima é <strong>o do produto</strong>: a peça da folha, construída pelo
+    <code>nav.js</code> de verdade, com a operação publicada pela API de verdade. O que muda entre
+    as três opções são <strong>umas linhas de declaração</strong> — escolhida uma, aplicá-la é
+    movê-las para a folha.</p>
+    <p>Por baixo está a <strong>Produção verdadeira</strong> — as secções «Salas» e «Turmas», com
+    os dados de um fixture. Repare em duas coisas: <strong>reconhece-se onde se está?</strong> (é o
+    formulário e a listagem de sempre) e <strong>percebe-se que algo corre?</strong></p>
+    <p class="fina">A bancada está <strong>acima</strong> do véu (que é <code>z-index: 120</code>)
+    — sem isso não se podia trocar de opção com o véu de pé. Escape fecha o painel; as teclas
+    <strong>0</strong>, <strong>1</strong> e <strong>2</strong> trocam.</p>
+  </div>
+  ${secoes}
+</main>`;
+
+  return pagina({
+    titulo: 'Proposta — as formas do véu da operação',
+    opcaoInicial: 'hoje',
+    /* A PÁGINA NÃO AVISA OUTRAS ABAS: `data-operacao="so-esta-aba"` põe o módulo do nav.js em modo
+       privado. Uma bancada que publicasse a operação trancaria as abas de trabalho de quem a abre
+       para a julgar. O atributo tem de estar na MARCAÇÃO porque o nav.js corre antes do
+       `scriptExtra` — uma linha de JavaScript chegaria tarde. */
+    atributosDoHtml: 'data-operacao="so-esta-aba"',
+    corpo,
+    cssExtra: estilo + CSS_VEU,
+    scriptExtra: SCRIPT_VEU,
+    opcoes: OPCOES_VEU,
+    bancada: marcacaoDaBancada({
+      sobre: 'Proposta · o véu da operação',
+      titulo: 'As formas do véu',
+      intro: 'A página por baixo é a Produção verdadeira. Escolha uma opção e feche este painel: '
+        + 'o que se compara é <strong>reconhecer onde se está</strong> e <strong>saber que algo '
+        + 'corre</strong>, com o menor peso possível na tela.',
+      opcoes: OPCOES_VEU,
+      inicio: 'hoje',
+    }),
+  });
+}
+
 // ==================================================================================== escrever
 
 const arquivos = {
@@ -3776,6 +4061,7 @@ const arquivos = {
   'proposta-padrao-da-lista.html': proporPadraoDaLista(),
   'proposta-acervo.html': proporAcervo(),
   'proposta-estados.html': proporEstados(),
+  'proposta-veu.html': proporVeu(),
   'proposta-verbetes.html': proporVerbetes(),
 };
 
