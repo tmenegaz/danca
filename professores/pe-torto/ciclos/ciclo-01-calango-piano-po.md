@@ -65,6 +65,7 @@ Metodologia de referência: RAD · Notação dominada: Benesh
 
 - Aluna C
 - Aluna A
+- Aluna B
 
 ## Norma estabelecida
 
