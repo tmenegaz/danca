@@ -79,8 +79,15 @@ const SALAS = [
     periodoInicio: '2026-11-20', periodoFim: '2026-12-20' },
 ];
 const RUBRICAS = [{ id: 'r1', nome: 'Régua da casa', niveis: ['A', 'B', 'C'] }];
+/* OS CINCO NOMES SÃO OS QUE ELA LEU NA TELA (12/11/2026): «quarta posição dos pés, quinta posição
+ * dos pés, quarta posição dos braços, quinta posição dos braços, cócoras profundas». São textos
+ * LONGOS, e é isso que faz a prova valer: um recorte de nomes curtos não mede o que acontece
+ * quando os chips têm de quebrar linha dentro da coluna. */
 const ELENCOS = [{ id: 'ami', nome: 'Elenco AME', professor: 'pe-torto',
-  alunas: ['Aluna A', 'Aluna B'], campos: [{ id: 'x', nome: 'Tônus' }, { id: 'y', nome: 'Eixo' }] }];
+  alunas: ['Aluna A', 'Aluna B'], campos: [
+    { id: 'a', nome: 'Quarta posição dos pés' }, { id: 'b', nome: 'Quinta posição dos pés' },
+    { id: 'c', nome: 'Quarta posição dos braços' }, { id: 'd', nome: 'Quinta posição dos braços' },
+    { id: 'e', nome: 'Cócoras profundas' }] }];
 const CURADORIAS = [{ id: 'c1', professor: 'pe-torto', turmas: ['Piano'],
   modalidade: 'bale-classico', tradicao: 'rad', nivel: '1', linhaDeBase: 'ami',
   alunas: ['Aluna A', 'Aluna B'],
@@ -210,10 +217,13 @@ console.log('\n4. O QUE CADA BLOCO ABRE — o resumo, e o link para o detalhe');
 
   const elenco = painel('elenco');
   provar('o painel do Elenco conta as alunas e o recorte',
-    /2 alunas/.test(elenco) && /2 aspectos/.test(elenco));
+    /2 alunas/.test(elenco) && /5 aspectos/.test(elenco),
+    (elenco.match(/trio-v">[^<]*/g) || []).slice(0, 2));
   provar('…nomeia as alunas', /<span>Aluna A<\/span>/.test(elenco) && /<span>Aluna B<\/span>/.test(elenco));
   provar('…e nomeia o recorte, que é o que o plano importa',
-    /<span>Tônus<\/span>/.test(elenco) && /<span>Eixo<\/span>/.test(elenco));
+    /<span>Quarta posição dos pés<\/span>/.test(elenco)
+      && /<span>Cócoras profundas<\/span>/.test(elenco),
+    (elenco.match(/<span>Q[^<]*|<span>Có[^<]*/g) || []).slice(0, 3));
   provar('…e leva ao elenco na Audição',
     /href="#corpo"/.test(elenco) && /data-abrir="elenco:ami"/.test(elenco),
     (elenco.match(/href="#corpo"[^>]*/) || [])[0]);
@@ -264,6 +274,73 @@ console.log('\n5. O RESUMO É O DA LISTAGEM DO ESTILO — a mesma leitura, sem r
 }
 
 // ==========================================================================================
+console.log('\n6. AS DUAS COLUNAS DO ELENCO, E A BASE DA TABELA (12/11/2026)');
+
+{
+  /* O QUE ELA VIU, e são três coisas de leitura com a mesma raiz — um bloco cujas partes não
+   * dizem a quem pertencem:
+   *
+   *   «alunas, duas alunas, aluna A e aluna B. E aí do lado direito eu tenho recorte cinco
+   *    aspectos. Contudo, o recorte cinco aspectos parece que pertence ao grupo que é alunas […]
+   *    porque está posicionado extremamente à esquerda.»
+   *
+   * A causa, medida: os dois números na `.trio-grade` (2 colunas) e os dois conjuntos de chips
+   * DEPOIS dela, a toda a largura — os do recorte começavam no mesmo x dos das alunas.
+   *
+   *   «a escrita medido por régua piano, que está abaixo da régua em si, vai ficar acima.»
+   *
+   * E a terceira, que já tinha aparecido neste repositório antes: «a última linha, a borda da
+   * última linha, está sendo engolida.» */
+  const c = cartaoDaTurma(HTML);
+  const painel = (qual) => {
+    const i = c.indexOf('data-painel="' + qual + '"');
+    if (i === -1) return '';
+    return c.slice(i, i + 3000);
+  };
+  const elenco = painel('elenco');
+  // As duas células da grade, na ordem: cada uma com o seu rótulo, o seu número e os seus chips.
+  const celulas = [...elenco.matchAll(
+    /<div><span class="trio-k">([^<]*)<\/span><span class="trio-v">([^<]*)<\/span>(?:(<div class="trio-chips">)([\s\S]*?)<\/div>)?/g)]
+    .map((m) => ({ rotulo: m[1], valor: m[2], temChips: !!m[3],
+      chips: (m[4] || '').match(/<span>/g) ? (m[4].match(/<span>/g) || []).length : 0 }));
+  provar('o painel do Elenco tem duas células — Alunas e Recorte',
+    celulas.length === 2 && celulas[0].rotulo === 'Alunas' && celulas[1].rotulo === 'Recorte',
+    celulas.map((x) => x.rotulo));
+  provar('…e os chips das ALUNAS estão dentro da célula das alunas',
+    celulas[0] && celulas[0].temChips && celulas[0].chips === 2, celulas[0]);
+  provar('…e os do RECORTE dentro da célula do recorte — não soltos por baixo',
+    celulas[1] && celulas[1].temChips && celulas[1].chips === 5, celulas[1]);
+  provar('…e o número do recorte diz quantos são', celulas[1] && celulas[1].valor === '5 aspectos',
+    celulas[1] && celulas[1].valor);
+
+  const sala = painel('sala');
+  const posNota = sala.indexOf('Medida por');
+  const posEscala = sala.indexOf('class="trio-escala"');
+  provar('o rótulo «Medida por…» vem ANTES da régua, e não depois',
+    posNota !== -1 && posEscala !== -1 && posNota < posEscala, { posNota, posEscala });
+  provar('…e a régua vive num agrupador próprio, que é quem leva o ar de outro bloco',
+    /class="trio-regua"/.test(sala), (sala.match(/class="trio-regua"[^>]*/) || [])[0]);
+
+  /* A BASE DA TABELA. Esta asserção é ESTÁTICA de propósito: o jsdom não faz cascade de folha
+   * externa, e medir `border-bottom` computado ali mediria a ausência do CSS, não o desenho. O
+   * que se mede é a REGRA — e a regra foi a causa. Quem mede o pixel é o navegador, na nota do
+   * REGISTRO. */
+  const fonteCSS = fs.readFileSync(path.join(destino, 'motor/servidor/bastidores.js'), 'utf8');
+  /* SÓ AS LINHAS EMITIDAS — as que começam por `'`, e que são as que vão para a página. Procurar
+   * no ficheiro inteiro encontra também o COMENTÁRIO que narra o defeito, a citar a regra antiga.
+   * Já aconteceu duas vezes neste repositório (o elenco e o véu), e aconteceu aqui à terceira:
+   * a asserção reprovava o código certo por causa do texto que o explica. As linhas emitidas são
+   * concatenadas porque uma regra CSS parte-se por várias linhas de `'…' +`. */
+  const emitidas = fonteCSS.split('\n').filter((l) => /^\s*'/.test(l)).join('');
+  provar('nenhuma regra tira o filete da última linha da tabela do conteúdo',
+    emitidas.indexOf('tbody tr:last-child') === -1,
+    (emitidas.match(/\.trio-painel table[^']{0,80}last-child[^']{0,40}/) || [])[0]);
+  provar('…e o filete é dado a TODAS as células da tabela do painel',
+    /\.trio-painel table th,\.trio-painel table td\{[^}]*border-bottom:1px solid/.test(emitidas),
+    (emitidas.match(/\.trio-painel table th[^}]*\}/) || [])[0]);
+}
+
+// ==========================================================================================
 (async () => {
   let JSDOM, VirtualConsole;
   try { ({ JSDOM, VirtualConsole } = require(path.join(RAIZ, 'node_modules', 'jsdom'))); } catch (e) {
@@ -271,7 +348,7 @@ console.log('\n5. O RESUMO É O DA LISTAGEM DO ESTILO — a mesma leitura, sem r
     process.exit(2);
   }
 
-  console.log('\n6. O LINK ABRE A LINHA CERTA — e só quando se pede');
+  console.log('\n7. O LINK ABRE A LINHA CERTA — e só quando se pede');
 
   const NAVJS = fs.readFileSync(path.join(destino, 'tools/templates/nav.js'), 'utf8');
   function abrir(memoria) {

@@ -3983,35 +3983,67 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
                   ? '<p class="trio-nota">Falta ' + esc(fraseDaFalta(faltaDaSala))
                     + ' — sem isso a sala não pode receber um plano.</p>'
                   : '') +
+                /* A RÉGUA É OUTRA LINHA, E O RÓTULO DELA VEM PRIMEIRO (12/11/2026).
+                 *
+                 * O que ela viu: «vem a régua do plano. Medido por régua do plano está escrito
+                 * abaixo da régua. […] a escrita medido por régua piano, que está abaixo da régua
+                 * em si, vai ficar acima. Então esse espaçamento visual é que dá a noção de que ali
+                 * é um outro bloco.»
+                 *
+                 * São duas coisas, e as duas são de LEITURA: o rótulo é do que vem a seguir (chamar
+                 * «Medida por X» ao que está por cima da escala era nomear o que já passou), e o ar
+                 * antes dele é o que separa o RITMO da RÉGUA — dois assuntos da mesma sala.
+                 *
+                 * O `.trio-regua` é um AGRUPADOR: existe para a folha poder dar-lhe o ar de cima
+                 * sem tocar na `.trio-nota` (que também serve a falta de ritmo) nem na
+                 * `.trio-escala` (que também serve outros painéis). */
+                '<div class="trio-regua">' +
+                '<p class="trio-nota">' + (rubricaDaSala
+                  ? 'Medida por <b>' + esc(rubricaDaSala.nome) + '</b>.'
+                  : 'Medida pela régua padrão da escola.') + '</p>' +
                 '<div class="trio-escala">' + reguaDaSala.map((n, i) =>
                   '<span class="' + classeDoNivel(n, i, reguaDaSala.length) + '">' + esc(n)
                     + '</span>').join('') + '</div>' +
-                '<p class="trio-nota">' + (rubricaDaSala
-                  ? 'Medida por <b>' + esc(rubricaDaSala.nome) + '</b>.'
-                  : 'Medida pela régua padrão da escola.') + '</p>';
+                '</div>';
             }).join('')
           : '<div class="trio-frase">Esta Turma ainda não tem sala — e é a sala que dá o ritmo '
             + 'que o plano de ensino lê.</div>') +
           ligacao('Abrir a Sala', 'turmas', salasDaTurma[0] && salasDaTurma[0].id
             ? 'sala:' + salasDaTurma[0].id : '', 'abrir a sala desta Turma na lista das Salas');
         // ---- ELENCO -----------------------------------------------------------------------
+        /* DUAS COLUNAS, E CADA UMA É UM ASSUNTO INTEIRO (12/11/2026).
+         *
+         * O que ela viu, e o defeito é de leitura e não de gosto: «alunas, duas alunas, aluna A e
+         * aluna B. E aí do lado direito eu tenho recorte cinco aspectos. Contudo, o recorte cinco
+         * aspectos parece que pertence ao grupo que é alunas […] porque está posicionado
+         * extremamente à esquerda.»
+         *
+         * A CAUSA. Os dois números estavam numa `.trio-grade` (duas colunas) e os dois conjuntos de
+         * chips vinham DEPOIS dela, a toda a largura, um debaixo do outro. Resultado medido: os
+         * chips das alunas e os do recorte começavam os dois no mesmo x — e os do recorte ficavam
+         * debaixo dos das alunas, longe do «5 aspectos» que os nomeia.
+         *
+         * A CORREÇÃO É AGRUPAR O QUE É DO MESMO ASSUNTO: cada coluna leva o seu rótulo, o seu número
+         * e os seus chips. A peça é a mesma (`.trio-grade`, duas colunas de 1fr); o que muda é o que
+         * fica dentro de cada célula. */
+        const colunaDoElenco = (rotulo, valor, conteudo, vazio) =>
+          '<div><span class="trio-k">' + esc(rotulo) + '</span><span class="trio-v">'
+            + esc(valor) + '</span>' +
+          (conteudo.length
+            ? '<div class="trio-chips">' + conteudo.map((x) => '<span>' + esc(x) + '</span>').join('')
+              + '</div>'
+            : '<p class="trio-nota">' + vazio + '</p>') + '</div>';
         const painelElenco = (elencoDaCuradoria
           ? '<div class="trio-grade">' +
-              '<div><span class="trio-k">Alunas</span><span class="trio-v">'
-                + (corpoDoElenco.length === 1 ? '1 aluna' : corpoDoElenco.length + ' alunas')
-                + '</span></div>' +
-              '<div><span class="trio-k">Recorte</span><span class="trio-v">'
-                + (recorteDoElenco.length === 1 ? '1 aspecto'
-                  : recorteDoElenco.length + ' aspectos') + '</span></div></div>' +
-            (corpoDoElenco.length
-              ? '<div class="trio-chips">' + corpoDoElenco.map((a) =>
-                  '<span>' + esc(a) + '</span>').join('') + '</div>'
-              : '<p class="trio-nota">Este elenco não tem nenhuma aluna — a Turma ficou sem corpo.</p>') +
-            (recorteDoElenco.length
-              ? '<div class="trio-chips">' + recorteDoElenco.map((x) =>
-                  '<span>' + esc(x.nome || x.id) + '</span>').join('') + '</div>'
-              : '<p class="trio-nota">Nenhum aspecto no recorte — é dele que o plano de ensino '
-                + 'importa o que se observa.</p>')
+              colunaDoElenco('Alunas',
+                corpoDoElenco.length === 1 ? '1 aluna' : corpoDoElenco.length + ' alunas',
+                corpoDoElenco,
+                'Este elenco não tem nenhuma aluna — a Turma ficou sem corpo.') +
+              colunaDoElenco('Recorte',
+                recorteDoElenco.length === 1 ? '1 aspecto' : recorteDoElenco.length + ' aspectos',
+                recorteDoElenco.map((x) => x.nome || x.id),
+                'Nenhum aspecto no recorte — é dele que o plano de ensino importa o que se observa.') +
+              '</div>'
           : '<div class="trio-frase">Esta Turma ainda não escolheu elenco — e é o elenco que traz '
             + 'o corpo que a aula observa.</div>') +
           ligacao('Abrir o Elenco', 'corpo', c.linhaDeBase ? 'elenco:' + c.linhaDeBase : '',
@@ -4649,13 +4681,37 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A TABELA DO CONTEÚDO, NO PAINEL DA TURMA (12/11/2026). A peça é a `table` da folha; o que
     // esta linha acrescenta é o que o PAINEL pede — uma tabela dentro de uma caixa de leitura não
     // é o documento: sem margem exterior (o `.trio-painel` já tem ar), um corpo mais pequeno e um
-    // filete só entre as linhas, para quatro colunas de resumo não se lerem como uma página.
+    // filete em cada linha, para quatro colunas de resumo não se lerem como uma página.
+    //
+    /* A ÚLTIMA LINHA TAMBÉM TEM A SUA BORDA — e esta linha já foi a que faltava (12/11/2026).
+     *
+     * Aqui esteve `tbody tr:last-child td{border-bottom:0}`, e o efeito foi o que ela descreveu:
+     * «a última linha, a borda da última linha, está sendo engolida […] não está aparecendo».
+     * Medido: as duas primeiras linhas com `border-bottom:1px`, a última com `0px` — a tabela
+     * fechava em cima e ficava aberta em baixo.
+     *
+     * A INTENÇÃO ERA BOA E O MEIO É QUE ESTAVA ERRADO: tirar o filete do último `td` para a base da
+     * tabela não ficar com dois traços (o da célula e o do painel). Mas o painel tem ar (`.7rem`
+     * em baixo) e a borda dele é outra; o que sobrava era uma linha sem base, que se lê como
+     * tabela cortada — o modo de falha mais silencioso, porque não há nada «errado» a apontar.
+     *
+     * A REGRA QUE FICA: a última linha tem a mesma base que as outras. Quem quiser fechar o bloco
+     * usa o ar do contentor, não a ausência de aresta. A checagem `Base` de
+     * `tools/check-identidade.js` passou a reprovar este padrão — e ela mede também as folhas
+     * locais das páginas, que é onde este defeito viveu sem ninguém o ver. */
     '.trio-painel table{margin:0;font-size:.85rem;}' +
     '.trio-painel table th,.trio-painel table td{padding:.3rem .45rem;text-align:left;' +
     'vertical-align:top;border-bottom:1px solid var(--borda-campo);}' +
     '.trio-painel table thead th{font:700 .66rem/1.2 var(--ui);letter-spacing:.06em;' +
     'text-transform:uppercase;color:var(--texto-suave);}' +
-    '.trio-painel table tbody tr:last-child td{border-bottom:0;}' +
+    // O RITMO E A RÉGUA SÃO DOIS ASSUNTOS (12/11/2026). O agrupador existe para o ar ser dele —
+    // `1rem` acima separa-o do grade do ritmo, e a `.trio-nota` que ele embrulha já traz o ar de
+    // baixo que a escala precisa. Sem esta linha o vão era de 8px, e a régua lia-se como uma
+    // quarta linha do ritmo.
+    '.trio-regua{margin-top:1rem;}' +
+    // OS CHIPS DENTRO DE UMA COLUNA precisam de ar do número que os nomeia: a `.trio-chips` é uma
+    // fila, e encostada ao `.trio-v` as duas linhas de texto colavam-se.
+    '.trio-painel .trio-grade .trio-chips{margin-top:.3rem;}' +
     // O QUE FALTA, DITO: uma nota âmbar discreta, ao lado do botão que está travado.
     '.nota-pendencia{margin:.5rem 0 0;padding:.4rem .6rem;border-radius:var(--raio-1);' +
     'background:var(--alerta-fundo);border:1px solid var(--borda-campo);' +

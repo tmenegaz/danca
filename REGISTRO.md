@@ -42963,3 +42963,85 @@ de JavaScript.
 (`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
 escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
 primeiro «Gravar».
+
+---
+
+## 12/11/2026 — Duas colunas, o rótulo acima, e a base que faltava
+
+**O que aconteceu.** Três leituras do mesmo cartão, no mesmo dia, e uma delas pela terceira vez:
+
+1. «alunas, duas alunas, aluna A e aluna B. E aí do lado direito eu tenho recorte cinco aspectos.
+   Contudo, o recorte cinco aspectos parece que pertence ao grupo que é alunas […] porque está
+   posicionado extremamente à esquerda.»
+2. «vem a régua do plano. Medido por régua do plano está escrito abaixo da régua […] vai ficar
+   acima. Então esse espaçamento visual é que dá a noção de que ali é um outro bloco.»
+3. «a última linha, a borda da última linha, está sendo engolida […] a borda inferior, que está com
+   problema e esse problema tem sido recorrente […] já documentamos que isso não pode acontecer.»
+
+**O que foi medido, antes de mexer.** Os dois números do elenco estavam numa `.trio-grade` de duas
+colunas, e os dois conjuntos de chips vinham **depois** dela, a toda a largura: os chips das alunas e
+os do recorte começavam os dois no mesmo `x` (715 a 1280px; 88 a 390px). O vão entre o ritmo e a
+régua era de **8px**, e a nota «Medida por…» estava **abaixo** da escala (`notaTopo 480` > `escalaTopo
+445`). E a tabela do conteúdo tinha `border-bottom: 1px` nas duas primeiras linhas e **`0px` na
+última** — a causa era uma regra escrita de boa-fé, `tbody tr:last-child td{border-bottom:0}`.
+
+**O que ficou.**
+- **Cada assunto é uma coluna.** O painel do Elenco passou a agrupar rótulo, número e chips na mesma
+  célula: as duas alunas à esquerda, os cinco aspectos à direita, cada conjunto por baixo do seu
+  número. A peça é a mesma (`.trio-grade`); mudou o que está dentro dela.
+- **O rótulo da régua vem primeiro, e a régua é outro bloco.** «Medida por Régua do Plano.» passou a
+  estar **acima** da escala, e a linha da régua vive num agrupador (`.trio-regua`) que leva o ar de
+  cima — o vão subiu de 8px para 16px. O rótulo é do que vem a seguir; chamar «medida por X» ao que
+  está por cima era nomear o que já passou.
+- **A última linha tem a mesma base que as outras.** A regra que apagava o filete saiu. O bloco
+  fecha-se com a aresta, não com a ausência dela.
+
+**A correcção estrutural — porque isto não pode voltar.** A checagem **11 «Base»** do
+`tools/check-identidade.js` passou a reprovar qualquer regra que tire o filete inferior de um
+`:last-child`/`:last-of-type` cujo alvo já recebia filete. E ela mede **também as folhas locais das
+páginas** — os `<style>` que cada superfície emite —, que é onde este defeito viveu sem ninguém o
+ver: a checagem 9 («Aresta») só olha `ciclo.css` e só procura **moldura completa** amputada, e
+`border-bottom` de um lado só é **filete**, não moldura. No dia em que passou a medir, encontrou
+**outro** caso, real e anterior: a `table.tabela-parametros` da **porta** tinha o mesmo
+`border-bottom: 0` na última linha. Também corrigido.
+
+**E um modo que faltava ao scaffolding.** A porta é documento **compartilhado** — copiada de
+`porta/` para todos os pacotes —, exactamente como a apresentação. Quando o CSS dela muda, todos os
+pacotes ficam velhos e a checagem «Circuito» reprova-os; mas só o `gerar-ciclo.sh` regenerava
+pacotes, e o **pacote-zero** (o que nasce com a escola, sem plano e sem aulas) não tem gerador — quem
+o escreve é o `criar-escola.sh`, que **recusa** correr sobre o que já existe. A saída era apagar a
+escola, que é o contrário de proveniência. `tools/criar-escola.sh --somente-porta` faz agora os dois
+passos do scaffolding e só esses: recopia `porta/` e reinjeta a barra. O pacote-zero do `calango` foi
+regenerado por ele.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — os três painéis e
+o CSS local · [tools/check-identidade.js](./tools/check-identidade.js) — a checagem «Base» e
+`arestasQueUmaRegraRemove` extraída para lhe servir · [tools/criar-escola.sh](./tools/criar-escola.sh)
+— `--somente-porta` · [porta/index.html](./porta/index.html) — a base da tabela de parâmetros ·
+[experimentos/provar-o-cartao-da-turma-do-trio.js](./experimentos/provar-o-cartao-da-turma-do-trio.js)
+— secção 6 nova · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — a checagem 11.
+
+**Validação.** `provar-o-cartao-da-turma-do-trio` **50/50** (eram 42; as 8 novas medem as colunas, o
+rótulo acima da régua e a base da tabela); controle negativo contra `a7fb7074`: **5 falhas** — os
+chips fora das colunas, o rótulo depois da escala e a regra que apagava a base. Sem regressão:
+`provar-identidade-da-turma` 77 · `provar-o-passo-da-sala` 24 · `provar-salas-e-elencos` 65 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `provar-ar-das-paginas` verde · `provar-cadastro-visivel`
+12 · `provar-o-veu-de-cada-gesto` 39 · `provar-veu-da-operacao` 23 ·
+`provar-conteudos-e-estado-da-turma` verde · `provar-elenco-sem-ninguem` 59 ·
+`provar-revisao-do-recorte` 47 · `provar-elenco-na-turma` 26 · `provar-sujeitos-da-turma` 41 ·
+`check-identidade` **0 erros, 22 verificações** · `check-indices` 16/16.
+
+As que já falhavam antes continuam iguais: `provar-cartao-da-turma` 6, `provar-derivacao-da-turma`
+20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
+`provar-producao` 2, e as que rebentam por módulo ausente (`provar-selo`,
+`provar-turmas-do-professor`, `provar-paginacao`) — medidas contra o código anterior.
+
+**Medido no navegador.** Bordas da tabela: `1px · 1px · 1px` (eram `1px · 1px · 0px`). Colunas do
+elenco: chips das alunas em `x=715` e do recorte em `x=981` a 1280px; `88` e `222` a 390px — cada
+conjunto na sua coluna. Régua: vão de **16px**, com «Medida por Régua do Plano.» acima da escala.
+Zero erros de JavaScript.
+
+**Uma lição, pela terceira vez.** As duas asserções estáticas desta secção reprovaram o código certo
+porque encontravam o **comentário** que narra o defeito, a citar a regra antiga. Passaram a olhar só
+as linhas **emitidas**. É a mesma armadilha do elenco e do véu — e a regra que fica é que uma
+asserção que procura texto no código encontra também o texto que fala dele.

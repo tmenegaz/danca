@@ -48,7 +48,7 @@ MODELO="modelo/01"
 # principal». A lista de onde este valor sai é `biblioteca/modalidades/modalidades.json`; o
 # padrão é a única modalidade que hoje tem repertório.
 MODALIDADE="bale-classico"
-DEPLOY=0;          NAO_INTERATIVO=0; SOMENTE_INDICE=0
+DEPLOY=0;          NAO_INTERATIVO=0; SOMENTE_INDICE=0; SOMENTE_PORTA=0
 
 # ---------------------------------------------------------------------------
 # Ajuda
@@ -82,6 +82,9 @@ OPÇÕES COM PADRÃO:
 FLAGS:
   --somente-indice          SÓ regenera a apresentação (index.html) de um pacote que já
                             existe — usa os manifestos como estão e não toca em mais nada
+  --somente-porta           SÓ regenera a PORTA (plano-observacao/) de um pacote que já
+                            existe: recopia `porta/` e reinjeta a barra. Para quando a porta
+                            muda e os pacotes ficam velhos
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
   --nao-interativo          não pergunta: erro se faltar obrigatório
   --help                    esta ajuda
@@ -124,6 +127,7 @@ while [ "$#" -gt 0 ]; do
     --modelo)          MODELO="$2"; shift 2 ;;
     --modalidade)      MODALIDADE="$2"; shift 2 ;;
     --somente-indice)  SOMENTE_INDICE=1; shift ;;
+    --somente-porta)   SOMENTE_PORTA=1; shift ;;
     --deploy)          DEPLOY=1; shift ;;
     --nao-interativo)  NAO_INTERATIVO=1; shift ;;
     --help|-h)         uso; exit 0 ;;
@@ -147,9 +151,9 @@ pedir() { # $1 = rótulo ; $2 = nome da variável
   fi
 }
 
-# Com --somente-indice nada disto é perguntado: a identidade do pacote vem dos
+# Com --somente-indice (ou --somente-porta) nada disto é perguntado: a identidade do pacote vem dos
 # argumentos (--professor/--escola/--ciclo) e o resto, dos manifestos que já existem.
-if [ "$SOMENTE_INDICE" != 1 ]; then
+if [ "$SOMENTE_INDICE" != 1 ] && [ "$SOMENTE_PORTA" != 1 ]; then
   pedir "slug do professor"        PROFESSOR
   pedir "nome do professor"        PROFESSOR_NOME
   pedir "slug da escola"           ESCOLA
@@ -271,6 +275,53 @@ somente_indice() {
 }
 
 # ---------------------------------------------------------------------------
+# --somente-porta: regenera a PORTA (`plano-observacao/`) de um pacote que já existe
+#
+# PORQUE EXISTE (12/11/2026). A porta é um DOCUMENTO COMPARTILHADO — o mesmo em todas as escolas
+# e em todos os ciclos, copiado de `porta/` —, exactamente como a apresentação. Quando o CSS
+# dela muda, TODOS os pacotes ficam velhos de uma vez, e a checagem «Circuito» do
+# `check-identidade.js` reprova-os: «divergiu de porta/index.html — regenere o pacote».
+#
+# NÃO HAVIA COMO. O `gerar-ciclo.sh` regenera os pacotes COM escola (e é caro: compõe os
+# documentos e os PDFs), mas o PACOTE-ZERO — o que nasce com a escola, sem plano e sem aulas —
+# não tem gerador: quem o escreve é este script, que RECUSA correr sobre o que já existe. A
+# única saída seria apagar a escola, que é o contrário de proveniência.
+#
+# O que ele faz: recopia `porta/` para o pacote e reinjeta a barra no marcador `<!-- NAV -->` —
+# os dois passos do scaffolding, e só esses. Não toca no índice, nos manifestos, nos schemas,
+# no config do Worker, nem em documento nenhum do ciclo.
+# ---------------------------------------------------------------------------
+somente_porta() {
+  local conf="$CICLOS_DIR/ciclo-$CICLO.conf" var="$CICLOS_DIR/ciclo-$CICLO-$ESCOLA.conf"
+  [ -f "$conf" ] || { echo "erro: manifesto não encontrado: $conf" >&2; exit 1; }
+  [ -f "$var" ]  || { echo "erro: manifesto não encontrado: $var" >&2; exit 1; }
+  [ -d "$PACOTE_DIR" ] || { echo "erro: o pacote não existe: $PACOTE_DIR" >&2; exit 1; }
+
+  # Os valores da barra vêm dos manifestos, e depois do `source` voltam a ser as SLUGS — é com
+  # elas que os links da porta se escrevem (`?professor=<slug>&escola=<slug>`).
+  source "$conf"
+  source "$var"
+  PROFESSOR="$(basename "$PROF_DIR")"; ESCOLA="$VARIANTE"
+
+  mkdir -p "$PACOTE_DIR/plano-observacao"
+  cp -R "$RAIZ/porta/." "$PACOTE_DIR/plano-observacao/"
+
+  local nav; nav="$(gerar_nav_zero '/' 'porta')"
+  python3 - "$PACOTE_DIR/plano-observacao/index.html" "$nav" <<'PY'
+import sys, pathlib
+pagina, nav = sys.argv[1], sys.argv[2]
+texto = pathlib.Path(pagina).read_text(encoding='utf-8')
+marca = texto.count('<!-- NAV -->')
+if marca != 1:
+    sys.exit('porta: marcador <!-- NAV --> nao encontrado (ou repetido) — esperado 1, veio %d' % marca)
+pathlib.Path(pagina).write_text(texto.replace('<!-- NAV -->', nav, 1), encoding='utf-8')
+PY
+
+  echo "  porta: $PACOTE_DIR/plano-observacao/ (recopiada de porta/ e com a barra do site)"
+  echo "  (o índice, os documentos, os manifestos e o Worker NÃO foram tocados)"
+}
+
+# ---------------------------------------------------------------------------
 # Validação
 # ---------------------------------------------------------------------------
 slug_ok() { printf '%s' "$1" | grep -qE '^[a-z0-9][a-z0-9-]*$'; }
@@ -281,8 +332,8 @@ slug_ok "$PROFESSOR" || { echo "erro: --professor inválido (esperado [a-z0-9-])
 slug_ok "$ESCOLA"    || { echo "erro: --escola inválido (esperado [a-z0-9-]): $ESCOLA" >&2; exit 1; }
 slug_ok "$WORKER"    || { echo "erro: --worker inválido (esperado [a-z0-9-]): $WORKER" >&2; exit 1; }
 printf '%s' "$CICLO" | grep -qE '^[0-9]{2}$' || { echo "erro: --ciclo deve ter dois dígitos: $CICLO" >&2; exit 1; }
-# Com --somente-indice estes dois vêm dos manifestos, não dos argumentos.
-if [ "$SOMENTE_INDICE" != 1 ]; then
+# Com --somente-indice/--somente-porta estes dois vêm dos manifestos, não dos argumentos.
+if [ "$SOMENTE_INDICE" != 1 ] && [ "$SOMENTE_PORTA" != 1 ]; then
 # A data de início aceita a lacuna [Preencher: ...] (o plano a estabelece) ou uma data real.
 { data_ok "$DATA_INICIO" || printf '%s' "$DATA_INICIO" | grep -q '\['; } \
   || { echo "erro: --data-inicio deve ser dd/mm/aaaa ou a lacuna [Preencher: ...]: $DATA_INICIO" >&2; exit 1; }
@@ -333,6 +384,7 @@ CONF_VARIANTE="$CICLOS_DIR/ciclo-$CICLO-$ESCOLA.conf"
 WRANGLER="$RAIZ/wrangler.$WORKER.jsonc"
 
 [ "$SOMENTE_INDICE" = 1 ] && { somente_indice; exit 0; }
+[ "$SOMENTE_PORTA" = 1 ]  && { somente_porta;  exit 0; }
 
 if [ -e "$CONF_VARIANTE" ] || [ -e "$PACOTE_DIR" ] || [ -e "$WRANGLER" ]; then
   echo "erro: a escola/ciclo já existe — não sobrescrevo (a proveniência acrescenta, não edita)." >&2

@@ -366,7 +366,7 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas dez checagens
+## O validador, e as suas onze checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
@@ -434,6 +434,21 @@ falhar. Ele confere:
    navegador a dizer `ok`. Todas mediam **presença**; o defeito era de **distância**. A auditoria
    das outras páginas, no mesmo dia, acrescentou o rodapé (texto a 5px do filete, filete a 0,4px
    do último parágrafo) e o vão depois da faixa, que tinha três valores.
+11. **Base** — nenhuma folha tira o filete da **última** linha de um bloco que o tem nas outras.
+   Uma regra que remove `border-bottom` de um `:last-child`/`:last-of-type` cujo alvo já recebia
+   filete fica reprovada, e a mensagem diz o que fazer: para separar o bloco do que vem a seguir
+   usa-se o **ar do contentor**, não a ausência de aresta. Nasceu em 12/11/2026, e do mesmo
+   sintoma pela terceira vez: «a última linha, a borda da última linha, está sendo engolida […] e
+   esse problema tem sido recorrente». Medido, era literal — as duas primeiras linhas da tabela
+   com `border-bottom: 1px` e a última com `0px`, por causa de um `tbody tr:last-child td` escrito
+   de boa-fé.
+
+   **Porque é que a checagem 9 («Aresta») não o apanhava.** Ela mede a **folha** e procura uma
+   **moldura completa** a ser amputada. Esta regra vivia no `<style>` de uma página, e
+   `border-bottom` de um lado só não é moldura — é **filete**. São duas perguntas diferentes, e
+   por isso duas checagens: esta mede também **as folhas locais das páginas**, que é onde o
+   defeito viveu sem ninguém o ver. No dia em que passou a medir, encontrou **outro** caso, na
+   porta (`table.tabela-parametros`), que ninguém tinha notado.
 
 ### A regra da composição — o que a «Forma» impede *(18/10/2026)*
 

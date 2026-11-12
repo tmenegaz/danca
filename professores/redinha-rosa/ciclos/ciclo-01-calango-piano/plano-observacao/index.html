@@ -554,8 +554,10 @@
   table.tabela-parametros thead th.parametro { text-align: left; }
   table.tabela-parametros tbody th { text-align: left; font-weight: 400; color: var(--texto);
     min-width: 10rem; }
-  table.tabela-parametros tbody tr:last-child th, table.tabela-parametros tbody tr:last-child td {
-    border-bottom: 0; }
+  /* A ÚLTIMA LINHA TAMBÉM TEM BASE (12/11/2026). Aqui esteve `border-bottom: 0` na última linha — a
+     mesma intenção de não duplicar o filete, o mesmo efeito de tabela cortada. A regra passou a ser
+     verificada (`check-identidade.js`, checagem «Base»): quem quer separar o bloco do que vem a
+     seguir usa o ar do contentor, não a ausência de aresta. */
   table.tabela-parametros tbody tr:hover { background: var(--fundo-suave); }
   table.tabela-parametros td.marca { width: 2.6rem; }
   table.tabela-parametros input[type="checkbox"] { width: 1.05rem; height: 1.05rem; cursor: pointer; }

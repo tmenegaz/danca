@@ -829,6 +829,27 @@ const PROPRIEDADES_DE_FORMA =
  * redesenhar o selo. `.turma .escala li` tem o `li` como alvo: a página está a
  * arrumar a sua própria peça, e o componente que ela usa de empréstimo não muda.
  */
+const LADOS_DA_MOLDURA = ['top', 'right', 'bottom', 'left'];
+
+/**
+ * As arestas que uma regra REMOVE — `border-bottom:0`, `border-bottom-style:none`,
+ * `border-bottom-width:0px`. Extraída de `conferirArestas` a 12/11/2026 para a checagem `Base` a
+ * poder usar: são a MESMA pergunta («esta regra apaga uma borda?»), e escrevê-la duas vezes daria
+ * duas respostas no dia em que uma delas mudasse.
+ */
+function arestasQueUmaRegraRemove(corpo) {
+  const removidas = [];
+  for (const lado of LADOS_DA_MOLDURA) {
+    const curto = new RegExp('(?:^|;)\\s*border-' + lado + '\\s*:\\s*(none|0)(?:px)?\\b', 'i');
+    const estilo = new RegExp('(?:^|;)\\s*border-' + lado + '-style\\s*:\\s*none\\b', 'i');
+    const largura = new RegExp('(?:^|;)\\s*border-' + lado + '-width\\s*:\\s*0(?:px)?\\b', 'i');
+    if (curto.test(corpo) || estilo.test(corpo) || largura.test(corpo)) removidas.push(lado);
+  }
+  // `border: none` remove as quatro — e isso é uma decisão, não uma aresta a menos.
+  if (/(?:^|;)\\s*border\\s*:\\s*(none|0)\\b/i.test(corpo)) return [];
+  return removidas;
+}
+
 function alvoDaRegra(seletor) {
   const ultimo = seletor.trim().split(/[\s>+~]+/).pop() || '';
   return ultimo.replace(/::?[a-z-]+(\([^)]*\))?/g, '');
@@ -1220,20 +1241,8 @@ function conferirArestas() {
     return { estilo: estilo[1] };
   };
 
-  const LADOS = ['top', 'right', 'bottom', 'left'];
-  /** As arestas que esta regra REMOVE (e a moldura completa não repõe). */
-  const arestasRemovidas = (corpo) => {
-    const removidas = [];
-    for (const lado of LADOS) {
-      const curto = new RegExp('(?:^|;)\\s*border-' + lado + '\\s*:\\s*(none|0)(?:px)?\\b', 'i');
-      const estilo = new RegExp('(?:^|;)\\s*border-' + lado + '-style\\s*:\\s*none\\b', 'i');
-      const largura = new RegExp('(?:^|;)\\s*border-' + lado + '-width\\s*:\\s*0(?:px)?\\b', 'i');
-      if (curto.test(corpo) || estilo.test(corpo) || largura.test(corpo)) removidas.push(lado);
-    }
-    // `border: none` remove as quatro — e isso é uma decisão, não uma aresta a menos.
-    if (/(?:^|;)\s*border\s*:\s*(none|0)\b/i.test(corpo)) return [];
-    return removidas;
-  };
+  const LADOS = LADOS_DA_MOLDURA;
+  const arestasRemovidas = arestasQueUmaRegraRemove;
 
   // As peças com moldura, na ordem em que a folha as declara. O índice é a posição da regra:
   // só uma regra POSTERIOR pode amputar o que uma anterior desenhou.
@@ -1272,6 +1281,87 @@ function conferirArestas() {
   }
 }
 conferirArestas();
+
+// ------------------------------------------- 10) a base do bloco
+//
+// O CASO QUE CRIOU ESTA CHECAGEM (12/11/2026). Ela abriu o painel «Conteúdo» do cartão da Turma e
+// viu o que já tinha visto antes, noutro sítio: «a última linha, a borda da última linha, está
+// sendo engolida […] a borda inferior, que está com problema e esse problema tem sido recorrente.»
+//
+// MEDIDO: as duas primeiras linhas da tabela com `border-bottom: 1px`, a última com `0px`. A causa
+// era uma regra escrita de boa-fé — `tbody tr:last-child td{border-bottom:0}` —, cuja intenção era
+// a base da tabela não ficar com dois traços. O efeito é uma tabela que fecha em cima e fica
+// aberta em baixo, e isso lê-se como tabela cortada.
+//
+// PORQUE É QUE A CHECAGEM 9 (`Aresta`) NÃO O APANHOU: ela mede a FOLHA (`tools/templates/ciclo.css`)
+// e procura uma MOLDURA completa a ser amputada. Esta regra vive no `<style>` de uma página, e
+// `border-bottom` de um lado só não é uma moldura — é um FILETE. São duas perguntas diferentes:
+// «esta peça perdeu um lado da caixa?» e «este bloco perdeu a base?».
+//
+// A REGRA: se uma regra dá filete inferior a um alvo e OUTRA, mais adiante, o tira de um
+// `:last-child`/`:last-of-type` desse mesmo alvo, o bloco fica sem base. Não há caso legítimo: quem
+// quer separar o bloco do que vem a seguir usa o AR do contentor, não a ausência de aresta.
+function conferirBase() {
+  const problemas = [];
+  const FILEITE = /(?:^|;)\s*border-bottom\s*:\s*([^;}]+)/i;
+  const temFilete = (corpo) => {
+    const m = FILEITE.exec(corpo);
+    if (!m) return false;
+    const v = m[1].trim();
+    if (/^(none|0)\b/i.test(v)) return false;
+    return /(solid|dashed|dotted|double)/i.test(v);
+  };
+
+  /** O que esta regra pinta: as classes do seletor e o ELEMENTO do último composto. */
+  const pinta = (seletor) => {
+    const classes = new Set();
+    for (const m of seletor.matchAll(/\.([a-z][a-z0-9-]*)/g)) classes.add(m[1]);
+    const elemento = (alvoDaRegra(seletor).match(/^[a-z][a-z0-9]*/i) || [''])[0].toLowerCase();
+    return { classes, elemento };
+  };
+  const toca = (a, b) => {
+    for (const c of a.classes) if (b.classes.has(c)) return true;
+    return !!a.elemento && a.elemento === b.elemento;
+  };
+
+  // Uma folha de cada vez: a da casa e as das páginas (o `<style>` que cada uma emite). É a
+  // segunda que faltava, e é onde este defeito viveu.
+  const folhas = [['tools/templates/ciclo.css', fs.readFileSync(fonte, 'utf8')]];
+  for (const [nome, html] of superficiesQueEmitem()) {
+    for (const bloco of blocosDeEstilo(html, nome + '.html')) folhas.push([nome, bloco]);
+  }
+
+  for (const [nome, texto] of folhas) {
+    const regras = [];
+    let posicao = 0;
+    for (const m of texto.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      posicao += 1;
+      for (const seletor of m[1].split(',')) {
+        regras.push({ posicao, seletor: seletor.trim().replace(/\s+/g, ' '), corpo: m[2] });
+      }
+    }
+    for (const regra of regras) {
+      if (!/(:last-child|:last-of-type)/.test(regra.seletor)) continue;
+      if (arestasQueUmaRegraRemove(regra.corpo).indexOf('bottom') === -1) continue;
+      const alvo = pinta(regra.seletor);
+      const anterior = regras.find((r) => r.posicao < regra.posicao && temFilete(r.corpo)
+        && toca(pinta(r.seletor), alvo));
+      if (!anterior) continue;
+      problemas.push(
+        `Base: em ${nome}, a regra «${regra.seletor}» tira o filete inferior do ÚLTIMO elemento ` +
+        `— e «${anterior.seletor}» dá-o a todos. O bloco fica sem base e lê-se como cortado. ` +
+        'A última linha tem a mesma borda que as outras: para separar o bloco do que vem a ' +
+        'seguir use o ar do contentor, não a ausência de aresta');
+    }
+  }
+
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push(`Base: nenhuma das ${folhas.length} folhas (a da casa e as ${folhas.length - 1} das ` +
+      'páginas) tira o filete da última linha de um bloco que o tem nas outras');
+  }
+}
+conferirBase();
 
 // ------------------------------------------- 10) o respiro do cabeçalho
 //
