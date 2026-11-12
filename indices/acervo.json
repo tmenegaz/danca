@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "5e3c1933b32665cbc9cf142a2eab4c4f0bf6e3139ceab0ab16af229d694ed941",
+        "hash": "6b8d6e01e2158326648d7b9c126047fe4d121f869c3c37c80f97910e97032d20",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -320,9 +320,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8d71813"
+    "commit": "dd65a01"
   },
-  "gerado_em": "2026-11-12T11:40",
+  "gerado_em": "2026-11-12T17:45",
   "nao_indexado": [
     {
       "familia": "conteudo",

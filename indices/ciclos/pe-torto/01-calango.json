@@ -16,8 +16,8 @@
       "professores/pe-torto/ciclos/ciclo-01-calango-piano.conf",
       "professores/pe-torto/ciclos/ciclo-01.conf"
     ],
-    "hash": "5e3c1933b32665cbc9cf142a2eab4c4f0bf6e3139ceab0ab16af229d694ed941",
-    "hash_conteudo": "b1998c966d071c253e9f55636613ff96585e368a54393394cad969f90c775c7b",
+    "hash": "6b8d6e01e2158326648d7b9c126047fe4d121f869c3c37c80f97910e97032d20",
+    "hash_conteudo": "082dc3679ab1915874cc34e4578f9221be3c51522124742fd36b7c41811c143c",
     "id": "ciclo-01-calango-piano",
     "lida": true,
     "parent_hash": ""
@@ -139,9 +139,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8d71813"
+    "commit": "dd65a01"
   },
-  "gerado_em": "2026-11-12T11:40",
+  "gerado_em": "2026-11-12T17:45",
   "id": "ciclo:pe-torto/01/calango",
   "professor": "pe-torto",
   "versao": 6
