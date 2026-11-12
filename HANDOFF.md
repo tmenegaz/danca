@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T23:19:08-0300`
-Commit atual: `b9781916` — feat(experimentos): a bancada das tres formas do veu
+Gerado em: `2026-11-11T23:46:23-0300`
+Commit atual: `831a43e1` — fix(experimentos): a bancada do veu deixa de se trancar a si mesma
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+831a43e1 fix(experimentos): a bancada do veu deixa de se trancar a si mesma
+84a14bd4 chore(estrutura): regerar o HANDOFF
 b9781916 feat(experimentos): a bancada das tres formas do veu
 a138dd38 feat(template): uma pagina pode pedir a operacao so para si
 7633255a chore(entrega): gerar o pacote de pe-torto/01/calango-piano
@@ -90,8 +92,6 @@ c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas 
 7b34eb28 fix(template): o veu deixa ver a pagina, e a operacao atravessa as abas
 d2d62ce3 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 737af15b chore(estrutura): reancorar a cadeia das fontes alteradas
-09c008fe chore(estrutura): regerar os índices derivados
-f614cd9d chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -196,6 +196,25 @@ tela como se fosse também um pouco mais forte que uma marca d'água, sem nenhum
   declarado na marcação e não em JavaScript porque o `nav.js` corre **antes** do script da
   página — uma linha de script chegaria tarde.
 
+**Nota de correção — 11/11/2026, ao abrir a página.** A bancada foi publicada e **não se podia
+usar**: «está em looping, está carregando o tempo todo e eu não consigo ver as opções […] só me
+mostra o cartão. Eu não consigo ir para a opção um, nem para a opção dois.» Não era a página — era
+o véu a fazer o ofício dele **sobre a própria bancada**. O módulo põe `inert` em **todos** os
+filhos do `body` durante a operação, e o painel que escolhe as opções é um deles: nenhum botão
+respondia ao rato nem ao teclado, e o giro continuava porque a bancada republica a operação para
+não a perder a meio. Medido: `#bancada` com `inert: true`, `display: flex`, e a aba `hidden` — a
+página inteira trancada por baixo de um painel que também estava trancado.
+
+Três correções, todas **na bancada** e nenhuma no `nav.js`: (1) o painel e a aba são **desafogados**
+depois de cada publicação (`desafogar()`), porque o que se liberta é o painel — a Produção por
+baixo continua trancada, que é ela que se está a julgar; (2) um **interruptor** no rodapé da
+bancada, «Tirar o véu» / «Pôr o véu», que chama `liberar()` e `ocupar()` — sem ele não se podia
+conferir o que o véu esconde, e comparar exige poder tirar e repor; (3) a **nota «a operação
+começou noutra aba»** é removida nesta página, porque aqui seria **falsa** (a operação é desta aba,
+publicada pela própria bancada) e ainda ia ser lida por quem ouve. E a renovação de 45 s passou a
+respeitar `document.hidden`: uma bancada esquecida em segundo plano não fica a publicar uma
+operação que já ninguém está a ver.
+
 **Motivo declarado — os congelados.** `tools/templates/nav.js` está em `CONGELAMENTO.md` e muda
 por seis linhas: três guardas (`ler`, `escrever`, `transmitir`) e duas condições (`storage` e
 `BroadcastChannel`), todas dependentes de uma única leitura do atributo. O que muda no
@@ -210,7 +229,10 @@ foram regeradas (a `raiz/` por `tools/gerar-raiz.sh`, os cinco pacotes por cópi
 [tools/templates/nav.js](./tools/templates/nav.js) — o modo privado · as cinco cópias de
 `assets/nav.js` e a da `raiz/` ·
 [experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
-secção I (27 asserções, eram 23).
+secção I (27 asserções, eram 23) ·
+[experimentos/provar-bancada-do-veu.js](./experimentos/provar-bancada-do-veu.js) — 30 asserções
+sobre a bancada (o painel responde, o clique chega ao botão, o interruptor tira e repõe, a nota
+falsa não aparece).
 
 **Medido, para escolher com números.** O contraste é medido em **pixéis** da página a correr, e
 não estimado: na opção 2 (o texto solto) o corpo da frase lê-se a **15,64:1** e a palavra bordô a
@@ -223,7 +245,10 @@ ecrã perdia também o nome da operação, e ficava um giro mudo para quem ouve 
 direcções: não tranca as outras, e não se deixa trancar); controlo negativo contra o `HEAD`: 3
 falhas nas novas, porque o módulo de antes não conhece o atributo. Sem regressão:
 `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 ·
-`check-identidade` 0 erros (21 verificações).
+`check-identidade` 0 erros (21 verificações). E **depois da correção**: `provar-bancada-do-veu`
+30/30, com o controle negativo contra o `HEAD` a reprovar **16 de 30** — sem o desafogo, o painel
+continua trancado. No ar, uma carga: o painel abre, o clique na opção 2 aplica, o interruptor
+tira o véu.
 
 **O que ainda não está feito.** (1) **Nada foi aplicado ao produto** — as três formas são bancada,
 e a escolha é dela. (2) A bancada está em `/propostas/proposta-veu` com as propostas montadas por
