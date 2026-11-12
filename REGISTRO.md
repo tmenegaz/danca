@@ -42711,6 +42711,10 @@ sinalizarmos.»
   A revisão está feita quando `leitura.em` **e** `atualizada_em` são **posteriores** a esse `em`;
   antes disso, o «!» está aceso. A comparação do recorte é **estrita** porque a própria troca grava
   `atualizada_em = em` — um `>=` daria a revisão por feita no instante em que começou a faltar.
+- **E MANDA A TROCA MAIS RECENTE.** A versão nova herda as marcas da anterior, e um elenco pode ter
+  as duas — o `ami` do ar tinha `transferida` às 10:47 e `recebida` às 11:15. Comparar com a mais
+  antiga daria a revisão por feita por causa de um trabalho feito **antes** da última mudança de
+  corpo. Foi lendo os dados do ar, depois do primeiro `deploy`, que isto apareceu.
 - **A frase é um MODELO** (`%DATA%`), do núcleo, preenchida pelo servidor: escrita dos dois lados,
   divergiria ao primeiro ajuste.
 - **A RESPOSTA DA TRANSFERÊNCIA DIZ O MESMO**, no `proximo`: a cascata (Turma → plano → PO) não
@@ -42740,7 +42744,7 @@ das marcas em `linhasDeBase`, a marca nos dois cartões, `pintarRevisoesDasTurma
 [experimentos/provar-revisao-do-recorte.js](./experimentos/provar-revisao-do-recorte.js) — prova
 nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela dos três factos.
 
-**Validação.** `provar-revisao-do-recorte` **45/45**; controle negativo contra `ae04b17a`:
+**Validação.** `provar-revisao-do-recorte` **47/47**; controle negativo contra `ae04b17a`:
 **32 falhas**. Sem regressão: `provar-elenco-sem-ninguem` 59/59 · `provar-transferencia-e-desligamento`
 93/93 · `provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 ·
 `provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 · `check-identidade` 0 erros ·

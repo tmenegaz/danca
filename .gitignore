@@ -1109,5 +1109,5 @@ experimentos/modelo-formulario/*
 # ser automático»). O «!» aparece no cartão do elenco e no da Turma que o lê, e é DERIVADO do rasto
 # datado da troca: sai quando `leitura.em` e `atualizada_em` são posteriores a ela — sem um campo
 # «revisado» para alguém esquecer de limpar.
-# CONTROLE NEGATIVO: 32 falhas contra o código de antes.
+# CONTROLE NEGATIVO: 34 falhas contra o código de antes.
 !experimentos/provar-revisao-do-recorte.js

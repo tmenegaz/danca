@@ -140,6 +140,22 @@ if (typeof nucleo.revisaoPendente !== 'function') nucleo.revisaoPendente = () =>
   provar('o elenco que recebeu a aluna também fica pendente', Boolean(e), e);
   provar('…e o movimento é «entrou»', e && e.movimento === 'entrou', e && e.movimento);
 
+  /* AS DUAS MARCAS: manda a MAIS RECENTE. A versão nova herda as marcas da anterior, e um elenco
+   * que perdeu uma aluna em Outubro e recebeu outra em Novembro tem as duas. Comparar com a mais
+   * antiga daria a revisão por feita por causa de um trabalho feito antes da última mudança — um
+   * falso negativo. O caso é real: nos dados do ar, «ami» tinha `transferida` às 10:47 e
+   * `recebida` às 11:15. */
+  const duas = Object.assign({}, SAIU, {
+    recebida: { aluna: 'Aluna Z', de: 'tami', em: DEPOIS },
+  });
+  const r2 = nucleo.revisaoPendente(duas);
+  provar('com as duas marcas, manda a troca MAIS RECENTE',
+    r2 && r2.em === DEPOIS && r2.movimento === 'entrou' && r2.aluna === 'Aluna Z', r2);
+  provar('…e uma leitura feita antes da última troca NÃO conta como revisão',
+    Boolean(nucleo.revisaoPendente(Object.assign({}, duas, {
+      leitura: { em: '2026-11-12T10:30:00.000Z' }, atualizada_em: DEPOIS2,
+    }))));
+
   provar('sem data na troca não se inventa uma revisão',
     nucleo.revisaoPendente(linha({ transferida: { aluna: 'X', para: 'y' } })) === null);
   provar('um rascunho recém-criado não é uma revisão',

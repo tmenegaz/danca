@@ -1076,10 +1076,17 @@ const MODELO_REVISAO = 'o elenco «%ELENCO%» %MOVIMENTO% a aluna «%ALUNA%» %O
  */
 function revisaoPendente(linha) {
   if (!linha || typeof linha !== 'object') return null;
-  const t = linha.transferida || linha.recebida;
-  if (!t || !t.em) return null;
+  /* A TROCA MAIS RECENTE É A QUE MANDA (12/11/2026). Um elenco pode ter as DUAS marcas — perdeu
+   * uma aluna em Outubro e recebeu outra em Novembro —, porque a versão nova herda as marcas da
+   * anterior. Comparar com a mais ANTIGA daria a revisão por feita por causa de um trabalho que se
+   * fez antes da última mudança de corpo: um falso negativo, e dos que só se vêem quando o recorte
+   * já está errado. Medido nos dados do ar: o elenco «ami» tinha `transferida` às 10:47 e
+   * `recebida` às 11:15 — quem decide é a das 11:15. */
+  const candidatas = [linha.transferida, linha.recebida]
+    .filter((x) => x && x.em && !Number.isNaN(instante(x.em)));
+  if (!candidatas.length) return null;
+  const t = candidatas.reduce((a, b) => (instante(b.em) > instante(a.em) ? b : a));
   const quando = instante(t.em);
-  if (Number.isNaN(quando)) return null;         // sem data não há como comparar — não se inventa
 
   const leuDepois = !Number.isNaN(instante(linha.leitura && linha.leitura.em))
     && instante(linha.leitura.em) > quando;
@@ -1094,7 +1101,7 @@ function revisaoPendente(linha) {
     ? 'a leitura das anamneses (passo 3) e o recorte (passo 4)'
     : (falta[0] === 'leitura' ? 'a leitura das anamneses (passo 3)' : 'o recorte (passo 4)');
 
-  const saiu = Boolean(linha.transferida);
+  const saiu = t === linha.transferida;
   const outro = String((saiu ? t.para : t.de) || '').trim();
   const onde = outro ? (saiu ? '(foi para «' + outro + '»)' : '(veio de «' + outro + '»)') : '';
   const texto = MODELO_REVISAO
