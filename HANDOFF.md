@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T08:29:14-0300`
-Commit atual: `bfe699d4` — feat(po): a troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
+Gerado em: `2026-11-12T08:51:47-0300`
+Commit atual: `08ac4e0f` — fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
-bfe699d4 feat(po): a troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
-bcd93d18 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-7141d06a chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-949ab434 chore(estrutura): regerar os índices derivados
-76f8fcfc chore(estrutura): reancorar a cadeia das fontes alteradas
-da53dca3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-3c97a762 feat(po): o PO elicitado vira a fonte do ciclo
-1eed1a1a feat(acervo): envelope/plano-20261112-0815.json
-40eb0255 feat(acervo): envelope/.indice.json
-e5bff3b2 chore(linha de base): índice — apagar tami
-268a7a6d chore(linha de base): apagar tami
-7931d288 feat(linha de base): índice — ami 20261112-1115
-fed3067b feat(elenco): Aluna B passa de tami para ami
-7bf247c2 chore(estrutura): reancorar a cadeia das fontes alteradas
-ee8a9cc4 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-c715f9cb feat(po): o PO elicitado vira a fonte do ciclo
-8754295e feat(acervo): envelope/po-20261112-0814.json
-01dfac33 feat(acervo): envelope/.indice.json
-a5ab99b6 feat(plano): o elo da cadeia automática
-617689e7 feat(acervo): envelope/plano-20261112-0814.json
+08ac4e0f fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
+1bcd3491 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+86da196e chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+4c6ad050 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+02fb7cec chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+101130ce chore(estrutura): reancorar a cadeia das fontes alteradas
+c4835686 chore(estrutura): regerar os índices derivados
+0871bf71 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+f603985c feat(po): o PO elicitado vira a fonte do ciclo
+e89f34c9 feat(acervo): envelope/po-20261112-0837-2.json
+a3cec80d feat(acervo): envelope/.indice.json
+b60f1a14 feat(plano): o elo da cadeia automática
+dcc8d59c feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+3c73ab3f feat(acervo): envelope/plano-20261112-0837-2.json
+a60c94c7 feat(acervo): envelope/.indice.json
+5120fc3d feat(po): o PO elicitado vira a fonte do ciclo
+f843693d feat(linha de base): índice — ami 20261112-1137-2
+1a46f91c feat(elenco): ami — concluído
+0c901829 feat(po): o PO elicitado vira a fonte do ciclo
+8d1b4e73 feat(acervo): envelope/po-20261112-0837.json
 ```
 
 ## Por professor
@@ -115,7 +115,7 @@ a5ab99b6 feat(plano): o elo da cadeia automática
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `e7113594d6b5` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `5e3c1933b326` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -169,87 +169,81 @@ a5ab99b6 feat(plano): o elo da cadeia automática
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — A troca de aluna desfaz o passo 3 e o recorte, e a lista avisa
+## 12/11/2026 — Um véu para todos os gestos: elenco, leitura, verbete e sala
 
-**As duas perguntas dela, e as duas respostas medidas no código.** «Quando há a transferência de
-alunas de um elenco para o outro, o cenário da leitura dessas anamneses, ele é modificado. Aí eu
-quero saber o seguinte, esse botão é disparado novamente durante o processo?»
+**O que motivou, na letra dela.** «Nós fizemos uma solução na alteração da turma ou na criação da
+turma. E aí a gente tem um véu, tem um spinning e tem a mensagem. […] não podemos ter decisões
+conflitantes, e o conflito está justamente na audição. […] Eu já tenho ali na audição a mesma
+solução quando eu cancelo um processo. Mas quando eu vou concluir o elenco, não, é uma outra solução
+e não pode ser assim. Tem que ser a mesma solução.» E depois, para o Estilo e as Salas: o mesmo, «quer
+a sala esteja vinculada ou não».
 
-- **Não é disparado — e a leitura é DESCARTADA.** A transferência apaga `leitura` nos dois lados
-  (`delete novaOrigem.leitura` / `delete novoDestino.leitura`), porque ela descrevia os corpos que
-  estavam juntos e deixou de ser verdade. Nada a repõe: o professor tem de voltar ao passo 3.
-- **E o recorte NÃO é tocado.** `campos` fica exactamente como estava. É o defeito que ela
-  identificou sozinha: «se uma aluna tinha uma certa característica que as outras não tinham e
-  estava selecionada no recorte, não faz mais sentido ter esse item selecionado no recorte.»
+**A CAUSA, medida — e não era uma decisão, era um `return null`.** Dois sítios chamavam
+`ocuparBotao(botao, "gravando...", "button")`: um BOTÃO onde a função esperava um FORMULÁRIO. Ela
+fazia `form.querySelector("button[type=submit]")`, que dentro de um `<button>` não encontra nada, e
+devolvia `null` **antes** de chamar `ocupar`. Nenhum véu, nenhum giro, nenhuma frase — e **nenhum
+erro na consola**, porque `return null` é um caminho legítimo da função. Os dois gestos sem véu eram
+o «Concluir elenco» e o «Ler as anamneses».
 
-**Porque não se resolve sozinho.** Repor a leitura seria possível — a rota sabe lê-la. Mas o recorte
-é **decisão pedagógica**: nenhum código sabe se o professor quer manter um aspecto que só aquela
-aluna justificava. Ela foi explícita: «tem que ser manual, não pode ser automático. Cabe a nós apenas
-sinalizarmos.»
+E o terceiro argumento era o `id` de um elemento passado no lugar da etiqueta: onde se lia
+`"button"`, a etiqueta do véu diria a palavra «button».
 
 **O que foi decidido.**
 
-- **O «!» nos dois lados, em dois sítios.** No cartão do ELENCO (na Audição, onde o trabalho se
-  faz) e no cartão da TURMA que o lê (nas Turmas, onde a direção olha) — «do lado da turma que
-  perdeu o aluno e também do lado da turma que recebeu um aluno». A frase vai no `title` (para o
-  rato) **e** no `aria-label` com `role="img"` (para quem ouve): um «!» sem rótulo é ruído.
-- **A marca é DERIVADA, e não guardada** — a escolha que evita um estado a apodrecer. A
-  transferência já deixa o rasto datado (`transferida` na origem, `recebida` no destino, com `em`).
-  A revisão está feita quando `leitura.em` **e** `atualizada_em` são **posteriores** a esse `em`;
-  antes disso, o «!» está aceso. A comparação do recorte é **estrita** porque a própria troca grava
-  `atualizada_em = em` — um `>=` daria a revisão por feita no instante em que começou a faltar.
-- **A frase é um MODELO** (`%DATA%`), do núcleo, preenchida pelo servidor: escrita dos dois lados,
-  divergiria ao primeiro ajuste.
-- **A RESPOSTA DA TRANSFERÊNCIA DIZ O MESMO**, no `proximo`: a cascata (Turma → plano → PO) não
-  fala do que a troca estraga dentro do elenco. A frase entra sem leitura nenhuma a mais — depois de
-  uma transferência os dois elencos ficam **sempre** com a revisão pendente.
+- **`ocuparBotao` aceita os dois** — um formulário (e desabilita o botão de submeter) ou um botão.
+  Os dois são legítimos: há gestos com formulário e gestos que são um botão só. E o quarto argumento
+  passou a ser **a frase do véu**, separada do **rótulo do botão**: o botão tem a largura de um botão
+  («gravando...»), o véu tem a linha inteira («a criar o Elenco e a revincular as Turmas que o
+  usam…»). A primeira tentativa juntou-os e o botão esticou-se por uma linha e meia.
+- **AS FRASES VIVEM NUM SÍTIO SÓ** (`textoDoPasso`). Entraram as que faltavam: `/verbete`,
+  `/api/bastidores/turma` (o cadastro — era o único caminho da Sala sem véu semântico),
+  `/linha-de-base/leitura`, e o `/linha-de-base` passou a «a gravar o Elenco…». As duas variantes do
+  elenco (criar / regravar) ficam ao lado, em `passoDoElenco`, porque o mapa é por endereço e este
+  endereço tem dois sentidos.
+- **AS DUAS FRASES DA SALA DIZEM COISAS DIFERENTES.** A LIVRE é substituída no lugar («Gravação da
+  Sala»); a VINCULADA deriva — elo novo, com data, nome que não muda («Ajuste da Sala … a reencadear
+  o PO»). Dizer a mesma frase nos dois casos obrigava o professor a saber qual ia acontecer para a
+  ler.
+- **O BOTÃO DO ELENCO PASSOU A DIZER O QUE FAZ, E A ESCOLHA É DELA.** «Não é concluir elenco, é
+  selecionar um elenco. Na verdade é criar um elenco» — e, entre as duas palavras, **dinâmico**:
+  «Criar elenco» quando é novo, «Gravar elenco» quando há um aberto. O `title` acompanha o verbo
+  («Para criar, falta…» / «Para gravar, falta…»). «Concluir» era uma palavra de processo interno, e
+  não do trabalho de quem ensina.
+- **O VERBETE GANHOU A ETIQUETA «EM TURMA» / «LIVRE».** O pedido é explícito: «um verbete a gente
+  tem que colocar também a etiqueta para saber se ele está ou não vinculado a uma turma». E ela não
+  é ornamento — é o que diz qual dos dois gestos vai acontecer: um verbete **livre** grava-se no
+  lugar; um **em turma** já compõe o repertório de um plano, e a gravação passa a ser um **ajuste**,
+  com o estado anterior no histórico. É o mesmo par de palavras do elenco e da Turma, e não um
+  terceiro nome para o mesmo estado. `turmasPorTermo` lê os planos e devolve os NOMES das turmas;
+  `null` (planos ilegíveis) **não** vira lista vazia — «não se conseguiu olhar» não é «não está em
+  nenhuma».
 
-**Dois defeitos apanhados pela prova, e os dois silenciosos.**
+**Uma lição que a prova pagou duas vezes.** A asserção estática procurava o literal `"button"` no
+ficheiro e encontrou o **comentário que narra o defeito**, a citar a chamada antiga. Passou a olhar
+só as linhas EMITIDAS (as que começam por `'`). É a mesma armadilha da prova do elenco sem ninguém:
+uma asserção que procura texto no código encontra também o texto que fala dele.
 
-1. **O rascunho escondia a marca.** O rascunho substitui o acto em `linhasDeBase`, e as marcas da
-   troca nascem no acto — com o elenco aberto para editar, o «!» desaparecia exactamente quando é
-   mais necessário. Passou a herdá-las, como já herdava `carimbo` e `concluida_em`.
-2. **A repintura usava o mapa velho.** `REVISOES_DOS_ELENCOS` era atribuído **depois** de
-   `pintarLinhas()` — a marca ficava acesa depois de o trabalho estar feito (e apagada depois de
-   passar a haver o que fazer). Passou para antes. Apanhado porque a prova mede o **cartão
-   desenhado**, e não o pedido.
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `ocuparBotao`,
+`textoDoPasso`, `passoDoElenco`, `turmasPorTermo`, o selo do verbete, o rótulo dinâmico do botão e
+as três chamadas corrigidas · [experimentos/provar-o-veu-de-cada-gesto.js](./experimentos/provar-o-veu-de-cada-gesto.js)
+— prova nova · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o alcance do véu.
 
-**Uma asserção foi trocada, e não apagada.** `provar-identidade-da-turma` exigia «a Turma tem DUAS
-etiquetas»; o «!» é uma terceira. O que a asserção sempre garantiu — o estado dito na linha e
-**nenhuma sobreposição** — continua exigido, par a par; o número fixo é que proibia o aviso.
-Medido a 1280 e a 390: o «!» fica em 22×30 px, encostado ao selo do estado, sem sobreposição.
+**Validação.** `provar-o-veu-de-cada-gesto` **39/39**; controle negativo contra `fa3bea6a`:
+**27 falhas** — e o negativo mostra o defeito na letra: `ocupado: null`, etiqueta «a processar», e o
+botão a dizer «Concluir elenco». Sem regressão: `provar-elenco-sem-ninguem` 59 ·
+`provar-revisao-do-recorte` 47 · `provar-elenco-na-turma` 26 · `provar-abas-da-audicao` 86 ·
+`provar-transferencia-e-desligamento` 93 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas` 29 ·
+`check-identidade` 0 erros · `check-indices` 16/16.
 
-**Onde entrou.** [motor/nucleo/linha-de-base.js](./motor/nucleo/linha-de-base.js) —
-`revisaoPendente` e `MODELO_REVISAO` ·
-[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `revisoesDosElencos`, a herança
-das marcas em `linhasDeBase`, a marca nos dois cartões, `pintarRevisoesDasTurmas`, a ordem do
-`carregarLinhas` e a frase do `proximo` ·
-[experimentos/provar-revisao-do-recorte.js](./experimentos/provar-revisao-do-recorte.js) — prova
-nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela dos três factos.
-
-**Validação.** `provar-revisao-do-recorte` **45/45**; controle negativo contra `ae04b17a`:
-**32 falhas**. Sem regressão: `provar-elenco-sem-ninguem` 59/59 · `provar-transferencia-e-desligamento`
-93/93 · `provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 ·
-`provar-identidade-da-turma` 76 · `provar-troca-de-direcao` 41 · `check-identidade` 0 erros ·
-`check-indices` 16/16.
-
-**O que ainda não está feito.** (1) A marca não distingue *qual* aspecto do recorte perdeu a razão
-de ser: o sistema não sabe que o aspecto X foi escolhido por causa da aluna Y — essa leitura é do
-professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão também acendem a marca
-(o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
-quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
-marca até os refazer outra vez.
+**O que ainda não está feito.** (1) O «Avançar» da Sala continua a chamar-se «Avançar»: é o botão de
+uma navegação de três passos, e renomeá-lo é outra decisão. (2) A etiqueta «em turma» do verbete lê
+os planos a cada abertura do Estilo — uma leitura que antes não existia nessa rota; se pesar, a
+alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
+reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
+histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.
 
 ## O que está pendente
-
-## 11/11/2026 — A operação atravessa as abas, e o véu deixa ver a página
-
-(1) A **dívida das duas `.veu`** com o mesmo nome continua — a da
-coluna, usada pelo `nav.js`, e a da operação. (2) O véu **não distingue** «a operação é desta aba»
-de «é de outra» por desenho, só pela `.veu-nota`; se a distinção precisar de ser mais evidente, é
-uma decisão de desenho, não de código. (3) A operação é **por escola** (a chave é a mesma em toda
-a origem), e não por escola-slug: hoje há uma escola por Worker, portanto coincidem; no dia em que
-houver duas na mesma origem, a chave terá de levar o slug.
 
 ## 11/11/2026 — As três formas do véu, e a página que pode pedir uma operação só dela
 
@@ -282,6 +276,15 @@ professor, e é por isso que ele revê. (2) As trocas anteriores a esta sessão 
 (o rasto `transferida`/`recebida` já existia desde 08/11), o que é o comportamento certo — mas
 quem já refez o passo 3 e o recorte antes deste `deploy` não tem como o provar ao sistema, e verá a
 marca até os refazer outra vez.
+
+## 12/11/2026 — Um véu para todos os gestos: elenco, leitura, verbete e sala
+
+(1) O «Avançar» da Sala continua a chamar-se «Avançar»: é o botão de
+uma navegação de três passos, e renomeá-lo é outra decisão. (2) A etiqueta «em turma» do verbete lê
+os planos a cada abertura do Estilo — uma leitura que antes não existia nessa rota; se pesar, a
+alternativa é calculá-la só quando a lista é pedida com `?comTurmas=1`. (3) O véu do verbete diz «a
+reavaliar as Turmas que o usam», mas o que o servidor faz hoje é guardar a versão anterior no
+histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo seu próprio caminho.
 
 ## Pendências anteriores (índice)
 
@@ -695,6 +698,7 @@ marca até os refazer outra vez.
 - **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42104
 - **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42200
 - **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42264
+- **11/11/2026** — A operação atravessa as abas, e o véu deixa ver a página → `REGISTRO.md` L42344
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
