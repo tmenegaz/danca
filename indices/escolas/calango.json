@@ -31,6 +31,56 @@
       "versoes": 7
     },
     {
+      "aspecto": "articulacao-e-forca-intrinseca-dos-dedos",
+      "contagem": 1,
+      "ids": [
+        "recorte:flores"
+      ],
+      "primeira": "20261112-1132",
+      "ultima": "20261112-1132",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-4a-bracos",
+      "contagem": 1,
+      "ids": [
+        "recorte:flores"
+      ],
+      "primeira": "20261112-1132",
+      "ultima": "20261112-1132",
+      "versoes": 1
+    },
+    {
+      "aspecto": "cinco-posicoes-4a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:flores"
+      ],
+      "primeira": "20261112-1132",
+      "ultima": "20261112-1132",
+      "versoes": 1
+    },
+    {
+      "aspecto": "equilibrio-unipodal",
+      "contagem": 1,
+      "ids": [
+        "recorte:flores"
+      ],
+      "primeira": "20261112-1132",
+      "ultima": "20261112-1132",
+      "versoes": 1
+    },
+    {
+      "aspecto": "espiral-rotacao-de-tronco",
+      "contagem": 1,
+      "ids": [
+        "recorte:flores"
+      ],
+      "primeira": "20261112-1132",
+      "ultima": "20261112-1132",
+      "versoes": 1
+    },
+    {
       "aspecto": "cinco-posicoes-1a-bracos",
       "contagem": 0,
       "ids": [],
@@ -1112,7 +1162,7 @@
       "ciclos_com_ancora": 2,
       "planos": 14,
       "pos": 16,
-      "recortes": 1,
+      "recortes": 2,
       "registros": 34
     },
     "criada_em": "2026-11-08T15:18:17.804671+00:00",
@@ -1213,6 +1263,30 @@
       {
         "contagem": 1,
         "ids": [
+          "recorte:flores"
+        ],
+        "rotulo": "articulacao-e-forca-intrinseca-dos-dedos",
+        "valor": "articulacao-e-forca-intrinseca-dos-dedos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:flores"
+        ],
+        "rotulo": "cinco-posicoes-4a-bracos",
+        "valor": "cinco-posicoes-4a-bracos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:flores"
+        ],
+        "rotulo": "cinco-posicoes-4a-pes",
+        "valor": "cinco-posicoes-4a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
           "recorte:ami"
         ],
         "rotulo": "cinco-posicoes-5a-bracos",
@@ -1233,6 +1307,22 @@
         ],
         "rotulo": "cocoras-profundas-squat",
         "valor": "cocoras-profundas-squat"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:flores"
+        ],
+        "rotulo": "equilibrio-unipodal",
+        "valor": "equilibrio-unipodal"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:flores"
+        ],
+        "rotulo": "espiral-rotacao-de-tronco",
+        "valor": "espiral-rotacao-de-tronco"
       }
     ],
     "estados": [
@@ -1367,9 +1457,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3ada52b"
+    "commit": "12cf52b"
   },
-  "gerado_em": "2026-11-12T11:18",
+  "gerado_em": "2026-11-12T11:32",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1484,6 +1574,39 @@
           ],
           "enviada_em": "2026-11-09T19:18:38.297Z",
           "versao": "20261109-1918"
+        }
+      ],
+      "vigente": true
+    },
+    {
+      "alunas": 2,
+      "aspectos": [
+        "articulacao-e-forca-intrinseca-dos-dedos",
+        "cinco-posicoes-4a-bracos",
+        "cinco-posicoes-4a-pes",
+        "equilibrio-unipodal",
+        "espiral-rotacao-de-tronco"
+      ],
+      "atualizada_em": "2026-11-12T11:32:19.115Z",
+      "enviada_em": "2026-11-12T11:32:19.708Z",
+      "id": "recorte:flores",
+      "linha": "flores",
+      "nome": "flores",
+      "professor": "redinha-rosa",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/calango/linhas-de-base/flores--20261112-1132.json",
+          "aspectos": [
+            "cinco-posicoes-4a-pes",
+            "cinco-posicoes-4a-bracos",
+            "articulacao-e-forca-intrinseca-dos-dedos",
+            "equilibrio-unipodal",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-12T11:32:19.708Z",
+          "versao": "20261112-1132"
         }
       ],
       "vigente": true
