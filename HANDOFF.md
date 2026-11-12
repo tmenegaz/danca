@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-11T23:55:43-0300`
-Commit atual: `d69dae7d` — chore(experimentos): a bancada com a forma implementada como regua
+Gerado em: `2026-11-12T08:05:16-0300`
+Commit atual: `d929a753` — fix(po): um elenco sem ninguem nao existe
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,26 +72,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+d929a753 fix(po): um elenco sem ninguem nao existe
+7f116231 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+e9ad9778 chore(entrega): gerar o pacote de pe-torto/01/calango-piano
+68642499 chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
+9ea6f515 chore(estrutura): regerar os índices derivados
+2808ad3c chore(estrutura): reancorar a cadeia das fontes alteradas
+88896694 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
+9dbd0b4f feat(po): o PO elicitado vira a fonte do ciclo
+91b57b5b feat(acervo): envelope/po-20261112-0747.json
+512be52d feat(acervo): envelope/.indice.json
+11d9916d feat(plano): o elo da cadeia automática
+b897d23e feat(acervo): envelope/plano-20261112-0747.json
+dfcea57d feat(acervo): envelope/.indice.json
+5f7c8351 feat(linha de base): índice — ami 20261112-1047
+3145b7d0 feat(elenco): Aluna B passa de ami para tami
+ed440ab7 feat(linha de base): índice — tami 20261112-1047
+8fb0edf9 feat(elenco): Aluna B passa de ami para tami
+02522a41 chore(estrutura): regerar o HANDOFF
 d69dae7d chore(experimentos): a bancada com a forma implementada como regua
 c2ad712e feat(template): o veu sem caixa, com halo
-58de0f79 chore(estrutura): regerar o HANDOFF
-831a43e1 fix(experimentos): a bancada do veu deixa de se trancar a si mesma
-84a14bd4 chore(estrutura): regerar o HANDOFF
-b9781916 feat(experimentos): a bancada das tres formas do veu
-a138dd38 feat(template): uma pagina pode pedir a operacao so para si
-7633255a chore(entrega): gerar o pacote de pe-torto/01/calango-piano
-b22f1d3f chore(estrutura): regerar os índices derivados
-fc0e5589 chore(estrutura): reancorar a cadeia das fontes alteradas
-ff42214a feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-f9099c41 feat(po): o PO elicitado vira a fonte do ciclo
-b11b650d feat(po): o PO elicitado vira a fonte do ciclo
-926ec616 feat(acervo): envelope/po-20261111-1528.json
-35e7275f feat(acervo): envelope/.indice.json
-a8224373 feat(plano): o elo da cadeia automática
-c172a7c2 feat(acervo): envelope/plano-20261111-1527.json
-2a74b1c3 feat(acervo): envelope/.indice.json
-95e9572a chore(estrutura): regerar o HANDOFF
-c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas pecas
 ```
 
 ## Por professor
@@ -115,7 +115,7 @@ c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `1fd06ad6e784` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `27f01ecd0c52` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
 
 ### rabo-gramde — 0 ciclo(s)
@@ -169,82 +169,87 @@ c1be2d22 fix(estrutura): o veu passa a ter um dono so, e o passo diz-se em duas 
 
 ## Última entrada do REGISTRO
 
-## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
+## 12/11/2026 — O elenco que ficaria sem ninguém não existe
 
-**O que motivou.** A escolha foi dela, e foi dita em cinco palavras: «implementa a opção 2: o texto
-na tela, sem caixa». A decisão já estava tomada sobre a bancada, com as três formas à vista e o
-contraste medido em pixéis; o que faltava era aplicá-la, e aplicá-la é mudar a peça da folha.
+**O que motivou, na letra dela.** «Eu tenho nas turmas uma turma vinculada a um elenco, que é o
+elenco AME. Aí eu fui em audição e fiz a transferência de aluno […] e transferi todos para TAMI.
+Então agora não tem mais nenhum aluno na AME aonde tem turma […] Isso não pode acontecer. Se eu
+tiver um elenco que tem uma relação com turma, eu não posso ter zero alunos.»
 
-**O que foi decidido.**
+E a decisão, no turno seguinte: «Um elenco que não tem pessoas dentro do elenco é o mesmo que
+excluir um elenco. […] na transferência, se zerar o elenco, a gente segue o processo da proveniência
+equivalente ao excluir o elenco […] E aí vai avisar que o elenco será excluído, confirma isso […]
+Não vamos deixar um elenco ali zerado com não escalado. Não faz sentido isso.»
 
-- **O CARTÃO SAI, O HALO ENTRA.** O `.veu-cartao` continua na marcação — é ele que agrupa e centra,
-  e é o `nav.js` que o monta — mas deixa de ser superfície: **sem fundo, sem filete, sem sombra, sem
-  ar próprio, sem raio**. O que protege a leitura é `text-shadow` em três camadas de `--fundo` sob a
-  frase e em três sob a etiqueta, e um anel de papel (`box-shadow`) atrás do giro. A caixa existia
-  porque, com o véu translúcido, o texto solto competia com o formulário por baixo; o halo resolve
-  o mesmo problema **sem desenhar uma segunda superfície a tapar a página que se quis deixar ver**.
-- **A ETIQUETA DEIXA DE SER SELO.** Era o `.selo` com a cor de alerta. Um selo é uma etiqueta
-  colada a um objecto, e no véu não há objecto nenhum a que colar: passa a **palavra em versalete
-  bordô** (`--marca`), com `letter-spacing: .22em`, sem pílula nem fundo. A classe `selo` fica na
-  marcação — é a âncora do catálogo, e o `nav.js` é que a põe — mas a folha despe-a do desenho.
-- **A FRASE PASSA À SERIFA DO CORPO, COM `clamp`.** 1,45 rem no ecrã largo (23,2 px, o que foi
-  aprovado) e 1,15 rem no telemóvel (18,4 px), porque a mesma frase tem de caber a 390 px sem
-  partir a palavra. Medido: 533×139 px a 1280 · 342×125 px a 390, sem transbordo horizontal.
-- **NADA DO OFÍCIO MUDA.** O véu continua a cobrir, a trancar (`inert`), a nomear a operação e o
-  passo, a atravessar as abas e a sair sozinho. A forma mudou; o que ele faz, não.
+**O que foi decidido — duas metades, e a diferença é o VÍNCULO.**
 
-**A COR DO ACENTO É `--marca`, e não uma cor escrita à mão.** Em todos os temas deste projecto ela
-é declarada como acento legível sobre o fundo — o tema ciano anota-o na própria definição,
-«o acento como TEXTO (5,39:1)». Escrever um `#6b1f2e` na regra daria o tema claro e mentiria nos
-outros quatro.
+- **O elenco é o corpo de uma TURMA** → a transferência da última aluna é **RECUSADA** (409), com a
+  frase a nomear a Turma e o gesto que resolve (desvincular). Uma turma sem corpo não é um elenco
+  vazio: é uma contradição, e a turma não se desvincula por tabela.
+- **O elenco é LIVRE** → a transferência passa, e o elenco é **EXCLUÍDO** pela **proveniência do
+  apagar** — lápide no repositório (`apagada_em`, `anterior`, o corpo que existia preservado),
+  rascunho fora do KV —, **depois de o professor confirmar**. Sem a confirmação, nada se escreve:
+  nem o destino, que é o primeiro a escrever.
+- **A ETIQUETA «NÃO ESCALADO» FOI DESCARTADA POR ELA.** Chegou a ser proposta nesta sessão e a
+  decisão foi a contrária: «Não vamos deixar um elenco ali zerado com não escalado.» Ou tem gente,
+  ou não existe. Não se inventa um estado para um elenco que ninguém consegue usar.
 
-**Medido.** O contraste é medido em **pixéis** da captura (percentil 1 da tinta contra a mediana da
-moldura de halo), e não estimado a partir do token: **8,70:1** no corpo da frase — o halo faz o
-trabalho que a caixa fazia, e passa AA com folga. E na bancada, a 1280: etiqueta 13 px com 2,86 px
-de espaçamento, serifa 23,2 px, cartão 533×139. A 390 px: serifa 18,4 px, cartão 342×125.
+**A CONFIRMAÇÃO É DO SERVIDOR, E NÃO SÓ DO ECRÃ.** O cliente pergunta antes — é ele que tem a lista
+das alunas à mão —, mas uma regra que só existe no cliente não é uma regra: quem chegar por outro
+caminho apagaria um elenco sem nunca ler o aviso. Sem `confirmarExclusao`, a rota responde 409 com o
+aviso e `precisaConfirmar`, e **não escreve nada**. As duas frases (a recusa e o aviso) vivem no
+núcleo como **modelo** com `%ELENCO%` e `%TURMAS%`, e cada lado preenche o que já tem — escritas
+duas vezes, divergiriam; a concordância («a Turma «X»» / «as Turmas «X», «Y»») é a parte que se erra
+ao reescrever a frase à mão.
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md` e muda
-na peça `.veu` e nas quatro que dela dependem (`.veu-cartao`, `.veu-cartao::before`,
-`.veu-etiqueta`, `.veu-texto`, `.veu-nota`) — **só o desenho**, nenhuma regra de segurança. A
-cobertura, a fórmula do hash, os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de
-`PROTOCOLO.md` não são tocadas. As cópias foram regeradas — a `raiz/` por `tools/gerar-raiz.sh`, os
-cinco pacotes e as duas árvores de `publicacao/` por cópia — e a âncora `.fipp` não mudou, porque
-cobre FONTES.
+**A FORMA DO SEGUNDO ESCRITO DEPENDE DO QUE ELE FICA A SER.** Sobrando alunas, grava-se uma versão
+com `transferida`, como sempre foi. Ficando com zero (e livre, senão a decisão já recusou), **não se
+grava uma versão vazia**: exclui-se o elenco. A ordem das escritas não muda — destino primeiro, que
+é a que nunca perde a aluna.
 
-**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a peça `.veu` e as
-quatro que a compõem, com as cópias todas ·
-[experimentos/propostas/construir.js](./experimentos/propostas/construir.js) — a bancada passou a
-ter **a forma implementada como opção 0** (sem uma declaração a mais: é literalmente a peça do
-produto), **o cartão como opção 1** (restituído nas medidas de antes, para a comparação que
-justificou a troca não se perder) e **o giro sozinho como opção 2** ·
-[experimentos/provar-a-forma-do-veu.js](./experimentos/provar-a-forma-do-veu.js) — prova nova ·
-[experimentos/provar-operacao-entre-abas.js](./experimentos/provar-operacao-entre-abas.js) — a
-secção C passou a exigir a **ausência** da caixa e a **presença** do halo, e a secção D deixou de
-poder chamar selo ao que já não é (29 asserções, eram 27) ·
-[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — o quadro do véu e a tabela de estados.
+**A EXCLUSÃO PASSOU A TER UM DONO SÓ.** Ela nasceu dentro do `DELETE`, e a transferência precisava
+da mesma coisa. Copiar as sete linhas da proveniência para a rota vizinha deixaria a segunda a
+envelhecer em silêncio — e o efeito de esquecer a lápide é a **ausência** de um registo, que não se
+nota. Passou a `apagarElenco(env, kv, escola, repoLinhas, id, {por})`, chamada pelos dois caminhos.
 
-**Validação.** `provar-a-forma-do-veu` **25/25**; controle negativo contra o `HEAD`: **14 falhas**,
-porque a folha de antes tem o cartão, o selo de alerta e nenhum halo. Sem regressão:
-`provar-operacao-entre-abas` 29/29 (negativo: 2 falhas, as do modo privado) ·
-`provar-bancada-do-veu` 30/30 · `provar-veu-da-operacao` 23 · `provar-identidade-da-turma` 76 ·
-`provar-troca-de-direcao` 41 · `check-identidade` 0 erros (21 verificações) · `check-indices` 16/16.
+**O RÓTULO DA ORIGEM DIZ «EM TURMA».** O professor escolhe a origem antes do gesto, e o gesto
+depende do vínculo. Dizê-lo ali poupa-lhe a tentativa e o erro. É o mesmo vocabulário do selo da
+listagem de Elencos (07/11/2026), não um nome novo. E o rótulo vem **pronto do servidor**
+(`rotuloMover`), para o desenho da página e a repintura do cliente dizerem o mesmo.
 
-**O que ainda não está feito.** (1) A bancada continua em `/propostas/proposta-veu`, agora com a
-forma implementada como régua, montada por `--com-propostas` — passo **temporário** do deploy.
-(2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
-geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
-a leitura por software não.
+**Um defeito que a prova apanhou no caminho.** A rota `…/linhas-de-base` devolvia
+`elencosParaATurma(lista)` — a lista **crua** —, e o `carregarLinhas` do cliente reescreve
+`ELENCOS_MOVIVEIS` com ela. Ou seja: o `emTurma` viajava no desenho da página e **desaparecia na
+primeira repintura**, e o cliente voltava a oferecer como livre um elenco que é o corpo de uma
+turma. Passou a haver `elencosComAsTurmas(linhas, curadorias)`, usada pelos dois caminhos.
+
+**Onde entrou.** [motor/nucleo/transferencia.js](./motor/nucleo/transferencia.js) — `zerada`,
+`turmasDaOrigem`, `motivoDoElencoQueFicariaVazio`, `avisoDoElencoQueSeraExcluido` e os dois modelos ·
+[motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `apagarElenco`, `turmasDoElenco`,
+`elencosComAsTurmas`, a guarda e a confirmação na rota, o `DELETE` a delegar, o rótulo «em turma» e
+a pergunta no cliente ·
+[experimentos/provar-elenco-sem-ninguem.js](./experimentos/provar-elenco-sem-ninguem.js) — prova
+nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a tabela das duas metades.
+
+**Validação.** `provar-elenco-sem-ninguem` **56/56** (núcleo, rota sem e com confirmação, recusa por
+turma, repetição, `DELETE` sem regressão, o dado do cliente e o cliente a correr no jsdom a
+perguntar antes de partir); controle negativo contra o `HEAD`: **38 falhas**, porque o código de
+antes não tem a regra. Sem regressão: `provar-transferencia-e-desligamento` 93/93 ·
+`provar-abas-da-audicao` 86/86 · `provar-elenco-na-turma` 26/26 · `provar-identidade-da-turma` 76 ·
+`provar-troca-de-direcao` 41 · `check-identidade` 0 erros · `check-indices` 16/16.
+
+**Uma asserção foi trocada, e não apagada.** `provar-elenco-na-turma` exigia que a rota chamasse
+`elencosParaATurma`; passou a exigir `elencosComAsTurmas` **e** que essa função use a regra única do
+rótulo. Uma asserção que codificava a implementação anterior não se remove quando a implementação
+muda de forma — troca-se pela mesma exigência no sítio novo.
+
+**O que ainda não está feito.** (1) A prova mede tudo em bancada (KV e GitHub em memória); não foi
+corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **não** desfaz os elencos
+que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
+ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
+a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.
 
 ## O que está pendente
-
-## 11/11/2026 — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa dois níveis iguais
-
-(1) O `id` continua a ser o do trio professor × modalidade × sala —
-não leva elenco nem nível, pela razão declarada acima. (2) O **índice** da Turma e o **arquivo** dela
-continuam a nascer com o nome da **sala** (`contexto.turma`), e isso não mudou: é a variante
-(`<escola>-<sala>`) que nomeia o pacote, a âncora e os documentos, e mudá-la partiria as âncoras
-publicadas. (3) O `id` de uma Turma continua a não sobreviver a uma renomeação de sala — segue de pé
-a entrada de 10/11 sobre a `chave` estável.
 
 ## 11/11/2026 — O véu que não se via, a listagem que não era a mesma, e o campo que não dizia nada
 
@@ -278,6 +283,14 @@ forma implementada como régua, montada por `--com-propostas` — passo **tempor
 (2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
 geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
 a leitura por software não.
+
+## 12/11/2026 — O elenco que ficaria sem ninguém não existe
+
+(1) A prova mede tudo em bancada (KV e GitHub em memória); não foi
+corrida contra o KV do ar, para não gastar a cota diária. (2) A regra nova **não** desfaz os elencos
+que já estejam zerados numa escola em produção: ela impede os próximos. (3) Um elenco livre que
+ficou sem alunas por outra via (editar o elenco à mão e desmarcar todas) continua a poder existir —
+a regra do «pelo menos uma aluna» é do formulário, e fechá-la no servidor é uma decisão à parte.
 
 ## Pendências anteriores (índice)
 
@@ -689,6 +702,7 @@ a leitura por software não.
 - **10/11/2026** — A cadeia que pára no teto continua sozinha, e o «abrir»… → `REGISTRO.md` L41906
 - **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L41988
 - **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42104
+- **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42200
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
