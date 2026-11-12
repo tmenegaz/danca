@@ -1,0 +1,52 @@
+{
+  "id": "flores",
+  "nome": "flores",
+  "professor": "redinha-rosa",
+  "alunas": [
+    "Aluna A",
+    "Aluna B",
+    "Aluna C"
+  ],
+  "campos": [
+    {
+      "id": "cinco-posicoes-4a-pes",
+      "nome": "4ª posição — pés",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "cinco-posicoes-4a-bracos",
+      "nome": "4ª posição — braços",
+      "grupo": "as cinco posições: uma visão geral"
+    },
+    {
+      "id": "articulacao-e-forca-intrinseca-dos-dedos",
+      "nome": "Articulação e força intrínseca dos dedos",
+      "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos"
+    },
+    {
+      "id": "equilibrio-unipodal",
+      "nome": "Equilíbrio unipodal",
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core"
+    },
+    {
+      "id": "espiral-rotacao-de-tronco",
+      "nome": "Espiral / rotação de tronco",
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal"
+    }
+  ],
+  "atualizada_em": "2026-11-12T11:33:03.118Z",
+  "lida": {
+    "Aluna B": "anamnese-20261108-1314",
+    "Aluna A": "anamnese-20261109-1615"
+  },
+  "enviada_em": "2026-11-12T11:32:19.708Z",
+  "recebida": {
+    "aluna": "Aluna C",
+    "de": "ami",
+    "em": "2026-11-12T11:33:03.118Z",
+    "motivo": "teste"
+  },
+  "carimbo": "20261112-1133",
+  "anterior": "flores--20261112-1132.json",
+  "gravada_em": "2026-11-12T11:33:03.118Z"
+}
