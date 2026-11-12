@@ -120,6 +120,24 @@
       "alunas": 3,
       "anterior": "ami--20261112-1113.json"
     },
+    "flores--20261112-1132.json": {
+      "id": "flores",
+      "carimbo": "20261112-1132",
+      "arquivo": "escola/calango/linhas-de-base/flores--20261112-1132.json",
+      "nome": "flores",
+      "professor": "redinha-rosa",
+      "turma": null,
+      "atualizada_em": "2026-11-12T11:32:19.115Z",
+      "enviada_em": "2026-11-12T11:32:19.708Z",
+      "aspectos": [
+        "cinco-posicoes-4a-pes",
+        "cinco-posicoes-4a-bracos",
+        "articulacao-e-forca-intrinseca-dos-dedos",
+        "equilibrio-unipodal",
+        "espiral-rotacao-de-tronco"
+      ],
+      "alunas": 2
+    },
     "tami--20261108-1600.json": {
       "id": "tami",
       "carimbo": "20261108-1600",
