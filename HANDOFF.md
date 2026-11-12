@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T09:32:41-0300`
-Commit atual: `13da2160` — fix(template): a sala diz o presente, e os tres passos andam
+Gerado em: `2026-11-12T11:53:59-0300`
+Commit atual: `a7fb7074` — feat(template): a Turma diz as suas tres pontas, nos tres blocos das outras listas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+a7fb7074 feat(template): a Turma diz as suas tres pontas, nos tres blocos das outras listas
+6070d454 chore(estrutura): regerar o HANDOFF
 13da2160 fix(template): a sala diz o presente, e os tres passos andam
 ad87a0f1 chore(estrutura): regerar o HANDOFF
 08ac4e0f fix(template): um veu para todos os gestos — elenco, leitura, verbete e sala
@@ -90,8 +92,6 @@ dcc8d59c feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num c
 3c73ab3f feat(acervo): envelope/plano-20261112-0837-2.json
 a60c94c7 feat(acervo): envelope/.indice.json
 5120fc3d feat(po): o PO elicitado vira a fonte do ciclo
-f843693d feat(linha de base): índice — ami 20261112-1137-2
-1a46f91c feat(elenco): ami — concluído
 ```
 
 ## Por professor
@@ -169,76 +169,75 @@ f843693d feat(linha de base): índice — ami 20261112-1137-2
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — A sala diz o presente, e os três passos andam
+## 12/11/2026 — A Turma diz as suas três pontas
 
-**O que aconteceu.** A pesquisadora, na aba **Salas** da Produção: «eu estou dizendo que a turma ela
-tem a sala piano. E aí a etiqueta que está na sala piano é vinculada e não em turma. […] E agora a
-sala rosa, ela está dizendo que está vinculada. Na verdade ela não está, porque eu só tenho uma
-turma até agora e ela não está em turma.» E, no cadastro da sala: «quando eu estou no step um e clico
-avançar, ele já está criando a sala e não vai para a rubrica, para o step dois […] toda vez que eu
-clico em avançar, ele faz o que tem que fazer e volta para o step um.»
-
-**O que foi medido, antes de mexer.** As duas salas do ar (`calango`) tinham plano de ensino: o
-`Piano`, dez (do Pé Torto e da Redinha Rosa); o `Rosa`, seis, de 08 a 10/11, quando era ela a sala de
-uma turma. Uma só curadoria activa, e é a do `Piano`. Ou seja: `vinculada` queria dizer «um plano
-de ensino já a cita» — a leitura dela estava certa —, e as duas salas diziam a mesma palavra por
-razões diferentes. O selo respondia a «posso editar no lugar?» a quem perguntava «esta sala está em
-alguma turma?».
+**O que aconteceu.** A pesquisadora, na lista das Turmas: «a gente vai usar de forma similar ao que é
+feito nas outras listagens. A gente vai ter três blocos abaixo. […] um dos blocos a gente vai dizer
+qual é a sala e aí a gente vai pegar as informações da sala. […] não são as informações detalhadas de
+quando a gente expande, são as informações globais e um link que leva direto para a sala. […] o
+elenco […] quantos alunos e quais são os recortes e um link que leva também direto para aquele
+elenco. […] E aí a gente vai ter também o conteúdo, que é o terceiro bloco. Aí o conteúdo está no
+estilo.» E, sobre a nota que tinha nascido de manhã na lista das Salas: «essa parte citada que você
+colocou na listagem pode remover. Isso é informação só para nós […] não cabe aqui para o professor.»
 
 **O que foi decidido.**
-- **O selo diz o PRESENTE, a nota diz o PASSADO.** `em turma` quando uma curadoria activa usa a sala
-  (`turmasCuradas`), `livre` quando nenhuma usa; e, quando há planos que a citam, uma **nota** abaixo
-  do nome — «citada por N planos de ensino — ajustar deriva, e o que já foi escrito fica». A escolha
-  entre selo e nota é dela, entre três opções: «sem selo: nota ‘citada por N planos’».
-- **A regra da escrita não mudou.** Quem edita e quem deriva continua a ser `estadoDaTurma`; uma sala
-  `livre` **e** citada continua a ter o botão «Derivar». O que faltava era o cartão dizer **porquê**.
-- **Um selo responde a UMA pergunta** — ficou escrito em [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md):
-  quando há dois factos na mesma linha, o que se compara é selo e o que só se sabe é nota.
+- **A NOTA «CITADA POR N PLANOS» SAIU** — das duas salas, e não só da que está em turma. A fronteira é
+  a do histórico do ajuste (11/11): a lista mostra o que se precisa de saber para decidir; a
+  contagem de planos é auditoria. O número não se perde — fica no `title` do botão, para quem o
+  procurar (é ele que explica um «Derivar» numa sala livre).
+- **O CARTÃO DA TURMA PASSOU A TER A PEÇA DAS OUTRAS TRÊS LISTAS**, com um `.trio` de três caixas —
+  **Sala**, **Elenco** e **Conteúdo** —, cada uma a abrir o seu painel. Fechadas, dizem o que existe:
+  o nome da sala, «2 alunas», «3 exercícios». Abertas, dizem o resumo e levam ao sítio onde se
+  edita: o ritmo e a régua da sala; as alunas e os aspectos do recorte; e a tabela dos três resumos
+  do conteúdo — música, direção e notação, uma linha por exercício.
+- **O CONTEÚDO FECHADO CONTA EXERCÍCIOS, e não soma tempos** (a escolha dela, entre três formas):
+  somar tempos de exercícios diferentes daria um número que não corresponde a nada que se dance.
+- **O RESUMO NÃO É UM SEGUNDO CÁLCULO.** As três medidas do conteúdo saem de `listarVerbetes` — a
+  mesma função que desenha a listagem do Estilo —, e o alfabeto é o do bundle: nem KV nem rede.
+  Assim o cartão da Turma e o cartão do Estilo não podem discordar sobre o mesmo exercício.
+- **A SALA E O NÚMERO DE ALUNAS SAÍRAM DO COMPLEMENTO** (`.dono`), que fica com o que é do nome:
+  modalidade · tradição · nível · professor · estado no catálogo. Dizê-los duas vezes na mesma linha
+  de leitura é o que a peça evita.
 
-**A causa dos três passos — e não era o preenchedor da bancada.** Duas regras certas encontravam-se
-mal. «Fora da edição, o formulário é novo» (19/10) esvazia os campos depois de cada gravação, e no
-caminho de **criar** é isso mesmo que se quer. E a guarda da sequência (18/10) perguntava ao
-**formulário** se a sala estava completa. Depois de gravar, o formulário está vazio e a sala está
-gravada: a guarda concluía «falta tudo» e devolvia ao passo 1 — com os campos vazios, o que se lê
-como «não gravou». O mesmo em `aplicarTravas` (os passos 2 e 3 apagados) e na segunda barreira do
-«Gravar sala» (o `alert` em vez da gravação).
+**O que a prova apanhou, e vale registar.** O painel do Elenco dizia «0 aspectos» num elenco com
+recorte: `elencosParaATurma` compõe `{id, nome, alunas, rascunho, rotulo}` para o `<select>` e **não**
+carrega os `campos` — o recorte não lhe faz falta lá. A leitura passou a ir à linha de base crua.
+Era um zero silencioso, do mesmo tipo do «sem apelido»: o dado existia e a tela dizia que não.
 
-**O que ficou.** Os três sítios passaram a perguntar o mesmo: **a sequência pede uma SALA, não um
-formulário preenchido** — e há duas maneiras de a ter, o formulário à frente ou uma sala em foco
-(`turmaEmFoco()`, que sobrevive à recarga). O passo 1 continua a exigir o preenchimento para criar; o
-2 e o 3 abrem com a sala gravada; e o fim (`concluirTurma`) devolve ao passo 1 com os campos vazios e
-sem sala em foco.
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `resumosDoConteudo`,
+as quatro linhas do ritmo partilhadas entre o cartão da Sala e o da Turma, o cartão da Turma com os
+três blocos, o `data-elenco` da linha do elenco e o `data-abrir` que traz a linha à vista ·
+[experimentos/provar-o-cartao-da-turma-do-trio.js](./experimentos/provar-o-cartao-da-turma-do-trio.js)
+— prova nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a Turma como relação e a tabela dos
+três blocos.
 
-**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — o selo e a nota do
-cartão da sala, `mostrarPasso`, `aplicarTravas` e a guarda do «Gravar sala» ·
-[experimentos/provar-o-passo-da-sala.js](./experimentos/provar-o-passo-da-sala.js) — prova nova ·
-[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — o par selo/nota ao lado da tabela dos três estados ·
-[IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — a regra «um selo, uma pergunta».
+**Validação.** `provar-o-cartao-da-turma-do-trio` **42/42**; controle negativo contra `13da2160`:
+**34 falhas**, e o negativo mostra o cartão velho (sem `.trio-item`, sem a tabela, com a nota). Sem
+regressão: `provar-identidade-da-turma` **77** (uma asserção mudou de sítio — a sala saiu do
+complemento e passou a ser exigida no bloco dela) · `provar-o-passo-da-sala` **24** (duas asserções
+invertidas: a nota deixou de existir, e o número passou a ser exigido no `title`) ·
+`provar-salas-e-elencos` 65 · `provar-elenco-na-turma` 26 · `provar-sujeitos-da-turma` 41 ·
+`provar-enquadramento-da-turma` verde · `provar-conteudos-e-estado-da-turma` verde ·
+`provar-elenco-sem-ninguem` 59 · `provar-revisao-do-recorte` 47 ·
+`provar-transferencia-e-desligamento` 93 · `provar-abas-da-audicao` 86 ·
+`provar-operacao-entre-abas` 29 · `provar-veu-da-operacao` 23 · `provar-o-veu-de-cada-gesto` 39 ·
+`provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `provar-largura-da-lista` 56 ·
+`provar-ficha-na-listagem` 35 · `check-identidade` 0 erros · `check-indices` 16/16.
+As que já falhavam antes continuam iguais: `provar-cartao-da-turma` 6, `provar-derivacao-da-turma`
+20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
+`provar-producao` 2 — medidas contra o código anterior, para não se lhes atribuir o que não é delas.
 
-**Validação.** `provar-o-passo-da-sala` **23/23**; controle negativo contra `ad87a0f1`: **10
-falhas** — e o negativo mostra os dois sintomas na letra («depois da recarga, a página está NO PASSO
-2» → `turma`; o `Rosa` a dizer `vinculada`). Sem regressão: `provar-salas-e-elencos` 65 ·
-`provar-identidade-da-turma` 76 · `provar-mudanca-de-sala` 41 · `provar-conteudos-e-estado-da-turma`
-verde · `provar-o-veu-de-cada-gesto` 39 · `provar-veu-da-operacao` 23 · `provar-operacao-entre-abas`
-29 · `provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `check-identidade` 0 erros.
-As provas que já falhavam antes continuam a falhar o mesmo: `provar-cartao-da-turma` 6,
-`provar-derivacao-da-turma` 20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1 —
-medidas contra o código anterior, para não se lhes atribuir o que não é delas.
+**Medido no navegador.** As três caixas ficam iguais (176×48 a 1280, 88×67 a 390); a tabela do
+conteúdo não transborda o painel em nenhuma das quatro larguras (1280, 1024, 768, 390), e abaixo de
+900px rola dentro de si mesma, como a folha manda; nenhuma célula cortada; página sem um único erro
+de JavaScript.
 
-**O que ainda não está feito.** (1) No passo 3 a rubrica criada no passo 2 **não vem escolhida**: o
-professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
-(regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
-falha anterior a esta entrada.
+**O que ainda não está feito.** O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
+(`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
+escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
+primeiro «Gravar».
 
 ## O que está pendente
-
-## 11/11/2026 — O véu do produto passa a «o texto na tela, sem caixa»
-
-(1) A bancada continua em `/propostas/proposta-veu`, agora com a
-forma implementada como régua, montada por `--com-propostas` — passo **temporário** do deploy.
-(2) A dívida das duas peças com o mesmo nome `.veu` continua. (3) O véu a 390 px foi medido na
-geometria e na captura, mas não com leitor de ecrã real — o `role=status`/`aria-live` está provado,
-a leitura por software não.
 
 ## 12/11/2026 — O elenco que ficaria sem ninguém não existe
 
@@ -274,6 +273,15 @@ histórico — a reavaliação da Turma e do plano é a cascata, que corre pelo 
 professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
 (regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
 falha anterior a esta entrada.
+
+---
+
+## 12/11/2026 — A Turma diz as suas três pontas
+
+O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
+(`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
+escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
+primeiro «Gravar».
 
 ## Pendências anteriores (índice)
 
@@ -689,6 +697,7 @@ falha anterior a esta entrada.
 - **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42264
 - **11/11/2026** — A operação atravessa as abas, e o véu deixa ver a página → `REGISTRO.md` L42344
 - **11/11/2026** — As três formas do véu, e a página que pode pedir uma… → `REGISTRO.md` L42435
+- **11/11/2026** — O véu do produto passa a «o texto na tela, sem caixa» → `REGISTRO.md` L42521
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
