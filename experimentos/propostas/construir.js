@@ -3970,6 +3970,19 @@ const CSS_VEU = `
 .nota-do-veu p { margin: 0 0 6px; }
 .nota-do-veu p:last-child { margin-bottom: 0; }
 .nota-do-veu .fina { font-size: .85rem; color: var(--texto-suave); }
+
+/* O INTERRUPTOR DA BANCADA. O véu tranca o que está por baixo — é o ofício dele —, e por isso a
+   Produção que serve de fundo não se pode usar enquanto ele está de pé. Para se ver as DUAS coisas
+   (com véu e sem véu) o painel ganha este botão: tira e volta a pôr. É a peça secundária do
+   rodapé da bancada, e não uma peça nova do produto. */
+.veu-interruptor {
+  flex: 0 0 auto; cursor: pointer; min-height: 46px;
+  background: var(--fundo); color: var(--marca-texto, #6b1f2e);
+  border: 1px solid var(--borda); border-radius: 10px; padding: 10px 16px;
+  font: 700 14px/1.2 var(--ui, system-ui);
+}
+.veu-interruptor:hover { border-color: var(--marca, #6b1f2e); }
+.veu-interruptor[aria-pressed="true"] { background: var(--fundo-faixa, #f4f0e8); }
 `;
 
 const SCRIPT_VEU = `(function () {
@@ -3979,21 +3992,78 @@ const SCRIPT_VEU = `(function () {
   var FRASE = 'a derivar a Turma «ami» e a reencadear o plano de ensino e o plano de observação…';
   var ETIQUETA = 'Derivação';
   var alarme = null;
+  var dePe = false;
+
+  /* A NOTA DA OUTRA ABA NÃO SE APLICA AQUI. O véu do produto tem uma segunda linha — «a operação
+     começou noutra aba desta escola» — que nesta página seria FALSA: a operação é desta aba, e é
+     a própria bancada que a publica. Uma nota que mente sobre o que se está a ver é pior do que
+     nota nenhuma, e ainda ia parar a quem ouve a página. */
+  function calar() {
+    var n = document.querySelector('#veu .veu-nota');
+    if (n) n.remove();
+  }
+
+  /* A BANCADA NÃO SE TRANCA A SI MESMA — e este é o defeito que ela encontrou em 11/11/2026: «está
+     sempre carregando infinitamente, eu não consigo ir para a opção um nem para a dois».
+     O véu do produto põe \`inert\` em TODOS os filhos do \`body\`, e é assim que ele impede o
+     professor de agir a meio de uma operação. Só que a bancada que compara as formas do véu é
+     exactamente o que fica POR BAIXO dele: trancado o painel, os botões das opções não respondem
+     ao rato nem ao teclado, e a página fica a girar sem se poder escolher nada.
+     O que se liberta é o PAINEL. A Produção por baixo continua trancada — é ela que se está a
+     julgar —, e o interruptor abaixo é que a devolve. */
+  function desafogar() {
+    ['bancada', 'bancada-aba'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.inert = false;
+    });
+  }
+
+  function pintar() {
+    var b = document.getElementById('veu-interruptor');
+    if (!b) return;
+    b.textContent = dePe ? 'Tirar o véu' : 'Pôr o véu';
+    b.setAttribute('aria-pressed', String(dePe));
+  }
 
   function publicar() {
-    if (!window.LastroDaOperacao) return;
-    window.LastroDaOperacao.ocupar(FRASE, ETIQUETA);
+    calar();
+    dePe = true;
+    if (window.LastroDaOperacao) window.LastroDaOperacao.ocupar(FRASE, ETIQUETA);
+    desafogar();
+    setTimeout(desafogar, 0);
+    pintar();
+  }
+
+  function tirar() {
+    dePe = false;
+    if (window.LastroDaOperacao) window.LastroDaOperacao.liberar();
+    desafogar();
+    setTimeout(desafogar, 0);
+    pintar();
   }
 
   function armar() {
+    /* O INTERRUPTOR. Sem ele, a página por baixo do véu fica \`inert\` e não se pode conferir o que
+       se está a esconder — comparar exige poder tirar e voltar a pôr. */
+    var rodape = document.querySelector('#bancada .bancada-rodape');
+    if (rodape && !document.getElementById('veu-interruptor')) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.id = 'veu-interruptor';
+      b.className = 'veu-interruptor';
+      b.addEventListener('click', function () { if (dePe) tirar(); else publicar(); });
+      rodape.insertBefore(b, rodape.firstChild);
+    }
     if (alarme) clearInterval(alarme);
     publicar();
-    alarme = setInterval(publicar, 45000);
+    /* Renova enquanto se olha — mas NÃO com a aba escondida: uma bancada esquecida em segundo plano
+       não fica a publicar uma operação que já ninguém está a ver. */
+    alarme = setInterval(function () { if (!document.hidden && dePe) publicar(); }, 45000);
   }
 
   /* A BANCADA AVISA QUANDO TROCA DE OPÇÃO, e a frase é a mesma nas três: o que muda é o DESENHO,
      não o facto. Repetir a publicação serve para o véu não ter expirado enquanto se olha. */
-  window.aoTrocarOpcao = function () { publicar(); };
+  window.aoTrocarOpcao = function () { if (dePe) publicar(); };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', armar);
@@ -4020,8 +4090,9 @@ function proporVeu() {
     os dados de um fixture. Repare em duas coisas: <strong>reconhece-se onde se está?</strong> (é o
     formulário e a listagem de sempre) e <strong>percebe-se que algo corre?</strong></p>
     <p class="fina">A bancada está <strong>acima</strong> do véu (que é <code>z-index: 120</code>)
-    — sem isso não se podia trocar de opção com o véu de pé. Escape fecha o painel; as teclas
-    <strong>0</strong>, <strong>1</strong> e <strong>2</strong> trocam.</p>
+    — sem isso não se podia trocar de opção com o véu de pé. O painel <strong>não</strong> se
+    tranca; a Produção por baixo sim, e é o <strong>Tirar o véu</strong> que a devolve. Escape
+    fecha o painel; as teclas <strong>0</strong>, <strong>1</strong> e <strong>2</strong> trocam.</p>
   </div>
   ${secoes}
 </main>`;

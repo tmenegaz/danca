@@ -1062,3 +1062,15 @@ experimentos/modelo-formulario/*
 # armazenamento e o canal são os verdadeiros. CONTROLE NEGATIVO: o `nav.js` de antes reprova 21
 # das 23 asserções — não tem travessia nenhuma.
 !experimentos/provar-operacao-entre-abas.js
+
+# ---------------------------------------------------------------------------------------------
+# A BANCADA DAS FORMAS DO VÉU NÃO SE TRANCA A SI MESMA — 11/11/2026
+#
+# «A página do experimento está em looping […] não consigo ir para a opção um nem para a dois.»
+# Não era a página: era o véu. O módulo põe `inert` em todos os filhos do `body` durante a
+# operação, e a bancada — que publica uma operação para mostrar o véu — ficava com o painel das
+# opções trancado. Nenhum botão respondia, e o giro continuava. A prova mede o que faltava: o
+# painel não está `inert`, o clique chega ao botão (por `elementFromPoint`), a opção troca, o
+# interruptor tira e repõe o véu, e a nota «noutra aba» — falsa nesta página — não aparece.
+# CONTROLE NEGATIVO: a bancada de antes reprova 16 das 30 asserções.
+!experimentos/provar-bancada-do-veu.js
