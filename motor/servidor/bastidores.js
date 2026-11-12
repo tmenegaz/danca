@@ -716,6 +716,56 @@ function categoriasDoTrecho() {
   return lista;
 }
 
+/**
+ * O RESUMO DE UM EXERCÍCIO, PELAS TRÊS MEDIDAS DA LISTAGEM DO ESTILO (12/11/2026).
+ *
+ * O PEDIDO DELA, para o cartão da Turma: «a gente vai ter também o conteúdo, que é o terceiro
+ * bloco. Aí o conteúdo está no estilo. Aí a gente vai ter as informações dos três resumos: música,
+ * direção e notação. […] Por exemplo, a música oito tempos, direção, eu estou olhando aqui para o
+ * batmatandis, direção ao lado, notação dois trechos.»
+ *
+ * AS TRÊS SÃO DERIVADAS, e não um segundo dado a manter: a música e os trechos saem das células
+ * do verbete, e as direções, dos seus três lados. Quem as calcula é `listarVerbetes` — a MESMA
+ * função que serve a listagem do Estilo —, e é por isso que o resumo do cartão e o cartão do
+ * Estilo não podem discordar: são a mesma leitura.
+ *
+ * A LEITURA É LOCAL. `alfabetos()` é o alfabeto que o bundle já traz (zero KV, zero ida ao
+ * GitHub) — o mesmo que `musicasDosExercicios` usa há meses. Uma leitura por rede aqui custaria
+ * uma ida ao repositório por cada abertura da Produção, e a listagem já é desenhada no servidor.
+ *
+ * OS NOMES das direções vêm da gramática do alfabeto (`direcoesDoMembro`/`orientacoesDoCorpo`,
+ * chaveados pelo glifo), pela mesma regra que a tela usa. O `termo` é o que a célula guarda; o
+ * `nome` é o que se lê — «à frente», e não `devant`.
+ */
+function resumosDoConteudo(escola) {
+  const { alfabetos } = require('../nucleo/notacao.js');
+  const { listarVerbetes } = require('./verbete.js');
+  const porNome = new Map();
+  const nomesDeDirecao = new Map();
+  for (const { alfabeto } of alfabetos()) {
+    const g = (alfabeto && alfabeto.gramatica) || {};
+    for (const d of Object.values(g.direcoesDoMembro || {})) {
+      if (d && d.termo) nomesDeDirecao.set(String(d.termo), d.nome || String(d.termo));
+    }
+    for (const x of listarVerbetes(alfabeto, escola)) {
+      if (porNome.has(x.nome)) continue;
+      // A MÚSICA É A PRIMEIRA — a mesma que o cartão do Estilo mostra na caixa fechada. Um
+      // exercício com duas músicas tem duas linhas no painel, e não uma escolhida em silêncio.
+      const m = x.porMusica[0] || {};
+      const onde = (m.direcoes || []).map((t) => nomesDeDirecao.get(String(t)) || String(t));
+      porNome.set(x.nome, {
+        musica: (m.tempos ? m.tempos + ' tempos' : '—') + (m.compasso ? ' em ' + m.compasso : ''),
+        direcao: onde.length ? onde.join(' · ') : '—',
+        notacao: m.trechos
+          ? m.trechos + (m.trechos === 1 ? ' trecho' : ' trechos')
+          : 'sem trecho',
+        musicas: x.porMusica.length,
+      });
+    }
+  }
+  return porNome;
+}
+
 function musicasDosExercicios() {
   const { alfabetos, musicaDaChave } = require('../nucleo/notacao.js');
   const mapa = new Map();
@@ -3253,6 +3303,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // por turma, os chips com o «×» que removia a associação — e o formulário que os clonava era o
   // passo 3 da turma, que deixou de ter conteúdos. Sem clonador não há o que clonar, e um `<div
   // hidden>` por turma que ninguém lê é peso morto na página.
+  /* AS QUATRO LINHAS DO RITMO DE UMA SALA — escritas UMA vez (12/11/2026).
+   *
+   * Elas nasceram no cartão da SALA (18/10/2026), e o cartão da TURMA passou a precisar das mesmas
+   * quatro no painel do bloco «Sala» — porque a Turma mostra a sala que a serve, e o ritmo dela é
+   * o que o plano lê. Copiá-las daria a segunda lista de rótulos da mesma coisa: no dia em que um
+   * deles mudasse, os dois cartões diriam coisas diferentes sobre a mesma sala. */
+  const diasDaSala = (t) => ((t && t.dias && t.dias.length)
+    ? t.dias.map((d) => ((t.horarios && t.horarios[d]) ? d + ' ' + t.horarios[d] : d)).join(', ')
+    : '');
+  const camposDoRitmoDaSala = (t) => [
+    ['Frequência', frequenciaDaTurma(t)
+      ? frequenciaDaTurma(t) + 'x por semana' + (Array.isArray(t.dias) && t.dias.length
+        ? ' (' + t.dias.join(', ') + ')' : '')
+      : ''],
+    ['Dias e horário', diasDaSala(t)],
+    ['Duração da aula', t && t.duracaoMin ? t.duracaoMin + ' min' : ''],
+    ['Período', (t && (t.periodoInicio || t.periodoFim))
+      ? dataBr(t.periodoInicio || '?') + ' a ' + dataBr(t.periodoFim || '?')
+      : ''],
+  ];
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
         /* A COLUNA «CONTEÚDOS» SAIU DO CARTÃO A 07/11/2026 — e com ela o que só ela lia.
@@ -3271,9 +3341,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          */
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
-        const diasTexto = (t.dias && t.dias.length)
-          ? t.dias.map((d) => (t.horarios && t.horarios[d]) ? d + ' ' + t.horarios[d] : d).join(', ')
-          : '';
+        const diasTexto = diasDaSala(t);
         const ritmo = [
           frequenciaDaTurma(t) ? frequenciaDaTurma(t) + 'x/semana' : '',
           diasTexto,
@@ -3377,16 +3445,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * turma?» —, e a resposta não estava lá em lado nenhum: uma sala que nenhuma turma usa
          * dizia a mesma palavra que a sala da única turma da escola.
          *
-         * AS DUAS COISAS SÃO SEPARADAS, e cada uma fica com o seu lugar:
-         *   · o SELO diz o PRESENTE — `em turma` quando uma curadoria activa usa esta sala,
-         *     `livre` quando nenhuma usa. É o mesmo par de palavras do elenco e do verbete;
-         *   · a NOTA diz o PASSADO — quantos planos de ensino a citam. É nota e não segundo selo
-         *     porque é um facto a ler, não um estado a comparar (a decisão dela, 12/11/2026, ao
-         *     escolher a opção «sem selo: nota ‘citada por N planos’»).
+         * O SELO DIZ O PRESENTE — `em turma` quando uma curadoria activa usa esta sala, `livre`
+         * quando nenhuma usa. É o mesmo par de palavras do elenco e do verbete.
+         *
+         * O PASSADO NÃO SE ESCREVE NA LISTAGEM (12/11/2026). A primeira versão punha uma nota
+         * «citada por 11 planos de ensino — ajustar deriva, e o que já foi escrito fica» debaixo
+         * do nome, e ela leu-a e cortou-a: «essa parte citada que você colocou na listagem pode
+         * remover. Isso é informação só para nós […] não cabe aqui para o professor». Tinha
+         * razão pela mesma lógica do histórico do ajuste (11/11): a lista é do trabalho, e a
+         * contagem de planos é auditoria. O que sobra é o que o professor precisa de saber para
+         * decidir, e ele está no `title` do selo e no do botão — a quem procurar, não a quem
+         * passa os olhos.
          *
          * A DECISÃO DE FUNDO NÃO MUDA: quem edita e quem deriva continua a ser `estadoDaTurma`,
-         * e é por isso que uma sala `livre` e citada por planos tem o botão «Derivar». O cartão
-         * passa a dizer PORQUE — e é isso que faltava.
+         * e é por isso que uma sala `livre` e citada por planos tem o botão «Derivar» — com a
+         * razão dita onde ela se procura.
          *
          * `turmasCuradas` devolve `null` quando as curadorias não se conseguiram ler; aí o selo
          * fica no lado seguro (`em turma`), porque afirmar `livre` convidaria a uma edição que a
@@ -3412,19 +3485,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico' +
             (citacoes ? ' — ' + citacoes + (citacoes === 1 ? ' plano de ensino cita' : ' planos de ensino citam')
               + ' esta sala' : '') + '">Derivar</button>';
-        /* A NOTA DA CITAÇÃO (12/11/2026) — o FACTO do passado, em nota e não em selo.
-         *
-         * A peça é a `.nota-falta` do próprio cartão: mesma posição (abaixo do nome, acima das
-         * caixas), mesma tipografia, e é a que já diz «há aqui uma consequência que não se lê no
-         * nome». O que muda é a palavra da frente — `citada` em vez de `falta` —, porque não falta
-         * nada: a sala existe, e o que existe é a memória de quem a usou. Âmbar, e não alarme: o
-         * que a nota pede é que se saiba que o ajuste deriva. */
-        const notaCitada = citacoes
-          ? '<div class="nota-falta" title="os planos de ensino leem o ritmo desta sala; ajustá-la '
-            + 'no lugar reescreveria o que eles dizem"><b>citada</b> <span>por ' + citacoes
-            + (citacoes === 1 ? ' plano de ensino' : ' planos de ensino')
-            + ' — ajustar deriva, e o que já foi escrito fica</span></div>'
-          : '';
         // O CARTÃO DA TURMA PASSA A SER O HÍBRIDO (18/10/2026). Ele trazia NOVE faixas de
         // informação todas abertas ao mesmo tempo — nome, nível, programa, ritmo, estado,
         // vigência, o aviso de «falta …», a régua em prosa, os conteúdos em chips, o
@@ -3442,17 +3502,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           frequenciaDaTurma(t) ? frequenciaDaTurma(t) + 'x' : '',
           t.duracaoMin ? t.duracaoMin + ' min' : '',
         ].filter(Boolean).join(' · ');
-        const camposDoRitmo = [
-          ['Frequência', frequenciaDaTurma(t)
-            ? frequenciaDaTurma(t) + 'x por semana' + (Array.isArray(t.dias) && t.dias.length
-              ? ' (' + t.dias.join(', ') + ')' : '')
-            : ''],
-          ['Dias e horário', diasTexto],
-          ['Duração da aula', t.duracaoMin ? t.duracaoMin + ' min' : ''],
-          ['Período', (t.periodoInicio || t.periodoFim)
-            ? dataBr(t.periodoInicio || '?') + ' a ' + dataBr(t.periodoFim || '?')
-            : ''],
-        ];
+        const camposDoRitmo = camposDoRitmoDaSala(t);
         const painelRitmo = falta.length
           ? '<div class="trio-frase">Esta turma ainda não tem ritmo — e é o ritmo que o plano lê. ' +
             '<b>Sem ele, a turma não pode ser atribuída na curadoria.</b></div>' +
@@ -3511,7 +3561,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span></div>' +
           (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
           (avisoDeRitmo || '') +
-          notaCitada +
           // DUAS CAIXAS, E NÃO TRÊS: a sala diz o RITMO e a RÉGUA. O terceiro número era
           // «Conteúdos», e o conteúdo da aula é da Turma (ver a nota em `itensTurmas`).
           '<div class="trio trio-duo">' +
@@ -3708,6 +3757,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   //
   // `todasAsCuradorias` SUBIU PARA O TOPO da página (ver o início de `paginaProducao`): o cartão
   // da SALA lê o enquadramento dela, e o laço dos cartões corre antes deste bloco.
+  /* O RESUMO DO CONTEÚDO, LIDO UMA VEZ (12/11/2026). `resumosDoConteudo` percorre o alfabeto
+   * inteiro e compõe cada verbete; fazê-lo por cartão seria N leituras do mesmo alfabeto para a
+   * mesma página, e uma escola com oito Turmas pagava oito vezes. Fica `null` enquanto nenhuma
+   * Turma tiver conteúdo — a página de uma escola sem conteúdo não paga nada. */
+  let resumosDaVez = null;
+  /* OS CAMPOS (O RECORTE) DE UM ELENCO, lidos da linha de base (12/11/2026) — ver a nota no
+   * cartão da Turma: a lista que a Turma oferece não os carrega, e pedi-los lá dava zero. */
+  const camposDoElencoNaLinha = (todasAsLinhas, id) => {
+    const alvo = (Array.isArray(todasAsLinhas) ? todasAsLinhas : [])
+      .find((x) => x && String(x.id) === String(id) && !x.apagada_em);
+    return alvo && Array.isArray(alvo.campos) ? alvo.campos : [];
+  };
   const itensCuradorias = listaCuradorias.length
     ? listaCuradorias.map((c) => {
         const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
@@ -3750,19 +3811,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * quem a ensina e como ela está no catálogo. */
         const tituloDaTurma = nomeDaTurma(c, { elencos: elencosDaEscola });
         /* A ORDEM DO COMPLEMENTO é a das perguntas que a escola faz ao olhar a lista: em que
-         * linha se ensina (modalidade), em que tradição, em que grau, em que sala — e SÓ ENTÃO
-         * quem a ensina hoje, porque o professor é o que muda; por último o tamanho do corpo e o
-         * estado no catálogo, que são o retrato do momento. */
+         * linha se ensina (modalidade), em que tradição, em que grau — e SÓ ENTÃO quem a ensina
+         * hoje, porque o professor é o que muda; por último o estado no catálogo, que é retrato
+         * do momento.
+         *
+         * A SALA E O TAMANHO DO CORPO SAÍRAM DAQUI (12/11/2026) porque ganharam bloco próprio: a
+         * sala no bloco «Sala», as alunas no bloco «Elenco». Dizê-los duas vezes na mesma linha
+         * de leitura é o que a peça evita — o `.dono` é o complemento do NOME, e um bloco que
+         * abre não precisa de estar também resumido por cima. */
         const atributos = [
           perfilNucleo.nomeDaModalidade(c.modalidade) || c.modalidade,
           rotuloDaTradicao(c.tradicao),
           nivelDaCuradoria.rotulo,
-          turmas.length ? turmas.join(' · ') : '',
         ].filter(Boolean);
-        const retrato = [
-          quantasAlunas ? (quantasAlunas + ' aluna(s)') : '',
-          estadoDoCatalogo,
-        ].filter(Boolean);
+        const retrato = [estadoDoCatalogo].filter(Boolean);
         // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
         // nenhum plano de ensino nasceu desta curadoria, o registo edita-se; depois, deriva.
         const vinculada = curadoriaVinculadaA(pares, c);
@@ -3857,6 +3919,121 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           : esc(rotuloProfessor);
         if (rotuloProfessor) complemento.push(professorNaLinha);
         for (const p of retrato) complemento.push(esc(p));
+        /* ------------------------------------------------------------------------------------
+         * OS TRÊS BLOCOS DA TURMA (12/11/2026) — a mesma forma da Sala, do Elenco e do Estilo.
+         *
+         * O PEDIDO, na letra dela: «a gente vai usar de forma similar ao que é feito nas outras
+         * listagens. A gente vai ter três blocos abaixo. […] um dos blocos a gente vai dizer qual
+         * é a sala e aí a gente vai pegar as informações da sala. […] não são as informações
+         * detalhadas de quando a gente expande, são as informações globais e um link que leva
+         * direto para a sala e aí lá o professor vê as informações detalhadas. […] o elenco […]
+         * quantos alunos e quais são os recortes e um link que leva também direto para aquele
+         * elenco. […] E aí a gente vai ter também o conteúdo, que é o terceiro bloco. Aí o
+         * conteúdo está no estilo.»
+         *
+         * PORQUE É QUE ISTO É UMA PEÇA E NÃO TRÊS CAIXAS. A Turma é a RELAÇÃO — sala × elenco ×
+         * conteúdo —, e era a única das quatro listas que não deixava ver a relação: dizia-a numa
+         * linha de prosa (`.dono`), onde o nome da sala competia com o da modalidade e o do
+         * professor. Os três blocos são as três pontas da relação, cada uma a abrir o resumo do
+         * que ela é e a levar ao sítio onde se edita.
+         *
+         * O QUE CADA BLOCO DIZ FECHADO, e é a medida que ela escolheu: a SALA pelo nome, o ELENCO
+         * pelo corpo («2 alunas») e o CONTEÚDO pelo tamanho («3 exercícios»). As três são
+         * CONTAGENS do que existe, e não juízos: uma turma sem elenco diz «sem elenco», e não «0».
+         *
+         * O CONTEÚDO ABERTO É A TABELA DOS TRÊS RESUMOS, uma linha por exercício — música,
+         * direção e notação, que são as três caixas do cartão do Estilo. Ela escolheu esta forma
+         * entre três (12/11/2026): «a — ‘3 exercícios’ e o resumo ao abrir». Somar tempos de
+         * exercícios diferentes daria um número que não corresponde a nada que se dance. */
+        const salasDaTurma = turmas.map((nome) => listaTurmas.find((x) => x && String(x.nome) === String(nome))
+          || todasAsTurmas.find((x) => x && String(x.nome) === String(nome)) || null);
+        const corpoDoElenco = elencoDaCuradoria ? elencoDaCuradoria.alunas || [] : (c.alunas || []);
+        /* O RECORTE VEM DA LINHA DE BASE CRUA, e não da lista que a Turma oferece: `elencosParaATurma`
+         * compõe `{id, nome, alunas, rascunho, rotulo}` para o `<select>` e NÃO carrega os `campos`
+         * — o recorte não lhe faz falta lá. Pedi-lo aqui àquela lista devolvia «0 aspectos» num
+         * elenco que tem recorte, e a prova apanhou-o antes de o cartão chegar ao ar. */
+        const recorteDoElenco = c.linhaDeBase ? camposDoElencoNaLinha(linhas, c.linhaDeBase) : [];
+        const exerciciosDaTurma = (Array.isArray(c.repertorio) ? c.repertorio : [])
+          .map((x) => String(x == null ? '' : x).trim()).filter(Boolean);
+        /* O RESUMO DO CONTEÚDO É LIDO UMA VEZ POR PÁGINA, e só quando há Turmas com conteúdo —
+         * `resumosDoConteudo` percorre o alfabeto inteiro, e uma página sem conteúdo não paga. */
+        if (exerciciosDaTurma.length && !resumosDaVez) resumosDaVez = resumosDoConteudo(escola);
+        const caixa = (rotulo, valor, qual, dica) =>
+          '<button type="button" class="trio-item" data-balao="' + qual + '" aria-expanded="false"' +
+          ' aria-label="' + esc(dica) + '">' +
+          '<span class="trio-k">' + esc(rotulo) + '</span>' +
+          '<span class="trio-v">' + esc(valor) + '</span>' +
+          '<span class="trio-q" aria-hidden="true">?</span></button>';
+        const ligacao = (rotulo, seccao, alvo, dica) =>
+          '<p class="par-botoes"><a class="acao secundario pequena" href="#' + seccao + '"' +
+          (alvo ? ' data-abrir="' + esc(alvo) + '"' : '') +
+          ' title="' + esc(dica) + '">' + esc(rotulo) + '</a></p>';
+        // ---- SALA -------------------------------------------------------------------------
+        const painelSala = (salasDaTurma.length
+          ? salasDaTurma.map((s) => {
+              if (!s) return '<p class="trio-nota">A sala declarada por esta Turma já não está no '
+                + 'cadastro desta escola.</p>';
+              const faltaDaSala = faltaNoRitmoDaTurma(s);
+              const reguaDaSala = reguaPorTurma[s.id] || rubricaDaTurma(s, listaRubricas);
+              const rubricaDaSala = rubricaPorId.get(String(s.rubricaId || ''));
+              return '<div class="trio-grade">' + camposDoRitmoDaSala(s).map(([k, v]) =>
+                  '<div><span class="trio-k">' + esc(k) + '</span><span class="trio-v">'
+                    + esc(v || '—') + '</span></div>').join('') + '</div>' +
+                (faltaDaSala.length
+                  ? '<p class="trio-nota">Falta ' + esc(fraseDaFalta(faltaDaSala))
+                    + ' — sem isso a sala não pode receber um plano.</p>'
+                  : '') +
+                '<div class="trio-escala">' + reguaDaSala.map((n, i) =>
+                  '<span class="' + classeDoNivel(n, i, reguaDaSala.length) + '">' + esc(n)
+                    + '</span>').join('') + '</div>' +
+                '<p class="trio-nota">' + (rubricaDaSala
+                  ? 'Medida por <b>' + esc(rubricaDaSala.nome) + '</b>.'
+                  : 'Medida pela régua padrão da escola.') + '</p>';
+            }).join('')
+          : '<div class="trio-frase">Esta Turma ainda não tem sala — e é a sala que dá o ritmo '
+            + 'que o plano de ensino lê.</div>') +
+          ligacao('Abrir a Sala', 'turmas', salasDaTurma[0] && salasDaTurma[0].id
+            ? 'sala:' + salasDaTurma[0].id : '', 'abrir a sala desta Turma na lista das Salas');
+        // ---- ELENCO -----------------------------------------------------------------------
+        const painelElenco = (elencoDaCuradoria
+          ? '<div class="trio-grade">' +
+              '<div><span class="trio-k">Alunas</span><span class="trio-v">'
+                + (corpoDoElenco.length === 1 ? '1 aluna' : corpoDoElenco.length + ' alunas')
+                + '</span></div>' +
+              '<div><span class="trio-k">Recorte</span><span class="trio-v">'
+                + (recorteDoElenco.length === 1 ? '1 aspecto'
+                  : recorteDoElenco.length + ' aspectos') + '</span></div></div>' +
+            (corpoDoElenco.length
+              ? '<div class="trio-chips">' + corpoDoElenco.map((a) =>
+                  '<span>' + esc(a) + '</span>').join('') + '</div>'
+              : '<p class="trio-nota">Este elenco não tem nenhuma aluna — a Turma ficou sem corpo.</p>') +
+            (recorteDoElenco.length
+              ? '<div class="trio-chips">' + recorteDoElenco.map((x) =>
+                  '<span>' + esc(x.nome || x.id) + '</span>').join('') + '</div>'
+              : '<p class="trio-nota">Nenhum aspecto no recorte — é dele que o plano de ensino '
+                + 'importa o que se observa.</p>')
+          : '<div class="trio-frase">Esta Turma ainda não escolheu elenco — e é o elenco que traz '
+            + 'o corpo que a aula observa.</div>') +
+          ligacao('Abrir o Elenco', 'corpo', c.linhaDeBase ? 'elenco:' + c.linhaDeBase : '',
+            'abrir este elenco na Audição');
+        // ---- CONTEÚDO ---------------------------------------------------------------------
+        const linhasDoConteudo = exerciciosDaTurma.map((nome) => {
+          const r = resumosDaVez ? resumosDaVez.get(String(nome)) : null;
+          return '<tr><td>' + esc(nome) + '</td>'
+            + '<td>' + esc(r ? r.musica : '—') + '</td>'
+            + '<td>' + esc(r ? r.direcao : '—') + '</td>'
+            + '<td>' + esc(r ? r.notacao : '—') + '</td></tr>';
+        }).join('');
+        const painelConteudo = (exerciciosDaTurma.length
+          ? '<table><thead><tr><th>Exercício</th><th>Música</th>'
+            + '<th>Direção</th><th>Notação</th></tr></thead><tbody>' + linhasDoConteudo
+            + '</tbody></table>'
+          : '<div class="trio-frase">Esta Turma ainda não tem conteúdo — os exercícios que ela '
+            + 'ensina escolhem-se no «Editar», e vivem no Estilo.</div>') +
+          ligacao('Abrir o Estilo', 'verbetes', '', 'abrir o Estilo, onde os exercícios se definem');
+        const valorDoConteudo = exerciciosDaTurma.length
+          ? (exerciciosDaTurma.length === 1 ? '1 exercício' : exerciciosDaTurma.length + ' exercícios')
+          : 'sem conteúdo';
         return '<li class="turma" data-curadoria="' + esc(c.id) + '" data-disponivel="' +
             (disp.disponivel ? 'sim' : 'nao') + '"' +
             ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
@@ -3870,6 +4047,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover turma">Excluir</button>') +
           '</span></div>' +
           (complemento.length ? '<div class="dono">' + complemento.join(' · ') + '</div>' : '') +
+          '<div class="trio">' +
+          caixa('Sala', salasDaTurma.length ? turmas.join(' · ') : 'sem sala', 'sala',
+            'ver o ritmo e a régua da sala desta Turma') +
+          caixa('Elenco', elencoDaCuradoria
+            ? (corpoDoElenco.length === 1 ? '1 aluna' : corpoDoElenco.length + ' alunas')
+            : 'sem elenco', 'elenco', 'ver as alunas e o recorte deste elenco') +
+          caixa('Conteúdo', valorDoConteudo, 'conteudo',
+            'ver a música, a direção e a notação do conteúdo desta Turma') +
+          '</div>' +
+          '<div class="trio-painel" data-painel="sala" hidden>' + painelSala + '</div>' +
+          '<div class="trio-painel" data-painel="elenco" hidden>' + painelElenco + '</div>' +
+          '<div class="trio-painel" data-painel="conteudo" hidden>' + painelConteudo + '</div>' +
           '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma atribuída)</li>';
@@ -4457,6 +4646,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
     '.par-associar button{flex:0 0 auto;}' +
     '.par-botoes{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.55rem 0 0;}' +
+    // A TABELA DO CONTEÚDO, NO PAINEL DA TURMA (12/11/2026). A peça é a `table` da folha; o que
+    // esta linha acrescenta é o que o PAINEL pede — uma tabela dentro de uma caixa de leitura não
+    // é o documento: sem margem exterior (o `.trio-painel` já tem ar), um corpo mais pequeno e um
+    // filete só entre as linhas, para quatro colunas de resumo não se lerem como uma página.
+    '.trio-painel table{margin:0;font-size:.85rem;}' +
+    '.trio-painel table th,.trio-painel table td{padding:.3rem .45rem;text-align:left;' +
+    'vertical-align:top;border-bottom:1px solid var(--borda-campo);}' +
+    '.trio-painel table thead th{font:700 .66rem/1.2 var(--ui);letter-spacing:.06em;' +
+    'text-transform:uppercase;color:var(--texto-suave);}' +
+    '.trio-painel table tbody tr:last-child td{border-bottom:0;}' +
     // O QUE FALTA, DITO: uma nota âmbar discreta, ao lado do botão que está travado.
     '.nota-pendencia{margin:.5rem 0 0;padding:.4rem .6rem;border-radius:var(--raio-1);' +
     'background:var(--alerta-fundo);border:1px solid var(--borda-campo);' +
@@ -6991,9 +7190,52 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    } else { links[j].classList.remove("ativo"); links[j].removeAttribute("aria-current"); }' +
     '  }' +
     '  fecharMenu();' +
+    /* O LINK QUE LEVA À LINHA CERTA (12/11/2026).
+     *
+     * O PEDIDO DELA, para os blocos do cartão da Turma: «um link que leva direto para a sala e aí
+     * lá o professor vê as informações detalhadas», «um link que leva também direto para aquele
+     * elenco». Abrir a SECÇÃO não é «direto»: as Salas e os Elencos são listas, e a linha que
+     * interessa pode estar na terceira página.
+     *
+     * COMO. O link traz `data-abrir="sala:<id>"` (ou `elenco:<id>`), o clique guarda-o na memória
+     * da aba e a secção abre pelo caminho de sempre — o `hash`. Ao fim de mostrar a secção, esta
+     * função lê a memória, ROLA até à linha e põe o foco na primeira caixa dela. A memória é
+     * LIDA E APAGADA: um alvo esquecido voltaria a saltar na próxima navegação, e um salto que
+     * não se pediu é pior do que nenhum. */
+    '  var alvoDoLink = "";' +
+    '  try {' +
+    '    alvoDoLink = sessionStorage.getItem("producao:focar") || "";' +
+    '    sessionStorage.removeItem("producao:focar");' +
+    '  } catch (err) { alvoDoLink = ""; }' +
+    '  if (!alvoDoLink) return;' +
+    '  var partes = alvoDoLink.split(":");' +
+    '  var seletor = partes[0] === "sala" ? "li[data-turma=\\"" + partes[1] + "\\"]"' +
+    '    : partes[0] === "elenco" ? "li[data-elenco=\\"" + partes[1] + "\\"]"' +
+    '    : "";' +
+    '  if (!seletor) return;' +
+    '  var no = document.querySelector(seletor);' +
+    '  if (!no) return;' +
+    '  if (no.scrollIntoView) {' +
+    '    try { no.scrollIntoView({block: "center"}); } catch (err) { no.scrollIntoView(); }' +
+    '  }' +
+    '  var primeira = no.querySelector(".trio-item");' +
+    '  if (primeira && primeira.focus) primeira.focus();' +
     '}' +
     'window.addEventListener("hashchange", mostrarSecao);' +
     'mostrarSecao();' +
+    /* O CLIQUE NO LINK DE UM BLOCO. O `href` faz a navegação; o que ele não faz é abrir a secção
+     * quando já se está nela (não há `hashchange`). Este handler cobre esse caso e deixa o resto
+     * entregue ao navegador — sem `preventDefault`, para o `#hash` continuar a ser o endereço. */
+    'document.addEventListener("click", function(e){' +
+    '  var a = e.target.closest ? e.target.closest("a[data-abrir]") : null;' +
+    '  if (!a) return;' +
+    '  try { sessionStorage.setItem("producao:focar", a.getAttribute("data-abrir")); } catch (err) {}' +
+    '  var destino = (a.getAttribute("href") || "").replace("#", "");' +
+    '  if (destino && (location.hash || "").replace("#", "") === destino) {' +
+    '    e.preventDefault();' +
+    '    mostrarSecao();' +
+    '  }' +
+    '});' +
     '(function(){' +
     '  var b = document.getElementById("lateral-abrir");' +
     '  var veu = document.getElementById("lateral-veu");' +
@@ -12999,7 +13241,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        "<span class=\\"trio-v\\">" + escHtml(valor) + "</span>" +' +
     '        "<span class=\\"trio-q\\" aria-hidden=\\"true\\">?</span></button>";' +
     '    };' +
-    '    return "<li class=\\"trio-plano\\">" +' +
+    /* O `data-elenco` É O ENDEREÇO DA LINHA (12/11/2026). O cartão da Turma tem um bloco
+     * «Elenco» que leva «direto para aquele elenco», e para isso a linha tem de ser
+     * identificável quando a pessoa chega à Audição. Era a única das três pontas sem
+     * identidade no DOM — a sala já tinha `data-turma`, o verbete `data-verbete`. */
+    '    return "<li class=\\\"trio-plano\\\" data-elenco=\\\"" + escHtml(l.id) + "\\\">" +' +
     '      "<div class=\\"trio-linha\\">" +' +
     '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + marca + "</span>" +' +
     '      "<span class=\\"trio-acoes\\">" +' +

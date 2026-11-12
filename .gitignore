@@ -1140,3 +1140,17 @@ experimentos/modelo-formulario/*
 # como recarrega: passo 1 → 2 → 3 → fim.
 # CONTROLE NEGATIVO: 10 falhas contra ad87a0f1.
 !experimentos/provar-o-passo-da-sala.js
+
+# ---------------------------------------------------------------------------------------------
+# A TURMA DIZ AS SUAS TRÊS PONTAS — 12/11/2026
+#
+# «a gente vai usar de forma similar ao que é feito nas outras listagens. A gente vai ter três
+# blocos abaixo […] a sala […] o elenco […] o conteúdo, que é o terceiro bloco.» A Turma é a relação
+# sala × elenco × conteúdo, e era a única das quatro listas que a dizia numa linha de prosa.
+#
+# A prova mede a forma (a peça das outras listas, três caixas, três painéis), o que cada bloco diz
+# FECHADO (o nome da sala, «2 alunas», «3 exercícios»), o que diz ABERTO (ritmo e régua; alunas e
+# recorte; a tabela música · direção · notação), que o resumo é o MESMO da listagem do Estilo, e
+# que o link traz a linha certa à vista — uma vez só, porque a memória do alvo é apagada.
+# CONTROLE NEGATIVO: 34 falhas contra 13da2160.
+!experimentos/provar-o-cartao-da-turma-do-trio.js

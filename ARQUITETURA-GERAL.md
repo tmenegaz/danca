@@ -254,6 +254,32 @@ três sítios (a rota `turma-editar`, o `DELETE` e o cartão). **A turma curada 
 trava**: edita-se no lugar o que não parte a ligação, e renomear pede sair da curadoria primeiro. A
 derivação preserva a ligação porque mantém o nome.
 
+**A TURMA É UMA RELAÇÃO, E O CARTÃO DELA DIZ AS TRÊS PONTAS (12/11/2026).** Sala × elenco × conteúdo:
+a sala dá o ritmo e a régua, o elenco traz o corpo e o recorte, o conteúdo é o que se ensina (e vive
+no Estilo). Até aqui a relação estava numa **linha de prosa** (`.dono`), onde o nome da sala competia
+com a modalidade, o nível e o professor — e uma Turma com cinco informações não se lê de relance.
+O cartão passou a ter a **mesma peça das outras três listas**: `li.turma > .linha-turma > .nome +
+.acoes`, `.dono`, e um `.trio` de três caixas que abrem um painel cada (`motor/nucleo/lista-html.js`
+é a referência da forma; as peças são as da folha).
+
+| Bloco | Fechado diz | Aberto diz | Leva a |
+|:--|:--|:--|:--|
+| **Sala** | o nome que a Turma declara | as quatro linhas do ritmo, a escala da régua e por que rubrica é medida | `#turmas`, com a linha da sala trazida à vista |
+| **Elenco** | «2 alunas» | as alunas e os aspectos do recorte, em chips | `#corpo`, com a linha do elenco trazida à vista |
+| **Conteúdo** | «3 exercícios» | a tabela dos três resumos — música, direção e notação, uma linha por exercício | `#verbetes` |
+
+**O RESUMO DO CONTEÚDO É O DA LISTAGEM DO ESTILO**, e não um segundo cálculo: as três medidas saem de
+`listarVerbetes` (`motor/servidor/verbete.js`), que é quem já as derivava das células do verbete. O
+alfabeto vem do próprio bundle (`alfabetos()`), portanto a página não gasta KV nem rede. Somar tempos
+de exercícios diferentes daria um número que não corresponde a nada que se dance — a escolha foi
+contar exercícios e mostrar as três medidas de cada um (decisão dela, entre três formas).
+
+**O LINK ABRE A LINHA CERTA.** Abrir a secção não era «direto»: as Salas e os Elencos são listas, e a
+linha pode estar noutra página. O link traz `data-abrir="sala:<id>"` (ou `elenco:<id>`), o clique
+guarda o alvo na memória da aba, a secção abre pelo `hash` de sempre, e o fim de `mostrarSecao` rola
+até à linha e põe o foco na primeira caixa dela. A memória é **lida e apagada**: um alvo esquecido
+voltaria a saltar numa navegação que ninguém pediu.
+
 **Três leituras ficariam ambíguas sem regra escrita** — e é para isso que existe
 `motor/nucleo/enquadramento.js`, um módulo puro:
 
@@ -645,27 +671,28 @@ Plano de Ensino declara-o em `contexto-turma`. Um elo novo com outro nome partir
 **em silêncio** — o plano impresso continuaria a dizer «Balé Nível 1» e nada no cadastro se chamaria
 assim. É por isso que o «Editar» de uma Sala vinculada **deriva** em vez de corrigir.
 
-**O CARTÃO DIZ O PRESENTE; A NOTA DIZ O PASSADO (12/11/2026).** Os três estados acima são a regra da
-**escrita**, e continuam a decidir quem edita e quem deriva. O que mudou é a **leitura**: o selo do
-cartão dizia `livre` / `curada` / `vinculada`, e as três respondiam a «posso editar no lugar?» — a
-pergunta que a direção faz ao cartão é outra, «**esta sala está em alguma turma?**». Pior: uma sala
-que nenhuma turma usava dizia `vinculada` só porque um plano de ensino antigo a cita, e isso lê-se
-como «está em turma», que é falso. Foi o que aconteceu às duas salas do ar: o `Piano`, da única
-turma da escola, e o `Rosa`, que nenhuma turma usava, diziam a mesma palavra.
+**O SELO DO CARTÃO DIZ O PRESENTE (12/11/2026).** Os três estados acima são a regra da **escrita**, e
+continuam a decidir quem edita e quem deriva. O que mudou é a **leitura**: o selo dizia `livre` /
+`curada` / `vinculada`, e as três respondiam a «posso editar no lugar?» — a pergunta que a direção
+faz ao cartão é outra, «**esta sala está em alguma turma?**». Pior: uma sala que nenhuma turma usava
+dizia `vinculada` só porque um plano de ensino antigo a cita, e isso lê-se como «está em turma», que
+é falso. Foi o que aconteceu às duas salas do ar: o `Piano`, da única turma da escola, e o `Rosa`,
+que nenhuma turma usava, diziam a mesma palavra.
 
-O cartão separa agora os dois factos, e cada um no seu lugar:
+| O que o cartão diz | O que quer dizer |
+|:--|:--|
+| `em turma` | uma **curadoria activa** usa esta sala (`turmasCuradas`) |
+| `livre` | nenhuma curadoria a usa hoje |
 
-| O que o cartão diz | O que quer dizer | Onde |
-|:--|:--|:--|
-| `em turma` | uma **curadoria activa** usa esta sala (`turmasCuradas`) | o **selo** |
-| `livre` | nenhuma curadoria a usa hoje | o **selo** |
-| `citada por N planos de ensino` | o **passado** a cita — o plano declara o nome dela em `contexto-turma` | a **nota**, abaixo do nome |
+**O passado não se escreve na listagem.** A primeira versão punha uma nota «citada por N planos de
+ensino» debaixo do nome, e ela cortou-a no mesmo dia: «isso é informação só para nós […] não cabe
+aqui para o professor». É a mesma fronteira do histórico do ajuste (11/11/2026): a lista mostra o que
+se precisa de saber para decidir; a contagem de planos é auditoria, e fica no `title` do botão — a
+quem a procura. Uma sala `livre` **e** citada continua a ter o botão «Derivar» (quem decide a
+escrita é `estadoDaTurma`, não a palavra do selo), e a razão está lá, no `title`, para quem perguntar.
 
-São duas perguntas, e por isso duas peças: um selo responde a uma pergunta só, e o segundo facto
-vai em nota (decisão dela, 12/11/2026). Uma sala `livre` **e** citada continua a ter o botão
-«Derivar» — quem decide a escrita é `estadoDaTurma`, não a palavra do selo —, e agora o cartão diz
-**porquê**. Quando as curadorias não se conseguem ler, o selo fica no lado seguro (`em turma`):
-afirmar `livre` convidaria a uma edição que a regra de proveniência recusa.
+Quando as curadorias não se conseguem ler, o selo fica no lado seguro (`em turma`): afirmar `livre`
+convidaria a uma edição que a regra de proveniência recusa.
 
 *A avaliação, contra o código de hoje:*
 

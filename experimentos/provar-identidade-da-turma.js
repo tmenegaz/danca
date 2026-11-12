@@ -425,14 +425,22 @@ async function provarANavegador() {
       dono: (li.querySelector('.dono') || {}).textContent || '',
       donoHtml: (li.querySelector('.dono') || {}).innerHTML || '',
       titulo: li.getAttribute('title') || '',
+      // OS TRÊS BLOCOS (12/11/2026): o valor de cada um, pela ordem em que se leem.
+      blocos: [...li.querySelectorAll('.trio-item .trio-v')].map((x) => x.textContent),
     })));
   provar('a lista tem as duas Turmas', linhas.length === 2, linhas.length);
   const daRosa = linhas.find((l) => l.b === 'tami') || {};
   provar('o `<b>` da linha é o ELENCO', daRosa.b === 'tami', daRosa);
   provar('…e o professor desceu para o complemento', /Pe Torto/.test(daRosa.dono || ''), daRosa.dono);
-  provar('…e o complemento diz a modalidade, a tradição, o nível e a sala',
+  /* A SALA SAIU DO COMPLEMENTO A 12/11/2026 — ela passou a ter BLOCO PRÓPRIO no cartão (Sala,
+   * Elenco, Conteúdo). A asserção não foi apagada: passou a exigir as duas metades, uma em cada
+   * sítio — o complemento diz em que linha se ensina, e um dos blocos diz em que sala. Uma prova
+   * que só se apaga no dia em que o código muda deixa de guardar o que guardava. */
+  provar('…e o complemento diz a modalidade, a tradição e o nível — sem a sala, que ganhou bloco',
     /Balé clássico/.test(daRosa.dono || '') && /RAD/.test(daRosa.dono || '')
-      && /Grade 1/.test(daRosa.dono || '') && /Rosa/.test(daRosa.dono || ''), daRosa.dono);
+      && /Grade 1/.test(daRosa.dono || '') && !/Rosa/.test(daRosa.dono || ''), daRosa.dono);
+  provar('…e a sala está no bloco dela, com o nome que a Turma declara',
+    (daRosa.blocos || []).indexOf('Rosa') !== -1, daRosa.blocos);
   provar('…e o professor é um link para o plano de ensino dele',
     /class="nome-link"/.test(daRosa.donoHtml || '') && /\/plano-ensino\//.test(daRosa.donoHtml || ''),
     daRosa.donoHtml);

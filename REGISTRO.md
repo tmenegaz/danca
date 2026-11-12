@@ -42893,3 +42893,73 @@ medidas contra o código anterior, para não se lhes atribuir o que não é dela
 professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
 (regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
 falha anterior a esta entrada.
+
+---
+
+## 12/11/2026 — A Turma diz as suas três pontas
+
+**O que aconteceu.** A pesquisadora, na lista das Turmas: «a gente vai usar de forma similar ao que é
+feito nas outras listagens. A gente vai ter três blocos abaixo. […] um dos blocos a gente vai dizer
+qual é a sala e aí a gente vai pegar as informações da sala. […] não são as informações detalhadas de
+quando a gente expande, são as informações globais e um link que leva direto para a sala. […] o
+elenco […] quantos alunos e quais são os recortes e um link que leva também direto para aquele
+elenco. […] E aí a gente vai ter também o conteúdo, que é o terceiro bloco. Aí o conteúdo está no
+estilo.» E, sobre a nota que tinha nascido de manhã na lista das Salas: «essa parte citada que você
+colocou na listagem pode remover. Isso é informação só para nós […] não cabe aqui para o professor.»
+
+**O que foi decidido.**
+- **A NOTA «CITADA POR N PLANOS» SAIU** — das duas salas, e não só da que está em turma. A fronteira é
+  a do histórico do ajuste (11/11): a lista mostra o que se precisa de saber para decidir; a
+  contagem de planos é auditoria. O número não se perde — fica no `title` do botão, para quem o
+  procurar (é ele que explica um «Derivar» numa sala livre).
+- **O CARTÃO DA TURMA PASSOU A TER A PEÇA DAS OUTRAS TRÊS LISTAS**, com um `.trio` de três caixas —
+  **Sala**, **Elenco** e **Conteúdo** —, cada uma a abrir o seu painel. Fechadas, dizem o que existe:
+  o nome da sala, «2 alunas», «3 exercícios». Abertas, dizem o resumo e levam ao sítio onde se
+  edita: o ritmo e a régua da sala; as alunas e os aspectos do recorte; e a tabela dos três resumos
+  do conteúdo — música, direção e notação, uma linha por exercício.
+- **O CONTEÚDO FECHADO CONTA EXERCÍCIOS, e não soma tempos** (a escolha dela, entre três formas):
+  somar tempos de exercícios diferentes daria um número que não corresponde a nada que se dance.
+- **O RESUMO NÃO É UM SEGUNDO CÁLCULO.** As três medidas do conteúdo saem de `listarVerbetes` — a
+  mesma função que desenha a listagem do Estilo —, e o alfabeto é o do bundle: nem KV nem rede.
+  Assim o cartão da Turma e o cartão do Estilo não podem discordar sobre o mesmo exercício.
+- **A SALA E O NÚMERO DE ALUNAS SAÍRAM DO COMPLEMENTO** (`.dono`), que fica com o que é do nome:
+  modalidade · tradição · nível · professor · estado no catálogo. Dizê-los duas vezes na mesma linha
+  de leitura é o que a peça evita.
+
+**O que a prova apanhou, e vale registar.** O painel do Elenco dizia «0 aspectos» num elenco com
+recorte: `elencosParaATurma` compõe `{id, nome, alunas, rascunho, rotulo}` para o `<select>` e **não**
+carrega os `campos` — o recorte não lhe faz falta lá. A leitura passou a ir à linha de base crua.
+Era um zero silencioso, do mesmo tipo do «sem apelido»: o dado existia e a tela dizia que não.
+
+**Onde entrou.** [motor/servidor/bastidores.js](./motor/servidor/bastidores.js) — `resumosDoConteudo`,
+as quatro linhas do ritmo partilhadas entre o cartão da Sala e o da Turma, o cartão da Turma com os
+três blocos, o `data-elenco` da linha do elenco e o `data-abrir` que traz a linha à vista ·
+[experimentos/provar-o-cartao-da-turma-do-trio.js](./experimentos/provar-o-cartao-da-turma-do-trio.js)
+— prova nova · [ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) — a Turma como relação e a tabela dos
+três blocos.
+
+**Validação.** `provar-o-cartao-da-turma-do-trio` **42/42**; controle negativo contra `13da2160`:
+**34 falhas**, e o negativo mostra o cartão velho (sem `.trio-item`, sem a tabela, com a nota). Sem
+regressão: `provar-identidade-da-turma` **77** (uma asserção mudou de sítio — a sala saiu do
+complemento e passou a ser exigida no bloco dela) · `provar-o-passo-da-sala` **24** (duas asserções
+invertidas: a nota deixou de existir, e o número passou a ser exigido no `title`) ·
+`provar-salas-e-elencos` 65 · `provar-elenco-na-turma` 26 · `provar-sujeitos-da-turma` 41 ·
+`provar-enquadramento-da-turma` verde · `provar-conteudos-e-estado-da-turma` verde ·
+`provar-elenco-sem-ninguem` 59 · `provar-revisao-do-recorte` 47 ·
+`provar-transferencia-e-desligamento` 93 · `provar-abas-da-audicao` 86 ·
+`provar-operacao-entre-abas` 29 · `provar-veu-da-operacao` 23 · `provar-o-veu-de-cada-gesto` 39 ·
+`provar-vigente-na-listagem` 21 · `provar-listas-do-acervo` 109 · `provar-largura-da-lista` 56 ·
+`provar-ficha-na-listagem` 35 · `check-identidade` 0 erros · `check-indices` 16/16.
+As que já falhavam antes continuam iguais: `provar-cartao-da-turma` 6, `provar-derivacao-da-turma`
+20, `provar-historico-do-ajuste` 8, `provar-menu-da-producao` 1, `provar-linhas-da-lista` 14,
+`provar-producao` 2 — medidas contra o código anterior, para não se lhes atribuir o que não é delas.
+
+**Medido no navegador.** As três caixas ficam iguais (176×48 a 1280, 88×67 a 390); a tabela do
+conteúdo não transborda o painel em nenhuma das quatro larguras (1280, 1024, 768, 390), e abaixo de
+900px rola dentro de si mesma, como a folha manda; nenhuma célula cortada; página sem um único erro
+de JavaScript.
+
+**O que ainda não está feito.** O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
+(`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
+escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
+primeiro «Gravar».

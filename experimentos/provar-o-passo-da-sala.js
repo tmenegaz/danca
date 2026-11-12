@@ -113,11 +113,20 @@ console.log('1. O CRITÉRIO DO CARTÃO — «em turma» quer dizer que uma TURMA
     !/>em turma</.test(rosa), rosa.slice(0, 400));
   provar('nenhuma das duas diz «vinculada» — a palavra que ela não reconhece',
     !/>vinculada</.test(piano) && !/>vinculada</.test(rosa));
-  provar('a sala sem turma diz, em NOTA, que o passado a cita — e a nota diz quantos planos',
-    /class="nota-falta"/.test(rosa) && /<b>citada<\/b>/.test(rosa)
-      && /por 1 plano de ensino/.test(rosa), rosa.slice(0, 700));
-  provar('…e a sala que uma turma usa também leva a nota — o passado não desaparece por haver turma',
-    /<b>citada<\/b>/.test(piano) && /por 1 plano de ensino/.test(piano), piano.slice(0, 700));
+  /* A NOTA «CITADA POR N PLANOS» NASCEU E MORREU NO MESMO DIA. Ela foi escrita aqui de manhã
+   * (12/11/2026) e a pesquisadora cortou-a à tarde: «essa parte citada que você colocou na
+   * listagem pode remover. Isso é informação só para nós […] não cabe aqui para o professor».
+   *
+   * A ASSERÇÃO NÃO SE APAGA — INVERTE-SE, que é o que guarda a decisão. O que fica dito na tela
+   * é o que o professor precisa para decidir; a contagem de planos é auditoria, e o lugar dela é
+   * o `title` de quem a procura. */
+  provar('a sala sem turma não escreve na listagem quantos planos a citam — isso é auditoria',
+    !/citada/.test(rosa) && !/nota-falta/.test(rosa), rosa.slice(0, 700));
+  provar('…e a sala em turma também não', !/citada/.test(piano), piano.slice(0, 700));
+  provar('…mas o número não se perde: está no `title` do botão, para quem o procurar',
+    /1 plano de ensino cita esta sala/.test(rosa)
+      && /1 plano de ensino cita esta sala/.test(piano),
+    (rosa.match(/title="Derivar[^"]*"/) || [])[0]);
   provar('a sala que nenhuma turma usa e nenhum plano cita diz «livre»',
     (() => {
       const p = paginaComSalas([{ id: 'nova', nome: 'Nova', frequencia: 2, dias: ['seg'],
