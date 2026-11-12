@@ -837,7 +837,7 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
     <summary><span class="ctx-seta">▸</span>Contexto do ato
       <span class="ctx-resumo">escola · professor · ciclo</span></summary>
     <div class="ctx-campos">
-      <span class="campo"><label for="ctx-professor">professor</label>
+      <span class="campo" id="ctx-professor-campo"><label for="ctx-professor">professor</label>
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <!-- O CICLO NÃO SE ESCREVE (04/11/2026). O campo nasce travado e é o servidor que diz
            qual é o próximo número válido (`GET /api/ciclos`): a numeração é a POSIÇÃO na cadeia
@@ -2639,6 +2639,7 @@ function marcarContextoFaltando() {
   if (caixaTurma && FONTE === 'plano') {
     caixaTurma.classList.toggle('falta', faltam.indexOf('turma') !== -1);
   }
+  marcarProfessorSemOPlanoDaTurma();
   const resumo = document.querySelector('.barra details.ctx-ato .ctx-resumo');
   if (resumo) {
     // Os nomes vêm de `camposDoCabecalho()`, que é lista fixa deste arquivo — não há
@@ -2649,6 +2650,80 @@ function marcarContextoFaltando() {
     resumo.innerHTML = nomes.join(' · ') +
       (faltam.length ? ' — <span class="ctx-falta">falta ' + faltam.join(', ') + ' para fechar</span>' : '');
   }
+}
+
+/*
+ * O «!» DO PROFESSOR — A TURMA TEM PLANO, E NÃO É DESTE PROFESSOR (12/11/2026).
+ *
+ * O QUE ELA PEDIU, na letra: «no cabeçalho fazer plano de ensino tem que ficar marcado uma
+ * exclamação no professor para que seja selecionada a professora Redinha Rosa e aí o plano da
+ * turma da qual foi pedido para ela fazer o plano […] Só vai sair essa exclamação […] quando ela
+ * já tiver plano.»
+ *
+ * A CONDIÇÃO, e é uma só: a Turma escolhida já tem plano, e nenhum deles é deste professor. O
+ * plano que existe é de outro — a autoria não se reescreve (ver `perdeuATurma`, no núcleo) —, e é
+ * por isso que este professor tem de escrever o dele. Quando ele o escrever, a marca sai sozinha:
+ * a lista de estados passa a ter um plano dele para aquela turma, e o laço sai pelo `return null`.
+ *
+ * PORQUE NÃO APARECE NO PLANO DE OBSERVAÇÃO. Lá a estante dos planos já chega RECORTADA pelo
+ * professor (`api/planos?professor=…`, `recortePeloProfessor`), e o servidor filtra pelo
+ * `contexto.professor` e pelo nome: o plano de outro professor não é uma opção que se possa
+ * escolher, e uma marca a avisar contra uma escolha impossível seria ruído. A regra da autoria
+ * vale lá na mesma — na cadeia, que é quem deriva.
+ *
+ * A PEÇA É A DO CATÁLOGO: `.selo alerta`, a mesma do «!» da revisão do recorte na Produção. Um
+ * «!» sem rótulo é ruído para quem ouve a página; daí o `title` e o `aria-label`.
+ */
+/** A turma escolhida no cabeçalho do plano — o mesmo valor que o `select` guarda. */
+function turmaDaBarra() {
+  const cru = RESPOSTAS.get('contexto-turma');
+  return String((Array.isArray(cru) ? cru[0] : cru) || '').trim();
+}
+
+function professorSemOPlanoDaTurma() {
+  if (FONTE !== 'plano') return null;
+  const professor = professorDaBarra();
+  if (!professor) return null;
+  const turma = turmaDaBarra();
+  if (!turma) return null;
+  let deOutro = null;
+  for (const o of ESTADOS.values()) {
+    if (!o || !o.turma) continue;
+    if (String(o.turma) !== turma) continue;
+    /* O SUBSTITUÍDO NÃO CONTA — o sucessor é que é o plano da Turma. Mas o `semTurma` CONTA, e é
+     * ele o caso todo: aquele é o plano de outro professor para esta mesma turma, e é por isso
+     * que este precisa de escrever o dele. Saltá-lo aqui calava a marca exactamente quando ela
+     * é precisa — foi o primeiro erro desta implementação, medido pela prova. */
+    if (o.estado === 'legado') continue;
+    if (String(o.professor || '') === professor) return null;   // há um plano dele
+    if (!deOutro) {
+      deOutro = { autor: String(o.professorNome || o.professor || ''), carimbo: o.carimbo || '' };
+    }
+  }
+  return deOutro;
+}
+
+function marcarProfessorSemOPlanoDaTurma() {
+  const caixa = document.getElementById('ctx-professor-campo');
+  if (!caixa) return;
+  const antigo = caixa.querySelector('.selo.alerta[data-marca="professor-sem-plano"]');
+  const deOutro = professorSemOPlanoDaTurma();
+  if (!deOutro) { if (antigo) antigo.remove(); return; }
+  const texto = 'A turma «' + turmaDaBarra() + '» já tem plano de ensino, e ele é de '
+    + (deOutro.autor || 'outro professor') + ', que já não a dirige. A autoria não se reescreve: '
+    + 'este professor escreve o plano dele — e a marca sai quando ele existir.';
+  let marca = antigo;
+  if (!marca && typeof document.createElement === 'function') {
+    marca = document.createElement('span');
+    marca.className = 'selo alerta';
+    marca.setAttribute('role', 'img');
+    marca.setAttribute('data-marca', 'professor-sem-plano');
+    caixa.appendChild(marca);
+  }
+  if (!marca) return;
+  marca.textContent = '!';
+  marca.setAttribute('title', texto);
+  marca.setAttribute('aria-label', texto);
 }
 
 /*
@@ -4092,6 +4167,11 @@ function turmasJaUsadas() {
     if (!o || !o.turma) continue;
     if (emUso.indexOf(carimbo) !== -1) continue;
     if (o.estado === 'legado') continue;
+    /* O PLANO QUE PERDEU A TURMA NÃO A BLOQUEIA (12/11/2026). Ele diz `sem turma` — a turma
+     * passou a outro professor —, e se continuasse a ocupá-la aqui, quem a dirige hoje não
+     * conseguia escolhê-la para escrever o plano dele. Era o impasse: a tela dizia «já tem plano»
+     * e a cadeia dizia «o plano é de outro». */
+    if (o.semTurma) continue;
     usadas.set(String(o.turma), {
       carimbo,
       estado: o.estado || (o.vinculada ? 'vinculada' : 'solta'),
@@ -8215,13 +8295,33 @@ const AJUDA_ESTADO_PLANO = {
   solta: 'livre — pode ser editada e apagada (as duas exigem a senha)',
 };
 
+/*
+ * «SEM TURMA» — A PALAVRA DO PLANO CUJO AUTOR JÁ NÃO DIRIGE A TURMA (12/11/2026).
+ *
+ * É a mesma palavra que o professor já tem noutro caso da mesma classe (o professor que passou a
+ * turma a outro), e a regra da casa é não inventar: a pesquisadora disse-a, e disse-a porquê —
+ * «se não tem turma, você vai mudar a etiqueta e fazer valer o fato, ele está sem turma».
+ *
+ * A CLASSE É `legado`, a que já significa «isto é memória, não é o presente». O que muda é o que a
+ * operação permite: o plano `solta` diz «livre» e oferece editar/apagar; este diz «sem turma», e
+ * oferece o mesmo — porque é isso que o autor pode fazer com ele: ajustá-lo e vinculá-lo a outra
+ * turma, ou apagá-lo.
+ */
+const AJUDA_SEM_TURMA = 'sem turma — a turma que este plano nomeia passou a ser dirigida por outro '
+  + 'professor. A autoria não se reescreve: o plano continua a ser de quem o escreveu. O autor pode '
+  + 'ajustá-lo e vinculá-lo a outra turma, ou apagá-lo.';
+
 function seloDoPlano(o) {
   if (!o) return '';
   const estado = o.estado || (o.vinculada ? 'vinculada' : 'solta');
   const classe = estado === 'vinculada' ? 'vinculada' : estado === 'legado' ? 'legado' : 'solta';
   const titulo = AJUDA_ESTADO_PLANO[estado] + (o.por && o.por.length ? ' (Plano de Observação: ' + o.por.join(', ') + ')' : '');
-  const partes = ['<span class="selo ' + classe + '" title="' + escapar(titulo) + '">' +
-    escapar(ROTULO_ESTADO_PLANO[estado] || estado) + '</span>'];
+  /* O «SEM TURMA» VEM PRIMEIRO. Ele não é um estado da cadeia: é a situação do documento, e é ela
+   * que quem abre a estante precisa de ler antes de tudo. */
+  const partes = [o.semTurma
+    ? '<span class="selo legado" title="' + escapar(AJUDA_SEM_TURMA) + '">sem turma</span>'
+    : '<span class="selo ' + classe + '" title="' + escapar(titulo) + '">'
+      + escapar(ROTULO_ESTADO_PLANO[estado] || estado) + '</span>'];
   if (o.ajuste_de) partes.push('<span class="selo" title="deriva de ' + escapar(o.ajuste_de) + '">derivado</span>');
   return partes.join(' ');
 }
@@ -9630,6 +9730,21 @@ async function iniciar() {
   // seletor quando a semeadura rodar.
   await carregarProfessores();
   await atualizarCuradoria();
+  /* OS ESTADOS DO PLANO, NO ARRANQUE (12/11/2026).
+   *
+   * O DEFEITO, medido na bancada. `carregarEstados` só era chamada por `atualizarFichas`, e essa
+   * função SAI na primeira linha quando não há `#lista-fichas` — que é o caso desde 26/10, quando
+   * a estante de fichas saiu desta página e passou a ser a Área do Professor. Resultado: `ESTADOS`
+   * ficava VAZIO NESTA PÁGINA, para sempre. E é dele que dependem duas regras que a pesquisadora
+   * pediu e que nunca funcionaram aqui: a turma já planeada aparecer bloqueada no cabeçalho
+   * («· já tem plano»), e o «!» no professor quando o plano da turma é de outro. Um leitor morto
+   * não dá erro — dá uma lista sempre vazia, que é o mesmo que não haver lista.
+   *
+   * A chamada fica aqui, depois da curadoria: o estado do plano precisa do professor escolhido, e
+   * a repintura da turma que ele dispara no fim tem de encontrar a curadoria já carregada. É do
+   * PLANO, e só dele: a anamnese tem o seu próprio leitor (`api/anamnese-estados`), e o PO lê o
+   * plano que escolheu. */
+  if (FONTE === 'plano') await carregarEstados();
 
   // O BILHETE DO ATO — `?ato=<bilhete>`. A lista da Área do Professor validou a senha e o
   // servidor emitiu um bilhete de USO ÚNICO, ligado a UM ato. A porta troca-o por autorização

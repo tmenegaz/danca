@@ -2,31 +2,31 @@
 'use strict';
 
 /*
- * provar-direcao-do-documento.js — O DOCUMENTO DERIVADO DIZ QUEM PASSA A DIRIGIR (10/11/2026).
+ * provar-direcao-do-documento.js — O DOCUMENTO DERIVADO, A DIREÇÃO E A AUTORIA.
  *
- * O QUE MOTIVOU, e são dois sintomas que a pesquisadora leu no mesmo dia:
+ * ESTA PROVA NASCEU A 10/11/2026 para um defeito, e foi REESCRITA a 12/11/2026 para o contrário
+ * dele. A história é o que a torna legível:
  *
- *   1. «no cabeçalho do PO ainda aparecia o Pé Torto […] se eu mandar gerar, ele vai gerar com
- *      aqueles valores, né? e não com a professora Redinha Rosa.» Estava certa.
- *   2. A cadeia dizia «a cadeia avançou até ao Plano de observação» e depois não derivava nada —
- *      porque o plano vigente era do MESMO DIA, e a pergunta era só «é anterior à mudança?».
+ *   10/11 — a cadeia derivava o plano e o PO quando o professor da turma mudava, e o elo novo saía
+ *   com o nome do professor NOVO. A intenção era corrigir o cabeçalho, que continuava a imprimir o
+ *   nome do professor antigo («no cabeçalho do PO ainda aparecia o Pé Torto»). A prova de então
+ *   exigia exactamente isso: «o elo novo diz o professor que passou a dirigir».
  *
- * DUAS CAUSAS INDEPENDENTES, e é por isso que as duas se medem aqui:
+ *   12/11 — a pesquisadora mediu a consequência e recusou-a: «ele trocou o nome do plano de ensino
+ *   atual para quem fez sendo a Redinha Rosa e isso não é verdade». O cabeçalho estava correcto
+ *   quanto ao formato e falso quanto ao facto. **A autoria não se reescreve.**
  *
- *   A. A DATA NÃO BASTA. `indice()` decidia pela hora: `gerado_em >= quando` dava o plano por em
- *      dia mesmo quando ele declarava OUTRO professor. Um elo do mesmo dia nunca era derivado, e a
- *      geração corria com o nome antigo no cabeçalho. Passa a comparar a DIREÇÃO (professor e
- *      sala) com o que a curadoria declara agora.
+ * O QUE PASSA A VALER, e é o que aqui se mede:
  *
- *   B. A IDENTIDADE ESTÁ NAS RESPOSTAS. `contextoDoElo` atualizava `contexto.professor`, e o
- *      documento não se imprime do contexto: o `## Contexto` do plano lê a resposta
- *      `contexto-professor`, e o YAML do PO lê a resposta `professor` («a RESPOSTA manda, e o
- *      contexto é a reserva» — `derivar-po.js`). Corrigir só o contexto dava um elo novo com o
- *      documento errado — o pior dos mundos: a tela certa e o papel errado.
- *
- *   C. E O PLANO SEGUE A TURMA QUANDO ELA MUDA DE SALA. O plano é procurado pelo NOME da sala;
- *      mudando de sala, o destino não tinha plano nenhum e a cadeia parava em «o primeiro nasce
- *      na porta» — verdadeiro e inútil, porque o plano existia na sala de origem.
+ *   A. TROCAR O PROFESSOR NÃO DERIVA NADA. O documento do professor anterior fica como está, a
+ *      dizer o seu autor, e a etapa fica BLOQUEADA com a razão dita. Quem dirige hoje escreve o
+ *      seu — e quando o tiver, a etapa fecha-se sozinha.
+ *   B. MUDAR DE SALA CONTINUA A DERIVAR — o professor é o mesmo, e o nome da sala é a identidade
+ *      do documento. O elo novo relê a sala e conserva o autor. Se a Turma mudar de sala E de
+ *      professor, não herda nada: o plano da sala nova não é do novo professor.
+ *   C. NADA MUDOU — e a cadeia não inventa elos.
+ *   D. O NÍVEL DO NÚCLEO, isolado: a sala manda (deriva), o professor trava (bloqueia).
+ *   E. O ESTADO «SEM TURMA» — o documento que perdeu a turma, e o traço onde ela estava.
  *
  * O QUE SE MEDE, no fim: os envelopes NOVOS, lidos do armazenamento — não as intenções.
  *
@@ -199,9 +199,13 @@ async function novaCadeia(arm) {
 /* ------------------------------------------------------------------------------------------ */
 
 (async () => {
-  /* A. A MESMA SALA, OUTRO PROFESSOR — o caso da pesquisadora. O plano é do MESMO dia. */
+  /* A. A MESMA SALA, OUTRO PROFESSOR — o caso da pesquisadora. O plano é do MESMO dia.
+   *
+   * O QUE SE AFIRMA AGORA É O CONTRÁRIO DO QUE SE AFIRMAVA A 10/11: nada é derivado, e a etapa diz
+   * porquê. Este bloco é a prova do defeito — quem voltar a derivar por mudança de professor
+   * reprova aqui, com o nome do autor trocado à vista. */
   {
-    console.log('\nA. O ELO DO MESMO DIA É DERIVADO QUANDO A DIREÇÃO MUDOU');
+    console.log('\nA. TROCAR O PROFESSOR NÃO DERIVA NADA — a autoria não se reescreve');
     const { cadeia, arm, visto } = montar({
       curadorias: [
         curadoria({ substituidaPor: ANTIGO + '-bale-classico-rosa-2026-11-10' }),
@@ -212,55 +216,76 @@ async function novaCadeia(arm) {
     const r = await cadeia.executar({ gatilho: 'troca-de-direcao', turmas: [SALA], quando: QUANDO });
 
     const etapaPlano = ((r.alvos || [])[0] || {}).etapas.find((e) => e.chave === 'plano-de-ensino') || {};
-    /* A ETAPA APARECE JÁ «FEITA» — porque a cadeia a derivou neste mesmo pedido. O que se mede é
-     * o que a torna feita: o elo novo, e a razão que o justificou. */
-    provar('o plano do MESMO dia é derivado (a direção mudou)',
-      /elo novo/.test(String(etapaPlano.detalhe || '')), etapaPlano);
-    provar('…e a frase diz o que mudou, com os dois nomes',
-      /pe-torto/.test(String(etapaPlano.falta || '')) && new RegExp(NOVO).test(String(etapaPlano.falta || '')),
+    provar('a etapa do plano fica BLOQUEADA',
+      etapaPlano.estado === 'bloqueada', etapaPlano);
+    provar('…e a frase diz de quem é o plano, e que ele passa a «sem turma»',
+      /pe-torto/.test(String(etapaPlano.falta || '')) && /sem turma/.test(String(etapaPlano.falta || '')),
       etapaPlano.falta);
 
-    provar('um elo novo do plano foi escrito', visto.planos.length === 1, visto.planos.length);
-    const planoNovo = visto.planos[0] || {};
-    provar('…e o `## Contexto` dele imprime o NOME do professor novo',
-      (((planoNovo.respostas || {})['contexto-professor']) || {}).valor === NOME_NOVO,
-      ((planoNovo.respostas || {})['contexto-professor']));
-    provar('…e a turma continua a ser a mesma',
-      (((planoNovo.respostas || {})['contexto-turma']) || {}).valor === SALA,
-      ((planoNovo.respostas || {})['contexto-turma']));
-    provar('…e o contexto também', (planoNovo.contexto || {}).professor === NOVO,
-      planoNovo.contexto);
-
-    /* O ELO DO PO LÊ-SE DO ARMAZENAMENTO: quem escreve a fonte é o `concluirPO`, e aqui ele é um
-     * stub. A prova não mede o espião — mede o envelope que ficou gravado. */
+    provar('NENHUM elo novo do plano foi escrito', visto.planos.length === 0, visto.planos.length);
     const envelopes = await novaCadeia(arm);
-    const idPoNovo = envelopes.find((x) => x.indexOf('po-') === 0 && x !== PO);
-    provar('um elo novo do PO foi escrito', Boolean(idPoNovo), envelopes);
-    const poNovo = idPoNovo ? await porta.lerEnvelope(arm, idPoNovo) : {};
-    provar('…e o CABEÇALHO dele imprime o professor novo (é a resposta que o YAML lê)',
-      (((poNovo.respostas || {}).professor) || {}).valor === NOME_NOVO,
-      ((poNovo.respostas || {}).professor));
-    provar('…e o PO novo observa o plano novo',
-      (((poNovo.respostas || {})['plano-de-ensino']) || {}).valor === planoNovo.id,
-      ((poNovo.respostas || {})['plano-de-ensino']));
+    provar('…nem do PO', envelopes.filter((x) => x.indexOf('po-') === 0 && x !== PO).length === 0, envelopes);
 
-    const antesPlano = await porta.lerEnvelope(arm, PLANO);
-    const antesPo = await porta.lerEnvelope(arm, PO);
-    provar('o elo ANTIGO não é reescrito (o passado fica)',
-      (((antesPlano.respostas || {})['contexto-professor']) || {}).valor === ANTIGO
-        && (((antesPo.respostas || {}).professor) || {}).valor === ANTIGO,
-      { plano: ((antesPlano.respostas || {})['contexto-professor']), po: ((antesPo.respostas || {}).professor) });
+    const depoisPlano = await porta.lerEnvelope(arm, PLANO);
+    const depoisPo = await porta.lerEnvelope(arm, PO);
+    provar('o plano continua a ser de quem o escreveu',
+      (depoisPlano.contexto || {}).professor === ANTIGO
+        && (((depoisPlano.respostas || {})['contexto-professor']) || {}).valor === ANTIGO,
+      { contexto: depoisPlano.contexto, resposta: (depoisPlano.respostas || {})['contexto-professor'] });
+    provar('…e o PO também',
+      (depoisPo.contexto || {}).professor === ANTIGO
+        && (((depoisPo.respostas || {}).professor) || {}).valor === ANTIGO,
+      { contexto: depoisPo.contexto, resposta: (depoisPo.respostas || {}).professor });
+    provar('…e nenhum dos dois ganhou um sucessor',
+      !depoisPlano.ajuste_de
+        && envelopes.filter((x) => x !== PLANO && x !== PO).length === 0, envelopes);
+
+    /* O ESTADO NA LISTAGEM: o plano do Pé Torto perdeu a Turma, e é isso que ela vê. */
+    const curadorias = [
+      curadoria({ substituidaPor: ANTIGO + '-bale-classico-rosa-2026-11-10' }),
+      curadoria({ id: ANTIGO + '-bale-classico-rosa-2026-11-10', vigenteDe: QUANDO, professor: NOVO, substitui: ANTIGO + '-bale-classico-rosa' }),
+    ];
+    const estados = await porta.estadosDosPlanos(arm, { curadorias });
+    const doPlano = estados[PLANO] || {};
+    provar('o plano do professor anterior fica «sem turma»', doPlano.semTurma === true, doPlano);
+    provar('…e o autor que a linha mostra é o que o escreveu', doPlano.professor === ANTIGO, doPlano);
+    provar('…e diz quem dirige a Turma hoje', doPlano.turmaDe === NOVO, doPlano);
+    const semCuradorias = (await porta.estadosDosPlanos(arm))[PLANO] || {};
+    provar('CONTROLO: sem as curadorias lidas, ninguém é acusado de nada',
+      semCuradorias.semTurma === undefined, semCuradorias);
+
+    /* E QUANDO A NOVA PROFESSORA TEM O PLANO DELA, a etapa fecha-se sozinha — é o que a
+     * pesquisadora descreveu: «só vai sair essa exclamação […] quando ela já tiver plano». */
+    const planoDela = planoFixture();
+    planoDela.id = 'plano-20261111-0900';
+    planoDela.contexto = Object.assign({}, planoDela.contexto, { professor: NOVO });
+    planoDela.respostas = Object.assign({}, planoDela.respostas, {
+      'contexto-professor': { valor: NOME_NOVO, origem: 'perguntado', respondente: 'professor', nota: null },
+    });
+    planoDela.gerado_em = '2026-11-11T09:00';
+    await porta.gravarEnvelope(arm, planoDela, relatorioDe(planoDela.id));
+    const r2 = await cadeia.executar({ gatilho: 'troca-de-direcao', turmas: [SALA], quando: QUANDO });
+    const etapa2 = ((r2.alvos || [])[0] || {}).etapas.find((e) => e.chave === 'plano-de-ensino') || {};
+    provar('com o plano DELA, a etapa do plano fecha-se', etapa2.estado === 'feita', etapa2);
+    provar('…e o plano dela não recebeu o nome de ninguém',
+      (await porta.lerEnvelope(arm, 'plano-20261111-0900')).contexto.professor === NOVO);
+    const estados2 = await porta.estadosDosPlanos(arm, { curadorias });
+    provar('…e o plano ANTIGO continua «sem turma» (a verdade não se desfaz)',
+      (estados2[PLANO] || {}).semTurma === true, estados2[PLANO]);
+    provar('…e o dela tem turma', (estados2['plano-20261111-0900'] || {}).semTurma === undefined,
+      estados2['plano-20261111-0900']);
   }
 
-  /* B. A TURMA MUDA DE SALA — o plano segue-a, em vez de «nascer na porta». */
+  /* B. A TURMA MUDA DE SALA — MESMO PROFESSOR. O plano segue-a, em vez de «nascer na porta», e o
+   * autor fica. (Mudar de sala E de professor não herda nada: ver B2.) */
   {
-    console.log('\nB. A TURMA MUDA DE SALA E O PLANO VAI ATRÁS DELA');
+    console.log('\nB. A TURMA MUDA DE SALA E O PLANO VAI ATRÁS DELA — do mesmo professor');
     const ORIGEM = ANTIGO + '-bale-classico-rosa-2026-11-10';
     const { cadeia, arm, visto } = montar({
       curadorias: [
-        curadoria({ id: ORIGEM, vigenteDe: QUANDO, substituidaPor: 'redinha-rosa-bale-classico-piano-2026-11-10' }),
-        curadoria({ id: 'redinha-rosa-bale-classico-piano-2026-11-10', vigenteDe: QUANDO,
-          professor: NOVO, turmas: [OUTRA_SALA], substitui: ORIGEM }),
+        curadoria({ id: ORIGEM, vigenteDe: QUANDO, substituidaPor: ANTIGO + '-bale-classico-piano-2026-11-10' }),
+        curadoria({ id: ANTIGO + '-bale-classico-piano-2026-11-10', vigenteDe: QUANDO,
+          professor: ANTIGO, turmas: [OUTRA_SALA], substitui: ORIGEM }),
       ],
     });
     await semear(arm);
@@ -276,11 +301,35 @@ async function novaCadeia(arm) {
     provar('…e o elo novo declara a sala NOVA',
       (((visto.planos[0] || {}).respostas || {})['contexto-turma'] || {}).valor === OUTRA_SALA,
       (((visto.planos[0] || {}).respostas || {})['contexto-turma']));
-    provar('…e o professor novo',
-      (((visto.planos[0] || {}).respostas || {})['contexto-professor'] || {}).valor === NOME_NOVO,
-      (((visto.planos[0] || {}).respostas || {})['contexto-professor']));
+    provar('…e o professor continua a ser o MESMO (o autor não muda com a sala)',
+      (((visto.planos[0] || {}).respostas || {})['contexto-professor'] || {}).valor === ANTIGO
+        && ((visto.planos[0] || {}).contexto || {}).professor === ANTIGO,
+      { resposta: (((visto.planos[0] || {}).respostas || {})['contexto-professor']),
+        contexto: (visto.planos[0] || {}).contexto });
     const etapaPo = etapas.find((e) => e.chave === 'plano-de-observacao') || {};
     provar('o PO também é derivado', vista(etapaPo) || visto.pos.length === 1, etapaPo);
+  }
+
+  /* B2. A TURMA MUDA DE SALA **E** DE PROFESSOR — não herda: o plano da sala de origem não é do
+   * professor que passa a dirigir. É a mesma regra de A, aplicada ao eixo da sala. */
+  {
+    console.log('\nB2. MUDAR DE SALA E DE PROFESSOR NÃO HERDA O PLANO DO ANTERIOR');
+    const ORIGEM = ANTIGO + '-bale-classico-rosa-2026-11-10';
+    const { cadeia, arm, visto } = montar({
+      curadorias: [
+        curadoria({ id: ORIGEM, vigenteDe: QUANDO, substituidaPor: 'redinha-rosa-bale-classico-piano-2026-11-10' }),
+        curadoria({ id: 'redinha-rosa-bale-classico-piano-2026-11-10', vigenteDe: QUANDO,
+          professor: NOVO, turmas: [OUTRA_SALA], substitui: ORIGEM }),
+      ],
+    });
+    await semear(arm);
+    const r = await cadeia.executar({ gatilho: 'troca-de-direcao', turmas: [OUTRA_SALA], quando: QUANDO });
+    const etapaPlano = (((r.alvos || [])[0] || {}).etapas || [])
+      .find((e) => e.chave === 'plano-de-ensino') || {};
+    provar('nem o plano da sala de origem é herdado por outro professor',
+      visto.planos.length === 0, { escritos: visto.planos.length, etapa: etapaPlano });
+    provar('…e nenhum elo do plano é escrito com nome trocado',
+      !visto.planos.some((p) => ((p.contexto || {}).professor) === NOVO), visto.planos);
   }
 
   /* C. NADA MUDOU — e a cadeia não inventa elos. */
@@ -295,9 +344,9 @@ async function novaCadeia(arm) {
     provar('nenhum elo do PO é escrito', visto.pos.length === 0, visto.pos.length);
   }
 
-  /* D. O NÍVEL DO NÚCLEO, isolado: a direção manda mesmo com a data a favor. */
+  /* D. O NÍVEL DO NÚCLEO, isolado: a sala manda (deriva), o professor trava (bloqueia). */
   {
-    console.log('\nD. O NÍVEL DO NÚCLEO — A DIREÇÃO E A DATA, UMA DE CADA VEZ');
+    console.log('\nD. O NÍVEL DO NÚCLEO — A SALA DERIVA, O PROFESSOR BLOQUEIA');
     /* A BASE É A MESMA DIREÇÃO — o plano declara `pe-torto`, e a curadoria também. É o controlo
      * que mostra que a data, sozinha, continua a valer quando nada mudou. */
     const base = {
@@ -314,12 +363,32 @@ async function novaCadeia(arm) {
     const outroProfessor = nucleoCadeia.indice(Object.assign({}, base, {
       curadoria: curadoria({ professor: 'outra-pessoa' }),
     }));
-    provar('a curadoria declara OUTRO professor → pendente',
-      etapa(outroProfessor, 'plano-de-ensino').estado === 'pendente',
+    provar('a curadoria declara OUTRO professor → BLOQUEADA (não se deriva a autoria)',
+      etapa(outroProfessor, 'plano-de-ensino').estado === 'bloqueada',
       etapa(outroProfessor, 'plano-de-ensino'));
+    provar('…e a frase nomeia o autor do documento',
+      /pe-torto/.test(String(etapa(outroProfessor, 'plano-de-ensino').falta || '')),
+      etapa(outroProfessor, 'plano-de-ensino').falta);
     provar('…e o PO também, pela mesma razão',
-      etapa(outroProfessor, 'plano-de-observacao').estado === 'pendente',
+      etapa(outroProfessor, 'plano-de-observacao').estado === 'bloqueada',
       etapa(outroProfessor, 'plano-de-observacao'));
+
+    /* O CASO EM QUE O SERVIDOR JÁ NÃO ENTREGA O PLANO DO OUTRO: a etapa é bloqueada na mesma, e
+     * a frase diz de quem é o plano — que é o que a tela precisa para mandar o professor certo. */
+    const semPlano = nucleoCadeia.indice(Object.assign({}, base, {
+      curadoria: curadoria({ professor: 'outra-pessoa' }),
+      plano: null, po: null, pacoteEmDia: false,
+      planoDeOutro: { id: PLANO, professor: ANTIGO, professorNome: 'Pé Torto' },
+    }));
+    provar('sem o plano do outro professor na mão, a etapa continua bloqueada',
+      etapa(semPlano, 'plano-de-ensino').estado === 'bloqueada', etapa(semPlano, 'plano-de-ensino'));
+    provar('…e a frase diz «Pé Torto» pelo NOME, e não pelo slug',
+      /Pé Torto/.test(String(etapa(semPlano, 'plano-de-ensino').falta || '')),
+      etapa(semPlano, 'plano-de-ensino').falta);
+    provar('…e o pacote espera os documentos de quem dirige hoje',
+      etapa(semPlano, 'pacote').estado === 'bloqueada'
+        && /outro professor/.test(String(etapa(semPlano, 'pacote').falta || '')),
+      etapa(semPlano, 'pacote'));
 
     const outraSala = nucleoCadeia.indice(Object.assign({}, base, {
       curadoria: curadoria({ turmas: [OUTRA_SALA] }), turma: OUTRA_SALA,
@@ -329,7 +398,8 @@ async function novaCadeia(arm) {
   }
 
   console.log('\n' + (falhas ? 'FALHARAM ' + falhas + ' de ' + provas : 'TUDO CERTO — ' + provas
-    + ' asserções: o documento derivado diz quem passa a dirigir, em que sala, e o plano segue a Turma.'));
+    + ' asserções: trocar o professor não reescreve a autoria (o documento fica «sem turma»); mudar '
+    + 'de sala deriva o mesmo autor; e o plano da nova professora fecha a etapa sozinho.'));
   if (falhas) process.exit(1);
 })();
 

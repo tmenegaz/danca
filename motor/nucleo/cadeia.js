@@ -135,6 +135,37 @@ function indice(estado) {
     return false;
   };
 
+  /* AS DUAS MUDANÇAS NÃO SÃO A MESMA COISA (12/11/2026).
+   *
+   * O DEFEITO. `direcaoMudou` juntava «a sala mudou de nome» e «o professor mudou» numa pergunta
+   * só, e a resposta para as duas era «a cadeia deriva um elo novo, com a mesma matéria e a
+   * direção corrigida». Para a sala está certo: o plano é do MESMO professor, e o nome da sala é
+   * a identidade do documento — relê-se a linha e o passado fica no elo anterior.
+   *
+   * Para o professor, não. Um plano é o que um professor decidiu sobre uma turma; reescrever-lhe
+   * o autor não é corrigir uma leitura de cadastro — é afirmar que alguém escreveu o que não
+   * escreveu. Foi o que aconteceu, e está medido nos envelopes do `calango`:
+   * `plano-20261110-2145` diz `redinha-rosa` e é `ajuste_de` um plano do `pe-torto`, com o texto
+   * do Pé Torto lá dentro. A pesquisadora leu-o na listagem: «ele trocou o nome do plano de
+   * ensino atual para quem fez sendo a Redinha Rosa e isso não é verdade».
+   *
+   * A REGRA QUE PASSA A VALER: **a autoria não se deriva.** Quem passa a dirigir a turma não
+   * herda o documento do anterior — escreve o dele. O documento do anterior continua a existir,
+   * a dizer o seu autor, e a listagem passa a dizer dele o que é verdade: que está `sem turma`. */
+  const professorMudou = (doc) => {
+    const d = direcao(doc);
+    return Boolean(d.professor && direcaoDeHoje.professor && d.professor !== direcaoDeHoje.professor);
+  };
+  const salaMudou = (doc) => {
+    const d = direcao(doc);
+    return Boolean(d.turma && direcaoDeHoje.turma && d.turma !== direcaoDeHoje.turma);
+  };
+  /** O autor do documento que já não dirige esta turma — o nome que a frase precisa de dizer. */
+  const autorDoOutro = () => {
+    const de = e.planoDeOutro || e.poDeOutro || null;
+    return String((de && (de.professorNome || de.professor || de.autor)) || '').trim();
+  };
+
   // 1. OS VÍNCULOS — a Turma tem de declarar o corpo que o elenco declara.
   if (!e.elenco) {
     passos.push({
@@ -159,27 +190,40 @@ function indice(estado) {
   }
 
   // 2. O PLANO DE ENSINO — derivado depois da mudança.
-  if (!e.plano) {
+  if (!e.plano && e.planoDeOutro) {
+    /* O PLANO DESTA TURMA É DE OUTRO PROFESSOR (12/11/2026). Não se deriva: quem dirige a turma
+     * hoje escreve o seu. A frase diz o facto, e não manda procurar. */
+    const autor = autorDoOutro();
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'bloqueada', id: e.planoDeOutro.id || null,
+      falta: 'O plano de ensino desta Turma é de ' + (autor ? '«' + autor + '»' : 'outro professor')
+        + ', que já não a dirige. A autoria não se reescreve: o documento continua a ser dele, e '
+        + 'passa a «sem turma». Quem dirige a Turma hoje escreve o plano dela na porta — é o «!» '
+        + 'no professor, no cabeçalho.',
+    });
+  } else if (!e.plano) {
     passos.push({
       chave: 'plano-de-ensino', estado: 'bloqueada',
       falta: 'A Turma «' + (e.turma || 'sem nome') + '» ainda não tem plano de ensino. O '
         + 'primeiro nasce na porta, e a cadeia não o inventa: o plano fixa decisões pedagógicas '
         + 'que são do professor.',
     });
-  } else if (direcaoMudou(e.plano)) {
-    const d = direcao(e.plano);
-    const oQueMudou = [];
-    if (d.professor && direcaoDeHoje.professor && d.professor !== direcaoDeHoje.professor) {
-      oQueMudou.push('o professor «' + d.professor + '» passou a «' + direcaoDeHoje.professor + '»');
-    }
-    if (d.turma && direcaoDeHoje.turma && d.turma !== direcaoDeHoje.turma) {
-      oQueMudou.push('a sala «' + d.turma + '» passou a «' + direcaoDeHoje.turma + '»');
-    }
+  } else if (professorMudou(e.plano)) {
+    /* A GUARDA DE BAIXO DA ESCADA. Se o servidor entregar na mesma o plano de outro professor
+     * (uma chamada directa, um dia em que a selecção mude), a cadeia não o reatribui: pára aqui. */
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'bloqueada', id: e.plano.id || null,
+      falta: 'O plano de ensino «' + (e.plano.id || '—') + '» é de «'
+        + (direcao(e.plano).professor || '—') + '», e a Turma é dirigida hoje por «'
+        + (direcaoDeHoje.professor || '—') + '». A autoria não se reescreve — este professor '
+        + 'escreve o plano dele.',
+    });
+  } else if (salaMudou(e.plano)) {
     passos.push({
       chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
-      falta: 'O plano de ensino «' + (e.plano.id || '—') + '» declara outra direção — '
-        + oQueMudou.join(' e ') + '. A cadeia deriva um elo novo, com o mesmo conteúdo e a '
-        + 'direção corrigida.',
+      falta: 'O plano de ensino «' + (e.plano.id || '—') + '» declara outra sala — '
+        + 'a sala «' + direcao(e.plano).turma + '» passou a «' + direcaoDeHoje.turma
+        + '». A cadeia deriva um elo novo, com o mesmo conteúdo e a direção corrigida.',
     });
   } else if (novo(e.plano.gerado_em || e.plano.id)) {
     passos.push({ chave: 'plano-de-ensino', estado: 'feita', id: e.plano.id || null });
@@ -203,15 +247,22 @@ function indice(estado) {
       falta: 'A Turma ainda não tem plano de observação. Ele nasce do plano de ensino, na porta, '
         + 'e a cadeia não o inventa: a linha de base dos sujeitos é uma decisão do professor.',
     });
-  } else if (direcaoMudou(e.po)) {
-    /* O PO CARREGA A DIREÇÃO DUAS VEZES — no `contexto` e na resposta `professor` que o
-     * documento imprime. As duas contam para «declara outra direção», e é por isso que ele é
-     * comparado como o plano: um PO do professor antigo não observa a Turma do professor novo. */
+  } else if (professorMudou(e.po)) {
+    /* A MESMA REGRA DO PLANO, e pela mesma razão (12/11/2026): «no plano de observação a gente tá
+     * com o mesmo problema […] Vai ser a mesma regra.» Um PO do professor antigo não observa a
+     * turma do professor novo — e não se reatribui: quem passou a dirigir faz o seu. */
+    passos.push({
+      chave: 'plano-de-observacao', estado: 'bloqueada', id: e.po.id || null,
+      falta: 'O plano de observação «' + (e.po.id || '—') + '» é de «'
+        + (direcao(e.po).professor || '—') + '», que já não dirige esta Turma. A autoria não se '
+        + 'reescreve: ele continua a ser dele, e passa a «sem turma». O professor que dirige hoje '
+        + 'faz o PO dele, sobre o plano dele.',
+    });
+  } else if (salaMudou(e.po)) {
     passos.push({
       chave: 'plano-de-observacao', estado: 'pendente', id: e.po.id || null,
-      falta: 'O plano de observação «' + (e.po.id || '—') + '» declara outra direção — a cadeia '
-        + 'deriva um elo novo, que observa o plano de ensino vigente com o professor que passou '
-        + 'a dirigir a Turma.',
+      falta: 'O plano de observação «' + (e.po.id || '—') + '» declara outra sala — a cadeia '
+        + 'deriva um elo novo, que observa o plano de ensino vigente na sala de hoje.',
     });
   } else if (novo(e.po.gerado_em || e.po.id)) {
     passos.push({ chave: 'plano-de-observacao', estado: 'feita', id: e.po.id || null });
@@ -229,7 +280,11 @@ function indice(estado) {
   } else if (!e.po) {
     passos.push({
       chave: 'pacote', estado: 'bloqueada',
-      falta: 'O pacote lê o plano de ensino e o plano de observação; sem o PO não há o que gerar.',
+      falta: (e.planoDeOutro || e.poDeOutro)
+        ? 'Os documentos gerados são a leitura do plano de ensino e do plano de observação — e os '
+          + 'desta Turma são de outro professor. A geração espera os documentos de quem a dirige '
+          + 'hoje: não se gera um pacote com a autoria trocada.'
+        : 'O pacote lê o plano de ensino e o plano de observação; sem o PO não há o que gerar.',
     });
   } else {
     /* O «ABRIR» DO PACOTE ENTRA NO DOCUMENTO (10/11/2026).

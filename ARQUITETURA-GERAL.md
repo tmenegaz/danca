@@ -2336,6 +2336,74 @@ tempo de chamada (`buscarNaRede`); um nome só para duas coisas é a armadilha. 
 bancadas anteriores não faziam, porque passavam o `fetch` falso directamente ao escritor e nunca
 percorriam o caminho por onde a ponte o ia buscar.
 
+### 5.27 A autoria não se reescreve — o documento que perde a turma fica «sem turma»
+
+Esta secção fecha um ciclo de três dias, e é a correcção de uma decisão anterior desta mesma
+arquitectura. Vale a pena contá-la pela ordem em que aconteceu, porque o erro estava numa boa
+intenção.
+
+**10/11/2026 — a intenção.** O cabeçalho do Plano de Observação imprimia o nome do professor antigo
+depois de a Turma trocar de mãos («no cabeçalho do PO ainda aparecia o Pé Torto […] se eu mandar
+gerar, ele vai gerar com aqueles valores»). A correcção foi fazer a cadeia derivar um elo novo com a
+**direção corrigida**: `direcaoMudou` comparava o `contexto.professor` e o `contexto.turma` do
+documento com o que a curadoria declara hoje, e — se fossem outros — derivava.
+
+**12/11/2026 — a consequência.** A pesquisadora leu o resultado na listagem: «ele trocou o nome do
+plano de ensino atual para quem fez sendo a Redinha Rosa e isso não é verdade. A Redinha Rosa não fez
+o plano de ensino, quem fez foi o pé torto.» E o defeito está nos envelopes, não só no relato: quatro
+elos do `calango` têm por autor um professor e por `ajuste_de` um documento de outro, com o texto do
+primeiro intacto por dentro. A cadeia reatribuiu a autoria quatro vezes.
+
+**A distinção que faltava.** «A sala mudou de nome» e «o professor mudou» não são a mesma pergunta, e
+não têm a mesma resposta:
+
+| O que mudou | O documento | A resposta certa |
+|:--|:--|:--|
+| a **sala** | continua a ser do MESMO professor; o nome da sala é a identidade dele | deriva um elo novo, com a sala de hoje — é a mesma mecânica de sempre, acrescentar |
+| o **professor** | é o que um professor decidiu sobre uma turma | **não se deriva**: quem passou a dirigir escreve o dele |
+
+Um plano é uma decisão pedagógica assinada. Corrigir-lhe o autor não é sincronizar uma leitura de
+cadastro — é afirmar que alguém escreveu o que não escreveu, e isso é o contrário da cadeia de
+custódia que o resto do sistema sustenta (§5.1, P-03/P-04).
+
+**A regra, e são quatro partes.**
+
+1. **A autoria não se deriva.** O elo novo herda o autor do anterior (`autorDoDocumento`), e a
+   derivação **recusa** quando o autor do anterior não é o professor da curadoria (`autoriaIntacta`).
+   A tela evita; o servidor garante.
+2. **O plano da Turma é o plano de quem a dirige.** `planosVigentesDaSala` separa os vigentes de uma
+   sala por autor. Sem isto, a cadeia tomava o plano do professor anterior como se fosse do novo — e
+   era esse o passo que falsificava tudo o resto.
+3. **O documento que perde a turma diz isso.** `perdeuATurma` compara o autor do documento com quem a
+   curadoria declara hoje. Quando divergem, o documento fica **`sem turma`**: o selo muda, o nome da
+   linha muda, e onde dizia a turma fica **um traço**. «Quem fez» continua a ser quem escreveu. A
+   palavra é a que o professor já tem no mesmo caso, na mesma classe (`legado`) — a regra da casa é
+   não inventar.
+4. **O «!» chama quem tem de escrever.** No cabeçalho do plano de ensino, quando a Turma escolhida tem
+   plano e nenhum é deste professor, o campo do professor ganha a marca `.selo.alerta` com o nome do
+   autor no `title` e no `aria-label`. Sai sozinha quando o plano dele existir — «só vai sair essa
+   exclamação […] quando ela já tiver plano».
+
+**O que isto custa, e é honesto dizê-lo.** O plano antigo não desaparece nem se corrige: fica na
+listagem, «sem turma», à espera de que o autor o reaproveite noutra turma (ajustar + vincular, à mão)
+ou o apague. É mais trabalho do que a reatribuição automática — e é a diferença entre memória e
+falsificação.
+
+**O leitor morto que apareceu pelo caminho.** A porta carregava os estados dos planos numa função que
+só era chamada pela estante de fichas — removida da página a 26/10. `ESTADOS` ficava vazio nesta
+página para sempre, e com ele morriam duas regras já pedidas (a turma já planeada aparecer bloqueada
+no cabeçalho, e o próprio «!»). Um leitor morto não dá erro: dá uma lista sempre vazia, que é o mesmo
+que não haver lista. A chamada passou para o arranque, e a carga do plano custa **8 leituras** (o
+orçamento é 9).
+
+**A prova.** `provar-a-autoria-na-troca-de-professor` **29** (a listagem das duas famílias, o selo que
+sai quando o plano dela existe, e o «!» medido em `jsdom` sobre o servidor de rotas a sério), com
+controlo negativo contra `HEAD`: **14 falhas**. E `provar-direcao-do-documento` foi **reescrita**
+(32/32): ela nascera a 10/11 a exigir «o elo novo diz o professor que passou a dirigir», e agora exige
+o contrário — a prova de uma regra e a prova da sua correcção não podem ser o mesmo texto sem que se
+perceba qual está de pé.
+
+
 ## 6. Por que é mais barato
 | # | Motivo | Detalhe |
 |:--|:--|:--|

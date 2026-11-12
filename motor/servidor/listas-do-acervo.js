@@ -1493,9 +1493,14 @@ async function estadosDosPos(armazenamento, resumos) {
      * linha — e um PO nunca teve selo de estado: ele ganhou «gerado» quando gerou o ciclo, e nada
      * mais. Emitir `solta` aqui punha uma etiqueta nova em todas as linhas do PO sem ninguém a ter
      * pedido, e a `provar-listas-do-acervo` reprovou («sem registo de geração, a linha do PO não
-     * leva selo»). O que esta lista precisa de saber é só uma coisa: tem sucessor ou não. */
+     * leva selo»). O que esta lista precisa de saber é só uma coisa: tem sucessor ou não.
+     *
+     * O AUTOR ENTRA (12/11/2026) porque é ele que a linha mostra em «Quem fez» e é com ele que se
+     * decide o «sem turma». A TURMA não entra: o PO não a declara no resumo — ele herda-a do plano
+     * que observa, e quem a resolve é o `linhasDe`, que já tem o mapa. */
     estados[carimbo] = {
       carimbo,
+      professor: String(resumo.professor || '').trim() || null,
       ajuste_de: resumo.ajuste_de || null,
       substituido_por,
       derivado: substituido_por.length > 0,
@@ -1504,7 +1509,7 @@ async function estadosDosPos(armazenamento, resumos) {
   return estados;
 }
 
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao, memoriaDaAluna) {
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao, memoriaDaAluna, direcao) {
   const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
    * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
@@ -1633,7 +1638,22 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
     const doPlano = familia === 'plano-de-observacao'
       ? ((r.plano || []).map((id) => (turmaDoPlano || new Map()).get(id)).filter(Boolean)[0] || '')
       : '';
-    const turma = r.turma || doPlano || '';
+    const turmaDeclarada = r.turma || doPlano || '';
+    /* O DOCUMENTO QUE PERDEU A TURMA (12/11/2026).
+     *
+     * A pesquisadora trocou o professor da Turma, e a cadeia tomou o plano do Pé Torto e o PO do
+     * Pé Torto e gravou-os com o nome da Redinha Rosa. A autoria não se reescreve — o que se diz
+     * é o que aconteceu: aquele documento é de quem o escreveu, e a turma que ele nomeia passou a
+     * ser dirigida por outro. Fica `sem turma`, e onde a linha dizia a turma fica um traço: «se
+     * não tem turma, você vai mudar a etiqueta e fazer valer o fato».
+     *
+     * A regra é UMA, no núcleo (`porta.perdeuATurma`), e o plano já a traz derivada em
+     * `estado.semTurma` — `porta.estadosDosPlanos` recebe as curadorias e compara ali. O PO é
+     * resolvido aqui porque só aqui a turma dele existe: ele herda-a do plano que observa. */
+    const perdeu = familia === 'plano-de-ensino'
+      ? (estado.semTurma ? { turma: turmaDeclarada, dono: estado.turmaDe || '' } : null)
+      : porta.perdeuATurma({ turma: turmaDeclarada, professor: r.professor }, direcao);
+    const turma = perdeu ? '' : turmaDeclarada;
     /* O PO QUE JÁ GEROU O CICLO DIZ-SE (26/10/2026). «Eu nao tenho aqui uma etiqueta dizendo que
      * gerou o ciclo, que gerou os documentos... e dizer qual foi o ciclo que gerou. Eu acho que
      * essa e uma informacao preciosa pro professor.»
@@ -1661,7 +1681,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
       : []).concat(anteriores ? [anteriores] : []);
     return {
       nome: (familia === 'plano-de-ensino' ? 'Plano de ensino — ' : 'Plano de Observação — ')
-        + (turma || 'turma não declarada'),
+        + (perdeu ? 'sem turma' : (turma || 'turma não declarada')),
       /* A MESMA PORTA PARA LER, nas três famílias (27/10/2026). O PO passou a ter folha hoje —
        * até aqui não tinha nenhuma, e a estante abria o JSON. */
       ler: fichaDeLeitura(familia, r),
@@ -1669,12 +1689,19 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
        * não é «vinculada» nem «gerado» para quem o vai abrir — é «rever». A CLASSE não é uma cor
        * nova na folha: usa a do aviso que já existe (`discreto`), porque a cor do catálogo é
        * limitada e um estado de selo novo seria desenho a mais para a mesma ideia. O TEXTO é o
-       * que distingue, e é lá que está o que a pessoa precisa de saber. */
-      selo: precisaRever ? 'rever' : (estado.estado || (gerado ? 'gerado' : '')),
-      seloClasse: precisaRever ? 'discreto'
-        : estado.estado === 'vinculada' ? 'vinculada'
-          : estado.estado === 'legado' ? 'discreto'
-            : gerado ? 'vigente' : 'livre',
+       * que distingue, e é lá que está o que a pessoa precisa de saber.
+       *
+       * «SEM TURMA» VEM ANTES DE TUDO (12/11/2026) — e não depois do «rever»: ele não é um estado
+       * da cadeia, é a situação do documento, e é o que a pesquisadora precisa de ver primeiro. A
+       * classe é `legado`, a que já diz «isto é memória, não é o presente»; a palavra é a que ela
+       * usa no mesmo caso — «sem turma». */
+      selo: perdeu ? 'sem turma'
+        : precisaRever ? 'rever' : (estado.estado || (gerado ? 'gerado' : '')),
+      seloClasse: perdeu ? 'legado'
+        : precisaRever ? 'discreto'
+          : estado.estado === 'vinculada' ? 'vinculada'
+            : estado.estado === 'legado' ? 'discreto'
+              : gerado ? 'vigente' : 'livre',
       fatos: fatos,
       turma: turma,
       professor: quem,
@@ -1688,12 +1715,22 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
             ['Turma', turma || '—'], ['Ciclo', r.ciclo || '—'],
             ...(familia === 'plano-de-observacao'
               ? [['Sujeitos', (r.sujeitos || []).join(', ') || 'a turma inteira']] : []),
+            ...(perdeu ? [['Quem dirige hoje', nomeDoProfessor({ professor: perdeu.dono }) || '—']] : []),
             ...(gerado ? [['Ciclo gerado', String(gerado.ciclo || r.ciclo || '—')
               + (gerado.documentos && gerado.documentos.length
-                ? ' · ' + gerado.documentos.map((d) => (d && d.nome) || d).join(', ') : '')]] : [])]) },
+                ? ' · ' + gerado.documentos.map((d) => (d && d.nome) || d).join(', ') : '')]] : [])],
+            perdeu
+              ? 'Este documento declara a turma «' + turmaDeclarada + '», e ela é hoje dirigida por '
+                + 'outro professor. A autoria não se reescreve: o documento continua a ser de '
+                + 'quem o escreveu, e fica sem turma. Para o reaproveitar, o autor faz o vínculo à '
+                + 'mão, noutra turma.'
+              : '') },
         { rotulo: 'Quem fez', valor: quem || '—',
           painel: listaDePares([['Professor', quem || '—']],
-            'É o professor da turma: o plano e a observação são dele sobre a turma dele.') },
+            perdeu
+              ? 'É o professor que ESCREVEU o documento — a autoria é um facto, e a cadeia não a '
+                + 'reescreve quando a turma muda de mãos.'
+              : 'É o professor da turma: o plano e a observação são dele sobre a turma dele.') },
         { rotulo: 'Quando', valor: quando || '—',
           painel: listaDePares([
             ['Registado em', quando || '—'],
@@ -1744,9 +1781,12 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
    * (`curadorias` e `linhasDeBase`) — não há aqui leitura nova, só a que a página já fazia. */
   const estados = chave === 'anamnese'
     ? await porta.estadosDasAnamneses(armazenamento, { linhas: linhasDeBase, curadorias })
-    : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento)
+    : chave === 'plano-de-ensino' ? await porta.estadosDosPlanos(armazenamento, { curadorias })
       : chave === 'plano-de-observacao'
         ? await estadosDosPos(armazenamento, resumos) : {};
+  /* QUEM DIRIGE CADA TURMA HOJE (12/11/2026) — a única leitura nova desta página, e é das
+   * curadorias que ela já recebe. É ela que diz se o plano ou o PO ainda tem turma. */
+  const direcao = porta.direcaoDasTurmas(curadorias);
 
   const todosOsRegistos = resumos
     .map(({ nome, resumo }) => Object.assign({}, resumo, { id: resumo.id || nome.replace(/\.json$/, '') }))
@@ -1857,7 +1897,7 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
     ? { linhas: Array.isArray(linhasDeBase) ? linhasDeBase : [], curadorias }
     : null;
   const linhas = linhasDe(chave, registos, estados, turmasDasAlunas(curadorias, linhasDeBase),
-    turmaDoPlano, { gerados, historico, revalidar }, filiacao, memoriaDaAluna);
+    turmaDoPlano, { gerados, historico, revalidar }, filiacao, memoriaDaAluna, direcao);
   const titulo = familia.titulo;
   const pedido = caminho.endsWith('/') ? caminho : caminho + '/';
 

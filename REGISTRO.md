@@ -43116,3 +43116,91 @@ As que já falhavam continuam iguais, medidas contra o código anterior: `provar
 (as turmas, o mapa antigo e as curadorias) mais o índice dos planos. É o preço de a listagem dizer o
 que muda no gesto seguinte; se pesar, a alternativa é calculá-la só quando a lista for pedida com
 `?comTurmas=1` — fica declarado, e não feito.
+
+## 12/11/2026 — A autoria não se reescreve: o documento que perde a turma fica «sem turma»
+
+**O que aconteceu.** «Eu tenho para o professor atual, o professor pé torto, eu tenho o plano de
+ensino e plano de observação. E aí eu troquei para a professora Redinha Rosa […] o plano de ensino,
+ele diz assim, vinculada. E aí ele trocou o nome do plano de ensino atual para quem fez sendo a
+Redinha Rosa e isso não é verdade. A Redinha Rosa não fez o plano de ensino, quem fez foi o pé torto e
+isso é um defeito no nosso sistema.»
+
+A regra, e ela é a mesma para os dois documentos: «No plano de observação a gente tá com o mesmo
+problema […] Vai ser a mesma regra.» E o que fica dito no lugar do nome trocado: «se não tem turma,
+você vai mudar a etiqueta e fazer valer o fato, ele está sem turma. Aí você coloca um traço ali
+porque ele não tem turma.»
+
+**O que foi medido, antes de mexer.** O defeito está nos envelopes do `calango`, e não só no relato:
+
+| Elo | Autor declarado | `ajuste_de` (o anterior) | Autor do anterior |
+|:--|:--|:--|:--|
+| `plano-20261110-2145` | `redinha-rosa` | `plano-20261110-1304` | `pe-torto` |
+| `po-20261110-2145` | `redinha-rosa` | `po-20261110-1309` | `pe-torto` |
+| `plano-20261111-0858` | `pe-torto` | `plano-20261111-0809` | `redinha-rosa` |
+
+E o vai-e-vem continuou: a cadeia reatribuiu a autoria **quatro vezes**, e cada elo novo é o texto do
+professor anterior com o nome do seguinte por cima. O vigente hoje é `plano-20261112-0837-2`, de
+`pe-torto`, para a turma `Piano` — dirigida por `redinha-rosa`.
+
+**A causa, dita em uma linha.** `direcaoMudou` juntava «a sala mudou de nome» e «o professor mudou»
+numa pergunta só, e a resposta para as duas era «a cadeia deriva um elo novo, com a mesma matéria e a
+direção corrigida». Para a sala está certo: o plano é do MESMO professor e o nome da sala é a
+identidade do documento. Para o professor, não: um plano é o que um professor decidiu sobre uma
+turma, e reescrever-lhe o autor é afirmar que alguém escreveu o que não escreveu.
+
+**O que foi decidido.**
+
+- **A autoria não se deriva.** `derivarPlano` e `derivarPO` recusam quando o autor do elo anterior não
+  é o professor da curadoria (`autoriaIntacta`), e o elo novo passa a herdar o autor do anterior em
+  vez do professor da curadoria (`autorDoDocumento`). É a guarda do servidor: a tela evita, ele
+  garante.
+- **O plano da Turma é o plano de quem a dirige.** `planosVigentesDaSala` separa os vigentes de uma
+  sala por autor; `planoDaTurmaOuDaOrigem` colhe o do professor de hoje (`meu`) e guarda o do outro
+  (`deOutro`) só para a frase poder dizer o nome dele. Sem isto, a cadeia tomava o plano do professor
+  anterior como se fosse do novo.
+- **A mudança de professor não é mais gatilho de derivação.** No núcleo, `professorMudou` →
+  `bloqueada`, com a razão dita; `salaMudou` → `pendente`, e deriva como antes. Uma Turma que muda de
+  sala **e** de professor não herda nada: o plano da sala de origem não é do novo professor.
+- **O documento que perde a turma fica `sem turma`.** `perdeuATurma` (núcleo da porta) compara o autor
+  do documento com quem a curadoria declara hoje; `estadosDosPlanos` e a listagem do acervo aplicam a
+  regra. Na linha, o selo passa a `sem turma` (classe `legado`), o nome da linha diz «sem turma», e
+  onde dizia a turma fica **um traço**. «Quem fez» continua a ser quem escreveu.
+- **O «!» no professor.** No cabeçalho do plano de ensino, quando a Turma escolhida tem plano e
+  nenhum deles é deste professor, o campo ganha a peça `.selo.alerta` (a mesma do «!» da revisão do
+  recorte na Produção) com o nome do autor no `title` e no `aria-label`. Sai sozinha quando o plano
+  dele existir. No PO não aparece — a estante de planos já chega recortada pelo professor, e uma marca
+  contra uma escolha impossível seria ruído; a regra vale lá na cadeia, que é quem deriva.
+- **A turma deixa de estar bloqueada por um plano que já não é dela.** `turmasJaUsadas` salta os
+  planos `semTurma` — sem isso o «!» mandava fazer uma coisa que a própria lista impedia.
+
+**Um leitor morto, encontrado pelo caminho.** `carregarEstados` só era chamada por `atualizarFichas`, e
+essa função **sai na primeira linha** quando não há `#lista-fichas` — que é o caso desde 26/10, quando
+a estante de fichas saiu da porta. `ESTADOS` ficava vazio nesta página para sempre, e com ele morriam
+duas regras já pedidas: a turma já planeada aparecer bloqueada no cabeçalho («· já tem plano») e o «!».
+Um leitor morto não dá erro — dá uma lista sempre vazia, que é o mesmo que não haver lista. A chamada
+passou para o arranque, depois da curadoria.
+
+**Onde entrou.** [motor/nucleo/cadeia.js](./motor/nucleo/cadeia.js) — `professorMudou`, `salaMudou`,
+as duas etapas bloqueadas, o pacote que espera ·
+[motor/nucleo/porta.js](./motor/nucleo/porta.js) — `direcaoDasTurmas`, `perdeuATurma`, o autor e o
+`semTurma` em `estadosDosPlanos`/`estadoDoPo` ·
+[motor/servidor/cadeia.js](./motor/servidor/cadeia.js) — `planosVigentesDaSala`, `autoriaIntacta`,
+`autorDoDocumento`, `fraseDaAutoria` · [motor/servidor/listas-do-acervo.js](./motor/servidor/listas-do-acervo.js)
+— o selo, o traço e o painel · [motor/servidor/rotas.js](./motor/servidor/rotas.js) — as curadorias na
+rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
+«!» do professor e o arranque dos estados.
+
+**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra `HEAD`:
+**14 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+`provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
+rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
+`provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·
+`provar-acervo-envelopes` 52 · `provar-apagar-da-listagem` 51 · `provar-listas-sem-repeticao` 1 falha
+(a do `api/envelopes`, que já falhava em `HEAD`). As que já falhavam continuam iguais:
+`provar-cartao-da-turma` 6, `provar-derivacao-da-turma` 20, `provar-estante-do-po` (rebenta na
+`escola/batata`, expurgada).
+
+**O que ainda não está feito.** O acervo do `calango` **já tem** os elos falsificados (quatro, medidos
+acima). A regra nova impede os próximos; os que existem ficam, porque a proveniência acrescenta e não
+edita (P-03/P-04). Se a pesquisadora quiser, o caminho é um expurgo declarado — e não uma reescrita.
+Fica também por decidir se o «!» deve aparecer na **Área do Professor** (a lista), e não só na porta.

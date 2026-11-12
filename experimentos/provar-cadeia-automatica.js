@@ -494,7 +494,7 @@ async function ids(arm, familia) {
   }
 
   // ==========================================================================
-  console.log('\nH. A TROCA DE DIREÇÃO — o elo novo nasce com quem passou a dirigir');
+  console.log('\nH. A TROCA DE PROFESSOR — a cadeia pára, e diz de quem é o documento');
 
   {
     const { cadeia, arm } = montar({
@@ -508,13 +508,19 @@ async function ids(arm, familia) {
     });
     const depois = await ids(arm, 'plano');
     provar('a travessia correu pela turma', r1.alvos.length === 1 && r1.alvos[0].turma === TURMA, r1.alvos);
-    const novoId = depois.find((x) => antes.indexOf(x) === -1);
-    provar('…e derivou um elo de plano', Boolean(novoId), depois);
-    const envelope = novoId ? await porta.lerEnvelope(arm, novoId) : null;
-    provar('o elo novo diz o professor que passou a dirigir',
-      envelope && envelope.contexto.professor === 'novo-prof', envelope && envelope.contexto);
-    /* A MODALIDADE NÃO É CAMPO DE CONTEXTO — quem a declara é a curadoria. O que se afirma é que
-     * a cadeia não inventa um campo que o envelope não admite. */
+    /* A AUTORIA NÃO SE DERIVA (12/11/2026). Até aqui esta prova exigia o contrário — «o elo novo diz
+     * o professor que passou a dirigir» —, e era esse o defeito. O elo novo era o plano do professor
+     * anterior com o nome do novo por cima. */
+    provar('…e NÃO derivou elo nenhum (o plano é de outro professor)',
+      depois.length === antes.length, { antes, depois });
+    const etapa = (r1.alvos[0].etapas || []).find((e) => e.chave === 'plano-de-ensino') || {};
+    provar('…e a etapa do plano fica BLOQUEADA',
+      etapa.estado === 'bloqueada', etapa);
+    provar('…com a razão dita, e sem prometer derivação',
+      /autoria não se reescreve/.test(String(etapa.falta || '')), etapa.falta);
+    const envelope = await porta.lerEnvelope(arm, antes[0]);
+    provar('…e o plano antigo continua a dizer o professor que o escreveu',
+      envelope && envelope.contexto.professor === 'coqui', envelope && envelope.contexto);
     provar('…e não inventa um campo de contexto fora dos cinco do envelope',
       envelope && envelope.contexto.modalidade === undefined, envelope && envelope.contexto);
     provar('…sem perder o ciclo nem a escola',

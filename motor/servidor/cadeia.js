@@ -83,20 +83,40 @@ function criarCadeia({
   }
 
   /** O plano VIGENTE de uma turma — o que nenhum sucessor substituiu. `null` se não houver. */
-  async function planoVigenteDaTurma(turma) {
+  async function planoVigenteDaTurma(turma, professor) {
+    const encontrados = await planosVigentesDaSala(turma, professor);
+    if (!encontrados.meu) return null;
+    try {
+      return await porta.lerEnvelope(armazenamento, String(encontrados.meu.carimbo)) || null;
+    } catch (erro) { return null; }
+  }
+
+  /**
+   * OS PLANOS VIGENTES DE UMA SALA, SEPARADOS POR QUEM OS ESCREVEU (12/11/2026).
+   *
+   * `meu` é o plano do professor que dirige a turma hoje; `deOutro` é o de outro professor, e só
+   * existe para a frase poder dizer o nome dele. A separação é a regra inteira: **o plano da
+   * turma é o plano de quem a dirige**. Sem ela, `planoVigenteDaTurma` respondia por NOME de sala
+   * apenas, e a cadeia tomava o plano do professor anterior como se fosse do novo — e o derivava
+   * com o nome trocado. Ver `perdeuATurma` no núcleo da porta.
+   */
+  async function planosVigentesDaSala(turma, professor) {
     const alvo = String(turma || '').trim();
-    if (!alvo) return null;
+    const vazio = { meu: null, deOutro: null };
+    if (!alvo) return vazio;
     try {
       const todos = await porta.planos(armazenamento);
-      const daTurma = (Array.isArray(todos) ? todos : []).filter((p) =>
-        p && String(p.turma || '').trim() === alvo);
       // `anterior` é a marca que `porta.planos` põe em quem já tem sucessor: o vigente é o que
       // não a tem (e, havendo mais de um, o mais recente — a lista já vem ordenada).
-      const vigentes = daTurma.filter((p) => !p.anterior);
-      if (!vigentes.length) return null;
-      const envelope = await porta.lerEnvelope(armazenamento, String(vigentes[0].carimbo));
-      return envelope || null;
-    } catch (erro) { return null; }
+      const vigentes = (Array.isArray(todos) ? todos : []).filter((p) =>
+        p && String(p.turma || '').trim() === alvo && !p.anterior);
+      const autor = String(professor || '').trim();
+      if (!autor) return { meu: vigentes[0] || null, deOutro: null };
+      return {
+        meu: vigentes.find((p) => String(p.professor || '').trim() === autor) || null,
+        deOutro: vigentes.find((p) => String(p.professor || '').trim() !== autor) || null,
+      };
+    } catch (erro) { return vazio; }
   }
 
   /** O PO VIGENTE que observa a cadeia deste plano. `null` se nunca houve observação. */
@@ -198,11 +218,46 @@ function criarCadeia({
     return respostas;
   }
 
+  /**
+   * O AUTOR DO DOCUMENTO, E O AUTOR DO ELO (12/11/2026).
+   *
+   * `autoriaIntacta` é a GUARDA do servidor, e existe porque a tela evita e o servidor garante:
+   * a cadeia deixou de procurar o plano de outro professor (ver `planosVigentesDaSala`), mas uma
+   * chamada directa à derivação poderia entregá-lo na mesma. A regra é uma só, e vale nos dois
+   * sítios: **um elo derivado herda o autor do anterior.** Nenhum documento muda de professor.
+   *
+   * Vazio não acusa: um elo de antes de o campo existir não declara autor, e inventar-lhe um dono
+   * seria o mesmo erro ao contrário.
+   */
+  function autorDoDocumento(anterior) {
+    return String((anterior && anterior.contexto && anterior.contexto.professor) || '').trim();
+  }
+
+  function autoriaIntacta(anterior, curadoria) {
+    const doDocumento = autorDoDocumento(anterior);
+    const dono = String((curadoria && curadoria.professor) || '').trim();
+    if (!doDocumento || !dono) return true;
+    return doDocumento === dono;
+  }
+
+  function fraseDaAutoria(anterior, curadoria) {
+    const doDocumento = autorDoDocumento(anterior);
+    const dono = String((curadoria && curadoria.professor) || '').trim();
+    return 'o documento «' + ((anterior && anterior.id) || '—') + '» é de «' + doDocumento
+      + '», e a Turma é dirigida hoje por «' + dono + '». A autoria não se reescreve: este '
+      + 'professor escreve o documento dele.';
+  }
+
   function contextoDoElo(anterior, curadoria, turma) {
     const base = Object.assign({}, (anterior && anterior.contexto) || {});
     if (escola) base.escola = escola;
     if (turma) base.turma = turma;
-    if (curadoria && curadoria.professor) base.professor = String(curadoria.professor);
+    /* O PROFESSOR NÃO SE REESCREVE (12/11/2026). Esta linha escrevia o professor da CURADORIA, e
+     * era ela que falsificava a autoria quando a Turma trocava de mãos. O elo novo declara o
+     * autor do anterior — que, pela guarda de `derivarPlano`/`derivarPO`, é quem dirige a Turma
+     * hoje. Se um dia deixar de ser, a derivação não acontece. */
+    const autor = autorDoDocumento(anterior);
+    if (autor) base.professor = autor;
     /* A MODALIDADE NÃO ENTRA NO CONTEXTO, e não é esquecimento: o envelope só admite
      * `escola`, `professor`, `ciclo`, `aluna` e `turma` (`CAMPOS_DE_CONTEXTO`). Quem declara a
      * modalidade é a CURADORIA, e é dela que o plano e o PO a leem — repeti-la no contexto seria
@@ -274,14 +329,22 @@ function criarCadeia({
    * hoje, e é isso que faz o documento novo dizer o horário novo.
    */
   async function derivarPlano({ anterior, curadoria, turma, motivo }) {
+    // A GUARDA DA AUTORIA VEM ANTES DE TUDO (12/11/2026): sem ela, o elo novo recebia o nome do
+    // professor de hoje sobre o texto do professor de ontem. Ver `autoriaIntacta`.
+    if (!autoriaIntacta(anterior, curadoria)) {
+      return { ok: false, autoria: true, erro: fraseDaAutoria(anterior, curadoria) };
+    }
     const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
     const ritmo = await ritmoDaSala(turma);
     if (ritmo) Object.assign(respostas, ritmo);
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
-     * Sem isto, derivar a Turma para outro professor deixava o `## Contexto` a dizer o antigo. */
-    const professorNovo = String((curadoria && curadoria.professor) || '').trim();
+     * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
+     * mesmo que dirige a Turma hoje. A fonte do nome é a autoria, e não a curadoria, porque a
+     * autoria é o facto que este elo tem de conservar. */
+    const professorDoElo = autorDoDocumento(anterior)
+      || String((curadoria && curadoria.professor) || '').trim();
     identidadeNasRespostas(respostas, ['contexto-professor', 'contexto-turma'], {
-      'contexto-professor': (await nomeDoProfessor(professorNovo)) || professorNovo,
+      'contexto-professor': (await nomeDoProfessor(professorDoElo)) || professorDoElo,
       'contexto-turma': String(turma || '').trim(),
     });
     const contexto = contextoDoElo(anterior, curadoria, turma);
@@ -314,21 +377,24 @@ function criarCadeia({
    * retargeta a referência para o topo da cadeia, e o `ajuste_de` mantém o elo anterior de pé.
    */
   async function derivarPO({ anterior, planoNovo, curadoria, turma, motivo }) {
+    if (!autoriaIntacta(anterior, curadoria)) {
+      return { ok: false, autoria: true, erro: fraseDaAutoria(anterior, curadoria) };
+    }
     const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
-    const professorNovo = String((curadoria && curadoria.professor) || '').trim();
     /* O CABEÇALHO DO PO VEM DESTA RESPOSTA (10/11/2026). O `derivar-po.js` diz, na letra: «a
-     * RESPOSTA manda, e o contexto é a reserva». Atualizar só o contexto dava um elo novo a
-     * declarar `contexto.professor: redinha-rosa` e um documento a imprimir
-     * `responsavel: pe-torto` — exactamente o que a pesquisadora leu no cabeçalho. */
+     * RESPOSTA manda, e o contexto é a reserva». O NOME É O DO AUTOR (12/11/2026) — o do
+     * documento anterior, que pela guarda acima é quem dirige a Turma hoje —, e não o da
+     * curadoria: é a mesma correcção do plano, e pela mesma razão. */
+    const professorDoElo = autorDoDocumento(anterior)
+      || String((curadoria && curadoria.professor) || '').trim();
     identidadeNasRespostas(respostas, ['professor'], {
-      professor: (await nomeDoProfessor(professorNovo)) || professorNovo,
+      professor: (await nomeDoProfessor(professorDoElo)) || professorDoElo,
     });
     respostas['plano-de-ensino'] = {
       valor: planoNovo.id, origem: 'perguntado', respondente: 'professor', nota: null,
     };
-    // O CONTEXTO ACOMPANHA A DIREÇÃO NOVA (09/11/2026): na troca de professor ou modalidade, o
-    // PO derivado tem de dizer quem passou a dirigir — senão o documento novo nasce a apontar
-    // para o professor antigo, que é o defeito que a derivação da curadoria existe para corrigir.
+    // O CONTEXTO ACOMPANHA A SALA DE HOJE (09/11/2026) — e o professor é o do elo, não o da
+    // curadoria (12/11/2026): a autoria não se reescreve.
     const contexto = contextoDoElo(anterior, curadoria, turma);
     const r = await porta.elicitar(armazenamento, {
       respostas, contexto, fonte: 'po', ajuste_de: anterior.id,
@@ -444,16 +510,28 @@ function criarCadeia({
    * que o primeiro nasce na porta.
    */
   async function planoDaTurmaOuDaOrigem(turma, curadoria) {
-    const direto = await planoVigenteDaTurma(turma);
-    if (direto) return { plano: direto, herdado: false, de: turma };
+    const professor = String((curadoria && curadoria.professor) || '').trim();
+    /* O PLANO DA SALA É O DE QUEM A DIRIGE (12/11/2026). `deOutro` viaja mesmo quando há plano
+     * do professor de hoje: ele é o que a frase precisa para dizer «este plano é do Pé Torto» em
+     * vez de «esta turma não tem plano», que seria falso. */
+    const daSala = await planosVigentesDaSala(turma, professor);
+    const deOutro = daSala.deOutro;
+    if (daSala.meu) {
+      const envelope = await porta.lerEnvelope(armazenamento, String(daSala.meu.carimbo));
+      if (envelope) return { plano: envelope, herdado: false, de: turma, deOutro };
+    }
     const idAnterior = String((curadoria && curadoria.substitui) || '').trim();
-    if (!idAnterior) return { plano: null, herdado: false, de: null };
+    if (!idAnterior) return { plano: null, herdado: false, de: null, deOutro };
     const lista = (await lerCuradorias(escola)) || [];
     const anterior = (Array.isArray(lista) ? lista : []).find((c) => c && c.id === idAnterior);
     const salaAnterior = anterior ? (turmasDe(anterior)[0] || '') : '';
-    if (!salaAnterior || salaAnterior === turma) return { plano: null, herdado: false, de: null };
-    const plano = await planoVigenteDaTurma(salaAnterior);
-    return plano ? { plano, herdado: true, de: salaAnterior } : { plano: null, herdado: false, de: null };
+    if (!salaAnterior || salaAnterior === turma) return { plano: null, herdado: false, de: null, deOutro };
+    // A HERANÇA TAMBÉM É DO AUTOR: a Turma que mudou de sala e de professor não herda o plano do
+    // professor anterior — herda o do mesmo professor na sala de onde veio, se ele lá o tiver.
+    const plano = await planoVigenteDaTurma(salaAnterior, professor);
+    return plano
+      ? { plano, herdado: true, de: salaAnterior, deOutro }
+      : { plano: null, herdado: false, de: null, deOutro };
   }
 
   async function porTurma({ turma, curadoria, elenco, quando, motivo }) {
@@ -464,6 +542,7 @@ function criarCadeia({
     const antes = nucleoCadeia.indice({
       elenco, curadoria, turma,
       plano, po,
+      planoDeOutro: plano ? null : (achado.deOutro || null),
       quando,
       pacoteEmDia: await pacoteEmDia(po, turma, quando),
     });
@@ -512,7 +591,9 @@ function criarCadeia({
         marcar('plano-de-ensino', 'feita', { id: r.id, detalhe: 'elo novo: ' + r.de + ' → ' + r.id });
         planoNovo = await porta.lerEnvelope(armazenamento, String(r.id)) || plano;
       } else {
-        marcar('plano-de-ensino', 'pendente', { falta: r.erro });
+        // A GUARDA DA AUTORIA NÃO É UMA FALHA DE PASSAGEM: é um facto que não se resolve a
+        // repetir o gesto. O passo fica BLOQUEADO, e não «pendente» (12/11/2026).
+        marcar('plano-de-ensino', r.autoria ? 'bloqueada' : 'pendente', { falta: r.erro });
         resultado.erro = r.erro;
         return resultado;
       }
@@ -527,7 +608,7 @@ function criarCadeia({
         marcar('plano-de-observacao', 'feita', { id: r.id, detalhe: 'elo novo: ' + r.de + ' → ' + r.id });
         poNovo = r.documento;
       } else {
-        marcar('plano-de-observacao', 'pendente', { falta: r.erro });
+        marcar('plano-de-observacao', r.autoria ? 'bloqueada' : 'pendente', { falta: r.erro });
         resultado.erro = r.erro;
         return resultado;
       }

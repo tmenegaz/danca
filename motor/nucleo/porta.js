@@ -108,6 +108,69 @@ function turmaDoEnvelope(envelope) {
   return s || null;
 }
 
+/** As turmas que uma curadoria declara, sempre como lista de nomes não vazios. */
+function turmasDaCuradoria(c) {
+  if (!c || typeof c !== 'object') return [];
+  if (Array.isArray(c.turmas) && c.turmas.length) {
+    return c.turmas.map((t) => String(t == null ? '' : t).trim()).filter(Boolean);
+  }
+  const uma = String(c.turma || '').trim();
+  return uma ? [uma] : [];
+}
+
+/**
+ * QUEM DIRIGE CADA TURMA HOJE — `Map<nomeDaTurma, slugDoProfessor>`.
+ *
+ * Lê as curadorias ACTIVAS (a substituída desce para o histórico, e não dirige nada). `null`
+ * quando a lista não se conseguiu ler: quem chama trata `null` como «não sei», e não como
+ * «ninguém dirige» — a mesma regra de `turmasCuradas`, e pela mesma razão. A ausência de dado
+ * não é um facto sobre o mundo.
+ */
+function direcaoDasTurmas(curadorias) {
+  if (!Array.isArray(curadorias)) return null;
+  const mapa = new Map();
+  for (const c of curadorias) {
+    if (!c || typeof c !== 'object' || c.substituidaPor) continue;
+    const professor = String(c.professor || '').trim();
+    if (!professor) continue;
+    for (const nome of turmasDaCuradoria(c)) mapa.set(nome, professor);
+  }
+  return mapa;
+}
+
+/**
+ * O DOCUMENTO QUE PERDEU A TURMA (12/11/2026).
+ *
+ * O DEFEITO, relatado pela pesquisadora e medido no acervo do `calango`. Ela derivou a Turma
+ * trocando o professor — Pé Torto → Redinha Rosa —, e a cadeia tomou o plano que o Pé Torto
+ * escreveu e gravou-o de novo **com o nome da Redinha Rosa**. O mesmo com o PO. O resultado está
+ * nos envelopes: `plano-20261110-2145` diz `redinha-rosa` e é `ajuste_de` um plano do `pe-torto`,
+ * com o conteúdo do Pé Torto intacto por dentro. A Redinha nunca escreveu aquele plano, e a
+ * listagem afirmava que sim: «ele trocou o nome do plano de ensino atual para quem fez sendo a
+ * Redinha Rosa e isso não é verdade».
+ *
+ * A REGRA QUE PASSA A VALER: **a autoria não se reescreve.** Um plano nomeia uma turma e declara
+ * quem o escreveu; quando a curadoria passa essa turma a outro professor, o documento não muda de
+ * autor — muda de SITUAÇÃO. Ele deixa de ser o plano daquela turma, e o que fica dito é isso:
+ * `sem turma`, e um traço onde a linha dizia a turma.
+ *
+ * O professor que passa a dirigir não herda o documento: ele faz o dele (ou o anterior faz o
+ * vínculo do seu, à mão, noutra turma). É a diferença entre memória e falsificação.
+ *
+ * `null` quando não há nada a dizer — sem turma, turma não curada hoje, autor que ainda a dirige,
+ * autor não declarado, ou curadorias não lidas.
+ */
+function perdeuATurma(registo, direcao) {
+  if (!direcao || typeof direcao.get !== 'function') return null;
+  const turma = String((registo && registo.turma) || '').trim();
+  if (!turma) return null;
+  const dono = String(direcao.get(turma) || '').trim();
+  if (!dono) return null;
+  const autor = String((registo && registo.professor) || '').trim();
+  if (!autor || autor === dono) return null;
+  return { turma, dono, autor };
+}
+
 /** O relatório do motor, em linhas legíveis — o `alvo` é o rótulo da gravação. */
 function linhasDoRelatorio(relatorio, alvo) {
   const linhas = [];
@@ -2021,8 +2084,18 @@ async function planos(armazenamento, recorte) {
  * O ESTADO de TODOS os planos — os três estados (solta / legado / vinculada).
  * Sem o apelido (o plano é um por objetivo, não um por aluna), o «legado» é o
  * plano que um sucessor ajustou: quem tem `ajuste_de` apontando para ele.
+ *
+ * O AUTOR E O «SEM TURMA» ENTRAM AQUI (12/11/2026). O autor é o `contexto.professor` do
+ * documento — quem o escreveu, e não quem dirige a turma hoje —, e é ele que a linha mostra em
+ * «Quem fez». `semTurma` é a situação derivada por `perdeuATurma`: a turma que o plano nomeia
+ * passou a ser dirigida por outro professor. As duas coisas andam juntas porque a segunda só se
+ * pode afirmar com a primeira: sem autor não há como dizer que ele já não dirige nada.
+ *
+ * `opcoes.curadorias` é opcional, e a ausência dela não inventa o estado: sem curadorias lidas
+ * não há `semTurma`, e o plano fica com o estado da cadeia, como sempre.
  */
-async function estadosDosPlanos(armazenamento) {
+async function estadosDosPlanos(armazenamento, opcoes) {
+  const direcao = direcaoDasTurmas(opcoes && opcoes.curadorias);
   const indice = await lerIndice(armazenamento);
   const ligacoes = await vinculosDePlano(armazenamento, indice);
   const lista = await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice);
@@ -2041,15 +2114,23 @@ async function estadosDosPlanos(armazenamento) {
     if (por.length > 0) estado = 'vinculada';
     else if (substituido_por.length > 0) estado = 'legado';
     else estado = 'solta';
+    const autor = String(resumo.professor || '').trim() || null;
+    const perdeu = perdeuATurma({ turma: resumo.turma, professor: autor }, direcao);
     estados[carimbo] = {
       estado,
       carimbo,
       objetivo: resumo.objetivo || null,
       turma: resumo.turma || null,
+      professor: autor,
+      /* O NOME DE EXIBIÇÃO VAI JUNTO (12/11/2026) — a marca do «!» no cabeçalho diz «o plano é de
+       * X», e X tem de ser o nome que o professor lê, não o slug. Ele já está no resumo do
+       * envelope (`contexto-professor`), e esta lista não faz uma segunda leitura por isso. */
+      professorNome: String(resumo.professorNome || '').trim() || null,
       vinculada: por.length > 0,
       por,
       ajuste_de: resumo.ajuste_de || null,
       substituido_por,
+      ...(perdeu ? { semTurma: true, turmaDe: perdeu.dono } : {}),
     };
   }
   return estados;
@@ -2076,29 +2157,42 @@ async function estadosDosPlanos(armazenamento) {
  * toca em nada do que já foi gerado. A trava do plano existe porque o PO o referencia; a do PO
  * existiria só contra o sucessor, e é essa que está aqui.
  */
-async function estadoDoPo(armazenamento, envelope) {
+async function estadoDoPo(armazenamento, envelope, opcoes) {
+  const direcao = direcaoDasTurmas(opcoes && opcoes.curadorias);
   const carimbo = envelope.id || null;
   const lista = await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/);
   const sucessores = lista
     .filter(({ resumo }) => String(resumo.ajuste_de || '') === String(carimbo))
     .map(({ nome, resumo }) => resumo.id || nome.replace(/\.json$/, ''));
+  /* O PO TAMBÉM PERDE A TURMA (12/11/2026) — é a mesma regra do plano, e a pesquisadora foi
+   * explícita: «no plano de observação a gente tá com o mesmo problema […] Vai ser a mesma
+   * regra.» O PO herda a turma do plano que observa, e o autor é o `contexto.professor`: quando
+   * os dois divergem, o documento é de um professor que já não dirige aquela turma. */
+  const turma = String((envelope && envelope.contexto && envelope.contexto.turma) || '').trim();
+  const autor = String((envelope && envelope.contexto && envelope.contexto.professor) || '').trim();
+  const perdeu = perdeuATurma({ turma, professor: autor }, direcao);
   return {
     estado: sucessores.length ? 'legado' : 'solta',
     carimbo,
+    turma: turma || null,
+    professor: autor || null,
     ajuste_de: envelope.ajuste_de || null,
     substituido_por: sucessores,
     derivado: sucessores.length > 0,
+    ...(perdeu ? { semTurma: true, turmaDe: perdeu.dono } : {}),
   };
 }
 
 /** O ESTADO de um plano, derivado — reusa a derivação da lista de gestão. */
-async function estadoDoPlano(armazenamento, envelope) {
+async function estadoDoPlano(armazenamento, envelope, opcoes) {
   const carimbo = envelope.id || null;
-  const todos = await estadosDosPlanos(armazenamento);
+  const todos = await estadosDosPlanos(armazenamento, opcoes);
   return todos[carimbo] || {
     estado: 'solta',
     carimbo,
     objetivo: valorDe(envelope, 'objetivo-geral'),
+    turma: turmaDoEnvelope(envelope),
+    professor: String((envelope && envelope.contexto && envelope.contexto.professor) || '').trim() || null,
     vinculada: false,
     por: [],
     ajuste_de: envelope.ajuste_de || null,
@@ -2503,6 +2597,8 @@ module.exports = {
   alunasDaAnamnese,
   valorDe,
   turmaDoEnvelope,
+  direcaoDasTurmas,
+  perdeuATurma,
   vinculosDePlano,
   planos,
   estadosDosPlanos,

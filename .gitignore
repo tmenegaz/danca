@@ -1167,3 +1167,17 @@ experimentos/modelo-formulario/*
 # local, servido por um `fetch` de bancada — zero rede.
 # CONTROLE NEGATIVO: 8 falhas contra e482873b — e o negativo mostra `["livre","livre","livre"]`.
 !experimentos/provar-o-exercicio-em-turma.js
+
+# ---------------------------------------------------------------------------------------------
+# A AUTORIA NÃO SE REESCREVE — 12/11/2026
+#
+# «ele trocou o nome do plano de ensino atual para quem fez sendo a Redinha Rosa e isso não é
+# verdade.» A cadeia derivava o plano e o PO do professor anterior com o nome do professor novo por
+# cima — quatro vezes, medido nos envelopes do `calango`. A regra nova: a autoria não se deriva; o
+# documento que perde a turma fica «sem turma», com um traço onde ela estava.
+#
+# A prova mede o que a pesquisadora LÊ: a listagem das duas famílias (o selo, o traço, o «Quem fez»),
+# a condição que faz o selo sair, e o «!» no cabeçalho do plano — este em `jsdom`, sobre o servidor de
+# rotas a sério. CONTROLE NEGATIVO: 14 falhas contra HEAD; lá o plano do Pé Torto aparece «livre» com
+# a turma «Piano» ao lado, e o «!» não existe.
+!experimentos/provar-a-autoria-na-troca-de-professor.js

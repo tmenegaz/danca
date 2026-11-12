@@ -517,7 +517,13 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   // 7.1 /api/plano-estados — a gestão dos planos (solta / legado / vinculada).
   roteador.rota('GET', '/api/plano-estados', async () => {
     try {
-      return { ok: true, estados: await porta.estadosDosPlanos(armazenamento) };
+      /* AS CURADORIAS VÃO JUNTO (12/11/2026) — é delas que sai «quem dirige cada turma hoje», e
+       * sem elas o estado `sem turma` não se pode afirmar. A degradação é declarada: sem o leitor
+       * (uma bancada, um adaptador sem KV), a rota responde como antes, e o plano fica só com o
+       * estado da cadeia. */
+      const daEscola = typeof lerCuradorias === 'function' && escolaDoWorker
+        ? await lerCuradorias(escolaDoWorker) : [];
+      return { ok: true, estados: await porta.estadosDosPlanos(armazenamento, { curadorias: daEscola }) };
     } catch (erro) { return falhaDaLista(erro); }
   });
 
