@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T15:46:35-0300`
-Commit atual: `38d1781e` — fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
+Gerado em: `2026-11-12T15:50:42-0300`
+Commit atual: `123e2e9c` — fix(template): o NOME do autor na listagem, e o «!» a ler o slug
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -72,6 +72,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+123e2e9c fix(template): o NOME do autor na listagem, e o «!» a ler o slug
+9ad8db43 chore(estrutura): regerar o HANDOFF
 38d1781e fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
 7b92544a chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 daa44654 chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -90,8 +92,6 @@ c2eca9e7 chore(estrutura): reancorar a cadeia das fontes alteradas
 dd65a016 feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
 30cbb90f feat(po): o PO elicitado vira a fonte do ciclo
 d73b99a5 chore(estrutura): regerar o HANDOFF
-54d88898 fix(template): «em turma» no Estilo vem da Turma, e nao do plano de ensino
-ce25d26b chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -242,8 +242,9 @@ as duas etapas bloqueadas, o pacote que espera ·
 rota `plano-estados` · [porta/index.html](./porta/index.html) — o selo `sem turma`, as turmas livres, o
 «!» do professor e o arranque dos estados.
 
-**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra `HEAD`:
-**14 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
+**Validação.** `provar-a-autoria-na-troca-de-professor` **29/29**, com controlo negativo contra
+`7b92544a` (o commit anterior à correcção — `HEAD` anda, e depois de isto entrar passa a ser o código
+novo, que é o que um negativo não pode medir): **15 falhas** — lá o plano do Pé Torto aparece «livre» com a turma «Piano» ao lado, e o «!» não existe.
 `provar-direcao-do-documento` reescrita para a regra nova: **32/32**, e o negativo rebenta onde tem de
 rebentar. `provar-cadeia-automatica` 62 · `provar-troca-de-direcao` 41 · `provar-mudanca-de-sala` 41 ·
 `provar-cadeia-do-ajuste` 34 · `provar-listas-do-acervo` 109 · `provar-indice-de-envelopes` 44 ·
