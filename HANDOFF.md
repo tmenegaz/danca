@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T13:29:10-0300`
-Commit atual: `535d767c` — feat(template): a logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
+Gerado em: `2026-11-13T13:31:47-0300`
+Commit atual: `f262b436` — fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+f262b436 fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
 535d767c feat(template): a logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
 f8faa62a chore(estrutura): regerar o HANDOFF
 8a4e9c14 docs(registro): a regra da listagem, e o que ela mediu antes de mudar
@@ -92,7 +93,6 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 9177bb87 fix(estrutura): o elo que ja esta no acervo com o nome trocado e reconhecido, e nao aceite
 3919cc96 chore(estrutura): regerar o HANDOFF
 123e2e9c fix(template): o NOME do autor na listagem, e o «!» a ler o slug
-9ad8db43 chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -177,13 +177,17 @@ bastidores, é o clique e já carrega; agora a anamnese, o plano de ensino e o p
 demoram… tem alguma coisa sendo processada?». Tinha — e não era o Cloudflare a servir arquivo, era o
 motor a **ir ao GitHub**. Medido ao ar no Worker da escola, primeiro byte:
 
-| página | antes | depois |
-|:--|--:|--:|
-| `/aulas/` (asset) | 0,30 s | 0,30 s |
-| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s |
-| `/area-do-professor/anamnese` | 2,43 s | — |
-| `/area-do-professor/plano-de-ensino` | 7,54 s | — |
-| `/area-do-professor/plano-de-observacao` | 7,61 s | — |
+| página | antes | depois (bancada) | depois (ao ar) |
+|:--|--:|--:|--:|
+| `/aulas/` (asset) | 0,30 s | 0,30 s | 0,10 s |
+| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s | 0,09 s |
+| `/area-do-professor/anamnese` | 2,43 s | 0,68 s | 0,71 s |
+| `/area-do-professor/plano-de-ensino` | 7,54 s | 0,66 s | 0,89 s |
+| `/area-do-professor/plano-de-observacao` | 7,61 s | 0,63 s | 0,97 s |
+
+A coluna «ao ar» é a conferência final no Worker da escola (`calango`), primeiro byte: **uma carga por
+página, no fim** — não exploração, pela regra da cota do KV. A primeira carga da anamnese deu 1,52 s
+(o isolate estava frio, logo depois do deploy) e as duas seguintes, 0,71 s e 0,72 s.
 
 As duas últimas liam **24 vezes a API do GitHub por carga**. Dezanove delas abriam o envelope de
 **cada PO** para buscar `respostas.sujeitos` — que **já estava no resumo do índice**. O índice de
@@ -236,8 +240,6 @@ LISTAS DO ACERVO») · `motor/servidor/linhas-de-base-repo.js` (`vigentes`) ·
 
 **O que ainda não está feito.**
 
-- **Não foi conferido ao ar** — a conferência é uma carga por escola, no fim, e não exploração (a
-  regra da cota do KV).
 - **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
   decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
 - **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
@@ -319,8 +321,6 @@ cadeia, não a propagação. Fica declarado.
 ## 13/11/2026 — A lista custa o índice, e não um arquivo por registo
 
 
-- **Não foi conferido ao ar** — a conferência é uma carga por escola, no fim, e não exploração (a
-  regra da cota do KV).
 - **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
   decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
 - **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois

@@ -43655,13 +43655,17 @@ bastidores, é o clique e já carrega; agora a anamnese, o plano de ensino e o p
 demoram… tem alguma coisa sendo processada?». Tinha — e não era o Cloudflare a servir arquivo, era o
 motor a **ir ao GitHub**. Medido ao ar no Worker da escola, primeiro byte:
 
-| página | antes | depois |
-|:--|--:|--:|
-| `/aulas/` (asset) | 0,30 s | 0,30 s |
-| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s |
-| `/area-do-professor/anamnese` | 2,43 s | — |
-| `/area-do-professor/plano-de-ensino` | 7,54 s | — |
-| `/area-do-professor/plano-de-observacao` | 7,61 s | — |
+| página | antes | depois (bancada) | depois (ao ar) |
+|:--|--:|--:|--:|
+| `/aulas/` (asset) | 0,30 s | 0,30 s | 0,10 s |
+| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s | 0,09 s |
+| `/area-do-professor/anamnese` | 2,43 s | 0,68 s | 0,71 s |
+| `/area-do-professor/plano-de-ensino` | 7,54 s | 0,66 s | 0,89 s |
+| `/area-do-professor/plano-de-observacao` | 7,61 s | 0,63 s | 0,97 s |
+
+A coluna «ao ar» é a conferência final no Worker da escola (`calango`), primeiro byte: **uma carga por
+página, no fim** — não exploração, pela regra da cota do KV. A primeira carga da anamnese deu 1,52 s
+(o isolate estava frio, logo depois do deploy) e as duas seguintes, 0,71 s e 0,72 s.
 
 As duas últimas liam **24 vezes a API do GitHub por carga**. Dezanove delas abriam o envelope de
 **cada PO** para buscar `respostas.sujeitos` — que **já estava no resumo do índice**. O índice de
@@ -43714,8 +43718,6 @@ LISTAS DO ACERVO») · `motor/servidor/linhas-de-base-repo.js` (`vigentes`) ·
 
 **O que ainda não está feito.**
 
-- **Não foi conferido ao ar** — a conferência é uma carga por escola, no fim, e não exploração (a
-  regra da cota do KV).
 - **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
   decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
 - **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
