@@ -2559,11 +2559,17 @@ decisão.
   «A aula N», com o caminho crítico medido), e não achado desta frente — e sem ela a quarta superfície
   não se constrói; o pré-requisito dela é de outra frente (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação
   de alinhamento com o PO, que é do professor), e a **sequência é decisão dela** (12/11/2026): testar
-  e ajustar o que existe primeiro, e a aula 2, 3, … N depois.
+  e ajustar o que existe primeiro, e a aula 2, 3, … N depois;
+  (f) **o professor não é identificado na Porta** — **DECIDIDO** a 12/11/2026 (opção (c)): o painel usa
+  o professor declarado **e declara-o na tela**, e o recorte por professor fica sendo **aviso, não
+  fronteira**; o identificador vem depois, e depende de **L2**. A dívida que fica: as rotas
+  `GET /api/envelopes` e `/api/envelope/:id`, sob o prefixo da porta, **não pedem senha** — exposição
+  anterior a esta frente, que o recorte do agente **não fecha**.
 - **Dependências técnicas e de domínio.** L1/L2 (chaves) e L6 (catálogo) para as ferramentas;
   L7 para o medidor (é esta frente que lhe dá matéria); L9/L11 para a cota e a conversão do crédito
-  (a **unidade** está decidida: o Neuron). Do domínio: o que a IA **pode** e **não pode** dizer (§2
-  do texto 2 — preservado), e o desenho da tela da aula N.
+  (a **unidade** está decidida: o Neuron); e **L2** para a metade «depois» da identidade do professor.
+  Do domínio: o que a IA **pode** e **não pode** dizer (§2 do texto 2 — preservado), o desenho da tela
+  da aula N, e a identidade do professor na Porta (a metade «agora» está decidida — (f)).
 - **Entregas.** (a) O binding `ai` declarado nos três `wrangler`, com o modelo e a `vars`
   `SUBPEDIDOS` explícita; (b) o núcleo puro `motor/nucleo/agente/` (registo das 8 ferramentas,
   contrato, condução, mensagens) e o servidor `motor/servidor/agente.js` (`POST /api/agente`) e
@@ -2576,7 +2582,8 @@ decisão.
   (§7.2.1 do `ARQUITETURA-AGENTE.md`), medida com os mesmos 20 casos em cada degrau; (h) o **recorte
   do formulário pelo servidor** e as **quatro ausências** distintas nos leitores (§4.2 e §5.10 do
   mesmo documento); (i) a **prova de seleção das ferramentas**, que só corre com o modelo real e é
-  dosada (§9.4).
+  dosada (§9.4); (j) a **nota que declara a identidade** no painel da Porta (`.caixa.nota`), e a
+  ausência dela nos Bastidores (§4.1 e §11 do mesmo documento).
 - **Critérios verificáveis.** (i) O registo de ferramentas é **só de leitura** e a prova mede isso
   por lista, não por confiança; (ii) `tools/list` do MCP é idêntico ao registo do núcleo; (iii) os
   tectos (4 voltas, 8 ferramentas, 12.000 tokens de resultado) fecham o laço e a resposta diz qual
@@ -2586,7 +2593,8 @@ decisão.
   adoptado sem os 20 casos a dizer o que mudou; (viii) **nenhuma ferramenta devolve envelope de outro
   professor** nem decifra anamnese, e a prova mede-o; (ix) as **quatro ausências** chegam distintas, e
   a `indisponivel` não se confunde com `nao_existe`; (x) o pedido leva o **recorte** do formulário, não
-  os 27.538 B — medido em bytes, não em intenção.
+  os 27.538 B — medido em bytes, não em intenção; (xi) o painel da Porta **declara** que o professor
+  é o indicado, e a prova mede a nota visível — não a promessa num comentário.
 - **Riscos e decisões por confirmar.** (a) O 8B AWQ **aceita `tools`** no Workers AI? (se não, o
   transporte passa a «JSON no texto» + validação em tempo de execução); (b) **10.000 Neurons por dia
   são da conta, não da escola** — três escolas a usar o agente consomem a mesma cota (≈116

@@ -22,16 +22,21 @@
 > mesmos 20 casos, e o 70B só depois, declarando o que já se tentou. **E o documento foi revisto por
 > fora, e a revisão mudou contratos:** o contexto passou a ser **dois** (interface × autorização), e o
 > furo que isso expôs é o item que importa — `ler_envelopes` **não recortava por professor**, num
-> Worker cujos `GET /api/envelopes` e `/api/envelope/:id` são públicos: dava a **estante inteira da
-> escola** num pedido (§4.1, §5.2, agora corrigido, com o recorte do servidor e de graça); o schema do
+> Worker cujas rotas `GET /api/envelopes` e `/api/envelope/:id` **não pedem senha** — o freio é
+> `temProfessor(env)`, que não pergunta quem lê: dava a **estante inteira da escola** num pedido
+> (§4.1, §5.2, agora corrigido, com o recorte do servidor e de graça); o schema do
 > formulário vai **recortado pelo servidor** e **não inteiro**, porque o do PO são 27.538 B ≈ **77
 > Neurons por interação** contra os ≈86 da interação toda (§4.2); a proveniência do documento
 > (`ancora`, `gerado_em`, `ajuste_de`) vai na saída e **já existia** no envelope (§5.2); a **seleção**
 > das ferramentas ganhou uma prova própria, porque a bancada com `env.AI` falso **não a mede** — e
 > custa ~1.720 Neurons por passagem (§9.4); e as **quatro ausências** (não existe · vazia · não se
 > aplica · indisponível) passaram a ser distintas, porque o código de hoje **funde** duas delas em três
-> `catch` medidos (§5.10). Estimativa ≈23 → **≈25 dias**. Fica **PENDENTE** a identidade do professor
-> na Porta — é a única que não se resolve com contrato (§4.1). **CONFIRMADO que
+> `catch` medidos (§5.10). Estimativa ≈23 → **≈25 dias**. **E a identidade do professor na Porta está
+> decidida** (12/11/2026, opção (c) da §4.1): o painel usa o **professor declarado** e **declara-o na
+> tela** — `.caixa.nota`, *«A Porta não identifica quem escreve»* —, e o recorte por professor fica
+> sendo **aviso, não fronteira**; o identificador **vem depois** e depende de **L2**. Fica declarada,
+> por medição, uma dívida **anterior** a esta frente: `GET /api/envelopes` e `/api/envelope/:id` são
+> públicos dentro do Worker da escola, e o recorte do agente **não os fecha**. **CONFIRMADO que
 > nada está implementado:** não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não há
 > `motor/servidor/agente.js` nem `mcp.js`, não há rota. O que **mudou** foi a documentação: a
 > frente **L15** nasceu no `PLANEJAMENTO-LASTRO.md`, o **§L7** (que dizia que a IA «não é mecanismo
@@ -2943,7 +2948,12 @@ nas **quatro** superfícies — plano de ensino, PO, Estilo **e a elaboração d
 e a quarta **espera a tela**; **a anamnese saiu** da lista (é retrato, não redação pedagógica);
 **o crédito é o Neuron**; o agente **pode citar o apelido** da aluna (apelido e só apelido, P-12); e
 **antes de subir para o 70B aprimora-se** — a escada prompt → exemplos → ferramentas →
-amostragem, cada degrau medido com os mesmos 20 casos. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md)
+amostragem, cada degrau medido com os mesmos 20 casos; e, na **identidade do professor na Porta**,
+ficou decidido **(c) agora, (b) depois**: o painel usa o professor declarado **e declara-o** (uma
+`.caixa.nota`), o recorte por professor é **aviso e não fronteira**, e o identificador vem depois — a
+fronteira que vale continua a ser a da escola. A dívida que isso expôs fica declarada:
+`GET /api/envelopes` e `/api/envelope/:id` são **públicos dentro do Worker da escola**, e nenhum
+recorte do agente os fecha. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md)
 (§1.1, §7.2, §7.2.1, §11.1), a frente **L15** e a entrada de 12/11/2026 no `REGISTRO.md`.
 
 **Último ponto confirmado:** 02/11/2026 — `d74fda1` (a musicalidade consolida-se, e a prova da porta
@@ -3269,6 +3279,29 @@ nem um pré-requisito escondido: é a consequência de o painel da aula não se 
 da aula, e de a tela da aula **ser** esta pendência. Por isso o painel do agente entra **já** nas três
 superfícies que existem (plano de ensino, plano de observação, Estilo), e o da aula espera — como
 espera tudo o resto que dependa dela. **PENDENTE**, com dono (a sequência da aula N) e sem data.
+
+### As rotas de envelope não pedem senha — dívida declarada (12/11/2026)
+
+**A exposição é anterior a esta frente; a medição é de hoje.** Lido no código a 12/11/2026: as
+rotas `GET /api/envelopes` e `GET /api/envelope/:id`, servidas **sob o prefixo da porta**
+(`/plano-observacao/`, `/plano-ensino/`, `/anamnese/`), **não têm conferência de senha**. O único
+freio no caminho é `temProfessor(env)` (`producao.js`), que verifica se a escola **tem** professor
+cadastrado — não **quem** pergunta.
+
+**Por que isto apareceu agora.** O desenho do agente pôs `ler_envelopes` a ler a estante, e a
+pergunta «o recorte por professor basta?» obrigou a olhar para a rota por baixo. Não basta — e por
+isso ela fica declarada com as duas metades separadas:
+
+- **O que o agente faz** (decidido): recorta por professor, e o recorte é **aviso e prevenção de
+  acidente**, não fronteira.
+- **O que o agente não faz**: fechar a rota. Quem conhece o slug continua a poder ler os envelopes
+  por `curl`, com ou sem agente.
+
+**O que fica por decidir, e é dela:** a rota passa a exigir senha (a da escola, a mesma dos
+Bastidores), ou aceita-se como legado declarado — a estante é dado de aluno **cifrado em repouso**
+nas anamneses, mas planos e POs vão em claro. **PENDENTE**, sem data e sem frente dona; a
+`ARQUITETURA-AGENTE.md` §4.1 e §14 registam-na como dívida do projeto, para não se ler «o agente
+recorta» como «a rota está fechada».
 
 ### Pendências de infraestrutura — de datas anteriores
 

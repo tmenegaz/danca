@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:53:38-0300`
-Commit atual: `847ba948` — docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
+Gerado em: `2026-11-12T22:59:18-0300`
+Commit atual: `9ae74482` — docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+9ae74482 docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
 847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
 0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
@@ -92,7 +93,6 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 daa44654 chore(estrutura): reancorar a cadeia das fontes alteradas
 b4eb042b chore(estrutura): regerar os índices derivados
 0569a3b2 chore(estrutura): regerar os índices derivados
-48f0727e feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
 ```
 
 ## Por professor
@@ -323,7 +323,7 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 >    `comAEscolaDoWorker`). O **professor**, sim: hoje o `professor` vem do **corpo do pedido**, e a
 >    guarda que existe é de **atribuição** («esta turma está curada para este professor?» — a regra
 >    de 27/10/2026), não de identidade. **O furo que isto expôs:** `ler_envelopes` no meu contrato
->    **não recortava por professor** — e `GET /api/envelopes` e `GET /api/envelope/:id` são públicos
+>    **não recortava por professor** — e as rotas `GET /api/envelopes` e `GET /api/envelope/:id`
 >    dentro do Worker da escola. Com aquela ferramenta, quem soubesse um slug teria **a estante
 >    inteira da escola** num pedido só, em texto corrido. **Corrigido**: recorte por professor, feito
 >    **no servidor**, e de graça — o resumo do índice já traz `professor`. Mais: `escopo` declarado em
@@ -363,6 +363,42 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 > **O que a estimativa passou a ser:** ≈23 → **≈25 dias** (as provas sobem 3 → 3,5 pelos três blocos
 > novos com negativo; o recorte do formulário e as quatro ausências acrescentam 1,5).
 
+> **A identidade do professor, decidida (12/11/2026).** A revisão acima deixou uma pergunta aberta, e
+> ela respondeu: **segue a recomendação — (c) agora, (b) depois**. Isto quer dizer duas coisas, e a
+> segunda é a que importa mais:
+>
+> - **Agora:** o painel do agente, nas três superfícies da Porta, **usa o professor declarado e
+>   declara-o na tela** — uma `.caixa.nota` com a frase *«O assistente usa o professor indicado
+>   acima. A Porta não identifica quem escreve.»* Nos Bastidores a nota não aparece, porque lá há
+>   senha da direção e a frase seria falsa na direção contrária. O prompt de sistema ganha a mesma
+>   limitação dita ao modelo: «não digas que verificaste quem escreve». Não se **finge** uma
+>   autenticação que não existe — é a lei do projeto («o que não se mediu não se afirma») aplicada à
+>   identidade.
+> - **Depois:** o **identificador de professor na Porta** vem, e é frente própria — depende de **L2**
+>   (hoje o professor **não tem slug persistido**: o slug é derivado na leitura, e a curadoria o
+>   referencia por **nome**). Fica PENDENTE, com dono (L2) e sem data.
+>
+> **O que a decisão obrigou a escrever com todas as letras, para não ser lida ao contrário:** o
+> recorte por professor **não é fronteira de segurança** — é **aviso e prevenção de acidente**. Um
+> cliente que diga ser outro professor recebe a estante daquele, porque não há como saber quem ele é.
+> A fronteira que vale continua a ser a da **escola** (`ESCOLA_SLUG` do Worker, conferido contra o
+> subdomínio; nenhuma ferramenta aceita `escola`). E fica declarada, por medição de hoje, uma dívida
+> **anterior a esta frente e independente dela**: `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
+> prefixo da porta, **não pedem senha** (o freio é `temProfessor(env)`, que não pergunta quem lê) — o agente não a cria e o recorte **não a fecha**; quem
+> conhece o slug continua a poder lê-las por `curl`. Dizer «o agente recorta» e ouvir «a rota está
+> fechada» seria a confusão mais cara desta frente.
+>
+> **Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — §4.1 (a decisão e as três
+> consequências), o bloco 2 do prompt (§6), a `.caixa.nota` na §11, a §9.3 (asserção 10, que mede a
+> nota visível e a ausência dela nos Bastidores) e a §14 (o item 1 passa a «o identificador vem
+> depois»; o item 5 novo declara a dívida das rotas) ·
+> [PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) — a **L15** ganha a lacuna **(f)**, a dependência
+> de **L2**, a entrega **(j)** e o critério **(xi)** · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a linha da
+> §6 · `HANDOFF.md` — regerado.
+>
+> **Nenhuma linha de código.** A decisão é de desenho: o painel e as rotas não existem, e o que foi
+> escrito é o que a implementação tem de cumprir quando existirem.
+
 **O que ainda não está feito.**
 
 - **Nada do agente está implementado.** Não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não
@@ -386,9 +422,12 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
   depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
-- **A identidade do professor na Porta não existe** (§4.1). É o único item da revisão de 12/11/2026
-  que **não** se resolve com contrato: depende de uma decisão de produto, e sem ela o recorte por
-  professor não tem de onde tirar o professor. **PENDENTE** de decisão dela.
+- **O identificador de professor na Porta (a metade «depois») não existe** — e é a única parte da
+  decisão de 12/11/2026 que fica por fazer. Depende de **L2** (o professor não tem slug persistido) e
+  não é desta frente. Até lá vale a metade «agora»: o painel usa o professor declarado **e declara-o**.
+- **As rotas de envelope não pedem senha** — `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
+  prefixo da porta. Exposição **anterior** a esta frente, que o recorte do agente **não fecha**.
+  Fica declarada; nenhuma decisão de hoje a resolve.
 - **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
   tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
   custo que o vai dizer.
@@ -454,9 +493,12 @@ cadeia, não a propagação. Fica declarado.
   depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
-- **A identidade do professor na Porta não existe** (§4.1). É o único item da revisão de 12/11/2026
-  que **não** se resolve com contrato: depende de uma decisão de produto, e sem ela o recorte por
-  professor não tem de onde tirar o professor. **PENDENTE** de decisão dela.
+- **O identificador de professor na Porta (a metade «depois») não existe** — e é a única parte da
+  decisão de 12/11/2026 que fica por fazer. Depende de **L2** (o professor não tem slug persistido) e
+  não é desta frente. Até lá vale a metade «agora»: o painel usa o professor declarado **e declara-o**.
+- **As rotas de envelope não pedem senha** — `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
+  prefixo da porta. Exposição **anterior** a esta frente, que o recorte do agente **não fecha**.
+  Fica declarada; nenhuma decisão de hoje a resolve.
 - **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
   tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
   custo que o vai dizer.

@@ -239,7 +239,8 @@ filtro de tela não é uma regra»). É uma guarda de **atribuição**, não de 
 um `POST` à mão diz que é quem quiser, e é aceite se a turma for daquele professor.
 
 **O que isto obriga no agente, e é a parte nova.** As ferramentas leem **a escola inteira** — e hoje
-`GET /api/envelopes` e `GET /api/envelope/:id` são públicos dentro do Worker da escola. Um agente com
+`<prefixo>/api/envelopes` e `<prefixo>/api/envelope/:id` **não pedem senha** — o único freio é
+`temProfessor(env)`, que verifica se há professor **cadastrado**, não **quem** pergunta. Um agente com
 `ler_envelopes` sem recorte de professor daria a qualquer pessoa que conheça um slug **a estante
 inteira da escola**, num pedido só, em texto corrido. Por isso:
 
@@ -254,15 +255,38 @@ inteira da escola**, num pedido só, em texto corrido. Por isso:
    a ferramenta responde `{recusa}` em vez de degradar para «todos» — degradar é o que transforma uma
    limitação de bancada numa fuga de dados.
 
-**PENDENTE, e é decisão de produto, não de código:** o projeto **não tem** identificação do professor
-na Porta — há senha da direção nos Bastidores e senha de escrita no lançamento, mas o
-`contexto.professor` do PO e do plano é declarado pelo cliente. Enquanto for assim, o item 1 acima
-**não tem de onde tirar a identidade**. As três saídas honestas, para ela decidir: *(a)* o painel do
-agente só abre com a senha da escola (Bastidores) — e perde as três superfícies da Porta; *(b)*
-nasce um identificador de professor na Porta (frente própria); *(c)* o painel da Porta usa o
-professor declarado **e diz que o usa** — declara a limitação em vez de a esconder. **A recomendação
-é (c) agora, (b) depois** — mas nenhuma das três se implementa sem esta decisão, e o documento não a
-toma por ela.
+**DECIDIDO a 12/11/2026 — e a decisão tem duas metades.** O projeto **não tem** identificação do
+professor na Porta: há senha da direção nos Bastidores e senha de escrita no lançamento, mas o
+`contexto.professor` do PO e do plano é **declarado pelo cliente**. Havia três saídas honestas —
+*(a)* o painel só nos Bastidores (perderia as três superfícies da Porta), *(b)* um identificador de
+professor na Porta (frente própria), *(c)* usar o professor declarado **e dizê-lo**. Ela escolheu
+**(c) agora, (b) depois**, e a *(a)* fica de fora por decisão: as três superfícies que existem são
+da Porta, e abrir mão delas seria abrir mão do painel.
+
+- **(c) agora — o painel usa o professor declarado e DIZ que o usa.** A limitação é declarada na
+  tela, em `.caixa.nota` (peça que já existe no catálogo): «o assistente usa o professor indicado
+  acima; a Porta não identifica quem escreve». É a mesma lei do resto do projeto — o que não se
+  mediu não se afirma —, aplicada à identidade: não se **finge** uma autenticação que não existe.
+- **(b) depois — o identificador de professor na Porta** é frente própria (depende de **L2**, a
+  identidade estável das entidades: hoje o professor não tem slug persistido, e a curadoria o
+  referencia por nome). Fica **PENDENTE**, com dono e sem data.
+
+**O que a metade (c) NÃO é, e tem de ficar escrito antes de alguém o ler ao contrário:** o recorte
+por professor **não é fronteira de segurança** — é **aviso e prevenção de acidente**. Um cliente que
+diga ser outro professor recebe a estante daquele, porque não há como saber quem ele é. Três coisas
+ficam, então, ditas:
+
+1. **A fronteira que vale é a da escola**, e continua a valer: o `ESCOLA_SLUG` é do Worker e é
+   conferido contra o subdomínio; nenhuma ferramenta aceita `escola` (§5.9). O que a decisão (c)
+   deixa intacto é isto — e é o que protege o dado de menor entre escolas.
+2. **A exposição das rotas de envelope é anterior a esta frente e independente dela.**
+   `GET /api/envelopes` e `GET /api/envelope/:id`, sob o prefixo da porta, são servidos **sem senha**
+   — o freio é `temProfessor(env)`, que não pergunta quem lê. O agente **não a cria** e o recorte
+   **não a fecha**: quem conhece o slug continua a poder lê-las por `curl`. Fica **declarado** como dívida do projeto, para não se confundir «o agente recorta» com
+   «a rota está fechada».
+3. **O prompt leva a limitação, não a esconde.** O bloco 2 do prompt de sistema (§6) passa a dizer
+   que a identidade do professor vem declarada, e que o agente **não deve afirmar** ter verificado
+   quem escreve.
 
 ### 4.2 O recorte do formulário — e por que ele não vem inteiro
 
@@ -694,6 +718,10 @@ cumprida** — e uma regra escrita duas vezes com palavras diferentes é cumprid
 2. **Fonte obrigatória.** «Toda afirmação sobre um documento vem de uma ferramenta, e cita o id.
    Toda afirmação sobre um exercício cita o termo do vocabulário. Sem fonte, diz: “não tenho esse
    dado na escola”.» *(a resposta de proveniência)*
+   **E a fonte diz de que versão é** (§5.2): `gerado_em` e `ajuste_de` acompanham o id, porque «o
+   plano» e «o ajuste do plano» são dois conselhos diferentes.
+   **E a identidade não se afirma verificada** (§4.1): «o professor é o que está indicado acima; tu
+   não verificaste quem escreve — não digas que verificaste».
 3. **Não inventar, e como se diz que não se sabe.** «Nunca inventes exercício, tradição, categoria,
    sinal, data, turma ou nome. Se não estiver no vocabulário, escreve exactamente:
    “este exercício não está no vocabulário de <modalidade>”.» *(o defeito mais provável)*
@@ -908,9 +936,10 @@ devolve `tool_calls` guionados. As asserções, com controlo negativo onde ele m
    `ferramentas` não vazio.
 9. **Controlo negativo do prompt:** sem a regra 3 (§6), o guião devolve o nome de um exercício que
    não está no vocabulário — e é a regra que impede a resposta de sair.
-10. **O contexto em duas partes** (§4.1): um `contexto.professor` do corpo diferente do da sessão
-    **não** muda o que a ferramenta lê; `ler_envelopes` não devolve envelope de outro professor; a
-    anamnese volta `cifrado: true` e sem `respostas`.
+10. **O contexto em duas partes** (§4.1): `ler_envelopes` não devolve envelope de outro professor; a
+    anamnese volta `cifrado: true` e sem `respostas`; a **escola** continua a vir do Worker e não do
+    pedido; e o painel da Porta **declara** que o professor é declarado — a prova mede a nota
+    visível, e mede a ausência dela nos Bastidores.
 11. **As quatro ausências** (§5.10) chegam distintas — e a `indisponivel` não se confunde com
     `nao_existe` num leitor que falha.
 12. **O recorte do formulário** (§4.2): o pedido de um campo leva o nó e os vizinhos, não os 27.538 B;
@@ -1039,6 +1068,13 @@ onde ele lê envelopes e linha de base; a aula por último, porque depende de um
 └──────────────────────────────────────────────────────────┘
 ```
 
+**E o painel declara quem é o professor — e que não o verificou (§4.1, decisão de 12/11/2026).**
+Uma `.caixa.nota`, sempre visível no painel das três superfícies da Porta, com uma frase só: *«O
+assistente usa o professor indicado acima. A Porta não identifica quem escreve.»* Não é rodapé nem
+letra pequena: é a peça que **declara a limitação**, e existe porque a alternativa — escrever uma
+frase que sugira autenticação — seria afirmar o que não se mediu. Nos Bastidores a nota não aparece:
+lá há senha da direção, e a frase seria falsa na direção contrária.
+
 **A espera é o `.veu`**, o mesmo da operação do «Guardar»: cobre, põe `inert` e **diz** o que está a
 acontecer («o assistente está a ler o plano anterior…»). Um `disabled` no botão não bastava em
 Outubro e não basta aqui: a caixa de texto e o «Guardar» ao lado são caminhos para o mesmo
@@ -1147,23 +1183,27 @@ mérito:
 
 | # | Proposta | Veredicto | Onde |
 |:--|:--|:--|:--|
-| 1 | Separar contexto de **interface** de contexto de **autorização** | **Aceite**, e encontrou um furo no contrato: `ler_envelopes` não recortava por professor, e o `professor` do pedido é declarado pelo cliente | §4.1, §5.2, `escopo` em `ler_turma`, §5.9 |
+| 1 | Separar contexto de **interface** de contexto de **autorização** | **Aceite**, e encontrou um furo no contrato: `ler_envelopes` não recortava por professor, e o `professor` do pedido é declarado pelo cliente. **A identidade foi decidida a 12/11/2026: (c) agora, (b) depois** — e o recorte fica declarado como **aviso, não fronteira** | §4.1, §5.2, `escopo` em `ler_turma`, §5.9, bloco 2 do prompt |
 | 2 | Dar ao agente o **schema do formulário em edição** | **Aceite, com correção**: **não** o formulário inteiro (27.538 B ≈ 77 Neurons por pedido), e o recorte é **do servidor**, não do cliente — o tamanho do pedido é dinheiro | §4.2 |
 | 3 | Tornar a proveniência verificável na **saída** (`versao`/`hash`) | **Aceite**, e mais barato do que parecia: `ancora`, `gerado_em` e `ajuste_de` **já existem** no envelope | §5.2 |
 | 4 | Testar a **seleção** das ferramentas, não só o funcionamento | **Aceite**, com uma distinção que a bancada obriga: com `env.AI` falso **não se mede seleção** — só com o modelo real, e isso custa Neurons | §9.4 |
 | 5 | Tratar ausência, vazio, não aplicável e indisponível como coisas diferentes | **Aceite**, e o código de hoje **funde** dois desses casos em três sítios medidos | §5.10 |
 
-**O que continua em aberto** *(nenhum item bloqueia a documentação; os dois primeiros bloqueiam a
+**O que continua em aberto** *(nenhum item bloqueia a documentação; o segundo bloqueia a
 implementação)*
 
-1. **A identidade do professor na Porta** — o projeto não a tem (§4.1). Enquanto o
-   `contexto.professor` for declarado pelo cliente, o item 1 da revisão não tem de onde tirar a
-   identidade. Três saídas na §4.1; a recomendação é declarar a limitação agora e criar o
-   identificador depois.
-2. **A conversão comercial do crédito** — quantos Neurons por franquia, qual o excedente. A unidade
+1. **O identificador de professor na Porta (a metade «depois»)** — decidido em 12/11/2026 que ele
+   **vem**, e que até lá o painel usa o professor declarado **e o diz** (§4.1). O que falta é o
+   **quando**, e ele depende de **L2** (o professor não tem slug persistido) — não é decisão desta
+   frente. **PENDENTE**, com dono (L2) e sem data.
+2. **O transporte do `tools`** — depende da primeira chamada real, e bloqueia a implementação.
+3. **A conversão comercial do crédito** — quantos Neurons por franquia, qual o excedente. A unidade
    está decidida; a tabela é da frente L9/L11.
-3. **O transporte do `tools`** — depende da primeira chamada real.
 4. **O limiar da recusa** — só depois dos 20 casos.
+5. **As rotas de envelope não pedem senha** — `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
+   prefixo da porta; o freio é `temProfessor(env)` e não pergunta quem lê. É exposição **anterior** a esta frente, que o recorte do agente **não
+   fecha** (§4.1, ponto 2). Fica declarada como dívida do projeto: nenhuma decisão de hoje a resolve,
+   e **não** se deve ler o recorte como se a fechasse.
 
 ---
 
