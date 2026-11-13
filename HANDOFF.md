@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:10:42-0300`
-Commit atual: `9dd8fe8b` — docs(registro): a decisao do agente, com os achados que nao estavam no pedido
+Gerado em: `2026-11-12T22:21:13-0300`
+Commit atual: `c2a4254b` — chore(estrutura): regerar o HANDOFF
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
 3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
 8a042794 docs(estrutura): o agente do Lastro ganha desenho, contratos e a frente L15
@@ -92,7 +93,6 @@ b4eb042b chore(estrutura): regerar os índices derivados
 71dada2b feat(po): o PO elicitado vira a fonte do ciclo
 4dff6d03 feat(po): o PO elicitado vira a fonte do ciclo
 00322a75 feat(acervo): envelope/po-20261112-1450.json
-fb51a6c4 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -740,16 +740,16 @@ cadeia, não a propagação. Fica declarado.
 - **10/11/2026** — O passo 1 do Estilo procura no vocabulário, e um exercício… → `REGISTRO.md` L41744
 - **10/11/2026** — A decomposição pela ordem em que foi escrita, e a… → `REGISTRO.md` L41826
 - **10/11/2026** — A cadeia que pára no teto continua sozinha, e o «abrir»… → `REGISTRO.md` L41906
-- **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L41988
-- **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42104
-- **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42200
-- **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42264
-- **11/11/2026** — A operação atravessa as abas, e o véu deixa ver a página → `REGISTRO.md` L42344
-- **11/11/2026** — As três formas do véu, e a página que pode pedir uma… → `REGISTRO.md` L42435
-- **11/11/2026** — O véu do produto passa a «o texto na tela, sem caixa» → `REGISTRO.md` L42521
-- **12/11/2026** — O elenco que ficaria sem ninguém não existe → `REGISTRO.md` L42587
-- **12/11/2026** — A troca de aluna desfaz o passo 3 e o recorte, e a lista… → `REGISTRO.md` L42685
-- **12/11/2026** — Um véu para todos os gestos: elenco, leitura, verbete e sala → `REGISTRO.md` L42760
+- **10/11/2026** — O ajuste que não se perde no elo vencido, e a variante que… → `REGISTRO.md` L42000
+- **10/11/2026** — A capacidade cobra-se por volume, e a escada da assinatura… → `REGISTRO.md` L42116
+- **11/11/2026** — A Turma chama-se pelo elenco, e o mesmo elenco não ocupa… → `REGISTRO.md` L42212
+- **11/11/2026** — O véu que não se via, a listagem que não era a mesma, e o… → `REGISTRO.md` L42276
+- **11/11/2026** — A operação atravessa as abas, e o véu deixa ver a página → `REGISTRO.md` L42356
+- **11/11/2026** — As três formas do véu, e a página que pode pedir uma… → `REGISTRO.md` L42447
+- **11/11/2026** — O véu do produto passa a «o texto na tela, sem caixa» → `REGISTRO.md` L42533
+- **12/11/2026** — O elenco que ficaria sem ninguém não existe → `REGISTRO.md` L42599
+- **12/11/2026** — A troca de aluna desfaz o passo 3 e o recorte, e a lista… → `REGISTRO.md` L42697
+- **12/11/2026** — Um véu para todos os gestos: elenco, leitura, verbete e sala → `REGISTRO.md` L42772
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

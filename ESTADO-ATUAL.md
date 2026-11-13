@@ -3286,7 +3286,7 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 | Tabela de Neurons e tecto diário | **Executado** — lido da página de preços da Cloudflare a 12/11/2026: **10.000 Neurons/dia** na conta gratuita; `llama-3.1-8b-instruct-awq` a **11.161/M de entrada** e **24.215/M de saída**. A conta de ≈86 Neurons por interação está escrita no `ARQUITETURA-AGENTE.md` §7.2 e **é uma estimativa por tabela, não uma medição** |
 | Contador de subpedidos e KV | **CONFIRMADO por leitura**: `contarSubpedidos` embrulha o `fetch`, e o `kv.get` não passa por lá. A doc de limites da Cloudflare diz que KV **é** subpedido. **Não medido** — a correção é da frente L15 |
 | Provas do motor | **Não executadas nesta entrega** — nenhuma linha de código de motor mudou. As provas da entrega anterior continuam como estavam, e o `HEAD` está verde no que estava verde |
-| Deploy | **Não executado, de propósito** — nenhum `wrangler.<escola>.jsonc` e nenhum ficheiro do Worker foram tocados. Um deploy aqui não publicaria nada e gastaria cota de KV à toa |
+| Deploy | **Nenhum deploy desta entrega** — nenhum `wrangler.<escola>.jsonc` e nenhum ficheiro do Worker foram tocados pelo desenho do agente. Um deploy aqui não publicaria nada e gastaria cota de KV à toa. **Distinto disto:** o `calango` foi republicado a 12/11/2026 para pôr ao ar a correção de 10/11 da cadeia que pára no teto — versão `f819a22d` —, e a conferência gastou **3** pedidos (raiz **200**; `POST /api/bastidores/cadeia-pacote` sem corpo **400** com «diga de que turma são os documentos»; rota inexistente **404**). A travessia inteira **não** foi percorrida ao ar, de propósito |
 
 ### Executado na fotografia anterior (10/11/2026 — a ordem da decomposição e a duplicação de uma linha)
 

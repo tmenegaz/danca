@@ -41977,8 +41977,20 @@ o acto preservado, uma nota só, uma geração por vez, a fila de duas turmas co
 `provar-cadeia-automatica` **60/60**, `provar-cadeia-do-ajuste` **34/34**, `provar-mudanca-de-sala`
 **41/41**, `provar-producao` **166/166**, `check-identidade` **0 erros (21 ok)**.
 
-**O que ainda não está feito.** (1) **Não foi conferido no ar nesta sessão** — as provas são de
-bancada; a conferência em produção é o passo seguinte ao deploy. (2) **O teto de subpedidos continua
+> **Nota de 12/11/2026 (mesma entrada — a conferência em produção, que faltava).** O item (1) abaixo
+> ficou fechado: a publicação do `calango` foi montada e o Worker publicado (versão
+> `f819a22d-729f-45d8-97ab-6da535bb9918`), e a conferência em produção gastou **três** pedidos, sem
+> ler KV: a raiz responde **200**; `POST /api/bastidores/cadeia-pacote` sem corpo responde **400** com
+> «diga de que turma são os documentos» — a rota nova existe e faz o que a prova de bancada diz —, e
+> uma rota inexistente responde **404**, o que mostra que o `400` não é o genérico da ponte. **O que
+> esta conferência não faz:** não percorre a cadeia em produção, porque isso exigiria um gesto real e
+> gastaria os subpedidos que a mesma correção veio poupar. A cadeia ao ar continua a ser medida pelas
+> provas de bancada (`provar-fecho-do-pacote` 42/42, `provar-link-e-fecho` 20/20).
+
+**O que ainda não está feito.** (1) **A conferência em produção não foi feita na sessão em que esta
+correção entrou** — as provas são de bancada. Ficou fechada a 12/11/2026, pela nota acima (o deploy e
+três pedidos de conferência); o que continua sem medição ao ar é a travessia inteira, e por decisão —
+ela gasta o que esta correção veio poupar. (2) **O teto de subpedidos continua
 a ser um teto**: esta correção evita-o para o último passo, mas **uma** geração de um ciclo muito
 grande pode voltar a não caber em 50, e aí o caminho é o que a mensagem já diz — subir `SUBPEDIDOS` na
 `wrangler.<escola>.jsonc`. Nenhum código resolve um orçamento. (3) **O passo 4 repetido num segundo
