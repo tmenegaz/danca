@@ -21,7 +21,14 @@
  *      claro no repo nem no computador da pesquisadora: é o segredo que cifra o `-dados.json`);
  *   5. PUT …/scripts/{escola}/secrets                 — o GITHUB_TOKEN (o PAT que o motor usa
  *      para escrever o PO e disparar a geração), copiado do ambiente da raiz;
- *   6. POST …/actions/workflows/criar-escola.yml/dispatches — o deploy do motor completo.
+ *   6. POST /zones/{zona}/dns_records                   — o registo A de <escola>.padd.com.br;
+ *   7. POST /zones/{zona}/workers/routes                — a rota <escola>.padd.com.br/* ao script;
+ *   8. POST …/actions/workflows/criar-escola.yml/dispatches — o deploy do motor completo.
+ *
+ * OS PASSOS 6 E 7 NÃO DERRUBAM A CRIAÇÃO (13/11/2026). Sem eles a escola existe e não tem
+ * endereço próprio; com eles a falhar, ela nasce na mesma e o resultado diz o que ficou pendente
+ * e o que fazer. A alternativa — abortar a escola porque falta uma permissão no token — trocaria
+ * um endereço em falta por uma escola que não nasce, e a segunda é pior.
  */
 
 // O Worker «zero» é só a página de «implantação em andamento» — não usa KV. O KV de
@@ -37,6 +44,10 @@ const { CSS: CSS_ESTADO } = require('./estado-html.js');
 // definição de «como se apaga um Worker» divergiria da primeira, e a que ficasse para trás
 // seria a que deixa o subdomínio ligado a um script que já não existe.
 const { excluirEscola } = require('./expurgar-escola.js');
+/* O ENDEREÇO PRÓPRIO DA ESCOLA (13/11/2026) — o registo DNS e a rota de `<escola>.padd.com.br`,
+ * criados por dentro do sistema. A pesquisadora: «toda vez eu tenho que ir lá e falar qual é a
+ * zona... isso não é legal de fazer toda vez». Ver `dominio-da-escola.js`. */
+const dominioDaEscola = require('./dominio-da-escola.js');
 
 /** O slug da escola, derivado do nome que o professor digitou (o subdomínio). */
 function slugificar(nome) {
@@ -208,7 +219,7 @@ async function criarEscola(opcoes) {
 }
 
 /** Os passos 1–6 do provisionamento. Separado para o `criarEscola` poder desfazê-los num só lugar. */
-async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono }, escola) {
+async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono, zona }, escola) {
   const base = '/accounts/' + accountId + '/workers';
 
   // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA.
@@ -216,6 +227,24 @@ async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githu
 
   // 2. liga o subdomínio workers.dev.
   await api('subdominio', token, 'POST', base + '/scripts/' + escola + '/subdomain', { enabled: true });
+
+  // 2.1 O ENDEREÇO PRÓPRIO — o registo DNS e a rota de `<escola>.padd.com.br` (13/11/2026).
+  //
+  //     AQUI, E NÃO DEPOIS DO DISPARO, de propósito: o Worker «zero» existe desde o passo 1, e
+  //     portanto o endereço próprio já responde «implantação em andamento» em vez de dar 1016
+  //     («origin DNS error»). Quem cria a escola e abre o endereço no mesmo minuto vê a página
+  //     certa, e não um erro de DNS que parece o sistema estar quebrado.
+  //
+  //     NÃO LANÇA: o resultado (com o que faltou e a dica) viaja na resposta. Uma escola sem
+  //     endereço próprio é uma pendência; uma escola que não nasce é um fracasso.
+  /* A ZONA VEM DE QUEM CHAMA, e não de `process.env`: no runtime do Worker não há `process`.
+   * O `raiz.js` passa `env.ZONA_ESCOLAS`; sem ela, o módulo usa o `padd.com.br` desta casa. */
+  const dominio = await dominioDaEscola.ligarDominio({
+    token,
+    escola,
+    script: escola,
+    zona: zona || undefined,
+  });
 
   // 3. a senha do administrador da escola (a direção — nunca em claro no repo; só no Worker).
   await api('senha', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
@@ -302,7 +331,16 @@ async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githu
     });
   }
 
-  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
+  return {
+    escola,
+    nome,
+    url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev',
+    /* O ENDEREÇO PRÓPRIO VAI JUNTO, e com `ok` próprio: quem mostra a escola criada tem de poder
+     * dizer as duas coisas — «está no ar neste endereço» e «o endereço próprio ficou pendente,
+     * falta isto». Esconder a pendência seria pior do que não a ter. */
+    dominio,
+    urlPropria: dominio && dominio.ok ? dominio.url : null,
+  };
 }
 
 /**
@@ -361,7 +399,15 @@ async function desfazerPlaceholder({ token, accountId, escola, nome }) {
 
   // Sem KV: o Worker «zero» não tem binding de KV nem escreve nada — o namespace só é ligado
   // no deploy do motor. Nunca houve chave desta escola para limpar.
+  //
+  // O ENDEREÇO PRÓPRIO TAMBÉM SE DESFAZ (13/11/2026), e antes do script: a rota aponta a um script
+  // que está prestes a deixar de existir, e uma rota órfã só dá erro a quem abrir o endereço. O
+  // `desligarDominio` só apaga o que tem a nossa marca (ver o módulo), portanto um subdomínio
+  // alheio com o mesmo nome fica onde está.
+  const dominio = await dominioDaEscola.desligarDominio({ token, escola, script: escola })
+    .catch(() => null);
   const resultado = await excluirEscola({ token, accountId, slug: escola, worker: escola });
+  if (dominio) resultado.dominio = dominio;
   const removido = Boolean(resultado && resultado.script && resultado.script.ok);
   return {
     removido,

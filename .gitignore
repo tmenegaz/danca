@@ -1232,3 +1232,12 @@ experimentos/modelo-formulario/*
 # o `escola.json` do pacote, que apanha `name` certo com `assets.directory` de outra escola.
 # CONTROLE NEGATIVO: sem a releitura da falta, reprova.
 !experimentos/provar-escola-por-host.js
+
+# A ESCOLA NASCE COM ENDEREÇO PRÓPRIO, E O EXPURGO LEVA-O (13/11/2026). Criar uma escola pela página
+# `danca` passou a criar o registo DNS e a rota de `<escola>.padd.com.br` — o passo manual no
+# Cloudflare que ela tinha de repetir a cada escola —, e o expurgo passou a apagá-los (encontrou-se
+# dois vivos, `diagleve` e `duo`, de escolas já expurgadas). A prova mede as três respostas de cada
+# um (cria · já é nosso · RECUSA o que é alheio), a ordem (sem DNS não se cria a rota), a marca que
+# autoriza a limpeza, e a ponta a ponta pelo `raiz.fetch`: a escola nasce mesmo quando o DNS falha,
+# com a pendência DITA. CONTROLE NEGATIVO: sem a marca do sistema, reprova 5.
+!experimentos/provar-dominio-da-escola.js

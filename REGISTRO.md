@@ -44056,3 +44056,74 @@ domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok,
   ser os `*.workers.dev`, e a resolução já aceita os dois.
 - **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
   perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
+
+## 13/11/2026 — A escola nasce com endereço próprio, e o expurgo leva-o consigo
+
+**O que aconteceu.** A pesquisadora: «toda vez eu tenho que ir lá [no Cloudflare] e falar qual é a
+zona e criar o processo. Eu acho que isso não é legal de fazer toda vez.» E, ao abrir a tabela de
+DNS da zona, o defeito apareceu nas duas pontas: `diagleve.padd.com.br` e `duo.padd.com.br`
+continuavam a existir para escolas **já expurgadas**. O endereço não nascia sozinho e não morria
+sozinho.
+
+**O que foi decidido.**
+
+- **Criar a escola cria o endereço.** O `provisionar-escola.js` passou a chamar
+  `dominio-da-escola.js` depois de ligar o subdomínio `workers.dev`: registo `A` `<escola>` →
+  `192.0.2.1`, **proxyado**, e rota `<escola>.padd.com.br/*` → o script da escola. O IP é o de
+  documentação (RFC 5737) e existe por um motivo só: a rota **exige** um registo proxyado.
+- **Aqui, e não depois do deploy do motor.** O Worker «zero» já existe neste ponto, portanto o
+  endereço próprio responde «implantação em andamento» em vez de dar 1016 (*origin DNS error*)
+  durante os minutos da geração.
+- **O expurgo apaga os dois.** Em `excluirEscola`, que é o mesmo caminho do desfazer de um
+  provisionamento que morreu.
+- **SÓ SE TOCA NO QUE É DO SISTEMA.** A limpeza apaga o registo DNS apenas quando ele é `A` +
+  `192.0.2.1` + proxyado, e a rota apenas quando aponta a este script. Um `<escola>.padd.com.br`
+  que aponte para outra coisa **fica** — a mesma disciplina de `prefixosDaEscola`. A criação recusa
+  igualmente: um nome já ocupado não é sobrescrito, é **dito**.
+- **A ordem é a certa, e é uma regra:** sem registo DNS a rota **não** é tentada. Uma rota para um
+  host que não resolve dá 1016 a quem abre, e ninguém descobre por quê.
+- **A falha do domínio não derruba a escola.** Uma escola sem endereço próprio é uma **pendência**;
+  uma escola que não nasce por causa de uma permissão de token é um **fracasso** — e o segundo é
+  pior. A resposta traz `dominio.pendente` e a dica.
+- **Rota explícita por escola, e não curinga.** Um registo DNS curinga respeita os subdomínios
+  existentes (os exatos têm precedência), mas uma **rota** `*.padd.com.br/*` intercepta todos os
+  subdomínios da zona sem rota mais específica — e o `padd.com.br` é usado para outras coisas. Com
+  a criação automática, o clique que a rota explícita exigia desapareceu, que era exactamente a
+  queixa.
+
+**Motivo declarado — não se aplica.** Toca `motor/` e `raiz/`, e o `PLANO-SHARD.md`. Nenhuma fonte
+de ciclo, nenhum `.fipp`, nenhum validador, nenhum desenho de tela.
+
+**Com o quê.** `provar-dominio-da-escola` **34/34** — prova nova, de 13/11/2026. Mede as três
+respostas de cada peça (cria · já é nosso, sem duplicar · **recusa** o que é alheio, com o registo
+alheio intacto), a ordem (403 no DNS → nenhuma rota criada), a marca que autoriza a limpeza, e a
+**ponta a ponta pelo `raiz.fetch` de verdade**: com um Cloudflare de mentira, a escola nasce, o
+registo e a rota ficam feitos, e — no cenário do 403 — a escola **ainda** nasce, com
+`dominio.pendente: true` e a dica da permissão. **Controle negativo:** tirar a marca (aceitar
+qualquer registo `A` com o mesmo nome) reprova **5 asserções**, incluindo «um registo DNS alheio com
+o mesmo nome é MANTIDO → `{apagados: 1}`».
+
+Também verdes: `provar-criar-escola-form` **todas** · `provar-isolamento-entre-escolas` **25/25** ·
+`provar-escola-por-host` **21/21** · `check-identidade` **22 ok, 0 erros**. Iguais ao `HEAD`:
+`provar-expurgo-raiz` e `provar-expurgo-kv` (**11 falhas**) — já falhavam antes, verificado por
+`git stash`.
+
+**Uma correção no caminho.** A primeira redação lia a zona de `process.env.ZONA_ESCOLAS`, que **não
+existe no runtime do Worker** — teria estourado `ReferenceError` em produção. A zona passou a vir do
+`env`, por `raiz.js`, e o módulo tem `padd.com.br` como padrão.
+
+**Referências.** `motor/servidor/dominio-da-escola.js` · `motor/servidor/provisionar-escola.js` ·
+`motor/servidor/expurgar-escola.js` · `motor/servidor/raiz.js` · `raiz/index.html` (o resultado na
+página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-dominio-da-escola.js`.
+
+**O que ainda não está feito.**
+
+- **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
+  com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
+  escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
+- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
+  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
+  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
+  registo de `calango` já faz à mão).
+- **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
+  para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.

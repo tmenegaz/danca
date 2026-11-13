@@ -497,7 +497,24 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
 async function excluirEscola({ token, accountId, slug, worker, kv }) {
   const alvo = worker || slug;
   const base = '/accounts/' + accountId + '/workers/scripts/' + alvo;
-  const resultado = { slug, worker: alvo, subdominio: null, script: null, kv: null };
+  const resultado = { slug, worker: alvo, subdominio: null, script: null, kv: null, dominio: null };
+
+  /* O ENDEREÇO PRÓPRIO VAI COM O WORKER (13/11/2026).
+   *
+   * Antes disto, expurgar uma escola deixava o registo DNS e a rota no Cloudflare para sempre — a
+   * pesquisadora encontrou dois (`diagleve.padd.com.br` e `duo.padd.com.br`) de escolas que já não
+   * existiam, e apagou-os à mão. Um endereço que aponta para um Worker apagado responde erro a
+   * quem o abrir, e o DNS continua a dizer que aquela escola existe.
+   *
+   * O `desligarDominio` só apaga o que tem a MARCA do sistema (registo `A` → 192.0.2.1, proxyado;
+   * rota que aponta a este script). Um subdomínio com outro conteúdo é de outra pessoa, e fica —
+   * a mesma disciplina de `prefixosDaEscola`: a limpeza não alcança o que não é dela. */
+  try {
+    resultado.dominio = await require('./dominio-da-escola.js')
+      .desligarDominio({ token, escola: slug, script: alvo });
+  } catch (erro) {
+    resultado.dominio = { erro: (erro && erro.message) || String(erro) };
+  }
 
   resultado.subdominio = await api(token, 'DELETE', base + '/subdomain');
   resultado.script = await api(token, 'DELETE', base);

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T16:26:32-0300`
-Commit atual: `ab7ff399` — feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
+Gerado em: `2026-11-13T16:39:42-0300`
+Commit atual: `b64da888` — docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+b64da888 docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
 ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
 e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
@@ -92,7 +93,6 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
 3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
-8a042794 docs(estrutura): o agente do Lastro ganha desenho, contratos e a frente L15
 ```
 
 ## Por professor
@@ -170,69 +170,78 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
+## 13/11/2026 — A escola nasce com endereço próprio, e o expurgo leva-o consigo
 
-**O que aconteceu.** Decisão de endereço para o shard, fechada com a pesquisadora. A alternativa era
-o prefixo (`padd.com.br/<escola>/…`), e ela foi descartada por uma razão de plataforma e não de
-gosto: **o Cloudflare serve por subdomínio** (`escola.domínio`), e o domínio próprio que ela já tem
-(`padd.com.br`) permite-o sem custo — o *Universal SSL* cobre o domínio raiz **e os subdomínios de
-primeiro nível**, portanto `<escola>.padd.com.br` não pede certificado nenhum.
+**O que aconteceu.** A pesquisadora: «toda vez eu tenho que ir lá [no Cloudflare] e falar qual é a
+zona e criar o processo. Eu acho que isso não é legal de fazer toda vez.» E, ao abrir a tabela de
+DNS da zona, o defeito apareceu nas duas pontas: `diagleve.padd.com.br` e `duo.padd.com.br`
+continuavam a existir para escolas **já expurgadas**. O endereço não nascia sozinho e não morria
+sozinho.
 
 **O que foi decidido.**
 
-- **O endereço é por host, e o caminho publicado não muda.** `/aulas/`, `/ciclos/planos/`,
-  `/area-do-professor/anamnese` continuam a ser o que são. Isto tira do passo 2 a parte mais cara:
-  não há nenhum prefixo a cascatear por `montar-publicacao.js`, `nav.json`, `nav.js` e dezenas de
-  provas.
-- **Uma rota explícita por escola**, e não um curinga. Um registo DNS curinga respeita os
-  subdomínios já existentes (a documentação é explícita: um registo exato tem precedência), mas uma
-  **rota** `*.padd.com.br/*` intercepta **todos** os subdomínios da zona que não tenham rota mais
-  específica — e o `padd.com.br` é usado para outras coisas. Fica a regra: enquanto o domínio for
-  partilhado, rota explícita; o curinga só entra num domínio que seja só do sistema.
-- **O DNS é um `A` para `192.0.2.1`, proxyado.** É o endereço de documentação (RFC 5737): existe
-  porque a rota **exige** um registo proxyado, e quem responde é o Worker, que a rota intercepta
-  antes.
-- **A resolução não filtra domínios, e isso passou a estar medido.** A etiqueta resolve em qualquer
-  domínio: quem decide que hostnames chegam ao Worker são as **rotas**, não o mapa. Ficou como
-  asserção da prova, para a propriedade não ser descoberta por acidente no dia em que a zona mudar.
+- **Criar a escola cria o endereço.** O `provisionar-escola.js` passou a chamar
+  `dominio-da-escola.js` depois de ligar o subdomínio `workers.dev`: registo `A` `<escola>` →
+  `192.0.2.1`, **proxyado**, e rota `<escola>.padd.com.br/*` → o script da escola. O IP é o de
+  documentação (RFC 5737) e existe por um motivo só: a rota **exige** um registo proxyado.
+- **Aqui, e não depois do deploy do motor.** O Worker «zero» já existe neste ponto, portanto o
+  endereço próprio responde «implantação em andamento» em vez de dar 1016 (*origin DNS error*)
+  durante os minutos da geração.
+- **O expurgo apaga os dois.** Em `excluirEscola`, que é o mesmo caminho do desfazer de um
+  provisionamento que morreu.
+- **SÓ SE TOCA NO QUE É DO SISTEMA.** A limpeza apaga o registo DNS apenas quando ele é `A` +
+  `192.0.2.1` + proxyado, e a rota apenas quando aponta a este script. Um `<escola>.padd.com.br`
+  que aponte para outra coisa **fica** — a mesma disciplina de `prefixosDaEscola`. A criação recusa
+  igualmente: um nome já ocupado não é sobrescrito, é **dito**.
+- **A ordem é a certa, e é uma regra:** sem registo DNS a rota **não** é tentada. Uma rota para um
+  host que não resolve dá 1016 a quem abre, e ninguém descobre por quê.
+- **A falha do domínio não derruba a escola.** Uma escola sem endereço próprio é uma **pendência**;
+  uma escola que não nasce por causa de uma permissão de token é um **fracasso** — e o segundo é
+  pior. A resposta traz `dominio.pendente` e a dica.
+- **Rota explícita por escola, e não curinga.** Um registo DNS curinga respeita os subdomínios
+  existentes (os exatos têm precedência), mas uma **rota** `*.padd.com.br/*` intercepta todos os
+  subdomínios da zona sem rota mais específica — e o `padd.com.br` é usado para outras coisas. Com
+  a criação automática, o clique que a rota explícita exigia desapareceu, que era exactamente a
+  queixa.
 
-**O que ficou escrito, e para quem.** [PLANO-SHARD.md](./PLANO-SHARD.md) — o passo 1 feito, o passo 2
-por fazer, os cliques exatos no Cloudflare (§1), o preço da reescrita de caminhos medido em
-invocações por página (§2.2), o canário pelas escolas de teste (§3, que reusa o `numeroDoTeste` que
-já existe desde 19/10/2026) e a bateria de dez gestos que valida o shard com três escolas reais (§4).
+**Motivo declarado — não se aplica.** Toca `motor/` e `raiz/`, e o `PLANO-SHARD.md`. Nenhuma fonte
+de ciclo, nenhum `.fipp`, nenhum validador, nenhum desenho de tela.
 
-**Com o quê.** `provar-escola-por-host` **21/21** (uma asserção nova: a etiqueta resolve em qualquer
-domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok, 0 erros**.
+**Com o quê.** `provar-dominio-da-escola` **34/34** — prova nova, de 13/11/2026. Mede as três
+respostas de cada peça (cria · já é nosso, sem duplicar · **recusa** o que é alheio, com o registo
+alheio intacto), a ordem (403 no DNS → nenhuma rota criada), a marca que autoriza a limpeza, e a
+**ponta a ponta pelo `raiz.fetch` de verdade**: com um Cloudflare de mentira, a escola nasce, o
+registo e a rota ficam feitos, e — no cenário do 403 — a escola **ainda** nasce, com
+`dominio.pendente: true` e a dica da permissão. **Controle negativo:** tirar a marca (aceitar
+qualquer registo `A` com o mesmo nome) reprova **5 asserções**, incluindo «um registo DNS alheio com
+o mesmo nome é MANTIDO → `{apagados: 1}`».
+
+Também verdes: `provar-criar-escola-form` **todas** · `provar-isolamento-entre-escolas` **25/25** ·
+`provar-escola-por-host` **21/21** · `check-identidade` **22 ok, 0 erros**. Iguais ao `HEAD`:
+`provar-expurgo-raiz` e `provar-expurgo-kv` (**11 falhas**) — já falhavam antes, verificado por
+`git stash`.
+
+**Uma correção no caminho.** A primeira redação lia a zona de `process.env.ZONA_ESCOLAS`, que **não
+existe no runtime do Worker** — teria estourado `ReferenceError` em produção. A zona passou a vir do
+`env`, por `raiz.js`, e o módulo tem `padd.com.br` como padrão.
+
+**Referências.** `motor/servidor/dominio-da-escola.js` · `motor/servidor/provisionar-escola.js` ·
+`motor/servidor/expurgar-escola.js` · `motor/servidor/raiz.js` · `raiz/index.html` (o resultado na
+página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-dominio-da-escola.js`.
 
 **O que ainda não está feito.**
 
-- **O passo 2 não começou, e é deliberado.** Ele muda a árvore de assets de uma escola para N, e o
-  que o detecta é dado real. A pesquisadora vai criar as duas escolas de teste que faltam
-  (`batata`, `breu`) e avisar; o passo 2 faz-se com as três no ar.
-- **A zona `padd.com.br` ainda não está ligada a este sistema.** Os endereços de trabalho continuam a
-  ser os `*.workers.dev`, e a resolução já aceita os dois.
-- **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
-  perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
+- **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
+  com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
+  escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
+- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
+  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
+  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
+  registo de `calango` já faz à mão).
+- **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
+  para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
 
 ## O que está pendente
-
-## 13/11/2026 — O CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
-
-
-- **O consumo real só se confirma amanhã.** A conta tinha 2 Workers no ar (`calango` e `danca`) e
-  464 pedidos no dia 13/11 — 0,5% do tecto. O ganho só aparece na análise quando houver tráfego que
-  o mostre.
-- **A viagem ao KV para as curadorias continua a existir, uma por página.** Ela não é cacheada de
-  propósito: a curadoria é o que **autoriza** o plano, e um valor velho esconderia uma autorização
-  que o professor acabou de dar. O que se corrigiu foi a duplicação, não a leitura.
-- **O registo de custo da IA (`ia-registro/registro.jsonl`) não foi tocado.** Ele é uma chave única
-  que cresce para sempre, lida e reescrita inteira a cada sessão — e é a **mesma** que a
-  arquitectura do agente prevê (`ARQUITETURA-AGENTE.md`, passo 4). Hoje o único escritor é o stub
-  `POST /api/ia` (0 escritas no dia 13/11). A rotação por mês é uma decisão à parte, e faz-se melhor
-  **antes** de o agente entrar no ar do que depois de haver um log para migrar.
-- **O tecto de 100 Workers por conta não se resolve com nada disto.** É o número que limita a
-  quantidade de escolas; o resto desta entrada é folga. Fica registado para a decisão de
-  arquitectura, que é outra.
 
 ## 13/11/2026 — O registo de custo da IA ganha mês no nome
 
@@ -279,6 +288,19 @@ domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok,
   ser os `*.workers.dev`, e a resolução já aceita os dois.
 - **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
   perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
+
+## 13/11/2026 — A escola nasce com endereço próprio, e o expurgo leva-o consigo
+
+
+- **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
+  com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
+  escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
+- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
+  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
+  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
+  registo de `calango` já faz à mão).
+- **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
+  para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
 
 ## Pendências anteriores (índice)
 
@@ -706,6 +728,7 @@ domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok,
 - **13/11/2026** — A listagem não é a proveniência: uma linha por professor,… → `REGISTRO.md` L43500
 - **13/11/2026** — A logomarca sobe para o alto da coluna, e as duas telas… → `REGISTRO.md` L43572
 - **13/11/2026** — A lista custa o índice, e não um arquivo por registo → `REGISTRO.md` L43651
+- **13/11/2026** — O CSS não gasta pedido do dia, e a lista não paga duas… → `REGISTRO.md` L43727
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

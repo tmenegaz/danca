@@ -37,7 +37,29 @@ versão sobe ~1.640 ficheiros — 8% do tecto.
 
 ## 1. O que há para configurar no Cloudflare
 
-Isto é resposta a «preciso fazer alguma coisa lá?» — **sim, uma vez por escola**, e é pouco.
+> **ATUALIZADO a 13/11/2026 — já não é trabalho manual.** O registo DNS e a rota de cada escola
+> são criados **por dentro do sistema**, quando a escola nasce pela página `danca`
+> (`motor/servidor/dominio-da-escola.js`, ligado ao `provisionar-escola.js`), e apagados pelo
+> expurgo. A pesquisadora: *«toda vez eu tenho que ir lá e falar qual é a zona e criar o processo
+> — isso não é legal de fazer toda vez»*. Deixou de ser.
+>
+> **O único trabalho que resta é um, e é uma vez só:** a permissão no token (§1.0). O resto desta
+> secção fica escrito como *o que o sistema faz em seu nome* — e como se confere, se um dia for
+> preciso ligar à mão.
+
+### 1.0 A permissão do token — o único passo manual
+
+O `CLOUDFLARE_API_TOKEN` que a raiz usa tem de incluir, para a zona `padd.com.br`:
+
+| permissão | para quê | estado medido a 13/11/2026 |
+|:--|:--|:--|
+| **Zone → Workers Routes → Edit** | criar a rota | **já tem** (criar e apagar verificados) |
+| **Zone → DNS → Edit** | criar o registo `A` | **FALTA** — `dns_records → 403` |
+
+Onde: **Cloudflare → My Profile → API Tokens → Edit** no token em uso → *Permissions* → acrescentar
+`Zone · DNS · Edit` (com a zona `padd.com.br`, ou `All zones`). Sem ela, a escola **nasce na mesma**
+— o painel diz «Endereço próprio: PENDENTE» e a dica diz o que falta. A criação não se perde por
+uma permissão; fica pendente, e diz-se.
 
 ### 1.1 Pré-requisito, uma vez
 
@@ -50,9 +72,11 @@ de primeiro nível** — `batata.padd.com.br` está coberto automaticamente, sem
 nenhum. (Só um segundo nível, `x.batata.padd.com.br`, precisaria de *Total TLS* ou de certificado
 avançado. Não é o nosso caso.)
 
-### 1.2 Por escola: um registo DNS + uma rota
+### 1.2 Por escola: um registo DNS + uma rota — **agora automático**
 
-Duas coisas, e as duas apontam para o **mesmo** Worker do shard:
+O sistema faz as duas coisas ao criar a escola. Isto fica aqui para (a) se conferir o que ele fez e
+(b) se ligar à mão quando for preciso. As duas apontam para o **mesmo** Worker (hoje o da escola;
+no shard, o do shard):
 
 | passo | onde | o que |
 |:--|:--|:--|
@@ -91,8 +115,19 @@ Há duas saídas se um dia o número de escolas tornar o clique insuportável:
 **Regra que fica**: enquanto o domínio for partilhado com outras coisas, **rota explícita por
 escola**. O curinga só entra num domínio que seja só do sistema.
 
-### 1.4 O que **não** precisa de ser feito
+### 1.4 O expurgo leva o endereço consigo
 
+O `excluirEscola` (usado pelo expurgo **e** pelo desfazer de um provisionamento que morreu) apaga o
+registo DNS e a rota — e só os que têm a marca do sistema: registo `A` → `192.0.2.1` proxyado, e
+rota que aponta a este script. Um `<escola>.padd.com.br` que aponte para outra coisa **fica**.
+
+Isto existe por um defeito medido: `diagleve.padd.com.br` e `duo.padd.com.br` continuavam a existir
+para escolas já expurgadas. Um endereço que aponta para um Worker apagado responde erro a quem o
+abre, e o DNS continua a dizer que aquela escola existe.
+
+### 1.5 O que **não** precisa de ser feito
+
+- Não é preciso criar o registo DNS nem a rota à mão — é o que esta versão automatiza.
 - Não é preciso «Custom Domain» por escola — isso é um domínio por Worker, e o shard tem **um**
   Worker para N escolas. Rota é o mecanismo certo.
 - Não é preciso mexer no `.workers.dev`. `calango.tmenegaz77.workers.dev` continua a funcionar, e

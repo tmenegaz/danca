@@ -803,6 +803,27 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                     + d.escola + "</code> — não há nada para anotar nem para copiar: quem cifra e"
                     + " quem decifra é o próprio sistema.";
                 }
+                // O ENDEREÇO PRÓPRIO, E O QUE FALTOU NELE (13/11/2026). O registo DNS e a rota de
+                // `<escola>.padd.com.br` são criados por dentro do sistema — o passo manual no
+                // Cloudflare que ela tinha de fazer a cada escola.
+                //
+                // QUANDO FALHA, A ESCOLA NASCE NA MESMA e a pendência é DITA, com o que fazer. Uma
+                // escola sem endereço próprio é uma pendência; uma escola que não nasce por causa
+                // de uma permissão de token é um fracasso — e o segundo é pior.
+                if (d.dominio && d.dominio.ok) {
+                  html += "<br><br><strong>Endereço próprio.</strong> <a href=\"" + d.dominio.url
+                    + "\">" + d.dominio.host + "</a> — registo DNS e rota criados"
+                    + (d.dominio.dns && d.dominio.dns.estado === "ja-existia"
+                      ? " (o registo já existia)" : "") + ".";
+                } else if (d.dominio) {
+                  html += "<br><br><strong>Endereço próprio: PENDENTE.</strong> "
+                    + (d.dominio.erro || "não consegui ligar o domínio") + "."
+                    + (d.dominio.dica
+                      ? "<br>" + d.dominio.dica
+                      : "<br>Ligue-o à mão em <em>Workers &amp; Pages → "
+                        + d.escola + " → Settings → Domains &amp; Routes</em>, ou repita a criação"
+                        + " depois de corrigir o token.");
+                }
                 res.innerHTML = html;
                 trazer(res);
               }

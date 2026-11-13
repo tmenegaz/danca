@@ -954,6 +954,9 @@ async function fetch(request, env) {
         professorSlug: professor,
         senhaProfessor,
         professorEhDono,
+        /* A ZONA DO ENDEREÇO PRÓPRIO (13/11/2026). Sem a `var`, o módulo usa o `padd.com.br`
+         * desta casa — e a `var` existe para o dia em que houver mais do que uma zona. */
+        zona: env && env.ZONA_ESCOLAS,
       });
       // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
       // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
