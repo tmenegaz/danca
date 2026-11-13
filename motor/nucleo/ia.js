@@ -3,6 +3,15 @@
 /**
  * ia.js — o NÚCLEO da conversa de IA (o stub, hoje; o DeepSeek, amanhã).
  *
+ * **NOTA DE 12/11/2026 — OBSOLETO COMO PLANO.** A frase acima («o DeepSeek, amanhã») está
+ * superada por decisão de 12/11/2026: o agente do Lastro usa o **Llama da Cloudflare**
+ * (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**, e a arquitetura dele
+ * é **MCP + busca estruturada, sem RAG** — ver `ARQUITETURA-AGENTE.md` (raiz) e a frente
+ * **L15** do `PLANEJAMENTO-LASTRO.md`. Este ficheiro **não é apagado** (P-03/P-04), continua a
+ * servir `POST /api/ia` e **não é usado pelo agente novo**: o que daqui sobrevive como princípio
+ * é o **freio de sessão** (`limiteTurnos`) e a ideia de contrato de turno, não a conversa por
+ * nós do PO. O que muda, e por quê, está no `REGISTRO.md` (entrada de 12/11/2026).
+ *
  * A lógica da conversa é PURA: recebe a lista de nós respondíveis (que o
  * conteúdo declara, via `nosRespondiveis`) e o histórico de mensagens, e devolve
  * o CONTRATO do turno — `{compilado, turnos, respostas}` ou `{compilado:false,
