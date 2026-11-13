@@ -1604,6 +1604,19 @@ decisão.
 
 ### L7 — A fronteira da IA e a medição de uso
 
+> **Nota de 12/11/2026 — esta frente está SUPERADA EM PARTE, e não se apaga (P-03/P-04).** O que
+> muda: (a) o provedor está **decidido** — **Llama da Cloudflare** (Workers AI,
+> `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**, e o «DeepSeek» do stub deixa de ser
+> o amanhã; (b) a IA **passa a consultar os registos da própria escola** por ferramentas com
+> contrato explícito — a frase «a IA não é mecanismo de consulta aos registros», que esta frente
+> cita do texto 2 §2, continua a valer como proibição de **assistente geral e de consulta livre**,
+> e deixa de valer como proibição de **ferramenta com contrato dentro do formulário**; (c) a
+> arquitetura é **MCP + busca estruturada, sem RAG**, e está desenhada em
+> [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md). O que **não** muda, e esta frente mantém:
+> a IA não avalia, não decide e não substitui o professor; o registo de custo existe e é
+> anexado; e o escopo continua a ser «auxiliar na elaboração de planos e anamneses» — agora com
+> o Estilo e o PO no mesmo âmbito. **A frente que substitui esta é a L15.**
+
 - **Objetivo e justificativa.** Fixar o escopo da IA (auxiliar na elaboração de planos e
   anamneses) e **medir** o uso, para que o custo seja rastreável por escola/período e as cotas
   dos planos comerciais tenham base. O texto 2 §2 é explícito: a IA **não** é assistente geral
@@ -2516,6 +2529,56 @@ decisão.
   e por isso é a que tem o melhor retorno por unidade de trabalho — desde que C19 e o ritmo
   estejam decididos.
 
+### L15 — O agente: copiloto de redação por ferramentas (MCP), sem RAG
+
+- **Objetivo e justificativa.** Dar ao professor, **dentro dos formulários da Produção**, ajuda
+  para formular o que ele ainda não escreveu — objetivo, marco, volume, critério de observação,
+  decomposição de um exercício — a partir do que já está registado (plano anterior, linha de base,
+  vocabulário, envelopes). A decisão de 12/11/2026 é **fechada** e não se reabre: modelo **Llama da
+  Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**; arquitetura
+  **MCP + busca estruturada**; **sem RAG**, porque 100 % do que o agente consulta é chave-valor;
+  plano gratuito por agora; venda na assinatura avançada com créditos. O desenho completo — contratos
+  das oito ferramentas, prompt de sistema, tectos, prova — está em
+  [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md).
+- **Situação atual.** **Nada implementado** (CONFIRMADO: não há binding `ai` em nenhum
+  `wrangler.<escola>.jsonc`, não há `motor/servidor/agente.js`, não há rota de agente). O que existe é
+  o **stub legado** `motor/nucleo/ia.js` com a rota `POST /api/ia` e o registo
+  `ia-registro/registro.jsonl` (`tokens = 0`, `custo_estimado: "0 (stub)"`) — que a frente **não
+  usa** e **não apaga**.
+- **Lacunas.** (a) As **chaves estáveis** (L1/L2) — metade das ferramentas procuram por `id`, e um
+  `id` instável transforma uma ferramenta num `grep`; (b) o **catálogo de consultas** (L6) está
+  implementado em **6 das 76** perguntas (`GE01`, `CT01`, `PV01`, `AL01`, `TR01`, `OB01` em
+  `motor/nucleo/indices.js`), e a ferramenta `perguntar_ao_catalogo` só pode oferecer o que existe;
+  (c) o **medidor de custo** é escrito e **nunca lido** — sem leitor não há cota, e sem cota não há
+  crédito; (d) o contador de subpedidos **não conta KV**, e o agente lê KV em quase todas as voltas.
+- **Dependências técnicas e de domínio.** L1/L2 (chaves) e L6 (catálogo) para as ferramentas;
+  L7 para o medidor (é esta frente que lhe dá matéria); L9/L11 para a cota e o crédito. Do domínio:
+  o que a IA **pode** e **não pode** dizer (§2 do texto 2 — preservado), e a unidade comercial do
+  crédito (recomendação: o **Neuron**, medido por interação).
+- **Entregas.** (a) O binding `ai` declarado nos três `wrangler`, com o modelo e a `vars`
+  `SUBPEDIDOS` explícita; (b) o núcleo puro `motor/nucleo/agente/` (registo das 8 ferramentas,
+  contrato, condução, mensagens) e o servidor `motor/servidor/agente.js` (`POST /api/agente`) e
+  `motor/servidor/mcp.js` (`POST /api/mcp`, JSON-RPC sem sessão); (c) o **prompt de sistema**
+  versionado em `prompts/agente-sistema.md` (P-19, com o ritual dos congelados); (d) o painel
+  «Assistente» dentro dos formulários, **sem peça nova** de identidade visual; (e) o registo de custo
+  com `modelo`, `ferramentas[]` e `neurons_estimados`; (f) `experimentos/provar-agente.js`.
+- **Critérios verificáveis.** (i) O registo de ferramentas é **só de leitura** e a prova mede isso
+  por lista, não por confiança; (ii) `tools/list` do MCP é idêntico ao registo do núcleo; (iii) os
+  tectos (4 voltas, 8 ferramentas, 12.000 tokens de resultado) fecham o laço e a resposta diz qual
+  fechou; (iv) uma interação típica gasta **1 a 6 subpedidos** e o **rebuild do índice nunca corre
+  dentro do laço**; (v) o `Neurons` por interação está medido e gravado; (vi) o agente **não tem**
+  ferramenta que escreva, publique ou dispare `workflow_dispatch`.
+- **Riscos e decisões por confirmar.** (a) O 8B AWQ **aceita `tools`** no Workers AI? (se não, o
+  transporte passa a «JSON no texto» + validação em tempo de execução); (b) **10.000 Neurons por dia
+  são da conta, não da escola** — três escolas a usar o agente consomem a mesma cota (≈116
+  interações/dia medidas pela tabela de preços de 12/11/2026); (c) a qualidade do 8B em português
+  pedagógico é **incógnita a medir** (20 casos), e a conclusão pode ser subir para o 70B a 2,7× o
+  Neuron; (d) a **CPU de 10 ms** por pedido no plano gratuito, com o `JSON.parse` do índice como
+  suspeito; (e) o contador que não vê KV é **dívida herdada** do §5.26 e tem de ser corrigida nesta
+  frente.
+- **Prioridade.** **P2** — depois de L1/L2 e em paralelo com L6; não destranca nenhuma frente de
+  dado, mas é a primeira que **usa** o dado que já existe para produzir valor visível ao professor.
+
 ## 5. Sequência sugerida
 
 **Por camadas** — cada camada só começa quando a de baixo está fechada:
@@ -2529,6 +2592,7 @@ decisão.
 | **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores. **A fatia barata do L9b** (contar professores e alunos e comparar com a capacidade declarada) não depende de L6, L7 nem L8 completo: lê as duas listas que a Produção já lê, e pode entrar primeiro |
 | **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) · **L12** (a oferta, o período gratuito e a comunicação) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3** o valor, e toda a **L12** — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. **J1 e J3 de L12 não dependem de nada externo** e podem começar desde já |
 | **6 — a forma** | **L13** (a identidade visual como escolha — o catálogo das doze combinações) | **corre em paralelo a tudo o resto**, e é a camada mais independente do documento: não depende do dado, nem do provedor, nem do valor, nem da porta. O que ela espera **não é uma frente** — é a decisão de **C15** (a preferência é de quem), que **precede** o desenho da persistência — **decidida em 18/10/2026: da escola**. **As duas camadas 5 e 6 são as únicas cujo começo não espera por outra camada** |
+| **7 — o copiloto** | **L15** (o agente por ferramentas) | depende de **L1/L2** (as chaves que as ferramentas procuram) e de **L6** (o catálogo a que uma das oito ferramentas encaminha); dá matéria ao medidor de **L7** e só vira produto pago com **L9/L11**. Pode começar pelo **encanamento** (binding, registo, MCP, prova) sem esperar por L6 completo — o que **não** pode é prometer consultas que o catálogo ainda não responde |
 
 **O que não se deve fazer.** Implementar L6 antes de L1/L2/L3 **e de L10** — produziria consultas
 sobre chaves instáveis, sobre um dado sem leitor e sobre conceitos que o modelo não tem, e cada
@@ -2557,6 +2621,13 @@ para «o usuário» quando não há usuário a quem pendurá-las é trabalho que
    relacionamentos são **regras**; a IA auxilia **a elaboração de planos e anamneses** e nada
    mais (texto 2 §2). Nenhuma consulta do catálogo passa por IA — é critério verificável, não
    recomendação.
+   > **Nota de 12/11/2026 — a regra continua a valer, e o âmbito cresceu por decisão.** «A IA
+   > auxilia a elaboração de planos e anamneses» passa a incluir **o plano de observação, a
+   > anamnese e o verbete do Estilo**, e o agente **passa a poder invocar as consultas do
+   > catálogo** — mas **não a calculá-las**: quem responde é a regra (`motor/nucleo/indices.js`),
+   > e o agente só escolhe a ferramenta e cita a fonte. «Nenhuma consulta passa por IA» mantém-se
+   > no sentido forte: nenhum número é produzido pelo modelo. Ver a frente **L15** e
+   > [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md).
 2. **A ausência de registro é uma ausência, não um resultado.** Nunca apresentar «não há
    observação» como «não domina» ou «não aprendeu»; nunca apresentar «aula não realizada» como
    realização.

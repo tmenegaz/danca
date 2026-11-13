@@ -304,7 +304,7 @@ a pesquisadora.
 |:--|:--|:--|:--|
 | A1 | **Levantamento de tokens PO+PE** (empírico) | ✅ medido — `experimentos/pe/freio-custo.md` §4 (≈20 500 tokens/PO, teto 33 000, orçamento por plano) | nenhum — já medido |
 | A2 | **Plano B — binding KV real** (provas B1–B4) | ✅ resolvido — B1 ✅ B3 ✅ (binding real); B2 ✅ (o motor Node saiu do caminho: a porta agnóstica `cloudflare.js`+`rotas.js` serve as 14 rotas no Worker, com conteúdo de `ASSETS`/`plano-observacao/` e KV); B4 ⚪ raciocinado | A4 depende dos secrets de write-back (`GITHUB_TOKEN`/`SENHA_CRIPTO`), não do motor Node |
-| A3 | **Freio de custo** (instrução de escopo · limite 30 turnos · registro) | ✅ feito — spec `freio-custo.md` + teto de 30 turnos em `motor/nucleo/ia.js` | nenhum |
+| A3 | **Freio de custo** (instrução de escopo · limite 30 turnos · registro) | ✅ feito — spec `freio-custo.md` + teto de 30 turnos em `motor/nucleo/ia.js`. **Nota de 12/11/2026:** o *plano de IA* que esta linha fecha está **superado** — o agente passou a ser Llama da Cloudflare (Workers AI) com MCP e **sem RAG**, desenhado em [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md) e na frente **L15** do [PLANEJAMENTO-LASTRO.md](PLANEJAMENTO-LASTRO.md). O **freio** (limites declarados + registo de custo) sobrevive como princípio; o *escopo* que ele fixava («a IA não consulta os registos») foi alargado por decisão, com o motivo no `REGISTRO.md` (12/11/2026) | nenhum |
 | A4 | **Migração experimento → produção** | ⬜ aberto | só depois de A2/A3 + teste de botões |
 | A5 | **Negócio** (franquia/excedente, gamificação, parceiros) | ⏸ deferido | **depois** de A4 |
 
