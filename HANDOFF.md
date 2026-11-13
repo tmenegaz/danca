@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T16:39:42-0300`
-Commit atual: `b64da888` — docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
+Gerado em: `2026-11-13T16:41:50-0300`
+Commit atual: `737e08c2` — feat(estrutura): a escola nasce com endereço próprio, e o expurgo leva-o consigo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+737e08c2 feat(estrutura): a escola nasce com endereço próprio, e o expurgo leva-o consigo
 b64da888 docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
 ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
 e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
@@ -92,7 +93,6 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
 c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
-3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
 ```
 
 ## Por professor
@@ -234,10 +234,13 @@ página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-domin
 - **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
   com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
   escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
-- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
-  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
-  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
-  registo de `calango` já faz à mão).
+- **Não foi exercido ao vivo com uma escola a sério.** Há uma bancada para isso —
+  `experimentos/provar-dominio-ao-vivo.js` —, e ela mede o único elo que nenhuma prova de mentira
+  pode medir: se um registo `A` para `192.0.2.1`, proxyado, serve mesmo como **origem** de uma
+  rota. Cria `prova-<carimbo>.padd.com.br` apontado ao script da raiz, pede `/api/saude` (que a
+  raiz responde sem senha), e **apaga sempre** — inclusive quando a asserção falha. Nunca usa o
+  nome de uma escola. Rodada a 13/11/2026, parou no primeiro passo com o 403 do DNS, e disse o que
+  falta — é esse o estado, e é honesto.
 - **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
   para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
 
@@ -295,10 +298,13 @@ página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-domin
 - **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
   com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
   escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
-- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
-  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
-  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
-  registo de `calango` já faz à mão).
+- **Não foi exercido ao vivo com uma escola a sério.** Há uma bancada para isso —
+  `experimentos/provar-dominio-ao-vivo.js` —, e ela mede o único elo que nenhuma prova de mentira
+  pode medir: se um registo `A` para `192.0.2.1`, proxyado, serve mesmo como **origem** de uma
+  rota. Cria `prova-<carimbo>.padd.com.br` apontado ao script da raiz, pede `/api/saude` (que a
+  raiz responde sem senha), e **apaga sempre** — inclusive quando a asserção falha. Nunca usa o
+  nome de uma escola. Rodada a 13/11/2026, parou no primeiro passo com o 403 do DNS, e disse o que
+  falta — é esse o estado, e é honesto.
 - **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
   para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
 

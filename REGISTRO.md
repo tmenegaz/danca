@@ -44121,9 +44121,12 @@ página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-domin
 - **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
   com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
   escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
-- **Não foi exercido ao vivo com uma escola a sério.** A prova cobre o caminho inteiro com a API
-  falsa; a primeira escola criada depois da permissão será a confirmação, e é ela que dirá se o
-  `192.0.2.1` proxyado é aceite como origem pela rota (é o que a documentação indica, e é o que o
-  registo de `calango` já faz à mão).
+- **Não foi exercido ao vivo com uma escola a sério.** Há uma bancada para isso —
+  `experimentos/provar-dominio-ao-vivo.js` —, e ela mede o único elo que nenhuma prova de mentira
+  pode medir: se um registo `A` para `192.0.2.1`, proxyado, serve mesmo como **origem** de uma
+  rota. Cria `prova-<carimbo>.padd.com.br` apontado ao script da raiz, pede `/api/saude` (que a
+  raiz responde sem senha), e **apaga sempre** — inclusive quando a asserção falha. Nunca usa o
+  nome de uma escola. Rodada a 13/11/2026, parou no primeiro passo com o 403 do DNS, e disse o que
+  falta — é esse o estado, e é honesto.
 - **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
   para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.

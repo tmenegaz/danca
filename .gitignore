@@ -1241,3 +1241,10 @@ experimentos/modelo-formulario/*
 # autoriza a limpeza, e a ponta a ponta pelo `raiz.fetch`: a escola nasce mesmo quando o DNS falha,
 # com a pendência DITA. CONTROLE NEGATIVO: sem a marca do sistema, reprova 5.
 !experimentos/provar-dominio-da-escola.js
+
+# O MECANISMO, MEDIDO AO VIVO — num nome descartável (13/11/2026). A prova anterior mede o que o
+# módulo DECIDE, com um Cloudflare de mentira; esta mede o que a Cloudflare FAZ com isso, e há uma
+# coisa que nenhuma prova de mentira pode dizer: se um registo `A` para 192.0.2.1, proxyado, serve
+# mesmo como origem de uma rota. Cria `prova-<carimbo>.padd.com.br`, pede `/api/saude`, e apaga
+# sempre — inclusive quando a asserção falha. Nunca usa o nome de uma escola.
+!experimentos/provar-dominio-ao-vivo.js
