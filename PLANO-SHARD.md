@@ -103,6 +103,26 @@ Cloudflare. **E é perigoso neste domínio**, por duas razões que a documentaç
 2. O `padd.com.br` **já é usado** para outras coisas. Um curinga transformaria o «vou testar isto»
    num «quebrei aquilo».
 
+**MEDIDO NA ZONA REAL, 13/11/2026 — e isto é o que a regra previne.** A zona `padd.com.br` tem hoje
+**uma rota curinga**: `*.padd.com.br/*` → script `danca` (a raiz). Ela foi criada para ligar o
+endereço do painel, e não está a quebrar nada *hoje* por um acidente feliz: o apex não é coberto
+por curinga, o `www` tem rota própria, e as outras subetiquetas que se usam não têm registo DNS
+(resolver antes de rota é o que salva — sem registo, o pedido nem chega). Mas o risco é real e é
+silencioso: **qualquer subdomínio novo com registo DNS e sem rota própria passa a responder pelo
+painel do Lastro** (401 «autenticação necessária»), e quem estiver a montar outra coisa conclui que
+o DNS está errado.
+
+Duas consequências práticas:
+
+- **O painel deve ter rota explícita** — `danca.padd.com.br/*` → `danca` — e o curinga deve sair.
+  Com o curinga no lugar, uma escola cujo registo DNS ficou criado e cuja rota falhou não dá erro:
+  serve o painel. Um endereço de escola a mostrar o painel de administração é o pior dos avisos,
+  porque *parece* que funciona.
+- **As provas ao vivo têm de distinguir quem respondeu.** A bancada do domínio aponta a um script
+  de ESCOLA (e não à raiz) exactamente por isto: o `/api/saude` de uma escola diz
+  `{"tipo":"escola","slug":"…"}`, e o da raiz diz `{"tipo":"raiz"}`. Apontada à raiz, a bancada
+  passaria pelo caminho errado — e um falso positivo que dá alívio é pior do que uma falha.
+
 Há duas saídas se um dia o número de escolas tornar o clique insuportável:
 
 - **rotas por escola, criadas por script** — `provisionar-escola.js` já cria o Worker e o

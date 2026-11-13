@@ -44130,3 +44130,61 @@ página) · [PLANO-SHARD.md](./PLANO-SHARD.md) §1 · `experimentos/provar-domin
   falta — é esse o estado, e é honesto.
 - **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
   para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
+
+## 13/11/2026 — O domínio do painel, e a rota curinga que a zona tinha
+
+**O que aconteceu.** A pesquisadora ligou a página `danca` a `danca.padd.com.br` pelo painel do
+Cloudflare, e perguntou duas coisas antes de criar uma escola: se eu tinha mexido na `calango`, e se
+deveria ligá-la à mão. Ao conferir a zona para responder, apareceu o que ninguém tinha pedido: a
+zona tem hoje **uma rota curinga** `*.padd.com.br/*` → script `danca`.
+
+**O que foi medido.**
+
+| o que | estado |
+|:--|:--|
+| `danca.padd.com.br/api/saude` | **200** — `{"ok":true,"tipo":"raiz"}` |
+| `danca.padd.com.br/` | 401 (o painel pede senha, como deve) |
+| `calango.padd.com.br` | **não resolve** — não há registo DNS, e nada foi criado para ela |
+| apex `padd.com.br` | 307 → não é coberto por curinga |
+| `www.padd.com.br` | 200, outro sítio — não é interceptado |
+| rotas da zona | `*.padd.com.br/*` → `danca` |
+
+**O que se conclui, e o que fica decidido.**
+
+- **A `calango` não foi tocada.** A única coisa que fiz na zona foi criar e apagar `prova-permissao
+  .padd.com.br/*` (a verificação de que a permissão de rotas existia), e ela já não está lá. A
+  bancada ao vivo do domínio parou no passo do DNS, e portanto não criou rota nenhuma — o que se
+  confirma por `calango.padd.com.br` continuar a não resolver.
+- **A rota curinga é um risco silencioso, e agora está escrito.** Ela não quebra nada hoje por
+  acidente feliz: o apex não é coberto, o `www` tem rota própria, e as outras subetiquetas não têm
+  registo DNS. Mas qualquer subdomínio novo **com** registo e **sem** rota própria passa a
+  responder pelo painel do Lastro. A recomendação é rota explícita para o painel
+  (`danca.padd.com.br/*` → `danca`) e o curinga fora.
+- **O pior aviso é o que parece funcionar.** Se uma escola ficar com o registo DNS criado e a rota
+  falhada, o curinga faz o endereço dela servir o painel de administração — um 401 que *parece* o
+  sistema a funcionar. É este cenário que a bancada ao vivo passou a distinguir.
+
+**Uma correção numa prova minha, apanhada por este achado.** `provar-dominio-ao-vivo` apontava o
+nome de prova à **raiz** (que responde `/api/saude` sem senha). Com a rota curinga na zona, isso
+dava **200 pelo caminho errado**: a prova passaria mesmo que a rota específica não servisse nada —
+falso positivo, e do pior tipo, o que dá alívio. Passou a apontar a um script de **escola**
+(`calango`), cuja resposta é distinguível (`{"tipo":"escola","slug":"calango"}` contra
+`{"tipo":"raiz"}`), com uma asserção própria: «é a rota específica que serve, e não a curinga».
+
+**Com o quê.** `tools/publicar-dominio.js` **novo** — liga o endereço próprio a escolas que já
+existem (as criadas antes desta função), chamando o MESMO módulo do painel e sendo idempotente.
+`--dry-run` mostra o que faria. Rodado hoje: `calango` → `DNS: sem-permissao`, com a dica da
+permissão em falta, e **nada criado**. `provar-dominio-da-escola` **34/34** ·
+`provar-isolamento-entre-escolas` **25/25** · `provar-escola-por-host` **21/21** ·
+`check-identidade` **22 ok, 0 erros**.
+
+**O que ainda não está feito.**
+
+- **A permissão `Zone → DNS → Edit` continua em falta no token que eu tenho.** E aqui há uma
+  distinção que importa: o token da raiz é um **secret do Worker** que eu não leio — pode ser outro,
+  e pode já ter a permissão. Quem responde a isso é a primeira escola criada pelo painel: se o
+  token tiver a permissão, o endereço nasce; se não, a página diz «Endereço próprio: PENDENTE» com
+  o motivo. Não vale a pena adivinhar antes.
+- **A `calango` continua sem endereço próprio.** Ligá-la é uma linha — `node tools/publicar-dominio.js
+  calango` — e não exige expurgar nem recriar nada.
+- **A rota curinga continua na zona**, à espera da decisão de a substituir pela explícita.

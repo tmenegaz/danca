@@ -34,9 +34,20 @@ const dominio = require(path.join(RAIZ, 'motor/servidor/dominio-da-escola.js'));
 
 const TOKEN = String(process.env.CLOUDFLARE_API_TOKEN || '').trim();
 const MANTER = process.argv.includes('--manter');
-/* A RAIZ, e não uma escola: ela responde `/api/saude` sem senha, e é o script mais estável desta
- * conta. O nome da prova não é de escola nenhuma — `prova-` não é um slug que alguém escolha. */
-const SCRIPT = 'danca';
+/* UMA ESCOLA, E NÃO A RAIZ (13/11/2026) — por uma razão que só apareceu na zona real.
+ *
+ * A zona `padd.com.br` tem hoje uma rota CURINGA `*.padd.com.br/*` → script `danca` (a raiz). Com
+ * ela, um nome de prova apontado à RAIZ responderia 200 pelo caminho errado: o `/api/saude` da raiz
+ * responde sem senha, e a prova passaria mesmo que a rota específica que ela criou não servisse
+ * nada. Um falso positivo, e do pior tipo — o que dá alívio.
+ *
+ * Apontando a um script de ESCOLA, a resposta é distinguível: o `/api/saude` de uma escola diz
+ * `{"tipo":"escola","slug":"<slug>"}`, e a raiz diz `{"tipo":"raiz"}`. Assim a asserção prova DUAS
+ * coisas de uma vez: que o registo funciona como origem, e que a rota ESPECÍFICA vence a curinga.
+ *
+ * O `calango` é o script estável desta conta; ele não é tocado — quem nasce e morre é o nome
+ * `prova-<carimbo>.padd.com.br`. */
+const ESCOLA_DO_SCRIPT = 'calango';
 
 let ok = 0;
 let ko = 0;
@@ -56,10 +67,10 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   const marca = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14).toLowerCase();
   const escola = 'prova-' + marca;
 
-  console.log('prova ao vivo: ' + dominio.hostname(escola) + ' → script «' + SCRIPT + '»');
+  console.log('prova ao vivo: ' + dominio.hostname(escola) + ' → script «' + ESCOLA_DO_SCRIPT + '»');
   console.log('(o nome é descartável e é apagado no fim)\n');
 
-  const ligado = await dominio.ligarDominio({ token: TOKEN, escola, script: SCRIPT });
+  const ligado = await dominio.ligarDominio({ token: TOKEN, escola, script: ESCOLA_DO_SCRIPT });
   provar('o registo e a rota foram criados', ligado.ok === true, {
     dns: ligado.dns && ligado.dns.estado, rota: ligado.rota && ligado.rota.estado,
     erro: ligado.erro, dica: ligado.dica,
@@ -91,7 +102,11 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
       const res = await fetch(url, { headers: { 'User-Agent': 'lastro-prova' } });
       const corpo = await res.text();
       ultimo = { tentativa: i + 1, status: res.status, corpo: corpo.slice(0, 120) };
-      if (res.ok && /"tipo"\s*:\s*"raiz"/.test(corpo)) respondeu = true;
+      /* A RESPOSTA TEM DE SER A DA ESCOLA. Um `tipo: "raiz"` aqui significa que quem respondeu
+       * foi a rota curinga — e isso é uma FALHA, não um sucesso: quer dizer que a rota específica
+       * não venceu. */
+      if (res.ok && new RegExp('"tipo"\\s*:\\s*"escola"').test(corpo)
+        && corpo.indexOf('"' + ESCOLA_DO_SCRIPT + '"') !== -1) respondeu = true;
     } catch (erro) {
       ultimo = { tentativa: i + 1, erro: (erro && erro.message) || String(erro) };
     }
@@ -100,10 +115,11 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   }
   provar('o endereço próprio SERVE — a rota intercepta antes da origem de 192.0.2.1',
     respondeu, ultimo);
-
+  provar('e é a rota ESPECÍFICA que serve, e não a curinga (o corpo diz «tipo: escola»)',
+    respondeu && !/"tipo"\s*:\s*"raiz"/.test(String(ultimo && ultimo.corpo)), ultimo);
   if (respondeu) {
-    provar('e serve a coisa certa (a raiz respondeu «tipo: raiz»)', true);
-    console.log('\n  → o registo `A` para 192.0.2.1, proxyado, funciona como origem de rota.');
+    console.log('\n  → o registo `A` para 192.0.2.1, proxyado, funciona como origem de rota,');
+    console.log('     e a rota por escola vence a curinga da zona.');
   }
 
   /* ── A LIMPEZA. Sempre, e mesmo que a asserção acima tenha falhado: um nome de prova deixado
@@ -111,7 +127,7 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   if (MANTER) {
     console.log('\n  (--manter: o nome ' + dominio.hostname(escola) + ' fica no ar para inspecção)');
   } else {
-    const limpo = await dominio.desligarDominio({ token: TOKEN, escola, script: SCRIPT });
+    const limpo = await dominio.desligarDominio({ token: TOKEN, escola, script: ESCOLA_DO_SCRIPT });
     provar('o registo foi apagado', limpo.dns && limpo.dns.apagados === 1, limpo.dns);
     provar('a rota foi apagada', limpo.rota && limpo.rota.apagadas === 1, limpo.rota);
   }

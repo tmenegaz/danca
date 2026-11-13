@@ -1248,3 +1248,10 @@ experimentos/modelo-formulario/*
 # mesmo como origem de uma rota. Cria `prova-<carimbo>.padd.com.br`, pede `/api/saude`, e apaga
 # sempre — inclusive quando a asserção falha. Nunca usa o nome de uma escola.
 !experimentos/provar-dominio-ao-vivo.js
+
+# O ENDEREÇO DAS ESCOLAS QUE JÁ EXISTEM (13/11/2026). `tools/publicar-dominio.js` liga o registo DNS
+# e a rota de `<escola>.padd.com.br` às escolas criadas ANTES de o painel passar a fazê-lo — sem
+# expurgar nem recriar nada, e chamando o MESMO módulo do painel (`dominio-da-escola.js`) em vez de
+# uma segunda implementação. Idempotente: correr duas vezes diz «já existia», e recusa um nome
+# ocupado por outra coisa em vez de o sobrescrever.
+!tools/publicar-dominio.js
