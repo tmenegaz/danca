@@ -43825,3 +43825,53 @@ dois scripts, a passagem das promessas) · `motor/servidor/bastidores.js` (`apar
 - **O tecto de 100 Workers por conta não se resolve com nada disto.** É o número que limita a
   quantidade de escolas; o resto desta entrada é folga. Fica registado para a decisão de
   arquitectura, que é outra.
+
+## 13/11/2026 — O registo de custo da IA ganha mês no nome
+
+**O que aconteceu.** Último item da revisão de custo do dia. O registo de custo da IA era **uma
+chave só** — `ia-registro/registro.jsonl` —, e com o KV isso tem duas consequências que só aparecem
+com o tempo: o `anexar` é **ler-modificar-escrever** (o KV não tem append, e está declarado em
+`motor/adaptadores/cloudflare.js`), e portanto cada linha nova relê e reescreve o ficheiro inteiro;
+e o valor tem um tecto de **25 MiB por chave** que não avisa — um dia o `put` recusa. Uma chave de
+25 MiB é também uma leitura de 25 MiB para o leitor do catálogo (GE06/GE10) que queira uma linha do
+mês passado.
+
+**O que foi decidido.**
+
+- **Um mês, um ficheiro**: `ia-registro/<AAAA-MM>.jsonl`. A **linha não muda** — os mesmos campos
+  que o `ARQUITETURA-AGENTE.md` desenha. Muda o nome do sítio onde ela cai.
+- **A derivação é do núcleo**, em `motor/nucleo/registro-de-custo.js` (`chaveDoMes`,
+  `chavesDoPeriodo`), e o stub `POST /api/ia` usa-a. O **agente do Lastro usa a MESMA** — duas
+  derivações da mesma chave divergiriam ao primeiro mês, e o log partia-se em dois sítios sem
+  ninguém notar.
+- **A chave sai do carimbo da própria linha**, e não de um relógio lido à parte: a linha e o
+  ficheiro onde ela cai não podem discordar. O carimbo é o da escola (`America/Sao_Paulo`) — uma
+  chave derivada em UTC poria as linhas das 22h de 31 de outubro no ficheiro de novembro.
+- **Um carimbo ilegível LANÇA.** Um `ia-registro/undefined.jsonl` seria um ficheiro com nome de bug
+  e nenhuma linha dele — pior do que a exceção.
+
+**Com o quê.** `provar-registro-de-custo-por-mes` **19/19** — prova nova, de 13/11/2026. Fixa a
+derivação (mês, virada do ano, período, carimbo ilegível), a **partição** (a mesma sessão escrita em
+outubro e novembro cai em dois ficheiros, com UMA linha cada, e nenhum deles se chama
+`registro.jsonl`) e a **ponta a ponta** do `POST /api/ia` — rota → armazenamento → chave, com a
+linha a ter os campos do contrato. **Controle negativo:** com a chave única de antes, a prova
+reprova (medido: `→ ["ia-registro/registro.jsonl"]`). Também verdes: `provar-fusao-da-edicao`
+**29/29** (usa `ia-registro/registro.jsonl` como chave de exemplo do `anexar`, e continua a valer) ·
+`provar-expurgo-sem-listagem` **49/49** (o prefixo `ia-registro/` continua coberto pelo expurgo) ·
+`check-identidade` **22 ok, 0 erros**.
+
+**Motivo declarado — não se aplica.** Toca `motor/` e a documentação. Nenhuma fonte de ciclo, nenhum
+`.fipp`, nenhum validador, nenhum desenho de tela.
+
+**Referências.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — o passo 4 do fluxo e o §7.3 ·
+`motor/nucleo/registro-de-custo.js` · `motor/servidor/rotas.js` (`POST /api/ia`) ·
+`PLANEJAMENTO-LASTRO.md` (C7) · `experimentos/provar-registro-de-custo-por-mes.js`.
+
+**O que ainda não está feito.**
+
+- **Não há nada para migrar.** A conta tinha **0 escritas** nessa chave no dia 13/11 — o stub não
+  corre em produção. Fazer isto agora custou uma tarde; depois de o agente entrar no ar, seria uma
+  migração de log.
+- **A retenção continua indefinida.** Um ficheiro por mês resolve o tecto por chave e o custo da
+  escrita; não decide por quanto tempo o registo é guardado. É a mesma família da decisão de cache
+  das curadorias: método, não desempenho.

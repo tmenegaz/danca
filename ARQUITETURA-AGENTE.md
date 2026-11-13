@@ -199,9 +199,10 @@ POST /api/agente  {contexto, mensagens[]}
      │        ├─ tool_calls?  → despacho EM PROCESSO → resultado RECORTADO → volta ao modelo
      │        └─ texto?        → é a resposta
      │
-     ├─ 4. REGISTO DE CUSTO. Uma linha em `ia-registro/registro.jsonl`
+     ├─ 4. REGISTO DE CUSTO. Uma linha em `ia-registro/<AAAA-MM>.jsonl`
      │     {contexto, turnos, chamadas, ferramentas[], tokens_in, tokens_out,
      │      neurons_estimados, modelo, carimbo}
+     │     └─ a chave SAI DO CARIMBO (`nucleo/registro-de-custo.js`): um mês, um ficheiro
      │
      └─ 5. RESPOSTA {ok, texto, fontes[{tipo, id, caminho}], uso{tokens, neurons, chamadas}}
               └─ o professor LÊ, EDITA e GRAVA com o botão que já existe
@@ -834,9 +835,13 @@ que mudou. «Melhorou» sem medição é opinião — e este repositório já pa
 
 ### 7.3 O registo de custo, que já existe
 
-`POST /api/ia` já escreve uma linha por sessão em `ia-registro/registro.jsonl`
+`POST /api/ia` já escreve uma linha por sessão em `ia-registro/<AAAA-MM>.jsonl`
 (`{contexto, turnos, tokens_in, tokens_out, custo_estimado, carimbo}`), com `tokens = 0` porque o
-stub não gasta. O agente **reusa a forma** e acrescenta três campos: `modelo`, `ferramentas[]` e
+stub não gasta. **A chave tem o mês, e o agente usa a MESMA derivação** — `chaveDoMes` de
+`motor/nucleo/registro-de-custo.js` —, pela razão que a entrada de 13/11/2026 no `REGISTRO.md`
+registou: o `anexar` do KV lê e reescreve o ficheiro inteiro, e uma chave única faria o custo da
+escrita crescer com o histórico até ao tecto de 25 MiB, sem aviso. O agente **reusa a forma** da
+linha e acrescenta três campos: `modelo`, `ferramentas[]` e
 `neurons_estimados` (derivado da tabela do §7.2, com a conta escrita ao lado — não uma medição que
 não temos). O registo continua a ser **anexado e nunca lido** até a frente L7 o dotar de leitor; o
 agente não inventa um leitor novo.
@@ -1101,7 +1106,7 @@ Cinco sítios, encontrados por varredura (`IA`, `LLM`, `agente`, `assistente`, `
 |:--|:--|:--|
 | `PLANEJAMENTO-LASTRO.md` §L7 (1605-1633) | «O escopo da IA (auxiliar na elaboração de planos e anamneses)» + «a IA **não** é assistente geral **nem mecanismo de consulta aos registros**» + «o medidor lido», com o stub como situação actual | **Superado em parte.** O agente continua a não ser assistente geral, mas **passa a consultar os registos da própria escola** por ferramentas com contrato. Nota datada aposta, com remissão para **L15** |
 | `motor/nucleo/ia.js` (285 linhas) | «o stub, hoje; o **DeepSeek**, amanhã» + o contrato de turno e o freio de 30 turnos | **Obsoleto como plano.** Fica no repositório (P-03/P-04) e a rota `POST /api/ia` continua a servi-lo até a frente L15 o substituir. Nota datada no cabeçalho, sem tocar em código |
-| `motor/servidor/rotas.js` — `POST /api/ia` + `ia-registro/registro.jsonl` | A conversa do stub e o registo de custo com `tokens = 0` | **O registo sobrevive** (o agente reusa a forma); **a rota é legado** |
+| `motor/servidor/rotas.js` — `POST /api/ia` + `ia-registro/<AAAA-MM>.jsonl` | A conversa do stub e o registo de custo com `tokens = 0` | **O registo sobrevive** (o agente reusa a forma e a derivação da chave); **a rota é legado** |
 | `experimentos/pe/freio-custo.md` | A instrução de escopo («a IA não conversa fora do PO»), o tecto de 30 turnos e o orçamento mensal por plano | **A instrução de escopo está superada**; o **freio** (limites + registo) sobrevive como princípio. **Não é versionado** — a nota vale aqui e no `REGISTRO.md`, e o ficheiro não se apaga |
 | `FRENTES.md` §3, Trilho A (A1-A3) | «A3 — Freio de custo ✅ feito» | Nota datada: feito para o stub; a frente nova é a **L15** |
 

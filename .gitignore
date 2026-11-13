@@ -1207,3 +1207,10 @@ experimentos/modelo-formulario/*
 # reais, e que os dois scripts GERADOS pelo motor saíram de `/assets/` (debaixo da negativa seriam
 # 404). CONTROLE NEGATIVO: com `true`, reprova 12 asserções.
 !experimentos/provar-assets-sem-worker.js
+
+# O REGISTO DE CUSTO TEM MÊS NO NOME (13/11/2026). Era uma chave só, e o `anexar` do KV lê e
+# reescreve o ficheiro INTEIRO a cada linha: o custo da escrita crescia com o histórico, e o tecto
+# de 25 MiB por chave não avisa. A prova fixa a derivação da chave, a partição em dois meses (uma
+# linha cada, nenhum cresce com o outro) e a ponta a ponta do `POST /api/ia` — rota → armazenamento
+# → chave. CONTROLE NEGATIVO: com a chave única de antes, reprova.
+!experimentos/provar-registro-de-custo-por-mes.js

@@ -203,7 +203,7 @@ escola nova):
 | `barra/leticia/01/anamnese/anamnese-20261014-0035` | cofre da anamnese (cifrado) | `motor/nucleo/cofre.js:128` | `GET /api/anamnese` (`rotas.js:271`) |
 | `bastidores/barra/{alunas,professores,turmas,vocabulario,curadorias,turma-conteudos}` | Produção | `motor/servidor/bastidores.js` | a própria Produção e a porta (`daTurma`, `daCuradoria`) |
 | `diaghilev/fokini/01-2026-10-05T1453/{ciclo-01-…-dados-….json,ciclos.json}` | **lançamento** | `motor/nucleo/lancamento.js:92` | **ninguém** (ver C1) |
-| `ia-registro/registro.jsonl` | registro de custo da IA | `motor/servidor/rotas.js:108` | **ninguém** (ver C7) |
+| `ia-registro/<AAAA-MM>.jsonl` | registro de custo da IA (um ficheiro por mês, desde 13/11/2026) | `motor/nucleo/registro-de-custo.js` · `motor/servidor/rotas.js` | **ninguém** (ver C7) |
 
 No namespace **da Maria** (`f1d475e179954f17accb7bedb59de53f`, ligado por
 `wrangler.maria.jsonc:32`) foram medidos **três envelopes de 12/10** —
@@ -356,7 +356,7 @@ plano. O que há:
   `motor/servidor/raiz.js:73-74`, «escola pagante — não se apaga») — é a **única** pegada
   comercial no código, e é um andaime declarado, que «sai quando a Produção nascer».
 - `motor/nucleo/ia.js:32` → `limiteTurnos = 30` (freio **de sessão**, não cota).
-- `ia-registro/registro.jsonl` → medido: `tokens_in: 0`, `tokens_out: 0`,
+- `ia-registro/<AAAA-MM>.jsonl` → medido: `tokens_in: 0`, `tokens_out: 0`,
   `custo_estimado: "0 (stub)"`.
 - O custo da IA foi **medido em experimento** (`experimentos/pe/freio-custo.md`, ≈20 500
   tokens/PO, teto 33 000) — é evidência, **não** um medidor de produção.
@@ -1623,7 +1623,8 @@ decisão.
   nem mecanismo de consulta aos registros.
 - **Situação atual.** A IA é um **stub** (`motor/nucleo/ia.js`) com contrato de turno e freio de
   sessão (`limiteTurnos = 30`); o registro de custo é **anexado e nunca lido**
-  (`rotas.js:108`; `ia-registro/registro.jsonl`), com `tokens_in/out = 0` e
+  (`motor/nucleo/registro-de-custo.js`; `ia-registro/<AAAA-MM>.jsonl`, um ficheiro por mês), com
+  `tokens_in/out = 0` e
   `custo_estimado: "0 (stub)"`; existe um teto medido em experimento
   (`experimentos/pe/freio-custo.md`).
 - **Lacunas.** Sem medidor lido não há cota, sem cota não há plano; e não há trava verificável
@@ -2546,7 +2547,7 @@ decisão.
 - **Situação atual.** **Nada implementado** (CONFIRMADO: não há binding `ai` em nenhum
   `wrangler.<escola>.jsonc`, não há `motor/servidor/agente.js`, não há rota de agente). O que existe é
   o **stub legado** `motor/nucleo/ia.js` com a rota `POST /api/ia` e o registo
-  `ia-registro/registro.jsonl` (`tokens = 0`, `custo_estimado: "0 (stub)"`) — que a frente **não
+  `ia-registro/<AAAA-MM>.jsonl` (`tokens = 0`, `custo_estimado: "0 (stub)"`) — que a frente **não
   usa** e **não apaga**. Das quatro superfícies, **três existem** (`/plano-ensino/`,
   `/plano-observacao/` na Porta, `#verbetes` na Produção) e a **da aula N não** (CONFIRMADO: não há
   rota, nem tela, nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe e declara não feita).

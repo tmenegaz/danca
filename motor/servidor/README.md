@@ -251,5 +251,6 @@ curl -X POST http://localhost:8792/api/ia -H 'Content-Type: application/json' \
 ```
 
 Medido (08/10/2026): a conversa responde o turno, o teto de 30 corta (`esgotado:true`), e o
-registro de custo assenta no KV (`ia-registro/registro.jsonl`), tudo **sem o motor Node no
+registro de custo assenta no KV (`ia-registro/<AAAA-MM>.jsonl`, um ficheiro por mês desde
+13/11/2026), tudo **sem o motor Node no
 caminho**. O `_assets-test/` é o staging do conteúdo servido pelo `ASSETS` só para a prova.

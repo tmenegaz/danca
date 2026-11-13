@@ -38,7 +38,12 @@ const { rotulosDoChecklist, derivadosDoChecklist, derivarPO } = require('../nucl
 // para o documento impresso e o documento publicado não poderem divergir.
 const fichaDoPlano = require('../nucleo/ficha-do-plano.js');
 
-const REGISTRO_DE_CUSTO = 'ia-registro/registro.jsonl';
+/* O REGISTO DE CUSTO TEM MÊS NO NOME (13/11/2026). Era uma chave única — `registro.jsonl` —, e o
+ * `anexar` do KV lê e reescreve o ficheiro INTEIRO a cada linha: o custo da escrita crescia com o
+ * histórico, e o tecto de 25 MiB por chave não avisa. A derivação é do núcleo
+ * (`nucleo/registro-de-custo.js`), para o agente do Lastro usar a MESMA — duas derivações da mesma
+ * chave divergiriam ao primeiro mês. */
+const registroDeCusto = require('../nucleo/registro-de-custo.js');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -265,15 +270,19 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     // O REGISTRO é do servidor (a tela não decide o que é guardado): uma linha
     // por sessão, acrescentada quando a conversa compila.
     if (saida.compilado) {
+      const carimbo = carimbar();
       const linha = {
         contexto: corpo.contexto || {},
         turnos,
         tokens_in: 0,
         tokens_out: 0,
         custo_estimado: '0 (stub)',
-        carimbo: carimbar(),
+        carimbo,
       };
-      await armazenamento.anexar(REGISTRO_DE_CUSTO, JSON.stringify(linha) + '\n');
+      /* A CHAVE SAI DO CARIMBO DA PRÓPRIA LINHA, e não de um relógio lido à parte: assim a linha e
+       * o ficheiro onde ela cai não podem discordar — se o `carimbar()` mudar de fuso ou de mês a
+       * meio de um pedido, o que manda é o que está escrito na linha. */
+      await armazenamento.anexar(registroDeCusto.chaveDoMes(carimbo), JSON.stringify(linha) + '\n');
     }
 
     return { ok: true, freio: { limiteTurnos: ia.limiteTurnos, turnos }, ...saida };

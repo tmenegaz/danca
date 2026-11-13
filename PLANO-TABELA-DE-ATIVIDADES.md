@@ -91,7 +91,7 @@ por **prefixo de chave** com o slug da escola. As famílias relevantes:
 | `bastidores/<escola>/aparencia` | `{modo, paleta}` | `bastidores.js` | todas as páginas |
 | `bastidores/<escola>/dono` | nome exibido do dono | `bastidores.js` | Produção |
 | `<escola>/...` | envelopes, anamnese cifrada | `motor/nucleo/porta.js` | porta |
-| `ia-registro/registro.jsonl` | custo da IA | `rotas.js` | — |
+| `ia-registro/<AAAA-MM>.jsonl` | custo da IA (um ficheiro por mês) | `nucleo/registro-de-custo.js` · `rotas.js` | — |
 
 Duas consequências para este módulo:
 
