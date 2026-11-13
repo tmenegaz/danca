@@ -12,7 +12,9 @@
  * quatro coisas ao mesmo tempo, e é isso que esta prova mede:
  *
  *   1. RESOLVER pelo host — exacto (`calango.tmenegaz77.workers.dev`) e por etiqueta
- *      (`calango.padd.com.br`), esta última só quando a etiqueta é uma escola REGISTADA;
+ *      (`calango.padd.com.br`, o endereço decidido a 13/11/2026), esta última só quando a
+ *      etiqueta é uma escola REGISTADA — e em qualquer domínio, porque quem filtra os hostnames
+ *      são as ROTAS do Cloudflare, não a resolução;
  *   2. NÃO CUSTAR uma leitura por pedido — o mapa fica na isolate. E não mentir sobre isso: o
  *      contador de leituras ao KV tem de mostrar 1 na primeira e 0 na segunda;
  *   3. NÃO DEIXAR UMA ESCOLA NOVA INVISÍVEL — se o host não está no mapa em cache, ele RELÊ antes
@@ -128,6 +130,17 @@ async function saude(env, host) {
     provar('etiqueta registada e domínio novo → calango, por rótulo',
       porRotulo.status === 200 && porRotulo.corpo.slug === 'calango' && porRotulo.corpo.por === 'rotulo',
       porRotulo.corpo);
+
+    /* A ETIQUETA NÃO OLHA AO DOMÍNIO — e isso é de propósito, mas tem de estar escrito. A regra
+     * aceita a primeira etiqueta quando ela é uma escola registada, seja qual for o domínio de
+     * trás. Quem decide que hostnames chegam a este Worker são as ROTAS do Cloudflare
+     * (`escola.padd.com.br/*`), não a resolução — e é por isso que um `calango.<outro-domínio>`
+     * não é um problema: sem rota, o pedido nem chega aqui. Medir isto evita que alguém descubra
+     * a propriedade por acidente, num dia em que a zona mude. */
+    const mesmoSlugOutroDominio = await saude(env, 'calango.outro-dominio.example');
+    provar('a etiqueta resolve em qualquer domínio (quem filtra é a rota, não a resolução)',
+      mesmoSlugOutroDominio.status === 200 && mesmoSlugOutroDominio.corpo.slug === 'calango',
+      mesmoSlugOutroDominio.corpo);
 
     /* E o que NÃO pode acontecer: um host qualquer ser adoptado por uma escola. */
     const estranho = await saude(env, 'www.padd.com.br');

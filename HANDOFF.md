@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T15:55:15-0300`
-Commit atual: `e172195e` — feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
+Gerado em: `2026-11-13T16:26:32-0300`
+Commit atual: `ab7ff399` — feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
 e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
 70f480fe fix(estrutura): o registo de custo da IA ganha mês no nome
@@ -92,7 +93,6 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
 3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
 8a042794 docs(estrutura): o agente do Lastro ganha desenho, contratos e a frente L15
-10ea5adb chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -170,102 +170,51 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — A escola deixa de ser `var` de deploy: o mapa `escolas/por-host`
+## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
 
-**O que aconteceu.** Primeira metade do shard, decidido na entrada de hoje («O isolamento entre
-escolas passa a ser provado, e decide-se o shard»). A escola de um pedido vinha da `vars`
-`ESCOLA_SLUG` do `wrangler.<escola>.jsonc`, e isso amarrava três coisas que a topologia de shard
-precisa de soltar: o Worker ao nome da escola (um por escola, sempre), o **deploy** à identidade
-(mudar um slug era reeditar e reimplantar), e o **código** ao dado (a lista de escolas vivia em
-ficheiros de configuração, não em algo que o Worker leia).
+**O que aconteceu.** Decisão de endereço para o shard, fechada com a pesquisadora. A alternativa era
+o prefixo (`padd.com.br/<escola>/…`), e ela foi descartada por uma razão de plataforma e não de
+gosto: **o Cloudflare serve por subdomínio** (`escola.domínio`), e o domínio próprio que ela já tem
+(`padd.com.br`) permite-o sem custo — o *Universal SSL* cobre o domínio raiz **e os subdomínios de
+primeiro nível**, portanto `<escola>.padd.com.br` não pede certificado nenhum.
 
 **O que foi decidido.**
 
-- **A escola resolve-se por um mapa em KV** — `escolas/por-host`, um objeto `{host: slug}` —, com
-  cache por isolate (`motor/servidor/mapa-de-escolas.js`). É a forma que a casa já usa em
-  `MENU_EM_CACHE` e no `CACHE_DO_REGISTRO`; não é peça nova.
-- **Duas formas de casar**, e a segunda é a que faz o domínio próprio funcionar sem uma entrada por
-  domínio: o host exacto (`calango.tmenegaz77.workers.dev`) e a primeira etiqueta, **quando ela é
-  uma escola registada** (`calango.padd.com.br` → `calango`). O conjunto é fechado e vem do mapa:
-  um host qualquer não é adoptado por ninguém.
-- **A falta RELÊ.** Um host fora do mapa em cache força uma leitura antes de dizer «não sei quem
-  és». Sem isto, uma escola acabada de criar noutra isolate apareceria com a página de
-  configuração incorrecta durante até um TTL.
-- **A trava mudou de lugar, não desapareceu.** Mapa e `vars` a dizerem escolas diferentes é erro
-  **visível** (a página diz as duas). Sem entrada no mapa, vale a `vars` — e aí a comparação com o
-  subdomínio continua, como antes. É o caminho que permite migrar escola a escola sem um momento
-  em que ninguém saiba de quem é o Worker.
-- **O que a `vars` provava passa a ser provado pelo CONTEÚDO.** Sem ela, `name` certo com
-  `assets.directory` de outra escola seria silencioso. O `escola.json` que
-  `tools/montar-publicacao.js` passa a escrever na raiz do pacote responde a «que conteúdo é este?»,
-  e a ponte confere-o contra a escola que o host reivindica. Ausente, não se afirma nada — um pacote
-  montado antes desta versão não derruba nada.
-- **A ordem é a única que funciona**: o mapa escreve-se **antes** de a `vars` sair. É por isso que
-  esta mudança vem em dois commits — o primeiro põe o código e o mapa no ar com a `vars` ainda
-  presente (e o `/api/saude` passa a dizer `origem: "mapa"`, que é a prova de que o caminho novo
-  está a servir); o segundo tira a `vars`. Ao contrário, haveria uma janela em que a escola não
-  sabia de quem era.
+- **O endereço é por host, e o caminho publicado não muda.** `/aulas/`, `/ciclos/planos/`,
+  `/area-do-professor/anamnese` continuam a ser o que são. Isto tira do passo 2 a parte mais cara:
+  não há nenhum prefixo a cascatear por `montar-publicacao.js`, `nav.json`, `nav.js` e dezenas de
+  provas.
+- **Uma rota explícita por escola**, e não um curinga. Um registo DNS curinga respeita os
+  subdomínios já existentes (a documentação é explícita: um registo exato tem precedência), mas uma
+  **rota** `*.padd.com.br/*` intercepta **todos** os subdomínios da zona que não tenham rota mais
+  específica — e o `padd.com.br` é usado para outras coisas. Fica a regra: enquanto o domínio for
+  partilhado, rota explícita; o curinga só entra num domínio que seja só do sistema.
+- **O DNS é um `A` para `192.0.2.1`, proxyado.** É o endereço de documentação (RFC 5737): existe
+  porque a rota **exige** um registo proxyado, e quem responde é o Worker, que a rota intercepta
+  antes.
+- **A resolução não filtra domínios, e isso passou a estar medido.** A etiqueta resolve em qualquer
+  domínio: quem decide que hostnames chegam ao Worker são as **rotas**, não o mapa. Ficou como
+  asserção da prova, para a propriedade não ser descoberta por acidente no dia em que a zona mudar.
 
-**Motivo declarado — os congelados.** Toca `tools/`: `tools/criar-escola.sh` (o gerador, que é a
-origem da config de cada escola) e `tools/montar-publicacao.js` (a montagem), além de
-`tools/publicar-mapa-de-escolas.js`, que é novo. O porquê está acima: sem o gerador e a montagem, a
-mudança valeria para a `calango` de hoje e falharia em silêncio em toda escola nova. **O que não
-muda:** a fórmula do hash e a cobertura do `.fipp`, os validadores, as 17 regras, as 22 pétreas, o
-conteúdo e a estrutura do menu, e o que cada escola serve.
+**O que ficou escrito, e para quem.** [PLANO-SHARD.md](./PLANO-SHARD.md) — o passo 1 feito, o passo 2
+por fazer, os cliques exatos no Cloudflare (§1), o preço da reescrita de caminhos medido em
+invocações por página (§2.2), o canário pelas escolas de teste (§3, que reusa o `numeroDoTeste` que
+já existe desde 19/10/2026) e a bateria de dez gestos que valida o shard com três escolas reais (§4).
 
-**Com o quê.** `provar-escola-por-host` **20/20** — prova nova, de 13/11/2026. Mede a resolução
-(host exacto, etiqueta, host estranho recusado); o **custo** (1 leitura do mapa na primeira
-resolução, **0** nas cinco seguintes — contadas, não estimadas — e outra leitura numa isolate nova);
-a **escola criada noutra isolate**, que resolve no pedido seguinte; o **conflito** mapa × `vars`,
-com a página a dizer as duas escolas em vez de servir a errada; e o **conteúdo trocado**
-(`assets.directory` de outra escola), recusado com as duas à mostra. **Controle negativo:** sem a
-releitura da falta, reprova — e essa falha apareceu a primeira vez que rodou, porque a prova
-invalidava o cache ao registar e a releitura nunca era exercida; corrigida para escrever no KV sem
-tocar no cache, que é o que acontece quando quem cria é outra isolate.
-
-**Um defeito apanhado ao conferir ao ar, e o que ele ensina.** O `/api/saude` no ar dizia
-`escola_do_pacote: null` numa escola que tinha o `escola.json` publicado e a responder 200. A causa:
-o cache do pacote começava em `null`, e `null` é «não há ficheiro» — a primeira leitura devolvia
-`null` **sem ler**, e a conferência ficava desligada em silêncio. A prova não o apanhava: as secções
-seguintes chamavam `esquecerPacote()` antes de medir, e punham o cache num estado que já não é o de
-arranque. A asserção que faltava é a do **primeiro pedido do processo**, e é agora a segunda da
-secção 1 — com o defeito reintroduzido, ela reprova. Fica a lição: uma prova que prepara o estado
-antes de cada medição pode nunca ver o estado em que o programa arranca.
-
-Também verdes: `provar-assets-sem-worker` **38/38** (ajustada: uma config é de escola quando os
-assets estão em `publicacao/`, e não quando declara `ESCOLA_SLUG` — essa deixou de ser a marca) ·
-`provar-menu-da-producao` **55/55** · `provar-celular` **15/15** · `check-identidade` **22 ok, 0
-erros**. Iguais ao `HEAD`: `provar-producao` **164/166** · `provar-barra-unica` **106/109** ·
-`provar-geracao` **44/45** · `provar-teste` e `provar-selo` com as falhas de arranque de sempre.
-
-**Referências.** `motor/servidor/mapa-de-escolas.js` · `motor/servidor/producao.js` (a resolução, a
-saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
-`tools/montar-publicacao.js` (o `escola.json`) · `tools/criar-escola.sh` (o template) ·
-`.github/workflows/criar-escola.yml` (o mapa antes do deploy) ·
-`experimentos/provar-escola-por-host.js`.
+**Com o quê.** `provar-escola-por-host` **21/21** (uma asserção nova: a etiqueta resolve em qualquer
+domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok, 0 erros**.
 
 **O que ainda não está feito.**
 
-- **A `vars` saiu.** O primeiro commit pôs o código e o mapa no ar com ela ainda presente, e o
-  `/api/saude` passou a dizer `origem: "mapa"` — a prova de que o caminho novo estava a servir. O
-  segundo tirou a `vars` do `wrangler.calango.jsonc` e do template de `criar-escola.sh`. Fica
-  registado como parte da mesma decisão, e não como surpresa.
-- **`padd.com.br` ainda não aponta ao Cloudflare.** A resolução por etiqueta já funciona e está
-  provada; o que falta é a zona e as rotas — do shard, não disto.
-- **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem
-  registra é o workflow, que roda o `criar-escola.sh` e publica o mapa antes do deploy. O painel da
-  raiz não tem `PADD_KV` ligado, e ligá-lo é decisão à parte.
+- **O passo 2 não começou, e é deliberado.** Ele muda a árvore de assets de uma escola para N, e o
+  que o detecta é dado real. A pesquisadora vai criar as duas escolas de teste que faltam
+  (`batata`, `breu`) e avisar; o passo 2 faz-se com as três no ar.
+- **A zona `padd.com.br` ainda não está ligada a este sistema.** Os endereços de trabalho continuam a
+  ser os `*.workers.dev`, e a resolução já aceita os dois.
+- **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
+  perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
 
 ## O que está pendente
-
-## 13/11/2026 — A lista custa o índice, e não um arquivo por registo
-
-
-- **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
-  decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
-- **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
-  índices mudam pouco), mas muda o que se lê depois de uma escrita — e isso pede a mesma prova de
-  equivalência que esta entrada exigiu.
 
 ## 13/11/2026 — O CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
 
@@ -319,6 +268,17 @@ saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
 - **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem
   registra é o workflow, que roda o `criar-escola.sh` e publica o mapa antes do deploy. O painel da
   raiz não tem `PADD_KV` ligado, e ligá-lo é decisão à parte.
+
+## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
+
+
+- **O passo 2 não começou, e é deliberado.** Ele muda a árvore de assets de uma escola para N, e o
+  que o detecta é dado real. A pesquisadora vai criar as duas escolas de teste que faltam
+  (`batata`, `breu`) e avisar; o passo 2 faz-se com as três no ar.
+- **A zona `padd.com.br` ainda não está ligada a este sistema.** Os endereços de trabalho continuam a
+  ser os `*.workers.dev`, e a resolução já aceita os dois.
+- **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
+  perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
 
 ## Pendências anteriores (índice)
 
@@ -745,6 +705,7 @@ saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
 - **12/11/2026** — O agente do Lastro: Llama na Cloudflare, MCP, e o fim do… → `REGISTRO.md` L43238
 - **13/11/2026** — A listagem não é a proveniência: uma linha por professor,… → `REGISTRO.md` L43500
 - **13/11/2026** — A logomarca sobe para o alto da coluna, e as duas telas… → `REGISTRO.md` L43572
+- **13/11/2026** — A lista custa o índice, e não um arquivo por registo → `REGISTRO.md` L43651
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

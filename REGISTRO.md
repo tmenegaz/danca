@@ -44012,3 +44012,47 @@ saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
 - **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem
   registra é o workflow, que roda o `criar-escola.sh` e publica o mapa antes do deploy. O painel da
   raiz não tem `PADD_KV` ligado, e ligá-lo é decisão à parte.
+
+## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
+
+**O que aconteceu.** Decisão de endereço para o shard, fechada com a pesquisadora. A alternativa era
+o prefixo (`padd.com.br/<escola>/…`), e ela foi descartada por uma razão de plataforma e não de
+gosto: **o Cloudflare serve por subdomínio** (`escola.domínio`), e o domínio próprio que ela já tem
+(`padd.com.br`) permite-o sem custo — o *Universal SSL* cobre o domínio raiz **e os subdomínios de
+primeiro nível**, portanto `<escola>.padd.com.br` não pede certificado nenhum.
+
+**O que foi decidido.**
+
+- **O endereço é por host, e o caminho publicado não muda.** `/aulas/`, `/ciclos/planos/`,
+  `/area-do-professor/anamnese` continuam a ser o que são. Isto tira do passo 2 a parte mais cara:
+  não há nenhum prefixo a cascatear por `montar-publicacao.js`, `nav.json`, `nav.js` e dezenas de
+  provas.
+- **Uma rota explícita por escola**, e não um curinga. Um registo DNS curinga respeita os
+  subdomínios já existentes (a documentação é explícita: um registo exato tem precedência), mas uma
+  **rota** `*.padd.com.br/*` intercepta **todos** os subdomínios da zona que não tenham rota mais
+  específica — e o `padd.com.br` é usado para outras coisas. Fica a regra: enquanto o domínio for
+  partilhado, rota explícita; o curinga só entra num domínio que seja só do sistema.
+- **O DNS é um `A` para `192.0.2.1`, proxyado.** É o endereço de documentação (RFC 5737): existe
+  porque a rota **exige** um registo proxyado, e quem responde é o Worker, que a rota intercepta
+  antes.
+- **A resolução não filtra domínios, e isso passou a estar medido.** A etiqueta resolve em qualquer
+  domínio: quem decide que hostnames chegam ao Worker são as **rotas**, não o mapa. Ficou como
+  asserção da prova, para a propriedade não ser descoberta por acidente no dia em que a zona mudar.
+
+**O que ficou escrito, e para quem.** [PLANO-SHARD.md](./PLANO-SHARD.md) — o passo 1 feito, o passo 2
+por fazer, os cliques exatos no Cloudflare (§1), o preço da reescrita de caminhos medido em
+invocações por página (§2.2), o canário pelas escolas de teste (§3, que reusa o `numeroDoTeste` que
+já existe desde 19/10/2026) e a bateria de dez gestos que valida o shard com três escolas reais (§4).
+
+**Com o quê.** `provar-escola-por-host` **21/21** (uma asserção nova: a etiqueta resolve em qualquer
+domínio) · `provar-assets-sem-worker` **38/38** · `check-identidade` **22 ok, 0 erros**.
+
+**O que ainda não está feito.**
+
+- **O passo 2 não começou, e é deliberado.** Ele muda a árvore de assets de uma escola para N, e o
+  que o detecta é dado real. A pesquisadora vai criar as duas escolas de teste que faltam
+  (`batata`, `breu`) e avisar; o passo 2 faz-se com as três no ar.
+- **A zona `padd.com.br` ainda não está ligada a este sistema.** Os endereços de trabalho continuam a
+  ser os `*.workers.dev`, e a resolução já aceita os dois.
+- **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
+  perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
