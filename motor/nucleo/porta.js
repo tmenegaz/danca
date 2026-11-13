@@ -1037,6 +1037,57 @@ function chaveDoContexto(resumo, familia) {
   return Array.isArray(partes) ? partes.join('\u0000') : null;
 }
 
+/**
+ * AS FAMÍLIAS QUE SE AGRUPAM PELA CADEIA, E NÃO PELO CAMPO (13/11/2026).
+ *
+ * O DEFEITO, medido no acervo do `calango` depois da correção de 12/11. Uma mesma cadeia de plano
+ * com **18 elos**, alternando Pé Torto ↔ Redinha Rosa, aparecia na listagem como **cinco linhas**
+ * na turma `Piano` — e o PO, igual. A pesquisadora: «a gente vai listar somente aquele mais recente
+ * que é pertinente […] dois planos mesmo, que é o do pé torto e o da redinha».
+ *
+ * Por que cinco. `CONTEXTO_DO_REGISTO.plano` é `() => null` **de propósito** (dois documentos da
+ * mesma turma e ciclo são dois documentos), portanto a fase «um por contexto» nunca se aplicava ao
+ * plano; e a regra de 12/11 — «um sucessor que trocou de mãos não substitui nada» — impede o
+ * escondimento em **toda** troca de autor. Sozinha, cada regra está certa; juntas, cada elo da
+ * alternância ficava visível, e nasciam linhas **órfãs**: não são escondidas por um sucessor (o
+ * sucessor é de outro autor) e não acumulam histórico próprio.
+ *
+ * A REGRA QUE PASSA A VALER: dentro de **cada cadeia** (a raiz dos `ajuste_de`), fica **o elo mais
+ * recente de cada professor**; os outros são proveniência e contam em «N versões anteriores». A
+ * cadeia é a identidade do documento — não o nome da turma, que muda no meio dela (os primeiros
+ * elos deste caso são da `Rosa` e os últimos da `Piano`) —, e por isso o grupo é `raiz + professor`,
+ * e não `turma + professor`.
+ *
+ * O que **não** muda: a exigência de 12/11 de o documento verdadeiro continuar à vista. O elo do
+ * autor que **escreveu** é, na cadeia, o mais recente **daquele autor** — é ele que a regra guarda.
+ */
+const FAMILIAS_POR_CADEIA = new Set(['plano', 'po']);
+
+/** A raiz de uma cadeia de `ajuste_de`, com memória e guarda de ciclo. `null` se não há cadeia. */
+function raizDaCadeia(id, porId, memoria) {
+  const memo = memoria || new Map();
+  if (memo.has(id)) return memo.get(id);
+  let atual = String(id);
+  const vistos = new Set();
+  for (;;) {
+    if (vistos.has(atual)) { memo.set(String(id), null); return null; }  // ciclo: não se agrupa
+    vistos.add(atual);
+    const r = porId.get(atual);
+    const pai = r && r.ajuste_de ? String(r.ajuste_de) : '';
+    if (!pai || pai === atual || !porId.has(pai)) { memo.set(String(id), atual); return atual; }
+    atual = pai;
+  }
+}
+
+/** A chave de agrupamento de uma família que se agrupa pela cadeia: `raiz + professor`. */
+function chaveDaCadeia(resumo, porId, memoria) {
+  const professor = String((resumo && resumo.professor) || '').trim();
+  if (!professor) return null;   // sem autor não se agrupa: agrupar juntaria autores num só
+  const raiz = raizDaCadeia(String(resumo.id), porId, memoria);
+  if (!raiz) return null;
+  return raiz + '\u0000' + professor;
+}
+
 /** A ordem do registo: o `gerado_em` e, quando ele falta, o carimbo do próprio id. */
 function ordemDoRegisto(resumo) {
   return String((resumo && (resumo.gerado_em || resumo.id)) || '');
@@ -1097,11 +1148,14 @@ function vigentesDaFamilia(resumos, familia) {
     if (id === vigente) return;
     escondido.set(id, vigente);
   };
+  /* A memória da raiz é do chamado — uma vez por família, não uma por registo (13/11/2026). */
+  const raizes = new Map();
+  const porCadeia = FAMILIAS_POR_CADEIA.has(familia);
 
   for (const r of ordenados) {
     const id = String(r.id);
     if (substituidoPor.has(id)) { guardar(id, substituidoPor.get(id)); continue; }
-    const chave = chaveDoContexto(r, familia);
+    const chave = porCadeia ? chaveDaCadeia(r, porId, raizes) : chaveDoContexto(r, familia);
     if (chave && vigenteDaChave.has(chave)) { guardar(id, vigenteDaChave.get(chave)); continue; }
     if (chave) vigenteDaChave.set(chave, id);
     vigentes.push(r);

@@ -1182,3 +1182,9 @@ experimentos/modelo-formulario/*
 # CONTROLE NEGATIVO: 24 falhas contra 7b92544a (o commit anterior à correcção — não `HEAD`, que
 # anda: depois de isto entrar, um negativo contra `HEAD` mediria nada).
 !experimentos/provar-a-autoria-na-troca-de-professor.js
+# A LISTAGEM NÃO É A PROVENIÊNCIA (13/11/2026). Dentro de cada cadeia de `ajuste_de` fica o elo mais
+# recente de CADA professor; os outros são proveniência e contam em «N versões anteriores». A prova
+# usa a cadeia do relato (6 elos alternando) e o acervo do `calango` (18 planos → 2 linhas · 16 em
+# proveniência), e mede que nenhum elo se perde nem se repete. CONTROLE NEGATIVO: a mesma cadeia pela
+# regra anterior dá 6 linhas — se desse 2, a prova não estaria a medir nada.
+!experimentos/provar-uma-linha-por-professor.js

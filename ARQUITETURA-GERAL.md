@@ -716,6 +716,18 @@ se precisa de saber para decidir; a contagem de planos é auditoria, e fica no `
 quem a procura. Uma sala `livre` **e** citada continua a ter o botão «Derivar» (quem decide a
 escrita é `estadoDaTurma`, não a palavra do selo), e a razão está lá, no `title`, para quem perguntar.
 
+> **A mesma régua desceu aos planos (13/11/2026).** O princípio não era só das salas: **a listagem
+> não é a proveniência**. Uma cadeia de plano com **18 elos**, alternando dois professores na mesma
+> turma, aparecia como cinco linhas — porque o `ajuste_de` esconde o elo que tem sucessor, e a regra
+> de 12/11 impede-o quando o sucessor é de **outro autor** (é ela que mantém à vista o documento de
+> quem escreveu). Sozinhas, as duas coisas estão certas; juntas, cada elo da alternância ficava
+> visível. **A regra:** dentro de cada **cadeia**, fica o elo mais recente de **cada professor**; os
+> outros são proveniência, contados na linha do vigente («N versões anteriores»). O grupo é a
+> **raiz** da cadeia, e não o nome da turma — que muda no meio dela, e por isso a mesma cadeia não
+> se parte em duas linhas quando a turma é renomeada. O que a decisão de 12/11 pediu continua a
+> valer: o documento de quem escreveu **não** desaparece; ele é, na cadeia, o mais recente daquele
+> autor.
+
 Quando as curadorias não se conseguem ler, o selo fica no lado seguro (`em turma`): afirmar `livre`
 convidaria a uma edição que a regra de proveniência recusa.
 
