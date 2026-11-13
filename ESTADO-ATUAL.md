@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 12/11/2026 (esta entrega). Nesta entrega, **o agente do Lastro ganhou
+> **Última fotografia:** 13/11/2026 (esta entrega). Nesta entrega, **a listagem deixou de ser a
+> proveniência**. Ela relatou que a correção de 12/11 (a autoria não se reescreve) deu certo e trouxe
+> à tona o que já estava resolvido: as versões derivadas continuavam **empilhadas** por cima do plano
+> vigente. **CONFIRMADO e medido** no acervo do `calango`: **18 planos numa só cadeia davam 5 linhas**
+> na turma `Piano` — e o PO, 20 → 6 —, três delas **órfãs**. **DECIDIDO por ela**: a listagem mostra
+> **o mais recente de cada professor** («dois planos mesmo, que é o do pé torto e o da redinha»), e o
+> resto é proveniência, contada na linha do vigente. O grupo é **a raiz da cadeia + o professor** — a
+> raiz, e não o nome da turma, que mudou no meio desta cadeia (`Rosa` → `Piano`) e por isso não pode
+> parti-la em duas linhas. O que **não** mudou: o documento de quem escreveu continua à vista, e o
+> «!» e o `sem turma` continuam a cair nas linhas certas. `provar-uma-linha-por-professor` **23/23**,
+> com controlo negativo (a regra anterior dá 6). Ver a entrada de 13/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (12/11/2026 — o desenho do agente: documentação, sem código).** Nesta entrega, **o agente do Lastro ganhou
 > desenho, plano e uma decisão fechada** — e não ganhou uma linha de código. A decisão: **Llama da
 > Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**;
 > arquitetura **MCP + busca estruturada**, e **sem RAG**, porque 100 % do que o agente consulta é
@@ -2172,6 +2184,17 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     se apagam nem se movem: continuam legíveis, no índice, e os **estados** e a regra de proveniência
     dos Bastidores continuam a derivar de todos. A linha diz quantas versões guardou. **DECIDIDO por
     ela** («o professor não tem por que entender os bastidores») **e implementado** 03/11/2026.
+    > **Nota de 13/11/2026 — a segunda metade mudou.** «O plano de ensino fica só com a cadeia»
+    > cumpriu a metade de que precisava — o documento verdadeiro não desaparece —, mas com **dois
+    > professores a alternar-se na mesma cadeia** cada troca de autor deixava o elo à vista, porque a
+    > regra de 12/11 impede que um sucessor de outro autor esconda o anterior. Medido no `calango`:
+    > **18 planos numa cadeia → 5 linhas** na turma `Piano` (e o PO, 20 → 6), três delas **órfãs**.
+    > **Decidido por ela:** «a gente vai listar somente aquele mais recente que é pertinente […]
+    > dois planos mesmo, que é o do pé torto e o da redinha». O agrupamento passa a ser **a raiz da
+    > cadeia + o professor**, e não «só a cadeia»; os outros elos são proveniência, contados na linha
+    > do vigente. **E é a raiz, não a turma**: a cadeia mudou de nome no meio (`Rosa` → `Piano`) e
+    > não pode partir-se em duas linhas. `provar-uma-linha-por-professor` **23**, com controlo
+    > negativo (a regra anterior dá 6).
 80. **A FATIA DE TEMPO LÊ-SE PELA COLUNA, E O GUIA TEM AS TRÊS FRENTES.** Duas correções de leitura.
     (1) A proporção de cada bloco era lida por `Object.values(linha)[1]`, e a gravação não escreve
     célula vazia — quando «Proporção alvo» falta, a justificativa ocupa o lugar dela e a aula
@@ -3364,7 +3387,22 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (12/11/2026 — o desenho do agente: documentação, sem código)
+### Executado nesta fotografia (13/11/2026 — uma linha por professor, dentro da cadeia)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-uma-linha-por-professor` (**nova**) | **PASSOU — 23 asserções**. (A) a cadeia de 6 elos alternando dois professores dá **2 linhas**, e são as mais recentes de cada um; (B) o histórico guarda os 4 restantes e `vigentes + histórico = acervo`; (C) a mesma cadeia com a turma renomeada no meio **não** parte em duas linhas; (D) duas cadeias independentes do mesmo professor continuam a ser dois documentos; (E) a cadeia sem alternância não regride (1 linha, 2 anteriores); (F) a anamnese não é tocada; (G) **controlo negativo** — a mesma cadeia pela regra anterior dá **6** linhas, e se desse 2 a prova não mediria nada; (H) o **acervo real** do `calango`: 18 planos → **2 linhas** · 16 em proveniência, 0 elos perdidos, 0 repetidos |
+| `provar-a-autoria-na-troca-de-professor` | **41/41** — o «sem turma», o traço e o «!» continuam a cair nas linhas certas, e agora só nas duas que ficam |
+| `provar-listas-do-acervo` | **109/109** |
+| `provar-apagar-da-listagem` | **51/51** |
+| `provar-cadeia-automatica` · `provar-cadeia-do-ajuste` | **62/62** · **34/34** |
+| `provar-painel-do-ato` | **183/183** (na publicação de `calango`) |
+| `provar-producao` | **164/166** — e as duas falhas são **iguais no `HEAD`**, verificadas com a alteração em stash: são da tradicional da curadoria, não desta mudança |
+| `provar-listas-sem-repeticao` | **15/16** — a falha do `api/envelopes` é anterior, e está registada desde 12/11 |
+| `node tools/check-identidade.js` | **8/8 ok**, 0 erros — nenhuma peça de identidade tocada |
+| Deploy | **Não executado** — a mudança é do núcleo e da listagem; a conferência em produção é o passo seguinte ao push |
+
+### Executado na fotografia de 12/11/2026 (o desenho do agente: documentação, sem código)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4537,6 +4575,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **13/11/2026** — **A listagem não é a proveniência: uma linha por professor, dentro da cadeia.**
+  Ela relatou que a correção de 12/11 (a autoria não se reescreve) deu certo e trouxe à tona o que
+  já estava resolvido: as versões derivadas continuavam empilhadas por cima do plano vigente.
+  **CONFIRMADO e medido** no acervo do `calango`: **18 planos numa só cadeia → 5 linhas** na turma
+  `Piano` (o PO, **20 → 6**), e três delas **órfãs** — não escondidas por um sucessor (o sucessor é
+  de outro autor, e a regra de 12/11 impede-o) e sem histórico próprio. **DECIDIDO por ela**: só o
+  mais recente de **cada professor**, «dois planos mesmo, que é o do pé torto e o da redinha»; o
+  resto é proveniência. E, na cadeia que mudou de nome de turma (`Rosa` → `Piano`), **duas linhas**,
+  «só o mais recente de cada professor, na cadeia inteira». O grupo passa a ser **raiz da cadeia +
+  professor** — a raiz, e não o nome da turma, que muda no meio. O que **não** mudou: o documento de
+  quem escreveu continua à vista (é o mais recente daquele autor), e a proveniência continua
+  acessível em «N versões anteriores». `provar-uma-linha-por-professor` **23**, com controlo
+  negativo (a regra anterior dá 6). Sem regressão nas bancadas da autoria, das listas, da cadeia e
+  do painel. Ver a entrada de 13/11/2026 no `REGISTRO.md`.
 
 - **12/11/2026** — **O agente do Lastro: desenho completo, decisão fechada, e nenhuma linha de
   código.** Ela fechou a arquitetura (Llama da Cloudflare, MCP + busca estruturada, **sem RAG**) e

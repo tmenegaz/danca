@@ -43496,3 +43496,75 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 - **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
   tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
   custo que o vai dizer.
+
+## 13/11/2026 — A listagem não é a proveniência: uma linha por professor, dentro da cadeia
+
+**O que motivou.** Ela relatou que a correção de 12/11 — a autoria não se reescreve — deu certo, e
+trouxe à tona o que já estava resolvido:
+
+> «os planos antigos, eles continuam sobre o guarda-chuva do plano vigente […] o plano antigo, que
+> foi que deu origem a essa derivação, ele não precisa aparecer, porque esse controle de proveniência
+> é nosso […] a gente tem que mostrar na listagem dois planos mesmo, que é o do pé torto e o da
+> redinha, que estão se alternando.»
+
+**O que a medição mostrou.** O acervo do `calango` tem **uma** cadeia de plano com **18 elos**,
+alternando Pé Torto ↔ Redinha Rosa. A listagem mostrava **5 linhas** na turma `Piano`, e o PO — 20
+elos — mostrava **6**. Três linhas eram **órfãs**: não são escondidas por um sucessor e não acumulam
+histórico próprio. `plano-20261111-0858` chegava a aparecer com «!» **e** `sem turma` ao mesmo tempo.
+
+**A causa são duas regras certas que se somam mal.**
+
+- `CONTEXTO_DO_REGISTO.plano` é `() => null` **de propósito** — dois documentos da mesma turma e ciclo
+  são dois documentos —, portanto a fase «um por contexto» **nunca** se aplicava ao plano;
+- a regra de 12/11 («um sucessor que trocou de mãos não substitui nada») impede o escondimento em
+  **toda** troca de autor, e é ela que mantém à vista o documento de quem escreveu.
+
+Sozinha, cada uma faz o que devia. Juntas, **cada elo da alternância ficava visível** — e a correção
+de 12/11 fechou a metade «não esconder o documento verdadeiro», deixando aberta a metade «não listar
+o histórico».
+
+**O que foi decidido** — por ela, nas duas perguntas que a análise obrigou a fazer:
+
+- **A listagem mostra o mais recente de CADA PROFESSOR, dentro de cada cadeia.** Os outros elos são
+  proveniência e contam em «N versões anteriores» na linha do vigente — «a gente vai listar somente
+  aquele mais recente que é pertinente».
+- **O grupo é a RAIZ da cadeia, e não o nome da turma.** A cadeia atravessa uma renomeação (`Rosa` →
+  `Piano`), e agrupar por turma parti-la-ia em duas linhas. Perguntada sobre este caso, ela escolheu
+  **duas linhas**: «só o mais recente de cada professor, na cadeia inteira».
+- **Nada se perde, e ela quer assim.** «A relação temporal a gente vai preservar porque é a
+  proveniência»; o que se guarda fica para o plano de perguntas do motor, quando os relatórios forem
+  trabalhados.
+
+**O que NÃO mudou.** O documento de quem escreveu continua à vista — na cadeia, ele é o mais recente
+**daquele** autor, e é ele que a regra guarda. É a exigência de 12/11 («continua existindo na
+listagem o plano de ensino que pertence ao pé torto, porque foi ele que elaborou») e ela mantém-se
+por construção. E as etiquetas continuam a cair nas linhas certas: hoje sobram duas linhas, uma com
+o «!» e outra com `sem turma` — exactamente o que ela descreveu.
+
+**Onde entrou.** [motor/nucleo/porta.js](./motor/nucleo/porta.js) — `FAMILIAS_POR_CADEIA`,
+`raizDaCadeia`, `chaveDaCadeia`, e a escolha da chave dentro de `vigentesDaFamilia` (o grupo
+`raiz + professor` para `plano` e `po`; as outras famílias ficam com `chaveDoContexto`, sem
+alteração) · [experimentos/provar-uma-linha-por-professor.js](./experimentos/provar-uma-linha-por-professor.js)
+(**novo**, 23 asserções) · [.gitignore](./.gitignore) — a excepção da prova, com a razão escrita ·
+[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) §3.3 — nota datada a estender «o passado não se
+escreve na listagem» aos planos · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a nota na decisão 79, a §9 e
+a §11 · `HANDOFF.md` — regerado.
+
+**Com o quê.** `provar-uma-linha-por-professor` **23/23**, com **controlo negativo**: a mesma cadeia
+pela regra anterior devolve **6** linhas, e se devolvesse 2 a prova não estaria a medir nada. Sobre o
+acervo real: 18 planos → **2 linhas · 16 em proveniência**, **0 elos perdidos, 0 repetidos**. Sem
+regressão: `provar-a-autoria-na-troca-de-professor` **41**, `provar-listas-do-acervo` **109**,
+`provar-apagar-da-listagem` **51**, `provar-cadeia-automatica` **62**, `provar-cadeia-do-ajuste`
+**34**, `provar-painel-do-ato` **183**, `check-identidade` **8/8 ok**. `provar-producao` **164/166** e
+`provar-listas-sem-repeticao` **15/16** — as três falhas são **iguais no `HEAD`**, verificadas com a
+alteração em `stash`, e vêm de antes.
+
+**O que ainda não está feito.**
+
+- **Não foi conferido ao ar.** A mudança é do núcleo e da listagem; a conferência em produção é o
+  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
+- **O `provar-vigente-na-listagem` (21) não foi estendido**; a prova nova cobre a regra da cadeia, e
+  as duas não se sobrepõem. Fica a dívida de as fundir numa só, quando houver motivo.
+- **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
+  proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
+  Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
