@@ -748,10 +748,30 @@ async function revalidacaoPendente(armazenamento, jaLido, linhasDeBase, curadori
   const pos = [];
   for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, indice)) {
     const id = resumo.id || nome.replace(/\.json$/, '');
-    const envelope = await lerArquivo(armazenamento, nome);
-    const bruto = envelope && envelope.respostas && envelope.respostas.sujeitos;
-    const sujeitos = bruto ? (bruto.valor !== undefined ? bruto.valor : bruto) : null;
-    const lista = Array.isArray(sujeitos) ? sujeitos.map(String) : (sujeitos ? [String(sujeitos)] : []);
+    /* OS SUJEITOS VÊM DO RESUMO, E NÃO DO ARQUIVO (13/11/2026).
+     *
+     * Aqui estava `await lerArquivo(armazenamento, nome)` — um envelope lido do repositório,
+     * um por PO, só para buscar `respostas.sujeitos`. E o resumo JÁ os tem: `resumoDoEnvelope`
+     * os escreve desde que o índice passou a carregar os vínculos do PO (ver o bloco «O PO: é
+     * dele que saem os VÍNCULOS»). Era trabalho pago duas vezes, e a segunda vez era a cara:
+     * medido a 13/11/2026, a lista do plano de ensino lia **19 envelopes** e a do PO outros
+     * **19** — 24 idas à API do GitHub por carga, ~7,5 s de espera para desenhar uma lista
+     * cujos dados já estavam no índice.
+     *
+     * O RECURSO FICA. Um índice escrito antes de `sujeitos` existir não o tem, e uma lista que
+     * perdesse o vínculo do PO em silêncio seria pior do que uma lista lenta: sem vínculo, o
+     * selo «precisa de revisão» não aparece e a regra de proveniência mente. Por isso o arquivo
+     * só é lido quando o resumo não traz o campo — e, quando o índice se reconstruir uma vez
+     * (`VERSAO_DO_RESUMO`), este caminho deixa de ser usado por si. */
+    let lista;
+    if (Array.isArray(resumo.sujeitos)) {
+      lista = resumo.sujeitos.map(String);
+    } else {
+      const envelope = await lerArquivo(armazenamento, nome);
+      const bruto = envelope && envelope.respostas && envelope.respostas.sujeitos;
+      const sujeitos = bruto ? (bruto.valor !== undefined ? bruto.valor : bruto) : null;
+      lista = Array.isArray(sujeitos) ? sujeitos.map(String) : (sujeitos ? [String(sujeitos)] : []);
+    }
     const quando = ordemDoRegisto(resumo);
     const novos = [];
     for (const aluna of lista) {

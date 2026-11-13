@@ -1807,7 +1807,27 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
   // que lesse por um caminho diferente do da porta mostraria registos que a porta não encontra.
   const armazenamento = criarArmazenamento(env);
 
-  const resumos = await porta.resumosDeEnvelopes(armazenamento, familia.padrao);
+  /* AS TRÊS ENTRADAS LÊEM-SE AO MESMO TEMPO (13/11/2026).
+   *
+   * O índice dos envelopes (repositório), as curadorias (KV) e as linhas de base (repositório,
+   * índice + um ficheiro por linha) não dependem uns dos outros, e a página precisa dos três.
+   * Eram três esperas em fila — e a do índice dos envelopes só começava DEPOIS de as linhas de
+   * base acabarem, porque quem as pedia era a ponte e ele já chegava resolvido. Medido a
+   * 13/11/2026 com 300 ms de latência por viagem: 938 ms para desenhar a lista, em vez dos
+   * ~600 ms que a mesma página custa quando as três correm juntas.
+   *
+   * `curadorias` e `linhasDeBase` podem chegar como VALOR (as bancadas antigas passam assim) ou
+   * como PROMESSA (a ponte passou a passar assim): `await` trata os dois casos, e a ordem do
+   * `Promise.all` é a das fontes, não a de chegada. */
+  const [resumos, curadoriasV, linhasV] = await Promise.all([
+    porta.resumosDeEnvelopes(armazenamento, familia.padrao),
+    curadorias,
+    linhasDeBase,
+  ]);
+  /* Daqui para baixo os nomes são os de antes — a página não sabe (nem precisa de saber) que
+   * chegaram em paralelo. São parâmetros locais: reatribuí-los não toca em quem chamou. */
+  curadorias = curadoriasV;
+  linhasDeBase = linhasV;
   /* O ESTADO é derivado, e vem de quem o deriva — não é recalculado aqui. Duas derivações da
    * mesma regra divergiriam, e a que ficasse para trás seria a do ecrã. */
   /* O PO PASSOU A TER ESTADO (04/11/2026). Ele era `{}` aqui — e por isso a linha não sabia se o
@@ -1861,23 +1881,26 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
       /* AS LINHAS DE BASE ENTRAM NA CASCATA (05/11/2026). O primeiro passo é o recorte do corpo,
        * e sem ele a lista mostraria o plano a pedir revisão sem dizer que o recorte que ele fixou
        * já não corresponde ao retrato. A leitura é do KV da Produção, e uma só por página. */
-      let linhasDaEscola = [];
-      try {
-        const bruto = await env.PADD_KV.get('bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim()
-          + '/linhas-de-base');
-        const lista = bruto ? JSON.parse(bruto) : [];
-        linhasDaEscola = Array.isArray(lista) ? lista.filter((l) => l && l.id) : [];
-      } catch (erro) { linhasDaEscola = []; }
-      /* E AS CURADORIAS, PELA MESMA RAZÃO (05/11/2026). O elenco da turma vem das linhas de base;
-       * o que a curadoria DECLARA é o outro lado da comparação. Uma leitura mais, da mesma chave
-       * pequena, e o `rever` passa a aparecer no passo certo. */
-      let curadoriasDaEscola = [];
-      try {
-        const bruto = await env.PADD_KV.get('bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim()
-          + '/curadorias');
-        const lista = bruto ? JSON.parse(bruto) : [];
-        curadoriasDaEscola = Array.isArray(lista) ? lista : [];
-      } catch (erro) { curadoriasDaEscola = []; }
+      /* AS DUAS CHAVES LÊEM-SE AO MESMO TEMPO (13/11/2026). São duas leituras independentes do
+       * KV, e em fila a segunda só começava quando a primeira respondia. O resultado é o mesmo;
+       * o que muda é a espera — e esta página já tem duas viagens ao repositório logo atrás. */
+      const chaveDe = (sufixo) => 'bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim() + '/' + sufixo;
+      const [linhasDaEscola, curadoriasDaEscola] = await Promise.all([
+        (async () => {
+          try {
+            const bruto = await env.PADD_KV.get(chaveDe('linhas-de-base'));
+            const lista = bruto ? JSON.parse(bruto) : [];
+            return Array.isArray(lista) ? lista.filter((l) => l && l.id) : [];
+          } catch (erro) { return []; }
+        })(),
+        (async () => {
+          try {
+            const bruto = await env.PADD_KV.get(chaveDe('curadorias'));
+            const lista = bruto ? JSON.parse(bruto) : [];
+            return Array.isArray(lista) ? lista : [];
+          } catch (erro) { return []; }
+        })(),
+      ]);
       const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola, curadoriasDaEscola);
       revalidar = r && r.pendentes ? r.pendentes : null;
     } catch (erro) {
@@ -1910,18 +1933,22 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
     gerados = new Map();
     const { criarGeracao } = require('./geracao.js');
     const registro = criarGeracao({ kv: env.PADD_KV, escola: env.ESCOLA_SLUG });
-    for (const r of registos) {
-      const turma = r.turma
-        || (turmaDoPlano ? ((r.plano || []).map((id) => turmaDoPlano.get(id)).filter(Boolean)[0] || '') : '');
-      if (!turma) continue;
+    /* UMA LEITURA POR REGISTO, TODAS AO MESMO TEMPO (13/11/2026). Eram dezanove `get` no KV em
+     * fila, um por PO — cada um à espera do anterior. São chaves independentes, e o mapa final
+     * é o mesmo; a diferença é a espera, que era a soma. */
+    const turmas = registos.map((r) => r.turma
+      || (turmaDoPlano ? ((r.plano || []).map((id) => turmaDoPlano.get(id)).filter(Boolean)[0] || '') : ''));
+    const lidos = await Promise.all(registos.map((r, i) => {
+      const turma = turmas[i];
+      if (!turma) return null;
       /* A ESCOLA VAI NO CONTEXTO. A variante do registo e `escola-turma` (`varianteDoContexto`),
        * e o `escola` que ele le e o do CONTEXTO, nao o do modulo: sem esta chave a variante saia
        * `-bale-nivel-2-teste-2` e o registo nunca era encontrado. */
-      const g = await registro.lerRegistro({
+      return registro.lerRegistro({
         escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma,
-      });
-      if (g) gerados.set(r.id, g);
-    }
+      }).catch(() => null);
+    }));
+    registos.forEach((r, i) => { if (lidos[i]) gerados.set(r.id, lidos[i]); });
   }
 
   /* A LINHA DE BASE ENTRA NA LISTA DA ANAMNESE (05/11/2026). É a fonte do elenco desde o passo 5,

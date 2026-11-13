@@ -43647,3 +43647,77 @@ estou» e a secção nova · [CONGELAMENTO.md](./CONGELAMENTO.md) — o que exig
   redundante, é uma decisão à parte.
 - **A largura de 248px na Produção** come 72px a mais do conteúdo do que os 176px de antes. Fica
   registado como o preço da coluna única; descer para 220 ou 232 é uma linha nos dois lugares.
+
+## 13/11/2026 — A lista custa o índice, e não um arquivo por registo
+
+**O que aconteceu.** A pesquisadora descreveu a diferença sem a nomear: «quando eu navego nos
+bastidores, é o clique e já carrega; agora a anamnese, o plano de ensino e o plano de observação
+demoram… tem alguma coisa sendo processada?». Tinha — e não era o Cloudflare a servir arquivo, era o
+motor a **ir ao GitHub**. Medido ao ar no Worker da escola, primeiro byte:
+
+| página | antes | depois |
+|:--|--:|--:|
+| `/aulas/` (asset) | 0,30 s | 0,30 s |
+| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s |
+| `/area-do-professor/anamnese` | 2,43 s | — |
+| `/area-do-professor/plano-de-ensino` | 7,54 s | — |
+| `/area-do-professor/plano-de-observacao` | 7,61 s | — |
+
+As duas últimas liam **24 vezes a API do GitHub por carga**. Dezanove delas abriam o envelope de
+**cada PO** para buscar `respostas.sujeitos` — que **já estava no resumo do índice**. O índice de
+envelopes existe precisamente para a estante não ler envelopes (`resumosDeEnvelopes`, em
+`motor/nucleo/porta.js`); a cascata de revalidação (`revalidacaoPendente`) tinha ficado de fora dessa
+regra, e o custo crescia com o acervo: um PO por ciclo, uma viagem por PO.
+
+**O que foi decidido.**
+
+- **O resumo primeiro, o arquivo só como recurso.** A cascata lê `resumo.sujeitos` quando ele é uma
+  lista; só abre o envelope quando o índice é antigo e não o traz. O recurso **não é decoração**: sem
+  ele, um índice de versão anterior faria a lista perder o vínculo entre PO e aluna em silêncio.
+- **O que não depende um do outro corre junto.** As três entradas da listagem — índice dos envelopes
+  (repositório), curadorias (KV) e linhas de base (repositório: índice + um arquivo por linha) — vão
+  ao mesmo tempo, e as versões de cada linha de base também. Antes eram esperas em fila, e a do
+  índice dos envelopes só começava **depois** de as linhas de base acabarem, porque a ponte a
+  entregava já resolvida.
+- **A ponte passa promessas, não valores.** `curadorias` e `linhasDeBase` chegam ao `pagina()` como
+  promessas (o `await` do `Promise.all` aceita as duas formas, e as bancadas antigas continuam a
+  passar valores). É o que faz as três viagens começarem no mesmo instante em vez de encadeadas.
+
+**Com o quê.** Medido na bancada local (`http.createServer` + `fetch` do GitHub stubado, 300 ms de
+latência por viagem, acervo do `calango`): anamnese **1 289 → 677 ms**, plano de ensino **7 270 →
+660 ms**, plano de observação **7 272 → 627 ms**. Idas ao GitHub: **4/24/24 → 4/4/4**. Restam duas
+viagens em fila (o índice e os arquivos das linhas de base) — 600 ms, contra os 70 ms de uma página
+estática; o piso é o número de saltos, não o tamanho do acervo.
+
+`provar-custo-da-listagem` **7/7** — prova nova, de 13/11/2026 — fixa as duas metades e o paralelismo:
+com os resumos completos **zero** envelopes lidos (e o selo de revisão ainda aparece); com um índice
+sem `sujeitos`, **um** envelope lido e o resultado **idêntico**; e as quatro versões de linha de base
+com as janelas de leitura sobrepostas (6 pares de 6). **Controle negativo:** rodada sobre o código
+anterior, reprova dois pontos (1 envelope lido, 0 pares sobrepostos). `provar-listas-do-acervo`
+**109/109** · `provar-linha-de-base-no-repo` **39/39** · `provar-revisao-do-recorte` **47/47** ·
+`provar-acervo-envelopes` **52/52** · `provar-lista-que-falha` **39/39** ·
+`provar-apagar-da-listagem` **51/51** · `provar-uma-linha-por-professor` **23/23** ·
+`provar-menu-da-producao` **55/55** · `provar-mudanca-de-sala` **41/41** ·
+`provar-transferencia-e-desligamento` **93/93** · `provar-veu-da-operacao` **23/23** ·
+`provar-bancada-do-veu` **30/30** · `provar-producao` **164/166** — as duas de sempre, iguais no
+`HEAD`, verificadas num worktree separado.
+
+**Motivo declarado — não se aplica.** A mudança toca `motor/` (o motor do Worker), e **não** `tools/`,
+a fórmula do hash, os validadores, a estrutura do menu ou o conteúdo dos ciclos. Nenhuma fonte de
+ciclo foi tocada, nenhum `.fipp` muda, e a tela desenha exactamente o mesmo.
+
+**Referências.** [CONGELAMENTO.md](./CONGELAMENTO.md) — o que exige motivo declarado ·
+`motor/nucleo/porta.js` (`revalidacaoPendente`, `resumoDoEnvelope`) ·
+`motor/servidor/listas-do-acervo.js` (`pagina`) · `motor/servidor/producao.js` (bloco «0.2 AS TRÊS
+LISTAS DO ACERVO») · `motor/servidor/linhas-de-base-repo.js` (`vigentes`) ·
+`motor/servidor/bastidores.js` (`linhasDeBase`) · `experimentos/provar-custo-da-listagem.js`.
+
+**O que ainda não está feito.**
+
+- **Não foi conferido ao ar** — a conferência é uma carga por escola, no fim, e não exploração (a
+  regra da cota do KV).
+- **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
+  decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
+- **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
+  índices mudam pouco), mas muda o que se lê depois de uma escrita — e isso pede a mesma prova de
+  equivalência que esta entrada exigiu.

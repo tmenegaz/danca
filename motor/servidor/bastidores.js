@@ -461,20 +461,26 @@ function normalizarRubrica(corpo) {
  * quem chega vê o que estava, e cria a sua — em vez de herdar uma avaliação que não fez.
  */
 async function linhasDeBase(kv, escola, repo) {
-  const rascunhos = (await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base'))
-    .filter((l) => l && l.id && Array.isArray(l.campos));
-  let actos = [];
-  if (repo && repo.activo) {
-    try {
-      actos = await repo.vigentes();
-    } catch (erro) {
-      /* A FALHA DO REPOSITÓRIO NÃO ESCONDE O QUE ESTÁ NO KV. Sem este `catch`, um 500 do GitHub
-       * dava uma lista vazia — e uma lista vazia lê-se como «as linhas de base desapareceram». A
-       * leitura degrada para o que houver localmente, e o `_aviso` diz que degradou. */
-      actos = [];
-      rascunhos._aviso = 'não li o repositório: ' + (erro && erro.message ? erro.message : 'erro');
-    }
-  }
+  /* AS DUAS FONTES LÊEM-SE AO MESMO TEMPO (13/11/2026).
+   *
+   * O KV local e o repositório são independentes, e esta função precisa dos dois. Eram
+   * sequenciais: primeiro o KV, depois a árvore/índice do repositório, depois cada ficheiro —
+   * três esperas somadas, quando a primeira não informa a segunda. Em paralelo, o KV (dezenas de
+   * milissegundos) deixa de estar no caminho crítico, e a espera passa a ser a do repositório.
+   *
+   * O `catch` do repositório é o mesmo de antes, e continua a degradar para o que houver no KV —
+   * com o `_aviso` a dizer que degradou. Ele fica DENTRO da promessa para que uma falha do
+   * repositório não derrube a leitura local: `Promise.all` rejeitaria o conjunto. */
+  const rascunhosPromessa = lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
+  const actosPromessa = (repo && repo.activo)
+    ? repo.vigentes().then((a) => ({ actos: a, aviso: null }))
+      .catch((erro) => ({ actos: [], aviso: 'não li o repositório: ' + (erro && erro.message ? erro.message : 'erro') }))
+    : Promise.resolve({ actos: [], aviso: null });
+
+  const [brutos, doRepo] = await Promise.all([rascunhosPromessa, actosPromessa]);
+  const rascunhos = brutos.filter((l) => l && l.id && Array.isArray(l.campos));
+  const actos = doRepo.actos;
+  if (doRepo.aviso) rascunhos._aviso = doRepo.aviso;
   const porId = new Map();
   for (const a of actos) porId.set(a.id, a);
   /* O RASCUNHO VENCE NA LISTA DA EDIÇÃO — é o que o professor está a ver. E leva o `concluida`

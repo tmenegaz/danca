@@ -649,13 +649,22 @@ async function fetch(request, env) {
       env,
       menu,
       escola: env.ESCOLA_SLUG,
-      curadorias: await bastidores.curadorias(env.PADD_KV, env.ESCOLA_SLUG),
-      /* AS LINHAS DE BASE, pelo MESMO leitor que a Produção usa (05/11/2026). A listagem da
-       * anamnese passou a derivar a turma e a etiqueta da linha de base delas — e uma segunda
-       * leitura da mesma chave, com a sua própria forma de a interpretar, divergiria no dia em que
-       * uma das duas mudasse. O sintoma seria uma listagem a dizer «sem turma» sobre uma turma que
-       * a Produção mostra preenchida, que é exactamente o defeito que isto corrige. */
-      linhasDeBase: await bastidores.linhasDeBaseDaEscola(env, env.ESCOLA_SLUG),
+      /* AS DUAS LEITURAS SEGUEM COMO PROMESSAS, E NÃO RESOLVIDAS (13/11/2026).
+       *
+       * As curadorias (KV) e as linhas de base (repositório) não dependem uma da outra, e a
+       * página ainda vai ler o índice dos envelopes. Esperar aqui por elas — como se fazia —
+       * punha as três leituras em fila: o índice dos envelopes só começava depois de a última
+       * linha de base chegar. Medido a 13/11/2026: 938 ms para desenhar a lista, com 300 ms de
+       * latência por viagem ao GitHub. A página sabe esperar promessas (`Promise.all` no topo do
+       * `pagina`), e é isso que faz as três viagens começarem no mesmo instante.
+       *
+       * AS LINHAS DE BASE VÊM DO MESMO LEITOR QUE A PRODUÇÃO USA (05/11/2026): a listagem da
+       * anamnese deriva delas a turma e a etiqueta de cada aluna, e uma segunda leitura da mesma
+       * chave — com a sua própria forma de a interpretar — divergiria no dia em que uma das duas
+       * mudasse. O sintoma seria a lista a dizer «sem turma» sobre uma turma que a Produção mostra
+       * preenchida — exactamente o defeito que a leitura única corrige. */
+      curadorias: bastidores.curadorias(env.PADD_KV, env.ESCOLA_SLUG),
+      linhasDeBase: bastidores.linhasDeBaseDaEscola(env, env.ESCOLA_SLUG),
     });
     if (doAcervo) {
       const resposta = new Response(doAcervo.html, {

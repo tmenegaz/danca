@@ -491,12 +491,16 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
       /* A LÁPIDE APAGA A LINHA, e não só a si mesma — se a versão MAIS RECENTE de um id é uma
        * lápide, a linha está apagada, e não se procura mais atrás. Foi o primeiro erro desta
        * família, apanhado pela prova: saltar só a lápide promovia a versão anterior. */
+      /* AS LINHAS LÊEM-SE AO MESMO TEMPO (13/11/2026). Era um `for` com `await` por linha: cada
+       * ficheiro esperava o anterior, e uma escola com quatro linhas pagava quatro viagens ao
+       * GitHub em fila — a soma, e não o máximo. São ficheiros INDEPENDENTES, e é isso que
+       * `Promise.all` diz. A ordem do resultado é a mesma (o `map` a garante), e o custo em
+       * pedidos não muda: muda só o tempo de espera. Medido na lista da anamnese, que era a mais
+       * rápida das três e mesmo assim levava 2,4 s. */
+      const alvos = [...porId.values()].filter((r) => !r.apagada_em);
+      const completas = await Promise.all(alvos.map((r) => this.vigente(r.id)));
       const vigentes = [];
-      for (const r of porId.values()) {
-        if (r.apagada_em) continue;
-        const completa = await this.vigente(r.id);
-        if (completa) vigentes.push(completa);
-      }
+      for (const completa of completas) if (completa) vigentes.push(completa);
       return vigentes;
     },
 

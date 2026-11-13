@@ -1188,3 +1188,13 @@ experimentos/modelo-formulario/*
 # proveniência), e mede que nenhum elo se perde nem se repete. CONTROLE NEGATIVO: a mesma cadeia pela
 # regra anterior dá 6 linhas — se desse 2, a prova não estaria a medir nada.
 !experimentos/provar-uma-linha-por-professor.js
+
+# A LISTA CUSTA O ÍNDICE, E NÃO UM ARQUIVO POR REGISTO (13/11/2026). O plano de ensino e o plano de
+# observação liam 24 vezes a API do GitHub por carga — dezanove delas abriam o envelope de cada PO
+# para buscar `respostas.sujeitos`, que já estava no resumo do índice. Ao ar isso era 7,5 s de espera
+# (a anamnese, 2,4 s). A prova fixa as duas metades: com os resumos completos NÃO se lê envelope
+# nenhum, e com um índice antigo (sem `sujeitos`) o recurso lê o envelope e chega ao MESMO
+# resultado — sem isso, a lista perderia o vínculo em silêncio. Fixa também que as versões da linha
+# de base se leem em paralelo (as janelas de leitura sobrepõem-se). CONTROLE NEGATIVO: rodada sobre
+# o código anterior, a prova reprova os dois pontos.
+!experimentos/provar-custo-da-listagem.js
