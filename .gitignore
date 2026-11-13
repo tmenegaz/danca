@@ -1222,3 +1222,13 @@ experimentos/modelo-formulario/*
 # pesquisadora temia (apagar o professor de uma escola), o alcance do expurgo, e o slug que é prefixo
 # de outro (`cala` × `calango`). CONTROLE NEGATIVO: tirar o namespaçamento do adaptador reprova 5.
 !experimentos/provar-isolamento-entre-escolas.js
+
+# A ESCOLA VEM DO DADO, E NÃO DO DEPLOY (13/11/2026). A escola de um pedido deixou de vir da `vars`
+# `ESCOLA_SLUG` do wrangler e passou a vir do mapa `escolas/por-host`, em KV, com cache de isolate —
+# a primeira metade do shard. A prova mede o que a mudança tem de fazer ao mesmo tempo: resolver por
+# host exacto e por etiqueta (domínio próprio), NÃO custar uma leitura por pedido (conta as leituras),
+# reler quando o host falta (escola criada noutra isolate aparece no pedido seguinte) e NÃO perder a
+# trava (mapa × `vars` em desacordo = erro visível). E, porque a `vars` sai, mede o que a substitui:
+# o `escola.json` do pacote, que apanha `name` certo com `assets.directory` de outra escola.
+# CONTROLE NEGATIVO: sem a releitura da falta, reprova.
+!experimentos/provar-escola-por-host.js

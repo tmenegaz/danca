@@ -1147,6 +1147,16 @@ function principal() {
   const menu = menuDaEscola({ turmas, blocos });
   fs.writeFileSync(path.join(destino, 'nav.json'), JSON.stringify(menu, null, 2) + '\n', 'utf8');
 
+  /* 3.1 QUE ESCOLA É ESTE PACOTE (13/11/2026). Um ficheiro de duas linhas, e ele é a única coisa
+   * no pacote que responde a «que conteúdo é este?». A ponte de produção confere-o contra a escola
+   * que o HOST reivindica: `name` certo com `assets.directory` de outra escola é o deploy trocado
+   * que a trava antiga apanhava pela `vars`, e a `vars` deixou de existir.
+   *
+   * Vai na raiz do pacote (e não dentro de uma turma) porque a pergunta é da ESCOLA, não do ciclo.
+   * Fica fora do `nav.json` de propósito: não é navegação, é identidade. */
+  fs.writeFileSync(path.join(destino, 'escola.json'),
+    JSON.stringify({ escola, gerado_em: new Date().toISOString() }, null, 2) + '\n', 'utf8');
+
   // 4. O ÍNDICE. A barra vem do MESMO desenho que a ponte usa — não de uma segunda construção,
   //    que voltaria a divergir no dia seguinte. Aqui ela é só o estado estático da página; ao
   //    servir, a ponte reescreve-a a partir do `nav.json`.

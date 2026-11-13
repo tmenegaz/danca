@@ -86,7 +86,13 @@ console.log('\n1 · a configuração não volta a mandar tudo para o Worker');
   for (const nome of arquivos) {
     const cfg = lerJsonc(path.join(RAIZ, nome));
     const regra = cfg.assets && cfg.assets.run_worker_first;
-    const escola = Boolean(cfg.vars && cfg.vars.ESCOLA_SLUG);
+    /* UMA CONFIG É DE ESCOLA QUANDO OS ASSETS DELA ESTÃO EM `publicacao/` (13/11/2026) — e não
+     * quando declara `ESCOLA_SLUG`: a `vars` deixou de ser o que diz a escola (passou a ser o mapa
+     * em KV, ver `mapa-de-escolas.js`), e uma prova que dependesse dela passaria a depender da
+     * configuração de um dia. A pasta dos assets é o que o Worker SERVE, e é isso que a regra
+     * negativa dos assets de cada pacote tem de cobrir. */
+    const dir = String((cfg.assets && cfg.assets.directory) || '').replace(/\\/g, '/');
+    const escola = dir.startsWith('publicacao/');
     provar(nome + ': `run_worker_first` é uma lista, e não `true`', Array.isArray(regra), regra);
     provar(nome + ': a lista manda `/assets/*` para o ASSETS',
       Array.isArray(regra) && regra.includes('!/assets/*'), regra);

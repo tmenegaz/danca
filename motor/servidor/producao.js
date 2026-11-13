@@ -45,6 +45,9 @@ const { fontesDoCicloProntas } = require('./geracao.js');
 // AS TRÊS LISTAS DO ACERVO (24/10/2026) — a anamnese, o plano de ensino e o PO listam REGISTOS,
 // e os registos vivem no KV. Ver o bloco 0.2 do `fetch`.
 const listasDoAcervo = require('./listas-do-acervo.js');
+/* A ESCOLA VEM DO DADO (13/11/2026) — o mapa `escolas/por-host` em KV, com cache de isolate.
+ * Ver `mapa-de-escolas.js`: é o que deixa de prender a identidade da escola ao deploy. */
+const mapaDeEscolas = require('./mapa-de-escolas.js');
 const aulasDadas = require('./aulas-dadas.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
@@ -272,6 +275,42 @@ function caminhoDaPorta(path, prefixo) {
  * barra que já trazia — degradar é melhor do que servir uma barra inventada.
  */
 let MENU_EM_CACHE = null;
+/**
+ * QUE ESCOLA É O PACOTE PUBLICADO NESTE WORKER (13/11/2026).
+ *
+ * Sem a `vars` `ESCOLA_SLUG`, a escola resolve-se pelo HOST — e nada confere se o conteúdo servido
+ * aqui é o dessa escola. É o deploy trocado de antes, com outra cara: `name` certo no wrangler e
+ * `assets.directory` de outra escola. O `escola.json` na raiz do pacote (escrito por
+ * `tools/montar-publicacao.js`) é a resposta a «que conteúdo é este?».
+ *
+ * Lê-se UMA vez por isolate: está no ASSETS (não é rede, e desde 13/11/2026 nem gasta invocação
+ * do Worker), e o pacote só muda num deploy — e um deploy reinicia os isolates.
+ *
+ * Devolve `null` quando o ficheiro não existe, e isso NÃO é erro: um pacote montado antes desta
+ * versão não o tem, e recusar servir por causa disso trocaria uma falha silenciosa por uma queda
+ * certa. Quem decide o que fazer com um `null` é quem chama.
+ */
+let PACOTE_EM_CACHE = null; // undefined = ainda não lido; null = não há ficheiro
+async function identidadeDoPacote(env) {
+  if (PACOTE_EM_CACHE !== undefined) return PACOTE_EM_CACHE;
+  if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+  try {
+    const res = await env.ASSETS.fetch(new URL('/escola.json', 'https://assets.local'));
+    if (!res.ok) { PACOTE_EM_CACHE = null; return null; }
+    const corpo = await res.json();
+    const slug = String((corpo && (corpo.escola || corpo.slug)) || '').trim();
+    PACOTE_EM_CACHE = slug || null;
+    return PACOTE_EM_CACHE;
+  } catch (erro) {
+    /* NÃO se guarda uma falha: uma leitura que estourou não prova que o ficheiro não existe, e
+     * guardá-la deixaria o isolate inteiro sem a conferência até morrer. */
+    return null;
+  }
+}
+
+/** Esquece o pacote lido — só as provas precisam disto (o isolate real morre no deploy). */
+function esquecerPacote() { PACOTE_EM_CACHE = undefined; }
+
 async function menuDaEscola(env) {
   if (MENU_EM_CACHE !== null) return MENU_EM_CACHE || null;
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
@@ -433,15 +472,50 @@ async function fetch(request, env) {
 
   // O subdomínio do pedido — a identidade de rede do Worker. Numa escola é
   // `<escola>.tmenegaz77.workers.dev`; na raiz é `danca.tmenegaz77.workers.dev`.
-  const subdominio = (url.hostname || '').split('.')[0];
+  const subdominio = mapaDeEscolas.subdominioDe(url.hostname);
 
-  // A TRAVA DE IDENTIDADE (não é o freio): esta ponte é de ESCOLA, e o
-  // `ESCOLA_SLUG` (vars do wrangler) tem de estar declarado E bater com o
-  // subdomínio. Antes, um deploy trocado — a config de uma escola num Worker de
-  // outra, ou a ponte de escola na raiz `danca` — era SILENCIOSO: a página
-  // «Escola desabilitada» aparecia sem dizer o que houve. Agora o erro é
-  // visível e aponta a causa: config × Worker trocados.
-  const identidadeOk = Boolean(env.ESCOLA_SLUG) && subdominio === env.ESCOLA_SLUG;
+  /* A ESCOLA VEM DO DADO, E NÃO DO DEPLOY (13/11/2026).
+   *
+   * Aqui esteve a trava que exigia `ESCOLA_SLUG` nas `vars` do wrangler e a comparava com o
+   * subdomínio. Ela fazia o seu trabalho — apanhava o deploy trocado —, e ao mesmo tempo
+   * prendia a identidade ao deploy: mudar um slug era reeditar e reimplantar, e cada escola
+   * exigia o seu próprio Worker com o seu próprio nome escrito na configuração.
+   *
+   * A escola passa a resolver-se por um mapa em KV (`escolas/por-host`, ver
+   * `mapa-de-escolas.js`), com cache de isolate. A trava NÃO se perdeu: mudou de lugar.
+   *   · mapa e `vars` a dizerem escolas diferentes → erro visível (`conflito`);
+   *   · sem entrada no mapa, vale a `vars` — e aí a comparação com o subdomínio continua, como
+   *     antes (`origem: 'vars'`);
+   *   · sem mapa e sem `vars` → não se serve nada.
+   */
+  const resolucao = await mapaDeEscolas.resolver(env, url.hostname);
+  const escolaResolvida = resolucao.escola;
+  if (escolaResolvida && escolaResolvida !== env.ESCOLA_SLUG) {
+    /* A CÓPIA, E NÃO A MUTAÇÃO. O `env` do Worker é partilhado pela invocação inteira; escrever
+     * nele deixaria o valor resolvido para o pedido seguinte se o runtime o reutilizasse. A cópia
+     * mantém o mesmo binding de KV (é a mesma referência) e o mesmo ASSETS, e todo o motor
+     * continua a ler `env.ESCOLA_SLUG` sem saber que a origem mudou. */
+    env = Object.assign({}, env, { ESCOLA_SLUG: escolaResolvida });
+  }
+
+  /* A IDENTIDADE DO CONTEÚDO — o que substitui a comparação que se perdeu.
+   *
+   * Sem a `vars`, o mapa diz a escola pelo HOST — mas ninguém confere se o pacote publicado neste
+   * Worker é o DESSA escola. É exactamente o deploy trocado de antes (a config de uma escola no
+   * Worker de outra), e ele continua a poder acontecer: `name` certo, `assets.directory` errado.
+   *
+   * O `escola.json` do pacote (`montar-publicacao.js` escreve-o) é a resposta a «que conteúdo é
+   * este?». Divergir dele é erro visível. Ausente, não se afirma nada — é o caso de um pacote
+   * montado antes desta versão, e recusar servir por isso seria trocar uma falha silenciosa por
+   * uma queda certa. */
+  const escolaDoPacote = await identidadeDoPacote(env);
+
+  const identidadeOk = Boolean(escolaResolvida)
+    && !resolucao.conflito
+    /* A comparação com o subdomínio SÓ vale no caminho da `vars`: é ali que ela é a única
+     * evidência que existe. Com o mapa, um domínio próprio (`ballet.exemplo.com.br`) resolve
+     * legitimamente por uma etiqueta que não é o slug. */
+    && (resolucao.origem !== 'vars' || subdominio === resolucao.esperada);
 
   // A SAÚDE (o «OK»): responde QUEM é este Worker e se a identidade bate — para
   // verificar um deploy com `curl`, não por visita à página. Responde também
@@ -453,10 +527,21 @@ async function fetch(request, env) {
       tipo: 'escola',
       slug: env.ESCOLA_SLUG || null,
       subdominio,
+      /* DE ONDE VEU A ESCOLA (13/11/2026). Sem isto, um diagnóstico de «por que esta escola está
+       * a servir outra coisa?» começa por adivinhar se o problema é o mapa, a var ou o pacote.
+       * `origem: 'mapa'` é o regime novo; `'vars'` é o de antes, e continua válido. */
+      origem: resolucao.origem,
+      por: resolucao.por,
+      escola_do_pacote: escolaDoPacote,
       habilitada: env.ESCOLA_HABILITADA !== 'nao',
       erro: identidadeOk
         ? null
-        : 'ESCOLA_SLUG ausente ou divergente do subdomínio — config × Worker trocados',
+        : (resolucao.conflito
+          ? 'o mapa de escolas diz «' + String(escolaResolvida) + '» e a vars diz «'
+            + String(resolucao.esperada) + '» — config × mapa trocados'
+          : (resolucao.origem === 'nada'
+            ? 'este host não está no mapa de escolas, e não há ESCOLA_SLUG — nenhuma escola reivindica este Worker'
+            : 'ESCOLA_SLUG divergente do subdomínio — config × Worker trocados')),
     };
     return new Response(JSON.stringify(corpo), {
       status: identidadeOk ? 200 : 500,
@@ -465,12 +550,36 @@ async function fetch(request, env) {
   }
 
   // A trava, de fato: sem identidade, NADA serve — erro visível, não freio.
+  /* O PACOTE DIZ OUTRA ESCOLA — e nenhuma das outras travas apanha isto, porque o host e a var
+   * podem estar certos e o `assets.directory` errado. Só o conteúdo sabe que conteúdo é, e é por
+   * isso que ele é conferido. */
+  if (identidadeOk && escolaDoPacote && escolaDoPacote !== escolaResolvida) {
+    return respostaEstado('Configuração incorreta do Worker',
+      '<p>O mapa de escolas diz que este host é da escola <code>' + esc(escolaResolvida) +
+      '</code>, e o pacote publicado aqui é o da escola <code>' + esc(escolaDoPacote) +
+      '</code>.</p>' +
+      '<p>Provável causa: <code>assets.directory</code> de outra escola no ' +
+      '<code>wrangler</code> deste Worker. Reimplante com a config da escola certa.</p>' +
+      '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>', 500);
+  }
+
   if (!identidadeOk) {
     return respostaEstado('Configuração incorreta do Worker',
-      '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o ' +
-      '<code>ESCOLA_SLUG</code>.</p>' +
-      '<p>Subdomínio: <code>' + esc(subdominio) + '</code> · ESCOLA_SLUG: <code>' +
-      esc(env.ESCOLA_SLUG || '(ausente)') + '</code></p>' +
+      (resolucao.conflito
+        ? '<p>O mapa de escolas e a <code>vars</code> deste Worker dizem escolas diferentes.</p>' +
+          '<p>Mapa: <code>' + esc(escolaResolvida) + '</code> · ESCOLA_SLUG: <code>' +
+          esc(resolucao.esperada) + '</code></p>'
+        : (resolucao.origem === 'nada'
+          ? '<p>Nenhuma escola reivindica este Worker: o host <code>' + esc(url.hostname) +
+            '</code> não está no mapa de escolas e não há <code>ESCOLA_SLUG</code>.</p>'
+          : '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o ' +
+            '<code>ESCOLA_SLUG</code>.</p>' +
+            '<p>Subdomínio: <code>' + esc(subdominio) + '</code> · ESCOLA_SLUG: <code>' +
+            esc(env.ESCOLA_SLUG || '(ausente)') + '</code></p>')) +
+      (escolaDoPacote && escolaResolvida && escolaDoPacote !== escolaResolvida
+        ? '<p>E o pacote publicado aqui é o da escola <code>' + esc(escolaDoPacote) +
+          '</code> — o <code>assets.directory</code> desta config é de outra escola.</p>'
+        : '') +
       '<p>Provável causa: <code>wrangler deploy</code> com a config de outra escola (ou da raiz) ' +
       'neste Worker. Reimplante com <code>wrangler deploy -c wrangler.&lt;escola&gt;.jsonc</code>.</p>' +
       '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>', 500);
@@ -819,5 +928,9 @@ module.exports = {
   /* A MONTAGEM DA CADEIA, exportada para a prova (09/11/2026). A prova mede a MESMA função que
    * a ponte usa — reconstruí-la na bancada mediria a bancada, não a ligação. */
   montarCadeia,
+  /* A IDENTIDADE DO PACOTE E O ESQUECIMENTO DO CACHE — para as provas poderem exercer os dois
+   * lados sem esperar que um isolate morra (13/11/2026). */
+  identidadeDoPacote,
+  esquecerPacote,
   __armazenamento: (env) => criarArmazenamento(env),
 };

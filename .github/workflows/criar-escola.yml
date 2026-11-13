@@ -135,6 +135,23 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
 
+      # O MAPA DE ESCOLAS ANTES DO DEPLOY (13/11/2026). A escola de um pedido deixou de vir da
+      # `vars` `ESCOLA_SLUG` e passou a vir do mapa `escolas/por-host`, em KV. A ordem é a única
+      # que funciona: **primeiro escreve-se o mapa, só depois é que o Worker sobe**. Ao contrário,
+      # a escola nasceria sem ninguém saber de quem é o Worker — e a página que ela veria seria a
+      # de configuração incorrecta.
+      #
+      # O passo lê as configurações (é delas que o mapa sai), e por isso apanha a escola que o
+      # passo anterior acabou de gerar. Não falha o build por um KV que já está em dia.
+      - name: Publicar o mapa de escolas
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/publicar-mapa-de-escolas.js
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
       - name: Subir o motor completo no Cloudflare
         id: motor
         shell: bash
