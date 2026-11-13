@@ -2573,14 +2573,20 @@ decisão.
   campo `aula` já no `contexto` do pedido, para a quarta ser ligá-lo quando a tela nascer; (e) o
   registo de custo com `modelo`, `ferramentas[]` e `neurons_estimados`; (f)
   `experimentos/provar-agente.js`; (g) a **escada de melhoria** do modelo antes de subir para o 70B
-  (§7.2.1 do `ARQUITETURA-AGENTE.md`), medida com os mesmos 20 casos em cada degrau.
+  (§7.2.1 do `ARQUITETURA-AGENTE.md`), medida com os mesmos 20 casos em cada degrau; (h) o **recorte
+  do formulário pelo servidor** e as **quatro ausências** distintas nos leitores (§4.2 e §5.10 do
+  mesmo documento); (i) a **prova de seleção das ferramentas**, que só corre com o modelo real e é
+  dosada (§9.4).
 - **Critérios verificáveis.** (i) O registo de ferramentas é **só de leitura** e a prova mede isso
   por lista, não por confiança; (ii) `tools/list` do MCP é idêntico ao registo do núcleo; (iii) os
   tectos (4 voltas, 8 ferramentas, 12.000 tokens de resultado) fecham o laço e a resposta diz qual
   fechou; (iv) uma interação típica gasta **1 a 6 subpedidos** e o **rebuild do índice nunca corre
   dentro do laço**; (v) o `Neurons` por interação está medido e gravado; (vi) o agente **não tem**
   ferramenta que escreva, publique ou dispare `workflow_dispatch`; (vii) nenhum degrau da escada é
-  adoptado sem os 20 casos a dizer o que mudou.
+  adoptado sem os 20 casos a dizer o que mudou; (viii) **nenhuma ferramenta devolve envelope de outro
+  professor** nem decifra anamnese, e a prova mede-o; (ix) as **quatro ausências** chegam distintas, e
+  a `indisponivel` não se confunde com `nao_existe`; (x) o pedido leva o **recorte** do formulário, não
+  os 27.538 B — medido em bytes, não em intenção.
 - **Riscos e decisões por confirmar.** (a) O 8B AWQ **aceita `tools`** no Workers AI? (se não, o
   transporte passa a «JSON no texto» + validação em tempo de execução); (b) **10.000 Neurons por dia
   são da conta, não da escola** — três escolas a usar o agente consomem a mesma cota (≈116

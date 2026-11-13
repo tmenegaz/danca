@@ -19,7 +19,19 @@
 > primeiro**, e a aula 2, 3, … N depois; **a anamnese saiu** da lista, por não ser redação pedagógica; **o crédito é o Neuron**;
 > o agente **pode citar o apelido** (apelido e só apelido, P-12); e **antes de subir para o 70B
 > aprimora-se** — a escada prompt → exemplos → ferramentas → amostragem, cada degrau medido com os
-> mesmos 20 casos, e o 70B só depois, declarando o que já se tentou. **CONFIRMADO que
+> mesmos 20 casos, e o 70B só depois, declarando o que já se tentou. **E o documento foi revisto por
+> fora, e a revisão mudou contratos:** o contexto passou a ser **dois** (interface × autorização), e o
+> furo que isso expôs é o item que importa — `ler_envelopes` **não recortava por professor**, num
+> Worker cujos `GET /api/envelopes` e `/api/envelope/:id` são públicos: dava a **estante inteira da
+> escola** num pedido (§4.1, §5.2, agora corrigido, com o recorte do servidor e de graça); o schema do
+> formulário vai **recortado pelo servidor** e **não inteiro**, porque o do PO são 27.538 B ≈ **77
+> Neurons por interação** contra os ≈86 da interação toda (§4.2); a proveniência do documento
+> (`ancora`, `gerado_em`, `ajuste_de`) vai na saída e **já existia** no envelope (§5.2); a **seleção**
+> das ferramentas ganhou uma prova própria, porque a bancada com `env.AI` falso **não a mede** — e
+> custa ~1.720 Neurons por passagem (§9.4); e as **quatro ausências** (não existe · vazia · não se
+> aplica · indisponível) passaram a ser distintas, porque o código de hoje **funde** duas delas em três
+> `catch` medidos (§5.10). Estimativa ≈23 → **≈25 dias**. Fica **PENDENTE** a identidade do professor
+> na Porta — é a única que não se resolve com contrato (§4.1). **CONFIRMADO que
 > nada está implementado:** não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não há
 > `motor/servidor/agente.js` nem `mcp.js`, não há rota. O que **mudou** foi a documentação: a
 > frente **L15** nasceu no `PLANEJAMENTO-LASTRO.md`, o **§L7** (que dizia que a IA «não é mecanismo

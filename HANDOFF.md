@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:33:45-0300`
-Commit atual: `68fb3605` — docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
+Gerado em: `2026-11-12T22:53:38-0300`
+Commit atual: `847ba948` — docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
 0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
 c2a4254b chore(estrutura): regerar o HANDOFF
@@ -92,7 +93,6 @@ daa44654 chore(estrutura): reancorar a cadeia das fontes alteradas
 b4eb042b chore(estrutura): regerar os índices derivados
 0569a3b2 chore(estrutura): regerar os índices derivados
 48f0727e feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
-71dada2b feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -311,6 +311,58 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 > fronteira do §1 (o agente propõe, o professor grava; não avalia) continuam como estavam — e a
 > quarta resposta **reforça-as**: nenhum degrau da escada é adoptado sem medição.
 
+> **A revisão externa do documento (12/11/2026), e o que ela corrigiu.** O `ARQUITETURA-AGENTE.md` foi
+> lido por fora e voltou com cinco propostas incrementais. A arquitetura central — MCP + busca
+> estruturada, sem RAG — foi **mantida**, e a leitura confirma o fundamento: o problema que o RAG
+> resolve não aparece na estrutura documental do Lastro. Quatro propostas mudaram contratos e uma
+> mudou um número da estimativa; uma encontrou um **furo real** no que eu tinha escrito:
+>
+> 1. **Contexto de interface × contexto de autorização.** O pedido carrega dois contextos e eles não
+>    têm o mesmo estatuto. Verificado: a **escola** já não se contesta (`ESCOLA_SLUG` é `vars` do
+>    Worker, conferido contra o subdomínio; um `escola` no corpo é sobrescrito por
+>    `comAEscolaDoWorker`). O **professor**, sim: hoje o `professor` vem do **corpo do pedido**, e a
+>    guarda que existe é de **atribuição** («esta turma está curada para este professor?» — a regra
+>    de 27/10/2026), não de identidade. **O furo que isto expôs:** `ler_envelopes` no meu contrato
+>    **não recortava por professor** — e `GET /api/envelopes` e `GET /api/envelope/:id` são públicos
+>    dentro do Worker da escola. Com aquela ferramenta, quem soubesse um slug teria **a estante
+>    inteira da escola** num pedido só, em texto corrido. **Corrigido**: recorte por professor, feito
+>    **no servidor**, e de graça — o resumo do índice já traz `professor`. Mais: `escopo` declarado em
+>    `ler_turma` (a mesma regra da curadoria) e a anamnese **nunca decifrada** (a ferramenta devolve
+>    `cifrado: true`, porque o agente não tem a `SENHA_CRIPTO`).
+> 2. **O schema do formulário em edição.** Aceite, com uma correção de mérito: **não** o formulário
+>    inteiro. Medido — o schema do PO são **27.538 B ≈ 6.885 tokens ≈ 77 Neurons por interação**, e a
+>    interação inteira custa ≈ 86: mandá-lo em todos os pedidos **quase duplicaria o custo de tudo**
+>    para falar de campos que não se editam. E o recorte é **do servidor**, a partir da cópia do
+>    `ASSETS` (0 subpedidos): o cliente manda **qual campo**; o servidor monta o recorte, valida o
+>    nome e recusa o desconhecido. A razão não é zelo — **o tamanho do pedido é dinheiro**, e um
+>    schema de 1 MB enviado pelo cliente queima Neurons a cada pergunta.
+> 3. **Proveniência na saída.** Aceite, e mais barato do que parecia: `ancora`, `gerado_em` e
+>    `ajuste_de` **já existem** no envelope (lido nos `po-*.json` do `calango`). Não há dado a criar —
+>    só a pôr na resposta, para a tela poder distinguir «sugeriu a partir do plano de 08/11» de
+>    «sugeriu a partir do ajuste de 12/11».
+> 4. **Testar a seleção das ferramentas.** Aceite, com a distinção que a bancada obriga e que eu não
+>    tinha escrito: **com `env.AI` falso não se mede seleção** — mede-se o encanamento. A seleção é
+>    comportamento do modelo e só se mede com o modelo, e **custa**: 20 casos ≈ **1.720 Neurons**
+>    (~17 % da cota diária) e uma passagem da escada do §7.2.1 ≈ **8.600** (quase um dia). Daí as
+>    regras: conjunto fixo e versionado, uma passagem por degrau, e a bancada grátis a correr sempre.
+> 5. **As quatro ausências.** Aceite, e o código de hoje **funde** dois desses casos em três sítios
+>    **medidos** em 12/11/2026: `linhaDeBaseDaTurma` (`catch { return null }`), a queda de
+>    `linhasDeBaseDaEscola` para o KV (`catch { return lerLista(…) }`) e o `catch` vazio de
+>    `anamnesesDaTurma`. Uma linha de base passa a devolver `{estado: nao_existe | vazia |
+>    nao_se_aplica | indisponivel}` — e a quarta é a que já custou caro neste projeto: em 18/10/2026 a
+>    cota do KV acabou e as fichas apareceram «sem apelido», uma falha de leitura com a cara de
+>    ausência de dado (`AGENTS.md`).
+>
+> **O que a revisão obrigou a decidir, e ainda não está decidido.** O item 1 não tem **de onde**
+> tirar a identidade do professor: a Porta não identifica ninguém — há senha da direção nos Bastidores
+> e senha de escrita no lançamento, mas o `contexto.professor` do PO e do plano é declarado pelo
+> cliente. Ficaram três saídas na §4.1 (painel só nos Bastidores; identificador de professor na
+> Porta; ou usar o professor declarado **e dizê-lo**) e **a recomendação é a terceira agora, a segunda
+> depois** — mas a decisão é dela, e o documento não a toma.
+>
+> **O que a estimativa passou a ser:** ≈23 → **≈25 dias** (as provas sobem 3 → 3,5 pelos três blocos
+> novos com negativo; o recorte do formulário e as quatro ausências acrescentam 1,5).
+
 **O que ainda não está feito.**
 
 - **Nada do agente está implementado.** Não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não
@@ -334,6 +386,12 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
   depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
+- **A identidade do professor na Porta não existe** (§4.1). É o único item da revisão de 12/11/2026
+  que **não** se resolve com contrato: depende de uma decisão de produto, e sem ela o recorte por
+  professor não tem de onde tirar o professor. **PENDENTE** de decisão dela.
+- **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
+  tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
+  custo que o vai dizer.
 
 ## O que está pendente
 
@@ -396,6 +454,12 @@ cadeia, não a propagação. Fica declarado.
   depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
+- **A identidade do professor na Porta não existe** (§4.1). É o único item da revisão de 12/11/2026
+  que **não** se resolve com contrato: depende de uma decisão de produto, e sem ela o recorte por
+  professor não tem de onde tirar o professor. **PENDENTE** de decisão dela.
+- **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
+  tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
+  custo que o vai dizer.
 
 ## Pendências anteriores (índice)
 

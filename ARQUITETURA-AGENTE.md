@@ -217,6 +217,83 @@ mesma invocação**; não há `waitUntil` nem trabalho de fundo. Se o tecto de s
 resposta é uma **recusa com motivo e com o que já se apurou** — nunca um 500 a meio, que é o defeito
 que o §5.26 do `ARQUITETURA-GERAL.md` já pagou uma vez.
 
+### 4.1 O contexto em duas partes — interface × autorização
+
+*(Acrescentado a 12/11/2026, a partir de uma revisão da arquitetura.)* O pedido carrega **dois
+contextos, e eles não têm o mesmo estatuto**:
+
+| | O que é | De onde vem | Pode ser contestado pelo cliente? |
+|:--|:--|:--|:--|
+| **Contexto de interface** | qual formulário está aberto, qual campo se edita, qual turma está escolhida, o recorte do schema do formulário | **do cliente** | **Sim** — se ele mentir, recebe ajuda pior, e mais nada |
+| **Contexto de autorização** | **qual escola**, e **quem é o professor** | **do servidor**, da identidade do Worker e da sessão | **Não** — nunca |
+
+**A escola já não se contesta.** `ESCOLA_SLUG` é `vars` do Worker e é conferido contra o subdomínio
+(`producao.js`): o pedido não escolhe a escola, e um `escola` no corpo é **sobrescrito** — é o que
+`comAEscolaDoWorker` já faz em `rotas.js`. O agente **não tem** parâmetro de escola em ferramenta
+nenhuma (§5).
+
+**O professor é o que ainda não está fechado, e tem de ficar.** Hoje o `professor` do plano vem do
+**corpo do pedido** (`corpo.contexto.professor`), e a guarda que existe é outra: *esta turma está
+curada para este professor?* — a regra de 27/10/2026, com a razão escrita no próprio código («um
+filtro de tela não é uma regra»). É uma guarda de **atribuição**, não de **identidade**: quem envia
+um `POST` à mão diz que é quem quiser, e é aceite se a turma for daquele professor.
+
+**O que isto obriga no agente, e é a parte nova.** As ferramentas leem **a escola inteira** — e hoje
+`GET /api/envelopes` e `GET /api/envelope/:id` são públicos dentro do Worker da escola. Um agente com
+`ler_envelopes` sem recorte de professor daria a qualquer pessoa que conheça um slug **a estante
+inteira da escola**, num pedido só, em texto corrido. Por isso:
+
+1. **Toda ferramenta recebe o professor do servidor, não do pedido.** O `contexto.professor` do corpo
+   é usado para *interface* (mostrar «Assistente · PO · turma Piano») e **substituído** pela
+   identidade do servidor antes de qualquer leitura.
+2. **`ler_envelopes` recorta pelo professor**, e o recorte é **de graça**: o resumo do índice já traz
+   `professor` e `escola` — não há leitura a mais (ver §5.2).
+3. **Nenhuma ferramenta aceita `escola`** — a fronteira é o Worker, e a ferramenta nem tem para onde
+   ir (§5.9, que já o dizia, agora com a razão).
+4. **A recusa é explícita.** Quando a identidade do servidor não existe (ambiente sem sessão, bancada),
+   a ferramenta responde `{recusa}` em vez de degradar para «todos» — degradar é o que transforma uma
+   limitação de bancada numa fuga de dados.
+
+**PENDENTE, e é decisão de produto, não de código:** o projeto **não tem** identificação do professor
+na Porta — há senha da direção nos Bastidores e senha de escrita no lançamento, mas o
+`contexto.professor` do PO e do plano é declarado pelo cliente. Enquanto for assim, o item 1 acima
+**não tem de onde tirar a identidade**. As três saídas honestas, para ela decidir: *(a)* o painel do
+agente só abre com a senha da escola (Bastidores) — e perde as três superfícies da Porta; *(b)*
+nasce um identificador de professor na Porta (frente própria); *(c)* o painel da Porta usa o
+professor declarado **e diz que o usa** — declara a limitação em vez de a esconder. **A recomendação
+é (c) agora, (b) depois** — mas nenhuma das três se implementa sem esta decisão, e o documento não a
+toma por ela.
+
+### 4.2 O recorte do formulário — e por que ele não vem inteiro
+
+*(Idem.)* O agente precisa de conhecer **a estrutura do formulário que está a ajudar a preencher**:
+os campos, os tipos, o que é obrigatório, as opções permitidas, as dependências. O documento já
+exigia respeitar o schema (P-08); o que faltava era **dizer como ele chega ao pedido**.
+
+**O formulário inteiro não pode ir, e a razão é medida.** O schema do PO são **27.538 B ≈ 6.885
+tokens**; o do plano, **32.273 B ≈ 8.068 tokens**. A 11.161 Neurons por milhão de entrada
+(§7.2), o schema do PO sozinho custa **≈ 77 Neurons por interação** — quase o mesmo que a interação
+inteira (≈ 86). Mandá-lo em todos os pedidos **duplicaria o custo de tudo** para dizer ao modelo
+coisas sobre campos que não estão a ser editados.
+
+**O recorte é por campo, e é do servidor.** O cliente manda **qual campo** (`campo: 'objetivos-…'`),
+e o servidor monta o recorte a partir da **sua própria cópia** do schema — que já está no `ASSETS`
+(`porta/po/conteudo/po.json`, `porta/plano/conteudo/plano.json`), a **0 subpedidos**. Três razões
+para o recorte ser do servidor e não do cliente:
+
+1. **O schema é conteúdo, e a cópia do servidor é a verdadeira.** Um cliente que mande um schema
+   alterado receberia ajuda sobre um formulário que não existe.
+2. **O tamanho do pedido é dinheiro.** Um cliente que mandasse 1 MB de «schema» queimaria Neurons a
+   cada pergunta; com o recorte no servidor, o tecto é o do formulário real.
+3. **O `campo` é validado.** Um campo que não existe no schema ⇒ `{recusa: 'campo desconhecido'}` —
+   em vez de o modelo inventar uma explicação para um campo inventado.
+
+**O que vai no recorte:** o nó do campo em edição (o texto, o tipo, o `obrigatorio`, as `opcoes`, o
+`explicacao.oQueE`/`preencher`), o **irmão** anterior e o seguinte quando a ordem importa, e a
+**lista de campos obrigatórios ainda em falta** — que é o que faz o agente dizer «falta o volume»
+em vez de escrever um objetivo sem volume. Medido: o nó maior do PO (`Sujeitos observados`) tem
+**2.449 B ≈ 610 tokens**; o recorte típico fica na ordem das centenas de tokens, não dos milhares.
+
 ---
 
 ## 5. Os contratos das ferramentas MCP
@@ -278,7 +355,7 @@ que ele **lê**: o retrato da aluna informa o plano, e lê-lo não é o mesmo qu
 ```json
 {
   "nome": "ler_envelopes",
-  "descricao": "Lista os envelopes da escola (nomes e resumos) ou abre um envelope pelo id. Use para 'qual o plano anterior', 'o que foi respondido na anamnese', 'que POs existem'.",
+  "descricao": "Lista os envelopes DO PROFESSOR em edição (nomes e resumos) ou abre um pelo id. Use para 'qual o plano anterior', 'que POs existem', 'o que foi respondido'. A anamnese volta CIFRADA: nunca a decifres nem a cites.",
   "entrada": {
     "type": "object",
     "properties": {
@@ -296,6 +373,10 @@ que ele **lê**: o retrato da aluna informa o plano, e lê-lo não é o mesmo qu
         "properties": {
           "id": { "type": "string" }, "tipo": { "type": "string" },
           "resumo": { "type": ["string", "null"] },
+          "gerado_em": { "type": "string", "description": "o carimbo do documento (YYYY-MM-DDTHH:MM)" },
+          "ancora": { "type": ["object", "null"], "description": "o elo do documento: hash e o de que ele veio" },
+          "ajuste_de": { "type": ["string", "null"], "description": "o id do documento que este ajusta" },
+          "cifrado": { "type": "boolean", "description": "true = as respostas não foram entregues (anamnese)" },
           "contexto": { "type": "object", "properties": {
             "professor": { "type": "string" }, "turma": { "type": "string" },
             "ciclo": { "type": "string" }, "escola": { "type": "string" } } }
@@ -305,10 +386,27 @@ que ele **lê**: o retrato da aluna informa o plano, e lê-lo não é o mesmo qu
     },
     "required": ["envelopes"]
   },
+  "escopo": "SERVIDOR: filtra por professor da sessão e rejeita id de outro professor (403). O resumo do índice já traz `professor`, portanto o filtro não custa leitura a mais.",
   "fonte": "escola/<slug>/envelopes/.indice.json + GET /api/envelope/:id · GET /api/envelopes",
   "custo": "1 leitura de índice (KV) + 1 leitura de envelope por id pedido"
 }
 ```
+
+**Três decisões que a revisão de 12/11/2026 acrescentou a este contrato:**
+
+1. **O recorte por professor é do servidor, e é de graça.** O resumo do índice já é
+   `{id, fonte, escola, professor, ciclo, ajuste_de, gerado_em, sujeitos, plano}` — o `professor`
+   está lá. Filtrar é comparar uma string que já se leu. Sem o filtro, a ferramenta entregava a
+   **estante inteira da escola** num pedido (§4.1).
+2. **A anamnese nunca é decifrada.** As respostas da anamnese estão cifradas em repouso com a
+   `SENHA_CRIPTO` da escola (`acervo-envelopes.js`), e o agente **não recebe essa chave**. A
+   ferramenta devolve o envelope com `cifrado: true` e sem `respostas` — o modelo vê que existe e
+   **que não pode ler**, e a recusa é do contrato, não da boa vontade do prompt. *(Ler o retrato da
+   aluna para informar o plano é legítimo; decifrá-lo para dentro de um prompt, não.)*
+3. **A proveniência do documento vai na saída.** `gerado_em`, `ancora` e `ajuste_de` **já existem**
+   no envelope — não há dado novo a criar. Ir na resposta permite à tela distinguir «sugeriu a partir
+   do plano de 08/11» de «sugeriu a partir do ajuste de 12/11», que num sistema de cadeia é a
+   diferença entre dois conselhos diferentes (§4, forma da resposta).
 
 ### 5.3 `ler_turma`
 
@@ -352,6 +450,7 @@ mesma e a composição é do servidor — não do modelo.
     },
     "required": ["turma"]
   },
+  "escopo": "SERVIDOR: a turma tem de estar curada para o professor da sessão (a regra de 27/10/2026, a mesma de `POST /api/elicitar`); fora disso, 403 com o motivo e a lista das turmas dele.",
   "fonte": "KV bastidores/<escola>/curadorias · turmas · linhas-de-base + motor/nucleo/estado-da-turma.js + linha-de-base.js",
   "custo": "1 a 4 leituras de KV"
 }
@@ -539,6 +638,44 @@ devolve `medida + caminho + elo`, ou recusa com o motivo.
   fronteira.
 - **Um envelope de outro professor**, quando a pergunta é do PO de um professor — a estante já chega
   recortada, e uma ferramenta que a furasse recriaria o defeito da autoria trocada (12/11/2026).
+  **Isto passou a ser regra do contrato a 12/11/2026** (§4.1 e §5.2), e não uma consequência da
+  estante.
+- **Resposta de anamnese.** Cifrada em repouso com uma chave que o agente não tem; a ferramenta
+  devolve `cifrado: true` e nada dentro.
+
+### 5.10 Quando não há — as quatro ausências, e por que não podem ser a mesma coisa
+
+*(Acrescentado a 12/11/2026.)* O §5 já fixava a regra no topo: nem o dado nem `{recusa, pedido}` —
+nunca um vazio que se lê como zero. A revisão mostrou que a regra precisa de descer **aos campos
+internos** do resultado, porque uma linha de base pode estar em **quatro** estados e um `null`
+responde a todos com a mesma palavra:
+
+| Estado | O que é | O que a ferramenta devolve |
+|:--|:--|:--|
+| **Não existe** | a escola nunca declarou linha de base para aquela turma | `{estado: 'nao_existe', valor: null}` |
+| **Existe e está vazia** | foi declarada e não foi preenchida (o `[Preencher: …]`) | `{estado: 'vazia', valor: null, lacunas: n}` |
+| **Não se aplica** | a turma não tem aquele campo por natureza (ex.: linha de base de uma turma sem elenco) | `{estado: 'nao_se_aplica', motivo: '…'}` |
+| **Indisponível** | houve falha na leitura — KV fora, cota diária, 500 | `{estado: 'indisponivel', erro: '…'}` |
+
+**A quarta é a que já custou dinheiro neste projeto.** Em 18/10/2026 a cota diária do KV acabou e as
+fichas passaram a aparecer **«sem apelido»** — a falha de leitura chegou à tela com a cara de
+ausência de dado (está escrito no `AGENTS.md`, e é a razão da disciplina de medição). Um agente a
+quem se entrega `null` para os quatro casos faz a mesma confusão, mas a **escreve num plano**: «não
+há linha de base» e «não consegui ler» produzem sugestões diferentes, e só uma delas é verdade.
+
+**Como se cumpre, e o que já existe para isso.** O código de hoje **funde** os dois casos em pelo
+menos dois sítios, e foram medidos em 12/11/2026:
+
+- `linhaDeBaseDaTurma` (`producao.js`) tem `catch { return null }` — falha de leitura e ausência de
+  linha devolvem o mesmo `null`;
+- `linhasDeBaseDaEscola` cai no KV (`catch { return lerLista('linhas-de-base') }`) — uma falha em vez
+  de uma lista, e uma lista vazia lê-se como «a escola não tem linhas de base»;
+- `anamnesesDaTurma` engole o erro num mapa vazio.
+
+**Nada disto é defeito novo do agente — é a razão de ele não poder herdar o `null`.** O que fica
+decidido: os leitores que o agente usa **dizem o estado**, e o mapeamento `null → estado` faz-se no
+lugar onde a falha é conhecida (o `catch`), não depois. É a mesma lei do §5.26 aplicada à leitura:
+**não se começa o que não coube, e não se afirma o que não se leu.**
 
 ---
 
@@ -771,6 +908,43 @@ devolve `tool_calls` guionados. As asserções, com controlo negativo onde ele m
    `ferramentas` não vazio.
 9. **Controlo negativo do prompt:** sem a regra 3 (§6), o guião devolve o nome de um exercício que
    não está no vocabulário — e é a regra que impede a resposta de sair.
+10. **O contexto em duas partes** (§4.1): um `contexto.professor` do corpo diferente do da sessão
+    **não** muda o que a ferramenta lê; `ler_envelopes` não devolve envelope de outro professor; a
+    anamnese volta `cifrado: true` e sem `respostas`.
+11. **As quatro ausências** (§5.10) chegam distintas — e a `indisponivel` não se confunde com
+    `nao_existe` num leitor que falha.
+12. **O recorte do formulário** (§4.2): o pedido de um campo leva o nó e os vizinhos, não os 27.538 B;
+    um campo inexistente recusa.
+
+### 9.4 A seleção das ferramentas — a prova que a bancada **não** pode dar
+
+*(Acrescentado a 12/11/2026.)* A §9.3 mede o **encanamento**: contratos, recusas, tectos, recorte. E
+tem um limite que é preciso dizer em voz alta: **com um `env.AI` falso, ela não mede se o Llama escolhe
+a ferramenta certa** — mede se o código sabe executar a escolha que o guião lhe deu. A seleção é
+comportamento do modelo, e só se mede com o modelo.
+
+**Os casos, um por linha, e o que cada um verifica:**
+
+| Pergunta do professor | Ferramenta(s) esperada(s) | O que reprova |
+|:--|:--|:--|
+| «que ciclos esta escola tem?» | `ler_ciclos` | responder sem fonte |
+| «o que dizia o plano anterior desta turma?» | `ler_envelopes` (tipo `plano`) | responder de memória |
+| «sugere um objetivo para esta aula» | `ler_turma` **e** `ler_envelopes` | sugerir sem a linha de base |
+| «decompõe o Grand battement» | `ler_vocabulario` **e** `ler_notacao` | inventar a decomposição |
+| «quantas aulas tem o ciclo?» | `perguntar_ao_catalogo` (CT01) | inventar um número |
+| «quem escreveu *O Lago dos Cisnes*?» | **nenhuma — recusa** | responder fora da superfície |
+
+**A prova não exige uma sequência rígida.** Exige duas coisas: que o agente tenha obtido **as fontes
+necessárias**, e que **não tenha respondido sem elas**. Caminhos diferentes para as mesmas fontes
+passam; responder bem por sorte, sem fonte, não passa.
+
+**E custa Neurons, o que a torna uma prova a dosear.** Cada caso é uma interação: 20 casos ≈ **1.720
+Neurons**, ou ~17 % da cota diária gratuita. Uma passagem da escada do §7.2.1 (cinco degraus) ≈
+**8.600 Neurons** — quase um dia inteiro de cota. Consequências declaradas: *(a)* o conjunto de casos
+é **fixo e versionado** (mede o mesmo em todos os degraus; um conjunto que muda não mede nada);
+*(b)* corre-se **uma vez por degrau**, não a cada alteração; *(c)* a bancada de encanamento (§9.3)
+continua a correr **sempre**, porque é grátis; *(d)* o número de Neurons de cada passagem vai para o
+registo de custo (§7.3), que é o mesmo que a cota por plano vai ler.
 
 ---
 
@@ -915,11 +1089,12 @@ Dias de desenvolvimento, com uma desenvolvedora, incluindo as provas e o ritual 
 | UI (o painel em **três** superfícies, sem peça nova) | **3** | `.bloco-lista` + `.campo` + `.acao` + `.veu`; o trabalho é o cliente, o contexto por superfície e a acessibilidade. **Eram 2** quando a estimativa previa duas superfícies: a de 12/11/2026 são três que existem, e cada uma manda um contexto diferente |
 | UI do painel da **aula N** | **0 agora** | A tela da aula não existe (`PLANO-NAVEGACAO.md` §9.2, proposto e não feito). O painel dela é ≈1 dia, **quando a tela nascer** — e não é custo desta frente |
 | Contador e limites (KV no contador, tectos, leitura do registo) | **2** | Mexe no `subpedidos.js`, que é decisão congelada por §5.26 |
-| Provas (`provar-agente.js` + negativos + bancada com `env.AI` falso) | **3** | Nove asserções, uma delas com controlo negativo do prompt |
+| Provas (`provar-agente.js` + negativos + bancada com `env.AI` falso) | **3,5** | Doze asserções (eram nove): o contexto em duas partes, as quatro ausências e o recorte do formulário são três blocos novos, e cada um tem negativo |
+| O recorte do formulário no servidor (§4.2) + as quatro ausências nos leitores (§5.10) | **1,5** | Mexe em cada uma das oito ferramentas e nos leitores que as alimentam; o mapeamento `null → estado` faz-se no `catch`, e são três `catch` a rever |
 | Avaliação da qualidade do 8B (20 casos reais, medidos) | **2** | Sem isto só se sabe que o encanamento funciona — não que o texto presta |
 | A escada do §7.2.1 (prompt, exemplos, ferramentas, amostragem — medidos um a um) | **2** | É o degrau 1–4; sem ele o 70B é a primeira resposta em vez da última |
 | Documentação (este ficheiro já está; nota de obsolescência, `REGISTRO`, `ESTADO`, `PLANEJAMENTO`) | **1** | — |
-| **Total** | **≈ 23 dias** | |
+| **Total** | **≈ 25 dias** | |
 
 **O que a estimativa não inclui, e deve ser dito:** a qualidade do Llama 3.1 8B em português
 pedagógico continua a ser uma **incógnita medida, não resolvida** — os 2 dias da avaliação e os 2 da
@@ -966,13 +1141,29 @@ escada são para a medir e para a melhorar. O 70B **não está nesta conta**: el
    demasiado é inútil; um que inventa é pior do que inútil. A prova mede o mecanismo; a qualidade do
    limiar mede-se com os 20 casos — e é o primeiro degrau da escada, não o último.
 
+**O que a revisão de 12/11/2026 acrescentou, e onde ficou.** Cinco propostas vieram de uma leitura
+externa do documento. Quatro foram aceites e mudaram contratos; uma foi aceite com uma correção de
+mérito:
+
+| # | Proposta | Veredicto | Onde |
+|:--|:--|:--|:--|
+| 1 | Separar contexto de **interface** de contexto de **autorização** | **Aceite**, e encontrou um furo no contrato: `ler_envelopes` não recortava por professor, e o `professor` do pedido é declarado pelo cliente | §4.1, §5.2, `escopo` em `ler_turma`, §5.9 |
+| 2 | Dar ao agente o **schema do formulário em edição** | **Aceite, com correção**: **não** o formulário inteiro (27.538 B ≈ 77 Neurons por pedido), e o recorte é **do servidor**, não do cliente — o tamanho do pedido é dinheiro | §4.2 |
+| 3 | Tornar a proveniência verificável na **saída** (`versao`/`hash`) | **Aceite**, e mais barato do que parecia: `ancora`, `gerado_em` e `ajuste_de` **já existem** no envelope | §5.2 |
+| 4 | Testar a **seleção** das ferramentas, não só o funcionamento | **Aceite**, com uma distinção que a bancada obriga: com `env.AI` falso **não se mede seleção** — só com o modelo real, e isso custa Neurons | §9.4 |
+| 5 | Tratar ausência, vazio, não aplicável e indisponível como coisas diferentes | **Aceite**, e o código de hoje **funde** dois desses casos em três sítios medidos | §5.10 |
+
 **O que continua em aberto** *(nenhum item bloqueia a documentação; os dois primeiros bloqueiam a
 implementação)*
 
-1. **A conversão comercial do crédito** — quantos Neurons por franquia, qual o excedente. A unidade
+1. **A identidade do professor na Porta** — o projeto não a tem (§4.1). Enquanto o
+   `contexto.professor` for declarado pelo cliente, o item 1 da revisão não tem de onde tirar a
+   identidade. Três saídas na §4.1; a recomendação é declarar a limitação agora e criar o
+   identificador depois.
+2. **A conversão comercial do crédito** — quantos Neurons por franquia, qual o excedente. A unidade
    está decidida; a tabela é da frente L9/L11.
-2. **O transporte do `tools`** — depende da primeira chamada real.
-3. **O limiar da recusa** — só depois dos 20 casos.
+3. **O transporte do `tools`** — depende da primeira chamada real.
+4. **O limiar da recusa** — só depois dos 20 casos.
 
 ---
 
