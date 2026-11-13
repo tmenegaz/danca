@@ -29,7 +29,7 @@
 // O `require` é LITERAL de propósito: este módulo é empacotado para o Worker, e o empacotador não
 // segue um caminho montado em tempo de execução — nem existe `path` no runtime do Worker. Um
 // `path.join` aqui compila em Node e falha no deploy.
-const { ABERTURA, FECHAMENTO } = require('../../tools/templates/nav-html.js');
+const { ABERTURA, FECHAMENTO, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 
 /** Um href absoluto na raiz do domínio — é o que torna a MESMA barra válida em qualquer página. */
 const absoluto = (href) => {
@@ -323,8 +323,23 @@ function desenharColuna(coluna, pedido, barra) {
      construtor de página.
      Ele fica FORA do `<aside>`: a coluna é `overflow-y:auto`, e um véu lá dentro rolaria com o
      conteúdo e ficaria recortado pelo canto arredondado da folha. */
+  /* A MARCA ENTRA NA COLUNA, ANTES DA IDENTIFICAÇÃO (13/11/2026).
+   *
+   * «A logomarca deve ficar fixada sempre no topo da coluna à esquerda, indo até ao topo; os
+   * títulos e identificações ficam logo abaixo dela.» Ela era da barra, e a barra começa 248px
+   * à direita da coluna — a marca ficava fora do lugar onde a identidade da página começa.
+   *
+   * É A MESMA MARCA, e não uma segunda: `MARCA_NA_BARRA` é a string que a barra já usa, com o
+   * SVG inline de `marca-lastro.js` e o `fill="currentColor"`. Uma cópia aqui divergiria da
+   * outra no dia em que o desenho mudasse — e o `fill` herdado é o que faz a cor continuar a
+   * ser um papel (`--sobre-marca` nesta coluna).
+   *
+   * A BARRA CONTINUA A TRAZÊ-LA NO HTML, e o CSS é que a esconde onde há coluna: no celular a
+   * coluna é a folha, e a marca que aparece é a da barra. Uma marca só no HTML, duas formas
+   * pela largura — a regra que a folha já segue. */
   return '<aside class="coluna folha-do-menu" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
     + '  <span class="folha-puxador" aria-hidden="true"></span>\n'
+    + MARCA_NA_BARRA + '\n'
     + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
     + '  <nav>\n' + corpo + '\n  </nav>\n'
     + '</aside>\n'

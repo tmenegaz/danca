@@ -151,7 +151,7 @@ const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
 // `tools/gerar-ciclo.sh` consome. Uma definição, dois consumidores.
-const { navSistema } = require('../../tools/templates/nav-html.js');
+const { navSistema, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 
 /** O dado destas rotas é DINÂMICO (vem do KV) e o documento é gerado a cada pedido:
  *  `no-store` impede o navegador de reusar uma página ou uma listagem velha — sem
@@ -4192,7 +4192,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // depende de altura nenhuma: encosta na janela e fica. O preço é que a `lateral` deixa de
     // ocupar a célula da grade, e a coluna que ela ocupava passa a ser reservada no `padding` do
     // `.corpo` — mesma geometria, outro mecanismo.
-    '.lateral{position:fixed;left:0;top:var(--header-height);bottom:0;width:11rem;z-index:15;' +
+    //
+    // E ELA VAI DE CIMA A BAIXO, COMO A DO SISTEMA (13/11/2026). Era `top: var(--header-height)`
+    // e 11rem, porque esta era a única coluna da página; agora há uma coluna à esquerda nas duas
+    // telas, a barra começa DEPOIS dela (`left: 248px`, em `tools/templates/ciclo.css`) e as duas
+    // peças têm a mesma largura e o mesmo desenho. Quem ocupa os 248px é a coluna; a barra não
+    // passa por baixo dela.
+    '.lateral{position:fixed;left:0;top:0;bottom:0;width:248px;z-index:15;' +
     'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
     'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
     'overflow-y:auto;}' +
@@ -4215,11 +4221,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O formulário continua com o teto dele (34rem) — quem cresce é a coluna da lista.
     // A COLUNA DO MENU PASSA A SER RESERVADA AQUI (26/10/2026). Como a `lateral` é `fixed`, ela
     // já não ocupa a célula da grade — a grade fica com UMA coluna, e a faixa do menu é paga no
-    // `padding-left`: 11rem (a largura do menu) + os dois espaçamentos que separavam as colunas
-    // (o `esp-4` de padding e o `esp-5` do `gap`). É a MESMA geometria de antes, medida: o
-    // conteúdo começava a 216px, e continua a começar (medido na página real, antes e depois).
+    // `padding-left`: a largura do menu + os dois espaçamentos que separavam as colunas (o
+    // `esp-4` de padding e o `esp-5` do `gap`). A largura passou de 11rem a **248px** em
+    // 13/11/2026, para ser a mesma da coluna do Sistema Lastro — o conteúdo começa agora a
+    // 288px (248 + 16 + 24), e não aos 216px de antes. É a geometria que a decisão aprovou.
     '.corpo{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;' +
-    'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(11rem + var(--esp-4) + var(--esp-5));}' +
+    'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(248px + var(--esp-4) + var(--esp-5));}' +
     // A PÁGINA QUE CABE NA TELA NÃO ROLA (26/10/2026). «Eu não sei o que que está gerando o scroll
     // vertical, porque eu estou numa página que não tem elemento suficiente para ter um scroll.»
     // Era isto: o `body` da folha reserva 40px de padding em baixo, para o texto de um documento
@@ -4959,6 +4966,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `<button>` ficariam visíveis na barra em 1280px — visíveis e sem CSS que os
     // desenhasse, porque todo o resto da S5 mora dentro do `max-width:768px`.
     '.topnav .s5-sessao,.topnav .s5-secoes{display:none;}' +
+    /* A LOCALIZAÇÃO NA BARRA, NO COMPUTADOR (13/11/2026) — E DO MESMO LADO DO TÍTULO DA ESCOLA.
+       A S5 nasceu para o celular (é ela que sobe para a barra quando a página rola), e no
+       computador ficava escondida. Mas a barra da Produção passou a ter, à esquerda, um vazio
+       onde a escola tem o caminho do documento: as duas telas diziam «onde estou» de formas
+       diferentes. Aqui a peça é a MESMA (`s5-sessao`), com o desenho do `doc-atual` — grupo
+       miúdo em versalete e o `·` saindo do `<small>`, para a leitura de ecrã não colar as duas
+       palavras. Sem filete à esquerda: ele separava a marca da barra, e a marca já não está lá.
+
+       A ordem é a da leitura: ela é a PRIMEIRA coisa da barra, como o `doc-atual` na escola; o
+       dropdown «Bastidores» continua na ponta. O `s5-secoes` continua escondido — no computador
+       quem navega é a coluna. */
+    '@media (min-width:769px){' +
+      '.topnav .s5-sessao{display:flex;align-items:baseline;gap:6px;min-width:0;flex:0 1 auto;' +
+        'font:700 14px/1.2 var(--ui);color:var(--sobre-marca);}' +
+      '.topnav .s5-sessao small{flex:0 0 auto;font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--texto-destaque-marca);}' +
+      '.topnav .s5-sessao small::after{content:"·";margin-left:5px;}' +
+      '.topnav .s5-sessao .nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      /* A logomarca e a identificação da coluna têm o desenho na folha (é um componente —
+         `tools/templates/ciclo.css`, secção «A LOGOMARCA MORA NA COLUNA»): aqui, que é a
+         página que carrega a folha, não se redeclara nenhuma. */
+    '}' +
     '@media (max-width:768px){' +
       '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
       // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
@@ -5082,6 +5111,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="lateral-lista folha-do-menu" id="lateral-lista">' +
     '<span class="folha-puxador" aria-hidden="true"></span>' +
+    /* A LOGOMARCA NO ALTO DA COLUNA, E A IDENTIFICAÇÃO LOGO ABAIXO (13/11/2026).
+       A mesma peça que a coluna do Sistema Lastro passou a ter — a MESMA string
+       (`MARCA_NA_BARRA`), e não uma segunda cópia do SVG: no dia em que o desenho mudar,
+       as duas colunas mudam juntas. O `<span class="coluna-marca">` é a identificação da
+       área, e usa a classe que a folha já desenha no Sistema Lastro.
+
+       O `lateral-voltar` continua logo abaixo, e é outra coisa: a marca leva ao início do
+       site, o «← Sistema Lastro» é o caminho de volta explícito — ninguém lê uma logo como
+       «voltar». */
+    MARCA_NA_BARRA +
+    '<span class="coluna-marca">Bastidores</span>' +
     /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
        eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
        está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um

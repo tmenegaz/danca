@@ -370,7 +370,7 @@ function estado() {
         ultimo: blocos.length ? blocos[blocos.length - 1].textContent.replace(/\s+/g, ' ').trim() : null,
         dentroDaTela: r.top < window.innerHeight && r.bottom > 0,
         veu: veu ? Number(getComputedStyle(veu).opacity) : null,
-        veus: document.querySelectorAll('.veu').length,
+        veus: document.querySelectorAll('.veu:not([role])').length,
       };
     });
     provar('o estado passa a «aberta» e a folha entra na tela',
@@ -380,7 +380,11 @@ function estado() {
       folha.blocos === BLOCOS_ESPERADOS, { blocos: folha.blocos, esperados: BLOCOS_ESPERADOS, rotulos: folha.rotulos });
     provar('…e o Bastidores é o ÚLTIMO bloco',
       /^Bastidores/.test(String(folha.ultimo)), folha.ultimo);
-    provar('há um véu só, e ele acende',
+    /* O VÉU DA MOLDURA, E NÃO TODOS OS `.veu` DA PÁGINA (13/11/2026). A Produção tem DOIS
+       elementos com essa classe: o da folha (que nasce com a coluna, é este que acende) e o
+       `#veu` de «a trabalhar…», que é um estado e não escurece nada. Contar todos dava 2 e
+       reprovava uma tela certa — a asserção passou a medir o que ela quer medir. */
+    provar('há um véu da moldura só, e ele acende',
       folha.veus === 1 && Number(folha.veu) > 0.2, { veus: folha.veus, opacidade: folha.veu });
 
     /* O COMPUTADOR: a coluna está no HTML e NÃO se vê. O `body` não pode ficar com 248px de
@@ -400,8 +404,12 @@ function estado() {
       };
     });
     provar('no computador a coluna do sistema não se mostra', largo.coluna === 'none', largo.coluna);
-    provar('…e não deixa a faixa de 248px nem a barra deslocada',
-      largo.margem === '0px' && largo.barraLeft === '0px', largo);
+    /* A BARRA COMEÇA DEPOIS DA COLUNA DA PRODUÇÃO (13/11/2026). Ela começa a 0 enquanto a
+       `lateral` media 176px e nascia abaixo da barra; agora a `lateral` é a coluna de 248px, e a
+       barra começa onde ela acaba — nas DUAS telas. O que continua proibido é a faixa vazia: o
+       `body` não paga os 248px (a coluna os ocupa), e é isso que `margem === '0px'` mede. */
+    provar('…e o corpo não paga a faixa (a coluna a ocupa), com a barra a começar depois dela',
+      largo.margem === '0px' && largo.barraLeft === '248px', largo);
     provar('…mas a lateral da Produção continua a ser a navegação', largo.lateralVisivel === true, largo.lateralVisivel);
 
     await p.close();
@@ -423,7 +431,8 @@ function estado() {
    * menu não pode andar NADA. Com a página LONGA, também não. Nos dois casos o que se lê do
    * navegador é a posição antes e depois de rolar — e, no fim, a geometria que o pedido implica:
    * o menu encosta na janela (topo = altura da barra; base = fundo da tela), independentemente
-   * da altura do conteúdo.
+   * da altura do conteúdo. Desde 13/11/2026 o topo é 0 e não a altura da barra: a coluna
+   * passou a ir de cima a baixo, e a barra começa depois dela.
    */
   console.log('\nProdução (1280px) — o menu fica congelado, na página curta e na página longa');
   {
@@ -475,8 +484,12 @@ function estado() {
     provar('…e mesmo assim o menu NÃO se moveu um pixel',
       curtaDepois.topoParado === curta.topoParado && curtaDepois.rolado === 0,
       { antes: curta.topoParado, depois: curtaDepois.topoParado, rolado: curtaDepois.rolado });
-    provar('…e encosta na janela: topo na altura da barra, base no fundo da tela',
-      Math.abs(curtaDepois.topoParado - curtaDepois.cabecalho) <= 2
+    /* A COLUNA ENCOSTA NO TOPO DA JANELA, E A BARRA COMEÇA DEPOIS DELA (13/11/2026). Antes ela
+       nascia ABAIXO da barra (`top: var(--header-height)`), porque esta era a única coluna da
+       página. Agora há uma coluna à esquerda nas duas telas, e a barra é que cede o lugar — logo
+       o topo da coluna é 0, e a base continua no fundo da tela. */
+    provar('…e encosta na janela: topo em 0, base no fundo da tela',
+      Math.abs(curtaDepois.topoParado) <= 2
       && Math.abs(curtaDepois.base - curtaDepois.janela) <= 2,
       { topo: curtaDepois.topoParado, base: curtaDepois.base, janela: curtaDepois.janela });
 
@@ -547,8 +560,8 @@ function estado() {
         ultimoAlcancavel: Boolean(ru) && ru.height > 0 && ru.bottom <= window.innerHeight + 1 && ru.top >= 0,
       };
     });
-    provar('com a janela baixa, o menu continua congelado abaixo da barra',
-      baixa.rolado >= 850 && Math.abs(baixa.topo - baixa.cabecalho) <= 2, baixa);
+    provar('com a janela baixa, o menu continua congelado e encostado ao topo',
+      baixa.rolado >= 850 && Math.abs(baixa.topo) <= 2, baixa);
     provar('…e cabe na janela: a base não passa do fundo da tela',
       baixa.base <= baixa.janela + 1, { base: baixa.base, janela: baixa.janela });
     provar('…e o menu rola DENTRO de si — o último destino continua alcançável',

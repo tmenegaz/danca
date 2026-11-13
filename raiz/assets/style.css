@@ -752,6 +752,75 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 }
 .coluna-marca:hover, .coluna-marca:focus-visible { color: var(--sobre-marca); }
 
+/* ============================================================================
+   A LOGOMARCA MORA NA COLUNA (13/11/2026)
+   ----------------------------------------------------------------------------
+   O pedido, nas palavras de quem usa: «a logomarca deve ficar fixada sempre no topo da
+   coluna à esquerda, indo até ao topo; os títulos e identificações ficam logo abaixo
+   dela; e o dropdown de alternância entre estúdio de dança e produção fica onde está».
+
+   Então a marca sai da BARRA e sobe para a COLUNA, nos dois lugares onde há coluna — o
+   Sistema Lastro (esta folha) e os Bastidores, que desenham o mesmo `marca` na `.lateral`
+   (ver `motor/servidor/bastidores.js`). A identificação («Sistema Lastro» / «Bastidores»)
+   fica logo abaixo, e o menu começa depois.
+
+   A MARCA É A MESMA, e não uma segunda cópia: o `<a class="marca">` que a barra já usava,
+   com o mesmo SVG inline de `marca-lastro.js` e o mesmo `fill="currentColor"`. É o que faz
+   a cor continuar a ser um PAPEL: na coluna ela veste `--sobre-marca`, o token do que fica
+   em cima da barra, e nenhuma família precisa de exportação própria.
+
+   NO CELULAR NADA DISTO VALE. Abaixo do corte a coluna é a folha que sobe, e a marca que
+   aparece é a da barra — a mesma que sempre esteve lá. A regra que a esconde no computador
+   é a que a mantém no telefone.
+
+   O DESENHO FICA AQUI, E NÃO NO `<style>` DA PÁGINA. A coluna dos Bastidores declara o
+   resto de si em `motor/servidor/bastidores.js`, mas a marca é um COMPONENTE — a checagem
+   7a de `tools/check-identidade.js` reprova quem carrega a folha e redeclara um. Uma
+   declaração, dois donos: os seletores crescem, os valores não se repetem. */
+.coluna > .marca,
+.lateral-lista > .marca { display: none; }
+.coluna > .marca svg,
+.lateral-lista > .marca svg { display: block; height: 44px; width: auto; fill: currentColor; }
+
+/* A IDENTIFICAÇÃO DA PRODUÇÃO («Bastidores») nasce escondida como a marca: no celular a
+   barra da página já diz «Produção · Painel inicial», e repeti-lo dentro da folha seria
+   dizer duas vezes. A do Sistema Lastro NÃO entra nesta regra — ela já aparecia na folha do
+   telefone antes desta mudança, e continua a aparecer. */
+.lateral-lista > .coluna-marca { display: none; }
+
+/* O SISTEMA LASTRO: coluna a partir dos 1141. */
+@media (min-width: 1141px) {
+  .coluna > .marca {
+    display: block;
+    margin: 0 10px 6px;
+    color: var(--sobre-marca);
+    text-decoration: none;
+  }
+  .coluna .coluna-marca {
+    padding: 0 10px var(--esp-3);
+    margin: 0 0 var(--esp-3);
+    border-bottom: 1px solid var(--ornamento);
+  }
+}
+
+/* OS BASTIDORES: coluna a partir dos 769 — a mesma peça, o mesmo desenho, o mesmo ar. A
+   diferença é só o corte, que já existia: abaixo dele a `.lateral` é a barra com o botão
+   «Seções», e não há coluna onde pôr a marca. */
+@media (min-width: 769px) {
+  .lateral-lista > .marca {
+    display: block;
+    margin: 0 10px 6px;
+    color: var(--sobre-marca);
+    text-decoration: none;
+  }
+  .lateral-lista > .coluna-marca {
+    display: block;
+    padding: 0 10px var(--esp-2);
+    margin: 0;
+    color: var(--ornamento-forte);
+  }
+}
+
 .coluna .coluna-grupo, .lateral .coluna-grupo { display: block; }
 /* O BLOCO DE FORA — o Bastidores, no fim da FOLHA (23/10/2026). Ele não é trabalho de sala: é
    a escola a olhar-se. Na folha do celular entra como último item e leva um filete acima, que é
@@ -959,6 +1028,21 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   [data-tem-coluna="sim"] body { padding-left: 248px; }
   [data-tem-coluna="sim"] .topnav { left: 248px; }
 
+  /* A LOGOMARCA SAI DA BARRA ONDE HÁ COLUNA (13/11/2026) — porque ela passou a morar no
+     alto da coluna (ver a secção «A LOGOMARCA MORA NA COLUNA», acima). No celular ela
+     continua na barra: é a única que aparece, já que a coluna é a folha. */
+  body:has(> .coluna) .topnav .marca { display: none; }
+  [data-tem-coluna="sim"] .topnav .marca { display: none; }
+
+  /* O TÍTULO VOLTA A SER A PRIMEIRA COISA DA BARRA (13/11/2026). O caminho do documento
+     nascia depois da marca, com um filete à esquerda que a separava dela. Com a marca fora
+     da barra, o primeiro elemento não tem de quem se separar: o filete e o respiro saem, e
+     o título ocupa o vão que a logo deixou — o mesmo lugar de antes. */
+  body:has(> .coluna) .topnav .doc-atual,
+  [data-tem-coluna="sim"] .topnav .doc-atual {
+    margin-left: 0; padding-left: 0; border-left: 0;
+  }
+
   /* ONDE A PÁGINA TEM A SUA PRÓPRIA COLUNA, A DO SISTEMA NÃO SE MOSTRA (23/10/2026).
    *
    * É o caso dos Bastidores: a Produção tem a `lateral`, com as secções dela. Duas colunas lado
@@ -980,11 +1064,37 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   body:has(.lateral) > .coluna { display: none; }
   body[data-tem-lateral="sim"] > .coluna { display: none; }
   body:has(.lateral) { padding-left: 0; }
-  body:has(.lateral) .topnav { left: 0; }
   /* o mesmo par, sem `:has()` — e DEPOIS dele: a especificidade é igual, e quem decide é a ordem.
-   * Sem estas duas, um navegador antigo escondia a coluna mas deixava os 248px de margem vazia. */
+   * Sem estas duas, um navegador antigo escondia a coluna mas deixava os 248px de margem vazia.
+   * O `left` da barra NÃO se repõe aqui desde 13/11/2026: quem o decide é o bloco dos 769, logo
+   * abaixo, onde a coluna da Produção existe — e lá ele é 248px, não 0. */
   body[data-tem-lateral="sim"] { padding-left: 0; }
-  body[data-tem-lateral="sim"] .topnav { left: 0; }
+}
+
+/* ============================================================================
+   A PRODUÇÃO ENTRA NA MESMA MOLDURA (13/11/2026)
+   ----------------------------------------------------------------------------
+   A coluna dos Bastidores existia a partir dos 769 (abaixo disso ela é a barra com o botão
+   «Seções»), mas começava ABAIXO da barra e media 176px — enquanto a do Sistema Lastro media
+   248px e ia de cima a baixo. Eram duas colunas com dois desenhos, e o pedido é que a peça
+   seja uma.
+
+   O corte é o dos 769, e não o dos 1141: a coluna da Produção já existia nessa faixa, e
+   subir o corte tiraria o menu de um tablet. O que muda aqui é só o que a distingue:
+   começa no topo (a barra começa DEPOIS dela), e tem os 248px da coluna do sistema.
+
+   A geometria da coluna em si (posição, largura, fundo) mora no `<style>` da vista, em
+   `motor/servidor/bastidores.js` — é lá que o resto da `.lateral` é declarado. Aqui fica o
+   que é da BARRA, porque a barra é desta folha. */
+@media (min-width: 769px) {
+  body:has(.lateral) .topnav { left: 248px; }
+  body[data-tem-lateral="sim"] .topnav { left: 248px; }
+  body:has(.lateral) .topnav .marca { display: none; }
+  body[data-tem-lateral="sim"] .topnav .marca { display: none; }
+  /* O PEGADOR DA FOLHA não é da coluna: ele diz «isto desliza», e numa coluna fixa não há
+     nada a deslizar. O corte era o dos 1141 (o da coluna do sistema); a da Produção passou a
+     ser coluna aos 769, e o pegador ia com ela. */
+  .lateral .folha-puxador { display: none; }
 }
 
 /* ---------- cabeçalho, conteúdo e títulos ---------- */

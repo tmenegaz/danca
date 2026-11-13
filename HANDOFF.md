@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T08:09:50-0300`
-Commit atual: `8a4e9c14` — docs(registro): a regra da listagem, e o que ela mediu antes de mudar
+Gerado em: `2026-11-13T13:04:58-0300`
+Commit atual: `f8faa62a` — chore(estrutura): regerar o HANDOFF
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+f8faa62a chore(estrutura): regerar o HANDOFF
 8a4e9c14 docs(registro): a regra da listagem, e o que ela mediu antes de mudar
 c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na cadeia
 93dff71e docs(estrutura): a identidade do professor fica declarada, e o recorte vira aviso
@@ -92,7 +93,6 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 123e2e9c fix(template): o NOME do autor na listagem, e o «!» a ler o slug
 9ad8db43 chore(estrutura): regerar o HANDOFF
 38d1781e fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
-7b92544a chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
 ```
 
 ## Por professor
@@ -170,88 +170,86 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — A listagem não é a proveniência: uma linha por professor, dentro da cadeia
+## 13/11/2026 — A logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
 
-**O que motivou.** Ela relatou que a correção de 12/11 — a autoria não se reescreve — deu certo, e
-trouxe à tona o que já estava resolvido:
+**O que motivou.** O pedido, depois de a proposta ser vista em bancada: «a logomarca deve ficar
+fixada sempre no topo da coluna à esquerda, indo até ao topo em ambas as situações, os títulos e
+identificações ficam logo abaixo dela, e o dropdown de alternância entre estúdio de dança e produção
+fica onde está». Havia duas molduras para a mesma navegação: a coluna do Sistema Lastro ia de cima a
+baixo com 248px, e a da Produção começava **abaixo** da barra com 176px — e a marca, que é a
+identidade da página, morava na barra, fora do lugar onde a leitura começa.
 
-> «os planos antigos, eles continuam sobre o guarda-chuva do plano vigente […] o plano antigo, que
-> foi que deu origem a essa derivação, ele não precisa aparecer, porque esse controle de proveniência
-> é nosso […] a gente tem que mostrar na listagem dois planos mesmo, que é o do pé torto e o da
-> redinha, que estão se alternando.»
+A primeira bancada errou em dois pontos, e os dois eram de **fidelidade**, não de gosto: empurrou o
+título/localização para a direita, colado ao «Bastidores»; e montou a página da Produção **crua**,
+sem a ponte, de modo que a barra mostrava «Sistema Lastro» e «Área do Professor» — dois itens que o
+Worker substitui pelo `nav.json` e que, servidos, não existem. As duas coisas foram corrigidas antes
+da aprovação, e a medição passou a **reprovar** se eles voltarem.
 
-**O que a medição mostrou.** O acervo do `calango` tem **uma** cadeia de plano com **18 elos**,
-alternando Pé Torto ↔ Redinha Rosa. A listagem mostrava **5 linhas** na turma `Piano`, e o PO — 20
-elos — mostrava **6**. Três linhas eram **órfãs**: não são escondidas por um sucessor e não acumulam
-histórico próprio. `plano-20261111-0858` chegava a aparecer com «!» **e** `sem turma` ao mesmo tempo.
+**O que foi decidido.**
 
-**A causa são duas regras certas que se somam mal.**
+- **A marca é a primeira coisa da coluna, encostada ao topo**, nas duas telas: 44px de altura (o
+  dobro dos 30px da barra), a base alinhada com a base da barra (`16 + 44 = 60px`).
+- **A identificação fica logo abaixo**: «Sistema Lastro» na escola, «Bastidores» na Produção — e
+  abaixo dele o «← Sistema Lastro», que já existia.
+- **A coluna é uma só peça**: a da Produção deixa os 176px e o `top: var(--header-height)` e passa a
+  248px, de `top: 0` a `bottom: 0`, com o mesmo fundo, filete e acordeão.
+- **A barra começa depois da coluna** (`left: 248px`) nas duas telas, e o **título/localização
+  continua a ser a primeira coisa dela, à esquerda** — o `doc-atual` na escola, a `s5-sessao` na
+  Produção. O dropdown «Bastidores» fica na ponta direita, onde estava.
+- **No celular nada disto vale.** A coluna é a folha, e a marca que aparece é a da barra: a regra
+  que a esconde no computador é a que a mantém no telefone. Medido — as duas capturas de 390px são
+  **pixel a pixel iguais** às de antes.
 
-- `CONTEXTO_DO_REGISTO.plano` é `() => null` **de propósito** — dois documentos da mesma turma e ciclo
-  são dois documentos —, portanto a fase «um por contexto» **nunca** se aplicava ao plano;
-- a regra de 12/11 («um sucessor que trocou de mãos não substitui nada») impede o escondimento em
-  **toda** troca de autor, e é ela que mantém à vista o documento de quem escreveu.
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a secção «A LOGOMARCA
+MORA NA COLUNA», a marca da coluna nas duas larguras, a barra da Produção a 248px, o título sem o
+filete que o separava da logo e a coluna da Produção com o mesmo corte (*fonte de verdade*) ·
+[motor/nucleo/nav.js](./motor/nucleo/nav.js) — `desenharColuna` emite a marca antes da identificação,
+e reusa `MARCA_NA_BARRA` em vez de uma segunda cópia do SVG · [motor/servidor/bastidores.js](./motor/servidor/bastidores.js)
+— a `lateral` a `top:0`/248px, o `.corpo` com a faixa de 248px, a marca e o «Bastidores» na lista, e
+a S5 visível no computador com o desenho do `doc-atual` · [raiz/assets/style.css](./raiz/assets/style.css)
+e os cinco `assets/style.css` dos pacotes — a cópia do circuito · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md)
+— a secção nova «A logomarca mora no alto da coluna» e a geometria da secção do menu congelado ·
+[.github/instructions/identidade-visual.instructions.md](./.github/instructions/identidade-visual.instructions.md)
+— a norma curta para quem for editar a tela.
 
-Sozinha, cada uma faz o que devia. Juntas, **cada elo da alternância ficava visível** — e a correção
-de 12/11 fechou a metade «não esconder o documento verdadeiro», deixando aberta a metade «não listar
-o histórico».
+**Motivo declarado — os congelados.** Toca `tools/templates/` (a folha) e **a estrutura de navegação
+— os dois motivos que o [CONGELAMENTO.md](./CONGELAMENTO.md) nomeia**. O porquê está acima: a marca
+não é ornamento da barra, é a identidade da página, e duas colunas com dois desenhos não são «duas
+formas da mesma peça» — são duas peças. **O que não muda:** a fórmula do hash e a cobertura do `.fipp`
+(nenhuma fonte de ciclo foi tocada), os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de
+`PROTOCOLO.md`, o conteúdo dos menus (os mesmos grupos e destinos), e o comportamento do celular. A
+única coisa que muda além do desenho é a **largura da coluna da Produção** (176 → 248px) e o
+`top` dela (barra → 0) — geometria, não regra.
 
-**O que foi decidido** — por ela, nas duas perguntas que a análise obrigou a fazer:
+**Com o quê.** `check-identidade` **8/8 ok** (a checagem 7a reprovou a primeira redação, que
+redeclarava `.marca` no `<style>` da Produção — o desenho foi para a folha, como manda a regra) ·
+`provar-menu-da-producao` **55/55** (quatro asserções foram atualizadas: o véu da moldura não conta o
+`#veu` de «a trabalhar…»; a barra começa a 248px; e o topo da coluna é 0, não a altura da barra) ·
+`provar-celular` **15/15** · `provar-barra-e-caminho` **50/50** (a asserção da barra a `left: 0`
+virou `left: 248px`) · `provar-producao` **164/166**, `provar-barra-unica` **106/109**,
+`provar-titulo-e-barra` e `provar-ajustes-anamnese` com as falhas de sempre — **as quatro são iguais
+no `HEAD`**, verificadas num worktree separado, e vêm de antes.
 
-- **A listagem mostra o mais recente de CADA PROFESSOR, dentro de cada cadeia.** Os outros elos são
-  proveniência e contam em «N versões anteriores» na linha do vigente — «a gente vai listar somente
-  aquele mais recente que é pertinente».
-- **O grupo é a RAIZ da cadeia, e não o nome da turma.** A cadeia atravessa uma renomeação (`Rosa` →
-  `Piano`), e agrupar por turma parti-la-ia em duas linhas. Perguntada sobre este caso, ela escolheu
-  **duas linhas**: «só o mais recente de cada professor, na cadeia inteira».
-- **Nada se perde, e ela quer assim.** «A relação temporal a gente vai preservar porque é a
-  proveniência»; o que se guarda fica para o plano de perguntas do motor, quando os relatórios forem
-  trabalhados.
-
-**O que NÃO mudou.** O documento de quem escreveu continua à vista — na cadeia, ele é o mais recente
-**daquele** autor, e é ele que a regra guarda. É a exigência de 12/11 («continua existindo na
-listagem o plano de ensino que pertence ao pé torto, porque foi ele que elaborou») e ela mantém-se
-por construção. E as etiquetas continuam a cair nas linhas certas: hoje sobram duas linhas, uma com
-o «!» e outra com `sem turma` — exactamente o que ela descreveu.
-
-**Onde entrou.** [motor/nucleo/porta.js](./motor/nucleo/porta.js) — `FAMILIAS_POR_CADEIA`,
-`raizDaCadeia`, `chaveDaCadeia`, e a escolha da chave dentro de `vigentesDaFamilia` (o grupo
-`raiz + professor` para `plano` e `po`; as outras famílias ficam com `chaveDoContexto`, sem
-alteração) · [experimentos/provar-uma-linha-por-professor.js](./experimentos/provar-uma-linha-por-professor.js)
-(**novo**, 23 asserções) · [.gitignore](./.gitignore) — a excepção da prova, com a razão escrita ·
-[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) §3.3 — nota datada a estender «o passado não se
-escreve na listagem» aos planos · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a nota na decisão 79, a §9 e
-a §11 · `HANDOFF.md` — regerado.
-
-**Com o quê.** `provar-uma-linha-por-professor` **23/23**, com **controlo negativo**: a mesma cadeia
-pela regra anterior devolve **6** linhas, e se devolvesse 2 a prova não estaria a medir nada. Sobre o
-acervo real: 18 planos → **2 linhas · 16 em proveniência**, **0 elos perdidos, 0 repetidos**. Sem
-regressão: `provar-a-autoria-na-troca-de-professor` **41**, `provar-listas-do-acervo` **109**,
-`provar-apagar-da-listagem` **51**, `provar-cadeia-automatica` **62**, `provar-cadeia-do-ajuste`
-**34**, `provar-painel-do-ato` **183**, `check-identidade` **8/8 ok**. `provar-producao` **164/166** e
-`provar-listas-sem-repeticao` **15/16** — as três falhas são **iguais no `HEAD`**, verificadas com a
-alteração em `stash`, e vêm de antes.
+**Referências.** [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — «O catálogo das peças», «Onde
+estou» e a secção nova · [CONGELAMENTO.md](./CONGELAMENTO.md) — o que exige motivo declarado ·
+[REGISTRO.md](./REGISTRO.md), entrada de 26/10/2026 — o menu que não rola, e a primeira tentativa com
+`sticky` · `experimentos/menu-unificado/` (bancada da decisão, fora do Git).
 
 **O que ainda não está feito.**
 
-- **Não foi conferido ao ar.** A mudança é do núcleo e da listagem; a conferência em produção é o
+- **Não foi conferido ao ar.** A mudança é de folha e de marcação; a conferência em produção é o
   passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
-- **O `provar-vigente-na-listagem` (21) não foi estendido**; a prova nova cobre a regra da cadeia, e
-  as duas não se sobrepõem. Fica a dívida de as fundir numa só, quando houver motivo.
-- **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
-  proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
-  Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
+- **Os pacotes de ciclo não foram regerados por `tools/gerar-ciclo.sh`** — a folha foi copiada para
+  os cinco `assets/style.css` (é o que o gerador faz nesse passo), mas o PDF e as páginas das aulas
+  não foram refeitos. `check-pacote` continua a acusar o que já acusava antes: PDF ausente, JSON de
+  dados ausente e `aula-NN.html` ausente nos pacotes do disco.
+- **Entre 769 e 1140px a barra da Produção fica com o ☰** e o dropdown «Bastidores» abre na folha —
+  comportamento que já existia e que esta mudança não altera. Se a coluna a 769 tornar o ☰
+  redundante, é uma decisão à parte.
+- **A largura de 248px na Produção** come 72px a mais do conteúdo do que os 176px de antes. Fica
+  registado como o preço da coluna única; descer para 220 ou 232 é uma linha nos dois lugares.
 
 ## O que está pendente
-
-## 12/11/2026 — A Turma diz as suas três pontas
-
-O bloco «Conteúdo» lê o `repertorio` da Turma; o mapa antigo
-(`turma-conteudos`, por id de sala) continua a ser lido pelo formulário, mas não pelo cartão. Numa
-escola que ainda só tenha o mapa antigo, o bloco dirá «sem conteúdo» — e o número certo aparece no
-primeiro «Gravar».
-
----
 
 ## 12/11/2026 — «Em turma» vem da Turma, e não do plano
 
@@ -314,6 +312,21 @@ cadeia, não a propagação. Fica declarado.
 - **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
   proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
   Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
+
+## 13/11/2026 — A logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
+
+
+- **Não foi conferido ao ar.** A mudança é de folha e de marcação; a conferência em produção é o
+  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
+- **Os pacotes de ciclo não foram regerados por `tools/gerar-ciclo.sh`** — a folha foi copiada para
+  os cinco `assets/style.css` (é o que o gerador faz nesse passo), mas o PDF e as páginas das aulas
+  não foram refeitos. `check-pacote` continua a acusar o que já acusava antes: PDF ausente, JSON de
+  dados ausente e `aula-NN.html` ausente nos pacotes do disco.
+- **Entre 769 e 1140px a barra da Produção fica com o ☰** e o dropdown «Bastidores» abre na folha —
+  comportamento que já existia e que esta mudança não altera. Se a coluna a 769 tornar o ☰
+  redundante, é uma decisão à parte.
+- **A largura de 248px na Produção** come 72px a mais do conteúdo do que os 176px de antes. Fica
+  registado como o preço da coluna única; descer para 220 ou 232 é uma linha nos dois lugares.
 
 ## Pendências anteriores (índice)
 
@@ -734,6 +747,7 @@ cadeia, não a propagação. Fica declarado.
 - **12/11/2026** — A troca de aluna desfaz o passo 3 e o recorte, e a lista… → `REGISTRO.md` L42697
 - **12/11/2026** — Um véu para todos os gestos: elenco, leitura, verbete e sala → `REGISTRO.md` L42772
 - **12/11/2026** — A sala diz o presente, e os três passos andam → `REGISTRO.md` L42848
+- **12/11/2026** — A Turma diz as suas três pontas → `REGISTRO.md` L42911
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

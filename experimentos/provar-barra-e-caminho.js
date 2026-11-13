@@ -249,9 +249,13 @@ console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois men
   const folhaCss = fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css'), 'utf8');
   provar('o CSS esconde a coluna do sistema onde há `lateral`',
     /body:has\(\.lateral\) > \.coluna \{ display: none; \}/.test(folhaCss), 'regra ausente');
-  provar('…e sem ela não fica a faixa de 248px',
+  /* A BARRA COMEÇA DEPOIS DA COLUNA DA PRODUÇÃO (13/11/2026). Ela começava a 0 enquanto a
+     `lateral` média 176px e nascia abaixo da barra; agora a `lateral` é a coluna de 248px e vai
+     de cima a baixo, por isso a barra cede os 248px — a MESMA moldura do Sistema Lastro. O que
+     continua proibido é a faixa vazia: o `body` não paga os 248px, porque a coluna os ocupa. */
+  provar('…e o corpo não paga a faixa (a coluna a ocupa), com a barra a começar depois dela',
     /body:has\(\.lateral\) \{ padding-left: 0; \}/.test(folhaCss)
-    && /body:has\(\.lateral\) \.topnav \{ left: 0; \}/.test(folhaCss), 'regra ausente');
+    && /body:has\(\.lateral\) \.topnav \{ left: 248px; \}/.test(folhaCss), 'regra ausente');
 
   const bastidores = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
   provar('a lateral da Produção tem um caminho de volta ao sistema',

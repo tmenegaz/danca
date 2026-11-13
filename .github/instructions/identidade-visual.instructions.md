@@ -74,7 +74,7 @@ o caminho na barra e a marca no menu»** de `IDENTIDADE-VISUAL.md`. As provas qu
 
 Os dois menus que servem para navegar **ficam congelados** enquanto a página rola, e pelo mesmo
 mecanismo: `position: fixed`. A coluna do sistema (`.coluna`) e a lateral da Produção (`.lateral`,
-`fixed` com `top: var(--header-height)` e `bottom: 0`, e a faixa reservada no `padding` do `.corpo`).
+`fixed` com `top: 0` e `bottom: 0`, e a faixa de 248px reservada no `padding` do `.corpo`).
 
 **`sticky` não serve nestas telas**, e é uma armadilha que já custou uma tentativa: ele só se desloca
 dentro da caixa do contentor, e numa tela de trabalho o contentor é tão alto como o elemento (o
@@ -85,6 +85,17 @@ No celular nada disto vale: abaixo de 768px a `.lateral` é uma barra com o bot�
 (`position: static; width: auto; z-index: auto`).
 A secção **«O menu de trabalho não rola com a página»** de `IDENTIDADE-VISUAL.md` tem o porquê e a
 medida; a prova é a `provar-menu-da-producao.js` (e ela tem controle negativo).
+
+## A logomarca mora no alto da coluna (norma, 13/11/2026)
+
+A marca **não** fica na barra: é a primeira coisa da coluna, encostada ao topo, nas duas telas —
+Sistema Lastro (`1141px`) e Bastidores (`769px`). A identificação («Sistema Lastro» / «Bastidores»)
+fica **logo abaixo** dela. A barra começa **depois** da coluna, e nela o título/localização continua
+a ser a primeira coisa, à esquerda, com o dropdown «Bastidores» na ponta. No celular a coluna é a
+folha e a marca volta a ser a da barra — a regra que a esconde no computador é a que a mantém no
+telefone. O desenho mora em `tools/templates/ciclo.css` (componente: a checagem **7a** reprova
+quem carrega a folha e o redeclara). A secção **«A logomarca mora no alto da coluna»** de
+`IDENTIDADE-VISUAL.md` tem a geometria medida.
 
 ## Peça nova: nasce inteira, no mesmo commit
 

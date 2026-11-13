@@ -1562,6 +1562,32 @@ aberta com ele à vista, o caminho reduzido ao nome do documento e **sem reticê
 e nada a estourar na horizontal). A secção 17 mede o que se **vê**: a cor e o filete, não a
 existência da classe — uma marca que ninguém pinta não é uma marca.
 
+## A logomarca mora no alto da coluna *(13/11/2026)*
+
+**A marca não pertence à barra: pertence ao menu.** A barra é o que fica sempre à mão — o caminho
+do documento e o dropdown do Bastidores. A identidade da página — a logo e o nome de onde se está —
+é a primeira coisa da coluna, e é por aí que a leitura começa.
+
+O pedido foi literal: «a logomarca deve ficar fixada sempre no topo da coluna à esquerda, indo até
+ao topo em ambas as situações, os títulos e identificações ficam logo abaixo dela, e o dropdown de
+alternância entre estúdio de dança e produção fica onde está».
+
+| Regra | Como |
+| --- | --- |
+| **A marca é a mesma, e não uma segunda** | o `<a class="marca">` de `marca-lastro.js`, com `fill="currentColor"`. Na coluna ela veste `--sobre-marca`, o papel do que fica em cima do fundo da barra — nenhuma família precisa de exportação própria |
+| **Ela é a primeira coisa da coluna** | 44px de altura (o dobro dos 30px da barra), encostada ao topo: a base da logo fica à altura da base da barra (`16 + 44 = 60px`) |
+| **A identificação fica logo abaixo** | «Sistema Lastro» na escola, «Bastidores» na Produção. Na Produção, o «← Sistema Lastro» continua abaixo dela |
+| **A marca sai da barra onde há coluna** | `body:has(> .coluna) .topnav .marca { display: none }`, e o mesmo para `:has(.lateral)`. No celular ela **fica** na barra: ali a coluna é a folha, e a barra é a única marca à vista |
+| **O título não muda de lugar** | o `doc-atual` (escola) e a `s5-sessao` (Produção) continuam a ser a **primeira coisa da barra**, à esquerda. Tirar a logo não os move: eles ocupam o vão que ela deixou |
+| **Uma coluna, dois donos** | o desenho da marca mora em `tools/templates/ciclo.css` (é um componente — a checagem 7a reprova quem carrega a folha e o redeclara); o resto da `.lateral` mora no `<style>` da vista |
+
+**O que a medição guarda** (1440×900, nas duas telas): coluna em `y=0` com 248px; logo em `y=16` com
+44px de altura; identificação em `y=66`; barra a começar a `x=248`; título em `x=264`; dropdown na
+ponta. No celular, as duas capturas ficam **pixel a pixel iguais** às de antes — a regra que esconde
+a marca no computador é a que a mantém no telefone. Prova:
+[`experimentos/provar-menu-da-producao.js`](experimentos/provar-menu-da-producao.js) (55 asserções)
+e [`experimentos/provar-barra-e-caminho.js`](experimentos/provar-barra-e-caminho.js).
+
 ## O menu de trabalho não rola com a página *(26/10/2026 — refeito no mesmo dia)*
 
 **O menu é o que fica.** Quem rola uma lista de trinta alunas, ou a página de uma aula de quinze
@@ -1573,7 +1599,7 @@ fixed`.
 | Menu | Como fica | Porquê assim |
 | --- | --- | --- |
 | `.coluna` (sistema) | `fixed`, de topo a fundo, acima dos 1141px | não depende de nada da página: é navegação global, e a página cede-lhe 248px de margem |
-| `.lateral` (Produção) | `fixed; left: 0; top: var(--header-height); bottom: 0; width: 11rem` | não depende da altura de nada. A coluna que ela ocupava passa a ser **reservada no `padding` do `.corpo`** (11rem + os dois espaçamentos) |
+| `.lateral` (Produção) | `fixed; left: 0; top: 0; bottom: 0; width: 248px` | não depende da altura de nada, e vai **de cima a baixo** como a do sistema. A faixa que ela ocupa é reservada no `padding` do `.corpo` (248px + os dois espaçamentos) |
 
 ### `sticky` não serve aqui — e a primeira tentativa provou-o
 
@@ -1598,15 +1624,15 @@ primeiro.
 | Regra | Como |
 | --- | --- |
 | **`fixed`, e não `sticky`** | a posição não depende da altura do contentor. É o mesmo mecanismo da coluna do sistema |
-| **A faixa é reservada no `.corpo`** | `padding-left: calc(11rem + var(--esp-4) + var(--esp-5))` — a mesma geometria de antes (o conteúdo começa a **216px**, medido), com a `lateral` fora do fluxo |
+| **A faixa é reservada no `.corpo`** | `padding-left: calc(248px + var(--esp-4) + var(--esp-5))` — a mesma geometria da coluna do sistema, com a `lateral` fora do fluxo |
 | **A página que cabe na tela não rola** | `body:has(.corpo){padding-bottom:0}`: os 40px que a folha reserva para o texto de um documento viravam barra de rolagem numa tela que cabe inteira — «não sei o que está gerando o scroll vertical» |
 | **Se o menu for mais alto do que a tela, ele rola DENTRO de si** | `bottom: 0` + `overflow-y: auto` — nunca a página a empurrá-lo para fora |
-| **A barra do topo continua acima** | `top: var(--header-height)`: o menu encosta abaixo da barra fixa. `z-index: 15`, abaixo da barra (20) e do submenu dela (21) |
+| **A coluna vai de cima a baixo; a barra começa depois dela** | `top: 0`: a coluna ocupa a faixa dos 248px e a barra começa onde ela acaba (`left: 248px`), como no Sistema Lastro. `z-index: 15`, abaixo da barra (20) e do submenu dela (21) |
 | **No celular nada disto vale** | abaixo de 768px a `.lateral` é uma **barra** com o botão «Seções»: `position: static; width: auto; z-index: auto`, e o `.corpo` não reserva faixa |
 
 **Prova.** [`experimentos/provar-menu-da-producao.js`](experimentos/provar-menu-da-producao.js) —
 a página **curta** primeiro: ela quase não rola (`documento − janela ≤ 2`) e o menu **não se move um
-pixel**; encosta na janela (topo = altura da barra, base = fundo da tela). Depois a **longa**: rola
+pixel**; encosta na janela (topo = 0 desde 13/11/2026, base = fundo da tela). Depois a **longa**: rola
 600px e o menu fica, com o ponteiro a alcançar um destino. Depois a janela a **300px** com um grupo
 aberto: o menu cabe e rola dentro de si até ao último destino. E a **390px**: a barra do celular não
 herdou os 11rem nem o `z-index` do menu lateral, e não há transbordo horizontal.

@@ -43568,3 +43568,82 @@ alteração em `stash`, e vêm de antes.
 - **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
   proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
   Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
+
+## 13/11/2026 — A logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
+
+**O que motivou.** O pedido, depois de a proposta ser vista em bancada: «a logomarca deve ficar
+fixada sempre no topo da coluna à esquerda, indo até ao topo em ambas as situações, os títulos e
+identificações ficam logo abaixo dela, e o dropdown de alternância entre estúdio de dança e produção
+fica onde está». Havia duas molduras para a mesma navegação: a coluna do Sistema Lastro ia de cima a
+baixo com 248px, e a da Produção começava **abaixo** da barra com 176px — e a marca, que é a
+identidade da página, morava na barra, fora do lugar onde a leitura começa.
+
+A primeira bancada errou em dois pontos, e os dois eram de **fidelidade**, não de gosto: empurrou o
+título/localização para a direita, colado ao «Bastidores»; e montou a página da Produção **crua**,
+sem a ponte, de modo que a barra mostrava «Sistema Lastro» e «Área do Professor» — dois itens que o
+Worker substitui pelo `nav.json` e que, servidos, não existem. As duas coisas foram corrigidas antes
+da aprovação, e a medição passou a **reprovar** se eles voltarem.
+
+**O que foi decidido.**
+
+- **A marca é a primeira coisa da coluna, encostada ao topo**, nas duas telas: 44px de altura (o
+  dobro dos 30px da barra), a base alinhada com a base da barra (`16 + 44 = 60px`).
+- **A identificação fica logo abaixo**: «Sistema Lastro» na escola, «Bastidores» na Produção — e
+  abaixo dele o «← Sistema Lastro», que já existia.
+- **A coluna é uma só peça**: a da Produção deixa os 176px e o `top: var(--header-height)` e passa a
+  248px, de `top: 0` a `bottom: 0`, com o mesmo fundo, filete e acordeão.
+- **A barra começa depois da coluna** (`left: 248px`) nas duas telas, e o **título/localização
+  continua a ser a primeira coisa dela, à esquerda** — o `doc-atual` na escola, a `s5-sessao` na
+  Produção. O dropdown «Bastidores» fica na ponta direita, onde estava.
+- **No celular nada disto vale.** A coluna é a folha, e a marca que aparece é a da barra: a regra
+  que a esconde no computador é a que a mantém no telefone. Medido — as duas capturas de 390px são
+  **pixel a pixel iguais** às de antes.
+
+**Onde entrou.** [tools/templates/ciclo.css](./tools/templates/ciclo.css) — a secção «A LOGOMARCA
+MORA NA COLUNA», a marca da coluna nas duas larguras, a barra da Produção a 248px, o título sem o
+filete que o separava da logo e a coluna da Produção com o mesmo corte (*fonte de verdade*) ·
+[motor/nucleo/nav.js](./motor/nucleo/nav.js) — `desenharColuna` emite a marca antes da identificação,
+e reusa `MARCA_NA_BARRA` em vez de uma segunda cópia do SVG · [motor/servidor/bastidores.js](./motor/servidor/bastidores.js)
+— a `lateral` a `top:0`/248px, o `.corpo` com a faixa de 248px, a marca e o «Bastidores» na lista, e
+a S5 visível no computador com o desenho do `doc-atual` · [raiz/assets/style.css](./raiz/assets/style.css)
+e os cinco `assets/style.css` dos pacotes — a cópia do circuito · [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md)
+— a secção nova «A logomarca mora no alto da coluna» e a geometria da secção do menu congelado ·
+[.github/instructions/identidade-visual.instructions.md](./.github/instructions/identidade-visual.instructions.md)
+— a norma curta para quem for editar a tela.
+
+**Motivo declarado — os congelados.** Toca `tools/templates/` (a folha) e **a estrutura de navegação
+— os dois motivos que o [CONGELAMENTO.md](./CONGELAMENTO.md) nomeia**. O porquê está acima: a marca
+não é ornamento da barra, é a identidade da página, e duas colunas com dois desenhos não são «duas
+formas da mesma peça» — são duas peças. **O que não muda:** a fórmula do hash e a cobertura do `.fipp`
+(nenhuma fonte de ciclo foi tocada), os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de
+`PROTOCOLO.md`, o conteúdo dos menus (os mesmos grupos e destinos), e o comportamento do celular. A
+única coisa que muda além do desenho é a **largura da coluna da Produção** (176 → 248px) e o
+`top` dela (barra → 0) — geometria, não regra.
+
+**Com o quê.** `check-identidade` **8/8 ok** (a checagem 7a reprovou a primeira redação, que
+redeclarava `.marca` no `<style>` da Produção — o desenho foi para a folha, como manda a regra) ·
+`provar-menu-da-producao` **55/55** (quatro asserções foram atualizadas: o véu da moldura não conta o
+`#veu` de «a trabalhar…»; a barra começa a 248px; e o topo da coluna é 0, não a altura da barra) ·
+`provar-celular` **15/15** · `provar-barra-e-caminho` **50/50** (a asserção da barra a `left: 0`
+virou `left: 248px`) · `provar-producao` **164/166**, `provar-barra-unica` **106/109**,
+`provar-titulo-e-barra` e `provar-ajustes-anamnese` com as falhas de sempre — **as quatro são iguais
+no `HEAD`**, verificadas num worktree separado, e vêm de antes.
+
+**Referências.** [IDENTIDADE-VISUAL.md](./IDENTIDADE-VISUAL.md) — «O catálogo das peças», «Onde
+estou» e a secção nova · [CONGELAMENTO.md](./CONGELAMENTO.md) — o que exige motivo declarado ·
+[REGISTRO.md](./REGISTRO.md), entrada de 26/10/2026 — o menu que não rola, e a primeira tentativa com
+`sticky` · `experimentos/menu-unificado/` (bancada da decisão, fora do Git).
+
+**O que ainda não está feito.**
+
+- **Não foi conferido ao ar.** A mudança é de folha e de marcação; a conferência em produção é o
+  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
+- **Os pacotes de ciclo não foram regerados por `tools/gerar-ciclo.sh`** — a folha foi copiada para
+  os cinco `assets/style.css` (é o que o gerador faz nesse passo), mas o PDF e as páginas das aulas
+  não foram refeitos. `check-pacote` continua a acusar o que já acusava antes: PDF ausente, JSON de
+  dados ausente e `aula-NN.html` ausente nos pacotes do disco.
+- **Entre 769 e 1140px a barra da Produção fica com o ☰** e o dropdown «Bastidores» abre na folha —
+  comportamento que já existia e que esta mudança não altera. Se a coluna a 769 tornar o ☰
+  redundante, é uma decisão à parte.
+- **A largura de 248px na Produção** come 72px a mais do conteúdo do que os 176px de antes. Fica
+  registado como o preço da coluna única; descer para 220 ou 232 é uma linha nos dois lugares.
