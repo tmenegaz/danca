@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:26:45-0300`
-Commit atual: `0a4407a7` — docs(registro): a conferencia em producao da cadeia, que faltava
+Gerado em: `2026-11-12T22:33:45-0300`
+Commit atual: `68fb3605` — docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
 0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
 c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
@@ -92,7 +93,6 @@ b4eb042b chore(estrutura): regerar os índices derivados
 0569a3b2 chore(estrutura): regerar os índices derivados
 48f0727e feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
 71dada2b feat(po): o PO elicitado vira a fonte do ciclo
-4dff6d03 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -262,15 +262,20 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 > **alteraram o documento**:
 >
 > 1. **Onde o painel começa: nas QUATRO** — «no Plano, po, estilo e elaboração da aula seguinte (n)».
->    Não era o que eu recomendava (duas), e a escolha expõe um facto que a lista das quatro esconde:
->    **a quarta superfície não existe**. Das quatro, três têm tela hoje — o plano de ensino
+>    Não era o que eu recomendava (duas). Das quatro, **três têm tela hoje** — o plano de ensino
 >    (`/plano-ensino/`), o plano de observação (`/plano-observacao/`) e o Estilo (`#verbetes` na
->    Produção) —, e a **elaboração da aula N não tem**: não há rota, nem formulário, nem tela
->    (CONFIRMADO por leitura; `PLANO-NAVEGACAO.md` §9.2 propõe a lista de documentos e declara-a
->    **não feita**, e o `PLANO-AULA-E-OBSERVACAO.md` fixa um requisito novo — a confirmação de
->    alinhamento com o PO antes de a aula ser editável — **sem equivalente no código**). **DECIDIDO**:
->    o painel entra **já** nas três que existem, e o da aula **espera a tela** — construir o painel
->    antes da tela seria construir a gaveta antes da cómoda. Fica preparado, e não depende de tela
+>    Produção) — e a **elaboração da aula N não tem** tela nem rota nem formulário. **Isso não é
+>    achado desta sessão, e ela fê-lo notar:** a pendência está **declarada há muito tempo** — tem
+>    entrada própria na §8 do `ESTADO-ATUAL.md` («A aula N»), com a ordem que ela fixou a 01/11/2026
+>    (*ajustar a geração → a coleta ser a expressão da janela → o caderno → só então o botão de criar
+>    a aula*) e o caminho crítico medido («a aula 2 existir»; «**Definir o marco**» e «**Abrir a
+>    aula**» não existem no produto); `PLANO-NAVEGACAO.md` §9.2 propõe a lista de documentos e
+>    declara-a **não feita**; e `PLANO-AULA-E-OBSERVACAO.md` fixa o requisito novo — a confirmação de
+>    alinhamento com o PO antes de a aula ser editável — **sem equivalente no código**. E ela decidiu
+>    a **sequência** na mesma sessão: primeiro **testar e ajustar o que existe**, e só depois criar a
+>    aula 2, 3, … N. **O que a resposta dela decidiu, então, é só isto:** o painel entra **já** nas
+>    três que existem, e o da aula **espera a tela** — construir o painel antes da tela seria
+>    construir a gaveta antes da cómoda. Fica preparado, e não depende de tela
 >    nenhuma: o campo `aula` no `contexto` do pedido, para a quarta ser ligá-lo. Também por esta
 >    resposta, **a anamnese saiu da lista** — é retrato, não redação pedagógica, e a razão é dela: não
 >    a nomeou.
@@ -322,9 +327,11 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
   o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
 - **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
   atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
-- **A tela da aula N não existe**, e é o que trava a quarta superfície. Ela pertence a outra
-  frente, e o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
-  agente.
+- **A tela da aula N não existe** — **pendência declarada há muito** (§8 do `ESTADO-ATUAL.md`, «A
+  aula N»), não achado desta sessão —, e é o que trava a quarta superfície. Ela pertence a outra
+  frente, o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
+  agente, e a **ordem é decisão dela**: testar e ajustar o que existe primeiro, e a aula 2, 3, … N
+  depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
 
@@ -382,9 +389,11 @@ cadeia, não a propagação. Fica declarado.
   o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
 - **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
   atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
-- **A tela da aula N não existe**, e é o que trava a quarta superfície. Ela pertence a outra
-  frente, e o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
-  agente.
+- **A tela da aula N não existe** — **pendência declarada há muito** (§8 do `ESTADO-ATUAL.md`, «A
+  aula N»), não achado desta sessão —, e é o que trava a quarta superfície. Ela pertence a outra
+  frente, o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
+  agente, e a **ordem é decisão dela**: testar e ajustar o que existe primeiro, e a aula 2, 3, … N
+  depois.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
 

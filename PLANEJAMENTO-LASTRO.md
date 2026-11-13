@@ -2555,9 +2555,11 @@ decisão.
   `motor/nucleo/indices.js`), e a ferramenta `perguntar_ao_catalogo` só pode oferecer o que existe;
   (c) o **medidor de custo** é escrito e **nunca lido** — sem leitor não há cota, e sem cota não há
   crédito; (d) o contador de subpedidos **não conta KV**, e o agente lê KV em quase todas as voltas;
-  (e) **a tela da aula N não existe**, e sem ela a quarta superfície não se constrói — o pré-requisito
-  dela é de outra frente (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação de alinhamento com o PO, que é
-  do professor).
+  (e) **a tela da aula N não existe** — **pendência declarada há muito** (a §8 do `ESTADO-ATUAL.md`,
+  «A aula N», com o caminho crítico medido), e não achado desta frente — e sem ela a quarta superfície
+  não se constrói; o pré-requisito dela é de outra frente (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação
+  de alinhamento com o PO, que é do professor), e a **sequência é decisão dela** (12/11/2026): testar
+  e ajustar o que existe primeiro, e a aula 2, 3, … N depois.
 - **Dependências técnicas e de domínio.** L1/L2 (chaves) e L6 (catálogo) para as ferramentas;
   L7 para o medidor (é esta frente que lhe dá matéria); L9/L11 para a cota e a conversão do crédito
   (a **unidade** está decidida: o Neuron). Do domínio: o que a IA **pode** e **não pode** dizer (§2

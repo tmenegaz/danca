@@ -67,13 +67,20 @@ escola (`ARQUITETURA-GERAL.md` §3.3):
 | 3 | **Estilo** (o verbete da notação) | a Produção, secção `#verbetes` | **existe** |
 | 4 | **Elaboração da aula N** | — | **NÃO EXISTE.** Ver abaixo |
 
-**A quarta superfície é uma frente que não existe, e isso muda o plano.** Não há hoje uma tela em
-que o professor elabore a `aula-NN`; o que há é a fonte (`aula-NN.md`), escrita no ciclo e editável
-«livremente até a data da aula» (`ARQUITETURA-AULA.md` §1), e a lista de documentos que o
-`PLANO-NAVEGACAO.md` §9.2 **propõe e declara não feita**. E o
+**A quarta superfície está por fazer — e é uma pendência declarada, não um achado desta sessão.**
+Não há hoje uma tela em que o professor elabore a `aula-NN`; o que há é a fonte (`aula-NN.md`),
+escrita no ciclo e editável «livremente até a data da aula» (`ARQUITETURA-AULA.md` §1), e a lista de
+documentos que o `PLANO-NAVEGACAO.md` §9.2 **propõe e declara não feita**. O
 [PLANO-AULA-E-OBSERVACAO.md](./PLANO-AULA-E-OBSERVACAO.md) fixa um **requisito novo, sem equivalente
 no código**: antes de a aula N ser editável, o professor **confirma que entendeu o PO** e que a aula
 está alinhada com ele.
+
+O estado está medido e registado há muito tempo — a §8 do [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) tem a
+pendência com o nome («A aula N»), a ordem que ela fixou a 01/11/2026 (*ajustar a geração → a coleta
+ser a expressão da janela → o caderno → só então o botão de criar a aula*) e o caminho crítico medido
+(«a aula 2 existir»; «**Definir o marco**» e «**Abrir a aula**» não existem no produto). **E a 12/11/2026
+ela decidiu a sequência:** primeiro **testar e ajustar o que existe**, e só depois criar a aula 2, 3, …
+N. Ou seja — a pendência não está esquecida, está **sequenciada**.
 
 Daí, três consequências que ficam declaradas:
 
@@ -942,10 +949,13 @@ escada são para a medir e para a melhorar. O 70B **não está nesta conta**: el
    mente sobre o próprio custo. **Decidido:** corrige-se na mesma frente, com commit próprio.
 4. **A cota de KV diária** (AGENTS.md). Cada interação lê KV; uma sessão longa soma. O tecto de
    chamadas (§7.4) é o que a contém.
-5. **A quarta superfície não existe.** O painel da aula N não se constrói antes da tela, e a tela
-   tem pré-requisito próprio (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação de alinhamento com o PO,
-   que é **do professor**). É o risco de sequência desta frente — e a razão de o total do §13 contar
-   três superfícies, e não quatro.
+5. **A quarta superfície depende de uma pendência já declarada.** O painel da aula N não se constrói
+   antes da tela, a tela é a pendência «A aula N» (declarada na §8 do `ESTADO-ATUAL.md`, com o
+   caminho crítico medido desde 01/11/2026), e ela tem pré-requisito próprio
+   (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação de alinhamento com o PO, que é **do professor**). A
+   sequência é decisão dela — **testar e ajustar o que existe primeiro**, e a aula 2, 3, … N depois.
+   É o risco de ordem desta frente — e a razão de o total do §13 contar três superfícies, e não
+   quatro.
 
 **Riscos de produto**
 

@@ -13,9 +13,10 @@
 > prompt de sistema em oito blocos, os tectos do laço e ≈23 dias de estimativa (eram ≈20,5 antes das
 > respostas abaixo). **As quatro respostas dela, no mesmo dia, fecharam o resto:** o painel começa nas
 > **quatro** superfícies — plano de ensino, PO, Estilo **e a elaboração da aula N** —, e a quarta
-> **não tem tela hoje** (CONFIRMADO: não há rota nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe a
-> lista e declara-a não feita), pelo que o painel entra nas três que existem e a quarta **espera a
-> tela**; **a anamnese saiu** da lista, por não ser redação pedagógica; **o crédito é o Neuron**;
+> **não tem tela hoje** — pendência **já declarada** na §8 e medida há muito (`PLANO-NAVEGACAO.md`
+> §9.2 propõe a lista e declara-a não feita) —, pelo que o painel entra nas três que existem e a
+> quarta **espera a tela**; a sequência também é decisão dela: **testar e ajustar o que existe
+> primeiro**, e a aula 2, 3, … N depois; **a anamnese saiu** da lista, por não ser redação pedagógica; **o crédito é o Neuron**;
 > o agente **pode citar o apelido** (apelido e só apelido, P-12); e **antes de subir para o 70B
 > aprimora-se** — a escada prompt → exemplos → ferramentas → amostragem, cada degrau medido com os
 > mesmos 20 casos, e o 70B só depois, declarando o que já se tentou. **CONFIRMADO que
@@ -2926,13 +2927,12 @@ decidir e a não substituir o professor, e continua a não haver consulta livre 
 Documentação apenas — sem código, sem deploy, sem `wrangler` tocado; a implementação espera
 aprovação do plano. **E as quatro respostas dela, no mesmo dia, fecharam o resto:** o painel começa
 nas **quatro** superfícies — plano de ensino, PO, Estilo **e a elaboração da aula N** —, e a quarta
-**não tem tela hoje** (CONFIRMADO: não há rota nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe a
-lista e declara-a não feita), pelo que o painel entra nas três que existem e a quarta **espera a
-tela**; **a anamnese saiu** da lista (é retrato, não redação pedagógica); **o crédito é o Neuron**;
-o agente **pode citar o apelido** da aluna (apelido e só apelido, P-12); e **antes de subir para o
-70B aprimora-se** — a escada prompt → exemplos → ferramentas → amostragem, cada degrau medido com os
-mesmos 20 casos. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md) (§1.1, §7.2, §7.2.1, §11.1), a
-frente **L15** e a entrada de 12/11/2026 no `REGISTRO.md`.
+**não tem tela hoje** (pendência **já declarada**, §8), pelo que o painel entra nas três que existem
+e a quarta **espera a tela**; **a anamnese saiu** da lista (é retrato, não redação pedagógica);
+**o crédito é o Neuron**; o agente **pode citar o apelido** da aluna (apelido e só apelido, P-12); e
+**antes de subir para o 70B aprimora-se** — a escada prompt → exemplos → ferramentas →
+amostragem, cada degrau medido com os mesmos 20 casos. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md)
+(§1.1, §7.2, §7.2.1, §11.1), a frente **L15** e a entrada de 12/11/2026 no `REGISTRO.md`.
 
 **Último ponto confirmado:** 02/11/2026 — `d74fda1` (a musicalidade consolida-se, e a prova da porta
 volta a correr), com `cf1ef52` (a força e a flexibilidade vêm da anamnese), `469c9d5` (a proveniência
@@ -3229,6 +3229,34 @@ O que **continua** em aberto desta família é outro: a **bancada**
 `experimentos/propostas/proposta-musicalidade.html` (local, não versionada) propunha uma legenda de
 compasso e contagem, os tempos à vista, a coluna de lado no port de bras e três colunas — e a decisão
 sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a apresentação, não sobre o dado.
+
+### A aula N — pendência DECLARADA, e o que ela trava (nota de 12/11/2026)
+
+**Isto não é achado desta fotografia.** Ela própria o declarou na sessão de 12/11/2026: *«nós até
+agora temos apenas a aula um. Não criamos a aula dois, não criamos ainda uma forma de criar a aula
+dois a partir dos dados coletados da aula um que foi dada. Isso está por fazer (…) esse achado não é
+um achado de agora. A gente já sabia disso há algum tempo.»* E está registado desde muito antes:
+
+- **A ordem que ela fixou a 01/11/2026** (§11): *ajustar a geração da aula → o formulário da coleta
+  ser a expressão da janela → o caderno → só então o botão de criar a aula.* As duas primeiras estão
+  feitas; **a terceira é o caderno**, e é a que falta.
+- **A lacuna medida**, no §11: o formulário pergunta pela janela inteira, mas **a sequência executada
+  não é perguntada em lugar nenhum** (o próprio `tools/lib-vistas.js` declara a lacuna) — e é o que se
+  fez que a aula 2 herda. «**Definir o marco**» e «**Abrir a aula**» não existem no produto.
+- **O desenho**, no `PLANO-NAVEGACAO.md` §9.2, que **propõe e declara não feita** a lista de
+  documentos que dá acesso à aula.
+
+**O que ela decidiu também a 12/11/2026, e é o que muda hoje:** primeiro **testar e ajustar o que
+existe**, e só depois criar a aula 2, 3, … N. Ou seja — a pendência **não está esquecida, está
+sequenciada**, e por decisão dela. **CONFIRMADO** o estado: há **uma** aula (`aula-01`) nos pacotes, e
+nenhum caminho, rota ou formulário que crie a seguinte a partir do registo da anterior.
+
+**O que a nota de hoje acrescenta, e é só isto:** a quarta superfície do agente (§1.1 do
+`ARQUITETURA-AGENTE.md` — «a elaboração da aula N») **depende desta pendência**. Não é uma frente nova
+nem um pré-requisito escondido: é a consequência de o painel da aula não se construir antes da tela
+da aula, e de a tela da aula **ser** esta pendência. Por isso o painel do agente entra **já** nas três
+superfícies que existem (plano de ensino, plano de observação, Estilo), e o da aula espera — como
+espera tudo o resto que dependa dela. **PENDENTE**, com dono (a sequência da aula N) e sem data.
 
 ### Pendências de infraestrutura — de datas anteriores
 
