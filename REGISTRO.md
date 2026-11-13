@@ -43222,3 +43222,108 @@ expurgo, se ela o quiser, tem de ser declarado — a proveniência acrescenta e 
 Um segundo elo da mesma cadeia (`-0809`, `-1016`) já não é distinguível do primeiro pela comparação
 com o pai, porque o pai dele foi ele próprio reatribuído: a marca apanha a primeira troca de cada
 cadeia, não a propagação. Fica declarado.
+
+## 12/11/2026 — O agente do Lastro: Llama na Cloudflare, MCP, e o fim do provedor externo
+
+**O que motivou.** A pesquisadora fechou, numa sessão de decisão, a arquitetura do **agente
+inteligente** do Sistema Lastro e pediu análise, plano e documentação — **não** implementação. O
+pedido tinha uma cláusula que obrigava a uma varredura: «a documentação de IA que já existe no
+projeto deve ser abandonada … identifique-a e diga onde está». Havia, de facto, cinco sítios, e o
+mais perigoso era o `PLANEJAMENTO-LASTRO.md` §L7, que dizia, com todas as letras, que **a IA não é
+mecanismo de consulta aos registos** — exactamente o que o agente novo passa a fazer, ainda que por
+ferramentas com contrato. Duas frases verdadeiras que se contradizem são piores do que uma frase
+em falta: a próxima sessão lê a mais antiga e desfaz o que foi decidido.
+
+**O que foi decidido** (fechado — não se reabre):
+
+- **Modelo: Llama da Cloudflare**, Workers AI, **`@cf/meta/llama-3.1-8b-instruct-awq`**, **sem API
+  externa**. O id e a tabela de Neurons foram lidos da página de preços da Cloudflare a 12/11/2026 —
+  **11.161 Neurons por M de tokens de entrada, 24.215 por M de saída**.
+- **Arquitetura: MCP + busca estruturada.** Oito ferramentas com **esquema de entrada e saída**
+  declarado; o «MCP» é o **contrato**, não a recuperação.
+- **Sem RAG.** Nem Vectorize, nem embeddings, nem similaridade semântica. A razão é a forma do dado:
+  `indices/acervo.json`, `escola/<slug>/envelopes/.indice.json` (`{versao, nomes[], resumos{}}`),
+  o vocabulário, a notação, o perfil — **tudo chave-valor com `id` estável**. A pergunta é «qual é»,
+  não «parecido com»; num sistema de proveniência, uma resposta aproximada é pior do que uma recusa.
+- **O agente propõe, o professor grava.** A garantia é estrutural: **não existe ferramenta de
+  escrita**. Gravar continua a passar pelo formulário e pela cadeia automática, com a proveniência e
+  o `workflow_dispatch` de hoje.
+- **Mesmo Worker, um módulo.** Não um Worker separado: a trava de identidade (`ESCOLA_SLUG` ×
+  subdomínio), o `GITHUB_TOKEN`, o KV e o `ASSETS` são os mesmos; uma ferramenta em processo custa
+  **zero** subpedidos, e um segundo Worker por escola dobraria a superfície de deploy para servir
+  uma rota. **Sem Durable Object e sem sessão** — a conversa vive no cliente, como já vive em
+  `POST /api/ia`, e o estado do sistema continua a ser ficheiro (`ARQUITETURA-GERAL.md` §4).
+- **A documentação de IA anterior fica marcada, não apagada** (P-03/P-04).
+
+**O que a análise encontrou, e que não estava no pedido.**
+
+- **O contador de subpedidos não vê o KV.** `motor/servidor/subpedidos.js` embrulha o `fetch`; a
+  documentação de limites da Cloudflare diz que **uma leitura de KV também é um subpedido** («any
+  request a Worker makes … or to Cloudflare services like R2, **KV**, or D1»). O número que o §5.26
+  publica está **subestimado** sempre que a rota lê KV. É dívida herdada, não defeito desta frente —
+  mas o agente lê KV em quase todas as voltas, e um contador cego é pior do que nenhum.
+- **O rebuild do índice custa 14 subpedidos**, medidos pelos ficheiros de hoje: 1 árvore + 3
+  `escola/*/indice.json` + 1 `envelopes/.indice.json` + 9 `.fipp`. **Com cache quente: 1 leitura de
+  KV e zero subpedidos de rede.** Daí a regra: o agente lê o índice do cache e **nunca** o
+  reconstrói dentro do laço.
+- **O catálogo tem 76 perguntas; o motor responde 6** (`GE01`, `CT01`, `PV01`, `AL01`, `TR01`,
+  `OB01` em `motor/nucleo/indices.js`). A ferramenta que encaminha para o catálogo só pode oferecer
+  o que existe — e a recusa tem de dizer isso.
+- **10.000 Neurons por dia são da conta, não da escola.** Com a tabela medida, uma interação de duas
+  voltas gasta **≈86 Neurons** ⇒ **≈116 interações por dia** para todas as escolas. É o que dá
+  conteúdo ao «crédito» da assinatura avançada — e a **unidade recomendada é o Neuron**, medido.
+- **`motor/servidor/orcamento.js` não existe.** O pedido citava-o; o contador vive em
+  `motor/servidor/subpedidos.js`. A referência foi corrigida, e fica dito para a próxima sessão não a
+  herdar.
+
+**Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) (**novo** — o desenho completo: o
+que o agente é e não é, MCP × RAG com o fundamento medido, onde vive, o fluxo de uma interação, os
+**oito contratos** em JSON Schema, o prompt de sistema em oito blocos, os limites, a tipagem, o
+impacto no código, os conflitos com a cadeia e com as pétreas, a UI sem peça nova, a nota de
+obsolescência e a estimativa de ≈20,5 dias) ·
+[motor/nucleo/ia.js](./motor/nucleo/ia.js) — **só** a nota datada de obsolescência no cabeçalho;
+**nenhuma linha de código** mudou, e a rota `POST /api/ia` continua a servir o stub ·
+[PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) — a nota datada no **§L7**, a frente **L15**
+(nova), a camada **7** na sequência sugerida e a nota na regra 1 do §6 ·
+[FRENTES.md](./FRENTES.md) — nota datada no **A3** do Trilho A ·
+[ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a fotografia e a §11 · `HANDOFF.md` — regerado por
+`tools/gerar-handoff.sh`.
+
+**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi alterado. O prompt de
+sistema **ainda não existe**: ele vai viver em `prompts/agente-sistema.md` (P-19), e **criá-lo exige
+o ritual** — motivo declarado no corpo, entrada própria neste registo e commit próprio. Fica
+declarado aqui que a §6 do `ARQUITETURA-AGENTE.md` é a **especificação** do conteúdo, e não o
+ficheiro. Também não se tocou em `tools/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` nem na
+`biblioteca/guia-do-professor.md`.
+
+**Com o quê.** `ARQUITETURA-AGENTE.md` · `motor/nucleo/ia.js` (cabeçalho) ·
+`PLANEJAMENTO-LASTRO.md` (L7, L15, §5, §6) · `FRENTES.md` (A3) · `ESTADO-ATUAL.md` · `HANDOFF.md` ·
+este registo. **Nenhum código de motor, nenhum `wrangler.<escola>.jsonc`, nenhum deploy.** A
+validação executada é a de documentação: `node tools/check-identidade.js` — **8/8 ok** (nenhuma peça
+tocada); e a leitura dos ficheiros citados, um a um.
+
+**Referências.** A decisão da pesquisadora (12/11/2026), transcrita no corpo do pedido ·
+[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) §2, §4, §5.26, §7.3 · `PROTOCOLO.md` P-03/P-04, P-08,
+P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md)
+§1 (a forma `medida + caminho + elo`) · `motor/nucleo/indices.js`, `motor/servidor/indice-acervo.js`,
+`motor/servidor/subpedidos.js`, `motor/servidor/producao.js` · Cloudflare *Workers · Limits* e
+*Workers AI · Pricing*, lidas a 12/11/2026 · `experimentos/pe/freio-custo.md` (não versionado).
+
+**O que ainda não está feito.**
+
+- **Nada do agente está implementado.** Não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não
+  há `motor/nucleo/agente/`, não há `motor/servidor/agente.js` nem `mcp.js`, não há rota. O pedido
+  dizia «documentar, não implementar» — e é isso que está feito. **A implementação espera aprovação
+  do plano.**
+- **`prompts/agente-sistema.md` não foi criado.** É o ritual dos congelados, e é a primeira peça da
+  fase seguinte.
+- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e o que a
+  medição pode concluir (subir para o 70B, a 2,7× o Neuron). Não se sabe hoje se o Llama 3.1 8B
+  sustenta o português pedagógico deste projeto — e dizer o contrário seria alegar um facto não
+  medido.
+- **O suporte a `tools` no modelo AWQ não foi verificado** — é a primeira chamada da implementação, e
+  o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
+- **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
+  atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
+- **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
+  frente L7, e essa não andou hoje.

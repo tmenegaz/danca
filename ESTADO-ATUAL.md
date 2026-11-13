@@ -4,7 +4,28 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 10/11/2026 (esta entrega). Nesta entrega, **a decomposição passou a seguir a
+> **Última fotografia:** 12/11/2026 (esta entrega). Nesta entrega, **o agente do Lastro ganhou
+> desenho, plano e uma decisão fechada** — e não ganhou uma linha de código. A decisão: **Llama da
+> Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**;
+> arquitetura **MCP + busca estruturada**, e **sem RAG**, porque 100 % do que o agente consulta é
+> chave-valor com `id` estável. O desenho completo está em
+> [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md) — oito ferramentas com contrato em JSON Schema, o
+> prompt de sistema em oito blocos, os tectos do laço e ≈20,5 dias de estimativa. **CONFIRMADO que
+> nada está implementado:** não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não há
+> `motor/servidor/agente.js` nem `mcp.js`, não há rota. O que **mudou** foi a documentação: a
+> frente **L15** nasceu no `PLANEJAMENTO-LASTRO.md`, o **§L7** (que dizia que a IA «não é mecanismo
+> de consulta aos registos») ganhou nota datada de superação parcial, o **A3** do `FRENTES.md` foi
+> anotado, e o stub `motor/nucleo/ia.js` ganhou a nota de obsolescência no cabeçalho **sem que uma
+> linha de código mudasse**. Três achados que não estavam no pedido: o **contador de subpedidos não
+> vê o KV** — e a Cloudflare conta KV como subpedido (`motor/servidor/subpedidos.js` embrulha só o
+> `fetch`), dívida herdada do §5.26; o **rebuild do índice custa 14 subpedidos** medidos (1 árvore +
+> 3 índices de escola + 1 de envelopes + 9 `.fipp`), contra **1 leitura de KV** com cache quente; e
+> **10.000 Neurons/dia são da conta, não da escola** (≈116 interações/dia pela tabela de preços de
+> 12/11/2026). `check-identidade` **8/8 ok**; nenhum deploy. As entregas de 11 e 12/11 (a autoria na
+> troca de professor, o elo que já está trocado, o «!» da listagem) estão no `REGISTRO.md` e **não
+> são reescritas** aqui. Ver as entradas de 12/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (10/11/2026 — a ordem da decomposição e a duplicação de uma linha).** Nesta entrega, **a decomposição passou a seguir a
 > ordem em que foi escrita, e a duplicação passou a ser de uma linha**. Ela escreveu *frente, ao
 > lado, atrás, ao lado* e viu a tabela reagrupada por direção — **CONFIRMADO e medido**: `celulas` é
 > um mapa com a direção por chave, e um mapa não guarda a ordem entre gavetas; a mesma iteração
@@ -2882,6 +2903,22 @@ do PO vindas da anamnese, e a **geração ficou reproduzível** (o `gerado_em` v
 PDF está fixo). Novo `tools/regerar-derivados.js` põe as fontes derivadas em dia a partir dos
 envelopes — mostra o que muda e só grava com `--escrever`.
 
+**O agente é um copiloto com ferramentas de leitura — e não tem ferramenta de escrita (12/11/2026).**
+Ela fechou a arquitetura do agente e pediu análise, plano e documentação. **DECIDIDO**: modelo
+**Llama da Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**;
+**MCP + busca estruturada**, e **sem RAG** — a chave é conhecida, e num sistema de proveniência uma
+resposta aproximada é pior do que uma recusa; **o agente propõe, o professor grava**, e a garantia é
+estrutural (o registo de ferramentas é só de leitura, e a prova mede-o por lista); **mesmo Worker, um
+módulo**, sem Durable Object e sem sessão — a conversa vive no cliente, como em `POST /api/ia`, e o
+estado do sistema continua a ser ficheiro (§4 do `ARQUITETURA-GERAL.md`). O escopo alargado, e
+declarado: o agente **passa a consultar os registos da própria escola** por oito ferramentas com
+contrato — o que **supera em parte** a frente **L7** e a regra 1 do §6 do `PLANEJAMENTO-LASTRO.md`,
+que proibiam «consulta aos registos». O que **não** se alargou: a IA continua a não avaliar, a não
+decidir e a não substituir o professor, e continua a não haver consulta livre nem entre escolas.
+Documentação apenas — sem código, sem deploy, sem `wrangler` tocado; a implementação espera
+aprovação do plano. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md), a frente **L15** e a entrada
+de 12/11/2026 no `REGISTRO.md`.
+
 **Último ponto confirmado:** 02/11/2026 — `d74fda1` (a musicalidade consolida-se, e a prova da porta
 volta a correr), com `cf1ef52` (a força e a flexibilidade vêm da anamnese), `469c9d5` (a proveniência
 leva a algum lado) e `03be290` (a aula deixa de afirmar o que ninguém escreveu) por trás. Antes deles,
@@ -3239,7 +3276,19 @@ sobre essas peças nunca foi tomada. **PENDENTE**, e agora é só sobre a aprese
 
 ## 9. Validação
 
-### Executado nesta fotografia (10/11/2026 — a ordem da decomposição e a duplicação de uma linha)
+### Executado nesta fotografia (12/11/2026 — o desenho do agente: documentação, sem código)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node tools/check-identidade.js` | **8/8 ok**, 0 erros — nenhuma peça de identidade visual foi tocada, e a checagem «Peça» continua a aprovar as 17 superfícies. **Executado** a 12/11/2026, depois das edições |
+| Leitura dos ficheiros citados | **Executado** — `HANDOFF.md` · `ESTADO-ATUAL.md` · `ARQUITETURA-GERAL.md` §2/§4/§5.26/§7.3/§7.4 · `REGRAS.md` · `PROTOCOLO.md` · `PLANEJAMENTO-LASTRO.md` (L1–L15, §5, §6) · `CONGELAMENTO.md` · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §1 · `motor/nucleo/ia.js` · `motor/nucleo/indices.js` · `motor/servidor/indice-acervo.js` · `motor/servidor/subpedidos.js` · `motor/servidor/producao.js` · `motor/servidor/rotas.js` · `indices/esquema/*.json` · `biblioteca/modalidades/bale-classico/*.json` · `professores/pe-torto/perfil.json`. O que **não** foi lido: o `REGISTRO.md` inteiro (43 mil linhas), que foi lido por amostragem no fim |
+| Contagem do custo do rebuild do índice | **Executado** por contagem do repositório: 9 `.fipp`, 3 `escola/*/indice.json`, 1 `escola/*/envelopes/.indice.json` ⇒ com a árvore, **14 subpedidos**. O código (`construirDoAcervo`) confirma uma leitura por cada um |
+| Tabela de Neurons e tecto diário | **Executado** — lido da página de preços da Cloudflare a 12/11/2026: **10.000 Neurons/dia** na conta gratuita; `llama-3.1-8b-instruct-awq` a **11.161/M de entrada** e **24.215/M de saída**. A conta de ≈86 Neurons por interação está escrita no `ARQUITETURA-AGENTE.md` §7.2 e **é uma estimativa por tabela, não uma medição** |
+| Contador de subpedidos e KV | **CONFIRMADO por leitura**: `contarSubpedidos` embrulha o `fetch`, e o `kv.get` não passa por lá. A doc de limites da Cloudflare diz que KV **é** subpedido. **Não medido** — a correção é da frente L15 |
+| Provas do motor | **Não executadas nesta entrega** — nenhuma linha de código de motor mudou. As provas da entrega anterior continuam como estavam, e o `HEAD` está verde no que estava verde |
+| Deploy | **Não executado, de propósito** — nenhum `wrangler.<escola>.jsonc` e nenhum ficheiro do Worker foram tocados. Um deploy aqui não publicaria nada e gastaria cota de KV à toa |
+
+### Executado na fotografia anterior (10/11/2026 — a ordem da decomposição e a duplicação de uma linha)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4400,6 +4449,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **12/11/2026** — **O agente do Lastro: desenho completo, decisão fechada, e nenhuma linha de
+  código.** Ela fechou a arquitetura (Llama da Cloudflare, MCP + busca estruturada, **sem RAG**) e
+  pediu análise, plano e documentação. **CONFIRMADO que nada está implementado**: sem binding `ai`,
+  sem `agente.js`, sem `mcp.js`, sem rota. **Entregue**: `ARQUITETURA-AGENTE.md` (**novo** — oito
+  contratos de ferramenta em JSON Schema, prompt de sistema em oito blocos, tectos do laço, tipagem
+  em três camadas, impacto no código, conflitos com a cadeia e com as pétreas, UI sem peça nova,
+  ≈20,5 dias), a frente **L15** e uma camada 7 na sequência sugerida do `PLANEJAMENTO-LASTRO.md`, as
+  notas datadas no **§L7**, na **regra 1 do §6** do mesmo documento e no **A3** do `FRENTES.md`, e a
+  nota de obsolescência no cabeçalho de `motor/nucleo/ia.js` **sem tocar em código**. **Achados que
+  não estavam no pedido**: o contador de subpedidos **não vê o KV**, e a Cloudflare conta KV como
+  subpedido (dívida herdada do §5.26); o rebuild do índice custa **14 subpedidos** medidos contra
+  **1 leitura de KV** com cache quente; **10.000 Neurons/dia são da conta**, ≈116 interações/dia; e
+  o catálogo tem **76 perguntas** com **6** implementadas. `check-identidade` **8/8 ok**. Nenhum
+  deploy. Ver as entradas de 12/11/2026 no `REGISTRO.md`.
 
 - **10/11/2026** — **A decomposição segue a ordem em que foi escrita, e a duplicação é de uma
   linha.** Ela escreveu *frente, ao lado, atrás, ao lado* e viu a tabela reagrupada — **CONFIRMADO e
