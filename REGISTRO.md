@@ -43875,3 +43875,54 @@ reprova (medido: `→ ["ia-registro/registro.jsonl"]`). Também verdes: `provar-
 - **A retenção continua indefinida.** Um ficheiro por mês resolve o tecto por chave e o custo da
   escrita; não decide por quanto tempo o registo é guardado. É a mesma família da decisão de cache
   das curadorias: método, não desempenho.
+
+## 13/11/2026 — O isolamento entre escolas passa a ser provado, e decide-se o shard
+
+**O que aconteceu.** A revisão de custo do dia levantou a pergunta que fecha o assunto do plano
+gratuito: «posso pôr em risco que, se uma escola pedir para apagar um professor, eu vá apagar os
+professores de todas?». A resposta era «não, porque toda a chave carrega a escola» — e era
+**afirmação em prosa**, não asserção do repositório. As provas que existiam mediam o **expurgo**
+(o caso extremo, que apaga); nenhuma media o **dia a dia**: a escrita comum, a leitura comum.
+
+**O que foi decidido.**
+
+- **O isolamento não vem da topologia, vem do caminho.** Três famílias independentes: o **cadastro**
+  escreve `bastidores/<escola>/…` por extenso; o **envelope** e o **custo** são famílias que não
+  carregam a escola na chave lógica e a quem o adaptador põe o slug à frente (`<escola>/envelope/…`);
+  o **repositório** usa `escola/<escola>/…`. É por isso que a garantia **sobrevive a qualquer
+  mudança de topologia** — as chaves não dependem de quem as serve.
+- **O multi-tenant será por SHARDS**, e não «um Worker para todas»: N escolas por Worker, deploy
+  **shard a shard**. O que se compra não é capacidade — é **raio de alcance**: um erro num deploy
+  chega a N escolas, e as outras não viram o commit. Um só Worker daria ~240 escolas e um raio de
+  alcance de todas; o shard dá o mesmo tecto por Worker e um canário de graça.
+- **O endereço será por domínio próprio** (`padd.com.br`, que a pesquisadora já tem e ainda não
+  aponta ao Cloudflare): `<escola>.padd.com.br`, com uma **rota por escola**. O caminho alternativo
+  — prefixo (`padd.com.br/<escola>/…`) — obrigaria a mudar o endereço de todas as páginas geradas.
+- **R2 fica de fora.** Exigiria cartão na conta, e daria ~2.000 escolas contra o limite de
+  **20.000 ficheiros por versão** do ASSETS, que não tem custo de armazenamento.
+
+**Com o quê.** `provar-isolamento-entre-escolas` **25/25** — prova nova, de 13/11/2026. Mede as três
+famílias e mais: o adaptador namespaça (o **mesmo id de envelope** nas duas escolas, com valores
+diferentes, e cada uma lê o seu); o ato que a pesquisadora temia — apagar professor e aluna numa
+escola, **com o mesmo cadastro semeado nas duas** — não escreve **uma única** chave fora dos
+prefixos daquela escola, e deixa a outra **byte a byte** igual; ler como A não devolve o de B; os
+prefixos do expurgo de A não alcançam nenhuma chave de B, e um slug que é prefixo de outro
+(`cala` × `calango`) não é confundido — a barra é a trava; os caminhos do acervo de A não pertencem
+ao padrão de B, e um nome com `/` é recusado em vez de codificado. **Controle negativo:** tirar o
+namespaçamento do adaptador **reprova 5 asserções**, incluindo «B lê o id de A» — medido.
+
+**Referências.** `motor/adaptadores/cloudflare.js` (`escolar`/`desescolar`) ·
+`motor/servidor/bastidores.js` (as rotas do cadastro) · `motor/servidor/expurgar-escola.js`
+(`prefixosDaEscola`) · `motor/servidor/acervo-envelopes.js` (`caminhoDaChave`, `ehAcervoDaEscola`) ·
+`experimentos/provar-isolamento-entre-escolas.js`.
+
+**O que ainda não está feito.**
+
+- **Nada do shard foi escrito.** O que existe hoje é a **prova** e a **decisão**; a implementação
+  começa quando o número de escolas a justificar. Uma escola em produção contra um tecto de 99 não
+  é motivo para mexer no endereço de tudo.
+- **O `ESCOLA_SLUG` continua a ser `var` de deploy.** Sair do `wrangler` para um mapa `hostname →
+  escola` em KV, com cache de isolate, é o primeiro passo e é reversível — mas só se faz junto com
+  o shard, porque isolado não compra nada.
+- **`padd.com.br` não está apontado ao Cloudflare.** A zona e as rotas por escola entram no dia em
+  que o shard for implementado; até lá, os endereços `*.workers.dev` continuam a ser os de trabalho.

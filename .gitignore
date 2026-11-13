@@ -1214,3 +1214,11 @@ experimentos/modelo-formulario/*
 # linha cada, nenhum cresce com o outro) e a ponta a ponta do `POST /api/ia` — rota → armazenamento
 # → chave. CONTROLE NEGATIVO: com a chave única de antes, reprova.
 !experimentos/provar-registro-de-custo-por-mes.js
+
+# O DADO DE UMA ESCOLA NÃO É ALCANÇÁVEL POR OUTRA (13/11/2026). O isolamento desta casa não vem de
+# haver um Worker por escola — vem de o CAMINHO carregar a escola, em três famílias independentes
+# (cadastro em `bastidores/<escola>/…`, envelope e custo namespaçados pelo adaptador, repositório em
+# `escola/<escola>/…`). Era afirmação em prosa; passa a asserção. Fixa as três famílias, o ato que a
+# pesquisadora temia (apagar o professor de uma escola), o alcance do expurgo, e o slug que é prefixo
+# de outro (`cala` × `calango`). CONTROLE NEGATIVO: tirar o namespaçamento do adaptador reprova 5.
+!experimentos/provar-isolamento-entre-escolas.js

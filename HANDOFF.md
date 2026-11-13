@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T14:49:39-0300`
-Commit atual: `dd128a30` — fix(estrutura): o CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
+Gerado em: `2026-11-13T15:08:15-0300`
+Commit atual: `70f480fe` — fix(estrutura): o registo de custo da IA ganha mês no nome
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+70f480fe fix(estrutura): o registo de custo da IA ganha mês no nome
 dd128a30 fix(estrutura): o CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
 8048a335 docs(registro): a conferência ao ar da lista que custa o índice
 f262b436 fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
@@ -92,7 +93,6 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 10ea5adb chore(estrutura): regerar o HANDOFF
 ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o documento verdadeiro
 36145e79 chore(estrutura): regerar o HANDOFF
-9177bb87 fix(estrutura): o elo que ja esta no acervo com o nome trocado e reconhecido, e nao aceite
 ```
 
 ## Por professor
@@ -170,68 +170,58 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — O registo de custo da IA ganha mês no nome
+## 13/11/2026 — O isolamento entre escolas passa a ser provado, e decide-se o shard
 
-**O que aconteceu.** Último item da revisão de custo do dia. O registo de custo da IA era **uma
-chave só** — `ia-registro/registro.jsonl` —, e com o KV isso tem duas consequências que só aparecem
-com o tempo: o `anexar` é **ler-modificar-escrever** (o KV não tem append, e está declarado em
-`motor/adaptadores/cloudflare.js`), e portanto cada linha nova relê e reescreve o ficheiro inteiro;
-e o valor tem um tecto de **25 MiB por chave** que não avisa — um dia o `put` recusa. Uma chave de
-25 MiB é também uma leitura de 25 MiB para o leitor do catálogo (GE06/GE10) que queira uma linha do
-mês passado.
+**O que aconteceu.** A revisão de custo do dia levantou a pergunta que fecha o assunto do plano
+gratuito: «posso pôr em risco que, se uma escola pedir para apagar um professor, eu vá apagar os
+professores de todas?». A resposta era «não, porque toda a chave carrega a escola» — e era
+**afirmação em prosa**, não asserção do repositório. As provas que existiam mediam o **expurgo**
+(o caso extremo, que apaga); nenhuma media o **dia a dia**: a escrita comum, a leitura comum.
 
 **O que foi decidido.**
 
-- **Um mês, um ficheiro**: `ia-registro/<AAAA-MM>.jsonl`. A **linha não muda** — os mesmos campos
-  que o `ARQUITETURA-AGENTE.md` desenha. Muda o nome do sítio onde ela cai.
-- **A derivação é do núcleo**, em `motor/nucleo/registro-de-custo.js` (`chaveDoMes`,
-  `chavesDoPeriodo`), e o stub `POST /api/ia` usa-a. O **agente do Lastro usa a MESMA** — duas
-  derivações da mesma chave divergiriam ao primeiro mês, e o log partia-se em dois sítios sem
-  ninguém notar.
-- **A chave sai do carimbo da própria linha**, e não de um relógio lido à parte: a linha e o
-  ficheiro onde ela cai não podem discordar. O carimbo é o da escola (`America/Sao_Paulo`) — uma
-  chave derivada em UTC poria as linhas das 22h de 31 de outubro no ficheiro de novembro.
-- **Um carimbo ilegível LANÇA.** Um `ia-registro/undefined.jsonl` seria um ficheiro com nome de bug
-  e nenhuma linha dele — pior do que a exceção.
+- **O isolamento não vem da topologia, vem do caminho.** Três famílias independentes: o **cadastro**
+  escreve `bastidores/<escola>/…` por extenso; o **envelope** e o **custo** são famílias que não
+  carregam a escola na chave lógica e a quem o adaptador põe o slug à frente (`<escola>/envelope/…`);
+  o **repositório** usa `escola/<escola>/…`. É por isso que a garantia **sobrevive a qualquer
+  mudança de topologia** — as chaves não dependem de quem as serve.
+- **O multi-tenant será por SHARDS**, e não «um Worker para todas»: N escolas por Worker, deploy
+  **shard a shard**. O que se compra não é capacidade — é **raio de alcance**: um erro num deploy
+  chega a N escolas, e as outras não viram o commit. Um só Worker daria ~240 escolas e um raio de
+  alcance de todas; o shard dá o mesmo tecto por Worker e um canário de graça.
+- **O endereço será por domínio próprio** (`padd.com.br`, que a pesquisadora já tem e ainda não
+  aponta ao Cloudflare): `<escola>.padd.com.br`, com uma **rota por escola**. O caminho alternativo
+  — prefixo (`padd.com.br/<escola>/…`) — obrigaria a mudar o endereço de todas as páginas geradas.
+- **R2 fica de fora.** Exigiria cartão na conta, e daria ~2.000 escolas contra o limite de
+  **20.000 ficheiros por versão** do ASSETS, que não tem custo de armazenamento.
 
-**Com o quê.** `provar-registro-de-custo-por-mes` **19/19** — prova nova, de 13/11/2026. Fixa a
-derivação (mês, virada do ano, período, carimbo ilegível), a **partição** (a mesma sessão escrita em
-outubro e novembro cai em dois ficheiros, com UMA linha cada, e nenhum deles se chama
-`registro.jsonl`) e a **ponta a ponta** do `POST /api/ia` — rota → armazenamento → chave, com a
-linha a ter os campos do contrato. **Controle negativo:** com a chave única de antes, a prova
-reprova (medido: `→ ["ia-registro/registro.jsonl"]`). Também verdes: `provar-fusao-da-edicao`
-**29/29** (usa `ia-registro/registro.jsonl` como chave de exemplo do `anexar`, e continua a valer) ·
-`provar-expurgo-sem-listagem` **49/49** (o prefixo `ia-registro/` continua coberto pelo expurgo) ·
-`check-identidade` **22 ok, 0 erros**.
+**Com o quê.** `provar-isolamento-entre-escolas` **25/25** — prova nova, de 13/11/2026. Mede as três
+famílias e mais: o adaptador namespaça (o **mesmo id de envelope** nas duas escolas, com valores
+diferentes, e cada uma lê o seu); o ato que a pesquisadora temia — apagar professor e aluna numa
+escola, **com o mesmo cadastro semeado nas duas** — não escreve **uma única** chave fora dos
+prefixos daquela escola, e deixa a outra **byte a byte** igual; ler como A não devolve o de B; os
+prefixos do expurgo de A não alcançam nenhuma chave de B, e um slug que é prefixo de outro
+(`cala` × `calango`) não é confundido — a barra é a trava; os caminhos do acervo de A não pertencem
+ao padrão de B, e um nome com `/` é recusado em vez de codificado. **Controle negativo:** tirar o
+namespaçamento do adaptador **reprova 5 asserções**, incluindo «B lê o id de A» — medido.
 
-**Motivo declarado — não se aplica.** Toca `motor/` e a documentação. Nenhuma fonte de ciclo, nenhum
-`.fipp`, nenhum validador, nenhum desenho de tela.
-
-**Referências.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — o passo 4 do fluxo e o §7.3 ·
-`motor/nucleo/registro-de-custo.js` · `motor/servidor/rotas.js` (`POST /api/ia`) ·
-`PLANEJAMENTO-LASTRO.md` (C7) · `experimentos/provar-registro-de-custo-por-mes.js`.
+**Referências.** `motor/adaptadores/cloudflare.js` (`escolar`/`desescolar`) ·
+`motor/servidor/bastidores.js` (as rotas do cadastro) · `motor/servidor/expurgar-escola.js`
+(`prefixosDaEscola`) · `motor/servidor/acervo-envelopes.js` (`caminhoDaChave`, `ehAcervoDaEscola`) ·
+`experimentos/provar-isolamento-entre-escolas.js`.
 
 **O que ainda não está feito.**
 
-- **Não há nada para migrar.** A conta tinha **0 escritas** nessa chave no dia 13/11 — o stub não
-  corre em produção. Fazer isto agora custou uma tarde; depois de o agente entrar no ar, seria uma
-  migração de log.
-- **A retenção continua indefinida.** Um ficheiro por mês resolve o tecto por chave e o custo da
-  escrita; não decide por quanto tempo o registo é guardado. É a mesma família da decisão de cache
-  das curadorias: método, não desempenho.
+- **Nada do shard foi escrito.** O que existe hoje é a **prova** e a **decisão**; a implementação
+  começa quando o número de escolas a justificar. Uma escola em produção contra um tecto de 99 não
+  é motivo para mexer no endereço de tudo.
+- **O `ESCOLA_SLUG` continua a ser `var` de deploy.** Sair do `wrangler` para um mapa `hostname →
+  escola` em KV, com cache de isolate, é o primeiro passo e é reversível — mas só se faz junto com
+  o shard, porque isolado não compra nada.
+- **`padd.com.br` não está apontado ao Cloudflare.** A zona e as rotas por escola entram no dia em
+  que o shard for implementado; até lá, os endereços `*.workers.dev` continuam a ser os de trabalho.
 
 ## O que está pendente
-
-## 13/11/2026 — A listagem não é a proveniência: uma linha por professor, dentro da cadeia
-
-
-- **Não foi conferido ao ar.** A mudança é do núcleo e da listagem; a conferência em produção é o
-  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
-- **O `provar-vigente-na-listagem` (21) não foi estendido**; a prova nova cobre a regra da cadeia, e
-  as duas não se sobrepõem. Fica a dívida de as fundir numa só, quando houver motivo.
-- **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
-  proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
-  Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
 
 ## 13/11/2026 — A logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
 
@@ -284,6 +274,18 @@ reprova (medido: `→ ["ia-registro/registro.jsonl"]`). Também verdes: `provar-
 - **A retenção continua indefinida.** Um ficheiro por mês resolve o tecto por chave e o custo da
   escrita; não decide por quanto tempo o registo é guardado. É a mesma família da decisão de cache
   das curadorias: método, não desempenho.
+
+## 13/11/2026 — O isolamento entre escolas passa a ser provado, e decide-se o shard
+
+
+- **Nada do shard foi escrito.** O que existe hoje é a **prova** e a **decisão**; a implementação
+  começa quando o número de escolas a justificar. Uma escola em produção contra um tecto de 99 não
+  é motivo para mexer no endereço de tudo.
+- **O `ESCOLA_SLUG` continua a ser `var` de deploy.** Sair do `wrangler` para um mapa `hostname →
+  escola` em KV, com cache de isolate, é o primeiro passo e é reversível — mas só se faz junto com
+  o shard, porque isolado não compra nada.
+- **`padd.com.br` não está apontado ao Cloudflare.** A zona e as rotas por escola entram no dia em
+  que o shard for implementado; até lá, os endereços `*.workers.dev` continuam a ser os de trabalho.
 
 ## Pendências anteriores (índice)
 
@@ -708,6 +710,7 @@ reprova (medido: `→ ["ia-registro/registro.jsonl"]`). Também verdes: `provar-
 - **12/11/2026** — «Em turma» vem da Turma, e não do plano → `REGISTRO.md` L43063
 - **12/11/2026** — A autoria não se reescreve: o documento que perde a turma… → `REGISTRO.md` L43132
 - **12/11/2026** — O agente do Lastro: Llama na Cloudflare, MCP, e o fim do… → `REGISTRO.md` L43238
+- **13/11/2026** — A listagem não é a proveniência: uma linha por professor,… → `REGISTRO.md` L43500
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
