@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:59:18-0300`
-Commit atual: `9ae74482` — docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
+Gerado em: `2026-11-13T08:09:50-0300`
+Commit atual: `8a4e9c14` — docs(registro): a regra da listagem, e o que ela mediu antes de mudar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,9 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+8a4e9c14 docs(registro): a regra da listagem, e o que ela mediu antes de mudar
+c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na cadeia
+93dff71e docs(estrutura): a identidade do professor fica declarada, e o recorte vira aviso
 9ae74482 docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
 847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
@@ -90,9 +93,6 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 9ad8db43 chore(estrutura): regerar o HANDOFF
 38d1781e fix(estrutura): a autoria nao se reescreve — o documento que perde a turma fica «sem turma»
 7b92544a chore(entrega): gerar o pacote de redinha-rosa/01/calango-piano
-daa44654 chore(estrutura): reancorar a cadeia das fontes alteradas
-b4eb042b chore(estrutura): regerar os índices derivados
-0569a3b2 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -170,278 +170,79 @@ b4eb042b chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 12/11/2026 — O agente do Lastro: Llama na Cloudflare, MCP, e o fim do provedor externo
+## 13/11/2026 — A listagem não é a proveniência: uma linha por professor, dentro da cadeia
 
-**O que motivou.** A pesquisadora fechou, numa sessão de decisão, a arquitetura do **agente
-inteligente** do Sistema Lastro e pediu análise, plano e documentação — **não** implementação. O
-pedido tinha uma cláusula que obrigava a uma varredura: «a documentação de IA que já existe no
-projeto deve ser abandonada … identifique-a e diga onde está». Havia, de facto, cinco sítios, e o
-mais perigoso era o `PLANEJAMENTO-LASTRO.md` §L7, que dizia, com todas as letras, que **a IA não é
-mecanismo de consulta aos registos** — exactamente o que o agente novo passa a fazer, ainda que por
-ferramentas com contrato. Duas frases verdadeiras que se contradizem são piores do que uma frase
-em falta: a próxima sessão lê a mais antiga e desfaz o que foi decidido.
+**O que motivou.** Ela relatou que a correção de 12/11 — a autoria não se reescreve — deu certo, e
+trouxe à tona o que já estava resolvido:
 
-**O que foi decidido** (fechado — não se reabre):
+> «os planos antigos, eles continuam sobre o guarda-chuva do plano vigente […] o plano antigo, que
+> foi que deu origem a essa derivação, ele não precisa aparecer, porque esse controle de proveniência
+> é nosso […] a gente tem que mostrar na listagem dois planos mesmo, que é o do pé torto e o da
+> redinha, que estão se alternando.»
 
-- **Modelo: Llama da Cloudflare**, Workers AI, **`@cf/meta/llama-3.1-8b-instruct-awq`**, **sem API
-  externa**. O id e a tabela de Neurons foram lidos da página de preços da Cloudflare a 12/11/2026 —
-  **11.161 Neurons por M de tokens de entrada, 24.215 por M de saída**.
-- **Arquitetura: MCP + busca estruturada.** Oito ferramentas com **esquema de entrada e saída**
-  declarado; o «MCP» é o **contrato**, não a recuperação.
-- **Sem RAG.** Nem Vectorize, nem embeddings, nem similaridade semântica. A razão é a forma do dado:
-  `indices/acervo.json`, `escola/<slug>/envelopes/.indice.json` (`{versao, nomes[], resumos{}}`),
-  o vocabulário, a notação, o perfil — **tudo chave-valor com `id` estável**. A pergunta é «qual é»,
-  não «parecido com»; num sistema de proveniência, uma resposta aproximada é pior do que uma recusa.
-- **O agente propõe, o professor grava.** A garantia é estrutural: **não existe ferramenta de
-  escrita**. Gravar continua a passar pelo formulário e pela cadeia automática, com a proveniência e
-  o `workflow_dispatch` de hoje.
-- **Mesmo Worker, um módulo.** Não um Worker separado: a trava de identidade (`ESCOLA_SLUG` ×
-  subdomínio), o `GITHUB_TOKEN`, o KV e o `ASSETS` são os mesmos; uma ferramenta em processo custa
-  **zero** subpedidos, e um segundo Worker por escola dobraria a superfície de deploy para servir
-  uma rota. **Sem Durable Object e sem sessão** — a conversa vive no cliente, como já vive em
-  `POST /api/ia`, e o estado do sistema continua a ser ficheiro (`ARQUITETURA-GERAL.md` §4).
-- **A documentação de IA anterior fica marcada, não apagada** (P-03/P-04).
+**O que a medição mostrou.** O acervo do `calango` tem **uma** cadeia de plano com **18 elos**,
+alternando Pé Torto ↔ Redinha Rosa. A listagem mostrava **5 linhas** na turma `Piano`, e o PO — 20
+elos — mostrava **6**. Três linhas eram **órfãs**: não são escondidas por um sucessor e não acumulam
+histórico próprio. `plano-20261111-0858` chegava a aparecer com «!» **e** `sem turma` ao mesmo tempo.
 
-**O que a análise encontrou, e que não estava no pedido.**
+**A causa são duas regras certas que se somam mal.**
 
-- **O contador de subpedidos não vê o KV.** `motor/servidor/subpedidos.js` embrulha o `fetch`; a
-  documentação de limites da Cloudflare diz que **uma leitura de KV também é um subpedido** («any
-  request a Worker makes … or to Cloudflare services like R2, **KV**, or D1»). O número que o §5.26
-  publica está **subestimado** sempre que a rota lê KV. É dívida herdada, não defeito desta frente —
-  mas o agente lê KV em quase todas as voltas, e um contador cego é pior do que nenhum.
-- **O rebuild do índice custa 14 subpedidos**, medidos pelos ficheiros de hoje: 1 árvore + 3
-  `escola/*/indice.json` + 1 `envelopes/.indice.json` + 9 `.fipp`. **Com cache quente: 1 leitura de
-  KV e zero subpedidos de rede.** Daí a regra: o agente lê o índice do cache e **nunca** o
-  reconstrói dentro do laço.
-- **O catálogo tem 76 perguntas; o motor responde 6** (`GE01`, `CT01`, `PV01`, `AL01`, `TR01`,
-  `OB01` em `motor/nucleo/indices.js`). A ferramenta que encaminha para o catálogo só pode oferecer
-  o que existe — e a recusa tem de dizer isso.
-- **10.000 Neurons por dia são da conta, não da escola.** Com a tabela medida, uma interação de duas
-  voltas gasta **≈86 Neurons** ⇒ **≈116 interações por dia** para todas as escolas. É o que dá
-  conteúdo ao «crédito» da assinatura avançada — e a **unidade recomendada é o Neuron**, medido.
-- **`motor/servidor/orcamento.js` não existe.** O pedido citava-o; o contador vive em
-  `motor/servidor/subpedidos.js`. A referência foi corrigida, e fica dito para a próxima sessão não a
-  herdar.
+- `CONTEXTO_DO_REGISTO.plano` é `() => null` **de propósito** — dois documentos da mesma turma e ciclo
+  são dois documentos —, portanto a fase «um por contexto» **nunca** se aplicava ao plano;
+- a regra de 12/11 («um sucessor que trocou de mãos não substitui nada») impede o escondimento em
+  **toda** troca de autor, e é ela que mantém à vista o documento de quem escreveu.
 
-**Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) (**novo** — o desenho completo: o
-que o agente é e não é, MCP × RAG com o fundamento medido, onde vive, o fluxo de uma interação, os
-**oito contratos** em JSON Schema, o prompt de sistema em oito blocos, os limites, a tipagem, o
-impacto no código, os conflitos com a cadeia e com as pétreas, a UI sem peça nova, a nota de
-obsolescência e a estimativa de ≈20,5 dias) ·
-[motor/nucleo/ia.js](./motor/nucleo/ia.js) — **só** a nota datada de obsolescência no cabeçalho;
-**nenhuma linha de código** mudou, e a rota `POST /api/ia` continua a servir o stub ·
-[PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) — a nota datada no **§L7**, a frente **L15**
-(nova), a camada **7** na sequência sugerida e a nota na regra 1 do §6 ·
-[FRENTES.md](./FRENTES.md) — nota datada no **A3** do Trilho A ·
-[ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a fotografia e a §11 · `HANDOFF.md` — regerado por
-`tools/gerar-handoff.sh`.
+Sozinha, cada uma faz o que devia. Juntas, **cada elo da alternância ficava visível** — e a correção
+de 12/11 fechou a metade «não esconder o documento verdadeiro», deixando aberta a metade «não listar
+o histórico».
 
-**Motivo declarado — os congelados.** Nenhum ficheiro de `CONGELAMENTO.md` foi alterado. O prompt de
-sistema **ainda não existe**: ele vai viver em `prompts/agente-sistema.md` (P-19), e **criá-lo exige
-o ritual** — motivo declarado no corpo, entrada própria neste registo e commit próprio. Fica
-declarado aqui que a §6 do `ARQUITETURA-AGENTE.md` é a **especificação** do conteúdo, e não o
-ficheiro. Também não se tocou em `tools/`, `PROTOCOLO.md`, `REGRAS.md`, `METODO.md` nem na
-`biblioteca/guia-do-professor.md`.
+**O que foi decidido** — por ela, nas duas perguntas que a análise obrigou a fazer:
 
-**Com o quê.** `ARQUITETURA-AGENTE.md` · `motor/nucleo/ia.js` (cabeçalho) ·
-`PLANEJAMENTO-LASTRO.md` (L7, L15, §5, §6) · `FRENTES.md` (A3) · `ESTADO-ATUAL.md` · `HANDOFF.md` ·
-este registo. **Nenhum código de motor, nenhum `wrangler.<escola>.jsonc`, nenhum deploy.** A
-validação executada é a de documentação: `node tools/check-identidade.js` — **8/8 ok** (nenhuma peça
-tocada); e a leitura dos ficheiros citados, um a um.
+- **A listagem mostra o mais recente de CADA PROFESSOR, dentro de cada cadeia.** Os outros elos são
+  proveniência e contam em «N versões anteriores» na linha do vigente — «a gente vai listar somente
+  aquele mais recente que é pertinente».
+- **O grupo é a RAIZ da cadeia, e não o nome da turma.** A cadeia atravessa uma renomeação (`Rosa` →
+  `Piano`), e agrupar por turma parti-la-ia em duas linhas. Perguntada sobre este caso, ela escolheu
+  **duas linhas**: «só o mais recente de cada professor, na cadeia inteira».
+- **Nada se perde, e ela quer assim.** «A relação temporal a gente vai preservar porque é a
+  proveniência»; o que se guarda fica para o plano de perguntas do motor, quando os relatórios forem
+  trabalhados.
 
-**Referências.** A decisão da pesquisadora (12/11/2026), transcrita no corpo do pedido ·
-[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) §2, §4, §5.26, §7.3 · `PROTOCOLO.md` P-03/P-04, P-08,
-P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md)
-§1 (a forma `medida + caminho + elo`) · `motor/nucleo/indices.js`, `motor/servidor/indice-acervo.js`,
-`motor/servidor/subpedidos.js`, `motor/servidor/producao.js` · Cloudflare *Workers · Limits* e
-*Workers AI · Pricing*, lidas a 12/11/2026 · `experimentos/pe/freio-custo.md` (não versionado).
+**O que NÃO mudou.** O documento de quem escreveu continua à vista — na cadeia, ele é o mais recente
+**daquele** autor, e é ele que a regra guarda. É a exigência de 12/11 («continua existindo na
+listagem o plano de ensino que pertence ao pé torto, porque foi ele que elaborou») e ela mantém-se
+por construção. E as etiquetas continuam a cair nas linhas certas: hoje sobram duas linhas, uma com
+o «!» e outra com `sem turma` — exactamente o que ela descreveu.
 
+**Onde entrou.** [motor/nucleo/porta.js](./motor/nucleo/porta.js) — `FAMILIAS_POR_CADEIA`,
+`raizDaCadeia`, `chaveDaCadeia`, e a escolha da chave dentro de `vigentesDaFamilia` (o grupo
+`raiz + professor` para `plano` e `po`; as outras famílias ficam com `chaveDoContexto`, sem
+alteração) · [experimentos/provar-uma-linha-por-professor.js](./experimentos/provar-uma-linha-por-professor.js)
+(**novo**, 23 asserções) · [.gitignore](./.gitignore) — a excepção da prova, com a razão escrita ·
+[ARQUITETURA-GERAL.md](./ARQUITETURA-GERAL.md) §3.3 — nota datada a estender «o passado não se
+escreve na listagem» aos planos · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a nota na decisão 79, a §9 e
+a §11 · `HANDOFF.md` — regerado.
 
-> **As quatro respostas dela, no mesmo dia (12/11/2026) — e o que cada uma mudou.** A documentação
-> acima fechava com quatro perguntas em aberto. Elas foram respondidas, e três das respostas
-> **alteraram o documento**:
->
-> 1. **Onde o painel começa: nas QUATRO** — «no Plano, po, estilo e elaboração da aula seguinte (n)».
->    Não era o que eu recomendava (duas). Das quatro, **três têm tela hoje** — o plano de ensino
->    (`/plano-ensino/`), o plano de observação (`/plano-observacao/`) e o Estilo (`#verbetes` na
->    Produção) — e a **elaboração da aula N não tem** tela nem rota nem formulário. **Isso não é
->    achado desta sessão, e ela fê-lo notar:** a pendência está **declarada há muito tempo** — tem
->    entrada própria na §8 do `ESTADO-ATUAL.md` («A aula N»), com a ordem que ela fixou a 01/11/2026
->    (*ajustar a geração → a coleta ser a expressão da janela → o caderno → só então o botão de criar
->    a aula*) e o caminho crítico medido («a aula 2 existir»; «**Definir o marco**» e «**Abrir a
->    aula**» não existem no produto); `PLANO-NAVEGACAO.md` §9.2 propõe a lista de documentos e
->    declara-a **não feita**; e `PLANO-AULA-E-OBSERVACAO.md` fixa o requisito novo — a confirmação de
->    alinhamento com o PO antes de a aula ser editável — **sem equivalente no código**. E ela decidiu
->    a **sequência** na mesma sessão: primeiro **testar e ajustar o que existe**, e só depois criar a
->    aula 2, 3, … N. **O que a resposta dela decidiu, então, é só isto:** o painel entra **já** nas
->    três que existem, e o da aula **espera a tela** — construir o painel antes da tela seria
->    construir a gaveta antes da cómoda. Fica preparado, e não depende de tela
->    nenhuma: o campo `aula` no `contexto` do pedido, para a quarta ser ligá-lo. Também por esta
->    resposta, **a anamnese saiu da lista** — é retrato, não redação pedagógica, e a razão é dela: não
->    a nomeou.
-> 2. **O crédito é o Neuron — sim.** Deixa de ser recomendação e passa a decisão. A tabela de preços
->    de 12/11/2026 é a fonte do número (≈86 Neurons por interação, ≈116 interações/dia na conta
->    gratuita), e o que fica para a frente L9/L11 é a **conversão comercial** — quantos Neurons por
->    franquia, qual o excedente —, não a unidade.
-> 3. **O agente pode citar o apelido — sim.** E a resposta obrigou a acrescentar uma palavra ao prompt
->    de sistema: «Usa **só** o apelido» faz um 8B escrever «a aluna», que é o mesmo que não dizer
->    nada; a regra passou a «podes citá-lo, e nunca escrevas nome completo, contato, dado de saúde,
->    diagnóstico ou acompanhamento» (P-12 intacta).
-> 4. **Antes de subir para o 70B, aprimorar.** A ordem foi invertida, e a inversão é a decisão: o
->    70B é a **última** opção, não a primeira resposta a um texto mau. Nasceu daí a **escada** do
->    §7.2.1 do `ARQUITETURA-AGENTE.md` — medir os 20 casos → o prompt → os exemplos (*few-shot* com
->    casos reais) → as ferramentas e o recorte → a amostragem → e **só então** o 70B
->    (`@cf/meta/llama-3.1-70b-instruct-fp8-fast`, 26.668 Neurons/M de entrada e 204.805/M de saída,
->    da mesma tabela), declarando quais degraus já foram tentados. A razão de ser desta ordem não é
->    só o custo: um pedido mal construído continua mal construído num modelo maior, **só que mais
->    caro e mais difícil de diagnosticar**.
->
-> **O que a estimativa passou a ser.** ≈20,5 → **≈23 dias**: a UI sobe de 2 para 3 (três superfícies,
-> cada uma com o seu contexto), e a escada acrescenta 2. O painel da aula N **não entra** nesta conta
-> — é ≈1 dia, quando a tela nascer, e não é custo desta frente.
->
-> **Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — a §1.1 (**nova**, as quatro
-> superfícies e o estado de cada uma), a §7.2 (o Neuron como unidade decidida), a §7.2.1 (**nova**, a
-> escada), a §11.1 (**nova**, o painel por superfície), o bloco 7 do prompt, a §13 e a §14 (as quatro
-> respostas substituem as quatro perguntas) · [PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) —
-> **L15** (as quatro superfícies, a lacuna (e), o critério (vii)) · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md)
-> — a linha da §6 · `HANDOFF.md` — regerado.
->
-> **O que não mudou.** Nenhuma linha de código; nenhum `wrangler`; nenhum deploy. As pétreas e a
-> fronteira do §1 (o agente propõe, o professor grava; não avalia) continuam como estavam — e a
-> quarta resposta **reforça-as**: nenhum degrau da escada é adoptado sem medição.
-
-> **A revisão externa do documento (12/11/2026), e o que ela corrigiu.** O `ARQUITETURA-AGENTE.md` foi
-> lido por fora e voltou com cinco propostas incrementais. A arquitetura central — MCP + busca
-> estruturada, sem RAG — foi **mantida**, e a leitura confirma o fundamento: o problema que o RAG
-> resolve não aparece na estrutura documental do Lastro. Quatro propostas mudaram contratos e uma
-> mudou um número da estimativa; uma encontrou um **furo real** no que eu tinha escrito:
->
-> 1. **Contexto de interface × contexto de autorização.** O pedido carrega dois contextos e eles não
->    têm o mesmo estatuto. Verificado: a **escola** já não se contesta (`ESCOLA_SLUG` é `vars` do
->    Worker, conferido contra o subdomínio; um `escola` no corpo é sobrescrito por
->    `comAEscolaDoWorker`). O **professor**, sim: hoje o `professor` vem do **corpo do pedido**, e a
->    guarda que existe é de **atribuição** («esta turma está curada para este professor?» — a regra
->    de 27/10/2026), não de identidade. **O furo que isto expôs:** `ler_envelopes` no meu contrato
->    **não recortava por professor** — e as rotas `GET /api/envelopes` e `GET /api/envelope/:id`
->    dentro do Worker da escola. Com aquela ferramenta, quem soubesse um slug teria **a estante
->    inteira da escola** num pedido só, em texto corrido. **Corrigido**: recorte por professor, feito
->    **no servidor**, e de graça — o resumo do índice já traz `professor`. Mais: `escopo` declarado em
->    `ler_turma` (a mesma regra da curadoria) e a anamnese **nunca decifrada** (a ferramenta devolve
->    `cifrado: true`, porque o agente não tem a `SENHA_CRIPTO`).
-> 2. **O schema do formulário em edição.** Aceite, com uma correção de mérito: **não** o formulário
->    inteiro. Medido — o schema do PO são **27.538 B ≈ 6.885 tokens ≈ 77 Neurons por interação**, e a
->    interação inteira custa ≈ 86: mandá-lo em todos os pedidos **quase duplicaria o custo de tudo**
->    para falar de campos que não se editam. E o recorte é **do servidor**, a partir da cópia do
->    `ASSETS` (0 subpedidos): o cliente manda **qual campo**; o servidor monta o recorte, valida o
->    nome e recusa o desconhecido. A razão não é zelo — **o tamanho do pedido é dinheiro**, e um
->    schema de 1 MB enviado pelo cliente queima Neurons a cada pergunta.
-> 3. **Proveniência na saída.** Aceite, e mais barato do que parecia: `ancora`, `gerado_em` e
->    `ajuste_de` **já existem** no envelope (lido nos `po-*.json` do `calango`). Não há dado a criar —
->    só a pôr na resposta, para a tela poder distinguir «sugeriu a partir do plano de 08/11» de
->    «sugeriu a partir do ajuste de 12/11».
-> 4. **Testar a seleção das ferramentas.** Aceite, com a distinção que a bancada obriga e que eu não
->    tinha escrito: **com `env.AI` falso não se mede seleção** — mede-se o encanamento. A seleção é
->    comportamento do modelo e só se mede com o modelo, e **custa**: 20 casos ≈ **1.720 Neurons**
->    (~17 % da cota diária) e uma passagem da escada do §7.2.1 ≈ **8.600** (quase um dia). Daí as
->    regras: conjunto fixo e versionado, uma passagem por degrau, e a bancada grátis a correr sempre.
-> 5. **As quatro ausências.** Aceite, e o código de hoje **funde** dois desses casos em três sítios
->    **medidos** em 12/11/2026: `linhaDeBaseDaTurma` (`catch { return null }`), a queda de
->    `linhasDeBaseDaEscola` para o KV (`catch { return lerLista(…) }`) e o `catch` vazio de
->    `anamnesesDaTurma`. Uma linha de base passa a devolver `{estado: nao_existe | vazia |
->    nao_se_aplica | indisponivel}` — e a quarta é a que já custou caro neste projeto: em 18/10/2026 a
->    cota do KV acabou e as fichas apareceram «sem apelido», uma falha de leitura com a cara de
->    ausência de dado (`AGENTS.md`).
->
-> **O que a revisão obrigou a decidir, e ainda não está decidido.** O item 1 não tem **de onde**
-> tirar a identidade do professor: a Porta não identifica ninguém — há senha da direção nos Bastidores
-> e senha de escrita no lançamento, mas o `contexto.professor` do PO e do plano é declarado pelo
-> cliente. Ficaram três saídas na §4.1 (painel só nos Bastidores; identificador de professor na
-> Porta; ou usar o professor declarado **e dizê-lo**) e **a recomendação é a terceira agora, a segunda
-> depois** — mas a decisão é dela, e o documento não a toma.
->
-> **O que a estimativa passou a ser:** ≈23 → **≈25 dias** (as provas sobem 3 → 3,5 pelos três blocos
-> novos com negativo; o recorte do formulário e as quatro ausências acrescentam 1,5).
-
-> **A identidade do professor, decidida (12/11/2026).** A revisão acima deixou uma pergunta aberta, e
-> ela respondeu: **segue a recomendação — (c) agora, (b) depois**. Isto quer dizer duas coisas, e a
-> segunda é a que importa mais:
->
-> - **Agora:** o painel do agente, nas três superfícies da Porta, **usa o professor declarado e
->   declara-o na tela** — uma `.caixa.nota` com a frase *«O assistente usa o professor indicado
->   acima. A Porta não identifica quem escreve.»* Nos Bastidores a nota não aparece, porque lá há
->   senha da direção e a frase seria falsa na direção contrária. O prompt de sistema ganha a mesma
->   limitação dita ao modelo: «não digas que verificaste quem escreve». Não se **finge** uma
->   autenticação que não existe — é a lei do projeto («o que não se mediu não se afirma») aplicada à
->   identidade.
-> - **Depois:** o **identificador de professor na Porta** vem, e é frente própria — depende de **L2**
->   (hoje o professor **não tem slug persistido**: o slug é derivado na leitura, e a curadoria o
->   referencia por **nome**). Fica PENDENTE, com dono (L2) e sem data.
->
-> **O que a decisão obrigou a escrever com todas as letras, para não ser lida ao contrário:** o
-> recorte por professor **não é fronteira de segurança** — é **aviso e prevenção de acidente**. Um
-> cliente que diga ser outro professor recebe a estante daquele, porque não há como saber quem ele é.
-> A fronteira que vale continua a ser a da **escola** (`ESCOLA_SLUG` do Worker, conferido contra o
-> subdomínio; nenhuma ferramenta aceita `escola`). E fica declarada, por medição de hoje, uma dívida
-> **anterior a esta frente e independente dela**: `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
-> prefixo da porta, **não pedem senha** (o freio é `temProfessor(env)`, que não pergunta quem lê) — o agente não a cria e o recorte **não a fecha**; quem
-> conhece o slug continua a poder lê-las por `curl`. Dizer «o agente recorta» e ouvir «a rota está
-> fechada» seria a confusão mais cara desta frente.
->
-> **Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — §4.1 (a decisão e as três
-> consequências), o bloco 2 do prompt (§6), a `.caixa.nota` na §11, a §9.3 (asserção 10, que mede a
-> nota visível e a ausência dela nos Bastidores) e a §14 (o item 1 passa a «o identificador vem
-> depois»; o item 5 novo declara a dívida das rotas) ·
-> [PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) — a **L15** ganha a lacuna **(f)**, a dependência
-> de **L2**, a entrega **(j)** e o critério **(xi)** · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md) — a linha da
-> §6 · `HANDOFF.md` — regerado.
->
-> **Nenhuma linha de código.** A decisão é de desenho: o painel e as rotas não existem, e o que foi
-> escrito é o que a implementação tem de cumprir quando existirem.
+**Com o quê.** `provar-uma-linha-por-professor` **23/23**, com **controlo negativo**: a mesma cadeia
+pela regra anterior devolve **6** linhas, e se devolvesse 2 a prova não estaria a medir nada. Sobre o
+acervo real: 18 planos → **2 linhas · 16 em proveniência**, **0 elos perdidos, 0 repetidos**. Sem
+regressão: `provar-a-autoria-na-troca-de-professor` **41**, `provar-listas-do-acervo` **109**,
+`provar-apagar-da-listagem` **51**, `provar-cadeia-automatica` **62**, `provar-cadeia-do-ajuste`
+**34**, `provar-painel-do-ato` **183**, `check-identidade` **8/8 ok**. `provar-producao` **164/166** e
+`provar-listas-sem-repeticao` **15/16** — as três falhas são **iguais no `HEAD`**, verificadas com a
+alteração em `stash`, e vêm de antes.
 
 **O que ainda não está feito.**
 
-- **Nada do agente está implementado.** Não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não
-  há `motor/nucleo/agente/`, não há `motor/servidor/agente.js` nem `mcp.js`, não há rota. O pedido
-  dizia «documentar, não implementar» — e é isso que está feito. **A implementação espera aprovação
-  do plano.**
-- **`prompts/agente-sistema.md` não foi criado.** É o ritual dos congelados, e é a primeira peça da
-  fase seguinte.
-- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e a **ordem**
-  em que se melhora antes de subir de modelo — a escada do §7.2.1: prompt → exemplos → ferramentas →
-  amostragem, e só depois o 70B, a 2,7× o Neuron. Não se sabe hoje se o Llama 3.1 8B sustenta o
-  português pedagógico deste projeto — e dizer o contrário seria alegar um facto não medido.
-- **O suporte a `tools` no modelo AWQ não foi verificado** — é a primeira chamada da implementação, e
-  o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
-- **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
-  atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
-- **A tela da aula N não existe** — **pendência declarada há muito** (§8 do `ESTADO-ATUAL.md`, «A
-  aula N»), não achado desta sessão —, e é o que trava a quarta superfície. Ela pertence a outra
-  frente, o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
-  agente, e a **ordem é decisão dela**: testar e ajustar o que existe primeiro, e a aula 2, 3, … N
-  depois.
-- **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
-  frente L7, e essa não andou hoje.
-- **O identificador de professor na Porta (a metade «depois») não existe** — e é a única parte da
-  decisão de 12/11/2026 que fica por fazer. Depende de **L2** (o professor não tem slug persistido) e
-  não é desta frente. Até lá vale a metade «agora»: o painel usa o professor declarado **e declara-o**.
-- **As rotas de envelope não pedem senha** — `GET /api/envelopes` e `GET /api/envelope/:id`, sob o
-  prefixo da porta. Exposição **anterior** a esta frente, que o recorte do agente **não fecha**.
-  Fica declarada; nenhuma decisão de hoje a resolve.
-- **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
-  tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
-  custo que o vai dizer.
+- **Não foi conferido ao ar.** A mudança é do núcleo e da listagem; a conferência em produção é o
+  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
+- **O `provar-vigente-na-listagem` (21) não foi estendido**; a prova nova cobre a regra da cadeia, e
+  as duas não se sobrepõem. Fica a dívida de as fundir numa só, quando houver motivo.
+- **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
+  proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
+  Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
 
 ## O que está pendente
-
-## 12/11/2026 — A sala diz o presente, e os três passos andam
-
-(1) No passo 3 a rubrica criada no passo 2 **não vem escolhida**: o
-professor tem de a escolher no `select`, porque a sugestão automática só existe em modo de edição
-(regra de 19/10). É um clique, e fica declarado. (2) O `provar-menu-da-producao` continua com uma
-falha anterior a esta entrada.
-
----
 
 ## 12/11/2026 — A Turma diz as suas três pontas
 
@@ -502,6 +303,17 @@ cadeia, não a propagação. Fica declarado.
 - **Nada foi medido com o modelo.** As estimativas de Neurons desta nota (§7.2, §9.4) são **tabela ×
   tamanho de texto**, não medição: o número real só aparece na primeira chamada, e é o registo de
   custo que o vai dizer.
+
+## 13/11/2026 — A listagem não é a proveniência: uma linha por professor, dentro da cadeia
+
+
+- **Não foi conferido ao ar.** A mudança é do núcleo e da listagem; a conferência em produção é o
+  passo seguinte ao push — uma carga por escola, no fim, e não exploração (a regra da cota do KV).
+- **O `provar-vigente-na-listagem` (21) não foi estendido**; a prova nova cobre a regra da cadeia, e
+  as duas não se sobrepõem. Fica a dívida de as fundir numa só, quando houver motivo.
+- **A lista de documentos por família (`PLANO-NAVEGACAO.md` §9.2) não existe**, e é lá que a
+  proveniência escondida vai ser trabalhada — «quando a gente for responder o plano de perguntas».
+  Hoje ela está acessível pelo id e pela contagem «N versões anteriores», e não há tela que a abra.
 
 ## Pendências anteriores (índice)
 
@@ -921,6 +733,7 @@ cadeia, não a propagação. Fica declarado.
 - **12/11/2026** — O elenco que ficaria sem ninguém não existe → `REGISTRO.md` L42599
 - **12/11/2026** — A troca de aluna desfaz o passo 3 e o recorte, e a lista… → `REGISTRO.md` L42697
 - **12/11/2026** — Um véu para todos os gestos: elenco, leitura, verbete e sala → `REGISTRO.md` L42772
+- **12/11/2026** — A sala diz o presente, e os três passos andam → `REGISTRO.md` L42848
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
