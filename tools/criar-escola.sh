@@ -680,7 +680,8 @@ cat > "$WRANGLER" <<EOF
 //
 // UM PROJETO POR ESCOLA — irmão dos wrangler.<escola>.jsonc: mesmo código
 // (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
-// escola) — muda só o name, o assets.directory, o ESCOLA_SLUG e o routes.
+// escola) — muda só o name, o assets.directory e o routes. A ESCOLA não está aqui: vem do
+// mapa em KV, e é o que deixa a identidade de depender do deploy.
 // Gerado por tools/criar-escola.sh.
 
 {
@@ -717,9 +718,12 @@ cat > "$WRANGLER" <<EOF
     ]
   },
 
+  // A ESCOLA NÃO SE DECLARA AQUI (13/11/2026). Aqui esteve `"ESCOLA_SLUG": "$ESCOLA"`, e era ela
+  // que dizia de quem era o Worker. Passa a vir do mapa `escolas/por-host`, em KV
+  // (`motor/servidor/mapa-de-escolas.js`), que o workflow publica ANTES deste deploy — a ordem é
+  // a única que não cria uma escola sem ninguém que a reclame.
   "vars": {
-    "ESCOLA_HABILITADA": "sim",
-    "ESCOLA_SLUG": "$ESCOLA"
+    "ESCOLA_HABILITADA": "sim"
   },
 
   "kv_namespaces": [

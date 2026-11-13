@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T15:51:33-0300`
-Commit atual: `ff530698` — audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
+Gerado em: `2026-11-13T15:55:15-0300`
+Commit atual: `e172195e` — feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
 70f480fe fix(estrutura): o registo de custo da IA ganha mês no nome
 dd128a30 fix(estrutura): o CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
@@ -92,7 +93,6 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
 8a042794 docs(estrutura): o agente do Lastro ganha desenho, contratos e a frente L15
 10ea5adb chore(estrutura): regerar o HANDOFF
-ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o documento verdadeiro
 ```
 
 ## Por professor
@@ -213,7 +213,7 @@ mudança valeria para a `calango` de hoje e falharia em silêncio em toda escola
 muda:** a fórmula do hash e a cobertura do `.fipp`, os validadores, as 17 regras, as 22 pétreas, o
 conteúdo e a estrutura do menu, e o que cada escola serve.
 
-**Com o quê.** `provar-escola-por-host` **19/19** — prova nova, de 13/11/2026. Mede a resolução
+**Com o quê.** `provar-escola-por-host` **20/20** — prova nova, de 13/11/2026. Mede a resolução
 (host exacto, etiqueta, host estranho recusado); o **custo** (1 leitura do mapa na primeira
 resolução, **0** nas cinco seguintes — contadas, não estimadas — e outra leitura numa isolate nova);
 a **escola criada noutra isolate**, que resolve no pedido seguinte; o **conflito** mapa × `vars`,
@@ -222,6 +222,15 @@ com a página a dizer as duas escolas em vez de servir a errada; e o **conteúdo
 releitura da falta, reprova — e essa falha apareceu a primeira vez que rodou, porque a prova
 invalidava o cache ao registar e a releitura nunca era exercida; corrigida para escrever no KV sem
 tocar no cache, que é o que acontece quando quem cria é outra isolate.
+
+**Um defeito apanhado ao conferir ao ar, e o que ele ensina.** O `/api/saude` no ar dizia
+`escola_do_pacote: null` numa escola que tinha o `escola.json` publicado e a responder 200. A causa:
+o cache do pacote começava em `null`, e `null` é «não há ficheiro» — a primeira leitura devolvia
+`null` **sem ler**, e a conferência ficava desligada em silêncio. A prova não o apanhava: as secções
+seguintes chamavam `esquecerPacote()` antes de medir, e punham o cache num estado que já não é o de
+arranque. A asserção que faltava é a do **primeiro pedido do processo**, e é agora a segunda da
+secção 1 — com o defeito reintroduzido, ela reprova. Fica a lição: uma prova que prepara o estado
+antes de cada medição pode nunca ver o estado em que o programa arranca.
 
 Também verdes: `provar-assets-sem-worker` **38/38** (ajustada: uma config é de escola quando os
 assets estão em `publicacao/`, e não quando declara `ESCOLA_SLUG` — essa deixou de ser a marca) ·
@@ -237,8 +246,10 @@ saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
 
 **O que ainda não está feito.**
 
-- **A `vars` sai no commit seguinte**, depois de o `/api/saude` no ar dizer `origem: "mapa"`. Fica
-  registado aqui como parte da mesma decisão, e não como surpresa.
+- **A `vars` saiu.** O primeiro commit pôs o código e o mapa no ar com ela ainda presente, e o
+  `/api/saude` passou a dizer `origem: "mapa"` — a prova de que o caminho novo estava a servir. O
+  segundo tirou a `vars` do `wrangler.calango.jsonc` e do template de `criar-escola.sh`. Fica
+  registado como parte da mesma decisão, e não como surpresa.
 - **`padd.com.br` ainda não aponta ao Cloudflare.** A resolução por etiqueta já funciona e está
   provada; o que falta é a zona e as rotas — do shard, não disto.
 - **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem
@@ -299,8 +310,10 @@ saúde e a conferência do pacote) · `tools/publicar-mapa-de-escolas.js` ·
 ## 13/11/2026 — A escola deixa de ser `var` de deploy: o mapa `escolas/por-host`
 
 
-- **A `vars` sai no commit seguinte**, depois de o `/api/saude` no ar dizer `origem: "mapa"`. Fica
-  registado aqui como parte da mesma decisão, e não como surpresa.
+- **A `vars` saiu.** O primeiro commit pôs o código e o mapa no ar com ela ainda presente, e o
+  `/api/saude` passou a dizer `origem: "mapa"` — a prova de que o caminho novo estava a servir. O
+  segundo tirou a `vars` do `wrangler.calango.jsonc` e do template de `criar-escola.sh`. Fica
+  registado como parte da mesma decisão, e não como surpresa.
 - **`padd.com.br` ainda não aponta ao Cloudflare.** A resolução por etiqueta já funciona e está
   provada; o que falta é a zona e as rotas — do shard, não disto.
 - **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem

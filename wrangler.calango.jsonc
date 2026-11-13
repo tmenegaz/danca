@@ -46,9 +46,25 @@
     ]
   },
 
+  // A ESCOLA NÃO ESTÁ AQUI (13/11/2026). Aqui esteve `"ESCOLA_SLUG": "calango"`, e era ela que
+  // dizia de quem era este Worker. Passou a vir do mapa `escolas/por-host`, em KV, com cache de
+  // isolate (`motor/servidor/mapa-de-escolas.js`) — é o que solta a identidade do deploy e a
+  // primeira metade do shard. Escreve-se com `node tools/publicar-mapa-de-escolas.js`, e o
+  // workflow `criar-escola` fá-lo antes de cada deploy.
+  //
+  // O QUE SE PERDEU, E O QUE O SUBSTITUI. A `vars` era também a rede que apanhava o deploy trocado
+  // («a config de uma escola no Worker de outra»). O mapa continua a apanhar o caso em que as duas
+  // fontes discordam, e o `escola.json` da raiz do pacote apanha o que nenhuma delas via:
+  // `name` certo com `assets.directory` de outra escola. Ver `identidadeDoPacote` em
+  // `motor/servidor/producao.js`.
+  //
+  // PARA DESENVOLVER À MÃO (`wrangler dev` usa um KV LOCAL, vazio): semear o mapa uma vez —
+  //   npx wrangler kv key put --binding PADD_KV --local escolas/por-host \
+  //     '{"calango.tmenegaz77.workers.dev":"calango"}'
+  // Sem isso, `http://calango:PORTA/` responde a página de configuração incorrecta — e é o
+  // comportamento certo: ninguém reivindica o Worker.
   "vars": {
-    "ESCOLA_HABILITADA": "sim",
-    "ESCOLA_SLUG": "calango"
+    "ESCOLA_HABILITADA": "sim"
   },
 
   "kv_namespaces": [

@@ -290,7 +290,11 @@ let MENU_EM_CACHE = null;
  * versão não o tem, e recusar servir por causa disso trocaria uma falha silenciosa por uma queda
  * certa. Quem decide o que fazer com um `null` é quem chama.
  */
-let PACOTE_EM_CACHE = null; // undefined = ainda não lido; null = não há ficheiro
+/* SEM VALOR INICIAL, DE PROPÓSITO: `undefined` é «ainda não lido» e `null` é «não há ficheiro».
+ * Começar em `null` (como esteve na primeira redação) fazia a primeira leitura devolver «não há
+ * ficheiro» sem ler nada — a conferência ficava desligada em silêncio, e o `/api/saude` dizia
+ * `escola_do_pacote: null` numa escola que tinha o ficheiro no ar. Medido a 13/11/2026. */
+let PACOTE_EM_CACHE;
 async function identidadeDoPacote(env) {
   if (PACOTE_EM_CACHE !== undefined) return PACOTE_EM_CACHE;
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;

@@ -110,10 +110,17 @@ async function saude(env, host) {
     mapaDeEscolas.esquecer(kv);
     const env = ambiente(kv, { pacote: 'calango' });
 
+    /* ESTE É O PRIMEIRO PEDIDO DO PROCESSO, e é ele que mede o estado de ARRANQUE — o único em
+     * que o cache do pacote ainda não tem resposta nenhuma. Foi aqui que a primeira redação
+     * falhou: o cache começava em `null`, que é «não há ficheiro», e a conferência do pacote
+     * ficava desligada em silêncio sem nunca ler. As secções seguintes não apanhavam, porque
+     * chamavam `esquecerPacote()` e punham o cache num estado que já não é o de arranque. */
     const exato = await saude(env, 'calango.tmenegaz77.workers.dev');
     provar('host exacto → calango, e a origem é o mapa',
       exato.status === 200 && exato.corpo.slug === 'calango' && exato.corpo.origem === 'mapa',
       exato.corpo);
+    provar('e no primeiro pedido do processo o pacote JÁ é lido (o cache não nasce a dizer «não há»)',
+      exato.corpo.escola_do_pacote === 'calango', exato.corpo.escola_do_pacote);
 
     /* O DOMÍNIO PRÓPRIO. A etiqueta vale porque `calango` é uma escola REGISTADA — e é isso que
      * faz `padd.com.br` funcionar sem uma entrada por domínio. */
