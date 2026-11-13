@@ -4,17 +4,18 @@
 > agente que lê os índices e os envelopes **por chave**, através de ferramentas com contrato
 > explícito (MCP), e **propõe** texto ao professor — nunca grava. Modelo: Llama da Cloudflare
 > (Workers AI), **`@cf/meta/llama-3.1-8b-instruct-awq`**. **Sem RAG**, por decisão: 100 % do que o
-> agente consulta é chave-valor.
+> agente consulta é chave-valor. **Quatro superfícies** (decidido a 12/11/2026): plano de ensino, PO,
+> Estilo **e a elaboração da aula N** — esta última **espera uma tela que não existe**.
 
 > **Estado:** desenho e plano. **Nada foi implementado** — nem o binding, nem o módulo, nem a rota.
 > O que existe hoje é o **stub legado** (`motor/nucleo/ia.js`) e a rota `POST /api/ia`, que esta
 > frente **não usa** e **não apaga** (P-03/P-04). Ver a §12.
 
-> **Escopo:** o agente **dentro da Produção (Bastidores)**, ao lado dos quatro formulários —
-> anamnese, plano de ensino, plano de observação e verbete do Estilo. Ficam **de fora**: a
-> construção operacional (sala, elenco, dia, turma, professores, alunos, calendário), a gravação, a
-> cobrança e a integração com o projeto das secretarias (que não existe — CONFIRMADO: não há código
-> de integração no `motor/`).
+> **Escopo:** o agente ao lado dos **quatro formulários** — plano de ensino e plano de observação (a
+> Porta), verbete do Estilo (a Produção) e a elaboração da aula N. **A anamnese fica de fora**: é
+> retrato, não redação pedagógica (§1.1). Ficam também **de fora**: a construção operacional (sala,
+> elenco, dia, turma, professores, alunos, calendário), a gravação, a cobrança e a integração com o
+> projeto das secretarias (que não existe — CONFIRMADO: não há código de integração no `motor/`).
 
 > **Leia antes de citar.** Este documento é do **Projeto Ciclo** — a memória da aula dada,
 > **protótipo testado no universo da dança** (não é agnóstico: o projeto agnóstico será criado a
@@ -39,18 +40,55 @@ consulta **fora do contexto do documento em edição**, e a consulta que **atrav
 
 | O agente faz | O agente não faz |
 |:--|:--|
-| Explica um campo do PO, do plano ou da anamnese | Responde perguntas fora do documento em edição |
+| Explica um campo do plano de ensino, do PO, do verbete ou da aula | Responde perguntas fora do documento em edição |
 | Sugere objetivo, marco, volume e condições a partir do plano anterior e da linha de base | Decide no lugar do professor — a proposta é sugestão, o critério é dele |
 | Sugere critérios de observação a partir do plano e da linha de base | Avalia, classifica, ordena ou julga aluna, turma ou aula (identidade do projeto) |
 | Ajuda a decompor um exercício (tempos, compassos, células, direções, sinais) | Inventa exercício, tradição, categoria ou sinal que não esteja no vocabulário |
+| Ajuda a compor a **aula N** — o delta em relação ao que ela herda | Escreve a aula no lugar do professor, ou dispensa a confirmação de alinhamento com o PO |
 | Consulta o vocabulário, o alfabeto, a progressão e as tradições da modalidade | Dá conselho de saúde, lesão ou restrição (fronteira P-22) |
 | Diz **qual foi a fonte** de cada afirmação (o id do envelope, o termo do vocabulário) | Grava, publica, apaga ou dispara `workflow_dispatch` |
+| Cita o **apelido** da aluna, que é a forma como o PO a nomeia (P-12) | Escreve nome completo, contato, dado de saúde ou acompanhamento |
 | Recusa com o motivo, quando o dado não existe | Recusa em silêncio, ou inventa um zero que se lê como facto |
 
 **A garantia mais forte não é uma instrução no prompt: é a ausência de ferramenta de escrita.** O
 registo de ferramentas (§5) é **só de leitura**, e a prova (§9) verifica isso por construção — não
 por confiança no modelo. Gravar segue o fluxo que já existe, com a proveniência e o
 `workflow_dispatch` de hoje: o professor confirma, o formulário grava, a cadeia dispara.
+
+### 1.1 As quatro superfícies — decididas a 12/11/2026
+
+Ela escolheu **quatro**, e não as duas que eu recomendava. A lista é esta, e a ordem é a do fluxo da
+escola (`ARQUITETURA-GERAL.md` §3.3):
+
+| # | Superfície | Onde vive hoje | Estado |
+|:--|:--|:--|:--|
+| 1 | **Plano de ensino** | a Porta, em `/plano-ensino/` | **existe** — é a mesma página que serve o PO, com `fonte=plano` |
+| 2 | **Plano de observação** | a Porta, em `/plano-observacao/` | **existe** |
+| 3 | **Estilo** (o verbete da notação) | a Produção, secção `#verbetes` | **existe** |
+| 4 | **Elaboração da aula N** | — | **NÃO EXISTE.** Ver abaixo |
+
+**A quarta superfície é uma frente que não existe, e isso muda o plano.** Não há hoje uma tela em
+que o professor elabore a `aula-NN`; o que há é a fonte (`aula-NN.md`), escrita no ciclo e editável
+«livremente até a data da aula» (`ARQUITETURA-AULA.md` §1), e a lista de documentos que o
+`PLANO-NAVEGACAO.md` §9.2 **propõe e declara não feita**. E o
+[PLANO-AULA-E-OBSERVACAO.md](./PLANO-AULA-E-OBSERVACAO.md) fixa um **requisito novo, sem equivalente
+no código**: antes de a aula N ser editável, o professor **confirma que entendeu o PO** e que a aula
+está alinhada com ele.
+
+Daí, três consequências que ficam declaradas:
+
+- **O painel do agente nas três superfícies que existem entra já**; o da quarta **espera** a tela da
+  aula — construir o painel antes da tela seria construir a gaveta antes da cómoda.
+- **Quando a tela da aula nascer, o painel dela é o mais valioso dos quatro** — é a única superfície
+  em que o agente trabalha sobre o **delta** (o que é de hoje) em vez de sobre o documento inteiro, e
+  é a que mais perto está da aula que vai acontecer.
+- **A confirmação de alinhamento com o PO é do professor, não do agente.** O agente pode explicar o
+  PO e ajudar a cumprir o requisito; **não** pode marcá-lo por ele — seria o agente a decidir que a
+  aula está alinhada, que é exactamente o que a §1 proíbe.
+
+**A anamnese saiu da lista.** Ela não a nomeou, e a razão é coerente com o resto: a anamnese é
+**retrato** (o que a aluna já viveu), não **redação pedagógica** — o agente teria pouco a acrescentar
+sem começar a inferir sobre a aluna, que é a fronteira que o projeto não cruza.
 
 ---
 
@@ -226,8 +264,9 @@ do catálogo.
 ### 5.2 `ler_envelopes`
 
 *Para que serve:* listar os documentos de um tipo (anamnese, plano, cartão, PO) e **abrir um pelo
-id**. É a ferramenta que a anamnese e a derivação do plano mais usam: o plano anterior de uma turma
-está aqui.
+id**. É a ferramenta que a sugestão de plano e de critérios mais usa: o **plano anterior** de uma
+turma e o PO vigente estão aqui. *(A anamnese não é superfície do agente — §1.1 — mas é documento
+que ele **lê**: o retrato da aluna informa o plano, e lê-lo não é o mesmo que escrevê-lo.)*
 
 ```json
 {
@@ -521,8 +560,10 @@ cumprida** — e uma regra escrita duas vezes com palavras diferentes é cumprid
 6. **Linguagem.** «Português do Brasil, na voz do professor, sem adjetivo de valor, sem “excelente”,
    sem “infelizmente”. Vocabulário do domínio: usa os termos da modalidade como o vocabulário os
    escreve.» *(P-21)*
-7. **Privacidade.** «Usa só o apelido da aluna. Nunca escrevas nome completo, contato, dado de
-   saúde, diagnóstico ou acompanhamento.» *(P-12)*
+7. **Privacidade.** «Usa só o apelido da aluna — **podes citá-lo**, e é assim que se diz de quem
+   se fala. Nunca escrevas nome completo, contato, dado de saúde, diagnóstico ou acompanhamento.»
+   *(P-12; o «podes citá-lo» é a decisão de 12/11/2026 — sem ela, um 8B lê «só o apelido» e passa a
+   escrever «a aluna», que é o mesmo que não dizer nada.)*
 8. **Forma da resposta.** «Responde em texto curto, sem tabela, sem código, sem markdown além de
    lista. Se a resposta depender de um dado que não tens, termina com a pergunta exacta que
    precisas.» *(a tela é um formulário, não um chat de parede)*
@@ -590,9 +631,34 @@ preços da Cloudflare (actualizada a 12/11/2026):
 ≈800 de saída): `6.000 × 11.161/10⁶ ≈ 67` + `800 × 24.215/10⁶ ≈ 19` ⇒ **≈ 86 Neurons** por
 interação. Com 10.000 por dia: **≈ 116 interações por dia**, para **todas** as escolas da conta.
 
-Isto não é um detalhe de fatura: é o que dá conteúdo à «assinatura avançada com créditos». **O
-crédito não é uma unidade inventada — é o Neuron**, medido por interação e gravado no registo.
-*(PENDENTE: o Neal — a unidade comercial — não é decidido aqui; a frente L9/L11 é que o decide.)*
+Isto não é um detalhe de fatura: é o que dá conteúdo à «assinatura avançada com créditos». **A
+unidade de crédito é o Neuron — DECIDIDO a 12/11/2026 por ela.** Não é uma unidade inventada: é a
+que a Cloudflare já cobra, medida por interação e gravada no registo. O que fica para a frente L9/L11
+é a **conversão comercial** (quantos Neurons por franquia, qual o excedente), não a unidade.
+
+### 7.2.1 O 8B vem primeiro — e a escada antes do 70B (DECIDIDO a 12/11/2026)
+
+A pergunta era «se o 8B não sustentar o português pedagógico, subimos para o 70B?». A resposta dela
+inverteu a ordem, e a inversão é a decisão: **antes de subir, aprimorar**. Subir de modelo é a última
+opção, por três razões que se somam — custa 2,7× o Neuron (a mesma cota diária passa de ~116 para ~43
+interações), é um salto de infraestrutura (mais latência, outro quantizado), e **mascara o defeito**:
+um pedido mal construído continua mal construído num modelo maior, só que mais caro e mais difícil de
+diagnosticar.
+
+A escada, na ordem em que se sobe — e cada degrau é medido com os mesmos 20 casos, para se saber o que
+foi que melhorou:
+
+| Degrau | O que se muda | Por que pode resolver |
+|:--|--:|:--|
+| **0. Medir** | — | Os 20 casos, com o texto que o 8B devolve hoje. Sem isto não se sabe se há problema, nem qual |
+| **1. O prompt** | `prompts/agente-sistema.md`: os oito blocos (§6), a forma da resposta, e sobretudo **a recusa** dita com as palavras exactas | Um 8B falha por ambiguidade, não por falta de capacidade — uma regra escrita uma vez, com exemplo, muda mais do que um modelo maior |
+| **2. Os exemplos** | 2 ou 3 casos **reais** (pergunta + resposta boa) no pedido, tirados dos 20 medidos | *Few-shot* é o que dá voz e vocabulário a um modelo pequeno; é também o mais barato de todos os degraus |
+| **3. As ferramentas** | Descrições mais curtas, menos ferramentas por superfície, e o **recorte** do resultado mais apertado | Muito do erro de um 8B é escolher a ferramenta errada por descrição longa; e o `mensagens.js` já corta |
+| **4. A amostragem** | Temperatura e tecto de tokens declarados por superfície (o critério é do professor: previsível no plano, mais solto no brainstorming) | Baixar a temperatura reduz a invenção sem trocar de modelo |
+| **5. Subir** | O **70B** (`@cf/meta/llama-3.1-70b-instruct-fp8-fast` — 26.668 Neurons/M de entrada e 204.805/M de saída, lidos da mesma tabela), com a conta do §7.2 refeita | Só quando 1–4 estiverem medidos e o resultado continuar insuficiente — e então **declara-se** qual dos degraus já foi tentado |
+
+**A regra que fica escrita:** nenhum degrau se salta, e nenhum se adopta sem os 20 casos a dizer o
+que mudou. «Melhorou» sem medição é opinião — e este repositório já pagou por confiar numa leitura.
 
 ### 7.3 O registo de custo, que já existe
 
@@ -757,6 +823,27 @@ Fica assim, e não dentro do commit do módulo.
 3. **O gesto é o mesmo.** Escrever, ficar sem saber o que pôr, pedir ajuda, e continuar a escrever —
    no mesmo sítio.
 
+### 11.1 As quatro superfícies, e o que muda em cada uma
+
+A lista das quatro está na §1.1. O painel é o **mesmo** nas quatro — muda o **contexto** que ele
+manda e a **oferta** que ele faz, e é isso que esta tabela fixa:
+
+| Superfície | Onde o painel entra | O que ele oferece | Estado |
+|:--|:--|:--|:--|
+| **Plano de ensino** | a Porta, `/plano-ensino/`, dentro do `<form>` do plano | objectivo, marcos, volume e condições, a partir do plano anterior e da linha de base | **entra já** |
+| **Plano de observação** | a Porta, `/plano-observacao/` | critérios por dimensão, o que observar, a partir do plano e da linha de base | **entra já** |
+| **Estilo** | a Produção, `#verbetes`, ao lado do editor do verbete | decomposição (tempos, compassos, células, direções), vocabulário, tradição, progressão | **entra já** |
+| **Aula N** | a tela da aula — **que não existe** | o **delta** de hoje: a selecção de exercícios, o marco, o que muda em relação ao que a aula herda | **espera a tela** |
+
+**A quarta é a mais valiosa e a que não pode ser feita hoje** — e o painel **não** se constrói antes
+dela. O que se pode preparar desde já, e não depende de tela nenhuma: as ferramentas que a aula vai
+usar (`ler_turma` já devolve o ritmo e o elenco; `ler_vocabulario` e `ler_notacao` já decompõem) e o
+campo `aula` no `contexto` do pedido — para que, quando a tela nascer, o painel seja ligá-lo.
+
+**A ordem de entrada não é arbitrária.** Estilo primeiro, porque é onde o agente tem o dado mais
+estruturado (o vocabulário e a notação, 0 subpedidos, resposta verificável); depois o PO e o plano,
+onde ele lê envelopes e linha de base; a aula por último, porque depende de uma tela.
+
 **A forma, com as peças que existem:**
 
 ```
@@ -779,6 +866,12 @@ documento.
 **O que o professor vê, e o que ele faz com isso.** O texto chega **como proposta**: um botão
 «Usar» copia para o campo (sem gravar), e o «Guardar» que já existe é o que grava e dispara. É a
 diferença entre sugerir e decidir — e é ela que mantém o sistema honesto.
+
+**O apelido da aluna, na resposta (DECIDIDO a 12/11/2026).** O agente **pode** nomear a aluna pelo
+apelido quando sugere um critério de observação — é a forma como o PO já a nomeia, e um critério
+«observar a aluna A» é menos útil do que «observar a aluna A no port de bras». O que **não** muda:
+apelido e só apelido (P-12), nada de nome completo, contato, dado de saúde ou acompanhamento, e a
+ferramenta não devolve o campo fora do índice da escola (§5.9).
 
 ---
 
@@ -812,20 +905,32 @@ Dias de desenvolvimento, com uma desenvolvedora, incluindo as provas e o ritual 
 | Núcleo do agente (registo, contrato, condução, mensagens) | **3** | Quatro ficheiros puros; a validação em tempo de execução é a parte que não se improvisa |
 | As 8 ferramentas + os leitores que as alimentam | **4** | Cada uma liga a um leitor que já existe, mas o **recorte** e a **recusa** são trabalho novo |
 | Servidor (`agente.js` + `mcp.js` + registo de custo) | **2,5** | O laço é curto; o JSON-RPC do MCP e o contador de KV são o que custa |
-| UI (painel no formulário, sem peça nova) | **2** | `.bloco-lista` + `.campo` + `.acao` + `.veu`; o trabalho é o cliente e a acessibilidade |
+| UI (o painel em **três** superfícies, sem peça nova) | **3** | `.bloco-lista` + `.campo` + `.acao` + `.veu`; o trabalho é o cliente, o contexto por superfície e a acessibilidade. **Eram 2** quando a estimativa previa duas superfícies: a de 12/11/2026 são três que existem, e cada uma manda um contexto diferente |
+| UI do painel da **aula N** | **0 agora** | A tela da aula não existe (`PLANO-NAVEGACAO.md` §9.2, proposto e não feito). O painel dela é ≈1 dia, **quando a tela nascer** — e não é custo desta frente |
 | Contador e limites (KV no contador, tectos, leitura do registo) | **2** | Mexe no `subpedidos.js`, que é decisão congelada por §5.26 |
 | Provas (`provar-agente.js` + negativos + bancada com `env.AI` falso) | **3** | Nove asserções, uma delas com controlo negativo do prompt |
 | Avaliação da qualidade do 8B (20 casos reais, medidos) | **2** | Sem isto só se sabe que o encanamento funciona — não que o texto presta |
+| A escada do §7.2.1 (prompt, exemplos, ferramentas, amostragem — medidos um a um) | **2** | É o degrau 1–4; sem ele o 70B é a primeira resposta em vez da última |
 | Documentação (este ficheiro já está; nota de obsolescência, `REGISTRO`, `ESTADO`, `PLANEJAMENTO`) | **1** | — |
-| **Total** | **≈ 20,5 dias** | |
+| **Total** | **≈ 23 dias** | |
 
 **O que a estimativa não inclui, e deve ser dito:** a qualidade do Llama 3.1 8B em português
-pedagógico é uma **incógnita medida, não resolvida** — os 2 dias acima são para a medir, e a
-conclusão pode ser «subir para o 70B», que custa 2,7× o Neuron e muda a conta do §7.2.
+pedagógico continua a ser uma **incógnita medida, não resolvida** — os 2 dias da avaliação e os 2 da
+escada são para a medir e para a melhorar. O 70B **não está nesta conta**: ele só entra depois de
+1–4 falharem medidamente (§7.2.1), e então custa 2,7× o Neuron e muda a conta do §7.2.
 
 ---
 
-## 14. Riscos e perguntas em aberto
+## 14. Riscos, e as decisões de 12/11/2026
+
+**Decidido por ela a 12/11/2026 — e não se reabre:**
+
+| # | Pergunta | Resposta | Onde ficou |
+|:--|:--|:--|:--|
+| 1 | Onde o painel começa | **Nas quatro**: plano de ensino, PO, Estilo **e a elaboração da aula N** | §1.1 e §11.1 — e a quarta **espera a tela**, que não existe |
+| 2 | O crédito é o Neuron | **Sim** | §7.2 |
+| 3 | O agente pode citar o apelido | **Sim** — apelido e só apelido (P-12) | §11 (fecho) e §5.9 |
+| 4 | Subir para o 70B | **Não directo: antes, aprimorar.** A escada do §7.2.1 — prompt → exemplos → ferramentas → amostragem —, cada degrau medido com os mesmos 20 casos; o 70B só depois de 1–4 falharem | §7.2.1 |
 
 **Riscos técnicos**
 
@@ -837,24 +942,27 @@ conclusão pode ser «subir para o 70B», que custa 2,7× o Neuron e muda a cont
    mente sobre o próprio custo. **Decidido:** corrige-se na mesma frente, com commit próprio.
 4. **A cota de KV diária** (AGENTS.md). Cada interação lê KV; uma sessão longa soma. O tecto de
    chamadas (§7.4) é o que a contém.
+5. **A quarta superfície não existe.** O painel da aula N não se constrói antes da tela, e a tela
+   tem pré-requisito próprio (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação de alinhamento com o PO,
+   que é **do professor**). É o risco de sequência desta frente — e a razão de o total do §13 contar
+   três superfícies, e não quatro.
 
 **Riscos de produto**
 
-5. **10.000 Neurons por dia são da conta, não da escola.** Com três escolas a usar o agente, a cota
-   é a mesma. A cota por plano (L9) é que resolve — e é frente separada.
-6. **A recusa é o comportamento mais importante e o mais difícil de afinar.** Um agente que recusa
+6. **10.000 Neurons por dia são da conta, não da escola.** Com três escolas a usar o agente, a cota
+   é a mesma. A cota por plano (L9) é que resolve — e é frente separada. Desde 12/11/2026 o crédito
+   **é** o Neuron, e portanto esta cota é a matéria-prima do crédito, não um detalhe de fatura.
+7. **A recusa é o comportamento mais importante e o mais difícil de afinar.** Um agente que recusa
    demasiado é inútil; um que inventa é pior do que inútil. A prova mede o mecanismo; a qualidade do
-   limiar mede-se com os 20 casos.
+   limiar mede-se com os 20 casos — e é o primeiro degrau da escada, não o último.
 
-**Perguntas para a pesquisadora** *(nenhuma bloqueia a documentação; todas bloqueiam a implementação)*
+**O que continua em aberto** *(nenhum item bloqueia a documentação; os dois primeiros bloqueiam a
+implementação)*
 
-1. **Onde o painel abre primeiro** — nos quatro formulários, ou só no PO e no Estilo (onde a ajuda
-   rende mais)? A recomendação é começar por dois.
-2. **O crédito é o Neuron?** (§7.2) A conta está feita; a unidade comercial é decisão de L9/L11.
-3. **O agente pode citar o apelido de uma aluna** ao sugerir um critério de observação, ou só a
-   turma? A recomendação é o apelido, que é o que o PO já usa.
-4. **Subir para o 70B** se os 20 casos mostrarem que o 8B não sustenta o português pedagógico? Custa
-   2,7× o Neuron por token — a mesma cota diária dá ~43 interações em vez de ~116.
+1. **A conversão comercial do crédito** — quantos Neurons por franquia, qual o excedente. A unidade
+   está decidida; a tabela é da frente L9/L11.
+2. **O transporte do `tools`** — depende da primeira chamada real.
+3. **O limiar da recusa** — só depois dos 20 casos.
 
 ---
 

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-12T22:21:13-0300`
-Commit atual: `c2a4254b` — chore(estrutura): regerar o HANDOFF
+Gerado em: `2026-11-12T22:26:45-0300`
+Commit atual: `0a4407a7` — docs(registro): a conferencia em producao da cadeia, que faltava
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -60,7 +60,7 @@ redinha-rosa (6)
 
 ## Ideias documentadas
 
-- **`ARQUITETURA-AGENTE.md`** — Especificação do **copiloto pedagógico** do Sistema Lastro: um agente que lê os índices e os envelopes **por chave**, através de ferramentas com contrato explícito (MCP), e **propõe** texto ao professor — nunca grava. Modelo: Llama da Cloudflare (Workers AI), **`@cf/meta/llama-3.1-8b-instruct-awq`**. **Sem RAG**, por decisão: 100 % do que o agente consulta é chave-valor.
+- **`ARQUITETURA-AGENTE.md`** — Especificação do **copiloto pedagógico** do Sistema Lastro: um agente que lê os índices e os envelopes **por chave**, através de ferramentas com contrato explícito (MCP), e **propõe** texto ao professor — nunca grava. Modelo: Llama da Cloudflare (Workers AI), **`@cf/meta/llama-3.1-8b-instruct-awq`**. **Sem RAG**, por decisão: 100 % do que o agente consulta é chave-valor. **Quatro superfícies** (decidido a 12/11/2026): plano de ensino, PO, Estilo **e a elaboração da aula N** — esta última **espera uma tela que não existe**.
 - **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor, fechando na **conclusão** — o campo **«Resultado da avaliação»** (apta/não apta + nível, sem turma/horário/frequência) — o **recipiente** é do PE, o **conteúdo** é do PO.
 - **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
 c2a4254b chore(estrutura): regerar o HANDOFF
 9dd8fe8b docs(registro): a decisao do agente, com os achados que nao estavam no pedido
 3abf00dd docs(estrutura): o stub da IA ganha nota de obsolescencia, e nenhuma linha de codigo muda
@@ -92,7 +93,6 @@ b4eb042b chore(estrutura): regerar os índices derivados
 48f0727e feat(ciclo): o «Guardar» do PO grava as fontes de calango-piano num commit só
 71dada2b feat(po): o PO elicitado vira a fonte do ciclo
 4dff6d03 feat(po): o PO elicitado vira a fonte do ciclo
-00322a75 feat(acervo): envelope/po-20261112-1450.json
 ```
 
 ## Por professor
@@ -256,6 +256,56 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
 `motor/servidor/subpedidos.js`, `motor/servidor/producao.js` · Cloudflare *Workers · Limits* e
 *Workers AI · Pricing*, lidas a 12/11/2026 · `experimentos/pe/freio-custo.md` (não versionado).
 
+
+> **As quatro respostas dela, no mesmo dia (12/11/2026) — e o que cada uma mudou.** A documentação
+> acima fechava com quatro perguntas em aberto. Elas foram respondidas, e três das respostas
+> **alteraram o documento**:
+>
+> 1. **Onde o painel começa: nas QUATRO** — «no Plano, po, estilo e elaboração da aula seguinte (n)».
+>    Não era o que eu recomendava (duas), e a escolha expõe um facto que a lista das quatro esconde:
+>    **a quarta superfície não existe**. Das quatro, três têm tela hoje — o plano de ensino
+>    (`/plano-ensino/`), o plano de observação (`/plano-observacao/`) e o Estilo (`#verbetes` na
+>    Produção) —, e a **elaboração da aula N não tem**: não há rota, nem formulário, nem tela
+>    (CONFIRMADO por leitura; `PLANO-NAVEGACAO.md` §9.2 propõe a lista de documentos e declara-a
+>    **não feita**, e o `PLANO-AULA-E-OBSERVACAO.md` fixa um requisito novo — a confirmação de
+>    alinhamento com o PO antes de a aula ser editável — **sem equivalente no código**). **DECIDIDO**:
+>    o painel entra **já** nas três que existem, e o da aula **espera a tela** — construir o painel
+>    antes da tela seria construir a gaveta antes da cómoda. Fica preparado, e não depende de tela
+>    nenhuma: o campo `aula` no `contexto` do pedido, para a quarta ser ligá-lo. Também por esta
+>    resposta, **a anamnese saiu da lista** — é retrato, não redação pedagógica, e a razão é dela: não
+>    a nomeou.
+> 2. **O crédito é o Neuron — sim.** Deixa de ser recomendação e passa a decisão. A tabela de preços
+>    de 12/11/2026 é a fonte do número (≈86 Neurons por interação, ≈116 interações/dia na conta
+>    gratuita), e o que fica para a frente L9/L11 é a **conversão comercial** — quantos Neurons por
+>    franquia, qual o excedente —, não a unidade.
+> 3. **O agente pode citar o apelido — sim.** E a resposta obrigou a acrescentar uma palavra ao prompt
+>    de sistema: «Usa **só** o apelido» faz um 8B escrever «a aluna», que é o mesmo que não dizer
+>    nada; a regra passou a «podes citá-lo, e nunca escrevas nome completo, contato, dado de saúde,
+>    diagnóstico ou acompanhamento» (P-12 intacta).
+> 4. **Antes de subir para o 70B, aprimorar.** A ordem foi invertida, e a inversão é a decisão: o
+>    70B é a **última** opção, não a primeira resposta a um texto mau. Nasceu daí a **escada** do
+>    §7.2.1 do `ARQUITETURA-AGENTE.md` — medir os 20 casos → o prompt → os exemplos (*few-shot* com
+>    casos reais) → as ferramentas e o recorte → a amostragem → e **só então** o 70B
+>    (`@cf/meta/llama-3.1-70b-instruct-fp8-fast`, 26.668 Neurons/M de entrada e 204.805/M de saída,
+>    da mesma tabela), declarando quais degraus já foram tentados. A razão de ser desta ordem não é
+>    só o custo: um pedido mal construído continua mal construído num modelo maior, **só que mais
+>    caro e mais difícil de diagnosticar**.
+>
+> **O que a estimativa passou a ser.** ≈20,5 → **≈23 dias**: a UI sobe de 2 para 3 (três superfícies,
+> cada uma com o seu contexto), e a escada acrescenta 2. O painel da aula N **não entra** nesta conta
+> — é ≈1 dia, quando a tela nascer, e não é custo desta frente.
+>
+> **Onde entrou.** [ARQUITETURA-AGENTE.md](./ARQUITETURA-AGENTE.md) — a §1.1 (**nova**, as quatro
+> superfícies e o estado de cada uma), a §7.2 (o Neuron como unidade decidida), a §7.2.1 (**nova**, a
+> escada), a §11.1 (**nova**, o painel por superfície), o bloco 7 do prompt, a §13 e a §14 (as quatro
+> respostas substituem as quatro perguntas) · [PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) —
+> **L15** (as quatro superfícies, a lacuna (e), o critério (vii)) · [ESTADO-ATUAL.md](./ESTADO-ATUAL.md)
+> — a linha da §6 · `HANDOFF.md` — regerado.
+>
+> **O que não mudou.** Nenhuma linha de código; nenhum `wrangler`; nenhum deploy. As pétreas e a
+> fronteira do §1 (o agente propõe, o professor grava; não avalia) continuam como estavam — e a
+> quarta resposta **reforça-as**: nenhum degrau da escada é adoptado sem medição.
+
 **O que ainda não está feito.**
 
 - **Nada do agente está implementado.** Não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não
@@ -264,14 +314,17 @@ P-12, P-19, P-21, P-22 · [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS
   do plano.**
 - **`prompts/agente-sistema.md` não foi criado.** É o ritual dos congelados, e é a primeira peça da
   fase seguinte.
-- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e o que a
-  medição pode concluir (subir para o 70B, a 2,7× o Neuron). Não se sabe hoje se o Llama 3.1 8B
-  sustenta o português pedagógico deste projeto — e dizer o contrário seria alegar um facto não
-  medido.
+- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e a **ordem**
+  em que se melhora antes de subir de modelo — a escada do §7.2.1: prompt → exemplos → ferramentas →
+  amostragem, e só depois o 70B, a 2,7× o Neuron. Não se sabe hoje se o Llama 3.1 8B sustenta o
+  português pedagógico deste projeto — e dizer o contrário seria alegar um facto não medido.
 - **O suporte a `tools` no modelo AWQ não foi verificado** — é a primeira chamada da implementação, e
   o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
 - **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
   atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
+- **A tela da aula N não existe**, e é o que trava a quarta superfície. Ela pertence a outra
+  frente, e o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
+  agente.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
 
@@ -321,14 +374,17 @@ cadeia, não a propagação. Fica declarado.
   do plano.**
 - **`prompts/agente-sistema.md` não foi criado.** É o ritual dos congelados, e é a primeira peça da
   fase seguinte.
-- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e o que a
-  medição pode concluir (subir para o 70B, a 2,7× o Neuron). Não se sabe hoje se o Llama 3.1 8B
-  sustenta o português pedagógico deste projeto — e dizer o contrário seria alegar um facto não
-  medido.
+- **A qualidade do 8B não foi medida.** O documento diz o que há a medir (20 casos reais) e a **ordem**
+  em que se melhora antes de subir de modelo — a escada do §7.2.1: prompt → exemplos → ferramentas →
+  amostragem, e só depois o 70B, a 2,7× o Neuron. Não se sabe hoje se o Llama 3.1 8B sustenta o
+  português pedagógico deste projeto — e dizer o contrário seria alegar um facto não medido.
 - **O suporte a `tools` no modelo AWQ não foi verificado** — é a primeira chamada da implementação, e
   o desenho prevê o plano B («JSON no texto» + validação em tempo de execução).
 - **O contador que não vê KV continua a não ver.** Ficou declarado como dívida e a correção está
   atribuída à frente L15, com commit próprio (mexe num módulo que o §5.26 fixou por decisão).
+- **A tela da aula N não existe**, e é o que trava a quarta superfície. Ela pertence a outra
+  frente, e o pré-requisito dela — a confirmação de alinhamento com o PO — é do professor, não do
+  agente.
 - **O registo de custo continua sem leitor.** O agente novo escreve-lhe mais campos; quem os lê é a
   frente L7, e essa não andou hoje.
 

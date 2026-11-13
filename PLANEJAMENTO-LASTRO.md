@@ -2531,51 +2531,65 @@ decisão.
 
 ### L15 — O agente: copiloto de redação por ferramentas (MCP), sem RAG
 
-- **Objetivo e justificativa.** Dar ao professor, **dentro dos formulários da Produção**, ajuda
-  para formular o que ele ainda não escreveu — objetivo, marco, volume, critério de observação,
-  decomposição de um exercício — a partir do que já está registado (plano anterior, linha de base,
-  vocabulário, envelopes). A decisão de 12/11/2026 é **fechada** e não se reabre: modelo **Llama da
-  Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**; arquitetura
-  **MCP + busca estruturada**; **sem RAG**, porque 100 % do que o agente consulta é chave-valor;
-  plano gratuito por agora; venda na assinatura avançada com créditos. O desenho completo — contratos
-  das oito ferramentas, prompt de sistema, tectos, prova — está em
+- **Objetivo e justificativa.** Dar ao professor, **dentro dos formulários**, ajuda para formular o
+  que ele ainda não escreveu — objetivo, marco, volume, critério de observação, decomposição de um
+  exercício, o delta da aula do dia — a partir do que já está registado (plano anterior, linha de
+  base, vocabulário, envelopes). A decisão de 12/11/2026 é **fechada** e não se reabre: modelo
+  **Llama da Cloudflare** (Workers AI, `@cf/meta/llama-3.1-8b-instruct-awq`), **sem API externa**;
+  arquitetura **MCP + busca estruturada**; **sem RAG**, porque 100 % do que o agente consulta é
+  chave-valor; plano gratuito por agora; venda na assinatura avançada com créditos, e **o crédito é o
+  Neuron**. As **superfícies são quatro** — plano de ensino, plano de observação, Estilo e a
+  elaboração da aula N —, e a quarta **espera a tela da aula** (ver a lacuna (e)). O desenho completo
+  — contratos das oito ferramentas, prompt de sistema, tectos, prova — está em
   [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md).
 - **Situação atual.** **Nada implementado** (CONFIRMADO: não há binding `ai` em nenhum
   `wrangler.<escola>.jsonc`, não há `motor/servidor/agente.js`, não há rota de agente). O que existe é
   o **stub legado** `motor/nucleo/ia.js` com a rota `POST /api/ia` e o registo
   `ia-registro/registro.jsonl` (`tokens = 0`, `custo_estimado: "0 (stub)"`) — que a frente **não
-  usa** e **não apaga**.
+  usa** e **não apaga**. Das quatro superfícies, **três existem** (`/plano-ensino/`,
+  `/plano-observacao/` na Porta, `#verbetes` na Produção) e a **da aula N não** (CONFIRMADO: não há
+  rota, nem tela, nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe e declara não feita).
 - **Lacunas.** (a) As **chaves estáveis** (L1/L2) — metade das ferramentas procuram por `id`, e um
   `id` instável transforma uma ferramenta num `grep`; (b) o **catálogo de consultas** (L6) está
   implementado em **6 das 76** perguntas (`GE01`, `CT01`, `PV01`, `AL01`, `TR01`, `OB01` em
   `motor/nucleo/indices.js`), e a ferramenta `perguntar_ao_catalogo` só pode oferecer o que existe;
   (c) o **medidor de custo** é escrito e **nunca lido** — sem leitor não há cota, e sem cota não há
-  crédito; (d) o contador de subpedidos **não conta KV**, e o agente lê KV em quase todas as voltas.
+  crédito; (d) o contador de subpedidos **não conta KV**, e o agente lê KV em quase todas as voltas;
+  (e) **a tela da aula N não existe**, e sem ela a quarta superfície não se constrói — o pré-requisito
+  dela é de outra frente (`PLANO-AULA-E-OBSERVACAO.md`: a confirmação de alinhamento com o PO, que é
+  do professor).
 - **Dependências técnicas e de domínio.** L1/L2 (chaves) e L6 (catálogo) para as ferramentas;
-  L7 para o medidor (é esta frente que lhe dá matéria); L9/L11 para a cota e o crédito. Do domínio:
-  o que a IA **pode** e **não pode** dizer (§2 do texto 2 — preservado), e a unidade comercial do
-  crédito (recomendação: o **Neuron**, medido por interação).
+  L7 para o medidor (é esta frente que lhe dá matéria); L9/L11 para a cota e a conversão do crédito
+  (a **unidade** está decidida: o Neuron). Do domínio: o que a IA **pode** e **não pode** dizer (§2
+  do texto 2 — preservado), e o desenho da tela da aula N.
 - **Entregas.** (a) O binding `ai` declarado nos três `wrangler`, com o modelo e a `vars`
   `SUBPEDIDOS` explícita; (b) o núcleo puro `motor/nucleo/agente/` (registo das 8 ferramentas,
   contrato, condução, mensagens) e o servidor `motor/servidor/agente.js` (`POST /api/agente`) e
   `motor/servidor/mcp.js` (`POST /api/mcp`, JSON-RPC sem sessão); (c) o **prompt de sistema**
   versionado em `prompts/agente-sistema.md` (P-19, com o ritual dos congelados); (d) o painel
-  «Assistente» dentro dos formulários, **sem peça nova** de identidade visual; (e) o registo de custo
-  com `modelo`, `ferramentas[]` e `neurons_estimados`; (f) `experimentos/provar-agente.js`.
+  «Assistente» nas **três** superfícies que existem, **sem peça nova** de identidade visual — e o
+  campo `aula` já no `contexto` do pedido, para a quarta ser ligá-lo quando a tela nascer; (e) o
+  registo de custo com `modelo`, `ferramentas[]` e `neurons_estimados`; (f)
+  `experimentos/provar-agente.js`; (g) a **escada de melhoria** do modelo antes de subir para o 70B
+  (§7.2.1 do `ARQUITETURA-AGENTE.md`), medida com os mesmos 20 casos em cada degrau.
 - **Critérios verificáveis.** (i) O registo de ferramentas é **só de leitura** e a prova mede isso
   por lista, não por confiança; (ii) `tools/list` do MCP é idêntico ao registo do núcleo; (iii) os
   tectos (4 voltas, 8 ferramentas, 12.000 tokens de resultado) fecham o laço e a resposta diz qual
   fechou; (iv) uma interação típica gasta **1 a 6 subpedidos** e o **rebuild do índice nunca corre
   dentro do laço**; (v) o `Neurons` por interação está medido e gravado; (vi) o agente **não tem**
-  ferramenta que escreva, publique ou dispare `workflow_dispatch`.
+  ferramenta que escreva, publique ou dispare `workflow_dispatch`; (vii) nenhum degrau da escada é
+  adoptado sem os 20 casos a dizer o que mudou.
 - **Riscos e decisões por confirmar.** (a) O 8B AWQ **aceita `tools`** no Workers AI? (se não, o
   transporte passa a «JSON no texto» + validação em tempo de execução); (b) **10.000 Neurons por dia
   são da conta, não da escola** — três escolas a usar o agente consomem a mesma cota (≈116
-  interações/dia medidas pela tabela de preços de 12/11/2026); (c) a qualidade do 8B em português
-  pedagógico é **incógnita a medir** (20 casos), e a conclusão pode ser subir para o 70B a 2,7× o
-  Neuron; (d) a **CPU de 10 ms** por pedido no plano gratuito, com o `JSON.parse` do índice como
-  suspeito; (e) o contador que não vê KV é **dívida herdada** do §5.26 e tem de ser corrigida nesta
-  frente.
+  interações/dia medidas pela tabela de preços de 12/11/2026), e desde 12/11/2026 essa cota é a
+  **matéria-prima do crédito**; (c) a qualidade do 8B em português pedagógico é **incógnita a
+  medir** (20 casos) — e **decidido a 12/11/2026**: antes de subir para o 70B (2,7× o Neuron),
+  percorre-se a **escada** prompt → exemplos → ferramentas → amostragem, cada degrau medido; (d) a
+  **CPU de 10 ms** por pedido no plano gratuito, com o `JSON.parse` do índice como suspeito; (e) o
+  contador que não vê KV é **dívida herdada** do §5.26 e tem de ser corrigida nesta frente; (f) **a
+  tela da aula N não existe** — a quarta superfície é a única que depende de outra frente, e o
+  painel dela não se constrói antes.
 - **Prioridade.** **P2** — depois de L1/L2 e em paralelo com L6; não destranca nenhuma frente de
   dado, mas é a primeira que **usa** o dado que já existe para produzir valor visível ao professor.
 

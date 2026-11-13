@@ -10,7 +10,15 @@
 > arquitetura **MCP + busca estruturada**, e **sem RAG**, porque 100 % do que o agente consulta é
 > chave-valor com `id` estável. O desenho completo está em
 > [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md) — oito ferramentas com contrato em JSON Schema, o
-> prompt de sistema em oito blocos, os tectos do laço e ≈20,5 dias de estimativa. **CONFIRMADO que
+> prompt de sistema em oito blocos, os tectos do laço e ≈23 dias de estimativa (eram ≈20,5 antes das
+> respostas abaixo). **As quatro respostas dela, no mesmo dia, fecharam o resto:** o painel começa nas
+> **quatro** superfícies — plano de ensino, PO, Estilo **e a elaboração da aula N** —, e a quarta
+> **não tem tela hoje** (CONFIRMADO: não há rota nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe a
+> lista e declara-a não feita), pelo que o painel entra nas três que existem e a quarta **espera a
+> tela**; **a anamnese saiu** da lista, por não ser redação pedagógica; **o crédito é o Neuron**;
+> o agente **pode citar o apelido** (apelido e só apelido, P-12); e **antes de subir para o 70B
+> aprimora-se** — a escada prompt → exemplos → ferramentas → amostragem, cada degrau medido com os
+> mesmos 20 casos, e o 70B só depois, declarando o que já se tentou. **CONFIRMADO que
 > nada está implementado:** não há binding `ai` em nenhum `wrangler.<escola>.jsonc`, não há
 > `motor/servidor/agente.js` nem `mcp.js`, não há rota. O que **mudou** foi a documentação: a
 > frente **L15** nasceu no `PLANEJAMENTO-LASTRO.md`, o **§L7** (que dizia que a IA «não é mecanismo
@@ -2916,8 +2924,15 @@ contrato — o que **supera em parte** a frente **L7** e a regra 1 do §6 do `PL
 que proibiam «consulta aos registos». O que **não** se alargou: a IA continua a não avaliar, a não
 decidir e a não substituir o professor, e continua a não haver consulta livre nem entre escolas.
 Documentação apenas — sem código, sem deploy, sem `wrangler` tocado; a implementação espera
-aprovação do plano. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md), a frente **L15** e a entrada
-de 12/11/2026 no `REGISTRO.md`.
+aprovação do plano. **E as quatro respostas dela, no mesmo dia, fecharam o resto:** o painel começa
+nas **quatro** superfícies — plano de ensino, PO, Estilo **e a elaboração da aula N** —, e a quarta
+**não tem tela hoje** (CONFIRMADO: não há rota nem formulário; `PLANO-NAVEGACAO.md` §9.2 propõe a
+lista e declara-a não feita), pelo que o painel entra nas três que existem e a quarta **espera a
+tela**; **a anamnese saiu** da lista (é retrato, não redação pedagógica); **o crédito é o Neuron**;
+o agente **pode citar o apelido** da aluna (apelido e só apelido, P-12); e **antes de subir para o
+70B aprimora-se** — a escada prompt → exemplos → ferramentas → amostragem, cada degrau medido com os
+mesmos 20 casos. Ver [ARQUITETURA-AGENTE.md](ARQUITETURA-AGENTE.md) (§1.1, §7.2, §7.2.1, §11.1), a
+frente **L15** e a entrada de 12/11/2026 no `REGISTRO.md`.
 
 **Último ponto confirmado:** 02/11/2026 — `d74fda1` (a musicalidade consolida-se, e a prova da porta
 volta a correr), com `cf1ef52` (a força e a flexibilidade vêm da anamnese), `469c9d5` (a proveniência
