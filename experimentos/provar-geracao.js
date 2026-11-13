@@ -653,16 +653,16 @@ async function aInjecao() {
   // subdomínio não bate com o `ESCOLA_SLUG` (é o freio que impede o deploy trocado).
   const porta = await producao.fetch(new Request('https://calando-teste-1.example/plano-observacao/'), env);
   const html = await porta.text();
-  assert.match(html, /<script src="\/assets\/geracao\.js"><\/script><\/body>/);
+  assert.match(html, /<script src="\/scripts\/geracao\.js"><\/script><\/body>/);
   ok('a porta é servida com o cartão injetado — em qualquer escola, sem regenerar o pacote');
 
-  const asset = await producao.fetch(new Request('https://calando-teste-1.example/assets/geracao.js'), env);
+  const asset = await producao.fetch(new Request('https://calando-teste-1.example/scripts/geracao.js'), env);
   assert.equal(asset.status, 200);
   assert.match(asset.headers.get('content-type'), /javascript/);
   assert.match(asset.headers.get('cache-control'), /no-store/);
   ok('o script é servido com `no-store` — o cartão não fica em cache no navegador');
 
-  const assetTeste = await producao.fetch(new Request('https://calando-teste-1.example/assets/teste-preenchimento.js'), env);
+  const assetTeste = await producao.fetch(new Request('https://calando-teste-1.example/scripts/teste-preenchimento.js'), env);
   assert.equal(assetTeste.status, 200);
   ok('o preenchidor das escolas de teste continua a ser servido');
 }

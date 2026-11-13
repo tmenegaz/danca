@@ -775,7 +775,7 @@ funcionalidade supõe.** Os três caminhos, e **nenhum escolhido**:
 | Fecha | Como |
 |:--|:--|
 | **De quem é** | **da escola**. Há chave para isso: o `ESCOLA_SLUG`, que a instalação já tem e que nada precisa de inventar |
-| **O mecanismo de aplicação** | **no servidor**. Uma preferência da escola não pode viver num navegador — ela vale para todos, e tem de viajar. O caminho já existe: `run_worker_first: true` e `env.ASSETS` em `motor/servidor/cloudflare.js` |
+| **O mecanismo de aplicação** | **no servidor**. Uma preferência da escola não pode viver num navegador — ela vale para todos, e tem de viajar. O caminho já existe: `env.ASSETS` em `motor/servidor/cloudflare.js`, com o HTML roteado ao Worker (`run_worker_first` como lista nos `wrangler.<escola>.jsonc` — só os assets vão direto ao ASSETS, 13/11/2026) |
 | **A tabela `PARES` e o «qual paleta o PDF lê»** | a **vigente da escola**. O PDF e o deck seguem a paleta da escola; com uma só paleta por escola, o problema dos doze `:root` não se põe nesta etapa |
 
 **O que a decisão de 18/10 NÃO fecha — e não é esquecimento.**
@@ -2355,7 +2355,8 @@ decisão.
   - **A decisão do mecanismo** — aplicar **no navegador** (um script reescreve os tokens no `:root`
     a partir da preferência guardada; funciona em página estática e não exige regerar nada) ou
     **no servidor** (o Worker injeta a paleta; o caminho existe — `"run_worker_first": true` nos
-    `wrangler.<escola>.jsonc`, e `env.ASSETS` em `motor/servidor/cloudflare.js:188`). **Escolhido
+    `wrangler.<escola>.jsonc` — hoje uma lista de regras, e não `true`, pela cota do dia: ver a
+    entrada de 13/11/2026 no `REGISTRO.md` —, e `env.ASSETS` em `motor/servidor/cloudflare.js:188`). **Escolhido
     em 18/10/2026: o servidor** — consequência directa de a preferência ser **da escola**: uma
     escolha que vale para todos não pode viver no navegador de cada um. O que se implementa hoje
     (o tema no navegador) é o caminho **provisório**, e está declarado como tal.

@@ -24,7 +24,26 @@
   "assets": {
     "directory": "publicacao/calango",
     "binding": "ASSETS",
-    "run_worker_first": true
+    // OS ASSETS NÃO PRECISAM DE INVOCAR O WORKER (13/11/2026).
+    //
+    // Aqui esteve `"run_worker_first": true`, e o `true` é literal: TODA requisição — o CSS, o
+    // `nav.js`, o favicon, o PDF — invocava o Worker, só para o Worker a devolver ao ASSETS no
+    // fim. O plano gratuito cobra 100.000 requisições por dia e conta cada uma; os pedidos a
+    // assets estáticos são «grátis e ilimitados» quando o ASSETS os serve sozinho. Com 3
+    // sub-recursos por página, eram 4 invocações por página vista em vez de 1.
+    //
+    // AS REGRAS. `/*` mantém o HTML e as rotas do motor no Worker — é ele que injeta a aparência
+    // da escola (`data-modo`/`data-paleta`) e o freio da escola, e um HTML servido pelo ASSETS
+    // sairia sem os dois. As duas negativas mandam os assets direto para o ASSETS: a primeira é a
+    // pasta de cada pacote, a segunda é a dos prefixos da porta (`/anamnese/assets/…`). Negativas
+    // têm PRECEDÊNCIA — é por isso que os dois scripts gerados pelo motor saíram de `/assets/`
+    // para `/scripts/` (ver `producao.js`): com `!/assets/*`, eles seriam 404.
+    "run_worker_first": [
+      "/*",
+      "!/assets/*",
+      "!/*/assets/*",
+      "!/*.pdf"
+    ]
   },
 
   "vars": {

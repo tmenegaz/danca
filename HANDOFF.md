@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T13:31:47-0300`
-Commit atual: `f262b436` — fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
+Gerado em: `2026-11-13T14:28:46-0300`
+Commit atual: `8048a335` — docs(registro): a conferência ao ar da lista que custa o índice
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+8048a335 docs(registro): a conferência ao ar da lista que custa o índice
 f262b436 fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
 535d767c feat(template): a logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
 f8faa62a chore(estrutura): regerar o HANDOFF
@@ -92,7 +93,6 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 36145e79 chore(estrutura): regerar o HANDOFF
 9177bb87 fix(estrutura): o elo que ja esta no acervo com o nome trocado e reconhecido, e nao aceite
 3919cc96 chore(estrutura): regerar o HANDOFF
-123e2e9c fix(template): o NOME do autor na listagem, e o «!» a ler o slug
 ```
 
 ## Por professor
@@ -170,93 +170,109 @@ ea95c988 fix(estrutura): um sucessor que trocou de maos nao substitui o document
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — A lista custa o índice, e não um arquivo por registo
+## 13/11/2026 — O CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
 
-**O que aconteceu.** A pesquisadora descreveu a diferença sem a nomear: «quando eu navego nos
-bastidores, é o clique e já carrega; agora a anamnese, o plano de ensino e o plano de observação
-demoram… tem alguma coisa sendo processada?». Tinha — e não era o Cloudflare a servir arquivo, era o
-motor a **ir ao GitHub**. Medido ao ar no Worker da escola, primeiro byte:
+**O que aconteceu.** Depois de a lista do acervo ficar rápida (entrada de hoje, «A lista custa o
+índice»), a pergunta seguinte foi a do custo: «quero diminuir custo, ocupar o menor espaço
+possível, para caber a maior quantidade de escolas no plano gratuito». Mediu-se a conta antes de
+mexer, pela API de análise da Cloudflare:
 
-| página | antes | depois (bancada) | depois (ao ar) |
+| dia | pedidos (calango) | KV lidas | KV escritas |
 |:--|--:|--:|--:|
-| `/aulas/` (asset) | 0,30 s | 0,30 s | 0,10 s |
-| `/ciclos/planos/` (asset) | 0,07 s | 0,07 s | 0,09 s |
-| `/area-do-professor/anamnese` | 2,43 s | 0,68 s | 0,71 s |
-| `/area-do-professor/plano-de-ensino` | 7,54 s | 0,66 s | 0,89 s |
-| `/area-do-professor/plano-de-observacao` | 7,61 s | 0,63 s | 0,97 s |
+| 12/11 | 427 | 1.139 | 92 |
+| 13/11 (até às 17h) | 253 | 502 | 0 |
+| pico da semana (07/11) | 2.115 | 4.165 | 136 |
 
-A coluna «ao ar» é a conferência final no Worker da escola (`calango`), primeiro byte: **uma carga por
-página, no fim** — não exploração, pela regra da cota do KV. A primeira carga da anamnese deu 1,52 s
-(o isolate estava frio, logo depois do deploy) e as duas seguintes, 0,71 s e 0,72 s.
-
-As duas últimas liam **24 vezes a API do GitHub por carga**. Dezanove delas abriam o envelope de
-**cada PO** para buscar `respostas.sujeitos` — que **já estava no resumo do índice**. O índice de
-envelopes existe precisamente para a estante não ler envelopes (`resumosDeEnvelopes`, em
-`motor/nucleo/porta.js`); a cascata de revalidação (`revalidacaoPendente`) tinha ficado de fora dessa
-regra, e o custo crescia com o acervo: um PO por ciclo, uma viagem por PO.
+Dois números saltaram. O primeiro: **cada requisição invocava o Worker**, e duas delas em três não
+precisavam. O `wrangler.<escola>.jsonc` declara `"run_worker_first": true` — e o `true` é literal:
+o `style.css`, o `nav.js` e o favicon também passavam pelo Worker, que os devolvia ao ASSETS no
+fim. As páginas publicadas referenciam 3 sub-recursos cada, e portanto cada página vista custava
+**4 invocações em vez de 1**, contra um tecto de 100.000 por dia para a CONTA inteira. O segundo:
+**uma requisição lia a mesma chave duas vezes** — a aparência, em todos os pedidos, e as curadorias
+e os rascunhos da linha de base, duas vezes por página do plano de ensino e do PO.
 
 **O que foi decidido.**
 
-- **O resumo primeiro, o arquivo só como recurso.** A cascata lê `resumo.sujeitos` quando ele é uma
-  lista; só abre o envelope quando o índice é antigo e não o traz. O recurso **não é decoração**: sem
-  ele, um índice de versão anterior faria a lista perder o vínculo entre PO e aluna em silêncio.
-- **O que não depende um do outro corre junto.** As três entradas da listagem — índice dos envelopes
-  (repositório), curadorias (KV) e linhas de base (repositório: índice + um arquivo por linha) — vão
-  ao mesmo tempo, e as versões de cada linha de base também. Antes eram esperas em fila, e a do
-  índice dos envelopes só começava **depois** de as linhas de base acabarem, porque a ponte a
-  entregava já resolvida.
-- **A ponte passa promessas, não valores.** `curadorias` e `linhasDeBase` chegam ao `pagina()` como
-  promessas (o `await` do `Promise.all` aceita as duas formas, e as bancadas antigas continuam a
-  passar valores). É o que faz as três viagens começarem no mesmo instante em vez de encadeadas.
+- **O ASSETS serve-se sozinho.** `run_worker_first` passou a **lista**: `/*` mantém o HTML e as
+  rotas do motor no Worker (é ele que injeta `data-modo`/`data-paleta` e o freio da escola), e as
+  negativas `!/assets/*`, `!/*/assets/*` e `!/*.pdf` mandam os assets direto ao ASSETS — que a
+  Cloudflare não conta («Requests to static assets are free and unlimited»). A regra vale para os
+  dois Workers e para o **template de `criar-escola.sh`**, que é de onde sai a config de cada
+  escola nova.
+- **Os scripts que o MOTOR gera saíram de `/assets/`.** `/assets/geracao.js` e
+  `/assets/teste-preenchimento.js` não existem no disco — são escritos pela ponte. Debaixo de uma
+  negativa, seriam 404. Passaram a `/scripts/`, que nenhuma regra declara como asset.
+- **Aparência: cache de isolate.** É a chave mais lida do sistema — 1 leitura por pedido, incluindo
+  os que não devolvem página (medido: até um `POST` que responde 401 a paga). Guarda-se 60 s por
+  isolate, com a escrita a **esquecer** o que tinha guardado, para que a paleta escolhida apareça
+  na página seguinte. A casa já usava esta forma em dois sítios (`MENU_EM_CACHE`, `CACHE_DO_REGISTRO`);
+  não é uma ideia nova, é a mesma aplicada à leitura que mais se repete. **Não é `cacheTtl` do KV**:
+  esse ficaria velho mesmo para quem acabou de gravar, e o TTL mínimo é 30 s.
+- **A mesma chave, uma leitura.** Os rascunhos da linha de base são lidos uma vez pela ponte e
+  entregues aos dois consumidores (`linhasDeBaseDaEscola` funde-os com os actos; a cascata de
+  revalidação quer-os crus). As curadorias idem. O registo de geração passou a ser lido **por
+  chave derivada** (`chaveDoRegistro`, do módulo que a grava): dois PO da mesma turma pedem o mesmo
+  ficheiro, e deduplicar pelo contexto — que inclui professor e ciclo — contaria dois havendo um.
 
-**Com o quê.** Medido na bancada local (`http.createServer` + `fetch` do GitHub stubado, 300 ms de
-latência por viagem, acervo do `calango`): anamnese **1 289 → 677 ms**, plano de ensino **7 270 →
-660 ms**, plano de observação **7 272 → 627 ms**. Idas ao GitHub: **4/24/24 → 4/4/4**. Restam duas
-viagens em fila (o índice e os arquivos das linhas de base) — 600 ms, contra os 70 ms de uma página
-estática; o piso é o número de saltos, não o tamanho do acervo.
+**Motivo declarado — os congelados.** Toca `tools/criar-escola.sh`, que o
+[CONGELAMENTO.md](./CONGELAMENTO.md) lista em `tools/` (geradores). O porquê está acima: o gerador é
+a **origem** da config de cada escola, e corrigir os dois `wrangler.*.jsonc` sem ele corrigiria hoje
+e estragaria amanhã, em silêncio, em toda escola nova. **O que não muda:** a fórmula do hash e a
+cobertura do `.fipp` (nenhuma fonte de ciclo tocada), os validadores, as 17 regras, as 22 pétreas, o
+conteúdo e a estrutura do menu, e o que cada escola serve — os mesmos bytes nos mesmos endereços,
+com a aparência injetada no servidor como antes.
 
-`provar-custo-da-listagem` **7/7** — prova nova, de 13/11/2026 — fixa as duas metades e o paralelismo:
-com os resumos completos **zero** envelopes lidos (e o selo de revisão ainda aparece); com um índice
-sem `sujeitos`, **um** envelope lido e o resultado **idêntico**; e as quatro versões de linha de base
-com as janelas de leitura sobrepostas (6 pares de 6). **Controle negativo:** rodada sobre o código
-anterior, reprova dois pontos (1 envelope lido, 0 pares sobrepostos). `provar-listas-do-acervo`
-**109/109** · `provar-linha-de-base-no-repo` **39/39** · `provar-revisao-do-recorte` **47/47** ·
-`provar-acervo-envelopes` **52/52** · `provar-lista-que-falha` **39/39** ·
-`provar-apagar-da-listagem` **51/51** · `provar-uma-linha-por-professor` **23/23** ·
-`provar-menu-da-producao` **55/55** · `provar-mudanca-de-sala` **41/41** ·
-`provar-transferencia-e-desligamento` **93/93** · `provar-veu-da-operacao` **23/23** ·
-`provar-bancada-do-veu` **30/30** · `provar-producao` **164/166** — as duas de sempre, iguais no
-`HEAD`, verificadas num worktree separado.
+**Com o quê.** Medido com `wrangler dev` local e uma linha de log no início do `fetch` da ponte,
+para contar **invocações** e não apenas respostas (as seis requisições devolvem 200 nos dois casos):
 
-**Motivo declarado — não se aplica.** A mudança toca `motor/` (o motor do Worker), e **não** `tools/`,
-a fórmula do hash, os validadores, a estrutura do menu ou o conteúdo dos ciclos. Nenhuma fonte de
-ciclo foi tocada, nenhum `.fipp` muda, e a tela desenha exactamente o mesmo.
+| configuração | `/assets/style.css` | `/piano/assets/nav.js` | `/plano-observacao/assets/markdown.js` |
+|:--|--:|--:|--:|
+| `"run_worker_first": true` | 1 invocação | 1 invocação | 1 invocação |
+| a lista de hoje | **0** | **0** | **0** |
 
-**Referências.** [CONGELAMENTO.md](./CONGELAMENTO.md) — o que exige motivo declarado ·
-`motor/nucleo/porta.js` (`revalidacaoPendente`, `resumoDoEnvelope`) ·
-`motor/servidor/listas-do-acervo.js` (`pagina`) · `motor/servidor/producao.js` (bloco «0.2 AS TRÊS
-LISTAS DO ACERVO») · `motor/servidor/linhas-de-base-repo.js` (`vigentes`) ·
-`motor/servidor/bastidores.js` (`linhasDeBase`) · `experimentos/provar-custo-da-listagem.js`.
+e o HTML continua a invocar o Worker nos dois casos (`/` e `/aulas/` saem com
+`data-modo="clara" data-paleta="bordo"`); `/api/saude` e `/scripts/geracao.js` também.
+
+Leituras ao KV por página, medidas no porto local (antes → depois): `/` **1 → 0** · `/aulas/`
+**1 → 0** · `/ciclos/planos/` **1 → 0** · `/anamnese` **3 → 2** · `/plano-de-ensino` **5 → 2** ·
+`/plano-de-observacao` **7 → 3** · `/bastidores/producao` **10 → 8** · as rotas
+`/api/bastidores/*` **1 a 2, cada uma uma a menos**. Nenhuma chave lida duas vezes em rota nenhuma.
+
+`provar-assets-sem-worker` **38/38** — prova nova, de 13/11/2026 — fixa a configuração (a dos dois
+Workers e a do gerador), o modelo do roteamento aplicado aos caminhos reais (os 25 assets publicados
+têm de estar cobertos), e que os scripts gerados saíram de `/assets/`. **Controle negativo:** com
+`"run_worker_first": true` a prova reprova 12 asserções. Também verdes: `provar-listas-do-acervo`
+**109/109** · `provar-custo-da-listagem` **7/7** · `provar-menu-da-producao` **55/55** ·
+`provar-celular` **15/15** · `provar-ficha-na-listagem` **35/35** · `provar-revisao-do-recorte`
+**47/47** · `provar-cadeia-automatica` **62/62** · `check-identidade` **22 ok, 0 erros**. Iguais ao
+`HEAD`, verificadas num worktree separado: `provar-geracao` **44/45** · `provar-aparencia` **76/77** ·
+`provar-producao` **164/166** · `provar-barra-unica` **106/109** · `provar-vigente-na-listagem`
+**20/21** · `provar-selo` e `provar-abrir-o-ciclo` (erro de arranque) — **todas já falhavam antes**.
+
+**Referências.** [CONGELAMENTO.md](./CONGELAMENTO.md) · `motor/servidor/producao.js` (a ponte, os
+dois scripts, a passagem das promessas) · `motor/servidor/bastidores.js` (`aparenciaDaEscola`,
+`gravarAparencia`, `linhasDeBase`, `rascunhosDeLinhasDeBase`) · `motor/servidor/listas-do-acervo.js`
+(`pagina`) · `motor/servidor/geracao.js` (`lerRegistroPorChave`) · `wrangler.calango.jsonc` ·
+`wrangler.danca.jsonc` · `tools/criar-escola.sh` · `experimentos/provar-assets-sem-worker.js`.
 
 **O que ainda não está feito.**
 
-- **A viagem ao KV para as curadorias continua a existir** em cada carga. Não é cacheável sem
-  decidir por quanto tempo uma curadoria pode ficar velha — decisão de método, não de desempenho.
-- **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
-  índices mudam pouco), mas muda o que se lê depois de uma escrita — e isso pede a mesma prova de
-  equivalência que esta entrada exigiu.
+- **O consumo real só se confirma amanhã.** A conta tinha 2 Workers no ar (`calango` e `danca`) e
+  464 pedidos no dia 13/11 — 0,5% do tecto. O ganho só aparece na análise quando houver tráfego que
+  o mostre.
+- **A viagem ao KV para as curadorias continua a existir, uma por página.** Ela não é cacheada de
+  propósito: a curadoria é o que **autoriza** o plano, e um valor velho esconderia uma autorização
+  que o professor acabou de dar. O que se corrigiu foi a duplicação, não a leitura.
+- **O registo de custo da IA (`ia-registro/registro.jsonl`) não foi tocado.** Ele é uma chave única
+  que cresce para sempre, lida e reescrita inteira a cada sessão — e é a **mesma** que a
+  arquitectura do agente prevê (`ARQUITETURA-AGENTE.md`, passo 4). Hoje o único escritor é o stub
+  `POST /api/ia` (0 escritas no dia 13/11). A rotação por mês é uma decisão à parte, e faz-se melhor
+  **antes** de o agente entrar no ar do que depois de haver um log para migrar.
+- **O tecto de 100 Workers por conta não se resolve com nada disto.** É o número que limita a
+  quantidade de escolas; o resto desta entrada é folga. Fica registado para a decisão de
+  arquitectura, que é outra.
 
 ## O que está pendente
-
-## 12/11/2026 — A autoria não se reescreve: o documento que perde a turma fica «sem turma»
-
-O «!» da autoria trocada aparece na listagem e na porta, mas **não
-no cartão da Turma** (Bastidores → Turmas) — ali a Turma ainda mostra o plano vigente sem dizer que
-o nome dele foi trocado. E os elos antigos continuam no acervo: marcados, e não expurgados. O
-expurgo, se ela o quiser, tem de ser declarado — a proveniência acrescenta e não edita (P-03/P-04).
-Um segundo elo da mesma cadeia (`-0809`, `-1016`) já não é distinguível do primeiro pela comparação
-com o pai, porque o pai dele foi ele próprio reatribuído: a marca apanha a primeira troca de cada
-cadeia, não a propagação. Fica declarado.
 
 ## 12/11/2026 — O agente do Lastro: Llama na Cloudflare, MCP, e o fim do provedor externo
 
@@ -326,6 +342,24 @@ cadeia, não a propagação. Fica declarado.
 - **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
   índices mudam pouco), mas muda o que se lê depois de uma escrita — e isso pede a mesma prova de
   equivalência que esta entrada exigiu.
+
+## 13/11/2026 — O CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
+
+
+- **O consumo real só se confirma amanhã.** A conta tinha 2 Workers no ar (`calango` e `danca`) e
+  464 pedidos no dia 13/11 — 0,5% do tecto. O ganho só aparece na análise quando houver tráfego que
+  o mostre.
+- **A viagem ao KV para as curadorias continua a existir, uma por página.** Ela não é cacheada de
+  propósito: a curadoria é o que **autoriza** o plano, e um valor velho esconderia uma autorização
+  que o professor acabou de dar. O que se corrigiu foi a duplicação, não a leitura.
+- **O registo de custo da IA (`ia-registro/registro.jsonl`) não foi tocado.** Ele é uma chave única
+  que cresce para sempre, lida e reescrita inteira a cada sessão — e é a **mesma** que a
+  arquitectura do agente prevê (`ARQUITETURA-AGENTE.md`, passo 4). Hoje o único escritor é o stub
+  `POST /api/ia` (0 escritas no dia 13/11). A rotação por mês é uma decisão à parte, e faz-se melhor
+  **antes** de o agente entrar no ar do que depois de haver um log para migrar.
+- **O tecto de 100 Workers por conta não se resolve com nada disto.** É o número que limita a
+  quantidade de escolas; o resto desta entrada é folga. Fica registado para a decisão de
+  arquitectura, que é outra.
 
 ## Pendências anteriores (índice)
 
@@ -748,6 +782,7 @@ cadeia, não a propagação. Fica declarado.
 - **12/11/2026** — A sala diz o presente, e os três passos andam → `REGISTRO.md` L42848
 - **12/11/2026** — A Turma diz as suas três pontas → `REGISTRO.md` L42911
 - **12/11/2026** — «Em turma» vem da Turma, e não do plano → `REGISTRO.md` L43063
+- **12/11/2026** — A autoria não se reescreve: o documento que perde a turma… → `REGISTRO.md` L43132
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

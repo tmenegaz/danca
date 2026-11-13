@@ -43723,3 +43723,105 @@ LISTAS DO ACERVO») · `motor/servidor/linhas-de-base-repo.js` (`vigentes`) ·
 - **O cache de isolate do Cloudflare não é usado** para os índices. Seria a próxima economia (os dois
   índices mudam pouco), mas muda o que se lê depois de uma escrita — e isso pede a mesma prova de
   equivalência que esta entrada exigiu.
+
+## 13/11/2026 — O CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
+
+**O que aconteceu.** Depois de a lista do acervo ficar rápida (entrada de hoje, «A lista custa o
+índice»), a pergunta seguinte foi a do custo: «quero diminuir custo, ocupar o menor espaço
+possível, para caber a maior quantidade de escolas no plano gratuito». Mediu-se a conta antes de
+mexer, pela API de análise da Cloudflare:
+
+| dia | pedidos (calango) | KV lidas | KV escritas |
+|:--|--:|--:|--:|
+| 12/11 | 427 | 1.139 | 92 |
+| 13/11 (até às 17h) | 253 | 502 | 0 |
+| pico da semana (07/11) | 2.115 | 4.165 | 136 |
+
+Dois números saltaram. O primeiro: **cada requisição invocava o Worker**, e duas delas em três não
+precisavam. O `wrangler.<escola>.jsonc` declara `"run_worker_first": true` — e o `true` é literal:
+o `style.css`, o `nav.js` e o favicon também passavam pelo Worker, que os devolvia ao ASSETS no
+fim. As páginas publicadas referenciam 3 sub-recursos cada, e portanto cada página vista custava
+**4 invocações em vez de 1**, contra um tecto de 100.000 por dia para a CONTA inteira. O segundo:
+**uma requisição lia a mesma chave duas vezes** — a aparência, em todos os pedidos, e as curadorias
+e os rascunhos da linha de base, duas vezes por página do plano de ensino e do PO.
+
+**O que foi decidido.**
+
+- **O ASSETS serve-se sozinho.** `run_worker_first` passou a **lista**: `/*` mantém o HTML e as
+  rotas do motor no Worker (é ele que injeta `data-modo`/`data-paleta` e o freio da escola), e as
+  negativas `!/assets/*`, `!/*/assets/*` e `!/*.pdf` mandam os assets direto ao ASSETS — que a
+  Cloudflare não conta («Requests to static assets are free and unlimited»). A regra vale para os
+  dois Workers e para o **template de `criar-escola.sh`**, que é de onde sai a config de cada
+  escola nova.
+- **Os scripts que o MOTOR gera saíram de `/assets/`.** `/assets/geracao.js` e
+  `/assets/teste-preenchimento.js` não existem no disco — são escritos pela ponte. Debaixo de uma
+  negativa, seriam 404. Passaram a `/scripts/`, que nenhuma regra declara como asset.
+- **Aparência: cache de isolate.** É a chave mais lida do sistema — 1 leitura por pedido, incluindo
+  os que não devolvem página (medido: até um `POST` que responde 401 a paga). Guarda-se 60 s por
+  isolate, com a escrita a **esquecer** o que tinha guardado, para que a paleta escolhida apareça
+  na página seguinte. A casa já usava esta forma em dois sítios (`MENU_EM_CACHE`, `CACHE_DO_REGISTRO`);
+  não é uma ideia nova, é a mesma aplicada à leitura que mais se repete. **Não é `cacheTtl` do KV**:
+  esse ficaria velho mesmo para quem acabou de gravar, e o TTL mínimo é 30 s.
+- **A mesma chave, uma leitura.** Os rascunhos da linha de base são lidos uma vez pela ponte e
+  entregues aos dois consumidores (`linhasDeBaseDaEscola` funde-os com os actos; a cascata de
+  revalidação quer-os crus). As curadorias idem. O registo de geração passou a ser lido **por
+  chave derivada** (`chaveDoRegistro`, do módulo que a grava): dois PO da mesma turma pedem o mesmo
+  ficheiro, e deduplicar pelo contexto — que inclui professor e ciclo — contaria dois havendo um.
+
+**Motivo declarado — os congelados.** Toca `tools/criar-escola.sh`, que o
+[CONGELAMENTO.md](./CONGELAMENTO.md) lista em `tools/` (geradores). O porquê está acima: o gerador é
+a **origem** da config de cada escola, e corrigir os dois `wrangler.*.jsonc` sem ele corrigiria hoje
+e estragaria amanhã, em silêncio, em toda escola nova. **O que não muda:** a fórmula do hash e a
+cobertura do `.fipp` (nenhuma fonte de ciclo tocada), os validadores, as 17 regras, as 22 pétreas, o
+conteúdo e a estrutura do menu, e o que cada escola serve — os mesmos bytes nos mesmos endereços,
+com a aparência injetada no servidor como antes.
+
+**Com o quê.** Medido com `wrangler dev` local e uma linha de log no início do `fetch` da ponte,
+para contar **invocações** e não apenas respostas (as seis requisições devolvem 200 nos dois casos):
+
+| configuração | `/assets/style.css` | `/piano/assets/nav.js` | `/plano-observacao/assets/markdown.js` |
+|:--|--:|--:|--:|
+| `"run_worker_first": true` | 1 invocação | 1 invocação | 1 invocação |
+| a lista de hoje | **0** | **0** | **0** |
+
+e o HTML continua a invocar o Worker nos dois casos (`/` e `/aulas/` saem com
+`data-modo="clara" data-paleta="bordo"`); `/api/saude` e `/scripts/geracao.js` também.
+
+Leituras ao KV por página, medidas no porto local (antes → depois): `/` **1 → 0** · `/aulas/`
+**1 → 0** · `/ciclos/planos/` **1 → 0** · `/anamnese` **3 → 2** · `/plano-de-ensino` **5 → 2** ·
+`/plano-de-observacao` **7 → 3** · `/bastidores/producao` **10 → 8** · as rotas
+`/api/bastidores/*` **1 a 2, cada uma uma a menos**. Nenhuma chave lida duas vezes em rota nenhuma.
+
+`provar-assets-sem-worker` **38/38** — prova nova, de 13/11/2026 — fixa a configuração (a dos dois
+Workers e a do gerador), o modelo do roteamento aplicado aos caminhos reais (os 25 assets publicados
+têm de estar cobertos), e que os scripts gerados saíram de `/assets/`. **Controle negativo:** com
+`"run_worker_first": true` a prova reprova 12 asserções. Também verdes: `provar-listas-do-acervo`
+**109/109** · `provar-custo-da-listagem` **7/7** · `provar-menu-da-producao` **55/55** ·
+`provar-celular` **15/15** · `provar-ficha-na-listagem` **35/35** · `provar-revisao-do-recorte`
+**47/47** · `provar-cadeia-automatica` **62/62** · `check-identidade` **22 ok, 0 erros**. Iguais ao
+`HEAD`, verificadas num worktree separado: `provar-geracao` **44/45** · `provar-aparencia` **76/77** ·
+`provar-producao` **164/166** · `provar-barra-unica` **106/109** · `provar-vigente-na-listagem`
+**20/21** · `provar-selo` e `provar-abrir-o-ciclo` (erro de arranque) — **todas já falhavam antes**.
+
+**Referências.** [CONGELAMENTO.md](./CONGELAMENTO.md) · `motor/servidor/producao.js` (a ponte, os
+dois scripts, a passagem das promessas) · `motor/servidor/bastidores.js` (`aparenciaDaEscola`,
+`gravarAparencia`, `linhasDeBase`, `rascunhosDeLinhasDeBase`) · `motor/servidor/listas-do-acervo.js`
+(`pagina`) · `motor/servidor/geracao.js` (`lerRegistroPorChave`) · `wrangler.calango.jsonc` ·
+`wrangler.danca.jsonc` · `tools/criar-escola.sh` · `experimentos/provar-assets-sem-worker.js`.
+
+**O que ainda não está feito.**
+
+- **O consumo real só se confirma amanhã.** A conta tinha 2 Workers no ar (`calango` e `danca`) e
+  464 pedidos no dia 13/11 — 0,5% do tecto. O ganho só aparece na análise quando houver tráfego que
+  o mostre.
+- **A viagem ao KV para as curadorias continua a existir, uma por página.** Ela não é cacheada de
+  propósito: a curadoria é o que **autoriza** o plano, e um valor velho esconderia uma autorização
+  que o professor acabou de dar. O que se corrigiu foi a duplicação, não a leitura.
+- **O registo de custo da IA (`ia-registro/registro.jsonl`) não foi tocado.** Ele é uma chave única
+  que cresce para sempre, lida e reescrita inteira a cada sessão — e é a **mesma** que a
+  arquitectura do agente prevê (`ARQUITETURA-AGENTE.md`, passo 4). Hoje o único escritor é o stub
+  `POST /api/ia` (0 escritas no dia 13/11). A rotação por mês é uma decisão à parte, e faz-se melhor
+  **antes** de o agente entrar no ar do que depois de haver um log para migrar.
+- **O tecto de 100 Workers por conta não se resolve com nada disto.** É o número que limita a
+  quantidade de escolas; o resto desta entrada é folga. Fica registado para a decisão de
+  arquitectura, que é outra.

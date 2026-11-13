@@ -131,9 +131,9 @@ async function comAparencia(resposta, aparencia, extras) {
   // (`data-tela="porta"`) e só quando o slug casa. A página do pacote (índice,
   // aulas, guia) não tem formulário para preencher e não recebe o script.
   if (teste && texto.indexOf('data-tela="porta"') !== -1 &&
-      texto.indexOf('/assets/teste-preenchimento.js') === -1) {
+      texto.indexOf('/scripts/teste-preenchimento.js') === -1) {
     texto = texto.replace(/<\/body>/i,
-      '<script src="/assets/teste-preenchimento.js"></script></body>');
+      '<script src="/scripts/teste-preenchimento.js"></script></body>');
   }
 
   // O AVISO DA GERAÇÃO (19/10/2026) — só na PORTA, e em todas as escolas.
@@ -145,8 +145,8 @@ async function comAparencia(resposta, aparencia, extras) {
   // das escolas de teste. A página do pacote (índice, aulas, guia) não tem o que
   // acompanhar e não o recebe.
   if (texto.indexOf('data-tela="porta"') !== -1 &&
-      texto.indexOf('/assets/geracao.js') === -1) {
-    texto = texto.replace(/<\/body>/i, '<script src="/assets/geracao.js"></script></body>');
+      texto.indexOf('/scripts/geracao.js') === -1) {
+    texto = texto.replace(/<\/body>/i, '<script src="/scripts/geracao.js"></script></body>');
   }
 
   /*
@@ -501,7 +501,15 @@ async function fetch(request, env) {
     if (!fixture) return jsonCurto({ ok: false, erro: 'esta escola não é de teste' }, 404);
     return jsonCurto({ ok: true, teste: numeroDoTeste(env.ESCOLA_SLUG), escola: env.ESCOLA_SLUG, fixture: fixture });
   }
-  if (path === '/assets/teste-preenchimento.js') {
+  /* OS SCRIPTS QUE O MOTOR GERA NÃO MORAM NO `/assets/` (13/11/2026).
+   *
+   * O `run_worker_first` desta escola passou a mandar as duas pastas de assets (a de cada pacote e
+   * a dos prefixos da porta) direto para o ASSETS — é o que faz o CSS, o `nav.js` e o favicon
+   * serem servidos sem invocar o Worker, e
+   * portanto sem gastar pedido (o plano gratuito conta invocações, e o ASSETS é «grátis e
+   * ilimitado»). Esses dois scripts são a exceção: são GERADOS aqui, não existem no disco, e com
+   * aquela regra davam 404. Mudaram para `/scripts/`, que nenhuma regra declara como asset. */
+  if (path === '/scripts/teste-preenchimento.js') {
     return new Response(SCRIPT_DO_TESTE, {
       status: 200,
       headers: {
@@ -512,7 +520,7 @@ async function fetch(request, env) {
   }
   // O `no-store` não é preciosismo: o aviso muda com o produto, e um script em cache
   // no navegador de quem já abriu a porta mostraria o cartão da versão anterior.
-  if (path === '/assets/geracao.js') {
+  if (path === '/scripts/geracao.js') {
     return new Response(SCRIPT_DA_GERACAO, {
       status: 200,
       headers: {
@@ -645,6 +653,13 @@ async function fetch(request, env) {
   if (path === '/area-do-professor/anamnese' || path.startsWith('/area-do-professor/anamnese/')
     || path === '/area-do-professor/plano-de-ensino' || path.startsWith('/area-do-professor/plano-de-ensino/')
     || path === '/area-do-professor/plano-de-observacao' || path.startsWith('/area-do-professor/plano-de-observacao/')) {
+    /* OS RASCUNHOS DA LINHA DE BASE: UMA LEITURA PARA DOIS LEITORES (13/11/2026).
+     *
+     * A lista precisa deles fundidos com os actos (para dar a turma e a etiqueta de cada aluna), e
+     * a cascata de revalidação precisa deles CRUS (é deles que sai o recorte do corpo). Eram duas
+     * leituras da mesma chave na mesma chamada — a segunda não acrescentava nada. A promessa é
+     * criada aqui, uma vez, e entregue aos dois. */
+    const rascunhos = bastidores.rascunhosDeLinhasDeBase(env.PADD_KV, env.ESCOLA_SLUG);
     const doAcervo = await listasDoAcervo.pagina(path, {
       env,
       menu,
@@ -664,7 +679,8 @@ async function fetch(request, env) {
        * mudasse. O sintoma seria a lista a dizer «sem turma» sobre uma turma que a Produção mostra
        * preenchida — exactamente o defeito que a leitura única corrige. */
       curadorias: bastidores.curadorias(env.PADD_KV, env.ESCOLA_SLUG),
-      linhasDeBase: bastidores.linhasDeBaseDaEscola(env, env.ESCOLA_SLUG),
+      linhasDeBase: bastidores.linhasDeBaseDaEscola(env, env.ESCOLA_SLUG, { rascunhos }),
+      linhasRascunho: rascunhos,
     });
     if (doAcervo) {
       const resposta = new Response(doAcervo.html, {

@@ -17,7 +17,14 @@
   "assets": {
     "directory": "raiz",
     "binding": "ASSETS",
-    "run_worker_first": true
+    // OS ASSETS NÃO PRECISAM DE INVOCAR O WORKER (13/11/2026). O `true` fazia o CSS, o `nav.js`
+    // e o favicon gastarem uma invocação cada, e o plano gratuito conta 100.000 por dia. `/*`
+    // mantém as páginas e as rotas `/api/` no Worker (é ele que verifica a senha da raiz); a
+    // negativa manda os assets direto para o ASSETS, que não é contado.
+    "run_worker_first": [
+      "/*",
+      "!/assets/*"
+    ]
   },
 
   // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime

@@ -226,7 +226,8 @@ tela ficava muda nesse intervalo — «não diz se deu certo, se não deu, se es
 Agora o disparo é registado no KV da escola (`bastidores/<escola>/geracao/<variante>`) e a
 porta pergunta a `GET /api/geracao`: fase, passo actual, tempo e o link da execução. O
 cartão que mostra isso é **injetado pela ponte** (`motor/servidor/geracao-cliente.js`, em
-`/assets/geracao.js`), e não escrito em `porta/index.html`, porque a porta é copiada para o
+`/scripts/geracao.js` — fora de `/assets/`, que desde 13/11/2026 é servido sem invocar o
+Worker), e não escrito em `porta/index.html`, porque a porta é copiada para o
 pacote de cada escola e só se refaz numa geração — o aviso chegaria sempre depois do
 acontecimento que ele acompanha.
 

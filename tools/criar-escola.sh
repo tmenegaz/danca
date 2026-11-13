@@ -699,10 +699,22 @@ cat > "$WRANGLER" <<EOF
   // em ciclo-NN-<escola>-<turma>/) nunca aparecia. Foi assim com a breu, com a batata e com o
   // calango. `publicacao/$ESCOLA/` é montado por tools/montar-publicacao.js: o índice das
   // turmas, a apresentação, a porta e um subdirectório por pacote. Não é versionado.
+  // OS ASSETS NÃO PRECISAM DE INVOCAR O WORKER (13/11/2026). `true` aqui fazia o CSS, o
+  // `nav.js` e o favicon gastarem uma invocação cada — e o plano gratuito cobra 100.000 por dia
+  // e conta cada uma, enquanto um asset servido pelo ASSETS é grátis e ilimitado. As duas
+  // negativas (precedência sobre `/*`) mandam os assets direto para o ASSETS: a pasta de cada
+  // pacote, e a dos prefixos da porta. O HTML e o motor continuam no Worker, que é quem injeta a
+  // aparência da escola e o freio. Os scripts GERADOS pelo motor moram em `/scripts/`, fora do
+  // alcance destas regras — ver `motor/servidor/producao.js`.
   "assets": {
     "directory": "publicacao/$ESCOLA",
     "binding": "ASSETS",
-    "run_worker_first": true
+    "run_worker_first": [
+      "/*",
+      "!/assets/*",
+      "!/*/assets/*",
+      "!/*.pdf"
+    ]
   },
 
   "vars": {

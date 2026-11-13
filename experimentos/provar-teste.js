@@ -94,7 +94,7 @@ async function producao() {
   const rTeste = await bastidores.fetch(new Request('https://batata.example/bastidores/producao'), envTeste);
   const htmlTeste = await rTeste.text();
   assert.match(htmlTeste, /data-escola-teste="2"/);
-  assert.match(htmlTeste, /\/assets\/teste-preenchimento\.js/);
+  assert.match(htmlTeste, /\/scripts\/teste-preenchimento\.js/);
   ok('a Produção da escola de teste recebe o atributo e o preenchidor');
 
   const rReal = await bastidores.fetch(new Request('https://escola-real.example/bastidores/producao'), envReal);
@@ -156,7 +156,7 @@ async function producaoNoNavegador() {
     }
     if (u.pathname === '/assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (u.pathname === '/assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
-    if (u.pathname === '/assets/teste-preenchimento.js') return envia(MIME['.js'], SCRIPT);
+    if (u.pathname === '/scripts/teste-preenchimento.js') return envia(MIME['.js'], SCRIPT);
     if (u.pathname === '/assets/favicon.svg') return envia(MIME['.svg'], fs.readFileSync(path.join(RAIZ, 'tools/templates/marca/favicon.svg')));
     if (u.pathname === '/bastidores/producao' || u.pathname === '/bastidores/producao/') return envia(MIME['.html'], html);
     return envia('text/plain', '404 ' + u.pathname, 404);

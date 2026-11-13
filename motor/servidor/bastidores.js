@@ -311,20 +311,68 @@ function chaveDaAparencia(escola) {
  * `|| 'clara'`: um valor em falta produziria `undefined` no atributo, e um atributo vazio é
  * uma página sem família.
  */
+/* A LEITURA QUE SE REPETE MAIS EM TODO O SISTEMA (13/11/2026).
+ *
+ * `comAparencia` roda em TODA resposta HTML, e mais algumas rotas — a aparência é lida em cada
+ * pedido, incluindo os que não devolvem página nenhuma (medido: até um `POST` que responde 401
+ * a paga). É, de longe, a chave mais lida do KV desta casa: 502 leituras num dia em que a
+ * escrita foi zero.
+ *
+ * E ela muda quando alguém carrega numa paleta — o que é raro por natureza (a pesquisadora: «a
+ * parte da produção muda muito pouco»). É o perfil exato do cache de isolate, e a casa já o usa
+ * em dois sítios (`MENU_EM_CACHE` na ponte, `CACHE_DO_REGISTRO` no adaptador): não é uma ideia
+ * nova, é a mesma aplicada à leitura que mais se repete.
+ *
+ * O QUE ELE CUSTA, DITO. O cache vive na ISOLATE, e a isolate é uma entre muitas. Quem grava
+ * invalida o SEU (ver `gravarAparencia`), e é o caso normal — a pessoa escolhe a paleta e abre a
+ * página a seguir, no mesmo sítio. Numa outra isolate, noutro lado do mundo, o valor antigo pode
+ * durar até ao TTL. Sessenta segundos: mais do que o tempo de qualquer clique, menos do que o
+ * tempo de alguém notar uma cor errada.
+ *
+ * POR QUE NÃO `cacheTtl` DO KV. A opção do `get` faria o mesmo pelo lado da Cloudflare, mas o
+ * TTL mínimo é 30 s e o valor fica em cache mesmo para quem ACABOU de gravar — não há como
+ * dizer «este é o meu». Aqui, a escrita local ganha sempre. */
+const TTL_DA_APARENCIA = 60 * 1000;
+const APARENCIA_EM_CACHE = new WeakMap(); // binding KV → Map(escola → { valor, em })
+
 async function aparenciaDaEscola(kv, escola) {
+  if (kv && typeof kv === 'object') {
+    let porEscola = APARENCIA_EM_CACHE.get(kv);
+    if (!porEscola) { porEscola = new Map(); APARENCIA_EM_CACHE.set(kv, porEscola); }
+    const guardada = porEscola.get(escola);
+    if (guardada && Date.now() - guardada.em < TTL_DA_APARENCIA) return guardada.valor;
+  }
   let o = null;
+  let falhou = false;
   try {
     const t = await kv.get(chaveDaAparencia(escola));
     o = t ? JSON.parse(t) : null;
   } catch (e) {
     o = null;
+    falhou = true;
   }
   const modo = String((o && o.modo) || '');
   const paleta = String((o && o.paleta) || '');
-  return {
+  const valor = {
     modo: MODOS_DE_APARENCIA.indexOf(modo) === -1 ? 'clara' : modo,
     paleta: IDS_DAS_PALETAS.indexOf(paleta) === -1 ? PALETA_PADRAO : paleta,
   };
+  /* A FALHA NÃO SE GUARDA. Um KV ilegível devolve o padrão — e guardá-lo por um minuto pintaria
+   * a escola inteira de «bordo clara» por causa de um erro passageiro. O valor só entra no cache
+   * quando ele foi LIDO: o `o` nulo por leitura falhada e o `o` nulo por chave ausente são
+   * indistinguíveis aqui, e por isso a leitura que lançou não passa por este caminho. */
+  if (kv && typeof kv === 'object' && !falhou) {
+    let porEscola = APARENCIA_EM_CACHE.get(kv);
+    if (!porEscola) { porEscola = new Map(); APARENCIA_EM_CACHE.set(kv, porEscola); }
+    porEscola.set(escola, { valor, em: Date.now() });
+  }
+  return valor;
+}
+
+/** Esquece a aparência guardada desta escola nesta isolate. Chamado por quem a grava. */
+function esquecerAparencia(kv, escola) {
+  const porEscola = kv && typeof kv === 'object' ? APARENCIA_EM_CACHE.get(kv) : null;
+  if (porEscola) porEscola.delete(escola);
 }
 
 /**
@@ -359,6 +407,11 @@ async function gravarAparencia(kv, escola, mudanca, por) {
     por: String(por || 'direcao'),
     em: new Date().toISOString(),
   }));
+  /* QUEM GRAVA ESQUECE O QUE TINHA GUARDADO (13/11/2026). A aparência é lida em cada pedido, e
+   * desde hoje guarda-se por um minuto nesta isolate. Sem esta linha, a pessoa escolhia a paleta
+   * e a página seguinte ainda vinha com a anterior — o defeito clássico do cache, e o único que
+   * o tornaria visível. */
+  esquecerAparencia(kv, escola);
   return true;
 }
 
@@ -460,7 +513,23 @@ function normalizarRubrica(corpo) {
  * daquela pessoa no passado». Por isso a lista é da ESCOLA e cada item declara o seu professor:
  * quem chega vê o que estava, e cria a sua — em vez de herdar uma avaliação que não fez.
  */
-async function linhasDeBase(kv, escola, repo) {
+/**
+ * OS RASCUNHOS DO KV, LIDOS UMA VEZ (13/11/2026).
+ *
+ * A lista da edição (`linhasDeBase`) filtra os rascunhos por forma — `id` e `campos` —, e a
+ * cascata de revalidação das duas listas do acervo quer os MESMOS rascunhos, sem filtro, porque
+ * dela sai o recorte do corpo. Eram duas leituras da mesma chave, uma por cada consumidor, e a
+ * mesma chamada do Worker pagava as duas.
+ *
+ * Esta função é a leitura — uma só —, e quem precisa dela passa-a adiante. Não é cache: é a
+ * mesma leitura entregue a dois leitores.
+ */
+async function rascunhosDeLinhasDeBase(kv, escola) {
+  const lista = await lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
+  return Array.isArray(lista) ? lista : [];
+}
+
+async function linhasDeBase(kv, escola, repo, rascunhosJaLidos) {
   /* AS DUAS FONTES LÊEM-SE AO MESMO TEMPO (13/11/2026).
    *
    * O KV local e o repositório são independentes, e esta função precisa dos dois. Eram
@@ -471,7 +540,9 @@ async function linhasDeBase(kv, escola, repo) {
    * O `catch` do repositório é o mesmo de antes, e continua a degradar para o que houver no KV —
    * com o `_aviso` a dizer que degradou. Ele fica DENTRO da promessa para que uma falha do
    * repositório não derrube a leitura local: `Promise.all` rejeitaria o conjunto. */
-  const rascunhosPromessa = lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
+  const rascunhosPromessa = rascunhosJaLidos !== undefined
+    ? Promise.resolve(rascunhosJaLidos)
+    : lerLista(kv, RAIZ + '/' + escola + '/linhas-de-base');
   const actosPromessa = (repo && repo.activo)
     ? repo.vigentes().then((a) => ({ actos: a, aviso: null }))
       .catch((erro) => ({ actos: [], aviso: 'não li o repositório: ' + (erro && erro.message ? erro.message : 'erro') }))
@@ -14040,7 +14111,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
     // atributo `data-escola-teste`, o próprio script não faz nada.
-    (teste ? '<script src="/assets/teste-preenchimento.js"></script>' : '') +
+    (teste ? '<script src="/scripts/teste-preenchimento.js"></script>' : '') +
     /* O VÉU DA OPERAÇÃO — a MESMA peça da porta (10/11/2026).
      *
      * A PORTA tinha véu desde 08/11; os BASTIDORES não tinham nenhum, e é aqui que ela trabalha
@@ -15629,10 +15700,15 @@ async function fetch(request, env, extras) {
      *
      * Sem curadoria, ou sem linha de base enviada, a lista sai vazia: não se afirma que um elenco
      * está errado quando não há contra que o comparar. */
+    /* UMA LEITURA DE CURADORIAS, E ELA SERVE AS DUAS COISAS (13/11/2026). A lista da escola é
+     * lida aqui para a conta dos divergentes e outra vez, vinte linhas abaixo, para os elencos —
+     * a mesma chave, o mesmo valor, duas viagens ao KV. Passa a ser uma, e as duas usam-na. */
+    let todasAsCuradorias = [];
+    try { todasAsCuradorias = await curadorias(kv, escola); } catch (erro) { todasAsCuradorias = []; }
     let divergentes = [];
     try {
       const enviadas = lista.filter((l) => l && l.id && String(l.turma || '').trim());
-      const todas = await curadorias(kv, escola);
+      const todas = todasAsCuradorias;
       for (const c of (Array.isArray(todas) ? todas : [])) {
         if (!c || !c.id || c.substituidaPor) continue;
         /* A TURMA COM ELENCO PRÓPRIO COMPARA-SE COM ELE (07/11/2026). Desde que a Turma escolhe
@@ -15687,7 +15763,7 @@ async function fetch(request, env, extras) {
        * `carregarLinhas` — o cliente voltava a oferecer como livre um elenco que é o corpo de uma
        * turma, e só o servidor sabia recusar. É a MESMA função que desenha a página
        * (`elencosComAsTurmas`), pela mesma razão de sempre: uma regra, um lugar. */
-      elencos: elencosComAsTurmas(lista, curadoriasVigentes(await curadorias(kv, escola))),
+      elencos: elencosComAsTurmas(lista, curadoriasVigentes(todasAsCuradorias)),
       /* AS REVISÕES VÃO JUNTO (12/11/2026), pela mesma razão dos elencos: a repintura reescreve a
        * lista dos cartões, e a marca tem de continuar a dizer a verdade depois dela. */
       revisoes: revisoesDosElencos(lista),
@@ -18137,8 +18213,14 @@ module.exports = {
   // A LISTA PELA PORTA DO `env` (05/11/2026) — para quem chama de fora dos Bastidores (a listagem
   // da anamnese, na ponte) não ter de saber que o store do repositório existe. Uma função, um
   // sítio a construir o store, e o mesmo desenho do `curadorias` logo acima.
-  linhasDeBaseDaEscola: async (env, escola) => {
+  linhasDeBaseDaEscola: async (env, escola, opcoes) => {
     const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
-    return linhasDeBase(env && env.PADD_KV, slug, linhasDeBaseRepo.doAmbiente(env, slug));
+    /* OS RASCUNHOS PODEM JÁ VIR LIDOS (13/11/2026). A mesma chamada do Worker que pede esta
+     * lista pede também os rascunhos crus, para a cascata de revalidação. Entregá-los aqui evita
+     * a segunda leitura da mesma chave — e o resultado é idêntico, porque é o mesmo valor. */
+    const brutos = opcoes && opcoes.rascunhos !== undefined ? await opcoes.rascunhos : undefined;
+    return linhasDeBase(env && env.PADD_KV, slug, linhasDeBaseRepo.doAmbiente(env, slug), brutos);
   },
+  rascunhosDeLinhasDeBase,
+  esquecerAparencia,
 };

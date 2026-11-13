@@ -78,7 +78,7 @@ const env = (curadorias = []) => ({
 const ASSETS = {
   '/assets/style.css': 'tools/templates/ciclo.css',
   '/assets/nav.js': 'tools/templates/nav.js',
-  '/assets/teste-preenchimento.js': 'tools/templates/nav.js',
+  '/scripts/teste-preenchimento.js': 'tools/templates/nav.js',
   '/assets/favicon.svg': 'tools/templates/marca/favicon.svg',
 };
 

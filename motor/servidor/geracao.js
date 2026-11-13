@@ -185,6 +185,24 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
   }
 
   /**
+   * A MESMA LEITURA, POR CHAVE JÁ DERIVADA (13/11/2026).
+   *
+   * A lista do Plano de Observação pergunta pelo registo de CADA PO, e vários PO da mesma turma
+   * perguntam pela MESMA chave. `lerRegistro` deriva a chave a cada chamada, e o chamador que
+   * quer deduplicar precisa da chave ANTES de ler — esta porta é a que lhe dá isso sem que ele
+   * tenha de repetir a derivação (que é daqui, e que ficaria errada em duplicado).
+   */
+  async function lerRegistroPorChave(chave) {
+    if (!kv || !chave) return null;
+    try {
+      const bruto = await kv.get(chave);
+      return bruto ? JSON.parse(bruto) : null;
+    } catch (erro) {
+      return null;
+    }
+  }
+
+  /**
    * O ÚLTIMO REGISTRO DA ESCOLA, seja de que turma for.
    *
    * A tela pergunta pelo endereço da porta, e o endereço não traz a turma: ela é
@@ -345,7 +363,7 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
     }
   }
 
-  return { CHAVE_DO_ULTIMO, registrar, estado, lerRegistro };
+  return { CHAVE_DO_ULTIMO, registrar, estado, lerRegistro, lerRegistroPorChave };
 }
 
 module.exports = {

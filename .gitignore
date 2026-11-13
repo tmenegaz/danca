@@ -1198,3 +1198,12 @@ experimentos/modelo-formulario/*
 # de base se leem em paralelo (as janelas de leitura sobrepõem-se). CONTROLE NEGATIVO: rodada sobre
 # o código anterior, a prova reprova os dois pontos.
 !experimentos/provar-custo-da-listagem.js
+
+# O CSS NÃO GASTA PEDIDO DO DIA (13/11/2026). Os dois Workers declaravam `run_worker_first: true`,
+# e o `true` é literal: cada requisição — o `style.css`, o `nav.js`, o favicon — invocava o Worker
+# só para ele a devolver ao ASSETS no fim. Com 3 sub-recursos por página, eram 4 invocações por
+# página vista em vez de 1, contra um tecto de 100.000 por dia para a CONTA inteira. A prova fixa a
+# configuração (e a do gerador de escolas novas), o modelo do roteamento aplicado aos caminhos
+# reais, e que os dois scripts GERADOS pelo motor saíram de `/assets/` (debaixo da negativa seriam
+# 404). CONTROLE NEGATIVO: com `true`, reprova 12 asserções.
+!experimentos/provar-assets-sem-worker.js

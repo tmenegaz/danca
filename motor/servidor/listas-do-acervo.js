@@ -1797,7 +1797,7 @@ function listaDePares(pares, nota) {
  * o HTML pronto a servir, com a barra já desenhada — a mesma barra de todas as páginas, porque
  * quem a desenha é o mesmo módulo.
  */
-async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) {
+async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase, linhasRascunho }) {
   const chave = Object.keys(FAMILIAS).find((k) => caminho === '/area-do-professor/' + k + '/'
     || caminho === '/area-do-professor/' + k);
   if (!chave) return null;
@@ -1881,25 +1881,27 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
       /* AS LINHAS DE BASE ENTRAM NA CASCATA (05/11/2026). O primeiro passo é o recorte do corpo,
        * e sem ele a lista mostraria o plano a pedir revisão sem dizer que o recorte que ele fixou
        * já não corresponde ao retrato. A leitura é do KV da Produção, e uma só por página. */
-      /* AS DUAS CHAVES LÊEM-SE AO MESMO TEMPO (13/11/2026). São duas leituras independentes do
-       * KV, e em fila a segunda só começava quando a primeira respondia. O resultado é o mesmo;
-       * o que muda é a espera — e esta página já tem duas viagens ao repositório logo atrás. */
+      /* AS DUAS LISTAS JÁ ESTÃO NA MÃO (13/11/2026). Esta cascata lia do KV as duas chaves que a
+       * própria chamada já tinha lido — `curadorias` chega como argumento do `pagina()`, e os
+       * rascunhos da linha de base chegam em `linhasRascunho`, lidos uma vez pela ponte para os
+       * dois consumidores. Eram duas leituras por página do plano de ensino e do PO, e nenhuma
+       * trazia informação nova.
+       *
+       * O RECURSO FICA: quem chamar `pagina()` sem esses valores (as bancadas antigas) continua a
+       * lê-los do KV, e o comportamento é o de antes. O que muda é o caminho da produção. */
       const chaveDe = (sufixo) => 'bastidores/' + String(env.ESCOLA_SLUG || escola || '').trim() + '/' + sufixo;
+      const lerDoKv = async (sufixo) => {
+        try {
+          const bruto = await env.PADD_KV.get(chaveDe(sufixo));
+          const lista = bruto ? JSON.parse(bruto) : [];
+          return Array.isArray(lista) ? lista : [];
+        } catch (erro) { return []; }
+      };
       const [linhasDaEscola, curadoriasDaEscola] = await Promise.all([
-        (async () => {
-          try {
-            const bruto = await env.PADD_KV.get(chaveDe('linhas-de-base'));
-            const lista = bruto ? JSON.parse(bruto) : [];
-            return Array.isArray(lista) ? lista.filter((l) => l && l.id) : [];
-          } catch (erro) { return []; }
-        })(),
-        (async () => {
-          try {
-            const bruto = await env.PADD_KV.get(chaveDe('curadorias'));
-            const lista = bruto ? JSON.parse(bruto) : [];
-            return Array.isArray(lista) ? lista : [];
-          } catch (erro) { return []; }
-        })(),
+        linhasRascunho !== undefined
+          ? Promise.resolve(linhasRascunho).then((l) => (Array.isArray(l) ? l.filter((x) => x && x.id) : []))
+          : lerDoKv('linhas-de-base'),
+        curadorias !== undefined ? Promise.resolve(curadorias) : lerDoKv('curadorias'),
       ]);
       const r = await porta.revalidacaoPendente(armazenamento, null, linhasDaEscola, curadoriasDaEscola);
       revalidar = r && r.pendentes ? r.pendentes : null;
@@ -1931,23 +1933,36 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase }) 
   let gerados = null;
   if (chave === 'plano-de-observacao' && env.PADD_KV) {
     gerados = new Map();
-    const { criarGeracao } = require('./geracao.js');
+    const { criarGeracao, chaveDoRegistro } = require('./geracao.js');
     const registro = criarGeracao({ kv: env.PADD_KV, escola: env.ESCOLA_SLUG });
     /* UMA LEITURA POR REGISTO, TODAS AO MESMO TEMPO (13/11/2026). Eram dezanove `get` no KV em
      * fila, um por PO — cada um à espera do anterior. São chaves independentes, e o mapa final
      * é o mesmo; a diferença é a espera, que era a soma. */
     const turmas = registos.map((r) => r.turma
       || (turmaDoPlano ? ((r.plano || []).map((id) => turmaDoPlano.get(id)).filter(Boolean)[0] || '') : ''));
-    const lidos = await Promise.all(registos.map((r, i) => {
+    /* UMA LEITURA POR CHAVE, E NÃO UMA POR REGISTO (13/11/2026). Dois PO da mesma turma pedem o
+     * MESMO registo de geração — a chave é `bastidores/<escola>/geracao/<variante>`, e a variante
+     * é escola + turma (o professor e o ciclo NÃO entram nela). Ler duas vezes a mesma chave é uma
+     * leitura a mais, e com três PO de uma turma eram três.
+     *
+     * A CHAVE VEM DO MÓDULO QUE A GRAVA (`chaveDoRegistro`), e não de uma segunda derivação aqui:
+     * deduplicar pelo contexto seria deduplicar pela coisa errada — dois registos com professores
+     * diferentes partilham a chave, e a conta daria dois mesmo havendo um. */
+    const contextos = registos.map((r, i) => {
       const turma = turmas[i];
       if (!turma) return null;
       /* A ESCOLA VAI NO CONTEXTO. A variante do registo e `escola-turma` (`varianteDoContexto`),
        * e o `escola` que ele le e o do CONTEXTO, nao o do modulo: sem esta chave a variante saia
        * `-bale-nivel-2-teste-2` e o registo nunca era encontrado. */
-      return registro.lerRegistro({
-        escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma,
-      }).catch(() => null);
-    }));
+      return { escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma };
+    });
+    const chaves = contextos.map((c) => (c ? chaveDoRegistro(env.ESCOLA_SLUG, c) : null));
+    const porChave = new Map();
+    await Promise.all([...new Set(chaves.filter(Boolean))]
+      .map((chave) => registro.lerRegistroPorChave(chave)
+        .then((valor) => porChave.set(chave, valor))
+        .catch(() => porChave.set(chave, null))));
+    const lidos = chaves.map((chave) => (chave ? porChave.get(chave) || null : null));
     registos.forEach((r, i) => { if (lidos[i]) gerados.set(r.id, lidos[i]); });
   }
 
