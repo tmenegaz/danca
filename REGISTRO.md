@@ -44344,3 +44344,52 @@ toca em escola alguma. O que sustenta as escolas são os registos `A` → `192.0
 zona não tem `batata.padd.com.br`: a escola pode nascer limpa. E `excluirEscola` já faz a ordem
 certa — `desligarDominio` (registo DNS + rota, só o que tem a marca do sistema), subdomínio,
 script, KV —, pelo que o teste de expurgo remove as duas pontas.
+
+## 14/11/2026 — O expurgo da `batata`, conferido ponta a ponta
+
+**O que a pesquisadora fez.** Criou a `batata` pelo painel (13:25, commit `b0759245`) e expurgou-a a
+seguir (13:46, commit `2810d1be`). O expurgo é o gesto que nunca tinha sido exercido com o token
+completo. Foi conferido elo por elo, contra o Cloudflare e contra o repositório.
+
+**O que o expurgo apagou — tudo o que é alcançável:**
+
+| onde | estado depois |
+|:--|:--|
+| Worker `batata` | não existe (a conta tem `breu`, `calango`, `danca`) |
+| registo DNS `batata.padd.com.br` | não existe (a zona tem três, todos `A` → `192.0.2.1`, proxyados) |
+| rota `batata.padd.com.br/*` | não existe (a zona tem três) |
+| chaves KV | nenhuma com prefixo `batata` |
+| fontes no repositório | 17 ficheiros removidos, incluindo o `wrangler.batata.jsonc`, o pacote do ciclo, a âncora `.fipp` e o `envelopes/.indice.json` |
+| `escola/batata/indice.json` | **fica**, e regista o expurgo: 10.º elo, `2026-11-14T13:46:31.704Z`, 17 ficheiros |
+| `indices/escolas/batata.json` | regenerado — `habilitada: false`, `expurgada: true`, `expurgos: 10` |
+| `/api/escolas` da raiz | **não lista** a `batata` |
+| página do registo | responde 200 e mostra os 10 expurgos |
+
+`https://batata.tmenegaz77.workers.dev` → **404**; `https://batata.padd.com.br` → **000** (não
+resolve). O `GET /api/dominio` confirma a zona limpa: `com_registo` e `com_rota` com três nomes, e
+`pode_dns` e `pode_rotas` a `true` — **a próxima escola nasce com endereço**.
+
+**Três resíduos, e nenhum bloqueia a escola seguinte.**
+
+1. **O mapa `escolas/por-host` em KV ainda diz `batata`.** É por desenho em dois sítios: o
+   `publicar-mapa-de-escolas.js` **não apaga** («uma entrada que já esteja no mapa fica — é o que
+   permite registar à mão uma escola servida por outro shard»), e o `expurgar-escola.js` **não toca
+   no mapa**. Hoje é inofensivo — não há DNS, nem rota, nem Worker — mas o mapa passa a afirmar uma
+   escola que não existe, e no shard é ele que resolve o host.
+2. **`escola/batata/indice.json` guarda `"estado": {"habilitada": true}`**, enquanto o índice
+   derivado diz `false`. Nenhum código lê esse campo (conferido por busca), pelo que é uma
+   contradição de registro, não de comportamento.
+3. **`indices/relacoes/dedao-aberto/01-batata.json` sobreviveu** — e este era um defeito a sério:
+   `node tools/gerar-relacoes.js --check` saía com **exit 1** em `main`. A causa: `indices/relacoes/`
+   é saída de outro gerador, e é ele quem remove os órfãos; o passo do workflow que o corre tem a
+   guarda `if gerar-indices --check && gerar-relacoes --check`, e o `--check` das relações reprovava
+   por causa do próprio órfão. O passo seguiu para a geração, mas o commit `0a36e82f` não trouxe a
+   remoção. **Corrigido** (`d4d123e8`): removido o órfão, `--check` volta a 0.
+
+**Um resto local, fora do Git:** `publicacao/batata/` continua no disco com 49 ficheiros. É a
+publicação montada (não versionada), e nenhum `wrangler.batata.jsonc` aponta para ela. Sem efeito —
+o `montar-publicacao.js` regenera — mas é lixo que convém não confundir com estado.
+
+**Pendente, e é decisão.** Limpar o mapa em KV no expurgo (resíduo 1) exige escolher: apagar a
+entrada na hora, ou deixar que o `publicar-mapa-de-escolas.js` ganhe um `--podar`. A segunda
+mantém um dono só do mapa, que é a razão de ele existir.

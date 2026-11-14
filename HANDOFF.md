@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-14T10:10:49-0300`
-Commit atual: `529728ac` — fix(tools): os comentários do wrangler gerado param de nascer com buracos
+Gerado em: `2026-11-14T11:10:44-0300`
+Commit atual: `d4d123e8` — fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,15 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+d4d123e8 fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
+0a36e82f chore(estrutura): regerar os índices derivados
+2e49f5db chore(estrutura): reancorar a cadeia das fontes alteradas
+2810d1be chore(estrutura): expurgar a escola batata
+4ce58fc7 chore(estrutura): regerar os índices derivados
+aa1bbdf1 feat(acervo): envelope/.indice.json
+b0759245 feat(estrutura): criar a escola batata (motor completo)
+244a5bb6 feat(estrutura): o diagnóstico do endereço próprio, antes de a escola nascer
+f0e960a5 chore(estrutura): regerar os índices derivados
 529728ac fix(tools): os comentários do wrangler gerado param de nascer com buracos
 379c6255 feat(estrutura): criar a escola breu (motor completo)
 6bce72b5 docs(estrutura): as senhas de teste entram no ficheiro local, e o push deixa de ser barrado
@@ -84,15 +93,6 @@ ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o 
 e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
 70f480fe fix(estrutura): o registo de custo da IA ganha mês no nome
-dd128a30 fix(estrutura): o CSS não gasta pedido do dia, e a lista não paga duas vezes a mesma chave
-8048a335 docs(registro): a conferência ao ar da lista que custa o índice
-f262b436 fix(estrutura): a lista lê o índice, e o que não depende do outro corre junto
-535d767c feat(template): a logomarca sobe para o alto da coluna, e as duas telas ficam com a mesma moldura
-f8faa62a chore(estrutura): regerar o HANDOFF
-8a4e9c14 docs(registro): a regra da listagem, e o que ela mediu antes de mudar
-c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na cadeia
-93dff71e docs(estrutura): a identidade do professor fica declarada, e o recorte vira aviso
-9ae74482 docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
 ```
 
 ## Por professor
@@ -134,8 +134,8 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `0f95afdfe4a7` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `7f65c6a43880` | (vazio) | Input_PO_Aguardando |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `10c1bb9e8584` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `57107e53fdc1` | (vazio) | Input_PO_Aguardando |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `c129683be3db` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -184,58 +184,54 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 
 ## Última entrada do REGISTRO
 
-## 14/11/2026 — A pergunta «a próxima escola nasce com endereço?» passa a ter resposta antes do gesto
+## 14/11/2026 — O expurgo da `batata`, conferido ponta a ponta
 
-**O que ficou resolvido.** A pesquisadora acrescentou `DNS: Edit` ao token, e as duas leituras que
-decidem passaram a funcionar. Medido com o token que o **próprio Worker da raiz** tem (não com o do
-`.env`, que é outra cópia):
+**O que a pesquisadora fez.** Criou a `batata` pelo painel (13:25, commit `b0759245`) e expurgou-a a
+seguir (13:46, commit `2810d1be`). O expurgo é o gesto que nunca tinha sido exercido com o token
+completo. Foi conferido elo por elo, contra o Cloudflare e contra o repositório.
 
-```
-GET https://danca.padd.com.br/api/dominio
-{ "ok": true, "zona": "padd.com.br", "pode_dns": true, "pode_rotas": true,
-  "com_registo": ["breu","calango","danca"],
-  "com_rota":   [{breu,breu},{calango,calango},{danca,danca}],
-  "proxima_escola": "nasce com «<escola>.padd.com.br» (registo A + rota), sem passar pelo painel" }
-```
+**O que o expurgo apagou — tudo o que é alcançável:**
 
-A `breu` ganhou o endereço (`tools/publicar-dominio.js`: DNS criado, rota já existia) e
-`https://breu.padd.com.br/api/saude` responde `{"tipo":"escola","slug":"breu","origem":"mapa"}`.
-O secret do Worker da raiz foi substituído pelo token com DNS — é ele que cria as escolas, e sem
-isso cada escola nova repetiria a «PENDENTE» da `breu`.
+| onde | estado depois |
+|:--|:--|
+| Worker `batata` | não existe (a conta tem `breu`, `calango`, `danca`) |
+| registo DNS `batata.padd.com.br` | não existe (a zona tem três, todos `A` → `192.0.2.1`, proxyados) |
+| rota `batata.padd.com.br/*` | não existe (a zona tem três) |
+| chaves KV | nenhuma com prefixo `batata` |
+| fontes no repositório | 17 ficheiros removidos, incluindo o `wrangler.batata.jsonc`, o pacote do ciclo, a âncora `.fipp` e o `envelopes/.indice.json` |
+| `escola/batata/indice.json` | **fica**, e regista o expurgo: 10.º elo, `2026-11-14T13:46:31.704Z`, 17 ficheiros |
+| `indices/escolas/batata.json` | regenerado — `habilitada: false`, `expurgada: true`, `expurgos: 10` |
+| `/api/escolas` da raiz | **não lista** a `batata` |
+| página do registo | responde 200 e mostra os 10 expurgos |
 
-**A rota `/api/dominio` — por que existe.** O endereço próprio falha em SILÊNCIO: `ligarDominio`
-não lança (uma escola sem endereço é uma pendência, não um fracasso), e a resposta só diz «PENDENTE»
-depois de a escola já existir. Foi assim que a `breu` nasceu sem endereço em 13/11. O diagnóstico
-faz as duas leituras da zona — sem escrever nada, dois pedidos — e diz, por extenso, o que a criação
-faria à escola seguinte. `provar-diagnostico-do-dominio` fixa-o em **20 asserções**, com o controle
-negativo que importa: um registo `A` que não seja `192.0.2.1` proxyado **não** conta como endereço
-de escola (se contasse, o diagnóstico daria «está tudo bem» sobre um endereço que aponta para outra
-coisa — o pior alívio possível).
+`https://batata.tmenegaz77.workers.dev` → **404**; `https://batata.padd.com.br` → **000** (não
+resolve). O `GET /api/dominio` confirma a zona limpa: `com_registo` e `com_rota` com três nomes, e
+`pode_dns` e `pode_rotas` a `true` — **a próxima escola nasce com endereço**.
 
-**A prova ao vivo estava a medir a cache local, não o mecanismo.** `provar-dominio-ao-vivo` falhava
-seis vezes seguidas com `fetch failed` num nome que estava bom. A causa: o `SOA` de `padd.com.br`
-tem **mínimo de 1800 s**, e o resolvedor da máquina guarda o NXDOMAIN do primeiro pedido por
-**trinta minutos** — uma tentativa cedo demais envenena o nome para o resto da sessão. Agora a prova
-pergunta primeiro a um resolvedor externo (DoH, sem cache local) e só faz o pedido HTTPS quando o
-nome já resolve lá fora: passa em **~10 s**.
+**Três resíduos, e nenhum bloqueia a escola seguinte.**
 
-**E o que contava como sucesso mudou, porque a verdade mudou.** O host de prova é descartável e
-**não** está no mapa `escolas/por-host`, portanto a ponte responde de propósito `origem: "nada"` com
-500. Exigir `tipo: "escola"` era exigir que o mapa aceitasse um host que ele não conhece. O que
-prova o mecanismo, e é o que a prova passa a exigir: (a) uma resposta do **motor** — logo o registo
-serviu de origem e a rota interceptou antes de `192.0.2.1`; (b) `escola_do_pacote` igual ao script
-da rota criada — logo foi a rota específica; (c) `origem: "nada"` e `slug: null` — o controle
-negativo de que o mapa não inventa escola. **6 asserções, todas verdes.**
+1. **O mapa `escolas/por-host` em KV ainda diz `batata`.** É por desenho em dois sítios: o
+   `publicar-mapa-de-escolas.js` **não apaga** («uma entrada que já esteja no mapa fica — é o que
+   permite registar à mão uma escola servida por outro shard»), e o `expurgar-escola.js` **não toca
+   no mapa**. Hoje é inofensivo — não há DNS, nem rota, nem Worker — mas o mapa passa a afirmar uma
+   escola que não existe, e no shard é ele que resolve o host.
+2. **`escola/batata/indice.json` guarda `"estado": {"habilitada": true}`**, enquanto o índice
+   derivado diz `false`. Nenhum código lê esse campo (conferido por busca), pelo que é uma
+   contradição de registro, não de comportamento.
+3. **`indices/relacoes/dedao-aberto/01-batata.json` sobreviveu** — e este era um defeito a sério:
+   `node tools/gerar-relacoes.js --check` saía com **exit 1** em `main`. A causa: `indices/relacoes/`
+   é saída de outro gerador, e é ele quem remove os órfãos; o passo do workflow que o corre tem a
+   guarda `if gerar-indices --check && gerar-relacoes --check`, e o `--check` das relações reprovava
+   por causa do próprio órfão. O passo seguiu para a geração, mas o commit `0a36e82f` não trouxe a
+   remoção. **Corrigido** (`d4d123e8`): removido o órfão, `--check` volta a 0.
 
-**Sobre o registo da raiz da zona.** O `A` de `padd.com.br` → `216.198.79.1`, cinza (DNS only), não
-é do Lastro: o `Server` responde **Vercel** e o apex faz 307 para `https://www.padd.com.br/`, que
-**não resolve**. É o resto de um projeto Vercel, não tem parte nenhuma neste sistema, e apagá-lo não
-toca em escola alguma. O que sustenta as escolas são os registos `A` → `192.0.2.1` proxyados.
+**Um resto local, fora do Git:** `publicacao/batata/` continua no disco com 49 ficheiros. É a
+publicação montada (não versionada), e nenhum `wrangler.batata.jsonc` aponta para ela. Sem efeito —
+o `montar-publicacao.js` regenera — mas é lixo que convém não confundir com estado.
 
-**Estado medido, para o expurgo.** Não existe Worker `batata` nem chave KV com prefixo `batata`, e a
-zona não tem `batata.padd.com.br`: a escola pode nascer limpa. E `excluirEscola` já faz a ordem
-certa — `desligarDominio` (registo DNS + rota, só o que tem a marca do sistema), subdomínio,
-script, KV —, pelo que o teste de expurgo remove as duas pontas.
+**Pendente, e é decisão.** Limpar o mapa em KV no expurgo (resíduo 1) exige escolher: apagar a
+entrada na hora, ou deixar que o `publicar-mapa-de-escolas.js` ganhe um `--podar`. A segunda
+mantém um dono só do mapa, que é a razão de ele existir.
 
 ## O que está pendente
 
