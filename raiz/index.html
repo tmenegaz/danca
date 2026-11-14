@@ -787,11 +787,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             }).then(function (r) { return r.json(); }).then(function (d) {
               if (d.ok) {
                 res.className = "res ok";
-                // O ENDEREÇO QUE SE MOSTRA É O DA ESCOLA (14/11/2026). Era o `workers.dev`, que é
-                // técnico; o da escola é `<escola>.padd.com.br`. Quando o endereço próprio fica
-                // pendente, `d.url` vem nulo e a linha não aparece — o bloco «Endereço próprio:
-                // PENDENTE», logo abaixo, é que diz o que faltou. Oferecer o `workers.dev` aqui
-                // seria dar um endereço que não é o da escola.
+                // O ENDEREÇO QUE SE MOSTRA É O DA ESCOLA (14/11/2026). Aqui esteve o subdomínio
+                // técnico do Worker; o da escola é `<escola>.padd.com.br`. Quando o endereço
+                // próprio fica pendente, `d.url` vem nulo e a linha não aparece — o bloco
+                // «Endereço próprio: PENDENTE», logo abaixo, é que diz o que faltou. Mostrar o
+                // endereço técnico seria dar um endereço que não é o da escola.
                 var html = "Escola criada.";
                 if (d.url) {
                   html += " <a href=\"" + d.url + "\">" + d.url + "</a>";
