@@ -34,7 +34,10 @@
 // O Worker «zero» é só a página de «implantação em andamento» — não usa KV. O KV de
 // produção (com as chaves prefixadas por escola) entra quando o motor completo sobe,
 // pelo `wrangler.<escola>.jsonc` gerado no `tools/criar-escola.sh`.
-const SUBDOMINIO = 'tmenegaz77';
+/* AQUI ESTEVE `const SUBDOMINIO = 'tmenegaz77'` (14/11/2026), e saiu com o `workers.dev` da
+ * resposta: já só servia para compor o endereço técnico. O subdomínio continua a ser LIGADO
+ * (passo 2) — o endpoint não precisa do nome —, mas ele deixou de ser um endereço que se mostra:
+ * o da escola é `<escola>.padd.com.br`, composto por `dominio-da-escola.js`. */
 
 // A FOLHA das páginas de estado é a MESMA do sistema. O Worker «zero» é gerado como
 // texto e não pode dar `require` em produção, então o CSS entra embutido aqui — uma
@@ -225,7 +228,8 @@ async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githu
   // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA.
   await subirModulo(token, accountId, escola, scriptDaEscola(escola, nome));
 
-  // 2. liga o subdomínio workers.dev.
+  // 2. liga o subdomínio workers.dev. O nome do subdomínio não entra em código nenhum: o que se
+  //    mostra é o endereço próprio (passo 2.1) — este aqui é técnico e serve de diagnóstico.
   await api('subdominio', token, 'POST', base + '/scripts/' + escola + '/subdomain', { enabled: true });
 
   // 2.1 O ENDEREÇO PRÓPRIO — o registo DNS e a rota de `<escola>.padd.com.br` (13/11/2026).
@@ -331,10 +335,19 @@ async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githu
     });
   }
 
+  /* O `url` É O ENDEREÇO PRÓPRIO — OU NULO (14/11/2026). Aqui esteve
+   * `'https://' + escola + '.' + SUBDOMINIO + '.workers.dev'`, o endereço técnico, e era ele que
+   * a página mostrava como «Escola criada: …». O `workers.dev` existe e continua a servir, mas
+   * não é o endereço da escola: o da escola é o que o sistema criou para ela
+   * (`<escola>.padd.com.br`). Quando o endereço próprio não fica feito, `url` é `null` — e quem
+   * mostra lê `dominio` para dizer a PENDÊNCIA, em vez de oferecer um endereço que não é o certo.
+   *
+   * A composição é a de `dominio.hostname`, a mesma que cria o registo DNS e a rota: uma segunda
+   * composição divergiria no dia em que a zona mudasse de sítio. */
   return {
     escola,
     nome,
-    url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev',
+    url: dominio && dominio.ok ? dominio.url : null,
     /* O ENDEREÇO PRÓPRIO VAI JUNTO, e com `ok` próprio: quem mostra a escola criada tem de poder
      * dizer as duas coisas — «está no ar neste endereço» e «o endereço próprio ficou pendente,
      * falta isto». Esconder a pendência seria pior do que não a ter. */
@@ -468,7 +481,8 @@ async function subirModulo(token, accountId, escola, codigo) {
 /** Reenvia o módulo da escola JÁ existente (o mock atualizado), sem tocar senha nem subdomínio. */
 async function atualizarEscola({ escola, nome, token, accountId }) {
   await subirModulo(token, accountId, escola, scriptDaEscola(escola, nome));
-  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
+  /* O MESMO ENDEREÇO PÚBLICO DE `criarEscola` (14/11/2026) — não o `workers.dev`, que é técnico. */
+  return { escola, nome, url: 'https://' + dominioDaEscola.hostname(escola) };
 }
 
 module.exports = {

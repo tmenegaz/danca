@@ -9,9 +9,11 @@
  *
  * Três cliques para chegar ao que ela pediu. Não é isso. A página `danca` **é** o painel: ela
  * continua a ter «Apagar escola» e «Criar nova escola», e a lista de escolas vem logo abaixo, na
- * mesma página. O menu tem a logomarca e «Escolas apagadas» — e mais nada: nem «Sistema Lastro»,
- * nem «Área do Professor», nem «Bastidores», que são de uma ESCOLA e não da raiz. Levar quem
- * administra o sistema para um menu de escola é entrar noutra estrutura.
+ * mesma página. O menu tem a logomarca e mais nada: nem «Sistema Lastro», nem «Área do
+ * Professor», nem «Bastidores», que são de uma ESCOLA e não da raiz. Levar quem administra o
+ * sistema para um menu de escola é entrar noutra estrutura. (E desde 14/11/2026 também não tem
+ * «Escolas apagadas»: a navegação do painel vive nos botões da coluna esquerda da própria
+ * página — ver `ITENS_DO_PAINEL` em `tools/templates/nav-html.js`.)
  *
  * DE ONDE VÊM OS DADOS — E POR QUE ISSO RESOLVE A LENTIDÃO. A primeira versão pedia o acervo ao
  * GitHub (`lerComCache`): uma árvore + um `contents/` por escola, doze requisições para desenhar
@@ -30,6 +32,8 @@
  */
 
 const { navDoPainel } = require('../../tools/templates/nav-html.js');
+/* O endereço das escolas tem UM compositor, e é o mesmo que cria o registo DNS. */
+const dominio = require('./dominio-da-escola.js');
 
 function esc(valor) {
   return String(valor == null ? '' : valor)
@@ -66,9 +70,23 @@ function quando(iso) {
   return m[3] + '/' + m[2] + '/' + m[1] + ' às ' + m[4] + ':' + m[5];
 }
 
-/** O endereço de uma escola viva — o mesmo que o `/api/escolas` devolve. */
+/**
+ * O endereço PÚBLICO de uma escola — o que se mostra a quem lê, e o mesmo que o `/api/escolas`
+ * devolve.
+ *
+ * O `workers.dev` SAIU DAQUI (14/11/2026). Era o endereço técnico, o que a Cloudflare dá de
+ * graça a todo o Worker — e aparecia na lista, no registo e no cartão de apagar. A pesquisadora
+ * foi directa: *«o link está me levando para o `workers.dev` e não para o domínio correto, que
+ * agora tem `.padd.com.br`; não precisa mais mostrar em lugar nenhum esse caminho»*. E tem
+ * razão: há UM endereço da escola, e é o que o sistema criou para ela.
+ *
+ * A COMPOSIÇÃO NÃO É ESCRITA AQUI. `dominio.hostname` é a mesma função que cria o registo DNS e
+ * a rota (`motor/servidor/dominio-da-escola.js`), e é por isso que a ligação e o registo não
+ * podem divergir: uma segunda composição (`slug + '.' + zona`) divergiria no dia em que a zona
+ * mudasse de sítio.
+ */
 function urlDaEscola(slug) {
-  return 'https://' + String(slug || '') + '.tmenegaz77.workers.dev/';
+  return 'https://' + dominio.hostname(slug) + '/';
 }
 
 /**
@@ -217,8 +235,8 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     const celulas = ['<td>' + rotulo + '</td>'];
     // O PROFESSOR, um ou vários, e NÃO É LIGAÇÃO DE SITE: uma pessoa não tem subdomínio. O nome
     // é o que se sabe dela — o slug quando o elo não registou o nome —, e nesta coluna é texto.
-    // (A primeira versão ligava-o a `https://<slug>.workers.dev/`, que não existe: um professor
-    // não é uma escola, e a ligação morria num 404.)
+    // (A primeira versão ligava-o ao endereço técnico do Worker, que não existe para um
+    // professor: ele não é uma escola, e a ligação morria num 404.)
     if (recorte === 'apagadas') {
       const quem = professoresDaEscola(e).map(comoNome).join(', ');
       celulas.push('<td>' + (quem ? esc(quem) : '—') + '</td>');

@@ -312,9 +312,18 @@ function cfFalso({ negarDns = false } = {}) {
     provar('e nenhuma rota ficou apontada a um host que não resolve',
       semPermissao.estado.rotas.length === 0, semPermissao.estado.rotas);
 
-    /* Uma escola sem domínio não é uma escola sem endereço: o workers.dev continua a valer. */
-    provar('o endereço `workers.dev` continua a ser devolvido',
-      /\.workers\.dev$/.test(String(nascida.corpo.url)), nascida.corpo.url);
+    /* E NÃO SE OFERECE UM ENDEREÇO QUE NÃO É O DA ESCOLA (14/11/2026).
+     *
+     * Aqui esteve «o endereço `workers.dev` continua a ser devolvido», e a asserção era verdadeira
+     * — o `workers.dev` existe e serve. Deixou de ser o que se quer: o endereço da escola é
+     * `<escola>.padd.com.br`, e a pesquisadora foi directa («não precisa mais mostrar em lugar
+     * nenhum esse caminho»). Sem o domínio próprio, `url` vem NULO e a PENDÊNCIA é que fala —
+     * mostrar o `workers.dev` seria dar um endereço que ninguém vai usar nem citar. */
+    provar('sem domínio próprio, a resposta NÃO inventa um endereço (`url` nulo)',
+      nascida.corpo.url === null, nascida.corpo.url);
+    provar('…e `dominio` continua lá, com o que faltou', Boolean(nascida.corpo.dominio), nascida.corpo.dominio);
+    provar('…e nenhum campo da resposta diz `workers.dev`',
+      !/workers\.dev/.test(JSON.stringify(nascida.corpo)), JSON.stringify(nascida.corpo).slice(0, 160));
     void provisionar;
   }
 

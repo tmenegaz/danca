@@ -17,7 +17,7 @@
  *   4. um slug que não está na lista é 404, e não uma página de registo vazia;
  *   5. sem `GITHUB_TOKEN` o painel DIZ que não consegue ler — nunca uma lista vazia, que se
  *      leria como «nenhuma escola apagada»;
- *   6. o MENU tem «Escolas apagadas» e marca o item activo;
+ *   6. o MENU tem a logomarca e NENHUM item — a navegação do painel vive nos botões da raiz;
  *   7. a DATA não passa por `Date` — o ISO do índice tem microssegundos, e um `Invalid Date`
  *      sairia na cara de quem lê.
  *
@@ -228,8 +228,11 @@ async function principais() {
   conferir('«Escolas vivas» responde 200', vivas.status === 200, vivas.status);
   const custoVivas = vivas.chamadas.filter((c) => /api\.github\.com/.test(c.url)).length;
   conferir('…com UMA requisição', custoVivas === 1, custoVivas);
-  conferir('…com o nome ligado ao site da escola',
-    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"><strong>viva<\/strong>/.test(vivas.html), null);
+  /* O ENDEREÇO É O DA ESCOLA, E NÃO O `workers.dev` (14/11/2026). Era o técnico, e aparecia aqui
+   * e no cartão de apagar. O que se mostra é `<escola>.padd.com.br` — o que o sistema criou. */
+  conferir('…com o nome ligado ao site da escola, no domínio próprio',
+    /href="https:\/\/viva\.padd\.com\.br\/"><strong>viva<\/strong>/.test(vivas.html), null);
+  conferir('…e NENHUM `workers.dev` na página', !/workers\.dev/.test(vivas.html), null);
   conferir('…com as QUATRO colunas pedidas',
     /<th>Escola<\/th><th[^>]*>(<a[^>]*>)?Professor(<\/a>)?<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
   conferir('…e a coluna «Professor» ordena (é ligação)',
@@ -270,11 +273,11 @@ async function principais() {
   conferir('…com UMA requisição', custoProfs === 1, custoProfs);
   conferir('…com o nome do professor', /Sapo Bailarino/.test(profs.html), null);
   conferir('…e a pasta', /<code>sapo-bailarino<\/code>/.test(profs.html), null);
-  conferir('…mostrando a escola VIVA dele',
-    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/">viva</.test(profs.html), null);
+  conferir('…mostrando a escola VIVA dele, no domínio próprio',
+    /href="https:\/\/viva\.padd\.com\.br\/">viva</.test(profs.html), null);
   conferir('…e NÃO as apagadas dele',
-    !/href="https:\/\/calango\.tmenegaz77\.workers\.dev/.test(profs.html)
-      && !/href="https:\/\/breu\.tmenegaz77\.workers\.dev/.test(profs.html), null);
+    !/href="https:\/\/calango\.padd\.com\.br/.test(profs.html)
+      && !/href="https:\/\/breu\.padd\.com\.br/.test(profs.html), null);
   conferir('quem não tem escola viva aparece, com o selo',
     /class="selo discreto">sem escola viva</.test(profs.html), null);
   conferir('o professor sem nome registado mostra o slug',
@@ -285,7 +288,7 @@ async function principais() {
   // com o `sapo-bailarino` em duas vivas, e o teste é o vínculo separado por vírgula.
   const muitas = painelTabelaDeProfessoresComDuasVivas();
   conferir('um professor com DUAS escolas vivas sai com as duas, separadas por vírgula',
-    /viva<\/a>, <a href="https:\/\/outra\.tmenegaz77\.workers\.dev\/">outra<\/a>/.test(muitas), muitas);
+    /viva<\/a>, <a href="https:\/\/outra\.padd\.com\.br\/">outra<\/a>/.test(muitas), muitas);
 
   // ── 6b. A COLUNA «NOME» E AS ORDENAÇÕES (22/10/2026) ──────────────────────
   //
@@ -419,10 +422,21 @@ async function principais() {
     conferir('…e NÃO diz «Nenhuma»', !/Nenhuma escola/.test(html) && !/Nenhum professor/.test(html), null);
   }
 
-  // ── 13. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
+  // ── 13. o menu: SÓ a logomarca (14/11/2026) ───────────────────────────────
+  //
+  // Aqui esteve «…e «Escolas apagadas»». O item SAIU da barra por decisão da pesquisadora: *«na
+  // página que ele me leva está escrito no topo escolas apagadas como um botão. Tira isso daí.
+  // Isso não vai existir mais em nenhum lugar.»* A navegação do painel é a coluna esquerda da
+  // página `danca` — um dono só, e não dois a descrever a mesma lista de destinos.
   const menu = apagadas.html;
   conferir('o menu tem a logomarca', /class="marca" href="\/"/.test(menu), null);
-  conferir('…e «Escolas apagadas»', /href="\/escolas-apagadas"[^>]*>Escolas apagadas</.test(menu), null);
+  /* A BARRA, e não a página inteira: o `<body>` traz `data-tela="escolas-apagadas"`, e é ele que
+   * fazia uma leitura ingénua do HTML dizer que o item ainda lá estava. */
+  const barra = (/<nav[\s\S]*?<\/nav>/.exec(menu) || [''])[0];
+  conferir('…e «Escolas apagadas» NÃO está na barra',
+    barra.length > 0 && !/escolas-apagadas/.test(barra), null);
+  conferir('…e não há gaveta vazia: sem hamburguer quando não há itens',
+    !/class="hamburger"/.test(menu), null);
   conferir('SEM «Sistema Lastro» no menu', !/<a href="\/index.html">Sistema Lastro<\/a>/.test(menu), null);
   conferir('SEM «Área do Professor»', !/Área do Professor/.test(menu), null);
   conferir('SEM «Bastidores»', !/Bastidores/.test(menu), null);
@@ -480,7 +494,7 @@ principais().then(() => {
     console.log(falhas + ' asserção(ões) falharam');
     process.exit(1);
   }
-  console.log('TUDO CERTO — o registo do expurgo tem destino, e o menu cresce por itens');
+  console.log('TUDO CERTO — o registo do expurgo tem destino, e o painel não tem segundo dono da navegação');
 }).catch((e) => {
   console.error('EXPLODIU:', e && e.stack ? e.stack : e);
   process.exit(1);

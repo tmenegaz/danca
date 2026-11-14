@@ -1,7 +1,8 @@
 'use strict';
 
 /**
- * raiz.js — o Worker RAIZ do sistema (`danca.tmenegaz77.workers.dev`).
+ * raiz.js — o Worker RAIZ do sistema (`danca.padd.com.br`; o `danca.tmenegaz77.workers.dev`
+ * continua a responder, mas é endereço técnico e não se mostra a ninguém).
  *
  * É a porta de entrada do sistema, NÃO uma escola: serve a apresentação «Sistema Lastro» + o
  * botão «Criar nova escola», e NADA mais. Todo acesso é atrás de senha — a `SENHA_RAIZ`
@@ -402,7 +403,7 @@ async function fetch(request, env) {
   // A raiz `danca` É o painel. Não há página-índice de secções e não há botão «Painel»: a
   // dona do produto contou os cliques — botão → índice de secções → «Abrir» → lista. A lista
   // vem na própria página `/`, abaixo dos dois botões que já existiam, e o menu tem a
-  // logomarca e «Escolas apagadas».
+  // logomarca.
   //
   // OS DADOS SÃO DO ÍNDICE VERSIONADO, numa requisição (`escolasDoIndice`). O registo é a
   // leitura do elo daquela escola — outro arquivo, outra requisição. Nada se gera por visita.
@@ -580,7 +581,10 @@ async function fetch(request, env) {
           professor: e.professor,
           ciclo: e.ciclo,
           total: e.total,
-          url: 'https://' + e.slug + '.tmenegaz77.workers.dev/',
+          /* O ENDEREÇO É O PRÓPRIO, E NÃO O `workers.dev` (14/11/2026). O técnico era o que
+           * aparecia no cartão de apagar e nos textos da página. Uma escola tem UM endereço —
+           * o que o sistema criou para ela —, e é ele que se mostra. */
+          url: 'https://' + dominioDaEscola.hostname(e.slug, env && env.ZONA_ESCOLAS) + '/',
         })),
       });
     } catch (err) {

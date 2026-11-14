@@ -91,7 +91,20 @@ const ABERTURA = [
  * em `atual`.
  */
 const ITENS_DO_PAINEL = [
-  { chave: 'escolas-apagadas', href: '/escolas-apagadas', rotulo: 'Escolas apagadas' },
+  /* VAZIO, E É A DECISÃO (14/11/2026). Aqui esteve `{ chave: 'escolas-apagadas', … }`, e ele
+   * aparecia como BOTÃO no topo de TODAS as páginas do painel — inclusive naquelas a que ele
+   * levava. A pesquisadora foi directa: «na página que ele me leva está escrito no topo escolas
+   * apagadas como um botão. Tira isso daí. Isso não vai existir mais em nenhum lugar.»
+   *
+   * O motivo não é gosto. A navegação do painel já existe, e num lugar só: os botões da coluna
+   * esquerda da página `danca` (`raiz/index.html`, `.rail-esq` — «Ver só as apagadas», «Ver só as
+   * vivas», «Professores»). Um item na barra era um SEGUNDO dono da mesma navegação: a mesma
+   * lista de destinos escrita em dois sítios, a divergir no dia em que um deles ganhasse uma
+   * secção. Fica o da raiz, que é onde a pessoa está quando escolhe para onde ir.
+   *
+   * A lista continua a existir, e vazia de propósito: é o lugar onde o item estava, e o
+   * comentário que diz por que saiu — quem procurar `class="ativo"` no gerador encontra a razão
+   * aqui, em vez de a deduzir. Um item novo entra nesta linha, e não na marcação de uma página. */
 ];
 
 /**
@@ -169,21 +182,32 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
  * estrutura — foi o que aconteceu na primeira versão do painel, e a dona do produto contou os
  * cliques.
  *
- * Aqui fica o que a raiz É: a logomarca (que leva a `/`, o próprio painel) e os itens de
- * gestão. Sem `<details>`: com um item, um menu que abre e fecha é um clique a mais para
- * chegar ao mesmo sítio.
+ * Aqui fica o que a raiz É: a logomarca (que leva a `/`, o próprio painel). Sem `<details>`: com
+ * um item, um menu que abre e fecha é um clique a mais para chegar ao mesmo sítio.
+ *
+ * E DESDE 14/11/2026, SEM ITEM NENHUM: a navegação de gestão vive nos botões da coluna esquerda
+ * da própria página (`raiz/index.html`). Ver o bloco de `ITENS_DO_PAINEL`.
  */
 function navDoPainel({ atual = '' } = {}) {
+  /* SEM ITENS, NÃO HÁ MENU A ABRIR (14/11/2026). O hambúrguer e o `#nav-links` só existem quando
+   * há para onde ir: um botão que abre uma gaveta vazia é pior do que não ter botão, e o
+   * `tools/templates/nav.js` já trata a ausência do hambúrguer (`if (b)`). Com a lista vazia,
+   * sobra a logomarca — que é o que a raiz é. */
+  const itens = ITENS_DO_PAINEL.map((i) => '<a' + (i.chave === atual ? ' class="ativo"' : '') +
+    ' href="' + i.href + '">' + i.rotulo + '</a>');
+  const menu = itens.length
+    ? ['  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
+      '    <span></span><span></span><span></span>',
+      '  </button>',
+      '  <div class="nav-links" id="nav-links">',
+      ...itens,
+      FECHAMENTO]
+    : [];
   return [
     '<nav class="topnav" aria-label="Navegação do painel">',
     MARCA_NA_BARRA,
-    '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
-    '    <span></span><span></span><span></span>',
-    '  </button>',
-    '  <div class="nav-links" id="nav-links">',
-    ...ITENS_DO_PAINEL.map((i) => '<a' + (i.chave === atual ? ' class="ativo"' : '') +
-      ' href="' + i.href + '">' + i.rotulo + '</a>'),
-    FECHAMENTO,
+    ...menu,
+    '</nav>',
   ].join('\n');
 }
 
