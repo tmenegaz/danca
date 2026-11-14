@@ -3,17 +3,17 @@
   "worker": "batata",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "dedao-aberto",
-    "nome": "Dedao Aberto"
+    "slug": "coqui-de-redinha",
+    "nome": "Coqui De Redinha"
   },
-  "responsavel": "Dedao Aberto",
+  "responsavel": "Coqui De Redinha",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -991,6 +991,20 @@
       },
       "responsavel": "Dedao Aberto",
       "ciclo": "01"
+    },
+    {
+      "em": "2026-11-14T15:01:39.136639+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "coqui-de-redinha",
+        "nome": "Coqui De Redinha"
+      },
+      "responsavel": "Coqui De Redinha",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "dedao-aberto",
+        "nome": "Dedao Aberto"
+      }
     }
   ],
   "professores": []

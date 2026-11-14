@@ -1,41 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-14",
+        "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+          "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
+        ],
+        "hash": "4eeee09bfd91204b602745fa2361a291ff3594692a869829422bf965a0bd93ae",
+        "hash_conteudo": "acae3cc1c29866df51cac629b400ceb69ff3f616e4ed3b618a3709d19206bae6",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:coqui-de-redinha/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "coqui-de-redinha",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+      "professor": "coqui-de-redinha",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+      "professor": "coqui-de-redinha",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:coqui-de-redinha/01/batata"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-14T13:25:14.466333+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-14T15:01:39.136639+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-14T13:46:31.704Z",
     "expurgos": 10,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:batata",
     "nome": "batata",
-    "professor": "dedao-aberto",
+    "professor": "coqui-de-redinha",
     "professores": [
-      "acucar-branco",
-      "cafe-no-bule",
-      "dedao-aberto",
-      "manga-curta",
-      "meia-cortada",
-      "pe-junto",
-      "pe-torto",
-      "perna-boa",
-      "sapo-bailarino",
-      "so-para-direita",
-      "tela-de-celular",
-      "tiago-menegaz"
+      "coqui-de-redinha"
     ],
     "registros": [],
     "slug": "batata"
@@ -43,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/batata"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/batata"
+        ],
+        "rotulo": "coqui-de-redinha",
+        "valor": "coqui-de-redinha"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:coqui-de-redinha/01/batata"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "2e49f5d"
+    "commit": "5586f2f"
   },
-  "gerado_em": "2026-11-14T13:46",
+  "gerado_em": "2026-11-14T15:01",
   "nao_indexado": [
     {
       "familia": "conteudo",

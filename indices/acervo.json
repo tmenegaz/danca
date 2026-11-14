@@ -2,6 +2,22 @@
   "ciclos": [
     {
       "ancora": {
+        "hash": "4eeee09bfd91204b602745fa2361a291ff3594692a869829422bf965a0bd93ae",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:coqui-de-redinha/01/batata",
+      "numero": "01",
+      "professor": "coqui-de-redinha",
+      "sem_ancora": false
+    },
+    {
+      "ancora": {
         "hash": "6b8d6e01e2158326648d7b9c126047fe4d121f869c3c37c80f97910e97032d20",
         "id": "ciclo-01-calango-piano",
         "lida": true,
@@ -51,38 +67,29 @@
   ],
   "escolas": [
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:coqui-de-redinha/01/batata"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-11-14T13:25:14.466333+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-14T15:01:39.136639+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-11-14T13:46:31.704Z",
       "expurgos": 10,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:batata",
       "nome": "batata",
-      "professor": "dedao-aberto",
+      "professor": "coqui-de-redinha",
       "professores": [
-        "acucar-branco",
-        "cafe-no-bule",
-        "dedao-aberto",
-        "manga-curta",
-        "meia-cortada",
-        "pe-junto",
-        "pe-torto",
-        "perna-boa",
-        "sapo-bailarino",
-        "so-para-direita",
-        "tela-de-celular",
-        "tiago-menegaz"
+        "coqui-de-redinha"
       ],
       "registros": [],
       "slug": "batata"
@@ -216,61 +223,31 @@
     ],
     "estados": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
     ],
     "professores": [
       {
-        "contagem": 1,
-        "rotulo": "acucar-branco",
-        "valor": "acucar-branco"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Cafe No Bule",
-        "valor": "cafe-no-bule"
-      },
-      {
         "contagem": 0,
         "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
       },
       {
-        "contagem": 0,
-        "rotulo": "coqui-de-redinha",
+        "contagem": 1,
+        "rotulo": "Coqui De Redinha",
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 1,
-        "rotulo": "Dedão Aberto",
+        "contagem": 0,
+        "rotulo": "dedao-aberto",
         "valor": "dedao-aberto"
       },
       {
         "contagem": 1,
-        "rotulo": "manga-curta",
-        "valor": "manga-curta"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "meia-cortada",
-        "valor": "meia-cortada"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "pe-junto",
-        "valor": "pe-junto"
-      },
-      {
-        "contagem": 2,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Perna Boa",
-        "valor": "perna-boa"
       },
       {
         "contagem": 0,
@@ -281,26 +258,6 @@
         "contagem": 2,
         "rotulo": "Redinha Rosa",
         "valor": "redinha-rosa"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "sapo-bailarino",
-        "valor": "sapo-bailarino"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "so-para-direita",
-        "valor": "so-para-direita"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "tela-de-celular",
-        "valor": "tela-de-celular"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "tiago-menegaz",
-        "valor": "tiago-menegaz"
       }
     ],
     "tipos": [
@@ -323,9 +280,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2e49f5d"
+    "commit": "5586f2f"
   },
-  "gerado_em": "2026-11-14T13:46",
+  "gerado_em": "2026-11-14T15:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -351,92 +308,39 @@
   "professores": [
     {
       "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:acucar-branco",
-      "nome": null,
-      "slug": "acucar-branco"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:cafe-no-bule",
-      "nome": "Cafe No Bule",
-      "slug": "cafe-no-bule"
-    },
-    {
-      "ciclos": [],
       "escolas": [],
       "id": "professor:colo-de-pe",
       "nome": null,
       "slug": "colo-de-pe"
     },
     {
-      "ciclos": [],
-      "escolas": [],
+      "ciclos": [
+        "ciclo:coqui-de-redinha/01/batata"
+      ],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:coqui-de-redinha",
-      "nome": null,
+      "nome": "Coqui De Redinha",
       "slug": "coqui-de-redinha"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
+      "escolas": [],
       "id": "professor:dedao-aberto",
-      "nome": "Dedão Aberto",
+      "nome": null,
       "slug": "dedao-aberto"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:manga-curta",
-      "nome": null,
-      "slug": "manga-curta"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:meia-cortada",
-      "nome": null,
-      "slug": "meia-cortada"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:pe-junto",
-      "nome": null,
-      "slug": "pe-junto"
     },
     {
       "ciclos": [
         "ciclo:pe-torto/01/calango"
       ],
       "escolas": [
-        "batata",
         "calango"
       ],
       "id": "professor:pe-torto",
       "nome": "Pe Torto",
       "slug": "pe-torto"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:perna-boa",
-      "nome": "Perna Boa",
-      "slug": "perna-boa"
     },
     {
       "ciclos": [],
@@ -457,42 +361,6 @@
       "id": "professor:redinha-rosa",
       "nome": "Redinha Rosa",
       "slug": "redinha-rosa"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:sapo-bailarino",
-      "nome": null,
-      "slug": "sapo-bailarino"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:so-para-direita",
-      "nome": null,
-      "slug": "so-para-direita"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:tela-de-celular",
-      "nome": null,
-      "slug": "tela-de-celular"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:tiago-menegaz",
-      "nome": null,
-      "slug": "tiago-menegaz"
     }
   ],
   "versao": 6

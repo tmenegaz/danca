@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-14",
+    "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+      "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
+    ],
+    "hash": "4eeee09bfd91204b602745fa2361a291ff3594692a869829422bf965a0bd93ae",
+    "hash_conteudo": "acae3cc1c29866df51cac629b400ceb69ff3f616e4ed3b618a3709d19206bae6",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+    "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "batata",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "5586f2f"
+  },
+  "gerado_em": "2026-11-14T15:01",
+  "id": "ciclo:coqui-de-redinha/01/batata",
+  "professor": "coqui-de-redinha",
+  "versao": 6
+}
