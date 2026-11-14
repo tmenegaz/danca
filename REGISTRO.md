@@ -44418,3 +44418,85 @@ quando alguém empurra outra coisa que dispare o `regerar-indices.yml`. Na `bata
 sorte: um `feat(acervo)` alheio (`aa1bbdf1`) correu o regenerador às 13:25 e criou o mapa. Fica
 declarado, sem correção: a decisão de o `criar-escola.yml` chamar o segundo gerador é do mesmo tipo
 que a do resíduo 1 — quem é o dono do `indices/relacoes/`.
+
+## 14/11/2026 — O endereço da escola é um só, e a navegação do painel também
+
+Quatro decisões da pesquisadora, tomadas juntas e independentes na razão. Todas têm o mesmo vício
+por trás: **duas coisas a dizer o mesmo facto** — duas composições do endereço, dois donos da
+navegação, dois registos do mesmo estado.
+
+### 1. `--podar` no publicador do mapa
+
+O mapa `escolas/por-host` ficava a afirmar a `batata` depois do expurgo. O publicador não apagava
+(por desenho: uma entrada só no KV pode ser uma escola servida por outro shard), e o expurgo não
+tocava no mapa (para o mapa ter **um dono só**). A decisão: *«vamos dar o podar ao publicar, aí a
+gente mantém um dono só do mapa, que é a razão de ele existir»*.
+
+- `node tools/publicar-mapa-de-escolas.js --podar` grava **exactamente** o que as configurações
+  declaram. Sem a flag, a junção continua a preservar o que só está no KV.
+- **O `--check` deixou de mentir.** Ele comparava a junção — que inclui o que só está no KV —, e por
+  isso dizia «em dia» sobre um mapa que afirmava uma escola apagada. Agora uma entrada a mais é
+  divergência: `exit 1`, com a correção na mensagem. *Silêncio não é concordância.*
+- Corrido a seguir, em produção: `1 removida(s)` — `batata.tmenegaz77.workers.dev` saiu do mapa, e
+  o `--check` volta a `exit 0`.
+
+### 2. O elo diz que a escola expurgada não está habilitada
+
+`escola/<slug>/indice.json` guardava `"estado": {"habilitada": true}` depois do expurgo, enquanto o
+índice derivado dizia `false` — as duas leituras do mesmo facto em oposição, e a que sobrevive ao
+tempo é o elo. Decisão: *«se a escola foi expurgada e existe o índice, então ela não está
+habilitada, então isso tem que mudar»*.
+
+- `motor/servidor/repo-escola.js` (`comElo`): o expurgo passa a escrever
+  `estado.habilitada = false`, preservando o resto de `estado`. É o próprio `indices.js` que já lê
+  este campo como sinal de expurgo — o que faltava era quem o escrevesse.
+- A recreação continua a pôr `true` (`tools/registrar-recriacao.py`), e a prova
+  `provar-recriacao-da-escola` já o exigia: as duas metades concordam.
+- O elo antigo da `batata` foi corrigido à mão (`true` → `false`). **Não é reescrita de história**:
+  o `expurgo` — a lista de elos, com datas e arquivos apagados — ficou intacto; `estado` é estado.
+
+### 3. O `workers.dev` saiu de tudo o que se mostra
+
+*«O link está me levando para o `workers.dev` e não para o domínio correto, que agora tem
+`.padd.com.br`; não precisa mais mostrar em lugar nenhum esse caminho, inclusive nos textos.»*
+
+| onde | antes | agora |
+|:--|:--|:--|
+| `painel-html.js` (`urlDaEscola`) | `<slug>.tmenegaz77.workers.dev` | `dominio.hostname(slug)` — **a mesma função que cria o registo DNS** |
+| `raiz.js` (`/api/escolas`) | idem | idem, com `env.ZONA_ESCOLAS` |
+| `provisionar-escola.js` (resposta da criação) | `url` = workers.dev | `url` = o endereço próprio, ou `null` se ficou PENDENTE |
+| `raiz/index.html` (resultado da criação) | «Escola criada: \<workers.dev\>» | «Escola criada.» + o endereço próprio, quando existe |
+
+A composição do endereço passa a ter **um compositor**; a constante `SUBDOMINIO` de
+`provisionar-escola.js` saiu (só servia para compor o endereço técnico). Quando o endereço próprio
+falha, `url` é `null` e quem fala é o bloco «PENDENTE» — oferecer um endereço que não é o da escola
+era o problema, não a falta dele.
+
+### 4. A barra do painel não repete a navegação da página
+
+*«Na página que ele me leva está escrito no topo «escolas apagadas» como um botão. Tira isso daí.
+Isso não vai existir mais em nenhum lugar. E eu vou usar apenas a navegação que já está aqui no
+`danca.padd.com.br`.»*
+
+`ITENS_DO_PAINEL` ficou **vazio** (`tools/templates/nav-html.js`), e `navDoPainel` deixa de emitir
+hambúrguer e `#nav-links` quando não há itens — um botão que abre uma gaveta vazia é pior do que
+não ter botão. A navegação do painel é a coluna esquerda da própria página `danca` (`.rail-esq`),
+que é onde a pessoa está quando escolhe para onde ir. Um item na barra era o **segundo dono** da
+mesma lista de destinos.
+
+**Motivo declarado** (`tools/` é congelado): `tools/templates/nav-html.js` e
+`tools/publicar-mapa-de-escolas.js` mudaram por decisão da dona do produto, com o porquê escrito no
+próprio código e aqui.
+
+**Conferido.** `provar-painel` verde (as asserções de `workers.dev` e do item de menu foram
+actualizadas para a verdade nova, com o motivo escrito ao lado); `provar-dominio-da-escola` 36/36
+(a asserção «o `workers.dev` continua a ser devolvido» virou três: `url` nulo, `dominio` presente, e
+nenhum campo com `workers.dev`); `provar-criar-escola-form` verde; `check-identidade` ok (22
+verificações); `check-indices` 16/16; `gerar-indices --check` e `gerar-relacoes --check` em dia;
+`publicar-mapa-de-escolas --check` verde depois do `--podar`.
+
+**O que fica por decidir.** O `--podar` é um gesto, não um automatismo: quem publica o mapa é o
+`criar-escola.yml`, e ele continua a juntar (sem podar) — de propósito, para não apagar uma entrada
+registada à mão. Depois de um expurgo, a varredura é explícita: `node
+tools/publicar-mapa-de-escolas.js --podar`. Automatizá-la exige escolher quem a corre, e o candidato
+natural (o expurgo) é justamente o segundo dono que se quis evitar.

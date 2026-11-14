@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-14T11:13:10-0300`
-Commit atual: `558c070b` — docs(estrutura): o expurgo da batata, conferido ponta a ponta
+Gerado em: `2026-11-14T11:35:52-0300`
+Commit atual: `a2a43738` — fix(estrutura): o elo da escola expurgada não diz que está habilitada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,10 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+a2a43738 fix(estrutura): o elo da escola expurgada não diz que está habilitada
+0435ba1b feat(tools): o mapa de escolas ganha --podar, e o --check deixa de dar silêncio por concordância
+c2e8ad28 fix(template): o endereço que se mostra é o da escola, e a barra do painel não a duplica
+8532f70b fix(estrutura): o retry do índice faz o mesmo trabalho da primeira tentativa
 558c070b docs(estrutura): o expurgo da batata, conferido ponta a ponta
 d4d123e8 fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
 0a36e82f chore(estrutura): regerar os índices derivados
@@ -89,10 +93,6 @@ f0e960a5 chore(estrutura): regerar os índices derivados
 c0ff515e feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
 ece0fa53 audit(experimentos): a bancada ao vivo do domínio — o elo que a prova de mentira não alcança
 737e08c2 feat(estrutura): a escola nasce com endereço próprio, e o expurgo leva-o consigo
-b64da888 docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
-ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
-e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
-ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
 ```
 
 ## Por professor
@@ -184,79 +184,87 @@ ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e dec
 
 ## Última entrada do REGISTRO
 
-## 14/11/2026 — O expurgo da `batata`, conferido ponta a ponta
+## 14/11/2026 — O endereço da escola é um só, e a navegação do painel também
 
-**O que a pesquisadora fez.** Criou a `batata` pelo painel (13:25, commit `b0759245`) e expurgou-a a
-seguir (13:46, commit `2810d1be`). O expurgo é o gesto que nunca tinha sido exercido com o token
-completo. Foi conferido elo por elo, contra o Cloudflare e contra o repositório.
+Quatro decisões da pesquisadora, tomadas juntas e independentes na razão. Todas têm o mesmo vício
+por trás: **duas coisas a dizer o mesmo facto** — duas composições do endereço, dois donos da
+navegação, dois registos do mesmo estado.
 
-**O que o expurgo apagou — tudo o que é alcançável:**
+### 1. `--podar` no publicador do mapa
 
-| onde | estado depois |
-|:--|:--|
-| Worker `batata` | não existe (a conta tem `breu`, `calango`, `danca`) |
-| registo DNS `batata.padd.com.br` | não existe (a zona tem três, todos `A` → `192.0.2.1`, proxyados) |
-| rota `batata.padd.com.br/*` | não existe (a zona tem três) |
-| chaves KV | nenhuma com prefixo `batata` |
-| fontes no repositório | 17 ficheiros removidos, incluindo o `wrangler.batata.jsonc`, o pacote do ciclo, a âncora `.fipp` e o `envelopes/.indice.json` |
-| `escola/batata/indice.json` | **fica**, e regista o expurgo: 10.º elo, `2026-11-14T13:46:31.704Z`, 17 ficheiros |
-| `indices/escolas/batata.json` | regenerado — `habilitada: false`, `expurgada: true`, `expurgos: 10` |
-| `/api/escolas` da raiz | **não lista** a `batata` |
-| página do registo | responde 200 e mostra os 10 expurgos |
+O mapa `escolas/por-host` ficava a afirmar a `batata` depois do expurgo. O publicador não apagava
+(por desenho: uma entrada só no KV pode ser uma escola servida por outro shard), e o expurgo não
+tocava no mapa (para o mapa ter **um dono só**). A decisão: *«vamos dar o podar ao publicar, aí a
+gente mantém um dono só do mapa, que é a razão de ele existir»*.
 
-`https://batata.tmenegaz77.workers.dev` → **404**; `https://batata.padd.com.br` → **000** (não
-resolve). O `GET /api/dominio` confirma a zona limpa: `com_registo` e `com_rota` com três nomes, e
-`pode_dns` e `pode_rotas` a `true` — **a próxima escola nasce com endereço**.
+- `node tools/publicar-mapa-de-escolas.js --podar` grava **exactamente** o que as configurações
+  declaram. Sem a flag, a junção continua a preservar o que só está no KV.
+- **O `--check` deixou de mentir.** Ele comparava a junção — que inclui o que só está no KV —, e por
+  isso dizia «em dia» sobre um mapa que afirmava uma escola apagada. Agora uma entrada a mais é
+  divergência: `exit 1`, com a correção na mensagem. *Silêncio não é concordância.*
+- Corrido a seguir, em produção: `1 removida(s)` — `batata.tmenegaz77.workers.dev` saiu do mapa, e
+  o `--check` volta a `exit 0`.
 
-**Três resíduos, e nenhum bloqueia a escola seguinte.**
+### 2. O elo diz que a escola expurgada não está habilitada
 
-1. **O mapa `escolas/por-host` em KV ainda diz `batata`.** É por desenho em dois sítios: o
-   `publicar-mapa-de-escolas.js` **não apaga** («uma entrada que já esteja no mapa fica — é o que
-   permite registar à mão uma escola servida por outro shard»), e o `expurgar-escola.js` **não toca
-   no mapa**. Hoje é inofensivo — não há DNS, nem rota, nem Worker — mas o mapa passa a afirmar uma
-   escola que não existe, e no shard é ele que resolve o host.
-2. **`escola/batata/indice.json` guarda `"estado": {"habilitada": true}`**, enquanto o índice
-   derivado diz `false`. Nenhum código lê esse campo (conferido por busca), pelo que é uma
-   contradição de registro, não de comportamento.
-3. **`indices/relacoes/dedao-aberto/01-batata.json` sobreviveu** — e este era um defeito a sério:
-   `node tools/gerar-relacoes.js --check` saía com **exit 1** em `main`. A causa: `indices/relacoes/`
-   é saída de outro gerador, e é ele quem remove os órfãos; o passo do workflow que o corre tem a
-   guarda `if gerar-indices --check && gerar-relacoes --check`, e o `--check` das relações reprovava
-   por causa do próprio órfão. O passo seguiu para a geração, mas o commit `0a36e82f` não trouxe a
-   remoção. **Corrigido** (`d4d123e8`): removido o órfão, `--check` volta a 0.
+`escola/<slug>/indice.json` guardava `"estado": {"habilitada": true}` depois do expurgo, enquanto o
+índice derivado dizia `false` — as duas leituras do mesmo facto em oposição, e a que sobrevive ao
+tempo é o elo. Decisão: *«se a escola foi expurgada e existe o índice, então ela não está
+habilitada, então isso tem que mudar»*.
 
-> **Correção de 14/11/2026 (mesmo dia).** A primeira redação do ponto 3 dizia que «o passo seguiu
-> para a geração, mas o commit `0a36e82f` não trouxe a remoção», e dava a entender que o gerador não
-> tinha corrido. **Está incompleto, e o mecanismo é outro** — a causa medida no log do job
-> (`Regerar os índices`, run 43601450895) é o **laço de retry**: a tentativa 1 correu os dois
-> geradores, apagou o órfão e fez o commit `72d0303`; o `git push` foi recusado (`fetch first`,
-> porque o «Reancorar a cadeia» tinha publicado `2e49f5db` primeiro); e o laço, ao reconstruir sobre
-> o `main` novo, faz `git reset --hard origin/main` — que **repõe no disco** o ficheiro acabado de
-> apagar — e de seguida corria **só** `node tools/gerar-indices.js`. Como `gerar-indices.js` salta
-> `indices/relacoes/` de propósito (é saída do outro gerador), o órfão nunca voltou a ser apagado, e
-> o commit publicado (`0a36e82f`) saiu sem a remoção, com sete carimbos de tempo como única
-> diferença. **A lição:** o retry fazia menos trabalho do que a primeira tentativa, e por isso não
-> era um retry — era uma execução mais fraca a publicar um resultado diferente. E a corrida não é
-> acidente: o expurgo dispara três workflows que escrevem no `main` ao mesmo tempo.
-> **Corrigido na origem** (`.github/workflows/regerar-indices.yml`, no laço): o retry passa a correr
-> os dois geradores, como a primeira tentativa. O commit `d4d123e8` fechou o sintoma; este fecha a
-> causa.
+- `motor/servidor/repo-escola.js` (`comElo`): o expurgo passa a escrever
+  `estado.habilitada = false`, preservando o resto de `estado`. É o próprio `indices.js` que já lê
+  este campo como sinal de expurgo — o que faltava era quem o escrevesse.
+- A recreação continua a pôr `true` (`tools/registrar-recriacao.py`), e a prova
+  `provar-recriacao-da-escola` já o exigia: as duas metades concordam.
+- O elo antigo da `batata` foi corrigido à mão (`true` → `false`). **Não é reescrita de história**:
+  o `expurgo` — a lista de elos, com datas e arquivos apagados — ficou intacto; `estado` é estado.
 
-**Um resto local, fora do Git:** `publicacao/batata/` continua no disco com 49 ficheiros. É a
-publicação montada (não versionada), e nenhum `wrangler.batata.jsonc` aponta para ela. Sem efeito —
-o `montar-publicacao.js` regenera — mas é lixo que convém não confundir com estado.
+### 3. O `workers.dev` saiu de tudo o que se mostra
 
-**Pendente, e é decisão.** Limpar o mapa em KV no expurgo (resíduo 1) exige escolher: apagar a
-entrada na hora, ou deixar que o `publicar-mapa-de-escolas.js` ganhe um `--podar`. A segunda
-mantém um dono só do mapa, que é a razão de ele existir.
+*«O link está me levando para o `workers.dev` e não para o domínio correto, que agora tem
+`.padd.com.br`; não precisa mais mostrar em lugar nenhum esse caminho, inclusive nos textos.»*
 
-**E uma quarta ponta que ficou visível de caminho, e não é do expurgo.** O `criar-escola.yml` corre
-só `gerar-indices.js` — não corre `gerar-relacoes.js`. Como o push dele é feito com o `GITHUB_TOKEN`,
-e um push com esse token **não redispara workflows**, o mapa de relações do ciclo novo só nasce
-quando alguém empurra outra coisa que dispare o `regerar-indices.yml`. Na `batata` isso aconteceu por
-sorte: um `feat(acervo)` alheio (`aa1bbdf1`) correu o regenerador às 13:25 e criou o mapa. Fica
-declarado, sem correção: a decisão de o `criar-escola.yml` chamar o segundo gerador é do mesmo tipo
-que a do resíduo 1 — quem é o dono do `indices/relacoes/`.
+| onde | antes | agora |
+|:--|:--|:--|
+| `painel-html.js` (`urlDaEscola`) | `<slug>.tmenegaz77.workers.dev` | `dominio.hostname(slug)` — **a mesma função que cria o registo DNS** |
+| `raiz.js` (`/api/escolas`) | idem | idem, com `env.ZONA_ESCOLAS` |
+| `provisionar-escola.js` (resposta da criação) | `url` = workers.dev | `url` = o endereço próprio, ou `null` se ficou PENDENTE |
+| `raiz/index.html` (resultado da criação) | «Escola criada: \<workers.dev\>» | «Escola criada.» + o endereço próprio, quando existe |
+
+A composição do endereço passa a ter **um compositor**; a constante `SUBDOMINIO` de
+`provisionar-escola.js` saiu (só servia para compor o endereço técnico). Quando o endereço próprio
+falha, `url` é `null` e quem fala é o bloco «PENDENTE» — oferecer um endereço que não é o da escola
+era o problema, não a falta dele.
+
+### 4. A barra do painel não repete a navegação da página
+
+*«Na página que ele me leva está escrito no topo «escolas apagadas» como um botão. Tira isso daí.
+Isso não vai existir mais em nenhum lugar. E eu vou usar apenas a navegação que já está aqui no
+`danca.padd.com.br`.»*
+
+`ITENS_DO_PAINEL` ficou **vazio** (`tools/templates/nav-html.js`), e `navDoPainel` deixa de emitir
+hambúrguer e `#nav-links` quando não há itens — um botão que abre uma gaveta vazia é pior do que
+não ter botão. A navegação do painel é a coluna esquerda da própria página `danca` (`.rail-esq`),
+que é onde a pessoa está quando escolhe para onde ir. Um item na barra era o **segundo dono** da
+mesma lista de destinos.
+
+**Motivo declarado** (`tools/` é congelado): `tools/templates/nav-html.js` e
+`tools/publicar-mapa-de-escolas.js` mudaram por decisão da dona do produto, com o porquê escrito no
+próprio código e aqui.
+
+**Conferido.** `provar-painel` verde (as asserções de `workers.dev` e do item de menu foram
+actualizadas para a verdade nova, com o motivo escrito ao lado); `provar-dominio-da-escola` 36/36
+(a asserção «o `workers.dev` continua a ser devolvido» virou três: `url` nulo, `dominio` presente, e
+nenhum campo com `workers.dev`); `provar-criar-escola-form` verde; `check-identidade` ok (22
+verificações); `check-indices` 16/16; `gerar-indices --check` e `gerar-relacoes --check` em dia;
+`publicar-mapa-de-escolas --check` verde depois do `--podar`.
+
+**O que fica por decidir.** O `--podar` é um gesto, não um automatismo: quem publica o mapa é o
+`criar-escola.yml`, e ele continua a juntar (sem podar) — de propósito, para não apagar uma entrada
+registada à mão. Depois de um expurgo, a varredura é explícita: `node
+tools/publicar-mapa-de-escolas.js --podar`. Automatizá-la exige escolher quem a corre, e o candidato
+natural (o expurgo) é justamente o segundo dono que se quis evitar.
 
 ## O que está pendente
 
