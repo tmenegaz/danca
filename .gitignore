@@ -1294,3 +1294,9 @@ experimentos/modelo-formulario/*
 # DUAS vezes — antes e depois do shard: com três Workers e com um Worker a servir três escolas. Se
 # a segunda corrida fosse feita à mão, mediria a memória de quem clicou em vez da topologia.
 !experimentos/provar-bateria-do-shard.js
+
+# A ARITMÉTICA DO SHARD (14/11/2026). As duas decisões de caminho de que o shard inteiro depende
+# — o prefixo da escola e o que NÃO se reescreve (`/assets/`) — medidas sem rede e sem Cloudflare.
+# Não substitui a `provar-bateria-do-shard` (que corre contra o ar); substitui-a para DEPURAR:
+# quando a bateria falha num caminho, esta diz em três segundos qual das duas decisões está errada.
+!experimentos/provar-arvore-do-shard.js

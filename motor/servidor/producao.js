@@ -262,6 +262,20 @@ const PREFIXO_ANAMNESE = '/anamnese';
 const PREFIXO_PLANO = '/plano-ensino';
 const PREFIXO_ASSETS = 'plano-observacao/';
 
+/**
+ * O PREFIXO DA PORTA DENTRO DA ÁRVORE (14/11/2026).
+ *
+ * A porta (`anamnese`, `plano-ensino`, `plano-observacao`) lê o seu conteúdo de
+ * `plano-observacao/…` — um prefixo RELATIVO À RAIZ DO ASSETS. Fora do shard, essa raiz é a
+ * escola; dentro dele, a raiz é `publicacao/` e a escola está uma pasta abaixo. Este é o único
+ * sítio que sabe compor os dois, e é por isso que ele existe em vez de a concatenação aparecer
+ * quatro vezes nos ramos abaixo.
+ */
+function prefixoDosAssetsDaPorta(env) {
+  const raiz = prefixoDaArvore(env);
+  return (raiz ? raiz.slice(1) + '/' : '') + PREFIXO_ASSETS;
+}
+
 function caminhoDaPorta(path, prefixo) {
   return path === prefixo ? '/' : path.slice(prefixo.length);
 }
@@ -274,7 +288,9 @@ function caminhoDaPorta(path, prefixo) {
  * um deploy reinicia os isolates. Ausente o ficheiro, devolve `null` e cada página fica com a
  * barra que já trazia — degradar é melhor do que servir uma barra inventada.
  */
-let MENU_EM_CACHE = null;
+/* A CACHE DO MENU, POR ESCOLA (14/11/2026): `Map` de prefixo → menu, com `false` a marcar
+ * «não há ficheiro» — a mesma convenção de antes, agora com uma entrada por escola. */
+const MENU_EM_CACHE = new Map();
 /**
  * QUE ESCOLA É O PACOTE PUBLICADO NESTE WORKER (13/11/2026).
  *
@@ -290,21 +306,69 @@ let MENU_EM_CACHE = null;
  * versão não o tem, e recusar servir por causa disso trocaria uma falha silenciosa por uma queda
  * certa. Quem decide o que fazer com um `null` é quem chama.
  */
+/**
+ * A ÁRVORE DO PACOTE: UMA ESCOLA NA RAIZ, OU N ESCOLAS SOB `/<escola>/` (14/11/2026).
+ *
+ * POR QUE ISTO EXISTE. Até hoje um Worker servia UMA escola, e o `assets.directory` era
+ * `publicacao/<escola>` — a raiz do ASSETS era a raiz do site. O shard (N escolas num Worker,
+ * `PLANO-SHARD.md`) inverte isso: o `assets.directory` passa a ser `publicacao/`, e a raiz do
+ * site passa a ser uma SUBÁRVORE. Sem uma noção explícita de prefixo, cada sítio que lê do
+ * ASSETS (`escola.json`, `nav.json`, o próprio ficheiro pedido) teria a sua própria ideia de
+ * onde a escola começa — e a primeira a divergir seria a que ninguém está a olhar.
+ *
+ * A DECLARAÇÃO É UMA `var`, e não uma inferência. Poder-se-ia adivinhar («não há `/escola.json`
+ * na raiz, logo é shard»), e seria adivinhação: um pacote de escola única montado sem esse
+ * ficheiro passaria a ser lido como shard. A `var` diz o que é, e a config é o sítio onde isso
+ * se lê. O valor por omissão é o de hoje — um Worker, uma escola —, e é por isso que nenhuma
+ * das três escolas vivas muda de comportamento com este código.
+ */
+function prefixoDaArvore(env) {
+  if (!env || env.PACOTE_PARTILHADO !== 'sim') return '';
+  const escola = String(env.ESCOLA_SLUG || '').trim();
+  return escola ? '/' + escola : '';
+}
+
+/**
+ * `/assets/…` É PARTILHADO, E NÃO SE REESCREVE (14/11/2026).
+ *
+ * A regra vive aqui, e não só no `run_worker_first` do shard, porque são duas coisas diferentes:
+ * a config evita a INVOCAÇÃO (é dinheiro — 100.000 por dia no plano gratuito), e esta função
+ * evita a REESCRITA ERRADA caso o pedido chegue ao Worker na mesma (config trocada, um `HEAD`,
+ * um caminho que a negativa não cobre). Uma correção que depende só da config é uma correção que
+ * se desfaz com uma edição de config.
+ */
+function ehAssetPartilhado(path) {
+  return path === '/assets' || path.indexOf('/assets/') === 0;
+}
+
+/** `/aulas/` → `/calango/aulas/`; `/` → `/calango/`. Fora do shard, o caminho fica como está. */
+function caminhoNaArvore(env, path) {
+  const prefixo = prefixoDaArvore(env);
+  if (!prefixo) return path;
+  return prefixo + (path === '/' ? '/' : path);
+}
+
 /* SEM VALOR INICIAL, DE PROPÓSITO: `undefined` é «ainda não lido» e `null` é «não há ficheiro».
  * Começar em `null` (como esteve na primeira redação) fazia a primeira leitura devolver «não há
  * ficheiro» sem ler nada — a conferência ficava desligada em silêncio, e o `/api/saude` dizia
  * `escola_do_pacote: null` numa escola que tinha o ficheiro no ar. Medido a 13/11/2026. */
-let PACOTE_EM_CACHE;
+/* POR ESCOLA, E NÃO UMA SÓ (14/11/2026). Num Worker de uma escola, «o pacote» era um. No shard,
+ * o MESMO isolate serve N escolas, e uma cache de valor único responderia pela primeira a todas
+ * as outras — o `escola_do_pacote` de `calango` a aparecer no `/api/saude` da `batata` é
+ * exactamente o defeito que a conferência de identidade existe para apanhar, e seria ela a
+ * produzi-lo. A chave é o prefixo (vazio fora do shard), e há um valor por chave. */
+const PACOTE_EM_CACHE = new Map();
 async function identidadeDoPacote(env) {
-  if (PACOTE_EM_CACHE !== undefined) return PACOTE_EM_CACHE;
+  const chave = prefixoDaArvore(env);
+  if (PACOTE_EM_CACHE.has(chave)) return PACOTE_EM_CACHE.get(chave);
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
   try {
-    const res = await env.ASSETS.fetch(new URL('/escola.json', 'https://assets.local'));
-    if (!res.ok) { PACOTE_EM_CACHE = null; return null; }
+    const res = await env.ASSETS.fetch(new URL(chave + '/escola.json', 'https://assets.local'));
+    if (!res.ok) { PACOTE_EM_CACHE.set(chave, null); return null; }
     const corpo = await res.json();
     const slug = String((corpo && (corpo.escola || corpo.slug)) || '').trim();
-    PACOTE_EM_CACHE = slug || null;
-    return PACOTE_EM_CACHE;
+    PACOTE_EM_CACHE.set(chave, slug || null);
+    return PACOTE_EM_CACHE.get(chave);
   } catch (erro) {
     /* NÃO se guarda uma falha: uma leitura que estourou não prova que o ficheiro não existe, e
      * guardá-la deixaria o isolate inteiro sem a conferência até morrer. */
@@ -313,18 +377,22 @@ async function identidadeDoPacote(env) {
 }
 
 /** Esquece o pacote lido — só as provas precisam disto (o isolate real morre no deploy). */
-function esquecerPacote() { PACOTE_EM_CACHE = undefined; }
+function esquecerPacote() { PACOTE_EM_CACHE.clear(); }
 
 async function menuDaEscola(env) {
-  if (MENU_EM_CACHE !== null) return MENU_EM_CACHE || null;
+  /* UMA CACHE POR ESCOLA (14/11/2026) — a mesma razão do `identidadeDoPacote`: no shard um
+   * isolate serve N escolas, e um menu único desenharia a barra da `batata` em todas as páginas
+   * da `calango`. */
+  const chave = prefixoDaArvore(env);
+  if (MENU_EM_CACHE.has(chave)) return MENU_EM_CACHE.get(chave) || null;
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
   try {
-    const res = await env.ASSETS.fetch(new URL('/nav.json', 'https://assets.local'));
-    if (!res.ok) { MENU_EM_CACHE = false; return null; }
-    MENU_EM_CACHE = await res.json();
-    return MENU_EM_CACHE;
+    const res = await env.ASSETS.fetch(new URL(chave + '/nav.json', 'https://assets.local'));
+    if (!res.ok) { MENU_EM_CACHE.set(chave, false); return null; }
+    MENU_EM_CACHE.set(chave, await res.json());
+    return MENU_EM_CACHE.get(chave);
   } catch (erro) {
-    MENU_EM_CACHE = false;
+    MENU_EM_CACHE.set(chave, false);
     return null;
   }
 }
@@ -337,11 +405,16 @@ async function menuDaEscola(env) {
  * rede —, e a token é a mesma que o acervo já usa.
  */
 function indiceDeAulas(env) {
+  /* O CAMINHO PASSA PELA ÁRVORE (14/11/2026). O `ciclos.json` de que este índice depende vive na
+   * raiz do pacote da escola — fora do shard é `/ciclos.json`, dentro dele é
+   * `/<escola>/ciclos.json`. Sem o prefixo, o índice das aulas dadas leria o ficheiro da escola
+   * errada (ou nenhum) e as aulas apareceriam como não declaradas. */
+  const raizDaArvore = prefixoDaArvore(env);
   const lerAsset = async (rel) => {
     if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
     try {
-      const res = await env.ASSETS.fetch(new URL('/' + String(rel || '').replace(/^\/+/, ''),
-        'https://assets.local'));
+      const res = await env.ASSETS.fetch(new URL(raizDaArvore + '/'
+        + String(rel || '').replace(/^\/+/, ''), 'https://assets.local'));
       return res.ok ? await res.text() : null;
     } catch (erro) {
       return null;
@@ -880,7 +953,7 @@ async function fetch(request, env) {
      * A tradução é do módulo que já sabe a relação (`FAMILIAS` tem a porta e a chave de cada
      * família) — não uma segunda tabela. E o caminho da lista é o que se passa ao menu; o
      * caminho verdadeiro continua a ser o que se serve. */
-    return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
+    return comAparencia(await portaFetch(alvo, env, { prefixo: prefixoDosAssetsDaPorta(env) }),
       await aparenciaDoEnv(env),
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu,
         pedido: listasDoAcervo.listaDaPorta(path) || path });
@@ -889,14 +962,14 @@ async function fetch(request, env) {
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na
   //    raiz. A rota vive nas rotas agnósticas (nucleo/lancamento.js).
   if (path === '/api/receber') {
-    return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
+    return portaFetch(request, env, { prefixo: prefixoDosAssetsDaPorta(env) });
   }
 
   // 2.1 A LEITURA do `-dados.json` em claro (`/api/dados`), também na raiz. O navegador não
   //     conhece a chave de cifra: ele manda a senha da pessoa e o Worker decifra com o segredo
   //     `SENHA_CRIPTO`, que fica só aqui. Ver `motor/servidor/ler-dados.js`.
   if (path === '/api/dados') {
-    return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
+    return portaFetch(request, env, { prefixo: prefixoDosAssetsDaPorta(env) });
   }
 
   // 2.2 O RESGATE do que ficou no KV (06/11/2026) — `POST /api/lancamentos/consolidar`. É um
@@ -906,16 +979,34 @@ async function fetch(request, env) {
   //     404 dos assets, e o resgate existia no código e não no ar. A lista é explícita de
   //     propósito (o resto é o pacote), e por isso um caminho novo tem de ser declarado aqui.
   if (path === '/api/lancamentos/consolidar') {
-    return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
+    return portaFetch(request, env, { prefixo: prefixoDosAssetsDaPorta(env) });
   }
 
   // 3. O resto → o pacote. O asset-first do Cloudflare já serviu o estático que
   //    existe; este ramo cobre o `run_worker_first` (default) devolvendo o
   //    mesmo 404 que o Worker antigo devolvia.
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+    /* A TRAVESSIA DA ÁRVORE (14/11/2026). `/aulas/` não existe no ASSETS de um shard — o que
+     * existe é `/calango/aulas/`. O caminho é reescrito AQUI, e não no `_redirects` nem numa
+     * regra de zona: é o único sítio que sabe QUAL é a escola (acabou de a resolver), e uma
+     * regra estática teria de saber o mesmo sem a saber.
+     *
+     * A BARRA DO NAVEGADOR NÃO MUDA. Quem pediu `/aulas/` recebe o conteúdo de
+     * `/calango/aulas/`, e os links relativos que lá estão (e os absolutos, que a montagem
+     * escreve sem a escola) continuam a ser pedidos como `/aulas/…` — ou seja, voltam a passar
+     * por aqui e são reescritos outra vez. É essa a propriedade que faz o shard ser invisível
+     * para o conteúdo já publicado.
+     *
+     * O QUE NÃO SE REESCREVE: `/assets/…`. É a cópia partilhada (`publicacao/assets/`), igual em
+     * todas as escolas (medido a 14/11/2026: `style.css` e `nav.js` byte a byte iguais), e é a
+     * razão de ela ser partilhada — o `run_worker_first` do shard manda-a direto ao ASSETS, sem
+     * invocar o Worker. Se este ramo a apanhasse, a negativa não serviria de nada. */
+    const caminhoNoAsset = ehAssetPartilhado(path) ? path : caminhoNaArvore(env, path);
+    const pedidoAoAsset = caminhoNoAsset === path ? request
+      : new Request(new URL(caminhoNoAsset + url.search, request.url), request);
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
-    return comAparencia(await env.ASSETS.fetch(request), await aparenciaDoEnv(env),
+    return comAparencia(await env.ASSETS.fetch(pedidoAoAsset), await aparenciaDoEnv(env),
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
@@ -929,6 +1020,10 @@ async function fetch(request, env) {
  * outra forma. Sem isto, ela provaria o adaptador da prova, e não o da produção. */
 module.exports = {
   fetch, comAparencia, aparenciaDoEnv, menuDaEscola,
+  /* A ÁRVORE, exportada para a prova (14/11/2026). A bancada do shard mede `caminhoNaArvore` e
+   * `ehAssetPartilhado` directamente — são elas que decidem se `/aulas/` vira `/calango/aulas/`
+   * e se `/assets/style.css` fica quieto, e uma prova que as reconstruísse mediria a prova. */
+  prefixoDaArvore, caminhoNaArvore, ehAssetPartilhado, prefixoDosAssetsDaPorta,
   /* A MONTAGEM DA CADEIA, exportada para a prova (09/11/2026). A prova mede a MESMA função que
    * a ponte usa — reconstruí-la na bancada mediria a bancada, não a ligação. */
   montarCadeia,

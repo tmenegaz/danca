@@ -1079,6 +1079,64 @@ function podarLinks(html, nomes) {
  */
 const FORA_DA_PUBLICACAO = ['harmonizacao.html'];
 
+
+/**
+ * A CÓPIA PARTILHADA DE `/assets/` — `publicacao/assets/` (14/11/2026).
+ *
+ * POR QUE ELA EXISTE. Num shard, o `assets.directory` é `publicacao/`, e todas as escolas vivem
+ * uma pasta abaixo. O `run_worker_first` só consegue mandar um caminho direto ao ASSETS sem
+ * invocar o Worker se o caminho for o mesmo em todas — e `/assets/style.css` é: medido a
+ * 14/11/2026, o `style.css` e o `nav.js` das três escolas são byte a byte iguais. Uma cópia na
+ * raiz de `publicacao/` mantém a negativa `!/assets/*` verdadeira, e é o que segura o custo em
+ * **2 invocações por página em vez de 4** (`PLANO-SHARD.md` §2.2).
+ *
+ * O QUE ELA NÃO FAZ, E É O IMPORTANTE: não unifica aparências por acidente. Se a cópia que lá
+ * está DIVERGE da que a escola acabou de montar, isto **falha e diz de quem é a que ficou** — em
+ * vez de escolher uma em silêncio e mudar a cara de uma escola que ninguém abriu. Uma escola com
+ * folha própria é uma decisão legítima; o que não pode é ela ser tomada por omissão.
+ */
+function garantirAssetsPartilhados(dirDaEscola, escola) {
+  const origem = path.join(dirDaEscola, 'assets');
+  if (!fs.existsSync(origem)) return null;
+  const alvo = path.join(PUB, 'assets');
+  if (!fs.existsSync(alvo)) {
+    copiar(origem, alvo);
+    return { estado: 'criada', escola };
+  }
+  const diferencas = compararPastas(origem, alvo);
+  if (!diferencas.length) return { estado: 'igual', escola };
+  console.error('aviso: `publicacao/assets/` DIVERGE de `publicacao/' + escola + '/assets/`:');
+  for (const d of diferencas.slice(0, 6)) console.error('  ' + d);
+  console.error('       a cópia partilhada NÃO foi alterada. Se a divergência é intencional, a');
+  console.error('       escola precisa do seu próprio `/assets/` — e nesse caso o shard não a serve.');
+  return { estado: 'diverge', escola, diferencas };
+}
+
+/** Os ficheiros que existem num lado e não no outro, ou que diferem. Vazio = iguais. */
+function compararPastas(a, b) {
+  const lista = (dir, base) => {
+    const saida = new Map();
+    const andar = (d) => {
+      for (const item of fs.readdirSync(d, { withFileTypes: true })) {
+        const completo = path.join(d, item.name);
+        if (item.isDirectory()) { andar(completo); continue; }
+        saida.set(path.relative(base, completo), fs.readFileSync(completo));
+      }
+    };
+    andar(dir);
+    return saida;
+  };
+  const da = lista(a, a);
+  const db = lista(b, b);
+  const out = [];
+  for (const [rel, conteudo] of da) {
+    if (!db.has(rel)) out.push('só em ' + path.basename(a) + ': ' + rel);
+    else if (!conteudo.equals(db.get(rel))) out.push('diferente: ' + rel);
+  }
+  for (const rel of db.keys()) if (!da.has(rel)) out.push('só em ' + path.basename(b) + ': ' + rel);
+  return out;
+}
+
 function principal() {
   const escola = String(process.argv[2] || '').trim();
   if (!escola || escola.indexOf('-') === 0) {
@@ -1315,11 +1373,18 @@ function principal() {
   };
   percorrer(destino);
 
+  /* A CÓPIA PARTILHADA, ao fim e não ao princípio: só depois de a escola estar montada é que se
+   * sabe se a folha dela coincide com a que já lá está. */
+  const partilhados = garantirAssetsPartilhados(destino, escola);
+
   console.log('publicação montada: publicacao/' + escola);
   console.log('  apresentação: sistema.html');
   console.log('  porta: plano-observacao/');
   console.log('  turmas: ' + (turmas.length ? turmas.map((t) => t.variante).join(', ') : '(nenhuma — o índice diz isso)'));
   console.log('  assets.directory do Worker: publicacao/' + escola);
+  if (partilhados) {
+    console.log('  /assets/ partilhado: publicacao/assets (' + partilhados.estado + ')');
+  }
 }
 
 /* SÓ CORRE QUANDO É CHAMADO (23/10/2026). Era `principal();` no topo, e por isso um `require`

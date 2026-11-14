@@ -1,0 +1,67 @@
+// Cloudflare Worker do SHARD DE TESTE — N escolas num Worker (`PLANO-SHARD.md`).
+//
+// O QUE ESTE FICHEIRO É. O primeiro Worker que serve MAIS DE UMA escola. As três escolas de
+// teste (`calango`, `batata`, `breu`) continuam a ter o seu endereço próprio, e passam a ser
+// servidas pelo MESMO script: ele resolve a escola pelo HOST (mapa `escolas/por-host`, em KV) e
+// reescreve o caminho para a subárvore dela antes de pedir ao ASSETS.
+//
+// POR QUE ELE EXISTE, SE JÁ HÁ UM WORKER POR ESCOLA. Não é capacidade: um Worker serve ~240
+// escolas. É raio de alcance (um deploy chega a N escolas, e as outras não viram o commit) e é o
+// tecto de 100 Workers por conta, que é hoje a única parede do produto no plano gratuito.
+//
+// NÃO É O SHARD DE PRODUÇÃO. Este serve as escolas de TESTE — o canário. As escolas reais (`DU`,
+// `Petitá`, `Bolshoi`, `São Paulo Cia`) ficam nos Workers delas até o canário provar que o shard
+// não muda nada do que se vê. É a ordem que a pesquisadora propôs, e é a ordem do plano §3.
+//
+// A ROTA NÃO ESTÁ AQUI, e é de propósito: quem cria e move rotas é
+// `motor/servidor/dominio-da-escola.js`, num sítio só. Mover a rota de `calango.padd.com.br/*`
+// deste Worker para este é o gesto que LIGA o shard — e o que o desliga é movê-la de volta.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lastro-teste",
+  "compatibility_date": "2025-02-04",
+  "observability": {
+    "enabled": true
+  },
+
+  "main": "workers/principal.js",
+
+  // A ÁRVORE INTEIRA, E NÃO UMA ESCOLA (14/11/2026). Era `publicacao/<escola>`; passa a ser
+  // `publicacao/`, com uma subárvore por escola e uma cópia PARTILHADA de `/assets/` na raiz —
+  // `tools/montar-publicacao.js` escreve-a, e recusa-se a unificar folhas que divirjam.
+  "assets": {
+    "directory": "publicacao",
+    "binding": "ASSETS",
+
+    // DUAS REGRAS SÓ, E A SEGUNDA É O QUE SEGURA O CUSTO. `/*` manda tudo ao Worker, porque o
+    // caminho pedido (`/aulas/`) não existe na árvore (`/calango/aulas/`) e tem de ser reescrito
+    // por quem sabe de que escola é. `!/assets/*` manda a cópia partilhada direto ao ASSETS: é
+    // igual em todas as escolas, não precisa de reescrita, e não gasta invocação.
+    //
+    // O QUE SAIU DAQUI, E POR QUÊ. As negativas `!/*/assets/*` e `!/*.pdf` existiam no Worker de
+    // uma escola (13/11/2026) e NÃO valem num shard: `/piano/assets/lib-vistas.js` não existe em
+    // `publicacao/piano/`, existe em `publicacao/calango/piano/`. Deixá-las seria transformar um
+    // acerto em 404 — os assets de turma e os PDFs passam a invocar o Worker, como o
+    // `PLANO-SHARD.md` §2.2 já previa e orçamentava.
+    "run_worker_first": [
+      "/*",
+      "!/assets/*"
+    ]
+  },
+
+  "vars": {
+    "ESCOLA_HABILITADA": "sim",
+    // A ÁRVORE É POR ESCOLA, E O MOTOR TEM DE O SABER (14/11/2026). Sem esta `var`, o motor lê
+    // `/escola.json` (que aqui não existe), desiste da conferência de identidade em silêncio e
+    // serve `/aulas/` a partir da raiz — que no shard é uma pasta de escolas, não um site. É a
+    // única diferença entre este Worker e o de uma escola, e é declarada, não adivinhada.
+    "PACOTE_PARTILHADO": "sim"
+  },
+
+  "kv_namespaces": [
+    {
+      "binding": "PADD_KV",
+      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+    }
+  ]
+}
