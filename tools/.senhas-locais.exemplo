@@ -18,6 +18,15 @@
 #                     dona; SENHA_ADMIN = a direção). Aqui fica só como lembrete local.
 #                     O sufixo é QUEM ENTRA (a pessoa), e não a escola.
 #
+# UM NOME DE UTILIZADOR NÃO ENTRA AQUI (13/11/2026). Toda linha deste ficheiro é um VALOR
+# que o `pre-push` procura nos arquivos versionados — e portanto toda linha tem de ser uma
+# SENHA. Um utilizador guardado como `LOGIN_DANCA="tmenegaz"` é conferido como se fosse
+# segredo, e como o nome do repositório é «danca»... não: o que barrou o push foi o par
+# `LOGIN_DANCA` guardar uma palavra que aparece em 105 ficheiros. O utilizador vai em
+# COMENTÁRIO, ao lado da senha a que pertence. E um valor banal de teste (`123`) também
+# barra, porque `123` aparece em 67 ficheiros — é para isso que existe
+# `tools/.escolas-teste`: a isenção é por SUJEITO (a escola, ou quem entra), nunca global.
+#
 # Batizar uma senha de acesso de `SENHA_<algo>` foi o que enganou em 15/10/2026: a chave
 # da escola Barra ficou guardada como `SENHA_CRIPTO` (nome global, que nenhum script lê,
 # e que colidiria entre escolas) e o login da professora como `SENHA_LETICIA` (que parece

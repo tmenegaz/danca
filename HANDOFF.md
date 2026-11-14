@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T16:52:44-0300`
-Commit atual: `ece0fa53` — audit(experimentos): a bancada ao vivo do domínio — o elo que a prova de mentira não alcança
+Gerado em: `2026-11-13T21:24:30-0300`
+Commit atual: `c0ff515e` — feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+c0ff515e feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
 ece0fa53 audit(experimentos): a bancada ao vivo do domínio — o elo que a prova de mentira não alcança
 737e08c2 feat(estrutura): a escola nasce com endereço próprio, e o expurgo leva-o consigo
 b64da888 docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e o plano do shard
@@ -92,7 +93,6 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
 0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
-c2a4254b chore(estrutura): regerar o HANDOFF
 ```
 
 ## Por professor
@@ -170,77 +170,62 @@ c2a4254b chore(estrutura): regerar o HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — O domínio do painel, e a rota curinga que a zona tinha
+## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
 
-**O que aconteceu.** A pesquisadora ligou a página `danca` a `danca.padd.com.br` pelo painel do
-Cloudflare, e perguntou duas coisas antes de criar uma escola: se eu tinha mexido na `calango`, e se
-deveria ligá-la à mão. Ao conferir a zona para responder, apareceu o que ninguém tinha pedido: a
-zona tem hoje **uma rota curinga** `*.padd.com.br/*` → script `danca`.
+**O que aconteceu.** Com as escolas de teste a nascer, a pesquisadora guardou as credenciais em
+`tools/.senhas-locais` (local, fora do Git, modo 600) e passou-as ao agente. Ao correr o
+`pre-push` para conferir, o push estava **barrado** — e por dois falsos positivos que valem a pena
+registar, porque a causa não era a senha ser fraca: era o **nome** da linha.
 
-**O que foi medido.**
+| linha | valor | porque barrava |
+|:--|:--|:--|
+| `SENHA_ESCOLA` | `123` | o sujeito virava «escola» (genérico, não é teste nem escola) e `123` aparece em **67** ficheiros — «123 px», «L12378», «decisão 123» |
+| `LOGIN_DANCA` | o **utilizador** do painel | não era uma senha: era `tmenegaz`-como-nome-de-entrada, e o hook confere o VALOR de cada linha. A palavra «danca» está em **105** ficheiros (o repositório chama-se assim) |
 
-| o que | estado |
-|:--|:--|
-| `danca.padd.com.br/api/saude` | **200** — `{"ok":true,"tipo":"raiz"}` |
-| `danca.padd.com.br/` | 401 (o painel pede senha, como deve) |
-| `calango.padd.com.br` | **não resolve** — não há registo DNS, e nada foi criado para ela |
-| apex `padd.com.br` | 307 → não é coberto por curinga |
-| `www.padd.com.br` | 200, outro sítio — não é interceptado |
-| rotas da zona | `*.padd.com.br/*` → `danca` |
+**O que foi decidido.**
 
-**O que se conclui, e o que fica decidido.**
+- **Uma linha por sujeito, com o prefixo certo.** `LOGIN_CALANGO` (direção) e `LOGIN_PE_TORTO`
+  (professor) — o sujeito sai do nome, e é ele que a isenção usa. As senhas de teste são iguais em
+  todas as escolas de teste, mas as linhas são por sujeito: é isso que faz a isenção funcionar sem
+  abrir uma porta global.
+- **`tools/.escolas-teste` deixou de estar vazia.** Declara `calango`, `batata`, `breu` e
+  `pe-torto`. Estava vazia, e por isso nenhuma senha de teste era isentada. O ficheiro é local (fora
+  do Git), como as senhas.
+- **O utilizador do painel vai em comentário.** Ele não é segredo e não é senha; guardá-lo como
+  linha transformava o nome do repositório num «segredo exposto». A senha do painel entrou como
+  `LOGIN_PAINEL`.
+- **A regra fica escrita no exemplo** (`tools/.senhas-locais.exemplo`), para não voltar: *toda
+  linha deste ficheiro tem de ser uma senha*; um utilizador vai ao lado, em comentário.
 
-- **A `calango` não foi tocada.** A única coisa que fiz na zona foi criar e apagar `prova-permissao
-  .padd.com.br/*` (a verificação de que a permissão de rotas existia), e ela já não está lá. A
-  bancada ao vivo do domínio parou no passo do DNS, e portanto não criou rota nenhuma — o que se
-  confirma por `calango.padd.com.br` continuar a não resolver.
-- **A rota curinga é um risco silencioso, e agora está escrito.** Ela não quebra nada hoje por
-  acidente feliz: o apex não é coberto, o `www` tem rota própria, e as outras subetiquetas não têm
-  registo DNS. Mas qualquer subdomínio novo **com** registo e **sem** rota própria passa a
-  responder pelo painel do Lastro. A recomendação é rota explícita para o painel
-  (`danca.padd.com.br/*` → `danca`) e o curinga fora.
-- **O pior aviso é o que parece funcionar.** Se uma escola ficar com o registo DNS criado e a rota
-  falhada, o curinga faz o endereço dela servir o painel de administração — um 401 que *parece* o
-  sistema a funcionar. É este cenário que a bancada ao vivo passou a distinguir.
+**Com o quê.** `bash tools/hooks/pre-push` → **ok**, 3 senhas conferidas, `LOGIN_CALANGO` isenta
+como sujeito de teste. E as credenciais foram **exercidas ao vivo**, que é o que interessa:
+`/api/bastidores/alunas|professores|turmas|linhas-de-base` em `calango.padd.com.br` respondem 200
+com a senha da direção, e o painel `danca.padd.com.br/api/escolas` responde 200 com
+`utilizador: tmenegaz`.
 
-**Uma correção numa prova minha, apanhada por este achado.** `provar-dominio-ao-vivo` apontava o
-nome de prova à **raiz** (que responde `/api/saude` sem senha). Com a rota curinga na zona, isso
-dava **200 pelo caminho errado**: a prova passaria mesmo que a rota específica não servisse nada —
-falso positivo, e do pior tipo, o que dá alívio. Passou a apontar a um script de **escola**
-(`calango`), cuja resposta é distinguível (`{"tipo":"escola","slug":"calango"}` contra
-`{"tipo":"raiz"}`), com uma asserção própria: «é a rota específica que serve, e não a curinga».
+**O que se confirmou de caminho.**
 
-**Com o quê.** `tools/publicar-dominio.js` **novo** — liga o endereço próprio a escolas que já
-existem (as criadas antes desta função), chamando o MESMO módulo do painel e sendo idempotente.
-`--dry-run` mostra o que faria. Rodado hoje: `calango` → `DNS: sem-permissao`, com a dica da
-permissão em falta, e **nada criado**. `provar-dominio-da-escola` **34/34** ·
-`provar-isolamento-entre-escolas` **25/25** · `provar-escola-por-host` **21/21** ·
-`check-identidade` **22 ok, 0 erros**.
+- **`calango.padd.com.br` está no ar**: `/api/saude` devolve `{"tipo":"escola","slug":"calango",
+  "origem":"mapa","por":"rotulo","escola_do_pacote":"calango"}`, e `/` serve a página com
+  `data-escola-teste="1"`. O registo DNS que faltava foi criado, e a rota que já existia passou a
+  servir — como previsto.
+- **A zona `padd.com.br` tem agora duas rotas explícitas** (`danca.padd.com.br/*` → `danca` e
+  `calango.padd.com.br/*` → `calango`) e **nenhuma curinga**. O risco silencioso registado na
+  entrada anterior está fechado.
+- **A leitura da lista de alunas não pede senha, e é de propósito** (está escrito em
+  `motor/servidor/bastidores.js`, rota `/api/bastidores/alunas` sem recorte): é a lista de
+  apelidos estáveis que a Produção carrega antes de haver professor escolhido. Não é um vazamento —
+  é a decisão que já estava tomada, e ficou conferida.
 
 **O que ainda não está feito.**
 
-- **A permissão `Zone → DNS → Edit` continua em falta no token que eu tenho.** E aqui há uma
-  distinção que importa: o token da raiz é um **secret do Worker** que eu não leio — pode ser outro,
-  e pode já ter a permissão. Quem responde a isso é a primeira escola criada pelo painel: se o
-  token tiver a permissão, o endereço nasce; se não, a página diz «Endereço próprio: PENDENTE» com
-  o motivo. Não vale a pena adivinhar antes.
-- **A `calango` continua sem endereço próprio.** Ligá-la é uma linha — `node tools/publicar-dominio.js
-  calango` — e não exige expurgar nem recriar nada.
-- **A rota curinga continua na zona**, à espera da decisão de a substituir pela explícita.
+- **A permissão `Zone → DNS → Edit` no token local continua em falta** (403). O token do Worker é
+  outro, e a primeira escola criada pelo painel dirá se ele a tem.
+- **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
+  `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
+  `tools/.escolas-teste`.
 
 ## O que está pendente
-
-## 13/11/2026 — O isolamento entre escolas passa a ser provado, e decide-se o shard
-
-
-- **Nada do shard foi escrito.** O que existe hoje é a **prova** e a **decisão**; a implementação
-  começa quando o número de escolas a justificar. Uma escola em produção contra um tecto de 99 não
-  é motivo para mexer no endereço de tudo.
-- **O `ESCOLA_SLUG` continua a ser `var` de deploy.** Sair do `wrangler` para um mapa `hostname →
-  escola` em KV, com cache de isolate, é o primeiro passo e é reversível — mas só se faz junto com
-  o shard, porque isolado não compra nada.
-- **`padd.com.br` não está apontado ao Cloudflare.** A zona e as rotas por escola entram no dia em
-  que o shard for implementado; até lá, os endereços `*.workers.dev` continuam a ser os de trabalho.
 
 ## 13/11/2026 — A escola deixa de ser `var` de deploy: o mapa `escolas/por-host`
 
@@ -293,6 +278,15 @@ permissão em falta, e **nada criado**. `provar-dominio-da-escola` **34/34** ·
 - **A `calango` continua sem endereço próprio.** Ligá-la é uma linha — `node tools/publicar-dominio.js
   calango` — e não exige expurgar nem recriar nada.
 - **A rota curinga continua na zona**, à espera da decisão de a substituir pela explícita.
+
+## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
+
+
+- **A permissão `Zone → DNS → Edit` no token local continua em falta** (403). O token do Worker é
+  outro, e a primeira escola criada pelo painel dirá se ele a tem.
+- **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
+  `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
+  `tools/.escolas-teste`.
 
 ## Pendências anteriores (índice)
 
@@ -722,6 +716,7 @@ permissão em falta, e **nada criado**. `provar-dominio-da-escola` **34/34** ·
 - **13/11/2026** — A lista custa o índice, e não um arquivo por registo → `REGISTRO.md` L43651
 - **13/11/2026** — O CSS não gasta pedido do dia, e a lista não paga duas… → `REGISTRO.md` L43727
 - **13/11/2026** — O registo de custo da IA ganha mês no nome → `REGISTRO.md` L43829
+- **13/11/2026** — O isolamento entre escolas passa a ser provado, e decide-se… → `REGISTRO.md` L43879
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

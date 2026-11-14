@@ -44188,3 +44188,58 @@ permissão em falta, e **nada criado**. `provar-dominio-da-escola` **34/34** ·
 - **A `calango` continua sem endereço próprio.** Ligá-la é uma linha — `node tools/publicar-dominio.js
   calango` — e não exige expurgar nem recriar nada.
 - **A rota curinga continua na zona**, à espera da decisão de a substituir pela explícita.
+
+## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
+
+**O que aconteceu.** Com as escolas de teste a nascer, a pesquisadora guardou as credenciais em
+`tools/.senhas-locais` (local, fora do Git, modo 600) e passou-as ao agente. Ao correr o
+`pre-push` para conferir, o push estava **barrado** — e por dois falsos positivos que valem a pena
+registar, porque a causa não era a senha ser fraca: era o **nome** da linha.
+
+| linha | valor | porque barrava |
+|:--|:--|:--|
+| `SENHA_ESCOLA` | `123` | o sujeito virava «escola» (genérico, não é teste nem escola) e `123` aparece em **67** ficheiros — «123 px», «L12378», «decisão 123» |
+| `LOGIN_DANCA` | o **utilizador** do painel | não era uma senha: era `tmenegaz`-como-nome-de-entrada, e o hook confere o VALOR de cada linha. A palavra «danca» está em **105** ficheiros (o repositório chama-se assim) |
+
+**O que foi decidido.**
+
+- **Uma linha por sujeito, com o prefixo certo.** `LOGIN_CALANGO` (direção) e `LOGIN_PE_TORTO`
+  (professor) — o sujeito sai do nome, e é ele que a isenção usa. As senhas de teste são iguais em
+  todas as escolas de teste, mas as linhas são por sujeito: é isso que faz a isenção funcionar sem
+  abrir uma porta global.
+- **`tools/.escolas-teste` deixou de estar vazia.** Declara `calango`, `batata`, `breu` e
+  `pe-torto`. Estava vazia, e por isso nenhuma senha de teste era isentada. O ficheiro é local (fora
+  do Git), como as senhas.
+- **O utilizador do painel vai em comentário.** Ele não é segredo e não é senha; guardá-lo como
+  linha transformava o nome do repositório num «segredo exposto». A senha do painel entrou como
+  `LOGIN_PAINEL`.
+- **A regra fica escrita no exemplo** (`tools/.senhas-locais.exemplo`), para não voltar: *toda
+  linha deste ficheiro tem de ser uma senha*; um utilizador vai ao lado, em comentário.
+
+**Com o quê.** `bash tools/hooks/pre-push` → **ok**, 3 senhas conferidas, `LOGIN_CALANGO` isenta
+como sujeito de teste. E as credenciais foram **exercidas ao vivo**, que é o que interessa:
+`/api/bastidores/alunas|professores|turmas|linhas-de-base` em `calango.padd.com.br` respondem 200
+com a senha da direção, e o painel `danca.padd.com.br/api/escolas` responde 200 com
+`utilizador: tmenegaz`.
+
+**O que se confirmou de caminho.**
+
+- **`calango.padd.com.br` está no ar**: `/api/saude` devolve `{"tipo":"escola","slug":"calango",
+  "origem":"mapa","por":"rotulo","escola_do_pacote":"calango"}`, e `/` serve a página com
+  `data-escola-teste="1"`. O registo DNS que faltava foi criado, e a rota que já existia passou a
+  servir — como previsto.
+- **A zona `padd.com.br` tem agora duas rotas explícitas** (`danca.padd.com.br/*` → `danca` e
+  `calango.padd.com.br/*` → `calango`) e **nenhuma curinga**. O risco silencioso registado na
+  entrada anterior está fechado.
+- **A leitura da lista de alunas não pede senha, e é de propósito** (está escrito em
+  `motor/servidor/bastidores.js`, rota `/api/bastidores/alunas` sem recorte): é a lista de
+  apelidos estáveis que a Produção carrega antes de haver professor escolhido. Não é um vazamento —
+  é a decisão que já estava tomada, e ficou conferida.
+
+**O que ainda não está feito.**
+
+- **A permissão `Zone → DNS → Edit` no token local continua em falta** (403). O token do Worker é
+  outro, e a primeira escola criada pelo painel dirá se ele a tem.
+- **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
+  `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
+  `tools/.escolas-teste`.
