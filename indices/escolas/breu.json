@@ -1,37 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-14",
+        "caminho": "professores/redinha-rosa/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/redinha-rosa/ciclos/ciclo-01-breu.conf",
+          "professores/redinha-rosa/ciclos/ciclo-01.conf"
+        ],
+        "hash": "0f95afdfe4a7f3b1d1c7aa90d3aa02238c4fc9e09638cb744bc94f7145cc64aa",
+        "hash_conteudo": "99e69e3dcd9cb0282d50ea5181e5478438d7f15ee013c0556b30fdcd71033e05",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/redinha-rosa/ciclos/ciclo-01-breu.conf",
+        "professores/redinha-rosa/ciclos/ciclo-01-breu.fipp",
+        "professores/redinha-rosa/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:redinha-rosa/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "redinha-rosa",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:redinha-rosa/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/redinha-rosa/ciclos/ciclo-01-breu.fipp",
+      "professor": "redinha-rosa",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:redinha-rosa/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/redinha-rosa/ciclos/ciclo-01-breu.conf",
+      "professor": "redinha-rosa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/redinha-rosa/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:redinha-rosa/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/redinha-rosa/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "redinha-rosa",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:redinha-rosa/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-07T16:03:29.499378+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-14T01:16:40.127242+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-07T22:20:14.189Z",
     "expurgos": 8,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "colo-de-pe",
+    "professor": "redinha-rosa",
     "professores": [
-      "cafe-no-bule",
-      "colo-de-pe",
-      "coqui-de-redinha",
-      "luz-azul",
-      "pe-torto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "redinha-rosa"
     ],
     "registros": [],
     "slug": "breu"
@@ -39,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:redinha-rosa/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:redinha-rosa/01/breu"
+        ],
+        "rotulo": "redinha-rosa",
+        "valor": "redinha-rosa"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:redinha-rosa/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "0a87b50"
+    "commit": "6bce72b"
   },
-  "gerado_em": "2026-11-12T17:52",
+  "gerado_em": "2026-11-14T01:16",
   "nao_indexado": [
     {
       "familia": "conteudo",

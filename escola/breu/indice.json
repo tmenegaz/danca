@@ -3,10 +3,10 @@
   "worker": "breu",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "colo-de-pe",
-    "nome": "Colo De Pe"
+    "slug": "redinha-rosa",
+    "nome": "Redinha Rosa"
   },
-  "responsavel": "Colo De Pe",
+  "responsavel": "Redinha Rosa",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -668,6 +668,20 @@
       "professor_anterior": {
         "slug": "coqui-de-redinha",
         "nome": "Coqui De Redinha"
+      }
+    },
+    {
+      "em": "2026-11-14T01:16:40.127242+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "redinha-rosa",
+        "nome": "Redinha Rosa"
+      },
+      "responsavel": "Redinha Rosa",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "colo-de-pe",
+        "nome": "Colo De Pe"
       }
     }
   ],
