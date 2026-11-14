@@ -117,6 +117,7 @@
       "nome": "breu",
       "professor": "redinha-rosa",
       "professores": [
+        "prova-do-shard",
         "redinha-rosa"
       ],
       "registros": [],
@@ -250,6 +251,11 @@
         "valor": "pe-torto"
       },
       {
+        "contagem": 1,
+        "rotulo": "Prova Do Shard",
+        "valor": "prova-do-shard"
+      },
+      {
         "contagem": 0,
         "rotulo": "rabo-gramde",
         "valor": "rabo-gramde"
@@ -280,9 +286,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a2f6ad4"
+    "commit": "f375fd3"
   },
-  "gerado_em": "2026-11-14T15:24",
+  "gerado_em": "2026-11-14T15:25",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -341,6 +347,15 @@
       "id": "professor:pe-torto",
       "nome": "Pe Torto",
       "slug": "pe-torto"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:prova-do-shard",
+      "nome": "Prova Do Shard",
+      "slug": "prova-do-shard"
     },
     {
       "ciclos": [],
