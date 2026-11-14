@@ -14,6 +14,30 @@ out/
 img/
 
 # ============================================================================
+# docs/ — diagnóstico do ambiente assistido por IA (14/11/2026)
+# ============================================================================
+# Os documentos de `docs/` são LEITURA do ambiente, não fonte do projeto: mapeiam
+# a arquitetura operacional (VS Code, Copilot, extensão DeepSeek, MCP, formatos de
+# sessão) e citam caminhos, esquemas internos e trechos de configuração da máquina.
+# Ficam fora do Git por três motivos, e o terceiro é o que decide:
+#
+#   · não são fonte de nada — nenhum script, hash FIPP, pacote ou publicação os lê;
+#   · descrevem o AMBIENTE, não o projeto, e por isso envelhecem em dias;
+#   · um deles (`resposta-get-me.md`) contém dados pessoais da conta GitHub do
+#     titular (e-mail, nome, localização) porque registra a resposta de uma
+#     chamada real. Versionar isso põe dado pessoal no histórico do Git, de onde
+#     não sai com um `git rm`.
+#
+# Se algum dia um destes documentos passar a ser fonte de verdade do projeto, ele
+# NÃO deve ser desbloqueado por um `git add -f`: a exceção se declara aqui, como em
+# `experimentos/` — `!docs/<arquivo>.md` — e o arquivo passa a ser revisado como
+# fonte. Enquanto for leitura do ambiente, fica fora.
+#
+# O diretório continua a existir no disco e é escrito normalmente; isto só impede
+# que entre em commit.
+docs/
+
+# ============================================================================
 # Credenciais — NUNCA versionar
 # ============================================================================
 # As credenciais do Cloudflare NÃO ficam em arquivo versionado nem em arquivo
