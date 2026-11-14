@@ -44243,3 +44243,51 @@ com a senha da direção, e o painel `danca.padd.com.br/api/escolas` responde 20
 - **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
   `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
   `tools/.escolas-teste`.
+
+## 13/11/2026 — A `breu` nasce pelo painel, e o endereço próprio não sai
+
+**O que a pesquisadora fez.** Criou a segunda escola de teste pelo painel. A escola
+**existe e funciona**: `https://breu.tmenegaz77.workers.dev/` serve a página
+(`data-escola-teste="3"`), as APIs da direção respondem 200 com a senha de teste, e o
+`criar-escola.yml` correu os dez passos e commitou o scaffold (`379c6255`) — `wrangler.breu.jsonc`,
+o pacote `ciclo-01-breu`, a âncora `.fipp` e os índices.
+
+**O que não saiu: o endereço próprio.** `breu.padd.com.br` **não resolve**, e a zona `padd.com.br`
+continua com duas rotas (`danca`, `calango`) e nenhuma para a `breu`. A causa está medida, não
+suposta: o `CLOUDFLARE_API_TOKEN` desta casa é válido (`/user/tokens/verify` → `active`), lê a zona
+(`/zones?name=padd.com.br` → 200) e gere rotas — mas **`dns_records` responde 403**. O primeiro
+passo de `ligarDominio` é o registo DNS, e é ele que não passa; a rota nem chega a ser tentada
+(`motor/servidor/dominio-da-escola.js`, `ligarDominio` devolve antes de `garantirRota`). Sem
+registo DNS, aliás, a rota seria inútil: `padd.com.br` **não tem curinga de DNS** (conferido:
+`zzz-nao-existe-9f2.padd.com.br` não resolve), pelo que cada escola precisa do seu registo.
+
+**O que falta, e é um clique.** Acrescentar **`Zone → DNS → Edit`**, com `padd.com.br` no âmbito,
+ao token que a raiz usa. É a mesma dica que a página já mostrava quando a escola nasceu
+(«Endereço próprio: PENDENTE») e que a prova `provar-dominio-da-escola` já antecipava. Depois
+disso, `node tools/publicar-dominio.js` fecha a `breu` — e as escolas seguintes nascem com o
+endereço sem ninguém ir ao painel.
+
+**E um defeito que apareceu de borla: os comentários do `wrangler` gerado nasciam com buracos.**
+O heredoc de `tools/criar-escola.sh` que escreve o `wrangler.<escola>.jsonc` é **sem aspas** — é o
+que deixa as variáveis chegarem lá —, e num heredoc sem aspas a **crase é substituição de
+comando**. Resultado no ficheiro da `breu`: `` `publicacao/breu/` `` foi **executado** como
+comando, falhou em silêncio, e a documentação saía assim: «Aqui esteve , e era ela»; «Os scripts
+GERADOS pelo motor moram em , fora do alcance». Sete trechos de comentário apagados, e ordens
+inventadas a partir de texto de comentário.
+
+- **A correção:** as crases dos comentários levam barra invertida (o padrão que o resumo do fim do
+  mesmo script já usava), e uma nota acima do heredoc diz por quê. O `wrangler.breu.jsonc` foi
+  **regenerado do template** e o resultado é **idêntico byte a byte** ao ficheiro versionado — a
+  prova de que o template voltou a ser a fonte.
+- **O comentário desactualizado também saiu:** «muda só o name, o assets.directory e o routes»
+  passou a dizer que a **rota** não vive na config, e sim em `dominio-da-escola.js`, no
+  provisionamento. O `routes` desapareceu da config em 13/11 e o comentário ficou a mentir.
+- **Motivo declarado** (o `tools/` é congelado): um comentário que se apaga sozinho não é
+  cosmético — é a documentação de um arquivo de infraestrutura a chegar ao repositório já
+  errada, e ninguém sabe porquê.
+
+**As credenciais da `breu`** entraram no ficheiro local (`LOGIN_BREU`, `LOGIN_REDINHA_ROSA`) e o
+professor dela em `tools/.escolas-teste`; `bash tools/hooks/pre-push` → ok, 5 senhas conferidas.
+
+**Pendente.** A `batata` — a terceira escola de teste — ainda não existe como Worker. Sem as três,
+a bateria de dez gestos do `PLANO-SHARD.md` §4 fica a faltar uma perna.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T21:24:30-0300`
-Commit atual: `c0ff515e` — feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
+Gerado em: `2026-11-13T22:22:07-0300`
+Commit atual: `379c6255` — feat(estrutura): criar a escola breu (motor completo)
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -55,7 +55,7 @@ dedao-aberto
 pe-torto
 rabo-gramde
 redinha-rosa (6)
-- **Ciclos com manifesto:** 5 variante(s)
+- **Ciclos com manifesto:** 6 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -73,6 +73,8 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+379c6255 feat(estrutura): criar a escola breu (motor completo)
+6bce72b5 docs(estrutura): as senhas de teste entram no ficheiro local, e o push deixa de ser barrado
 c0ff515e feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
 ece0fa53 audit(experimentos): a bancada ao vivo do domínio — o elo que a prova de mentira não alcança
 737e08c2 feat(estrutura): a escola nasce com endereço próprio, e o expurgo leva-o consigo
@@ -91,8 +93,6 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 93dff71e docs(estrutura): a identidade do professor fica declarada, e o recorte vira aviso
 9ae74482 docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
 847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
-68fb3605 docs(estrutura): as quatro respostas do agente, e a quarta superficie que nao existe
-0a4407a7 docs(registro): a conferencia em producao da cadeia, que faltava
 ```
 
 ## Por professor
@@ -121,7 +121,21 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 
 ### rabo-gramde — 0 ciclo(s)
 
-### redinha-rosa — 0 ciclo(s)
+### redinha-rosa — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu, calango-piano, calango-rosa
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+| calango | ciclo-01-calango-piano-po.md | Input_PO_Aguardando | 1 |
+| calango | ciclo-01-calango-rosa-po.md | Input_PO_Aguardando | 1 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `0f95afdfe4a7` | (vazio) | — |
+| calango-piano | ciclo-01-calango-piano.fipp | `7f65c6a43880` | (vazio) | Input_PO_Aguardando |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `10c1bb9e8584` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -170,60 +184,53 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
+## 13/11/2026 — A `breu` nasce pelo painel, e o endereço próprio não sai
 
-**O que aconteceu.** Com as escolas de teste a nascer, a pesquisadora guardou as credenciais em
-`tools/.senhas-locais` (local, fora do Git, modo 600) e passou-as ao agente. Ao correr o
-`pre-push` para conferir, o push estava **barrado** — e por dois falsos positivos que valem a pena
-registar, porque a causa não era a senha ser fraca: era o **nome** da linha.
+**O que a pesquisadora fez.** Criou a segunda escola de teste pelo painel. A escola
+**existe e funciona**: `https://breu.tmenegaz77.workers.dev/` serve a página
+(`data-escola-teste="3"`), as APIs da direção respondem 200 com a senha de teste, e o
+`criar-escola.yml` correu os dez passos e commitou o scaffold (`379c6255`) — `wrangler.breu.jsonc`,
+o pacote `ciclo-01-breu`, a âncora `.fipp` e os índices.
 
-| linha | valor | porque barrava |
-|:--|:--|:--|
-| `SENHA_ESCOLA` | `123` | o sujeito virava «escola» (genérico, não é teste nem escola) e `123` aparece em **67** ficheiros — «123 px», «L12378», «decisão 123» |
-| `LOGIN_DANCA` | o **utilizador** do painel | não era uma senha: era `tmenegaz`-como-nome-de-entrada, e o hook confere o VALOR de cada linha. A palavra «danca» está em **105** ficheiros (o repositório chama-se assim) |
+**O que não saiu: o endereço próprio.** `breu.padd.com.br` **não resolve**, e a zona `padd.com.br`
+continua com duas rotas (`danca`, `calango`) e nenhuma para a `breu`. A causa está medida, não
+suposta: o `CLOUDFLARE_API_TOKEN` desta casa é válido (`/user/tokens/verify` → `active`), lê a zona
+(`/zones?name=padd.com.br` → 200) e gere rotas — mas **`dns_records` responde 403**. O primeiro
+passo de `ligarDominio` é o registo DNS, e é ele que não passa; a rota nem chega a ser tentada
+(`motor/servidor/dominio-da-escola.js`, `ligarDominio` devolve antes de `garantirRota`). Sem
+registo DNS, aliás, a rota seria inútil: `padd.com.br` **não tem curinga de DNS** (conferido:
+`zzz-nao-existe-9f2.padd.com.br` não resolve), pelo que cada escola precisa do seu registo.
 
-**O que foi decidido.**
+**O que falta, e é um clique.** Acrescentar **`Zone → DNS → Edit`**, com `padd.com.br` no âmbito,
+ao token que a raiz usa. É a mesma dica que a página já mostrava quando a escola nasceu
+(«Endereço próprio: PENDENTE») e que a prova `provar-dominio-da-escola` já antecipava. Depois
+disso, `node tools/publicar-dominio.js` fecha a `breu` — e as escolas seguintes nascem com o
+endereço sem ninguém ir ao painel.
 
-- **Uma linha por sujeito, com o prefixo certo.** `LOGIN_CALANGO` (direção) e `LOGIN_PE_TORTO`
-  (professor) — o sujeito sai do nome, e é ele que a isenção usa. As senhas de teste são iguais em
-  todas as escolas de teste, mas as linhas são por sujeito: é isso que faz a isenção funcionar sem
-  abrir uma porta global.
-- **`tools/.escolas-teste` deixou de estar vazia.** Declara `calango`, `batata`, `breu` e
-  `pe-torto`. Estava vazia, e por isso nenhuma senha de teste era isentada. O ficheiro é local (fora
-  do Git), como as senhas.
-- **O utilizador do painel vai em comentário.** Ele não é segredo e não é senha; guardá-lo como
-  linha transformava o nome do repositório num «segredo exposto». A senha do painel entrou como
-  `LOGIN_PAINEL`.
-- **A regra fica escrita no exemplo** (`tools/.senhas-locais.exemplo`), para não voltar: *toda
-  linha deste ficheiro tem de ser uma senha*; um utilizador vai ao lado, em comentário.
+**E um defeito que apareceu de borla: os comentários do `wrangler` gerado nasciam com buracos.**
+O heredoc de `tools/criar-escola.sh` que escreve o `wrangler.<escola>.jsonc` é **sem aspas** — é o
+que deixa as variáveis chegarem lá —, e num heredoc sem aspas a **crase é substituição de
+comando**. Resultado no ficheiro da `breu`: `` `publicacao/breu/` `` foi **executado** como
+comando, falhou em silêncio, e a documentação saía assim: «Aqui esteve , e era ela»; «Os scripts
+GERADOS pelo motor moram em , fora do alcance». Sete trechos de comentário apagados, e ordens
+inventadas a partir de texto de comentário.
 
-**Com o quê.** `bash tools/hooks/pre-push` → **ok**, 3 senhas conferidas, `LOGIN_CALANGO` isenta
-como sujeito de teste. E as credenciais foram **exercidas ao vivo**, que é o que interessa:
-`/api/bastidores/alunas|professores|turmas|linhas-de-base` em `calango.padd.com.br` respondem 200
-com a senha da direção, e o painel `danca.padd.com.br/api/escolas` responde 200 com
-`utilizador: tmenegaz`.
+- **A correção:** as crases dos comentários levam barra invertida (o padrão que o resumo do fim do
+  mesmo script já usava), e uma nota acima do heredoc diz por quê. O `wrangler.breu.jsonc` foi
+  **regenerado do template** e o resultado é **idêntico byte a byte** ao ficheiro versionado — a
+  prova de que o template voltou a ser a fonte.
+- **O comentário desactualizado também saiu:** «muda só o name, o assets.directory e o routes»
+  passou a dizer que a **rota** não vive na config, e sim em `dominio-da-escola.js`, no
+  provisionamento. O `routes` desapareceu da config em 13/11 e o comentário ficou a mentir.
+- **Motivo declarado** (o `tools/` é congelado): um comentário que se apaga sozinho não é
+  cosmético — é a documentação de um arquivo de infraestrutura a chegar ao repositório já
+  errada, e ninguém sabe porquê.
 
-**O que se confirmou de caminho.**
+**As credenciais da `breu`** entraram no ficheiro local (`LOGIN_BREU`, `LOGIN_REDINHA_ROSA`) e o
+professor dela em `tools/.escolas-teste`; `bash tools/hooks/pre-push` → ok, 5 senhas conferidas.
 
-- **`calango.padd.com.br` está no ar**: `/api/saude` devolve `{"tipo":"escola","slug":"calango",
-  "origem":"mapa","por":"rotulo","escola_do_pacote":"calango"}`, e `/` serve a página com
-  `data-escola-teste="1"`. O registo DNS que faltava foi criado, e a rota que já existia passou a
-  servir — como previsto.
-- **A zona `padd.com.br` tem agora duas rotas explícitas** (`danca.padd.com.br/*` → `danca` e
-  `calango.padd.com.br/*` → `calango`) e **nenhuma curinga**. O risco silencioso registado na
-  entrada anterior está fechado.
-- **A leitura da lista de alunas não pede senha, e é de propósito** (está escrito em
-  `motor/servidor/bastidores.js`, rota `/api/bastidores/alunas` sem recorte): é a lista de
-  apelidos estáveis que a Produção carrega antes de haver professor escolhido. Não é um vazamento —
-  é a decisão que já estava tomada, e ficou conferida.
-
-**O que ainda não está feito.**
-
-- **A permissão `Zone → DNS → Edit` no token local continua em falta** (403). O token do Worker é
-  outro, e a primeira escola criada pelo painel dirá se ele a tem.
-- **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
-  `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
-  `tools/.escolas-teste`.
+**Pendente.** A `batata` — a terceira escola de teste — ainda não existe como Worker. Sem as três,
+a bateria de dez gestos do `PLANO-SHARD.md` §4 fica a faltar uma perna.
 
 ## O que está pendente
 
@@ -720,6 +727,9 @@ com a senha da direção, e o painel `danca.padd.com.br/api/escolas` responde 20
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
+- PO de **redinha-rosa · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- PO de **redinha-rosa · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

@@ -2,7 +2,8 @@
 //
 // UM PROJETO POR ESCOLA — irmão dos wrangler.<escola>.jsonc: mesmo código
 // (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
-// escola) — muda só o name, o assets.directory, o ESCOLA_SLUG e o routes.
+// escola) — muda só o name e o assets.directory. A ROTA não está aqui (13/11/2026): quem a
+// cria é `motor/servidor/dominio-da-escola.js`, no provisionamento.
 // Gerado por tools/criar-escola.sh.
 
 {

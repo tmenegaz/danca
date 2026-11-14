@@ -83,7 +83,7 @@ FLAGS:
   --somente-indice          SÓ regenera a apresentação (index.html) de um pacote que já
                             existe — usa os manifestos como estão e não toca em mais nada
   --somente-porta           SÓ regenera a PORTA (plano-observacao/) de um pacote que já
-                            existe: recopia `porta/` e reinjeta a barra. Para quando a porta
+                            existe: recopia \`porta/\` e reinjeta a barra. Para quando a porta
                             muda e os pacotes ficam velhos
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
   --nao-interativo          não pergunta: erro se faltar obrigatório
@@ -675,13 +675,22 @@ echo "  pacote zero: $PACOTE_DIR (índice + plano-observacao/ + assets)"
 # ---------------------------------------------------------------------------
 # 6) Config do Worker (um projeto por escola)
 # ---------------------------------------------------------------------------
+# AS CRASES DOS COMENTÁRIOS VÃO ESCAPADAS (13/11/2026). Este heredoc é SEM aspas — é o que
+# deixa o nome, o professor, o ciclo e o assets.directory receberem as variáveis —, e num
+# heredoc sem aspas a crase é SUBSTITUIÇÃO DE COMANDO. O resultado medido na escola `breu`:
+# `publicacao/breu/` foi executado como comando, falhou, e o comentário saiu com um BURACO
+# («Aqui esteve , e era ela»). A documentação do ficheiro gerado perdia-se em silêncio, e o
+# que sobrava eram ordens inventadas a partir de texto de comentário. Crase aqui dentro leva
+# barra invertida — como já se fazia no resumo, no fim deste script.
 cat > "$WRANGLER" <<EOF
 // Cloudflare Worker da escola $ESCOLA_NOME (professor $PROFESSOR) — ciclo $CICLO.
 //
 // UM PROJETO POR ESCOLA — irmão dos wrangler.<escola>.jsonc: mesmo código
 // (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
-// escola) — muda só o name, o assets.directory e o routes. A ESCOLA não está aqui: vem do
-// mapa em KV, e é o que deixa a identidade de depender do deploy.
+// escola) — muda só o name e o assets.directory. A ESCOLA não está aqui: vem do
+// mapa em KV, e é o que deixa a identidade de depender do deploy. A ROTA também não
+// está aqui (13/11/2026): quem a cria é \`motor/servidor/dominio-da-escola.js\`, no
+// provisionamento — um sítio só, e não um sítio por deploy.
 // Gerado por tools/criar-escola.sh.
 
 {
@@ -698,15 +707,15 @@ cat > "$WRANGLER" <<EOF
   // "professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA" — o pacote-zero, que é a apresentação do
   // sistema e não tem DOCS: o site nascia sem Ciclo nem Aulas, e o ciclo gerado (que sai ao lado,
   // em ciclo-NN-<escola>-<turma>/) nunca aparecia. Foi assim com a breu, com a batata e com o
-  // calango. `publicacao/$ESCOLA/` é montado por tools/montar-publicacao.js: o índice das
+  // calango. \`publicacao/$ESCOLA/\` é montado por tools/montar-publicacao.js: o índice das
   // turmas, a apresentação, a porta e um subdirectório por pacote. Não é versionado.
-  // OS ASSETS NÃO PRECISAM DE INVOCAR O WORKER (13/11/2026). `true` aqui fazia o CSS, o
-  // `nav.js` e o favicon gastarem uma invocação cada — e o plano gratuito cobra 100.000 por dia
+  // OS ASSETS NÃO PRECISAM DE INVOCAR O WORKER (13/11/2026). \`true\` aqui fazia o CSS, o
+  // \`nav.js\` e o favicon gastarem uma invocação cada — e o plano gratuito cobra 100.000 por dia
   // e conta cada uma, enquanto um asset servido pelo ASSETS é grátis e ilimitado. As duas
-  // negativas (precedência sobre `/*`) mandam os assets direto para o ASSETS: a pasta de cada
+  // negativas (precedência sobre \`/*\`) mandam os assets direto para o ASSETS: a pasta de cada
   // pacote, e a dos prefixos da porta. O HTML e o motor continuam no Worker, que é quem injeta a
-  // aparência da escola e o freio. Os scripts GERADOS pelo motor moram em `/scripts/`, fora do
-  // alcance destas regras — ver `motor/servidor/producao.js`.
+  // aparência da escola e o freio. Os scripts GERADOS pelo motor moram em \`/scripts/\`, fora do
+  // alcance destas regras — ver \`motor/servidor/producao.js\`.
   "assets": {
     "directory": "publicacao/$ESCOLA",
     "binding": "ASSETS",
@@ -718,9 +727,9 @@ cat > "$WRANGLER" <<EOF
     ]
   },
 
-  // A ESCOLA NÃO SE DECLARA AQUI (13/11/2026). Aqui esteve `"ESCOLA_SLUG": "$ESCOLA"`, e era ela
-  // que dizia de quem era o Worker. Passa a vir do mapa `escolas/por-host`, em KV
-  // (`motor/servidor/mapa-de-escolas.js`), que o workflow publica ANTES deste deploy — a ordem é
+  // A ESCOLA NÃO SE DECLARA AQUI (13/11/2026). Aqui esteve \`"ESCOLA_SLUG": "$ESCOLA"\`, e era ela
+  // que dizia de quem era o Worker. Passa a vir do mapa \`escolas/por-host\`, em KV
+  // (\`motor/servidor/mapa-de-escolas.js\`), que o workflow publica ANTES deste deploy — a ordem é
   // a única que não cria uma escola sem ninguém que a reclame.
   "vars": {
     "ESCOLA_HABILITADA": "sim"
