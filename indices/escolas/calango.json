@@ -219,7 +219,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-12",
+        "ancorado_em": "2026-11-14",
         "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.fipp",
         "cobertura": [
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -240,7 +240,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-11",
+        "ancorado_em": "2026-11-14",
         "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
         "cobertura": [
           "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -391,7 +391,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-12",
+        "ancorado_em": "2026-11-14",
         "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.fipp",
         "cobertura": [
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -403,10 +403,11 @@
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-plano.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-po.md",
           "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-referencias.md",
-          "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf"
+          "professores/redinha-rosa/ciclos/ciclo-01-calango-piano.conf",
+          "professores/redinha-rosa/ciclos/ciclo-01.conf"
         ],
-        "hash": "7f65c6a438800b9563527da023b40d6a29f8477898b5852d13b1b67917cde843",
-        "hash_conteudo": "7bbf1a85199375835b7c373816282e7325fe8854f5b30fe516459909afcacc8a",
+        "hash": "57107e53fdc1b97531f7d5e1f13f01092191c89acab0d42b7a2738cc6dc17864",
+        "hash_conteudo": "8c0a6044625e7c92613a3bae732cc151f779b711972a2d96d7c81c3380f6c3c0",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -415,7 +416,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-12",
+            "ancorado_em": "2026-11-14",
             "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.fipp",
             "cobertura": [
               "professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md",
@@ -435,7 +436,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-11",
+            "ancorado_em": "2026-11-14",
             "caminho": "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.fipp",
             "cobertura": [
               "professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md",
@@ -1497,9 +1498,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "aa1bbdf"
+    "commit": "2810d1b"
   },
-  "gerado_em": "2026-11-14T13:26",
+  "gerado_em": "2026-11-14T13:46",
   "nao_indexado": [
     {
       "familia": "conteudo",

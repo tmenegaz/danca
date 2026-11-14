@@ -14,7 +14,7 @@ hash_conteudo: dca3c0475084a96c835c513731d1fe15972126fa0cd3658a242dd5a03f97ce6b
 parentHash: 
 hash: eb48c38bffa069bf064d9d616bf331696702dabf08587ae90154f378cb5ad184
 algoritmo: SHA-256
-ancorado_em: 2026-11-11
+ancorado_em: 2026-11-14
 cobertura:
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-aula-01.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-captura-aula-01.md

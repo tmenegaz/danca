@@ -10,13 +10,13 @@ type: Ciclo
 professor: Redinha Rosa
 ciclo: 01
 variante: calango-rosa
-hash_conteudo: 1de876c629954f7c3de8069997bd1b7f8056ca6f8ca0d5ef6fbd0792e3fe70fc
+hash_conteudo: 860913302865ba29d1829e416f90455b7cdf15b7f5a6f918c08752f0c820b3d5
 parentHash: 
-hash: 10c1bb9e85841cb3614ac8e9e28b212b31e032b2842f51e5ac10eebee240ff17
+hash: c129683be3dbc3ea25ac2bc2248963389cd6b96fb9bbb2b396fe63f75a395288
 algoritmo: SHA-256
 po: professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-11-11
+ancorado_em: 2026-11-14
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
@@ -33,3 +33,4 @@ cobertura:
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-po.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa-referencias.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-rosa.conf
+  - professores/redinha-rosa/ciclos/ciclo-01.conf
