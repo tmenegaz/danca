@@ -44582,3 +44582,53 @@ uma corrida: a pasta `professores/prova-do-shard/` (cinco `*-schema.json` do mol
 desligamento no elo da `breu`. É proveniência, e é o comportamento certo — mas é ruído, e fica
 declarado aqui para que ninguém o leia como escola a mais. Uma corrida repetida **não** duplica a
 pasta: o sujeito é o mesmo (`prova-do-shard`), e o cadastro reactiva em vez de criar.
+
+## 14/11/2026 — O shard foi construído, medido, e desligado: o canário achou o que faltava
+
+**O que foi feito.** O passo 2 do `PLANO-SHARD.md` deixou de ser plano. O primeiro Worker a servir
+**mais de uma escola** existe — `lastro-teste`, configurado por `wrangler.lastro-teste.jsonc` —, e
+as três escolas de teste correram por ele.
+
+**O que mudou no código, e porquê.**
+
+- `motor/servidor/producao.js`: uma noção explícita de **árvore**. `prefixoDaArvore` devolve `''`
+  num Worker de uma escola e `/<escola>` num shard, e é a **var** `PACOTE_PARTILHADO` que o diz —
+  não uma inferência («não há `/escola.json` na raiz, logo é shard»), que confundiria um pacote
+  incompleto com um shard. `caminhoNaArvore` reescreve o caminho; `ehAssetPartilhado` impede a
+  reescrita de `/assets/…`.
+- As **cache passaram a ser por escola** (`Map` de prefixo). Uma cache de valor único num isolate
+  que serve N escolas responderia pelo `escola_do_pacote` da primeira a todas as outras — seria a
+  própria conferência de identidade a produzir o defeito que existe para apanhar.
+- `tools/montar-publicacao.js`: escreve a **cópia partilhada** `publicacao/assets/`, e
+  **recusa-se a unificar** folhas que divirjam — diz de quem é a que ficou. Uma escola com folha
+  própria é decisão legítima; o que não pode é ser tomada por omissão. (Medido: as três são byte a
+  byte iguais.)
+
+**O que o canário mediu.** A bateria de §4 corrida **pelo shard: 49/49**, as mesmas 49 de três
+Workers. E o custo, com `wrangler tail`: `/`, `/aulas/`, `/ciclos/planos/` invocaram;
+`/assets/style.css` e `/assets/nav.js` **não** — **1 invocação por página**, que é exactamente o
+que a entrada de 13/11 tinha ganho e que o shard podia ter perdido.
+
+**O que ele revelou, e é a razão de isto ficar registado como um passo e não como uma vitória:**
+**os segredos são por Worker, e a identidade da escola mora neles.** `PROFESSOR_NOME`,
+`PROFESSOR_SLUG`, `SENHA_ADMIN`, `SENHA_PROFESSOR` e `SENHA_CRIPTO` são **um valor por Worker**;
+num shard passam a ser um valor para N escolas. A prova visível, em `calango`: pelo Worker dela,
+`/api/bastidores/professores` lista **Pe Torto** (o dono, que vem do segredo) e Redinha Rosa; pelo
+shard, lista **só Redinha Rosa**. O dono desaparece da lista e a guarda que impede excluí-lo fica
+desligada (`nomeDoDono` devolve vazio). O **dado** continua isolado (as chaves do KV são
+prefixadas por escola) — é a **identidade** que não sobrevive.
+
+**Por isso as rotas voltaram aos Workers por escola no mesmo dia.** O `lastro-teste` fica
+implantado e **sem tráfego**: é bancada. Deixá-lo ligado teria três escolas de teste a servir com
+o dono errado, em silêncio — e é o silêncio que este projeto não aceita. Restaurado e conferido: os
+três `/api/saude` dizem a escola certa, e o `calango` volta a listar Pe Torto.
+
+**O que fica a faltar, dito por inteiro:** os segredos por escola têm de sair do `env` do Worker e
+passar a ser lidos do KV, com uma chave mestra. É a peça que o plano não tinha, e ela só apareceu
+porque o canário foi corrido — que é precisamente para isso que ele existe.
+
+**E o que fica a funcionar melhor do que antes:** `provar-arvore-do-shard` (20 asserções, sem rede)
+mede as duas decisões de caminho isoladamente, com controle negativo (fora do shard, **nenhum**
+caminho muda — se mudasse, este código teria alterado três sites no dia em que foi escrito).
+`provar-escola-por-host` 21/21, `provar-isolamento-entre-escolas` 25/25, `provar-painel` e
+`provar-dominio-da-escola` 36/36 continuam verdes.

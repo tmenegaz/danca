@@ -2,9 +2,10 @@
 
 > **Status.** O **passo 1 está feito** (13/11/2026): a escola deixou de ser `var` de deploy e passou
 > a vir do mapa `escolas/por-host`, em KV, com cache de isolate — ver a entrada do `REGISTRO.md` de
-> 13/11/2026. O **passo 2 não começou**, e não começa por falta de decisão: começa quando houver
-> **três escolas** no ar (as duas de teste que faltam), porque o que ele muda é o endereço de tudo
-> e o que o detecta é dado real, não bancada vazia.
+> 13/11/2026. O **passo 2 foi construído e medido** (14/11/2026) com as três escolas de teste: a
+> árvore, a reescrita e o custo funcionam, e a bateria de §4 corre 49/49 por um Worker só — ver
+> §4.1. Ele **não está ligado**: o canário revelou que os segredos são por Worker e que a
+> identidade da escola mora neles, e essa peça falta. As rotas voltaram aos Workers por escola.
 >
 > **A decisão de endereço, tomada.** `<escola>.padd.com.br` — **por host, não por prefixo**. É a
 > forma como o Cloudflare funciona (`escola.domínio`), e é a que **não mexe em nenhum caminho
@@ -241,6 +242,45 @@ de verdade. A lista concreta, para não depender da memória:
 
 O que já está provado e não precisa de ser repetido à mão: `provar-isolamento-entre-escolas`
 (25/25), `provar-escola-por-host` (20/20) e `provar-assets-sem-worker` (38/38).
+
+---
+
+## 4.1 O QUE O CANÁRIO MEDIU (14/11/2026) — e o buraco que ele revelou
+
+O shard foi construído e exercido, não imaginado. `wrangler.lastro-teste.jsonc` é o primeiro
+Worker que serve três escolas, e a bateria de §4 correu **49/49** por ele — as mesmas 49 que
+corriam por três Workers. As rotas de `calango`, `breu` e `batata` foram movidas para ele e
+**devolvidas** depois (ver o fim desta secção).
+
+**O que ficou provado.** A resolução por host (`origem: "mapa"`), a reescrita da árvore
+(`/aulas/` → `/calango/aulas/`), o `escola.json` e o `nav.json` lidos da subárvore certa (as
+cache passaram a ser **por escola** — uma cache de valor único num isolate que serve N escolas
+responderia pela primeira a todas), as escritas isoladas por escola, e o custo: **1 invocação por
+página** (`/`, `/aulas/`, `/ciclos/planos/` invocaram; `/assets/style.css` e `/assets/nav.js`
+não), medido com `wrangler tail`.
+
+**O buraco, medido e não suposto: os SEGREDOS são por Worker, e a identidade da escola mora lá.**
+
+| segredo | o que é | num shard |
+|:--|:--|:--|
+| `PROFESSOR_NOME` / `PROFESSOR_SLUG` | quem é o professor dono | **um valor para N escolas** |
+| `SENHA_ADMIN` / `SENHA_PROFESSOR` | as senhas de acesso | idem |
+| `SENHA_CRIPTO` | a chave que cifra os dados da escola | idem — e é a que **não pode** ser partilhada |
+
+A prova visível, em `calango`: pelo Worker dela, `/api/bastidores/professores` lista **Pe Torto**
+(o dono, que vem do segredo) e Redinha Rosa. Pelo shard, lista **só Redinha Rosa** — o dono
+desaparece da lista, e a guarda que impede excluir o dono fica desligada (`nomeDoDono` devolve
+vazio). Nada disto se nota nos dados: as chaves do KV são prefixadas por escola e continuam
+isoladas. É a **identidade**, não o dado.
+
+**Por isso as rotas foram devolvidas** aos Workers por escola no mesmo dia. O shard fica
+implantado e sem tráfego — é bancada, não produção. Deixá-lo ligado teria três escolas de teste a
+servir com o dono errado, em silêncio, e «em silêncio» é o que este projeto não aceita.
+
+**O que isto exige antes de qualquer shard com escolas reais:** os segredos por escola têm de sair
+do `env` do Worker e passar a ser lidos do KV (cifrados com uma chave mestra) — a mesma migração
+que `SENHA_ADMIN`, `SENHA_PROFESSOR`, `SENHA_CRIPTO`, `PROFESSOR_NOME` e `PROFESSOR_SLUG` pedem.
+É a peça que faltava ao plano, e ela só apareceu porque o canário foi corrido.
 
 ---
 

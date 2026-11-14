@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-14T12:26:33-0300`
-Commit atual: `767aa3b2` — feat(estrutura): criar a escola batata (motor completo)
+Gerado em: `2026-11-14T18:36:24-0300`
+Commit atual: `9133a7fd` — docs(estrutura): os documentos do ambiente ficam fora do Git, e o motivo é o terceiro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -53,8 +53,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 coqui-de-redinha
 dedao-aberto
 pe-torto
+prova-do-shard
 rabo-gramde
-redinha-rosa (6)
+redinha-rosa (7)
 - **Ciclos com manifesto:** 7 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
@@ -73,26 +74,26 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
-767aa3b2 feat(estrutura): criar a escola batata (motor completo)
-5586f2ff style(estrutura): o comentário da raiz também não nomeia o endereço técnico
-8d9469a5 docs(estrutura): o endereço da escola é um só, e a navegação do painel também
-a2a43738 fix(estrutura): o elo da escola expurgada não diz que está habilitada
-0435ba1b feat(tools): o mapa de escolas ganha --podar, e o --check deixa de dar silêncio por concordância
-c2e8ad28 fix(template): o endereço que se mostra é o da escola, e a barra do painel não a duplica
-8532f70b fix(estrutura): o retry do índice faz o mesmo trabalho da primeira tentativa
-558c070b docs(estrutura): o expurgo da batata, conferido ponta a ponta
-d4d123e8 fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
-0a36e82f chore(estrutura): regerar os índices derivados
-2e49f5db chore(estrutura): reancorar a cadeia das fontes alteradas
-2810d1be chore(estrutura): expurgar a escola batata
-4ce58fc7 chore(estrutura): regerar os índices derivados
-aa1bbdf1 feat(acervo): envelope/.indice.json
-b0759245 feat(estrutura): criar a escola batata (motor completo)
-244a5bb6 feat(estrutura): o diagnóstico do endereço próprio, antes de a escola nascer
-f0e960a5 chore(estrutura): regerar os índices derivados
-529728ac fix(tools): os comentários do wrangler gerado param de nascer com buracos
-379c6255 feat(estrutura): criar a escola breu (motor completo)
-6bce72b5 docs(estrutura): as senhas de teste entram no ficheiro local, e o push deixa de ser barrado
+9133a7fd docs(estrutura): os documentos do ambiente ficam fora do Git, e o motivo é o terceiro
+41847234 docs(estrutura): o resíduo que a bateria deixa, dito por inteiro
+2e0f5509 audit(experimentos): a bateria de dez gestos do shard, corrida nas três escolas de teste
+ab5eea87 chore(estrutura): regerar os índices derivados
+f375fd3a feat(escola): a escola breu declara o professor prova-do-shard
+4ec21b1b feat(schema): os schemas do ciclo na pasta de prova-do-shard
+23f7f192 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+998bff98 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+839dd681 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+cc938ef7 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+8a250d0b chore(estrutura): regerar os índices derivados
+a2f6ad49 chore(estrutura): apagar o professor prova-do-shard
+cfca9115 feat(acervo): envelope/.indice.json
+e1e48bc1 feat(escola): a escola breu declara o professor prova-do-shard
+a1559c74 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+f27ae694 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+fbe1e3f5 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+8651cf70 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+873c4f94 feat(schema): os schemas do ciclo na pasta de prova-do-shard
+bc6a9a58 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -128,6 +129,8 @@ f0e960a5 chore(estrutura): regerar os índices derivados
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
 | calango-piano | ciclo-01-calango-piano.fipp | `6b8d6e01e215` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
+
+### prova-do-shard — 0 ciclo(s)
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -194,71 +197,55 @@ f0e960a5 chore(estrutura): regerar os índices derivados
 
 ## Última entrada do REGISTRO
 
-## 14/11/2026 — A bateria de dez gestos, corrida nas três escolas de teste
+## 14/11/2026 — O shard foi construído, medido, e desligado: o canário achou o que faltava
 
-**O que a pesquisadora decidiu.** Seguir para o teste do shard, agora que há três escolas vivas
-(`batata`, `breu`, `calango`), e que **eu** corresse a bateria pela API e ela conferisse. Mais uma
-decisão de desenho: no passo 2, **`/assets/` é uma cópia partilhada** por todas as escolas do shard.
+**O que foi feito.** O passo 2 do `PLANO-SHARD.md` deixou de ser plano. O primeiro Worker a servir
+**mais de uma escola** existe — `lastro-teste`, configurado por `wrangler.lastro-teste.jsonc` —, e
+as três escolas de teste correram por ele.
 
-**O que o estado dizia, medido antes de partir.** Quatro Workers (`batata`, `breu`, `calango`,
-`danca`), quatro registos `A` → `192.0.2.1` proxyados, quatro rotas, e o mapa com três escolas. A
-`batata` nasceu às 15:01 pelo painel, com endereço automático (`767aa3b2`) — **a primeira escola a
-nascer com o endereço sem ninguém ir ao Cloudflare**, que era o objectivo da tarefa anterior.
+**O que mudou no código, e porquê.**
 
-**Uma precisão que valia a pena, e vale registá-la.** O que existe hoje **não é um shard**: são
-três Workers, um por escola. O shard é um Worker a servir N escolas, e o que as três escolas dão é
-a **pré-condição** — dados reais, três hosts, e o canário que o `teste-fixtures.js` já declara pelo
-nome (`calango`→1, `batata`→2, `breu`→3). E o shard **não gera documentos em paralelo**: a geração
-é outra máquina; o que ele muda é onde os ficheiros vivem e quem os serve.
+- `motor/servidor/producao.js`: uma noção explícita de **árvore**. `prefixoDaArvore` devolve `''`
+  num Worker de uma escola e `/<escola>` num shard, e é a **var** `PACOTE_PARTILHADO` que o diz —
+  não uma inferência («não há `/escola.json` na raiz, logo é shard»), que confundiria um pacote
+  incompleto com um shard. `caminhoNaArvore` reescreve o caminho; `ehAssetPartilhado` impede a
+  reescrita de `/assets/…`.
+- As **cache passaram a ser por escola** (`Map` de prefixo). Uma cache de valor único num isolate
+  que serve N escolas responderia pelo `escola_do_pacote` da primeira a todas as outras — seria a
+  própria conferência de identidade a produzir o defeito que existe para apanhar.
+- `tools/montar-publicacao.js`: escreve a **cópia partilhada** `publicacao/assets/`, e
+  **recusa-se a unificar** folhas que divirjam — diz de quem é a que ficou. Uma escola com folha
+  própria é decisão legítima; o que não pode é ser tomada por omissão. (Medido: as três são byte a
+  byte iguais.)
 
-**A bateria existe como programa, e não como lista de cliques** — `experimentos/provar-bateria-do-shard.js`.
-O motivo está no ficheiro: ela tem de ser corrida **duas vezes** (três Workers, depois um Worker
-com três escolas), e uma segunda corrida feita à mão mediria a memória de quem clicou, não a
-topologia.
+**O que o canário mediu.** A bateria de §4 corrida **pelo shard: 49/49**, as mesmas 49 de três
+Workers. E o custo, com `wrangler tail`: `/`, `/aulas/`, `/ciclos/planos/` invocaram;
+`/assets/style.css` e `/assets/nav.js` **não** — **1 invocação por página**, que é exactamente o
+que a entrada de 13/11 tinha ganho e que o shard podia ter perdido.
 
-**Resultado: 49/49 asserções, e 4 gestos pendentes com motivo.** O que ficou provado, ao vivo:
+**O que ele revelou, e é a razão de isto ficar registado como um passo e não como uma vitória:**
+**os segredos são por Worker, e a identidade da escola mora neles.** `PROFESSOR_NOME`,
+`PROFESSOR_SLUG`, `SENHA_ADMIN`, `SENHA_PROFESSOR` e `SENHA_CRIPTO` são **um valor por Worker**;
+num shard passam a ser um valor para N escolas. A prova visível, em `calango`: pelo Worker dela,
+`/api/bastidores/professores` lista **Pe Torto** (o dono, que vem do segredo) e Redinha Rosa; pelo
+shard, lista **só Redinha Rosa**. O dono desaparece da lista e a guarda que impede excluí-lo fica
+desligada (`nomeDoDono` devolve vazio). O **dado** continua isolado (as chaves do KV são
+prefixadas por escola) — é a **identidade** que não sobrevive.
 
-| gesto | resultado |
-|:--|:--|
-| 1 · `/` pelo domínio próprio | 200 nas três, o título nomeia a escola, e `data-escola-teste` é 1/2/3 como o `teste-fixtures` manda |
-| 2 · `/aulas/`, `/ciclos/planos/`, um PDF | 200 nas três; o PDF vem como `%PDF` |
-| 3 · `/assets/style.css`, `/nav.js` | 200, e **byte a byte iguais nas três** — é o que autoriza a cópia partilhada do passo 2 |
-| 8 · turma: criar, editar, apagar | 201 → 200 → 200, na `batata`, que não tinha nenhuma |
-| 9 · professor: cadastrar, desligar, excluir | 200 → 200 → **409**, e a recusa é a regra (ver abaixo) |
-| 10 · `/api/saude` | `origem: "mapa"`, `slug` e `escola_do_pacote` iguais em cada host |
+**Por isso as rotas voltaram aos Workers por escola no mesmo dia.** O `lastro-teste` fica
+implantado e **sem tráfego**: é bancada. Deixá-lo ligado teria três escolas de teste a servir com
+o dono errado, em silêncio — e é o silêncio que este projeto não aceita. Restaurado e conferido: os
+três `/api/saude` dizem a escola certa, e o `calango` volta a listar Pe Torto.
 
-**A INVOCAÇÃO, MEDIDA E NÃO SUPOSTA.** Quatro pedidos ao `calango` (`/`, `/assets/style.css`,
-`/assets/nav.js`, `/aulas/`) com `wrangler tail` a correr: **duas invocações** — `/` e `/aulas/`. Os
-dois assets **não invocaram o Worker**. É o número da §2.2 do plano, agora medido no ar: hoje é
-**1 invocação por página**, e é isso que o shard tem de não perder.
+**O que fica a faltar, dito por inteiro:** os segredos por escola têm de sair do `env` do Worker e
+passar a ser lidos do KV, com uma chave mestra. É a peça que o plano não tinha, e ela só apareceu
+porque o canário foi corrido — que é precisamente para isso que ele existe.
 
-**Duas regras que a bancada descobriu — e que não são defeitos.**
-
-1. **O id de uma turma é o slug do nome, e por isso muda quando ela é renomeada.** O `turma-editar`
-   devolve o id novo (`id`) e o antigo (`eraId`), e reescreve a chave dos vínculos turma↔termo
-   justamente por isso. A primeira versão da bateria apagava pelo id antigo e levava 404 — o erro
-   era da bancada, e ficou escrito no código para o próximo não o repetir.
-2. **Um professor desligado NÃO pode ser excluído** (409): «o registo dele fica como proveniência, e
-   o nome continua nos documentos que assinou. Se ele voltar à escola, cadastre-o outra vez com o
-   mesmo identificador: o cadastro o reactiva». É a pétrea do expurgo aplicada a uma pessoa. A
-   bateria passou a afirmar a recusa; a `breu` fica com um `Prova Do Shard` desligado, e isso é o
-   comportamento certo numa escola de teste.
-
-**Por isso o isolamento tem duas afirmações, e não uma.** A escola onde **nenhum** gesto correu
-(`calango`) tem de fechar com a impressão digital idêntica — é a asserção que o shard pode quebrar.
-A escola onde o gesto correu **não** fecha igual, e não é falha: o desligado fica. Exigir-lhe o
-mesmo hash seria exigir que a bancada apagasse o que o sistema, coerentemente, guarda.
-
-**Os quatro gestos pendentes, e por que não são «ok» por omissão.** Anamnese, plano de ensino, PO e
-linha de base passam por `POST /api/elicitar`, que **elicita com o modelo**: gasta tokens da chave
-da casa e não é determinístico. Uma bancada que chama o modelo a cada corrida não serve para
-comparar duas topologias — e é para comparar topologias que ela existe. Ficam ditos como pendentes,
-com o motivo, em vez de verdes por omissão. A linha de base depende da anamnese, e por isso cai com
-ela.
-
-**As credenciais.** `LOGIN_BATATA` e `LOGIN_COQUI_DE_REDINHA` entraram no ficheiro local (a `batata`
-nasceu depois de o ficheiro ter sido escrito), e `coqui-de-redinha` foi declarado em
-`tools/.escolas-teste`. `pre-push` → ok, 7 senhas conferidas.
+**E o que fica a funcionar melhor do que antes:** `provar-arvore-do-shard` (20 asserções, sem rede)
+mede as duas decisões de caminho isoladamente, com controle negativo (fora do shard, **nenhum**
+caminho muda — se mudasse, este código teria alterado três sites no dia em que foi escrito).
+`provar-escola-por-host` 21/21, `provar-isolamento-entre-escolas` 25/25, `provar-painel` e
+`provar-dominio-da-escola` 36/36 continuam verdes.
 
 ## O que está pendente
 
