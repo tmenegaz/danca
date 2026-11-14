@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-14",
+    "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
+      "professores/dedao-aberto/ciclos/ciclo-01.conf"
+    ],
+    "hash": "3757dc99a82f0050670b97ae5a77aed0a5f933f71514c3182b13eaa8b152fcb6",
+    "hash_conteudo": "dd364c9dc79a315a82600dda509ad07431abae7e83f2ab23984486c3f7964984",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
+    "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "batata",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "244a5bb"
+  },
+  "gerado_em": "2026-11-14T13:25",
+  "id": "ciclo:dedao-aberto/01/batata",
+  "professor": "dedao-aberto",
+  "versao": 6
+}

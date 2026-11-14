@@ -4,9 +4,9 @@
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
     "slug": "dedao-aberto",
-    "nome": "Dedão Aberto"
+    "nome": "Dedao Aberto"
   },
-  "responsavel": "Dedão Aberto",
+  "responsavel": "Dedao Aberto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
@@ -922,6 +922,16 @@
         "slug": "pe-torto",
         "nome": "Pe Torto"
       }
+    },
+    {
+      "em": "2026-11-14T13:25:14.466333+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "dedao-aberto",
+        "nome": "Dedao Aberto"
+      },
+      "responsavel": "Dedao Aberto",
+      "ciclo": "01"
     }
   ],
   "professores": []
