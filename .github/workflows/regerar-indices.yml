@@ -171,6 +171,20 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             node tools/gerar-indices.js
+            # OS DOIS GERADORES, E NÃO UM (14/11/2026). Aqui estava só `gerar-indices.js`, e o
+            # `reset --hard` acima DESFAZ o trabalho da tentativa anterior — inclusive as
+            # REMOÇÕES. Medido no expurgo da `batata`: a tentativa 1 gerou e apagou o órfão
+            # `indices/relacoes/dedao-aberto/01-batata.json` (commit 72d0303); o push perdeu a
+            # corrida para o «Reancorar a cadeia»; o `reset --hard` repôs o ficheiro no disco, e
+            # como `gerar-indices.js` SALTA `indices/relacoes/` de propósito (linha 361 — a pasta
+            # é saída do outro gerador), o órfão voltou ao commit publicado (0a36e82) e o
+            # `gerar-relacoes.js --check` passou a sair com exit 1 em `main`.
+            #
+            # A LIÇÃO: a tentativa tem de fazer o MESMO trabalho da primeira, senão o retry não
+            # é um retry — é uma execução mais fraca que publica um resultado diferente. E a
+            # corrida não é acidente: o expurgo dispara três workflows que escrevem no `main` ao
+            # mesmo tempo.
+            node tools/gerar-relacoes.js
             git add -A -- indices/
 
             # O `main` novo pode já trazer o índice certo (outro workflow o regerou). Nesse caso

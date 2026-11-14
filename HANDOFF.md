@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-14T11:10:44-0300`
-Commit atual: `d4d123e8` — fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
+Gerado em: `2026-11-14T11:13:10-0300`
+Commit atual: `558c070b` — docs(estrutura): o expurgo da batata, conferido ponta a ponta
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+558c070b docs(estrutura): o expurgo da batata, conferido ponta a ponta
 d4d123e8 fix(estrutura): o mapa de relações da batata não sobrevive ao expurgo
 0a36e82f chore(estrutura): regerar os índices derivados
 2e49f5db chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -92,7 +93,6 @@ b64da888 docs(estrutura): o endereço é por host — `<escola>.padd.com.br`, e 
 ab7ff399 feat(estrutura): a `vars` ESCOLA_SLUG sai — a escola é do mapa, e o pacote diz quem é
 e172195e feat(estrutura): a escola vem do dado, e não do deploy — o mapa escolas/por-host
 ff530698 audit(estrutura): o isolamento entre escolas passa a ser provado, e decide-se o shard
-70f480fe fix(estrutura): o registo de custo da IA ganha mês no nome
 ```
 
 ## Por professor
@@ -225,6 +225,23 @@ resolve). O `GET /api/dominio` confirma a zona limpa: `com_registo` e `com_rota`
    por causa do próprio órfão. O passo seguiu para a geração, mas o commit `0a36e82f` não trouxe a
    remoção. **Corrigido** (`d4d123e8`): removido o órfão, `--check` volta a 0.
 
+> **Correção de 14/11/2026 (mesmo dia).** A primeira redação do ponto 3 dizia que «o passo seguiu
+> para a geração, mas o commit `0a36e82f` não trouxe a remoção», e dava a entender que o gerador não
+> tinha corrido. **Está incompleto, e o mecanismo é outro** — a causa medida no log do job
+> (`Regerar os índices`, run 43601450895) é o **laço de retry**: a tentativa 1 correu os dois
+> geradores, apagou o órfão e fez o commit `72d0303`; o `git push` foi recusado (`fetch first`,
+> porque o «Reancorar a cadeia» tinha publicado `2e49f5db` primeiro); e o laço, ao reconstruir sobre
+> o `main` novo, faz `git reset --hard origin/main` — que **repõe no disco** o ficheiro acabado de
+> apagar — e de seguida corria **só** `node tools/gerar-indices.js`. Como `gerar-indices.js` salta
+> `indices/relacoes/` de propósito (é saída do outro gerador), o órfão nunca voltou a ser apagado, e
+> o commit publicado (`0a36e82f`) saiu sem a remoção, com sete carimbos de tempo como única
+> diferença. **A lição:** o retry fazia menos trabalho do que a primeira tentativa, e por isso não
+> era um retry — era uma execução mais fraca a publicar um resultado diferente. E a corrida não é
+> acidente: o expurgo dispara três workflows que escrevem no `main` ao mesmo tempo.
+> **Corrigido na origem** (`.github/workflows/regerar-indices.yml`, no laço): o retry passa a correr
+> os dois geradores, como a primeira tentativa. O commit `d4d123e8` fechou o sintoma; este fecha a
+> causa.
+
 **Um resto local, fora do Git:** `publicacao/batata/` continua no disco com 49 ficheiros. É a
 publicação montada (não versionada), e nenhum `wrangler.batata.jsonc` aponta para ela. Sem efeito —
 o `montar-publicacao.js` regenera — mas é lixo que convém não confundir com estado.
@@ -232,6 +249,14 @@ o `montar-publicacao.js` regenera — mas é lixo que convém não confundir com
 **Pendente, e é decisão.** Limpar o mapa em KV no expurgo (resíduo 1) exige escolher: apagar a
 entrada na hora, ou deixar que o `publicar-mapa-de-escolas.js` ganhe um `--podar`. A segunda
 mantém um dono só do mapa, que é a razão de ele existir.
+
+**E uma quarta ponta que ficou visível de caminho, e não é do expurgo.** O `criar-escola.yml` corre
+só `gerar-indices.js` — não corre `gerar-relacoes.js`. Como o push dele é feito com o `GITHUB_TOKEN`,
+e um push com esse token **não redispara workflows**, o mapa de relações do ciclo novo só nasce
+quando alguém empurra outra coisa que dispare o `regerar-indices.yml`. Na `batata` isso aconteceu por
+sorte: um `feat(acervo)` alheio (`aa1bbdf1`) correu o regenerador às 13:25 e criou o mapa. Fica
+declarado, sem correção: a decisão de o `criar-escola.yml` chamar o segundo gerador é do mesmo tipo
+que a do resíduo 1 — quem é o dono do `indices/relacoes/`.
 
 ## O que está pendente
 
