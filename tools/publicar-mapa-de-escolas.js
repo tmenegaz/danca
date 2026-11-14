@@ -21,12 +21,22 @@
  * Uma config sem `assets.directory` em `publicacao/` (a raiz, `danca`) não entra — a raiz não é
  * escola e não passa por esta ponte.
  *
- * O QUE ELE NÃO FAZ: apagar. Uma entrada que já esteja no mapa e não corresponda a nenhuma config
- * **fica** — é o que permite registar à mão uma escola servida por outro shard, e apagar escolas
- * é do expurgo, não da publicação. O `--check` diz a diferença para quem quiser vê-la.
+ * O QUE ELE FAZ POR OMISSÃO: JUNTAR. Uma entrada que já esteja no mapa e não corresponda a
+ * nenhuma config **fica** — é o que permite registar à mão uma escola servida por outro shard.
+ *
+ * O QUE ELE FAZ COM `--podar`: APAGAR O QUE NENHUMA CONFIG DECLARA (14/11/2026). A entrada que
+ * sobra é a de uma escola expurgada, e o expurgo não toca no mapa — de propósito, para o mapa ter
+ * **um dono só**, que é a razão de ele existir. Dono é quem o escreve; se o expurgo também
+ * apagasse, seriam dois, e no dia em que um mudasse o outro não saberia.
+ *
+ * MEDIDO NO EXPURGO DA `batata` (14/11/2026): depois de a escola sair do Cloudflare e do
+ * repositório, o mapa continuava a dizer `batata.tmenegaz77.workers.dev → batata`. Sem dono que o
+ * varra, o mapa passa a afirmar uma escola que não existe — e no shard é ELE que resolve o host.
  *
  *   node tools/publicar-mapa-de-escolas.js            # junta e grava
- *   node tools/publicar-mapa-de-escolas.js --check    # só compara; sai 1 se estiver diferente
+ *   node tools/publicar-mapa-de-escolas.js --podar    # grava SÓ o que as configs declaram
+ *   node tools/publicar-mapa-de-escolas.js --check    # só compara; sai 1 se divergir do que as
+ *                                                     #   configs dizem (entrada a mais conta)
  *   node tools/publicar-mapa-de-escolas.js --dry-run  # mostra o que faria
  *
  * Precisa de `CLOUDFLARE_API_TOKEN`. A conta resolve-se sozinha (`/accounts`); o namespace sai das
@@ -142,6 +152,10 @@ function ordenado(m) {
 (async () => {
   const conferir = process.argv.includes('--check');
   const seco = process.argv.includes('--dry-run');
+  /* O `--podar` é o único caminho que apaga. Sem ele, a junção mantém o que só está no KV — a
+   * diferença entre «não sei de onde veio, e apago» e «não sei de onde veio, e fica» é a diferença
+   * entre perder uma escola registada à mão e ter de a apagar sozinho. */
+  const podar = process.argv.includes('--podar');
 
   const dasConfigs = escolasDasConfiguracoes();
   const nomes = Object.keys(dasConfigs);
@@ -160,19 +174,38 @@ function ordenado(m) {
   const atual = await lerDoKv(token, accountId, namespaceId);
 
   /* A JUNÇÃO É DO MAPA NOVO SOBRE O VELHO: o que as configs dizem tem de valer, e o que só está
-   * no KV (uma escola servida por outro shard, registada à mão) fica. */
-  const desejado = Object.assign({}, atual, dasConfigs);
+   * no KV (uma escola servida por outro shard, registada à mão) fica — a não ser que se peça
+   * `--podar`, e aí o mapa passa a ser EXATAMENTE o que as configurações declaram. */
+  const desejado = podar ? Object.assign({}, dasConfigs) : Object.assign({}, atual, dasConfigs);
 
   const entrando = Object.keys(desejado).filter((h) => atual[h] !== desejado[h]);
-  const ficando = Object.keys(atual).filter((h) => desejaoInexistente(dasConfigs, h));
+  const saindo = Object.keys(atual).filter((h) => desejaoInexistente(dasConfigs, h));
 
-  console.log('mapa `' + CHAVE + '`');
+  console.log('mapa `' + CHAVE + '`' + (podar ? '  (--podar: só o que as configs declaram)' : ''));
   console.log('  nas configurações: ' + nomes.length + ' escola(s) → ' + nomes.join(', '));
   for (const h of Object.keys(dasConfigs)) {
     console.log('    ' + (atual[h] === dasConfigs[h] ? '=' : '+') + ' ' + h + '  →  ' + dasConfigs[h]);
   }
-  for (const h of ficando) {
-    console.log('    · ' + h + '  →  ' + atual[h] + '   (só no KV; fica)');
+  for (const h of saindo) {
+    console.log('    ' + (podar ? '−' : '·') + ' ' + h + '  →  ' + atual[h] + '   (nenhuma config ' +
+      'declara: ' + (podar ? 'SAI' : 'fica; `--podar` remove') + ')');
+  }
+
+  /* O `--check` MEDE A DIVERGÊNCIA, E UMA ENTRADA A MAIS É DIVERGÊNCIA (14/11/2026). Antes, o
+   * `--check` comparava a junção — que inclui o que só está no KV —, e por isso dizia «em dia»
+   * sobre um mapa que afirmava uma escola expurgada. Silêncio não é concordância. */
+  if (conferir) {
+    if (saindo.length) {
+      console.error('  ' + saindo.length + ' entrada(s) que nenhuma configuração declara — ' +
+        'corrija com `node tools/publicar-mapa-de-escolas.js --podar`');
+      process.exit(1);
+    }
+    if (!mesmaCoisa(atual, desejado)) {
+      console.error('  DIFERENTE do KV — corrija com `node tools/publicar-mapa-de-escolas.js`');
+      process.exit(1);
+    }
+    console.log('  já está em dia.');
+    process.exit(0);
   }
 
   if (mesmaCoisa(atual, desejado)) {
@@ -180,17 +213,15 @@ function ordenado(m) {
     process.exit(0);
   }
 
-  if (conferir) {
-    console.error('  DIFERENTE do KV — corrija com `node tools/publicar-mapa-de-escolas.js`');
-    process.exit(1);
-  }
   if (seco) {
-    console.log('  (dry-run) gravaria ' + entrando.length + ' entrada(s).');
+    console.log('  (dry-run) gravaria ' + entrando.length + ' entrada(s) nova(s)/alterada(s)' +
+      (podar && saindo.length ? ' e removeria ' + saindo.length : '') + '.');
     process.exit(0);
   }
 
   await gravarNoKv(token, accountId, namespaceId, ordenado(desejado));
-  console.log('  gravado: ' + entrando.length + ' entrada(s) nova(s)/alterada(s).');
+  console.log('  gravado: ' + entrando.length + ' entrada(s) nova(s)/alterada(s)' +
+    (podar && saindo.length ? ' e ' + saindo.length + ' removida(s)' : '') + '.');
 })().catch((erro) => { console.error(erro && erro.message ? erro.message : erro); process.exit(1); });
 
 /** Uma entrada do KV que nenhuma config declara — mantida, e não apagada. */
