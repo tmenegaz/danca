@@ -44566,3 +44566,19 @@ ela.
 **As credenciais.** `LOGIN_BATATA` e `LOGIN_COQUI_DE_REDINHA` entraram no ficheiro local (a `batata`
 nasceu depois de o ficheiro ter sido escrito), e `coqui-de-redinha` foi declarado em
 `tools/.escolas-teste`. `pre-push` → ok, 7 senhas conferidas.
+
+**Nota de correção de 14/11/2026 (mesmo dia, ao empurrar).** O `pre-push` **barrou** este commit, e
+com razão: a bancada tinha a senha de teste dos professores escrita à mão, como literal, e ela ia
+para um arquivo versionado. (E barrou **outra vez** este mesmo parágrafo, na primeira redação: a
+explicação transcrevia o valor. Uma senha não se cita nem para dizer que se tirou.) O valor foi trocado por um descartável
+(`prova-do-shard-descartavel`) — o professor de prova é criado e desligado no gesto seguinte e
+nunca entra em lugar nenhum, portanto a senha dele não precisa de ser a de ninguém. É a regra a
+funcionar: em vez de abrir uma exceção para «uma senha de teste», tira-se a senha do ficheiro.
+
+**E o resíduo que a bancada deixa, dito por inteiro.** O gesto 9 cria um professor e desliga-o; por
+regra (`motor/nucleo/desligamento.js`), o desligamento **não apaga** `professores/<slug>/` nem o
+`perfil.json` — «a habilitação é da PESSOA». Ficam, portanto, duas coisas no repositório depois de
+uma corrida: a pasta `professores/prova-do-shard/` (cinco `*-schema.json` do molde) e o registo do
+desligamento no elo da `breu`. É proveniência, e é o comportamento certo — mas é ruído, e fica
+declarado aqui para que ninguém o leia como escola a mais. Uma corrida repetida **não** duplica a
+pasta: o sujeito é o mesmo (`prova-do-shard`), e o cadastro reactiva em vez de criar.
