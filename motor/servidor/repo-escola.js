@@ -542,6 +542,24 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
       arquivos: [],
     };
   }
+  /* A ESCOLA EXPURGADA NÃO ESTÁ HABILITADA — e o elo passa a dizê-lo (14/11/2026).
+   *
+   * Era a única contradição que sobrava de um expurgo. O índice DERIVADO
+   * (`motor/nucleo/indices.js`) já dizia `habilitada: false`, porque o calcula de `expurgada`;
+   * mas o elo — o registro que fica no repositório — continuava a dizer `"habilitada": true`,
+   * porque ninguém lhe tocava. As duas leituras do mesmo facto diziam coisas opostas, e a única
+   * que sobrevive ao tempo é o elo: o derivado é regerado, o elo é proveniência.
+   *
+   * A pesquisadora foi directa: *«se a escola foi expurgada e existe o índice, então ela não
+   * está habilitada, então isso tem que mudar»*. E é o próprio `indices.js` que já lê este
+   * campo como sinal de expurgo (`inv.estado.habilitada === false`) — o que faltava era alguém
+   * escrevê-lo na hora em que a escola sai.
+   *
+   * Não se apaga o resto de `estado` (pode ter chegado com outros campos); acrescenta-se o que
+   * deixou de ser verdade. */
+  const estadoAnterior = (indice.estado && typeof indice.estado === 'object'
+    && !Array.isArray(indice.estado)) ? indice.estado : {};
+  indice.estado = Object.assign({}, estadoAnterior, { habilitada: false });
   indice.expurgo = indice.expurgo || [];
   const elo = {
     em: quando || new Date().toISOString(),

@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
