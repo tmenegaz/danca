@@ -1264,3 +1264,9 @@ experimentos/modelo-formulario/*
 # controle negativo que importa: um registo `A` que não seja 192.0.2.1 proxyado NÃO conta como
 # endereço de escola.
 !experimentos/provar-diagnostico-do-dominio.js
+
+# A BATERIA DO SHARD (14/11/2026). Os dez gestos do `PLANO-SHARD.md` §4, contra as escolas de
+# teste reais e pelo domínio próprio. É programa e não lista de cliques porque tem de ser corrida
+# DUAS vezes — antes e depois do shard: com três Workers e com um Worker a servir três escolas. Se
+# a segunda corrida fosse feita à mão, mediria a memória de quem clicou em vez da topologia.
+!experimentos/provar-bateria-do-shard.js

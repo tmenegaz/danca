@@ -44500,3 +44500,69 @@ verificações); `check-indices` 16/16; `gerar-indices --check` e `gerar-relacoe
 registada à mão. Depois de um expurgo, a varredura é explícita: `node
 tools/publicar-mapa-de-escolas.js --podar`. Automatizá-la exige escolher quem a corre, e o candidato
 natural (o expurgo) é justamente o segundo dono que se quis evitar.
+
+## 14/11/2026 — A bateria de dez gestos, corrida nas três escolas de teste
+
+**O que a pesquisadora decidiu.** Seguir para o teste do shard, agora que há três escolas vivas
+(`batata`, `breu`, `calango`), e que **eu** corresse a bateria pela API e ela conferisse. Mais uma
+decisão de desenho: no passo 2, **`/assets/` é uma cópia partilhada** por todas as escolas do shard.
+
+**O que o estado dizia, medido antes de partir.** Quatro Workers (`batata`, `breu`, `calango`,
+`danca`), quatro registos `A` → `192.0.2.1` proxyados, quatro rotas, e o mapa com três escolas. A
+`batata` nasceu às 15:01 pelo painel, com endereço automático (`767aa3b2`) — **a primeira escola a
+nascer com o endereço sem ninguém ir ao Cloudflare**, que era o objectivo da tarefa anterior.
+
+**Uma precisão que valia a pena, e vale registá-la.** O que existe hoje **não é um shard**: são
+três Workers, um por escola. O shard é um Worker a servir N escolas, e o que as três escolas dão é
+a **pré-condição** — dados reais, três hosts, e o canário que o `teste-fixtures.js` já declara pelo
+nome (`calango`→1, `batata`→2, `breu`→3). E o shard **não gera documentos em paralelo**: a geração
+é outra máquina; o que ele muda é onde os ficheiros vivem e quem os serve.
+
+**A bateria existe como programa, e não como lista de cliques** — `experimentos/provar-bateria-do-shard.js`.
+O motivo está no ficheiro: ela tem de ser corrida **duas vezes** (três Workers, depois um Worker
+com três escolas), e uma segunda corrida feita à mão mediria a memória de quem clicou, não a
+topologia.
+
+**Resultado: 49/49 asserções, e 4 gestos pendentes com motivo.** O que ficou provado, ao vivo:
+
+| gesto | resultado |
+|:--|:--|
+| 1 · `/` pelo domínio próprio | 200 nas três, o título nomeia a escola, e `data-escola-teste` é 1/2/3 como o `teste-fixtures` manda |
+| 2 · `/aulas/`, `/ciclos/planos/`, um PDF | 200 nas três; o PDF vem como `%PDF` |
+| 3 · `/assets/style.css`, `/nav.js` | 200, e **byte a byte iguais nas três** — é o que autoriza a cópia partilhada do passo 2 |
+| 8 · turma: criar, editar, apagar | 201 → 200 → 200, na `batata`, que não tinha nenhuma |
+| 9 · professor: cadastrar, desligar, excluir | 200 → 200 → **409**, e a recusa é a regra (ver abaixo) |
+| 10 · `/api/saude` | `origem: "mapa"`, `slug` e `escola_do_pacote` iguais em cada host |
+
+**A INVOCAÇÃO, MEDIDA E NÃO SUPOSTA.** Quatro pedidos ao `calango` (`/`, `/assets/style.css`,
+`/assets/nav.js`, `/aulas/`) com `wrangler tail` a correr: **duas invocações** — `/` e `/aulas/`. Os
+dois assets **não invocaram o Worker**. É o número da §2.2 do plano, agora medido no ar: hoje é
+**1 invocação por página**, e é isso que o shard tem de não perder.
+
+**Duas regras que a bancada descobriu — e que não são defeitos.**
+
+1. **O id de uma turma é o slug do nome, e por isso muda quando ela é renomeada.** O `turma-editar`
+   devolve o id novo (`id`) e o antigo (`eraId`), e reescreve a chave dos vínculos turma↔termo
+   justamente por isso. A primeira versão da bateria apagava pelo id antigo e levava 404 — o erro
+   era da bancada, e ficou escrito no código para o próximo não o repetir.
+2. **Um professor desligado NÃO pode ser excluído** (409): «o registo dele fica como proveniência, e
+   o nome continua nos documentos que assinou. Se ele voltar à escola, cadastre-o outra vez com o
+   mesmo identificador: o cadastro o reactiva». É a pétrea do expurgo aplicada a uma pessoa. A
+   bateria passou a afirmar a recusa; a `breu` fica com um `Prova Do Shard` desligado, e isso é o
+   comportamento certo numa escola de teste.
+
+**Por isso o isolamento tem duas afirmações, e não uma.** A escola onde **nenhum** gesto correu
+(`calango`) tem de fechar com a impressão digital idêntica — é a asserção que o shard pode quebrar.
+A escola onde o gesto correu **não** fecha igual, e não é falha: o desligado fica. Exigir-lhe o
+mesmo hash seria exigir que a bancada apagasse o que o sistema, coerentemente, guarda.
+
+**Os quatro gestos pendentes, e por que não são «ok» por omissão.** Anamnese, plano de ensino, PO e
+linha de base passam por `POST /api/elicitar`, que **elicita com o modelo**: gasta tokens da chave
+da casa e não é determinístico. Uma bancada que chama o modelo a cada corrida não serve para
+comparar duas topologias — e é para comparar topologias que ela existe. Ficam ditos como pendentes,
+com o motivo, em vez de verdes por omissão. A linha de base depende da anamnese, e por isso cai com
+ela.
+
+**As credenciais.** `LOGIN_BATATA` e `LOGIN_COQUI_DE_REDINHA` entraram no ficheiro local (a `batata`
+nasceu depois de o ficheiro ter sido escrito), e `coqui-de-redinha` foi declarado em
+`tools/.escolas-teste`. `pre-push` → ok, 7 senhas conferidas.
