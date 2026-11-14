@@ -14,6 +14,10 @@
  */
 
 const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
+/* O diagnóstico do endereço próprio (`/api/dominio`) — o mesmo módulo que o provisionamento usa
+ * para criar o registo e a rota. É de propósito: o diagnóstico não pode ter uma segunda opinião
+ * sobre o que é «ter endereço». */
+const dominioDaEscola = require('./dominio-da-escola.js');
 const { excluirEscola, apagarChavesDeEscola, prefixosDaEscola } = require('./expurgar-escola.js');
 const {
   listarEscolas, listarEscolasPeloIndice, listarProfessores, listarProfessoresPeloIndice,
@@ -540,6 +544,24 @@ async function fetch(request, env) {
   // lista a cada abertura; a varredura custava uma leitura da árvore do repositório por pedido.
   // O índice responde com uma leitura do KV — e é derivado, portanto perdê-lo custa uma
   // reconstrução, não um dado.
+  // O DIAGNÓSTICO DO ENDEREÇO PRÓPRIO (14/11/2026) — «a próxima escola vai nascer com
+  // `<escola>.padd.com.br`?», respondido ANTES de a criar. É leitura pura (dois pedidos à
+  // Cloudflare, sem escrita), e existe porque o endereço falha em silêncio: o provisionamento não
+  // lança por causa dele, e a resposta só diz «PENDENTE» depois de a escola existir. Sem isto,
+  // descobrir que o token perdeu o `Zone → DNS → Edit` custa uma escola criada com o endereço
+  // errado — foi o que aconteceu à `breu` em 13/11/2026.
+  if (url.pathname === '/api/dominio' && request.method === 'GET') {
+    try {
+      const relatorio = await dominioDaEscola.diagnosticar({
+        token: env && env.CLOUDFLARE_API_TOKEN,
+        zona: env && env.ZONA_ESCOLAS,
+      });
+      return responderJson(relatorio, relatorio.ok ? 200 : 503);
+    } catch (err) {
+      return responderJson({ ok: false, erro: (err && err.message) || String(err) }, 500);
+    }
+  }
+
   if (url.pathname === '/api/escolas' && request.method === 'GET') {
     const token = env && env.GITHUB_TOKEN;
     if (!token) return responderJson({ ok: false, erro: 'GITHUB_TOKEN ausente no Worker' }, 500);

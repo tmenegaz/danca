@@ -89,37 +89,78 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     process.exit(1);
   }
 
-  /* O DNS PRECISA DE ASSENTAR. O proxy da Cloudflare é rápido, mas não é instantâneo, e um
-   * primeiro pedido cedo demais mediria a propagação em vez do mecanismo. Tenta-se algumas vezes,
-   * com espera crescente, e diz-se quantas foram precisas. */
-  const url = 'https://' + dominio.hostname(escola) + '/api/saude';
+  /* POR QUE ESTA PROVA NÃO PODE PERGUNTAR CEDO (medido a 14/11/2026).
+   *
+   * A primeira versão fazia o pedido HTTPS imediatamente e voltava a tentar durante ~30 s. Falhou
+   * seis vezes seguidas, com `fetch failed`, num nome que estava bom. A causa não era a Cloudflare:
+   * o `SOA` de `padd.com.br` tem **mínimo de 1800 s**, e o resolvedor da máquina guarda o NXDOMAIN
+   * desse primeiro pedido por **trinta minutos**. Uma tentativa cedo demais envenena o nome para o
+   * resto da sessão — e a prova passa a medir a cache local, não o mecanismo.
+   *
+   * A SAÍDA: perguntar primeiro a um resolvedor EXTERNO (DoH, sem cache local), e só quando ele já
+   * vê o registo é que se faz o pedido HTTPS. Assim o nome nunca é consultado pelo resolvedor da
+   * máquina antes de existir, e o que se mede é a rota e o proxy — que é o que se quer medir.
+   *
+   * E O QUE CONTA COMO SUCESSO MUDOU, porque a verdade mudou. O host de prova é descartável e NÃO
+   * está no mapa `escolas/por-host`, portanto a ponte responde, de propósito, `origem: "nada"` com
+   * 500. Exigir `tipo: "escola"` era exigir que o mapa aceitasse um host que ele não conhece. O
+   * que prova o mecanismo é: (a) uma RESPOSTA do motor — logo o registo serviu de origem e a rota
+   * interceptou antes de 192.0.2.1; (b) `escola_do_pacote` igual ao script da rota criada — logo
+   * foi a rota ESPECÍFICA, e não outra; (c) `origem: "nada"` — o controle negativo de que o mapa
+   * não inventa escola para um host desconhecido. */
+  const nome = dominio.hostname(escola);
+
+  /** O nome já existe para o mundo? Pergunta a Cloudflare por DoH — sem tocar na cache local. */
+  const existeLaFora = async () => {
+    try {
+      const res = await fetch('https://cloudflare-dns.com/dns-query?name=' + nome + '&type=A',
+        { headers: { accept: 'application/dns-json' } });
+      if (!res.ok) return false;
+      const corpo = await res.json();
+      return Number(corpo.Status) === 0 && (corpo.Answer || []).length > 0;
+    } catch (erro) {
+      return false;
+    }
+  };
+
   let ultimo = null;
   let respondeu = false;
-  const esperas = [0, 2000, 3000, 5000, 8000, 12000];
+  const esperas = [2000, 3000, 5000, 8000, 12000, 15000, 20000, 20000, 25000];
   for (let i = 0; i < esperas.length && !respondeu; i += 1) {
-    if (esperas[i]) await dormir(esperas[i]);
+    await dormir(esperas[i]);
+    if (!(await existeLaFora())) {
+      ultimo = { tentativa: i + 1, estado: 'o nome ainda não resolve lá fora' };
+      console.log('  · tentativa ' + (i + 1) + ': o DNS ainda não assentou');
+      continue;
+    }
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'lastro-prova' } });
-      const corpo = await res.text();
-      ultimo = { tentativa: i + 1, status: res.status, corpo: corpo.slice(0, 120) };
-      /* A RESPOSTA TEM DE SER A DA ESCOLA. Um `tipo: "raiz"` aqui significa que quem respondeu
-       * foi a rota curinga — e isso é uma FALHA, não um sucesso: quer dizer que a rota específica
-       * não venceu. */
-      if (res.ok && new RegExp('"tipo"\\s*:\\s*"escola"').test(corpo)
-        && corpo.indexOf('"' + ESCOLA_DO_SCRIPT + '"') !== -1) respondeu = true;
+      const res = await fetch('https://' + nome + '/api/saude',
+        { headers: { 'User-Agent': 'lastro-prova' } });
+      const texto = await res.text();
+      let corpo = null;
+      try { corpo = JSON.parse(texto); } catch (erro) { corpo = null; }
+      ultimo = { tentativa: i + 1, status: res.status, corpo: texto.slice(0, 200) };
+      /* AS TRÊS CONDIÇÕES DA ALÍNEA ACIMA, e nenhuma a mais. */
+      if (corpo && corpo.tipo && corpo.origem !== undefined
+        && String(corpo.escola_do_pacote) === ESCOLA_DO_SCRIPT
+        && corpo.origem === 'nada' && corpo.slug === null) respondeu = true;
+      console.log('  · tentativa ' + (i + 1) + ': HTTP ' + res.status +
+        (corpo ? ' · origem=' + corpo.origem + ' · pacote=' + corpo.escola_do_pacote : ' · corpo inesperado'));
     } catch (erro) {
       ultimo = { tentativa: i + 1, erro: (erro && erro.message) || String(erro) };
+      console.log('  · tentativa ' + (i + 1) + ': ' + ultimo.erro +
+        ' (se o DoH acima já via o nome, o resolvedor local tem NXDOMAIN em cache: `resolvectl flush-caches`)');
     }
-    console.log('  · tentativa ' + (i + 1) + ': ' +
-      (ultimo.status ? 'HTTP ' + ultimo.status : ultimo.erro));
   }
-  provar('o endereço próprio SERVE — a rota intercepta antes da origem de 192.0.2.1',
+  provar('o endereço próprio SERVE — o registo é origem e a rota intercepta antes de 192.0.2.1',
     respondeu, ultimo);
-  provar('e é a rota ESPECÍFICA que serve, e não a curinga (o corpo diz «tipo: escola»)',
-    respondeu && !/"tipo"\s*:\s*"raiz"/.test(String(ultimo && ultimo.corpo)), ultimo);
+  provar('e é a rota ESPECÍFICA que serve (o corpo é do script «' + ESCOLA_DO_SCRIPT + '»)',
+    respondeu, ultimo);
+  provar('e o mapa RECUSA um host que não é escola — `origem: "nada"`, `slug: null` (controle negativo)',
+    respondeu, ultimo);
   if (respondeu) {
-    console.log('\n  → o registo `A` para 192.0.2.1, proxyado, funciona como origem de rota,');
-    console.log('     e a rota por escola vence a curinga da zona.');
+    console.log('\n  → o registo `A` para 192.0.2.1, proxyado, funciona como origem de rota;');
+    console.log('     a rota por escola vence qualquer outra; e o mapa não inventa escola.');
   }
 
   /* ── A LIMPEZA. Sempre, e mesmo que a asserção acima tenha falhado: um nome de prova deixado

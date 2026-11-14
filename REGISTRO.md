@@ -44291,3 +44291,56 @@ professor dela em `tools/.escolas-teste`; `bash tools/hooks/pre-push` → ok, 5 
 
 **Pendente.** A `batata` — a terceira escola de teste — ainda não existe como Worker. Sem as três,
 a bateria de dez gestos do `PLANO-SHARD.md` §4 fica a faltar uma perna.
+
+## 14/11/2026 — A pergunta «a próxima escola nasce com endereço?» passa a ter resposta antes do gesto
+
+**O que ficou resolvido.** A pesquisadora acrescentou `DNS: Edit` ao token, e as duas leituras que
+decidem passaram a funcionar. Medido com o token que o **próprio Worker da raiz** tem (não com o do
+`.env`, que é outra cópia):
+
+```
+GET https://danca.padd.com.br/api/dominio
+{ "ok": true, "zona": "padd.com.br", "pode_dns": true, "pode_rotas": true,
+  "com_registo": ["breu","calango","danca"],
+  "com_rota":   [{breu,breu},{calango,calango},{danca,danca}],
+  "proxima_escola": "nasce com «<escola>.padd.com.br» (registo A + rota), sem passar pelo painel" }
+```
+
+A `breu` ganhou o endereço (`tools/publicar-dominio.js`: DNS criado, rota já existia) e
+`https://breu.padd.com.br/api/saude` responde `{"tipo":"escola","slug":"breu","origem":"mapa"}`.
+O secret do Worker da raiz foi substituído pelo token com DNS — é ele que cria as escolas, e sem
+isso cada escola nova repetiria a «PENDENTE» da `breu`.
+
+**A rota `/api/dominio` — por que existe.** O endereço próprio falha em SILÊNCIO: `ligarDominio`
+não lança (uma escola sem endereço é uma pendência, não um fracasso), e a resposta só diz «PENDENTE»
+depois de a escola já existir. Foi assim que a `breu` nasceu sem endereço em 13/11. O diagnóstico
+faz as duas leituras da zona — sem escrever nada, dois pedidos — e diz, por extenso, o que a criação
+faria à escola seguinte. `provar-diagnostico-do-dominio` fixa-o em **20 asserções**, com o controle
+negativo que importa: um registo `A` que não seja `192.0.2.1` proxyado **não** conta como endereço
+de escola (se contasse, o diagnóstico daria «está tudo bem» sobre um endereço que aponta para outra
+coisa — o pior alívio possível).
+
+**A prova ao vivo estava a medir a cache local, não o mecanismo.** `provar-dominio-ao-vivo` falhava
+seis vezes seguidas com `fetch failed` num nome que estava bom. A causa: o `SOA` de `padd.com.br`
+tem **mínimo de 1800 s**, e o resolvedor da máquina guarda o NXDOMAIN do primeiro pedido por
+**trinta minutos** — uma tentativa cedo demais envenena o nome para o resto da sessão. Agora a prova
+pergunta primeiro a um resolvedor externo (DoH, sem cache local) e só faz o pedido HTTPS quando o
+nome já resolve lá fora: passa em **~10 s**.
+
+**E o que contava como sucesso mudou, porque a verdade mudou.** O host de prova é descartável e
+**não** está no mapa `escolas/por-host`, portanto a ponte responde de propósito `origem: "nada"` com
+500. Exigir `tipo: "escola"` era exigir que o mapa aceitasse um host que ele não conhece. O que
+prova o mecanismo, e é o que a prova passa a exigir: (a) uma resposta do **motor** — logo o registo
+serviu de origem e a rota interceptou antes de `192.0.2.1`; (b) `escola_do_pacote` igual ao script
+da rota criada — logo foi a rota específica; (c) `origem: "nada"` e `slug: null` — o controle
+negativo de que o mapa não inventa escola. **6 asserções, todas verdes.**
+
+**Sobre o registo da raiz da zona.** O `A` de `padd.com.br` → `216.198.79.1`, cinza (DNS only), não
+é do Lastro: o `Server` responde **Vercel** e o apex faz 307 para `https://www.padd.com.br/`, que
+**não resolve**. É o resto de um projeto Vercel, não tem parte nenhuma neste sistema, e apagá-lo não
+toca em escola alguma. O que sustenta as escolas são os registos `A` → `192.0.2.1` proxyados.
+
+**Estado medido, para o expurgo.** Não existe Worker `batata` nem chave KV com prefixo `batata`, e a
+zona não tem `batata.padd.com.br`: a escola pode nascer limpa. E `excluirEscola` já faz a ordem
+certa — `desligarDominio` (registo DNS + rota, só o que tem a marca do sistema), subdomínio,
+script, KV —, pelo que o teste de expurgo remove as duas pontas.

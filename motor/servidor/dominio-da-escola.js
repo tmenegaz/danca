@@ -306,6 +306,86 @@ async function desligarDominio({ token, escola, script, zona, fetchImpl }) {
 /** Esquece a zona guardada — só as provas precisam disto (no Worker a zona não muda). */
 function esquecerZona() { ZONA_EM_CACHE.clear(); }
 
+/**
+ * O DIAGNÓSTICO — «a próxima escola vai nascer com endereço?», respondido antes de a criar.
+ *
+ * POR QUE EXISTE (14/11/2026). A criação de uma escola falha o endereço em SILÊNCIO: o
+ * provisionamento não lança por causa dele (uma escola sem endereço é uma pendência, não um
+ * fracasso), e a resposta só diz «PENDENTE» depois de a escola já existir. Descobrir assim custa
+ * uma escola criada com o endereço errado. Este diagnóstico faz as duas leituras que decidem —
+ * os registos DNS da zona e as rotas dela — e responde antes do gesto.
+ *
+ * O QUE ELE NÃO FAZ: escrever. É leitura pura, dois pedidos, e pode ser chamado à vontade. A
+ * prova de escrita é a criação da escola, e essa não se simula.
+ *
+ * O `pode_dns` é o que interessa: sem `Zone → DNS → Edit` o registo não nasce, e é o registo que
+ * faz a rota servir (a Cloudflare exige uma origem atrás do proxy). `pode_rotas` sozinho não
+ * chega — foi o estado desta casa entre 13 e 14/11/2026.
+ */
+async function diagnosticar({ token, zona, fetchImpl }) {
+  const nome = String(zona || ZONA_PADRAO).trim().toLowerCase();
+  if (!token) {
+    return { ok: false, zona: nome, pode_dns: false, pode_rotas: false, erro: 'sem CLOUDFLARE_API_TOKEN' };
+  }
+
+  let zid;
+  try {
+    zid = await zonaId({ token, zona: nome, fetchImpl });
+  } catch (erro) {
+    return {
+      ok: false, zona: nome, pode_dns: false, pode_rotas: false,
+      erro: (erro && erro.message) || String(erro),
+    };
+  }
+
+  const registos = await api(token, 'GET',
+    '/zones/' + zid + '/dns_records?per_page=100', undefined, fetchImpl);
+  const rotas = await api(token, 'GET',
+    '/zones/' + zid + '/workers/routes', undefined, fetchImpl);
+
+  const podeDns = Boolean(registos.ok);
+  const podeRotas = Boolean(rotas.ok);
+
+  /* As escolas que JÁ têm endereço, tiradas do que a zona diz. O sufixo é o `hostname` com a
+   * escola vazia — a mesma composição de sempre, para não haver duas. */
+  const sufixo = '.' + nome;
+  const comRegisto = podeDns
+    ? (registos.resultado || [])
+      .filter((r) => r.type === 'A' && String(r.content) === IP_DO_REGISTO && r.proxied === true
+        && String(r.name).endsWith(sufixo))
+      .map((r) => String(r.name).slice(0, -sufixo.length))
+      .sort()
+    : [];
+  const comRota = podeRotas
+    ? (rotas.resultado || [])
+      .filter((r) => String(r.pattern).endsWith(sufixo + '/*'))
+      .map((r) => ({ escola: String(r.pattern).slice(0, -(sufixo.length + 2)), script: r.script || null }))
+      .sort((a, b) => a.escola.localeCompare(b.escola))
+    : [];
+
+  return {
+    ok: podeDns && podeRotas,
+    zona: nome,
+    pode_dns: podeDns,
+    pode_rotas: podeRotas,
+    /* A DICA É A MESMA DE `garantirRegistoDns`, e não uma segunda redacção: quem lê o diagnóstico
+     * e quem lê a falha da criação têm de ver a mesma frase. */
+    erro: podeDns && podeRotas ? null
+      : (!podeDns ? 'DNS: ' + (registos.erro || 'HTTP ' + registos.status) : '')
+        + (!podeRotas ? (podeDns ? '' : ' · ') + 'Rotas: ' + (rotas.erro || 'HTTP ' + rotas.status) : ''),
+    dica: !podeDns
+      ? 'O CLOUDFLARE_API_TOKEN não tem «Zone → DNS → Edit». Acrescente essa permissão ao token ' +
+        '(o mesmo que a raiz já usa) — as rotas já funcionam com ele.'
+      : (!podeRotas ? 'O CLOUDFLARE_API_TOKEN não tem «Zone → Workers Routes → Edit».' : null),
+    com_registo: comRegisto,
+    com_rota: comRota,
+    /* O que a criação faria à escola seguinte — dito por extenso para não haver interpretação. */
+    proxima_escola: podeDns && podeRotas
+      ? 'nasce com «<escola>.' + nome + '» (registo A + rota), sem passar pelo painel da Cloudflare'
+      : 'nasce SEM endereço próprio, e diz «PENDENTE» na lista',
+  };
+}
+
 module.exports = {
   IP_DO_REGISTO,
   ZONA_PADRAO,
@@ -316,5 +396,6 @@ module.exports = {
   garantirRota,
   ligarDominio,
   desligarDominio,
+  diagnosticar,
   esquecerZona,
 };

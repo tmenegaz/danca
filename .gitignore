@@ -1255,3 +1255,12 @@ experimentos/modelo-formulario/*
 # uma segunda implementação. Idempotente: correr duas vezes diz «já existia», e recusa um nome
 # ocupado por outra coisa em vez de o sobrescrever.
 !tools/publicar-dominio.js
+
+# O DIAGNÓSTICO DO ENDEREÇO PRÓPRIO (14/11/2026). `GET /api/dominio` da raiz responde «a próxima
+# escola nasce com `<escola>.padd.com.br`?» ANTES de a criar, fazendo as duas leituras que decidem
+# (registos DNS e rotas da zona). Existe porque o endereço falha em SILÊNCIO — foi assim que a
+# `breu` nasceu sem `breu.padd.com.br` em 13/11/2026, com o token a ler a zona, a gerir rotas e a
+# receber 403 no DNS. Esta prova fixa o que ele conclui nos quatro estados de permissão, e o
+# controle negativo que importa: um registo `A` que não seja 192.0.2.1 proxyado NÃO conta como
+# endereço de escola.
+!experimentos/provar-diagnostico-do-dominio.js

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-13T22:22:07-0300`
-Commit atual: `379c6255` — feat(estrutura): criar a escola breu (motor completo)
+Gerado em: `2026-11-14T10:10:49-0300`
+Commit atual: `529728ac` — fix(tools): os comentários do wrangler gerado param de nascer com buracos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -73,6 +73,7 @@ redinha-rosa (6)
 ## Últimos commits
 
 ```
+529728ac fix(tools): os comentários do wrangler gerado param de nascer com buracos
 379c6255 feat(estrutura): criar a escola breu (motor completo)
 6bce72b5 docs(estrutura): as senhas de teste entram no ficheiro local, e o push deixa de ser barrado
 c0ff515e feat(tools): ligar o endereço próprio a quem já existe, e a rota curinga que a zona tinha
@@ -92,7 +93,6 @@ f8faa62a chore(estrutura): regerar o HANDOFF
 c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na cadeia
 93dff71e docs(estrutura): a identidade do professor fica declarada, e o recorte vira aviso
 9ae74482 docs(estrutura): a revisao do desenho do agente, e o furo que ela encontrou
-847ba948 docs(estrutura): a aula N e pendencia declarada, e nao achado desta sessao
 ```
 
 ## Por professor
@@ -184,53 +184,58 @@ c48ff041 feat(estrutura): a listagem mostra o mais recente de cada professor, na
 
 ## Última entrada do REGISTRO
 
-## 13/11/2026 — A `breu` nasce pelo painel, e o endereço próprio não sai
+## 14/11/2026 — A pergunta «a próxima escola nasce com endereço?» passa a ter resposta antes do gesto
 
-**O que a pesquisadora fez.** Criou a segunda escola de teste pelo painel. A escola
-**existe e funciona**: `https://breu.tmenegaz77.workers.dev/` serve a página
-(`data-escola-teste="3"`), as APIs da direção respondem 200 com a senha de teste, e o
-`criar-escola.yml` correu os dez passos e commitou o scaffold (`379c6255`) — `wrangler.breu.jsonc`,
-o pacote `ciclo-01-breu`, a âncora `.fipp` e os índices.
+**O que ficou resolvido.** A pesquisadora acrescentou `DNS: Edit` ao token, e as duas leituras que
+decidem passaram a funcionar. Medido com o token que o **próprio Worker da raiz** tem (não com o do
+`.env`, que é outra cópia):
 
-**O que não saiu: o endereço próprio.** `breu.padd.com.br` **não resolve**, e a zona `padd.com.br`
-continua com duas rotas (`danca`, `calango`) e nenhuma para a `breu`. A causa está medida, não
-suposta: o `CLOUDFLARE_API_TOKEN` desta casa é válido (`/user/tokens/verify` → `active`), lê a zona
-(`/zones?name=padd.com.br` → 200) e gere rotas — mas **`dns_records` responde 403**. O primeiro
-passo de `ligarDominio` é o registo DNS, e é ele que não passa; a rota nem chega a ser tentada
-(`motor/servidor/dominio-da-escola.js`, `ligarDominio` devolve antes de `garantirRota`). Sem
-registo DNS, aliás, a rota seria inútil: `padd.com.br` **não tem curinga de DNS** (conferido:
-`zzz-nao-existe-9f2.padd.com.br` não resolve), pelo que cada escola precisa do seu registo.
+```
+GET https://danca.padd.com.br/api/dominio
+{ "ok": true, "zona": "padd.com.br", "pode_dns": true, "pode_rotas": true,
+  "com_registo": ["breu","calango","danca"],
+  "com_rota":   [{breu,breu},{calango,calango},{danca,danca}],
+  "proxima_escola": "nasce com «<escola>.padd.com.br» (registo A + rota), sem passar pelo painel" }
+```
 
-**O que falta, e é um clique.** Acrescentar **`Zone → DNS → Edit`**, com `padd.com.br` no âmbito,
-ao token que a raiz usa. É a mesma dica que a página já mostrava quando a escola nasceu
-(«Endereço próprio: PENDENTE») e que a prova `provar-dominio-da-escola` já antecipava. Depois
-disso, `node tools/publicar-dominio.js` fecha a `breu` — e as escolas seguintes nascem com o
-endereço sem ninguém ir ao painel.
+A `breu` ganhou o endereço (`tools/publicar-dominio.js`: DNS criado, rota já existia) e
+`https://breu.padd.com.br/api/saude` responde `{"tipo":"escola","slug":"breu","origem":"mapa"}`.
+O secret do Worker da raiz foi substituído pelo token com DNS — é ele que cria as escolas, e sem
+isso cada escola nova repetiria a «PENDENTE» da `breu`.
 
-**E um defeito que apareceu de borla: os comentários do `wrangler` gerado nasciam com buracos.**
-O heredoc de `tools/criar-escola.sh` que escreve o `wrangler.<escola>.jsonc` é **sem aspas** — é o
-que deixa as variáveis chegarem lá —, e num heredoc sem aspas a **crase é substituição de
-comando**. Resultado no ficheiro da `breu`: `` `publicacao/breu/` `` foi **executado** como
-comando, falhou em silêncio, e a documentação saía assim: «Aqui esteve , e era ela»; «Os scripts
-GERADOS pelo motor moram em , fora do alcance». Sete trechos de comentário apagados, e ordens
-inventadas a partir de texto de comentário.
+**A rota `/api/dominio` — por que existe.** O endereço próprio falha em SILÊNCIO: `ligarDominio`
+não lança (uma escola sem endereço é uma pendência, não um fracasso), e a resposta só diz «PENDENTE»
+depois de a escola já existir. Foi assim que a `breu` nasceu sem endereço em 13/11. O diagnóstico
+faz as duas leituras da zona — sem escrever nada, dois pedidos — e diz, por extenso, o que a criação
+faria à escola seguinte. `provar-diagnostico-do-dominio` fixa-o em **20 asserções**, com o controle
+negativo que importa: um registo `A` que não seja `192.0.2.1` proxyado **não** conta como endereço
+de escola (se contasse, o diagnóstico daria «está tudo bem» sobre um endereço que aponta para outra
+coisa — o pior alívio possível).
 
-- **A correção:** as crases dos comentários levam barra invertida (o padrão que o resumo do fim do
-  mesmo script já usava), e uma nota acima do heredoc diz por quê. O `wrangler.breu.jsonc` foi
-  **regenerado do template** e o resultado é **idêntico byte a byte** ao ficheiro versionado — a
-  prova de que o template voltou a ser a fonte.
-- **O comentário desactualizado também saiu:** «muda só o name, o assets.directory e o routes»
-  passou a dizer que a **rota** não vive na config, e sim em `dominio-da-escola.js`, no
-  provisionamento. O `routes` desapareceu da config em 13/11 e o comentário ficou a mentir.
-- **Motivo declarado** (o `tools/` é congelado): um comentário que se apaga sozinho não é
-  cosmético — é a documentação de um arquivo de infraestrutura a chegar ao repositório já
-  errada, e ninguém sabe porquê.
+**A prova ao vivo estava a medir a cache local, não o mecanismo.** `provar-dominio-ao-vivo` falhava
+seis vezes seguidas com `fetch failed` num nome que estava bom. A causa: o `SOA` de `padd.com.br`
+tem **mínimo de 1800 s**, e o resolvedor da máquina guarda o NXDOMAIN do primeiro pedido por
+**trinta minutos** — uma tentativa cedo demais envenena o nome para o resto da sessão. Agora a prova
+pergunta primeiro a um resolvedor externo (DoH, sem cache local) e só faz o pedido HTTPS quando o
+nome já resolve lá fora: passa em **~10 s**.
 
-**As credenciais da `breu`** entraram no ficheiro local (`LOGIN_BREU`, `LOGIN_REDINHA_ROSA`) e o
-professor dela em `tools/.escolas-teste`; `bash tools/hooks/pre-push` → ok, 5 senhas conferidas.
+**E o que contava como sucesso mudou, porque a verdade mudou.** O host de prova é descartável e
+**não** está no mapa `escolas/por-host`, portanto a ponte responde de propósito `origem: "nada"` com
+500. Exigir `tipo: "escola"` era exigir que o mapa aceitasse um host que ele não conhece. O que
+prova o mecanismo, e é o que a prova passa a exigir: (a) uma resposta do **motor** — logo o registo
+serviu de origem e a rota interceptou antes de `192.0.2.1`; (b) `escola_do_pacote` igual ao script
+da rota criada — logo foi a rota específica; (c) `origem: "nada"` e `slug: null` — o controle
+negativo de que o mapa não inventa escola. **6 asserções, todas verdes.**
 
-**Pendente.** A `batata` — a terceira escola de teste — ainda não existe como Worker. Sem as três,
-a bateria de dez gestos do `PLANO-SHARD.md` §4 fica a faltar uma perna.
+**Sobre o registo da raiz da zona.** O `A` de `padd.com.br` → `216.198.79.1`, cinza (DNS only), não
+é do Lastro: o `Server` responde **Vercel** e o apex faz 307 para `https://www.padd.com.br/`, que
+**não resolve**. É o resto de um projeto Vercel, não tem parte nenhuma neste sistema, e apagá-lo não
+toca em escola alguma. O que sustenta as escolas são os registos `A` → `192.0.2.1` proxyados.
+
+**Estado medido, para o expurgo.** Não existe Worker `batata` nem chave KV com prefixo `batata`, e a
+zona não tem `batata.padd.com.br`: a escola pode nascer limpa. E `excluirEscola` já faz a ordem
+certa — `desligarDominio` (registo DNS + rota, só o que tem a marca do sistema), subdomínio,
+script, KV —, pelo que o teste de expurgo remove as duas pontas.
 
 ## O que está pendente
 
