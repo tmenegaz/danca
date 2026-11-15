@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -690,6 +690,64 @@
           "fontes": 10,
           "variantes": 2,
           "cobertos": 12
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-15T20:24:05.670Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/breu/envelopes/.indice.json",
+        "professores/grand-plie/ciclos/ciclo-01-breu.conf",
+        "professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+        "professores/grand-plie/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/grand-plie/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/grand-plie/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/grand-plie/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/grand-plie/ciclos/ciclo-01-breu/index.html",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/grand-plie/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-15T20:24:05.670Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-15T20:24:01.848Z",
+        "ancoras": [
+          {
+            "caminho": "professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+            "id": "ciclo-01-breu",
+            "hash": "a0a75ae19ade47cd3c6802c55ace0db40852739ff8482295c7ce62940ea233d9",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "fc47089d0c8c199daa2742c796b85097bf489d21c4ad71d46147cb992f2c44b2",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
         },
         "fases": {
           "estrutura": "feita",
