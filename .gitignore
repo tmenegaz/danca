@@ -1355,3 +1355,11 @@ experimentos/modelo-formulario/*
 # senha dele está CERTA e é recusada na mesma, e nenhum bilhete de ato é emitido. O controlo
 # negativo é o mesmo registo um campo apartado (`desligado_em`), e o de `HEAD` reprova em 8.
 !experimentos/provar-seletor-do-ato.js
+
+# OS GESTOS 4 A 7 DO SHARD MEDEM-SE SEM O MODELO (15/11/2026). A bateria ao ar dizia-os pendentes
+# «porque passam por POST /api/elicitar, que gasta tokens» — e não gasta: com um mapa de `respostas`
+# a gravação é o runtime puro, e quem fala com o modelo é `/api/ia`. O que eles custam é CUSTÓDIA
+# (um commit por documento). Esta prova exercita os quatro caminhos — anamnese, plano, PO e linha
+# de base — numa loja só com duas escolas, que é a condição do shard, e mede que nenhum pedido sai
+# para a rede (com controlo negativo do contador, senão media o vazio).
+!experimentos/provar-gestos-do-shard.js

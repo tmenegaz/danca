@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T13:33:27-0300`
-Commit atual: `080e6c8c` — chore(entrega): regenerar os doze PDFs com o carimbo em UTC
+Gerado em: `2026-11-15T14:04:41-0300`
+Commit atual: `ccb7e2b0` — chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -58,7 +58,7 @@ prova-do-shard
 rabo-gramde
 redinha-rosa
 rimel-preto (9)
-- **Ciclos com manifesto:** 9 variante(s)
+- **Ciclos com manifesto:** 10 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -76,26 +76,26 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
-080e6c8c chore(entrega): regenerar os doze PDFs com o carimbo em UTC
-be111ca1 fix(tools): o carimbo do PDF deixa de depender do fuso de quem gera
-012c5d54 fix(estrutura): o professor desligado não se oferece para um ato
-f4988aa5 chore(entrega): gerar o pacote de coqui-de-redinha/01/batata-bale-nivel-1-teste-2
-8996e454 chore(estrutura): reancorar a cadeia das fontes alteradas
-cac94e9b chore(estrutura): regerar os índices derivados
-80da01ca feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-13157def feat(po): o PO elicitado vira a fonte do ciclo
-52ea8a64 feat(acervo): envelope/po-20261115-1246.json
-a1e5b12d feat(acervo): envelope/.indice.json
-41aeca0e chore(estrutura): regerar os índices derivados
-24794197 chore(estrutura): reancorar a cadeia das fontes alteradas
-69aeb65d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-c345b1da feat(plano): o plano elicitado vira a fonte do ciclo
-55c54310 feat(acervo): envelope/plano-20261115-1244.json
-c61b1155 feat(acervo): envelope/.indice.json
-a04a1305 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
-7f78138d chore(estrutura): reancorar a cadeia das fontes alteradas
-7b53c013 chore(estrutura): regerar os índices derivados
-9ab14846 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+ccb7e2b0 chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
+f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
+81c8a145 chore(estrutura): regerar os índices derivados
+20652b05 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
+131e7bc1 feat(po): o PO elicitado vira a fonte do ciclo
+b4d627f2 feat(acervo): envelope/po-20261115-1352.json
+227ebdfd feat(acervo): envelope/.indice.json
+59a4a5b4 chore(estrutura): reancorar a cadeia das fontes alteradas
+10977714 chore(estrutura): regerar os índices derivados
+4d63d403 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+c756e90e feat(plano): o plano elicitado vira a fonte do ciclo
+bc81d76a feat(acervo): envelope/plano-20261115-1351.json
+6710bda8 feat(acervo): envelope/.indice.json
+ecf3a660 chore(estrutura): regerar os índices derivados
+25f235b4 feat(linha de base): índice — fitas 20261115-1649
+a591ff48 feat(elenco): fitas — concluído
+4615f695 chore(estrutura): regerar os índices derivados
+b8080bb7 feat(acervo): envelope/anamnese-20261115-1348.json
+22036307 feat(acervo): envelope/.indice.json
+c7697904 chore(entrega): versionar o `plano-aula-01-anterior` do coqui-de-redinha
 ```
 
 ## Por professor
@@ -205,55 +205,71 @@ a04a1305 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
+## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
 
-**O que motivou.** A correção do professor desligado (hoje, mais cedo) deixou uma pergunta declarada
-em aberto: o registo dele fica, a direção dele é encerrada, ele já não abre atos novos — e os
-documentos que ele **deixou pela metade**? A fronteira entre «o que ele entregou» e «o que já não é
-dele» não estava desenhada, e a direção ficava com um PO aberto que ninguém conseguia assinar.
+**O que motivou.** Ela pediu os testes pendentes do `PLANO-SHARD.md`. Os pendentes eram quatro, e o
+motivo escrito no ficheiro era: «passa por `POST /api/elicitar` (gasta tokens e não é
+determinístico)». Fui ver antes de aceitar — e **o motivo estava errado**.
 
-**O que foi decidido.** A resposta é dela, e não inventa um acto novo: **«a coordenação deve definir
-qual professor assume, e isso é feito por meio da definição da turma»**. Noutros termos:
+**O que se mediu.** `POST /api/elicitar` com um mapa de `respostas` não chama o modelo: chama
+`porta.elicitar` → `motor/nucleo/elicitar.js`, que o próprio ficheiro descreve como «o runtime
+mínimo do PE», e cujos únicos `require` são `derivar-plano.js` e `validar.js`. Quem fala com o
+modelo é `POST /api/ia`, que serve a **condução** (que pergunta fazer a seguir) — outra rota, outro
+propósito. A bancada de comandos já usava o caminho com `elicitar.js --respostas`, e a cadeia
+automática do servidor (`cadeia.js`) também: com respostas declaradas, a gravação é o caminho
+normal, e não um atalho de teste.
 
-- **A unidade é a TURMA, não o documento.** O que fica por concluir pertence à turma — que é da
-  escola —, e não à pessoa que a estava a dirigir. Por isso não há «transferência de pendências» a
-  construir: o acto que resolve é o que já existe, atribuir a turma a outro professor.
-- **A coordenação é quem decide, e o acto é dela.** O sistema não escolhe sucessor — a escolha é da
-  direção, e a curadoria (professor × modalidade × turma) é o registo dessa escolha.
-- **O passado não se reescreve.** O elo de quem saiu continua na cadeia, **encerrado com data**; o
-  que muda é quem enquadra o presente. É a mesma regra do desligamento, vista do outro lado.
+**O que o erro de diagnóstico custou, e o que ele escondia.** Quatro gestos do plano — a anamnese, o
+plano de ensino, o PO e a linha de base, que são o CORAÇÃO do sistema — ficaram fora da bateria
+que existe para comparar topologias. O motivo verdadeiro é outro e é de **custódia**: cada gesto
+grava um envelope no repositório da escola (um commit por documento), e um PO concluído escreve as
+fontes do ciclo e **dispara a geração**. Numa bateria que corre duas vezes por topologia, isso são
+dezenas de commits em `main`, cada um a acordar os dois workflows do repositório. É por isso que
+continuam a exigir um sim explícito (`--com-documentos`) — mas por custo, não por tokens.
 
-**O que isto NÃO foi: código novo.** O mecanismo já existia desde 08/11/2026 — a rota da curadoria
-apaga a marca `descontinuada` quando uma direção activa volta a enquadrar a turma, com o comentário
-«Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se corrige». O que faltava
-era a **prova** de que o caminho responde à pergunta, e é isso que passa a estar medido: sem ela, a
-decisão ficava a depender de quem se lembrasse de ler aquele comentário.
+**O que foi decidido.**
 
-**Onde entrou.** `experimentos/provar-transferencia-e-desligamento.js` — secção **C5b** (quatro
-asserções novas) e o cabeçalho.
+- **Os quatro gestos passam a ser medidos, e onde é barato: na bancada.** `provar-gestos-do-shard`
+  corre as quatro sequências na condição exacta do shard — **uma loja, duas escolas**, com o
+  namespacing do adaptador de produção (`envelope/` e `ia-registro/` ganham o slug) — e mede o que
+  não se vê de fora: que os gestos de uma escola não tocam na outra.
+- **O modelo não entra, e isso é asserção e não comentário.** A prova instala um espião na rede
+  antes do primeiro gesto e confere no fim que **nenhum pedido saiu**; e o espião tem controlo
+  negativo (um pedido forçado tem de o fazer contar), porque um contador que nunca sobe aprovaria
+  «nada saiu» com a rede a ser usada.
+- **A bateria ao ar deixa de mentir.** O motivo falso sai do cabeçalho e do relatório; os gestos
+  4, 5 e 7 passam a correr com `--com-documentos` (determinísticos, criando e apagando onde a
+  proveniência deixa), e o 6 fica declarado com o motivo verdadeiro: concluir o PO escreve as
+  fontes do ciclo e dispara um pacote novo em `main`. **Não o corri ao vivo**: seis commits por
+  escola, cada um a acordar os dois workflows do repositório, é o recurso dela e não meu.
+- **O id da edição é o que a resposta devolve.** A anamnese livre que muda de facto é reescrita com
+  o carimbo da hora da mudança; apontar para o id de entrada é o defeito que já apareceu duas vezes
+  nesta casa (`turma-editar`, e a primeira versão desta bancada). A asserção passou a afirmar o
+  registo que **passou a valer**, e que o anterior não ficou como órfão.
 
-**Com o quê.** `provar-transferencia-e-desligamento` **97/97** (eram 93): a coordenação atribui a
-turma de quem saiu a outra pessoa (201), a marca `descontinuada` **cai**, quem enquadra a turma passa
-a ser o professor novo — e o elo do professor que saiu continua na cadeia, encerrado. Foi medido
-primeiro à parte, num KV em memória, antes de se escrever a asserção: a marca cai, e o que sobra da
-palavra «descontinuada» na página é o texto do JavaScript que a sabe escrever, não um selo aceso.
+**Onde entrou.** `experimentos/provar-gestos-do-shard.js` (novo, 31 asserções) ·
+`experimentos/provar-bateria-do-shard.js` (cabeçalho corrigido, `--com-documentos`, gestos 4, 5 e 7)
+· `.gitignore` (a prova entra na lista).
 
-**O que ainda não está feito.** (1) A fronteira continua a não dizer o que acontece a um documento
-**já em curso** (um PO a meio) quando a turma muda de mãos: pelos dados, ele segue a turma — mas o
-formulário não avisa quem o abre de que a direção mudou, e isso é desenho de tela, não de regra.
-(2) Se a coordenação **não** atribuir a turma, nada expira: a turma fica `descontinuada` com o motivo
-escrito, à espera de decisão, e é o estado correcto — o sistema não decide por ninguém.
+**Com o quê.** `provar-gestos-do-shard` **31/31**, e **duas corridas seguidas dão o mesmo texto**
+(não há carimbo a variar porque o `agora` é declarado). O que ele mede: a anamnese é criada, listada
+como vigente da aluna, editada em sítio e apagada enquanto solta, e sai do acervo; o plano é criado,
+a fonte é escrita, o derivado nasce com id novo e `ajuste_de` a apontar o anterior; o PO observa o
+plano VIGENTE (o derivado), escreve a fonte, deriva o ciclo, **dispara a geração** com o contexto do
+ato, e um segundo PO para o mesmo plano é recusado (409); a linha de base aceita a mudança de elenco,
+envia para a turma com as duas alunas, e **diz onde gravou** (`kv`, sem repositório — a metade
+honesta). No shard: a segunda escola não ganha um byte, com contraprova de que a loja tem as chaves
+da primeira nas três famílias, e cada escola lê só a sua. `provar-bateria-do-shard --so-leitura`
+contra as três escolas ao vivo: **37/37**, com `origem: "mapa"` nos três hosts.
+
+**O que ainda não está feito.** (1) Os gestos 4–7 **não** foram corridos ao vivo: a bancada prova o
+caminho, e o que falta é a conferência final de topologia, que custa os commits descritos acima —
+decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e é de propósito:
+concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
+o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
+documentos é medida pelos validadores e pelas provas de cada família.
 
 ## O que está pendente
-
-## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
-
-(1) O envelope grava a resposta semeada com
-`origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
-defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
-o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
-documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
-humano; é feio e anterior, e não se tocou.
 
 ## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
 
@@ -295,6 +311,15 @@ escrever, o pino já está lá em cima e há de ser herdado.
 ## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
 
 (1) A fronteira continua a não dizer o que acontece a um documento
+
+## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
+
+(1) Os gestos 4–7 **não** foram corridos ao vivo: a bancada prova o
+caminho, e o que falta é a conferência final de topologia, que custa os commits descritos acima —
+decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e é de propósito:
+concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
+o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
+documentos é medida pelos validadores e pelas provas de cada família.
 
 ## Pendências anteriores (índice)
 
@@ -735,6 +760,7 @@ escrever, o pino já está lá em cima e há de ser herdado.
 - **15/11/2026** — Audição: as abas Recorte e Transferência esperam pelo… → `REGISTRO.md` L44870
 - **15/11/2026** — Estilo: os passos do trecho só abrem dentro de um trecho;… → `REGISTRO.md` L44907
 - **15/11/2026** — As saídas do pacote deixam de se carimbar: a data sai das… → `REGISTRO.md` L44976
+- **15/11/2026** — A etiqueta «PO aguardando» passa a dizer o que falta marcar → `REGISTRO.md` L45040
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

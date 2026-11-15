@@ -24,13 +24,23 @@
  *     A igualdade é o que torna legítima a cópia partilhada de `/assets/` no passo 2 (§2.2 do
  *     plano): partilhar um ficheiro que difere seria unificar aparências por acidente.
  *
- * O QUE ELA NÃO FAZ, e é deliberado. Os gestos 4–7 (anamnese, plano de ensino, PO, linha de base)
- * passam por `POST /api/elicitar`, que ELICITA com o modelo — gastam tokens da chave da casa e não
- * são determinísticos. Uma bancada que chama o modelo a cada corrida não serve para comparar duas
- * topologias. Esses quatro gestos ficam ditos como PENDENTES no relatório, com o motivo, em vez de
- * aparecerem como «ok» por omissão.
+ * O QUE ELA NÃO FAZ POR OMISSÃO, E PORQUÊ — O MOTIVO ESTAVA ERRADO (15/11/2026). Os gestos 4–7
+ * (anamnese, plano de ensino, PO, linha de base) estavam ditos como pendentes por «passarem por
+ * `POST /api/elicitar`, que ELICITA com o modelo». **Não passa.** Com um mapa de `respostas`,
+ * `/api/elicitar` grava pelo runtime puro (`motor/nucleo/elicitar.js`) e não fala com o modelo —
+ * quem fala é `/api/ia`, que serve a condução. A bancada de comandos (`elicitar.js --respostas`) e
+ * a cadeia automática do servidor (`cadeia.js`) usam o mesmo caminho, e é por isso que ele é o
+ * caminho normal e não um atalho de teste.
+ *
+ * O motivo verdadeiro é outro, e é de CUSTÓDIA: cada gesto grava um envelope no repositório da
+ * escola (um commit por documento), e um PO concluído escreve as fontes do ciclo e DISPARA a
+ * geração. Numa bateria que corre duas vezes por topologia, isso são dezenas de commits em `main`,
+ * cada um a acordar os dois workflows do repositório. Por isso continuam a exigir um sim explícito
+ * — `--com-documentos` —, e o que fica medido por omissão é a bancada local
+ * (`experimentos/provar-gestos-do-shard.js`), que exercita os mesmos quatro caminhos sem rede.
  *
  *   node experimentos/provar-bateria-do-shard.js
+ *   node experimentos/provar-bateria-do-shard.js --com-documentos     # corre 4–7 AO VIVO (grava)
  *   node experimentos/provar-bateria-do-shard.js --zona padd.com.br     # outro domínio
  *   node experimentos/provar-bateria-do-shard.js --so-leitura           # não escreve nada
  *
@@ -50,6 +60,10 @@ const arg = (nome, padrao) => {
 };
 const ZONA = arg('--zona', 'padd.com.br');
 const SO_LEITURA = args.includes('--so-leitura');
+/* OS GESTOS 4–7, E O SIM EXPLÍCITO. Não é o modelo que eles custam — é a custódia: cada gesto
+ * grava um envelope no repositório (um commit por documento) e um PO concluído dispara a geração.
+ * Ver o cabeçalho. */
+const COM_DOCUMENTOS = args.includes('--com-documentos');
 
 /** As escolas de teste — e o número que `motor/servidor/teste-fixtures.js` lhes dá pelo nome. */
 const ESCOLAS = [
@@ -281,11 +295,135 @@ async function digital(slug) {
     provar('…mas a lista da escola continua a mostrá-lo, com o selo `desligado`',
       /Prova Do Shard/i.test(producaoBreu.texto) && /desligado/.test(producaoBreu.texto), null);
 
-    /* ── OS GESTOS QUE PRECISAM DO MODELO ─────────────────────────────────────────────────── */
-    pendente('4. anamnese — criar, editar, apagar', 'passa por POST /api/elicitar (gasta tokens e não é determinístico)');
-    pendente('5. plano de ensino — criar, derivar', 'idem');
-    pendente('6. PO — criar, concluir, gerar', 'idem');
-    pendente('7. linha de base — enviar, alterar elenco', 'depende da anamnese, que é o gesto 4');
+    /* ── OS GESTOS 4–7 · AS RESPOSTAS DECLARADAS ──────────────────────────────────────────── */
+    /* O MAPA DE RESPOSTAS É O QUE TORNA ESTES GESTOS DETERMINÍSTICOS. `POST /api/elicitar` com
+     * `respostas` grava pelo runtime puro e NÃO chama o modelo — é o mesmo corpo que a tela envia
+     * depois de o professor responder, e o mesmo que `cadeia.js` usa. O que varia entre duas
+     * corridas desta bateria, por isso, não é o documento: é a topologia. */
+    if (!COM_DOCUMENTOS) {
+      pendente('4. anamnese — criar, editar, apagar',
+        'cada gesto grava um envelope no repositório da escola (um commit por documento); '
+        + 'corra com --com-documentos, ou meça na bancada local (provar-gestos-do-shard)');
+      pendente('5. plano de ensino — criar, derivar', 'idem');
+      pendente('6. PO — criar, concluir, gerar', 'idem — e concluir DISPARA a geração de um pacote');
+      pendente('7. linha de base — enviar, alterar elenco', 'idem');
+    } else {
+      const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', nota: null });
+      const anamneseDe = (aluna) => ({
+        fonte: 'anamnese',
+        respostas: {
+          idade: r('12/03/2015'), 'categoria-etaria': r('Infantil'),
+          conhecimentoPrevio: r('balé, um ano'), musicalidade: r('mantém o pulso'),
+          tendu: r('reconhece o apoio'),
+        },
+        contexto: { professor: 'pe-torto', aluna },
+      });
+      const ESCOLA_DOS_DOCUMENTOS = 'calango';
+
+      /* GESTÃO 4 · ANAMNESE — criar, editar, apagar (a aluna tem de existir no elenco). */
+      console.log('\n4. anamnese — criar, editar, apagar (na `' + ESCOLA_DOS_DOCUMENTOS + '`)');
+      const elenco = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/bastidores/alunas');
+      const aluna = ((elenco.corpo && elenco.corpo.alunas) || [])[0] || null;
+      if (!aluna) {
+        pendente('4. anamnese', 'a escola não tem aluna nenhuma para receber a anamnese');
+      } else {
+        const criada = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/elicitar', {
+          metodo: 'POST', corpo: anamneseDe(aluna),
+        });
+        const id = criada.corpo && criada.corpo.documento && criada.corpo.documento.id;
+        provar('criar a anamnese responde 200', criada.status === 200, [criada.status, criada.corpo && criada.corpo.erro]);
+        provar('…e devolve o envelope', Boolean(id), criada.corpo && criada.corpo.documento);
+        if (id) {
+          const editada = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/anamnese-editar/' + id, {
+            metodo: 'PUT', corpo: Object.assign(anamneseDe(aluna), {
+              respostas: Object.assign(anamneseDe(aluna).respostas, { musicalidade: r('antecipa o pulso') }),
+            }),
+          });
+          provar('editar a anamnese LIVRE responde 200', editada.status === 200, [editada.status, editada.corpo && editada.corpo.erro]);
+          /* O ID DA EDIÇÃO É O QUE A RESPOSTA DEVOLVE: uma anamnese livre que muda de facto é
+           * reescrita com o carimbo da hora da mudança. Apontar para o id de entrada é o defeito
+           * que já apareceu duas vezes nesta casa (`turma-editar`, e a bancada local). */
+          const idEditado = (editada.corpo && editada.corpo.editada) || id;
+          const apagada = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/anamnese-vinculo/' + idEditado, {
+            metodo: 'DELETE', corpo: {},
+          });
+          provar('apagar a anamnese ainda SOLTA responde 200', apagada.status === 200, [apagada.status, apagada.corpo && apagada.corpo.erro]);
+        }
+      }
+
+      /* GESTÃO 5 · PLANO DE ENSINO — criar, derivar. Sem curadoria para a turma, a rota do plano
+       * recusa (403), e isso NÃO é falha da topologia: é a regra, e é medida na bancada local. */
+      console.log('\n5. plano de ensino — criar, derivar (na `' + ESCOLA_DOS_DOCUMENTOS + '`)');
+      {
+        const curadoria = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/bastidores/curadoria-professor?professor=pe-torto');
+        const dele = (curadoria.corpo && curadoria.corpo.curadorias) || [];
+        const turma = dele.length ? ((dele[0].turmas || [])[0] || '') : '';
+        if (!turma) {
+          pendente('5. plano de ensino', 'o professor desta escola não tem turma curada — sem ela a rota recusa (403), e é a regra');
+        } else {
+          const respostas = {
+            'objetivo-geral': r('consolidar o alinhamento e a transferência de peso'),
+            'contexto-escola': r(ESCOLA_DOS_DOCUMENTOS), 'contexto-professor': r('pe-torto'),
+            'contexto-turma': r(turma), 'contexto-frequencia': r('2x/semana'),
+            'contexto-duracao': r([{ numero: 60, unidade: 'minuto' }]),
+            'contexto-calendario': r({ inicio: '2026-11-11', fim: '2026-12-20' }),
+            'contexto-volume': r('21 aulas'), 'contexto-registro': r('captura escrita'),
+            'marcos-por-aula': r(['reconhecer o apoio', 'transferir o peso']),
+            'aula-1-parametro': r([{ marco: 1, marcados: ['Battement tendu'] }]),
+            'aula-1-sequencia': r([{ Bloco: 'Barra', 'Objetivo específico': '1 — reconhecer o apoio',
+              'Conteúdo do nível': 'Battement tendu', Tempos: '8', Compasso: '4/4' }]),
+            'criterio-de-extensao': r('estender em duas aulas'),
+            proveniencia: r(['a bateria do shard']),
+          };
+          const criado = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/elicitar', {
+            metodo: 'POST', corpo: { fonte: 'plano', respostas, contexto: { professor: 'pe-torto', ciclo: '01', turma } },
+          });
+          const idPlano = criado.corpo && criado.corpo.documento && criado.corpo.documento.id;
+          provar('criar o plano de ensino responde 200', criado.status === 200, [criado.status, criado.corpo && criado.corpo.erro]);
+          if (idPlano) {
+            const derivado = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/elicitar', {
+              metodo: 'POST',
+              corpo: { fonte: 'plano', ajuste_de: idPlano, motivo: 'a bateria do shard',
+                respostas: Object.assign({}, respostas, { 'criterio-de-extensao': r('estender em três aulas') }),
+                contexto: { professor: 'pe-torto', ciclo: '01', turma } },
+            });
+            const idNovo = derivado.corpo && derivado.corpo.documento && derivado.corpo.documento.id;
+            provar('derivar o plano responde 200 e dá um id NOVO',
+              derivado.status === 200 && idNovo && idNovo !== idPlano, { status: derivado.status, idPlano, idNovo });
+          }
+        }
+      }
+
+      /* GESTÃO 6 · PO — criar, concluir, gerar. **ESTE É O GESTO CARO**: concluir escreve as
+       * fontes do ciclo e dispara a geração. Fica dito no relatório, porque não é o mesmo que
+       * criar um envelope. */
+      console.log('\n6. Plano de Observação — criar, concluir, gerar');
+      pendente('6. PO — criar, concluir, gerar',
+        'concluir o PO escreve as fontes do ciclo e DISPARA a geração (um pacote novo em `main`); '
+        + 'a bancada local mede os três passos com o disparo espiado (provar-gestos-do-shard, §6)');
+
+      /* GESTÃO 7 · LINHA DE BASE — enviar, alterar elenco. */
+      console.log('\n7. linha de base — enviar, alterar elenco');
+      {
+        const linhas = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/bastidores/linhas-de-base');
+        const rascunhos = (linhas.corpo && (linhas.corpo.rascunhos || linhas.corpo.linhas)) || [];
+        const livre = rascunhos.find((l) => l && l.id && (l.alunas || []).length && (l.campos || []).length);
+        if (!livre) {
+          pendente('7. linha de base', 'a escola não tem rascunho de elenco com alunas e recorte neste momento');
+        } else {
+          const turmas = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/bastidores/turmas');
+          const turmaDaBase = (livre.turma || '')
+            || (((turmas.corpo && turmas.corpo.turmas) || []).map((t) => t && t.nome).filter(Boolean)[0] || '');
+          const enviada = await chamar(ESCOLA_DOS_DOCUMENTOS, '/api/bastidores/linha-de-base/enviar', {
+            metodo: 'POST', corpo: { id: livre.id, turma: turmaDaBase },
+          });
+          provar('enviar a linha de base para a turma responde 200', enviada.status === 200,
+            [enviada.status, enviada.corpo && enviada.corpo.erro]);
+          provar('…e diz ONDE gravou (repositório ou KV), em vez de fingir',
+            Boolean(enviada.corpo && enviada.corpo.gravado), enviada.corpo && enviada.corpo.gravado);
+        }
+      }
+    }
   }
 
   /* ── O ISOLAMENTO · o gesto numa escola não toca nas outras ─────────────────────────────── */

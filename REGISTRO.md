@@ -45379,3 +45379,67 @@ palavra «descontinuada» na página é o texto do JavaScript que a sabe escreve
 formulário não avisa quem o abre de que a direção mudou, e isso é desenho de tela, não de regra.
 (2) Se a coordenação **não** atribuir a turma, nada expira: a turma fica `descontinuada` com o motivo
 escrito, à espera de decisão, e é o estado correcto — o sistema não decide por ninguém.
+
+## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
+
+**O que motivou.** Ela pediu os testes pendentes do `PLANO-SHARD.md`. Os pendentes eram quatro, e o
+motivo escrito no ficheiro era: «passa por `POST /api/elicitar` (gasta tokens e não é
+determinístico)». Fui ver antes de aceitar — e **o motivo estava errado**.
+
+**O que se mediu.** `POST /api/elicitar` com um mapa de `respostas` não chama o modelo: chama
+`porta.elicitar` → `motor/nucleo/elicitar.js`, que o próprio ficheiro descreve como «o runtime
+mínimo do PE», e cujos únicos `require` são `derivar-plano.js` e `validar.js`. Quem fala com o
+modelo é `POST /api/ia`, que serve a **condução** (que pergunta fazer a seguir) — outra rota, outro
+propósito. A bancada de comandos já usava o caminho com `elicitar.js --respostas`, e a cadeia
+automática do servidor (`cadeia.js`) também: com respostas declaradas, a gravação é o caminho
+normal, e não um atalho de teste.
+
+**O que o erro de diagnóstico custou, e o que ele escondia.** Quatro gestos do plano — a anamnese, o
+plano de ensino, o PO e a linha de base, que são o CORAÇÃO do sistema — ficaram fora da bateria
+que existe para comparar topologias. O motivo verdadeiro é outro e é de **custódia**: cada gesto
+grava um envelope no repositório da escola (um commit por documento), e um PO concluído escreve as
+fontes do ciclo e **dispara a geração**. Numa bateria que corre duas vezes por topologia, isso são
+dezenas de commits em `main`, cada um a acordar os dois workflows do repositório. É por isso que
+continuam a exigir um sim explícito (`--com-documentos`) — mas por custo, não por tokens.
+
+**O que foi decidido.**
+
+- **Os quatro gestos passam a ser medidos, e onde é barato: na bancada.** `provar-gestos-do-shard`
+  corre as quatro sequências na condição exacta do shard — **uma loja, duas escolas**, com o
+  namespacing do adaptador de produção (`envelope/` e `ia-registro/` ganham o slug) — e mede o que
+  não se vê de fora: que os gestos de uma escola não tocam na outra.
+- **O modelo não entra, e isso é asserção e não comentário.** A prova instala um espião na rede
+  antes do primeiro gesto e confere no fim que **nenhum pedido saiu**; e o espião tem controlo
+  negativo (um pedido forçado tem de o fazer contar), porque um contador que nunca sobe aprovaria
+  «nada saiu» com a rede a ser usada.
+- **A bateria ao ar deixa de mentir.** O motivo falso sai do cabeçalho e do relatório; os gestos
+  4, 5 e 7 passam a correr com `--com-documentos` (determinísticos, criando e apagando onde a
+  proveniência deixa), e o 6 fica declarado com o motivo verdadeiro: concluir o PO escreve as
+  fontes do ciclo e dispara um pacote novo em `main`. **Não o corri ao vivo**: seis commits por
+  escola, cada um a acordar os dois workflows do repositório, é o recurso dela e não meu.
+- **O id da edição é o que a resposta devolve.** A anamnese livre que muda de facto é reescrita com
+  o carimbo da hora da mudança; apontar para o id de entrada é o defeito que já apareceu duas vezes
+  nesta casa (`turma-editar`, e a primeira versão desta bancada). A asserção passou a afirmar o
+  registo que **passou a valer**, e que o anterior não ficou como órfão.
+
+**Onde entrou.** `experimentos/provar-gestos-do-shard.js` (novo, 31 asserções) ·
+`experimentos/provar-bateria-do-shard.js` (cabeçalho corrigido, `--com-documentos`, gestos 4, 5 e 7)
+· `.gitignore` (a prova entra na lista).
+
+**Com o quê.** `provar-gestos-do-shard` **31/31**, e **duas corridas seguidas dão o mesmo texto**
+(não há carimbo a variar porque o `agora` é declarado). O que ele mede: a anamnese é criada, listada
+como vigente da aluna, editada em sítio e apagada enquanto solta, e sai do acervo; o plano é criado,
+a fonte é escrita, o derivado nasce com id novo e `ajuste_de` a apontar o anterior; o PO observa o
+plano VIGENTE (o derivado), escreve a fonte, deriva o ciclo, **dispara a geração** com o contexto do
+ato, e um segundo PO para o mesmo plano é recusado (409); a linha de base aceita a mudança de elenco,
+envia para a turma com as duas alunas, e **diz onde gravou** (`kv`, sem repositório — a metade
+honesta). No shard: a segunda escola não ganha um byte, com contraprova de que a loja tem as chaves
+da primeira nas três famílias, e cada escola lê só a sua. `provar-bateria-do-shard --so-leitura`
+contra as três escolas ao vivo: **37/37**, com `origem: "mapa"` nos três hosts.
+
+**O que ainda não está feito.** (1) Os gestos 4–7 **não** foram corridos ao vivo: a bancada prova o
+caminho, e o que falta é a conferência final de topologia, que custa os commits descritos acima —
+decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e é de propósito:
+concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
+o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
+documentos é medida pelos validadores e pelas provas de cada família.
