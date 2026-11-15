@@ -22,7 +22,7 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código do ciclo — base Benesh (ballet clássico) |
-| Versão | 43 |
+| Versão | 45 |
 | Categorias | 5 |
 | Sinais | 32 |
 | Verbetes (exercícios) | 4 |
