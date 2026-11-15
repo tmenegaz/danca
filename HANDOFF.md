@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T15:41:34-0300`
-Commit atual: `ffb689f3` — fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
+Gerado em: `2026-11-15T15:54:19-0300`
+Commit atual: `70d3d9d8` — fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,8 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+70d3d9d8 fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
+0cd1438a docs(registro): o run 575 correu a publicação do shard, e a entrada dizia que não
 ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
 5b46db6e feat(estrutura): a escola de shard passa a ser publicada, e o expurgo reconhece-a
 842efb28 feat(tools): a montagem de um shard monta-o inteiro, ou não monta
@@ -94,8 +96,6 @@ b4d627f2 feat(acervo): envelope/po-20261115-1352.json
 227ebdfd feat(acervo): envelope/.indice.json
 59a4a5b4 chore(estrutura): reancorar a cadeia das fontes alteradas
 10977714 chore(estrutura): regerar os índices derivados
-4d63d403 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-c756e90e feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -205,83 +205,46 @@ c756e90e feat(plano): o plano elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — A publicação do shard: uma árvore partilhada monta-se inteira
+## 15/11/2026 — A chave que não abre tem nome
 
-**O que motivou.** Uma pergunta que só apareceu ao ligar o shard: **quem publica o conteúdo de uma
-escola que vive num shard?** Os três caminhos de publicação respondiam a outra pergunta — «qual é a
-config desta escola?» — e uma escola de shard não tem config. Medido, não suposto: `gerar-ciclo.yml`
-fazia `wrangler deploy -c wrangler.<escola>.jsonc`, um ficheiro que num shard **não existe**, e
-falharia com «Could not read file»; o `deploy-escolas.yml` descobria as escolas percorrendo
-`wrangler.*.jsonc`, e por isso **nunca via** uma escola de shard; e o `criar-escola.yml` montava uma
-escola e subia o shard — que substitui a versão inteira e apagaria as páginas das outras.
+**O que motivou.** Medido ao vivo, no shard ligado: `GET /anamnese/api/envelope/anamnese-20261108-1259`
+na `calango` respondia **`error code: 1101`** — «excepção de JavaScript», corpo nenhum, e nenhuma
+palavra na tela. O registo existe (a listagem mostra-o, com apelido e vínculos), e não abre: foi
+cifrado com a `SENHA_CRIPTO` aleatória do Worker daquela escola, e a chave passou a ser derivada da
+mestra. O `Cifra.decifrar` atira, o armazenamento não apanhava, a rota não apanhava, e o Worker
+fechava a ligação sem dizer nada.
 
 **O que foi decidido.**
-- **Uma pergunta, uma resposta.** `tools/lib-shard.sh` → `shard_da_escola <slug>`, lendo
-  `escola/<slug>/indice.json` no campo `shard` (o mesmo que o `criar-escola.sh --shard` grava e o
-  mesmo que o expurgo lê). Vazio significa «Worker próprio», que continua a ser o regime de quase
-  todas.
-- **`montar-publicacao.js --shard <script>`** monta todas as escolas que declaram aquele shard, cada
-  uma pelo caminho de sempre (um processo por escola: o que o CI faz tem de ser o que se faz à mão).
-- **A guarda que impede o desastre.** Sem nenhuma escola a declarar o shard, `--shard` **sai com
-  erro** e não monta nada — montar zero e subir é N escolas a responder 404, e é o único acidente
-  desta mudança que não se vê na hora.
-- **A descoberta do `deploy-escolas` passa a ver as escolas de shard**, e escolhe **uma entrada por
-  shard**: o passo de publicação monta o shard inteiro e sobe o mesmo Worker, portanto três escolas
-  do mesmo shard seriam três deploys idênticos.
-- **As três escolas de hoje passam a declarar o shard** em `escola/<slug>/indice.json`. É o facto:
-  elas são servidas pelo `lastro-teste` desde que as rotas foram movidas. Consequência boa e
-  imediata: o `moradaDaEscola` devolve o shard, o expurgo reconhece-o como shard e **não** tenta
-  apagar um script com o nome da escola.
+- **A falha tem nome.** `ErroDeChave`, em `motor/servidor/acervo-envelopes.js`, com `status` (409) e
+  uma mensagem que diz o essencial: **o registo está intacto, o que falta é a chave com que ele foi
+  escrito**. Um registo ilegível por chave trocada é um facto do ACERVO, não um defeito do pedido, e
+  a diferença tem de chegar a quem lê.
+- **Apanha-se no ROTEADOR, e não em cada rota.** São dez rotas a ler envelopes (`/api/envelope/:id`,
+  `/api/anamnese-estado/:id`, `/api/anamnese-ajuste/:id`, o PO, o plano…). Pôr a guarda em cada uma
+  seria a mesma regra escrita dez vezes, e a próxima rota herdaria o defeito por omissão.
+- **Um erro SEM nome continua a subir.** A guarda só converte o que declarou saber o que significa
+  (`nome` diferente de `Error` e `status` presente). Alargá-la transformaria qualquer defeito num
+  409 simpático — e o controlo negativo mede exactamente isso.
+- **A reserva que evita o problema não existe, e é dito.** Não há como decifrar com a chave antiga:
+  ela viveu no Worker da escola, é escrita-só no Cloudflare e nasceu aleatória. A chave nova não a
+  reconstrói. É a razão de o caminho ser expurgar e recriar, e não migrar.
 
-**Onde entrou.** `tools/lib-shard.sh` (novo) · `tools/montar-publicacao.js` (`escolasDoShard`,
-`montarShard`, `principal` com o despacho) · `.github/workflows/criar-escola.yml` ·
-`.github/workflows/deploy-escolas.yml` (descoberta e alvo) · `.github/workflows/gerar-ciclo.yml`
-(montagem e alvo) · `escola/{batata,breu,calango}/indice.json` (o campo `shard`) ·
-`experimentos/provar-publicacao-da-escola.js` (a asserção do `assets.directory` passa a conhecer o
-shard) · `experimentos/provar-cofre-e-shard.js` (secção D).
+**Onde entrou.** `motor/servidor/acervo-envelopes.js` (`ErroDeChave`, e o `try` à volta do
+`Cifra.decifrar`) · `motor/servidor/roteador.js` (a conversão no `responder`) ·
+`experimentos/provar-cofre-e-shard.js` (secção E).
 
-**Motivo declarado — os congelados.** Toca `tools/montar-publicacao.js` e cria `tools/lib-shard.sh`.
-É **aditivo**: sem `--shard`, a linha de comando é a de sempre (`montar-publicacao.js <escola>`) e a
-montagem de uma escola não muda uma linha. O que acresce é o modo que faltava, e uma guarda que
-recusa montar zero. Não mudam a fórmula de hash, a cobertura da âncora, os validadores, as regras nem
-as pétreas; nenhuma fonte de ciclo foi tocada, logo não há reancoragem. `lib-shard.sh` fica em
-`tools/` porque é usado por três workflows, e a alternativa era a mesma pergunta respondida em três
-sítios.
+**Com o quê.** `provar-cofre-e-shard` **72/72** (a secção E cifra um envelope com uma chave, lê-o com
+outra, e mede o nome, o estado, a mensagem e a resposta do roteador), e o controlo negativo em
+**11/34**. `provar-gestos-do-shard` 31/31 · `provar-anamnese-sem-cofre` 13/13. `check-identidade` 0
+erros. A falha pré-existente de `provar-listas-do-acervo` (**3 de 109**) continua igual — é outra
+coisa, e está declarada na entrada de 15/11/2026 sobre a publicação.
 
-**Com o quê.** `provar-cofre-e-shard` **62/62** (a secção D mede a lista, a guarda, o helper e os três
-workflows), com o controlo negativo em **10/28**. `provar-publicacao-da-escola` **72/72**.
-`check-indices` 16/16 com o campo novo. `check-identidade` 0 erros. `montar-publicacao.js --shard
-lastro-teste` correu sobre as três escolas ao vivo, e o `--shard` de um shard sem escolas sai com
-erro 1. Duas falhas pré-existentes, medidas num worktree limpo de `origin/main` e não causadas por
-isto: `provar-listas-do-acervo` **3 de 109** (a porta `/anamnese/` responde 302) e `provar-navegacao`
-(um `getComputedStyle` sobre um elemento que não existe).
-
-**O que ainda não está feito.** (1) **Nada disto foi exercitado num run real do GitHub Actions**: a
-lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova. (2) `montar-publicacao
---shard` num shard com uma escola cujo pacote-zero desapareceu (expurgada sem limpar o índice) monta
-as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
-não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
-versionado e inerte; sai quando ela expurgar.
-
-**Nota de correção (15/11/2026, mesmo dia).** Esta entrada fecha dizendo que «nada disto foi
-exercitado num run real do GitHub Actions». Deixou de ser verdade vinte minutos depois, e a correção
-fica dita em vez de apagada: o run **575** de «Publicar as escolas» correu a lógica nova e o registo
-dele é a prova. A descoberta pôs **uma** entrada na matriz (`publicar (batata)`) em vez de três — a
-deduplicação por alvo funciona —, a montagem disse `shard «lastro-teste»: 3 escola(s) — batata, breu,
-calango`, e o alvo foi `wrangler.lastro-teste.jsonc`. Depois disso, `/`, `/aulas/` e
-`/assets/style.css` respondem **200** nos três hosts. Falta o run que ainda não aconteceu: o
-`criar-escola` com `shard`, que só corre quando ela criar a primeira escola.
+**O que ainda não está feito.** (1) A mensagem nova só se vê depois de o shard ser republicado com
+este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
+abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
+deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
 
 ## O que está pendente
-
-## 15/11/2026 — O carimbo do PDF deixa de depender do fuso de quem gera
-
-(1) O `--somente-porta` do `criar-escola.sh` continua a exigir o
-manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de-redinha/01/batata`,
-`pe-torto/01/calango`, `redinha-rosa/01/breu`) não têm PDF, e por isso não entram nesta convergência:
-quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
-epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
-escrever, o pino já está lá em cima e há de ser herdado.
 
 ## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
 
@@ -316,6 +279,13 @@ lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova.
 as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
 não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
 versionado e inerte; sai quando ela expurgar.
+
+## 15/11/2026 — A chave que não abre tem nome
+
+(1) A mensagem nova só se vê depois de o shard ser republicado com
+este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
+abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
+deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
 
 ## Pendências anteriores (índice)
 
@@ -759,6 +729,7 @@ versionado e inerte; sai quando ela expurgar.
 - **15/11/2026** — A etiqueta «PO aguardando» passa a dizer o que falta marcar → `REGISTRO.md` L45040
 - **15/11/2026** — O estado do PO lê-se das perguntas obrigatórias, e não do… → `REGISTRO.md` L45105
 - **15/11/2026** — O professor desligado não se oferece para um ato → `REGISTRO.md` L45197
+- **15/11/2026** — O carimbo do PDF deixa de depender do fuso de quem gera → `REGISTRO.md` L45283
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

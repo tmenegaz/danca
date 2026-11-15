@@ -45619,3 +45619,42 @@ deduplicação por alvo funciona —, a montagem disse `shard «lastro-teste»: 
 calango`, e o alvo foi `wrangler.lastro-teste.jsonc`. Depois disso, `/`, `/aulas/` e
 `/assets/style.css` respondem **200** nos três hosts. Falta o run que ainda não aconteceu: o
 `criar-escola` com `shard`, que só corre quando ela criar a primeira escola.
+
+## 15/11/2026 — A chave que não abre tem nome
+
+**O que motivou.** Medido ao vivo, no shard ligado: `GET /anamnese/api/envelope/anamnese-20261108-1259`
+na `calango` respondia **`error code: 1101`** — «excepção de JavaScript», corpo nenhum, e nenhuma
+palavra na tela. O registo existe (a listagem mostra-o, com apelido e vínculos), e não abre: foi
+cifrado com a `SENHA_CRIPTO` aleatória do Worker daquela escola, e a chave passou a ser derivada da
+mestra. O `Cifra.decifrar` atira, o armazenamento não apanhava, a rota não apanhava, e o Worker
+fechava a ligação sem dizer nada.
+
+**O que foi decidido.**
+- **A falha tem nome.** `ErroDeChave`, em `motor/servidor/acervo-envelopes.js`, com `status` (409) e
+  uma mensagem que diz o essencial: **o registo está intacto, o que falta é a chave com que ele foi
+  escrito**. Um registo ilegível por chave trocada é um facto do ACERVO, não um defeito do pedido, e
+  a diferença tem de chegar a quem lê.
+- **Apanha-se no ROTEADOR, e não em cada rota.** São dez rotas a ler envelopes (`/api/envelope/:id`,
+  `/api/anamnese-estado/:id`, `/api/anamnese-ajuste/:id`, o PO, o plano…). Pôr a guarda em cada uma
+  seria a mesma regra escrita dez vezes, e a próxima rota herdaria o defeito por omissão.
+- **Um erro SEM nome continua a subir.** A guarda só converte o que declarou saber o que significa
+  (`nome` diferente de `Error` e `status` presente). Alargá-la transformaria qualquer defeito num
+  409 simpático — e o controlo negativo mede exactamente isso.
+- **A reserva que evita o problema não existe, e é dito.** Não há como decifrar com a chave antiga:
+  ela viveu no Worker da escola, é escrita-só no Cloudflare e nasceu aleatória. A chave nova não a
+  reconstrói. É a razão de o caminho ser expurgar e recriar, e não migrar.
+
+**Onde entrou.** `motor/servidor/acervo-envelopes.js` (`ErroDeChave`, e o `try` à volta do
+`Cifra.decifrar`) · `motor/servidor/roteador.js` (a conversão no `responder`) ·
+`experimentos/provar-cofre-e-shard.js` (secção E).
+
+**Com o quê.** `provar-cofre-e-shard` **72/72** (a secção E cifra um envelope com uma chave, lê-o com
+outra, e mede o nome, o estado, a mensagem e a resposta do roteador), e o controlo negativo em
+**11/34**. `provar-gestos-do-shard` 31/31 · `provar-anamnese-sem-cofre` 13/13. `check-identidade` 0
+erros. A falha pré-existente de `provar-listas-do-acervo` (**3 de 109**) continua igual — é outra
+coisa, e está declarada na entrada de 15/11/2026 sobre a publicação.
+
+**O que ainda não está feito.** (1) A mensagem nova só se vê depois de o shard ser republicado com
+este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
+abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
+deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
