@@ -361,14 +361,14 @@
     },
     {
       "data": "2026-11-11",
-      "estado": "dada",
+      "estado": "nao_dada",
       "id": "aula:pe-torto/01/calango-piano/01",
       "rotulo": "Aula 01",
       "tipo": "aula"
     },
     {
       "data": "2026-11-13",
-      "estado": "planejada",
+      "estado": "dada",
       "id": "aula:pe-torto/01/calango-piano/02",
       "rotulo": "Aula 02",
       "tipo": "aula"
