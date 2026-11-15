@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "26ac15875551ceddb11051e3205bd5af95798f07b403c678d934efbdeb8fa15a",
+        "hash": "e2d4f1663100617a50ee0bd04513a8811a1ad20be3843c43bb9c56c1f3e0d9b3",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 16,
+      "aulas": 1,
+      "documentos": 20,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:coqui-de-redinha/01/batata",
@@ -89,7 +89,7 @@
       ],
       "contagens": {
         "anamneses": 1,
-        "aulas": 1,
+        "aulas": 2,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 2,
@@ -352,9 +352,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "80da01c"
+    "commit": "2fbd0d6"
   },
-  "gerado_em": "2026-11-15T15:46",
+  "gerado_em": "2026-11-15T15:47",
   "nao_indexado": [
     {
       "familia": "conteudo",
