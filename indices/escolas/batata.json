@@ -71,14 +71,14 @@
       "ciclo:rimel-preto/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-15T21:06:31.119832+00:00",
     "expurgada": false,
@@ -91,11 +91,22 @@
     "professores": [
       "rimel-preto"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261115-1913"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261115-1913"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
     "estados": [
       {
@@ -109,8 +120,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261115-1913",
           "ciclo:rimel-preto/01/batata"
         ],
         "rotulo": "rimel-preto",
@@ -118,6 +130,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261115-1913"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -130,9 +150,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "15d2419b"
+    "commit": "94d1537"
   },
-  "gerado_em": "2026-11-15T22:12",
+  "gerado_em": "2026-11-15T22:14",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -156,6 +176,17 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261115-1913",
+      "ciclo": null,
+      "data": "2026-11-15T19:13",
+      "id": "anamnese:anamnese-20261115-1913",
+      "professor": "rimel-preto",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 7
 }
