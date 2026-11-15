@@ -574,6 +574,29 @@ async function identidadeDoDonoDoKv(env, escola) {
   }
 }
 
+/**
+ * A IDENTIDADE DA ESCOLA NO `env` DO PEDIDO — a sobreposição, numa função só (15/11/2026).
+ *
+ * Estava embutida no `fetch`; saiu porque uma sobreposição que ninguém pode chamar de fora só se
+ * mede pela página, e a página é a pior bancada que há para isto: o que se quer afirmar é «esta
+ * escola recebe ESTA chave e ESTE dono», e isso é uma pergunta sobre valores, não sobre pixels.
+ *
+ * Devolve o MESMO `env` quando não há nada a sobrepor — não faz uma cópia por fazer, e o chamador
+ * continua a distinguir os dois casos se precisar.
+ */
+async function comIdentidadeDaEscola(env, escola) {
+  if (!env || !env.PADD_KV || !escola) return env;
+  const doKv = await identidadeDoDonoDoKv(env, escola);
+  const chave = await chaveMestra.chaveDaEscola(env, escola);
+  const sobreposto = {};
+  if (doKv.nome) sobreposto.PROFESSOR_NOME = doKv.nome;
+  if (doKv.slug) sobreposto.PROFESSOR_SLUG = doKv.slug;
+  if (doKv.hash) { sobreposto.SENHA_DIRECAO_HASH = doKv.hash; sobreposto.SENHA_DIRECAO_SAL = doKv.sal || ''; }
+  if (chave) sobreposto.SENHA_CRIPTO = chave;
+  if (!Object.keys(sobreposto).length) return env;
+  return Object.assign({}, env, sobreposto);
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -623,16 +646,7 @@ async function fetch(request, env) {
    *
    * A ORDEM É A REGRA: o KV manda, o `env` é reserva. Um Worker de escola (um `env` por escola)
    * continua a funcionar como sempre; um shard passa a ter a identidade certa por pedido. */
-  if (env && env.PADD_KV && escolaResolvida) {
-    const doKv = await identidadeDoDonoDoKv(env, escolaResolvida);
-    const chave = await chaveMestra.chaveDaEscola(env, escolaResolvida);
-    const sobreposto = {};
-    if (doKv.nome) sobreposto.PROFESSOR_NOME = doKv.nome;
-    if (doKv.slug) sobreposto.PROFESSOR_SLUG = doKv.slug;
-    if (doKv.hash) { sobreposto.SENHA_DIRECAO_HASH = doKv.hash; sobreposto.SENHA_DIRECAO_SAL = doKv.sal || ''; }
-    if (chave) sobreposto.SENHA_CRIPTO = chave;
-    if (Object.keys(sobreposto).length) env = Object.assign({}, env, sobreposto);
-  }
+  env = await comIdentidadeDaEscola(env, escolaResolvida);
 
   /* A IDENTIDADE DO CONTEÚDO — o que substitui a comparação que se perdeu.
    *
@@ -1115,5 +1129,9 @@ module.exports = {
    * lados sem esperar que um isolate morra (13/11/2026). */
   identidadeDoPacote,
   esquecerPacote,
+  /* A SOBREPOSIÇÃO DA IDENTIDADE, exportada para a prova (15/11/2026): é ela que dá à escola do
+   * shard a chave derivada e o dono que estão no KV, e uma prova que a reconstruísse mediria a
+   * prova. */
+  comIdentidadeDaEscola,
   __armazenamento: (env) => criarArmazenamento(env),
 };

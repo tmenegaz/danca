@@ -18601,6 +18601,11 @@ module.exports = {
   fetchSemRede: fetch,
   temProfessor,
   senhaDaEscolaOk,
+  /* A SENHA DA DIREÇÃO, exportada para a prova (15/11/2026): ela deixou de ser uma comparação com
+   * o `env` e passou a ser um hash por escola, lido do KV. O que se quer afirmar — «a senha da
+   * ESCOLA abre, e a do Worker deixa de abrir» — é uma pergunta sobre valores, e a bancada tem de
+   * a poder fazer sem subir o Worker. */
+  senhaDaDirecaoOk,
   // A PÁGINA da Produção, exportada para a prova poder abri-la num navegador de verdade
   // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
   // texto do HTML: mede-se a posição do elemento — antes e depois do clique.

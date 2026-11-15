@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T15:29:28-0300`
-Commit atual: `2e7d91a8` — fix(experimentos): os gestos 4 a 7 do shard não precisavam do modelo
+Gerado em: `2026-11-15T15:32:30-0300`
+Commit atual: `0ad9ae36` — feat(estrutura): a chave da escola passa a ser derivada, e o cofre mostra a mestra
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,10 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+0ad9ae36 feat(estrutura): a chave da escola passa a ser derivada, e o cofre mostra a mestra
+c64d05dd feat(tools): a escola nasce dentro do shard, e o expurgo passa a saber qual
+f6d1813b feat(acervo): envelope/.indice.json
+b0c965d6 feat(acervo): envelope/.indice.json
 2e7d91a8 fix(experimentos): os gestos 4 a 7 do shard não precisavam do modelo
 ccb7e2b0 chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
 f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -92,10 +96,6 @@ bc81d76a feat(acervo): envelope/plano-20261115-1351.json
 6710bda8 feat(acervo): envelope/.indice.json
 ecf3a660 chore(estrutura): regerar os índices derivados
 25f235b4 feat(linha de base): índice — fitas 20261115-1649
-a591ff48 feat(elenco): fitas — concluído
-4615f695 chore(estrutura): regerar os índices derivados
-b8080bb7 feat(acervo): envelope/anamnese-20261115-1348.json
-22036307 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -294,6 +294,25 @@ teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dado
 não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
 igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
 concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.
+
+**Acréscimo (15/11/2026, mesmo dia, depois do primeiro commit).** A prova cresceu de 33 para **50**
+asserções porque três peças ficaram sem medida, e duas delas são as que mais podem falhar em
+silêncio. (a) **A sobreposição da identidade**, extraída do `fetch` para `comIdentidadeDaEscola` e
+exportada: mede-se que o dono do KV ganha do `env`, que o `slug` passa a existir (era a metade que
+faltava), que a senha da direção vem com hash e sal, e que a chave é a derivada — com **duas escolas
+no mesmo KV a responder coisas diferentes**. (b) **O nascimento dentro do shard**
+(`provisionarDentroDoShard`), onde não há Worker para conferir depois: mede-se o registo do dono sem
+a senha em claro, as duas entradas do mapa, a rota a apontar ao shard, e a recusa sem KV. E a senha
+da direção foi exercitada pelo caminho real (`senhaDaDirecaoOk`, exportada para isso): **a senha da
+escola abre, e a do Worker deixa de abrir**.
+
+O **controlo negativo estava errado**, e o erro só apareceu ao cometer. Ele comparava contra `HEAD`
+— e no dia em que o trabalho foi cometido, `HEAD` passou a ser o código novo: a corrida deu *33 de
+35*, a aprovar quase tudo o que devia reprovar. Um controlo que envelhece ao ser cometido não é um
+controlo. Passa a ancorar no commit que **adicionou** `motor/nucleo/chave-mestra.js`, e o pai dele é
+o código de antes — um ponto que não se move. Com a âncora certa: **10 de 27, dezassete falhas**, e
+entre elas a que dá sentido a tudo: em `HEAD` anterior, o expurgo **pede para apagar o script
+`lastro-teste`**.
 
 ## O que está pendente
 

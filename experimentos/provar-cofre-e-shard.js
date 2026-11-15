@@ -38,14 +38,38 @@ const path = require('path');
 const RAIZ = path.resolve(__dirname, '..');
 const NEGATIVO = process.argv.includes('--controle-negativo');
 
+/**
+ * CONTRA QUE CÓDIGO SE CORRE O CONTROLE — e a resposta não pode ser `HEAD`.
+ *
+ * A primeira versão usava `HEAD`, e funcionou exactamente uma vez: no dia em que o trabalho foi
+ * cometido, `HEAD` passou a ser o código novo, e o controle passou a comparar a prova com ela
+ * mesma — 33 de 35, a aprovar tudo o que devia reprovar. Um controle que envelhece ao ser
+ * cometido não é um controle.
+ *
+ * A âncora passa a ser o commit que ADICIONOU `motor/nucleo/chave-mestra.js`: o pai dele é o
+ * código imediatamente antes de a chave derivada existir, e esse ponto não se move nunca. `--contra
+ * <ref>` sobrepõe-no, para quando se quiser medir contra outra coisa.
+ */
+function referenciaDoControle() {
+  const i = process.argv.indexOf('--contra');
+  if (i !== -1 && process.argv[i + 1]) return process.argv[i + 1];
+  try {
+    const adicionou = execSync('git log --diff-filter=A --format=%H -- motor/nucleo/chave-mestra.js',
+      { cwd: RAIZ, stdio: 'pipe' }).toString().trim().split('\n').filter(Boolean).pop();
+    if (adicionou) return adicionou + '~1';
+  } catch (erro) { /* sem git ou sem o ficheiro: cai-se em HEAD */ }
+  return 'HEAD';
+}
+
 let RAIZ_DO_CODIGO = RAIZ;
 if (NEGATIVO) {
-  const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'cofre-head-'));
-  /* `modelo/` vai junto porque o `raiz.js` de HEAD lê o esquema do ciclo ao carregar: sem ele, o
-   * `require` falhava e a secção C media «não carregou» em vez de «não há cofre». */
-  execSync('git archive HEAD motor tools modelo | tar -x -C ' + destino, { cwd: RAIZ, stdio: 'pipe' });
+  const referencia = referenciaDoControle();
+  const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'cofre-antes-'));
+  /* `modelo/` vai junto porque o `raiz.js` lê o esquema do ciclo ao carregar: sem ele, o `require`
+   * falhava e a secção C media «não carregou» em vez de «não há cofre». */
+  execSync('git archive ' + referencia + ' motor tools modelo | tar -x -C ' + destino, { cwd: RAIZ, stdio: 'pipe' });
   RAIZ_DO_CODIGO = destino;
-  console.log('CONTROLE NEGATIVO — o código de HEAD, antes da chave derivada e do cofre\n');
+  console.log('CONTROLE NEGATIVO — o código de ' + referencia + ', antes da chave derivada e do cofre\n');
 }
 
 let ok = 0;
@@ -238,6 +262,119 @@ function cloudflareFalso({ rotas = [] } = {}) {
     provar('…sem tocar na outra escola do mapa', mapa['batata.padd.com.br'] === 'batata', mapa);
   }
 
+  });
+
+  /* ---------------------------------------------------------------- B2. A sobreposição */
+
+  /* A PEÇA QUE FAZ A ESCOLA SER ELA MESMA DENTRO DO SHARD. Um `env` por Worker era a premissa; o
+   * shard serve N escolas com o MESMO `env`, e por isso a chave e o dono passam a ser resolvidos do
+   * KV daquela escola, por pedido. É aqui que se mede que a resolução é por escola, e não uma
+   * média — com duas escolas no mesmo KV a responder coisas diferentes. */
+  await secao('B2. A chave e o dono, resolvidos do KV por escola', async () => {
+    const producao = carregar('motor/servidor/producao.js');
+    if (!producao || typeof producao.comIdentidadeDaEscola !== 'function') {
+      provar('existe `comIdentidadeDaEscola` — a sobreposição por escola', false, 'não existe');
+      return;
+    }
+    const senha = carregar('motor/nucleo/senha.js');
+    const registo = await senha.registoDeSenha('senha-da-direcao-da-calango');
+    const kv = {
+      dados: new Map([
+        ['bastidores/calango/dono', JSON.stringify({ nome: 'Pe Torto', slug: 'pe-torto', hash: registo.hash, sal: registo.sal })],
+        ['bastidores/batata/dono', JSON.stringify({ nome: 'Redinha Rosa', slug: 'redinha-rosa', hash: 'h2', sal: 's2' })],
+      ]),
+      async get(k) { return this.dados.has(k) ? this.dados.get(k) : null; },
+    };
+    const base = { PADD_KV: kv, SENHA_MESTRA: 'a-mestra', PROFESSOR_NOME: 'nome-do-worker' };
+
+    const ca = await producao.comIdentidadeDaEscola(base, 'calango');
+    const ba = await producao.comIdentidadeDaEscola(base, 'batata');
+    provar('o dono do KV ganha do `env` do Worker', ca.PROFESSOR_NOME === 'Pe Torto', ca.PROFESSOR_NOME);
+    provar('…e o SLUG passa a existir — era a metade que faltava e que fazia o dono desaparecer',
+      ca.PROFESSOR_SLUG === 'pe-torto', ca.PROFESSOR_SLUG);
+    provar('…a senha da direção vem com hash e sal, para o login da escola conferir',
+      ca.SENHA_DIRECAO_HASH === registo.hash && ca.SENHA_DIRECAO_SAL === registo.sal, null);
+    provar('…e a chave de cifra é a derivada da mestra, não a do Worker',
+      ca.SENHA_CRIPTO && ca.SENHA_CRIPTO !== base.SENHA_CRIPTO && /^[0-9a-f]{64}$/.test(ca.SENHA_CRIPTO),
+      ca.SENHA_CRIPTO && ca.SENHA_CRIPTO.slice(0, 12));
+    provar('a OUTRA escola do mesmo KV recebe outra chave e outro dono',
+      ba.SENHA_CRIPTO !== ca.SENHA_CRIPTO && ba.PROFESSOR_NOME === 'Redinha Rosa', ba.PROFESSOR_NOME);
+
+    const semRegisto = await producao.comIdentidadeDaEscola(base, 'breu');
+    provar('escola sem registo de dono não ganha nome nem slug inventados',
+      !semRegisto.PROFESSOR_SLUG, semRegisto.PROFESSOR_SLUG);
+
+    const semKv = await producao.comIdentidadeDaEscola({ SENHA_CRIPTO: 'antiga' }, 'calango');
+    provar('sem KV (o Worker de uma escola só), o `env` fica como está — nada muda para trás',
+      semKv.SENHA_CRIPTO === 'antiga' && !semKv.PROFESSOR_SLUG, semKv.SENHA_CRIPTO);
+
+    /* A SENHA DA DIREÇÃO, exercitada pelo caminho real: o hash do KV tem de abrir, e a senha do
+     * Worker tem de deixar de abrir — senão a sobreposição não estaria a valer. */
+    const bastidores = carregar('motor/servidor/bastidores.js');
+    if (bastidores && typeof bastidores.senhaDaDirecaoOk === 'function') {
+      const sobreposto = Object.assign({}, ca, { SENHA_ADMIN: 'senha-do-worker', SENHA_PROFESSOR: 'senha-do-worker' });
+      provar('a senha da ESCOLA abre a direção', await bastidores.senhaDaDirecaoOk(sobreposto, 'senha-da-direcao-da-calango'), null);
+      provar('…e a senha do Worker deixa de abrir (a reserva só vale quando o KV cala)',
+        !(await bastidores.senhaDaDirecaoOk(sobreposto, 'senha-do-worker')), null);
+    }
+  });
+
+  /* ---------------------------------------------------------------- B3. O nascimento */
+
+  /* A ESCOLA QUE NASCE DENTRO DO SHARD. Substitui «criar um Worker, três segredos e um
+   * subdomínio» por «escrever um registo e apontar uma rota». Como não há Worker para conferir
+   * depois, o que ele ESCREVE é a única coisa que se pode medir — e é o que se mede. */
+  await secao('B3. A escola que nasce dentro do shard', async () => {
+    const prov = carregar('motor/servidor/provisionar-escola.js');
+    if (!prov || typeof prov.provisionarDentroDoShard !== 'function') {
+      provar('existe `provisionarDentroDoShard` — a criação sem Worker', false, 'não existe');
+      return;
+    }
+    const kv = {
+      dados: new Map(),
+      async get(k) { return this.dados.has(k) ? this.dados.get(k) : null; },
+      async put(k, v) { this.dados.set(k, String(v)); },
+      async delete(k) { this.dados.delete(k); },
+      async list() { return { keys: [...this.dados.keys()].map((name) => ({ name })), list_complete: true }; },
+    };
+    const cf = cloudflareFalso({ rotas: [] });
+    globalThis.fetch = cf.fetch;
+    let r;
+    try {
+      r = await prov.provisionarDentroDoShard({
+        nome: 'Escola Nova', escola: 'escola-nova', senhaAdmin: 'senha-da-direcao',
+        professorNome: 'Pe Torto', professorSlug: '', token: 't', accountId: 'conta',
+        shardScript: 'lastro-teste', kv,
+      });
+    } finally {
+      delete globalThis.fetch;
+    }
+
+    provar('NÃO cria um script em nome da escola — quem a serve é o shard',
+      !cf.estado.pedidos.some((p) => p.metodo === 'PUT' && /\/workers\/scripts\/escola-nova$/.test(p.url)),
+      cf.estado.pedidos.filter((p) => p.metodo === 'PUT').map((p) => p.url));
+
+    const dono = JSON.parse(kv.dados.get('bastidores/escola-nova/dono') || '{}');
+    provar('escreve o registo do DONO, com nome e slug derivado', dono.nome === 'Pe Torto' && dono.slug === 'pe-torto', dono);
+    provar('…com hash e sal da senha, e SEM a senha em claro',
+      Boolean(dono.hash) && Boolean(dono.sal) && !JSON.stringify(dono).includes('senha-da-direcao'), Object.keys(dono));
+    const senha = carregar('motor/nucleo/senha.js');
+    provar('…e o hash confere com a senha dada (é a mesma regra dos professores adicionais)',
+      await senha.confere('senha-da-direcao', dono), null);
+
+    const mapa = JSON.parse(kv.dados.get('escolas/por-host') || '{}');
+    provar('o MAPA ganha as duas formas do endereço — o domínio e o workers.dev',
+      mapa['escola-nova.padd.com.br'] === 'escola-nova' && mapa['escola-nova.tmenegaz77.workers.dev'] === 'escola-nova',
+      mapa);
+    provar('a ROTA aponta ao script do SHARD, e não a um script com o nome da escola',
+      cf.estado.rotas.some((x) => /^escola-nova\./.test(x.pattern) && x.script === 'lastro-teste'),
+      cf.estado.rotas);
+    provar('a resposta diz em que shard a escola ficou', r.shard === 'lastro-teste', r);
+    provar('sem KV, é ERRO declarado — e não uma escola que nasce e ninguém sabe dela',
+      await (async () => {
+        try { await prov.provisionarDentroDoShard({ nome: 'X', escola: 'x', shardScript: 'lastro-teste' }); return false; }
+        catch (erro) { return /KV/.test(String(erro && erro.message)); }
+      })(), null);
   });
 
   /* ---------------------------------------------------------------- C. O cofre */

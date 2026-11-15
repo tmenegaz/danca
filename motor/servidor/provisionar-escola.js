@@ -590,6 +590,11 @@ module.exports = {
   slugificar,
   scriptDaEscola,
   subirModulo,
+  /* O RAMO DA ESCOLA QUE NASCE DENTRO DO SHARD, exportado para a prova (15/11/2026). É o passo que
+   * substitui «criar um Worker» por «escrever um registo» — e o que ele escreve (o dono, as duas
+   * entradas do mapa, a rota a apontar ao shard) é exactamente o que a criação precisa de acertar,
+   * sem Worker nenhum para conferir depois. */
+  provisionarDentroDoShard,
   // O rollback do órfão: reconhecer o placeholder e desfazê-lo.
   desfazerPlaceholder,
   ehPlaceholder,

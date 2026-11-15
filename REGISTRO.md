@@ -45533,3 +45533,22 @@ teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dado
 não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
 igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
 concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.
+
+**Acréscimo (15/11/2026, mesmo dia, depois do primeiro commit).** A prova cresceu de 33 para **50**
+asserções porque três peças ficaram sem medida, e duas delas são as que mais podem falhar em
+silêncio. (a) **A sobreposição da identidade**, extraída do `fetch` para `comIdentidadeDaEscola` e
+exportada: mede-se que o dono do KV ganha do `env`, que o `slug` passa a existir (era a metade que
+faltava), que a senha da direção vem com hash e sal, e que a chave é a derivada — com **duas escolas
+no mesmo KV a responder coisas diferentes**. (b) **O nascimento dentro do shard**
+(`provisionarDentroDoShard`), onde não há Worker para conferir depois: mede-se o registo do dono sem
+a senha em claro, as duas entradas do mapa, a rota a apontar ao shard, e a recusa sem KV. E a senha
+da direção foi exercitada pelo caminho real (`senhaDaDirecaoOk`, exportada para isso): **a senha da
+escola abre, e a do Worker deixa de abrir**.
+
+O **controlo negativo estava errado**, e o erro só apareceu ao cometer. Ele comparava contra `HEAD`
+— e no dia em que o trabalho foi cometido, `HEAD` passou a ser o código novo: a corrida deu *33 de
+35*, a aprovar quase tudo o que devia reprovar. Um controlo que envelhece ao ser cometido não é um
+controlo. Passa a ancorar no commit que **adicionou** `motor/nucleo/chave-mestra.js`, e o pai dele é
+o código de antes — um ponto que não se move. Com a âncora certa: **10 de 27, dezassete falhas**, e
+entre elas a que dá sentido a tudo: em `HEAD` anterior, o expurgo **pede para apagar o script
+`lastro-teste`**.
