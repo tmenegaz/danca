@@ -4,19 +4,30 @@
     "ancorado_em": "2026-11-15",
     "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "cobertura": [
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
       "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+      "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "professores/coqui-de-redinha/ciclos/ciclo-01.conf"
     ],
-    "hash": "26ac15875551ceddb11051e3205bd5af95798f07b403c678d934efbdeb8fa15a",
-    "hash_conteudo": "a24aefa460ddd29104cb5cb3448795c56ebc2cc4d3b79510ca3f852ce0899db3",
+    "hash": "e2d4f1663100617a50ee0bd04513a8811a1ad20be3843c43bb9c56c1f3e0d9b3",
+    "hash_conteudo": "099f8e5d322fd0b1674d7b8c9996794ab104a44b745f811e5b335665400d47c1",
     "id": "ciclo-01-batata-bale-nivel-1-teste-2",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:coqui-de-redinha/01/batata/bale-nivel-1-teste-2/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
     "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
@@ -39,7 +50,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
       },

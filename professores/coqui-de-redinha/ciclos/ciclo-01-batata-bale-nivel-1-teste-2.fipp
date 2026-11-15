@@ -10,12 +10,12 @@ type: Ciclo
 professor: coqui-de-redinha
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: a24aefa460ddd29104cb5cb3448795c56ebc2cc4d3b79510ca3f852ce0899db3
+hash_conteudo: 099f8e5d322fd0b1674d7b8c9996794ab104a44b745f811e5b335665400d47c1
 parentHash: 
-hash: 26ac15875551ceddb11051e3205bd5af95798f07b403c678d934efbdeb8fa15a
+hash: e2d4f1663100617a50ee0bd04513a8811a1ad20be3843c43bb9c56c1f3e0d9b3
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 45
 notacao_sha: dd6a5f8e932b28e465495ae4fc9aaf3f102cd751680a6da22b912a16767c742c
 cobertura:
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
   - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
   - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf
   - professores/coqui-de-redinha/ciclos/ciclo-01.conf

@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-batata-bale-nivel-1-teste-2: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-batata-bale-nivel-1-teste-2-aula-01
+type: Aula
+professor: coqui-de-redinha
+ciclo: 01
+variante: batata-bale-nivel-1-teste-2
+aula: 01
+hash_conteudo: c07e0ac01751de8ef05a250a75b472e1bfb624a3dff65b6885290e8d55d5b536
+parentHash: 
+hash: 8798dd9097fa675eff5b1b8815c02110629b1864b6b0ff647f6b045230515651
+algoritmo: SHA-256
+ancorado_em: 2026-11-15
+cobertura:
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
