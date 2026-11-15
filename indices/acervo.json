@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 6,
+      "documentos": 16,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:coqui-de-redinha/01/batata",
@@ -93,9 +93,9 @@
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 2,
-        "pos": 3,
+        "pos": 4,
         "recortes": 1,
-        "registros": 6
+        "registros": 7
       },
       "criada_em": "2026-11-14T15:01:39.136639+00:00",
       "expurgada": false,
@@ -115,7 +115,8 @@
         "plano:plano-20261115-1244",
         "po:po-20261115-1101",
         "po:po-20261115-1153",
-        "po:po-20261115-1236"
+        "po:po-20261115-1236",
+        "po:po-20261115-1246"
       ],
       "slug": "batata"
     },
@@ -250,7 +251,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 48,
+        "contagem": 49,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -343,7 +344,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 23,
+        "contagem": 24,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -351,9 +352,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2479419"
+    "commit": "80da01c"
   },
-  "gerado_em": "2026-11-15T15:45",
+  "gerado_em": "2026-11-15T15:46",
   "nao_indexado": [
     {
       "familia": "conteudo",

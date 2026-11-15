@@ -19,9 +19,19 @@
   "documentos": [
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
     "documento:ancora:professores/coqui-de-redinha/ciclos/ciclo-01-batata.fipp",
+    "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+    "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+    "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+    "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+    "documento:declaracao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+    "documento:glossario:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+    "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:manifesto:professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
+    "documento:notacao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
     "documento:plano:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+    "documento:po:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+    "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
     "documento:schema:professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -35,13 +45,53 @@
       },
       {
         "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "declaracao",
+        "valor": "declaracao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
+      },
+      {
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       },
       {
         "contagem": 1,
@@ -52,9 +102,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2479419"
+    "commit": "80da01c"
   },
-  "gerado_em": "2026-11-15T15:45",
+  "gerado_em": "2026-11-15T15:46",
   "id": "ciclo:coqui-de-redinha/01/batata",
   "professor": "coqui-de-redinha",
   "versao": 6

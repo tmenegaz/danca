@@ -73,7 +73,17 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
         "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+        "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
         "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
         "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
         "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
@@ -89,8 +99,16 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
+        "aula",
+        "dados",
+        "declaracao",
+        "glossario",
+        "harmonizacao",
         "manifesto",
+        "notacao",
         "plano",
+        "po",
+        "referencias",
         "schema"
       ]
     },
@@ -221,6 +239,24 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
@@ -236,6 +272,24 @@
       "id": "documento:aula:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
       "professor": "lapis-rosa",
       "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "dados"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -266,6 +320,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:declaracao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+      "professor": "coqui-de-redinha",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
@@ -275,12 +338,30 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:glossario:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
       "id": "documento:glossario:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
       "professor": "lapis-rosa",
       "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:harmonizacao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "harmonizacao"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -329,6 +410,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:notacao:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
@@ -356,12 +446,30 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:po:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
       "id": "documento:po:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
       "professor": "lapis-rosa",
       "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+      "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
+      "escola": "batata",
+      "id": "documento:referencias:professores/coqui-de-redinha/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+      "professor": "coqui-de-redinha",
+      "tipo": "referencias"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -402,9 +510,9 @@
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 2,
-      "pos": 3,
+      "pos": 4,
       "recortes": 1,
-      "registros": 6
+      "registros": 7
     },
     "criada_em": "2026-11-14T15:01:39.136639+00:00",
     "expurgada": false,
@@ -424,21 +532,23 @@
       "plano:plano-20261115-1244",
       "po:po-20261115-1101",
       "po:po-20261115-1153",
-      "po:po-20261115-1236"
+      "po:po-20261115-1236",
+      "po:po-20261115-1246"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "ids": [
           "anamnese:anamnese-20261115-1057",
           "plano:plano-20261115-1101",
           "plano:plano-20261115-1244",
           "po:po-20261115-1101",
           "po:po-20261115-1153",
-          "po:po-20261115-1236"
+          "po:po-20261115-1236",
+          "po:po-20261115-1246"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -483,10 +593,11 @@
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "ciclo:coqui-de-redinha/01/batata",
-          "plano:plano-20261115-1244"
+          "plano:plano-20261115-1244",
+          "po:po-20261115-1246"
         ],
         "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
@@ -533,11 +644,12 @@
         "valor": "plano"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "po:po-20261115-1101",
           "po:po-20261115-1153",
-          "po:po-20261115-1236"
+          "po:po-20261115-1236",
+          "po:po-20261115-1246"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -546,9 +658,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2479419"
+    "commit": "80da01c"
   },
-  "gerado_em": "2026-11-15T15:45",
+  "gerado_em": "2026-11-15T15:46",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -665,6 +777,16 @@
       "data": "2026-11-15T12:36",
       "id": "po:po-20261115-1236",
       "professor": "lapis-rosa",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261115-1246",
+      "ciclo": "01",
+      "data": "2026-11-15T12:46",
+      "id": "po:po-20261115-1246",
+      "professor": "coqui-de-redinha",
       "tipo": "po"
     }
   ],
