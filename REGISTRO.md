@@ -46149,9 +46149,10 @@ shards no caminho do servidor) · `tools/gerar-indices.js` (passa a usar a mesma
    a ser «Área do Professor» + «Bastidores». As 6 asserções vermelhas de `provar-navegacao` são todas
    deste facto. Não se corrigiu: dizer «o grupo X está marcado» exige decidir QUAL grupo representa
    `/ciclos/planos/` — é desenho, não conserto.
-2. **`/area-do-professor/aulas-dadas/` está na barra e não existe** como página (é rota da ponte?).
-   Medido por `provar-barra-unica` (3 de 109, todas pré-existentes): o link aparece na lista e entre
-   os que «apontam para um arquivo que não existe».
+2. **`provar-barra-unica` acusa `/area-do-professor/aulas-dadas/` como «arquivo que não existe» — e
+   a rota responde 200** ao vivo (medido a 24/11, não é link morto). A prova procura ficheiros e não
+   conhece as rotas da ponte; é a mesma correcção que a `provar-navegacao` já teve de fazer (ler as
+   rotas do `producao.js` em vez de as escrever à mão). 3 de 109, todas pré-existentes.
 3. **A cache do índice não é usada na raiz.** `indice-acervo.lerComCache` fala com um armazenamento
    que tem `ler`/`guardar`; a raiz passa `env.PADD_KV` cru (que tem `get`/`put`), e a condição falha
    em silêncio. Cada `/api/escolas` e cada `/api/professores` reconstrói o acervo inteiro — medido:
