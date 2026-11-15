@@ -10,9 +10,9 @@ professor: lapis-rosa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
 aula: 01
-hash_conteudo: 7a5845bc9f6e1228dad7a8e46d1ecb6749bd2f52f3d6e83e5e9e994a63270af4
+hash_conteudo: 0524f0880a167484ac70bef64d4e1037cf82dbf55b24267a1e61c54075dd6d71
 parentHash: 
-hash: 7d05fa2eac062b30d0209f9eca110216ec667e187cbf3dc5d55e2323ada561e5
+hash: 03fbec77c5eb848f4a6e8ff152d3e7b97be1559cf80be20552da368192b6607d
 algoritmo: SHA-256
 ancorado_em: 2026-11-15
 cobertura:

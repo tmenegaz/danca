@@ -41,8 +41,8 @@
           "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
           "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
         ],
-        "hash": "7d05fa2eac062b30d0209f9eca110216ec667e187cbf3dc5d55e2323ada561e5",
-        "hash_conteudo": "7a5845bc9f6e1228dad7a8e46d1ecb6749bd2f52f3d6e83e5e9e994a63270af4",
+        "hash": "03fbec77c5eb848f4a6e8ff152d3e7b97be1559cf80be20552da368192b6607d",
+        "hash_conteudo": "0524f0880a167484ac70bef64d4e1037cf82dbf55b24267a1e61c54075dd6d71",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -106,8 +106,8 @@
           "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
           "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
         ],
-        "hash": "4f380f3505ef9ec9a706eaac45448f231b559245dc68460da701aff1460f9860",
-        "hash_conteudo": "9dd069c9bfa357669e1768c7866028db22d416532e8063386fb482c147513c5f",
+        "hash": "3bf3b11d0581f3b2f727080af0414da41b691a6c4a5a26503e91fe22984cb408",
+        "hash_conteudo": "4cdfcc7d2288119f55741f32c027cd71480fda8557eb604ff48d4b397f89e90d",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -122,8 +122,8 @@
               "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
               "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
             ],
-            "hash": "7d05fa2eac062b30d0209f9eca110216ec667e187cbf3dc5d55e2323ada561e5",
-            "hash_conteudo": "7a5845bc9f6e1228dad7a8e46d1ecb6749bd2f52f3d6e83e5e9e994a63270af4",
+            "hash": "03fbec77c5eb848f4a6e8ff152d3e7b97be1559cf80be20552da368192b6607d",
+            "hash_conteudo": "0524f0880a167484ac70bef64d4e1037cf82dbf55b24267a1e61c54075dd6d71",
             "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
             "lida": true,
             "parent_hash": ""
