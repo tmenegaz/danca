@@ -1178,9 +1178,33 @@ function montarShard(shard) {
   const iRaiz = process.argv.indexOf('--raiz');
   const extra = iRaiz !== -1 ? ['--raiz', process.argv[iRaiz + 1]] : [];
   const raizDosIndices = iRaiz !== -1 ? path.resolve(process.argv[iRaiz + 1]) : RAIZ;
-  const escolas = escolasDoShard(shard, raizDosIndices);
+  const declaradas = escolasDoShard(shard, raizDosIndices);
+
+  /* O ÍNDICE SOBREVIVE AO EXPURGO — E É POR ISSO QUE ESTA LISTA PRECISA DE UM FILTRO (15/11/2026).
+   *
+   * `escola/<slug>/indice.json` é o elo do expurgo e fica de propósito depois de a escola morrer:
+   * é ele que guarda a data e o motivo. Só que ele continua a dizer `shard: lastro-teste`. Sem
+   * esta linha, a lista do shard incluiria a escola expurgada, a montagem dela sairia com erro
+   * («não há pacote-zero»), e o `--shard` inteiro falhava — ou seja, EXPURGAR UMA ESCOLA DEIXAVA
+   * O SHARD INTEIRO SEM CONSEGUIR PUBLICAR. É o pior momento possível para o defeito aparecer:
+   * ela expurga as três e recria, e o primeiro deploy depois disso não subia.
+   *
+   * O FILTRO É O MESMO DO `deploy-escolas`: a escola entra se o pacote-zero dela existe. Não se
+   * olha para o campo `expurgo` do índice — poderiam existir dois critérios para a mesma pergunta,
+   * e o que decide o que há para publicar é o pacote, não o registo. */
+  const semPacote = [];
+  const escolas = declaradas.filter((e) => {
+    if (pacoteZeroDaEscola(e)) return true;
+    semPacote.push(e);
+    return false;
+  });
+  if (semPacote.length) {
+    console.log('  sem pacote-zero, e por isso fora da montagem: ' + semPacote.join(', '));
+  }
   if (!escolas.length) {
-    console.error('erro: nenhuma escola declara o shard «' + shard + '» em escola/<slug>/indice.json.');
+    console.error('erro: nenhuma escola COM PACOTE declara o shard «' + shard + '».'
+      + (declaradas.length ? ' (declaram-no ' + declaradas.join(', ') + ', mas sem pacote-zero —'
+        + ' escola expurgada não se publica)' : ''));
     console.error('       Montar zero escolas e subir o shard apagaria a árvore de todas.');
     process.exit(1);
   }

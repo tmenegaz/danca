@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T15:54:19-0300`
-Commit atual: `70d3d9d8` — fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
+Gerado em: `2026-11-15T16:12:11-0300`
+Commit atual: `89b0a5ba` — docs(registro): a entrada da chave que não abre tem nome
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+89b0a5ba docs(registro): a entrada da chave que não abre tem nome
 70d3d9d8 fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
 0cd1438a docs(registro): o run 575 correu a publicação do shard, e a entrada dizia que não
 ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
@@ -95,7 +96,6 @@ f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
 b4d627f2 feat(acervo): envelope/po-20261115-1352.json
 227ebdfd feat(acervo): envelope/.indice.json
 59a4a5b4 chore(estrutura): reancorar a cadeia das fontes alteradas
-10977714 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -205,50 +205,74 @@ b4d627f2 feat(acervo): envelope/po-20261115-1352.json
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — A chave que não abre tem nome
+## 15/11/2026 — Quatro provas que mediam o desenho de ontem
 
-**O que motivou.** Medido ao vivo, no shard ligado: `GET /anamnese/api/envelope/anamnese-20261108-1259`
-na `calango` respondia **`error code: 1101`** — «excepção de JavaScript», corpo nenhum, e nenhuma
-palavra na tela. O registo existe (a listagem mostra-o, com apelido e vínculos), e não abre: foi
-cifrado com a `SENHA_CRIPTO` aleatória do Worker daquela escola, e a chave passou a ser derivada da
-mestra. O `Cifra.decifrar` atira, o armazenamento não apanhava, a rota não apanhava, e o Worker
-fechava a ligação sem dizer nada.
+**O que motivou.** `provar-listas-do-acervo` falhava **3 de 109** e `provar-navegacao` **morria** a
+meio com um `TypeError`. As duas eram anteriores a este trabalho e estavam declaradas como
+«pré-existentes». Ao ir corrigi-las apareceu o resto: atrás da que matava havia **quatro** falhas
+escondidas, e mais duas provas com a mesma doença. **Nenhuma delas era regressão de código** — as
+seis mediam uma decisão que foi tomada e está certa, com uma asserção que ficou a apontar para o
+desenho do dia anterior.
 
 **O que foi decidido.**
-- **A falha tem nome.** `ErroDeChave`, em `motor/servidor/acervo-envelopes.js`, com `status` (409) e
-  uma mensagem que diz o essencial: **o registo está intacto, o que falta é a chave com que ele foi
-  escrito**. Um registo ilegível por chave trocada é um facto do ACERVO, não um defeito do pedido, e
-  a diferença tem de chegar a quem lê.
-- **Apanha-se no ROTEADOR, e não em cada rota.** São dez rotas a ler envelopes (`/api/envelope/:id`,
-  `/api/anamnese-estado/:id`, `/api/anamnese-ajuste/:id`, o PO, o plano…). Pôr a guarda em cada uma
-  seria a mesma regra escrita dez vezes, e a próxima rota herdaria o defeito por omissão.
-- **Um erro SEM nome continua a subir.** A guarda só converte o que declarou saber o que significa
-  (`nome` diferente de `Error` e `status` presente). Alargá-la transformaria qualquer defeito num
-  409 simpático — e o controlo negativo mede exactamente isso.
-- **A reserva que evita o problema não existe, e é dito.** Não há como decifrar com a chave antiga:
-  ela viveu no Worker da escola, é escrita-só no Cloudflare e nasceu aleatória. A chave nova não a
-  reconstrói. É a razão de o caminho ser expurgar e recriar, e não migrar.
+- **Uma prova que estoura não mede.** `provar-navegacao` chamava `getComputedStyle` sobre um
+  elemento que já não existia (`.coluna-puxador`, renomeado para `.folha-puxador`), e o `TypeError`
+  matava o processo — quem lia não sabia qual asserção falhou, nem corriam as secções seguintes. A
+  leitura passa a ser tolerante e é a asserção que reprova, com o nome do que faltou.
+- **A asserção mede a REGRA, não o número de hoje.** Eram quatro números fixos: «a porta `/anamnese/`
+  responde 200» (a guarda que ela pediu devolve 302 sem aluna — o teste é que estava errado),
+  «`directos === 1`» (o «Consulta» saiu em 28/10/2026), «`blocos >= 4`» (o mesmo), «`blocos >= 4`»
+  e «a busca deixa 1 plano» (as duas turmas passaram a ser da MESMA professora, e o termo antigo já
+  não distinguia nada). Cada uma passa a afirmar o que queria dizer: o item do menu acende, a lista
+  de aulas não tem segundo destino, o Bastidores vem DEPOIS da Área do Professor, e a busca reduz
+  ao termo escolhido — com o valor esperado derivado do DOM, não fixado.
+- **As listas nominais morreram.** `rotasDoAcervo` escrevia à mão os três prefixos da Área do
+  Professor, e a `aulas-dadas` entrou na ponte sem ninguém se lembrar de a acrescentar — o menu
+  apontava para uma rota que existe e a prova reprovava. Passa a ler-se do `producao.js`, que é
+  quem serve.
+- **O véu tinha DOIS donos.** A folha tinha duas peças com a classe `.veu` — a da coluna
+  (`z-index:55`, acesa por `body.coluna-aberta`) e a da operação (`z-index:120`, `display:none`).
+  A regra da operação vem depois, e o seu `display:none` apagava a da folha: medido num Chromium a
+  414px, o véu da folha saía `display:none` e o da operação `opacity:1` — **a folha do ☰ abria sem
+  escurecer a página**. A dívida estava anotada em `ciclo.css` («resolvê-la é renomear uma das
+  duas»); foi paga pelo lado da operação, que passa a `.veu-de-operacao`. O véu da coluna é o que a
+  montagem escreve no HTML de todas as páginas.
+- **Uma escola expurgada bloqueava o shard.** `escola/<slug>/indice.json` sobrevive ao expurgo de
+  propósito (é o elo), e continua a dizer `shard`. Sem filtro, `montar-publicacao --shard` incluía
+  a escola morta, a montagem dela falhava («não há pacote-zero») e o shard **inteiro** deixava de
+  publicar — no exacto momento em que ela expurga as três e recria. A lista passa a exigir
+  pacote-zero, e diz quem ficou de fora e porquê.
 
-**Onde entrou.** `motor/servidor/acervo-envelopes.js` (`ErroDeChave`, e o `try` à volta do
-`Cifra.decifrar`) · `motor/servidor/roteador.js` (a conversão no `responder`) ·
-`experimentos/provar-cofre-e-shard.js` (secção E).
+**Onde entrou.** `tools/templates/ciclo.css` (`.veu` → `.veu-de-operacao`) ·
+`tools/templates/nav.js` (a classe do véu criado) · `tools/montar-publicacao.js` (o filtro do
+pacote) · `motor/servidor/bastidores.js` (a marcação do véu da Produção) · `raiz/assets/` e os
+`assets/` de sete pacotes (a folha e o `nav.js`, sincronizados) ·
+`experimentos/provar-listas-do-acervo.js` · `experimentos/provar-navegacao.js` ·
+`experimentos/provar-listas-sem-repeticao.js` · `experimentos/provar-menu-da-producao.js` ·
+`experimentos/provar-cofre-e-shard.js` (a guarda da expurgada).
 
-**Com o quê.** `provar-cofre-e-shard` **72/72** (a secção E cifra um envelope com uma chave, lê-o com
-outra, e mede o nome, o estado, a mensagem e a resposta do roteador), e o controlo negativo em
-**11/34**. `provar-gestos-do-shard` 31/31 · `provar-anamnese-sem-cofre` 13/13. `check-identidade` 0
-erros. A falha pré-existente de `provar-listas-do-acervo` (**3 de 109**) continua igual — é outra
-coisa, e está declarada na entrada de 15/11/2026 sobre a publicação.
+**Motivo declarado — os congelados.** Toca `tools/templates/ciclo.css`, `tools/templates/nav.js` e
+`tools/montar-publicacao.js`. A mudança de CSS é um **nome**: a peça da operação passa a
+`.veu-de-operacao`, e nada muda de aparência — o que muda é que as duas peças deixam de se apagar
+uma à outra. A do `nav.js` acompanha o mesmo nome. A do `montar-publicacao.js` é um filtro que
+impede a montagem de incluir uma escola sem pacote. Não mudam a fórmula de hash, a cobertura da
+âncora, os validadores, as regras nem as pétreas; nenhuma fonte de ciclo foi tocada, logo não há
+reancoragem.
 
-**O que ainda não está feito.** (1) A mensagem nova só se vê depois de o shard ser republicado com
-este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
-abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
-deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
+**Com o quê.** `provar-listas-do-acervo` **113/113** (era 3 de 109) · `provar-navegacao` **65/65**
+(era 60 de 65 e a morrer) · `provar-listas-sem-repeticao` **17/17** (era 1 de 16) ·
+`provar-menu-da-producao` **55/55** (era 54 de 55) · `provar-cofre-e-shard` **74/74**, controlo
+negativo 11/34 · `provar-operacao-entre-abas` 29/29 · `provar-bancada-do-veu` 30/30 ·
+`provar-a-forma-do-veu` 25/25 · `provar-o-veu-de-cada-gesto` 39/39 · `provar-publicacao-da-escola`
+72/72 · `check-identidade` 0 erros · `check-indices` 16/16.
+
+**O que ainda não está feito.** (1) O `provar-listas-sem-repeticao` passou a medir que o plano é
+aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante das fichas continue a
+carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
+própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
+secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
 
 ## O que está pendente
-
-## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
-
-(1) A fronteira continua a não dizer o que acontece a um documento
 
 ## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
 
@@ -286,6 +310,14 @@ versionado e inerte; sai quando ela expurgar.
 este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
 abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
 deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
+
+## 15/11/2026 — Quatro provas que mediam o desenho de ontem
+
+(1) O `provar-listas-sem-repeticao` passou a medir que o plano é
+aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante das fichas continue a
+carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
+própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
+secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
 
 ## Pendências anteriores (índice)
 
@@ -730,6 +762,7 @@ deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não
 - **15/11/2026** — O estado do PO lê-se das perguntas obrigatórias, e não do… → `REGISTRO.md` L45105
 - **15/11/2026** — O professor desligado não se oferece para um ato → `REGISTRO.md` L45197
 - **15/11/2026** — O carimbo do PDF deixa de depender do fuso de quem gera → `REGISTRO.md` L45283
+- **15/11/2026** — Quem assume os documentos de quem saiu: a definição da turma → `REGISTRO.md` L45344
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
