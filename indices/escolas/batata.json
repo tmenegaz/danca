@@ -1,95 +1,44 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
-        "cobertura": [
-          "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.conf",
-          "professores/sapatilha-de-ponta/ciclos/ciclo-01.conf"
-        ],
-        "hash": "f7603efa1095f051951e048f04a888b64af8ce4dbceca55713cb8810a7cbaebb",
-        "hash_conteudo": "b2f0631224e1be20bed64ccb563624aa9c70d2eea9565248a1f156d6dbd83a79",
-        "id": "ciclo-01-batata",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.conf",
-        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
-        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:sapatilha-de-ponta/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "sapatilha-de-ponta",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
-      "ciclo_id": "ciclo:sapatilha-de-ponta/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
-      "professor": "sapatilha-de-ponta",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.conf",
-      "ciclo_id": "ciclo:sapatilha-de-ponta/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.conf",
-      "professor": "sapatilha-de-ponta",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:sapatilha-de-ponta/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "sapatilha-de-ponta",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:sapatilha-de-ponta/01/batata"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
     "criada_em": "2026-11-15T20:09:07.180166+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-15T19:19:47.963Z",
-    "expurgos": 11,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-15T20:23:48.197Z",
+    "expurgos": 12,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "sapatilha-de-ponta",
     "professores": [
-      "sapatilha-de-ponta"
+      "acucar-branco",
+      "cafe-no-bule",
+      "coqui-de-redinha",
+      "dedao-aberto",
+      "lapis-rosa",
+      "manga-curta",
+      "meia-cortada",
+      "pe-junto",
+      "pe-torto",
+      "perna-boa",
+      "sapatilha-de-ponta",
+      "sapo-bailarino",
+      "so-para-direita",
+      "tela-de-celular",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "batata"
@@ -97,42 +46,15 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:sapatilha-de-ponta/01/batata"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:sapatilha-de-ponta/01/batata"
-        ],
-        "rotulo": "sapatilha-de-ponta",
-        "valor": "sapatilha-de-ponta"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:sapatilha-de-ponta/01/batata"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "495f56ad"
+    "commit": "6d68415"
   },
-  "gerado_em": "2026-11-15T20:16",
+  "gerado_em": "2026-11-15T20:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
