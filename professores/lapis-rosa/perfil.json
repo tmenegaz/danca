@@ -1,0 +1,10 @@
+{
+  "_nota": "O PERFIL DO PROFESSOR — a habilitação é da PESSOA, não da escola (03/11/2026). `modalidades` é o que este professor declara saber ensinar; a escola oferece o que os professores dela declaram, por derivação. O expurgo de uma escola NÃO apaga este ficheiro: a competência de quem ensina não é dado do tenant.",
+  "slug": "lapis-rosa",
+  "nome": "Lápis Rosa",
+  "modalidades": [
+    "bale-classico"
+  ],
+  "criado": "2026-11-15",
+  "atualizado": "2026-11-15"
+}
