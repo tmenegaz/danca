@@ -66,6 +66,25 @@
         "manifesto",
         "schema"
       ]
+    },
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:lapis-rosa/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "lapis-rosa",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
     }
   ],
   "documentos": [
@@ -88,6 +107,24 @@
       "tipo": "manifesto"
     },
     {
+      "ancora_id": null,
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "lapis-rosa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "lapis-rosa",
+      "tipo": "plano"
+    },
+    {
       "ancora_id": "ciclo-01-batata",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
@@ -99,17 +136,18 @@
   ],
   "escola": {
     "ciclos": [
-      "ciclo:coqui-de-redinha/01/batata"
+      "ciclo:coqui-de-redinha/01/batata",
+      "ciclo:lapis-rosa/01/batata"
     ],
     "contagens": {
       "anamneses": 1,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
       "recortes": 1,
-      "registros": 1
+      "registros": 2
     },
     "criada_em": "2026-11-14T15:01:39.136639+00:00",
     "expurgada": false,
@@ -124,16 +162,18 @@
       "lapis-rosa"
     ],
     "registros": [
-      "anamnese:anamnese-20261115-1057"
+      "anamnese:anamnese-20261115-1057",
+      "plano:plano-20261115-1101"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261115-1057"
+          "anamnese:anamnese-20261115-1057",
+          "plano:plano-20261115-1101"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -173,6 +213,14 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:lapis-rosa/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -185,9 +233,11 @@
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 1,
+        "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261115-1057"
+          "anamnese:anamnese-20261115-1057",
+          "ciclo:lapis-rosa/01/batata",
+          "plano:plano-20261115-1101"
         ],
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
@@ -203,20 +253,29 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:coqui-de-redinha/01/batata"
+          "ciclo:coqui-de-redinha/01/batata",
+          "ciclo:lapis-rosa/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261115-1101"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "01a51e5"
+    "commit": "9d70022"
   },
-  "gerado_em": "2026-11-15T13:59",
+  "gerado_em": "2026-11-15T14:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -280,6 +339,18 @@
       "id": "anamnese:anamnese-20261115-1057",
       "professor": "lapis-rosa",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261115-1101",
+      "ciclo": "01",
+      "data": "2026-11-15T11:01",
+      "id": "plano:plano-20261115-1101",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "lapis-rosa",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
     }
   ],
   "versao": 6
