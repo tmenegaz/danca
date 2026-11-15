@@ -4,38 +4,52 @@
     "ancorado_em": "2026-11-15",
     "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "cobertura": [
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
       "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+      "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
       "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
     ],
-    "hash": "388b11b87456715c6a7a8cb5dd71b491af470adf6c1768bbdcfff4e7f9f8ba09",
-    "hash_conteudo": "42bce4934eb23eaa34ff3a55caeeb55daca2280be69fb7e90e92a3d937195d7c",
+    "hash": "7cca54638b413d76fefbffa05e490b4ee88ee813b383ff2231e21a8b832fe428",
+    "hash_conteudo": "d507821b749769594597e483b38907b47a413deb69e43d11379d4890bfc45c41",
     "id": "ciclo-01-breu-bale-nivel-1-teste-3",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:rimel-preto/01/breu/bale-nivel-1-teste-3/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp",
     "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
     "documento:aula:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
     "documento:aula:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
     "documento:dados:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
     "documento:dados:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+    "documento:dados:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
     "documento:declaracao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-declaracao.json",
     "documento:glossario:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
     "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+    "documento:indice:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/ciclos.json",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
     "documento:notacao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
     "documento:plano:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
     "documento:po:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
-    "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md"
+    "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+    "documento:schema:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
   "estado": "ancorado",
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -45,7 +59,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -63,6 +77,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 1,
@@ -88,14 +107,19 @@
         "contagem": 1,
         "rotulo": "referencias",
         "valor": "referencias"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "20652b0"
+    "commit": "119540f"
   },
-  "gerado_em": "2026-11-15T16:52",
+  "gerado_em": "2026-11-15T16:54",
   "id": "ciclo:rimel-preto/01/breu",
   "professor": "rimel-preto",
   "versao": 6

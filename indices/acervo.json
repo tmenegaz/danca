@@ -82,13 +82,13 @@
     },
     {
       "ancora": {
-        "hash": "388b11b87456715c6a7a8cb5dd71b491af470adf6c1768bbdcfff4e7f9f8ba09",
+        "hash": "7cca54638b413d76fefbffa05e490b4ee88ee813b383ff2231e21a8b832fe428",
         "id": "ciclo-01-breu-bale-nivel-1-teste-3",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 13,
+      "aulas": 1,
+      "documentos": 17,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:rimel-preto/01/breu",
@@ -143,7 +143,7 @@
       ],
       "contagens": {
         "anamneses": 1,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 1,
@@ -373,9 +373,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "20652b0"
+    "commit": "119540f"
   },
-  "gerado_em": "2026-11-15T16:52",
+  "gerado_em": "2026-11-15T16:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
