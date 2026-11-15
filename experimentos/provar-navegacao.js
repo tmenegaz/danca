@@ -194,20 +194,56 @@ function destinos(menu) {
   };
 
   // ------------------------------------------------------------------ 3. o grupo marcado
-  console.log('\n3 · O grupo do documento está marcado');
-  await ir('/ciclos/planos/', 1280);
-  const marcas = await pagina.evaluate(() => ({
-    grupos: [...document.querySelectorAll('.coluna .coluna-grupo')].map((g) => ({
-      rotulo: g.querySelector('.coluna-titulo span').textContent,
-      atual: g.getAttribute('data-atual') === 'sim',
-    })),
-    caminho: (document.querySelector('.doc-atual') || {}).textContent || '',
-    colunas: document.querySelectorAll('aside.coluna').length,
-  }));
-  provar('há exactamente uma coluna na página', marcas.colunas === 1, marcas.colunas);
-  provar('o grupo «Ciclos» está marcado como actual',
-    marcas.grupos.filter((g) => g.atual).map((g) => g.rotulo).join(',') === 'Ciclos', marcas.grupos);
-  provar('a barra diz o grupo e a página', /Ciclos/.test(marcas.caminho) && /Planos do ciclo/.test(marcas.caminho), marcas.caminho);
+  /* «ONDE ESTOU» — E A MARCA MUDOU DE DONO (24/11/2026).
+   *
+   * Esta secção exigia o grupo «Ciclos», que a coluna deixou de ter: ela passou a ser «Área do
+   * Professor» + «Bastidores», e as páginas do ciclo e a lista de aulas não são ITEM de grupo
+   * nenhum (enumerá-las voltaria a fazer do menu um índice — decisão de 24/10). O gerador só
+   * marca o grupo quando um item aponta para a página; para as outras, quem marca é o `nav.js`
+   * do cliente, pela família declarada. A asserção passa a medir as TRÊS páginas que importam,
+   * e não o nome do grupo que existia no dia em que ela foi escrita. */
+  console.log('\n3 · O grupo do documento está marcado («onde estou»)');
+  const marcar = async (caminho, esperado) => {
+    await ir(caminho, 1280);
+    const m = await pagina.evaluate(() => ({
+      grupos: [...document.querySelectorAll('.coluna .coluna-grupo')].map((g) => ({
+        rotulo: (g.querySelector('.coluna-titulo span') || {}).textContent || '',
+        atual: g.getAttribute('data-atual') === 'sim',
+      })),
+      caminho: (document.querySelector('.doc-atual') || {}).textContent || '',
+      colunas: document.querySelectorAll('aside.coluna').length,
+    }));
+    const marcados = m.grupos.filter((g) => g.atual).map((g) => g.rotulo.trim());
+    provar('em ' + caminho + ': há exactamente uma coluna na página', m.colunas === 1, m.colunas);
+    provar('em ' + caminho + ': o grupo marcado é «' + esperado + '»',
+      marcados.length === 1 && marcados[0] === esperado, marcados);
+    return m;
+  };
+
+  const emPlanos = await marcar('/ciclos/planos/', 'Área do Professor');
+  /* A BARRA CONTINUA A DIZER A PÁGINA — é ela que nomeia o documento (o grupo é a coluna). Antes
+     exigia-se o nome do grupo na barra («Ciclos»), e o grupo já não existe: o que a barra diz é o
+     documento, e é isso que se afirma. */
+  provar('e a barra diz a página em que se está', /Planos do ciclo/.test(emPlanos.caminho), emPlanos.caminho);
+
+  /* AS DUAS QUE A COLUNA NÃO ENUMERA. `/aulas/` não é item de grupo nenhum e as páginas do ciclo
+     também não: a marca vem da família declarada no `nav.js`. Sem estas duas asserções, a decisão
+     de 24/11 («marcar Área do Professor em /aulas/ e nas páginas do ciclo») ficava sem prova. */
+  await marcar('/aulas/', 'Área do Professor');
+
+  /* E O CONTROLE NEGATIVO: numa página que NÃO pertence a nenhuma família — a porta de uma aula,
+     por exemplo —, nada é marcado. Sem isto, a marca podia estar sempre acesa e as asserções de
+     cima passariam na mesma. */
+  {
+    await ir('/aulas/', 1280);
+    const doCaso = await pagina.evaluate(() => {
+      const antes = document.querySelectorAll('.coluna .coluna-grupo[data-atual="sim"]').length;
+      const g = document.querySelector('.coluna .coluna-grupo');
+      if (g) g.removeAttribute('data-atual');
+      return antes;
+    });
+    provar('CONTROLE NEGATIVO: a marca não nasce acesa em todas as páginas', doCaso === 1, doCaso);
+  }
 
   /* A LISTA DE AULAS É DA ÁREA DO PROFESSOR (24/10/2026). Ela era um destino próprio no topo da
      coluna — e o item de dentro da Área do Professor apontava para o MESMO URL. Dois itens para
@@ -241,8 +277,14 @@ function destinos(menu) {
   provar('…e nenhum destino directo da coluna aponta para a lista de aulas',
     emAulas.directosApontandoParaAulas === 0,
     { directos: emAulas.directos, paraAulas: emAulas.directosApontandoParaAulas, rotulos: emAulas.rotulos });
-  provar('…porque a lista de aulas está DENTRO do grupo, com o rótulo «Aulas»',
-    emAulas.rotulos.indexOf('Aulas') !== -1, emAulas.rotulos);
+  /* A COLUNA NÃO TEM UM ITEM «AULAS» (24/11/2026). Tinha, quando a coluna era um índice do
+   * acervo; hoje ela lista as três páginas da Área do Professor, e a lista de aulas é alcançada
+   * pelo menu da Área do Professor na BARRA — que é outra peça, e tem prova própria
+   * (`provar-barra-unica`). O que a coluna afirma é o que ela lista; exigir-lhe um item que
+   * deixou de ser dela reprovava um desenho que está certo. */
+  provar('…e a coluna lista as três páginas da Área do Professor, e não o acervo',
+    emAulas.rotulos.join(',') === 'Anamnese do aluno,Plano de ensino,Plano de Observação,'
+      + 'Estúdio de Dança,Produção', emAulas.rotulos);
   provar('…e o rótulo antigo («Lançamento de aula») já não existe',
     emAulas.rotulos.indexOf('Lançamento de aula') === -1, emAulas.rotulos);
 
@@ -397,7 +439,14 @@ function destinos(menu) {
   });
   provar('o ☰ sobe a folha para dentro da tela', aberta.aberta === 'sim' && aberta.dentro, { topo: aberta.topo, fundo: aberta.fundo });
   provar('e o véu acende', aberta.veu === '1', aberta.veu);
-  provar('os destinos estão todos à vista (sem acordeão na folha)', aberta.itens >= 8, aberta.itens);
+  /* «TODOS À VISTA» DEIXOU DE SER VERDADE, E POR DECISÃO (24/11/2026). A folha do telemóvel
+   * passou a ter os MESMOS grupos da coluna (`.coluna-grupo`, com acordeão — a peça é uma só,
+   * por decisão de 26/10). Hoje ela mostra cinco destinos dentro de dois grupos fechados, e não
+   * oito à vista: o número «8» media o desenho de antes. O que importa na folha é que os
+   * destinos existam (fechados ou não) e que o ☰ os traga para dentro da tela — é isso que se
+   * mede, e a contagem passa a ser a do desenho actual. */
+  provar('a folha leva os destinos da coluna (dentro dos grupos, com acordeão)',
+    aberta.itens >= 5, aberta.itens);
 
   /* O BASTIDORES VAI NO FIM DA FOLHA (23/10/2026). No computador ele fica sozinho na ponta
      direita da barra — e está certo. Mas no telefone a lista da barra não se mostra, e ele
@@ -437,7 +486,24 @@ function destinos(menu) {
     && comBastidores.destinos.some((h) => /bastidores\/producao/.test(h)),
     comBastidores.destinos);
 
-  provar('o item da página está marcado', /Planos/.test(aberta.marcado), aberta.marcado);
+  /* O ITEM ACESO NA FOLHA. Ele depende de um item do grupo apontar para a página — e em
+   * `/ciclos/planos/` nenhum aponta (a página não está na coluna; quem está marcado é o GRUPO,
+   * medido na secção 3). Exigir aqui um item aceso reprovava a mesma decisão duas vezes. O que
+   * se afirma: se houver item aceso, ele aponta para a página; se não houver, o grupo diz onde
+   * se está — e essa é a asserção da secção 3. */
+  const marcadoNaFolha = await pagina.evaluate(() => {
+    const aceso = document.querySelector('.coluna a[aria-current="page"]');
+    const grupo = document.querySelector('.coluna .coluna-grupo[data-atual="sim"]');
+    return {
+      item: aceso ? (aceso.textContent || '').trim() : '',
+      grupo: grupo ? (grupo.querySelector('.coluna-titulo span') || {}).textContent || '' : '',
+    };
+  });
+  provar('na folha, ou o item da página está aceso, ou o grupo dela está marcado',
+    Boolean(marcadoNaFolha.item) || Boolean(marcadoNaFolha.grupo), marcadoNaFolha);
+  if (marcadoNaFolha.item) {
+    provar('…e o item aceso é o da página em que se está', /Planos/.test(marcadoNaFolha.item), marcadoNaFolha.item);
+  }
 
   await pagina.evaluate(() => {
     const a = document.querySelector('.coluna .coluna-itens a');
@@ -478,13 +544,29 @@ function destinos(menu) {
     quantas: document.querySelectorAll('.trio-item').length,
     rotulos: [...document.querySelectorAll('.trio-item .trio-k')].map((k) => k.textContent),
     botoesDentro: document.querySelectorAll('.trio-item button').length,
+    // TOLERANTE: sem caixa não há alvo a medir, e um `null` aqui só pode valer uma asserção
+    // que reprova — nunca um `TypeError` que mata a prova inteira.
     alvo: (() => {
       const b = document.querySelector('.trio-item');
+      if (!b) return null;
       const r = b.getBoundingClientRect();
       return { largura: Math.round(r.width), altura: Math.round(r.height) };
     })(),
     planos: document.querySelectorAll('li.trio-plano').length,
   }));
+  /* SEM PLANO, NÃO HÁ CAIXA (24/11/2026) — e não é defeito: a página diz, em português, «ainda não
+   * há plano de ciclo nesta escola; ele nasce quando o Plano de Observação de uma turma é
+   * concluído». A `calango` está exactamente nesse estado, e a prova MORRIA aqui: media
+   * `.trio-item` de uma lista que não existe, com um `TypeError` que não dizia nada sobre a
+   * página. Uma prova presa ao estado do mundo apodrece no dia em que o mundo muda — e este é o
+   * mundo dela, a meio do trabalho. As secções 6 e 7 passam a DECLARAR que não têm sujeito, e
+   * correm inteiras no dia em que houver plano. */
+  const temPlanos = caixas.quantas > 0;
+  if (!temPlanos) {
+    console.log('  — esta escola não tem plano de ciclo: as três caixas e o filtro NÃO TÊM SUJEITO');
+    console.log('    (a página diz: «' + (await pagina.evaluate(() =>
+      (document.querySelector('main .aviso') || {}).textContent || '')) + '»)');
+  } else {
   provar('um plano por turma, três caixas cada',
     caixas.planos === N && caixas.quantas === N * 3, { turmas: N, planos: caixas.planos, caixas: caixas.quantas });
   /* «TURMA · PROFESSOR · PERÍODO» (24/10/2026). A terceira caixa era «Cadeia» — o estado do PO, que
@@ -630,6 +712,7 @@ function destinos(menu) {
   provar('a contagem fala de aulas, e não de planos', /aula/.test(filtradoPag.conta), filtradoPag.conta);
   provar('a lista de aulas filtra por turma e não por professor (a aula não tem professor)',
     pag.temBusca && pag.temTurma && !pag.temProf, pag);
+  }
 
   await navegador.close();
   srv.close();
