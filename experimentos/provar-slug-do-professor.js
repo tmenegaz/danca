@@ -180,6 +180,70 @@ async function principais() {
     caminhoDoPO({ professor: comSlug.professores[0].slug, ciclo: '01', escola: 'valse' }),
     'professores/tiago-menegaz/ciclos/ciclo-01-valse-po.md');
 
+  // --- 6. A LISTA DE REÚSO É A LISTA DE PASTAS (24/11/2026) --------------
+  /* O OUTRO LADO DA MESMA REGRA, e o defeito que ela causou.
+   *
+   * O `criarEscola` recusa um professor cujo slug já existe dizendo «se for a mesma, use «usar
+   * este professor»» — a colisão é a PASTA `professores/<slug>/`. E a lista que o formulário
+   * oferece era outra coisa: o professor cujas escolas estavam TODAS expurgadas saía dela. Com
+   * as escolas de teste apagadas, a lista ficou vazia e a opção desabilitou-se: o servidor
+   * mandava escolher um professor que o formulário não deixava escolher. Ela ficou sem saída a
+   * 24/11/2026, ao recriar a `calango` com a «Demi Plié».
+   *
+   * A INVARIANTE, aqui: OFERECIDO ⇔ TEM PASTA. Quem pode ser escolhido é exactamente quem
+   * colide, e quem colide é exactamente quem pode ser escolhido.
+   *
+   * Sem rede: um `fetch` falso serve a árvore e os conteúdos do GitHub, como nas outras secções.
+   * Uma escola EXPURGADA (sem config, sem pacote) e um professor FANTASMA (nome que só sobrevive
+   * na memória dela, sem pasta) são o caso difícil, e são os dois que se medem. */
+  {
+    const repo = require('../motor/servidor/repo-escola.js');
+    const conteudos = {
+      'escola/morta/indice.json': JSON.stringify({
+        escola: 'morta', ciclo: '01', shard: 'um-shard',
+        professor: { slug: 'demi-plie', nome: 'Demi Plié' },
+        // O fantasma: a memória do expurgo nomeia quem já não tem pasta.
+        expurgo: [{ em: '2026-11-15T17:49:00Z', motivo: 'teste', apagado: ['professores/sapo/ciclos/ciclo-01-morta.conf'] }],
+      }),
+    };
+    const caminhos = [
+      'escola/morta/indice.json',
+      // A PASTA da demi-plie — é ela que o `criarEscola` encontra ao recusar.
+      'professores/demi-plie/ciclos/ciclo-01-morta.conf',
+      'professores/demi-plie/ciclos/ciclo-01-morta/index.html',
+      // Nada de `professores/sapo/`: o fantasma não tem pasta nenhuma.
+    ];
+    const falso = async (url) => {
+      const u = String(url);
+      const json = (o) => ({ ok: true, status: 200, json: async () => o, text: async () => JSON.stringify(o) });
+      if (u.indexOf('/git/trees/') !== -1) {
+        return json({ sha: 'arvore-1', tree: caminhos.map((caminho) => ({ type: 'blob', path: caminho })) });
+      }
+      const m = /\/contents\/(.+?)\?ref=/.exec(u);
+      if (m) {
+        const texto = conteudos[decodeURIComponent(m[1])];
+        if (texto === undefined) return { ok: false, status: 404, json: async () => null };
+        return json({ content: Buffer.from(texto, 'utf8').toString('base64'), encoding: 'base64' });
+      }
+      return { ok: false, status: 404, json: async () => null };
+    };
+    const kv = { async ler() { return null; }, async guardar() {} };
+    const r = await repo.listarProfessoresPeloIndice({
+      token: 't', dono: 'd', repo: 'r', ref: 'main', fetchImpl: falso, kv,
+    });
+    const oferecidos = (r.professores || []).map((x) => x.slug);
+    conferir('o professor de uma escola TODA expurgada continua na lista (tem pasta)',
+      oferecidos.indexOf('demi-plie') !== -1, oferecidos);
+    conferir('…e o nome dele vem do elo, com acento',
+      ((r.professores || []).find((x) => x.slug === 'demi-plie') || {}).nome, 'Demi Plié');
+    conferir('…e é dito que nenhuma escola dele está viva (rótulo, não exclusão)',
+      ((r.professores || []).find((x) => x.slug === 'demi-plie') || {}).viva, false);
+    conferir('o FANTASMA sem pasta NÃO é oferecido (o servidor diria «não existe»)',
+      oferecidos.indexOf('sapo') === -1, oferecidos);
+    conferir('a lista não fica vazia quando todas as escolas estão apagadas',
+      oferecidos.length > 0, oferecidos);
+  }
+
   console.log('');
   console.log(falhas ? 'FALHOU: ' + falhas + ' caso(s)' : 'TODAS AS PROVAS PASSARAM');
   return falhas ? 1 : 0;

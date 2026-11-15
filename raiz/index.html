@@ -593,13 +593,19 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           // `professores/<slug>/`. É a mesma lista que o Worker confere ao criar: aqui ela serve
           // para você VER, antes de errar.
           //
-          // E A REGRA DO DONO DO PRODUTO (15/10/2026): **quem JÁ é o professor da escola digitada
-          // aparece, mas não pode ser escolhido.** Ele já está nessa escola — oferecê-lo de novo
-          // para ela mesma é uma pergunta sem sentido, e o formulário não deve fazê-la. O dado já
-          // vinha pronto: `/api/professores` devolve as `escolas` de cada professor.
+          // E A REGRA DO DONO DO PRODUTO (15/10/2026), com o alcance corrigido a 24/11/2026:
+          // **quem JÁ é o professor de uma escola VIVA com o nome digitado aparece, mas não pode
+          // ser escolhido.** Oferecê-lo de novo para ela mesma é uma pergunta sem sentido — a
+          // escola existe, e o aviso «A escola «X» já existe» diz o que fazer.
           //
-          // POR QUE SÓ DEPOIS DO NOME DA ESCOLA: é o nome que diz QUAL professor já está nesta
-          // escola. Sem ele, a lista não teria o que excluir — e a escolha não significaria nada.
+          // O QUE ESTAVA ERRADO: a exclusão olhava só «a escola digitada está na lista dele», e
+          // não «essa escola está viva». Ao RECRIAR uma escola expurgada, o professor dela é
+          // exatamente quem se quer reutilizar — e era ele o único excluído. Em 24/11/2026 a
+          // lista ficou vazia (todas as escolas de teste apagadas), a opção desabilitou-se, e o
+          // servidor respondeu «se for a mesma, use «usar este professor»» a quem não podia.
+          //
+          // POR QUE SÓ DEPOIS DO NOME DA ESCOLA: é o nome que diz QUAL professor já está nela.
+          // Sem ele, a lista não teria o que desabilitar — e a escolha não significaria nada.
           var PROFESSORES = [];
           var ESCOLAS = [];
 
@@ -641,11 +647,25 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 " — os formulários vêm preenchidos, e nada é enviado."
               : "";
           }
-          /** Os professores que AINDA PODEM assumir esta escola — os que não estão nela. */
+          /** A escola digitada JÁ EXISTE e está viva? É o que separa «recriar» de «repetir». */
+          function escolaDigitadaViva() {
+            var escola = slugDaEscola();
+            if (!escola) return false;
+            for (var i = 0; i < ESCOLAS.length; i++) if (ESCOLAS[i].slug === escola) return true;
+            return false;
+          }
+
+          /** Um professor só é oferecido se tiver PASTA — é ela que o servidor confere e reusa. */
+          function professoresEscolhiveis() {
+            return PROFESSORES.filter(function (p) { return p.pasta !== false; });
+          }
+
+          /** Os professores que AINDA PODEM assumir esta escola — os que não estão nela VIVA. */
           function professoresLivres() {
             var escola = slugDaEscola();
-            return PROFESSORES.filter(function (p) {
-              return !escola || (p.escolas || []).indexOf(escola) === -1;
+            var viva = escolaDigitadaViva();
+            return professoresEscolhiveis().filter(function (p) {
+              return !(viva && escola && (p.escolas || []).indexOf(escola) !== -1);
             });
           }
 
@@ -654,13 +674,19 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             var escola = slugDaEscola();
             var antes = sel.value;
             while (sel.options.length) sel.remove(0);
-            PROFESSORES.forEach(function (p) {
-              var jaEh = Boolean(escola) && (p.escolas || []).indexOf(escola) !== -1;
+            var viva = escolaDigitadaViva();
+            professoresEscolhiveis().forEach(function (p) {
+              var jaEh = Boolean(escola) && viva && (p.escolas || []).indexOf(escola) !== -1;
               var o = document.createElement("option");
               o.value = p.slug;
               o.textContent = (p.nome ? p.nome + " " : "") + "(" + p.slug + ")"
+                // A ESCOLA MORTA VEM PRIMEIRO (24/11/2026). Listar os slugs das escolas
+                // apagadas («— calango») diz o nome de um endereço que já não existe, e não diz
+                // o que interessa: a pessoa está livre. Só quando há escola viva é que os nomes
+                // dela informam.
                 + (jaEh ? " — já é o professor desta escola"
-                  : (p.escolas && p.escolas.length ? " — " + p.escolas.join(", ") : ""));
+                  : (p.viva === false ? " — sem escola viva"
+                    : (p.escolas && p.escolas.length ? " — " + p.escolas.join(", ") : "")));
               o.disabled = jaEh;
               sel.appendChild(o);
             });
@@ -679,7 +705,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 
           function atualizarOpcaoExistente() {
             var escola = slugDaEscola();
-            var temProf = PROFESSORES.length > 0;
+            var temProf = professoresEscolhiveis().length > 0;
             var livres = professoresLivres();
             var pode = Boolean(escola) && livres.length > 0;
 
@@ -688,7 +714,8 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             document.getElementById("dica-existente").textContent = !escola
               ? "— informe o nome da escola primeiro"
               : (!temProf ? "— nenhum professor cadastrado ainda"
-                : (!livres.length ? "— não há outro professor cadastrado" : "— já dá aula em outra escola"));
+                : (!livres.length ? "— o único professor é o desta escola, e ela já existe"
+                  : "— " + livres.length + (livres.length === 1 ? " professor cadastrado" : " professores cadastrados")));
             if (!pode && modo() === "existente") {
               document.getElementById("modo-novo").checked = true;
               pintarModo();

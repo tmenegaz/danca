@@ -1005,11 +1005,28 @@ async function fetch(request, env) {
       // Duas saídas, e só duas:
       //   1. REUTILIZAR um professor que já existe (`professorExistente`) — a pasta fica;
       //   2. CRIAR com nome + sobrenome — a pasta nasce como `nome-sobrenome`.
-      const existentes = await listarProfessores({ token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF });
+      /* A MESMA LISTA QUE O FORMULÁRIO MOSTRA (24/11/2026).
+       *
+       * Era a varredura (`listarProfessores`), e a varredura tira as `escolas` do CONFIG — num
+       * shard, de nada. Consequência: reutilizar um professor que existe dava `nome: null` e o
+       * `nomeDeExibicao` caía em `tituloDoSlug`, que perde o acento («Demi Plie» em vez de
+       * «Demi Plié»). O nome errado ia para o elo, para o secret `PROFESSOR_NOME` e para o
+       * `responsavel` da escola — e o elo é proveniência, não se corrige depois.
+       *
+       * Passa a ser a lista do ÍNDICE, a mesma que serve `/api/professores`: uma pergunta, uma
+       * resposta. Quando o índice não responde, a varredura responde — e aí degrada-se para o
+       * slug, como antes. */
+      const existentes = await listarProfessoresPeloIndice({
+        token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF,
+        kv: env && env.PADD_KV,
+      }).then((r) => r.professores).catch(() => listarProfessores({ token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF }));
       let professor = null;
       let nomeDeExibicao = professorNome;
       if (professorExistente) {
-        const achado = existentes.find((p) => p.slug === professorExistente);
+        /* SÓ SE REUTILIZA O QUE TEM PASTA. Um professor que sobrevive apenas na memória de uma
+         * escola expurgada é oferecido pelo índice, mas não tem diretório nenhum onde a escola
+         * nova possa nascer ao lado dele — e o servidor diria «não existe» a seguir. */
+        const achado = existentes.find((p) => p.slug === professorExistente && p.pasta !== false);
         if (!achado) {
           return new Response(JSON.stringify({ ok: false, erro: 'o professor "' + professorExistente + '" não existe — recarregue a lista' }), {
             status: 400,

@@ -240,7 +240,14 @@ async function listarProfessores({ token, dono, repo, ref, fetchImpl }) {
       } catch { nome = null; }
       if (nome) break;
     }
-    lista.push({ slug, nome, escolas: minhas.map((e) => e.slug) });
+    /* A PASTA É O FACTO TAMBÉM AQUI (24/11/2026). Esta lista nasce de `professores/<slug>/`, de
+     * modo que cada entrada dela TEM pasta — e é isso que a torna escolhível no formulário. Sem
+     * declarar `pasta`, o mesmo professor aparecia com uma forma diferente conforme a fonte que
+     * respondesse (índice ou varredura), e o consumidor não tinha como saber qual das duas
+     * formas estava a ler. As `escolas` continuam a sair do config, e num shard isso é vazio:
+     * por isso `viva` NÃO se declara aqui — dizer «sem escola viva» por não haver config seria
+     * repetir o defeito de confundir «escola» com «tem config». */
+    lista.push({ slug, nome, escolas: minhas.map((e) => e.slug), pasta: true });
   }
   return lista;
 }
@@ -264,14 +271,36 @@ async function listarProfessoresPeloIndice({ token, dono, repo, ref, fetchImpl, 
           doIndice: true,
           doCache: r.doCache,
           custo: r.custo,
-          // O professor cujas escolas foram TODAS expurgadas já não é escolhível — a mesma regra
-          // das escolas vivas, um nível acima. Um professor vivo numa escola viva continua.
+          /* QUEM PODE SER ESCOLHIDO (24/11/2026) — e a regra passou a ser a da PASTA.
+           *
+           * Aqui esteve um filtro que mantinha só o professor com ALGUMA escola viva. A intenção
+           * era tirar da lista os fantasmas de escolas expurgadas, e o efeito foi outro: com
+           * todas as escolas de teste expurgadas, a lista saía VAZIA — e o `criarEscola`, que
+           * confere a colisão pelas PASTAS do repositório, continuava a responder «já existe o
+           * professor “Demi Plié” […] se for a mesma, use «usar este professor»». As duas metades
+           * do sistema discordavam sobre o mesmo facto, e o convite do servidor apontava para uma
+           * opção que o formulário tinha desabilitado. Foi assim que ela ficou sem saída em
+           * 24/11/2026, ao recriar a `calango`.
+           *
+           * O QUE DECIDE, AGORA, É O MESMO QUE DECIDE A COLISÃO: `professores/<slug>/` existe?
+           * Quem a cria é o cadastro, e é ela que o `criarEscola` encontra quando recusa. Um
+           * professor sem pasta — nome que só sobrevive na memória de uma escola expurgada — não
+           * pode ser escolhido: o servidor responderia «não existe — recarregue a lista».
+           *
+           * `viva` continua a ser dito, porque a PESSOA precisa de o saber: a escola dela pode
+           * estar toda apagada. Mas é um rótulo, não uma exclusão. */
           professores: r.indice.professores
-            .filter((p) => p.escolas.some((slug) => {
-              const daEscola = r.indice.escolas.find((e) => e.slug === slug);
-              return daEscola && !daEscola.expurgada;
-            }))
-            .map((p) => ({ slug: p.slug, nome: p.nome, escolas: p.escolas })),
+            .filter((p) => p.pasta !== false)
+            .map((p) => ({
+              slug: p.slug,
+              nome: p.nome,
+              escolas: p.escolas,
+              pasta: p.pasta !== false,
+              viva: p.escolas.some((slug) => {
+                const daEscola = r.indice.escolas.find((e) => e.slug === slug);
+                return daEscola && !daEscola.expurgada;
+              }),
+            })),
         };
       }
     } catch (erro) {

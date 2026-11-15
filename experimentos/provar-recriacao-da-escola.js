@@ -90,6 +90,16 @@ function rodarExpurgar() {
     return { codigo: e.status || 1, saida: String(e.stdout || '') + String(e.stderr || '') };
   }
 }
+/**
+ * `comRecriacao` significa RECRIADA DEPOIS DO EXPURGO — não «tem criação declarada».
+ *
+ * A DIFERENÇA CUSTOU TRÊS ASSERÇÕES (24/11/2026). O elo semeado aqui não tinha `recriacao[]`
+ * nenhuma, e a auditoria da proveniência — que passou a correr antes de o expurgo apagar
+ * (07/11/2026) — recusa um elo sem criação: sem ela «não se sabe quando nem por quem esta
+ * encarnação nasceu». O `expurgar.js` obedecia, e a prova lia isso como «a regra da recriação
+ * falhou». Toda escola de verdade tem `recriacao[]` (é a criação que a escreve); o que distingue
+ * o caso que esta secção mede é a ORDEM: a criação vem antes do expurgo, e a recriação depois.
+ */
 function semear(comRecriacao) {
   escrever('professores/p/ciclos/ciclo-01-zz/x.html', 'x');
   escrever('professores/p/ciclos/ciclo-01-zz.conf', 'CICLO="01"\n');
@@ -97,19 +107,52 @@ function semear(comRecriacao) {
   const ind = {
     escola: 'zz', worker: 'zz', professor: { slug: 'p' }, ciclo: '01',
     senha: { chave: 'SENHA_ZZ' }, arquivos: [],
+    // A CRIAÇÃO desta encarnação, ANTES do expurgo de 01/01/2026: a escola nasceu, e foi apagada.
+    recriacao: [{ em: '2025-11-01T00:00:00Z', motivo: 'criação', professor: { slug: 'p' }, ciclo: '01' }],
     expurgo: [{ em: '2026-01-01T00:00:00Z', motivo: 'teste', apagado: [] }],
   };
-  if (comRecriacao) ind.recriacao = [{ em: new Date().toISOString(), motivo: 'teste' }];
+  // A RECRIAÇÃO, DEPOIS do expurgo: agora há uma encarnação viva, e apagá-la destruiria o novo.
+  if (comRecriacao) {
+    ind.recriacao.push({ em: new Date().toISOString(), motivo: 'recriada', professor: { slug: 'p' }, ciclo: '01' });
+  }
+  /* A ÂNCORA, PELO DONO DA FÓRMULA (24/11/2026). A auditoria não recalcula o hash — ela CHAMA o
+   * `hash-ciclo.sh --check`, que é quem o sabe fazer. Escrever aqui um `.fipp` com hashes
+   * inventados dava `ancora-nao-confere`, e o motivo era a bancada, não a regra. Produz-se com a
+   * mesma ferramenta que produz as âncoras a sério. */
+  try {
+    execFileSync('bash', ['tools/hash-ciclo.sh', 'p', '01', 'zz'], { cwd: repoSandbox, encoding: 'utf8', stdio: 'pipe' });
+  } catch (erro) {
+    console.log('  aviso  o `hash-ciclo` da bancada falhou: '
+      + String((erro && erro.stdout) || (erro && erro.message)).slice(0, 200));
+  }
   escrever('escola/zz/indice.json', JSON.stringify(ind, null, 2));
+  /* O DERIVADO TAMBÉM (24/11/2026). A auditoria recusa quando `indices/` não corresponde ao elo
+   * (`indexacao-pendente`) — e é isso que a regra manda: o derivado é regerado a cada mudança de
+   * fonte. A bancada regera-o com a mesma ferramenta que o operador corre, em vez de escrever à
+   * mão um ficheiro que só se parecesse com o derivado. */
+  try {
+    execFileSync('node', ['tools/gerar-indices.js'], { cwd: repoSandbox, encoding: 'utf8', stdio: 'pipe' });
+    execFileSync('node', ['tools/gerar-relacoes.js'], { cwd: repoSandbox, encoding: 'utf8', stdio: 'pipe' });
+  } catch (erro) {
+    console.log('  aviso  o `gerar-indices` da bancada falhou: ' + String((erro && erro.stdout) || (erro && erro.message)).slice(0, 160));
+  }
 }
 // O `expurgar.js` lê os ficheiros por caminhos absolutos da RAIZ do módulo — por isso a
 // prova copia os módulos para o sandbox, em vez de os executar de fora. Desde 22/10/2026 ele
 // exige a leitura do responsável do núcleo (`motor/nucleo/indices.js`), que vai junto.
 fs.mkdirSync(path.join(repoSandbox, 'escola'), { recursive: true });
 fs.copyFileSync(path.join(RAIZ, 'escola/expurgar.js'), path.join(repoSandbox, 'escola/expurgar.js'));
-fs.mkdirSync(path.join(repoSandbox, 'motor/nucleo'), { recursive: true });
-fs.copyFileSync(path.join(RAIZ, 'motor/nucleo/indices.js'), path.join(repoSandbox, 'motor/nucleo/indices.js'));
-
+/* MOTOR E FERRAMENTAS INTEIROS, E NÃO FICHEIRO A FICHEIRO (24/11/2026).
+ *
+ * Aqui copiava-se `indices.js` — e só ele. Quando o `expurgar.js` passou a exigir a auditoria da
+ * proveniência, esta secção começou a medir `Cannot find module`: primeiro `auditar-proveniencia`,
+ * depois `indice-acervo`. Cada módulo novo custava uma linha nova aqui, e o defeito aparecia como
+ * «a regra da recriação falhou» — que é o pior sintoma possível, porque manda procurar no sítio
+ * errado. Agora vai a árvore de código inteira: o que esta bancada isola é o CONTEÚDO da escola,
+ * não o código que o lê. */
+for (const pasta of ['motor', 'tools']) {
+  fs.cpSync(path.join(RAIZ, pasta), path.join(repoSandbox, pasta), { recursive: true });
+}
 semear(false);
 const r1 = rodarExpurgar();
 conferir('escola expurgada SEM recriação continua a ser apagada', r1.codigo === 0, r1.saida.slice(0, 120));

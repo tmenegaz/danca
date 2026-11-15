@@ -635,6 +635,18 @@ function construir(entrada) {
       .sort((a, b) => porTexto(a.valor, b.valor));
   };
 
+  /* AS PASTAS, ANTES DE TUDO (24/11/2026). `professores/<slug>/` é a superfície da COLISÃO: é
+   * ela que o `criarEscola` confere antes de deixar nascer um professor, e é ela que decide se
+   * um nome pode ser reutilizado. Passa a ser calculada antes do laço das escolas para que cada
+   * registo de professor possa dizer se tem pasta — sem essa resposta, o consumidor da lista
+   * tinha de adivinhar, e adivinhava mal (ver `listarProfessoresPeloIndice`). */
+  const pastas = [];
+  for (const caminho of caminhos) {
+    const m = /^professores\/([a-z0-9][a-z0-9-]*)\//.exec(caminho);
+    if (m && pastas.indexOf(m[1]) === -1) pastas.push(m[1]);
+  }
+  const temPasta = (slug) => pastas.indexOf(slug) !== -1;
+
   // 6. O MESTRE — transversal, sem documentos e SEM apelido.
   const escolas = [];
   const professores = new Map();
@@ -801,6 +813,7 @@ function construir(entrada) {
           nome: nomeDoProfessorNoInventario(inv, p),
           escolas: [],
           ciclos: [],
+          pasta: temPasta(p),
         });
       }
       const reg = professores.get(id);
@@ -828,15 +841,10 @@ function construir(entrada) {
    * trabalha — isso vem do vínculo no inventário ou do ciclo. Sem os dois, ele entra com
    * `escolas: []`, e a lista diz «sem escola viva» em vez de o omitir.
    */
-  const pastas = [];
-  for (const caminho of caminhos) {
-    const m = /^professores\/([a-z0-9][a-z0-9-]*)\//.exec(caminho);
-    if (m && pastas.indexOf(m[1]) === -1) pastas.push(m[1]);
-  }
   for (const slug of pastas.sort(porTexto)) {
     const id = idDeProfessor(slug);
     if (professores.has(id)) continue;
-    professores.set(id, { id, slug, nome: null, escolas: [], ciclos: [] });
+    professores.set(id, { id, slug, nome: null, escolas: [], ciclos: [], pasta: true });
   }
 
   const acervo = {

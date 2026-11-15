@@ -46037,3 +46037,56 @@ pacote — nenhuma escola está nesse intervalo agora, e a `calango` serve o sit
 confirmação ao vivo é a criação seguinte dela. As escolas de shard continuam a ser publicadas pelo
 pacote-zero: se um shard tiver escolas mas nenhuma com ciclo gerado, a montagem recusa montar zero
 (é a guarda que impede apagar a árvore de todas), e nada é publicado até existir o primeiro ciclo.
+
+## 24/11/2026 — «usar este professor» existia e estava desabilitado
+
+Ela expurgou a `calango` às 17:49 e foi recriá-la às 17:50 com a «Demi Plié». O servidor respondeu:
+
+```
+já existe o professor "demi-plie" na pasta `professores/demi-plie/`. Se for OUTRA pessoa, informe um
+sobrenome ou apelido diferente; se for a mesma, use «usar este professor».
+```
+
+E a opção «um professor que já existe» estava **desabilitada**. O convite apontava para uma porta que
+o formulário tinha fechado. As duas metades discordavam sobre o mesmo facto, e cada uma por sua conta:
+
+- **O servidor** pergunta pela PASTA: `professores/<slug>/` existe? A pasta sobrevive ao expurgo (é
+  ela que guarda o pacote, os cadernos, as âncoras), e é ela que a colisão protege.
+- **`/api/professores`** respondia por «tem ALGUMA escola viva». Com as três escolas de teste
+  apagadas, o filtro derrubava todos os professores e a lista saía **vazia** — medido ao vivo:
+  `{"ok":true,"fonte":"indice","professores":[]}` com `professores/demi-plie/` no repositório.
+- **O formulário**, mesmo com a lista cheia, ainda excluía quem «já dá aula nesta escola» — que é
+  exactamente o professor que se quer reutilizar ao **recriar** uma escola apagada.
+
+**A regra passa a ser uma só: OFERECIDO ⇔ TEM PASTA.** É a mesma pergunta que a colisão faz, e é a
+única que torna o convite atendível. O índice ganhou o facto (`professores[].pasta`, derivado dos
+caminhos `professores/<slug>/`), `/api/professores` deixou de filtrar e passou a dizer `viva` como
+RÓTULO («— sem escola viva»), e o formulário só desabilita quem já é o professor da escola digitada
+**quando essa escola está viva** — recriar não é repetir. O `criarEscola` passou a ler a MESMA lista
+(antes lia a varredura, que tira as escolas do config: num shard, nada — e o nome do professor caía
+em `tituloDoSlug`, perdendo o acento «Demi Plie» no elo, no secret e no `responsavel`).
+
+**Onde entrou.** `motor/nucleo/indices.js` (`pasta`) · `motor/servidor/repo-escola.js` (a lista e a
+varredura declaram `pasta`; a segunda também sabia disso e não o dizia) · `motor/servidor/raiz.js`
+(a mesma lista no `criarEscola`, e o reúso exige pasta) · `raiz/index.html` (a exclusão exige escola
+viva; o rótulo conta quantos há) · `indices/**` (regerados — `pasta` é facto derivado) ·
+`experimentos/provar-slug-do-professor.js` (a invariante, sem rede).
+
+**Com o quê.** `provar-slug-do-professor` (a invariante OFERECIDO ⇔ TEM PASTA, com um `fetch` falso:
+professor de escola toda expurgada continua oferecido, fantasma sem pasta não) · `check-identidade`
+0 erros · `check-indices` 16/16 · `gerar-indices --check` em dia · `provar-cofre-e-shard` 109/109 ·
+`provar-gestos-do-shard`, `provar-kv-da-escola-criada`, `provar-professor-secundario`,
+`provar-a-autoria-na-troca-de-professor`, `provar-editar-professor-principal` verdes.
+
+**Duas bancadas que mediam o vazio, e ficaram consertadas.** (1) `provar-form-escola` extraía o
+PRIMEIRO `<script>` da página — que passou a ser o anti-flash do `<head>` — e reprovava tudo desde
+então: agora extrai o bloco que fala do formulário, e por isso passou a poder reprovar de verdade.
+(2) `provar-recriacao-da-escola` copiava um único módulo para o sandbox e media
+`Cannot find module` (primeiro `auditar-proveniencia`, depois `indice-acervo`): passa a levar
+`motor/` e `tools/` inteiros, a produzir a âncora com o `hash-ciclo.sh` (o dono da fórmula — a
+auditoria não a recalcula, chama-a) e a regerar o derivado com as ferramentas de sempre. As duas
+são provas LOCAIS (`experimentos/` não é versionado fora da lista declarada); o que ficou versionado
+foi `provar-slug-do-professor` e `provar-recriacao-da-escola`.
+
+**O que ainda não está feito.** A confirmação ao vivo é dela: recriar uma escola escolhendo «um
+professor que já existe». A `danca` precisa de deploy para o formulário novo chegar ao ar.
