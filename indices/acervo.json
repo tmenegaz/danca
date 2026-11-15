@@ -34,22 +34,6 @@
     },
     {
       "ancora": {
-        "hash": "aa369d4df6d095a621857cca07fbc33ec5614325a858dfa2db2cd76feb159588",
-        "id": "ciclo-01-calango-piano",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 2,
-      "documentos": 37,
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:pe-torto/01/calango",
-      "numero": "01",
-      "professor": "pe-torto",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
         "hash": "0f95afdfe4a7f3b1d1c7aa90d3aa02238c4fc9e09638cb744bc94f7145cc64aa",
         "id": "ciclo-01-breu",
         "lida": true,
@@ -60,22 +44,6 @@
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:redinha-rosa/01/breu",
-      "numero": "01",
-      "professor": "redinha-rosa",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "4087a296abd0828cfbe87822460ccd384a5465cbbc9f23f77e9b97cc34efb677",
-        "id": "ciclo-01-calango-piano",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 2,
-      "documentos": 34,
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:redinha-rosa/01/calango",
       "numero": "01",
       "professor": "redinha-rosa",
       "sem_ancora": false
@@ -172,76 +140,37 @@
       "slug": "breu"
     },
     {
-      "ciclos": [
-        "ciclo:pe-torto/01/calango",
-        "ciclo:redinha-rosa/01/calango"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 4,
-        "aulas": 4,
-        "ciclos": 2,
-        "ciclos_com_ancora": 2,
-        "planos": 18,
-        "pos": 20,
-        "recortes": 2,
-        "registros": 42
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "recortes": 0,
+        "registros": 0
       },
       "criada_em": "2026-11-08T15:18:17.804671+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-11-07T12:18:45.087Z",
-      "expurgos": 10,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-15T19:19:02.508Z",
+      "expurgos": 11,
+      "habilitada": false,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "pe-torto",
       "professores": [
+        "meia-ponta",
+        "murisoca-baiana",
+        "oculos-redondo",
         "pe-torto",
-        "redinha-rosa"
+        "perna-boa",
+        "rabo-gramde",
+        "redinha-rosa",
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261108-1259",
-        "anamnese:anamnese-20261108-1314",
-        "anamnese:anamnese-20261108-1315",
-        "anamnese:anamnese-20261109-1615",
-        "plano:plano-20261108-1303",
-        "plano:plano-20261108-1317",
-        "plano:plano-20261108-1334",
-        "plano:plano-20261109-2341",
-        "plano:plano-20261110-1304",
-        "plano:plano-20261110-2145",
-        "plano:plano-20261111-0809",
-        "plano:plano-20261111-0858",
-        "plano:plano-20261111-1016",
-        "plano:plano-20261111-1527",
-        "plano:plano-20261112-0747",
-        "plano:plano-20261112-0812",
-        "plano:plano-20261112-0814",
-        "plano:plano-20261112-0815",
-        "plano:plano-20261112-0833",
-        "plano:plano-20261112-0837",
-        "plano:plano-20261112-0837-2",
-        "plano:plano-20261112-1450",
-        "po:po-20261108-1304",
-        "po:po-20261108-1318",
-        "po:po-20261108-1319",
-        "po:po-20261108-1334",
-        "po:po-20261108-1335",
-        "po:po-20261109-2341",
-        "po:po-20261110-1304",
-        "po:po-20261110-1309",
-        "po:po-20261110-2145",
-        "po:po-20261111-0809",
-        "po:po-20261111-0858",
-        "po:po-20261111-1017",
-        "po:po-20261111-1528",
-        "po:po-20261112-0747",
-        "po:po-20261112-0812",
-        "po:po-20261112-0814",
-        "po:po-20261112-0833",
-        "po:po-20261112-0837",
-        "po:po-20261112-0837-2",
-        "po:po-20261112-1450"
-      ],
+      "registros": [],
       "slug": "calango"
     },
     {
@@ -272,7 +201,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 52,
+        "contagem": 10,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -301,7 +230,7 @@
     ],
     "estados": [
       {
-        "contagem": 6,
+        "contagem": 4,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
@@ -329,8 +258,28 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Meia Ponta",
+        "valor": "meia-ponta"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Murisoca Baiana",
+        "valor": "murisoca-baiana"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Oculos Redondo",
+        "valor": "oculos-redondo"
+      },
+      {
+        "contagem": 1,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "perna-boa",
+        "valor": "perna-boa"
       },
       {
         "contagem": 1,
@@ -338,8 +287,8 @@
         "valor": "prova-do-shard"
       },
       {
-        "contagem": 0,
-        "rotulo": "rabo-gramde",
+        "contagem": 1,
+        "rotulo": "Rabo Gramde",
         "valor": "rabo-gramde"
       },
       {
@@ -351,21 +300,31 @@
         "contagem": 1,
         "rotulo": "Rimel Preto",
         "valor": "rimel-preto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "sapo-bailarino",
+        "valor": "sapo-bailarino"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "tiago-menegaz",
+        "valor": "tiago-menegaz"
       }
     ],
     "tipos": [
       {
-        "contagem": 6,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       },
       {
-        "contagem": 21,
+        "contagem": 3,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 25,
+        "contagem": 5,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -373,9 +332,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "119540f"
+    "commit": "cb4336a"
   },
-  "gerado_em": "2026-11-15T16:54",
+  "gerado_em": "2026-11-15T19:19",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -436,15 +395,49 @@
       "slug": "lapis-rosa"
     },
     {
-      "ciclos": [
-        "ciclo:pe-torto/01/calango"
+      "ciclos": [],
+      "escolas": [
+        "calango"
       ],
+      "id": "professor:meia-ponta",
+      "nome": "Meia Ponta",
+      "slug": "meia-ponta"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:murisoca-baiana",
+      "nome": "Murisoca Baiana",
+      "slug": "murisoca-baiana"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:oculos-redondo",
+      "nome": "Oculos Redondo",
+      "slug": "oculos-redondo"
+    },
+    {
+      "ciclos": [],
       "escolas": [
         "calango"
       ],
       "id": "professor:pe-torto",
       "nome": "Pe Torto",
       "slug": "pe-torto"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:perna-boa",
+      "nome": null,
+      "slug": "perna-boa"
     },
     {
       "ciclos": [],
@@ -457,15 +450,16 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "calango"
+      ],
       "id": "professor:rabo-gramde",
-      "nome": null,
+      "nome": "Rabo Gramde",
       "slug": "rabo-gramde"
     },
     {
       "ciclos": [
-        "ciclo:redinha-rosa/01/breu",
-        "ciclo:redinha-rosa/01/calango"
+        "ciclo:redinha-rosa/01/breu"
       ],
       "escolas": [
         "breu",
@@ -485,6 +479,24 @@
       "id": "professor:rimel-preto",
       "nome": "Rimel Preto",
       "slug": "rimel-preto"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:sapo-bailarino",
+      "nome": null,
+      "slug": "sapo-bailarino"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:tiago-menegaz",
+      "nome": null,
+      "slug": "tiago-menegaz"
     }
   ],
   "versao": 6
