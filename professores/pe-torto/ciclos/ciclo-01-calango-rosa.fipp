@@ -16,12 +16,12 @@ hash: e1a796d9a75f4a9274deb1c1120d0105454374872208ce4be5a29b954cb2d1cb
 algoritmo: SHA-256
 po: professores/pe-torto/ciclos/ciclo-01-calango-rosa-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-11-10
+ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 43
-notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
+notacao_versao: 44
+notacao_sha: 4adfd983f6c4a922a56ae56f9ac8bf9c2b3c4cbfcecd86c48a33b9ba2b3c96dd
 cobertura:
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-aula-01.md
   - professores/pe-torto/ciclos/ciclo-01-calango-rosa-captura-aula-01.md

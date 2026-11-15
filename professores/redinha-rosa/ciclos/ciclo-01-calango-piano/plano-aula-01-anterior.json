@@ -27,16 +27,32 @@
   "guiaDeObservacao": {
     "Corpo": [
       {
+        "criterio": "4ª posição — pés",
+        "oQueSeObserva": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
+      },
+      {
         "criterio": "5ª posição — pés",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 3 em «Bom» (por consciência própria) · 1 de 3 em «razoável» (com toque) · 1 de 3 em «precisa desenvolver» (com a barra como apoio) — ponto de atenção"
+      },
+      {
+        "criterio": "4ª posição — braços",
+        "oQueSeObserva": "1 de 3 em «Bom» (com a barra como apoio) · 1 de 3 em «razoável» (por consciência própria) · 1 de 3 em «precisa desenvolver» (com toque) — ponto de atenção"
       },
       {
         "criterio": "5ª posição — braços",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 3 em «Bom» (com toque) · 1 de 3 em «razoável» (com a barra como apoio) · 1 de 3 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
-        "criterio": "Cócoras profundas (squat)",
-        "oQueSeObserva": "sem registo na anamnese"
+        "criterio": "Articulação e força intrínseca dos dedos",
+        "oQueSeObserva": "2 de 3 em «Flexíveis e articulados» · 1 de 3 em «Rígidos em garra / sem tônus» — ponto de atenção"
+      },
+      {
+        "criterio": "Equilíbrio unipodal",
+        "oQueSeObserva": "2 de 3 em «Mantém > 5 s sem oscilação severa» · 1 de 3 em «Perda rápida» — ponto de atenção"
+      },
+      {
+        "criterio": "Espiral / rotação de tronco",
+        "oQueSeObserva": "1 de 3 em «Compreende e executa torções guiadas» · 2 de 3 em «Rigidez total» — ponto de atenção"
       }
     ],
     "Técnica": [
@@ -124,7 +140,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261111-1017?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261111-1016?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261112-1450?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261112-1450?formato=html)** — Teste **Anamnese de cada aluna** A anamnese de cada uma das 3 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",

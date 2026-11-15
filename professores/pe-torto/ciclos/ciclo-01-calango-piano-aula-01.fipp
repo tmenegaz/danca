@@ -14,7 +14,7 @@ hash_conteudo: b92125c23a16ebcf4c5c5db50d9b7a40f6bd8cd1c7bf7361f7e7e2f8e364ec53
 parentHash: 
 hash: 7b16690c3e607c8e17f3f62ab34e9ddf03d0d25ab1bd0a6f3aa1c0caefa2dc73
 algoritmo: SHA-256
-ancorado_em: 2026-11-12
+ancorado_em: 2026-11-15
 cobertura:
   - professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md
   - professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md

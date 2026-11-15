@@ -16,12 +16,12 @@ hash: 57107e53fdc1b97531f7d5e1f13f01092191c89acab0d42b7a2738cc6dc17864
 algoritmo: SHA-256
 po: professores/redinha-rosa/ciclos/ciclo-01-calango-piano-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-11-14
+ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 43
-notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
+notacao_versao: 44
+notacao_sha: 4adfd983f6c4a922a56ae56f9ac8bf9c2b3c4cbfcecd86c48a33b9ba2b3c96dd
 cobertura:
   - professores/redinha-rosa/ciclos/ciclo-01-calango-piano-aula-01.md
   - professores/redinha-rosa/ciclos/ciclo-01-calango-piano-captura-aula-01.md
