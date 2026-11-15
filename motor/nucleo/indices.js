@@ -439,12 +439,29 @@ function construir(entrada) {
   const ancoras = e.ancoras || {};
   const comApelido = e.comApelido === true;
 
-  // 1. AS ESCOLAS — o `wrangler.<slug>.jsonc`, que é a definição que sobrevive ao expurgo.
+  /* 1. AS ESCOLAS — o `wrangler.<slug>.jsonc`, que é a definição que sobrevive ao expurgo.
+   *
+   * O SHARD NÃO É ESCOLA (15/11/2026), e a diferença custou um expurgo falhado. Um shard tem
+   * `wrangler.<shard>.jsonc` — é por ele que se publica —, e esta derivação tratava «existe um
+   * config» como «é uma escola». Resultado: o `lastro-teste` nasceu como escola no
+   * `indices/acervo.json`, a página das VIVAS passou a listá-lo, e ela tentou expurgá-lo. O
+   * expurgo recusou com a razão certa (`sem-elo`: não há `escola/lastro-teste/indice.json`), mas
+   * a lista mentia desde o princípio.
+   *
+   * QUEM DECIDE É O CHAMADOR, e não uma segunda regra aqui: `shards` são os scripts que declaram
+   * `PACOTE_PARTILHADO` no config (a mesma marca que o `deploy-escolas` usa para não os tratar
+   * como escola). Esta função recebe caminhos, não conteúdo — quem lê o conteúdo é o
+   * `gerar-indices.js`, e é lá que a lista nasce.
+   *
+   * AUSENTE É VAZIO, e isso mantém a compatibilidade: quem chamar `construir` sem `shards` — as
+   * provas, um adaptador antigo — continua a ver exactamente o que via antes. */
+  const shards = Array.isArray(e.shards) ? e.shards : [];
   const slugs = [];
   for (const caminho of caminhos) {
     const m = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
     if (!m) continue;
     if (m[1] === 'danca') continue;   // a raiz não é escola
+    if (shards.indexOf(m[1]) !== -1) continue;   // o shard serve escolas; não é uma
     if (slugs.indexOf(m[1]) === -1) slugs.push(m[1]);
   }
   // Uma escola EXPURGADA já não tem wrangler, mas o inventário dela ficou como elo. Ela entra no
@@ -625,6 +642,9 @@ function construir(entrada) {
     const inv = inventarios[slug] || null;
     const minhaCiclos = ciclos.filter((c) => c.escola === slug);
     const meusRegistros = registrosPorEscola[slug] || [];
+    /* «EXPURGADA» É «NÃO TEM CONFIG» — e agora também «não é um shard». A comparação é a mesma
+     * de antes; o que muda é que um slug que seja nome de shard nunca chega aqui (saiu na
+     * derivação de escolas), e por isso não há um segundo critério a divergir do primeiro. */
     const expurgada = !caminhos.some((c) => c === 'wrangler.' + slug + '.jsonc');
     // QUEM RESPONDE HOJE, não quem criou há três expurgos (22/10/2026). Ver
     // `responsavelDoInventario` — o elo de recriação vale sobre o `professor` original.

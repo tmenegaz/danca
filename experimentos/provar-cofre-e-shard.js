@@ -441,6 +441,64 @@ function cloudflareFalso({ rotas = [] } = {}) {
   }
   });
 
+  /* ---------------------------------------------------------------- C2. O shard não é escola */
+
+  /* O SHARD TINHA CONFIG, E A DERIVAÇÃO TRATAVA «TEM CONFIG» COMO «É ESCOLA» (15/11/2026).
+   *
+   * O `wrangler.lastro-teste.jsonc` existe — é por ele que se publica —, e o shard nasceu como
+   * escola no `indices/acervo.json`. A página das VIVAS passou a listá-lo, e o expurgo que ela
+   * disparou recusou com `sem-elo` (e bem: um shard não tem `escola/<slug>/indice.json`). Uma
+   * lista que mostra o que não é escola é uma armadilha com botão. */
+  await secao('C2. O shard não entra na lista de escolas', async () => {
+    const indices = carregar('motor/nucleo/indices.js');
+    if (!indices || typeof indices.construir !== 'function') {
+      provar('existe `construir` — a derivação dos índices', false, 'não existe');
+      return;
+    }
+    const caminhos = [
+      'wrangler.danca.jsonc', 'wrangler.calango.jsonc', 'wrangler.lastro-teste.jsonc',
+      'escola/calango/indice.json',
+    ];
+    const semShard = indices.construir({ arvores: caminhos, inventarios: {}, envelopes: {}, ancoras: {}, agora: '2026-11-15T00:00' });
+    const comShard = indices.construir({ arvores: caminhos, inventarios: {}, envelopes: {}, ancoras: {},
+      shards: ['lastro-teste'], agora: '2026-11-15T00:00' });
+    const slugs = (r) => (r.acervo.escolas || []).map((e) => e.slug).sort();
+
+    provar('sem a lista de shards, o config VIRA escola — é o defeito, e ele reproduz-se aqui',
+      slugs(semShard).indexOf('lastro-teste') !== -1, slugs(semShard));
+    provar('com a lista, o shard NÃO entra', slugs(comShard).indexOf('lastro-teste') === -1, slugs(comShard));
+    provar('…e as escolas continuam todas lá', slugs(comShard).join(',') === 'calango', slugs(comShard));
+    provar('a raiz também não é escola', slugs(comShard).indexOf('danca') === -1, slugs(comShard));
+
+    /* E O EXPURGO DE UM SHARD TEM DE DIZER «SHARD», NÃO «REANCORE» — o recado que ela recebeu. */
+    const repoEscola = carregar('motor/servidor/repo-escola.js');
+    if (repoEscola && typeof repoEscola.auditarProvenienciaDaEscola === 'function') {
+      const r = await repoEscola.auditarProvenienciaDaEscola({
+        slug: 'lastro-teste', caminhos: [], fetchImpl: async () => { throw new Error('não devia ir à rede'); },
+        shards: ['lastro-teste'],
+      });
+      provar('o expurgo do SHARD recusa, e diz que é um shard',
+        r.ok === false && /shard/.test(r.problemas[0].codigo), r.problemas && r.problemas[0] && r.problemas[0].codigo);
+      provar('…e NÃO manda reancorar — não há nada a reancorar num shard',
+        !/reancore|hash-ciclo/.test(r.problemas[0].mensagem), r.problemas[0].mensagem.slice(0, 80));
+      provar('…e diz o que fazer em vez disso', /expurgue a escola/i.test(r.problemas[0].mensagem), null);
+    }
+
+    /* A MARCA É A MESMA DO DEPLOY, lida de um sítio só: a var `PACOTE_PARTILHADO` no config. Se
+     * alguém renomear a var num lado, a asserção seguinte reprova. */
+    const gerar = carregar('tools/gerar-indices.js');
+    if (gerar && typeof gerar.lerDoDisco === 'function') {
+      const mundo = gerar.lerDoDisco();
+      provar('a leitura do disco reconhece o shard pela var `PACOTE_PARTILHADO`',
+        Array.isArray(mundo.shards) && mundo.shards.indexOf('lastro-teste') !== -1, mundo.shards);
+      provar('…e o acervo versionado NÃO tem o shard como escola', await (async () => {
+        const texto = fs.readFileSync(path.join(RAIZ, 'indices/acervo.json'), 'utf8');
+        const acervo = JSON.parse(texto);
+        return !(acervo.escolas || []).some((e) => e.slug === 'lastro-teste');
+      })(), null);
+    }
+  });
+
   /* ---------------------------------------------------------------- D. A publicação */
 
   /* A ÁRVORE PARTILHADA É O OUTRO LADO DO SHARD, e é o lado que apaga coisas. Num shard o

@@ -634,8 +634,33 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
  * CUSTO: uma leitura da árvore (que o expurgo já ia fazer) mais uma por âncora da escola — as
  * âncoras de um ciclo são poucas, e nenhuma é grande.
  */
-async function auditarProvenienciaDaEscola({ token, dono, repo, ref, slug, caminhos, fetchImpl }) {
+async function auditarProvenienciaDaEscola({ token, dono, repo, ref, slug, caminhos, fetchImpl, shards }) {
   const arvore = caminhos || await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
+
+  /* UM SHARD NÃO É UMA ESCOLA, E O EXPURGO TEM DE O DIZER COM ESSAS PALAVRAS (15/11/2026).
+   *
+   * Medido: a página das VIVAS listou o `lastro-teste` (ele tinha config, e a derivação tratava
+   * «tem config» como «é escola» — corrigido na origem), e o expurgo dele respondeu «a escola não
+   * tem elo … corrija primeiro: reancore, regere os índices». A recusa estava certa e o conselho
+   * estava errado: não há nada a reancorar, porque um shard não é uma escola e nunca terá elo.
+   * Um recado que manda fazer o que não se pode fazer gasta a confiança de quem o lê.
+   *
+   * A guarda é a LISTA DE SCRIPTS DE CONFIANÇA que a raiz já passa ao expurgo (`SHARD_SCRIPT`): a
+   * mesma que impede apagar o script que serve N escolas. */
+  if (Array.isArray(shards) && shards.indexOf(String(slug || '').trim()) !== -1) {
+    return {
+      ok: false,
+      problemas: [{
+        codigo: 'shard-nao-e-escola',
+        mensagem: '«' + slug + '» é o shard que serve várias escolas, e não uma escola — '
+          + 'não há elo a expurgar, e nada foi apagado. Para tirar uma escola do ar, expurgue a '
+          + 'escola (o endereço dela), e não o shard.',
+      }],
+      ancoras: [], fontes: [], impressao: null,
+      fases: { estrutura: 'feita', ancora: 'nao-recalculada', derivacao: 'nao-conferida' },
+    };
+  }
+
   const caminhoIndice = 'escola/' + slug + '/indice.json';
   const textoIndice = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
   let indice = null;

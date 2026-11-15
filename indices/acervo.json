@@ -109,30 +109,6 @@
       ],
       "registros": [],
       "slug": "calango"
-    },
-    {
-      "ciclos": [],
-      "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "recortes": 0,
-        "registros": 0
-      },
-      "criada_em": null,
-      "expurgada": false,
-      "expurgada_em": null,
-      "expurgos": 0,
-      "habilitada": true,
-      "id": "escola:lastro-teste",
-      "nome": "lastro-teste",
-      "professor": null,
-      "professores": [],
-      "registros": [],
-      "slug": "lastro-teste"
     }
   ],
   "filtros": {
@@ -152,11 +128,6 @@
         "contagem": 1,
         "rotulo": "calango",
         "valor": "calango"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "lastro-teste",
-        "valor": "lastro-teste"
       }
     ],
     "estados": [],
@@ -286,9 +257,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "1f4d875"
+    "commit": "3fbf3b06"
   },
-  "gerado_em": "2026-11-15T19:20",
+  "gerado_em": "2026-11-15T19:25",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -45725,3 +45725,54 @@ aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante da
 carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
 própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
 secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
+
+## 15/11/2026 — O shard não é uma escola, e a lista dizia que era
+
+**O que motivou.** O expurgo de «lastro-teste» respondido pela página: **«a proveniência desta escola
+não está em ordem — nada foi apagado … `[sem-elo]` a escola não tem elo em
+`escola/lastro-teste/indice.json` … Corrija primeiro: `tools/hash-ciclo.sh …` reancora,
+`node tools/gerar-indices.js` regera o derivado.»** A recusa estava certa e o conselho estava
+errado — não havia nada a reancorar, porque **um shard não é uma escola e nunca terá elo**. Mas a
+pergunta verdadeira é a de cima: porque é que o shard estava na lista das VIVAS com um botão de
+expurgar.
+
+**O que foi a causa.** `motor/nucleo/indices.js` percorria os caminhos e tratava **«existe
+`wrangler.<slug>.jsonc`» como «é uma escola»** — com uma única excepção escrita à mão, a raiz. O
+`wrangler.lastro-teste.jsonc` existe (é por ele que se publica), e por isso o shard nasceu como
+escola no `indices/acervo.json`; a página das vivas lê esse arquivo e listou-o. Uma lista que
+mostra o que não é escola é uma armadilha com botão, e o botão era o expurgo.
+
+**O que foi decidido.**
+- **A marca é a do deploy, e é uma só.** Um shard declara `PACOTE_PARTILHADO` no config — é a
+  var que o `deploy-escolas.yml` já procurava para não o tratar como escola. Essa marca passa a ser
+  lida num sítio (`gerar-indices.js`, que é quem vê o conteúdo) e passada como `shards` à derivação.
+  Ausente é vazio: quem chamar `construir` sem `shards` vê exactamente o que via antes.
+- **A verificação 5 do `check-indices` aprende o mesmo facto**, e pela mesma lista — uma segunda
+  cópia da regra divergiria no dia em que nascesse um shard novo.
+- **O expurgo de um shard recusa com as palavras certas.** `auditarProvenienciaDaEscola` recebe a
+  lista de scripts de confiança (a mesma que impede apagar o script que serve N escolas) e responde
+  `shard-nao-e-escola`: «para tirar uma escola do ar, expurgue a escola (o endereço dela), e não o
+  shard». Um recado que manda reancorar o que não tem âncora gasta a confiança de quem o lê.
+- **A sujeira saiu do derivado.** `indices/escolas/lastro-teste.json` era órfão e foi removido;
+  `indices/acervo.json` e os cinco índices de ciclo que dependiam da lista foram regerados.
+
+**Onde entrou.** `motor/nucleo/indices.js` (a derivação, com `shards`) · `tools/gerar-indices.js`
+(a leitura da marca) · `tools/check-indices.js` (a verificação 5) · `motor/servidor/repo-escola.js`
+(a recusa com nome) · `motor/servidor/raiz.js` (passa `scriptsDeConfianca`) ·
+`indices/**` (regerados) · `experimentos/provar-cofre-e-shard.js` (secção C2).
+
+**Motivo declarado — os congelados.** Toca `tools/gerar-indices.js` e `tools/check-indices.js`.
+É a **mesma regra** a passar a conhecer um facto que já existia: dois sítios que perguntavam «este
+config é uma escola?» e respondiam que sim a um shard. Nada muda na fórmula de hash, na cobertura da
+âncora, nos validadores de ciclo, nas regras ou nas pétreas, e nenhuma fonte de ciclo foi tocada —
+o `auditar-proveniencia` das três escolas continua **OK nas três fases**.
+
+**Com o quê.** `provar-cofre-e-shard` **83/83** (a secção C2 reproduz o defeito sem a lista, e mede
+que com ela o shard sai; e mede a recusa do expurgo do shard, incluindo que ela **não** manda
+reancorar) · `check-indices` 16/16 · `gerar-indices --check` 10 ficheiros em dia ·
+`auditar-proveniencia` das três escolas **OK** · `check-identidade` 0 erros.
+
+**O que ainda não está feito.** (1) A raiz em produção continua a listar o shard até ser
+republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
+`regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
+estar de acordo a partir deste commit.

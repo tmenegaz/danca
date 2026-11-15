@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T16:12:11-0300`
-Commit atual: `89b0a5ba` — docs(registro): a entrada da chave que não abre tem nome
+Gerado em: `2026-11-15T16:24:42-0300`
+Commit atual: `6fb70cf5` — chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,9 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+6fb70cf5 chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
+7dab1570 fix(experimentos): seis asserções mediam o desenho de ontem, e uma matava a prova
+722d274e fix(template): o véu tinha dois donos, e a folha abria sem escurecer a página
 89b0a5ba docs(registro): a entrada da chave que não abre tem nome
 70d3d9d8 fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
 0cd1438a docs(registro): o run 575 correu a publicação do shard, e a entrada dizia que não
@@ -93,9 +96,6 @@ f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
 81c8a145 chore(estrutura): regerar os índices derivados
 20652b05 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
 131e7bc1 feat(po): o PO elicitado vira a fonte do ciclo
-b4d627f2 feat(acervo): envelope/po-20261115-1352.json
-227ebdfd feat(acervo): envelope/.indice.json
-59a4a5b4 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -205,83 +205,58 @@ b4d627f2 feat(acervo): envelope/po-20261115-1352.json
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Quatro provas que mediam o desenho de ontem
+## 15/11/2026 — O shard não é uma escola, e a lista dizia que era
 
-**O que motivou.** `provar-listas-do-acervo` falhava **3 de 109** e `provar-navegacao` **morria** a
-meio com um `TypeError`. As duas eram anteriores a este trabalho e estavam declaradas como
-«pré-existentes». Ao ir corrigi-las apareceu o resto: atrás da que matava havia **quatro** falhas
-escondidas, e mais duas provas com a mesma doença. **Nenhuma delas era regressão de código** — as
-seis mediam uma decisão que foi tomada e está certa, com uma asserção que ficou a apontar para o
-desenho do dia anterior.
+**O que motivou.** O expurgo de «lastro-teste» respondido pela página: **«a proveniência desta escola
+não está em ordem — nada foi apagado … `[sem-elo]` a escola não tem elo em
+`escola/lastro-teste/indice.json` … Corrija primeiro: `tools/hash-ciclo.sh …` reancora,
+`node tools/gerar-indices.js` regera o derivado.»** A recusa estava certa e o conselho estava
+errado — não havia nada a reancorar, porque **um shard não é uma escola e nunca terá elo**. Mas a
+pergunta verdadeira é a de cima: porque é que o shard estava na lista das VIVAS com um botão de
+expurgar.
+
+**O que foi a causa.** `motor/nucleo/indices.js` percorria os caminhos e tratava **«existe
+`wrangler.<slug>.jsonc`» como «é uma escola»** — com uma única excepção escrita à mão, a raiz. O
+`wrangler.lastro-teste.jsonc` existe (é por ele que se publica), e por isso o shard nasceu como
+escola no `indices/acervo.json`; a página das vivas lê esse arquivo e listou-o. Uma lista que
+mostra o que não é escola é uma armadilha com botão, e o botão era o expurgo.
 
 **O que foi decidido.**
-- **Uma prova que estoura não mede.** `provar-navegacao` chamava `getComputedStyle` sobre um
-  elemento que já não existia (`.coluna-puxador`, renomeado para `.folha-puxador`), e o `TypeError`
-  matava o processo — quem lia não sabia qual asserção falhou, nem corriam as secções seguintes. A
-  leitura passa a ser tolerante e é a asserção que reprova, com o nome do que faltou.
-- **A asserção mede a REGRA, não o número de hoje.** Eram quatro números fixos: «a porta `/anamnese/`
-  responde 200» (a guarda que ela pediu devolve 302 sem aluna — o teste é que estava errado),
-  «`directos === 1`» (o «Consulta» saiu em 28/10/2026), «`blocos >= 4`» (o mesmo), «`blocos >= 4`»
-  e «a busca deixa 1 plano» (as duas turmas passaram a ser da MESMA professora, e o termo antigo já
-  não distinguia nada). Cada uma passa a afirmar o que queria dizer: o item do menu acende, a lista
-  de aulas não tem segundo destino, o Bastidores vem DEPOIS da Área do Professor, e a busca reduz
-  ao termo escolhido — com o valor esperado derivado do DOM, não fixado.
-- **As listas nominais morreram.** `rotasDoAcervo` escrevia à mão os três prefixos da Área do
-  Professor, e a `aulas-dadas` entrou na ponte sem ninguém se lembrar de a acrescentar — o menu
-  apontava para uma rota que existe e a prova reprovava. Passa a ler-se do `producao.js`, que é
-  quem serve.
-- **O véu tinha DOIS donos.** A folha tinha duas peças com a classe `.veu` — a da coluna
-  (`z-index:55`, acesa por `body.coluna-aberta`) e a da operação (`z-index:120`, `display:none`).
-  A regra da operação vem depois, e o seu `display:none` apagava a da folha: medido num Chromium a
-  414px, o véu da folha saía `display:none` e o da operação `opacity:1` — **a folha do ☰ abria sem
-  escurecer a página**. A dívida estava anotada em `ciclo.css` («resolvê-la é renomear uma das
-  duas»); foi paga pelo lado da operação, que passa a `.veu-de-operacao`. O véu da coluna é o que a
-  montagem escreve no HTML de todas as páginas.
-- **Uma escola expurgada bloqueava o shard.** `escola/<slug>/indice.json` sobrevive ao expurgo de
-  propósito (é o elo), e continua a dizer `shard`. Sem filtro, `montar-publicacao --shard` incluía
-  a escola morta, a montagem dela falhava («não há pacote-zero») e o shard **inteiro** deixava de
-  publicar — no exacto momento em que ela expurga as três e recria. A lista passa a exigir
-  pacote-zero, e diz quem ficou de fora e porquê.
+- **A marca é a do deploy, e é uma só.** Um shard declara `PACOTE_PARTILHADO` no config — é a
+  var que o `deploy-escolas.yml` já procurava para não o tratar como escola. Essa marca passa a ser
+  lida num sítio (`gerar-indices.js`, que é quem vê o conteúdo) e passada como `shards` à derivação.
+  Ausente é vazio: quem chamar `construir` sem `shards` vê exactamente o que via antes.
+- **A verificação 5 do `check-indices` aprende o mesmo facto**, e pela mesma lista — uma segunda
+  cópia da regra divergiria no dia em que nascesse um shard novo.
+- **O expurgo de um shard recusa com as palavras certas.** `auditarProvenienciaDaEscola` recebe a
+  lista de scripts de confiança (a mesma que impede apagar o script que serve N escolas) e responde
+  `shard-nao-e-escola`: «para tirar uma escola do ar, expurgue a escola (o endereço dela), e não o
+  shard». Um recado que manda reancorar o que não tem âncora gasta a confiança de quem o lê.
+- **A sujeira saiu do derivado.** `indices/escolas/lastro-teste.json` era órfão e foi removido;
+  `indices/acervo.json` e os cinco índices de ciclo que dependiam da lista foram regerados.
 
-**Onde entrou.** `tools/templates/ciclo.css` (`.veu` → `.veu-de-operacao`) ·
-`tools/templates/nav.js` (a classe do véu criado) · `tools/montar-publicacao.js` (o filtro do
-pacote) · `motor/servidor/bastidores.js` (a marcação do véu da Produção) · `raiz/assets/` e os
-`assets/` de sete pacotes (a folha e o `nav.js`, sincronizados) ·
-`experimentos/provar-listas-do-acervo.js` · `experimentos/provar-navegacao.js` ·
-`experimentos/provar-listas-sem-repeticao.js` · `experimentos/provar-menu-da-producao.js` ·
-`experimentos/provar-cofre-e-shard.js` (a guarda da expurgada).
+**Onde entrou.** `motor/nucleo/indices.js` (a derivação, com `shards`) · `tools/gerar-indices.js`
+(a leitura da marca) · `tools/check-indices.js` (a verificação 5) · `motor/servidor/repo-escola.js`
+(a recusa com nome) · `motor/servidor/raiz.js` (passa `scriptsDeConfianca`) ·
+`indices/**` (regerados) · `experimentos/provar-cofre-e-shard.js` (secção C2).
 
-**Motivo declarado — os congelados.** Toca `tools/templates/ciclo.css`, `tools/templates/nav.js` e
-`tools/montar-publicacao.js`. A mudança de CSS é um **nome**: a peça da operação passa a
-`.veu-de-operacao`, e nada muda de aparência — o que muda é que as duas peças deixam de se apagar
-uma à outra. A do `nav.js` acompanha o mesmo nome. A do `montar-publicacao.js` é um filtro que
-impede a montagem de incluir uma escola sem pacote. Não mudam a fórmula de hash, a cobertura da
-âncora, os validadores, as regras nem as pétreas; nenhuma fonte de ciclo foi tocada, logo não há
-reancoragem.
+**Motivo declarado — os congelados.** Toca `tools/gerar-indices.js` e `tools/check-indices.js`.
+É a **mesma regra** a passar a conhecer um facto que já existia: dois sítios que perguntavam «este
+config é uma escola?» e respondiam que sim a um shard. Nada muda na fórmula de hash, na cobertura da
+âncora, nos validadores de ciclo, nas regras ou nas pétreas, e nenhuma fonte de ciclo foi tocada —
+o `auditar-proveniencia` das três escolas continua **OK nas três fases**.
 
-**Com o quê.** `provar-listas-do-acervo` **113/113** (era 3 de 109) · `provar-navegacao` **65/65**
-(era 60 de 65 e a morrer) · `provar-listas-sem-repeticao` **17/17** (era 1 de 16) ·
-`provar-menu-da-producao` **55/55** (era 54 de 55) · `provar-cofre-e-shard` **74/74**, controlo
-negativo 11/34 · `provar-operacao-entre-abas` 29/29 · `provar-bancada-do-veu` 30/30 ·
-`provar-a-forma-do-veu` 25/25 · `provar-o-veu-de-cada-gesto` 39/39 · `provar-publicacao-da-escola`
-72/72 · `check-identidade` 0 erros · `check-indices` 16/16.
+**Com o quê.** `provar-cofre-e-shard` **83/83** (a secção C2 reproduz o defeito sem a lista, e mede
+que com ela o shard sai; e mede a recusa do expurgo do shard, incluindo que ela **não** manda
+reancorar) · `check-indices` 16/16 · `gerar-indices --check` 10 ficheiros em dia ·
+`auditar-proveniencia` das três escolas **OK** · `check-identidade` 0 erros.
 
-**O que ainda não está feito.** (1) O `provar-listas-sem-repeticao` passou a medir que o plano é
-aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante das fichas continue a
-carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
-própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
-secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
+**O que ainda não está feito.** (1) A raiz em produção continua a listar o shard até ser
+republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
+`regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
+estar de acordo a partir deste commit.
 
 ## O que está pendente
-
-## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
-
-(1) Os gestos 4–7 **não** foram corridos ao vivo: a bancada prova o
-caminho, e o que falta é a conferência final de topologia, que custa os commits descritos acima —
-decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e é de propósito:
-concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
-o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
-documentos é medida pelos validadores e pelas provas de cada família.
 
 ## 15/11/2026 — A chave mestra, o expurgo que a conhece, e o cofre
 
@@ -318,6 +293,13 @@ aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante da
 carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
 própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
 secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
+
+## 15/11/2026 — O shard não é uma escola, e a lista dizia que era
+
+(1) A raiz em produção continua a listar o shard até ser
+republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
+`regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
+estar de acordo a partir deste commit.
 
 ## Pendências anteriores (índice)
 
@@ -763,6 +745,7 @@ secção degrada para «não esconde nada» — é o ramo antigo, e continua sem
 - **15/11/2026** — O professor desligado não se oferece para um ato → `REGISTRO.md` L45197
 - **15/11/2026** — O carimbo do PDF deixa de depender do fuso de quem gera → `REGISTRO.md` L45283
 - **15/11/2026** — Quem assume os documentos de quem saiu: a definição da turma → `REGISTRO.md` L45344
+- **15/11/2026** — Os gestos 4 a 7 do shard não precisavam do modelo → `REGISTRO.md` L45383
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

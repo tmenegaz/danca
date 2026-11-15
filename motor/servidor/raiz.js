@@ -763,6 +763,10 @@ async function fetch(request, env) {
     try {
       const auditoria = await auditarProvenienciaDaEscola({
         token: ghToken, dono: DONO, repo: REPO, ref: REF, slug,
+        /* A LISTA DE SCRIPTS DE CONFIANÇA VAI JUNTO (15/11/2026): é ela que distingue «uma escola»
+         * de «o shard que serve várias» — a mesma que o `excluirEscola` usa para não apagar o
+         * script do shard. A pergunta é a mesma, e a resposta não pode sair de dois sítios. */
+        shards: scriptsDeConfianca(env),
       });
       relatorio.proveniencia = {
         auditada: auditoria.ok,
