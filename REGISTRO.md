@@ -45340,3 +45340,42 @@ manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de
 quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
 epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
 escrever, o pino já está lá em cima e há de ser herdado.
+
+## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
+
+**O que motivou.** A correção do professor desligado (hoje, mais cedo) deixou uma pergunta declarada
+em aberto: o registo dele fica, a direção dele é encerrada, ele já não abre atos novos — e os
+documentos que ele **deixou pela metade**? A fronteira entre «o que ele entregou» e «o que já não é
+dele» não estava desenhada, e a direção ficava com um PO aberto que ninguém conseguia assinar.
+
+**O que foi decidido.** A resposta é dela, e não inventa um acto novo: **«a coordenação deve definir
+qual professor assume, e isso é feito por meio da definição da turma»**. Noutros termos:
+
+- **A unidade é a TURMA, não o documento.** O que fica por concluir pertence à turma — que é da
+  escola —, e não à pessoa que a estava a dirigir. Por isso não há «transferência de pendências» a
+  construir: o acto que resolve é o que já existe, atribuir a turma a outro professor.
+- **A coordenação é quem decide, e o acto é dela.** O sistema não escolhe sucessor — a escolha é da
+  direção, e a curadoria (professor × modalidade × turma) é o registo dessa escolha.
+- **O passado não se reescreve.** O elo de quem saiu continua na cadeia, **encerrado com data**; o
+  que muda é quem enquadra o presente. É a mesma regra do desligamento, vista do outro lado.
+
+**O que isto NÃO foi: código novo.** O mecanismo já existia desde 08/11/2026 — a rota da curadoria
+apaga a marca `descontinuada` quando uma direção activa volta a enquadrar a turma, com o comentário
+«Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se corrige». O que faltava
+era a **prova** de que o caminho responde à pergunta, e é isso que passa a estar medido: sem ela, a
+decisão ficava a depender de quem se lembrasse de ler aquele comentário.
+
+**Onde entrou.** `experimentos/provar-transferencia-e-desligamento.js` — secção **C5b** (quatro
+asserções novas) e o cabeçalho.
+
+**Com o quê.** `provar-transferencia-e-desligamento` **97/97** (eram 93): a coordenação atribui a
+turma de quem saiu a outra pessoa (201), a marca `descontinuada` **cai**, quem enquadra a turma passa
+a ser o professor novo — e o elo do professor que saiu continua na cadeia, encerrado. Foi medido
+primeiro à parte, num KV em memória, antes de se escrever a asserção: a marca cai, e o que sobra da
+palavra «descontinuada» na página é o texto do JavaScript que a sabe escrever, não um selo aceso.
+
+**O que ainda não está feito.** (1) A fronteira continua a não dizer o que acontece a um documento
+**já em curso** (um PO a meio) quando a turma muda de mãos: pelos dados, ele segue a turma — mas o
+formulário não avisa quem o abre de que a direção mudou, e isso é desenho de tela, não de regra.
+(2) Se a coordenação **não** atribuir a turma, nada expira: a turma fica `descontinuada` com o motivo
+escrito, à espera de decisão, e é o estado correcto — o sistema não decide por ninguém.

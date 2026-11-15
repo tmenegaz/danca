@@ -25,6 +25,13 @@
  * das listas de escolha, o recadastro do mesmo identificador a **reactivar**, e o `DELETE` a dizer
  * que o registo é proveniência.
  *
+ * **C5b. QUEM ASSUME É A DEFINIÇÃO DA TURMA (15/11/2026).** A pergunta em aberto no desligamento
+ * era: o professor saiu e deixou documentos por concluir — quem os assina? A resposta dela é que
+ * não há acto novo a inventar: «a coordenação deve definir qual professor assume e isso é feito por
+ * meio da definição da turma». A prova mede as três metades, porque a marca `descontinuada` podia
+ * ficar acesa para sempre e a turma continuaria a ler-se «sem professor» já tendo um: a direcção
+ * nova enquadra a turma, a marca **cai**, e o elo de quem saiu **continua na cadeia**, encerrado.
+ *
  *   node experimentos/provar-transferencia-e-desligamento.js
  */
 
@@ -679,6 +686,62 @@ function githubDeBolso(arquivos) {
       professor: 'pe-torto', motivo: '', senhaDirecao: senha,
     });
     provar('o motivo vazio é recusado (400)', r.status === 400 && /motivo/.test(r.json.erro || ''), r.json);
+  }
+
+  /* C5b. QUEM ASSUME É A DEFINIÇÃO DA TURMA — a fronteira que ela desenhou (15/11/2026).
+   *
+   * A pergunta em aberto era: um professor que sai deixa documentos por concluir; quem os assina?
+   * A resposta dela: «a coordenação deve definir qual professor assume e isso é feito por meio da
+   * definição da turma». Não há, portanto, um acto de «transferir pendências» a inventar — o acto
+   * é o que já existe: atribuir a turma a outra pessoa. O que faltava era a prova de que o sistema
+   * se comporta assim, porque a marca `descontinuada` poderia ficar acesa para sempre e a turma
+   * continuaria a ler-se «sem professor» já tendo um.
+   *
+   * Três coisas, e as três importam: a direcção nova enquadra a turma; a marca CAI; e o elo do
+   * professor que saiu continua na cadeia, encerrado — porque a coordenação redefine o presente,
+   * não apaga o passado. */
+  {
+    const desligado = Object.assign({}, PE_TORTO, {
+      desligado_em: '2026-11-08T10:00:00.000Z', desligado_motivo: 'fim do contrato',
+    });
+    const turmaMarcada = {
+      nome: 'Sala Rosa', dias: ['2'], duracaoMin: 60,
+      periodoInicio: '2026-08-01', periodoFim: '2026-12-01',
+      descontinuada: { em: '2026-11-08', motivo: 'a Turma ficou sem professor: Pe Torto desligou-se' },
+    };
+    const curs = curadoriasBase().map((c) => (c.id === 'pe-torto-bale-sala-rosa'
+      ? Object.assign({}, c, { encerrada_em: '2026-11-08T10:00:00.000Z' })
+      : c));
+    const env = prepEnv({
+      kv: {
+        ['bastidores/' + ESCOLA + '/professores']: JSON.stringify([desligado, OUTRA]),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curs),
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([turmaMarcada]),
+      },
+    });
+    const gh = githubDeBolso({});
+    globalThis.fetch = gh.fetchFalso;
+    let r;
+    try {
+      r = await pedir(env, '/api/bastidores/curadoria', {
+        professor: 'outra-professora', modalidade: 'bale-classico', tradicao: 'RAD',
+        turmas: ['Sala Rosa'], senhaDirecao: senha,
+      });
+    } finally { globalThis.fetch = fetchOriginal; }
+    provar('a coordenação atribui a turma do professor que saiu a outra pessoa (201)',
+      r.status === 201 && r.json && r.json.ok === true, { status: r.status, erro: r.json && r.json.erro });
+    const trms = JSON.parse(await env.PADD_KV.get('bastidores/' + ESCOLA + '/turmas'));
+    const cursDepois = JSON.parse(await env.PADD_KV.get('bastidores/' + ESCOLA + '/curadorias'));
+    provar('…e a marca `descontinuada` CAI — a turma voltou a ter quem a ensine',
+      trms.find((t) => t.nome === 'Sala Rosa').descontinuada === undefined,
+      trms.find((t) => t.nome === 'Sala Rosa'));
+    const enq = enquadramento.enquadramentoDaTurma({ nome: 'Sala Rosa' }, cursDepois);
+    provar('…e quem a enquadra é o professor novo',
+      enq.professor === 'outra-professora' && enq.de === 'curadoria', enq);
+    provar('…mas o elo de quem saiu continua na cadeia, encerrado',
+      cursDepois.some((c) => c.id === 'pe-torto-bale-sala-rosa'
+        && c.encerrada_em === '2026-11-08T10:00:00.000Z'),
+      cursDepois.map((c) => [c.id, c.encerrada_em]));
   }
 
   /* C6. O desligado não dirige turma nova. */

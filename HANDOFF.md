@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T13:32:23-0300`
-Commit atual: `012c5d54` — fix(estrutura): o professor desligado não se oferece para um ato
+Gerado em: `2026-11-15T13:33:27-0300`
+Commit atual: `080e6c8c` — chore(entrega): regenerar os doze PDFs com o carimbo em UTC
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,8 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+080e6c8c chore(entrega): regenerar os doze PDFs com o carimbo em UTC
+be111ca1 fix(tools): o carimbo do PDF deixa de depender do fuso de quem gera
 012c5d54 fix(estrutura): o professor desligado não se oferece para um ato
 f4988aa5 chore(entrega): gerar o pacote de coqui-de-redinha/01/batata-bale-nivel-1-teste-2
 8996e454 chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -94,8 +96,6 @@ a04a1305 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 7f78138d chore(estrutura): reancorar a cadeia das fontes alteradas
 7b53c013 chore(estrutura): regerar os índices derivados
 9ab14846 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-712e5aec feat(po): o PO elicitado vira a fonte do ciclo
-f0825d86 feat(acervo): envelope/po-20261115-1236.json
 ```
 
 ## Por professor
@@ -205,75 +205,46 @@ f0825d86 feat(acervo): envelope/po-20261115-1236.json
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O carimbo do PDF deixa de depender do fuso de quem gera
+## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
 
-**O que motivou.** Ela mandou tirar o carimbo de geração, e ele saiu do `ciclos.json`; o do PDF ficou,
-porque o `/CreationDate` é metadado e não se imprime. Só que ele continuava a mudar — não com a hora,
-com a **máquina**. Medido: os PDFs versionados traziam `D:20270201030000Z` nos pacotes gerados aqui e
-`D:20270201000000Z` no que a Action regerou. A mesma data de início, dois carimbos, e o ficheiro
-versionado a sujar-se quando alguém regerava o que a Action já tinha regerado. É o sintoma que ela
-descreveu («não tem sentido ficar carimbando toda hora»), uma camada abaixo: não era o relógio, era o
-fuso.
+**O que motivou.** A correção do professor desligado (hoje, mais cedo) deixou uma pergunta declarada
+em aberto: o registo dele fica, a direção dele é encerrada, ele já não abre atos novos — e os
+documentos que ele **deixou pela metade**? A fronteira entre «o que ele entregou» e «o que já não é
+dele» não estava desenhada, e a direção ficava com um PO aberto que ninguém conseguia assinar.
 
-**O que foi decidido.**
+**O que foi decidido.** A resposta é dela, e não inventa um acto novo: **«a coordenação deve definir
+qual professor assume, e isso é feito por meio da definição da turma»**. Noutros termos:
 
-- **Um pino de fuso, e só um: `TZ=UTC`.** O gerador passa a exportá-lo antes de calcular o epoch e
-  antes de chamar o pdfTeX. São duas metades, e as duas precisavam dele: `date -d "2027-02-01"` sem
-  fuso lê a data na hora **local**, e o pdfTeX escreve `\pdfcreationdate` na hora **local** e ainda
-  acrescenta `Z`. Com `-03`, o campo dizia `Z` carregando três horas de deslocamento — além de
-  instável, falso.
-- **UTC, e não o fuso da escola.** Não é preferência: é a convenção do `SOURCE_DATE_EPOCH`, e é o que
-  faz o `Z` querer dizer o que diz. O carimbo continua a ser a data de início do ciclo, agora à
-  meia-noite UTC — e é a mesma em qualquer máquina.
-- **O laço já estava fechado, e esta correção não o reabre.** O epoch continua a vir do calendário
-  (15/11/2026, mais cedo neste dia); o que muda é o fuso em que essa data é lida e escrita.
-- **O controle negativo da bancada também estava errado, e foi corrigido.** O
-  `provar-saidas-estaveis --controle-negativo` afirmava o laço ancorado em `HEAD` — mas `HEAD` já
-  contém essa correção, e as quatro asserções passaram a reprovar por medirem o presente com o nome
-  do passado. Ele passa a afirmar o que `HEAD` **ainda** tem (o carimbo dependente do fuso), e mede
-  as duas metades: os carimbos que já estão no repositório e a conta do epoch em dois fusos.
+- **A unidade é a TURMA, não o documento.** O que fica por concluir pertence à turma — que é da
+  escola —, e não à pessoa que a estava a dirigir. Por isso não há «transferência de pendências» a
+  construir: o acto que resolve é o que já existe, atribuir a turma a outro professor.
+- **A coordenação é quem decide, e o acto é dela.** O sistema não escolhe sucessor — a escolha é da
+  direção, e a curadoria (professor × modalidade × turma) é o registo dessa escolha.
+- **O passado não se reescreve.** O elo de quem saiu continua na cadeia, **encerrado com data**; o
+  que muda é quem enquadra o presente. É a mesma regra do desligamento, vista do outro lado.
 
-**Onde entrou.**
+**O que isto NÃO foi: código novo.** O mecanismo já existia desde 08/11/2026 — a rota da curadoria
+apaga a marca `descontinuada` quando uma direção activa volta a enquadrar a turma, com o comentário
+«Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se corrige». O que faltava
+era a **prova** de que o caminho responde à pergunta, e é isso que passa a estar medido: sem ela, a
+decisão ficava a depender de quem se lembrasse de ler aquele comentário.
 
-- `tools/gerar-ciclo.sh` — `TZ=UTC` exportado antes do epoch e do pdfTeX, com o porquê no lugar.
-- `experimentos/provar-saidas-estaveis.js` — secção **E** nova (três asserções), e o controle
-  negativo reescrito (cinco).
-- Os doze PDFs versionados com ciclo-01 — regerados: os dez dos cinco pacotes que traziam `…030000Z`
-  passam a `…000000Z`; os dois da `coqui-de-redinha` já estavam certos (foram os da Action) e não
-  mudam. **Dois bytes por ficheiro**, e o texto é o mesmo (`pdftotext`, zero linhas de diferença).
+**Onde entrou.** `experimentos/provar-transferencia-e-desligamento.js` — secção **C5b** (quatro
+asserções novas) e o cabeçalho.
 
-**Motivo declarado — os congelados.** O pedido dela — «a correção é fixar o fuso na geração», dado
-como «Sim» a 15/11/2026 — é o motivo. Toca `tools/` (`gerar-ciclo.sh`), que é congelado, e muda
-COMPORTAMENTO de um artefato (o `/CreationDate`, e só ele). **Não mudam:** a fórmula do hash, a
-cobertura da âncora, a data que o epoch representa (a de início do ciclo, derivada do calendário e
-das fontes), o texto dos PDFs, os validadores, as 17 regras e as 22 pétreas. A âncora não exige
-reancoragem: PDFs não estão na cobertura do `.fipp` — conferido com `--check` nos seis.
+**Com o quê.** `provar-transferencia-e-desligamento` **97/97** (eram 93): a coordenação atribui a
+turma de quem saiu a outra pessoa (201), a marca `descontinuada` **cai**, quem enquadra a turma passa
+a ser o professor novo — e o elo do professor que saiu continua na cadeia, encerrado. Foi medido
+primeiro à parte, num KV em memória, antes de se escrever a asserção: a marca cai, e o que sobra da
+palavra «descontinuada» na página é o texto do JavaScript que a sabe escrever, não um selo aceso.
 
-**Com o quê.** `provar-saidas-estaveis` **16/16**: a estabilidade continua (duas gerações, nenhum
-ficheiro muda), o índice continua sem relógio, o laço continua sem voltar, a âncora continua íntegra
-— e as três novas: gerar em `America/Sao_Paulo` e em `Asia/Tokyo` dá os PDFs **byte a byte iguais**;
-o `/CreationDate` é a meia-noite UTC do `inicio` que o índice declara; e nenhum dos dois fusos deixa
-resto de hora no carimbo. **Controle negativo** (contra `HEAD`, 5/5): os carimbos versionados em
-`HEAD` tinham **dois valores** para a mesma data, o de cá trazia `030000` dentro de um campo `Z`, a
-conta do epoch em dois fusos diferia em 12 h, e o gerador de `HEAD` não tinha pino nenhum.
-Sem regressão: `check-pacote` verde nos seis pacotes, `hash-ciclo.sh --check` íntegro nos seis,
-`check-identidade` 22 e 0 erro, `check-indices` 16/16, `gerar-indices` 10 e `gerar-relacoes` 9 em dia.
-
-**O que ainda não está feito.** (1) O `--somente-porta` do `criar-escola.sh` continua a exigir o
-manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de-redinha/01/batata`,
-`pe-torto/01/calango`, `redinha-rosa/01/breu`) não têm PDF, e por isso não entram nesta convergência:
-quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
-epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
-escrever, o pino já está lá em cima e há de ser herdado.
+**O que ainda não está feito.** (1) A fronteira continua a não dizer o que acontece a um documento
+**já em curso** (um PO a meio) quando a turma muda de mãos: pelos dados, ele segue a turma — mas o
+formulário não avisa quem o abre de que a direção mudou, e isso é desenho de tela, não de regra.
+(2) Se a coordenação **não** atribuir a turma, nada expira: a turma fica `descontinuada` com o motivo
+escrito, à espera de decisão, e é o estado correcto — o sistema não decide por ninguém.
 
 ## O que está pendente
-
-## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
-
-`indices/escolas/*.json` e `indices/ciclos/*.json` continuam a levar
-`gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
-`semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
-dia, e não se mexeram agora para não alargar a mudança.
 
 ## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
 
@@ -320,6 +291,10 @@ manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de
 quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
 epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
 escrever, o pino já está lá em cima e há de ser herdado.
+
+## 15/11/2026 — Quem assume os documentos de quem saiu: a definição da turma
+
+(1) A fronteira continua a não dizer o que acontece a um documento
 
 ## Pendências anteriores (índice)
 
@@ -759,6 +734,7 @@ escrever, o pino já está lá em cima e há de ser herdado.
 - **15/11/2026** — O formulário da anamnese não abria: o `markdown.js` era… → `REGISTRO.md` L44809
 - **15/11/2026** — Audição: as abas Recorte e Transferência esperam pelo… → `REGISTRO.md` L44870
 - **15/11/2026** — Estilo: os passos do trecho só abrem dentro de um trecho;… → `REGISTRO.md` L44907
+- **15/11/2026** — As saídas do pacote deixam de se carimbar: a data sai das… → `REGISTRO.md` L44976
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
