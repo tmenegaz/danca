@@ -45984,3 +45984,56 @@ pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CA
 `tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
 pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
 repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
+
+## 24/11/2026 — a escola recém-criada volta a dizer que está a ser criada, e a descoberta do deploy passa a correr
+
+Dois defeitos, encontrados na mesma tarde e pela mesma ordem de perguntas: ela criou a `calango`,
+viu o domínio abrir com uma **tela preta** a dizer que não deu certo, e pediu a página de «aguarde»
+de volta — «não é para tirar, coloque de volta a mesma que já estava pronta». Ao ir publicar a
+correção, o run dizia `success` e o bundle continuava sem ela.
+
+**1. A tela.** Ela existia, e morava no Worker «zero» de cada escola (`scriptDaEscola`, em
+`provisionar-escola.js`): o endereço da escola nascia antes do conteúdo, e quem chegasse cedo lia
+«O motor completo está sendo implantado — recarregue em instantes». Num shard não há Worker zero:
+o domínio passa a responder no instante em que o mapa é escrito (`provisionarDentroDoShard`), e o
+pacote só entra na árvore partilhada no deploy seguinte. Nesse intervalo o pedido chegava ao
+ASSETS, que devolvia o 404 do Cloudflare (medido ao vivo: **404 com corpo vazio**). A correção
+repõe a MESMA página, com o mesmo texto e o mesmo 200, servida pela ponte quando a raiz de uma
+escola que ESTÁ no mapa não tem pacote. A guarda é estreita de propósito: só a raiz — o 404 de uma
+página de conteúdo continua a ser um 404, e um host fora do mapa continua a receber o erro
+declarado. O nome da escola não existia em sítio nenhum do Worker (o registo do dono guardava o do
+PROFESSOR), e passou a ser guardado lá e exposto como `ESCOLA_NOME`.
+
+**2. A descoberta.** O job `publicar` estava `skipped` em todos os runs. No log do run 43759456951:
+
+```
+descobertas: []
+  if (!fs.existsSync(dir)) return;
+SyntaxError: Illegal return statement
+```
+
+O segundo laço — o das escolas que nascem DENTRO de um shard, acrescentado a 15/11 — era um
+`node -e` com `return` de topo, que o Node recusa; e como corria dentro de `< <(…)`, o erro não
+chegava ao `set -e`. O laço **nunca correu**. Consequência que não é só a deste dia: uma correção de
+`motor/**` chegava ao repositório e nunca ao Worker do shard. A regra saiu do YAML para
+`tools/escolas-para-publicar.js` — duas fontes (configs de escola; índices com `shard`), o
+`PACOTE_PARTILHADO` a excluir o shard, o pacote-zero a excluir a expurgada, e a dedupe pelo ALVO.
+As explicações vão para `stderr`: aquele `stdout` alimenta o `$GITHUB_OUTPUT`.
+
+**Onde entrou.** `motor/servidor/producao.js` (a página e o `ESCOLA_NOME`) ·
+`motor/servidor/provisionar-escola.js` (o nome no registo do dono) ·
+`tools/escolas-para-publicar.js` (novo) · `.github/workflows/deploy-escolas.yml` (o passo passa a
+uma linha) · `experimentos/provar-cofre-e-shard.js` (secção F) ·
+`experimentos/provar-publicacao-da-escola.js` (a bancada da descoberta).
+
+**Com o quê.** `provar-cofre-e-shard` **109/109** (controle negativo 14/42) ·
+`provar-publicacao-da-escola` **73/73** · `provar-gestos-do-shard` 31/31 ·
+`check-identidade` 0 erros · `check-indices` 16/16 · `gerar-indices --check` em dia.
+Ao vivo: o bundle de `lastro-teste` publicado passou a conter o texto (o esbuild escapa os acentos,
+e é por isso que um `grep` literal ao bundle não o acha) e `ESCOLA_NOME`.
+
+**O que ainda não está feito.** A página de espera só se vê no intervalo entre o mapa e o deploy do
+pacote — nenhuma escola está nesse intervalo agora, e a `calango` serve o site real (200, 10 KB). A
+confirmação ao vivo é a criação seguinte dela. As escolas de shard continuam a ser publicadas pelo
+pacote-zero: se um shard tiver escolas mas nenhuma com ciclo gerado, a montagem recusa montar zero
+(é a guarda que impede apagar a árvore de todas), e nada é publicado até existir o primeiro ciclo.
