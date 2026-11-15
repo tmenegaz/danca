@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "4eeee09bfd91204b602745fa2361a291ff3594692a869829422bf965a0bd93ae",
-        "id": "ciclo-01-batata",
+        "hash": "26ac15875551ceddb11051e3205bd5af95798f07b403c678d934efbdeb8fa15a",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 6,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:coqui-de-redinha/01/batata",
@@ -92,10 +92,10 @@
         "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
-        "planos": 1,
+        "planos": 2,
         "pos": 3,
         "recortes": 1,
-        "registros": 5
+        "registros": 6
       },
       "criada_em": "2026-11-14T15:01:39.136639+00:00",
       "expurgada": false,
@@ -112,6 +112,7 @@
       "registros": [
         "anamnese:anamnese-20261115-1057",
         "plano:plano-20261115-1101",
+        "plano:plano-20261115-1244",
         "po:po-20261115-1101",
         "po:po-20261115-1153",
         "po:po-20261115-1236"
@@ -249,7 +250,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 47,
+        "contagem": 48,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -337,7 +338,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 19,
+        "contagem": 20,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
@@ -350,9 +351,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "d9edfee"
+    "commit": "69aeb65"
   },
-  "gerado_em": "2026-11-15T15:37",
+  "gerado_em": "2026-11-15T15:44",
   "nao_indexado": [
     {
       "familia": "conteudo",
