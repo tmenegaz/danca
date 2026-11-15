@@ -45279,3 +45279,64 @@ alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redi
 descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
 15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
 fica declarada em vez de feita à socapa.
+
+## 15/11/2026 — O carimbo do PDF deixa de depender do fuso de quem gera
+
+**O que motivou.** Ela mandou tirar o carimbo de geração, e ele saiu do `ciclos.json`; o do PDF ficou,
+porque o `/CreationDate` é metadado e não se imprime. Só que ele continuava a mudar — não com a hora,
+com a **máquina**. Medido: os PDFs versionados traziam `D:20270201030000Z` nos pacotes gerados aqui e
+`D:20270201000000Z` no que a Action regerou. A mesma data de início, dois carimbos, e o ficheiro
+versionado a sujar-se quando alguém regerava o que a Action já tinha regerado. É o sintoma que ela
+descreveu («não tem sentido ficar carimbando toda hora»), uma camada abaixo: não era o relógio, era o
+fuso.
+
+**O que foi decidido.**
+
+- **Um pino de fuso, e só um: `TZ=UTC`.** O gerador passa a exportá-lo antes de calcular o epoch e
+  antes de chamar o pdfTeX. São duas metades, e as duas precisavam dele: `date -d "2027-02-01"` sem
+  fuso lê a data na hora **local**, e o pdfTeX escreve `\pdfcreationdate` na hora **local** e ainda
+  acrescenta `Z`. Com `-03`, o campo dizia `Z` carregando três horas de deslocamento — além de
+  instável, falso.
+- **UTC, e não o fuso da escola.** Não é preferência: é a convenção do `SOURCE_DATE_EPOCH`, e é o que
+  faz o `Z` querer dizer o que diz. O carimbo continua a ser a data de início do ciclo, agora à
+  meia-noite UTC — e é a mesma em qualquer máquina.
+- **O laço já estava fechado, e esta correção não o reabre.** O epoch continua a vir do calendário
+  (15/11/2026, mais cedo neste dia); o que muda é o fuso em que essa data é lida e escrita.
+- **O controle negativo da bancada também estava errado, e foi corrigido.** O
+  `provar-saidas-estaveis --controle-negativo` afirmava o laço ancorado em `HEAD` — mas `HEAD` já
+  contém essa correção, e as quatro asserções passaram a reprovar por medirem o presente com o nome
+  do passado. Ele passa a afirmar o que `HEAD` **ainda** tem (o carimbo dependente do fuso), e mede
+  as duas metades: os carimbos que já estão no repositório e a conta do epoch em dois fusos.
+
+**Onde entrou.**
+
+- `tools/gerar-ciclo.sh` — `TZ=UTC` exportado antes do epoch e do pdfTeX, com o porquê no lugar.
+- `experimentos/provar-saidas-estaveis.js` — secção **E** nova (três asserções), e o controle
+  negativo reescrito (cinco).
+- Os doze PDFs versionados com ciclo-01 — regerados: os dez dos cinco pacotes que traziam `…030000Z`
+  passam a `…000000Z`; os dois da `coqui-de-redinha` já estavam certos (foram os da Action) e não
+  mudam. **Dois bytes por ficheiro**, e o texto é o mesmo (`pdftotext`, zero linhas de diferença).
+
+**Motivo declarado — os congelados.** O pedido dela — «a correção é fixar o fuso na geração», dado
+como «Sim» a 15/11/2026 — é o motivo. Toca `tools/` (`gerar-ciclo.sh`), que é congelado, e muda
+COMPORTAMENTO de um artefato (o `/CreationDate`, e só ele). **Não mudam:** a fórmula do hash, a
+cobertura da âncora, a data que o epoch representa (a de início do ciclo, derivada do calendário e
+das fontes), o texto dos PDFs, os validadores, as 17 regras e as 22 pétreas. A âncora não exige
+reancoragem: PDFs não estão na cobertura do `.fipp` — conferido com `--check` nos seis.
+
+**Com o quê.** `provar-saidas-estaveis` **16/16**: a estabilidade continua (duas gerações, nenhum
+ficheiro muda), o índice continua sem relógio, o laço continua sem voltar, a âncora continua íntegra
+— e as três novas: gerar em `America/Sao_Paulo` e em `Asia/Tokyo` dá os PDFs **byte a byte iguais**;
+o `/CreationDate` é a meia-noite UTC do `inicio` que o índice declara; e nenhum dos dois fusos deixa
+resto de hora no carimbo. **Controle negativo** (contra `HEAD`, 5/5): os carimbos versionados em
+`HEAD` tinham **dois valores** para a mesma data, o de cá trazia `030000` dentro de um campo `Z`, a
+conta do epoch em dois fusos diferia em 12 h, e o gerador de `HEAD` não tinha pino nenhum.
+Sem regressão: `check-pacote` verde nos seis pacotes, `hash-ciclo.sh --check` íntegro nos seis,
+`check-identidade` 22 e 0 erro, `check-indices` 16/16, `gerar-indices` 10 e `gerar-relacoes` 9 em dia.
+
+**O que ainda não está feito.** (1) O `--somente-porta` do `criar-escola.sh` continua a exigir o
+manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de-redinha/01/batata`,
+`pe-torto/01/calango`, `redinha-rosa/01/breu`) não têm PDF, e por isso não entram nesta convergência:
+quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
+epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
+escrever, o pino já está lá em cima e há de ser herdado.

@@ -36,15 +36,21 @@
  *   D. A PROVENIÊNCIA NÃO SE MEXEU. O `.fipp` é o mesmo antes e depois — a âncora cobre FONTES, e
  *      `ciclos.json` não é fonte. É a verificação que ela pediu por palavras («exceto que seja uma
  *      regra da proveniência»): se a âncora dependesse do índice, esta prova reprovava.
+ *   E. O CARIMBO NÃO DEPENDE DO FUSO. Duas gerações do mesmo pacote em fusos opostos dão PDFs byte
+ *      a byte iguais, e o `/CreationDate` é a meia-noite UTC da data de início do ciclo. Sem esta
+ *      secção a estabilidade era verdadeira numa máquina só: medido a 15/11/2026, o `main` tinha
+ *      cinco pacotes com `…030000Z` (aqui, -03) e um com `…000000Z` (a Action, UTC) — o mesmo
+ *      carimbo, dois valores, e era isto que voltava a cada commit.
  *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `tools/` e o `motor/` de `HEAD` para uma
  * pasta temporária, gera com o gerador de ANTES e mostra o laço: o `gerado_em` do índice de antes
- * é uma função da data do último commit na PASTA do ciclo, e a pasta contém o índice.
+ * é uma função da data do último commit na PASTA do ciclo, e a pasta contém o índice; e o epoch de
+ * antes lê a data na hora local, sem pino de fuso.
  *
  *   node experimentos/provar-saidas-estaveis.js
  *   node experimentos/provar-saidas-estaveis.js --controle-negativo
  *
- * CUSTO: duas gerações (~8 s cada) e uma verificação de âncora. Nada aqui toca no ar.
+ * CUSTO: quatro gerações (~8 s cada) e uma verificação de âncora. Nada aqui toca no ar.
  */
 
 const { execSync } = require('child_process');
@@ -92,6 +98,18 @@ function retrato(pasta) {
 function gerar(raizDoGerador) {
   execSync(`bash ${JSON.stringify(path.join(raizDoGerador, 'tools/gerar-ciclo.sh'))} ${PROFESSOR} ${CICLO} ${ESCOLA}`,
     { cwd: RAIZ, stdio: 'pipe' });
+}
+
+/** A MESMA geração, com um fuso imposto à máquina — é assim que se mede o carimbo de ontem. */
+function gerarNoFuso(raizDoGerador, fuso) {
+  execSync(`bash ${JSON.stringify(path.join(raizDoGerador, 'tools/gerar-ciclo.sh'))} ${PROFESSOR} ${CICLO} ${ESCOLA}`,
+    { cwd: RAIZ, stdio: 'pipe', env: Object.assign({}, process.env, { TZ: fuso }) });
+}
+
+/** O `/CreationDate` de um PDF, lido dos bytes — o metadado que o pdfTeX escreve. */
+function carimboDoPdf(abs) {
+  const m = /\/CreationDate \(D:([0-9]{14})Z\)/.exec(fs.readFileSync(abs, 'latin1'));
+  return m ? m[1] : null;
 }
 
 const lerIndice = (pasta = PASTA) =>
@@ -174,6 +192,38 @@ const lerIndice = (pasta = PASTA) =>
     && !cobertura.some((l) => /ciclos\.json|\.pdf/.test(l)),
     cobertura.filter((l) => /ciclos\.json|\.pdf/.test(l)));
 
+  console.log('\nE. O CARIMBO NÃO DEPENDE DO FUSO DA MÁQUINA');
+  /* O `TZ` é imposto ao PROCESSO DO GERADOR, e não herdado: a pergunta é «a saída muda com o fuso
+   * de quem gera?», e a única forma de a responder é gerar em dois fusos diferentes. Os dois são
+   * opostos e nenhum é o desta máquina (-03), para o caso não passar por coincidência. */
+  const FUSO_A = 'America/Sao_Paulo';
+  const FUSO_B = 'Asia/Tokyo';
+  gerarNoFuso(RAIZ, FUSO_A);
+  const pdfsEmA = Object.fromEntries(Object.keys(retrato(PASTA))
+    .filter((k) => k.endsWith('.pdf')).map((k) => [k, md5(path.join(RAIZ, k))]));
+  const carimboEmA = carimboDoPdf(path.join(RAIZ, PASTA, `ciclo-${CICLO}-${ESCOLA}.pdf`));
+  gerarNoFuso(RAIZ, FUSO_B);
+  const pdfsEmB = Object.fromEntries(Object.keys(retrato(PASTA))
+    .filter((k) => k.endsWith('.pdf')).map((k) => [k, md5(path.join(RAIZ, k))]));
+  checar('gerar em ' + FUSO_A + ' e em ' + FUSO_B + ' dá os MESMOS PDFs, byte a byte',
+    Object.keys(pdfsEmA).length > 0
+    && Object.keys(pdfsEmA).every((k) => pdfsEmA[k] === pdfsEmB[k]),
+    { fusos: [FUSO_A, FUSO_B], pdfs: Object.keys(pdfsEmA), a: pdfsEmA, b: pdfsEmB });
+
+  /* E O VALOR, não só a igualdade: um carimbo fixo em «sempre a mesma string» também seria igual
+   * nos dois fusos, e estaria errado. O que se afirma é que ele é a meia-noite UTC da DATA DE
+   * INÍCIO do ciclo — o mesmo `inicio` que o índice declara, que vem do calendário e das fontes. */
+  const inicio = String((lerIndice().ciclos[0] || {}).inicio || '').replace(/-/g, '');
+  checar('…e o `/CreationDate` é a meia-noite UTC da data de início do ciclo',
+    carimboEmA === inicio + '000000', { carimbo: carimboEmA, inicio });
+  /* O `Z` do PDF é uma AFIRMAÇÃO DE FUSO, e antes era falsa: com `-03` na máquina, o campo dizia
+   * `Z` carregando 03:00 de deslocamento. Com o pino, a hora do carimbo é a mesma nos dois fusos e
+   * é meia-noite — se o pino caísse, o sufixo deixava de ser `000000` em pelo menos um deles. */
+  checar('…e nenhum dos dois fusos deixa um resto de hora no carimbo',
+    /000000$/.test(String(carimboEmA))
+    && carimboDoPdf(path.join(RAIZ, PASTA, `ciclo-${CICLO}-${ESCOLA}.pdf`)) === carimboEmA,
+    carimboEmA);
+
   console.log('\n' + (falhas ? '✗ ' + falhas + ' de ' + total + ' reprovaram' : '✓ ' + total + ' de ' + total));
   process.exit(falhas ? 1 : 0);
 })().catch((e) => {
@@ -190,25 +240,52 @@ const lerIndice = (pasta = PASTA) =>
  * gerador que saiu.
  */
 function controleNegativo() {
-  console.log('CONTROLE NEGATIVO — o gerador de HEAD, e o laço que ele tinha\n');
+  console.log('CONTROLE NEGATIVO — o que o gerador de HEAD ainda fazia\n');
   const destino = fs.mkdtempSync(path.join(os.tmpdir(), 'gerar-ciclo-head-'));
   try {
     execSync('git archive HEAD tools | tar -x -C ' + destino, { cwd: RAIZ, stdio: 'pipe' });
     const guia = fs.readFileSync(path.join(destino, 'tools/gerar-ciclo.sh'), 'utf8');
+
+    /* O QUE O CONTROLE AINDA PODE MEDIR, E PORQUÊ SÓ ISTO. Ele nasceu a 15/11/2026 afirmando o
+     * LAÇO (o epoch vinha de `git log` na pasta das saídas, e o índice levava `gerado_em`). Esse
+     * defeito foi corrigido e está no `HEAD` — logo, um controle ancorado em `HEAD` deixou de o
+     * poder afirmar, e as quatro asserções antigas passaram a reprovar por medirem o presente com
+     * o nome do passado. O registo do laço fica onde ele é imutável: a entrada de 15/11/2026 no
+     * `REGISTRO.md` e o commit que o fechou. O que se mede aqui é o que **continua** em `HEAD`. */
     const linha = (guia.split('\n').find((l) => /^SOURCE_DATE_EPOCH=/.test(l)) || '');
-    checar('em HEAD o epoch vinha de `git log`', /git .*log/.test(linha), linha);
-    checar('…e o caminho era a PASTA do ciclo (onde estão as saídas)',
-      /professores\/\$PROFESSOR_SLUG\/ciclos/.test(linha), linha);
-    /* O ÍNDICE DE ANTES, e não o do disco: o do disco já foi regerado por esta mudança, e lê-lo
-     * aqui faria a bancada medir o presente com o nome do passado. `git show` devolve o ficheiro
-     * tal como foi committed. */
-    const indice = JSON.parse(execSync(
-      `git show HEAD:${JSON.stringify(PASTA + '/ciclos.json')}`,
-      { cwd: RAIZ, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 }));
-    checar('em HEAD o índice declarava `gerado_em`', 'gerado_em' in indice, Object.keys(indice));
-    const aulas = (indice.ciclos[0] || {}).aulas || [];
-    checar('…e cada aula declarava um `estado` — o juízo do instante',
-      aulas.some((a) => 'estado' in a), aulas.slice(0, 2).map((a) => Object.keys(a)));
+    checar('o laço já não está em HEAD: o epoch vem do calendário, e não de `git log`',
+      !/git .*log/.test(linha) && /DATA_PRIMEIRA_AULA/.test(linha), linha);
+
+    /* ------------------------------------------------ o fuso, que ficou por trás do laço
+     *
+     * A PRIMEIRA METADE, MEDIDA NAS SAÍDAS QUE O `HEAD` JÁ TINHA. Sem gerar nada: os PDFs
+     * versionados trazem o carimbo de antes, e se ele dependia do fuso da máquina então a MESMA
+     * data de início tem de aparecer com valores diferentes em pacotes diferentes. Aparece. */
+    const pdfs = execSync('git ls-files "professores/*.pdf"', { cwd: RAIZ, encoding: 'utf8' })
+      .split('\n').filter((f) => f && /ciclo-01/.test(f));
+    const carimbos = new Map();
+    for (const f of pdfs) {
+      const bytes = execSync(`git show HEAD:${JSON.stringify(f)}`,
+        { cwd: RAIZ, maxBuffer: 64 * 1024 * 1024 }).toString('latin1');
+      const m = /\/CreationDate \(D:([0-9]{14})Z\)/.exec(bytes);
+      if (!m) continue;
+      if (!carimbos.has(m[1])) carimbos.set(m[1], []);
+      carimbos.get(m[1]).push(f.split('/').slice(-2, -1)[0]);
+    }
+    checar('em HEAD a MESMA data de início dava carimbos DIFERENTES, conforme a máquina',
+      carimbos.size >= 2, [...carimbos.entries()].map(([c, p]) => c + ' · ' + p.join(', ')));
+    checar('…e o de cá (o desta máquina, -03) trazia hora 03:00 dentro de um campo marcado `Z`',
+      [...carimbos.keys()].some((c) => /030000$/.test(c)), [...carimbos.keys()]);
+
+    /* A SEGUNDA METADE, MEDIDA NA CONTA. O gerador de HEAD não fixava fuso: a mesma data lida em
+     * dois fusos dava dois instantes. A conta é a do próprio HEAD, executada — não lida. */
+    const conta = (fuso) => execSync(
+      `TZ=${fuso} date -d 2026-11-11 +%s`, { cwd: RAIZ, encoding: 'utf8' }).trim();
+    checar('…porque o epoch de HEAD lia a data na hora LOCAL, sem pino de fuso',
+      Number(conta('America/Sao_Paulo')) - Number(conta('Asia/Tokyo')) === 12 * 3600,
+      { sao_paulo: conta('America/Sao_Paulo'), tokyo: conta('Asia/Tokyo') });
+    checar('…e o gerador de HEAD não tinha a linha que fixa o fuso',
+      !/^TZ=UTC$/m.test(guia), (guia.split('\n').find((l) => /^TZ=/.test(l)) || '(nenhuma)'));
   } finally {
     fs.rmSync(destino, { recursive: true, force: true });
   }
@@ -221,6 +298,6 @@ function controleNegativo() {
     process.exit(1);
   }
   console.log('\n✓ o controle CONFIRMA o defeito de HEAD — ' + total + ' de ' + total
-    + ': o epoch vinha da pasta que contém as saídas, e o índice levava `gerado_em` e `estado`');
+    + ': o carimbo do PDF mudava com o fuso da máquina, e a mesma data saía com dois valores');
   process.exit(0);
 }

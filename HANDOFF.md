@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T13:12:13-0300`
-Commit atual: `66010a79` — fix(estrutura): o professor desligado não se oferece para um ato
+Gerado em: `2026-11-15T13:32:23-0300`
+Commit atual: `012c5d54` — fix(estrutura): o professor desligado não se oferece para um ato
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,7 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
-66010a79 fix(estrutura): o professor desligado não se oferece para um ato
+012c5d54 fix(estrutura): o professor desligado não se oferece para um ato
 f4988aa5 chore(entrega): gerar o pacote de coqui-de-redinha/01/batata-bale-nivel-1-teste-2
 8996e454 chore(estrutura): reancorar a cadeia das fontes alteradas
 cac94e9b chore(estrutura): regerar os índices derivados
@@ -205,99 +205,68 @@ f0825d86 feat(acervo): envelope/po-20261115-1236.json
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O professor desligado não se oferece para um ato
+## 15/11/2026 — O carimbo do PDF deixa de depender do fuso de quem gera
 
-**O que motivou.** Ela estava a testar a anamnese na `breu`, cujo professor principal é a Redinha
-Rosa, e viu um professor que já não está na escola na lista de quem pode ser escolhido: «eu criei o
-professor, está aqui como uma opção de professor para fazer anamnese. Isso está errado. Os
-professores que tinham que aparecer aqui são somente aqueles professores que ainda estão na escola.»
-E completou o que o resto da tela já faz: «**aqui na anamnese e em nenhum outro lugar**» — ou seja,
-o defeito estava só ali, porque ali estava a única lista que não filtrava.
-
-Medido no ar: `GET /api/bastidores/professores` da `breu` devolvia três nomes, e o segundo era o
-`prova-do-shard`, desligado desde 08/11/2026 (a Produção mostra-o com o selo e a data). Como essa
-rota é o **mesmo seletor** nas três fontes — anamnese, plano de ensino e PO —, o convite não era da
-anamnese: era da lista.
+**O que motivou.** Ela mandou tirar o carimbo de geração, e ele saiu do `ciclos.json`; o do PDF ficou,
+porque o `/CreationDate` é metadado e não se imprime. Só que ele continuava a mudar — não com a hora,
+com a **máquina**. Medido: os PDFs versionados traziam `D:20270201030000Z` nos pacotes gerados aqui e
+`D:20270201000000Z` no que a Action regerou. A mesma data de início, dois carimbos, e o ficheiro
+versionado a sujar-se quando alguém regerava o que a Action já tinha regerado. É o sintoma que ela
+descreveu («não tem sentido ficar carimbando toda hora»), uma camada abaixo: não era o relógio, era o
+fuso.
 
 **O que foi decidido.**
 
-- **A lista que faltava.** Desde 08/11/2026 três listas desta folha saltam o desligado com a mesma
-  frase («Quem saiu da escola não se oferece»): a das habilitações, a do desligamento e a da
-  curadoria. Faltava a quarta — a que alimenta os formulários do ato. É um `continue` e uma linha de
-  comentário, não uma regra nova.
-- **«Não se oferece» não é «não existe».** São duas listas com dois papéis, e a correção não pode
-  confundi-las: o **seletor do ato** deixa de o oferecer; a **lista da escola** (a Produção) continua
-  a mostrá-lo com o selo `desligado` e a data, porque o registo é proveniência e o nome dele está nos
-  documentos que assinou. O desligamento não apaga: retira o convite a escrever.
-- **A guarda é do servidor, e não só do `<select>`.** O desligamento **não apaga o hash da senha** —
-  é o que o torna silencioso: a senha dele continuava a valer, e uma página aberta de ontem, ou um
-  `?professor=` no endereço, abria a anamnese de quem já saiu. `senhaDoProfessorOk` passa a recusar o
-  desligado, com a data e o caminho de volta (recadastrar o mesmo identificador, que reactiva). É a
-  mesma frase que a curadoria já usa desde 08/11/2026.
-- **A recusa diz o que aconteceu.** Três veredictos, e não dois: *a senha está errada* e *o professor
-  saiu da escola* são factos diferentes, e o segundo chegou hoje — quando uma senha **certa** passou
-  a ser recusada. Colapsá-los em «senha não reconhecida» mandava a pessoa conferir o que está
-  correcto. O painel da Área do Professor e a barra da porta dizem, cada um no seu sítio, qual é o
-  motivo.
-- **A bancada que afirmava o contrário estava errada.** `provar-bateria-do-shard` afirmava «o
-  professor continua na lista, marcado» — mas sobre a rota do **seletor**, que devolve `{nome, slug}`
-  e não tem selo nenhum. O que ela afirmava, na prática, era «o desligado continua a poder abrir um
-  ato»: o defeito. Passa a afirmar as duas metades, cada uma na sua superfície.
+- **Um pino de fuso, e só um: `TZ=UTC`.** O gerador passa a exportá-lo antes de calcular o epoch e
+  antes de chamar o pdfTeX. São duas metades, e as duas precisavam dele: `date -d "2027-02-01"` sem
+  fuso lê a data na hora **local**, e o pdfTeX escreve `\pdfcreationdate` na hora **local** e ainda
+  acrescenta `Z`. Com `-03`, o campo dizia `Z` carregando três horas de deslocamento — além de
+  instável, falso.
+- **UTC, e não o fuso da escola.** Não é preferência: é a convenção do `SOURCE_DATE_EPOCH`, e é o que
+  faz o `Z` querer dizer o que diz. O carimbo continua a ser a data de início do ciclo, agora à
+  meia-noite UTC — e é a mesma em qualquer máquina.
+- **O laço já estava fechado, e esta correção não o reabre.** O epoch continua a vir do calendário
+  (15/11/2026, mais cedo neste dia); o que muda é o fuso em que essa data é lida e escrita.
+- **O controle negativo da bancada também estava errado, e foi corrigido.** O
+  `provar-saidas-estaveis --controle-negativo` afirmava o laço ancorado em `HEAD` — mas `HEAD` já
+  contém essa correção, e as quatro asserções passaram a reprovar por medirem o presente com o nome
+  do passado. Ele passa a afirmar o que `HEAD` **ainda** tem (o carimbo dependente do fuso), e mede
+  as duas metades: os carimbos que já estão no repositório e a conta do epoch em dois fusos.
 
 **Onde entrou.**
 
-- `motor/servidor/bastidores.js` — a rota `/api/bastidores/professores` salta o desligado, e
-  `senhaDoProfessorOk` recusa-o com `desligado: true`; as rotas `validar-senha` e `ato` propagam esse
-  campo para a tela poder dizer o motivo certo.
-- `motor/servidor/listas-do-acervo.js` — o veredicto `SENHA` ganha o terceiro valor e a frase que o
-  explica.
-- `porta/index.html` — a barra da senha distingue «não reconhecida» de «desligou-se da escola».
-- `professores/*/ciclos/ciclo-01-*/plano-observacao/` (9 pacotes) — **a cópia da porta**, byte a byte
-  com `porta/index.html`, como o `check-identidade` exige. Oito por `criar-escola.sh --somente-porta`;
-  o da `lapis-rosa` (**que não tem manifesto base `ciclo-01.conf`**, porque nasceu pela página)
-  regerado inteiro por `gerar-ciclo.sh`.
-- `experimentos/provar-seletor-do-ato.js` — prova nova, 18 asserções.
-- `experimentos/provar-bateria-do-shard.js` — as duas asserções corrigidas.
+- `tools/gerar-ciclo.sh` — `TZ=UTC` exportado antes do epoch e do pdfTeX, com o porquê no lugar.
+- `experimentos/provar-saidas-estaveis.js` — secção **E** nova (três asserções), e o controle
+  negativo reescrito (cinco).
+- Os doze PDFs versionados com ciclo-01 — regerados: os dez dos cinco pacotes que traziam `…030000Z`
+  passam a `…000000Z`; os dois da `coqui-de-redinha` já estavam certos (foram os da Action) e não
+  mudam. **Dois bytes por ficheiro**, e o texto é o mesmo (`pdftotext`, zero linhas de diferença).
 
-**Com o quê.** `provar-seletor-do-ato` **18/18**: o seletor deixa de o oferecer, a Produção continua
-a mostrá-lo com o selo e a data, a senha certa dele é recusada com o motivo, e **nenhum bilhete de
-ato é escrito no cofre**; o professor activo continua a passar e a receber bilhete. O controlo
-negativo é **o mesmo registo um campo apartado** — sem `desligado_em` ele é oferecido, com o campo
-desaparece —, e o `--controle-negativo` contra o `motor/` de `HEAD` reprova **8 de 18**, que são
-exactamente as medidas do defeito. `check-identidade` **22 verificações, 0 erro** (eram 9 pacotes
-divergentes antes de a porta ser recopiada). Âncoras: `hash-ciclo.sh --check` **íntegro nos nove**.
-`check-indices` 16/16; `gerar-indices --check` 10 e `gerar-relacoes --check` 9 em dia.
-`check-pacote` verde nos seis pacotes com escola; nos três **pacotes-zero** (`coqui-de-redinha/01/
-batata`, `pe-torto/01/calango`, `redinha-rosa/01/breu`) reprova com os mesmos 10 erros de `HEAD`
-— não têm PDF nem aulas, por definição, e o `check-pacote` nunca foi aplicável a eles.
-Sem regressão: `provar-transferencia-e-desligamento` 93/93, `provar-slug-do-professor` verde (o
-seletor e o slug do dono intactos), `provar-painel-do-ato` 183 (sem erro de JavaScript),
-`provar-editar-professor-principal` 30, `provar-cadastro-visivel` 12.
+**Motivo declarado — os congelados.** O pedido dela — «a correção é fixar o fuso na geração», dado
+como «Sim» a 15/11/2026 — é o motivo. Toca `tools/` (`gerar-ciclo.sh`), que é congelado, e muda
+COMPORTAMENTO de um artefato (o `/CreationDate`, e só ele). **Não mudam:** a fórmula do hash, a
+cobertura da âncora, a data que o epoch representa (a de início do ciclo, derivada do calendário e
+das fontes), o texto dos PDFs, os validadores, as 17 regras e as 22 pétreas. A âncora não exige
+reancoragem: PDFs não estão na cobertura do `.fipp` — conferido com `--check` nos seis.
 
-**O que ainda não está feito.** (1) `criar-escola.sh --somente-porta` exige o manifesto **base**
-(`ciclo-01.conf`), e uma escola nascida pela página pode ter só o da variante — foi o caso da
-`lapis-rosa`, que teve de ser regerada inteira. Alargar a ferramenta a esse caso é pequeno e fica
-declarado. (2) Na **porta**, o `?professor=<slug>` do endereço continua a acrescentar o nome à lista
-mesmo que ele não venha do servidor — é de propósito (um nome ajustado não pode desaparecer do
-formulário), e agora o que acontece é a recusa com o motivo certo, não o silêncio. (3) Um professor
-desligado que tenha **documentos por concluir** (um PO aberto, por exemplo) passa a não conseguir
-assiná-los; a direção continua a operar pelos Bastidores, mas a fronteira entre «o que ele deixou
-pela metade» e «o que já não é dele» não foi desenhada. (4) **Achado durante esta correção, e não
-corrigido:** o `/CreationDate` do PDF não é reprodutível entre fusos. O `SOURCE_DATE_EPOCH` é a
-meia-noite local da primeira aula, e `date -d` a converte pelo fuso da máquina — aqui (-03) sai
-`D:20270201030000Z`, num Worker de CI (UTC) sai `D:20270201000000Z`. Os dois bytes só aparecem quando
-alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redinha`, e o churn foi
-descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
-15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
-fica declarada em vez de feita à socapa.
+**Com o quê.** `provar-saidas-estaveis` **16/16**: a estabilidade continua (duas gerações, nenhum
+ficheiro muda), o índice continua sem relógio, o laço continua sem voltar, a âncora continua íntegra
+— e as três novas: gerar em `America/Sao_Paulo` e em `Asia/Tokyo` dá os PDFs **byte a byte iguais**;
+o `/CreationDate` é a meia-noite UTC do `inicio` que o índice declara; e nenhum dos dois fusos deixa
+resto de hora no carimbo. **Controle negativo** (contra `HEAD`, 5/5): os carimbos versionados em
+`HEAD` tinham **dois valores** para a mesma data, o de cá trazia `030000` dentro de um campo `Z`, a
+conta do epoch em dois fusos diferia em 12 h, e o gerador de `HEAD` não tinha pino nenhum.
+Sem regressão: `check-pacote` verde nos seis pacotes, `hash-ciclo.sh --check` íntegro nos seis,
+`check-identidade` 22 e 0 erro, `check-indices` 16/16, `gerar-indices` 10 e `gerar-relacoes` 9 em dia.
+
+**O que ainda não está feito.** (1) O `--somente-porta` do `criar-escola.sh` continua a exigir o
+manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de-redinha/01/batata`,
+`pe-torto/01/calango`, `redinha-rosa/01/breu`) não têm PDF, e por isso não entram nesta convergência:
+quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
+epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
+escrever, o pino já está lá em cima e há de ser herdado.
 
 ## O que está pendente
-
-## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
-
-Nada desta entrada. Continuam abertas, e anteriores: as falhas de
-`provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
-`provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
 
 ## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
 
@@ -342,6 +311,15 @@ alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redi
 descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
 15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
 fica declarada em vez de feita à socapa.
+
+## 15/11/2026 — O carimbo do PDF deixa de depender do fuso de quem gera
+
+(1) O `--somente-porta` do `criar-escola.sh` continua a exigir o
+manifesto base — é dela, e fica com ela. (2) Os três pacotes-zero (`coqui-de-redinha/01/batata`,
+`pe-torto/01/calango`, `redinha-rosa/01/breu`) não têm PDF, e por isso não entram nesta convergência:
+quando tiverem aula, já nascem com o pino. (3) Não há pino de fuso para o *resto* do gerador — só o
+epoch e o PDF o levam. Nada mais escreve hora, e por isso nada mais precisa dele; se um dia passar a
+escrever, o pino já está lá em cima e há de ser herdado.
 
 ## Pendências anteriores (índice)
 
@@ -780,6 +758,7 @@ fica declarada em vez de feita à socapa.
 - **15/11/2026** — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio → `REGISTRO.md` L44734
 - **15/11/2026** — O formulário da anamnese não abria: o `markdown.js` era… → `REGISTRO.md` L44809
 - **15/11/2026** — Audição: as abas Recorte e Transferência esperam pelo… → `REGISTRO.md` L44870
+- **15/11/2026** — Estilo: os passos do trecho só abrem dentro de um trecho;… → `REGISTRO.md` L44907
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).

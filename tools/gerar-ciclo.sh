@@ -383,6 +383,26 @@ done
 # E o que sai do ficheiro, em vez de ser tornado determinístico: o `gerado_em` e o `estado` do
 # `aulas[]`. Os dois eram juízos do instante da geração, e é por isso que não podem estar num
 # ficheiro versionado — ver o bloco do índice, abaixo.
+#
+# O FUSO ENTRA AQUI, E SÓ AQUI, PORQUE O CARIMBO AINDA DEPENDIA DA MÁQUINA (15/11/2026). A data
+# passou a vir das fontes e o ficheiro deixou de se sujar sozinho — mas o VALOR dela não era o
+# mesmo em duas máquinas. Medido: a mesma fonte, gerada aqui e na Action, dava PDFs com dois bytes
+# diferentes (`/CreationDate`), e o repositório ficou com as duas versões gravadas — cinco pacotes
+# com `D:20270201030000Z` e um, o que a Action regerou, com `D:20270201000000Z`. O sintoma é o que
+# ela descreveu («não tem sentido ficar carimbando toda hora»), uma camada abaixo: não era o
+# relógio, era o fuso de quem gera.
+#
+# São duas metades, e as duas precisam do pino:
+#   · o epoch — `date -d "2027-02-01"` sem fuso lê a data na hora LOCAL da máquina, e a mesma
+#     string vira dois instantes diferentes;
+#   · a formatação — o pdfTeX escreve `\pdfcreationdate` na hora LOCAL e acrescenta `Z`. Com fuso
+#     local -03, o campo diz `Z` carregando 03:00 de deslocamento: além de instável, é falso.
+#
+# `TZ=UTC` resolve as duas e é a convenção do `SOURCE_DATE_EPOCH` (a data reprodutível é expressa
+# em UTC); com ele o `Z` passa a querer dizer o que diz. Não muda nada do que o PDF IMPRIME — o
+# carimbo é metadado, e as datas do documento vêm do plano e do calendário.
+TZ=UTC
+export TZ
 SOURCE_DATE_EPOCH="$(date -d "$(printf '%s' "$DATA_PRIMEIRA_AULA" | awk -F/ '{printf "%s-%s-%s", $3, $2, $1}')" +%s 2>/dev/null || true)"
 [ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
 export SOURCE_DATE_EPOCH
