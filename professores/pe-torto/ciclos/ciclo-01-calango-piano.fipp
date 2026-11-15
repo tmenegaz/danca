@@ -10,12 +10,12 @@ type: Ciclo
 professor: pe-torto
 ciclo: 01
 variante: calango-piano
-hash_conteudo: 082dc3679ab1915874cc34e4578f9221be3c51522124742fd36b7c41811c143c
+hash_conteudo: cfa27782fa69dcfa89f3b05891e2201d410b0e0c36641cb0b62bed9fa866b91d
 parentHash: 
-hash: 6b8d6e01e2158326648d7b9c126047fe4d121f869c3c37c80f97910e97032d20
+hash: aa369d4df6d095a621857cca07fbc33ec5614325a858dfa2db2cd76feb159588
 algoritmo: SHA-256
 po: professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
-po_state: Input_PO_Aguardando
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico

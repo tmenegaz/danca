@@ -6,7 +6,7 @@ escola: batata
 responsavel: lapis-rosa
 professor: lapis-rosa
 title: "Plano de Observação do Ciclo 01 — batata"
-state: Input_PO_Aguardando
+state: Input_PO_Validado
 envelope: po-20261115-1153
 ---
 

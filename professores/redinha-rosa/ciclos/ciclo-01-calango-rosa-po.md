@@ -6,7 +6,7 @@ escola: calango
 responsavel: Redinha Rosa
 professor: Redinha Rosa
 title: "Plano de Observação do Ciclo 01 — calango"
-state: Input_PO_Aguardando
+state: Input_PO_Validado
 envelope: po-20261110-2145
 ---
 

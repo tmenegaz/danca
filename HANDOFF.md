@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T12:11:54-0300`
-Commit atual: `1e0f3b6d` — docs(estrutura): actualizar a fotografia e corrigir as duas afirmações que ficaram falsas
+Gerado em: `2026-11-15T12:28:05-0300`
+Commit atual: `526e3581` — fix(tools): a etiqueta «PO aguardando» passa a dizer o que falta marcar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+526e3581 fix(tools): a etiqueta «PO aguardando» passa a dizer o que falta marcar
 1e0f3b6d docs(estrutura): actualizar a fotografia e corrigir as duas afirmações que ficaram falsas
 40f634ac chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
 dffa9eb7 chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -95,7 +96,6 @@ e0a35b96 chore(estrutura): regerar os índices derivados
 7aa4324e docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico
 e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
 1cf365d7 chore(estrutura): reancorar a cadeia das fontes alteradas
-5c98234b feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
 ```
 
 ## Por professor
@@ -125,14 +125,14 @@ e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | calango | (sem PO) | — | — |
-| calango | ciclo-01-calango-piano-po.md | Input_PO_Aguardando | 1 |
-| calango | ciclo-01-calango-rosa-po.md | Input_PO_Aguardando | 1 |
+| calango | ciclo-01-calango-piano-po.md | Input_PO_Validado | 1 |
+| calango | ciclo-01-calango-rosa-po.md | Input_PO_Validado | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `6b8d6e01e215` | (vazio) | Input_PO_Aguardando |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `e1a796d9a75f` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `aa369d4df6d0` | (vazio) | Input_PO_Validado |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `e28e360c049b` | (vazio) | Input_PO_Validado |
 
 ### prova-do-shard — 0 ciclo(s)
 
@@ -145,14 +145,14 @@ e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
-| calango | ciclo-01-calango-piano-po.md | Input_PO_Aguardando | 1 |
-| calango | ciclo-01-calango-rosa-po.md | Input_PO_Aguardando | 1 |
+| calango | ciclo-01-calango-piano-po.md | Input_PO_Validado | 1 |
+| calango | ciclo-01-calango-rosa-po.md | Input_PO_Validado | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `0f95afdfe4a7` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `57107e53fdc1` | (vazio) | Input_PO_Aguardando |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `c129683be3db` | (vazio) | Input_PO_Aguardando |
+| calango-piano | ciclo-01-calango-piano.fipp | `4087a296abd0` | (vazio) | Input_PO_Validado |
+| calango-rosa | ciclo-01-calango-rosa.fipp | `d86f7ed8e082` | (vazio) | Input_PO_Validado |
 
 ### rimel-preto — 0 ciclo(s)
 
@@ -203,70 +203,99 @@ e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
+## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
 
-**O relato.** *«eu só tenho um ciclo, que é o ciclo 01, e a etiqueta dele diz que o PO está
-aguardando. Então eu não sei qual dos dois está errado, o PO ou se é o ciclo. Porque eu também refiz
-o plano de ensino e o plano de observação manualmente, mas não editei nada, não mudei nada. Só mandei
-gerar de novo. E o ciclo continua com a mesma etiqueta.»*
+**O que motivou.** Depois de eu ter proposto marcar «sim» no critério que faltava, ela recusou a
+solução — e a recusa é a decisão: *«Não, não pode ir lá marcar sim como mutuamente exclusivo. O
+professor escolheu marcar não, então tem que ser considerado o que o professor marcou. […] É a
+marcação do professor que vale. […] A regra do que é opcional é opcional e está valendo também. E
+agora o campo que é obrigatório, se a opção é sim ou não e o professor escolheu não, é o que vale,
+foi o que ele escolheu marcar.»*
 
-**A investigação, e a conclusão que ela não esperava: não havia dois valores em desacordo.** Medido
-no acervo: o PO de `batata` tem `state: Input_PO_Aguardando`, e a razão está no próprio documento —
-`- [ ] Critérios mutuamente exclusivos`. Não é um defeito de sincronização, e não há nada «errado»
-entre o PO e o ciclo; são o mesmo facto lido em dois sítios.
+**O defeito, na origem.** `estadoDoPO` exigia as **seis** folhas do checklist de validação em
+`true`. Duas coisas confundiam-se nessa conta, e as duas são a mesma violação de um princípio
+diferente:
 
-**Porque é que aquele item fica sempre por marcar.** O estado passa a `Input_PO_Validado` quando as
-**seis** folhas do checklist estão marcadas (PROTOCOLO, ciclo de vida do estado). Cinco são
-inferidas do que já está escrito — o fenómeno, as fronteiras, a norma, a justificativa, o âmbito.
-A sexta não é inferível por ninguém, e o conteúdo declara-o por palavras: `derivadoDe: {sempre:
-"não"}` com a explicação «pré-preenchido com «não»: nenhum campo do Plano de Observação decide isto».
-Regenerar o documento sem marcar essa caixa dá **o mesmo documento** e a mesma etiqueta — o que a
-tela dizia era verdade, e o motivo é que não estava à vista.
+1. **um «não» não é uma resposta em falta.** «Critérios mutuamente exclusivos» é uma leitura que o
+   professor faz do próprio recorte; dizer «não» é declarar um achado — e o código lia-o como
+   pergunta por responder;
+2. **as seis folhas são opcionais.** O conteúdo do PO declara `obrigatorio: false` nas seis, e o
+   mapa do formulário confirma-o: os obrigatórios são **catorze**, e nenhum deles é do checklist. Um
+   campo opcional estava a governar o estado — a regra do opcional a valer para uns e não para
+   outros.
 
-**A correção: a etiqueta passa a ter sujeito.** `dadosDoPlano` lê as caixas desmarcadas da secção
-`## Checklist de validação` do **próprio documento-fonte do PO** — a mesma secção de onde sai a linha
-`state:`, e não uma cópia na âncora: um facto, uma fonte. Quando há caixas por marcar, o cartão do
-ciclo diz, em duas metades do mesmo dado: no `title` do selo (quem passa o rato) e na **linha de
-contexto** («Ciclo 01 · 21 aulas previstas · No Plano de Observação falta marcar «Critérios mutuamente
-exclusivos».»), que é a que se lê a correr e no telemóvel. Num PO todo marcado não se acrescenta
-nada — e sem secção de checklist não se inventa motivo.
+**O que foi decidido.**
 
-**O que se confirmou por não estar quebrado.** A caixa **pode** ser marcada, e o gesto fica: com o
-formulário do PO aberto, marcar «sim» grava «sim», aposenta a sugestão (`SUGERIDAS`), e a repintura
-não o desfaz — a regra que já existia («escolher o outro valor é discordar») cumpre-se. A bancada
-antiga (`provar-teste`) media o valor derivado, não o clique; a prova nova mede o clique.
+- **O estado mede uma coisa só:** há pergunta OBRIGATÓRIA sem resposta? Sim ⇒
+  `Input_PO_Aguardando`; não ⇒ `Input_PO_Validado`.
+- **A lista de obrigatórias é do CONTEÚDO**, lida pelo **mesmo** conjunto de nós que o formulário
+  usa (`motor.nosRespondiveis`) — catorze ids, e não uma lista escrita no módulo.
+- **O sistema não julga o conteúdo de nenhuma resposta.** «não», «teste» ou uma frase curta são
+  respostas; vazio, só espaços e a lacuna `[Preencher: …]` não são — esta última porque é o próprio
+  documento a declarar a falta.
+- **O checklist continua a imprimir-se** e continua a valer como achado: a caixa `- [ ]` ao lado de
+  um critério que o professor marcou «não» quer dizer «este critério não está satisfeito» — é a
+  resposta dele, e fica escrita. O que muda é que ela já não move o estado.
+- **A etiqueta do cartão volta a ser só o estado.** A leitura das caixas (`pendenciasDoPO`) e a
+  frase «falta marcar …» foram **removidas** — eram a correção anterior, e estavam erradas.
 
-**Onde entrou.** `tools/montar-publicacao.js` (`pendenciasDoPO`, `emPortugues`, `poPendentes` em
-`dadosDoPlano`, a razão em `itemDoPlano`, e `itemDoPlano` exportado para a prova o poder medir),
-`motor/nucleo/lista-html.js` (o `title` do selo, que é peça partilhada e não desenho novo), e a prova
-nova `experimentos/provar-pendencia-do-po.js`.
+**Motivo declarado — os congelados.** `PROTOCOLO.md` (a linha «Ciclo de vida do estado»), `tools/`
+(`validar-po-ciclo.js` e `montar-publicacao.js`) e o `modelo/` dos schemas. A alteração **muda
+comportamento**, e por isso está declarada aqui com o pedido dela citado acima. **O que não muda:**
+a fórmula do hash, a cobertura da âncora, o contrato dos validadores (o `required` dos schemas é o
+mesmo, conferido por `check-schemas`), as 17 regras, as 22 pétreas e o `validationChecklist` como
+estrutura. O que muda é de onde o `state:` sai.
 
-**Auditoria.** `provar-pendencia-do-po` **26/26**: a frase nomeia a caixa no ciclo real e cala-se no
-PO todo marcado; em todos os três POs do repositório, aguardando ⟺ há caixa por marcar, e a contagem
-que a lista mostra é a contagem de caixas abertas; e o clique fica. **Controle negativo** com o
-`motor/` e o `tools/` de `HEAD`: **11 de 26** reprovam (as 11 da etiqueta — em `HEAD`
-`poPendentes` não existe), e a secção C passa, que é a verdade: em `HEAD` o clique já funcionava, o
-que faltava era a razão. Medido no Chrome, a página reconstruída: nenhum transbordo a 1280, 1024,
-768, 414, 390 e 320px; a frase ocupa 1 linha a partir de 768 e 2 a 390. Sem regressão:
-`check-identidade` 22/22, `provar-barra-e-caminho` 50/50, `provar-a-moldura-em-todas-as-telas` 111,
-`provar-custo-da-listagem` 7/7, `provar-menu-da-producao` 54/55 — a mesma falha que já tinha no
-`HEAD`.
+**Onde entrou.**
 
-**O que ainda não está feito.** (1) O envelope grava a resposta semeada com
-`origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
-defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
-o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
-documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
-humano; é feio e anterior, e não se tocou.
+- `motor/nucleo/derivar-po.js` — `estadoDoPO(envelope, obrigatorios)` com a regra nova,
+  `temConteudo`, `obrigatoriosDoPO(conteudo)` (que usa `nosRespondiveis`), e o `derivarPO` a passar
+  a lista; as três funções exportadas.
+- `motor/servidor/rotas.js` e `motor/servidor/concluir-po.js` — os dois sítios que derivam PO
+  passam `obrigatorios: obrigatoriosDoPO(conteudoPO)`.
+- `tools/validar-po-ciclo.js` — a mensagem que dizia «item sem marcar → o estado permanece
+  Input_PO_Aguardando» passa a relatar os critérios declarados «não» como **achado**; e a dos
+  provisórios deixa de afirmar «o PO não está aprovado».
+- `tools/montar-publicacao.js` e `motor/nucleo/lista-html.js` — **revertidos** à versão anterior à
+  correção errada.
+- `modelo/ciclos/ciclo-01-po-schema.json` e as nove cópias `professores/*/ciclos/ciclo-01-po-schema.json`
+  — a `description` do `validationChecklist` diz agora que as folhas são opcionais e que o estado
+  não se lê delas.
+- `PROTOCOLO.md` — a linha do ciclo de vida do estado.
+- `professores/*/ciclos/*-po.md` (5 fontes) — **uma linha cada**: `state: Input_PO_Aguardando` →
+  `Input_PO_Validado`, calculado a partir do envelope de cada uma. O resto do documento não foi
+  tocado: re-derivá-lo exigiria a linha de base do acto, que vive no KV, e a diferença é essa linha
+  e só essa.
+- Os cinco pacotes regerados e as cinco âncoras **reancoradas** (o PO é fonte coberta pelo `.fipp`,
+  por isso o `hash_conteudo` muda — e o `po_state` passa a `Input_PO_Validado`).
+- `indices/` regerados (`--check` 10 e 8 em dia; `check-indices` 16/16).
+- `experimentos/provar-estado-do-po.js` — prova nova (substitui `provar-pendencia-do-po.js`, que
+  media a correção errada).
+
+**Com o quê.** `provar-estado-do-po` **29/29**: o «não» dela não move o estado, as seis folhas em
+«não» também não, um obrigatório em branco move; as fronteiras do «sem resposta» (vazio, espaços,
+`[Preencher]` contra «teste», «não», lista com item) medidas uma a uma; o documento imprime o «não»
+como achado; e os cinco POs do repositório declaram exactamente o estado que a regra calcula a
+partir do envelope deles. **Controle negativo** com o `motor/` de `HEAD`: **14 de 29** reprovam — as
+14 em que a regra antiga diz «aguardando» e a nova diz «validado», que é o defeito relatado.
+`provar-derivar-po` (bancada do núcleo) passa a afirmar a regra nova: 30/35, com as **mesmas cinco**
+falhas anteriores (fixture do professor `fokini`, que não existe). Sem regressão: `check-schemas`
+TUDO CERTO (o molde e os nove professores dizem o mesmo contrato), `check-indices` 16/16,
+`hash-ciclo.sh --check` íntegro nos cinco ciclos, `provar-barra-e-caminho` 50/50,
+`provar-a-moldura-em-todas-as-telas` 111, `provar-custo-da-listagem` 7/7, `provar-menu-da-producao`
+54/55 (a mesma falha de antes). No ar, medido depois do deploy: `calango` e `batata` mostram
+**«PO validado»**.
+
+**O que ainda não está feito.** (1) O envelope continua a gravar as respostas semeadas do checklist
+com `origem: "perguntado"` — inclusive o «não» que o sistema inferiu (`derivadoDe: {sempre: "não"}`)
+e não o professor. É o mesmo defeito que a casa já resolveu para as dimensões do plano (que vão como
+`importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
+chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
+anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
+**qual** — a informação existe (o formulário conta-a na barra), e mostrá-la no cartão é trabalho por
+fazer; não se fez agora para não voltar a pôr uma lista de «falta» onde ela não é um pedido.
 
 ## O que está pendente
-
-## 15/11/2026 — O formulário da anamnese não abria: o `markdown.js` era pedido num sítio que não existe
-
-`provar-listas-sem-repeticao` falha uma asserção («PO: `api/envelopes`
-é pedido UMA vez» → 0), e ela falha **igual com a página de antes** — conferido —, portanto não é
-desta entrada. `provar-estante-do-po` mostra 7 falhas de dados (`escola/batata` sem a cadeia de
-planos) e não é versionado.
 
 ## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
 
@@ -294,6 +323,15 @@ defeito que a casa já resolveu para as dimensões do plano (que vão como `impo
 o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
 documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
 humano; é feio e anterior, e não se tocou.
+
+## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
+
+(1) O envelope continua a gravar as respostas semeadas do checklist
+com `origem: "perguntado"` — inclusive o «não» que o sistema inferiu (`derivadoDe: {sempre: "não"}`)
+e não o professor. É o mesmo defeito que a casa já resolveu para as dimensões do plano (que vão como
+`importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
+chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
+anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
 
 ## Pendências anteriores (índice)
 
@@ -730,12 +768,9 @@ humano; é feio e anterior, e não se tocou.
 - **13/11/2026** — O domínio do painel, e a rota curinga que a zona tinha → `REGISTRO.md` L44134
 - **13/11/2026** — As senhas de teste entram no ficheiro local, e o push deixa… → `REGISTRO.md` L44192
 - **15/11/2026** — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio → `REGISTRO.md` L44734
+- **15/11/2026** — O formulário da anamnese não abria: o `markdown.js` era… → `REGISTRO.md` L44809
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
-- PO de **redinha-rosa · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- PO de **redinha-rosa · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

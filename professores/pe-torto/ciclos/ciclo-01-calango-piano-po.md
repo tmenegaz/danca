@@ -6,7 +6,7 @@ escola: calango
 responsavel: pe-torto
 professor: pe-torto
 title: "Plano de Observação do Ciclo 01 — calango"
-state: Input_PO_Aguardando
+state: Input_PO_Validado
 envelope: po-20261112-0837-2
 ---
 

@@ -18,7 +18,7 @@
     },
     {
       "ancora": {
-        "hash": "3bf3b11d0581f3b2f727080af0414da41b691a6c4a5a26503e91fe22984cb408",
+        "hash": "21b3b0f808e3485e7de478a7a5a6f58e173521494f39c079950a12be6c39df07",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -34,7 +34,7 @@
     },
     {
       "ancora": {
-        "hash": "6b8d6e01e2158326648d7b9c126047fe4d121f869c3c37c80f97910e97032d20",
+        "hash": "aa369d4df6d095a621857cca07fbc33ec5614325a858dfa2db2cd76feb159588",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -66,7 +66,7 @@
     },
     {
       "ancora": {
-        "hash": "57107e53fdc1b97531f7d5e1f13f01092191c89acab0d42b7a2738cc6dc17864",
+        "hash": "4087a296abd0828cfbe87822460ccd384a5465cbbc9f23f77e9b97cc34efb677",
         "id": "ciclo-01-calango-piano",
         "lida": true,
         "parent_hash": ""
@@ -349,9 +349,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "56e6aac"
+    "commit": "526e3581"
   },
-  "gerado_em": "2026-11-15T14:54",
+  "gerado_em": "2026-11-15T15:26",
   "nao_indexado": [
     {
       "familia": "conteudo",

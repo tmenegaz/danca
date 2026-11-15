@@ -45086,9 +45086,110 @@ que faltava era a razão. Medido no Chrome, a página reconstruída: nenhum tran
 `provar-custo-da-listagem` 7/7, `provar-menu-da-producao` 54/55 — a mesma falha que já tinha no
 `HEAD`.
 
+> **Correção datada — 15/11/2026, na mesma sessão.** Esta entrada está **errada na conclusão**, e a
+> decisão foi revertida. Eu li «PO aguardando» como uma pendência e escrevi na tela o que faltava
+> marcar — o que, na prática, pedia ao professor que marcasse «sim» para o documento fechar. Ela
+> recusou: «o professor escolheu marcar não, então tem que ser considerado o que o professor marcou.
+> […] É a marcação do professor que vale. […] A regra do que é opcional é opcional e está valendo
+> também.» O defeito era outro e está na entrada seguinte: o estado lia-se do checklist **opcional**
+> e tratava um «não» como resposta em falta. A leitura das caixas e a frase no cartão foram
+> **removidas**; o `state:` dos POs passou a derivar das perguntas obrigatórias.
+
 **O que ainda não está feito.** (1) O envelope grava a resposta semeada com
 `origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
 defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
 o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
 documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
 humano; é feio e anterior, e não se tocou.
+
+## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
+
+**O que motivou.** Depois de eu ter proposto marcar «sim» no critério que faltava, ela recusou a
+solução — e a recusa é a decisão: *«Não, não pode ir lá marcar sim como mutuamente exclusivo. O
+professor escolheu marcar não, então tem que ser considerado o que o professor marcou. […] É a
+marcação do professor que vale. […] A regra do que é opcional é opcional e está valendo também. E
+agora o campo que é obrigatório, se a opção é sim ou não e o professor escolheu não, é o que vale,
+foi o que ele escolheu marcar.»*
+
+**O defeito, na origem.** `estadoDoPO` exigia as **seis** folhas do checklist de validação em
+`true`. Duas coisas confundiam-se nessa conta, e as duas são a mesma violação de um princípio
+diferente:
+
+1. **um «não» não é uma resposta em falta.** «Critérios mutuamente exclusivos» é uma leitura que o
+   professor faz do próprio recorte; dizer «não» é declarar um achado — e o código lia-o como
+   pergunta por responder;
+2. **as seis folhas são opcionais.** O conteúdo do PO declara `obrigatorio: false` nas seis, e o
+   mapa do formulário confirma-o: os obrigatórios são **catorze**, e nenhum deles é do checklist. Um
+   campo opcional estava a governar o estado — a regra do opcional a valer para uns e não para
+   outros.
+
+**O que foi decidido.**
+
+- **O estado mede uma coisa só:** há pergunta OBRIGATÓRIA sem resposta? Sim ⇒
+  `Input_PO_Aguardando`; não ⇒ `Input_PO_Validado`.
+- **A lista de obrigatórias é do CONTEÚDO**, lida pelo **mesmo** conjunto de nós que o formulário
+  usa (`motor.nosRespondiveis`) — catorze ids, e não uma lista escrita no módulo.
+- **O sistema não julga o conteúdo de nenhuma resposta.** «não», «teste» ou uma frase curta são
+  respostas; vazio, só espaços e a lacuna `[Preencher: …]` não são — esta última porque é o próprio
+  documento a declarar a falta.
+- **O checklist continua a imprimir-se** e continua a valer como achado: a caixa `- [ ]` ao lado de
+  um critério que o professor marcou «não» quer dizer «este critério não está satisfeito» — é a
+  resposta dele, e fica escrita. O que muda é que ela já não move o estado.
+- **A etiqueta do cartão volta a ser só o estado.** A leitura das caixas (`pendenciasDoPO`) e a
+  frase «falta marcar …» foram **removidas** — eram a correção anterior, e estavam erradas.
+
+**Motivo declarado — os congelados.** `PROTOCOLO.md` (a linha «Ciclo de vida do estado»), `tools/`
+(`validar-po-ciclo.js` e `montar-publicacao.js`) e o `modelo/` dos schemas. A alteração **muda
+comportamento**, e por isso está declarada aqui com o pedido dela citado acima. **O que não muda:**
+a fórmula do hash, a cobertura da âncora, o contrato dos validadores (o `required` dos schemas é o
+mesmo, conferido por `check-schemas`), as 17 regras, as 22 pétreas e o `validationChecklist` como
+estrutura. O que muda é de onde o `state:` sai.
+
+**Onde entrou.**
+
+- `motor/nucleo/derivar-po.js` — `estadoDoPO(envelope, obrigatorios)` com a regra nova,
+  `temConteudo`, `obrigatoriosDoPO(conteudo)` (que usa `nosRespondiveis`), e o `derivarPO` a passar
+  a lista; as três funções exportadas.
+- `motor/servidor/rotas.js` e `motor/servidor/concluir-po.js` — os dois sítios que derivam PO
+  passam `obrigatorios: obrigatoriosDoPO(conteudoPO)`.
+- `tools/validar-po-ciclo.js` — a mensagem que dizia «item sem marcar → o estado permanece
+  Input_PO_Aguardando» passa a relatar os critérios declarados «não» como **achado**; e a dos
+  provisórios deixa de afirmar «o PO não está aprovado».
+- `tools/montar-publicacao.js` e `motor/nucleo/lista-html.js` — **revertidos** à versão anterior à
+  correção errada.
+- `modelo/ciclos/ciclo-01-po-schema.json` e as nove cópias `professores/*/ciclos/ciclo-01-po-schema.json`
+  — a `description` do `validationChecklist` diz agora que as folhas são opcionais e que o estado
+  não se lê delas.
+- `PROTOCOLO.md` — a linha do ciclo de vida do estado.
+- `professores/*/ciclos/*-po.md` (5 fontes) — **uma linha cada**: `state: Input_PO_Aguardando` →
+  `Input_PO_Validado`, calculado a partir do envelope de cada uma. O resto do documento não foi
+  tocado: re-derivá-lo exigiria a linha de base do acto, que vive no KV, e a diferença é essa linha
+  e só essa.
+- Os cinco pacotes regerados e as cinco âncoras **reancoradas** (o PO é fonte coberta pelo `.fipp`,
+  por isso o `hash_conteudo` muda — e o `po_state` passa a `Input_PO_Validado`).
+- `indices/` regerados (`--check` 10 e 8 em dia; `check-indices` 16/16).
+- `experimentos/provar-estado-do-po.js` — prova nova (substitui `provar-pendencia-do-po.js`, que
+  media a correção errada).
+
+**Com o quê.** `provar-estado-do-po` **29/29**: o «não» dela não move o estado, as seis folhas em
+«não» também não, um obrigatório em branco move; as fronteiras do «sem resposta» (vazio, espaços,
+`[Preencher]` contra «teste», «não», lista com item) medidas uma a uma; o documento imprime o «não»
+como achado; e os cinco POs do repositório declaram exactamente o estado que a regra calcula a
+partir do envelope deles. **Controle negativo** com o `motor/` de `HEAD`: **14 de 29** reprovam — as
+14 em que a regra antiga diz «aguardando» e a nova diz «validado», que é o defeito relatado.
+`provar-derivar-po` (bancada do núcleo) passa a afirmar a regra nova: 30/35, com as **mesmas cinco**
+falhas anteriores (fixture do professor `fokini`, que não existe). Sem regressão: `check-schemas`
+TUDO CERTO (o molde e os nove professores dizem o mesmo contrato), `check-indices` 16/16,
+`hash-ciclo.sh --check` íntegro nos cinco ciclos, `provar-barra-e-caminho` 50/50,
+`provar-a-moldura-em-todas-as-telas` 111, `provar-custo-da-listagem` 7/7, `provar-menu-da-producao`
+54/55 (a mesma falha de antes). No ar, medido depois do deploy: `calango` e `batata` mostram
+**«PO validado»**.
+
+**O que ainda não está feito.** (1) O envelope continua a gravar as respostas semeadas do checklist
+com `origem: "perguntado"` — inclusive o «não» que o sistema inferiu (`derivadoDe: {sempre: "não"}`)
+e não o professor. É o mesmo defeito que a casa já resolveu para as dimensões do plano (que vão como
+`importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
+chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
+anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
+**qual** — a informação existe (o formulário conta-a na barra), e mostrá-la no cartão é trabalho por
+fazer; não se fez agora para não voltar a pôr uma lista de «falta» onde ela não é um pedido.
