@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T15:38:06-0300`
-Commit atual: `bdb566f8` — fix(experimentos): o controlo negativo ancorava em HEAD e envelhecia ao ser cometido
+Gerado em: `2026-11-15T15:41:34-0300`
+Commit atual: `ffb689f3` — fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,9 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
+5b46db6e feat(estrutura): a escola de shard passa a ser publicada, e o expurgo reconhece-a
+842efb28 feat(tools): a montagem de um shard monta-o inteiro, ou não monta
 bdb566f8 fix(experimentos): o controlo negativo ancorava em HEAD e envelhecia ao ser cometido
 0ad9ae36 feat(estrutura): a chave da escola passa a ser derivada, e o cofre mostra a mestra
 c64d05dd feat(tools): a escola nasce dentro do shard, e o expurgo passa a saber qual
@@ -93,9 +96,6 @@ b4d627f2 feat(acervo): envelope/po-20261115-1352.json
 10977714 chore(estrutura): regerar os índices derivados
 4d63d403 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 c756e90e feat(plano): o plano elicitado vira a fonte do ciclo
-bc81d76a feat(acervo): envelope/plano-20261115-1351.json
-6710bda8 feat(acervo): envelope/.indice.json
-ecf3a660 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -262,6 +262,15 @@ lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova.
 as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
 não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
 versionado e inerte; sai quando ela expurgar.
+
+**Nota de correção (15/11/2026, mesmo dia).** Esta entrada fecha dizendo que «nada disto foi
+exercitado num run real do GitHub Actions». Deixou de ser verdade vinte minutos depois, e a correção
+fica dita em vez de apagada: o run **575** de «Publicar as escolas» correu a lógica nova e o registo
+dele é a prova. A descoberta pôs **uma** entrada na matriz (`publicar (batata)`) em vez de três — a
+deduplicação por alvo funciona —, a montagem disse `shard «lastro-teste»: 3 escola(s) — batata, breu,
+calango`, e o alvo foi `wrangler.lastro-teste.jsonc`. Depois disso, `/`, `/aulas/` e
+`/assets/style.css` respondem **200** nos três hosts. Falta o run que ainda não aconteceu: o
+`criar-escola` com `shard`, que só corre quando ela criar a primeira escola.
 
 ## O que está pendente
 

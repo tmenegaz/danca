@@ -45610,3 +45610,12 @@ lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova.
 as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
 não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
 versionado e inerte; sai quando ela expurgar.
+
+**Nota de correção (15/11/2026, mesmo dia).** Esta entrada fecha dizendo que «nada disto foi
+exercitado num run real do GitHub Actions». Deixou de ser verdade vinte minutos depois, e a correção
+fica dita em vez de apagada: o run **575** de «Publicar as escolas» correu a lógica nova e o registo
+dele é a prova. A descoberta pôs **uma** entrada na matriz (`publicar (batata)`) em vez de três — a
+deduplicação por alvo funciona —, a montagem disse `shard «lastro-teste»: 3 escola(s) — batata, breu,
+calango`, e o alvo foi `wrangler.lastro-teste.jsonc`. Depois disso, `/`, `/aulas/` e
+`/assets/style.css` respondem **200** nos três hosts. Falta o run que ainda não aconteceu: o
+`criar-escola` com `shard`, que só corre quando ela criar a primeira escola.
