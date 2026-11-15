@@ -10,12 +10,12 @@ type: Ciclo
 professor: rimel-preto
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
-hash_conteudo: 42bce4934eb23eaa34ff3a55caeeb55daca2280be69fb7e90e92a3d937195d7c
+hash_conteudo: d507821b749769594597e483b38907b47a413deb69e43d11379d4890bfc45c41
 parentHash: 
-hash: 388b11b87456715c6a7a8cb5dd71b491af470adf6c1768bbdcfff4e7f9f8ba09
+hash: 7cca54638b413d76fefbffa05e490b4ee88ee813b383ff2231e21a8b832fe428
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,5 +23,13 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 45
 notacao_sha: dd6a5f8e932b28e465495ae4fc9aaf3f102cd751680a6da22b912a16767c742c
 cobertura:
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
   - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+  - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
   - professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
