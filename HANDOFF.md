@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T10:18:45-0300`
-Commit atual: `84bb5746` — fix(estrutura): o passo 2 do elenco obedece ao «Seguir», e o espaço fica vazio
+Gerado em: `2026-11-15T11:28:15-0300`
+Commit atual: `e0a35b96` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -58,7 +58,7 @@ prova-do-shard
 rabo-gramde
 redinha-rosa
 rimel-preto (9)
-- **Ciclos com manifesto:** 7 variante(s)
+- **Ciclos com manifesto:** 8 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -76,26 +76,26 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
-84bb5746 fix(estrutura): o passo 2 do elenco obedece ao «Seguir», e o espaço fica vazio
-ee0892f3 style(template): a marca e o nome da área passam a estar na mesma linha
-cf150b93 docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
-8dfed992 fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
-2a2d9836 fix(estrutura): sem aluna cadastrada, o recado manda cadastrar — e o link vai à lista
-46b88208 chore(estrutura): regerar os índices derivados
-b45224e0 feat(estrutura): habilitar lapis-rosa em bale-classico
-797145b5 feat(estrutura): habilitar lapis-rosa em bale-classico
-6ffa917a feat(estrutura): habilitar coqui-de-redinha em bale-classico, contemporaneo
-30daec79 feat(escola): a escola batata declara o professor lapis-rosa
-58034809 feat(schema): os schemas do ciclo na pasta de lapis-rosa
-952e0d62 feat(schema): os schemas do ciclo na pasta de lapis-rosa
-3bb9ea2a feat(schema): os schemas do ciclo na pasta de lapis-rosa
-ad19cdb5 feat(schema): os schemas do ciclo na pasta de lapis-rosa
-6cd80162 feat(schema): os schemas do ciclo na pasta de lapis-rosa
-e13e63c8 chore(estrutura): regerar os índices derivados
-21e4080a feat(estrutura): habilitar rimel-preto em bale-classico
-d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
-237e1dfd feat(schema): os schemas do ciclo na pasta de rimel-preto
-66e1f9f6 feat(schema): os schemas do ciclo na pasta de rimel-preto
+e0a35b96 chore(estrutura): regerar os índices derivados
+7aa4324e docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico
+e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
+1cf365d7 chore(estrutura): reancorar a cadeia das fontes alteradas
+5c98234b feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+141dcabb feat(po): o PO elicitado vira a fonte do ciclo
+aacbd116 feat(acervo): envelope/po-20261115-1101.json
+b25051d1 feat(acervo): envelope/.indice.json
+185aadfe chore(estrutura): reancorar a cadeia das fontes alteradas
+9fca9a83 chore(estrutura): regerar os índices derivados
+9d700226 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+67a976b9 feat(plano): o plano elicitado vira a fonte do ciclo
+c3d5baf2 feat(acervo): envelope/plano-20261115-1101.json
+ec53bf14 feat(acervo): envelope/.indice.json
+e9f3d416 chore(estrutura): regerar os índices derivados
+01a51e50 feat(linha de base): índice — sapatilha 20261115-1358
+f6bc0157 feat(elenco): sapatilha — concluído
+242fffd3 chore(estrutura): regerar os índices derivados
+14252aa4 feat(acervo): envelope/anamnese-20261115-1057.json
+1c0aad6a feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -203,56 +203,76 @@ d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
+## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
 
-**O pedido.** *«As abas recorte e transferência não podem estar habilitadas enquanto não existir um
-elenco gravado. Então, isso também tem que ser ajustado.»*
+**O pedido.** Dois, na mesma sessão. O primeiro: *«eu fui em estilo para fazer uma edição. Quando eu
+cliquei em editar, eu consegui alterar o step quatro sem passar pelo editar da composição que fica no
+step seis. […] Eu só posso editar os itens que pertencem ao que está na composição pelo editar do
+item da composição.»* O segundo: *«eu fui na turma e aí eu vi que turma, apesar de eu já ter criado o
+plano de ensino e o plano de observação, ainda está livre e com o botão editar disponível para mim e
+não com o botão derivar. […] Só que o erro é que permitiu eu editar e tá com a etiqueta livre.»*
 
-**O que muda.** As três abas continuam à vista — uma aba que desaparece não se distingue de uma aba
-que nunca existiu —, mas a 2 e a 3 nascem **desligadas** enquanto não houver um elenco **concluído**,
-com o `title` a dizer por quê («Abre quando existir um elenco gravado.»). «Gravado» é o que passou
-do passo 1 e tem recorte: é a mesma lista que a transferência oferece (`elencosParaMover`, que já
-exclui rascunhos e lápides). Uma segunda noção de «gravado» divergiria desta ao primeiro caso — e a
-prova mede as duas: um rascunho **não** acende as abas.
+**Estilo — o que estava errado.** Os passos 4 (a contagem) e 5 (os sinais) são os campos de **um**
+trecho da decomposição. A tira abria-os sempre que os passos anteriores estivessem cumpridos, e eles
+ficavam a um clique de quem abrisse um verbete pela listagem — sem que houvesse trecho nenhum a
+compor. O que se escrevia ali ou caía num trecho que já existia (outro), ou não ia a lado nenhum.
 
-**A guarda fica num sítio só.** `abrirAbaDaAudicao` é por onde passam as três portas (a tira do
-computador, a folha do telemóvel e o teclado); a regra (`abaDaAudicaoAberta`) está lá, e o `disabled`
-do HTML é o que se vê. É a mesma disciplina do `podeVerPasso` do elenco: um passo que não abriu não
-se alcança por atalho nenhum.
+**Estilo — a regra de agora.** Um trecho é um **gesto** com dois nomes: «Acrescentar trecho» (um
+novo) e «Editar» de uma linha da tabela (aquele). Fora de um gesto, o 4 e o 5 não abrem, e o `title`
+diz por quê — o trecho compõe-se na decomposição, que é o passo 6. O selo `.passo-alerta` («!»), o
+aviso e o rótulo do botão passaram a valer para os dois gestos: o aviso diz «A compor» ou «Em
+edição», e o botão diz «Guardar o trecho» ou «Guardar a alteração».
 
-**E as abas acompanham a lista.** `carregarLinhas` recalcula `ELENCOS_GRAVADOS` e repinta: gravar o
-primeiro elenco acende as duas **sem F5**, e apagar o último fecha-as. Se a aba aberta for a 2 ou a
-3 quando o último elenco é apagado, a página volta sozinha à aba 1 — em vez de ficar a mostrar o
-recorte de um acervo que já não tem elenco nenhum.
+**O círculo que isso abriu, e que se fechou no mesmo dia.** O botão que abre o gesto vive no passo 6,
+e o 6 exigia os passos 4 e 5 cumpridos. Com o 4 e o 5 fechados, ninguém chegava ao 6 — o formulário
+ficava sem porta. Por isso (a) o «Acrescentar» espera só pelo que vem antes dele (o exercício, os
+tempos e o compasso), e (b) `faltasAntesDe` deixou de contar os passos do trecho a quem **não** está
+a compor: sem gesto não há contagem nem sinais a exigir. O que estava pendente da 02/11/2026
+(«guardar não muda de passo») continua: o que mudou é que, ao guardar, o gesto **fecha** — e ficar no
+4 deixaria à vista o painel de um passo apagado. Guardar devolve à decomposição, que é onde a linha
+nova aparece.
 
-**Onde entrou.** `motor/servidor/bastidores.js` (`temElencoGravado` e a frase única, a marcação das
-duas tiras, `ELENCOS_GRAVADOS`, `pintarAbasDaAudicao`, a guarda no `abrirAbaDaAudicao`, a repintura
-no `carregarLinhas`, e a regra `.aba[disabled]` na folha da própria página).
+**Turma — o que estava errado.** A regra nunca esteve errada, e sempre morou num sítio só
+(`curadoriaVinculadaA`): o servidor **recusou** a edição, e foi ele que escreveu a frase que ela
+citou. O que mentia era a **tela** — o cartão nasce desenhado no instante em que a página é montada,
+e o plano de ensino nasce noutra aba (a porta). Entre uma coisa e outra, o cartão dizia o passado.
 
-**Auditoria.** `provar-abas-da-audicao` **99/99**, com a secção K nova a correr a página em jsdom:
-sem elenco, as abas 2 e 3 estão `disabled`, o `title` diz por quê, o clique não troca de painel, o
-atalho directo também não passa, e a folha do telemóvel diz o mesmo; gravado um elenco, as duas
-acendem e a 2 abre; apagado o último com a 2 à vista, a página volta à 1 e as duas fecham; um
-rascunho não conta. **Controle negativo** com o código de `HEAD`: **9 das 99** falham, todas da
-secção K. Medido também num Chrome, contra o servidor de bancada: os sete estados (sem elenco, clique,
-atalho, elenco gravado, clique, elenco apagado, rascunho) comportam-se como descrito.
+**Turma — a correcção, em duas metades que usam a mesma peça.** O selo e as acções saíram do `map` do
+cartão e passaram a ser duas funções (`seloDaCuradoria`, `acoesDaCuradoria`), usadas pelo cartão que
+o servidor desenha **e** por uma rota nova, `GET /api/bastidores/curadorias-estado`, que responde o
+mesmo por turma. Do lado do cliente, um mapa de vinculadas vai com a página e é **relido quando a
+janela volta a estar à frente** (o mesmo remédio do `haRetratoNovo`, na Audição; uma leitura a cada
+vinte segundos, porque o estado não muda nesse ritmo) — e o cartão troca o selo e as acções no DOM.
+Uma segunda redacção da frase divergiria da primeira ao primeiro ajuste, e a divergência não dá erro
+nenhum: por isso a prova compara as duas cadeias **carácter a carácter**.
 
-**O que ainda não está feito.** Nada desta entrada. As duas falhas de `provar-linha-de-base`
-(curadorias e «passo 5») continuam abertas, e são anteriores.
+**E a guarda no clique.** Se o botão estiver atrasado e alguém carregar em «Editar» sobre uma turma
+que já tem plano, o formulário abre em **«Derivar»** e diz porquê, com a frase do servidor — em vez
+de oferecer um caminho que ele recusa no fim.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — no verbete: `TRECHO_NOVO`, `trechoEmCurso()`, a
+frase única do passo 6, a guarda dos passos do trecho no `pintarNavegacao`, `pintarAcrescentar`,
+`faltasAntesDe`, `comecarTrechoNovo`, `editarTrecho`, `cancelarEdicaoDoVerbete`,
+`acrescentarOuGuardar`, o «Seguir» que salta os passos fechados e o `editarVerbete` que fecha o
+gesto; na turma: `seloDaCuradoria`/`acoesDaCuradoria`, os ganchos `data-selo-da-turma` /
+`data-acoes-da-turma`, a rota `curadorias-estado`, o mapa `VINCULADAS`, `pintarVinculos` e a guarda
+no `ajustarCuradoria`. Provas novas: `experimentos/provar-trecho-do-verbete.js` e
+`experimentos/provar-estado-da-turma.js`.
+
+**Auditoria.** `provar-trecho-do-verbete` **25/25** — e o **controle negativo** com o motor de `HEAD`
+reprova **16 de 25**, entre elas «o passo 4 abre sem gesto nenhum», que é o defeito relatado.
+`provar-estado-da-turma` **28/28**, e o controle negativo reprova **21 de 22** (a rota não existe em
+`HEAD` e o cartão não tem gancho nenhum). Sem dano colateral, medido contra o `HEAD` no mesmo dia:
+`provar-abas-da-audicao` 99/99, `provar-salas-e-elencos` 69/69, `check-identidade` 22/22, e as
+quatro bancadas que já falhavam continuam a falhar **exactamente** como antes (`provar-celula` no
+mesmo `TypeError`, `provar-cartao-da-turma` 6 falhas, `provar-derivacao-da-turma` 120/140,
+`provar-plano-e-curadoria` no mesmo rebentar).
+
+**O que ainda não está feito.** Nada desta entrada. Continuam abertas, e anteriores: as falhas de
+`provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
+`provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
 
 ## O que está pendente
-
-## 13/11/2026 — O domínio do painel, e a rota curinga que a zona tinha
-
-
-- **A permissão `Zone → DNS → Edit` continua em falta no token que eu tenho.** E aqui há uma
-  distinção que importa: o token da raiz é um **secret do Worker** que eu não leio — pode ser outro,
-  e pode já ter a permissão. Quem responde a isso é a primeira escola criada pelo painel: se o
-  token tiver a permissão, o endereço nasce; se não, a página diz «Endereço próprio: PENDENTE» com
-  o motivo. Não vale a pena adivinhar antes.
-- **A `calango` continua sem endereço próprio.** Ligá-la é uma linha — `node tools/publicar-dominio.js
-  calango` — e não exige expurgar nem recriar nada.
-- **A rota curinga continua na zona**, à espera da decisão de a substituir pela explícita.
 
 ## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
 
@@ -288,6 +308,12 @@ planos) e não é versionado.
 
 Nada desta entrada. As duas falhas de `provar-linha-de-base`
 (curadorias e «passo 5») continuam abertas, e são anteriores.
+
+## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
+
+Nada desta entrada. Continuam abertas, e anteriores: as falhas de
+`provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
+`provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
 
 ## Pendências anteriores (índice)
 
@@ -721,6 +747,7 @@ Nada desta entrada. As duas falhas de `provar-linha-de-base`
 - **13/11/2026** — A escola deixa de ser `var` de deploy: o mapa… → `REGISTRO.md` L43930
 - **13/11/2026** — O endereço é por host: `<escola>.padd.com.br` → `REGISTRO.md` L44016
 - **13/11/2026** — A escola nasce com endereço próprio, e o expurgo leva-o… → `REGISTRO.md` L44060
+- **13/11/2026** — O domínio do painel, e a rota curinga que a zona tinha → `REGISTRO.md` L44134
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

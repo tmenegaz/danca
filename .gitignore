@@ -1315,3 +1315,20 @@ experimentos/modelo-formulario/*
 # prova mede-as num navegador de verdade, com a folha de verdade, e mede as duas colunas. Sem
 # navegador, declara a geometria como NÃO MEDIDA — nunca como aprovada.
 !experimentos/provar-identidade-ao-lado.js
+
+# O TRECHO É UM GESTO, E A ETIQUETA DA TURMA DIZ O ESTADO DE AGORA (15/11/2026). Duas provas, e
+# as duas citadas pelo REGISTRO e pelo rodapé `Auditoria:` do commit — citar uma prova que não
+# existe no clone é uma afirmação que ninguém confere.
+#
+# `provar-trecho-do-verbete` fixa a regra que ela pediu («eu só posso editar os itens que
+# pertencem ao que está na composição pelo editar do item da composição») e o círculo que ela
+# abriu: com os passos 4 e 5 fechados, o botão que os abre vive no 6, e o 6 exigia-os. Mede os
+# quatro momentos num navegador — abrir, compor, guardar, corrigir — e nunca por `disabled` no
+# HTML: por estado e por painel à vista.
+!experimentos/provar-trecho-do-verbete.js
+#
+# `provar-estado-da-turma` fixa as duas metades da etiqueta mentirosa: a rota que responde o
+# estado por turma, e o cartão que a repinta quando a janela volta. A asserção central compara o
+# selo do cartão com o da rota CARÁCTER A CARÁCTER: duas redacções da mesma frase divergem ao
+# primeiro ajuste, e a divergência não dá erro nenhum.
+!experimentos/provar-estado-da-turma.js

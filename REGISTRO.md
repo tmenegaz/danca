@@ -44903,3 +44903,72 @@ atalho, elenco gravado, clique, elenco apagado, rascunho) comportam-se como desc
 
 **O que ainda não está feito.** Nada desta entrada. As duas falhas de `provar-linha-de-base`
 (curadorias e «passo 5») continuam abertas, e são anteriores.
+
+## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
+
+**O pedido.** Dois, na mesma sessão. O primeiro: *«eu fui em estilo para fazer uma edição. Quando eu
+cliquei em editar, eu consegui alterar o step quatro sem passar pelo editar da composição que fica no
+step seis. […] Eu só posso editar os itens que pertencem ao que está na composição pelo editar do
+item da composição.»* O segundo: *«eu fui na turma e aí eu vi que turma, apesar de eu já ter criado o
+plano de ensino e o plano de observação, ainda está livre e com o botão editar disponível para mim e
+não com o botão derivar. […] Só que o erro é que permitiu eu editar e tá com a etiqueta livre.»*
+
+**Estilo — o que estava errado.** Os passos 4 (a contagem) e 5 (os sinais) são os campos de **um**
+trecho da decomposição. A tira abria-os sempre que os passos anteriores estivessem cumpridos, e eles
+ficavam a um clique de quem abrisse um verbete pela listagem — sem que houvesse trecho nenhum a
+compor. O que se escrevia ali ou caía num trecho que já existia (outro), ou não ia a lado nenhum.
+
+**Estilo — a regra de agora.** Um trecho é um **gesto** com dois nomes: «Acrescentar trecho» (um
+novo) e «Editar» de uma linha da tabela (aquele). Fora de um gesto, o 4 e o 5 não abrem, e o `title`
+diz por quê — o trecho compõe-se na decomposição, que é o passo 6. O selo `.passo-alerta` («!»), o
+aviso e o rótulo do botão passaram a valer para os dois gestos: o aviso diz «A compor» ou «Em
+edição», e o botão diz «Guardar o trecho» ou «Guardar a alteração».
+
+**O círculo que isso abriu, e que se fechou no mesmo dia.** O botão que abre o gesto vive no passo 6,
+e o 6 exigia os passos 4 e 5 cumpridos. Com o 4 e o 5 fechados, ninguém chegava ao 6 — o formulário
+ficava sem porta. Por isso (a) o «Acrescentar» espera só pelo que vem antes dele (o exercício, os
+tempos e o compasso), e (b) `faltasAntesDe` deixou de contar os passos do trecho a quem **não** está
+a compor: sem gesto não há contagem nem sinais a exigir. O que estava pendente da 02/11/2026
+(«guardar não muda de passo») continua: o que mudou é que, ao guardar, o gesto **fecha** — e ficar no
+4 deixaria à vista o painel de um passo apagado. Guardar devolve à decomposição, que é onde a linha
+nova aparece.
+
+**Turma — o que estava errado.** A regra nunca esteve errada, e sempre morou num sítio só
+(`curadoriaVinculadaA`): o servidor **recusou** a edição, e foi ele que escreveu a frase que ela
+citou. O que mentia era a **tela** — o cartão nasce desenhado no instante em que a página é montada,
+e o plano de ensino nasce noutra aba (a porta). Entre uma coisa e outra, o cartão dizia o passado.
+
+**Turma — a correcção, em duas metades que usam a mesma peça.** O selo e as acções saíram do `map` do
+cartão e passaram a ser duas funções (`seloDaCuradoria`, `acoesDaCuradoria`), usadas pelo cartão que
+o servidor desenha **e** por uma rota nova, `GET /api/bastidores/curadorias-estado`, que responde o
+mesmo por turma. Do lado do cliente, um mapa de vinculadas vai com a página e é **relido quando a
+janela volta a estar à frente** (o mesmo remédio do `haRetratoNovo`, na Audição; uma leitura a cada
+vinte segundos, porque o estado não muda nesse ritmo) — e o cartão troca o selo e as acções no DOM.
+Uma segunda redacção da frase divergiria da primeira ao primeiro ajuste, e a divergência não dá erro
+nenhum: por isso a prova compara as duas cadeias **carácter a carácter**.
+
+**E a guarda no clique.** Se o botão estiver atrasado e alguém carregar em «Editar» sobre uma turma
+que já tem plano, o formulário abre em **«Derivar»** e diz porquê, com a frase do servidor — em vez
+de oferecer um caminho que ele recusa no fim.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — no verbete: `TRECHO_NOVO`, `trechoEmCurso()`, a
+frase única do passo 6, a guarda dos passos do trecho no `pintarNavegacao`, `pintarAcrescentar`,
+`faltasAntesDe`, `comecarTrechoNovo`, `editarTrecho`, `cancelarEdicaoDoVerbete`,
+`acrescentarOuGuardar`, o «Seguir» que salta os passos fechados e o `editarVerbete` que fecha o
+gesto; na turma: `seloDaCuradoria`/`acoesDaCuradoria`, os ganchos `data-selo-da-turma` /
+`data-acoes-da-turma`, a rota `curadorias-estado`, o mapa `VINCULADAS`, `pintarVinculos` e a guarda
+no `ajustarCuradoria`. Provas novas: `experimentos/provar-trecho-do-verbete.js` e
+`experimentos/provar-estado-da-turma.js`.
+
+**Auditoria.** `provar-trecho-do-verbete` **25/25** — e o **controle negativo** com o motor de `HEAD`
+reprova **16 de 25**, entre elas «o passo 4 abre sem gesto nenhum», que é o defeito relatado.
+`provar-estado-da-turma` **28/28**, e o controle negativo reprova **21 de 22** (a rota não existe em
+`HEAD` e o cartão não tem gancho nenhum). Sem dano colateral, medido contra o `HEAD` no mesmo dia:
+`provar-abas-da-audicao` 99/99, `provar-salas-e-elencos` 69/69, `check-identidade` 22/22, e as
+quatro bancadas que já falhavam continuam a falhar **exactamente** como antes (`provar-celula` no
+mesmo `TypeError`, `provar-cartao-da-turma` 6 falhas, `provar-derivacao-da-turma` 120/140,
+`provar-plano-e-curadoria` no mesmo rebentar).
+
+**O que ainda não está feito.** Nada desta entrada. Continuam abertas, e anteriores: as falhas de
+`provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
+`provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.

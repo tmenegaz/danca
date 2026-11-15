@@ -1665,6 +1665,47 @@ function curadoriaVinculadaA(pares, c) {
 }
 
 /**
+ * O SELO E AS ACÇÕES DE UMA TURMA, A PARTIR DO ESTADO (15/11/2026).
+ *
+ * PORQUE É QUE ISTO SAIU DO `map` DO CARTÃO. O DEFEITO, na letra dela: «eu fui na turma e aí eu vi
+ * que turma, apesar de eu já ter criado o plano de ensino e o plano de observação, ainda está
+ * livre e com o botão editar disponível para mim e não com o botão derivar. […] Só que o erro é
+ * que permitiu eu editar e tá com a etiqueta livre.»
+ *
+ * O cartão era desenhado no SERVIDOR, no instante em que a página era montada, e nunca mais
+ * sabia nada: o plano de ensino nasce noutra aba (a porta, `/plano-ensino/`), e a Produção
+ * continuava a mostrar o retrato do minuto em que foi aberta. A regra estava certa — o servidor
+ * RECUSOU a edição, e foi ele que disse «já tem plano de ensino, derive» —, e a tela é que
+ * mentia.
+ *
+ * A correcção tem duas metades, e as duas usam ESTA função, para não haver duas verdades:
+ *
+ *   · o cartão continua a nascer com o estado do servidor (sem JavaScript, certo);
+ *   · e a página pergunta o estado outra vez quando volta a estar à frente, e troca os dois
+ *     pedaços no DOM — o selo e as acções.
+ *
+ * O `title` diz PORQUE, para as duas metades; o resto do cartão não depende do estado.
+ */
+function seloDaCuradoria(vinculada) {
+  return vinculada
+    ? '<span class="selo vinculada" title="já nasceu o plano de ensino desta curadoria; mexer-lhe mudaria o passado">vinculada</span>'
+    : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta curadoria; pode ser corrigida">livre</span>';
+}
+
+function acoesDaCuradoria(c, vinculada) {
+  const botao = vinculada
+    ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
+      'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
+    : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
+      'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
+  const excluir = vinculada
+    ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
+    : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) +
+      '" title="Remover turma">Excluir</button>';
+  return botao + excluir;
+}
+
+/**
  * A ALUNA está presa a um plano? Ela não aparece no plano de ensino (o plano é da TURMA,
  * não da pessoa), mas aparece na CURADORIA — e é a curadoria que declara quem está na turma.
  * Logo: a aluna está vinculada quando alguma curadoria que a inclui já tem plano de ensino.
@@ -4001,9 +4042,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
         // nenhum plano de ensino nasceu desta curadoria, o registo edita-se; depois, deriva.
         const vinculada = curadoriaVinculadaA(pares, c);
-        const seloEstado = vinculada
-          ? '<span class="selo vinculada" title="já nasceu o plano de ensino desta curadoria; mexer-lhe mudaria o passado">vinculada</span>'
-          : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta curadoria; pode ser corrigida">livre</span>';
+        // O selo e as acções vêm de UMA função, partilhada com a repintura (`/curadorias-estado`)
+        // — ver `seloDaCuradoria`/`acoesDaCuradoria`. Duas cópias divergiriam no primeiro ajuste.
+        const seloEstado = seloDaCuradoria(vinculada);
         // O NOME DO PROFESSOR VIRA O ATALHO PARA O PLANO (18/10/2026). Com plano, o nome é
         // um link para `/plano-ensino/` com o contexto do envelope (professor, escola e
         // ciclo); sem plano, o nome fica exatamente como estava — sem link, sem sublinhado,
@@ -4049,11 +4090,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ? ' title="' + esc(revisaoDaTurma.texto) + '" aria-label="' + esc(revisaoDaTurma.texto) + '"'
             : ' hidden')
           + '>!</span>';
-        const botaoAjuste = vinculada
-          ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
-            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
-          : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
-            'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
+        const botaoAjuste = acoesDaCuradoria(c, vinculada);
         /* O HISTÓRICO DO AJUSTE SAIU DAQUI (11/11/2026) — e a ordem foi dela, com a razão certa:
          *
          *   «esses ajustes anteriores que você tem aqui na listagem das turmas atribuídas, por hora
@@ -4244,13 +4281,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ' title="' + esc(rotuloDaTurma(c, { elencos: elencosDaEscola, professor: rotuloProfessor })) + '">' +
           '<div class="linha-turma">' +
           '<span class="nome"><b>' + esc(tituloDaTurma) + '</b>' +
-          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + ' ' + marcaDaRevisao +
+          ' <span data-selo-da-turma="' + esc(c.id) + '">' + seloEstado + '</span>' +
+          (seloVigencia ? ' ' + seloVigencia : '') + ' ' + marcaDaRevisao +
           '</span>' +
-          '<span class="acoes">' + botaoAjuste +
-          (vinculada
-            ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
-            : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover turma">Excluir</button>') +
-          '</span></div>' +
+          '<span class="acoes" data-acoes-da-turma="' + esc(c.id) + '">' + botaoAjuste + '</span></div>' +
           (complemento.length ? '<div class="dono">' + complemento.join(' · ') + '</div>' : '') +
           '<div class="trio">' +
           caixa('Sala', salasDaTurma.length ? turmas.join(' · ') : 'sem sala', 'sala',
@@ -6002,7 +6036,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // perca o rasto a meio. É `.nota` com um botão: nenhuma peça nova. Os números vêm da lista
     // dos passos, para o texto não envelhecer sozinho numa renumeração.
     '<p class="nota" id="vb-edicao" hidden>' +
-    '<strong>Em edição</strong> — trecho <span id="vb-edicao-n">1</span>. ' +
+    '<strong id="vb-edicao-rotulo">Em edição</strong> — trecho <span id="vb-edicao-n">1</span>. ' +
     'A edição começa no <strong>passo ' + PASSOS_DO_TRECHO[0] + '</strong> e continua no ' +
     PASSOS_DO_TRECHO[1] + '. ' +
     '<button type="button" class="acao secundario pequena" id="vb-cancelar-edicao">Cancelar a edição</button>' +
@@ -9006,6 +9040,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS CURADORIAS VIGENTES, para o «Editar»/«Derivar» as abrir no formulário sem pedir ao
     // servidor (16/10/2026): o mapa já veio com a página.
     'var CURADORIAS = ' + JSON.stringify(listaCuradorias) + ';' +
+    /* QUEM JÁ TEM PLANO DE ENSINO, DO LADO DO CLIENTE (15/11/2026). É o que o cartão diz agora —
+     * e é o que o `ajustarCuradoria` confere antes de abrir o formulário: a página pode ter sido
+     * montada antes de o plano nascer, e um «Editar» que o servidor vai recusar é uma promessa
+     * falsa. O mapa é repintado por `pintarVinculos` quando a janela volta a estar à frente. */
+    'var VINCULADAS = ' + JSON.stringify((() => {
+      const mapa = {};
+      for (const c of (Array.isArray(listaCuradorias) ? listaCuradorias : [])) {
+        if (c && c.id) mapa[String(c.id)] = curadoriaVinculadaA(pares, c);
+      }
+      return mapa;
+    })()) + ';' +
     /* OS ELENCOS DA ESCOLA (07/11/2026) — a lista que a Turma escolhe. Vai com a página, como
      * as curadorias e as turmas: o `<select>` já a tem, e a nota do elenco não precisa de uma
      * ida ao servidor para dizer quantas alunas ele tem. */
@@ -9295,6 +9340,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var c = null;' +
     '  for (var i = 0; i < CURADORIAS.length; i++) { if (CURADORIAS[i] && CURADORIAS[i].id === id) { c = CURADORIAS[i]; break; } }' +
     '  if (!c) { alert("Turma não encontrada na lista."); return; }' +
+    /* O BOTÃO PODE ESTAR ATRASADO, E O FORMULÁRIO NÃO PODE (15/11/2026). Se o cartão ainda diz
+     * «Editar» e a Turma já tem plano de ensino, abrir o formulário de edição seria oferecer um
+     * caminho que o servidor recusa no fim. A correcção é dizer o que passa a valer: deriva-se.
+     * A frase é a do servidor, e não uma segunda redacção. */
+    '  if (modo === "editar" && VINCULADAS[id]) {' +
+    '    modo = "derivar";' +
+    '    recado("aviso", "esta Turma já tem plano de ensino — abre-se em «Derivar»: a versão nova passa a valer a partir de uma data, e a anterior fica no histórico.");' +
+    '  }' +
     '  var derivar = modo !== "editar";' +
     '  document.getElementById("cuderivar").value = c.id;' +
     '  document.getElementById("cumodo").value = derivar ? "derivar" : "editar";' +
@@ -9358,6 +9411,63 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  mostrarElenco(elencoDaCuradoria);' +
     '  document.getElementById("form-curadoria").scrollIntoView({block: "start"});' +
     '  (derivar ? document.getElementById("cuvigencia") : document.getElementById("cu-enviar")).focus();' +
+    '}' +
+    /* A PÁGINA PERGUNTA O ESTADO OUTRA VEZ (15/11/2026) — a correcção da etiqueta mentirosa.
+     *
+     * O plano de ensino nasce noutra aba, e nada avisa esta. A regra que resolve é a do foco,
+     * que a Audição já usa para o mesmo problema (`haRetratoNovo`): quando a janela volta a estar
+     * à frente, o estado é relido. Um temporizador estaria a perguntar de minuto a minuto por uma
+     * coisa que só muda quando alguém volta — e gasta leituras do acervo sem nada em troca.
+     *
+     * O QUE SE TROCA: o selo e as acções de cada cartão, com o HTML que o SERVIDOR desenha
+     * (`seloDaCuradoria`/`acoesDaCuradoria`, na rota `/curadorias-estado`). A tela não decide o
+     * estado nem escreve as frases: se o fizesse, a regra e o texto passariam a existir em dois
+     * sítios e divergiriam ao primeiro ajuste.
+     *
+     * A CADÊNCIA TEM UM FREIO. Duas janelas a alternar dão dois focos por segundo, e o estado não
+     * muda nesse ritmo: uma leitura a cada vinte segundos chega para o que isto serve. */
+    'var ULTIMA_LEITURA_DE_VINCULOS = 0;' +
+    /* O NÓ PROCURA-SE PELO ATRIBUTO, E NÃO POR UM SELETOR MONTADO COM ASPAS. Um seletor como
+     * `[data-selo-da-turma="…"]` obriga a escapar aspas dentro de uma string JavaScript que já
+     * está dentro de outra — e foi assim que a primeira versão disto deixou a página inteira sem
+     * script (o `\\"` do ficheiro e o `\"` do HTML não são o mesmo carácter). Aqui não há aspas
+     * nenhumas a escapar: percorrem-se os cartões e compara-se o atributo. */
+    'function noDoCartao(atributo, id){' +
+    '  var todos = document.querySelectorAll("[" + atributo + "]");' +
+    '  for (var i = 0; i < todos.length; i++) {' +
+    '    if (todos[i].getAttribute(atributo) === id) return todos[i];' +
+    '  }' +
+    '  return null;' +
+    '}' +
+    'function pintarVinculos(){' +
+    '  var agora = Date.now();' +
+    '  if (agora - ULTIMA_LEITURA_DE_VINCULOS < 20000) return Promise.resolve(false);' +
+    '  if (document.visibilityState && document.visibilityState !== "visible") return Promise.resolve(false);' +
+    '  ULTIMA_LEITURA_DE_VINCULOS = agora;' +
+    '  return fetch("/api/bastidores/curadorias-estado")' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      if (!d || !d.ok || !d.estados) return false;' +
+    '      Object.keys(d.estados).forEach(function(id){' +
+    '        var e = d.estados[id];' +
+    '        VINCULADAS[id] = !!e.vinculada;' +
+    '        var selo = noDoCartao("data-selo-da-turma", id);' +
+    '        if (selo && e.selo) selo.innerHTML = e.selo;' +
+    '        var acoes = noDoCartao("data-acoes-da-turma", id);' +
+    '        if (acoes && e.acoes) acoes.innerHTML = e.acoes;' +
+    '      });' +
+    '      return true;' +
+    '    })' +
+    '    .catch(function(){ return false; });' +
+    '}' +
+    /* E TAMBÉM NO ARRANQUE, DEPOIS DE A PÁGINA ESTAR MONTADA. O cartão já nasce certo — quem o
+     * desenha é o servidor —, mas entre o desenho e o primeiro foco pode ter passado o tempo de
+     * uma geração de documentos. Uma leitura a mais, uma vez, é o preço de a etiqueta não mentir
+     * no primeiro olhar. */
+    'if (document.getElementById("cu-lista")) {' +
+    '  document.addEventListener("visibilitychange", pintarVinculos);' +
+    '  window.addEventListener("focus", pintarVinculos);' +
+    '  pintarVinculos();' +
     '}' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-curadoria-ajustar]") : null;' +
@@ -9663,6 +9773,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var ULTIMO_PASSO = PASSOS[PASSOS.length - 1];' +
     'var PASSO = 1;' +
     'var EM_EDICAO = null;' +
+    /* O TRECHO NOVO TAMBÉM É UM GESTO, E NÃO UM PASSO (15/11/2026).
+     *
+     * O PEDIDO, na letra dela: «eu fui em estilo para fazer uma edição. Quando eu cliquei em
+     * editar, eu consegui alterar o step quatro sem passar pelo editar da composição que fica no
+     * step seis. […] Eu só posso editar os itens que pertencem ao que está na composição pelo
+     * editar do item da composição. […] Eu não posso ter acesso a eles, editá-los quando eu
+     * clicar em editar pela listagem, se não for por esse caminho.»
+     *
+     * O QUE ESTAVA A ACONTECER. Os passos 4 («Para onde») e 5 («Os sinais») são os do TRECHO —
+     * é neles que se escolhe a direção, a contagem e os sinais de uma linha da decomposição. E
+     * estavam abertos desde o primeiro instante, de modo que abrir um verbete pela listagem dava
+     * acesso aos campos que compõem os trechos já gravados. Quem mexesse ali e gravasse compunha
+     * uma linha nova — ou reescrevia a que estava a ver — sem nunca ter passado pela decomposição.
+     *
+     * A REGRA AGORA É UMA SÓ, e é a que ela descreveu: um trecho compõe-se a partir da
+     * DECOMPOSIÇÃO (o passo 6), e por dois gestos que lá vivem:
+     *
+     *   · «Acrescentar trecho» — abre um trecho novo (`TRECHO_NOVO`);
+     *   · «Editar», na linha — abre o trecho que já existe (`EM_EDICAO`, como sempre).
+     *
+     * Sem um destes dois, os passos 4 e 5 estão fechados. Não é uma trava de conveniência: é a
+     * diferença entre compor e corrigir, e sem ela o passo 4 editava o que o passo 6 mostra.
+     */
+    'var TRECHO_NOVO = false;' +
+    'function trechoEmCurso(){ return EM_EDICAO !== null || TRECHO_NOVO; }' +
+    'var FRASE_DO_TRECHO_NO_PASSO_6 = "O trecho compõe-se na decomposição (passo 6): use o «Acrescentar trecho» ou o «Editar» da linha.";' +
     'function direcoesDaGramatica(){ return (VERBETES && VERBETES.direcoes) || []; }' +
     'function orientacoesDaGramatica(){ return (VERBETES && VERBETES.orientacoes) || []; }' +
     'function nomeDaDirecao(termo){' +
@@ -10668,22 +10804,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // de um trecho passa.
     '  });' +
     '  var tira = document.getElementById("vb-tira");' +
-    '  if (tira) tira.setAttribute("data-editando", EM_EDICAO === null ? "nao" : "sim");' +
+    /* O «!» E O AVISO VALEM PARA OS DOIS GESTOS (15/11/2026). O «!» marcava a correcção de um
+     * trecho; um trecho NOVO atravessa os mesmos dois passos, e a marca serve-lhe igual — o que ela
+     * diz é «há trabalho de trecho pendente», e não «estás a corrigir». */
+    '  if (tira) tira.setAttribute("data-editando", trechoEmCurso() ? "sim" : "nao");' +
     // O AVISO, OS BOTÕES DE CANCELAR E O RÓTULO DO BOTÃO DO ÚLTIMO PASSO.
     '  var aviso = document.getElementById("vb-edicao");' +
     '  if (aviso) {' +
-    '    aviso.hidden = EM_EDICAO === null;' +
+    '    aviso.hidden = !trechoEmCurso();' +
     '    var qual = document.getElementById("vb-edicao-n");' +
-    '    if (qual) qual.textContent = EM_EDICAO === null ? "" : (EM_EDICAO.k + 1);' +
+    /* A FRASE DIZ QUAL DOS DOIS GESTOS ESTÁ ABERTO. «Em edição — trecho 1» sobre um trecho que
+     * ainda não existe seria a tela a mentir sobre o que se está a fazer; e o número do trecho é o
+     * da linha corrigida, que num trecho novo ainda não há. */
+    '    if (qual) qual.textContent = TRECHO_NOVO ? "novo" : (EM_EDICAO === null ? "" : (EM_EDICAO.k + 1));' +
+    '    var rotuloDoAviso = document.getElementById("vb-edicao-rotulo");' +
+    '    if (rotuloDoAviso) rotuloDoAviso.textContent = TRECHO_NOVO ? "A compor" : "Em edição";' +
     '  }' +
     '  var cancelar2 = document.getElementById("vb-cancelar-edicao-2");' +
-    '  if (cancelar2) cancelar2.hidden = EM_EDICAO === null;' +
-    // O «ACRESCENTAR» SAI DE CENA NA CORRECÇÃO, e o «GUARDAR» entra (02/11/2026). São dois botões
-    // porque são duas acções: acrescentar é o que se faz quando não se está a corrigir nada.
+    '  if (cancelar2) cancelar2.hidden = !trechoEmCurso();' +
+    // O «ACRESCENTAR» SAI DE CENA COM UM TRECHO EM CURSO, e o «GUARDAR» entra (02/11/2026;
+    // 15/11/2026 para o trecho novo). São dois botões porque são duas acções: acrescentar abre o
+    // gesto, guardar fecha-o — e o rótulo de guardar diz qual dos dois trechos se está a fechar.
     '  var bAcrescentar = document.getElementById("vb-cel-acrescentar");' +
-    '  if (bAcrescentar) bAcrescentar.hidden = (EM_EDICAO !== null);' +
+    '  if (bAcrescentar) bAcrescentar.hidden = trechoEmCurso();' +
     '  var bGuardar = document.getElementById("vb-cel-guardar");' +
-    '  if (bGuardar) bGuardar.hidden = (EM_EDICAO === null);' +
+    '  if (bGuardar) {' +
+    '    bGuardar.hidden = !trechoEmCurso();' +
+    '    bGuardar.textContent = TRECHO_NOVO ? "Guardar o trecho" : "Guardar a alteração";' +
+    '  }' +
     /* O «APAGAR» JÁ NÃO VIVE AQUI (02/11/2026, segunda correcção do mesmo dia). O bloco que
      * pintava o `#vb-cel-apagar` saiu com o botão: o verbo existe só na listagem, e um botão
      * escondido por script que já não está na marcação é código que ninguém executa. */
@@ -10752,8 +10900,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  return [];' +
     '}' +
     'function faltasAntesDe(n){' +
+    /* OS PASSOS DO TRECHO SÓ CONTAM PARA QUEM ESTÁ A COMPOR UM TRECHO (15/11/2026).
+     *
+     * A contagem (4) e os sinais (5) são o conteúdo de UM trecho. Sem um trecho em curso eles não
+     * têm sobre o que falar — e contá-los como falta fechava a decomposição (6), que é justamente
+     * onde o gesto NASCE: o «Acrescentar trecho» vive no 6. Com o gesto fechado, exigir o 4 e o 5
+     * para chegar ao 6 é um círculo, e um círculo não se vê a ler a condição de cada passo — vê-se
+     * a percorrer o formulário de ponta a ponta, que é o que esta bancada faz. */
     '  var faltas = [];' +
-    '  for (var i = 1; i < n; i++) faltas = faltas.concat(faltasDoPasso(i));' +
+    '  for (var i = 1; i < n; i++) {' +
+    '    if (PASSOS_DO_TRECHO.indexOf(i) !== -1 && !trechoEmCurso()) continue;' +
+    '    faltas = faltas.concat(faltasDoPasso(i));' +
+    '  }' +
     '  return faltas;' +
     '}' +
     'function podeIrParaVerbete(n){ return faltasAntesDe(Number(n) || 1).length === 0; }' +
@@ -10765,7 +10923,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function pintarAcrescentar(){' +
     '  var b = document.getElementById("vb-cel-acrescentar");' +
     '  if (!b) return;' +
-    '  var faltas = faltasAntesDe(6);' +
+    /* O BOTÃO QUE ABRE O GESTO ESPERA SÓ PELO QUE VEM ANTES DELE (15/11/2026). Ele pedia os cinco
+     * passos — inclui os do trecho, que agora só abrem por ele: era um círculo. O que ele precisa é
+     * do exercício (1), do exercício do verbete (2) e da música (3); o trecho nasce depois, e é o
+     * próprio gesto que o abre. */
+    '  var faltas = faltasAntesDe(PASSOS_DO_TRECHO[0]);' +
     '  b.disabled = faltas.length > 0;' +
     '  b.setAttribute("aria-disabled", faltas.length ? "true" : "false");' +
     '  if (faltas.length) b.setAttribute("title", "Antes de acrescentar um trecho, falta " + faltas.join(", ") + ".");' +
@@ -10776,10 +10938,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // anteriores ficam sempre abertos.
     '  Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
-    '    var fechado = (n > PASSO) && !podeIrParaVerbete(n);' +
+    /* OS PASSOS DO TRECHO SÓ ABREM COM UM TRECHO EM CURSO (15/11/2026).
+     *
+     * A ordem das duas condições importa: o fecho por gesto vale para os passos À FRENTE e para os
+     * que estão ATRÁS. Os outros passos continuam a abrir para trás — voltar a um passo já visto
+     * não perde nada —, mas os do trecho não são «um passo já visto»: são o editor de uma linha da
+     * decomposição, e fora de um gesto não têm sobre o que escrever. */
+    '    var doTrecho = PASSOS_DO_TRECHO.indexOf(n) !== -1;' +
+    '    var semGestor = doTrecho && !trechoEmCurso();' +
+    '    var fechado = semGestor || ((n > PASSO) && !podeIrParaVerbete(n));' +
     '    b.disabled = fechado;' +
     '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
-    '    if (fechado) b.setAttribute("title", "Falta " + faltasAntesDe(n).join(", ") + ".");' +
+    '    if (semGestor) b.setAttribute("title", FRASE_DO_TRECHO_NO_PASSO_6);' +
+    '    else if (fechado) b.setAttribute("title", "Falta " + faltasAntesDe(n).join(", ") + ".");' +
     '    else b.removeAttribute("title");' +
     '  });' +
     // O «SEGUIR»: bloqueado enquanto o passo actual tiver faltas.
@@ -10850,10 +11021,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // (`PASSOS_DO_TRECHO`) e termina no último — por isso é um ESTADO e não um botão: o aviso, o
     // «!» nos dois números, o rótulo do botão do último passo e a linha da tabela têm todos de
     // saber que se está a corrigir.
+    /* COMEÇAR UM TRECHO NOVO — O GESTO QUE ABRE OS PASSOS DO TRECHO (15/11/2026).
+     *
+     * Ele vive na decomposição, ao lado do «Editar» das linhas, porque é lá que o trecho pertence.
+     * Sem ele, fechar os passos 4 e 5 fora da edição fecharia também a possibilidade de compor —
+     * e compor é o trabalho. O que muda é por onde se entra: pela decomposição, como ela pediu.
+     *
+     * OS CAMPOS DO TRECHO COMEÇAM VAZIOS, e é isso que distingue este gesto da correcção: quem
+     * acrescenta não está a mexer no que já está escrito. A direção fica sem escolha (é opcional,
+     * e o trecho pode ser de corpo inteiro), a contagem é a que o passo 4 propõe quando se chega
+     * lá, e os sinais nascem vazios. */
+    'function comecarTrechoNovo(){' +
+    '  EM_EDICAO = null;' +
+    '  TRECHO_NOVO = true;' +
+    '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; SINAL_EM_TROCA = null; REPETICOES = 1;' +
+    '  var selRepN = document.getElementById("vb-repeticoes"); if (selRepN) selRepN.value = "1";' +
+    '  pintarPassos();' +
+    '  pintarTrecho();' +
+    '  pintarTabela();' +
+    '  irParaPassoVerbete(PASSOS_DO_TRECHO[0]);' +
+    '  recado("ok", "trecho novo — preencha o passo " + PASSOS_DO_TRECHO[0] + " e o " + PASSOS_DO_TRECHO[1] + ", e guarde na decomposição.");' +
+    '}' +
     'function editarTrecho(dir, k){' +
     '  var lista = CELULAS[dir] || [];' +
     '  var c = lista[Number(k)];' +
     '  if (!c) return;' +
+    '  TRECHO_NOVO = false;' +
     // A CORRECÇÃO NÃO MUDA DE PASSO (02/11/2026). Era `irParaPassoVerbete(PASSOS_DO_TRECHO[0])`, e o
     // efeito era o relatado: carregar em «Editar» na tabela atirava o utilizador para o passo 4 e
     // ele perdia de vista a linha que estava a corrigir. Agora o formulário vem ter com ele.
@@ -10890,11 +11083,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // limpando o estado do verbete em vez de sair da edição da turma. Medido por
     // `experimentos/provar-plano-e-curadoria.js` §E e por `provar-cartao-da-turma`.
     '  EM_EDICAO = null;' +
+    '  TRECHO_NOVO = false;' +
     '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; SINAL_EM_TROCA = null; REPETICOES = 1;' +
     '  var selRepX = document.getElementById("vb-repeticoes"); if (selRepX) selRepX.value = "1";' +
     '  pintarPassos();' +
     '  pintarTrecho();' +
     '  pintarTabela();' +
+    /* CANCELAR DEVOLVE À DECOMPOSIÇÃO QUANDO SE ESTAVA NUM PASSO DO TRECHO (15/11/2026). Sem
+     * isto, sair do gesto no passo 4 deixava a tela num passo que acabou de fechar — o painel à
+     * vista e o botão da tira apagado. O sítio de onde o gesto nasce é o 6, e é para lá que se
+     * volta; quem cancelou no 6 fica no 6. */
+    '  if (PASSOS_DO_TRECHO.indexOf(PASSO) !== -1) irParaPassoVerbete(ULTIMO_PASSO);' +
     '}' +
     /* O PASSO 1 GRAVA O EXERCÍCIO QUANDO SE AVANÇA (02/11/2026).
      *
@@ -11855,6 +12054,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // para o 2 deixaria o comportamento certo (não encher campos fora do ecrã) com o sítio errado.
     // O seletor do exercício continua a um clique na tira.
     '  MUSICA_ABERTA = chave;' +
+    /* ABRIR UM VERBETE NÃO ABRE UM TRECHO (15/11/2026). O gesto do trecho é da decomposição e não
+     * sobrevive à troca de verbete: quem abriu outro exercício pela listagem está a ler outro
+     * corpo, e os passos 4 e 5 voltam a fechar. */
+    '  EM_EDICAO = null; TRECHO_NOVO = false;' +
     '  irParaPassoVerbete(1);' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
@@ -12288,7 +12491,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var bSeguir = document.getElementById("vb-seguir");' +
     'if (bSeguir) bSeguir.addEventListener("click", function(){' +
     '  if (PASSO === 1) { criarExercicioDoPasso1(function(){ irParaPassoVerbete(2); }); return; }' +
-    '  irParaPassoVerbete(PASSO + 1);' +
+    /* O «SEGUIR» NÃO LEVA A UM PASSO FECHADO (15/11/2026). Sem esta conta, sair do passo 3 com um
+     * trecho fechado punha o professor num passo que a tira acabou de apagar — o painel aberto e o
+     * botão desligado. Salta os passos do trecho, e a paragem seguinte é a decomposição, que é
+     * onde o gesto começa. */
+    '  var alvo = PASSO + 1;' +
+    '  while (alvo <= ULTIMO_PASSO && !trechoEmCurso() && PASSOS_DO_TRECHO.indexOf(alvo) !== -1) alvo += 1;' +
+    '  irParaPassoVerbete(alvo);' +
     '});' +
     '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
@@ -12388,7 +12597,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // direção muda, a célula muda de balde — e aí entra na MESMA posição ordinal, não no fim, para
     // o tempo se manter tanto quanto possível; e o balde que ficou vazio sai, porque um balde
     // vazio é recusado pela validação («a direção X não tem célula»).
-    '    if (EM_EDICAO) {' +
+    '    if (TRECHO_NOVO) {' +
+    // O TRECHO NOVO ENTRA COMO OS OUTROS (é o ramo de baixo), e o gesto fecha-se a seguir.
+    '      CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
+    '      CELULAS[DIRECAO].push(celula);' +
+    '    } else if (EM_EDICAO) {' +
     '      var kEdit = EM_EDICAO.k;' +
     '      if (EM_EDICAO.dir === DIRECAO) {' +
     '        CELULAS[DIRECAO][kEdit] = celula;' +
@@ -12399,10 +12612,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        CELULAS[DIRECAO].splice(Math.min(kEdit, CELULAS[DIRECAO].length), 0, celula);' +
     '      }' +
     '      EM_EDICAO = null;' +
-    '    } else {' +
+    '    } else if (!TRECHO_NOVO) {' +
+    // SEM GESTO NÃO HÁ ONDE GUARDAR — e esta linha é a defesa: a tela já não oferece o botão fora
+    // dos dois gestos, e um caminho que aparecesse amanhã cai aqui em vez de compor em silêncio.
     '      CELULAS[DIRECAO] = CELULAS[DIRECAO] || [];' +
     '      CELULAS[DIRECAO].push(celula);' +
     '    }' +
+    '    TRECHO_NOVO = false;' +
     '    SINAIS = [];' +
     '    SINAL_EM_TROCA = null;' +
     '    CONTAGEM = "";' +
@@ -12421,6 +12637,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // limpam são os campos do trecho, e a tabela — que é o que se está a olhar — já mostra a linha
     // nova.
     '    pintarPassos();' +
+    /* GUARDAR FECHA O GESTO, E A TELA NÃO FICA NUM PASSO QUE ACABOU DE FECHAR (15/11/2026).
+     *
+     * A decisão de 02/11/2026 — «guardar não muda de passo» — continua válida, e a razão dela
+     * continua a ser a certa: o que se quer ver a seguir é a linha que se acabou de compor. Mas os
+     * passos do trecho agora só abrem DENTRO de um gesto, e guardar fecha o gesto: ficar no 4 (ou
+     * no 5) deixaria à vista o painel de um passo apagado — o mesmo defeito que o «Cancelar» já
+     * não tem. Quem guardou vai para a decomposição, que é onde a linha nova aparece. */
+    '    if (PASSOS_DO_TRECHO.indexOf(PASSO) !== -1) irParaPassoVerbete(ULTIMO_PASSO);' +
     '    recado("ok", (eraEdicao ? "trecho alterado" : "trecho acrescentado") + " — grave o verbete para o guardar.");' +
     '}' +
     /* DUPLICAR O EXERCÍCIO (02/11/2026).
@@ -12490,10 +12714,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  recado("ok", "trecho duplicado — a cópia fica no FIM da decomposição, com " + c +' +
     '    " tempos no total" + aviso + " Mude a posição na cópia com «Editar».");' +
     '}' +
-    '["vb-cel-acrescentar", "vb-cel-guardar"].forEach(function(id){' +
-    '  var b = document.getElementById(id);' +
-    '  if (b) b.addEventListener("click", acrescentarOuGuardar);' +
-    '});' +
+    /* DOIS BOTÕES, DOIS MOMENTOS (15/11/2026). Antes os dois chamavam a mesma função, e a
+     * diferença era só o que estava aberto; agora são gestos distintos: um ABRE o trecho (e leva
+     * aos passos dele), o outro FECHA-O. A composição da célula é a mesma, e continua num sítio só
+     * — o que não se duplica é a regra, e ela não está aqui. */
+    'var bAcrescentar = document.getElementById("vb-cel-acrescentar");' +
+    'if (bAcrescentar) bAcrescentar.addEventListener("click", comecarTrechoNovo);' +
+    'var bGuardarCelula = document.getElementById("vb-cel-guardar");' +
+    'if (bGuardarCelula) bGuardarCelula.addEventListener("click", acrescentarOuGuardar);' +
     // O «×» DE CADA TRECHO — e só ele (31/10/2026). Havia aqui um segundo handler, para o campo
     // da frase na própria linha; a coluna saiu (a frase passou para o campo único acima da
     // tabela), e o handler saiu com ela. Um handler que fica sem markup a que responder é pior do
@@ -15703,6 +15931,34 @@ async function fetch(request, env, extras) {
       // própria: a ordem é a do formulário que o professor percorre, e é a mesma do documento.
       grupos: [...new Set(campos.map((c) => c.grupo))],
     });
+  }
+
+  /* GET /api/bastidores/curadorias-estado — se cada Turma já tem plano de ensino (15/11/2026).
+   *
+   * PORQUE EXISTE. O cartão da Turma nasce desenhado, e o plano de ensino nasce NOUTRA ABA (a
+   * porta). Sem esta rota, a Produção olhava para o retrato do minuto em que foi aberta: dizia
+   * «livre» e oferecia «Editar» a uma Turma que o servidor já recusava editar. A regra é a MESMA
+   * (`paresComPlano` + `curadoriaVinculadaA`), e o pedaço de marcação também (`seloDaCuradoria`,
+   * `acoesDaCuradoria`) — a tela não julga, só troca o que o servidor diz.
+   *
+   * A LEITURA É UMA SÓ: o índice dos envelopes. Falhando, `paresComPlano` devolve `null` e
+   * `curadoriaVinculadaA` trata-o como «vinculada» — o lado seguro, o mesmo da página.
+   */
+  if (path === '/api/bastidores/curadorias-estado') {
+    const pares = await paresComPlano(env, escola);
+    let lista = [];
+    try { lista = await curadorias(kv, escola); } catch (erro) { lista = []; }
+    const estados = {};
+    for (const c of (Array.isArray(lista) ? lista : [])) {
+      if (!c || !c.id) continue;
+      const vinculada = curadoriaVinculadaA(pares, c);
+      estados[String(c.id)] = {
+        vinculada,
+        selo: seloDaCuradoria(vinculada),
+        acoes: acoesDaCuradoria(c, vinculada),
+      };
+    }
+    return json(200, { ok: true, escola, estados });
   }
 
   // GET /api/bastidores/alunas-com-anamnese — as alunas que têm retrato, e quando.
