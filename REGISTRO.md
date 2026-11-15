@@ -45193,3 +45193,89 @@ chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
 anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
 **qual** — a informação existe (o formulário conta-a na barra), e mostrá-la no cartão é trabalho por
 fazer; não se fez agora para não voltar a pôr uma lista de «falta» onde ela não é um pedido.
+
+## 15/11/2026 — O professor desligado não se oferece para um ato
+
+**O que motivou.** Ela estava a testar a anamnese na `breu`, cujo professor principal é a Redinha
+Rosa, e viu um professor que já não está na escola na lista de quem pode ser escolhido: «eu criei o
+professor, está aqui como uma opção de professor para fazer anamnese. Isso está errado. Os
+professores que tinham que aparecer aqui são somente aqueles professores que ainda estão na escola.»
+E completou o que o resto da tela já faz: «**aqui na anamnese e em nenhum outro lugar**» — ou seja,
+o defeito estava só ali, porque ali estava a única lista que não filtrava.
+
+Medido no ar: `GET /api/bastidores/professores` da `breu` devolvia três nomes, e o segundo era o
+`prova-do-shard`, desligado desde 08/11/2026 (a Produção mostra-o com o selo e a data). Como essa
+rota é o **mesmo seletor** nas três fontes — anamnese, plano de ensino e PO —, o convite não era da
+anamnese: era da lista.
+
+**O que foi decidido.**
+
+- **A lista que faltava.** Desde 08/11/2026 três listas desta folha saltam o desligado com a mesma
+  frase («Quem saiu da escola não se oferece»): a das habilitações, a do desligamento e a da
+  curadoria. Faltava a quarta — a que alimenta os formulários do ato. É um `continue` e uma linha de
+  comentário, não uma regra nova.
+- **«Não se oferece» não é «não existe».** São duas listas com dois papéis, e a correção não pode
+  confundi-las: o **seletor do ato** deixa de o oferecer; a **lista da escola** (a Produção) continua
+  a mostrá-lo com o selo `desligado` e a data, porque o registo é proveniência e o nome dele está nos
+  documentos que assinou. O desligamento não apaga: retira o convite a escrever.
+- **A guarda é do servidor, e não só do `<select>`.** O desligamento **não apaga o hash da senha** —
+  é o que o torna silencioso: a senha dele continuava a valer, e uma página aberta de ontem, ou um
+  `?professor=` no endereço, abria a anamnese de quem já saiu. `senhaDoProfessorOk` passa a recusar o
+  desligado, com a data e o caminho de volta (recadastrar o mesmo identificador, que reactiva). É a
+  mesma frase que a curadoria já usa desde 08/11/2026.
+- **A recusa diz o que aconteceu.** Três veredictos, e não dois: *a senha está errada* e *o professor
+  saiu da escola* são factos diferentes, e o segundo chegou hoje — quando uma senha **certa** passou
+  a ser recusada. Colapsá-los em «senha não reconhecida» mandava a pessoa conferir o que está
+  correcto. O painel da Área do Professor e a barra da porta dizem, cada um no seu sítio, qual é o
+  motivo.
+- **A bancada que afirmava o contrário estava errada.** `provar-bateria-do-shard` afirmava «o
+  professor continua na lista, marcado» — mas sobre a rota do **seletor**, que devolve `{nome, slug}`
+  e não tem selo nenhum. O que ela afirmava, na prática, era «o desligado continua a poder abrir um
+  ato»: o defeito. Passa a afirmar as duas metades, cada uma na sua superfície.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — a rota `/api/bastidores/professores` salta o desligado, e
+  `senhaDoProfessorOk` recusa-o com `desligado: true`; as rotas `validar-senha` e `ato` propagam esse
+  campo para a tela poder dizer o motivo certo.
+- `motor/servidor/listas-do-acervo.js` — o veredicto `SENHA` ganha o terceiro valor e a frase que o
+  explica.
+- `porta/index.html` — a barra da senha distingue «não reconhecida» de «desligou-se da escola».
+- `professores/*/ciclos/ciclo-01-*/plano-observacao/` (9 pacotes) — **a cópia da porta**, byte a byte
+  com `porta/index.html`, como o `check-identidade` exige. Oito por `criar-escola.sh --somente-porta`;
+  o da `lapis-rosa` (**que não tem manifesto base `ciclo-01.conf`**, porque nasceu pela página)
+  regerado inteiro por `gerar-ciclo.sh`.
+- `experimentos/provar-seletor-do-ato.js` — prova nova, 18 asserções.
+- `experimentos/provar-bateria-do-shard.js` — as duas asserções corrigidas.
+
+**Com o quê.** `provar-seletor-do-ato` **18/18**: o seletor deixa de o oferecer, a Produção continua
+a mostrá-lo com o selo e a data, a senha certa dele é recusada com o motivo, e **nenhum bilhete de
+ato é escrito no cofre**; o professor activo continua a passar e a receber bilhete. O controlo
+negativo é **o mesmo registo um campo apartado** — sem `desligado_em` ele é oferecido, com o campo
+desaparece —, e o `--controle-negativo` contra o `motor/` de `HEAD` reprova **8 de 18**, que são
+exactamente as medidas do defeito. `check-identidade` **22 verificações, 0 erro** (eram 9 pacotes
+divergentes antes de a porta ser recopiada). Âncoras: `hash-ciclo.sh --check` **íntegro nos nove**.
+`check-indices` 16/16; `gerar-indices --check` 10 e `gerar-relacoes --check` 9 em dia.
+`check-pacote` verde nos seis pacotes com escola; nos três **pacotes-zero** (`coqui-de-redinha/01/
+batata`, `pe-torto/01/calango`, `redinha-rosa/01/breu`) reprova com os mesmos 10 erros de `HEAD`
+— não têm PDF nem aulas, por definição, e o `check-pacote` nunca foi aplicável a eles.
+Sem regressão: `provar-transferencia-e-desligamento` 93/93, `provar-slug-do-professor` verde (o
+seletor e o slug do dono intactos), `provar-painel-do-ato` 183 (sem erro de JavaScript),
+`provar-editar-professor-principal` 30, `provar-cadastro-visivel` 12.
+
+**O que ainda não está feito.** (1) `criar-escola.sh --somente-porta` exige o manifesto **base**
+(`ciclo-01.conf`), e uma escola nascida pela página pode ter só o da variante — foi o caso da
+`lapis-rosa`, que teve de ser regerada inteira. Alargar a ferramenta a esse caso é pequeno e fica
+declarado. (2) Na **porta**, o `?professor=<slug>` do endereço continua a acrescentar o nome à lista
+mesmo que ele não venha do servidor — é de propósito (um nome ajustado não pode desaparecer do
+formulário), e agora o que acontece é a recusa com o motivo certo, não o silêncio. (3) Um professor
+desligado que tenha **documentos por concluir** (um PO aberto, por exemplo) passa a não conseguir
+assiná-los; a direção continua a operar pelos Bastidores, mas a fronteira entre «o que ele deixou
+pela metade» e «o que já não é dele» não foi desenhada. (4) **Achado durante esta correção, e não
+corrigido:** o `/CreationDate` do PDF não é reprodutível entre fusos. O `SOURCE_DATE_EPOCH` é a
+meia-noite local da primeira aula, e `date -d` a converte pelo fuso da máquina — aqui (-03) sai
+`D:20270201030000Z`, num Worker de CI (UTC) sai `D:20270201000000Z`. Os dois bytes só aparecem quando
+alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redinha`, e o churn foi
+descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
+15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
+fica declarada em vez de feita à socapa.

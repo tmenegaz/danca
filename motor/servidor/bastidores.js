@@ -2683,6 +2683,29 @@ async function senhaDoProfessorOk(env, kv, escola, professor, senha) {
   const profs = await professores(kv, escola);
   const alvo = profs.find((p) => slugDoProfessor(p) === professor);
   if (!alvo) return { ok: false, erro: 'professor não reconhecido' };
+  /* A SENHA DO DESLIGADO CONFERE — E MESMO ASSIM ELE NÃO ABRE ATO (15/11/2026).
+   *
+   * O desligamento não apaga o registo: `desligado_em`, o motivo e o HASH da senha ficam (é
+   * proveniência, e o nome dele continua nos documentos que assinou). O hash que fica é o que
+   * tornava este buraco silencioso — a senha dele continuava a valer, e uma página aberta de
+   * ontem, ou um `?professor=` no endereço, abria a anamnese de quem já saiu. Tirá-lo do
+   * `<select>` não bastava: a guarda é do SERVIDOR, e não só da lista (a mesma frase que a
+   * curadoria já usa desde 08/11/2026).
+   *
+   * A RECUSA DIZ O QUE ACONTECEU E O QUE FAZER. «senha não reconhecida» seria mentira — a senha
+   * está certa, e quem a digita tem de saber que o problema é outro. O caminho de volta é o
+   * mesmo que a exclusão já declara: recadastrar o mesmo identificador, que o reactiva. */
+  if (desligamento.estaDesligado(alvo)) {
+    return {
+      ok: false,
+      desligado: true,
+      nome: alvo.nome,
+      erro: 'o professor «' + alvo.nome + '» desligou-se desta escola em '
+        + String(alvo.desligado_em).slice(0, 10) + ' — ele já não abre atos novos. Os documentos '
+        + 'que ele assinou continuam a valer; para ele voltar a dar aula, a escola tem de o '
+        + 'cadastrar outra vez (o cadastro reactiva o mesmo registo).',
+    };
+  }
   const confere = alvo.hash
     ? ((await hashSenha(senha, alvo.sal)) === alvo.hash)
     : (alvo.senha === senha);
@@ -14708,6 +14731,25 @@ async function fetch(request, env, extras) {
       // O pulo é pelo SLUG, não pelo nome: dois professores com o mesmo slug seriam duas
       // opções idênticas no seletor, e o formulário não saberia qual escolheu.
       if (!slug || slug === donoSlug) continue;
+      /* QUEM SAIU DA ESCOLA NÃO SE OFERECE PARA UM ATO (15/11/2026).
+       *
+       * O DEFEITO, na letra dela: «os professores que tinham que aparecer aqui são somente
+       * aqueles professores que ainda estão na escola […] ele é um professor desligado». Medido
+       * na `breu`: o `prova-do-shard`, desligado, continuava a ser a segunda opção do seletor da
+       * anamnese — e daí entrava no plano de ensino e no PO, porque é o MESMO seletor nas três
+       * fontes.
+       *
+       * A REGRA JÁ EXISTIA, e é por isso que este `continue` é uma linha e não uma decisão nova.
+       * Três listas desta folha já saltam o desligado com a mesma frase («Quem saiu da escola não
+       * se oferece», 08/11/2026): a das habilitações, a do desligamento e a da curadoria. Faltava
+       * esta — a que alimenta os formulários do ato.
+       *
+       * E A LISTA DE PROFESSORES DA ESCOLA NÃO É ESTA (é a distinção que importa): ele continua
+       * na Produção, com o selo `desligado` e a data, porque o registo é proveniência e o nome
+       * dele está nos documentos que assinou. O que deixa de haver é o convite a escrever um ato
+       * novo — o desligamento encerrou a direção pedagógica dele, e retomá-la é contratá-lo outra
+       * vez. */
+      if (desligamento.estaDesligado(p)) continue;
       lista.push({ nome: p.nome, slug });
     }
     return json(200, { ok: true, escola, professores: lista });
@@ -15283,7 +15325,7 @@ async function fetch(request, env, extras) {
     const veredicto = await senhaDoProfessorOk(env, kv, escola, professor, senha);
     return json(200, veredicto.ok
       ? { ok: true, professor: veredicto.nome }
-      : { ok: false, erro: veredicto.erro });
+      : { ok: false, erro: veredicto.erro, ...(veredicto.desligado ? { desligado: true } : {}) });
   }
 
   /* POST /api/bastidores/ato — O BILHETE DO ATO, DE USO ÚNICO (25/10/2026).
@@ -15313,7 +15355,9 @@ async function fetch(request, env, extras) {
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
     if (!professor) return json(400, { ok: false, erro: 'escolha o professor' });
     const veredicto = await senhaDoProfessorOk(env, kv, escola, professor, senha);
-    if (!veredicto.ok) return json(200, { ok: false, erro: veredicto.erro });
+    if (!veredicto.ok) {
+      return json(200, { ok: false, erro: veredicto.erro, ...(veredicto.desligado ? { desligado: true } : {}) });
+    }
 
     const bilhete = await emitirBilheteDoAto(kv, escola, {
       fonte: String(corpo.fonte || '').trim(),

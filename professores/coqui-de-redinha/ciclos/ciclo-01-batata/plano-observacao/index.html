@@ -2571,7 +2571,13 @@ async function validarSenha() {
     SENHA_VALIDA = !!dados.ok;
     // Só o resultado, nunca o nome do professor: a senha é do professor, e o
     // nome dele não é o que a validação revela.
-    sinalDeSenha(!!dados.ok, dados.ok ? '' : '✗ senha não reconhecida');
+    /* DOIS MOTIVOS DE RECUSA, DOIS RECADOS (15/11/2026). O professor desligado da escola tem a
+     * senha CERTA e é recusado na mesma — o desligamento encerrou a direcção pedagógica dele, e
+     * ele já não abre atos novos. Dizer «senha não reconhecida» mandava-o conferir o que está
+     * correcto; o servidor diz qual é o motivo, e a tela repete-o. */
+    sinalDeSenha(!!dados.ok, dados.ok ? '' : (dados.desligado
+      ? '✗ este professor desligou-se da escola — já não abre atos novos'
+      : '✗ senha não reconhecida'));
     if (dados.ok) {
       const alvo = $('senha');
       const caixa = alvo && alvo.closest ? alvo.closest('.campo') : null;

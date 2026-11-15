@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T12:28:05-0300`
-Commit atual: `526e3581` — fix(tools): a etiqueta «PO aguardando» passa a dizer o que falta marcar
+Gerado em: `2026-11-15T13:12:13-0300`
+Commit atual: `66010a79` — fix(estrutura): o professor desligado não se oferece para um ato
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -58,7 +58,7 @@ prova-do-shard
 rabo-gramde
 redinha-rosa
 rimel-preto (9)
-- **Ciclos com manifesto:** 8 variante(s)
+- **Ciclos com manifesto:** 9 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -76,26 +76,26 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
-526e3581 fix(tools): a etiqueta «PO aguardando» passa a dizer o que falta marcar
-1e0f3b6d docs(estrutura): actualizar a fotografia e corrigir as duas afirmações que ficaram falsas
-40f634ac chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
-dffa9eb7 chore(estrutura): reancorar a cadeia das fontes alteradas
-afdc75b7 chore(estrutura): regerar os índices derivados
-5a517661 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-76fff9ae feat(po): o PO elicitado vira a fonte do ciclo
-07d22c0b feat(acervo): envelope/po-20261115-1153.json
-dabf4120 feat(acervo): envelope/.indice.json
-a4da4ca6 chore(estrutura): reancorar a cadeia das fontes alteradas
-72f87eb7 fix(tools): as saídas do pacote deixam de se carimbar a cada commit
-59551ef4 docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico — ajuste: a versão anterior (até 2026-11-15) fica no histórico
-e17f7b11 chore(estrutura): reancorar a cadeia das fontes alteradas
-b1fe919a chore(estrutura): regerar os índices derivados
-53d8c013 chore(ciclo-01): regerar as saídas do pacote e renovar os selos da âncora
-d9c8dfc5 fix(template): o trecho do verbete só abre dentro de um trecho, e a Turma diz o estado de agora
-e0a35b96 chore(estrutura): regerar os índices derivados
-7aa4324e docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico
-e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
-1cf365d7 chore(estrutura): reancorar a cadeia das fontes alteradas
+66010a79 fix(estrutura): o professor desligado não se oferece para um ato
+f4988aa5 chore(entrega): gerar o pacote de coqui-de-redinha/01/batata-bale-nivel-1-teste-2
+8996e454 chore(estrutura): reancorar a cadeia das fontes alteradas
+cac94e9b chore(estrutura): regerar os índices derivados
+80da01ca feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+13157def feat(po): o PO elicitado vira a fonte do ciclo
+52ea8a64 feat(acervo): envelope/po-20261115-1246.json
+a1e5b12d feat(acervo): envelope/.indice.json
+41aeca0e chore(estrutura): regerar os índices derivados
+24794197 chore(estrutura): reancorar a cadeia das fontes alteradas
+69aeb65d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+c345b1da feat(plano): o plano elicitado vira a fonte do ciclo
+55c54310 feat(acervo): envelope/plano-20261115-1244.json
+c61b1155 feat(acervo): envelope/.indice.json
+a04a1305 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
+7f78138d chore(estrutura): reancorar a cadeia das fontes alteradas
+7b53c013 chore(estrutura): regerar os índices derivados
+9ab14846 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+712e5aec feat(po): o PO elicitado vira a fonte do ciclo
+f0825d86 feat(acervo): envelope/po-20261115-1236.json
 ```
 
 ## Por professor
@@ -104,15 +104,17 @@ e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 
 ### coqui-de-redinha — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): batata
+**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | batata | (sem PO) | — | — |
+| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Validado | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `4eeee09bfd91` | (vazio) | — |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `e2d4f1663100` | (vazio) | Input_PO_Validado |
 
 ### dedao-aberto — 0 ciclo(s)
 
@@ -203,104 +205,93 @@ e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
+## 15/11/2026 — O professor desligado não se oferece para um ato
 
-**O que motivou.** Depois de eu ter proposto marcar «sim» no critério que faltava, ela recusou a
-solução — e a recusa é a decisão: *«Não, não pode ir lá marcar sim como mutuamente exclusivo. O
-professor escolheu marcar não, então tem que ser considerado o que o professor marcou. […] É a
-marcação do professor que vale. […] A regra do que é opcional é opcional e está valendo também. E
-agora o campo que é obrigatório, se a opção é sim ou não e o professor escolheu não, é o que vale,
-foi o que ele escolheu marcar.»*
+**O que motivou.** Ela estava a testar a anamnese na `breu`, cujo professor principal é a Redinha
+Rosa, e viu um professor que já não está na escola na lista de quem pode ser escolhido: «eu criei o
+professor, está aqui como uma opção de professor para fazer anamnese. Isso está errado. Os
+professores que tinham que aparecer aqui são somente aqueles professores que ainda estão na escola.»
+E completou o que o resto da tela já faz: «**aqui na anamnese e em nenhum outro lugar**» — ou seja,
+o defeito estava só ali, porque ali estava a única lista que não filtrava.
 
-**O defeito, na origem.** `estadoDoPO` exigia as **seis** folhas do checklist de validação em
-`true`. Duas coisas confundiam-se nessa conta, e as duas são a mesma violação de um princípio
-diferente:
-
-1. **um «não» não é uma resposta em falta.** «Critérios mutuamente exclusivos» é uma leitura que o
-   professor faz do próprio recorte; dizer «não» é declarar um achado — e o código lia-o como
-   pergunta por responder;
-2. **as seis folhas são opcionais.** O conteúdo do PO declara `obrigatorio: false` nas seis, e o
-   mapa do formulário confirma-o: os obrigatórios são **catorze**, e nenhum deles é do checklist. Um
-   campo opcional estava a governar o estado — a regra do opcional a valer para uns e não para
-   outros.
+Medido no ar: `GET /api/bastidores/professores` da `breu` devolvia três nomes, e o segundo era o
+`prova-do-shard`, desligado desde 08/11/2026 (a Produção mostra-o com o selo e a data). Como essa
+rota é o **mesmo seletor** nas três fontes — anamnese, plano de ensino e PO —, o convite não era da
+anamnese: era da lista.
 
 **O que foi decidido.**
 
-- **O estado mede uma coisa só:** há pergunta OBRIGATÓRIA sem resposta? Sim ⇒
-  `Input_PO_Aguardando`; não ⇒ `Input_PO_Validado`.
-- **A lista de obrigatórias é do CONTEÚDO**, lida pelo **mesmo** conjunto de nós que o formulário
-  usa (`motor.nosRespondiveis`) — catorze ids, e não uma lista escrita no módulo.
-- **O sistema não julga o conteúdo de nenhuma resposta.** «não», «teste» ou uma frase curta são
-  respostas; vazio, só espaços e a lacuna `[Preencher: …]` não são — esta última porque é o próprio
-  documento a declarar a falta.
-- **O checklist continua a imprimir-se** e continua a valer como achado: a caixa `- [ ]` ao lado de
-  um critério que o professor marcou «não» quer dizer «este critério não está satisfeito» — é a
-  resposta dele, e fica escrita. O que muda é que ela já não move o estado.
-- **A etiqueta do cartão volta a ser só o estado.** A leitura das caixas (`pendenciasDoPO`) e a
-  frase «falta marcar …» foram **removidas** — eram a correção anterior, e estavam erradas.
-
-**Motivo declarado — os congelados.** `PROTOCOLO.md` (a linha «Ciclo de vida do estado»), `tools/`
-(`validar-po-ciclo.js` e `montar-publicacao.js`) e o `modelo/` dos schemas. A alteração **muda
-comportamento**, e por isso está declarada aqui com o pedido dela citado acima. **O que não muda:**
-a fórmula do hash, a cobertura da âncora, o contrato dos validadores (o `required` dos schemas é o
-mesmo, conferido por `check-schemas`), as 17 regras, as 22 pétreas e o `validationChecklist` como
-estrutura. O que muda é de onde o `state:` sai.
+- **A lista que faltava.** Desde 08/11/2026 três listas desta folha saltam o desligado com a mesma
+  frase («Quem saiu da escola não se oferece»): a das habilitações, a do desligamento e a da
+  curadoria. Faltava a quarta — a que alimenta os formulários do ato. É um `continue` e uma linha de
+  comentário, não uma regra nova.
+- **«Não se oferece» não é «não existe».** São duas listas com dois papéis, e a correção não pode
+  confundi-las: o **seletor do ato** deixa de o oferecer; a **lista da escola** (a Produção) continua
+  a mostrá-lo com o selo `desligado` e a data, porque o registo é proveniência e o nome dele está nos
+  documentos que assinou. O desligamento não apaga: retira o convite a escrever.
+- **A guarda é do servidor, e não só do `<select>`.** O desligamento **não apaga o hash da senha** —
+  é o que o torna silencioso: a senha dele continuava a valer, e uma página aberta de ontem, ou um
+  `?professor=` no endereço, abria a anamnese de quem já saiu. `senhaDoProfessorOk` passa a recusar o
+  desligado, com a data e o caminho de volta (recadastrar o mesmo identificador, que reactiva). É a
+  mesma frase que a curadoria já usa desde 08/11/2026.
+- **A recusa diz o que aconteceu.** Três veredictos, e não dois: *a senha está errada* e *o professor
+  saiu da escola* são factos diferentes, e o segundo chegou hoje — quando uma senha **certa** passou
+  a ser recusada. Colapsá-los em «senha não reconhecida» mandava a pessoa conferir o que está
+  correcto. O painel da Área do Professor e a barra da porta dizem, cada um no seu sítio, qual é o
+  motivo.
+- **A bancada que afirmava o contrário estava errada.** `provar-bateria-do-shard` afirmava «o
+  professor continua na lista, marcado» — mas sobre a rota do **seletor**, que devolve `{nome, slug}`
+  e não tem selo nenhum. O que ela afirmava, na prática, era «o desligado continua a poder abrir um
+  ato»: o defeito. Passa a afirmar as duas metades, cada uma na sua superfície.
 
 **Onde entrou.**
 
-- `motor/nucleo/derivar-po.js` — `estadoDoPO(envelope, obrigatorios)` com a regra nova,
-  `temConteudo`, `obrigatoriosDoPO(conteudo)` (que usa `nosRespondiveis`), e o `derivarPO` a passar
-  a lista; as três funções exportadas.
-- `motor/servidor/rotas.js` e `motor/servidor/concluir-po.js` — os dois sítios que derivam PO
-  passam `obrigatorios: obrigatoriosDoPO(conteudoPO)`.
-- `tools/validar-po-ciclo.js` — a mensagem que dizia «item sem marcar → o estado permanece
-  Input_PO_Aguardando» passa a relatar os critérios declarados «não» como **achado**; e a dos
-  provisórios deixa de afirmar «o PO não está aprovado».
-- `tools/montar-publicacao.js` e `motor/nucleo/lista-html.js` — **revertidos** à versão anterior à
-  correção errada.
-- `modelo/ciclos/ciclo-01-po-schema.json` e as nove cópias `professores/*/ciclos/ciclo-01-po-schema.json`
-  — a `description` do `validationChecklist` diz agora que as folhas são opcionais e que o estado
-  não se lê delas.
-- `PROTOCOLO.md` — a linha do ciclo de vida do estado.
-- `professores/*/ciclos/*-po.md` (5 fontes) — **uma linha cada**: `state: Input_PO_Aguardando` →
-  `Input_PO_Validado`, calculado a partir do envelope de cada uma. O resto do documento não foi
-  tocado: re-derivá-lo exigiria a linha de base do acto, que vive no KV, e a diferença é essa linha
-  e só essa.
-- Os cinco pacotes regerados e as cinco âncoras **reancoradas** (o PO é fonte coberta pelo `.fipp`,
-  por isso o `hash_conteudo` muda — e o `po_state` passa a `Input_PO_Validado`).
-- `indices/` regerados (`--check` 10 e 8 em dia; `check-indices` 16/16).
-- `experimentos/provar-estado-do-po.js` — prova nova (substitui `provar-pendencia-do-po.js`, que
-  media a correção errada).
+- `motor/servidor/bastidores.js` — a rota `/api/bastidores/professores` salta o desligado, e
+  `senhaDoProfessorOk` recusa-o com `desligado: true`; as rotas `validar-senha` e `ato` propagam esse
+  campo para a tela poder dizer o motivo certo.
+- `motor/servidor/listas-do-acervo.js` — o veredicto `SENHA` ganha o terceiro valor e a frase que o
+  explica.
+- `porta/index.html` — a barra da senha distingue «não reconhecida» de «desligou-se da escola».
+- `professores/*/ciclos/ciclo-01-*/plano-observacao/` (9 pacotes) — **a cópia da porta**, byte a byte
+  com `porta/index.html`, como o `check-identidade` exige. Oito por `criar-escola.sh --somente-porta`;
+  o da `lapis-rosa` (**que não tem manifesto base `ciclo-01.conf`**, porque nasceu pela página)
+  regerado inteiro por `gerar-ciclo.sh`.
+- `experimentos/provar-seletor-do-ato.js` — prova nova, 18 asserções.
+- `experimentos/provar-bateria-do-shard.js` — as duas asserções corrigidas.
 
-**Com o quê.** `provar-estado-do-po` **29/29**: o «não» dela não move o estado, as seis folhas em
-«não» também não, um obrigatório em branco move; as fronteiras do «sem resposta» (vazio, espaços,
-`[Preencher]` contra «teste», «não», lista com item) medidas uma a uma; o documento imprime o «não»
-como achado; e os cinco POs do repositório declaram exactamente o estado que a regra calcula a
-partir do envelope deles. **Controle negativo** com o `motor/` de `HEAD`: **14 de 29** reprovam — as
-14 em que a regra antiga diz «aguardando» e a nova diz «validado», que é o defeito relatado.
-`provar-derivar-po` (bancada do núcleo) passa a afirmar a regra nova: 30/35, com as **mesmas cinco**
-falhas anteriores (fixture do professor `fokini`, que não existe). Sem regressão: `check-schemas`
-TUDO CERTO (o molde e os nove professores dizem o mesmo contrato), `check-indices` 16/16,
-`hash-ciclo.sh --check` íntegro nos cinco ciclos, `provar-barra-e-caminho` 50/50,
-`provar-a-moldura-em-todas-as-telas` 111, `provar-custo-da-listagem` 7/7, `provar-menu-da-producao`
-54/55 (a mesma falha de antes). No ar, medido depois do deploy: `calango` e `batata` mostram
-**«PO validado»**.
+**Com o quê.** `provar-seletor-do-ato` **18/18**: o seletor deixa de o oferecer, a Produção continua
+a mostrá-lo com o selo e a data, a senha certa dele é recusada com o motivo, e **nenhum bilhete de
+ato é escrito no cofre**; o professor activo continua a passar e a receber bilhete. O controlo
+negativo é **o mesmo registo um campo apartado** — sem `desligado_em` ele é oferecido, com o campo
+desaparece —, e o `--controle-negativo` contra o `motor/` de `HEAD` reprova **8 de 18**, que são
+exactamente as medidas do defeito. `check-identidade` **22 verificações, 0 erro** (eram 9 pacotes
+divergentes antes de a porta ser recopiada). Âncoras: `hash-ciclo.sh --check` **íntegro nos nove**.
+`check-indices` 16/16; `gerar-indices --check` 10 e `gerar-relacoes --check` 9 em dia.
+`check-pacote` verde nos seis pacotes com escola; nos três **pacotes-zero** (`coqui-de-redinha/01/
+batata`, `pe-torto/01/calango`, `redinha-rosa/01/breu`) reprova com os mesmos 10 erros de `HEAD`
+— não têm PDF nem aulas, por definição, e o `check-pacote` nunca foi aplicável a eles.
+Sem regressão: `provar-transferencia-e-desligamento` 93/93, `provar-slug-do-professor` verde (o
+seletor e o slug do dono intactos), `provar-painel-do-ato` 183 (sem erro de JavaScript),
+`provar-editar-professor-principal` 30, `provar-cadastro-visivel` 12.
 
-**O que ainda não está feito.** (1) O envelope continua a gravar as respostas semeadas do checklist
-com `origem: "perguntado"` — inclusive o «não» que o sistema inferiu (`derivadoDe: {sempre: "não"}`)
-e não o professor. É o mesmo defeito que a casa já resolveu para as dimensões do plano (que vão como
-`importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
-chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
-anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
-**qual** — a informação existe (o formulário conta-a na barra), e mostrá-la no cartão é trabalho por
-fazer; não se fez agora para não voltar a pôr uma lista de «falta» onde ela não é um pedido.
+**O que ainda não está feito.** (1) `criar-escola.sh --somente-porta` exige o manifesto **base**
+(`ciclo-01.conf`), e uma escola nascida pela página pode ter só o da variante — foi o caso da
+`lapis-rosa`, que teve de ser regerada inteira. Alargar a ferramenta a esse caso é pequeno e fica
+declarado. (2) Na **porta**, o `?professor=<slug>` do endereço continua a acrescentar o nome à lista
+mesmo que ele não venha do servidor — é de propósito (um nome ajustado não pode desaparecer do
+formulário), e agora o que acontece é a recusa com o motivo certo, não o silêncio. (3) Um professor
+desligado que tenha **documentos por concluir** (um PO aberto, por exemplo) passa a não conseguir
+assiná-los; a direção continua a operar pelos Bastidores, mas a fronteira entre «o que ele deixou
+pela metade» e «o que já não é dele» não foi desenhada. (4) **Achado durante esta correção, e não
+corrigido:** o `/CreationDate` do PDF não é reprodutível entre fusos. O `SOURCE_DATE_EPOCH` é a
+meia-noite local da primeira aula, e `date -d` a converte pelo fuso da máquina — aqui (-03) sai
+`D:20270201030000Z`, num Worker de CI (UTC) sai `D:20270201000000Z`. Os dois bytes só aparecem quando
+alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redinha`, e o churn foi
+descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
+15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
+fica declarada em vez de feita à socapa.
 
 ## O que está pendente
-
-## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
-
-Nada desta entrada. As duas falhas de `provar-linha-de-base`
-(curadorias e «passo 5») continuam abertas, e são anteriores.
 
 ## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
 
@@ -332,6 +323,25 @@ e não o professor. É o mesmo defeito que a casa já resolveu para as dimensõe
 `importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
 chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
 anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
+
+## 15/11/2026 — O professor desligado não se oferece para um ato
+
+(1) `criar-escola.sh --somente-porta` exige o manifesto **base**
+(`ciclo-01.conf`), e uma escola nascida pela página pode ter só o da variante — foi o caso da
+`lapis-rosa`, que teve de ser regerada inteira. Alargar a ferramenta a esse caso é pequeno e fica
+declarado. (2) Na **porta**, o `?professor=<slug>` do endereço continua a acrescentar o nome à lista
+mesmo que ele não venha do servidor — é de propósito (um nome ajustado não pode desaparecer do
+formulário), e agora o que acontece é a recusa com o motivo certo, não o silêncio. (3) Um professor
+desligado que tenha **documentos por concluir** (um PO aberto, por exemplo) passa a não conseguir
+assiná-los; a direção continua a operar pelos Bastidores, mas a fronteira entre «o que ele deixou
+pela metade» e «o que já não é dele» não foi desenhada. (4) **Achado durante esta correção, e não
+corrigido:** o `/CreationDate` do PDF não é reprodutível entre fusos. O `SOURCE_DATE_EPOCH` é a
+meia-noite local da primeira aula, e `date -d` a converte pelo fuso da máquina — aqui (-03) sai
+`D:20270201030000Z`, num Worker de CI (UTC) sai `D:20270201000000Z`. Os dois bytes só aparecem quando
+alguém regera um pacote que a Action regerou (aconteceu com o da `coqui-de-redinha`, e o churn foi
+descartado em vez de commitado). É a mesma família do carimbo de geração que ela mandou tirar em
+15/11/2026, e a correção é fixar o fuso na geração — mexe em `tools/`, que é congelado, e por isso
+fica declarada em vez de feita à socapa.
 
 ## Pendências anteriores (índice)
 
@@ -769,7 +779,8 @@ anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «a
 - **13/11/2026** — As senhas de teste entram no ficheiro local, e o push deixa… → `REGISTRO.md` L44192
 - **15/11/2026** — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio → `REGISTRO.md` L44734
 - **15/11/2026** — O formulário da anamnese não abria: o `markdown.js` era… → `REGISTRO.md` L44809
-- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **15/11/2026** — Audição: as abas Recorte e Transferência esperam pelo… → `REGISTRO.md` L44870
+- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 

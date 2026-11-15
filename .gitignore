@@ -1346,3 +1346,12 @@ experimentos/modelo-formulario/*
 # lê-se das perguntas OBRIGATÓRIAS sem resposta; um «não» num campo OPCIONAL é um achado declarado e
 # não move nada. Mede os dois lados, porque um só não distingue «acerta» de «diz sempre o mesmo».
 !experimentos/provar-estado-do-po.js
+
+# O PROFESSOR DESLIGADO NÃO SE OFERECE PARA UM ATO (15/11/2026). Na `breu`, o `prova-do-shard`
+# continuava a ser opção no seletor da anamnese — e, como é o mesmo seletor nas três fontes,
+# também no plano de ensino e no PO. A prova mede as duas metades que a correção não pode
+# confundir: o SELETOR deixa de o oferecer, e a LISTA DA ESCOLA continua a mostrá-lo com o selo
+# `desligado` e a data, porque o registo é proveniência. Mede também a guarda do servidor — a
+# senha dele está CERTA e é recusada na mesma, e nenhum bilhete de ato é emitido. O controlo
+# negativo é o mesmo registo um campo apartado (`desligado_em`), e o de `HEAD` reprova em 8.
+!experimentos/provar-seletor-do-ato.js

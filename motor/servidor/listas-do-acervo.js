@@ -873,6 +873,15 @@ function scriptDoPainel(chave, escola) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'Falta o contexto do ato: ' + falta.join(', ') + '.';
+      } else if (CFG.temSenha && SENHA === 'desligado') {
+        /* O PROFESSOR SAIU — e a senha dele está CERTA (15/11/2026). O servidor recusa por outra
+         * razão, e é essa razão que a tela tem de dizer: o desligamento encerrou a direção
+         * pedagógica dele, e retomá-la é cadastrá-lo outra vez. Dizer «senha não reconhecida»
+         * aqui seria mandá-lo conferir o que está correto. */
+        estado.hidden = false;
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'Este professor desligou-se da escola: ele já não abre atos novos. '
+          + 'Os documentos que assinou continuam a valer. Se ele voltou, cadastre-o outra vez.';
       } else if (CFG.temSenha && SENHA === 'errada') {
         /* O CONTEXTO ESTA INTEIRO E A SENHA NAO CONFERE — e e isso que tem de ser dito. Sem esta
          * linha o botao ficava desabilitado sem motivo aparente, e o professor tentava outra vez
@@ -1163,7 +1172,11 @@ function scriptDoPainel(chave, escola) {
       body: JSON.stringify({ senha: senha, professor: professor }),
     }).then(function (r) {
       if (meu !== pedidoDeSenha) return;
-      SENHA = r.ok ? 'ok' : 'errada';
+      /* TRÊS VEREDICTOS, E NÃO DOIS (15/11/2026). «a senha está errada» e «o professor saiu da
+       * escola» são factos diferentes, e o segundo chegou quando uma senha CERTA passou a ser
+       * recusada — o desligado já não abre atos novos. Colapsá-los no mesmo estado diria à pessoa
+       * que ela digitou mal o que digitou bem. */
+      SENHA = r.ok ? 'ok' : ((r.dados && r.dados.desligado) ? 'desligado' : 'errada');
       pintar();
     });
   }

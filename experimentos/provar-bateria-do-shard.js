@@ -266,9 +266,20 @@ async function digital(slug) {
       /proveni[eê]ncia/.test(String(excluido.corpo && excluido.corpo.erro))
         && /reactiva/.test(String(excluido.corpo && excluido.corpo.erro)),
       excluido.corpo && excluido.corpo.erro);
+    /* O SELETOR NÃO O OFERECE, MAS A LISTA DA ESCOLA GUARDA-O (15/11/2026).
+     *
+     * Aqui afirmava-se `/Prova Do Shard/i.test(... /api/bastidores/professores)` — «continua na
+     * lista, marcado». Duas coisas se confundiam nessa linha, e a pesquisadora apanhou a segunda:
+     * esta rota é o SELETOR dos formulários (anamnese, plano, PO), devolve `{nome, slug}` e não
+     * tem selo nenhum. O que ela afirmava, na prática, era «o desligado continua a poder abrir um
+     * ato» — o defeito. O registo dele continua na lista da ESCOLA, que é a Produção, e é lá que
+     * o selo `desligado` está. */
     const depoisBreu = await chamar('breu', '/api/bastidores/professores');
-    provar('…e o professor continua na lista, marcado',
-      /Prova Do Shard/i.test(JSON.stringify(depoisBreu.corpo)), null);
+    provar('…e o seletor do ato já NÃO o oferece',
+      !/Prova Do Shard/i.test(JSON.stringify(depoisBreu.corpo)), depoisBreu.corpo);
+    const producaoBreu = await chamar('breu', '/bastidores/producao');
+    provar('…mas a lista da escola continua a mostrá-lo, com o selo `desligado`',
+      /Prova Do Shard/i.test(producaoBreu.texto) && /desligado/.test(producaoBreu.texto), null);
 
     /* ── OS GESTOS QUE PRECISAM DO MODELO ─────────────────────────────────────────────────── */
     pendente('4. anamnese — criar, editar, apagar', 'passa por POST /api/elicitar (gasta tokens e não é determinístico)');
@@ -301,7 +312,7 @@ async function digital(slug) {
     provar('o gesto da `batata` (turma) deixou a `batata` sem turma de prova — o que se cria, apaga-se',
       !(await turmasDe('batata')).some((t) => /Prova do Shard/.test(String(t.nome))), null);
     provar('…e a `breu` (professor) ficou com o registo do desligado, como proveniência',
-      /Prova Do Shard/i.test(JSON.stringify((await chamar('breu', '/api/bastidores/professores')).corpo)), null);
+      /Prova Do Shard/i.test((await chamar('breu', '/bastidores/producao')).texto), null);
   }
 
   const total = ok + ko;
