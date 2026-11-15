@@ -226,6 +226,11 @@ async function provisionarDentroDoShard({ nome, senhaAdmin, professorNome, profe
   const registo = {
     nome: String(professorNome || '').trim(),
     slug: slugDoProfessor,
+    /* O NOME DA ESCOLA (24/11/2026). O `nome` acima é o do professor; este é o da escola — o que a
+     * pessoa escreveu na página `danca` e que deu origem ao slug. Guarda-se porque, dentro do
+     * shard, a escola ainda não tem pacote e portanto não tem `nav.json` de onde o ler: a página
+     * de «a criar» aparecia sem nome, ou — antes disto — não aparecia de todo. */
+    escola: String(nome || '').trim(),
   };
   if (senhaDaDirecao) {
     const senha = await senhaDeRegisto.registoDeSenha(senhaDaDirecao);

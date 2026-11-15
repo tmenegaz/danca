@@ -356,6 +356,8 @@ function cloudflareFalso({ rotas = [] } = {}) {
 
     const dono = JSON.parse(kv.dados.get('bastidores/escola-nova/dono') || '{}');
     provar('escreve o registo do DONO, com nome e slug derivado', dono.nome === 'Pe Torto' && dono.slug === 'pe-torto', dono);
+    provar('…e guarda o NOME DA ESCOLA — é dele que a página de «a criar» se serve',
+      dono.escola === 'Escola Nova', dono.escola);
     provar('…com hash e sal da senha, e SEM a senha em claro',
       Boolean(dono.hash) && Boolean(dono.sal) && !JSON.stringify(dono).includes('senha-da-direcao'), Object.keys(dono));
     const senha = carregar('motor/nucleo/senha.js');
@@ -833,6 +835,82 @@ function cloudflareFalso({ rotas = [] } = {}) {
     try { await r2.responder(new Request('https://escola/y')); } catch (erro) { subiu = erro; }
     provar('CONTROLE NEGATIVO: um `Error` sem nome NÃO é convertido em resposta — sobe',
       subiu && /defeito a sério/.test(subiu.message), subiu && subiu.message);
+  });
+
+  /* ---------------------------------------------------------------- F. A escola sem pacote */
+
+  await secao('F. A escola que já tem endereço mas ainda não tem pacote', async () => {
+    const producao = carregar('motor/servidor/producao.js');
+    const mapa = carregar('motor/servidor/mapa-de-escolas.js');
+    if (!producao || typeof producao.fetch !== 'function' || !mapa || typeof mapa.registar !== 'function') {
+      provar('existem a ponte e o mapa de escolas', false, 'não existem');
+      return;
+    }
+
+    /* O ASSETS VAZIO — é a condição exacta do intervalo entre o mapa ser escrito e o pacote ser
+     * publicado. O Cloudflare devolve 404, e era esse 404 que o professor via como «tela preta». */
+    const assetsVazio = { fetch: async () => new Response('', { status: 404 }) };
+    const kvDe = (dados) => ({
+      dados,
+      async get(k) { return dados.has(k) ? dados.get(k) : null; },
+      async put(k, v) { dados.set(k, String(v)); },
+      async delete(k) { dados.delete(k); },
+      async list() { return { keys: [...dados.keys()].map((name) => ({ name })), list_complete: true }; },
+    });
+
+    const novaEscola = async (nome) => {
+      const kv = kvDe(new Map());
+      await mapa.registar(kv, 'pendente.padd.com.br', 'pendente');
+      if (nome) await kv.put('bastidores/pendente/dono', JSON.stringify({ nome: 'Pe', slug: 'pe', escola: nome }));
+      mapa.esquecer(kv);
+      producao.esquecerPacote();
+      const env = { ESCOLA_HABILITADA: 'sim', PADD_KV: kv, ASSETS: assetsVazio };
+      const pedido = new Request('https://pendente.padd.com.br/', { headers: { host: 'pendente.padd.com.br' } });
+      return producao.fetch(pedido, env);
+    };
+
+    /* O QUE ELA VIU: o domínio já abre e não há conteúdo. A resposta tem de DIZER o que se passa. */
+    const espera = await novaEscola('Calango');
+    const corpoEspera = await espera.text();
+    provar('a raiz de uma escola no mapa sem pacote NÃO é o 404 mudo do Cloudflare',
+      espera.status === 200, espera.status);
+    provar('…e diz que o motor está A SER IMPLANTADO — é a tela que ela mandou repor',
+      /está sendo implantado/.test(corpoEspera), corpoEspera.slice(0, 160));
+    provar('…com o NOME da escola, e não o slug do endereço',
+      /Calango/.test(corpoEspera), corpoEspera.slice(0, 160));
+    provar('…e a página veste a casa (o CSS vai embutido, não vem de um `/assets` que pode faltar)',
+      /data-tela="estado"/.test(corpoEspera), null);
+
+    /* Sem o nome no registo (as escolas criadas antes desta versão), o slug é o que há — e ler o
+     * slug é melhor do que ler «undefined». */
+    const semNome = await novaEscola('');
+    const corpoSemNome = await semNome.text();
+    provar('sem nome guardado, a página usa o slug — e não escreve «undefined»',
+      /pendente/.test(corpoSemNome) && !/undefined/.test(corpoSemNome), corpoSemNome.slice(0, 160));
+
+    /* CONTROLE NEGATIVO 1: uma página que não existe continua a ser um 404. Se a guarda fosse
+     * «qualquer 404 vira página de espera», um link velho passaria a mentir. */
+    const kv2 = kvDe(new Map());
+    await mapa.registar(kv2, 'pendente.padd.com.br', 'pendente');
+    mapa.esquecer(kv2);
+    producao.esquecerPacote();
+    const aula = await producao.fetch(
+      new Request('https://pendente.padd.com.br/aulas/aula-01.html', { headers: { host: 'pendente.padd.com.br' } }),
+      { ESCOLA_HABILITADA: 'sim', PADD_KV: kv2, ASSETS: assetsVazio });
+    const corpoAula = await aula.text();
+    provar('CONTROLE NEGATIVO: o 404 de uma PÁGINA de conteúdo não vira página de espera',
+      aula.status === 404 && !/está sendo implantado/.test(corpoAula), { status: aula.status });
+
+    /* CONTROLE NEGATIVO 2: um host que o mapa não conhece não é uma escola a nascer — é um
+     * endereço errado, e continua a dizê-lo. */
+    const kv3 = kvDe(new Map());
+    mapa.esquecer(kv3);
+    const desconhecido = await producao.fetch(
+      new Request('https://ninguem.padd.com.br/', { headers: { host: 'ninguem.padd.com.br' } }),
+      { ESCOLA_HABILITADA: 'sim', PADD_KV: kv3, ASSETS: assetsVazio });
+    const corpoDesconhecido = await desconhecido.text();
+    provar('CONTROLE NEGATIVO: um host fora do mapa NÃO recebe a página de espera',
+      !/está sendo implantado/.test(corpoDesconhecido), corpoDesconhecido.slice(0, 160));
   });
 
   console.log('\n' + (ko === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + ok + '/' + (ok + ko)

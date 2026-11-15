@@ -568,6 +568,7 @@ async function identidadeDoDonoDoKv(env, escola) {
       slug: String(o.slug || '').trim(),
       hash: String(o.hash || '').trim(),
       sal: String(o.sal || '').trim(),
+      escola: String(o.escola || '').trim(),
     };
   } catch (erro) {
     return {};
@@ -591,6 +592,9 @@ async function comIdentidadeDaEscola(env, escola) {
   const sobreposto = {};
   if (doKv.nome) sobreposto.PROFESSOR_NOME = doKv.nome;
   if (doKv.slug) sobreposto.PROFESSOR_SLUG = doKv.slug;
+  /* O NOME DA ESCOLA, para a página de «a criar» (24/11/2026). Sem ele a página só tinha o slug,
+   * e o slug é o endereço, não o nome. */
+  if (doKv.escola) sobreposto.ESCOLA_NOME = doKv.escola;
   if (doKv.hash) { sobreposto.SENHA_DIRECAO_HASH = doKv.hash; sobreposto.SENHA_DIRECAO_SAL = doKv.sal || ''; }
   if (chave) sobreposto.SENHA_CRIPTO = chave;
   if (!Object.keys(sobreposto).length) return env;
@@ -1102,9 +1106,33 @@ async function fetch(request, env) {
     const caminhoNoAsset = ehAssetPartilhado(path) ? path : caminhoNaArvore(env, path);
     const pedidoAoAsset = caminhoNoAsset === path ? request
       : new Request(new URL(caminhoNoAsset + url.search, request.url), request);
+    /* A ESCOLA QUE AINDA NÃO TEM PACOTE (24/11/2026) — a tela que a pesquisadora mandou repor.
+     *
+     * No regime de um Worker por escola, o Worker «zero» servia sozinho a página «implantação em
+     * andamento» (`scriptDaEscola` em `provisionar-escola.js`): o endereço existia antes de o
+     * conteúdo existir, e quem chegasse cedo lia o que estava a acontecer. As palavras dela: «a
+     * gente dava satisfação do que estava acontecendo e agora não tem mais».
+     *
+     * No shard essa página deixou de ter onde viver. O domínio da escola passa a responder assim
+     * que o mapa é escrito (`provisionarDentroDoShard`), mas o pacote só entra na árvore partilhada
+     * no deploy seguinte — e nesse intervalo o pedido caía aqui, no ASSETS, que devolvia o 404 do
+     * Cloudflare. Era essa a «tela preta dizendo que não deu certo».
+     *
+     * O QUE NÃO SE CONFUNDE: o 404 de uma página de conteúdo — uma aula que não existe, um link
+     * velho — continua a ser um 404. Só a RAIZ da escola é um estado de espera, porque a raiz
+     * existe em qualquer pacote montado (`montar-publicacao.js` sempre escreve `index.html`).
+     * O texto e o `200` são os do placeholder original, de propósito: é a mesma página, no mesmo
+     * ponto do processo, e duas redacções para o mesmo instante divergiriam. */
+    const respostaDoAsset = await env.ASSETS.fetch(pedidoAoAsset);
+    if (respostaDoAsset.status === 404 && escolaResolvida && (path === '/' || path === '/index.html')) {
+      return respostaEstado('Sistema Lastro',
+        '<p>Esta é a escola <b>' + esc(env.ESCOLA_NOME || escolaResolvida) + '</b>. O motor completo '
+        + '(Bastidores, anamnese, plano de ensino e plano de observação) está sendo implantado — '
+        + 'recarregue em instantes.</p>', 200);
+    }
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
-    return comAparencia(await env.ASSETS.fetch(pedidoAoAsset), await aparenciaDoEnv(env),
+    return comAparencia(respostaDoAsset, await aparenciaDoEnv(env),
       { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {

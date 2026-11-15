@@ -533,6 +533,13 @@ function principal() {
       };
 
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'descobrir-'));
+      /* A BANCADA REPÕE O QUE O PASSO ESPERA ENCONTRAR (24/11/2026). A descoberta passou a
+       * perguntar ao shard (`source tools/lib-shard.sh`) se a escola é servida por ele — e a
+       * bancada isolava o conteúdo num `tmp` sem `tools/`, de modo que o `source` falhava e a
+       * asserção media a ausência da lib, não a descoberta. Copia-se a lib, que é o que existe
+       * na raiz do repositório quando o passo corre a sério. */
+      fs.mkdirSync(path.join(tmp, 'tools'), { recursive: true });
+      fs.copyFileSync(path.join(RAIZ, 'tools', 'lib-shard.sh'), path.join(tmp, 'tools', 'lib-shard.sh'));
       fs.mkdirSync(path.join(tmp, 'professores', 'um-professor', 'ciclos', 'ciclo-01-escola-viva'), { recursive: true });
       fs.writeFileSync(path.join(tmp, 'wrangler.escola-viva.jsonc'),
         '{"assets": {"directory": "publicacao/escola-viva"}}');
