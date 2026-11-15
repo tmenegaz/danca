@@ -86,15 +86,26 @@ function main() {
   const semDisco = Object.assign({}, validador.carregarMundo(), { indices: new Map() });
   const resultadoSemDisco = validador.verificar(semDisco);
   const falhasSemDisco = resultadoSemDisco.porVerificacao.filter((v) => v.falhas.length).map((v) => v.n);
-  // DUAS verificações leem o ARQUIVO e têm de acusar a ausência — e é correto que acusem:
-  //   · 1 (reconstrução) — não há o que comparar;
-  //   · 5 (cobertura)    — a cobertura é medida SOBRE o acervo gravado, e sem ele não há medida.
-  // As outras DOZE não dependem do arquivo: é isso que prova que a geração o não lê.
-  checar('sem `indices/` no disco, só as verificações que leem o arquivo acusam (1 e 5)',
-    falhasSemDisco.sort().join(',') === '1,5', falhasSemDisco.join(', '));
-  checar('as outras doze verificações continuam passando sem o disco de `indices/`',
-    resultadoSemDisco.porVerificacao.filter((v) => v.falhas.length === 0).length === 12,
-    String(resultadoSemDisco.porVerificacao.filter((v) => v.falhas.length === 0).length));
+  /* QUEM LÊ O ARQUIVO GRAVADO, DECLARADO AQUI (24/11/2026). As outras não dependem dele — é isso
+   * que prova que a geração o não lê.
+   *
+   *   · 1  (reconstrução)     — não há o que comparar;
+   *   · 5  (cobertura)        — a cobertura é medida SOBRE o acervo gravado;
+   *   · 15 (acesso declarado) — compara o transversal com os índices das ESCOLAS, e sem disco
+   *                             não há os dois lados.
+   *
+   * A LISTA ERA «1 e 5», e ficou a mentir quando a 15 nasceu: a prova reprovava uma verificação
+   * que faz exactamente o que devia. Declara-se a lista, e a contagem sai dela — em vez de um
+   * «doze» escrito à mão que envelhece a cada verificação nova. */
+  const LEEM_O_DISCO = [1, 5, 15];
+  const totalDeVerificacoes = resultadoSemDisco.porVerificacao.length;
+  checar('sem `indices/` no disco, só as verificações que leem o arquivo acusam (' + LEEM_O_DISCO.join(', ') + ')',
+    falhasSemDisco.sort((a, b) => a - b).join(',') === LEEM_O_DISCO.join(','), falhasSemDisco.join(', '));
+  checar('as outras ' + (totalDeVerificacoes - LEEM_O_DISCO.length) + ' verificações continuam passando sem o disco de `indices/`',
+    resultadoSemDisco.porVerificacao.filter((v) => v.falhas.length === 0).length
+      === totalDeVerificacoes - LEEM_O_DISCO.length,
+    String(resultadoSemDisco.porVerificacao.filter((v) => v.falhas.length === 0).length)
+      + ' de ' + totalDeVerificacoes);
   checar('o gerado é o mesmo com ou sem o disco de `indices/`',
     [...uma.arquivos.keys()].every((rel) => semDisco.gerado.has(rel)));
 
@@ -112,11 +123,43 @@ function main() {
 
   console.log('\n== 5. O expurgo permanece ==');
   const expurgadas = acervo.escolas.filter((e) => e.expurgada === true);
-  checar('há ao menos uma escola expurgada no acervo', expurgadas.length > 0, String(expurgadas.length));
-  checar('toda expurgada tem o inventário que é o elo (não sumiu do disco)',
-    expurgadas.every((e) => fs.existsSync(path.join(RAIZ, 'escola', e.slug, 'indice.json'))));
+  /* A REGRA, MEDIDA COM UMA ESCOLA DE MENTIRA (24/11/2026).
+   *
+   * Isto exigia «há ao menos uma escola expurgada no acervo» — e reprovava em todo o estado
+   * legítimo em que não há nenhuma. Aconteceu a 24/11: ela recriou as três escolas de teste, o
+   * repositório ficou sem expurgada, e a prova passou a acusar um defeito que não existia. Uma
+   * prova presa ao estado do mundo apodrece no dia em que o mundo muda — e este é o mundo dela.
+   *
+   * O que se mede é a derivação: um elo SEM config e SEM pacote é uma escola apagada, e ela
+   * entra no acervo marcada (o elo é a memória). Constrói-se o caso, em vez de o esperar. */
+  const deMentira = indices.construir({
+    arvores: ['wrangler.danca.jsonc', 'escola/apagada/indice.json', 'wrangler.viva.jsonc',
+      'escola/viva/indice.json', 'professores/p/ciclos/ciclo-01-viva/index.html'],
+    inventarios: {
+      apagada: { escola: 'apagada', ciclo: '01', estado: { habilitada: true } },
+      viva: { escola: 'viva', ciclo: '01', estado: { habilitada: true } },
+    },
+    envelopes: {}, ancoras: {}, agora: '2026-11-15T00:00',
+  });
+  const daMentira = (slug) => (deMentira.acervo.escolas || []).find((e) => e.slug === slug);
+  checar('um elo sem config e sem pacote é uma escola EXPURGADA, e não uma ausente',
+    daMentira('apagada') && daMentira('apagada').expurgada === true,
+    daMentira('apagada') && daMentira('apagada').expurgada);
+  checar('…e ela continua no acervo, marcada (o elo é a memória, e não se apaga)',
+    Boolean(daMentira('apagada')) && daMentira('apagada').slug === 'apagada', null);
+  checar('a escola com config e pacote continua VIVA', daMentira('viva') && daMentira('viva').expurgada === false,
+    daMentira('viva') && daMentira('viva').expurgada);
+
+  // E as invariantes sobre o acervo REAL valem sempre — inclusive quando não há expurgada.
+  checar('toda expurgada do acervo tem o inventário que é o elo (não sumiu do disco)',
+    expurgadas.every((e) => fs.existsSync(path.join(RAIZ, 'escola', e.slug, 'indice.json'))),
+    expurgadas.map((e) => e.slug));
   checar('toda expurgada está marcada, e não apenas ausente',
     expurgadas.every((e) => e.expurgada === true && e.slug));
+  if (!expurgadas.length) {
+    console.log('  — o acervo não tem escola expurgada agora: as duas invariantes acima valem por vacuidade, '
+      + 'e a regra foi medida na derivação de mentira');
+  }
 
   console.log('\n== 6. O recorte por ciclo diz o mesmo que a escola ==');
   // O CICLO É ESCOLHIDO DO QUE FOI GERADO, não nomeado à mão (20/10/2026). A prova fixava o
@@ -174,10 +217,27 @@ function main() {
 
   console.log('\n== 8. O validador tem as verificações do plano ==');
   const numeros = validador.VERIFICACOES.map((v) => v.n);
-  checar('são 14 verificações, numeradas de 1 a 14',
-    numeros.length === 14 && numeros.join(',') === Array.from({ length: 14 }, (_, i) => i + 1).join(','),
+  /* A CONTAGEM NÃO SE ESCREVE À MÃO (24/11/2026). Era «são 14, de 1 a 14», e ficou a mentir no
+   * dia em que a 15 e a 16 nasceram — uma prova a medir o número que ela própria proibia de
+   * mudar. O que importa não é o total: é que as verificações sejam CONTÍGUAS a partir de 1 (um
+   * número saltado é uma verificação apagada sem ninguém notar) e que as do plano continuem lá,
+   * pelo NOME. Acrescentar uma verificação passa a ser permitido; perder uma, não. */
+  checar('as verificações são contíguas a partir de 1, sem número saltado',
+    numeros.length > 0 && numeros.join(',') === Array.from({ length: numeros.length }, (_, i) => i + 1).join(','),
     numeros.join(','));
   checar('as 13 do §9.1 estão nomeadas', validador.VERIFICACOES.slice(0, 13).every((v) => v.nome && v.regra));
+  {
+    // AS QUE NASCERAM DEPOIS DO PLANO, e que a contagem antiga escondia atrás de um «14»: se
+    // alguma for apagada, o nome desaparece e esta asserção reprova — não o total.
+    const nomes = validador.VERIFICACOES.map((v) => v.nome);
+    const exigidas = ['Cópias internas', 'Acesso declarado', 'Recorte coerente'];
+    checar('as verificações acrescentadas depois do plano continuam lá, pelo nome',
+      exigidas.every((n) => nomes.indexOf(n) !== -1),
+      exigidas.filter((n) => nomes.indexOf(n) === -1));
+    checar('…e todas declaram nome e regra (não há verificação anónima)',
+      validador.VERIFICACOES.every((v) => v.nome && v.regra),
+      validador.VERIFICACOES.filter((v) => !v.nome || !v.regra).map((v) => v.n));
+  }
 
   const contra = rodar(VALIDADOR, ['--contraprovas']);
   checar('todas as contraprovas do §9.2 reprovam como deviam', contra.codigo === 0, contra.saida.trim().split('\n').pop());
@@ -229,10 +289,18 @@ function main() {
     // `expurgada` vem do wrangler que o expurgo apagou. Sem a conjunção, o índice da `breu` dizia
     // as duas coisas ao mesmo tempo. Não há escola habilitada sem Worker.
     const expurgadas = acervo.escolas.filter((e) => e.expurgada === true);
-    checar('há escola expurgada para medir', expurgadas.length > 0, String(expurgadas.length));
+    /* A CONJUNÇÃO, MEDIDA NA DERIVAÇÃO — pela mesma razão da secção 5: exigir que exista uma
+     * expurgada hoje reprova no estado legítimo em que não há nenhuma. O elo da escola apagada
+     * declara `estado.habilitada: true` (foi criada habilitada, e o elo não se reescreve); a
+     * derivação tem de dizer as duas coisas ao mesmo tempo — «habilitada na criação» e
+     * «expurgada» —, e a tela lê a segunda. */
+    const apagada = daMentira('apagada');
     checar('nenhuma expurgada está habilitada',
       expurgadas.every((e) => e.habilitada === false),
       expurgadas.filter((e) => e.habilitada !== false).map((e) => e.slug));
+    checar('…e isso vale também para quem foi criada habilitada e depois apagada',
+      Boolean(apagada) && apagada.expurgada === true && apagada.habilitada === false,
+      apagada && { expurgada: apagada.expurgada, habilitada: apagada.habilitada });
     checar('e a escola com Worker continua a seguir o elo',
       acervo.escolas.filter((e) => e.expurgada !== true).every((e) => typeof e.habilitada === 'boolean'));
   }
@@ -285,9 +353,16 @@ function main() {
     }
     const declarados = new Set(ids);
     const doMotor = new Set(indices.TIPOS_DE_DOCUMENTO);
-    checar('o motor classifica os mesmos tipos que o esquema declara (menos `pacote`, que é diretório)',
-      [...declarados].filter((id) => id !== 'pacote').every((id) => doMotor.has(id)),
-      [...declarados].filter((id) => id !== 'pacote' && !doMotor.has(id)));
+    /* QUEM NÃO É CLASSIFICADO JÁ ESTÁ DECLARADO NO ESQUEMA (24/11/2026). A prova tinha a sua
+     * própria excepção — «menos `pacote`, que é diretório» —, e o esquema já responde campo a
+     * campo (`classificado_pelo_motor: false`). Duas opiniões: no dia em que o `perfil` nasceu,
+     * com a mesma marca, a prova reprovou um esquema que dizia a verdade. Passa a ler a
+     * declaração, em vez de a repetir. */
+    const naoClassificados = new Set(tipos.filter((x) => x.classificado_pelo_motor === false).map((x) => x.id));
+    checar('o motor classifica os mesmos tipos que o esquema declara (menos os que o esquema marca como não classificados: '
+      + ([...naoClassificados].join(', ') || 'nenhum') + ')',
+      [...declarados].filter((id) => !naoClassificados.has(id)).every((id) => doMotor.has(id)),
+      [...declarados].filter((id) => !naoClassificados.has(id) && !doMotor.has(id)));
     checar('e nenhum tipo do motor está fora da declaração',
       [...doMotor].every((id) => declarados.has(id)),
       [...doMotor].filter((id) => !declarados.has(id)));

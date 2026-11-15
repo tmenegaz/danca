@@ -46090,3 +46090,69 @@ foi `provar-slug-do-professor` e `provar-recriacao-da-escola`.
 
 **O que ainda não está feito.** A confirmação ao vivo é dela: recriar uma escola escolhendo «um
 professor que já existe». A `danca` precisa de deploy para o formulário novo chegar ao ar.
+
+## 24/11/2026 — o shard sai da lista de escolas, e duas provas que mediam o vazio
+
+Depois de a `calango` ser recriada, `/api/escolas` respondia `["lastro-teste"]`: o Worker que serve N
+escolas aparecia entre as vivas, com o botão «Apagar escola» ao lado. O defeito é o mesmo que a
+derivação do disco já tinha consertado a 15/11 — mas vivo no único sítio onde ele tem botão.
+
+**A causa é uma pergunta respondida em três lugares, e só em dois.** O `gerar-indices.js` lia a marca
+`PACOTE_PARTILHADO` no config e passava a lista a `indices.construir` — por isso o
+`indices/acervo.json` do repositório saía certo, e é dele que `/escolas-vivas` e `/escolas-apagadas`
+leem. O `deploy-escolas.yml` excluía o shard pela mesma marca. O `indice-acervo.js` — o caminho que
+`/api/escolas` usa, com a árvore lida do GitHub — não fazia a pergunta: montava o acervo sem
+`shards`, e o config do shard entrava como escola. Que as duas primeiras estivessem certas é o que
+tornava o defeito invisível: as provas mediam a função pura e o disco, e ambas aprovavam.
+
+**A regra passou a morar em `motor/nucleo/shards.js`**, chamada pelos dois caminhos
+(`scriptsDeShardSync` no disco, `scriptsDeShard` no servidor). O que não se duplica é a decisão —
+quais configs abrir e o que faz um shard. E o custo é o número de SHARDS, não o de escolas: o ELO
+responde sem ler (`escola/<slug>/indice.json` existe para toda a escola que nasceu e nunca para um
+shard), de modo que só se abre o config de quem não tem elo. Medido: um config aberto, e a escola
+com elo não é lida.
+
+`VERSAO` do índice sobe para **7** — leva também o `professores[].pasta` de `998682c2`.
+
+**Duas provas que mediam o vazio, e ficaram consertadas.**
+
+- `provar-indices` (4 asserções, todas pré-existentes): exigia «há ao menos uma escola expurgada no
+  acervo» — e reprovava no estado legítimo em que não há nenhuma, que é o de hoje. A regra passou a
+  ser medida numa derivação de mentira (um elo sem config e sem pacote), e as invariantes sobre o
+  acervo real valem sempre. Exigia «são 14 verificações» — e a 15 e a 16 já existiam; passa a exigir
+  contiguidade e os NOMES, que é o que impede perder uma. E a excepção «menos `pacote`, que é
+  diretório» era uma segunda opinião sobre o que o esquema já declara em `classificado_pelo_motor`
+  (o `perfil` nasceu com a mesma marca e a prova reprovava um esquema que dizia a verdade).
+- `provar-navegacao` **morria** com `Cannot read properties of undefined (reading 'querySelector')`:
+  procurava o grupo «Ciclos» pelo nome, e a `/aulas/` deixou de ter um. As secções 5, 6 e 7 nunca
+  corriam. A leitura passou a ser tolerante e o acordeão passou a ser medido no primeiro grupo, com
+  a MESMA função antes e depois — e só «empurra os de baixo» quando há dois grupos à vista (a
+  ≥1141px a folha esconde `.coluna-fora`, de propósito).
+
+**Onde entrou.** `motor/nucleo/shards.js` (novo) · `motor/servidor/indice-acervo.js` (a lista de
+shards no caminho do servidor) · `tools/gerar-indices.js` (passa a usar a mesma função) ·
+`motor/nucleo/indices.js` (`VERSAO = 7` e o porquê) · `experimentos/provar-cofre-e-shard.js`
+(secção C2b — o caminho do servidor, com controle negativo) · `experimentos/provar-indices.js` ·
+`experimentos/provar-navegacao.js`.
+
+**Com o quê.** `provar-cofre-e-shard` **116/116** (controle negativo 14/42) · `provar-indices`
+64/64 · `check-indices` 16/16 · `gerar-indices --check` em dia · `check-identidade` 0 erros ·
+`provar-menu-da-producao` 55/55 · `provar-form-escola`, `provar-slug-do-professor`,
+`provar-recorte-no-indice` verdes. Ao vivo, depois do deploy: `/api/escolas` →
+`["batata","breu","calango"]`, e `/escolas-vivas` não nomeia o shard.
+
+**O que fica declarado e NÃO está corrigido — precisa de decisão.**
+
+1. **A coluna do site publicado não diz mais onde o professor está.** O `motor/nucleo/nav.js` emite
+   `data-atual` no grupo que CONTÉM a página (e o `ciclo.css` estiliza-o em dois sítios — o filete de
+   ouro), mas em `/ciclos/planos/` e `/aulas/` nenhum grupo contém a página, desde que o menu passou
+   a ser «Área do Professor» + «Bastidores». As 6 asserções vermelhas de `provar-navegacao` são todas
+   deste facto. Não se corrigiu: dizer «o grupo X está marcado» exige decidir QUAL grupo representa
+   `/ciclos/planos/` — é desenho, não conserto.
+2. **`/area-do-professor/aulas-dadas/` está na barra e não existe** como página (é rota da ponte?).
+   Medido por `provar-barra-unica` (3 de 109, todas pré-existentes): o link aparece na lista e entre
+   os que «apontam para um arquivo que não existe».
+3. **A cache do índice não é usada na raiz.** `indice-acervo.lerComCache` fala com um armazenamento
+   que tem `ler`/`guardar`; a raiz passa `env.PADD_KV` cru (que tem `get`/`put`), e a condição falha
+   em silêncio. Cada `/api/escolas` e cada `/api/professores` reconstrói o acervo inteiro — medido:
+   1 árvore + 8 leituras por chamada. É custo, não é defeito de dado.

@@ -274,41 +274,74 @@ function destinos(menu) {
   provar('a página não estoura na horizontal', col.estouro <= 1, col.estouro);
 
   // O ponteiro abre o grupo e EMPURRA os de baixo — a segunda metade é a que se esquece.
-  const antes = col.topoDosGrupos;
-  /* O GRUPO QUE SE ABRE É O PRIMEIRO — «Ciclos» (24/10/2026). Era «Planejamento», e esse grupo
-     deixou de existir quando a notação passou para a Área do Professor e o glossário para
-     «Consulta». O que se mede é o acordeão: um grupo abre e EMPURRA os de baixo, e quem está
-     abaixo de «Ciclos» é a «Área do Professor». */
-  const alvo = await pagina.evaluate(() => {
-    const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Ciclos/.test(x.textContent));
-    const t = g.querySelector('.coluna-titulo').getBoundingClientRect();
-    return { x: Math.round(t.left + t.width / 2), y: Math.round(t.top + t.height / 2) };
-  });
-  await pagina.mouse.move(alvo.x, alvo.y);
-  await new Promise((r) => setTimeout(r, 420));
-  const durante = await pagina.evaluate(() => {
-    const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Ciclos/.test(x.textContent));
-    const area = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Área/.test(x.textContent));
+  /* O PRIMEIRO GRUPO, SEJA ELE QUAL FOR (24/11/2026).
+   *
+   * Aqui procurava-se o grupo pelo NOME — «Ciclos», antes «Planejamento» —, e o comentário já
+   * registava uma renomeação. A 24/11 a página `/aulas/` deixou de ter um grupo «Ciclos»
+   * (`[0,0]` nas alturas: dois grupos, nenhum deles com esse nome), o `find` devolveu `undefined`
+   * e a prova MORREU com «Cannot read properties of undefined (reading 'querySelector')» — sem
+   * dizer qual asserção falhou, e sem correr as secções 5, 6 e 7. Um nome de grupo é desenho de
+   * hoje; o que a secção mede é o ACORDEÃO: um grupo abre e empurra os de baixo. Mede-se com o
+   * primeiro, e diz-se qual foi.
+   *
+   * A leitura passou a ser TOLERANTE: se a página tiver menos de dois grupos, as asserções
+   * reprovam nomeando o que faltou — em vez de estourar. Uma prova que estoura não mede. */
+  /* A MEDIÇÃO É A MESMA ANTES E DEPOIS — a mesma função no browser, a mesma grandeza. Antes
+   * disto, o «antes» vinha de uma conta (`centro - altura/2`) e o «depois» de outra
+   * (`getBoundingClientRect().top`); comparar duas contas diferentes não mede o movimento.
+   * `topoDoSegundoTitulo` é lida agora e relida depois, com o mesmo código. */
+  const medirColuna = () => pagina.evaluate(() => {
+    const todos = [...document.querySelectorAll('.coluna .coluna-grupo')];
+    const titulo = (g) => (g ? g.querySelector('.coluna-titulo') : null);
+    const itens = (g) => (g ? g.querySelector('.coluna-itens') : null);
+    const r0 = titulo(todos[0]) ? titulo(todos[0]).getBoundingClientRect() : null;
+    const r1 = titulo(todos[1]) ? titulo(todos[1]).getBoundingClientRect() : null;
     return {
-      itens: Math.round(g.querySelector('.coluna-itens').getBoundingClientRect().height),
-      areaTopo: Math.round(area.getBoundingClientRect().top),
+      rotulos: todos.map((g) => (titulo(g) ? titulo(g).textContent : '').trim()),
+      /* QUEM ESTÁ À VISTA. No computador a folha esconde `.coluna-fora` (≥1141px, em
+       * `ciclo.css`) — o grupo «Bastidores» vive só na folha do telemóvel. Sem esta lista, a
+       * asserção do acordeão procurava um segundo grupo que o desenho, de propósito, não mostra,
+       * e media zero nos dois lados. */
+      visiveis: todos.filter((g) => titulo(g) && titulo(g).getBoundingClientRect().height > 0)
+        .map((g) => (titulo(g) ? titulo(g).textContent : '').trim()),
+      primeiroX: r0 ? Math.round(r0.left + r0.width / 2) : null,
+      primeiroY: r0 ? Math.round(r0.top + r0.height / 2) : null,
+      // A GRANDEZA DO ACORDEÃO: a altura dos itens do primeiro grupo, e o TOPO do título do
+      // segundo. Se o primeiro abrir, a segunda cresce e a segunda desce.
+      itensDoPrimeiro: itens(todos[0]) ? Math.round(itens(todos[0]).getBoundingClientRect().height) : null,
+      topoDoSegundoTitulo: r1 ? Math.round(r1.top) : null,
     };
   });
-  const areaAntes = antes[[...await pagina.evaluate(() => [...document.querySelectorAll('.coluna .coluna-grupo')]
-    .map((g) => g.querySelector('.coluna-titulo span').textContent))].indexOf('Área do Professor')];
-  provar('o ponteiro abre o grupo (os itens passam de 0 a mais de 0px)', durante.itens > 0, durante.itens);
-  provar('e EMPURRA os de baixo para baixo', durante.areaTopo > areaAntes, { antes: areaAntes, depois: durante.areaTopo });
-  await pagina.mouse.move(900, 500);
-  await new Promise((r) => setTimeout(r, 420));
-  const depois = await pagina.evaluate(() => {
-    const g = [...document.querySelectorAll('.coluna .coluna-grupo')]
-      .find((x) => /Ciclos/.test(x.textContent));
-    return Math.round(g.querySelector('.coluna-itens').getBoundingClientRect().height);
-  });
-  provar('ao sair, o grupo fecha e os de baixo voltam', depois === 0, depois);
+  const grupos = await medirColuna();
+  provar('a coluna mostra ao menos um grupo — é com ele que se navega',
+    grupos.visiveis.length >= 1, { todos: grupos.rotulos, visiveis: grupos.visiveis });
+  if (!grupos.visiveis.length || grupos.primeiroX === null) {
+    provar('o ponteiro abre o grupo (os itens passam de 0 a mais de 0px)', false,
+      { porque: 'não há grupo à vista para medir', rotulos: grupos.rotulos });
+    provar('ao sair, o grupo fecha', false, null);
+  } else {
+    console.log('   o grupo medido é o primeiro da coluna: «' + grupos.rotulos[0] + '» ('
+      + grupos.visiveis.length + ' à vista nesta largura)');
+    await pagina.mouse.move(grupos.primeiroX, grupos.primeiroY);
+    await new Promise((r) => setTimeout(r, 420));
+    const durante = await medirColuna();
+    provar('o ponteiro abre o grupo (os itens passam de 0 a mais de 0px)',
+      durante.itensDoPrimeiro > 0, durante.itensDoPrimeiro);
+    /* «EMPURRA OS DE BAIXO» SÓ SE HOUVER ALGUÉM ABAIXO. A ≥1141px a folha esconde
+     * `.coluna-fora` — o segundo grupo só existe no telemóvel. Medi-lo aqui dava zero nos dois
+     * lados, e a asserção reprovava um desenho que está certo. A regra mede-se onde há sujeito:
+     * com dois grupos à vista, o de baixo desce; com um, a asserção DIZ que não teve sujeito. */
+    if (grupos.visiveis.length >= 2) {
+      provar('e EMPURRA os de baixo para baixo', durante.topoDoSegundoTitulo > grupos.topoDoSegundoTitulo,
+        { antes: grupos.topoDoSegundoTitulo, depois: durante.topoDoSegundoTitulo });
+    } else {
+      console.log('   — só há um grupo à vista nesta largura: não há quem empurrar');
+    }
+    await pagina.mouse.move(900, 500);
+    await new Promise((r) => setTimeout(r, 420));
+    const depois = await medirColuna();
+    provar('ao sair, o grupo fecha', depois.itensDoPrimeiro === 0, depois.itensDoPrimeiro);
+  }
 
   // ------------------------------------------------------------------ 5. a folha, no celular
   console.log('\n5 · A folha, no celular');
