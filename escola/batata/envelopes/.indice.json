@@ -6,7 +6,8 @@
     "plano-20261115-1244.json",
     "po-20261115-1101.json",
     "po-20261115-1153.json",
-    "po-20261115-1236.json"
+    "po-20261115-1236.json",
+    "po-20261115-1246.json"
   ],
   "resumos": {
     "anamnese-20261115-1057.json": {
@@ -99,6 +100,23 @@
       ],
       "plano": [
         "plano-20261115-1101"
+      ]
+    },
+    "po-20261115-1246.json": {
+      "id": "po-20261115-1246",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "coqui-de-redinha",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-15T12:46",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261115-1244"
       ]
     }
   }
