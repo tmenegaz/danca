@@ -71,14 +71,14 @@
         "ciclo:coqui-de-redinha/01/batata"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-14T15:01:39.136639+00:00",
       "expurgada": false,
@@ -92,7 +92,9 @@
         "coqui-de-redinha",
         "lapis-rosa"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261115-1057"
+      ],
       "slug": "batata"
     },
     {
@@ -226,7 +228,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 42,
+        "contagem": 43,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -309,7 +311,7 @@
     ],
     "tipos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       },
@@ -327,9 +329,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b45224e"
+    "commit": "14252aa"
   },
-  "gerado_em": "2026-11-15T10:39",
+  "gerado_em": "2026-11-15T13:57",
   "nao_indexado": [
     {
       "familia": "conteudo",
