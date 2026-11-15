@@ -44632,3 +44632,54 @@ mede as duas decisões de caminho isoladamente, com controle negativo (fora do s
 caminho muda — se mudasse, este código teria alterado três sites no dia em que foi escrito).
 `provar-escola-por-host` 21/21, `provar-isolamento-entre-escolas` 25/25, `provar-painel` e
 `provar-dominio-da-escola` 36/36 continuam verdes.
+
+## 15/11/2026 — Sem aluna, o recado manda cadastrar; e a anamnese começa na lista
+
+**O que ela viu**, no passo 2 da Audição (escolha do elenco) da `batata` recém-criada: «aparece a
+mensagem de que eu preciso preencher a anamnese de uma aluna. Isso está certo, essa mensagem
+mesmo. Só que […] eu ainda não tenho aluna. […] E aí quando eu clico no link, ao invés de ele
+levar para um lugar aonde eu posso fazer o começo da anamnese, ele está levando para dentro de uma
+anamnese sem seleção de professor e sem seleção de aluna».
+
+**As três correções.**
+
+1. **O recado distingue as duas faltas.** Ele sabia que ninguém tem anamnese e não sabia por quê —
+   e mandava fazer a anamnese de uma aluna que ainda não existia, o que é um beco: a anamnese
+   PEDE o sujeito. `/api/bastidores/alunas-com-anamnese` passa a devolver `registradas`, e a tela
+   escolhe: sem aluna, «Nenhuma aluna cadastrada» e a ORDEM — *cadastre a aluna, e depois faça a
+   anamnese dela*; com aluna e sem retrato, o recado de sempre.
+2. **O link vai à lista.** Aqui esteve `urlDaPorta('/anamnese/', contexto)` — o formulário, com o
+   professor na query e sem a aluna. A porta exige o ato inteiro (escola, professor, aluna) e
+   devolvia a pessoa à lista pelo JavaScript: **o formulário aparecia e fugia**. O sítio onde a
+   anamnese começa é a lista. A mesma correção vale para o item do menu («Anamnese do aluno») e
+   para o «Abrir a Área do Professor» do Estúdio, que tinham o mesmo destino.
+3. **A rota passa a ser fechada no servidor.** A guarda que já desviava a página da porta sem
+   nenhum parâmetro ganhou o meio-termo: contexto parcial e sem `aluna` → **302** para a lista,
+   antes de a página existir. Sem pisca, e sem montar o formulário.
+
+**Os controles negativos**, e são o que impede a correção de fechar o que deve ficar aberto:
+`?aluna=` abre; `?editar=`, `?ajustar=` e `?novo=` **não** são desviados (trazem o contexto do
+envelope); o plano e o PO não têm aluna no contexto e não são tocados; e o contexto vazio continua
+desviado pela regra que já existia.
+
+**Um defeito meu, medido no ar depois do deploy, e vale mais do que a correção.** A primeira
+versão da contagem chamava `alunas(kv, escola)` dentro do `try` da rota — onde `const alunas =
+…marcarNovas(…)` **sombreia a função**, desde o início do bloco por TDZ. A chamada não invocava a
+função: caía no `catch`, e a rota passou a responder `{"ok":false,"erro":"não consegui ler o
+acervo agora"}` em **todas** as escolas. Uma mensagem honesta sobre uma falha que não existia —
+pior do que a ausência do dado. Corrigido de sítio: a contagem é feita antes do `try`.
+
+**E a prova não o apanhou, o que também é o registo.** A primeira versão fazia `grep` ao ficheiro à
+procura de `registradas` — e um `grep` não apanha um erro de escopo. A prova passou a **chamar a
+rota** com um KV de bancada e a exigir `ok:true` e `registradas: 2`. Conferido às avessas:
+reintroduzindo o defeito, falha nas duas asserções da rota; com a correção, passa (19/19).
+
+**O shard sai do laço de escolas.** O `deploy-escolas.yml` descobre as escolas por
+`wrangler.*.jsonc`, e o `wrangler.lastro-teste.jsonc` não é escola: não tem pacote-zero e seria
+mandado para a montagem com o nome de um shard. Passa a ser saltado pela `var`
+`PACOTE_PARTILHADO`, que é o que ele declara.
+
+**Conferido no ar, depois do deploy (`8dfed992`):** `alunas-com-anamnese` responde `ok:true` nas
+três escolas, com `registradas: 3`; `/anamnese/?professor=…&escola=…` → **302**
+`/area-do-professor/anamnese/`; com `&aluna=` → **200**; e o menu da Produção aponta às três
+listas, incluindo `/area-do-professor/anamnese/`.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-14T18:36:24-0300`
-Commit atual: `9133a7fd` — docs(estrutura): os documentos do ambiente ficam fora do Git, e o motivo é o terceiro
+Gerado em: `2026-11-15T08:04:00-0300`
+Commit atual: `8dfed992` — fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -52,10 +52,12 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **Professores:** colo-de-pe
 coqui-de-redinha
 dedao-aberto
+lapis-rosa
 pe-torto
 prova-do-shard
 rabo-gramde
-redinha-rosa (7)
+redinha-rosa
+rimel-preto (9)
 - **Ciclos com manifesto:** 7 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
@@ -74,26 +76,26 @@ redinha-rosa (7)
 ## Últimos commits
 
 ```
-9133a7fd docs(estrutura): os documentos do ambiente ficam fora do Git, e o motivo é o terceiro
-41847234 docs(estrutura): o resíduo que a bateria deixa, dito por inteiro
-2e0f5509 audit(experimentos): a bateria de dez gestos do shard, corrida nas três escolas de teste
-ab5eea87 chore(estrutura): regerar os índices derivados
-f375fd3a feat(escola): a escola breu declara o professor prova-do-shard
-4ec21b1b feat(schema): os schemas do ciclo na pasta de prova-do-shard
-23f7f192 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-998bff98 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-839dd681 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-cc938ef7 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-8a250d0b chore(estrutura): regerar os índices derivados
-a2f6ad49 chore(estrutura): apagar o professor prova-do-shard
-cfca9115 feat(acervo): envelope/.indice.json
-e1e48bc1 feat(escola): a escola breu declara o professor prova-do-shard
-a1559c74 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-f27ae694 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-fbe1e3f5 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-8651cf70 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-873c4f94 feat(schema): os schemas do ciclo na pasta de prova-do-shard
-bc6a9a58 feat(acervo): envelope/.indice.json
+8dfed992 fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
+2a2d9836 fix(estrutura): sem aluna cadastrada, o recado manda cadastrar — e o link vai à lista
+46b88208 chore(estrutura): regerar os índices derivados
+b45224e0 feat(estrutura): habilitar lapis-rosa em bale-classico
+797145b5 feat(estrutura): habilitar lapis-rosa em bale-classico
+6ffa917a feat(estrutura): habilitar coqui-de-redinha em bale-classico, contemporaneo
+30daec79 feat(escola): a escola batata declara o professor lapis-rosa
+58034809 feat(schema): os schemas do ciclo na pasta de lapis-rosa
+952e0d62 feat(schema): os schemas do ciclo na pasta de lapis-rosa
+3bb9ea2a feat(schema): os schemas do ciclo na pasta de lapis-rosa
+ad19cdb5 feat(schema): os schemas do ciclo na pasta de lapis-rosa
+6cd80162 feat(schema): os schemas do ciclo na pasta de lapis-rosa
+e13e63c8 chore(estrutura): regerar os índices derivados
+21e4080a feat(estrutura): habilitar rimel-preto em bale-classico
+d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
+237e1dfd feat(schema): os schemas do ciclo na pasta de rimel-preto
+66e1f9f6 feat(schema): os schemas do ciclo na pasta de rimel-preto
+ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
+2ceb1403 feat(schema): os schemas do ciclo na pasta de rimel-preto
+e402c67f feat(schema): os schemas do ciclo na pasta de rimel-preto
 ```
 
 ## Por professor
@@ -113,6 +115,8 @@ bc6a9a58 feat(acervo): envelope/.indice.json
 | batata | ciclo-01-batata.fipp | `4eeee09bfd91` | (vazio) | — |
 
 ### dedao-aberto — 0 ciclo(s)
+
+### lapis-rosa — 0 ciclo(s)
 
 ### pe-torto — 1 ciclo(s)
 
@@ -149,6 +153,8 @@ bc6a9a58 feat(acervo): envelope/.indice.json
 | breu | ciclo-01-breu.fipp | `0f95afdfe4a7` | (vazio) | — |
 | calango-piano | ciclo-01-calango-piano.fipp | `57107e53fdc1` | (vazio) | Input_PO_Aguardando |
 | calango-rosa | ciclo-01-calango-rosa.fipp | `c129683be3db` | (vazio) | Input_PO_Aguardando |
+
+### rimel-preto — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -197,55 +203,56 @@ bc6a9a58 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 14/11/2026 — O shard foi construído, medido, e desligado: o canário achou o que faltava
+## 15/11/2026 — Sem aluna, o recado manda cadastrar; e a anamnese começa na lista
 
-**O que foi feito.** O passo 2 do `PLANO-SHARD.md` deixou de ser plano. O primeiro Worker a servir
-**mais de uma escola** existe — `lastro-teste`, configurado por `wrangler.lastro-teste.jsonc` —, e
-as três escolas de teste correram por ele.
+**O que ela viu**, no passo 2 da Audição (escolha do elenco) da `batata` recém-criada: «aparece a
+mensagem de que eu preciso preencher a anamnese de uma aluna. Isso está certo, essa mensagem
+mesmo. Só que […] eu ainda não tenho aluna. […] E aí quando eu clico no link, ao invés de ele
+levar para um lugar aonde eu posso fazer o começo da anamnese, ele está levando para dentro de uma
+anamnese sem seleção de professor e sem seleção de aluna».
 
-**O que mudou no código, e porquê.**
+**As três correções.**
 
-- `motor/servidor/producao.js`: uma noção explícita de **árvore**. `prefixoDaArvore` devolve `''`
-  num Worker de uma escola e `/<escola>` num shard, e é a **var** `PACOTE_PARTILHADO` que o diz —
-  não uma inferência («não há `/escola.json` na raiz, logo é shard»), que confundiria um pacote
-  incompleto com um shard. `caminhoNaArvore` reescreve o caminho; `ehAssetPartilhado` impede a
-  reescrita de `/assets/…`.
-- As **cache passaram a ser por escola** (`Map` de prefixo). Uma cache de valor único num isolate
-  que serve N escolas responderia pelo `escola_do_pacote` da primeira a todas as outras — seria a
-  própria conferência de identidade a produzir o defeito que existe para apanhar.
-- `tools/montar-publicacao.js`: escreve a **cópia partilhada** `publicacao/assets/`, e
-  **recusa-se a unificar** folhas que divirjam — diz de quem é a que ficou. Uma escola com folha
-  própria é decisão legítima; o que não pode é ser tomada por omissão. (Medido: as três são byte a
-  byte iguais.)
+1. **O recado distingue as duas faltas.** Ele sabia que ninguém tem anamnese e não sabia por quê —
+   e mandava fazer a anamnese de uma aluna que ainda não existia, o que é um beco: a anamnese
+   PEDE o sujeito. `/api/bastidores/alunas-com-anamnese` passa a devolver `registradas`, e a tela
+   escolhe: sem aluna, «Nenhuma aluna cadastrada» e a ORDEM — *cadastre a aluna, e depois faça a
+   anamnese dela*; com aluna e sem retrato, o recado de sempre.
+2. **O link vai à lista.** Aqui esteve `urlDaPorta('/anamnese/', contexto)` — o formulário, com o
+   professor na query e sem a aluna. A porta exige o ato inteiro (escola, professor, aluna) e
+   devolvia a pessoa à lista pelo JavaScript: **o formulário aparecia e fugia**. O sítio onde a
+   anamnese começa é a lista. A mesma correção vale para o item do menu («Anamnese do aluno») e
+   para o «Abrir a Área do Professor» do Estúdio, que tinham o mesmo destino.
+3. **A rota passa a ser fechada no servidor.** A guarda que já desviava a página da porta sem
+   nenhum parâmetro ganhou o meio-termo: contexto parcial e sem `aluna` → **302** para a lista,
+   antes de a página existir. Sem pisca, e sem montar o formulário.
 
-**O que o canário mediu.** A bateria de §4 corrida **pelo shard: 49/49**, as mesmas 49 de três
-Workers. E o custo, com `wrangler tail`: `/`, `/aulas/`, `/ciclos/planos/` invocaram;
-`/assets/style.css` e `/assets/nav.js` **não** — **1 invocação por página**, que é exactamente o
-que a entrada de 13/11 tinha ganho e que o shard podia ter perdido.
+**Os controles negativos**, e são o que impede a correção de fechar o que deve ficar aberto:
+`?aluna=` abre; `?editar=`, `?ajustar=` e `?novo=` **não** são desviados (trazem o contexto do
+envelope); o plano e o PO não têm aluna no contexto e não são tocados; e o contexto vazio continua
+desviado pela regra que já existia.
 
-**O que ele revelou, e é a razão de isto ficar registado como um passo e não como uma vitória:**
-**os segredos são por Worker, e a identidade da escola mora neles.** `PROFESSOR_NOME`,
-`PROFESSOR_SLUG`, `SENHA_ADMIN`, `SENHA_PROFESSOR` e `SENHA_CRIPTO` são **um valor por Worker**;
-num shard passam a ser um valor para N escolas. A prova visível, em `calango`: pelo Worker dela,
-`/api/bastidores/professores` lista **Pe Torto** (o dono, que vem do segredo) e Redinha Rosa; pelo
-shard, lista **só Redinha Rosa**. O dono desaparece da lista e a guarda que impede excluí-lo fica
-desligada (`nomeDoDono` devolve vazio). O **dado** continua isolado (as chaves do KV são
-prefixadas por escola) — é a **identidade** que não sobrevive.
+**Um defeito meu, medido no ar depois do deploy, e vale mais do que a correção.** A primeira
+versão da contagem chamava `alunas(kv, escola)` dentro do `try` da rota — onde `const alunas =
+…marcarNovas(…)` **sombreia a função**, desde o início do bloco por TDZ. A chamada não invocava a
+função: caía no `catch`, e a rota passou a responder `{"ok":false,"erro":"não consegui ler o
+acervo agora"}` em **todas** as escolas. Uma mensagem honesta sobre uma falha que não existia —
+pior do que a ausência do dado. Corrigido de sítio: a contagem é feita antes do `try`.
 
-**Por isso as rotas voltaram aos Workers por escola no mesmo dia.** O `lastro-teste` fica
-implantado e **sem tráfego**: é bancada. Deixá-lo ligado teria três escolas de teste a servir com
-o dono errado, em silêncio — e é o silêncio que este projeto não aceita. Restaurado e conferido: os
-três `/api/saude` dizem a escola certa, e o `calango` volta a listar Pe Torto.
+**E a prova não o apanhou, o que também é o registo.** A primeira versão fazia `grep` ao ficheiro à
+procura de `registradas` — e um `grep` não apanha um erro de escopo. A prova passou a **chamar a
+rota** com um KV de bancada e a exigir `ok:true` e `registradas: 2`. Conferido às avessas:
+reintroduzindo o defeito, falha nas duas asserções da rota; com a correção, passa (19/19).
 
-**O que fica a faltar, dito por inteiro:** os segredos por escola têm de sair do `env` do Worker e
-passar a ser lidos do KV, com uma chave mestra. É a peça que o plano não tinha, e ela só apareceu
-porque o canário foi corrido — que é precisamente para isso que ele existe.
+**O shard sai do laço de escolas.** O `deploy-escolas.yml` descobre as escolas por
+`wrangler.*.jsonc`, e o `wrangler.lastro-teste.jsonc` não é escola: não tem pacote-zero e seria
+mandado para a montagem com o nome de um shard. Passa a ser saltado pela `var`
+`PACOTE_PARTILHADO`, que é o que ele declara.
 
-**E o que fica a funcionar melhor do que antes:** `provar-arvore-do-shard` (20 asserções, sem rede)
-mede as duas decisões de caminho isoladamente, com controle negativo (fora do shard, **nenhum**
-caminho muda — se mudasse, este código teria alterado três sites no dia em que foi escrito).
-`provar-escola-por-host` 21/21, `provar-isolamento-entre-escolas` 25/25, `provar-painel` e
-`provar-dominio-da-escola` 36/36 continuam verdes.
+**Conferido no ar, depois do deploy (`8dfed992`):** `alunas-com-anamnese` responde `ok:true` nas
+três escolas, com `registradas: 3`; `/anamnese/?professor=…&escola=…` → **302**
+`/area-do-professor/anamnese/`; com `&aluna=` → **200**; e o menu da Produção aponta às três
+listas, incluindo `/area-do-professor/anamnese/`.
 
 ## O que está pendente
 
