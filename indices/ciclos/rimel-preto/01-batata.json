@@ -17,7 +17,9 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+    "documento:plano:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
     "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -30,9 +32,14 @@
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +50,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "95bb46d5"
+    "commit": "7b2b0da"
   },
-  "gerado_em": "2026-11-15T22:18",
+  "gerado_em": "2026-11-15T22:21",
   "id": "ciclo:rimel-preto/01/batata",
   "professor": "rimel-preto",
   "versao": 7
