@@ -481,10 +481,18 @@ const VERIFICACOES = [
       for (const escola of acervo.escolas) {
         const temInventario = ctx.disco.existe('escola/' + escola.slug + '/indice.json');
         const temConfig = ctx.caminhos.indexOf('wrangler.' + escola.slug + '.jsonc') !== -1;
+        /* UMA ESCOLA DE SHARD É VIVA SEM CONFIG (15/11/2026), e esta verificação acusava-a de
+         * «sem config e não marcada expurgada». A isenção é a mesma dos outros sítios: o índice
+         * dela declara `shard`, e o pacote-zero existe. Quem tem as duas coisas está no ar. */
+        let deShard = false;
+        try {
+          const inv = JSON.parse(ctx.disco.ler('escola/' + escola.slug + '/indice.json') || 'null');
+          deShard = Boolean(inv && String(inv.shard || '').trim());
+        } catch { deShard = false; }
         if (escola.expurgada === true && !temInventario) {
           falhas.push('escola ' + escola.slug + ': expurgada e sem o inventário que é o elo');
         }
-        if (temInventario && !temConfig && escola.expurgada !== true) {
+        if (temInventario && !temConfig && !deShard && escola.expurgada !== true) {
           falhas.push('escola ' + escola.slug + ': sem config e não marcada expurgada');
         }
         // E A RECÍPROCA DA HABILITAÇÃO (20/10/2026). Uma escola expurgada não tem Worker nem
