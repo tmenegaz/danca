@@ -1,0 +1,22 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/pe-pequeno/ciclos/ciclo-01-calango.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-calango
+type: Ciclo
+professor: Pé Pequeno
+ciclo: 01
+variante: calango
+hash_conteudo: 4932b3b84d4d4825536512389ee3b569a2f4bd9c76f9ff9b3a4349f5e8cb7a97
+parentHash: 
+hash: 4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-15
+cobertura:
+  - professores/pe-pequeno/ciclos/ciclo-01-calango.conf
+  - professores/pe-pequeno/ciclos/ciclo-01.conf

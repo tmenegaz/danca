@@ -3,17 +3,17 @@
   "worker": "lastro-teste",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "demi-plie",
-    "nome": "Demi Plié"
+    "slug": "pe-pequeno",
+    "nome": "Pé Pequeno"
   },
-  "responsavel": "Demi Plié",
+  "responsavel": "Pé Pequeno",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -1299,6 +1299,20 @@
       "professor_anterior": {
         "slug": "pe-pequeno",
         "nome": "Pé Pequeno"
+      }
+    },
+    {
+      "em": "2026-11-15T22:07:20.172239+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "pe-pequeno",
+        "nome": "Pé Pequeno"
+      },
+      "responsavel": "Pé Pequeno",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "demi-plie",
+        "nome": "Demi Plié"
       }
     }
   ],
