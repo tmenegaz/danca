@@ -2,6 +2,22 @@
   "ciclos": [
     {
       "ancora": {
+        "hash": "a0a75ae19ade47cd3c6802c55ace0db40852739ff8482295c7ce62940ea233d9",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:grand-plie/01/breu",
+      "numero": "01",
+      "professor": "grand-plie",
+      "sem_ancora": false
+    },
+    {
+      "ancora": {
         "hash": "4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df",
         "id": "ciclo-01-calango",
         "lida": true,
@@ -63,37 +79,29 @@
       "slug": "batata"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:grand-plie/01/breu"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-11-14T01:16:40.127242+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-15T20:11:20.553874+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-11-15T19:20:25.101Z",
       "expurgos": 9,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:breu",
       "nome": "breu",
-      "professor": "redinha-rosa",
+      "professor": "grand-plie",
       "professores": [
-        "cafe-no-bule",
-        "colo-de-pe",
-        "coqui-de-redinha",
-        "luz-azul",
-        "pe-torto",
-        "prova-do-shard",
-        "redinha-rosa",
-        "rimel-preto",
-        "sapo-bailarino",
-        "tiago-menegaz",
-        "vaso-bonito"
+        "grand-plie"
       ],
       "registros": [],
       "slug": "breu"
@@ -148,25 +156,20 @@
     ],
     "estados": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
     ],
     "professores": [
       {
-        "contagem": 1,
-        "rotulo": "Cafe No Bule",
-        "valor": "cafe-no-bule"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Colo De Pe",
+        "contagem": 0,
+        "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
       },
       {
-        "contagem": 1,
-        "rotulo": "Coqui de Redinha",
+        "contagem": 0,
+        "rotulo": "coqui-de-redinha",
         "valor": "coqui-de-redinha"
       },
       {
@@ -175,14 +178,14 @@
         "valor": "dedao-aberto"
       },
       {
+        "contagem": 1,
+        "rotulo": "Grand Plié",
+        "valor": "grand-plie"
+      },
+      {
         "contagem": 0,
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Luz Azul",
-        "valor": "luz-azul"
       },
       {
         "contagem": 1,
@@ -190,13 +193,13 @@
         "valor": "pe-pequeno"
       },
       {
-        "contagem": 1,
+        "contagem": 0,
         "rotulo": "pe-torto",
         "valor": "pe-torto"
       },
       {
-        "contagem": 1,
-        "rotulo": "Prova Do Shard",
+        "contagem": 0,
+        "rotulo": "prova-do-shard",
         "valor": "prova-do-shard"
       },
       {
@@ -205,43 +208,28 @@
         "valor": "rabo-gramde"
       },
       {
-        "contagem": 1,
-        "rotulo": "Redinha Rosa",
+        "contagem": 0,
+        "rotulo": "redinha-rosa",
         "valor": "redinha-rosa"
       },
       {
-        "contagem": 1,
-        "rotulo": "Rimel Preto",
+        "contagem": 0,
+        "rotulo": "rimel-preto",
         "valor": "rimel-preto"
       },
       {
         "contagem": 1,
         "rotulo": "Sapatilha de Ponta",
         "valor": "sapatilha-de-ponta"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sapo Bailarino",
-        "valor": "sapo-bailarino"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "tiago-menegaz",
-        "valor": "tiago-menegaz"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "vaso-bonito",
-        "valor": "vaso-bonito"
       }
     ],
     "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "9dbfbb7"
+    "commit": "bd6f7bf"
   },
-  "gerado_em": "2026-11-15T20:10",
+  "gerado_em": "2026-11-15T20:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -267,29 +255,16 @@
   "professores": [
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:cafe-no-bule",
-      "nome": "Cafe No Bule",
-      "slug": "cafe-no-bule"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:colo-de-pe",
-      "nome": "Colo De Pe",
+      "nome": null,
       "slug": "colo-de-pe"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:coqui-de-redinha",
-      "nome": "Coqui de Redinha",
+      "nome": null,
       "slug": "coqui-de-redinha"
     },
     {
@@ -300,20 +275,22 @@
       "slug": "dedao-aberto"
     },
     {
+      "ciclos": [
+        "ciclo:grand-plie/01/breu"
+      ],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:grand-plie",
+      "nome": "Grand Plié",
+      "slug": "grand-plie"
+    },
+    {
       "ciclos": [],
       "escolas": [],
       "id": "professor:lapis-rosa",
       "nome": null,
       "slug": "lapis-rosa"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:luz-azul",
-      "nome": "Luz Azul",
-      "slug": "luz-azul"
     },
     {
       "ciclos": [
@@ -328,20 +305,16 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:pe-torto",
       "nome": null,
       "slug": "pe-torto"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:prova-do-shard",
-      "nome": "Prova Do Shard",
+      "nome": null,
       "slug": "prova-do-shard"
     },
     {
@@ -353,20 +326,16 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:redinha-rosa",
-      "nome": "Redinha Rosa",
+      "nome": null,
       "slug": "redinha-rosa"
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:rimel-preto",
-      "nome": "Rimel Preto",
+      "nome": null,
       "slug": "rimel-preto"
     },
     {
@@ -379,33 +348,6 @@
       "id": "professor:sapatilha-de-ponta",
       "nome": "Sapatilha de Ponta",
       "slug": "sapatilha-de-ponta"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:sapo-bailarino",
-      "nome": "Sapo Bailarino",
-      "slug": "sapo-bailarino"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:tiago-menegaz",
-      "nome": null,
-      "slug": "tiago-menegaz"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:vaso-bonito",
-      "nome": null,
-      "slug": "vaso-bonito"
     }
   ],
   "versao": 6

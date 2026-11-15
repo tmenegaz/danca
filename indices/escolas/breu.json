@@ -1,40 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/grand-plie/ciclos/ciclo-01-breu.conf",
+          "professores/grand-plie/ciclos/ciclo-01.conf"
+        ],
+        "hash": "a0a75ae19ade47cd3c6802c55ace0db40852739ff8482295c7ce62940ea233d9",
+        "hash_conteudo": "a222a2126a0e0be8ae159d92e500be24a8de8b797088ebfffa97f9e358d46b29",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/grand-plie/ciclos/ciclo-01-breu.conf",
+        "professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+        "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:grand-plie/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "grand-plie",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:grand-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/grand-plie/ciclos/ciclo-01-breu.fipp",
+      "professor": "grand-plie",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/grand-plie/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:grand-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/grand-plie/ciclos/ciclo-01-breu.conf",
+      "professor": "grand-plie",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:grand-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/grand-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "grand-plie",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:grand-plie/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-14T01:16:40.127242+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-15T20:11:20.553874+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-15T19:20:25.101Z",
     "expurgos": 9,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "redinha-rosa",
+    "professor": "grand-plie",
     "professores": [
-      "cafe-no-bule",
-      "colo-de-pe",
-      "coqui-de-redinha",
-      "luz-azul",
-      "pe-torto",
-      "prova-do-shard",
-      "redinha-rosa",
-      "rimel-preto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "grand-plie"
     ],
     "registros": [],
     "slug": "breu"
@@ -42,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:grand-plie/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:grand-plie/01/breu"
+        ],
+        "rotulo": "grand-plie",
+        "valor": "grand-plie"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:grand-plie/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9dbfbb7"
+    "commit": "bd6f7bf"
   },
-  "gerado_em": "2026-11-15T20:10",
+  "gerado_em": "2026-11-15T20:11",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -1,19 +1,19 @@
 {
   "escola": "breu",
-  "worker": "breu",
+  "worker": "lastro-teste",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "redinha-rosa",
-    "nome": "Redinha Rosa"
+    "slug": "grand-plie",
+    "nome": "Grand Plié"
   },
-  "responsavel": "Redinha Rosa",
+  "responsavel": "Grand Plié",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -807,19 +807,34 @@
         "slug": "colo-de-pe",
         "nome": "Colo De Pe"
       }
-    }
-  ],
-  "professores": [
-    {
-      "slug": "prova-do-shard",
-      "nome": "Prova Do Shard",
-      "desde": "2026-11-14T15:24:47.431Z"
     },
     {
-      "slug": "rimel-preto",
-      "nome": "Rimel Preto",
-      "desde": "2026-11-15T10:36:41.195Z"
+      "em": "2026-11-15T20:11:20.553874+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "grand-plie",
+        "nome": "Grand Plié"
+      },
+      "responsavel": "Grand Plié",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "prova-do-shard",
+          "nome": "Prova Do Shard",
+          "desde": "2026-11-14T15:24:47.431Z"
+        },
+        {
+          "slug": "rimel-preto",
+          "nome": "Rimel Preto",
+          "desde": "2026-11-15T10:36:41.195Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "redinha-rosa",
+        "nome": "Redinha Rosa"
+      }
     }
   ],
+  "professores": [],
   "shard": "lastro-teste"
 }
