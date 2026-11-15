@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T09:45:48-0300`
-Commit atual: `ee0892f3` — style(template): a marca e o nome da área passam a estar na mesma linha
+Gerado em: `2026-11-15T10:18:45-0300`
+Commit atual: `84bb5746` — fix(estrutura): o passo 2 do elenco obedece ao «Seguir», e o espaço fica vazio
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+84bb5746 fix(estrutura): o passo 2 do elenco obedece ao «Seguir», e o espaço fica vazio
 ee0892f3 style(template): a marca e o nome da área passam a estar na mesma linha
 cf150b93 docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
 8dfed992 fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
@@ -95,7 +96,6 @@ e13e63c8 chore(estrutura): regerar os índices derivados
 d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
 237e1dfd feat(schema): os schemas do ciclo na pasta de rimel-preto
 66e1f9f6 feat(schema): os schemas do ciclo na pasta de rimel-preto
-ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
 ```
 
 ## Por professor
@@ -203,109 +203,44 @@ ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio
+## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
 
-**O que motivou.** O relato dela, ao vivo, ao criar uma Audição nova. Primeiro: «o botão de seguir
-na escolha do elenco está bloqueado, mas eu consigo navegar pelos steps. Eu consigo ir para o step
-dois, mesmo sem ter definido um nome para o elenco, e não pode ser assim.» A regra pedida é uma só:
-«Não dá para avançar para alunas a escolher pelo step, né, em cima, tem que seguir a regra do botão
-de seguir.» Depois, dentro do passo 2: «o espaço para alunos deste recorte escrito undefined. Isso é
-um termo que é para nós, programadores, para você, para professor não.» E a decisão sobre o que
-fica no lugar: «se não tiver aluno nesse step dois, fica completamente vazio se não tiver anamnese,
-mesmo que exista aluno ou se não tiver aluno. Esse espaço dedicado a alunos deste recorte fica
-completamente vazio, não tem nada ali.»
+**O pedido.** *«As abas recorte e transferência não podem estar habilitadas enquanto não existir um
+elenco gravado. Então, isso também tem que ser ajustado.»*
 
-**Duas causas, e nenhuma delas era de texto.**
+**O que muda.** As três abas continuam à vista — uma aba que desaparece não se distingue de uma aba
+que nunca existiu —, mas a 2 e a 3 nascem **desligadas** enquanto não houver um elenco **concluído**,
+com o `title` a dizer por quê («Abre quando existir um elenco gravado.»). «Gravado» é o que passou
+do passo 1 e tem recorte: é a mesma lista que a transferência oferece (`elencosParaMover`, que já
+exclui rascunhos e lápides). Uma segunda noção de «gravado» divergiria desta ao primeiro caso — e a
+prova mede as duas: um rascunho **não** acende as abas.
 
-1. **A tira tinha uma excepção declarada** (07/11/2026): o passo 2 abria mesmo sem anamnese —
-   «aberto para ler» — porque era ele que carregava a explicação de por que a anamnese é
-   obrigatória. A 15/11/2026 a explicação passou a viver no alto da aba (`#lb-sem-anamnese`), e com
-   isso a excepção perdeu a razão de existir — ficaram duas regras para o mesmo acto, e o clique no
-   passo abria o que o «Seguir» fechava.
-2. **`estadoVazioDeAlunas()` montava a caixa numa variável e nunca a devolvia.** A função nasceu
-   com `return "<div …"` (`b5cf7636`); o commit `2a2d9836`, do mesmo dia, renomeou-a para `var
-   caixa` para separar os dois recados — e perdeu o `return`. `alvo.innerHTML = undefined` escreve
-   a palavra «undefined» no ecrã. A prova que acompanhou aquele commit media a **rota**
-   (`registradas`), não o desenho: um `grep` via a função, o `innerHTML` e os textos certos.
+**A guarda fica num sítio só.** `abrirAbaDaAudicao` é por onde passam as três portas (a tira do
+computador, a folha do telemóvel e o teclado); a regra (`abaDaAudicaoAberta`) está lá, e o `disabled`
+do HTML é o que se vê. É a mesma disciplina do `podeVerPasso` do elenco: um passo que não abriu não
+se alcança por atalho nenhum.
 
-**O que foi decidido.**
+**E as abas acompanham a lista.** `carregarLinhas` recalcula `ELENCOS_GRAVADOS` e repinta: gravar o
+primeiro elenco acende as duas **sem F5**, e apagar o último fecha-as. Se a aba aberta for a 2 ou a
+3 quando o último elenco é apagado, a página volta sozinha à aba 1 — em vez de ficar a mostrar o
+recorte de um acervo que já não tem elenco nenhum.
 
-- **A tira e o «Seguir» passam a responder à mesma pergunta.** `podeVerPasso(n)` é, sem excepção,
-  `podeIrParaLb(n)`; a distinção «aberto para ler / fechado para avançar» saiu, e com ela o
-  `title` «Abre para explicar o que falta». Quem quiser saber o que falta continua a lê-lo no
-  `title` do passo e na nota do «Seguir».
-- **O passo 2 não desenha nada quando não há anamnese.** A caixa de estado vazio saiu; o
-  `#lb-alunas` recebe `""` e fica `hidden`. O `hidden` é o que faz a diferença entre «vazio» e
-  «nada ali»: a `.rolagem-de-alunas` tem filete e `min-height: 6rem`, e só limpar o conteúdo
-  deixava um retângulo com moldura a ler-se como «carregando». A explicação fica onde já estava —
-  no aviso do alto da aba, que distingue as duas faltas (sem aluna cadastrada / sem anamnese) e
-  diz a cada passo o que acontece: o 2 abre sem lista nenhuma, e os 3 e 4 esperam a anamnese.
-- **Uma leitura falhada não deixa «carregando…» no ecrã:** o `catch` de
-  `carregarAlunasComAnamnese` limpa a caixa, em vez de deixar uma promessa por cumprir.
+**Onde entrou.** `motor/servidor/bastidores.js` (`temElencoGravado` e a frase única, a marcação das
+duas tiras, `ELENCOS_GRAVADOS`, `pintarAbasDaAudicao`, a guarda no `abrirAbaDaAudicao`, a repintura
+no `carregarLinhas`, e a regra `.aba[disabled]` na folha da própria página).
 
-**Onde entrou.** `motor/servidor/bastidores.js` — `podeVerPasso`, `pintarTravasLb`, `irParaPassoLb`,
-`pintarAlunas`, o `catch` da leitura e o texto do aviso. `experimentos/provar-salas-e-elencos.js` —
-as asserções da decisão de 07/11/2026 foram substituídas pelas de hoje, e ganhou uma secção **B2**
-que **corre** a página em jsdom. `experimentos/provar-linha-de-base.js` — a asserção «o passo 2 abre
-para explicar» virou «o passo 2 está fechado, como o «Seguir», e a caixa fica vazia».
+**Auditoria.** `provar-abas-da-audicao` **99/99**, com a secção K nova a correr a página em jsdom:
+sem elenco, as abas 2 e 3 estão `disabled`, o `title` diz por quê, o clique não troca de painel, o
+atalho directo também não passa, e a folha do telemóvel diz o mesmo; gravado um elenco, as duas
+acendem e a 2 abre; apagado o último com a 2 à vista, a página volta à 1 e as duas fecham; um
+rascunho não conta. **Controle negativo** com o código de `HEAD`: **9 das 99** falham, todas da
+secção K. Medido também num Chrome, contra o servidor de bancada: os sete estados (sem elenco, clique,
+atalho, elenco gravado, clique, elenco apagado, rascunho) comportam-se como descrito.
 
-**Com o quê.** Nenhum ficheiro congelado foi tocado (`motor/` não está em `CONGELAMENTO.md`).
-
-**Auditoria.** `provar-salas-e-elencos` **69/69**, com secção a correr a página: sem anamnese e com
-duas alunas cadastradas, a caixa fica vazia e `hidden` (medida da altura: **0 px**, contra 112 px
-antes), a palavra «undefined» não aparece, o passo 2 está `disabled` e o painel não abre por nenhum
-caminho; com nome e professor, a tira acende **e** o «Seguir» acende — a mesma regra. **Controle
-negativo** com o código de `HEAD`: **10 de 69 falham**, e a medida mostra o defeito tal como ela o
-viu — `{"hidden":false,"html":"undefined"}`, `passo2.disabled = false` com `seguir.disabled = true`,
-e o painel 2 a abrir. `provar-linha-de-base` **100 de 102** (as duas
-falhas são anteriores a esta entrada e não têm relação com ela: o gancho do selo nas curadorias e o
-«passo 5 / envio para a turma»). `provar-abas-da-audicao` 86/86, `provar-elenco-sem-ninguem` 59/59,
-`provar-aluna-nova-no-elenco` 34/34, `provar-corpo-da-linha-de-base` 30/30,
-`provar-elenco-derivado` 10/10, `provar-elenco-na-turma` 26/26, `check-identidade` 22/22. Medido
-também num Chrome, contra o servidor de bancada: com o nome vazio o passo 2 recusa-se a abrir; com
-nome e professor abre e a área está vazia; com uma anamnese, a lista volta a desenhar («Aluna Um
-novo»).
-
-**O que ainda não está feito.** Um risco que este desenho **não cria** mas também não fecha:
-`gravarLinha` manda `alunas: alunasMarcadas()`, e as caixas só existem quando há anamnese. Editar
-um elenco cuja lista de retratos ficou vazia (por exemplo, se as anamneses dele deixarem de existir)
-gravaria `alunas: []`. Já era assim desde 07/11/2026, quando o passo 2 deixou de desenhar caixas
-sem retrato; fica declarado, não corrigido — a correção certa é preservar o que está guardado
-quando a lista não pode ser mostrada, e isso pede uma decisão dela.
-
-`provar-vinculo-do-elenco` não corre nesta árvore: ele lê
-`escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
-(anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
-continuam abertas, e não foram tocadas aqui.
+**O que ainda não está feito.** Nada desta entrada. As duas falhas de `provar-linha-de-base`
+(curadorias e «passo 5») continuam abertas, e são anteriores.
 
 ## O que está pendente
-
-## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
-
-
-- **O passo 2 não começou, e é deliberado.** Ele muda a árvore de assets de uma escola para N, e o
-  que o detecta é dado real. A pesquisadora vai criar as duas escolas de teste que faltam
-  (`batata`, `breu`) e avisar; o passo 2 faz-se com as três no ar.
-- **A zona `padd.com.br` ainda não está ligada a este sistema.** Os endereços de trabalho continuam a
-  ser os `*.workers.dev`, e a resolução já aceita os dois.
-- **O `192.0.2.1` no DNS é um marcador, não um servidor.** Quem lê o registo daqui a meses vai
-  perguntar «que máquina é esta»; a resposta está no `PLANO-SHARD.md` §1.2 e é esta: nenhuma.
-
-## 13/11/2026 — A escola nasce com endereço próprio, e o expurgo leva-o consigo
-
-
-- **Falta a permissão `Zone → DNS → Edit` no token.** Medido a 13/11/2026: `dns_records → 403`,
-  com as rotas a funcionar (criar e apagar verificados). Enquanto ela não for acrescentada, **toda
-  escola nova nasce sem o registo DNS** — e diz isso. O passo está no `PLANO-SHARD.md` §1.0.
-- **Não foi exercido ao vivo com uma escola a sério.** Há uma bancada para isso —
-  `experimentos/provar-dominio-ao-vivo.js` —, e ela mede o único elo que nenhuma prova de mentira
-  pode medir: se um registo `A` para `192.0.2.1`, proxyado, serve mesmo como **origem** de uma
-  rota. Cria `prova-<carimbo>.padd.com.br` apontado ao script da raiz, pede `/api/saude` (que a
-  raiz responde sem senha), e **apaga sempre** — inclusive quando a asserção falha. Nunca usa o
-  nome de uma escola. Rodada a 13/11/2026, parou no primeiro passo com o 403 do DNS, e disse o que
-  falta — é esse o estado, e é honesto.
-- **A escola `danca` não foi ligada a `danca.padd.com.br`.** Fica para quando a zona estiver em uso
-  para o sistema; os endereços de trabalho continuam a ser os `*.workers.dev`.
 
 ## 13/11/2026 — O domínio do painel, e a rota curinga que a zona tinha
 
@@ -341,6 +276,18 @@ quando a lista não pode ser mostrada, e isso pede uma decisão dela.
 `escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
 (anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
 continuam abertas, e não foram tocadas aqui.
+
+## 15/11/2026 — O formulário da anamnese não abria: o `markdown.js` era pedido num sítio que não existe
+
+`provar-listas-sem-repeticao` falha uma asserção («PO: `api/envelopes`
+é pedido UMA vez» → 0), e ela falha **igual com a página de antes** — conferido —, portanto não é
+desta entrada. `provar-estante-do-po` mostra 7 falhas de dados (`escola/batata` sem a cadeia de
+planos) e não é versionado.
+
+## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
+
+Nada desta entrada. As duas falhas de `provar-linha-de-base`
+(curadorias e «passo 5») continuam abertas, e são anteriores.
 
 ## Pendências anteriores (índice)
 
@@ -772,6 +719,8 @@ continuam abertas, e não foram tocadas aqui.
 - **13/11/2026** — O registo de custo da IA ganha mês no nome → `REGISTRO.md` L43829
 - **13/11/2026** — O isolamento entre escolas passa a ser provado, e decide-se… → `REGISTRO.md` L43879
 - **13/11/2026** — A escola deixa de ser `var` de deploy: o mapa… → `REGISTRO.md` L43930
+- **13/11/2026** — O endereço é por host: `<escola>.padd.com.br` → `REGISTRO.md` L44016
+- **13/11/2026** — A escola nasce com endereço próprio, e o expurgo leva-o… → `REGISTRO.md` L44060
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

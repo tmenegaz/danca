@@ -515,8 +515,11 @@ async function abrirAPorta(publicacao, escola, kv, professor) {
       resposta.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
       return resposta.end(fs.readFileSync(path.join(DESTINO, 'porta/index.html')));
     }
-    if (caminho.startsWith('/assets/')) {
-      const arquivo = path.join(DESTINO, 'porta', caminho);
+    // O `markdown.js` da porta vem em `/plano-observacao/assets/…` (o caminho absoluto, o
+    // único que o ASSETS serve nos três endereços da porta): a bancada lê o caminho sem esse
+    // prefixo, como o Worker faz.
+    if (caminho.replace(/^\/plano-observacao/, '').startsWith('/assets/')) {
+      const arquivo = path.join(DESTINO, 'porta', caminho.replace(/^\/plano-observacao/, ''));
       if (fs.existsSync(arquivo)) {
         resposta.writeHead(200, {
           'Content-Type': caminho.endsWith('.css') ? 'text/css' : 'text/javascript',

@@ -1004,8 +1004,30 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
      `tools/lib-cifra.js` continua a ser carregado pelas páginas do pacote (a ficha, o JSON de
      dados), que decifram no navegador — mas esta porta já não o usa, e não o descarrega. -->
 <!-- O renderizador de markdown do experimento: é INFRAESTRUTURA, não conteúdo de PO nem
-     de PE — o mesmo arquivo que a ficha usa no servidor, aqui no navegador. -->
-<script src="assets/markdown.js"></script>
+     de PE — o mesmo arquivo que a ficha usa no servidor, aqui no navegador.
+
+     O CAMINHO É ABSOLUTO, E POR UM DEFEITO MEDIDO A 15/11/2026 (o formulário não abria).
+
+     Era `src="assets/markdown.js"`, relativo. A porta é servida sob TRÊS endereços
+     (`/anamnese/`, `/plano-ensino/`, `/plano-observacao/`) e o ficheiro vive num só sítio do
+     pacote (`plano-observacao/assets/markdown.js`). Lido de `/plano-observacao/`, o relativo
+     acertava; lido de `/anamnese/` e de `/plano-ensino/`, pedia `/anamnese/assets/markdown.js`
+     — que não existe.
+
+     O QUE ISSO CUSTOU. O `wrangler` tem a negativa `!/*/assets/*` (13/11/2026, a conta das
+     invocações): um caminho com essa forma vai DIRETO ao ASSETS, sem passar pelo Worker que
+     faria a tradução. O pedido devolvia 404, o `Markdown` não existia, e o primeiro `md()` do
+     `renderPergunta` lançava «Markdown is not defined» — a exceção abortava o desenho e a
+     pessoa via a Condução com os botões e SEM PERGUNTA NENHUMA. O sintoma dela: «não aparece o
+     formulário, aparece apenas os botões que não funcionam».
+
+     PORQUE NÃO SE MANTÉM O RELATIVO. A negativa `!/*/assets/*` é necessária (é ela que serve
+     os assets de cada turma sem invocar o Worker), e as negativas têm precedência — não há
+     como reabrir `/anamnese/assets/*` sem pagar uma invocação por pedido. O caminho absoluto
+     para o sítio onde o ficheiro está é servido pelo ASSETS sem custo nenhum, e é o mesmo nos
+     três endereços da porta. É a mesma decisão que a `dd128a30` tomou para os scripts do motor
+     («saíram de `/assets/` para `/scripts/`, porque debaixo de uma negativa seriam 404»). -->
+<script src="/plano-observacao/assets/markdown.js"></script>
 <script>
 'use strict';
 

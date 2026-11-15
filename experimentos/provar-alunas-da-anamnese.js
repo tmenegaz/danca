@@ -187,11 +187,18 @@ function servir() {
     if (caminho === '/assets/nav.js') {
       return ok('text/javascript; charset=utf-8', fs.readFileSync(path.join(raiz, 'tools/templates/nav.js'), 'utf8'));
     }
-    /* O `assets/markdown.js` é RELATIVO à página (`<script src="assets/markdown.js">`), e a
-       página é servida em `/anamnese/` — logo o browser pede `/anamnese/assets/markdown.js`.
-       Sem ele o `Markdown` não existe, o handler da troca de professor rebenta num `md()` e a
-       prova mediria uma página partida em vez da regra. Foi o que aconteceu à primeira versão. */
-    if (/\/assets\/markdown\.js$/.test(caminho)) {
+    /* O `markdown.js` DA PORTA — servido no caminho ABSOLUTO, e é o Worker que decide qual é.
+     *
+     * AQUI ESTAVA UMA BANCADA QUE ESCONDIA UM DEFEITO (15/11/2026). Ela servia
+     * `/anamnese/assets/markdown.js` «porque o `src` é relativo à página» — e com isso tapava o
+     * que o produto fazia: no Worker, um caminho com a forma `/<pasta>/assets/…` vai DIRETO ao ASSETS
+     * (a negativa `run_worker_first` de 13/11/2026), onde `anamnese/assets/` não existe. O
+     * ficheiro devolvia 404, o `Markdown` não existia, e o formulário não abria.
+     *
+     * A regra da bancada passa a ser a do produto: só se serve o caminho que o ASSETS tem de
+     * facto — `plano-observacao/assets/…`, o sítio único do ficheiro no pacote. Se a página
+     * voltar a pedir o relativo, esta prova falha em vez de passar. */
+    if (/^\/plano-observacao\/assets\/markdown\.js$/.test(caminho)) {
       return ok('text/javascript; charset=utf-8', fs.readFileSync(path.join(raiz, 'porta/assets/markdown.js'), 'utf8'));
     }
     if (caminho.indexOf('/api/mapa') !== -1) return json(MAPA);
@@ -421,6 +428,22 @@ function servir() {
     depoisDaAnamnese.some((o) => o.valor === 'Aluna D'), depoisDaAnamnese);
   const rotuloDaD = (depoisDaAnamnese.find((o) => o.valor === 'Aluna D') || {}).texto || '';
   provar('e deixa de levar a marca «nova»', rotuloDaD === 'Aluna D', rotuloDaD);
+
+  /* O `markdown.js` PEDE-SE ONDE ELE EXISTE (15/11/2026).
+   *
+   * Este é o defeito que o formulário pagou: com o `src` relativo, a página de `/anamnese/`
+   * pedia `/anamnese/assets/markdown.js`; a negativa `/<pasta>/assets/…` do `run_worker_first`
+   * mandava esse pedido ao ASSETS, onde o ficheiro não está, e o 404 deixava o `Markdown`
+   * indefinido — o primeiro `md()` lançava, o desenho abortava e o professor via a Condução sem
+   * pergunta nenhuma. A prova mede o ENDEREÇO no HTML servido, e não a bancada: uma bancada que
+   * sirva o caminho errado passaria a esconder o defeito, como escondeu. */
+  const htmlDaPorta = fs.readFileSync(PAGINA, 'utf8');
+  const tagDoMarkdown = (/<script src="[^"]*markdown\.js"/.exec(htmlDaPorta) || [])[0] || '';
+  provar('o `markdown.js` é pedido no caminho ABSOLUTO do pacote',
+    /src="\/plano-observacao\/assets\/markdown\.js"/.test(tagDoMarkdown), tagDoMarkdown);
+  provar('…e esse caminho é o que o ficheiro ocupa no pacote (não um segundo sítio)',
+    fs.existsSync(path.join(raiz, 'porta', 'assets', 'markdown.js'))
+      && tagDoMarkdown.indexOf('plano-observacao/assets/markdown.js') !== -1, tagDoMarkdown);
 
   await navegador.close();
   srv.close();

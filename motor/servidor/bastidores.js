@@ -3887,6 +3887,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     semDestino: 'Não há destino possível para esta aluna: escolha outro elenco de origem, ou conclua '
       + 'outro elenco na aba «Escolha de elenco».',
   };
+  /* «AS ABAS RECORTE E TRANSFERÊNCIA NÃO PODEM ESTAR HABILITADAS ENQUANTO NÃO EXISTIR UM ELENCO
+   * GRAVADO» (15/11/2026, na letra dela). O elenco «gravado» é o CONCLUÍDO — o que passou do
+   * passo 1 e tem recorte —, e é a mesma lista que a transferência oferece (`elencosParaMover`,
+   * que já exclui rascunhos e lápides): uma segunda noção de «gravado» divergiria desta ao
+   * primeiro caso. As duas abas dizem o mesmo que a aba 1 diz por dentro: sem elenco, não há o
+   * que recortar nem entre quem transferir.
+   *
+   * A FRASE É UMA SÓ, e viaja para o `title` do servidor e para o `pintarAbasDaAudicao` do
+   * cliente — escrita duas vezes, a segunda diria outra coisa no primeiro ajuste. */
+  const temElencoGravado = elencosParaMover.length > 0;
+  const FRASE_DA_ABA_SEM_ELENCO = 'Abre quando existir um elenco gravado.';
   const algumElencoTemAlunas = elencosParaMover.some((e) => e.alunas.length > 0);
   const podeMover = elencosParaMover.length >= 2 && algumElencoTemAlunas;
   const textoDeFalta = !algumElencoTemAlunas && elencosParaMover.length >= 2
@@ -4427,6 +4438,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.aba[aria-selected="true"]{background:var(--superficie);border-color:var(--borda-campo);' +
     'border-bottom-color:var(--superficie);color:var(--marca);}' +
     '.aba:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
+    /* A ABA QUE AINDA NÃO PODE ABRIR (15/11/2026) — «as abas recorte e transferência não podem
+       estar habilitadas enquanto não existir um elenco gravado». A tinta é a do estado inerte
+       que a folha já usa nos botões desligados; o que ela NÃO faz é desaparecer com a aba: o
+       professor tem de poder ler que ela existe e por que espera, e o `title` diz o porquê. */
+    '.aba[disabled]{color:var(--texto-tenue, var(--texto-suave));opacity:.55;cursor:default;' +
+    'background:transparent;}' +
+    '.aba[disabled]:hover{background:transparent;color:var(--texto-tenue, var(--texto-suave));}' +
     /* O PAINEL DA ABA. Sem desenho próprio: quem desenha é o conteúdo lá dentro (o formulário, a
        `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
        `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba 1 traz. */
@@ -6388,7 +6406,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     TITULOS_DAS_ABAS_DA_AUDICAO
       .map(([n, t], i) => '<button type="button" class="aba" role="tab" id="lb-aba-' + n + '" ' +
         'data-aba="' + n + '" aria-controls="lb-painel-' + n + '" ' +
-        'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+        'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '"' +
+        (n !== '1' && !temElencoGravado
+          ? ' disabled aria-disabled="true" title="' + esc(FRASE_DA_ABA_SEM_ELENCO) + '"' : '') + '>' +
         t + '</button>').join('') +
     '</nav>' +
     /* O «ABAS» DO TELEMÓVEL — a mesma peça do «Ações» da anamnese (09/11/2026).
@@ -6406,7 +6426,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<span class="folha-puxador" aria-hidden="true"></span>' +
     '<ul class="menu-de-acoes-lista">' +
     TITULOS_DAS_ABAS_DA_AUDICAO
-      .map(([n, t]) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
+      .map(([n, t]) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '"' +
+        (n !== '1' && !temElencoGravado
+          ? ' disabled aria-disabled="true" title="' + esc(FRASE_DA_ABA_SEM_ELENCO) + '"' : '') + '>' +
         t + '</button></li>').join('') +
     '</ul>' +
     '</div>' +
@@ -6652,6 +6674,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * lista muda. Uma frase escrita nos dois sítios diria «dois elencos» num e «2 elencos» no
      * outro ao primeiro ajuste. */
     'var TEXTOS_DA_TRANSFERENCIA = ' + JSON.stringify(TEXTOS_DA_TRANSFERENCIA) + ';' +
+    /* O NÚMERO QUE ABRE AS ABAS 2 E 3 (15/11/2026). Ele nasce do servidor — é o que o HTML
+     * acima já pintou —, e o `carregarLinhas` reescreve-o a cada leitura: gravar o primeiro
+     * elenco abre as duas abas sem F5, e apagar o último fecha-as. Sem esta repintura, o
+     * professor ficaria com abas que só respondem depois de recarregar a página. */
+    'var ELENCOS_GRAVADOS = ' + (temElencoGravado ? 1 : 0) + ';' +
+    'var FRASE_DA_ABA_SEM_ELENCO = ' + JSON.stringify(FRASE_DA_ABA_SEM_ELENCO) + ';' +
     /* AS DUAS FRASES DO ELENCO VAZIO — do núcleo, como MODELO (12/11/2026). O `%ELENCO%` e o
      * `%TURMAS%` são preenchidos aqui com o que a lista já traz; a frase em si (e a sua
      * concordância) não se reescreve neste ficheiro, senão as duas versões divergiam. */
@@ -7917,8 +7945,46 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (v) v.hidden = true;' +
     '  if (b) b.setAttribute("aria-expanded", "false");' +
     '}' +
+    /* A ABA QUE AINDA NÃO PODE ABRIR NÃO ABRE (15/11/2026) — e a guarda fica AQUI, no sítio por
+     * onde passam as três portas (a tira, a folha do telemóvel e o teclado). O `disabled` do
+     * HTML é o que o professor vê; esta linha é o que impede que um caminho novo se esqueça
+     * dele. É a mesma regra do `podeVerPasso` do elenco: um passo ou aba que não abriu não se
+     * alcança por atalho nenhum. */
+    'function abaDaAudicaoAberta(n) {' +
+    '  return String(n) === "1" || ELENCOS_GRAVADOS > 0;' +
+    '}' +
+    /* AS DUAS ABAS APRENDEM A ESPERAR — e desaprendem quando o primeiro elenco é gravado.
+     *
+     * O `title` é a razão, e não a decoração: uma aba apagada e muda manda procurar o defeito.
+     * O `aria-disabled` acompanha o `disabled` porque o atributo sozinho não diz ao leitor de
+     * ecrã QUE ela existe; os dois juntos dizem-no. */
+    'function pintarAbasDaAudicao() {' +
+    '  ABAS_DA_AUDICAO.forEach(function(k){' +
+    '    var pode = abaDaAudicaoAberta(k);' +
+    '    var b = document.getElementById("lb-aba-" + k);' +
+    '    if (b) {' +
+    '      b.disabled = !pode;' +
+    '      b.setAttribute("aria-disabled", pode ? "false" : "true");' +
+    '      if (pode) b.removeAttribute("title"); else b.setAttribute("title", FRASE_DA_ABA_SEM_ELENCO);' +
+    '    }' +
+    '    var item = document.querySelector("#lb-abas-menu [data-aba=\\"" + k + "\\"]");' +
+    '    if (item) {' +
+    '      item.disabled = !pode;' +
+    '      item.setAttribute("aria-disabled", pode ? "false" : "true");' +
+    '      if (pode) item.removeAttribute("title"); else item.setAttribute("title", FRASE_DA_ABA_SEM_ELENCO);' +
+    '    }' +
+    '  });' +
+    /* A ABA ABERTA QUE PERDE O DIREITO FECHA-SE. Acontece num caminho só — apagar o último
+     * elenco enquanto a aba 2 ou a 3 está à vista —, e é o caso em que a tela ficaria a mostrar
+     * o recorte de um acervo que já não tem elenco nenhum. Voltar à aba 1 não perde trabalho:
+     * é lá que se compõe o próximo. */
+    '  var atual = document.querySelector("#lb-abas [aria-selected=\\"true\\"]");' +
+    '  var escolhida = atual && atual.getAttribute("data-aba");' +
+    '  if (escolhida && !abaDaAudicaoAberta(escolhida)) abrirAbaDaAudicao("1");' +
+    '}' +
     'function abrirAbaDaAudicao(n) {' +
     '  if (ABAS_DA_AUDICAO.indexOf(n) === -1) return;' +
+    '  if (!abaDaAudicaoAberta(n)) return;' +
     '  ABAS_DA_AUDICAO.forEach(function(k){' +
     '    var b = document.getElementById("lb-aba-" + k);' +
     '    var p = document.getElementById("lb-painel-" + k);' +
@@ -13595,6 +13661,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * em que a página nasceu — a mesma classe de defeito do elenco que não chegava à Turma
      * (07/11/2026), e a correção é a mesma: uma regra, um caminho. */
     '      if (d && d.elencos) ELENCOS_MOVIVEIS = d.elencos.filter(function(e){ return e && e.id; });' +
+    /* QUANTOS ELENCOS ESTÃO GRAVADOS — a mesma regra da transferência: concluído é ter recorte,
+     * e é isso que o `rascunho` do servidor já diz. É este número que mantém as abas 2 e 3 em
+     * dia sem recarregar a página. */
+    '      ELENCOS_GRAVADOS = ELENCOS_MOVIVEIS.filter(function(e){ return !e.rascunho; }).length;' +
+    '      pintarAbasDaAudicao();' +
     /* A MARCA ANDA COM A LISTA (12/11/2026). O `pintarLinhas` corre a seguir e já a usa nos
      * cartões dos elencos; o `pintarRevisoesDasTurmas` é o que faz o mesmo nos cartões das TURMAS,
      * que o servidor desenhou e esta leitura não volta a desenhar. Sem ele, a marca do lado da

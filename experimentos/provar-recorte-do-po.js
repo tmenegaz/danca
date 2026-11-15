@@ -155,7 +155,10 @@ async function subir(memoria) {
       respostaHttp.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return respostaHttp.end(fs.readFileSync(path.join(PORTA, 'index.html')));
     }
-    if (url.pathname.indexOf('/assets/') === 0) {
+    // O `markdown.js` da porta pede-se em `/plano-observacao/assets/…` (o caminho absoluto
+    // do ficheiro, que é o único que o ASSETS serve nos três endereços da porta) — e por isso
+    // a bancada lê o caminho sem esse prefixo, como o Worker faz.
+    if (url.pathname.replace(/^\/plano-observacao/, '').indexOf('/assets/') === 0) {
       const mapa = {
         '/assets/markdown.js': path.join(PORTA, 'assets/markdown.js'),
         '/assets/nav.js': path.join(RAIZ, 'tools/templates/nav.js'),
@@ -163,7 +166,7 @@ async function subir(memoria) {
         '/assets/favicon.svg': path.join(RAIZ, 'tools/templates/marca/favicon.svg'),
         '/assets/lib-cifra.js': path.join(RAIZ, 'tools/lib-cifra.js'),
       };
-      const arquivo = mapa[url.pathname];
+      const arquivo = mapa[url.pathname.replace(/^\/plano-observacao/, '')];
       if (arquivo && fs.existsSync(arquivo)) {
         const tipo = arquivo.endsWith('.css') ? 'text/css'
           : arquivo.endsWith('.svg') ? 'image/svg+xml' : 'text/javascript';

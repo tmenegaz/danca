@@ -44805,3 +44805,101 @@ quando a lista não pode ser mostrada, e isso pede uma decisão dela.
 `escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
 (anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
 continuam abertas, e não foram tocadas aqui.
+
+## 15/11/2026 — O formulário da anamnese não abria: o `markdown.js` era pedido num sítio que não existe
+
+**O que ela viu.** *«Estou agora tentando fazer a anamnese dos alunos. […] Quando eu clico em fazer
+anamnese e vou para o formulário, não aparece o formulário, aparece apenas os botões que não
+funcionam. […] Eu tenho condução, uma pergunta por vez, o que não se observou fica em branco, a
+lacuna é declarada e nunca inventada. Aí tem o botão anterior, próximo e fechar anamnese.»*
+
+**A causa, e ela é de caminho.** O `<script src="assets/markdown.js">` da porta era **relativo**, e
+a porta é servida sob três endereços: `/anamnese/`, `/plano-ensino/`, `/plano-observacao/`. Lido de
+`/plano-observacao/`, o relativo acertava no ficheiro (`plano-observacao/assets/markdown.js`); lido
+de `/anamnese/`, pedia `/anamnese/assets/markdown.js`, que **não existe**.
+
+O que transformava um 404 num formulário em branco é a conta das invocações. O commit `dd128a30`
+(13/11/2026) pôs a negativa `!/*/assets/*` no `run_worker_first`: um caminho com essa forma vai
+**direto ao ASSETS**, sem passar pelo Worker que faria a tradução. Medido no ar a 15/11/2026:
+`/anamnese/assets/markdown.js` → **404** · `/plano-observacao/assets/markdown.js` → **200**, nas
+três escolas. Sem o ficheiro, `Markdown` não existe; o primeiro `md()` de `renderPergunta` lança
+`Markdown is not defined`; a exceção aborta o desenho e o que sobra no ecrã é a Condução com a
+frase do ritmo e os botões — sem pergunta nenhuma e sem nada ligado, porque o `iniciar` morre antes
+de ligar os cliques. É o sintoma, palavra por palavra.
+
+**A bancada escondia-o.** `provar-alunas-da-anamnese` servia `/anamnese/assets/markdown.js` «porque
+o `src` é relativo à página» — com um comentário a dizer que, sem isso, a página partia. A prova
+tapava exactamente o que o produto fazia. É a segunda vez na mesma semana que uma bancada demasiado
+generosa mede um produto que não existe.
+
+**O que foi decidido.**
+
+- **O `src` passa a absoluto:** `/plano-observacao/assets/markdown.js`. É o sítio único do ficheiro
+  no pacote, é o mesmo nos três endereços da porta, e o ASSETS serve-o sem invocar o Worker — a
+  mesma decisão que a `dd128a30` tomou para os scripts do motor (saíram de `/assets/` para
+  `/scripts/` porque debaixo de uma negativa seriam 404). Não se «reabre» `/anamnese/assets/*`: as
+  negativas têm precedência, e reabri-las custaria uma invocação por pedido.
+- **As bancadas passam a servir o caminho que o produto serve** — e não um caminho inventado que
+  faça a página funcionar. Nas que servem a mesma pasta, o prefixo `/plano-observacao` é retirado
+  antes de procurar o ficheiro, como o Worker faz.
+
+**Onde entrou.** `porta/index.html` e as sete cópias versionadas em
+`professores/*/ciclos/ciclo-*/plano-observacao/index.html` (o `gerar-ciclo.sh` copia esta página
+para dentro de cada pacote, e é dela que o Worker serve); `experimentos/provar-alunas-da-anamnese.js`
+(bancada estrita + duas asserções novas); `provar-listas-sem-repeticao.js`,
+`provar-recorte-do-po.js`, `provar-a-autoria-na-troca-de-professor.js`,
+`provar-novo-registo-e-ciclo.js`, `provar-menu-do-formulario.js` (as bancadas que servem a pasta da
+porta e que passaram a retirar o prefixo antes de procurar o ficheiro). As que já casavam por
+`endsWith('/assets/markdown.js')` — `provar-ato-e-barra`, `provar-cabecalho-do-ato`,
+`provar-escola-fixa`, `provar-escopo-do-plano`, `provar-selo`, `provar-forca-e-flexibilidade` —
+não precisaram de mudança: o caminho absoluto termina da mesma maneira.
+
+**Auditoria.** Medido no ar antes e depois: com o `src` relativo, a página de `batata` desenhava
+`#pergunta` com **0 filhos** (altura 0) e `Markdown is not defined` na consola; com o caminho
+absoluto, o cartão «1. Data de nascimento» desenha-se (680×421). `provar-alunas-da-anamnese` 16/16
+— com a bancada estrita, que falha se o `src` voltar a ser relativo. `provar-abas-da-audicao` 99/99,
+`provar-listas-sem-repeticao` 15/16, `provar-recorte-do-po` (parava num «tempo esgotado» antes desta
+entrada e continua a parar no mesmo sítio), `provar-a-autoria-na-troca-de-professor` 41/41,
+`check-identidade` 22/22.
+
+**O que ainda não está feito.** `provar-listas-sem-repeticao` falha uma asserção («PO: `api/envelopes`
+é pedido UMA vez» → 0), e ela falha **igual com a página de antes** — conferido —, portanto não é
+desta entrada. `provar-estante-do-po` mostra 7 falhas de dados (`escola/batata` sem a cadeia de
+planos) e não é versionado.
+
+## 15/11/2026 — Audição: as abas Recorte e Transferência esperam pelo primeiro elenco gravado
+
+**O pedido.** *«As abas recorte e transferência não podem estar habilitadas enquanto não existir um
+elenco gravado. Então, isso também tem que ser ajustado.»*
+
+**O que muda.** As três abas continuam à vista — uma aba que desaparece não se distingue de uma aba
+que nunca existiu —, mas a 2 e a 3 nascem **desligadas** enquanto não houver um elenco **concluído**,
+com o `title` a dizer por quê («Abre quando existir um elenco gravado.»). «Gravado» é o que passou
+do passo 1 e tem recorte: é a mesma lista que a transferência oferece (`elencosParaMover`, que já
+exclui rascunhos e lápides). Uma segunda noção de «gravado» divergiria desta ao primeiro caso — e a
+prova mede as duas: um rascunho **não** acende as abas.
+
+**A guarda fica num sítio só.** `abrirAbaDaAudicao` é por onde passam as três portas (a tira do
+computador, a folha do telemóvel e o teclado); a regra (`abaDaAudicaoAberta`) está lá, e o `disabled`
+do HTML é o que se vê. É a mesma disciplina do `podeVerPasso` do elenco: um passo que não abriu não
+se alcança por atalho nenhum.
+
+**E as abas acompanham a lista.** `carregarLinhas` recalcula `ELENCOS_GRAVADOS` e repinta: gravar o
+primeiro elenco acende as duas **sem F5**, e apagar o último fecha-as. Se a aba aberta for a 2 ou a
+3 quando o último elenco é apagado, a página volta sozinha à aba 1 — em vez de ficar a mostrar o
+recorte de um acervo que já não tem elenco nenhum.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`temElencoGravado` e a frase única, a marcação das
+duas tiras, `ELENCOS_GRAVADOS`, `pintarAbasDaAudicao`, a guarda no `abrirAbaDaAudicao`, a repintura
+no `carregarLinhas`, e a regra `.aba[disabled]` na folha da própria página).
+
+**Auditoria.** `provar-abas-da-audicao` **99/99**, com a secção K nova a correr a página em jsdom:
+sem elenco, as abas 2 e 3 estão `disabled`, o `title` diz por quê, o clique não troca de painel, o
+atalho directo também não passa, e a folha do telemóvel diz o mesmo; gravado um elenco, as duas
+acendem e a 2 abre; apagado o último com a 2 à vista, a página volta à 1 e as duas fecham; um
+rascunho não conta. **Controle negativo** com o código de `HEAD`: **9 das 99** falham, todas da
+secção K. Medido também num Chrome, contra o servidor de bancada: os sete estados (sem elenco, clique,
+atalho, elenco gravado, clique, elenco apagado, rascunho) comportam-se como descrito.
+
+**O que ainda não está feito.** Nada desta entrada. As duas falhas de `provar-linha-de-base`
+(curadorias e «passo 5») continuam abertas, e são anteriores.

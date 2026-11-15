@@ -718,6 +718,81 @@ async function principal() {
     /já estava/.test(resMoverNovo.textContent) && !/passou de/.test(resMoverNovo.textContent),
     resMoverNovo.textContent);
 
+  /* ---------------------------------------------- K. AS DUAS ABAS APRENDEM A ESPERAR (15/11/2026)
+   *
+   * O PEDIDO, na letra dela: «As abas recorte e transferência não podem estar habilitadas
+   * enquanto não existir um elenco gravado.»
+   *
+   * O QUE SE MEDE, e não se lê: com a lista de elencos VAZIA, as abas 2 e 3 nascem desligadas, o
+   * `title` diz por quê, o clique não troca de painel e nem o atalho directo (`abrirAbaDaAudicao`,
+   * que é o que a folha do telemóvel e o teclado chamam) passa. Depois de gravado UM elenco
+   * concluído, as duas abrem; apagado o último, voltam a fechar — e se a aba aberta for a 2 ou a
+   * 3, a página volta sozinha à 1, em vez de ficar a mostrar um recorte de um acervo que já não
+   * tem elenco. Um RASCUNHO não conta: «gravado» é o que passou do passo 1 e tem recorte, que é
+   * a mesma lista que a transferência oferece.
+   */
+  console.log('\nK. as abas 2 e 3 sem elenco gravado (15/11/2026)');
+  {
+    const tituloDas = (n) => aba(n) && aba(n).getAttribute('title');
+    /* O CONTROLE NEGATIVO NÃO PODE QUEBRAR A PROVA: com o código de antes da correção a função
+     * não existe, e um `TypeError` pararia tudo em vez de mostrar o que falta. Sem ela, o estado
+     * das abas fica o do servidor — que é exactamente o defeito que se quer medir. */
+    const pintarAbas = () => { if (typeof win.pintarAbasDaAudicao === 'function') win.pintarAbasDaAudicao(); };
+    const itemDa = (n) => doc.querySelector('#lb-abas-menu [data-aba="' + n + '"]');
+    const irParaAbaUm = () => { aba(1).click(); };
+
+    irParaAbaUm();
+    linhasNaRota.length = 0;
+    win.ELENCOS_GRAVADOS = 0;
+    pintarAbas();
+    provar('sem elenco nenhum, a aba 2 está DESLIGADA', aba(2).disabled === true);
+    provar('…e a aba 3 também', aba(3).disabled === true);
+    provar('…e a aba 1 continua a abrir', aba(1).disabled === false);
+    provar('…o `title` diz por quê (uma aba apagada e muda manda procurar defeito)',
+      /elenco gravado/i.test(String(tituloDas(2))), tituloDas(2));
+    provar('…e a folha do telemóvel diz o mesmo (o `disabled` dela também)',
+      Boolean(itemDa(2)) && itemDa(2).disabled === true && /elenco gravado/i.test(String(itemDa(2).getAttribute('title'))),
+      itemDa(2) && itemDa(2).outerHTML.slice(0, 120));
+
+    aba(2).click();
+    provar('clicar na aba 2 não troca de painel', painel(2).hidden === true && painel(1).hidden === false);
+    win.abrirAbaDaAudicao('3');
+    provar('…e o atalho directo `abrirAbaDaAudicao("3")` também não passa',
+      painel(3).hidden === true && painel(1).hidden === false);
+
+    /* UM ELENCO CONCLUÍDO — é o que a lista do servidor devolve e o que o cliente relê. */
+    linhasNaRota.push({ id: 'elenco-k', nome: 'Elenco K', professor: 'curador',
+      alunas: ['Aluna Um'], campos: [{ id: 'x', nome: 'X' }] });
+    await win.carregarLinhas();
+    await new Promise((r) => win.setTimeout(r, 120));
+    provar('gravado um elenco, as duas abas ACENDEM',
+      aba(2).disabled === false && aba(3).disabled === false, { g: win.ELENCOS_GRAVADOS });
+    provar('…e o `title` sai com a razão (não fica a explicar uma espera que acabou)', !tituloDas(2));
+    aba(2).click();
+    provar('…e a aba 2 abre mesmo', painel(2).hidden === false && painel(1).hidden === true);
+
+    /* APAGAR O ÚLTIMO COM A ABA 2 À VISTA — o caso em que a tela mostraria o recorte de nada. */
+    linhasNaRota.length = 0;
+    await win.carregarLinhas();
+    await new Promise((r) => win.setTimeout(r, 120));
+    provar('apagado o último elenco, a página volta à aba 1',
+      painel(1).hidden === false && painel(2).hidden === true);
+    provar('…e as duas voltam a estar desligadas',
+      aba(2).disabled === true && aba(3).disabled === true);
+
+    /* UM RASCUNHO NÃO É UM ELENCO GRAVADO. */
+    linhasNaRota.push({ id: 'rascunho-k', nome: 'Rascunho', professor: 'curador', alunas: [], campos: [] });
+    await win.carregarLinhas();
+    await new Promise((r) => win.setTimeout(r, 120));
+    provar('um RASCUNHO (sem recorte) não conta como elenco gravado',
+      aba(2).disabled === true && aba(3).disabled === true, { g: win.ELENCOS_GRAVADOS });
+
+    linhasNaRota.length = 0;
+    await win.carregarLinhas();
+    await new Promise((r) => win.setTimeout(r, 120));
+    irParaAbaUm();
+  }
+
   /* O FECHO DEPOIS DA ÚLTIMA RESPOSTA. A conclusão disparou leituras assíncronas
    * (`carregarLinhas`), e fechar a janela antes de elas voltarem faz o jsdom chamar
    * `getElementById` num documento morto — uma exceção assíncrona que mata a prova depois de
