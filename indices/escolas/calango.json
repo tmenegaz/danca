@@ -1,95 +1,39 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-        "cobertura": [
-          "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-          "professores/pe-pequeno/ciclos/ciclo-01.conf"
-        ],
-        "hash": "4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df",
-        "hash_conteudo": "4932b3b84d4d4825536512389ee3b569a2f4bd9c76f9ff9b3a4349f5e8cb7a97",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-        "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:pe-pequeno/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "pe-pequeno",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-      "professor": "pe-pequeno",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-      "professor": "pe-pequeno",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "pe-pequeno",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:pe-pequeno/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
     "criada_em": "2026-11-15T20:09:56.900588+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-15T19:19:02.508Z",
-    "expurgos": 11,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-15T20:24:24.806Z",
+    "expurgos": 12,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "pe-pequeno",
     "professores": [
-      "pe-pequeno"
+      "meia-ponta",
+      "murisoca-baiana",
+      "oculos-redondo",
+      "pe-pequeno",
+      "pe-torto",
+      "perna-boa",
+      "rabo-gramde",
+      "redinha-rosa",
+      "sapo-bailarino",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "calango"
@@ -97,40 +41,13 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "pe-pequeno",
-        "valor": "pe-pequeno"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "ba2032b"
+    "commit": "bfb05b8"
   },
   "gerado_em": "2026-11-15T20:24",
   "nao_indexado": [
