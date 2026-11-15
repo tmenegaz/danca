@@ -1,0 +1,22 @@
+{
+  "versao": 1,
+  "escola": "batata",
+  "versoes": {
+    "sapatilha--20261115-1358.json": {
+      "id": "sapatilha",
+      "carimbo": "20261115-1358",
+      "arquivo": "escola/batata/linhas-de-base/sapatilha--20261115-1358.json",
+      "nome": "Sapatilha",
+      "professor": "lapis-rosa",
+      "turma": null,
+      "atualizada_em": "2026-11-15T13:58:55.894Z",
+      "enviada_em": "2026-11-15T13:58:56.487Z",
+      "aspectos": [
+        "cinco-posicoes-4a-pes",
+        "mobilidade-de-quadril-en-dehors-de-origem",
+        "orientacao-espacial-basica"
+      ],
+      "alunas": 1
+    }
+  }
+}
