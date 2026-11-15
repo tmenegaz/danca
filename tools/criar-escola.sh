@@ -813,11 +813,16 @@ if [ -e "$INDICE_ARQ" ]; then
   echo "  aviso: $INDICE_ARQ já existe (o índice sobrevive ao expurgo) — não sobrescrevo."
   # O ELO DIZ QUEM RECRIOU (22/10/2026). Sem os dados da criação, o responsável do índice era
   # o da primeira — e o painel dos Bastidores mostrava a pessoa errada.
+  # O `--shard` VAI TAMBÉM AQUI (15/11/2026), e a falta dele era o buraco: o índice sobrevive ao
+  # expurgo, e o shard só era escrito quando o índice NASCIA. Uma escola recriada dentro do shard
+  # ficava com o elo a dizer `worker: <escola>` e sem `shard` — e o `montar-publicacao --shard`, o
+  # mapa de escolas e o `deploy-escolas` leem todos esse campo. Nenhum deles a via.
   python3 "$RAIZ/tools/registrar-recriacao.py" "$INDICE_ARQ" \
     --professor "$PROFESSOR" \
     --professor-nome "$PROFESSOR_NOME" \
     --responsavel "$RESPONSAVEL" \
-    --ciclo "$CICLO"
+    --ciclo "$CICLO" \
+    ${SHARD_SCRIPT:+--shard "$SHARD_SCRIPT"}
 else
   python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" "$SHARD_SCRIPT" <<'PY'
 import sys, json, datetime

@@ -55,7 +55,7 @@ import datetime
 def main():
     if len(sys.argv) < 2:
         print('uso: registrar-recriacao.py <indice.json> [--professor <slug>] [--professor-nome <nome>] '
-              '[--responsavel <nome>] [--ciclo <NN>] [--motivo <texto>]', file=sys.stderr)
+              '[--responsavel <nome>] [--ciclo <NN>] [--motivo <texto>] [--shard <script>]', file=sys.stderr)
         return 2
     arq = sys.argv[1]
 
@@ -74,6 +74,13 @@ def main():
     responsavel = opcao('--responsavel')
     ciclo = opcao('--ciclo')
     motivo = opcao('--motivo') or 'recriada por tools/criar-escola.sh'
+    # O SHARD QUE SERVE A ESCOLA (15/11/2026). O `--shard` só escrevia o campo quando o ÍNDICE
+    # NASCIA; numa escola recriada o índice sobrevive ao expurgo, e por isso a recriação deixava
+    # o elo a dizer `worker: <escola>` e sem `shard` nenhum — a escola nascia dentro do shard e o
+    # repositório dizia que ela tinha um Worker próprio. O sintoma seguinte seria o
+    # `montar-publicacao --shard` a não a incluir (ele lê o índice), o mapa a não a registar, e o
+    # `deploy-escolas` a procurar um `wrangler.<escola>.jsonc` que não existe.
+    shard = opcao('--shard')
 
     try:
         with open(arq, encoding='utf-8') as f:
@@ -82,9 +89,28 @@ def main():
         print('  aviso: não consegui ler %s (%s) — sem elo de recriação' % (arq, e), file=sys.stderr)
         return 0
 
+    # O ELO NÃO PODE CONTRADIZER A REALIDADE, e por isso isto vem ANTES do retorno que segue: uma
+    # escola servida por um shard TEM de o declarar, tenha sido expurgada ou não. O `worker` passa
+    # a nomear o script que a serve hoje — é ele que o `escola/expurgar.js` usa para apagar a
+    # chave, e deixá-lo a apontar para um Worker que não existe é apontar para o lado errado.
+    if shard:
+        if indice.get('shard') != shard:
+            indice['shard'] = shard
+        if indice.get('worker') != shard:
+            indice['worker'] = shard
+
     if not indice.get('expurgo'):
-        # A escola nunca foi expurgada: nada a registar. Silêncio de propósito — o aviso já
+        # A escola nunca foi expurgada: não há elo a registar. Silêncio de propósito — o aviso já
         # foi dado pelo chamador, e um segundo «nada a fazer» só faz ruído.
+        #
+        # O QUE MESMO ASSIM SE GRAVA é o shard, quando ele mudou: o elo não pode dizer «Worker
+        # próprio» de uma escola que é servida por um shard. É a única escrita deste ramo, e é
+        # uma correcção de facto, não um elo novo.
+        if shard:
+            with open(arq, 'w', encoding='utf-8') as f:
+                json.dump(indice, f, ensure_ascii=False, indent=2)
+                f.write('\n')
+            print('  indice: servida pelo shard «%s» registada em %s' % (shard, arq))
         return 0
 
     elo = {
@@ -141,7 +167,8 @@ def main():
     with open(arq, 'w', encoding='utf-8') as f:
         json.dump(indice, f, ensure_ascii=False, indent=2)
         f.write('\n')
-    print('  indice: elo de RECRIAÇÃO registado em', arq)
+    print('  indice: elo de RECRIAÇÃO registado em', arq
+          + (' (servida pelo shard «%s»)' % shard if shard else ''))
     return 0
 
 
