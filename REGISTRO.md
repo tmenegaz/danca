@@ -45552,3 +45552,61 @@ controlo. Passa a ancorar no commit que **adicionou** `motor/nucleo/chave-mestra
 o código de antes — um ponto que não se move. Com a âncora certa: **10 de 27, dezassete falhas**, e
 entre elas a que dá sentido a tudo: em `HEAD` anterior, o expurgo **pede para apagar o script
 `lastro-teste`**.
+
+## 15/11/2026 — A publicação do shard: uma árvore partilhada monta-se inteira
+
+**O que motivou.** Uma pergunta que só apareceu ao ligar o shard: **quem publica o conteúdo de uma
+escola que vive num shard?** Os três caminhos de publicação respondiam a outra pergunta — «qual é a
+config desta escola?» — e uma escola de shard não tem config. Medido, não suposto: `gerar-ciclo.yml`
+fazia `wrangler deploy -c wrangler.<escola>.jsonc`, um ficheiro que num shard **não existe**, e
+falharia com «Could not read file»; o `deploy-escolas.yml` descobria as escolas percorrendo
+`wrangler.*.jsonc`, e por isso **nunca via** uma escola de shard; e o `criar-escola.yml` montava uma
+escola e subia o shard — que substitui a versão inteira e apagaria as páginas das outras.
+
+**O que foi decidido.**
+- **Uma pergunta, uma resposta.** `tools/lib-shard.sh` → `shard_da_escola <slug>`, lendo
+  `escola/<slug>/indice.json` no campo `shard` (o mesmo que o `criar-escola.sh --shard` grava e o
+  mesmo que o expurgo lê). Vazio significa «Worker próprio», que continua a ser o regime de quase
+  todas.
+- **`montar-publicacao.js --shard <script>`** monta todas as escolas que declaram aquele shard, cada
+  uma pelo caminho de sempre (um processo por escola: o que o CI faz tem de ser o que se faz à mão).
+- **A guarda que impede o desastre.** Sem nenhuma escola a declarar o shard, `--shard` **sai com
+  erro** e não monta nada — montar zero e subir é N escolas a responder 404, e é o único acidente
+  desta mudança que não se vê na hora.
+- **A descoberta do `deploy-escolas` passa a ver as escolas de shard**, e escolhe **uma entrada por
+  shard**: o passo de publicação monta o shard inteiro e sobe o mesmo Worker, portanto três escolas
+  do mesmo shard seriam três deploys idênticos.
+- **As três escolas de hoje passam a declarar o shard** em `escola/<slug>/indice.json`. É o facto:
+  elas são servidas pelo `lastro-teste` desde que as rotas foram movidas. Consequência boa e
+  imediata: o `moradaDaEscola` devolve o shard, o expurgo reconhece-o como shard e **não** tenta
+  apagar um script com o nome da escola.
+
+**Onde entrou.** `tools/lib-shard.sh` (novo) · `tools/montar-publicacao.js` (`escolasDoShard`,
+`montarShard`, `principal` com o despacho) · `.github/workflows/criar-escola.yml` ·
+`.github/workflows/deploy-escolas.yml` (descoberta e alvo) · `.github/workflows/gerar-ciclo.yml`
+(montagem e alvo) · `escola/{batata,breu,calango}/indice.json` (o campo `shard`) ·
+`experimentos/provar-publicacao-da-escola.js` (a asserção do `assets.directory` passa a conhecer o
+shard) · `experimentos/provar-cofre-e-shard.js` (secção D).
+
+**Motivo declarado — os congelados.** Toca `tools/montar-publicacao.js` e cria `tools/lib-shard.sh`.
+É **aditivo**: sem `--shard`, a linha de comando é a de sempre (`montar-publicacao.js <escola>`) e a
+montagem de uma escola não muda uma linha. O que acresce é o modo que faltava, e uma guarda que
+recusa montar zero. Não mudam a fórmula de hash, a cobertura da âncora, os validadores, as regras nem
+as pétreas; nenhuma fonte de ciclo foi tocada, logo não há reancoragem. `lib-shard.sh` fica em
+`tools/` porque é usado por três workflows, e a alternativa era a mesma pergunta respondida em três
+sítios.
+
+**Com o quê.** `provar-cofre-e-shard` **62/62** (a secção D mede a lista, a guarda, o helper e os três
+workflows), com o controlo negativo em **10/28**. `provar-publicacao-da-escola` **72/72**.
+`check-indices` 16/16 com o campo novo. `check-identidade` 0 erros. `montar-publicacao.js --shard
+lastro-teste` correu sobre as três escolas ao vivo, e o `--shard` de um shard sem escolas sai com
+erro 1. Duas falhas pré-existentes, medidas num worktree limpo de `origin/main` e não causadas por
+isto: `provar-listas-do-acervo` **3 de 109** (a porta `/anamnese/` responde 302) e `provar-navegacao`
+(um `getComputedStyle` sobre um elemento que não existe).
+
+**O que ainda não está feito.** (1) **Nada disto foi exercitado num run real do GitHub Actions**: a
+lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova. (2) `montar-publicacao
+--shard` num shard com uma escola cujo pacote-zero desapareceu (expurgada sem limpar o índice) monta
+as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
+não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
+versionado e inerte; sai quando ela expurgar.

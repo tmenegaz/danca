@@ -1137,7 +1137,68 @@ function compararPastas(a, b) {
   return out;
 }
 
+/**
+ * AS ESCOLAS DE UM SHARD — as que o declaram no índice delas (15/11/2026).
+ *
+ * Num shard o `assets.directory` é `publicacao/`, e a árvore é PARTILHADA: o que se sobe é a de
+ * todas as escolas dele. Montar uma só e subir apagaria as outras — o `wrangler deploy` substitui
+ * a versão inteira, e não faz um remendo. Portanto a montagem de um shard é sempre «todas as
+ * escolas dele», e a lista tem de vir de um sítio VERSIONADO: `escola/<slug>/indice.json`, campo
+ * `shard`, que é o mesmo que o `criar-escola.sh --shard` grava e o mesmo que o expurgo lê.
+ *
+ * Devolve a lista ordenada. Vazia quer dizer «ninguém declara este shard» — e aí não se monta
+ * nada, porque uma árvore vazia publicada é N escolas a responder 404.
+ */
+function escolasDoShard(shard, raiz) {
+  const base = path.join(raiz || RAIZ, 'escola');
+  if (!fs.existsSync(base)) return [];
+  const escolas = [];
+  for (const item of fs.readdirSync(base, { withFileTypes: true })) {
+    if (!item.isDirectory()) continue;
+    const arquivo = path.join(base, item.name, 'indice.json');
+    if (!fs.existsSync(arquivo)) continue;
+    let indice;
+    try { indice = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch (erro) { continue; }
+    if (String((indice && indice.shard) || '').trim() === shard) escolas.push(item.name);
+  }
+  return escolas.sort();
+}
+
+/**
+ * A MONTAGEM DE UM SHARD INTEIRO. Cada escola é montada pelo MESMO caminho de sempre — um
+ * processo por escola, e não uma segunda cópia da montagem aqui dentro: o que a `criar-escola.sh`
+ * e o CI fazem tem de ser exactamente o que se faz à mão, senão o deploy passa a ser
+ * irreprodutível a partir do commit.
+ */
+function montarShard(shard) {
+  if (!shard) {
+    console.error('uso: node tools/montar-publicacao.js --shard <script>');
+    process.exit(2);
+  }
+  const iRaiz = process.argv.indexOf('--raiz');
+  const extra = iRaiz !== -1 ? ['--raiz', process.argv[iRaiz + 1]] : [];
+  const raizDosIndices = iRaiz !== -1 ? path.resolve(process.argv[iRaiz + 1]) : RAIZ;
+  const escolas = escolasDoShard(shard, raizDosIndices);
+  if (!escolas.length) {
+    console.error('erro: nenhuma escola declara o shard «' + shard + '» em escola/<slug>/indice.json.');
+    console.error('       Montar zero escolas e subir o shard apagaria a árvore de todas.');
+    process.exit(1);
+  }
+  console.log('shard «' + shard + '»: ' + escolas.length + ' escola(s) — ' + escolas.join(', '));
+  for (const escola of escolas) {
+    const r = require('child_process').spawnSync(process.execPath, [__filename, escola].concat(extra),
+      { stdio: 'inherit', cwd: RAIZ });
+    if (r.status !== 0) {
+      console.error('erro: a montagem de «' + escola + '» falhou — o shard NÃO se publica pela metade.');
+      process.exit(r.status || 1);
+    }
+  }
+  console.log('publicação do shard «' + shard + '» montada: ' + escolas.length + ' escola(s)');
+}
+
 function principal() {
+  const iShard = process.argv.indexOf('--shard');
+  if (iShard !== -1) return montarShard(String(process.argv[iShard + 1] || '').trim());
   const escola = String(process.argv[2] || '').trim();
   if (!escola || escola.indexOf('-') === 0) {
     console.error('uso: node tools/montar-publicacao.js <escola> [--listar] [--raiz <dir>] [--com-propostas]');
@@ -1394,4 +1455,9 @@ function principal() {
  * perguntar a `documentosDaTurma` o que ele devolve, que é onde o `/variante/true` nasceu. */
 if (require.main === module) principal();
 
-module.exports = { documentosDaTurma, dadosDoPlano, itemDoPlano, menuDaEscola };
+module.exports = {
+  documentosDaTurma, dadosDoPlano, itemDoPlano, menuDaEscola,
+  /* A LISTA DAS ESCOLAS DE UM SHARD, exportada para a prova (15/11/2026): é ela que decide o que
+   * uma publicação de shard sobe, e o erro dela (uma árvore vazia) apaga N escolas de uma vez. */
+  escolasDoShard,
+};
