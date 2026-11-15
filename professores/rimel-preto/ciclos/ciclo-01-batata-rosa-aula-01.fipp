@@ -10,9 +10,9 @@ professor: rimel-preto
 ciclo: 01
 variante: batata-rosa
 aula: 01
-hash_conteudo: 7a801f820ee2ea8daab491f34f1ad3029dab925d18e372d1d584d6d653403a2e
+hash_conteudo: 32a66465f8bda3212af1166ac51b22ea28cfff6fcc3b6065e826c644e38ceab0
 parentHash: 
-hash: efe663da2d6f161f68d8b3bf6f0edf3a3d0efb8f407d6725050eaf221287d80c
+hash: 3a96df4c727da7e5eef8749425de95d10387caa7ab28d5f30a8be5fa23252ab5
 algoritmo: SHA-256
 ancorado_em: 2026-11-15
 cobertura:

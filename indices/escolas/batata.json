@@ -31,8 +31,8 @@
           "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
           "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md"
         ],
-        "hash": "efe663da2d6f161f68d8b3bf6f0edf3a3d0efb8f407d6725050eaf221287d80c",
-        "hash_conteudo": "7a801f820ee2ea8daab491f34f1ad3029dab925d18e372d1d584d6d653403a2e",
+        "hash": "3a96df4c727da7e5eef8749425de95d10387caa7ab28d5f30a8be5fa23252ab5",
+        "hash_conteudo": "32a66465f8bda3212af1166ac51b22ea28cfff6fcc3b6065e826c644e38ceab0",
         "id": "ciclo-01-batata-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -63,8 +63,8 @@
           "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
           "professores/rimel-preto/ciclos/ciclo-01.conf"
         ],
-        "hash": "84874bbb868048d822aa6b63f9a7bb18fdbf562dff69a1b3f387b0cddfc2ef31",
-        "hash_conteudo": "d1af84f4d34f62aa38e0ddf07fcbc507aae43e09b1e1e0abc95a3ab8af6e1bca",
+        "hash": "7ebf188787ec58765b0e90f35aee52f757a44734ad6fdece004be1ed8a6493f0",
+        "hash_conteudo": "fd8b20789dfce9cdca1b114e28aaf4cc74257789a777d129b69ebb2850f60003",
         "id": "ciclo-01-batata-rosa",
         "lida": true,
         "parent_hash": ""
@@ -79,8 +79,8 @@
               "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
               "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md"
             ],
-            "hash": "efe663da2d6f161f68d8b3bf6f0edf3a3d0efb8f407d6725050eaf221287d80c",
-            "hash_conteudo": "7a801f820ee2ea8daab491f34f1ad3029dab925d18e372d1d584d6d653403a2e",
+            "hash": "3a96df4c727da7e5eef8749425de95d10387caa7ab28d5f30a8be5fa23252ab5",
+            "hash_conteudo": "32a66465f8bda3212af1166ac51b22ea28cfff6fcc3b6065e826c644e38ceab0",
             "id": "ciclo-01-batata-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -329,9 +329,9 @@
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 1,
+      "pos": 2,
       "recortes": 1,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-11-15T21:06:31.119832+00:00",
     "expurgada": false,
@@ -347,18 +347,20 @@
     "registros": [
       "anamnese:anamnese-20261115-1913",
       "plano:plano-20261115-1921",
-      "po:po-20261115-1921"
+      "po:po-20261115-1921",
+      "po:po-20261115-2017"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261115-1913",
           "plano:plano-20261115-1921",
-          "po:po-20261115-1921"
+          "po:po-20261115-1921",
+          "po:po-20261115-2017"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -394,12 +396,13 @@
     ],
     "professores": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261115-1913",
           "ciclo:rimel-preto/01/batata",
           "plano:plano-20261115-1921",
-          "po:po-20261115-1921"
+          "po:po-20261115-1921",
+          "po:po-20261115-2017"
         ],
         "rotulo": "rimel-preto",
         "valor": "rimel-preto"
@@ -431,9 +434,10 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "po:po-20261115-1921"
+          "po:po-20261115-1921",
+          "po:po-20261115-2017"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -442,9 +446,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "cd1f39ca"
+    "commit": "1596ff1"
   },
-  "gerado_em": "2026-11-15T22:53",
+  "gerado_em": "2026-11-15T23:17",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -526,6 +530,16 @@
       "ciclo": "01",
       "data": "2026-11-15T19:21",
       "id": "po:po-20261115-1921",
+      "professor": "rimel-preto",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261115-1921",
+      "ano": "2026",
+      "carimbo": "po-20261115-2017",
+      "ciclo": "01",
+      "data": "2026-11-15T20:17",
+      "id": "po:po-20261115-2017",
       "professor": "rimel-preto",
       "tipo": "po"
     }

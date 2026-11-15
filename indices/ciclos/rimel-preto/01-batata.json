@@ -16,8 +16,8 @@
       "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
       "professores/rimel-preto/ciclos/ciclo-01.conf"
     ],
-    "hash": "84874bbb868048d822aa6b63f9a7bb18fdbf562dff69a1b3f387b0cddfc2ef31",
-    "hash_conteudo": "d1af84f4d34f62aa38e0ddf07fcbc507aae43e09b1e1e0abc95a3ab8af6e1bca",
+    "hash": "7ebf188787ec58765b0e90f35aee52f757a44734ad6fdece004be1ed8a6493f0",
+    "hash_conteudo": "fd8b20789dfce9cdca1b114e28aaf4cc74257789a777d129b69ebb2850f60003",
     "id": "ciclo-01-batata-rosa",
     "lida": true,
     "parent_hash": ""
@@ -121,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "cd1f39ca"
+    "commit": "1596ff1"
   },
-  "gerado_em": "2026-11-15T22:53",
+  "gerado_em": "2026-11-15T23:17",
   "id": "ciclo:rimel-preto/01/batata",
   "professor": "rimel-preto",
   "versao": 7

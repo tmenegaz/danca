@@ -10,9 +10,9 @@ type: Ciclo
 professor: rimel-preto
 ciclo: 01
 variante: batata-rosa
-hash_conteudo: d1af84f4d34f62aa38e0ddf07fcbc507aae43e09b1e1e0abc95a3ab8af6e1bca
+hash_conteudo: fd8b20789dfce9cdca1b114e28aaf4cc74257789a777d129b69ebb2850f60003
 parentHash: 
-hash: 84874bbb868048d822aa6b63f9a7bb18fdbf562dff69a1b3f387b0cddfc2ef31
+hash: 7ebf188787ec58765b0e90f35aee52f757a44734ad6fdece004be1ed8a6493f0
 algoritmo: SHA-256
 po: professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md
 po_state: Input_PO_Validado
