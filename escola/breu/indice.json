@@ -3,17 +3,17 @@
   "worker": "lastro-teste",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "grand-plie",
-    "nome": "Grand Plié"
+    "slug": "dedao-aberto",
+    "nome": "Dedao Aberto"
   },
-  "responsavel": "Grand Plié",
+  "responsavel": "Dedao Aberto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -890,6 +890,20 @@
       "professor_anterior": {
         "slug": "redinha-rosa",
         "nome": "Redinha Rosa"
+      }
+    },
+    {
+      "em": "2026-11-15T22:08:32.780932+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "dedao-aberto",
+        "nome": "Dedao Aberto"
+      },
+      "responsavel": "Dedao Aberto",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "grand-plie",
+        "nome": "Grand Plié"
       }
     }
   ],
