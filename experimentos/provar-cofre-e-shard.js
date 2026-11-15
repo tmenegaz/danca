@@ -441,6 +441,67 @@ function cloudflareFalso({ rotas = [] } = {}) {
   }
   });
 
+  /* ---------------------------------------------------------------- D. A publicação */
+
+  /* A ÁRVORE PARTILHADA É O OUTRO LADO DO SHARD, e é o lado que apaga coisas. Num shard o
+   * `assets.directory` é `publicacao/`: o `wrangler deploy` substitui a versão INTEIRA, portanto
+   * montar uma escola e subir apaga as páginas das outras. Estas asserções medem a guarda. */
+  await secao('D. A publicação de um shard monta-o inteiro, ou não monta', async () => {
+    const montagem = carregar('tools/montar-publicacao.js');
+    if (!montagem || typeof montagem.escolasDoShard !== 'function') {
+      provar('existe `escolasDoShard` — a lista que decide o que um shard sobe', false, 'não existe');
+      return;
+    }
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'shard-escolas-'));
+    const escrever = (slug, obj) => {
+      fs.mkdirSync(path.join(temp, 'escola', slug), { recursive: true });
+      fs.writeFileSync(path.join(temp, 'escola', slug, 'indice.json'), JSON.stringify(obj), 'utf8');
+    };
+    escrever('uma', { escola: 'Uma', shard: 'shard-a' });
+    escrever('outra', { escola: 'Outra', shard: 'shard-a' });
+    escrever('sozinha', { escola: 'Sozinha', worker: 'sozinha' });
+    escrever('do-b', { escola: 'Do B', shard: 'shard-b' });
+
+    const doA = montagem.escolasDoShard('shard-a', temp);
+    provar('as escolas de um shard são as que o DECLARAM no índice', doA.join(',') === 'outra,uma', doA);
+    provar('…e uma escola de Worker próprio não entra', doA.indexOf('sozinha') === -1, doA);
+    provar('…nem a de outro shard', doA.indexOf('do-b') === -1, doA);
+    provar('um shard que ninguém declara dá lista VAZIA (é a condição que a guarda recusa)',
+      montagem.escolasDoShard('shard-que-nao-existe', temp).length === 0, null);
+
+    /* A GUARDA, exercitada pela linha de comando — e é ela que impede o pior: montar zero
+     * escolas e subir o shard, que é N escolas a responder 404. */
+    const r = require('child_process').spawnSync(process.execPath,
+      [path.join(RAIZ_DO_CODIGO, 'tools/montar-publicacao.js'), '--shard', 'shard-que-nao-existe',
+        '--raiz', temp], { cwd: RAIZ, encoding: 'utf8' });
+    provar('`--shard` de um shard sem escolas SAI COM ERRO, e não monta nada',
+      r.status === 1 && /apagaria a árvore de todas/.test(String(r.stderr)), { status: r.status, err: String(r.stderr).split('\n')[0] });
+
+    /* O helper que os três workflows usam para a mesma pergunta. */
+    const linha = require('child_process').spawnSync('bash',
+      ['-c', 'source tools/lib-shard.sh; printf "%s|%s" "$(shard_da_escola calango)" "$(shard_da_escola nao-existe)"'],
+      { cwd: RAIZ, encoding: 'utf8' });
+    provar('`shard_da_escola` responde o shard de quem o declara, e cala-se para os outros',
+      linha.stdout === 'lastro-teste|', JSON.stringify(linha.stdout));
+
+    /* OS TRÊS CAMINHOS DE PUBLICAÇÃO PERGUNTAM A MESMA COISA. Sem isto, a escola de shard gera
+     * documentos e o site não os mostra — que é o defeito silencioso desta mudança. */
+    const lerFluxo = (rel) => fs.readFileSync(path.join(RAIZ_DO_CODIGO, '.github/workflows', rel), 'utf8');
+    /* O `criar-escola.yml` sabe o shard pelo INPUT (é quem cria que o diz), e por isso não
+     * consulta o índice; os outros dois descobrem-no pela escola, e perguntam a `lib-shard.sh`.
+     * São duas respostas certas para a mesma pergunta, e a asserção é a de cada um. */
+    const caminhos = [
+      ['criar-escola.yml', /alvo="wrangler\.\$\{\{ inputs\.shard \}\}\.jsonc"/],
+      ['deploy-escolas.yml', /lib-shard\.sh/],
+      ['gerar-ciclo.yml', /lib-shard\.sh/],
+    ];
+    for (const [fluxo, alvo] of caminhos) {
+      const texto = (() => { try { return lerFluxo(fluxo); } catch (erro) { return ''; } })();
+      provar(fluxo + ' monta o shard inteiro (`--shard`) em vez de uma escola', /montar-publicacao\.js --shard/.test(texto), null);
+      provar(fluxo + ' …e sobe a config do SHARD, não a de uma escola', alvo.test(texto), null);
+    }
+  });
+
   console.log('\n' + (ko === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + ok + '/' + (ok + ko)
     + ' asserção(ões)' + (ko ? ', ' + ko + ' falha(s)' : '') + '.');
   process.exit(ko === 0 ? 0 : 1);

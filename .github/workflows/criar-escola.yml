@@ -123,7 +123,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node tools/montar-publicacao.js "${{ inputs.escola }}"
+          #
+          # NUM SHARD, TODAS E NÃO UMA (15/11/2026): a árvore é partilhada, e subir o shard com a
+          # montagem de uma escola apagaria as páginas das outras. `--shard` monta todas as que o
+          # declaram, e recusa-se a montar zero.
+          if [ -n "${{ inputs.shard }}" ]; then
+            node tools/montar-publicacao.js --shard "${{ inputs.shard }}"
+          else
+            node tools/montar-publicacao.js "${{ inputs.escola }}"
+          fi
 
       # O KV DA ESCOLA NOVA (07/11/2026). O namespace é COMPARTILHADO por todas as escolas, e o
       # expurgo já falhou uma vez de forma declarada (19/10/2026 — o elo sem a metade do KV, com

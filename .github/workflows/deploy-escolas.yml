@@ -152,6 +152,61 @@ jobs:
               const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
               l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
           done
+
+          # AS ESCOLAS DE SHARD NÃO TÊM CONFIG, E POR ISSO NÃO APARECIAM AQUI (15/11/2026).
+          #
+          # Uma escola criada dentro de um shard não ganha `wrangler.<escola>.jsonc` — seria ela a
+          # fazer o laço de cima subir mais um Worker. Consequência que ninguém tinha visto: o
+          # shard NUNCA era republicado quando o pacote de uma escola dele mudava, e a escola
+          # gerava documentos que o site não mostrava. A lista vem do índice (`escola/<slug>/
+          # indice.json`, campo `shard`), que é onde o `criar-escola.sh --shard` a escreve.
+          #
+          # UMA ENTRADA POR SHARD, E NÃO UMA POR ESCOLA. O passo de publicação monta o shard
+          # inteiro e sobe o mesmo Worker: três escolas do mesmo shard seriam três deploys
+          # idênticos. Fica a primeira, por ordem alfabética — e é indiferente qual é, porque o
+          # que se monta e sobe é o todo.
+          while IFS= read -r slug; do
+            [ -n "$slug" ] || continue
+            case "$lista" in *"\"$slug\""*) continue ;; esac
+            if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
+            lista=$(printf '%s' "$lista" | node -e '
+              const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
+              l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
+          done < <(node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const raiz = process.cwd();
+            const dir = path.join(raiz, "escola");
+            if (!fs.existsSync(dir)) return;
+            const porShard = new Map();
+            for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+              if (!item.isDirectory()) continue;
+              const arq = path.join(dir, item.name, "indice.json");
+              if (!fs.existsSync(arq)) continue;
+              let shard = "";
+              try { shard = String((JSON.parse(fs.readFileSync(arq, "utf8")) || {}).shard || "").trim(); }
+              catch (erro) { shard = ""; }
+              if (!shard) continue;
+              // O pacote-zero é o que a escola SERVE; sem ele não há o que publicar — a mesma
+              // regra do laço de cima, e a que impede o deploy de ressuscitar uma escola expurgada.
+              const professores = path.join(raiz, "professores");
+              if (!fs.existsSync(professores)) continue;
+              let temPacote = false;
+              for (const prof of fs.readdirSync(professores)) {
+                const ciclos = path.join(professores, prof, "ciclos");
+                if (!fs.existsSync(ciclos)) continue;
+                for (const nome of fs.readdirSync(ciclos)) {
+                  if (new RegExp("^ciclo-[0-9]{2}-" + item.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$").test(nome)
+                    && fs.statSync(path.join(ciclos, nome)).isDirectory()) { temPacote = true; break; }
+                }
+                if (temPacote) break;
+              }
+              if (!temPacote) continue;
+              if (!porShard.has(shard) || item.name < porShard.get(shard)) porShard.set(shard, item.name);
+            }
+            for (const [, escola] of [...porShard.entries()].sort()) console.log(escola);
+          ')
+
           echo "escolas=$lista" >> "$GITHUB_OUTPUT"
           echo "descobertas: $lista"
 
@@ -210,17 +265,38 @@ jobs:
           # deploy, 404 nas três páginas.
           node experimentos/propostas/propor-linha-de-base.js
 
+      # A MESMA PERGUNTA QUE O `descobrir` FAZ, E AQUI A RESPOSTA MUDA O ALVO (15/11/2026).
+      #
+      # No shard o `assets.directory` é `publicacao/` e a árvore é PARTILHADA: o `wrangler deploy`
+      # substitui a versão inteira, portanto montar uma escola e subir apagaria as páginas das
+      # outras. Num shard monta-se o shard inteiro (`--shard`, que recusa montar zero) e sobe-se a
+      # config do shard — a escola não tem config dela.
       - name: Montar o site de ${{ matrix.escola }}
         shell: bash
         run: |
           set -euo pipefail
-          node tools/montar-publicacao.js ${{ matrix.escola }} --com-propostas
+          source tools/lib-shard.sh
+          shard="$(shard_da_escola "${{ matrix.escola }}")"
+          if [ -n "$shard" ]; then
+            echo "servida pelo shard «$shard» — monta-se o shard inteiro"
+            node tools/montar-publicacao.js --shard "$shard" --com-propostas
+          else
+            node tools/montar-publicacao.js ${{ matrix.escola }} --com-propostas
+          fi
 
       - name: Subir ${{ matrix.escola }} no Cloudflare
         shell: bash
         run: |
           set -euo pipefail
-          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ matrix.escola }}.jsonc"
+          source tools/lib-shard.sh
+          shard="$(shard_da_escola "${{ matrix.escola }}")"
+          if [ -n "$shard" ]; then
+            alvo="wrangler.$shard.jsonc"
+          else
+            alvo="wrangler.${{ matrix.escola }}.jsonc"
+          fi
+          echo "motor: $alvo"
+          ./node_modules/.bin/wrangler deploy -c "$alvo"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

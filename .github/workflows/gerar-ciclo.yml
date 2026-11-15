@@ -414,13 +414,37 @@ jobs:
           # não no ar. Com mais de uma turma, apontar a config a uma delas esconderia as outras.
           # `publicacao/<escola>/` é montado agora: o índice das turmas, a apresentação, a porta
           # e um subdirectório por pacote. É saída, não é versionada, e é reconstruída de zero.
-          node tools/montar-publicacao.js "${{ inputs.escola }}"
+          #
+          # NUM SHARD, TODAS E NÃO UMA (15/11/2026). No shard o `assets.directory` é
+          # `publicacao/` e a árvore é PARTILHADA: o `wrangler deploy` substitui a versão
+          # inteira, portanto montar só esta escola e subir apagaria as páginas das outras.
+          # `--shard` monta todas as que o declaram no índice, e recusa-se a montar zero —
+          # uma árvore vazia publicada é N escolas a responder 404.
+          source tools/lib-shard.sh
+          shard="$(shard_da_escola "${{ inputs.escola }}")"
+          if [ -n "$shard" ]; then
+            echo "a escola é servida pelo shard «$shard» — monta-se o shard inteiro"
+            node tools/montar-publicacao.js --shard "$shard"
+          else
+            node tools/montar-publicacao.js "${{ inputs.escola }}"
+          fi
 
       - name: Publicar o pacote no Cloudflare
         shell: bash
         run: |
           set -euo pipefail
-          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+          # O MOTOR QUE SE SOBE SEGUE A MESMA PERGUNTA DO PASSO ANTERIOR (15/11/2026). Uma
+          # escola de shard não tem `wrangler.<escola>.jsonc` — subir esse caminho falhava com
+          # «Could not read file», e a geração de uma escola de shard ficava sem publicação.
+          source tools/lib-shard.sh
+          shard="$(shard_da_escola "${{ inputs.escola }}")"
+          if [ -n "$shard" ]; then
+            alvo="wrangler.$shard.jsonc"
+          else
+            alvo="wrangler.${{ inputs.escola }}.jsonc"
+          fi
+          echo "motor: $alvo"
+          ./node_modules/.bin/wrangler deploy -c "$alvo"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

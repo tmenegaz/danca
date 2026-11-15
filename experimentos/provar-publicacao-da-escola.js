@@ -408,8 +408,14 @@ function principal() {
       const slug = arquivo.replace(/^wrangler\./, '').replace(/\.jsonc$/, '');
       const conf = fs.readFileSync(path.join(RAIZ, arquivo), 'utf8');
       const dir = (/"directory"\s*:\s*"([^"]+)"/.exec(conf) || [])[1] || '';
-      checar('o `' + arquivo + '` aponta a publicação da escola (`publicacao/' + slug + '`)',
-        dir === 'publicacao/' + slug, dir);
+      /* UM SHARD APONTA `publicacao/` E NÃO `publicacao/<nome>` (15/11/2026), e é o contrário de
+       * um defeito: é a razão de ele existir. A árvore é partilhada, cada escola vive uma pasta
+       * abaixo, e a ponte reescreve `/aulas/` para `/calango/aulas/` pelo mapa. Medir o shard pela
+       * regra da escola daria uma falha com a explicação certa ao lado — que é pior do que a
+       * asserção que se faz. */
+      const ehShard = /"PACOTE_PARTILHADO"/.test(conf);
+      checar('o `' + arquivo + '` aponta a publicação ' + (ehShard ? 'PARTILHADA (`publicacao`)' : 'da escola (`publicacao/' + slug + '`)'),
+        ehShard ? dir === 'publicacao' : dir === 'publicacao/' + slug, dir);
       // O DEFEITO ORIGINAL, nomeado: o `assets.directory` era o pacote-zero. O teste é sobre o
       // VALOR, e não sobre o texto do arquivo — o `wrangler` carrega comentários, e a prosa que
       // explica a correcção cita o caminho antigo: procurá-lo no texto dava um falso positivo
