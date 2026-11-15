@@ -95,7 +95,7 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261115-1921?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261115-2017?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
 - **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261115-1921?formato=html)** — Teste
 
 **Anamnese de cada aluna**
