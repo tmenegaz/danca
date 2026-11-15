@@ -51,6 +51,9 @@ const { excluirEscola } = require('./expurgar-escola.js');
  * criados por dentro do sistema. A pesquisadora: «toda vez eu tenho que ir lá e falar qual é a
  * zona... isso não é legal de fazer toda vez». Ver `dominio-da-escola.js`. */
 const dominioDaEscola = require('./dominio-da-escola.js');
+/* COMO UMA SENHA SE GUARDA — o mesmo módulo dos Bastidores (15/11/2026). O registo do dono nasce
+ * aqui, com hash e sal, e não com o texto: o KV guarda hashes, e esta é a única forma de o fazer. */
+const senhaDeRegisto = require('../nucleo/senha.js');
 
 /** O slug da escola, derivado do nome que o professor digitou (o subdomínio). */
 function slugificar(nome) {
@@ -190,6 +193,72 @@ function senhaAleatoria() {
 }
 
 /** Cria a escola no Cloudflare. Devolve `{ escola, nome, url }` — e NÃO a chave. */
+/**
+ * A ESCOLA DENTRO DO SHARD — o caminho que a criação toma quando há um shard declarado.
+ *
+ * Não cria Worker, não liga subdomínio, não grava segredo nenhum no Cloudflare. Escreve três coisas,
+ * e cada uma tem um leitor:
+ *
+ *   1. `bastidores/<escola>/dono` — `{nome, slug, hash, sal}`. Lido pelo shard em cada pedido
+ *      (`producao.js`, `identidadeDoDonoDoKv`), e apagado pelo expurgo (já estava na lista dele).
+ *   2. `escolas/por-host` — o mapa. Lido na resolução do host; sem ele o endereço novo não sabe
+ *      de quem é.
+ *   3. o registo DNS e a ROTA, a apontar ao script do shard.
+ *
+ * A ORDEM É DELIBERADA: primeiro o KV (a identidade e o mapa), depois o endereço. Se o DNS ou a
+ * rota falharem, a escola existe e diz-se que o endereço ficou pendente — é a mesma política do
+ * `ligarDominio`, que não derruba uma escola por uma permissão. O contrário (endereço no ar sem
+ * identidade) daria um site a responder «não sei quem sou» num domínio que já é público.
+ *
+ * A `senhaAdmin` NÃO vai para sítio nenhum em claro: entra no registo do dono como hash. A
+ * `senhaProfessor` idem — a do dono é derivada da mesma, como sempre foi (o professor inicial é a
+ * pessoa de contacto da escola).
+ */
+async function provisionarDentroDoShard({ nome, senhaAdmin, professorNome, professorSlug, token, accountId, zona, shardScript, kv, escola }) {
+  if (!kv || typeof kv.put !== 'function') {
+    throw new ErroDeProvisionamento('kv', 'o shard precisa do KV ligado para registar a escola — sem ele a escola nasce e ninguém sabe dela');
+  }
+  const slugDoProfessor = String(professorSlug || '').trim() || slugificar(professorNome || '');
+
+  /* 1. O REGISTO DO DONO. A senha da direção é a mesma do professor inicial — é a mesma pessoa, e
+   * duas senhas para o mesmo dono seria uma segunda verdade. O registo guarda o hash. */
+  const senhaDaDirecao = String(senhaAdmin || '').trim();
+  const registo = {
+    nome: String(professorNome || '').trim(),
+    slug: slugDoProfessor,
+  };
+  if (senhaDaDirecao) {
+    const senha = await senhaDeRegisto.registoDeSenha(senhaDaDirecao);
+    registo.hash = senha.hash;
+    registo.sal = senha.sal;
+  }
+  await kv.put('bastidores/' + escola + '/dono', JSON.stringify(registo));
+
+  /* 2. O MAPA. O host é o que o `ligarDominio` vai registar — a composição é a mesma função, para
+   * não haver duas opiniões sobre o endereço de uma escola. */
+  const host = dominioDaEscola.hostname(escola, zona || undefined);
+  await require('./mapa-de-escolas.js').registar(kv, host, escola);
+  /* O nome técnico também: o `publicar-mapa-de-escolas.js` escreve as entradas nesse formato, e a
+   * resolução por RÓTULO casa os dois — tê-los ambos é o que faz a escola resolver venha o pedido
+   * pelo domínio próprio ou pelo `workers.dev`. */
+  await require('./mapa-de-escolas.js').registar(kv, escola + '.tmenegaz77.workers.dev', escola);
+
+  /* 3. O ENDEREÇO — registo DNS e rota, a apontar AO SHARD. Não lança: uma escola sem endereço
+   * próprio é uma pendência, e a resposta diz qual. */
+  const dominio = await dominioDaEscola.ligarDominio({
+    token, escola, script: shardScript, zona: zona || undefined,
+  });
+
+  return {
+    escola,
+    nome,
+    url: dominio && dominio.ok ? dominio.url : null,
+    dominio,
+    urlPropria: dominio && dominio.ok ? dominio.url : null,
+    shard: shardScript,
+  };
+}
+
 async function criarEscola(opcoes) {
   const escola = slugificar(opcoes.nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
@@ -222,8 +291,37 @@ async function criarEscola(opcoes) {
 }
 
 /** Os passos 1–6 do provisionamento. Separado para o `criarEscola` poder desfazê-los num só lugar. */
-async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono, zona }, escola) {
+async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono, zona, shardScript, kv }, escola) {
   const base = '/accounts/' + accountId + '/workers';
+
+  /* A ESCOLA NASCE DENTRO DO SHARD (15/11/2026) — e este é o ramo que o faz.
+   *
+   * O QUE ELA RELATOU. Ela criou três escolas pela página, gerou documentos, e o shard não serviu
+   * nenhuma: cada escola nascia com o Worker DELA, e o shard ficou a olhar. «Eu não entendi por que
+   * que você não deixou o shard ligado» — e a razão era esta: nenhum passo da criação sabia que um
+   * shard existia.
+   *
+   * O QUE MUDA, e o que NÃO muda:
+   *
+   *   · NÃO se cria Worker, nem subdomínio, nem segredos. O Worker é o do shard, e a identidade da
+   *     escola passa a viver no KV dela (`bastidores/<escola>/dono`), que o shard lê por pedido.
+   *   · A CHAVE DE CIFRA NÃO SE GERA. Ela é derivada da mestra (`motor/nucleo/chave-mestra.js`), e
+   *     gerar uma segunda seria criar duas verdades para o mesmo dado.
+   *   · A ROTA aponta ao script do shard, e não a um script com o nome da escola.
+   *   · O MAPA ganha a entrada. Num shard é ele que diz quais escolas existem — e sem entrada ele
+   *     responde «não sei quem és» a um endereço que acabou de nascer.
+   *   · O REGISTO DO DONO é escrito, com `{nome, slug, hash, sal}`. O `slug` é o que faltava para o
+   *     dono aparecer nas listas; o `hash` é o que impede a senha da direção de uma escola de abrir
+   *     as outras, agora que há um `env` só.
+   *
+   * A SENHA EM CLARO NÃO VAI PARA O KV: o registo guarda o hash e o sal, como o dos professores
+   * adicionais. É a mesma regra, no mesmo sítio (o KV da escola), e não uma segunda forma. */
+  if (shardScript) {
+    return await provisionarDentroDoShard({
+      nome, senhaAdmin, senhaProfessor, professorNome, professorSlug, professorEhDono,
+      token, accountId, zona, shardScript, kv, escola,
+    });
+  }
 
   // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA.
   await subirModulo(token, accountId, escola, scriptDaEscola(escola, nome));

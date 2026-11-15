@@ -494,10 +494,23 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
  * diverge do slug, é `worker` que manda no Cloudflare — o slug continua sendo quem
  * nomeia o KV e o relatório. Sem `worker`, cai no slug (o caso comum).
  */
-async function excluirEscola({ token, accountId, slug, worker, kv }) {
+async function excluirEscola({ token, accountId, slug, worker, kv, scripts, mapaKv }) {
   const alvo = worker || slug;
   const base = '/accounts/' + accountId + '/workers/scripts/' + alvo;
-  const resultado = { slug, worker: alvo, subdominio: null, script: null, kv: null, dominio: null };
+  const resultado = { slug, worker: alvo, subdominio: null, script: null, kv: null, dominio: null, mapa: null };
+
+  /* OS SCRIPTS DE CONFIANÇA (15/11/2026) — o shard é um deles.
+   *
+   * Num shard a escola não tem Worker próprio: a rota dela aponta ao script do shard. A lista vem
+   * de quem chama (o `env` do Worker, que sabe em que shard está), nunca do pedido — é a diferença
+   * entre «estes scripts são desta casa» e «apaga a rota que o visitante disser».
+   *
+   * E o Worker da escola PODE NÃO EXISTIR: apagar o que já não existe responde 404, e um expurgo
+   * que falha no fim porque a escola já estava meio apagada é o pior dos mundos. O `alvo` que é o
+   * próprio shard NUNCA se apaga — seria apagar N escolas de uma vez. */
+  const donos = new Set([String(alvo), ...(Array.isArray(scripts) ? scripts : [])]
+    .map((s) => String(s || '').trim()).filter(Boolean));
+  const ehOShard = Boolean(worker) && String(worker) !== String(slug);
 
   /* O ENDEREÇO PRÓPRIO VAI COM O WORKER (13/11/2026).
    *
@@ -511,13 +524,31 @@ async function excluirEscola({ token, accountId, slug, worker, kv }) {
    * a mesma disciplina de `prefixosDaEscola`: a limpeza não alcança o que não é dela. */
   try {
     resultado.dominio = await require('./dominio-da-escola.js')
-      .desligarDominio({ token, escola: slug, script: alvo });
+      .desligarDominio({ token, escola: slug, script: alvo, scripts: [...donos] });
   } catch (erro) {
     resultado.dominio = { erro: (erro && erro.message) || String(erro) };
   }
 
-  resultado.subdominio = await api(token, 'DELETE', base + '/subdomain');
-  resultado.script = await api(token, 'DELETE', base);
+  /* A ESCOLA SAI DO MAPA (15/11/2026). O mapa é a lista que diz quais escolas existem num shard;
+   * se ele guardar uma entrada de uma escola apagada, o host continua a resolver, e o pedido vai
+   * bater numa subárvore que já não existe. Sai ANTES de o Worker/script desaparecer, para o caso
+   * de a segunda metade falhar: uma escola fora do mapa não recebe tráfego, mesmo que ainda
+   * responda por um endereço. */
+  if (mapaKv) {
+    try {
+      resultado.mapa = await require('./mapa-de-escolas.js').remover(mapaKv, slug);
+    } catch (erro) {
+      resultado.mapa = { ok: false, erro: (erro && erro.message) || String(erro) };
+    }
+  }
+
+  if (ehOShard) {
+    resultado.subdominio = { pulado: 'o shard não é uma escola' };
+    resultado.script = { pulado: 'o shard não é uma escola' };
+  } else {
+    resultado.subdominio = await api(token, 'DELETE', base + '/subdomain');
+    resultado.script = await api(token, 'DELETE', base);
+  }
   if (kv) {
     resultado.kv = await apagarChavesDeEscola({
       token,

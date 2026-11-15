@@ -186,6 +186,43 @@ async function registar(kv, host, escola) {
   return { ok: true, inalterado: false, mapa: novo };
 }
 
+/**
+ * TIRA UMA ESCOLA DO MAPA — todas as entradas que apontam para ela (15/11/2026).
+ *
+ * PORQUE É QUE ISTO PASSOU A SER DO EXPURGO, e a decisão que se inverte aqui.
+ *
+ * O `tools/publicar-mapa-de-escolas.js` dizia, com razão, que o mapa tem UM DONO: quem escreve é
+ * ele, e o expurgo não tocava — o `--podar` varria as sobras. A premissa do `--podar` é que cada
+ * escola tem um `wrangler.<escola>.jsonc` com o `assets.directory` debaixo de `publicacao/`.
+ *
+ * **Num shard essa premissa desaparece.** As escolas deixam de ter configuração própria — passam a
+ * viver todas no mesmo `wrangler.lastro-teste.jsonc`. Correr `--podar` depois disso não poda as
+ * sobras: esvazia o mapa inteiro, porque nenhuma config declara escola nenhuma. E um mapa vazio num
+ * shard não é uma limpeza — é o shard a dizer «não sei quem é ninguém».
+ *
+ * Com um dono que deixou de poder exercer, o dono passa a ser quem sabe: a criação regista e o
+ * expurgo remove. É o mesmo princípio do `desligarDominio`, que só apaga o que tem a marca do
+ * sistema — aqui a marca é o VALOR da entrada, que tem de ser exactamente esta escola.
+ *
+ * A procura é pelo VALOR, e não por uma chave composta. O mapa guarda os dois nomes que uma escola
+ * pode ter (`<escola>.tmenegaz77.workers.dev`, escrito pelo `publicar-mapa`, e `<escola>.<zona>`,
+ * escrito pela criação), e a resolução por RÓTULO casa os dois: remover só uma das chaves deixaria
+ * a escola a resolver pelo outro caminho — o defeito que esta função existe para não ter.
+ */
+async function remover(kv, escola) {
+  if (!kv || typeof kv.put !== 'function') throw new Error('mapa de escolas: sem KV onde gravar');
+  const e = String(escola || '').trim();
+  const atual = (await lerMapa(kv)) || {};
+  if (!e) return { ok: true, inalterado: true, mapa: atual, removidas: [] };
+  const removidas = Object.keys(atual).filter((h) => atual[h] === e);
+  if (!removidas.length) return { ok: true, inalterado: true, mapa: atual, removidas: [] };
+  const novo = Object.assign({}, atual);
+  for (const h of removidas) delete novo[h];
+  await kv.put(CHAVE, JSON.stringify(novo));
+  esquecer(kv);
+  return { ok: true, inalterado: false, mapa: novo, removidas };
+}
+
 module.exports = {
   CHAVE,
   TTL,
@@ -197,5 +234,6 @@ module.exports = {
   doMapa,
   resolver,
   registar,
+  remover,
   esquecer,
 };

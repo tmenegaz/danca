@@ -219,23 +219,18 @@ function escolaDe(env, url) {
   return String((url && url.searchParams.get('escola')) || '').trim();
 }
 
-/** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
-function gerarSal() {
-  const bytes = new Uint8Array(16);
-  globalThis.crypto.getRandomValues(bytes);
-  let s = '';
-  for (const b of bytes) s += b.toString(16).padStart(2, '0');
-  return s;
-}
+/* AS DUAS REGRAS DE SENHA VIVEM EM `motor/nucleo/senha.js` (15/11/2026), e o `require` vem ANTES
+ * dos apelidos de baixo: um `const gerarSal = salAleatorio` colocado acima do `require` lê a
+ * variável na zona morta temporal e o módulo não carrega — foi o que a checagem de identidade
+ * apanhou, e é a razão de a ordem aqui não ser indiferente.
+ *
+ * O PROVISIONAMENTO também precisa destas duas funções — para escrever o registo do dono quando a
+ * escola nasce — e não pode `require` os Bastidores só para fazer um SHA-256. A regra continua
+ * uma; mudou de sítio. */
+const { hashSenha, salAleatorio } = require('../nucleo/senha.js');
 
-/** HASH da senha com o sal — SHA-256(sal + senha), em hex. */
-async function hashSenha(senha, sal) {
-  const bytes = new TextEncoder().encode(String(sal || '') + senha);
-  const digesto = await globalThis.crypto.subtle.digest('SHA-256', bytes);
-  let s = '';
-  for (const b of new Uint8Array(digesto)) s += b.toString(16).padStart(2, '0');
-  return s;
-}
+/** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
+const gerarSal = salAleatorio;
 
 /**
  * Existe ao menos um professor? É o que habilita a Área do Professor. A fonte é dupla:
@@ -2780,9 +2775,29 @@ async function nomeDoDono(env, kv, escola) {
   return String((env && env.PROFESSOR_NOME) || '').trim();
 }
 
-/** A senha da DIREÇÃO (Produção) é a senha do administrador OU a do professor dono. */
-function senhaDaDirecaoOk(env, senha) {
+/**
+ * A senha da DIREÇÃO (Produção) é a do administrador OU a do professor dono — e, desde 15/11/2026,
+ * pode ser a DA ESCOLA.
+ *
+ * O SHARD PARTILHA UM `env` PARA N ESCOLAS, e `SENHA_ADMIN` é um valor só: aceitá-lo em todas daria
+ * à direção de qualquer escola a chave das outras. A correcção não é uma segunda lista de senhas —
+ * é a mesma chave que já guarda as senhas dos professores adicionais: `hash` + `sal`, no KV da
+ * escola, sem texto em claro em sítio nenhum.
+ *
+ * A ORDEM É A REGRA, e é a mesma da identidade do dono (`producao.js`): o registo da ESCOLA manda,
+ * o `env` é reserva. Uma escola que ainda não tem registo — todas as de antes desta versão —
+ * continua a entrar pela senha do Worker, sem migração.
+ *
+ * Assíncrona porque o `hashSenha` é (WebCrypto). O único chamador é `autorizacaoDirecaoOk`, que já
+ * era assíncrona e já era esperada nos 33 sítios que a usam: nenhum deles mudou.
+ */
+async function senhaDaDirecaoOk(env, senha) {
   if (!senha) return false;
+  const hashDaEscola = String((env && env.SENHA_DIRECAO_HASH) || '').trim();
+  if (hashDaEscola) {
+    const sal = String((env && env.SENHA_DIRECAO_SAL) || '');
+    return (await hashSenha(senha, sal)) === hashDaEscola;
+  }
   if (env && env.SENHA_ADMIN && senha === env.SENHA_ADMIN) return true;
   if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) return true;
   return false;
@@ -2958,7 +2973,9 @@ async function tokenDaDirecaoValido(env, token) {
  */
 async function autorizacaoDirecaoOk(env, corpo) {
   if (corpo && corpo.token) return tokenDaDirecaoValido(env, corpo.token);
-  return senhaDaDirecaoOk(env, String((corpo && corpo.senhaDirecao) || ''));
+  /* O `await` é o da senha (o `hashSenha` da escola é assíncrono); o wrapper já era, e é isso que
+   * deixa os 33 pontos que o chamam continuarem iguais. */
+  return await senhaDaDirecaoOk(env, String((corpo && corpo.senhaDirecao) || ''));
 }
 
 /**
@@ -2972,7 +2989,7 @@ async function autorizacaoDirecaoOk(env, corpo) {
  */
 async function senhaDaEscolaOk(env, kv, escola, senha) {
   if (!senha) return false;
-  if (senhaDaDirecaoOk(env, senha)) return true;
+  if (await senhaDaDirecaoOk(env, senha)) return true;
   const lista = await professores(kv, escola);
   for (const p of lista) {
     if (!p) continue;
@@ -15397,7 +15414,7 @@ async function fetch(request, env, extras) {
     if (!senha) return json(400, { ok: false, erro: 'informe a senha da direção' });
     // O professor criado na página é SEMPRE o dono (a marcação saiu): a senha da direção é
     // a do administrador OU a do professor dono.
-    const okDirecao = senhaDaDirecaoOk(env, senha);
+    const okDirecao = await senhaDaDirecaoOk(env, senha);
     if (!okDirecao) return json(200, { ok: false, erro: 'senha da direção não reconhecida' });
     return json(200, { ok: true, direcao: true, token: await tokenDaDirecao(env) });
   }

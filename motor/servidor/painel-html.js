@@ -519,6 +519,7 @@ function paginaDeLista({ recorte, escolas, ordem, professores }) {
       : 'As escolas que existem agora. O nome leva ao site de cada uma.',
     atual: apagadas ? 'escolas-apagadas' : 'escolas-vivas',
     corpo: tabelaDeEscolas(escolas, recorte, ordem, professores) +
+      (apagadas ? '' : blocoDoCofre() + SCRIPT_DO_COFRE) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
@@ -528,8 +529,102 @@ function paginaDasApagadas({ escolas, ordem, professores }) {
   return paginaDeLista({ recorte: 'apagadas', escolas, ordem, professores });
 }
 
+/**
+ * O JAVASCRIPT DO COFRE — o que pede a chave ao Worker e a mostra.
+ *
+ * A CHAVE VIAJA NO CORPO DA RESPOSTA, e não no endereço: um `GET /api/cofre?senha=…` deixaria a
+ * senha no histórico do navegador e nos logs. A resposta diz `no-store` (ver `raiz.js`), e o campo
+ * é `readonly` — não é para editar, é para ler e copiar.
+ *
+ * A SENHA NÃO FICA GUARDADA. Some do campo quando o painel fecha, e não vai para `localStorage`:
+ * o painel da raiz já está atrás de uma autenticação básica, e a segunda pergunta existe para o
+ * caso de a sessão ficar aberta num ecrã partilhado.
+ */
+const SCRIPT_DO_COFRE = '<script>(function(){' +
+  'var abrir=document.getElementById("cofre-abrir"),painel=document.getElementById("cofre-painel"),' +
+  'senha=document.getElementById("cofre-senha"),recado=document.getElementById("cofre-recado"),' +
+  'saida=document.getElementById("cofre-saida"),chave=document.getElementById("cofre-chave"),' +
+  'confirmar=document.getElementById("cofre-confirmar"),fechar=document.getElementById("cofre-fechar"),' +
+  'copiar=document.getElementById("cofre-copiar");' +
+  'if(!abrir||!painel)return;' +
+  'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className=erro?"erro":"";}' +
+  'abrir.addEventListener("click",function(){painel.hidden=false;if(senha)senha.focus();});' +
+  'fechar.addEventListener("click",function(){painel.hidden=true;if(saida)saida.hidden=true;' +
+  'if(senha)senha.value="";if(chave)chave.value="";dizer("");});' +
+  'confirmar.addEventListener("click",function(){' +
+  'var s=senha?senha.value:"";if(!s){dizer("escreva a senha da raiz",true);return;}' +
+  'dizer("a abrir…");confirmar.disabled=true;' +
+  'fetch("/api/cofre",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  'body:JSON.stringify({senha:s}),cache:"no-store"})' +
+  '.then(function(r){return r.json().catch(function(){return {};});})' +
+  '.then(function(d){confirmar.disabled=false;' +
+  'if(d&&d.ok&&d.chave){chave.value=d.chave;saida.hidden=false;dizer("");}' +
+  'else{dizer((d&&d.erro)||"não foi possível abrir",true);}})' +
+  '.catch(function(){confirmar.disabled=false;dizer("falha de rede",true);});});' +
+  'if(copiar)copiar.addEventListener("click",function(){if(!chave)return;' +
+  'chave.select();try{document.execCommand("copy");dizer("copiada");}catch(e){dizer("selecione e copie",true);}});' +
+  '})();</script>';
+
 function paginaDasVivas({ escolas, ordem, professores }) {
   return paginaDeLista({ recorte: 'vivas', escolas, ordem, professores });
+}
+
+/**
+ * O COFRE — a chave mestra, atrás da senha da raiz (15/11/2026).
+ *
+ * O QUE ELA PEDIU, na letra: «na página que é minha, que é a página danca.padd.com.br, você vai criar
+ * um espaço dentro de ver só as vivas que vai ter um botão cofre, que eu vou entrar pela minha senha
+ * […] e vou poder ver a chave mestra». E o motivo é bom: a mestra é a chave de TODAS as escolas, e
+ * sem um sítio onde se leia o valor dela não há como conferir que é a mesma que está nos Workers.
+ *
+ * PORQUE É QUE ISTO É UM BOTÃO E NÃO UM BLOCO NA PÁGINA. A chave não vai no HTML: só aparece depois
+ * de um `POST` com a senha, e a resposta não é guardada nem em cache nem no histórico. Uma chave
+ * escrita no HTML de uma lista seria uma chave entregue a quem abrisse a página — e a lista é a
+ * página que ela abre mais vezes.
+ *
+ * O AVISO É PARTE DA PEÇA, e não decoração. Quem tem esta chave abre as anamneses de todas as
+ * escolas. Quem a vê tem de saber isso no instante em que a vê — e o aviso diz também o que fazer
+ * se ela escapar: trocá-la invalida o que está cifrado com as chaves antigas, e isso é uma decisão
+ * com data, não um botão.
+ */
+function blocoDoCofre() {
+  /* AS PEÇAS SÃO AS DA FOLHA, e a primeira versão desta função inventou duas (`cabecalho-lista`,
+   * `corpo-lista`) que não existem — a checagem 8 reprovou, e tinha razão: um bloco da lista não
+   * se desenha com `header`/`div` próprios, desenha-se com `details.bloco-lista` >
+   * `summary.bloco-cabeca` > `div.bloco-corpo`, que é o que o resto das páginas usa.
+   *
+   * NASCER FECHADO É O COMPORTAMENTO CERTO: a lista das vivas é uma lista, e o cofre é uma porta
+   * ao lado dela. Um bloco aberto a mostrar a chave de todas as escolas seria a primeira coisa que
+   * se vê numa página que se abre muitas vezes. */
+  return '<details class="bloco-lista" id="cofre">' +
+    '<summary class="bloco-cabeca">' +
+    '<span class="bloco-titulo">Cofre das escolas vivas — a chave mestra</span>' +
+    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
+    '</summary>' +
+    '<div class="bloco-corpo">' +
+    '<p>A chave de cada escola é <code>HMAC(chave mestra, &laquo;lastro/escola/&lt;escola&gt;&raquo;)</code>. ' +
+    'Ela não está guardada em sítio nenhum: é calculada a partir desta, quando é precisa. ' +
+    'Por isso, quem tem esta chave tem <strong>todas</strong> as escolas.</p>' +
+    '<p class="acoes-do-ato"><button class="acao" id="cofre-abrir" type="button">Ver a chave mestra</button></p>' +
+    '<div id="cofre-painel" hidden>' +
+    '<label class="campo-rotulo" for="cofre-senha">senha da raiz</label>' +
+    '<input id="cofre-senha" type="password" autocomplete="current-password">' +
+    '<p class="acoes-do-ato">' +
+    '<button class="acao" id="cofre-confirmar" type="button">Abrir</button>' +
+    '<button class="acao secundario" id="cofre-fechar" type="button">Fechar</button>' +
+    '</p>' +
+    '<p id="cofre-recado" role="status"></p>' +
+    '<div id="cofre-saida" hidden>' +
+    '<label class="campo-rotulo" for="cofre-chave">chave mestra</label>' +
+    '<input id="cofre-chave" type="text" readonly>' +
+    '<p class="acoes-do-ato">' +
+    '<button class="acao secundario" id="cofre-copiar" type="button">Copiar</button>' +
+    '</p>' +
+    '<p class="aviso"><strong>Isto abre todas as escolas.</strong> A chave de cada escola é ' +
+    'derivada desta — quem a tiver lê as anamneses de todas. Trate-a como a chave do sistema, ' +
+    'não como a de uma escola. Se ela escapar, trocá-la invalida tudo o que está cifrado com as ' +
+    'chaves antigas: é uma decisão com data, e não um botão.</p></div>' +
+    '</div></details>';
 }
 
 /**

@@ -38,6 +38,42 @@ const REF = 'main';
 // mão pela pesquisadora no fixture; na Produção, o próprio servidor a grava ao desligar.
 const PRAZO_EXPURGO_MS = 3 * 60 * 1000;
 
+/**
+ * OS SCRIPTS DE CONFRANÇA — de quem pode ser uma rota que a casa criou (15/11/2026).
+ *
+ * O `env.SHARD_SCRIPT` é a declaração de que este sistema serve escolas por um shard. Vazio (o
+ * regime de um Worker por escola), a lista fica só com o script da própria escola — como era.
+ *
+ * A lista é DECLARADA no `env` e nunca vem do pedido: é a diferença entre «esta rota é desta casa»
+ * e «apaga a rota que o visitante disser». É a mesma disciplina da marca do registo DNS.
+ */
+function scriptsDeConfianca(env) {
+  const shard = String((env && env.SHARD_SCRIPT) || '').trim();
+  return shard ? [shard] : [];
+}
+
+/**
+ * A COMPARAÇÃO DE DOIS SEGREDOS, sem devolver o tempo ao atacante (15/11/2026).
+ *
+ * Um `a === b` sai no primeiro byte diferente, e a diferença de tempo — nanossegundos, mas real —
+ * diz a quem mede quantos caracteres já acertou. Aqui percorre-se sempre o comprimento todo, e o
+ * resultado acumula-se sem curto-circuito.
+ *
+ * O comprimento diferente responde `false` DEPOIS de percorrer o mais curto: o tempo já não
+ * distingue onde a diferença está, e só diz que os comprimentos não batem (que é informação que um
+ * atacante tem de qualquer forma, ao tentar).
+ */
+function mesmoSegredo(a, b) {
+  const x = String(a == null ? '' : a);
+  const y = String(b == null ? '' : b);
+  const n = Math.max(x.length, y.length);
+  let diferente = x.length === y.length ? 0 : 1;
+  for (let i = 0; i < n; i += 1) {
+    diferente |= (x.charCodeAt(i) || 0) ^ (y.charCodeAt(i) || 0);
+  }
+  return diferente === 0;
+}
+
 /** O freio da raiz: sem a senha, nada se vê (nem a página, nem a rota de criar). */
 function autorizado(request, env) {
   const senha = env && env.SENHA_RAIZ;
@@ -317,7 +353,27 @@ function desfechoDoKvParaOElo({ cloudflare, morada, slug }) {
 async function moradaDaEscola({ token, slug, fetchImpl }) {
   const caminho = 'wrangler.' + slug + '.jsonc';
   const texto = await lerArquivo({ token, dono: DONO, repo: REPO, ref: REF, caminho, fetchImpl });
-  if (!texto) return null;
+  /* A ESCOLA DE UM SHARD NÃO TEM CONFIG PRÓPRIA (15/11/2026) — e é o ÍNDICE que diz isso.
+   *
+   * Num shard, `wrangler.<escola>.jsonc` não existe: seria ela que faria o `deploy-escolas` subir
+   * mais um Worker. A morada da escola passa a estar em `escola/<slug>/indice.json`, no campo
+   * `shard` que o `criar-escola.sh --shard` grava.
+   *
+   * Porque é que isto importa ao EXPURGO: a rota de uma escola de shard aponta ao script do shard.
+   * Sem esta leitura, o expurgo procuraria um script com o nome da escola, não encontraria — e
+   * deixaria a rota no ar, com a escola a responder num endereço que já devia estar morto.
+   *
+   * O `worker` devolvido é o do SHARD, e é de propósito: o `excluirEscola` trata um `worker`
+   * diferente do `slug` como «não apagues este script, ele não é uma escola». */
+  if (!texto) {
+    const doIndice = await lerArquivo({
+      token, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + slug + '/indice.json', fetchImpl,
+    });
+    let shard = '';
+    try { shard = String((JSON.parse(doIndice) || {}).shard || '').trim(); } catch (erro) { shard = ''; }
+    if (!shard) return null;
+    return { worker: shard, shard, kvNamespaceId: null, arquivo: 'escola/' + slug + '/indice.json', legivel: true };
+  }
   const cfg = lerJsonc(texto);
   if (!cfg) return { worker: slug, kvNamespaceId: null, arquivo: caminho, legivel: false };
   const kv = (cfg.kv_namespaces && cfg.kv_namespaces[0]) || null;
@@ -362,7 +418,13 @@ async function expurgar(env) {
       relatorio.puladas.push({ slug, motivo: 'prazo ainda não vencido', restanteMs: PRAZO_EXPURGO_MS - (agora - desde) });
       continue;
     }
-    relatorio.expurgadas.push(await excluirEscola({ token, accountId: ACCOUNT_ID, slug, worker: reg.worker, kv: reg.kv }));
+    /* O SHARD E O MAPA VÃO JUNTO (15/11/2026). O `scripts` diz de quem é uma rota que não tem o
+     * nome da escola — num shard a rota aponta ao `lastro-teste`, e sem isto a limpeza não a
+     * apagava; o `mapaKv` tira a escola do mapa, que é a lista que diz quais existem. */
+    relatorio.expurgadas.push(await excluirEscola({
+      token, accountId: ACCOUNT_ID, slug, worker: reg.worker, kv: reg.kv,
+      scripts: scriptsDeConfianca(env), mapaKv: env && env.PADD_KV,
+    }));
   }
   return relatorio;
 }
@@ -450,6 +512,60 @@ async function fetch(request, env) {
   // AS DUAS LISTAS — «só as apagadas» e «só as vivas». A mesma leitura (uma requisição), o
   // mesmo recorte; quem filtra é a apresentação, porque o índice é a memória inteira e a lista é
   // escolha.
+  /* O COFRE — a chave mestra, atrás da senha (15/11/2026).
+   *
+   * PORQUE É `POST`: a chave é a coisa mais sensível que este sistema tem — abre as anamneses de
+   * todas as escolas. Um `GET /api/cofre?senha=…` deixaria a senha no histórico do navegador, nos
+   * logs do Cloudflare e em qualquer `Referer`. No corpo, e com `Cache-Control: no-store`, a chave
+   * existe uma vez, na resposta a um pedido que não se repete sozinho.
+   *
+   * A SENHA É A DA RAIZ (`SENHA_RAIZ`), e não um segredo novo: é a mesma pessoa que cria e expurga
+   * escolas, e uma segunda senha para o mesmo privilégio seria mais uma coisa a perder.
+   *
+   * A COMPARAÇÃO É EM TEMPO CONSTANTE. Não porque um `===` de 20 caracteres seja atacável na
+   * prática a 100.000 pedidos/dia, mas porque a diferença de custo é nenhuma e o hábito é o que
+   * impede o próximo sítio de comparar segredos com `===` e achar que está bem.
+   *
+   * SEM MESTRA CONFIGURADA, DIZ-SE ISSO — e não se inventa uma chave. Um cofre que devolvesse uma
+   * chave derivada do nada daria às escolas chaves que ninguém consegue reproduzir.
+   */
+  if (url.pathname === '/api/cofre' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const senha = String((corpo && corpo.senha) || '');
+    const esperada = String((env && env.SENHA_RAIZ) || '');
+    if (!esperada) {
+      return new Response(JSON.stringify({ ok: false, erro: 'a raiz não tem senha configurada' }), {
+        status: 500, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    if (!senha || !mesmoSegredo(senha, esperada)) {
+      /* A MESMA RESPOSTA para senha errada e senha vazia: distinguir as duas diria a quem tenta que
+       * existe uma senha que quase acertou. */
+      return new Response(JSON.stringify({ ok: false, erro: 'senha da raiz não reconhecida' }), {
+        status: 401, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    const mestra = String((env && env.SENHA_MESTRA) || '').trim();
+    if (!mestra) {
+      return new Response(JSON.stringify({
+        ok: false,
+        erro: 'este Worker não tem a chave mestra (SENHA_MESTRA) — configure-a antes de a querer ver',
+      }), {
+        status: 503, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    return new Response(JSON.stringify({
+      ok: true, chave: mestra,
+      /* A IMPRESSÃO DIGITAL vai junto: é o que se pode comparar num relatório sem mostrar a chave. */
+      impressao: mestra.slice(0, 8),
+      /* E O QUE ELA ABRE, dito na resposta — a tela não é o único consumidor desta rota. */
+      abre: 'todas as escolas: a chave de cada uma é derivada desta',
+    }), {
+      status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+
   if (url.pathname === '/escolas-apagadas' || url.pathname === '/escolas-vivas') {
     const token = env && env.GITHUB_TOKEN;
     if (!token) return painel.resposta(painel.paginaSemToken(), 500);
@@ -739,6 +855,8 @@ async function fetch(request, env) {
           namespaceId: morada.kvNamespaceId || null,
           prefixos: prefixosDaEscola(slug),
         },
+        scripts: scriptsDeConfianca(env),
+        mapaKv: env && env.PADD_KV,
       });
       relatorio.cloudflare.morada = morada;
     } catch (err) {
@@ -983,6 +1101,12 @@ async function fetch(request, env) {
         /* A ZONA DO ENDEREÇO PRÓPRIO (13/11/2026). Sem a `var`, o módulo usa o `padd.com.br`
          * desta casa — e a `var` existe para o dia em que houver mais do que uma zona. */
         zona: env && env.ZONA_ESCOLAS,
+        /* O SHARD E O KV (15/11/2026). Com `SHARD_SCRIPT` no `env`, a escola nasce DENTRO do
+         * shard — sem Worker próprio, com a identidade no KV dela e a rota a apontar ao script do
+         * shard. Sem ele, o caminho é o de sempre (um Worker por escola), e nada muda para as
+         * escolas que já existem. É a `vars` que decide, e ela é declarada no `wrangler.danca.jsonc`. */
+        shardScript: String((env && env.SHARD_SCRIPT) || '').trim() || null,
+        kv: env && env.PADD_KV,
       });
       // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
       // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
@@ -1008,6 +1132,10 @@ async function fetch(request, env) {
               dias: '2@19:00,4@19:00',
               duracao: '60',
               'data-inicio': '',
+              /* O SHARD VAI NO DISPARO. O workflow sobe o motor completo — e num shard o motor é
+               * UM, o do shard. Sem este campo ele procuraria `wrangler.<escola>.jsonc` e subiria
+               * mais um Worker, que é exactamente o que o shard existe para não haver. */
+              shard: String((env && env.SHARD_SCRIPT) || '').trim(),
             },
           })
         : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };

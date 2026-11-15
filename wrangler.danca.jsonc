@@ -27,6 +27,30 @@
     ]
   },
 
+  // O KV DAS ESCOLAS, PARA A RAIZ PODER MANTER O MAPA (15/11/2026).
+  //
+  // O mapa `escolas/por-host` é a lista que diz quais escolas existem num shard — e a raiz é quem
+  // cria e quem expurga, por isso é ela que tem de o escrever. Até aqui o mapa era escrito só pelo
+  // `tools/publicar-mapa-de-escolas.js`, que o derivava dos `wrangler.<escola>.jsonc`; num shard
+  // essas configurações deixam de existir, e o `--podar` passaria a esvaziar o mapa em vez de o
+  // podar. O dono do mapa passa a ser quem sabe: a criação regista, o expurgo remove.
+  //
+  // É o MESMO namespace das escolas (`PADD_KV`): um mapa por casa, não um por Worker — é o que
+  // faz um isolate do shard ler o mapa uma vez e servir N escolas.
+  "kv_namespaces": [
+    {
+      "binding": "PADD_KV",
+      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+    }
+  ],
+
+  // O SCRIPT DO SHARD (15/11/2026). É o que o expurgo precisa de saber para apagar a ROTA de uma
+  // escola servida por ele: a rota aponta ao shard, e não a um script com o nome da escola. Sem
+  // isto, a escola expurgada continuaria a responder no endereço dela.
+  "vars": {
+    "SHARD_SCRIPT": "lastro-teste"
+  },
+
   // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime
   // `raiz/escolas-habilitadas.json` e apaga as escolas desabilitadas com o prazo vencido.
   "triggers": {

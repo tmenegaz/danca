@@ -60,6 +60,14 @@ on:
         required: false
         type: string
         default: ''
+      shard:
+        # O SHARD QUE SERVE ESTA ESCOLA (15/11/2026). Vazio = um Worker por escola (o regime de
+        # sempre). Preenchido = a escola nasce dentro do shard, e é o motor DELE que se sobe — não
+        # um Worker novo. Quem preenche é a raiz, a partir da `vars` `SHARD_SCRIPT`.
+        description: 'Script do shard que serve esta escola (vazio = Worker próprio)'
+        required: false
+        type: string
+        default: ''
 
 # O push do scaffold precisa de escrita. O GITHUB_TOKEN não redispara workflows,
 # então o commit daqui não volta a chamar este workflow em laço.
@@ -103,6 +111,7 @@ jobs:
             --dias "${{ inputs.dias }}" \
             --duracao "${{ inputs.duracao }}" \
             --data-inicio "${{ inputs.data-inicio }}" \
+            ${{ inputs.shard != '' && format('--shard {0}', inputs.shard) || '' }} \
             --nao-interativo
 
       # A DEPENDÊNCIA TEM DE ESTAR ESCRITA AQUI (20/10/2026). O `assets.directory` do Worker é a
@@ -152,12 +161,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
 
+      # O MOTOR QUE SE SOBE — E NUM SHARD É UM SÓ (15/11/2026).
+      #
+      # No regime de um Worker por escola, cada escola sobe o dela. Num shard, o motor é o do
+      # shard, e subir `wrangler.<escola>.jsonc` criaria mais um Worker — o contrário do que o
+      # shard existe para fazer. O `if` é sobre o input, e não sobre uma descoberta: quem sabe que
+      # a escola nasceu num shard é quem a criou, e ele di-lo.
       - name: Subir o motor completo no Cloudflare
         id: motor
         shell: bash
         run: |
           set -euo pipefail
-          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+          alvo="wrangler.${{ inputs.escola }}.jsonc"
+          if [ -n "${{ inputs.shard }}" ]; then
+            alvo="wrangler.${{ inputs.shard }}.jsonc"
+            echo "escola servida pelo shard '${{ inputs.shard }}' — o motor que se sobe é o dele"
+          fi
+          [ -f "$alvo" ] || { echo "erro: $alvo não existe"; exit 1; }
+          ./node_modules/.bin/wrangler deploy -c "$alvo"
+          echo "motor=$alvo" >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

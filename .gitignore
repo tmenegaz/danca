@@ -1363,3 +1363,13 @@ experimentos/modelo-formulario/*
 # de base — numa loja só com duas escolas, que é a condição do shard, e mede que nenhum pedido sai
 # para a rede (com controlo negativo do contador, senão media o vazio).
 !experimentos/provar-gestos-do-shard.js
+
+# A CHAVE MESTRA E O EXPURGO QUE A CONHECE (15/11/2026). O shard serve N escolas com UM `env`, e a
+# `SENHA_CRIPTO` morava nele com um valor por Worker — foi o que respondeu «falta a SENHA_CRIPTO» a
+# quem tentou gravar uma anamnese. Esta prova mede as três coisas que a correção promete: a chave
+# derivada (a mesma para a mesma escola, outra entre escolas, com a reserva que não quebra as
+# escolas de antes), o expurgo que apaga a rota apontada ao script do SHARD sem tocar na do vizinho
+# nem no script que serve todas, e o cofre que só entrega a mestra a quem sabe a senha da raiz. O
+# controlo negativo corre as mesmas asserções contra o código de HEAD — e lá o expurgo APAGA O
+# SCRIPT DO SHARD, que é o desastre que a guarda evita.
+!experimentos/provar-cofre-e-shard.js

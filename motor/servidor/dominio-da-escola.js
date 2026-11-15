@@ -251,8 +251,21 @@ async function ligarDominio({ token, escola, script, zona, fetchImpl }) {
  * Não lança: um expurgo que falha a limpar o domínio não pode ficar a meio. O que não se apagou
  * vai no resultado, e o expurgo já sabe dizer «não está completo».
  */
-async function desligarDominio({ token, escola, script, zona, fetchImpl }) {
+async function desligarDominio({ token, escola, script, scripts, zona, fetchImpl }) {
+  /* QUEM PODE SER DONO DA ROTA (15/11/2026) — e é isto que o shard muda.
+   *
+   * Antes, a rota de uma escola apontava ao script com o nome DELA, e a marca do sistema era
+   * `r.script === alvo`. Num shard a rota aponta ao script do SHARD (`lastro-teste`), que é um nome
+   * que não tem nada a ver com a escola — e a limpeza deixava a rota lá. O sintoma seria o pior
+   * deste sistema: a escola expurgada continua a responder no endereço dela, servida por um Worker
+   * que ficou a apontar para uma subárvore que já não existe.
+   *
+   * Aceita-se uma LISTA de scripts de confiança (`scripts`), e a escola continua a ser dona da rota
+   * dela quando o script é um deles. Um script que não esteja na lista não se toca — a mesma
+   * disciplina de sempre: a limpeza não alcança o que não é dela. */
   const alvo = String(script || escola || '').trim();
+  const donos = new Set([alvo, ...(Array.isArray(scripts) ? scripts : [])]
+    .map((s) => String(s || '').trim()).filter(Boolean));
   const resultado = { host: hostname(escola, zona), dns: null, rota: null };
   if (!token || !escola) {
     resultado.erro = !token ? 'sem CLOUDFLARE_API_TOKEN' : 'sem escola';
@@ -291,7 +304,7 @@ async function desligarDominio({ token, escola, script, zona, fetchImpl }) {
     resultado.rota = { apagadas: 0, erro: listaRotas.erro };
   } else {
     const padrao = padraoDaRota(escola, zona);
-    const nossa = (listaRotas.resultado || []).filter((r) => r.pattern === padrao && r.script === alvo);
+    const nossa = (listaRotas.resultado || []).filter((r) => r.pattern === padrao && donos.has(String(r.script || '').trim()));
     let apagadas = 0;
     for (const r of nossa) {
       const d = await api(token, 'DELETE', '/zones/' + zid + '/workers/routes/' + r.id, undefined, fetchImpl);

@@ -48,6 +48,9 @@ const listasDoAcervo = require('./listas-do-acervo.js');
 /* A ESCOLA VEM DO DADO (13/11/2026) — o mapa `escolas/por-host` em KV, com cache de isolate.
  * Ver `mapa-de-escolas.js`: é o que deixa de prender a identidade da escola ao deploy. */
 const mapaDeEscolas = require('./mapa-de-escolas.js');
+/* UMA CHAVE POR ESCOLA, DERIVADA DE UMA MESTRA (15/11/2026) — num shard há um `env` para N
+ * escolas, e a `SENHA_CRIPTO` deixou de poder viver lá com um valor por Worker. */
+const chaveMestra = require('../nucleo/chave-mestra.js');
 const aulasDadas = require('./aulas-dadas.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
@@ -543,6 +546,34 @@ async function montarCadeia(env, escola, fetchImpl) {
   });
 }
 
+/**
+ * O REGISTO DO DONO, LIDO DO KV DA ESCOLA — `{nome, slug, hash, sal}`.
+ *
+ * A chave `bastidores/<escola>/dono` já existia (guardava o nome, e o expurgo já a apaga). Ela passa
+ * a guardar também o SLUG — sem ele o dono desaparece das listas, porque `slugDoDono` devolve vazio
+ * e o código que monta a lista descarta quem não tem identificador — e o HASH da senha da direção,
+ * que é o que deixa de haver um valor só para N escolas.
+ *
+ * Devolve `{}` quando não há registo. Não lança: uma escola sem sobreposição é o caso normal de uma
+ * escola criada antes desta versão, e ela tem o `env` como reserva.
+ */
+async function identidadeDoDonoDoKv(env, escola) {
+  try {
+    const bruto = await env.PADD_KV.get('bastidores/' + escola + '/dono');
+    if (!bruto) return {};
+    const o = JSON.parse(bruto);
+    if (!o || typeof o !== 'object') return {};
+    return {
+      nome: String(o.nome || '').trim(),
+      slug: String(o.slug || '').trim(),
+      hash: String(o.hash || '').trim(),
+      sal: String(o.sal || '').trim(),
+    };
+  } catch (erro) {
+    return {};
+  }
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -573,6 +604,34 @@ async function fetch(request, env) {
      * mantém o mesmo binding de KV (é a mesma referência) e o mesmo ASSETS, e todo o motor
      * continua a ler `env.ESCOLA_SLUG` sem saber que a origem mudou. */
     env = Object.assign({}, env, { ESCOLA_SLUG: escolaResolvida });
+  }
+
+  /* A IDENTIDADE DA ESCOLA, RESOLVIDA DO KV PARA O `env` DO PEDIDO (15/11/2026).
+   *
+   * O shard serve N escolas com UM `env`. Três coisas que a escola lia do `env` — e que são DELA,
+   * não do Worker — passam a ser resolvidas aqui, a partir do KV daquela escola, e postas na cópia
+   * que o pedido inteiro já usa. É o mesmo sítio e o mesmo mecanismo do `ESCOLA_SLUG` acima, e é
+   * de propósito: um segundo sítio de injecção divergiria do primeiro.
+   *
+   *   · `SENHA_CRIPTO` — a chave da escola, DERIVADA da mestra (`chave-mestra.js`). Sem isto a
+   *     anamnese responde «falta a SENHA_CRIPTO», que é o defeito que a pesquisadora viu na tela.
+   *     Numa escola de antes não há mestra: `chaveDaEscola` devolve o segredo antigo, e nada muda.
+   *   · `PROFESSOR_NOME` / `PROFESSOR_SLUG` — o dono. O nome já vinha do KV (`nomeDoDono`), mas o
+   *     SLUG não, e era por isso que a `calango` deixou de mostrar «Pe Torto» na lista de
+   *     professores: sem slug, o dono é descartado. Com ele resolvido aqui, as doze leituras de
+   *     `slugDoDono(env)` continuam a funcionar sem uma linha mudar.
+   *
+   * A ORDEM É A REGRA: o KV manda, o `env` é reserva. Um Worker de escola (um `env` por escola)
+   * continua a funcionar como sempre; um shard passa a ter a identidade certa por pedido. */
+  if (env && env.PADD_KV && escolaResolvida) {
+    const doKv = await identidadeDoDonoDoKv(env, escolaResolvida);
+    const chave = await chaveMestra.chaveDaEscola(env, escolaResolvida);
+    const sobreposto = {};
+    if (doKv.nome) sobreposto.PROFESSOR_NOME = doKv.nome;
+    if (doKv.slug) sobreposto.PROFESSOR_SLUG = doKv.slug;
+    if (doKv.hash) { sobreposto.SENHA_DIRECAO_HASH = doKv.hash; sobreposto.SENHA_DIRECAO_SAL = doKv.sal || ''; }
+    if (chave) sobreposto.SENHA_CRIPTO = chave;
+    if (Object.keys(sobreposto).length) env = Object.assign({}, env, sobreposto);
   }
 
   /* A IDENTIDADE DO CONTEÚDO — o que substitui a comparação que se perdeu.
