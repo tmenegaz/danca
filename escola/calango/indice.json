@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -1037,6 +1037,64 @@
           "fontes": 37,
           "variantes": 5,
           "cobertos": 43
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-15T20:24:24.806Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/calango/envelopes/.indice.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/favicon.svg",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/lib-cifra.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/nav.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/style.css",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/index.html",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/assets/markdown.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/conteudo/anamnese.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/index.html",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/plano/conteudo/plano.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/po/conteudo/po.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/pe-pequeno/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "calango/",
+          "bastidores/calango/"
+        ],
+        "em": "2026-11-15T20:24:24.806Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-15T20:24:21.686Z",
+        "ancoras": [
+          {
+            "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
+            "id": "ciclo-01-calango",
+            "hash": "4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "3ac24b098e4cdfd48cbecfbe884623abd3491642d7c83165da88ddf19301fdae",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
         },
         "fases": {
           "estrutura": "feita",
