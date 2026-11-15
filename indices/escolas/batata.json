@@ -1,5 +1,26 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "flexibilidade-dos-adutores",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261115-2215",
+      "ultima": "20261115-2215",
+      "versoes": 1
+    },
+    {
+      "aspecto": "meia-ponta",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261115-2215",
+      "ultima": "20261115-2215",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +98,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-15T21:06:31.119832+00:00",
@@ -107,7 +128,24 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "flexibilidade-dos-adutores",
+        "valor": "flexibilidade-dos-adutores"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "meia-ponta",
+        "valor": "meia-ponta"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +188,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "94d1537"
+    "commit": "090fe58"
   },
-  "gerado_em": "2026-11-15T22:14",
+  "gerado_em": "2026-11-15T22:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +213,35 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "flexibilidade-dos-adutores",
+        "meia-ponta"
+      ],
+      "atualizada_em": "2026-11-15T22:15:23.613Z",
+      "enviada_em": "2026-11-15T22:15:24.102Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "rimel-preto",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/batata/linhas-de-base/tami--20261115-2215.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-dos-adutores"
+          ],
+          "enviada_em": "2026-11-15T22:15:24.102Z",
+          "versao": "20261115-2215"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
