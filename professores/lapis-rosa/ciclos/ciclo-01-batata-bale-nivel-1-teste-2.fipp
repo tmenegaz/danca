@@ -10,12 +10,12 @@ type: Ciclo
 professor: lapis-rosa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 41938bcd1498cb4855c9dcf758de53547f83ccaacafd34d464164bfc0ba1d6d1
+hash_conteudo: 9dd069c9bfa357669e1768c7866028db22d416532e8063386fb482c147513c5f
 parentHash: 
-hash: 60ecdbb2afc677788aeec81f0e45ae51a9bf3370de5e7d6b43b578c5fd6c99a3
+hash: 4f380f3505ef9ec9a706eaac45448f231b559245dc68460da701aff1460f9860
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,5 +23,13 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 43
 notacao_sha: eabdc9d94702ed00160a5763dedac6f290c6363a5d806c4eeead44dc169d6d56
 cobertura:
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
   - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+  - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
   - professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf

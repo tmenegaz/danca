@@ -17,15 +17,20 @@
       "sem_ancora": false
     },
     {
-      "ancora": null,
-      "aulas": 0,
-      "documentos": 2,
+      "ancora": {
+        "hash": "4f380f3505ef9ec9a706eaac45448f231b559245dc68460da701aff1460f9860",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 1,
+      "documentos": 14,
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:lapis-rosa/01/batata",
       "numero": "01",
       "professor": "lapis-rosa",
-      "sem_ancora": true
+      "sem_ancora": false
     },
     {
       "ancora": {
@@ -84,13 +89,13 @@
       ],
       "contagens": {
         "anamneses": 1,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 2,
-        "ciclos_com_ancora": 1,
+        "ciclos_com_ancora": 2,
         "planos": 1,
-        "pos": 0,
+        "pos": 1,
         "recortes": 1,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-14T15:01:39.136639+00:00",
       "expurgada": false,
@@ -106,7 +111,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261115-1057",
-        "plano:plano-20261115-1101"
+        "plano:plano-20261115-1101",
+        "po:po-20261115-1101"
       ],
       "slug": "batata"
     },
@@ -241,7 +247,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 44,
+        "contagem": 45,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -270,14 +276,9 @@
     ],
     "estados": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -339,7 +340,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 20,
+        "contagem": 21,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -347,9 +348,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9d70022"
+    "commit": "5c98234"
   },
-  "gerado_em": "2026-11-15T14:01",
+  "gerado_em": "2026-11-15T14:02",
   "nao_indexado": [
     {
       "familia": "conteudo",

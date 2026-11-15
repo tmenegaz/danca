@@ -31,7 +31,29 @@
       "versoes": 1
     }
   ],
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+        "cobertura": [
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
+        ],
+        "hash": "7d05fa2eac062b30d0209f9eca110216ec667e187cbf3dc5d55e2323ada561e5",
+        "hash_conteudo": "7a5845bc9f6e1228dad7a8e46d1ecb6749bd2f52f3d6e83e5e9e994a63270af4",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "documento": null,
+      "id": "ciclo:lapis-rosa/01/batata/bale-nivel-1-teste-2/aula-01",
+      "numero": "01",
+      "variante": "bale-nivel-1-teste-2"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
@@ -68,22 +90,85 @@
       ]
     },
     {
-      "ancora": null,
-      "aulas": [],
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "cobertura": [
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+          "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        ],
+        "hash": "4f380f3505ef9ec9a706eaac45448f231b559245dc68460da701aff1460f9860",
+        "hash_conteudo": "9dd069c9bfa357669e1768c7866028db22d416532e8063386fb482c147513c5f",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-15",
+            "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+            "cobertura": [
+              "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+              "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
+            ],
+            "hash": "7d05fa2eac062b30d0209f9eca110216ec667e187cbf3dc5d55e2323ada561e5",
+            "hash_conteudo": "7a5845bc9f6e1228dad7a8e46d1ecb6749bd2f52f3d6e83e5e9e994a63270af4",
+            "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": null,
+          "id": "ciclo:lapis-rosa/01/batata/bale-nivel-1-teste-2/aula-01",
+          "numero": "01",
+          "variante": "bale-nivel-1-teste-2"
+        }
+      ],
       "documentos": [
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
         "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
-        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+        "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:lapis-rosa/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "lapis-rosa",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
+        "aula",
+        "dados",
+        "declaracao",
+        "glossario",
+        "harmonizacao",
         "manifesto",
-        "plano"
+        "notacao",
+        "plano",
+        "po",
+        "referencias"
       ]
     }
   ],
@@ -98,6 +183,87 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+      "professor": "lapis-rosa",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "professor": "lapis-rosa",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "professor": "lapis-rosa",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+      "professor": "lapis-rosa",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
+      "professor": "lapis-rosa",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professor": "lapis-rosa",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:declaracao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
+      "professor": "lapis-rosa",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:glossario:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+      "professor": "lapis-rosa",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:harmonizacao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+      "professor": "lapis-rosa",
+      "tipo": "harmonizacao"
+    },
+    {
       "ancora_id": "ciclo-01-batata",
       "caminho": "professores/coqui-de-redinha/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:coqui-de-redinha/01/batata",
@@ -107,7 +273,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
@@ -116,13 +282,40 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:notacao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+      "professor": "lapis-rosa",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "ciclo_id": "ciclo:lapis-rosa/01/batata",
       "escola": "batata",
       "id": "documento:plano:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "professor": "lapis-rosa",
       "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:po:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+      "professor": "lapis-rosa",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+      "ciclo_id": "ciclo:lapis-rosa/01/batata",
+      "escola": "batata",
+      "id": "documento:referencias:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+      "professor": "lapis-rosa",
+      "tipo": "referencias"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -141,13 +334,13 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 2,
-      "ciclos_com_ancora": 1,
+      "ciclos_com_ancora": 2,
       "planos": 1,
-      "pos": 0,
+      "pos": 1,
       "recortes": 1,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-14T15:01:39.136639+00:00",
     "expurgada": false,
@@ -163,17 +356,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261115-1057",
-      "plano:plano-20261115-1101"
+      "plano:plano-20261115-1101",
+      "po:po-20261115-1101"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261115-1057",
-          "plano:plano-20261115-1101"
+          "plano:plano-20261115-1101",
+          "po:po-20261115-1101"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -207,20 +402,13 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:coqui-de-redinha/01/batata"
+          "ciclo:coqui-de-redinha/01/batata",
+          "ciclo:lapis-rosa/01/batata"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:lapis-rosa/01/batata"
-        ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -233,11 +421,12 @@
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261115-1057",
           "ciclo:lapis-rosa/01/batata",
-          "plano:plano-20261115-1101"
+          "plano:plano-20261115-1101",
+          "po:po-20261115-1101"
         ],
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
@@ -268,14 +457,22 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "po:po-20261115-1101"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9d70022"
+    "commit": "5c98234"
   },
-  "gerado_em": "2026-11-15T14:01",
+  "gerado_em": "2026-11-15T14:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -351,6 +548,16 @@
       "professor": "lapis-rosa",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261115-1101",
+      "ciclo": "01",
+      "data": "2026-11-15T11:01",
+      "id": "po:po-20261115-1101",
+      "professor": "lapis-rosa",
+      "tipo": "po"
     }
   ],
   "versao": 6
