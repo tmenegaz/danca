@@ -2,6 +2,9 @@
 
 /* A DECLARAÇÃO DOS EIXOS — uma só, partilhada com o gerador e com o cartão (04/11/2026). */
 const { EIXOS, blocoDaDimensao, eixoDoBloco } = require('./eixos.js');
+/* O CONJUNTO DE PERGUNTAS VEM DO MOTOR (15/11/2026) — é ele que define o que se pergunta e o que
+ * é obrigatório. Ler o conteúdo por conta própria dava mais um obrigatório do que os do mapa. */
+const motor = require('./elicitar.js');
 
 /**
  * derivar-po.js — o envelope elicitado vira a FONTE do PO (`ciclo-XX-<escola>-po.md`).
@@ -164,11 +167,78 @@ function tituloDoPO(contexto) {
   return 'Plano de Observação do Ciclo ' + ciclo + ' — ' + escola;
 }
 
-// O ESTADO vem do checklist: todos marcados ⇒ validado; senão, aguardando (a norma segue
-// sem marcar, como na fonte atual).
-function estadoDoPO(checklist) {
-  const marcados = Object.values(checklist || {});
-  return marcados.length > 0 && marcados.every((v) => v === true) ? 'Input_PO_Validado' : 'Input_PO_Aguardando';
+/**
+ * O ESTADO DO PO MEDE UMA COISA: falta responder alguma pergunta OBRIGATÓRIA? (15/11/2026)
+ *
+ * O QUE ELE MEDIA, E PORQUE ESTAVA ERRADO. Media o checklist de validação — as seis folhas que o
+ * professor marca *sim/não* ao fechar o documento — e exigia as seis em `true`. Duas coisas se
+ * confundiam nessa conta, e a pesquisadora apanhou-as juntas:
+ *
+ *   «O professor escolheu marcar não, então tem que ser considerado o que o professor marcou. […]
+ *    É a marcação do professor que vale. […] A regra do que é opcional é opcional e está valendo
+ *    também.»
+ *
+ *   1. **Um «não» NÃO É UMA RESPOSTA EM FALTA.** «Critérios mutuamente exclusivos» é uma leitura
+ *      que o professor faz do próprio recorte; dizer «não» é dizer «os critérios não são
+ *      mutuamente exclusivos» — um achado DECLARADO, não uma pergunta por responder. Tratá-lo como
+ *      pendência é pedir-lhe que minta para o documento fechar.
+ *   2. **AS SEIS FOLHAS SÃO OPCIONAIS.** O conteúdo do PO declara `obrigatorio: false` nas seis —
+ *      quem as responde está a fazer uma revisão, e quem as deixa em branco não fica em falta com
+ *      nada. Um campo opcional não pode governar o estado: isso é a regra do opcional a valer para
+ *      uns e não para outros.
+ *
+ * O QUE PASSA A VALER. O estado responde à única pergunta que um estado de documento pode
+ * responder sem julgar o conteúdo: **as perguntas obrigatórias têm resposta?** Nada mais. A
+ * qualidade da resposta — «não», um texto curto, «teste» — não é do sistema: é a vontade de quem
+ * respondeu, e o registo guarda-a como está.
+ *
+ * As duas entradas, e a razão de cada uma:
+ *
+ *   · `obrigatorios` — os ids que o CONTEÚDO declara obrigatórios (`obrigatoriosDoPO`). Quem chama
+ *     passa-os; sem eles não há pergunta a fazer, e o estado não inventa uma pendência.
+ *   · `[Preencher: …]` CONTA COMO SEM RESPOSTA. É a lacuna que o próprio documento declara — «não
+ *     se omitiu em silêncio nem se completou por conta própria» —, e o validador di-lo pelos
+ *     mesmos termos («aceitos, mas o PO não está aprovado»). Não é juízo de qualidade: é o
+ *     sistema a ler a marca que ele mesmo manda escrever.
+ */
+function estadoDoPO(envelope, obrigatorios) {
+  const lista = (Array.isArray(obrigatorios) ? obrigatorios : []).filter(Boolean);
+  // Sem a lista, não se afirma pendência nenhuma: um estado que acusa «falta» sem saber o que
+  // falta é pior do que um estado que não acusa.
+  if (!lista.length) return 'Input_PO_Validado';
+  const emFalta = lista.filter((id) => !temConteudo(respostaDo(envelope, id)));
+  return emFalta.length ? 'Input_PO_Aguardando' : 'Input_PO_Validado';
+}
+
+/** Há resposta com conteúdo? Vazio, só espaços e a lacuna declarada `[Preencher: …]` não são. */
+function temConteudo(valor) {
+  if (valor === null || valor === undefined) return false;
+  if (Array.isArray(valor)) return valor.some(temConteudo);
+  if (typeof valor === 'object') return Object.keys(valor).some((k) => temConteudo(valor[k]));
+  const texto = String(valor).trim();
+  return texto !== '' && !/^\[Preencher/i.test(texto);
+}
+
+/**
+ * AS PERGUNTAS OBRIGATÓRIAS DO PO, lidas do CONTEÚDO — e não escritas aqui.
+ *
+ * A lista é do conteúdo porque é ele que sabe o que o formulário exige: são os nós com
+ * `obrigatorio: true` no `porta/po/conteudo/po.json`, os mesmos que a barra do formulário conta e o
+ * servidor recusa a gravação sem eles. Uma lista escrita neste módulo seria uma segunda verdade
+ * sobre a mesma pergunta, e divergiria na primeira pergunta que mudasse de obrigatória a opcional.
+ *
+ * O CONJUNTO DE NÓS É O DO MOTOR (`nosRespondiveis`) — e não um passeio sobre o JSON. A primeira
+ * versão disto varria o conteúdo inteiro à procura de `obrigatorio: true` e encontrava `where`,
+ * que é um ELEMENTO da observação inicial («Onde se observa») e não uma pergunta do formulário:
+ * deu mais um obrigatório do que os catorze do mapa, e nenhum PO do repositório passaria a
+ * validado. O que se pergunta é uma coisa só, e quem a define é o motor.
+ */
+function obrigatoriosDoPO(conteudo) {
+  if (!conteudo || typeof conteudo !== 'object') return [];
+  let nos = [];
+  try { nos = motor.nosRespondiveis(conteudo) || []; } catch { nos = []; }
+  const ids = nos.filter((no) => no && no.id && no.obrigatorio === true).map((no) => String(no.id));
+  return [...new Set(ids)].sort();
 }
 
 /**
@@ -593,7 +663,11 @@ function derivarPO(envelope, plano, opcoes) {
     );
   }
 
-  const estado = estadoDoPO(checklist);
+  /* O ESTADO NÃO SE LÊ DO CHECKLIST (15/11/2026) — lê-se das perguntas OBRIGATÓRIAS. O checklist
+   * continua a imprimir-se (é o que o professor marcou, e um «não» é um achado que fica escrito),
+   * mas não governa o estado: as seis folhas são opcionais no conteúdo, e um «não» é uma resposta,
+   * não uma falta. Ver `estadoDoPO`. */
+  const estado = estadoDoPO(envelope, opcoes && opcoes.obrigatorios);
 
   // A IDENTIDADE do documento: a RESPOSTA manda, e o contexto é a reserva. O formulário semeia
   // `professor`/`escola` do contexto e diz «corrija se necessário» — quem corrige o próprio nome
@@ -906,6 +980,8 @@ module.exports = {
   tabelaDoRecorte,
   linhaDeBaseDoActo,
   derivarPO,
+  estadoDoPO,
+  obrigatoriosDoPO,
   LACUNA_NORMA,
   CHECKLIST,
 };

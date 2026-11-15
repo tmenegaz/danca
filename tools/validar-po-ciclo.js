@@ -126,9 +126,6 @@ function main() {
     ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas),
     ...avisosDeSecaoNaoMapeada(secoesNaoMapeadas, linhas)];
 
-  const pendentes = Object.entries(campos.validationChecklist || {})
-    .filter(([, marcado]) => marcado !== true).map(([k]) => k);
-
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
   }
@@ -152,12 +149,22 @@ function main() {
     + ` (${schema.required.length} campos de topo)`);
   escrever(`    estado declarado: ${meta.state || '(sem state no cabeçalho)'}`);
   if (provisorios.length) {
+    /* A LACUNA DECLARADA NÃO É UMA REPROVAÇÃO (15/11/2026). Dizia «o PO não está aprovado», e essa
+     * frase era um segundo juízo sobre o estado — que agora se lê das perguntas obrigatórias
+     * (`estadoDoPO`). O que se relata é o que existe: N lacunas declaradas, à vista no documento. */
     escrever(`    provisórios '[Preencher]': ${provisorios.length} campo(s) —`
-      + ' decisão da pesquisadora (aceitos pelo validador, mas o PO não está aprovado)');
+      + ' lacuna declarada, à vista no documento (é a marca do que falta, não uma invenção)');
   }
-  if (pendentes.length) {
-    escrever(`    checklist: ${pendentes.length} item(ns) sem marcar`
-      + ' → o estado permanece Input_PO_Aguardando');
+  /* O CHECKLIST NÃO GOVERNA O ESTADO (15/11/2026). Ele é uma revisão OPCIONAL do professor, e um
+   * «não» marcado é um achado declarado — não uma falta. A mensagem antiga («item sem marcar → o
+   * estado permanece Input_PO_Aguardando») dizia o contrário e mandava o professor marcar «sim»
+   * para o documento fechar, que é pedir-lhe que minta. O que se relata agora é o que existe: as
+   * folhas que ele marcou «não», como achados, e o estado que o documento declara. */
+  const naoMarcadas = Object.entries(campos.validationChecklist || {})
+    .filter(([, marcado]) => marcado !== true).map(([k]) => k);
+  if (naoMarcadas.length) {
+    escrever(`    checklist: ${naoMarcadas.length} critério(s) declarado(s) «não» pelo professor`
+      + ' — achado do documento, e não pendência: o estado não se lê daqui');
   }
   if (avisos.length) {
     escrever(`    avisos: ${avisos.length}`);

@@ -137,7 +137,7 @@
     },
     "validationChecklist": {
       "type": "object",
-      "description": "Checklist de validação do próprio PO (RN-PO-07). Todos precisam estar marcados para o PO passar de Input_PO_Aguardando a Aprovado.",
+      "description": "Checklist de validação do próprio PO (RN-PO-07) — a REVISÃO que o professor faz do próprio recorte ao fechar o documento. As seis folhas são OPCIONAIS (o conteúdo as declara com `obrigatorio: false`), e o estado do PO NÃO se lê delas: `Input_PO_Aguardando` quer dizer «há pergunta obrigatória sem resposta», e um «não» marcado aqui é um achado declarado — uma resposta, não uma falta (15/11/2026).",
       "properties": {
         "phenomenonOperationallyDefined": {
           "type": "boolean"

@@ -32,7 +32,7 @@ const { criarConcluirPO } = require('./concluir-po.js');
 const { varianteDoContexto } = require('./escrever-po.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
-const { rotulosDoChecklist, derivadosDoChecklist, derivarPO } = require('../nucleo/derivar-po.js');
+const { rotulosDoChecklist, derivadosDoChecklist, derivarPO, obrigatoriosDoPO } = require('../nucleo/derivar-po.js');
 // O PLANO inteiro em Markdown, para a folha que o professor lê e imprime. É a MESMA
 // derivação que escreve a fonte do ciclo (`servidor/escrever-plano.js`): uma definição só,
 // para o documento impresso e o documento publicado não poderem divergir.
@@ -1646,6 +1646,9 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     const { markdown, meta } = derivarPO(envelope, plano, {
       rotulos: rotulosDoChecklist(conteudoPO),
       derivados: derivadosDoChecklist(conteudoPO),
+      // AS OBRIGATÓRIAS DO CONTEÚDO GOVERNAM O `state:` (15/11/2026): o checklist é opcional, e um
+      // «não» nele é um achado declarado, não uma resposta em falta. Ver `estadoDoPO`.
+      obrigatorios: obrigatoriosDoPO(conteudoPO),
       linhaDeBase: lb,
       universoDoCorpo: lb ? porta.camposDoCorpo(conteudo).length : null,
     });

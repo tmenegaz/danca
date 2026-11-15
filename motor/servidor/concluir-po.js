@@ -27,7 +27,7 @@
  * criou, `passos.*` para a cadeia automática).
  */
 
-const { rotulosDoChecklist, derivadosDoChecklist } = require('../nucleo/derivar-po.js');
+const { rotulosDoChecklist, derivadosDoChecklist, obrigatoriosDoPO } = require('../nucleo/derivar-po.js');
 
 /**
  * A FÁBRRICA. Recebe tudo o que o bloco usava do fecho da rota, para o corpo ficar igual ao que
@@ -93,6 +93,9 @@ function criarConcluirPO({
           saida.plano, {
             rotulos: rotulosDoChecklist(conteudoPO),
             derivados: derivadosDoChecklist(conteudoPO),
+            // O `state:` da fonte sai das perguntas OBRIGATÓRIAS do conteúdo — as mesmas que a
+            // barra do formulário conta. O checklist é opcional e não decide o estado.
+            obrigatorios: obrigatoriosDoPO(conteudoPO),
             // A fonte gravada no repositório tem de trazer o MESMO recorte que a prévia:
             // duas leituras do mesmo acto no mesmo pedido seriam duas chances de divergir.
             linhaDeBase: await linhaDeBaseDaTurma(

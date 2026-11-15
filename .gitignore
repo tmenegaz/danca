@@ -1340,8 +1340,9 @@ experimentos/modelo-formulario/*
 # saídas, e o `ciclos.json` levava `gerado_em` e `estado`.
 !experimentos/provar-saidas-estaveis.js
 
-# A ETIQUETA DIZ O MOTIVO (15/11/2026). «eu não sei qual dos dois está errado, o PO ou se é o
-# ciclo» — porque o cartão dizia «PO aguardando» sem sujeito. A prova mede as duas metades: num ciclo
-# real a frase nomeia a caixa que falta, e num PO todo marcado não diz nada. Mede também que o
-# caminho existe — marcar «sim» naquela linha FICA, e não é reescrito pela semente.
-!experimentos/provar-pendencia-do-po.js
+# O ESTADO DO PO MEDE O QUE PODE MEDIR (15/11/2026). O professor marcou «não» num critério do
+# checklist e o ciclo dizia «PO aguardando» — como se ela tivesse deixado uma pergunta em branco, e
+# a ler-se como um pedido para marcar «sim» e falsificar o documento. A prova fixa a regra: o estado
+# lê-se das perguntas OBRIGATÓRIAS sem resposta; um «não» num campo OPCIONAL é um achado declarado e
+# não move nada. Mede os dois lados, porque um só não distingue «acerta» de «diz sempre o mesmo».
+!experimentos/provar-estado-do-po.js
