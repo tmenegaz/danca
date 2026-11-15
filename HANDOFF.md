@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T17:05:09-0300`
-Commit atual: `8ae5dff4` — fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
+Gerado em: `2026-11-15T17:16:26-0300`
+Commit atual: `ec9aaa75` — feat(estrutura): criar a escola breu (motor completo)
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -52,14 +52,16 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **Professores:** colo-de-pe
 coqui-de-redinha
 dedao-aberto
+grand-plie
 lapis-rosa
+pe-pequeno
 pe-torto
 prova-do-shard
 rabo-gramde
 redinha-rosa
-rimel-preto (9)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+rimel-preto
+sapatilha-de-ponta (12)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -77,6 +79,11 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+ec9aaa75 feat(estrutura): criar a escola breu (motor completo)
+bd6f7bfb feat(estrutura): criar a escola calango (motor completo)
+9dbfbb7f feat(estrutura): criar a escola batata (motor completo)
+3bb14ca7 fix(estrutura): «expurgada» era «não tem config», e a escola de shard nasce assim
+b3f92cab fix(tools): a verificação 12 acusava de expurgada a escola de shard que está viva
 8ae5dff4 fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
 b86c58f0 fix(tools): a escola recriada dentro do shard ficava sem o campo `shard` no elo
 1d9adb27 fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
@@ -92,11 +99,6 @@ cb4336a5 chore(estrutura): expurgar a escola calango
 6fb70cf5 chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
 7dab1570 fix(experimentos): seis asserções mediam o desenho de ontem, e uma matava a prova
 722d274e fix(template): o véu tinha dois donos, e a folha abria sem escurecer a página
-89b0a5ba docs(registro): a entrada da chave que não abre tem nome
-70d3d9d8 fix(estrutura): a chave que não abre um registo deixou de derrubar o Worker
-0cd1438a docs(registro): o run 575 correu a publicação do shard, e a entrada dizia que não
-ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
-5b46db6e feat(estrutura): a escola de shard passa a ser publicada, e o expurgo reconhece-a
 ```
 
 ## Por professor
@@ -107,7 +109,31 @@ ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo 
 
 ### dedao-aberto — 0 ciclo(s)
 
+### grand-plie — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `a0a75ae19ade` | (vazio) | — |
+
 ### lapis-rosa — 0 ciclo(s)
+
+### pe-pequeno — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): calango
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| calango | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| calango | ciclo-01-calango.fipp | `4c033a8f9ce7` | (vazio) | — |
 
 ### pe-torto — 0 ciclo(s)
 
@@ -118,6 +144,18 @@ ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo 
 ### redinha-rosa — 0 ciclo(s)
 
 ### rimel-preto — 0 ciclo(s)
+
+### sapatilha-de-ponta — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| batata | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| batata | ciclo-01-batata.fipp | `f7603efa1095` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -166,119 +204,59 @@ ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo 
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O mapa de escolas não conhecia a escola de shard
+## 15/11/2026 — As três escolas nasceram dentro do shard, e a bateria passou
 
-**O que motivou.** Ela criou duas escolas pela página e nenhuma chegou ao repositório. O run
-**43754279538** morreu no passo «Publicar o mapa de escolas» com
-**«nenhuma escola nas configurações — nada a publicar»** e exit **2**. Como esse passo corre *antes*
-de subir o motor e de commitar o scaffold, a criação abortou a meio: o mapa ficou com a escola, o
-repositório sem ela, e o rollback disse — com razão — «não existe Worker com este nome, nada a
-desfazer». O sintoma que ela veria era «criei e não aparece».
+**O que aconteceu.** Ela criou `batata`, `breu` e `calango` pela página. As três **passaram** — e é
+a primeira vez que uma criação dentro do shard chega ao fim. O que se mediu, do remoto e ao vivo:
 
-**A causa, e é a mesma de ontem noutra peça.** `tools/publicar-mapa-de-escolas.js` derivava o mapa
-percorrendo os `wrangler.*.jsonc` cujo `assets.directory` começa por `publicacao/<escola>`. Uma
-escola de shard **não tem config** — é isso que a impede de ganhar um Worker próprio. A pergunta
-daquele passo é «que host serve que escola», e a resposta deixou de caber nos configs no dia em que
-uma escola deixou de ter um.
+| | |
+|:--|:--|
+| `escola/<slug>/indice.json` | `shard: lastro-teste`, `worker: lastro-teste`, `recriacao` 11/9/12 |
+| mapa `escolas/por-host` | as **duas** formas do endereço, nas três |
+| `bastidores/<escola>/dono` | `{nome, slug, hash, sal}` — sem senha em claro |
+| `/api/saude` nas três | `origem: "mapa"`, `escola_do_pacote` = o slug certo |
+| `/`, `/aulas/`, `/ciclos/planos/`, `/assets/style.css` | **200** nas três |
+| `indices/acervo.json` | as três com `expurgada: false` — **o critério novo funcionou** |
 
-**O que foi decidido.**
-- **O mapa passa a ter duas fontes, e não uma.** A de sempre (o config) e a nova: o
-  `escola/<slug>/indice.json` que declara `shard`, com **pacote-zero** — é a mesma marca e o mesmo
-  filtro do `montar-publicacao --shard` e do `deploy-escolas`. As duas entradas escritas são as que
-  o `provisionarDentroDoShard` já grava (o endereço próprio e o `workers.dev`), e escrevê-las aqui
-  também é o que torna o `--podar` inofensivo logo depois de uma criação.
-- **O `--dry-run` deixou de ser a única porta para a regra.** O script era o único do `tools/` que
-  amarravam `RAIZ` a `__dirname` sem escapatória, e o seu IIFE corria ao ser requerido — o que
-  tornava a regra impossível de medir sem uma árvore de mentira no repositório a sério. Passa a
-  aceitar `MR_RAIZ` (mesmo padrão do `--raiz` do `montar-publicacao`) e a exportar as duas funções
-  puras, correndo só como programa (`require.main`).
-- **A conferência do KV deixa de perguntar «não sei onde vive» em cada criação de shard.**
-  `escola/conferir-kv.js` passa a ler o `PADD_KV` do config do **shard** quando a escola declara um
-  no índice. O namespace é o mesmo — o KV é partilhado, e o que separa as escolas são os prefixos.
-  Um aviso que se repete e não se pode resolver ensina a ignorar avisos.
+**Três defeitos que só a criação real revelou**, todos da mesma premissa («toda escola tem
+`wrangler.<slug>.jsonc`»), e todos corrigidos na origem:
 
-**Onde entrou.** `tools/publicar-mapa-de-escolas.js` (`escolasDeShard`, `temPacoteZero`, `MR_RAIZ`,
-`principal`) · `escola/conferir-kv.js` (`namespaceDoShard`) ·
-`experimentos/provar-cofre-e-shard.js` (as asserções do mapa e da conferência) ·
-`experimentos/provar-kv-da-escola-criada.js` (árvore de mentira, e a asserção do shard).
+1. **O `git add` do scaffold.** Listava `wrangler.<escola>.jsonc`, que num shard não existe; um
+   caminho inexistente falha o `git add` inteiro (`exit 128`) — com o motor já no ar e o scaffold
+   por commitar. Passa a somar só os caminhos que existem.
+2. **A recíproca da cobertura, no `check-indices`.** «Sem config, a escola só pode estar no índice
+   como memória do expurgo» — uma escola de shard não tem config e está viva. A isenção é a mesma
+   da outra metade e vem do mesmo facto (o índice declara `shard`). Sem isto, criar três escolas
+   fazia o verificador reprovar três vezes.
+3. **O mapa de relações não era regerado na criação.** O `criar-escola.yml` corria
+   `gerar-indices.js` e não `gerar-relacoes.js`; o `regerar-indices.yml` corre os dois, mas é
+   disparado por `professores/**` e o push do `criar-escola` usa o `GITHUB_TOKEN` — que **não
+   redispara workflows**. Os três mapas `indices/relacoes/<professor>/01-<escola>.json` ficaram por
+   escrever, e o `check-indices` reprovou a reconstrução. Os dois passos correm agora juntos, como
+   no workflow irmão — dois derivados do mesmo `indices/` que só um escreve é um derivado a faltar
+   no commit que o tornou necessário.
 
-**Motivo declarado — os congelados.** Toca `tools/publicar-mapa-de-escolas.js`. É a **mesma pergunta
-a aprender uma segunda forma de resposta** que já existia no repositório (o índice com `shard`), e a
-única mudança de comportamento fora disso é o `--dry-run` deixar de exigir `__dirname` fixo. Não
-mudam a fórmula de hash, a cobertura da âncora, os validadores de ciclo, as regras nem as pétreas;
-nenhuma fonte de ciclo foi tocada.
+**E uma asserção da bateria que pedia o resultado de um trabalho que não aconteceu.** A bateria do
+shard exigia um PDF em `/rosa/ciclo-01-calango-rosa.pdf` e recebia 404 — o 404 estava **certo**: o
+PDF nasce do `gerar-ciclo.sh`, que corre depois de o PO ser preenchido, e uma escola recém-criada
+tem o pacote-zero e nenhum ciclo gerado. A asserção passou a medir o que se pode afirmar de uma
+escola em qualquer estado: o caminho do PDF é **reconhecido** (não é o 404 das páginas que não
+existem), e quando o PDF existe, vem como PDF.
 
-**Com o quê.** `provar-cofre-e-shard` **90/90** (mede o mapa por funções puras: escola de shard com
-pacote entra nas duas formas do endereço, sem pacote não entra, o shard em si não entra, e o mapa
-deixa de estar vazio quando só há escolas de shard — que era o exit 2). Controlo negativo **13/39**,
-com 26 falhas — e a que importa: o publicador de antes **não conhece** `escolasDeShard`.
-`provar-kv-da-escola-criada` **23/23** (era uma prova que **estourava** com `ENOENT` por depender do
-`wrangler.batata.jsonc`, que o expurgo apagou) · `provar-escola-por-host` 21/21 ·
-`provar-proveniencia-do-expurgo` 25/25 · `check-indices` 16/16 · `check-identidade` 0 erros.
+**Com o quê.** Bateria do shard ao vivo **50/50** com os gestos 7, 8 e 9 (turma, professor)
+corridos a sério, e **37/37** em `--so-leitura` · `provar-gestos-do-shard` **31/31** (os quatro
+gestos de documento numa loja com duas escolas) · `provar-cofre-e-shard` **101/101**, controlo
+negativo 14/41 · `check-indices` 16/16 · `gerar-indices --check` e `gerar-relacoes --check` em dia ·
+`check-identidade` 0 erros. A loja de envelopes das três responde **200** (`/anamnese/api/envelopes`,
+`/anamnese/api/anamneses`) — era o 500/404 que a impedia de gravar.
 
-**O que ainda não está feito.** (1) **As duas escolas não foram criadas de novo** — o pedido é dela,
-pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e o scaffold é o que
-falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
-NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
-suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
-
-**Acréscimo (15/11/2026, mesmo dia).** Ao verificar a recriação apareceu um **terceiro** buraco, e é
-o que ia morder exactamente agora: **`--shard` só escrevia o campo do shard quando o índice
-NASCIA.** Uma escola expurgada tem o índice preservado (é o elo), e o `criar-escola.sh` não o
-reescreve — acrescenta um elo de recriação ao que lá está. Resultado: a escola recriada ficava com
-`worker: "<escola>"` e **sem `shard` nenhum**, e todos os leitores do campo deixavam de a ver — o
-`montar-publicacao --shard` (que monta o que o índice declara), o mapa de escolas, o `lib-shard.sh`
-e o `deploy-escolas`. A escola nascia dentro do shard com o repositório a dizer que tinha Worker
-próprio, e o primeiro deploy a seguir ia procurar um `wrangler.<escola>.jsonc` que não existe.
-
-`tools/registrar-recriacao.py` passa a aceitar `--shard` e a gravar `shard` **e** `worker` (o script
-que a serve hoje) — **antes** do retorno que salta o elo: uma escola servida por um shard tem de o
-declarar, tenha sido expurgada ou não, porque o elo não pode contradizer a realidade. O
-`criar-escola.sh` passa `--shard` também nesse ramo. Sem a flag, nada muda — o controle negativo
-mede isso.
-
-`provar-cofre-e-shard` **95/95** (mede os três caminhos: com expurgo, sem expurgo, e sem a flag).
-
-**Acréscimo 2 (15/11/2026, mesmo dia).** A tentativa seguinte chegou mais longe — o mapa passou — e
-morreu no **commit do scaffold**: `fatal: pathspec 'wrangler.calango.jsonc' did not match any files`,
-exit 128, com o motor já no ar e o scaffold por commitar. Um `git add` com um caminho inexistente
-falha o comando inteiro; num shard a escola não tem esse config. O bloco passou a somar só os
-caminhos que existem.
-
-E a varredura do resto encontrou **mais dois**, ambos piores do que o que os precedeu:
-
-- **«Expurgada» era «não tem config».** `motor/nucleo/indices.js` marcava como expurgada toda escola
-  sem `wrangler.<slug>.jsonc` — e uma escola de shard nasce assim. O sintoma seria o pior desta
-  família: a escola nova a aparecer na lista das **apagadas**, sem data de expurgo, e ausente das
-  vivas. Nada falha; o painel mente. O critério passa a ter duas metades, ambas factos do
-  repositório: tem config, **ou** declara um shard **e** tem pacote-zero. O elo não entra nesta
-  conta de propósito — é memória, e uma memória não decide se a escola está no ar hoje. A
-  verificação 12 do `check-indices` aprendeu o mesmo facto.
-- **O expurgador local apagaria o config do shard.** `escola/expurgar.js` apagava
-  `wrangler.<worker>.jsonc` com o `worker` lido do índice — e o índice de uma escola de shard passa
-  a declarar `worker: <shard>`. Expurgar UMA escola apagaria `wrangler.lastro-teste.jsonc`, o config
-  que serve todas. Passa a apagar só o config cujo nome é o da escola, e a declarar no relatório que
-  o do shard fica.
-
-O `provar-bancadas-e-expurgo` passou a **22/22**: a asserção «sem pacote, as páginas de ontem são
-apagadas» exigia a ausência de `proposta-titulo.html`, e a decisão de 02/11/2026 — registada no
-próprio construtor — foi escrever uma página que EXPLICA que a bancada não pode medir. A asserção
-media o comportamento de antes; passa a medir a decisão.
-
-`provar-cofre-e-shard` **97/97** (controlo negativo 14/41) · `provar-bancadas-e-expurgo` 22/22 ·
-`provar-transferencia-e-desligamento` 97/97 · `provar-expurgo-sem-listagem` 49/49 ·
-`provar-kv-da-escola-criada` 23/23 · `check-indices` 16/16 · `check-identidade` 0 erros.
+**O que ainda não está feito.** (1) **Nenhum ciclo foi gerado nestas três escolas** — é o próximo
+passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os PDF, e só então a
+bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
+pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
+bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
 
 ## O que está pendente
-
-## 15/11/2026 — A publicação do shard: uma árvore partilhada monta-se inteira
-
-(1) **Nada disto foi exercitado num run real do GitHub Actions**: a
-lógica mede-se, o run não. O primeiro `criar-escola` com shard é que o prova. (2) `montar-publicacao
---shard` num shard com uma escola cujo pacote-zero desapareceu (expurgada sem limpar o índice) monta
-as outras e **ignora** a que falta — o silêncio é aceitável aqui porque a árvore não fica vazia, mas
-não é declarado na saída. (3) O `wrangler.<escola>.jsonc` das três escolas antigas continua
-versionado e inerte; sai quando ela expurgar.
 
 ## 15/11/2026 — A chave que não abre tem nome
 
@@ -309,6 +287,14 @@ pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e
 falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
 NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
 suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
+
+## 15/11/2026 — As três escolas nasceram dentro do shard, e a bateria passou
+
+(1) **Nenhum ciclo foi gerado nestas três escolas** — é o próximo
+passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os PDF, e só então a
+bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
+pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
+bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
 
 ## Pendências anteriores (índice)
 
@@ -756,6 +742,10 @@ suficiente — mas não foi exercitado num repositório sem shard nenhum, que é
 - **15/11/2026** — Quem assume os documentos de quem saiu: a definição da turma → `REGISTRO.md` L45344
 - **15/11/2026** — Os gestos 4 a 7 do shard não precisavam do modelo → `REGISTRO.md` L45383
 - **15/11/2026** — A chave mestra, o expurgo que a conhece, e o cofre → `REGISTRO.md` L45447
+- **15/11/2026** — A publicação do shard: uma árvore partilhada monta-se… → `REGISTRO.md` L45556
+- **grand-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **pe-pequeno · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **sapatilha-de-ponta · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

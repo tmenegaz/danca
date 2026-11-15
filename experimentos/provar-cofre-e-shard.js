@@ -749,6 +749,21 @@ function cloudflareFalso({ rotas = [] } = {}) {
       provar(fluxo + ' …e sobe a config do SHARD, não a de uma escola', alvo.test(texto), null);
     }
 
+    /* AS TRÊS ESCOLAS CRIADAS A 15/11 DEIXARAM O MAPA DE RELAÇÕES POR ESCREVER.
+     *
+     * O `criar-escola.yml` regerava `indices/` e não `indices/relacoes/`. O `regerar-indices.yml`
+     * corre os dois juntos e é disparado por `professores/**` — mas o push do `criar-escola` usa o
+     * `GITHUB_TOKEN`, e o GitHub não redispara workflows a partir desses pushes. Medido: o
+     * `check-indices` reprovou a reconstrução com
+     * `indices/relacoes/pe-pequeno/01-calango.json: não existe no disco`, três vezes. */
+    for (const fluxo of ['criar-escola.yml', 'regerar-indices.yml']) {
+      const texto = (() => { try { return lerFluxo(fluxo); } catch (erro) { return ''; } })();
+      provar(fluxo + ' regera o mapa de relações, e não só o índice', /gerar-relacoes\.js/.test(texto), null);
+      provar(fluxo + ' …e o índice também (os dois são irmãos, no mesmo `indices/`)',
+        /gerar-indices\.js/.test(texto), null);
+    }
+
+
     /* UMA ENTRADA POR WORKER. Duas escolas do mesmo shard são o MESMO Worker: duas entradas na
      * matriz seriam dois `wrangler deploy` em paralelo sobre a mesma versão activa — a disputa que
      * a `concurrency` do workflow existe para evitar, e que a matriz atravessa. */

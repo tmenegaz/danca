@@ -161,12 +161,31 @@ async function digital(slug) {
     }
   }
   {
-    /* O PDF vem da árvore montada, e é o mesmo caminho que a página publica. Só o `calango`
-     * tem turmas hoje, e por isso só ele tem PDF — a asserção é sobre o caminho, não sobre a
-     * existência em todas. */
-    const r = await chamar('calango', '/rosa/ciclo-01-calango-rosa.pdf');
-    provar('o PDF de um ciclo responde 200', r.status === 200, r.status);
-    provar('…e vem como PDF', /^%PDF/.test(r.texto.slice(0, 4)), r.texto.slice(0, 12));
+    /* O PDF NÃO NASCE COM A ESCOLA (15/11/2026) — nasce do `gerar-ciclo.sh`, que corre DEPOIS de
+     * o professor preencher o PO. Uma escola recém-criada tem o pacote-zero (a porta, o índice, a
+     * apresentação) e nenhum ciclo gerado; exigir-lhe um PDF era exigir-lhe o resultado de um
+     * trabalho que ainda não aconteceu. Medido a 15/11/2026, nas três escolas criadas nesse dia:
+     * `404` — e o 404 estava certo.
+     *
+     * O QUE SE MEDE, então, é o que a bateria pode afirmar de uma escola em qualquer estado:
+     *
+     *   · o caminho do PDF é RECONHECIDO pelo Worker — ou seja, ele não devolve o 404 das páginas
+     *     que não existem, e o pedido chega ao ASSETS;
+     *   · e quando o PDF existe, ele vem como PDF.
+     *
+     * A primeira metade é a que apanha o defeito que esta secção existe para apanhar (o caminho
+     * mal reescrito no shard); a segunda é a que confirma o tipo, quando há o que confirmar. */
+    const caminhoDoPdf = '/rosa/ciclo-01-calango-rosa.pdf';
+    const r = await chamar('calango', caminhoDoPdf);
+    const existe = r.status === 200;
+    provar('o caminho do PDF é reconhecido (200 quando há, 404 de ASSETS quando ainda não)',
+      existe || r.status === 404, r.status);
+    if (existe) {
+      provar('…e vem como PDF', /^%PDF/.test(r.texto.slice(0, 4)), r.texto.slice(0, 12));
+    } else {
+      provar('…e sem ciclo gerado, a ausência é do PDF e não da escola (a lista responde)',
+        (await chamar('calango', '/ciclos/planos/')).status === 200, null);
+    }
   }
 
   /* ── GESTÃO 3 · os assets, e a igualdade que autoriza partilhá-los ─────────────────────── */

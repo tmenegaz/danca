@@ -236,6 +236,14 @@ jobs:
 
           node tools/gerar-indices.js \
             || echo "::warning::os índices não foram regerados — rode node tools/gerar-indices.js"
+          # O MAPA DE RELAÇÕES É IRMÃO DO ÍNDICE (15/11/2026). Os dois derivam das mesmas fontes e
+          # escrevem no mesmo `indices/`; o `regerar-indices.yml` já os corre juntos, e este passo
+          # só corria um. Medido: as três escolas criadas a 15/11 deixaram
+          # `indices/relacoes/<professor>/01-<escola>.json` por escrever, e o `check-indices`
+          # reprovou a reconstrução. Um derivado que só nasce no push seguinte é um derivado que
+          # falta no commit que o tornou necessário.
+          node tools/gerar-relacoes.js \
+            || echo "::warning::o mapa de relações não foi regerado — rode node tools/gerar-relacoes.js"
 
           # UM CAMINHO QUE NÃO EXISTE DERRUBA O `git add` INTEIRO (15/11/2026), e foi o que
           # aconteceu no run 43755682428: «fatal: pathspec 'wrangler.calango.jsonc' did not match

@@ -45879,3 +45879,55 @@ media o comportamento de antes; passa a medir a decisão.
 `provar-cofre-e-shard` **97/97** (controlo negativo 14/41) · `provar-bancadas-e-expurgo` 22/22 ·
 `provar-transferencia-e-desligamento` 97/97 · `provar-expurgo-sem-listagem` 49/49 ·
 `provar-kv-da-escola-criada` 23/23 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+## 15/11/2026 — As três escolas nasceram dentro do shard, e a bateria passou
+
+**O que aconteceu.** Ela criou `batata`, `breu` e `calango` pela página. As três **passaram** — e é
+a primeira vez que uma criação dentro do shard chega ao fim. O que se mediu, do remoto e ao vivo:
+
+| | |
+|:--|:--|
+| `escola/<slug>/indice.json` | `shard: lastro-teste`, `worker: lastro-teste`, `recriacao` 11/9/12 |
+| mapa `escolas/por-host` | as **duas** formas do endereço, nas três |
+| `bastidores/<escola>/dono` | `{nome, slug, hash, sal}` — sem senha em claro |
+| `/api/saude` nas três | `origem: "mapa"`, `escola_do_pacote` = o slug certo |
+| `/`, `/aulas/`, `/ciclos/planos/`, `/assets/style.css` | **200** nas três |
+| `indices/acervo.json` | as três com `expurgada: false` — **o critério novo funcionou** |
+
+**Três defeitos que só a criação real revelou**, todos da mesma premissa («toda escola tem
+`wrangler.<slug>.jsonc`»), e todos corrigidos na origem:
+
+1. **O `git add` do scaffold.** Listava `wrangler.<escola>.jsonc`, que num shard não existe; um
+   caminho inexistente falha o `git add` inteiro (`exit 128`) — com o motor já no ar e o scaffold
+   por commitar. Passa a somar só os caminhos que existem.
+2. **A recíproca da cobertura, no `check-indices`.** «Sem config, a escola só pode estar no índice
+   como memória do expurgo» — uma escola de shard não tem config e está viva. A isenção é a mesma
+   da outra metade e vem do mesmo facto (o índice declara `shard`). Sem isto, criar três escolas
+   fazia o verificador reprovar três vezes.
+3. **O mapa de relações não era regerado na criação.** O `criar-escola.yml` corria
+   `gerar-indices.js` e não `gerar-relacoes.js`; o `regerar-indices.yml` corre os dois, mas é
+   disparado por `professores/**` e o push do `criar-escola` usa o `GITHUB_TOKEN` — que **não
+   redispara workflows**. Os três mapas `indices/relacoes/<professor>/01-<escola>.json` ficaram por
+   escrever, e o `check-indices` reprovou a reconstrução. Os dois passos correm agora juntos, como
+   no workflow irmão — dois derivados do mesmo `indices/` que só um escreve é um derivado a faltar
+   no commit que o tornou necessário.
+
+**E uma asserção da bateria que pedia o resultado de um trabalho que não aconteceu.** A bateria do
+shard exigia um PDF em `/rosa/ciclo-01-calango-rosa.pdf` e recebia 404 — o 404 estava **certo**: o
+PDF nasce do `gerar-ciclo.sh`, que corre depois de o PO ser preenchido, e uma escola recém-criada
+tem o pacote-zero e nenhum ciclo gerado. A asserção passou a medir o que se pode afirmar de uma
+escola em qualquer estado: o caminho do PDF é **reconhecido** (não é o 404 das páginas que não
+existem), e quando o PDF existe, vem como PDF.
+
+**Com o quê.** Bateria do shard ao vivo **50/50** com os gestos 7, 8 e 9 (turma, professor)
+corridos a sério, e **37/37** em `--so-leitura` · `provar-gestos-do-shard` **31/31** (os quatro
+gestos de documento numa loja com duas escolas) · `provar-cofre-e-shard` **101/101**, controlo
+negativo 14/41 · `check-indices` 16/16 · `gerar-indices --check` e `gerar-relacoes --check` em dia ·
+`check-identidade` 0 erros. A loja de envelopes das três responde **200** (`/anamnese/api/envelopes`,
+`/anamnese/api/anamneses`) — era o 500/404 que a impedia de gravar.
+
+**O que ainda não está feito.** (1) **Nenhum ciclo foi gerado nestas três escolas** — é o próximo
+passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os PDF, e só então a
+bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
+pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
+bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
