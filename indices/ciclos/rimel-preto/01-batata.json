@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-15",
+    "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+      "professores/rimel-preto/ciclos/ciclo-01.conf"
+    ],
+    "hash": "89fc1925676284247205f54b4c2db6aaaefcb143e99afcf5f003e1fdbb201c27",
+    "hash_conteudo": "7798a7afbeb715948ce37a920d55d4bdb7ecaadb61a8f7ae397d3ace287e0487",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+    "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "batata",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "f194018"
+  },
+  "gerado_em": "2026-11-15T21:06",
+  "id": "ciclo:rimel-preto/01/batata",
+  "professor": "rimel-preto",
+  "versao": 6
+}
