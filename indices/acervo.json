@@ -118,7 +118,8 @@
       "professor": "redinha-rosa",
       "professores": [
         "prova-do-shard",
-        "redinha-rosa"
+        "redinha-rosa",
+        "rimel-preto"
       ],
       "registros": [],
       "slug": "breu"
@@ -293,6 +294,11 @@
         "contagem": 2,
         "rotulo": "Redinha Rosa",
         "valor": "redinha-rosa"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Rimel Preto",
+        "valor": "rimel-preto"
       }
     ],
     "tipos": [
@@ -315,9 +321,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9ccc5d3"
+    "commit": "21e4080"
   },
-  "gerado_em": "2026-11-14T21:37",
+  "gerado_em": "2026-11-15T10:37",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -405,6 +411,15 @@
       "id": "professor:redinha-rosa",
       "nome": "Redinha Rosa",
       "slug": "redinha-rosa"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:rimel-preto",
+      "nome": "Rimel Preto",
+      "slug": "rimel-preto"
     }
   ],
   "versao": 6
