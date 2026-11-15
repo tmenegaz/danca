@@ -7,7 +7,7 @@ responsavel: Rimel Preto
 professor: Rimel Preto
 title: "Plano de Observação do Ciclo 01 — batata"
 state: Input_PO_Validado
-envelope: po-20261115-1921
+envelope: po-20261115-2017
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
