@@ -370,9 +370,9 @@
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 1,
-      "pos": 1,
+      "pos": 2,
       "recortes": 1,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-11-14T15:01:39.136639+00:00",
     "expurgada": false,
@@ -389,18 +389,20 @@
     "registros": [
       "anamnese:anamnese-20261115-1057",
       "plano:plano-20261115-1101",
-      "po:po-20261115-1101"
+      "po:po-20261115-1101",
+      "po:po-20261115-1153"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261115-1057",
           "plano:plano-20261115-1101",
-          "po:po-20261115-1101"
+          "po:po-20261115-1101",
+          "po:po-20261115-1153"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -453,12 +455,13 @@
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261115-1057",
           "ciclo:lapis-rosa/01/batata",
           "plano:plano-20261115-1101",
-          "po:po-20261115-1101"
+          "po:po-20261115-1101",
+          "po:po-20261115-1153"
         ],
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
@@ -491,9 +494,10 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "po:po-20261115-1101"
+          "po:po-20261115-1101",
+          "po:po-20261115-1153"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -502,9 +506,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "72f87eb"
+    "commit": "5a51766"
   },
-  "gerado_em": "2026-11-15T14:50",
+  "gerado_em": "2026-11-15T14:53",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -588,6 +592,16 @@
       "ciclo": "01",
       "data": "2026-11-15T11:01",
       "id": "po:po-20261115-1101",
+      "professor": "lapis-rosa",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261115-1101",
+      "ano": "2026",
+      "carimbo": "po-20261115-1153",
+      "ciclo": "01",
+      "data": "2026-11-15T11:53",
+      "id": "po:po-20261115-1153",
       "professor": "lapis-rosa",
       "tipo": "po"
     }
