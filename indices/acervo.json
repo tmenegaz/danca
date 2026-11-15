@@ -101,7 +101,8 @@
       "nome": "breu",
       "professor": "grand-plie",
       "professores": [
-        "grand-plie"
+        "grand-plie",
+        "prova-do-shard"
       ],
       "registros": [],
       "slug": "breu"
@@ -198,8 +199,8 @@
         "valor": "pe-torto"
       },
       {
-        "contagem": 0,
-        "rotulo": "prova-do-shard",
+        "contagem": 1,
+        "rotulo": "Prova Do Shard",
         "valor": "prova-do-shard"
       },
       {
@@ -227,9 +228,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bd6f7bf"
+    "commit": "495f56ad"
   },
-  "gerado_em": "2026-11-15T20:11",
+  "gerado_em": "2026-11-15T20:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -312,9 +313,11 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "breu"
+      ],
       "id": "professor:prova-do-shard",
-      "nome": null,
+      "nome": "Prova Do Shard",
       "slug": "prova-do-shard"
     },
     {

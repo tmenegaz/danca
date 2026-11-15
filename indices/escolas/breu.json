@@ -89,7 +89,8 @@
     "nome": "breu",
     "professor": "grand-plie",
     "professores": [
-      "grand-plie"
+      "grand-plie",
+      "prova-do-shard"
     ],
     "registros": [],
     "slug": "breu"
@@ -130,9 +131,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bd6f7bf"
+    "commit": "495f56ad"
   },
-  "gerado_em": "2026-11-15T20:11",
+  "gerado_em": "2026-11-15T20:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
