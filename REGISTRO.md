@@ -45443,3 +45443,93 @@ decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e �
 concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
 o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
 documentos é medida pelos validadores e pelas provas de cada família.
+
+## 15/11/2026 — A chave mestra, o expurgo que a conhece, e o cofre
+
+**O que motivou.** Três respostas de tela, e todas a mesma causa. (1) «Não foi possível gravar:
+anamnese no repositório: falta a SENHA_CRIPTO» — a chave de cifra morava no `env` do Worker, com um
+valor por Worker; num shard que serve N escolas com UM `env` não há onde ela caiba. (2) «eu vou
+expurgar as escolas, mas antes você precisa fazer com que o expurgo conheça a chave nova» — e o
+expurgo tinha um segundo problema, mais grave: ele apagava as rotas cujo `script` fosse o do nome da
+escola, e num shard as rotas apontam ao script do shard; a leitura ingénua («então apague a rota que
+aponta ao shard») apagaria N escolas de uma vez, e a leitura oposta («não apague nada») deixaria o
+endereço de uma escola morta a responder. (3) «eu vou digitar essa minha senha e vou poder ver a
+chave mestra» — não havia onde a ler, e sem a ler não há como conferir que é a mesma nos Workers.
+
+**O que foi decidido.**
+- **A chave da escola passa a ser DERIVADA, não guardada.** `chave(escola) = hex(HMAC-SHA256(mestra,
+  "lastro/escola/<slug>"))`. Não há KV, não há cópia, não há segundo sítio onde as chaves vivem: é
+  uma função. O que a mestra compra e o que ela custa ficam ditos no mesmo lugar — quem a tem tem
+  todas as escolas, e trocá-la invalida o que está cifrado com as chaves antigas.
+- **A reserva é o que impede a correção de quebrar o que existe.** Sem `SENHA_MESTRA`, a escola
+  continua a usar a `SENHA_CRIPTO` do Worker. Uma escola de antes não muda de comportamento no dia
+  do deploy, e é isso que torna a migração possível escola a escola.
+- **A IDENTIDADE DO DONO vai para o KV, no registo da escola** (`bastidores/<escola>/dono`:
+  `{nome, slug, hash, sal}`), escrita no nascimento e lida por requisição. Era a metade já começada
+  e pela metade deixada: o `nomeDoDono` já lia o KV e o `slugDoDono` lia só o `env` — e a assimetria
+  é exactamente por que o dono desaparecia das listas do shard.
+- **A senha da direção passa a ser da ESCOLA, e lida antes do `env`.** `SENHA_DIRECAO_HASH`/`_SAL`
+  do registo ganham de `SENHA_ADMIN`/`SENHA_PROFESSOR`, que ficam como reserva. Duas pessoas em duas
+  escolas deixam de partilhar uma senha.
+- **O expurgo apaga o que carrega a marca do SISTEMA, e só isso.** A lista de scripts de confiança
+  (`scriptsDeConfianca`, de `SHARD_SCRIPT`) faz a rota do shard ser apagada; a rota de um script
+  alheio não é tocada; e o script do SHARD nunca é apagado, com `ehOShard` a dizê-lo no resultado em
+  vez de fingir que apagou.
+- **O mapa passa a ter dois donos, e é uma inversão deliberada.** `publicar-mapa-de-escolas.js`
+  declarava-se dono único e `--podar` varria o resto — mas a premissa é «um `wrangler.<escola>.jsonc`
+  por escola», que o shard elimina: com `--podar`, o mapa ficaria vazio. A criação regista (nas duas
+  formas do endereço, `<escola>.<zona>` e `<escola>.<subdominio>.workers.dev`) e o expurgo remove
+  **pelo valor**, porque a marca é «o mapa diz que esta escola é esta escola».
+- **A escola nasce DENTRO do shard.** `criar-escola.sh --shard <script>` não escreve
+  `wrangler.<escola>.jsonc`, regista o shard em `escola/<slug>/indice.json` (é o que o expurgo lê
+  para saber a quem pedir as rotas) e o workflow deixa de fazer `wrangler deploy` por escola.
+- **O cofre é um `POST`, e a comparação é em tempo constante.** `GET` com a senha na query deixaria
+  a senha no histórico e nos logs; a resposta vai com `Cache-Control: no-store`. Senha errada e
+  senha vazia dão a MESMA resposta — distinguir as duas diria a quem tenta que existe uma quase
+  certa. Sem `SENHA_MESTRA`, o cofre diz que falta: uma chave inventada daria às escolas chaves que
+  ninguém reproduz.
+
+**Onde entrou.** `motor/nucleo/chave-mestra.js` (novo — a derivação) ·
+`motor/nucleo/senha.js` (novo — a regra de guardar uma senha, num sítio só) ·
+`motor/servidor/producao.js` (`identidadeDoDonoDoKv`, e a sobreposição do `env` por requisição) ·
+`motor/servidor/bastidores.js` (`senhaDaDirecaoOk` assíncrona e KV-primeiro) ·
+`motor/servidor/provisionar-escola.js` (`provisionarDentroDoShard`) ·
+`motor/servidor/expurgar-escola.js` · `motor/servidor/dominio-da-escola.js` ·
+`motor/servidor/mapa-de-escolas.js` (`remover` por valor) · `motor/servidor/raiz.js`
+(`scriptsDeConfianca`, `moradaDaEscola` com a reserva do shard, `POST /api/cofre`) ·
+`motor/servidor/painel-html.js` (`blocoDoCofre`) · `wrangler.danca.jsonc` (`PADD_KV`,
+`SHARD_SCRIPT`) · `.github/workflows/criar-escola.yml` (o input `shard`) ·
+`tools/criar-escola.sh` (`--shard`) · `experimentos/provar-cofre-e-shard.js` (novo) · `.gitignore`.
+
+**Motivo declarado — os congelados.** Toca `tools/criar-escola.sh`, e por isso fica declarado. A
+mudança é um flag novo (`--shard <script>`), aditivo: sem ele o script faz exactamente o que fazia —
+escreve o `wrangler.<escola>.jsonc`, entra no `arquivos[]` do índice e não regista shard nenhum. Com
+ele, deixa de escrever o config do Worker (quem serve a escola é outro) e regista **qual** shard, que
+é o que o expurgo precisa de saber para não apagar N escolas. O que **não** muda: a fórmula de hash,
+a cobertura da âncora, os validadores, as regras e as pétreas. A âncora de proveniência não é
+afectada — nenhuma fonte de ciclo foi tocada.
+
+**Com o quê.** `provar-cofre-e-shard` **33/33**, com controlo negativo contra o código de `HEAD`
+(**10/25 — quinze falhas**), e o controlo é o que dá sentido à prova: em `HEAD` o expurgo **pede
+para apagar o script `lastro-teste`**, que é o desastre que a guarda evita, e a rota do shard não é
+apagada, e o mapa fica com as duas entradas da escola morta. A derivação mede-se determinística,
+distinta por escola, sensível à mestra, e recusando escola vazia (uma chave de string vazia seria a
+chave de todas). `check-identidade` 0 erros — e a primeira versão do cofre **falhou** a checagem 8
+por inventar duas classes (`cabecalho-lista`, `corpo-lista`); passou a usar `details.bloco-lista` >
+`summary.bloco-cabeca` > `div.bloco-corpo`, que é a peça da folha. `provar-gestos-do-shard` 31/31 ·
+`provar-bateria-do-shard --so-leitura` 37/37 · `provar-transferencia-e-desligamento` 97/97 ·
+`provar-dominio-da-escola` 36/36 · `provar-expurgo-sem-listagem` 49/49 · `provar-proveniencia-do-expurgo`
+25/25 · `provar-dono-do-expurgo` 11/11 · `provar-escola-por-host` 21/21 ·
+`provar-isolamento-entre-escolas` 25/25 · `provar-anamnese-sem-cofre` 13/13 ·
+`provar-identidade-da-escola-recriada` 22/22. Ao ar: `lastro-teste` republicado com o motor novo, e
+os três hosts continuam a resolver pelo mapa (`origem: "mapa"`).
+
+**O que ainda não está feito.** (1) **As três escolas actuais do shard têm `SENHA_CRIPTO`
+irrecuperável** — o segredo é escrito-só (`GET /secrets` devolve nome e tipo) e nasceu aleatório;
+os envelopes de anamnese que elas já gravaram ficam ilegíveis quando forem expurgadas. É o preço de
+ter chave por Worker, e é a razão de o expurgo e a recriação serem o caminho, e não uma migração.
+(2) **O expurgo e a recriação das três escolas não foram corridos por mim** — é gesto dela, e é o
+teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dados, e não por código:
+não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
+igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
+concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.

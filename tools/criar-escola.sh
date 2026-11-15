@@ -85,6 +85,9 @@ FLAGS:
   --somente-porta           SÓ regenera a PORTA (plano-observacao/) de um pacote que já
                             existe: recopia \`porta/\` e reinjeta a barra. Para quando a porta
                             muda e os pacotes ficam velhos
+  --shard <script>          A escola nasce DENTRO do shard indicado (ex.: lastro-teste): não
+                            escreve \`wrangler.<escola>.jsonc\` e regista o shard no índice.
+                            Sem a flag, a escola tem Worker próprio, como sempre
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
   --nao-interativo          não pergunta: erro se faltar obrigatório
   --help                    esta ajuda
@@ -128,6 +131,7 @@ while [ "$#" -gt 0 ]; do
     --modalidade)      MODALIDADE="$2"; shift 2 ;;
     --somente-indice)  SOMENTE_INDICE=1; shift ;;
     --somente-porta)   SOMENTE_PORTA=1; shift ;;
+    --shard)           SHARD_SCRIPT="$2"; shift 2 ;;
     --deploy)          DEPLOY=1; shift ;;
     --nao-interativo)  NAO_INTERATIVO=1; shift ;;
     --help|-h)         uso; exit 0 ;;
@@ -673,8 +677,14 @@ PY
 echo "  pacote zero: $PACOTE_DIR (índice + plano-observacao/ + assets)"
 
 # ---------------------------------------------------------------------------
-# 6) Config do Worker (um projeto por escola)
+# 6) Config do Worker (um projeto por escola) — OU NENHUMA, num shard
 # ---------------------------------------------------------------------------
+# A ESCOLA DENTRO DE UM SHARD NÃO TEM CONFIG PRÓPRIA (15/11/2026). Num shard o motor é UM, o do
+# shard, e uma `wrangler.<escola>.jsonc` a mais não é um ficheiro inerte: o `deploy-escolas.yml`
+# lista as configs e sobe um Worker por cada uma. O resultado seria a escola criada dentro do shard
+# a receber, no push seguinte, um Worker próprio — e o shard a servir uma escola que já não é dele.
+# O que a escola precisa (o pacote, o `.conf`, o perfil) continua a ser escrito: é o que o shard
+# serve a partir de `publicacao/`.
 # AS CRASES DOS COMENTÁRIOS VÃO ESCAPADAS (13/11/2026). Este heredoc é SEM aspas — é o que
 # deixa o nome, o professor, o ciclo e o assets.directory receberem as variáveis —, e num
 # heredoc sem aspas a crase é SUBSTITUIÇÃO DE COMANDO. O resultado medido na escola `breu`:
@@ -682,6 +692,10 @@ echo "  pacote zero: $PACOTE_DIR (índice + plano-observacao/ + assets)"
 # («Aqui esteve , e era ela»). A documentação do ficheiro gerado perdia-se em silêncio, e o
 # que sobrava eram ordens inventadas a partir de texto de comentário. Crase aqui dentro leva
 # barra invertida — como já se fazia no resumo, no fim deste script.
+if [ -n "$SHARD_SCRIPT" ]; then
+  echo "  config do Worker: NÃO escrita (--shard $SHARD_SCRIPT) — a escola é servida por esse shard"
+  WRANGLER=""
+else
 cat > "$WRANGLER" <<EOF
 // Cloudflare Worker da escola $ESCOLA_NOME (professor $PROFESSOR) — ciclo $CICLO.
 //
@@ -743,8 +757,11 @@ cat > "$WRANGLER" <<EOF
   ]
 }
 EOF
+fi
 
-echo "  worker: $WRANGLER"
+if [ -n "$WRANGLER" ]; then
+  echo "  worker: $WRANGLER"
+fi
 
 # ---------------------------------------------------------------------------
 # 6.1) A PUBLICAÇÃO DA ESCOLA — o `assets.directory` do Worker (20/10/2026)
@@ -802,9 +819,9 @@ if [ -e "$INDICE_ARQ" ]; then
     --responsavel "$RESPONSAVEL" \
     --ciclo "$CICLO"
 else
-  python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" <<'PY'
+  python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" "$SHARD_SCRIPT" <<'PY'
 import sys, json, datetime
-arq, escola, worker, professor, professor_nome, responsavel, ciclo, senha_chave, senha_arquivo = sys.argv[1:10]
+arq, escola, worker, professor, professor_nome, responsavel, ciclo, senha_chave, senha_arquivo, shard = sys.argv[1:11]
 indice = {
     "escola": escola,
     "worker": worker,
@@ -813,13 +830,18 @@ indice = {
     "responsavel": responsavel,
     "ciclo": ciclo,
     "senha": {"chave": senha_chave, "arquivo": senha_arquivo},
+    # ONDE A ESCOLA VIVE (15/11/2026). Vazio = Worker próprio (o regime de sempre); preenchido =
+    # este shard serve a escola, e não há Worker dela. É o que o expurgo lê para saber que a rota
+    # a apagar aponta ao shard, e não a um script com o nome da escola.
+    **({"shard": shard} if shard else {}),
     "estado": {"habilitada": True},
     "arquivos": [
         {"caminho": "professores/%s/ciclos/ciclo-%s.conf" % (professor, ciclo), "tipo": "manifesto base"},
         {"caminho": "professores/%s/ciclos/ciclo-%s-%s.conf" % (professor, ciclo, escola), "tipo": "manifesto variante"},
         {"caminho": "professores/%s/ciclos/ciclo-%s-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json" % (professor, ciclo), "tipo": "schemas"},
         {"caminho": "professores/%s/ciclos/ciclo-%s-%s/" % (professor, ciclo, escola), "tipo": "pacote zero"},
-        {"caminho": "wrangler.%s.jsonc" % worker, "tipo": "config do Worker"},
+        *([{"caminho": "wrangler.%s.jsonc" % worker, "tipo": "config do Worker"}]
+          if not shard else []),
     ],
 }
 with open(arq, "w", encoding="utf-8") as f:

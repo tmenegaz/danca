@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T14:04:41-0300`
-Commit atual: `ccb7e2b0` — chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
+Gerado em: `2026-11-15T15:29:28-0300`
+Commit atual: `2e7d91a8` — fix(experimentos): os gestos 4 a 7 do shard não precisavam do modelo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+2e7d91a8 fix(experimentos): os gestos 4 a 7 do shard não precisavam do modelo
 ccb7e2b0 chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
 f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
 81c8a145 chore(estrutura): regerar os índices derivados
@@ -95,7 +96,6 @@ a591ff48 feat(elenco): fitas — concluído
 4615f695 chore(estrutura): regerar os índices derivados
 b8080bb7 feat(acervo): envelope/anamnese-20261115-1348.json
 22036307 feat(acervo): envelope/.indice.json
-c7697904 chore(entrega): versionar o `plano-aula-01-anterior` do coqui-de-redinha
 ```
 
 ## Por professor
@@ -205,80 +205,97 @@ c7697904 chore(entrega): versionar o `plano-aula-01-anterior` do coqui-de-redinh
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Os gestos 4 a 7 do shard não precisavam do modelo
+## 15/11/2026 — A chave mestra, o expurgo que a conhece, e o cofre
 
-**O que motivou.** Ela pediu os testes pendentes do `PLANO-SHARD.md`. Os pendentes eram quatro, e o
-motivo escrito no ficheiro era: «passa por `POST /api/elicitar` (gasta tokens e não é
-determinístico)». Fui ver antes de aceitar — e **o motivo estava errado**.
-
-**O que se mediu.** `POST /api/elicitar` com um mapa de `respostas` não chama o modelo: chama
-`porta.elicitar` → `motor/nucleo/elicitar.js`, que o próprio ficheiro descreve como «o runtime
-mínimo do PE», e cujos únicos `require` são `derivar-plano.js` e `validar.js`. Quem fala com o
-modelo é `POST /api/ia`, que serve a **condução** (que pergunta fazer a seguir) — outra rota, outro
-propósito. A bancada de comandos já usava o caminho com `elicitar.js --respostas`, e a cadeia
-automática do servidor (`cadeia.js`) também: com respostas declaradas, a gravação é o caminho
-normal, e não um atalho de teste.
-
-**O que o erro de diagnóstico custou, e o que ele escondia.** Quatro gestos do plano — a anamnese, o
-plano de ensino, o PO e a linha de base, que são o CORAÇÃO do sistema — ficaram fora da bateria
-que existe para comparar topologias. O motivo verdadeiro é outro e é de **custódia**: cada gesto
-grava um envelope no repositório da escola (um commit por documento), e um PO concluído escreve as
-fontes do ciclo e **dispara a geração**. Numa bateria que corre duas vezes por topologia, isso são
-dezenas de commits em `main`, cada um a acordar os dois workflows do repositório. É por isso que
-continuam a exigir um sim explícito (`--com-documentos`) — mas por custo, não por tokens.
+**O que motivou.** Três respostas de tela, e todas a mesma causa. (1) «Não foi possível gravar:
+anamnese no repositório: falta a SENHA_CRIPTO» — a chave de cifra morava no `env` do Worker, com um
+valor por Worker; num shard que serve N escolas com UM `env` não há onde ela caiba. (2) «eu vou
+expurgar as escolas, mas antes você precisa fazer com que o expurgo conheça a chave nova» — e o
+expurgo tinha um segundo problema, mais grave: ele apagava as rotas cujo `script` fosse o do nome da
+escola, e num shard as rotas apontam ao script do shard; a leitura ingénua («então apague a rota que
+aponta ao shard») apagaria N escolas de uma vez, e a leitura oposta («não apague nada») deixaria o
+endereço de uma escola morta a responder. (3) «eu vou digitar essa minha senha e vou poder ver a
+chave mestra» — não havia onde a ler, e sem a ler não há como conferir que é a mesma nos Workers.
 
 **O que foi decidido.**
+- **A chave da escola passa a ser DERIVADA, não guardada.** `chave(escola) = hex(HMAC-SHA256(mestra,
+  "lastro/escola/<slug>"))`. Não há KV, não há cópia, não há segundo sítio onde as chaves vivem: é
+  uma função. O que a mestra compra e o que ela custa ficam ditos no mesmo lugar — quem a tem tem
+  todas as escolas, e trocá-la invalida o que está cifrado com as chaves antigas.
+- **A reserva é o que impede a correção de quebrar o que existe.** Sem `SENHA_MESTRA`, a escola
+  continua a usar a `SENHA_CRIPTO` do Worker. Uma escola de antes não muda de comportamento no dia
+  do deploy, e é isso que torna a migração possível escola a escola.
+- **A IDENTIDADE DO DONO vai para o KV, no registo da escola** (`bastidores/<escola>/dono`:
+  `{nome, slug, hash, sal}`), escrita no nascimento e lida por requisição. Era a metade já começada
+  e pela metade deixada: o `nomeDoDono` já lia o KV e o `slugDoDono` lia só o `env` — e a assimetria
+  é exactamente por que o dono desaparecia das listas do shard.
+- **A senha da direção passa a ser da ESCOLA, e lida antes do `env`.** `SENHA_DIRECAO_HASH`/`_SAL`
+  do registo ganham de `SENHA_ADMIN`/`SENHA_PROFESSOR`, que ficam como reserva. Duas pessoas em duas
+  escolas deixam de partilhar uma senha.
+- **O expurgo apaga o que carrega a marca do SISTEMA, e só isso.** A lista de scripts de confiança
+  (`scriptsDeConfianca`, de `SHARD_SCRIPT`) faz a rota do shard ser apagada; a rota de um script
+  alheio não é tocada; e o script do SHARD nunca é apagado, com `ehOShard` a dizê-lo no resultado em
+  vez de fingir que apagou.
+- **O mapa passa a ter dois donos, e é uma inversão deliberada.** `publicar-mapa-de-escolas.js`
+  declarava-se dono único e `--podar` varria o resto — mas a premissa é «um `wrangler.<escola>.jsonc`
+  por escola», que o shard elimina: com `--podar`, o mapa ficaria vazio. A criação regista (nas duas
+  formas do endereço, `<escola>.<zona>` e `<escola>.<subdominio>.workers.dev`) e o expurgo remove
+  **pelo valor**, porque a marca é «o mapa diz que esta escola é esta escola».
+- **A escola nasce DENTRO do shard.** `criar-escola.sh --shard <script>` não escreve
+  `wrangler.<escola>.jsonc`, regista o shard em `escola/<slug>/indice.json` (é o que o expurgo lê
+  para saber a quem pedir as rotas) e o workflow deixa de fazer `wrangler deploy` por escola.
+- **O cofre é um `POST`, e a comparação é em tempo constante.** `GET` com a senha na query deixaria
+  a senha no histórico e nos logs; a resposta vai com `Cache-Control: no-store`. Senha errada e
+  senha vazia dão a MESMA resposta — distinguir as duas diria a quem tenta que existe uma quase
+  certa. Sem `SENHA_MESTRA`, o cofre diz que falta: uma chave inventada daria às escolas chaves que
+  ninguém reproduz.
 
-- **Os quatro gestos passam a ser medidos, e onde é barato: na bancada.** `provar-gestos-do-shard`
-  corre as quatro sequências na condição exacta do shard — **uma loja, duas escolas**, com o
-  namespacing do adaptador de produção (`envelope/` e `ia-registro/` ganham o slug) — e mede o que
-  não se vê de fora: que os gestos de uma escola não tocam na outra.
-- **O modelo não entra, e isso é asserção e não comentário.** A prova instala um espião na rede
-  antes do primeiro gesto e confere no fim que **nenhum pedido saiu**; e o espião tem controlo
-  negativo (um pedido forçado tem de o fazer contar), porque um contador que nunca sobe aprovaria
-  «nada saiu» com a rede a ser usada.
-- **A bateria ao ar deixa de mentir.** O motivo falso sai do cabeçalho e do relatório; os gestos
-  4, 5 e 7 passam a correr com `--com-documentos` (determinísticos, criando e apagando onde a
-  proveniência deixa), e o 6 fica declarado com o motivo verdadeiro: concluir o PO escreve as
-  fontes do ciclo e dispara um pacote novo em `main`. **Não o corri ao vivo**: seis commits por
-  escola, cada um a acordar os dois workflows do repositório, é o recurso dela e não meu.
-- **O id da edição é o que a resposta devolve.** A anamnese livre que muda de facto é reescrita com
-  o carimbo da hora da mudança; apontar para o id de entrada é o defeito que já apareceu duas vezes
-  nesta casa (`turma-editar`, e a primeira versão desta bancada). A asserção passou a afirmar o
-  registo que **passou a valer**, e que o anterior não ficou como órfão.
+**Onde entrou.** `motor/nucleo/chave-mestra.js` (novo — a derivação) ·
+`motor/nucleo/senha.js` (novo — a regra de guardar uma senha, num sítio só) ·
+`motor/servidor/producao.js` (`identidadeDoDonoDoKv`, e a sobreposição do `env` por requisição) ·
+`motor/servidor/bastidores.js` (`senhaDaDirecaoOk` assíncrona e KV-primeiro) ·
+`motor/servidor/provisionar-escola.js` (`provisionarDentroDoShard`) ·
+`motor/servidor/expurgar-escola.js` · `motor/servidor/dominio-da-escola.js` ·
+`motor/servidor/mapa-de-escolas.js` (`remover` por valor) · `motor/servidor/raiz.js`
+(`scriptsDeConfianca`, `moradaDaEscola` com a reserva do shard, `POST /api/cofre`) ·
+`motor/servidor/painel-html.js` (`blocoDoCofre`) · `wrangler.danca.jsonc` (`PADD_KV`,
+`SHARD_SCRIPT`) · `.github/workflows/criar-escola.yml` (o input `shard`) ·
+`tools/criar-escola.sh` (`--shard`) · `experimentos/provar-cofre-e-shard.js` (novo) · `.gitignore`.
 
-**Onde entrou.** `experimentos/provar-gestos-do-shard.js` (novo, 31 asserções) ·
-`experimentos/provar-bateria-do-shard.js` (cabeçalho corrigido, `--com-documentos`, gestos 4, 5 e 7)
-· `.gitignore` (a prova entra na lista).
+**Motivo declarado — os congelados.** Toca `tools/criar-escola.sh`, e por isso fica declarado. A
+mudança é um flag novo (`--shard <script>`), aditivo: sem ele o script faz exactamente o que fazia —
+escreve o `wrangler.<escola>.jsonc`, entra no `arquivos[]` do índice e não regista shard nenhum. Com
+ele, deixa de escrever o config do Worker (quem serve a escola é outro) e regista **qual** shard, que
+é o que o expurgo precisa de saber para não apagar N escolas. O que **não** muda: a fórmula de hash,
+a cobertura da âncora, os validadores, as regras e as pétreas. A âncora de proveniência não é
+afectada — nenhuma fonte de ciclo foi tocada.
 
-**Com o quê.** `provar-gestos-do-shard` **31/31**, e **duas corridas seguidas dão o mesmo texto**
-(não há carimbo a variar porque o `agora` é declarado). O que ele mede: a anamnese é criada, listada
-como vigente da aluna, editada em sítio e apagada enquanto solta, e sai do acervo; o plano é criado,
-a fonte é escrita, o derivado nasce com id novo e `ajuste_de` a apontar o anterior; o PO observa o
-plano VIGENTE (o derivado), escreve a fonte, deriva o ciclo, **dispara a geração** com o contexto do
-ato, e um segundo PO para o mesmo plano é recusado (409); a linha de base aceita a mudança de elenco,
-envia para a turma com as duas alunas, e **diz onde gravou** (`kv`, sem repositório — a metade
-honesta). No shard: a segunda escola não ganha um byte, com contraprova de que a loja tem as chaves
-da primeira nas três famílias, e cada escola lê só a sua. `provar-bateria-do-shard --so-leitura`
-contra as três escolas ao vivo: **37/37**, com `origem: "mapa"` nos três hosts.
+**Com o quê.** `provar-cofre-e-shard` **33/33**, com controlo negativo contra o código de `HEAD`
+(**10/25 — quinze falhas**), e o controlo é o que dá sentido à prova: em `HEAD` o expurgo **pede
+para apagar o script `lastro-teste`**, que é o desastre que a guarda evita, e a rota do shard não é
+apagada, e o mapa fica com as duas entradas da escola morta. A derivação mede-se determinística,
+distinta por escola, sensível à mestra, e recusando escola vazia (uma chave de string vazia seria a
+chave de todas). `check-identidade` 0 erros — e a primeira versão do cofre **falhou** a checagem 8
+por inventar duas classes (`cabecalho-lista`, `corpo-lista`); passou a usar `details.bloco-lista` >
+`summary.bloco-cabeca` > `div.bloco-corpo`, que é a peça da folha. `provar-gestos-do-shard` 31/31 ·
+`provar-bateria-do-shard --so-leitura` 37/37 · `provar-transferencia-e-desligamento` 97/97 ·
+`provar-dominio-da-escola` 36/36 · `provar-expurgo-sem-listagem` 49/49 · `provar-proveniencia-do-expurgo`
+25/25 · `provar-dono-do-expurgo` 11/11 · `provar-escola-por-host` 21/21 ·
+`provar-isolamento-entre-escolas` 25/25 · `provar-anamnese-sem-cofre` 13/13 ·
+`provar-identidade-da-escola-recriada` 22/22. Ao ar: `lastro-teste` republicado com o motor novo, e
+os três hosts continuam a resolver pelo mapa (`origem: "mapa"`).
 
-**O que ainda não está feito.** (1) Os gestos 4–7 **não** foram corridos ao vivo: a bancada prova o
-caminho, e o que falta é a conferência final de topologia, que custa os commits descritos acima —
-decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e é de propósito:
-concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
-o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
-documentos é medida pelos validadores e pelas provas de cada família.
+**O que ainda não está feito.** (1) **As três escolas actuais do shard têm `SENHA_CRIPTO`
+irrecuperável** — o segredo é escrito-só (`GET /secrets` devolve nome e tipo) e nasceu aleatório;
+os envelopes de anamnese que elas já gravaram ficam ilegíveis quando forem expurgadas. É o preço de
+ter chave por Worker, e é a razão de o expurgo e a recriação serem o caminho, e não uma migração.
+(2) **O expurgo e a recriação das três escolas não foram corridos por mim** — é gesto dela, e é o
+teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dados, e não por código:
+não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
+igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
+concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.
 
 ## O que está pendente
-
-## 15/11/2026 — O estado do PO lê-se das perguntas obrigatórias, e não do checklist opcional
-
-(1) O envelope continua a gravar as respostas semeadas do checklist
-com `origem: "perguntado"` — inclusive o «não» que o sistema inferiu (`derivadoDe: {sempre: "não"}`)
-e não o professor. É o mesmo defeito que a casa já resolveu para as dimensões do plano (que vão como
-`importado`), e alargá-lo mexe no formato do registo: fica declarado. (2) O documento imprime as
-chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo humano — feio e
-anterior. (3) Se um PO tiver uma pergunta obrigatória vazia, a etiqueta diz «aguardando» e não diz
 
 ## 15/11/2026 — O professor desligado não se oferece para um ato
 
@@ -320,6 +337,18 @@ decisão dela. (2) O gesto 6 ao vivo continua a não ter caminho na bateria, e �
 concluir dispara um pacote novo. (3) A prova usa respostas declaradas e curtas, não um PO completo:
 o que se mede é o GESTO (gravar, listar, editar, apagar, derivar, disparar), e a completude dos
 documentos é medida pelos validadores e pelas provas de cada família.
+
+## 15/11/2026 — A chave mestra, o expurgo que a conhece, e o cofre
+
+(1) **As três escolas actuais do shard têm `SENHA_CRIPTO`
+irrecuperável** — o segredo é escrito-só (`GET /secrets` devolve nome e tipo) e nasceu aleatório;
+os envelopes de anamnese que elas já gravaram ficam ilegíveis quando forem expurgadas. É o preço de
+ter chave por Worker, e é a razão de o expurgo e a recriação serem o caminho, e não uma migração.
+(2) **O expurgo e a recriação das três escolas não foram corridos por mim** — é gesto dela, e é o
+teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dados, e não por código:
+não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
+igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
+concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.
 
 ## Pendências anteriores (índice)
 
@@ -761,6 +790,7 @@ documentos é medida pelos validadores e pelas provas de cada família.
 - **15/11/2026** — Estilo: os passos do trecho só abrem dentro de um trecho;… → `REGISTRO.md` L44907
 - **15/11/2026** — As saídas do pacote deixam de se carimbar: a data sai das… → `REGISTRO.md` L44976
 - **15/11/2026** — A etiqueta «PO aguardando» passa a dizer o que falta marcar → `REGISTRO.md` L45040
+- **15/11/2026** — O estado do PO lê-se das perguntas obrigatórias, e não do… → `REGISTRO.md` L45105
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 - **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
