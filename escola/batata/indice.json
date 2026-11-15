@@ -1,19 +1,19 @@
 {
   "escola": "batata",
-  "worker": "batata",
+  "worker": "lastro-teste",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "coqui-de-redinha",
-    "nome": "Coqui De Redinha"
+    "slug": "sapatilha-de-ponta",
+    "nome": "Sapatilha de Ponta"
   },
-  "responsavel": "Coqui De Redinha",
+  "responsavel": "Sapatilha de Ponta",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -1199,14 +1199,29 @@
         "slug": "dedao-aberto",
         "nome": "Dedao Aberto"
       }
-    }
-  ],
-  "professores": [
+    },
     {
-      "slug": "lapis-rosa",
-      "nome": "Lápis Rosa",
-      "desde": "2026-11-15T10:38:57.248Z"
+      "em": "2026-11-15T20:09:07.180166+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "sapatilha-de-ponta",
+        "nome": "Sapatilha de Ponta"
+      },
+      "responsavel": "Sapatilha de Ponta",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "lapis-rosa",
+          "nome": "Lápis Rosa",
+          "desde": "2026-11-15T10:38:57.248Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "coqui-de-redinha",
+        "nome": "Coqui De Redinha"
+      }
     }
   ],
+  "professores": [],
   "shard": "lastro-teste"
 }
