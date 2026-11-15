@@ -93,9 +93,9 @@
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 1,
-        "pos": 2,
+        "pos": 3,
         "recortes": 1,
-        "registros": 4
+        "registros": 5
       },
       "criada_em": "2026-11-14T15:01:39.136639+00:00",
       "expurgada": false,
@@ -113,7 +113,8 @@
         "anamnese:anamnese-20261115-1057",
         "plano:plano-20261115-1101",
         "po:po-20261115-1101",
-        "po:po-20261115-1153"
+        "po:po-20261115-1153",
+        "po:po-20261115-1236"
       ],
       "slug": "batata"
     },
@@ -248,7 +249,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 46,
+        "contagem": 47,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -341,7 +342,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 22,
+        "contagem": 23,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -349,9 +350,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "526e3581"
+    "commit": "9ab1484"
   },
-  "gerado_em": "2026-11-15T15:26",
+  "gerado_em": "2026-11-15T15:36",
   "nao_indexado": [
     {
       "familia": "conteudo",
