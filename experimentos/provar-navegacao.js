@@ -152,8 +152,16 @@ function destinos(menu) {
      um `fetch` local dá 404 sem que isso seja um defeito. A lista é lida do ROTEADOR, como os
      prefixos da porta: se uma rota sair de lá, a prova reprova em vez de continuar a jurar que o
      menu está bom. */
-  const rotasDoAcervo = ['/area-do-professor/anamnese', '/area-do-professor/plano-de-ensino',
-    '/area-do-professor/plano-de-observacao'];
+  /* AS ROTAS DA ÁREA DO PROFESSOR SÃO LIDAS DO SERVIDOR, e não escritas à mão (15/11/2026).
+   *
+   * A lista era nominal — três prefixos fixos —, e a `aulas-dadas` entrou na ponte sem ninguém se
+   * lembrar de a acrescentar aqui: o menu passou a apontar para uma rota que existe, e a prova
+   * reprovou «não é um arquivo nem uma rota». O erro era da prova, e a lista nominal é o que o
+   * produziu. Agora pergunta-se ao `producao.js`, que é quem serve: qualquer caminho que ele
+   * declare sob `/area-do-professor/` passa a ser reconhecido no dia em que nascer. */
+  const rotasDoAcervo = [...new Set(
+    [...fonteProducao.matchAll(/['"](\/area-do-professor\/[a-z0-9-]+)/g)].map((m) => m[1]),
+  )];
   const rotas = [...prefixosDaPorta, ...rotasDoAcervo, '/bastidores'];
   const faltando = [];
   for (const href of todos) {
@@ -212,14 +220,27 @@ function destinos(menu) {
   const emAulas = await pagina.evaluate(() => ({
     atual: (document.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo span') || {}).textContent || null,
     directos: document.querySelectorAll('.coluna-direto').length,
+    directosApontandoParaAulas: document.querySelectorAll('.coluna-direto[href^="/aulas"]').length,
     rotulos: [...document.querySelectorAll('.coluna-grupo .coluna-itens a')].map((a) => a.textContent.trim()),
   }));
   provar('em /aulas/ o grupo actual é «Área do Professor»', emAulas.atual === 'Área do Professor', emAulas.atual);
   /* O DESTINO DIRECTO EXISTE OUTRA VEZ (24/10/2026), e agora é «Consulta»: um glossário sozinho
      num grupo seria um menu que abre para mostrar uma linha. O que se mede é que ele NÃO é a
      «Aulas» — a lista de aulas vive dentro do grupo, e foi isso que a decisão de 24/10 fixou. */
-  provar('…e o único destino directo da coluna não é a «Aulas»', emAulas.directos === 1,
-    { directos: emAulas.directos, rotulos: emAulas.rotulos });
+  /* A AFIRMAÇÃO É SOBRE A LISTA DE AULAS, E NÃO SOBRE A CONTAGEM (15/11/2026).
+   *
+   * Era `directos === 1`, porque havia um destino directo no topo da coluna — o «Consulta». Ele
+   * saiu por decisão de 28/10/2026, tomada em `montar-publicacao.js`: «as antigas listas
+   * independentes de Notação e Consulta deixam de ser geradas: a notação é acessada pela aula
+   * correspondente, e o glossário pelo cabeçalho persistente da Notação». Com isso `directos`
+   * ficou 0, e a asserção passou a reprovar uma decisão que está certa.
+   *
+   * O que ela queria dizer — e passa a dizer — é isto: a lista de aulas vive DENTRO do grupo, e
+   * não há um segundo item a apontar para ela. Um número fixo mede o desenho de hoje; esta
+   * pergunta mede a regra. */
+  provar('…e nenhum destino directo da coluna aponta para a lista de aulas',
+    emAulas.directosApontandoParaAulas === 0,
+    { directos: emAulas.directos, paraAulas: emAulas.directosApontandoParaAulas, rotulos: emAulas.rotulos });
   provar('…porque a lista de aulas está DENTRO do grupo, com o rótulo «Aulas»',
     emAulas.rotulos.indexOf('Aulas') !== -1, emAulas.rotulos);
   provar('…e o rótulo antigo («Lançamento de aula») já não existe',
@@ -292,21 +313,35 @@ function destinos(menu) {
   // ------------------------------------------------------------------ 5. a folha, no celular
   console.log('\n5 · A folha, no celular');
   await ir('/ciclos/planos/', 414, 860);
+  /* O PEGADOR CHAMA-SE `.folha-puxador` (15/11/2026) — e a prova pedia `.coluna-puxador`, um nome
+   * que já não existe. A peça é a mesma nos três (coluna, folha do menu, lateral da Produção), e o
+   * comentário dela em `ciclo.css` diz porquê: «um elemento só, e não três implementações».
+   *
+   * O SEGUNDO DEFEITO ERA PIOR, e é aqui que se corrige: `getComputedStyle(null)` atira, e a prova
+   * MORRIA com um `TypeError` do jsdom — sem dizer qual asserção falhou, e sem correr as secções
+   * seguintes. Uma prova que estoura não mede: quem a lê não sabe se o defeito é da folha ou da
+   * prova. Agora a leitura é tolerante (o elemento ausente vale `null`) e a asserção é que reprova,
+   * com o nome do que faltou. */
   const fechada = await pagina.evaluate(() => {
     const c = document.getElementById('coluna-proposta');
+    const estilo = (sel, prop) => {
+      const el = document.querySelector(sel);
+      return el ? getComputedStyle(el)[prop] : null;
+    };
     const r = c.getBoundingClientRect();
     return {
       topo: Math.round(r.top), esq: Math.round(r.left), largura: Math.round(r.width),
       aberta: c.getAttribute('data-aberta'),
-      veu: getComputedStyle(document.querySelector('.veu')).opacity,
-      puxador: getComputedStyle(document.querySelector('.coluna-puxador')).display,
+      veu: estilo('.veu', 'opacity'),
+      puxador: estilo('.folha-puxador', 'display'),
       colunaFixa: getComputedStyle(c).position,
     };
   });
   provar('antes do clique a folha está FORA da tela', fechada.topo >= 860 - 1, fechada.topo);
   provar('o véu está apagado e não apanha cliques',
     fechada.veu === '0', fechada.veu);
-  provar('a folha tem o pegador da Produção', fechada.puxador === 'block', fechada.puxador);
+  provar('a folha tem o pegador (`.folha-puxador`, a peça dos três)',
+    fechada.puxador === 'block', fechada.puxador);
   provar('e é uma folha, não a coluna fixa', fechada.colunaFixa === 'fixed', fechada.colunaFixa);
 
   await pagina.click('.topnav .hamburger');
@@ -314,10 +349,14 @@ function destinos(menu) {
   const aberta = await pagina.evaluate(() => {
     const c = document.getElementById('coluna-proposta');
     const r = c.getBoundingClientRect();
+    const estilo = (sel, prop) => {
+      const el = document.querySelector(sel);
+      return el ? getComputedStyle(el)[prop] : null;
+    };
     return {
       topo: Math.round(r.top), fundo: Math.round(r.bottom),
       aberta: c.getAttribute('data-aberta'),
-      veu: getComputedStyle(document.querySelector('.veu')).opacity,
+      veu: estilo('.veu', 'opacity'),
       dentro: r.bottom <= window.innerHeight + 1 && r.top >= 0,
       itens: [...document.querySelectorAll('.coluna .coluna-itens a')].length,
       marcado: (document.querySelector('.coluna a[aria-current="page"]') || {}).textContent || '',
@@ -342,11 +381,22 @@ function destinos(menu) {
       filete: fora ? getComputedStyle(fora).borderTopWidth : '',
       destinos: fora ? [...fora.querySelectorAll('a')].map((a) => a.getAttribute('href')) : [],
       blocos: blocos.length,
+      rotulosDaFolha: blocos.map((b) => b.textContent.replace(/\s+/g, ' ').trim().slice(0, 24)),
+      depoisDaAreaDoProfessor: (() => {
+        const nomes = blocos.map((b) => b.textContent.replace(/\s+/g, ' ').trim());
+        const area = nomes.findIndex((n) => /^Área do Professor/.test(n));
+        const bast = nomes.findIndex((n) => /^Bastidores/.test(n));
+        return area !== -1 && bast !== -1 && bast > area;
+      })(),
     };
   });
   provar('o último item da folha é o Bastidores', /^Bastidores/.test(comBastidores.ultimo), comBastidores.ultimo);
+  /* A ORDEM, E NÃO O NÚMERO DE BLOCOS (15/11/2026). Era `blocos >= 4`, e o número caiu para 3
+   * quando o grupo «Consulta» deixou de ser gerado (28/10/2026) — uma decisão certa, e a prova
+   * reprovava-a. O que a asserção queria dizer é que o Bastidores vem DEPOIS da Área do
+   * Professor: é a posição que faz dele «o último bloco», e é isso que se mede. */
   provar('…e ele vem DEPOIS da Área do Professor (é o último, não um a mais no meio)',
-    comBastidores.blocos >= 4, comBastidores.blocos);
+    comBastidores.depoisDaAreaDoProfessor, { rotulos: comBastidores.rotulosDaFolha });
   provar('…com um filete acima, que separa o que não é trabalho de sala',
     comBastidores.filete !== '0px', comBastidores.filete);
   provar('…e os dois destinos dele estão lá dentro',
@@ -435,23 +485,36 @@ function destinos(menu) {
   console.log('\n7 · O filtro é no cliente');
   const filtrado = await pagina.evaluate(() => {
     const b = document.getElementById('f-busca');
-    /* O PEDAÇO DO NOME DO PROFESSOR VEM DOS PRÓPRIOS CARTÕES: a `calango` tinha «perna-boa», a
-       `batata` tem «cafe-no-bule». Uma prova que escrevesse o nome da escola de ontem mediria
-       uma lista vazia e chamaria a isso sucesso. */
-    const alvo = (document.querySelector('li.trio-plano') || {}).getAttribute
-      ? document.querySelector('li.trio-plano').getAttribute('data-prof') : '';
-    b.value = String(alvo || '').split('-')[0] || 'a';
+    const cartoes = [...document.querySelectorAll('li.trio-plano')];
+    /* O TERMO TEM DE DISTINGUIR, E A ESCOLHA DO TERMO É O QUE MUDOU (15/11/2026).
+     *
+     * A prova procurava um PEDAÇO DO NOME DO PROFESSOR — `cafe` na `batata`, `perna` na `calango`
+     * —, assumindo que `data-prof` era o slug. Deixou de ser: passou a ser o nome de exibição
+     * («Redinha Rosa»), e o `split('-')[0]` sobre ele devolve o nome inteiro. Na `calango` os dois
+     * planos são da MESMA professora, com «redinha rosa» no `data-busca` dos dois — ou seja, o
+     * termo antigo já não distinguia nada, e a prova media um filtro a não filtrar.
+     *
+     * O termo passa a ser a TURMA do primeiro cartão, que é o que distingue dois planos da mesma
+     * dona, e a contagem esperada é DERIVADA do DOM: quantos cartões declaram aquela turma. Uma
+     * prova que fixasse «1» voltaria a mentir numa escola com duas turmas homónimas. */
+    const termo = (cartoes[0] && cartoes[0].getAttribute('data-turma')) || '';
+    const esperados = cartoes.filter((l) => String(l.getAttribute('data-turma')) === termo).length;
+    b.value = termo;
     b.dispatchEvent(new Event('input', { bubbles: true }));
-    const visiveis = [...document.querySelectorAll('li.trio-plano')].filter((l) => !l.hidden);
-    return { visiveis: visiveis.length, conta: document.getElementById('f-conta').textContent };
+    const visiveis = cartoes.filter((l) => !l.hidden);
+    return { visiveis: visiveis.length, esperados, termo,
+      conta: document.getElementById('f-conta').textContent };
   });
-  /* A BUSCA É POR UM PEDAÇO DO NOME DO PROFESSOR — `cafe` na `batata`, `perna` na `calango`.
-     Ela tem de partir de um acervo com MAIS de uma turma para provar que reduz: com uma só,
+  /* A BUSCA TEM DE PARTIR DE UM ACERVO COM MAIS DE UMA TURMA para provar que reduz: com uma só,
      filtrar não muda nada e a asserção passaria sem medir. */
-  if (N > 1) {
-    provar('a busca deixa um plano', filtrado.visiveis === 1, filtrado.visiveis);
-    provar('e a contagem diz «1 plano de N»',
-      new RegExp('1 plano de ' + N).test(filtrado.conta), filtrado.conta);
+  if (N > 1 && filtrado.termo) {
+    provar('a busca reduz ao que tem a turma escolhida',
+      filtrado.visiveis === filtrado.esperados && filtrado.esperados < N,
+      { visiveis: filtrado.visiveis, esperados: filtrado.esperados, termo: filtrado.termo });
+    provar('e a contagem diz «N plano(s) de M», com o singular certo',
+      new RegExp('^' + filtrado.esperados + ' '
+        + (filtrado.esperados === 1 ? 'plano' : 'planos') + ' de ' + N + '$').test(filtrado.conta.trim()),
+      filtrado.conta);
   } else {
     provar('com uma turma só, a busca não esconde nada', filtrado.visiveis === N, filtrado.visiveis);
   }

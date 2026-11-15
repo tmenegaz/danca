@@ -268,12 +268,22 @@ async function main() {
     }
 
     // 2. O PO NÃO VARRE A ESTANTE. A semeadura usava `api/envelopes` para descobrir o `plano-*`
-    //    mais recente; agora usa o plano ESCOLHIDO e a estante que a página já tem. O que fica
-    //    de `api/envelopes` é a estante das fichas — UM pedido.
+    //    mais recente; agora usa o plano ESCOLHIDO — e abre-o PELO NOME, com um pedido só.
+    //
+    //    A ASSERÇÃO ERA `=== 1`, E PASSOU A ZERO (15/11/2026). O que ela protege é a AUSÊNCIA DE
+    //    VARREDURA: a semeadura pedia a estante inteira uma segunda vez. Zero pedidos é
+    //    estritamente melhor que um, e continuar a exigir um fixava uma implementação que mudou
+    //    — a estante das fichas deixou de ser carregada na abertura. O que se mede agora são as
+    //    duas metades da regra: a estante NÃO é varrida (no máximo uma vez), e o plano escolhido
+    //    é aberto PELO NOME, que é o caminho que a substituiu. Sem a segunda metade, um `0`
+    //    passaria mesmo que a semeadura tivesse simplesmente deixado de acontecer.
     servidor.limpar();
     await carregar(servidor.base, 'po', servidor.chamadas);
     const envelopes = servidor.chamadas['/api/envelopes'] || { n: 0 };
-    checar('PO: `api/envelopes` é pedido UMA vez (a estante, não a semeadura)', envelopes.n === 1, envelopes.n);
+    checar('PO: `api/envelopes` NÃO é varrido — no máximo um pedido', envelopes.n <= 1, envelopes.n);
+    const porNome = Object.keys(servidor.chamadas).filter((k) => /^\/api\/envelope\/plano-/.test(k));
+    checar('PO: o plano escolhido é aberto PELO NOME, com um pedido só (é o que substituiu a varredura)',
+      porNome.length === 1 && servidor.chamadas[porNome[0]].n === 1, porNome);
     const planos = servidor.chamadas['/api/planos'] || { n: 0 };
     checar('PO: `api/planos` é pedido UMA vez (a estante do select)', planos.n === 1, planos.n);
 

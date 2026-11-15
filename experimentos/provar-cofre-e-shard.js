@@ -477,6 +477,34 @@ function cloudflareFalso({ rotas = [] } = {}) {
     provar('`--shard` de um shard sem escolas SAI COM ERRO, e não monta nada',
       r.status === 1 && /apagaria a árvore de todas/.test(String(r.stderr)), { status: r.status, err: String(r.stderr).split('\n')[0] });
 
+    /* O ÍNDICE SOBREVIVE AO EXPURGO, e continua a dizer `shard`. Sem filtro, a escola morta entra
+     * na montagem, a montagem dela falha, e o shard INTEIRO deixa de publicar. A guarda mede-se
+     * aqui pela linha de comando, porque é lá que ela decide. */
+    {
+      /* Uma árvore mínima: duas escolas a declarar o mesmo shard, uma delas SEM pacote-zero (é o
+       * estado de uma escola expurgada — o índice fica, o pacote sai). */
+      const temp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'shard-expurgada-'));
+      for (const slug of ['viva', 'morta']) {
+        fs.mkdirSync(path.join(temp2, 'escola', slug), { recursive: true });
+        fs.writeFileSync(path.join(temp2, 'escola', slug, 'indice.json'),
+          JSON.stringify({ escola: slug, shard: 'shard-x' }), 'utf8');
+        fs.mkdirSync(path.join(temp2, 'professores', 'p', 'ciclos'), { recursive: true });
+      }
+      /* O pacote-zero só da «viva». A «morta» fica como uma expurgada: índice presente, pacote ausente. */
+      const pacote = path.join(temp2, 'professores', 'p', 'ciclos', 'ciclo-01-viva');
+      fs.mkdirSync(pacote, { recursive: true });
+      fs.writeFileSync(path.join(pacote, 'index.html'), '<html></html>', 'utf8');
+
+      const r2 = require('child_process').spawnSync(process.execPath,
+        [path.join(RAIZ_DO_CODIGO, 'tools/montar-publicacao.js'), '--shard', 'shard-x', '--raiz', temp2],
+        { cwd: RAIZ, encoding: 'utf8' });
+      const saida = String(r2.stdout) + String(r2.stderr);
+      provar('uma escola EXPURGADA (índice sem pacote) fica fora da montagem, e a outra monta',
+        /sem pacote-zero, e por isso fora da montagem: morta/.test(saida), saida.split('\n').slice(0, 3));
+      provar('…e o shard não é dado como vazio só porque uma escola morreu',
+        !/nenhuma escola COM PACOTE declara/.test(saida), null);
+    }
+
     /* O helper que os três workflows usam para a mesma pergunta. */
     const linha = require('child_process').spawnSync('bash',
       ['-c', 'source tools/lib-shard.sh; printf "%s|%s" "$(shard_da_escola calango)" "$(shard_da_escola nao-existe)"'],

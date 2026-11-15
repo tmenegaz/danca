@@ -605,7 +605,13 @@
     if (!veu) {
       veu = document.createElement('div');
       veu.id = 'veu';
-      veu.className = 'veu';
+      /* O VÉU DA OPERAÇÃO TEM NOME PRÓPRIO (15/11/2026) — `.veu-de-operacao`, e não `.veu`.
+       * Eram duas peças com a mesma classe: esta (`display:none`, `z-index:120`) e a da folha do
+       * menu (`display:block`, `z-index:55`, acesa por `body.coluna-aberta`). A regra desta vinha
+       * depois na folha e apagava a da outra: medido num Chromium a 414px, a folha do ☰ abria sem
+       * escurecer a página. A busca deste módulo é por `#veu`, portanto o nome da classe não
+       * afecta nada aqui — só deixa de haver duas peças a responder ao mesmo nome. */
+      veu.className = 'veu-de-operacao';
       veu.setAttribute('role', 'status');
       veu.setAttribute('aria-live', 'polite');
       document.body.appendChild(veu);

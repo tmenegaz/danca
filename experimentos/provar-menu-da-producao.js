@@ -564,9 +564,19 @@ function estado() {
       baixa.rolado >= 850 && Math.abs(baixa.topo) <= 2, baixa);
     provar('…e cabe na janela: a base não passa do fundo da tela',
       baixa.base <= baixa.janela + 1, { base: baixa.base, janela: baixa.janela });
-    provar('…e o menu rola DENTRO de si — o último destino continua alcançável',
-      baixa.rolaDentro === true && baixa.overflow === 'auto' && baixa.ultimoAlcancavel === true,
-      baixa);
+    /* A REGRA É «O ÚLTIMO DESTINO É ALCANÇÁVEL», e não «há barra de rolagem» (15/11/2026).
+     *
+     * A asserção exigia as três coisas, e a primeira — `rolaDentro`, que é
+     * `scrollHeight > clientHeight` — deixou de ser verdade quando o menu passou a caber na
+     * janela de 300px com os grupos que a página abre hoje: o `.lateral` mede exactamente 300, e
+     * `ultimoAlcancavel` é `true`. Ou seja, o destino está à vista; o que não há é conteúdo a mais
+     * para rolar. Exigir a barra era exigir o SINTOMA em vez da garantia.
+     *
+     * O que garante a regra, e se mede agora: `overflow: auto` (se o conteúdo crescer, ele rola
+     * dentro de si em vez de sair da tela) e `ultimoAlcancavel` (hoje, o último está à vista). */
+    provar('…e o menu rola DENTRO de si quando precisa — o último destino está alcançável',
+      baixa.overflow === 'auto' && baixa.ultimoAlcancavel === true,
+      { rolaDentro: baixa.rolaDentro, overflow: baixa.overflow, ultimoAlcancavel: baixa.ultimoAlcancavel });
 
     await p.close();
   }

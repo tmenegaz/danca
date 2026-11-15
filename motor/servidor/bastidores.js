@@ -14494,7 +14494,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A peça é a da folha congelada (`tools/templates/ciclo.css`, `.veu[data-ocupado="sim"]`):
      * não se inventa desenho novo. O que este sítio traz é o ESTADO e o TEXTO. */
-    '<div class="veu" id="veu" role="status" aria-live="polite">' +
+    '<div class="veu-de-operacao" id="veu" role="status" aria-live="polite">' +
     '<p class="veu-texto" id="veu-texto">a trabalhar…</p></div>' +
     fimDaVista();
 }

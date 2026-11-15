@@ -351,17 +351,38 @@ let ESCOLA = 'escola';
        descartar, e a ponte passou a responder `302` para a lista (ver `provar-porta-sem-
        contexto`). O que esta secção mede é outra coisa, e continua a valer: COM o contexto, o
        menu acende o item da lista a que a porta pertence. */
+    /* O CONTEXTO DA ANAMNESE LEVA A ALUNA, E A DIFERENÇA É DELIBERADA (15/11/2026).
+     *
+     * Esta secção pedia as três portas com o mesmo contexto — professor, ciclo, `abrir` — e passou
+     * a dar 302 na anamnese. Não é regressão: é a guarda que a pesquisadora pediu, na letra:
+     * «ele está levando para dentro de uma anamnese sem seleção de professor e sem seleção de
+     * aluna […] essa rota tem que ser uma rota bloqueada». A porta da anamnese exige o ato
+     * INTEIRO; o plano e o PO não têm aluna nenhuma no contexto, e a regra é só da anamnese.
+     *
+     * A ASSERÇÃO ESTAVA A MEDIR A COISA ERRADA. Ela queria provar que a porta acende o item do
+     * menu — e para isso o contexto tem de ser o que a porta aceita. O bloqueio da anamnese sem
+     * aluna tem prova própria (`provar-porta-sem-contexto`, e a secção que mede o 302), e repeti-lo
+     * aqui só produzia uma falha com o nome errado. */
     const CONTEXTO_DO_ATO = '?professor=cafe-no-bule&ciclo=01&abrir=1';
-    for (const [porta, lista] of [['/anamnese/', '/area-do-professor/anamnese/'],
-      ['/plano-ensino/', '/area-do-professor/plano-de-ensino/'],
-      ['/plano-observacao/', '/area-do-professor/plano-de-observacao/']]) {
-      const r = await pedir(porta + CONTEXTO_DO_ATO);
+    const CONTEXTO_DA_ANAMNESE = CONTEXTO_DO_ATO + '&aluna=Aluna%20A';
+    for (const [porta, lista, contexto] of [
+      ['/anamnese/', '/area-do-professor/anamnese/', CONTEXTO_DA_ANAMNESE],
+      ['/plano-ensino/', '/area-do-professor/plano-de-ensino/', CONTEXTO_DO_ATO],
+      ['/plano-observacao/', '/area-do-professor/plano-de-observacao/', CONTEXTO_DO_ATO]]) {
+      const r = await pedir(porta + contexto);
+      provar('a porta ' + porta + ' responde 200 com o contexto do ato', r.status === 200, r.status);
       provar('a porta ' + porta + ' acende o item ' + lista,
         new RegExp('aria-current="page" href="' + lista.replace(/\//g, '\\/') + '"').test(r.html),
         (r.html.match(/aria-current="page" href="[^"]+"/g) || []).slice(0, 2));
       provar('…e o grupo «Área do Professor» fica marcado',
         /data-atual="sim"/.test(r.html), /data-atual/.test(r.html));
     }
+
+    /* O OUTRO LADO DA GUARDA, medido aqui e não só na prova dela: a anamnese com professor e SEM
+     * aluna NÃO abre — e o 302 é a resposta, não um formulário que aparece e foge. */
+    const semAluna = await pedir('/anamnese/' + CONTEXTO_DO_ATO);
+    provar('a anamnese com professor e SEM aluna é desviada (302), como ela pediu',
+      semAluna.status === 302, semAluna.status);
     /* A LISTA NÃO PODE TER PERDIDO O QUE JÁ TINHA — a correção é da porta, e o caminho da lista
        continua a marcar-se por si. */
     const l = await pedir('/area-do-professor/anamnese/');
@@ -556,9 +577,15 @@ let ESCOLA = 'escola';
      * ponte passou a responder `302` antes de servir um byte de formulário (ver
      * `provar-porta-sem-contexto`). O que esta secção guarda é o que sempre quis guardar — o
      * destino que a lista oferece ABRE —, e é com o contexto que a lista o monta. */
+    /* A ANAMNESE LEVA TAMBÉM A ALUNA (15/11/2026) — a mesma correção da secção 5c, e pela mesma
+     * razão: a porta da anamnese exige o ato inteiro (escola, professor, ALUNA), e a guarda que o
+     * exige responde 302 quando falta a aluna. O plano e o PO não têm aluna, e a regra é só da
+     * anamnese. */
     const CONTEXTO_DA_PORTA = 'professor=cafe-no-bule&ciclo=01&abrir=1';
     for (const href of ['/anamnese/', '/plano-ensino/?fonte=plano', '/plano-observacao/?fonte=po']) {
-      const comContexto = href + (href.indexOf('?') === -1 ? '?' : '&') + CONTEXTO_DA_PORTA;
+      const daAnamnese = href.indexOf('/anamnese/') === 0;
+      const comContexto = href + (href.indexOf('?') === -1 ? '?' : '&') + CONTEXTO_DA_PORTA
+        + (daAnamnese ? '&aluna=Aluna%20A' : '');
       const r = await pedir(comContexto);
       provar('a porta ' + href + ' responde 200', r.status === 200, r.status);
     }

@@ -2435,9 +2435,18 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
        página que se quis deixar ver.
 
    É ESTADO, e não classe: `data-ocupado` diz o que está a acontecer ao elemento, e a classe
-   `.veu` diz o que ele é — a mesma distinção do `data-apagando` da linha que se apaga.
+   `.veu-de-operacao` diz o que ele é — a mesma distinção do `data-apagando` da linha que se apaga.
+
+   E O NOME DEIXOU DE SER `.veu` (15/11/2026). A colisão com o véu da FOLHA (acima, `z-index:55`,
+   que nasce `opacity:0` e é aceso por `body.coluna-aberta`) tinha um efeito que a prosa já
+   registava como dívida e que o navegador mostrava como defeito: esta regra vem DEPOIS na folha, e
+   o seu `display:none` apagava o véu da folha. Medido num Chromium a 414px: o véu da folha saía
+   `display:none`, o da operação saía `opacity:1`, e a folha do ☰ abria sem escurecer a página por
+   baixo. Resolver a ambiguidade era renomear uma das duas, e a escolhida foi ESTA: o véu da coluna
+   é o que a montagem escreve no HTML de todas as páginas, e o do `nav.js` que o desenha.
+
    O `prefers-reduced-motion` não desliga o véu (ele informa), desliga só o giro. */
-.veu {
+.veu-de-operacao {
   position: fixed; inset: 0; z-index: 120;
   display: none;
   align-items: center; justify-content: center;
@@ -2463,7 +2472,7 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   backdrop-filter: blur(1px);
   /* A OPACIDADE TEM DE SER REPOSTA AQUI (11/11/2026) — e a linha vale um defeito medido.
    *
-   * Esta folha tem DUAS peças com a mesma classe `.veu`: a da COLUNA (acima, `z-index:55`, que
+   * Esta folha tinha DUAS peças com a mesma classe `.veu`: a da COLUNA (acima, `z-index:55`, que
    * nasce `opacity:0` e é acesa pela classe `body.coluna-aberta` que o `nav.js` põe) e esta, a da
    * OPERAÇÃO. A da coluna declara `opacity:0; pointer-events:none`, e a da operação repunha
    * `pointer-events` mas NÃO repunha `opacity`. Resultado, medido no navegador: o véu da operação
@@ -2472,8 +2481,9 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    * página não se via.
    *
    * A `opacity:1` é a correção mínima e não mexe na peça da coluna: cada uma declara o seu valor.
-   * A ambiguidade de duas peças com o mesmo nome fica anotada como dívida — resolvê-la é renomear
-   * uma das duas, e a da coluna é usada pelo `nav.js`, que é do mesmo congelamento. */
+   * A dívida que ela deixava anotada — «duas peças com o mesmo nome» — foi paga em 15/11/2026 pelo
+   * lado desta regra, que passou a `.veu-de-operacao`; o comentário do topo dela conta o que se
+   * mediu. */
   opacity: 1;
   padding: var(--esp-5);
   text-align: center;
@@ -2481,7 +2491,7 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   pointer-events: auto;
   cursor: progress;
 }
-.veu[data-ocupado="sim"] { display: flex; }
+.veu-de-operacao[data-ocupado="sim"] { display: flex; }
 /* ============ A OPERAÇÃO, SEM CAIXA (11/11/2026) ============
    A FORMA FOI ESCOLHIDA POR ELA, DEPOIS DE VER AS TRÊS:
 
@@ -2552,7 +2562,7 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
   color: var(--texto-suave);
   text-shadow: 0 0 10px var(--fundo), 0 0 20px var(--fundo);
 }
-.veu[data-remota="sim"] .veu-nota { display: block; }
+.veu-de-operacao[data-remota="sim"] .veu-nota { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .veu-cartao::before { animation: none; }
 }
