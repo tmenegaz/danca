@@ -43,6 +43,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const indices = require('../motor/nucleo/indices.js');
+/* A REGRA «ESTE SCRIPT É UMA ESCOLA?», num sítio só — a mesma que o `indice-acervo.js` usa no
+ * caminho do servidor (24/11/2026). Duas leituras do mesmo marcador divergem no dia em que uma
+ * muda, e foi essa divergência que deixou o shard na lista das escolas vivas. */
+const shardsDoRepo = require('../motor/nucleo/shards.js');
 const { lerAncora } = require('../motor/servidor/indice-acervo.js');
 
 const RAIZ = path.resolve(__dirname, '..');
@@ -132,24 +136,24 @@ function lerDoDisco() {
     ancoras[caminho] = lerAncora(texto);
   }
 
-  /* OS SHARDS — os scripts que servem N escolas (15/11/2026).
+  /* OS SHARDS — os scripts que servem N escolas (15/11/2026; regra unificada a 24/11/2026).
    *
-   * A marca é a mesma que o `deploy-escolas.yml` já procura para não os tratar como escola: a
-   * var `PACOTE_PARTILHADO`. Ler o conteúdo aqui, e não uma lista escrita à mão, faz com que
-   * acrescentar um shard não exija lembrar de nada em dois sítios.
+   * A marca é a mesma que o `deploy-escolas.yml` procura para não os tratar como escola (a var
+   * `PACOTE_PARTILHADO`), e a decisão passou a morar em `motor/nucleo/shards.js` — porque o
+   * caminho do SERVIDOR (`indice-acervo.js`) não a fazia, e por isso o `indices/` daqui saía certo
+   * enquanto a página ao vivo listava o `lastro-teste` como escola viva, com botão de apagar.
    *
-   * O QUE ISTO CONSERTA, dito pelo que aconteceu: o `wrangler.lastro-teste.jsonc` existe, e a
-   * derivação tratava «existe config» como «é escola» — o shard entrou no `indices/acervo.json`,
-   * a página das VIVAS passou a listá-lo, e o expurgo que ela disparou recusou com `sem-elo` (e
-   * bem: não há `escola/lastro-teste/indice.json`, porque um shard não tem elo de escola). Uma
-   * lista que mostra o que não é escola é uma armadilha com botão. */
-  const shards = [];
-  for (const caminho of caminhos) {
-    const m = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
-    if (!m) continue;
-    const texto = lerTexto(caminho);
-    if (texto && /"PACOTE_PARTILHADO"/.test(texto)) shards.push(m[1]);
-  }
+   * Duas leituras do mesmo marcador divergem no dia em que uma muda; agora é uma só, e o
+   * `indice-acervo.js` chama a mesma. */
+  const shards = shardsDoRepo.scriptsDeShardSync({
+    caminhos,
+    lerTexto: (caminho) => {
+      const m = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
+      if (!m) return null;
+      const texto = fs.readFileSync(path.join(RAIZ, caminho), 'utf8');
+      return texto;
+    },
+  });
 
   return { caminhos, inventarios, envelopes, ancoras, shards, recortes: lerRecortes(caminhos) };
 }

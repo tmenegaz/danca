@@ -28,6 +28,9 @@
  */
 
 const indices = require('../nucleo/indices.js');
+/* A MESMA RESPOSTA PARA «ESTE SCRIPT É UMA ESCOLA?» (24/11/2026) — a função que o
+ * `gerar-indices.js` também passou a chamar. Duas leituras do mesmo marcador divergiriam. */
+const shardsDoRepo = require('../nucleo/shards.js');
 
 const API_VERSAO = '2022-11-28';
 const ACEITE = 'application/vnd.github+json';
@@ -149,6 +152,21 @@ async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, com
     ancoras[caminho] = lerAncora(texto);
   }
 
+  /* OS SHARDS, PELO CAMINHO DO SERVIDOR (24/11/2026) — e esta linha é o conserto.
+   *
+   * O `gerar-indices.js` já os conhecia: lia o marcador `PACOTE_PARTILHADO` no config e passava a
+   * lista a `indices.construir`, de modo que o `indices/` do repositório saía certo. Aqui — o
+   * caminho que a PÁGINA usa, com a árvore lida do GitHub e o resultado guardado no KV — a lista
+   * não era passada. Consequência medida ao vivo: `/api/escolas` respondia `['lastro-teste']`, o
+   * shard aparecia como escola VIVA no painel, e o botão «Apagar escola» oferecia o Worker que
+   * serve todas as escolas. O mesmo defeito que a derivação do disco já tinha consertado, vivo no
+   * sítio onde ele tem botão.
+   *
+   * A regra é uma só, e mora em `motor/nucleo/shards.js` — a mesma função que o `gerar-indices.js`
+   * passa a chamar, para não haver duas leituras do mesmo marcador. O custo é o número de SHARDS
+   * (quem tem elo é escola e não se abre), e não o número de escolas. */
+  const shards = await shardsDoRepo.scriptsDeShard({ caminhos, lerTexto });
+
   const { acervo, escolas } = indices.construir({
     fonte: { commit: (corpo && corpo.sha) || null, arvore: (corpo && corpo.sha) || null },
     agora: agora || null,
@@ -156,6 +174,9 @@ async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, com
     inventarios,
     envelopes,
     ancoras,
+    /* O SHARD NÃO É ESCOLA. Sem esta linha ele entra no acervo, a lista das vivas mostra-o, e o
+     * expurgo é oferecido a quem não tem elo nenhum para apagar. */
+    shards,
     comApelido: comApelido === true,
   });
 

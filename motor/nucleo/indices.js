@@ -52,7 +52,17 @@
 //       escola viva, `escola.professores` deixa de incluir quem só criou uma encarnação anterior
 //       (o elo do expurgo só prova professores de escola APAGADA). Sem o incremento, o cache do
 //       Worker serve o índice antigo e o painel continua a mostrar a pessoa errada.
-const VERSAO = 6;
+//   7 (24/11/2026) — duas mudanças, e as duas dependem desta chave para chegar à tela:
+//       (a) `professores[].pasta` — se `professores/<slug>/` existe. É a resposta à pergunta que
+//           a colisão do cadastro faz, e sem ela a lista de reúso filtrava por «tem escola viva»
+//           e saía VAZIA quando todas estavam apagadas (o cache antigo devolveria `pasta`
+//           ausente, que o filtro lê como «tem pasta» — certo por acidente, e errado no dia em
+//           que a regra invertesse);
+//       (b) O SHARD DEIXA DE SER ESCOLA — o `lastro-teste` sai do acervo. Esta é a mudança que
+//           um cache antigo DESFARIA em silêncio: a lista de vivas continuaria a mostrar o Worker
+//           que serve todas as escolas, com o botão de apagar ao lado. Um campo que muda de valor
+//           não invalida cache — esta constante é a única coisa que invalida.
+const VERSAO = 7;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não

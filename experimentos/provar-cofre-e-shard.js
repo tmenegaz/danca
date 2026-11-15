@@ -499,6 +499,90 @@ function cloudflareFalso({ rotas = [] } = {}) {
     }
     provar('a raiz também não é escola', slugs(comShard).indexOf('danca') === -1, slugs(comShard));
 
+    /* ---------------------------------------------------------------- C2b
+     *
+     * O CAMINHO DO SERVIDOR — e é aqui que estava o defeito (24/11/2026).
+     *
+     * Todas as asserções acima medem a função PURA (`indices.construir`) e o disco. As duas
+     * estavam certas, e a página ao vivo continuava a listar o `lastro-teste` como escola viva,
+     * com o botão de apagar ao lado: o `indice-acervo.js` — o caminho que a raiz usa de verdade,
+     * com a árvore lida do GitHub e o resultado guardado no KV — montava o acervo sem passar a
+     * lista de shards. O que a prova media era o sítio onde a regra existia, não aquele de onde a
+     * página lê. Uma prova que não toca no caminho de produção aprova o repositório e deixa o
+     * defeito no ar.
+     *
+     * O `fetch` é falso e devolve a árvore mínima: o shard (com a marca), uma escola viva e a raiz.
+     */
+    const acervo = carregar('motor/servidor/indice-acervo.js');
+    const shardsMod = carregar('motor/nucleo/shards.js');
+    if (!acervo || typeof acervo.construirDoAcervo !== 'function' || !shardsMod) {
+      provar('existem `construirDoAcervo` e a regra dos shards', false, 'não existem');
+      return;
+    }
+
+    const MARKER = '"PACOTE_PARTILHADO"';
+    const arvoreFalsa = (comMarca) => ({
+      'wrangler.danca.jsonc': '{ "assets": { "directory": "raiz" } }',
+      'wrangler.lastro-teste.jsonc': '{ "assets": { "directory": "publicacao" }, "vars": { '
+        + (comMarca ? '"PACOTE_PARTILHADO": "sim"' : '"ESCOLA_HABILITADA": "sim"') + ' } }',
+      'escola/calango/indice.json': JSON.stringify({ escola: 'calango', ciclo: '01', shard: 'lastro-teste' }),
+      'professores/p/ciclos/ciclo-01-calango/index.html': '<html></html>',
+    });
+    const fetchDaArvore = (arquivos) => async (url) => {
+      const u = String(url);
+      if (u.indexOf('/git/trees/') !== -1) {
+        return {
+          ok: true, status: 200,
+          json: async () => ({ sha: 'arvore-x', tree: Object.keys(arquivos).map((c) => ({ type: 'blob', path: c })) }),
+        };
+      }
+      const m = /\/contents\/(.+?)\?ref=/.exec(u);
+      if (m) {
+        const texto = arquivos[decodeURIComponent(m[1])];
+        if (texto === undefined) return { ok: false, status: 404, json: async () => null };
+        return {
+          ok: true, status: 200,
+          json: async () => ({ content: Buffer.from(texto, 'utf8').toString('base64'), encoding: 'base64' }),
+        };
+      }
+      return { ok: false, status: 404, json: async () => null };
+    };
+
+    const doServidor = await acervo.construirDoAcervo({
+      token: 't', dono: 'd', repo: 'r', ref: 'main', fetchImpl: fetchDaArvore(arvoreFalsa(true)),
+    });
+    const doServidorSlugs = (doServidor.acervo.escolas || []).map((e) => e.slug).sort();
+    provar('PELO CAMINHO DO SERVIDOR, o shard NÃO entra no acervo',
+      doServidorSlugs.indexOf('lastro-teste') === -1, doServidorSlugs);
+    provar('…e a escola do shard continua lá, viva', doServidorSlugs.indexOf('calango') !== -1, doServidorSlugs);
+
+    /* CONTROLE NEGATIVO: sem a marca, o mesmo config é uma ESCOLA. Sem isto, a asserção de cima
+     * passaria também se o caminho do servidor estivesse a descartar TODOS os configs — que é o
+     * defeito oposto, e apagaria escolas do painel sem ninguém notar. */
+    const semMarca = await acervo.construirDoAcervo({
+      token: 't', dono: 'd', repo: 'r', ref: 'main', fetchImpl: fetchDaArvore(arvoreFalsa(false)),
+    });
+    const semMarcaSlugs = (semMarca.acervo.escolas || []).map((e) => e.slug).sort();
+    provar('CONTROLE NEGATIVO: sem a marca `PACOTE_PARTILHADO`, o mesmo config É escola',
+      semMarcaSlugs.indexOf('lastro-teste') !== -1, semMarcaSlugs);
+
+    /* O CUSTO, que é o que permite fazer isto em cada construção do acervo: só se abre o config de
+     * quem NÃO tem elo. A `calango` tem — e não é lida. */
+    const lidos = [];
+    const leitorQueConta = async (caminho) => { lidos.push(caminho); return arvoreFalsa(true)[caminho] || null; };
+    const caminhosDoCaso = Object.keys(arvoreFalsa(true));
+    const shardsAchados = await shardsMod.scriptsDeShard({ caminhos: caminhosDoCaso, lerTexto: leitorQueConta });
+    provar('só o config SEM ELO é aberto — a escola que tem elo não custa leitura',
+      lidos.join(',') === 'wrangler.lastro-teste.jsonc', lidos);
+    provar('…e o resultado é o shard, e só ele', shardsAchados.join(',') === 'lastro-teste', shardsAchados);
+    provar('a raiz também não é aberta (não é candidata)', lidos.indexOf('wrangler.danca.jsonc') === -1, lidos);
+
+    /* A MARCA NUM SÍTIO SÓ. Se ela mudar de nome num lado, isto reprova — e é o que impede o
+     * disco e o servidor de responderem coisas diferentes outra vez. */
+    provar('o `gerar-indices` usa a MESMA regra do servidor (não há segunda leitura do marcador)',
+      fs.readFileSync(path.join(RAIZ_DO_CODIGO, 'tools/gerar-indices.js'), 'utf8')
+        .indexOf('nucleo/shards.js') !== -1, null);
+
     /* E O EXPURGO DE UM SHARD TEM DE DIZER «SHARD», NÃO «REANCORE» — o recado que ela recebeu. */
     const repoEscola = carregar('motor/servidor/repo-escola.js');
     if (repoEscola && typeof repoEscola.auditarProvenienciaDaEscola === 'function') {
