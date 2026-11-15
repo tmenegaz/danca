@@ -46,7 +46,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const RAIZ = path.join(__dirname, '..');
+/* A ÁRVORE PODE SER OUTRA, e isso é para a prova (15/11/2026). Este script era o único do
+ * `tools/` que amarrava a `__dirname` sem escapatória, e por isso a regra «escola de shard também
+ * entra no mapa» não se podia medir sem uma árvore de mentira no repositório a sério. `MR_RAIZ`
+ * não muda nada em produção — ninguém a define — e segue o padrão do `--raiz` do `montar-publicacao`.
+ */
+const RAIZ = process.env.MR_RAIZ ? path.resolve(process.env.MR_RAIZ) : path.join(__dirname, '..');
 const CHAVE = 'escolas/por-host';
 /** O sufixo dos subdomínios de escola — o mesmo de `provisionar-escola.js` e `expurgar-escola.js`. */
 const SUBDOMINIO = 'tmenegaz77';
@@ -61,6 +66,24 @@ function lerJsonc(arquivo) {
 }
 
 /** As escolas que as configurações declaram: `{ host: slug }`. */
+/**
+ * AS ESCOLAS — e passaram a ser DUAS formas de existir (15/11/2026).
+ *
+ *   · a de sempre: um `wrangler.<escola>.jsonc` cujo `assets.directory` é `publicacao/<escola>`;
+ *   · a do shard: NENHUM config, e um `escola/<slug>/indice.json` que declara `shard`.
+ *
+ * PORQUE É QUE ISTO PARTIU A CRIAÇÃO, medido no run 43754279538: ela criou a `calango` dentro do
+ * shard, o provisionamento registou-a no mapa, e este passo do workflow respondeu «nenhuma escola
+ * nas configurações — nada a publicar» e **saiu com 2**. Como o passo corre antes de subir o motor
+ * e de commitar o scaffold, a criação abortou a meio — o mapa ficou com a escola e o repositório
+ * sem ela. A pergunta do mapa é «que host serve que escola», e a resposta deixou de caber nos
+ * configs no dia em que uma escola deixou de ter um.
+ *
+ * AS DUAS ENTRADAS SÃO AS QUE O PROVISIONAMENTO ESCREVE (`provisionarDentroDoShard`): o endereço
+ * próprio e o `workers.dev`. Escrevê-las aqui também é o que faz o `--podar` ser inofensivo logo
+ * depois de uma criação — com uma só, o `--podar` apagaria a outra, e a resolução por rótulo
+ * continua a valer, mas o mapa passaria a dizer menos do que é verdade.
+ */
 function escolasDasConfiguracoes() {
   const mapa = {};
   const arquivos = fs.readdirSync(RAIZ).filter((n) => /^wrangler\..*\.jsonc$/.test(n)).sort();
@@ -73,7 +96,60 @@ function escolasDasConfiguracoes() {
     if (!escola || !script) continue;
     mapa[escola + '.' + SUBDOMINIO + '.workers.dev'] = escola;
   }
+  const zona = ZONA_DAS_ESCOLAS();
+  for (const escola of escolasDeShard()) {
+    mapa[escola + '.' + zona] = escola;
+    mapa[escola + '.' + SUBDOMINIO + '.workers.dev'] = escola;
+  }
   return mapa;
+}
+
+/**
+ * AS ESCOLAS QUE DECLARAM UM SHARD, lidas do índice delas — a mesma fonte que o expurgo usa para
+ * saber a quem pedir as rotas, e o `montar-publicacao --shard` para saber o que montar.
+ *
+ * O ÍNDICE DE UMA ESCOLA EXPURGADA TAMBÉM DECLARA SHARD, e por isso o filtro é o pacote-zero: sem
+ * ele não há o que servir, e o mapa não deve afirmar um endereço que não responde. É a mesma regra
+ * do `montar-publicacao` e do `deploy-escolas`, e ela existe num sítio só por escola — três cópias
+ * divergiriam no dia em que uma escola tivesse pacote e não config.
+ */
+function escolasDeShard() {
+  const base = path.join(RAIZ, 'escola');
+  if (!fs.existsSync(base)) return [];
+  const saida = [];
+  for (const item of fs.readdirSync(base, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    if (!item.isDirectory()) continue;
+    const arquivo = path.join(base, item.name, 'indice.json');
+    if (!fs.existsSync(arquivo)) continue;
+    let indice;
+    try { indice = JSON.parse(fs.readFileSync(arquivo, 'utf8')); } catch { continue; }
+    if (!String((indice && indice.shard) || '').trim()) continue;
+    if (!temPacoteZero(item.name)) continue;
+    saida.push(item.name);
+  }
+  return saida;
+}
+
+/** Existe `professores/<qualquer>/ciclos/ciclo-NN-<escola>/`? É o que a escola SERVE. */
+function temPacoteZero(escola) {
+  const base = path.join(RAIZ, 'professores');
+  if (!fs.existsSync(base)) return false;
+  const alvo = new RegExp('^ciclo-[0-9]{2}-' + escola.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$');
+  for (const prof of fs.readdirSync(base, { withFileTypes: true })) {
+    if (!prof.isDirectory()) continue;
+    const ciclos = path.join(base, prof.name, 'ciclos');
+    if (!fs.existsSync(ciclos)) continue;
+    for (const nome of fs.readdirSync(ciclos)) {
+      if (alvo.test(nome) && fs.statSync(path.join(ciclos, nome)).isDirectory()) return true;
+    }
+  }
+  return false;
+}
+
+/** A zona dos endereços próprios — a mesma do `dominio-da-escola.js`, e ausente vale o padrão. */
+function ZONA_DAS_ESCOLAS() {
+  const zona = String(process.env.ZONA_ESCOLAS || '').trim();
+  return (zona || 'padd.com.br').toLowerCase();
 }
 
 /** O namespace do `PADD_KV`, declarado nas configurações (é o mesmo em todas). */
@@ -149,7 +225,7 @@ function ordenado(m) {
   return saida;
 }
 
-(async () => {
+async function principal() {
   const conferir = process.argv.includes('--check');
   const seco = process.argv.includes('--dry-run');
   /* O `--podar` é o único caminho que apaga. Sem ele, a junção mantém o que só está no KV — a
@@ -222,7 +298,20 @@ function ordenado(m) {
   await gravarNoKv(token, accountId, namespaceId, ordenado(desejado));
   console.log('  gravado: ' + entrando.length + ' entrada(s) nova(s)/alterada(s)' +
     (podar && saindo.length ? ' e ' + saindo.length + ' removida(s)' : '') + '.');
-})().catch((erro) => { console.error(erro && erro.message ? erro.message : erro); process.exit(1); });
+}
+
+/* AS FUNÇÕES PURAS SAEM PARA A PROVA (15/11/2026): `escolasDasConfiguracoes` e `escolasDeShard`
+ * são as duas metades da regra «que host serve que escola», e uma prova que as reconstruísse
+ * mediria a prova. Só corre quando o script é chamado como programa — `require`, numa prova ou
+ * noutra ferramenta, não publica mapa nenhum. */
+if (require.main === module) {
+  principal().catch((erro) => {
+    console.error(erro && erro.message ? erro.message : erro);
+    process.exit(1);
+  });
+}
+
+module.exports = { escolasDasConfiguracoes, escolasDeShard, temPacoteZero };
 
 /** Uma entrada do KV que nenhuma config declara — mantida, e não apagada. */
 function desejaoInexistente(dasConfigs, host) {
