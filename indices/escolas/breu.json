@@ -78,22 +78,55 @@
       ]
     },
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+        "cobertura": [
+          "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
+          "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
+        ],
+        "hash": "388b11b87456715c6a7a8cb5dd71b491af470adf6c1768bbdcfff4e7f9f8ba09",
+        "hash_conteudo": "42bce4934eb23eaa34ff3a55caeeb55daca2280be69fb7e90e92a3d937195d7c",
+        "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-declaracao.json",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
         "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
-        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf"
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
+        "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp"
       ],
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:rimel-preto/01/breu",
       "numero": "01",
       "pacote": null,
       "professor": "rimel-preto",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
+        "aula",
+        "dados",
+        "declaracao",
+        "glossario",
+        "harmonizacao",
         "manifesto",
-        "plano"
+        "notacao",
+        "plano",
+        "po",
+        "referencias"
       ]
     }
   ],
@@ -108,6 +141,78 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.fipp",
+      "professor": "rimel-preto",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md",
+      "professor": "rimel-preto",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+      "professor": "rimel-preto",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json",
+      "professor": "rimel-preto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json",
+      "professor": "rimel-preto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-declaracao.json",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:declaracao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-declaracao.json",
+      "professor": "rimel-preto",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:glossario:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md",
+      "professor": "rimel-preto",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md",
+      "professor": "rimel-preto",
+      "tipo": "harmonizacao"
+    },
+    {
       "ancora_id": "ciclo-01-breu",
       "caminho": "professores/redinha-rosa/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:redinha-rosa/01/breu",
@@ -117,7 +222,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf",
       "ciclo_id": "ciclo:rimel-preto/01/breu",
       "escola": "breu",
@@ -126,13 +231,40 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:notacao:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md",
+      "professor": "rimel-preto",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
       "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
       "ciclo_id": "ciclo:rimel-preto/01/breu",
       "escola": "breu",
       "id": "documento:plano:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md",
       "professor": "rimel-preto",
       "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:po:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md",
+      "professor": "rimel-preto",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-bale-nivel-1-teste-3",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+      "ciclo_id": "ciclo:rimel-preto/01/breu",
+      "escola": "breu",
+      "id": "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md",
+      "professor": "rimel-preto",
+      "tipo": "referencias"
     },
     {
       "ancora_id": "ciclo-01-breu",
@@ -153,11 +285,11 @@
       "anamneses": 1,
       "aulas": 0,
       "ciclos": 2,
-      "ciclos_com_ancora": 1,
+      "ciclos_com_ancora": 2,
       "planos": 1,
-      "pos": 0,
+      "pos": 1,
       "recortes": 1,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-14T01:16:40.127242+00:00",
     "expurgada": false,
@@ -174,17 +306,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261115-1348",
-      "plano:plano-20261115-1351"
+      "plano:plano-20261115-1351",
+      "po:po-20261115-1352"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261115-1348",
-          "plano:plano-20261115-1351"
+          "plano:plano-20261115-1351",
+          "po:po-20261115-1352"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -226,20 +360,13 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:redinha-rosa/01/breu"
+          "ciclo:redinha-rosa/01/breu",
+          "ciclo:rimel-preto/01/breu"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:rimel-preto/01/breu"
-        ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -253,10 +380,11 @@
         "valor": "redinha-rosa"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "ciclo:rimel-preto/01/breu",
-          "plano:plano-20261115-1351"
+          "plano:plano-20261115-1351",
+          "po:po-20261115-1352"
         ],
         "rotulo": "rimel-preto",
         "valor": "rimel-preto"
@@ -287,14 +415,22 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "po:po-20261115-1352"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "4d63d40"
+    "commit": "20652b0"
   },
-  "gerado_em": "2026-11-15T16:51",
+  "gerado_em": "2026-11-15T16:52",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -372,6 +508,16 @@
       "professor": "rimel-preto",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 3"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261115-1352",
+      "ciclo": "01",
+      "data": "2026-11-15T13:52",
+      "id": "po:po-20261115-1352",
+      "professor": "rimel-preto",
+      "tipo": "po"
     }
   ],
   "versao": 6

@@ -81,15 +81,20 @@
       "sem_ancora": false
     },
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "388b11b87456715c6a7a8cb5dd71b491af470adf6c1768bbdcfff4e7f9f8ba09",
+        "id": "ciclo-01-breu-bale-nivel-1-teste-3",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 13,
       "escola": "breu",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:rimel-preto/01/breu",
       "numero": "01",
       "professor": "rimel-preto",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -140,11 +145,11 @@
         "anamneses": 1,
         "aulas": 0,
         "ciclos": 2,
-        "ciclos_com_ancora": 1,
+        "ciclos_com_ancora": 2,
         "planos": 1,
-        "pos": 0,
+        "pos": 1,
         "recortes": 1,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-14T01:16:40.127242+00:00",
       "expurgada": false,
@@ -161,7 +166,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261115-1348",
-        "plano:plano-20261115-1351"
+        "plano:plano-20261115-1351",
+        "po:po-20261115-1352"
       ],
       "slug": "breu"
     },
@@ -266,7 +272,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 51,
+        "contagem": 52,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -295,14 +301,9 @@
     ],
     "estados": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -364,7 +365,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 24,
+        "contagem": 25,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -372,9 +373,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4d63d40"
+    "commit": "20652b0"
   },
-  "gerado_em": "2026-11-15T16:51",
+  "gerado_em": "2026-11-15T16:52",
   "nao_indexado": [
     {
       "familia": "conteudo",
