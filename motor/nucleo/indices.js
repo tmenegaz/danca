@@ -642,10 +642,35 @@ function construir(entrada) {
     const inv = inventarios[slug] || null;
     const minhaCiclos = ciclos.filter((c) => c.escola === slug);
     const meusRegistros = registrosPorEscola[slug] || [];
-    /* «EXPURGADA» É «NÃO TEM CONFIG» — e agora também «não é um shard». A comparação é a mesma
-     * de antes; o que muda é que um slug que seja nome de shard nunca chega aqui (saiu na
-     * derivação de escolas), e por isso não há um segundo critério a divergir do primeiro. */
-    const expurgada = !caminhos.some((c) => c === 'wrangler.' + slug + '.jsonc');
+    /* «EXPURGADA» DEIXOU DE SER «NÃO TEM CONFIG» (15/11/2026).
+     *
+     * Era, e a premissa durou enquanto toda escola tinha um `wrangler.<slug>.jsonc`. Uma escola
+     * de SHARD não tem — é isso que a impede de ganhar um Worker próprio —, e a derivação passava
+     * a marcá-la como expurgada NO DIA EM QUE ELA NASCIA. O sintoma seria o pior desta família:
+     * a escola nova a aparecer na lista das APAGADAS, com data de expurgo nenhuma, e ausente das
+     * vivas. Nada falha; o painel mente.
+     *
+     * O critério passa a ter duas metades, e as duas são factos do repositório:
+     *
+     *   · tem config — é escola, e está viva (o expurgo apaga o config);
+     *   · não tem config, mas DECLARA um shard e TEM PACOTE-ZERO — é escola de shard, e está
+     *     viva: o que ela serve existe, e é isso que o expurgo leva.
+     *
+     * Sem nenhuma das duas, é uma escola que existiu e já não serve nada — e aí sim, expurgada.
+     * O elo (`expurgo[]`/`recriacao[]`) não entra nesta conta de propósito: ele é a MEMÓRIA, e
+     * uma memória não decide se a escola está no ar hoje. */
+    const temConfig = caminhos.some((c) => c === 'wrangler.' + slug + '.jsonc');
+    const declaraShard = Boolean(inv && String(inv.shard || '').trim());
+    /* O PACOTE-ZERO: `professores/<qualquer>/ciclos/ciclo-NN-<slug>/`, e o `NN` é o do elo. Uma
+     * variante de turma (`…-<slug>-<turma>`) também conta — é o que a escola serve. */
+    const numeroDoCiclo = String((inv && inv.ciclo) || '01');
+    const prefixo = 'ciclo-' + numeroDoCiclo + '-' + slug;
+    const temPacote = caminhos.some((c) => {
+      const m = /^professores\/[a-z0-9][a-z0-9-]*\/ciclos\/(ciclo-[0-9]{2,}-[a-z0-9-]+)\//.exec(c);
+      if (!m) return false;
+      return m[1] === prefixo || m[1].startsWith(prefixo + '-');
+    });
+    const expurgada = !(temConfig || (declaraShard && temPacote));
     // QUEM RESPONDE HOJE, não quem criou há três expurgos (22/10/2026). Ver
     // `responsavelDoInventario` — o elo de recriação vale sobre o `professor` original.
     const responsavel = responsavelDoInventario(inv);

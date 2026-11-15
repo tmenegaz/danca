@@ -292,8 +292,23 @@ async function main() {
     removerLinhas(path.join(RAIZ, 'tools', '.senhas-locais'), (l) => l.trim().startsWith(chaveLogin + '=')));
   confere('slug ' + slug + ' em tools/.escolas-teste',
     removerLinhas(path.join(RAIZ, 'tools', '.escolas-teste'), (l) => l.trim() === slug));
-  confere('wrangler.' + worker + '.jsonc',
-    apagar(path.join(RAIZ, 'wrangler.' + worker + '.jsonc')));
+  /* O CONFIG A APAGAR É O DA ESCOLA, NUNCA O DE QUEM A SERVE (15/11/2026).
+   *
+   * `worker` vem do índice. Numa escola de SHARD, o índice passa a declarar `worker: <shard>`
+   * — é o script que a serve —, e a linha antiga apagava `wrangler.lastro-teste.jsonc`: o config
+   * do shard, que serve N escolas. Um expurgo de UMA escola derrubava a publicação de todas.
+   *
+   * A regra passa a ser: apaga-se o config cujo NOME é o da escola (`wrangler.<slug>.jsonc`);
+   * um config de shard fica, porque não é dela. O `worker` continua a ser lido — é ele que nomeia
+   * a chave —, mas não decide o que se apaga do disco. */
+  const configDaEscola = path.join(RAIZ, 'wrangler.' + slug + '.jsonc');
+  if (worker && worker !== slug) {
+    relatorio.naoApagado.push('wrangler.' + worker + '.jsonc (config do shard «' + worker
+      + '», que serve outras escolas — NÃO é desta)');
+  }
+  if (fs.existsSync(configDaEscola)) {
+    confere('wrangler.' + slug + '.jsonc', apagar(configDaEscola));
+  }
 
   const base = path.join(RAIZ, 'professores', professor, 'ciclos');
   const prefixo = 'ciclo-' + String(ciclo).padStart(2, '0') + '-' + slug;

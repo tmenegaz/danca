@@ -237,11 +237,24 @@ jobs:
           node tools/gerar-indices.js \
             || echo "::warning::os índices não foram regerados — rode node tools/gerar-indices.js"
 
-          git add -A -- \
-            "professores/${{ inputs.professor }}" \
-            "escola/${{ inputs.escola }}" \
-            "wrangler.${{ inputs.escola }}.jsonc" \
+          # UM CAMINHO QUE NÃO EXISTE DERRUBA O `git add` INTEIRO (15/11/2026), e foi o que
+          # aconteceu no run 43755682428: «fatal: pathspec 'wrangler.calango.jsonc' did not match
+          # any files», exit 128 — depois de o motor já ter subido e com o scaffold por commitar.
+          # Num shard a escola NÃO TEM esse config: é a mesma premissa das três peças anteriores
+          # (o mapa, a conferência do KV, a recriação), agora no `git add`.
+          #
+          # A lista passa a ser a dos caminhos que EXISTEM. O `wrangler.<escola>.jsonc` entra
+          # quando existe (o regime de sempre); o `wrangler.<shard>.jsonc` não entra NUNCA por
+          # aqui — ele já está versionado, e este commit não é dele.
+          CAMINHOS=(
+            "professores/${{ inputs.professor }}"
+            "escola/${{ inputs.escola }}"
             "indices/"
+          )
+          if [ -f "wrangler.${{ inputs.escola }}.jsonc" ]; then
+            CAMINHOS+=("wrangler.${{ inputs.escola }}.jsonc")
+          fi
+          git add -A -- "${CAMINHOS[@]}"
 
           if git diff --cached --quiet; then
             echo "nada a commitar"
@@ -249,7 +262,7 @@ jobs:
           fi
 
           git commit -m "feat(estrutura): criar a escola ${{ inputs.escola }} (motor completo)" \
-            -m "Scaffold gerado pelo workflow quando a página danca criou a escola — professor/ciclo/pacote-zero e o wrangler.<escola>.jsonc. Os segredos (SENHA_ADMIN, SENHA_CRIPTO, GITHUB_TOKEN) ficaram no Worker, nunca aqui." \
+            -m "Scaffold gerado pelo workflow quando a página danca criou a escola — professor/ciclo/pacote-zero, e o wrangler.<escola>.jsonc quando a escola tem Worker próprio (num shard não tem: é o índice que declara qual a serve). Os segredos ficaram no KV da escola e nos secrets do Worker, nunca aqui." \
             -m "Refs: tools/criar-escola.sh, .github/workflows/criar-escola.yml
           Regras: P-03, P-04, P-17
           Auditoria: sim"

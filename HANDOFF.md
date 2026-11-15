@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T16:55:40-0300`
-Commit atual: `1d9adb27` — fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
+Gerado em: `2026-11-15T17:05:09-0300`
+Commit atual: `8ae5dff4` — fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -77,6 +77,8 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+8ae5dff4 fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
+b86c58f0 fix(tools): a escola recriada dentro do shard ficava sem o campo `shard` no elo
 1d9adb27 fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
 3b8b8efd fix(tools): o mapa de escolas não conhecia a escola de shard, e travava a criação
 5785700a fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
@@ -95,8 +97,6 @@ cb4336a5 chore(estrutura): expurgar a escola calango
 0cd1438a docs(registro): o run 575 correu a publicação do shard, e a entrada dizia que não
 ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo Worker
 5b46db6e feat(estrutura): a escola de shard passa a ser publicada, e o expurgo reconhece-a
-842efb28 feat(tools): a montagem de um shard monta-o inteiro, ou não monta
-bdb566f8 fix(experimentos): o controlo negativo ancorava em HEAD e envelhecia ao ser cometido
 ```
 
 ## Por professor
@@ -238,6 +238,36 @@ declarar, tenha sido expurgada ou não, porque o elo não pode contradizer a rea
 mede isso.
 
 `provar-cofre-e-shard` **95/95** (mede os três caminhos: com expurgo, sem expurgo, e sem a flag).
+
+**Acréscimo 2 (15/11/2026, mesmo dia).** A tentativa seguinte chegou mais longe — o mapa passou — e
+morreu no **commit do scaffold**: `fatal: pathspec 'wrangler.calango.jsonc' did not match any files`,
+exit 128, com o motor já no ar e o scaffold por commitar. Um `git add` com um caminho inexistente
+falha o comando inteiro; num shard a escola não tem esse config. O bloco passou a somar só os
+caminhos que existem.
+
+E a varredura do resto encontrou **mais dois**, ambos piores do que o que os precedeu:
+
+- **«Expurgada» era «não tem config».** `motor/nucleo/indices.js` marcava como expurgada toda escola
+  sem `wrangler.<slug>.jsonc` — e uma escola de shard nasce assim. O sintoma seria o pior desta
+  família: a escola nova a aparecer na lista das **apagadas**, sem data de expurgo, e ausente das
+  vivas. Nada falha; o painel mente. O critério passa a ter duas metades, ambas factos do
+  repositório: tem config, **ou** declara um shard **e** tem pacote-zero. O elo não entra nesta
+  conta de propósito — é memória, e uma memória não decide se a escola está no ar hoje. A
+  verificação 12 do `check-indices` aprendeu o mesmo facto.
+- **O expurgador local apagaria o config do shard.** `escola/expurgar.js` apagava
+  `wrangler.<worker>.jsonc` com o `worker` lido do índice — e o índice de uma escola de shard passa
+  a declarar `worker: <shard>`. Expurgar UMA escola apagaria `wrangler.lastro-teste.jsonc`, o config
+  que serve todas. Passa a apagar só o config cujo nome é o da escola, e a declarar no relatório que
+  o do shard fica.
+
+O `provar-bancadas-e-expurgo` passou a **22/22**: a asserção «sem pacote, as páginas de ontem são
+apagadas» exigia a ausência de `proposta-titulo.html`, e a decisão de 02/11/2026 — registada no
+próprio construtor — foi escrever uma página que EXPLICA que a bancada não pode medir. A asserção
+media o comportamento de antes; passa a medir a decisão.
+
+`provar-cofre-e-shard` **97/97** (controlo negativo 14/41) · `provar-bancadas-e-expurgo` 22/22 ·
+`provar-transferencia-e-desligamento` 97/97 · `provar-expurgo-sem-listagem` 49/49 ·
+`provar-kv-da-escola-criada` 23/23 · `check-indices` 16/16 · `check-identidade` 0 erros.
 
 ## O que está pendente
 

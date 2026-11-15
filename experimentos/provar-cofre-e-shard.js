@@ -468,6 +468,33 @@ function cloudflareFalso({ rotas = [] } = {}) {
       slugs(semShard).indexOf('lastro-teste') !== -1, slugs(semShard));
     provar('com a lista, o shard NÃO entra', slugs(comShard).indexOf('lastro-teste') === -1, slugs(comShard));
     provar('…e as escolas continuam todas lá', slugs(comShard).join(',') === 'calango', slugs(comShard));
+
+    /* E NÃO É MARCADA EXPURGADA SÓ POR NÃO TER CONFIG (15/11/2026). Era o quinto sítio com a mesma
+     * premissa, e o pior: «expurgada = não tem config» punha a escola nova na lista das APAGADAS
+     * no dia em que ela nascia. Nada falhava; o painel mentia. */
+    {
+      const caminhos2 = [
+        'wrangler.danca.jsonc', 'wrangler.lastro-teste.jsonc',
+        'escola/nova/indice.json',
+        'professores/p/ciclos/ciclo-01-nova/index.html',
+        'professores/p/ciclos/ciclo-01-nova/aula-01.html',
+      ];
+      const inventarios = { nova: { escola: 'nova', ciclo: '01', shard: 'lastro-teste' } };
+      const r = indices.construir({ arvores: caminhos2, inventarios, envelopes: {}, ancoras: {},
+        shards: ['lastro-teste'], agora: '2026-11-15T00:00' });
+      const nova = (r.acervo.escolas || []).find((e) => e.slug === 'nova');
+      provar('a escola de shard com pacote está VIVA — não marcada expurgada',
+        nova && nova.expurgada === false, nova && nova.expurgada);
+
+      /* E o inverso, que é o que mantém o expurgo a funcionar: sem pacote, a mesma escola de shard
+       * É expurgada — o pacote é o que ela servia, e o expurgo leva-o. */
+      const semPacote = indices.construir({
+        arvores: ['wrangler.danca.jsonc', 'wrangler.lastro-teste.jsonc', 'escola/nova/indice.json'],
+        inventarios, envelopes: {}, ancoras: {}, shards: ['lastro-teste'], agora: '2026-11-15T00:00' });
+      const morta = (semPacote.acervo.escolas || []).find((e) => e.slug === 'nova');
+      provar('…e sem pacote é EXPURGADA (é o pacote que o expurgo leva)',
+        morta && morta.expurgada === true, morta && morta.expurgada);
+    }
     provar('a raiz também não é escola', slugs(comShard).indexOf('danca') === -1, slugs(comShard));
 
     /* E O EXPURGO DE UM SHARD TEM DE DIZER «SHARD», NÃO «REANCORE» — o recado que ela recebeu. */

@@ -167,8 +167,22 @@ if (!pacotesUsaveis.length) {
   provar('sem pacote, a mensagem nomeia o expurgo, com data',
     /por expurgo:/.test(corrida.texto) && /\d{4}-\d{2}-\d{2}/.test(corrida.texto),
     corrida.texto.slice(0, 400));
-  provar('sem pacote, as páginas de ontem são apagadas (o local concorda com o CI)',
-    !fs.existsSync(path.join(RAIZ, 'experimentos/propostas/proposta-titulo.html')));
+  /* A PÁGINA DO TÍTULO DEIXOU DE SER APAGADA — E ISSO FOI UMA DECISÃO, NÃO UM REGRESSO
+   * (02/11/2026, registada no próprio construtor): «antes ela não existia — o construtor saía
+   * inteiro, e as outras bancadas iam com ela. Uma página que explica a ausência é melhor do que
+   * um link que não abre, e é a mesma regra do diagnóstico: a ausência diz-se pelo estado, não
+   * pelo silêncio» — e o índice continua a ter o cartão a apontar para ela.
+   *
+   * A asserção exigia a ausência do ficheiro. O que ela queria dizer é o que se mede agora: com
+   * as escolas todas expurgadas, a bancada do título NÃO mede o que não existe — e di-lo, em vez
+   * de sair com números inventados. */
+  const paginaDoTitulo = path.join(RAIZ, 'experimentos/propostas/proposta-titulo.html');
+  const textoDoTitulo = fs.existsSync(paginaDoTitulo)
+    ? fs.readFileSync(paginaDoTitulo, 'utf8') : '';
+  provar('sem pacote, a bancada do título DIZ que não pode medir (e não inventa)',
+    /não pode ser construída agora/.test(textoDoTitulo), textoDoTitulo.length);
+  provar('…e continua a existir, para o cartão do índice não apontar para o vazio',
+    textoDoTitulo.length > 0, textoDoTitulo.length);
 }
 
 console.log('\n5. `umPacote()` continua a falhar alto — para as provas, que medem o real');

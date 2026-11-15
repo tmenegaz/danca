@@ -45849,3 +45849,33 @@ declarar, tenha sido expurgada ou não, porque o elo não pode contradizer a rea
 mede isso.
 
 `provar-cofre-e-shard` **95/95** (mede os três caminhos: com expurgo, sem expurgo, e sem a flag).
+
+**Acréscimo 2 (15/11/2026, mesmo dia).** A tentativa seguinte chegou mais longe — o mapa passou — e
+morreu no **commit do scaffold**: `fatal: pathspec 'wrangler.calango.jsonc' did not match any files`,
+exit 128, com o motor já no ar e o scaffold por commitar. Um `git add` com um caminho inexistente
+falha o comando inteiro; num shard a escola não tem esse config. O bloco passou a somar só os
+caminhos que existem.
+
+E a varredura do resto encontrou **mais dois**, ambos piores do que o que os precedeu:
+
+- **«Expurgada» era «não tem config».** `motor/nucleo/indices.js` marcava como expurgada toda escola
+  sem `wrangler.<slug>.jsonc` — e uma escola de shard nasce assim. O sintoma seria o pior desta
+  família: a escola nova a aparecer na lista das **apagadas**, sem data de expurgo, e ausente das
+  vivas. Nada falha; o painel mente. O critério passa a ter duas metades, ambas factos do
+  repositório: tem config, **ou** declara um shard **e** tem pacote-zero. O elo não entra nesta
+  conta de propósito — é memória, e uma memória não decide se a escola está no ar hoje. A
+  verificação 12 do `check-indices` aprendeu o mesmo facto.
+- **O expurgador local apagaria o config do shard.** `escola/expurgar.js` apagava
+  `wrangler.<worker>.jsonc` com o `worker` lido do índice — e o índice de uma escola de shard passa
+  a declarar `worker: <shard>`. Expurgar UMA escola apagaria `wrangler.lastro-teste.jsonc`, o config
+  que serve todas. Passa a apagar só o config cujo nome é o da escola, e a declarar no relatório que
+  o do shard fica.
+
+O `provar-bancadas-e-expurgo` passou a **22/22**: a asserção «sem pacote, as páginas de ontem são
+apagadas» exigia a ausência de `proposta-titulo.html`, e a decisão de 02/11/2026 — registada no
+próprio construtor — foi escrever uma página que EXPLICA que a bancada não pode medir. A asserção
+media o comportamento de antes; passa a medir a decisão.
+
+`provar-cofre-e-shard` **97/97** (controlo negativo 14/41) · `provar-bancadas-e-expurgo` 22/22 ·
+`provar-transferencia-e-desligamento` 97/97 · `provar-expurgo-sem-listagem` 49/49 ·
+`provar-kv-da-escola-criada` 23/23 · `check-indices` 16/16 · `check-identidade` 0 erros.

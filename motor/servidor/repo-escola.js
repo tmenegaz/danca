@@ -813,7 +813,11 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
   const mensagem = [
     'chore(estrutura): expurgar a escola ' + slug,
     '',
-    'Apaga o que o repositório guardava dela: o `wrangler.' + slug + '.jsonc`, o pacote e as fontes',
+    /* O CONFIG PODE NÃO EXISTIR (15/11/2026): uma escola de shard não tem um. A mensagem não pode
+     * afirmar o que apagou sem saber — ela diz os dois casos. */
+    'Apaga o que o repositório guardava dela: '
+      + (caminhos.indexOf('wrangler.' + slug + '.jsonc') !== -1 ? 'o `wrangler.' + slug + '.jsonc`, ' : '')
+      + 'o pacote e as fontes',
     'de `professores/' + (escola.professor || '<professor>') + '/ciclos/ciclo-' + (escola.ciclo || 'NN') + '-' + slug + '*` —',
     apagados.length + ' arquivo(s) ao todo' + (manifesto.length
       ? ', incluindo o manifesto base do ciclo: o professor'
@@ -835,7 +839,8 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
         perfisPreservados.join(', ') + '.']
       : []),
     '',
-    'Refs: escola/' + slug + '/indice.json, wrangler.' + slug + '.jsonc',
+    'Refs: escola/' + slug + '/indice.json'
+      + (caminhos.indexOf('wrangler.' + slug + '.jsonc') !== -1 ? ', wrangler.' + slug + '.jsonc' : ''),
     'Regras: P-03, P-04, P-17',
     'Auditoria: ' + (motivo || 'expurgada pela raiz'),
   ].join('\n');
