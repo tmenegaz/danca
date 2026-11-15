@@ -753,6 +753,43 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 .coluna-marca:hover, .coluna-marca:focus-visible { color: var(--sobre-marca); }
 
 /* ============================================================================
+   A LINHA DA IDENTIDADE — a marca e o nome da área, lado a lado (15/11/2026)
+   ----------------------------------------------------------------------------
+   O pedido: «esse título, Sistema Lastro ou Bastidores, que é da coluna marca, ele está abaixo
+   da logomarca. Ele tem que ficar ao lado, do lado direito, com um espaçamento bonito que dê
+   para ler.»
+
+   O DEFEITO ERA DE LEITURA, e não de gosto. Empilhado, o nome da área ficava numa linha própria
+   abaixo de um desenho de 44 px, e o olho tinha de descer para saber onde estava — duas linhas
+   para uma informação só. Ao lado, marca e nome leem-se como UMA coisa, que é o que são.
+
+   A LINHA É UM CONTÊINER, e não um `float` nem um `margin-top` negativo: os dois elementos
+   passam a pertencer ao mesmo bloco, e quem os alinha é o `align-items` daqui. Um truque de
+   posicionamento funcionaria hoje e partiria no dia em que a marca mudasse de altura.
+
+   O `gap` é o ar que o pedido pedia — 12 px, o mesmo `--esp-3` que a folha usa entre um rótulo e
+   o que ele nomeia. E o `min-width: 0` no nome não é decoração: sem ele um `flex` recusa-se a
+   encolher o texto, e «Sistema Lastro» empurraria a linha para fora dos 248 px da coluna.
+
+   AS DUAS COLUNAS USAM ESTA MESMA PEÇA — o Sistema Lastro (corte de 1141) e os Bastidores (corte
+   de 769, em `motor/servidor/bastidores.js`). Os cortes diferem porque já diferiam; a linha, não. */
+.coluna-identidade {
+  display: flex; align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+  /* O AR É O QUE A IDENTIFICAÇÃO JÁ TINHA NA FOLHA DO TELEFONE (era `padding: var(--esp-3)
+     var(--esp-5) var(--esp-2)` em `.coluna-marca`). Ele sobe para a linha porque é a linha que
+     agora encosta ao topo — e mantê-lo no nome daria à marca um ar que ela não tem onde aparecer
+     sozinha. Descendo a 1141/769, os dois blocos abaixo trocam-no pelo da coluna. */
+  padding: var(--esp-3) var(--esp-5) var(--esp-2);
+}
+/* O NOME NÃO EMPURRA A LINHA, e não ganha o ar que a linha já dá. */
+.coluna-identidade > .coluna-marca {
+  flex: 0 1 auto; min-width: 0;
+  padding: 0; margin: 0; border-bottom: 0;
+}
+
+/* ============================================================================
    A LOGOMARCA MORA NA COLUNA (13/11/2026)
    ----------------------------------------------------------------------------
    O pedido, nas palavras de quem usa: «a logomarca deve ficar fixada sempre no topo da
@@ -777,29 +814,37 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    resto de si em `motor/servidor/bastidores.js`, mas a marca é um COMPONENTE — a checagem
    7a de `tools/check-identidade.js` reprova quem carrega a folha e redeclara um. Uma
    declaração, dois donos: os seletores crescem, os valores não se repetem. */
-.coluna > .marca,
-.lateral-lista > .marca { display: none; }
-.coluna > .marca svg,
-.lateral-lista > .marca svg { display: block; height: 44px; width: auto; fill: currentColor; }
+/* OS SELETORES SÃO OS DA LINHA (15/11/2026) — a marca deixou de ser filha direta da coluna
+   quando passou a partilhar a linha com o nome da área. `.coluna > .marca` deixaria de casar em
+   silêncio, e a marca voltaria a aparecer na folha do telefone, ao lado da que a barra já tem. */
+.coluna-identidade > .marca { display: none; }
+.coluna-identidade > .marca svg { display: block; height: 44px; width: auto; fill: currentColor; }
 
 /* A IDENTIFICAÇÃO DA PRODUÇÃO («Bastidores») nasce escondida como a marca: no celular a
    barra da página já diz «Produção · Painel inicial», e repeti-lo dentro da folha seria
    dizer duas vezes. A do Sistema Lastro NÃO entra nesta regra — ela já aparecia na folha do
    telefone antes desta mudança, e continua a aparecer. */
-.lateral-lista > .coluna-marca { display: none; }
+/* A LINHA INTEIRA SAI, e não só o nome (15/11/2026). Abaixo do corte dos Bastidores a marca
+   também está escondida — a barra é que a mostra —, e uma linha com duas coisas invisíveis
+   continuaria a gastar o seu ar: 20 px de vazio entre o puxador da folha e o «← Sistema Lastro».
+   Esconder a linha é dizer o que se quer dizer: aqui não há identificação nenhuma. */
+.lateral-lista > .coluna-identidade { display: none; }
 
 /* O SISTEMA LASTRO: coluna a partir dos 1141. */
 @media (min-width: 1141px) {
-  .coluna > .marca {
-    display: block;
-    margin: 0 10px 6px;
-    color: var(--sobre-marca);
-    text-decoration: none;
-  }
-  .coluna .coluna-marca {
+  /* A LINHA DA IDENTIDADE, NA COLUNA DO SISTEMA (15/11/2026). O ar que a identificação tinha
+     passa para a LINHA — é ela que agora encosta ao topo, e é ela que leva o filete que separa o
+     cabeçalho do menu. Os filhos alinham-se pelo centro, e por isso a marca de 44 px e um nome
+     de 12 px ficam na mesma horizontal em vez de um por baixo do outro. */
+  .coluna > .coluna-identidade {
     padding: 0 10px var(--esp-3);
     margin: 0 0 var(--esp-3);
     border-bottom: 1px solid var(--ornamento);
+  }
+  .coluna > .coluna-identidade > .marca {
+    display: block;
+    color: var(--sobre-marca);
+    text-decoration: none;
   }
 }
 
@@ -807,16 +852,21 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    diferença é só o corte, que já existia: abaixo dele a `.lateral` é a barra com o botão
    «Seções», e não há coluna onde pôr a marca. */
 @media (min-width: 769px) {
-  .lateral-lista > .marca {
+  /* A MESMA LINHA, NO CORTE DOS BASTIDORES (15/11/2026). Sem o filete: aqui a identificação é
+     seguida do «← Sistema Lastro», que já separa por outro meio — e dois traços seguidos a dizer
+     a mesma coisa é o tipo de ruído que a folha evita. */
+  .lateral-lista > .coluna-identidade {
+    display: flex;
+    padding: 0 10px var(--esp-2);
+    margin: 0;
+  }
+  .lateral-lista > .coluna-identidade > .marca {
     display: block;
-    margin: 0 10px 6px;
     color: var(--sobre-marca);
     text-decoration: none;
   }
-  .lateral-lista > .coluna-marca {
+  .lateral-lista > .coluna-identidade > .coluna-marca {
     display: block;
-    padding: 0 10px var(--esp-2);
-    margin: 0;
     color: var(--ornamento-forte);
   }
 }
@@ -976,7 +1026,8 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   .coluna .folha-puxador, .lateral .folha-puxador { display: none; }
   .coluna .coluna-fora { display: none; }
   .veu { display: none; }
-  .coluna-marca { padding: 0 10px; margin: 0 0 var(--esp-4); }
+  /* A identificação não tem mais ar próprio: quem o tem é a LINHA (`.coluna-identidade`), e
+     duas regras a dar o mesmo ar é a forma de elas divergirem. */
   .coluna .coluna-titulo,
   .lateral .coluna-titulo {
     padding: 9px 10px; border-radius: var(--raio-2);

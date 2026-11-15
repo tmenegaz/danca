@@ -1308,3 +1308,10 @@ experimentos/modelo-formulario/*
 # trazem o contexto do envelope NÃO podem ser desviados, senão a correção de um recado fecharia a
 # criação, a edição, o ajuste e a duplicação.
 !experimentos/provar-anamnese-antes-da-aluna.js
+
+# A MARCA E O NOME NA MESMA LINHA (15/11/2026). «Esse título, Sistema Lastro ou Bastidores, que é
+# da coluna marca, ele está abaixo da logomarca. Ele tem que ficar ao lado, do lado direito, com
+# um espaçamento bonito que dê para ler.» «Ao lado» e «centrado» são afirmações sobre PIXELS: esta
+# prova mede-as num navegador de verdade, com a folha de verdade, e mede as duas colunas. Sem
+# navegador, declara a geometria como NÃO MEDIDA — nunca como aprovada.
+!experimentos/provar-identidade-ao-lado.js

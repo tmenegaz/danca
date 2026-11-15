@@ -337,10 +337,27 @@ function desenharColuna(coluna, pedido, barra) {
    * A BARRA CONTINUA A TRAZÊ-LA NO HTML, e o CSS é que a esconde onde há coluna: no celular a
    * coluna é a folha, e a marca que aparece é a da barra. Uma marca só no HTML, duas formas
    * pela largura — a regra que a folha já segue. */
+  /* A IDENTIFICAÇÃO FICA AO LADO DA MARCA (15/11/2026).
+   *
+   * «Esse título, Sistema Lastro ou Bastidores, que é da coluna marca, ele está abaixo da
+   * logomarca. Ele tem que ficar ao lado, do lado direito, com um espaçamento bonito que dê para
+   * ler.» O pedido é de quem lê a coluna todo o dia, e o problema é de leitura: empilhado, o nome
+   * da área ficava numa linha própria, abaixo de um desenho de 44px, e o olho tinha de descer
+   * para saber onde estava. Ao lado, marca e nome leem-se como UMA coisa — que é o que são.
+   *
+   * A LINHA É UM CONTENTOR, e não um `float` nem um `margin-top` negativo: a marca e o nome são
+   * dois elementos que passam a pertencer ao mesmo bloco, e quem os alinha é o `align-items:
+   * center` da folha (`.coluna-identidade`, em `tools/templates/ciclo.css`). Um truque de
+   * posicionamento funcionaria hoje e partiria no dia em que a marca mudasse de altura.
+   *
+   * A MESMA ESTRUTURA NOS BASTIDORES — as duas colunas são a mesma peça, e uma correção que
+   * valesse só numa delas voltaria a divergir. */
   return '<aside class="coluna folha-do-menu" id="coluna-proposta" data-aberta="nao" aria-label="Navegação do sistema">\n'
     + '  <span class="folha-puxador" aria-hidden="true"></span>\n'
+    + '  <div class="coluna-identidade">\n'
     + MARCA_NA_BARRA + '\n'
-    + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
+    + '    <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
+    + '  </div>\n'
     + '  <nav>\n' + corpo + '\n  </nav>\n'
     + '</aside>\n'
     + '<div class="veu" aria-hidden="true"></div>\n';

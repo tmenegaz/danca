@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T08:04:00-0300`
-Commit atual: `8dfed992` — fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
+Gerado em: `2026-11-15T08:23:00-0300`
+Commit atual: `cf150b93` — docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+cf150b93 docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
 8dfed992 fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
 2a2d9836 fix(estrutura): sem aluna cadastrada, o recado manda cadastrar — e o link vai à lista
 46b88208 chore(estrutura): regerar os índices derivados
@@ -95,7 +96,6 @@ d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
 66e1f9f6 feat(schema): os schemas do ciclo na pasta de rimel-preto
 ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
 2ceb1403 feat(schema): os schemas do ciclo na pasta de rimel-preto
-e402c67f feat(schema): os schemas do ciclo na pasta de rimel-preto
 ```
 
 ## Por professor
@@ -203,56 +203,52 @@ e402c67f feat(schema): os schemas do ciclo na pasta de rimel-preto
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Sem aluna, o recado manda cadastrar; e a anamnese começa na lista
+## 15/11/2026 — A marca e o nome da área passam a estar na mesma linha
 
-**O que ela viu**, no passo 2 da Audição (escolha do elenco) da `batata` recém-criada: «aparece a
-mensagem de que eu preciso preencher a anamnese de uma aluna. Isso está certo, essa mensagem
-mesmo. Só que […] eu ainda não tenho aluna. […] E aí quando eu clico no link, ao invés de ele
-levar para um lugar aonde eu posso fazer o começo da anamnese, ele está levando para dentro de uma
-anamnese sem seleção de professor e sem seleção de aluna».
+**O pedido, ao vivo.** *«Estou observando aqui na logomarca, e aí tem o título se eu estou no
+sistema Lastro ou se eu estou lá em bastidores. […] esse título, Sistema Lastro ou Bastidores, que
+é da coluna marca, ele está abaixo da logomarca. Ele tem que ficar ao lado, do lado direito, com
+um espaçamento bonito que dê para ler, que seja legível.»*
 
-**As três correções.**
+**O defeito era de LEITURA, e não de gosto.** Empilhado, o nome da área ficava numa linha própria
+abaixo de um desenho de 44 px, e o olho tinha de descer para saber onde estava — duas linhas para
+uma informação só.
 
-1. **O recado distingue as duas faltas.** Ele sabia que ninguém tem anamnese e não sabia por quê —
-   e mandava fazer a anamnese de uma aluna que ainda não existia, o que é um beco: a anamnese
-   PEDE o sujeito. `/api/bastidores/alunas-com-anamnese` passa a devolver `registradas`, e a tela
-   escolhe: sem aluna, «Nenhuma aluna cadastrada» e a ORDEM — *cadastre a aluna, e depois faça a
-   anamnese dela*; com aluna e sem retrato, o recado de sempre.
-2. **O link vai à lista.** Aqui esteve `urlDaPorta('/anamnese/', contexto)` — o formulário, com o
-   professor na query e sem a aluna. A porta exige o ato inteiro (escola, professor, aluna) e
-   devolvia a pessoa à lista pelo JavaScript: **o formulário aparecia e fugia**. O sítio onde a
-   anamnese começa é a lista. A mesma correção vale para o item do menu («Anamnese do aluno») e
-   para o «Abrir a Área do Professor» do Estúdio, que tinham o mesmo destino.
-3. **A rota passa a ser fechada no servidor.** A guarda que já desviava a página da porta sem
-   nenhum parâmetro ganhou o meio-termo: contexto parcial e sem `aluna` → **302** para a lista,
-   antes de a página existir. Sem pisca, e sem montar o formulário.
+**O que mudou, e é uma peça só para as duas colunas.**
 
-**Os controles negativos**, e são o que impede a correção de fechar o que deve ficar aberto:
-`?aluna=` abre; `?editar=`, `?ajustar=` e `?novo=` **não** são desviados (trazem o contexto do
-envelope); o plano e o PO não têm aluna no contexto e não são tocados; e o contexto vazio continua
-desviado pela regra que já existia.
+- `motor/nucleo/nav.js` e `motor/servidor/bastidores.js` passam a emitir a marca e o nome dentro de
+  `<div class="coluna-identidade">`. Uma correção que valesse só numa das colunas voltaria a
+  divergir — as duas são a mesma peça.
+- `tools/templates/ciclo.css`: `.coluna-identidade` é `display:flex` com `align-items:center` e
+  `gap: var(--esp-3)`. **Um contêiner, e não um `float` nem um `margin-top` negativo**: os dois
+  elementos passam a pertencer ao mesmo bloco, e o alinhamento não depende da altura da marca.
+  O ar que a identificação tinha na folha sobe para a linha (é ela que agora encosta ao topo), e os
+  filhos ficam com `padding: 0`. O `min-width: 0` no nome é o que impede «Sistema Lastro» de
+  empurrar a linha para fora dos 248 px da coluna.
 
-**Um defeito meu, medido no ar depois do deploy, e vale mais do que a correção.** A primeira
-versão da contagem chamava `alunas(kv, escola)` dentro do `try` da rota — onde `const alunas =
-…marcarNovas(…)` **sombreia a função**, desde o início do bloco por TDZ. A chamada não invocava a
-função: caía no `catch`, e a rota passou a responder `{"ok":false,"erro":"não consegui ler o
-acervo agora"}` em **todas** as escolas. Uma mensagem honesta sobre uma falha que não existia —
-pior do que a ausência do dado. Corrigido de sítio: a contagem é feita antes do `try`.
+**As duas colunas, medidas num Chrome de verdade** (não por leitura de CSS):
 
-**E a prova não o apanhou, o que também é o registo.** A primeira versão fazia `grep` ao ficheiro à
-procura de `registradas` — e um `grep` não apanha um erro de escopo. A prova passou a **chamar a
-rota** com um KV de bancada e a exigir `ok:true` e `registradas: 2`. Conferido às avessas:
-reintroduzindo o defeito, falha nas duas asserções da rota; com a correção, passa (19/19).
+| | marca | nome | vão | centros |
+|:--|:--|:--|--:|:--|
+| Sistema Lastro @1400 | x=22, 38×44 | x=72, 121×14 | **12 px** | Δ **0** |
+| Bastidores @1400 | x=22, 38×44 | x=72, 89×14 | **12 px** | Δ **0** |
+| Bastidores @800 | idem | idem | **12 px** | Δ **0** |
 
-**O shard sai do laço de escolas.** O `deploy-escolas.yml` descobre as escolas por
-`wrangler.*.jsonc`, e o `wrangler.lastro-teste.jsonc` não é escola: não tem pacote-zero e seria
-mandado para a montagem com o nome de um shard. Passa a ser saltado pela `var`
-`PACOTE_PARTILHADO`, que é o que ele declara.
+Na folha do telemóvel nada muda: a marca da coluna continua escondida (a da barra é que serve) e o
+nome mantém o ar que sempre teve — `x=24`, medido. E nos Bastidores abaixo do corte a **linha
+inteira** sai: com a marca e o nome ambos escondidos, uma linha vazia gastaria 20 px entre o
+puxador da folha e o «← Sistema Lastro».
 
-**Conferido no ar, depois do deploy (`8dfed992`):** `alunas-com-anamnese` responde `ok:true` nas
-três escolas, com `registradas: 3`; `/anamnese/?professor=…&escola=…` → **302**
-`/area-do-professor/anamnese/`; com `&aluna=` → **200**; e o menu da Produção aponta às três
-listas, incluindo `/area-do-professor/anamnese/`.
+**A prova** — `experimentos/provar-identidade-ao-lado.js`, **27 asserções**: a estrutura (chamando
+os geradores verdadeiros, nas duas colunas), o CSS que alinha, e a geometria num navegador. Com
+**controle negativo**: repondo o `display:block` de antes, falha em 5 asserções — e a medida mostra
+exactamente o defeito (nome em `y=60`, abaixo da marca que acaba em `y=60`, ambos em `x=22`). Sem
+navegador na máquina, a geometria é declarada **não medida**, nunca aprovada.
+
+**O circuito da folha.** As cópias de `style.css` em cada pacote e na raiz são geradas a partir de
+`tools/templates/ciclo.css`, e a checagem «Circuito» exige-as byte a byte iguais à fonte. Foram
+atualizadas (7 pacotes + `raiz/assets/style.css` pela `gerar-raiz.sh`), e as publicações locais
+remontadas: `check-identidade` volta com as **22** verificações verdes.
 
 ## O que está pendente
 

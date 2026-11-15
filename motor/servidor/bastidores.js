@@ -5214,8 +5214,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        O `lateral-voltar` continua logo abaixo, e é outra coisa: a marca leva ao início do
        site, o «← Sistema Lastro» é o caminho de volta explícito — ninguém lê uma logo como
        «voltar». */
+    /* A IDENTIFICAÇÃO AO LADO DA MARCA (15/11/2026) — a mesma linha que o Sistema Lastro passou a
+       ter, e pela mesma razão: a marca e o nome da área são UMA coisa, e empilhados o olho tinha
+       de descer 44px de desenho para saber onde estava. O contêiner é o mesmo
+       (`.coluna-identidade`, em `tools/templates/ciclo.css`), para as duas colunas não voltarem a
+       divergir. */
+    '<div class="coluna-identidade">' +
     MARCA_NA_BARRA +
     '<span class="coluna-marca">Bastidores</span>' +
+    '</div>' +
     /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
        eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
        está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um

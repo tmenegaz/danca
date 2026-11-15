@@ -44683,3 +44683,50 @@ mandado para a montagem com o nome de um shard. Passa a ser saltado pela `var`
 três escolas, com `registradas: 3`; `/anamnese/?professor=…&escola=…` → **302**
 `/area-do-professor/anamnese/`; com `&aluna=` → **200**; e o menu da Produção aponta às três
 listas, incluindo `/area-do-professor/anamnese/`.
+
+## 15/11/2026 — A marca e o nome da área passam a estar na mesma linha
+
+**O pedido, ao vivo.** *«Estou observando aqui na logomarca, e aí tem o título se eu estou no
+sistema Lastro ou se eu estou lá em bastidores. […] esse título, Sistema Lastro ou Bastidores, que
+é da coluna marca, ele está abaixo da logomarca. Ele tem que ficar ao lado, do lado direito, com
+um espaçamento bonito que dê para ler, que seja legível.»*
+
+**O defeito era de LEITURA, e não de gosto.** Empilhado, o nome da área ficava numa linha própria
+abaixo de um desenho de 44 px, e o olho tinha de descer para saber onde estava — duas linhas para
+uma informação só.
+
+**O que mudou, e é uma peça só para as duas colunas.**
+
+- `motor/nucleo/nav.js` e `motor/servidor/bastidores.js` passam a emitir a marca e o nome dentro de
+  `<div class="coluna-identidade">`. Uma correção que valesse só numa das colunas voltaria a
+  divergir — as duas são a mesma peça.
+- `tools/templates/ciclo.css`: `.coluna-identidade` é `display:flex` com `align-items:center` e
+  `gap: var(--esp-3)`. **Um contêiner, e não um `float` nem um `margin-top` negativo**: os dois
+  elementos passam a pertencer ao mesmo bloco, e o alinhamento não depende da altura da marca.
+  O ar que a identificação tinha na folha sobe para a linha (é ela que agora encosta ao topo), e os
+  filhos ficam com `padding: 0`. O `min-width: 0` no nome é o que impede «Sistema Lastro» de
+  empurrar a linha para fora dos 248 px da coluna.
+
+**As duas colunas, medidas num Chrome de verdade** (não por leitura de CSS):
+
+| | marca | nome | vão | centros |
+|:--|:--|:--|--:|:--|
+| Sistema Lastro @1400 | x=22, 38×44 | x=72, 121×14 | **12 px** | Δ **0** |
+| Bastidores @1400 | x=22, 38×44 | x=72, 89×14 | **12 px** | Δ **0** |
+| Bastidores @800 | idem | idem | **12 px** | Δ **0** |
+
+Na folha do telemóvel nada muda: a marca da coluna continua escondida (a da barra é que serve) e o
+nome mantém o ar que sempre teve — `x=24`, medido. E nos Bastidores abaixo do corte a **linha
+inteira** sai: com a marca e o nome ambos escondidos, uma linha vazia gastaria 20 px entre o
+puxador da folha e o «← Sistema Lastro».
+
+**A prova** — `experimentos/provar-identidade-ao-lado.js`, **27 asserções**: a estrutura (chamando
+os geradores verdadeiros, nas duas colunas), o CSS que alinha, e a geometria num navegador. Com
+**controle negativo**: repondo o `display:block` de antes, falha em 5 asserções — e a medida mostra
+exactamente o defeito (nome em `y=60`, abaixo da marca que acaba em `y=60`, ambos em `x=22`). Sem
+navegador na máquina, a geometria é declarada **não medida**, nunca aprovada.
+
+**O circuito da folha.** As cópias de `style.css` em cada pacote e na raiz são geradas a partir de
+`tools/templates/ciclo.css`, e a checagem «Circuito» exige-as byte a byte iguais à fonte. Foram
+atualizadas (7 pacotes + `raiz/assets/style.css` pela `gerar-raiz.sh`), e as publicações locais
+remontadas: `check-identidade` volta com as **22** verificações verdes.
