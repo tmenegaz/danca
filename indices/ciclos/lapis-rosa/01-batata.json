@@ -32,14 +32,17 @@
     "documento:aula:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
     "documento:dados:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
     "documento:dados:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+    "documento:dados:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
     "documento:declaracao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-declaracao.json",
     "documento:glossario:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
     "documento:harmonizacao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+    "documento:indice:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
     "documento:manifesto:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:notacao:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
     "documento:plano:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
     "documento:po:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
-    "documento:referencias:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md"
+    "documento:referencias:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+    "documento:schema:professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
   "estado": "ancorado",
@@ -56,7 +59,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -74,6 +77,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 1,
@@ -99,14 +107,19 @@
         "contagem": 1,
         "rotulo": "referencias",
         "valor": "referencias"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "5c98234"
+    "commit": "e05904e"
   },
-  "gerado_em": "2026-11-15T14:02",
+  "gerado_em": "2026-11-15T14:03",
   "id": "ciclo:lapis-rosa/01/batata",
   "professor": "lapis-rosa",
   "versao": 6

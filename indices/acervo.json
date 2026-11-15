@@ -24,7 +24,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 14,
+      "documentos": 17,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:lapis-rosa/01/batata",
@@ -348,9 +348,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5c98234"
+    "commit": "e05904e"
   },
-  "gerado_em": "2026-11-15T14:02",
+  "gerado_em": "2026-11-15T14:03",
   "nao_indexado": [
     {
       "familia": "conteudo",
