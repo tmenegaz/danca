@@ -118,26 +118,83 @@ jobs:
           VARIANTE: ${{ inputs.variante }}
         run: |
           set -euo pipefail
+          # A ESCOLA DE SHARD NÃO TEM CONFIG PRÓPRIA (15/11/2026) — e esta conferência recusava-a.
+          #
+          # Ela exigia `wrangler.<escola>.jsonc`, o que era verdade enquanto toda escola tinha o seu
+          # Worker. Uma escola criada DENTRO de um shard não tem — é exactamente isso que a impede
+          # de ganhar mais um Worker —, de modo que o disparo para a `batata` respondia «não existe
+          # wrangler.batata.jsonc — 'batata' não é o nome de um Worker», e listava os Workers
+          # existentes (`danca`, `lastro-teste`) como se a escola não existisse. Ela existia, e é
+          # uma das três servidas pelo `lastro-teste`.
+          #
+          # A pergunta certa é a mesma da publicação, e a resposta é a mesma função
+          # (`shard_da_escola`, de `tools/lib-shard.sh`): a escola existe se tem config OU se um
+          # índice a declara num shard. Uma pergunta, uma resposta.
+          # A RAIZ NÃO É ESCOLA (15/11/2026), e ela tem `wrangler.danca.jsonc` como qualquer uma.
+          # Aceitá-la aqui deixaria gerar um ciclo para «danca» — uma pasta de professor com um
+          # pacote de uma escola que não existe. É o mesmo marcador que o resto do motor usa para
+          # a excluir (`NAO_ESCOLAS`), e não uma segunda opinião.
+          if [ "$ESCOLA" = "danca" ]; then
+            echo "erro: 'danca' é a RAIZ do sistema (a porta de entrada), não uma escola." >&2
+            echo "      O ciclo pertence a uma escola: use o slug dela em «escola»." >&2
+            exit 1
+          fi
           if [ -f "wrangler.$ESCOLA.jsonc" ]; then
             echo "ok: wrangler.$ESCOLA.jsonc"
             exit 0
           fi
-          echo "erro: não existe wrangler.$ESCOLA.jsonc — '$ESCOLA' não é o nome de um Worker." >&2
+          if [ -f "tools/lib-shard.sh" ]; then
+            # shellcheck disable=SC1091
+            source tools/lib-shard.sh
+            shard="$(shard_da_escola "$ESCOLA")"
+            if [ -n "$shard" ] && [ -f "wrangler.$shard.jsonc" ]; then
+              echo "ok: '$ESCOLA' é servida pelo shard '$shard' (wrangler.$shard.jsonc)"
+              exit 0
+            fi
+          fi
+          echo "erro: '$ESCOLA' não é uma escola deste repositório — não tem wrangler.$ESCOLA.jsonc" >&2
+          echo "      nem um índice que a declare num shard." >&2
+          # O ERRO MAIS COMUM, NOMEADO: pôr a TURMA no campo da escola. É o que aconteceu a
+          # 15/11/2026 («batata-rosa» no campo «escola»), e a mensagem anterior só dizia «não é o
+          # nome de um Worker» — verdade, e inútil para quem tinha escrito uma turma que existe.
+          if ls -d professores/*/ciclos/ciclo-[0-9][0-9]-"$ESCOLA" >/dev/null 2>&1; then
+            echo "" >&2
+            echo "…e '$ESCOLA' é uma TURMA deste repositório (há um ciclo-NN-$ESCOLA). A ESCOLA vai" >&2
+            echo "   no campo «escola», e a TURMA no campo «variante»." >&2
+          fi
           echo "" >&2
-          echo "O campo «escola» é o WORKER (o nome do wrangler.<escola>.jsonc), e a TURMA vai no" >&2
-          echo "campo «variante». Exemplo, para a turma de teste da calango:" >&2
-          echo "    escola   = calango                          (o Worker)" >&2
+          echo "O campo «escola» é a ESCOLA (o nome do Worker dela, ou o slug que o índice declara)," >&2
+          echo "e a TURMA vai no campo «variante». Exemplo, para uma turma da calango:" >&2
+          echo "    escola   = calango                          (a escola)" >&2
           echo "    variante = calango-bale-nivel-1-teste-1     (a turma)" >&2
           if [ -n "${VARIANTE:-}" ]; then
             echo "" >&2
             echo "Neste disparo veio variante='$VARIANTE'." >&2
+            if [ -d "escola/$VARIANTE" ] || [ -f "wrangler.$VARIANTE.jsonc" ]; then
+              echo "…e '$VARIANTE' é uma ESCOLA: os dois campos estão trocados." >&2
+            fi
           fi
           echo "" >&2
-          echo "Workers que existem neste repositório:" >&2
-          for f in wrangler.*.jsonc; do
-            [ -e "$f" ] || continue
-            printf '    %s\n' "${f#wrangler.}" | sed 's/\.jsonc$//' >&2
-          done
+          echo "Escolas deste repositório:" >&2
+          if [ -d escola ]; then
+            for d in escola/*/; do
+              slug="$(basename "$d")"
+              if [ -f "wrangler.$slug.jsonc" ]; then
+                printf '    %-24s (Worker próprio)\n' "$slug" >&2
+              else
+                s=""
+                if [ -f "tools/lib-shard.sh" ]; then
+                  # shellcheck disable=SC1091
+                  source tools/lib-shard.sh
+                  s="$(shard_da_escola "$slug")"
+                fi
+                printf '    %-24s (shard %s)\n' "$slug" "${s:-?}" >&2
+              fi
+            done
+          fi
+          if [ -e wrangler.danca.jsonc ]; then
+            printf '    %-24s (a raiz — não é escola)\n' danca >&2
+          fi
           echo "" >&2
           echo "Nada foi gerado e nada foi commitado: a conferência corre antes do gerador." >&2
           exit 1

@@ -46206,3 +46206,60 @@ declarar que não têm sujeito, e correm inteiras no dia em que houver plano.
 `/area-do-professor/aulas-dadas/` responde 200 mas a prova procura ficheiros e não conhece as rotas
 da ponte; e uma asserção sobre página sem `<nav>` não tem sujeito no estado de hoje. Três medições
 do desenho de ontem, nenhuma delas do que mudou aqui.
+
+## 24/11/2026 — o véu da porta, e a conferência do disparo que recusava a escola de shard
+
+Dois defeitos que ela encontrou a usar o sistema. Ambos do mesmo género: uma decisão tomada num
+sítio, aplicada nos outros, e uma cópia que ficou para trás.
+
+**1. «Quando eu fiz a anamnese, não teve o véu. […] o plano de ensino, também sem véu. E o plano de
+observação, também sem véu.»**
+
+Os três actos acontecem na MESMA página — a **porta** (`porta/index.html`, servida em
+`/plano-observacao/`). Em 15/11 o véu da operação passou a `.veu-de-operacao` (a colisão com o véu
+da folha, `722d274e`), e a folha de estilo foi corrigida inteira. A marcação da porta **não**: ficou
+`class="veu"`, que é a classe do véu da **coluna** — `opacity:0`, `z-index:55`. Medido num Chromium,
+com o marcador de ocupação posto: `display:none`, `opacity:0`. O véu cobria a janela e não se via,
+que é indistinguível de não existir.
+
+A segunda metade é a que explica o alcance: `garantirVeu()` só escrevia a classe quando **criava** o
+elemento. Um véu que viesse no HTML ficava com a classe velha para sempre — e é exactamente o caso
+das páginas já publicadas.
+
+**A correcção tem duas metades, e as duas são precisas.** (a) `porta/index.html` passa a declarar
+`veu-de-operacao` — é o que faz os pacotes nascerem certos, e as quatro cópias nos pacotes foram
+actualizadas no mesmo sítio (o `check-identidade` compara-as byte a byte com a fonte). (b) O `nav.js`
+**normaliza a classe de um véu que já existe** — e é esta que alcança as escolas no deploy seguinte,
+sem regerar ciclo nenhum e sem tocar em fonte.
+
+**2. «não existe wrangler.batata.jsonc — 'batata' não é o nome de um Worker.»**
+
+O `gerar-ciclo.yml` conferia o disparo exigindo `wrangler.<escola>.jsonc`. Verdade enquanto toda
+escola tinha o seu Worker; falsa desde o shard — uma escola criada dentro dele não tem config, e é
+isso que a impede de ganhar mais um. O disparo recusava a `batata` e listava `danca` e
+`lastro-teste` como se a escola não existisse.
+
+Passa a perguntar o mesmo que a publicação pergunta, pela mesma função (`shard_da_escola`, de
+`tools/lib-shard.sh`): a escola existe se tem config **ou** se um índice a declara num shard. E o
+erro passou a nomear o engano mais comum — a **turma** no campo da escola («…e `batata-rosa` é uma
+TURMA deste repositório») — em vez de só dizer que não é um Worker. A raiz também passou a ser
+recusada: `danca` tem `wrangler.danca.jsonc` como qualquer escola, e aceitá-la deixaria gerar um
+ciclo para uma escola que não existe.
+
+**Onde entrou.** `porta/index.html` · `tools/templates/nav.js` (+ as 5 cópias: 4 pacotes e a raiz) ·
+`.github/workflows/gerar-ciclo.yml` · `experimentos/provar-a-forma-do-veu.js` (secção F) ·
+`experimentos/provar-cofre-e-shard.js` (a conferência do disparo, executada) · `indices/**`.
+
+**Com o quê.** `provar-a-forma-do-veu` **31/31** (controle negativo 2 de 31, contra o commit que
+renomeou a peça) · `provar-cofre-e-shard` **122/122** (controle 14/42) · `provar-navegacao` 41/41 ·
+`provar-menu-da-producao` 55/55 · `check-identidade` 0 erros · `check-indices` 16/16 ·
+`gerar-indices --check` e `gerar-relacoes --check` em dia.
+
+**O controle negativo do véu também estava a mentir.** Ele comparava contra `HEAD`, e depois de o
+trabalho ser cometido `HEAD` passou a ser a folha NOVA — dizia «A PROVA NÃO PROVA NADA: a folha de
+antes passou tudo». Passa a ancorar no commit que renomeou a peça (`722d274e~1`), que é um ponto que
+não se move. É a segunda vez neste repositório que um controle ancorado em `HEAD` envelhece ao ser
+cometido.
+
+**O que NÃO foi feito.** O `gerar-ciclo` continua a exigir o pacote-zero do professor com os
+pré-requisitos na pasta dele — não foi tocado, e não foi ele que falhou.

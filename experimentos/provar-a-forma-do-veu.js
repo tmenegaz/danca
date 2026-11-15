@@ -56,8 +56,31 @@ function provar(nome, condicao, detalhe) {
  * de hoje — o resto da página é o mesmo, para a comparação ser sobre a folha e só sobre ela. */
 let folha = path.join(RAIZ, 'tools/templates/ciclo.css');
 let destinoNegativo = null;
+
+/**
+ * CONTRA QUE FOLHA CORRE O CONTROLE — e a resposta não pode ser `HEAD` (15/11/2026).
+ *
+ * Era `HEAD`, e funcionou enquanto o trabalho não estava cometido. Cometido, `HEAD` passou a ser a
+ * folha NOVA: o controle comparava a prova com ela mesma, tudo passava, e ele mesmo o disse —
+ * «A PROVA NÃO PROVA NADA: a folha de antes passou tudo». É a mesma armadilha que a
+ * `provar-cofre-e-shard` já pagou uma vez: um controle que envelhece ao ser cometido não é um
+ * controle.
+ *
+ * A âncora passa a ser o commit que RENOMEOU a peça (`.veu` → `.veu-de-operacao`): o pai dele é a
+ * folha imediatamente antes, e esse ponto não se move nunca. `REF_NEGATIVO` sobrepõe-no.
+ */
+function referenciaDaFolhaAntiga() {
+  if (process.env.REF_NEGATIVO) return process.env.REF_NEGATIVO;
+  try {
+    const achou = execSync('git log --diff-filter=M --format=%H -S "veu-de-operacao" -- tools/templates/ciclo.css',
+      { cwd: RAIZ, stdio: 'pipe' }).toString().trim().split('\n').filter(Boolean).pop();
+    if (achou) return achou + '~1';
+  } catch (erro) { /* sem git: cai-se em HEAD, e o controle dirá que não prova nada */ }
+  return 'HEAD';
+}
+
 if (negativo) {
-  const ref = process.env.REF_NEGATIVO || 'HEAD';
+  const ref = referenciaDaFolhaAntiga();
   destinoNegativo = fs.mkdtempSync(path.join(os.tmpdir(), 'veu-forma-'));
   folha = path.join(destinoNegativo, 'style.css');
   fs.writeFileSync(folha, execSync('git show ' + ref + ':tools/templates/ciclo.css',
@@ -291,6 +314,93 @@ async function contrasteDaTinta(png, caixa) {
     trancados: Array.from(document.body.children).filter((x) => x.id !== 'veu' && x.inert).length,
   }));
   provar('…e sai quando a operação acaba', saiu.ocupado === null && saiu.trancados === 0, saiu);
+
+  /* ========================================================================
+   * F. O VÉU DA PORTA — E O QUE ELE CUSTOU A 15/11/2026
+   *
+   * O QUE ELA RELATOU: «quando eu fiz a anamnese, não teve o véu. Quando eu fiz o plano de
+   * ensino, também estava sem véu. E quando eu fiz o plano de observação, também sem véu.»
+   *
+   * Os três actos acontecem na MESMA página — a PORTA (`porta/index.html`, servida em
+   * `/plano-observacao/`). E a porta traz o seu `<div id="veu">` na marcação, ao contrário da
+   * Produção, que também o traz, e das listas, que não trazem nenhum.
+   *
+   * A CAUSA. Em 15/11 a classe do véu da operação passou a `.veu-de-operacao` (a colisão com o
+   * véu da folha), e a folha de estilo foi corrigida inteira. A marcação de `porta/index.html`
+   * NÃO: ficou `class="veu"`, que é a classe do véu da COLUNA — `opacity:0`, `z-index:55`.
+   * Medido num Chromium, com o marcador de ocupação posto: `display:none`, `opacity:0`. O véu
+   * cobria a janela e não se via, que é indistinguível de não existir.
+   *
+   * A SEGUNDA METADE, e é a que alcança o que está publicado: `garantirVeu` só escrevia a classe
+   * quando CRIAVA o elemento. Um véu que viesse no HTML ficava com a classe velha para sempre.
+   *
+   * O QUE SE MEDE AQUI, os dois lados:
+   *   · a FONTE e as cópias dos pacotes declaram `veu-de-operacao` (o que nasce certo);
+   *   · e um véu que venha com a classe VELHA é normalizado pelo `nav.js` e aparece na mesma —
+   *     é o caso das páginas já publicadas, que só se corrigem por aqui.
+   * ====================================================================== */
+  console.log('\nF. o véu da PORTA — a classe certa, e a que vem velha');
+  {
+    const fonte = fs.readFileSync(path.join(RAIZ, 'porta/index.html'), 'utf8');
+    provar('a porta declara o véu da operação com a classe própria',
+      /<div class="veu-de-operacao" id="veu"/.test(fonte), (fonte.match(/<div class="[^"]*" id="veu"/) || [''])[0]);
+    provar('…e já não traz a classe do véu da coluna (`class="veu"`)',
+      !/<div class="veu" id="veu"/.test(fonte), null);
+
+    /* AS CÓPIAS DOS PACOTES. O `check-identidade` compara-as byte a byte com a fonte; aqui
+     * afirma-se o facto que interessa ao véu, para que o defeito não volte por uma regeneração
+     * com uma porta velha. */
+    const copias = execSync('ls -d professores/*/ciclos/ciclo-*/plano-observacao/index.html',
+      { cwd: RAIZ, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+    const erradas = copias.filter((c) => !/<div class="veu-de-operacao" id="veu"/.test(fs.readFileSync(path.join(RAIZ, c), 'utf8')));
+    provar('as ' + copias.length + ' cópias da porta nos pacotes trazem a classe certa', erradas.length === 0, erradas);
+  }
+
+  /* O CASO JÁ PUBLICADO: a marcação VELHA, o `nav.js` de hoje. É a combinação que existe em cada
+   * escola até o próximo deploy — e é ela que tem de funcionar. */
+  {
+    const velha = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>x</title>'
+      + '<link rel="stylesheet" href="/assets/style.css"></head><body>'
+      + '<main><h1>a porta</h1></main>'
+      + '<div class="veu" id="veu" role="status" aria-live="polite">'
+      + '<p class="veu-texto">a trabalhar…</p></div>'
+      + '<script src="/assets/nav.js"></script></body></html>';
+    const srv2 = http.createServer((req, res) => {
+      const rota = req.url.split('?')[0];
+      if (rota === '/assets/style.css') { res.setHeader('content-type', 'text/css'); return res.end(fs.readFileSync(folha)); }
+      if (rota === '/assets/nav.js') { res.setHeader('content-type', 'application/javascript'); return res.end(fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js'))); }
+      if (rota.startsWith('/api/')) { res.setHeader('content-type', 'application/json'); return res.end('{}'); }
+      res.setHeader('content-type', 'text/html'); res.end(velha);
+    });
+    await new Promise((r) => srv2.listen(0, '127.0.0.1', r));
+    const p2 = await nav.newPage();
+    await p2.setViewport({ width: 1280, height: 900 });
+    try {
+      await p2.goto('http://127.0.0.1:' + srv2.address().port + '/plano-observacao/', { waitUntil: 'load' });
+      const antes = await p2.evaluate(() => {
+        const v = document.getElementById('veu');
+        const cs = getComputedStyle(v);
+        return { classe: v.className, display: cs.display, opacity: cs.opacity, z: cs.zIndex };
+      });
+      provar('um véu que vem com a classe VELHA é normalizado pelo `nav.js`',
+        /veu-de-operacao/.test(antes.classe) && !/(^|\s)veu(\s|$)/.test(antes.classe), antes);
+      await p2.evaluate(() => window.LastroDaOperacao.ocupar('a gravar', 'Gravação'));
+      await new Promise((r) => setTimeout(r, 300));
+      const agora = await p2.evaluate(() => {
+        const v = document.getElementById('veu');
+        const cs = getComputedStyle(v);
+        const r = v.getBoundingClientRect();
+        return { display: cs.display, opacity: Number(cs.opacity), z: cs.zIndex,
+          cobre: Math.round(r.width) > 1000 && Math.round(r.height) > 500 };
+      });
+      provar('…e ele APARECE: `display:flex`, opacidade 1, a cobrir a janela',
+        agora.display === 'flex' && agora.opacity === 1 && agora.cobre, agora);
+      provar('…acima da coluna (z-index 120, e não o 55 do véu dela)', Number(agora.z) === 120, agora.z);
+    } finally {
+      await p2.close();
+      srv2.close();
+    }
+  }
 
   await nav.close();
   srv.close();

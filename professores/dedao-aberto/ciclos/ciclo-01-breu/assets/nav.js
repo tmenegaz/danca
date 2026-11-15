@@ -618,6 +618,30 @@
     } else if (veu.parentElement !== document.body) {
       document.body.appendChild(veu);
     }
+    /* A CLASSE DO VÉU QUE VEIO NO HTML TAMBÉM SE CORRIGE (15/11/2026) — e esta linha é um defeito
+     * de produção, não uma limpeza.
+     *
+     * O véu da operação nasceu com a classe `.veu`, a mesma do véu da FOLHA. Em 15/11 ele passou a
+     * `.veu-de-operacao` na folha de estilo — mas a marcação de `porta/index.html` ficou como
+     * estava, e esta função só escrevia a classe quando CRIAVA o elemento. Resultado, medido no
+     * navegador na porta de uma escola: `<div class="veu" id="veu">` com `data-ocupado="sim"`,
+     * `display:none`, `opacity:0`, `z-index:55` — casado pela regra da COLUNA, que nasce
+     * transparente. O véu estava lá, cobria a janela inteira e não se via. Foi o que ela relatou:
+     * «quando eu fiz a anamnese, não teve o véu» — na porta, que é onde a anamnese, o plano de
+     * ensino e o plano de observação se preenchem.
+     *
+     * Normalizar aqui, e não só na fonte que gera os pacotes, é o que alcança as páginas JÁ
+     * PUBLICADAS: o `porta/index.html` corrigido só vale para os pacotes gerados depois, e o
+     * `nav.js` é copiado para dentro de cada pacote e corre em todas as páginas. Uma linha aqui
+     * conserta as nove cópias no deploy seguinte, sem regerar ciclo nenhum.
+     *
+     * A troca é de NOME, não de peça: a coluna continua com o `.veu` dela (sem `id`), e este
+     * elemento é o da operação — o `id="veu"` é o que o distingue, e é por ele que a busca acima
+     * o encontra. */
+    if (veu.classList && !veu.classList.contains('veu-de-operacao')) {
+      veu.classList.remove('veu');
+      veu.classList.add('veu-de-operacao');
+    }
     var cartao = veu.querySelector('.veu-cartao');
     if (!cartao) {
       cartao = document.createElement('div');

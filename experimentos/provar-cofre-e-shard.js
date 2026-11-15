@@ -835,6 +835,61 @@ function cloudflareFalso({ rotas = [] } = {}) {
       provar(fluxo + ' …e sobe a config do SHARD, não a de uma escola', alvo.test(texto), null);
     }
 
+    /* E A CONFERÊNCIA DO DISPARO, EXECUTADA (15/11/2026) — não lida.
+     *
+     * O `gerar-ciclo.yml` recusava uma escola de shard ANTES de gerar: exigia
+     * `wrangler.<escola>.jsonc`, e a `batata` não tem — é o que a impede de ganhar um Worker.
+     * O disparo respondia «'batata' não é o nome de um Worker» e listava `danca` e `lastro-teste`,
+     * como se a escola não existisse. O erro foi dela, no painel.
+     *
+     * O passo é extraído do workflow e CORRIDO, com quatro casos; uma asserção sobre o texto
+     * diria «contém lib-shard.sh» e não diria que a batata passa. */
+    const passoDoDisparo = (() => {
+      const texto = (() => { try { return lerFluxo('gerar-ciclo.yml'); } catch (erro) { return ''; } })();
+      const i = texto.indexOf('- name: Conferir o Worker da escola');
+      if (i === -1) return null;
+      const j = texto.indexOf('run: |', i);
+      if (j === -1) return null;
+      const linhas = texto.slice(j + 'run: |'.length).split('\n').slice(1);
+      const corpo = [];
+      for (const l of linhas) {
+        if (l.trim() === '') { corpo.push(''); continue; }
+        if (!/^ {10}/.test(l)) break;
+        corpo.push(l.slice(10));
+      }
+      return corpo.join('\n');
+    })();
+    if (!passoDoDisparo) {
+      provar('achei o passo «Conferir o Worker da escola» para o executar', false, 'o passo não existe');
+    } else {
+      const correr = (escola, variante) => {
+        const r = require('child_process').spawnSync('bash', ['-c', passoDoDisparo],
+          { cwd: RAIZ, encoding: 'utf8',
+            env: Object.assign({}, process.env, { ESCOLA: escola, VARIANTE: variante || '' }) });
+        return { status: r.status, saida: String(r.stdout || '') + String(r.stderr || '') };
+      };
+      const r1 = correr('calango', 'calango-bale-nivel-1-teste-1');
+      provar('a ESCOLA DE SHARD passa a conferência do disparo (não tem config própria)',
+        r1.status === 0, { status: r1.status, saida: r1.saida.slice(0, 120) });
+      provar('…e a resposta diz por que Worker ela é servida', /lastro-teste/.test(r1.saida), r1.saida.trim().slice(0, 120));
+      /* CONTROLES NEGATIVOS: a conferência não pode passar tudo. */
+      const r2 = correr('danca', 'x');
+      provar('CONTROLE NEGATIVO: a RAIZ é recusada — ela tem config, e não é escola',
+        r2.status !== 0 && /RAIZ/.test(r2.saida), { status: r2.status, saida: r2.saida.slice(0, 100) });
+      const r3 = correr('nao-existe', 'x');
+      provar('CONTROLE NEGATIVO: uma escola inexistente continua a ser recusada', r3.status !== 0, r3.status);
+      /* O CASO DELA, dito: a TURMA no campo da escola («batata-rosa»). A conferência recusa — e
+       * agora NOMEIA o engano, em vez de dizer só que não é um Worker. */
+      const r4 = correr('batata-rosa', '');
+      provar('CONTROLE NEGATIVO: pôr a TURMA no campo da escola é recusado, e o engano é nomeado',
+        r4.status !== 0 && /é uma TURMA/.test(r4.saida), { status: r4.status, saida: r4.saida.slice(-220) });
+      /* OS DOIS CAMPOS TROCADOS: a escola no campo da turma. A conferência só pode dizer isto
+       * quando a «escola» é inválida — se fosse válida, nada haveria a assinalar. */
+      const r5 = correr('nao-existe', 'calango');
+      provar('CONTROLE NEGATIVO: os dois campos trocados são nomeados como trocados',
+        r5.status !== 0 && /trocados/.test(r5.saida), { status: r5.status, saida: r5.saida.slice(-220) });
+    }
+
     /* AS TRÊS ESCOLAS CRIADAS A 15/11 DEIXARAM O MAPA DE RELAÇÕES POR ESCREVER.
      *
      * O `criar-escola.yml` regerava `indices/` e não `indices/relacoes/`. O `regerar-indices.yml`
