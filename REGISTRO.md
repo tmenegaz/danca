@@ -45776,3 +45776,59 @@ reancorar) · `check-indices` 16/16 · `gerar-indices --check` 10 ficheiros em d
 republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
 `regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
 estar de acordo a partir deste commit.
+
+## 15/11/2026 — O mapa de escolas não conhecia a escola de shard
+
+**O que motivou.** Ela criou duas escolas pela página e nenhuma chegou ao repositório. O run
+**43754279538** morreu no passo «Publicar o mapa de escolas» com
+**«nenhuma escola nas configurações — nada a publicar»** e exit **2**. Como esse passo corre *antes*
+de subir o motor e de commitar o scaffold, a criação abortou a meio: o mapa ficou com a escola, o
+repositório sem ela, e o rollback disse — com razão — «não existe Worker com este nome, nada a
+desfazer». O sintoma que ela veria era «criei e não aparece».
+
+**A causa, e é a mesma de ontem noutra peça.** `tools/publicar-mapa-de-escolas.js` derivava o mapa
+percorrendo os `wrangler.*.jsonc` cujo `assets.directory` começa por `publicacao/<escola>`. Uma
+escola de shard **não tem config** — é isso que a impede de ganhar um Worker próprio. A pergunta
+daquele passo é «que host serve que escola», e a resposta deixou de caber nos configs no dia em que
+uma escola deixou de ter um.
+
+**O que foi decidido.**
+- **O mapa passa a ter duas fontes, e não uma.** A de sempre (o config) e a nova: o
+  `escola/<slug>/indice.json` que declara `shard`, com **pacote-zero** — é a mesma marca e o mesmo
+  filtro do `montar-publicacao --shard` e do `deploy-escolas`. As duas entradas escritas são as que
+  o `provisionarDentroDoShard` já grava (o endereço próprio e o `workers.dev`), e escrevê-las aqui
+  também é o que torna o `--podar` inofensivo logo depois de uma criação.
+- **O `--dry-run` deixou de ser a única porta para a regra.** O script era o único do `tools/` que
+  amarravam `RAIZ` a `__dirname` sem escapatória, e o seu IIFE corria ao ser requerido — o que
+  tornava a regra impossível de medir sem uma árvore de mentira no repositório a sério. Passa a
+  aceitar `MR_RAIZ` (mesmo padrão do `--raiz` do `montar-publicacao`) e a exportar as duas funções
+  puras, correndo só como programa (`require.main`).
+- **A conferência do KV deixa de perguntar «não sei onde vive» em cada criação de shard.**
+  `escola/conferir-kv.js` passa a ler o `PADD_KV` do config do **shard** quando a escola declara um
+  no índice. O namespace é o mesmo — o KV é partilhado, e o que separa as escolas são os prefixos.
+  Um aviso que se repete e não se pode resolver ensina a ignorar avisos.
+
+**Onde entrou.** `tools/publicar-mapa-de-escolas.js` (`escolasDeShard`, `temPacoteZero`, `MR_RAIZ`,
+`principal`) · `escola/conferir-kv.js` (`namespaceDoShard`) ·
+`experimentos/provar-cofre-e-shard.js` (as asserções do mapa e da conferência) ·
+`experimentos/provar-kv-da-escola-criada.js` (árvore de mentira, e a asserção do shard).
+
+**Motivo declarado — os congelados.** Toca `tools/publicar-mapa-de-escolas.js`. É a **mesma pergunta
+a aprender uma segunda forma de resposta** que já existia no repositório (o índice com `shard`), e a
+única mudança de comportamento fora disso é o `--dry-run` deixar de exigir `__dirname` fixo. Não
+mudam a fórmula de hash, a cobertura da âncora, os validadores de ciclo, as regras nem as pétreas;
+nenhuma fonte de ciclo foi tocada.
+
+**Com o quê.** `provar-cofre-e-shard` **90/90** (mede o mapa por funções puras: escola de shard com
+pacote entra nas duas formas do endereço, sem pacote não entra, o shard em si não entra, e o mapa
+deixa de estar vazio quando só há escolas de shard — que era o exit 2). Controlo negativo **13/39**,
+com 26 falhas — e a que importa: o publicador de antes **não conhece** `escolasDeShard`.
+`provar-kv-da-escola-criada` **23/23** (era uma prova que **estourava** com `ENOENT` por depender do
+`wrangler.batata.jsonc`, que o expurgo apagou) · `provar-escola-por-host` 21/21 ·
+`provar-proveniencia-do-expurgo` 25/25 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que ainda não está feito.** (1) **As duas escolas não foram criadas de novo** — o pedido é dela,
+pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e o scaffold é o que
+falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
+NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
+suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.

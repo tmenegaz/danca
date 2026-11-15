@@ -90,10 +90,40 @@ function lerJsonc(texto) {
   try { return JSON.parse(saida); } catch { return null; }
 }
 
-/** A morada da escola: o namespace do KV, lido do ficheiro que a identifica. */
+/**
+ * O NAMESPACE DE UM SHARD, quando a escola declara um no índice dela.
+ *
+ * Lê `escola/<slug>/indice.json` (o campo `shard`, escrito pelo `criar-escola.sh --shard`) e vai
+ * buscar o `PADD_KV` ao config DESSE shard. Duas leituras locais, nenhuma rede.
+ */
+function namespaceDoShard(slug, raiz) {
+  const arquivo = path.join(raiz, 'escola', slug, 'indice.json');
+  if (!fs.existsSync(arquivo)) return null;
+  let shard = '';
+  try { shard = String((JSON.parse(fs.readFileSync(arquivo, 'utf8')) || {}).shard || '').trim(); } catch { shard = ''; }
+  if (!shard) return null;
+  const cfg = path.join(raiz, 'wrangler.' + shard + '.jsonc');
+  if (!fs.existsSync(cfg)) return null;
+  const lido = lerJsonc(fs.readFileSync(cfg, 'utf8'));
+  const kv = lido && lido.kv_namespaces && lido.kv_namespaces.find((k) => k && k.binding === 'PADD_KV' && k.id);
+  if (!kv) return null;
+  return { ok: true, namespaceId: String(kv.id), arquivo: path.basename(cfg), viaShard: shard };
+}
+
+/**
+ * A morada da escola: o namespace do KV, lido do ficheiro que a identifica.
+ *
+ * UMA ESCOLA DE SHARD NÃO TEM ESSE FICHEIRO, e a conferência respondia «não sei onde vive o KV
+ * desta escola» a cada criação dentro do shard (visto no run 43754279538). O namespace do shard é
+ * o mesmo da escola: o KV é partilhado, e o que separa as escolas são os prefixos, não o namespace.
+ * Um aviso que se repete e não se pode resolver ensina a ignorar avisos.
+ */
 function namespaceDaEscola(slug, raiz = RAIZ) {
-  const caminho = path.join(raiz, 'wrangler.' + String(slug || '').trim() + '.jsonc');
+  const nome = String(slug || '').trim();
+  const caminho = path.join(raiz, 'wrangler.' + nome + '.jsonc');
   if (!fs.existsSync(caminho)) {
+    const doShard = namespaceDoShard(nome, raiz);
+    if (doShard) return doShard;
     return { ok: false, erro: 'não há `' + path.basename(caminho) + '` — não sei onde vive o KV desta escola' };
   }
   const cfg = lerJsonc(fs.readFileSync(caminho, 'utf8'));

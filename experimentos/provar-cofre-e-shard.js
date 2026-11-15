@@ -563,6 +563,94 @@ function cloudflareFalso({ rotas = [] } = {}) {
         !/nenhuma escola COM PACOTE declara/.test(saida), null);
     }
 
+    /* O MAPA DE ESCOLAS TAMBÉM TINHA DE APRENDER — e foi o que travou a criação dela (15/11/2026).
+     *
+     * Medido no run 43754279538: ela criou a `calango` dentro do shard, o provisionamento
+     * registou-a no mapa, e o passo «Publicar o mapa de escolas» do workflow respondeu «nenhuma
+     * escola nas configurações — nada a publicar» e **saiu com 2**. Como esse passo corre antes de
+     * subir o motor e de commitar o scaffold, a criação abortou a meio: o mapa ficou com a escola,
+     * o repositório sem ela, e o rollback disse (com razão) que não havia Worker a desfazer.
+     *
+     * A pergunta do mapa é «que host serve que escola», e a resposta deixou de caber nos configs
+     * no dia em que uma escola deixou de ter um.
+     *
+     * MEDE-SE PELAS FUNÇÕES, e não pela linha de comando: o `--dry-run` ainda exige o token e lê o
+     * KV, e um `require` do ficheiro ANTIGO executaria o publicador a sério — o controle negativo
+     * não pode depender de o processo não fazer o que o ficheiro manda. */
+    if (NEGATIVO) {
+      /* O CONTROLE: o código de antes não conhece escolas de shard. Lê-se o TEXTO, e não se
+       * requer o módulo — requerê-lo correria o publicador. */
+      const texto = (() => { try { return fs.readFileSync(path.join(RAIZ_DO_CODIGO, 'tools/publicar-mapa-de-escolas.js'), 'utf8'); } catch (erro) { return ''; } })();
+      provar('CONTROLE NEGATIVO: o publicador de antes não conhece escola de shard',
+        !/escolasDeShard/.test(texto), null);
+    } else {
+      const temp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'mapa-shard-'));
+      const escrever = (rel, texto) => {
+        const alvo = path.join(temp3, rel);
+        fs.mkdirSync(path.dirname(alvo), { recursive: true });
+        fs.writeFileSync(alvo, texto, 'utf8');
+      };
+      /* Uma escola de shard COM pacote (entra), uma de shard SEM pacote (é uma expurgada — não
+       * entra: o mapa não afirma um endereço que não responde), e uma de Worker próprio. */
+      escrever('escola/nova/indice.json', JSON.stringify({ escola: 'nova', shard: 'shard-a' }));
+      escrever('escola/morta/indice.json', JSON.stringify({ escola: 'morta', shard: 'shard-a' }));
+      escrever('professores/p/ciclos/ciclo-01-nova/index.html', '<html></html>');
+      escrever('wrangler.lastro-teste.jsonc',
+        '{ "name": "lastro-teste", "PACOTE_PARTILHADO": "sim",'
+        + ' "assets": { "directory": "publicacao" },'
+        + ' "kv_namespaces": [ { "binding": "PADD_KV", "id": "ns-1" } ] }');
+      escrever('wrangler.propria.jsonc',
+        '{ "name": "propria", "assets": { "directory": "publicacao/propria" },'
+        + ' "kv_namespaces": [ { "binding": "PADD_KV", "id": "ns-1" } ] }');
+
+      /* O `MR_RAIZ` é lido no carregamento do módulo — é o mesmo padrão do `--raiz` do
+       * `montar-publicacao`, e existe para esta medição poder apontar a outra árvore. */
+      const anterior = process.env.MR_RAIZ;
+      process.env.MR_RAIZ = temp3;
+      const mapa = carregar('tools/publicar-mapa-de-escolas.js');
+      if (anterior === undefined) delete process.env.MR_RAIZ; else process.env.MR_RAIZ = anterior;
+
+      if (!mapa || typeof mapa.escolasDasConfiguracoes !== 'function') {
+        provar('existem `escolasDasConfiguracoes` e `escolasDeShard` — as duas metades da regra',
+          false, 'não existem');
+        return;
+      }
+      const derivado = mapa.escolasDasConfiguracoes();
+      provar('o mapa reconhece a escola de SHARD — é o passo que travava a criação',
+        derivado['nova.padd.com.br'] === 'nova' && derivado['nova.tmenegaz77.workers.dev'] === 'nova', derivado);
+      provar('…e a de Worker próprio continua a entrar',
+        derivado['propria.tmenegaz77.workers.dev'] === 'propria', derivado);
+      provar('…e uma escola de shard SEM pacote não entra (o mapa não afirma o que não responde)',
+        !Object.values(derivado).includes('morta'), derivado);
+      provar('…e o shard em si não entra como escola',
+        !Object.values(derivado).includes('lastro-teste'), derivado);
+      provar('o mapa deixa de estar vazio quando só há escola de shard (era o exit 2)',
+        Object.keys(derivado).length >= 3, Object.keys(derivado));
+    }
+
+    /* E A CONFERÊNCIA DO KV deixou de perguntar «não sei onde vive» a cada criação de shard. O
+     * namespace de uma escola de shard é o do SHARD — o KV é partilhado, e o que separa as escolas
+     * são os prefixos. Não é um detalhe: um aviso que se repete e não se pode resolver ensina a
+     * ignorar avisos, e o próximo a sério passa despercebido. */
+    {
+      const conf = carregar('escola/conferir-kv.js');
+      if (conf && typeof conf.namespaceDaEscola === 'function') {
+        const temp4 = fs.mkdtempSync(path.join(os.tmpdir(), 'kv-shard-'));
+        fs.mkdirSync(path.join(temp4, 'escola', 'nova'), { recursive: true });
+        fs.writeFileSync(path.join(temp4, 'escola', 'nova', 'indice.json'),
+          JSON.stringify({ escola: 'nova', shard: 'shard-a' }), 'utf8');
+        fs.writeFileSync(path.join(temp4, 'wrangler.shard-a.jsonc'),
+          '{ "name": "shard-a", "kv_namespaces": [ { "binding": "PADD_KV", "id": "ns-do-shard" } ] }', 'utf8');
+
+        const doShard = conf.namespaceDaEscola('nova', temp4);
+        provar('a conferência do KV de uma escola de shard acha o namespace do SHARD',
+          doShard.ok === true && doShard.namespaceId === 'ns-do-shard' && doShard.viaShard === 'shard-a', doShard);
+        const semNada = conf.namespaceDaEscola('inexistente', temp4);
+        provar('…e sem índice e sem config continua a dizer que não sabe (o aviso honesto)',
+          semNada.ok === false && /não sei onde vive/.test(semNada.erro), semNada.erro);
+      }
+    }
+
     /* O helper que os três workflows usam para a mesma pergunta. */
     const linha = require('child_process').spawnSync('bash',
       ['-c', 'source tools/lib-shard.sh; printf "%s|%s" "$(shard_da_escola calango)" "$(shard_da_escola nao-existe)"'],

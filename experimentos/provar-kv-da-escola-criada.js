@@ -82,27 +82,54 @@ const CONTA = 'conta-de-prova';
   // ==========================================================================================
   console.log('\nA. A MORADA — o namespace sai do ficheiro que identifica a escola');
 
-  /* O FICHEIRO REAL, o da `batata` — com os comentários e o `"https://…"` todos lá dentro. */
-  const morada = kv.namespaceDaEscola('batata', RAIZ);
-  checar('lê o `wrangler.batata.jsonc` e acha o namespace', morada.ok === true, morada);
+  /* O FICHEIRO É DE MENTIRA, E A LIÇÃO É REAL (15/11/2026).
+   *
+   * Esta secção lia o `wrangler.batata.jsonc` do repositório — «o ficheiro REAL, o da batata».
+   * Enquanto a `batata` existiu, funcionou; no dia em que ela foi expurgada, a prova passou a
+   * rebentar com `ENOENT` e deixou de medir. Uma prova que depende de uma escola viva morre com
+   * ela, e morre a ESTOURAR — que não diz qual asserção falhou.
+   *
+   * O que se quer medir não é o ficheiro da batata: é a REGRA — que o leitor não confunde o `//`
+   * de um URL com um comentário, e que o namespace sai do `PADD_KV`. Isso cabe numa árvore
+   * temporária com as mesmas armadilhas (o URL com `//` dentro de uma string). */
+  const fs = require('fs');
+  const os = require('os');
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kv-da-escola-'));
+  fs.writeFileSync(path.join(temp, 'wrangler.exemplo.jsonc'),
+    '// o cabeçalho de sempre\n'
+    + '{\n'
+    + '  "name": "exemplo",\n'
+    + '  "$schema": "https://unpkg.com/wrangler/config-schema.json",\n'
+    + '  "main": "workers/principal.js",\n'
+    + '  "assets": { "directory": "publicacao/exemplo", "binding": "ASSETS" },\n'
+    + '  "kv_namespaces": [ { "binding": "PADD_KV", "id": "2ee331c7a5bc446ca86c8f2cb039ec16" } ]\n'
+    + '}\n', 'utf8');
+
+  const morada = kv.namespaceDaEscola('exemplo', temp);
+  checar('lê o `wrangler.<escola>.jsonc` e acha o namespace', morada.ok === true, morada);
   checar('…e o id é o do ficheiro, lido do `kv_namespaces`',
     morada.ok && morada.namespaceId === '2ee331c7a5bc446ca86c8f2cb039ec16', morada.namespaceId);
-  /* A CONTRAPROVA DO LEITOR: os dois leitores de jsonc da casa — este e o do `raiz.js` — têm de
-   * concordar sobre o MESMO ficheiro. Se divergirem, uma das duas moradas está errada, e a
-   * errada é a que o expurgo usa. */
-  const fs = require('fs');
-  const cfgPeloRaiz = raizJs.moradaDaEscola ? null : null; // o raiz lê pelo GitHub; aqui compara-se o parser
-  void cfgPeloRaiz;
-  const texto = fs.readFileSync(path.join(RAIZ, 'wrangler.batata.jsonc'), 'utf8');
-  const viaConferir = kv.lerJsonc(texto);
+  const viaConferir = kv.lerJsonc(fs.readFileSync(path.join(temp, 'wrangler.exemplo.jsonc'), 'utf8'));
   checar('…e o leitor de jsonc não confunde o `//` de um URL com um comentário',
     viaConferir && viaConferir.main === 'workers/principal.js'
-    && viaConferir.assets && viaConferir.assets.directory === 'publicacao/batata',
+    && viaConferir.assets && viaConferir.assets.directory === 'publicacao/exemplo',
     viaConferir && { main: viaConferir.main, assets: viaConferir.assets });
 
-  const semFicheiro = kv.namespaceDaEscola('escola-que-nao-existe', RAIZ);
+  const semFicheiro = kv.namespaceDaEscola('escola-que-nao-existe', temp);
   checar('sem o `wrangler.<escola>.jsonc`, diz que não sabe — não inventa um namespace',
     semFicheiro.ok === false && /não há/.test(semFicheiro.erro), semFicheiro);
+
+  /* A ESCOLA DE SHARD (15/11/2026): sem config dela, o namespace vem do config do SHARD — o KV é
+   * partilhado, e o que separa as escolas são os prefixos. Sem isto, a criação dentro do shard
+   * avisava «não sei onde vive o KV» a cada vez. */
+  fs.mkdirSync(path.join(temp, 'escola', 'nova'), { recursive: true });
+  fs.writeFileSync(path.join(temp, 'escola', 'nova', 'indice.json'),
+    JSON.stringify({ escola: 'nova', shard: 'shard-a' }), 'utf8');
+  fs.writeFileSync(path.join(temp, 'wrangler.shard-a.jsonc'),
+    '{\n  "name": "shard-a",\n  "kv_namespaces": [ { "binding": "PADD_KV", "id": "ns-do-shard" } ]\n}\n', 'utf8');
+  const daShard = kv.namespaceDaEscola('nova', temp);
+  checar('a escola de SHARD acha o namespace no config do shard, e diz que foi por lá',
+    daShard.ok === true && daShard.namespaceId === 'ns-do-shard' && daShard.viaShard === 'shard-a', daShard);
 
   // ==========================================================================================
   console.log('\nB. A CONFERÊNCIA — os dois prefixos da escola, e o que lá está');

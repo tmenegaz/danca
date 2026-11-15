@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T16:24:42-0300`
-Commit atual: `6fb70cf5` — chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
+Gerado em: `2026-11-15T16:52:04-0300`
+Commit atual: `5785700a` — fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -58,7 +58,8 @@ prova-do-shard
 rabo-gramde
 redinha-rosa
 rimel-preto (9)
-- **Ciclos com manifesto:** 10 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -76,6 +77,14 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+5785700a fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
+bb449d49 fix(tools): o shard não é uma escola, e a derivação dizia que era
+1674308b chore(estrutura): regerar os índices derivados
+1f4d875a chore(estrutura): expurgar a escola breu
+8eea97a9 chore(estrutura): regerar os índices derivados
+36473f16 chore(estrutura): expurgar a escola batata
+d3ca2566 chore(estrutura): regerar os índices derivados
+cb4336a5 chore(estrutura): expurgar a escola calango
 6fb70cf5 chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
 7dab1570 fix(experimentos): seis asserções mediam o desenho de ontem, e uma matava a prova
 722d274e fix(template): o véu tinha dois donos, e a folha abria sem escurecer a página
@@ -88,73 +97,25 @@ ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo 
 bdb566f8 fix(experimentos): o controlo negativo ancorava em HEAD e envelhecia ao ser cometido
 0ad9ae36 feat(estrutura): a chave da escola passa a ser derivada, e o cofre mostra a mestra
 c64d05dd feat(tools): a escola nasce dentro do shard, e o expurgo passa a saber qual
-f6d1813b feat(acervo): envelope/.indice.json
-b0c965d6 feat(acervo): envelope/.indice.json
-2e7d91a8 fix(experimentos): os gestos 4 a 7 do shard não precisavam do modelo
-ccb7e2b0 chore(entrega): gerar o pacote de rimel-preto/01/breu-bale-nivel-1-teste-3
-f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
-81c8a145 chore(estrutura): regerar os índices derivados
-20652b05 feat(ciclo): o «Guardar» do PO grava as fontes de breu-bale-nivel-1-teste-3 num commit só
-131e7bc1 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
 
 ### colo-de-pe — 0 ciclo(s)
 
-### coqui-de-redinha — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
-| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Validado | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `4eeee09bfd91` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `e2d4f1663100` | (vazio) | Input_PO_Validado |
+### coqui-de-redinha — 0 ciclo(s)
 
 ### dedao-aberto — 0 ciclo(s)
 
 ### lapis-rosa — 0 ciclo(s)
 
-### pe-torto — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango, calango-piano, calango-rosa
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-| calango | ciclo-01-calango-piano-po.md | Input_PO_Validado | 1 |
-| calango | ciclo-01-calango-rosa-po.md | Input_PO_Validado | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | ciclo-01-calango.fipp | `01741d14bd68` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `aa369d4df6d0` | (vazio) | Input_PO_Validado |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `e28e360c049b` | (vazio) | Input_PO_Validado |
+### pe-torto — 0 ciclo(s)
 
 ### prova-do-shard — 0 ciclo(s)
 
 ### rabo-gramde — 0 ciclo(s)
 
-### redinha-rosa — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu, calango-piano, calango-rosa
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-| calango | ciclo-01-calango-piano-po.md | Input_PO_Validado | 1 |
-| calango | ciclo-01-calango-rosa-po.md | Input_PO_Validado | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `0f95afdfe4a7` | (vazio) | — |
-| calango-piano | ciclo-01-calango-piano.fipp | `4087a296abd0` | (vazio) | Input_PO_Validado |
-| calango-rosa | ciclo-01-calango-rosa.fipp | `d86f7ed8e082` | (vazio) | Input_PO_Validado |
+### redinha-rosa — 0 ciclo(s)
 
 ### rimel-preto — 0 ciclo(s)
 
@@ -205,70 +166,63 @@ f5b37e3e chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O shard não é uma escola, e a lista dizia que era
+## 15/11/2026 — O mapa de escolas não conhecia a escola de shard
 
-**O que motivou.** O expurgo de «lastro-teste» respondido pela página: **«a proveniência desta escola
-não está em ordem — nada foi apagado … `[sem-elo]` a escola não tem elo em
-`escola/lastro-teste/indice.json` … Corrija primeiro: `tools/hash-ciclo.sh …` reancora,
-`node tools/gerar-indices.js` regera o derivado.»** A recusa estava certa e o conselho estava
-errado — não havia nada a reancorar, porque **um shard não é uma escola e nunca terá elo**. Mas a
-pergunta verdadeira é a de cima: porque é que o shard estava na lista das VIVAS com um botão de
-expurgar.
+**O que motivou.** Ela criou duas escolas pela página e nenhuma chegou ao repositório. O run
+**43754279538** morreu no passo «Publicar o mapa de escolas» com
+**«nenhuma escola nas configurações — nada a publicar»** e exit **2**. Como esse passo corre *antes*
+de subir o motor e de commitar o scaffold, a criação abortou a meio: o mapa ficou com a escola, o
+repositório sem ela, e o rollback disse — com razão — «não existe Worker com este nome, nada a
+desfazer». O sintoma que ela veria era «criei e não aparece».
 
-**O que foi a causa.** `motor/nucleo/indices.js` percorria os caminhos e tratava **«existe
-`wrangler.<slug>.jsonc`» como «é uma escola»** — com uma única excepção escrita à mão, a raiz. O
-`wrangler.lastro-teste.jsonc` existe (é por ele que se publica), e por isso o shard nasceu como
-escola no `indices/acervo.json`; a página das vivas lê esse arquivo e listou-o. Uma lista que
-mostra o que não é escola é uma armadilha com botão, e o botão era o expurgo.
+**A causa, e é a mesma de ontem noutra peça.** `tools/publicar-mapa-de-escolas.js` derivava o mapa
+percorrendo os `wrangler.*.jsonc` cujo `assets.directory` começa por `publicacao/<escola>`. Uma
+escola de shard **não tem config** — é isso que a impede de ganhar um Worker próprio. A pergunta
+daquele passo é «que host serve que escola», e a resposta deixou de caber nos configs no dia em que
+uma escola deixou de ter um.
 
 **O que foi decidido.**
-- **A marca é a do deploy, e é uma só.** Um shard declara `PACOTE_PARTILHADO` no config — é a
-  var que o `deploy-escolas.yml` já procurava para não o tratar como escola. Essa marca passa a ser
-  lida num sítio (`gerar-indices.js`, que é quem vê o conteúdo) e passada como `shards` à derivação.
-  Ausente é vazio: quem chamar `construir` sem `shards` vê exactamente o que via antes.
-- **A verificação 5 do `check-indices` aprende o mesmo facto**, e pela mesma lista — uma segunda
-  cópia da regra divergiria no dia em que nascesse um shard novo.
-- **O expurgo de um shard recusa com as palavras certas.** `auditarProvenienciaDaEscola` recebe a
-  lista de scripts de confiança (a mesma que impede apagar o script que serve N escolas) e responde
-  `shard-nao-e-escola`: «para tirar uma escola do ar, expurgue a escola (o endereço dela), e não o
-  shard». Um recado que manda reancorar o que não tem âncora gasta a confiança de quem o lê.
-- **A sujeira saiu do derivado.** `indices/escolas/lastro-teste.json` era órfão e foi removido;
-  `indices/acervo.json` e os cinco índices de ciclo que dependiam da lista foram regerados.
+- **O mapa passa a ter duas fontes, e não uma.** A de sempre (o config) e a nova: o
+  `escola/<slug>/indice.json` que declara `shard`, com **pacote-zero** — é a mesma marca e o mesmo
+  filtro do `montar-publicacao --shard` e do `deploy-escolas`. As duas entradas escritas são as que
+  o `provisionarDentroDoShard` já grava (o endereço próprio e o `workers.dev`), e escrevê-las aqui
+  também é o que torna o `--podar` inofensivo logo depois de uma criação.
+- **O `--dry-run` deixou de ser a única porta para a regra.** O script era o único do `tools/` que
+  amarravam `RAIZ` a `__dirname` sem escapatória, e o seu IIFE corria ao ser requerido — o que
+  tornava a regra impossível de medir sem uma árvore de mentira no repositório a sério. Passa a
+  aceitar `MR_RAIZ` (mesmo padrão do `--raiz` do `montar-publicacao`) e a exportar as duas funções
+  puras, correndo só como programa (`require.main`).
+- **A conferência do KV deixa de perguntar «não sei onde vive» em cada criação de shard.**
+  `escola/conferir-kv.js` passa a ler o `PADD_KV` do config do **shard** quando a escola declara um
+  no índice. O namespace é o mesmo — o KV é partilhado, e o que separa as escolas são os prefixos.
+  Um aviso que se repete e não se pode resolver ensina a ignorar avisos.
 
-**Onde entrou.** `motor/nucleo/indices.js` (a derivação, com `shards`) · `tools/gerar-indices.js`
-(a leitura da marca) · `tools/check-indices.js` (a verificação 5) · `motor/servidor/repo-escola.js`
-(a recusa com nome) · `motor/servidor/raiz.js` (passa `scriptsDeConfianca`) ·
-`indices/**` (regerados) · `experimentos/provar-cofre-e-shard.js` (secção C2).
+**Onde entrou.** `tools/publicar-mapa-de-escolas.js` (`escolasDeShard`, `temPacoteZero`, `MR_RAIZ`,
+`principal`) · `escola/conferir-kv.js` (`namespaceDoShard`) ·
+`experimentos/provar-cofre-e-shard.js` (as asserções do mapa e da conferência) ·
+`experimentos/provar-kv-da-escola-criada.js` (árvore de mentira, e a asserção do shard).
 
-**Motivo declarado — os congelados.** Toca `tools/gerar-indices.js` e `tools/check-indices.js`.
-É a **mesma regra** a passar a conhecer um facto que já existia: dois sítios que perguntavam «este
-config é uma escola?» e respondiam que sim a um shard. Nada muda na fórmula de hash, na cobertura da
-âncora, nos validadores de ciclo, nas regras ou nas pétreas, e nenhuma fonte de ciclo foi tocada —
-o `auditar-proveniencia` das três escolas continua **OK nas três fases**.
+**Motivo declarado — os congelados.** Toca `tools/publicar-mapa-de-escolas.js`. É a **mesma pergunta
+a aprender uma segunda forma de resposta** que já existia no repositório (o índice com `shard`), e a
+única mudança de comportamento fora disso é o `--dry-run` deixar de exigir `__dirname` fixo. Não
+mudam a fórmula de hash, a cobertura da âncora, os validadores de ciclo, as regras nem as pétreas;
+nenhuma fonte de ciclo foi tocada.
 
-**Com o quê.** `provar-cofre-e-shard` **83/83** (a secção C2 reproduz o defeito sem a lista, e mede
-que com ela o shard sai; e mede a recusa do expurgo do shard, incluindo que ela **não** manda
-reancorar) · `check-indices` 16/16 · `gerar-indices --check` 10 ficheiros em dia ·
-`auditar-proveniencia` das três escolas **OK** · `check-identidade` 0 erros.
+**Com o quê.** `provar-cofre-e-shard` **90/90** (mede o mapa por funções puras: escola de shard com
+pacote entra nas duas formas do endereço, sem pacote não entra, o shard em si não entra, e o mapa
+deixa de estar vazio quando só há escolas de shard — que era o exit 2). Controlo negativo **13/39**,
+com 26 falhas — e a que importa: o publicador de antes **não conhece** `escolasDeShard`.
+`provar-kv-da-escola-criada` **23/23** (era uma prova que **estourava** com `ENOENT` por depender do
+`wrangler.batata.jsonc`, que o expurgo apagou) · `provar-escola-por-host` 21/21 ·
+`provar-proveniencia-do-expurgo` 25/25 · `check-indices` 16/16 · `check-identidade` 0 erros.
 
-**O que ainda não está feito.** (1) A raiz em produção continua a listar o shard até ser
-republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
-`regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
-estar de acordo a partir deste commit.
+**O que ainda não está feito.** (1) **As duas escolas não foram criadas de novo** — o pedido é dela,
+pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e o scaffold é o que
+falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
+NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
+suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
 
 ## O que está pendente
-
-## 15/11/2026 — A chave mestra, o expurgo que a conhece, e o cofre
-
-(1) **As três escolas actuais do shard têm `SENHA_CRIPTO`
-irrecuperável** — o segredo é escrito-só (`GET /secrets` devolve nome e tipo) e nasceu aleatório;
-os envelopes de anamnese que elas já gravaram ficam ilegíveis quando forem expurgadas. É o preço de
-ter chave por Worker, e é a razão de o expurgo e a recriação serem o caminho, e não uma migração.
-(2) **O expurgo e a recriação das três escolas não foram corridos por mim** — é gesto dela, e é o
-teste real. (3) `provar-bancadas-e-expurgo` falha **3 de 16** por estado de dados, e não por código:
-não há hoje nenhuma escola registada como expurgada. Medido num `git archive HEAD` limpo, falha
-igual — é anterior a este trabalho. (4) A fronteira «professor desligado que deixa documentos por
-concluir» continua por desenhar; a coordenação decide quem assume, pela definição da turma.
 
 ## 15/11/2026 — A publicação do shard: uma árvore partilhada monta-se inteira
 
@@ -300,6 +254,14 @@ secção degrada para «não esconde nada» — é o ramo antigo, e continua sem
 republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
 `regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
 estar de acordo a partir deste commit.
+
+## 15/11/2026 — O mapa de escolas não conhecia a escola de shard
+
+(1) **As duas escolas não foram criadas de novo** — o pedido é dela,
+pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e o scaffold é o que
+falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
+NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
+suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
 
 ## Pendências anteriores (índice)
 
@@ -746,9 +708,7 @@ estar de acordo a partir deste commit.
 - **15/11/2026** — O carimbo do PDF deixa de depender do fuso de quem gera → `REGISTRO.md` L45283
 - **15/11/2026** — Quem assume os documentos de quem saiu: a definição da turma → `REGISTRO.md` L45344
 - **15/11/2026** — Os gestos 4 a 7 do shard não precisavam do modelo → `REGISTRO.md` L45383
-- **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
-- **pe-torto · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
-- **redinha-rosa · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
+- **15/11/2026** — A chave mestra, o expurgo que a conhece, e o cofre → `REGISTRO.md` L45447
 
 ## Documentos-chave (para leitura)
 
