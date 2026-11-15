@@ -770,8 +770,17 @@ function cloudflareFalso({ rotas = [] } = {}) {
      * matriz seriam dois `wrangler deploy` em paralelo sobre a mesma versão activa — a disputa que
      * a `concurrency` do workflow existe para evitar, e que a matriz atravessa. */
     const descobre = (() => { try { return lerFluxo('deploy-escolas.yml'); } catch (erro) { return ''; } })();
+    /* A REGRA MUDOU DE SÍTIO (24/11/2026): a descoberta deixou de ser `bash` no workflow e passou a
+     * ser `tools/escolas-para-publicar.js`, porque o laço das escolas de shard — escrito em
+     * `node -e` dentro de uma substituição de processo — nunca corria. A asserção segue a regra
+     * para onde ela foi; medi-la no `workflow` passaria a medir o vazio. */
+    const descobreFonte = (() => {
+      try { return fs.readFileSync(path.join(RAIZ_DO_CODIGO, 'tools/escolas-para-publicar.js'), 'utf8'); }
+      catch (erro) { return ''; }
+    })();
     provar('a descoberta do deploy-escolas deduplica pelo ALVO (o shard), e não pela escola',
-      /alvo="shard:\$s"/.test(descobre) && /case "\$vistos" in/.test(descobre), null);
+      /'shard:' \+ shard/.test(descobreFonte)
+      && /tools\/escolas-para-publicar\.js/.test(descobre), null);
   });
 
   /* ---------------------------------------------------------------- E. A chave que não abre */

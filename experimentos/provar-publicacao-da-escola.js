@@ -68,6 +68,11 @@ function escrever(base, rel, texto) {
   fs.writeFileSync(alvo, texto, 'utf8');
 }
 
+/** Carrega uma ferramenta de `tools/` — o `require` relativo, para a prova medir o que o CI corre. */
+function carregarTool(nome) {
+  try { return require(path.join(RAIZ, 'tools', nome)); } catch (erro) { return null; }
+}
+
 /**
  * A ÁRVORE DE PROVA. O pacote-zero traz o que a montagem copia — a apresentação com o `<nav>`, a
  * pele e a porta. Cada turma traz o que o índice lê: o `.conf` (o `NOME`), o `ciclos.json` (o
@@ -493,7 +498,9 @@ function principal() {
       depWf.indexOf('"directory": *"professores/') === -1,
       'o filtro pelo `assets.directory` voltou — é o que deixava `escolas` vazio em todos os runs');
     checar('e descobre pela pasta do pacote-zero, que é a FONTE do site',
-      depWf.indexOf('professores/*/ciclos/ciclo-[0-9][0-9]-"$slug"') !== -1);
+      fs.readFileSync(path.join(RAIZ, 'tools/escolas-para-publicar.js'), 'utf8')
+        .indexOf("'^ciclo-[0-9]{2}-'") !== -1,
+      'a regra do pacote-zero deixou de existir na descoberta');
     /* A MESMA CORREÇÃO DO `criar-escola.yml` (26/10/2026): o comando do deploy passou a ser o
        binário local, e a asserção procurava `npx wrangler deploy`. Lê-se a LINHA de comando. */
     const iMD = depWf.split('\n').findIndex((l) => l.indexOf('montar-publicacao.js') !== -1);
@@ -502,64 +509,66 @@ function principal() {
     checar('e monta a publicação antes de subir (o `assets.directory` é uma SAÍDA, git-ignored)',
       iMD !== -1 && iDD !== -1 && iMD < iDD, { montar: iMD, deploy: iDD });
 
-    // A DESCOBERTA, EXECUTADA. Uma asserção sobre o texto do script diria «contém um glob»; o
-    // que interessa é que ele ENCONTRE a escola viva — e que o mesmo script, sem o pacote,
-    // a descarte. É o teste que o `grep` antigo teria reprovado.
-    // O bloco `run:` do passo `id: lista`, extraído à mão. Não se acrescenta o pacote `yaml`
-    // por causa de uma asserção: o que se precisa é do TEXTO do script, e a indentação do
-    // bloco literal é regular (dez espaços, e o primeiro `<` quebra o bloco).
-    const passo = (() => {
-      const i = depWf.indexOf('- id: lista');
-      if (i === -1) return null;
-      const j = depWf.indexOf('run: |', i);
-      if (j === -1) return null;
-      const linhas = depWf.slice(j + 'run: |'.length).split('\n').slice(1);
-      const corpo = [];
-      for (const l of linhas) {
-        if (l.trim() === '') { corpo.push(''); continue; }
-        if (!/^ {10}/.test(l)) break;
-        corpo.push(l.slice(10));
-      }
-      return { run: corpo.join('\n').replace(/\s+$/, '') };
-    })();
-    if (passo && passo.run) {
-      const rodar = (cwd) => {
-        const saida = path.join(cwd, '.saida-descobrir');
-        const r = spawnSync('bash', ['-c', passo.run], {
-          cwd, encoding: 'utf8',
-          env: Object.assign({}, process.env, { GITHUB_OUTPUT: saida, FILTRO: '' }),
-        });
-        return { r, saida: fs.existsSync(saida) ? fs.readFileSync(saida, 'utf8') : '' };
-      };
-
+    /* A DESCOBERTA, EXECUTADA (24/11/2026).
+     *
+     * Ela era um bloco `bash` com dois laços e um `node -e` embutido, e a bancada extraía o texto
+     * do `run:` para o correr. O problema é que aquilo não media o que dizia medir: o segundo
+     * laço — o das escolas de SHARD — levava um `return` de topo dentro do `node -e`, que o Node
+     * recusa, e como corria numa substituição de processo (`< <(…)`) o erro não chegava ao
+     * `set -e`. O laço lia vazio, o passo dizia sucesso, e a matriz saía `[]`: `publicar` ficava
+     * `skipped` em todos os runs e o motor nunca chegava ao shard. Medido no run 43759456951.
+     *
+     * A descoberta passou a ser `tools/escolas-para-publicar.js` — uma função, que se chama, e
+     * cujo erro propaga. A bancada passa a medir as DUAS fontes e o dedupe. */
+    const descobrir = carregarTool('escolas-para-publicar.js');
+    if (descobrir && typeof descobrir.escolasParaPublicar === 'function') {
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'descobrir-'));
-      /* A BANCADA REPÕE O QUE O PASSO ESPERA ENCONTRAR (24/11/2026). A descoberta passou a
-       * perguntar ao shard (`source tools/lib-shard.sh`) se a escola é servida por ele — e a
-       * bancada isolava o conteúdo num `tmp` sem `tools/`, de modo que o `source` falhava e a
-       * asserção media a ausência da lib, não a descoberta. Copia-se a lib, que é o que existe
-       * na raiz do repositório quando o passo corre a sério. */
-      fs.mkdirSync(path.join(tmp, 'tools'), { recursive: true });
-      fs.copyFileSync(path.join(RAIZ, 'tools', 'lib-shard.sh'), path.join(tmp, 'tools', 'lib-shard.sh'));
-      fs.mkdirSync(path.join(tmp, 'professores', 'um-professor', 'ciclos', 'ciclo-01-escola-viva'), { recursive: true });
-      fs.writeFileSync(path.join(tmp, 'wrangler.escola-viva.jsonc'),
-        '{"assets": {"directory": "publicacao/escola-viva"}}');
-      // Também uma escola EXPURGADA: config presente, pacote ausente. Tem de ser descartada.
-      fs.writeFileSync(path.join(tmp, 'wrangler.escola-morta.jsonc'),
-        '{"assets": {"directory": "publicacao/escola-morta"}}');
-      fs.writeFileSync(path.join(tmp, 'wrangler.danca.jsonc'),
-        '{"assets": {"directory": "raiz"}}');
+      const por = (rel, texto) => escrever(tmp, rel, texto);
+      // (1) uma escola do regime de antes: config + pacote-zero.
+      por('wrangler.escola-viva.jsonc', '{"assets": {"directory": "publicacao/escola-viva"}}');
+      por(path.join('professores', 'um-professor', 'ciclos', 'ciclo-01-escola-viva', 'index.html'), '<html></html>');
+      // (2) uma escola EXPURGADA: config presente, pacote ausente. Tem de ser descartada.
+      por('wrangler.escola-morta.jsonc', '{"assets": {"directory": "publicacao/escola-morta"}}');
+      // (3) a raiz: nunca entra.
+      por('wrangler.danca.jsonc', '{"assets": {"directory": "raiz"}}');
+      // (4) o SHARD: não é escola, e a config dele não pode virar uma entrada.
+      por('wrangler.lastro-teste.jsonc',
+        '{"assets": {"directory": "publicacao"}, "vars": {"PACOTE_PARTILHADO": "sim"}}');
+      // (5) UMA ESCOLA DE SHARD — sem config nenhuma, e é este o caso que nunca correu.
+      por(path.join('escola', 'da-shard', 'indice.json'), JSON.stringify({ escola: 'da-shard', shard: 'lastro-teste' }));
+      por(path.join('professores', 'um-professor', 'ciclos', 'ciclo-01-da-shard', 'index.html'), '<html></html>');
+      // (6) OUTRA escola do MESMO shard: duas escolas, um só Worker.
+      por(path.join('escola', 'outra-shard', 'indice.json'), JSON.stringify({ escola: 'outra-shard', shard: 'lastro-teste' }));
+      por(path.join('professores', 'um-professor', 'ciclos', 'ciclo-01-outra-shard', 'index.html'), '<html></html>');
+      // (7) uma escola de shard EXPURGADA: sem pacote-zero.
+      por(path.join('escola', 'morta-shard', 'indice.json'), JSON.stringify({ escola: 'morta-shard', shard: 'lastro-teste' }));
 
-      const { r, saida } = rodar(tmp);
+      const lista = descobrir.escolasParaPublicar({ raiz: tmp });
+      checar('a descoberta ENCONTRA a escola com config e pacote-zero', lista.indexOf('escola-viva') !== -1, lista);
+      checar('e DESCARTA a expurgada (config presente, pacote ausente)', lista.indexOf('escola-morta') === -1, lista);
+      checar('e deixa a raiz de fora', lista.indexOf('danca') === -1, lista);
+      checar('e NÃO trata o shard como escola (a config do shard tem `PACOTE_PARTILHADO`)',
+        lista.indexOf('lastro-teste') === -1, lista);
+      /* O DEFEITO QUE O RUN 43759456951 MOSTROU: sem esta asserção, o shard fica de fora e a
+       * correção do motor nunca chega lá. */
+      checar('e ENCONTRA a escola que nasceu DENTRO do shard, que não tem config nenhuma',
+        lista.indexOf('da-shard') !== -1, lista);
+      checar('…uma vez só para o MESMO shard — duas entradas seriam dois deploys do mesmo Worker',
+        lista.filter((e) => e === 'da-shard' || e === 'outra-shard').length === 1, lista);
+      checar('…e descarta a escola de shard expurgada (o índice sobrevive ao expurgo)',
+        lista.indexOf('morta-shard') === -1, lista);
+      const filtrada = descobrir.escolasParaPublicar({ raiz: tmp, filtro: 'escola-viva' });
+      checar('o filtro do `workflow_dispatch` continua a valer',
+        filtrada.join() === 'escola-viva', filtrada);
       fs.rmSync(tmp, { recursive: true, force: true });
-      const encontradas = (/escolas=(.*)/.exec(saida) || [])[1] || '';
-      checar('a descoberta ENCONTRA a escola viva', encontradas.indexOf('escola-viva') !== -1,
-        { encontradas, stderr: r.stderr });
-      checar('e DESCARTA a expurgada (config presente, pacote ausente)',
-        encontradas.indexOf('escola-morta') === -1, encontradas);
-      checar('e deixa a raiz de fora', encontradas.indexOf('danca') === -1, encontradas);
+
+      /* O WORKFLOW CHAMA O SCRIPT — e não guarda uma segunda cópia da regra. */
+      checar('o `deploy-escolas.yml` corre `tools/escolas-para-publicar.js`',
+        depWf.indexOf('tools/escolas-para-publicar.js') !== -1);
+      checar('…e já não tem o `node -e` com `return` de topo, que não corria',
+        depWf.indexOf('if (!fs.existsSync(dir)) return;') === -1);
     } else {
-      checar('achei o passo de descoberta no `deploy-escolas.yml` para o executar', false,
-        'o passo `lista` não existe — a asserção sobre o texto não verifica o comportamento');
+      checar('existe `escolasParaPublicar` — a descoberta, como função', false, 'não existe');
     }
 
     const prov = fs.readFileSync(path.join(RAIZ, 'motor/servidor/provisionar-escola.js'), 'utf8');

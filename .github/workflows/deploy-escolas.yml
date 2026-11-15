@@ -118,107 +118,21 @@ jobs:
           FILTRO: ${{ github.event.inputs.escola }}
         run: |
           set -euo pipefail
-          filtro="${FILTRO:-}" 
-          lista='[]'
-          # O ALVO, E NÃO A ESCOLA, É O QUE NÃO SE REPETE (15/11/2026). Duas escolas do mesmo
-          # shard são o MESMO Worker: duas entradas na matriz seriam dois `wrangler deploy` em
-          # paralelo sobre a mesma versão activa — a disputa que o comentário da `concurrency`
-          # descreve. Guarda-se o alvo de cada entrada já aceite.
-          source tools/lib-shard.sh
-          vistos=' '
-          for cfg in wrangler.*.jsonc; do
-            [ -f "$cfg" ] || continue
-            slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
-            [ "$slug" = danca ] && continue
-            # O SHARD NÃO É UMA ESCOLA (15/11/2026). Ele serve N escolas a partir de
-            # `publicacao/`, e não tem pacote-zero nem `assets.directory` de escola. Este laço
-            # publica ESCOLAS; deixá-lo apanhar o `wrangler.lastro-teste.jsonc` faria o passo da
-            # montagem procurar um pacote-zero com o nome de um shard. O shard tem o seu próprio
-            # caminho de publicação, e é declarado — não descoberto.
-            grep -q '"PACOTE_PARTILHADO"' "$cfg" && continue
-            # A ESCOLA EXPURGADA NÃO SE PUBLICA (19/10/2026). O expurgo apaga o Worker e as
-            # chaves do KV, mas o `wrangler.<slug>.jsonc` e o pacote só saem do repositório
-            # noutro commit. Um run que JÁ ESTAVA na fila quando a escola foi apagada sobe
-            # depois com o commit antigo — e `wrangler deploy` RECRIA o Worker de uma escola
-            # que já não existe. O sintoma seria o pior possível: o expurgo parece ter
-            # falhado, ou a escola volta ao ar sozinha. O pacote é o que a escola SERVE; sem
-            # ele não há o que publicar.
-            #
-            # A FONTE DO SITE é o pacote-zero, e é ele que se procura — em qualquer professor,
-            # porque a escola pode ter turmas de mais de um. O `assets.directory` NÃO entra
-            # nesta conta: ele aponta a SAÍDA (`publicacao/<slug>`), que é git-ignored e só
-            # existe depois da montagem.
-            dir=$(ls -d professores/*/ciclos/ciclo-[0-9][0-9]-"$slug" 2>/dev/null | head -1 || true)
-            if [ -z "$dir" ] || [ ! -d "$dir" ]; then
-              echo "pulando $slug — o pacote-zero de '$slug' já não existe (escola expurgada)"
-              continue
-            fi
-            if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
-            alvo="$slug"; s="$(shard_da_escola "$slug")"; [ -n "$s" ] && alvo="shard:$s"
-            case "$vistos" in *" $alvo "*) echo "pulando $slug — o Worker «$alvo» já está na lista"; continue ;; esac
-            vistos="$vistos$alvo "
-            lista=$(printf '%s' "$lista" | node -e '
-              const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
-              l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
-          done
-
-          # AS ESCOLAS DE SHARD NÃO TÊM CONFIG, E POR ISSO NÃO APARECIAM AQUI (15/11/2026).
+          filtro="${FILTRO:-}"
+          # A DESCOBERTA É UM SCRIPT, E NÃO UM BLOCO `bash` (24/11/2026). Aqui estiveram dois
+          # laços e um `node -e` embutido, e o segundo laço — o das escolas de shard — nunca
+          # correu: o `node -e` levava um `return` de topo, que o Node recusa, e como corria numa
+          # substituição de processo (`< <(…)`) o erro não chegava ao `set -e`. O `while` lia
+          # vazio, o passo dizia sucesso, e a matriz saía `[]` — `publicar` ficava `skipped` em
+          # TODOS os runs, e o motor nunca chegava ao shard. Medido no run 43759456951.
           #
-          # Uma escola criada dentro de um shard não ganha `wrangler.<escola>.jsonc` — seria ela a
-          # fazer o laço de cima subir mais um Worker. Consequência que ninguém tinha visto: o
-          # shard NUNCA era republicado quando o pacote de uma escola dele mudava, e a escola
-          # gerava documentos que o site não mostrava. A lista vem do índice (`escola/<slug>/
-          # indice.json`, campo `shard`), que é onde o `criar-escola.sh --shard` a escreve.
-          #
-          # UMA ENTRADA POR SHARD, E NÃO UMA POR ESCOLA. O passo de publicação monta o shard
-          # inteiro e sobe o mesmo Worker: três escolas do mesmo shard seriam três deploys
-          # idênticos. Fica a primeira, por ordem alfabética — e é indiferente qual é, porque o
-          # que se monta e sobe é o todo.
-          while IFS= read -r slug; do
-            [ -n "$slug" ] || continue
-            case "$lista" in *"\"$slug\""*) continue ;; esac
-            if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
-            alvo="$slug"; s="$(shard_da_escola "$slug")"; [ -n "$s" ] && alvo="shard:$s"
-            case "$vistos" in *" $alvo "*) echo "pulando $slug — o Worker «$alvo» já está na lista"; continue ;; esac
-            vistos="$vistos$alvo "
-            lista=$(printf '%s' "$lista" | node -e '
-              const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
-              l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
-          done < <(node -e '
-            const fs = require("fs");
-            const path = require("path");
-            const raiz = process.cwd();
-            const dir = path.join(raiz, "escola");
-            if (!fs.existsSync(dir)) return;
-            const porShard = new Map();
-            for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
-              if (!item.isDirectory()) continue;
-              const arq = path.join(dir, item.name, "indice.json");
-              if (!fs.existsSync(arq)) continue;
-              let shard = "";
-              try { shard = String((JSON.parse(fs.readFileSync(arq, "utf8")) || {}).shard || "").trim(); }
-              catch (erro) { shard = ""; }
-              if (!shard) continue;
-              // O pacote-zero é o que a escola SERVE; sem ele não há o que publicar — a mesma
-              // regra do laço de cima, e a que impede o deploy de ressuscitar uma escola expurgada.
-              const professores = path.join(raiz, "professores");
-              if (!fs.existsSync(professores)) continue;
-              let temPacote = false;
-              for (const prof of fs.readdirSync(professores)) {
-                const ciclos = path.join(professores, prof, "ciclos");
-                if (!fs.existsSync(ciclos)) continue;
-                for (const nome of fs.readdirSync(ciclos)) {
-                  if (new RegExp("^ciclo-[0-9]{2}-" + item.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$").test(nome)
-                    && fs.statSync(path.join(ciclos, nome)).isDirectory()) { temPacote = true; break; }
-                }
-                if (temPacote) break;
-              }
-              if (!temPacote) continue;
-              if (!porShard.has(shard) || item.name < porShard.get(shard)) porShard.set(shard, item.name);
-            }
-            for (const [, escola] of [...porShard.entries()].sort()) console.log(escola);
-          ')
-
+          # A regra e as duas fontes estão em `tools/escolas-para-publicar.js`, onde uma falha
+          # falha — e onde a prova as pode medir com fixtures.
+          if [ -n "$filtro" ]; then
+            lista=$(node tools/escolas-para-publicar.js --filtro "$filtro")
+          else
+            lista=$(node tools/escolas-para-publicar.js)
+          fi
           echo "escolas=$lista" >> "$GITHUB_OUTPUT"
           echo "descobertas: $lista"
 
