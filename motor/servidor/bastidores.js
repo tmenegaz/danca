@@ -15677,6 +15677,21 @@ async function fetch(request, env, extras) {
   // registado, e escolhê-la daria uma linha no vazio. O carimbo vai junto porque é ele que a
   // cascata compara com a decisão da linha de base — e mostrá-lo aqui poupa uma segunda leitura.
   if (path === '/api/bastidores/alunas-com-anamnese') {
+    /* QUANTAS ALUNAS EXISTEM, LIDA ANTES DE `alunas` SER SOMBREADO (15/11/2026).
+     *
+     * Aqui dentro, `const alunas = …marcarNovas(…)` declara uma LISTA com o nome da FUNÇÃO que lê
+     * o KV (`alunas(kv, escola)`). No mesmo escopo o `const` vale para o bloco inteiro — mesmo
+     * antes da sua linha, por TDZ. A primeira versão desta contagem chamava `alunas(kv, escola)`
+     * lá dentro, caía no `catch`, e a rota passava a responder «não consegui ler o acervo agora»
+     * em TODAS as escolas. Medido no ar depois do deploy: `ok:false` na `breu` e na `batata`,
+     * quando a mesma rota respondia `ok:true` minutos antes.
+     *
+     * A correção é de SÍTIO, e não de nome: a contagem é feita aqui, antes de a sombra existir.
+     * Renomear a lista seria mais uma mudança no ficheiro grande, e o nome dela está certo — o que
+     * faltava era distância. E a prova passou a CHAMAR a rota: um `grep` no fonte não apanha um
+     * erro de escopo, e foi por isso que o defeito atravessou a bancada. */
+    let registradas = 0;
+    try { registradas = (await alunas(kv, escola)).length; } catch (erro) { registradas = 0; }
     const legado = criarCloudflare(env);
     const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
     try {
@@ -15707,7 +15722,6 @@ async function fetch(request, env, extras) {
        * Custa UMA leitura de KV (`bastidores/<escola>/alunas`), a mesma que a Produção já faz. A
        * alternativa — a tela pedir `/api/bastidores/alunas` em paralelo — seria um segundo pedido
        * para responder a uma pergunta que esta rota já está a fazer. */
-      const registradas = (await alunas(kv, escola)).length;
       return json(200, { ok: true, escola, alunas, registradas });
     } catch (erro) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas

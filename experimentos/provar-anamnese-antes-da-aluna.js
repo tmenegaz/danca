@@ -50,8 +50,10 @@ function envDeEscola() {
     async delete(k) { this._dados.delete(k); },
     async list() { return { keys: [], list_complete: true }; },
   };
-  /* A ESCOLA TEM UM PROFESSOR (senão a Área do Professor está fechada e mediríamos o freio). */
+  /* A ESCOLA TEM UM PROFESSOR (senão a Área do Professor está fechada e mediríamos o freio) e
+   * TEM ALUNAS CADASTRADAS — sem elas não se mede a distinção que esta prova existe para medir. */
   kv._dados.set('bastidores/batata/professores', JSON.stringify([{ nome: 'Coqui De Redinha', slug: 'coqui-de-redinha' }]));
+  kv._dados.set('bastidores/batata/alunas', JSON.stringify(['Aluna A', 'Aluna B']));
   const assets = {
     async fetch(req) {
       /* O `ASSETS.fetch` DO RUNTIME ACEITA UM `URL` (e a ponte passa um). O de mentira tem de
@@ -88,14 +90,29 @@ function envDeEscola() {
   provar('a Produção responde 200', pagina.status === 200, pagina.status);
   provar('o passo 2 sabe distinguir as duas faltas (usa `ALUNAS_REGISTRADAS`)',
     /ALUNAS_REGISTRADAS/.test(html), null);
-  provar('e o servidor publica essa contagem na rota das alunas com anamnese',
-    /registradas/.test(require('fs').readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8')), null);
+  /* A ROTA, CHAMADA A SÉRIO — e não procurada no código-fonte.
+   *
+   * A PRIMEIRA VERSÃO DESTA PROVA FAZIA `grep` NO FICHEIRO e passou com a rota a responder
+   * `ok:false` em TODAS as escolas: a contagem chamava `alunas(kv, escola)` dentro do escopo onde
+   * `const alunas = …` sombreia a função, caía no `catch` e a rota dizia «não consegui ler o
+   * acervo agora». Um `grep` não apanha um erro de escopo — um pedido apanha. É a diferença entre
+   * medir o texto e medir o comportamento, e é a razão de esta asserção existir assim. */
+  const rota = await producao.fetch(
+    new Request('https://batata.padd.com.br/api/bastidores/alunas-com-anamnese'), env);
+  const corpoRota = await rota.json();
+  provar('a rota das alunas com anamnese responde `ok:true`', corpoRota.ok === true, corpoRota);
+  provar('…e devolve quantas alunas estão CADASTRADAS (2, nesta bancada)',
+    corpoRota.registradas === 2, corpoRota.registradas);
+  provar('…sem inventar retratos: ninguém tem anamnese ainda',
+    Array.isArray(corpoRota.alunas) && corpoRota.alunas.length === 0, corpoRota.alunas);
   provar('o recado de «sem aluna» existe, e manda CADASTRAR primeiro',
     /Nenhuma aluna cadastrada/.test(html) && /Cadastrar a aluna →/.test(html), null);
   provar('…e diz a ORDEM: cadastrar, e depois a anamnese',
     /cadastre a aluna, e depois faça a anamnese dela/i.test(html), null);
   provar('o recado de «sem anamnese» continua a existir, para quando a aluna já existe',
     /Nenhuma aluna com anamnese/.test(html), null);
+  provar('a página alimenta a contagem a partir da rota (e não de uma contagem própria)',
+    /ALUNAS_REGISTRADAS = \(d && typeof d\.registradas === "number"\)/.test(html), null);
 
   /* ── B. O DESTINO DO LINK ─────────────────────────────────────────────────────────────────── */
   provar('o link da anamnese aponta para a LISTA, e não para o formulário',
