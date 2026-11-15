@@ -1,19 +1,19 @@
 {
   "escola": "calango",
-  "worker": "calango",
+  "worker": "lastro-teste",
   "criado_em": "2026-10-19T18:18:57.289485+00:00",
   "professor": {
-    "slug": "pe-torto",
-    "nome": "Pe Torto"
+    "slug": "pe-pequeno",
+    "nome": "Pé Pequeno"
   },
-  "responsavel": "Pe Torto",
+  "responsavel": "Pé Pequeno",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -1150,14 +1150,29 @@
         "slug": "rabo-gramde",
         "nome": "Rabo Grande"
       }
-    }
-  ],
-  "professores": [
+    },
     {
-      "slug": "redinha-rosa",
-      "nome": "Redinha Rosa",
-      "desde": "2026-11-10T22:14:54.241Z"
+      "em": "2026-11-15T20:09:56.900588+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "pe-pequeno",
+        "nome": "Pé Pequeno"
+      },
+      "responsavel": "Pé Pequeno",
+      "ciclo": "01",
+      "professores_anteriores": [
+        {
+          "slug": "redinha-rosa",
+          "nome": "Redinha Rosa",
+          "desde": "2026-11-10T22:14:54.241Z"
+        }
+      ],
+      "professor_anterior": {
+        "slug": "pe-torto",
+        "nome": "Pe Torto"
+      }
     }
   ],
+  "professores": [],
   "shard": "lastro-teste"
 }
