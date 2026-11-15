@@ -124,6 +124,12 @@ jobs:
             [ -f "$cfg" ] || continue
             slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
             [ "$slug" = danca ] && continue
+            # O SHARD NÃO É UMA ESCOLA (15/11/2026). Ele serve N escolas a partir de
+            # `publicacao/`, e não tem pacote-zero nem `assets.directory` de escola. Este laço
+            # publica ESCOLAS; deixá-lo apanhar o `wrangler.lastro-teste.jsonc` faria o passo da
+            # montagem procurar um pacote-zero com o nome de um shard. O shard tem o seu próprio
+            # caminho de publicação, e é declarado — não descoberto.
+            grep -q '"PACOTE_PARTILHADO"' "$cfg" && continue
             # A ESCOLA EXPURGADA NÃO SE PUBLICA (19/10/2026). O expurgo apaga o Worker e as
             # chaves do KV, mas o `wrangler.<slug>.jsonc` e o pacote só saem do repositório
             # noutro commit. Um run que JÁ ESTAVA na fila quando a escola foi apagada sobe

@@ -933,7 +933,32 @@ async function fetch(request, env) {
     const PARAMS_DO_ATO = ['professor', 'ciclo', 'aluna', 'plano', 'editar', 'ajustar', 'novo', 'ato'];
     const ehAPaginaDaPorta = rel === '/' || rel === '/index.html';
     const temContexto = PARAMS_DO_ATO.some((chave) => (url.searchParams.get(chave) || '').trim());
-    if (ehAPaginaDaPorta && !temContexto) {
+    /* O MEIO-TERMO DA ANAMNESE — CONTEXTO PARCIAL E SEM SUJEITO (15/11/2026).
+     *
+     * A guarda acima desvia o endereço VAZIO. Faltava o caso que ela viu: `?professor=…&escola=…`
+     * — o professor declarado, a aluna ausente —, que passava por ter «contexto» e servia o
+     * formulário. A porta exige o ato INTEIRO (escola, professor, ALUNA) e devolvia a pessoa à
+     * lista pelo JavaScript, de modo que o formulário aparecia e fugia. As palavras dela: «ele
+     * está levando para dentro de uma anamnese sem seleção de professor e sem seleção de aluna.
+     * […] essa rota tem que ser uma rota bloqueada».
+     *
+     * O `302` passa a ser dado AQUI, antes de a página existir. Assim não há pisca, e o pedido
+     * não chega a montar o formulário.
+     *
+     * O QUE NÃO SE DESVIA, e são as três coisas que ficariam fechadas se a condição fosse mais
+     * larga:
+     *   · o contexto VAZIO segue a regra de cima (ele já era desviado, e continua);
+     *   · os atalhos que trazem o contexto do ENVELOPE — `editar`, `ajustar`, `novo`, `ato` —,
+     *     que chegam sem `aluna` porque a aluna viaja dentro do registo;
+     *   · o plano e o PO, que não têm aluna nenhuma no contexto (a regra é só da anamnese). */
+    const ehPaginaDaAnamnese = rel === '/' || rel === '/index.html'
+      ? (path === PREFIXO_ANAMNESE || path.startsWith(PREFIXO_ANAMNESE + '/'))
+      : false;
+    const temAluna = (url.searchParams.get('aluna') || '').trim() !== '';
+    const atalhoDoRegisto = ['editar', 'ajustar', 'novo', 'ato']
+      .some((chave) => (url.searchParams.get(chave) || '').trim() !== '');
+    const semSujeito = ehPaginaDaAnamnese && !temAluna && !atalhoDoRegisto;
+    if (ehAPaginaDaPorta && (!temContexto || semSujeito)) {
       const lista = listasDoAcervo.listaDaPorta(path);
       if (lista) {
         return new Response(null, {

@@ -2944,6 +2944,18 @@ function contextoDaPorta(env, escola, url) {
 }
 
 /** A URL de uma página da porta com o contexto que se tem — e mais nada. */
+/**
+ * ONDE A ANAMNESE COMEÇA — a LISTA, e não o formulário (15/11/2026).
+ *
+ * A porta (`/anamnese/`) exige o ato inteiro para abrir: escola, professor e **aluna**. Quem entra
+ * sem a aluna é devolvido à lista em silêncio — um formulário que aparece e foge. E o menu, o
+ * atalho da Área do Professor e o passo 2 do elenco mandavam todos para lá com o professor só.
+ *
+ * O sítio onde a anamnese começa é este: é na lista que se escolhe de quem é o retrato, e é dela
+ * que se abre o formulário com o sujeito dentro. Um link leva aonde a coisa se faz.
+ */
+const LISTA_DA_ANAMNESE = '/area-do-professor/anamnese/';
+
 function urlDaPorta(base, contexto, extra) {
   const partes = contexto && contexto.query ? [contexto.query] : [];
   // `extra` é uma string (o caso de sempre) ou uma LISTA delas: o endereço de uma etapa junta
@@ -2966,7 +2978,10 @@ function urlDaPorta(base, contexto, extra) {
 function topnav(contexto, onde, extras) {
   return navSistema({
     atual: onde,
-    anamnese: urlDaPorta('/anamnese/', contexto),
+    /* O ITEM DO MENU LEVA À LISTA (15/11/2026) — levava ao formulário, com o professor e sem a
+     * aluna, e a porta devolvia a pessoa à lista sem dizer nada. O destino de «Anamnese do aluno»
+     * é a lista dos retratos da escola; o formulário abre-se de lá, com o sujeito escolhido. */
+    anamnese: LISTA_DA_ANAMNESE,
     plano: urlDaPorta('/plano-ensino/', contexto, 'fonte=plano'),
     po: urlDaPorta('/plano-observacao/', contexto, 'fonte=po'),
     extras: extras || '',
@@ -3088,7 +3103,9 @@ function paginaEstudio(escola, contexto, aparencia) {
     '<div class="vista">' +
     '<h1>Estúdio de Dança</h1>' +
     '<p>Esta é a cena — a vista que a direção e o professor partilham. O que a cena produz sobe para cá.</p>' +
-    '<p><a href="' + urlDaPorta('/anamnese/', contexto) + '">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
+    /* A MESMA RAZÃO DO MENU (15/11/2026): abrir a Área do Professor é abrir a lista, não um
+     * formulário que ainda não tem sujeito. */
+    '<p><a href="' + LISTA_DA_ANAMNESE + '">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
     '</div>' +
     fimDaVista();
 }
@@ -6644,12 +6661,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       semOrigem: ROTULO_ALUNAS_SEM_ORIGEM,
       destino: ROTULO_DESTINO,
     }) + ';' +
-    /* O CAMINHO DA ANAMNESE, PARA ONDA O PASSO 2 MANDA QUEM AINDA NÃO TEM RETRATO (07/11/2026).
+    /* O CAMINHO DA ANAMNESE É A LISTA, E NÃO O FORMULÁRIO (15/11/2026).
      *
-     * Vem do SERVIDOR, e não é escrito à mão aqui: `/anamnese/` é a mesma rota que o menu já
-     * usa (`urlDaPorta`, com o professor e a escola na query), e uma segunda cópia do endereço
-     * apontaria para outra escola no dia em que o contexto mudasse. */
-    'var ANAMNESE_DO_ALUNO = ' + JSON.stringify(urlDaPorta('/anamnese/', contexto)) + ';' +
+     * AQUI ESTEVE `urlDaPorta('/anamnese/', contexto)` — o formulário, com o professor e a escola
+     * na query e SEM a aluna. E era esse o defeito que ela viu: «quando eu clico no link, ao invés
+     * de ele levar para um lugar aonde eu posso fazer o começo da anamnese, ele está levando para
+     * dentro de uma anamnese sem seleção de professor e sem seleção de aluna».
+     *
+     * A porta exige o contexto do ato INTEIRO — escola, professor e aluna (`podePreencher`, em
+     * `porta/index.html`) —, e quem entra sem ele é devolvido à lista em silêncio. O resultado era
+     * o pior dos dois mundos: um formulário que aparece e foge. O sítio onde a anamnese COMEÇA é a
+     * lista: é lá que se escolhe de quem é o retrato, e é de lá que se abre o formulário já com o
+     * sujeito. Um link deve prometer o que cumpre.
+     *
+     * Vem do SERVIDOR e não é escrita à mão: uma segunda cópia do endereço apontaria para outro
+     * sítio no dia em que a lista mudasse — e a lista mudou de sítio em 24/10/2026. */
+    'var LISTA_DA_ANAMNESE = ' + JSON.stringify(LISTA_DA_ANAMNESE) + ';' +
     /* A FORMA DO NÍVEL, POR TRADIÇÃO (03/11/2026), DECLARADA ANTES DE SER USADA.
      *
      * Vai para o cliente porque é ele que repovoa o `<select>` do grau quando a tradição muda — o
@@ -12707,6 +12734,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (uma que fica acesa depois de o trabalho estar feito ensina a ignorá-la). */
     'var REVISOES_DOS_ELENCOS = ' + JSON.stringify(revisoesDosElencosDaEscola) + ';' +
     'var ALUNAS_COM_ANAMNESE = [];' +
+    /* QUANTAS ALUNAS EXISTEM NA ESCOLA (15/11/2026). Vem do servidor, na mesma resposta que traz
+     * quem tem retrato — ver `registradas` em `/api/bastidores/alunas-com-anamnese`. É este número
+     * que distingue «falta a anamnese» de «falta a aluna», e a diferença decide o recado. */
+    'var ALUNAS_REGISTRADAS = 0;' +
     // O PASSO EM QUE SE ESTÁ, e as faltas de cada passo. Uma variável, não um atributo no DOM: é
     // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
     'var LB_PASSO = 1;' +
@@ -13046,19 +13077,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * AS PEÇAS SÃO AS DA CASA: `.sub` para o texto, `.aviso.alerta` para a instrução que não é
      * decorativa, `a.acao.secundario.pequena` para a ligação que se clica (a mesma combinação
      * que a ficha usa nas setas da matriz), `.par-botoes` para a fileira. Nenhuma classe nova. */
+    /* DUAS FALTAS DIFERENTES, DOIS RECADOS (15/11/2026).
+     *
+     * O recado era um só — «preencha a anamnese de uma aluna» —, e ele está certo quando a aluna
+     * existe. Numa escola recém-criada ele manda fazer a anamnese de uma aluna que ainda não foi
+     * cadastrada, e isso é um beco: a anamnese PEDE o sujeito, e a porta devolve quem entra sem ele.
+     *
+     * A pesquisadora pediu a distinção com estas palavras: «se eu não tenho aluna, a mensagem
+     * precisa ser informando o professor e após o cadastro da aluna, fazer a anamnese da aluna».
+     * O número que a decide vem do servidor (`registradas`, em `/api/bastidores/alunas-com-anamnese`)
+     * — a tela não conta o que não leu.
+     *
+     * O MESMO DESTINO, DOIS CAMINHOS: sem aluna, o gesto é CADASTRAR (a secção «Alunas» desta mesma
+     * página, que o menu da coluna já abre em `#alunas`); com aluna e sem retrato, o gesto é a
+     * ANAMNESE, e o endereço dela é a LISTA — não o formulário, que sem o sujeito não abre. */
     'function estadoVazioDeAlunas() {' +
-    '  return "<div class=\\"aviso alerta\\">" +' +
-    '    "<p><b>Nenhuma aluna com anamnese.</b></p>" +' +
-    '    "<p>Este passo recorta o CORPO das alunas — e o corpo lê-se da anamnese. Sem pelo menos " +' +
-    '    "uma anamnese registada não há aluna para escolher, e por isso o passo 2 fica fechado.</p>" +' +
-    '    "<p>A anamnese é obrigatória: é ela que diz o que o grupo mostra, e é dela que saem os " +' +
-    '    "aspectos do recorte. Registe a de UMA aluna e este passo abre.</p>" +' +
+    '  var semAluna = !ALUNAS_REGISTRADAS;' +
+    '  var caixa = "<div class=\\"aviso alerta\\">" +' +
+    '    (semAluna' +
+    '      ? "<p><b>Nenhuma aluna cadastrada.</b></p>" +' +
+    '        "<p>Este passo recorta o CORPO das alunas, e o corpo lê-se da anamnese. Mas a " +' +
+    '        "anamnese é de uma ALUNA: sem ninguém cadastrado não há de quem a fazer, e por isso " +' +
+    '        "o passo 2 fica fechado.</p>" +' +
+    '        "<p>A ordem é esta: cadastre a aluna, e depois faça a anamnese dela. É a anamnese que " +' +
+    '        "diz o que o grupo mostra, e é dela que saem os aspectos do recorte.</p>"' +
+    '      : "<p><b>Nenhuma aluna com anamnese.</b></p>" +' +
+    '        "<p>Este passo recorta o CORPO das alunas — e o corpo lê-se da anamnese. Sem pelo " +' +
+    '        "menos uma anamnese registada não há aluna para escolher, e por isso o passo 2 fica " +' +
+    '        "fechado.</p>" +' +
+    '        "<p>A anamnese é obrigatória: é ela que diz o que o grupo mostra, e é dela que saem " +' +
+    '        "os aspectos do recorte. Registe a de UMA aluna e este passo abre.</p>") +' +
     '    "</div>" +' +
     '    "<p class=\\"par-botoes\\"><a class=\\"acao secundario pequena\\" href=\\"" +' +
-    '    escHtml(ANAMNESE_DO_ALUNO) + "\\">Preencher a anamnese de uma aluna →</a></p>" +' +
-    '    "<p class=\\"sub\\">O elenco que já nomeou fica gravado como rascunho — não se perde. " +' +
-    '    "Ao voltar, a lista aparece já com as alunas retratadas: esta secção recarrega sozinha " +' +
-    '    "quando a janela volta a estar à frente, sem ser preciso recarregar a página.</p>";' +
+    '    (semAluna ? "#alunas" : escHtml(LISTA_DA_ANAMNESE)) + "\\">" +' +
+    '    (semAluna ? "Cadastrar a aluna →" : "Ir à anamnese das alunas →") + "</a></p>" +' +
+    '    "<p class=\\"sub\\">" +' +
+    '    (semAluna' +
+    '      ? "As alunas cadastram-se nesta mesma página, em Pessoas → Alunas. Voltando aqui, " +' +
+    '        "este passo mostra quem já tem retrato."' +
+    '      : "A anamnese começa na lista: escolhe-se a aluna e abre-se o formulário já com ela.") +' +
+    '    " O elenco que já nomeou fica gravado como rascunho — não se perde. Ao voltar, esta " +' +
+    '    "secção recarrega sozinha quando a janela volta a estar à frente, sem ser preciso " +' +
+    '    "recarregar a página.</p>";' +
     '}' +
     'function pintarAlunas(escolhidas) {' +
     '  var alvo = document.getElementById("lb-alunas");' +
@@ -13114,6 +13174,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      ALUNAS_COM_ANAMNESE = (d && d.alunas) || [];' +
+    '      ALUNAS_REGISTRADAS = (d && typeof d.registradas === "number") ? d.registradas : 0;' +
     '      pintarAlunas(alunasMarcadas());' +
     '      var aviso = document.getElementById("lb-sem-anamnese");' +
     '      if (aviso) {' +
@@ -13122,10 +13183,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O TEXTO DIZ O QUE AINDA ABRE E O QUE ESPERA (07/11/2026). Dizia «nenhum passo se abre», e
      * desde que o passo 1 deixou de depender de retrato isso passou a ser falso — e um aviso que
      * mente sobre o que está disponível faz o professor desistir do que podia fazer. */
-    '          "Ainda não há nenhuma anamnese registada nesta escola. Pode nomear o elenco e ' +
+    /* O AVISO DIZ A MESMA VERDADE QUE A CAIXA DO PASSO 2 (15/11/2026) — e pela mesma razão: sem
+     * aluna cadastrada, mandar «fazer a anamnese» é mandar a um beco. Duas frases, uma para cada
+     * falta; o número vem do servidor e é o mesmo que a caixa usa. */
+    '          (!ALUNAS_REGISTRADAS' +
+    '            ? "Ainda n\u00e3o h\u00e1 nenhuma aluna cadastrada nesta escola. Pode nomear o elenco e ' +
+    'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas — e a anamnese \u00e9 de ' +
+    'uma aluna. Cadastre a primeira em «Pessoas \u2192 Alunas», e depois fa\u00e7a a anamnese dela: os ' +
+    'passos 2 a 4 abrem quando houver a anamnese de pelo menos uma aluna."' +
+    '            : "Ainda n\u00e3o h\u00e1 nenhuma anamnese registada nesta escola. Pode nomear o elenco e ' +
     'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas, e sem retrato n\u00e3o h\u00e1 ' +
     'o que recortar — os passos 2 a 4 abrem quando houver a anamnese de pelo menos uma aluna, ' +
-    'em «Anamnese do aluno».";' +
+    'na lista da anamnese.");' +
     '      }' +
     '      if (!ALUNAS_COM_ANAMNESE.length) { travarTudo(); }' +
     '      pintarTravasLb();' +
@@ -15627,7 +15696,19 @@ async function fetch(request, env, extras) {
         linhas,
         [...porAluna.entries()].map(([aluna, carimbo]) => ({ aluna, carimbo })),
       ).sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt'));
-      return json(200, { ok: true, escola, alunas });
+      /* QUANTAS ALUNAS EXISTEM, E NÃO SÓ QUANTAS TÊM RETRATO (15/11/2026).
+       *
+       * O pedido, ao vivo, na `batata` recém-criada: «eu ainda não tenho aluna; então essa mensagem
+       * precisa ser inteligente — se eu não tenho aluna, a mensagem precisa informar o professor, e
+       * após o cadastro da aluna, fazer a anamnese». Sem este número, a tela sabia que NINGUÉM tem
+       * anamnese e não sabia distinguir as duas causas — e mandava fazer a anamnese de uma aluna
+       * que ainda não existe, o que é um beco: a anamnese pede o sujeito.
+       *
+       * Custa UMA leitura de KV (`bastidores/<escola>/alunas`), a mesma que a Produção já faz. A
+       * alternativa — a tela pedir `/api/bastidores/alunas` em paralelo — seria um segundo pedido
+       * para responder a uma pergunta que esta rota já está a fazer. */
+      const registradas = (await alunas(kv, escola)).length;
+      return json(200, { ok: true, escola, alunas, registradas });
     } catch (erro) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
        * diferentes, e a tela tem de as distinguir para poder dizer a verdade. */
