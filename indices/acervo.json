@@ -125,14 +125,14 @@
         "ciclo:redinha-rosa/01/breu"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-14T01:16:40.127242+00:00",
       "expurgada": false,
@@ -147,7 +147,9 @@
         "redinha-rosa",
         "rimel-preto"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261115-1348"
+      ],
       "slug": "breu"
     },
     {
@@ -251,7 +253,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 49,
+        "contagem": 50,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -334,7 +336,7 @@
     ],
     "tipos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       },
@@ -352,9 +354,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2fbd0d6"
+    "commit": "b8080bb"
   },
-  "gerado_em": "2026-11-15T15:47",
+  "gerado_em": "2026-11-15T16:48",
   "nao_indexado": [
     {
       "familia": "conteudo",

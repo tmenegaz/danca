@@ -71,14 +71,14 @@
       "ciclo:redinha-rosa/01/breu"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-14T01:16:40.127242+00:00",
     "expurgada": false,
@@ -93,11 +93,22 @@
       "redinha-rosa",
       "rimel-preto"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261115-1348"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261115-1348"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
     "estados": [
       {
@@ -111,8 +122,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261115-1348",
           "ciclo:redinha-rosa/01/breu"
         ],
         "rotulo": "redinha-rosa",
@@ -120,6 +132,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261115-1348"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -132,9 +152,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2fbd0d6"
+    "commit": "b8080bb"
   },
-  "gerado_em": "2026-11-15T15:47",
+  "gerado_em": "2026-11-15T16:48",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -158,6 +178,17 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261115-1348",
+      "ciclo": null,
+      "data": "2026-11-15T13:48",
+      "id": "anamnese:anamnese-20261115-1348",
+      "professor": "redinha-rosa",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }
