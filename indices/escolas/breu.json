@@ -1,5 +1,46 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "flexibilidade-anteroposterior-grand-ecart",
+      "contagem": 1,
+      "ids": [
+        "recorte:fitas"
+      ],
+      "primeira": "20261115-1649",
+      "ultima": "20261115-1649",
+      "versoes": 1
+    },
+    {
+      "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
+      "contagem": 1,
+      "ids": [
+        "recorte:fitas"
+      ],
+      "primeira": "20261115-1649",
+      "ultima": "20261115-1649",
+      "versoes": 1
+    },
+    {
+      "aspecto": "meia-ponta",
+      "contagem": 1,
+      "ids": [
+        "recorte:fitas"
+      ],
+      "primeira": "20261115-1649",
+      "ultima": "20261115-1649",
+      "versoes": 1
+    },
+    {
+      "aspecto": "orientacao-espacial-basica",
+      "contagem": 1,
+      "ids": [
+        "recorte:fitas"
+      ],
+      "primeira": "20261115-1649",
+      "ultima": "20261115-1649",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +118,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-14T01:16:40.127242+00:00",
@@ -109,7 +150,40 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:fitas"
+        ],
+        "rotulo": "flexibilidade-anteroposterior-grand-ecart",
+        "valor": "flexibilidade-anteroposterior-grand-ecart"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:fitas"
+        ],
+        "rotulo": "forca-excentrica-recuo-na-flexao-de-tronco",
+        "valor": "forca-excentrica-recuo-na-flexao-de-tronco"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:fitas"
+        ],
+        "rotulo": "meia-ponta",
+        "valor": "meia-ponta"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:fitas"
+        ],
+        "rotulo": "orientacao-espacial-basica",
+        "valor": "orientacao-espacial-basica"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -152,9 +226,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b8080bb"
+    "commit": "25f235b"
   },
-  "gerado_em": "2026-11-15T16:48",
+  "gerado_em": "2026-11-15T16:49",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -177,7 +251,39 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "flexibilidade-anteroposterior-grand-ecart",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "meia-ponta",
+        "orientacao-espacial-basica"
+      ],
+      "atualizada_em": "2026-11-15T16:49:28.480Z",
+      "enviada_em": "2026-11-15T16:49:29.030Z",
+      "id": "recorte:fitas",
+      "linha": "fitas",
+      "nome": "fitas",
+      "professor": "rimel-preto",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/fitas--20261115-1649.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "orientacao-espacial-basica"
+          ],
+          "enviada_em": "2026-11-15T16:49:29.030Z",
+          "versao": "20261115-1649"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
