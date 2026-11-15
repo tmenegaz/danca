@@ -10,9 +10,9 @@ type: Ciclo
 professor: lapis-rosa
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: 4ccf89ca13d53227fa0595123118ab5e261c24c5b18f5b4c216c807b777c0687
+hash_conteudo: 1d19d9379cffb5235abb5559b99e3344ff39e1f7da9253ae40fa9c17275ab488
 parentHash: 
-hash: 21b3b0f808e3485e7de478a7a5a6f58e173521494f39c079950a12be6c39df07
+hash: 8960cf5eb7aa435110910a34040b60fe544ec6999b1f61899f511db6e956d86e
 algoritmo: SHA-256
 po: professores/lapis-rosa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Validado
