@@ -132,7 +132,26 @@ function lerDoDisco() {
     ancoras[caminho] = lerAncora(texto);
   }
 
-  return { caminhos, inventarios, envelopes, ancoras, recortes: lerRecortes(caminhos) };
+  /* OS SHARDS — os scripts que servem N escolas (15/11/2026).
+   *
+   * A marca é a mesma que o `deploy-escolas.yml` já procura para não os tratar como escola: a
+   * var `PACOTE_PARTILHADO`. Ler o conteúdo aqui, e não uma lista escrita à mão, faz com que
+   * acrescentar um shard não exija lembrar de nada em dois sítios.
+   *
+   * O QUE ISTO CONSERTA, dito pelo que aconteceu: o `wrangler.lastro-teste.jsonc` existe, e a
+   * derivação tratava «existe config» como «é escola» — o shard entrou no `indices/acervo.json`,
+   * a página das VIVAS passou a listá-lo, e o expurgo que ela disparou recusou com `sem-elo` (e
+   * bem: não há `escola/lastro-teste/indice.json`, porque um shard não tem elo de escola). Uma
+   * lista que mostra o que não é escola é uma armadilha com botão. */
+  const shards = [];
+  for (const caminho of caminhos) {
+    const m = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
+    if (!m) continue;
+    const texto = lerTexto(caminho);
+    if (texto && /"PACOTE_PARTILHADO"/.test(texto)) shards.push(m[1]);
+  }
+
+  return { caminhos, inventarios, envelopes, ancoras, shards, recortes: lerRecortes(caminhos) };
 }
 
 /**
@@ -145,6 +164,8 @@ function construir({ agora } = {}) {
     fonte: { commit: commitAtual(), arvore: null },
     agora: agora || new Date().toISOString().slice(0, 16),
     arvores: mundo.caminhos,
+    /* O shard não é escola — ver o bloco de `lerDoDisco`. */
+    shards: mundo.shards,
     inventarios: mundo.inventarios,
     envelopes: mundo.envelopes,
     ancoras: mundo.ancoras,

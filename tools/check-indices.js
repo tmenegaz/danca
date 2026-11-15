@@ -96,6 +96,11 @@ function carregarMundo() {
   return {
     disco: { existe, ler: lerTexto },
     caminhos: gerador.caminhosDoAcervo(),
+    /* OS SHARDS, pela MESMA leitura do gerador (15/11/2026). Sem isto, esta verificação exigia
+     * que o `wrangler.lastro-teste.jsonc` tivesse entrada de escola no acervo — e a derivação,
+     * corrigida do outro lado, deixou de a produzir. As duas metades da mesma regra têm de ler o
+     * mesmo: uma marca `PACOTE_PARTILHADO` no config, lida num sítio só. */
+    shards: gerador.lerDoDisco().shards,
     indices: lerIndicesDoDisco(),
     gerado,
     esquema,
@@ -260,16 +265,20 @@ const VERIFICACOES = [
   {
     n: 5,
     nome: 'Cobertura',
-    regra: 'todo `wrangler.*.jsonc` (menos a raiz) tem entrada, e toda entrada não expurgada tem config',
+    regra: 'todo `wrangler.*.jsonc` que é de uma ESCOLA (menos a raiz e os shards) tem entrada, e toda entrada não expurgada tem config',
     rodar(ctx) {
       const falhas = [];
       const acervo = ctx.indices.get('indices/acervo.json');
       if (!acervo) return ['indices/acervo.json: ausente — sem ele não há cobertura a medir'];
+      /* O SHARD NÃO ENTRA NA COBERTURA (15/11/2026): ele tem config e não é escola. A exclusão é
+       * a mesma marca que a derivação usa (`PACOTE_PARTILHADO`), e vem do mesmo sítio — uma
+       * segunda lista aqui divergiria da primeira no dia em que um shard nascesse. */
+      const shards = new Set(Array.isArray(ctx.shards) ? ctx.shards : []);
       const configs = new Set(
         ctx.caminhos
           .filter((c) => /^wrangler\.[a-z0-9-]+\.jsonc$/.test(c))
           .map((c) => c.replace(/^wrangler\./, '').replace(/\.jsonc$/, ''))
-          .filter((slug) => slug !== 'danca'),
+          .filter((slug) => slug !== 'danca' && !shards.has(slug)),
       );
       const noIndice = new Map(acervo.escolas.map((e) => [e.slug, e]));
       for (const slug of configs) {
