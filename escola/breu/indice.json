@@ -835,6 +835,12 @@
       }
     }
   ],
-  "professores": [],
+  "professores": [
+    {
+      "slug": "prova-do-shard",
+      "nome": "Prova Do Shard",
+      "desde": "2026-11-15T20:15:45.813Z"
+    }
+  ],
   "shard": "lastro-teste"
 }
