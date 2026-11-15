@@ -1,0 +1,600 @@
+{
+  "_nota": "MAPA DE RELAÇÕES materializado (ARQUITETURA-GERAL.md §7.4). Derivado, nunca fonte. Cada aresta nomeia em `chave` o campo que a produziu. Guarda chave, tipo, data e vínculo — nunca conteúdo: os rótulos vêm do contexto, e nas anamneses as respostas vão cifradas.",
+  "_ponte": {
+    "_nota": "Os dois vocabulários do mesmo aspecto. `campo` é o id do universo da anamnese; `aspecto` é a chave calculada pelo lançamento (Vistas.helpers.chaveDoItem). Ligam-se PELO NOME — é a correspondência, não uma igualdade de identificadores, e é a costura mais frágil do encadeamento.",
+    "pares": [],
+    "semCorrespondencia": []
+  },
+  "arestas": [
+    {
+      "chave": "ancora.aula_id",
+      "de": "ancora:rimel-preto/01/batata-rosa/aula-01",
+      "para": "aula:rimel-preto/01/batata-rosa/01",
+      "tipo": "ancora"
+    },
+    {
+      "chave": "ancora.ciclo_id",
+      "de": "ancora:rimel-preto/01/batata-rosa",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "ancora"
+    },
+    {
+      "chave": "aula.ancora_id",
+      "de": "aula:rimel-preto/01/batata-rosa/01",
+      "para": "ancora:rimel-preto/01/batata-rosa/aula-01",
+      "tipo": "ancorada_por"
+    },
+    {
+      "chave": "aula.marco",
+      "de": "aula:rimel-preto/01/batata-rosa/01",
+      "para": "marco:rimel-preto/01/batata-rosa/01",
+      "tipo": "persegue"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/01",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/02",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/03",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/04",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/05",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/06",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/07",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/08",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/09",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/10",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/11",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/12",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/13",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/14",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/15",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/16",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/17",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/18",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/19",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/20",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/21",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/22",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/23",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/24",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/25",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:rimel-preto/01/batata-rosa/26",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "indice.aulas[].config",
+      "de": "captura:rimel-preto/01/batata-rosa/01",
+      "para": "aula:rimel-preto/01/batata-rosa/01",
+      "tipo": "declara_o_que_se_observa"
+    },
+    {
+      "chave": "escola",
+      "de": "ciclo:rimel-preto/01/batata-rosa",
+      "para": "escola:batata",
+      "tipo": "acontece_em"
+    },
+    {
+      "chave": "ciclo.professor",
+      "de": "ciclo:rimel-preto/01/batata-rosa",
+      "para": "professor:rimel-preto",
+      "tipo": "dado_por"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/aula-01",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/aula-01",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/captura-aula-01",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/captura-aula-01",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/glossario-benesh",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/glossario-benesh",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/harmonizacao",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/harmonizacao",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/notacao",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/notacao",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/plano",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/plano",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/po",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:rimel-preto/01/batata-rosa/referencias",
+      "para": "ancora:rimel-preto/01/batata-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:rimel-preto/01/batata-rosa/referencias",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "plano.marcosPorAula[]",
+      "de": "marco:rimel-preto/01/batata-rosa/01",
+      "para": "documento:rimel-preto/01/batata-rosa/plano",
+      "tipo": "esta_em"
+    },
+    {
+      "chave": "plano.contexto-turma",
+      "de": "turma:batata/rosa",
+      "para": "ciclo:rimel-preto/01/batata-rosa",
+      "tipo": "cursa"
+    }
+  ],
+  "ciclo": "rimel-preto/01/batata-rosa",
+  "contagens": {
+    "arestas": 50,
+    "marcas": 0,
+    "nos": 45,
+    "porTipo": {
+      "ancora": 2,
+      "aspecto": 3,
+      "aula": 26,
+      "captura": 1,
+      "ciclo": 1,
+      "documento": 8,
+      "escola": 1,
+      "marco": 1,
+      "professor": 1,
+      "turma": 1
+    }
+  },
+  "escola": "batata",
+  "escopo": "ciclo",
+  "lacunas": [
+    "a linha de base da turma: não há acto gravado em `escola/batata/linhas-de-base/` para «Rosa» — sem ele, o recorte e as leituras das anamneses não têm origem"
+  ],
+  "nos": [
+    {
+      "id": "ancora:rimel-preto/01/batata-rosa",
+      "rotulo": "ciclo-01-batata-rosa.fipp",
+      "tipo": "ancora"
+    },
+    {
+      "id": "ancora:rimel-preto/01/batata-rosa/aula-01",
+      "rotulo": "ciclo-01-batata-rosa-aula-01.fipp",
+      "tipo": "ancora"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:a_meia_ponta",
+      "rotulo": "a meia ponta",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:flexibilidade_dos_adutores",
+      "rotulo": "Flexibilidade dos adutores",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Técnica",
+      "id": "aspecto:teste",
+      "rotulo": "Teste",
+      "tipo": "aspecto"
+    },
+    {
+      "data": "2027-02-01",
+      "id": "aula:rimel-preto/01/batata-rosa/01",
+      "rotulo": "Aula 01",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-03",
+      "id": "aula:rimel-preto/01/batata-rosa/02",
+      "rotulo": "Aula 02",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-08",
+      "id": "aula:rimel-preto/01/batata-rosa/03",
+      "rotulo": "Aula 03",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-10",
+      "id": "aula:rimel-preto/01/batata-rosa/04",
+      "rotulo": "Aula 04",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-15",
+      "id": "aula:rimel-preto/01/batata-rosa/05",
+      "rotulo": "Aula 05",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-17",
+      "id": "aula:rimel-preto/01/batata-rosa/06",
+      "rotulo": "Aula 06",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-22",
+      "id": "aula:rimel-preto/01/batata-rosa/07",
+      "rotulo": "Aula 07",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-02-24",
+      "id": "aula:rimel-preto/01/batata-rosa/08",
+      "rotulo": "Aula 08",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-01",
+      "id": "aula:rimel-preto/01/batata-rosa/09",
+      "rotulo": "Aula 09",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-03",
+      "id": "aula:rimel-preto/01/batata-rosa/10",
+      "rotulo": "Aula 10",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-08",
+      "id": "aula:rimel-preto/01/batata-rosa/11",
+      "rotulo": "Aula 11",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-10",
+      "id": "aula:rimel-preto/01/batata-rosa/12",
+      "rotulo": "Aula 12",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-15",
+      "id": "aula:rimel-preto/01/batata-rosa/13",
+      "rotulo": "Aula 13",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-17",
+      "id": "aula:rimel-preto/01/batata-rosa/14",
+      "rotulo": "Aula 14",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-22",
+      "id": "aula:rimel-preto/01/batata-rosa/15",
+      "rotulo": "Aula 15",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-24",
+      "id": "aula:rimel-preto/01/batata-rosa/16",
+      "rotulo": "Aula 16",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-29",
+      "id": "aula:rimel-preto/01/batata-rosa/17",
+      "rotulo": "Aula 17",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-03-31",
+      "id": "aula:rimel-preto/01/batata-rosa/18",
+      "rotulo": "Aula 18",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-05",
+      "id": "aula:rimel-preto/01/batata-rosa/19",
+      "rotulo": "Aula 19",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-07",
+      "id": "aula:rimel-preto/01/batata-rosa/20",
+      "rotulo": "Aula 20",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-12",
+      "id": "aula:rimel-preto/01/batata-rosa/21",
+      "rotulo": "Aula 21",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-14",
+      "id": "aula:rimel-preto/01/batata-rosa/22",
+      "rotulo": "Aula 22",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-19",
+      "id": "aula:rimel-preto/01/batata-rosa/23",
+      "rotulo": "Aula 23",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-21",
+      "id": "aula:rimel-preto/01/batata-rosa/24",
+      "rotulo": "Aula 24",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-26",
+      "id": "aula:rimel-preto/01/batata-rosa/25",
+      "rotulo": "Aula 25",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-04-28",
+      "id": "aula:rimel-preto/01/batata-rosa/26",
+      "rotulo": "Aula 26",
+      "tipo": "aula"
+    },
+    {
+      "id": "captura:rimel-preto/01/batata-rosa/01",
+      "rotulo": "captura-aula-01.json",
+      "tipo": "captura",
+      "tipoDocumento": "captura"
+    },
+    {
+      "id": "ciclo:rimel-preto/01/batata-rosa",
+      "rotulo": "Ciclo 01 — Batata · Rosa",
+      "tipo": "ciclo"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/aula-01",
+      "rotulo": "aula-01",
+      "tipo": "documento",
+      "tipoDocumento": "aula-01"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/captura-aula-01",
+      "rotulo": "captura-aula-01",
+      "tipo": "documento",
+      "tipoDocumento": "captura-aula-01"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/glossario-benesh",
+      "rotulo": "glossario-benesh",
+      "tipo": "documento",
+      "tipoDocumento": "glossario-benesh"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/harmonizacao",
+      "rotulo": "harmonizacao",
+      "tipo": "documento",
+      "tipoDocumento": "harmonizacao"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/notacao",
+      "rotulo": "notacao",
+      "tipo": "documento",
+      "tipoDocumento": "notacao"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/plano",
+      "rotulo": "plano",
+      "tipo": "documento",
+      "tipoDocumento": "plano"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/po",
+      "rotulo": "po",
+      "tipo": "documento",
+      "tipoDocumento": "po"
+    },
+    {
+      "id": "documento:rimel-preto/01/batata-rosa/referencias",
+      "rotulo": "referencias",
+      "tipo": "documento",
+      "tipoDocumento": "referencias"
+    },
+    {
+      "id": "escola:batata",
+      "rotulo": "Batata",
+      "tipo": "escola"
+    },
+    {
+      "id": "marco:rimel-preto/01/batata-rosa/01",
+      "rotulo": "Teste",
+      "tipo": "marco"
+    },
+    {
+      "id": "professor:rimel-preto",
+      "rotulo": "rimel-preto",
+      "tipo": "professor"
+    },
+    {
+      "id": "turma:batata/rosa",
+      "rotulo": "Rosa",
+      "tipo": "turma"
+    }
+  ],
+  "turma": "Rosa",
+  "versao": 1
+}

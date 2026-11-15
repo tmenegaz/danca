@@ -34,15 +34,18 @@
     "documento:aula:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
     "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.cifrado.json",
     "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
+    "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
     "documento:declaracao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
     "documento:glossario:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
     "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
+    "documento:indice:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
     "documento:notacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
     "documento:plano:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
     "documento:po:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
     "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
+    "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -60,7 +63,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -78,6 +81,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -105,7 +113,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -113,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9126634"
+    "commit": "6c8cf07"
   },
-  "gerado_em": "2026-11-15T22:22",
+  "gerado_em": "2026-11-15T22:49",
   "id": "ciclo:rimel-preto/01/batata",
   "professor": "rimel-preto",
   "versao": 7

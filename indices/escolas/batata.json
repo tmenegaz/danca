@@ -106,6 +106,9 @@
         "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
         "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
         "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
+        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
+        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
+        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
         "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
         "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
         "professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -124,6 +127,7 @@
         "declaracao",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -199,6 +203,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-rosa",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
+      "professor": "rimel-preto",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-rosa",
       "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
       "ciclo_id": "ciclo:rimel-preto/01/batata",
       "escola": "batata",
@@ -223,6 +236,15 @@
       "id": "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
       "professor": "rimel-preto",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-rosa",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:indice:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
+      "professor": "rimel-preto",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-batata-rosa",
@@ -277,6 +299,15 @@
       "id": "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
       "professor": "rimel-preto",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-rosa",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "rimel-preto",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-batata-rosa",
@@ -411,9 +442,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9126634"
+    "commit": "6c8cf07"
   },
-  "gerado_em": "2026-11-15T22:22",
+  "gerado_em": "2026-11-15T22:49",
   "nao_indexado": [
     {
       "familia": "conteudo",
