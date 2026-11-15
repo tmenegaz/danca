@@ -20,8 +20,8 @@ ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 44
-notacao_sha: 4adfd983f6c4a922a56ae56f9ac8bf9c2b3c4cbfcecd86c48a33b9ba2b3c96dd
+notacao_versao: 45
+notacao_sha: dd6a5f8e932b28e465495ae4fc9aaf3f102cd751680a6da22b912a16767c742c
 cobertura:
   - professores/pe-torto/ciclos/ciclo-01-calango-piano-aula-01.md
   - professores/pe-torto/ciclos/ciclo-01-calango-piano-captura-aula-01.md

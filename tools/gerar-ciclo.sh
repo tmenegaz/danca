@@ -351,20 +351,39 @@ for folha_nn in $(familias_por_aula captura-aula); do
   [ -f "$(fonte_md "captura-aula-$folha_nn")" ] || continue
   CAP_FOLHAS="$CAP_FOLHAS $folha_nn"
 done
-# A DATA DETERMINÍSTICA, CALCULADA AQUI E NÃO SÓ NO PDF (02/11/2026).
+# A DATA DO PDF NÃO SE LÊ DO RELÓGIO NEM DO COMMIT — LÊ-SE DO CICLO (15/11/2026).
 #
-# O PDF já era reprodutível — `SOURCE_DATE_EPOCH` com a data do último commit que tocou as fontes
-# do ciclo —, e o `ciclos.json` continuava a gravar `datetime.now()`. Resultado medido na bancada:
-# cada `gerar-ciclo.sh` sujava a árvore com uma linha de diferimento («gerado_em»), o `git status`
-# ficava sujo depois de gerar duas vezes sem mudar nada, e o commit seguinte levava dentro uma
-# alteração que ninguém fez. Um ficheiro versionado que muda por ter sido gerado não é derivado:
-# é carimbado.
+# O QUE ESTAVA AQUI, E PORQUE É QUE NÃO SERVIA. O epoch vinha de
 #
-# O `estado` do `aulas[]` CONTINUA a usar o relógio, e é o único que deve: ele é o juízo do
-# instante da geração («quem lê depois re-deriva com o próprio relógio», diz a nota do índice).
-# O que passa a ser determinístico é o carimbo do ficheiro — quando ele foi escrito, não o que
-# ele julgou.
-SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct -- "professores/$PROFESSOR_SLUG/ciclos" 2>/dev/null || true)"
+#     git log -1 --format=%ct -- "professores/<professor>/ciclos"
+#
+# e o comentário ao lado dizia «a data do último commit que tocou as FONTES do ciclo». A frase
+# estava certa e o caminho estava errado: `professores/<professor>/ciclos` é a PASTA, e dentro
+# dela estão as saídas que este script escreve — `ciclos.json`, os PDFs, os `.fipp`. O epoch
+# dependia, portanto, do commit que versionava as próprias saídas: gravar o `ciclos.json` movia o
+# epoch, o epoch mudava o `ciclos.json` e o `/CreationDate` dos PDFs, e a árvore sujava-se outra
+# vez. Não é lento — é um ciclo sem ponto fixo. Medido no `main` (15/11/2026): depois de CADA
+# commit que tocasse um pacote, os mesmos 12 ficheiros voltavam a aparecer modificados com o mesmo
+# texto e uma data nova, e o commit seguinte levava dentro essa data, que movia o epoch outra vez.
+#
+# O QUE PASSA A VALER. O epoch é a DATA DE INÍCIO DO CICLO, que o calendário já derivou das fontes
+# (manifesto + calendário) e que entra no `ciclos.json` e no PDF como conteúdo. Três propriedades,
+# e as três são a razão da escolha:
+#
+#   · é FUNÇÃO DAS FONTES — muda quando o calendário muda, e só então: um commit que não toque nas
+#     fontes não move a data, logo não move um byte de saída;
+#   · não depende de `git` — a geração de um pacote num clone raso, ou a partir de um arquivo, dá
+#     o mesmo resultado que no repositório inteiro (o `git log` também falhava em silêncio: sem
+#     histórico devolvia vazio e o fallback era `date +%s`, o relógio outra vez);
+#   · e o que ele carimba não é uma mentira visível: o PDF não imprime data de geração nenhuma —
+#     conferido com `pdftotext` nos quatro ciclos; todas as datas que ele mostra vêm do plano e do
+#     calendário. O `SOURCE_DATE_EPOCH` existe aqui para o `/CreationDate` ser reprodutível, e para
+#     nada mais.
+#
+# E o que sai do ficheiro, em vez de ser tornado determinístico: o `gerado_em` e o `estado` do
+# `aulas[]`. Os dois eram juízos do instante da geração, e é por isso que não podem estar num
+# ficheiro versionado — ver o bloco do índice, abaixo.
+SOURCE_DATE_EPOCH="$(date -d "$(printf '%s' "$DATA_PRIMEIRA_AULA" | awk -F/ '{printf "%s-%s-%s", $3, $2, $1}')" +%s 2>/dev/null || true)"
 [ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
 export SOURCE_DATE_EPOCH
 CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
@@ -495,9 +514,9 @@ def ler_lancadas(caminho):
     except (ValueError, OSError):
         return set()
 
-# O ESTADO da aula é DERIVADO (§1) — não existe campo declarado, nem no `.conf`, nem no
-# JSON de dados, nem no índice. O corte não é a data solta: é a data CASADA com o prazo
-# (§3.1–§3.3), que é o que sabe distinguir "ainda vai acontecer" de "não aconteceu".
+# O ESTADO DA AULA NÃO SE ESCREVE NO ÍNDICE (15/11/2026) — DERIVA-SE DE QUEM O LÊ.
+#
+# Até hoje este gerador gravava, por aula, um `estado` de quatro valores:
 #
 #   lancada    registro no JSON       o fato virou memória — só ajuste (§1.1)
 #   nao_dada   prazo vencido sem
@@ -507,29 +526,27 @@ def ler_lancadas(caminho):
 #   planejada  a aula ainda não
 #              terminou               a intenção — CRUD livre (§1)
 #
-# O JUÍZO É CARIMBADO (`gerado_em`, no índice): ele é do INSTANTE DA GERAÇÃO, não um
-# atributo atemporal da aula. Quem lê um índice gerado há dias re-deriva com o próprio
-# relógio — o formulário faz isso com `agora()` —, em vez de confiar num veredito que o
-# tempo já venceu.
-def derivar_estado(a, prazo, lancadas, agora):
-    if a['n'] in lancadas:
-        return 'lancada'
-    # `calcular_prazos` dá prazo a toda aula, então este ramo não é o `planejada` normal:
-    # é a guarda de quando o prazo NÃO pôde ser calculado — sem ele não se sabe se a aula
-    # fechou, e o estado que não afirma nada é o da intenção.
-    if prazo is None:
-        return 'planejada'
-    if agora < datetime.datetime.strptime(prazo, '%Y-%m-%dT%H:%M'):
-        fim = datetime.datetime.strptime(a['data'] + ' ' + a['fim'], '%Y-%m-%d %H:%M')
-        return 'dada' if agora >= fim else 'planejada'
-    return 'nao_dada'
+# Os quatro valores continuam a existir, e o §1 continua a querer dizer o mesmo. O que muda é
+# ONDE eles se calculam. Duas razões, e a segunda é a que decide:
+#
+#   1. NINGUÉM OS LÊ. O formulário (`lancamento.html`, `estadoDaAula`) recalcula os quatro a
+#      partir de `prazo` e do relógio DA PÁGINA — e fá-lo sempre que o índice declara `prazo`,
+#      que é o caso de todos os que este gerador escreve. O `estado` do índice só servia aos
+#      índices anteriores a essa regra, e esses ficam com o que já lá têm: não se reescreve
+#      passado.
+#   2. SÃO UM JUÍZO SOBRE O INSTANTE, E O FICHEIRO É VERSIONADO. Um valor que muda quando o
+#      relógio passa não é derivado: é carimbo. Medido: `dada` virava `nao_dada` sozinho, o
+#      `ciclos.json` aparecia modificado sem ninguém lhe tocar, e o commit seguinte levava
+#      dentro um veredito que já estava vencido quando foi gravado.
+#
+# O QUE FICA: o FATO (`lancada`, booleano — está ou não está no JSON de dados) e a JANELA
+# (`prazo`, do calendário). O juízo, que precisa de um «agora», faz-se onde há um agora.
 
 marcos = ler_marcos(os.environ.get('PLANO_JSON', ''))
 lancadas = ler_lancadas(os.environ.get('DADOS_FONTE', ''))
 fechamento = ler_fechamento(os.environ.get('FECHAMENTO', ''))
 aulas = ler_aulas(os.environ.get('AULAS_TSV', ''))
 prazos = calcular_prazos(aulas, fechamento)
-agora = datetime.datetime.now()
 # §4.2: `config` só entra na aula que TEM folha na fonte. A lista vem do shell (CAP_FOLHAS), com a
 # mesma resolução da folha que o produtor do pacote usa — a variante vence a compartilhada.
 cap_folhas = set(os.environ.get('CAP_FOLHAS', '').split())
@@ -543,7 +560,6 @@ for a in aulas:
         'inicio': a['inicio'],
         'fim': a['fim'],
         'marco': marcos.get(int(nn)),
-        'estado': derivar_estado(a, prazo, lancadas, agora),
         'lancada': nn in lancadas,
         'ancora': None,        # o `.fipp` da aula (§5) — sem produtor ainda
         'prazo': prazo,        # a janela do prazo (§3.1) — do calendário, não de carimbo
@@ -556,20 +572,31 @@ for a in aulas:
     indice_aulas.append(entrada)
 
 indice = {
+    # O ÍNDICE NÃO LEVA CARIMBO — E ISSO É UMA REGRA, NÃO UMA AUSÊNCIA (15/11/2026).
+    #
+    # Havia aqui um `gerado_em` (a hora a que o ficheiro foi escrito). Ele não tinha leitor
+    # nenhum, e o facto que ele afirmava já está no `git log` — com a vantagem de que o `git log`
+    # diz QUEM mudou o quê e não se reescreve. Num ficheiro versionado, um carimbo é uma linha que
+    # muda sem o conteúdo mudar: a árvore suja-se sozinha, o commit seguinte leva dentro uma
+    # alteração que ninguém fez, e quem procura o que mudou encontra a data primeiro.
+    #
+    # É a MESMA REGRA QUE AS VISTAS JÁ TÊM, e está escrita numa prova: `provar-indice-de-lancamentos`
+    # exige «duas corridas, o mesmo texto» e «não leva carimbo de tempo por omissão» (lá, o
+    # carimbo é opt-in, com `--com-data`). Aqui não há opt-in porque não há leitor.
+    #
+    # A data que o índice TINHA de dizer continua dita, e por outro caminho: `inicio`/`fim` são o
+    # calendário (fonte), e `prazo` é o instante-limite de cada aula. Quem quiser saber quando este
+    # texto foi escrito pergunta ao git, que é o único sítio onde essa resposta não mente.
     '_nota': 'Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de '
              'lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o '
              'arquivo de dados declarado em "arquivo". O `aulas[]` e o INDICE POR AULA: '
              'a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo '
              'fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o '
-             'instante-limite de lancamento da aula, calculado do calendario. `estado` '
-             '(§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo '
-             'declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois '
-             're-deriva com o proprio relogio.',
-    # A hora do CARIMBO vem do `SOURCE_DATE_EPOCH` (a data do último commit nas fontes do ciclo),
-    # e não do relógio: sem isso, gerar duas vezes sem mudar nada produzia dois `ciclos.json`
-    # diferentes e uma árvore suja. Ver o comentário no shell, antes desta invocação.
-    'gerado_em': datetime.datetime.fromtimestamp(
-        int(os.environ.get('SOURCE_DATE_EPOCH') or agora.timestamp())).strftime('%Y-%m-%dT%H:%M'),
+             'instante-limite de lancamento da aula, calculado do calendario. `lancada` e o '
+             'FATO (a aula esta ou nao no JSON de dados). `estado` NAO esta aqui: ele e o '
+             'juizo de um instante, e quem o calcula e quem tem um agora — o formulario, em '
+             '`estadoDaAula`. Este arquivo nao leva carimbo de tempo: gerar duas vezes sem '
+             'mudar nada tem de dar o mesmo texto.',
     'ciclos': [{
         'id': os.environ['CICLO'],
         # O SLUG da pasta (`professores/<slug>/`), não o nome de exibição: é por ele que o
@@ -1438,10 +1465,11 @@ fi
 
 # PDF reprodutível. Sem isto, cada geração grava a hora atual em /CreationDate e o PDF
 # versionado aparece como modificado mesmo sem nenhuma mudança de conteúdo. O
-# `SOURCE_DATE_EPOCH` já foi calculado acima (é o mesmo que carimba o `ciclos.json`); aqui só se
-# pede ao pdfTeX que o use — a data do último commit que tocou as FONTES do ciclo, estável
-# enquanto o ciclo não muda e diferente quando ele muda. (Os pacotes são versionados para o
-# deploy automático.)
+# `SOURCE_DATE_EPOCH` já foi calculado acima — é a DATA DE INÍCIO DO CICLO, derivada do calendário
+# (ver o bloco lá em cima, e o motivo de não ser o relógio nem o commit); aqui só se pede ao
+# pdfTeX que o use. O PDF não imprime data de geração nenhuma: o que ele carimba é metadado, e o
+# metadado tem de ser função das fontes como o resto do ficheiro. (Os pacotes são versionados
+# para o deploy automático.)
 export FORCE_SOURCE_DATE=1
 
 for doc in $DOCS; do

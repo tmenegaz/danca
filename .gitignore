@@ -1332,3 +1332,10 @@ experimentos/modelo-formulario/*
 # selo do cartão com o da rota CARÁCTER A CARÁCTER: duas redacções da mesma frase divergem ao
 # primeiro ajuste, e a divergência não dá erro nenhum.
 !experimentos/provar-estado-da-turma.js
+
+# AS SAÍDAS DO PACOTE NÃO SE CARIMBAM (15/11/2026). «Não tem sentido ficar carimbando toda hora. […]
+# Se já foi comitado, se já subiu, não tem por que fazer de novo se não teve modificação.» A prova
+# mede as duas metades: duas gerações seguidas dão o pacote byte a byte igual, e o índice não leva
+# relógio. O controle negativo confirma o defeito de antes — o epoch vinha da pasta que contém as
+# saídas, e o `ciclos.json` levava `gerado_em` e `estado`.
+!experimentos/provar-saidas-estaveis.js

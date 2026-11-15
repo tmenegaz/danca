@@ -308,7 +308,13 @@ function mapaDoCiclo({ professor, ciclo, variante, pasta }) {
   for (const a of aulas) {
     const nn = String(a.n);
     const idAula = `aula:${idDoCiclo}/${nn}`;
-    no(idAula, 'aula', `Aula ${nn}`, { data: a.data || '', estado: a.estado || '' });
+    /* O `estado` SAIU DAQUI (15/11/2026) — pelo mesmo motivo que saiu do índice. Ele era o juízo
+     * de um instante (`dada`, `nao_dada`, `planejada`), copiado do `ciclos.json` para um mapa
+     * versionado: mudava sozinho quando o prazo de uma aula vencia, e o `--check` deste gerador
+     * reprovava um mapa que ninguém tinha tocado. Quem o queria já o recalculava — o formulário,
+     * com o relógio da página, a partir de `prazo`. O que fica é o que não depende do relógio: a
+     * data da aula. */
+    no(idAula, 'aula', `Aula ${nn}`, { data: a.data || '' });
     aresta(idAula, `ciclo:${idDoCiclo}`, 'pertence_a', 'aula.ciclo_id');
 
     const ancoraDaAula = `ciclo-${ciclo}-${variante}-aula-${nn}.fipp`;

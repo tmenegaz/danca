@@ -44972,3 +44972,67 @@ mesmo `TypeError`, `provar-cartao-da-turma` 6 falhas, `provar-derivacao-da-turma
 **O que ainda não está feito.** Nada desta entrada. Continuam abertas, e anteriores: as falhas de
 `provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
 `provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
+
+## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
+
+**O pedido.** *«Faz o ajuste porque não tem sentido ficar carimbando toda hora. […] Se já foi comitado,
+se já subiu, não tem por que fazer de novo se não teve modificação, exceto que seja uma regra da
+proveniência. Precisa verificar isso, qual é o impacto que tem na proveniência.»*
+
+**O sintoma.** Depois de **cada** commit que tocasse um pacote, os mesmos doze ficheiros voltavam
+modificados — os PDFs com o mesmo número de bytes e o mesmo texto extraído, o `ciclos.json` com uma
+linha de diferença. O commit seguinte levava essa data dentro, e a data movia o epoch outra vez.
+
+**A causa não era o carimbo — era um ciclo sem ponto fixo.** O `SOURCE_DATE_EPOCH` (a data que o
+pdfTeX grava no `/CreationDate` e que o índice escrevia como `gerado_em`) vinha de
+`git log -1 --format=%ct -- "professores/<professor>/ciclos"` — e esse caminho é a **pasta**, que
+contém as saídas que o próprio gerador escreve. Gravar o `ciclos.json` movia o epoch; o epoch mudava
+o `ciclos.json`. O comentário ao lado dizia «a data do último commit que tocou as **fontes** do
+ciclo»: o comentário estava certo e o caminho estava errado.
+
+**A correção, em três partes que se sustentam uma à outra.**
+
+1. **A data sai das fontes.** O epoch passa a ser a **data de início do ciclo**, que o calendário já
+   derivou do manifesto. Três propriedades, e as três foram a razão da escolha: é função das fontes
+   (muda quando o calendário muda, e só então); não depende de `git` (um clone raso dava `date +%s`,
+   o relógio outra vez, e o `git log` falhava em silêncio); e não é mentira visível — **o PDF não
+   imprime data de geração nenhuma**, conferido com `pdftotext` nos quatro ciclos: todas as datas
+   que ele mostra vêm do plano e do calendário. O `SOURCE_DATE_EPOCH` existe só para o `/CreationDate`
+   ser reprodutível.
+2. **O `gerado_em` sai do índice.** Não tinha leitor nenhum, e o facto que ele afirmava já está no
+   `git log` — que diz o mesmo e ainda diz quem. É a regra que as vistas já tinham, escrita numa
+   prova: `provar-indice-de-lancamentos` exige «duas corridas, o mesmo texto» e «não leva carimbo de
+   tempo por omissão».
+3. **O `estado` do `aulas[]` sai também** — e o facto e a janela ficam. Ele era o **juízo de um
+   instante** (`dada`/`nao_dada`/`planejada`), copiado do índice para os mapas de relação; ninguém o
+   lia de volta, porque o formulário recalcula os quatro valores a partir de `prazo` com o relógio da
+   página (`estadoDaAula`), e o faz sempre que o índice declara `prazo` — que é todos. O que fica é o
+   **facto** (`lancada`) e a **janela** (`prazo`). O juízo faz-se onde há um *agora*.
+
+**O impacto na proveniência: nenhum, e está medido.** O `.fipp` cobre **fontes** — os dois manifestos,
+o PO, os documentos de `DOCS` e os relatórios; o `ciclos.json` não está nessa lista e nunca esteve.
+Os quatro `.fipp` verificam-se depois da mudança (`hash-ciclo.sh --check`: «íntegro; cadeia intacta»)
+com o **mesmo hash** de antes. A cobertura declarada dentro do `.fipp` não tem `ciclos.json` nem
+`.pdf` — e a prova lê-a de lá, em vez de a afirmar.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` (o epoch, o `derivar_estado` que saiu, a entrada de cada aula
+e a `_nota` do índice), `tools/gerar-relacoes.js` (o `estado` fora dos nós de aula),
+`ARQUITETURA-AULA.md` (§4.1, a tabela dos campos e o exemplo de JSON),
+`experimentos/provar-formulario-da-aula.js` (a escolha da aula da prova passou a derivar o estado em
+vez de o ler — a mesma conta, feita onde há um agora), e a prova nova
+`experimentos/provar-saidas-estaveis.js`. Os `indices/` e os quatro pacotes foram regerados: os mapas
+de relação perdem o atributo `estado`, e os PDFs mudam **uma vez** porque o epoch mudou de natureza.
+
+**Auditoria.** `provar-saidas-estaveis` **13/13** — duas gerações seguidas dão o pacote **byte a
+byte** igual (PDFs e HTML incluídos), o índice não declara relógio, o epoch não vem de `git log` e o
+`.fipp` continua íntegro. **Controle negativo** com o `tools/` de `HEAD`: **4 de 4** confirmam o
+defeito de antes (o epoch vinha da pasta que contém as saídas; o índice levava `gerado_em` e
+`estado`). `check-pacote` 0 erros/0 avisos nos quatro pacotes; `gerar-indices --check` e
+`gerar-relacoes --check` em dia (10 e 8 arquivos); `hash-ciclo.sh --check` nos quatro ciclos;
+`provar-formulario-da-aula` 43/48 — as cinco reprovações são **de conteúdo da Técnica e da Poiesis**,
+e reprovam igual com o pacote de `HEAD` (conferido).
+
+**O que ainda não está feito.** `indices/escolas/*.json` e `indices/ciclos/*.json` continuam a levar
+`gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
+`semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
+dia, e não se mexeram agora para não alargar a mudança.

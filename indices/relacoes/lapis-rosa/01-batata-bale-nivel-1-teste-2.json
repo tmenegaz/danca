@@ -403,182 +403,156 @@
     },
     {
       "data": "2027-02-01",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/01",
       "rotulo": "Aula 01",
       "tipo": "aula"
     },
     {
       "data": "2027-02-03",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/02",
       "rotulo": "Aula 02",
       "tipo": "aula"
     },
     {
       "data": "2027-02-08",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/03",
       "rotulo": "Aula 03",
       "tipo": "aula"
     },
     {
       "data": "2027-02-10",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/04",
       "rotulo": "Aula 04",
       "tipo": "aula"
     },
     {
       "data": "2027-02-15",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/05",
       "rotulo": "Aula 05",
       "tipo": "aula"
     },
     {
       "data": "2027-02-17",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/06",
       "rotulo": "Aula 06",
       "tipo": "aula"
     },
     {
       "data": "2027-02-22",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/07",
       "rotulo": "Aula 07",
       "tipo": "aula"
     },
     {
       "data": "2027-02-24",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/08",
       "rotulo": "Aula 08",
       "tipo": "aula"
     },
     {
       "data": "2027-03-01",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/09",
       "rotulo": "Aula 09",
       "tipo": "aula"
     },
     {
       "data": "2027-03-03",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/10",
       "rotulo": "Aula 10",
       "tipo": "aula"
     },
     {
       "data": "2027-03-08",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/11",
       "rotulo": "Aula 11",
       "tipo": "aula"
     },
     {
       "data": "2027-03-10",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/12",
       "rotulo": "Aula 12",
       "tipo": "aula"
     },
     {
       "data": "2027-03-15",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/13",
       "rotulo": "Aula 13",
       "tipo": "aula"
     },
     {
       "data": "2027-03-17",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/14",
       "rotulo": "Aula 14",
       "tipo": "aula"
     },
     {
       "data": "2027-03-22",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/15",
       "rotulo": "Aula 15",
       "tipo": "aula"
     },
     {
       "data": "2027-03-24",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/16",
       "rotulo": "Aula 16",
       "tipo": "aula"
     },
     {
       "data": "2027-03-29",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/17",
       "rotulo": "Aula 17",
       "tipo": "aula"
     },
     {
       "data": "2027-03-31",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/18",
       "rotulo": "Aula 18",
       "tipo": "aula"
     },
     {
       "data": "2027-04-05",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/19",
       "rotulo": "Aula 19",
       "tipo": "aula"
     },
     {
       "data": "2027-04-07",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/20",
       "rotulo": "Aula 20",
       "tipo": "aula"
     },
     {
       "data": "2027-04-12",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/21",
       "rotulo": "Aula 21",
       "tipo": "aula"
     },
     {
       "data": "2027-04-14",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/22",
       "rotulo": "Aula 22",
       "tipo": "aula"
     },
     {
       "data": "2027-04-19",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/23",
       "rotulo": "Aula 23",
       "tipo": "aula"
     },
     {
       "data": "2027-04-21",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/24",
       "rotulo": "Aula 24",
       "tipo": "aula"
     },
     {
       "data": "2027-04-26",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/25",
       "rotulo": "Aula 25",
       "tipo": "aula"
     },
     {
       "data": "2027-04-28",
-      "estado": "planejada",
       "id": "aula:lapis-rosa/01/batata-bale-nivel-1-teste-2/26",
       "rotulo": "Aula 26",
       "tipo": "aula"

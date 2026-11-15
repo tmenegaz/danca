@@ -326,10 +326,10 @@ nascer do que é da aula N":
   "aulas": [
     { "n": "01", "data": "2026-10-06", "inicio": "19:00", "fim": "20:00",
       "marco": "Isolar o eixo vertical e a distribuição do peso...",
-      "estado": "dada", "lancada": true,
+      "lancada": true,
       "config": "captura-aula-01.json", "ancora": "ciclo-01-diaghilev-aula-01.fipp",
       "prazo": "2026-10-07T19:00" },
-    { "n": "02", "data": "2026-10-08", "estado": "planejada", "prazo": "2026-10-12T19:00" }
+    { "n": "02", "data": "2026-10-08", "lancada": false, "prazo": "2026-10-12T19:00" }
   ]
 }
 ```
@@ -340,20 +340,21 @@ nascer do que é da aula N":
 |:--|:--|
 | `data`, `inicio`, `fim` | `calendario.py` (datas) + `DIAS` com hora (§6) |
 | `marco` | `plano.md` → `marcosPorAula` (extraído por `validar-plano-ciclo.js`) |
-| `estado` | **derivado** (§1): o cronograma + o prazo (§3) + o JSON de dados (`aulas['02']`) |
-| `lancada` | o JSON de dados (`aulas['02']`) |
+| `lancada` | o JSON de dados (`aulas['02']`) — o **facto**, não o juízo |
 | `config` | a folha da aula (`captura-aula-NN.md` → `captura-aula-NN.json`) |
 | `ancora` | o `.fipp` da aula (§5) — **o gerador ainda grava `null`**; ver adiante |
 | `prazo` | §3 |
-| `gerado_em` | o relógio do build — carimba **o instante** do juízo de `estado` |
 
 Nada disto precisa ser escrito à mão: o índice é **pré-produzido** pelo gerador, a partir do
 plano, do calendário e do `.conf`.
 
-> **O `estado` do índice é um carimbo, não um atributo.** Ele vale para o instante em que o
-> índice foi gerado (`gerado_em`); quem lê um índice velho re-deriva com o próprio relógio,
-> em vez de confiar num veredito que o tempo já venceu. É o que o formulário faz
-> (`estadoDaAula()`), e é por isso que o campo pode ser declarado sem contradizer a §1.
+> **O `estado` NÃO está no índice, e o `gerado_em` também não (15/11/2026).** Os dois eram
+> juízos sobre o instante em que o ficheiro foi escrito, e o índice é **versionado**: um valor
+> que muda quando o relógio passa suja a árvore sozinho e faz o commit seguinte levar dentro uma
+> alteração que ninguém fez. O `estado` (§1) continua a existir — calcula-o quem tem um *agora*,
+> o formulário, em `estadoDaAula()`, a partir de `prazo`; e o `gerado_em` foi substituído pelo
+> `git log`, que diz a mesma coisa e ainda diz quem. É a mesma regra das vistas, escrita numa
+> prova: «duas corridas, o mesmo texto».
 >
 > **`ancora` ainda sai `null`** nos três ciclos — o `.fipp` por aula existe (§5, `B5`), mas o
 > gerador não o consulta. A coluna é a promessa, não o estado.

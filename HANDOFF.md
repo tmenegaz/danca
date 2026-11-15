@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T11:28:15-0300`
-Commit atual: `e0a35b96` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-15T11:46:05-0300`
+Commit atual: `53d8c013` — chore(ciclo-01): regerar as saídas do pacote e renovar os selos da âncora
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,8 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+53d8c013 chore(ciclo-01): regerar as saídas do pacote e renovar os selos da âncora
+d9c8dfc5 fix(template): o trecho do verbete só abre dentro de um trecho, e a Turma diz o estado de agora
 e0a35b96 chore(estrutura): regerar os índices derivados
 7aa4324e docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico
 e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
@@ -94,8 +96,6 @@ e9f3d416 chore(estrutura): regerar os índices derivados
 01a51e50 feat(linha de base): índice — sapatilha 20261115-1358
 f6bc0157 feat(elenco): sapatilha — concluído
 242fffd3 chore(estrutura): regerar os índices derivados
-14252aa4 feat(acervo): envelope/anamnese-20261115-1057.json
-1c0aad6a feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -203,85 +203,71 @@ f6bc0157 feat(elenco): sapatilha — concluído
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — Estilo: os passos do trecho só abrem dentro de um trecho; Turma: a etiqueta diz o estado de agora
+## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
 
-**O pedido.** Dois, na mesma sessão. O primeiro: *«eu fui em estilo para fazer uma edição. Quando eu
-cliquei em editar, eu consegui alterar o step quatro sem passar pelo editar da composição que fica no
-step seis. […] Eu só posso editar os itens que pertencem ao que está na composição pelo editar do
-item da composição.»* O segundo: *«eu fui na turma e aí eu vi que turma, apesar de eu já ter criado o
-plano de ensino e o plano de observação, ainda está livre e com o botão editar disponível para mim e
-não com o botão derivar. […] Só que o erro é que permitiu eu editar e tá com a etiqueta livre.»*
+**O pedido.** *«Faz o ajuste porque não tem sentido ficar carimbando toda hora. […] Se já foi comitado,
+se já subiu, não tem por que fazer de novo se não teve modificação, exceto que seja uma regra da
+proveniência. Precisa verificar isso, qual é o impacto que tem na proveniência.»*
 
-**Estilo — o que estava errado.** Os passos 4 (a contagem) e 5 (os sinais) são os campos de **um**
-trecho da decomposição. A tira abria-os sempre que os passos anteriores estivessem cumpridos, e eles
-ficavam a um clique de quem abrisse um verbete pela listagem — sem que houvesse trecho nenhum a
-compor. O que se escrevia ali ou caía num trecho que já existia (outro), ou não ia a lado nenhum.
+**O sintoma.** Depois de **cada** commit que tocasse um pacote, os mesmos doze ficheiros voltavam
+modificados — os PDFs com o mesmo número de bytes e o mesmo texto extraído, o `ciclos.json` com uma
+linha de diferença. O commit seguinte levava essa data dentro, e a data movia o epoch outra vez.
 
-**Estilo — a regra de agora.** Um trecho é um **gesto** com dois nomes: «Acrescentar trecho» (um
-novo) e «Editar» de uma linha da tabela (aquele). Fora de um gesto, o 4 e o 5 não abrem, e o `title`
-diz por quê — o trecho compõe-se na decomposição, que é o passo 6. O selo `.passo-alerta` («!»), o
-aviso e o rótulo do botão passaram a valer para os dois gestos: o aviso diz «A compor» ou «Em
-edição», e o botão diz «Guardar o trecho» ou «Guardar a alteração».
+**A causa não era o carimbo — era um ciclo sem ponto fixo.** O `SOURCE_DATE_EPOCH` (a data que o
+pdfTeX grava no `/CreationDate` e que o índice escrevia como `gerado_em`) vinha de
+`git log -1 --format=%ct -- "professores/<professor>/ciclos"` — e esse caminho é a **pasta**, que
+contém as saídas que o próprio gerador escreve. Gravar o `ciclos.json` movia o epoch; o epoch mudava
+o `ciclos.json`. O comentário ao lado dizia «a data do último commit que tocou as **fontes** do
+ciclo»: o comentário estava certo e o caminho estava errado.
 
-**O círculo que isso abriu, e que se fechou no mesmo dia.** O botão que abre o gesto vive no passo 6,
-e o 6 exigia os passos 4 e 5 cumpridos. Com o 4 e o 5 fechados, ninguém chegava ao 6 — o formulário
-ficava sem porta. Por isso (a) o «Acrescentar» espera só pelo que vem antes dele (o exercício, os
-tempos e o compasso), e (b) `faltasAntesDe` deixou de contar os passos do trecho a quem **não** está
-a compor: sem gesto não há contagem nem sinais a exigir. O que estava pendente da 02/11/2026
-(«guardar não muda de passo») continua: o que mudou é que, ao guardar, o gesto **fecha** — e ficar no
-4 deixaria à vista o painel de um passo apagado. Guardar devolve à decomposição, que é onde a linha
-nova aparece.
+**A correção, em três partes que se sustentam uma à outra.**
 
-**Turma — o que estava errado.** A regra nunca esteve errada, e sempre morou num sítio só
-(`curadoriaVinculadaA`): o servidor **recusou** a edição, e foi ele que escreveu a frase que ela
-citou. O que mentia era a **tela** — o cartão nasce desenhado no instante em que a página é montada,
-e o plano de ensino nasce noutra aba (a porta). Entre uma coisa e outra, o cartão dizia o passado.
+1. **A data sai das fontes.** O epoch passa a ser a **data de início do ciclo**, que o calendário já
+   derivou do manifesto. Três propriedades, e as três foram a razão da escolha: é função das fontes
+   (muda quando o calendário muda, e só então); não depende de `git` (um clone raso dava `date +%s`,
+   o relógio outra vez, e o `git log` falhava em silêncio); e não é mentira visível — **o PDF não
+   imprime data de geração nenhuma**, conferido com `pdftotext` nos quatro ciclos: todas as datas
+   que ele mostra vêm do plano e do calendário. O `SOURCE_DATE_EPOCH` existe só para o `/CreationDate`
+   ser reprodutível.
+2. **O `gerado_em` sai do índice.** Não tinha leitor nenhum, e o facto que ele afirmava já está no
+   `git log` — que diz o mesmo e ainda diz quem. É a regra que as vistas já tinham, escrita numa
+   prova: `provar-indice-de-lancamentos` exige «duas corridas, o mesmo texto» e «não leva carimbo de
+   tempo por omissão».
+3. **O `estado` do `aulas[]` sai também** — e o facto e a janela ficam. Ele era o **juízo de um
+   instante** (`dada`/`nao_dada`/`planejada`), copiado do índice para os mapas de relação; ninguém o
+   lia de volta, porque o formulário recalcula os quatro valores a partir de `prazo` com o relógio da
+   página (`estadoDaAula`), e o faz sempre que o índice declara `prazo` — que é todos. O que fica é o
+   **facto** (`lancada`) e a **janela** (`prazo`). O juízo faz-se onde há um *agora*.
 
-**Turma — a correcção, em duas metades que usam a mesma peça.** O selo e as acções saíram do `map` do
-cartão e passaram a ser duas funções (`seloDaCuradoria`, `acoesDaCuradoria`), usadas pelo cartão que
-o servidor desenha **e** por uma rota nova, `GET /api/bastidores/curadorias-estado`, que responde o
-mesmo por turma. Do lado do cliente, um mapa de vinculadas vai com a página e é **relido quando a
-janela volta a estar à frente** (o mesmo remédio do `haRetratoNovo`, na Audição; uma leitura a cada
-vinte segundos, porque o estado não muda nesse ritmo) — e o cartão troca o selo e as acções no DOM.
-Uma segunda redacção da frase divergiria da primeira ao primeiro ajuste, e a divergência não dá erro
-nenhum: por isso a prova compara as duas cadeias **carácter a carácter**.
+**O impacto na proveniência: nenhum, e está medido.** O `.fipp` cobre **fontes** — os dois manifestos,
+o PO, os documentos de `DOCS` e os relatórios; o `ciclos.json` não está nessa lista e nunca esteve.
+Os quatro `.fipp` verificam-se depois da mudança (`hash-ciclo.sh --check`: «íntegro; cadeia intacta»)
+com o **mesmo hash** de antes. A cobertura declarada dentro do `.fipp` não tem `ciclos.json` nem
+`.pdf` — e a prova lê-a de lá, em vez de a afirmar.
 
-**E a guarda no clique.** Se o botão estiver atrasado e alguém carregar em «Editar» sobre uma turma
-que já tem plano, o formulário abre em **«Derivar»** e diz porquê, com a frase do servidor — em vez
-de oferecer um caminho que ele recusa no fim.
+**Onde entrou.** `tools/gerar-ciclo.sh` (o epoch, o `derivar_estado` que saiu, a entrada de cada aula
+e a `_nota` do índice), `tools/gerar-relacoes.js` (o `estado` fora dos nós de aula),
+`ARQUITETURA-AULA.md` (§4.1, a tabela dos campos e o exemplo de JSON),
+`experimentos/provar-formulario-da-aula.js` (a escolha da aula da prova passou a derivar o estado em
+vez de o ler — a mesma conta, feita onde há um agora), e a prova nova
+`experimentos/provar-saidas-estaveis.js`. Os `indices/` e os quatro pacotes foram regerados: os mapas
+de relação perdem o atributo `estado`, e os PDFs mudam **uma vez** porque o epoch mudou de natureza.
 
-**Onde entrou.** `motor/servidor/bastidores.js` — no verbete: `TRECHO_NOVO`, `trechoEmCurso()`, a
-frase única do passo 6, a guarda dos passos do trecho no `pintarNavegacao`, `pintarAcrescentar`,
-`faltasAntesDe`, `comecarTrechoNovo`, `editarTrecho`, `cancelarEdicaoDoVerbete`,
-`acrescentarOuGuardar`, o «Seguir» que salta os passos fechados e o `editarVerbete` que fecha o
-gesto; na turma: `seloDaCuradoria`/`acoesDaCuradoria`, os ganchos `data-selo-da-turma` /
-`data-acoes-da-turma`, a rota `curadorias-estado`, o mapa `VINCULADAS`, `pintarVinculos` e a guarda
-no `ajustarCuradoria`. Provas novas: `experimentos/provar-trecho-do-verbete.js` e
-`experimentos/provar-estado-da-turma.js`.
+**Auditoria.** `provar-saidas-estaveis` **13/13** — duas gerações seguidas dão o pacote **byte a
+byte** igual (PDFs e HTML incluídos), o índice não declara relógio, o epoch não vem de `git log` e o
+`.fipp` continua íntegro. **Controle negativo** com o `tools/` de `HEAD`: **4 de 4** confirmam o
+defeito de antes (o epoch vinha da pasta que contém as saídas; o índice levava `gerado_em` e
+`estado`). `check-pacote` 0 erros/0 avisos nos quatro pacotes; `gerar-indices --check` e
+`gerar-relacoes --check` em dia (10 e 8 arquivos); `hash-ciclo.sh --check` nos quatro ciclos;
+`provar-formulario-da-aula` 43/48 — as cinco reprovações são **de conteúdo da Técnica e da Poiesis**,
+e reprovam igual com o pacote de `HEAD` (conferido).
 
-**Auditoria.** `provar-trecho-do-verbete` **25/25** — e o **controle negativo** com o motor de `HEAD`
-reprova **16 de 25**, entre elas «o passo 4 abre sem gesto nenhum», que é o defeito relatado.
-`provar-estado-da-turma` **28/28**, e o controle negativo reprova **21 de 22** (a rota não existe em
-`HEAD` e o cartão não tem gancho nenhum). Sem dano colateral, medido contra o `HEAD` no mesmo dia:
-`provar-abas-da-audicao` 99/99, `provar-salas-e-elencos` 69/69, `check-identidade` 22/22, e as
-quatro bancadas que já falhavam continuam a falhar **exactamente** como antes (`provar-celula` no
-mesmo `TypeError`, `provar-cartao-da-turma` 6 falhas, `provar-derivacao-da-turma` 120/140,
-`provar-plano-e-curadoria` no mesmo rebentar).
-
-**O que ainda não está feito.** Nada desta entrada. Continuam abertas, e anteriores: as falhas de
-`provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
-`provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
+**O que ainda não está feito.** `indices/escolas/*.json` e `indices/ciclos/*.json` continuam a levar
+`gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
+`semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
+dia, e não se mexeram agora para não alargar a mudança.
 
 ## O que está pendente
-
-## 13/11/2026 — As senhas de teste entram no ficheiro local, e o push deixa de ser barrado
-
-
-- **A permissão `Zone → DNS → Edit` no token local continua em falta** (403). O token do Worker é
-  outro, e a primeira escola criada pelo painel dirá se ele a tem.
-- **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
-  `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
-  `tools/.escolas-teste`.
 
 ## 15/11/2026 — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio
 
@@ -314,6 +300,13 @@ Nada desta entrada. As duas falhas de `provar-linha-de-base`
 Nada desta entrada. Continuam abertas, e anteriores: as falhas de
 `provar-passo-um-do-verbete` (26/30), de `provar-tabela-da-notacao` (1/41), de
 `provar-cartao-da-turma` (6), de `provar-derivacao-da-turma` (20) e as de `provar-linha-de-base`.
+
+## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
+
+`indices/escolas/*.json` e `indices/ciclos/*.json` continuam a levar
+`gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
+`semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
+dia, e não se mexeram agora para não alargar a mudança.
 
 ## Pendências anteriores (índice)
 
@@ -748,6 +741,7 @@ Nada desta entrada. Continuam abertas, e anteriores: as falhas de
 - **13/11/2026** — O endereço é por host: `<escola>.padd.com.br` → `REGISTRO.md` L44016
 - **13/11/2026** — A escola nasce com endereço próprio, e o expurgo leva-o… → `REGISTRO.md` L44060
 - **13/11/2026** — O domínio do painel, e a rota curinga que a zona tinha → `REGISTRO.md` L44134
+- **13/11/2026** — As senhas de teste entram no ficheiro local, e o push deixa… → `REGISTRO.md` L44192
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

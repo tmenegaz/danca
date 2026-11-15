@@ -361,147 +361,126 @@
     },
     {
       "data": "2026-11-11",
-      "estado": "nao_dada",
       "id": "aula:redinha-rosa/01/calango-piano/01",
       "rotulo": "Aula 01",
       "tipo": "aula"
     },
     {
       "data": "2026-11-13",
-      "estado": "dada",
       "id": "aula:redinha-rosa/01/calango-piano/02",
       "rotulo": "Aula 02",
       "tipo": "aula"
     },
     {
       "data": "2026-11-16",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/03",
       "rotulo": "Aula 03",
       "tipo": "aula"
     },
     {
       "data": "2026-11-18",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/04",
       "rotulo": "Aula 04",
       "tipo": "aula"
     },
     {
       "data": "2026-11-20",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/05",
       "rotulo": "Aula 05",
       "tipo": "aula"
     },
     {
       "data": "2026-11-23",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/06",
       "rotulo": "Aula 06",
       "tipo": "aula"
     },
     {
       "data": "2026-11-25",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/07",
       "rotulo": "Aula 07",
       "tipo": "aula"
     },
     {
       "data": "2026-11-27",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/08",
       "rotulo": "Aula 08",
       "tipo": "aula"
     },
     {
       "data": "2026-11-30",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/09",
       "rotulo": "Aula 09",
       "tipo": "aula"
     },
     {
       "data": "2026-12-02",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/10",
       "rotulo": "Aula 10",
       "tipo": "aula"
     },
     {
       "data": "2026-12-04",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/11",
       "rotulo": "Aula 11",
       "tipo": "aula"
     },
     {
       "data": "2026-12-07",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/12",
       "rotulo": "Aula 12",
       "tipo": "aula"
     },
     {
       "data": "2026-12-09",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/13",
       "rotulo": "Aula 13",
       "tipo": "aula"
     },
     {
       "data": "2026-12-11",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/14",
       "rotulo": "Aula 14",
       "tipo": "aula"
     },
     {
       "data": "2026-12-14",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/15",
       "rotulo": "Aula 15",
       "tipo": "aula"
     },
     {
       "data": "2026-12-16",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/16",
       "rotulo": "Aula 16",
       "tipo": "aula"
     },
     {
       "data": "2026-12-18",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/17",
       "rotulo": "Aula 17",
       "tipo": "aula"
     },
     {
       "data": "2026-12-21",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/18",
       "rotulo": "Aula 18",
       "tipo": "aula"
     },
     {
       "data": "2026-12-23",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/19",
       "rotulo": "Aula 19",
       "tipo": "aula"
     },
     {
       "data": "2026-12-25",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/20",
       "rotulo": "Aula 20",
       "tipo": "aula"
     },
     {
       "data": "2026-12-28",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-piano/21",
       "rotulo": "Aula 21",
       "tipo": "aula"

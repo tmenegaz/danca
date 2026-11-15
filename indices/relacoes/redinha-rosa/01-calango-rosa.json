@@ -289,91 +289,78 @@
     },
     {
       "data": "2026-11-21",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/01",
       "rotulo": "Aula 01",
       "tipo": "aula"
     },
     {
       "data": "2026-11-24",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/02",
       "rotulo": "Aula 02",
       "tipo": "aula"
     },
     {
       "data": "2026-11-26",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/03",
       "rotulo": "Aula 03",
       "tipo": "aula"
     },
     {
       "data": "2026-11-28",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/04",
       "rotulo": "Aula 04",
       "tipo": "aula"
     },
     {
       "data": "2026-12-01",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/05",
       "rotulo": "Aula 05",
       "tipo": "aula"
     },
     {
       "data": "2026-12-03",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/06",
       "rotulo": "Aula 06",
       "tipo": "aula"
     },
     {
       "data": "2026-12-05",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/07",
       "rotulo": "Aula 07",
       "tipo": "aula"
     },
     {
       "data": "2026-12-08",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/08",
       "rotulo": "Aula 08",
       "tipo": "aula"
     },
     {
       "data": "2026-12-10",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/09",
       "rotulo": "Aula 09",
       "tipo": "aula"
     },
     {
       "data": "2026-12-12",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/10",
       "rotulo": "Aula 10",
       "tipo": "aula"
     },
     {
       "data": "2026-12-15",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/11",
       "rotulo": "Aula 11",
       "tipo": "aula"
     },
     {
       "data": "2026-12-17",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/12",
       "rotulo": "Aula 12",
       "tipo": "aula"
     },
     {
       "data": "2026-12-19",
-      "estado": "planejada",
       "id": "aula:redinha-rosa/01/calango-rosa/13",
       "rotulo": "Aula 13",
       "tipo": "aula"

@@ -80,6 +80,21 @@ const PO = JSON.parse(fs.readFileSync(path.join(ABS, 'po-01.json'), 'utf8'));
 const indice = JSON.parse(fs.readFileSync(path.join(ABS, 'ciclos.json'), 'utf8'));
 const ciclo = indice.ciclos[0];
 
+/* O ESTADO DE UMA AULA, DERIVADO AQUI — porque o índice já não o declara (15/11/2026).
+ *
+ * Ele era um campo do `ciclos.json` (`estado`), e era o juízo do instante em que o índice foi
+ * gerado: um ficheiro versionado que mudava sozinho quando o prazo de uma aula vencia. Saiu do
+ * índice, e quem o quer calcula-o — é a mesma conta do formulário (`estadoDaAula`, em
+ * `lancamento.html`), feita aqui com o relógio desta bancada. A REGRA não mudou; mudou o sítio
+ * onde ela corre. */
+function estadoDaAula(a, quando = new Date()) {
+  const prazo = a && a.prazo ? new Date(a.prazo) : null;
+  if (!prazo) return '';
+  if (quando.getTime() >= prazo.getTime()) return 'nao_dada';
+  const fim = a.data && a.fim ? new Date(`${a.data}T${a.fim}`) : null;
+  return fim && quando.getTime() >= fim.getTime() ? 'dada' : 'planejada';
+}
+
 /* A AULA DA PROVA: a primeira que o índice declara como DADA e que ainda não tem lançamento —
  * é a única em que o painel abre (`primeiraSemDado`). Derivada do índice, não fixa em código. */
 const arquivoDados = ciclo.arquivo;
@@ -153,8 +168,8 @@ function servir() {
      * preferência mantém o caso mais interessante primeiro (dada, depois planejada) e cai numa
      * pulada só quando não há outra — a pulada também não tem dado, e o painel também abre. */
     const semLancamento = (ciclo.aulas || []).filter((a) => !a.lancada);
-    const aulaDaProva = semLancamento.find((a) => a.estado === 'dada')
-      || semLancamento.find((a) => a.estado === 'planejada')
+    const aulaDaProva = semLancamento.find((a) => estadoDaAula(a) === 'dada')
+      || semLancamento.find((a) => estadoDaAula(a) === 'planejada')
       || semLancamento[0];
     await pagina.waitForFunction(() => document.querySelector('#aula')
       && document.querySelector('#aula').options.length > 1, { timeout: 15000 });
