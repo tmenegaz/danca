@@ -1,39 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-calango.fipp",
+        "cobertura": [
+          "professores/demi-plie/ciclos/ciclo-01-calango.conf",
+          "professores/demi-plie/ciclos/ciclo-01.conf"
+        ],
+        "hash": "27864c3c71d9f3cda20b237a18035fd6bd5c3860c0f062fa500a8aa4ec9052b1",
+        "hash_conteudo": "b246328a569a25723645c55e71561e2fe08116c9db59b3122dac05cb6ccaaf03",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/demi-plie/ciclos/ciclo-01-calango.conf",
+        "professores/demi-plie/ciclos/ciclo-01-calango.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:demi-plie/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "demi-plie",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-calango.fipp",
+      "ciclo_id": "ciclo:demi-plie/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-calango.fipp",
+      "professor": "demi-plie",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-calango.conf",
+      "ciclo_id": "ciclo:demi-plie/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-calango.conf",
+      "professor": "demi-plie",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:demi-plie/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/demi-plie/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "demi-plie",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:demi-plie/01/calango"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-15T20:09:56.900588+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-15T20:33:26.481508+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-15T20:24:24.806Z",
     "expurgos": 12,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:calango",
     "nome": "calango",
-    "professor": "pe-pequeno",
+    "professor": "demi-plie",
     "professores": [
-      "meia-ponta",
-      "murisoca-baiana",
-      "oculos-redondo",
-      "pe-pequeno",
-      "pe-torto",
-      "perna-boa",
-      "rabo-gramde",
-      "redinha-rosa",
-      "sapo-bailarino",
-      "tiago-menegaz"
+      "demi-plie"
     ],
     "registros": [],
     "slug": "calango"
@@ -41,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/calango"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/calango"
+        ],
+        "rotulo": "demi-plie",
+        "valor": "demi-plie"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/calango"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "27cea88d"
+    "commit": "148ea65"
   },
-  "gerado_em": "2026-11-15T20:26",
+  "gerado_em": "2026-11-15T20:33",
   "nao_indexado": [
     {
       "familia": "conteudo",

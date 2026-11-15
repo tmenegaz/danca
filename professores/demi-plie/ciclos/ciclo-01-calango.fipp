@@ -1,0 +1,22 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/demi-plie/ciclos/ciclo-01-calango.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-calango
+type: Ciclo
+professor: Demi Plié
+ciclo: 01
+variante: calango
+hash_conteudo: b246328a569a25723645c55e71561e2fe08116c9db59b3122dac05cb6ccaaf03
+parentHash: 
+hash: 27864c3c71d9f3cda20b237a18035fd6bd5c3860c0f062fa500a8aa4ec9052b1
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-15
+cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-calango.conf
+  - professores/demi-plie/ciclos/ciclo-01.conf

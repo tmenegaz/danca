@@ -1,5 +1,22 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "27864c3c71d9f3cda20b237a18035fd6bd5c3860c0f062fa500a8aa4ec9052b1",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:demi-plie/01/calango",
+      "numero": "01",
+      "professor": "demi-plie",
+      "sem_ancora": false
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -78,36 +95,29 @@
       "slug": "breu"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:demi-plie/01/calango"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-11-15T20:09:56.900588+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-15T20:33:26.481508+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-11-15T20:24:24.806Z",
       "expurgos": 12,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
-      "professor": "pe-pequeno",
+      "professor": "demi-plie",
       "professores": [
-        "meia-ponta",
-        "murisoca-baiana",
-        "oculos-redondo",
-        "pe-pequeno",
-        "pe-torto",
-        "perna-boa",
-        "rabo-gramde",
-        "redinha-rosa",
-        "sapo-bailarino",
-        "tiago-menegaz"
+        "demi-plie"
       ],
       "registros": [],
       "slug": "calango"
@@ -132,7 +142,13 @@
         "valor": "calango"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -161,6 +177,11 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Demi Plié",
+        "valor": "demi-plie"
+      },
+      {
+        "contagem": 1,
         "rotulo": "Grand Plié",
         "valor": "grand-plie"
       },
@@ -186,46 +207,31 @@
       },
       {
         "contagem": 1,
-        "rotulo": "Meia Ponta",
-        "valor": "meia-ponta"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Murisoca Baiana",
-        "valor": "murisoca-baiana"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Oculos Redondo",
-        "valor": "oculos-redondo"
-      },
-      {
-        "contagem": 1,
         "rotulo": "pe-junto",
         "valor": "pe-junto"
       },
       {
-        "contagem": 1,
-        "rotulo": "Pé Pequeno",
+        "contagem": 0,
+        "rotulo": "pe-pequeno",
         "valor": "pe-pequeno"
       },
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Perna Boa",
         "valor": "perna-boa"
       },
       {
-        "contagem": 1,
-        "rotulo": "Rabo Gramde",
+        "contagem": 0,
+        "rotulo": "rabo-gramde",
         "valor": "rabo-gramde"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Redinha Rosa",
         "valor": "redinha-rosa"
       },
@@ -240,7 +246,7 @@
         "valor": "sapatilha-de-ponta"
       },
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -255,7 +261,7 @@
         "valor": "tela-de-celular"
       },
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "tiago-menegaz",
         "valor": "tiago-menegaz"
       },
@@ -269,9 +275,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "27cea88d"
+    "commit": "148ea65"
   },
-  "gerado_em": "2026-11-15T20:26",
+  "gerado_em": "2026-11-15T20:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -343,6 +349,17 @@
       "slug": "dedao-aberto"
     },
     {
+      "ciclos": [
+        "ciclo:demi-plie/01/calango"
+      ],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:demi-plie",
+      "nome": "Demi Plié",
+      "slug": "demi-plie"
+    },
+    {
       "ciclos": [],
       "escolas": [
         "breu"
@@ -390,33 +407,6 @@
     {
       "ciclos": [],
       "escolas": [
-        "calango"
-      ],
-      "id": "professor:meia-ponta",
-      "nome": "Meia Ponta",
-      "slug": "meia-ponta"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
-      "id": "professor:murisoca-baiana",
-      "nome": "Murisoca Baiana",
-      "slug": "murisoca-baiana"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
-      "id": "professor:oculos-redondo",
-      "nome": "Oculos Redondo",
-      "slug": "oculos-redondo"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
         "batata"
       ],
       "id": "professor:pe-junto",
@@ -425,19 +415,16 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:pe-pequeno",
-      "nome": "Pé Pequeno",
+      "nome": null,
       "slug": "pe-pequeno"
     },
     {
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
-        "calango"
+        "breu"
       ],
       "id": "professor:pe-torto",
       "nome": "Pe Torto",
@@ -446,8 +433,7 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "calango"
+        "batata"
       ],
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
@@ -455,18 +441,15 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:rabo-gramde",
-      "nome": "Rabo Gramde",
+      "nome": null,
       "slug": "rabo-gramde"
     },
     {
       "ciclos": [],
       "escolas": [
-        "breu",
-        "calango"
+        "breu"
       ],
       "id": "professor:redinha-rosa",
       "nome": "Redinha Rosa",
@@ -494,8 +477,7 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
-        "calango"
+        "breu"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -523,8 +505,7 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
-        "calango"
+        "breu"
       ],
       "id": "professor:tiago-menegaz",
       "nome": null,
