@@ -1339,3 +1339,9 @@ experimentos/modelo-formulario/*
 # relógio. O controle negativo confirma o defeito de antes — o epoch vinha da pasta que contém as
 # saídas, e o `ciclos.json` levava `gerado_em` e `estado`.
 !experimentos/provar-saidas-estaveis.js
+
+# A ETIQUETA DIZ O MOTIVO (15/11/2026). «eu não sei qual dos dois está errado, o PO ou se é o
+# ciclo» — porque o cartão dizia «PO aguardando» sem sujeito. A prova mede as duas metades: num ciclo
+# real a frase nomeia a caixa que falta, e num PO todo marcado não diz nada. Mede também que o
+# caminho existe — marcar «sim» naquela linha FICA, e não é reescrito pela semente.
+!experimentos/provar-pendencia-do-po.js

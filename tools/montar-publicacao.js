@@ -551,11 +551,57 @@ function menuDaEscola({ turmas, blocos }) {
 }
 
 /**
+ * O QUE FALTA MARCAR NO CHECKLIST DO PO — a razão de a etiqueta dizer «aguardando».
+ *
+ * O QUE ELA RELATOU (15/11/2026): «eu só tenho um ciclo, que é o ciclo 01, e a etiqueta dele diz
+ * que o PO está aguardando. Então eu não sei qual dos dois está errado, o PO ou se é o ciclo. […]
+ * refiz o plano de ensino e o plano de observação manualmente, mas não editei nada, não mudei
+ * nada. Só mandei gerar de novo. E o ciclo continua com a mesma etiqueta.»
+ *
+ * NÃO HAVIA ERRO NENHUM — havia uma etiqueta sem sujeito. O estado (`po_state`) vem de a
+ * `state:` do PO ser escrita pelo próprio derivador, e ela só passa a `Input_PO_Validado` quando
+ * as SEIS folhas do checklist estão marcadas (PROTOCOLO, ciclo de vida do estado). Cinco são
+ * inferidas do que já está escrito; a sexta — «Critérios mutuamente exclusivos» — não é inferível
+ * por ninguém, e nasce «não» de propósito («nenhum campo do Plano de Observação decide isto»).
+ * Regenerar o documento sem marcar essa linha dá exactamente o mesmo PO, e a mesma etiqueta: a
+ * tela estava a dizer a verdade e a esconder o motivo.
+ *
+ * ONDE SE LÊ O MOTIVO. No PRÓPRIO documento-fonte do PO — a mesma secção que imprime as caixas, e
+ * a mesma fonte de que o `state:` sai. Não se abre um campo novo na âncora (`.fipp`) para o dizer:
+ * uma segunda cópia do mesmo facto divergiria da primeira ao primeiro ajuste, e a âncora é o
+ * sítio errado para um juízo que muda quando alguém marca uma caixa.
+ */
+function pendenciasDoPO(caminho) {
+  if (!fs.existsSync(caminho)) return [];
+  const texto = fs.readFileSync(caminho, 'utf8');
+  const inicio = /^## Checklist de validação[ \t]*$/m.exec(texto);
+  if (!inicio) return [];
+  const resto = texto.slice(inicio.index + inicio[0].length);
+  const proxima = /^## /m.exec(resto);
+  const corpo = proxima ? resto.slice(0, proxima.index) : resto;
+  const fora = [];
+  // `- [ ] Rótulo` é a caixa DESMARCADA — a única forma de o documento dizer «falta isto».
+  for (const m of corpo.matchAll(/^-[ \t]*\[ \][ \t]*(.+?)[ \t]*$/gm)) fora.push(m[1]);
+  return fora;
+}
+
+/** A lista em português: «A», «A e B», «A, B e C». */
+function emPortugues(itens) {
+  const lista = (itens || []).filter(Boolean);
+  if (lista.length <= 1) return lista[0] || '';
+  return lista.slice(0, -1).join(', ') + ' e ' + lista[lista.length - 1];
+}
+
+/**
  * OS DADOS DE UM PLANO, para a lista — lidos de onde já estão, sem campo novo.
  *
  * `NOME`, `PROFESSOR`, `TOTAL_AULAS` e `CICLO` vêm do `.conf` da turma; `ancorado_em`, `po_state`
  * e `hash` vêm da âncora encadeada. É a regra da casa: **nenhuma coluna é inventada**. O que não
  * existir fica vazio, e a linha mostra menos — não se abre um campo novo para encher uma tabela.
+ *
+ * `poPendentes` é a excepção que confirma a regra, e não uma coluna nova: são as caixas que o
+ * PRÓPRIO documento já imprime desmarcadas (`pendenciasDoPO`), lidas da mesma secção de onde sai
+ * o `po_state`. A etiqueta passa a poder dizer PORQUE está a aguardar.
  */
 function dadosDoPlano(t, i) {
   const irmao = path.join(path.dirname(t.pasta), path.basename(t.pasta) + '.conf');
@@ -569,6 +615,7 @@ function dadosDoPlano(t, i) {
   const po = doFipp('po_state');
   const data = doFipp('ancorado_em');
   const daData = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  const aguardando = /aguardando|pendente/i.test(po);
   return {
     nome: chaveDoConf(conf, 'NOME') || 'Ciclo ' + t.ciclo + ' — ' + t.nome,
     turma: t.nome,
@@ -578,7 +625,8 @@ function dadosDoPlano(t, i) {
     aulas: chaveDoConf(conf, 'TOTAL_AULAS') || '',
     ancorada: daData ? daData[3] + '/' + daData[2] + '/' + daData[1] : data,
     po: po ? 'PO ' + po.replace(/^Input_PO_/, '').replace(/_/g, ' ').toLowerCase() : '',
-    poClasse: /aguardando|pendente/i.test(po) ? 'alerta' : (po ? 'ok' : 'discreto'),
+    poClasse: aguardando ? 'alerta' : (po ? 'ok' : 'discreto'),
+    poPendentes: aguardando ? pendenciasDoPO(irmao.replace(/\.conf$/, '-po.md')) : [],
     hash: doFipp('hash'),
     hrefPlano: '/' + t.variante + '/plano.html',
     hrefReferencias: '/' + t.variante + '/referencias.html',
@@ -619,19 +667,33 @@ function itemDoPlano(t) {
   const p = dadosDoPlano(t);
   const r = t.resumo || {};
   const turmaCurta = p.turmaCurta;
+  /* A ETIQUETA PASSA A DIZER O MOTIVO (15/11/2026). «PO aguardando» sem sujeito lia-se como «o
+   * ciclo está desactualizado» — e ela foi verificar exactamente isso. O que falta é uma caixa do
+   * checklist do PO, e o nome dela está no próprio documento. Duas metades, do MESMO dado: o
+   * `title` do selo (quem passa o rato) e a linha de contexto (quem lê a correr, e no telemóvel,
+   * onde não há rato). Uma sem a outra seria uma frase escrita duas vezes. */
+  const pendentes = p.poPendentes || [];
+  const razao = pendentes.length
+    ? 'No Plano de Observação falta marcar '
+      + emPortugues(pendentes.map((x) => '«' + x + '»')) + '.'
+    : '';
   return {
     nome: p.nome,
     ler: t.documentos && t.documentos.plano ? p.hrefPlano : '',
     lerDica: 'abrir o plano do ciclo',
     selo: p.po || '',
     seloClasse: p.poClasse,
+    seloDica: razao,
     acoes: [
       ['Referências', p.hrefReferencias, 'secundario'],
       p.hrefPdf ? ['PDF do ciclo', p.hrefPdf, 'secundario'] : null,
     ].filter(Boolean),
     /* A LINHA DE CONTEXTO NÃO REPETE AS CAIXAS. A turma e o professor estão lá em cima; aqui
-     * ficam o ciclo e o volume, que é o que não cabe numa caixa. */
-    contexto: ['Ciclo ' + p.ciclo, p.aulas ? p.aulas + ' aulas previstas' : ''].filter(Boolean).join(' · '),
+     * ficam o ciclo e o volume, que é o que não cabe numa caixa — e, quando o PO está a aguardar,
+     * o que lhe falta marcar. */
+    contexto: ['Ciclo ' + p.ciclo,
+      p.aulas ? p.aulas + ' aulas previstas' : '',
+      razao].filter(Boolean).join(' · '),
     turma: p.turma,
     professor: p.professor,
     caixas: [
@@ -1394,4 +1456,4 @@ function principal() {
  * perguntar a `documentosDaTurma` o que ele devolve, que é onde o `/variante/true` nasceu. */
 if (require.main === module) principal();
 
-module.exports = { documentosDaTurma, dadosDoPlano, menuDaEscola };
+module.exports = { documentosDaTurma, dadosDoPlano, itemDoPlano, menuDaEscola };

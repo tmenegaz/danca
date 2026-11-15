@@ -127,7 +127,8 @@ function cartaoDaLista(item, indice) {
   const busca = [item.nome, item.turma, item.professor, item.contexto].filter(Boolean)
     .join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const selo = item.selo
-    ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '">' + esc(item.selo) + '</span>'
+    ? ' <span class="selo ' + esc(item.seloClasse || 'discreto') + '"'
+      + (item.seloDica ? ' title="' + esc(item.seloDica) + '"' : '') + '>' + esc(item.selo) + '</span>'
     : '';
   /* A MARCA DO AVISO, ao lado do nome (12/11/2026).
    *

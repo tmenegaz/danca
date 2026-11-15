@@ -45036,3 +45036,59 @@ e reprovam igual com o pacote de `HEAD` (conferido).
 `gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
 `semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
 dia, e não se mexeram agora para não alargar a mudança.
+
+## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
+
+**O relato.** *«eu só tenho um ciclo, que é o ciclo 01, e a etiqueta dele diz que o PO está
+aguardando. Então eu não sei qual dos dois está errado, o PO ou se é o ciclo. Porque eu também refiz
+o plano de ensino e o plano de observação manualmente, mas não editei nada, não mudei nada. Só mandei
+gerar de novo. E o ciclo continua com a mesma etiqueta.»*
+
+**A investigação, e a conclusão que ela não esperava: não havia dois valores em desacordo.** Medido
+no acervo: o PO de `batata` tem `state: Input_PO_Aguardando`, e a razão está no próprio documento —
+`- [ ] Critérios mutuamente exclusivos`. Não é um defeito de sincronização, e não há nada «errado»
+entre o PO e o ciclo; são o mesmo facto lido em dois sítios.
+
+**Porque é que aquele item fica sempre por marcar.** O estado passa a `Input_PO_Validado` quando as
+**seis** folhas do checklist estão marcadas (PROTOCOLO, ciclo de vida do estado). Cinco são
+inferidas do que já está escrito — o fenómeno, as fronteiras, a norma, a justificativa, o âmbito.
+A sexta não é inferível por ninguém, e o conteúdo declara-o por palavras: `derivadoDe: {sempre:
+"não"}` com a explicação «pré-preenchido com «não»: nenhum campo do Plano de Observação decide isto».
+Regenerar o documento sem marcar essa caixa dá **o mesmo documento** e a mesma etiqueta — o que a
+tela dizia era verdade, e o motivo é que não estava à vista.
+
+**A correção: a etiqueta passa a ter sujeito.** `dadosDoPlano` lê as caixas desmarcadas da secção
+`## Checklist de validação` do **próprio documento-fonte do PO** — a mesma secção de onde sai a linha
+`state:`, e não uma cópia na âncora: um facto, uma fonte. Quando há caixas por marcar, o cartão do
+ciclo diz, em duas metades do mesmo dado: no `title` do selo (quem passa o rato) e na **linha de
+contexto** («Ciclo 01 · 21 aulas previstas · No Plano de Observação falta marcar «Critérios mutuamente
+exclusivos».»), que é a que se lê a correr e no telemóvel. Num PO todo marcado não se acrescenta
+nada — e sem secção de checklist não se inventa motivo.
+
+**O que se confirmou por não estar quebrado.** A caixa **pode** ser marcada, e o gesto fica: com o
+formulário do PO aberto, marcar «sim» grava «sim», aposenta a sugestão (`SUGERIDAS`), e a repintura
+não o desfaz — a regra que já existia («escolher o outro valor é discordar») cumpre-se. A bancada
+antiga (`provar-teste`) media o valor derivado, não o clique; a prova nova mede o clique.
+
+**Onde entrou.** `tools/montar-publicacao.js` (`pendenciasDoPO`, `emPortugues`, `poPendentes` em
+`dadosDoPlano`, a razão em `itemDoPlano`, e `itemDoPlano` exportado para a prova o poder medir),
+`motor/nucleo/lista-html.js` (o `title` do selo, que é peça partilhada e não desenho novo), e a prova
+nova `experimentos/provar-pendencia-do-po.js`.
+
+**Auditoria.** `provar-pendencia-do-po` **26/26**: a frase nomeia a caixa no ciclo real e cala-se no
+PO todo marcado; em todos os três POs do repositório, aguardando ⟺ há caixa por marcar, e a contagem
+que a lista mostra é a contagem de caixas abertas; e o clique fica. **Controle negativo** com o
+`motor/` e o `tools/` de `HEAD`: **11 de 26** reprovam (as 11 da etiqueta — em `HEAD`
+`poPendentes` não existe), e a secção C passa, que é a verdade: em `HEAD` o clique já funcionava, o
+que faltava era a razão. Medido no Chrome, a página reconstruída: nenhum transbordo a 1280, 1024,
+768, 414, 390 e 320px; a frase ocupa 1 linha a partir de 768 e 2 a 390. Sem regressão:
+`check-identidade` 22/22, `provar-barra-e-caminho` 50/50, `provar-a-moldura-em-todas-as-telas` 111,
+`provar-custo-da-listagem` 7/7, `provar-menu-da-producao` 54/55 — a mesma falha que já tinha no
+`HEAD`.
+
+**O que ainda não está feito.** (1) O envelope grava a resposta semeada com
+`origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
+defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
+o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
+documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
+humano; é feio e anterior, e não se tocou.

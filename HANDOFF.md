@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T11:54:13-0300`
-Commit atual: `a4da4ca6` — chore(estrutura): reancorar a cadeia das fontes alteradas
+Gerado em: `2026-11-15T12:11:54-0300`
+Commit atual: `1e0f3b6d` — docs(estrutura): actualizar a fotografia e corrigir as duas afirmações que ficaram falsas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,14 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+1e0f3b6d docs(estrutura): actualizar a fotografia e corrigir as duas afirmações que ficaram falsas
+40f634ac chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
+dffa9eb7 chore(estrutura): reancorar a cadeia das fontes alteradas
+afdc75b7 chore(estrutura): regerar os índices derivados
+5a517661 feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
+76fff9ae feat(po): o PO elicitado vira a fonte do ciclo
+07d22c0b feat(acervo): envelope/po-20261115-1153.json
+dabf4120 feat(acervo): envelope/.indice.json
 a4da4ca6 chore(estrutura): reancorar a cadeia das fontes alteradas
 72f87eb7 fix(tools): as saídas do pacote deixam de se carimbar a cada commit
 59551ef4 docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico — ajuste: a versão anterior (até 2026-11-15) fica no histórico
@@ -88,14 +96,6 @@ e0a35b96 chore(estrutura): regerar os índices derivados
 e7c74247 chore(entrega): gerar o pacote de lapis-rosa/01/batata-bale-nivel-1-teste-2
 1cf365d7 chore(estrutura): reancorar a cadeia das fontes alteradas
 5c98234b feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-1-teste-2 num commit só
-141dcabb feat(po): o PO elicitado vira a fonte do ciclo
-aacbd116 feat(acervo): envelope/po-20261115-1101.json
-b25051d1 feat(acervo): envelope/.indice.json
-185aadfe chore(estrutura): reancorar a cadeia das fontes alteradas
-9fca9a83 chore(estrutura): regerar os índices derivados
-9d700226 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-67a976b9 feat(plano): o plano elicitado vira a fonte do ciclo
-c3d5baf2 feat(acervo): envelope/plano-20261115-1101.json
 ```
 
 ## Por professor
@@ -203,85 +203,63 @@ c3d5baf2 feat(acervo): envelope/plano-20261115-1101.json
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — As saídas do pacote deixam de se carimbar: a data sai das fontes, e o índice perde o relógio
+## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
 
-**O pedido.** *«Faz o ajuste porque não tem sentido ficar carimbando toda hora. […] Se já foi comitado,
-se já subiu, não tem por que fazer de novo se não teve modificação, exceto que seja uma regra da
-proveniência. Precisa verificar isso, qual é o impacto que tem na proveniência.»*
+**O relato.** *«eu só tenho um ciclo, que é o ciclo 01, e a etiqueta dele diz que o PO está
+aguardando. Então eu não sei qual dos dois está errado, o PO ou se é o ciclo. Porque eu também refiz
+o plano de ensino e o plano de observação manualmente, mas não editei nada, não mudei nada. Só mandei
+gerar de novo. E o ciclo continua com a mesma etiqueta.»*
 
-**O sintoma.** Depois de **cada** commit que tocasse um pacote, os mesmos doze ficheiros voltavam
-modificados — os PDFs com o mesmo número de bytes e o mesmo texto extraído, o `ciclos.json` com uma
-linha de diferença. O commit seguinte levava essa data dentro, e a data movia o epoch outra vez.
+**A investigação, e a conclusão que ela não esperava: não havia dois valores em desacordo.** Medido
+no acervo: o PO de `batata` tem `state: Input_PO_Aguardando`, e a razão está no próprio documento —
+`- [ ] Critérios mutuamente exclusivos`. Não é um defeito de sincronização, e não há nada «errado»
+entre o PO e o ciclo; são o mesmo facto lido em dois sítios.
 
-**A causa não era o carimbo — era um ciclo sem ponto fixo.** O `SOURCE_DATE_EPOCH` (a data que o
-pdfTeX grava no `/CreationDate` e que o índice escrevia como `gerado_em`) vinha de
-`git log -1 --format=%ct -- "professores/<professor>/ciclos"` — e esse caminho é a **pasta**, que
-contém as saídas que o próprio gerador escreve. Gravar o `ciclos.json` movia o epoch; o epoch mudava
-o `ciclos.json`. O comentário ao lado dizia «a data do último commit que tocou as **fontes** do
-ciclo»: o comentário estava certo e o caminho estava errado.
+**Porque é que aquele item fica sempre por marcar.** O estado passa a `Input_PO_Validado` quando as
+**seis** folhas do checklist estão marcadas (PROTOCOLO, ciclo de vida do estado). Cinco são
+inferidas do que já está escrito — o fenómeno, as fronteiras, a norma, a justificativa, o âmbito.
+A sexta não é inferível por ninguém, e o conteúdo declara-o por palavras: `derivadoDe: {sempre:
+"não"}` com a explicação «pré-preenchido com «não»: nenhum campo do Plano de Observação decide isto».
+Regenerar o documento sem marcar essa caixa dá **o mesmo documento** e a mesma etiqueta — o que a
+tela dizia era verdade, e o motivo é que não estava à vista.
 
-**A correção, em três partes que se sustentam uma à outra.**
+**A correção: a etiqueta passa a ter sujeito.** `dadosDoPlano` lê as caixas desmarcadas da secção
+`## Checklist de validação` do **próprio documento-fonte do PO** — a mesma secção de onde sai a linha
+`state:`, e não uma cópia na âncora: um facto, uma fonte. Quando há caixas por marcar, o cartão do
+ciclo diz, em duas metades do mesmo dado: no `title` do selo (quem passa o rato) e na **linha de
+contexto** («Ciclo 01 · 21 aulas previstas · No Plano de Observação falta marcar «Critérios mutuamente
+exclusivos».»), que é a que se lê a correr e no telemóvel. Num PO todo marcado não se acrescenta
+nada — e sem secção de checklist não se inventa motivo.
 
-1. **A data sai das fontes.** O epoch passa a ser a **data de início do ciclo**, que o calendário já
-   derivou do manifesto. Três propriedades, e as três foram a razão da escolha: é função das fontes
-   (muda quando o calendário muda, e só então); não depende de `git` (um clone raso dava `date +%s`,
-   o relógio outra vez, e o `git log` falhava em silêncio); e não é mentira visível — **o PDF não
-   imprime data de geração nenhuma**, conferido com `pdftotext` nos quatro ciclos: todas as datas
-   que ele mostra vêm do plano e do calendário. O `SOURCE_DATE_EPOCH` existe só para o `/CreationDate`
-   ser reprodutível.
-2. **O `gerado_em` sai do índice.** Não tinha leitor nenhum, e o facto que ele afirmava já está no
-   `git log` — que diz o mesmo e ainda diz quem. É a regra que as vistas já tinham, escrita numa
-   prova: `provar-indice-de-lancamentos` exige «duas corridas, o mesmo texto» e «não leva carimbo de
-   tempo por omissão».
-3. **O `estado` do `aulas[]` sai também** — e o facto e a janela ficam. Ele era o **juízo de um
-   instante** (`dada`/`nao_dada`/`planejada`), copiado do índice para os mapas de relação; ninguém o
-   lia de volta, porque o formulário recalcula os quatro valores a partir de `prazo` com o relógio da
-   página (`estadoDaAula`), e o faz sempre que o índice declara `prazo` — que é todos. O que fica é o
-   **facto** (`lancada`) e a **janela** (`prazo`). O juízo faz-se onde há um *agora*.
+**O que se confirmou por não estar quebrado.** A caixa **pode** ser marcada, e o gesto fica: com o
+formulário do PO aberto, marcar «sim» grava «sim», aposenta a sugestão (`SUGERIDAS`), e a repintura
+não o desfaz — a regra que já existia («escolher o outro valor é discordar») cumpre-se. A bancada
+antiga (`provar-teste`) media o valor derivado, não o clique; a prova nova mede o clique.
 
-**O impacto na proveniência: nenhum, e está medido.** O `.fipp` cobre **fontes** — os dois manifestos,
-o PO, os documentos de `DOCS` e os relatórios; o `ciclos.json` não está nessa lista e nunca esteve.
-Os quatro `.fipp` verificam-se depois da mudança (`hash-ciclo.sh --check`: «íntegro; cadeia intacta»)
-com o **mesmo hash** de antes. A cobertura declarada dentro do `.fipp` não tem `ciclos.json` nem
-`.pdf` — e a prova lê-a de lá, em vez de a afirmar.
+**Onde entrou.** `tools/montar-publicacao.js` (`pendenciasDoPO`, `emPortugues`, `poPendentes` em
+`dadosDoPlano`, a razão em `itemDoPlano`, e `itemDoPlano` exportado para a prova o poder medir),
+`motor/nucleo/lista-html.js` (o `title` do selo, que é peça partilhada e não desenho novo), e a prova
+nova `experimentos/provar-pendencia-do-po.js`.
 
-**Onde entrou.** `tools/gerar-ciclo.sh` (o epoch, o `derivar_estado` que saiu, a entrada de cada aula
-e a `_nota` do índice), `tools/gerar-relacoes.js` (o `estado` fora dos nós de aula),
-`ARQUITETURA-AULA.md` (§4.1, a tabela dos campos e o exemplo de JSON),
-`experimentos/provar-formulario-da-aula.js` (a escolha da aula da prova passou a derivar o estado em
-vez de o ler — a mesma conta, feita onde há um agora), e a prova nova
-`experimentos/provar-saidas-estaveis.js`. Os `indices/` e os quatro pacotes foram regerados: os mapas
-de relação perdem o atributo `estado`, e os PDFs mudam **uma vez** porque o epoch mudou de natureza.
+**Auditoria.** `provar-pendencia-do-po` **26/26**: a frase nomeia a caixa no ciclo real e cala-se no
+PO todo marcado; em todos os três POs do repositório, aguardando ⟺ há caixa por marcar, e a contagem
+que a lista mostra é a contagem de caixas abertas; e o clique fica. **Controle negativo** com o
+`motor/` e o `tools/` de `HEAD`: **11 de 26** reprovam (as 11 da etiqueta — em `HEAD`
+`poPendentes` não existe), e a secção C passa, que é a verdade: em `HEAD` o clique já funcionava, o
+que faltava era a razão. Medido no Chrome, a página reconstruída: nenhum transbordo a 1280, 1024,
+768, 414, 390 e 320px; a frase ocupa 1 linha a partir de 768 e 2 a 390. Sem regressão:
+`check-identidade` 22/22, `provar-barra-e-caminho` 50/50, `provar-a-moldura-em-todas-as-telas` 111,
+`provar-custo-da-listagem` 7/7, `provar-menu-da-producao` 54/55 — a mesma falha que já tinha no
+`HEAD`.
 
-**Auditoria.** `provar-saidas-estaveis` **13/13** — duas gerações seguidas dão o pacote **byte a
-byte** igual (PDFs e HTML incluídos), o índice não declara relógio, o epoch não vem de `git log` e o
-`.fipp` continua íntegro. **Controle negativo** com o `tools/` de `HEAD`: **4 de 4** confirmam o
-defeito de antes (o epoch vinha da pasta que contém as saídas; o índice levava `gerado_em` e
-`estado`). `check-pacote` 0 erros/0 avisos nos quatro pacotes; `gerar-indices --check` e
-`gerar-relacoes --check` em dia (10 e 8 arquivos); `hash-ciclo.sh --check` nos quatro ciclos;
-`provar-formulario-da-aula` 43/48 — as cinco reprovações são **de conteúdo da Técnica e da Poiesis**,
-e reprovam igual com o pacote de `HEAD` (conferido).
-
-**O que ainda não está feito.** `indices/escolas/*.json` e `indices/ciclos/*.json` continuam a levar
-`gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
-`semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
-dia, e não se mexeram agora para não alargar a mudança.
+**O que ainda não está feito.** (1) O envelope grava a resposta semeada com
+`origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
+defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
+o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
+documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
+humano; é feio e anterior, e não se tocou.
 
 ## O que está pendente
-
-## 15/11/2026 — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio
-
-Um risco que este desenho **não cria** mas também não fecha:
-`gravarLinha` manda `alunas: alunasMarcadas()`, e as caixas só existem quando há anamnese. Editar
-um elenco cuja lista de retratos ficou vazia (por exemplo, se as anamneses dele deixarem de existir)
-gravaria `alunas: []`. Já era assim desde 07/11/2026, quando o passo 2 deixou de desenhar caixas
-sem retrato; fica declarado, não corrigido — a correção certa é preservar o que está guardado
-quando a lista não pode ser mostrada, e isso pede uma decisão dela.
-
-`provar-vinculo-do-elenco` não corre nesta árvore: ele lê
-`escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
-(anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
-continuam abertas, e não foram tocadas aqui.
 
 ## 15/11/2026 — O formulário da anamnese não abria: o `markdown.js` era pedido num sítio que não existe
 
@@ -307,6 +285,15 @@ Nada desta entrada. Continuam abertas, e anteriores: as falhas de
 `gerado_em` e `fonte.commit`; ali o `--check` já os ignora por desenho (`motor/nucleo/indices.js`,
 `semVolateis`), e é o `--check` que decide o commit no CI — mas são dois carimbos que ficam para outro
 dia, e não se mexeram agora para não alargar a mudança.
+
+## 15/11/2026 — A etiqueta «PO aguardando» passa a dizer o que falta marcar
+
+(1) O envelope grava a resposta semeada com
+`origem: "perguntado"` — inclusive as seis do checklist e o «não» que ninguém decidiu. É o mesmo
+defeito que a casa já resolveu para as dimensões do plano (que vão como `importado`), e a decisão de
+o alargar às sementes do checklist mexe no formato do registo: fica declarado, não feito. (2) O
+documento imprime as chaves inglesas como títulos (`### criteriaMutuallyExclusive`) acima do rótulo
+humano; é feio e anterior, e não se tocou.
 
 ## Pendências anteriores (índice)
 
@@ -742,6 +729,7 @@ dia, e não se mexeram agora para não alargar a mudança.
 - **13/11/2026** — A escola nasce com endereço próprio, e o expurgo leva-o… → `REGISTRO.md` L44060
 - **13/11/2026** — O domínio do painel, e a rota curinga que a zona tinha → `REGISTRO.md` L44134
 - **13/11/2026** — As senhas de teste entram no ficheiro local, e o push deixa… → `REGISTRO.md` L44192
+- **15/11/2026** — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio → `REGISTRO.md` L44734
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
