@@ -1007,5 +1007,11 @@
       }
     }
   ],
-  "professores": []
+  "professores": [
+    {
+      "slug": "lapis-rosa",
+      "nome": "Lápis Rosa",
+      "desde": "2026-11-15T10:38:57.248Z"
+    }
+  ]
 }
