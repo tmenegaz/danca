@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código do ciclo — base Benesh (ballet clássico)",
-  "versao": 45,
+  "versao": 46,
   "aplicaseA": [
     "benesh"
   ],
@@ -586,32 +586,7 @@
             }
           ]
         },
-        "escola": "batata",
-        "versoes": [
-          {
-            "ate": "2026-11-15",
-            "cobre": 4,
-            "posicao": null,
-            "metodo": "compartilhada",
-            "celulas": {
-              "": [
-                {
-                  "contagem": "1–2",
-                  "categoria": "Perna",
-                  "sinais": [
-                    "ED",
-                    "1ª",
-                    "↓",
-                    "↑"
-                  ],
-                  "descricao": "Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.\nLê-se: Perna, varredura para fora, primeira posição, cede, sobe.",
-                  "repeticoes": 2
-                }
-              ]
-            },
-            "motivo": "ajuste do verbete"
-          }
-        ]
+        "escola": "batata"
       }
     },
     "Battement tendu": {
