@@ -286,7 +286,17 @@ const VERIFICACOES = [
       }
       for (const [slug, escola] of noIndice) {
         if (configs.has(slug)) continue;
-        // Sem config, a escola só pode estar no índice como MEMÓRIA do expurgo.
+        /* A RECÍPROCA TAMBÉM TINHA A PREMISSA (15/11/2026): «sem config, a escola só pode estar
+         * no índice como memória do expurgo». Uma escola de SHARD não tem config e está viva — é
+         * o que a impede de ter Worker próprio. A isenção é a mesma da metade de cima, e do mesmo
+         * facto: o índice dela declara `shard`. Sem isto, criar uma escola dentro do shard fazia
+         * o `check-indices` reprovar três vezes, uma por escola. */
+        let deShard = false;
+        try {
+          const inv = JSON.parse(ctx.disco.ler('escola/' + slug + '/indice.json') || 'null');
+          deShard = Boolean(inv && String(inv.shard || '').trim());
+        } catch { deShard = false; }
+        if (deShard) continue;
         if (escola.expurgada !== true) {
           falhas.push('escola ' + slug + ' não tem wrangler e não está marcada como expurgada');
         }
