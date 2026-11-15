@@ -46157,3 +46157,52 @@ shards no caminho do servidor) · `tools/gerar-indices.js` (passa a usar a mesma
    que tem `ler`/`guardar`; a raiz passa `env.PADD_KV` cru (que tem `get`/`put`), e a condição falha
    em silêncio. Cada `/api/escolas` e cada `/api/professores` reconstrói o acervo inteiro — medido:
    1 árvore + 8 leituras por chamada. É custo, não é defeito de dado.
+
+## 24/11/2026 — «onde estou» volta à coluna (motivo declarado: `tools/templates/`)
+
+**O que ela decidiu.** «Marcar "Área do Professor" em `/aulas/` e nas páginas do ciclo.»
+
+**O que faltava.** A coluna tem o filete de ouro no grupo do documento actual (`data-atual`, que o
+`ciclo.css` estiliza em dois sítios). O gerador escreve-o quando um **item** do grupo aponta para a
+página — e isso cobre as três listas de dentro (`/area-do-professor/anamnese/` etc.). Não cobre
+`/aulas/` nem as páginas do ciclo: elas não são item de grupo nenhum, e por desenho não passam a ser
+(enumerar o acervo no menu foi o que a decisão de 24/10 desfez). Nessas páginas a coluna ficava sem
+dizer nada, e o filete existia só para três destinos.
+
+**Porque se mudou o template, e não o gerador.** O gerador escreve o HTML de cada página do pacote,
+e estas páginas **já estão escritas** — mudá-lo obrigaria a regerar o ciclo de cada escola (e o
+`.fipp` de cada uma) só para o filete aparecer. O `tools/templates/nav.js` é copiado para dentro de
+cada pacote na montagem e corre em todas as páginas: uma mudança aqui chega às três escolas no
+deploy seguinte, sem tocar em fonte nenhuma. É por isso o motivo declarado desta alteração num
+ficheiro congelado.
+
+**A regra, e onde ela mora.** Uma **família declarada** no cliente: `Área do Professor` é o grupo de
+`/area-do-professor/`, `/aulas/` e `/ciclos/` — porque é ali que o trabalho de sala acontece. Não é
+adivinhação por prefixo comum (os três caminhos não o têm); é uma lista, e é ela que cresce se
+amanhã outra página passar a pertencer a um grupo sem ser item dele.
+
+**O SERVIDOR CONTINUA A MANDAR.** O bloco do cliente só age quando **nenhum** grupo está marcado —
+é o intervalo, não uma segunda opinião. Numa página que o gerador marcou, o cliente não toca.
+
+**As cópias.** `raiz/assets/nav.js` foi regerado por `tools/gerar-raiz.sh`; os três pacotes tiveram
+`assets/nav.js` recopiado do template — que é o que o `gerar-ciclo.sh` faz com esse ficheiro
+(`cp "$TPL/nav.js" "$PACOTE/assets/"`, linha 710), e o que o `check-identidade` exige ao conferir o
+circuito. Não se tocou em mais nada dos pacotes.
+
+**Com o quê.** `check-identidade` 0 erros (as 4 cópias conferem) · `provar-navegacao` **41 de 41**,
+com a marca medida no browser em `/ciclos/planos/` e em `/aulas/`, e um controle negativo · o menu
+da Produção 55/55 · `provar-cofre-e-shard` 116/116.
+
+**A prova ficou a medir a decisão.** A secção 3 exigia o grupo «Ciclos», que a coluna deixou de ter;
+agora mede as três páginas que importam (`/ciclos/planos/`, `/aulas/` e o caso sem marca). Duas
+asserções da secção 5 diziam «todos os destinos à vista» (oito) e «o item da página está marcado» —
+ambas mediam o desenho de antes: a folha do telemóvel passou a ter os mesmos grupos da coluna, com
+acordeão. Passam a afirmar a regra. E as secções 6 e 7 (as três caixas do plano, o filtro) morriam
+com um `TypeError` quando a escola **não tem plano de ciclo** — o estado da `calango` hoje: passam a
+declarar que não têm sujeito, e correm inteiras no dia em que houver plano.
+
+**O que continua vermelho, e não é isto:** `provar-barra-unica` 3 de 109 (pré-existente). A barra da
+Área do Professor passou a ter cinco itens («Aulas» e «Aulas dadas» entraram) e a prova exige quatro;
+`/area-do-professor/aulas-dadas/` responde 200 mas a prova procura ficheiros e não conhece as rotas
+da ponte; e uma asserção sobre página sem `<nav>` não tem sujeito no estado de hoje. Três medições
+do desenho de ontem, nenhuma delas do que mudou aqui.

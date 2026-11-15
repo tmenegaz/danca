@@ -819,3 +819,64 @@
     },
   };
 })();
+
+/* ============================================================================
+ * ONDE ESTOU — O GRUPO DA COLUNA QUE ESTA PÁGINA HABITA (24/11/2026)
+ *
+ * O QUE ACONTECEU, dito por quem viu. A coluna tem o filete de ouro no grupo do
+ * documento actual (`data-atual`, que o `ciclo.css` estiliza em dois sítios). O
+ * gerador escreve-o quando um ITEM do grupo aponta para a página — e isso cobre
+ * `/area-do-professor/anamnese/` e as outras listas de dentro. Não cobre o resto:
+ *
+ *   · `/aulas/` — a lista de aulas não é item de grupo nenhum (enumerá-la no menu
+ *     voltaria a fazer do menu um índice, que é a decisão de 24/10);
+ *   · `/ciclos/…` — as páginas do ciclo também não estão na coluna.
+ *
+ * Nessas páginas a coluna não dizia nada, e o filete de ouro existia só para as
+ * três listas. A pesquisadora: «marcar "Área do Professor" em /aulas/ e nas
+ * páginas do ciclo». O trabalho de sala É a Área do Professor — quem abre a lista
+ * de aulas está a trabalhar, e é isso que a coluna tem de dizer.
+ *
+ * PORQUE É AQUI, E NÃO NO GERADOR. O gerador escreve o HTML de cada página do
+ * pacote, e estas páginas JÁ ESTÃO ESCRITAS — mudá-lo obrigaria a regerar o ciclo
+ * de cada escola (e o `.fipp` de cada uma) para o filete aparecer. Este ficheiro
+ * é copiado para dentro de cada pacote na montagem, e corre em todas as páginas:
+ * uma mudança aqui chega a todas as escolas no deploy seguinte, sem tocar em
+ * fonte nenhuma.
+ *
+ * O SERVIDOR CONTINUA A MANDAR. O que o gerador marcou não se discute: este bloco
+ * só age quando NENHUM grupo está marcado — é o intervalo, não uma segunda
+ * opinião. E a família de páginas é DECLARADA (não adivinhada por prefixo comum),
+ * porque é uma decisão de desenho: se amanhã outra página passar a pertencer a um
+ * grupo sem ser item dele, é esta lista que cresce.
+ * ========================================================================== */
+(function () {
+  var FAMILIAS = [
+    // A chave é a do painel do grupo (`aria-controls="g-<chave>"`), escrita pelo
+    // gerador a partir do rótulo: «Área do Professor» → `area-do-professor`.
+    { chave: 'area-do-professor', prefixos: ['/area-do-professor/', '/aulas/', '/ciclos/'] },
+  ];
+
+  var coluna = document.querySelector('.coluna') || document.querySelector('.lateral');
+  if (!coluna) return;
+  // O GERADOR JÁ DISSE: não há nada a acrescentar.
+  if (coluna.querySelector('.coluna-grupo[data-atual="sim"]')) return;
+
+  var caminho = location.pathname;
+  for (var i = 0; i < FAMILIAS.length; i++) {
+    var familia = FAMILIAS[i];
+    var pertence = familia.prefixos.some(function (p) {
+      return caminho === p || caminho.indexOf(p) === 0;
+    });
+    if (!pertence) continue;
+    var grupo = coluna.querySelector('.coluna-grupo > [aria-controls="g-' + familia.chave + '"]');
+    grupo = grupo ? grupo.closest('.coluna-grupo') : null;
+    if (!grupo) continue;
+    grupo.setAttribute('data-atual', 'sim');
+    /* E O ITEM ACESO, que é a outra metade da mesma ideia: dentro do grupo, o link
+       da lista que se está a ver fica com `aria-current`. No `/aulas/` não há item
+       para acender; nas páginas do ciclo também não. Marcar só o grupo é o que a
+       coluna pode afirmar sem inventar. */
+    return;
+  }
+})();
