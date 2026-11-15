@@ -4,10 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 13/11/2026 (esta entrega). Nesta entrega, **a listagem deixou de ser a
-> proveniência**. Ela relatou que a correção de 12/11 (a autoria não se reescreve) deu certo e trouxe
-> à tona o que já estava resolvido: as versões derivadas continuavam **empilhadas** por cima do plano
-> vigente. **CONFIRMADO e medido** no acervo do `calango`: **18 planos numa só cadeia davam 5 linhas**
+> **Última fotografia:** 15/11/2026 (commit `72f87eb7`). Nesta entrega, **as saídas do pacote
+> deixaram de se carimbar**. Ela: «não tem sentido ficar carimbando toda hora. […] Se já foi comitado,
+> se já subiu, não tem por que fazer de novo se não teve modificação». **CONFIRMADO**: o que havia era
+> um laço sem ponto fixo, e não um carimbo lento — a data que o pdfTeX grava vinha de `git log` sobre a
+> **pasta** do ciclo, e essa pasta contém as saídas que o gerador escreve: gravar o `ciclos.json` movia
+> a data que o reescrevia. A data passou a ser a **de início do ciclo** (do calendário, portanto das
+> fontes), o `gerado_em` saiu do índice e o `estado` do `aulas[]` também — o juízo calcula-o quem tem um
+> *agora*, e era o que o formulário já fazia. A **proveniência não se mexeu**: os quatro `.fipp`
+> verificam-se com o **mesmo hash**, e a cobertura declarada nunca incluiu o índice. **CONFIRMADO** em
+> 15/11/2026: `provar-saidas-estaveis` **13/13** — duas gerações byte a byte iguais, também **depois**
+> do commit —, controlo negativo **4/4** a confirmar o defeito de `HEAD`, `check-pacote` 0/0 nos quatro
+> pacotes, e `gerar-indices --check` e `gerar-relacoes --check` em dia. O que **não** se mexeu: os
+> `indices/` continuam com `gerado_em` e `fonte.commit` — ali o `--check` já os ignora por desenho, e
+> fica declarado como dívida. Ver a entrada de 15/11/2026 no `REGISTRO.md`.
+>
+> **Fotografia anterior (13/11/2026 — a listagem deixou de ser a proveniência).** Ela relatou que a
+> correção de 12/11 (a autoria não se reescreve) deu certo e trouxe à tona o que já estava resolvido:
+> as versões derivadas continuavam **empilhadas** por cima do plano vigente. **CONFIRMADO e medido** no acervo do `calango`: **18 planos numa só cadeia davam 5 linhas**
 > na turma `Piano` — e o PO, 20 → 6 —, três delas **órfãs**. **DECIDIDO por ela**: a listagem mostra
 > **o mais recente de cada professor** («dois planos mesmo, que é o do pé torto e o da redinha»), e o
 > resto é proveniência, contada na linha do vigente. O grupo é **a raiz da cadeia + o professor** — a
@@ -1184,10 +1198,12 @@ Verificado nesta fotografia, com os comandos da §9.
   `modelo/ciclos/`; o `tools/gerar-schemas.js` é a porta para o shell e o provisionador do Worker
   deixou de pedir o molde por HTTP (os cinco `GET` saíram). `gerar-schemas --conferir` corre no
   `pre-commit`. **CONFIRMADO** (`provar-schemas` 29/29, `check-schemas` TUDO CERTO).
-- **A geração de um ciclo é REPETÍVEL byte a byte.** Duas gerações seguidas do mesmo ciclo dão o
-  mesmo md5 nos dois PDFs e deixam o `git status` limpo — o `gerado_em` passou a vir do
-  `SOURCE_DATE_EPOCH` (a data do último commit nas fontes) e o `/ID` do trailer do PDF está fixo
-  (`\pdftrailerid{}`). **CONFIRMADO** em 02/11/2026, medido com duas execuções.
+- **A geração de um ciclo é REPETÍVEL byte a byte, e não só entre duas corridas seguidas.** Duas
+  gerações dão o mesmo md5 nos quatro ciclos e deixam o `git status` limpo — inclusive **depois de
+  um commit** que não toque nas fontes, que é o caso que estava a falhar: a data vinha de `git log`
+  sobre a pasta do ciclo (que contém as saídas) e o `ciclos.json` levava `gerado_em` e `estado`. A
+  data passou a ser a de início do ciclo, e os dois campos saíram. **CONFIRMADO** em 02/11/2026,
+  **REMEDIDO** em 15/11/2026 (`provar-saidas-estaveis` 13/13).
 - **A força e a flexibilidade chegam ao PO pela anamnese.** O nó `linha-de-base` declara 15 campos
   em dois grupos, e o mapa servido ao vivo em `batata.tmenegaz77.workers.dev` devolve-os com o nome
   do formulário («Flexibilidade dos isquiotibiais»). **CONFIRMADO** em 02/11/2026 por
@@ -1922,10 +1938,13 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
     com o contexto do ato. A anamnese **informa**; «o que traz» e «o que precisa desenvolver»
     continuam a escrever-se, porque a formulação é da professora. **DECIDIDO** 02/11/2026.
 42. **GERAR NÃO PODE SUJAR A ÁRVORE.** Um ficheiro versionado que muda por ter sido gerado não é
-    derivado: é carimbado. O `gerado_em` vem do `SOURCE_DATE_EPOCH` (a data do último commit nas
-    fontes) e o `/ID` do trailer do PDF é fixo — duas gerações seguidas dão o mesmo md5. O relógio
-    continua a servir para o `estado` do `aulas[]`, que é juízo do instante, e só para ele.
-    **DECIDIDO** 02/11/2026.
+    derivado: é carimbado. O `/ID` do trailer do PDF é fixo, e a data que o pdfTeX grava
+    (`SOURCE_DATE_EPOCH`) passou a ser a **data de início do ciclo**, derivada do calendário — não o
+    relógio e não o commit: até 15/11/2026 ela vinha de `git log` sobre a **pasta** do ciclo, que
+    contém as saídas, e por isso gravar as saídas movia a data e a data mudava as saídas (um laço
+    sem ponto fixo). O `ciclos.json` deixou de levar `gerado_em` e `estado`: o facto (`lancada`) e a
+    janela (`prazo`) ficam, o juízo calcula-o quem tem um *agora*. **DECIDIDO** 02/11/2026,
+    **CORRIGIDO** 15/11/2026.
 43. **O MOLDE DOS SCHEMAS TEM UM LEITOR SÓ, E A COMPARAÇÃO É DE CONTEÚDO.** `motor/nucleo/schemas.js`
     é o único que lê `modelo/ciclos/`; o shell chega lá pelo `tools/gerar-schemas.js`. Uma cópia sem
     comparação é uma segunda verdade — foi assim que o molde ficou cinco professores atrás.
@@ -4575,6 +4594,17 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **15/11/2026** — **As saídas do pacote deixaram de se carimbar.** Ela: «não tem sentido ficar
+  carimbando toda hora». O diagnóstico **CONFIRMADO**: não era um carimbo lento, era um laço sem
+  ponto fixo — o `SOURCE_DATE_EPOCH` vinha de `git log` sobre a **pasta** do ciclo, que contém as
+  saídas que o gerador escreve, por isso gravar o `ciclos.json` movia a data que o reescrevia. A
+  data passou a ser a de **início do ciclo** (do calendário), o `gerado_em` saiu do índice e o
+  `estado` do `aulas[]` também — o juízo calcula-o quem tem um *agora*. A **proveniência não se
+  mexeu**, e está medido: os quatro `.fipp` verificam-se com o mesmo hash, e o índice nunca esteve
+  na cobertura. **CONFIRMADO**: `provar-saidas-estaveis` **13/13** e, o que faltava medir, a árvore
+  fica limpa ao regerar os quatro pacotes **depois** do commit. Ver a entrada de 15/11/2026 no
+  `REGISTRO.md`.
 
 - **13/11/2026** — **A listagem não é a proveniência: uma linha por professor, dentro da cadeia.**
   Ela relatou que a correção de 12/11 (a autoria não se reescreve) deu certo e trouxe à tona o que

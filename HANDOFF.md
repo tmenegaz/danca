@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T11:46:05-0300`
-Commit atual: `53d8c013` — chore(ciclo-01): regerar as saídas do pacote e renovar os selos da âncora
+Gerado em: `2026-11-15T11:54:13-0300`
+Commit atual: `a4da4ca6` — chore(estrutura): reancorar a cadeia das fontes alteradas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,11 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+a4da4ca6 chore(estrutura): reancorar a cadeia das fontes alteradas
+72f87eb7 fix(tools): as saídas do pacote deixam de se carimbar a cada commit
+59551ef4 docs(notacao): editar «Plié» (4|2/4) no alfabeto bale-classico — ajuste: a versão anterior (até 2026-11-15) fica no histórico
+e17f7b11 chore(estrutura): reancorar a cadeia das fontes alteradas
+b1fe919a chore(estrutura): regerar os índices derivados
 53d8c013 chore(ciclo-01): regerar as saídas do pacote e renovar os selos da âncora
 d9c8dfc5 fix(template): o trecho do verbete só abre dentro de um trecho, e a Turma diz o estado de agora
 e0a35b96 chore(estrutura): regerar os índices derivados
@@ -91,11 +96,6 @@ b25051d1 feat(acervo): envelope/.indice.json
 9d700226 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 67a976b9 feat(plano): o plano elicitado vira a fonte do ciclo
 c3d5baf2 feat(acervo): envelope/plano-20261115-1101.json
-ec53bf14 feat(acervo): envelope/.indice.json
-e9f3d416 chore(estrutura): regerar os índices derivados
-01a51e50 feat(linha de base): índice — sapatilha 20261115-1358
-f6bc0157 feat(elenco): sapatilha — concluído
-242fffd3 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
