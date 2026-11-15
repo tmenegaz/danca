@@ -4,24 +4,45 @@
     "ancorado_em": "2026-11-15",
     "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
     "cobertura": [
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
       "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
       "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
       "professores/rimel-preto/ciclos/ciclo-01.conf"
     ],
-    "hash": "b567979ac9b334407551b948cbb4143a2e5ef60f3790691010c0feadd0ab867e",
-    "hash_conteudo": "d9a98d6d1c1e511cfc9c6664f079a7389e20fae7c60c2a55d61967ca6cac2320",
+    "hash": "84874bbb868048d822aa6b63f9a7bb18fdbf562dff69a1b3f387b0cddfc2ef31",
+    "hash_conteudo": "d1af84f4d34f62aa38e0ddf07fcbc507aae43e09b1e1e0abc95a3ab8af6e1bca",
     "id": "ciclo-01-batata-rosa",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:rimel-preto/01/batata/rosa/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
     "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
     "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+    "documento:aula:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
+    "documento:aula:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
+    "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.cifrado.json",
+    "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
+    "documento:declaracao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
+    "documento:glossario:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
+    "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+    "documento:notacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
     "documento:plano:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
+    "documento:po:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
+    "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
     "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -29,9 +50,34 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "declaracao",
+        "valor": "declaracao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
       },
       {
         "contagem": 2,
@@ -40,8 +86,23 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       },
       {
         "contagem": 1,
@@ -52,9 +113,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7b2b0da"
+    "commit": "0453d2b"
   },
-  "gerado_em": "2026-11-15T22:21",
+  "gerado_em": "2026-11-15T22:22",
   "id": "ciclo:rimel-preto/01/batata",
   "professor": "rimel-preto",
   "versao": 7

@@ -10,12 +10,12 @@ type: Ciclo
 professor: rimel-preto
 ciclo: 01
 variante: batata-rosa
-hash_conteudo: d9a98d6d1c1e511cfc9c6664f079a7389e20fae7c60c2a55d61967ca6cac2320
+hash_conteudo: d1af84f4d34f62aa38e0ddf07fcbc507aae43e09b1e1e0abc95a3ab8af6e1bca
 parentHash: 
-hash: b567979ac9b334407551b948cbb4143a2e5ef60f3790691010c0feadd0ab867e
+hash: 84874bbb868048d822aa6b63f9a7bb18fdbf562dff69a1b3f387b0cddfc2ef31
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-15
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 46
 notacao_sha: bc7ce594ee6b90a049fe81d43dacbade7560c1e57d424be1e43f511ffe02aac7
 cobertura:
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md
   - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md
   - professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf
   - professores/rimel-preto/ciclos/ciclo-01.conf

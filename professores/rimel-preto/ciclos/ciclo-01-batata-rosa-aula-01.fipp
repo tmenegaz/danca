@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-batata-rosa: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-batata-rosa-aula-01
+type: Aula
+professor: rimel-preto
+ciclo: 01
+variante: batata-rosa
+aula: 01
+hash_conteudo: 7a801f820ee2ea8daab491f34f1ad3029dab925d18e372d1d584d6d653403a2e
+parentHash: 
+hash: efe663da2d6f161f68d8b3bf6f0edf3a3d0efb8f407d6725050eaf221287d80c
+algoritmo: SHA-256
+ancorado_em: 2026-11-15
+cobertura:
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md
