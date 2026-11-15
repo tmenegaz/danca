@@ -1,44 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-15",
+        "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+          "professores/rimel-preto/ciclos/ciclo-01.conf"
+        ],
+        "hash": "89fc1925676284247205f54b4c2db6aaaefcb143e99afcf5f003e1fdbb201c27",
+        "hash_conteudo": "7798a7afbeb715948ce37a920d55d4bdb7ecaadb61a8f7ae397d3ace287e0487",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+        "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+        "professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:rimel-preto/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "rimel-preto",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+      "professor": "rimel-preto",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+      "professor": "rimel-preto",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:rimel-preto/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "rimel-preto",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:rimel-preto/01/batata"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-15T20:09:07.180166+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-15T21:06:31.119832+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-15T20:23:48.197Z",
     "expurgos": 12,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:batata",
     "nome": "batata",
-    "professor": "sapatilha-de-ponta",
+    "professor": "rimel-preto",
     "professores": [
-      "acucar-branco",
-      "cafe-no-bule",
-      "coqui-de-redinha",
-      "dedao-aberto",
-      "lapis-rosa",
-      "manga-curta",
-      "meia-cortada",
-      "pe-junto",
-      "pe-torto",
-      "perna-boa",
-      "sapatilha-de-ponta",
-      "sapo-bailarino",
-      "so-para-direita",
-      "tela-de-celular",
-      "tiago-menegaz"
+      "rimel-preto"
     ],
     "registros": [],
     "slug": "batata"
@@ -46,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rimel-preto/01/batata"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rimel-preto/01/batata"
+        ],
+        "rotulo": "rimel-preto",
+        "valor": "rimel-preto"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:rimel-preto/01/batata"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "f194018c"
+    "commit": "15d2419b"
   },
-  "gerado_em": "2026-11-15T22:10",
+  "gerado_em": "2026-11-15T22:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
