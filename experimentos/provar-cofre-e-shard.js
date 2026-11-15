@@ -651,6 +651,53 @@ function cloudflareFalso({ rotas = [] } = {}) {
       }
     }
 
+    /* A RECRIAÇÃO DE UMA ESCOLA EXPURGADA DENTRO DO SHARD (15/11/2026).
+     *
+     * O índice SOBREVIVE ao expurgo — é o elo —, e o `criar-escola.sh` não o reescreve: acrescenta
+     * um elo de recriação. O `--shard` só escrevia o campo quando o índice NASCIA, e por isso a
+     * escola recriada ficava com `worker: <escola>` e sem `shard`. Todos os leitores do campo — o
+     * `montar-publicacao --shard`, o mapa, o `lib-shard.sh`, o `deploy-escolas` — deixavam de a
+     * ver, e a escola nascia dentro do shard com o repositório a dizer que tinha Worker próprio.
+     *
+     * É o caso exacto dela: as três escolas foram expurgadas e vão ser recriadas no mesmo shard. */
+    {
+      const temp5 = fs.mkdtempSync(path.join(os.tmpdir(), 'recriacao-shard-'));
+      const correr = (indice, extra) => {
+        const arq = path.join(temp5, 'indice.json');
+        fs.writeFileSync(arq, JSON.stringify(indice), 'utf8');
+        const r = require('child_process').spawnSync('python3',
+          [path.join(RAIZ_DO_CODIGO, 'tools/registrar-recriacao.py'), arq,
+            '--professor', 'novo-prof', '--professor-nome', 'Novo Prof',
+            '--responsavel', 'Novo Prof', '--ciclo', '01'].concat(extra),
+          { cwd: RAIZ, encoding: 'utf8' });
+        return { r, lido: JSON.parse(fs.readFileSync(arq, 'utf8')) };
+      };
+      const expurgada = { escola: 'calango', worker: 'calango', ciclo: '01',
+        professor: { slug: 'pe-torto', nome: 'Pe Torto' },
+        expurgo: [{ em: '2026-11-15T18:00:00-03:00', motivo: 'expurgada pela página' }] };
+
+      const comShard = correr(expurgada, ['--shard', 'lastro-teste']);
+      provar('a escola EXPURGADA recriada dentro do shard passa a declarar o shard',
+        comShard.lido.shard === 'lastro-teste', comShard.lido.shard);
+      provar('…e o elo deixa de dizer que ela tem um Worker próprio',
+        comShard.lido.worker === 'lastro-teste', comShard.lido.worker);
+      provar('…e o elo de recriação é registado na mesma',
+        Array.isArray(comShard.lido.recriacao) && comShard.lido.recriacao.length === 1,
+        comShard.lido.recriacao && comShard.lido.recriacao.length);
+
+      /* O OUTRO RAMO: uma escola que nunca foi expurgada. Não há elo a registar, mas o FACT0 do
+       * shard não pode deixar de ser gravado — o elo não pode contradizer quem a serve. */
+      const semExpurgo = correr({ escola: 'breu', worker: 'breu', expurgo: [] }, ['--shard', 'lastro-teste']);
+      provar('sem expurgo, o shard é GRAVADO na mesma (é um facto, não um elo)',
+        semExpurgo.lido.shard === 'lastro-teste' && semExpurgo.lido.worker === 'lastro-teste',
+        { shard: semExpurgo.lido.shard, worker: semExpurgo.lido.worker });
+
+      /* E o controle: sem `--shard`, nada disto acontece — o regime de antes fica intacto. */
+      const semFlag = correr(expurgada, []);
+      provar('CONTROLE NEGATIVO: sem `--shard` o índice não ganha o campo (o regime de antes)',
+        semFlag.lido.shard === undefined, semFlag.lido.shard);
+    }
+
     /* O helper que os três workflows usam para a mesma pergunta. */
     const linha = require('child_process').spawnSync('bash',
       ['-c', 'source tools/lib-shard.sh; printf "%s|%s" "$(shard_da_escola calango)" "$(shard_da_escola nao-existe)"'],

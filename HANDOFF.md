@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T16:52:04-0300`
-Commit atual: `5785700a` — fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
+Gerado em: `2026-11-15T16:55:40-0300`
+Commit atual: `1d9adb27` — fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -77,6 +77,8 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+1d9adb27 fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
+3b8b8efd fix(tools): o mapa de escolas não conhecia a escola de shard, e travava a criação
 5785700a fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
 bb449d49 fix(tools): o shard não é uma escola, e a derivação dizia que era
 1674308b chore(estrutura): regerar os índices derivados
@@ -95,8 +97,6 @@ ffb689f3 fix(estrutura): duas escolas do mesmo shard eram dois deploys do mesmo 
 5b46db6e feat(estrutura): a escola de shard passa a ser publicada, e o expurgo reconhece-a
 842efb28 feat(tools): a montagem de um shard monta-o inteiro, ou não monta
 bdb566f8 fix(experimentos): o controlo negativo ancorava em HEAD e envelhecia ao ser cometido
-0ad9ae36 feat(estrutura): a chave da escola passa a ser derivada, e o cofre mostra a mestra
-c64d05dd feat(tools): a escola nasce dentro do shard, e o expurgo passa a saber qual
 ```
 
 ## Por professor
@@ -221,6 +221,23 @@ pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e
 falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
 NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
 suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
+
+**Acréscimo (15/11/2026, mesmo dia).** Ao verificar a recriação apareceu um **terceiro** buraco, e é
+o que ia morder exactamente agora: **`--shard` só escrevia o campo do shard quando o índice
+NASCIA.** Uma escola expurgada tem o índice preservado (é o elo), e o `criar-escola.sh` não o
+reescreve — acrescenta um elo de recriação ao que lá está. Resultado: a escola recriada ficava com
+`worker: "<escola>"` e **sem `shard` nenhum**, e todos os leitores do campo deixavam de a ver — o
+`montar-publicacao --shard` (que monta o que o índice declara), o mapa de escolas, o `lib-shard.sh`
+e o `deploy-escolas`. A escola nascia dentro do shard com o repositório a dizer que tinha Worker
+próprio, e o primeiro deploy a seguir ia procurar um `wrangler.<escola>.jsonc` que não existe.
+
+`tools/registrar-recriacao.py` passa a aceitar `--shard` e a gravar `shard` **e** `worker` (o script
+que a serve hoje) — **antes** do retorno que salta o elo: uma escola servida por um shard tem de o
+declarar, tenha sido expurgada ou não, porque o elo não pode contradizer a realidade. O
+`criar-escola.sh` passa `--shard` também nesse ramo. Sem a flag, nada muda — o controle negativo
+mede isso.
+
+`provar-cofre-e-shard` **95/95** (mede os três caminhos: com expurgo, sem expurgo, e sem a flag).
 
 ## O que está pendente
 
