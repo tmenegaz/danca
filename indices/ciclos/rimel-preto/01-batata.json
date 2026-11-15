@@ -2,20 +2,22 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-11-15",
-    "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
+    "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
     "cobertura": [
-      "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
+      "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
       "professores/rimel-preto/ciclos/ciclo-01.conf"
     ],
-    "hash": "89fc1925676284247205f54b4c2db6aaaefcb143e99afcf5f003e1fdbb201c27",
-    "hash_conteudo": "7798a7afbeb715948ce37a920d55d4bdb7ecaadb61a8f7ae397d3ace287e0487",
-    "id": "ciclo-01-batata",
+    "hash": "b567979ac9b334407551b948cbb4143a2e5ef60f3790691010c0feadd0ab867e",
+    "hash_conteudo": "d9a98d6d1c1e511cfc9c6664f079a7389e20fae7c60c2a55d61967ca6cac2320",
+    "id": "ciclo-01-batata-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
     "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
     "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },

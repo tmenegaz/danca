@@ -1,0 +1,28 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-batata-rosa
+type: Ciclo
+professor: rimel-preto
+ciclo: 01
+variante: batata-rosa
+hash_conteudo: d9a98d6d1c1e511cfc9c6664f079a7389e20fae7c60c2a55d61967ca6cac2320
+parentHash: 
+hash: b567979ac9b334407551b948cbb4143a2e5ef60f3790691010c0feadd0ab867e
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-15
+notacao: Benesh
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 46
+notacao_sha: bc7ce594ee6b90a049fe81d43dacbade7560c1e57d424be1e43f511ffe02aac7
+cobertura:
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md
+  - professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf
+  - professores/rimel-preto/ciclos/ciclo-01.conf
