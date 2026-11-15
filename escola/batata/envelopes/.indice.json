@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261115-1913.json",
     "plano-20261115-1921.json",
-    "po-20261115-1921.json"
+    "po-20261115-1921.json",
+    "po-20261115-2017.json"
   ],
   "resumos": {
     "anamnese-20261115-1913.json": {
@@ -40,6 +41,21 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-15T19:21",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261115-1921"
+      ]
+    },
+    "po-20261115-2017.json": {
+      "id": "po-20261115-2017",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "rimel-preto",
+      "ciclo": "01",
+      "ajuste_de": "po-20261115-1921",
+      "gerado_em": "2026-11-15T20:17",
       "sujeitos": [
         "Aluna A"
       ],
