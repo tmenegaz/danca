@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -1044,6 +1044,64 @@
           "fontes": 19,
           "variantes": 3,
           "cobertos": 22
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-15T20:23:48.197Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/batata/envelopes/.indice.json",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.conf",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/assets/favicon.svg",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/assets/lib-cifra.js",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/assets/nav.js",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/assets/style.css",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/index.html",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/assets/markdown.js",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/conteudo/anamnese.json",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/index.html",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/plano/conteudo/plano.json",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/po/conteudo/po.json",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/sapatilha-de-ponta/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "batata/",
+          "bastidores/batata/"
+        ],
+        "em": "2026-11-15T20:23:48.197Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-15T20:23:44.150Z",
+        "ancoras": [
+          {
+            "caminho": "professores/sapatilha-de-ponta/ciclos/ciclo-01-batata.fipp",
+            "id": "ciclo-01-batata",
+            "hash": "f7603efa1095f051951e048f04a888b64af8ce4dbceca55713cb8810a7cbaebb",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "7515a5a3bccc9352c9a2070445b020b5f476ef3f985c3ae2ac89840effe5bd35",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
         },
         "fases": {
           "estrutura": "feita",
