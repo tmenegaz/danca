@@ -500,6 +500,13 @@ function cloudflareFalso({ rotas = [] } = {}) {
       provar(fluxo + ' monta o shard inteiro (`--shard`) em vez de uma escola', /montar-publicacao\.js --shard/.test(texto), null);
       provar(fluxo + ' …e sobe a config do SHARD, não a de uma escola', alvo.test(texto), null);
     }
+
+    /* UMA ENTRADA POR WORKER. Duas escolas do mesmo shard são o MESMO Worker: duas entradas na
+     * matriz seriam dois `wrangler deploy` em paralelo sobre a mesma versão activa — a disputa que
+     * a `concurrency` do workflow existe para evitar, e que a matriz atravessa. */
+    const descobre = (() => { try { return lerFluxo('deploy-escolas.yml'); } catch (erro) { return ''; } })();
+    provar('a descoberta do deploy-escolas deduplica pelo ALVO (o shard), e não pela escola',
+      /alvo="shard:\$s"/.test(descobre) && /case "\$vistos" in/.test(descobre), null);
   });
 
   console.log('\n' + (ko === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + ok + '/' + (ok + ko)

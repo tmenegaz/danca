@@ -120,6 +120,12 @@ jobs:
           set -euo pipefail
           filtro="${FILTRO:-}" 
           lista='[]'
+          # O ALVO, E NÃO A ESCOLA, É O QUE NÃO SE REPETE (15/11/2026). Duas escolas do mesmo
+          # shard são o MESMO Worker: duas entradas na matriz seriam dois `wrangler deploy` em
+          # paralelo sobre a mesma versão activa — a disputa que o comentário da `concurrency`
+          # descreve. Guarda-se o alvo de cada entrada já aceite.
+          source tools/lib-shard.sh
+          vistos=' '
           for cfg in wrangler.*.jsonc; do
             [ -f "$cfg" ] || continue
             slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
@@ -148,6 +154,9 @@ jobs:
               continue
             fi
             if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
+            alvo="$slug"; s="$(shard_da_escola "$slug")"; [ -n "$s" ] && alvo="shard:$s"
+            case "$vistos" in *" $alvo "*) echo "pulando $slug — o Worker «$alvo» já está na lista"; continue ;; esac
+            vistos="$vistos$alvo "
             lista=$(printf '%s' "$lista" | node -e '
               const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
               l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
@@ -169,6 +178,9 @@ jobs:
             [ -n "$slug" ] || continue
             case "$lista" in *"\"$slug\""*) continue ;; esac
             if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
+            alvo="$slug"; s="$(shard_da_escola "$slug")"; [ -n "$s" ] && alvo="shard:$s"
+            case "$vistos" in *" $alvo "*) echo "pulando $slug — o Worker «$alvo» já está na lista"; continue ;; esac
+            vistos="$vistos$alvo "
             lista=$(printf '%s' "$lista" | node -e '
               const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
               l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
