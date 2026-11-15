@@ -12817,25 +12817,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var LEITURA_FEITA = false;' +
     // CHEGAR AO PASSO `n` EXIGE TODOS OS ANTERIORES COMPLETOS.
     'function podeIrParaLb(n) { return faltasAntesDeLb(Number(n) || 1).length === 0; }' +
-    /* VER NÃO É AVANÇAR (07/11/2026).
+    /* A TIRA OBEDECE AO «SEGUIR» (15/11/2026) — e a excepção do passo 2 saiu.
      *
-     * UMA EXCEPÇÃO, E ELA TEM NOME: O PASSO 2 NUMA ESCOLA SEM UM ÚNICO RETRATO. A regra de
-     * sempre — não se chega a um passo com falta nos anteriores — continua a valer para tudo o
-     * resto, incluindo o passo 2 quando há anamnese e falta o nome. A excepção é o caso em que o
-     * painel do passo 2 não tem lista nenhuma para mostrar (não há aluna para listar) e tem tudo
-     * para explicar: por que a anamnese é obrigatória, e onde se preenche.
+     * O QUE ELA VIU, na letra dela: «o botão de seguir na escolha do elenco está bloqueado, mas eu
+     * consigo navegar pelos steps. Eu consigo ir para o step dois, mesmo sem ter definido um nome
+     * para o elenco, e não pode ser assim […] Não dá para avançar para alunas a escolher pelo step,
+     * né, em cima, tem que seguir a regra do botão de seguir.»
      *
-     * POR QUE A EXCEPÇÃO É NECESSÁRIA. A trava estava certa e a explicação existia — mas dentro
-     * do painel que a trava impedia de abrir. Ela descreveu o resultado com precisão: «a interface
-     * fica vazia ou bloqueada sem orientar o professor». Uma trava que esconde a sua própria razão
-     * não trava: tranca.
+     * AQUI ESTEVE UMA EXCEPÇÃO (07/11/2026), e a razão dela continua verdadeira: sem anamnese, o
+     * passo 2 abria só para LER, porque era ele que carregava a explicação de por que a anamnese é
+     * obrigatória. A decisão de hoje é outra, e é dela: o passo em cima não é um atalho para ler —
+     * é a navegação do MESMO acto, e duas regras para o mesmo acto divergem sempre. A explicação
+     * não se perdeu: ela está no alto da aba (`#lb-sem-anamnese`), que é o primeiro texto da
+     * Audição e não depende de passo nenhum abrir.
      *
-     * Os passos 3 e 4 continuam a exigir os anteriores: eles LEEM retratos e mostram resultados,
-     * e abri-los sobre uma lista vazia seria uma tabela sobre ninguém. */
+     * A REGRA PASSA A SER UMA SÓ, e é a do botão: chega-se ao passo `n` quando todos os anteriores
+     * estão completos (`podeIrParaLb`). O que o próprio passo `n` ainda exige não fecha a ENTRADA
+     * nele — fecha a saída, e é o «Seguir» que o diz. */
     'function podeVerPasso(n) {' +
     '  var passo = Number(n) || 1;' +
     '  if (passo <= LB_PASSO) return true;' +
-    '  if (passo === 2 && !haAnamnese()) return true;' +
     '  return podeIrParaLb(passo);' +
     '}' +
     'function faltasAntesDeLb(n) {' +
@@ -12873,28 +12874,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var semRetrato = !haAnamnese();' +
     '  Array.prototype.slice.call(document.querySelectorAll("#lb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
-    /* O QUE FECHA UM PASSO É O QUE ELE PRECISA (07/11/2026).
+    /* O QUE FECHA UM PASSO É O QUE ELE PRECISA (07/11/2026; regra única desde 15/11/2026).
      *
      * Era `semNada || (...)` — a ausência de anamnese fechava a TIRA INTEIRA, e com ela o passo 1,
-     * onde não se lê retrato nenhum. Agora quem fecha é `podeVerPasso(n)`, que pergunta a cada
-     * passo o que ele PRECISA PARA SER LIDO: o 1 só pede nome e professor; o 2 pede a anamnese de
-     * UMA aluna para poder ser completado — mas abre sem ela, porque é lá que está a explicação
-     * de que ela é obrigatória e o link para a preencher; o 3 e o 4 exigem os anteriores. */
+     * onde não se lê retrato nenhum. Quem fecha é `podeVerPasso(n)`, que desde 15/11/2026 é a
+     * mesma regra do «Seguir»: um passo à frente só abre quando os anteriores estão completos.
+     *
+     * O «aberto para ler, fechado para avançar» saiu com a excepção que o justificava. Um passo ou
+     * abre, ou não abre — manter dois estados seria manter uma distinção que já não separa nada. */
     '    var fechado = (n > LB_PASSO) && !podeVerPasso(n);' +
-    /* ABERTO PARA LER, FECHADO PARA AVANÇAR — e o `title` diz qual dos dois é. Só há um passo
-     * neste estado (o 2 sem retrato nenhum), e é ele que carrega a explicação. Sem esta linha, o
-     * botão ficava aceso e mudo, e a razão da espera desaparecia com o `title` que o ramo de
-     * baixo removia. */
-    '    var soLeitura = !fechado && n > LB_PASSO && !podeIrParaLb(n);' +
     '    b.disabled = fechado;' +
     '    b.setAttribute("aria-disabled", fechado ? "true" : "false");' +
     '    if (fechado) {' +
     '      var razao = faltasAntesDeLb(n).join(", ");' +
     '      b.setAttribute("title", (semRetrato && n > 1 ? "Sem anamnese não há o que recortar. " : "")' +
     '        + (razao ? "Falta " + razao + "." : ""));' +
-    '    }' +
-    '    else if (soLeitura) {' +
-    '      b.setAttribute("title", "Abre para explicar o que falta: " + faltasAntesDeLb(n).join(", ") + ".");' +
     '    }' +
     '    else b.removeAttribute("title");' +
     '  });' +
@@ -13017,17 +13011,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function irParaPassoLb(qual) {' +
     '  var alvo = Number(qual) || 1;' +
     '  if (alvo <= LB_PASSO) { mostrarPassoLb(alvo); return; }' +
-    /* O PASSO 2 ABRE MESMO VAZIO — É LÁ QUE ESTÁ A EXPLICAÇÃO (07/11/2026).
-     *
-     * A trava dizia «não se avança sem anamnese» e, com isso, também não se VIA o passo 2. O
-     * resultado era o oposto do pretendido: quem não tinha retrato não conseguia ler o que lhe
-     * faltava nem o sítio onde se resolve, porque o painel que o diz nunca abria. Uma trava que
-     * esconde a sua própria razão não trava: tranca.
-     *
-     * O que separa VER de AVANÇAR é `podeVerPasso` — ver a nota dela. Aqui, chegar a um passo que
-     * só se pode ler NÃO grava nada: o professor está a ir ver o que falta, não a decidir. */
+    /* NÃO SE AVANÇA PARA UM PASSO COM FALTA NOS ANTERIORES (05/11/2026; regra única desde
+     * 15/11/2026). Aqui esteve o ramo que deixava ABRIR o passo 2 sem anamnese, só para ler a
+     * explicação — e com a explicação movida para o alto da aba, o ramo deixou de ter razão de
+     * existir: um passo a que não se pode chegar é um passo a que não se chega. */
     '  if (!podeIrParaLb(alvo)) {' +
-    '    if (podeVerPasso(alvo)) { mostrarPassoLb(alvo); return; }' +
     '    corpoRes("aviso", "Este passo ainda não abre: falta " + faltasAntesDeLb(alvo).join(", ") + ".");' +
     '    pintarTravasLb();' +
     '    return;' +
@@ -13062,77 +13050,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // DEZ DE CADA VEZ (05/11/2026). A lista é feita de blocos, e o «Carregar mais alunas»
     // acrescenta dez. As JÁ MARCADAS contam sempre para o corte — senão, ao carregar mais, uma
     // aluna escolhida na primeira fornada desapareceria da vista e o professor perderia o fio.
-    /* O PASSO 2 SEM NENHUM RETRATO — DIZ O QUE FALTA, POR QUE, E ONDE SE RESOLVE (07/11/2026).
+    /* SEM NENHUMA ANAMNESE, O PASSO 2 NÃO MOSTRA NADA (15/11/2026).
      *
-     * O QUE ELA VIU. «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam
-     * anamnese preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» Era
-     * literalmente um travessão — «— nenhuma aluna com anamnese.» — dentro da caixa das alunas.
-     * A trava estava certa (sem retrato não há corpo para recortar), mas quem chegava ali não
-     * sabia se o problema era a escola, a ligação, ou o passo, nem o que fazer a seguir.
+     * Aqui esteve uma caixa que NOMEAVA a falta, explicava por que a anamnese é obrigatória, dizia
+     * a regra de avanço e levava à lista da anamnese (07/11/2026, com duas variantes de texto a
+     * 15/11/2026). Ela nasceu de uma observação certa — «a interface fica vazia ou bloqueada sem
+     * orientar o professor» —, e essa orientação mudou de sítio: o aviso do alto da aba
+     * (`#lb-sem-anamnese`) diz o mesmo, com as duas faltas distinguidas, e é o primeiro texto da
+     * Audição — não depende de passo nenhum abrir.
      *
-     * O QUE O ESTADO VAZIO PASSOU A FAZER, e por esta ordem — que é a ordem das perguntas de
-     * quem está a olhar:
-     *   1. NOMEIA a falta («Nenhuma aluna com anamnese»), em vez de a sugerir com um travessão;
-     *   2. EXPLICA por que é obrigatória (o corpo que se recorta É o das alunas);
-     *   3. DIZ a regra de avanço, com os números: o passo 2 abre com a anamnese de UMA aluna;
-     *   4. LEVA lá — `a.acao` para a Área do Professor, o mesmo destino do menu («Anamnese do
-     *      aluno»), com o professor e a escola na query que o servidor já monta;
-     *   5. DIZ que o trabalho não se perde: o elenco nomeado fica gravado como rascunho, e a
-     *      volta traz a lista já com as retratadas — a secção recarrega sozinha quando a janela
-     *      volta a estar à frente (`haRetratoNovo`), e não é preciso recarregar a página.
+     * A DECISÃO DE HOJE É DELA, e é literal: «se não tiver aluno nesse step dois, fica
+     * completamente vazio se não tiver anamnese, mesmo que exista aluno ou se não tiver aluno.
+     * Esse espaço dedicado a alunos deste recorte fica completamente vazio, não tem nada ali.»
+     * O espaço passa a dizer o que há: nada. Quem explica é o aviso, que fica à vista.
      *
-     * AS PEÇAS SÃO AS DA CASA: `.sub` para o texto, `.aviso.alerta` para a instrução que não é
-     * decorativa, `a.acao.secundario.pequena` para a ligação que se clica (a mesma combinação
-     * que a ficha usa nas setas da matriz), `.par-botoes` para a fileira. Nenhuma classe nova. */
-    /* DUAS FALTAS DIFERENTES, DOIS RECADOS (15/11/2026).
-     *
-     * O recado era um só — «preencha a anamnese de uma aluna» —, e ele está certo quando a aluna
-     * existe. Numa escola recém-criada ele manda fazer a anamnese de uma aluna que ainda não foi
-     * cadastrada, e isso é um beco: a anamnese PEDE o sujeito, e a porta devolve quem entra sem ele.
-     *
-     * A pesquisadora pediu a distinção com estas palavras: «se eu não tenho aluna, a mensagem
-     * precisa ser informando o professor e após o cadastro da aluna, fazer a anamnese da aluna».
-     * O número que a decide vem do servidor (`registradas`, em `/api/bastidores/alunas-com-anamnese`)
-     * — a tela não conta o que não leu.
-     *
-     * O MESMO DESTINO, DOIS CAMINHOS: sem aluna, o gesto é CADASTRAR (a secção «Alunas» desta mesma
-     * página, que o menu da coluna já abre em `#alunas`); com aluna e sem retrato, o gesto é a
-     * ANAMNESE, e o endereço dela é a LISTA — não o formulário, que sem o sujeito não abre. */
-    'function estadoVazioDeAlunas() {' +
-    '  var semAluna = !ALUNAS_REGISTRADAS;' +
-    '  var caixa = "<div class=\\"aviso alerta\\">" +' +
-    '    (semAluna' +
-    '      ? "<p><b>Nenhuma aluna cadastrada.</b></p>" +' +
-    '        "<p>Este passo recorta o CORPO das alunas, e o corpo lê-se da anamnese. Mas a " +' +
-    '        "anamnese é de uma ALUNA: sem ninguém cadastrado não há de quem a fazer, e por isso " +' +
-    '        "o passo 2 fica fechado.</p>" +' +
-    '        "<p>A ordem é esta: cadastre a aluna, e depois faça a anamnese dela. É a anamnese que " +' +
-    '        "diz o que o grupo mostra, e é dela que saem os aspectos do recorte.</p>"' +
-    '      : "<p><b>Nenhuma aluna com anamnese.</b></p>" +' +
-    '        "<p>Este passo recorta o CORPO das alunas — e o corpo lê-se da anamnese. Sem pelo " +' +
-    '        "menos uma anamnese registada não há aluna para escolher, e por isso o passo 2 fica " +' +
-    '        "fechado.</p>" +' +
-    '        "<p>A anamnese é obrigatória: é ela que diz o que o grupo mostra, e é dela que saem " +' +
-    '        "os aspectos do recorte. Registe a de UMA aluna e este passo abre.</p>") +' +
-    '    "</div>" +' +
-    '    "<p class=\\"par-botoes\\"><a class=\\"acao secundario pequena\\" href=\\"" +' +
-    '    (semAluna ? "#alunas" : escHtml(LISTA_DA_ANAMNESE)) + "\\">" +' +
-    '    (semAluna ? "Cadastrar a aluna →" : "Ir à anamnese das alunas →") + "</a></p>" +' +
-    '    "<p class=\\"sub\\">" +' +
-    '    (semAluna' +
-    '      ? "As alunas cadastram-se nesta mesma página, em Pessoas → Alunas. Voltando aqui, " +' +
-    '        "este passo mostra quem já tem retrato."' +
-    '      : "A anamnese começa na lista: escolhe-se a aluna e abre-se o formulário já com ela.") +' +
-    '    " O elenco que já nomeou fica gravado como rascunho — não se perde. Ao voltar, esta " +' +
-    '    "secção recarrega sozinha quando a janela volta a estar à frente, sem ser preciso " +' +
-    '    "recarregar a página.</p>";' +
-    '}' +
+     * E O VAZIO É DECLARADO, NÃO O QUE SOBRA DE UM ERRO. A caixa anterior era montada numa
+     * variável e nunca devolvida: `alvo.innerHTML = estadoVazioDeAlunas()` escrevia no ecrã a
+     * palavra «undefined» — o termo que ela leu e recusou («Isso é um termo que é para nós,
+     * programadores»). Por isso o vazio é uma string vazia escrita aqui, uma vez. */
     'function pintarAlunas(escolhidas) {' +
     '  var alvo = document.getElementById("lb-alunas");' +
     '  var nota = document.getElementById("lb-alunas-nota");' +
     '  if (!alvo) return;' +
+    /* …E A CAIXA NÃO FICA LÁ VAZIA A OLHAR PARA NINGUÉM (15/11/2026). A `.rolagem-de-alunas` tem
+     * filete e um `min-height` de 6rem: limpar o conteúdo deixava um retângulo com moldura, que se
+     * lê como «carregando» e é a mesma mentira por outra via. O `hidden` é o atributo do estado
+     * escondido, e a página tem `[hidden]{display:none!important}` — a regra de casa. */
     '  if (!ALUNAS_COM_ANAMNESE.length) {' +
-    '    alvo.innerHTML = estadoVazioDeAlunas();' +
+    '    alvo.hidden = true;' +
+    '    alvo.innerHTML = "";' +
     '    if (nota) nota.textContent = "";' +
     '    var maisVazio = document.getElementById("lb-mais");' +
     '    if (maisVazio) maisVazio.hidden = true;' +
@@ -13140,6 +13086,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (maisNotaVazio) maisNotaVazio.textContent = "";' +
     '    return;' +
     '  }' +
+    '  alvo.hidden = false;' +
     '  var visiveis = ALUNAS_COM_ANAMNESE.filter(function(a, i){' +
     '    return i < LB_MOSTRADAS || escolhidas.indexOf(a.aluna) !== -1;' +
     '  });' +
@@ -13190,24 +13137,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O TEXTO DIZ O QUE AINDA ABRE E O QUE ESPERA (07/11/2026). Dizia «nenhum passo se abre», e
      * desde que o passo 1 deixou de depender de retrato isso passou a ser falso — e um aviso que
      * mente sobre o que está disponível faz o professor desistir do que podia fazer. */
-    /* O AVISO DIZ A MESMA VERDADE QUE A CAIXA DO PASSO 2 (15/11/2026) — e pela mesma razão: sem
-     * aluna cadastrada, mandar «fazer a anamnese» é mandar a um beco. Duas frases, uma para cada
-     * falta; o número vem do servidor e é o mesmo que a caixa usa. */
+    /* O AVISO DIZ A MESMA VERDADE QUE O PASSO 2 (15/11/2026) — e pela mesma razão: sem aluna
+     * cadastrada, mandar «fazer a anamnese» é mandar a um beco. Duas frases, uma para cada falta;
+     * o número vem do servidor.
+     *
+     * E ELE DIZ O QUE ACONTECE A CADA PASSO, desde que a tira obedece ao «Seguir» (15/11/2026): o
+     * passo 2 abre (nome e professor são do acto, não do retrato), mas sem lista nenhuma; quem
+     * espera a anamnese são o 3 e o 4. Dizer «os passos 2 a 4 abrem quando houver a anamnese»
+     * passaria a mentir sobre o 2, e um aviso que mente sobre o que está disponível faz o
+     * professor desistir do que podia fazer. */
     '          (!ALUNAS_REGISTRADAS' +
     '            ? "Ainda n\u00e3o h\u00e1 nenhuma aluna cadastrada nesta escola. Pode nomear o elenco e ' +
     'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas — e a anamnese \u00e9 de ' +
-    'uma aluna. Cadastre a primeira em «Pessoas \u2192 Alunas», e depois fa\u00e7a a anamnese dela: os ' +
-    'passos 2 a 4 abrem quando houver a anamnese de pelo menos uma aluna."' +
+    'uma aluna. Cadastre a primeira em «Pessoas \u2192 Alunas», e depois fa\u00e7a a anamnese dela: o ' +
+    'passo 2 abre sem lista nenhuma, e os passos 3 e 4 esperam a anamnese."' +
     '            : "Ainda n\u00e3o h\u00e1 nenhuma anamnese registada nesta escola. Pode nomear o elenco e ' +
     'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas, e sem retrato n\u00e3o h\u00e1 ' +
-    'o que recortar — os passos 2 a 4 abrem quando houver a anamnese de pelo menos uma aluna, ' +
-    'na lista da anamnese.");' +
+    'o que recortar — o passo 2 abre sem lista nenhuma, e os passos 3 e 4 esperam a anamnese ' +
+    'de pelo menos uma aluna, na lista da anamnese.");' +
     '      }' +
     '      if (!ALUNAS_COM_ANAMNESE.length) { travarTudo(); }' +
     '      pintarTravasLb();' +
     '    })' +
     '    .catch(function(){' +
     '      ALUNAS_COM_ANAMNESE = [];' +
+    /* O «CARREGANDO…» NÃO FICA NO ECRÃ (15/11/2026). Sem esta linha, uma leitura falhada deixava
+     * a caixa das alunas com o texto de espera para sempre — e «carregando» é uma promessa que
+     * não se vai cumprir. A área do passo 2 diz o que sabe: nada. */
+    '      pintarAlunas([]);' +
     '      travarTudo();' +
     /* E A REGRA DE CADA PASSO TAMBÉM, QUE `travarTudo` JÁ NÃO FAZ (07/11/2026). Ele fechava a tira
      * inteira; agora só fecha os botões que leem o acervo, e quem fecha «Seguir» e «Concluir» é

@@ -70,6 +70,14 @@ function conferir(rotulo, ok, detalhe) {
   console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
 }
 
+/* SEM FERRAMENTA, A MEDIDA É DECLARADA — NUNCA APROVADA (a lição das provas com navegador:
+ * uma prova que passa por ausência de ferramenta é a pior das provas). */
+const naoMedidas = [];
+function naoMedida(rotulo, motivo) {
+  naoMedidas.push(rotulo);
+  console.log('  —     ' + rotulo + ': NÃO MEDIDA (' + motivo + ')');
+}
+
 function criarKv() {
   const dados = new Map();
   return {
@@ -196,50 +204,51 @@ const RITMO = {
       || /nomear o elenco/.test(script), null);
 
   /* -------------------------------------------------------------------------------------------
-   * O PASSO 2 SEM RETRATO: DIZ O QUE FALTA, E LEVA LÁ (07/11/2026).
+   * O PASSO 2 SEM RETRATO: A TIRA OBEDECE AO «SEGUIR», E O ESPAÇO FICA VAZIO (15/11/2026).
    *
-   * O PEDIDO. «Ao tentar avançar para o Step 2 […] caso as alunas ainda não possuam anamnese
-   * preenchida, a interface fica vazia ou bloqueada sem orientar o professor.» O que havia era
-   * um travessão — «— nenhuma aluna com anamnese.» — e o passo, além disso, NÃO ABRIA: a
-   * explicação existia num sítio a que ninguém chegava.
+   * AQUI ESTEVE A PROVA DA DECISÃO ANTERIOR (07/11/2026): havia um estado vazio próprio, que
+   * nomeava a falta e levava à lista da anamnese, e o passo 2 abria mesmo sem retrato — «aberto
+   * para ler» — porque era ele que carregava essa explicação.
    *
-   * O que se mede aqui é o que o cliente SERVIDO faz, e não o que se pretendeu:
-   *   · há um estado vazio próprio, que NOMEIA a falta e diz que a anamnese é obrigatória;
-   *   · ele traz uma LIGAÇÃO para a Área do Professor — e o endereço vem do servidor, com a
-   *     escola e o professor na query (`urlDaPorta`), e não escrito à mão no cliente;
-   *   · o passo 2 abre MESMO sem anamnese (`podeVerPasso`), e o 3 e o 4 continuam fechados;
-   *   · a volta é automática: a janela que reganha o foco relê a lista (`haRetratoNovo`);
-   *   · a razão de o «Seguir» estar apagado está à vista, não só no `title`. */
-  const estadoVazio = (() => {
-    const i = script.indexOf('function estadoVazioDeAlunas()');
-    if (i === -1) return '';
-    const j = script.indexOf('function pintarAlunas(', i);
-    return j === -1 ? script.slice(i, i + 2000) : script.slice(i, j);
-  })();
-  conferir('o passo 2 tem um estado vazio próprio (deixou de ser um travessão)',
-    Boolean(estadoVazio) && !/— nenhuma aluna com anamnese/.test(script), estadoVazio.slice(0, 120));
-  conferir('…que NOMEIA a falta', /Nenhuma aluna com anamnese/.test(estadoVazio), null);
-  conferir('…que diz que a anamnese é OBRIGATÓRIA', /obrigat[óo]ria/i.test(estadoVazio), null);
-  conferir('…que diz a REGRA DE AVANÇO (uma aluna basta para abrir o passo)',
-    /UMA aluna|uma aluna/.test(estadoVazio), null);
-  conferir('…e que traz a LIGAÇÃO para a anamnese, como peça da casa',
-    /a\.acao|class=\\?"acao/.test(estadoVazio) && /ANAMNESE_DO_ALUNO/.test(estadoVazio), null);
-  conferir('o endereço da anamnese vem do SERVIDOR, com a escola e o professor',
-    /var ANAMNESE_DO_ALUNO = "\/anamnese\/\?/.test(script) && /escola=/.test(
-      (script.match(/var ANAMNESE_DO_ALUNO = "([^"]*)"/) || [])[1] || ''), null);
-  conferir('o estado vazio é o que se desenha quando não há retrato (e não o travessão)',
-    /alvo\.innerHTML = estadoVazioDeAlunas\(\)/.test(script), null);
+   * A DECISÃO MUDOU, e é dela, ao vivo:
+   *
+   *   «o botão de seguir na escolha do elenco está bloqueado, mas eu consigo navegar pelos steps.
+   *    Eu consigo ir para o step dois, mesmo sem ter definido um nome para o elenco, e não pode
+   *    ser assim […] Não dá para avançar para alunas a escolher pelo step, né, em cima, tem que
+   *    seguir a regra do botão de seguir.»
+   *
+   *   «se não tiver aluno nesse step dois, fica completamente vazio se não tiver anamnese, mesmo
+   *    que exista aluno ou se não tiver aluno. Esse espaço dedicado a alunos deste recorte fica
+   *    completamente vazio, não tem nada ali.»
+   *
+   * E o que ela leu no ecrã — «o espaço para alunos deste recorte escrito undefined» — tinha
+   * causa de programador, não de texto: a caixa era montada numa variável e nunca devolvida, e
+   * `innerHTML = undefined` escreve a palavra. Um `grep` via a função, o `innerHTML` e o texto
+   * certo; por isso, além do fonte, esta prova CORRE a página (secção B2). */
   const corpoDoVer = (() => {
     const i = script.indexOf('function podeVerPasso(');
     if (i === -1) return '';
     const j = script.indexOf('\n', script.indexOf('}', i));
     return script.slice(i, j === -1 ? i + 200 : j);
   })();
-  conferir('VER não é AVANÇAR: o passo 2 abre sem anamnese, o 3 e o 4 não',
-    /passo === 2 && !haAnamnese\(\)/.test(corpoDoVer) && /return podeIrParaLb\(passo\)/.test(corpoDoVer),
-    corpoDoVer.slice(0, 200));
-  conferir('…e a tira usa a regra de VER (senão a explicação nunca aparecia)',
-    /!podeVerPasso\(n\)/.test(script), null);
+  conferir('a tira não tem excepção: `podeVerPasso` é a regra do «Seguir»',
+    /return podeIrParaLb\(passo\)/.test(corpoDoVer) && !/passo === 2/.test(corpoDoVer),
+    corpoDoVer.slice(0, 220));
+  conferir('…e quem fecha é ela (`!podeVerPasso(n)`) — não há segundo juízo',
+    /var fechado = \(n > LB_PASSO\) && !podeVerPasso\(n\)/.test(script), null);
+  conferir('…e não sobrou o estado «aberto para ler, fechado para avançar»',
+    !/soLeitura/.test(script), null);
+  conferir('…nem um caminho que abra um passo só para explicar',
+    !/podeVerPasso\(alvo\)/.test(script), null);
+  conferir('o espaço das alunas fica VAZIO quando não há retrato (não é uma caixa)',
+    /if \(!ALUNAS_COM_ANAMNESE\.length\) \{[\s\S]{0,120}alvo\.innerHTML = ""/.test(script), null);
+  conferir('…e a caixa que escrevia «undefined» deixou de existir (função sem `return`)',
+    !/estadoVazioDeAlunas/.test(script.replace(/\/\*[\s\S]*?\*\//g, '')), null);
+  conferir('a explicação continua à vista, no alto da aba, e distingue as duas faltas',
+    /id="lb-sem-anamnese"/.test(script)
+      && /Ainda n\u00e3o h\u00e1 nenhuma aluna cadastrada/.test(script)
+      && /Ainda n\u00e3o h\u00e1 nenhuma anamnese registada/.test(script),
+    null);
   conferir('a volta da anamnese relê a lista sozinha (foco da janela)',
     /visibilitychange/.test(script) && /function haRetratoNovo/.test(script)
       && /addEventListener\("focus", haRetratoNovo\)/.test(script), null);
@@ -249,6 +258,7 @@ const RITMO = {
     /id="lb-seguir-nota"/.test(script) && /notaSeguir\.textContent/.test(script), null);
   conferir('…e uma falta não é contada duas vezes na mesma frase',
     /function faltasAntesDeLb/.test(script) && /todas\.indexOf\(f\) === -1/.test(script), null);
+
 
   // -------------------------------------------------------------------------------------------
   /* -------------------------------------------------------------------------------------------
@@ -413,6 +423,83 @@ const RITMO = {
     win.close();
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nB2. O passo 2, A CORRER — o espaço vazio e a trava da tira (jsdom)');
+
+  /* A PÁGINA CORRE, e não só se lê. Foi o `grep` que deixou passar o «undefined»: no fonte estava
+   * tudo — a função existia, o `innerHTML` existia, os textos existiam —, e o que faltava era o
+   * `return`, que nenhuma expressão regular vê. O jsdom executa o script servido e mede o que o
+   * professor leria. */
+  let JSDOM = null;
+  let VirtualConsole = null;
+  try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { JSDOM = null; }
+  if (!JSDOM) {
+    naoMedida('o passo 2 a correr (espaço vazio e trava da tira)', 'jsdom ausente');
+  } else {
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {});
+    vc.on('error', () => {});
+    const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+      virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.alert = () => {};
+        w.confirm = () => true;
+        w.fetch = (u) => {
+          const url = String(u);
+          /* DUAS ALUNAS CADASTRADAS, NENHUMA COM ANAMNESE — a escola dela, e o caso em que o
+           * «undefined» aparecia. `registradas` vem do servidor, e é ele que distingue as duas
+           * faltas no aviso do alto da aba. */
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1
+            ? { ok: true, escola: 'escola-de-prova', alunas: [], registradas: 2 }
+            : url.indexOf('linhas-de-base') !== -1 ? { ok: true, linhas: [], elencos: [] }
+              : { ok: true };
+          return Promise.resolve({ ok: true, status: 200,
+            json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    const doc = win.document;
+    await new Promise((r) => win.setTimeout(r, 400));
+    const caixa = doc.getElementById('lb-alunas');
+    const nota = doc.getElementById('lb-alunas-nota');
+    const passo2 = doc.querySelector('#lb-tira button[data-passo="2"]');
+    const painel2 = doc.querySelector('#corpo-miolo .passo-painel[data-passo="2"]');
+    const seguir = doc.getElementById('lb-seguir');
+    const soltas = [...doc.querySelectorAll('*')]
+      .filter((e) => e.children.length === 0 && e.textContent.trim() === 'undefined');
+    conferir('sem anamnese, a caixa das alunas fica VAZIA — e escondida, que é o que «nada ali» diz',
+      Boolean(caixa) && caixa.hidden === true && caixa.textContent.trim() === ''
+        && caixa.innerHTML === '',
+      { hidden: caixa && caixa.hidden, html: caixa && caixa.innerHTML });
+    conferir('…e a nota dela também — nada de travessão a fingir de dado',
+      Boolean(nota) && nota.textContent.trim() === '', nota && nota.textContent);
+    conferir('…e a palavra «undefined» não aparece em lado nenhum do ecrã',
+      soltas.length === 0, soltas.map((e) => e.id || e.className));
+    conferir('sem nome, o passo 2 da tira está FECHADO — a mesma regra do «Seguir»',
+      Boolean(passo2) && passo2.disabled === true && Boolean(seguir) && seguir.disabled === true,
+      { passo2: passo2 && passo2.disabled, seguir: seguir && seguir.disabled });
+    if (passo2) passo2.click();
+    if (typeof win.irParaPassoLb === 'function') win.irParaPassoLb(2);
+    await new Promise((r) => win.setTimeout(r, 60));
+    conferir('…e nenhum caminho o abre: o painel 2 continua escondido',
+      Boolean(painel2) && painel2.hidden === true, painel2 && painel2.hidden);
+    doc.getElementById('lb-nome').value = 'Elenco de prova';
+    doc.getElementById('lb-nome').dispatchEvent(new win.Event('input', { bubbles: true }));
+    const sel = doc.getElementById('lb-professor');
+    const opcao = [...sel.options].find((o) => o.value);
+    if (opcao) sel.value = opcao.value;
+    sel.dispatchEvent(new win.Event('change', { bubbles: true }));
+    await new Promise((r) => win.setTimeout(r, 60));
+    conferir('com nome e professor, a tira acende E o «Seguir» também (uma regra só)',
+      Boolean(passo2) && passo2.disabled === false && Boolean(seguir) && seguir.disabled === false,
+      { passo2: passo2 && passo2.disabled, seguir: seguir && seguir.disabled });
+    win.close();
+  }
+
   console.log('\nC. O que uma SALA desobstrui — e o que não existe para desobstruir');
 
   /* A SALA SEM RITMO NÃO SE ATRIBUI: é o elo que a criação da sala desobstrui. */
@@ -441,14 +528,17 @@ const RITMO = {
     daTabela.length === 0, daTabela);
 
   console.log('');
+  if (naoMedidas.length) {
+    console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));
+  }
   if (falhas) {
     console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');
     process.exit(1);
   }
   console.log('TUDO CERTO — ' + n + ' asserções: o cartão da sala diz dois (ritmo e régua) e não'
     + ' emite conteúdos em lugar nenhum; o elenco cria-se sem anamnese e sem turma, e o cliente'
-    + ' deixou de desligar o nome; o passo 2 do elenco abre para explicar a falta e leva à'
-    + ' anamnese; a sala sem ritmo não recebe turma e a com ritmo recebe — e a Tabela de'
+    + ' deixou de desligar o nome; o passo 2 obedece ao «Seguir» e o espaço das alunas'
+    + ' fica vazio sem anamnese; a sala sem ritmo não recebe turma e a com ritmo recebe — e a Tabela de'
     + ' atividades segue como plano, não como código; os basilares são um bloco no passo 4; e a'
     + ' nomenclatura: Audição e Estilo no menu e nos títulos, elenco nos campos, Elencos na'
     + ' listagem, Conteúdo do Estilo na Turma.');

@@ -1242,32 +1242,33 @@ async function chamar(env, caminho, opcoes) {
     const passo = (n) => win.document.querySelector('#lb-tira button[data-passo="' + n + '"]');
     assert.strictEqual(passo(1).disabled, false,
       'o passo 1 abre sem anamnese — nome e professor não vêm de retrato nenhum');
-    /* O PASSO 2 ABRE PARA EXPLICAR (07/11/2026). A regra de esperar pela anamnese continua a
-     * valer — o «Seguir» está fechado e o passo 3 e o 4 também —, mas o painel do 2 passou a ser
-     * LEGÍVEL: é dentro dele que estão a explicação e a ligação para a anamnese. Numa escola sem
-     * retrato nenhum ele não tem lista para mostrar, e tem tudo para dizer; fechá-lo era esconder
-     * a razão de estar fechado. */
-    assert.strictEqual(passo(2).disabled, false,
-      'o passo 2 abre para explicar — é lá que está o porquê e a ligação para a anamnese');
-    assert.ok(/anamnese|falta/i.test(passo(2).getAttribute('title') || ''),
-      'e continua a declarar o que falta');
+    /* O PASSO 2 JÁ NÃO ABRE PARA EXPLICAR (15/11/2026) — a decisão de 07/11/2026 foi revogada
+     * por ela, ao vivo: «o botão de seguir na escolha do elenco está bloqueado, mas eu consigo
+     * navegar pelos steps. Eu consigo ir para o step dois, mesmo sem ter definido um nome para o
+     * elenco, e não pode ser assim […] tem que seguir a regra do botão de seguir.» A tira e o
+     * «Seguir» passam a responder à MESMA pergunta — e a explicação de que a anamnese é
+     * obrigatória continua à vista, no aviso do alto da aba, que este bloco mede acima. */
+    assert.strictEqual(passo(2).disabled, true,
+      'sem nome no passo 1, o passo 2 está fechado — como o «Seguir»');
+    assert.ok(/nome/i.test(passo(2).getAttribute('title') || ''),
+      'e o `title` diz o que falta: ' + passo(2).getAttribute('title'));
     for (const n of [3, 4]) {
       assert.strictEqual(passo(n).disabled, true, 'o passo ' + n + ' espera a anamnese');
       assert.ok(/anamnese/i.test(passo(n).getAttribute('title') || ''),
         'o passo ' + n + ' diz que espera a anamnese, e não só que está fechado');
     }
-    /* …E O QUE SE LÊ LÁ DENTRO É O CAMINHO, NÃO UM TRAVESSÃO. */
+    /* …E O QUE HÁ LÁ DENTRO É NADA, por decisão dela: «se não tiver aluno nesse step dois, fica
+     * completamente vazio se não tiver anamnese, mesmo que exista aluno ou se não tiver aluno.
+     * Esse espaço dedicado a alunos deste recorte fica completamente vazio, não tem nada ali.»
+     * Também não se chega lá pelo caminho directo: `mostrarPassoLb` não abre um passo travado. */
     win.mostrarPassoLb(2);
-    assert.strictEqual(win.LB_PASSO, 2, 'o passo 2 deixa-se abrir');
+    assert.strictEqual(win.LB_PASSO, 1, 'o passo 2 não se deixa abrir sem o nome do elenco');
     const caixaDasAlunas = win.document.getElementById('lb-alunas');
-    assert.ok(/Nenhuma aluna com anamnese/.test(caixaDasAlunas.textContent || ''),
-      'o estado vazio nomeia a falta: ' + (caixaDasAlunas.textContent || '').slice(0, 120));
-    assert.ok(/obrigat/i.test(caixaDasAlunas.textContent || ''),
-      'e diz que a anamnese é obrigatória');
-    const ligacaoParaAnamnese = caixaDasAlunas.querySelector('a');
-    assert.ok(ligacaoParaAnamnese && /\/anamnese\//.test(ligacaoParaAnamnese.getAttribute('href') || ''),
-      'e leva à anamnese: ' + (ligacaoParaAnamnese && ligacaoParaAnamnese.getAttribute('href')));
-    win.mostrarPassoLb(1);
+    assert.strictEqual((caixaDasAlunas.textContent || '').trim(), '',
+      'a caixa das alunas fica vazia — nem «undefined», nem travessão: '
+        + JSON.stringify((caixaDasAlunas.textContent || '').slice(0, 120)));
+    assert.strictEqual(caixaDasAlunas.hidden, true,
+      'e escondida: um retângulo com moldura lia-se como «carregando»');
     /* «SEGUIR» FECHADO, MAS PELO MOTIVO CERTO: falta o NOME (e o professor), não a anamnese.
      * É a diferença entre um formulário que pede o que precisa e um que pede o que não tem. */
     assert.strictEqual(win.document.getElementById('lb-seguir').disabled, true);

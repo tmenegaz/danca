@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T08:23:00-0300`
-Commit atual: `cf150b93` — docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
+Gerado em: `2026-11-15T09:45:48-0300`
+Commit atual: `ee0892f3` — style(template): a marca e o nome da área passam a estar na mesma linha
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -76,6 +76,7 @@ rimel-preto (9)
 ## Últimos commits
 
 ```
+ee0892f3 style(template): a marca e o nome da área passam a estar na mesma linha
 cf150b93 docs(estrutura): o recado antes da aluna, e a anamnese que começa na lista
 8dfed992 fix(estrutura): a contagem de alunas sombreava a função que a lê — e a rota respondia erro
 2a2d9836 fix(estrutura): sem aluna cadastrada, o recado manda cadastrar — e o link vai à lista
@@ -95,7 +96,6 @@ d31b8d33 feat(escola): a escola breu declara o professor rimel-preto
 237e1dfd feat(schema): os schemas do ciclo na pasta de rimel-preto
 66e1f9f6 feat(schema): os schemas do ciclo na pasta de rimel-preto
 ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
-2ceb1403 feat(schema): os schemas do ciclo na pasta de rimel-preto
 ```
 
 ## Por professor
@@ -203,67 +203,82 @@ ea698128 feat(schema): os schemas do ciclo na pasta de rimel-preto
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — A marca e o nome da área passam a estar na mesma linha
+## 15/11/2026 — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio
 
-**O pedido, ao vivo.** *«Estou observando aqui na logomarca, e aí tem o título se eu estou no
-sistema Lastro ou se eu estou lá em bastidores. […] esse título, Sistema Lastro ou Bastidores, que
-é da coluna marca, ele está abaixo da logomarca. Ele tem que ficar ao lado, do lado direito, com
-um espaçamento bonito que dê para ler, que seja legível.»*
+**O que motivou.** O relato dela, ao vivo, ao criar uma Audição nova. Primeiro: «o botão de seguir
+na escolha do elenco está bloqueado, mas eu consigo navegar pelos steps. Eu consigo ir para o step
+dois, mesmo sem ter definido um nome para o elenco, e não pode ser assim.» A regra pedida é uma só:
+«Não dá para avançar para alunas a escolher pelo step, né, em cima, tem que seguir a regra do botão
+de seguir.» Depois, dentro do passo 2: «o espaço para alunos deste recorte escrito undefined. Isso é
+um termo que é para nós, programadores, para você, para professor não.» E a decisão sobre o que
+fica no lugar: «se não tiver aluno nesse step dois, fica completamente vazio se não tiver anamnese,
+mesmo que exista aluno ou se não tiver aluno. Esse espaço dedicado a alunos deste recorte fica
+completamente vazio, não tem nada ali.»
 
-**O defeito era de LEITURA, e não de gosto.** Empilhado, o nome da área ficava numa linha própria
-abaixo de um desenho de 44 px, e o olho tinha de descer para saber onde estava — duas linhas para
-uma informação só.
+**Duas causas, e nenhuma delas era de texto.**
 
-**O que mudou, e é uma peça só para as duas colunas.**
+1. **A tira tinha uma excepção declarada** (07/11/2026): o passo 2 abria mesmo sem anamnese —
+   «aberto para ler» — porque era ele que carregava a explicação de por que a anamnese é
+   obrigatória. A 15/11/2026 a explicação passou a viver no alto da aba (`#lb-sem-anamnese`), e com
+   isso a excepção perdeu a razão de existir — ficaram duas regras para o mesmo acto, e o clique no
+   passo abria o que o «Seguir» fechava.
+2. **`estadoVazioDeAlunas()` montava a caixa numa variável e nunca a devolvia.** A função nasceu
+   com `return "<div …"` (`b5cf7636`); o commit `2a2d9836`, do mesmo dia, renomeou-a para `var
+   caixa` para separar os dois recados — e perdeu o `return`. `alvo.innerHTML = undefined` escreve
+   a palavra «undefined» no ecrã. A prova que acompanhou aquele commit media a **rota**
+   (`registradas`), não o desenho: um `grep` via a função, o `innerHTML` e os textos certos.
 
-- `motor/nucleo/nav.js` e `motor/servidor/bastidores.js` passam a emitir a marca e o nome dentro de
-  `<div class="coluna-identidade">`. Uma correção que valesse só numa das colunas voltaria a
-  divergir — as duas são a mesma peça.
-- `tools/templates/ciclo.css`: `.coluna-identidade` é `display:flex` com `align-items:center` e
-  `gap: var(--esp-3)`. **Um contêiner, e não um `float` nem um `margin-top` negativo**: os dois
-  elementos passam a pertencer ao mesmo bloco, e o alinhamento não depende da altura da marca.
-  O ar que a identificação tinha na folha sobe para a linha (é ela que agora encosta ao topo), e os
-  filhos ficam com `padding: 0`. O `min-width: 0` no nome é o que impede «Sistema Lastro» de
-  empurrar a linha para fora dos 248 px da coluna.
+**O que foi decidido.**
 
-**As duas colunas, medidas num Chrome de verdade** (não por leitura de CSS):
+- **A tira e o «Seguir» passam a responder à mesma pergunta.** `podeVerPasso(n)` é, sem excepção,
+  `podeIrParaLb(n)`; a distinção «aberto para ler / fechado para avançar» saiu, e com ela o
+  `title` «Abre para explicar o que falta». Quem quiser saber o que falta continua a lê-lo no
+  `title` do passo e na nota do «Seguir».
+- **O passo 2 não desenha nada quando não há anamnese.** A caixa de estado vazio saiu; o
+  `#lb-alunas` recebe `""` e fica `hidden`. O `hidden` é o que faz a diferença entre «vazio» e
+  «nada ali»: a `.rolagem-de-alunas` tem filete e `min-height: 6rem`, e só limpar o conteúdo
+  deixava um retângulo com moldura a ler-se como «carregando». A explicação fica onde já estava —
+  no aviso do alto da aba, que distingue as duas faltas (sem aluna cadastrada / sem anamnese) e
+  diz a cada passo o que acontece: o 2 abre sem lista nenhuma, e os 3 e 4 esperam a anamnese.
+- **Uma leitura falhada não deixa «carregando…» no ecrã:** o `catch` de
+  `carregarAlunasComAnamnese` limpa a caixa, em vez de deixar uma promessa por cumprir.
 
-| | marca | nome | vão | centros |
-|:--|:--|:--|--:|:--|
-| Sistema Lastro @1400 | x=22, 38×44 | x=72, 121×14 | **12 px** | Δ **0** |
-| Bastidores @1400 | x=22, 38×44 | x=72, 89×14 | **12 px** | Δ **0** |
-| Bastidores @800 | idem | idem | **12 px** | Δ **0** |
+**Onde entrou.** `motor/servidor/bastidores.js` — `podeVerPasso`, `pintarTravasLb`, `irParaPassoLb`,
+`pintarAlunas`, o `catch` da leitura e o texto do aviso. `experimentos/provar-salas-e-elencos.js` —
+as asserções da decisão de 07/11/2026 foram substituídas pelas de hoje, e ganhou uma secção **B2**
+que **corre** a página em jsdom. `experimentos/provar-linha-de-base.js` — a asserção «o passo 2 abre
+para explicar» virou «o passo 2 está fechado, como o «Seguir», e a caixa fica vazia».
 
-Na folha do telemóvel nada muda: a marca da coluna continua escondida (a da barra é que serve) e o
-nome mantém o ar que sempre teve — `x=24`, medido. E nos Bastidores abaixo do corte a **linha
-inteira** sai: com a marca e o nome ambos escondidos, uma linha vazia gastaria 20 px entre o
-puxador da folha e o «← Sistema Lastro».
+**Com o quê.** Nenhum ficheiro congelado foi tocado (`motor/` não está em `CONGELAMENTO.md`).
 
-**A prova** — `experimentos/provar-identidade-ao-lado.js`, **27 asserções**: a estrutura (chamando
-os geradores verdadeiros, nas duas colunas), o CSS que alinha, e a geometria num navegador. Com
-**controle negativo**: repondo o `display:block` de antes, falha em 5 asserções — e a medida mostra
-exactamente o defeito (nome em `y=60`, abaixo da marca que acaba em `y=60`, ambos em `x=22`). Sem
-navegador na máquina, a geometria é declarada **não medida**, nunca aprovada.
+**Auditoria.** `provar-salas-e-elencos` **69/69**, com secção a correr a página: sem anamnese e com
+duas alunas cadastradas, a caixa fica vazia e `hidden` (medida da altura: **0 px**, contra 112 px
+antes), a palavra «undefined» não aparece, o passo 2 está `disabled` e o painel não abre por nenhum
+caminho; com nome e professor, a tira acende **e** o «Seguir» acende — a mesma regra. **Controle
+negativo** com o código de `HEAD`: **10 de 69 falham**, e a medida mostra o defeito tal como ela o
+viu — `{"hidden":false,"html":"undefined"}`, `passo2.disabled = false` com `seguir.disabled = true`,
+e o painel 2 a abrir. `provar-linha-de-base` **100 de 102** (as duas
+falhas são anteriores a esta entrada e não têm relação com ela: o gancho do selo nas curadorias e o
+«passo 5 / envio para a turma»). `provar-abas-da-audicao` 86/86, `provar-elenco-sem-ninguem` 59/59,
+`provar-aluna-nova-no-elenco` 34/34, `provar-corpo-da-linha-de-base` 30/30,
+`provar-elenco-derivado` 10/10, `provar-elenco-na-turma` 26/26, `check-identidade` 22/22. Medido
+também num Chrome, contra o servidor de bancada: com o nome vazio o passo 2 recusa-se a abrir; com
+nome e professor abre e a área está vazia; com uma anamnese, a lista volta a desenhar («Aluna Um
+novo»).
 
-**O circuito da folha.** As cópias de `style.css` em cada pacote e na raiz são geradas a partir de
-`tools/templates/ciclo.css`, e a checagem «Circuito» exige-as byte a byte iguais à fonte. Foram
-atualizadas (7 pacotes + `raiz/assets/style.css` pela `gerar-raiz.sh`), e as publicações locais
-remontadas: `check-identidade` volta com as **22** verificações verdes.
+**O que ainda não está feito.** Um risco que este desenho **não cria** mas também não fecha:
+`gravarLinha` manda `alunas: alunasMarcadas()`, e as caixas só existem quando há anamnese. Editar
+um elenco cuja lista de retratos ficou vazia (por exemplo, se as anamneses dele deixarem de existir)
+gravaria `alunas: []`. Já era assim desde 07/11/2026, quando o passo 2 deixou de desenhar caixas
+sem retrato; fica declarado, não corrigido — a correção certa é preservar o que está guardado
+quando a lista não pode ser mostrada, e isso pede uma decisão dela.
+
+`provar-vinculo-do-elenco` não corre nesta árvore: ele lê
+`escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
+(anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
+continuam abertas, e não foram tocadas aqui.
 
 ## O que está pendente
-
-## 13/11/2026 — A escola deixa de ser `var` de deploy: o mapa `escolas/por-host`
-
-
-- **A `vars` saiu.** O primeiro commit pôs o código e o mapa no ar com ela ainda presente, e o
-  `/api/saude` passou a dizer `origem: "mapa"` — a prova de que o caminho novo estava a servir. O
-  segundo tirou a `vars` do `wrangler.calango.jsonc` e do template de `criar-escola.sh`. Fica
-  registado como parte da mesma decisão, e não como surpresa.
-- **`padd.com.br` ainda não aponta ao Cloudflare.** A resolução por etiqueta já funciona e está
-  provada; o que falta é a zona e as rotas — do shard, não disto.
-- **Criar escola a partir da página `danca` continua a não registar no mapa** por si só: quem
-  registra é o workflow, que roda o `criar-escola.sh` e publica o mapa antes do deploy. O painel da
-  raiz não tem `PADD_KV` ligado, e ligá-lo é decisão à parte.
 
 ## 13/11/2026 — O endereço é por host: `<escola>.padd.com.br`
 
@@ -312,6 +327,20 @@ remontadas: `check-identidade` volta com as **22** verificações verdes.
 - **A `batata` e a `breu` ainda não existem.** Quando existirem, as linhas de `LOGIN_BATATA` e
   `LOGIN_BREU` (e as dos professores delas) entram no ficheiro local, e os slugs em
   `tools/.escolas-teste`.
+
+## 15/11/2026 — Audição: a tira obedece ao «Seguir», e o passo 2 fica vazio
+
+Um risco que este desenho **não cria** mas também não fecha:
+`gravarLinha` manda `alunas: alunasMarcadas()`, e as caixas só existem quando há anamnese. Editar
+um elenco cuja lista de retratos ficou vazia (por exemplo, se as anamneses dele deixarem de existir)
+gravaria `alunas: []`. Já era assim desde 07/11/2026, quando o passo 2 deixou de desenhar caixas
+sem retrato; fica declarado, não corrigido — a correção certa é preservar o que está guardado
+quando a lista não pode ser mostrada, e isso pede uma decisão dela.
+
+`provar-vinculo-do-elenco` não corre nesta árvore: ele lê
+`escola/batata/linhas-de-base`, e a escola foi expurgada — falha antes de medir qualquer coisa
+(anterior a esta entrada). As duas falhas de `provar-linha-de-base` (curadorias e passo 5)
+continuam abertas, e não foram tocadas aqui.
 
 ## Pendências anteriores (índice)
 
@@ -742,6 +771,7 @@ remontadas: `check-identidade` volta com as **22** verificações verdes.
 - **13/11/2026** — O CSS não gasta pedido do dia, e a lista não paga duas… → `REGISTRO.md` L43727
 - **13/11/2026** — O registo de custo da IA ganha mês no nome → `REGISTRO.md` L43829
 - **13/11/2026** — O isolamento entre escolas passa a ser provado, e decide-se… → `REGISTRO.md` L43879
+- **13/11/2026** — A escola deixa de ser `var` de deploy: o mapa… → `REGISTRO.md` L43930
 - **coqui-de-redinha · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **pe-torto · calango-piano** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **pe-torto · calango-rosa** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
