@@ -138,6 +138,37 @@ async function digital(slug) {
   console.log('bateria do shard — ' + ESCOLAS.length + ' escolas em `' + ZONA + '`' +
     (SO_LEITURA ? '  (só leitura)' : '') + '\n');
 
+  /* SEM ESCOLA NO AR, A BATERIA NÃO MEDE — E DIZ ISSO (15/11/2026).
+   *
+   * Medido depois de ela expurgar as três: a bateria corria e reportava **34 falhas**, todas a
+   * dizer «responde 404/530» — que se lê como «o shard partiu». Não partiu: as escolas já não
+   * existem, e uma bateria que mede o vazio a chamar-lhe falha é uma bateria que mente ao
+   * contrário. É a mesma disciplina do `provar-navegacao` («Chrome não encontrado — conferência
+   * NÃO FEITA») e do `umPacote()`: a ausência diz-se pelo estado, não por um número vermelho.
+   *
+   * O que se sonda é o `/api/saude` de cada host, que é a rota que existe em qualquer escola viva
+   * e não pede senha. Sem NENHUMA a responder, sai com 0 e um recado — porque não há nada para
+   * medir, e um código de erro faria o CI vermelho por uma razão que não é um defeito. */
+  const vivas = [];
+  for (const e of ESCOLAS) {
+    try {
+      const r = await chamar(e.slug, '/api/saude');
+      if (r.status === 200 && r.corpo && r.corpo.ok) vivas.push(e.slug);
+    } catch (erro) { /* host fora do ar: não está viva */ }
+  }
+  if (!vivas.length) {
+    console.log('NÃO FEITO — nenhuma das ' + ESCOLAS.length + ' escolas responde: ' +
+      ESCOLAS.map((e) => e.slug).join(', '));
+    console.log('  O shard e o mapa estão de pé; o que não existe são as escolas. Crie-as pela');
+    console.log('  página `danca`, e corra a bateria outra vez. Uma bateria sem escolas mede o');
+    console.log('  vazio, e reportá-lo como falha diria «o shard partiu» — que é falso.');
+    process.exit(0);
+  }
+  const ausentes = ESCOLAS.filter((e) => vivas.indexOf(e.slug) === -1).map((e) => e.slug);
+  if (ausentes.length) {
+    console.log('aviso: sem resposta (e por isso fora da bateria): ' + ausentes.join(', ') + '\n');
+  }
+
   /* ── GESTÃO 1 · cada host serve a sua escola ─────────────────────────────────────────────── */
   console.log('1. abrir `/` de cada escola pelo domínio próprio');
   for (const e of ESCOLAS) {

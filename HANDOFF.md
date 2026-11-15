@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T17:16:26-0300`
-Commit atual: `ec9aaa75` — feat(estrutura): criar a escola breu (motor completo)
+Gerado em: `2026-11-15T17:27:06-0300`
+Commit atual: `27cea88d` — chore(estrutura): regerar os índices derivados
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -56,12 +56,12 @@ grand-plie
 lapis-rosa
 pe-pequeno
 pe-torto
-prova-do-shard
 rabo-gramde
 redinha-rosa
 rimel-preto
-sapatilha-de-ponta (12)
-- **Ciclos com manifesto:** 3 variante(s)
+sapatilha-de-ponta (11)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -79,6 +79,19 @@ sapatilha-de-ponta (12)
 ## Últimos commits
 
 ```
+27cea88d chore(estrutura): regerar os índices derivados
+bfb05b8b chore(estrutura): expurgar a escola calango
+650acc89 chore(estrutura): regerar os índices derivados
+ba2032b0 chore(estrutura): expurgar a escola breu
+6deab512 chore(estrutura): regerar os índices derivados
+6d684156 chore(estrutura): expurgar a escola batata
+fdf5e7c6 chore(estrutura): regerar os índices derivados
+495f56ad feat(estrutura): as três escolas nasceram dentro do shard, e a criação regera os dois índices
+80070aee fix(tools): a cobertura recusava a escola de shard que está viva — a metade que faltava
+79836e9f feat(acervo): envelope/.indice.json
+479692bc feat(acervo): envelope/.indice.json
+cbf62542 feat(escola): a escola breu declara o professor prova-do-shard
+6f446b51 feat(acervo): envelope/.indice.json
 ec9aaa75 feat(estrutura): criar a escola breu (motor completo)
 bd6f7bfb feat(estrutura): criar a escola calango (motor completo)
 9dbfbb7f feat(estrutura): criar a escola batata (motor completo)
@@ -86,19 +99,6 @@ bd6f7bfb feat(estrutura): criar a escola calango (motor completo)
 b3f92cab fix(tools): a verificação 12 acusava de expurgada a escola de shard que está viva
 8ae5dff4 fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
 b86c58f0 fix(tools): a escola recriada dentro do shard ficava sem o campo `shard` no elo
-1d9adb27 fix(estrutura): a conferência do KV deixa de perguntar «não sei onde vive» no shard
-3b8b8efd fix(tools): o mapa de escolas não conhecia a escola de shard, e travava a criação
-5785700a fix(estrutura): o expurgo de um shard recusa a dizer «shard», e o derivado é limpo
-bb449d49 fix(tools): o shard não é uma escola, e a derivação dizia que era
-1674308b chore(estrutura): regerar os índices derivados
-1f4d875a chore(estrutura): expurgar a escola breu
-8eea97a9 chore(estrutura): regerar os índices derivados
-36473f16 chore(estrutura): expurgar a escola batata
-d3ca2566 chore(estrutura): regerar os índices derivados
-cb4336a5 chore(estrutura): expurgar a escola calango
-6fb70cf5 chore(entrega): o plano-aula-01-anterior do rimel-preto, como nos outros seis
-7dab1570 fix(experimentos): seis asserções mediam o desenho de ontem, e uma matava a prova
-722d274e fix(template): o véu tinha dois donos, e a folha abria sem escurecer a página
 ```
 
 ## Por professor
@@ -109,35 +109,13 @@ cb4336a5 chore(estrutura): expurgar a escola calango
 
 ### dedao-aberto — 0 ciclo(s)
 
-### grand-plie — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `a0a75ae19ade` | (vazio) | — |
+### grand-plie — 0 ciclo(s)
 
 ### lapis-rosa — 0 ciclo(s)
 
-### pe-pequeno — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | ciclo-01-calango.fipp | `4c033a8f9ce7` | (vazio) | — |
+### pe-pequeno — 0 ciclo(s)
 
 ### pe-torto — 0 ciclo(s)
-
-### prova-do-shard — 0 ciclo(s)
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -145,17 +123,7 @@ cb4336a5 chore(estrutura): expurgar a escola calango
 
 ### rimel-preto — 0 ciclo(s)
 
-### sapatilha-de-ponta — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): batata
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `f7603efa1095` | (vazio) | — |
+### sapatilha-de-ponta — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -204,66 +172,60 @@ cb4336a5 chore(estrutura): expurgar a escola calango
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — As três escolas nasceram dentro do shard, e a bateria passou
+## 15/11/2026 — O expurgo das três, e a sujeira que era minha
 
-**O que aconteceu.** Ela criou `batata`, `breu` e `calango` pela página. As três **passaram** — e é
-a primeira vez que uma criação dentro do shard chega ao fim. O que se mediu, do remoto e ao vivo:
+**O que aconteceu.** Ela expurgou `batata`, `breu` e `calango` pela página, e os três expurgos
+correram **até ao fim** — o primeiro conjunto de expurgos que não encontrou nenhum dos defeitos
+desta série. Medido depois:
 
 | | |
 |:--|:--|
-| `escola/<slug>/indice.json` | `shard: lastro-teste`, `worker: lastro-teste`, `recriacao` 11/9/12 |
-| mapa `escolas/por-host` | as **duas** formas do endereço, nas três |
-| `bastidores/<escola>/dono` | `{nome, slug, hash, sal}` — sem senha em claro |
-| `/api/saude` nas três | `origem: "mapa"`, `escola_do_pacote` = o slug certo |
-| `/`, `/aulas/`, `/ciclos/planos/`, `/assets/style.css` | **200** nas três |
-| `indices/acervo.json` | as três com `expurgada: false` — **o critério novo funcionou** |
+| os três hosts | `530` (a rota saiu; o DNS aponta ao place-holder e nada responde) |
+| `indices/acervo.json` | as três com `expurgada: true`, `expurgos` 12/10/12 |
+| os três elos | `expurgo[]` com o motivo da página; `shard: lastro-teste` preservado |
+| pacotes e fontes | removidos |
+| **o script `lastro-teste`** | **de pé** — é o que a guarda `ehOShard` protege |
+| `lastro-teste.tmenegaz77.workers.dev` | `500` **declarado**: «este host não está no mapa de escolas, e não há ESCOLA_SLUG — nenhuma escola reivindica este Worker». É o comportamento certo: o subdomínio técnico do shard não é uma escola, e ele diz isso em vez de inventar uma |
+| `danca.padd.com.br/escolas-apagadas` | `200`, com as três listadas |
 
-**Três defeitos que só a criação real revelou**, todos da mesma premissa («toda escola tem
-`wrangler.<slug>.jsonc`»), e todos corrigidos na origem:
+**A sujeira, e é minha.** A bateria do shard correu contra **produção** e registou o professor
+`prova-do-shard` na `breu` — o gesto 9 cadastra, desliga, e a exclusão é recusada por desenho
+(409: «a proveniência fica»). A escola foi expurgada e o professor ficou: uma pasta em
+`professores/prova-do-shard/` com **cinco cópias reformatadas dos schemas do modelo** e nenhum
+`perfil.json` — nenhum dado de pessoa, nenhum ciclo, nada que a escola servisse.
 
-1. **O `git add` do scaffold.** Listava `wrangler.<escola>.jsonc`, que num shard não existe; um
-   caminho inexistente falha o `git add` inteiro (`exit 128`) — com o motor já no ar e o scaffold
-   por commitar. Passa a somar só os caminhos que existem.
-2. **A recíproca da cobertura, no `check-indices`.** «Sem config, a escola só pode estar no índice
-   como memória do expurgo» — uma escola de shard não tem config e está viva. A isenção é a mesma
-   da outra metade e vem do mesmo facto (o índice declara `shard`). Sem isto, criar três escolas
-   fazia o verificador reprovar três vezes.
-3. **O mapa de relações não era regerado na criação.** O `criar-escola.yml` corria
-   `gerar-indices.js` e não `gerar-relacoes.js`; o `regerar-indices.yml` corre os dois, mas é
-   disparado por `professores/**` e o push do `criar-escola` usa o `GITHUB_TOKEN` — que **não
-   redispara workflows**. Os três mapas `indices/relacoes/<professor>/01-<escola>.json` ficaram por
-   escrever, e o `check-indices` reprovou a reconstrução. Os dois passos correm agora juntos, como
-   no workflow irmão — dois derivados do mesmo `indices/` que só um escreve é um derivado a faltar
-   no commit que o tornou necessário.
+**O que foi decidido.**
+- **A pasta sai.** Não tem pessoa, nem ciclo, nem pacote: é resíduo de execução de bateria, e o
+  `criar-escola.sh` escreve os schemas na pasta do professor de cada escola que nasce — é por isso
+  que eles lá estavam.
+- **A ligação sai de `professores[]`** do elo da `breu`. Essa lista é a DECLARAÇÃO DE QUEM TRABALHA
+  HOJE — é o `repo-escola.js` que a escreve no dia a dia —, e não o elo. Ter lá um professor de
+  prova é dizer que ele trabalha naquela escola.
+- **A história fica.** `recriacao[].professores_anteriores` continua a nomear o `prova-do-shard`
+  (entrou a 14/11). É elo, e proveniência acrescenta, não edita: um nome que esteve ligado a uma
+  escola não se apaga da memória dela só porque a ligação foi um teste. Fica declarado aqui em vez
+  de reescrito lá.
+- **A bateria deixou de reportar o vazio como falha.** Com as três escolas expurgadas, ela corria e
+  dava **34 falhas** — todas «responde 530», que se lê como «o shard partiu». Não partiu: não há
+  escolas. Sonda o `/api/saude` de cada host antes de começar, e sem nenhuma a responder sai com
+  **0** e um recado que diz o que fazer. É a disciplina do `provar-navegacao` («Chrome não
+  encontrado — conferência NÃO FEITA»): a ausência diz-se pelo estado, não por um número vermelho.
 
-**E uma asserção da bateria que pedia o resultado de um trabalho que não aconteceu.** A bateria do
-shard exigia um PDF em `/rosa/ciclo-01-calango-rosa.pdf` e recebia 404 — o 404 estava **certo**: o
-PDF nasce do `gerar-ciclo.sh`, que corre depois de o PO ser preenchido, e uma escola recém-criada
-tem o pacote-zero e nenhum ciclo gerado. A asserção passou a medir o que se pode afirmar de uma
-escola em qualquer estado: o caminho do PDF é **reconhecido** (não é o 404 das páginas que não
-existem), e quando o PDF existe, vem como PDF.
+**Onde entrou.** `professores/prova-do-shard/` (removido) · `escola/breu/indice.json`
+(`professores[]` vazio) · `indices/**` (regerados) ·
+`experimentos/provar-bateria-do-shard.js` (a sonda das vivas).
 
-**Com o quê.** Bateria do shard ao vivo **50/50** com os gestos 7, 8 e 9 (turma, professor)
-corridos a sério, e **37/37** em `--so-leitura` · `provar-gestos-do-shard` **31/31** (os quatro
-gestos de documento numa loja com duas escolas) · `provar-cofre-e-shard` **101/101**, controlo
-negativo 14/41 · `check-indices` 16/16 · `gerar-indices --check` e `gerar-relacoes --check` em dia ·
-`check-identidade` 0 erros. A loja de envelopes das três responde **200** (`/anamnese/api/envelopes`,
-`/anamnese/api/anamneses`) — era o 500/404 que a impedia de gravar.
+**Com o quê.** `check-indices` 16/16 · `gerar-indices --check` em dia · `gerar-relacoes` sem ciclo
+com pacote (nada a fazer — é o estado, e ele diz-se) · `check-identidade` 0 erros ·
+`provar-cofre-e-shard` **101/101** · o acervo já não nomeia o `prova-do-shard`.
 
-**O que ainda não está feito.** (1) **Nenhum ciclo foi gerado nestas três escolas** — é o próximo
-passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os PDF, e só então a
-bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
-pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
-bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
+**O que ainda não está feito.** (1) **Nenhuma escola existe agora** — o passo seguinte é dela: criar
+pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CALANGO` continuam em
+`tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
+pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
+repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
 
 ## O que está pendente
-
-## 15/11/2026 — A chave que não abre tem nome
-
-(1) A mensagem nova só se vê depois de o shard ser republicado com
-este commit. (2) Os envelopes das três escolas de teste continuam ilegíveis, e continuarão: o que os
-abria era a chave que já não existe. (3) Um registo ilegível **não é apagado** por esta correção, nem
-deve ser: o ficheiro no repositório é proveniência, e um erro de leitura não autoriza escrita.
 
 ## 15/11/2026 — Quatro provas que mediam o desenho de ontem
 
@@ -295,6 +257,14 @@ passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os P
 bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
 pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
 bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
+
+## 15/11/2026 — O expurgo das três, e a sujeira que era minha
+
+(1) **Nenhuma escola existe agora** — o passo seguinte é dela: criar
+pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CALANGO` continuam em
+`tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
+pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
+repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
 
 ## Pendências anteriores (índice)
 
@@ -743,9 +713,7 @@ bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
 - **15/11/2026** — Os gestos 4 a 7 do shard não precisavam do modelo → `REGISTRO.md` L45383
 - **15/11/2026** — A chave mestra, o expurgo que a conhece, e o cofre → `REGISTRO.md` L45447
 - **15/11/2026** — A publicação do shard: uma árvore partilhada monta-se… → `REGISTRO.md` L45556
-- **grand-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- **pe-pequeno · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- **sapatilha-de-ponta · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **15/11/2026** — A chave que não abre tem nome → `REGISTRO.md` L45623
 
 ## Documentos-chave (para leitura)
 

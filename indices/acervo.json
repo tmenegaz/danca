@@ -68,7 +68,6 @@
         "grand-plie",
         "luz-azul",
         "pe-torto",
-        "prova-do-shard",
         "redinha-rosa",
         "rimel-preto",
         "sapo-bailarino",
@@ -222,11 +221,6 @@
       },
       {
         "contagem": 1,
-        "rotulo": "Prova Do Shard",
-        "valor": "prova-do-shard"
-      },
-      {
-        "contagem": 1,
         "rotulo": "Rabo Gramde",
         "valor": "rabo-gramde"
       },
@@ -275,9 +269,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bfb05b8"
+    "commit": "27cea88d"
   },
-  "gerado_em": "2026-11-15T20:24",
+  "gerado_em": "2026-11-15T20:26",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -458,15 +452,6 @@
       "id": "professor:perna-boa",
       "nome": "Perna Boa",
       "slug": "perna-boa"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:prova-do-shard",
-      "nome": "Prova Do Shard",
-      "slug": "prova-do-shard"
     },
     {
       "ciclos": [],

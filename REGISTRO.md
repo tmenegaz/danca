@@ -45931,3 +45931,56 @@ passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os P
 bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
 pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
 bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
+
+## 15/11/2026 — O expurgo das três, e a sujeira que era minha
+
+**O que aconteceu.** Ela expurgou `batata`, `breu` e `calango` pela página, e os três expurgos
+correram **até ao fim** — o primeiro conjunto de expurgos que não encontrou nenhum dos defeitos
+desta série. Medido depois:
+
+| | |
+|:--|:--|
+| os três hosts | `530` (a rota saiu; o DNS aponta ao place-holder e nada responde) |
+| `indices/acervo.json` | as três com `expurgada: true`, `expurgos` 12/10/12 |
+| os três elos | `expurgo[]` com o motivo da página; `shard: lastro-teste` preservado |
+| pacotes e fontes | removidos |
+| **o script `lastro-teste`** | **de pé** — é o que a guarda `ehOShard` protege |
+| `lastro-teste.tmenegaz77.workers.dev` | `500` **declarado**: «este host não está no mapa de escolas, e não há ESCOLA_SLUG — nenhuma escola reivindica este Worker». É o comportamento certo: o subdomínio técnico do shard não é uma escola, e ele diz isso em vez de inventar uma |
+| `danca.padd.com.br/escolas-apagadas` | `200`, com as três listadas |
+
+**A sujeira, e é minha.** A bateria do shard correu contra **produção** e registou o professor
+`prova-do-shard` na `breu` — o gesto 9 cadastra, desliga, e a exclusão é recusada por desenho
+(409: «a proveniência fica»). A escola foi expurgada e o professor ficou: uma pasta em
+`professores/prova-do-shard/` com **cinco cópias reformatadas dos schemas do modelo** e nenhum
+`perfil.json` — nenhum dado de pessoa, nenhum ciclo, nada que a escola servisse.
+
+**O que foi decidido.**
+- **A pasta sai.** Não tem pessoa, nem ciclo, nem pacote: é resíduo de execução de bateria, e o
+  `criar-escola.sh` escreve os schemas na pasta do professor de cada escola que nasce — é por isso
+  que eles lá estavam.
+- **A ligação sai de `professores[]`** do elo da `breu`. Essa lista é a DECLARAÇÃO DE QUEM TRABALHA
+  HOJE — é o `repo-escola.js` que a escreve no dia a dia —, e não o elo. Ter lá um professor de
+  prova é dizer que ele trabalha naquela escola.
+- **A história fica.** `recriacao[].professores_anteriores` continua a nomear o `prova-do-shard`
+  (entrou a 14/11). É elo, e proveniência acrescenta, não edita: um nome que esteve ligado a uma
+  escola não se apaga da memória dela só porque a ligação foi um teste. Fica declarado aqui em vez
+  de reescrito lá.
+- **A bateria deixou de reportar o vazio como falha.** Com as três escolas expurgadas, ela corria e
+  dava **34 falhas** — todas «responde 530», que se lê como «o shard partiu». Não partiu: não há
+  escolas. Sonda o `/api/saude` de cada host antes de começar, e sem nenhuma a responder sai com
+  **0** e um recado que diz o que fazer. É a disciplina do `provar-navegacao` («Chrome não
+  encontrado — conferência NÃO FEITA»): a ausência diz-se pelo estado, não por um número vermelho.
+
+**Onde entrou.** `professores/prova-do-shard/` (removido) · `escola/breu/indice.json`
+(`professores[]` vazio) · `indices/**` (regerados) ·
+`experimentos/provar-bateria-do-shard.js` (a sonda das vivas).
+
+**Com o quê.** `check-indices` 16/16 · `gerar-indices --check` em dia · `gerar-relacoes` sem ciclo
+com pacote (nada a fazer — é o estado, e ele diz-se) · `check-identidade` 0 erros ·
+`provar-cofre-e-shard` **101/101** · o acervo já não nomeia o `prova-do-shard`.
+
+**O que ainda não está feito.** (1) **Nenhuma escola existe agora** — o passo seguinte é dela: criar
+pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CALANGO` continuam em
+`tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
+pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
+repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
