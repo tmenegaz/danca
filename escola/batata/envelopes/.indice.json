@@ -2,7 +2,8 @@
   "versao": 4,
   "nomes": [
     "anamnese-20261115-1913.json",
-    "plano-20261115-1921.json"
+    "plano-20261115-1921.json",
+    "po-20261115-1921.json"
   ],
   "resumos": {
     "anamnese-20261115-1913.json": {
@@ -30,6 +31,21 @@
         "Battement jeté"
       ],
       "professorNome": "rimel-preto"
+    },
+    "po-20261115-1921.json": {
+      "id": "po-20261115-1921",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "rimel-preto",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-15T19:21",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261115-1921"
+      ]
     }
   }
 }
