@@ -50,7 +50,30 @@ function criarRoteador() {
         if (r.metodo !== request.method) continue;
         const params = casar(r.padrao, url.pathname);
         if (params === null) continue;
-        const resultado = await r.handler({ request, url, params });
+        /* O ERRO QUE TEM NOME NÃO REBENTA O WORKER (15/11/2026).
+         *
+         * Um `throw` que ninguém apanha sai do Worker como `error code: 1101` — «excepção de
+         * JavaScript», sem corpo e sem dizer nada a quem está a olhar para a ficha. Aconteceu ao
+         * vivo: um envelope cifrado com a chave anterior da escola deixou de abrir quando a chave
+         * passou a ser derivada da mestra, e a ficha ficou em branco.
+         *
+         * Apanha-se AQUI, e não em cada rota, porque são dez rotas a ler envelopes e a próxima
+         * que aparecer herdaria o defeito. O contrato é o que o erro traz consigo: `status` para a
+         * resposta e `message` para quem lê. Um erro SEM nome continua a subir — quem o atirou não
+         * declarou que sabe o que ele significa, e engoli-lo esconderia defeitos a sério. */
+        let resultado;
+        try {
+          resultado = await r.handler({ request, url, params });
+        } catch (erro) {
+          if (!erro || !erro.nome || erro.nome === 'Error' || !erro.status) throw erro;
+          return new Response(JSON.stringify({ ok: false, erro: erro.message }, null, 2) + '\n', {
+            status: erro.status,
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8',
+              'Cache-Control': 'no-store, max-age=0',
+            },
+          });
+        }
         if (resultado instanceof Response) return resultado;
         // O objeto devolvido por um handler é JSON do ATO presente (o mapa, as listas,
         // os estados): sai `no-store` para o navegador nunca desenhar o conteúdo de ontem.

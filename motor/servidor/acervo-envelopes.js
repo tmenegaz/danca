@@ -162,14 +162,47 @@ async function montarArquivoCifrado(envelope, senha, cifrar) {
   }, null, 2) + '\n';
 }
 
+/**
+ * A CHAVE NÃO ABRE ESTE REGISTO — e isso é um facto a DIZER, não uma excepção a deixar subir
+ * (15/11/2026).
+ *
+ * O QUE ACONTECEU, medido: com a chave da escola derivada da mestra, um envelope que foi cifrado
+ * com a chave ANTERIOR daquela escola (a `SENHA_CRIPTO` aleatória do Worker dela) já não abre. O
+ * `Cifra.decifrar` atira, o armazenamento não apanhava, a rota não apanhava, e o Worker respondia
+ * **error code: 1101** — «excepção de JavaScript», que não diz nada a quem está a olhar para a
+ * ficha e não diz nada a quem lê os logs.
+ *
+ * A distinção importa: um registo ilegível por chave trocada é um facto do ACERVO (há dados de
+ * antes, com outra chave), e não um defeito do pedido. Quem chama tem de o poder dizer com estas
+ * palavras, e é para isso que este erro tem nome.
+ */
+class ErroDeChave extends Error {
+  constructor(mensagem) {
+    super(mensagem);
+    this.nome = 'ErroDeChave';
+    /* O CÓDIGO SAI DAQUI, e não de quem chama: é a mesma resposta em todas as rotas que leem um
+     * envelope, e uma segunda opinião sobre o mesmo facto divergiria. */
+    this.status = 409;
+  }
+}
+
 /** O INVERSO do arquivo cifrado — o envelope em claro que o núcleo sabe ler. */
 async function abrirArquivoCifrado(arquivo, senha) {
-  if (!senha) throw new Error('sem SENHA_CRIPTO: não consigo abrir as respostas');
-  const claro = await Cifra.decifrar(
-    arquivo.respostas && arquivo.respostas._cifrado,
-    senha,
-    (arquivo.respostas && arquivo.respostas._cifrado && arquivo.respostas._cifrado.iteracoes) || 0,
-  );
+  if (!senha) {
+    throw new ErroDeChave('esta escola não tem chave de cifra: o registo não pode ser aberto');
+  }
+  let claro;
+  try {
+    claro = await Cifra.decifrar(
+      arquivo.respostas && arquivo.respostas._cifrado,
+      senha,
+      (arquivo.respostas && arquivo.respostas._cifrado && arquivo.respostas._cifrado.iteracoes) || 0,
+    );
+  } catch (erro) {
+    throw new ErroDeChave('a chave desta escola não abre este registo — ele foi cifrado com '
+      + 'outra chave (provavelmente a anterior a esta escola passar a ter chave derivada da mestra). '
+      + 'O registo está intacto: o que falta é a chave com que ele foi escrito.');
+  }
   const conteudo = JSON.parse(claro);
   return Object.assign({}, arquivo, {
     respostas: conteudo.respostas || {},
@@ -838,6 +871,7 @@ module.exports = {
   ehAnamnese,
   montarArquivoCifrado,
   abrirArquivoCifrado,
+  ErroDeChave,
   criarAcervoDeEnvelopes,
   doAmbiente,
   combinar,

@@ -509,6 +509,69 @@ function cloudflareFalso({ rotas = [] } = {}) {
       /alvo="shard:\$s"/.test(descobre) && /case "\$vistos" in/.test(descobre), null);
   });
 
+  /* ---------------------------------------------------------------- E. A chave que não abre */
+
+  /* O QUE ACONTECEU AO VIVO, e é o que esta secção passa a medir: com a chave derivada, um
+   * envelope cifrado com a chave ANTERIOR da escola deixa de abrir — e a primeira versão
+   * respondia `error code: 1101`, excepção de JavaScript sem corpo nenhum. A ficha ficava em
+   * branco sem uma palavra. */
+  await secao('E. A chave que não abre tem nome, e não rebenta o Worker', async () => {
+    const acervo = carregar('motor/servidor/acervo-envelopes.js');
+    if (!acervo || typeof acervo.abrirArquivoCifrado !== 'function') {
+      provar('existe `abrirArquivoCifrado` — o inverso do arquivo cifrado', false, 'não existe');
+      return;
+    }
+    /* Um envelope de verdade, cifrado com uma chave; a leitura com OUTRA. É a condição exacta das
+     * três escolas que nasceram com chave própria. */
+    const Cifra = require(path.join(RAIZ_DO_CODIGO, 'tools/lib-cifra.js'));
+    const claro = JSON.stringify({ respostas: { 'q-1': 'ficou registado' }, notas: {} });
+    const _cifrado = await Cifra.cifrar(claro, 'a-chave-com-que-foi-escrito', { iteracoes: 0 });
+    const arquivo = { id: 'anamnese-x', respostas: { _cifrado } };
+
+    const abre = await acervo.abrirArquivoCifrado(arquivo, 'a-chave-com-que-foi-escrito')
+      .then((e) => e, () => null);
+    provar('a chave CERTA abre o registo e devolve as respostas',
+      abre && abre.respostas && abre.respostas['q-1'] === 'ficou registado', abre && abre.respostas);
+
+    const falha = await acervo.abrirArquivoCifrado(arquivo, 'outra-chave-qualquer')
+      .then(() => null, (erro) => erro);
+    provar('a chave ERRADA atira um erro COM NOME (`ErroDeChave`)', falha && falha.nome === 'ErroDeChave',
+      falha && falha.nome);
+    provar('…com um estado declarado (409), para a resposta não ser um 500 mudo',
+      falha && falha.status === 409, falha && falha.status);
+    provar('…e a mensagem diz que o registo está INTACTO — a chave é que falta',
+      /intacto/.test(String(falha && falha.message)), falha && falha.message);
+
+    const semChave = await acervo.abrirArquivoCifrado(arquivo, '')
+      .then(() => null, (erro) => erro);
+    provar('sem chave nenhuma, também é declarado (e não um `throw` solto)',
+      semChave && semChave.nome === 'ErroDeChave', semChave && semChave.nome);
+
+    /* O ROTEADOR — a regra num sítio só, e é ela que impede o 1101 em todas as rotas de uma vez. */
+    const roteador = carregar('motor/servidor/roteador.js');
+    if (!roteador || typeof roteador.criarRoteador !== 'function') {
+      provar('existe `criarRoteador`', false, 'não existe');
+      return;
+    }
+    const r = roteador.criarRoteador();
+    r.rota('GET', '/x', async () => { throw falha; });
+    const resposta = await r.responder(new Request('https://escola/x'));
+    const corpo = await resposta.json().catch(() => null);
+    provar('um erro com nome sai como RESPOSTA (409) e não como excepção do Worker',
+      resposta.status === 409 && corpo && corpo.ok === false, { status: resposta.status, corpo });
+    provar('…e a resposta não é cacheável', /no-store/.test(String(resposta.headers.get('Cache-Control'))), null);
+    provar('…e diz o motivo, em vez de deixar a ficha em branco', /intacto/.test(String(corpo && corpo.erro)), corpo && corpo.erro);
+
+    /* O OUTRO LADO, e é o que impede esta guarda de esconder defeitos: um erro SEM nome continua a
+     * subir. Uma guarda larga aqui transformaria qualquer bug num «409» simpático. */
+    const r2 = roteador.criarRoteador();
+    r2.rota('GET', '/y', async () => { throw new Error('um defeito a sério'); });
+    let subiu = null;
+    try { await r2.responder(new Request('https://escola/y')); } catch (erro) { subiu = erro; }
+    provar('CONTROLE NEGATIVO: um `Error` sem nome NÃO é convertido em resposta — sobe',
+      subiu && /defeito a sério/.test(subiu.message), subiu && subiu.message);
+  });
+
   console.log('\n' + (ko === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + ok + '/' + (ok + ko)
     + ' asserção(ões)' + (ko ? ', ' + ko + ' falha(s)' : '') + '.');
   process.exit(ko === 0 ? 0 : 1);
