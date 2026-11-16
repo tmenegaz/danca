@@ -1397,3 +1397,11 @@ experimentos/modelo-formulario/*
 # e ninguém soube durante um dia porque ela não estava a ser corrida. Entra aqui: o que o REGISTRO
 # cita tem de poder ser conferido noutro clone.
 !experimentos/provar-form-escola.js
+
+# O LEITOR DE `.jsonc` (25/11/2026). A criação da escola `breu` morreu no passo 8 de 10 porque o
+# `wrangler` aceita vírgula final e o nosso `JSON.parse` não — o mesmo ficheiro, duas gramáticas.
+# Esta prova mede as três coisas que importam: o que passa a ser aceite (vírgula final, comentários),
+# o que TEM de continuar a falhar (JSON5 não é JSONC), e a armadilha (uma string com `,}` ou `//`
+# é um valor e não pode ser cortada). Acrescenta-se a isso a asserção de que a chave Pix não está
+# escrita na configuração — é o único lugar em que esse erro se apanha antes do commit.
+!experimentos/provar-jsonc.js

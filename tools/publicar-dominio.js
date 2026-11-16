@@ -37,14 +37,8 @@ const path = require('path');
 const RAIZ = path.join(__dirname, '..');
 const dominio = require(path.join(RAIZ, 'motor/servidor/dominio-da-escola.js'));
 
-/** Lê um `.jsonc` (JSON com comentários de linha) como objeto. */
-function lerJsonc(arquivo) {
-  const texto = fs.readFileSync(arquivo, 'utf8')
-    .split('\n')
-    .filter((l) => !/^\s*\/\//.test(l))
-    .join('\n');
-  return JSON.parse(texto);
-}
+/** Lê um `.jsonc` como objeto — pelo MESMO leitor que o `wrangler` (ver `lib-jsonc.js`). */
+const { lerJsonc } = require(path.join(__dirname, 'lib-jsonc.js'));
 
 /** As escolas que as configurações declaram: `[{ escola, script, config }]`. */
 function escolasDasConfiguracoes() {
