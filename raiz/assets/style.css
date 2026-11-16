@@ -1705,6 +1705,27 @@ form input, form select, form textarea { background-color: var(--campo-fundo-car
 [data-modo="noturna"] select:not([multiple]):not([size]):not([hidden]) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
+/* ============================================================================
+   O QUE SÓ O PAINEL VÊ — a marca `data-pagina` (25/11/2026).
+
+   A MESMA página serve `danca.padd.com.br` (o painel do proprietário) e
+   `lastro.padd.com.br` (a página pública, que só cria escola). O servidor põe no
+   `<html>` qual é: `data-pagina="painel"` ou `data-pagina="publica"`. As peças que
+   existem só no painel levam `data-dono`, e esta regra as esconde no público.
+
+   ISTO NÃO É PROTEÇÃO, E NÃO PODE SER LIDO COMO TAL. Quem protege é o servidor, que
+   no endereço público responde 404 a `/api/escolas`, `/api/apagar-escola`,
+   `/professores` e a tudo o resto que não seja a apresentação e o criar. O que esta
+   regra evita é a PROMESSA FALSA: um botão «Apagar escola» desenhado numa página cujo
+   pedido não abre. Um botão que se vê e não funciona é pior do que um botão ausente.
+
+   O NOME DO ATRIBUTO NÃO É `data-modo`. `data-modo` é a APARÊNCIA (`clara`/`noturna`,
+   com o anti-flash a escrevê-la antes de a página pintar) — e o botão do tema a
+   reescreve. Dois factos com o mesmo atributo seriam um só: ao primeiro clique no ◐,
+   a página pública perderia a marca e mostraria o painel.
+   ========================================================================== */
+[data-pagina="publica"] [data-dono] { display: none; }
+
 /* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a
    linha com o controle (o lançamento de aula). */
 .campo-rotulo {
