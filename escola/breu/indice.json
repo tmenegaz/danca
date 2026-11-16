@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -857,6 +857,64 @@
         ],
         "fontes": 1,
         "impressao": "6a46224570a5e597b6c3df00eaa600fa91453fafb4b50eeb563ffff3f3aa9cee",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-16T12:44:22.236Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/breu/envelopes/.indice.json",
+        "professores/brise-volet/ciclos/ciclo-01-breu.conf",
+        "professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+        "professores/brise-volet/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/brise-volet/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/brise-volet/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/brise-volet/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/brise-volet/ciclos/ciclo-01-breu/index.html",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/brise-volet/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-16T12:44:22.236Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-16T12:44:16.673Z",
+        "ancoras": [
+          {
+            "caminho": "professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+            "id": "ciclo-01-breu",
+            "hash": "c5e78b8616414c10a96a16f97a05ae5d7bdba3bbc0fc48122f78c8bb5bca844b",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "d4fd0d60213f49dc8150f0126c49cb06e2a2756898c58e9dacf9b38b9ddc7dc6",
         "resumo": {
           "ancoras": 1,
           "fontes": 1,
