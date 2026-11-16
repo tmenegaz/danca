@@ -46263,3 +46263,68 @@ cometido.
 
 **O que NÃO foi feito.** O `gerar-ciclo` continua a exigir o pacote-zero do professor com os
 pré-requisitos na pasta dele — não foi tocado, e não foi ele que falhou.
+
+## 24/11/2026 — a senha que ela digita passa a ser a senha que abre, e o preenchimento de teste deixa de exigir os nomes do fixture
+
+**O que aconteceu.** Dois relatos, um de cada vez, e os dois sobre a MESMA coisa: o ambiente de
+teste a decidir por ela.
+
+1. «Eu acabei de criar a escola Abreu e a senha que eu criei para o professor é a senha 2805 […]
+   E aí eu fui tentar usar a senha que eu criei para teste, 2805, e não funcionou. A senha 123 deu
+   certo.» E a regra: «a senha que tem que valer é a senha que eu digito no teste, senão o teste
+   não está passando, é uma coisa inventada».
+
+2. «Se eu mudo o nome no plano de ensino para a turma não ser um daqueles nomes que já estão
+   definidos pelo ambiente de teste, o plano de ensino não reconhece o nome que eu coloquei […]
+   tem algum vínculo relacionado ao nome.»
+
+**O que foi decidido.**
+
+- **A senha do professor é a que a criação guardou.** `provisionarDentroDoShard` recebia
+  `senhaProfessor` e **descartava-o** — a assinatura não o lia. O registo do dono guardava só o par
+  da direção, e a senha do professor continuava a ser comparada com `env.SENHA_PROFESSOR`, que num
+  shard vale o mesmo para N escolas. Passa a haver **dois pares**: `hash`/`sal` (direção) e
+  `professor_hash`/`professor_sal` (professor). O comentário que dizia «a senha da direção é a
+  mesma do professor inicial — é a mesma pessoa» estava errado: o formulário pede duas senhas, e é
+  legítimo serem diferentes.
+- **A ordem é a mesma da direção**: o registo da escola manda, o `env` é **reserva**. Um registo
+  SEM o par do professor (as escolas de antes) devolve `null` e cai no `env` — não se inventa uma
+  senha que ninguém escolheu, e não se fecha a porta a quem já lá está. Quando o par existe, o
+  `env.SENHA_PROFESSOR` do shard **deixa de abrir**: aceitá-lo daria a quem conhece o secret do
+  shard a chave de todas as escolas.
+- **O fixture é conteúdo; a identidade é do ato.** O preenchedor de teste exigia que a turma (e a
+  aluna) do fixture estivessem no seletor, e desistia quando não estavam — «nada foi preenchido»
+  exactamente na situação em que a ferramenta é precisa, que é a de inventar nomes. Passa a
+  preencher o conteúdo e a **não tocar na identidade**: a turma é a do seletor, a aluna é a do ato,
+  e a resposta `contexto-turma` passa a ser lida do seletor (a divergência de 01/11/2026 continua
+  fechada, por outra via). O que NÃO se perdeu da correção de 27/10/2026: o preenchedor continua a
+  não acrescentar ao seletor nenhuma turma que a curadoria não autorize — agora simplesmente não
+  mexe no seletor.
+
+**Onde entrou.** `motor/servidor/provisionar-escola.js` · `motor/servidor/bastidores.js`
+(`senhaDoRegistoDaEscola`, e `senhaDoProfessorOk` a consultá-la) · `motor/servidor/teste-cliente.js`
+· `experimentos/provar-cofre-e-shard.js` (B3-bis) · `experimentos/provar-teste.js` (14 e o bloco da
+dimensão).
+
+**Com o quê.** `provar-cofre-e-shard` **129/129** (controle 14/42 — as sete asserções novas falham
+lá, que é o que se quer) · `provar-teste` **44/44** · `provar-publicacao-da-escola` 73/73 ·
+`provar-recriacao-da-escola`, `provar-form-escola`, `provar-slug-do-professor` · `check-identidade`
+0 erros.
+
+**Três provas que mediam outra coisa, corrigidas no caminho — e nenhuma delas era minha.**
+
+- `provar-teste` exigia que a dimensão observada começasse por «Técnica». Desde 04/11/2026 a
+  dimensão gravada é o **bloco** («Solo», «Barra»…), e o eixo vive no ecrã — a asserção media a
+  forma anterior. Passa a medir a regra de hoje: o nome é um bloco do conteúdo, e cada bloco leva o
+  seu eixo (Musicalidade e Expressão levam «Poiesis»).
+- A mesma prova chamava a derivação do nó «exclusao», que **já não existe** no conteúdo do PO, e
+  morria com `TypeError` a meio — o que não mede nada e esconde o que vem depois. Agora pergunta
+  primeiro se o conteúdo declara `derivarDe`, e quando não declara **di-lo em voz alta**.
+- `provar-cofre-e-shard` exigia a frase «é uma TURMA» para a turma fixa «batata-rosa», cuja pasta o
+  expurgo da batata levou. A turma passa a ser **lida do disco**. Uma prova colada a uma pasta
+  datada morre com ela.
+
+**O que fica pendente, e é dela.** As escolas criadas **antes** desta correção têm o registo do dono
+sem o par do professor: continuam a abrir pela senha do shard (`123`), e a senha digitada na criação
+só passa a valer numa escola **criada de novo**. Não há migração silenciosa — escrever um hash exige
+a senha em claro, e a senha em claro não vai para o KV.
