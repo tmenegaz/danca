@@ -1,5 +1,22 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "c5e78b8616414c10a96a16f97a05ae5d7bdba3bbc0fc48122f78c8bb5bca844b",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:brise-volet/01/breu",
+      "numero": "01",
+      "professor": "brise-volet",
+      "sem_ancora": false
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -43,39 +60,29 @@
       "slug": "batata"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:brise-volet/01/breu"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
         "registros": 0
       },
-      "criada_em": "2026-11-16T10:58:23.994622+00:00",
-      "expurgada": true,
+      "criada_em": "2026-11-16T11:29:49.576797+00:00",
+      "expurgada": false,
       "expurgada_em": "2026-11-16T11:00:36.439Z",
       "expurgos": 12,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:breu",
       "nome": "breu",
-      "professor": "ana-diag",
+      "professor": "brise-volet",
       "professores": [
-        "ana-diag",
-        "cafe-no-bule",
-        "colo-de-pe",
-        "coqui-de-redinha",
-        "dedao-aberto",
-        "grand-plie",
-        "luz-azul",
-        "pe-torto",
-        "redinha-rosa",
-        "rimel-preto",
-        "sapo-bailarino",
-        "tiago-menegaz",
-        "vaso-bonito"
+        "brise-volet"
       ],
       "registros": [],
       "slug": "breu"
@@ -136,7 +143,13 @@
         "valor": "calango"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -145,26 +158,26 @@
       },
       {
         "contagem": 1,
-        "rotulo": "Ana Diag",
-        "valor": "ana-diag"
+        "rotulo": "Brise Volet",
+        "valor": "brise-volet"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Cafe No Bule",
         "valor": "cafe-no-bule"
       },
       {
-        "contagem": 1,
-        "rotulo": "Colo De Pe",
+        "contagem": 0,
+        "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Coqui De Redinha",
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Dedão Aberto",
         "valor": "dedao-aberto"
       },
@@ -174,19 +187,14 @@
         "valor": "demi-plie"
       },
       {
-        "contagem": 1,
-        "rotulo": "Grand Plié",
+        "contagem": 0,
+        "rotulo": "grand-plie",
         "valor": "grand-plie"
       },
       {
         "contagem": 1,
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Luz Azul",
-        "valor": "luz-azul"
       },
       {
         "contagem": 1,
@@ -224,7 +232,7 @@
         "valor": "pe-pequeno"
       },
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "Pe Torto",
         "valor": "pe-torto"
       },
@@ -239,12 +247,12 @@
         "valor": "rabo-gramde"
       },
       {
-        "contagem": 2,
-        "rotulo": "Redinha Rosa",
+        "contagem": 1,
+        "rotulo": "redinha-rosa",
         "valor": "redinha-rosa"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "Rimel Preto",
         "valor": "rimel-preto"
       },
@@ -254,8 +262,8 @@
         "valor": "sapatilha-de-ponta"
       },
       {
-        "contagem": 3,
-        "rotulo": "Sapo Bailarino",
+        "contagem": 2,
+        "rotulo": "sapo-bailarino",
         "valor": "sapo-bailarino"
       },
       {
@@ -269,23 +277,18 @@
         "valor": "tela-de-celular"
       },
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "tiago-menegaz",
         "valor": "tiago-menegaz"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "vaso-bonito",
-        "valor": "vaso-bonito"
       }
     ],
     "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "6440f2f8"
+    "commit": "97189ff"
   },
-  "gerado_em": "2026-11-16T11:02",
+  "gerado_em": "2026-11-16T11:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -320,20 +323,21 @@
       "slug": "acucar-branco"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:brise-volet/01/breu"
+      ],
       "escolas": [
         "breu"
       ],
-      "id": "professor:ana-diag",
-      "nome": "Ana Diag",
-      "pasta": false,
-      "slug": "ana-diag"
+      "id": "professor:brise-volet",
+      "nome": "Brise Volet",
+      "pasta": true,
+      "slug": "brise-volet"
     },
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "breu"
+        "batata"
       ],
       "id": "professor:cafe-no-bule",
       "nome": "Cafe No Bule",
@@ -342,19 +346,16 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:colo-de-pe",
-      "nome": "Colo De Pe",
+      "nome": null,
       "pasta": true,
       "slug": "colo-de-pe"
     },
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "breu"
+        "batata"
       ],
       "id": "professor:coqui-de-redinha",
       "nome": "Coqui De Redinha",
@@ -364,8 +365,7 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "breu"
+        "batata"
       ],
       "id": "professor:dedao-aberto",
       "nome": "Dedão Aberto",
@@ -384,11 +384,9 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
+      "escolas": [],
       "id": "professor:grand-plie",
-      "nome": "Grand Plié",
+      "nome": null,
       "pasta": true,
       "slug": "grand-plie"
     },
@@ -401,16 +399,6 @@
       "nome": null,
       "pasta": true,
       "slug": "lapis-rosa"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:luz-azul",
-      "nome": "Luz Azul",
-      "pasta": false,
-      "slug": "luz-azul"
     },
     {
       "ciclos": [],
@@ -486,7 +474,6 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calango"
       ],
       "id": "professor:pe-torto",
@@ -518,19 +505,17 @@
     {
       "ciclos": [],
       "escolas": [
-        "breu",
         "calango"
       ],
       "id": "professor:redinha-rosa",
-      "nome": "Redinha Rosa",
+      "nome": null,
       "pasta": true,
       "slug": "redinha-rosa"
     },
     {
       "ciclos": [],
       "escolas": [
-        "batata",
-        "breu"
+        "batata"
       ],
       "id": "professor:rimel-preto",
       "nome": "Rimel Preto",
@@ -551,11 +536,10 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calango"
       ],
       "id": "professor:sapo-bailarino",
-      "nome": "Sapo Bailarino",
+      "nome": null,
       "pasta": false,
       "slug": "sapo-bailarino"
     },
@@ -583,23 +567,12 @@
       "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "calango"
       ],
       "id": "professor:tiago-menegaz",
       "nome": null,
       "pasta": false,
       "slug": "tiago-menegaz"
-    },
-    {
-      "ciclos": [],
-      "escolas": [
-        "breu"
-      ],
-      "id": "professor:vaso-bonito",
-      "nome": null,
-      "pasta": false,
-      "slug": "vaso-bonito"
     }
   ],
   "versao": 7

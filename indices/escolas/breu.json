@@ -1,42 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-16",
+        "caminho": "professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/brise-volet/ciclos/ciclo-01-breu.conf",
+          "professores/brise-volet/ciclos/ciclo-01.conf"
+        ],
+        "hash": "c5e78b8616414c10a96a16f97a05ae5d7bdba3bbc0fc48122f78c8bb5bca844b",
+        "hash_conteudo": "3fa26e2fe84ea9359d3df3a962a40079f3c0cc8c85e719994e408180f446ae40",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/brise-volet/ciclos/ciclo-01-breu.conf",
+        "professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+        "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:brise-volet/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "brise-volet",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:brise-volet/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/brise-volet/ciclos/ciclo-01-breu.fipp",
+      "professor": "brise-volet",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/brise-volet/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:brise-volet/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/brise-volet/ciclos/ciclo-01-breu.conf",
+      "professor": "brise-volet",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:brise-volet/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/brise-volet/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "brise-volet",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:brise-volet/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-16T10:58:23.994622+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-16T11:29:49.576797+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-16T11:00:36.439Z",
     "expurgos": 12,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "ana-diag",
+    "professor": "brise-volet",
     "professores": [
-      "ana-diag",
-      "cafe-no-bule",
-      "colo-de-pe",
-      "coqui-de-redinha",
-      "dedao-aberto",
-      "grand-plie",
-      "luz-azul",
-      "pe-torto",
-      "redinha-rosa",
-      "rimel-preto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "brise-volet"
     ],
     "registros": [],
     "slug": "breu"
@@ -44,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:brise-volet/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:brise-volet/01/breu"
+        ],
+        "rotulo": "brise-volet",
+        "valor": "brise-volet"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:brise-volet/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "6440f2f8"
+    "commit": "97189ff"
   },
-  "gerado_em": "2026-11-16T11:02",
+  "gerado_em": "2026-11-16T11:29",
   "nao_indexado": [
     {
       "familia": "conteudo",

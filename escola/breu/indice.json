@@ -3,17 +3,17 @@
   "worker": "lastro-teste",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "ana-diag",
-    "nome": "Ana Diag"
+    "slug": "brise-volet",
+    "nome": "Brise Volet"
   },
-  "responsavel": "Ana Diag",
+  "responsavel": "Brise Volet",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -1032,6 +1032,20 @@
       "professor_anterior": {
         "slug": "dedao-aberto",
         "nome": "Dedao Aberto"
+      }
+    },
+    {
+      "em": "2026-11-16T11:29:49.576797+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "brise-volet",
+        "nome": "Brise Volet"
+      },
+      "responsavel": "Brise Volet",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "ana-diag",
+        "nome": "Ana Diag"
       }
     }
   ],
