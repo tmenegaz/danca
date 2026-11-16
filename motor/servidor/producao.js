@@ -633,13 +633,21 @@ async function comercialDaEscola(env) {
 /**
  * ESTE PEDIDO ESCREVE? — a pergunta que separa «ler» de «editar» (25/11/2026).
  *
- * A REGRA É `GET` LÊ TUDO O RESTO ESCREVE, com UMA excepção declarada: as rotas que são `POST`
- * por natureza e não escrevem nada — validar a senha do professor e emitir o bilhete do ato. Sem
- * essa excepção, uma escola suspensa fechava também a ENTRADA de quem já trabalha nela, e o
- * professor não conseguiria chegar às páginas para ler o que está feito. «Só leitura» que não
- * deixa entrar não é leitura nenhuma.
+ * A REGRA É `GET` LÊ TUDO O RESTO ESCREVE, com as excepções declaradas: as rotas que são `POST`
+ * por natureza e não escrevem nada — a porta da direção, a senha do professor, o bilhete do ato.
+ * Sem elas, uma escola suspensa fechava também a ENTRADA de quem já trabalha nela, e ninguém
+ * conseguiria chegar às páginas para ler o que está feito. «Só leitura» que não deixa entrar não
+ * é leitura nenhuma.
+ *
+ * A PORTA DA DIREÇÃO FALTAVA, e o sintoma foi medido a 16/11/2026: com a escola desabilitada, a
+ * professora abria a escola, escrevia a senha em Bastidores e recebia «senha não reconhecida» —
+ * sobre uma senha certa. O `validar-producao` não escreve nada (emite um token assinado, sem
+ * estado); recusá-lo fechava a única porta que dá acesso a TUDO o que é «só ler». Ela própria o
+ * tinha dito: «só tem acesso a ler as coisas que já foram desenvolvidas». Não se lê o que não se
+ * consegue abrir.
  */
 const POSTS_QUE_SO_LEEM = new Set([
+  '/api/bastidores/validar-producao',
   '/api/bastidores/validar-senha',
   '/api/bastidores/ato',
 ]);

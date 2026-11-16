@@ -7474,9 +7474,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  fetch("/api/bastidores/validar-producao", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({senha: senha})' +
-    '  }).then(function(r){ return r.json(); }).then(function(d){' +
-    '    if (d.ok) { abrirSessao(d.token); }' +
-    '    else { g.className = "res erro"; g.textContent = "Senha não reconhecida."; }' +
+    '  }).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(d){' +
+    '    if (d && d.ok) { abrirSessao(d.token); return; }' +
+    /* A PORTA DIZ O QUE O SERVIDOR DISSE (16/11/2026).
+     *
+     * Aqui estava `g.textContent = "Senha não reconhecida."` para QUALQUER falha — e a falha
+     * podia não ser da senha. Medido: com a escola desabilitada, a professora escreveu a senha
+     * certa e leu «senha não reconhecida», porque o 402 do estado comercial era um `else` como
+     * os outros. «É melhor dizer a verdade do que mentir» — e a mentira era nossa, não dela.
+     *
+     * O servidor já responde com `erro` e, quando é o caso, `suspensa: true`. A tela usa o que
+     * ele diz; o texto antigo fica só como reserva para quando não houver nada a dizer. */
+    '    g.className = "res erro";' +
+    '    g.textContent = (d && d.erro) ? d.erro : "Senha não reconhecida.";' +
     '  }).catch(function(err){ g.className = "res erro"; g.textContent = "Erro: " + err.message; });' +
     '}' +
     // A SESSÃO JÁ ABERTA. O token é conferido no servidor a cada recarregar (a página
@@ -7485,8 +7495,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  fetch("/api/bastidores/validar-producao", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({token: token})' +
-    '  }).then(function(r){ return r.json(); }).then(function(d){' +
-    '    if (d.ok) { abrirSessao(token); } else { esquecerSessao(); mostrarPortao(); }' +
+    '  }).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(d){' +
+    '    if (d && d.ok) { abrirSessao(token); return; }' +
+    /* A RETOMADA TAMBÉM DIZ PORQUÊ. Antes esquecia a sessão em silêncio, e o portão voltava sem
+     * uma palavra — o mesmo silêncio que fez a senha certa parecer errada. */
+    '    esquecerSessao(); mostrarPortao();' +
+    '    var g = document.getElementById("res-gate");' +
+    '    if (g && d && d.erro) { g.className = "res erro"; g.textContent = d.erro; }' +
     '  }).catch(function(){ esquecerSessao(); mostrarPortao(); });' +
     '}' +
     'function abrirSessao(token) {' +

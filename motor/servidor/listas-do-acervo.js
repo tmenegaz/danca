@@ -882,6 +882,14 @@ function scriptDoPainel(chave, escola) {
         estado.setAttribute('data-falta', 'sim');
         estado.textContent = 'Este professor desligou-se da escola: ele já não abre atos novos. '
           + 'Os documentos que assinou continuam a valer. Se ele voltou, cadastre-o outra vez.';
+      } else if (CFG.temSenha && SENHA === 'suspensa') {
+        /* A ESCOLA ESTÁ SUSPENSA — e a senha está CERTA. O estado comercial vive no KV da
+         * escola, e o servidor recusa a escrita com 402 enquanto deixa ler tudo o que existe.
+         * O texto é o do servidor, para os dois lados dizerem a mesma coisa. */
+        estado.hidden = false;
+        estado.setAttribute('data-falta', 'sim');
+        estado.textContent = 'O acesso desta escola está suspenso: é possível ler o que já foi '
+          + 'criado, mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
       } else if (CFG.temSenha && SENHA === 'errada') {
         /* O CONTEXTO ESTA INTEIRO E A SENHA NAO CONFERE — e e isso que tem de ser dito. Sem esta
          * linha o botao ficava desabilitado sem motivo aparente, e o professor tentava outra vez
@@ -1176,7 +1184,22 @@ function scriptDoPainel(chave, escola) {
        * escola» são factos diferentes, e o segundo chegou quando uma senha CERTA passou a ser
        * recusada — o desligado já não abre atos novos. Colapsá-los no mesmo estado diria à pessoa
        * que ela digitou mal o que digitou bem. */
-      SENHA = r.ok ? 'ok' : ((r.dados && r.dados.desligado) ? 'desligado' : 'errada');
+      /* QUATRO VEREDICTOS, E NÃO TRÊS (16/11/2026). O quarto é a escola suspensa — e ele nasceu
+       * do mesmo defeito que a porta dos Bastidores tinha: com a escola desabilitada, o servidor
+       * recusa por ESTADO, e a tela dizia «a senha não foi reconhecida» sobre uma senha certa.
+       * A pessoa ia conferir a senha, que estava boa, em vez de falar com quem suspendeu.
+       *
+       * A ordem importa: 'desligado' e 'suspensa' são factos do servidor sobre a PESSOA e a
+       * ESCOLA; 'errada' é o que sobra quando nenhum deles se aplica — a única hipótese em que a
+       * senha é mesmo o problema.
+       *
+       * E ESTE COMENTÁRIO NÃO USA CRASES, porque vive dentro de um template literal: uma crase
+       * aqui fecha a string que contém o script, exactamente como a aspa do seletor de ontem
+       * fechava um seletor. A casa já pagou duas vezes pelo mesmo erro — uma string que atravessa
+       * duas linguagens tem de ser escrita na linguagem em que está. */
+      SENHA = r.ok ? 'ok'
+        : ((r.dados && r.dados.desligado) ? 'desligado'
+          : ((r.dados && r.dados.suspensa) ? 'suspensa' : 'errada'));
       pintar();
     });
   }
@@ -2033,4 +2056,10 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase, li
 module.exports = {
   pagina, FAMILIAS, listaDaPorta, turmaDaAluna, turmasDasAlunas, nomeDoProfessor, dia, acoesDaLinha,
   painelDoAto,
+  /* O SCRIPT DO PAINEL, EXPORTADO PELO MESMO MOTIVO QUE O `painelDoAto` (16/11/2026): ele é puro
+   * — recebe a chave da família e a escola e devolve marcação — e é a única superfície onde o
+   * formulário da porta decide o que mostrar. Devolvê-lo permite COMPILÁ-LO na bancada, sem
+   * navegador, e é isso que impede que um erro de sintaxe dentro dele chegue ao ar sem aviso: foi
+   * o que aconteceu ao botão «Habilitar» do painel, no mesmo dia. */
+  scriptDoPainel,
 };
