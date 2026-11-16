@@ -280,6 +280,82 @@ function indiceDe(documentos) {
     }
   }
 
+  console.log('\nF. Qual commit é o retrato — as três vias do Worker');
+  {
+    /* A FUNÇÃO QUE DECIDE QUAL É O ÚLTIMO ESTADO DA ESCOLA. As três vias existem por razões
+     * diferentes, e a ordem delas é a regra: o elo quando sabe, o Git quando o elo não sabe, e —
+     * no runner — o commit que o Worker mandou. */
+    const raizMod = require(path.join(RAIZ, 'motor/servidor/raiz.js'));
+    const INDICE = JSON.stringify({
+      versao: 4, nomes: ['anamnese-a.json'],
+      resumos: { 'anamnese-a.json': { professor: 'p1', gerado_em: '2026-01-01T10:00', aluna: 'Ana' } },
+    });
+    const para = (texto) => ({
+      ok: true, status: 200,
+      json: async () => ({ content: Buffer.from(texto).toString('base64'), encoding: 'base64' }),
+      text: async () => texto,
+    });
+    const naoAchado = { ok: false, status: 404, json: async () => ({}), text: async () => '' };
+    const elo = (expurgos) => JSON.stringify({ escola: 'teste', professor: { slug: 'p1' }, expurgo: expurgos });
+
+    const comElo = async (url) => {
+      const u = decodeURIComponent(String(url));
+      if (/contents\/escola\/teste\/indice\.json/.test(u)) {
+        return para(elo([{ em: '2026-05-01T00:00:00Z', commit_antes: 'd'.repeat(40) }]));
+      }
+      if (/contents\/escola\/teste\/envelopes\/\.indice\.json/.test(u)) return para(INDICE);
+      return naoAchado;
+    };
+    /* O `fetchImpl` É INJECTÁVEL (16/11/2026), e é o que torna esta prova possível sem rede: as
+     * duas vias de leitura — o elo e o conteúdo do retrato — passam por ele. Uma função que só
+     * corresse com o `fetch` global só se mediria com o repositório verdadeiro à frente. */
+    const r1 = await raizMod.lerRetratoDaEscola({ env: {}, escola: 'teste', token: 't', fetchImpl: comElo });
+    conferir('com o elo a apontar o commit, o retrato usa essa via sem tocar no Git',
+      r1.ok === true && r1.commit === 'd'.repeat(40) && r1.origem === 'elo', r1);
+    conferir('…e conta os documentos e as pessoas do retrato',
+      r1.documentos === 1 && r1.alunos.join() === 'Ana' && r1.professores.join() === 'p1', r1);
+
+    /* SEM `commit_antes` — os expurgos de antes de hoje. A via do Git é a das commits API: a lista
+     * dos que tocaram a pasta, e o pai do primeiro cujo pai ainda tem o índice. */
+    const semElo = async (url) => {
+      const u = decodeURIComponent(String(url));
+      if (/contents\/escola\/teste\/indice\.json/.test(u)) {
+        return para(elo([{ em: '2026-05-01T00:00:00Z' }]));
+      }
+      if (/\/commits\?path=/.test(u)) {
+        return { ok: true, status: 200, json: async () => ([{ sha: 'e'.repeat(40) }]), text: async () => '' };
+      }
+      if (/\/commits\/e{40}$/.test(u)) {
+        return { ok: true, status: 200, json: async () => ({ parents: [{ sha: 'f'.repeat(40) }] }), text: async () => '' };
+      }
+      if (/contents\/escola\/teste\/envelopes\/\.indice\.json/.test(u)) return para(INDICE);
+      return naoAchado;
+    };
+    const guardado = globalThis.fetch;
+    globalThis.fetch = semElo;
+    let r2;
+    try {
+      r2 = await raizMod.lerRetratoDaEscola({ env: {}, escola: 'teste', token: 't' });
+    } finally { globalThis.fetch = guardado; }
+    conferir('sem o elo a saber, a via do Git encontra o pai do expurgo',
+      r2.ok === true && r2.commit === 'f'.repeat(40) && r2.origem === 'git', r2);
+
+    /* E QUANDO NENHUMA DAS DUAS SABE, ele DIZ que não sabe — em vez de inventar um commit. */
+    globalThis.fetch = async (url) => {
+      const u = decodeURIComponent(String(url));
+      if (/contents\/escola\/teste\/indice\.json/.test(u)) {
+        return para(elo([{ em: '2026-05-01T00:00:00Z' }]));
+      }
+      return naoAchado;
+    };
+    let r3;
+    try {
+      r3 = await raizMod.lerRetratoDaEscola({ env: {}, escola: 'teste', token: 't' });
+    } finally { globalThis.fetch = guardado; }
+    conferir('sem retrato nenhum, diz que não sabe — e não inventa um commit',
+      r3.ok === false && Boolean(r3.motivo), r3);
+  }
+
   console.log('');
   console.log(ko === 0
     ? 'TUDO CERTO — ' + ok + ' asserção(ões).'

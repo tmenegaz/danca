@@ -382,10 +382,10 @@ async function escolasDoIndiceComComercial({ token, kv }) {
  * slug com `/` ou `..` leria outro arquivo. A forma vem da mesma regra dos slugs de escola em
  * todo o repositório (`[a-z0-9-]`), e o roteador já a aplica — esta é a segunda barreira.
  */
-async function eloDaEscola({ token, slug }) {
+async function eloDaEscola({ token, slug, fetchImpl }) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(String(slug || ''))) return null;
   const texto = await lerArquivo({
-    token, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + slug + '/indice.json',
+    token, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + slug + '/indice.json', fetchImpl,
   });
   if (!texto) return null;
   try { return JSON.parse(texto); } catch { return null; }
@@ -1920,10 +1920,10 @@ async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
  * NUNCA LANÇA. Um retrato ilegível não pode impedir um convite: devolve `{ ok: false, motivo }`, e
  * quem o lê diz «não há dados a restaurar» em vez de «não foi possível convidar».
  */
-async function lerRetratoDaEscola({ env, escola, token, elo }) {
+async function lerRetratoDaEscola({ env, escola, token, elo, fetchImpl }) {
   const slug = String(escola || '').trim();
   if (!token || !slug) return { ok: false, motivo: 'sem token ou sem escola' };
-  const inventario = elo || await eloDaEscola({ token, slug });
+  const inventario = elo || await eloDaEscola({ token, slug, fetchImpl });
   if (!inventario) return { ok: false, motivo: 'a escola não tem elo' };
 
   let commit = null;
@@ -1935,7 +1935,9 @@ async function lerRetratoDaEscola({ env, escola, token, elo }) {
   }
   if (!commit) {
     try {
-      const doGit = await commitDoRetratoDaEscola({ token, dono: DONO, repo: REPO, ref: REF, slug });
+      const doGit = await commitDoRetratoDaEscola({
+        token, dono: DONO, repo: REPO, ref: REF, slug, fetchImpl,
+      });
       if (doGit && doGit.commit) { commit = doGit.commit; origem = 'git'; }
     } catch (erro) { commit = null; }
   }
@@ -1945,7 +1947,7 @@ async function lerRetratoDaEscola({ env, escola, token, elo }) {
   try {
     const texto = await lerArquivo({
       token, dono: DONO, repo: REPO, ref: commit,
-      caminho: 'escola/' + slug + '/envelopes/.indice.json',
+      caminho: 'escola/' + slug + '/envelopes/.indice.json', fetchImpl,
     });
     indice = texto ? JSON.parse(texto) : null;
   } catch (erro) { indice = null; }
@@ -4024,4 +4026,8 @@ module.exports = {
    * sobre mensagens compostas e endereços — não sobre pixels. Medir isto em produção exigiria
    * apagar uma escola a cada ensaio. */
   avisarDoExpurgo,
+  /* A LEITURA DO RETRATO, exportada pela mesma razão (16/11/2026): o que se quer afirmar é «este
+   * commit é o último estado da escola», e isso é uma pergunta sobre o repositório — não sobre
+   * pixels. Medir isto pela página exigiria um convite a cada ensaio. */
+  lerRetratoDaEscola,
 };
