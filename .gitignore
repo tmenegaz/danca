@@ -258,6 +258,10 @@ experimentos/propostas/*
 # regra «só preenche, não envia» — a prova que separa o atalho de teste de uma escrita no
 # motor. É citada pelo nome no README e no `experimentos/README.md`.
 !experimentos/provar-teste.js
+# O MESMO PROFESSOR EM DUAS ESCOLAS (25/11/2026). Mede que o manifesto BASE do ciclo — que é do
+# ciclo, não da escola — não sai com a escola errada, e que o shard não entra na lista como escola.
+# Sem rede e sem token: árvores fabricadas e as funções do módulo.
+!experimentos/provar-expurgo-do-professor-compartilhado.js
 
 # A PROVA DA GERAÇÃO (19/10/2026): o disparo que manda a variante, o gatilho condicionado às
 # fontes, o registro no KV, as fases do estado e o cartão da porta. É a prova que separa «a tela

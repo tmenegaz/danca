@@ -44,6 +44,10 @@ const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 // ORDEM DA ÁRVORE, e o descompasso deixou o `ciclo-01.conf` de um professor no repositório.
 const { responsavelDoInventario } = require('../nucleo/indices.js');
 const proveniencia = require('../nucleo/proveniencia.js');
+/* QUEM É SHARD — a mesma pergunta do `gerar-indices.js` e do `deploy-escolas.yml` (25/11/2026).
+ * Uma varredura que reconhece escola só por `wrangler.<slug>.jsonc` mostra o shard como escola e
+ * esconde as escolas que vivem dentro dele; a marca está no config, e o dono da leitura é aqui. */
+const { scriptsDeShard } = require('../nucleo/shards.js');
 /* O PARSER DO `.fipp` É O MESMO DO ÍNDICE. A âncora tem uma gramática só, e a auditoria que
  * corre aqui tem de ler exatamente o que o índice lê — senão diria «bem formada» sobre um
  * arquivo que o índice não entende. */
@@ -182,17 +186,44 @@ function escolaDosCaminhos(slug, caminhos) {
   };
 }
 
-/** Todas as escolas numa lista de caminhos — a mesma regra de `listarEscolas`, sem a rede. */
-function escolasDosCaminhos(caminhos) {
+/** Todas as escolas numa lista de caminhos — a mesma regra de `listarEscolas`, sem a rede.
+ *
+ * UMA ESCOLA DE SHARD NÃO TEM CONFIG, E NÃO É POR ISSO QUE DEIXA DE SER ESCOLA (25/11/2026).
+ *
+ * Esta varredura reconhecia uma escola só pelo `wrangler.<slug>.jsonc`. Desde o shard, quem nasce
+ * dentro dele não ganha config nenhuma — e a varredura passou a vê-la como inexistente, ao mesmo
+ * tempo que via o próprio SHARD como escola (ele tem config e não é a raiz), pronto a apagar. As
+ * duas metades do mesmo erro aparecem juntas: a `breu` invisível, o `lastro-teste` oferecido.
+ *
+ * A prova de que uma escola existe passa a ter duas formas, e é a mesma do `indices.js`:
+ *   · tem `wrangler.<slug>.jsonc` — escola com Worker próprio; ou
+ *   · tem elo em `escola/<slug>/indice.json` E tem arquivos na árvore — escola de shard.
+ * O elo SOZINHO não basta, e é de propósito: o expurgo preserva-o como memória, e uma escola
+ * expurgada tem elo e não tem arquivo nenhum. Sem esta segunda condição, a lista ofereceria para
+ * apagar tudo o que já foi apagado.
+ *
+ * `shards` é a lista de scripts que servem N escolas — quem a sabe é `scriptsDeShard` (o marcador
+ * mora no CONFIG, e não na árvore), e quem a lê é `listarEscolas`. Sem a lista, o shard entra como
+ * escola; com ela, sai. Quem chama com caminhos fabricados e sem rede passa-a à mão.
+ */
+function escolasDosCaminhos(caminhos, { shards = [] } = {}) {
+  const fora = new Set(shards);
   const slugs = [];
-  for (const caminho of caminhos) {
-    const m = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
-    if (!m) continue;
-    const slug = m[1];
-    if (NAO_ESCOLAS.has(slug) || slugs.includes(slug)) continue;
+  const juntar = (slug) => {
+    if (!slug || NAO_ESCOLAS.has(slug) || fora.has(slug) || slugs.includes(slug)) return;
     slugs.push(slug);
+  };
+  for (const caminho of caminhos || []) {
+    const comConfig = /^wrangler\.([a-z0-9-]+)\.jsonc$/.exec(caminho);
+    if (comConfig) { juntar(comConfig[1]); continue; }
+    const comElo = /^escola\/([a-z0-9-]+)\/indice\.json$/.exec(caminho);
+    if (comElo) juntar(comElo[1]);
   }
-  return slugs.sort().map((slug) => escolaDosCaminhos(slug, caminhos));
+  return slugs.sort()
+    .map((slug) => escolaDosCaminhos(slug, caminhos))
+    // A ESCOLA SEM ARQUIVO NENHUM É MEMÓRIA, NÃO ESCOLA. É o elo que sobrevive ao expurgo; o que
+    // a torna viva é ter o que mostrar — o config, o pacote, o acervo, uma linha de base.
+    .filter((e) => e.arquivos.length > 0);
 }
 
 /**
@@ -349,6 +380,69 @@ function manifestoBaseDoCiclo(caminhos, professor, ciclo) {
 }
 
 /**
+ * O QUE RESTOU DO CICLO DESTE PROFESSOR — e que não é desta escola (25/11/2026).
+ *
+ * O DEFEITO QUE ISTO CORRIGE, medido. A pesquisadora expurgou a `batata` pela página, com
+ * sucesso, e o expurgo da `breu` passou a ser recusado: «`ciclo-01-breu.fipp` cita
+ * `professores/dedao-aberto/ciclos/ciclo-01.conf`, que já não existe na árvore — a cadeia está
+ * partida». As duas escolas eram do MESMO professor no MESMO ciclo, e o manifesto BASE é do
+ * ciclo, não da escola: o expurgo da `batata` levou-o, e com ele a base do `ciclo-01` da `breu`.
+ *
+ * A CAUSA. A pergunta «o professor ainda tem outra escola neste ciclo?» era respondida por
+ * `escolasDosCaminhos`, que reconhece uma escola pelo `wrangler.<slug>.jsonc`. Uma escola que
+ * nasce DENTRO DE UM SHARD não tem config — é exactamente o que a impede de ganhar um —, e
+ * portanto não era vista: `outras` ficou vazio e o manifesto partilhado foi apagado junto com a
+ * escola que saía. A `breu` estava viva e continuou a existir, só que sem a base da própria
+ * cadeia. O mesmo vale para `classificarPreservados`, que passou a chamar de «do professor» o que
+ * era de outra escola.
+ *
+ * A REGRA PASSA A SER A DO `escola/expurgar.js` LOCAL, que já estava certa: pergunta-se pelo que
+ * RESTOU NA PASTA do ciclo, e não por quem tem Worker. Aqui a pasta é a árvore do repositório, e
+ * a leitura é a mesma — os arquivos daquele ciclo do professor, tirando os schemas (o molde) e o
+ * próprio manifesto base. Quem chama tira daí os arquivos DESTA escola; o que sobrar é de outra,
+ * e o manifesto fica.
+ *
+ * A DIREÇÃO DO ERRO É A QUE SE QUER. Sobrando dúvida, o manifesto NÃO se apaga: um manifesto a
+ * mais é uma escola nova a pedir outro nome de ciclo, e diz-se; um manifesto a menos é uma cadeia
+ * partida em todas as outras escolas do professor, e nada o diz.
+ */
+function restosDoCiclo(caminhos, professor, ciclo) {
+  if (!professor || !ciclo) return [];
+  const nn = String(ciclo).padStart(2, '0');
+  const pasta = 'professores/' + professor + '/ciclos/';
+  const doCiclo = new RegExp('^ciclo-' + nn + '(?:[-/]|$)');
+  const schema = new RegExp('^ciclo-' + nn + '(?:-[a-z0-9]+)*-schema\\.json$');
+  const base = 'ciclo-' + nn + '.conf';
+  const restos = [];
+  for (const caminho of caminhos) {
+    if (!caminho.startsWith(pasta)) continue;
+    const nome = caminho.slice(pasta.length).replace(/^historico\//, '');
+    if (!doCiclo.test(nome)) continue;
+    if (nome === base || schema.test(nome)) continue;
+    restos.push(caminho);
+  }
+  return restos.sort();
+}
+
+/**
+ * O MANIFESTO BASE SAI COM ESTA ESCOLA? — a decisão, num lugar só (25/11/2026).
+ *
+ * Devolve `{ manifesto, deOutraEscola }`. `manifesto` é a lista do que se apaga, e ela só tem o
+ * `ciclo-NN.conf` quando NADA do ciclo daquele professor sobra depois de tirada esta escola.
+ * `deOutraEscola` é o que fez a resposta ser «fica» — e é o que se DIZ ao relatar, para a recusa
+ * não parecer um capricho.
+ *
+ * Separada da rota para ser medível: a prova do expurgo não pode escrever no repositório, e uma
+ * regra que só se testa em produção é uma regra que se descobre em produção.
+ */
+function manifestoQueSeApaga(caminhos, { slug, professor, ciclo }) {
+  const deOutraEscola = restosDoCiclo(caminhos, professor, ciclo)
+    .filter((c) => !ehArquivoDaEscola(c, slug, ciclo));
+  if (deOutraEscola.length) return { manifesto: [], deOutraEscola };
+  return { manifesto: manifestoBaseDoCiclo(caminhos, professor, ciclo), deOutraEscola: [] };
+}
+
+/**
  * O PERFIL DO PROFESSOR — E O EXPURGO NÃO LHE TOCA (03/11/2026).
  *
  * A DECISÃO DELA, e não é uma preferência de arrumação: «o fim de um vínculo contratual ou o
@@ -425,13 +519,23 @@ const EH_SCHEMA_DO_CICLO = /^professores\/[^/]+\/ciclos\/ciclo-[0-9]{2}(-[a-z0-9
  */
 function classificarPreservados(caminhos, professor, slug) {
   const lista = materialPreservado(caminhos, professor);
-  const outras = escolasDosCaminhos(caminhos || []).filter((e) => e.slug !== slug);
+  /* A OUTRA ESCOLA PASSA A SER RECONHECIDA PELO PRÓPRIO CAMINHO (25/11/2026), e não por uma
+   * lista de escolas com Worker. A lista (`escolasDosCaminhos`) só via `wrangler.<slug>.jsonc`,
+   * e uma escola de shard não tem config: os arquivos da `breu`, ao expurgar a `batata`, caíam em
+   * `doProfessor` — e o relatório dizia «caderno, relatório de campo…» sobre o pacote de outra
+   * escola. É a mesma cegueira que apagou o manifesto base (`restosDoCiclo`), e a correção é a
+   * mesma: perguntar ao caminho. */
+  const deVarianteDoCiclo = /^professores\/[^/]+\/ciclos\/(?:historico\/)?ciclo-([0-9]{2})-.+/;
   const modelo = [];
   const doProfessor = [];
   const deOutrasEscolas = [];
   for (const c of lista) {
     if (EH_SCHEMA_DO_CICLO.test(c)) { modelo.push(c); continue; }
-    if (slug && outras.some((e) => ehArquivoDaEscola(c, e.slug, e.ciclo))) { deOutrasEscolas.push(c); continue; }
+    const daVariante = deVarianteDoCiclo.exec(c);
+    if (slug && daVariante && !ehArquivoDaEscola(c, slug, daVariante[1])) {
+      deOutrasEscolas.push(c);
+      continue;
+    }
     // Um caminho da PRÓPRIA escola que não entrou em `apagados` não é material preservado: é
     // resto de um expurgo que falhou. Fica de fora das três listas para não inflar nenhuma.
     if (slug && ehArquivoDaEscola(c, slug)) continue;
@@ -441,7 +545,7 @@ function classificarPreservados(caminhos, professor, slug) {
     modelo,
     doProfessor,
     deOutrasEscolas,
-    outrasEscolas: outras.map((e) => e.slug),
+    outrasEscolas: escolasDosCaminhos(caminhos || []).filter((e) => e.slug !== slug).map((e) => e.slug),
   };
 }
 
@@ -458,7 +562,17 @@ async function arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl }) {
 /** As escolas que o repositório declara, em ordem de slug. A raiz sai. */
 async function listarEscolas({ token, dono, repo, ref, fetchImpl }) {
   const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
-  return escolasDosCaminhos(caminhos);
+  /* QUEM É SHARD SAI DA LISTA, E A PERGUNTA É A DO `shards.js` (25/11/2026). O marcador mora no
+   * CONFIG (`PACOTE_PARTILHADO`), e a árvore só traz caminhos — é uma leitura a mais, e só para
+   * quem não tem elo (o shard e a raiz), que é o que o `configsSemElo` já recorta. Sem isto, esta
+   * varredura mostrava o `lastro-teste` como escola pronta a apagar enquanto não mostrava as
+   * escolas que vivem dentro dele. */
+  const shards = await scriptsDeShard({
+    caminhos,
+    lerTexto: (caminho) => lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }),
+    raiz: [...NAO_ESCOLAS][0] || 'danca',
+  });
+  return escolasDosCaminhos(caminhos, { shards });
 }
 
 /**
@@ -779,11 +893,16 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
   // ciclo: com outra viva, o manifesto é dela também. OS SCHEMAS NÃO SAEM — são o modelo de
   // que nasce toda escola nova (ver `SO_MANIFESTO_BASE`). `apagados` é o que o commit apaga;
   // os demais campos são relato.
+  //
+  // A PERGUNTA É FEITA À ÁRVORE, E NÃO A QUEM TEM WORKER (25/11/2026) — ver `restosDoCiclo`.
+  // Perguntava-se por `escolasDosCaminhos`, que só vê `wrangler.<slug>.jsonc`; uma escola de
+  // SHARD não tem config, e o expurgo da `batata` apagou o manifesto base que a `breu` — viva,
+  // do mesmo professor e do mesmo ciclo — tinha a cadeia a citar. A `escolasDosCaminhos` fica
+  // para o relato (`outrasEscolas`), que é o que ela sabe responder.
   const outras = escolasDosCaminhos(caminhos)
     .filter((e) => e.slug !== slug && e.professor === professor && e.ciclo === ciclo);
-  const manifesto = outras.length === 0
-    ? manifestoBaseDoCiclo(caminhos, professor, ciclo)
-    : [];
+  const decisaoDoManifesto = manifestoQueSeApaga(caminhos, { slug, professor, ciclo });
+  const manifesto = decisaoDoManifesto.manifesto;
   const apagados = escola.arquivos.concat(manifesto);
   // A GUARDA DO PERFIL, aplicada à lista que vai ser apagada — ver `semPerfisNaLista`.
   semPerfisNaLista(apagados);
@@ -909,6 +1028,10 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
     totalApagado: apagados.length,
     manifestoBaseDoCiclo: manifesto,
     professorTemOutraEscolaNoCiclo: outras.map((e) => e.slug),
+    /* O QUE FEZ O MANIFESTO BASE FICAR (25/11/2026). Sem esta lista, «o manifesto não saiu» é uma
+     * frase sem sujeito: não se sabe se foi por outra escola viva, por um resto, ou por engano.
+     * Ela vem da árvore, e não da lista de escolas com Worker — ver `restosDoCiclo`. */
+    manifestoFicaPor: decisaoDoManifesto.deOutraEscola,
     preservados,
     preservadosPorTipo,
     // Os perfis que o expurgo deixou intactos — a lista que a decisão de 03/11/2026 obriga a
@@ -1617,6 +1740,8 @@ module.exports = {
   semPerfisNaLista,
   ehAnamneseDaEscola,
   manifestoBaseDoCiclo,
+  restosDoCiclo,
+  manifestoQueSeApaga,
   materialPreservado,
   classificarPreservados,
   comElo,

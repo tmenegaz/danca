@@ -403,6 +403,24 @@ BASE_NOVA=1
 if [ -e "$CONF_BASE" ]; then
   BASE_NOVA=0
   echo "  base: reusando $CONF_BASE (é do ciclo $CICLO do professor $PROFESSOR, não desta escola)"
+else
+  # A BASE QUE FALTA COM OUTRA ESCOLA VIVA NO MESMO CICLO (25/11/2026).
+  #
+  # A base é do PAR (professor, ciclo) e é partilhada por todas as escolas desse professor nesse
+  # ciclo — e o `.fipp` de cada uma cita-a. Se ela não existe e outra variante existe, escrever
+  # agora uma base nova é escrever uma base com o NOME desta escola no lugar da que as outras
+  # citam: as âncoras delas deixam de conferir, e o sintoma aparece longe da causa (como apareceu,
+  # ao expurgar a `batata`: a `breu` passou a ser recusada com «a cadeia está partida»).
+  #
+  # Não se ABORTA: uma base perdida não pode impedir criar. Diz-se, com o comando que a recupera.
+  outras_base="$(ls "$CICLOS_DIR" 2>/dev/null | grep -E "^ciclo-${CICLO}-[a-z0-9-]+\.conf$" || true)"
+  if [ -n "$outras_base" ]; then
+    echo "aviso: a base $CONF_BASE não existe, mas o ciclo $CICLO deste professor tem outra(s)" >&2
+    echo "       escola(s): $(echo "$outras_base" | tr '\n' ' ')" >&2
+    echo "       A base é do CICLO e as âncoras .fipp dessas escolas citam-na. Recriá-la agora" >&2
+    echo "       escreve uma base nova em vez da que elas citam. Se ela desapareceu por engano," >&2
+    echo "       restaure-a primeiro:  git log --oneline -- $CONF_BASE" >&2
+  fi
 fi
 
 echo "criando escola: professor=$PROFESSOR · escola=$ESCOLA · ciclo=$CICLO · worker=$WORKER"
