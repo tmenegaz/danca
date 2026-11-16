@@ -8230,7 +8230,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * formulário — e via os campos voltarem a encher-se sozinhos. Medido a 16/11/2026 com o
      * cancelamento imediato. A guarda é o estado que a própria tela declara: se o modo já não é
      * «editar», ou se o alvo mudou, a resposta é de um gesto que já não está à vista. */
-    '  fetch("/api/bastidores/professor?slug=" + encodeURIComponent(slug))' +
+    '  fetch("/api/bastidores/ficha-do-professor", {' +
+    '    method: "POST", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({ professor: slug, token: TOKEN })' +
+    '  })' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      if (modoDoProfessor() !== "editar" || valorDoCampo("prof-alvo") !== slug) return;' +
@@ -15243,8 +15246,22 @@ async function fetch(request, env, extras) {
    * criado com a escola, e os dados dele ficaram no cadastro dela (`bastidores/<escola>/cadastro`
    * → `cpf`, `professorEmail`, `professorTelefone`); sem esta queda, a ficha do principal aparecia
    * vazia exactamente na escola criada pela página — que é o caso dela. */
-  if (path === '/api/bastidores/professor' && request.method === 'GET') {
-    const alvo = String(url.searchParams.get('slug') || '').trim();
+  if (path === '/api/bastidores/ficha-do-professor' && request.method === 'POST') {
+    /* POST, E NÃO GET, PORQUE O QUE ELA DEVOLVE É DADO PESSOAL (16/11/2026).
+     *
+     * A rota nasceu como `GET /api/bastidores/professor?slug=…` e teria sido a primeira rota
+     * desta casa a servir CPF, telefone e e-mail por um `GET` — um endereço que fica no histórico
+     * do navegador, nos registos do intermediário e em qualquer `Referer`. As outras rotas de
+     * leitura da Produção servem nomes e apelidos; esta serve o documento de uma pessoa.
+     *
+     * E EXIGE A CREDENCIAL DA DIREÇÃO, como as escritas: a página já a tem (o `TOKEN` que a porta
+     * emitiu), e quem lê a ficha está no gabinete. */
+    let corpoFicha = {};
+    try { corpoFicha = await request.json(); } catch { corpoFicha = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpoFicha))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const alvo = String(corpoFicha.professor || corpoFicha.slug || '').trim();
     if (!alvo) return json(400, { ok: false, erro: 'informe o professor' });
     const donoSlug = String(slugDoDono(env) || '').trim();
     const ehDono = alvo === donoSlug;

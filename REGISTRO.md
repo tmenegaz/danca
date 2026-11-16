@@ -47182,16 +47182,24 @@ três dias: uma string que atravessa duas linguagens tem de ser escrita na lingu
   «Cancelar» enchia os campos outra vez quando a leitura chegava — medido, e corrigido com a guarda
   do modo e do alvo.
 
+**A FICHA SAIU DO `GET` — e a razão não é estilo.** Ela nasceu como
+`GET /api/bastidores/professor?slug=…`, e teria sido a primeira rota desta casa a servir CPF,
+telefone e e-mail por um `GET`: um endereço que fica no histórico do navegador, nos registos do
+intermediário e em qualquer `Referer`. As outras leituras da Produção servem nomes e apelidos; esta
+serve o documento de uma pessoa. Passou a `POST /api/bastidores/ficha-do-professor`, **com a
+credencial da direção**, que a página já tem (o `TOKEN` que a porta emitiu). Medido: sem credencial,
+a ficha não sai.
+
 **Onde entrou.** `motor/servidor/bastidores.js` (`ABAS_DO_PROFESSOR_HTML`, o motor de abas,
-`editarProfessorDaEscola`, `GET /api/bastidores/professor`, o modo `editar` no `POST`, o «Editar» em
-todas as linhas, `preencherFichaDoProfessor`) · `motor/servidor/unicidade.js` (novo) ·
+`editarProfessorDaEscola`, `POST /api/bastidores/ficha-do-professor`, o modo `editar` no `POST` do
+professor, o «Editar» em todas as linhas, `preencherFichaDoProfessor`) · `motor/servidor/unicidade.js` (novo) ·
 `motor/servidor/raiz.js` (a varredura sai, o `contato` grava-se com qualquer dado) ·
 `experimentos/provar-cadastro-do-professor.js` (novo) ·
 `experimentos/provar-editar-professor-principal.js` (a regra nova) ·
 `experimentos/provar-abas-da-audicao.js` (as duas asserções de CSS passam a medir a regra, e não a
 lista de seletores).
 
-**Com o quê.** `provar-cadastro-do-professor` **48/48** — e o controlo negativo, com o `\s` de volta
+**Com o quê.** `provar-cadastro-do-professor` **49/49** — e o controlo negativo, com o `\s` de volta
 à string de origem, reproduz o relato dela ao pé da letra: `{"nome":"Bri","sobrenome":"e Volet"}`.
 Mais `provar-editar-professor-principal` 32/32 (num Chrome de verdade: nenhum diálogo nativo, o
 clique, a recarga) · `provar-abas-da-audicao` 99/99 · `provar-producao` 164/166 (as duas falhas são

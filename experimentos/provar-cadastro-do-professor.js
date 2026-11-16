@@ -285,7 +285,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     dom.window.close();
   }
 
-  console.log('\nD. O servidor: a ficha (GET) e a gravação (POST)');
+  console.log('\nD. O servidor: a ficha (POST, com credencial) e a gravação');
   const fetchDeVerdade = globalThis.fetch;
   {
     const kv = kvFalso({
@@ -311,19 +311,24 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
      * mexe em quem assina documentos. A bancada estaria a medir a própria falta de rede. */
     globalThis.fetch = gh.fetch;
 
-    const fichaDono = await pedir(env, '/api/bastidores/professor?slug=brise-volet');
+    const fichaDono = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: 'brise-volet' }));
     conferir('a ficha do principal responde 200', fichaDono.status === 200, fichaDono.status);
     conferir('…e traz o CPF do cadastro da escola quando ele não tem contato próprio',
       fichaDono.dados.cpf === '021.500.629-17', fichaDono.dados);
     conferir('…e a habilidade, do perfil no repositório',
       fichaDono.dados.modalidade === 'bale-classico', fichaDono.dados.modalidade);
 
-    const fichaAna = await pedir(env, '/api/bastidores/professor?slug=ana-diag');
+    const fichaAna = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: 'ana-diag' }));
     conferir('a ficha de um professor cadastrado traz o contato dele',
       fichaAna.dados.cpf === '111.444.777-35' && fichaAna.dados.email === 'ana@exemplo.com', fichaAna.dados);
 
-    const inexistente = await pedir(env, '/api/bastidores/professor?slug=ninguem');
+    const inexistente = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: 'ninguem' }));
     conferir('professor que não é desta escola responde 404', inexistente.status === 404, inexistente.status);
+
+    /* A FICHA É DADO PESSOAL: sem a credencial da direção, não sai. */
+    const semCredencial = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', { professor: 'brise-volet' });
+    conferir('sem a credencial da direção, a ficha (com CPF e telefone) NÃO sai',
+      semCredencial.status === 401, semCredencial.status);
 
     /* — A GRAVAÇÃO, com o nome LIVRE: muda tudo. */
     const r1 = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({

@@ -182,14 +182,21 @@ async function subirBancada({ respostaDoDono, curadorias = [] }) {
       res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
-    /* A FICHA (16/11/2026) — o «Editar» lê-a para preencher CPF, telefone, e-mail e habilidade. */
-    if (u.pathname === '/api/bastidores/professor' && req.method === 'GET') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({
-        ok: true, slug: u.searchParams.get('slug'), nome: 'Ana Maria Silva', dono: true,
-        cpf: '111.444.777-35', telefone: '(51) 99999-0000', email: 'ana@exemplo.com',
-        modalidade: 'bale-classico',
-      }));
+    /* A FICHA (16/11/2026) — o «Editar» lê-a para preencher CPF, telefone, e-mail e habilidade.
+     * É `POST` porque devolve dado pessoal, e é a bancada que o serve aqui. */
+    if (u.pathname === '/api/bastidores/ficha-do-professor' && req.method === 'POST') {
+      let corpoFicha = '';
+      req.on('data', (c) => { corpoFicha += c; });
+      req.on('end', () => {
+        pedidos.push('CORPO /api/bastidores/ficha-do-professor ' + corpoFicha);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ok: true, slug: 'ana-silva', nome: 'Ana Maria Silva', dono: true,
+          cpf: '111.444.777-35', telefone: '(51) 99999-0000', email: 'ana@exemplo.com',
+          modalidade: 'bale-classico',
+        }));
+      });
+      return;
     }
     /* A GRAVAÇÃO DA FICHA — o `POST` que substituiu o `/dono` no modo de edição. */
     if (u.pathname === '/api/bastidores/professor' && req.method === 'POST') {
