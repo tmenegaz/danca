@@ -427,6 +427,43 @@ const scaffolder = (() => { const a = path.join(raiz, 'tools/criar-escola.sh'); 
 conferir('…e o scaffolder já sabia recebê-la (a criação não muda de forma)',
   /--modalidade\)/.test(scaffolder), null);
 
+/* ===================================================== H. a página pública abre SEM lançar */
+
+/* A LIÇÃO DE 25/11/2026, e ela custou uma tarde: o servidor retira a caixa do expurgo do HTML
+ * público, mas o SCRIPT é o mesmo das duas páginas — e `document.getElementById("btn-apagar")`
+ * sobre `null` lança. Um throw no TOPO do script mata tudo o que vem depois dele, e o que vinha
+ * depois era invisível: nenhum botão desaparecia, nenhuma cor mudava, a página só ficava calada.
+ *
+ * A asserção «o HTML não tem `data-dono`» passava — o HTML estava certo. O que não se media era o
+ * que a página FAZ ao abrir. Uma prova que lê o HTML sem executá-lo não vê este defeito. */
+console.log('\nH. A página pública abre sem lançar');
+{
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const servidor = carregar('motor/servidor/raiz.js');
+  const remover = servidor && servidor.removerDoPainel;
+  conferir('o servidor sabe retirar as peças do painel do que serve',
+    typeof remover === 'function', null);
+  const publico = typeof remover === 'function' ? remover(htmlDaPagina) : htmlDaPagina;
+  conferir('…e o HTML público fica sem nenhum ELEMENTO com `data-dono`',
+    !/<[a-zA-Z][^>]*\sdata-dono\b[^>]*>/.test(publico), null);
+
+  const erros = [];
+  const paciente = new VirtualConsole();
+  paciente.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+  paciente.on('error', (m) => erros.push(String(m)));
+  // eslint-disable-next-line no-new
+  new JSDOM(publico, {
+    runScripts: 'dangerously',
+    url: 'https://lastro.padd.com.br/',
+    virtualConsole: paciente,
+    beforeParse(win) {
+      win.fetch = () => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, planos: [], habilidades: [] }) });
+    },
+  });
+  conferir('a página pública NÃO lança ao abrir — um throw no topo mataria o resto do script',
+    erros.length === 0, erros);
+}
+
 /* ==================================================================== o veredicto */
 
 console.log('');

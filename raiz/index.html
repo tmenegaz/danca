@@ -1589,7 +1589,21 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             return b;
           }
 
-          campoConf.addEventListener("input", function () {
+          // ---- O bloco do expurgo pode NÃO existir -------------------------------
+          // Na página pública (`lastro.padd.com.br`) o servidor retira a caixa do expurgo
+          // antes de servir — `removerDoPainel`, em `motor/servidor/raiz.js`. O SCRIPT é o
+          // mesmo das duas páginas, e por isso as ligações abaixo correm de qualquer forma:
+          // `document.getElementById("btn-apagar").addEventListener(...)` sobre `null` lança
+          // um TypeError, e um throw no TOPO do script mata tudo o que vem depois dele.
+          //
+          // A pergunta certa é «existe?», e não «está aqui?»: o elemento não está, e a
+          // ligação não pode ser feita. Cada ligação pergunta antes de ligar.
+          function aoClicar(id, fn) {
+            var alvo = document.getElementById(id);
+            if (alvo) alvo.addEventListener("click", fn);
+          }
+
+          if (campoConf) campoConf.addEventListener("input", function () {
             btnConfirmar.disabled = !escolaEscolhida || campoConf.value.trim() !== escolaEscolhida.slug;
           });
 
@@ -1601,13 +1615,13 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           }
           function fecharApagar() { modalApagar.hidden = true; }
 
-          document.getElementById("btn-apagar").addEventListener("click", abrirApagar);
-          document.getElementById("btn-fechar-apagar").addEventListener("click", fecharApagar);
-          document.getElementById("btn-cancelar-apagar").addEventListener("click", fecharApagar);
-          modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
-          document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalApagar.hidden) fecharApagar(); });
+          aoClicar("btn-apagar", abrirApagar);
+          aoClicar("btn-fechar-apagar", fecharApagar);
+          aoClicar("btn-cancelar-apagar", fecharApagar);
+          if (modalApagar) modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
+          if (modalApagar) document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalApagar.hidden) fecharApagar(); });
 
-          btnConfirmar.addEventListener("click", function () {
+          if (btnConfirmar) btnConfirmar.addEventListener("click", function () {
             if (!escolaEscolhida) return;
             var slug = escolaEscolhida.slug;
             btnConfirmar.disabled = true;
