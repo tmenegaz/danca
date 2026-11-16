@@ -3,17 +3,17 @@
   "worker": "lastro-teste",
   "criado_em": "2026-10-19T16:48:13.723848+00:00",
   "professor": {
-    "slug": "rimel-preto",
-    "nome": "Rimel Preto"
+    "slug": "dedao-aberto",
+    "nome": "Dedão Aberto"
   },
-  "responsavel": "Rimel Preto",
+  "responsavel": "Dedão Aberto",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -1417,6 +1417,20 @@
       "professor_anterior": {
         "slug": "sapatilha-de-ponta",
         "nome": "Sapatilha de Ponta"
+      }
+    },
+    {
+      "em": "2026-11-16T00:03:52.732057+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "dedao-aberto",
+        "nome": "Dedão Aberto"
+      },
+      "responsavel": "Dedão Aberto",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "rimel-preto",
+        "nome": "Rimel Preto"
       }
     }
   ],

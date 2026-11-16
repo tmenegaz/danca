@@ -1,0 +1,96 @@
+{
+  "_nota": "MAPA DE RELAÇÕES materializado (ARQUITETURA-GERAL.md §7.4). Derivado, nunca fonte. Cada aresta nomeia em `chave` o campo que a produziu. Guarda chave, tipo, data e vínculo — nunca conteúdo: os rótulos vêm do contexto, e nas anamneses as respostas vão cifradas.",
+  "_ponte": {
+    "_nota": "Os dois vocabulários do mesmo aspecto. `campo` é o id do universo da anamnese; `aspecto` é a chave calculada pelo lançamento (Vistas.helpers.chaveDoItem). Ligam-se PELO NOME — é a correspondência, não uma igualdade de identificadores, e é a costura mais frágil do encadeamento.",
+    "pares": [],
+    "semCorrespondencia": []
+  },
+  "arestas": [
+    {
+      "chave": "ancora.ciclo_id",
+      "de": "ancora:dedao-aberto/01/batata",
+      "para": "ciclo:dedao-aberto/01/batata",
+      "tipo": "ancora"
+    },
+    {
+      "chave": "escola",
+      "de": "ciclo:dedao-aberto/01/batata",
+      "para": "escola:batata",
+      "tipo": "acontece_em"
+    },
+    {
+      "chave": "ciclo.professor",
+      "de": "ciclo:dedao-aberto/01/batata",
+      "para": "professor:dedao-aberto",
+      "tipo": "dado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:dedao-aberto/01/batata/plano",
+      "para": "ciclo:dedao-aberto/01/batata",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:dedao-aberto/01/batata/po",
+      "para": "ciclo:dedao-aberto/01/batata",
+      "tipo": "pertence_a"
+    }
+  ],
+  "ciclo": "dedao-aberto/01/batata",
+  "contagens": {
+    "arestas": 5,
+    "marcas": 0,
+    "nos": 6,
+    "porTipo": {
+      "ancora": 1,
+      "ciclo": 1,
+      "documento": 2,
+      "escola": 1,
+      "professor": 1
+    }
+  },
+  "escola": "batata",
+  "escopo": "ciclo",
+  "lacunas": [
+    "a linha de base da turma: não há acto gravado em `escola/batata/linhas-de-base/` para «?» — sem ele, o recorte e as leituras das anamneses não têm origem",
+    "a turma: o plano de ensino não declara `contexto-turma` — sem ela, as arestas do elenco e do recorte não têm origem",
+    "os aspectos: o PO não está no pacote (`po-01.json`) — sem ele não há vocabulário de observação para ligar ao recorte"
+  ],
+  "nos": [
+    {
+      "id": "ancora:dedao-aberto/01/batata",
+      "rotulo": "ciclo-01-batata.fipp",
+      "tipo": "ancora"
+    },
+    {
+      "id": "ciclo:dedao-aberto/01/batata",
+      "rotulo": "Ciclo 01 — batata",
+      "tipo": "ciclo"
+    },
+    {
+      "id": "documento:dedao-aberto/01/batata/plano",
+      "rotulo": "plano",
+      "tipo": "documento",
+      "tipoDocumento": "plano"
+    },
+    {
+      "id": "documento:dedao-aberto/01/batata/po",
+      "rotulo": "po",
+      "tipo": "documento",
+      "tipoDocumento": "po"
+    },
+    {
+      "id": "escola:batata",
+      "rotulo": "batata",
+      "tipo": "escola"
+    },
+    {
+      "id": "professor:dedao-aberto",
+      "rotulo": "Dedão Aberto",
+      "tipo": "professor"
+    }
+  ],
+  "turma": null,
+  "versao": 1
+}
