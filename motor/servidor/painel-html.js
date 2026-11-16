@@ -330,8 +330,22 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
           ? '<br><span class="selo discreto">em carência até ' + esc(quando(carencia)) + '</span>'
           : '<br><span class="selo ok">pode apagar</span>');
       celulas.push('<td>' + esc(quando(desabilitadaEm)) + carenciaTexto + '</td>');
+      /* «DESABILITAR» DEIXOU DE SER SÓ DA ESCOLA ATIVA (16/11/2026).
+       *
+       * Era `=== 'ativa'`, e fazia sentido enquanto o único uso era «parou de pagar». Com a regra
+       * do expurgo — só se apaga a escola suspensa com a carência vencida —, uma escola a
+       * AGUARDAR CONCILIAÇÃO ficou sem caminho nenhum para ser apagada: nunca pagou, não pode ser
+       * suspensa, e o expurgo não a aceita (nem deve: a conciliação é de até 24 horas, e apagar
+       * uma escola que está prestes a ser paga seria o pior desfecho possível de um clique).
+       *
+       * O caminho passa a ser o mesmo de todas: desabilitar (é a decisão dela, e é a mesma palavra
+       * que ela usa), cumprir a carência, e então apagar. E a HISTÓRIA não se perde: o elo do
+       * estado guarda «de aguardando para suspensa», com data.
+       *
+       * O botão que não se aplica continua a ficar DESLIGADO em vez de desaparecer: uma linha que
+       * muda de forma conforme o estado obriga a procurar onde se clica. */
       const podeHabilitar = estadoComercial !== 'ativa';
-      const podeDesabilitar = estadoComercial === 'ativa';
+      const podeDesabilitar = estadoComercial !== 'suspensa';
       celulas.push('<td class="acoes-da-lista">' +
         '<button class="acao pequena" type="button" data-comercial="ativa" data-escola="' +
         esc(e.slug) + '"' + (podeHabilitar ? '' : ' disabled') + '>Habilitar</button>' +

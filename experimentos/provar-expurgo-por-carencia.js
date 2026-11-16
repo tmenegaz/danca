@@ -135,11 +135,11 @@ function bancada({ proveniencia = () => ({ ok: true, problemas: [], ancoras: [],
     conferir('a viva não é tocada — nem aparece entre as poupadas',
       !r.puladas.some((p) => p.slug === 'viva'), r.puladas.map((p) => p.slug));
     conferir('a que ainda está em carência é poupada, e o relatório diz quanto falta',
-      r.puladas.some((p) => p.slug === 'recente' && /carência ainda a correr/.test(p.motivo)
+      r.puladas.some((p) => p.slug === 'recente' && /carência/i.test(p.motivo)
         && p.restanteMs > 2 * MINUTO && p.restanteMs <= 3 * MINUTO),
       r.puladas.find((p) => p.slug === 'recente'));
     conferir('a suspensa sem data é poupada com o motivo dito',
-      r.puladas.some((p) => p.slug === 'sem-data' && /desabilitadaEm/.test(p.motivo)),
+      r.puladas.some((p) => p.slug === 'sem-data' && /data de desabilita/i.test(p.motivo)),
       r.puladas.find((p) => p.slug === 'sem-data'));
     conferir('a que aguarda pagamento não entra em conta nenhuma',
       !r.puladas.some((p) => p.slug === 'esperando'), r.puladas.map((p) => p.slug));
@@ -237,7 +237,7 @@ function bancada({ proveniencia = () => ({ ok: true, problemas: [], ancoras: [],
     const r = await raiz.expurgar(envCom(kvAntigo), b.deps);
     conferir('suspensa ANTES de o regime existir não é apagada', r.expurgadas.length === 0, r.expurgadas);
     conferir('…e o motivo diz que é preciso desabilitar outra vez',
-      r.puladas.some((p) => p.slug === 'ja-estava' && /antes do regime/.test(p.motivo)), r.puladas);
+      r.puladas.some((p) => p.slug === 'ja-estava' && /antes de este prazo existir/.test(p.motivo)), r.puladas);
     conferir('…e o regime ficou gravado, para as passagens seguintes',
       Boolean(kvAntigo.bruto.get('expurgo/regime-de-teste-desde')), kvAntigo.bruto.get('expurgo/regime-de-teste-desde'));
 

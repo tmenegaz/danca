@@ -47216,3 +47216,62 @@ anteriores a esta mudança: a tradição na curadoria) · `provar-financeiro` 55
 antigo nos documentos já gerados — é a razão de o nome ser preso, e não um defeito novo. A
 HABILIDADE do `<select>` grava uma só modalidade (a principal), tal como a criação da escola; a
 lista completa continua na aba das Habilitações.
+
+## 16/11/2026 — a carência não se burla: uma regra, três portas
+
+**O que aconteceu.** «Eu coloquei a escola em carência e aí ela ainda não tinha vencido o prazo de 5
+minutos da escola Breu. E aí eu fui apagar e eu consegui expurgar a escola. Não é para permitir
+expurgar a escola. […] Não pode existir uma regra e uma possibilidade de burlar a regra. […]
+A escola que tá em carência não deve nem aparecer na lista para expurgar e a escola que tá
+habilitada também não pode nem aparecer na lista para expurgar.»
+
+**A regra existia, e num caminho só.** A varredura agendada cumpria a carência desde a véspera; a
+rota manual (`/api/apagar-escola`) **não perguntava nada** — bastava escrever o slug na confirmação.
+E o comentário dela dizia, com todas as letras, «aqui não há prazo a esperar»: uma decisão escrita
+que deixou de ser verdade no dia em que a carência nasceu, e que ninguém releu. Foi assim que a
+`breu` foi apagada dentro do prazo (`95606082`). A lista, por sua vez, **mostrava** a escola em
+carência com o selo certo — informação verdadeira sobre um gesto que não devia existir.
+
+**O que foi decidido.**
+
+- **Uma regra, três chamadores.** `estadoDoExpurgo(comercial, { agora, regimeDesde })` é a única
+  resposta a «esta escola pode ser apagada?», e é chamada pela **lista** (`/api/escolas`), pela
+  **rota** (`/api/apagar-escola`) e pela **varredura** (`expurgar`). Enquanto eram três opiniões,
+  duas delas podiam discordar — e discordaram.
+- **Só se apaga a `suspensa` com a carência vencida.** `ativa` não (está a ser usada); `aguardando`
+  não (nunca começou a pagar, e a conciliação é de até 24 horas — apagá-la seria o pior desfecho de
+  um clique); `suspensa` dentro do prazo não, que é o caso dela; e `suspensa` antes do regime de
+  teste também não.
+- **A lista deixa de ter opinião própria.** Cada linha de `/api/escolas` traz `expurgavel` e
+  `motivoDoExpurgo`, calculados pela mesma função; a página mostra **só** os cartões das que podem
+  ser apagadas, e diz **quantas ficaram de fora e porquê** — «a minha escola não está na lista» não
+  pode ler-se como um defeito da lista.
+- **O `forcar` não contorna isto.** Ele existe para uma proveniência quebrada; usá-lo para saltar um
+  prazo prometido a quem pagou seria a burla com um nome técnico a mais. A guarda corre **antes**
+  dele, antes dos tokens e antes de qualquer chamada ao Cloudflare.
+- **Nenhuma escola fica sem caminho.** Fechar a porta à `aguardando` sem abrir outra seria uma
+  armadilha: o «Desabilitar» era só da escola `ativa`, e uma escola que nunca pagou não podia ser
+  suspensa — logo nunca poderia ser apagada. O botão passa a estar em todas as que não estão
+  suspensas. O caminho é o mesmo para todas: desabilitar → cumprir a carência → apagar.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`estadoDoExpurgo`, `regimeDeTeste`, a guarda da rota, o
+veredicto em `/api/escolas`, a varredura a usar a regra) · `raiz/index.html` (a lista filtra os
+cartões e diz quantos ficaram de fora) · `motor/servidor/painel-html.js` (o «Desabilitar» deixa de
+ser só da ativa) · `experimentos/provar-a-carencia-nao-se-burla.js` (novo).
+
+**Com o quê.** `provar-a-carencia-nao-se-burla` **47/47** — e o controlo negativo, com a guarda
+removida, dá **10 falhas**: a rota passa a guarda e segue para a auditoria nos três casos. Mais
+`provar-expurgo-por-carencia` 30/30 · `provar-financeiro` 55/55 · `provar-escola-a-nascer` 48/48 ·
+`provar-o-suspenso-diz-a-verdade` 29/29 · `provar-pagina-publica` 73/73 ·
+`provar-cadastro-em-etapas` 40/40 · `provar-cadastro-do-professor` 49/49 · `provar-teste` 44/44 ·
+`provar-indices` 64/64 · `provar-publicacao-da-escola` 73/73 · `provar-cofre-e-shard` 129/129 ·
+`provar-jsonc` 22/22 · `provar-abas-da-audicao` 99/99 · `provar-editar-professor-principal` 32/32 ·
+`provar-form-escola` e `provar-recriacao-da-escola` todas · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+
+**A `breu` foi apagada antes desta correção**, e não volta: o expurgo é irreversível por desenho. O
+que fica é a regra que impede a próxima.
+
+**O que fica pendente, e é declarado.** A carência de teste continua em 5 minutos
+(`CARENCIA_DE_TESTE_MINUTOS = null` devolve os 3 meses). E a regra é do `expurgo` — a **recriação**
+de uma escola com o mesmo nome continua a ser outro caminho, com as suas próprias guardas.

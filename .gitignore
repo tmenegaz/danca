@@ -1447,3 +1447,10 @@ experimentos/modelo-formulario/*
 # Volet"» —, que era um `\s` escrito dentro de uma string de JavaScript (chegava ao navegador como
 # `s`) e comia a letra do nome ao ser corrigido.
 !experimentos/provar-cadastro-do-professor.js
+
+# A CARÊNCIA NÃO SE BURLA (16/11/2026). «Eu coloquei a escola em carência e aí […] eu fui apagar e
+# eu consegui expurgar a escola. […] Não pode existir uma regra e uma possibilidade de burlar a
+# regra.» A regra existia num caminho só — a varredura agendada — e a rota manual apagava qualquer
+# escola bastando escrever o slug. A prova mede as três portas: a regra, a lista e a rota, cada uma
+# a chamar a MESMA função; e o controlo negativo (a guarda removida) mostra a rota a passar.
+!experimentos/provar-a-carencia-nao-se-burla.js

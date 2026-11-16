@@ -636,53 +636,28 @@ async function expurgar(env, deps) {
   }
 
   const kv = env && env.PADD_KV;
-  /* O REGIME COMEÇA AGORA (ver `CHAVE_DO_REGIME`). A primeira passagem grava o instante; as
-   * seguintes leem-no. Sem KV não há como saber desde quando, e nesse caso não há guarda —
-   * mas também não há como gravar o estado comercial, e não há escolas a percorrer. */
-  let regimeDesde = null;
-  if (carenciaEmMs() !== null) {
-    try {
-      const guardado = await kv.get(CHAVE_DO_REGIME);
-      if (guardado) {
-        regimeDesde = guardado;
-      } else {
-        regimeDesde = new Date(agora).toISOString();
-        await kv.put(CHAVE_DO_REGIME, regimeDesde);
-      }
-    } catch (erro) { regimeDesde = null; }
-    relatorio.regimeDeTesteDesde = regimeDesde;
-  }
+  /* O REGIME DE TESTE, lido uma vez para a varredura inteira — e gravado na primeira leitura. */
+  const regimeDesde = await regimeDeTeste(kv, agora);
+  if (regimeDesde) relatorio.regimeDeTesteDesde = regimeDesde;
 
   for (const slug of conhecidas.slugs) {
     const comercial = await lerComercial(kv, slug);
-    if (comercial.estado !== 'suspensa') continue;
-    const desabilitadaEm = comercial.desabilitadaEm || null;
-    if (!desabilitadaEm) {
-      relatorio.puladas.push({
-        slug, motivo: 'suspensa sem `desabilitadaEm` — não há prazo a contar',
-        estado: comercial.estado,
-      });
-      continue;
-    }
-    /* A GUARDA DO REGIME NOVO: suspensa antes de a régua existir não é apagada por ela. */
-    if (regimeDesde && Date.parse(desabilitadaEm) < Date.parse(regimeDesde)) {
-      relatorio.puladas.push({
-        slug, motivo: 'suspensa antes do regime de teste — desabilite outra vez para a carência contar',
-        desabilitadaEm, regimeDeTesteDesde: regimeDesde,
-      });
-      continue;
-    }
-    const limite = carenciaAte(desabilitadaEm);
-    const venceEm = limite ? new Date(limite).getTime() : NaN;
-    if (!Number.isFinite(venceEm)) {
-      relatorio.puladas.push({ slug, motivo: '`desabilitadaEm` ilegível', desabilitadaEm });
-      continue;
-    }
-    if (agora < venceEm) {
-      relatorio.puladas.push({
-        slug, motivo: 'carência ainda a correr',
-        desabilitadaEm, carenciaAte: limite, restanteMs: venceEm - agora,
-      });
+    /* A DECISÃO É DA REGRA, e não deste laço (16/11/2026) — ver `estadoDoExpurgo`. O que fica aqui
+     * é o que a varredura sabe e a regra não: a proveniência e as duas metades que falam com o
+     * mundo. Uma verificação a mais neste `for` seria uma segunda opinião sobre a carência. */
+    const veredicto = estadoDoExpurgo(comercial, { agora, regimeDesde });
+    if (!veredicto.pode) {
+      /* UMA ESCOLA ATIVA NÃO ENTRA NO RELATÓRIO, e é de propósito: a varredura passa de cinco em
+       * cinco minutos, e listar todas as escolas que pagam seria um relatório a crescer sozinho
+       * para dizer «está tudo bem». Só o que está PERTO de ser apagado se explica. */
+      if (veredicto.estado === 'suspensa') {
+        relatorio.puladas.push({
+          slug, motivo: veredicto.motivo, estado: veredicto.estado,
+          desabilitadaEm: veredicto.desabilitadaEm,
+          carenciaAte: veredicto.carenciaAte,
+          restanteMs: veredicto.restanteMs,
+        });
+      }
       continue;
     }
     /* A PROVENIÊNCIA ANTES DE APAGAR — e sem `forcar`. Falha de rede também pára: o custo de
@@ -1378,6 +1353,119 @@ function carenciaAte(desabilitadaEm, opcoes) {
   const fim = new Date(inicio.getTime());
   fim.setUTCMonth(fim.getUTCMonth() + MESES_DE_CARENCIA);
   return fim.toISOString();
+}
+
+/**
+ * O REGIME DE TESTE, EM HORAS — desde quando esta régua vale (16/11/2026).
+ *
+ * Lido por TRÊS chamadores: a varredura agendada, a lista do botão «Apagar escola» e a rota que
+ * apaga à mão. Se cada um lesse a chave à sua maneira, a lista diria «pode apagar» sobre uma
+ * escola que a rota recusa — que é exactamente a divergência que se está a corrigir.
+ *
+ * A CHAVE É ESCRITA NA PRIMEIRA LEITURA. A varredura corre de cinco em cinco minutos e seria ela
+ * a escrevê-la; mas entre o deploy e a primeira passagem há uma janela, e nela a rota manual
+ * contaria a carência de uma escola suspensa ANTES do regime — apagando-a por um prazo que nunca
+ * lhe foi prometido. Quem lê, grava: a janela fecha-se no primeiro pedido de qualquer um dos três.
+ */
+async function regimeDeTeste(kv, agora) {
+  if (carenciaEmMs() === null) return null;
+  if (!kv || typeof kv.get !== 'function') return null;
+  try {
+    const guardado = await kv.get(CHAVE_DO_REGIME);
+    if (guardado) return String(guardado);
+    const marco = new Date(agora || Date.now()).toISOString();
+    await kv.put(CHAVE_DO_REGIME, marco);
+    return marco;
+  } catch (erro) { return null; }
+}
+
+/**
+ * A REGRA DO EXPURGO — UMA, E TRÊS CHAMADORES (16/11/2026).
+ *
+ * O QUE ELA VIU, e é o defeito inteiro: «Eu coloquei a escola em carência e aí ela ainda não tinha
+ * vencido o prazo de 5 minutos […] E aí eu fui apagar e eu consegui expurgar a escola. Não é para
+ * permitir expurgar a escola. […] Não pode existir uma regra e uma possibilidade de burlar a
+ * regra.»
+ *
+ * A REGRA EXISTIA, E SÓ NUM DOS CAMINHOS. A varredura agendada (`expurgar`) cumpria a carência; a
+ * rota manual (`/api/apagar-escola`) não perguntava nada — bastava escrever o slug na confirmação.
+ * Duas opiniões sobre a mesma pergunta, e a que não perguntava era a que estava à mão dela. Pior:
+ * o comentário da rota dizia, com todas as letras, «aqui não há prazo a esperar» — uma decisão
+ * escrita que deixou de ser verdade no dia em que a carência nasceu, e ninguém a releu.
+ *
+ * A REGRA, agora, é esta função. E são TRÊS os chamadores, porque três é o número de sítios onde
+ * se decide «esta escola pode ser apagada?»: a lista que se mostra, a rota que apaga, e a
+ * varredura que apaga sozinha. Uma cópia a mais é uma cópia a divergir.
+ *
+ * O QUE SÓ SE APAGA: a escola `suspensa` cuja carência venceu.
+ *
+ *   · `ativa` — está a pagar. Apagá-la seria apagar o que está a ser usado, e ela disse-o: «a
+ *     escola que tá habilitada também não pode nem aparecer na lista para expurgar».
+ *   · `aguardando` — nunca teve o pagamento conciliado; não é «parou de pagar», é «ainda não
+ *     começou». A carência é o prazo de quem trabalhou e deixou de pagar, e esta não trabalhou.
+ *   · `suspensa` dentro da carência — é o caso dela, e o motivo de tudo isto. A carência é um
+ *     prazo que se promete; prometê-lo e não o cumprir é a regra a poder ser burlada.
+ *
+ * `regimeDesde` é a terceira data: a carência de TESTE conta de `desabilitadaEm` **e** de o
+ * regime existir, para uma régua nova não se aplicar ao passado (ver `CHAVE_DO_REGIME`).
+ *
+ * Devolve sempre a MESMA forma — a lista, a recusa e o relatório dizem a mesma coisa com ela:
+ * `{ pode, estado, motivo, desabilitadaEm, carenciaAte, restanteMs }`.
+ */
+function estadoDoExpurgo(comercial, opcoes) {
+  const agora = (opcoes && opcoes.agora) || Date.now();
+  const regimeDesde = (opcoes && opcoes.regimeDesde) || null;
+  const c = comercial || {};
+  const estado = String(c.estado || ESTADOS_COMERCIAL[1] || 'ativa');
+  const desabilitadaEm = c.desabilitadaEm || null;
+  const base = {
+    pode: false, estado, desabilitadaEm,
+    carenciaAte: carenciaAte(desabilitadaEm), restanteMs: null,
+    regimeDesde,
+  };
+  if (estado !== 'suspensa') {
+    return Object.assign(base, {
+      motivo: estado === 'aguardando'
+        ? 'A escola aguarda conciliação do pagamento: ela nunca começou a pagar, e a carência é o '
+          + 'prazo de quem parou de pagar.'
+        : 'A escola está habilitada: apagá-la seria apagar o que está a ser usado.',
+    });
+  }
+  if (!desabilitadaEm) {
+    return Object.assign(base, {
+      motivo: 'A escola está suspensa mas não tem data de desabilitação — não há prazo a contar.',
+    });
+  }
+  if (regimeDesde && Date.parse(desabilitadaEm) < Date.parse(regimeDesde)) {
+    return Object.assign(base, {
+      motivo: 'A escola foi suspensa antes de este prazo existir — desabilite-a outra vez para a '
+        + 'carência começar a contar.',
+    });
+  }
+  const venceEm = base.carenciaAte ? Date.parse(base.carenciaAte) : NaN;
+  if (!Number.isFinite(venceEm)) {
+    return Object.assign(base, { motivo: 'A data de desabilitação está ilegível — não há prazo.' });
+  }
+  if (agora < venceEm) {
+    return Object.assign(base, {
+      carenciaAte: base.carenciaAte,
+      restanteMs: venceEm - agora,
+      motivo: 'A escola está em carência: o prazo vence ' + emDataHora(base.carenciaAte) + '.',
+    });
+  }
+  return Object.assign(base, {
+    pode: true,
+    motivo: 'A carência venceu em ' + emDataHora(base.carenciaAte) + '.',
+  });
+}
+
+/** «16/11/2026 às 12:45» — a forma que as duas telas e o relatório já usam. */
+function emDataHora(iso) {
+  const d = new Date(String(iso || ''));
+  if (!Number.isFinite(d.getTime())) return '—';
+  const dois = (n) => (n < 10 ? '0' : '') + n;
+  return dois(d.getUTCDate()) + '/' + dois(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear()
+    + ' às ' + dois(d.getUTCHours()) + ':' + dois(d.getUTCMinutes()) + ' UTC';
 }
 
 /* =====================================================================================
@@ -2361,39 +2449,65 @@ async function fetch(request, env) {
         escolasComComercial.push({ e, c });
       }
       const nasceAgora = new Set(aNascer.map((e) => e.slug));
+      /* O VEREDICTO DO EXPURGO VAI EM CADA LINHA (16/11/2026) — calculado pela MESMA função que a
+       * rota de apagar usa. É esta a razão de o campo existir: a lista deixa de ter opinião
+       * própria sobre quem pode ser apagado, e passa a mostrar o que o servidor faria. Quando os
+       * dois eram separados, a lista oferecia a escola em carência e a rota a apagava. */
+      const regimeDaLista = await regimeDeTeste(env && env.PADD_KV);
       return responderJson({
         ok: true,
         fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
         custo: r.custo,
-        escolas: escolasComComercial.map(({ e, c }) => ({
-          slug: e.slug,
-          professor: e.professor,
-          ciclo: e.ciclo,
-          total: e.total,
-          estadoComercial: c.estado,
-          aNascer: nasceAgora.has(e.slug) || undefined,
-          desabilitadaEm: c.desabilitadaEm || null,
-          carenciaAte: carenciaAte(c.desabilitadaEm),
+        carencia: descricaoDaCarencia(),
+        escolas: escolasComComercial.map(({ e, c }) => {
+          const veredicto = estadoDoExpurgo(c, { regimeDesde: regimeDaLista });
+          return {
+            slug: e.slug,
+            professor: e.professor,
+            ciclo: e.ciclo,
+            total: e.total,
+            estadoComercial: c.estado,
+            aNascer: nasceAgora.has(e.slug) || undefined,
+            desabilitadaEm: c.desabilitadaEm || null,
+            carenciaAte: veredicto.carenciaAte,
+            /* «PODE SER APAGADA?» — a resposta completa, e não só um booleano: o motivo é o que a
+             * lista diz à escola que fica de fora, e o que a rota repete se alguém insistir. */
+            expurgavel: veredicto.pode,
+            motivoDoExpurgo: veredicto.motivo,
+            restanteMs: veredicto.restanteMs,
           /* O ENDEREÇO É O PRÓPRIO, E NÃO O `workers.dev` (14/11/2026). O técnico era o que
            * aparecia no cartão de apagar e nos textos da página. Uma escola tem UM endereço —
            * o que o sistema criou para ela —, e é ele que se mostra. */
-          url: 'https://' + dominioDaEscola.hostname(e.slug, env && env.ZONA_ESCOLAS) + '/',
-        })),
+            url: 'https://' + dominioDaEscola.hostname(e.slug, env && env.ZONA_ESCOLAS) + '/',
+          };
+        }),
       });
     } catch (err) {
       return responderJson({ ok: false, erro: (err && err.message) || String(err) }, 500);
     }
   }
 
-  // O EXPURGO À MÃO — o que o botão «Apagar escola» chama. Não passa pelo andaime
-  // (`escolas-habilitadas.json` + prazo): aquilo é a varredura agendada, que apaga sozinha
-  // depois de um prazo de carência. Aqui a pesquisadora escolheu a escola na lista e
-  // confirmou — não há prazo a esperar.
-  //
-  // A ORDEM importa: o Cloudflare PRIMEIRO. Ao contrário, a escola ficaria no ar servindo um
-  // pacote que o repositório já não tem. Depois o repositório, que é onde o expurgo deixa o
-  // elo — a prova de que a escola existiu. As duas metades são independentes: a falha de uma
-  // vai no relatório da sua etapa e não impede a outra.
+  /* O EXPURGO À MÃO — o que o botão «Apagar escola» chama.
+   *
+   * A CARÊNCIA CONTA AQUI COMO CONTA NA VARREDURA (16/11/2026). Aqui esteve escrito, com todas as
+   * letras, «não há prazo a esperar» — e era verdade enquanto a carência não existia. Deixou de
+   * ser no dia em que nasceu, e ninguém releu a frase: a rota apagava qualquer escola bastando
+   * escrever o slug, e foi assim que ela apagou a `breu` em carência. «Não pode existir uma regra
+   * e uma possibilidade de burlar a regra.»
+   *
+   * A DECISÃO É DA REGRA (`estadoDoExpurgo`), a mesma que a lista usa para esconder o cartão e que
+   * a varredura usa para não tocar. Este `if` não é uma segunda opinião: é a MESMA função, e é
+   * por isso que a lista não pode oferecer o que a rota recusa.
+   *
+   * O `forcar` do expurgo NÃO CONTORNA ISTO. Ele existe para uma proveniência quebrada — «o
+   * registo perdeu-se e eu preciso de limpar» —, e não para saltar um prazo que se prometeu a quem
+   * pagou. Um `forcar` que também saltasse a carência seria exactamente a burla que ela recusou,
+   * com um nome técnico a mais.
+   *
+   * A ORDEM importa: o Cloudflare PRIMEIRO. Ao contrário, a escola ficaria no ar servindo um
+   * pacote que o repositório já não tem. Depois o repositório, que é onde o expurgo deixa o
+   * elo — a prova de que a escola existiu. As duas metades são independentes: a falha de uma
+   * vai no relatório da sua etapa e não impede a outra. */
   if (url.pathname === '/api/apagar-escola' && request.method === 'POST') {
     let corpo;
     try { corpo = await request.json(); } catch { corpo = null; }
@@ -2403,6 +2517,31 @@ async function fetch(request, env) {
     if (!slug) return responderJson({ ok: false, erro: 'informe a escola' }, 400);
     if (confirmacao !== slug) {
       return responderJson({ ok: false, erro: 'a confirmação não é o slug da escola — nada foi apagado' }, 400);
+    }
+
+    /* A CARÊNCIA ANTES DE TUDO — antes de olhar para tokens, antes de auditar, antes de tocar no
+     * Cloudflare. Uma recusa tem de custar nada e não deixar rasto: se a escola não pode ser
+     * apagada, nem se começa.
+     *
+     * O ESTADO VEM DO MESMO SÍTIO QUE A LISTA LÊ (`bastidores/<escola>/comercial`), e o regime de
+     * teste da mesma função — três leituras do mesmo KV para a mesma pergunta seriam três
+     * respostas à espera de divergir. */
+    const comercialDaVez = await lerComercial(env && env.PADD_KV, slug);
+    const regimeDaVez = await regimeDeTeste(env && env.PADD_KV);
+    const veredicto = estadoDoExpurgo(comercialDaVez, { regimeDesde: regimeDaVez });
+    if (!veredicto.pode) {
+      return responderJson({
+        ok: false,
+        expurgavel: false,
+        estadoComercial: veredicto.estado,
+        carenciaAte: veredicto.carenciaAte,
+        restanteMs: veredicto.restanteMs,
+        erro: 'A escola «' + slug + '» não pode ser apagada agora. ' + veredicto.motivo
+          + ' O expurgo acontece só sobre uma escola suspensa cuja carência venceu — e nenhum '
+          + 'pedido o contorna: nem a confirmação escrita, nem o `forcar`.',
+        noRepositorio: false,
+        noCloudflare: false,
+      }, 409);
     }
 
     const cfToken = env && env.CLOUDFLARE_API_TOKEN;
@@ -2707,6 +2846,9 @@ module.exports = {
   /* O REGIME DE TESTE É DECLARADO, E NÃO ADIVINHADO (16/11/2026). A prova tem de poder dizer com
    * que régua o expurgo mediu — e um número lido de uma variável local não se afirma de fora. */
   CARENCIA_DE_TESTE_MINUTOS, descricaoDaCarencia, escolasConhecidas,
+  /* A REGRA DO EXPURGO É EXPORTADA PORQUE É UMA REGRA (16/11/2026). Três chamadores — a lista, a
+   * rota que apaga e a varredura —, e a prova tem de poder afirmar os três sem subir o Worker. */
+  estadoDoExpurgo, regimeDeTeste, CHAVE_DO_REGIME,
   /* A JANELA ENTRE A ESCOLA E O ÍNDICE (16/11/2026). Exportada porque a regra «isto é uma escola a
    * nascer, e não o resto de uma criação que falhou» é exactamente o tipo de regra que se mede na
    * bancada e não em produção — onde o sintoma é a lista vazia de quem acabou de criar a escola. */

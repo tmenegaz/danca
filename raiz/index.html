@@ -1665,11 +1665,41 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 resApagar.textContent = "Não consegui listar as escolas: " + (d.erro || "erro desconhecido");
                 return;
               }
-              if (!d.escolas || !d.escolas.length) {
-                listaApagar.appendChild(el("p", "nota", "Não há nenhuma escola para apagar."));
+              /* SÓ ENTRA NA LISTA O QUE O SERVIDOR DEIXARIA APAGAR (16/11/2026).
+               *
+               * «A escola que tá em carência não deve nem aparecer na lista para expurgar e a
+               * escola que tá habilitada também não pode nem aparecer na lista para expurgar.»
+               *
+               * O CAMPO VEM DO SERVIDOR, e é o mesmo veredicto que a rota usa para recusar
+               * (`expurgavel`, em `/api/escolas`). A página não calcula a carência — se
+               * calculasse, teríamos outra vez duas opiniões: a que mostra e a que apaga. E um
+               * cartão escondido não é a guarda: a guarda está na rota, e quem escrever o pedido
+               * à mão bate nela.
+               *
+               * A ESCOLA QUE FICA DE FORA NÃO DESAPARECE EM SILÊNCIO: o rodapé diz quantas são e
+               * PORQUE — a data da carência, ou o estado. Sem isso, «a minha escola não está na
+               * lista» lê-se como um defeito da lista. */
+              var todas = d.escolas || [];
+              var expurgaveis = todas.filter(function (e) { return e.expurgavel === true; });
+              if (!expurgaveis.length) {
+                listaApagar.appendChild(el("p", "nota", todas.length
+                  ? "Nenhuma escola pode ser apagada agora."
+                  : "Não há nenhuma escola no sistema."));
+                var razoes = todas.map(function (e) {
+                  return e.slug + ": " + (e.motivoDoExpurgo || e.estadoComercial || "sem estado");
+                });
+                if (razoes.length) listaApagar.appendChild(el("p", "nota", razoes.join(" · ")));
                 return;
               }
-              d.escolas.forEach(function (e) { listaApagar.appendChild(cartao(e)); });
+              expurgaveis.forEach(function (e) { listaApagar.appendChild(cartao(e)); });
+              var fora = todas.length - expurgaveis.length;
+              if (fora > 0) {
+                listaApagar.appendChild(el("p", "nota", fora === 1
+                  ? "1 escola não aparece: ela não pode ser apagada agora ("
+                    + "habilitada, ou em carência — ver a lista das vivas)."
+                  : fora + " escolas não aparecem: não podem ser apagadas agora ("
+                    + "habilitadas, ou em carência — ver a lista das vivas)."));
+              }
             }).catch(function (err) {
               listaApagar.textContent = "";
               resApagar.className = "res erro";
@@ -1691,20 +1721,20 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 + " · a nascer — o scaffold e o pacote estão a ser criados"
               : "professor " + (e.professor || "?")
                 + " · ciclo " + (e.ciclo || "?") + " · " + e.total + " arquivo(s)"));
-            /* A CARÊNCIA, NO CARTÃO (25/11/2026). Ela escolheu esta forma: «todas aparecem, e a
-             * linha diz «pode apagar» ou «em carência até DD/MM/AAAA»». A lista não esconde a
-             * escola — ela é a ferramenta com que se limpa uma escola de teste, e uma lista que
-             * esconde a escola que se quer apagar é uma lista que não serve. O que se acrescenta é
-             * a informação que a data levanta: já pode, ou ainda não. */
-            if (e.desabilitadaEm) {
+            /* A CARÊNCIA, NO CARTÃO — E A REGRA QUE MUDOU (16/11/2026).
+             *
+             * Aqui esteve, por decisão dela, «todas aparecem, e a linha diz «pode apagar» ou «em
+             * carência até DD/MM/AAAA»». A LISTA NÃO MENTIA — mas o cartão era clicável, e quem
+             * clicasse numa escola em carência apagava-a, porque a rota não perguntava nada. Uma
+             * informação certa sobre um gesto que não devia existir.
+             *
+             * A decisão nova: só aparece o que pode ser apagado, e o cartão deixa de precisar de
+             * dizer «ainda não» — quem está aqui já pode. O que fica é a data que o prazo venceu,
+             * porque é ela que explica porque é que esta escola está nesta lista e as outras não. */
+            if (e.carenciaAte) {
               mi.appendChild(document.createElement("br"));
-              var prazo = e.carenciaAte ? new Date(e.carenciaAte) : null;
-              var emCarencia = prazo && prazo.getTime() > Date.now();
-              var seloPrazo = el("span", emCarencia ? "selo discreto" : "selo ok",
-                emCarencia
-                  ? "em carência até " + prazo.toLocaleDateString("pt-BR")
-                  : "pode apagar");
-              mi.appendChild(seloPrazo);
+              mi.appendChild(el("span", "selo ok",
+                "carência vencida em " + new Date(e.carenciaAte).toLocaleDateString("pt-BR")));
             }
             mi.appendChild(document.createElement("br"));
             mi.appendChild(document.createTextNode(e.url));
