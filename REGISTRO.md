@@ -46831,3 +46831,57 @@ erros · `gerar-raiz.sh` não altera a página (os rails e os scripts sobrevivem
 - **Uma escola minha, criada para diagnosticar, tem de ser apagada** — `breu`, criada às 10:35 UTC
   com o professor `ana-diag` e uma senha de ensaio. Está registada aqui para não se confundir com
   uma escola dela.
+
+## 16/11/2026 — o 404 que faltava, o run que ninguém via, e a rota que ficou
+
+**O que aconteceu.** Duas coisas que ela viu juntas: «está travado lá no criar escola motor
+completo» e «quando eu acesso a página breu.padd.com.br aparece uma mensagem, configuração
+incorreta do worker [...] se não existe a escola não era nem para existir essa mensagem».
+
+**O que foi decidido.**
+
+- **Um host que nenhuma escola reclama não é um Worker mal configurado.** Quem chega a um endereço
+  que não corresponde a escola nenhuma não tem nada a consertar; a página de diagnóstico era para
+  quem PODE consertar, e quem pode é quem lê o `curl /api/saude`. Passa a **404**, sem diagnóstico.
+  E a rota que sobra é o **caso normal**, não a excepção: o expurgo apaga o Worker e não as rotas
+  de todas as metades, e uma criação que falha a meio deixa o DNS e a rota no sítio.
+- **As outras duas razões de identidade inválida continuam a ser o que eram.** Uma `vars` a dizer
+  uma escola num host de outra é configuração errada de um Worker que serve alguém, e aí há mesmo o
+  que consertar. Um 404 a tudo esconderia o defeito real; um 500 a tudo foi o que ela apontou.
+- **O 204 do disparo não é «está a correr», é «entrou na fila».** Medido hoje: um disparo aceite às
+  10:35 ficou *queued* e às 11:20 não tinha um único job atribuído, enquanto a tela garantia «em
+  instantes a Área do Professor fica no ar». `dispararCriacao` passa a ler o run de volta — uma
+  requisição a mais — e o que ela traz é o endereço do que vai (ou não vai) acontecer. A leitura
+  que falha não derruba a criação: perde-se o link, não a escola.
+- **«A nascer» passa a ter tempo.** A linha mostra há quantos minutos, e passados 15 diz o que se
+  passa — «a fila do GitHub não pegou o pedido» — com o link do run. O limite não é uma medida de
+  saúde do CI: é o ponto em que «demora» deixa de explicar uma criação que, quando corre, leva dois
+  ou três minutos.
+
+**Onde entrou.** `motor/servidor/producao.js` (o 404 e o ramo que deixou de ser alcançável) ·
+`motor/servidor/provisionar-escola.js` (`dispararCriacao` lê o run) · `motor/servidor/raiz.js`
+(`disparoRun` no registo comercial e na linha «a nascer») · `motor/servidor/painel-html.js` (o
+tempo e o link) · `raiz/index.html` (a mensagem de sucesso deixa de prometer instantaneidade) ·
+`experimentos/provar-escola-a-nascer.js` (secções E e F).
+
+**Com o quê.** `provar-escola-a-nascer` **36/36** · `provar-cadastro-em-etapas` 40/40 ·
+`provar-pagina-publica` 73/73 · `provar-financeiro` 52/52 · `provar-form-escola` todas ·
+`provar-cofre-e-shard` 129/129 · `provar-teste` 44/44 · `provar-indices` 58/58 ·
+`provar-publicacao-da-escola` 73/73 · `provar-jsonc` 22/22 · `provar-recriacao-da-escola` todas ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica pendente, e é declarado.**
+
+- **A rota da `breu` foi apagada à mão** (`desligarDominio`: DNS e rota, 1 de cada). A escola não
+  existe e o endereço não devia responder. O `breu.workers.dev` já dava 404 — a escola vivia no
+  shard, e um shard não cria Worker por escola.
+- **A causa do run travado continua fora do meu alcance, e não é do repositório.** O run
+  `43850296566` (o meu, do diagnóstico da `breu`) segue *queued*, e o GitHub recusa cancelá-lo
+  («cannot cancel a workflow run that has not been queued yet») e recusa apagá-lo (403). Os outros
+  workflows correram no mesmo minuto, e um `workflow_dispatch` disparado depois — `regerar-indices`
+  — correu e acabou em 25 segundos. Ou seja: **runners há, conta há, e o problema é daquele run.**
+  Ele tem de ser cancelado pela interface (Actions → o run → *Cancel workflow*); se algum dia
+  arrancar, cria o scaffold de uma escola de ensaio minha, que se apaga pelo botão «Apagar escola».
+- **A criação continua a depender de um CI que pode estar parado, e agora sabe-se que está.** O que
+  ficou feito torna o travamento VISÍVEL; não o resolve. Enquanto o Actions não pegar o pedido,
+  nenhuma escola passa de «a nascer» a completa — e o ecrã di-lo, com o endereço do run.
