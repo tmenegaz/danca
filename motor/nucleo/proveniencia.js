@@ -14,8 +14,11 @@
  *
  *   1. o ELO, `escola/<slug>/indice.json` — é a memória de que a escola existiu. Sem ele o
  *      expurgo fica sem onde escrever o que vai apagar;
- *   2. a CRIAÇÃO declarada (`recriacao[]`) — um elo que só tem expurgos descreve uma escola que
- *      nunca nasceu, e o responsável de hoje sai desse elo (`responsavelDoInventario`);
+ *   2. a CRIAÇÃO declarada — **quando** e **por quem** esta encarnação nasceu. São DUAS as formas
+ *      legítimas, e a distinção custou um falso positivo (16/11/2026): a PRIMEIRA criação mora no
+ *      topo do elo (`criado_em` + `professor`), e só as RECRIAÇÕES ganham elo em `recriacao[]`.
+ *      A pergunta é «esta encarnação nasceu?», e quem a responde é `quandoDaEncarnacao` e
+ *      `responsavelDoInventario` — as mesmas duas funções que o painel e o expurgo já usam;
  *   3. a ÂNCORA de cada variante com fontes — `ciclo-NN-<escola>[-<variante>].fipp`;
  *   4. a COBERTURA — cada fonte da escola (`.conf` e `.md` do ciclo) aparece na `cobertura` de
  *      alguma âncora, e tudo o que a cobertura cita existe. Uma âncora que cobre menos do que
@@ -38,7 +41,8 @@
  * e a auditoria local corre-o por variante.
  */
 
-const { cicloDoCaminho, escolaDoSufixo } = require('./indices.js');
+const { cicloDoCaminho, escolaDoSufixo, quandoDaEncarnacao, responsavelDoInventario } =
+  require('./indices.js');
 
 /** O nome de um arquivo DIRECTAMENTE dentro de `professores/<p>/ciclos/` — e só esses são
  * fontes. O que está dentro de `ciclo-NN-<escola>/` é pacote: saída gerada, e a âncora não a
@@ -149,6 +153,52 @@ async function impressao(ancoras) {
  */
 
 /**
+ * A CORREÇÃO DE CADA BLOQUEIO — porque uma recusa sem saída conhecida ensina a usar o `--forcar`.
+ *
+ * O DEFEITO QUE ISTO CORRIGE (16/11/2026). A página de apagar imprimia, para QUALQUER bloqueio,
+ * «corrija primeiro: `tools/hash-ciclo.sh …` reancora, `node tools/gerar-indices.js` regera o
+ * derivado». Na `duo` o bloqueio era o ELO, e as duas fases que essa instrução manda correr já
+ * passavam: a pessoa reancorava, regerava, tentava outra vez e batia no mesmo muro. É a mesma
+ * família do `ancora-orfa` da aula — uma recusa a apontar para uma correção que não toca a causa,
+ * no passo que antecede a operação mais destrutiva do sistema.
+ *
+ * A CORREÇÃO É PARTE DA RECUSA. O código do bloqueio é a chave, e a frase tem de dizer o que
+ * fazer àquele, não ao género «proveniência». Quem imprime é o chamador (a página, o
+ * `tools/auditar-proveniencia.js`), e imprime uma vez por frase distinta — vinte bloqueios do
+ * mesmo tipo dariam vinte linhas iguais.
+ */
+const CORRECAO = {
+  'sem-elo': 'o elo `escola/<slug>/indice.json` é a memória de que a escola existiu e onde o '
+    + 'expurgo se escreve: reponha-o (`git log -- escola/<slug>/indice.json`) — reancorar não o cria',
+  'elo-ilegivel': 'o elo existe mas não é um JSON legível: corrija o ficheiro '
+    + '(`git log -p -- escola/<slug>/indice.json`) — reancorar não o reescreve',
+  'sem-recriacao': 'o elo não diz quando nem por quem esta encarnação nasceu: acrescente '
+    + '`criado_em` + `professor` (a PRIMEIRA criação) ou o elo de uma recriação '
+    + '(`python3 tools/registrar-recriacao.py escola/<slug>/indice.json …`) — reancorar não toca no elo',
+  'sem-ancora': 'ancore a variante que tem fontes: '
+    + '`tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-ilegivel': 'regenere a âncora: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-id': 'regenere a âncora (o `id` é o nome do arquivo): '
+    + '`tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-hash': 'regenere a âncora: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-hash-conteudo': 'regenere a âncora: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-algoritmo': 'regenere a âncora: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-sem-cobertura': 'regenere a âncora: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'cobertura-quebrada': 'a âncora cita um arquivo que já não existe: regenere-a sobre as fontes de '
+    + 'agora — `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'ancora-orfa': 'a âncora certifica uma variante que já não está na árvore: ou reponha o manifesto, '
+    + 'ou apague o `.fipp` órfão — reancorar uma variante que não existe não resolve',
+  'fonte-sem-cobertura': 'há trabalho que a cadeia não viu: regenere a âncora sobre as fontes de '
+    + 'agora — `tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'indexacao-pendente': 'regenere o derivado: `node tools/gerar-indices.js` (e, se for o mapa de '
+    + 'relações, `node tools/gerar-relacoes.js`)',
+  'ancora-nao-confere': 'a âncora não confere com as fontes vivas: '
+    + '`tools/hash-ciclo.sh <professor> <ciclo> <variante>`',
+  'derivacao-pendente': 'regenere o derivado: `node tools/gerar-indices.js` e '
+    + '`node tools/gerar-relacoes.js`',
+};
+
+/**
  * A AUDITORIA. Devolve `{ok, problemas, ancoras, fontes, impressao, resumo}` — nunca rejeita por
  * um dado em falta: a falta É o resultado.
  *
@@ -162,7 +212,11 @@ async function auditar({ slug, caminhos, indice, ancoras }) {
   const lidas = ancoras || {};
   const existe = new Set(arvore);
   const problemas = [];
-  const bloqueia = (codigo, mensagem) => problemas.push({ codigo, mensagem });
+  /* CADA BLOQUEIO LEVA A SUA CORREÇÃO — ver `CORRECAO`. Um elo novo num sítio novo não cai no
+   * `null`: o campo sai sempre, para quem imprime não ter de perguntar se existe. */
+  const bloqueia = (codigo, mensagem) => problemas.push({
+    codigo, mensagem, comoCorrigir: CORRECAO[codigo] || null,
+  });
 
   const { fontes, ancoras: doCiclo } = artefatosDaEscola(slug, arvore);
 
@@ -172,11 +226,35 @@ async function auditar({ slug, caminhos, indice, ancoras }) {
       + 'não há onde registar o expurgo, nem memória de que esta escola existiu');
   } else if (!indice || typeof indice !== 'object') {
     bloqueia('elo-ilegivel', 'o elo `escola/' + slug + '/indice.json` existe mas não é um JSON legível');
-  } else if (!Array.isArray(indice.recriacao) || !indice.recriacao.length) {
-    // 2. A CRIAÇÃO. Um elo com expurgos e sem recriação descreve uma escola que nunca nasceu — e
-    // é do elo mais recente de `recriacao[]` que sai o responsável de hoje.
-    bloqueia('sem-recriacao', 'o elo não declara nenhuma criação (`recriacao[]`): '
-      + 'não se sabe quando nem por quem esta encarnação nasceu');
+  } else {
+    /* 2. A CRIAÇÃO — e a pergunta é «esta encarnação nasceu?», NÃO «há `recriacao[]`?».
+     *
+     * O FALSO POSITIVO, medido a 16/11/2026 no expurgo da `duo`: «o elo não declara nenhuma
+     * criação (`recriacao[]`): não se sabe quando nem por quem esta encarnação nasceu». A `duo`
+     * nasceu naquele mesmo dia, com `criado_em` e `professor` no topo do elo — e o expurgo
+     * mandou-a «reancorar, regerar os índices», que não podia resolver nada: a âncora estava
+     * íntegra (`--check` passou) e o derivado em dia (`--check` passou). Era a MESMA família do
+     * `ancora-orfa` da aula: a auditoria recusava uma cadeia sã e mandava fazer uma coisa que não
+     * toca a causa.
+     *
+     * A CAUSA É DE VOCABULÁRIO. São DUAS as formas de declarar uma criação, e o elo usa-as para
+     * coisas diferentes: a PRIMEIRA criação mora no topo (`criado_em` + `professor`), e
+     * `recriacao[]` só existe quando a escola é apagada e volta com o mesmo nome —
+     * a `registrar-recriacao.py` só é chamada quando o índice JÁ existe (`criar-escola.sh`
+     * §8). Exigir `recriacao[]` de toda a escola era exigir que toda a escola tivesse sido
+     * apagada pelo menos uma vez: nenhuma escola nova podia ser expurgada, nunca.
+     *
+     * A RESPOSTA JÁ EXISTIA, em duas funções que o painel e as duas metades do expurgo usam —
+     * `quandoDaEncarnacao` (o último elo de `recriacao[]`, ou `criado_em`) e
+     * `responsavelDoInventario` (o professor do último elo, ou o do topo). Uma terceira leitura
+     * do mesmo facto é uma terceira leitura a divergir; aqui só se pergunta às duas. */
+    const quando = quandoDaEncarnacao(indice);
+    const quem = responsavelDoInventario(indice);
+    if (!quando || !quem.slug) {
+      bloqueia('sem-recriacao', 'o elo não declara quando nem por quem esta encarnação nasceu '
+        + '(nem `recriacao[]`, nem `criado_em` + `professor`): sem isso não se sabe de quem são '
+        + 'os arquivos que o expurgo levaria');
+    }
   }
 
   // 3. A ÂNCORA DE CADA VARIANTE COM FONTES. É o que a cadeia certifica.
@@ -338,4 +416,9 @@ module.exports = {
   impressao,
   nomeDoCiclo,
   numeroDaAula,
+  /* A CORREÇÃO DE CADA BLOQUEIO sai porque é uma REGRA, e não um texto de tela: as duas metades
+   * do expurgo, o `tools/auditar-proveniencia.js` e a página de apagar recusam pelos mesmos
+   * códigos, e quem imprime a saída precisa da mesma frase. Uma segunda tabela divergiria — e a
+   * divergência aqui é um conselho errado no passo que antecede o apagar. */
+  CORRECAO,
 };

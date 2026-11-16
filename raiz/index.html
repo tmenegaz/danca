@@ -1849,8 +1849,24 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   cx.appendChild(par("   [" + p.codigo + "] " + p.mensagem));
                 });
                 if (!prov.forcada) {
-                  cx.appendChild(par("   Corrija primeiro: `tools/hash-ciclo.sh <professor> <ciclo> <variante>`"
-                    + " reancora, `node tools/gerar-indices.js` regera o derivado."));
+                  /* A CORREÇÃO QUE SE PROPÕE É A QUE CORRIGE O BLOQUEIO (16/11/2026).
+                   *
+                   * Aqui dizia-se sempre «reancorar e regerar os índices». Na `duo` o bloqueio era
+                   * o ELO («não declara nenhuma criação»), e as duas fases que a instrução manda
+                   * correr já passavam — a pessoa reancorava, regerava, tentava outra vez e batia
+                   * no mesmo muro. É a mesma família do `ancora-orfa` da aula: a recusa a apontar
+                   * para uma correção que não toca a causa.
+                   *
+                   * A REGRA É DO NÚCLEO, e chega no relatório (`comoCorrigir`, em cada bloqueio):
+                   * aqui só se imprime o que ele disser, e uma vez por instrução distinta. Sem
+                   * isso, 20 bloqueios do mesmo tipo davam 20 linhas iguais — o defeito que ela já
+                   * apontou na lista do expurgo. */
+                  var dicas = [];
+                  (prov.problemas || []).forEach(function (p) {
+                    if (!p.comoCorrigir || dicas.indexOf(p.comoCorrigir) !== -1) return;
+                    dicas.push(p.comoCorrigir);
+                  });
+                  dicas.forEach(function (t) { cx.appendChild(par("   Corrija primeiro: " + t)); });
                 }
               } else {
                 var quantas = (prov.ancoras || []).length;

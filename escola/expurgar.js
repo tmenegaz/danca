@@ -81,9 +81,20 @@ async function auditarProveniencia(slug, { forcar, motivoDoForcar }) {
   if (!forcar) {
     console.error('recusado: a proveniência da escola "' + slug + '" não está em ordem — nada foi apagado.');
     for (const p of auditoria.problemas) console.error('  [' + p.codigo + '] ' + p.mensagem);
-    console.error('  corrige e volta a correr: `tools/hash-ciclo.sh <professor> <ciclo> <variante>` para');
-    console.error('  reancorar, `node tools/gerar-indices.js` para o derivado. Se o expurgo tem de');
-    console.error('  avançar sem isto, declara-o: --forcar --motivo "…".');
+    /* A CORREÇÃO É A DO BLOQUEIO, E NÃO UMA DO GÉNERO (16/11/2026). Aqui dizia-se sempre
+     * «reancorar + regerar»; na `duo` o bloqueio era o elo, e as duas fases que essa instrução
+     * manda correr já passavam — a pessoa repetia o comando e batia no mesmo muro. A frase vem do
+     * núcleo (`CORRECAO`), uma vez por distinta: vinte bloqueios do mesmo tipo dariam vinte linhas. */
+    const dicas = [];
+    for (const p of auditoria.problemas) {
+      if (!p.comoCorrigir || dicas.indexOf(p.comoCorrigir) !== -1) continue;
+      dicas.push(p.comoCorrigir);
+    }
+    if (dicas.length) {
+      console.error('  corrige primeiro:');
+      for (const t of dicas) console.error('    · ' + t);
+    }
+    console.error('  Se o expurgo tem de avançar sem isto, declara-o: --forcar --motivo "…".');
     process.exit(1);
   }
   if (!motivoDoForcar) {

@@ -47411,3 +47411,63 @@ mede o vão de **0px** e a largura de conteúdo — o «acavalado» reproduzido.
 
 **O que ainda não está feito.** `provar-painel` continua com as **4 falhas pré-existentes** (os cinco
 destinos do menu e as quatro colunas das vivas), medidas antes desta mudança e não tocadas por ela.
+
+## 16/11/2026 — a escola que nasceu hoje não podia ser apagada nunca
+
+**O que motivou.** O expurgo da `duo` foi recusado, e a recusa dizia o contrário do que era:
+
+> «a proveniência da escola «duo» não está em ordem — nada foi apagado. Corrige primeiro
+> (reancorar, regerar os índices) e volta a tentar.» · `[sem-recriacao] o elo não declara nenhuma
+> criação (`recriacao[]`): não se sabe quando nem por quem esta encarnação nasceu`
+
+**O que a medida encontrou.** A cadeia estava **íntegra**: `tools/auditar-proveniencia.js duo`
+dava «fases: estrutura feita · âncora feita · derivação feita» e reprovava num bloqueio só. E a
+correção que a recusa mandava fazer — reancorar e regerar — **não podia resolver nada**, porque
+as duas fases que ela manda correr já passavam. É a MESMA família do `ancora-orfa` da aula
+(07/11/2026): uma recusa a apontar para uma correção que não toca a causa, no passo que antecede a
+operação mais destrutiva do sistema.
+
+**A causa era de vocabulário, e bloqueava o caso normal.** São DUAS as formas de declarar uma
+criação, e o elo usa-as para coisas diferentes: a **primeira criação** mora no topo do índice
+(`criado_em` + `professor`), e `recriacao[]` só existe quando a escola é apagada e volta com o
+mesmo nome — `tools/criar-escola.sh` (§8) só chama o `registrar-recriacao.py` quando o índice
+**já existe**. A regra exigia `recriacao[]` de toda a escola, o que é exigir que toda a escola
+tenha sido apagada pelo menos uma vez: nenhuma escola nova podia ser expurgada, nunca.
+
+**O que foi decidido.**
+
+- **A pergunta é «esta encarnação nasceu?», e não «há `recriacao[]`?».** Quem a responde são as
+  duas funções que o painel e as duas metades do expurgo já usam — `quandoDaEncarnacao` (o último
+  elo de `recriacao[]`, ou `criado_em`) e `responsavelDoInventario` (o professor do último elo, ou
+  o do topo). Uma terceira leitura do mesmo facto seria uma terceira leitura a divergir.
+- **O bloqueio não foi desligado, foi corrigido.** Um elo sem criação nenhuma continua a reprovar,
+  e reprova também se lhe faltar o «quando» (sem `criado_em` e sem elo) ou o «quem» (sem
+  `professor`). As quatro asserções estão na prova.
+- **A correção é parte da recusa.** Cada bloqueio passou a carregar `comoCorrigir`, num mapa do
+  núcleo (`proveniencia.CORRECAO`): o do elo manda corrigir o elo e diz que reancorar não o
+  resolve; o da âncora manda reancorar; o da derivação manda regerar. A página, o
+  `tools/auditar-proveniencia.js` e o `escola/expurgar.js` imprimem essa frase — e uma vez por
+  frase distinta, porque vinte bloqueios do mesmo tipo dariam vinte linhas iguais (o defeito que
+  ela já apontou na lista do expurgo).
+
+**Onde entrou.** `motor/nucleo/proveniencia.js` (a regra da criação, o mapa `CORRECAO` e o campo
+em cada bloqueio) · `raiz/index.html` (a caixa de apagar imprime a correção do bloqueio) ·
+`tools/auditar-proveniencia.js` (a linha `→` em cada bloqueio) · `escola/expurgar.js` (a mesma
+frase, em vez do conselho único) · `experimentos/provar-proveniencia-do-expurgo.js`.
+
+**Com o quê.** `provar-proveniencia-do-expurgo` **38 verificações**, com as novas: a primeira
+criação passa (o caso da `duo`), sem «quando» e sem «quem» continuam a reprovar, a recriação
+declarada só no elo também passa, e o bloqueio do elo **não** manda reancorar enquanto o da âncora
+manda. E o caminho do Worker foi exercido com a árvore real: `auditarProvenienciaDaEscola('duo')`
+devolve `ok: true`, 1 âncora, zero problemas. Mais `auditar-proveniencia duo` OK (as três fases) ·
+`duo`, `batata`, `breu` e `calango` todas OK · `provar-indices` 64/64 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que ainda não está feito, e é declarado.** As **5 falhas** de `provar-proveniencia-do-expurgo`
+são da secção C e são **anteriores a esta mudança** (medidas com o `git stash`): a rota
+`/api/apagar-escola` responde **404** antes de chegar à auditoria, porque a guarda da carência
+entrou à frente. O mesmo vale para as falhas de `provar-expurgo-raiz` e `provar-expurgo-kv`
+(rascunhos não versionados; o segundo bate na API real e recebe 401). Não foram tocadas aqui.
+
+**O expurgo da `duo` não foi feito por mim** — é irreversível e é gesto dela. A regra é que passou
+a deixá-lo acontecer.

@@ -14,6 +14,7 @@
  * O QUE ESTA PROVA MEDE, e em três camadas, porque a regra atravessa as três:
  *
  *   A. o NÚCLEO (puro) — cada verificação reprova pelo seu motivo, e o conjunto saudável passa;
+ *      e cada recusa CARREGA a correção daquele bloqueio (não uma do género);
  *   B. a leitura da ÁRVORE (`auditarProvenienciaDaEscola`) — as âncoras são lidas com o MESMO
  *      parser do índice, e as fases que esta metade não alcança são DITAS, não fingidas;
  *   C. o ELO — o que se apaga deixa registado o que existia: âncoras, hashes, impressão. E a
@@ -26,8 +27,12 @@
  *   node experimentos/provar-proveniencia-do-expurgo.js
  */
 
+const path = require('path');
+const fs = require('fs');
 const repo = require('../motor/servidor/repo-escola.js');
 const prov = require('../motor/nucleo/proveniencia.js');
+
+const RAIZ = path.resolve(__dirname, '..');
 
 let n = 0;
 let falhas = 0;
@@ -172,8 +177,52 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
   const semRecriacao = await prov.auditar({
     slug: 'zzz', caminhos: ARVORE_SAUDAVEL, indice: { escola: 'zzz', expurgo: [] }, ancoras: ancorasLidas(ANCORA),
   });
-  checar('um elo sem `recriacao[]` reprova por «sem-recriacao» (a escola nunca nasceu)',
+  checar('um elo sem criação NENHUMA reprova por «sem-recriacao»',
     semRecriacao.problemas.some((p) => p.codigo === 'sem-recriacao'), semRecriacao.problemas.map((p) => p.codigo));
+
+  /* A PRIMEIRA CRIAÇÃO NÃO TEM `recriacao[]` — E NÃO É UM ELO MUDO (16/11/2026).
+   *
+   * O FALSO POSITIVO, medido no expurgo da `duo`: ela nasceu naquele dia, com `criado_em` e
+   * `professor` no topo do elo, e a auditoria mandou-a «reancorar, regerar os índices» — que não
+   * podia resolver nada, porque a âncora e o derivado já conferiam (`--check` das duas fases a
+   * passar). O `recriacao[]` só existe quando a escola é APAGADA e volta com o mesmo nome: exigir
+   * esse elo de toda a escola era exigir que toda a escola tivesse sido apagada uma vez.
+   *
+   * As asserções abaixo são as duas metades: a primeira criação passa, e cada metade em falta
+   * (quando / quem) continua a reprovar — o `sem-recriacao` não foi desligado, foi corrigido. */
+  const primeiraCriacao = await prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, ancoras: ancorasLidas(ANCORA),
+    indice: {
+      escola: 'zzz', ciclo: '01', criado_em: '2026-11-16T12:25:10.980318+00:00',
+      professor: { slug: 'pp', nome: 'P P' }, arquivos: [],
+    },
+  });
+  checar('a PRIMEIRA criação (`criado_em` + `professor`, sem `recriacao[]`) passa — é o caso da `duo`',
+    primeiraCriacao.ok, primeiraCriacao.problemas);
+
+  const semQuando = await prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, ancoras: ancorasLidas(ANCORA),
+    indice: { escola: 'zzz', professor: { slug: 'pp', nome: 'P P' } },
+  });
+  checar('…e sem o «quando» continua a reprovar (o elo não diz quando nasceu)',
+    semQuando.problemas.some((p) => p.codigo === 'sem-recriacao'), semQuando.problemas.map((p) => p.codigo));
+
+  const semQuem = await prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, ancoras: ancorasLidas(ANCORA),
+    indice: { escola: 'zzz', criado_em: '2026-11-16T12:25:10.980318+00:00' },
+  });
+  checar('…e sem o «quem» também (o elo não diz de quem são os arquivos)',
+    semQuem.problemas.some((p) => p.codigo === 'sem-recriacao'), semQuem.problemas.map((p) => p.codigo));
+
+  const recriada = await prov.auditar({
+    slug: 'zzz', caminhos: ARVORE_SAUDAVEL, ancoras: ancorasLidas(ANCORA),
+    indice: {
+      escola: 'zzz', professor: { slug: 'pp', nome: 'P P' },
+      recriacao: [{ em: '2026-11-16T12:00:00.000Z', professor: { slug: 'pp', nome: 'P P' }, ciclo: '01' }],
+    },
+  });
+  checar('…e a RECRIAÇÃO declarada só no elo também passa (o elo novo vale, o topo é memória)',
+    recriada.ok, recriada.problemas);
 
   const semCobertura = await prov.auditar({
     slug: 'zzz',
@@ -253,6 +302,48 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
   checar('sem os derivados, reprova por «indexacao-pendente» (a derivação ficou para trás)',
     semDerivado.problemas.filter((p) => p.codigo === 'indexacao-pendente').length === 2,
     semDerivado.problemas.map((p) => p.codigo));
+
+  /* A CORREÇÃO VEM COM A RECUSA (16/11/2026).
+   *
+   * O DEFEITO, medido no expurgo da `duo`: a página dizia, para QUALQUER bloqueio, «corrija
+   * primeiro: reancore e regere os índices». O bloqueio era o elo, e as duas fases que essa
+   * instrução manda correr já passavam — a pessoa repetia e batia no mesmo muro. A correção passa
+   * a ser a do CÓDIGO do bloqueio, e a asserção que interessa é a que separa os dois conselhos. */
+  const todos = [semAncora, semRecriacao, semCobertura, semDerivado, semManifestoDoCiclo]
+    .flatMap((r) => r.problemas);
+  checar('todo bloqueio traz a SUA correção, e nenhuma é vazia',
+    todos.length > 0 && todos.every((p) => typeof p.comoCorrigir === 'string' && p.comoCorrigir.length > 20),
+    todos.filter((p) => !p.comoCorrigir).map((p) => p.codigo));
+
+  const correcao = (lista, codigo) => {
+    const p = lista.problemas.find((x) => x.codigo === codigo);
+    return (p && p.comoCorrigir) || '';
+  };
+  checar('o bloqueio do ELO não manda reancorar — foi o defeito da `duo`',
+    !/hash-ciclo/.test(correcao(semRecriacao, 'sem-recriacao')), correcao(semRecriacao, 'sem-recriacao'));
+  checar('…e diz onde se corrige: no elo (`criado_em` + `professor`, ou a recriação)',
+    /criado_em/.test(correcao(semRecriacao, 'sem-recriacao'))
+      && /registrar-recriacao/.test(correcao(semRecriacao, 'sem-recriacao')),
+    correcao(semRecriacao, 'sem-recriacao'));
+  checar('o bloqueio da ÂNCORA manda reancorar (é o que resolve aquele)',
+    /hash-ciclo/.test(correcao(semAncora, 'sem-ancora')), correcao(semAncora, 'sem-ancora'));
+  checar('…e o da derivação manda regerar o derivado, e não reancorar',
+    /gerar-indices\.js/.test(correcao(semDerivado, 'indexacao-pendente'))
+      && !/hash-ciclo/.test(correcao(semDerivado, 'indexacao-pendente')),
+    correcao(semDerivado, 'indexacao-pendente'));
+  checar('a ÂNCORA ÓRFÃ não manda reancorar (reancorar não cria o manifesto que falta)',
+    !/hash-ciclo/.test(correcao(semManifestoDoCiclo, 'ancora-orfa')),
+    correcao(semManifestoDoCiclo, 'ancora-orfa'));
+
+  /* E OS TRÊS CONSUMIDORES IMPRIMEM A FRASE DO NÚCLEO — nenhum reescreve a sua. */
+  const pagina = fs.readFileSync(path.join(RAIZ, 'raiz/index.html'), 'utf8');
+  checar('a página de apagar imprime `comoCorrigir` (e já não a frase do género)',
+    /p\.comoCorrigir/.test(pagina)
+      && !/reancora, `node tools\/gerar-indices\.js` regera o derivado/.test(pagina), null);
+  checar('o `tools/auditar-proveniencia.js` também',
+    /p\.comoCorrigir/.test(fs.readFileSync(path.join(RAIZ, 'tools/auditar-proveniencia.js'), 'utf8')), null);
+  checar('e a metade local do expurgo também',
+    /comoCorrigir/.test(fs.readFileSync(path.join(RAIZ, 'escola/expurgar.js'), 'utf8')), null);
 
   console.log('\nB. A ÁRVORE — a âncora é lida pelo MESMO parser do índice, e as fases são ditas');
 
