@@ -46651,3 +46651,108 @@ do repositório — verificado com `grep`.
   certo descobre que ele existe. É da natureza da funcionalidade, a mensagem de colisão já o fazia
   antes, e o remédio (identificar por CPF ou e-mail, como o cadastro já guarda) é trabalho
   seguinte, não um remendo.
+
+## 25/11/2026 — a vírgula que partiu a criação, as datas que contam a carência, e o financeiro
+
+**O que aconteceu.** Três coisas, e a primeira é minha.
+
+A criação da escola `breu` morreu no passo 8 de 10 com `Expected double-quoted property name in
+JSON at position 628`. A causa era uma vírgula a mais no `wrangler.danca.jsonc`: quando as duas
+últimas `var` (`PIX_CHAVE`, `PIX_TITULAR`) saíram do bloco para virarem segredos, a vírgula do
+`CORREIO_DE` ficou a fechar o objeto. O `wrangler` **aceita** a vírgula final — o deploy da raiz
+passou, no mesmo commit — e o `JSON.parse` dos dois utilitários não.
+
+Depois, ela pediu as datas de habilitação e desabilitação na lista das vivas, «para poder calcular
+o tempo do apagar escola»; um ecrã para pôr a chave Pix e conceder descontos; e perguntou o que eu
+queria dizer com «a C23 continua aberta» e com «o `RESEND_API_KEY`».
+
+**O que foi decidido.**
+
+- **Dois leitores do mesmo ficheiro são o defeito, e não a vírgula.** `tools/lib-jsonc.js` (novo)
+  passa a ser o leitor único dos `wrangler.*.jsonc`: comentários de linha, comentários de bloco e
+  vírgula pendurada — e mais nada, porque JSON5 (aspas simples, chaves sem aspas) não é o que o
+  `wrangler` lê, e aceitá-lo seria inventar uma gramática. O scanner anda carácter a carácter
+  porque uma expressão regular não sabe se a vírgula está dentro de uma string: `"Sistema Lastro
+  <lastro@padd.com.br>, "` é um valor legítimo, e um `replace` global cortava-lhe o fim — trocando
+  um erro que grita por um valor que mente. O erro passa também a **nomear o ficheiro**.
+- **A carência conta da DESABILITAÇÃO, em meses do calendário.** `desabilitadaEm` é gravado no
+  instante da suspensão, e `carenciaAte` soma três meses de calendário — o exemplo dela (12/01/2027
+  → 12/04/2027) ao dia. Contar 91 dias daria 13/04: um dia a mais, todos os anos, com um em cada
+  quatro a errar por dois.
+- **As duas datas são dois factos, e nenhuma apaga a outra.** Uma escola suspensa hoje e
+  reabilitada amanhã tem as duas verdadeiras — e a pergunta «já esteve suspensa?» continua a ter
+  resposta. Só o campo do estado que mudou é carimbado; carimbar os dois faria de cada um a data
+  da última coisa que aconteceu, que é o que o `atualizadoEm` já diz.
+- **O botão «Apagar escola» não esconde nada** — foi a escolha dela: «todas aparecem, e a linha diz
+  «pode apagar» ou «em carência até DD/MM/AAAA»». A lista é a ferramenta com que ela limpa escolas
+  de teste, e uma lista que esconde a escola que se quer apagar é uma lista que não serve. O
+  semáforo é a informação; o botão continua a ser dela.
+- **O financeiro é uma página, com dois assuntos.** «Financeiro» — uma palavra, sem adjetivo:
+  «configurações financeiras» promete preferências, e o que existe é dinheiro a entrar e dinheiro a
+  não entrar. Os dois ficam juntos porque são a mesma pergunta («quanto entra?») vista de dois
+  lados.
+- **A chave Pix mudou de casa, e a ordem entre as casas é a regra.** Era só o segredo do Worker;
+  agora há um ecrã para a trocar, e um segredo não se muda por um ecrã. O KV manda quando tem
+  registo, o segredo responde quando não há nenhum. E o registo do KV é a verdade **inteira**: a
+  primeira versão preenchia o titular em branco com o do segredo, o que numa chave nova é
+  atribuí-la ao nome de quem recebia a antiga.
+- **Os descontos moram numa chave só** (`financeiro/descontos`, com a lista dentro). Uma chave por
+  desconto obrigaria a enumerar o KV para desenhar a listagem — a enumeração é o que estourou a
+  cota diária em 18/10/2026. Um desconto por escola: o segundo substitui o primeiro, porque dois
+  descontos sobrepostos não têm uma soma que signifique alguma coisa.
+- **A C23 fica respondida, e a resposta não é subir o preço.** Ela foi directa: «essa capacidade
+  que subiu de seis professores e de 90 alunos já está definido e é o teto […] se for mais que
+  isso, aí vai ter que me procurar, conversar e aí eu refaço o preço.» Está escrito no
+  `PLANEJAMENTO-LASTRO.md`: **6/90 é o teto da escada**, e acima dele vende-se por conversa. A
+  receita que a decisão custou (R$ 490/mês nos quinze perfis medidos) deixa de ser uma perda em
+  aberto e passa a ser o preço de um teto explícito.
+
+**Onde entrou.** `tools/lib-jsonc.js` (novo) · `tools/publicar-mapa-de-escolas.js` ·
+`tools/publicar-dominio.js` · `wrangler.danca.jsonc` · `motor/servidor/raiz.js` (`carenciaAte`,
+as duas datas em `gravarComercial`, `lerPix`/`gravarPix`, `lerDescontos`/`concederDesconto`/
+`retirarDesconto`, `/financeiro`, `/api/financeiro/*`, o estado comercial em `/api/escolas`) ·
+`motor/servidor/painel-html.js` (as colunas «Habilitada» e «Desabilitada» com hora e carência,
+`paginaFinanceira`, `SCRIPT_DO_FINANCEIRO`) · `raiz/index.html` (o botão «Financeiro» e o prazo no
+cartão de apagar) · `biblioteca/comercial/planos.json` (a nota dos descontos) ·
+`PLANEJAMENTO-LASTRO.md` (C23) · `experimentos/provar-jsonc.js` e `provar-financeiro.js` (novos).
+
+**Com o quê.** `provar-jsonc` **22/22** · `provar-financeiro` **52/52** (a carência ao dia contra o
+exemplo dela, as duas datas, o KV sobre o segredo, uma chave só para os descontos, as colunas, a
+página, e `/financeiro` a responder **404** no endereço público) · `provar-cadastro-em-etapas`
+39/39 · `provar-pagina-publica` 73/73 · `provar-form-escola` todas · `provar-cofre-e-shard` 129/129
+· `provar-teste` 44/44 · `provar-indices` 58/58 · `provar-publicacao-da-escola` 73/73 ·
+`provar-expurgo-do-professor-compartilhado` 13/13 · `provar-recriacao-da-escola` todas ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**A sujeira que a criação abortada deixou, e que foi limpa.** As **7 chaves**
+`bastidores/breu/*` ficaram no KV — o passo que falhou é o penúltimo, e o desfazer do workflow
+remove o Worker e não o dado. A próxima tentativa com o mesmo nome herdava-as (o
+`conferir-kv.js` avisa e não trava; a trava do `pendenciaKv` só actua quando o elo do expurgo
+existe, e esta escola nunca chegou a ser commitada). Foram apagadas uma a uma, e a lista com o
+prefixo voltou vazia.
+
+**O que fica pendente, e é declarado.**
+
+- **O expurgo automático continua a olhar para o andaime** (`escolas-habilitadas.json` +
+  `PRAZO_EXPURGO_MS = 3 minutos`), e não para o `desabilitadaEm`. A regra dos três meses está no
+  ecrã e na conta; **não está a apagar nada sozinha** — e é de propósito: um trabalho agendado que
+  apaga escolas com base num estado comercial merece uma decisão dela, não a minha.
+- **O desconto não entra no cálculo do que se cobra.** A listagem regista-o; o valor que a página
+  de criar escola mostra é o do catálogo. Ligar as duas coisas exige decidir *quando* o desconto
+  abate (na primeira mensalidade? a partir da segunda?) e não há ainda cobrança recorrente para o
+  provar.
+- **`RESEND_API_KEY` continua por pôr**, e ela perguntou onde é que isso se cria. O caminho, em
+  quatro passos, e nenhum deles é código:
+
+  1. criar uma conta em **resend.com** (gratuita até 3.000 mensagens/mês, e o Sistema Lastro manda
+     uma por escola criada);
+  2. em **API Keys → Create API Key**, com a permissão de envio — a chave aparece **uma vez só**, e
+     é copiada nesse momento;
+  3. em **Domains → Add Domain**, `padd.com.br`, e acrescentar ao DNS os registos que ele mostra
+     (são três ou quatro linhas, e o Cloudflare do domínio já é dela);
+  4. guardar a chave no Worker, sem a escrever em ficheiro nenhum:
+     `printf '%s' '<a chave>' | npx wrangler secret put RESEND_API_KEY -c wrangler.danca.jsonc`.
+
+  Enquanto o passo 3 não estiver feito, o remetente `lastro@padd.com.br` é recusado pelo provedor —
+  e é por isso que a verificação do domínio vem antes de se tentar enviar. Sem a chave, o sistema
+  não finge: compõe a mensagem, guarda-a na caixa de saída da escola e di-lo na tela.
