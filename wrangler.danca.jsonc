@@ -78,10 +78,23 @@
     //
     // VAZIA, A PÁGINA DIZ QUE NÃO ESTÁ CONFIGURADA e a escola nasce a aguardar na mesma. É de
     // propósito: uma chave de exemplo num ecrã de pagamento é dinheiro enviado para o lado errado.
-    // Enquanto estiver vazia, ponha aqui a chave (CPF/CNPJ, e-mail, telefone ou aleatória) e o
-    // nome de quem recebe, e reimplante a raiz.
-    "PIX_CHAVE": "[Preencher: a chave Pix do Sistema Lastro]",
-    "PIX_TITULAR": "[Preencher: o nome de quem recebe]"
+    //
+    // A CHAVE NÃO FICA AQUI, E A RAZÃO NÃO É ESTÉTICA (25/11/2026). A chave é o CPF dela, e um
+    // CPF escrito neste ficheiro fica no histórico do git para sempre, em cada clone, e é lido
+    // por qualquer pessoa a quem se dê acesso ao repositório — mesmo depois de a chave mudar de
+    // banco. Vai como SEGREDO do Worker, que é o lugar onde já vivem o `GITHUB_TOKEN` e o
+    // `RESEND_API_KEY`:
+    //
+    //     printf '%s' '<a chave>' | npx wrangler secret put PIX_CHAVE -c wrangler.danca.jsonc
+    //     printf '%s' '<o nome de quem recebe>' | npx wrangler secret put PIX_TITULAR -c wrangler.danca.jsonc
+    //
+    // O COMANDO NÃO TRAZ A CHAVE, e é o ponto todo: escrita aqui — mesmo num comentário — ela
+    // ficaria no primeiro commit e em cada clone, que é exatamente o que se quer evitar.
+    //
+    // Um segredo e uma `var` com o mesmo nome são a MESMA chave em `env`, e o deploy recusa
+    // manter as duas — por isso `PIX_CHAVE` e `PIX_TITULAR` não estão declaradas acima. O
+    // `PIX_TITULAR` pode ficar por pôr: sem ele a página escreve «para o Sistema Lastro», que é
+    // verdade sem inventar o nome que o banco exige por extenso.
   },
 
   // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime
