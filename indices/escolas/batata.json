@@ -1,454 +1,61 @@
 {
-  "aspectos": [
-    {
-      "aspecto": "flexibilidade-dos-adutores",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261115-2215",
-      "ultima": "20261115-2215",
-      "versoes": 1
-    },
-    {
-      "aspecto": "meia-ponta",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261115-2215",
-      "ultima": "20261115-2215",
-      "versoes": 1
-    }
-  ],
-  "aulas": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
-        "cobertura": [
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md"
-        ],
-        "hash": "3a96df4c727da7e5eef8749425de95d10387caa7ab28d5f30a8be5fa23252ab5",
-        "hash_conteudo": "32a66465f8bda3212af1166ac51b22ea28cfff6fcc3b6065e826c644e38ceab0",
-        "id": "ciclo-01-batata-rosa-aula-01",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "documento": null,
-      "id": "ciclo:rimel-preto/01/batata/rosa/aula-01",
-      "numero": "01",
-      "variante": "rosa"
-    }
-  ],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
-        "cobertura": [
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
-          "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
-          "professores/rimel-preto/ciclos/ciclo-01.conf"
-        ],
-        "hash": "7ebf188787ec58765b0e90f35aee52f757a44734ad6fdece004be1ed8a6493f0",
-        "hash_conteudo": "fd8b20789dfce9cdca1b114e28aaf4cc74257789a777d129b69ebb2850f60003",
-        "id": "ciclo-01-batata-rosa",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [
-        {
-          "ancora": {
-            "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-15",
-            "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
-            "cobertura": [
-              "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-              "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md"
-            ],
-            "hash": "3a96df4c727da7e5eef8749425de95d10387caa7ab28d5f30a8be5fa23252ab5",
-            "hash_conteudo": "32a66465f8bda3212af1166ac51b22ea28cfff6fcc3b6065e826c644e38ceab0",
-            "id": "ciclo-01-batata-rosa-aula-01",
-            "lida": true,
-            "parent_hash": ""
-          },
-          "documento": null,
-          "id": "ciclo:rimel-preto/01/batata/rosa/aula-01",
-          "numero": "01",
-          "variante": "rosa"
-        }
-      ],
-      "documentos": [
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.cifrado.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
-        "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
-        "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
-        "professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:rimel-preto/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "rimel-preto",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "aula",
-        "dados",
-        "declaracao",
-        "glossario",
-        "harmonizacao",
-        "indice",
-        "manifesto",
-        "notacao",
-        "plano",
-        "po",
-        "referencias",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.fipp",
-      "professor": "rimel-preto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.fipp",
-      "professor": "rimel-preto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/rimel-preto/ciclos/ciclo-01-batata.fipp",
-      "professor": "rimel-preto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:aula:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-aula-01.md",
-      "professor": "rimel-preto",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:aula:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-aula-01.md",
-      "professor": "rimel-preto",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.cifrado.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.cifrado.json",
-      "professor": "rimel-preto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-dados.json",
-      "professor": "rimel-preto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:dados:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclo-01-batata-rosa-dados.json",
-      "professor": "rimel-preto",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:declaracao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-captura-declaracao.json",
-      "professor": "rimel-preto",
-      "tipo": "declaracao"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:glossario:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-glossario-benesh.md",
-      "professor": "rimel-preto",
-      "tipo": "glossario"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:harmonizacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-harmonizacao.md",
-      "professor": "rimel-preto",
-      "tipo": "harmonizacao"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:indice:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/ciclos.json",
-      "professor": "rimel-preto",
-      "tipo": "indice"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata-rosa.conf",
-      "professor": "rimel-preto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata.conf",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/rimel-preto/ciclos/ciclo-01-batata.conf",
-      "professor": "rimel-preto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:notacao:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-notacao.md",
-      "professor": "rimel-preto",
-      "tipo": "notacao"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:plano:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-plano.md",
-      "professor": "rimel-preto",
-      "tipo": "plano"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:po:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-po.md",
-      "professor": "rimel-preto",
-      "tipo": "po"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:referencias:professores/rimel-preto/ciclos/ciclo-01-batata-rosa-referencias.md",
-      "professor": "rimel-preto",
-      "tipo": "referencias"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata-rosa/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "rimel-preto",
-      "tipo": "schema"
-    },
-    {
-      "ancora_id": "ciclo-01-batata-rosa",
-      "caminho": "professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:rimel-preto/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/rimel-preto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "rimel-preto",
-      "tipo": "schema"
-    }
-  ],
+  "aspectos": [],
+  "aulas": [],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:rimel-preto/01/batata"
-    ],
+    "ciclos": [],
     "contagens": {
-      "anamneses": 1,
-      "aulas": 1,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
-      "planos": 1,
-      "pos": 2,
-      "recortes": 1,
-      "registros": 4
+      "anamneses": 0,
+      "aulas": 0,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
+      "planos": 0,
+      "pos": 0,
+      "recortes": 0,
+      "registros": 0
     },
     "criada_em": "2026-11-15T21:06:31.119832+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-15T20:23:48.197Z",
-    "expurgos": 12,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-16T00:01:42.090Z",
+    "expurgos": 13,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "rimel-preto",
     "professores": [
-      "rimel-preto"
+      "acucar-branco",
+      "cafe-no-bule",
+      "coqui-de-redinha",
+      "dedao-aberto",
+      "lapis-rosa",
+      "manga-curta",
+      "meia-cortada",
+      "pe-junto",
+      "pe-torto",
+      "perna-boa",
+      "rimel-preto",
+      "sapatilha-de-ponta",
+      "sapo-bailarino",
+      "so-para-direita",
+      "tela-de-celular",
+      "tiago-menegaz"
     ],
-    "registros": [
-      "anamnese:anamnese-20261115-1913",
-      "plano:plano-20261115-1921",
-      "po:po-20261115-1921",
-      "po:po-20261115-2017"
-    ],
+    "registros": [],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 4,
-        "ids": [
-          "anamnese:anamnese-20261115-1913",
-          "plano:plano-20261115-1921",
-          "po:po-20261115-1921",
-          "po:po-20261115-2017"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
-    "aspectos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "recorte:tami"
-        ],
-        "rotulo": "flexibilidade-dos-adutores",
-        "valor": "flexibilidade-dos-adutores"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "recorte:tami"
-        ],
-        "rotulo": "meia-ponta",
-        "valor": "meia-ponta"
-      }
-    ],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:rimel-preto/01/batata"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 5,
-        "ids": [
-          "anamnese:anamnese-20261115-1913",
-          "ciclo:rimel-preto/01/batata",
-          "plano:plano-20261115-1921",
-          "po:po-20261115-1921",
-          "po:po-20261115-2017"
-        ],
-        "rotulo": "rimel-preto",
-        "valor": "rimel-preto"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261115-1913"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:rimel-preto/01/batata"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "plano:plano-20261115-1921"
-        ],
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 2,
-        "ids": [
-          "po:po-20261115-1921",
-          "po:po-20261115-2017"
-        ],
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "anos": [],
+    "aspectos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "2bce754"
+    "commit": "5eb1d7a"
   },
-  "gerado_em": "2026-11-15T23:18",
+  "gerado_em": "2026-11-16T00:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -471,78 +78,7 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [
-    {
-      "alunas": 1,
-      "aspectos": [
-        "flexibilidade-dos-adutores",
-        "meia-ponta"
-      ],
-      "atualizada_em": "2026-11-15T22:15:23.613Z",
-      "enviada_em": "2026-11-15T22:15:24.102Z",
-      "id": "recorte:tami",
-      "linha": "tami",
-      "nome": "tami",
-      "professor": "rimel-preto",
-      "turma": null,
-      "versoes": [
-        {
-          "alunas": 1,
-          "arquivo": "escola/batata/linhas-de-base/tami--20261115-2215.json",
-          "aspectos": [
-            "meia-ponta",
-            "flexibilidade-dos-adutores"
-          ],
-          "enviada_em": "2026-11-15T22:15:24.102Z",
-          "versao": "20261115-2215"
-        }
-      ],
-      "vigente": true
-    }
-  ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261115-1913",
-      "ciclo": null,
-      "data": "2026-11-15T19:13",
-      "id": "anamnese:anamnese-20261115-1913",
-      "professor": "rimel-preto",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "plano-20261115-1921",
-      "ciclo": "01",
-      "data": "2026-11-15T19:21",
-      "id": "plano:plano-20261115-1921",
-      "objetivo": "Teste",
-      "professor": "rimel-preto",
-      "tipo": "plano",
-      "turma": "Rosa"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "po-20261115-1921",
-      "ciclo": "01",
-      "data": "2026-11-15T19:21",
-      "id": "po:po-20261115-1921",
-      "professor": "rimel-preto",
-      "tipo": "po"
-    },
-    {
-      "ajuste_de": "po-20261115-1921",
-      "ano": "2026",
-      "carimbo": "po-20261115-2017",
-      "ciclo": "01",
-      "data": "2026-11-15T20:17",
-      "id": "po:po-20261115-2017",
-      "professor": "rimel-preto",
-      "tipo": "po"
-    }
-  ],
+  "recortes": [],
+  "registros": [],
   "versao": 7
 }

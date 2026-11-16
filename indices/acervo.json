@@ -31,56 +31,48 @@
       "numero": "01",
       "professor": "pe-pequeno",
       "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "7ebf188787ec58765b0e90f35aee52f757a44734ad6fdece004be1ed8a6493f0",
-        "id": "ciclo-01-batata-rosa",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 20,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:rimel-preto/01/batata",
-      "numero": "01",
-      "professor": "rimel-preto",
-      "sem_ancora": false
     }
   ],
   "escolas": [
     {
-      "ciclos": [
-        "ciclo:rimel-preto/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 1,
-        "aulas": 1,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 1,
-        "pos": 2,
-        "recortes": 1,
-        "registros": 4
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "recortes": 0,
+        "registros": 0
       },
       "criada_em": "2026-11-15T21:06:31.119832+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-11-15T20:23:48.197Z",
-      "expurgos": 12,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-16T00:01:42.090Z",
+      "expurgos": 13,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "rimel-preto",
       "professores": [
-        "rimel-preto"
+        "acucar-branco",
+        "cafe-no-bule",
+        "coqui-de-redinha",
+        "dedao-aberto",
+        "lapis-rosa",
+        "manga-curta",
+        "meia-cortada",
+        "pe-junto",
+        "pe-torto",
+        "perna-boa",
+        "rimel-preto",
+        "sapatilha-de-ponta",
+        "sapo-bailarino",
+        "so-para-direita",
+        "tela-de-celular",
+        "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261115-1913",
-        "plano:plano-20261115-1921",
-        "po:po-20261115-1921",
-        "po:po-20261115-2017"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -141,13 +133,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 4,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -167,25 +153,35 @@
     ],
     "estados": [
       {
-        "contagem": 3,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
     ],
     "professores": [
       {
+        "contagem": 1,
+        "rotulo": "acucar-branco",
+        "valor": "acucar-branco"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Cafe No Bule",
+        "valor": "cafe-no-bule"
+      },
+      {
         "contagem": 0,
         "rotulo": "colo-de-pe",
         "valor": "colo-de-pe"
       },
       {
-        "contagem": 0,
-        "rotulo": "coqui-de-redinha",
+        "contagem": 1,
+        "rotulo": "Coqui De Redinha",
         "valor": "coqui-de-redinha"
       },
       {
-        "contagem": 1,
-        "rotulo": "Dedao Aberto",
+        "contagem": 2,
+        "rotulo": "Dedão Aberto",
         "valor": "dedao-aberto"
       },
       {
@@ -199,9 +195,24 @@
         "valor": "grand-plie"
       },
       {
-        "contagem": 0,
+        "contagem": 1,
         "rotulo": "lapis-rosa",
         "valor": "lapis-rosa"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manga-curta",
+        "valor": "manga-curta"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "meia-cortada",
+        "valor": "meia-cortada"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "pe-junto",
+        "valor": "pe-junto"
       },
       {
         "contagem": 1,
@@ -209,9 +220,14 @@
         "valor": "pe-pequeno"
       },
       {
-        "contagem": 0,
-        "rotulo": "pe-torto",
+        "contagem": 1,
+        "rotulo": "Pe Torto",
         "valor": "pe-torto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Perna Boa",
+        "valor": "perna-boa"
       },
       {
         "contagem": 0,
@@ -229,34 +245,38 @@
         "valor": "rimel-preto"
       },
       {
-        "contagem": 0,
-        "rotulo": "sapatilha-de-ponta",
+        "contagem": 1,
+        "rotulo": "Sapatilha de Ponta",
         "valor": "sapatilha-de-ponta"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "sapo-bailarino",
+        "valor": "sapo-bailarino"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "so-para-direita",
+        "valor": "so-para-direita"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "tela-de-celular",
+        "valor": "tela-de-celular"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "tiago-menegaz",
+        "valor": "tiago-menegaz"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 2,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "2bce754"
+    "commit": "5eb1d7a"
   },
-  "gerado_em": "2026-11-15T23:18",
+  "gerado_em": "2026-11-16T00:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -282,6 +302,26 @@
   "professores": [
     {
       "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:acucar-branco",
+      "nome": null,
+      "pasta": false,
+      "slug": "acucar-branco"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:cafe-no-bule",
+      "nome": "Cafe No Bule",
+      "pasta": false,
+      "slug": "cafe-no-bule"
+    },
+    {
+      "ciclos": [],
       "escolas": [],
       "id": "professor:colo-de-pe",
       "nome": null,
@@ -290,9 +330,11 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:coqui-de-redinha",
-      "nome": null,
+      "nome": "Coqui De Redinha",
       "pasta": true,
       "slug": "coqui-de-redinha"
     },
@@ -301,10 +343,11 @@
         "ciclo:dedao-aberto/01/breu"
       ],
       "escolas": [
+        "batata",
         "breu"
       ],
       "id": "professor:dedao-aberto",
-      "nome": "Dedao Aberto",
+      "nome": "Dedão Aberto",
       "pasta": true,
       "slug": "dedao-aberto"
     },
@@ -326,11 +369,43 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:lapis-rosa",
       "nome": null,
       "pasta": true,
       "slug": "lapis-rosa"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:manga-curta",
+      "nome": null,
+      "pasta": false,
+      "slug": "manga-curta"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:meia-cortada",
+      "nome": null,
+      "pasta": false,
+      "slug": "meia-cortada"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:pe-junto",
+      "nome": null,
+      "pasta": false,
+      "slug": "pe-junto"
     },
     {
       "ciclos": [
@@ -346,11 +421,23 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:pe-torto",
-      "nome": null,
+      "nome": "Pe Torto",
       "pasta": true,
       "slug": "pe-torto"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:perna-boa",
+      "nome": "Perna Boa",
+      "pasta": false,
+      "slug": "perna-boa"
     },
     {
       "ciclos": [],
@@ -369,9 +456,7 @@
       "slug": "redinha-rosa"
     },
     {
-      "ciclos": [
-        "ciclo:rimel-preto/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -382,11 +467,53 @@
     },
     {
       "ciclos": [],
-      "escolas": [],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:sapatilha-de-ponta",
-      "nome": null,
+      "nome": "Sapatilha de Ponta",
       "pasta": true,
       "slug": "sapatilha-de-ponta"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:sapo-bailarino",
+      "nome": null,
+      "pasta": false,
+      "slug": "sapo-bailarino"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:so-para-direita",
+      "nome": null,
+      "pasta": false,
+      "slug": "so-para-direita"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:tela-de-celular",
+      "nome": null,
+      "pasta": false,
+      "slug": "tela-de-celular"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:tiago-menegaz",
+      "nome": null,
+      "pasta": false,
+      "slug": "tiago-menegaz"
     }
   ],
   "versao": 7
