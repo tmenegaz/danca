@@ -1,95 +1,45 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-16",
-        "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
-        "cobertura": [
-          "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
-          "professores/dedao-aberto/ciclos/ciclo-01.conf"
-        ],
-        "hash": "b33c85894a1909397628f5b3adb90e82e19fee3c117e2ab2268fbecf6117960c",
-        "hash_conteudo": "3083f9fa15ac312004517f29c25ba8b3ca86f37bbd2168e9bffc800dc2119796",
-        "id": "ciclo-01-batata",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
-        "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
-        "professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:dedao-aberto/01/batata",
-      "numero": "01",
-      "pacote": null,
-      "professor": "dedao-aberto",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
-      "ciclo_id": "ciclo:dedao-aberto/01/batata",
-      "escola": "batata",
-      "id": "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-batata.fipp",
-      "professor": "dedao-aberto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
-      "ciclo_id": "ciclo:dedao-aberto/01/batata",
-      "escola": "batata",
-      "id": "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-batata.conf",
-      "professor": "dedao-aberto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:dedao-aberto/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "dedao-aberto",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:dedao-aberto/01/batata"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
     "criada_em": "2026-11-16T00:03:52.732057+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-16T00:01:42.090Z",
-    "expurgos": 13,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-16T00:28:42.857Z",
+    "expurgos": 14,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "dedao-aberto",
     "professores": [
-      "dedao-aberto"
+      "acucar-branco",
+      "cafe-no-bule",
+      "coqui-de-redinha",
+      "dedao-aberto",
+      "lapis-rosa",
+      "manga-curta",
+      "meia-cortada",
+      "pe-junto",
+      "pe-torto",
+      "perna-boa",
+      "rimel-preto",
+      "sapatilha-de-ponta",
+      "sapo-bailarino",
+      "so-para-direita",
+      "tela-de-celular",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "batata"
@@ -97,42 +47,15 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/batata"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/batata"
-        ],
-        "rotulo": "dedao-aberto",
-        "valor": "dedao-aberto"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/batata"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "d8e90a3"
+    "commit": "9831a13"
   },
-  "gerado_em": "2026-11-16T00:12",
+  "gerado_em": "2026-11-16T00:28",
   "nao_indexado": [
     {
       "familia": "conteudo",
