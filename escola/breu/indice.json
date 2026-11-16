@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -800,6 +800,63 @@
         ],
         "fontes": 1,
         "impressao": "e0f6c1343a43637bf332ddbd748e2e329981e2b3046db81df062f128f07420ec",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-16T11:00:36.439Z",
+      "motivo": "escola de ensaio criada por engano durante um diagnóstico — não é de nenhum professor",
+      "apagado": [
+        "professores/ana-diag/ciclos/ciclo-01-breu.conf",
+        "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
+        "professores/ana-diag/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/ana-diag/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/ana-diag/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/ana-diag/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/ana-diag/ciclos/ciclo-01-breu/index.html",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/ana-diag/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-16T11:00:36.439Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-16T11:00:32.584Z",
+        "ancoras": [
+          {
+            "caminho": "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
+            "id": "ciclo-01-breu",
+            "hash": "2dcc229a2df8a2cd5d97f6df1d84578e4d809e767b301be43ee42f6614684d3f",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "6a46224570a5e597b6c3df00eaa600fa91453fafb4b50eeb563ffff3f3aa9cee",
         "resumo": {
           "ancoras": 1,
           "fontes": 1,
