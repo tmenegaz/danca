@@ -1385,3 +1385,15 @@ experimentos/modelo-formulario/*
 # controlo negativo corre as mesmas asserções contra o código de HEAD — e lá o expurgo APAGA O
 # SCRIPT DO SHARD, que é o desastre que a guarda evita.
 !experimentos/provar-cofre-e-shard.js
+
+# O FORMULÁRIO DE CRIAR ESCOLA, PROVADO NO SCRIPT REAL DA PÁGINA (25/11/2026). Esta prova extrai o
+# `<script>` de `raiz/index.html` e corre-o contra um DOM falso para medir a regra do reúso: a opção
+# só se habilita depois do nome da escola, quem já está nela aparece mas não se escolhe, e a escola
+# que já existe é avisada antes de o formulário ser preenchido.
+#
+# ELA ESTAVA FORA DO VERSIONAMENTO E APODRECEU EM SILÊNCIO: quando a página ganhou o formulário em
+# etapas, o arreio falso não conhecia `documentElement`, `setAttribute` nem `removeAttribute` e
+# morria na primeira linha — «explodiu», que não é «reprovou». Uma prova que rebenta não mede nada,
+# e ninguém soube durante um dia porque ela não estava a ser corrida. Entra aqui: o que o REGISTRO
+# cita tem de poder ser conferido noutro clone.
+!experimentos/provar-form-escola.js

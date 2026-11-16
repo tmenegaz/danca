@@ -163,11 +163,18 @@ conferir('…e mantém a apresentação, a marca e o botão de criar',
 /* A PEÇA DO PAINEL SAI DO HTML, E NÃO SÓ SE ESCONDE (25/11/2026). Era esta a asserção de antes —
  * «vai marcada com `data-dono`» —, e a marcação mudou de propósito: ela pediu «remova», e a
  * remoção não depende de a folha chegar. A folha guarda a regra como segunda barreira, e é isso
- * que se mede a seguir no `provar-cadastro-em-etapas`, secção C. */
-conferir('…e as peças do painel NEM VÊM no HTML público',
+ * que se mede a seguir no `provar-cadastro-em-etapas`, secção C.
+ *
+ * `opcao-existente` SAIU DESTA LISTA (25/11/2026, o mesmo dia). Ela esteve aqui por uma decisão
+ * minha — «o público cria a pessoa; reaproveitar uma pasta é decisão de quem conhece o histórico»
+ * — e foi essa decisão que ela veio desfazer: «só tem uma opção aqui […] Você tirou. Tem que
+ * colocar aqui de volta.» O que sai do HTML público é o que só o dono pode fazer; reaproveitar um
+ * professor não é uma delas. */
+conferir('…e as peças SÓ DO DONO nem vêm no HTML público',
   capa.texto.indexOf('id="btn-apagar"') === -1 &&
-  capa.texto.indexOf('href="/professores"') === -1 &&
-  capa.texto.indexOf('id="opcao-existente"') === -1, null);
+  capa.texto.indexOf('href="/professores"') === -1, null);
+conferir('…mas a opção «um professor que já existe» VEM — ela pediu-a de volta no público',
+  capa.texto.indexOf('id="opcao-existente"') !== -1, null);
 
 const capaDono = await pedir('danca.padd.com.br', '/', { headers: AUTORIZACAO });
 conferir('no painel, a mesma página diz que é o painel',
@@ -441,18 +448,27 @@ console.log('\nH. A página pública abre sem lançar');
   const { JSDOM, VirtualConsole } = require('jsdom');
   const servidor = carregar('motor/servidor/raiz.js');
   const remover = servidor && servidor.removerDoPainel;
+  const marcar = servidor && servidor.marcarPagina;
   conferir('o servidor sabe retirar as peças do painel do que serve',
     typeof remover === 'function', null);
-  const publico = typeof remover === 'function' ? remover(htmlDaPagina) : htmlDaPagina;
+  conferir('…e sabe marcar qual das duas páginas está a servir',
+    typeof marcar === 'function', null);
+  /* A PÁGINA SERVIDA COMO O SERVIDOR A SERVE: marca primeiro, remoção depois — a ordem do
+   * `servirAPagina`. Sem a marca, `jsdom` corria o script do PAINEL e a asserção seguinte media
+   * outra página. */
+  const publico = typeof remover === 'function' && typeof marcar === 'function'
+    ? remover(marcar(htmlDaPagina, true))
+    : htmlDaPagina;
   conferir('…e o HTML público fica sem nenhum ELEMENTO com `data-dono`',
     !/<[a-zA-Z][^>]*\sdata-dono\b[^>]*>/.test(publico), null);
+  conferir('…e a marca da página viaja no `<html>`',
+    /<html[^>]*\sdata-pagina="publica"/i.test(publico), null);
 
   const erros = [];
   const paciente = new VirtualConsole();
   paciente.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
   paciente.on('error', (m) => erros.push(String(m)));
-  // eslint-disable-next-line no-new
-  new JSDOM(publico, {
+  const dom = new JSDOM(publico, {
     runScripts: 'dangerously',
     url: 'https://lastro.padd.com.br/',
     virtualConsole: paciente,
@@ -462,6 +478,22 @@ console.log('\nH. A página pública abre sem lançar');
   });
   conferir('a página pública NÃO lança ao abrir — um throw no topo mataria o resto do script',
     erros.length === 0, erros);
+
+  /* O PROFESSOR QUE JÁ EXISTE, NA PÁGINA PÚBLICA (25/11/2026). Ela apontou a falta com todas as
+   * letras: «só tem uma opção aqui, um professor novo […] não tem a outra opção aqui. Você tirou.»
+   * A opção volta — e sem lista, porque a lista de professores é o cadastro de clientes e não se
+   * publica num endereço aberto. Quem sabe que o professor existe é quem preenche. */
+  await new Promise((r) => setTimeout(r, 150));
+  const d = dom.window.document;
+  const opcao = d.getElementById('opcao-existente');
+  const radio = d.getElementById('modo-existente');
+  conferir('a opção «um professor que já existe» EXISTE na página pública', Boolean(opcao), null);
+  conferir('…e está habilitada sem lista nenhuma — não espera por um `<select>` que não vem',
+    Boolean(radio) && radio.disabled === false, radio ? radio.disabled : null);
+  conferir('…o campo é o ESCRITO: o `<select>` do painel não viaja, o input viaja',
+    !d.getElementById('professor-existente') && Boolean(d.getElementById('professor-existente-nome')), null);
+  conferir('…e o campo escrito está à vista (não nasce escondido no público)',
+    Boolean(d.getElementById('campo-existente-nome')) && d.getElementById('campo-existente-nome').hidden === false, null);
 }
 
 /* ==================================================================== o veredicto */

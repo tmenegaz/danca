@@ -416,11 +416,20 @@ async function medirRemocao() {
     ['«Ver só as apagadas»', '/escolas-apagadas'],
     ['«Ver só as vivas»', '/escolas-vivas'],
     ['«Professores»', 'href="/professores"'],
-    ['o reaproveitar de professor (é do painel)', 'id="opcao-existente"'],
     ['a nota das escolas de teste (é do painel)', 'id="nota-teste"'],
   ]) {
     conferir('o público deixa de ter ' + rotulo, removido.indexOf(agulha) === -1, agulha);
   }
+  /* O REAPROVEITAR DE PROFESSOR NÃO ESTÁ MAIS NESTA LISTA (25/11/2026). Esteve, por uma decisão
+   * minha — «reaproveitar uma pasta que já tem escola é decisão de quem conhece o histórico» —, e
+   * ela desfez a decisão: «só tem uma opção aqui […] Você tirou. Tem que colocar aqui de volta.»
+   * A opção fica nos DOIS endereços, e o que muda entre eles é a forma de responder: no painel
+   * escolhe-se numa lista, no público escreve-se o nome. */
+  conferir('…e a opção «um professor que já existe» FICA no público — ela pediu-a de volta',
+    removido.indexOf('id="opcao-existente"') !== -1, null);
+  conferir('…mas o `<select>` do painel não viaja: no público o campo é escrito',
+    removido.indexOf('id="professor-existente"') === -1 &&
+    removido.indexOf('id="professor-existente-nome"') !== -1, null);
   conferir('…e o que é público FICA: o botão de criar a escola',
     removido.indexOf('id="btn-criar"') !== -1, null);
   conferir('…e a apresentação fica inteira (marca e título)',
@@ -428,6 +437,97 @@ async function medirRemocao() {
   conferir('…e no painel NADA é removido',
     raizJs.removerDoPainel(PAGINA_HTML) === removido &&
     /id="btn-apagar"/.test(PAGINA_HTML), null);
+}
+
+/* ============================================== D. o professor que já existe, e o beco sem saída */
+
+/**
+ * O QUE ELA APONTOU, DUAS VEZES, E AS DUAS POR MOTIVOS DIFERENTES (25/11/2026):
+ *
+ *   1. «acontece que a opção de usar um professor que já existe não está habilitado» — a lista
+ *      vinha vazia porque o professor dela estava numa escola VIVA com o mesmo nome, e ele era o
+ *      único excluído;
+ *   2. «só tem uma opção aqui, um professor novo […] Você tirou» — a opção não existia na página
+ *      pública, por uma decisão minha.
+ *
+ * Aqui mede-se o que faz as duas não voltarem: no painel a opção está lá e leva a lista; e quando
+ * o servidor RECUSA por colisão, a página não se limita a dizer «use «usar este professor»» a
+ * quem está a ver um formulário — escolhe a opção e preenche o campo.
+ */
+async function medirReusoDoProfessor() {
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const raizJs = carregar('motor/servidor/raiz.js');
+  const paciente = new VirtualConsole();
+  paciente.on('jsdomError', () => {});
+  const marcar = raizJs && raizJs.marcarPagina;
+  /* A PÁGINA DO PAINEL, SERVIDA COMO O SERVIDOR A SERVE. Sem a marca, `PUBLICO` seria falso por
+   * omissão — e a asserção do público passaria a medir o painel sem o dizer. */
+  const markup = typeof marcar === 'function' ? marcar(PAGINA_HTML, false) : PAGINA_HTML;
+
+  const dom = new JSDOM(markup, {
+    runScripts: 'dangerously',
+    url: 'https://danca.padd.com.br/',
+    virtualConsole: paciente,
+    beforeParse(win) {
+      win.fetch = (url) => {
+        const caminho = String(url);
+        let corpo = { ok: true };
+        if (caminho.indexOf('api/professores') !== -1) {
+          corpo = { ok: true, professores: [{ slug: 'demi-plie', nome: 'Demi', pasta: true, escolas: [] }] };
+        } else if (caminho.indexOf('api/escolas') !== -1) {
+          corpo = { ok: true, escolas: [] };
+        } else if (caminho.indexOf('api/criar-escola') !== -1) {
+          corpo = {
+            ok: false,
+            colisao: 'demi-plie',
+            erro: 'já existe o professor "Demi" na pasta `professores/demi-plie/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
+          };
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(corpo) });
+      };
+    },
+  });
+  const doc = dom.window.document;
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  const clicar = (id) => { const el = doc.getElementById(id); if (el) el.click(); };
+  const texto = (id) => ((doc.getElementById(id) || {}).textContent || '');
+
+  clicar('btn-criar');
+  await espera(140);
+
+  conferir('no PAINEL, a opção «um professor que já existe» existe',
+    Boolean(doc.getElementById('opcao-existente')), null);
+  conferir('…e o campo do painel é a LISTA (o escrito fica escondido)',
+    Boolean(doc.getElementById('professor-existente')) &&
+    Boolean(doc.getElementById('campo-existente-nome')) &&
+    doc.getElementById('campo-existente-nome').hidden === true, null);
+
+  doc.getElementById('nome').value = 'Escola Nova';
+  doc.getElementById('nome').dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  await espera(40);
+  const radioExistente = doc.getElementById('modo-existente');
+  conferir('…e com a escola nomeada e um professor cadastrado, ela HABILITA',
+    Boolean(radioExistente) && radioExistente.disabled === false,
+    radioExistente ? radioExistente.disabled : null);
+
+  if (radioExistente) {
+    radioExistente.checked = true;
+    radioExistente.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    doc.getElementById('escola-cnpj').value = '11222333000181';
+    doc.getElementById('escola-email').value = 'e@x.com';
+    doc.getElementById('escola-telefone').value = '(51) 99999-0000';
+    doc.getElementById('senha').value = 'segredo-da-direcao';
+    clicar('btn-continuar');
+    await espera(50);
+    doc.getElementById('senha-professor').value = 'senha-do-professor';
+    clicar('btn-continuar');
+    await espera(50);
+    const etapa3 = doc.getElementById('etapa-3');
+    conferir('…e escolhido um professor que existe, a etapa 1 vai à etapa 3 sem nome nem CPF dele',
+      Boolean(etapa3) && etapa3.hidden === false, texto('res'));
+  }
+
+  dom.window.close();
 }
 
 /* ==================================================================== o veredicto */
@@ -441,6 +541,9 @@ async function medirRemocao() {
 
   console.log('\nC. O público: o que é do painel SAI do HTML, e não só se esconde');
   await medirRemocao();
+
+  console.log('\nD. O professor que já existe');
+  await medirReusoDoProfessor();
 
   console.log('');
   if (referencia) {
