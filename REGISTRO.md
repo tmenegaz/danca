@@ -46328,3 +46328,63 @@ lá, que é o que se quer) · `provar-teste` **44/44** · `provar-publicacao-da-
 sem o par do professor: continuam a abrir pela senha do shard (`123`), e a senha digitada na criação
 só passa a valer numa escola **criada de novo**. Não há migração silenciosa — escrever um hash exige
 a senha em claro, e a senha em claro não vai para o KV.
+
+## 25/11/2026 — o mesmo professor em duas escolas: quem paga a conta é a base do ciclo
+
+**O que aconteceu.** «Eu usei o mesmo nome de professor para a escola Batata e para a escola Breu.
+Eu fiz o expurgo da escola Batata, sucesso. Tentei fazer o expurgo da escola Breu e deu erro. Acho
+que isso é um problema. […] Deve ter talvez mais problemas relacionados a isso.»
+
+O erro da `breu` era verdadeiro e não estava nela:
+
+```
+[cobertura-quebrada] …/ciclo-01-breu.fipp cita …/ciclo-01.conf, que já não existe na árvore
+[ancora-nao-confere] … faltam 1 campo(s) obrigatório(s): CICLO
+```
+
+**O que foi decidido.**
+
+- **O manifesto BASE é do PAR (professor, ciclo), e é partilhado.** `ciclo-NN.conf` não é de uma
+  escola: é o que todas as escolas daquele professor naquele ciclo têm por baixo, e é citado pelo
+  `.fipp` de cada uma (a âncora conta-o entre as fontes, e é dele que sai o `CICLO` que o schema
+  exige). Ele sai **só** quando o ciclo fica sem escola nenhuma.
+- **A constatação que custou o estrago:** a pergunta «o professor tem outra escola neste ciclo?»
+  era respondida por `escolasDosCaminhos`, que reconhece uma escola pelo `wrangler.<slug>.jsonc`.
+  Uma escola que nasce **dentro de um shard não tem config** — é exactamente o que a impede de
+  ganhar um —, e portanto não era vista. As duas escolas eram de shard, e a resposta foi «não há
+  outra» com a outra viva ao lado.
+- **A mesma cegueira tinha o avesso, na mesma árvore:** o shard (`lastro-teste`) tem config e não é
+  escola, e aparecia na lista pronto a apagar, enquanto as escolas que vivem dentro dele não
+  apareciam. As duas metades são a mesma pergunta mal feita, e a correção é uma só: perguntar ao
+  **caminho**, e não a quem tem Worker.
+- **O elo sozinho não faz uma escola viva.** O expurgo preserva `escola/<slug>/indice.json` como
+  memória; uma lista que olhasse só para ele ofereceria para apagar tudo o que já foi apagado. A
+  escola viva é elo **mais** arquivos.
+- **A regra que já existia estava no lugar certo para a metade errada.** `escola/expurgar.js` (a
+  metade local) sempre decidiu a base pelo que **restou na pasta**; a metade da página decidia por
+  quem tem Worker. Passa a haver uma regra: `restosDoCiclo` + `manifestoQueSeApaga`, no módulo, e
+  a metade local continua a fazer o mesmo sobre o disco.
+
+**Onde entrou.** `motor/servidor/repo-escola.js` (`restosDoCiclo`, `manifestoQueSeApaga`,
+`escolasDosCaminhos`, `classificarPreservados`, `listarEscolas`) · `tools/criar-escola.sh` (o aviso
+da base que falta com outra escola viva) · `professores/dedao-aberto/ciclos/ciclo-01.conf`
+(reposto) · `experimentos/provar-expurgo-do-professor-compartilhado.js` (novo) · `indices/**`.
+
+**Com o quê.** `provar-expurgo-do-professor-compartilhado` **13/13**, com controle negativo contra
+`9831a13c` — o commit do expurgo da `batata`, e não `HEAD`: lá as asserções da regra nova falham
+(**5 falhas**), que é o defeito a aparecer. Mais `provar-expurgo-raiz`, `provar-indices` 64/64,
+`provar-cofre-e-shard` 129/129, `provar-publicacao-da-escola` 73/73, `check-indices` 16/16,
+`check-identidade` 0 erros, e `node tools/auditar-proveniencia.js breu` → **OK**.
+
+**O estrago foi consertado por acrescento, não por reescrita.** O `ciclo-01.conf` foi reposto com os
+mesmos bytes do commit anterior ao expurgo (`d6b3cba0`), e com isso a âncora da `breu` volta a
+conferir **sem reancorar nada** — o que também prova que era exactamente ele que faltava. Nenhum
+commit foi reescrito, e o elo do expurgo da `batata` continua no índice dela como memória do que
+houve.
+
+**Uma pergunta que fica em aberto, e não é técnica.** Hoje o nome do professor é o **diretório**
+(`professores/<slug>/`) e o vínculo com as escolas é por ele. Duas escolas do mesmo professor no
+mesmo ciclo partilham a base — é o que se quer. Mas a base carrega `NOME="Ciclo 01 — <escola>"`
+dentro, o que é texto de UMA escola num arquivo de TODAS. Não foi mexido nesta correção (mexer
+agora mudaria o hash das âncoras de todas as escolas daquele professor); fica registado como
+pergunta, não como decisão.
