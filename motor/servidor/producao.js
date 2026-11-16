@@ -601,6 +601,56 @@ async function comIdentidadeDaEscola(env, escola) {
   return Object.assign({}, env, sobreposto);
 }
 
+/**
+ * O ESTADO COMERCIAL, DO KV DA ESCOLA (25/11/2026).
+ *
+ * A chave é a mesma que a raiz escreve (`bastidores/<escola>/comercial`, ver `raiz.js`): uma
+ * chave, dois leitores, e é isso que impede a lista das vivas de dizer «ativa» sobre uma escola
+ * que o endereço recusa.
+ *
+ * AUSENTE → `ativa`. As escolas de antes desta versão não têm registo, e tratá-las como
+ * «aguardando» fechava-as todas no dia do deploy. Um estado novo acrescenta-se ao passado; não o
+ * reescreve.
+ *
+ * O CACHE É POR PEDIDO, e não de isolate: o estado muda por um clique dela, e um valor guardado
+ * entre pedidos faria a escola continuar aberta depois de suspensa — ou fechada depois de
+ * habilitada — até o isolate morrer. Uma leitura de KV por pedido é o preço de um estado que muda
+ * fora do sistema.
+ */
+async function comercialDaEscola(env) {
+  const kv = env && env.PADD_KV;
+  const escola = String((env && env.ESCOLA_SLUG) || '').trim();
+  if (!kv || typeof kv.get !== 'function' || !escola) return null;
+  const texto = await kv.get('bastidores/' + escola + '/comercial');
+  if (!texto) return { estado: 'ativa', motivo: 'sem registo comercial' };
+  let registo = null;
+  try { registo = JSON.parse(texto); } catch (erro) { return { estado: 'ativa', motivo: 'registo ilegível' }; }
+  const estado = ['aguardando', 'ativa', 'suspensa'].indexOf(String(registo.estado || '')) !== -1
+    ? String(registo.estado) : 'ativa';
+  return Object.assign({}, registo, { estado });
+}
+
+/**
+ * ESTE PEDIDO ESCREVE? — a pergunta que separa «ler» de «editar» (25/11/2026).
+ *
+ * A REGRA É `GET` LÊ TUDO O RESTO ESCREVE, com UMA excepção declarada: as rotas que são `POST`
+ * por natureza e não escrevem nada — validar a senha do professor e emitir o bilhete do ato. Sem
+ * essa excepção, uma escola suspensa fechava também a ENTRADA de quem já trabalha nela, e o
+ * professor não conseguiria chegar às páginas para ler o que está feito. «Só leitura» que não
+ * deixa entrar não é leitura nenhuma.
+ */
+const POSTS_QUE_SO_LEEM = new Set([
+  '/api/bastidores/validar-senha',
+  '/api/bastidores/ato',
+]);
+
+function ehEscrita(request, path) {
+  const metodo = String((request && request.method) || 'GET').toUpperCase();
+  if (metodo === 'GET' || metodo === 'HEAD' || metodo === 'OPTIONS') return false;
+  if (metodo === 'POST' && POSTS_QUE_SO_LEEM.has(path)) return false;
+  return true;
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -753,6 +803,53 @@ async function fetch(request, env) {
     return respostaEstado('Escola desabilitada',
       '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
       '<p>Escola: <code>' + esc(env.ESCOLA_SLUG) + '</code></p>', 503);
+  }
+
+  /* 0.0-bis O ESTADO COMERCIAL DA ESCOLA (25/11/2026).
+   *
+   * O QUE ELA DECIDIU, e é a regra que se segue: «Bateu na minha conta, eu verifico e aí libero o
+   * acesso. […] Depois que eu libero, aí sim é que a pessoa vai ter acesso total à página e poder
+   * começar a usar.» E, do outro lado: «Se eu desabilitar, sai do ar a escola imediatamente e só
+   * tem acesso a ler as coisas que já foram desenvolvidas […] mas fica impossível criar qualquer
+   * outro documento, fazer qualquer edição.»
+   *
+   * DOIS ESTADOS QUE NÃO SÃO `ativa`, e duas coisas diferentes:
+   *
+   *   · `aguardando` — a escola existe e ainda ninguém conciliou o pagamento. NÃO HÁ O QUE LER:
+   *     ninguém trabalhou ali ainda. O endereço responde a página de espera, com o prazo.
+   *   · `suspensa` — a escola trabalhou e o pagamento parou. O QUE ESTÁ FEITO CONTINUA A LER-SE (é
+   *     a decisão dela, e é a certa: cortar a leitura de um relatório já escrito seria apagar
+   *     trabalho, não cobrar). O que fica impossível é ESCREVER.
+   *
+   * A AUSÊNCIA DE REGISTO É `ativa` — ver `lerComercial` no `raiz.js`. É o que mantém as escolas
+   * de antes a funcionar, e um estado novo não se impõe ao passado.
+   *
+   * A PÁGINA DE «A CRIAR» VEM ANTES DISTO. Uma escola que acabou de nascer não tem pacote, e o
+   * que ela deve mostrar é «estou a ser criada» — não «aguardo pagamento», que seria verdade e
+   * fora de tempo. Por isso o estado comercial só age quando há pacote publicado. */
+  if (path !== '/api/saude') {
+    let comercial = null;
+    try { comercial = await comercialDaEscola(env); } catch (erro) { comercial = null; }
+    if (comercial && comercial.estado === 'aguardando' && escolaDoPacote) {
+      return respostaEstado('Escola a aguardar liberação',
+        '<p>Esta escola foi criada e está a aguardar a conciliação do pagamento.</p>' +
+        '<p>A liberação é feita à mão e acontece em <strong>até 24 horas</strong> a contar do ' +
+        'pagamento. Assim que estiver liberada, este mesmo endereço abre a escola.</p>' +
+        '<p class="nota">Escola: <code>' + esc(env.ESCOLA_SLUG) + '</code></p>', 503);
+    }
+    if (comercial && comercial.estado === 'suspensa' && ehEscrita(request, path)) {
+      /* A RECUSA É UM 402, e não um 403: não é «não tens permissão», é «o acesso está suspenso» —
+       * e a diferença importa a quem lê o erro. O corpo é JSON quando o pedido é de uma rota de
+       * dados (a página mostra a mensagem), e texto quando é uma navegação. */
+      const mensagem = 'O acesso desta escola está suspenso: é possível ler o que já foi criado, '
+        + 'mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
+      if (path.startsWith('/api/')) {
+        return new Response(JSON.stringify({ ok: false, erro: mensagem, suspensa: true }), {
+          status: 402, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+      }
+      return respostaEstado('Acesso suspenso', '<p>' + esc(mensagem) + '</p>', 402);
+    }
   }
 
   // 0.0 AS ESCOLAS DE TESTE (19/10/2026). A rota e o script existem em TODAS as
@@ -1146,6 +1243,9 @@ async function fetch(request, env) {
  * outra forma. Sem isto, ela provaria o adaptador da prova, e não o da produção. */
 module.exports = {
   fetch, comAparencia, aparenciaDoEnv, menuDaEscola,
+  /* O ESTADO COMERCIAL E A FRONTEIRA «ler × escrever» (25/11/2026), exportadas porque são a REGRA
+   * que a prova mede sem um Worker à frente: um estado errado aqui abre ou fecha a escola inteira. */
+  comercialDaEscola, ehEscrita, POSTS_QUE_SO_LEEM,
   /* A ÁRVORE, exportada para a prova (14/11/2026). A bancada do shard mede `caminhoNaArvore` e
    * `ehAssetPartilhado` directamente — são elas que decidem se `/aulas/` vira `/calango/aulas/`
    * e se `/assets/style.css` fica quieto, e uma prova que as reconstruísse mediria a prova. */

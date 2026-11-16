@@ -37,102 +37,220 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 
     <div class="modal" id="modal-criar" hidden>
       <div class="modal-fundo" data-fechar></div>
-      <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+      <div class="modal-caixa modal-largo" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
         <div class="modal-cab">
           <h2 id="modal-titulo">Criar nova escola</h2>
           <button class="modal-x" id="btn-fechar" type="button" aria-label="Fechar">&times;</button>
         </div>
         <form class="form" id="form-criar">
-          <!-- ── A ESCOLA (25/11/2026) ─────────────────────────────────────────────────────
-               O cadastro que a página pública recolhe, e que a do proprietário passou a
-               oferecer também. Sem endereço: a decisão dela foi «não precisa ter o endereço
-               da escola». O nome é o que já existia; o resto nasceu com a página aberta.
+          <!-- ══════════════════════════════════════════════════════════════════════════════
+               O CADASTRO EM QUATRO ETAPAS (25/11/2026).
 
-               NADA DISSO VAI PARA O ÍNDICE VERSIONADO. O CPF, o CNPJ, o e-mail e o telefone
-               ficam no KV — a verificação 7 do `check-indices` proíbe os campos de contato nos
-               índices do acervo, e com razão: o repositório é público para quem tem o token. -->
-          <label class="campo-rotulo" for="nome">Nome da escola</label>
-          <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
-          <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. Uma das
-               três palavras no nome — «Calango», «Batata» ou «Breu» — faz o Worker
-               carregar `teste/<palavra>.json` nos formulários. É só preenchimento de
-               campo: nada é enviado. Remover esta nota (e a linha `teste-detectado` do
-               JS) quando o recurso deixar de ser necessário. -->
-          <p class="aviso" id="nota-teste" data-dono>
-            <b>Escola de teste (temporário).</b> Para nascer com os dados de teste, o nome
-            precisa conter uma destas palavras: <code>Calango</code>, <code>Batata</code>
-            ou <code>Breu</code> — por exemplo, só <code>Batata</code>. São três escolas de
-            teste; o resto do nome é livre, e a palavra pode estar em qualquer posição.
-          </p>
-          <p class="res" id="teste-detectado" hidden data-dono></p>
+               O que ela pediu, e é literal: «Precisa melhorar a identidade visual desse novo
+               formulário para criar escola. Ele está parecendo uma tripa comprida e imensa. […]
+               Pode alargar esse modal e vamos dividir em duas colunas. E aí vamos colocar
+               steps. O primeiro step ele é para criar a escola […] Aí vai para o segundo step,
+               que é onde eu vou criar o nome completo do professor […] e aí a gente vai para um
+               outro step, que é a escolha do plano e das extensões e o quarto step é o do
+               pagamento, que é via PIX.»
 
-          <label class="campo-rotulo" for="escola-cnpj">CNPJ da escola</label>
-          <input id="escola-cnpj" name="escola-cnpj" autocomplete="off" inputmode="numeric"
-                 placeholder="00.000.000/0000-00">
-          <label class="campo-rotulo" for="escola-email">E-mail da escola</label>
-          <input id="escola-email" name="escola-email" type="email" autocomplete="off"
-                 placeholder="escola@exemplo.com.br">
-          <label class="campo-rotulo" for="escola-telefone">Telefone da escola</label>
-          <input id="escola-telefone" name="escola-telefone" autocomplete="off" inputmode="tel"
-                 placeholder="(51) 3333-0000">
+               As quatro etapas, e o que vai em cada uma:
+                 1. A ESCOLA — nome, CNPJ, e-mail, telefone e a senha da direção.
+                 2. O PROFESSOR PRINCIPAL — quem é (novo ou já existente), nome completo,
+                    sobrenome, CPF, e-mail, telefone, habilidade e senha.
+                 3. O PLANO — a assinatura e as extensões de capacidade.
+                 4. O PAGAMENTO — a chave Pix, o valor e a conciliação (manual, por ela).
 
-          <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
-          <input id="senha" name="senha" type="password" autocomplete="new-password">
-          <fieldset class="quem">
-            <legend>Quem é o professor desta escola?</legend>
-            <label class="opcao" id="opcao-novo">
-              <input type="radio" name="modo-professor" value="novo" id="modo-novo" checked>
-              <span>Um professor novo <em>— a pasta dele ainda não existe</em></span>
-            </label>
-            <!-- O REÚSO DE UM PROFESSOR QUE JÁ EXISTE É DO PAINEL (25/11/2026). A página pública
-                 cria a pessoa; reaproveitar uma pasta que já tem escola é uma decisão de quem
-                 conhece o histórico, e essa pessoa é uma só. Esconder aqui não é proteger (o
-                 servidor aceita o campo dos dois lados) — é não oferecer um caminho que quem se
-                 está a registar não tem como avaliar. -->
-            <label class="opcao" id="opcao-existente" data-dono>
-              <input type="radio" name="modo-professor" value="existente" id="modo-existente">
-              <span>Um professor que já existe <em id="dica-existente">— informe o nome da escola primeiro</em></span>
-            </label>
-          </fieldset>
+               A ORDEM NÃO É ESTÉTICA: a etapa 3 precisa do plano para calcular o valor que a
+               etapa 4 mostra, e o valor é `assinatura + Σ lotes` (a regra da C23). E a etapa 2
+               vem antes da 3 porque o cadastro da escola é o que se sabe primeiro — quem abre o
+               formulário já sabe o nome da escola, e quase nunca já sabe o plano.
 
-          <div id="bloco-novo">
-            <label class="campo-rotulo" for="professor-nome">Nome completo do professor</label>
-            <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Ana">
-            <!-- O SOBRENOME FICA SEPARADO PORQUE É DELE QUE SAI O DESEMPATE (15/10/2026): a pasta
-                 `professores/<slug>/` é do sistema, e duas pessoas com o mesmo primeiro nome caem
-                 na mesma. O rótulo continua «sobrenome» para não parecer um segundo nome completo. -->
-            <label class="campo-rotulo" for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
-            <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
-            <label class="campo-rotulo" for="professor-cpf">CPF do professor</label>
-            <input id="professor-cpf" name="professor-cpf" autocomplete="off" inputmode="numeric"
-                   placeholder="000.000.000-00">
-            <label class="campo-rotulo" for="professor-email">E-mail do professor</label>
-            <input id="professor-email" name="professor-email" type="email" autocomplete="off"
-                   placeholder="professor@exemplo.com.br">
-            <label class="campo-rotulo" for="professor-telefone">Telefone do professor</label>
-            <input id="professor-telefone" name="professor-telefone" autocomplete="off" inputmode="tel"
-                   placeholder="(51) 99999-0000">
-            <!-- A HABILIDADE É DECLARADA POR QUEM ENTRA (25/11/2026). Até aqui o professor nascia
-                 habilitado numa modalidade fixa, porque só a proprietária criava escolas e ela é
-                 professora de balé clássico. A decisão dela: «agora ele é que vai determinar nesse
-                 cadastro». A lista vem do catálogo (`biblioteca/modalidades/modalidades.json`), e
-                 não de uma cópia — um id que o catálogo não conhece é recusado na criação. -->
-            <label class="campo-rotulo" for="professor-modalidade">Habilidade do professor (o que ele ensina)</label>
-            <select id="professor-modalidade" name="professor-modalidade"></select>
-          </div>
+               AS ETAPAS NÃO SÃO ABAS. Aba esconde sem dizer que há mais; etapa diz «1 de 4» e
+               não deixa avançar sem o que a seguinte precisa. O `aria-current="step"` é o estado,
+               e os botões «Voltar»/«Continuar» são a única forma de mudar de etapa.
+               ══════════════════════════════════════════════════════════════════════════════ -->
+          <ol class="etapas" id="etapas">
+            <li aria-current="step">Escola</li>
+            <li>Professor</li>
+            <li>Plano</li>
+            <li>Pagamento</li>
+          </ol>
 
-          <div id="bloco-existente" hidden>
-            <label class="campo-rotulo" for="professor-existente">Professor</label>
-            <select id="professor-existente" name="professor-existente"></select>
-          </div>
+          <!-- ── ETAPA 1 — A ESCOLA ───────────────────────────────────────────────────── -->
+          <section class="etapa" id="etapa-1" aria-labelledby="etapa-1-titulo">
+            <h3 class="etapa-titulo" id="etapa-1-titulo">A escola</h3>
+            <div class="etapa-campos">
+              <p class="etapa-campo largo">
+                <label class="campo-rotulo" for="nome">Nome da escola</label>
+                <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
+              </p>
+              <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. Uma das três
+                   palavras no nome — «Calango», «Batata» ou «Breu» — faz o Worker carregar
+                   `teste/<palavra>.json` nos formulários. É só preenchimento de campo: nada é
+                   enviado. Remover esta nota quando o recurso deixar de ser necessário. -->
+              <p class="etapa-campo largo" id="nota-teste" data-dono>
+                <span class="aviso">
+                  <b>Escola de teste (temporário).</b> Para nascer com os dados de teste, o nome
+                  precisa conter uma destas palavras: <code>Calango</code>, <code>Batata</code>
+                  ou <code>Breu</code>. São três escolas de teste; o resto do nome é livre.
+                </span>
+              </p>
+              <p class="etapa-campo largo res" id="teste-detectado" hidden data-dono></p>
+              <p class="etapa-campo">
+                <label class="campo-rotulo" for="escola-cnpj">CNPJ da escola</label>
+                <input id="escola-cnpj" name="escola-cnpj" autocomplete="off" inputmode="numeric"
+                       placeholder="00.000.000/0000-00">
+              </p>
+              <p class="etapa-campo">
+                <label class="campo-rotulo" for="escola-telefone">Telefone da escola</label>
+                <input id="escola-telefone" name="escola-telefone" autocomplete="off" inputmode="tel"
+                       placeholder="(51) 3333-0000">
+              </p>
+              <p class="etapa-campo">
+                <label class="campo-rotulo" for="escola-email">E-mail da escola</label>
+                <input id="escola-email" name="escola-email" type="email" autocomplete="off"
+                       placeholder="escola@exemplo.com.br">
+              </p>
+              <p class="etapa-campo">
+                <label class="campo-rotulo" for="senha">Senha da direção da escola</label>
+                <input id="senha" name="senha" type="password" autocomplete="new-password">
+              </p>
+            </div>
+          </section>
 
-          <p class="aviso alerta" id="aviso-escola-existente" hidden></p>
+          <!-- ── ETAPA 2 — O PROFESSOR PRINCIPAL ──────────────────────────────────────── -->
+          <section class="etapa" id="etapa-2" aria-labelledby="etapa-2-titulo" hidden>
+            <h3 class="etapa-titulo" id="etapa-2-titulo">O professor principal</h3>
+            <div class="etapa-campos">
+              <fieldset class="quem etapa-campo largo">
+                <legend>Quem é o professor desta escola?</legend>
+                <label class="opcao" id="opcao-novo">
+                  <input type="radio" name="modo-professor" value="novo" id="modo-novo" checked>
+                  <span>Um professor novo <em>— a pasta dele ainda não existe</em></span>
+                </label>
+                <!-- O REÚSO DE UM PROFESSOR QUE JÁ EXISTE É DO PAINEL (25/11/2026). A página
+                     pública cria a pessoa; reaproveitar uma pasta que já tem escola é decisão de
+                     quem conhece o histórico, e essa pessoa é uma só. -->
+                <label class="opcao" id="opcao-existente" data-dono>
+                  <input type="radio" name="modo-professor" value="existente" id="modo-existente">
+                  <span>Um professor que já existe <em id="dica-existente">— informe o nome da escola primeiro</em></span>
+                </label>
+              </fieldset>
 
-          <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
-          <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
+              <div class="etapa-campos largo" id="bloco-novo">
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-nome">Nome do professor</label>
+                  <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Ana">
+                </p>
+                <!-- O SOBRENOME FICA SEPARADO PORQUE É DELE QUE SAI O DESEMPATE (15/10/2026): a
+                     pasta `professores/<slug>/` é do sistema, e duas pessoas com o mesmo primeiro
+                     nome caem na mesma. -->
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-sobrenome">Sobrenome (ou apelido)</label>
+                  <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
+                </p>
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-cpf">CPF do professor</label>
+                  <input id="professor-cpf" name="professor-cpf" autocomplete="off" inputmode="numeric"
+                         placeholder="000.000.000-00">
+                </p>
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-telefone">Telefone do professor</label>
+                  <input id="professor-telefone" name="professor-telefone" autocomplete="off" inputmode="tel"
+                         placeholder="(51) 99999-0000">
+                </p>
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-email">E-mail do professor</label>
+                  <input id="professor-email" name="professor-email" type="email" autocomplete="off"
+                         placeholder="professor@exemplo.com.br">
+                </p>
+                <!-- A HABILIDADE É DECLARADA POR QUEM ENTRA (25/11/2026). Era `bale-classico`
+                     fixo no scaffolder, porque só a proprietária criava escolas. A lista vem do
+                     catálogo (`/api/pagina`), e o servidor recusa um id que não esteja nele — é
+                     a MESMA modalidade que os Bastidores → Produção → Professor mostram, porque
+                     os dois leem `biblioteca/modalidades/modalidades.json`. -->
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="professor-modalidade">Habilidade (o que ele ensina)</label>
+                  <select id="professor-modalidade" name="professor-modalidade"></select>
+                </p>
+                <p class="etapa-campo">
+                  <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
+                  <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
+                </p>
+              </div>
+
+              <div class="etapa-campos largo" id="bloco-existente" hidden>
+                <p class="etapa-campo largo">
+                  <label class="campo-rotulo" for="professor-existente">Professor</label>
+                  <select id="professor-existente" name="professor-existente"></select>
+                </p>
+              </div>
+
+              <p class="aviso alerta etapa-campo largo" id="aviso-escola-existente" hidden></p>
+            </div>
+          </section>
+
+          <!-- ── ETAPA 3 — O PLANO ────────────────────────────────────────────────────── -->
+          <section class="etapa" id="etapa-3" aria-labelledby="etapa-3-titulo" hidden>
+            <h3 class="etapa-titulo" id="etapa-3-titulo">O plano</h3>
+            <div class="etapa-campos">
+              <!-- OS PLANOS VÊM DO CATÁLOGO (`biblioteca/comercial/planos.json`, servido em
+                   `/api/pagina`). NÃO se escreve um preço nesta página: a fonte única é o JSON,
+                   e um preço copiado para o HTML é o que divergiria do cobrado. Os cartões usam
+                   as peças `.escolhas`/`.escolha`, que já existem — uma escolha é uma escolha,
+                   seja de modalidade ou de plano. -->
+              <fieldset class="escolhas etapa-campo largo" id="planos-lista">
+                <legend>Qual plano</legend>
+              </fieldset>
+              <p class="etapa-campo largo" id="planos-extensoes"></p>
+              <fieldset class="escolhas etapa-campo largo" id="lotes-lista" hidden>
+                <legend>Capacidade a mais (por lote, na mensalidade)</legend>
+              </fieldset>
+              <p class="etapa-campo largo res" id="resumo-do-plano"></p>
+            </div>
+          </section>
+
+          <!-- ── ETAPA 4 — O PAGAMENTO ────────────────────────────────────────────────── -->
+          <section class="etapa" id="etapa-4" aria-labelledby="etapa-4-titulo" hidden>
+            <h3 class="etapa-titulo" id="etapa-4-titulo">O pagamento, por Pix</h3>
+            <div class="etapa-campos">
+              <div class="etapa-campo largo" id="pix-bloco">
+                <p id="pix-instrucoes">A carregar a chave Pix…</p>
+                <p class="etapa-campo largo">
+                  <label class="campo-rotulo" for="pix-chave">Chave Pix (copia e cola)</label>
+                  <input id="pix-chave" readonly>
+                </p>
+                <p class="etapa-campo largo">
+                  <label class="campo-rotulo" for="pix-valor">Valor da primeira mensalidade</label>
+                  <input id="pix-valor" readonly>
+                </p>
+              </div>
+              <!-- A CONCILIAÇÃO É MANUAL, E A PÁGINA DIZ ISSO EM VEZ DE PROMETER
+                   INSTANTANEIDADE. É a decisão dela: «a conciliação bancária é feita por mim, é
+                   feita manualmente. […] O tempo para fazer isso é de até 24 horas.» Um sistema
+                   que escrevesse «acesso liberado» logo a seguir à criação estaria a mentir sobre
+                   o que ainda não aconteceu. -->
+              <p class="etapa-campo largo aviso" id="pix-conciliacao">
+                <b>Como funciona.</b> O pagamento vai direto para a conta do Sistema Lastro e a
+                conciliação é feita à mão. Assim que ela for confirmada — <b>em até 24 horas</b> —,
+                o acesso à escola é liberado e o professor recebe o aviso no e-mail do cadastro.
+              </p>
+              <p class="etapa-campo largo" data-dono>
+                <label class="opcao" for="dispensar-pagamento">
+                  <input type="checkbox" id="dispensar-pagamento" name="dispensar-pagamento">
+                  <span>Sou o proprietário e já conciliei este pagamento <em>— a escola nasce
+                    aguardando a minha habilitação</em></span>
+                </label>
+              </p>
+            </div>
+          </section>
+
           <div class="modal-acoes">
+            <button class="acao grande secundario" id="btn-voltar" type="button" hidden>Voltar</button>
             <button class="acao grande secundario" id="btn-cancelar" type="button">Cancelar</button>
-            <button class="acao grande" type="submit">Criar</button>
+            <button class="acao grande" id="btn-continuar" type="button">Continuar</button>
+            <button class="acao grande" id="btn-criar-escola" type="submit" hidden>Criar a escola</button>
           </div>
         </form>
         <div class="res" id="res"></div>
@@ -623,50 +741,176 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           var form = document.getElementById("form-criar");
           var res = document.getElementById("res");
 
-          /* AS HABILIDADES VÊM DO CATÁLOGO (25/11/2026), e de mais nenhum sítio: a lista das
-           * modalidades que o sistema oferece é `biblioteca/modalidades/modalidades.json`, e o
-           * Worker a serve em `/api/pagina` — nos DOIS endereços, porque a mesma página corre nos
-           * dois. Uma lista escrita aqui dentro seria a segunda cópia, e a que envelhece.
+          /* ── O QUE O WORKER DIZ A ESTA PÁGINA (25/11/2026) ──────────────────────────────
            *
-           * O `temConteudo` VAI NO RÓTULO. Uma modalidade sem repertório ainda não tem conteúdo
-           * de ciclo — escolhê-la não impede nada, mas quem escolhe tem de o saber antes, e não
-           * depois de a primeira aula não ter o que gerar. */
-          var HABILIDADES = null;
-          function carregarHabilidades() {
-            if (HABILIDADES) return Promise.resolve(HABILIDADES);
+           * Uma leitura serve a três coisas, e as três vêm do MESMO sítio de verdade:
+           *   · `habilidades` — o catálogo de modalidades (`biblioteca/modalidades/…`), que é o
+           *     mesmo que os Bastidores → Produção → Professor mostram. Duas cópias divergiriam,
+           *     e o sintoma seria um professor habilitado numa modalidade que a escola não oferece.
+           *   · `planos` — a composição comercial (`biblioteca/comercial/planos.json`). NENHUM
+           *     preço está escrito nesta página: o exibido, o calculado e o cobrado saem do JSON.
+           *   · `pix` — a chave e o titular, que são `var`s do Worker e não deste ficheiro.
+           *
+           * `modo` diz se a página é o painel ou a pública: é ele que decide o que é OBRIGATÓRIO
+           * no cadastro, e a decisão fica no servidor com ele — a página só a espelha. */
+          var PAGINA = null;
+          function carregarPagina() {
+            if (PAGINA) return Promise.resolve(PAGINA);
             return fetch("api/pagina").then(function (r) { return r.json(); }).then(function (d) {
-              HABILIDADES = (d && d.habilidades) || [];
-              var sel = document.getElementById("professor-modalidade");
-              if (sel) {
-                sel.innerHTML = "";
-                HABILIDADES.forEach(function (h) {
-                  var o = document.createElement("option");
-                  o.value = h.id;
-                  o.textContent = h.nome + (h.temConteudo ? "" : " (sem repertório ainda)");
-                  sel.appendChild(o);
-                });
-              }
-              return HABILIDADES;
+              PAGINA = d || {};
+              pintarHabilidades();
+              pintarPlanos();
+              pintarPix();
+              return PAGINA;
             }).catch(function () {
-              HABILIDADES = [];
-              return HABILIDADES;
+              PAGINA = { habilidades: [], planos: null, pix: null };
+              pintarHabilidades();
+              pintarPlanos();
+              pintarPix();
+              return PAGINA;
             });
           }
-          carregarHabilidades();
+
+          function pintarHabilidades() {
+            var lista = (PAGINA && PAGINA.habilidades) || [];
+            var sel = document.getElementById("professor-modalidade");
+            if (!sel) return;
+            sel.innerHTML = "";
+            lista.forEach(function (h) {
+              var o = document.createElement("option");
+              o.value = h.id;
+              /* O `temConteudo` VAI NO RÓTULO e não numa nota ao lado: uma modalidade sem
+               * repertório ainda não tem conteúdo de ciclo, e quem a escolhe tem de o saber antes
+               * de a primeira aula não ter o que gerar. */
+              o.textContent = h.nome + (h.temConteudo ? "" : " (sem repertório ainda)");
+              sel.appendChild(o);
+            });
+          }
+          carregarPagina();
 
           function abrir() {
             modal.hidden = false;
-            document.getElementById("nome").focus();
-            carregarHabilidades();
+            /* A JANELA ABRE SEMPRE NA PRIMEIRA ETAPA. Reabrir num passo a meio — o que acontecia
+             * se a última criação falhasse na etapa 4 — faria a pessoa cair num ecrã de pagamento
+             * sem saber de que cadastro ele é. */
+            ETAPA = 1;
+            irPara(1);
+            carregarPagina().then(function () { pintarPlanos(); pintarPix(); });
             carregarProfessores();
             pintarModo();
             atualizarOpcaoExistente();
             pintarTeste();
+            document.getElementById("nome").focus();
           }
           function fechar() {
             modal.hidden = true;
             res.className = "res";
             res.textContent = "";
+          }
+
+          /* ── AS QUATRO ETAPAS ───────────────────────────────────────────────────────────
+           *
+           * O CADASTRO VIROU UM PERCURSO, e não uma lista. A razão é a que ela deu: «Ele está
+           * parecendo uma tripa comprida e imensa.» Catorze campos numa coluna de 440px não se
+           * leem — leem-se como uma tarefa sem fim. Quatro etapas de dois ou três campos cada,
+           * com o indicador a dizer «1 de 4», dão o tamanho do que falta.
+           *
+           * CADA ETAPA VALIDA O QUE A SEGUINTE PRECISA, e não mais do que isso. Não se pede
+           * tudo no fim: quem chega à etapa 2 já sabe que a escola tem nome e CNPJ, e o erro de
+           * um campo aparece ao lado dele, não a três ecrãs de distância.
+           *
+           * A VALIDAÇÃO DA PÁGINA É ESPELHO DA DO SERVIDOR, e não a regra. O servidor recusa
+           * outra vez, e é ele que manda — a página só evita a viagem de ida e volta com um erro
+           * que ela já podia ver. Duas regras que se contradissessem apareceriam como «a página
+           * deixou, o servidor não».
+           *
+           * O QUE É OBRIGATÓRIO MUDA COM A PORTA: na página PÚBLICA o CNPJ, o e-mail e o
+           * telefone da escola são exigidos; no painel não (as escolas de teste dela não têm
+           * CNPJ). A assimetria vem do `modo`, que é o servidor que o diz. */
+          var ETAPA = 1;
+          var TOTAL_DE_ETAPAS = 4;
+
+          function v(id) { return ((document.getElementById(id) || {}).value || "").trim(); }
+          function soDigitos(t) { return String(t || "").replace(/\D+/g, ""); }
+          function ehPublica() { return Boolean(PAGINA && PAGINA.modo === "publico"); }
+
+          function irPara(n) {
+            var alvo = Math.max(1, Math.min(TOTAL_DE_ETAPAS, n));
+            ETAPA = alvo;
+            for (var i = 1; i <= TOTAL_DE_ETAPAS; i += 1) {
+              var painel = document.getElementById("etapa-" + i);
+              if (painel) painel.hidden = i !== alvo;
+            }
+            var itens = document.querySelectorAll("#etapas li");
+            for (var j = 0; j < itens.length; j += 1) {
+              var num = j + 1;
+              if (num === alvo) itens[j].setAttribute("aria-current", "step");
+              else itens[j].removeAttribute("aria-current");
+              if (num < alvo) itens[j].setAttribute("data-feito", "");
+              else itens[j].removeAttribute("data-feito");
+            }
+            document.getElementById("btn-voltar").hidden = alvo === 1;
+            document.getElementById("btn-continuar").hidden = alvo === TOTAL_DE_ETAPAS;
+            document.getElementById("btn-criar-escola").hidden = alvo !== TOTAL_DE_ETAPAS;
+            res.className = "res";
+            res.textContent = "";
+            if (alvo === 3) pintarPlanos();
+            if (alvo === 4) pintarPix();
+            var titulo = document.getElementById("etapa-" + alvo + "-titulo");
+            if (titulo && titulo.focus) { titulo.setAttribute("tabindex", "-1"); titulo.focus(); }
+          }
+
+          /** O que falta nesta etapa — dito pelo NOME do campo, e um de cada vez. */
+          function faltaNaEtapa(n) {
+            var publica = ehPublica();
+            if (n === 1) {
+              if (!v("nome")) return "informe o nome da escola";
+              if (publica || v("escola-cnpj")) {
+                if (soDigitos(v("escola-cnpj")).length !== 14) return "o CNPJ da escola tem de ter 14 dígitos";
+              }
+              if (publica || v("escola-email")) {
+                if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v("escola-email"))) return "informe um e-mail válido da escola";
+              }
+              if (publica || v("escola-telefone")) {
+                if (soDigitos(v("escola-telefone")).length < 10) return "o telefone da escola precisa de DDD e número";
+              }
+              if (!v("senha")) return "informe a senha da direção da escola";
+              return "";
+            }
+            if (n === 2) {
+              if (!v("senha-professor")) return "informe a senha do professor";
+              if (modo() === "existente") {
+                if (!v("professor-existente")) return "escolha o professor desta escola";
+                return "";
+              }
+              if (!v("professor-nome")) return "informe o nome do professor";
+              if (!v("professor-sobrenome")) return "informe o sobrenome (ou apelido) do professor — é ele que separa dois professores do mesmo nome";
+              if (soDigitos(v("professor-cpf")).length !== 11) return "o CPF do professor tem de ter 11 dígitos";
+              if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v("professor-email"))) return "informe um e-mail válido do professor";
+              if (soDigitos(v("professor-telefone")).length < 10) return "o telefone do professor precisa de DDD e número";
+              if (!v("professor-modalidade")) return "escolha a habilidade do professor";
+              return "";
+            }
+            if (n === 3) {
+              if (!planoEscolhido()) return "escolha o plano da escola";
+              return "";
+            }
+            return "";
+          }
+
+          function continuar() {
+            var falta = faltaNaEtapa(ETAPA);
+            if (falta) {
+              res.className = "res erro";
+              res.textContent = falta;
+              trazer(res);
+              return;
+            }
+            /* A REVISÃO ANTES DO PAGAMENTO (etapa 3 → 4). O valor é o que a pessoa vai pagar, e
+             * ele não pode mudar depois de ela transferir: recalcula-se aqui, e a etapa 4 mostra
+             * este número fechado. */
+            if (ETAPA === 3) pintarPix();
+            irPara(ETAPA + 1);
           }
 
           // A LISTA DE PROFESSORES QUE JÁ EXISTEM — o que impede duas pessoas de dividirem a pasta
@@ -858,9 +1102,222 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           });
           pintarModo();
 
+          /* ── OS PLANOS E O PIX ─────────────────────────────────────────────────────────
+           *
+           * OS CARTÕES DE PLANO SAEM DO CATÁLOGO, e o preço de cada um também: o que está escrito
+           * aqui é o DESENHO, não o valor. Um preço copiado para o HTML é o que divirja do cobrado
+           * no dia em que a tabela mudar — e é o defeito que a frente L8 do planejamento existe
+           * para impedir.
+           *
+           * O TOTAL É `assinatura + Σ lotes` (a regra da C23), e mostra-se decomposto: quem paga
+           * R$ 149,90 tem de ver de onde vêm os R$ 50. Um número único que não se explica é o que
+           * faz a pessoa desistir no passo do pagamento. */
+          var PLANO = "";
+          var LOTES = { professores: [], alunos: [] };
+
+          function planoEscolhido() { return PLANO; }
+
+          function pintarPlanos() {
+            var caixa = document.getElementById("planos-lista");
+            if (!caixa) return;
+            var catalogo = (PAGINA && PAGINA.planos) || null;
+            var legenda = caixa.querySelector("legend");
+            caixa.innerHTML = "";
+            if (legenda) caixa.appendChild(legenda);
+            if (!catalogo || !(catalogo.assinaturas || []).length) {
+              var aviso = document.createElement("p");
+              aviso.className = "aviso";
+              aviso.textContent = "Não consegui ler a tabela de planos — a escola pode ser criada, "
+                + "mas fica sem plano declarado.";
+              caixa.appendChild(aviso);
+              return;
+            }
+            (catalogo.assinaturas || []).forEach(function (pl) {
+              var rotulo = document.createElement("label");
+              rotulo.className = "escolha";
+              var r = document.createElement("input");
+              r.type = "radio";
+              r.name = "plano";
+              r.value = pl.id;
+              if (pl.id === PLANO) r.checked = true;
+              var texto = document.createElement("span");
+              texto.appendChild(document.createTextNode(pl.nome + " — " + pl.precoTexto + "/" + catalogo.periodicidade));
+              var mi = document.createElement("small");
+              mi.appendChild(document.createElement("br"));
+              mi.appendChild(document.createTextNode(pl.resumo || ""));
+              mi.appendChild(document.createElement("br"));
+              mi.appendChild(document.createTextNode("Inclui " + pl.professores + " professor(es) e "
+                + pl.alunos + " aluna(s) · " + pl.consultas + " consultas"));
+              texto.appendChild(mi);
+              rotulo.appendChild(r);
+              rotulo.appendChild(texto);
+              r.addEventListener("change", function () {
+                PLANO = pl.id;
+                lotesDoPlano();
+                pintarResumo();
+                pintarPix();
+              });
+              caixa.appendChild(rotulo);
+            });
+            pintarExtensoes();
+            pintarLotes();
+            pintarResumo();
+          }
+
+          function pintarExtensoes() {
+            var alvo = document.getElementById("planos-extensoes");
+            if (!alvo) return;
+            alvo.innerHTML = "";
+            var catalogo = (PAGINA && PAGINA.planos) || null;
+            if (!catalogo || !PLANO) return;
+            var minhas = (catalogo.extensoes || []).filter(function (e) {
+              return (e.em || []).indexOf(PLANO) !== -1;
+            });
+            if (!minhas.length) return;
+            var titulo = document.createElement("p");
+            titulo.className = "campo-rotulo";
+            titulo.textContent = "O que este plano inclui";
+            alvo.appendChild(titulo);
+            var lista = document.createElement("ul");
+            lista.className = "nota";
+            minhas.forEach(function (e) {
+              var li = document.createElement("li");
+              li.textContent = e.nome + " — " + e.descricao;
+              lista.appendChild(li);
+            });
+            alvo.appendChild(lista);
+          }
+
+          /* A CAPACIDADE A MAIS É POR LOTE, e o lote é RECORRENTE: entra na mensalidade todos os
+           * meses (ver `biblioteca/comercial/planos.json`). A página diz «por mês» ao lado do
+           * preço — quem compra um lote e o vê somado à mensalidade sem aviso sente-se enganado,
+           * e tem razão. */
+          function pintarLotes() {
+            var caixa = document.getElementById("lotes-lista");
+            if (!caixa) return;
+            var catalogo = (PAGINA && PAGINA.planos) || null;
+            var legenda = caixa.querySelector("legend");
+            caixa.innerHTML = "";
+            if (legenda) caixa.appendChild(legenda);
+            if (!catalogo || !catalogo.lotes) { caixa.hidden = true; return; }
+            var eixos = [["professores", "professor(es)"], ["alunos", "aluna(s)"]];
+            var algum = false;
+            eixos.forEach(function (par) {
+              var eixo = par[0], rotulo = par[1];
+              (catalogo.lotes[eixo] || []).forEach(function (lote, i) {
+                algum = true;
+                var id = "lote-" + eixo + "-" + i;
+                var rotuloEl = document.createElement("label");
+                rotuloEl.className = "escolha";
+                var c = document.createElement("input");
+                c.type = "checkbox";
+                c.id = id;
+                c.checked = LOTES[eixo].indexOf(lote.qtd) !== -1;
+                var texto = document.createElement("span");
+                texto.appendChild(document.createTextNode("+" + lote.qtd + " " + rotulo
+                  + " — R$ " + String(lote.preco).replace(".", ",") + "/mês"));
+                rotuloEl.appendChild(c);
+                rotuloEl.appendChild(texto);
+                c.addEventListener("change", function () {
+                  if (c.checked) {
+                    if (LOTES[eixo].indexOf(lote.qtd) === -1) LOTES[eixo].push(lote.qtd);
+                  } else {
+                    LOTES[eixo] = LOTES[eixo].filter(function (q) { return q !== lote.qtd; });
+                  }
+                  pintarResumo();
+                  pintarPix();
+                });
+                caixa.appendChild(rotuloEl);
+              });
+            });
+            caixa.hidden = !algum;
+          }
+
+          /** Os lotes que deixaram de existir quando o plano mudou saem — a tabela é a mesma. */
+          function lotesDoPlano() {
+            var catalogo = (PAGINA && PAGINA.planos) || null;
+            if (!catalogo || !catalogo.lotes) return;
+            ["professores", "alunos"].forEach(function (eixo) {
+              var validos = (catalogo.lotes[eixo] || []).map(function (l) { return l.qtd; });
+              LOTES[eixo] = LOTES[eixo].filter(function (q) { return validos.indexOf(q) !== -1; });
+            });
+            pintarLotes();
+          }
+
+          /** A CONTA, feita aqui para mostrar — e refeita pelo servidor, que é quem manda. */
+          function calcularAqui() {
+            var catalogo = (PAGINA && PAGINA.planos) || null;
+            if (!catalogo || !PLANO) return null;
+            var plano = (catalogo.assinaturas || []).filter(function (p) { return p.id === PLANO; })[0];
+            if (!plano) return null;
+            var cent = function (n) { return Math.round(Number(n) * 100); };
+            var total = cent(plano.preco);
+            var capacidade = 0;
+            var partes = [];
+            ["professores", "alunos"].forEach(function (eixo) {
+              (catalogo.lotes[eixo] || []).forEach(function (lote) {
+                var quantos = LOTES[eixo].filter(function (q) { return q === lote.qtd; }).length;
+                if (!quantos) return;
+                capacidade += cent(lote.preco) * quantos;
+                partes.push(quantos + " × +" + lote.qtd + " " + (eixo === "professores" ? "professor(es)" : "aluna(s)")
+                  + " (R$ " + String(lote.preco).replace(".", ",") + ")");
+              });
+            });
+            var reais = function (c) { return "R$ " + (c / 100).toFixed(2).replace(".", ","); };
+            return {
+              plano: plano,
+              partes: partes,
+              base: reais(cent(plano.preco)),
+              capacidade: reais(capacidade),
+              total: reais(cent(plano.preco) + capacidade),
+            };
+          }
+
+          function pintarResumo() {
+            var alvo = document.getElementById("resumo-do-plano");
+            if (!alvo) return;
+            if (!PLANO) { alvo.textContent = ""; return; }
+            var conta = calcularAqui();
+            if (!conta) { alvo.textContent = ""; return; }
+            var linhas = [conta.plano.nome + ": " + conta.base];
+            conta.partes.forEach(function (p) { linhas.push(p); });
+            alvo.textContent = linhas.join("  ·  ") + "  →  " + conta.total + " por mês";
+          }
+
+          function pintarPix() {
+            var chave = document.getElementById("pix-chave");
+            var valor = document.getElementById("pix-valor");
+            var instrucoes = document.getElementById("pix-instrucoes");
+            if (!chave || !valor) return;
+            var conta = calcularAqui();
+            valor.value = conta ? conta.total + " por mês" : "";
+            var pix = (PAGINA && PAGINA.pix) || null;
+            /* SEM CHAVE CONFIGURADA, A PÁGINA NÃO INVENTA UMA. É a mesma disciplina do e-mail
+             * que não finge ter saído: uma chave de exemplo num ecrã de pagamento é dinheiro
+             * enviado para o lado errado. O `PIX_CHAVE` é uma `var` do Worker, e o aviso diz o
+             * comando que a põe. */
+            if (pix && pix.chave) {
+              chave.value = pix.chave;
+              if (instrucoes) {
+                instrucoes.textContent = "Pague por Pix para " + (pix.titular || "o Sistema Lastro")
+                  + ", com o valor abaixo, e guarde o comprovante. A liberação é manual.";
+              }
+            } else {
+              chave.value = "";
+              if (instrucoes) {
+                instrucoes.textContent = "A chave Pix ainda não está configurada neste sistema. "
+                  + "A escola é criada e fica aguardando a conciliação.";
+              }
+            }
+            var dispensar = document.getElementById("dispensar-pagamento");
+            if (dispensar) dispensar.disabled = !conta;
+          }
+
           btn.addEventListener("click", abrir);
           document.getElementById("btn-fechar").addEventListener("click", fechar);
           document.getElementById("btn-cancelar").addEventListener("click", fechar);
+          document.getElementById("btn-continuar").addEventListener("click", continuar);
+          document.getElementById("btn-voltar").addEventListener("click", function () { irPara(ETAPA - 1); });
           modal.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fechar(); });
           document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) fechar(); });
 
@@ -906,7 +1363,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 professorTelefone: doZero ? v("professor-telefone") : "",
                 modalidade: doZero ? v("professor-modalidade") : "",
                 professorExistente: doZero ? "" : v("professor-existente"),
-                senhaProfessor: v("senha-professor")
+                senhaProfessor: v("senha-professor"),
+                /* O PLANO E A CAPACIDADE (25/11/2026) vão SEMPRE, e o servidor recusa um plano
+                 * que não esteja no catálogo. O `dispensarPagamento` só tem efeito na porta do
+                 * proprietário — o servidor ignora-o na pública, e é ele que decide. */
+                plano: PLANO,
+                lotesProfessores: LOTES.professores,
+                lotesAlunos: LOTES.alunos,
+                dispensarPagamento: Boolean((document.getElementById("dispensar-pagamento") || {}).checked)
               })
             }).then(function (r) { return r.json(); }).then(function (d) {
               if (d.ok) {
@@ -919,6 +1383,17 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 var html = "Escola criada.";
                 if (d.url) {
                   html += " <a href=\"" + d.url + "\">" + d.url + "</a>";
+                }
+                /* O ESTADO COMERCIAL É PARTE DO RESULTADO (25/11/2026). A escola nasce
+                 * «aguardando conciliação» — ela é criada, o motor sobe, e o acesso só abre quando
+                 * o pagamento for conciliado à mão. Dizer «escola criada» e parar aqui deixaria a
+                 * pessoa a tentar entrar numa escola que ainda responde «aguardando liberação». */
+                if (d.comercial && d.comercial.estado === "aguardando") {
+                  html += "<br><br><strong>O acesso ainda não está aberto.</strong> O pagamento é "
+                    + "conciliado à mão, e a liberação acontece em <strong>até 24 horas</strong>. "
+                    + "Até lá, o endereço acima responde que a escola está a aguardar liberação.";
+                } else if (d.comercial && d.comercial.estado === "ativa") {
+                  html += "<br><br><strong>O acesso já está aberto.</strong>";
                 }
                 // Não há mais o caso «o Worker «zero» subiu, mas o disparo falhou»: quando o
                 // disparo falha, a raiz DESFAZ o Worker e responde em erro (502). Uma escola

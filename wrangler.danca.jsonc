@@ -68,7 +68,20 @@
     // (Resend) para este endereço poder enviar. O TOKEN NÃO ESTÁ AQUI: é o secret
     // `RESEND_API_KEY` (`npx wrangler secret put RESEND_API_KEY --config wrangler.danca.jsonc`).
     // Sem ele o sistema não finge que enviou — compõe, guarda a mensagem e di-lo na tela.
-    "CORREIO_DE": "Sistema Lastro <lastro@padd.com.br>"
+    "CORREIO_DE": "Sistema Lastro <lastro@padd.com.br>",
+
+    // A CHAVE PIX DO PAGAMENTO (25/11/2026). A decisão dela: «a gente vai colocar ali a minha
+    // chave Pix e o pagamento direto para a minha conta. Bateu na minha conta, eu verifico e aí
+    // libero o acesso» — e «a conciliação bancária é feita por mim, é feita manualmente». Não há
+    // gateway, não há cobrança automática e não há QR Code gerado por nós: há uma chave, um valor
+    // e uma pessoa que confere o extrato.
+    //
+    // VAZIA, A PÁGINA DIZ QUE NÃO ESTÁ CONFIGURADA e a escola nasce a aguardar na mesma. É de
+    // propósito: uma chave de exemplo num ecrã de pagamento é dinheiro enviado para o lado errado.
+    // Enquanto estiver vazia, ponha aqui a chave (CPF/CNPJ, e-mail, telefone ou aleatória) e o
+    // nome de quem recebe, e reimplante a raiz.
+    "PIX_CHAVE": "[Preencher: a chave Pix do Sistema Lastro]",
+    "PIX_TITULAR": "[Preencher: o nome de quem recebe]"
   },
 
   // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime

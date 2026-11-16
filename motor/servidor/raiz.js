@@ -24,6 +24,9 @@ const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = requir
  * o núcleo não sabe o que é um KV. */
 const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
 const correio = require('./correio.js');
+/* A COMPOSIÇÃO COMERCIAL (25/11/2026) — os planos, a capacidade e a conta, de uma fonte só
+ * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
+const comercial = require('../nucleo/comercial.js');
 /* O diagnóstico do endereço próprio (`/api/dominio`) — o mesmo módulo que o provisionamento usa
  * para criar o registo e a rota. É de propósito: o diagnóstico não pode ter uma segunda opinião
  * sobre o que é «ter endereço». */
@@ -159,6 +162,36 @@ async function escolasDoIndice({ token }) {
   // A LISTA E OS NOMES SAEM DA MESMA LEITURA. Quem chama usa as duas coisas: a tabela mostra a
   // PESSOA (nome) e ordena por ela; o slug continua a ser a identidade.
   return [escolas, acervo.professores || []];
+}
+
+/**
+ * A LISTA DE ESCOLAS **COM** O ESTADO COMERCIAL (25/11/2026).
+ *
+ * A tabela das vivas passou a ter uma coluna que não vem do índice: o estado comercial vive no KV,
+ * por escola (`bastidores/<escola>/comercial`). Ler os dois numa função só evita o defeito clássico
+ * desta casa — duas leituras, duas opiniões sobre o mesmo instante — e mantém a lista com UMA
+ * chamada ao repositório, como antes.
+ *
+ * A LEITURA DO KV É POR ESCOLA, e são poucas: um `get` por linha da tabela. Não se enumera o
+ * namespace (ao contrário da criação, onde a varredura é precisa), porque a lista já sabe os slugs
+ * e enumerar traria as chaves de todas as escolas para responder sobre as que estão à vista.
+ */
+async function escolasDoIndiceComComercial({ token, kv }) {
+  const [escolas, professores] = await escolasDoIndice({ token });
+  const comEstado = [];
+  for (const e of escolas) {
+    const comercial = await lerComercial(kv, e.slug);
+    comEstado.push(Object.assign({}, e, {
+      comercial: {
+        estado: comercial.estado,
+        plano: comercial.plano || null,
+        planoNome: comercial.planoNome || null,
+        valor: comercial.valor || null,
+        atualizadoEm: comercial.atualizadoEm || null,
+      },
+    }));
+  }
+  return [comEstado, professores];
 }
 
 /**
@@ -504,6 +537,47 @@ async function responderCriacao(request, env, opcoes) {
     }
     const cadastro = cadastroValidado.cadastro;
 
+    /* O PLANO E A CAPACIDADE (25/11/2026) — validados contra o catálogo, e não confiados.
+     *
+     * É a mesma disciplina do cadastro: a página propõe, o servidor decide. Um plano fora do
+     * catálogo é recusado AGORA — e o `dispensarPagamento` só vale na porta do proprietário
+     * (`origem === 'painel'`), porque obrigá-la a pagar a si mesma em cada ensaio fecharia a porta
+     * a quem mais usa o sistema. */
+    const escolhaComercial = comercial.validarEscolha(corpo, { podeDispensar: origem === 'painel' });
+    if (!escolhaComercial.ok) {
+      return responderJson({ ok: false, erro: escolhaComercial.erro }, 400);
+    }
+    const escolha = escolhaComercial.escolha;
+
+    /* A IDENTIDADE ÚNICA — o CNPJ é uma escola, o CPF é um professor (25/11/2026).
+     *
+     * A recusa vem ANTES de se criar qualquer coisa, e diz o caminho de saída: para o professor, a
+     * saída é boa («use o professor que já existe»); para a escola, é o nome. Recusar depois de
+     * criar deixaria um Worker no ar sobre uma escola que não devia existir. */
+    if (cadastro.cnpj) {
+      const jaTem = await cnpjJaUsado(env, cadastro.cnpj);
+      if (jaTem) {
+        return responderJson({
+          ok: false,
+          erro: 'o CNPJ ' + cadastro.cnpj + ' já é da escola «' + jaTem + '» — um CNPJ é uma '
+            + 'escola. Se é um ensaio, use outro nome; se é a mesma escola, ela já existe.',
+          escolaExistente: jaTem,
+        }, 409);
+      }
+    }
+    if (cadastro.cpf) {
+      const jaTem = await cpfJaUsado(env, cadastro.cpf);
+      if (jaTem) {
+        return responderJson({
+          ok: false,
+          erro: 'o CPF ' + cadastro.cpf + ' já é do professor «' + jaTem + '» — um CPF é um '
+            + 'professor, e a pasta dele já existe. Escolha «um professor que já existe» na '
+            + 'etapa do professor.',
+          professorExistente: jaTem,
+        }, 409);
+      }
+    }
+
     // O SLUG DO PROFESSOR É A PASTA `professores/<slug>/` — e essa pasta é do SISTEMA, não
     // da escola: guarda o pacote, os cadernos, os relatórios e as âncoras. Duas pessoas com
     // o mesmo slug viram UMA no registro (o PO de uma cairia na pasta da outra). Por isso a
@@ -704,6 +778,31 @@ async function responderCriacao(request, env, opcoes) {
     const cadastroGravado = await gravarCadastro({
       env, escola: escola.escola, professor, cadastro, origem,
     });
+
+    /* O ESTADO COMERCIAL, ESCRITO NO MESMO MOMENTO (25/11/2026).
+     *
+     * A escola nasce a `aguardando` — é o que a frase dela descreve: «Bateu na minha conta, eu
+     * verifico e aí libero o acesso». A única excepção é o ensaio do proprietário, que já se
+     * declara conciliado (`dispensarPagamento`) e nasce `ativa`: obrigá-la a habilitar à mão cada
+     * escola de teste que ela cria seria transformar uma decisão comercial num obstáculo de
+     * ensaio.
+     *
+     * NÃO FAZ FALHAR A CRIAÇÃO, e é a mesma regra do cadastro e do correio: a escola já está no
+     * ar. O que faltar viaja na resposta, ao lado do sucesso. */
+    const estadoComercial = escolha.pagamento === 'dispensado-pelo-proprietario' ? 'ativa' : 'aguardando';
+    const comercialGravado = await gravarComercial(env && env.PADD_KV, escola.escola, {
+      estado: estadoComercial,
+      plano: escolha.plano,
+      planoNome: escolha.planoNome,
+      valorCentavos: escolha.valorCentavos,
+      valor: escolha.valor,
+      periodicidade: escolha.periodicidade,
+      capacidade: escolha.capacidade,
+      extensoes: escolha.extensoes,
+      pagamento: escolha.pagamento,
+      origem,
+      criadoEm: new Date().toISOString(),
+    }, origem);
     const correioEnviado = await mandarBoasVindas({
       env,
       escola: escola.escola,
@@ -717,6 +816,13 @@ async function responderCriacao(request, env, opcoes) {
       disparo,
       cadastro: cadastroGravado,
       correio: correioEnviado,
+      /* O ESTADO COMERCIAL VAI NA RESPOSTA, e com o valor: a tela que acabou de criar a escola
+       * tem de dizer «aguardando conciliação, até 24 horas» — e não «escola criada» a seco, que
+       * faria a pessoa tentar entrar num endereço que responde «a aguardar liberação». */
+      comercial: comercialGravado.ok
+        ? { estado: comercialGravado.comercial.estado, plano: escolha.plano,
+            planoNome: escolha.planoNome, valor: escolha.valor }
+        : { estado: null, erro: comercialGravado.erro },
       // A PORTA POR ONDE A ESCOLA NASCEU. É um facto da proveniência: um dia se pergunta «esta
       // escola entrou pelo consultor ou pela página dela?», e só o registo do momento o sabe.
       origem,
@@ -814,6 +920,169 @@ async function gravarCadastro({ env, escola, professor, cadastro, origem }) {
 }
 
 /**
+ * O ESTADO COMERCIAL DA ESCOLA — onde ele vive, e o que ele decide (25/11/2026).
+ *
+ * A DECISÃO DELA, e é a regra inteira: «a conciliação bancária é feita por mim, é feita
+ * manualmente. […] Bateu na minha conta, eu verifico e aí libero o acesso. E o tempo para fazer
+ * isso é de até 24 horas. Depois que eu libero, aí sim é que a pessoa vai ter acesso total […]
+ * Se eu desabilitar, sai do ar a escola imediatamente e só tem acesso a ler as coisas que já
+ * foram desenvolvidas […] mas fica impossível criar qualquer outro documento.»
+ *
+ * OS TRÊS ESTADOS, e o que cada um faz — a tradução exacta daquelas três frases:
+ *
+ *   `aguardando` — a escola nasceu e espera a conciliação. Ninguém entra: o endereço responde a
+ *                  página de espera. É o estado de TODA escola criada por aqui, e é o que torna
+ *                  «paguei» diferente de «liberaram».
+ *   `ativa`      — liberada. Tudo funciona, como sempre funcionou.
+ *   `suspensa`   — suspensa por falta de pagamento. As páginas abrem (o que já foi criado
+ *                  continua a ler-se), e tudo o que ESCREVE é recusado.
+ *
+ * ONDE VIVE: `bastidores/<escola>/comercial`, no KV da casa. É o cofre do TENANT — o expurgo
+ * apaga-o com o resto, e uma escola que já não existe não guarda estado comercial nenhum. A
+ * alternativa (o andaime `escolas-habilitadas.json`) foi DESCARTADA: é um ficheiro versionado que
+ * ela edita à mão, e um estado que muda por clique não se edita à mão sem se esquecer de o fazer.
+ *
+ * A AUSÊNCIA DE REGISTO É `ativa`. É a decisão conservadora, e a única que não parte o que existe:
+ * as escolas de antes desta versão não têm registo, e tratá-las como «aguardando» fechava-as todas
+ * no dia do deploy. Um estado novo não se impõe ao passado — acrescenta-se.
+ */
+const ESTADOS_COMERCIAL = ['aguardando', 'ativa', 'suspensa'];
+
+function chaveComercial(escola) {
+  return 'bastidores/' + String(escola || '').trim() + '/comercial';
+}
+
+/** Lê o estado comercial. Sem registo (ou ilegível) → `ativa`, e o motivo é dito no campo. */
+async function lerComercial(kv, escola) {
+  const vazio = { estado: 'ativa', motivo: 'sem registo comercial', plano: null, valor: null };
+  if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
+  try {
+    const texto = await kv.get(chaveComercial(escola));
+    if (!texto) return vazio;
+    const registo = JSON.parse(texto);
+    const estado = ESTADOS_COMERCIAL.indexOf(String(registo.estado || '')) !== -1
+      ? String(registo.estado) : 'ativa';
+    return Object.assign({}, registo, { estado, motivo: null });
+  } catch (erro) {
+    return vazio;
+  }
+}
+
+/** Grava o estado comercial. O elo anterior NÃO se reescreve: os pagamentos acumulam. */
+async function gravarComercial(kv, escola, mudanca, quem) {
+  if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV' };
+  const anterior = await lerComercial(kv, escola);
+  const agora = new Date().toISOString();
+  const registo = Object.assign({}, anterior, mudanca, {
+    estado: mudanca.estado || anterior.estado,
+    atualizadoEm: agora,
+    atualizadoPor: quem || null,
+  });
+  delete registo.motivo;
+  /* O HISTÓRICO É A MEMÓRIA DO QUE ACONTECEU, e não o estado de agora. Cada mudança deixa um elo
+   * — quem, quando, de que para quê, e por quanto. É a mesma disciplina da proveniência: um estado
+   * que se sobrescreve não responde à pergunta «esta escola já esteve suspensa?». */
+  const elo = {
+    em: agora,
+    para: registo.estado,
+    por: quem || null,
+    valor: mudanca.valorCentavos !== undefined ? mudanca.valorCentavos : null,
+    nota: mudanca.nota || null,
+  };
+  const historico = Array.isArray(anterior.historico) ? anterior.historico.slice() : [];
+  historico.push(elo);
+  registo.historico = historico.slice(-60);
+  if (!registo.criadoEm && mudanca.criadoEm) registo.criadoEm = mudanca.criadoEm;
+  try {
+    await kv.put(chaveComercial(escola), JSON.stringify(registo));
+    return { ok: true, comercial: registo };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/**
+ * A IDENTIDADE ÚNICA DAS ENTIDADES — pelo CNPJ e pelo CPF (25/11/2026).
+ *
+ * «Agora que a gente tem mais informações a respeito […] a gente pode controlar melhor essa coisa
+ * de n professores e n escolas e o relacionamento entre eles. Então, a gente tem CNPJ e a gente
+ * tem CPF. Isso melhora muito a identidade e a criação da identificação única dessas entidades.»
+ *
+ * A REGRA É UMA, e o número é a chave: **um CNPJ é uma escola; um CPF é um professor.** Não é uma
+ * proibição burocrática — é o que impede duas coisas que já aconteceram neste sistema: duas pastas
+ * `professores/<slug>/` para a mesma pessoa (o CPF teria dito que era a mesma), e duas escolas com
+ * o mesmo CNPJ, que no mundo real são a mesma escola com dois nomes.
+ *
+ * O QUE ACONTECE QUANDO BATE: RECUSA, com o caminho de saída dito. Para o professor, a saída é
+ * BOA — «use o professor que já existe», que é o que o formulário já oferece. Para a escola, a
+ * saída é o nome: duas escolas do mesmo CNPJ no protótipo são um ensaio, e o ensaio cria-se com
+ * outro nome (é o que ela já faz com `calango`/`batata`/`breu`).
+ *
+ * A VARREDURA É DO ÍNDICE, e não de uma lista nova: `escolasDoIndice` já lê o acervo inteiro. O
+ * CPF não está no índice (é dado pessoal, e a verificação 7 proíbe-o lá) — a conferência do CPF é
+ * feita sobre o CONTATO no KV, e por isso ela só vê os professores desta casa.
+ */
+/**
+ * QUEM JÁ TEM ESTE NÚMERO — a varredura, uma só, para os dois documentos.
+ *
+ * `prefixo` + `sufixo` dizem ONDE procurar (`bastidores/<escola>/cadastro` para o CNPJ,
+ * `professores/<slug>/contato` para o CPF), e `campo` diz o que comparar. Uma função para os dois
+ * porque a pergunta é a mesma — «este número já é de alguém?» —, e duas cópias divergiriam na
+ * primeira vez que uma delas esquecesse o `soDigitos`.
+ *
+ * O `kv.list` é a enumeração do namespace: custa uma chamada por página de 1000 chaves, e é o
+ * preço de uma criação de escola — não de uma abertura de página. Não há índice de números, e
+ * criá-lo seria uma terceira cópia do dado (o cadastro já lá está) que se esqueceria de atualizar
+ * no dia em que um cadastro fosse corrigido.
+ */
+async function quemTemEsteNumero(env, { prefixo, sufixo, campo, valor, ignorar }) {
+  const alvo = cadastroDaEscola.soDigitos(valor);
+  const kv = env && env.PADD_KV;
+  if (!alvo || !kv || typeof kv.list !== 'function') return null;
+  const re = new RegExp('^' + prefixo + '\\/([a-z0-9-]+)\\/' + sufixo + '$');
+  try {
+    const lista = await kv.list({ prefix: prefixo + '/' });
+    for (const chave of ((lista && lista.keys) || [])) {
+      const nome = String((chave && chave.name) || '');
+      const m = re.exec(nome);
+      if (!m) continue;
+      const slug = m[1];
+      if (ignorar && slug === ignorar) continue;
+      const texto = await kv.get(nome);
+      if (!texto) continue;
+      let registo = null;
+      try { registo = JSON.parse(texto); } catch (erro) { continue; }
+      if (registo && cadastroDaEscola.soDigitos(registo[campo]) === alvo) return slug;
+    }
+  } catch (erro) { return null; }
+  return null;
+}
+
+/** A escola que já tem este CNPJ — ou `null`. */
+function cnpjJaUsado(env, cnpj, ignorar) {
+  return quemTemEsteNumero(env, {
+    prefixo: 'bastidores', sufixo: 'cadastro', campo: 'cnpj', valor: cnpj, ignorar,
+  });
+}
+
+/** O professor que já tem este CPF — ou `null`. */
+function cpfJaUsado(env, cpf, ignorar) {
+  return quemTemEsteNumero(env, {
+    prefixo: 'professores', sufixo: 'contato', campo: 'cpf', valor: cpf, ignorar,
+  });
+}
+
+/** O cadastro da escola, do KV. Devolve `null` quando não há (escola de antes desta versão). */
+async function lerCadastroDaEscola(env, escola) {
+  const kv = env && env.PADD_KV;
+  if (!kv || typeof kv.get !== 'function' || !escola) return null;
+  try {
+    const texto = await kv.get('bastidores/' + escola + '/cadastro');
+    return texto ? JSON.parse(texto) : null;
+  } catch (erro) { return null; }
+}
+
+/**
  * A MENSAGEM DE BOAS-VINDAS, DEPOIS DE A ESCOLA EXISTIR (25/11/2026).
  *
  * «Sempre que for criado uma escola, tem que disparar um e-mail para o professor e para o e-mail
@@ -906,19 +1175,102 @@ function urlDaPaginaPublica(env) {
  * nomes. A rota responde sem senha, e o que responde sem senha não pode conter o cadastro de
  * ninguém. É a mesma razão pela qual `/api/escolas` é recusada naquele endereço.
  */
+/** `[Preencher: …]` é lacuna, não valor — e uma lacuna nunca chega à tela como dado. */
+function semLacuna(valor) {
+  const t = String(valor == null ? '' : valor).trim();
+  if (!t || /^\[Preencher/i.test(t)) return null;
+  return t;
+}
+
 function respostaDaPagina(env, modo) {
   const habilidades = (require('../nucleo/perfil-do-professor.js').LISTA_DE_MODALIDADES || [])
     .map((m) => ({ id: m && m.id, nome: m && m.nome, temConteudo: Boolean(m && m.temConteudo) }))
     .filter((m) => m.id);
+  /* A COMPOSIÇÃO COMERCIAL VAI NA MESMA RESPOSTA (25/11/2026), e pela mesma razão que as
+   * habilidades: a página desenha os cartões, mas NENHUM preço está escrito nela. O exibido, o
+   * calculado e o cobrado saem do mesmo JSON — é o que a frente L8 do planejamento pede, e é o que
+   * impede um cartão a dizer R$ 69,90 sobre uma tabela que já diz outra coisa. */
+  const catalogo = comercial.catalogoDaPagina();
   return new Response(JSON.stringify({
     ok: true,
     modo,
     publica: urlDaPaginaPublica(env),
     habilidades,
+    planos: catalogo,
+    /* A CHAVE PIX É UMA `var` DO WORKER, e não um valor desta função. Sem ela, a página DIZ que
+     * não está configurada em vez de mostrar uma chave de exemplo — dinheiro enviado para o lado
+     * errado é o pior defeito possível num ecrã de pagamento. */
+    pix: {
+      /* A LACUNA DECLARADA NÃO É UM VALOR. `[Preencher: …]` é a marca desta casa para «isto ainda
+       * não foi decidido» — e uma marca dessas a viajar como chave Pix seria pior do que vazia: a
+       * página mostraria uma chave, e o dinheiro iria para lugar nenhum. Trata-se como ausente. */
+      chave: semLacuna(env && env.PIX_CHAVE),
+      titular: semLacuna(env && env.PIX_TITULAR),
+      conciliacao: 'manual',
+      prazo: 'até 24 horas',
+    },
   }), {
     status: 200,
     headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
   });
+}
+
+/**
+ * TIRA DO HTML O QUE É SÓ DO PAINEL — e tira, não esconde (25/11/2026).
+ *
+ * A DECISÃO DELA, com a dúvida incluída: «na página lastro.padd.com.br remova o botão apagar
+ * escola, […] ver só as apagadas não existe, ver só as vivas não existe e professores também não
+ * existe. […] apenas oculta nesse domínio. Acho que já resolve. Não sei se dá para remover, não sei
+ * de que maneira você fez.»
+ *
+ * DÁ PARA REMOVER, e passa a ser assim. A primeira versão escondia com
+ * `[data-pagina="publica"] [data-dono] { display:none }` — o que funciona e é mais barato, mas
+ * depende de a folha chegar, e uma folha em cache no navegador de quem já cá esteve mostra os
+ * botões outra vez. Remover o elemento não depende de folha nenhuma: o que não vem no HTML não se
+ * vê, e não se clica.
+ *
+ * A FOLHA GUARDA A REGRA ASSIM MESMO. Não é redundância inútil: é a segunda barreira, e é a que
+ * vale enquanto o servidor antigo estiver no ar (o HTML já trazido e o CSS novo, ou o contrário).
+ *
+ * ISTO NÃO É PROTEÇÃO, e nunca foi: quem protege é a lista de caminhos do modo público, que
+ * responde 404 a tudo o que não seja a apresentação e o criar. Um botão ausente é uma promessa que
+ * não se faz, não uma porta que se fecha.
+ *
+ * O PARSER É MÍNIMO E ASSUME O QUE O FICHEIRO É: elementos com `data-dono` que NÃO estão uns dentro
+ * dos outros (o marcador é do bloco, não da folha), e sem tags vazias do mesmo nome pelo meio. A
+ * prova mede os dois lados — que saíram no público, e que ficaram no painel.
+ */
+const TAGS_VAZIAS = new Set(['input', 'img', 'br', 'hr', 'meta', 'link', 'source', 'area', 'base', 'col', 'embed', 'track', 'wbr']);
+
+function removerDoPainel(html) {
+  const texto = String(html || '');
+  let saida = '';
+  let i = 0;
+  const abertura = /<([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*\sdata-dono\b[^>]*>/g;
+  while (i < texto.length) {
+    abertura.lastIndex = i;
+    const m = abertura.exec(texto);
+    if (!m) { saida += texto.slice(i); break; }
+    saida += texto.slice(i, m.index);
+    const tag = m[1].toLowerCase();
+    if (TAGS_VAZIAS.has(tag) || /\/>$/.test(m[0])) { i = m.index + m[0].length; continue; }
+    // Procura o fecho desta tag, contando as aberturas e os fechos do MESMO nome.
+    const re = new RegExp('<(/?)' + tag + '\\b[^>]*>', 'gi');
+    re.lastIndex = m.index + m[0].length;
+    let profundidade = 1;
+    let fim = texto.length;
+    let achado;
+    while ((achado = re.exec(texto)) !== null) {
+      if (achado[1] === '/') {
+        profundidade -= 1;
+        if (profundidade === 0) { fim = achado.index + achado[0].length; break; }
+      } else if (!/\/>$/.test(achado[0])) {
+        profundidade += 1;
+      }
+    }
+    i = fim;
+  }
+  return saida;
 }
 
 /**
@@ -968,6 +1320,9 @@ async function servirAPagina(request, env, { modo }) {
     html = html.replace(painel.MARCADOR, '');
     html = html.replace(painel.MARCADOR_INDICE, '');
   }
+  /* O QUE É DO PAINEL SAI DO HTML — ver `removerDoPainel`. Feito DEPOIS do painel, para o público
+   * não compor blocos que ia deitar fora. */
+  if (publico) html = removerDoPainel(html);
 
   return new Response(html, {
     status: 200,
@@ -1152,11 +1507,17 @@ async function fetch(request, env) {
       // UMA leitura serve às duas coisas: a lista de escolas e o mapa slug→nome que ela usa para
       // mostrar a PESSOA em vez da pasta. `escolasDoIndice` já lê o acervo inteiro — pedir os
       // professores à parte seria uma segunda requisição para um dado que veio junto.
-      const [escolas, professores] = await escolasDoIndice({ token });
+      /* AS VIVAS LEVAM O ESTADO COMERCIAL; AS APAGADAS, NÃO (25/11/2026). Uma escola expurgada
+       * não tem estado comercial — o `bastidores/<escola>/comercial` foi-se com ela, e a linha de
+       * uma escola que já não existe não tem nada a habilitar. */
+      if (apagadas) {
+        const [escolas, professores] = await escolasDoIndice({ token });
+        const ordem = url.searchParams.get('ordem');
+        return painel.resposta(painel.paginaDasApagadas({ escolas, ordem, professores }));
+      }
+      const [escolas, professores] = await escolasDoIndiceComComercial({ token, kv: env && env.PADD_KV });
       const ordem = url.searchParams.get('ordem');
-      return painel.resposta(apagadas
-        ? painel.paginaDasApagadas({ escolas, ordem, professores })
-        : painel.paginaDasVivas({ escolas, ordem, professores }));
+      return painel.resposta(painel.paginaDasVivas({ escolas, ordem, professores }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
         'não foi possível ler o índice: ' + ((err && err.message) || String(err))), 500);
@@ -1263,6 +1624,58 @@ async function fetch(request, env) {
    * habilidades tem de lá estar nos dois. O que muda é o `modo` — e o modo do público vai na
    * resposta da rota pública (que responde sem senha, e por isso NÃO diz nada sobre escolas).
    * Aqui, do lado do painel, ela pode dizer tudo o que a página do painel usa. */
+  /**
+   * A HABILITAÇÃO, POR ESCOLA — o botão das «vivas» (25/11/2026).
+   *
+   * «Basta que eu acesse no meu ambiente […] o botão, a página das escolas vivas. E ali eu
+   * habilito […] e também vai ter o botão de desabilitar.» É exactamente isso: uma rota, dois
+   * sentidos, e a decisão sempre dela.
+   *
+   * A SENHA É A DA RAIZ, e não um segredo novo: quem chega aqui já passou pelo portão do Worker
+   * `danca`, e este pedido vem da mesma sessão. É a mesma pessoa que cria e que expurga.
+   *
+   * O QUE GRAVA É UM ELO, e não uma sobrescrita (`gravarComercial`): o histórico diz quando a
+   * escola esteve suspensa e por quanto foi habilitada. Uma escola desabilitada continua a
+   * responder às leituras e recusa as escritas — a regra vive em `producao.js`, e o porquê está
+   * lá escrito.
+   */
+  if (url.pathname === '/api/escola/comercial' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    /* SEM SEGUNDA SENHA, e é decisão: quem chega aqui já passou pelo portão da raiz — este
+     * caminho não está na lista do público, e o `autorizado` correu no topo do `fetch`. O Cofre
+     * pede a senha outra vez porque o que ele mostra é a chave de TODAS as escolas; habilitar uma
+     * escola é uma decisão, não um segredo. Uma segunda pergunta por clique tornar-se-ia um
+     * clique a mais que se aprende a dar sem ler. */
+    const slug = String(corpo.escola || '').trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    const estado = String(corpo.estado || '').trim();
+    if (ESTADOS_COMERCIAL.indexOf(estado) === -1) {
+      return responderJson({ ok: false, erro: 'estado inválido: use ' + ESTADOS_COMERCIAL.join(', ') }, 400);
+    }
+    if (!(env && env.PADD_KV)) {
+      return responderJson({ ok: false, erro: 'PADD_KV ausente na raiz — sem ele não há estado comercial' }, 500);
+    }
+    const gravado = await gravarComercial(env.PADD_KV, slug, {
+      estado,
+      nota: String(corpo.nota || '').trim() || null,
+      // O VALOR, quando ela o declara ao habilitar. É o que fica no elo: «habilitada em tal dia,
+      // por R$ 99,90». Sem ele o elo diz que houve pagamento e não quanto — e a conta do mês
+      // seguinte não se fecha.
+      valorCentavos: Number.isFinite(Number(corpo.valorCentavos)) ? Number(corpo.valorCentavos) : undefined,
+      valor: typeof corpo.valor === 'string' ? corpo.valor : undefined,
+    }, 'proprietario');
+    if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
+    return new Response(JSON.stringify({
+      ok: true,
+      escola: slug,
+      estado: gravado.comercial.estado,
+      comercial: gravado.comercial,
+    }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' } });
+  }
+
   if (url.pathname === '/api/pagina' && request.method === 'GET') {
     return respostaDaPagina(env, 'painel');
   }
@@ -1608,5 +2021,6 @@ module.exports = {
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
   // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.
   responderCriacao, gravarCadastro, mandarBoasVindas, ehPaginaPublica, servirAPagina,
+  removerDoPainel, lerComercial, gravarComercial, chaveComercial, ESTADOS_COMERCIAL,
   hostDoProprietario, urlDaPaginaPublica,
 };

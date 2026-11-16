@@ -228,9 +228,19 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     const rotulo = e.expurgada
       ? '<strong>' + esc(nome) + '</strong>'
       : '<a href="' + esc(urlDaEscola(e.slug)) + '"><strong>' + esc(nome) + '</strong></a>';
+    /* O SELO DIZ O QUE A ESCOLA ESTÁ A FAZER, e não só que existe (25/11/2026).
+     *
+     * «Viva» deixou de ser uma resposta suficiente: uma escola pode existir e estar a aguardar
+     * conciliação, ou suspensa por falta de pagamento. Três estados, três palavras, e a mesma
+     * coluna — quem lê a lista quer saber se aquela escola abre, não se o Worker responde. */
+    const estadoComercial = (e.comercial && e.comercial.estado) || 'ativa';
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
-      : '<span class="selo ok">viva</span>';
+      : (estadoComercial === 'suspensa'
+        ? '<span class="selo alerta">suspensa</span>'
+        : (estadoComercial === 'aguardando'
+          ? '<span class="selo discreto">a aguardar conciliação</span>'
+          : '<span class="selo ok">ativa</span>'));
 
     const celulas = ['<td>' + rotulo + '</td>'];
     // O PROFESSOR, um ou vários, e NÃO É LIGAÇÃO DE SITE: uma pessoa não tem subdomínio. O nome
@@ -250,6 +260,25 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     if (recorte !== 'vivas') {
       celulas.push('<td>' + esc(e.expurgada ? diaOuTraco(e.expurgada_em) : '—') + '</td>');
     }
+    if (recorte === 'vivas') {
+      /* O PLANO E A HABILITAÇÃO, na mesma linha (25/11/2026). Ela pediu «o botão de habilitar» e
+       * «o botão de desabilitar» na linha de cada escola — e é aqui que eles vivem. O botão que
+       * NÃO se aplica fica desligado em vez de desaparecer: uma linha que muda de forma conforme
+       * o estado obriga a procurar onde se clica. */
+      const plano = e.comercial && e.comercial.planoNome
+        ? esc(e.comercial.planoNome) + (e.comercial.valor ? ' · ' + esc(e.comercial.valor) : '')
+        : '—';
+      celulas.push('<td>' + plano + '</td>');
+      const podeHabilitar = estadoComercial !== 'ativa';
+      const podeDesabilitar = estadoComercial === 'ativa';
+      celulas.push('<td class="acoes-da-lista">' +
+        '<button class="acao pequena" type="button" data-comercial="ativa" data-escola="' +
+        esc(e.slug) + '"' + (podeHabilitar ? '' : ' disabled') + '>Habilitar</button>' +
+        '<button class="acao pequena secundario" type="button" data-comercial="suspensa" ' +
+        'data-escola="' + esc(e.slug) + '"' + (podeDesabilitar ? '' : ' disabled') +
+        '>Desabilitar</button>' +
+        '</td>');
+    }
     celulas.push('<td>' + selo + '</td>');
     if (recorte !== 'vivas') {
       celulas.push('<td>' + (e.expurgada
@@ -268,6 +297,7 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     thOrdenavel(recorte === 'apagadas' ? 'Professores' : 'Professor', 'professor', criterio, base),
     '<th>Criada</th>'];
   if (recorte !== 'vivas') colunas.push('<th>Apagada</th>');
+  if (recorte === 'vivas') colunas.push('<th>Plano</th>', '<th>Acesso</th>');
   colunas.push('<th>Estado</th>');
   if (recorte !== 'vivas') colunas.push('<th>Registo</th>');
 
@@ -519,7 +549,7 @@ function paginaDeLista({ recorte, escolas, ordem, professores }) {
       : 'As escolas que existem agora. O nome leva ao site de cada uma.',
     atual: apagadas ? 'escolas-apagadas' : 'escolas-vivas',
     corpo: tabelaDeEscolas(escolas, recorte, ordem, professores) +
-      (apagadas ? '' : blocoDoCofre() + SCRIPT_DO_COFRE) +
+      (apagadas ? '' : blocoDoCofre() + SCRIPT_DO_COFRE + SCRIPT_DO_ACESSO) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
@@ -563,6 +593,48 @@ const SCRIPT_DO_COFRE = '<script>(function(){' +
   '.catch(function(){confirmar.disabled=false;dizer("falha de rede",true);});});' +
   'if(copiar)copiar.addEventListener("click",function(){if(!chave)return;' +
   'chave.select();try{document.execCommand("copy");dizer("copiada");}catch(e){dizer("selecione e copie",true);}});' +
+  '})();</script>';
+
+/**
+ * O JAVASCRIPT DA HABILITAÇÃO — os dois botões da linha (25/11/2026).
+ *
+ * PORQUE É QUE ELE RECARREGA A PÁGINA em vez de mudar a linha à mão. A linha tem três coisas que
+ * dependem do estado — o selo, o plano e qual dos dois botões está ligado —, e repô-las por
+ * JavaScript seria uma SEGUNDA cópia da regra que a constrói no servidor. A primeira correcção
+ * (um estado novo, um selo novo) deixaria as duas a divergir, e o sintoma seria uma lista a dizer
+ * «ativa» sobre uma escola suspensa.
+ *
+ * O CUSTO É UMA LEITURA DO ÍNDICE, e é o preço certo para um clique que acontece poucas vezes por
+ * mês. O que NÃO se faz é recarregar sem dizer nada: o botão fica desligado enquanto o pedido
+ * corre, e a linha diz o que está a acontecer.
+ */
+const SCRIPT_DO_ACESSO = '<script>(function(){' +
+  'var botoes=document.querySelectorAll("[data-comercial]");' +
+  'if(!botoes.length)return;' +
+  'function recado(t,erro){' +
+  '  var cx=document.getElementById("acesso-recado");' +
+  '  if(!cx){cx=document.createElement("p");cx.id="acesso-recado";cx.className="aviso";' +
+  '    var t=document.querySelector("table");if(t&&t.parentNode)t.parentNode.insertBefore(cx,t.nextSibling);' +
+  '    else document.body.appendChild(cx);}' +
+  '  cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
+  'for(var i=0;i<botoes.length;i++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var escola=b.getAttribute("data-escola"),estado=b.getAttribute("data-comercial");' +
+  '    if(!escola||!estado)return;' +
+  '    var irmaos=document.querySelectorAll("[data-escola=\""+escola+"\"]");' +
+  '    for(var j=0;j<irmaos.length;j++)irmaos[j].disabled=true;' +
+  '    recado((estado==="ativa"?"a habilitar ":"a desabilitar ")+escola+"…",false);' +
+  '    fetch("/api/escola/comercial",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,estado:estado}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){' +
+  '      if(d&&d.ok){location.reload();return;}' +
+  '      for(var k=0;k<irmaos.length;k++)irmaos[k].disabled=false;' +
+  '      recado((d&&d.erro)||"não foi possível mudar o acesso",true);})' +
+  '    .catch(function(){for(var k=0;k<irmaos.length;k++)irmaos[k].disabled=false;' +
+  '      recado("falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(botoes[i]);' +
   '})();</script>';
 
 function paginaDasVivas({ escolas, ordem, professores }) {
