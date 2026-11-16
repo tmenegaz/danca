@@ -1405,3 +1405,12 @@ experimentos/modelo-formulario/*
 # é um valor e não pode ser cortada). Acrescenta-se a isso a asserção de que a chave Pix não está
 # escrita na configuração — é o único lugar em que esse erro se apanha antes do commit.
 !experimentos/provar-jsonc.js
+
+# O FINANCEIRO E A CARÊNCIA DE TRÊS MESES (25/11/2026). Ela pediu as datas de habilitação e
+# desabilitação «para poder calcular o tempo do apagar escola», a chave Pix num ecrã, e a listagem
+# dos descontos concedidos. A prova mede as três coisas e mais duas que não são pedidos dela mas
+# impedem os pedidos de mentir: o KV manda sobre o segredo do Worker (senão o ecrã não tem efeito),
+# e os descontos moram numa chave só (senão a listagem custa uma enumeração do KV — a cota de
+# 18/10/2026). Mede também que `/financeiro` responde 404 no endereço público: a chave dela não se
+# publica.
+!experimentos/provar-financeiro.js
