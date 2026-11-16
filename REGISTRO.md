@@ -47008,3 +47008,61 @@ reconhecida.»` sobre um 402 de suspensão. Mais `provar-escola-a-nascer` 48/48 
 - **A escrita continua fechada enquanto a escola estiver suspensa**, e é a decisão dela («fica
   impossível criar qualquer outro documento»). O que mudou é que agora se entra, se lê, e a razão é
   dita.
+
+## 16/11/2026 — o quarto veredicto que nunca podia acontecer
+
+**O que aconteceu.** A entrada de cima não estava completa, e o que faltava foi descoberto ao
+verificar o resultado do lado dela. A tela dos Bastidores passou a dizer a verdade; a **Área do
+Professor** não — e não por a tela estar errada. Ela tinha o quarto veredicto, com o texto certo,
+lendo `r.dados.suspensa` de uma resposta que **nunca trazia esse campo**. Código morto: com a senha
+certa e a escola fechada, a tela não dizia nada, e o professor só descobria no primeiro «criar»,
+depois de escolher professor, ciclo e aluna.
+
+**A causa não foi a tela — foi a resposta do servidor não ter o facto.**
+
+- `validar-senha` devolvia `{ ok: true, professor }` quando a senha conferia, e mais nada. Ela passa
+  pela porta com a escola suspensa porque está na lista das rotas que só leem — e está certo: a
+  suspensão não fecha a entrada de quem já trabalha. Mas **passar a porta não é poder trabalhar**, e
+  quem pergunta «a senha vale?» também precisa de saber «a escola está aberta?».
+- A resposta passa a dizer as **duas verdades**: `ok: true` (a senha confere, e foi isso que se
+  perguntou) e `suspensa: true` com a frase da casa. A tela escolhe o que mostrar; outro cliente lê
+  o mesmo facto.
+
+**Duas coisas ficaram, e são a razão de isto ser um módulo e não uma linha.**
+
+- **A ordem das perguntas mudou.** `suspensa` vem **antes** de `ok`: a senha pode estar certa e a
+  escola fechada, as duas coisas ao mesmo tempo. Antes o teste do `ok` engolia o facto.
+- **A frase da recusa passou a ser uma só.** Estava escrita em dois sítios — a porta e o recado da
+  tela — e duas cópias de uma frase são duas frases à espera de divergir. Mora em
+  `motor/nucleo/comercial.js`, com a leitura do estado. Ela estava só em `producao.js`, e a rota da
+  senha vive em `bastidores.js`, que aquele ficheiro já carrega: pedi-la de lá seria um `require`
+  circular, e o caminho que se escolheu sem pensar foi **não pedir**. Um facto que dois sítios
+  perguntam mora onde os dois o alcançam.
+
+**O defeito da prova, que é o mais importante desta entrada.** A prova `provar-o-suspenso-diz-a-verdade`
+passava **20/20** com a tela a mentir. A secção que afirmava o veredicto lia o **texto** do script —
+e o script tinha o veredicto, sim; o que ele não tinha era uma resposta com o facto. A resposta,
+nessa secção, era **escrita à mão por mim**. Uma resposta inventada na bancada mede a bancada.
+A secção E nova não inventa nada: pede a rota **de verdade**, através da porta e com o estado
+comercial no KV, e é o JSON que voltar que se entrega à tela. Se o servidor não disser «suspensa»,
+a prova falha antes de chegar à tela.
+
+**Onde entrou.** `motor/nucleo/comercial.js` (`lerComercial`, `comercialDaEscola`,
+`MENSAGEM_DA_SUSPENSAO`) · `motor/servidor/producao.js` (a leitura sai para o núcleo, a frase também)
+· `motor/servidor/bastidores.js` (`validar-senha` diz as duas verdades) ·
+`motor/servidor/listas-do-acervo.js` (`suspensa` antes de `ok`; a frase é a do servidor, com a da
+casa só como reserva) · `experimentos/provar-o-suspenso-diz-a-verdade.js` (secção E).
+
+**Com o quê.** `provar-o-suspenso-diz-a-verdade` **28/28** — e o controlo negativo, com o código de
+antes e a prova de agora, dá **3 falhas**, e a primeira é a resposta sem o facto, ao pé da letra:
+`{"ok":true,"professor":"Brise Volet"}`. Mais `provar-escola-a-nascer` 48/48 ·
+`provar-cadastro-em-etapas` 40/40 · `provar-pagina-publica` 73/73 · `provar-financeiro` 52/52 ·
+`provar-teste` 44/44 · `provar-cofre-e-shard` 129/129 · `provar-indices` 64/64 ·
+`provar-publicacao-da-escola` 73/73 · `provar-jsonc` 22/22 · `provar-form-escola` todas ·
+`provar-recriacao-da-escola` todas · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**E ela apanhou-me outra vez, na hora.** Escrevi dois comentários com crases dentro — e eles vivem
+dentro do template literal que contém o script do painel. O `node` recusou carregar o módulo com
+`SyntaxError: Unexpected identifier 'suspensa'`, e a lição está escrita no comentário logo acima, do
+mesmo ficheiro, de ontem: **uma string que atravessa duas linguagens tem de ser escrita na linguagem
+em que está.** A terceira vez em três dias.
