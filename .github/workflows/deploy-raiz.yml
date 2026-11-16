@@ -50,6 +50,12 @@ on:
       # identidade — e falhar é o correcto: a raiz serviria a identidade anterior. O remédio
       # está na mensagem (`tools/gerar-raiz.sh`) e é um comando.
       - 'tools/templates/**'
+      # O CATÁLOGO COMERCIAL VAI NO BUNDLE (25/11/2026). `motor/nucleo/comercial.js` faz
+      # `require('../../biblioteca/comercial/planos.json')`, e o esbuild o inclui — mas este
+      # workflow não olhava para lá. O preço é um DADO que muda sem tocar em código: mudá-lo e
+      # não publicar deixaria a página a cobrar o valor anterior ao commit, que é a mesma
+      # família de erro do cabeçalho («commit novo, raiz velha») com o agravante de ser dinheiro.
+      - 'biblioteca/comercial/**'
       - '.github/workflows/deploy-raiz.yml'
       # A ação que prepara o Node e as dependências é parte do que se publica: mudá-la muda o
       # `wrangler` que sobe, e sem este gatilho a alteração só valeria no próximo push alheio.
