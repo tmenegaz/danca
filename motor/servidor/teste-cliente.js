@@ -336,7 +336,8 @@ const SCRIPT = String.raw`(function () {
     if (conducao && !conducao.classList.contains('oculto') && typeof renderPergunta === 'function') {
       renderPergunta();
     }
-    dizer('Anamnese preenchida: ' + registro.aluna + '. Confira e grave manualmente.');
+    dizer('Anamnese preenchida com o conteúdo de teste. A aluna continua a ser '
+      + (((porId('ctx-aluna') || {}).value) || registro.aluna) + '. Confira e grave manualmente.');
   }
 
   function anamneseDaAluna(aluna) {
@@ -375,17 +376,18 @@ const SCRIPT = String.raw`(function () {
 
   function autoAnamnese() {
     var pedida = alunaDoAto();
+    var primeiro = (fixture.anamnese || [])[0];
     if (!pedida) {
-      var primeiro = (fixture.anamnese || [])[0];
       if (primeiro) preencherAnamnese(primeiro, true);
       return;
     }
     quandoAluna(function () {
-      var registro = anamneseDaAluna(pedida);
-      if (!registro) {
-        dizer('Sem anamnese de teste para ' + pedida + ' — o formulário fica como está.');
-        return;
-      }
+      /* A ALUNA SEM REGISTO NO FIXTURE TAMBÉM É PREENCHIDA (18/11/2026). Antes dizia-se «Sem
+       * anamnese de teste para X — o formulário fica como está», e ficava: quem cria a aluna com
+       * o nome que quer testar — que é o ponto de testar — não tinha ferramenta nenhuma. O
+       * registo que serve de conteúdo é o primeiro; a ALUNA é a do ato, e não se troca. */
+      var registro = anamneseDaAluna(pedida) || primeiro;
+      if (!registro) return;
       preencherAnamnese(registro, false);
     });
   }
@@ -404,68 +406,63 @@ const SCRIPT = String.raw`(function () {
 
   // ================= PORTA — PLANO DE ENSINO ================================
 
-  function turmaExisteNoPlano(nome) {
-    if (typeof TURMAS_DA_ESCOLA === 'undefined' || TURMAS_DA_ESCOLA === null) return false;
-    for (var i = 0; i < TURMAS_DA_ESCOLA.length; i++) {
-      if (TURMAS_DA_ESCOLA[i] && TURMAS_DA_ESCOLA[i].nome === nome) return true;
+  /* A TURMA DO PREENCHIMENTO É A DO SELETOR — e nunca a do fixture (18/11/2026).
+   *
+   * O QUE ESTAVA A ACONTECER, dito pela pesquisadora: «se eu mudo o nome no plano de ensino para a
+   * turma não ser um daqueles nomes que já estão definidos pelo ambiente de teste, o plano de
+   * ensino não reconhece o nome que eu coloquei». E é isso: o preenchedor exigia que a turma do
+   * FIXTURE estivesse no seletor, e desistia quando não estava. Quem inventa o nome da turma — que
+   * é o que se faz a testar — ficava sem ferramenta, e a mensagem culpava a curadoria.
+   *
+   * A REGRA QUE FICA, e ela separa duas coisas que estavam juntas: o fixture é CONTEÚDO (as
+   * respostas), a IDENTIDADE (turma, aluna, professor) é do ato. O conteúdo não depende de o nome
+   * casar; a identidade nunca vem do fixture. Assim o preenchimento acelera o teste sem decidir
+   * por quem testa — e a turma que ela escreveu continua a ser a turma do plano.
+   *
+   * O que NÃO se perde da correção de 27/10/2026: o preenchedor continua a não ACRESCENTAR ao
+   * seletor nenhuma turma que a curadoria não autorize. Ele agora simplesmente não mexe no
+   * seletor — usa o que lá está. */
+  function turmaDoPreenchimento() {
+    var sel = porId('ctx-turma');
+    if (!sel) return '';
+    var actual = String(sel.value || '');
+    if (actual) return actual;
+    var opcoes = [];
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value) opcoes.push(String(sel.options[i].value));
     }
-    return false;
+    return opcoes.length === 1 ? opcoes[0] : '';
   }
 
   function preencherPlano(registro) {
     if (!registro) return;
     var sel = porId('ctx-turma');
     if (!sel) { dizer('O seletor de turma ainda não abriu. Aguarde um instante.'); return; }
-    if (typeof TURMAS_DA_ESCOLA !== 'undefined' && TURMAS_DA_ESCOLA !== null && !turmaExisteNoPlano(registro.turma)) {
-      dizer('Crie a turma «' + registro.turma + '» na Produção antes de preencher o plano.');
+    var turma = turmaDoPreenchimento();
+    if (!turma) {
+      dizer('Escolha a turma no cabeçalho e volte a preencher: o conteúdo de teste é o mesmo '
+        + 'para qualquer turma, mas a turma do plano é sua, não do fixture.');
       return;
     }
-    /* A TURMA DO FIXTURE SÓ SE USA SE ELA JÁ ESTIVER NA LISTA (27/10/2026).
+    /* A TURMA DO SELETOR NÃO SE TROCA, E O «contexto-turma» É ELA (18/11/2026).
      *
-     * garantirOpcao ACRESCENTAVA a turma do fixture ao seletor quando ela não estava lá — e
-     * o seletor, desde a correção da curadoria, só tem as turmas do professor. O efeito era o
-     * preenchimento de teste a desfazer a regra: o campo dizia uma turma que a direção não
-     * atribuiu àquele professor, e o SERVIDOR passou a recusar a gravação dessa turma (403).
-     * O sintoma que a pesquisadora descreveu — «a ferramenta de teste está interferindo»,
-     * «impedindo de avançar» — era exactamente este.
+     * Aqui escrevia-se 'sel.value = registro.turma' — a troca de 01/11/2026, que resolveu um
+     * defeito real (o documento ia numa turma e a variante noutra, e a geração morria com
+     * «manifesto da variante não encontrado») mas pela via errada: para as duas coisas deixarem
+     * de divergir, passou a MANDAR o fixture na identidade. É a mesma divergência de hoje, ao
+     * contrário.
      *
-     * A regra é a mesma da aluna (26/10/2026): o preenchimento automático não inventa o que o
-     * ato decidiu. Se a turma do fixture não está entre as autorizadas, não se preenche nada e
-     * diz-se porquê. */
-    var autorizada = false;
-    for (var k = 0; k < sel.options.length; k++) {
-      if (sel.options[k].value === registro.turma) { autorizada = true; break; }
-    }
-    if (!autorizada) {
-      dizer('A turma «' + registro.turma + '» do fixture não está atribuída a este professor — '
-        + 'o plano não se preenche por cima da curadoria. Escolha a turma dele no cabeçalho.');
-      return;
-    }
-    /* O SELETOR MUDA COM A RESPOSTA — AS DUAS COISAS SÃO A MESMA (01/11/2026).
-     *
-     * Aqui escrevia-se a resposta contexto-turma e o SELETOR da barra
-     * ficava onde estava. Quando o registo do fixture é de OUTRA turma que o seletor — e ele
-     * pode ser, se as duas estiverem atribuídas ao professor —, nasciam DUAS verdades para a
-     * mesma coisa: o documento era derivado com a resposta (a turma do fixture) e a VARIANTE
-     * era decidida pelo contexto.turma, que o contextoDaBarra() lê do SELETOR. As fontes
-     * caíam em pastas diferentes.
-     *
-     * MEDIDO na batata a 01/11/2026: o plano ficou com contexto.turma = «Balé Nível 2 —
-     * Teste 2» e respostas['contexto-turma'] = «Balé Nível 3 — Teste 2». O documento dizia
-     * Nível 3, o .conf era da variante do Nível 2, o PO foi gravado na variante do Nível 3 —
-     * e a geração morreu com «manifesto da variante não encontrado: …nivel-3-teste-2.conf».
-     *
-     * Mudar o seletor é o que o professor faria à mão para preencher aquela turma; e é o que
-     * torna as duas coisas uma só. O evento é disparado para a barra reagir (o onchange
-     * repinta o cabeçalho, e o contextoDaBarra() passa a ler o mesmo valor que a resposta). */
+     * O que impede a divergência sem trocar a identidade é a RESPOSTA ser lida do SELETOR, e não
+     * do fixture: 'contexto-turma' passa a valer 'turma', que é exactamente o que a barra mostra.
+     * Uma verdade, e é a de quem preenche. */
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
-    sel.value = registro.turma;
-    if (typeof atualizarBarra === 'function') atualizarBarra();
-    RESPOSTAS.set('contexto-turma', registro.turma);
+    RESPOSTAS.set('contexto-turma', turma);
     Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
+    // Depois do fixture, para nenhum fixture futuro poder reintroduzir a turma dele.
+    RESPOSTAS.set('contexto-turma', turma);
     if (typeof semearDoContexto === 'function') semearDoContexto();
     if (typeof atualizarBarra === 'function') atualizarBarra();
     if (typeof pintarRoteiro === 'function') pintarRoteiro();
@@ -476,7 +473,8 @@ const SCRIPT = String.raw`(function () {
     if (conducao && !conducao.classList.contains('oculto') && typeof renderPergunta === 'function') {
       renderPergunta();
     }
-    dizer('Plano preenchido para ' + registro.turma + '. Confira e grave manualmente.');
+    dizer('Plano preenchido' + (turma === registro.turma ? '' : ' para a turma «' + turma + '»')
+      + ' com o conteúdo de teste. Confira e grave manualmente.');
   }
 
   function planoDaTurma(nome) {
@@ -487,16 +485,17 @@ const SCRIPT = String.raw`(function () {
     return null;
   }
 
-  /* A TURMA DO PREENCHIMENTO SAI DO SELETOR, e não do fixture (27/10/2026).
+  /* O CONTEÚDO NÃO DEPENDE DO NOME DA TURMA (18/11/2026).
    *
-   * Antes: escolhia-se o primeiro plano do fixture cuja turma existisse na ESCOLA. Com a
-   * curadoria a mandar no seletor, «existir na escola» deixou de ser a pergunta certa — a
-   * turma do fixture pode não ser a deste professor. A pergunta passa a ser a do seletor:
-   * quais turmas estão oferecidas? O fixture só preenche dentro delas.
+   * Antes, o plano do fixture só se usava se a turma dele estivesse no seletor; sem isso, «nada
+   * foi preenchido». A turma que ela escreve nunca está no fixture — é dela —, e então a
+   * ferramenta ficava muda exactamente nas escolas em que ela quer testar. Agora o registo da
+   * turma escolhida tem preferência (os valores daquela turma), e qualquer outro serve de
+   * conteúdo quando não há: o que é do fixture é o texto, não a identidade.
    *
    * E ESPERA PELAS OPÇÕES: o seletor nasce antes de a curadoria chegar. Sem esta espera, a
-   * lista estava vazia no primeiro instante, nenhuma turma casava, e o painel dizia «nenhuma
-   * turma do fixture é deste professor» sobre um seletor que ainda ia encher. */
+   * lista estava vazia no primeiro instante e o preenchimento corria sobre um seletor que ainda
+   * ia encher. */
   function autoPlano(tentativas) {
     var sel = porId('ctx-turma');
     var lista = fixture.plano || [];
@@ -507,18 +506,14 @@ const SCRIPT = String.raw`(function () {
       setTimeout(function () { autoPlano(restantes - 1); }, 150);
       return;
     }
-    var registro = planoDaTurma(sel ? sel.value : '');
-    if (!registro || opcoes.indexOf(registro.turma) === -1) {
-      registro = null;
-      for (var i = 0; i < lista.length; i++) {
-        if (opcoes.indexOf(lista[i].turma) !== -1) { registro = lista[i]; break; }
-      }
+    if (!sel || !opcoes.filter(Boolean).length) {
+      dizer('O seletor de turma está vazio — a curadoria ainda não atribuiu turmas a este '
+        + 'professor. Sem turma não há plano a preencher.');
+      return;
     }
+    var escolhida = String(sel.value || '');
+    var registro = (escolhida && planoDaTurma(escolhida)) || lista[0] || null;
     if (registro) preencherPlano(registro);
-    else if (opcoes.filter(Boolean).length) {
-      dizer('O fixture não tem plano para as turmas deste professor ('
-        + opcoes.filter(Boolean).join(', ') + '). Nada foi preenchido.');
-    }
   }
 
   function painelPlano() {
@@ -574,6 +569,27 @@ const SCRIPT = String.raw`(function () {
     return lista.length ? lista[0].valor : null;
   }
 
+  /* A TURMA DO PO É A DO PLANO QUE ELE VAI REFERENCIAR (18/11/2026).
+   *
+   * O carimbo do «plano-de-ensino» casa por TURMA, e a turma vinha do fixture — um nome que, numa
+   * escola de teste com nomes inventados, não está na estante. O 'carimboDoPlanoDaTurma' caía
+   * então no primeiro plano da estante (o mais recente), e o PO apontava para um plano que podia
+   * não ser o da turma. Agora a turma resolve-se ao contrário: pelo carimbo já escolhido, senão
+   * pelo da estante que tenha a turma preferida, senão o mais recente — e o carimbo sai sempre
+   * dessa mesma entrada, pelo que os dois nunca divergem. */
+  function turmaDoPlano(preferida) {
+    var lista = estanteDePlanos();
+    var carimbo = (typeof RESPOSTAS !== 'undefined' && RESPOSTAS.get)
+      ? RESPOSTAS.get('plano-de-ensino') : null;
+    for (var i = 0; i < lista.length; i++) {
+      if (carimbo && lista[i].valor === carimbo && lista[i].turma) return lista[i].turma;
+    }
+    for (var j = 0; j < lista.length; j++) {
+      if (lista[j].turma === preferida) return preferida;
+    }
+    return lista.length && lista[0].turma ? lista[0].turma : preferida;
+  }
+
   function preencherPo(registro) {
     if (!registro) return;
     if (typeof MAPA === 'undefined' || !MAPA) {
@@ -588,12 +604,13 @@ const SCRIPT = String.raw`(function () {
     if (registro.sujeitos) RESPOSTAS.set('sujeitos', registro.sujeitos.slice());
 
     // O «plano-de-ensino» só entra se a estante já chegou: é dela que sai o carimbo.
-    var carimbo = carimboDoPlanoDaTurma(registro.turma);
+    var turma = turmaDoPlano(registro.turma);
+    var carimbo = carimboDoPlanoDaTurma(turma);
     if (carimbo) {
       RESPOSTAS.set('plano-de-ensino', carimbo);
       if (typeof carregarPlanoReferenciado === 'function') carregarPlanoReferenciado();
     } else {
-      dizer('Não achei o plano de ensino de «' + registro.turma + '» na estante. ' +
+      dizer('Não achei nenhum plano de ensino na estante deste professor. ' +
         'Preenchi os outros campos; o nó «Plano de ensino» fica por escolher.');
     }
 
@@ -622,7 +639,8 @@ const SCRIPT = String.raw`(function () {
     if (conducao && !conducao.classList.contains('oculto') && typeof renderPergunta === 'function') {
       renderPergunta();
     }
-    dizer('Plano de Observação preenchido para ' + registro.turma + '. Confira e grave manualmente.');
+    dizer('Plano de Observação preenchido com o conteúdo de teste'
+      + (carimbo ? ' para a turma «' + turma + '»' : '') + '. Confira e grave manualmente.');
   }
 
   function poDaTurma(nome) {

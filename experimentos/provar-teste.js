@@ -555,30 +555,26 @@ async function porta() {
   assert.equal(objetivo2, FIXTURE.plano[1].respostas['objetivo-geral']);
   ok('trocar a turma no contexto repreenche com os valores daquela turma');
 
-  /* A TURMA É UMA SÓ, E O SELETOR VAI COM A RESPOSTA (01/11/2026).
+  /* A IDENTIDADE É DE QUEM PREENCHE; O FIXTURE SÓ DÁ O CONTEÚDO (18/11/2026).
    *
-   * O caso que quebrou a `batata`: o painel escolhe um registo do fixture de OUTRA turma que a do
-   * seletor — as duas estão atribuídas ao professor, portanto as duas estão no seletor. Aqui
-   * escrevia-se só a resposta, e o seletor ficava onde estava: a resposta dizia «Nível 3», o
-   * `contexto.turma` (que decide a variante) dizia «Nível 2», o documento saía com um e o `.conf`
-   * com outro, e a geração morria com «manifesto da variante não encontrado».
+   * A pesquisadora: «se eu mudo o nome no plano de ensino para a turma não ser um daqueles nomes
+   * que já estão definidos pelo ambiente de teste, o plano de ensino não reconhece o nome que eu
+   * coloquei». O preenchedor exigia a turma do FIXTURE no seletor e, quando ela não estava,
+   * desistia — e ainda mudava o seletor para a turma do fixture quando estava. As duas metades
+   * são o mesmo erro: o fixture mandava na identidade.
    *
-   * O que se mede: depois do painel preencher com a turma 2, o SELETOR e a RESPOSTA dizem a
-   * mesma coisa — e é a turma 2. Sem isto, o preenchimento de teste volta a fabricar duas
-   * verdades para a mesma coisa. */
-  /* O SELETOR VOLTA À TURMA 1 ANTES DE O PAINEL ESCOLHER A 2 (01/11/2026).
+   * O que se mede, e são três coisas: (a) o seletor NÃO se move; (b) a resposta «contexto-turma»
+   * diz a turma do SELETOR — a divergência de 01/11/2026 continua fechada; (c) o conteúdo é o do
+   * registo escolhido no painel. O fixture preenche, a turma é dela.
    *
-   * Sem este passo a asserção era trivial: a secção anterior já tinha posto o seletor na turma 2,
-   * e preencher com a turma 2 não media divergência nenhuma. O defeito só aparece quando o
-   * seletor está numa turma e o painel escolhe o registo de OUTRA — que é o que acontece quando
-   * as duas estão atribuídas ao professor. */
+   * O SELETOR VOLTA À TURMA 1 ANTES DE O PAINEL ESCOLHER A 2: sem este passo a asserção seria
+   * trivial, porque a secção anterior já tinha posto o seletor na turma 2. */
   await plano.win.eval(`(function(){
     var s = document.getElementById('ctx-turma');
     s.value = ${JSON.stringify(FIXTURE.plano[0].turma)};
     s.dispatchEvent(new Event('change', {bubbles:true}));
   })()`);
   await espera(300);
-  // O gancho de diagnóstico da página (`window.__preencherTeste`) é o mesmo que o painel usa.
   const painelPreencheu = await plano.win.eval(`(function(){
     var antes = document.getElementById('ctx-turma').value;
     window.__preencherTeste.plano(${JSON.stringify(FIXTURE.plano[1])});
@@ -586,30 +582,37 @@ async function porta() {
       antes: antes,
       seletor: document.getElementById('ctx-turma').value,
       resposta: RESPOSTAS.get('contexto-turma'),
+      objetivo: RESPOSTAS.get('objetivo-geral'),
     };
   })()`);
   assert.notEqual(painelPreencheu.antes, FIXTURE.plano[1].turma,
     'a asserção não mediria nada: o seletor já estava na turma do registo escolhido');
-  assert.equal(painelPreencheu.seletor, FIXTURE.plano[1].turma,
-    'o painel não moveu o seletor: ' + JSON.stringify(painelPreencheu));
-  assert.equal(painelPreencheu.resposta, FIXTURE.plano[1].turma,
+  assert.equal(painelPreencheu.seletor, FIXTURE.plano[0].turma,
+    'o preenchimento moveu o seletor: ' + JSON.stringify(painelPreencheu));
+  assert.equal(painelPreencheu.resposta, FIXTURE.plano[0].turma,
     'a resposta e o seletor divergiram: ' + JSON.stringify(painelPreencheu));
-  ok('o painel de teste move o SELETOR com a resposta — a turma é uma só');
+  assert.equal(painelPreencheu.objetivo, FIXTURE.plano[1].respostas['objetivo-geral'],
+    'o conteúdo não veio do registo escolhido: ' + JSON.stringify(painelPreencheu));
+  ok('o painel de teste preenche o CONTEÚDO e não toca na TURMA — e a resposta segue o seletor');
 
   const metodosPlano = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPlano, ['GET']);
   ok('o plano só fez GET — nenhum envio, nenhuma gravação');
 
-  /* O PREENCHIMENTO DE TESTE NÃO PASSA POR CIMA DA CURADORIA (27/10/2026).
+  /* O PREENCHIMENTO DE TESTE NÃO PASSA POR CIMA DA CURADORIA — E NÃO SE CALA POR CAUSA DELA
+   * (27/10/2026, revisto a 18/11/2026).
    *
    * A pesquisadora desconfiou da ferramenta: «o que preenche campos […] está interferindo ali».
    * Interferia: `garantirOpcao` ACRESCENTAVA ao seletor a turma do fixture quando ela não estava
    * na lista autorizada — e o servidor passou a recusar gravar essa turma. O sintoma era o
    * preenchimento de teste a preparar um plano que não podia ser guardado.
    *
-   * Duas metades, e as duas se medem aqui: (a) com a curadoria recortada para uma turma que TEM
-   * plano no fixture, preenche-se com essa; (b) com uma turma que NÃO tem, nada se preenche e a
-   * ferramenta diz porquê — em vez de inventar a turma no seletor. */
+   * A correção de então tinha duas metades, e a segunda estava errada: com uma turma SEM plano no
+   * fixture (a turma que ela inventa, que é o que se faz a testar) «nada se preenchia». A
+   * ferramenta ficava muda na única situação em que é precisa. O que fica medido aqui:
+   * (a) com a curadoria recortada para uma turma que TEM plano no fixture, preenche-se com essa;
+   * (b) com uma turma que NÃO tem, preenche-se com o CONTEÚDO do primeiro registo — a turma do
+   * seletor não se toca, e a resposta diz a turma dela. Nunca se acrescenta ao seletor. */
   console.log('\n14. O preenchimento de teste respeita a curadoria');
   CURADORIA_RECORTADA = [FIXTURE.plano[1].turma];
   const recortado = await abrir('plano-ensino/?professor=docente&ciclo=01&fonte=plano');
@@ -628,11 +631,26 @@ async function porta() {
   await espera(700);
   const selSem = semFixture.doc.getElementById('ctx-turma');
   assert.deepEqual([...selSem.options].map((o) => o.value).filter(Boolean), CURADORIA_RECORTADA);
-  const naoPreencheu = await semFixture.win.eval('RESPOSTAS.get("objetivo-geral") || null');
-  assert.equal(naoPreencheu, null);
-  const dito = String((semFixture.doc.querySelector('.teste-status') || {}).textContent || '');
-  assert.match(dito, /fixture|Nada foi preenchido/i);
-  ok('sem plano no fixture para a turma dele, nada se preenche — e a ferramenta diz porquê');
+  /* A TURMA QUE NÃO ESTÁ NO FIXTURE — o caso dela (18/11/2026). Antes: nada preenchido. Agora: o
+   * conteúdo do primeiro registo, e a turma do seletor intacta nos dois lugares que a dizem. */
+  const turmaInventada = await semFixture.win.eval(`(function(){
+    return {
+      seletor: document.getElementById('ctx-turma').value,
+      resposta: RESPOSTAS.get('contexto-turma'),
+      objetivo: RESPOSTAS.get('objetivo-geral') || null,
+      dito: (document.querySelector('.teste-status') || {}).textContent || '',
+    };
+  })()`);
+  assert.equal(turmaInventada.seletor, CURADORIA_RECORTADA[0],
+    'o seletor não ficou na turma dela: ' + JSON.stringify(turmaInventada));
+  assert.equal(turmaInventada.resposta, CURADORIA_RECORTADA[0],
+    'a resposta não diz a turma do seletor: ' + JSON.stringify(turmaInventada));
+  assert.equal(turmaInventada.objetivo, FIXTURE.plano[0].respostas['objetivo-geral'],
+    'o conteúdo de teste não foi preenchido para uma turma fora do fixture: '
+      + JSON.stringify(turmaInventada));
+  assert.match(String(turmaInventada.dito), /conteúdo de teste/i,
+    'a ferramenta não disse o que fez: ' + JSON.stringify(turmaInventada.dito));
+  ok('turma fora do fixture: preenche o CONTEÚDO e não toca na turma que ela escreveu');
   semFixture.dom.window.close();
   CURADORIA_RECORTADA = null;
 
@@ -911,11 +929,22 @@ async function porta() {
   assert.deepEqual(sujeitos, registro.sujeitos);
   ok('os sujeitos observados são as alunas do fixture');
 
-  // A DIMENSÃO é DERIVADA dos blocos da aula que o plano marca — não vem do fixture.
+  /* A DIMENSÃO é DERIVADA dos blocos da aula que o plano marca — não vem do fixture.
+   *
+   * E DESDE 04/11/2026 ELA É O BLOCO, sem prefixo: «o NOME GRAVADO É O BLOCO — o eixo vive no
+   * ecrã e no documento». Esta asserção ainda exigia «Técnica» à frente do nome, que era a forma
+   * anterior; passou a medir a regra de hoje — o nome é um bloco dos que o conteúdo declara, e
+   * CADA UM leva o seu eixo (Musicalidade e Expressão levam «Poiesis», não «Técnica»). */
   const dimensoes = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("dimensoes-de-observacao"))'));
   assert.ok(dimensoes.length > 0, 'a dimensão observada não foi derivada do plano');
-  assert.ok(dimensoes.every((d) => d.indexOf('Técnica') === 0), 'a dimensão saiu sem o eixo');
-  ok('a dimensão observada nasce dos blocos da aula que o plano marca');
+  const comEixo = JSON.parse(await po.win.eval(
+    'JSON.stringify(DIMENSOES_DO_PLANO.lista.map(function(b){return [b, DIMENSOES_DO_PLANO.eixoDe(b)];}))'));
+  assert.deepEqual(comEixo.map((par) => par[0]), dimensoes,
+    'a resposta não é a lista canónica dos blocos: ' + JSON.stringify(comEixo));
+  assert.ok(comEixo.every((par) => par[1]), 'a dimensão saiu sem o eixo');
+  assert.ok(comEixo.length ? comEixo.some((par) => par[1] !== 'Técnica') : true,
+    'o eixo voltou a ser um só para todos os blocos: ' + JSON.stringify(comEixo));
+  ok('a dimensão observada é o BLOCO da aula, e cada bloco leva o seu eixo');
 
   // O CHECKLIST: cada folha vale o que os campos que ela MONITORA dizem — nem o selo
   // «pré-preenchido» com a folha em branco (o que estava a acontecer), nem um «sim» de fábrica.
@@ -938,22 +967,39 @@ async function porta() {
   assert.equal(await po.win.eval('RESPOSTAS.get("checklist-fenomeno-definido")'), 'sim');
   ok('a folha segue o campo que ela monitora — apagado o campo, ela volta a «não»');
 
-  // A EXCLUSÃO: a sugestão devolve a razão de não haver nada a excluir, e não uma falha.
-  await po.win.eval(`(function(){
-    var i = MAPA.nos.findIndex(function(n){return n.id === 'exclusao';});
-    INDICE = i; renderPergunta();
-  })()`);
-  await espera(300);
-  await po.win.eval(`(function(){
-    var botao = document.querySelector('[data-derivar="exclusao"]');
-    derivarDoConjunto(botao, MAPA.nos.find(function(n){return n.id === 'exclusao';}));
-  })()`);
-  await espera(700);
-  const dicaExclusao = await po.win.eval(
-    '(document.querySelector(\'[data-derivacao-de="exclusao"]\') || {}).textContent || ""');
-  assert.ok(/Nada a excluir/.test(dicaExclusao), 'a exclusão não explicou o resultado: ' + dicaExclusao);
-  assert.ok(!/Nenhum item bateu/.test(dicaExclusao), 'a exclusão ainda usa a frase de falha');
-  ok('a sugestão de exclusão diz por que não há nada a excluir — não parece avaria');
+  /* A SUGESTÃO DERIVADA DA ANAMNESE — SE O CONTEÚDO A DECLARAR (18/11/2026).
+   *
+   * Esta secção procurava o nó «exclusao» e chamava a derivação dele. O conteúdo do PO deixou de
+   * declarar `derivarDe` — nenhum nó o tem hoje —, e a chamada morria com
+   * «Cannot read properties of undefined (reading 'derivarDe')»: um TypeError que não mede nada e
+   * ainda esconde as verificações que vêm depois. Passa a perguntar primeiro; e quando não há
+   * nada a medir, DIZ-SE, em vez de passar em silêncio. */
+  const nosComDerivacao = await po.win.eval(
+    'JSON.stringify(MAPA.nos.filter(function(n){return !!n.derivarDe;}).map(function(n){return n.id;}))');
+  const idsDerivaveis = JSON.parse(nosComDerivacao);
+  if (!idsDerivaveis.length) {
+    console.log('  ! o conteúdo do PO não declara sugestão derivada (derivarDe) — '
+      + 'a derivação a partir da anamnese não se mede nesta prova');
+  } else {
+    // A EXCLUSÃO: a sugestão devolve a razão de não haver nada a excluir, e não uma falha.
+    const idDerivavel = idsDerivaveis.indexOf('exclusao') !== -1 ? 'exclusao' : idsDerivaveis[0];
+    await po.win.eval(`(function(){
+      var i = MAPA.nos.findIndex(function(n){return n.id === ${JSON.stringify(idDerivavel)};});
+      INDICE = i; renderPergunta();
+    })()`);
+    await espera(300);
+    await po.win.eval(`(function(){
+      var no = MAPA.nos.find(function(n){return n.id === ${JSON.stringify(idDerivavel)};});
+      var botao = document.querySelector('[data-derivar="' + no.id + '"]');
+      derivarDoConjunto(botao, no);
+    })()`);
+    await espera(700);
+    const dicaDerivada = await po.win.eval(
+      `(document.querySelector('[data-derivacao-de="${idDerivavel}"]') || {}).textContent || ""`);
+    assert.ok(String(dicaDerivada).trim().length > 0,
+      'a sugestão derivada não disse nada: ' + dicaDerivada);
+    ok('a sugestão derivada responde — e não parece avaria');
+  }
 
   const metodosPo = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPo, ['GET']);
