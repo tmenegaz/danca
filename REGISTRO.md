@@ -48041,3 +48041,19 @@ linhas de base e as curadorias vivem no KV, e o expurgo as apaga — restauram-s
 sempre, refazendo-as. A frequência, os dias e a duração do ciclo continuam a vir dos valores por
 omissão, porque o `.conf` foi com o expurgo. E a `duo`, que testou o fluxo, não tem documentos
 nenhum no retrato: nunca teve envelopes — o `.indice.json` dela sempre foi vazio.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e esta mudança
+entra nele por três razões, todas do mesmo pedido:
+
+- **`tools/restaurar-retrato.js` é NOVO**, e é o único sítio onde a restauração pode correr: o
+  repositório inteiro (os commits), o `git show` de um ponto arbitrário, e o mesmo commit que os
+  índices derivados. No Worker não há Git; no navegador não há ficheiros.
+- **`.github/workflows/criar-escola.yml` ganha três inputs e um passo**, e o passo tem de correr
+  ANTES do commit do scaffold — os documentos restaurados e os `indices/` regerados têm de sair no
+  mesmo commit, senão o derivado descreve um acervo sem eles.
+- **Nada do que já existia mudou de comportamento.** O passo só corre com `restaurar: sim`; sem ele,
+  o workflow é o de antes, linha por linha. O `criar-escola.sh` não foi tocado.
+
+O que se abre mão, e fica dito: um CLI a mais na pasta congelada é um contrato a manter. Em troca, a
+escola que volta traz os documentos dela — que era o que faltava para «voltar a nascer» querer dizer
+alguma coisa.

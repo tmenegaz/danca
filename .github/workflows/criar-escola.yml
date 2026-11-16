@@ -68,6 +68,36 @@ on:
         required: false
         type: string
         default: ''
+      restaurar:
+        # O RETRATO DA ESCOLA, DE VOLTA (16/11/2026). «Sim» quando o convite guardou documentos e a
+        # recriação foi confirmada; vazio no resto — o passo abaixo só corre com «sim».
+        #
+        # QUEM DECIDE O QUE CABE É O WORKER, e passa-o em números: a capacidade contratada é a do
+        # plano escolhido, e o `motor/nucleo/retrato.js` corta por ela — ficam os registos mais
+        # recentes. Aqui não se decide nada; executa-se com o que veio.
+        description: 'Restaurar o retrato da escola (sim/vazio)'
+        required: false
+        type: string
+        default: ''
+      capacidade-professores:
+        description: 'Capacidade de professores contratada (corta a restauração)'
+        required: false
+        type: string
+        default: '0'
+      capacidade-alunos:
+        description: 'Capacidade de alunas contratada (corta a restauração)'
+        required: false
+        type: string
+        default: '0'
+      retrato-commit:
+        # O COMMIT DO RETRATO, resolvido pelo Worker (16/11/2026). Ele vai no input porque o clone
+        # deste workflow é RASO (`fetch-depth: 1`) e o commit do retrato não está nele: o
+        # `restaurar-retrato.js` busca-o por SHA antes de ler os ficheiros. Quem o sabe é quem
+        # emitiu o convite, e o elo só o tem para os expurgos depois de 16/11/2026.
+        description: 'Commit do último estado da escola (vazio = descobrir pelo elo)'
+        required: false
+        type: string
+        default: ''
       modalidade:
         # A HABILIDADE QUE O PROFESSOR DECLAROU (25/11/2026). Até aqui era um valor fixo no
         # scaffolder (`bale-classico`), porque quem criava escolas era só a proprietária e ela é
@@ -204,6 +234,28 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
+      # O RETRATO ANTES DO COMMIT DO SCAFFOLD, e não depois (16/11/2026). Três razões, e as três
+      # são a mesma: os ficheiros restaurados têm de estar no MESMO commit que os índices
+      # derivados. Depois, o `indices/` deste commit descreveria um acervo sem eles, e um segundo
+      # commit — num repositório onde três workflows escrevem no `main` — é mais uma corrida de
+      # push para perder. E o `restaurar-retrato.js` LÊ o elo (`escola/<slug>/indice.json`), que o
+      # scaffold deste mesmo run acabou de escrever.
+      #
+      # NÃO DERRUBA A CRIAÇÃO. O motor já está no ar; um retrato que não se consegue trazer é uma
+      # pendência que se resolve à mão (`node tools/restaurar-retrato.js --escola …`), e não uma
+      # razão para destruir uma escola viva.
+      - name: Restaurar o retrato da escola
+        if: ${{ inputs.restaurar == 'sim' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/restaurar-retrato.js \
+            --escola "${{ inputs.escola }}" \
+            --professores "${{ inputs.capacidade-professores }}" \
+            --alunos "${{ inputs.capacidade-alunos }}" \
+            ${{ inputs.retrato-commit != '' && format('--commit {0}', inputs.retrato-commit) || '' }} \
+            || echo "::warning::o retrato não foi restaurado — rode node tools/restaurar-retrato.js --escola ${{ inputs.escola }} --professores ${{ inputs.capacidade-professores }} --alunos ${{ inputs.capacidade-alunos }}"
 
       - name: Commitar o scaffold
         shell: bash
