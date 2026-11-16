@@ -47261,7 +47261,7 @@ ser só da ativa) · `experimentos/provar-a-carencia-nao-se-burla.js` (novo).
 
 **Com o quê.** `provar-a-carencia-nao-se-burla` **47/47** — e o controlo negativo, com a guarda
 removida, dá **10 falhas**: a rota passa a guarda e segue para a auditoria nos três casos. Mais
-`provar-expurgo-por-carencia` 30/30 · `provar-financeiro` 55/55 · `provar-escola-a-nascer` 48/48 ·
+`provar-expurgo-por-carencia` 34/34 · `provar-financeiro` 55/55 · `provar-escola-a-nascer` 48/48 ·
 `provar-o-suspenso-diz-a-verdade` 29/29 · `provar-pagina-publica` 73/73 ·
 `provar-cadastro-em-etapas` 40/40 · `provar-cadastro-do-professor` 49/49 · `provar-teste` 44/44 ·
 `provar-indices` 64/64 · `provar-publicacao-da-escola` 73/73 · `provar-cofre-e-shard` 129/129 ·
@@ -47271,6 +47271,21 @@ removida, dá **10 falhas**: a rota passa a guarda e segue para a auditoria nos 
 
 **A `breu` foi apagada antes desta correção**, e não volta: o expurgo é irreversível por desenho. O
 que fica é a regra que impede a próxima.
+
+**E, minutos depois de a regra subir, o defeito ao lado apareceu ao vivo.** A varredura reportou
+`expurgadas: 1` — sobre a `breu`, que já não existia, com todos os passos a zero. O índice guarda o
+elo do expurgo (de propósito: é a memória de que a escola existiu), e `escolasConhecidas` lia-o como
+se fosse uma escola viva; o registo comercial continua no KV, porque num shard o cofre é
+partilhado. Resultado: a vassoura ia «apagá-la» de cinco em cinco minutos, para sempre. A lista de
+quem existe passa a saltar `expurgada: true` — a diferença entre «esta escola existe» e «esta escola
+existiu» não se apaga num sítio e se ignora no outro. Medido em `provar-expurgo-por-carencia`,
+secção G.
+
+**O que esse número também mostrou, e fica declarado:** numa escola de shard, o expurgo **não apaga
+as chaves do KV** — `moradaDaEscola` não tem `kvNamespaceId` para uma escola de shard, e o
+`excluirEscola` recebe `kv: null`. O dado operacional de uma escola apagada continua no cofre
+partilhado. É anterior a esta mudança e é maior do que ela; fica escrito para não se descobrir por
+acidente.
 
 **O que fica pendente, e é declarado.** A carência de teste continua em 5 minutos
 (`CARENCIA_DE_TESTE_MINUTOS = null` devolve os 3 meses). E a regra é do `expurgo` — a **recriação**

@@ -569,6 +569,18 @@ async function escolasConhecidas(env) {
       const acervo = await acervoDoIndice({ token: env.GITHUB_TOKEN });
       for (const e of acervo.escolas || []) {
         const slug = String((e && e.slug) || '').trim();
+        /* A ESCOLA EXPURGADA FICA NO ÍNDICE, E NÃO É UMA ESCOLA (16/11/2026).
+         *
+         * O índice é MEMÓRIA: o elo do expurgo diz que aquela escola existiu, e é isso que a lista
+         * das apagadas mostra. Mas esta função responde «quem existe hoje», e memória não é
+         * existência. Sem este `continue`, a varredura ia buscar o registo comercial da escola
+         * apagada — que continua no KV, porque num shard o cofre é partilhado — e voltava a
+         * «expurgá-la» em cada passagem, para sempre. Medido minutos depois de a `breu` ser
+         * apagada: o relatório dizia «expurgadas: 1», com todos os passos a zero.
+         *
+         * Um expurgo que se repete não é ruído: é a diferença entre «esta escola existe» e «esta
+         * escola existiu» a ser apagada, num sítio onde ela decide. */
+        if (e && e.expurgada === true) continue;
         if (slug) slugs.add(slug);
       }
       indice = true;

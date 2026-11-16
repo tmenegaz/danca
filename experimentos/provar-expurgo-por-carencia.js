@@ -207,7 +207,53 @@ function bancada({ proveniencia = () => ({ ok: true, problemas: [], ancoras: [],
       comMeses === '2027-04-12T00:00:00.000Z', comMeses);
   }
 
-  console.log('\nG. O andaime saiu — do código e do repositório');
+  console.log('\nG. A escola apagada não volta a ser expurgada');
+
+  {
+    /* O DEFEITO, medido ao vivo minutos depois de a `breu` ser apagada: a varredura reportou
+     * «expurgadas: 1» com todos os passos a zero. O índice guarda o elo do expurgo — de propósito,
+     * é a memória de que a escola existiu — e `escolasConhecidas` lia-o como se fosse uma escola
+     * viva. O registo comercial continua no KV (num shard o cofre é partilhado), e a vassoura
+     * voltava a «apagá-la» em cada passagem, para sempre. */
+    const fetchDeVerdade = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      const u = String(url);
+      if (u.indexOf('indices/acervo.json') !== -1) {
+        return {
+          ok: true, status: 200,
+          json: async () => ({
+            content: Buffer.from(JSON.stringify({
+              escolas: [
+                { slug: 'apagada', expurgada: true, expurgada_em: iso(agora - 60 * MINUTO), professores: [] },
+                { slug: 'viva', expurgada: false, professores: [] },
+              ],
+              professores: [],
+            }), 'utf8').toString('base64'),
+            sha: 'x',
+          }),
+          text: async () => '',
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}), text: async () => '' };
+    };
+    const kvApagada = kvCom({
+      'expurgo/regime-de-teste-desde': iso(agora - 60 * MINUTO),
+      'escolas/por-host': JSON.stringify({ 'viva.padd.com.br': 'viva' }),
+      'bastidores/apagada/comercial': JSON.stringify({ estado: 'suspensa', desabilitadaEm: iso(agora - 30 * MINUTO) }),
+    });
+    const conhecidasApagada = await raiz.escolasConhecidas({ PADD_KV: kvApagada, GITHUB_TOKEN: 'gh' });
+    globalThis.fetch = fetchDeVerdade;
+    conferir('a escola EXPURGADA não entra na lista de quem existe',
+      conhecidasApagada.slugs.indexOf('apagada') === -1, conhecidasApagada.slugs);
+    conferir('…e a viva continua a entrar', conhecidasApagada.slugs.indexOf('viva') !== -1, conhecidasApagada.slugs);
+
+    const b = bancada();
+    const r = await raiz.expurgar(envCom(kvApagada), b.deps);
+    conferir('a varredura não a tenta apagar outra vez', r.expurgadas.length === 0, r.expurgadas);
+    conferir('…e o relatório não a menciona', !r.puladas.some((p) => p.slug === 'apagada'), r.puladas);
+  }
+
+  console.log('\nH. O andaime saiu — do código e do repositório');
   {
     const andaime = path.join(RAIZ, 'raiz/escolas-habilitadas.json');
     conferir('o ficheiro já não existe', !fs.existsSync(andaime), andaime);
