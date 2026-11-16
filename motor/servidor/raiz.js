@@ -226,6 +226,10 @@ async function escolasANascer({ kv, conhecidas }) {
     const cadastro = await lerCadastroDaEscola({ PADD_KV: kv }, limpo);
     pendentes.push({
       slug: limpo,
+      /* O RUN DO DISPARO, quando ele foi lido de volta no momento da criação. É ele que a linha
+       * «a nascer» usa para dar à pessoa um sítio onde olhar quando a fila do Actions não anda —
+       * e é a diferença entre «travou» e «está na fila, e é aqui que se vê». */
+      disparoRun: comercial.disparoRun || null,
       nome: (cadastro && cadastro.escolaNome) || limpo,
       /* O PROFESSOR NÃO VEM DO CADASTRO: ele é o do elo (`bastidores/<escola>/professores`), e o
        * registo comercial guarda-o quando a escola é criada. Cair no cadastro seria ler um campo
@@ -951,6 +955,11 @@ async function responderCriacao(request, env, opcoes) {
       pagamento: escolha.pagamento,
       origem,
       criadoEm: new Date().toISOString(),
+      /* O RUN QUE VAI CONSTRUIR A ESCOLA (16/11/2026). Guardado no registo comercial porque é
+       * ele que a lista das vivas lê para desenhar a linha «a nascer» — e é o que dá à pessoa um
+       * endereço para onde olhar quando a fila do Actions não anda. `null` quando a leitura de
+       * volta falhou, e a linha fica sem link em vez de com um link errado. */
+      disparoRun: (disparo && disparo.run) ? disparo.run : null,
     }, origem);
     const correioEnviado = await mandarBoasVindas({
       env,

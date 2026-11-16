@@ -241,10 +241,33 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
      * reconhece. Ela pediu que a escola apareça «independente de por onde for criada» — e a
      * resposta honesta é aparecer JÁ, com o que se sabe: o nome, o professor, e que o resto vem. */
     const aNascer = e.aNascer === true;
+    /* HÁ QUANTO TEMPO — e é isto que separa «está a nascer» de «travou» (16/11/2026).
+     *
+     * Medido hoje: um disparo ficou na fila do Actions e a escola ficou «a nascer» por tempo
+     * indefinido, sem uma única pista no ecrã. Com o tempo à vista e o link do run, a pergunta
+     * «travou?» passa a ter resposta sem se abrir o GitHub por tentativa. O limite de 15 minutos
+     * não é uma medida de saúde do CI: é o ponto em que «demora» deixa de ser uma explicação
+     * razoável para uma criação que, quando corre, leva dois ou três. */
+    const minutosANascer = aNascer && e.criada_em
+      ? Math.max(0, Math.floor((Date.now() - Date.parse(e.criada_em)) / 60000))
+      : null;
+    const demorada = minutosANascer !== null && minutosANascer >= 15;
+    const run = (e.disparoRun && e.disparoRun.url)
+      ? '<br><a href="' + esc(e.disparoRun.url) + '" target="_blank" rel="noopener">ver o run do GitHub</a>'
+      : '';
+    const procedencia = aNascer
+      ? (minutosANascer === null
+        ? '<br><span class="selo discreto">a nascer</span>'
+        : (demorada
+          ? '<br><span class="selo alerta">a nascer há ' + minutosANascer + ' min — a fila do '
+            + 'GitHub não pegou o pedido</span>' + run
+          : '<br><span class="selo discreto">a nascer há ' + (minutosANascer === 0
+            ? 'menos de 1 min' : minutosANascer + ' min') + '</span>' + run))
+      : '';
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
       : (aNascer
-        ? '<span class="selo discreto">a nascer</span>'
+        ? procedencia
         : (estadoComercial === 'suspensa'
         ? '<span class="selo alerta">suspensa</span>'
         : (estadoComercial === 'aguardando'

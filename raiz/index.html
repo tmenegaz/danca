@@ -1468,8 +1468,17 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 // Não há mais o caso «o Worker «zero» subiu, mas o disparo falhou»: quando o
                 // disparo falha, a raiz DESFAZ o Worker e responde em erro (502). Uma escola
                 // que não pode ser completada não fica no ar a dizer que existe.
-                html += "<br><br>O deploy do motor completo foi disparado — em instantes a Área do Professor "
-                  + "e os Bastidores ficam no ar" + (d.url ? " (acompanhe no link acima)" : "") + ".";
+                /* O DISPARO NÃO É A OBRA (16/11/2026). «Foi disparado» diz que o GitHub aceitou o
+                 * pedido, e um aceite não é um run a correr: houve um que ficou na fila por tempo
+                 * indefinido e a tela garantia «em instantes». O que se diz agora é o que se sabe —
+                 * e dá-se o endereço onde se vê o resto. */
+                html += "<br><br>O GitHub aceitou o pedido de construir a escola. Ele entra na fila "
+                  + "do Actions e, quando correr, a Área do Professor e os Bastidores ficam no ar"
+                  + (d.url ? " (acompanhe no link acima)" : "") + ".";
+                if (d.disparo && d.disparo.run && d.disparo.run.url) {
+                  html += " <a href=\"" + d.disparo.run.url + "\" target=\"_blank\" rel=\"noopener\">"
+                    + "Ver o run no GitHub</a> — é lá que se vê se a fila andou.";
+                }
                 // A CHAVE DE CRIPTOGRAFIA NÃO APARECE MAIS (15/10/2026). Ela nasce, é guardada e é
                 // USADA pelo Worker — não há por que passar pela mão de alguém. Antes, esta tela
                 // exibia a chave e mandava arquivá-la; o dono do produto apontou o absurdo

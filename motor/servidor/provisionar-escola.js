@@ -556,22 +556,59 @@ async function desfazerPlaceholder({ token, accountId, escola, nome }) {
  * pacote-zero) e sobe o motor completo, substituindo o Worker «zero» criado acima (os
  * segredos persistem). É o mesmo padrão de `disparar.js`, mas com os inputs do ciclo.
  */
-async function dispararCriacao({ token, dono, repo, ref, inputs }) {
+async function dispararCriacao({ token, dono, repo, ref, inputs, fetchImpl }) {
   if (!token) throw new Error('disparo sem token: injete GITHUB_TOKEN na raiz');
+  const f = fetchImpl || fetch;
+  const cabecalhos = {
+    'Accept': 'application/vnd.github+json',
+    'Authorization': 'Bearer ' + token,
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+    'User-Agent': 'danca-worker',
+  };
   const url = 'https://api.github.com/repos/' + dono + '/' + repo +
     '/actions/workflows/criar-escola.yml/dispatches';
-  const res = await fetch(url, {
+  const res = await f(url, {
     method: 'POST',
-    headers: {
-      'Accept': 'application/vnd.github+json',
-      'Authorization': 'Bearer ' + token,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-      'User-Agent': 'danca-worker',
-    },
+    headers: cabecalhos,
     body: JSON.stringify({ ref: ref || 'main', inputs }),
   });
-  return { status: res.status, ok: res.status >= 200 && res.status < 300 };
+  const ok = res.status >= 200 && res.status < 300;
+  if (!ok) return { status: res.status, ok: false, run: null };
+
+  /* O 204 NÃO QUER DIZER «ESTÁ A CORRER» — QUER DIZER «ENTROU NA FILA» (16/11/2026).
+   *
+   * Medido hoje: um disparo aceite às 10:35 ficou **queued** e às 11:20 não tinha um único job
+   * atribuído. Nada no sistema sabia disso, e a tela dizia «o deploy foi disparado — em instantes
+   * a Área do Professor fica no ar». O sintoma para quem lê é «travou», e a causa ficou fora do
+   * alcance de quem estava a olhar.
+   *
+   * LÊ-SE O RUN DE VOLTA, por isso: uma requisição a mais, e o que ela traz é o ENDEREÇO do que
+   * vai (ou não vai) acontecer. Com o id, o painel pode mostrar o run e dizer há quanto tempo a
+   * escola está «a nascer» — em vez de a pessoa descobrir por acidente, como hoje.
+   *
+   * A LEITURA NÃO FAZ FALHAR O DISPARO. Se ela falhar (rede, permissão), `run` vem `null` e a
+   * criação segue: o que se perde é a conveniência de ter o link, não a escola. */
+  let run = null;
+  try {
+    const lista = await f('https://api.github.com/repos/' + dono + '/' + repo +
+      '/actions/workflows/criar-escola.yml/runs?event=workflow_dispatch&per_page=1',
+      { headers: cabecalhos });
+    if (lista.ok) {
+      const dados = await lista.json();
+      const primeiro = (dados && dados.workflow_runs && dados.workflow_runs[0]) || null;
+      if (primeiro && primeiro.id) {
+        run = {
+          id: primeiro.id,
+          estado: primeiro.status || null,
+          url: primeiro.html_url || null,
+        };
+      }
+    }
+  } catch (erro) {
+    run = null;
+  }
+  return { status: res.status, ok: true, run };
 }
 
 /** Upload do MÓDULO (multipart) — o PUT JSON anterior cria o script; este sobe o código. */

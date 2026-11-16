@@ -767,19 +767,41 @@ async function fetch(request, env) {
       '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>', 500);
   }
 
+  /* UM HOST QUE NENHUMA ESCOLA RECLAMA NÃO É UM WORKER MAL CONFIGURADO (16/11/2026).
+   *
+   * «Quando eu acesso a página breu.padd.com.br aparece uma mensagem, configuração incorreta do
+   * worker. [...] se não existe a escola não era nem para existir essa mensagem.»
+   *
+   * E tem razão, pela razão mais simples: quem chega a um endereço que não corresponde a escola
+   * nenhuma não tem nada a consertar. A página de diagnóstico era para quem PODE consertar — e
+   * quem pode é quem lê o `curl /api/saude`, não quem digita o endereço no navegador.
+   *
+   * A ROTA QUE SOBRA É O CASO NORMAL, e não a excepção. Um expurgo apaga o Worker e não as rotas
+   * de todas as metades; uma criação que falhou a meio deixa o DNS e a rota no sítio. Enquanto a
+   * rota existir, o pedido chega aqui — e a resposta certa é a de um endereço que não existe:
+   * **404**, sem diagnóstico nenhum. A informação completa continua em `/api/saude`, que é onde
+   * quem procura já sabe procurar.
+   *
+   * O QUE **NÃO** MUDA: as outras duas razões de `!identidadeOk` continuam a ser configuração
+   * errada de um Worker que serve uma escola — a `vars` a dizer uma coisa e o mapa outra, ou o
+   * subdomínio a não bater com o `ESCOLA_SLUG`. Aí há mesmo o que consertar, e a página diz o quê. */
+  if (!identidadeOk && resolucao.origem === 'nada') {
+    return new Response('não encontrado', {
+      status: 404,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+
   if (!identidadeOk) {
     return respostaEstado('Configuração incorreta do Worker',
       (resolucao.conflito
         ? '<p>O mapa de escolas e a <code>vars</code> deste Worker dizem escolas diferentes.</p>' +
           '<p>Mapa: <code>' + esc(escolaResolvida) + '</code> · ESCOLA_SLUG: <code>' +
           esc(resolucao.esperada) + '</code></p>'
-        : (resolucao.origem === 'nada'
-          ? '<p>Nenhuma escola reivindica este Worker: o host <code>' + esc(url.hostname) +
-            '</code> não está no mapa de escolas e não há <code>ESCOLA_SLUG</code>.</p>'
-          : '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o ' +
-            '<code>ESCOLA_SLUG</code>.</p>' +
-            '<p>Subdomínio: <code>' + esc(subdominio) + '</code> · ESCOLA_SLUG: <code>' +
-            esc(env.ESCOLA_SLUG || '(ausente)') + '</code></p>')) +
+        : '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o ' +
+          '<code>ESCOLA_SLUG</code>.</p>' +
+          '<p>Subdomínio: <code>' + esc(subdominio) + '</code> · ESCOLA_SLUG: <code>' +
+          esc(env.ESCOLA_SLUG || '(ausente)') + '</code></p>') +
       (escolaDoPacote && escolaResolvida && escolaDoPacote !== escolaResolvida
         ? '<p>E o pacote publicado aqui é o da escola <code>' + esc(escolaDoPacote) +
           '</code> — o <code>assets.directory</code> desta config é de outra escola.</p>'
