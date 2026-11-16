@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-16",
+    "caminho": "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/ana-diag/ciclos/ciclo-01-breu.conf",
+      "professores/ana-diag/ciclos/ciclo-01.conf"
+    ],
+    "hash": "2dcc229a2df8a2cd5d97f6df1d84578e4d809e767b301be43ee42f6614684d3f",
+    "hash_conteudo": "edba122aa83e8d751e5051a892589fd06ca3a0d9e626617aa56fa0d03477fb8f",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/ana-diag/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/ana-diag/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "9c3de8a"
+  },
+  "gerado_em": "2026-11-16T10:58",
+  "id": "ciclo:ana-diag/01/breu",
+  "professor": "ana-diag",
+  "versao": 7
+}

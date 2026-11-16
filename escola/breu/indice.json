@@ -3,17 +3,17 @@
   "worker": "lastro-teste",
   "criado_em": "2026-10-19T23:41:57.342597+00:00",
   "professor": {
-    "slug": "dedao-aberto",
-    "nome": "Dedao Aberto"
+    "slug": "ana-diag",
+    "nome": "Ana Diag"
   },
-  "responsavel": "Dedao Aberto",
+  "responsavel": "Ana Diag",
   "ciclo": "01",
   "senha": {
     "chave": "SENHA_CRIPTO",
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -961,6 +961,20 @@
       "professor_anterior": {
         "slug": "grand-plie",
         "nome": "Grand Plié"
+      }
+    },
+    {
+      "em": "2026-11-16T10:58:23.994622+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "ana-diag",
+        "nome": "Ana Diag"
+      },
+      "responsavel": "Ana Diag",
+      "ciclo": "01",
+      "professor_anterior": {
+        "slug": "dedao-aberto",
+        "nome": "Dedao Aberto"
       }
     }
   ],
