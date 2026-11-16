@@ -46542,3 +46542,38 @@ erros.
   uma escola. O dado está no KV, a chave é conhecida, e o ecrã é o trabalho seguinte.
 - **O e-mail de boas-vindas continua a não sair**, por falta de `RESEND_API_KEY` — compõe-se,
   guarda-se na caixa de saída do tenant, e a tela diz que não saiu.
+
+### 5. O script que continuava a correr na página onde a caixa já não existia
+
+**Aconteceu** depois de tudo estar verde, e foi encontrado a olhar para a produção e não para a
+prova. A página pública carrega `raiz/index.html` — o mesmo documento do painel, com a caixa do
+expurgo retirada no servidor por `removerDoPainel`. O **HTML** estava certo: zero elementos com
+`data-dono`, que era exactamente o que a prova verificava. O **script** é o mesmo das duas
+páginas, e continuava a correr até à linha onde faz
+
+    document.getElementById("btn-apagar").addEventListener("click", abrirApagar);
+
+Com a caixa fora do documento, `getElementById` devolve `null` e a chamada lança. Um `throw` no
+**topo** de um script mata tudo o que vem depois dele — e o que vinha depois não deu sinal
+nenhum: nenhum botão desapareceu, nenhuma cor mudou, a página só ficou calada. O modo de falha é
+o pior dos modos de falha: silencioso, e no endereço onde quem chega é um cliente.
+
+**Ficou decidido** que cada ligação pergunta primeiro se o elemento existe — «existe?» não é a
+mesma pergunta que «está aqui?», e é a segunda que se costuma fazer. Entram um `aoClicar(id, fn)`
+que não faz nada quando o elemento não está, e três guardas (`if (campoConf)`, `if (modalApagar)`,
+`if (btnConfirmar)`). Não se retirou o script do HTML público porque o script é o mesmo: o
+formulário em etapas vive nele.
+
+**Entrou** em `raiz/index.html` (as cinco ligações do bloco do expurgo).
+
+**Com o quê** a asserção que teria apanhado isto, na secção H de `provar-pagina-publica`: a
+página pública é **executada** num `jsdom` e o ensaio exige **zero** `jsdomError`. `provar-pagina-
+publica` passa a **66/66**. Contra o defeito, verificado à parte: alimentando o `removerDoPainel`
+com o `raiz/index.html` de `3314a17a` (o commit em que tudo o resto já estava certo), o ensaio
+reprova com `TypeError: Cannot read properties of null (reading 'addEventListener')` — o defeito
+real, e não uma descrição dele.
+
+**A lição, e é para ficar escrita.** Uma prova que lê o HTML sem o executar mede a marcação e não
+mede a página. As duas perguntas são diferentes — «o HTML está certo?» e «a página abre?» —, e a
+segunda só se responde a correr. O `check-identidade` responde à primeira desde sempre; quem
+responde à segunda passa a ser esta secção.
