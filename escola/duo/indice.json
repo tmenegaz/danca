@@ -1,6 +1,6 @@
 {
   "escola": "duo",
-  "worker": "duo",
+  "worker": "lastro-teste",
   "criado_em": "2026-11-16T12:25:10.980318+00:00",
   "professor": {
     "slug": "fernando-franciose",
@@ -14,7 +14,7 @@
   },
   "shard": "lastro-teste",
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -93,5 +93,18 @@
         }
       }
     }
-  ]
+  ],
+  "recriacao": [
+    {
+      "em": "2026-11-16T14:49:54.687328+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "fernando-franciose",
+        "nome": "Fernando Franciose"
+      },
+      "responsavel": "Fernando Franciose",
+      "ciclo": "01"
+    }
+  ],
+  "professores": []
 }
