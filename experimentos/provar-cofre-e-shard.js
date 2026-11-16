@@ -343,6 +343,7 @@ function cloudflareFalso({ rotas = [] } = {}) {
     try {
       r = await prov.provisionarDentroDoShard({
         nome: 'Escola Nova', escola: 'escola-nova', senhaAdmin: 'senha-da-direcao',
+        senhaProfessor: 'senha-do-professor',
         professorNome: 'Pe Torto', professorSlug: '', token: 't', accountId: 'conta',
         shardScript: 'lastro-teste', kv,
       });
@@ -377,6 +378,85 @@ function cloudflareFalso({ rotas = [] } = {}) {
         try { await prov.provisionarDentroDoShard({ nome: 'X', escola: 'x', shardScript: 'lastro-teste' }); return false; }
         catch (erro) { return /KV/.test(String(erro && erro.message)); }
       })(), null);
+
+    /* ------------------------------------------------------------- B3-bis. A SENHA DO PROFESSOR
+     *
+     * O QUE ELA RELATOU, a 24/11/2026: criou uma escola, escolheu para o professor uma senha
+     * que não a do documento `tools/.senhas-locais`, tentou entrar com ela e foi recusada; a que
+     * abriu foi a do documento. E completou a regra: «a senha que tem que valer é a senha que eu
+     * digito no teste, senão o teste não está passando, é uma coisa inventada».
+     *
+     * (AS SENHAS NÃO SE COPIAM PARA AQUI. O `pre-push` confere os valores de `.senhas-locais`
+     * contra os arquivos versionados, e tem razão em barrar: a prova mede a REGRA, e a regra não
+     * precisa do valor. Por isso esta citação é paráfrase e não transcrição.)
+     *
+     * A CAUSA, e ela é de desenho: `provisionarDentroDoShard` recebia `senhaProfessor` e
+     * DESCARTAVA-O — a assinatura não o lia, e o registo guardava só a senha da direção. A senha
+     * do dono continuava a ser comparada com `env.SENHA_PROFESSOR`, que num SHARD vale o mesmo
+     * para N escolas: uma senha que ela nunca escolheu, e igual em todas.
+     *
+     * O QUE SE MEDE AQUI, pelo CAMINHO REAL (a rota que a página chama), e não pela função:
+     *   (a) o registo guarda a senha do professor, separada da da direção;
+     *   (b) a senha DIGITADA abre — e as outras duas (a da direção, a do secret do shard) não;
+     *   (c) uma escola SEM esse par — as de antes — continua a entrar pelo secret: a reserva
+     *       existe para a correção não fechar a porta a quem já lá está. */
+    const bastidoresDaSenha = carregar('motor/servidor/bastidores.js');
+    if (!bastidoresDaSenha || typeof bastidoresDaSenha.fetch !== 'function') {
+      provar('os Bastidores carregam — sem eles não há senha a medir', false, 'não carregou');
+    } else {
+      const senha = carregar('motor/nucleo/senha.js');
+      provar('o registo guarda a senha do PROFESSOR, num par próprio',
+        Boolean(dono.professor_hash) && Boolean(dono.professor_sal), Object.keys(dono));
+      provar('…e ela NÃO é a da direção (as duas senhas não são a mesma pessoa)',
+        dono.professor_hash !== dono.hash,
+        { professor: dono.professor_hash, direcao: dono.hash });
+      provar('…e confere com a senha que ela digitou na criação',
+        await senha.confere('senha-do-professor', { hash: dono.professor_hash, sal: dono.professor_sal }), null);
+
+      /* O `env` do SHARD: UM para N escolas, com um `SENHA_PROFESSOR` que não é de ninguém em
+       * particular. É este o valor que abria tudo antes desta correção. */
+      const envDoShard = {
+        ESCOLA_SLUG: 'escola-nova',
+        PADD_KV: kv,
+        PROFESSOR_NOME: 'Pe Torto',
+        SENHA_PROFESSOR: 'a-senha-do-secret-do-shard',
+        SENHA_ADMIN: 'a-senha-do-secret-do-shard',
+      };
+      /* O `fetch` global VOLTA enquanto a rota corre: o store do repositório o recebe no
+       * `criarStore`, mesmo inerte (sem token não lê nada) — e a prova o tinha apagado. */
+      const entrar = async (senhaDigitada) => {
+        globalThis.fetch = cf.fetch;
+        try {
+          const res = await bastidoresDaSenha.fetch(new Request(
+            'https://escola-nova.padd.com.br/api/bastidores/validar-senha',
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ professor: 'pe-torto', senha: senhaDigitada }) }), envDoShard);
+          const corpo = await res.json().catch(() => null);
+          return { status: res.status, ok: Boolean(corpo && corpo.ok), erro: corpo && corpo.erro };
+        } finally {
+          delete globalThis.fetch;
+        }
+      };
+
+      const digitada = await entrar('senha-do-professor');
+      provar('a senha DIGITADA na criação abre os Bastidores da escola', digitada.ok, digitada);
+      const daDirecao = await entrar('senha-da-direcao');
+      provar('…e a senha da DIREÇÃO não abre como professor (são duas, e continuam duas)',
+        !daDirecao.ok, daDirecao);
+      const doSecret = await entrar('a-senha-do-secret-do-shard');
+      provar('…e o secret do SHARD deixa de abrir esta escola — senão uma senha abria todas',
+        !doSecret.ok, doSecret);
+
+      /* A RESERVA: a escola criada antes desta versão não tem `professor_hash`. Não se lhe
+       * inventa uma senha — continua a entrar pelo secret do Worker, como sempre entrou. */
+      const semPar = JSON.parse(JSON.stringify(dono));
+      delete semPar.professor_hash; delete semPar.professor_sal;
+      kv.dados.set('bastidores/escola-nova/dono', JSON.stringify(semPar));
+      const pelaReserva = await entrar('a-senha-do-secret-do-shard');
+      provar('escola SEM o par do professor (as de antes) continua a entrar pelo secret',
+        pelaReserva.ok, pelaReserva);
+      kv.dados.set('bastidores/escola-nova/dono', JSON.stringify(dono));
+    }
   });
 
   /* ---------------------------------------------------------------- C. O cofre */
@@ -879,10 +959,38 @@ function cloudflareFalso({ rotas = [] } = {}) {
       const r3 = correr('nao-existe', 'x');
       provar('CONTROLE NEGATIVO: uma escola inexistente continua a ser recusada', r3.status !== 0, r3.status);
       /* O CASO DELA, dito: a TURMA no campo da escola («batata-rosa»). A conferência recusa — e
-       * agora NOMEIA o engano, em vez de dizer só que não é um Worker. */
-      const r4 = correr('batata-rosa', '');
-      provar('CONTROLE NEGATIVO: pôr a TURMA no campo da escola é recusado, e o engano é nomeado',
-        r4.status !== 0 && /é uma TURMA/.test(r4.saida), { status: r4.status, saida: r4.saida.slice(-220) });
+       * agora NOMEIA o engano, em vez de dizer só que não é um Worker.
+       *
+       * A TURMA É ESCOLHIDA AGORA, DO DISCO (18/11/2026). Estava fixa em «batata-rosa», e o
+       * expurgo da batata levou a pasta que a mensagem procura
+       * (a pasta ciclo-NN-da-turma, dentro dos ciclos de cada professor): a prova passou a exigir
+       * uma frase que nenhum
+       * dado do repositório justificava. Uma prova que se cola a uma pasta datada morre com ela. */
+      const turmaDoDisco = (() => {
+        const raizes = fs.readdirSync(path.join(RAIZ, 'professores'), { withFileTypes: true })
+          .filter((d) => d.isDirectory()).map((d) => d.name);
+        for (const prof of raizes) {
+          const pasta = path.join(RAIZ, 'professores', prof, 'ciclos');
+          if (!fs.existsSync(pasta)) continue;
+          for (const nome of fs.readdirSync(pasta)) {
+            const m = /^ciclo-\d\d-(.+)$/.exec(nome);
+            if (!m) continue;
+            const turma = m[1];
+            if (fs.existsSync(path.join(RAIZ, 'escola', turma))) continue;   // é uma ESCOLA
+            if (fs.existsSync(path.join(RAIZ, 'wrangler.' + turma + '.jsonc'))) continue;
+            return turma;
+          }
+        }
+        return null;
+      })();
+      if (!turmaDoDisco) {
+        console.log('  ! nenhuma pasta ciclo-NN-<turma> no repositório — o engano «turma no campo'
+          + ' da escola» não se mede aqui');
+      } else {
+        const r4 = correr(turmaDoDisco, '');
+        provar('CONTROLE NEGATIVO: pôr a TURMA no campo da escola é recusado, e o engano é nomeado',
+          r4.status !== 0 && /é uma TURMA/.test(r4.saida), { status: r4.status, saida: r4.saida.slice(-220) });
+      }
       /* OS DOIS CAMPOS TROCADOS: a escola no campo da turma. A conferência só pode dizer isto
        * quando a «escola» é inválida — se fosse válida, nada haveria a assinalar. */
       const r5 = correr('nao-existe', 'calango');

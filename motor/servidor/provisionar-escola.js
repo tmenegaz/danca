@@ -214,15 +214,26 @@ function senhaAleatoria() {
  * `senhaProfessor` idem — a do dono é derivada da mesma, como sempre foi (o professor inicial é a
  * pessoa de contacto da escola).
  */
-async function provisionarDentroDoShard({ nome, senhaAdmin, professorNome, professorSlug, token, accountId, zona, shardScript, kv, escola }) {
+async function provisionarDentroDoShard({ nome, senhaAdmin, senhaProfessor, professorNome, professorSlug, token, accountId, zona, shardScript, kv, escola }) {
   if (!kv || typeof kv.put !== 'function') {
     throw new ErroDeProvisionamento('kv', 'o shard precisa do KV ligado para registar a escola — sem ele a escola nasce e ninguém sabe dela');
   }
   const slugDoProfessor = String(professorSlug || '').trim() || slugificar(professorNome || '');
 
-  /* 1. O REGISTO DO DONO. A senha da direção é a mesma do professor inicial — é a mesma pessoa, e
-   * duas senhas para o mesmo dono seria uma segunda verdade. O registo guarda o hash. */
+  /* 1. O REGISTO DO DONO — E AS DUAS SENHAS, QUE NÃO SÃO A MESMA (24/11/2026).
+   *
+   * Aqui estava escrito que «a senha da direção é a mesma do professor inicial — é a mesma
+   * pessoa». É falso no formulário: ele pede DUAS senhas, uma para a direção e outra para o
+   * professor, e é legítimo serem diferentes (a dela eram: `123` e `2805`). O registo guardava só
+   * a da direção, o `senhaProfessor` era passado ao chamador e **descartado pela assinatura desta
+   * função**, e a senha do professor passava a ser a do SECRET do shard — um valor só, para N
+   * escolas. Resultado medido: a senha que ela digitou não abria os Bastidores, e a que abria era
+   * uma que ela nunca escolheu.
+   *
+   * AS DUAS FICAM, cada uma no seu par hash+sal. A do professor cai para a da direção quando não
+   * vier — é o caso de quem preenche as duas iguais, e era o comportamento de antes. */
   const senhaDaDirecao = String(senhaAdmin || '').trim();
+  const senhaDoProfessor = String(senhaProfessor || '').trim() || senhaDaDirecao;
   const registo = {
     nome: String(professorNome || '').trim(),
     slug: slugDoProfessor,
@@ -236,6 +247,14 @@ async function provisionarDentroDoShard({ nome, senhaAdmin, professorNome, profe
     const senha = await senhaDeRegisto.registoDeSenha(senhaDaDirecao);
     registo.hash = senha.hash;
     registo.sal = senha.sal;
+  }
+  /* A DO PROFESSOR, SEPARADA. Os nomes são os que `senhaDoProfessorOk` procura — e é ele que
+   * responde a «esta senha abre os Bastidores desta escola?». Sem este par, a resposta era o
+   * secret do shard. */
+  if (senhaDoProfessor) {
+    const senha = await senhaDeRegisto.registoDeSenha(senhaDoProfessor);
+    registo.professor_hash = senha.hash;
+    registo.professor_sal = senha.sal;
   }
   await kv.put('bastidores/' + escola + '/dono', JSON.stringify(registo));
 

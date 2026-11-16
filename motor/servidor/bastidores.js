@@ -2668,6 +2668,27 @@ async function senhaDoProfessorOk(env, kv, escola, professor, senha) {
   if (!professor) return { ok: false, erro: 'escolha o professor' };
 
   if (professor === slugDoDono(env)) {
+    /* A SENHA DO DONO É A QUE A ESCOLA GUARDOU — E O `env` É RESERVA (24/11/2026).
+     *
+     * Aqui comparava-se SÓ `env.SENHA_PROFESSOR`. Num Worker por escola isso era a senha certa:
+     * o provisionamento gravava-a como secret daquele Worker. Num SHARD há UM `env` para N
+     * escolas, e `SENHA_PROFESSOR` é um valor só — de modo que a senha que a pesquisadora digitou
+     * ao criar a escola não abria nada, e a que abria era a do secret, que ela nunca escolheu.
+     * Medido a 24/11/2026: criou a escola com `2805` para o professor, `2805` foi recusada.
+     *
+     * A ORDEM É A REGRA, e é a mesma que a direção já segue (`senhaDaDirecaoOk`): o registo da
+     * ESCOLA manda, o `env` é reserva. Uma escola que ainda não tem registo — as de antes desta
+     * versão — continua a entrar pela senha do Worker, sem migração.
+     *
+     * E O `SENHA_PROFESSOR` DO SHARD DEIXA DE VALER AQUI quando o registo existe: aceitá-lo
+     * quando há um registo daria a quem conhece o secret do shard a chave de todas as escolas —
+     * que é exactamente o que a `senhaDaDirecaoOk` já evita do lado da direção. */
+    const doRegisto = await senhaDoRegistoDaEscola(env, kv, escola, senha);
+    if (doRegisto !== null) {
+      if (!doRegisto) return { ok: false, erro: 'senha do professor não reconhecida' };
+      const nome = await nomeDoDono(env, kv, escola);
+      return { ok: true, nome: (nome || 'professor') };
+    }
     if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
       const nome = await nomeDoDono(env, kv, escola);
       return { ok: true, nome: (nome || 'professor') };
@@ -2773,6 +2794,33 @@ async function nomeDoDono(env, kv, escola) {
     }
   } catch (e) { /* sem sobreposição — usa o secret */ }
   return String((env && env.PROFESSOR_NOME) || '').trim();
+}
+
+/**
+ * A SENHA DO PROFESSOR, PELO REGISTO DA ESCOLA — `true`, `false`, ou `null` quando não há registo.
+ *
+ * O `null` é o que separa «esta senha está errada» de «esta escola não tem registo, e a resposta
+ * vem do `env`». Sem essa distinção, uma escola antiga — que só tem o secret do Worker — passaria
+ * a ser recusada por uma função que não tinha o que consultar.
+ *
+ * LÊ O QUE A CRIAÇÃO ESCREVEU (`provisionarDentroDoShard`): `professor_hash`/`professor_sal`. O
+ * `hash`/`sal` do topo do registo são da DIREÇÃO, e aceitá-los aqui daria ao professor a senha da
+ * direção — é a mesma separação que `senhaDaDirecaoOk` faz do outro lado.
+ *
+ * Um registo SEM `professor_hash` (escolas criadas antes de 24/11) devolve `null`: cai no `env`,
+ * como antes. Não se inventa uma senha que ninguém escolheu.
+ */
+async function senhaDoRegistoDaEscola(env, kv, escola, senha) {
+  if (!kv || typeof kv.get !== 'function' || !escola) return null;
+  let registo = null;
+  try {
+    const texto = await kv.get(RAIZ + '/' + escola + '/dono');
+    if (texto) registo = JSON.parse(texto);
+  } catch (e) { return null; }
+  if (!registo || typeof registo !== 'object') return null;
+  const hash = String(registo.professor_hash || '').trim();
+  if (!hash) return null;
+  return (await hashSenha(senha, String(registo.professor_sal || ''))) === hash;
 }
 
 /**
