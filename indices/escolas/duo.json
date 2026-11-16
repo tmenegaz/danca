@@ -1,0 +1,161 @@
+{
+  "aspectos": [],
+  "aulas": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-16",
+        "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+        "cobertura": [
+          "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+          "professores/fernando-franciose/ciclos/ciclo-01.conf"
+        ],
+        "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
+        "hash_conteudo": "7d1eaa0664f4d61a8d1d5b4acbc3fea9ca1dcfb0080dd248580e2517b80dff95",
+        "id": "ciclo-01-duo",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "duo",
+      "estado": "ancorado",
+      "id": "ciclo:fernando-franciose/01/duo",
+      "numero": "01",
+      "pacote": null,
+      "professor": "fernando-franciose",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:ancora:professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+      "professor": "fernando-franciose",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:manifesto:professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "professor": "fernando-franciose",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:schema:professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "fernando-franciose",
+      "tipo": "schema"
+    }
+  ],
+  "escola": {
+    "ciclos": [
+      "ciclo:fernando-franciose/01/duo"
+    ],
+    "contagens": {
+      "anamneses": 0,
+      "aulas": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
+      "planos": 0,
+      "pos": 0,
+      "recortes": 0,
+      "registros": 0
+    },
+    "criada_em": "2026-11-16T12:25:10.980318+00:00",
+    "expurgada": false,
+    "expurgada_em": null,
+    "expurgos": 0,
+    "habilitada": true,
+    "id": "escola:duo",
+    "nome": "duo",
+    "professor": "fernando-franciose",
+    "professores": [
+      "fernando-franciose"
+    ],
+    "registros": [],
+    "slug": "duo"
+  },
+  "filtros": {
+    "anos": [],
+    "aspectos": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "fernando-franciose",
+        "valor": "fernando-franciose"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "58b5fe4"
+  },
+  "gerado_em": "2026-11-16T12:25",
+  "nao_indexado": [
+    {
+      "familia": "conteudo",
+      "motivo": "o índice guarda metadados; o corpo dos documentos não se copia"
+    },
+    {
+      "familia": "marcas",
+      "motivo": "vivem no lançamento da aula, que é cifrado no cofre — ainda sem leitor"
+    },
+    {
+      "familia": "presenca",
+      "motivo": "idem: o lançamento não tem leitor, e um zero aqui seria mentira"
+    },
+    {
+      "familia": "alunas-no-acervo",
+      "motivo": "dado de menor: o apelido só aparece no índice da própria escola"
+    },
+    {
+      "familia": "senhas",
+      "motivo": "nunca — nem hash, nem sal"
+    }
+  ],
+  "recortes": [],
+  "registros": [],
+  "versao": 7
+}

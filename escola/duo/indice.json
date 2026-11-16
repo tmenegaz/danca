@@ -1,0 +1,37 @@
+{
+  "escola": "duo",
+  "worker": "duo",
+  "criado_em": "2026-11-16T12:25:10.980318+00:00",
+  "professor": {
+    "slug": "fernando-franciose",
+    "nome": "Fernando Franciose"
+  },
+  "responsavel": "Fernando Franciose",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "shard": "lastro-teste",
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo/",
+      "tipo": "pacote zero"
+    }
+  ]
+}

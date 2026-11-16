@@ -15,6 +15,22 @@
       "numero": "01",
       "professor": "brise-volet",
       "sem_ancora": false
+    },
+    {
+      "ancora": {
+        "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
+        "id": "ciclo-01-duo",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "duo",
+      "estado": "ancorado",
+      "id": "ciclo:fernando-franciose/01/duo",
+      "numero": "01",
+      "professor": "fernando-franciose",
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -122,6 +138,34 @@
       ],
       "registros": [],
       "slug": "calango"
+    },
+    {
+      "ciclos": [
+        "ciclo:fernando-franciose/01/duo"
+      ],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
+        "planos": 0,
+        "pos": 0,
+        "recortes": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-11-16T12:25:10.980318+00:00",
+      "expurgada": false,
+      "expurgada_em": null,
+      "expurgos": 0,
+      "habilitada": true,
+      "id": "escola:duo",
+      "nome": "duo",
+      "professor": "fernando-franciose",
+      "professores": [
+        "fernando-franciose"
+      ],
+      "registros": [],
+      "slug": "duo"
     }
   ],
   "filtros": {
@@ -141,11 +185,16 @@
         "contagem": 1,
         "rotulo": "calango",
         "valor": "calango"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "duo",
+        "valor": "duo"
       }
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
@@ -185,6 +234,11 @@
         "contagem": 1,
         "rotulo": "Demi Plié",
         "valor": "demi-plie"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Fernando Franciose",
+        "valor": "fernando-franciose"
       },
       {
         "contagem": 0,
@@ -286,9 +340,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "97189ff"
+    "commit": "58b5fe4"
   },
-  "gerado_em": "2026-11-16T11:29",
+  "gerado_em": "2026-11-16T12:25",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -381,6 +435,18 @@
       "nome": "Demi Plié",
       "pasta": true,
       "slug": "demi-plie"
+    },
+    {
+      "ciclos": [
+        "ciclo:fernando-franciose/01/duo"
+      ],
+      "escolas": [
+        "duo"
+      ],
+      "id": "professor:fernando-franciose",
+      "nome": "Fernando Franciose",
+      "pasta": true,
+      "slug": "fernando-franciose"
     },
     {
       "ciclos": [],
