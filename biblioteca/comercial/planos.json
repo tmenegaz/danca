@@ -1,0 +1,82 @@
+{
+  "_nota": "OS PARÂMETROS COMERCIAIS, NUM LUGAR SÓ (25/11/2026). É a fonte única que a frente L8 do PLANEJAMENTO-LASTRO.md pede: «transformar a composição comercial (planos, capacidades, adicionais, períodos, descontos) em dado declarado num lugar só — para que o preço exibido, o calculado e o cobrado não divirjam». Nenhum valor desta tabela se repete em código: quem mostra, quem calcula e quem grava leem daqui. Os valores são os da escada DECIDIDA a 10/11/2026 (§L8 e C23), e não uma proposta: 69,90 · 99,90 · 139,90, com a capacidade incluída de 1 prof/10 alunos · 3/40 · 6/90. O lote de capacidade é RECORRENTE — entra na mensalidade, não se paga uma vez. O que fica por decidir está no PLANEJAMENTO (C23: a capacidade incluída subiu e o preço da assinatura não, logo a escada só perde receita).",
+  "moeda": "BRL",
+  "moeda_simbolo": "R$",
+  "periodicidade": "mês",
+  "assinaturas": [
+    {
+      "id": "basico",
+      "nome": "Básico",
+      "preco": 69.9,
+      "professores": 1,
+      "alunos": 10,
+      "consultas": 7,
+      "resumo": "Uma turma, um professor. As consultas do primeiro degrau do catálogo.",
+      "inclui": [
+        "A porta com a anamnese, o plano de ensino e o plano de observação",
+        "Produção: turmas, alunas, vocabulário e régua",
+        "A geração do ciclo e o acervo dos envelopes"
+      ]
+    },
+    {
+      "id": "intermediario",
+      "nome": "Intermediário",
+      "preco": 99.9,
+      "professores": 3,
+      "alunos": 40,
+      "consultas": 14,
+      "resumo": "Três professores, quarenta alunas. O degrau do meio.",
+      "inclui": [
+        "Tudo o que o Básico inclui",
+        "As consultas novas do segundo degrau (7 a mais)",
+        "Três professores e quarenta alunas incluídos"
+      ]
+    },
+    {
+      "id": "avancado",
+      "nome": "Avançado",
+      "preco": 139.9,
+      "professores": 6,
+      "alunos": 90,
+      "consultas": 46,
+      "resumo": "Seis professores, noventa alunas, e o catálogo completo.",
+      "inclui": [
+        "Tudo o que o Intermediário inclui",
+        "As consultas novas do terceiro degrau (32 a mais)",
+        "A turma pronta com conteúdo pedagógico gerado, e não só a configuração"
+      ]
+    }
+  ],
+  "lotes": {
+    "_nota": "A CAPACIDADE É UM EIXO ORTOGONAL, e cobra-se por volume (C23). A regra é uma só: triplicar a quantidade custa 5/3 do preço. O lote é RECORRENTE — a mensalidade é `assinatura + Σ lotes`. A capacidade incluída do plano NÃO se desconta do lote: é a tabela decidida, e alterá-la é mudança comercial, não arredondamento.",
+    "professores": [
+      { "qtd": 1, "preco": 30 },
+      { "qtd": 3, "preco": 50 }
+    ],
+    "alunos": [
+      { "qtd": 10, "preco": 30 },
+      { "qtd": 30, "preco": 50 }
+    ]
+  },
+  "extensoes": [
+    {
+      "id": "turma-pronta-configuracao",
+      "nome": "Turma pronta — configuração",
+      "descricao": "Carregar as turmas iniciais já nomeadas e com o nível de referência. O ritmo (dias, hora, duração, período) NÃO vem: ele é do contrato da escola.",
+      "em": ["basico", "intermediario", "avancado"],
+      "preco": 0
+    },
+    {
+      "id": "turma-pronta-conteudo",
+      "nome": "Turma pronta — configuração e conteúdo",
+      "descricao": "Além da configuração, o conteúdo pedagógico das turmas é gerado. É o cliente que escolhe se quer gerar ou só configurar.",
+      "em": ["avancado"],
+      "preco": 0
+    }
+  ],
+  "descontos": {
+    "_nota": "A POLÍTICA DE DESCONTO NÃO ESTÁ FECHADA (§L8, risco (b)): a regra de 5/10/20% «em relação ao preço mensal de referência» e a soma com adicionais precisam de uma ordem declarada. Por isso a tabela vai vazia e o calculador NÃO desconta: um desconto inventado num dado é um preço errado que ninguém sabe de onde veio.",
+    "porPeriodo": {},
+    "avista": null
+  }
+}
