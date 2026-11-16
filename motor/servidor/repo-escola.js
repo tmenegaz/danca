@@ -1730,6 +1730,47 @@ async function apagarCicloDoRepoUmaVez({ token, dono, repo, ref, escola, profess
   };
 }
 
+/**
+ * O COMMIT EM QUE A ESCOLA AINDA ESTAVA INTEIRA — a via do Git (16/11/2026).
+ *
+ * O ELO passou a guardar `commit_antes` a 16/11/2026, e é essa a via normal. Esta existe para os
+ * expurgos de antes: sem ela, as escolas apagadas ontem — e a primeira que se quis trazer de volta
+ * é uma delas — não teriam retrato nenhum.
+ *
+ * A PERGUNTA É FEITA AO REPOSITÓRIO, e não à mensagem do commit. A lista é a dos commits que
+ * tocaram a pasta do acervo da escola; o retrato é o pai daquele em que a pasta deixou de ter o
+ * `.indice.json`. O critério é o CONTEÚDO, e não o texto do commit: quem procurasse «expurgar a
+ * escola» acertaria hoje e falharia no dia em que a mensagem mudasse — e uma busca que depende de
+ * uma frase é uma busca que se parte em silêncio.
+ *
+ * Devolve `{ commit, expurgo }` ou `null`. Custa até dez pedidos, e só no caminho antigo: quem tem
+ * `commit_antes` no elo não passa por aqui.
+ */
+async function commitDoRetratoDaEscola({ token, dono, repo, ref, slug, fetchImpl }) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(String(slug || ''))) return null;
+  const f = fetchImpl || fetch;
+  const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;
+  const pasta = 'escola/' + slug + '/envelopes/.indice.json';
+  const lista = await pedir(f,
+    raizApi + '/commits?path=' + encodeURIComponent('escola/' + slug + '/envelopes')
+    + '&per_page=5&sha=' + encodeURIComponent(ref || 'main'), token);
+  if (!lista.ok || !Array.isArray(lista.corpo) || !lista.corpo.length) return null;
+
+  for (const entrada of lista.corpo) {
+    const sha = entrada && entrada.sha;
+    if (!sha) continue;
+    const detalhe = await pedir(f, raizApi + '/commits/' + sha, token);
+    const pai = detalhe.ok && detalhe.corpo && Array.isArray(detalhe.corpo.parents)
+      ? (detalhe.corpo.parents[0] && detalhe.corpo.parents[0].sha) : null;
+    if (!pai) continue;
+    /* O retrato é o pai QUE AINDA TEM o índice do acervo. É isto que separa «o commit anterior» de
+     * «o estado antes do expurgo» — e é a única verificação que não depende de texto nenhum. */
+    const tem = await lerArquivo({ token, dono, repo, ref: pai, caminho: pasta, fetchImpl: f });
+    if (tem !== null && tem !== undefined) return { commit: pai, expurgo: sha };
+  }
+  return null;
+}
+
 module.exports = {
   ciclosDaVariante,
   apagarCicloDoRepo,
@@ -1748,6 +1789,7 @@ module.exports = {
   comResolucaoDoKv,
   listarProfessores,
   apagarEscolaDoRepo,
+  commitDoRetratoDaEscola,
   escolaDosCaminhos,
   escolasDosCaminhos,
   professoresDosCaminhos,

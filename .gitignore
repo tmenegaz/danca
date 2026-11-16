@@ -1487,3 +1487,10 @@ experimentos/modelo-formulario/*
 # cartas (para quem, com que palavras), o silêncio quando não há endereço ou chave, e a caixa de
 # saída — onde duas cartas do mesmo milissegundo já se apagaram uma à outra.
 !experimentos/provar-cartas-do-expurgo.js
+
+# O RETRATO DA ESCOLA, DE VOLTA (16/11/2026). «Avisa que dados serão perdidos e pergunta se quer mesmo
+# esse: sim então restaura com a capacidade do que está sendo contratado; não, então a pessoa escolhe
+# outro plano. A escolha do que fica é sequencial em ordem decrescente.» A prova mede a ordem (o
+# tempo, com o documento próprio a desempatar), as três guardas do corte, e o CLI a correr num
+# repositório de verdade — com um expurgo que apaga e um elo que aponta o estado anterior.
+!experimentos/provar-restaurar-retrato.js

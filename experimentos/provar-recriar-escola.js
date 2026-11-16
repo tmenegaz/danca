@@ -368,6 +368,82 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
       curto.status === 404 && /link inteiro/.test(curto.html), curto.status);
   }
 
+  console.log('\nD2. O retrato: o que a escola tinha, e a pergunta quando o plano não cobre');
+  {
+    const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
+    const segredo = nucleo.novoToken();
+    const token = 'batata-' + segredo;
+    const catalogo = comercial.catalogoDaPagina();
+    const registo = {
+      escola: 'batata', nome: 'Batata', hash: await nucleo.hashDoToken(segredo),
+      criadoEm: new Date().toISOString(), expiraEm: nucleo.validadeDe(),
+      /* O RETRATO É GRAVADO QUANDO O CONVITE NASCE (16/11/2026) — a página é pública e não vai ao
+       * GitHub a cada abertura. Aqui usa-se o que o convite guardou, e não uma leitura. */
+      retrato: {
+        commit: 'a'.repeat(40), origem: 'elo', documentos: 6,
+        professores: ['Ana Paula', 'Bia', 'Cida', 'Dora'],
+        alunos: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12'],
+      },
+    };
+    const kv = kvCom({ 'bastidores/batata/convite': JSON.stringify(registo) });
+    const abrir = async () => {
+      const res = await raiz.fetch(new Request('https://lastro.padd.com.br/recriar/' + token),
+        envCom(kv, { PIX_CHAVE: 'chave@pix.test' }));
+      return { status: res.status, html: await res.text() };
+    };
+    const pagina = await abrir();
+    conferir('a página do convite recebe o retrato que o convite guardou',
+      pagina.status === 200 && /id="convite-perda"/.test(pagina.html), pagina.status);
+    conferir('…com a contagem dentro, para a pergunta ser feita com os números do servidor',
+      /data-retrato="[^"]*documentos/.test(pagina.html)
+        && /data-retrato="[^"]*A12/.test(pagina.html), null);
+    conferir('…e com os dois botões da pergunta',
+      /id="convite-perda-sim"/.test(pagina.html) && /id="convite-perda-nao"/.test(pagina.html), null);
+
+    /* A PERGUNTA TEM DE SER FEITA, E NÃO SÓ DESENHADA: o `POST` sem a confirmação é recusado.
+     * O `POST` LÊ O ELO do repositório (é dele que sai o professor e o ciclo), e por isso aqui há
+     * um GitHub falso — o mesmo da secção E, com o elo da `duo` e a escola do convite trocada. */
+    const ghD2 = githubFalso({ elo: Object.assign({}, ELO, { escola: 'batata' }) });
+    globalThis.fetch = ghD2.fetch;
+    let semConfirmar;
+    try {
+      semConfirmar = await raiz.fetch(new Request('https://lastro.padd.com.br/api/recriar/' + token, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plano: PLANO, senhaAdmin: 'x' }),
+      }), envCom(kv, { PIX_CHAVE: 'chave@pix.test' })).then(async (r) => ({ status: r.status, corpo: await r.json() }));
+    } finally { delete globalThis.fetch; }
+    /* O Básico inclui 1 professor e 10 alunas; o retrato tem 4 e 12 — não cabe. */
+    conferir('sem a confirmação, o cadastro é recusado com 409 — e diz o que se perde',
+      semConfirmar.status === 409
+        && /vão perder-se 3 professores e 2 alunas/.test(String(semConfirmar.corpo.erro || '')),
+      semConfirmar);
+    conferir('…e a recusa traz o número, para a tela o poder dizer sem o inventar',
+      semConfirmar.corpo.perdidos
+        && semConfirmar.corpo.perdidos.alunos.descartados.length === 2
+        && semConfirmar.corpo.perdidos.professores.descartados.length === 3,
+      semConfirmar.corpo.perdidos);
+    conferir('…e oferece as duas saídas, na mesma frase',
+      /escolha outro plano/i.test(String(semConfirmar.corpo.erro || '')), null);
+    /* A recusa acontece ANTES de tocar em qualquer coisa: o convite não se gastou. */
+    const aindaVale = await abrir();
+    conferir('…e a recusa não gasta o convite', aindaVale.status === 200, aindaVale.status);
+
+    /* SEM DOCUMENTOS NÃO HÁ PERGUNTA — e não há recusa. */
+    const segredo2 = nucleo.novoToken();
+    const token2 = 'vazia-' + segredo2;
+    const kv2 = kvCom({
+      'bastidores/vazia/convite': JSON.stringify({
+        escola: 'vazia', nome: 'Vazia', hash: await nucleo.hashDoToken(segredo2),
+        criadoEm: new Date().toISOString(), expiraEm: nucleo.validadeDe(),
+        retrato: { commit: 'b'.repeat(40), origem: 'elo', documentos: 0, professores: [], alunos: [] },
+      }),
+    });
+    const vazia = await raiz.fetch(new Request('https://lastro.padd.com.br/recriar/' + token2),
+      envCom(kv2, { PIX_CHAVE: 'chave@pix.test' })).then(async (r) => ({ status: r.status, html: await r.text() }));
+    conferir('um convite sem documentos NÃO mostra a pergunta', vazia.status === 200
+      && !/id="convite-perda"/.test(vazia.html), vazia.status);
+  }
+
   console.log('\nE. O cadastro pela escola: cria, gasta o convite, avisa quem concilia');
   {
     const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
@@ -378,6 +454,11 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
       'bastidores/duo/convite': JSON.stringify({
         escola: 'duo', nome: 'Duo', hash: await nucleo.hashDoToken(segredo),
         criadoEm: new Date().toISOString(), expiraEm: nucleo.validadeDe(),
+        /* UM RETRATO QUE CABE (16/11/2026): um professor e uma aluna. O plano contratado abaixo
+         * leva lotes, e por isso comporta os dois — é o caso em que a restauração segue sem
+         * pergunta nenhuma, e em que o disparo tem de levar o commit. */
+        retrato: { commit: 'c'.repeat(40), origem: 'elo', documentos: 2,
+          professores: ['professor-antigo'], alunos: ['aluna-antiga'] },
       }),
       'bastidores/duo/cadastro': JSON.stringify({ escolaNome: 'Duo', email: 'escola@exemplo.test' }),
       'professores/fernando-franciose/contato': JSON.stringify({ email: 'professor@exemplo.test' }),
@@ -464,6 +545,18 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
     conferir('a escola nasce «aguardando» — é a conciliação que abre o acesso',
       comercialDepois.estado === 'aguardando', comercialDepois.estado);
     conferir('…com a origem declarada como convite', comercialDepois.origem === 'convite', comercialDepois.origem);
+
+    /* O QUE O DISPARO LEVA, e é o que faz a restauração acontecer do outro lado (16/11/2026): o
+     * pedido de restaurar, a capacidade que corta, e o commit do retrato — porque o clone do
+     * workflow é raso e o `tools/restaurar-retrato.js` tem de o ir buscar. */
+    const inputsDoDisparo = (gh.disparos[0] && gh.disparos[0].inputs) || {};
+    conferir('o disparo pede a restauração do retrato', inputsDoDisparo.restaurar === 'sim',
+      inputsDoDisparo.restaurar);
+    conferir('…com a capacidade contratada, para o runner cortar por ela',
+      inputsDoDisparo['capacidade-professores'] === '2' && inputsDoDisparo['capacidade-alunos'] === '20',
+      { p: inputsDoDisparo['capacidade-professores'], a: inputsDoDisparo['capacidade-alunos'] });
+    conferir('…e com o commit do retrato, porque o clone do workflow é raso',
+      inputsDoDisparo['retrato-commit'] === 'c'.repeat(40), inputsDoDisparo['retrato-commit']);
     const esperado = comercial.calcular({
       assinatura: PLANO, lotes: { professores: [LOTE_PROF], alunos: [LOTE_ALUNO] },
     });

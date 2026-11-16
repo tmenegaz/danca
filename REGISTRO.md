@@ -47952,3 +47952,92 @@ com o motivo no desfecho. Mais as provas do expurgo listadas na entrada acima.
 **O que fica declarado.** O expurgo feito pelo **CLI local** (`escola/expurgar.js`) não manda cartas: é
 um comando de bancada, corre no computador de quem administra, não tem a chave do provedor nem o KV à
 mão. As cartas são do expurgo pela página, que é o gesto normal.
+
+## 16/11/2026 — o retrato volta, e o que não cabe é perguntado
+
+**O que motivou, nas palavras dela.** Duas decisões que fecharam as perguntas deixadas em aberto na
+entrada anterior: «Avisa que dados serão perdidos e pergunta se quer mesmo esse: sim então restaura
+com a capacidade do que está sendo contratado; não, então a pessoa escolhe outro plano. A escolha do
+que fica é sequencial em ordem decrescente. Ou seja recupera os mais recentes.» E, sobre o KV que
+ficou das escolas já expurgadas: «sim».
+
+**A LIMPEZA QUE ELA AUTORIZOU — feita e medida.** As chaves das três escolas de shard que ficaram
+para trás por causa do defeito declarado na entrada anterior foram apagadas pelo mesmo
+`apagarChavesDeEscola` do expurgo, com os prefixos da escola e a guarda do prefixo vazio:
+
+| escola | chaves apagadas | restantes |
+|:--|--:|--:|
+| `duo` | 5 | 0 |
+| `batata` | 8 | 0 |
+| `breu` | 4 | 0 |
+
+A `calango` — viva — não foi tocada: 6 chaves, antes e depois. O que saiu incluía o `cadastro` (com o
+e-mail), o `dono` (hash e sal das senhas), o `comercial`, as `alunas`, as `curadorias`, as `turmas` e
+as `rubricas`. É o que «removida completamente do sistema» quer dizer, e é o que o e-mail do expurgo
+já promete. **Consequência declarada:** a próxima recriação da `duo` não terá e-mail no cadastro, e
+o painel mostrará o link para mandar à mão — o comportamento que já existe para esse caso.
+
+**O QUE O RETRATO RESTAURA, medido — e a resposta é NÃO.** A verificação que ela pediu («se a
+proveniência daquele último instante […] é completamente recarregado») deu negativo, e a tabela está
+na entrada anterior. O que se constrói agora é o que faltava: **os documentos preenchidos** — as
+anamneses, os planos de ensino, os POs, os lançamentos — voltam do commit anterior ao expurgo, que é
+onde o Git os guardou.
+
+**O que foi decidido.**
+
+- **A regra da capacidade é uma só, e mora no núcleo** (`motor/nucleo/retrato.js`): quantos cabem,
+  quem fica, quem sai. A página pergunta, o servidor recusa, e o runner corta — os três com a MESMA
+  função. Três contas da mesma coisa divergiriam, e a que sobrasse decidiria o que se apaga.
+- **A ordem é o tempo, e o desempate também.** Primeiro a última aparição (documento próprio ou
+  partilhado); depois o documento PRÓPRIO mais recente; só no fim o nome. Sem o desempate, um PO que
+  cobre cinco alunas daria às cinco a mesma data e a vaga decidia-se alfabeticamente — arbitrário.
+- **As três guardas do corte.** Um documento de alunas segue as alunas, e basta UMA das que descreve
+  para ele ficar (um PO que também é das outras não sai com uma delas); um documento sem alunas
+  segue o professor; e um documento que não se consegue atribuir **fica** — a dúvida não destrói.
+  A cadeia dos ajustes não fica pendurada: sai o ajuste, não a base.
+- **O aviso é uma pergunta, e tem duas saídas.** «Este plano inclui 1 professor e 10 alunas. O
+  retrato desta escola tem 4 professores e 12 alunas: vão perder-se 3 professores e 2 alunas.» —
+  **Sim, quero este plano** (o pedido segue com `perderDados: true`) ou **Não, vou escolher outro**.
+  Sem resposta, o formulário não sai; e o servidor recusa na mesma com 409, porque quem submeter o
+  corpo à mão tem de responder à mesma pergunta.
+- **Trocar de plano apaga a confirmação.** Ela foi dada para outro contrato; quem aceitou perder 30
+  alunas no Básico não aceitou o mesmo no Intermediário sem voltar a ser perguntado.
+- **O retrato é lido UMA vez, quando o convite nasce**, e guardado no convite. A página é pública:
+  pedir o retrato ao GitHub a cada abertura seria gastar leituras por cada clique de quem abre o
+  link. E o retrato não muda — o expurgo já aconteceu.
+- **O commit vai do Worker para o runner**, porque o clone do `criar-escola.yml` é RASO
+  (`fetch-depth: 1`) e o commit do retrato não está nele. O `restaurar-retrato.js` busca-o por SHA
+  (`git fetch --depth=1 origin <sha>`) antes de ler os ficheiros — sem isso, a restauração só
+  funcionaria em quem tem o repositório inteiro à mão.
+- **O retrato entra no commit do scaffold, e antes dele.** Os índices derivados são regerados nesse
+  mesmo commit; restaurar depois daria um `indices/` a descrever um acervo sem os documentos. E
+  evita um segundo push num repositório onde três workflows escrevem no `main`.
+
+**Onde entrou.** `motor/nucleo/retrato.js` (novo: a contagem, a escolha, o índice filtrado, a frase
+do aviso) · `motor/servidor/raiz.js` (`lerRetratoDaEscola`, `escolhaPorNomes`, a guarda 4-bis da
+recriação, o retrato no convite e na página, e os três inputs novos do disparo) ·
+`motor/servidor/repo-escola.js` (`commitDoRetratoDaEscola`, a via do Git para os expurgos anteriores
+a hoje) · `motor/servidor/painel-html.js` (a caixa da perda, a capacidade incluída em número nos
+planos, e o script que pergunta antes de enviar) · `experimentos/provar-restaurar-retrato.js` (novo) ·
+`experimentos/provar-recriar-escola.js` (a secção D2 e os inputs do disparo) · `.gitignore`. A parte
+congelada — `tools/restaurar-retrato.js` e o passo do workflow — vai no commit seguinte, com o
+motivo declarado.
+
+**Com o quê.** `provar-restaurar-retrato` **34/34**: quem um documento descreve (`aluna` e
+`sujeitos`); a ordem pelo tempo com o desempate; as três guardas do corte e a cadeia dos ajustes; o
+índice filtrado (com a chave antiga `envelopes` também); e o CLI a CORRER num repositório de
+verdade — `git init`, os envelopes, um commit de expurgo que os apaga, o elo a apontar o estado
+anterior: a passagem a seco não escreve, a sério restaura o que cabe, o índice volta filtrado, uma
+segunda passagem não duplica, e uma escola sem retrato não inventa nada. Mais
+`provar-recriar-escola` **92/92** (a página com a contagem do servidor, a recusa 409 com o número,
+a recusa que não gasta o convite, o convite sem documentos que não pergunta, e os três inputs do
+disparo) · `provar-cofre-e-shard` 138/138 · `provar-elo-do-expurgo` todas · `provar-cartas-do-expurgo`
+25/25 · `provar-pagina-publica` 79/79 · `provar-financeiro` 58/58 · `provar-escola-a-nascer` 48/48 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `provar-token-da-escola` 17/17 · `provar-indices` 58/58 ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica declarado.** A restauração traz os DOCUMENTOS, não o resto: as turmas, as rubricas, as
+linhas de base e as curadorias vivem no KV, e o expurgo as apaga — restauram-se pelo caminho de
+sempre, refazendo-as. A frequência, os dias e a duração do ciclo continuam a vir dos valores por
+omissão, porque o `.conf` foi com o expurgo. E a `duo`, que testou o fluxo, não tem documentos
+nenhum no retrato: nunca teve envelopes — o `.indice.json` dela sempre foi vazio.

@@ -36,7 +36,7 @@ const { excluirEscola, apagarChavesDeEscola, prefixosDaEscola } = require('./exp
 const {
   listarEscolas, listarEscolasPeloIndice, listarProfessores, listarProfessoresPeloIndice,
   apagarEscolaDoRepo, lerArquivo, auditarProvenienciaDaEscola,
-  pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
+  pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola, commitDoRetratoDaEscola,
 } = require('./repo-escola.js');
 const painel = require('./painel-html.js');
 /* O RELÓGIO DA CASA — o mesmo que desenha as tabelas do painel (16/11/2026). */
@@ -49,6 +49,10 @@ const convite = require('../nucleo/convite.js');
  * expurgo já usam (16/11/2026). A recriação precisa dela para saber de quem são os arquivos que
  * vai criar: uma segunda leitura do mesmo elo seria uma segunda opinião sobre o mesmo professor. */
 const { responsavelDoInventario } = require('../nucleo/indices.js');
+/* O ÚLTIMO RETRATO DA ESCOLA E O QUE DELE CABE NO PLANO NOVO (16/11/2026). O núcleo decide (quem
+ * fica, quem sai, e a frase do aviso); o Worker lê o commit e o índice, e o `tools/retrato` escreve
+ * os ficheiros no runner. Uma segunda conta da capacidade no cliente diria outro número. */
+const retrato = require('../nucleo/retrato.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -1901,6 +1905,89 @@ async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
  * anterior ainda aberto não é um erro — é um segundo e-mail com um link novo, que substitui o
  * Velho (um convite por escola, e o último é o que vale).
  */
+/**
+ * O RETRATO DA ESCOLA — o que sobrou dela no último instante antes de o expurgo a apagar.
+ *
+ * O QUE ELE RESPONDE, e é o que a página do convite precisa: quantos documentos existem, quem eles
+ * descrevem, e onde está o commit que os tem. Não devolve os documentos — a página não os lê, e o
+ * Worker não os escreve: quem os traz de volta é o runner (`tools/restaurar-retrato.js`), com o
+ * repositório inteiro à mão.
+ *
+ * O COMMIT VEM DO ELO QUANDO ELE O TEM, e do Git quando não tem (ver `commitDoRetratoDaEscola`).
+ * A segunda via é para os expurgos de antes de 16/11/2026 — sem ela, a primeira escola que se
+ * quisesse trazer de volta seria justamente a que não teria retrato.
+ *
+ * NUNCA LANÇA. Um retrato ilegível não pode impedir um convite: devolve `{ ok: false, motivo }`, e
+ * quem o lê diz «não há dados a restaurar» em vez de «não foi possível convidar».
+ */
+async function lerRetratoDaEscola({ env, escola, token, elo }) {
+  const slug = String(escola || '').trim();
+  if (!token || !slug) return { ok: false, motivo: 'sem token ou sem escola' };
+  const inventario = elo || await eloDaEscola({ token, slug });
+  if (!inventario) return { ok: false, motivo: 'a escola não tem elo' };
+
+  let commit = null;
+  let origem = null;
+  const expurgos = Array.isArray(inventario.expurgo) ? inventario.expurgo : [];
+  for (let i = expurgos.length - 1; i >= 0; i -= 1) {
+    const apontado = String((expurgos[i] && expurgos[i].commit_antes) || '').trim();
+    if (apontado) { commit = apontado; origem = 'elo'; break; }
+  }
+  if (!commit) {
+    try {
+      const doGit = await commitDoRetratoDaEscola({ token, dono: DONO, repo: REPO, ref: REF, slug });
+      if (doGit && doGit.commit) { commit = doGit.commit; origem = 'git'; }
+    } catch (erro) { commit = null; }
+  }
+  if (!commit) return { ok: false, motivo: 'não há como saber qual foi o último estado da escola' };
+
+  let indice = null;
+  try {
+    const texto = await lerArquivo({
+      token, dono: DONO, repo: REPO, ref: commit,
+      caminho: 'escola/' + slug + '/envelopes/.indice.json',
+    });
+    indice = texto ? JSON.parse(texto) : null;
+  } catch (erro) { indice = null; }
+
+  const contagem = retrato.contar(indice || {});
+  return {
+    ok: true,
+    commit,
+    origem,
+    /* O QUE A PÁGINA E A ROTA PRECISAM, e nada mais: nem os resumos, nem os nomes dos ficheiros.
+     * A lista de alunas viaja porque o aviso tem de PODER nomear quem sai, se ela quiser. */
+    documentos: contagem.documentos,
+    alunos: contagem.alunos.map((a) => a.nome),
+    professores: contagem.professores.map((p) => p.nome),
+  };
+}
+
+/**
+ * A MESMA DECISÃO DA CAPACIDADE, A PARTIR DE NOMES — para quem só tem a contagem guardada.
+ *
+ * `retrato.escolher` trabalha sobre o índice do acervo (os ficheiros, com os resumos). No Worker,
+ * depois de o convite ter sido emitido, o que existe é o que o convite GUARDOU: os nomes das
+ * professoras e das alunas. A regra é a mesma — quantos cabem, quem fica, quem sai —, e por isso
+ * ela mora aqui, uma vez, e não numa segunda versão escrita à mão na rota.
+ */
+function escolhaPorNomes({ professores, alunos } = {}, capacidade = {}) {
+  const listaP = Array.isArray(professores) ? professores : [];
+  const listaA = Array.isArray(alunos) ? alunos : [];
+  const limiteP = Math.max(0, Number(capacidade.professores) || 0);
+  const limiteA = Math.max(0, Number(capacidade.alunos) || 0);
+  const ficamP = listaP.slice(0, limiteP);
+  const saemP = listaP.slice(limiteP);
+  const ficamA = listaA.slice(0, limiteA);
+  const saemA = listaA.slice(limiteA);
+  return {
+    cabe: saemP.length === 0 && saemA.length === 0,
+    professores: { total: listaP.length, mantidos: ficamP, descartados: saemP },
+    alunos: { total: listaA.length, mantidos: ficamA, descartados: saemA },
+    capacidade: { professores: limiteP, alunos: limiteA },
+  };
+}
+
 async function criarConvite({ env, escola, por }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
@@ -1950,6 +2037,16 @@ async function criarConvite({ env, escola, por }) {
   const segredo = convite.novoToken();
   const token = slug + '-' + segredo;
   const agora = new Date();
+  /* O RETRATO ENTRA NO CONVITE, E É AQUI QUE ELE É LIDO (16/11/2026).
+   *
+   * Podia ser a página a perguntá-lo, a cada abertura. Não é, por duas razões: a página é PÚBLICA
+   * (cada abertura custaria leituras ao GitHub, sem ninguém a pagar por elas) e o retrato não muda
+   * — o expurgo já aconteceu, e o commit que tem os documentos é um facto do passado. Lido no
+   * momento em que o convite nasce, é o mesmo número para todos os que abrirem o link. */
+  let doRetrato = null;
+  try {
+    doRetrato = await lerRetratoDaEscola({ env, escola: slug, token: ghToken, elo });
+  } catch (erro) { doRetrato = null; }
   const registo = {
     escola: slug,
     nome,
@@ -1957,6 +2054,13 @@ async function criarConvite({ env, escola, por }) {
     criadoEm: agora.toISOString(),
     expiraEm: convite.validadeDe(agora),
     pedidoPor: por || null,
+    retrato: doRetrato && doRetrato.ok
+      ? {
+        commit: doRetrato.commit, origem: doRetrato.origem,
+        documentos: doRetrato.documentos,
+        alunos: doRetrato.alunos, professores: doRetrato.professores,
+      }
+      : null,
   };
   const kv = env && env.PADD_KV;
   if (!kv || typeof kv.put !== 'function') {
@@ -1989,6 +2093,10 @@ async function criarConvite({ env, escola, por }) {
     link,
     expiraEm: registo.expiraEm,
     expiraEmTexto: fuso.quandoLocal(registo.expiraEm),
+    /* O QUE A ESCOLA AINDA TEM, para a proprietária o saber ANTES de a escola escolher o plano:
+     * um convite para uma escola com 40 alunas e um plano de 10 é uma conversa que ela quer ter
+     * com antecedência, e não uma surpresa na página. */
+    retrato: registo.retrato,
     correio: { enviado: desfecho.enviado === true, motivo: desfecho.motivo || null, detalhe: desfecho.detalhe || null },
   };
 }
@@ -2161,6 +2269,11 @@ async function respostaDoConvite(request, env) {
     token,
     catalogo: comercial.catalogoDaPagina(),
     pix,
+    /* O RETRATO QUE O CONVITE GUARDOU (16/11/2026). É ele que permite avisar, na página, que o
+     * plano escolhido não cobre o que a escola tinha — e é a MESMA contagem que o servidor confere
+     * no fim. Um convite emitido antes desta mudança não tem o campo: aí não há aviso nem
+     * restauração, e a página diz o que sempre disse. */
+    retrato: (lido.registo && lido.registo.retrato) || null,
     estado: { ok: true, expiraEm: lido.registo && lido.registo.expiraEm },
   }));
 }
@@ -2205,11 +2318,22 @@ async function receberOConvite(request, env) {
     lotesAlunos: corpo && corpo.lotesAlunos,
     senhaAdmin,
     senhaProfessor,
+    /* O RETRATO E A CONFIRMAÇÃO DA PERDA (16/11/2026). A página pergunta, ela responde, e a
+     * resposta chega aqui — mas quem DECIDE se ela era necessária é o servidor, com a mesma
+     * contagem. Uma confirmação que só existisse no cliente seria uma pergunta que se pode não
+     * responder. */
+    retrato: (lido.registo && lido.registo.retrato) || null,
+    perderDados: Boolean(corpo && corpo.perderDados === true),
     origem: 'convite',
   });
   if (!feito.ok) {
-    return responderJson({ ok: false, erro: feito.erro, semRecriar: true },
-      feito.status || 500);
+    /* O QUE SE PERDE VIAJA NA RECUSA (16/11/2026). A página precisa do número para dizer com as
+     * palavras certas o que está em jogo — e quem submeter o formulário à mão precisa da mesma
+     * resposta. Uma recusa que só dissesse «não cabe» obrigaria o cliente a refazer a conta. */
+    return responderJson({
+      ok: false, erro: feito.erro, semRecriar: true,
+      ...(feito.perdidos ? { perdidos: feito.perdidos } : {}),
+    }, feito.status || 500);
   }
 
   /* O CONVITE GASTOU-SE. A marcação é um facto do convite, e não da escola — por isso fica na
@@ -2248,7 +2372,7 @@ async function receberOConvite(request, env) {
 }
 
 async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos,
-  senhaAdmin, senhaProfessor, origem }) {
+  senhaAdmin, senhaProfessor, origem, retrato: doRetrato, perderDados }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
   const ghToken = env && env.GITHUB_TOKEN;
@@ -2354,6 +2478,39 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
   }
   const escolha = escolhaComercial.escolha;
 
+  /* 4-bis. O QUE FICA DE FORA, E A PERGUNTA QUE O AUTORIZA (16/11/2026).
+   *
+   * A REGRA É DELA, e é a que a página mostra: «avisa que dados serão perdidos e pergunta se quer
+   * mesmo esse; sim, então restaura com a capacidade do que está sendo contratado; não, então a
+   * pessoa escolhe outro plano.» A conta é do NÚCLEO — a mesma que a página fez, e a mesma que o
+   * `tools/restaurar-retrato.js` vai aplicar ao escrever os ficheiros. Três contas da mesma coisa
+   * divergiriam, e a que sobra é a que decide o que se apaga.
+   *
+   * A RECUSA É UM 409 COM O QUE SE PERDE, e não um aviso: a página precisa do número para o dizer
+   * com as palavras certas, e quem submeter o formulário à mão tem de responder à mesma pergunta.
+   * Sem retrato — ou sem documentos nele —, a guarda não se aplica: não há o que perder. */
+  const planoDoRetrato = doRetrato && Number(doRetrato.documentos) > 0 ? doRetrato : null;
+  let escolhaDoRetrato = null;
+  if (planoDoRetrato) {
+    /* A CONTAGEM VEM GUARDADA NO CONVITE (os nomes de quem existe), e dela é que a escolha se faz.
+     * O Worker não tem aqui os ficheiros — tê-los custaria uma leitura por documento, e a resposta
+     * não muda: quem cabe e quem sai depende das PESSOAS, não do conteúdo dos ficheiros. */
+    escolhaDoRetrato = escolhaPorNomes({
+      professores: planoDoRetrato.professores,
+      alunos: planoDoRetrato.alunos,
+    }, escolha.capacidade);
+    if (!escolhaDoRetrato.cabe && perderDados !== true) {
+      return {
+        ok: false,
+        status: 409,
+        perdidos: escolhaDoRetrato,
+        erro: retrato.fraseDoAviso(escolhaDoRetrato)
+          + ' Se quiser este plano mesmo assim, confirme que aceita perder esses registos — '
+          + 'os mais antigos. Se não, escolha outro plano.',
+      };
+    }
+  }
+
   /* 5. AS SENHAS. Ver o cabeçalho: as do pedido, ou as que já estão no cofre. */
   const senhaDaDirecao = String(senhaAdmin || '').trim();
   const senhaDoProfessor = String(senhaProfessor || '').trim();
@@ -2426,6 +2583,18 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
       /* VAZIO: o professor JÁ EXISTE — a habilitação é da pessoa, e o perfil dela não foi apagado
        * com a escola (`professores/<slug>/perfil.json` sobrevive, por decisão de 03/11/2026). */
       modalidade: '',
+      /* O RETRATO, PARA O RUNNER TRAZER DE VOLTA (16/11/2026), e a capacidade que manda no que
+       * cabe. Vão como TEXTO, e não como número: o `workflow_dispatch` só conhece `string` nos
+       * inputs, e um `0` que chegasse como `false` faria a restauração sem limite nenhum.
+       *
+       * `restaurar` só é «sim» quando há documentos no retrato — pedir ao runner que restaure o
+       * vazio custaria o passo inteiro para escrever zero ficheiros. */
+      restaurar: (planoDoRetrato && escolhaDoRetrato) ? 'sim' : '',
+      'capacidade-professores': String(escolha.capacidade.professores),
+      'capacidade-alunos': String(escolha.capacidade.alunos),
+      /* O COMMIT, porque o clone do workflow é raso e o runner tem de o ir buscar. Quem o sabe é
+       * este lado — resolvido quando o convite nasceu (ver `lerRetratoDaEscola`). */
+      'retrato-commit': (planoDoRetrato && planoDoRetrato.commit) || '',
     },
   });
   if (!disparo.ok) {

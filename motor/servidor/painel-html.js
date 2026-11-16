@@ -703,7 +703,7 @@ function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
  * mais nada. As duas formas saem da MESMA função — a página inválida não é um erro do servidor, é
  * uma resposta, e uma resposta tem de ser tão legível como a outra.
  */
-function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
+function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }) {
   const nomeDaEscola = String(nome || escola || '');
   /* O `data-centavos` VAI JUNTO DO `data-preco` (16/11/2026). O texto é o que se lê; os cêntimos
    * são o que se soma. Somar `R$ 69,90` a partir de uma cadeia é a conta que dá 69,90000000000001
@@ -711,6 +711,11 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
   const planos = ((catalogo && catalogo.assinaturas) || []).map((p) =>
     '<option value="' + esc(p.id) + '" data-preco="' + esc(p.precoTexto || '') + '"'
     + ' data-centavos="' + Math.round(Number(p.preco) * 100) + '"'
+    /* A CAPACIDADE INCLUÍDA VAI EM NÚMERO, e não só em texto (16/11/2026): é ela que o aviso da
+     * perda soma aos lotes para saber quantos cabem. O `data-inclui` diz o mesmo em palavras, para
+     * a linha do valor; uma segunda conta da capacidade no cliente divergiria da do servidor. */
+    + ' data-professores="' + (Number(p.professores) || 0) + '"'
+    + ' data-alunos="' + (Number(p.alunos) || 0) + '"'
     /* O QUE O DEGRAU JÁ INCLUI, ao lado do nome: «+3 professores» não diz três a mais do que quê,
      * e a pergunta é a primeira que quem contrata faz. */
     + ' data-inclui="' + esc('inclui ' + p.professores + (Number(p.professores) === 1
@@ -739,6 +744,9 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
   const lotesDeAlunos = linhasDeLote('alunos', 'aluna(s)');
   const temLotes = Boolean(lotesDeProfessores || lotesDeAlunos);
   const temPix = Boolean(pix && pix.chave);
+  /* SÓ HÁ PERGUNTA A FAZER SE HOUVER O QUE PERDER: um convite a uma escola sem documentos não
+   * mostra caixa nenhuma — a mesma regra que a rota aplica para não recusar. */
+  const temRetrato = Boolean(retrato && Number(retrato.documentos) > 0);
 
   const corpo = estado && estado.ok === false
     ? '<div class="caixa falta"><h2>Este convite não está válido</h2>' +
@@ -759,6 +767,31 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
         ? '<fieldset class="escolhas" id="convite-capacidade" data-moeda="' + esc(moeda) + '">' +
           '<legend>Capacidade a mais (por lote, na mensalidade)</legend>' +
           lotesDeProfessores + lotesDeAlunos + '</fieldset>'
+        : '') +
+
+      /* A PERDA, PERGUNTADA (16/11/2026). «Avisa que dados serão perdidos e pergunta se quer mesmo
+       * esse; sim, então restaura com a capacidade do que está sendo contratado; não, então a
+       * pessoa escolhe outro plano.»
+       *
+       * A CONTAGEM VAI NO `data-retrato` e é do SERVIDOR — lida do convite, no instante em que ele
+       * foi emitido. O script só compara: capacidade do plano contra o que a escola tinha. Uma
+       * contagem feita aqui diria outro número, e a pessoa responderia a uma pergunta que não é a
+       * que o servidor vai fazer.
+       *
+       * É `hidden` porque a maioria das recriações não perde nada: a pergunta só existe quando há
+       * o que perder. */
+      (temRetrato
+        ? '<div class="caixa falta" id="convite-perda" data-retrato="' + esc(JSON.stringify(retrato))
+          + '" hidden>' +
+          '<h2>Este plano não cobre o que a escola tinha</h2>' +
+          '<p id="convite-perda-texto"></p>' +
+          '<p><strong>A escolha do que fica é pela ordem do tempo</strong>: ficam os registos mais ' +
+          'recentes. Os mais antigos não voltam.</p>' +
+          '<p class="par-botoes">' +
+          '<button class="acao" type="button" id="convite-perda-sim">Sim, quero este plano</button>' +
+          '<button class="acao secundario" type="button" id="convite-perda-nao">' +
+          'Não, vou escolher outro</button>' +
+          '</p></div>'
         : '') +
 
       '<h2>2. As senhas</h2>' +
@@ -820,6 +853,62 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'lotes=document.getElementById("convite-capacidade");' +
   'if(!plano||!enviar)return;' +
   'var moeda=(lotes&&lotes.getAttribute("data-moeda"))||"R$";' +
+  'var perda=document.getElementById("convite-perda");' +
+  'var retrato=null;try{retrato=JSON.parse((perda&&perda.getAttribute("data-retrato"))||"null");}catch(e){retrato=null;}' +
+  /* A PERDA CONFIRMADA, E SÓ DELA SE MANDA O PEDIDO (16/11/2026). `perdeu` nasce falso a cada troca
+   * de plano: uma confirmação dada para um plano não vale para o seguinte — quem aceitou perder
+   * 30 alunas no Básico não aceitou o mesmo no Intermediário sem voltar a ser perguntado. */
+  'var perdeu=false;' +
+  /* A CAPACIDADE CONTRATADA: o incluído do plano MAIS os lotes marcados. É a mesma conta que o
+   * servidor faz (`comercial.calcular`), e a página só a repete porque tem de perguntar antes de
+   * enviar; quem decide continua a ser ele. */
+  'function capacidade(){' +
+  '  var o=plano.options[plano.selectedIndex];' +
+  '  var p=Number((o&&o.getAttribute("data-professores"))||0);' +
+  '  var a=Number((o&&o.getAttribute("data-alunos"))||0);' +
+  '  var todas=caixas();' +
+  '  for(var i=0;i<todas.length;i++){if(!todas[i].checked)continue;' +
+  '    var q=Number(todas[i].getAttribute("data-qtd")||0);' +
+  '    if(todas[i].getAttribute("data-eixo")==="professores")p+=q;else a+=q;}' +
+  '  return {professores:p,alunos:a};}' +
+  'function quantos(lista){return Array.isArray(lista)?lista.length:0;}' +
+  'function oQueSePerde(){' +
+  '  if(!retrato)return null;' +
+  '  var c=capacidade();' +
+  '  var saemP=Math.max(0,quantos(retrato.professores)-c.professores);' +
+  '  var saemA=Math.max(0,quantos(retrato.alunos)-c.alunos);' +
+  '  if(!saemP&&!saemA)return null;' +
+  '  return {professores:saemP,alunos:saemA,capacidade:c};}' +
+  'function esconderPerda(){if(perda)perda.hidden=true;}' +
+  'function mostrarPerda(){' +
+  '  if(!perda)return false;' +
+  '  var q=oQueSePerde();if(!q){esconderPerda();return false;}' +
+  '  var partes=[];' +
+  '  if(q.professores)partes.push(q.professores+(q.professores===1?" professor":" professores"));' +
+  '  if(q.alunos)partes.push(q.alunos+(q.alunos===1?" aluna":" alunas"));' +
+  '  var txt=document.getElementById("convite-perda-texto");' +
+  '  if(txt)txt.textContent="Este plano inclui "+q.capacidade.professores' +
+  '    +(q.capacidade.professores===1?" professor":" professores")+" e "+q.capacidade.alunos' +
+  '    +(q.capacidade.alunos===1?" aluna":" alunas")+". O retrato desta escola tem "' +
+  '    +quantos(retrato.professores)+(quantos(retrato.professores)===1?" professor":" professores")' +
+  '    +" e "+quantos(retrato.alunos)+(quantos(retrato.alunos)===1?" aluna":" alunas")' +
+  '    +": vão perder-se "+partes.join(" e ")+".";' +
+  '  perda.hidden=false;' +
+  '  return true;}' +
+  'function esquecerPerda(){perdeu=false;esconderPerda();}' +
+  'if(perda){' +
+  /* «SIM» AUTORIZA, e deixa recado: a confirmação não desaparece sem rasto — quem carregou no «sim»
+   * tem de poder ver que foi entendida. */
+  '  var sim=document.getElementById("convite-perda-sim");' +
+  '  if(sim)sim.addEventListener("click",function(){perdeu=true;' +
+  '    dizer("Confirmado: este plano fica com os registos mais recentes, e os mais antigos não " +' +
+  '      "voltam.",false);esconderPerda();});' +
+  /* «NÃO» NÃO ENVIA NADA — volta à escolha do plano, que é o que ela pediu: «a pessoa escolhe
+   * outro plano». Leva o foco ao seletor e diz o que fazer. */
+  '  var nao=document.getElementById("convite-perda-nao");' +
+  '  if(nao)nao.addEventListener("click",function(){perdeu=false;esconderPerda();' +
+  '    dizer("Escolha outro plano, ou mais capacidade, e eu volto a conferir.",false);' +
+  '    if(plano)plano.focus();});}' +
   'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
   'function reais(c){return moeda+" "+(Math.round(c)/100).toFixed(2).replace(".",",");}' +
   /* A ESCOLHA DOS LOTES — as caixas que o SERVIDOR renderizou (16/11/2026). A página não sabe
@@ -846,11 +935,15 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   '      +"  →  "+reais(base+extra)+" por mês"};}' +
   'function mostrarValor(){if(!valor)return;var c=conta();' +
   'valor.textContent=c?("Primeira mensalidade — "+c.texto):"";}' +
-  'plano.addEventListener("change",mostrarValor);' +
-  'for(var i=0;i<caixas().length;i++)caixas()[i].addEventListener("change",mostrarValor);' +
+  'plano.addEventListener("change",function(){mostrarValor();esquecerPerda();});' +
+  'for(var i=0;i<caixas().length;i++)caixas()[i].addEventListener("change",function(){' +
+  '  mostrarValor();esquecerPerda();});' +
   'mostrarValor();' +
   'enviar.addEventListener("click",function(){' +
   'if(!se||!se.value){dizer("escreva a senha da escola",true);if(se)se.focus();return;}' +
+  /* A PERGUNTA VEM ANTES DO PEDIDO, e não como recusa depois: quem não respondeu vê a caixa, e o
+   * formulário não sai. O servidor recusa na mesma (409) — esta é a cortesia, aquela é a regra. */
+  'if(!perdeu&&mostrarPerda()){dizer("confirme em baixo se aceita perder os registos mais antigos",true);return;}' +
   'dizer("a criar o acesso…");enviar.disabled=true;' +
   /* O PEDIDO VAI PARA A RAIZ DO SÍTIO, e não para o lado da página (16/11/2026). Aqui esteve
    * `fetch("api/recriar/…")`, relativo: dentro de `/recriar/<token>` isso resolve para
@@ -859,7 +952,8 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * escreve pela metade. */
   'fetch("/api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
   'body:JSON.stringify({plano:plano.value,lotesProfessores:doEixo("professores"),' +
-  'lotesAlunos:doEixo("alunos"),senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
+  'lotesAlunos:doEixo("alunos"),senhaAdmin:se.value,senhaProfessor:sp?sp.value:"",' +
+  'perderDados:perdeu===true})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
   'if(d&&d.ok){' +
