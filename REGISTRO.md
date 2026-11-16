@@ -46885,3 +46885,63 @@ tempo e o link) · `raiz/index.html` (a mensagem de sucesso deixa de prometer in
 - **A criação continua a depender de um CI que pode estar parado, e agora sabe-se que está.** O que
   ficou feito torna o travamento VISÍVEL; não o resolve. Enquanto o Actions não pegar o pedido,
   nenhuma escola passa de «a nascer» a completa — e o ecrã di-lo, com o endereço do run.
+
+## 16/11/2026 — o botão que não fazia nada, porque o script dele não era JavaScript
+
+**O que aconteceu.** «Eu fui tentar fazer a liberação com o botão Habilitar nas escolas vivas e não
+acontece nada.»
+
+Não acontecia nada porque **o botão nunca teve `addEventListener` nenhum**. O `SCRIPT_DO_ACESSO` é
+montado por concatenação de pedaços de string, e o seletor da linha vinha de
+
+    'var irmaos=document.querySelectorAll("[data-escola=\\""+escola+"\\"]");'
+
+escrito entre **plícas** — onde `\"` produz uma aspa **literal**, que fecha o seletor a meio. O que
+saiu no HTML publicado foi `querySelectorAll("[data-escola=""+escola+""]")`. Isso não é um seletor
+inválido: é um **erro de sintaxe**. E um erro de sintaxe num `<script>` não estraga a linha que o
+usa — estraga o ficheiro inteiro. A página ficava calada, sem uma palavra sobre o que se passava.
+
+**O que foi decidido.**
+
+- **Um seletor construído por concatenação não pertence a um sítio destes.** Ele atravessa três
+  linguagens — JS, HTML e CSS — e é escapado em duas, e o erro aparece numa delas sem avisar. O
+  filtro passa a ser `getAttribute`, que não atravessa nenhuma.
+- **E o recado tinha um segundo defeito, da mesma família.** `function recado(t,erro){ … var
+  t=document.querySelector("table") }` — o `var t` de dentro **apagava o parâmetro**, e a mensagem
+  que se lia era o `toString` de um `<table>`. Um nome que já significa uma coisa não pode
+  significar outra três linhas abaixo.
+- **A regra que fica: quem gera script por concatenação tem de o compilar.** É o que a secção G da
+  prova faz agora, em todas as páginas que o painel serve — e é a pergunta mais barata de todas, a
+  única que nenhuma das provas daquele dia fazia. Elas liam o HTML (a marcação estava certa),
+  chamavam as rotas (a rota funcionava) e contavam elementos. Faltava: *isto compila?*
+- **O run gravado na escola era de outra pessoa.** A leitura de volta do disparo pegava «o run mais
+  recente do workflow», e o mais recente, no instante a seguir ao dispatch, ainda é o **anterior** —
+  o GitHub leva um ou dois segundos a registar o novo. A `breu` ficou com o link do run
+  `43850296566`, que era de um diagnóstico meu, de uma hora antes. Um link errado num ecrã de
+  diagnóstico é pior do que link nenhum: manda olhar para o trabalho de outra pessoa e concluir que
+  é o desta escola. A correção é o tempo — só conta o run criado **depois** do instante do disparo,
+  com um segundo de folga —, e sem run a tempo `run` vem `null`.
+
+**Onde entrou.** `motor/servidor/painel-html.js` (`SCRIPT_DO_ACESSO` reescrito) ·
+`motor/servidor/provisionar-escola.js` (o run pelo tempo) · `experimentos/provar-escola-a-nascer.js`
+(secção G, e o negativo da secção F).
+
+**Com o quê.** `provar-escola-a-nascer` **48/48**. Contra o código com o defeito, a prova reprova em
+**cinco** asserções, e a primeira lê-se sem saber nada do caso: `os 2 script(s) inline compilam →
+missing ) after argument list`. Mais `provar-cadastro-em-etapas` 40/40 · `provar-pagina-publica`
+73/73 · `provar-financeiro` 52/52 · `provar-form-escola` todas · `provar-cofre-e-shard` 129/129 ·
+`provar-teste` 44/44 · `provar-indices` 58/58 · `provar-publicacao-da-escola` 73/73 ·
+`provar-jsonc` 22/22 · `provar-recriacao-da-escola` todas · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+
+**O que fica pendente, e é declarado.**
+
+- **A `breu` foi habilitada por mim**, pelo `POST` que a prova do botão faz — enquanto diagnosticava,
+  confirmei que a rota respondia. O botão passou a funcionar; a escola está `ativa` e o site responde
+  200. Não é preciso clicar outra vez.
+- **O `disparoRun` errado foi retirado do registo dela**, no KV. Ficou o histórico com as duas
+  transições (`aguardando` → `ativa`), que é o que responde «quando é que isto foi liberado».
+- **A mesma família de defeito pode existir noutro script gerado por concatenação** — o do cofre, o
+  do financeiro, os do `bastidores.js`. A prova nova compila os das quatro páginas do painel; as
+  páginas de dentro das escolas têm os seus, e não estão cobertas por ela. A regra existe agora; a
+  cobertura é a que é.
