@@ -349,19 +349,40 @@ function comporConvite({ escola, nome, url, expiraEm, dias } = {}) {
  * «contratou o serviço» e ver a fila inteira. **O HORÁRIO É O DO CLIQUE** — o instante em que a
  * escola submeteu o cadastro —, e vai no fuso de quem lê; é ele que se compara com o extrato.
  */
-function comporAvisoAoProprietario({ escola, nome, plano, valor, quando, quandoTexto, professor,
-  contactos, recriada } = {}) {
+const TEXTO_DA_CAPACIDADE = (capacidade) => {
+  if (!capacidade) return '';
+  const p = Number(capacidade.professores) || 0;
+  const a = Number(capacidade.alunos) || 0;
+  const partes = [];
+  if (p) partes.push(p + (p === 1 ? ' professor' : ' professores'));
+  if (a) partes.push(a + (a === 1 ? ' aluna' : ' alunas'));
+  return partes.join(' e ');
+};
+
+/**
+ * O AVISO A QUEM CONCILIA — «A escola «X» contratou o serviço da Lastro» (16/11/2026).
+ *
+ * O QUE O CORPO TEM DE TER, e é o que ela descreveu: o **horário do clique** (não o do pagamento,
+ * que não se sabe), o nome da escola, o plano e o **valor** — que é o que se procura no extrato. A
+ * `capacidade` acrescenta o que explica o valor quando ele não é o da assinatura: «3 professores e
+ * 40 alunas» é o que faz reconhecer o Pix de R$ 149,90 como sendo desta escola.
+ */
+function comporAvisoAoProprietario({ escola, nome, plano, valor, capacidade, quando, quandoTexto,
+  professor, contactos, recriada } = {}) {
   const nomeDaEscola = String(nome || escola || '').trim();
   const linhas = [];
   linhas.push('A escola «' + nomeDaEscola + '» ' + (recriada ? 'recriou o cadastro' : 'fez o cadastro')
     + ' no Sistema Lastro, e aguarda a conciliação do pagamento.');
   linhas.push('');
-  linhas.push('  Escola:    ' + nomeDaEscola + ' (' + String(escola || '') + ')');
-  linhas.push('  Horário:   ' + String(quandoTexto || quando || '—'));
-  linhas.push('  Plano:     ' + String(plano || '—'));
-  linhas.push('  Valor:     ' + String(valor || '—'));
-  if (professor) linhas.push('  Professor: ' + String(professor));
-  if (contactos && contactos.length) linhas.push('  Contactos: ' + contactos.join(', '));
+  linhas.push('  Escola:     ' + nomeDaEscola + ' (' + String(escola || '') + ')');
+  linhas.push('  Horário:    ' + String(quandoTexto || quando || '—'));
+  linhas.push('  Plano:      ' + String(plano || '—'));
+  linhas.push('  Valor:      ' + String(valor || '—'));
+  if (TEXTO_DA_CAPACIDADE(capacidade)) {
+    linhas.push('  Capacidade: ' + TEXTO_DA_CAPACIDADE(capacidade));
+  }
+  if (professor) linhas.push('  Professor:  ' + String(professor));
+  if (contactos && contactos.length) linhas.push('  Contactos:  ' + contactos.join(', '));
   linhas.push('');
   linhas.push('Para conciliar, procure no extrato o Pix com esse valor e o nome da escola na');
   linhas.push('descrição. Confirmado o pagamento, habilite a escola em «Escolas vivas».');
@@ -385,6 +406,7 @@ function comporAvisoAoProprietario({ escola, nome, plano, valor, quando, quandoT
     linhaHtml('Horário', quandoTexto || quando),
     linhaHtml('Plano', plano),
     linhaHtml('Valor', valor),
+    linhaHtml('Capacidade', TEXTO_DA_CAPACIDADE(capacidade)),
     linhaHtml('Professor', professor),
     linhaHtml('Contactos', (contactos || []).join(', ')),
     '</table>',

@@ -705,9 +705,39 @@ function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
  */
 function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
   const nomeDaEscola = String(nome || escola || '');
+  /* O `data-centavos` VAI JUNTO DO `data-preco` (16/11/2026). O texto é o que se lê; os cêntimos
+   * são o que se soma. Somar `R$ 69,90` a partir de uma cadeia é a conta que dá 69,90000000000001
+   * — e a mensalidade mostra-se com dois décimos. */
   const planos = ((catalogo && catalogo.assinaturas) || []).map((p) =>
-    '<option value="' + esc(p.id) + '" data-preco="' + esc(p.precoTexto || '') + '">'
+    '<option value="' + esc(p.id) + '" data-preco="' + esc(p.precoTexto || '') + '"'
+    + ' data-centavos="' + Math.round(Number(p.preco) * 100) + '"'
+    /* O QUE O DEGRAU JÁ INCLUI, ao lado do nome: «+3 professores» não diz três a mais do que quê,
+     * e a pergunta é a primeira que quem contrata faz. */
+    + ' data-inclui="' + esc('inclui ' + p.professores + (Number(p.professores) === 1
+      ? ' professor' : ' professores') + ' e ' + p.alunos + (Number(p.alunos) === 1
+      ? ' aluna' : ' alunas')) + '">'
     + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
+  const moeda = String((catalogo && catalogo.moeda_simbolo) || 'R$');
+  const emReais = (v) => moeda + ' ' + (Math.round(Number(v) * 100) / 100).toFixed(2).replace('.', ',');
+
+  /* AS «EXTENSÕES» DO PLANO SÃO A CAPACIDADE (16/11/2026), e a correção é de vocabulário antes de
+   * ser de código: «se vão ser mais três professores ou mais cinco professores e cada um tem um
+   * preço, se são mais 10 alunos ou mais 30 alunos». É a tabela `lotes` do catálogo — a mesma que a
+   * criação pelo formulário público já oferece —, e é ela que muda o valor da mensalidade. O que
+   * aqui esteve eram as extensões «Turma pronta — configuração / conteúdo», que são outra coisa
+   * (o que se entrega na arranque), que ninguém pediu e que não são desta conversa.
+   *
+   * OS LOTES SÃO RENDERIZADOS NO SERVIDOR, e não montados pelo script: são dado do catálogo, e o
+   * que a página faz com eles é somar o preço que vem escrito em cada linha. */
+  const linhasDeLote = (eixo, rotulo) => ((catalogo && catalogo.lotes && catalogo.lotes[eixo]) || [])
+    .map((l) => '<label class="escolha">'
+      + '<input type="checkbox" data-lote data-eixo="' + eixo + '" data-qtd="' + l.qtd + '"'
+      + ' data-centavos="' + Math.round(Number(l.preco) * 100) + '">'
+      + '<span>+' + l.qtd + ' ' + rotulo + ' — ' + emReais(l.preco) + '/mês</span>'
+      + '</label>').join('');
+  const lotesDeProfessores = linhasDeLote('professores', 'professor(es)');
+  const lotesDeAlunos = linhasDeLote('alunos', 'aluna(s)');
+  const temLotes = Boolean(lotesDeProfessores || lotesDeAlunos);
   const temPix = Boolean(pix && pix.chave);
 
   const corpo = estado && estado.ok === false
@@ -725,14 +755,11 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
       '<label class="campo-rotulo" for="convite-plano">plano da escola</label>' +
       '<select id="convite-plano">' + planos + '</select>' +
       '<p class="nota" id="convite-valor"></p>' +
-      /* AS EXTENSÕES DO PLANO SÃO UMA ESCOLHA, e não uma linha de rodapé (16/11/2026). O catálogo
-       * diz «é o cliente que escolhe se quer gerar ou só configurar», e o plano que inclui as duas
-       * oferecia-as as duas sem ninguém as pedir. A lista é montada pelo script a partir do
-       * catálogo — quais são, e em que planos entram, não se copia para aqui —, e o `data-extensoes`
-       * é o catálogo em bruto para essa montagem. */
-      '<fieldset class="escolhas" id="convite-extensoes" data-extensoes="'
-        + esc(JSON.stringify((catalogo && catalogo.extensoes) || [])) + '" hidden>' +
-      '<legend>O que este plano inclui</legend></fieldset>' +
+      (temLotes
+        ? '<fieldset class="escolhas" id="convite-capacidade" data-moeda="' + esc(moeda) + '">' +
+          '<legend>Capacidade a mais (por lote, na mensalidade)</legend>' +
+          lotesDeProfessores + lotesDeAlunos + '</fieldset>'
+        : '') +
 
       '<h2>2. As senhas</h2>' +
       '<label class="campo-rotulo" for="convite-senha-escola">senha da escola (a direção)</label>' +
@@ -790,43 +817,38 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'var plano=document.getElementById("convite-plano"),valor=document.getElementById("convite-valor"),' +
   'se=document.getElementById("convite-senha-escola"),sp=document.getElementById("convite-senha-professor"),' +
   'recado=document.getElementById("convite-recado"),enviar=document.getElementById("convite-enviar"),' +
-  'caixa=document.getElementById("convite-extensoes");' +
+  'lotes=document.getElementById("convite-capacidade");' +
   'if(!plano||!enviar)return;' +
-  /* O CATÁLOGO VEM NO `data-extensoes` DA CAIXA — em bruto, como o servidor o tem. O que se filtra
-   * aqui é só QUAIS são as do plano escolhido (`em` contém o id); o que cada uma custa e o que
-   * inclui continua a ser do servidor. */
-  'var catalogo=[];try{catalogo=JSON.parse((caixa&&caixa.getAttribute("data-extensoes"))||"[]");}catch(e){catalogo=[];}' +
+  'var moeda=(lotes&&lotes.getAttribute("data-moeda"))||"R$";' +
   'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
-  'function mostrarValor(){var o=plano.options[plano.selectedIndex];' +
-  'if(valor)valor.textContent=o?("Primeira mensalidade: "+o.getAttribute("data-preco")):"";}' +
-  /* UMA EXTENSÃO NÃO É UMA ESCOLHA: com uma só, a caixa fecha-se e o plano fica a dizer o que
-   * inclui, sem um rádio solitário a pedir um clique que não decide nada. Com duas, quem escolhe é
-   * ela — e é isso que a descrição da extensão sempre prometeu. */
-  'function pintarExtensoes(){' +
-  '  if(!caixa)return;' +
-  '  var legenda=caixa.querySelector("legend");' +
-  '  var minhas=[];for(var i=0;i<catalogo.length;i++){' +
-  '    var e=catalogo[i];if(e&&(e.em||[]).indexOf(plano.value)!==-1)minhas.push(e);}' +
-  '  caixa.innerHTML="";if(legenda)caixa.appendChild(legenda);' +
-  '  if(minhas.length<2){caixa.hidden=true;return;}' +
-  '  for(var k=0;k<minhas.length;k++)(function(e,primeira){' +
-  '    var rotulo=document.createElement("label");rotulo.className="escolha";' +
-  '    var r=document.createElement("input");r.type="radio";r.name="convite-extensao";' +
-  '    r.value=e.id;if(primeira)r.checked=true;' +
-  '    var texto=document.createElement("span");' +
-  '    texto.appendChild(document.createTextNode(e.nome||e.id));' +
-  '    if(e.descricao){var mi=document.createElement("small");' +
-  '      mi.appendChild(document.createElement("br"));' +
-  '      mi.appendChild(document.createTextNode(e.descricao));texto.appendChild(mi);}' +
-  '    rotulo.appendChild(r);rotulo.appendChild(texto);caixa.appendChild(rotulo);' +
-  '  })(minhas[k],k===0);' +
-  '  caixa.hidden=false;}' +
-  /* A ESCOLHA VAI COMO LISTA, e vazia quando não há nada a escolher: aí o servidor aplica o que o
-   * plano inclui (é a regra dele, e a mesma de quem cria pelo formulário público). */
-  'function extensoesEscolhidas(){var lista=[],r=document.getElementsByName("convite-extensao");' +
-  'for(var i=0;i<r.length;i++){if(r[i].checked)lista.push(r[i].value);}return lista;}' +
-  'plano.addEventListener("change",function(){mostrarValor();pintarExtensoes();});' +
-  'mostrarValor();pintarExtensoes();' +
+  'function reais(c){return moeda+" "+(Math.round(c)/100).toFixed(2).replace(".",",");}' +
+  /* A ESCOLHA DOS LOTES — as caixas que o SERVIDOR renderizou (16/11/2026). A página não sabe
+   * quais são: lê as que estão. Cada uma diz o eixo, a quantidade e o preço em cêntimos, e é isso
+   * que a soma usa. */
+  'function caixas(){return document.querySelectorAll("[data-lote]");}' +
+  'function doEixo(eixo){var r=[],todas=caixas();' +
+  'for(var i=0;i<todas.length;i++){if(todas[i].checked&&todas[i].getAttribute("data-eixo")===eixo)' +
+  'r.push(Number(todas[i].getAttribute("data-qtd")));}return r;}' +
+  /* O TOTAL É UMA PRÉVIA, e não a conta que cobra: a que cobra é a do servidor (`comercial.calcular`,
+   * a mesma da criação). Aqui soma-se o que está escrito nas linhas do catálogo só para a pessoa ver
+   * de onde vem o valor antes de pagar — e um total que não se explica é o que a faz desistir no Pix. */
+  'function conta(){' +
+  '  var o=plano.options[plano.selectedIndex];if(!o)return null;' +
+  '  var base=Number(o.getAttribute("data-centavos")||0),partes=[],extra=0,todas=caixas();' +
+  '  for(var i=0;i<todas.length;i++){var c=todas[i];if(!c.checked)continue;' +
+  '    var v=Number(c.getAttribute("data-centavos")||0);extra+=v;' +
+  '    partes.push("+"+c.getAttribute("data-qtd")+" "+(c.getAttribute("data-eixo")==="professores"' +
+  '      ?"professor(es)":"aluna(s)")+" ("+reais(v)+")");}' +
+  '  var inclui=o.getAttribute("data-inclui")||"";' +
+  '  return {total:reais(base+extra),' +
+  '    texto:o.textContent.split(" — ")[0]+": "+reais(base)+(inclui?" ("+inclui+")":"")' +
+  '      +(partes.length?" · "+partes.join(" · "):"")' +
+  '      +"  →  "+reais(base+extra)+" por mês"};}' +
+  'function mostrarValor(){if(!valor)return;var c=conta();' +
+  'valor.textContent=c?("Primeira mensalidade — "+c.texto):"";}' +
+  'plano.addEventListener("change",mostrarValor);' +
+  'for(var i=0;i<caixas().length;i++)caixas()[i].addEventListener("change",mostrarValor);' +
+  'mostrarValor();' +
   'enviar.addEventListener("click",function(){' +
   'if(!se||!se.value){dizer("escreva a senha da escola",true);if(se)se.focus();return;}' +
   'dizer("a criar o acesso…");enviar.disabled=true;' +
@@ -836,8 +858,8 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * sobre um pedido que nunca chegou à rota. Um caminho que começa e termina no mesmo sítio não se
    * escreve pela metade. */
   'fetch("/api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
-  'body:JSON.stringify({plano:plano.value,extensoes:extensoesEscolhidas(),' +
-  'senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
+  'body:JSON.stringify({plano:plano.value,lotesProfessores:doEixo("professores"),' +
+  'lotesAlunos:doEixo("alunos"),senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
   'if(d&&d.ok){' +

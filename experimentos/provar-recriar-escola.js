@@ -173,6 +173,8 @@ function envCom(kv, extra) {
 /** A escolha do plano que a confirmação manda — o primeiro do catálogo. */
 const comercial = require(path.join(RAIZ, 'motor/nucleo/comercial.js'));
 const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
+const LOTE_PROF = comercial.catalogoDaPagina().lotes.professores[0].qtd;
+const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
 
 (async () => {
   console.log('A. A janela: «esta apagada já está a ser recriada?»');
@@ -333,26 +335,30 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('…e com a instrução de escrever o nome da escola no Pix',
       /escreva o nome da escola/i.test(boa.html), null);
 
-    /* AS EXTENSÕES DO PLANO (16/11/2026) — «Faltou dar a possibilidade de escolher entre as
-     * extensões para o plano.» A caixa existe com o catálogo dentro, e é o script que mostra só as
-     * do plano escolhido: quais são e em que planos entram NÃO se copia para a página. */
-    conferir('…e com a caixa das extensões, alimentada pelo catálogo do servidor',
-      /id="convite-extensoes"/.test(boa.html) && /data-extensoes="/.test(boa.html), null);
-    const catalogoBruto = JSON.parse(
-      (boa.html.match(/data-extensoes="([^"]*)"/)[1] || '')
-        .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
-    conferir('…com TODAS as extensões do catálogo (o filtro é do plano, e é do script)',
-      catalogoBruto.length === comercial.catalogoDaPagina().extensoes.length && catalogoBruto.length > 1,
-      catalogoBruto.map((e) => e.id));
-    conferir('…e cada uma diz em que planos entra', catalogoBruto.every((e) => Array.isArray(e.em) && e.em.length),
-      null);
+    /* A CAPACIDADE A MAIS (16/11/2026) — «as extensões do plano: mais três professores ou mais
+     * cinco, mais 10 alunos ou mais 30, e cada um tem um preço». É a tabela `lotes` do catálogo, a
+     * MESMA que a criação pelo formulário público oferece, e o que aqui se mostra é que ela está na
+     * página com o preço ao lado. Uma «extensão» de outra natureza não se oferece — a escolha que
+     * esteve aqui por umas horas foi retirada. */
+    conferir('…com a capacidade a mais, e um lote por linha', /id="convite-capacidade"/.test(boa.html)
+      && (boa.html.match(/type="checkbox" data-lote/g) || []).length
+        === comercial.catalogoDaPagina().lotes.professores.length
+          + comercial.catalogoDaPagina().lotes.alunos.length,
+      (boa.html.match(/type="checkbox" data-lote/g) || []).length);
+    conferir('…cada linha diz quanto acrescenta e quanto custa por mês',
+      /\+1 professor\(es\) — R\$ 30,00\/mês/.test(boa.html)
+        && /\+30 aluna\(s\) — R\$ 50,00\/mês/.test(boa.html), null);
+    conferir('…e NENHUMA escolha entre «extensões»: isso não é desta conversa',
+      !/convite-extensoes/.test(boa.html) && !/convite-extensao"/.test(boa.html), null);
     /* O PEDIDO VAI PARA `/api/recriar/…` NA RAIZ DO SÍTIO. Aqui esteve um caminho relativo, que
      * dentro de `/recriar/<token>` resolvia para `/recriar/api/recriar/<token>` — 404, e a página
      * dizia «não foi possível concluir o cadastro» sobre um pedido que nunca chegou à rota. */
     conferir('…e o pedido vai para a raiz do sítio, e não para o lado da página',
       boa.html.indexOf('fetch("/api/recriar/') !== -1,
       (boa.html.match(/fetch\("[^"]*"/) || [])[0]);
-    conferir('…levando as extensões escolhidas no corpo', /extensoes:extensoesEscolhidas\(\)/.test(boa.html), null);
+    conferir('…levando os lotes escolhidos no corpo',
+      /lotesProfessores:doEixo\("professores"\)/.test(boa.html)
+        && /lotesAlunos:doEixo\("alunos"\)/.test(boa.html), null);
 
     const errada = await abrir('duo-' + 'f'.repeat(32));
     conferir('com o token errado, 404 — e SEM formulário', errada.status === 404
@@ -405,19 +411,21 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
         semSenha.status === 400 && /senha da escola/.test(semSenha.corpo.erro || ''), semSenha);
       conferir('…e nenhuma carta saiu com essa tentativa', cartas.length === 0, cartas.length);
 
-      /* A ESCOLHA DA EXTENSÃO, e a recusa da que o plano não inclui — a regra é a do catálogo, e
-       * a página não a pode contornar: o `POST` é público, e um corpo bem feito à mão vale tanto
-       * como um clique. */
-      const foraDoPlano = await submeter({
-        plano: PLANO, extensoes: [comercial.catalogoDaPagina().extensoes[1].id], senhaAdmin: 'x',
-      });
-      conferir('uma extensão que o plano não inclui: 400, e o nome dela na recusa',
-        foraDoPlano.status === 400
-          && String(foraDoPlano.corpo.erro || '').indexOf(comercial.catalogoDaPagina().extensoes[1].id) !== -1,
-        foraDoPlano);
+      /* A CAPACIDADE É CONFERIDA NO SERVIDOR, e não acreditada. O `POST` é público: um corpo bem
+       * feito à mão vale tanto como um clique, e um lote que não está na tabela é um preço que
+       * ninguém decidiu. */
+      const loteInventado = await submeter({ plano: PLANO, lotesProfessores: [5], senhaAdmin: 'x' });
+      conferir('um lote que não está na tabela: 400, e o número dele na recusa',
+        loteInventado.status === 400 && /5 professores/.test(String(loteInventado.corpo.erro || '')),
+        loteInventado);
       conferir('…e nada foi criado com essa tentativa', cartas.length === 0, cartas.length);
 
-      r = await submeter({ plano: PLANO, senhaAdmin: 'nova-da-escola', senhaProfessor: 'nova-do-professor' });
+      /* COM CAPACIDADE: um lote de professores e um de alunas. O valor que o aviso leva tem de ser
+       * o da tabela, somado — e não o da assinatura. */
+      r = await submeter({
+        plano: PLANO, lotesProfessores: [LOTE_PROF], lotesAlunos: [LOTE_ALUNO],
+        senhaAdmin: 'nova-da-escola', senhaProfessor: 'nova-do-professor',
+      });
     } finally { delete globalThis.fetch; }
 
     conferir('o cadastro pela escola completa', r.status === 201 && r.corpo.ok === true, r);
@@ -456,12 +464,16 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('a escola nasce «aguardando» — é a conciliação que abre o acesso',
       comercialDepois.estado === 'aguardando', comercialDepois.estado);
     conferir('…com a origem declarada como convite', comercialDepois.origem === 'convite', comercialDepois.origem);
-    /* SEM ESCOLHA, O REGISTO LEVA O QUE O PLANO INCLUI — é a regra do `validarEscolha`, e é ela que
-     * mantém de pé a criação pelo formulário público e as recriações de antes desta mudança. */
-    conferir('…e com as extensões do plano, quando a página não manda nenhuma',
-      JSON.stringify(comercialDepois.extensoes)
-        === JSON.stringify(comercial.extensoesDoPlano(PLANO).map((e) => e.id)),
-      comercialDepois.extensoes);
+    const esperado = comercial.calcular({
+      assinatura: PLANO, lotes: { professores: [LOTE_PROF], alunos: [LOTE_ALUNO] },
+    });
+    conferir('…e a capacidade contratada fica no registo, com o valor que ela soma',
+      JSON.stringify(comercialDepois.capacidade) === JSON.stringify(esperado.capacidadeTotal)
+        && comercialDepois.valorCentavos === esperado.totalCentavos,
+      { capacidade: comercialDepois.capacidade, valor: comercialDepois.valorCentavos });
+    conferir('…e o aviso a quem concilia diz a capacidade, que é o que explica o valor',
+      new RegExp(comercialDepois.capacidade.professores + ' professores').test(String(aviso.text || '')),
+      String((aviso || {}).text || '').split('\n').slice(0, 9).join(' | '));
   }
 
   console.log('\nF. As duas listas: a que está a ser recriada muda de lado');
@@ -637,23 +649,18 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
 
   /* ── I. A PÁGINA DO CONVITE A CORRER (16/11/2026) ────────────────────────────────────────────
    *
-   * O QUE ESTA SECÇÃO MEDE, e por que razão ela é de jsdom e não de expressão regular: os dois
-   * defeitos que ela encontrou a 16/11 só aparecem QUANDO ALGUÉM CARREGA. O pedido relativo
+   * O QUE ESTA SECÇÃO MEDE, e por que razão ela é de jsdom e não de expressão regular: os defeitos
+   * que ela encontrou a 16/11 só aparecem QUANDO ALGUÉM CARREGA. O pedido relativo
    * (`fetch("api/recriar/…")`) resolvia para `/recriar/api/recriar/…` — 404 na cara de quem
-   * preencheu tudo e clicou; e a escolha das extensões não existia. Uma prova que só lesse o HTML
-   * diria «está lá o campo» sobre um pedido que nunca chegava à rota.
+   * preencheu tudo e clicou; e a capacidade a mais não chegava ao corpo do pedido.
    */
-  console.log('\nI. A página do convite a correr: o plano, as extensões e o pedido');
+  console.log('\nI. A página do convite a correr: o plano, a capacidade e o pedido');
   {
     const { JSDOM, VirtualConsole } = require('jsdom');
     const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
     const segredo = nucleo.novoToken();
     const token = 'duo-' + segredo;
     const catalogo = comercial.catalogoDaPagina();
-    const comDuas = catalogo.assinaturas.find(
-      (a) => comercial.extensoesDoPlano(a.id).length > 1) || catalogo.assinaturas[catalogo.assinaturas.length - 1];
-    const comUma = catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 1)
-      || catalogo.assinaturas[0];
     const html = painel.paginaDoConvite({
       escola: 'duo', nome: 'Duo', token, catalogo,
       pix: { chave: 'chave@pix.test', titular: 'Sistema Lastro' },
@@ -684,35 +691,49 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     });
     await new Promise((r) => setTimeout(r, 200));
     const d = dom.window.document;
-    const trocarPlano = async (id) => {
-      const sel = d.getElementById('convite-plano');
-      sel.value = id;
-      sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
-      await new Promise((r) => setTimeout(r, 50));
-    };
 
-    const caixa = d.getElementById('convite-extensoes');
-    conferir('a caixa das extensões existe na página', Boolean(caixa), null);
+    /* «+3 professores» não diz três a mais do que quê — e a pergunta é a primeira que quem
+     * contrata faz. A linha diz o que o degrau JÁ traz, e só depois o que se acrescenta. */
+    conferir('a página abre com um plano escolhido, o que ele inclui e a mensalidade dita',
+      /inclui \d+ professor/.test(d.getElementById('convite-valor').textContent)
+        && /\d\d,\d\d por mês/.test(d.getElementById('convite-valor').textContent),
+      d.getElementById('convite-valor').textContent);
 
-    await trocarPlano(comUma.id);
-    conferir('um plano com UMA extensão não pede escolha — a caixa fecha-se',
-      caixa.hidden === true, { plano: comUma.id, escondida: caixa.hidden });
+    const caixa = d.getElementById('convite-capacidade');
+    conferir('a capacidade a mais está lá, com uma caixa por lote', Boolean(caixa)
+      && caixa.querySelectorAll('[data-lote]').length
+        === catalogo.lotes.professores.length + catalogo.lotes.alunos.length,
+      caixa && caixa.querySelectorAll('[data-lote]').length);
 
-    await trocarPlano(comDuas.id);
-    const opcoes = d.querySelectorAll('input[name="convite-extensao"]');
-    conferir('um plano com DUAS extensões mostra as duas, para escolher',
-      caixa.hidden === false && opcoes.length === 2, { plano: comDuas.id, opcoes: opcoes.length });
-    conferir('…com a primeira marcada, e cada uma com a sua descrição',
-      opcoes[0].checked === true && (d.querySelectorAll('#convite-extensoes small') || []).length === 2,
-      null);
-    conferir('…e são exatamente as do plano, segundo o catálogo',
-      Array.prototype.map.call(opcoes, (o) => o.value).join(',')
-        === comercial.extensoesDoPlano(comDuas.id).map((e) => e.id).join(','),
-      Array.prototype.map.call(opcoes, (o) => o.value));
+    /* O LOTE ESCOLHIDO MUDA O VALOR — e é esta a razão de a capacidade estar na página: quem paga
+     * R$ 119,90 tem de ver de onde vêm os R$ 50. */
+    const semLote = d.getElementById('convite-valor').textContent;
+    const loteDeProfessor = caixa.querySelector('[data-eixo="professores"]');
+    loteDeProfessor.checked = true;
+    loteDeProfessor.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 40));
+    const comLote = d.getElementById('convite-valor').textContent;
+    const precoDoLote = catalogo.lotes.professores[0];
+    conferir('…e marcar um lote muda a mensalidade, e diz de onde vem a diferença',
+      comLote !== semLote && comLote.indexOf('+' + precoDoLote.qtd + ' professor') !== -1
+        && comLote.indexOf('por mês') !== -1, { sem: semLote, com: comLote });
 
-    /* ESCOLHE-SE A SEGUNDA — e é ela que tem de chegar ao servidor, não a primeira. */
-    opcoes[1].checked = true;
-    opcoes[0].checked = false;
+    /* TROCA-SE DE PLANO COM UM LOTE MARCADO: o lote não se perde, e o valor refaz-se sobre a nova
+     * assinatura. Perder a escolha ao mudar de plano é o defeito que a pessoa só descobre no Pix. */
+    const outroPlano = catalogo.assinaturas.find((p) => p.id !== catalogo.assinaturas[0].id);
+    const sel = d.getElementById('convite-plano');
+    sel.value = outroPlano.id;
+    sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 60));
+    const depoisDaTroca = d.getElementById('convite-valor').textContent;
+    conferir('…e trocar de plano não perde o lote marcado',
+      /\+\d+ professor/.test(depoisDaTroca) && loteDeProfessor.checked === true, depoisDaTroca);
+    const conta = comercial.calcular({
+      assinatura: outroPlano.id, lotes: { professores: [precoDoLote.qtd], alunos: [] },
+    });
+    conferir('…e o total que a página mostra é o da tabela do servidor',
+      depoisDaTroca.indexOf(conta.total) !== -1, { pagina: depoisDaTroca, servidor: conta.total });
+
     d.getElementById('convite-senha-escola').value = 'nova-da-escola';
     d.getElementById('convite-enviar').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 150));
@@ -720,11 +741,11 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('o clique faz UM pedido, à raiz do sítio (era aqui que ele se perdia em 404)',
       pedidos.length === 1 && pedidos[0].url.indexOf('/api/recriar/' + token) === 0,
       pedidos.map((p) => p.url));
-    conferir('…com o plano, a senha e a extensão ESCOLHIDA — e a segunda, não a primeira',
-      pedidos[0].corpo.plano === comDuas.id
+    conferir('…com o plano, a senha e os LOTES escolhidos no corpo',
+      pedidos[0].corpo.plano === outroPlano.id
         && pedidos[0].corpo.senhaAdmin === 'nova-da-escola'
-        && JSON.stringify(pedidos[0].corpo.extensoes)
-          === JSON.stringify([comercial.extensoesDoPlano(comDuas.id)[1].id]),
+        && JSON.stringify(pedidos[0].corpo.lotesProfessores) === JSON.stringify([precoDoLote.qtd])
+        && JSON.stringify(pedidos[0].corpo.lotesAlunos) === JSON.stringify([]),
       pedidos[0].corpo);
     conferir('…e a página diz o que aconteceu a seguir (a conciliação é manual)',
       /concilia/i.test(d.getElementById('convite-recado').textContent), null);

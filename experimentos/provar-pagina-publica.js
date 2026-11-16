@@ -505,26 +505,25 @@ console.log('\nH. A página pública abre sem lançar');
     })(), null);
 }
 
-/* AS EXTENSÕES DO PLANO, NA PÁGINA PÚBLICA (16/11/2026) — «Faltou dar a possibilidade de
- * escolher entre as extensões para o plano.» Aqui elas só se LISTAVAM, e um plano que inclui duas
- * ficava com a mais completa sem ninguém a ter pedido. A página do convite ganhou a escolha; esta
- * fica com a mesma regra, porque a pergunta é a mesma e duas respostas divergiriam.
+/* O QUE O PLANO INCLUI É UMA LISTA, E A CAPACIDADE É QUE SE ESCOLHE (16/11/2026).
  *
- * A ESCOLHA É DO SCRIPT, e é por isso que se mede a correr: o `fieldset.escolhas` é construído
- * quando o plano muda, a partir do catálogo que o servidor serve em `/api/pagina`. Ler o HTML não
- * veria nada — é o que já esteve aqui. */
-console.log('\nI. As extensões do plano: escolher quando há escolha');
+ * Aqui esteve, por umas horas, uma escolha entre as duas «extensões» do catálogo («Turma pronta —
+ * configuração» e «— configuração e conteúdo»). Ela corrigiu o vocabulário: «as extensões do plano
+ * é se é para contratar mais professores ou disponibilizar mais alunos […] e cada um tem um preço».
+ * Isso é a CAPACIDADE — a tabela `lotes` —, e é ela que muda o valor. As extensões ficam como
+ * estavam: uma lista que diz o que o degrau traz, e que não decide nada.
+ *
+ * A ASSERÇÃO QUE ISTO PROTEGE é a de que ninguém volta a pôr aqui uma escolha que não foi pedida. */
+console.log('\nI. O plano inclui uma lista; o que se contrata a mais é capacidade');
 {
   const { JSDOM, VirtualConsole } = require('jsdom');
   const comercial = carregar('motor/nucleo/comercial.js');
   const catalogo = comercial && typeof comercial.catalogoDaPagina === 'function'
     ? comercial.catalogoDaPagina() : null;
   const comDuas = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length > 1);
-  const comUma = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 1);
-  const comNenhuma = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 0);
 
-  if (!catalogo || !comDuas || !comUma) {
-    conferir('o catálogo tem um plano com duas extensões e outro com uma (é o que esta secção mede)',
+  if (!catalogo || !comDuas) {
+    conferir('o catálogo tem um plano que inclui mais de uma extensão (é o que esta secção mede)',
       false, catalogo && catalogo.assinaturas.map((a) => a.id));
   } else {
     const erros = [];
@@ -547,7 +546,7 @@ console.log('\nI. As extensões do plano: escolher quando há escolha');
     await new Promise((r) => setTimeout(r, 250));
     const d = dom.window.document;
     const alvo = d.getElementById('planos-extensoes');
-    conferir('a página pública tem o sítio das extensões, e ele é um `div` (o `fieldset` não cabe num `p`)',
+    conferir('a página pública tem o sítio das extensões, e ele é um `div`',
       Boolean(alvo) && String(alvo.tagName).toLowerCase() === 'div', alvo && alvo.tagName);
 
     const trocar = async (id) => {
@@ -560,26 +559,30 @@ console.log('\nI. As extensões do plano: escolher quando há escolha');
     };
 
     if (await trocar(comDuas.id)) {
-      const opcoes = alvo.querySelectorAll('input[name="extensao"]');
-      conferir('com DUAS extensões no plano, a página as oferece para escolher',
-        opcoes.length === 2, { plano: comDuas.id, opcoes: opcoes.length });
-      conferir('…e as duas são as do catálogo, com a primeira marcada',
-        Array.prototype.map.call(opcoes, (o) => o.value).join(',')
-          === comercial.extensoesDoPlano(comDuas.id).map((e) => e.id).join(',')
-          && opcoes[0].checked === true, null);
-      conferir('…e a escolha é visível: a legenda diz que se está a escolher uma extensão',
-        /extens/i.test((alvo.querySelector('legend') || {}).textContent || ''),
-        (alvo.querySelector('legend') || {}).textContent);
-    }
-    if (await trocar(comUma.id)) {
-      conferir('com UMA só, não se pergunta nada — a lista fechada diz o que o plano inclui',
+      conferir('o que o plano inclui é uma LISTA — e não uma escolha entre extensões',
         alvo.querySelectorAll('input[name="extensao"]').length === 0
-          && /O que este plano inclui/.test(alvo.textContent), alvo.textContent.slice(0, 80));
+          && alvo.querySelectorAll('ul > li').length === 2,
+        { itens: alvo.querySelectorAll('ul > li').length });
+      conferir('…com o rótulo que já existia', /O que este plano inclui/.test(alvo.textContent),
+        alvo.textContent.slice(0, 60));
     }
-    if (comNenhuma && await trocar(comNenhuma.id)) {
-      conferir('e com nenhuma, o sítio fica vazio (não inventa uma linha em branco)',
-        alvo.textContent.trim() === '', alvo.textContent);
-    }
+
+    /* A CAPACIDADE É QUE SE CONTRATA, e o preço dela soma à mensalidade. */
+    const lotes = d.getElementById('lotes-lista');
+    conferir('e a capacidade a mais continua a ser uma escolha, com o preço de cada lote',
+      Boolean(lotes) && lotes.querySelectorAll('input[type="checkbox"]').length
+        === catalogo.lotes.professores.length + catalogo.lotes.alunos.length,
+      lotes && lotes.querySelectorAll('input[type="checkbox"]').length);
+
+    const antes = d.getElementById('resumo-do-plano').textContent;
+    const primeiro = lotes.querySelector('input[type="checkbox"]');
+    primeiro.checked = true;
+    primeiro.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 60));
+    const depois = d.getElementById('resumo-do-plano').textContent;
+    conferir('…e marcar um lote muda o total, e diz de onde vem a diferença',
+      depois !== antes && /por mês/.test(depois), { antes, depois });
+
     conferir('…e nada disto faz a página pública lançar', erros.length === 0, erros.slice(0, 1));
     dom.window.close();
   }

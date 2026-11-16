@@ -2008,6 +2008,7 @@ async function avisarOProprietario({ env, escola, nome, escolha, quando, profess
     nome,
     plano: escolha.planoNome || escolha.plano,
     valor: escolha.valor,
+    capacidade: escolha.capacidade,
     quando,
     quandoTexto: fuso.quandoLocal(quando),
     professor,
@@ -2092,7 +2093,11 @@ async function receberOConvite(request, env) {
     env,
     escola: lido.escola,
     plano: corpo && corpo.plano,
-    extensoes: corpo && corpo.extensoes,
+    /* A CAPACIDADE QUE A ESCOLA CONTRATOU (16/11/2026) — «mais três professores ou mais cinco, mais
+     * 10 alunos ou mais 30». Vai como veio: quem confere é o `comercial`, e um lote inventado é
+     * recusado lá, com o número dele na frase. */
+    lotesProfessores: corpo && corpo.lotesProfessores,
+    lotesAlunos: corpo && corpo.lotesAlunos,
     senhaAdmin,
     senhaProfessor,
     origem: 'convite',
@@ -2137,7 +2142,8 @@ async function receberOConvite(request, env) {
   }), 201);
 }
 
-async function recriarEscola({ env, escola, plano, extensoes, senhaAdmin, senhaProfessor, origem }) {
+async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos,
+  senhaAdmin, senhaProfessor, origem }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
   const ghToken = env && env.GITHUB_TOKEN;
@@ -2220,11 +2226,13 @@ async function recriarEscola({ env, escola, plano, extensoes, senhaAdmin, senhaP
    * plano raramente muda com um expurgo no meio). Sem nenhum dos dois, RECUSA: a escola nasceria
    * sem valor, e a chave Pix que se manda a seguir não teria quantia. */
   const planoPedido = String(plano || '').trim() || String(comercialDaVez.plano || '').trim();
-  /* AS EXTENSÕES VÊM DA PÁGINA DO CONVITE (16/11/2026): o plano diz quais existem, a escola diz
-   * qual quer. Sem lista — a recriação pelo painel, ou o plano que só tem uma —, `validarEscolha`
-   * aplica o que o plano inclui, que é o comportamento de antes. */
-  const escolhaComercial = comercial.validarEscolha(
-    { plano: planoPedido, extensoes }, { podeDispensar: false });
+  /* O QUE A ESCOLA CONTRATOU: o plano e a capacidade a mais (os lotes). Sem lote nenhum, a
+   * mensalidade é a da assinatura — é o caso da recriação pelo painel, que só manda o plano. */
+  const escolhaComercial = comercial.validarEscolha({
+    plano: planoPedido,
+    lotesProfessores: Array.isArray(lotesProfessores) ? lotesProfessores : [],
+    lotesAlunos: Array.isArray(lotesAlunos) ? lotesAlunos : [],
+  }, { podeDispensar: false });
   if (!escolhaComercial.ok) {
     /* A MENSAGEM É A DO CATÁLOGO, e não uma segunda opinião escrita aqui: o plano que falta e a
      * extensão que o plano não inclui dizem-se com frases diferentes, e quem as sabe é quem tem a
@@ -2397,7 +2405,7 @@ async function recriarEscola({ env, escola, plano, extensoes, senhaAdmin, senhaP
     /* O PLANO COMPLETO, PARA QUEM VAI AVISAR O PROPRIETÁRIO. A rota do convite compõe o aviso com
      * o nome do plano e o valor — e seria uma segunda conta recalculá-los lá. */
     escolha: { plano: escolha.plano, planoNome: escolha.planoNome, valor: escolha.valor,
-      valorCentavos: escolha.valorCentavos },
+      valorCentavos: escolha.valorCentavos, capacidade: escolha.capacidade },
     origem: origem || 'recriacao',
   };
 }

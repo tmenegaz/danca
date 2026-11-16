@@ -47707,3 +47707,73 @@ alcançada —, e depois desta correção o mesmo link abre e conclui. A extens�
 registo comercial (`extensoes`) e no aviso a quem concilia; o que ela muda no motor é a geração do
 conteúdo das turmas, e essa ligação ainda **não** está feita — o registo declara a intenção
 contratada, e é isso que hoje se sabe ler.
+
+## 16/11/2026 — a correção de vocabulário: «extensão» é capacidade, e é isso que se contrata
+
+**O que motivou.** A entrada anterior desta mesma data pôs na página do convite uma escolha entre as
+**extensões do catálogo** («Turma pronta — configuração» e «— configuração e conteúdo»). Ela leu e
+corrigiu, e a correção é de vocabulário antes de ser de código: «As extensões que eu me refiro é se é
+para contratar mais professores ou disponibilizar mais alunos. […] Por exemplo, se vão ser mais três
+professores ou mais cinco professores e cada um tem um preço, se são mais 10 alunos ou mais 30
+alunos. […] O que este plano inclui, isso eu ainda não tratei com você. […] E também agora não é a
+hora de resolver isso.»
+
+**O que estava errado, e não era só a tela.** O catálogo tem duas coisas diferentes, e eu tratei uma
+pela outra:
+
+| o que é | onde vive | quem escolhe |
+|:--|:--|:--|
+| **capacidade a mais** — +1 ou +3 professores, +10 ou +30 alunas, com preço por lote, **recorrente na mensalidade** | `lotes`, no `planos.json` | **a escola** — é o que muda o valor que ela paga |
+| **extensões** — o que se entrega na arranque (turma pronta, configuração, conteúdo) | `extensoes`, no `planos.json` | ninguém, hoje: não há conversa fechada sobre elas |
+
+A segunda não é desta conversa, e a primeira já existia — no formulário público, onde ela sempre
+esteve. O que faltava era estar **também** na página do convite, porque é ali que a escola decide o
+que vai pagar.
+
+**O que foi decidido.**
+
+- **A escolha inventada foi retirada, inteira**: o `fieldset` das extensões na página do convite, a
+  regra `extensoesEscolhidas` no núcleo, o `extensoes` do corpo do pedido e a escolha por rádio que
+  eu tinha posto no formulário público. A lista «O que este plano inclui» ficou **como estava** — ela
+  não decide nada, diz o que o degrau traz.
+- **A capacidade entrou no convite**, renderizada pelo servidor a partir do catálogo — a mesma tabela
+  que a criação usa, sem um preço copiado para a página. Cada linha diz quanto acrescenta e quanto
+  custa por mês.
+- **A mensalidade diz de onde vem.** «Básico: R$ 69,90 (inclui 1 professor e 10 alunas) · +3
+  professor(es) (R$ 50,00) · +10 aluna(s) (R$ 30,00) → R$ 149,90 por mês». Um total sem
+  decomposição é o que faz desistir no Pix, e «+3 professores» sem o «inclui 1» não diz três a mais
+  do que quê.
+- **A prévia é da página, a conta é do servidor.** O `POST` é público, e um lote que não está na
+  tabela é recusado lá, com o número dele na frase (`o lote de 5 professores não existe na tabela`).
+  A página soma o que está escrito nas linhas; quem cobra é o `comercial.calcular`.
+- **A capacidade fica no registo e no aviso.** `capacidade: { professores, alunos }` no registo
+  comercial, e uma linha `Capacidade: 6 professores e 100 alunas` no aviso a quem concilia — é o que
+  faz reconhecer um Pix de R$ 189,90 como sendo desta escola, e não de outra.
+- **Trocar de plano não perde o lote marcado**, e o total refaz-se sobre a nova assinatura. Perder a
+  escolha a meio é o defeito que só se descobre no pagamento.
+
+**Onde entrou.** `motor/servidor/painel-html.js` (o `fieldset` da capacidade na página do convite, e o
+`SCRIPT_DO_CONVITE` a somar e a mandar os lotes) · `motor/servidor/raiz.js` (`receberOConvite` e
+`recriarEscola` levam `lotesProfessores`/`lotesAlunos` ao `validarEscolha`; a `capacidade` viaja na
+`escolha` da resposta) · `motor/servidor/correio.js` (a linha «Capacidade» no aviso ao proprietário) ·
+`motor/nucleo/comercial.js` (a `extensoesEscolhidas` **saiu**) · `raiz/index.html` (a escolha por
+rádio saiu; a lista ficou) · `experimentos/provar-recriar-escola.js` e
+`experimentos/provar-pagina-publica.js` (secção I reescrita em cada um).
+
+**Com o quê.** `provar-recriar-escola` **81/81**, com a secção I a correr a página em jsdom, no
+endereço real do convite: a capacidade está lá com uma caixa por lote; marcar um lote muda a
+mensalidade e a linha diz de onde vem a diferença; trocar de plano não perde o lote; o total que a
+página mostra é o do `comercial.calcular`; e o clique manda `lotesProfessores` no corpo, a
+`/api/recriar/<token>`. Mais a recusa do lote inventado com 400, e o aviso ao proprietário com a
+capacidade. `provar-pagina-publica` **79/79** (a secção I mede que ali o plano inclui uma **lista** e
+que a capacidade é que se escolhe — a asserção que impede alguém de voltar a pôr a escolha
+inventada). Mais `provar-indices` 58/58 · `provar-a-carencia-nao-se-burla` 58/58 ·
+`provar-escola-a-nascer` 48/48 · `provar-financeiro` 58/58 · `provar-cofre-e-shard` 129/129 ·
+`provar-o-relogio-nao-mente` 30/30 · `provar-acoes-da-linha` 75/75 · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+
+**O que fica declarado.** As **extensões** do catálogo (`turma-pronta-configuracao`,
+`turma-pronta-conteudo`) continuam a ser derivadas do plano e gravadas no registo comercial, como
+sempre foram — e **não são oferecidas a ninguém**, porque essa conversa não está fechada: não se sabe
+ainda se são um adicional, um degrau, ou se existem. O convite que ela já tem continua válido, e é
+esta a página que ele abre.
