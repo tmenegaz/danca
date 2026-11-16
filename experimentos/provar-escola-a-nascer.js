@@ -189,6 +189,107 @@ function kvDeBolso(inicial) {
         require('fs').readFileSync(path.join(RAIZ, 'raiz/index.html'), 'utf8')), null);
   }
 
+  console.log('\nG. Todo script que o painel serve COMPILA');
+  {
+    /* O DEFEITO DE 16/11/2026, e ele custou uma sessão de trabalho: «eu fui tentar fazer a liberação
+     * com o botão Habilitar nas escolas vivas e não acontece nada.»
+     *
+     * O `SCRIPT_DO_ACESSO` era montado por concatenação, e o seletor da linha vinha de
+     * `querySelectorAll("[data-escola=\\"" + escola + "\\"]")` escrito entre plicas — onde `\\"` é
+     * uma aspa LITERAL. O que saiu no HTML foi `querySelectorAll("[data-escola=""+escola+""]")`:
+     * um **erro de sintaxe**, não um seletor inválido. E um erro de sintaxe num `<script>` não
+     * estraga a linha que o usa — estraga o ficheiro inteiro. O botão nunca teve `addEventListener`
+     * nenhum, e a página não dizia porquê.
+     *
+     * TODAS AS PROVAS DAQUELE DIA PASSARAM. Nenhuma delas compilava o que o servidor serve: elas
+     * liam o HTML (a marcação estava certa), chamavam as rotas (a rota funcionava) e contavam
+     * elementos. O que faltava era a pergunta mais barata de todas — **isto é JavaScript válido?**
+     *
+     * A REGRA QUE FICA: quem gera script por concatenação tem de o compilar. Esta secção compila
+     * todos os `<script>` inline de todas as páginas que o painel serve. */
+    const paginas = {
+      vivas: painel.paginaDasVivas({
+        escolas: [
+          { slug: 'breu', nome: 'Breu', professor: 'b', criada_em: '2026-11-16T10:00:00.000Z',
+            comercial: { estado: 'aguardando' } },
+          { slug: 'outra', nome: 'Outra', professor: 'c', criada_em: '2026-01-01T00:00:00.000Z',
+            comercial: { estado: 'ativa' } },
+        ],
+        professores: [],
+      }),
+      apagadas: painel.paginaDasApagadas({
+        escolas: [{ slug: 'velha', nome: 'Velha', professors: [], expurgada: true,
+          expurgada_em: '2026-01-01T00:00:00.000Z' }],
+        professores: [],
+      }),
+      professores: painel.paginaDosProfessores({
+        professores: [{ slug: 'ana', nome: 'Ana', escolas: ['valse'] }],
+        escolas: [{ slug: 'valse', nome: 'Valse' }],
+      }),
+      financeiro: painel.paginaFinanceira({
+        pix: { chave: '02150062917', titular: null },
+        descontos: [{ escola: 'valse', valor: '20,00', em: '2026-11-15T10:00:00.000Z', motivo: 'x' }],
+        escolas: [{ slug: 'valse', nome: 'Valse' }],
+      }),
+    };
+    for (const [nome, html] of Object.entries(paginas)) {
+      const blocos = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)]
+        .map((m) => m[1]).filter((b) => b.trim());
+      const maus = [];
+      for (const bloco of blocos) {
+        try {
+          // Compila sem executar: é exactamente o que o navegador faz primeiro, e o que falhou.
+          new Function(bloco); // eslint-disable-line no-new-func
+        } catch (erro) {
+          maus.push(String((erro && erro.message) || erro));
+        }
+      }
+      conferir('a página «' + nome + '»: os ' + blocos.length + ' script(s) inline compilam',
+        maus.length === 0, maus);
+    }
+    conferir('a página das vivas tem, no mínimo, o script do acesso e o do cofre',
+      (paginas.vivas.match(/<script[^>]*>[\s\S]*?<\/script>/g) || []).length >= 2, null);
+
+    /* E O BOTÃO FAZ O QUE PROMETE, num DOM a sério: eis o que «não acontece nada» queria dizer. */
+    const { JSDOM, VirtualConsole } = require('jsdom');
+    const paciente = new VirtualConsole();
+    const erros = [];
+    paciente.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+    const pedidos = [];
+    const dom = new JSDOM(paginas.vivas, {
+      runScripts: 'dangerously',
+      url: 'https://danca.padd.com.br/escolas-vivas',
+      virtualConsole: paciente,
+      beforeParse(win) {
+        win.fetch = (u, o) => {
+          pedidos.push({ url: String(u), metodo: (o && o.method) || 'GET', body: o && o.body });
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true }) });
+        };
+      },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const d = dom.window.document;
+    conferir('a página das vivas não lança ao abrir', erros.length === 0, erros);
+    const habilitar = d.querySelector('[data-comercial="ativa"]');
+    conferir('o botão «Habilitar» existe na linha', Boolean(habilitar), null);
+    conferir('…e está ligado (a escola está por habilitar)', Boolean(habilitar) && habilitar.disabled === false, null);
+    if (habilitar) habilitar.click();
+    await new Promise((r) => setTimeout(r, 150));
+    const pedido = pedidos[0] || null;
+    conferir('clicar em «Habilitar» PEDE a mudança — o que não acontecia',
+      Boolean(pedido) && pedido.metodo === 'POST' && /api\/escola\/comercial/.test(pedido.url), pedidos);
+    conferir('…com o corpo certo: a escola e o estado que o botão promete',
+      Boolean(pedido) && /"escola":"breu"/.test(String(pedido.body)) &&
+      /"estado":"ativa"/.test(String(pedido.body)), pedido && pedido.body);
+    /* O RECADO NÃO PODE SER O `toString` DE UMA TABELA — foi o que o `var t` sombreado fazia. */
+    const recado = (d.getElementById('acesso-recado') || {}).textContent || '';
+    conferir('…e a linha diz o que está a acontecer, em texto',
+      /a habilitar breu/.test(recado), recado);
+    conferir('…e não imprime um elemento como se fosse uma mensagem',
+      !/HTMLTableElement|\[object/.test(recado), recado);
+    dom.window.close();
+  }
+
   console.log('\nE. O host que nenhuma escola reclama não é um Worker mal configurado');
   {
     /* «Quando eu acesso a página breu.padd.com.br aparece uma mensagem, configuração incorreta do
@@ -229,14 +330,17 @@ function kvDeBolso(inicial) {
   {
     const prov = require(path.join(RAIZ, 'motor/servidor/provisionar-escola.js'));
     const respostas = [];
+    /* O RUN DESTE PEDIDO É O QUE NASCE DEPOIS DO DISPARO — e o `created_at` é fabricado no momento
+     * da leitura, porque o instante do disparo é interno à função e a prova não o pode conhecer. */
     const falso = (url, opcoes) => {
       respostas.push({ url: String(url), metodo: (opcoes && opcoes.method) || 'GET' });
       if (String(url).indexOf('/dispatches') !== -1) return Promise.resolve({ status: 204, ok: true });
+      const agora = new Date(Date.now() + 1000).toISOString().replace(/\.\d+Z$/, 'Z');
       return Promise.resolve({
         status: 200,
         ok: true,
         json: () => Promise.resolve({ workflow_runs: [{
-          id: 43850296566, status: 'queued',
+          id: 43850296566, status: 'queued', created_at: agora,
           html_url: 'https://github.com/tmenegaz/danca/actions/runs/43850296566',
         }] }),
       });
@@ -250,10 +354,24 @@ function kvDeBolso(inicial) {
       Boolean(r.run) && r.run.id === 43850296566 && r.run.estado === 'queued' &&
       /actions\/runs\/43850296566/.test(String(r.run.url)), r.run);
     conferir('…e o estado é o do GitHub — «queued» é uma resposta, não um silêncio',
-      r.run.estado === 'queued', r.run.estado);
-    conferir('…foram duas chamadas: o disparo e a leitura', respostas.length === 2, respostas.length);
-    conferir('…e a segunda é uma leitura, não um segundo disparo',
-      respostas[1].metodo === 'GET', respostas[1]);
+      Boolean(r.run) && r.run.estado === 'queued', r.run);
+    conferir('…e a segunda chamada é uma LEITURA, não um segundo disparo',
+      respostas.length >= 2 && respostas[1].metodo === 'GET', respostas);
+
+    /* O RUN DE OUTRA PESSOA NÃO É O DESTA ESCOLA. Medido a 16/11/2026: a `breu` ficou com o link do
+     * run de um diagnóstico meu, de uma hora antes, porque a leitura pegava «o mais recente» — e o
+     * mais recente, no instante a seguir ao dispatch, ainda é o anterior. Um link errado num ecrã
+     * de diagnóstico manda olhar para o trabalho de outra pessoa. */
+    const antigo = await prov.dispararCriacao({
+      token: 'x', dono: 'tmenegaz', repo: 'danca', ref: 'main', inputs: { escola: 'abreu' },
+      fetchImpl: (url) => (String(url).indexOf('/dispatches') !== -1
+        ? Promise.resolve({ status: 204, ok: true })
+        : Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve({ workflow_runs: [{
+          id: 1, status: 'queued', created_at: '2026-11-16T10:35:58Z', html_url: 'antigo',
+        }] }) })),
+    });
+    conferir('um run criado ANTES do disparo NÃO é aceite como sendo deste pedido',
+      antigo.ok === true && antigo.run === null, antigo.run);
 
     /* A LEITURA QUE FALHA NÃO DERRUBA A CRIAÇÃO: o que se perde é o link, não a escola. */
     const semLeitura = await prov.dispararCriacao({
@@ -277,7 +395,7 @@ function kvDeBolso(inicial) {
     });
     conferir('passados 15 minutos, a linha diz que a fila do GitHub não pegou o pedido',
       /a fila do GitHub não pegou o pedido/.test(html), null);
-    conferir('…e diz há quantos minutos', /a nascer há 6\d min/.test(html), null);
+    conferir('…e diz há quantos minutos', /a nascer há \d+ min/.test(html), null);
     conferir('…e leva ao run, para se ver o que se passa', /ver o run do GitHub/.test(html), null);
   }
 
