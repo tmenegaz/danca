@@ -1,196 +1,56 @@
 {
-  "aspectos": [
-    {
-      "aspecto": "cinco-posicoes-4a-pes",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261116-0012",
-      "ultima": "20261116-0012",
-      "versoes": 1
-    },
-    {
-      "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261116-0012",
-      "ultima": "20261116-0012",
-      "versoes": 1
-    }
-  ],
+  "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-        "cobertura": [
-          "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-          "professores/pe-pequeno/ciclos/ciclo-01.conf"
-        ],
-        "hash": "4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df",
-        "hash_conteudo": "4932b3b84d4d4825536512389ee3b569a2f4bd9c76f9ff9b3a4349f5e8cb7a97",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-        "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:pe-pequeno/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "pe-pequeno",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
-      "professor": "pe-pequeno",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
-      "professor": "pe-pequeno",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:pe-pequeno/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "pe-pequeno",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:pe-pequeno/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
-      "anamneses": 1,
+      "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
-      "recortes": 1,
-      "registros": 1
+      "recortes": 0,
+      "registros": 0
     },
     "criada_em": "2026-11-15T22:07:20.172239+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-15T20:48:59.487Z",
-    "expurgos": 13,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-16T00:29:27.330Z",
+    "expurgos": 14,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "pe-pequeno",
     "professores": [
-      "pe-pequeno"
+      "demi-plie",
+      "meia-ponta",
+      "murisoca-baiana",
+      "oculos-redondo",
+      "pe-pequeno",
+      "pe-torto",
+      "perna-boa",
+      "rabo-gramde",
+      "redinha-rosa",
+      "sapo-bailarino",
+      "tiago-menegaz"
     ],
-    "registros": [
-      "anamnese:anamnese-20261115-2109"
-    ],
+    "registros": [],
     "slug": "calango"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261115-2109"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
-    "aspectos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "recorte:tami"
-        ],
-        "rotulo": "cinco-posicoes-4a-pes",
-        "valor": "cinco-posicoes-4a-pes"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "recorte:tami"
-        ],
-        "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
-        "valor": "mobilidade-de-quadril-en-dehors-de-origem"
-      }
-    ],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261115-2109",
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "pe-pequeno",
-        "valor": "pe-pequeno"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261115-2109"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:pe-pequeno/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "anos": [],
+    "aspectos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "9831a13"
+    "commit": "e72b268"
   },
-  "gerado_em": "2026-11-16T00:28",
+  "gerado_em": "2026-11-16T00:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -213,46 +73,7 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [
-    {
-      "alunas": 1,
-      "aspectos": [
-        "cinco-posicoes-4a-pes",
-        "mobilidade-de-quadril-en-dehors-de-origem"
-      ],
-      "atualizada_em": "2026-11-16T00:12:28.185Z",
-      "enviada_em": "2026-11-16T00:12:28.706Z",
-      "id": "recorte:tami",
-      "linha": "tami",
-      "nome": "tami",
-      "professor": "pe-pequeno",
-      "turma": null,
-      "versoes": [
-        {
-          "alunas": 1,
-          "arquivo": "escola/calango/linhas-de-base/tami--20261116-0012.json",
-          "aspectos": [
-            "cinco-posicoes-4a-pes",
-            "mobilidade-de-quadril-en-dehors-de-origem"
-          ],
-          "enviada_em": "2026-11-16T00:12:28.706Z",
-          "versao": "20261116-0012"
-        }
-      ],
-      "vigente": true
-    }
-  ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261115-2109",
-      "ciclo": null,
-      "data": "2026-11-15T21:09",
-      "id": "anamnese:anamnese-20261115-2109",
-      "professor": "pe-pequeno",
-      "tipo": "anamnese"
-    }
-  ],
+  "recortes": [],
+  "registros": [],
   "versao": 7
 }
