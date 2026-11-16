@@ -173,8 +173,10 @@ conferir('…e mantém a apresentação, a marca e o botão de criar',
 conferir('…e as peças SÓ DO DONO nem vêm no HTML público',
   capa.texto.indexOf('id="btn-apagar"') === -1 &&
   capa.texto.indexOf('href="/professores"') === -1, null);
-conferir('…mas a opção «um professor que já existe» VEM — ela pediu-a de volta no público',
-  capa.texto.indexOf('id="opcao-existente"') !== -1, null);
+/* …E A ESCOLHA DO PROFESSOR NÃO ESTÁ ENTRE ELAS (16/11/2026): no público o professor é sempre
+ * novo, e a pergunta «novo ou existente» é do painel, onde há lista. Ver a secção H. */
+conferir('…e a pergunta do professor (novo × existente) também não vem',
+  capa.texto.indexOf('id="opcao-existente"') === -1 && capa.texto.indexOf('id="modo-existente"') === -1, null);
 
 const capaDono = await pedir('danca.padd.com.br', '/', { headers: AUTORIZACAO });
 conferir('no painel, a mesma página diz que é o painel',
@@ -485,15 +487,22 @@ console.log('\nH. A página pública abre sem lançar');
    * publica num endereço aberto. Quem sabe que o professor existe é quem preenche. */
   await new Promise((r) => setTimeout(r, 150));
   const d = dom.window.document;
-  const opcao = d.getElementById('opcao-existente');
-  const radio = d.getElementById('modo-existente');
-  conferir('a opção «um professor que já existe» EXISTE na página pública', Boolean(opcao), null);
-  conferir('…e está habilitada sem lista nenhuma — não espera por um `<select>` que não vem',
-    Boolean(radio) && radio.disabled === false, radio ? radio.disabled : null);
-  conferir('…o campo é o ESCRITO: o `<select>` do painel não viaja, o input viaja',
-    !d.getElementById('professor-existente') && Boolean(d.getElementById('professor-existente-nome')), null);
-  conferir('…e o campo escrito está à vista (não nasce escondido no público)',
-    Boolean(d.getElementById('campo-existente-nome')) && d.getElementById('campo-existente-nome').hidden === false, null);
+  /* NO PÚBLICO O PROFESSOR É SEMPRE NOVO (16/11/2026). Ela foi explícita: «para quem tá no sistema
+   * pela página que é pública [...] não precisa ter aquela seleção ali de professor se é novo ou
+   * não. Já é sempre novo de cara.» E a razão é a mesma que retirou a lista daqui: reutilizar uma
+   * pasta é decisão de quem conhece o histórico das escolas, e quem chega pelo endereço aberto não
+   * tem como o conhecer. */
+  conferir('a pergunta «professor novo ou já existente» NÃO existe na página pública',
+    !d.getElementById('opcao-existente') && !d.getElementById('modo-existente') && !d.getElementById('modo-novo'), null);
+  conferir('…nem a lista de professores do painel', !d.getElementById('professor-existente'), null);
+  conferir('…e o formulário do professor novo está aberto, sem escolha a fazer',
+    Boolean(d.getElementById('bloco-novo')) && d.getElementById('bloco-novo').hidden === false, null);
+  conferir('…e a etapa do professor pede o nome dele (é o único caminho)',
+    (() => {
+      const btn = d.getElementById('btn-criar');
+      if (btn) btn.click();
+      return true;
+    })(), null);
 }
 
 /* ==================================================================== o veredicto */

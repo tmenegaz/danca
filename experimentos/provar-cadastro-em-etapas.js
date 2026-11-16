@@ -420,16 +420,25 @@ async function medirRemocao() {
   ]) {
     conferir('o público deixa de ter ' + rotulo, removido.indexOf(agulha) === -1, agulha);
   }
-  /* O REAPROVEITAR DE PROFESSOR NÃO ESTÁ MAIS NESTA LISTA (25/11/2026). Esteve, por uma decisão
-   * minha — «reaproveitar uma pasta que já tem escola é decisão de quem conhece o histórico» —, e
-   * ela desfez a decisão: «só tem uma opção aqui […] Você tirou. Tem que colocar aqui de volta.»
-   * A opção fica nos DOIS endereços, e o que muda entre eles é a forma de responder: no painel
-   * escolhe-se numa lista, no público escreve-se o nome. */
-  conferir('…e a opção «um professor que já existe» FICA no público — ela pediu-a de volta',
-    removido.indexOf('id="opcao-existente"') !== -1, null);
-  conferir('…mas o `<select>` do painel não viaja: no público o campo é escrito',
-    removido.indexOf('id="professor-existente"') === -1 &&
-    removido.indexOf('id="professor-existente-nome"') !== -1, null);
+  /* A ESCOLHA DO PROFESSOR É DO PAINEL, E SÓ DELE (16/11/2026).
+   *
+   * A história desta linha tem três actos, e os três estão aqui para não se repetirem: (1) a opção
+   * foi retirada do público; (2) ela pediu-a de volta — «só tem uma opção aqui […] Você tirou» — e
+   * a opção voltou, com o nome escrito no público; (3) ela disse qual é a regra: «para quem tá no
+   * sistema pela página que é pública […] não precisa ter aquela seleção ali de professor se é novo
+   * ou não. Já é sempre novo de cara.»
+   *
+   * O que fica NÃO é o acto (1) outra vez. É o que os três juntos dizem: a pergunta existe onde há
+   * lista (o painel), e não existe onde não há (o público). E a saída de um conflito, no público,
+   * não é uma escolha de quem preenche — é a administração. */
+  conferir('…e a pergunta «professor novo ou existente» NÃO vai no HTML público',
+    removido.indexOf('id="opcao-existente"') === -1 &&
+    removido.indexOf('id="modo-existente"') === -1, null);
+  conferir('…nem a lista de professores do painel viaja',
+    removido.indexOf('id="professor-existente"') === -1, null);
+  conferir('…e o campo escrito que existiu por um dia também já não existe em lado nenhum',
+    removido.indexOf('professor-existente-nome') === -1 &&
+    PAGINA_HTML.indexOf('professor-existente-nome') === -1, null);
   conferir('…e o que é público FICA: o botão de criar a escola',
     removido.indexOf('id="btn-criar"') !== -1, null);
   conferir('…e a apresentação fica inteira (marca e título)',
@@ -497,10 +506,8 @@ async function medirReusoDoProfessor() {
 
   conferir('no PAINEL, a opção «um professor que já existe» existe',
     Boolean(doc.getElementById('opcao-existente')), null);
-  conferir('…e o campo do painel é a LISTA (o escrito fica escondido)',
-    Boolean(doc.getElementById('professor-existente')) &&
-    Boolean(doc.getElementById('campo-existente-nome')) &&
-    doc.getElementById('campo-existente-nome').hidden === true, null);
+  conferir('…e o campo do painel é a LISTA',
+    Boolean(doc.getElementById('professor-existente')), null);
 
   doc.getElementById('nome').value = 'Escola Nova';
   doc.getElementById('nome').dispatchEvent(new dom.window.Event('input', { bubbles: true }));

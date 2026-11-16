@@ -1414,3 +1414,13 @@ experimentos/modelo-formulario/*
 # 18/10/2026). Mede também que `/financeiro` responde 404 no endereço público: a chave dela não se
 # publica.
 !experimentos/provar-financeiro.js
+
+# A ESCOLA QUE NASCE E O ÍNDICE QUE AINDA NÃO SABE (16/11/2026). Ela criou a «Abreu», a criação
+# respondeu 201, e `Escolas vivas` não mostrava nada — porque a lista saía do acervo DERIVADO, que
+# só é regerado depois de o CI commitar o scaffold. A prova mede a regra que fecha essa janela: o
+# mapa (`escolas/por-host`) diz que o sistema serve a escola, e o registo comercial diz que a
+# criação chegou ao fim — os dois juntos, e nenhum sozinho, porque sem o segundo uma criação
+# abortada aparece como escola e sem o primeiro seria preciso enumerar o KV. Mede também a outra
+# metade do mesmo recado: no público o professor é sempre novo, e a recusa por conflito manda
+# procurar a administração em vez de apontar para uma lista que ali não existe.
+!experimentos/provar-escola-a-nascer.js
