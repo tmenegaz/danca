@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -1147,6 +1147,67 @@
         ],
         "fontes": 1,
         "impressao": "4eddc1bd089ec4d9029a3d26b5600a88bb7ed4349508f4a8567538bc086bb16a",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-16T00:29:27.330Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/calango/envelopes/.indice.json",
+        "escola/calango/envelopes/anamnese-20261115-2109.json",
+        "escola/calango/linhas-de-base/.indice.json",
+        "escola/calango/linhas-de-base/tami--20261116-0012.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango.conf",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/favicon.svg",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/lib-cifra.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/nav.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/assets/style.css",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/index.html",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/assets/markdown.js",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/conteudo/anamnese.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/index.html",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/plano/conteudo/plano.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/po/conteudo/po.json",
+        "professores/pe-pequeno/ciclos/ciclo-01-calango/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/pe-pequeno/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "calango/",
+          "bastidores/calango/"
+        ],
+        "em": "2026-11-16T00:29:27.330Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-16T00:29:22.169Z",
+        "ancoras": [
+          {
+            "caminho": "professores/pe-pequeno/ciclos/ciclo-01-calango.fipp",
+            "id": "ciclo-01-calango",
+            "hash": "4c033a8f9ce7b5d9b629eb0b8ca4f87db9ac48a0ecc8fe751249d2d999f5b8df",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "3ac24b098e4cdfd48cbecfbe884623abd3491642d7c83165da88ddf19301fdae",
         "resumo": {
           "ancoras": 1,
           "fontes": 1,
