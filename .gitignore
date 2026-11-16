@@ -266,6 +266,10 @@ experimentos/propostas/*
 # senha, o público só a criar), a recusa do painel no público, o cadastro que não vai para o índice
 # versionado, e o e-mail que não finge ter saído. Sem rede, sem token e sem criar escola.
 !experimentos/provar-pagina-publica.js
+# O CADASTRO EM QUATRO ETAPAS (25/11/2026). Mede a geometria num Chrome de verdade (o modal largo,
+# as duas colunas, a cedência a uma coluna a 390px) e o percurso num DOM com JavaScript (as etapas,
+# a conta do plano, o pedido que sai). Mede também que o público REMOVE o que é do painel.
+!experimentos/provar-cadastro-em-etapas.js
 
 # A PROVA DA GERAÇÃO (19/10/2026): o disparo que manda a variante, o gatilho condicionado às
 # fontes, o registro no KV, as fases do estado e o cartão da porta. É a prova que separa «a tela

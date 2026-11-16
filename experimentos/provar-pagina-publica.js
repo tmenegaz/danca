@@ -160,8 +160,14 @@ conferir('…e NÃO traz a lista de escolas do painel',
   !/escolas-do-sistema">[\s\S]{40,}/.test(capa.texto) && !/Escolas do sistema<\/h2>/.test(capa.texto), null);
 conferir('…e mantém a apresentação, a marca e o botão de criar',
   /Sistema Lastro/.test(capa.texto) && /id="btn-criar"/.test(capa.texto), null);
-conferir('…e cada peça do painel vai marcada com `data-dono` (para a folha a esconder)',
-  /id="btn-apagar"[^>]*data-dono/.test(capa.texto) && /href="\/professores"[^>]*data-dono/.test(capa.texto), null);
+/* A PEÇA DO PAINEL SAI DO HTML, E NÃO SÓ SE ESCONDE (25/11/2026). Era esta a asserção de antes —
+ * «vai marcada com `data-dono`» —, e a marcação mudou de propósito: ela pediu «remova», e a
+ * remoção não depende de a folha chegar. A folha guarda a regra como segunda barreira, e é isso
+ * que se mede a seguir no `provar-cadastro-em-etapas`, secção C. */
+conferir('…e as peças do painel NEM VÊM no HTML público',
+  capa.texto.indexOf('id="btn-apagar"') === -1 &&
+  capa.texto.indexOf('href="/professores"') === -1 &&
+  capa.texto.indexOf('id="opcao-existente"') === -1, null);
 
 const capaDono = await pedir('danca.padd.com.br', '/', { headers: AUTORIZACAO });
 conferir('no painel, a mesma página diz que é o painel',
