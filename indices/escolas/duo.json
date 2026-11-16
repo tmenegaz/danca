@@ -1,25 +1,90 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-16",
+        "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+        "cobertura": [
+          "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+          "professores/fernando-franciose/ciclos/ciclo-01.conf"
+        ],
+        "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
+        "hash_conteudo": "7d1eaa0664f4d61a8d1d5b4acbc3fea9ca1dcfb0080dd248580e2517b80dff95",
+        "id": "ciclo-01-duo",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "duo",
+      "estado": "ancorado",
+      "id": "ciclo:fernando-franciose/01/duo",
+      "numero": "01",
+      "pacote": null,
+      "professor": "fernando-franciose",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:ancora:professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+      "professor": "fernando-franciose",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:manifesto:professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "professor": "fernando-franciose",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-duo",
+      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:fernando-franciose/01/duo",
+      "escola": "duo",
+      "id": "documento:schema:professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "fernando-franciose",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:fernando-franciose/01/duo"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-16T14:49:54.687328+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-16T15:38:04.498134+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-16T15:13:36.950Z",
     "expurgos": 2,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:duo",
     "nome": "duo",
     "professor": "fernando-franciose",
@@ -32,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "fernando-franciose",
+        "valor": "fernando-franciose"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:fernando-franciose/01/duo"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "4eff9ee"
+    "commit": "187b4b3"
   },
-  "gerado_em": "2026-11-16T15:14",
+  "gerado_em": "2026-11-16T15:38",
   "nao_indexado": [
     {
       "familia": "conteudo",

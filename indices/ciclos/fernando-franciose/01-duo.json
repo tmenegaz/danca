@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-16",
+    "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+    "cobertura": [
+      "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+      "professores/fernando-franciose/ciclos/ciclo-01.conf"
+    ],
+    "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
+    "hash_conteudo": "7d1eaa0664f4d61a8d1d5b4acbc3fea9ca1dcfb0080dd248580e2517b80dff95",
+    "id": "ciclo-01-duo",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+    "documento:manifesto:professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+    "documento:schema:professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "duo",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "187b4b3"
+  },
+  "gerado_em": "2026-11-16T15:38",
+  "id": "ciclo:fernando-franciose/01/duo",
+  "professor": "fernando-franciose",
+  "versao": 7
+}

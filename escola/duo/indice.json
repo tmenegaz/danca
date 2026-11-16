@@ -14,7 +14,7 @@
   },
   "shard": "lastro-teste",
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "arquivos": [
     {
@@ -155,6 +155,16 @@
   "recriacao": [
     {
       "em": "2026-11-16T14:49:54.687328+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "fernando-franciose",
+        "nome": "Fernando Franciose"
+      },
+      "responsavel": "Fernando Franciose",
+      "ciclo": "01"
+    },
+    {
+      "em": "2026-11-16T15:38:04.498134+00:00",
       "motivo": "recriada por tools/criar-escola.sh",
       "professor": {
         "slug": "fernando-franciose",
