@@ -1475,3 +1475,9 @@ experimentos/modelo-formulario/*
 # o GitHub falsos — o professor e o ciclo vindos do elo, a senha do cofre herdada, o registo comercial
 # a nascer limpo — e a página: a coluna, a confirmação e o pedido.
 !experimentos/provar-recriar-escola.js
+
+# O TOKEN É DA ESCOLA, E A SENHA NOVA FECHA AS SESSÕES VELHAS (16/11/2026). «Carregou com a senha
+# antiga.» O token era assinado com os secrets do WORKER — num shard, um valor para N escolas —, e
+# por isso atravessava o expurgo e a recriação. A prova mede a chave (muda com a senha, muda com a
+# escola) e o token (o de antes da troca já não vale; o de uma escola não abre outra).
+!experimentos/provar-token-da-escola.js

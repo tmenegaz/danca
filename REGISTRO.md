@@ -47777,3 +47777,67 @@ inventada). Mais `provar-indices` 58/58 · `provar-a-carencia-nao-se-burla` 58/5
 sempre foram — e **não são oferecidas a ninguém**, porque essa conversa não está fechada: não se sabe
 ainda se são um adicional, um degrau, ou se existem. O convite que ela já tem continua válido, e é
 esta a página que ele abre.
+
+## 16/11/2026 — o token é da escola, e a espera diz-se e resolve-se sozinha
+
+**O que motivou, em duas frases dela.** «Carregou com a senha antiga. Eu usei na recriação a senha
+para a escola 1234 e para professor 280500. As senhas antigas são respectivamente 123 e 2805.» E,
+sobre o endereço da escola recriada: «não tem nenhuma mensagem dizendo que é para aguardar, a tela
+fica preta. E aí depois de um certo tempo carrega.»
+
+**A senha: medida no ar, o servidor estava certo.** O registo do KV tem os hashes de `1234` e
+`280500`; `POST /api/bastidores/validar-senha` com `280500` responde `ok: true` e com `2805` responde
+«senha do professor não reconhecida»; a direção aceita `1234` e recusa `123`. A recriação aplicou as
+senhas novas. **O que continuava aberto era outra coisa: a SESSÃO.**
+
+**O defeito.** O token da direção era assinado com `SENHA_ADMIN + '\0' + SENHA_PROFESSOR` — os dois
+secrets do **Worker**. Num Worker por escola isso é «a senha da escola». Num **shard** há um `env`
+para N escolas, e a chave passou a ser a mesma para todas sem que ninguém mudasse nada:
+
+- um token emitido para a `calango` abria a `duo`;
+- e um token emitido **antes do expurgo** continuava a valer depois da recriação — porque a senha
+  nova não entrava na conta. Uma sessão de 12 horas atravessava uma escola que foi apagada e voltou.
+
+**O que foi decidido.**
+
+- **A chave sai do KV da escola**, não do Worker: `slug` + `hash`/`sal` da direção + a
+  `SENHA_CRIPTO` derivada, com o `env` como **reserva** (a mesma ordem da autenticação). Mudar a
+  senha roda a chave; mudar de escola muda a chave. Uma escola sem registo continua a assinar com os
+  segredos do Worker — é o caminho de quem não migrou, e não fecha ninguém.
+- **O corpo do token diz a escola** a que pertence. A assinatura já os separa; o corpo faz «este
+  token não é desta escola» ser uma comparação, e não uma consequência. Tokens anteriores, sem
+  `escola` no corpo, continuam a valer **na escola certa** e expiram sozinhos em 12 horas — recusá-los
+  todos fecharia a sessão de quem está a trabalhar por causa de uma arrumação.
+- **A espera diz-se em palavras e resolve-se sozinha.** A página de espera da escola sem pacote já
+  existia; faltavam-lhe duas coisas: dizer «aguarde, esta página recarrega sozinha a cada 5
+  segundos», e **não se guardar no navegador**. Um `200` sem `Cache-Control` entra na cache por
+  heurística e a página «está sendo implantado» continuava a aparecer **depois** do deploy — é o
+  mesmo defeito do selo que lia `desabilitadaEm`: uma resposta de um instante guardada como se fosse
+  um facto permanente.
+- **As páginas de RECUSA não se recarregam.** «Está suspensa até regularizar» não é uma espera, é
+  uma decisão; uma página que volta a perguntar sobre uma decisão martelaria o servidor para
+  reafirmar a mesma frase. O `no-store` é de todas; o `refresh` é só da espera.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`chaveDoToken` com a identidade da escola;
+`tokenDaDirecao`/`tokenDaDirecaoValido` com a escola no corpo, e as três exportadas para a prova) ·
+`motor/servidor/estado-html.js` (`recarregar` opcional no `paginaEstado`, e `no-store` no
+`respostaEstado`) · `motor/servidor/producao.js` (a espera da raiz de uma escola sem pacote recarrega
+a cada 5s e pede que se aguarde) · `experimentos/provar-token-da-escola.js` (novo) ·
+`experimentos/provar-cofre-e-shard.js` (a espera: `no-store`, o `refresh`, as palavras; e o controlo
+negativo da recusa) · `.gitignore` (a prova nova sai do rascunho).
+
+**Com o quê.** `provar-token-da-escola` **17/17** — a chave muda com a senha, muda com a escola, e
+mantém-se para quem não tem registo; o token emitido antes da troca deixa de valer (**é a asserção
+que reprova no código de antes**: com a chave do Worker, o token atravessava a troca de senha); o da
+`calango` não abre a `duo` nem com o mesmo par de secrets e o mesmo registo; e o prazo continua a ser
+12 horas. Mais `provar-cofre-e-shard` **134/134** (com a espera que recarrega, o `no-store`, e o
+controlo negativo da página de recusa, que não recarrega) · `provar-recriar-escola` 81/81 ·
+`provar-pagina-publica` 79/79 · `provar-escola-a-nascer` 48/48 · `provar-financeiro` 58/58 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `provar-indices` 58/58 · `provar-o-relogio-nao-mente` 30/30 ·
+`provar-acoes-da-linha` 75/75 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica declarado.** `provar-selo` falha com «Execution context was destroyed» — **já falhava
+antes desta mudança**: medido no commit `efd50b26` e no `HEAD` anterior por `git stash`, com o mesmo
+erro na mesma linha. Não é regressão desta alteração, e fica por investigar. E o efeito visível desta
+correção, para quem já estava com sessão aberta: **o painel volta a pedir a senha** na próxima carga,
+e é a nova (`1234` / `280500`) que abre.

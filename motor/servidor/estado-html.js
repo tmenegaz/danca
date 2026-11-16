@@ -61,10 +61,22 @@ function esc(valor) {
 /**
  * Monta a página. `corpo` é HTML já escapado por quem chama — é a única parte variável,
  * e ela é composta por quem conhece o dado (o `subdominio`, o `ESCOLA_SLUG`, o link).
+ *
+ * `recarregar` ACRESCENTA UMA ESPERA QUE SE RESOLVE SOZINHA (16/11/2026). Ela descreveu o que via
+ * enquanto uma escola recém-criada subia: «não tem nenhuma mensagem dizendo que é para aguardar, a
+ * tela fica preta. E aí depois de um certo tempo carrega». A página de espera já existia — o que
+ * faltava era ela **não deixar a pessoa a adivinhar**: com o `refresh`, o endereço volta a
+ * perguntar de cinco em cinco segundos, e a escola aparece no instante em que o motor entra, sem
+ * ninguém ter de recarregar à mão.
+ *
+ * O `refresh` NÃO ENTRA nas páginas de recusa (desabilitada, suspensa, 402). Uma página que se
+ * recarrega sozinha sobre uma decisão — «está suspensa até regularizar» — martelaria o servidor
+ * para reafirmar a mesma frase.
  */
-function paginaEstado(titulo, corpo) {
+function paginaEstado(titulo, corpo, { recarregar = 0 } = {}) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    (recarregar > 0 ? '<meta http-equiv="refresh" content="' + Math.max(3, Math.round(recarregar)) + '">' : '') +
     '<title>' + esc(titulo) + '</title>' +
     // A página de estado também é uma página: sem ícone, a aba fica com o globo do navegador.
     '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
@@ -72,11 +84,22 @@ function paginaEstado(titulo, corpo) {
     '<h1>' + esc(titulo) + '</h1>' + corpo + '</main></body></html>';
 }
 
-/** Resposta pronta: o `Content-Type` é sempre o mesmo, e o `status` varia. */
-function respostaEstado(titulo, corpo, status) {
-  return new Response(paginaEstado(titulo, corpo), {
+/**
+ * Resposta pronta: o `Content-Type` é sempre o mesmo, e o `status` varia.
+ *
+ * O `no-store` É DA PÁGINA, e não do pedido (16/11/2026). Sem ele, um `200` sem `Cache-Control`
+ * entra na cache do navegador por heurística — e a página «está sendo implantado» continuava a
+ * aparecer **depois** de o motor estar no ar, porque o navegador não voltava a perguntar. É o
+ * mesmo defeito do `desabilitadaEm` a mandar no selo: uma resposta de um instante guardada como se
+ * fosse um facto permanente. Uma página de estado é verdade por segundos, e diz-se com `no-store`.
+ */
+function respostaEstado(titulo, corpo, status, opcoes) {
+  return new Response(paginaEstado(titulo, corpo, opcoes), {
     status,
-    headers: { 'Content-Type': 'text/html;charset=utf-8' },
+    headers: {
+      'Content-Type': 'text/html;charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
   });
 }
 

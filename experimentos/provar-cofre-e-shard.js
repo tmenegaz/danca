@@ -1137,6 +1137,46 @@ function cloudflareFalso({ rotas = [] } = {}) {
     provar('…e a página veste a casa (o CSS vai embutido, não vem de um `/assets` que pode faltar)',
       /data-tela="estado"/.test(corpoEspera), null);
 
+    /* A ESPERA QUE SE RESOLVE SOZINHA (16/11/2026). «Enquanto não carrega, não tem nenhuma mensagem
+     * dizendo que é para aguardar, a tela fica preta. E aí depois de um certo tempo carrega.»
+     *
+     * DUAS COISAS FALTAVAM, e são as duas que se medem aqui:
+     *   · a página não voltava a perguntar — quem chegasse cedo ficava a olhar para uma frase que
+     *     só mudava se recarregasse à mão;
+     *   · e ela ia sem `Cache-Control`, e um `200` sem essa cabeça entra na cache do navegador por
+     *     heurística: a página de espera continuava a aparecer DEPOIS de o motor estar no ar.
+     *     É o mesmo defeito do selo que lia `desabilitadaEm` — uma resposta de um instante guardada
+     *     como se fosse um facto permanente. */
+    const cabecaEspera = espera.headers.get('cache-control') || '';
+    provar('…e a página de espera NÃO se guarda no navegador (sem isto, fica a aparecer depois do deploy)',
+      /no-store/i.test(cabecaEspera), cabecaEspera);
+    provar('…e recarrega sozinha, para a escola aparecer sem ninguém clicar',
+      /http-equiv="refresh"[^>]*content="[3-9]"/.test(corpoEspera), null);
+    provar('…e diz que é para aguardar, em palavras',
+      /Aguarde/i.test(corpoEspera) && /recarrega sozinha/i.test(corpoEspera), corpoEspera.slice(0, 300));
+
+    /* O CONTRÁRIO TAMBÉM É REGRA: as páginas de RECUSA não se recarregam sozinhas. Uma página que
+     * volta a perguntar sobre uma decisão — «está suspensa até regularizar» — martelaria o servidor
+     * para reafirmar a mesma frase. */
+    const kvSuspensa = kvDe(new Map([['bastidores/pendente/comercial',
+      JSON.stringify({ estado: 'suspensa' })]]));
+    await mapa.registar(kvSuspensa, 'pendente.padd.com.br', 'pendente');
+    mapa.esquecer(kvSuspensa);
+    /* É um POST: a suspensão recusa ESCREVER, e a leitura de uma escola suspensa continua aberta
+     * (decisão dela — cortar a leitura apagaria trabalho). Um GET traria a página de espera, e a
+     * prova estaria a medir outra coisa. */
+    const recusa = await producao.fetch(
+      new Request('https://pendente.padd.com.br/', {
+        method: 'POST', headers: { host: 'pendente.padd.com.br' },
+      }),
+      { ESCOLA_HABILITADA: 'sim', PADD_KV: kvSuspensa, ASSETS: assetsVazio });
+    const corpoRecusa = await recusa.text();
+    provar('CONTROLE NEGATIVO: a página de RECUSA não se recarrega sozinha',
+      recusa.status === 402 && !/http-equiv="refresh"/.test(corpoRecusa),
+      { status: recusa.status, corpo: corpoRecusa.slice(0, 120) });
+    provar('…mas também não se guarda no navegador', /no-store/i.test(recusa.headers.get('cache-control') || ''),
+      recusa.headers.get('cache-control'));
+
     /* Sem o nome no registo (as escolas criadas antes desta versão), o slug é o que há — e ler o
      * slug é melhor do que ler «undefined». */
     const semNome = await novaEscola('');

@@ -3184,12 +3184,38 @@ function b64urlBytes(texto) {
   return out;
 }
 
-/** A chave do HMAC sai dos segredos que já existem — não há configuração nova. Usa os DOIS,
- *  para o token valer igual independentemente de quem entrou (admin ou professor dono). */
+/**
+ * A CHAVE DO TOKEN — **da ESCOLA**, e não do Worker (16/11/2026).
+ *
+ * O QUE ELA ERA, e o defeito que isso produzia. Era `SENHA_ADMIN + '\0' + SENHA_PROFESSOR` — os
+ * dois secrets do Worker. Num Worker por escola isso é «a senha da escola». Num SHARD há **um
+ * `env` para N escolas**, e a chave passou a ser a MESMA para todas, sem que ninguém tivesse
+ * mudado nada: um token emitido para a `calango` abria a `duo`, e — o que se viu a 16/11 — um
+ * token emitido **antes do expurgo** continuava a valer depois da recriação, porque a senha nova
+ * não entrava na conta. Medido na boca dela: «carregou com a senha antiga. Eu usei na recriação a
+ * senha para a escola `1234` e para professor `280500`.»
+ *
+ * O QUE ELA PASSA A SER. A identidade da escola, por três coisas que o `env` do pedido já traz
+ * depois da sobreposição do KV (`comIdentidadeDaEscola`):
+ *
+ *   · o SLUG — dois tokens de escolas diferentes deixam de ser o mesmo token;
+ *   · o par `hash`+`sal` da DIREÇÃO — mudar a senha (o que a recriação faz) **rota a chave**, e
+ *     todo o token emitido antes deixa de valer. É esta a linha que faz «senha nova» significar
+ *     «sessões velhas fechadas»;
+ *   · a `SENHA_CRIPTO` derivada — a chave da escola, que muda de escola para escola.
+ *
+ * O `env` É RESERVA, e só isso: uma escola sem registo no KV (um Worker com `SENHA_ADMIN` próprio)
+ * continua a assinar com os segredos do Worker, sem migração. A ordem é a mesma da autenticação —
+ * o KV manda, o `env` cobre a falta.
+ */
 function chaveDoToken(env) {
+  const escola = String((env && env.ESCOLA_SLUG) || '').trim();
+  const hash = String((env && env.SENHA_DIRECAO_HASH) || '');
+  const sal = String((env && env.SENHA_DIRECAO_SAL) || '');
+  const cripto = String((env && env.SENHA_CRIPTO) || '');
   const admin = String((env && env.SENHA_ADMIN) || '');
   const prof = String((env && env.SENHA_PROFESSOR) || '');
-  return admin + '\u0000' + prof;
+  return [escola, hash, sal, cripto, admin, prof].join('\u0000');
 }
 
 async function assinarToken(env, corpo) {
@@ -3200,13 +3226,22 @@ async function assinarToken(env, corpo) {
   return b64url(assinatura);
 }
 
-/** Emite o token: `corpo.assinatura` que diz até quando vale. */
+/**
+ * Emite o token: `corpo.assinatura`, com a escola dentro e o prazo.
+ *
+ * O `escola` VAI NO CORPO (16/11/2026), e não é decoração: a assinatura já prende o token a uma
+ * chave por escola, mas um corpo que não diz de quem é o token não se pode auditar nem recusar
+ * num sítio onde a chave ainda seja a do Worker. Com o slug dentro, «este token não é desta
+ * escola» passa a ser uma comparação, e não uma consequência de a chave ter mudado.
+ */
 async function tokenDaDirecao(env) {
-  const corpo = b64url(new TextEncoder().encode(JSON.stringify({ exp: Date.now() + TOKEN_TTL_MS })));
+  const escola = String((env && env.ESCOLA_SLUG) || '').trim();
+  const corpo = b64url(new TextEncoder().encode(
+    JSON.stringify({ exp: Date.now() + TOKEN_TTL_MS, escola })));
   return corpo + '.' + (await assinarToken(env, corpo));
 }
 
-/** O token é válido? Assinatura confere e ainda não expirou. */
+/** O token é válido? Assinatura confere, a escola é esta, e ainda não expirou. */
 async function tokenDaDirecaoValido(env, token) {
   const texto = String(token == null ? '' : token);
   const partes = texto.split('.');
@@ -3215,7 +3250,14 @@ async function tokenDaDirecaoValido(env, token) {
   if (esperado !== partes[1]) return false;
   try {
     const corpo = JSON.parse(new TextDecoder().decode(b64urlBytes(partes[0])));
-    return Number(corpo && corpo.exp) > Date.now();
+    if (!(Number(corpo && corpo.exp) > Date.now())) return false;
+    const daEscola = String((env && env.ESCOLA_SLUG) || '').trim();
+    /* UM TOKEN DE OUTRA ESCOLA NÃO ABRE ESTA. Sem `escola` no corpo — os tokens emitidos antes
+     * desta mudança —, vale a assinatura: eles expiram sozinhos em 12 horas, e recusá-los todos
+     * fecharia a sessão de quem está a trabalhar por causa de uma arrumação. */
+    const doToken = String((corpo && corpo.escola) || '').trim();
+    if (doToken && daEscola && doToken !== daEscola) return false;
+    return true;
   } catch (e) {
     return false;
   }
@@ -19183,6 +19225,14 @@ module.exports = {
    * ESCOLA abre, e a do Worker deixa de abrir» — é uma pergunta sobre valores, e a bancada tem de
    * a poder fazer sem subir o Worker. */
   senhaDaDirecaoOk,
+  /* O TOKEN DA DIREÇÃO, exportado pela mesma razão (16/11/2026): a chave deixou de ser
+   * `SENHA_ADMIN + SENHA_PROFESSOR` — um valor só, para N escolas — e passou a incluir a
+   * identidade da escola e o par hash+sal que muda quando a senha muda. «Um token de antes da
+   * recriação abre a escola recriada?» e «um token de uma escola abre outra?» são perguntas sobre
+   * valores, e a bancada tem de as poder fazer sem subir o Worker. */
+  tokenDaDirecao,
+  tokenDaDirecaoValido,
+  chaveDoToken,
   // A PÁGINA da Produção, exportada para a prova poder abri-la num navegador de verdade
   // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
   // texto do HTML: mede-se a posição do elemento — antes e depois do clique.

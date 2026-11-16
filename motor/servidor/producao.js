@@ -1246,10 +1246,16 @@ async function fetch(request, env) {
      * ponto do processo, e duas redacções para o mesmo instante divergiriam. */
     const respostaDoAsset = await env.ASSETS.fetch(pedidoAoAsset);
     if (respostaDoAsset.status === 404 && escolaResolvida && (path === '/' || path === '/index.html')) {
+      /* A ESPERA DIZ-SE, E RESOLVE-SE SOZINHA (16/11/2026). «Enquanto não carrega, não tem nenhuma
+       * mensagem dizendo que é para aguardar, a tela fica preta.» A página já existia; o que lhe
+       * faltava era voltar a perguntar — ver o `recarregar` em `estado-html.js` — e o `no-store`,
+       * sem o qual o navegador guardava esta resposta e continuava a mostrá-la com a escola já no
+       * ar. Cinco segundos: o tempo de um deploy terminar, e não o de alguém desistir. */
       return respostaEstado('Sistema Lastro',
         '<p>Esta é a escola <b>' + esc(env.ESCOLA_NOME || escolaResolvida) + '</b>. O motor completo '
-        + '(Bastidores, anamnese, plano de ensino e plano de observação) está sendo implantado — '
-        + 'recarregue em instantes.</p>', 200);
+        + '(Bastidores, anamnese, plano de ensino e plano de observação) está sendo implantado.</p>'
+        + '<p>Aguarde — esta página recarrega sozinha a cada 5 segundos, e a escola aparece aqui '
+        + 'assim que a implantação terminar.</p>', 200, { recarregar: 5 });
     }
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
