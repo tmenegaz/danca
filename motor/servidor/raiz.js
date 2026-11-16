@@ -15,6 +15,15 @@
  */
 
 const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
+/* O CADASTRO DA ESCOLA E DO PROFESSOR PRINCIPAL (25/11/2026) — as regras, e as chaves do KV em que
+ * os dados pessoais ficam. Fora do índice versionado, por decisão declarada: a verificação 7 do
+ * `check-indices` proíbe `email` e `telefone` nos índices do acervo, e o CPF e o CNPJ não têm
+ * melhor sorte — o repositório é público para quem tem o token.
+ *
+ * A METADE DO SERVIDOR (gravar/ler) está aqui em baixo, no `gravarCadastro`: ela precisa do KV, e
+ * o núcleo não sabe o que é um KV. */
+const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
+const correio = require('./correio.js');
 /* O diagnóstico do endereço próprio (`/api/dominio`) — o mesmo módulo que o provisionamento usa
  * para criar o registo e a rota. É de propósito: o diagnóstico não pode ter uma segunda opinião
  * sobre o que é «ter endereço». */
@@ -435,6 +444,540 @@ async function scheduled(event, env, ctx) {
   console.log('[expurgo] ' + JSON.stringify(relatorio));
 }
 
+/**
+ * A CRIAÇÃO DA ESCOLA — UMA VEZ, PARA AS DUAS PORTAS (25/11/2026).
+ *
+ * O bloco estava dentro do `fetch`, atrás do portão da `SENHA_RAIZ`. Com a página pública
+ * (`lastro.padd.com.br`) a criar a MESMA escola, ele passou a ter dois chamadores — e duas cópias
+ * de um percurso de duzentas linhas que cria Worker, escreve no KV, dispara o workflow e desfaz
+ * tudo quando o disparo falha divergiriam na primeira correcção. Uma função, duas portas.
+ *
+ * O QUE MUDA ENTRE AS PORTAS VAI EM `opcoes`, e nada mais:
+ *   · `origem` — `'painel'` (a página do proprietário) ou `'publico'` (a página aberta). Vai para
+ *     o registo da escola: quem criou é um facto que a proveniência guarda, e um dia se pergunta.
+ *   · `exigirCadastro` — a página pública RECOLHE o CNPJ, o e-mail e o telefone da escola; a do
+ *     proprietário continua a criar escolas de teste sem eles. O que é obrigatório numa porta não
+ *     é obrigatório na outra, e isso é declarado aqui, num sítio só.
+ */
+async function responderCriacao(request, env, opcoes) {
+  const origem = (opcoes && opcoes.origem) || 'painel';
+  const exigirCadastro = Boolean(opcoes && opcoes.exigirCadastro);
+  const responderJson = (objeto, status) => new Response(JSON.stringify(objeto), {
+    status: status || 200,
+    headers: { 'Content-Type': 'application/json;charset=utf-8' },
+  });
+  const token = env && env.CLOUDFLARE_API_TOKEN;
+  if (!token) {
+    return new Response(JSON.stringify({ ok: false, erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+  try {
+    const corpo = await request.json();
+    // O professor criado na página é SEMPRE o dono da escola (a direção). A marcação
+    // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
+    // é a pessoa de contato da escola — o nome pode ser ajustado nos Bastidores.
+    const professorEhDono = true;
+    const valido = validarCriacaoEscola(corpo);
+    if (!valido.ok) return responderJson({ ok: false, erro: valido.erro }, valido.status);
+    const { nome, senhaAdmin, professorNome, professorSobrenome, professorExistente, senhaProfessor } = valido.campos;
+
+    /* O CADASTRO — CNPJ, e-mails, telefones e a HABILIDADE (25/11/2026). A regra é uma
+     * (`motor/nucleo/cadastro-da-escola.js`) e as portas são duas; o que muda é `exigirCadastro`.
+     *
+     * A LISTA DE MODALIDADES VEM DO CATÁLOGO, e não de uma cópia: `perfil-do-professor.js` lê
+     * `biblioteca/modalidades/modalidades.json`, que é o mesmo ficheiro que a tela dos Bastidores
+     * mostra. Um id que não esteja ali é recusado AGORA — um perfil com uma modalidade que o
+     * catálogo não conhece só dá erro meses depois, na primeira turma que a pedir.
+     *
+     * OS DADOS PESSOAIS NÃO ENTRAM NO ÍNDICE VERSIONADO: a verificação 7 do `check-indices.js`
+     * proíbe `email`, `telefone` e afins nos índices do acervo. Vão para o KV, e é o `gravarCadastro`
+     * abaixo que o faz — numa chave do TENANT para a escola e numa chave da PESSOA para o professor. */
+    const catalogo = require('../nucleo/perfil-do-professor.js');
+    const cadastroValidado = cadastroDaEscola.validarCadastro(corpo, {
+      modalidadesValidas: (catalogo.LISTA_DE_MODALIDADES || []).map((m) => m && m.id).filter(Boolean),
+      exigirDadosDaEscola: exigirCadastro,
+    });
+    if (!cadastroValidado.ok) {
+      return responderJson({ ok: false, erro: cadastroValidado.erro, erros: cadastroValidado.erros }, 400);
+    }
+    const cadastro = cadastroValidado.cadastro;
+
+    // O SLUG DO PROFESSOR É A PASTA `professores/<slug>/` — e essa pasta é do SISTEMA, não
+    // da escola: guarda o pacote, os cadernos, os relatórios e as âncoras. Duas pessoas com
+    // o mesmo slug viram UMA no registro (o PO de uma cairia na pasta da outra). Por isso a
+    // unicidade é conferida contra os diretórios que existem, e o desempate é o SOBRENOME.
+    //
+    // Duas saídas, e só duas:
+    //   1. REUTILIZAR um professor que já existe (`professorExistente`) — a pasta fica;
+    //   2. CRIAR com nome + sobrenome — a pasta nasce como `nome-sobrenome`.
+    /* A MESMA LISTA QUE O FORMULÁRIO MOSTRA (24/11/2026).
+     *
+     * Era a varredura (`listarProfessores`), e a varredura tira as `escolas` do CONFIG — num
+     * shard, de nada. Consequência: reutilizar um professor que existe dava `nome: null` e o
+     * `nomeDeExibicao` caía em `tituloDoSlug`, que perde o acento («Demi Plie» em vez de
+     * «Demi Plié»). O nome errado ia para o elo, para o secret `PROFESSOR_NOME` e para o
+     * `responsavel` da escola — e o elo é proveniência, não se corrige depois.
+     *
+     * Passa a ser a lista do ÍNDICE, a mesma que serve `/api/professores`: uma pergunta, uma
+     * resposta. Quando o índice não responde, a varredura responde — e aí degrada-se para o
+     * slug, como antes. */
+    const existentes = await listarProfessoresPeloIndice({
+      token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF,
+      kv: env && env.PADD_KV,
+    }).then((r) => r.professores).catch(() => listarProfessores({ token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF }));
+    let professor = null;
+    let nomeDeExibicao = professorNome;
+    if (professorExistente) {
+      /* SÓ SE REUTILIZA O QUE TEM PASTA. Um professor que sobrevive apenas na memória de uma
+       * escola expurgada é oferecido pelo índice, mas não tem diretório nenhum onde a escola
+       * nova possa nascer ao lado dele — e o servidor diria «não existe» a seguir. */
+      const achado = existentes.find((p) => p.slug === professorExistente && p.pasta !== false);
+      if (!achado) {
+        return new Response(JSON.stringify({ ok: false, erro: 'o professor "' + professorExistente + '" não existe — recarregue a lista' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+      professor = achado.slug;
+      // O nome de um professor que JÁ EXISTE vem do sistema — e quando ele ainda não tem
+      // escola nenhuma (o diretório-modelo `tiago`), o índice não existe e sobra o slug.
+      // NUNCA vazio: é este nome que vira o secret `PROFESSOR_NOME` e o `responsavel`.
+      nomeDeExibicao = achado.nome || tituloDoSlug(achado.slug);
+    } else {
+      // O sobrenome (ou apelido) é exigido: sem ele, dois homônimos produzem o mesmo slug.
+      if (!professorSobrenome) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'informe o sobrenome (ou um apelido) do professor — o nome vira a pasta `professores/<nome>/` e não pode repetir. Se for a mesma pessoa de um professor que já existe, use «usar este professor».',
+          professoresExistentes: existentes.map((p) => p.slug),
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+      professor = slugificar(professorNome + ' ' + professorSobrenome);
+      if (!professor) {
+        return new Response(JSON.stringify({ ok: false, erro: 'o nome do professor não produz um slug válido' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+      const colisao = existentes.find((p) => p.slug === professor);
+      if (colisao) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'já existe o professor "' + (colisao.nome || colisao.slug) + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
+          colisao: colisao.slug,
+        }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+      nomeDeExibicao = professorNome + ' ' + professorSobrenome;
+    }
+
+    // O RESÍDUO DE UM EXPURGO ANTERIOR (19/10/2026). Uma escola que foi expurgada com a
+    // metade do KV por terminar deixa chaves debaixo do MESMO slug. Criar a escola outra
+    // vez com esse nome daria uma escola nova a ler o dado antigo — as anamneses e o plano
+    // de ontem apareceriam na estante de hoje, e o teste mediria ficção. Nada aqui adivinha:
+    // o elo do expurgo diz que ficou pendente, e a escola não nasce até isso se resolver.
+    // A saída é a retomada (`POST /api/expurgar-kv`) — ou outro nome de escola.
+    const slugPedido = slugificar(nome);
+    if (slugPedido) {
+      // Falha ao LER o índice não trava a criação: a trava é contra um resíduo CONHECIDO, e
+      // um erro de rede no GitHub não pode impedir uma escola de nascer. A guarda é do
+      // dado, não do acaso.
+      let pendente = null;
+      try {
+        pendente = await pendenciaDoKv({
+          token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF, slug: slugPedido,
+        });
+      } catch (err) { pendente = null; }
+      if (pendente) {
+        return new Response(JSON.stringify({
+          ok: false,
+          erro: 'a escola "' + slugPedido + '" já existiu, e o expurgo dela deixou chaves no KV ' +
+            (pendente.em ? '(desde ' + pendente.em + ')' : '') + '. Criar outra com o mesmo ' +
+            'nome faria a escola nova ler o dado antigo. Termine o expurgo' +
+            ' (POST /api/expurgar-kv com a escola "' + slugPedido + '") — a limpeza volta a ' +
+            'tentar quando a cota diária da enumeração do KV renovar — ou crie a escola com ' +
+            'outro nome.',
+          pendenciaKv: pendente,
+          escola: slugPedido,
+        }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+    }
+
+    const escola = await criarEscola({
+      nome,
+      senhaAdmin,
+      token,
+      accountId: ACCOUNT_ID,
+      githubToken: env && env.GITHUB_TOKEN,
+      professorNome: nomeDeExibicao,
+      // A PASTA vai declarada, não derivada do nome (17/10/2026): é ela que o motor usa em
+      // `professores/<slug>/…`. Com o nome de exibição só, um «Tiago» curto produzia o slug
+      // `tiago` e o PO ia para uma pasta fantasma.
+      professorSlug: professor,
+      senhaProfessor,
+      professorEhDono,
+      /* A ZONA DO ENDEREÇO PRÓPRIO (13/11/2026). Sem a `var`, o módulo usa o `padd.com.br`
+       * desta casa — e a `var` existe para o dia em que houver mais do que uma zona. */
+      zona: env && env.ZONA_ESCOLAS,
+      /* O SHARD E O KV (15/11/2026). Com `SHARD_SCRIPT` no `env`, a escola nasce DENTRO do
+       * shard — sem Worker próprio, com a identidade no KV dela e a rota a apontar ao script do
+       * shard. Sem ele, o caminho é o de sempre (um Worker por escola), e nada muda para as
+       * escolas que já existem. É a `vars` que decide, e ela é declarada no `wrangler.danca.jsonc`. */
+      shardScript: String((env && env.SHARD_SCRIPT) || '').trim() || null,
+      kv: env && env.PADD_KV,
+    });
+    // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
+    // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
+    // na raiz, a escola nasce «zero» (sem o motor), e o campo `disparo` declara isso.
+    const disparo = env && env.GITHUB_TOKEN
+      ? await dispararCriacao({
+          token: env.GITHUB_TOKEN,
+          dono: 'tmenegaz',
+          repo: 'danca',
+          ref: 'main',
+          inputs: {
+            professor,
+            // O NOME DE EXIBIÇÃO, não o primeiro nome. É ele que o scaffolder grava no
+            // `indice.json` (`professor.nome`), e é DO ÍNDICE que a lista de professores da
+            // página tira o nome que mostra. Com o primeiro nome só, dois homônimos
+            // apareceriam os dois como «Tiago» — exatamente o que o sobrenome veio separar.
+            'professor-nome': nomeDeExibicao,
+            escola: escola.escola,
+            'escola-nome': nome,
+            responsavel: nomeDeExibicao,
+            ciclo: '01',
+            frequencia: '2x/semana',
+            dias: '2@19:00,4@19:00',
+            duracao: '60',
+            'data-inicio': '',
+            /* O SHARD VAI NO DISPARO. O workflow sobe o motor completo — e num shard o motor é
+             * UM, o do shard. Sem este campo ele procuraria `wrangler.<escola>.jsonc` e subiria
+             * mais um Worker, que é exactamente o que o shard existe para não haver. */
+            shard: String((env && env.SHARD_SCRIPT) || '').trim(),
+            /* A HABILIDADE QUE ELE DECLAROU NO CADASTRO (25/11/2026). Até aqui era um valor fixo
+             * (`bale-classico`), porque quem criava era só a proprietária e ela é professora de
+             * balé clássico. Com a página pública, quem declara é QUEM ENTRA — a decisão dela:
+             * «agora ele é que vai determinar nesse cadastro». Vazio quando o professor já existe:
+             * nesse caso o perfil dele já está escrito, e o scaffolder não lhe toca. */
+            modalidade: cadastro.modalidade || '',
+          },
+        })
+      : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };
+
+    // O DISPARO FALHOU ⇒ NÃO HÁ ESCOLA. Sem o workflow não há scaffold nem motor: o que
+    // ficou no ar é o placeholder, a responder 200 no subdomínio de uma escola que não
+    // existe. Antes disto, a resposta era 201 «escola criada» com um aviso em letra
+    // pequena — e o órfão ficava. O rollback desfaz e a resposta passa a ser um ERRO,
+    // porque não se criou nada.
+    if (!disparo.ok) {
+      const desfeito = await desfazerPlaceholder({
+        token,
+        accountId: ACCOUNT_ID,
+        escola: escola.escola,
+        nome,
+      });
+      return responderJson({
+        ok: false,
+        erro: 'o deploy do motor completo não foi disparado (' + (disparo.erro || ('HTTP ' + disparo.status)) + ') — nada foi criado',
+        desfeito,
+      }, 502);
+    }
+
+    /* O CADASTRO E A MENSAGEM, DEPOIS DE A ESCOLA EXISTIR (25/11/2026).
+     *
+     * A ORDEM É DELIBERADA: primeiro cria-se (e desfaz-se, se o disparo falhar), depois guarda-se o
+     * cadastro, e só no fim se manda o correio. Invertida, um e-mail de boas-vindas poderia sair
+     * para uma escola que o rollback desfez — e a pessoa procuraria um endereço que nunca existiu.
+     *
+     * NENHUMA DAS DUAS FAZ FALHAR A CRIAÇÃO. A escola está no ar; o que faltar viaja na resposta,
+     * ao lado do sucesso, para a tela o poder dizer sem mentir sobre o que aconteceu. */
+    const cadastroGravado = await gravarCadastro({
+      env, escola: escola.escola, professor, cadastro, origem,
+    });
+    const correioEnviado = await mandarBoasVindas({
+      env,
+      escola: escola.escola,
+      cadastro,
+      url: escola.url,
+      dominio: escola.dominio,
+    });
+
+    return responderJson(Object.assign({}, escola, {
+      ok: true,
+      disparo,
+      cadastro: cadastroGravado,
+      correio: correioEnviado,
+      // A PORTA POR ONDE A ESCOLA NASCEU. É um facto da proveniência: um dia se pergunta «esta
+      // escola entrou pelo consultor ou pela página dela?», e só o registo do momento o sabe.
+      origem,
+    }), 201);
+  } catch (err) {
+    const status = (err && err.etapa === 'existe') ? 409 : (err && err.etapa === 'slug') ? 400 : 500;
+
+    // O ROLLBACK NÃO SE REPETE AQUI. `criarEscola` já desfez o que ela própria criou e
+    // deixou o resultado em `err.desfeito` — chamar outra vez seria perguntar duas vezes a
+    // mesma coisa e responder «não existia» sobre um Worker que ESTE pedido acabou de apagar
+    // (a segunda leitura recebe 404). Um 409 e um 400 nunca chegam aqui com `desfeito`: no
+    // primeiro o Worker é uma escola a sério; no segundo não há slug.
+    const desfeito = (err && err.desfeito) || null;
+
+    return new Response(JSON.stringify(Object.assign(
+      { ok: false, erro: (err && err.etapa ? err.etapa + ': ' : '') + (err && err.message) },
+      desfeito ? { desfeito } : {}
+    )), {
+      status,
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+}
+
+/**
+ * ONDE O CADASTRO FICA, E POR QUE NESTAS DUAS CHAVES (25/11/2026).
+ *
+ * A ESCOLA — `bastidores/<escola>/cadastro`. É o cofre do TENANT, e é de propósito: o expurgo
+ * apaga `<escola>/` e `bastidores/<escola>/` (ver `prefixosDaEscola`), portanto o CNPJ, o e-mail e
+ * o telefone da escola saem quando a escola sai. Um cadastro com dados pessoais que sobrevivesse
+ * ao expurgo do cliente seria um resíduo — o pior tipo, porque ninguém o procura.
+ *
+ * O PROFESSOR — `professores/<slug>/contato`. É o contrário, e pela mesma razão que a habilitação
+ * está em `professores/<slug>/perfil.json` (decisão de 03/11/2026): a pessoa é do SISTEMA, não do
+ * tenant. Se o CPF e o telefone do professor morassem no cofre da escola, o fecho de uma escola
+ * apagaria o contato da pessoa — e ela ficaria sem forma de ser encontrada para a próxima.
+ *
+ * NÃO SE SOBRESCREVE O QUE JÁ EXISTE PARA O PROFESSOR. Um professor que cria a SEGUNDA escola não
+ * reescreve o próprio contato com o que veio digitado de novo (o reúso nem traz CPF); completar-se
+ * o que falta é o que se faz, e nunca substituir o que lá está — a mesma regra do `perfil.json`.
+ *
+ * NADA AQUI FAZ FALHAR A CRIAÇÃO. A escola já existe quando isto corre; um erro de KV que subisse
+ * faria a página responder «não foi possível criar» sobre uma escola que está no ar.
+ */
+async function gravarCadastro({ env, escola, professor, cadastro, origem }) {
+  const kv = env && env.PADD_KV;
+  const resultado = { escola: null, professor: null, erros: [] };
+  if (!kv || typeof kv.put !== 'function') {
+    resultado.erros.push('sem KV: o cadastro não foi guardado');
+    return resultado;
+  }
+  const quando = new Date().toISOString();
+
+  try {
+    const chave = 'bastidores/' + escola + '/cadastro';
+    const anterior = await kv.get(chave);
+    let registo = {};
+    try { registo = anterior ? JSON.parse(anterior) : {}; } catch (erro) { registo = {}; }
+    const novo = Object.assign({}, registo, {
+      escolaNome: cadastro.escolaNome || registo.escolaNome || null,
+      cnpj: cadastro.cnpj || registo.cnpj || null,
+      email: cadastro.escolaEmail || registo.email || null,
+      telefone: cadastro.escolaTelefone || registo.telefone || null,
+      origem: registo.origem || origem || null,
+      criadoEm: registo.criadoEm || quando,
+      atualizadoEm: quando,
+    });
+    await kv.put(chave, JSON.stringify(novo));
+    resultado.escola = chave;
+  } catch (erro) {
+    resultado.erros.push('cadastro da escola: ' + ((erro && erro.message) || String(erro)));
+  }
+
+  if (professor && cadastro.professorEmail) {
+    try {
+      const chave = 'professores/' + professor + '/contato';
+      const anterior = await kv.get(chave);
+      let registo = {};
+      try { registo = anterior ? JSON.parse(anterior) : {}; } catch (erro) { registo = {}; }
+      const novo = Object.assign({}, registo, {
+        nomeCompleto: cadastro.professorNomeCompleto || registo.nomeCompleto || null,
+        cpf: cadastro.cpf || registo.cpf || null,
+        email: cadastro.professorEmail || registo.email || null,
+        telefone: cadastro.professorTelefone || registo.telefone || null,
+        atualizadoEm: quando,
+      });
+      if (!novo.criadoEm) novo.criadoEm = quando;
+      await kv.put(chave, JSON.stringify(novo));
+      resultado.professor = chave;
+    } catch (erro) {
+      resultado.erros.push('contato do professor: ' + ((erro && erro.message) || String(erro)));
+    }
+  }
+  return resultado;
+}
+
+/**
+ * A MENSAGEM DE BOAS-VINDAS, DEPOIS DE A ESCOLA EXISTIR (25/11/2026).
+ *
+ * «Sempre que for criado uma escola, tem que disparar um e-mail para o professor e para o e-mail
+ * da escola. Mesmo que seja o mesmo e-mail cadastrado, aí dispara um só» — o `destinatarios` do
+ * núcleo é quem deduplica, e é o mesmo que a composição usa.
+ *
+ * DEVOLVE O DESFECHO, e nunca lança: a escola está criada, e um erro de correio não pode
+ * desfazer isso nem dizer que não foi criada. Sem `RESEND_API_KEY`, a mensagem é composta e
+ * GUARDADA na caixa de saída do tenant, e o desfecho diz `enviado: false` com o motivo — para a
+ * tela poder dizê-lo, e para não se perder o que se ia dizer a quem esperava a chave.
+ */
+async function mandarBoasVindas({ env, escola, cadastro, url, dominio }) {
+  const mensagem = correio.comporMensagem({ cadastro, escola, url, dominio });
+  if (!mensagem.para.length) {
+    return { enviado: false, motivo: 'não há e-mail a quem enviar — o cadastro não trouxe nenhum' };
+  }
+  const desfecho = await correio.enviar({
+    mensagem,
+    chave: env && env.RESEND_API_KEY,
+    de: env && env.CORREIO_DE,
+  });
+  /* A CAIXA DE SAÍDA GUARDA O QUE NÃO SAIU, e só isso. Guardar também o que saiu seria manter uma
+   * segunda cópia do e-mail de quem recebeu — dado pessoal a mais — sem ninguém que a leia. */
+  let caixa = null;
+  if (!desfecho.enviado) {
+    caixa = await correio.guardarNaCaixaDeSaida({ kv: env && env.PADD_KV, escola, mensagem, desfecho });
+  }
+  return Object.assign({ assunto: mensagem.assunto, endereco: mensagem.endereco }, desfecho,
+    caixa ? { caixa } : {});
+}
+
+/**
+ * COMO A PÁGINA SE APRESENTA — e a resposta é do ENDEREÇO por onde se entra (25/11/2026).
+ *
+ * A decisão dela: «a página danca.padd.com.br ela é só minha, só do proprietário do sistema […]
+ * Essa página pública […] vai se chamar lastro.padd.com.br. E e aí ele acessa, ele tem essa mesma
+ * página de apresentação […] só que o único botão que existe para ela é o de criar nova escola.»
+ *
+ * O QUE CONTA COMO O LADO DO PROPRIETÁRIO, e são dois endereços e não um:
+ *
+ *   · o `HOST_DONO` (por omissão `danca.padd.com.br`), que é a porta que ela usa;
+ *   · qualquer `*.workers.dev` — o endereço TÉCNICO deste mesmo Worker. Ele responde no
+ *     `danca.tmenegaz77.workers.dev` desde sempre e continuou a servi-la atrás da `SENHA_RAIZ`;
+ *     passá-lo ao lado público seria fechá-la fora pela porta que ela usou até ontem. Não é uma
+ *     porta a mais para ninguém: é a mesma, e a senha continua a ser pedida.
+ *
+ * TODO O RESTO É PÚBLICO — e é a direção conservadora certa. Um host desconhecido apontado a este
+ * Worker recebe a apresentação e o formulário; não recebe o painel. O erro do outro lado (tratar
+ * um endereço dela como público) custa-lhe um deploy; o erro deste lado (tratar um endereço
+ * público como dela) custa a lista de escolas e o botão de apagar.
+ *
+ * A `var` `HOST_PUBLICO` NÃO ENTRA NESTA CONTA de propósito: ela é o endereço que se MOSTRA e
+ * anuncia, não o critério. Um critério que dependesse de duas `var` errava em silêncio quando uma
+ * delas fosse esquecida no deploy — e o silêncio, aqui, é o painel exposto.
+ */
+function hostDaRequisicao(request) {
+  try {
+    return String(new URL(request.url).hostname || '').trim().toLowerCase();
+  } catch (erro) {
+    return '';
+  }
+}
+
+function hostDoProprietario(env) {
+  const declarado = String((env && env.HOST_DONO) || '').trim().toLowerCase();
+  return declarado || 'danca.padd.com.br';
+}
+
+function ehPaginaPublica(request, env) {
+  const host = hostDaRequisicao(request);
+  if (!host) return false;                    // sem host legível, não se inventa um modo
+  if (host === hostDoProprietario(env)) return false;
+  if (/\.workers\.dev$/.test(host)) return false;
+  return true;
+}
+
+/** O nome de exibição do botão, para a página saber o que dizer sem perguntar duas vezes. */
+function urlDaPaginaPublica(env) {
+  const host = String((env && env.HOST_PUBLICO) || '').trim() || 'lastro.padd.com.br';
+  return 'https://' + host;
+}
+
+/**
+ * O QUE A PÁGINA PRECISA DE SABER — e o que ela NÃO precisa (25/11/2026).
+ *
+ * A LISTA DE HABILIDADES vem do catálogo, uma vez, para as duas portas. Sem ela a página teria uma
+ * segunda cópia das modalidades — e a segunda cópia é a que fica velha quando o catálogo cresce.
+ *
+ * O QUE O MODO PÚBLICO **NÃO** DIZ: nada sobre escolas. Nem a lista, nem quantas são, nem os
+ * nomes. A rota responde sem senha, e o que responde sem senha não pode conter o cadastro de
+ * ninguém. É a mesma razão pela qual `/api/escolas` é recusada naquele endereço.
+ */
+function respostaDaPagina(env, modo) {
+  const habilidades = (require('../nucleo/perfil-do-professor.js').LISTA_DE_MODALIDADES || [])
+    .map((m) => ({ id: m && m.id, nome: m && m.nome, temConteudo: Boolean(m && m.temConteudo) }))
+    .filter((m) => m.id);
+  return new Response(JSON.stringify({
+    ok: true,
+    modo,
+    publica: urlDaPaginaPublica(env),
+    habilidades,
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
+
+/**
+ * SERVE A PÁGINA — a mesma nos dois endereços, com uma marca que diz qual é (25/11/2026).
+ *
+ * A APRESENTAÇÃO É UMA SÓ, e é isso que ela pediu: «ele tem essa mesma página de apresentação, o
+ * que é o sistema Lastro, a logomarca, o título, a troca de cor, enfim, é exatamente como essa
+ * daqui, só que o único botão que existe para ela é o de criar nova escola». Duas páginas seriam
+ * duas apresentações do mesmo sistema, e a segunda ficaria para trás na primeira alteração.
+ *
+ * O QUE MUDA É A MARCA `<html data-pagina="…">` — E O NOME DELA NÃO É `data-modo`, e é de
+ * propósito: `data-modo` já é a APARÊNCIA da casa (`clara`/`noturna`, com o `[data-modo="noturna"]`
+ * da folha e o anti-flash que a escreve antes de pintar). Reusá-lo faria o botão do tema APAGAR a
+ * marca da página ao primeiro clique, e a página pública passaria a mostrar o painel por causa de
+ * uma troca de cor. Dois factos, dois atributos.
+ *
+ * A folha esconde, no modo público, as peças que só o painel tem (`[data-dono]`: «Apagar escola»,
+ * «Professores», as listas, o reaproveitamento de professor). E o painel NÃO É INJETADO no modo
+ * público — o bloco «Escolas do sistema» nem chega a ser composto, porque não há razão para o
+ * compor e para o esconder a seguir.
+ *
+ * A MARCA É POSTA AQUI, e não no arquivo: o arquivo é regerado por `tools/gerar-raiz.sh` a partir
+ * de `biblioteca/apresentacao.md`, e uma marca escrita lá dentro desapareceria na geração seguinte.
+ */
+async function servirAPagina(request, env, { modo }) {
+  const publico = modo === 'publico';
+  if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') {
+    return new Response('não encontrado', { status: 404 });
+  }
+  const respostaDoAsset = await env.ASSETS.fetch(request);
+  const tipo = respostaDoAsset.headers.get('Content-Type') || '';
+  if (!respostaDoAsset.ok || !/text\/html/.test(tipo)) return respostaDoAsset;
+  let html = await respostaDoAsset.text();
+
+  html = html.replace(/<html(\s[^>]*)?>/i, (achado, atributos) => {
+    const limpos = String(atributos || '').replace(/\sdata-pagina="[^"]*"/i, '');
+    return '<html' + limpos + ' data-pagina="' + (publico ? 'publica' : 'painel') + '">';
+  });
+
+  /* NO MODO PÚBLICO O PAINEL NÃO É COMPOSTO. O bloco das escolas e o índice desta página são do
+   * painel: compô-los para os esconder seria trabalho a fingir, e uma peça escondida é uma peça
+   * que um dia alguém mostra sem querer. O marcador é o mesmo que o `gerar-raiz.sh` preserva. */
+  if (!publico && html.indexOf(painel.MARCADOR) !== -1) {
+    html = html.replace(painel.MARCADOR, painel.blocoDeEscolas());
+    html = html.replace(painel.MARCADOR_INDICE, painel.indiceDaPagina(html));
+  } else if (publico) {
+    html = html.replace(painel.MARCADOR, '');
+    html = html.replace(painel.MARCADOR_INDICE, '');
+  }
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html;charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
 
@@ -448,6 +991,41 @@ async function fetch(request, env) {
       status: 200,
       headers: { 'Content-Type': 'application/json;charset=utf-8' },
     });
+  }
+
+  /* ── A PÁGINA PÚBLICA (25/11/2026) ──────────────────────────────────────────────────────────
+   *
+   * O MESMO Worker serve os dois endereços, e o que os separa é o HOST — ver `ehPaginaPublica`.
+   * Aqui, no público, só passa o que é público: a apresentação, os assets, a criação de escola e a
+   * saúde. TUDO O RESTO É RECUSADO, e a recusa é a mesma para todos os caminhos que não existem —
+   * um 404 e não um 401 —, porque um 401 sobre `/api/apagar-escola` diria a quem tentasse que ali
+   * há uma porta, e qual é.
+   *
+   * ISTO É A REGRA, E NÃO O ESCONDERIJO. A página pública não desenha os botões do painel (é o
+   * `data-modo` que a folha esconde), mas esconder não é proteger: quem escrever o pedido à mão não
+   * passa por aqui. As duas metades existem, e esta é a que vale.
+   *
+   * O QUE O PÚBLICO PODE FAZER A MAIS DO QUE VER: criar escola — e só com o cadastro completo, que
+   * é o que a página dele recolhe (`exigirCadastro`). */
+  if (ehPaginaPublica(request, env)) {
+    const publicoPermitido = url.pathname === '/'
+      || url.pathname === '/index.html'
+      || url.pathname.startsWith('/assets/')
+      || (url.pathname === '/api/criar-escola' && request.method === 'POST')
+      || url.pathname === '/api/pagina';
+    if (!publicoPermitido) {
+      return new Response('não encontrado', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain;charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
+    if (url.pathname === '/api/pagina') {
+      return respostaDaPagina(env, 'publico');
+    }
+    if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
+      return responderCriacao(request, env, { origem: 'publico', exigirCadastro: true });
+    }
+    return servirAPagina(request, env, { modo: 'publico' });
   }
 
   if (!autorizado(request, env)) {
@@ -677,6 +1255,16 @@ async function fetch(request, env) {
     } catch (err) {
       return responderJson({ ok: false, erro: (err && err.message) || String(err) }, 500);
     }
+  }
+
+  /* A PÁGINA — o que ela precisa de saber para se desenhar, e nada mais (25/11/2026).
+   *
+   * Existe nos DOIS endereços, e de propósito: a mesma página corre nos dois, e a lista de
+   * habilidades tem de lá estar nos dois. O que muda é o `modo` — e o modo do público vai na
+   * resposta da rota pública (que responde sem senha, e por isso NÃO diz nada sobre escolas).
+   * Aqui, do lado do painel, ela pode dizer tudo o que a página do painel usa. */
+  if (url.pathname === '/api/pagina' && request.method === 'GET') {
+    return respostaDaPagina(env, 'painel');
   }
 
   if (url.pathname === '/api/escolas' && request.method === 'GET') {
@@ -980,228 +1568,7 @@ async function fetch(request, env) {
   }
 
   if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
-    const token = env && env.CLOUDFLARE_API_TOKEN;
-    if (!token) {
-      return new Response(JSON.stringify({ ok: false, erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
-      });
-    }
-    try {
-      const corpo = await request.json();
-      // O professor criado na página é SEMPRE o dono da escola (a direção). A marcação
-      // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
-      // é a pessoa de contato da escola — o nome pode ser ajustado nos Bastidores.
-      const professorEhDono = true;
-      const valido = validarCriacaoEscola(corpo);
-      if (!valido.ok) return responderJson({ ok: false, erro: valido.erro }, valido.status);
-      const { nome, senhaAdmin, professorNome, professorSobrenome, professorExistente, senhaProfessor } = valido.campos;
-
-      // O SLUG DO PROFESSOR É A PASTA `professores/<slug>/` — e essa pasta é do SISTEMA, não
-      // da escola: guarda o pacote, os cadernos, os relatórios e as âncoras. Duas pessoas com
-      // o mesmo slug viram UMA no registro (o PO de uma cairia na pasta da outra). Por isso a
-      // unicidade é conferida contra os diretórios que existem, e o desempate é o SOBRENOME.
-      //
-      // Duas saídas, e só duas:
-      //   1. REUTILIZAR um professor que já existe (`professorExistente`) — a pasta fica;
-      //   2. CRIAR com nome + sobrenome — a pasta nasce como `nome-sobrenome`.
-      /* A MESMA LISTA QUE O FORMULÁRIO MOSTRA (24/11/2026).
-       *
-       * Era a varredura (`listarProfessores`), e a varredura tira as `escolas` do CONFIG — num
-       * shard, de nada. Consequência: reutilizar um professor que existe dava `nome: null` e o
-       * `nomeDeExibicao` caía em `tituloDoSlug`, que perde o acento («Demi Plie» em vez de
-       * «Demi Plié»). O nome errado ia para o elo, para o secret `PROFESSOR_NOME` e para o
-       * `responsavel` da escola — e o elo é proveniência, não se corrige depois.
-       *
-       * Passa a ser a lista do ÍNDICE, a mesma que serve `/api/professores`: uma pergunta, uma
-       * resposta. Quando o índice não responde, a varredura responde — e aí degrada-se para o
-       * slug, como antes. */
-      const existentes = await listarProfessoresPeloIndice({
-        token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF,
-        kv: env && env.PADD_KV,
-      }).then((r) => r.professores).catch(() => listarProfessores({ token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF }));
-      let professor = null;
-      let nomeDeExibicao = professorNome;
-      if (professorExistente) {
-        /* SÓ SE REUTILIZA O QUE TEM PASTA. Um professor que sobrevive apenas na memória de uma
-         * escola expurgada é oferecido pelo índice, mas não tem diretório nenhum onde a escola
-         * nova possa nascer ao lado dele — e o servidor diria «não existe» a seguir. */
-        const achado = existentes.find((p) => p.slug === professorExistente && p.pasta !== false);
-        if (!achado) {
-          return new Response(JSON.stringify({ ok: false, erro: 'o professor "' + professorExistente + '" não existe — recarregue a lista' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json;charset=utf-8' },
-          });
-        }
-        professor = achado.slug;
-        // O nome de um professor que JÁ EXISTE vem do sistema — e quando ele ainda não tem
-        // escola nenhuma (o diretório-modelo `tiago`), o índice não existe e sobra o slug.
-        // NUNCA vazio: é este nome que vira o secret `PROFESSOR_NOME` e o `responsavel`.
-        nomeDeExibicao = achado.nome || tituloDoSlug(achado.slug);
-      } else {
-        // O sobrenome (ou apelido) é exigido: sem ele, dois homônimos produzem o mesmo slug.
-        if (!professorSobrenome) {
-          return new Response(JSON.stringify({
-            ok: false,
-            erro: 'informe o sobrenome (ou um apelido) do professor — o nome vira a pasta `professores/<nome>/` e não pode repetir. Se for a mesma pessoa de um professor que já existe, use «usar este professor».',
-            professoresExistentes: existentes.map((p) => p.slug),
-          }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json;charset=utf-8' },
-          });
-        }
-        professor = slugificar(professorNome + ' ' + professorSobrenome);
-        if (!professor) {
-          return new Response(JSON.stringify({ ok: false, erro: 'o nome do professor não produz um slug válido' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json;charset=utf-8' },
-          });
-        }
-        const colisao = existentes.find((p) => p.slug === professor);
-        if (colisao) {
-          return new Response(JSON.stringify({
-            ok: false,
-            erro: 'já existe o professor "' + (colisao.nome || colisao.slug) + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
-            colisao: colisao.slug,
-          }), {
-            status: 409,
-            headers: { 'Content-Type': 'application/json;charset=utf-8' },
-          });
-        }
-        nomeDeExibicao = professorNome + ' ' + professorSobrenome;
-      }
-
-      // O RESÍDUO DE UM EXPURGO ANTERIOR (19/10/2026). Uma escola que foi expurgada com a
-      // metade do KV por terminar deixa chaves debaixo do MESMO slug. Criar a escola outra
-      // vez com esse nome daria uma escola nova a ler o dado antigo — as anamneses e o plano
-      // de ontem apareceriam na estante de hoje, e o teste mediria ficção. Nada aqui adivinha:
-      // o elo do expurgo diz que ficou pendente, e a escola não nasce até isso se resolver.
-      // A saída é a retomada (`POST /api/expurgar-kv`) — ou outro nome de escola.
-      const slugPedido = slugificar(nome);
-      if (slugPedido) {
-        // Falha ao LER o índice não trava a criação: a trava é contra um resíduo CONHECIDO, e
-        // um erro de rede no GitHub não pode impedir uma escola de nascer. A guarda é do
-        // dado, não do acaso.
-        let pendente = null;
-        try {
-          pendente = await pendenciaDoKv({
-            token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF, slug: slugPedido,
-          });
-        } catch (err) { pendente = null; }
-        if (pendente) {
-          return new Response(JSON.stringify({
-            ok: false,
-            erro: 'a escola "' + slugPedido + '" já existiu, e o expurgo dela deixou chaves no KV ' +
-              (pendente.em ? '(desde ' + pendente.em + ')' : '') + '. Criar outra com o mesmo ' +
-              'nome faria a escola nova ler o dado antigo. Termine o expurgo' +
-              ' (POST /api/expurgar-kv com a escola "' + slugPedido + '") — a limpeza volta a ' +
-              'tentar quando a cota diária da enumeração do KV renovar — ou crie a escola com ' +
-              'outro nome.',
-            pendenciaKv: pendente,
-            escola: slugPedido,
-          }), {
-            status: 409,
-            headers: { 'Content-Type': 'application/json;charset=utf-8' },
-          });
-        }
-      }
-
-      const escola = await criarEscola({
-        nome,
-        senhaAdmin,
-        token,
-        accountId: ACCOUNT_ID,
-        githubToken: env && env.GITHUB_TOKEN,
-        professorNome: nomeDeExibicao,
-        // A PASTA vai declarada, não derivada do nome (17/10/2026): é ela que o motor usa em
-        // `professores/<slug>/…`. Com o nome de exibição só, um «Tiago» curto produzia o slug
-        // `tiago` e o PO ia para uma pasta fantasma.
-        professorSlug: professor,
-        senhaProfessor,
-        professorEhDono,
-        /* A ZONA DO ENDEREÇO PRÓPRIO (13/11/2026). Sem a `var`, o módulo usa o `padd.com.br`
-         * desta casa — e a `var` existe para o dia em que houver mais do que uma zona. */
-        zona: env && env.ZONA_ESCOLAS,
-        /* O SHARD E O KV (15/11/2026). Com `SHARD_SCRIPT` no `env`, a escola nasce DENTRO do
-         * shard — sem Worker próprio, com a identidade no KV dela e a rota a apontar ao script do
-         * shard. Sem ele, o caminho é o de sempre (um Worker por escola), e nada muda para as
-         * escolas que já existem. É a `vars` que decide, e ela é declarada no `wrangler.danca.jsonc`. */
-        shardScript: String((env && env.SHARD_SCRIPT) || '').trim() || null,
-        kv: env && env.PADD_KV,
-      });
-      // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
-      // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
-      // na raiz, a escola nasce «zero» (sem o motor), e o campo `disparo` declara isso.
-      const disparo = env && env.GITHUB_TOKEN
-        ? await dispararCriacao({
-            token: env.GITHUB_TOKEN,
-            dono: 'tmenegaz',
-            repo: 'danca',
-            ref: 'main',
-            inputs: {
-              professor,
-              // O NOME DE EXIBIÇÃO, não o primeiro nome. É ele que o scaffolder grava no
-              // `indice.json` (`professor.nome`), e é DO ÍNDICE que a lista de professores da
-              // página tira o nome que mostra. Com o primeiro nome só, dois homônimos
-              // apareceriam os dois como «Tiago» — exatamente o que o sobrenome veio separar.
-              'professor-nome': nomeDeExibicao,
-              escola: escola.escola,
-              'escola-nome': nome,
-              responsavel: nomeDeExibicao,
-              ciclo: '01',
-              frequencia: '2x/semana',
-              dias: '2@19:00,4@19:00',
-              duracao: '60',
-              'data-inicio': '',
-              /* O SHARD VAI NO DISPARO. O workflow sobe o motor completo — e num shard o motor é
-               * UM, o do shard. Sem este campo ele procuraria `wrangler.<escola>.jsonc` e subiria
-               * mais um Worker, que é exactamente o que o shard existe para não haver. */
-              shard: String((env && env.SHARD_SCRIPT) || '').trim(),
-            },
-          })
-        : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };
-
-      // O DISPARO FALHOU ⇒ NÃO HÁ ESCOLA. Sem o workflow não há scaffold nem motor: o que
-      // ficou no ar é o placeholder, a responder 200 no subdomínio de uma escola que não
-      // existe. Antes disto, a resposta era 201 «escola criada» com um aviso em letra
-      // pequena — e o órfão ficava. O rollback desfaz e a resposta passa a ser um ERRO,
-      // porque não se criou nada.
-      if (!disparo.ok) {
-        const desfeito = await desfazerPlaceholder({
-          token,
-          accountId: ACCOUNT_ID,
-          escola: escola.escola,
-          nome,
-        });
-        return responderJson({
-          ok: false,
-          erro: 'o deploy do motor completo não foi disparado (' + (disparo.erro || ('HTTP ' + disparo.status)) + ') — nada foi criado',
-          desfeito,
-        }, 502);
-      }
-
-      return new Response(JSON.stringify({ ok: true, ...escola, disparo }), {
-        status: 201,
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
-      });
-    } catch (err) {
-      const status = (err && err.etapa === 'existe') ? 409 : (err && err.etapa === 'slug') ? 400 : 500;
-
-      // O ROLLBACK NÃO SE REPETE AQUI. `criarEscola` já desfez o que ela própria criou e
-      // deixou o resultado em `err.desfeito` — chamar outra vez seria perguntar duas vezes a
-      // mesma coisa e responder «não existia» sobre um Worker que ESTE pedido acabou de apagar
-      // (a segunda leitura recebe 404). Um 409 e um 400 nunca chegam aqui com `desfeito`: no
-      // primeiro o Worker é uma escola a sério; no segundo não há slug.
-      const desfeito = (err && err.desfeito) || null;
-
-      return new Response(JSON.stringify(Object.assign(
-        { ok: false, erro: (err && err.etapa ? err.etapa + ': ' : '') + (err && err.message) },
-        desfeito ? { desfeito } : {}
-      )), {
-        status,
-        headers: { 'Content-Type': 'application/json;charset=utf-8' },
-      });
-    }
+    return responderCriacao(request, env, { origem: 'painel', exigirCadastro: false });
   }
 
   // O resto → o ASSETS (a apresentação «Sistema Lastro» em raiz/index.html e o assets/).
@@ -1222,21 +1589,8 @@ async function fetch(request, env) {
     //
     // O ÍNDICE entra depois do bloco porque lê os títulos do HTML já montado.
     if (url.pathname === '/' || url.pathname === '/index.html') {
-      const respostaDoAsset = await env.ASSETS.fetch(request);
-      const tipo = respostaDoAsset.headers.get('Content-Type') || '';
-      if (!respostaDoAsset.ok || !/text\/html/.test(tipo)) return respostaDoAsset;
-      const html = await respostaDoAsset.text();
-      if (html.indexOf(painel.MARCADOR) === -1) return respostaDoAsset;
-
-      const comBloco = html.replace(painel.MARCADOR, painel.blocoDeEscolas());
-      const comIndice = comBloco.replace(painel.MARCADOR_INDICE, painel.indiceDaPagina(comBloco));
-      return new Response(comIndice, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html;charset=utf-8',
-          'Cache-Control': 'no-store',
-        },
-      });
+      // O MESMO `servirAPagina` DO MODO PÚBLICO, com a marca do painel — uma função, duas portas.
+      return servirAPagina(request, env, { modo: 'dono' });
     }
     return env.ASSETS.fetch(request);
   }
@@ -1250,4 +1604,9 @@ async function fetch(request, env) {
 module.exports = {
   fetch, scheduled, expurgar, moradaDaEscola, validarCriacaoEscola, tituloDoSlug,
   desfechoDoKvParaOElo,
+  // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
+  // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
+  // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.
+  responderCriacao, gravarCadastro, mandarBoasVindas, ehPaginaPublica, servirAPagina,
+  hostDoProprietario, urlDaPaginaPublica,
 };

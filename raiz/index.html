@@ -43,6 +43,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           <button class="modal-x" id="btn-fechar" type="button" aria-label="Fechar">&times;</button>
         </div>
         <form class="form" id="form-criar">
+          <!-- ── A ESCOLA (25/11/2026) ─────────────────────────────────────────────────────
+               O cadastro que a página pública recolhe, e que a do proprietário passou a
+               oferecer também. Sem endereço: a decisão dela foi «não precisa ter o endereço
+               da escola». O nome é o que já existia; o resto nasceu com a página aberta.
+
+               NADA DISSO VAI PARA O ÍNDICE VERSIONADO. O CPF, o CNPJ, o e-mail e o telefone
+               ficam no KV — a verificação 7 do `check-indices` proíbe os campos de contato nos
+               índices do acervo, e com razão: o repositório é público para quem tem o token. -->
           <label class="campo-rotulo" for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
           <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. Uma das
@@ -50,13 +58,24 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                carregar `teste/<palavra>.json` nos formulários. É só preenchimento de
                campo: nada é enviado. Remover esta nota (e a linha `teste-detectado` do
                JS) quando o recurso deixar de ser necessário. -->
-          <p class="aviso" id="nota-teste">
+          <p class="aviso" id="nota-teste" data-dono>
             <b>Escola de teste (temporário).</b> Para nascer com os dados de teste, o nome
             precisa conter uma destas palavras: <code>Calango</code>, <code>Batata</code>
             ou <code>Breu</code> — por exemplo, só <code>Batata</code>. São três escolas de
             teste; o resto do nome é livre, e a palavra pode estar em qualquer posição.
           </p>
-          <p class="res" id="teste-detectado" hidden></p>
+          <p class="res" id="teste-detectado" hidden data-dono></p>
+
+          <label class="campo-rotulo" for="escola-cnpj">CNPJ da escola</label>
+          <input id="escola-cnpj" name="escola-cnpj" autocomplete="off" inputmode="numeric"
+                 placeholder="00.000.000/0000-00">
+          <label class="campo-rotulo" for="escola-email">E-mail da escola</label>
+          <input id="escola-email" name="escola-email" type="email" autocomplete="off"
+                 placeholder="escola@exemplo.com.br">
+          <label class="campo-rotulo" for="escola-telefone">Telefone da escola</label>
+          <input id="escola-telefone" name="escola-telefone" autocomplete="off" inputmode="tel"
+                 placeholder="(51) 3333-0000">
+
           <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
           <input id="senha" name="senha" type="password" autocomplete="new-password">
           <fieldset class="quem">
@@ -65,17 +84,41 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               <input type="radio" name="modo-professor" value="novo" id="modo-novo" checked>
               <span>Um professor novo <em>— a pasta dele ainda não existe</em></span>
             </label>
-            <label class="opcao" id="opcao-existente">
+            <!-- O REÚSO DE UM PROFESSOR QUE JÁ EXISTE É DO PAINEL (25/11/2026). A página pública
+                 cria a pessoa; reaproveitar uma pasta que já tem escola é uma decisão de quem
+                 conhece o histórico, e essa pessoa é uma só. Esconder aqui não é proteger (o
+                 servidor aceita o campo dos dois lados) — é não oferecer um caminho que quem se
+                 está a registar não tem como avaliar. -->
+            <label class="opcao" id="opcao-existente" data-dono>
               <input type="radio" name="modo-professor" value="existente" id="modo-existente">
               <span>Um professor que já existe <em id="dica-existente">— informe o nome da escola primeiro</em></span>
             </label>
           </fieldset>
 
           <div id="bloco-novo">
-            <label class="campo-rotulo" for="professor-nome">Nome do professor</label>
-            <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
+            <label class="campo-rotulo" for="professor-nome">Nome completo do professor</label>
+            <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Ana">
+            <!-- O SOBRENOME FICA SEPARADO PORQUE É DELE QUE SAI O DESEMPATE (15/10/2026): a pasta
+                 `professores/<slug>/` é do sistema, e duas pessoas com o mesmo primeiro nome caem
+                 na mesma. O rótulo continua «sobrenome» para não parecer um segundo nome completo. -->
             <label class="campo-rotulo" for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
             <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
+            <label class="campo-rotulo" for="professor-cpf">CPF do professor</label>
+            <input id="professor-cpf" name="professor-cpf" autocomplete="off" inputmode="numeric"
+                   placeholder="000.000.000-00">
+            <label class="campo-rotulo" for="professor-email">E-mail do professor</label>
+            <input id="professor-email" name="professor-email" type="email" autocomplete="off"
+                   placeholder="professor@exemplo.com.br">
+            <label class="campo-rotulo" for="professor-telefone">Telefone do professor</label>
+            <input id="professor-telefone" name="professor-telefone" autocomplete="off" inputmode="tel"
+                   placeholder="(51) 99999-0000">
+            <!-- A HABILIDADE É DECLARADA POR QUEM ENTRA (25/11/2026). Até aqui o professor nascia
+                 habilitado numa modalidade fixa, porque só a proprietária criava escolas e ela é
+                 professora de balé clássico. A decisão dela: «agora ele é que vai determinar nesse
+                 cadastro». A lista vem do catálogo (`biblioteca/modalidades/modalidades.json`), e
+                 não de uma cópia — um id que o catálogo não conhece é recusado na criação. -->
+            <label class="campo-rotulo" for="professor-modalidade">Habilidade do professor (o que ele ensina)</label>
+            <select id="professor-modalidade" name="professor-modalidade"></select>
           </div>
 
           <div id="bloco-existente" hidden>
@@ -129,13 +172,18 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
            Nenhuma das duas é escrita à mão no conteúdo: o corpo de `.conteudo` é regerado por
            `tools/gerar-raiz.sh`, e os rails ficam fora dele. -->
       <div class="rail rail-esq">
-        <button class="acao secundario" id="btn-apagar" type="button">Apagar escola</button>
+        <!-- O QUE É DO PAINEL LEVA `data-dono` (25/11/2026). A MESMA página serve os dois
+             endereços, e no público só fica o que é público: criar escola. O `data-dono` não
+             protege nada — quem protege é o servidor, que recusa estes caminhos no endereço
+             público. Ele só evita MOSTRAR uma porta que não abre: «Apagar escola» desenhado
+             numa página onde o pedido responde 404 é uma promessa que a página não cumpre. -->
+        <button class="acao secundario" id="btn-apagar" type="button" data-dono>Apagar escola</button>
         <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
-        <a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas</a>
-        <a class="acao secundario" href="/escolas-vivas">Ver só as vivas</a>
-        <a class="acao secundario" href="/professores">Professores</a>
+        <a class="acao secundario" href="/escolas-apagadas" data-dono>Ver só as apagadas</a>
+        <a class="acao secundario" href="/escolas-vivas" data-dono>Ver só as vivas</a>
+        <a class="acao secundario" href="/professores" data-dono>Professores</a>
       </div>
-      <div class="rail rail-dir">
+      <div class="rail rail-dir" data-dono>
         <div id="indice-da-pagina"></div>
       </div>
       <div class="conteudo">
@@ -575,9 +623,41 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           var form = document.getElementById("form-criar");
           var res = document.getElementById("res");
 
+          /* AS HABILIDADES VÊM DO CATÁLOGO (25/11/2026), e de mais nenhum sítio: a lista das
+           * modalidades que o sistema oferece é `biblioteca/modalidades/modalidades.json`, e o
+           * Worker a serve em `/api/pagina` — nos DOIS endereços, porque a mesma página corre nos
+           * dois. Uma lista escrita aqui dentro seria a segunda cópia, e a que envelhece.
+           *
+           * O `temConteudo` VAI NO RÓTULO. Uma modalidade sem repertório ainda não tem conteúdo
+           * de ciclo — escolhê-la não impede nada, mas quem escolhe tem de o saber antes, e não
+           * depois de a primeira aula não ter o que gerar. */
+          var HABILIDADES = null;
+          function carregarHabilidades() {
+            if (HABILIDADES) return Promise.resolve(HABILIDADES);
+            return fetch("api/pagina").then(function (r) { return r.json(); }).then(function (d) {
+              HABILIDADES = (d && d.habilidades) || [];
+              var sel = document.getElementById("professor-modalidade");
+              if (sel) {
+                sel.innerHTML = "";
+                HABILIDADES.forEach(function (h) {
+                  var o = document.createElement("option");
+                  o.value = h.id;
+                  o.textContent = h.nome + (h.temConteudo ? "" : " (sem repertório ainda)");
+                  sel.appendChild(o);
+                });
+              }
+              return HABILIDADES;
+            }).catch(function () {
+              HABILIDADES = [];
+              return HABILIDADES;
+            });
+          }
+          carregarHabilidades();
+
           function abrir() {
             modal.hidden = false;
             document.getElementById("nome").focus();
+            carregarHabilidades();
             carregarProfessores();
             pintarModo();
             atualizarOpcaoExistente();
@@ -805,9 +885,26 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 nome: v("nome"),
+                /* O CADASTRO DA ESCOLA (25/11/2026) vai SEMPRE — quem decide se é obrigatório
+                 * é o servidor, e a regra é dele: a página pública exige, a do painel aceita
+                 * vazio. Duplicar essa decisão aqui seria uma segunda regra a divergir da
+                 * primeira — e a que a pessoa vê é sempre a que o servidor aplica. */
+                cnpj: v("escola-cnpj"),
+                escolaEmail: v("escola-email"),
+                escolaTelefone: v("escola-telefone"),
                 senhaAdmin: v("senha"),
                 professorNome: doZero ? v("professor-nome") : "",
                 professorSobrenome: doZero ? v("professor-sobrenome") : "",
+                /* O NOME COMPLETO é o que fica no cadastro; nome + sobrenome continuam a ser o
+                 * que gera a PASTA (`professores/<nome>-<sobrenome>/`), e por isso os dois
+                 * campos não se fundem: um é identidade legal, o outro é endereço no sistema. */
+                professorNomeCompleto: doZero
+                  ? [v("professor-nome"), v("professor-sobrenome")].filter(Boolean).join(" ").trim()
+                  : "",
+                cpf: doZero ? v("professor-cpf") : "",
+                professorEmail: doZero ? v("professor-email") : "",
+                professorTelefone: doZero ? v("professor-telefone") : "",
+                modalidade: doZero ? v("professor-modalidade") : "",
                 professorExistente: doZero ? "" : v("professor-existente"),
                 senhaProfessor: v("senha-professor")
               })
@@ -858,6 +955,33 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                       : "<br>Ligue-o à mão em <em>Workers &amp; Pages → "
                         + d.escola + " → Settings → Domains &amp; Routes</em>, ou repita a criação"
                         + " depois de corrigir o token.");
+                }
+                /* O E-MAIL DE BOAS-VINDAS, DITO NA TELA (25/11/2026). A mensagem é a mesma que
+                 * a página mostra — o endereço da escola —, e ela vai para o professor e para a
+                 * escola (um só, se forem o mesmo endereço). O que aqui se diz é o DESFECHO, e
+                 * não «enviado» por omissão: quando o provedor não está configurado, a mensagem
+                 * ficou guardada e a escola existe na mesma — e quem criou tem de saber as duas
+                 * coisas, senão procura na caixa uma mensagem que nunca saiu. */
+                if (d.correio) {
+                  if (d.correio.enviado) {
+                    html += "<br><br><strong>E-mail enviado</strong> para "
+                      + (d.correio.para || []).map(function (e) {
+                        return "<code>" + e + "</code>";
+                      }).join(" e ") + " — com o endereço acima.";
+                  } else {
+                    html += "<br><br><strong>O e-mail não saiu.</strong> "
+                      + (d.correio.motivo || "motivo não declarado") + ". "
+                      + (d.correio.caixa && d.correio.caixa.guardada
+                        ? "A mensagem ficou guardada e pronta para reenvio."
+                        : "")
+                      + (d.correio.dica ? "<br>" + d.correio.dica : "");
+                  }
+                }
+                // O CADASTRO GUARDADO — e o que dele faltou. São dados que a pessoa digitou, e o
+                // silêncio sobre eles faria parecer que se perderam.
+                if (d.cadastro && (d.cadastro.erros || []).length) {
+                  html += "<br><br><strong>O cadastro não ficou todo guardado:</strong> "
+                    + d.cadastro.erros.join("; ") + ". A escola existe — isto é só o registo.";
                 }
                 res.innerHTML = html;
                 trazer(res);

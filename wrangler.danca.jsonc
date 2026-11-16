@@ -48,7 +48,27 @@
   // escola servida por ele: a rota aponta ao shard, e não a um script com o nome da escola. Sem
   // isto, a escola expurgada continuaria a responder no endereço dela.
   "vars": {
-    "SHARD_SCRIPT": "lastro-teste"
+    "SHARD_SCRIPT": "lastro-teste",
+
+    // OS DOIS ENDEREÇOS DESTA PÁGINA (25/11/2026).
+    //
+    // A MESMA página serve os dois nomes, e o que os separa é o HOST: `danca.padd.com.br` é o
+    // painel do proprietário (com a lista de escolas, «Apagar escola», «Professores»);
+    // `lastro.padd.com.br` é a página pública — a mesma apresentação, e SÓ o botão de criar
+    // escola. A regra está em `motor/servidor/raiz.js` (`ehPaginaPublica`), e a prova em
+    // `experimentos/provar-pagina-publica.js`.
+    //
+    // `HOST_DONO` é o critério; `HOST_PUBLICO` é o que se MOSTRA e anuncia. São duas `var` e não
+    // uma porque respondem a perguntas diferentes: uma decide quem vê o painel, a outra escreve
+    // um endereço na tela. O `.workers.dev` conta sempre como o lado do painel, atrás da senha.
+    "HOST_DONO": "danca.padd.com.br",
+    "HOST_PUBLICO": "lastro.padd.com.br",
+
+    // O REMETENTE DO CORREIO (25/11/2026). O domínio tem de estar verificado no provedor
+    // (Resend) para este endereço poder enviar. O TOKEN NÃO ESTÁ AQUI: é o secret
+    // `RESEND_API_KEY` (`npx wrangler secret put RESEND_API_KEY --config wrangler.danca.jsonc`).
+    // Sem ele o sistema não finge que enviou — compõe, guarda a mensagem e di-lo na tela.
+    "CORREIO_DE": "Sistema Lastro <lastro@padd.com.br>"
   },
 
   // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime

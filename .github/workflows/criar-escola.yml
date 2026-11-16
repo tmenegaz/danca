@@ -68,6 +68,18 @@ on:
         required: false
         type: string
         default: ''
+      modalidade:
+        # A HABILIDADE QUE O PROFESSOR DECLAROU (25/11/2026). Até aqui era um valor fixo no
+        # scaffolder (`bale-classico`), porque quem criava escolas era só a proprietária e ela é
+        # professora de balé clássico. Com a página pública, quem declara é QUEM ENTRA — a
+        # decisão dela: «agora ele é que vai determinar nesse cadastro».
+        #
+        # VAZIO É UM VALOR LEGÍTIMO: significa «o professor já existe», e nesse caso o perfil dele
+        # já foi escrito e o scaffolder não lhe toca (a habilitação é da pessoa, não da escola).
+        description: 'Modalidade que o professor novo declara ensinar (vazio = professor já existente)'
+        required: false
+        type: string
+        default: ''
 
 # O push do scaffold precisa de escrita. O GITHUB_TOKEN não redispara workflows,
 # então o commit daqui não volta a chamar este workflow em laço.
@@ -112,6 +124,7 @@ jobs:
             --duracao "${{ inputs.duracao }}" \
             --data-inicio "${{ inputs.data-inicio }}" \
             ${{ inputs.shard != '' && format('--shard {0}', inputs.shard) || '' }} \
+            ${{ inputs.modalidade != '' && format('--modalidade {0}', inputs.modalidade) || '' }} \
             --nao-interativo
 
       # A DEPENDÊNCIA TEM DE ESTAR ESCRITA AQUI (20/10/2026). O `assets.directory` do Worker é a
