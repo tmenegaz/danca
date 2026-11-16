@@ -2439,6 +2439,84 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .modal-x:hover { background: none; color: var(--marca); }
 .modal-acoes { display: flex; justify-content: flex-end; gap: var(--esp-3); margin-top: var(--esp-5); }
 
+/* ============================================================================
+   O MODAL LARGO E AS ETAPAS (25/11/2026) — o cadastro da escola em quatro
+   etapas, e a razão de existirem estas cinco peças.
+
+   O PROBLEMA, dito por ela: «Ele está parecendo uma tripa comprida e imensa. […]
+   Pode alargar esse modal e vamos dividir em duas colunas. E aí vamos colocar
+   steps.» A causa não era o número de campos — era a FORMA: um `.modal-caixa`
+   de 440px, uma coluna, catorze campos seguidos. Um formulário estreito e longo
+   lê-se como uma lista de tarefas sem fim.
+
+   PORQUE É QUE SE CHAMAM `etapa` E NÃO `passo`: `.passos` e `.passo` JÁ EXISTEM
+   — são o rasto de etapas do lançamento, em `bastidores.js`, com o desenho lá
+   dentro. A checagem 5 (Forma) reprovou a primeira versão destas peças por isso
+   mesmo, e tinha razão: duas peças com o mesmo nome e desenhos diferentes é o
+   defeito que este contrato existe para impedir. Os nomes de cá são outros.
+
+   O QUE CADA PEÇA É:
+   · `.modal-largo` — a modificação da janela. 440px é a largura de uma pergunta
+     («tem a certeza?»); um cadastro precisa de duas colunas para caber na altura
+     do ecrã. Vence por especificidade (duas classes), e não por vir depois.
+   · `.etapas` — o indicador das quatro etapas. É uma lista ordenada de verdade
+     (`<ol>`), porque a ordem é informação: quem lê com leitor de ecrã ouve «etapa
+     2 de 4». O estado vai em `aria-current="step"` e em `data-feito`, que são
+     atributos — um estado não é uma classe, e uma classe de estado esquece-se
+     sempre num sítio.
+   · `.etapa` — o painel de uma etapa. Fechado com `[hidden]`, que é o mecanismo
+     nativo: nada de `display:none` por classe, porque um painel escondido por
+     classe continua a ser lido por quem navega por teclado.
+   · `.etapa-campos` — as duas colunas dos campos. É um grid, e o desenho das
+     colunas é DELE: o campo não sabe em que coluna está.
+   · `.etapa-campo` — o par rótulo + controle, que é uma unidade. Sem ele, o
+     rótulo de um campo e o controle do seguinte caíam em linhas diferentes do
+     grid e o formulário mentia sobre o que pertencia a quê.
+   ========================================================================== */
+.modal-caixa.modal-largo { max-width: 880px; }
+.etapas {
+  display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-3);
+  list-style: none; margin: var(--esp-4) 0 var(--esp-5); padding: 0;
+  counter-reset: etapa;
+}
+.etapas li {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .82rem; line-height: 1.2; color: var(--texto-suave);
+}
+.etapas li::before {
+  counter-increment: etapa; content: counter(etapa);
+  display: inline-grid; place-items: center;
+  width: 1.45rem; height: 1.45rem; border-radius: 50%;
+  border: 1px solid var(--borda-campo); background: var(--fundo-suave);
+  font-size: .74rem; font-weight: 700; color: var(--texto-suave);
+}
+.etapas li[aria-current="step"] { color: var(--marca-texto); font-weight: 600; }
+.etapas li[aria-current="step"]::before {
+  border-color: var(--marca); background: var(--marca); color: var(--fundo);
+}
+.etapas li[data-feito]::before {
+  border-color: var(--marca); background: var(--superficie); color: var(--marca-texto);
+}
+.etapa { display: block; }
+.etapa[hidden] { display: none; }
+.etapa-titulo { margin: 0 0 var(--esp-4); font-size: 1rem; color: var(--marca-texto); }
+.etapa-campos {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-4) var(--esp-5); margin: 0 0 var(--esp-4);
+}
+/* A 760px a janela já não comporta duas colunas de leitura: abaixo disso os campos
+   descem um para baixo do outro, e o formulário fica mais alto — que é o que se
+   quer num ecrã vertical. */
+@media (max-width: 760px) { .etapa-campos { grid-template-columns: minmax(0, 1fr); } }
+.etapa-campo { margin: 0; min-width: 0; }
+.etapa-campo > .campo-rotulo { margin-top: 0; }
+.etapa-campo > input, .etapa-campo > select, .etapa-campo > textarea { width: 100%; }
+/* O CAMPO QUE OCUPA AS DUAS COLUNAS — o resumo do valor, a chave Pix e a escolha
+   do plano. Não é um campo: é a linha que fala do conjunto, e uma linha do conjunto
+   numa coluna parece pertencer só ao campo de cima. */
+.etapa-campo.largo { grid-column: 1 / -1; }
+.etapa-campo .res { margin: var(--esp-2) 0 0; }
+
 /* ---------- o véu da OPERAÇÃO (08/11/2026) -------------------------------
    A CADEIA DO CICLO É DEPENDENTE, E A TELA TEM DE O DIZER. Criar a aluna, fazer a anamnese,
    pô-la no elenco, concluir a turma, gravar o plano e gravar o PO: cada passo LÊ o que o
