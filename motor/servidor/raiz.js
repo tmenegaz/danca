@@ -1295,6 +1295,21 @@ function removerDoPainel(html) {
  * A MARCA É POSTA AQUI, e não no arquivo: o arquivo é regerado por `tools/gerar-raiz.sh` a partir
  * de `biblioteca/apresentacao.md`, e uma marca escrita lá dentro desapareceria na geração seguinte.
  */
+/**
+ * A MARCA DA PÁGINA, numa função — para a prova poder servir a página COMO O SERVIDOR A SERVE.
+ *
+ * Estava embutida no `servirAPagina`, e a prova que executava a página pública tinha de a repetir
+ * de memória: escrevia o HTML do arquivo num `jsdom` sem a marca, e media o comportamento do
+ * PAINEL a chamar-lhe «público». Uma prova que replica a transformação do servidor mede a
+ * réplica — a marca passa a ser posta pela mesma linha que a põe em produção.
+ */
+function marcarPagina(html, publico) {
+  return String(html || '').replace(/<html(\s[^>]*)?>/i, (achado, atributos) => {
+    const limpos = String(atributos || '').replace(/\sdata-pagina="[^"]*"/i, '');
+    return '<html' + limpos + ' data-pagina="' + (publico ? 'publica' : 'painel') + '">';
+  });
+}
+
 async function servirAPagina(request, env, { modo }) {
   const publico = modo === 'publico';
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') {
@@ -1305,10 +1320,7 @@ async function servirAPagina(request, env, { modo }) {
   if (!respostaDoAsset.ok || !/text\/html/.test(tipo)) return respostaDoAsset;
   let html = await respostaDoAsset.text();
 
-  html = html.replace(/<html(\s[^>]*)?>/i, (achado, atributos) => {
-    const limpos = String(atributos || '').replace(/\sdata-pagina="[^"]*"/i, '');
-    return '<html' + limpos + ' data-pagina="' + (publico ? 'publica' : 'painel') + '">';
-  });
+  html = marcarPagina(html, publico);
 
   /* NO MODO PÚBLICO O PAINEL NÃO É COMPOSTO. O bloco das escolas e o índice desta página são do
    * painel: compô-los para os esconder seria trabalho a fingir, e uma peça escondida é uma peça
@@ -2021,6 +2033,6 @@ module.exports = {
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
   // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.
   responderCriacao, gravarCadastro, mandarBoasVindas, ehPaginaPublica, servirAPagina,
-  removerDoPainel, lerComercial, gravarComercial, chaveComercial, ESTADOS_COMERCIAL,
+  removerDoPainel, marcarPagina, lerComercial, gravarComercial, chaveComercial, ESTADOS_COMERCIAL,
   hostDoProprietario, urlDaPaginaPublica,
 };
