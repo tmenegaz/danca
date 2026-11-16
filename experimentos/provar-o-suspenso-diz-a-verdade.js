@@ -101,6 +101,12 @@ function envDa(estado) {
     const ato = await pedir('/api/bastidores/ato', 'POST');
     conferir('…e o bilhete do ato também', ato.status !== 402, ato.status);
 
+    /* A FICHA DO PROFESSOR TAMBÉM (16/11/2026) — é `POST` porque devolve CPF e telefone, mas é
+     * leitura: numa escola suspensa a aba do cadastro tem de a poder abrir, senão os campos vêm
+     * vazios e parece que a ficha se perdeu. */
+    const ficha = await pedir('/api/bastidores/ficha-do-professor', 'POST');
+    conferir('…e a ficha do professor (POST que só lê)', ficha.status !== 402, ficha.status);
+
     /* A LEITURA PASSA — é a decisão dela, e é o que os testes dela precisam. */
     const leitura = await pedir('/api/bastidores/alunas', 'GET');
     conferir('…e tudo o que é LER passa', leitura.status !== 402 && leitura.status !== 503, leitura.status);

@@ -47190,6 +47190,10 @@ serve o documento de uma pessoa. Passou a `POST /api/bastidores/ficha-do-profess
 credencial da direção**, que a página já tem (o `TOKEN` que a porta emitiu). Medido: sem credencial,
 a ficha não sai.
 
+E ENTROU NA LISTA DAS QUE SÓ LEEM (`POSTS_QUE_SO_LEEM`), porque o verbo foi escolhido para o dado
+pessoal não viajar num endereço e não porque escreve. É o mesmo caso do `validar-senha`. Sem isso, a
+aba do cadastro abria vazia numa escola suspensa — e a pessoa concluía que a ficha se perdera.
+
 **Onde entrou.** `motor/servidor/bastidores.js` (`ABAS_DO_PROFESSOR_HTML`, o motor de abas,
 `editarProfessorDaEscola`, `POST /api/bastidores/ficha-do-professor`, o modo `editar` no `POST` do
 professor, o «Editar» em todas as linhas, `preencherFichaDoProfessor`) · `motor/servidor/unicidade.js` (novo) ·
@@ -47205,7 +47209,7 @@ Mais `provar-editar-professor-principal` 32/32 (num Chrome de verdade: nenhum di
 clique, a recarga) · `provar-abas-da-audicao` 99/99 · `provar-producao` 164/166 (as duas falhas são
 anteriores a esta mudança: a tradição na curadoria) · `provar-financeiro` 55/55 ·
 `provar-expurgo-por-carencia` 26/26 · `provar-escola-a-nascer` 48/48 ·
-`provar-o-suspenso-diz-a-verdade` 28/28 · `provar-pagina-publica` 73/73 ·
+`provar-o-suspenso-diz-a-verdade` 29/29 · `provar-pagina-publica` 73/73 ·
 `provar-cofre-e-shard` 129/129 · `check-indices` 16/16 · `check-identidade` 0 erros.
 
 **O que fica pendente, e é declarado.** O aluno/professor que muda de nome continua a deixar o nome

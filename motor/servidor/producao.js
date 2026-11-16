@@ -636,6 +636,13 @@ const POSTS_QUE_SO_LEEM = new Set([
   '/api/bastidores/validar-producao',
   '/api/bastidores/validar-senha',
   '/api/bastidores/ato',
+  /* A FICHA DO PROFESSOR É `POST` PORQUE DEVOLVE DADO PESSOAL, E NÃO PORQUE ESCREVE (16/11/2026).
+   * O verbo foi escolhido para o CPF e o telefone não viajarem num endereço; a operação é uma
+   * leitura, e uma escola suspensa tem de a poder fazer — «só tem acesso a ler as coisas que já
+   * foram desenvolvidas». É o mesmo caso do `validar-senha`: `POST` por natureza, leitura no
+   * efeito. Sem esta linha, a aba do cadastro abria vazia numa escola suspensa, e a pessoa
+   * concluía que a ficha se perdera. */
+  '/api/bastidores/ficha-do-professor',
 ]);
 
 function ehEscrita(request, path) {
