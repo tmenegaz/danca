@@ -228,6 +228,8 @@ function escolaDe(env, url) {
  * escola nasce — e não pode `require` os Bastidores só para fazer um SHA-256. A regra continua
  * uma; mudou de sítio. */
 const { hashSenha, salAleatorio } = require('../nucleo/senha.js');
+// O ESTADO COMERCIAL — a mesma leitura que a porta faz, para as duas respostas dizerem o mesmo.
+const comercialDoNucleo = require('../nucleo/comercial.js');
 
 /** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
 const gerarSal = salAleatorio;
@@ -15403,9 +15405,34 @@ async function fetch(request, env, extras) {
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
     if (!professor) return json(400, { ok: false, erro: 'escolha o professor' });
     const veredicto = await senhaDoProfessorOk(env, kv, escola, professor, senha);
-    return json(200, veredicto.ok
-      ? { ok: true, professor: veredicto.nome }
-      : { ok: false, erro: veredicto.erro, ...(veredicto.desligado ? { desligado: true } : {}) });
+    if (!veredicto.ok) {
+      return json(200, { ok: false, erro: veredicto.erro, ...(veredicto.desligado ? { desligado: true } : {}) });
+    }
+    /* A SENHA ESTÁ CERTA — E A ESCOLA PODE ESTAR SUSPENSA (16/11/2026).
+     *
+     * A rota está na lista das que só leem, e está bem: a suspensão não fecha a entrada de quem
+     * já trabalha, porque «só leitura» que não deixa entrar não é leitura nenhuma. Mas passar a
+     * porta não é poder trabalhar: a escrita vai ser recusada com 402, e a tela precisa de saber
+     * disso AGORA, no sítio onde ela mostra o veredicto — não no primeiro «criar», depois de a
+     * pessoa ter escolhido professor, ciclo e aluna.
+     *
+     * A RESPOSTA DIZ AS DUAS VERDADES: `ok: true` (a senha confere, e é isso que se perguntou) e
+     * `suspensa: true` com a frase da casa. A tela do professor escolhe o que mostrar; quem
+     * escrever outro cliente lê o mesmo facto.
+     *
+     * ISTO FALTAVA, e foi medido: a tela tinha um veredicto `suspensa` que lia `r.dados.suspensa`
+     * de uma resposta em que o campo não existia — a frase continuava a culpar a senha. */
+    let comercial = null;
+    try { comercial = await comercialDoNucleo.lerComercial(kv, escola); } catch (erro) { comercial = null; }
+    if (comercial && comercial.estado === 'suspensa') {
+      return json(200, {
+        ok: true,
+        professor: veredicto.nome,
+        suspensa: true,
+        erro: comercialDoNucleo.MENSAGEM_DA_SUSPENSAO,
+      });
+    }
+    return json(200, { ok: true, professor: veredicto.nome });
   }
 
   /* POST /api/bastidores/ato — O BILHETE DO ATO, DE USO ÚNICO (25/10/2026).

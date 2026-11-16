@@ -24,6 +24,7 @@ const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
 // A MARCA DO SISTEMA (agora um link para a raiz) e o preenchimento do slot vazio. Ver
 // `comAparencia`.
+const comercialDoNucleo = require('../nucleo/comercial.js');
 const { MARCA, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 // A BARRA DE NAVEGAÇÃO — o MESMO desenho que a montagem da publicação usa (20/10/2026).
 const navModulo = require('../nucleo/nav.js');
@@ -608,28 +609,13 @@ async function comIdentidadeDaEscola(env, escola) {
  * chave, dois leitores, e é isso que impede a lista das vivas de dizer «ativa» sobre uma escola
  * que o endereço recusa.
  *
- * AUSENTE → `ativa`. As escolas de antes desta versão não têm registo, e tratá-las como
- * «aguardando» fechava-as todas no dia do deploy. Um estado novo acrescenta-se ao passado; não o
- * reescreve.
- *
- * O CACHE É POR PEDIDO, e não de isolate: o estado muda por um clique dela, e um valor guardado
- * entre pedidos faria a escola continuar aberta depois de suspensa — ou fechada depois de
- * habilitada — até o isolate morrer. Uma leitura de KV por pedido é o preço de um estado que muda
- * fora do sistema.
+ * A LEITURA SAIU DAQUI (16/11/2026). Ela mora em `../nucleo/comercial.js`, e não por arrumação:
+ * a rota da senha do professor vive em `bastidores.js`, que este ficheiro já carrega — pedir-lhe
+ * o estado comercial daqui seria um `require` circular, e o caminho que se escolheu sem pensar
+ * foi não pedir. O resultado foi a tela do professor com um veredicto que nunca podia acontecer.
+ * Um facto que dois sítios perguntam mora onde os dois o alcançam.
  */
-async function comercialDaEscola(env) {
-  const kv = env && env.PADD_KV;
-  const escola = String((env && env.ESCOLA_SLUG) || '').trim();
-  if (!kv || typeof kv.get !== 'function' || !escola) return null;
-  const texto = await kv.get('bastidores/' + escola + '/comercial');
-  if (!texto) return { estado: 'ativa', motivo: 'sem registo comercial' };
-  let registo = null;
-  try { registo = JSON.parse(texto); } catch (erro) { return { estado: 'ativa', motivo: 'registo ilegível' }; }
-  const estado = ['aguardando', 'ativa', 'suspensa'].indexOf(String(registo.estado || '')) !== -1
-    ? String(registo.estado) : 'ativa';
-  return Object.assign({}, registo, { estado });
-}
-
+const comercialDaEscola = comercialDoNucleo.comercialDaEscola;
 /**
  * ESTE PEDIDO ESCREVE? — a pergunta que separa «ler» de «editar» (25/11/2026).
  *
@@ -871,8 +857,9 @@ async function fetch(request, env) {
       /* A RECUSA É UM 402, e não um 403: não é «não tens permissão», é «o acesso está suspenso» —
        * e a diferença importa a quem lê o erro. O corpo é JSON quando o pedido é de uma rota de
        * dados (a página mostra a mensagem), e texto quando é uma navegação. */
-      const mensagem = 'O acesso desta escola está suspenso: é possível ler o que já foi criado, '
-        + 'mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
+      /* A FRASE VEM DO NÚCLEO, e não daqui: a rota da senha do professor diz a MESMA, e duas
+       * cópias de uma frase são duas frases à espera de divergir. */
+      const mensagem = comercialDoNucleo.MENSAGEM_DA_SUSPENSAO;
       if (path.startsWith('/api/')) {
         return new Response(JSON.stringify({ ok: false, erro: mensagem, suspensa: true }), {
           status: 402, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },

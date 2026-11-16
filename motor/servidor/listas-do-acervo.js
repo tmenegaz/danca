@@ -780,6 +780,10 @@ function scriptDoPainel(chave, escola) {
    * sem uma palavra de explicacao — o mesmo defeito que a porta evita com o «x senha nao
    * reconhecida» (sinalDeSenha). Medido em producao: com a senha errada, o estado ficava VAZIO. */
   var SENHA = '';
+  /* A FRASE DA RECUSA, quando o servidor manda uma. A tela não a inventa: se ele disse porquê,
+   * é a frase dele que se lê — é a lição das duas portas, e a razão de a resposta passar a
+   * trazer 'suspensa' e 'erro' juntos. */
+  var SENHA_DIZER = '';
   /* O que foi escolhido antes de esta página carregar — e que os 'select' só podem receber
    * depois de as opções chegarem. */
   var ATOS = { professor: '', aluna: '', turma: '', plano: '' };
@@ -888,8 +892,9 @@ function scriptDoPainel(chave, escola) {
          * O texto é o do servidor, para os dois lados dizerem a mesma coisa. */
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
-        estado.textContent = 'O acesso desta escola está suspenso: é possível ler o que já foi '
-          + 'criado, mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
+        estado.textContent = SENHA_DIZER || ('O acesso desta escola está suspenso: é possível '
+          + 'ler o que já foi criado, mas não criar nem editar. Fale com o Sistema Lastro para '
+          + 'regularizar.');
       } else if (CFG.temSenha && SENHA === 'errada') {
         /* O CONTEXTO ESTA INTEIRO E A SENHA NAO CONFERE — e e isso que tem de ser dito. Sem esta
          * linha o botao ficava desabilitado sem motivo aparente, e o professor tentava outra vez
@@ -1197,9 +1202,14 @@ function scriptDoPainel(chave, escola) {
        * aqui fecha a string que contém o script, exactamente como a aspa do seletor de ontem
        * fechava um seletor. A casa já pagou duas vezes pelo mesmo erro — uma string que atravessa
        * duas linguagens tem de ser escrita na linguagem em que está. */
-      SENHA = r.ok ? 'ok'
-        : ((r.dados && r.dados.desligado) ? 'desligado'
-          : ((r.dados && r.dados.suspensa) ? 'suspensa' : 'errada'));
+      /* A ORDEM MUDOU (16/11/2026), e é a correção: 'suspensa' vem ANTES de 'ok', porque a senha
+       * pode estar certa e a escola fechada — as duas coisas ao mesmo tempo. Antes, o teste do
+       * 'ok' engolia o facto, e o veredicto 'suspensa' nunca acontecia: código morto, e a frase
+       * da tela continuava a culpar a senha. */
+      SENHA_DIZER = (r.dados && r.dados.erro) ? String(r.dados.erro) : '';
+      SENHA = (r.dados && r.dados.suspensa) ? 'suspensa'
+        : r.ok ? 'ok'
+          : ((r.dados && r.dados.desligado) ? 'desligado' : 'errada');
       pintar();
     });
   }

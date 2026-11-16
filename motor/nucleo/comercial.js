@@ -172,10 +172,63 @@ function catalogoDaPagina() {
   };
 }
 
+/* ── O ESTADO COMERCIAL, QUE É OUTRA COISA DA TABELA DE PREÇOS ────────────────────────────────
+ *
+ * «Suspensa» e «aguardando» NÃO são preço: são o estado de uma escola no tempo. Vivem na mesma
+ * chave que a raiz escreve (`bastidores/<escola>/comercial`, ver `raiz.js`), e é UM lugar só
+ * porque a pergunta «esta escola pode escrever?» é feita em dois sítios — a porta que recusa o
+ * pedido (`producao.js`) e a rota que valida a senha do professor (`bastidores.js`).
+ *
+ * PORQUE É QUE ISTO MUDOU DE CASA (16/11/2026). A leitura estava só em `producao.js`, e a rota da
+ * senha, que vive em `bastidores.js`, não a alcançava sem um `require` circular. Ficou a alcançar
+ * nada — e a tela do professor ganhou um veredicto `suspensa` que lia `r.dados.suspensa` de uma
+ * resposta que NUNCA o trazia. O quarto veredicto era código morto: a tela continuava a dizer
+ * «a senha do professor não foi reconhecida» sobre uma senha certa. O defeito não estava na
+ * tela — estava em a resposta do servidor não ter o facto.
+ */
+
+/** O estado de uma escola que ainda não tem registo. Um estado novo não se impõe ao passado. */
+const ESTADO_PADRAO = 'ativa';
+const ESTADOS = ['aguardando', 'ativa', 'suspensa'];
+
+/** A frase da recusa. UMA, escrita uma vez, para os dois lados dizerem a mesma coisa. */
+const MENSAGEM_DA_SUSPENSAO = 'O acesso desta escola está suspenso: é possível ler o que já foi '
+  + 'criado, mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
+
+/**
+ * O estado comercial, do KV da escola. Ausente ou ilegível → `ativa` (ver `ESTADO_PADRAO`).
+ *
+ * O CACHE É POR PEDIDO, e não de isolate: o estado muda por um clique dela, e um valor guardado
+ * entre pedidos faria a escola continuar aberta depois de suspensa — ou fechada depois de
+ * habilitada — até o isolate morrer. Uma leitura de KV por pedido é o preço de um estado que
+ * muda fora do sistema.
+ */
+async function lerComercial(kv, escola) {
+  const nome = String(escola || '').trim();
+  if (!kv || typeof kv.get !== 'function' || !nome) return null;
+  const texto = await kv.get('bastidores/' + nome + '/comercial');
+  if (!texto) return { estado: ESTADO_PADRAO, motivo: 'sem registo comercial' };
+  let registo = null;
+  try { registo = JSON.parse(texto); } catch (erro) { return { estado: ESTADO_PADRAO, motivo: 'registo ilegível' }; }
+  const estado = ESTADOS.indexOf(String((registo && registo.estado) || '')) !== -1
+    ? String(registo.estado) : ESTADO_PADRAO;
+  return Object.assign({}, registo, { estado });
+}
+
+/** O mesmo, a partir do `env` de uma escola (o `ESCOLA_SLUG` diz de quem é o registo). */
+async function comercialDaEscola(env) {
+  return lerComercial(env && env.PADD_KV, env && env.ESCOLA_SLUG);
+}
+
 module.exports = {
   centavos,
   reais,
   precoEmTexto,
+  ESTADO_PADRAO,
+  ESTADOS,
+  MENSAGEM_DA_SUSPENSAO,
+  lerComercial,
+  comercialDaEscola,
   assinaturaPorId,
   extensoesDoPlano,
   lotesDe,
