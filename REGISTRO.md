@@ -46388,3 +46388,76 @@ mesmo ciclo partilham a base — é o que se quer. Mas a base carrega `NOME="Cic
 dentro, o que é texto de UMA escola num arquivo de TODAS. Não foi mexido nesta correção (mexer
 agora mudaria o hash das âncoras de todas as escolas daquele professor); fica registado como
 pergunta, não como decisão.
+
+## 25/11/2026 — a página pública, o cadastro completo e o e-mail de boas-vindas
+
+**O que aconteceu.** A decisão, em três frases dela: «a página danca.padd.com.br ela é só minha, só
+do proprietário do sistema […] Essa página pública […] vai se chamar lastro.padd.com.br. E e aí ele
+acessa, ele tem essa mesma página de apresentação […] só que o único botão que existe para ela é o
+de criar nova escola.» Com o cadastro que ela especificou — da escola o nome, o CNPJ, o e-mail e o
+telefone (sem endereço); do professor principal o nome completo, o CPF, o e-mail e o telefone — e
+«ele já vai cadastrar aqui qual é a habilidade que ele tem». E: «sempre que for criado uma escola,
+tem que disparar um e-mail para o professor e para o e-mail da escola. Mesmo que seja o mesmo
+e-mail cadastrado, aí dispara um só.»
+
+**O que foi decidido.**
+
+- **Uma página, dois endereços, e o HOST decide.** `danca.padd.com.br` (e o `*.workers.dev`, o
+  endereço técnico do mesmo Worker, atrás da mesma senha) é o painel; todo o resto é público. A
+  direção do erro é declarada: um host desconhecido recebe a apresentação e o formulário — nunca a
+  lista de escolas. `HOST_DONO` é o critério, `HOST_PUBLICO` é o que se mostra; duas `var` porque
+  são duas perguntas.
+- **A regra não é o esconderijo.** No público o Worker responde **404** a `/api/escolas`,
+  `/api/professores`, `/api/cofre`, `/api/apagar-escola`, `/professores`, `/escolas-vivas` — e
+  404, não 401: um 401 diria a quem tentasse que ali há uma porta, e qual é. O `data-dono` da folha
+  esconde os botões que não abrem; é a segunda metade, e não a primeira.
+- **A marca do modo não se chama `data-modo`.** `data-modo` já é a aparência (`clara`/`noturna`) e
+  o botão do tema a reescreve: com o mesmo atributo, o primeiro clique no ◐ apagaria a marca, e a
+  página pública passaria a mostrar o painel por causa de uma troca de cor. É `data-pagina`.
+- **O cadastro tem um lugar, e não é o índice.** A verificação 7 do `check-indices` proíbe
+  `email`/`telefone` nos índices do acervo, e o repositório é público para quem tem o token. O
+  CNPJ, o CPF, os e-mails e os telefones vão para o KV, em duas chaves escolhidas pela natureza de
+  cada dado: `bastidores/<escola>/cadastro` (do TENANT — sai no expurgo; dado pessoal de cliente
+  não pode ficar como resíduo) e `professores/<slug>/contato` (da PESSOA — sobrevive, como o
+  `perfil.json`, porque o contato de quem ensina não é do tenant).
+- **A habilidade passa a ser declarada por quem entra.** Era `bale-classico` fixo no scaffolder
+  porque só ela criava escolas. Agora viaja no disparo (`criar-escola.yml` → `--modalidade`), que o
+  `criar-escola.sh` já validava contra o catálogo desde 03/11/2026. Vazio = professor que já
+  existe, e o perfil dele não se toca.
+- **O e-mail não finge que saiu.** Envio por HTTP (Resend, secret `RESEND_API_KEY`); sem a chave a
+  mensagem é composta, guardada na caixa de saída do tenant e a tela diz que não saiu, com o
+  comando que a liga. O conteúdo é o que ela pediu — o mesmo resultado que a tela mostra, com o
+  endereço da escola —, o mesmo endereço nos dois campos dispara um só, a senha não viaja por
+  e-mail, e um endereço próprio pendente não vira link morto.
+- **O que é de cada porta.** O público **exige** o cadastro da escola e **não** oferece
+  «reaproveitar um professor que já existe» (escolher uma pasta que já tem escola é decisão de
+  quem conhece o histórico). O painel aceita o cadastro vazio — as escolas de teste dela não têm
+  CNPJ, e exigi-lo fecharia a porta a quem só quer provar o sistema. A assimetria é uma linha
+  declarada, não um esquecimento.
+- **Duas portas, um percurso.** As duas chamam a mesma `responderCriacao` e escrevem no mesmo
+  registo (KV + `indice.json` do repositório) — é o que garante o que ela pediu: «independente de
+  por onde for criada a escola, os meus botões aqui […] têm que continuar funcionando».
+
+**Onde entrou.** `motor/nucleo/cadastro-da-escola.js` (novo) · `motor/servidor/correio.js` (novo) ·
+`motor/servidor/raiz.js` · `raiz/index.html` · `tools/templates/ciclo.css` + `raiz/assets/style.css`
+· `tools/ligar-pagina-publica.js` (novo) · `.github/workflows/criar-escola.yml` ·
+`wrangler.danca.jsonc` (`HOST_DONO`, `HOST_PUBLICO`, `CORREIO_DE`) ·
+`experimentos/provar-pagina-publica.js` (novo).
+
+**Com o quê.** `provar-pagina-publica` **63/63**, com controle negativo contra `062b5442` — o
+commit imediatamente antes deste trabalho — onde **29 asserções falham**, que é a funcionalidade a
+não existir. Mais `provar-cofre-e-shard` 129/129, `provar-teste` 44/44, `provar-form-escola`,
+`provar-recriacao-da-escola`, `provar-expurgo-do-professor-compartilhado` 13/13, `provar-indices`
+58/58, `provar-publicacao-da-escola` 73/73, `check-indices` 16/16, `check-identidade` 0 erros,
+`gerar-indices --check` e `gerar-relacoes --check` em dia.
+
+**O que fica pendente, e é declarado.**
+
+- `RESEND_API_KEY` não está configurada. Até estar, o e-mail não sai: fica composto na caixa de
+  saída do tenant (`bastidores/<escola>/correio/<carimbo>`), e a tela diz isso em vez de dizer
+  «enviado». O comando está na mensagem de erro — `npx wrangler secret put RESEND_API_KEY
+  --config wrangler.danca.jsonc` —, e o domínio tem de estar verificado no provedor para o
+  remetente `lastro@padd.com.br` poder enviar.
+- O cadastro **guarda-se mas ainda não se mostra** no painel: não há ecrã que liste o CNPJ ou o
+  contato de uma escola. O dado está no KV e a chave é conhecida; o ecrã é trabalho seguinte, e
+  ficar dito evita que se procure o que nunca foi desenhado.
