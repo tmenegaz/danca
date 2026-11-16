@@ -46577,3 +46577,77 @@ real, e não uma descrição dele.
 mede a página. As duas perguntas são diferentes — «o HTML está certo?» e «a página abre?» —, e a
 segunda só se responde a correr. O `check-identidade` responde à primeira desde sempre; quem
 responde à segunda passa a ser esta secção.
+
+## 25/11/2026 — a chave Pix como segredo, e a opção que eu tinha retirado
+
+**O que aconteceu.** Duas coisas no mesmo dia, e a segunda é minha.
+
+A chave Pix chegou: é o CPF dela. E ela voltou ao formulário para criar uma escola e disse o que
+faltava, com todas as letras: «no step dois, professor […] só tem uma opção aqui, um professor
+novo […] não tem a outra opção aqui. Você tirou. Tem que colocar aqui de volta.» Não era engano
+dela: eu tinha retirado a opção «um professor que já existe» da página pública, com uma razão
+escrita no `REGISTRO` — «reaproveitar uma pasta que já tem escola é decisão de quem conhece o
+histórico, e essa pessoa é uma só». A razão era boa e a conclusão estava errada: o problema não
+era a opção existir no público, era ela existir **à espera de uma lista que o público não tem**.
+
+**O que foi decidido.**
+
+- **A chave Pix não entra no ficheiro.** É um CPF, e um CPF escrito no `wrangler.danca.jsonc` fica
+  no histórico do git para sempre, em cada clone, e continua lá no dia em que a chave mudar de
+  banco — mesmo que o ficheiro mude. Vai como **segredo do Worker** (`PIX_CHAVE`), que é o lugar
+  onde já vivem o `GITHUB_TOKEN` e o `RESEND_API_KEY`. As duas `var` saíram da configuração: um
+  segredo e uma `var` com o mesmo nome são a mesma chave em `env`, e o deploy recusa manter as
+  duas — foi o primeiro erro desta mudança, e a mensagem do Cloudflare disse-o em uma linha
+  («Binding name 'PIX_CHAVE' already in use»). A sequência que funciona é publicar sem a `var` e
+  pôr o segredo a seguir.
+- **O comando, escrito na configuração, não traz a chave.** Escrevi-o primeiro com o valor, para
+  ser útil, e era o mesmo erro por outra porta: um exemplo é um lugar onde o segredo fica. Ficou
+  com um marcador e com a razão ao lado.
+- **O `PIX_TITULAR` fica por pôr, e é deliberado.** O banco exige o nome do titular por extenso, e
+  eu não o vou inventar a partir de um nome de tratamento — o campo em branco faz a página dizer
+  «pague por Pix para o Sistema Lastro», que é verdade. Uma chave do tipo CPF já mostra o titular
+  na app do banco de quem paga.
+- **A opção volta aos dois endereços, com a mesma pergunta e duas formas de responder.** No
+  painel continua a LISTA; no público é o NOME ESCRITO, e o servidor confere. A lista não se
+  publica porque ela é o cadastro dos professores — clientes do sistema —, e uma lista de clientes
+  num endereço aberto é o cadastro de terceiros à vista. Era essa a razão que faltava.
+- **No público a opção não espera pela lista.** Ficava desabilitada à espera de um `<select>` que
+  nunca viria — o botão que se vê e não abre, que ela já apontou duas vezes.
+- **O erro que sabe a saída passa a levá-la escolhida.** O servidor respondia «já existe o
+  professor "Demi" […] se for a mesma, use «usar este professor»» a quem estava a olhar para um
+  formulário onde essa opção não existia. Quando a resposta traz `colisao`, a página escolhe a
+  opção por ele, preenche o campo e volta à etapa 2 — com a mensagem, que `irPara` escreve depois
+  de limpar o campo do resultado. O que era impasse é um clique.
+- **A marca da página saiu de dentro do `servirAPagina`.** A prova que executava a página pública
+  repetia a marcação de memória — e executava o script do PAINEL a chamar-lhe público. Passou a
+  haver `marcarPagina(html, publico)`, exportada, usada pelo servidor e pelas provas: a
+  transformação mede-se uma vez.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`marcarPagina`, exportada) · `raiz/index.html`
+(`PUBLICO`, `professorExistenteEscolhido`, o campo escrito, as guardas, o preenchimento na
+colisão) · `wrangler.danca.jsonc` (as duas `var` saem; o segredo e o comando, documentados) ·
+`experimentos/provar-cadastro-em-etapas.js` (secção D) · `experimentos/provar-pagina-publica.js`
+(secção H) · `experimentos/provar-form-escola.js` (o arreio falso não conhecia o formulário em
+etapas).
+
+**Com o quê.** `provar-cadastro-em-etapas` **39/39** (controlo negativo contra `a4676abe`: 5
+passam, 24 falham), `provar-pagina-publica` **73/73** (controlo: 14 passam, 34 falham),
+`provar-form-escola` **todas**, `provar-cofre-e-shard` 129/129, `provar-teste` 44/44,
+`provar-indices` 58/58, `provar-publicacao-da-escola` 73/73,
+`provar-expurgo-do-professor-compartilhado` 13/13, `provar-recriacao-da-escola` todas,
+`check-indices` 16/16, `check-identidade` 0 erros. Ao vivo: `/api/pagina` em
+`lastro.padd.com.br` devolve `pix.chave` preenchido, e a chave **não existe em ficheiro nenhum**
+do repositório — verificado com `grep`.
+
+**O que fica pendente, e é declarado.**
+
+- **O `provar-form-escola` estava a rebentar desde o formulário em etapas**, e ninguém deu por
+  isso porque não foi corrido depois da mudança. O arreio falso não conhecia `documentElement`,
+  `setAttribute` nem `removeAttribute`, e morria na primeira linha do script — uma prova que
+  rebenta não mede nada, e a diferença entre «reprovou» e «explodiu» é a diferença entre saber e
+  não saber. Ficou a correr; a lição é que a lista de provas a correr depois de mexer no
+  formulário tem de incluir esta, e passou a incluir.
+- **A chave escrita no público continua a ser um oráculo de existência** — quem escrever um nome
+  certo descobre que ele existe. É da natureza da funcionalidade, a mensagem de colisão já o fazia
+  antes, e o remédio (identificar por CPF ou e-mail, como o cadastro já guarda) é trabalho
+  seguinte, não um remendo.
