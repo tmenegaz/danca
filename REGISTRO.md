@@ -46461,3 +46461,84 @@ não existir. Mais `provar-cofre-e-shard` 129/129, `provar-teste` 44/44, `provar
 - O cadastro **guarda-se mas ainda não se mostra** no painel: não há ecrã que liste o CNPJ ou o
   contato de uma escola. O dado está no KV e a chave é conhecida; o ecrã é trabalho seguinte, e
   ficar dito evita que se procure o que nunca foi desenhado.
+
+## 25/11/2026 — o cadastro em quatro etapas, o preço num só lugar, e a porta que se fecha sem pagamento
+
+**O que aconteceu.** O formulário de criar escola nasceu de uma coluna só, e ela viu: «parece uma
+tripa comprida e imensa». Pediu três coisas que são uma só, na verdade — passo a passo, duas
+colunas, e o que já se sabia a mais desde que a página pública entrou (CNPJ de um lado, CPF do
+outro, plano, pagamento). Pediu também o que a identidade dos dois números permite: parar de
+tratar «escola» e «professor» como nomes soltos, e passar a tratá-los como entidades que se
+identificam. E pediu o que ainda não existia: que a escola criada não esteja automaticamente a
+funcionar, porque quem paga é ela, a conciliação é manual, e o prazo é de até 24 horas.
+
+**O que foi decidido.**
+
+- **O passo é um número, não uma página.** As quatro etapas vivem no mesmo documento, em quatro
+  `<section class="etapa">` que se alternam; nenhuma delas sabe criar nada. A vantagem não é
+  estética: o que se preencheu no passo 1 continua no formulário quando se volta do passo 3, e uma
+  recusa do servidor (CNPJ repetido, por exemplo) devolve a pessoa ao passo onde o erro mora — com
+  os outros três intactos.
+- **A peça nova chama-se `etapa`, e não `passo`.** `passo`/`passos` já existem dentro do
+  `bastidores.js`, na trilha do lançamento, e a verificação 5 (Forma) do `check-identidade` reprova
+  a segunda definição da mesma peça. Foi o primeiro erro desta implementação, e corrigiu-se
+  renomeando em vez de acrescentando uma exceção.
+- **Nenhum preço se escreve em código, nem na folha, nem no HTML.** Os valores estão em
+  `biblioteca/comercial/planos.json` — um só lugar —, a aritmética faz-se em **centavos** em
+  `motor/nucleo/comercial.js`, e a página desenha o que a API lhe entrega. Se o preço mudar, muda
+  num arquivo; nenhum outro sítio tem de ser encontrado.
+- **Os descontos ficam vazios, e é uma decisão declarada.** O `PLANEJAMENTO-LASTRO.md` (§L8, risco
+  b) deixa a política de desconto em aberto. Um catálogo com desconto inventado seria pior do que
+  um catálogo sem desconto: a calculadora nunca desconta, e a razão está escrita no próprio JSON —
+  quem for decidir encontra lá o porquê.
+- **O CNPJ identifica a escola e o CPF identifica o professor.** Um CNPJ, uma escola; um CPF, um
+  professor. A conferência corre **antes** de se criar seja o que for, e a recusa diz o caminho de
+  saída (usar o professor que já existe, ou informar outro nome). É a ordem que importa: um Worker
+  já no ar por cima de uma escola que não devia existir é o pior resultado possível, e não se
+  desfaz com um pedido de desculpa.
+- **A ausência de registo comercial significa «ativa».** É a direção do erro, e é deliberada: as
+  escolas que já existem não podem ficar trancadas fora por causa de uma publicação. `aguardando`
+  só fecha a porta quando já há pacote para abrir — uma escola recém-criada tem de poder dizer «a
+  criar», e não «a aguardar conciliação». `suspensa` responde **402 a escrita e deixa ler**: ela
+  pediu «só tem acesso a ler as coisas que já foram desenvolvidas».
+- **Validar a senha e lançar o ato são POSTs que só leem.** Sem isso, uma escola suspensa deixaria
+  a professora de fora da própria memória — que é exatamente o que a suspensão não deve fazer.
+- **Remover, e não esconder.** Na página pública os botões do dono não aparecem porque **não vêm no
+  HTML**: `removerDoPainel` corre no servidor sobre o que vai ser servido. A regra de CSS
+  (`[data-pagina="publica"] [data-dono]`) fica como segunda barreira, não como a primeira — e a
+  prova passou a exigir a ausência no documento, porque contar ocorrências de `data-dono` conta
+  também os comentários que os explicam.
+- **A lacuna não vira dado.** `PIX_CHAVE` e `PIX_TITULAR` entram como `[Preencher: …]`, e
+  `semLacuna()` devolve `null`: a página diz que a chave não está configurada em vez de mostrar um
+  marcador como se fosse uma chave.
+
+**Onde entrou.** `biblioteca/comercial/planos.json` (novo) · `motor/nucleo/comercial.js` (novo) ·
+`motor/servidor/raiz.js` · `motor/servidor/producao.js` · `motor/servidor/painel-html.js` ·
+`raiz/index.html` · `tools/templates/ciclo.css` + `raiz/assets/style.css` ·
+`wrangler.danca.jsonc` (`PIX_CHAVE`, `PIX_TITULAR`) ·
+`experimentos/provar-cadastro-em-etapas.js` (novo) · `experimentos/provar-pagina-publica.js`.
+
+**Com o quê.** `provar-cadastro-em-etapas` **34/34**, com controle negativo contra `a4676abe` — o
+commit do formulário de uma coluna —, onde **22 asserções falham** e 3 passam (as que descrevem o
+que já existia: os campos, o POST, a recusa). A geometria mede-se em Chrome de verdade, na
+bancada local com `/api/*` em stub; o comportamento, em `jsdom`. Mais `provar-pagina-publica`
+63/63 (controlo contra `062b5442`: 28 falhas), `provar-cofre-e-shard` 129/129, `provar-teste`
+44/44, `provar-indices` 58/58, `provar-publicacao-da-escola` 73/73,
+`provar-expurgo-do-professor-compartilhado` 13/13, `check-indices` 16/16, `check-identidade` 0
+erros.
+
+**O que fica pendente, e é declarado.**
+
+- **`PIX_CHAVE` e `PIX_TITULAR` estão vazios.** São dela — a chave e o titular são dela, não do
+  repositório. Até serem preenchidos, o passo 4 diz que a chave não está configurada e a criação
+  segue sem pagamento à vista; é o comportamento certo, mas não é o comportamento final.
+- **A conciliação é manual, e o ecrã dela existe pela metade.** Há Habilitar/Desabilitar por linha
+  em Escolas vivas, e a coluna de estado. Não há ainda o registo de *quando* se habilitou, *por
+  quem*, nem o valor que se conferiu — e a regra do expurgo («só depois de três meses sem
+  pagamento») precisa desse histórico para não ser uma data contada de memória.
+- **A C23 continua aberta.** A capacidade subiu (6 professores, 90 alunos) e o preço não; a escada
+  comercial, assim, só perde receita. Fica dito no `PLANEJAMENTO-LASTRO.md`, e é decisão dela.
+- **O cadastro guarda-se mas ainda não se mostra.** Não há ecrã que liste o CNPJ ou o contacto de
+  uma escola. O dado está no KV, a chave é conhecida, e o ecrã é o trabalho seguinte.
+- **O e-mail de boas-vindas continua a não sair**, por falta de `RESEND_API_KEY` — compõe-se,
+  guarda-se na caixa de saída do tenant, e a tela diz que não saiu.
