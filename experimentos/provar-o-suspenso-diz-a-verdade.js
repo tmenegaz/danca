@@ -53,6 +53,11 @@ function kvCom(estado, escola) {
     JSON.stringify({ estado, criadoEm: '2026-11-16T10:00:00.000Z', plano: 'basico' }));
   // O mapa, para o host resolver a escola sem `ESCOLA_SLUG`.
   dados.set('escolas/por-host', JSON.stringify({ 'breu.padd.com.br': 'breu' }));
+  /* UM PROFESSOR COM SENHA, e em claro: é o caminho legado do registo, e é o que permite pedir
+   * a rota da senha com uma senha que CONFERE — sem isso, a prova nunca chegaria ao veredicto
+   * que interessa (senha certa, escola fechada) e mediria só a recusa da senha. */
+  dados.set('bastidores/' + (escola || 'breu') + '/professores',
+    JSON.stringify([{ nome: 'Brise Volet', senha: '123' }]));
   return {
     async get(k) { return dados.has(k) ? dados.get(k) : null; },
     async list() { return { keys: [...dados.keys()].map((name) => ({ name })) }; },
@@ -196,6 +201,117 @@ function envDa(estado) {
     /* A ORDEM DAS PERGUNTAS: 'desligado' e 'suspensa' são factos; 'errada' é o que sobra. */
     conferir('…e a senha errada continua a ser dita quando é mesmo o caso',
       /SENHA === 'errada'/.test(html) && /não foi reconhecida/.test(html), null);
+  }
+
+  console.log('\nE. O CAMINHO INTEIRO: o que o SERVIDOR responde é o que a TELA mostra');
+  {
+    /* A LIÇÃO DESTA SECÇÃO (16/11/2026). A secção D afirmava o veredicto lendo o TEXTO do
+     * script — e o script tinha o veredicto, sim, mas a resposta do servidor nunca trazia o facto
+     * que ele lia. A prova passava e a tela continuava a mentir, porque a resposta que a secção D
+     * usava era escrita à mão por mim. Uma resposta inventada na bancada mede a bancada.
+     *
+     * Aqui não há resposta escrita à mão: pede-se a rota DE VERDADE, através da porta (o
+     * `producao.fetch`, com o estado comercial no KV), e é o JSON que voltar que se entrega à
+     * tela. Se o servidor não disser que a escola está suspensa, o teste falha na primeira
+     * asserção — antes de chegar à tela. */
+    const env = envDa('suspensa');
+    const pedir = (caminho, metodo, corpo) => producao.fetch(
+      new Request('https://breu.padd.com.br' + caminho, {
+        method: metodo || 'GET',
+        ...(corpo ? { body: JSON.stringify(corpo), headers: { 'Content-Type': 'application/json' } } : {}),
+      }), env);
+
+    const lista = await (await pedir('/api/bastidores/professores')).json().catch(() => ({}));
+    const professores = Array.isArray(lista.professores) ? lista.professores : [];
+    conferir('o professor semeado aparece na lista que o servidor dá',
+      professores.length >= 1, lista);
+    const slug = professores.length ? professores[0].slug : '';
+
+    const resposta = await pedir('/api/bastidores/validar-senha', 'POST', { senha: '123', professor: slug });
+    const corpo = await resposta.json().catch(() => ({}));
+    conferir('com a senha CERTA e a escola suspensa, a rota responde 200 (a senha não é o problema)',
+      resposta.status === 200, resposta.status);
+    conferir('…e diz que a senha confere', corpo.ok === true, corpo);
+    conferir('…E diz que a escola está suspensa — o facto que faltava na resposta',
+      corpo.suspensa === true, corpo);
+    conferir('…com a frase da casa, a mesma da porta',
+      /suspens/i.test(String(corpo.erro || '')), corpo.erro);
+
+    /* E AGORA A TELA, com ESSA resposta — não com uma que eu escreva. */
+    const { JSDOM, VirtualConsole } = require('jsdom');
+    const html = listas.scriptDoPainel('anamnese', 'breu');
+    const paciente = new VirtualConsole();
+    const erros = [];
+    paciente.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+    /* O PAINEL SÓ EXISTE DENTRO DO BLOCO DO ATO (o script desiste sem ele), e o veredicto da
+     * senha só é alcançado quando o CONTEXTO ESTÁ INTEIRO: com o contexto faltando, a tela diz o
+     * que falta — e é essa a ordem certa. Por isso o professor e a aluna são escolhidos aqui. */
+    const dom = new JSDOM('<!doctype html><html><body>'
+      + '<div id="bloco-ato">'
+      + '<select data-ato="professor"><option value="">— escolher —</option></select>'
+      + '<select data-ato="aluna"><option value="">— nenhuma —</option></select>'
+      + '<select data-ato="ciclo"><option value="">— nenhum —</option></select>'
+      + '<input type="password" data-ato="senha">'
+      + '<span data-senha-status hidden>confere</span>'
+      + '<button data-acao="nova" disabled>criar</button>'
+      + '<p data-estado hidden></p><p data-resumo></p>'
+      + '</div></body></html>', {
+      runScripts: 'dangerously',
+      url: 'https://breu.padd.com.br/anamnese/',
+      virtualConsole: paciente,
+      beforeParse(win) {
+        win.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+        /* O `localStorage` do jsdom é um getter: define-se, não se atribui. A memória do
+         * preenchimento interrompido é dela, e aqui o que se mede é o veredicto da senha. */
+        Object.defineProperty(win, 'localStorage', {
+          configurable: true,
+          value: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+        });
+        win.fetch = (url) => {
+          const c = String(url);
+          let d = { ok: true };
+          if (c.indexOf('validar-senha') !== -1) d = corpo; // ← A RESPOSTA DO SERVIDOR
+          else if (c.indexOf('professores') !== -1) d = { ok: true, professores: professores };
+          else if (c.indexOf('/api/bastidores/alunas') !== -1) d = { ok: true, alunas: ['abreu'] };
+          else if (c.indexOf('/api/bastidores/turmas') !== -1) d = { ok: true, turmas: [] };
+          else if (c.indexOf('curadoria') !== -1 || c.indexOf('ciclos') !== -1) d = { ok: true, itens: [] };
+          return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve(d) });
+        };
+      },
+    });
+    await new Promise((r) => setTimeout(r, 60));
+    /* O SCRIPT DO PAINEL É UMA FUNÇÃO, e é chamada como a página a chama: com o HTML dele. */
+    const bloco = /<script[^>]*>([\s\S]*?)<\/script>/.exec(html);
+    if (bloco) {
+      try { dom.window.eval(bloco[1]); } catch (e) { erros.push('eval: ' + String((e && e.message) || e)); }
+    }
+    await new Promise((r) => setTimeout(r, 120));
+    const d = dom.window.document;
+    const escolher = d.querySelector('[data-ato="professor"]');
+    if (escolher && escolher.options.length > 1) {
+      escolher.value = escolher.options[1].value;
+      escolher.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    }
+    const aluna = d.querySelector('[data-ato="aluna"]');
+    if (aluna && aluna.options.length > 1) {
+      aluna.value = aluna.options[1].value;
+      aluna.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    }
+    const campo = d.querySelector('[data-ato="senha"]');
+    if (campo) {
+      campo.value = '123';
+      campo.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+      campo.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    }
+    await new Promise((r) => setTimeout(r, 700));
+    const estado = d.querySelector('[data-estado]');
+    const texto = String((estado && estado.textContent) || '').replace(/\s+/g, ' ').trim();
+    conferir('a tela do professor COMPILA e corre sem lançar', erros.length === 0, erros.slice(0, 1));
+    conferir('com a resposta do servidor na mão, a tela diz que a escola está SUSPENSA',
+      /suspens/i.test(texto), texto);
+    conferir('…e NÃO culpa a senha (a senha está certa, e o servidor o disse)',
+      !/senha do professor não foi reconhecida/i.test(texto), texto);
+    dom.window.close();
   }
 
   console.log('');
