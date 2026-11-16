@@ -47471,3 +47471,15 @@ entrou à frente. O mesmo vale para as falhas de `provar-expurgo-raiz` e `provar
 
 **O expurgo da `duo` não foi feito por mim** — é irreversível e é gesto dela. A regra é que passou
 a deixá-lo acontecer.
+
+**Motivo declarado — os congelados.** Este mesmo marco alterou `tools/auditar-proveniencia.js`,
+que é infraestrutura congelada. O motivo: a ferramenta é o que se corre à mão quando a auditoria
+recusa, e ela imprimia a mensagem do bloqueio sem dizer o que fazer — a informação que a página
+passou a mostrar (o `comoCorrigir` do núcleo) faltava exactamente na ferramenta de quem vai
+corrigir. A alteração é de **saída**, não de regra: acrescenta uma linha `→ <correção>` por
+bloqueio, com a frase lida do `proveniencia.CORRECAO`.
+
+**O que não muda:** a fórmula do hash (`tools/hash-ciclo.sh` não foi tocado), a cobertura das
+âncoras, os validadores e o código de saída da ferramenta (0 passa, 1 reprova, 2 uso errado), as
+17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. Nenhum bloqueio novo, nenhum retirado
+— o que a ferramenta **aprova** é o mesmo antes e depois.

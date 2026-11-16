@@ -169,7 +169,12 @@ function imprimir(r) {
     return;
   }
   linha('  REPROVADO — ' + r.problemas.length + ' bloqueio(s):');
-  for (const p of r.problemas) linha('    [' + p.codigo + '] ' + p.mensagem);
+  for (const p of r.problemas) {
+    linha('    [' + p.codigo + '] ' + p.mensagem);
+    /* A SAÍDA DIZ O QUE FAZER ÀQUELE BLOQUEIO (16/11/2026) — a frase vem do núcleo
+     * (`proveniencia.CORRECAO`), e não de uma segunda tabela que divergiria da que a página usa. */
+    if (p.comoCorrigir) linha('        → ' + p.comoCorrigir);
+  }
 }
 
 async function main() {
