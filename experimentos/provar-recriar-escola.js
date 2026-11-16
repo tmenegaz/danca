@@ -162,6 +162,10 @@ function envCom(kv, extra) {
     CLOUDFLARE_API_TOKEN: 'cf-de-mentira',
     SHARD_SCRIPT: 'lastro-teste',
     ZONA_ESCOLAS: 'padd.com.br',
+    /* A CHAVE DO PROVEDOR, no `env` da prova. Sem ela o `correio.enviar` devolve «sem
+     * RESEND_API_KEY» SEM chamar o `fetch` — e uma prova que medisse «não saiu carta» concluiria
+     * que a composição está partida, quando o que falta é a chave. */
+    RESEND_API_KEY: 're-de-mentira',
     ASSETS: { fetch: async () => new Response('{}', { status: 404 }) },
   }, extra || {});
 }
@@ -188,52 +192,39 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
       raiz.reconstruindo({ comercial: { atualizadoEm: apagada }, expurgada_em: null }) === false, null);
   }
 
-  console.log('\nB. As recusas — cinco, cada uma com o seu motivo, e nada tocado');
+  console.log('\nB. O convite: as recusas, e o token que só existe em hash');
   {
-    /* A ROTA, e não a função: o que a página vê é o status e a frase. */
-    const pedir = async (env, corpo) => {
-      const res = await raiz.fetch(new Request('https://danca.padd.com.br/api/recriar-escola', {
+    const pedirConvite = async (env, escola) => {
+      const res = await raiz.fetch(new Request('https://danca.padd.com.br/api/recriar-convite', {
         method: 'POST',
         headers: { Authorization: AUTORIZACAO, 'Content-Type': 'application/json' },
-        body: JSON.stringify(corpo),
+        body: JSON.stringify({ escola }),
       }), env);
       return { status: res.status, corpo: await res.json().catch(() => ({})) };
     };
 
+    /* AS TRÊS RECUSAS, sem tocar em nada. A janela (`reconstruindo`) é a quarta, medida na
+     * secção A; aqui mede-se o que a rota responde. */
     const semElo = githubFalso({ elo: null });
     globalThis.fetch = semElo.fetch;
     try {
-      const r = await pedir(envCom(kvCom({})), { escola: 'outra', plano: PLANO });
-      conferir('sem elo: 404, e diz que para uma escola nova há o «Criar nova escola»',
+      const r = await pedirConvite(envCom(kvCom({})), 'outra');
+      conferir('sem elo: 404, e aponta o «Criar nova escola»',
         r.status === 404 && /Criar nova escola/.test(r.corpo.erro || ''), r);
     } finally { delete globalThis.fetch; }
 
-    const nuncaApagada = JSON.parse(JSON.stringify(ELO));
-    delete nuncaApagada.expurgo;
-    const gh = githubFalso({ elo: nuncaApagada });
-    globalThis.fetch = gh.fetch;
+    const semExpurgo = JSON.parse(JSON.stringify(ELO));
+    delete semExpurgo.expurgo;
+    const gh0 = githubFalso({ elo: semExpurgo });
+    globalThis.fetch = gh0.fetch;
     try {
-      const r = await pedir(envCom(kvCom({})), { escola: 'duo', plano: PLANO });
-      conferir('nunca apagada: 409, e diz que ela está na lista das vivas',
+      const r = await pedirConvite(envCom(kvCom({})), 'duo');
+      conferir('nunca apagada: 409, e diz que ela está nas vivas',
         r.status === 409 && /lista das vivas/.test(r.corpo.erro || ''), r);
     } finally { delete globalThis.fetch; }
 
-    const jaRecriada = JSON.parse(JSON.stringify(ELO));
-    jaRecriada.recriacao = [{ em: '2026-11-16T15:00:00.000Z', motivo: 'recriada pela página' }];
-    const gh2 = githubFalso({ elo: jaRecriada });
-    globalThis.fetch = gh2.fetch;
-    try {
-      const r = await pedir(envCom(kvCom({})), { escola: 'duo', plano: PLANO });
-      conferir('já recriada depois do expurgo: 409, e diz que recriar outra vez criaria uma segunda',
-        r.status === 409 && /já foi recriada/.test(r.corpo.erro || ''), r);
-      conferir('…e não dispara nada', gh2.disparos.length === 0, gh2.disparos.length);
-    } finally { delete globalThis.fetch; }
-
-    /* A JANELA ABERTA: o elo ainda diz «apagada» (o CI não correu), mas o registo comercial já
-     * foi escrito pela recriação anterior. Um segundo clique criaria dois `criar-escola` sobre a
-     * mesma escola. */
-    const gh3 = githubFalso();
-    globalThis.fetch = gh3.fetch;
+    const ghEmCurso = githubFalso();
+    globalThis.fetch = ghEmCurso.fetch;
     try {
       const kv = kvCom({
         'bastidores/duo/comercial': JSON.stringify({
@@ -241,208 +232,200 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
           plano: PLANO,
         }),
       });
-      const r = await pedir(envCom(kv), { escola: 'duo', plano: PLANO, senhaAdmin: 'x' });
-      conferir('recriação já em curso: 409, e diz para esperar o índice',
+      const r = await pedirConvite(envCom(kv), 'duo');
+      conferir('recriação já em curso: 409, e não manda outro convite',
         r.status === 409 && /já está em curso/.test(r.corpo.erro || ''), r);
-      conferir('…e não dispara nada', gh3.disparos.length === 0, gh3.disparos.length);
-    } finally { delete globalThis.fetch; }
-
-    /* SEM SENHA NENHUMA: nem no pedido, nem no cofre. Uma escola no ar que não abre para ninguém
-     * seria pior do que não a recriar. */
-    const gh4 = githubFalso();
-    globalThis.fetch = gh4.fetch;
-    try {
-      const r = await pedir(envCom(kvCom({})), { escola: 'duo', plano: PLANO });
-      conferir('sem senha no pedido nem no cofre: 400, e diz que uma escola sem senha não abre',
-        r.status === 400 && /não abre para ninguém/.test(r.corpo.erro || ''), r);
-      conferir('…e não dispara nada', gh4.disparos.length === 0, gh4.disparos.length);
-    } finally { delete globalThis.fetch; }
-
-    /* A PORTA PÚBLICA NÃO TEM ESTE GESTO. O endereço aberto só cria escola (e com o cadastro
-     * completo); recriar é da proprietária. A regra é do HOST, e não do botão escondido — quem
-     * escrever o pedido à mão no endereço público bate aqui. */
-    const ghPub = githubFalso();
-    globalThis.fetch = ghPub.fetch;
-    try {
-      const res = await raiz.fetch(new Request('https://lastro.padd.com.br/api/recriar-escola', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ escola: 'duo', plano: PLANO, senhaAdmin: 'x' }),
-      }), envCom(kvCom({})));
-      conferir('no endereço PÚBLICO a recriação responde 404 — e sem autenticação nenhuma',
-        res.status === 404, res.status);
-      conferir('…e nada é disparado', ghPub.disparos.length === 0, ghPub.disparos.length);
-    } finally { delete globalThis.fetch; }
-
-    const semTokens = githubFalso();
-    globalThis.fetch = semTokens.fetch;
-    try {
-      const r = await pedir(envCom(kvCom({}), { GITHUB_TOKEN: '' }), { escola: 'duo', plano: PLANO });
-      conferir('sem GITHUB_TOKEN: 500, e nomeia o que falta',
-        r.status === 500 && /GITHUB_TOKEN/.test(r.corpo.erro || ''), r);
     } finally { delete globalThis.fetch; }
   }
 
-  console.log('\nC. A recriação: o elo manda, a senha do cofre é herdada, o registo nasce limpo');
+  console.log('\nC. O convite que sai: um e-mail, um link, e o KV sem o segredo');
   {
-    /* O COFRE DA VIDA ANTERIOR — o que uma escola de shard conserva. O hash é de uma senha que
-     * «Fernando» já usava; é ela que tem de continuar a valer quando o pedido vem sem senha. */
-    const senhaAntiga = 'a-senha-do-fernando';
-    const registo = await senha.registoDeSenha(senhaAntiga);
+    const registo = await senha.registoDeSenha('senha-antiga');
     const kv = kvCom({
-      'bastidores/duo/dono': JSON.stringify({
-        nome: 'Fernando Franciose', slug: 'fernando-franciose', escola: 'Duo',
-        hash: registo.hash, sal: registo.sal,
-        professor_hash: registo.hash, professor_sal: registo.sal,
-      }),
-      /* O REGISTO COMERCIAL DA VIDA ANTERIOR, com o que NÃO pode ser herdado: a suspensão que
-       * levou ao expurgo. É esta data que a coluna «Desabilitada» mostraria na escola recriada. */
-      'bastidores/duo/comercial': JSON.stringify({
-        estado: 'suspensa', plano: 'intermediario', planoNome: 'Intermediário', valor: '99,90',
-        desabilitadaEm: '2026-11-15T22:51:00.000Z', habilitadaEm: '2026-08-01T10:30:00.000Z',
-        criadoEm: '2026-08-01T10:00:00.000Z', historico: [{ em: '2026-08-01T10:00:00.000Z', para: 'ativa' }],
-      }),
-      'escolas/por-host': JSON.stringify({}),
-    });
-    const gh = githubFalso();
-    const cf = cloudflareFalso();
-    const fetchGithub = gh.fetch;
-    /* O `fetch` global serve os dois — o GitHub e o Cloudflare —, e é por isso que ele decide
-     * pelo endereço: é a mesma coisa que um `fetch` real faria. */
-    globalThis.fetch = async (url, init) => (String(url).indexOf('api.github.com') !== -1
-      ? fetchGithub(url, init) : cf.fetch(url, init));
-    let resultado;
-    try {
-      resultado = await raiz.recriarEscola({
-        env: envCom(kv), escola: 'duo', plano: '', senhaAdmin: '', senhaProfessor: '',
-      });
-    } finally { delete globalThis.fetch; }
-
-    conferir('a recriação completa', resultado.ok === true, resultado);
-    conferir('…com o mesmo slug — não é outra escola ao lado',
-      resultado.escola === 'duo', resultado.escola);
-    conferir('…e o nome vem do cadastro/do slug, e reproduz o slug',
-      resultado.nome === 'Duo', resultado.nome);
-
-    const disparo = gh.disparos[0] || {};
-    const entradas = disparo.inputs || {};
-    conferir('o disparo do motor correu', gh.disparos.length === 1, gh.disparos.length);
-    conferir('…com o professor do ELO (slug e nome)',
-      entradas.professor === 'fernando-franciose' && entradas['professor-nome'] === 'Fernando Franciose', entradas);
-    conferir('…com o ciclo do elo', entradas.ciclo === '01', entradas.ciclo);
-    conferir('…com o shard do elo — o motor que se sobe é o do shard',
-      entradas.shard === 'lastro-teste', entradas.shard);
-    conferir('…e sem modalidade: o professor já existe, e o perfil dele não foi apagado',
-      entradas.modalidade === '', entradas.modalidade);
-
-    const dono = JSON.parse(kv.dados.get('bastidores/duo/dono') || '{}');
-    conferir('a senha NÃO se perdeu: o cofre guarda o MESMO hash (em branco = manter)',
-      dono.hash === registo.hash && dono.sal === registo.sal, Object.keys(dono));
-    conferir('…e a senha antiga continua a conferir (é o professor que volta a entrar)',
-      await senha.confere(senhaAntiga, dono), null);
-    conferir('…e nenhuma senha em claro ficou no registo',
-      !JSON.stringify(dono).includes(senhaAntiga), Object.keys(dono));
-
-    const mapa = JSON.parse(kv.dados.get('escolas/por-host') || '{}');
-    conferir('a escola volta ao MAPA, com o endereço próprio e o técnico',
-      mapa['duo.padd.com.br'] === 'duo' && mapa['duo.tmenegaz77.workers.dev'] === 'duo', mapa);
-    conferir('a ROTA aponta ao shard', cf.rotas.some((r) => /^duo\./.test(r.pattern) && r.script === 'lastro-teste'),
-      cf.rotas);
-
-    const comercialDepois = JSON.parse(kv.dados.get('bastidores/duo/comercial') || '{}');
-    conferir('o estado comercial nasce «aguardando» — é a conciliação que abre o acesso',
-      comercialDepois.estado === 'aguardando', comercialDepois.estado);
-    conferir('…e a suspensão da vida anterior NÃO foi herdada',
-      !comercialDepois.desabilitadaEm && !comercialDepois.habilitadaEm,
-      { desabilitadaEm: comercialDepois.desabilitadaEm, habilitadaEm: comercialDepois.habilitadaEm });
-    conferir('…nem o histórico dela', Array.isArray(comercialDepois.historico)
-      && comercialDepois.historico.every((e) => e.para !== 'ativa'), comercialDepois.historico);
-    conferir('…e o professor vai no registo, para a linha «a nascer» o mostrar',
-      comercialDepois.professor === 'fernando-franciose', comercialDepois.professor);
-    conferir('…com a origem declarada, para se saber que esta encarnação veio de uma recriação',
-      comercialDepois.origem === 'recriacao' && Boolean(comercialDepois.recriadaDe), {
-        origem: comercialDepois.origem, recriadaDe: comercialDepois.recriadaDe,
-      });
-    conferir('…e o plano veio do pedido (vazio = o da vida anterior, que era `intermediario`)',
-      comercialDepois.plano === 'intermediario', comercialDepois.plano);
-    conferir('a resposta traz o valor a pagar — é o que a chave Pix vai pedir',
-      Boolean(resultado.aPagar && resultado.aPagar.valor), resultado.aPagar);
-    /* O CORREIO, e a resposta diz a VERDADE sobre ele. Esta escola não tem cadastro no KV de
-     * prova (o da vida anterior pode ter ido com o expurgo), e por isso não há a quem escrever:
-     * `enviado: false` com o motivo, em vez de «enviado». É a disciplina declarada do módulo — um
-     * sistema que diz «enviado» sem ter enviado gasta a confiança no dia em que se procura. */
-    conferir('sem cadastro no KV, o desfecho do correio é dito e não fingido',
-      resultado.correio && resultado.correio.enviado === false
-        && /não há e-mail a quem enviar/.test(String(resultado.correio.motivo)), resultado.correio);
-  }
-
-  console.log('\nC2. O correio: os destinatários do KV, e o envio de verdade (com a API falsa)');
-  {
-    /* O QUE O KV GUARDA NÃO TEM OS NOMES QUE A MENSAGEM LÊ — `email` (da escola) no registo e o
-     * contato do professor noutra chave. É esta costura que faz o e-mail chegar a alguém. */
-    const registo = await senha.registoDeSenha('senha-que-ja-existia');
-    const kv = kvCom({
-      'bastidores/duo/dono': JSON.stringify({
-        nome: 'Fernando Franciose', slug: 'fernando-franciose', escola: 'Duo',
-        hash: registo.hash, sal: registo.sal,
-      }),
       'bastidores/duo/cadastro': JSON.stringify({
-        escolaNome: 'Duo', email: 'escola@exemplo.test', cnpj: null, origem: 'painel',
-        criadoEm: '2026-11-16T12:00:00.000Z',
+        escolaNome: 'Duo', email: 'escola@exemplo.test', criadoEm: '2026-11-16T12:00:00.000Z',
       }),
-      'professores/fernando-franciose/contato': JSON.stringify({
-        nomeCompleto: 'Fernando Franciose', email: 'professor@exemplo.test',
-      }),
-      'escolas/por-host': JSON.stringify({}),
+      'professores/fernando-franciose/contato': JSON.stringify({ email: 'professor@exemplo.test' }),
+      /* O cofre da vida anterior: a senha dele já não importa — nesta versão quem a cria é a
+       * escola —, mas a chave existir garante que o provisionamento não a apaga por acidente. */
+      'bastidores/duo/dono': JSON.stringify({ hash: registo.hash, sal: registo.sal, slug: 'fernando-franciose' }),
     });
     const gh = githubFalso();
-    const cf = cloudflareFalso();
-    const fetchGithub = gh.fetch;
     const cartas = [];
+    const fetchGithub = gh.fetch;
     globalThis.fetch = async (url, init) => {
       const u = String(url);
       if (u.indexOf('api.resend.com') !== -1) {
         cartas.push(JSON.parse((init && init.body) || '{}'));
-        return { ok: true, status: 200, json: async () => ({ id: 'carta-1' }) };
+        return { ok: true, status: 200, json: async () => ({ id: 'carta-1' }), text: async () => '' };
       }
-      return u.indexOf('api.github.com') !== -1 ? fetchGithub(url, init) : cf.fetch(url, init);
+      return fetchGithub(url, init);
     };
     let r;
     try {
-      r = await raiz.recriarEscola({
-        env: envCom(kv, { RESEND_API_KEY: 're-de-mentira' }),
-        escola: 'duo', plano: PLANO, senhaAdmin: '', senhaProfessor: '',
-      });
+      r = await raiz.criarConvite({ env: envCom(kv, { PIX_CHAVE: 'chave@pix.test' }), escola: 'duo' });
     } finally { delete globalThis.fetch; }
 
-    conferir('a recriação manda uma carta, e uma só', cartas.length === 1, cartas.length);
-    const carta = cartas[0] || {};
-    conferir('…para o e-mail da escola E o do professor, cada um uma vez',
-      Array.isArray(carta.to) && carta.to.length === 2
-        && carta.to.indexOf('escola@exemplo.test') !== -1
-        && carta.to.indexOf('professor@exemplo.test') !== -1, carta.to);
-    conferir('…com o assunto a dizer o nome da escola',
-      /Duo/.test(String(carta.subject || '')), carta.subject);
-    conferir('…e o endereço dela no corpo, que é o que a pessoa vai usar',
-      /https:\/\/duo\./.test(String(carta.text || '')), (carta.text || '').slice(0, 120));
-    conferir('…sem a senha em claro (a senha não se manda por e-mail)',
-      !String(carta.text || '').includes('senha-que-ja-existia')
-        && /não a repetimos por e-mail/.test(String(carta.text || '')), null);
-    conferir('…e a resposta diz que foi enviado', r.correio && r.correio.enviado === true, r.correio);
+    conferir('o convite é emitido', r.ok === true, r);
+    const token = String(r.link || '').split('/recriar/')[1] || '';
+    conferir('…e o link é do endereço PÚBLICO, e leva o slug e 32 hex',
+      /^https:\/\/lastro\.padd\.com\.br\/recriar\/duo-[a-f0-9]{32}$/.test(String(r.link || '')), r.link);
+    conferir('…com um prazo dito em texto, na hora de quem lê', Boolean(r.expiraEmTexto), r.expiraEmTexto);
 
-    /* SEM CHAVE, NÃO SE DIZ «ENVIADO» — e a frase diz o que fazer (a dica do `wrangler secret
-     * put`). É a mesma regra do `SENHA_CRIPTO` em falta: a mensagem é composta, guardada, e o
-     * desfecho é dito. */
-    const correioMod = require(path.join(RAIZ, 'motor/servidor/correio.js'));
-    const semChave = await correioMod.enviar({
-      mensagem: { para: ['alguem@exemplo.test'], assunto: 'a', html: '<p>h</p>', texto: 't' }, chave: '',
-    });
-    conferir('sem RESEND_API_KEY, o envio diz «sem chave» e não finge ter saído',
-      semChave.enviado === false && /RESEND_API_KEY/.test(String(semChave.motivo))
-        && /wrangler secret put/.test(String(semChave.dica)), semChave);
+    const guardado = JSON.parse(kv.dados.get('bastidores/duo/convite') || '{}');
+    conferir('o KV guarda o convite da escola', guardado.escola === 'duo', guardado);
+    conferir('…e NUNCA o segredo em claro — só o SHA-256 dele',
+      Boolean(guardado.hash) && String(guardado.hash).length === 64
+        && JSON.stringify(guardado).indexOf(token.split('-')[1]) === -1, Object.keys(guardado));
+    conferir('…com a data de expiração', Boolean(Date.parse(guardado.expiraEm || '')), guardado.expiraEm);
+
+    conferir('saiu UMA carta, e uma só', cartas.length === 1, cartas.length);
+    const carta = cartas[0] || {};
+    conferir('…para o e-mail da escola E o do professor',
+      Array.isArray(carta.to) && carta.to.indexOf('escola@exemplo.test') !== -1
+        && carta.to.indexOf('professor@exemplo.test') !== -1, carta.to);
+    conferir('…com o link do convite no corpo',
+      String(carta.text || '').indexOf(r.link) !== -1, (carta.text || '').slice(0, 140));
+    conferir('…e a instrução do Pix: escrever o nome da escola na descrição',
+      /escreva o nome da escola/i.test(String(carta.text || '')), null);
+    conferir('…sem prometer acesso imediato (a conciliação é manual)',
+      /até 24 horas/i.test(String(carta.text || '')), null);
+
+    /* O CONVITE VALE UMA VEZ E POR TEMPO LIMITADO — medido no núcleo, sem KV. */
+    const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
+    const segredo = 'a'.repeat(32);
+    const bom = { escola: 'duo', hash: await nucleo.hashDoToken(segredo), expiraEm: nucleo.validadeDe() };
+    conferir('um convite válido passa', (await nucleo.estadoDoConvite(bom, segredo)).ok === true, null);
+    conferir('…e o mesmo token DEPOIS de usado não passa',
+      (await nucleo.estadoDoConvite(Object.assign({}, bom, { usadoEm: new Date().toISOString() }), segredo)).ok === false, null);
+    conferir('…e um token expirado também não',
+      (await nucleo.estadoDoConvite(Object.assign({}, bom, { expiraEm: '2020-01-01T00:00:00Z' }), segredo)).ok === false, null);
+    conferir('…e um token que não é o do convite também não',
+      (await nucleo.estadoDoConvite(bom, 'b'.repeat(32))).ok === false, null);
   }
 
-  console.log('\nD. As duas listas: a que está a ser recriada muda de lado');
+  console.log('\nD. O token como autenticação: a página pública abre, e só com ele');
+  {
+    const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
+    const segredo = nucleo.novoToken();
+    const token = 'duo-' + segredo;
+    const kv = kvCom({
+      'bastidores/duo/convite': JSON.stringify({
+        escola: 'duo', nome: 'Duo', hash: await nucleo.hashDoToken(segredo),
+        criadoEm: new Date().toISOString(), expiraEm: nucleo.validadeDe(),
+      }),
+    });
+    const env = envCom(kv, { PIX_CHAVE: 'chave@pix.test', PIX_TITULAR: 'Sistema Lastro' });
+    const abrir = async (tk) => {
+      const res = await raiz.fetch(new Request('https://lastro.padd.com.br/recriar/' + tk), env);
+      return { status: res.status, html: await res.text() };
+    };
+
+    const boa = await abrir(token);
+    conferir('a página do convite abre no endereço PÚBLICO (sem a senha da raiz)', boa.status === 200, boa.status);
+    conferir('…com o nome da escola', /Duo/.test(boa.html), null);
+    conferir('…com os planos do catálogo', /id="convite-plano"/.test(boa.html)
+      && (boa.html.match(/<option value="/g) || []).length > 1, null);
+    conferir('…com os dois campos de senha', /convite-senha-escola/.test(boa.html)
+      && /convite-senha-professor/.test(boa.html), null);
+    conferir('…com a chave Pix copiável', /convite-pix-chave/.test(boa.html)
+      && boa.html.indexOf('chave@pix.test') !== -1, null);
+    conferir('…e com a instrução de escrever o nome da escola no Pix',
+      /escreva o nome da escola/i.test(boa.html), null);
+
+    const errada = await abrir('duo-' + 'f'.repeat(32));
+    conferir('com o token errado, 404 — e SEM formulário', errada.status === 404
+      && !/convite-senha-escola/.test(errada.html), errada.status);
+    const curto = await abrir('duo');
+    conferir('com um endereço incompleto, 404 — e diz para copiar o link inteiro',
+      curto.status === 404 && /link inteiro/.test(curto.html), curto.status);
+  }
+
+  console.log('\nE. O cadastro pela escola: cria, gasta o convite, avisa quem concilia');
+  {
+    const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
+    const segredo = nucleo.novoToken();
+    const token = 'duo-' + segredo;
+    const registo = await senha.registoDeSenha('senha-antiga');
+    const kv = kvCom({
+      'bastidores/duo/convite': JSON.stringify({
+        escola: 'duo', nome: 'Duo', hash: await nucleo.hashDoToken(segredo),
+        criadoEm: new Date().toISOString(), expiraEm: nucleo.validadeDe(),
+      }),
+      'bastidores/duo/cadastro': JSON.stringify({ escolaNome: 'Duo', email: 'escola@exemplo.test' }),
+      'professores/fernando-franciose/contato': JSON.stringify({ email: 'professor@exemplo.test' }),
+      'bastidores/duo/dono': JSON.stringify({ hash: registo.hash, sal: registo.sal }),
+      'escolas/por-host': JSON.stringify({}),
+    });
+    const gh = githubFalso();
+    const cf = cloudflareFalso();
+    const cartas = [];
+    const fetchGithub = gh.fetch;
+    globalThis.fetch = async (url, init) => {
+      const u = String(url);
+      if (u.indexOf('api.resend.com') !== -1) {
+        cartas.push(JSON.parse((init && init.body) || '{}'));
+        return { ok: true, status: 200, json: async () => ({ id: 'c-' + cartas.length }), text: async () => '' };
+      }
+      return u.indexOf('api.github.com') !== -1 ? fetchGithub(url, init) : cf.fetch(url, init);
+    };
+    const submeter = async (corpo) => {
+      const res = await raiz.fetch(new Request('https://lastro.padd.com.br/api/recriar/' + token, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(corpo),
+      }), envCom(kv, { PIX_CHAVE: 'chave@pix.test' }));
+      return { status: res.status, corpo: await res.json().catch(() => ({})) };
+    };
+    let r;
+    try {
+      const semSenha = await submeter({ plano: PLANO, senhaAdmin: '' });
+      conferir('sem senha da escola: 400, e nada é criado',
+        semSenha.status === 400 && /senha da escola/.test(semSenha.corpo.erro || ''), semSenha);
+      conferir('…e nenhuma carta saiu com essa tentativa', cartas.length === 0, cartas.length);
+
+      r = await submeter({ plano: PLANO, senhaAdmin: 'nova-da-escola', senhaProfessor: 'nova-do-professor' });
+    } finally { delete globalThis.fetch; }
+
+    conferir('o cadastro pela escola completa', r.status === 201 && r.corpo.ok === true, r);
+    conferir('…e a escola é a mesma do convite (não é outra ao lado)', r.corpo.escola === 'duo', r.corpo.escola);
+    conferir('…com o horário do CLIQUE na resposta, escrito na hora de quem lê',
+      Boolean(r.corpo.quando) && /às \d\d:\d\d/.test(String(r.corpo.quandoTexto || '')), r.corpo.quandoTexto);
+
+    const conviteGasto = JSON.parse(kv.dados.get('bastidores/duo/convite') || '{}');
+    conferir('o convite fica marcado como usado, com o instante',
+      Boolean(conviteGasto.usadoEm), conviteGasto.usadoEm);
+    const segunda = await raiz.fetch(new Request('https://lastro.padd.com.br/api/recriar/' + token, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plano: PLANO, senhaAdmin: 'outra' }),
+    }), envCom(kv, { PIX_CHAVE: 'chave@pix.test' })).then(async (res) => ({ status: res.status, corpo: await res.json() }));
+    conferir('…e a segunda tentativa é recusada com 410 (o link vale uma vez)',
+      segunda.status === 410, segunda.status);
+
+    /* AS DUAS CARTAS: o aviso a quem concilia e a mensagem com o endereço. */
+    const aviso = cartas.find((c) => /contratou o serviço/.test(String(c.subject || '')));
+    conferir('saiu o aviso a quem concilia', Boolean(aviso), cartas.map((c) => c.subject));
+    conferir('…com o assunto «A escola «Duo» contratou o serviço da Lastro»',
+      String((aviso || {}).subject) === 'A escola «Duo» contratou o serviço da Lastro', (aviso || {}).subject);
+    conferir('…para o endereço do proprietário', Array.isArray((aviso || {}).to)
+      && aviso.to.length === 1 && aviso.to[0] === 'lastro@padd.com.br', (aviso || {}).to);
+    conferir('…com o HORÁRIO DO CLIQUE e o nome da escola no corpo',
+      String(aviso.text || '').indexOf(r.corpo.quandoTexto) !== -1
+        && /Duo/.test(String(aviso.text || '')), (aviso || {}).text && aviso.text.slice(0, 200));
+    conferir('…com o plano e o valor, que é o que se procura no extrato',
+      new RegExp(comercial.catalogoDaPagina().assinaturas[0].nome).test(String(aviso.text || '')), null);
+    const boasVindas = cartas.find((c) => /está criada no Sistema Lastro/.test(String(c.subject || '')));
+    conferir('…e saiu a mensagem com o endereço da escola, para quem a vai usar',
+      Boolean(boasVindas) && Array.isArray(boasVindas.to) && boasVindas.to.length === 2,
+      cartas.map((c) => c.subject));
+
+    const comercialDepois = JSON.parse(kv.dados.get('bastidores/duo/comercial') || '{}');
+    conferir('a escola nasce «aguardando» — é a conciliação que abre o acesso',
+      comercialDepois.estado === 'aguardando', comercialDepois.estado);
+    conferir('…com a origem declarada como convite', comercialDepois.origem === 'convite', comercialDepois.origem);
+  }
+
+  console.log('\nF. As duas listas: a que está a ser recriada muda de lado');
   {
     const agora = Date.now();
     const apagadaEm = new Date(agora - 60 * 60000).toISOString();
@@ -474,7 +457,7 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('…e a linha diz que está a nascer', aNascer.find((e) => e.slug === 'duo').aNascer === true, null);
   }
 
-  console.log('\nE. A derivação: a recriada não pode ficar «expurgada» nem «fechada»');
+  console.log('\nG. A derivação: a recriada não pode ficar «expurgada» nem «fechada»');
   {
     /* O ÍNDICE É DERIVADO do repositório, e há DUAS coisas nele que o expurgo escreveu e o elo não
      * reescreve: `expurgada` (do facto de haver config/pacote) e `habilitada` (do `estado` do elo,
@@ -514,7 +497,8 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
       })(), null);
   }
 
-  console.log('\nF. A página: a coluna, o botão e a confirmação');
+
+  console.log('\nH. A página do painel: a coluna, o botão e a confirmação do ENVIO');
   {
     const { JSDOM, VirtualConsole } = require('jsdom');
     const catalogo = comercial.catalogoDaPagina();
@@ -523,25 +507,20 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
         slug: 'duo', nome: 'Duo', professor: 'fernando-franciose', professores: ['fernando-franciose'],
         criada_em: '2026-11-16T12:25:10.000Z', expurgada_em: '2026-11-16T13:56:53.000Z',
         expurgada: true, expurgos: 1, planoAnterior: { id: PLANO, nome: 'Básico', valor: '69,90' },
-      }, {
-        slug: 'breu', nome: 'Breu', professores: [], criada_em: '2026-11-01T10:00:00.000Z',
-        expurgada_em: '2026-11-15T10:00:00.000Z', expurgada: true, expurgos: 1, planoAnterior: null,
       }],
       professores: [],
       catalogo,
     });
-    conferir('a coluna «Recriar» existe, e é a última', /<th>Recriar<\/th><\/tr><\/thead>/.test(html),
-      (/<th>[^<]*<\/th>/g.exec(html) || [])[0]);
-    conferir('…e há um botão por escola apagada', (html.match(/data-recriar="/g) || []).length === 2,
-      (html.match(/data-recriar="/g) || []).length);
-    conferir('…com o plano anterior da linha, para a confirmação o pré-seleccionar',
-      html.indexOf('data-plano-anterior="' + PLANO + '"') !== -1, null);
-    conferir('a confirmação é uma janela (`.modal`) com o plano do CATÁLOGO',
-      /id="recriar-modal"/.test(html) && /<select id="recriar-plano">/.test(html)
-        && (html.match(/<option value="/g) || []).length === catalogo.assinaturas.length, null);
-    conferir('…e com as duas senhas, ditas como opcionais («em branco = manter»)',
-      /id="recriar-senha-admin"/.test(html) && /id="recriar-senha-professor"/.test(html)
-        && /em branco = manter/.test(html), null);
+    conferir('a coluna «Recriar» existe, e é a última', /<th>Recriar<\/th><\/tr><\/thead>/.test(html), null);
+    conferir('…e há um botão por escola apagada', (html.match(/data-recriar="/g) || []).length === 1, null);
+    conferir('a confirmação é uma janela (`.modal`) do ENVIO, e não do cadastro',
+      /id="recriar-modal"/.test(html) && /Convidar a escola a voltar/.test(html), null);
+    /* A SENHA NÃO SE ESCREVE MAIS AQUI. É o ponto do desenho: quem a cria é a escola, na página do
+     * convite, e uma senha que passa pela mão da proprietária deixou de ser um segredo. */
+    conferir('…e NÃO tem campos de senha — a senha é da escola, na página do link',
+      !/recriar-senha-admin/.test(html) && !/recriar-senha-professor/.test(html), null);
+    conferir('…nem a lista de planos: quem escolhe é a escola',
+      !/id="recriar-plano"/.test(html), null);
 
     const vc = new VirtualConsole();
     const erros = [];
@@ -555,10 +534,11 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
         w.fetch = (u, init) => {
           pedidos.push({ url: String(u), corpo: JSON.parse((init && init.body) || '{}') });
           return Promise.resolve({
-            status: 201, ok: true,
+            status: 200, ok: true,
             json: () => Promise.resolve({
-              ok: true, escola: 'duo', comercial: { estado: 'aguardando', planoNome: 'Básico' },
-              aPagar: { valor: '69,90' }, correio: { enviado: true },
+              ok: true, escola: 'duo', nome: 'Duo', para: ['escola@exemplo.test', 'professor@exemplo.test'],
+              link: 'https://lastro.padd.com.br/recriar/duo-' + 'a'.repeat(32),
+              expiraEmTexto: '23/11/2026 às 11:00', correio: { enviado: true },
             }),
           });
         };
@@ -570,31 +550,50 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('o botão da linha existe e diz «Recriar»', Boolean(botao) && /Recriar/.test(botao.textContent), null);
     botao.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 50));
-    const modal = d.getElementById('recriar-modal');
-    conferir('o clique abre a confirmação', Boolean(modal) && modal.hidden === false, null);
-    conferir('…com o plano anterior já escolhido', d.getElementById('recriar-plano').value === PLANO,
-      d.getElementById('recriar-plano').value);
-
-    d.getElementById('recriar-senha-admin').value = '';
-    d.getElementById('recriar-senha-professor').value = 'nova-do-professor';
+    conferir('o clique abre a confirmação', d.getElementById('recriar-modal').hidden === false, null);
     d.getElementById('recriar-confirmar').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 120));
-    conferir('o pedido vai para `/api/recriar-escola`', pedidos.length === 1
-      && /api\/recriar-escola/.test(pedidos[0].url), pedidos.map((p) => p.url));
-    conferir('…com a escola, o plano e as duas senhas do formulário',
-      pedidos[0].corpo.escola === 'duo' && pedidos[0].corpo.plano === PLANO
-        && pedidos[0].corpo.senhaAdmin === '' && pedidos[0].corpo.senhaProfessor === 'nova-do-professor',
+    conferir('o pedido vai para `/api/recriar-convite`', pedidos.length === 1
+      && /api\/recriar-convite/.test(pedidos[0].url), pedidos.map((p) => p.url));
+    conferir('…e leva SÓ a escola — plano e senhas não passam por aqui',
+      Object.keys(pedidos[0].corpo).join(',') === 'escola' && pedidos[0].corpo.escola === 'duo',
       pedidos[0].corpo);
-    conferir('o recado diz o que aconteceu E o que fazer a seguir (a chave Pix, e habilitar)',
-      /recriada/.test(d.getElementById('recriar-recado').textContent)
-        && /aguardar conciliação/.test(d.getElementById('recriar-recado').textContent)
-        && /Pix/.test(d.getElementById('recriar-recado').textContent),
-      d.getElementById('recriar-recado').textContent);
-    conferir('…e o recado diz também o que aconteceu ao e-mail',
-      /e-mail com o endereço foi enviado/.test(d.getElementById('recriar-recado').textContent),
-      d.getElementById('recriar-recado').textContent);
-    conferir('…e os scripts da página não lançam', erros.length === 0, erros.slice(0, 1));
+    const texto = d.getElementById('recriar-recado').textContent;
+    conferir('o recado diz para quem foi o convite, e até quando vale',
+      /enviado para escola@exemplo\.test, professor@exemplo\.test/.test(texto)
+        && /23\/11\/2026/.test(texto), texto);
+    /* SEM E-MAIL, O LINK NÃO SE PERDE — é o que permite mandá-lo à mão. */
+    const dom2 = new JSDOM(painel.paginaDasApagadas({
+      escolas: [{ slug: 'duo', expurgada: true, expurgada_em: '2026-11-16T13:56:53Z',
+        criada_em: '2026-11-16T12:00:00Z', professores: [], planoAnterior: null }],
+      professores: [], catalogo,
+    }), {
+      runScripts: 'dangerously', url: 'https://danca.padd.com.br/escolas-apagadas', virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+        w.fetch = () => Promise.resolve({
+          status: 200, ok: true,
+          json: () => Promise.resolve({
+            ok: true, escola: 'duo', nome: 'Duo', para: [],
+            link: 'https://lastro.padd.com.br/recriar/duo-' + 'b'.repeat(32),
+            expiraEmTexto: '23/11/2026 às 11:00',
+            correio: { enviado: false, motivo: 'não há e-mail a quem enviar' },
+          }),
+        });
+      },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const d2 = dom2.window.document;
+    d2.querySelector('[data-recriar="duo"]').dispatchEvent(new dom2.window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 40));
+    d2.getElementById('recriar-confirmar').dispatchEvent(new dom2.window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 120));
+    const t2 = d2.getElementById('recriar-recado').textContent;
+    conferir('sem e-mail no cadastro, o recado mostra o LINK para mandar à mão',
+      /lastro\.padd\.com\.br\/recriar\/duo-b/.test(t2), t2);
+    conferir('…e os scripts das duas páginas não lançam', erros.length === 0, erros.slice(0, 1));
     dom.window.close();
+    dom2.window.close();
   }
 
   console.log('');

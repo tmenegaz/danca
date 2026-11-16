@@ -47567,3 +47567,76 @@ plano vêm na resposta e na tela, e o envio é dela, como descreveu. Os parâmet
 a proveniência guarda o facto de a escola ter existido, não os horários dela; o plano de ensino é
 reescrito pelo professor. E `provar-painel` continua com as **4 falhas pré-existentes** (destinos do
 menu e colunas das vivas), medidas antes desta mudança.
+
+## 16/11/2026 — o convite: quem escolhe o plano e escreve a senha é a escola
+
+**O que motivou.** O mesmo fluxo de recriação, com o mando do outro lado: «Esse modal que você abre
+para mim, ele vai virar uma página. […] envia um e-mail para o e-mail cadastrado da escola que a
+gente está recriando, tanto para o professor quanto para a escola. Lá ele tem um link que acessa essa
+tela […] que ali ele escolhe o plano e ele cadastra a senha. E aí não importa se é a senha velha ou
+se ele não lembrou a senha, não interessa, é uma senha nova. […] vai ter a chave Pix para ele copiar
+e fazer o pagamento. […] tem que chegar um e-mail para mim […] A escola, aí você coloca o nome da
+escola, contratou o serviço da Lastro. […] tem que me dar o horário que foi feito o clique […] porque
+por proximidade na conciliação é que eu vou saber se entrou dinheiro.»
+
+**O que mudou de natureza, e não é só de lugar.** A janela do painel deixou de **pedir** plano e
+senhas e passou a **anunciar um envio**: o painel só manda o convite. Quem escolhe o plano, escreve
+as duas senhas e lê a chave Pix é a escola, numa página pública que abre com o token do link. É a
+diferença entre o proprietário a decidir pelos outros e a escola a decidir por si — e é o que
+resolve, de passagem, o caso que ela levantou na mesma frase: **esqueceu a senha**. Não há
+recuperação de senha neste sistema; há, agora, uma altura em que a senha é escrita de novo, pela mão
+de quem a vai usar.
+
+**O que foi decidido.**
+
+- **O token é a autenticação.** Nada de sessão, nada de senha da raiz: o endereço leva
+  `<slug>-<32 hex>`, e o KV guarda **só o SHA-256** do segredo, com o prazo. 7 dias, uso único. O
+  token carrega o slug porque o KV não se enumera (a quota do `list()` é o recurso escasso) — sem
+  ele, encontrar a escola do link custaria uma varredura.
+- **A validade e o uso são uma regra só** (`motor/nucleo/convite.js`), a mesma que a página, a rota e
+  a prova consultam: `estadoDoConvite` responde «não há», «expirado», «usado» ou «vale». Três cópias
+  dessa regra divergiriam na primeira alteração.
+- **A senha da encarnação anterior não serve de atalho.** O cofre ainda a tem, e a recriação anterior
+  a herdava; com o convite, herdar seria aceitar em silêncio uma senha que a escola talvez não
+  recorde. O cadastro pela escola **exige** as duas, e elas nascem novas.
+- **O aviso a quem concilia tem título fixo**, como ela pediu: `A escola «X» contratou o serviço da
+  Lastro`. O corpo traz o **horário do clique** (não o do pagamento, que não se sabe), a escola, o
+  plano e o valor — que é o que se procura no extrato. O endereço é `lastro@padd.com.br` por
+  omissão, e configura-se por `CORREIO_DO_PROPRIETARIO`.
+- **A instrução do Pix aparece nos dois lugares**, e não só no convite: quem paga tem de escrever o
+  nome da escola na descrição, senão a conciliação por proximidade não acha o dinheiro. O aviso está
+  no passo do pagamento do formulário público (`raiz/index.html`) e na página do convite.
+- **O defeito que a prova encontrou era do guarda, não do formato.** `lerConvite` exigia 32 hex
+  *antes* de reconhecer o slug — e recusava todo o token que ele próprio emitia. Guardas de formato
+  duplicados são a forma mais barata de partir o que já funciona: a validação passou a ser uma, no
+  `convite.estadoDoConvite`.
+
+**Onde entrou.** `motor/nucleo/convite.js` (novo: token, hash, prazo, estado) ·
+`motor/servidor/correio.js` (`comporConvite`, `comporAvisoAoProprietario`) ·
+`motor/servidor/painel-html.js` (`paginaDoConvite` + `SCRIPT_DO_CONVITE`, `modalDoConvite` +
+`SCRIPT_DO_CONVITE_DO_PAINEL`, no lugar do `modalDaRecriacao`) · `motor/servidor/raiz.js`
+(`criarConvite`, `chaveDoConvite`, `lerConvite`, `respostaDoConvite`, `receberOConvite`,
+`avisarOProprietario`, a lista branca de `/recriar/*` e `/api/recriar/*` na porta pública, e
+`POST /api/recriar-convite`; a antiga `POST /api/recriar-escola` saiu) · `raiz/index.html` (o aviso
+do Pix na descrição) · `experimentos/provar-recriar-escola.js` (reescrito, secções A–H).
+
+**Com o quê.** `provar-recriar-escola` **63/63**: o convite sai uma vez e vai para os dois endereços,
+com o link público, o prazo em texto, a instrução do Pix e sem prometer acesso imediato; o KV guarda
+o hash e nunca o segredo; o token vence, gasta-se uma vez e não serve para outra escola; a página
+abre sem a senha da raiz e fecha com o token errado (404, e sem formulário); o cadastro cria a
+escola no mesmo slug, marca o convite como usado, recusa a segunda tentativa com 410, e dispara o
+aviso ao proprietário com o horário do clique, o plano e o valor; a recriada aparece nas vivas como
+«a nascer»; a derivação continua a não deixá-la «expurgada» nem «fechada»; e a página do painel tem
+a coluna, o botão, a janela do envio (sem campos de senha e sem planos) e o recado que diz para quem
+foi o convite e até quando vale — ou o link, à mão, quando não há e-mail no cadastro. Mais
+`provar-indices` 58/58 · `provar-a-carencia-nao-se-burla` 58/58 · `provar-escola-a-nascer` 48/48 ·
+`provar-financeiro` 58/58 · `provar-cofre-e-shard` 129/129 · `provar-pagina-publica` 73/73 ·
+`provar-o-relogio-nao-mente` 30/30 · `provar-acoes-da-linha` 75/75 · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+
+**O que fica pendente, e é declarado.** Não há **recuperação de senha** para uma escola que já está
+no ar e não é expurgada — este fluxo resolve o caso da recriação, não o caso geral; desenhá-lo é
+outro trabalho, e o convite mostra o caminho (token, página pública, senha nova). O Resend está no
+plano gratuito — 3.000 mensagens por mês e 100 por dia —, e o aviso ao proprietário gasta uma por
+cadastro. `provar-painel` continua com as **4 falhas pré-existentes** (destinos do menu e colunas das
+vivas), medidas antes desta mudança.

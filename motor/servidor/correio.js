@@ -247,12 +247,171 @@ async function guardarNaCaixaDeSaida({ kv, escola, mensagem, desfecho, quando } 
   }
 }
 
+/**
+ * O CONVITE DE RECRIAÇÃO — a mensagem que leva o LINK (16/11/2026).
+ *
+ * O QUE ELA DIZ, e o que NÃO diz. Diz que a escola foi apagada, que é possível voltar a tê-la, que
+ * o link serve para ESCOLHER O PLANO e CRIAR AS SENHAS, e que o pagamento é por Pix — com a
+ * instrução que faz a conciliação possível: **escrever o nome da escola na descrição do Pix**. Não
+ * diz a senha antiga (não a conhece), não diz o valor (o plano ainda não foi escolhido), e não
+ * promete acesso imediato (a conciliação é manual, e é de até 24 horas).
+ *
+ * O LINK É O SEGREDO. Ele não vai para mais sítio nenhum — nem para o índice, nem para a tela do
+ * painel. Quem tiver o e-mail tem o convite, e é assim que tem de ser: é a caixa de quem pagou.
+ */
+function comporConvite({ escola, nome, url, expiraEm, dias } = {}) {
+  const nomeDaEscola = String(nome || escola || '').trim();
+  const endereco = String(url || '').trim();
+  const linhas = [];
+  linhas.push('Olá.');
+  linhas.push('');
+  linhas.push('A escola «' + nomeDaEscola + '» foi apagada do Sistema Lastro, e pode voltar a');
+  linhas.push('existir. Os dados de identificação dela ficaram guardados — falta o cadastro do');
+  linhas.push('acesso e o pagamento.');
+  linhas.push('');
+  linhas.push('Neste endereço você:');
+  linhas.push('');
+  linhas.push('    1. escolhe o plano e vê o valor da primeira mensalidade;');
+  linhas.push('    2. cria a senha da escola e a do professor (são senhas NOVAS — a antiga não é');
+  linhas.push('       necessária, e não é pedida);');
+  linhas.push('    3. copia a chave Pix e faz o pagamento.');
+  linhas.push('');
+  linhas.push('    ' + endereco);
+  linhas.push('');
+  linhas.push('AO FAZER O PIX, ESCREVA O NOME DA ESCOLA na descrição (ou no campo de mensagem)');
+  linhas.push('da transferência. A conciliação é feita à mão, e é por esse nome que o pagamento é');
+  linhas.push('ligado à escola certa.');
+  linhas.push('');
+  linhas.push('A conciliação é feita em até 24 horas; depois dela o acesso é liberado, e a escola');
+  linhas.push('volta a aparecer para o professor no mesmo endereço de sempre.');
+  if (dias) {
+    linhas.push('');
+    linhas.push('Este link vale ' + dias + ' dias, e uma vez só. Se ele expirar, peça outro à');
+    linhas.push('administração do Sistema Lastro.');
+  }
+  linhas.push('');
+  linhas.push('O Sistema Lastro registra e organiza evidências para apoiar a reflexão pedagógica.');
+  linhas.push('Ele não avalia a aluna e não substitui o professor.');
+  linhas.push('');
+  linhas.push('— Sistema Lastro');
+  const texto = linhas.join('\n');
+
+  const escapar = (t) => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const html = [
+    '<div style="font-family:Georgia,serif;color:#2b2b2b;line-height:1.55;max-width:34rem">',
+    '<p style="margin:0 0 16px">Olá.</p>',
+    '<p style="margin:0 0 16px">A escola <strong>«' + escapar(nomeDaEscola) + '»</strong> foi '
+      + 'apagada do Sistema Lastro, e pode voltar a existir. Os dados de identificação dela ficaram '
+      + 'guardados — falta o cadastro do acesso e o pagamento.</p>',
+    '<p style="margin:0 0 8px">Neste endereço você:</p>',
+    '<ol style="margin:0 0 16px;padding-left:20px">',
+    '<li>escolhe o plano e vê o valor da primeira mensalidade;</li>',
+    '<li>cria a senha da escola e a do professor (são senhas <strong>novas</strong> — a antiga não é '
+      + 'necessária, e não é pedida);</li>',
+    '<li>copia a chave Pix e faz o pagamento.</li>',
+    '</ol>',
+    '<p style="margin:0 0 16px"><a href="' + escapar(endereco) + '" '
+      + 'style="color:#7a2e2e;font-weight:600">' + escapar(endereco) + '</a></p>',
+    '<p style="margin:0 0 16px;padding:12px 16px;border:1px solid #8a6a3b;border-radius:8px">'
+      + '<strong>Ao fazer o Pix, escreva o nome da escola</strong> na descrição (ou no campo de '
+      + 'mensagem) da transferência. A conciliação é feita à mão, e é por esse nome que o pagamento '
+      + 'é ligado à escola certa.</p>',
+    '<p style="margin:0 0 16px">A conciliação é feita em até 24 horas; depois dela o acesso é '
+      + 'liberado, e a escola volta a aparecer para o professor no mesmo endereço de sempre.</p>',
+    dias ? '<p style="margin:0 0 16px;color:#5a5a5a">Este link vale ' + escapar(dias) + ' dias, e '
+      + 'uma vez só. Se ele expirar, peça outro à administração do Sistema Lastro.</p>' : '',
+    '<p style="margin:0 0 16px;color:#5a5a5a">O Sistema Lastro registra e organiza evidências para '
+      + 'apoiar a reflexão pedagógica. Ele não avalia a aluna e não substitui o professor.</p>',
+    '<p style="margin:0;color:#5a5a5a">— Sistema Lastro</p>',
+    '</div>',
+  ].filter(Boolean).join('');
+
+  return {
+    para: [],
+    assunto: 'A escola «' + nomeDaEscola + '» pode voltar ao Sistema Lastro',
+    texto,
+    html,
+    endereco,
+    expiraEm: expiraEm || null,
+  };
+}
+
+/**
+ * O AVISO A QUEM CONCILIA — «A escola X contratou o serviço da Lastro» (16/11/2026).
+ *
+ * O QUE ELA PEDIU, e é uma exigência de operação, não de cortesia: «tem que chegar um e-mail
+ * lastro para mim […] dizendo que a escola fez o cadastro ou recriou o cadastro […] E aí eu vou
+ * olhar a conciliação […] Aí você tem que me dar o horário que foi feito o clique, né, e o nome da
+ * escola, porque por proximidade na conciliação é que eu vou saber se entrou dinheiro ou não.»
+ *
+ * O ASSUNTO É SEMPRE O MESMO, com o nome da escola dentro: é o que permite filtrar a pasta por
+ * «contratou o serviço» e ver a fila inteira. **O HORÁRIO É O DO CLIQUE** — o instante em que a
+ * escola submeteu o cadastro —, e vai no fuso de quem lê; é ele que se compara com o extrato.
+ */
+function comporAvisoAoProprietario({ escola, nome, plano, valor, quando, quandoTexto, professor,
+  contactos, recriada } = {}) {
+  const nomeDaEscola = String(nome || escola || '').trim();
+  const linhas = [];
+  linhas.push('A escola «' + nomeDaEscola + '» ' + (recriada ? 'recriou o cadastro' : 'fez o cadastro')
+    + ' no Sistema Lastro, e aguarda a conciliação do pagamento.');
+  linhas.push('');
+  linhas.push('  Escola:    ' + nomeDaEscola + ' (' + String(escola || '') + ')');
+  linhas.push('  Horário:   ' + String(quandoTexto || quando || '—'));
+  linhas.push('  Plano:     ' + String(plano || '—'));
+  linhas.push('  Valor:     ' + String(valor || '—'));
+  if (professor) linhas.push('  Professor: ' + String(professor));
+  if (contactos && contactos.length) linhas.push('  Contactos: ' + contactos.join(', '));
+  linhas.push('');
+  linhas.push('Para conciliar, procure no extrato o Pix com esse valor e o nome da escola na');
+  linhas.push('descrição. Confirmado o pagamento, habilite a escola em «Escolas vivas».');
+  linhas.push('');
+  linhas.push('— Sistema Lastro');
+  const texto = linhas.join('\n');
+
+  const escapar = (t) => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const linhaHtml = (rotulo, dado) => (dado
+    ? '<tr><td style="padding:4px 12px 4px 0;color:#5a5a5a">' + escapar(rotulo)
+      + '</td><td style="padding:4px 0">' + escapar(dado) + '</td></tr>'
+    : '');
+  const html = [
+    '<div style="font-family:Georgia,serif;color:#2b2b2b;line-height:1.55;max-width:34rem">',
+    '<p style="margin:0 0 16px">A escola <strong>«' + escapar(nomeDaEscola) + '»</strong> '
+      + (recriada ? 'recriou o cadastro' : 'fez o cadastro') + ' no Sistema Lastro, e aguarda a '
+      + 'conciliação do pagamento.</p>',
+    '<table style="border-collapse:collapse;margin:0 0 16px;font-size:15px">',
+    linhaHtml('Escola', nomeDaEscola + ' (' + String(escola || '') + ')'),
+    linhaHtml('Horário', quandoTexto || quando),
+    linhaHtml('Plano', plano),
+    linhaHtml('Valor', valor),
+    linhaHtml('Professor', professor),
+    linhaHtml('Contactos', (contactos || []).join(', ')),
+    '</table>',
+    '<p style="margin:0 0 16px">Para conciliar, procure no extrato o Pix com esse valor e o nome da '
+      + 'escola na descrição. Confirmado o pagamento, habilite a escola em «Escolas vivas».</p>',
+    '<p style="margin:0;color:#5a5a5a">— Sistema Lastro</p>',
+    '</div>',
+  ].join('');
+
+  return {
+    para: [],
+    assunto: 'A escola «' + nomeDaEscola + '» contratou o serviço da Lastro',
+    texto,
+    html,
+    escola: String(escola || ''),
+    quando: quando || null,
+  };
+}
+
 module.exports = {
   REMETENTE_PADRAO,
   API_DO_CORREIO,
   assuntoDe,
   enderecoDe,
   comporMensagem,
+  comporConvite,
+  comporAvisoAoProprietario,
   enviar,
   guardarNaCaixaDeSaida,
 };

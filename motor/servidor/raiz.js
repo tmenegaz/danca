@@ -41,6 +41,10 @@ const {
 const painel = require('./painel-html.js');
 /* O RELÓGIO DA CASA — o mesmo que desenha as tabelas do painel (16/11/2026). */
 const fuso = require('../nucleo/fuso.js');
+/* O CONVITE DE RECRIAÇÃO (16/11/2026) — o token, o hash e o prazo. O núcleo é puro: quem guarda
+ * no KV e quem envia o e-mail são as funções abaixo, e é de propósito — o mesmo token tem de
+ * poder ser medido sem um Worker à frente. */
+const convite = require('../nucleo/convite.js');
 /* QUEM RESPONDE PELA ESCOLA — a leitura do elo é UMA, e é a que o painel e as duas metades do
  * expurgo já usam (16/11/2026). A recriação precisa dela para saber de quem são os arquivos que
  * vai criar: uma segunda leitura do mesmo elo seria uma segunda opinião sobre o mesmo professor. */
@@ -1842,7 +1846,297 @@ async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
  * (que é quem vê o índice e regista «esta encarnação nasceu»), e escrevê-la daqui seria uma
  * segunda opinião sobre a mesma linha do tempo, a competir com o CI pelo mesmo commit.
  */
-async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor }) {
+/**
+ * O CONVITE — o clique «Recriar» passou a mandar um e-mail, e não a criar a escola (16/11/2026).
+ *
+ * O FLUXO QUE ELA DESENHOU, na letra: «quando eu clicar em recriar […] envia um e-mail para o
+ * e-mail cadastrado da escola que a gente está recriando, tanto para o professor quanto para a
+ * escola. Lá ele tem um link que acessa essa tela […] que ali ele escolhe o plano e ele cadastra a
+ * senha. […] Aí ele envia […] Aí aguarda a conciliação.»
+ *
+ * PORQUE É QUE A ESCOLA CRIA A PRÓPRIA SENHA, e é a decisão que faz este desenho valer: a senha
+ * antiga não serve (o expurgo levou-a, numa escola de Worker próprio), e a nova não deve passar
+ * pela mão de ninguém. Quem a escreve é quem vai usá-la, no navegador de quem vai usá-la.
+ *
+ * O QUE ESTA FUNÇÃO NÃO FAZ, e é deliberado: não cria nada. Ela só emite o convite. A escola é
+ * criada quando o professor submeter a página — e é isso que separa «eu convidei» de «a escola
+ * existe», que eram a mesma coisa na versão anterior e não deviam ser.
+ *
+ * AS GUARDAS SÃO AS DA RECRIAÇÃO, e são as mesmas funções: sem elo não há o que convidar; sem
+ * expurgo não há o que recriar; recriada depois do expurgo, a escola já está viva; e o convite
+ * anterior ainda aberto não é um erro — é um segundo e-mail com um link novo, que substitui o
+ * Velho (um convite por escola, e o último é o que vale).
+ */
+async function criarConvite({ env, escola, por }) {
+  const slug = String(escola || '').trim();
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
+  const ghToken = env && env.GITHUB_TOKEN;
+  if (!ghToken) return { ok: false, status: 500, erro: 'GITHUB_TOKEN ausente no Worker' };
+
+  const elo = await eloDaEscola({ token: ghToken, slug });
+  if (!elo) {
+    return {
+      ok: false, status: 404,
+      erro: 'a escola «' + slug + '» não tem elo (`escola/' + slug + '/indice.json`) — sem '
+        + 'proveniência não há o que recriar. Para uma escola nova, use «Criar nova escola».',
+    };
+  }
+  const expurgos = Array.isArray(elo.expurgo) ? elo.expurgo : [];
+  if (!expurgos.length) {
+    return {
+      ok: false, status: 409,
+      erro: 'a escola «' + slug + '» nunca foi apagada — não há convite a fazer. Ela está na '
+        + 'lista das vivas.',
+    };
+  }
+  const ultimoExpurgo = expurgos
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((x) => Number.isFinite(x))
+    .sort((a, b) => b - a)[0];
+  const expurgadaEm = Number.isFinite(ultimoExpurgo) ? new Date(ultimoExpurgo).toISOString() : null;
+  const comercialDaVez = await lerComercial(env && env.PADD_KV, slug);
+  if (reconstruindo({ comercial: comercialDaVez, expurgada_em: expurgadaEm })) {
+    return {
+      ok: false, status: 409,
+      erro: 'a recriação de «' + slug + '» já está em curso: o motor está a subir (leva dois ou '
+        + 'três minutos) e a escola aparece nas vivas como «a nascer».',
+    };
+  }
+
+  /* O NOME E OS DESTINATÁRIOS. O nome sai do cadastro quando ele reproduz o slug (é o mesmo
+   * cuidado da recriação); sem cadastro, do slug. Os contactos saem do KV — e quando não há
+   * nenhum, o convite NÃO falha: ele volta com o link, e ela manda-o por WhatsApp. */
+  const cadastro = await lerCadastroDaEscola(env, slug);
+  const nomeDoCadastro = String((cadastro && cadastro.escolaNome) || '').trim();
+  const nome = (nomeDoCadastro && slugificar(nomeDoCadastro) === slug) ? nomeDoCadastro : tituloDoSlug(slug);
+  const paraOMail = await cadastroParaOMail({ env, escola: slug, professor: (responsavelDoInventario(elo).slug || ''), nome, registo: cadastro });
+
+  /* O TOKEN TEM DUAS PARTES, e cada uma resolve um problema: o SLUG à frente diz ao KV que chave
+   * ler (sem enumerar o namespace); os 32 hex são o segredo, e só o hash deles fica guardado. */
+  const segredo = convite.novoToken();
+  const token = slug + '-' + segredo;
+  const agora = new Date();
+  const registo = {
+    escola: slug,
+    nome,
+    hash: await convite.hashDoToken(segredo),
+    criadoEm: agora.toISOString(),
+    expiraEm: convite.validadeDe(agora),
+    pedidoPor: por || null,
+  };
+  const kv = env && env.PADD_KV;
+  if (!kv || typeof kv.put !== 'function') {
+    return { ok: false, status: 500, erro: 'sem KV: o convite não pode ser guardado' };
+  }
+  try {
+    await kv.put(chaveDoConvite(slug), JSON.stringify(registo));
+  } catch (erro) {
+    return { ok: false, status: 500, erro: 'não consegui guardar o convite: ' + ((erro && erro.message) || String(erro)) };
+  }
+
+  const link = urlDaPaginaPublica(env) + '/recriar/' + token;
+  const mensagem = correio.comporConvite({
+    escola: slug, nome, url: link, expiraEm: registo.expiraEm, dias: convite.DIAS_DE_VALIDADE,
+  });
+  mensagem.para = cadastroDaEscola.destinatarios(paraOMail);
+  const desfecho = await correio.enviar({
+    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
+  });
+  if (!desfecho.enviado) {
+    await correio.guardarNaCaixaDeSaida({ kv, escola: slug, mensagem, desfecho });
+  }
+  return {
+    ok: true,
+    escola: slug,
+    nome,
+    para: mensagem.para,
+    /* O LINK SÓ VOLTA PORQUE A ROTA É DA PROPRIETÁRIA (atrás da senha da raiz). Quando o e-mail
+     * não sai, é ele que ela manda à mão; quando sai, é a confirmação de para onde foi. */
+    link,
+    expiraEm: registo.expiraEm,
+    expiraEmTexto: fuso.quandoLocal(registo.expiraEm),
+    correio: { enviado: desfecho.enviado === true, motivo: desfecho.motivo || null, detalhe: desfecho.detalhe || null },
+  };
+}
+
+/** A chave do convite no KV — do TENANT, para o expurgo da escola o levar com o resto. */
+function chaveDoConvite(escola) {
+  return 'bastidores/' + String(escola || '').trim() + '/convite';
+}
+
+/**
+ * O CONVITE DE UM PEDIDO — lido do KV e conferido pelo núcleo.
+ *
+ * Devolve `{ ok, escola, registo }` ou `{ ok:false, motivo }`. Não distingue «não existe» de
+ * «existe e não confere»: a frase é a mesma, e a diferença só ajudaria a quem está a adivinhar.
+ */
+async function lerConvite({ env, token }) {
+  const kv = env && env.PADD_KV;
+  if (!kv || typeof kv.get !== 'function') return { ok: false, motivo: 'sem KV neste Worker' };
+  /* NÃO SE PROCURA POR TOKEN. O KV não sabe responder «qual é a escola deste hash» — e procurar
+   * obrigaria a enumerar o namespace, que é a operação que estourou a cota em 18/10/2026. O token
+   * leva o slug à frente: `<slug>-<32 hex>`. O slug não é segredo (está em tudo), o hash é — e o
+   * que autentica continua a ser o hash. */
+  const m = /^([a-z0-9][a-z0-9-]*)-([a-f0-9]{32})$/i.exec(String(token || ''));
+  if (!m) {
+    return { ok: false, motivo: 'O endereço do convite não está completo. Copie o link inteiro da mensagem.' };
+  }
+  const escola = m[1];
+  const segredo = m[2];
+  let registo = null;
+  try {
+    const texto = await kv.get(chaveDoConvite(escola));
+    registo = texto ? JSON.parse(texto) : null;
+  } catch (erro) { registo = null; }
+  const estado = await convite.estadoDoConvite(registo, segredo);
+  if (!estado.ok) return estado;
+  return { ok: true, escola, registo, estado };
+}
+
+/**
+ * O AVISO A QUEM CONCILIA — «A escola X contratou o serviço da Lastro» (16/11/2026).
+ *
+ * Vai para o endereço do proprietário (`CORREIO_DO_PROPRIETARIO`, com `lastro@padd.com.br` por
+ * omissão), e leva o HORÁRIO DO CLIQUE e o nome da escola, que é o que permite achar o Pix no
+ * extrato «por proximidade». Falhar aqui não desfaz o cadastro: a escola existe, e o desfecho é
+ * dito na resposta.
+ */
+async function avisarOProprietario({ env, escola, nome, escolha, quando, professor, contactos, recriada }) {
+  const para = String((env && env.CORREIO_DO_PROPRIETARIO) || 'lastro@padd.com.br').trim();
+  const mensagem = correio.comporAvisoAoProprietario({
+    escola,
+    nome,
+    plano: escolha.planoNome || escolha.plano,
+    valor: escolha.valor,
+    quando,
+    quandoTexto: fuso.quandoLocal(quando),
+    professor,
+    contactos,
+    recriada,
+  });
+  mensagem.para = [para];
+  const desfecho = await correio.enviar({
+    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
+  });
+  if (!desfecho.enviado) {
+    await correio.guardarNaCaixaDeSaida({
+      kv: env && env.PADD_KV, escola: 'sistema', mensagem, desfecho,
+    });
+  }
+  return Object.assign({ para }, desfecho);
+}
+
+/**
+ * A PÁGINA DO CONVITE — `GET /recriar/<slug>-<segredo>` (16/11/2026).
+ *
+ * É pública, e é a coisa mais sensível que este Worker serve sem senha. O que a protege é o token:
+ * `lerConvite` confere o hash, o prazo e o uso único antes de qualquer leitura de repositório — e
+ * só com o convite válido é que se vê o nome da escola, os planos e a chave Pix.
+ *
+ * A PÁGINA NÃO DIZ QUANTAS SENHAS EXISTEM, nem quem é o professor, nem o valor pago antes: o que
+ * ela mostra é o que o formulário precisa. Um convite que vazasse do e-mail dá a quem o tem o
+ * direito de criar UMA senha nova e de pagar — não de ler o passado da escola.
+ */
+async function respostaDoConvite(request, env) {
+  const token = decodeURIComponent(new URL(request.url).pathname.replace(/^\/recriar\//, '')).trim();
+  const lido = await lerConvite({ env, token });
+  if (!lido.ok) {
+    return painel.resposta(painel.paginaDoConvite({
+      escola: '', nome: '—', token: '', catalogo: null, pix: null, estado: lido,
+    }), 404);
+  }
+  /* O NOME, do elo. Se o elo desaparecer entre o envio e a abertura, a página continua a abrir com
+   * o nome que o convite guardou — o convite é do momento em que foi emitido, e não uma segunda
+   * leitura de um dado que pode ter mudado. */
+  const pix = await lerPix(env && env.PADD_KV, env);
+  return painel.resposta(painel.paginaDoConvite({
+    escola: lido.escola,
+    nome: (lido.registo && lido.registo.nome) || lido.escola,
+    token,
+    catalogo: comercial.catalogoDaPagina(),
+    pix,
+    estado: { ok: true, expiraEm: lido.registo && lido.registo.expiraEm },
+  }));
+}
+
+/**
+ * O CADASTRO PELO CONVITE — `POST /api/recriar/<slug>-<segredo>` (16/11/2026).
+ *
+ * A ORDEM É DELIBERADA, e é a mesma da criação: cria-se, e só depois se avisa. O aviso ao
+ * proprietário leva o HORÁRIO DO CLIQUE — o instante em que a escola submeteu —, porque é ele que
+ * se compara com o extrato.
+ *
+ * O CONVITE É MARCADO COMO USADO DEPOIS DE A ESCOLA EXISTIR. Ao contrário (marcar primeiro) gastaria
+ * o convite num erro de rede, e a escola ficaria sem link e sem escola. Se a marcação falhar depois
+ * de a escola existir, o pior caso é um convite que ainda abre — e a segunda submissão é recusada
+ * pela janela (`reconstruindo`), que já sabe que há uma recriação a caminho.
+ *
+ * O E-MAIL DE BOAS-VINDAS SAI DAQUI TAMBÉM, mas não o da recriação: quem manda o endereço é
+ * `recriarEscola` (a mesma função da criação). Este acrescenta o aviso a quem concilia.
+ */
+async function receberOConvite(request, env) {
+  const token = decodeURIComponent(new URL(request.url).pathname.replace(/^\/api\/recriar\//, '')).trim();
+  const lido = await lerConvite({ env, token });
+  if (!lido.ok) return responderJson({ ok: false, erro: lido.motivo }, 410);
+
+  let corpo = {};
+  try { corpo = await request.json(); } catch { corpo = {}; }
+  const senhaAdmin = String((corpo && corpo.senhaAdmin) || '');
+  const senhaProfessor = String((corpo && corpo.senhaProfessor) || '');
+  if (!senhaAdmin.trim()) {
+    return responderJson({ ok: false, erro: 'escreva a senha da escola — é ela que abre o acesso' }, 400);
+  }
+  const quando = new Date().toISOString();
+
+  const feito = await recriarEscola({
+    env,
+    escola: lido.escola,
+    plano: corpo && corpo.plano,
+    senhaAdmin,
+    senhaProfessor,
+    origem: 'convite',
+  });
+  if (!feito.ok) {
+    return responderJson({ ok: false, erro: feito.erro, semRecriar: true },
+      feito.status || 500);
+  }
+
+  /* O CONVITE GASTOU-SE. A marcação é um facto do convite, e não da escola — por isso fica na
+   * mesma chave, com o instante: é o que permite responder a «quando é que este link foi usado?». */
+  const kv = env && env.PADD_KV;
+  if (kv && typeof kv.put === 'function') {
+    try {
+      const novo = Object.assign({}, lido.registo, { usadoEm: quando, usadoPor: 'convite' });
+      await kv.put(chaveDoConvite(lido.escola), JSON.stringify(novo));
+    } catch (erro) { /* a escola já existe; o convite que fique aberto é o mal menor */ }
+  }
+
+  /* O AVISO A QUEM CONCILIA — «A escola X contratou o serviço da Lastro». Vai depois de a escola
+   * existir, e não faz falhar nada: `avisarOProprietario` devolve o desfecho. */
+  const paraOMail = await cadastroParaOMail({
+    env, escola: feito.escola, professor: (feito.professor && feito.professor.slug) || '',
+    nome: feito.nome, registo: null,
+  });
+  const aviso = await avisarOProprietario({
+    env,
+    escola: feito.escola,
+    nome: feito.nome,
+    escolha: feito.escolha,
+    quando,
+    professor: (feito.professor && feito.professor.nome) || null,
+    contactos: cadastroDaEscola.destinatarios(paraOMail),
+    recriada: true,
+  });
+
+  return responderJson(Object.assign({}, feito, {
+    ok: true,
+    quando,
+    quandoTexto: fuso.quandoLocal(quando),
+    aviso,
+  }), 201);
+}
+
+async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor, origem }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
   const ghToken = env && env.GITHUB_TOKEN;
@@ -2037,7 +2331,7 @@ async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor })
     /* O PROFESSOR VAI NO REGISTO, e é ele que a linha «a nascer» mostra enquanto o acervo não
      * reconhece a escola — a mesma razão da criação. */
     professor: quem.slug,
-    origem: 'recriacao',
+    origem: origem || 'recriacao',
     recriadaDe: ultimoExpurgo ? new Date(ultimoExpurgo).toISOString() : null,
     criadoEm: new Date().toISOString(),
     disparoRun: (disparo && disparo.run) ? disparo.run : null,
@@ -2088,6 +2382,11 @@ async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor })
     /* O QUE ELA VAI FAZER A SEGUIR, e é o passo comercial que fechou o ciclo: mandar a chave Pix.
      * O valor vem daqui para ela não ter de o procurar noutra página. */
     aPagar: { valor: escolha.valor, valorCentavos: escolha.valorCentavos, plano: escolha.planoNome },
+    /* O PLANO COMPLETO, PARA QUEM VAI AVISAR O PROPRIETÁRIO. A rota do convite compõe o aviso com
+     * o nome do plano e o valor — e seria uma segunda conta recalculá-los lá. */
+    escolha: { plano: escolha.plano, planoNome: escolha.planoNome, valor: escolha.valor,
+      valorCentavos: escolha.valorCentavos },
+    origem: origem || 'recriacao',
   };
 }
 
@@ -2465,11 +2764,20 @@ async function fetch(request, env) {
    * O QUE O PÚBLICO PODE FAZER A MAIS DO QUE VER: criar escola — e só com o cadastro completo, que
    * é o que a página dele recolhe (`exigirCadastro`). */
   if (ehPaginaPublica(request, env)) {
+    /* O CONVITE DE RECRIAÇÃO PASSA AQUI, e é a ÚNICA porta pública que faz mais do que criar uma
+     * escola (16/11/2026). Quem a abre é o professor, num link que chegou ao e-mail dele — não tem
+     * a senha da raiz, e não deve ter. O que autentica é o token: 32 hex aleatórios, guardados
+     * apenas como hash, com prazo e uso único (`nucleo/convite.js`). Sem token válido, a página
+     * não tem formulário e o `POST` não cria nada. */
+    const ehConvite = url.pathname.startsWith('/recriar/') && request.method === 'GET';
+    const ehEnvioDoConvite = url.pathname.startsWith('/api/recriar/') && request.method === 'POST';
     const publicoPermitido = url.pathname === '/'
       || url.pathname === '/index.html'
       || url.pathname.startsWith('/assets/')
       || (url.pathname === '/api/criar-escola' && request.method === 'POST')
-      || url.pathname === '/api/pagina';
+      || url.pathname === '/api/pagina'
+      || ehConvite
+      || ehEnvioDoConvite;
     if (!publicoPermitido) {
       return new Response('não encontrado', {
         status: 404,
@@ -2482,6 +2790,8 @@ async function fetch(request, env) {
     if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
       return responderCriacao(request, env, { origem: 'publico', exigirCadastro: true });
     }
+    if (ehConvite) return await respostaDoConvite(request, env);
+    if (ehEnvioDoConvite) return await receberOConvite(request, env);
     return servirAPagina(request, env, { modo: 'publico' });
   }
 
@@ -2965,6 +3275,23 @@ async function fetch(request, env) {
    * pacote que o repositório já não tem. Depois o repositório, que é onde o expurgo deixa o
    * elo — a prova de que a escola existiu. As duas metades são independentes: a falha de uma
    * vai no relatório da sua etapa e não impede a outra. */
+  /* O CONVITE DE RECRIAÇÃO — o clique «Recriar» manda um e-mail, e não cria a escola (16/11/2026).
+   *
+   * «Quando eu clicar em recriar […] envia um e-mail para o e-mail cadastrado da escola […] Lá ele
+   * tem um link […] que ali ele escolhe o plano e ele cadastra a senha.» A rota é da proprietária
+   * (está atrás da senha da raiz) e é ela que devolve o link — para o caso de o cadastro não ter
+   * e-mail nenhum, ou de a mensagem não ter saído. */
+  if (url.pathname === '/api/recriar-convite' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const feito = await criarConvite({
+      env, escola: corpo && corpo.escola, por: 'proprietario',
+    });
+    return responderJson(
+      feito.ok ? feito : { ok: false, erro: feito.erro },
+      feito.status || (feito.ok ? 200 : 500));
+  }
+
   if (url.pathname === '/api/apagar-escola' && request.method === 'POST') {
     let corpo;
     try { corpo = await request.json(); } catch { corpo = null; }
@@ -3256,33 +3583,6 @@ async function fetch(request, env) {
     return responderCriacao(request, env, { origem: 'painel', exigirCadastro: false });
   }
 
-  /* RECRIAR UMA ESCOLA APAGADA, A PARTIR DA PROVENIÊNCIA (16/11/2026).
-   *
-   * O GESTO INTEIRO QUE ELA DESCREVEU: apagada a escola, o professor paga outra vez, e ela clica
-   * «Recriar». O elo (`escola/<slug>/indice.json`) sobrevive ao expurgo de propósito, e é dele que
-   * saem o professor, o ciclo e o shard; o que ele não tem são as senhas — vêm do pedido ou, se a
-   * escola vive num shard, do cofre que o expurgo não apagou.
-   *
-   * A SENHA, DAS DUAS UMA: nunca se recria sem senha. Ver `recriarEscola`.
-   *
-   * O PEDIDO NÃO LEVA CONFIRMAÇÃO ESCRITA (ao contrário do apagar): criar não é irreversível — o
-   * pior que acontece é uma escola a mais, que se volta a apagar. Pedir o slug escrito outra vez
-   * seria copiar a cerimónia de um gesto destrutivo para um gesto construtivo. */
-  if (url.pathname === '/api/recriar-escola' && request.method === 'POST') {
-    let corpo = {};
-    try { corpo = await request.json(); } catch { corpo = {}; }
-    const feito = await recriarEscola({
-      env,
-      escola: corpo && corpo.escola,
-      plano: corpo && corpo.plano,
-      senhaAdmin: corpo && corpo.senhaAdmin,
-      senhaProfessor: corpo && corpo.senhaProfessor,
-    });
-    return responderJson(
-      feito.ok ? feito : { ok: false, erro: feito.erro, semRecriar: true },
-      feito.status || (feito.ok ? 201 : 500));
-  }
-
   // O resto → o ASSETS (a apresentação «Sistema Lastro» em raiz/index.html e o assets/).
   // O `run_worker_first` fez o Worker rodar antes do estático; aqui ele devolve o
   // estático que existe — e só cai no 404 quando não há. O freio de senha já foi
@@ -3346,4 +3646,9 @@ module.exports = {
    * recriação é o gesto que a abre. Uma prova que só a pudesse exercer em produção descobri-la-ia
    * em produção — com a escola de alguém no meio. */
   recriarEscola, reconstruindo,
+  /* O CONVITE E AS SUAS DUAS PONTAS (16/11/2026). `criarConvite` é o clique da proprietária;
+   * `lerConvite` é o que a página pública confere antes de mostrar um campo. Exportados porque
+   * o token é a única autenticação de uma rota pública — e uma autenticação que só se mede em
+   * produção descobre-se em produção. */
+  criarConvite, lerConvite, chaveDoConvite,
 };

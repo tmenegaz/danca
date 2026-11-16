@@ -680,96 +680,202 @@ function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
      * nesta lista: nas vivas não há nada a recriar. */
     corpo: tabelaDeEscolas(escolas, recorte, ordem, professores) +
       (apagadas
-        ? modalDaRecriacao({ catalogo }) + SCRIPT_DA_RECRIACAO
+        ? modalDoConvite() + SCRIPT_DO_CONVITE_DO_PAINEL
         : blocoDoCofre() + SCRIPT_DO_COFRE + SCRIPT_DO_ACESSO) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
 
 /**
- * A CONFIRMAÇÃO DA RECRIAÇÃO — e o que ela tem de perguntar (16/11/2026).
+ * A PÁGINA DO CONVITE — onde a ESCOLA escolhe o plano, cria as senhas e copia o Pix (16/11/2026).
  *
- * O QUE O ELO NÃO TEM: as senhas. Elas nunca estiveram no repositório — vivem no Worker (segredo) e
- * no KV (hash+sal), e a proveniência guarda o facto de a escola ter existido, não como se entra
- * nela. Por isso a confirmação pede-as, com a saída dita na própria etiqueta: **em branco mantém a
- * senha anterior**, quando o cofre ainda a tem (é o caso das escolas de shard, onde o expurgo não
- * apagou o KV). Se não houver nenhuma, o servidor recusa e diz por quê — e uma escola recriada sem
- * senha não abriria para ninguém.
+ * PORQUE É QUE ISTO DEIXOU DE SER UM MODAL DO PAINEL. «Esse modal que você abre para mim, ele vai
+ * virar uma página.» A razão é de quem usa: quem escolhe o plano e cria a senha é o **professor**,
+ * não a proprietária — e ele não tem a senha da raiz. Um modal dentro do painel obrigava-a a
+ * recolher as senhas dele por telefone e a digitá-las por ele. A página é dele, chega por e-mail,
+ * num link com token, e a senha nunca passa por terceiros.
  *
- * O PLANO VEM PRÉ-SELECCIONADO do `data-plano-anterior` da linha, e a lista é o CATÁLOGO — o mesmo
- * ficheiro que a página da criação mostra. É ele que dá o valor que a chave Pix vai pedir.
+ * A PÁGINA NÃO CARREGA O MENU DO PAINEL, e é de propósito: `navDoPainel` desenha os destinos do
+ * dono (as listas, o financeiro). Aqui há uma coisa só para fazer, e um menu ao lado dela seria
+ * uma porta que responde 401 a quem clicou.
+ *
+ * O `estado` decide o que se vê: com um convite válido, o formulário; sem ele, a frase do motivo e
+ * mais nada. As duas formas saem da MESMA função — a página inválida não é um erro do servidor, é
+ * uma resposta, e uma resposta tem de ser tão legível como a outra.
  */
-function modalDaRecriacao({ catalogo }) {
+function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
+  const nomeDaEscola = String(nome || escola || '');
   const planos = ((catalogo && catalogo.assinaturas) || []).map((p) =>
-    '<option value="' + esc(p.id) + '">' + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>')
-    .join('');
+    '<option value="' + esc(p.id) + '" data-preco="' + esc(p.precoTexto || '') + '">'
+    + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
+  const temPix = Boolean(pix && pix.chave);
+
+  const corpo = estado && estado.ok === false
+    ? '<div class="caixa falta"><h2>Este convite não está válido</h2>' +
+      '<p>' + esc(estado.motivo) + '</p></div>'
+    : '<div class="caixa nota">' +
+      '<h2>A escola «' + esc(nomeDaEscola) + '»</h2>' +
+      '<p>Os dados de identificação dela ficaram guardados. Falta o cadastro do acesso e o ' +
+      'pagamento: escolha o plano, crie as senhas, e pague por Pix.</p>' +
+      '<p><strong>São senhas novas.</strong> A senha antiga não é necessária — e não é pedida. ' +
+      'Se ninguém se lembra dela, é esta que passa a valer.</p>' +
+      '</div>' +
+
+      '<h2>1. O plano</h2>' +
+      '<label class="campo-rotulo" for="convite-plano">plano da escola</label>' +
+      '<select id="convite-plano">' + planos + '</select>' +
+      '<p class="nota" id="convite-valor"></p>' +
+
+      '<h2>2. As senhas</h2>' +
+      '<label class="campo-rotulo" for="convite-senha-escola">senha da escola (a direção)</label>' +
+      '<input id="convite-senha-escola" type="password" autocomplete="new-password">' +
+      '<label class="campo-rotulo" for="convite-senha-professor">senha do professor ' +
+      '(em branco = a mesma da escola)</label>' +
+      '<input id="convite-senha-professor" type="password" autocomplete="new-password">' +
+
+      '<h2>3. O pagamento, por Pix</h2>' +
+      (temPix
+        ? '<p id="convite-pix-instrucoes">Pague por Pix para <strong>'
+          + esc(pix.titular || 'o Sistema Lastro') + '</strong>.</p>' +
+          '<label class="campo-rotulo" for="convite-pix-chave">Chave Pix (copia e cola)</label>' +
+          '<input id="convite-pix-chave" readonly value="' + esc(pix.chave) + '">'
+        : '<p class="aviso">A chave Pix ainda não está configurada neste sistema. Não faça ' +
+          'nenhum pagamento antes de falar com a administração do Sistema Lastro.</p>') +
+      '<p class="aviso"><strong>Ao fazer o Pix, escreva o nome da escola</strong> — «'
+        + esc(nomeDaEscola) + '» — na descrição (ou no campo de mensagem) da transferência. ' +
+        'A conciliação é feita à mão, e é por esse nome que o pagamento é ligado à escola certa.</p>' +
+      '<p class="aviso"><b>Como funciona.</b> O pagamento vai direto para a conta do Sistema ' +
+      'Lastro, e a conciliação é feita à mão. Assim que ela for confirmada — <b>em até 24 horas</b> ' +
+      '—, o acesso é liberado, e a escola volta a aparecer para o professor no endereço de sempre.' +
+      '</p>' +
+
+      '<p class="res" id="convite-recado" role="status"></p>' +
+      '<p class="par-botoes"><button class="acao grande" type="button" id="convite-enviar">' +
+      'Criar o acesso</button></p>';
+
+  return '<!doctype html><html lang="pt-BR" data-paleta="verde">' +
+    '<head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<meta name="robots" content="noindex">' +
+    '<title>Recriar a escola «' + esc(nomeDaEscola) + '» · Sistema Lastro</title>' +
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
+    '<link rel="stylesheet" href="/assets/style.css">' +
+    '</head><body id="top" data-layout="documento" data-tela="convite">' +
+    '<header class="doc"><h1>Recriar a escola «' + esc(nomeDaEscola) + '»</h1>' +
+    '<p class="subtitulo">Escolher o plano, criar as senhas e pagar por Pix.</p></header>' +
+    '<main><div class="conteudo">' + corpo + '</div></main>' +
+    (estado && estado.ok === false ? '' : SCRIPT_DO_CONVITE.replace(/__TOKEN__/g, esc(token || ''))) +
+    '</body></html>';
+}
+
+/**
+ * O JAVASCRIPT DA PÁGINA DO CONVITE — o plano, os dois campos, e o pedido.
+ *
+ * O VALOR É LIDO DO `data-preco` DA OPÇÃO, e não calculado aqui: a conta é do servidor (o mesmo
+ * `comercial.calcular` que a criação usa), e a página limita-se a mostrar o preço que o catálogo
+ * traz. Um total calculado no browser seria uma segunda conta a divergir da que cobra.
+ *
+ * O TOKEN VAI NA URL DO PEDIDO, e não no corpo: é ele que identifica o convite, e a rota pública
+ * confere-o antes de olhar para o resto. O `__TOKEN__` é substituído no servidor.
+ */
+const SCRIPT_DO_CONVITE = '<script>(function(){' +
+  'var plano=document.getElementById("convite-plano"),valor=document.getElementById("convite-valor"),' +
+  'se=document.getElementById("convite-senha-escola"),sp=document.getElementById("convite-senha-professor"),' +
+  'recado=document.getElementById("convite-recado"),enviar=document.getElementById("convite-enviar");' +
+  'if(!plano||!enviar)return;' +
+  'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
+  'function mostrarValor(){var o=plano.options[plano.selectedIndex];' +
+  'if(valor)valor.textContent=o?("Primeira mensalidade: "+o.getAttribute("data-preco")):"";}' +
+  'plano.addEventListener("change",mostrarValor);mostrarValor();' +
+  'enviar.addEventListener("click",function(){' +
+  'if(!se||!se.value){dizer("escreva a senha da escola",true);if(se)se.focus();return;}' +
+  'dizer("a criar o acesso…");enviar.disabled=true;' +
+  'fetch("api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  'body:JSON.stringify({plano:plano.value,senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
+  '.then(function(r){return r.json().catch(function(){return {};});})' +
+  '.then(function(d){' +
+  'if(d&&d.ok){' +
+  'dizer("Pronto. A escola «"+(d.nome||d.escola)+"» está a ser criada, e o acesso abre quando a ' +
+  'conciliação do Pix for confirmada (até 24 horas). Guarde esta página: o endereço da escola é " + ' +
+  '(d.url||"o mesmo de sempre")+".");' +
+  'enviar.disabled=true;' +
+  'if(se)se.value="";if(sp)sp.value="";return;}' +
+  'enviar.disabled=false;dizer((d&&d.erro)||"não foi possível concluir o cadastro",true);})' +
+  '.catch(function(){enviar.disabled=false;dizer("falha de rede — nada foi alterado",true);});});' +
+  '})();</script>';
+
+/**
+ * A CONFIRMAÇÃO DO CONVITE — e o que ela NÃO pergunta mais (16/11/2026).
+ *
+ * «Esse modal que você abre para mim, ele vai virar uma página.» A versão anterior deste modal pedia
+ * o plano e as duas senhas AQUI, no painel. Isso obrigava a proprietária a recolher a senha do
+ * professor por telefone e a digitá-la por ele — e uma senha que passa por uma terceira pessoa
+ * deixou de ser um segredo no instante em que foi dita.
+ *
+ * O modal passou a ser o que ele deve ser: uma CONFIRMAÇÃO do envio. Diz para quem vai o e-mail (os
+ * contactos do cadastro), o que a escola vai fazer lá, e o prazo do link. O plano, as senhas e o Pix
+ * vivem na página do convite, do outro lado do link, na mão de quem paga.
+ *
+ * SEM E-MAIL NO CADASTRO, O LINK AINDA APARECE — e é copiável. A recriação não pode depender de um
+ * campo que o cadastro pode não ter (o expurgo leva o KV de uma escola de Worker próprio): ela
+ * manda-o por WhatsApp, e a escola faz o mesmo.
+ */
+function modalDoConvite() {
   return '<div class="modal" id="recriar-modal" hidden>' +
     '<div class="modal-fundo" data-recriar-fechar></div>' +
     '<div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="recriar-titulo">' +
-    '<div class="modal-cab"><h2 id="recriar-titulo">Recriar a escola</h2>' +
+    '<div class="modal-cab"><h2 id="recriar-titulo">Convidar a escola a voltar</h2>' +
     '<button class="modal-x" type="button" data-recriar-fechar aria-label="Fechar">&times;</button></div>' +
-    '<p>O professor, o ciclo e o endereço vêm da proveniência. O que ela não guarda são as senhas: ' +
-    'deixe em branco para <strong>manter a senha anterior</strong>, quando o cofre ainda a tiver.</p>' +
-    '<label class="campo-rotulo" for="recriar-plano">plano</label>' +
-    '<select id="recriar-plano">' + planos + '</select>' +
-    '<label class="campo-rotulo" for="recriar-senha-admin">senha da direção (em branco = manter)</label>' +
-    '<input id="recriar-senha-admin" type="password" autocomplete="new-password">' +
-    '<label class="campo-rotulo" for="recriar-senha-professor">senha do professor (em branco = manter)</label>' +
-    '<input id="recriar-senha-professor" type="password" autocomplete="new-password">' +
+    '<p>Vou mandar um e-mail à escola e ao professor com um link. Lá <strong>ele</strong> escolhe o ' +
+    'plano, cria as senhas e copia a chave Pix para pagar — a senha antiga não é necessária.</p>' +
+    '<p class="nota" id="recriar-destinos"></p>' +
     '<p class="res" id="recriar-recado" role="status"></p>' +
     '<div class="modal-acoes">' +
-    '<button class="acao secundario" type="button" data-recriar-fechar>Cancelar</button>' +
-    '<button class="acao" type="button" id="recriar-confirmar">Recriar</button>' +
+    '<button class="acao secundario" type="button" data-recriar-fechar>Fechar</button>' +
+    '<button class="acao" type="button" id="recriar-confirmar">Enviar o convite</button>' +
     '</div></div></div>';
 }
 
 /**
- * O JAVASCRIPT DA RECRIAÇÃO — o clique, o pedido, e o que se diz a seguir.
+ * O JAVASCRIPT DO CONVITE — o clique, o pedido, e o que se diz a seguir.
  *
- * A PÁGINA RECARREGA NO FIM, e é de propósito: a escola deixa de estar nesta lista e passa a
- * aparecer nas vivas como «a nascer» — mas quem sabe disso é o servidor (a janela entre a
- * recriação e o CI), e reproduzi-lo aqui seria uma segunda cópia da regra. A mesma disciplina do
- * `SCRIPT_DO_ACESSO`, que também recarrega.
+ * A LISTA NÃO SE RECARREGA: o convite não muda a lista — a escola só muda de lado quando o
+ * professor submeter a página. Recarregar aqui faria a linha desaparecer sem nada ter acontecido, e
+ * ela concluiria que a escola foi recriada.
  *
- * O QUE SE DIZ ANTES DE RECARREGAR: o valor e o plano, e que a escola vai aparecer nas vivas à
- * espera de conciliação. É o passo seguinte dela — mandar a chave Pix —, e ele não pode ficar a
- * depender de ela adivinhar onde a escola foi parar.
+ * O LINK VOLTA NA RESPOSTA e é mostrado quando o e-mail não saiu — é o que permite mandá-lo à mão.
+ * Quando o e-mail saiu, o link fica na resposta do servidor e não se despeja na tela: quem tem o
+ * e-mail tem o convite.
  */
-const SCRIPT_DA_RECRIACAO = '<script>(function(){' +
+const SCRIPT_DO_CONVITE_DO_PAINEL = '<script>(function(){' +
   'var modal=document.getElementById("recriar-modal");if(!modal)return;' +
-  'var plano=document.getElementById("recriar-plano"),sa=document.getElementById("recriar-senha-admin"),' +
-  'sp=document.getElementById("recriar-senha-professor"),recado=document.getElementById("recriar-recado"),' +
+  'var destinos=document.getElementById("recriar-destinos"),recado=document.getElementById("recriar-recado"),' +
   'confirmar=document.getElementById("recriar-confirmar"),alvo=null;' +
-  'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}'+
-  'function abrir(slug,planoAnterior){alvo=slug;dizer("");sa.value="";sp.value="";' +
-  'if(planoAnterior){plano.value=planoAnterior;}' +
-  'modal.hidden=false;if(sa)sa.focus();}' +
+  'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
+  'function abrir(slug){alvo=slug;dizer("");if(destinos)destinos.textContent="";' +
+  'modal.hidden=false;if(confirmar){confirmar.disabled=false;confirmar.textContent="Enviar o convite";}}' +
   'function fechar(){modal.hidden=true;alvo=null;}' +
   'Array.prototype.forEach.call(document.querySelectorAll("[data-recriar]"),function(b){' +
-  'b.addEventListener("click",function(){abrir(b.getAttribute("data-recriar"),b.getAttribute("data-plano-anterior"));});});' +
+  'b.addEventListener("click",function(){abrir(b.getAttribute("data-recriar"));});});' +
   'Array.prototype.forEach.call(modal.querySelectorAll("[data-recriar-fechar]"),function(b){' +
   'b.addEventListener("click",fechar);});' +
   'document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!modal.hidden)fechar();});' +
   'confirmar.addEventListener("click",function(){' +
   'if(!alvo)return;' +
-  'dizer("a recriar…");confirmar.disabled=true;' +
-  'fetch("api/recriar-escola",{method:"POST",headers:{"Content-Type":"application/json"},' +
-  'body:JSON.stringify({escola:alvo,plano:plano?plano.value:"",' +
-  'senhaAdmin:sa?sa.value:"",senhaProfessor:sp?sp.value:""})})' +
+  'dizer("a enviar o convite…");confirmar.disabled=true;' +
+  'fetch("api/recriar-convite",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  'body:JSON.stringify({escola:alvo})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){confirmar.disabled=false;' +
-  'if(d&&d.ok){' +
-  'var correio=(d.correio&&d.correio.enviado)?" O e-mail com o endereço foi enviado.":' +
-  /* O MOTIVO, COM O DETALHE DO PROVEDOR. «o provedor recusou (HTTP 403)» é verdade e não serve; o
-   * detalhe traz «o domínio padd.com.br não está verificado», que é a única frase que diz o que
-   * fazer. O detalhe vem do `correio.enviar`, e não se reescreve aqui. */
-  '" O e-mail NÃO saiu ("+((d.correio&&(d.correio.detalhe||d.correio.motivo))||"motivo não declarado")+").";' +
-  'dizer("A escola «"+(d.escola||alvo)+"» foi recriada. Plano " +' +
-  '((d.comercial&&(d.comercial.planoNome||d.comercial.plano))||"—")+(d.aPagar&&d.aPagar.valor?" · "+d.aPagar.valor:"")+' +
-  '". Ela aparece nas escolas vivas a aguardar conciliação — mande a chave Pix, e habilite quando o pagamento entrar."+correio);' +
-  'setTimeout(function(){location.reload();},1800);}' +
-  'else{dizer((d&&d.erro)||"não foi possível recriar a escola",true);}})' +
-  '.catch(function(){confirmar.disabled=false;dizer("falha de rede",true);});});' +
+  'if(!d||!d.ok){dizer((d&&d.erro)||"não foi possível enviar o convite",true);return;}' +
+  'var para=(d.para||[]).join(", ");' +
+  'var saiu=(d.correio&&d.correio.enviado);' +
+  'var detalhe=(d.correio&&(d.correio.detalhe||d.correio.motivo))||"";' +
+  'if(saiu){dizer("Convite enviado para "+para+". Vale até "+d.expiraEmTexto+".");}' +
+  'else{dizer("O e-mail NÃO saiu ("+detalhe+"). Mande este link à escola: "+d.link,true);}' +
+  'if(destinos)destinos.textContent="Escola: "+(d.nome||alvo)+" · contactos: "+(para||"nenhum no cadastro");' +
+  'confirmar.textContent="Enviar outra vez";})' +
+  '.catch(function(){confirmar.disabled=false;dizer("falha de rede — nada foi enviado",true);});});' +
   '})();</script>';
 
 /** O atalho que as rotas usam — e que a prova exercita sem passar pelo Worker. */
@@ -1214,5 +1320,6 @@ module.exports = {
   MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
   indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
+  paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO,
 };
