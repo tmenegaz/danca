@@ -1,95 +1,41 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-15",
-        "caminho": "professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
-        "cobertura": [
-          "professores/dedao-aberto/ciclos/ciclo-01-breu.conf",
-          "professores/dedao-aberto/ciclos/ciclo-01.conf"
-        ],
-        "hash": "fabbf9189e4b261c5366bd671a116a92a7eeef6c6c77e15064059bd9daa8095d",
-        "hash_conteudo": "98bb4547a47b289c0de017fb1d78b19a03508b712748145d88d652e9cea5d470",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/dedao-aberto/ciclos/ciclo-01-breu.conf",
-        "professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
-        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:dedao-aberto/01/breu",
-      "numero": "01",
-      "pacote": null,
-      "professor": "dedao-aberto",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
-      "ciclo_id": "ciclo:dedao-aberto/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
-      "professor": "dedao-aberto",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-breu.conf",
-      "ciclo_id": "ciclo:dedao-aberto/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/dedao-aberto/ciclos/ciclo-01-breu.conf",
-      "professor": "dedao-aberto",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:dedao-aberto/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "dedao-aberto",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:dedao-aberto/01/breu"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
     "criada_em": "2026-11-15T22:08:32.780932+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-15T20:24:05.670Z",
-    "expurgos": 10,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-16T00:43:14.929Z",
+    "expurgos": 11,
+    "habilitada": false,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "dedao-aberto",
     "professores": [
-      "dedao-aberto"
+      "cafe-no-bule",
+      "colo-de-pe",
+      "coqui-de-redinha",
+      "dedao-aberto",
+      "grand-plie",
+      "luz-azul",
+      "pe-torto",
+      "redinha-rosa",
+      "rimel-preto",
+      "sapo-bailarino",
+      "tiago-menegaz",
+      "vaso-bonito"
     ],
     "registros": [],
     "slug": "breu"
@@ -97,42 +43,15 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/breu"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/breu"
-        ],
-        "rotulo": "dedao-aberto",
-        "valor": "dedao-aberto"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:dedao-aberto/01/breu"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "3c63310c"
+    "commit": "8c8f006"
   },
-  "gerado_em": "2026-11-16T00:38",
+  "gerado_em": "2026-11-16T00:43",
   "nao_indexado": [
     {
       "familia": "conteudo",
