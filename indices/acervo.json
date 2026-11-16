@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
-        "id": "ciclo-01-duo",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "duo",
-      "estado": "ancorado",
-      "id": "ciclo:fernando-franciose/01/duo",
-      "numero": "01",
-      "professor": "fernando-franciose",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -135,24 +118,22 @@
       "slug": "calango"
     },
     {
-      "ciclos": [
-        "ciclo:fernando-franciose/01/duo"
-      ],
+      "ciclos": [],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
         "registros": 0
       },
       "criada_em": "2026-11-16T12:25:10.980318+00:00",
-      "expurgada": false,
-      "expurgada_em": null,
-      "expurgos": 0,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-11-16T13:56:53.907Z",
+      "expurgos": 1,
+      "habilitada": false,
       "id": "escola:duo",
       "nome": "duo",
       "professor": "fernando-franciose",
@@ -187,13 +168,7 @@
         "valor": "duo"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -350,9 +325,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9560608"
+    "commit": "7801ecc"
   },
-  "gerado_em": "2026-11-16T12:44",
+  "gerado_em": "2026-11-16T13:57",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -460,9 +435,7 @@
       "slug": "demi-plie"
     },
     {
-      "ciclos": [
-        "ciclo:fernando-franciose/01/duo"
-      ],
+      "ciclos": [],
       "escolas": [
         "duo"
       ],
