@@ -111,14 +111,14 @@
         "ciclo:pe-pequeno/01/calango"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-11-15T22:07:20.172239+00:00",
       "expurgada": false,
@@ -131,12 +131,20 @@
       "professores": [
         "pe-pequeno"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261115-2109"
+      ],
       "slug": "calango"
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -223,13 +231,19 @@
         "valor": "sapatilha-de-ponta"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "f5ebb93"
+    "commit": "5df76cf"
   },
-  "gerado_em": "2026-11-16T00:04",
+  "gerado_em": "2026-11-16T00:09",
   "nao_indexado": [
     {
       "familia": "conteudo",
