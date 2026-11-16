@@ -47483,3 +47483,87 @@ bloqueio, com a frase lida do `proveniencia.CORRECAO`.
 âncoras, os validadores e o código de saída da ferramenta (0 passa, 1 reprova, 2 uso errado), as
 17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. Nenhum bloqueio novo, nenhum retirado
 — o que a ferramenta **aprova** é o mesmo antes e depois.
+
+## 16/11/2026 — a escola apagada volta a nascer, e o ciclo comercial fecha
+
+**O que motivou.** O passo que faltava depois do expurgo, dito por ela como um fluxo inteiro: «A
+escola Duo agora está na lista de escolas apagadas, você vai colocar mais uma coluna, que é para a
+seguinte ação: Recriar. […] Por causa da proveniência, temos todos os dados que a gente precisa para
+criar a escola […], e aí eu recrio a escola e vou mandar a chave Pix para ele fazer o pagamento. Aí
+a escola vai estar lá nas escolas vivas, aguardando para ser habilitada. Aí então, depois que eu
+fizer a conciliação bancária, eu vou lá e habilito a escola e aí já está tudo certo.»
+
+**O que a proveniência tem — e o que ela não tem, por desenho.** O elo
+(`escola/<slug>/indice.json`) sobrevive ao expurgo de propósito e traz o slug, o professor (slug e
+nome), o responsável, o ciclo e o `shard`: é dele que sai a recriação. Não traz as **duas senhas** —
+elas nunca estiveram no repositório, só no Worker (segredo) e no KV (hash+sal). Por isso a
+confirmação as pede, com a saída escrita na etiqueta: **em branco mantém a senha anterior**, quando o
+cofre ainda a tem. Numa escola de shard o expurgo não apaga o KV (defeito declarado no REGISTRO de
+21/10), e é isso que faz «recriar» significar, quase sempre, «o professor continua a entrar com a
+senha que já usava». Sem senha nenhuma — nem no pedido, nem no cofre — a recriação **recusa**: uma
+escola no ar que não abre para ninguém é pior do que não ter sido recriada.
+
+**O que foi decidido.**
+
+- **Uma coluna, um gesto, e o oposto do que a lista fazia.** A lista das apagadas deixou de ser só
+  memória: ganhou a coluna «Recriar», com um botão por escola apagada. O gesto não copia a cerimónia
+  do apagar (não pede o slug escrito) — criar não é irreversível, e o pior que acontece é uma escola
+  a mais, que se volta a apagar.
+- **A regra é uma só, e a chave é o tempo.** O elo diz «apagada em T1»; o registo comercial diz
+  «escrito em T2». Se T2 > T1, a encarnação é nova. Essa regra (`reconstruindo`) faz três coisas: a
+  lista das apagadas esconde a linha, a lista das vivas mostra-a como «a nascer», e a rota recusa um
+  segundo clique — que dispararia dois `criar-escola` sobre a mesma escola.
+- **O registo comercial começa do ZERO.** Herdar o da vida anterior traria a `desabilitadaEm` que
+  levou ao expurgo, e a coluna «Desabilitada» das vivas mostraria a suspensão de uma escola que agora
+  está a aguardar conciliação. A memória não se perde: está no elo.
+- **A recriação não escreve no elo.** A `recriacao[]` é escritura do `criar-escola.sh`, que é quem vê
+  o índice. Escrevê-la daqui seria uma segunda opinião sobre a mesma linha do tempo, a competir com o
+  CI pelo mesmo commit.
+- **A derivação da `habilitada` mudou.** O expurgo escreve `estado.habilitada: false` no elo, e o elo
+  não se reescreve: sem correção, a escola recriada ficava `expurgada: false` e `habilitada: false`
+  ao mesmo tempo, para sempre. A regra passa a ser a mesma das datas — recriação posterior ao último
+  expurgo —, numa função do núcleo (`recriadaDepoisDoUltimoExpurgo`), e não numa segunda opinião.
+- **Nenhuma peça nova na folha.** A coluna usa o `.acao pequena`, a confirmação usa o `.modal` do
+  catálogo (que existia e não tinha consumidor), e os campos são `campo-rotulo` + `select`. O
+  catálogo já os cobria — e o `check-identidade` confirma-o sobre 17 superfícies.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`reconstruindo`, `recriarEscola`, a rota
+`POST /api/recriar-escola`, a janela nas duas listas, `gravarComercial(…, {substituir})`) ·
+`motor/servidor/provisionar-escola.js` (`lerRegistoDoDono`, e a herança das senhas quando não vêm
+novas) · `motor/servidor/painel-html.js` (a coluna, o `modalDaRecriacao` e o `SCRIPT_DA_RECRIACAO`) ·
+`motor/nucleo/indices.js` (`recriadaDepoisDoUltimoExpurgo`, na `habilitada`) ·
+`experimentos/provar-recriar-escola.js` (novo) · `.gitignore` (a prova sai do rascunho).
+
+**Com o quê.** `provar-recriar-escola` **62/62** — a janela; as cinco recusas (sem elo, nunca
+apagada, já recriada, recriação em curso, sem senha), todas sem tocar em nada; a recriação com o
+Cloudflare e o GitHub falsos (o professor, o ciclo e o shard vindos do elo; a senha do cofre herdada
+e a conferir; o registo comercial `aguardando` e limpo; a escola de volta ao mapa; a rota a apontar
+ao shard); as duas listas; a derivação; e a página em jsdom (a coluna, a confirmação, o pedido com os
+valores certos e o recado que diz o que fazer a seguir). A secção C2 mede o correio com a API falsa: uma carta só, para o e-mail da escola **e** o do
+professor, com o assunto a nomear a escola, o endereço no corpo, e a senha fora dele. Mais
+`provar-indices` 58/58 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `provar-escola-a-nascer` 48/48 · `provar-financeiro` 58/58 ·
+`provar-cofre-e-shard` 129/129 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O CORREIO (16/11/2026, a seguir ao mesmo pedido).** «Assim eu testo também o envio de email.» A
+recriação manda a **mesma** mensagem da criação, pela mesma função — uma escola recriada é uma
+escola criada de novo, e não há outra altura em que o endereço chegue a quem o vai usar. O que
+faltava era a costura dos nomes: o KV guarda `email` (da escola) e o contato do professor noutra
+chave, e a mensagem lê `escolaEmail`/`professorEmail` — na criação a diferença não aparecia porque a
+mensagem recebia o cadastro VALIDADO. `cadastroParaOMail` faz essa tradução, e é uma só para os dois
+caminhos. O `RESEND_API_KEY` passou a ser secret do Worker `danca` (deploy feito), e a tela diz o
+desfecho do correio ao lado do sucesso — com o detalhe do provedor quando ele recusa, porque «o
+provedor recusou (HTTP 403)» não diz o que fazer.
+
+**O que a chave mostrou, e fica declarado: o domínio NÃO está verificado no Resend.** O primeiro
+envio devolveu `403 — The padd.com.br domain is not verified`. Até o domínio ser verificado em
+resend.com/domains (e os registos DKIM/SPF criados no DNS, que é o da Cloudflare), todo o envio falha
+com esse motivo — e o sistema **diz** isso em vez de fingir que enviou: a mensagem fica na caixa de
+saída do tenant e o desfecho viaja na resposta.
+
+**O que ainda não está feito, e é declarado.** A recriação **não manda a chave Pix** — o valor e o
+plano vêm na resposta e na tela, e o envio é dela, como descreveu. Os parâmetros do ciclo
+(frequência, dias, duração) são os da criação — o `.conf` da encarnação anterior foi com o expurgo, e
+a proveniência guarda o facto de a escola ter existido, não os horários dela; o plano de ensino é
+reescrito pelo professor. E `provar-painel` continua com as **4 falhas pré-existentes** (destinos do
+menu e colunas das vivas), medidas antes desta mudança.

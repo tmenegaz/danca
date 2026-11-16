@@ -1468,3 +1468,10 @@ experimentos/modelo-formulario/*
 # exacto. A prova mede o empilhamento, o vão (`--esp-2`), a largura mínima da peça e o não-corte a
 # sete larguras, e reproduz o «acavalado» com a marcação antiga como controlo negativo.
 !experimentos/provar-acoes-da-linha.js
+
+# A ESCOLA APAGADA VOLTA A NASCER (16/11/2026). «A escola Duo agora está na lista de escolas apagadas
+# […] vou clicar então em recriar, e aí eu recrio a escola e vou mandar a chave Pix.» A prova mede a
+# janela (o registo comercial posterior ao expurgo), as cinco recusas, a recriação com o Cloudflare e
+# o GitHub falsos — o professor e o ciclo vindos do elo, a senha do cofre herdada, o registo comercial
+# a nascer limpo — e a página: a coluna, a confirmação e o pedido.
+!experimentos/provar-recriar-escola.js

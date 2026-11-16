@@ -384,6 +384,23 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
       celulas.push('<td>' + (e.expurgada
         ? '<a href="/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a>'
         : '—') + '</td>');
+      /* RECRIAR (16/11/2026). «Eu vou clicar então em recriar, e aí eu recrio a escola e vou mandar
+       * a chave Pix para ele fazer o pagamento. Aí a escola vai estar lá nas escolas vivas,
+       * aguardando para ser habilitada.»
+       *
+       * O BOTÃO SÓ EXISTE ONDE HÁ O QUE RECRIAR: uma linha que não está expurgada não tem elo
+       * com que a recriar, e a rota recusaria. O `data-plano-anterior` leva o plano da encarnação
+       * anterior para a confirmação o pré-seleccionar — é o mesmo plano, quase sempre.
+       *
+       * O GESTO NÃO É UMA ORDEM IRREVERSÍVEL, e por isso não copia a cerimónia do apagar: abre uma
+       * confirmação com o plano e as senhas (as senhas não estão na proveniência, e uma escola sem
+       * senha não abre para ninguém). */
+      celulas.push('<td>' + (e.expurgada
+        ? '<button class="acao pequena" type="button" data-recriar="' + esc(e.slug) + '"' +
+          (e.planoAnterior && e.planoAnterior.id
+            ? ' data-plano-anterior="' + esc(e.planoAnterior.id) + '"' : '') +
+          '>Recriar</button>'
+        : '—') + '</td>');
     }
     return '<tr>' + celulas.join('') + '</tr>';
   };
@@ -408,7 +425,7 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
       '<th>Acesso</th>');
   }
   colunas.push('<th>Estado</th>');
-  if (recorte !== 'vivas') colunas.push('<th>Registo</th>');
+  if (recorte !== 'vivas') colunas.push('<th>Registo</th>', '<th>Recriar</th>');
 
   return '<table>' +
     '<thead><tr>' + colunas.join('') + '</tr></thead>' +
@@ -649,7 +666,7 @@ function resposta(html, status) {
  * que uma ganhasse uma coluna — e a regra do catálogo é que peça repetida é peça que vai
  * divergir.
  */
-function paginaDeLista({ recorte, escolas, ordem, professores }) {
+function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
   const apagadas = recorte === 'apagadas';
   return pagina({
     titulo: apagadas ? 'Escolas apagadas' : 'Escolas vivas',
@@ -657,15 +674,107 @@ function paginaDeLista({ recorte, escolas, ordem, professores }) {
       ? 'O registo do que foi expurgado — a proveniência de uma escola que existiu.'
       : 'As escolas que existem agora. O nome leva ao site de cada uma.',
     atual: apagadas ? 'escolas-apagadas' : 'escolas-vivas',
+    /* AS APAGADAS GANHARAM UM GESTO, E É O CONTRÁRIO DO QUE ESTA LISTA FAZIA (16/11/2026). Até
+     * aqui ela era só o registo do que saiu — a memória. Com a recriação, ela passa a ser também
+     * onde o professor que pagou outra vez volta a ter escola. A confirmação e o script só existem
+     * nesta lista: nas vivas não há nada a recriar. */
     corpo: tabelaDeEscolas(escolas, recorte, ordem, professores) +
-      (apagadas ? '' : blocoDoCofre() + SCRIPT_DO_COFRE + SCRIPT_DO_ACESSO) +
+      (apagadas
+        ? modalDaRecriacao({ catalogo }) + SCRIPT_DA_RECRIACAO
+        : blocoDoCofre() + SCRIPT_DO_COFRE + SCRIPT_DO_ACESSO) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
 
+/**
+ * A CONFIRMAÇÃO DA RECRIAÇÃO — e o que ela tem de perguntar (16/11/2026).
+ *
+ * O QUE O ELO NÃO TEM: as senhas. Elas nunca estiveram no repositório — vivem no Worker (segredo) e
+ * no KV (hash+sal), e a proveniência guarda o facto de a escola ter existido, não como se entra
+ * nela. Por isso a confirmação pede-as, com a saída dita na própria etiqueta: **em branco mantém a
+ * senha anterior**, quando o cofre ainda a tem (é o caso das escolas de shard, onde o expurgo não
+ * apagou o KV). Se não houver nenhuma, o servidor recusa e diz por quê — e uma escola recriada sem
+ * senha não abriria para ninguém.
+ *
+ * O PLANO VEM PRÉ-SELECCIONADO do `data-plano-anterior` da linha, e a lista é o CATÁLOGO — o mesmo
+ * ficheiro que a página da criação mostra. É ele que dá o valor que a chave Pix vai pedir.
+ */
+function modalDaRecriacao({ catalogo }) {
+  const planos = ((catalogo && catalogo.assinaturas) || []).map((p) =>
+    '<option value="' + esc(p.id) + '">' + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>')
+    .join('');
+  return '<div class="modal" id="recriar-modal" hidden>' +
+    '<div class="modal-fundo" data-recriar-fechar></div>' +
+    '<div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="recriar-titulo">' +
+    '<div class="modal-cab"><h2 id="recriar-titulo">Recriar a escola</h2>' +
+    '<button class="modal-x" type="button" data-recriar-fechar aria-label="Fechar">&times;</button></div>' +
+    '<p>O professor, o ciclo e o endereço vêm da proveniência. O que ela não guarda são as senhas: ' +
+    'deixe em branco para <strong>manter a senha anterior</strong>, quando o cofre ainda a tiver.</p>' +
+    '<label class="campo-rotulo" for="recriar-plano">plano</label>' +
+    '<select id="recriar-plano">' + planos + '</select>' +
+    '<label class="campo-rotulo" for="recriar-senha-admin">senha da direção (em branco = manter)</label>' +
+    '<input id="recriar-senha-admin" type="password" autocomplete="new-password">' +
+    '<label class="campo-rotulo" for="recriar-senha-professor">senha do professor (em branco = manter)</label>' +
+    '<input id="recriar-senha-professor" type="password" autocomplete="new-password">' +
+    '<p class="res" id="recriar-recado" role="status"></p>' +
+    '<div class="modal-acoes">' +
+    '<button class="acao secundario" type="button" data-recriar-fechar>Cancelar</button>' +
+    '<button class="acao" type="button" id="recriar-confirmar">Recriar</button>' +
+    '</div></div></div>';
+}
+
+/**
+ * O JAVASCRIPT DA RECRIAÇÃO — o clique, o pedido, e o que se diz a seguir.
+ *
+ * A PÁGINA RECARREGA NO FIM, e é de propósito: a escola deixa de estar nesta lista e passa a
+ * aparecer nas vivas como «a nascer» — mas quem sabe disso é o servidor (a janela entre a
+ * recriação e o CI), e reproduzi-lo aqui seria uma segunda cópia da regra. A mesma disciplina do
+ * `SCRIPT_DO_ACESSO`, que também recarrega.
+ *
+ * O QUE SE DIZ ANTES DE RECARREGAR: o valor e o plano, e que a escola vai aparecer nas vivas à
+ * espera de conciliação. É o passo seguinte dela — mandar a chave Pix —, e ele não pode ficar a
+ * depender de ela adivinhar onde a escola foi parar.
+ */
+const SCRIPT_DA_RECRIACAO = '<script>(function(){' +
+  'var modal=document.getElementById("recriar-modal");if(!modal)return;' +
+  'var plano=document.getElementById("recriar-plano"),sa=document.getElementById("recriar-senha-admin"),' +
+  'sp=document.getElementById("recriar-senha-professor"),recado=document.getElementById("recriar-recado"),' +
+  'confirmar=document.getElementById("recriar-confirmar"),alvo=null;' +
+  'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}'+
+  'function abrir(slug,planoAnterior){alvo=slug;dizer("");sa.value="";sp.value="";' +
+  'if(planoAnterior){plano.value=planoAnterior;}' +
+  'modal.hidden=false;if(sa)sa.focus();}' +
+  'function fechar(){modal.hidden=true;alvo=null;}' +
+  'Array.prototype.forEach.call(document.querySelectorAll("[data-recriar]"),function(b){' +
+  'b.addEventListener("click",function(){abrir(b.getAttribute("data-recriar"),b.getAttribute("data-plano-anterior"));});});' +
+  'Array.prototype.forEach.call(modal.querySelectorAll("[data-recriar-fechar]"),function(b){' +
+  'b.addEventListener("click",fechar);});' +
+  'document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!modal.hidden)fechar();});' +
+  'confirmar.addEventListener("click",function(){' +
+  'if(!alvo)return;' +
+  'dizer("a recriar…");confirmar.disabled=true;' +
+  'fetch("api/recriar-escola",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  'body:JSON.stringify({escola:alvo,plano:plano?plano.value:"",' +
+  'senhaAdmin:sa?sa.value:"",senhaProfessor:sp?sp.value:""})})' +
+  '.then(function(r){return r.json().catch(function(){return {};});})' +
+  '.then(function(d){confirmar.disabled=false;' +
+  'if(d&&d.ok){' +
+  'var correio=(d.correio&&d.correio.enviado)?" O e-mail com o endereço foi enviado.":' +
+  /* O MOTIVO, COM O DETALHE DO PROVEDOR. «o provedor recusou (HTTP 403)» é verdade e não serve; o
+   * detalhe traz «o domínio padd.com.br não está verificado», que é a única frase que diz o que
+   * fazer. O detalhe vem do `correio.enviar`, e não se reescreve aqui. */
+  '" O e-mail NÃO saiu ("+((d.correio&&(d.correio.detalhe||d.correio.motivo))||"motivo não declarado")+").";' +
+  'dizer("A escola «"+(d.escola||alvo)+"» foi recriada. Plano " +' +
+  '((d.comercial&&(d.comercial.planoNome||d.comercial.plano))||"—")+(d.aPagar&&d.aPagar.valor?" · "+d.aPagar.valor:"")+' +
+  '". Ela aparece nas escolas vivas a aguardar conciliação — mande a chave Pix, e habilite quando o pagamento entrar."+correio);' +
+  'setTimeout(function(){location.reload();},1800);}' +
+  'else{dizer((d&&d.erro)||"não foi possível recriar a escola",true);}})' +
+  '.catch(function(){confirmar.disabled=false;dizer("falha de rede",true);});});' +
+  '})();</script>';
+
 /** O atalho que as rotas usam — e que a prova exercita sem passar pelo Worker. */
-function paginaDasApagadas({ escolas, ordem, professores }) {
-  return paginaDeLista({ recorte: 'apagadas', escolas, ordem, professores });
+function paginaDasApagadas({ escolas, ordem, professores, catalogo }) {
+  return paginaDeLista({ recorte: 'apagadas', escolas, ordem, professores, catalogo });
 }
 
 /**

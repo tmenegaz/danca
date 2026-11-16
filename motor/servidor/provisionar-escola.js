@@ -256,6 +256,29 @@ async function provisionarDentroDoShard({ nome, senhaAdmin, senhaProfessor, prof
     registo.professor_hash = senha.hash;
     registo.professor_sal = senha.sal;
   }
+  /* A SENHA QUE JÁ EXISTE NÃO SE APAGA POR NÃO VIR NO PEDIDO (16/11/2026).
+   *
+   * A RECRIAÇÃO precisa disto: a escola `duo` foi apagada e, vivendo num shard, o registo dela
+   * ficou no KV — o expurgo não toca no KV de uma escola de shard (defeito declarado no
+   * REGISTRO). Recriar sem senhas novas tem de significar «mantém a que o professor já usa», e
+   * não «escreve o registo sem hash» — que seria uma escola no ar que não abre para ninguém, e a
+   * segunda vez que ele ficasse sem acesso sem ter feito nada.
+   *
+   * O QUE SE PRESERVA SÃO OS DOIS PARES, e só eles: o resto do registo (`nome`, `slug`, `escola`)
+   * é reescrito com o que a recriação sabe — é o presente, e o presente é o que vale. */
+  if (!senhaDaDirecao || !senhaDoProfessor) {
+    const anterior = await lerRegistoDoDono(kv, escola);
+    if (anterior) {
+      if (!registo.hash && anterior.hash && anterior.sal) {
+        registo.hash = anterior.hash;
+        registo.sal = anterior.sal;
+      }
+      if (!registo.professor_hash && anterior.professor_hash && anterior.professor_sal) {
+        registo.professor_hash = anterior.professor_hash;
+        registo.professor_sal = anterior.professor_sal;
+      }
+    }
+  }
   await kv.put('bastidores/' + escola + '/dono', JSON.stringify(registo));
 
   /* 2. O MAPA. O host é o que o `ligarDominio` vai registar — a composição é a mesma função, para
@@ -479,6 +502,28 @@ async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githu
 }
 
 /**
+ * O REGISTO DO COFRE DE UMA ESCOLA — `bastidores/<escola>/dono`, do KV do shard.
+ *
+ * Existe como função porque tem DOIS leitores com a mesma pergunta (16/11/2026):
+ * `provisionarDentroDoShard` (que o reescreve, e tem de herdar as senhas quando não vêm novas) e a
+ * recriação (que responde «mantém a senha anterior, ou pede uma»). Duas leituras da mesma chave
+ * seriam duas opiniões sobre «esta escola ainda tem senha» — e a divergência, aqui, é uma escola
+ * que não abre.
+ *
+ * Devolve `null` quando não há registo, ou quando ele não é JSON legível — para quem pergunta, as
+ * duas coisas são a mesma: não há senha para herdar.
+ */
+async function lerRegistoDoDono(kv, escola) {
+  if (!kv || typeof kv.get !== 'function' || !escola) return null;
+  try {
+    const texto = await kv.get('bastidores/' + escola + '/dono');
+    if (!texto) return null;
+    const registo = JSON.parse(texto);
+    return registo && typeof registo === 'object' ? registo : null;
+  } catch (erro) { return null; }
+}
+
+/**
  * LÊ o código que está no ar num Worker. `{ existe, codigo, status }` — nunca lança.
  *
  * A resposta da API é multipart/form-data (o módulo vem num `Blob`), e o que interessa é o
@@ -682,4 +727,7 @@ module.exports = {
   ehPlaceholder,
   lerCodigoDoWorker,
   linhaDoPlaceholder,
+  /* O REGISTO DO COFRE — uma leitura, dois leitores (16/11/2026): a recriação pergunta «há senha
+   * para herdar?» e o provisionamento pergunta «o que é que eu não posso apagar?». */
+  lerRegistoDoDono,
 };

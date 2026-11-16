@@ -14,7 +14,8 @@
  * da escola no Cloudflare e devolve o URL. A raiz só decide; não cria conteúdo pedagógico.
  */
 
-const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
+const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder, lerRegistoDoDono } =
+  require('./provisionar-escola.js');
 /* O CADASTRO DA ESCOLA E DO PROFESSOR PRINCIPAL (25/11/2026) — as regras, e as chaves do KV em que
  * os dados pessoais ficam. Fora do índice versionado, por decisão declarada: a verificação 7 do
  * `check-indices` proíbe `email` e `telefone` nos índices do acervo, e o CPF e o CNPJ não têm
@@ -40,6 +41,10 @@ const {
 const painel = require('./painel-html.js');
 /* O RELÓGIO DA CASA — o mesmo que desenha as tabelas do painel (16/11/2026). */
 const fuso = require('../nucleo/fuso.js');
+/* QUEM RESPONDE PELA ESCOLA — a leitura do elo é UMA, e é a que o painel e as duas metades do
+ * expurgo já usam (16/11/2026). A recriação precisa dela para saber de quem são os arquivos que
+ * vai criar: uma segunda leitura do mesmo elo seria uma segunda opinião sobre o mesmo professor. */
+const { responsavelDoInventario } = require('../nucleo/indices.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -181,6 +186,32 @@ async function escolasDoIndice({ token }) {
  * e enumerar traria as chaves de todas as escolas para responder sobre as que estão à vista.
  */
 /**
+ * A ESCOLA JÁ FOI RECRIADA, E O ÍNDICE AINDA NÃO SABE — «a reconstruir» (16/11/2026).
+ *
+ * O CASO, e é o passo seguinte do expurgo: ela apaga a `duo`, e dias depois — o professor pagou
+ * outra vez — clica «Recriar» na lista das apagadas. A raiz cria a identidade no Cloudflare e
+ * dispara o motor; o elo só ganha `recriacao[]` quando o CI corre o `criar-escola.sh`, que é
+ * quem vê o índice e o regista. Entre o clique e o commit há a MESMA janela que a criação já
+ * conhece, com a agravante de a escola continuar na lista das APAGADAS enquanto já existe.
+ *
+ * A REGRA É TEMPORAL, e é a de `escola/expurgar.js` (`foiRecriada`), lida ao contrário: o elo diz
+ * «apagada em T1»; o registo comercial, que é escrito pela recriação, diz «escrito em T2». Se
+ * T2 > T1, o expurgo é passado e a encarnação de agora é nova. **O registo comercial antigo não
+ * engana**: ele foi escrito antes do expurgo, e é exactamente isso que T2 > T1 exclui.
+ *
+ * UMA FUNÇÃO, DOIS CHAMADORES: a lista das apagadas (que esconde a linha) e a das vivas (que a
+ * mostra «a nascer»). Duas opiniões sobre o mesmo instante dariam a escola nas duas listas, ou em
+ * nenhuma.
+ */
+function reconstruindo({ comercial, expurgada_em }) {
+  if (!comercial || !expurgada_em) return false;
+  const escrito = Date.parse(comercial.atualizadoEm || '');
+  const apagada = Date.parse(expurgada_em || '');
+  if (!Number.isFinite(escrito) || !Number.isFinite(apagada)) return false;
+  return escrito > apagada;
+}
+
+/**
  * AS ESCOLAS QUE JÁ EXISTEM E O ÍNDICE AINDA NÃO SABE — «a nascer» (16/11/2026).
  *
  * O DEFEITO, medido hoje: ela criou a escola «Abreu», a criação respondeu 201, e `Escolas vivas`
@@ -216,17 +247,36 @@ async function escolasANascer({ kv, conhecidas }) {
     mapa = texto ? JSON.parse(texto) : null;
   } catch { return []; }
   if (!mapa || typeof mapa !== 'object') return [];
-  const jaConhecidas = new Set((conhecidas || []).map((e) => e.slug));
+  /* QUEM O ÍNDICE JÁ CONHECE — E O QUE ISSO QUER DIZER AGORA (16/11/2026).
+   *
+   * «Conhecida» era o mesmo que «não está a nascer». Deixou de ser: uma escola APAGADA é conhecida
+   * do índice (é o elo que guarda a memória de que existiu) e pode estar a ser RECRIADA — a
+   * recriação escreve o registo comercial e o elo só ganha `recriacao[]` quando o CI corre. Nessa
+   * janela, a escola já existe, e a lista das vivas tem de a mostrar; sem isto, ela ficaria a
+   * apagada e invisível ao mesmo tempo, e o clique em «Recriar» pareceria não ter feito nada.
+   *
+   * O que se guarda é a DATA do último expurgo de cada slug conhecido: é ela que a regra temporal
+   * compara com a escrita do registo comercial (`reconstruindo`). */
+  const conhecidasPorSlug = new Map((conhecidas || []).map((e) => [e.slug, e]));
   const vistas = new Set();
   const pendentes = [];
   for (const slug of Object.values(mapa)) {
     const limpo = String(slug || '').trim();
-    if (!limpo || jaConhecidas.has(limpo) || vistas.has(limpo)) continue;
+    if (!limpo || vistas.has(limpo)) continue;
     vistas.add(limpo);
+    const conhecida = conhecidasPorSlug.get(limpo);
     const comercial = await lerComercial(kv, limpo);
     // Sem registo comercial NÃO é uma escola: é o resto de uma criação que falhou. `lerComercial`
     // devolve `ativa` por omissão, e é o `criadoEm` que diz se alguém o escreveu alguma vez.
     if (!comercial || !comercial.criadoEm) continue;
+    if (conhecida) {
+      /* CONHECIDA E VIVA: a lista do índice já a mostra, e esta função não tem nada a acrescentar.
+       * CONHECIDA E APAGADA: só entra se o registo comercial for POSTERIOR ao expurgo — é a
+       * recriação a caminho, e é esta a condição que impede o registo da vida anterior de
+       * ressuscitar uma escola que continua apagada. */
+      if (!conhecida.expurgada) continue;
+      if (!reconstruindo({ comercial, expurgada_em: conhecida.expurgada_em })) continue;
+    }
     const cadastro = await lerCadastroDaEscola({ PADD_KV: kv }, limpo);
     pendentes.push({
       slug: limpo,
@@ -1696,10 +1746,23 @@ async function lerComercial(kv, escola) {
   }
 }
 
-/** Grava o estado comercial. O elo anterior NÃO se reescreve: os pagamentos acumulam. */
-async function gravarComercial(kv, escola, mudanca, quem) {
+/**
+ * Grava o estado comercial. O elo anterior NÃO se reescreve: os pagamentos acumulam.
+ *
+ * `opcoes.substituir` começa do ZERO, e existe por um caso só (16/11/2026): a RECRIAÇÃO de uma
+ * escola apagada. O registo do KV é da encarnação ANTERIOR — tem o plano e o valor de então, a
+ * `habilitadaEm` de outro tempo e a `desabilitadaEm` que levou ao expurgo. Herdá-lo faria a escola
+ * recriada nascer com uma data de suspensão que já não é dela, e a coluna «Desabilitada» das vivas
+ * passaria a mostrar o passado de uma escola que agora está a aguardar conciliação. A MEMÓRIA não
+ * se perde: ela está no elo (`expurgo[]`, e a `recriacao[]` que o CI acrescenta), que é onde a
+ * proveniência se guarda — o KV é estado, não história.
+ */
+async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
   if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV' };
-  const anterior = await lerComercial(kv, escola);
+  const limpar = Boolean(opcoes && opcoes.substituir);
+  const anterior = limpar
+    ? { estado: ESTADOS_COMERCIAL[1] || 'ativa' }
+    : await lerComercial(kv, escola);
   const agora = new Date().toISOString();
   const registo = Object.assign({}, anterior, mudanca, {
     estado: mudanca.estado || anterior.estado,
@@ -1752,6 +1815,284 @@ async function gravarComercial(kv, escola, mudanca, quem) {
 }
 
 /**
+ * RECRIAR A ESCOLA A PARTIR DA PROVENIÊNCIA (16/11/2026).
+ *
+ * O QUE ELA DESCREVEU, e é o ciclo comercial inteiro: «a escola Duo agora está na lista de escolas
+ * apagadas […] por causa da proveniência, temos todos os dados que a gente precisa para criar a
+ * escola […] eu vou clicar então em recriar, e aí eu recrio a escola e vou mandar a chave Pix para
+ * ele fazer o pagamento. Aí a escola vai estar lá nas escolas vivas, aguardando para ser
+ * habilitada. Aí então, depois que eu fizer a conciliação bancária, eu vou lá e habilito a escola
+ * e aí já está tudo certo.»
+ *
+ * O ELO TEM QUASE TUDO, e é de propósito que ele tenha: o slug, o professor (slug e nome), o
+ * responsável, o ciclo e o `shard` sobrevivem ao expurgo porque são a memória de que a escola
+ * existiu. O que ele **não** tem, e não pode ter, são as duas senhas: elas nunca estiveram no
+ * repositório — só no Worker, como segredo, e nas chaves do KV como hash+sal.
+ *
+ * AS SENHAS, ENTÃO, TÊM DUAS ORIGENS, e a ordem é esta:
+ *   1. as que vierem do pedido (a pessoa escolheu novas — é o caso de quem não se lembra);
+ *   2. as que já estão no cofre (`bastidores/<escola>/dono`), quando o pedido vem sem senha. É o
+ *      caso normal de uma escola de shard, onde o expurgo não apagou o KV: **o professor continua
+ *      a entrar com a senha que já tinha**, e a recriação não inventa outra que ninguém sabe.
+ *
+ * Sem nenhuma das duas, a recriação RECUSA. Uma escola recriada sem senha é uma escola no ar que
+ * não abre para ninguém — pior do que não ter sido recriada.
+ *
+ * O QUE NÃO SE FAZ AQUI: não se escreve no elo. A `recriacao[]` é escritura do `criar-escola.sh`
+ * (que é quem vê o índice e regista «esta encarnação nasceu»), e escrevê-la daqui seria uma
+ * segunda opinião sobre a mesma linha do tempo, a competir com o CI pelo mesmo commit.
+ */
+async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor }) {
+  const slug = String(escola || '').trim();
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
+  const ghToken = env && env.GITHUB_TOKEN;
+  const cfToken = env && env.CLOUDFLARE_API_TOKEN;
+  if (!ghToken) return { ok: false, status: 500, erro: 'GITHUB_TOKEN ausente no Worker' };
+  if (!cfToken) return { ok: false, status: 500, erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' };
+
+  /* 1. O ELO. Sem ele não há proveniência, e «recriar» seria inventar uma escola com um nome que
+   * já existiu — que é o oposto do que este botão faz. */
+  const elo = await eloDaEscola({ token: ghToken, slug });
+  if (!elo) {
+    return {
+      ok: false, status: 404,
+      erro: 'a escola «' + slug + '» não tem elo (`escola/' + slug + '/indice.json`) — sem '
+        + 'proveniência não há o que recriar. Para uma escola nova, use «Criar nova escola».',
+    };
+  }
+  const expurgos = Array.isArray(elo.expurgo) ? elo.expurgo : [];
+  if (!expurgos.length) {
+    return {
+      ok: false, status: 409,
+      erro: 'a escola «' + slug + '» nunca foi apagada — não há nada a recriar. Ela está na '
+        + 'lista das vivas.',
+    };
+  }
+  const ultimoExpurgo = expurgos
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+  const ultimaRecriacao = (Array.isArray(elo.recriacao) ? elo.recriacao : [])
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+  if (Number.isFinite(ultimaRecriacao) && (!Number.isFinite(ultimoExpurgo) || ultimaRecriacao > ultimoExpurgo)) {
+    return {
+      ok: false, status: 409,
+      erro: 'a escola «' + slug + '» já foi recriada depois do último expurgo: ela está viva, na '
+        + 'lista das vivas. Recriar outra vez criaria uma segunda escola sobre a primeira.',
+    };
+  }
+  /* A JANELA DA RECRIAÇÃO JÁ ABERTA — o clique repetido. O elo ainda diz «apagada» (o CI não
+   * correu), mas o registo comercial já foi reescrito pela recriação anterior. Sem esta guarda,
+   * dois cliques disparariam dois `criar-escola` sobre a mesma escola, e o segundo commit
+   * encontraria o trabalho do primeiro pela metade. */
+  const comercialDaVez = await lerComercial(env && env.PADD_KV, slug);
+  const expurgadaEm = Number.isFinite(ultimoExpurgo) ? new Date(ultimoExpurgo).toISOString() : null;
+  if (reconstruindo({ comercial: comercialDaVez, expurgada_em: expurgadaEm })) {
+    return {
+      ok: false, status: 409,
+      erro: 'a recriação de «' + slug + '» já está em curso: o motor está a subir (leva dois ou '
+        + 'três minutos) e a escola aparece nas vivas como «a nascer». Espere o índice do acervo '
+        + 'ser regerado antes de tentar outra vez.',
+    };
+  }
+
+  /* 2. QUEM, E COM QUE RÉGUA. O responsável sai do elo, pela função que o painel e as duas metades
+   * do expurgo já usam — é a MESMA pessoa a quem o expurgo atribuiu os arquivos. */
+  const quem = responsavelDoInventario(elo);
+  if (!quem.slug) {
+    return {
+      ok: false, status: 409,
+      erro: 'o elo de «' + slug + '» não diz de que professor é a escola — sem isso não se sabe '
+        + 'em que pasta `professores/<slug>/` recriar. Corrija o elo primeiro.',
+    };
+  }
+  const professorNome = quem.nome || tituloDoSlug(quem.slug);
+  const ciclo = quem.ciclo || elo.ciclo || '01';
+  const shard = String((elo.shard || '') || ((env && env.SHARD_SCRIPT) || '')).trim();
+
+  /* 3. O NOME. O slug nasce do nome (`slugificar(nome)`), e o nome tem de o reproduzir — senão a
+   * recriação criaria OUTRA escola, ao lado do elo. A ordem é: o nome que o cadastro guardou, se
+   * ele reproduz o slug; senão, o título do próprio slug (é a volta de uma ida, como na criação). */
+  const cadastro = await lerCadastroDaEscola(env, slug);
+  const nomeDoCadastro = String((cadastro && cadastro.escolaNome) || '').trim();
+  const nome = (nomeDoCadastro && slugificar(nomeDoCadastro) === slug)
+    ? nomeDoCadastro
+    : tituloDoSlug(slug);
+
+  /* 4. O PLANO. O que a pessoa escolheu; na falta, o da encarnação anterior (é a mesma escola, e o
+   * plano raramente muda com um expurgo no meio). Sem nenhum dos dois, RECUSA: a escola nasceria
+   * sem valor, e a chave Pix que se manda a seguir não teria quantia. */
+  const planoPedido = String(plano || '').trim() || String(comercialDaVez.plano || '').trim();
+  const escolhaComercial = comercial.validarEscolha({ plano: planoPedido }, { podeDispensar: false });
+  if (!escolhaComercial.ok) {
+    return {
+      ok: false, status: 400,
+      erro: 'escolha o plano da escola — a recriação precisa dele para a chave Pix dizer o valor'
+        + (planoPedido ? ' (o plano «' + planoPedido + '» não está no catálogo)' : ''),
+    };
+  }
+  const escolha = escolhaComercial.escolha;
+
+  /* 5. AS SENHAS. Ver o cabeçalho: as do pedido, ou as que já estão no cofre. */
+  const senhaDaDirecao = String(senhaAdmin || '').trim();
+  const senhaDoProfessor = String(senhaProfessor || '').trim();
+  const cofre = await lerRegistoDoDono(env && env.PADD_KV, slug);
+  const senhaNoCofre = Boolean(cofre && cofre.hash && cofre.sal);
+  if (!senhaDaDirecao && !senhaNoCofre) {
+    return {
+      ok: false, status: 400,
+      erro: 'informe a senha da direção: o cofre desta escola não tem nenhuma guardada (o expurgo '
+        + 'levou o KV de um Worker próprio), e uma escola sem senha não abre para ninguém',
+    };
+  }
+  /* A ESCOLA DE WORKER PRÓPRIO NÃO TEM ONDE GUARDAR «A SENHA ANTERIOR»: os segredos viviam no
+   * Worker, e o Worker foi com o expurgo. Aí não há herança possível — pede-se, e diz-se por quê. */
+  if (!shard && !senhaDaDirecao) {
+    return {
+      ok: false, status: 400,
+      erro: 'esta escola não vive num shard: as senhas dela viviam no Worker, e o expurgo levou-as '
+        + 'com ele. Informe a senha da direção (e a do professor) para a recriar.',
+    };
+  }
+
+  /* 6. A ESCOLA. `criarEscola` recusa se já existir um Worker com o nome — é a segunda guarda
+   * contra a recriação repetida, independente da janela acima. */
+  let criada;
+  try {
+    criada = await criarEscola({
+      nome,
+      senhaAdmin: senhaDaDirecao || '',
+      senhaProfessor: senhaDoProfessor || '',
+      token: cfToken,
+      accountId: ACCOUNT_ID,
+      githubToken: ghToken,
+      professorNome,
+      professorSlug: quem.slug,
+      professorEhDono: true,
+      zona: env && env.ZONA_ESCOLAS,
+      shardScript: shard || null,
+      kv: env && env.PADD_KV,
+    });
+  } catch (err) {
+    const status = (err && err.etapa === 'existe') ? 409 : 500;
+    return {
+      ok: false, status,
+      erro: 'a recriação de «' + slug + '» não se completou: ' + ((err && err.message) || String(err)),
+      desfeito: (err && err.desfeito) || null,
+    };
+  }
+
+  /* 7. O MOTOR. Sem o disparo não há scaffold nem deploy — e a escola ficaria a responder num
+   * endereço vazio. É a mesma regra da criação: falhando o disparo, desfaz-se e diz-se. */
+  const disparo = await dispararCriacao({
+    token: ghToken, dono: DONO, repo: REPO, ref: REF,
+    inputs: {
+      professor: quem.slug,
+      'professor-nome': professorNome,
+      escola: criada.escola,
+      'escola-nome': nome,
+      responsavel: professorNome,
+      ciclo,
+      /* OS PARÂMETROS DO CICLO RECRIADO SÃO OS DA CRIAÇÃO, e é declarado: o `.conf` da encarnação
+       * anterior foi com o expurgo (era fonte, e a âncora o cobria), e a proveniência guarda o
+       * facto de a escola ter existido — não os horários dela. O plano de ensino é reescrito pelo
+       * professor, e é ele que fixa o que aqui são valores por omissão. */
+      frequencia: '2x/semana',
+      dias: '2@19:00,4@19:00',
+      duracao: '60',
+      'data-inicio': '',
+      shard: shard || '',
+      /* VAZIO: o professor JÁ EXISTE — a habilitação é da pessoa, e o perfil dela não foi apagado
+       * com a escola (`professores/<slug>/perfil.json` sobrevive, por decisão de 03/11/2026). */
+      modalidade: '',
+    },
+  });
+  if (!disparo.ok) {
+    const desfeito = await desfazerPlaceholder({
+      token: cfToken, accountId: ACCOUNT_ID, escola: criada.escola, nome,
+    });
+    return {
+      ok: false, status: 502,
+      erro: 'o deploy do motor completo não foi disparado ('
+        + (disparo.erro || ('HTTP ' + disparo.status)) + ') — a escola não foi recriada',
+      desfeito,
+    };
+  }
+
+  /* 8. O ESTADO COMERCIAL — `aguardando`, que é o que ela descreveu: a escola existe, e o acesso
+   * abre quando o pagamento for conciliado. O registo começa do ZERO (`substituir`): o da
+   * encarnação anterior é de outra escola, com outra data de suspensão. */
+  const comercialGravado = await gravarComercial(env && env.PADD_KV, criada.escola, {
+    estado: 'aguardando',
+    plano: escolha.plano,
+    planoNome: escolha.planoNome,
+    valorCentavos: escolha.valorCentavos,
+    valor: escolha.valor,
+    periodicidade: escolha.periodicidade,
+    capacidade: escolha.capacidade,
+    extensoes: escolha.extensoes,
+    pagamento: escolha.pagamento,
+    /* O PROFESSOR VAI NO REGISTO, e é ele que a linha «a nascer» mostra enquanto o acervo não
+     * reconhece a escola — a mesma razão da criação. */
+    professor: quem.slug,
+    origem: 'recriacao',
+    recriadaDe: ultimoExpurgo ? new Date(ultimoExpurgo).toISOString() : null,
+    criadoEm: new Date().toISOString(),
+    disparoRun: (disparo && disparo.run) ? disparo.run : null,
+  }, 'recriacao', { substituir: true });
+
+  /* 9. O CORREIO — a MESMA mensagem da criação, e pela mesma função (16/11/2026).
+   *
+   * «Sempre que for criado uma escola, tem que disparar um e-mail» — e uma escola recriada é uma
+   * escola criada de novo: quem a recebe precisa do endereço, e não há outra altura em que o
+   * receba. A mensagem não se altera: diz que a escola existe e onde se entra, e a senha é a que
+   * foi escolhida (a herdada do cofre, ou a nova que ela deu). O que NÃO vai nela é a chave Pix —
+   * essa é dela, e o valor vai na resposta para ela o escrever.
+   *
+   * O CADASTRO VOLTA A TOMAR A FORMA DA MENSAGEM. O que o KV guarda e o que a mensagem lê não têm
+   * os mesmos nomes — `gravarCadastro` escreve `email` (da escola) e o contato do professor numa
+   * chave à parte; `destinatarios` procura `escolaEmail` e `professorEmail`. Na criação isso não
+   * aparecia porque a mensagem recebia o cadastro VALIDADO (que tem os dois nomes); aqui o que há
+   * é o registo do KV. Sem esta costura, a recriação diria «não há e-mail a quem enviar» sobre uma
+   * escola cujo e-mail está guardado a dois campos de distância — e ela testaria o envio e veria
+   * silêncio.
+   *
+   * NÃO FAZ FALHAR A RECRIAÇÃO, e é a regra da criação: a escola já está no ar. O desfecho viaja
+   * ao lado do sucesso — `enviado: false` com o motivo, e a mensagem guardada na caixa de saída
+   * do tenant quando não saiu. Um sistema que diz «enviado» sem ter enviado gasta a confiança no
+   * dia em que alguém procura a mensagem e não a encontra. */
+  const correioEnviado = await mandarBoasVindas({
+    env,
+    escola: criada.escola,
+    cadastro: await cadastroParaOMail({ env, escola: criada.escola, professor: quem.slug, nome, registo: cadastro }),
+    url: criada.url,
+    dominio: criada.dominio,
+  });
+
+  return {
+    ok: true,
+    escola: criada.escola,
+    nome,
+    url: criada.url,
+    correio: correioEnviado,
+    professor: { slug: quem.slug, nome: professorNome },
+    ciclo,
+    shard: shard || null,
+    disparo,
+    comercial: comercialGravado.ok
+      ? { estado: comercialGravado.comercial.estado, plano: escolha.plano,
+          planoNome: escolha.planoNome, valor: escolha.valor }
+      : { estado: null, erro: comercialGravado.erro },
+    /* O QUE ELA VAI FAZER A SEGUIR, e é o passo comercial que fechou o ciclo: mandar a chave Pix.
+     * O valor vem daqui para ela não ter de o procurar noutra página. */
+    aPagar: { valor: escolha.valor, valorCentavos: escolha.valorCentavos, plano: escolha.planoNome },
+  };
+}
+
+
+/**
  * A IDENTIDADE ÚNICA DAS ENTIDADES — pelo CNPJ e pelo CPF (25/11/2026).
  *
  * «Agora que a gente tem mais informações a respeito […] a gente pode controlar melhor essa coisa
@@ -1802,6 +2143,37 @@ async function lerCadastroDaEscola(env, escola) {
     const texto = await kv.get('bastidores/' + escola + '/cadastro');
     return texto ? JSON.parse(texto) : null;
   } catch (erro) { return null; }
+}
+
+/**
+ * O CADASTRO NA FORMA QUE A MENSAGEM LÊ (16/11/2026).
+ *
+ * OS DOIS NOMES DO MESMO DADO. `gravarCadastro` escreve no KV um registo com `email` (o da escola)
+ * e guarda o contato do professor noutra chave, `professores/<slug>/contato`; `comporMensagem` lê
+ * `escolaEmail` e `professorEmail`. Na CRIAÇÃO a diferença não se vê, porque a mensagem recebe o
+ * cadastro VALIDADO — o objeto que o formulário produziu —, e é ele que tem os dois nomes. Uma
+ * RECRIAÇÃO só tem o que está no KV, e sem esta costura os destinatários saíam vazios: «não há
+ * e-mail a quem enviar» sobre uma escola cujo e-mail está guardado a dois campos de distância.
+ *
+ * A FUNÇÃO É UMA, e é de propósito — é a resposta a «quem recebe isto» quando a escola volta. Ela
+ * não escreve nada e não inventa endereço: o que não existe fica `null`, e o `destinatarios` do
+ * núcleo deduplica e descarta o vazio.
+ */
+async function cadastroParaOMail({ env, escola, professor, nome, registo }) {
+  const daEscola = registo || (await lerCadastroDaEscola(env, escola)) || {};
+  let contato = null;
+  const kv = env && env.PADD_KV;
+  if (professor && kv && typeof kv.get === 'function') {
+    try {
+      const texto = await kv.get('professores/' + professor + '/contato');
+      contato = texto ? JSON.parse(texto) : null;
+    } catch (erro) { contato = null; }
+  }
+  return {
+    escolaNome: daEscola.escolaNome || nome || escola,
+    escolaEmail: daEscola.email || daEscola.escolaEmail || null,
+    professorEmail: (contato && contato.email) || daEscola.professorEmail || null,
+  };
 }
 
 /**
@@ -2237,13 +2609,37 @@ async function fetch(request, env) {
       // UMA leitura serve às duas coisas: a lista de escolas e o mapa slug→nome que ela usa para
       // mostrar a PESSOA em vez da pasta. `escolasDoIndice` já lê o acervo inteiro — pedir os
       // professores à parte seria uma segunda requisição para um dado que veio junto.
-      /* AS VIVAS LEVAM O ESTADO COMERCIAL; AS APAGADAS, NÃO (25/11/2026). Uma escola expurgada
-       * não tem estado comercial — o `bastidores/<escola>/comercial` foi-se com ela, e a linha de
-       * uma escola que já não existe não tem nada a habilitar. */
+      /* AS VIVAS LEVAM O ESTADO COMERCIAL; AS APAGADAS LEVAM-NO SÓ PARA UMA COISA (16/11/2026).
+       *
+       * Uma escola expurgada não tem estado comercial — mas pode estar a ser RECRIADA, e nessa
+       * janela o registo comercial é o único sítio que sabe disso (o elo só ganha `recriacao[]`
+       * quando o CI corre). Uma leitura por linha apagada, para responder a UMA pergunta: «esta
+       * linha já deixou de ser uma escola apagada?». É o preço da janela, e é o mesmo que a lista
+       * das vivas já paga por linha.
+       *
+       * O CATÁLOGO VAI JUNTO: a coluna «Recriar» abre uma confirmação com o plano, e a lista de
+       * planos é a do catálogo — a mesma que a página da criação mostra. Uma segunda lista de
+       * preços seria uma segunda lista a divergir no dia em que o preço mudasse. */
       if (apagadas) {
-        const [escolas, professores] = await escolasDoIndice({ token });
+        const [todas, professores] = await escolasDoIndice({ token });
+        const escolas = [];
+        for (const e of todas) {
+          const c = await lerComercial(env && env.PADD_KV, e.slug);
+          if (reconstruindo({ comercial: c, expurgada_em: e.expurgada_em })) continue;
+          /* O PLANO ANTERIOR, e só ele: é o que a confirmação pré-selecciona, para a recriação
+           * nascer com o mesmo plano — e o valor que a chave Pix vai pedir. O resto do registo
+           * comercial (histórico, pagamentos, datas) não serve a esta lista e não viaja para o
+           * HTML: a página de uma escola apagada não tem nada a habilitar. */
+          escolas.push(Object.assign({}, e, {
+            planoAnterior: (c && c.plano)
+              ? { id: String(c.plano), nome: c.planoNome || null, valor: c.valor || null }
+              : null,
+          }));
+        }
         const ordem = url.searchParams.get('ordem');
-        return painel.resposta(painel.paginaDasApagadas({ escolas, ordem, professores }));
+        return painel.resposta(painel.paginaDasApagadas({
+          escolas, ordem, professores, catalogo: comercial.catalogoDaPagina(),
+        }));
       }
       const [escolas, professores] = await escolasDoIndiceComComercial({ token, kv: env && env.PADD_KV });
       const ordem = url.searchParams.get('ordem');
@@ -2860,6 +3256,33 @@ async function fetch(request, env) {
     return responderCriacao(request, env, { origem: 'painel', exigirCadastro: false });
   }
 
+  /* RECRIAR UMA ESCOLA APAGADA, A PARTIR DA PROVENIÊNCIA (16/11/2026).
+   *
+   * O GESTO INTEIRO QUE ELA DESCREVEU: apagada a escola, o professor paga outra vez, e ela clica
+   * «Recriar». O elo (`escola/<slug>/indice.json`) sobrevive ao expurgo de propósito, e é dele que
+   * saem o professor, o ciclo e o shard; o que ele não tem são as senhas — vêm do pedido ou, se a
+   * escola vive num shard, do cofre que o expurgo não apagou.
+   *
+   * A SENHA, DAS DUAS UMA: nunca se recria sem senha. Ver `recriarEscola`.
+   *
+   * O PEDIDO NÃO LEVA CONFIRMAÇÃO ESCRITA (ao contrário do apagar): criar não é irreversível — o
+   * pior que acontece é uma escola a mais, que se volta a apagar. Pedir o slug escrito outra vez
+   * seria copiar a cerimónia de um gesto destrutivo para um gesto construtivo. */
+  if (url.pathname === '/api/recriar-escola' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const feito = await recriarEscola({
+      env,
+      escola: corpo && corpo.escola,
+      plano: corpo && corpo.plano,
+      senhaAdmin: corpo && corpo.senhaAdmin,
+      senhaProfessor: corpo && corpo.senhaProfessor,
+    });
+    return responderJson(
+      feito.ok ? feito : { ok: false, erro: feito.erro, semRecriar: true },
+      feito.status || (feito.ok ? 201 : 500));
+  }
+
   // O resto → o ASSETS (a apresentação «Sistema Lastro» em raiz/index.html e o assets/).
   // O `run_worker_first` fez o Worker rodar antes do estático; aqui ele devolve o
   // estático que existe — e só cai no 404 quando não há. O freio de senha já foi
@@ -2918,4 +3341,9 @@ module.exports = {
    * nascer, e não o resto de uma criação que falhou» é exactamente o tipo de regra que se mede na
    * bancada e não em produção — onde o sintoma é a lista vazia de quem acabou de criar a escola. */
   escolasANascer, enderecoDaAdministracao,
+  /* A RECRIAÇÃO E A SUA JANELA (16/11/2026). Exportadas porque são REGRA, não tela: a janela
+   * («o registo comercial é posterior ao expurgo») decide o que as duas listas mostram, e a
+   * recriação é o gesto que a abre. Uma prova que só a pudesse exercer em produção descobri-la-ia
+   * em produção — com a escola de alguém no meio. */
+  recriarEscola, reconstruindo,
 };

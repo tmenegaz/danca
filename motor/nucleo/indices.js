@@ -185,6 +185,30 @@ const SUFIXOS_DO_CICLO = new Set([
  * vale, o antigo fica como memória. Quando o elo é anterior a esta correção e não declara
  * ninguém, cai-se no `professor` — o comportamento de antes, sem inventar.
  */
+/**
+ * A ENCARNAÇÃO DE AGORA NASCEU DEPOIS DO ÚLTIMO EXPURGO? (16/11/2026)
+ *
+ * A pergunta que a `habilitada` precisava de fazer e não fazia: o expurgo escreve
+ * `estado.habilitada: false` no elo, e o elo NÃO SE REESCREVE — mas a recriação é outro presente, e
+ * aquele `false` era sobre a escola que saiu. Sem esta comparação, uma escola recriada ficava
+ * `expurgada: false` e `habilitada: false` ao mesmo tempo, para sempre.
+ *
+ * É a MESMA regra de `escola/expurgar.js` (`foiRecriada`), e é de propósito: duas opiniões sobre
+ * «esta escola está viva» dariam a escola viva num sítio e apagada no outro. Aqui ela vive no
+ * núcleo, que é onde a derivação a pode ler sem tocar no disco.
+ */
+function recriadaDepoisDoUltimoExpurgo(inv) {
+  if (!inv) return false;
+  const ultimo = (lista) => lista
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+  const tExpurgo = ultimo(Array.isArray(inv.expurgo) ? inv.expurgo : []);
+  const tRecriacao = ultimo(Array.isArray(inv.recriacao) ? inv.recriacao : []);
+  if (tExpurgo === undefined || tRecriacao === undefined) return false;
+  return tRecriacao > tExpurgo;
+}
+
 function responsavelDoInventario(inv) {
   if (!inv) return { slug: null, nome: null, ciclo: null };
   const recriacoes = Array.isArray(inv.recriacao) ? inv.recriacao : [];
@@ -760,9 +784,17 @@ function construir(entrada) {
       // UMA ESCOLA EXPURGADA NÃO ESTÁ HABILITADA (20/10/2026). «Habilitada» sai do elo, que
       // guarda o que a criação declarou; «expurgada» sai do wrangler, que o expurgo apagou. Sem
       // esta conjunção, o índice da `breu` dizia as duas coisas ao mesmo tempo — `habilitada:
-      // true` e `expurgada: true` — porque o elo não se reescreve (a proveniência acrescenta).
+      // true` e `expurgada: true` — porque o elo não se escreve (a proveniência acrescenta).
       // Não há escola habilitada sem Worker: a habilitação é a de um sítio que existe.
-      habilitada: !expurgada && !(inv && inv.estado && inv.estado.habilitada === false),
+      //
+      // E UMA ESCOLA RECRIADA ESTÁ (16/11/2026). O expurgo escreveu `estado.habilitada: false` no
+      // elo, e o elo não se reescreve — mas a recriação é outra encarnação, e o `false` era sobre
+      // a que saiu. Sem esta metade, a escola recriada aparecia no índice com `expurgada: false` e
+      // `habilitada: false` AO MESMO TEMPO: viva, e dita fechada, para sempre — porque nada volta a
+      // escrever aquele campo. A regra é a mesma das datas desta função: o elo mais recente de
+      // `recriacao[]` posterior ao último `expurgo[]` diz que o presente é outro.
+      habilitada: !expurgada && (recriadaDepoisDoUltimoExpurgo(inv)
+        || !(inv && inv.estado && inv.estado.habilitada === false)),
       expurgada,
       /* A DATA DE CRIAÇÃO É A DA ENCARNAÇÃO QUE EXISTE (27/10/2026).
        *
@@ -1195,6 +1227,7 @@ module.exports = {
   filtrar,
   responder,
   responsavelDoInventario,
+  recriadaDepoisDoUltimoExpurgo,
   quandoDaEncarnacao,
   nomeDoProfessorNoInventario,
 };
