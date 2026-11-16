@@ -46756,3 +46756,78 @@ prefixo voltou vazia.
   Enquanto o passo 3 não estiver feito, o remetente `lastro@padd.com.br` é recusado pelo provedor —
   e é por isso que a verificação do domínio vem antes de se tentar enviar. Sem a chave, o sistema
   não finge: compõe a mensagem, guarda-a na caixa de saída da escola e di-lo na tela.
+
+## 16/11/2026 — a escola que nasce e não aparece, e o professor que é sempre novo
+
+**O que aconteceu.** Ela criou «a Escola Abreu» e depois abriu **Escolas vivas**: nenhuma. E disse a
+regra que faltava, no mesmo recado: «Para quem tá no sistema pela página que é pública [...] não
+precisa ter aquela seleção ali de professor se é novo ou não. Já é sempre novo de cara.» E, com
+ela, o que fazer quando o professor já existe: «vai ter que ter uma mensagem ali dizendo que aquele
+professor já existe, então que procure a administração do sistema lastro.»
+
+**A Abreu não foi criada, e a lista vazia não era o defeito do cadastro.** Confirmei-o por três
+caminhos: não há `escola/abreu/`, não há `bastidores/abreu/*` no KV, não há run de `criar-escola`
+para ela. O que houve foi uma **recusa** — e a recusa mais provável é a que o próprio sistema dá
+quando o CPF ou o nome do professor já existem: ela reutiliza dados entre escolas de teste, e a
+regra de identidade única que entrou a 25/11 recusa o segundo uso. A mensagem apontava para «usar
+este professor» — a opção que a página pública tinha, e que agora já não tem. Ou seja: o sistema
+recusou bem e explicou mal.
+
+**E havia um segundo defeito, real e independente: eu criei uma escola para diagnosticar e ela
+também não apareceu na lista, quarenta minutos depois.** A lista sai de `indices/acervo.json`, que é
+DERIVADO e só é regerado depois de o `criar-escola` commitar o scaffold. Entre o 201 e o fim do CI a
+escola existe no Cloudflare e não existe no índice — e «não aparece na lista» lê-se como «não foi
+criada».
+
+**O que foi decidido.**
+
+- **A janela fecha-se com dois factos que já existiam**, e não com um terceiro: o **mapa**
+  (`escolas/por-host`, escrito pelo provisionamento) diz que o sistema serve a escola; o **registo
+  comercial** (`bastidores/<escola>/comercial`, escrito depois de o disparo correr bem) diz que a
+  criação chegou ao fim. Os dois juntos, e nenhum sozinho — sem o segundo, o resto de uma criação
+  abortada (o rollback tira o Worker e deixa o mapa) apareceria como escola; sem o primeiro, seria
+  preciso enumerar o KV, que é a operação que estourou a cota em 18/10/2026.
+- **A linha entra como «a nascer»**, e não como «a aguardar conciliação»: são dois assuntos, e
+  confundi-los faria procurar um pagamento que ainda não há. O cartão do expurgo diz o mesmo em vez
+  de «ciclo ? · 0 arquivo(s)», que se lê como defeito.
+- **No público o professor é sempre novo, e isso fecha-se no servidor.** A página já não oferece a
+  escolha (e a escolha nem viaja no HTML público); um pedido escrito à mão com `professorExistente`
+  não atravessa. É **ignorado**, e não recusado: uma página em cache que ainda mande o campo tem de
+  conseguir criar a escola.
+- **O campo escrito que existiu por um dia vai com a escolha.** Ele nasceu de eu ter retirado a
+  opção (errado) e ela ter pedido de volta (certo); a regra que ela fixou torna-o sem uso, e um
+  campo que nenhuma porta usa é um segundo caminho à espera de alguém lhe abrir a porta.
+- **A recusa por conflito diz coisas diferentes nas duas portas.** No painel: «escolha um professor
+  que já existe», que é um clique à frente. No público: o CPF ou o nome já estão registados, e quem
+  resolve é quem administra — a mensagem manda escrever para o endereço do sistema, que sai do
+  `CORREIO_DE` para não haver dois endereços a divergir. Dizer «use a lista» a quem não tem lista é
+  um erro que sabe a saída e a aponta para o lado errado. A recusa por falta de nome segue a mesma
+  regra: no público é «informe o nome do professor principal», sem a alternativa que não existe.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`escolasANascer`, `enderecoDaAdministracao`,
+`permiteReuso` em `validarCriacaoEscola`, o descarte no público, as mensagens por porta,
+`professor` no registo comercial, `aNascer` em `/api/escolas`) ·
+`motor/servidor/painel-html.js` (o selo «a nascer») · `raiz/index.html` (`PUBLICO` sem escolha, o
+cartão de apagar) · `experimentos/provar-escola-a-nascer.js` (novo) ·
+`provar-cadastro-em-etapas.js` e `provar-pagina-publica.js` (asserções invertidas, com o motivo).
+
+**Com o quê.** `provar-escola-a-nascer` **22/22** · `provar-cadastro-em-etapas` 40/40 ·
+`provar-pagina-publica` 73/73 · `provar-financeiro` 52/52 · `provar-cofre-e-shard` 129/129 ·
+`provar-teste` 44/44 · `provar-indices` 58/58 · `provar-publicacao-da-escola` 73/73 ·
+`provar-jsonc` 22/22 · `provar-form-escola` todas · `check-indices` 16/16 · `check-identidade` 0
+erros · `gerar-raiz.sh` não altera a página (os rails e os scripts sobrevivem à geração).
+
+**O que fica pendente, e é declarado.**
+
+- **O CI está parado, e isso é o que a vai travar a seguir.** À hora em que escrevo, o run
+  `43850296566` («Criar a escola», disparado às 10:35 UTC) está **em fila há mais de quarenta
+  minutos**. Enquanto ele não correr, nenhuma escola passa de «a nascer» a completa — e isso não é
+  código: é o Actions. Os lugares onde se vê são *Actions → o run* (mensagem de faturação ou de
+  concorrência) e *Settings → Billing*.
+- **A lista de Professores continua a vir só do acervo.** Uma escola «a nascer» aparece nas vivas,
+  mas o professor dela só entra na página dos professores quando o scaffold for commitado. É a
+  mesma janela, meio fechada; fechá-la toda exige escrever no índice a partir da raiz, e isso é
+  outra decisão.
+- **Uma escola minha, criada para diagnosticar, tem de ser apagada** — `breu`, criada às 10:35 UTC
+  com o professor `ana-diag` e uma senha de ensaio. Está registada aqui para não se confundir com
+  uma escola dela.
