@@ -46945,3 +46945,66 @@ missing ) after argument list`. Mais `provar-cadastro-em-etapas` 40/40 · `prova
   do financeiro, os do `bastidores.js`. A prova nova compila os das quatro páginas do painel; as
   páginas de dentro das escolas têm os seus, e não estão cobertas por ela. A regra existe agora; a
   cobertura é a que é.
+
+## 16/11/2026 — a escola suspensa deixa ler, e a tela deixa de culpar a senha
+
+**O que aconteceu.** «Eu estou conseguindo navegar pela escola e quando eu coloco a senha nos
+bastidores dá erro de senha, diz que a senha não existe. E quando a escola está habilitada, aí a
+senha funciona. […] Eu entendo que ao invés de dizer que a senha está errada, é melhor dizer que a
+escola está desabilitada. […] É melhor dizer a verdade do que mentir.»
+
+**Dois defeitos, e nenhum deles era a senha.**
+
+**O primeiro: a suspensão fechava a única porta para o que é «só ler».** A suspensão deixa passar
+`GET` e recusa o resto com 402 — e a lista de excepções tinha duas rotas, a senha do professor e o
+bilhete do ato. Faltava a **terceira**: `/api/bastidores/validar-producao`, que é a porta dos
+Bastidores. Sem ela, quem abre os Bastidores de uma escola suspensa bate num 402 antes de chegar ao
+formulário. E isso contradiz a decisão dela, com todas as letras: «só tem acesso a ler as coisas que
+já foram desenvolvidas». Não se lê o que não se consegue abrir. A rota não escreve nada — emite um
+token assinado, sem estado — e entra na lista.
+
+**O segundo: a mentira era nossa, e estava em duas telas.** As duas traduziam qualquer falha na
+mesma frase:
+
+- a dos Bastidores fazia `else { "Senha não reconhecida." }` — para *qualquer* falha, incluindo o
+  402 de estado. É a frase que ela leu, com a senha certa;
+- a da Área do Professor tinha três veredictos (`ok` · `desligado` · `errada`) e colapsava o 402 no
+  terceiro.
+
+**O que foi decidido.**
+
+- **A tela mostra o que o servidor disse.** O `erro` que vem no corpo é a resposta; a frase fixa fica
+  só como reserva para quando não houver nada a dizer. A retomada de sessão passou a dizer porquê em
+  vez de esquecer em silêncio — o mesmo silêncio que fez a senha certa parecer errada.
+- **Quatro veredictos, e a ordem das perguntas importa.** `desligado` e `suspensa` são factos do
+  servidor sobre a PESSOA e a ESCOLA; `errada` é o que sobra quando nenhum deles se aplica — a única
+  hipótese em que a senha é mesmo o problema. A mensagem da suspensão é a do servidor, para os dois
+  lados dizerem a mesma coisa.
+- **O `scriptDoPainel` passou a ser exportado**, pela mesma razão declarada do `painelDoAto`: é puro,
+  e devolvê-lo permite compilá-lo na bancada. Foi o que apanhou uma **crase minha dentro de um
+  template literal** — o comentário que escrevi vive dentro da string que contém o script, e uma
+  crase ali fecha-a. É a mesma família do seletor da véspera, e a prova apanhou-a antes do commit.
+
+**Onde entrou.** `motor/servidor/producao.js` (`POSTS_QUE_SO_LEEM`) · `motor/servidor/bastidores.js`
+(o gate e a retomada) · `motor/servidor/listas-do-acervo.js` (o quarto veredicto, e o
+`scriptDoPainel` exportado) · `experimentos/provar-o-suspenso-diz-a-verdade.js` (novo).
+
+**Com o quê.** `provar-o-suspenso-diz-a-verdade` **20/20** — e o controlo negativo, com as três
+mudanças desfeitas, dá **5 falhas**, a primeira delas o relato dela ao pé da letra: `«Senha não
+reconhecida.»` sobre um 402 de suspensão. Mais `provar-escola-a-nascer` 48/48 ·
+`provar-cadastro-em-etapas` 40/40 · `provar-pagina-publica` 73/73 · `provar-financeiro` 52/52 ·
+`provar-teste` 44/44 · `provar-cofre-e-shard` 129/129 · `provar-indices` 64/64 ·
+`provar-publicacao-da-escola` 73/73 · `provar-jsonc` 22/22 · `provar-form-escola` todas ·
+`provar-recriacao-da-escola` todas · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica pendente, e é declarado.**
+
+- **O «acesso negado» que ela descreveu tem duas leituras, e a segunda não está feita.** A suspensão
+  comercial é a que ficou corrigida: ler passa, escrever é 402 com a mensagem certa. A outra é a
+  `ESCOLA_HABILITADA = 'nao'` — o freio do Worker, que devolve 503 «Escola desabilitada» a TUDO,
+  inclusive à leitura. São dois mecanismos com o mesmo nome na fala dela, e o segundo não foi
+  tocado: ele nunca foi usado nesta escola, mas o nome confunde, e vale a pena decidir se os dois
+  devem passar a dizer a mesma coisa.
+- **A escrita continua fechada enquanto a escola estiver suspensa**, e é a decisão dela («fica
+  impossível criar qualquer outro documento»). O que mudou é que agora se entra, se lê, e a razão é
+  dita.
