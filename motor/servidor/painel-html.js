@@ -269,6 +269,35 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
         ? esc(e.comercial.planoNome) + (e.comercial.valor ? ' · ' + esc(e.comercial.valor) : '')
         : '—';
       celulas.push('<td>' + plano + '</td>');
+      /* AS DUAS DATAS, E A CARÊNCIA QUE SAI DELAS (25/11/2026).
+       *
+       * «a coluna que é quando for habilitada tem que indicar a data e a hora que isso aconteceu
+       * para poder calcular o tempo do apagar escola. O apagar aquela escola só vai poder contar
+       * se do tempo em que ela foi desabilitada […] a partir dessa data conta três meses.»
+       *
+       * AS COLUNAS SÃO DUAS E NÃO UMA porque são dois factos: a última vez que o acesso abriu e a
+       * última vez que fechou. Uma coluna só, com «a data do que aconteceu por último», obrigaria
+       * a adivinhar qual dos dois ela está a ver — e é dessa adivinhação que sai a decisão de
+       * apagar uma escola.
+       *
+       * A HORA VAI JUNTO (`quando`, e não `diaOuTraco`). O prazo é contado em meses, e um dia a
+       * menos não muda nada; mas a hora é o que distingue «desabilitei hoje de manhã» de «já
+       * estava desabilitada quando abri o sistema», e essa diferença é a que se pergunta. */
+      celulas.push('<td>' + esc(quando(e.comercial && e.comercial.habilitadaEm)) + '</td>');
+      /* A CARÊNCIA DIZ-SE NA MESMA CÉLULA DA DATA, e é a resposta à pergunta que a data levanta:
+       * «já pode apagar?». Ela escolheu esta forma — «todas aparecem, e a linha diz «pode apagar»
+       * ou «em carência até DD/MM/AAAA»» — em vez de esconder a escola da lista: a lista é a
+       * ferramenta com que ela limpa escolas de teste, e uma lista que esconde a escola que se
+       * quer apagar é uma lista que não serve. O semáforo é a informação; o botão continua a ser
+       * dela. */
+      const desabilitadaEm = e.comercial && e.comercial.desabilitadaEm;
+      const carencia = e.comercial && e.comercial.carenciaAte;
+      const carenciaTexto = !desabilitadaEm
+        ? ''
+        : (carencia && Date.parse(carencia) > Date.now()
+          ? '<br><span class="selo discreto">em carência até ' + esc(quando(carencia)) + '</span>'
+          : '<br><span class="selo ok">pode apagar</span>');
+      celulas.push('<td>' + esc(quando(desabilitadaEm)) + carenciaTexto + '</td>');
       const podeHabilitar = estadoComercial !== 'ativa';
       const podeDesabilitar = estadoComercial === 'ativa';
       celulas.push('<td class="acoes-da-lista">' +
@@ -297,7 +326,9 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     thOrdenavel(recorte === 'apagadas' ? 'Professores' : 'Professor', 'professor', criterio, base),
     '<th>Criada</th>'];
   if (recorte !== 'vivas') colunas.push('<th>Apagada</th>');
-  if (recorte === 'vivas') colunas.push('<th>Plano</th>', '<th>Acesso</th>');
+  if (recorte === 'vivas') {
+    colunas.push('<th>Plano</th>', '<th>Habilitada</th>', '<th>Desabilitada</th>', '<th>Acesso</th>');
+  }
   colunas.push('<th>Estado</th>');
   if (recorte !== 'vivas') colunas.push('<th>Registo</th>');
 
@@ -718,6 +749,155 @@ function paginaDosProfessores({ professores, escolas, ordem }) {
 }
 
 /**
+ * O FINANCEIRO — a chave que recebe, e quem paga menos (25/11/2026).
+ *
+ * O QUE ELA PEDIU, na letra: «vamos criar aqui o botão da onde eu coloco a minha chave Pix, tá?
+ * Vamos criar aqui na parte, eu não sei que nome semântico a gente daria para isso, é onde eu faço
+ * as minhas configurações financeiras […] e também um lugar onde eu possa colocar desconto. Então
+ * vai ser no mesmo lugar.»
+ *
+ * O NOME. «Financeiro» — uma palavra, sem adjetivo. «Configurações financeiras» promete um ecrã de
+ * preferências; o que existe aqui é dinheiro a entrar e dinheiro a não entrar, e o nome diz isso.
+ * «Pagamentos» seria meia verdade: não há pagamento nenhum a ser processado, há uma chave para
+ * onde se paga e descontos que se concedem.
+ *
+ * AS DUAS COISAS SÃO UMA PÁGINA PORQUE SÃO A MESMA PERGUNTA — «quanto entra?» — vista de dois
+ * lados: o preço cheio, que é a chave para onde ele vai; e o preço com desconto, que é quanto
+ * deixa de entrar e porquê. Separadas, a segunda página nunca seria aberta no dia em que se olha o
+ * extrato, que é exactamente o dia em que ela importa.
+ *
+ * NENHUMA PEÇA NOVA. Tudo aqui é `caixa`, `campo-rotulo`, `input`, `select`, `acao` e `table` —
+ * as peças da folha. Um ecrã do painel que inventasse uma grelha própria seria o segundo desenho
+ * do mesmo formulário nesta casa, e a folha é uma.
+ */
+function paginaFinanceira({ pix, descontos, escolas }) {
+  const chave = (pix && pix.chave) || '';
+  const titular = (pix && pix.titular) || '';
+  const lista = Array.isArray(descontos) ? descontos : [];
+  const vivas = Array.isArray(escolas) ? escolas : [];
+
+  const blocoDaChave = '<div class="caixa" id="financeiro-pix">' +
+    '<h2>A chave que recebe os pagamentos</h2>' +
+    /* O ESTADO DO CAMPO É A RESPOSTA, e não uma frase à parte: com chave, o campo mostra-a e o
+     * texto diz de onde ela veio; sem chave, a página diz que não há — e diz o comando, porque um
+     * ecrã vazio sem instrução é um ecrã que se fecha. */
+    '<p>' + (chave
+      ? 'É esta a chave que o formulário de criar escola mostra a quem vai pagar. Enquanto for esta, ' +
+        'o dinheiro cai na conta que ela identifica.'
+      : 'Ainda não há chave configurada. <strong>O formulário de criar escola diz isso a quem vai ' +
+        'pagar</strong>, em vez de mostrar uma chave de exemplo — dinheiro enviado para o lado ' +
+        'errado é o pior defeito possível num ecrã de pagamento.') + '</p>' +
+    '<p><label class="campo-rotulo" for="pix-chave">Chave Pix (CPF, CNPJ, e-mail, telefone ou aleatória)</label>' +
+    '<input id="pix-chave" autocomplete="off" value="' + esc(chave) + '" placeholder="ex.: 000.000.000-00"></p>' +
+    '<p><label class="campo-rotulo" for="pix-titular">Titular (como aparece no banco)</label>' +
+    '<input id="pix-titular" autocomplete="off" value="' + esc(titular) + '" placeholder="ex.: Thiago Menegaz"></p>' +
+    /* O TITULAR PODE FICAR EM BRANCO, e isso não é um campo esquecido: uma chave de CPF/CNPJ já
+     * identifica o dono na app de quem paga, e o nome que o banco exige por extenso não se inventa
+     * a partir de um nome de tratamento. Em branco, a página escreve «para o Sistema Lastro». */
+    '<p><button class="acao" id="pix-gravar" type="button">Guardar a chave</button></p>' +
+    '<p class="aviso" id="pix-recado" hidden></p>' +
+    (pix && pix.atualizadoEm
+      ? '<p class="aviso">Última alteração: ' + esc(quando(pix.atualizadoEm)) + '.</p>'
+      : '') +
+    '</div>';
+
+  const opcoes = vivas.map((e) => '<option value="' + esc(e.slug) + '">' +
+    esc(e.nome && e.nome !== e.slug ? e.nome + ' (' + e.slug + ')' : e.slug) + '</option>').join('');
+
+  const blocoDoDesconto = '<div class="caixa" id="financeiro-desconto">' +
+    '<h2>Conceder um desconto</h2>' +
+    '<p>O desconto é mensal, e vale a partir do momento em que é concedido. Um desconto por escola: ' +
+    'conceder outro substitui o anterior — dois descontos sobrepostos na mesma escola não têm uma ' +
+    'soma que signifique alguma coisa.</p>' +
+    (vivas.length
+      ? '<p><label class="campo-rotulo" for="desconto-escola">Para qual escola</label>' +
+        '<select id="desconto-escola">' + opcoes + '</select></p>'
+      : '<p class="aviso alerta">Nenhuma escola viva para receber desconto. Uma lista vazia quer ' +
+        'dizer que nenhuma existe, não que a leitura falhou.</p>') +
+    '<p><label class="campo-rotulo" for="desconto-valor">Quanto, por mês (em reais)</label>' +
+    '<input id="desconto-valor" autocomplete="off" inputmode="decimal" placeholder="ex.: 20,00"></p>' +
+    '<p><label class="campo-rotulo" for="desconto-motivo">Por quê (fica no registo)</label>' +
+    '<input id="desconto-motivo" autocomplete="off" placeholder="ex.: escola em início de atividade"></p>' +
+    '<p><button class="acao" id="desconto-gravar" type="button"' +
+    (vivas.length ? '' : ' disabled') + '>Conceder o desconto</button></p>' +
+    '<p class="aviso" id="desconto-recado" hidden></p>' +
+    '</div>';
+
+  const tabela = lista.length
+    ? '<table><thead><tr><th>Escola</th><th>Desconto</th><th>Quando</th><th>Por quê</th>' +
+      '<th>Retirar</th></tr></thead><tbody>' +
+      lista.map((d) => '<tr><td><strong>' + esc(d.escola) + '</strong></td>' +
+        '<td>R$ ' + esc(d.valor || '') + '</td>' +
+        '<td>' + esc(quando(d.em)) + '</td>' +
+        '<td>' + (d.motivo ? esc(d.motivo) : '—') + '</td>' +
+        '<td><button class="acao pequena secundario" type="button" data-retirar-desconto="' +
+        esc(d.escola) + '">Retirar</button></td></tr>').join('') +
+      '</tbody></table>'
+    : '<div class="caixa nota"><h2>Nenhum desconto concedido</h2>' +
+      '<p>Um desconto concedido aparece aqui com a data, o valor e a razão — e é essa linha que ' +
+      'responde, seis meses depois, à pergunta «porque é que esta escola paga menos?».</p></div>';
+
+  return pagina({
+    titulo: 'Financeiro',
+    subtitulo: 'A chave que recebe os pagamentos, e os descontos concedidos. A conciliação é ' +
+      'manual: o pagamento entra nesta conta e é conferido à mão.',
+    atual: 'financeiro',
+    corpo: blocoDaChave + blocoDoDesconto + tabela +
+      SCRIPT_DO_FINANCEIRO +
+      '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
+  });
+}
+
+/**
+ * O JAVASCRIPT DO FINANCEIRO.
+ *
+ * SEM RECARREGAR A PÁGINA ao guardar a chave: o resultado é o estado do próprio campo, e um
+ * `location.reload()` depois de gravar faria a pessoa perder o sítio onde estava para lhe mostrar
+ * o que ela acabou de escrever. A listagem do desconto, essa, recarrega — porque o que muda é uma
+ * tabela, e uma tabela refeita no cliente seria uma segunda composição da mesma linha.
+ */
+const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
+  'function recado(id,t,erro){var cx=document.getElementById(id);if(!cx)return;' +
+  'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
+  'function valor(id){var e=document.getElementById(id);return e?e.value:"";}' +
+  'var gravar=document.getElementById("pix-gravar");' +
+  'if(gravar)gravar.addEventListener("click",function(){' +
+  '  gravar.disabled=true;recado("pix-recado","a guardar…",false);' +
+  '  fetch("/api/financeiro/pix",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '    body:JSON.stringify({chave:valor("pix-chave"),titular:valor("pix-titular")}),cache:"no-store"})' +
+  '  .then(function(r){return r.json().catch(function(){return {};});})' +
+  '  .then(function(d){gravar.disabled=false;' +
+  '    if(d&&d.ok){recado("pix-recado","Chave guardada. É esta que o formulário de criar escola mostra.",false);return;}' +
+  '    recado("pix-recado",(d&&d.erro)||"não foi possível guardar a chave",true);})' +
+  '  .catch(function(){gravar.disabled=false;recado("pix-recado","falha de rede — nada foi alterado",true);});' +
+  '});' +
+  'var conceder=document.getElementById("desconto-gravar");' +
+  'if(conceder)conceder.addEventListener("click",function(){' +
+  '  conceder.disabled=true;recado("desconto-recado","a conceder…",false);' +
+  '  fetch("/api/financeiro/desconto",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '    body:JSON.stringify({escola:valor("desconto-escola"),valor:valor("desconto-valor"),' +
+  '      motivo:valor("desconto-motivo")}),cache:"no-store"})' +
+  '  .then(function(r){return r.json().catch(function(){return {};});})' +
+  '  .then(function(d){if(d&&d.ok){location.reload();return;}conceder.disabled=false;' +
+  '    recado("desconto-recado",(d&&d.erro)||"não foi possível conceder o desconto",true);})' +
+  '  .catch(function(){conceder.disabled=false;recado("desconto-recado","falha de rede — nada foi alterado",true);});' +
+  '});' +
+  'var retirar=document.querySelectorAll("[data-retirar-desconto]");' +
+  'for(var i=0;i<retirar.length;i++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var escola=b.getAttribute("data-retirar-desconto");if(!escola)return;' +
+  '    b.disabled=true;' +
+  '    fetch("/api/financeiro/desconto",{method:"DELETE",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){if(d&&d.ok){location.reload();return;}b.disabled=false;' +
+  '      recado("desconto-recado",(d&&d.erro)||"não foi possível retirar",true);})' +
+  '    .catch(function(){b.disabled=false;recado("desconto-recado","falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(retirar[i]);' +
+  '})();</script>';
+
+/**
  * O REGISTO DE UMA ESCOLA — o destino que o elo do expurgo não tinha.
  *
  * ATÉ 22/10/2026 o elo só existia dentro do processo: ficava em `escola/<slug>/indice.json`,
@@ -826,4 +1006,5 @@ module.exports = {
   MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
   indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
+  paginaFinanceira, SCRIPT_DO_FINANCEIRO,
 };

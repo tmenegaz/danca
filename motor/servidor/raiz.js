@@ -178,6 +178,13 @@ async function escolasDoIndice({ token }) {
  */
 async function escolasDoIndiceComComercial({ token, kv }) {
   const [escolas, professores] = await escolasDoIndice({ token });
+  /* OS DESCONTOS SÃO LIDOS UMA VEZ, e não uma por escola (25/11/2026). Estão numa chave só
+   * (`financeiro/descontos`), precisamente para isto: a lista das vivas abre muitas vezes, e uma
+   * leitura por linha seria uma leitura por escola em cada abertura — a mesma família de erro que
+   * esgotou a cota diária do KV em 18/10/2026. */
+  const descontos = await lerDescontos(kv);
+  const porEscola = new Map();
+  for (const d of descontos) porEscola.set(d.escola, d);
   const comEstado = [];
   for (const e of escolas) {
     const comercial = await lerComercial(kv, e.slug);
@@ -188,6 +195,13 @@ async function escolasDoIndiceComComercial({ token, kv }) {
         planoNome: comercial.planoNome || null,
         valor: comercial.valor || null,
         atualizadoEm: comercial.atualizadoEm || null,
+        /* AS DUAS DATAS QUE A LISTA MOSTRA (25/11/2026), e a carência que sai delas. A conta é
+         * feita AQUI, uma vez, e não na página: o HTML não sabe que meses têm 28 dias, e uma
+         * segunda regra de contagem dentro do desenho divergiria da primeira. */
+        habilitadaEm: comercial.habilitadaEm || null,
+        desabilitadaEm: comercial.desabilitadaEm || null,
+        carenciaAte: carenciaAte(comercial.desabilitadaEm),
+        desconto: porEscola.get(e.slug) || null,
       },
     }));
   }
@@ -948,6 +962,192 @@ async function gravarCadastro({ env, escola, professor, cadastro, origem }) {
  */
 const ESTADOS_COMERCIAL = ['aguardando', 'ativa', 'suspensa'];
 
+/** Quantos meses uma escola desabilitada espera antes de poder ser apagada. */
+const MESES_DE_CARENCIA = 3;
+
+/**
+ * A CARÊNCIA CONTA DA DESABILITAÇÃO, e não da criação (25/11/2026).
+ *
+ * «O apagar aquela escola só vai poder contar se do tempo em que ela foi desabilitada […] a partir
+ * dessa data conta três meses e ela vai estar disponível lá no botão de apagar escola.»
+ *
+ * O `desde` do andaime (§17.5) era escrito à mão; este é o mesmo prazo a contar de um facto que o
+ * sistema registou sozinho — `desabilitadaEm`, gravado no instante em que ela é suspensa. A
+ * diferença importa: uma data escrita à mão envelhece mal, e a pergunta «há quanto tempo esta
+ * escola não paga?» passa a ter uma resposta que não depende de ninguém se lembrar.
+ */
+/**
+ * Quando é que uma escola desabilitada passa a poder ser apagada — `null` se nunca foi.
+ *
+ * TRÊS MESES É UM MÊS DO CALENDÁRIO, e não 91 dias. A diferença aparece no exemplo dela: uma
+ * escola desabilitada a 12/01/2027 tem de ficar apagável a 12/04/2027, e 91 dias dariam 13/04 —
+ * um dia a mais, todos os anos, com um em cada quatro a errar por dois. `setUTCMonth` faz a conta
+ * que se faz à mão, e o prazo passa a ser o que ela disse.
+ *
+ * O DIA 31 TEM UMA RESPOSTA SÓ, e o JavaScript já a dá: 31/01 + um mês é 03/03 (o dia que não
+ * existe transborda para o mês seguinte). É o comportamento certo para um prazo — nunca encurta a
+ * carência, que seria negar o prazo que se prometeu.
+ */
+function carenciaAte(desabilitadaEm) {
+  const inicio = new Date(String(desabilitadaEm || ''));
+  if (!Number.isFinite(inicio.getTime())) return null;
+  const fim = new Date(inicio.getTime());
+  fim.setUTCMonth(fim.getUTCMonth() + MESES_DE_CARENCIA);
+  return fim.toISOString();
+}
+
+/* =====================================================================================
+ * O FINANCEIRO — a chave que recebe, e quem paga menos (25/11/2026).
+ *
+ * «Vamos criar aqui o botão da onde eu coloco a minha chave Pix […] é onde eu faço as minhas
+ * configurações financeiras […] e também um lugar onde eu possa colocar desconto. […] para qual
+ * escola eu tô concedendo desconto e quanto […] e também mostra quando eu concedi o desconto.»
+ *
+ * DUAS CHAVES, e o número delas é a decisão:
+ *
+ *   · `financeiro/pix` — UMA. Há um dono e uma conta. Guardar a chave por escola seria inventar
+ *     dezenas de contas que não existem.
+ *   · `financeiro/descontos` — UMA, com a lista dentro. O contrário (uma chave por desconto)
+ *     obrigaria a enumerar o KV para desenhar a listagem, e a enumeração é o que estoura a cota
+ *     diária — a lição de 18/10/2026, escrita no `AGENTS.md`. Uma leitura responde a «que
+ *     descontos estão concedidos?», e nenhuma listagem acontece.
+ *
+ * A CHAVE DO PIX MUDOU DE CASA. Era só o segredo `PIX_CHAVE` do Worker; agora ela pede um ecrã
+ * para a trocar, e um segredo não se muda por um ecrã. O segredo passa a ser o VALOR INICIAL: o
+ * KV manda quando tem valor, o `env` responde quando o KV está vazio. Assim o que já está
+ * configurado não se perde, e o ecrã não precisa de ser preenchido outra vez para a página
+ * continuar a funcionar.
+ * ===================================================================================== */
+
+function chavePixNoKv() { return 'financeiro/pix'; }
+function chaveDosDescontos() { return 'financeiro/descontos'; }
+
+/** `[Preencher: …]` é lacuna, não valor — e uma lacuna nunca chega à tela como dado. */
+function semLacuna(valor) {
+  const t = String(valor == null ? '' : valor).trim();
+  if (!t || /^\[Preencher/i.test(t)) return null;
+  return t;
+}
+
+/** O PIX que a página mostra: o do KV quando existe, o do segredo quando ainda não há. */
+async function lerPix(kv, env) {
+  const doAmbiente = {
+    chave: semLacuna(env && env.PIX_CHAVE),
+    titular: semLacuna(env && env.PIX_TITULAR),
+  };
+  if (!kv || typeof kv.get !== 'function') return doAmbiente;
+  try {
+    const texto = await kv.get(chavePixNoKv());
+    if (!texto) return doAmbiente;
+    const guardado = JSON.parse(texto);
+    /* O REGISTO DO KV É A VERDADE INTEIRA, e não campo a campo (25/11/2026).
+     *
+     * A primeira versão fazia `semLacuna(guardado.titular) || doAmbiente.titular` — e quem
+     * apagasse o titular no ecrã via reaparecer o do segredo. Num ecrã de pagamento isso é uma
+     * atribuição errada: uma chave NOVA com o nome de quem recebia a ANTIGA. Se há registo, é ele
+     * que vale; um campo em branco no registo é uma resposta («não tem titular declarado»), não
+     * uma ausência que se preenche com outra coisa. */
+    return {
+      chave: semLacuna(guardado.chave) || null,
+      titular: semLacuna(guardado.titular) || null,
+      atualizadoEm: guardado.atualizadoEm || null,
+    };
+  } catch {
+    return doAmbiente;
+  }
+}
+
+/** Grava a chave Pix. O que ela escreve passa a ser o que a página mostra. */
+async function gravarPix(kv, { chave, titular }, quem) {
+  if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV nesta ligação' };
+  const limpa = semLacuna(chave);
+  if (!limpa) return { ok: false, erro: 'informe a chave Pix que vai receber os pagamentos' };
+  const registo = {
+    chave: limpa,
+    titular: semLacuna(titular),
+    atualizadoEm: new Date().toISOString(),
+    atualizadoPor: quem || null,
+  };
+  try {
+    await kv.put(chavePixNoKv(), JSON.stringify(registo));
+    return { ok: true, pix: registo };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/**
+ * Os descontos concedidos, do mais recente para o mais antigo.
+ *
+ * `escola` é o slug; `valorCentavos` é o desconto mensal. O registo guarda também `motivo`, porque
+ * um valor sem razão é o que ninguém consegue rever seis meses depois — e a revisão é o ponto:
+ * quem concede um desconto vai querer saber porquê.
+ */
+async function lerDescontos(kv) {
+  if (!kv || typeof kv.get !== 'function') return [];
+  try {
+    const texto = await kv.get(chaveDosDescontos());
+    if (!texto) return [];
+    const guardado = JSON.parse(texto);
+    const lista = Array.isArray(guardado.lista) ? guardado.lista : [];
+    return lista.slice().sort((a, b) => String(b.em || '').localeCompare(String(a.em || '')));
+  } catch {
+    return [];
+  }
+}
+
+/** Concede (ou substitui) o desconto de uma escola. */
+async function concederDesconto(kv, { escola, valorCentavos, motivo }, quem) {
+  if (!kv || typeof kv.get !== 'function' || typeof kv.put !== 'function') {
+    return { ok: false, erro: 'sem KV nesta ligação' };
+  }
+  const slug = String(escola || '').trim();
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, erro: 'escolha a escola do desconto' };
+  const centavos = Math.round(Number(valorCentavos));
+  if (!Number.isFinite(centavos) || centavos <= 0) {
+    return { ok: false, erro: 'o desconto tem de ser um valor maior do que zero' };
+  }
+  const lista = await lerDescontos(kv);
+  /* UM DESCONTO POR ESCOLA, e o novo substitui o anterior. Dois descontos sobrepostos na mesma
+   * escola não têm uma soma que signifique alguma coisa — e duas linhas na listagem para a mesma
+   * escola obrigariam quem lê a decidir qual é a que vale. */
+  const semEsta = lista.filter((d) => d.escola !== slug);
+  const registo = {
+    id: slug + '-' + Date.now(),
+    escola: slug,
+    valorCentavos: centavos,
+    valor: comercial.reais(centavos),
+    motivo: String(motivo || '').trim() || null,
+    em: new Date().toISOString(),
+    por: quem || null,
+  };
+  semEsta.unshift(registo);
+  try {
+    await kv.put(chaveDosDescontos(), JSON.stringify({ lista: semEsta.slice(0, 500) }));
+    return { ok: true, desconto: registo, lista: semEsta };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/** Retira o desconto de uma escola. Apagar um benefício é um facto, e fica dito na listagem. */
+async function retirarDesconto(kv, escola) {
+  if (!kv || typeof kv.get !== 'function' || typeof kv.put !== 'function') {
+    return { ok: false, erro: 'sem KV nesta ligação' };
+  }
+  const slug = String(escola || '').trim();
+  const lista = await lerDescontos(kv);
+  const ficam = lista.filter((d) => d.escola !== slug);
+  if (ficam.length === lista.length) return { ok: false, erro: 'essa escola não tem desconto' };
+  try {
+    await kv.put(chaveDosDescontos(), JSON.stringify({ lista: ficam }));
+    return { ok: true, lista: ficam };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+
 function chaveComercial(escola) {
   return 'bastidores/' + String(escola || '').trim() + '/comercial';
 }
@@ -979,6 +1179,28 @@ async function gravarComercial(kv, escola, mudanca, quem) {
     atualizadoPor: quem || null,
   });
   delete registo.motivo;
+  /* A DATA DE CADA MUDANÇA DE ESTADO, guardada como facto próprio (25/11/2026).
+   *
+   * O histórico já tinha o «quando» de cada elo, mas ler a última transição de lá a cada linha de
+   * uma tabela é varrer uma lista para responder a uma pergunta que tem uma resposta só. Dois
+   * campos dizem-na diretamente:
+   *
+   *   · `habilitadaEm` — quando o acesso foi ABERTO pela última vez;
+   *   · `desabilitadaEm` — quando foi FECHADO pela última vez. É daqui que conta a carência de
+   *     três meses até a escola poder ser apagada.
+   *
+   * E eles NÃO se apagam um ao outro: uma escola que é suspensa hoje e habilitada amanhã tem as
+   * duas datas verdadeiras, e a pergunta «já esteve suspensa?» continua a ter resposta. Só o campo
+   * do estado que MUDOU é reescrito — carimbar os dois em cada mudança faria de cada um a data da
+   * última coisa que aconteceu, que é o que o `atualizadoEm` já diz. */
+  const estadoNovo = registo.estado;
+  if (estadoNovo !== anterior.estado) {
+    if (estadoNovo === 'ativa') registo.habilitadaEm = agora;
+    if (estadoNovo === 'suspensa') registo.desabilitadaEm = agora;
+  }
+  // A PRIMEIRA VEZ numa escola nova: ela nasce `aguardando` e isso não é uma habilitação nem uma
+  // suspensão. Só quando alguém ABRE o acesso é que existe uma data de abertura.
+  if (estadoNovo === 'ativa' && !registo.habilitadaEm) registo.habilitadaEm = agora;
   /* O HISTÓRICO É A MEMÓRIA DO QUE ACONTECEU, e não o estado de agora. Cada mudança deixa um elo
    * — quem, quando, de que para quê, e por quanto. É a mesma disciplina da proveniência: um estado
    * que se sobrescreve não responde à pergunta «esta escola já esteve suspensa?». */
@@ -1175,14 +1397,7 @@ function urlDaPaginaPublica(env) {
  * nomes. A rota responde sem senha, e o que responde sem senha não pode conter o cadastro de
  * ninguém. É a mesma razão pela qual `/api/escolas` é recusada naquele endereço.
  */
-/** `[Preencher: …]` é lacuna, não valor — e uma lacuna nunca chega à tela como dado. */
-function semLacuna(valor) {
-  const t = String(valor == null ? '' : valor).trim();
-  if (!t || /^\[Preencher/i.test(t)) return null;
-  return t;
-}
-
-function respostaDaPagina(env, modo) {
+async function respostaDaPagina(env, modo) {
   const habilidades = (require('../nucleo/perfil-do-professor.js').LISTA_DE_MODALIDADES || [])
     .map((m) => ({ id: m && m.id, nome: m && m.nome, temConteudo: Boolean(m && m.temConteudo) }))
     .filter((m) => m.id);
@@ -1191,21 +1406,24 @@ function respostaDaPagina(env, modo) {
    * calculado e o cobrado saem do mesmo JSON — é o que a frente L8 do planejamento pede, e é o que
    * impede um cartão a dizer R$ 69,90 sobre uma tabela que já diz outra coisa. */
   const catalogo = comercial.catalogoDaPagina();
+  /* A CHAVE PIX VEM DE DOIS SÍTIOS, e a ordem entre eles é a regra (25/11/2026). Ela passou a ter
+   * um ecrã onde é escrita — e um segredo do Worker não se muda por um ecrã. Então o ecrã grava no
+   * KV, e o segredo passa a ser o VALOR INICIAL: o KV manda quando tem valor, o `env` responde
+   * quando o KV está vazio. O que já está configurado não se perde, e o ecrã não precisa de ser
+   * preenchido outra vez para a página continuar a cobrar.
+   *
+   * SEM CHAVE NENHUMA, A PÁGINA DIZ QUE NÃO ESTÁ CONFIGURADA em vez de mostrar uma de exemplo —
+   * dinheiro enviado para o lado errado é o pior defeito possível num ecrã de pagamento. */
+  const pix = await lerPix(env && env.PADD_KV, env);
   return new Response(JSON.stringify({
     ok: true,
     modo,
     publica: urlDaPaginaPublica(env),
     habilidades,
     planos: catalogo,
-    /* A CHAVE PIX É UMA `var` DO WORKER, e não um valor desta função. Sem ela, a página DIZ que
-     * não está configurada em vez de mostrar uma chave de exemplo — dinheiro enviado para o lado
-     * errado é o pior defeito possível num ecrã de pagamento. */
     pix: {
-      /* A LACUNA DECLARADA NÃO É UM VALOR. `[Preencher: …]` é a marca desta casa para «isto ainda
-       * não foi decidido» — e uma marca dessas a viajar como chave Pix seria pior do que vazia: a
-       * página mostraria uma chave, e o dinheiro iria para lugar nenhum. Trata-se como ausente. */
-      chave: semLacuna(env && env.PIX_CHAVE),
-      titular: semLacuna(env && env.PIX_TITULAR),
+      chave: pix.chave || null,
+      titular: pix.titular || null,
       conciliacao: 'manual',
       prazo: 'até 24 horas',
     },
@@ -1387,7 +1605,7 @@ async function fetch(request, env) {
       });
     }
     if (url.pathname === '/api/pagina') {
-      return respostaDaPagina(env, 'publico');
+      return await respostaDaPagina(env, 'publico');
     }
     if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
       return responderCriacao(request, env, { origem: 'publico', exigirCadastro: true });
@@ -1688,8 +1906,74 @@ async function fetch(request, env) {
     }), { status: 200, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' } });
   }
 
+  /* =====================================================================================
+   * O FINANCEIRO — o ecrã onde ela põe a chave e concede descontos (25/11/2026).
+   *
+   * AS TRÊS ROTAS SÓ EXISTEM NO PAINEL. Elas não estão na lista do público, e a lista é uma
+   * permissão: o que não está lá responde 404 em `lastro.padd.com.br`. Uma chave Pix publicada
+   * numa página aberta é a conta dela à vista; um desconto publicado é a negociação de um cliente
+   * à vista de outro.
+   * ===================================================================================== */
+  if (url.pathname === '/financeiro' && request.method === 'GET') {
+    const token = env && env.GITHUB_TOKEN;
+    try {
+      // AS ESCOLAS VIVAS, pelas mesmas fontes que a lista das vivas usa (`escolasDoIndice` é lido
+      // uma vez e serve à tabela e ao `<select>` do desconto) — é o que impede o formulário de
+      // oferecer uma escola que já não existe.
+      const [escolas, professores] = token
+        ? await escolasDoIndice({ token })
+        : [[], []];
+      void professores;
+      const pix = await lerPix(env && env.PADD_KV, env);
+      const descontos = await lerDescontos(env && env.PADD_KV);
+      const vivas = (escolas || []).filter((e) => !e.expurgada);
+      return painel.resposta(painel.paginaFinanceira({ pix, descontos, escolas: vivas }));
+    } catch (err) {
+      return painel.resposta(painel.paginaSemToken(
+        'não foi possível abrir o financeiro: ' + ((err && err.message) || String(err))), 500);
+    }
+  }
+
+  if (url.pathname === '/api/financeiro/pix' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const gravado = await gravarPix(env && env.PADD_KV, {
+      chave: corpo.chave,
+      titular: corpo.titular,
+    }, 'proprietario');
+    if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 400);
+    return responderJson({ ok: true, pix: gravado.pix });
+  }
+
+  if (url.pathname === '/api/financeiro/desconto' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    /* O VALOR CHEGA EM REAIS (`69,90`) OU EM CÊNTIMOS. A página escreve reais porque é o que se
+     * digita; o `centavos` do motor comercial é a única forma segura de somar. A conversão passa
+     * pelo mesmo `centavos()` que a tabela de preços usa — duas conversões divergiriam no dia em
+     * que uma delas arredondasse de outra maneira. */
+    const valorCentavos = corpo.valorCentavos !== undefined
+      ? Number(corpo.valorCentavos)
+      : comercial.centavos(String(corpo.valor == null ? '' : corpo.valor).replace(',', '.'));
+    const feito = await concederDesconto(env && env.PADD_KV, {
+      escola: corpo.escola,
+      valorCentavos,
+      motivo: corpo.motivo,
+    }, 'proprietario');
+    if (!feito.ok) return responderJson({ ok: false, erro: feito.erro }, 400);
+    return responderJson({ ok: true, desconto: feito.desconto, lista: feito.lista });
+  }
+
+  if (url.pathname === '/api/financeiro/desconto' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const feito = await retirarDesconto(env && env.PADD_KV, corpo.escola);
+    if (!feito.ok) return responderJson({ ok: false, erro: feito.erro }, 400);
+    return responderJson({ ok: true, lista: feito.lista });
+  }
+
   if (url.pathname === '/api/pagina' && request.method === 'GET') {
-    return respostaDaPagina(env, 'painel');
+    return await respostaDaPagina(env, 'painel');
   }
 
   if (url.pathname === '/api/escolas' && request.method === 'GET') {
@@ -1701,15 +1985,30 @@ async function fetch(request, env) {
         kv: env && env.PADD_KV,
         reconstruir: url.searchParams.get('reconstruir') === '1',
       });
+      /* O ESTADO COMERCIAL VAI NESTA LISTA (25/11/2026), e não numa segunda chamada: o cartão do
+       * «Apagar escola» passou a dizer se a escola pode ser apagada ou está em carência, e essa
+       * resposta sai das mesmas duas datas que a lista das vivas mostra. Pedi-la à parte seria uma
+       * segunda leitura do mesmo KV para desenhar a mesma linha.
+       *
+       * A LEITURA É POR ESCOLA, e é o preço de o estado morar no cofre de cada uma. Não é
+       * enumeração: são as escolas do índice, e a lista já as tem na mão. */
+      const escolasComComercial = [];
+      for (const e of r.escolas) {
+        const c = await lerComercial(env && env.PADD_KV, e.slug);
+        escolasComComercial.push({ e, c });
+      }
       return responderJson({
         ok: true,
         fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
         custo: r.custo,
-        escolas: r.escolas.map((e) => ({
+        escolas: escolasComComercial.map(({ e, c }) => ({
           slug: e.slug,
           professor: e.professor,
           ciclo: e.ciclo,
           total: e.total,
+          estadoComercial: c.estado,
+          desabilitadaEm: c.desabilitadaEm || null,
+          carenciaAte: carenciaAte(c.desabilitadaEm),
           /* O ENDEREÇO É O PRÓPRIO, E NÃO O `workers.dev` (14/11/2026). O técnico era o que
            * aparecia no cartão de apagar e nos textos da página. Uma escola tem UM endereço —
            * o que o sistema criou para ela —, e é ele que se mostra. */
@@ -2035,4 +2334,9 @@ module.exports = {
   responderCriacao, gravarCadastro, mandarBoasVindas, ehPaginaPublica, servirAPagina,
   removerDoPainel, marcarPagina, lerComercial, gravarComercial, chaveComercial, ESTADOS_COMERCIAL,
   hostDoProprietario, urlDaPaginaPublica,
+  /* O FINANCEIRO E A CARÊNCIA (25/11/2026). Exportados pela mesma razão dos de cima: a conta dos
+   * três meses e a regra «o KV manda, o segredo responde» são regras, e uma regra que só se mede
+   * em produção descobre-se em produção — com o dinheiro de alguém no meio. */
+  lerPix, gravarPix, lerDescontos, concederDesconto, retirarDesconto,
+  carenciaAte, MESES_DE_CARENCIA,
 };

@@ -318,6 +318,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
         <a class="acao secundario" href="/escolas-apagadas" data-dono>Ver só as apagadas</a>
         <a class="acao secundario" href="/escolas-vivas" data-dono>Ver só as vivas</a>
         <a class="acao secundario" href="/professores" data-dono>Professores</a>
+        <!-- O FINANCEIRO É DO DONO E SÓ DELE (25/11/2026): uma chave Pix e uma lista de descontos
+             são a conta e a negociação dela. No público o botão nem chega ao HTML, e no servidor
+             o caminho responde 404 — a marca aqui é a segunda barreira, não a primeira. -->
+        <a class="acao secundario" href="/financeiro" data-dono>Financeiro</a>
       </div>
       <div class="rail rail-dir" data-dono>
         <div id="indice-da-pagina"></div>
@@ -1650,6 +1654,21 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             var mi = el("small");
             mi.appendChild(document.createTextNode("professor " + (e.professor || "?")
               + " · ciclo " + (e.ciclo || "?") + " · " + e.total + " arquivo(s)"));
+            /* A CARÊNCIA, NO CARTÃO (25/11/2026). Ela escolheu esta forma: «todas aparecem, e a
+             * linha diz «pode apagar» ou «em carência até DD/MM/AAAA»». A lista não esconde a
+             * escola — ela é a ferramenta com que se limpa uma escola de teste, e uma lista que
+             * esconde a escola que se quer apagar é uma lista que não serve. O que se acrescenta é
+             * a informação que a data levanta: já pode, ou ainda não. */
+            if (e.desabilitadaEm) {
+              mi.appendChild(document.createElement("br"));
+              var prazo = e.carenciaAte ? new Date(e.carenciaAte) : null;
+              var emCarencia = prazo && prazo.getTime() > Date.now();
+              var seloPrazo = el("span", emCarencia ? "selo discreto" : "selo ok",
+                emCarencia
+                  ? "em carência até " + prazo.toLocaleDateString("pt-BR")
+                  : "pode apagar");
+              mi.appendChild(seloPrazo);
+            }
             mi.appendChild(document.createElement("br"));
             mi.appendChild(document.createTextNode(e.url));
             b.appendChild(mi);
