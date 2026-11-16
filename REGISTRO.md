@@ -47066,3 +47066,141 @@ dentro do template literal que contém o script do painel. O `node` recusou carr
 `SyntaxError: Unexpected identifier 'suspensa'`, e a lição está escrita no comentário logo acima, do
 mesmo ficheiro, de ontem: **uma string que atravessa duas linguagens tem de ser escrita na linguagem
 em que está.** A terceira vez em três dias.
+
+## 16/11/2026 — o expurgo passa a perguntar ao sistema, e a carência é de cinco minutos
+
+**O que aconteceu.** «Ajusta o expurgo automático para ler `desabilitadaEm` + 3 meses em vez de ler
+o índice antigo (`escolas-habilitadas.json`, 3 minutos). para fim de teste coloca `desabilitadaEm`
++ 5 minutos. depois a gente muda para 3 meses quando for produção de verdade.»
+
+**O que havia, e é pior do que parecia.** A varredura do Cron de cinco em cinco minutos percorria
+`raiz/escolas-habilitadas.json` — um ficheiro versionado com `{ habilitada: false, desde: <data
+escrita à mão> }` — e comparava com um prazo fixo de três minutos. O ficheiro estava **vazio**: só
+a `_nota`. Ou seja, desde que a Produção nasceu a vassoura passava de cinco em cinco minutos a não
+apagar escola nenhuma, e nada dizia isso. E a data de onde o prazo contava era digitada por alguém,
+que é o contrário da decisão dela: «a partir dessa data conta três meses» — a data é o dia em que
+**o sistema** desabilitou.
+
+**O que foi decidido.**
+
+- **A lista de escolas vem do sistema, de duas fontes que sabem metades diferentes:** o mapa do KV
+  (`escolas/por-host`, uma leitura, e é ele que inclui a escola criada há cinco minutos) e o índice
+  do acervo (`indices/acervo.json`, as escolas com pasta que o mapa não conhece). Sem
+  `GITHUB_TOKEN` a lista fica só com o mapa, e o relatório **di-lo** — uma lista mais curta é uma
+  escola que espera mais um ciclo, não uma escola apagada por engano. **Não se enumera o KV**:
+  `list()` traria todas as chaves de todas as escolas para responder «quais são as escolas?».
+- **A pergunta é ao estado comercial**, escola a escola: `bastidores/<escola>/comercial`, e só
+  `suspensa` conta. `ativa` e `aguardando` nunca se apagam. O `pagante: true` do andaime sai — quem
+  paga é `ativa`, e uma segunda bandeira para a mesma pergunta divergiria dela.
+- **A proveniência entra como guarda**, e é a mesma do botão «Apagar escola»: a varredura automática
+  não pode ser mais permissiva do que a manual. Proveniência rota **poupa** a escola e diz o
+  problema no relatório; uma auditoria que explode também poupa (parar custa cinco minutos,
+  avançar custa a escola). **Não há `forcar`**: uma varredura agendada não tem quem declare motivo.
+- **A carência tem duas réguas, e a de produção continua afirmada.** `CARENCIA_DE_TESTE_MINUTOS = 5`
+  é o interruptor; `null` devolve os três meses do calendário. A régua é **parâmetro** de
+  `carenciaAte(data, { minutos })`, para a prova poder afirmar a de produção enquanto a de teste é
+  a que corre — medir só a que está ligada deixaria a outra a estrear-se no dia em que apaga
+  escolas a sério.
+- **A morada vem do repositório**, e não do andaime: num shard, `wrangler.<escola>.jsonc` não existe
+  e a morada está em `escola/<slug>/indice.json` (campo `shard`). Sem ela, a rota ficava no ar a
+  apontar ao shard.
+- **O andaime saiu** — o ficheiro, o `lerEscolasHabilitadas`, o `PRAZO_EXPURGO_MS` e o comentário do
+  Cron no `wrangler.danca.jsonc`. Ele mesmo declarava a própria morte («este arquivo SAI e a flag
+  passa a viver no ESCOLA.conf»), e a Produção nasceu.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`escolasConhecidas`, `expurgar` reescrito,
+`CARENCIA_DE_TESTE_MINUTOS`, `carenciaEmMs`, `descricaoDaCarencia`) · `raiz/escolas-habilitadas.json`
+(removido) · `wrangler.danca.jsonc` (a nota do Cron) · `experimentos/provar-expurgo-por-carencia.js`
+(novo) · `experimentos/provar-financeiro.js` (a secção A passa a medir as duas réguas).
+
+**Com o quê.** `provar-expurgo-por-carencia` **30/30** — e o controlo negativo (a vassoura de antes,
+com o andaime vazio) dá **16 falhas**, a primeira delas «nenhuma escola conhecida — sem mapa e sem
+índice»: a vassoura que não varria nada. Mais `provar-financeiro` 55/55 ·
+`provar-escola-a-nascer` 48/48 · `provar-cadastro-em-etapas` 40/40 · `provar-pagina-publica` 73/73 ·
+`provar-cofre-e-shard` 129/129 · `provar-teste` 44/44 · `provar-indices` 64/64 ·
+`provar-publicacao-da-escola` 73/73 · `provar-jsonc` 22/22 · `provar-form-escola` e
+`provar-recriacao-da-escola` todas · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**Uma régua nova não se aplica ao passado, e isto foi medido antes do deploy.** A `breu` está
+`suspensa` desde hoje, e com cinco minutos de carência a PRIMEIRA passagem do Cron depois de o
+código subir apagava-a — sem ela ter pedido isso a escola nenhuma. O pedido foi «para fim de teste
+coloca 5 minutos», não «apaga o que já estava desligado». A carência de teste conta de
+`desabilitadaEm` **e** de o regime existir (`expurgo/regime-de-teste-desde`, gravado na primeira
+passagem): quem foi suspenso antes do regime é poupado, com o motivo escrito, e passa a contar
+quando for desabilitado outra vez — um gesto dela, não um efeito de um deploy. Em produção a guarda
+desliga-se sozinha: com três meses, uma escola desligada há dois anos tem de poder ser apagada no
+primeiro dia.
+
+**O que fica pendente, e é declarado.** Com a carência em cinco minutos, uma escola suspensa por
+engano é apagada cinco minutos depois. É o que ela pediu para testar, e é reversível de uma forma
+só: `CARENCIA_DE_TESTE_MINUTOS = null` **antes** de haver escolas a sério.
+
+## 16/11/2026 — as três abas do professor, e o `s` que era comido ao corrigir um nome
+
+**O que aconteceu.** Duas frases, uma mudança: «Aqui vem novo professor, o nome da aba é cadastro de
+professor. Aí a gente vai ter uma outra aba é o Habilitações e a próxima é Desligamento. Então a
+gente vai organizar em abas.» E: «Quando vou editar e aparece no nome do professor "Bri" sobrenome
+"e Volet". Tem que aparecer certo a edição, não pode ser desse jeito. Pode editar tudo, não tem
+campo desabilitado.»
+
+**O «Bri»/«e Volet» era um defeito de uma barra só.** O `replace(/\s+/g, " ")` estava escrito dentro
+de uma string de JavaScript — `'…replace(/\s+/g, " ")…'` —, e na string de ORIGEM `\s` não é o
+espaço da regex: é a letra `s`. Chegava ao navegador `.replace(/s+/g, " ")`, que em «Brise Volet»
+troca o `s` por um espaço, dá «Bri e Volet», e a divisão em duas palavras devolve «Bri» + «e
+Volet». **O mesmo erro estava no `submit`**: corrigir o nome de alguém gravaria o nome com o `s`
+comido. É a família da crase dentro do template literal, no painel do professor — a terceira vez em
+três dias: uma string que atravessa duas linguagens tem de ser escrita na linguagem em que está.
+
+**O que foi decidido.**
+
+- **Três abas, e a listagem fora delas** — «Cadastro de professor», «Habilitações», «Desligamento».
+  A ordem é a do trabalho: quem é a pessoa, o que ela sabe ensinar, e o que fazer quando sai. A
+  listagem fica à vista nas três, que é a regra que ela já tinha dado para a Audição.
+- **UM MOTOR DE ABAS, DOIS GRUPOS.** O da Audição tinha as suas cem linhas quando era o único; ao
+  chegar o segundo grupo, copiá-las com outros `id` seria a correção a pagar duas vezes. O que é
+  comum ficou num motor (`motorDeAbas`) — ligar a tira e a folha à mesma função, `aria-selected`,
+  `hidden` nos painéis, teclado — e o que é de cada grupo vai por parâmetro: `pode(n)` (na Audição
+  as abas 2 e 3 só abrem depois do primeiro elenco) e `aoTrocar(n)` (a faixa dos passos, que só
+  vive na aba 1). Cada pílula do telemóvel diz qual folha abre (`data-folha`), porque com duas o
+  `id` escrito dentro do ouvinte abria sempre a primeira.
+- **O cadastro é o mesmo da criação da escola**: nome, sobrenome, CPF, telefone, e-mail, habilidade
+  e senha. O CPF e o e-mail já existiam — no cadastro da escola e no `contato` do professor —, e
+  esta tela não os mostrava. A habilidade é o MESMO `<select>` do catálogo que as caixas da aba das
+  Habilitações, e grava no mesmo sítio (`professores/<slug>/perfil.json`, `modalidades`), com a
+  mesma marcação das turmas que ficam sem quem as ensine.
+- **«Pode editar tudo» — com uma excepção declarada.** O «Editar» passou a existir em TODAS as
+  linhas, e a senha deixou de sair de cena (em branco mantém a que ele usa). O que continua preso é
+  o NOME de quem já assinou documentos, e quem recusa é o servidor, com a razão: a ficha tem sete
+  campos, e um deles preso não é a ficha toda presa — o botão desabilitado escondia os outros seis.
+- **O CPF é conferido contra os outros professores**, e a varredura de números saiu de `raiz.js`
+  para `motor/servidor/unicidade.js`: a criação e a correção fazem a mesma pergunta, e uma segunda
+  cópia divergiria na primeira vez que se esquecesse o `soDigitos`.
+- **O `contato` do professor grava-se quando há o que gravar.** A condição era só `professorEmail`;
+  com CPF e telefone e sem e-mail, a ficha não existia — e a tela não tinha o que mostrar, o que se
+  lê como «o dado não foi guardado».
+- **A resposta da ficha só preenche se o gesto ainda for o mesmo.** Clicar «Editar» e logo
+  «Cancelar» enchia os campos outra vez quando a leitura chegava — medido, e corrigido com a guarda
+  do modo e do alvo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`ABAS_DO_PROFESSOR_HTML`, o motor de abas,
+`editarProfessorDaEscola`, `GET /api/bastidores/professor`, o modo `editar` no `POST`, o «Editar» em
+todas as linhas, `preencherFichaDoProfessor`) · `motor/servidor/unicidade.js` (novo) ·
+`motor/servidor/raiz.js` (a varredura sai, o `contato` grava-se com qualquer dado) ·
+`experimentos/provar-cadastro-do-professor.js` (novo) ·
+`experimentos/provar-editar-professor-principal.js` (a regra nova) ·
+`experimentos/provar-abas-da-audicao.js` (as duas asserções de CSS passam a medir a regra, e não a
+lista de seletores).
+
+**Com o quê.** `provar-cadastro-do-professor` **48/48** — e o controlo negativo, com o `\s` de volta
+à string de origem, reproduz o relato dela ao pé da letra: `{"nome":"Bri","sobrenome":"e Volet"}`.
+Mais `provar-editar-professor-principal` 32/32 (num Chrome de verdade: nenhum diálogo nativo, o
+clique, a recarga) · `provar-abas-da-audicao` 99/99 · `provar-producao` 164/166 (as duas falhas são
+anteriores a esta mudança: a tradição na curadoria) · `provar-financeiro` 55/55 ·
+`provar-expurgo-por-carencia` 26/26 · `provar-escola-a-nascer` 48/48 ·
+`provar-o-suspenso-diz-a-verdade` 28/28 · `provar-pagina-publica` 73/73 ·
+`provar-cofre-e-shard` 129/129 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica pendente, e é declarado.** O aluno/professor que muda de nome continua a deixar o nome
+antigo nos documentos já gerados — é a razão de o nome ser preso, e não um defeito novo. A
+HABILIDADE do `<select>` grava uma só modalidade (a principal), tal como a criação da escola; a
+lista completa continua na aba das Habilitações.

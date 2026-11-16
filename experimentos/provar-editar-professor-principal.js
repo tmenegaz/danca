@@ -13,6 +13,17 @@
  * navegador, com uma linha e sem contexto, e nada na tela a dizer o que estava a acontecer. O
  * erro vinha depois num `alert`.
  *
+ * A REGRA MUDOU A 16/11/2026, e esta prova mudou com ela. Ela disse: «Pode editar tudo, não tem
+ * campo desabilitado» — a senha deixou de sair de cena, o botão deixou de estar travado e o
+ * «Editar» passou a existir em TODAS as linhas (a ficha inteira, e não só o nome do principal).
+ * O que NÃO mudou é a regra da proveniência: o NOME de quem já assinou documentos continua preso,
+ * e quem o recusa é o servidor — a tela deixa de esconder o botão, porque a ficha tem sete campos
+ * e um deles preso não é a ficha toda presa.
+ *
+ * O que aqui se continua a medir, e é o que esta prova tem de próprio: NENHUM DIÁLOGO NATIVO,
+ * o clique de verdade, e a página a recarregar. O preenchimento da ficha e as gravações no
+ * servidor são medidos em `provar-cadastro-do-professor.js`, que não precisa de navegador.
+ *
  * O QUE ESTA PROVA MEDE (num Chrome de verdade, com a folha real servida de `127.0.0.1`):
  *
  *   1. o «Editar» NÃO abre diálogo nativo nenhum — nenhum `prompt`, `alert` ou `confirm` é
@@ -171,6 +182,26 @@ async function subirBancada({ respostaDoDono, curadorias = [] }) {
       res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
+    /* A FICHA (16/11/2026) — o «Editar» lê-a para preencher CPF, telefone, e-mail e habilidade. */
+    if (u.pathname === '/api/bastidores/professor' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        ok: true, slug: u.searchParams.get('slug'), nome: 'Ana Maria Silva', dono: true,
+        cpf: '111.444.777-35', telefone: '(51) 99999-0000', email: 'ana@exemplo.com',
+        modalidade: 'bale-classico',
+      }));
+    }
+    /* A GRAVAÇÃO DA FICHA — o `POST` que substituiu o `/dono` no modo de edição. */
+    if (u.pathname === '/api/bastidores/professor' && req.method === 'POST') {
+      let corpo = '';
+      req.on('data', (c) => { corpo += c; });
+      req.on('end', () => {
+        pedidos.push('CORPO /api/bastidores/professor ' + corpo);
+        res.writeHead(respostaDoDono.status, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(respostaDoDono.corpo));
+      });
+      return;
+    }
     if (u.pathname === '/api/bastidores/dono' && req.method === 'POST') {
       let corpo = '';
       req.on('data', (c) => { corpo += c; });
@@ -262,19 +293,25 @@ async function principais() {
       antes.linhas.length >= 2 && antes.linhas[1].temExcluir === true, antes.linhas[1]);
     conferir('antes do clique, o botão diz «Cadastrar professor»', antes.rotuloBotao === 'Cadastrar professor', antes.rotuloBotao);
     conferir('…e a senha está à vista', antes.senhaVisivel === true, antes.senhaVisivel);
+    conferir('…e todas as linhas têm «Editar» (não só a do principal)',
+      antes.linhas.length >= 2 && antes.linhas.every((l) => l.temEditar === true),
+      antes.linhas.map((l) => l.temEditar));
 
     const clique = await nav.avaliar(CLICAR_EDITAR);
     conferir('o «Editar» do principal é encontrado', clique.achou === true, clique);
     const depois = await nav.avaliar(ESTADO);
 
     conferir('NENHUM diálogo nativo foi aberto (prompt, alert ou confirm)', depois.dialogos.length === 0, depois.dialogos);
-    conferir('o formulário entra no modo de edição', depois.modo === 'dono', depois.modo);
+    conferir('o formulário entra no modo de edição', depois.modo === 'editar', depois.modo);
     conferir('…preenchido com o nome dividido (primeira palavra = nome)',
       depois.nome === 'Ana' && depois.sobrenome === 'Maria Silva', { nome: depois.nome, sobrenome: depois.sobrenome });
     conferir('…com o foco no primeiro campo', depois.foco === 'pnome', depois.foco);
-    conferir('a senha sai de cena', depois.senhaVisivel === false, depois.senhaVisivel);
+    /* A SENHA FICA — «não tem campo desabilitado». Em branco, mantém a que ele usa; o servidor
+     * di-lo, e é isso que a nota explica. */
+    conferir('a senha CONTINUA à vista (e é ela que se pode trocar)',
+      depois.senhaVisivel === true, depois.senhaVisivel);
     conferir('…e a nota explica por quê', depois.notaVisivel === true, depois.notaVisivel);
-    conferir('o botão passa a dizer o que vai fazer', depois.rotuloBotao === 'Gravar o novo nome', depois.rotuloBotao);
+    conferir('o botão passa a dizer o que vai fazer', depois.rotuloBotao === 'Gravar as mudanças', depois.rotuloBotao);
     conferir('o «Cancelar» aparece', depois.cancelarVisivel === true, depois.cancelarVisivel);
 
     // ── 2. gravar: um pedido, com o nome inteiro, e a página recarrega ──────
@@ -288,12 +325,14 @@ async function principais() {
     `);
     await new Promise((s) => setTimeout(s, 2000));
 
-    const corpo = bancada.pedidos.find((p) => p.indexOf('CORPO /api/bastidores/dono') === 0);
-    const pedidos = bancada.pedidos.filter((p) => p.indexOf('POST /api/bastidores/dono') === 0);
+    const corpo = bancada.pedidos.find((p) => p.indexOf('CORPO /api/bastidores/professor') === 0);
+    const pedidos = bancada.pedidos.filter((p) => p.indexOf('POST /api/bastidores/professor') === 0);
     const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/producao') === 0).length;
-    conferir('gravar manda UM pedido a /api/bastidores/dono', pedidos.length === 1, pedidos.length);
-    conferir('…com o nome inteiro, juntando os dois campos',
-      !!corpo && /"nome":"Ana Maria Silva Souza"/.test(corpo), corpo);
+    conferir('gravar manda UM pedido a /api/bastidores/professor', pedidos.length === 1, pedidos.length);
+    conferir('…com o nome inteiro, juntando os dois campos, e SEM o `s` comido',
+      !!corpo && /"nome":"Ana Maria"/.test(corpo) && /"sobrenome":"Silva Souza"/.test(corpo), corpo);
+    conferir('…e com o SLUG de quem se está a editar (é ele que identifica a pessoa)',
+      !!corpo && /"editar":"ana-silva"/.test(corpo), corpo);
     conferir('…e a página recarrega no sucesso', gets >= 2, gets);
 
     nav.fechar();
@@ -338,7 +377,7 @@ async function principais() {
           scroll: Math.round(window.scrollY), botao: Math.round(b.getBoundingClientRect().top) });
       })()
     `);
-    conferir('no erro, o botão volta ao rótulo do modo (gravar)', erro.rotulo === 'Gravar o novo nome', erro.rotulo);
+    conferir('no erro, o botão volta ao rótulo do modo (gravar)', erro.rotulo === 'Gravar as mudanças', erro.rotulo);
     conferir('…e volta a ficar habilitado', erro.habilitado === true, erro.habilitado);
     conferir('…e o recado aparece na secção, na tela', erro.naTela === true && /Erro:/.test(erro.recado), erro);
 
@@ -346,11 +385,12 @@ async function principais() {
     bancada.servidor.close();
   }
 
-  // ── 5. CURADO: o botão não se clica, e diz por quê (22/10/2026) ─────────
+  // ── 5. CURADO: o botão abre a ficha e DIZ que o nome não muda (16/11/2026) ─────
   //
-  // A regra que a dona do produto pediu para confirmar: o nome do principal só se muda enquanto
-  // ele é LIVRE. Curado — ou com plano de ensino — não se muda. A tela não esconde o botão (um
-  // controle que desaparece sem explicação é o pior dos mundos): desabilita-o e escreve o motivo.
+  // A regra da proveniência é a mesma: o nome do principal só se muda enquanto ele é LIVRE. O que
+  // mudou é o que a tela faz com ela. Antes, o botão ficava desabilitado — e escondia com ele os
+  // outros seis campos, que podem ser corrigidos. Agora o «Editar» abre a ficha, e o motivo do
+  // nome preso vive no `title` do botão; quem recusa é o SERVIDOR, se o nome for mudado.
   {
     const bancada = await subirBancada({
       respostaDoDono: { status: 200, corpo: { ok: true } },
@@ -361,20 +401,21 @@ async function principais() {
     const estado = await nav.avaliar(`
       (function(){
         var b = document.querySelector('#sec-professores button.editar');
-        var desabilitado = document.querySelector('#sec-professores .acoes button[disabled]');
         var papel = document.querySelector('#sec-professores .nome .dono');
         return JSON.stringify({
-          temEditarClicavel: !!b,
-          temBotaoTravado: !!desabilitado,
-          motivo: desabilitado ? desabilitado.getAttribute('title') : null,
+          temEditarClicavel: !!b && !b.disabled,
+          motivo: b ? b.getAttribute('title') : null,
+          aviso: b ? b.getAttribute('title') : null,
           papel: papel ? papel.textContent : null
         });
       })()
     `);
-    conferir('principal CURADO: o «Editar» não está clicável', estado.temEditarClicavel === false, estado);
-    conferir('…fica desabilitado, com o motivo escrito', estado.temBotaoTravado === true
-      && /não se muda/.test(String(estado.motivo)), estado.motivo);
-    conferir('…e o motivo nomeia a curadoria', /curadoria/.test(String(estado.motivo)), estado.motivo);
+    conferir('principal CURADO: o «Editar» CONTINUA clicável (a ficha tem sete campos)',
+      estado.temEditarClicavel === true, estado);
+    conferir('…e o motivo de o NOME não mudar vai escrito no botão',
+      /não muda/.test(String(estado.motivo)) || /documentos/.test(String(estado.aviso)), estado);
+    conferir('…e o motivo nomeia a curadoria',
+      /curadoria/.test(String(estado.motivo) + ' ' + String(estado.aviso)), estado);
     conferir('…sem perder o papel da linha (continua «principal»)', estado.papel === 'principal', estado.papel);
     nav.fechar();
     bancada.servidor.close();

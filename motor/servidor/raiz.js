@@ -44,11 +44,16 @@ const DONO = 'tmenegaz';
 const REPO = 'danca';
 const REF = 'main';
 
-// O prazo de expurgo: quanto tempo uma escola desabilitada tem antes de ser apagada.
-// TESTE = 3 minutos (o §17.5); a produção vai a 3 meses — esta constante é o único
-// ponto a trocar. Enquanto for andaime, a data de desabilitação (`desde`) é escrita à
-// mão pela pesquisadora no fixture; na Produção, o próprio servidor a grava ao desligar.
-const PRAZO_EXPURGO_MS = 3 * 60 * 1000;
+/* O PRAZO DE EXPURGO MUDOU DE CASA E DE FONTE (16/11/2026).
+ *
+ * Ele era uma constante de três minutos (`PRAZO_EXPURGO_MS`), e lia-se a par de um `desde` escrito À MÃO num ficheiro
+ * versionado (`raiz/escolas-habilitadas.json`). Duas coisas erradas de uma vez: a data que decide
+ * o apagamento de uma escola era digitada por alguém, e o ficheiro já não tinha nenhuma escola
+ * dentro — a varredura passava de cinco em cinco minutos a não fazer nada, em silêncio.
+ *
+ * Agora o prazo vem de `carenciaAte` (três meses, contados do `desabilitadaEm` que o PRÓPRIO
+ * sistema grava ao desabilitar), e o regime de teste é um só interruptor — ver
+ * `CARENCIA_DE_TESTE_MINUTOS`, junto de `MESES_DE_CARENCIA`. */
 
 /**
  * OS SCRIPTS DE CONFRANÇA — de quem pode ser uma rota que a casa criou (15/11/2026).
@@ -94,23 +99,20 @@ function autorizado(request, env) {
   return request.headers.get('Authorization') === esperado;
 }
 
-/**
- * Lê o ANDAIME `escolas-habilitadas.json` do ASSETS da raiz (`raiz/`). É o que o §17.5
- * chama de fixture: `{ escola: { habilitada, desde?, pagante?, kv? } }`. A pesquisadora o
- * edita à mão e reimplanta a raiz para testar. Sem ASSETS (ou arquivo ilegível), devolve
- * `{}` — o hook não inventa escola a expurgar.
+/* O ANDAIME `escolas-habilitadas.json` SAIU (16/11/2026), e não foi substituído por outro
+ * ficheiro: foi substituído por uma pergunta ao SISTEMA.
+ *
+ * O QUE ELE ERA: um `{ escola: { habilitada, desde, pagante, worker, kv } }` versionado, que a
+ * pesquisadora editava à mão e reimplantava para testar o expurgo. A decisão declarada no
+ * `IDEIA-PAINEL-ESCOLA.md` §17.5 era clara — «quando a Produção nascer, este arquivo SAI e a flag
+ * passa a viver no ESCOLA.conf» —, e a Produção nasceu. A `habilitada` virou o estado comercial
+ * (`ativa`/`suspensa`, com `habilitadaEm`/`desabilitadaEm`), que se muda por um botão e não por
+ * um commit; e o `desde` escrito à mão virou o instante em que o sistema suspendeu a escola.
+ *
+ * O que ele dava de bom, e não se perde: a lista de escolas e a morada de cada uma no Cloudflare.
+ * A lista agora vem do `escolasConhecidas` (o mapa do KV mais o índice do acervo), e a morada do
+ * `moradaDaEscola`, que já era ela que a resolvia quando o andaime dizia outra coisa.
  */
-async function lerEscolasHabilitadas(env) {
-  if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return {};
-  try {
-    const req = new Request(new URL('/escolas-habilitadas.json', 'https://danca.internal'));
-    const res = await env.ASSETS.fetch(req);
-    if (!res.ok) return {};
-    return await res.json();
-  } catch {
-    return {};
-  }
-}
 
 /** Resposta JSON curta — a raiz responde em JSON a tudo que é rota. */
 function responderJson(objeto, status) {
@@ -527,45 +529,207 @@ async function moradaDaEscola({ token, slug, fetchImpl }) {
 }
 
 /**
- * O EXPURGO (§17.5): percorre o andaime e apaga cada escola que esteja desabilitada com o
- * prazo vencido. A ordem de verificação é a norma: (1) desabilitada? (2) não está a pagar?
- * (3) o `desde` existe? (4) o prazo venceu? — só então apaga. Devolve o relatório completo
- * (`expurgadas`/`puladas`/`semToken`), para o Cron logar e a rota manual responder.
+ * QUAIS ESCOLAS EXISTEM — a lista que o expurgo percorre (16/11/2026).
+ *
+ * DUAS FONTES, e a razão de serem duas: cada uma sabe uma metade.
+ *
+ *   · o MAPA do KV (`escolas/por-host`) é a lista das escolas criadas desde o shard — uma leitura
+ *     só, e é ela que inclui a escola que nasceu há cinco minutos e ainda não está no índice;
+ *   · o ÍNDICE do acervo (`indices/acervo.json`) é a lista das escolas que têm pasta no
+ *     repositório — as de antes do shard, que o mapa não conhece.
+ *
+ * SEM O `GITHUB_TOKEN` a lista fica só com o mapa, e o relatório diz isso: uma lista mais curta é
+ * uma escola que espera mais um ciclo, não uma escola apagada por engano. É a mesma assimetria
+ * que governa o resto deste ficheiro — o que falta adia, o que se inventa destrói.
+ *
+ * NÃO SE ENUMERA O KV. `list()` com o prefixo `bastidores/` traria todas as chaves de todas as
+ * escolas (alunas, actos, curadorias) para responder «quais são as escolas?» — e a enumeração é a
+ * operação que estouro a cota diária em 18/10/2026, como está escrito no `AGENTS.md`.
  */
-async function expurgar(env) {
+async function escolasConhecidas(env) {
+  const slugs = new Set();
+  let mapa = false;
+  const kv = env && env.PADD_KV;
+  if (kv && typeof kv.get === 'function') {
+    try {
+      const texto = await kv.get('escolas/por-host');
+      const lido = texto ? JSON.parse(texto) : null;
+      if (lido && typeof lido === 'object') {
+        mapa = true;
+        for (const slug of Object.values(lido)) {
+          const limpo = String(slug || '').trim();
+          if (limpo) slugs.add(limpo);
+        }
+      }
+    } catch (erro) { mapa = false; }
+  }
+  let indice = false;
+  if (env && env.GITHUB_TOKEN) {
+    try {
+      const acervo = await acervoDoIndice({ token: env.GITHUB_TOKEN });
+      for (const e of acervo.escolas || []) {
+        const slug = String((e && e.slug) || '').trim();
+        if (slug) slugs.add(slug);
+      }
+      indice = true;
+    } catch (erro) { indice = false; }
+  }
+  return { slugs: [...slugs].sort(), mapa, indice };
+}
+
+/**
+ * O EXPURGO — a varredura que o Cron Trigger corre (reescrito a 16/11/2026).
+ *
+ * A PERGUNTA MUDOU DE SÍTIO. Antes: «este ficheiro versionado diz que a escola está desabilitada
+ * desde <data escrita à mão>?». Agora: «o SISTEMA diz que ela está suspensa desde <o instante em
+ * que a suspensão aconteceu>, e já passou a carência?». A primeira dependia de alguém se lembrar
+ * de editar um ficheiro; a segunda é a mesma conta que a lista das vivas mostra na coluna da
+ * carência — e é por isso que agora não há duas opiniões sobre a data.
+ *
+ * A ORDEM DAS VERIFICAÇÕES, e cada uma só DESCARTA:
+ *   1. existe na lista? (o resto do sistema diz que sim)
+ *   2. está `suspensa`? — só quem foi desligado conta; `ativa` e `aguardando` nunca se apagam;
+ *   3. há `desabilitadaEm`? sem ele não há prazo a contar, e não se apaga por omissão;
+ *   4. a carência venceu?
+ *   5. a proveniência da escola ainda confere?
+ * Só depois destas cinco se apaga. Todas as paradas vão no relatório com o motivo — a varredura
+ * que não diz por que não apagou é indistinguível de uma varredura que não correu.
+ *
+ * A PROVENIÊNCIA ENTRA AQUI (16/11/2026), e é a mesma guarda do botão «Apagar escola». O expurgo
+ * automático não pode ser mais permissivo do que o manual: ele leva as âncoras (`.fipp`), e uma
+ * âncora que já não conferia com as fontes não se recupera depois de apagada. O manual pára e
+ * pede correção; o automático pára e diz o mesmo no relatório — e tenta outra vez daqui a cinco
+ * minutos, que é o que uma varredura sabe fazer. `forcar` não existe aqui, e de propósito: uma
+ * varredura agendada não tem quem declare um motivo.
+ *
+ * O `pagante` do andaime também sai: quem paga é `ativa`, e quem não paga é `suspensa`. O estado
+ * comercial JÁ É a resposta, e uma segunda bandeira para a mesma pergunta divergiria dela.
+ */
+async function expurgar(env, deps) {
   const token = env && env.CLOUDFLARE_API_TOKEN;
-  const escolas = await lerEscolasHabilitadas(env);
+  const ghToken = env && env.GITHUB_TOKEN;
+  /* AS DUAS METADES QUE FALAM COM O MUNDO ENTRAM POR PARÂMETRO (16/11/2026).
+   *
+   * `excluirEscola` fala com a API do Cloudflare e `auditarProvenienciaDaEscola` com a do GitHub.
+   * A bancada não fala com nenhuma das duas — e uma prova que só corre com rede é uma prova que
+   * corre em produção. Com elas injectáveis, o que se mede aqui é a REGRA: qual escola é
+   * apagada, qual é poupada, e porquê. O que cada metade faz depois é medido nas provas dela
+   * (`provar-expurgo-raiz`, `provar-proveniencia-do-expurgo`), com os falsos que já existem.
+   *
+   * O valor por omissão é o verdadeiro: um chamador que não passe nada — o Cron — não muda. */
+  const auditar = (deps && deps.auditar) || auditarProvenienciaDaEscola;
+  const excluir = (deps && deps.excluir) || excluirEscola;
   const agora = Date.now();
+  const conhecidas = await escolasConhecidas(env);
   const relatorio = {
     agora: new Date(agora).toISOString(),
+    fontes: { mapa: conhecidas.mapa, indice: conhecidas.indice },
+    carencia: descricaoDaCarencia(),
     expurgadas: [],
     puladas: [],
     semToken: !token,
   };
   if (!token) return relatorio;
+  if (!conhecidas.slugs.length) {
+    relatorio.puladas.push({ slug: null, motivo: 'nenhuma escola conhecida — sem mapa e sem índice' });
+    return relatorio;
+  }
 
-  for (const [slug, reg] of Object.entries(escolas || {})) {
-    if (!reg || reg.habilitada !== false) continue;
-    if (reg.pagante === true) {
-      relatorio.puladas.push({ slug, motivo: 'escola pagante — não se apaga' });
+  const kv = env && env.PADD_KV;
+  /* O REGIME COMEÇA AGORA (ver `CHAVE_DO_REGIME`). A primeira passagem grava o instante; as
+   * seguintes leem-no. Sem KV não há como saber desde quando, e nesse caso não há guarda —
+   * mas também não há como gravar o estado comercial, e não há escolas a percorrer. */
+  let regimeDesde = null;
+  if (carenciaEmMs() !== null) {
+    try {
+      const guardado = await kv.get(CHAVE_DO_REGIME);
+      if (guardado) {
+        regimeDesde = guardado;
+      } else {
+        regimeDesde = new Date(agora).toISOString();
+        await kv.put(CHAVE_DO_REGIME, regimeDesde);
+      }
+    } catch (erro) { regimeDesde = null; }
+    relatorio.regimeDeTesteDesde = regimeDesde;
+  }
+
+  for (const slug of conhecidas.slugs) {
+    const comercial = await lerComercial(kv, slug);
+    if (comercial.estado !== 'suspensa') continue;
+    const desabilitadaEm = comercial.desabilitadaEm || null;
+    if (!desabilitadaEm) {
+      relatorio.puladas.push({
+        slug, motivo: 'suspensa sem `desabilitadaEm` — não há prazo a contar',
+        estado: comercial.estado,
+      });
       continue;
     }
-    const desde = reg.desde ? new Date(reg.desde).getTime() : NaN;
-    if (!Number.isFinite(desde)) {
-      relatorio.puladas.push({ slug, motivo: 'desde ausente ou inválido' });
+    /* A GUARDA DO REGIME NOVO: suspensa antes de a régua existir não é apagada por ela. */
+    if (regimeDesde && Date.parse(desabilitadaEm) < Date.parse(regimeDesde)) {
+      relatorio.puladas.push({
+        slug, motivo: 'suspensa antes do regime de teste — desabilite outra vez para a carência contar',
+        desabilitadaEm, regimeDeTesteDesde: regimeDesde,
+      });
       continue;
     }
-    if (agora - desde < PRAZO_EXPURGO_MS) {
-      relatorio.puladas.push({ slug, motivo: 'prazo ainda não vencido', restanteMs: PRAZO_EXPURGO_MS - (agora - desde) });
+    const limite = carenciaAte(desabilitadaEm);
+    const venceEm = limite ? new Date(limite).getTime() : NaN;
+    if (!Number.isFinite(venceEm)) {
+      relatorio.puladas.push({ slug, motivo: '`desabilitadaEm` ilegível', desabilitadaEm });
       continue;
     }
-    /* O SHARD E O MAPA VÃO JUNTO (15/11/2026). O `scripts` diz de quem é uma rota que não tem o
-     * nome da escola — num shard a rota aponta ao `lastro-teste`, e sem isto a limpeza não a
-     * apagava; o `mapaKv` tira a escola do mapa, que é a lista que diz quais existem. */
-    relatorio.expurgadas.push(await excluirEscola({
-      token, accountId: ACCOUNT_ID, slug, worker: reg.worker, kv: reg.kv,
-      scripts: scriptsDeConfianca(env), mapaKv: env && env.PADD_KV,
-    }));
+    if (agora < venceEm) {
+      relatorio.puladas.push({
+        slug, motivo: 'carência ainda a correr',
+        desabilitadaEm, carenciaAte: limite, restanteMs: venceEm - agora,
+      });
+      continue;
+    }
+    /* A PROVENIÊNCIA ANTES DE APAGAR — e sem `forcar`. Falha de rede também pára: o custo de
+     * parar é mais cinco minutos; o de avançar é irreversível. */
+    if (!ghToken) {
+      relatorio.puladas.push({ slug, motivo: 'sem GITHUB_TOKEN — não se apaga o que não se auditou' });
+      continue;
+    }
+    try {
+      const auditoria = await auditar({
+        token: ghToken, dono: DONO, repo: REPO, ref: REF, slug,
+        shards: scriptsDeConfianca(env),
+      });
+      if (!auditoria.ok) {
+        relatorio.puladas.push({
+          slug, motivo: 'a proveniência não confere — corrigir primeiro',
+          problemas: auditoria.problemas,
+        });
+        continue;
+      }
+    } catch (erro) {
+      relatorio.puladas.push({
+        slug, motivo: 'não foi possível auditar a proveniência',
+        erro: (erro && erro.message) || String(erro),
+      });
+      continue;
+    }
+    /* A MORADA VEM DO REPOSITÓRIO, e não do andaime: num shard, `wrangler.<escola>.jsonc` não
+     * existe e a morada está em `escola/<slug>/indice.json` (campo `shard`). Sem ela, a rota
+     * ficaria no ar a apontar ao shard, e a escola continuaria a responder num endereço que devia
+     * estar morto. */
+    let morada = null;
+    try { morada = await moradaDaEscola({ token: ghToken, slug }); } catch (erro) { morada = null; }
+    const worker = (morada && morada.worker) || undefined;
+    const kvDaEscola = morada && morada.kvNamespaceId
+      ? { namespaceId: morada.kvNamespaceId, prefixos: prefixosDaEscola(slug) }
+      : undefined;
+    try {
+      relatorio.expurgadas.push(await excluir({
+        token, accountId: ACCOUNT_ID, slug, worker, kv: kvDaEscola,
+        scripts: scriptsDeConfianca(env), mapaKv: env && env.PADD_KV,
+      }));
+    } catch (erro) {
+      relatorio.puladas.push({
+        slug, motivo: 'o expurgo falhou a meio', erro: (erro && erro.message) || String(erro),
+      });
+    }
   }
   return relatorio;
 }
@@ -1054,7 +1218,18 @@ async function gravarCadastro({ env, escola, professor, cadastro, origem }) {
     resultado.erros.push('cadastro da escola: ' + ((erro && erro.message) || String(erro)));
   }
 
-  if (professor && cadastro.professorEmail) {
+  /* O CONTATO DO PROFESSOR GRAVA-SE QUANDO HÁ QUALQUER COISA A GRAVAR (16/11/2026).
+   *
+   * A condição era `cadastro.professorEmail` — só o e-mail abria a porta. Nasceu quando o e-mail
+   * era o que a mensagem de boas-vindas precisava; mas o `contato` passou a ser a ficha da PESSOA
+   * (nome completo, CPF, telefone) e a ser lido pela Produção, para o cadastro do professor
+   * mostrar o que a criação recolheu. Com um CPF e um telefone e sem e-mail, a ficha não existia
+   * — e a tela não tinha o que mostrar, o que se lê como «o dado não foi guardado».
+   *
+   * O que continua a decidir o ENVIO da mensagem é o `destinatarios`, no núcleo, e não esta
+   * linha: gravar a ficha e mandar correio são coisas diferentes. */
+  if (professor && (cadastro.professorEmail || cadastro.cpf || cadastro.professorTelefone
+    || cadastro.professorNomeCompleto)) {
     try {
       const chave = 'professores/' + professor + '/contato';
       const anterior = await kv.get(chave);
@@ -1110,6 +1285,66 @@ const ESTADOS_COMERCIAL = ['aguardando', 'ativa', 'suspensa'];
 const MESES_DE_CARENCIA = 3;
 
 /**
+ * O REGIME DE TESTE — 5 MINUTOS, POR DECISÃO DELA (16/11/2026).
+ *
+ * «para fim de teste coloca `desabilitadaEm` + 5 minutos. depois a gente muda para 3 meses quando
+ * for produção de verdade, com escolas de verdade.»
+ *
+ * UM INTERRUPTOR, e não uma data condicional espalhada: enquanto ele tiver minutos, a carência é
+ * essa (`carenciaAte`); quando for `null`, voltam os três meses. É o MESMO número que a lista das
+ * vivas mostra na coluna da carência e que a varredura do expurgo usa — de propósito, porque dois
+ * prazos para a mesma pergunta é a escola a ser apagada numa data que a tela não anunciou.
+ *
+ * O QUE ESTE REGIME CUSTA, e é bom que esteja escrito: uma escola suspensa por engano é apagada
+ * cinco minutos depois. Com uma escola de verdade no sistema, `null` primeiro — a suspensão deixa
+ * de ser reversível no instante em que o prazo é curto.
+ */
+const CARENCIA_DE_TESTE_MINUTOS = 5;
+
+/**
+ * O RELÓGIO DA RÉGUA DE TESTE — e a razão de ele existir (16/11/2026).
+ *
+ * UMA RÉGUA NOVA NÃO SE APLICA AO PASSADO. Quando esta versão for implantada, há escolas que já
+ * estão `suspensa` — a `breu`, que ela desabilitou hoje a testar o acesso. Com cinco minutos de
+ * carência, a primeira passagem do Cron apagava-as **cinco minutos depois de o código subir**, e
+ * sem ela ter pedido isso a nenhuma delas: o pedido foi «para fim de teste coloca 5 minutos», e
+ * não «apaga o que já estava desligado».
+ *
+ * A REGRA, e é a mesma que o ficheiro já usa para o estado comercial («um estado novo não se
+ * impõe ao passado; acrescenta-se»): a carência de teste conta de `desabilitadaEm` **e** de o
+ * regime existir. Quem foi suspenso antes do regime é poupado, com o motivo escrito, e passa a
+ * contar quando for desabilitado outra vez — que é um gesto dela, e não um efeito de um deploy.
+ *
+ * SÓ VALE NO REGIME DE TESTE. Em produção a carência é de três meses, e uma escola desligada há
+ * dois anos tem de poder ser apagada no primeiro dia do regime novo — aí o passado não é uma
+ * armadilha, é história.
+ */
+const CHAVE_DO_REGIME = 'expurgo/regime-de-teste-desde';
+
+/**
+ * O que a carência vale AGORA, em milissegundos — ou `null` quando são meses.
+ *
+ * A RÉGUA É UM PARÂMETRO, e o valor por omissão é o do `env` desta casa. Foi assim que a regra de
+ * produção continuou a poder ser AFIRMADA enquanto o regime é o de teste: uma prova que só sabe
+ * medir o regime ligado não sabe dizer se o desligado está certo — e o desligado é o que vai
+ * apagar escolas a sério.
+ */
+function carenciaEmMs(minutos) {
+  const escolhido = minutos === undefined ? CARENCIA_DE_TESTE_MINUTOS : minutos;
+  if (escolhido === null || escolhido === false) return null;
+  const n = Number(escolhido);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 60 * 1000);
+}
+
+/** A carência em texto, para o relatório do expurgo dizer com que régua mediu. */
+function descricaoDaCarencia(minutos) {
+  const ms = carenciaEmMs(minutos);
+  if (ms === null) return MESES_DE_CARENCIA + ' meses';
+  return Math.round(ms / 60000) + ' minutos (regime de teste)';
+}
+
+/**
  * A CARÊNCIA CONTA DA DESABILITAÇÃO, e não da criação (25/11/2026).
  *
  * «O apagar aquela escola só vai poder contar se do tempo em que ela foi desabilitada […] a partir
@@ -1132,9 +1367,14 @@ const MESES_DE_CARENCIA = 3;
  * existe transborda para o mês seguinte). É o comportamento certo para um prazo — nunca encurta a
  * carência, que seria negar o prazo que se prometeu.
  */
-function carenciaAte(desabilitadaEm) {
+function carenciaAte(desabilitadaEm, opcoes) {
   const inicio = new Date(String(desabilitadaEm || ''));
   if (!Number.isFinite(inicio.getTime())) return null;
+  const emMinutos = carenciaEmMs(opcoes && opcoes.minutos !== undefined ? opcoes.minutos : undefined);
+  /* O REGIME DE TESTE ATALHA AQUI, e não numa segunda função: a conta dos meses e a conta dos
+   * minutos respondem à MESMA pergunta, e duas funções deixariam a tela a usar uma e o expurgo a
+   * outra — que é o defeito que se está a corrigir, mudado de sítio. */
+  if (emMinutos !== null) return new Date(inicio.getTime() + emMinutos).toISOString();
   const fim = new Date(inicio.getTime());
   fim.setUTCMonth(fim.getUTCMonth() + MESES_DE_CARENCIA);
   return fim.toISOString();
@@ -1388,41 +1628,11 @@ async function gravarComercial(kv, escola, mudanca, quem) {
  * CPF não está no índice (é dado pessoal, e a verificação 7 proíbe-o lá) — a conferência do CPF é
  * feita sobre o CONTATO no KV, e por isso ela só vê os professores desta casa.
  */
-/**
- * QUEM JÁ TEM ESTE NÚMERO — a varredura, uma só, para os dois documentos.
- *
- * `prefixo` + `sufixo` dizem ONDE procurar (`bastidores/<escola>/cadastro` para o CNPJ,
- * `professores/<slug>/contato` para o CPF), e `campo` diz o que comparar. Uma função para os dois
- * porque a pergunta é a mesma — «este número já é de alguém?» —, e duas cópias divergiriam na
- * primeira vez que uma delas esquecesse o `soDigitos`.
- *
- * O `kv.list` é a enumeração do namespace: custa uma chamada por página de 1000 chaves, e é o
- * preço de uma criação de escola — não de uma abertura de página. Não há índice de números, e
- * criá-lo seria uma terceira cópia do dado (o cadastro já lá está) que se esqueceria de atualizar
- * no dia em que um cadastro fosse corrigido.
- */
-async function quemTemEsteNumero(env, { prefixo, sufixo, campo, valor, ignorar }) {
-  const alvo = cadastroDaEscola.soDigitos(valor);
-  const kv = env && env.PADD_KV;
-  if (!alvo || !kv || typeof kv.list !== 'function') return null;
-  const re = new RegExp('^' + prefixo + '\\/([a-z0-9-]+)\\/' + sufixo + '$');
-  try {
-    const lista = await kv.list({ prefix: prefixo + '/' });
-    for (const chave of ((lista && lista.keys) || [])) {
-      const nome = String((chave && chave.name) || '');
-      const m = re.exec(nome);
-      if (!m) continue;
-      const slug = m[1];
-      if (ignorar && slug === ignorar) continue;
-      const texto = await kv.get(nome);
-      if (!texto) continue;
-      let registo = null;
-      try { registo = JSON.parse(texto); } catch (erro) { continue; }
-      if (registo && cadastroDaEscola.soDigitos(registo[campo]) === alvo) return slug;
-    }
-  } catch (erro) { return null; }
-  return null;
-}
+/* A VARREDURA DE NÚMEROS MUDOU DE CASA (16/11/2026). Ela vivia aqui, ao lado de quem a chamava,
+ * e isso bastou enquanto só a criação de escola perguntava «este CNPJ já é de alguém?». Com o
+ * cadastro do professor a poder corrigir um CPF na Produção, os dois sítios fazem a MESMA pergunta
+ * — e passou a morar em `./unicidade.js`, que os dois alcançam. Ver o cabeçalho de lá. */
+const { quemTemEsteNumero, cnpjJaUsado, cpfJaUsado } = require('./unicidade.js');
 
 /**
  * O ENDEREÇO DE QUEM ADMINISTRA — para uma recusa ter para onde apontar (16/11/2026).
@@ -1438,20 +1648,6 @@ function enderecoDaAdministracao(env) {
   if (dentro) return dentro[1];
   const solto = /[^\s<>,;]+@[^\s<>,;]+/.exec(bruto);
   return solto ? solto[0] : null;
-}
-
-/** A escola que já tem este CNPJ — ou `null`. */
-function cnpjJaUsado(env, cnpj, ignorar) {
-  return quemTemEsteNumero(env, {
-    prefixo: 'bastidores', sufixo: 'cadastro', campo: 'cnpj', valor: cnpj, ignorar,
-  });
-}
-
-/** O professor que já tem este CPF — ou `null`. */
-function cpfJaUsado(env, cpf, ignorar) {
-  return quemTemEsteNumero(env, {
-    prefixo: 'professores', sufixo: 'contato', campo: 'cpf', valor: cpf, ignorar,
-  });
 }
 
 /** O cadastro da escola, do KV. Devolve `null` quando não há (escola de antes desta versão). */
@@ -2508,6 +2704,9 @@ module.exports = {
    * em produção descobre-se em produção — com o dinheiro de alguém no meio. */
   lerPix, gravarPix, lerDescontos, concederDesconto, retirarDesconto,
   carenciaAte, MESES_DE_CARENCIA,
+  /* O REGIME DE TESTE É DECLARADO, E NÃO ADIVINHADO (16/11/2026). A prova tem de poder dizer com
+   * que régua o expurgo mediu — e um número lido de uma variável local não se afirma de fora. */
+  CARENCIA_DE_TESTE_MINUTOS, descricaoDaCarencia, escolasConhecidas,
   /* A JANELA ENTRE A ESCOLA E O ÍNDICE (16/11/2026). Exportada porque a regra «isto é uma escola a
    * nascer, e não o resto de uma criação que falhou» é exactamente o tipo de regra que se mede na
    * bancada e não em produção — onde o sintoma é a lista vazia de quem acabou de criar a escola. */

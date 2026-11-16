@@ -1432,3 +1432,18 @@ experimentos/modelo-formulario/*
 # senha traduziam qualquer falha na mesma frase, mandando a pessoa conferir o que estava certo.
 # Mede também o que NÃO pode mudar: com a senha realmente errada, a tela continua a dizê-lo.
 !experimentos/provar-o-suspenso-diz-a-verdade.js
+
+# O EXPURGO PERGUNTA AO SISTEMA, E NÃO A UM FICHEIRO ESCRITO À MÃO (16/11/2026). «Ajusta o expurgo
+# automático para ler `desabilitadaEm` + 3 meses em vez de ler o índice antigo […] para fim de teste
+# coloca `desabilitadaEm` + 5 minutos.» A prova mede a lista de escolas que vem do mapa e do índice,
+# a carência contada do instante em que o sistema suspendeu, a proveniência que POUPA a escola, e as
+# duas réguas — a de teste e a de produção —, porque medir só a que está ligada deixaria a outra a
+# estrear-se no dia em que apaga escolas a sério.
+!experimentos/provar-expurgo-por-carencia.js
+
+# AS TRÊS ABAS DO PROFESSOR E A FICHA INTEIRA EDITÁVEL (16/11/2026). «Então a gente vai organizar em
+# abas» e «Pode editar tudo, não tem campo desabilitado». A prova mede as abas a correr, a listagem
+# a ficar fora delas, e o defeito que ela viu — «aparece no nome do professor "Bri" sobrenome "e
+# Volet"» —, que era um `\s` escrito dentro de uma string de JavaScript (chegava ao navegador como
+# `s`) e comia a letra do nome ao ser corrigido.
+!experimentos/provar-cadastro-do-professor.js

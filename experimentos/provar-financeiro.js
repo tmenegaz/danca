@@ -52,23 +52,41 @@ function kvDeBolso(inicial) {
 }
 
 (async () => {
-  console.log('A. A carência conta da desabilitação, em meses do calendário');
+  console.log('A. A carência conta da desabilitação — nas duas réguas');
   {
     /* O EXEMPLO DELA, textual: «se hoje é dia 15 de novembro de 2026, aí no dia 12 de janeiro de
-     * 2027 a escola deixou de pagar e eu desabilitei. Aí a partir dessa data conta três meses.» */
-    const exemplo = raiz.carenciaAte('2027-01-12T00:00:00.000Z');
+     * 2027 a escola deixou de pagar e eu desabilitei. Aí a partir dessa data conta três meses.»
+     *
+     * AS DUAS RÉGUAS SÃO MEDIDAS (16/11/2026), porque o regime de teste é um interruptor: a régua
+     * de produção é passada à mão (`{minutos: null}`) e continua a ser afirmada, e a de teste é a
+     * que corre hoje, por omissão. Medir só a que está ligada deixaria a de produção a estrear-se
+     * no dia em que apaga escolas a sério. */
+    const exemplo = raiz.carenciaAte('2027-01-12T00:00:00.000Z', { minutos: null });
     conferir('12/01/2027 + 3 meses = 12/04/2027 — o exemplo dela, ao dia',
       exemplo === '2027-04-12T00:00:00.000Z', exemplo);
     conferir('a hora da desabilitação é preservada (o prazo é um instante, não um dia)',
-      raiz.carenciaAte('2026-11-15T22:51:00.000Z') === '2027-02-15T22:51:00.000Z',
-      raiz.carenciaAte('2026-11-15T22:51:00.000Z'));
+      raiz.carenciaAte('2026-11-15T22:51:00.000Z', { minutos: null }) === '2027-02-15T22:51:00.000Z',
+      raiz.carenciaAte('2026-11-15T22:51:00.000Z', { minutos: null }));
     conferir('91 dias NÃO é três meses: a conta antiga daria 13/04, não 12/04',
       !!exemplo && !exemplo.startsWith('2027-04-13'), exemplo);
     conferir('31/01 transborda para o mês seguinte em vez de ENCURTAR a carência',
-      raiz.carenciaAte('2027-01-31T00:00:00.000Z') === '2027-05-01T00:00:00.000Z',
-      raiz.carenciaAte('2027-01-31T00:00:00.000Z'));
-    conferir('sem data de desabilitação não há prazo (e não se inventa um)', raiz.carenciaAte(null) === null, null);
-    conferir('…e uma data inválida também não produz prazo', raiz.carenciaAte('ontem') === null, null);
+      raiz.carenciaAte('2027-01-31T00:00:00.000Z', { minutos: null }) === '2027-05-01T00:00:00.000Z',
+      raiz.carenciaAte('2027-01-31T00:00:00.000Z', { minutos: null }));
+    conferir('sem data de desabilitação não há prazo (e não se inventa um)',
+      raiz.carenciaAte(null, { minutos: null }) === null, null);
+    conferir('…e uma data inválida também não produz prazo',
+      raiz.carenciaAte('ontem', { minutos: null }) === null, null);
+
+    /* A RÉGUA DE TESTE — 5 minutos, por decisão dela: «para fim de teste coloca `desabilitadaEm` +
+     * 5 minutos». É a que está ligada, e é a que a varredura do expurgo usa por omissão. */
+    conferir('a régua LIGADA é a de teste, de 5 minutos',
+      raiz.CARENCIA_DE_TESTE_MINUTOS === 5, raiz.CARENCIA_DE_TESTE_MINUTOS);
+    conferir('…e ela dá 12/01/2027 00:05 a partir de 12/01/2027 00:00',
+      raiz.carenciaAte('2027-01-12T00:00:00.000Z') === '2027-01-12T00:05:00.000Z',
+      raiz.carenciaAte('2027-01-12T00:00:00.000Z'));
+    conferir('…e o texto diz com que régua se mediu, para o relatório não mentir',
+      /5 minutos/.test(raiz.descricaoDaCarencia()) && /3 meses/.test(raiz.descricaoDaCarencia(null)),
+      [raiz.descricaoDaCarencia(), raiz.descricaoDaCarencia(null)]);
   }
 
   console.log('\nB. As duas datas ficam gravadas quando o estado muda');

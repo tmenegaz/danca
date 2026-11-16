@@ -281,13 +281,18 @@ async function principal() {
   const itensDaFolha = [...PAGINA.matchAll(/class="menu-de-acoes-item" data-aba="(\d)"/g)];
   provar('a folha traz as mesmas três abas', itensDaFolha.length === 3,
     'itens: ' + itensDaFolha.length);
+  /* A REGRA, E NÃO A LISTA DE SELETORES (16/11/2026). Com a segunda pílula (a dos Professores), a
+   * regra passou a nomear `#pf-abas-folha` também — e a asserção antiga, colada ao texto exato,
+   * reprovava uma correção certa. O que se afirma é o comportamento: no corte de 560px a tira
+   * sai, a folha desta secção entra. */
   provar('o corte dos 560px esconde a tira e mostra a folha',
-    /@media \(max-width:560px\)\{\.abas\{display:none;\}#lb-abas-folha\{display:block/.test(PAGINA));
+    /@media \(max-width:560px\)\{\.abas\{display:none;\}#lb-abas-folha[^{]*\{display:block/.test(PAGINA));
   provar('a faixa tem regra própria para o `hidden` (o `display:flex` vencia o atributo)',
     /\.turmas-faixa\[hidden\]\{display:none;\}/.test(PAGINA));
   provar('recolhida a secção, as abas saem (não se troca painel que não está à vista)',
     /\.secao\[data-recolhido="sim"\] #lb-abas,/.test(PAGINA) &&
-    /\.secao\[data-recolhido="sim"\] #lb-abas-folha\{display:none;\}/.test(PAGINA));
+    /\.secao\[data-recolhido="sim"\] #lb-abas-folha/.test(PAGINA)
+    && /#lb-abas-folha[^{]*\{display:none;\}/.test(PAGINA));
 
   console.log('\nC. A troca, a correr (jsdom)');
 

@@ -96,8 +96,12 @@
     // `PIX_TITULAR` pode ficar por pôr: sem ele a página escreve «para o Sistema Lastro», que é
     // verdade sem inventar o nome que o banco exige por extenso.
   },
-  // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime
-  // `raiz/escolas-habilitadas.json` e apaga as escolas desabilitadas com o prazo vencido.
+  // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o estado comercial
+  // de cada escola conhecida (`bastidores/<escola>/comercial`, no KV) e apaga as que estão
+  // `suspensa` com a carência vencida — contada do `desabilitadaEm` que o sistema gravou.
+  // O andaime `raiz/escolas-habilitadas.json` e o prazo de 3 minutos saíram a 16/11/2026: a data
+  // deixou de ser escrita à mão. A carência hoje é de TESTE (5 minutos) — ver
+  // `CARENCIA_DE_TESTE_MINUTOS` em `motor/servidor/raiz.js`; em produção volta a 3 meses.
   "triggers": {
     "crons": [
       "*/5 * * * *"

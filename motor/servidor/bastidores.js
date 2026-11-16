@@ -2786,6 +2786,191 @@ async function consumirBilheteDoAto(kv, escola, bilhete) {
   return registo;
 }
 
+/**
+ * A EDIÇÃO DE UM PROFESSOR — tudo, menos a pasta (16/11/2026).
+ *
+ * O QUE ELA PEDIU: «Pode editar tudo, não tem campo desabilitado.» A tela passou a abrir os sete
+ * campos no modo de edição; esta função é o que os grava, e é ela que decide o que a proveniência
+ * não deixa mudar — uma linha, e não uma grelha de campos apagados.
+ *
+ * O QUE NÃO SE MUDA, e é a mesma regra de 22/10/2026: o NOME de quem já assinou documentos. Ele
+ * viaja no plano, no PO e nos pacotes, e trocá-lo faria o mesmo trabalho aparecer com dois
+ * autores. A recusa é do SERVIDOR e diz o motivo; a tela não finge que pode.
+ *
+ * O QUE MUDA, e é tudo o resto:
+ *   · o NOME DE EXIBIÇÃO (quando é permitido) — no registo do professor ou na sobreposição do
+ *     dono (`bastidores/<escola>/dono`), que é o mesmo sítio que o «Editar» já usava;
+ *   · o CPF, o telefone e o e-mail, em `professores/<slug>/contato` — o mesmo documento que a
+ *     criação da escola escreve, para a ficha ser uma só;
+ *   · a HABILIDADE, em `professores/<slug>/perfil.json` — a MESMA que a aba das Habilitações
+ *     escreve, com a mesma marcação das turmas que ficam sem quem as ensine;
+ *   · a SENHA. No dono ela vive em `bastidores/<escola>/dono` (`professor_hash`/`professor_sal`),
+ *     que é o par que `senhaDoProfessorOk` lê primeiro; nos outros, no próprio registo. Em branco
+ *     fica a que está — apagar uma senha não é um efeito de não a escrever.
+ *
+ * O CPF É CONFERIDO CONTRA OS OUTROS PROFESSORES da casa. Sem isso, corrigir uma ficha poderia
+ * gravar um número que já é de outra pessoa, e a unicidade que a criação impõe deixaria de valer
+ * exactamente no sítio onde se corrige.
+ */
+async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
+  const donoSlug = String(slugDoDono(env) || '').trim();
+  const ehDono = Boolean(donoSlug) && alvo === donoSlug;
+  const lista = await professores(kv, escola);
+  const iAlvo = ehDono ? -1 : lista.findIndex((p) => slugDoProfessor(p) === alvo);
+  if (!ehDono && iAlvo === -1) return json(404, { ok: false, erro: 'professor não encontrado nesta escola' });
+  const registo = ehDono ? null : lista[iAlvo];
+
+  const nome = String(corpo.nome || '').trim();
+  const sobrenome = String(corpo.sobrenome || '').trim();
+  const nomeExibido = (nome + (sobrenome ? ' ' + sobrenome : '')).replace(/\s+/g, ' ').trim();
+  if (!nomeExibido) return json(400, { ok: false, erro: 'informe o nome do professor' });
+
+  /* O NOME PRESO — a pergunta é a que a tela do «Editar» já fazia, feita aqui outra vez porque a
+   * tela não é a guarda. `null` (leitura que falhou) conta como preso: na dúvida, não se mexe no
+   * que assina documentos. */
+  const nomeAtual = ehDono ? await nomeDoDono(env, kv, escola) : registo.nome;
+  const mudouONome = String(nomeAtual || '').trim() !== nomeExibido;
+  if (mudouONome) {
+    const curs = await curadorias(kv, escola);
+    const usos = await usosDosPlanos(env, escola);
+    const comoProfessor = { nome: nomeAtual, slug: alvo };
+    if (professorPreso(curs, usos, comoProfessor)) {
+      return json(409, {
+        ok: false,
+        vinculado: true,
+        erro: 'o nome do professor «' + (nomeAtual || alvo) + '» não se muda: ele já '
+          + (professorVinculadoA(usos, comoProfessor) ? 'está num plano de ensino' : 'está numa curadoria')
+          + '. O nome dele já vai nos documentos, e trocá-lo agora faria o mesmo trabalho aparecer '
+          + 'com dois autores. O resto da ficha — CPF, telefone, e-mail, habilidade e senha — pode '
+          + 'ser corrigido à vontade.',
+      });
+    }
+  }
+
+  /* O CPF, quando vem e quando mudou. `cpfJaUsado` ignora o próprio slug: gravar a ficha de quem
+   * não mudou o CPF não pode colidir consigo. */
+  const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
+  const cpfBruto = String(corpo.cpf || '').trim();
+  let cpf = '';
+  if (cpfBruto) {
+    const normalizado = cadastroDaEscola.normalizarCpf(cpfBruto);
+    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
+    cpf = normalizado.valor;
+    const deQuem = await require('./unicidade.js').cpfJaUsado(env, cpf, alvo);
+    if (deQuem) {
+      return json(409, {
+        ok: false,
+        erro: 'o CPF ' + cpf + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
+          + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
+      });
+    }
+  }
+  const telefoneBruto = String(corpo.telefone || '').trim();
+  let telefone = '';
+  if (telefoneBruto) {
+    const normalizado = cadastroDaEscola.normalizarTelefone(telefoneBruto, { de: 'telefone do professor' });
+    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
+    telefone = normalizado.valor;
+  }
+  const emailBruto = String(corpo.email || '').trim();
+  let email = '';
+  if (emailBruto) {
+    const normalizado = cadastroDaEscola.normalizarEmail(emailBruto, { de: 'e-mail do professor' });
+    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
+    email = normalizado.valor;
+  }
+
+  const senha = String(corpo.senha || '');
+  const quando = new Date().toISOString();
+
+  // ── 1. O REGISTO (nome de exibição, e a senha quando vem) ────────────────────────────────
+  try {
+    if (ehDono) {
+      const chave = RAIZ + '/' + escola + '/dono';
+      const bruto = await kv.get(chave);
+      let dono = {};
+      try { dono = bruto ? JSON.parse(bruto) : {}; } catch (erro) { dono = {}; }
+      dono.nome = nomeExibido;
+      dono.slug = donoSlug;
+      dono.atualizadoEm = quando;
+      if (senha) {
+        const par = await require('../nucleo/senha.js').registoDeSenha(senha);
+        dono.professor_hash = par.hash;
+        dono.professor_sal = par.sal;
+      }
+      await kv.put(chave, JSON.stringify(dono));
+    } else {
+      const novo = Object.assign({}, registo, { nome: nomeExibido });
+      if (senha) {
+        const sal = gerarSal();
+        novo.sal = sal;
+        novo.hash = await hashSenha(senha, sal);
+      }
+      lista[iAlvo] = novo;
+      await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
+    }
+  } catch (erro) {
+    return json(502, { ok: false, erro: 'não foi possível gravar o professor: ' + ((erro && erro.message) || String(erro)) });
+  }
+
+  /* ── 2. O CONTATO — o mesmo documento que a criação da escola escreve ────────────────────── */
+  try {
+    const chave = 'professores/' + alvo + '/contato';
+    const bruto = await kv.get(chave);
+    let contato = {};
+    try { contato = bruto ? JSON.parse(bruto) : {}; } catch (erro) { contato = {}; }
+    contato.nomeCompleto = nomeExibido;
+    contato.cpf = cpf || contato.cpf || null;
+    contato.telefone = telefone || contato.telefone || null;
+    contato.email = email || contato.email || null;
+    contato.atualizadoEm = quando;
+    if (!contato.criadoEm) contato.criadoEm = quando;
+    await kv.put(chave, JSON.stringify(contato));
+  } catch (erro) {
+    /* A FICHA É O QUE SE ESTAVA A CORRIGIR — falhar aqui em silêncio diria «gravado» sobre um
+     * CPF que não ficou. O nome e a senha já foram; o erro diz o que faltou, e não desfaz. */
+    return json(502, {
+      ok: false,
+      erro: 'o nome e a senha foram gravados, mas a ficha (CPF, telefone, e-mail) não: '
+        + ((erro && erro.message) || String(erro)),
+    });
+  }
+
+  // ── 3. A HABILIDADE — o mesmo perfil que a aba das Habilitações escreve ───────────────────
+  const modalidade = String(corpo.modalidade || '').trim();
+  let perfil = null;
+  if (modalidade) {
+    const nucleoPerfil = require('../nucleo/perfil-do-professor.js');
+    if (nucleoPerfil.idsDeModalidade().size && !nucleoPerfil.idsDeModalidade().has(modalidade)) {
+      return json(400, { ok: false, erro: 'a habilidade «' + modalidade + '» não está no catálogo de modalidades' });
+    }
+    const { lerPerfil, gravarPerfil, caminhoDoPerfil } = require('./perfil-professor.js');
+    const f = (u, o) => globalThis.fetch(u, o);
+    const token = env && env.GITHUB_TOKEN;
+    const atual = await lerPerfil({ f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo });
+    if (!atual.ok) return json(atual.status || 502, { ok: false, erro: atual.erro });
+    const gravado = await gravarPerfil({
+      f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo,
+      sha: atual.sha || undefined,
+      perfil: Object.assign({}, atual.perfil || {}, {
+        slug: alvo, nome: nomeExibido, modalidades: [modalidade],
+        criado: (atual.perfil && atual.perfil.criado) || quando.slice(0, 10),
+      }),
+    });
+    if (!gravado.ok) return json(gravado.status || 502, { ok: false, erro: gravado.erro });
+    const marcadas = await marcarTurmasSemHabilitacao(kv, escola, alvo, gravado.perfil);
+    perfil = {
+      caminho: caminhoDoPerfil(alvo), modalidade,
+      descontinuadas: marcadas.descontinuadas, turmasMarcadas: marcadas.mudadas,
+    };
+  }
+
+  return json(200, {
+    ok: true, professor: nomeExibido, slug: alvo, dono: ehDono,
+    nomeMudou: mudouONome, senhaMudou: Boolean(senha), perfil,
+  });
+}
+
 async function nomeDoDono(env, kv, escola) {
   try {
     const t = await kv.get(RAIZ + '/' + escola + '/dono');
@@ -2955,6 +3140,26 @@ const TITULOS_DAS_ABAS_DA_AUDICAO = [
   ['1', 'Escolha de elenco'],
   ['2', 'Recorte'],
   ['3', 'Transferência'],
+];
+
+/**
+ * AS TRÊS ABAS DO PROFESSOR (16/11/2026) — «cadastro de professor», «Habilitações»,
+ * «Desligamento».
+ *
+ * A ORDEM É A DO TRABALHO, e não a do código: primeiro QUEM é a pessoa (o cadastro, com os
+ * mesmos campos que a criação da escola recolhe), depois O QUE ELA SABE ENSINAR (a habilitação,
+ * que é o que a escola oferece como modalidade), e por último O QUE FAZER QUANDO SAI — que é o
+ * único dos três que não se faz no dia a dia, e por isso é o último.
+ *
+ * A ABA NÃO É «Novo professor» (o nome que ela usou de passagem) e sim «Cadastro de professor»
+ * (o nome que ela fixou). A diferença não é de gosto: a mesma aba serve ao cadastro E à edição —
+ * é o mesmo formulário, em dois modos —, e um rótulo que diz «Novo» mentiria a quem está a
+ * corrigir um nome.
+ */
+const ABAS_DO_PROFESSOR_HTML = [
+  ['cadastro', 'Cadastro de professor'],
+  ['habilitacoes', 'Habilitações'],
+  ['desligamento', 'Desligamento'],
 ];
 
 /* OS DOIS PASSOS POR ONDE A CORRECÇÃO DE UM TRECHO PASSA. É neles que o «!» de edição acende —
@@ -3398,12 +3603,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<span class="nome">' + linhaDoNome(donoNome) +
       '<span class="dono">principal</span></span>' +
       colunaDeTurmas(turmasDoProfessor.get(String(donoSlug || '').trim()), donoNome, 'pessoa') +
-      '<span class="acoes">' + (presoPorProveniencia
-        ? '<button class="acao secundario pequena" disabled title="' + esc(
-          'O nome não se muda: ele já vai nos documentos (' + motivoDoPreso + '). Enquanto a ' +
-          'curadoria não gerar plano de ensino, é ela que se remove — e aí o nome volta a poder ' +
-          'ser corrigido.') + '">Editar</button>'
-        : '<button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do professor principal">Editar</button>') +
+      /* O «EDITAR» NÃO SE DESABILITA MAIS (16/11/2026) — ela disse «pode editar tudo, não tem
+       * campo desabilitado», e a ficha tem sete campos: só um deles (o nome) pode estar preso
+       * pela proveniência. Um botão apagado escondia os outros seis, e a pessoa não tinha como
+       * corrigir o CPF de quem já assinou um plano. O que fica preso é o CAMPO, não a ficha: o
+       * servidor recusa a mudança do nome e di-lo com a razão; o resto grava. */
+      '<span class="acoes">' +
+        '<button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" ' +
+        'data-slug="' + esc(String(donoSlug || '')) + '"' +
+        (presoPorProveniencia
+          ? ' title="Editar a ficha do professor principal — o NOME não muda: ele já vai nos documentos ('
+            + esc(motivoDoPreso) + ')"'
+          : ' title="Editar a ficha do professor principal"') +
+        '>Editar</button>' +
       '</span>' +
       '</li>');
   }
@@ -3461,18 +3673,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
     linhasProfs.push('<li><span class="nome">' + linhaDoNome(p.nome, seloProf) + '</span>' +
       colunaDeTurmas(turmasDele, p.nome, 'pessoa') +
-      '<span class="acoes">' + (desligadoAgora
-        ? '<span class="sub" title="o desligamento não apaga o registo: ele é a memória de quem deu '
-          + 'estas aulas">fora da escola</span>'
-        : (profPreso || semTurmaAgora.semTurma)
-          ? '<button class="acao secundario pequena" disabled title="'
-            + (semTurmaAgora.semTurma && !profPreso
-              ? 'Apagá-lo deixaria a curadoria que ele dirigiu a apontar para um slug sem nome: o '
-                + 'registo é onde o nome dele existe. A turma que ele deixou já está com outro '
-                + 'professor — é essa a memória da passagem dele.'
-              : 'Vinculado a um plano de ensino: não se apaga')
-            + '">Excluir</button>'
-          : '<button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button>')
+      /* TODA A LINHA TEM «EDITAR» (16/11/2026). Antes só o principal tinha — o dele mudava o
+       * nome, e mais nada. Agora a ficha inteira é editável em qualquer linha (CPF, telefone,
+       * e-mail, habilidade, senha), e o «Excluir» continua a obedecer às travas da proveniência:
+       * apagar é diferente de corrigir, e uma trava de exclusão não deve fechar a correção. */
+      '<span class="acoes">' +
+        '<button class="editar acao pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" ' +
+        'data-slug="' + esc(String(slug || '')) + '" title="Editar a ficha deste professor">Editar</button>' +
+        (desligadoAgora
+          ? '<span class="sub" title="o desligamento não apaga o registo: ele é a memória de quem deu '
+            + 'estas aulas">fora da escola</span>'
+          : (profPreso || semTurmaAgora.semTurma)
+            ? '<button class="acao secundario pequena" disabled title="'
+              + (semTurmaAgora.semTurma && !profPreso
+                ? 'Apagá-lo deixaria a curadoria que ele dirigiu a apontar para um slug sem nome: o '
+                  + 'registo é onde o nome dele existe. A turma que ele deixou já está com outro '
+                  + 'professor — é essa a memória da passagem dele.'
+                : 'Vinculado a um plano de ensino: não se apaga')
+              + '">Excluir</button>'
+            : '<button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button>')
       + '</span></li>');
   }
   const itensProfs = linhasProfs.length
@@ -4581,14 +4800,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. É o mesmo
        corte do «Ações» da anamnese (560px), e a mesma folha. */
     '.turmas-corpo[data-abas="sim"]{row-gap:.7rem;}' +
-    '#lb-abas-folha{grid-column:1/-1;display:none;}' +
-    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha{display:block;margin:0;}}' +
+    /* AS DUAS PÍLULAS DE «ABAS» DO TELEMÓVEL (16/11/2026). Uma por grupo — a Audição e os
+     * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
+    '#lb-abas-folha,#pf-abas-folha{grid-column:1/-1;display:none;}' +
+    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha{display:block;margin:0;}}' +
     /* RECOLHIDA, A SECÇÃO NÃO OFERECE ABAS DE UM FORMULÁRIO QUE NÃO ESTÁ À VISTA
        (09/11/2026). O recolhedor esconde o `.col-form` — e com ele os três painéis. Uma tira
        que troca de painel invisível é navegação para nenhum sítio, e o mesmo vale para a
        pílula do telemóvel. O seletor leva a secção para não tocar nas outras quatro. */
     '.secao[data-recolhido="sim"] #lb-abas,' +
-    '.secao[data-recolhido="sim"] #lb-abas-folha{display:none;}' +
+    '.secao[data-recolhido="sim"] #lb-abas-folha,' +
+    '.secao[data-recolhido="sim"] #pf-abas,' +
+    '.secao[data-recolhido="sim"] #pf-abas-folha{display:none;}' +
     // A FAIXA É A PRIMEIRA LINHA DO CORPO (01/11/2026). Os três passos deixaram de viver na
     // coluna do formulário — «os steps não vão ser posicionados apenas sobre o formulário […] vão
     // ficar num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». A
@@ -5477,28 +5700,97 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
     tituloComAcordeao('sec-professores', 'Professores', 'professores-miolo') +
+    /* ------------------------------ AS TRÊS ABAS DO PROFESSOR (16/11/2026)
+     *
+     * O QUE ELA PEDIU. «Aqui vem novo professor, o nome da aba é cadastro de professor. Aí a gente
+     * vai ter uma outra aba é o Habilitações e a próxima é Desligamento. Então a gente vai
+     * organizar em abas.» E o cadastro «vai ser igual o formulário de cadastro lá da criação da
+     * escola para professor».
+     *
+     * PORQUE É QUE ISTO NÃO ERA SÓ ARRUMAÇÃO. A coluna do formulário tinha crescido por
+     * acrescento: um formulário de cadastro, duas `<details>` que se abriam por baixo (as
+     * habilitações e o desligamento) e mais as dicas. Eram três trabalhos de naturezas
+     * diferentes empilhados, e o que se procurava estava sempre por baixo do que não se estava a
+     * fazer. As abas dizem QUAL dos três está à vista, e a listagem fica fora delas — a regra da
+     * Audição, que ela já tinha pedido: «a listagem deve permanecer visível em todas as abas».
+     *
+     * O QUE FICA NA ABA DO CADASTRO É O QUE O CADASTRO DA ESCOLA PEDE (25/11/2026): nome,
+     * sobrenome, CPF, telefone, e-mail, habilidade e senha. A pessoa que entra é a mesma que foi
+     * cadastrada na criação — e era isso que faltava aqui: o cadastro da escola guardava o CPF e
+     * o e-mail do professor, e esta tela não os mostrava nem deixava corrigir. Um dado que existe
+     * num sítio e não aparece no outro é um dado que se duplica à mão.
+     */
+    '<div class="turmas-corpo" data-abas="sim">' +
+    '<nav class="abas" role="tablist" aria-label="Professores — seções" id="pf-abas" data-abas="professor">' +
+    ABAS_DO_PROFESSOR_HTML.map(([n, t], i) => '<button type="button" class="aba" role="tab" id="pf-aba-' + n + '" ' +
+      'data-aba="' + n + '" aria-controls="pf-painel-' + n + '" ' +
+      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+      t + '</button>').join('') +
+    '</nav>' +
+    /* O «SEÇÕES» DO TELEMÓVEL — a mesma peça do «Ações» da anamnese, e a mesma da Audição. A
+     * pílula leva `data-folha`, e é ela que diz ao ouvinte do clique qual folha abrir: com duas
+     * pílulas na página, o `id` escrito dentro do ouvinte abria sempre a primeira. */
+    '<div class="acoes-da-lista" id="pf-abas-folha">' +
+    '<button type="button" class="acoes-do-menu pilula-do-menu" id="pf-abas-botao" data-folha="pf-abas" ' +
+    'aria-expanded="false" aria-controls="pf-abas-menu">Seções<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>' +
+    '<div class="veu-do-menu" id="pf-abas-veu" hidden></div>' +
+    '<div class="menu-de-acoes folha-do-menu" id="pf-abas-menu" hidden>' +
+    '<span class="folha-puxador" aria-hidden="true"></span>' +
+    '<ul class="menu-de-acoes-lista">' +
+    ABAS_DO_PROFESSOR_HTML.map(([n, t]) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
+      t + '</button></li>').join('') +
+    '</ul>' +
+    '</div>' +
+    '</div>' +
     '<div class="col-form" id="professores-miolo">' +
+    /* ---------------------------------------------- ABA 1 — O CADASTRO */
+    '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
     // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
     // `prompt()` do navegador — a janelinha que parece um alert, com o nome num campo de uma
     // linha e sem nada em volta. O ato é o mesmo dos outros: muda-se um nome num formulário e
     // grava-se. Então o próprio formulário do cadastro serve à edição: o «Editar» preenche os
-    // campos, o botão passa a dizer o que vai fazer, e o «Cancelar» volta ao cadastro. A senha
-    // sai de cena — o nome do principal não se muda por senha nova (`/api/bastidores/dono` só
-    // grava a sobreposição de exibição; a senha dele é do secret).
+    // campos, o botão passa a dizer o que vai fazer, e o «Cancelar» volta ao cadastro.
+    //
+    // A SENHA DEIXOU DE SAIR DE CENA (16/11/2026). Ela disse «pode editar tudo, não tem campo
+    // desabilitado» — e a senha é um campo do cadastro. O que a tela antiga protegia era o
+    // `dono`, cuja senha vivia num secret do Worker; no shard ela já vive no KV da escola
+    // (`bastidores/<escola>/dono`, `professor_hash`), e é lá que a edição a grava. Ver
+    // `/api/bastidores/professor` (POST) e `/api/bastidores/dono` (POST).
     '<form id="form-prof">' +
     // O MODO É DECLARADO NO FORMULÁRIO, e não numa variável solta: o estado que a tela mostra
-    // está na tela. Vazio = cadastrar; `dono` = editar o nome do professor principal.
+    // está na tela. Vazio = cadastrar; `dono` = editar o professor principal; `outro` = editar um
+    // professor cadastrado. O SLUG viaja no `prof-alvo` porque é ele que identifica a pessoa —
+    // dois professores com o mesmo primeiro nome são duas linhas, e o nome não os distingue.
     '<input type="hidden" id="prof-modo" value="">' +
-    '<p class="sub" id="prof-nota" hidden>Editando o nome do <b>professor principal</b>. A senha ' +
-    'dele não muda por aqui, e a pasta dele continua a mesma — só o nome que aparece.</p>' +
+    '<input type="hidden" id="prof-alvo" value="">' +
+    '<p class="sub" id="prof-nota" hidden>Editando um professor que já existe. A pasta dele (o '
+      + 'identificador) não muda — é ela que assina o que ele já escreveu. Está tudo aberto: '
+      + 'corrija o que estiver errado.</p>' +
     '<label class="campo-rotulo" for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
     '<label class="campo-rotulo" for="psobrenome">Sobrenome ou apelido</label>' +
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
+    '<label class="campo-rotulo" for="pcpf">CPF do professor</label>' +
+    '<input id="pcpf" name="cpf" autocomplete="off" inputmode="numeric" placeholder="000.000.000-00">' +
+    '<label class="campo-rotulo" for="ptelefone">Telefone do professor</label>' +
+    '<input id="ptelefone" name="telefone" autocomplete="off" inputmode="tel" placeholder="(51) 99999-0000">' +
+    '<label class="campo-rotulo" for="pemail">E-mail do professor</label>' +
+    '<input id="pemail" name="email" type="email" autocomplete="off" placeholder="professor@exemplo.com.br">' +
+    /* A HABILIDADE AQUI, E NÃO SÓ NA ABA AO LADO. Ela pediu que o cadastro «seja igual» ao da
+     * criação da escola — e lá a habilidade é um campo do cadastro. As duas abas gravam o MESMO
+     * sítio (`professores/<slug>/perfil.json`, `modalidades`), pela razão que ela deu: «essa
+     * habilidade tem que fazer correspondência com os bastidores produção professor». Duas listas
+     * em dois sítios seriam a divergência com um mês de atraso. */
+    '<label class="campo-rotulo" for="pmodalidade">Habilidade (o que ele ensina)</label>' +
+    '<select id="pmodalidade" name="modalidade"><option value="">— escolher —</option>' +
+    MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.id) + '">' + esc(m.nome) +
+      (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
+    '</select>' +
     '<div id="prof-senha">' +
     '<label class="campo-rotulo" for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
     '</div>' +
+    '<p class="sub" id="prof-senha-nota" hidden>Deixe a senha em branco para manter a que ele já usa.</p>' +
     '<div class="res" data-res="professores"></div>' +
     '<span class="par-botoes">' +
     '<button type="submit" class="acao grande" id="prof-enviar">Cadastrar professor</button>' +
@@ -5506,12 +5798,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</span>' +
     '</form>' +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="7">' +
-    '<h3>Professores cadastrados</h3>' +
-    '<div class="rolagem"><ul class="lista">' + itensProfs + '</ul></div>' +
-    rodapePaginacao() +
-    /* O QUE CADA PROFESSOR SABE ENSINAR (03/11/2026).
+    /* ---------------------------------------------- ABA 2 — AS HABILITAÇÕES
      *
+     * O CONTEÚDO É O QUE JÁ EXISTIA (03/11/2026); o que saiu foi o `<details>` que o escondia.
      * A decisão dela: a modalidade «nasce da competência/habilidade do professor», e a escola só
      * oferece a que os professores dela declaram. O lugar de editar é aqui — «editável
      * posteriormente nos bastidores da produção» —, e o dado NÃO fica no KV desta escola: vai
@@ -5519,18 +5808,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * Um formulário só, com o professor à escolha, porque as habilitações de cada um são uma
      * lista curta e as pessoas da escola são poucas: um painel por linha gastaria um `fetch` por
-     * professor para dizer, na maioria dos casos, «ainda não declarou».
-     */
-    // A PEÇA É O BLOCO DOBRÁVEL DA CASA (`bloco-lista`/`bloco-cabeca`/`bloco-corpo`) — o mesmo
-    // dos painéis de «Procurar» e «Contexto do ato» nas listas. Não se inventa um `details` com
-    // desenho próprio: o `summary` daquele bloco já nasce com cursor, sem marcador do navegador e
-    // com a seta a rodar quando abre, e é isso que se quer aqui.
-    '<details class="bloco-lista" id="hab-bloco">' +
-    '<summary class="bloco-cabeca">' +
-    '<span class="bloco-titulo">Habilitações — o que cada professor sabe ensinar</span>' +
-    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
-    '</summary>' +
-    '<div class="bloco-corpo">' +
+     * professor para dizer, na maioria dos casos, «ainda não declarou». */
+    '<div class="aba-painel" id="pf-painel-habilitacoes" role="tabpanel" '
+      + 'aria-labelledby="pf-aba-habilitacoes" tabindex="0" hidden>' +
     '<form id="form-habilitacao">' +
     '<label class="campo-rotulo" for="hab-professor">Professor</label>' +
     '<select id="hab-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
@@ -5547,28 +5827,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</span>' +
     '</form>' +
     '</div>' +
-    '</details>' +
-    /* ------------------------------------------- O DESLIGAMENTO (08/11/2026)
+    /* ---------------------------------------------- ABA 3 — O DESLIGAMENTO (08/11/2026)
      *
-     * O SÍTIO É AQUI, e não em «Pessoas»: a saída de um professor é uma decisão sobre a ESCOLA — a
-     * turma fica sem quem a ensine, e a direcção tem de decidir o que fazer —, e não um ajuste de
-     * cadastro. Fica ao lado das habilitações porque é a habilitação dele que filtra quem o pode
-     * substituir; a direcção lê as duas coisas no mesmo lugar.
+     * O SÍTIO continua a ser aqui, e a razão dela é a mesma: a saída de um professor é uma
+     * decisão sobre a ESCOLA — a turma fica sem quem a ensine, e a direção tem de decidir o que
+     * fazer —, e não um ajuste de cadastro. O que mudou é que agora tem aba própria, em vez de
+     * viver dobrado por baixo do cadastro.
      *
-     * O MOTIVO É OBRIGATÓRIO, e é o único campo de texto: é o que a direcção de amanhã vai ter para
+     * O MOTIVO É OBRIGATÓRIO, e é o único campo de texto: é o que a direção de amanhã vai ter para
      * saber porque é que aquela turma parou de ter professor. Um desligamento sem motivo é um buraco
      * na memória da escola. */
-    '<details class="bloco-lista" id="deslig-bloco">' +
-    '<summary class="bloco-cabeca">' +
-    '<span class="bloco-titulo">Desligamento — o professor que sai da escola</span>' +
-    '<span class="seta-do-ato" aria-hidden="true">\u25be</span>' +
-    '</summary>' +
-    '<div class="bloco-corpo">' +
+    '<div class="aba-painel" id="pf-painel-desligamento" role="tabpanel" '
+      + 'aria-labelledby="pf-aba-desligamento" tabindex="0" hidden>' +
     /* A PROSA FICA FORA DO FORMULÁRIO (09/11/2026), e é a regra da casa, não preferência: «nenhum
-     * formulário traz parágrafo explicativo — rótulo, campo e placeholder, e nada mais». Esta
-     * frase nasceu dentro do `<form>` e a `provar-producao` reprovou-a — com razão. O `.aviso` é
-     * a peça da prosa que explica ANTES de agir (a mesma do `.lb-sem-anamnese`), e é ele que fica
-     * no corpo do bloco, fora do formulário. */
+     * formulário traz parágrafo explicativo — rótulo, campo e placeholder, e nada mais». O `.aviso`
+     * é a peça da prosa que explica ANTES de agir (a mesma do `.lb-sem-anamnese`). */
     (temQuemDesligar
       ? '<p class="aviso">A escola <b>continua a operar</b>. A direção pedagógica dele é encerrada ' +
         'com data, e as turmas dele ficam marcadas como <b>sem professor</b> — para a direção ' +
@@ -5587,7 +5860,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       : '<p class="aviso">Nenhum professor para desligar: o responsável principal não se desliga ' +
         '(é a âncora da escola), e os outros já saíram ou ainda não foram cadastrados.</p>') +
     '</div>' +
-    '</details>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Professores cadastrados</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensProfs + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-alunas" hidden>' +
@@ -6543,7 +6821,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * classe nova — o que muda é o que os itens fazem (trocam de aba, e não abrem um bloco).
      */
     '<div class="acoes-da-lista" id="lb-abas-folha">' +
-    '<button type="button" class="acoes-do-menu pilula-do-menu" id="lb-abas-botao" ' +
+    /* O `data-folha` DIZ QUAL FOLHA ESTA PÍLULA ABRE (16/11/2026). Havia dois `id` escritos
+     * dentro do ouvinte do clique; com duas pílulas na página (esta e a do professor), a segunda
+     * abriria a folha da primeira. O atributo é a identidade do grupo, e o ouvinte fica um só. */
+    '<button type="button" class="acoes-do-menu pilula-do-menu" id="lb-abas-botao" data-folha="lb-abas" ' +
     'aria-expanded="false" aria-controls="lb-abas-menu">Abas<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>' +
     '<div class="veu-do-menu" id="lb-abas-veu" hidden></div>' +
     '<div class="menu-de-acoes folha-do-menu" id="lb-abas-menu" hidden>' +
@@ -7871,62 +8152,111 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }).catch(function(err){ devolverRotulo(); recado("erro", "Erro: " + err.message); });' +
     '}' +
     /*
-     * O «EDITAR» DO PROFESSOR PRINCIPAL ENTRA NO FORMULÁRIO (22/10/2026).
+     * O «EDITAR» DO PROFESSOR — A FICHA INTEIRA, E NÃO SÓ O NOME (16/11/2026).
      *
-     * Antes, ele abria um `prompt()` do navegador — a janelinha que parece um alert, com uma
-     * linha e sem contexto. O ato, porém, é o mesmo do cadastro: muda-se um nome num formulário
-     * e grava-se. Então o formulário passa a ter DOIS modos, e o modo é declarado nele mesmo
-     * (o campo oculto `prof-modo`), não numa variável solta: o estado que a tela mostra está
-     * na tela.
+     * O QUE HAVIA: duas linhas de `prompt()` viradas formulário, e só o PRINCIPAL as tinha. O
+     * modo de edição escondia a senha («o nome do principal não se muda por senha nova») e
+     * mandava o nome inteiro para uma rota que só sabia sobreposições de exibição.
      *
-     * O QUE MUDA NO MODO DE EDIÇÃO: os dois campos vêm preenchidos, a SENHA sai de cena (o nome
-     * do principal não se muda por senha nova) e o botão diz o que vai fazer. O «Cancelar» volta
-     * ao cadastro — vazio, com a senha de volta e o botão com o rótulo de antes.
+     * O QUE ELA PEDIU: «quando clico em editar […] aparece no nome do professor "Bri" sobrenome
+     * "e Volet". Tem que aparecer certo a edição, não pode ser desse jeito. Pode editar tudo, não
+     * tem campo desabilitado.»
      *
-     * E QUEM PODE: só o principal. O botão «Editar» nasce apenas na linha dele (as outras têm
-     * «Excluir», e o principal não tem — quem responde pela escola não se apaga). Isto é a
-     * tela; o servidor tem a sua própria guarda em `/api/bastidores/professor` (DELETE) e em
-     * `/api/bastidores/dono`.
+     * O «Bri»/«e Volet» ERA UM DEFEITO MEU, E DE UMA BARRA SÓ. O `replace(/\s+/g, " ")` está
+     * escrito dentro de uma string de JavaScript (`'…re.replace(/\s+/g, " ")…'`) — e na string
+     * de origem `\s` não é o espaço da regex: é a letra `s`. O que chegava ao navegador era
+     * `.replace(/s+/g, " ")`, que em «Brise Volet» troca o `s` por um espaço e dá «Bri e Volet» —
+     * e a divisão em duas palavras cortava em «Bri» + «e Volet». O mesmo erro estava no `submit`,
+     * que gravaria o nome com o `s` comido: a ficha estragava-se ao ser corrigida.
+     *
+     * A LIÇÃO É A MESMA DA CRASE DENTRO DE UM TEMPLATE LITERAL: uma string que atravessa duas
+     * linguagens tem de ser escrita na linguagem em que está. Aqui, `\\s` — a barra dupla chega ao
+     * navegador como `\s`.
+     *
+     * E O RESTO: a ficha inteira vem do servidor (`GET /api/bastidores/professor?slug=`), porque
+     * CPF, telefone, e-mail e habilidade vivem em dois documentos que a listagem não lê. A senha
+     * fica à vista e em branco: em branco mantém a que ele usa, e o servidor di-lo.
      */
     'function modoDoProfessor() {' +
     '  return document.getElementById("prof-modo") ? document.getElementById("prof-modo").value : "";' +
     '}' +
-    'function editarProfessor(nome) {' +
-    '  var f = document.getElementById("form-prof");' +
-    '  if (!f) return;' +
-    '  var inteiro = String(nome || "").replace(/\s+/g, " ").trim();' +
-    '  if (!inteiro) return;' +
-    // A divisão é a MESMA do cadastro, ao contrário: a primeira palavra é o nome e o resto é o
-    // sobrenome/apelido. O que se grava é a junção das duas — o mesmo nome que estava na lista,
-    // se ninguém mexer.
+    'function valorDoCampo(id) {' +
+    '  var e = document.getElementById(id);' +
+    '  return e ? e.value : "";' +
+    '}' +
+    'function preencherFichaDoProfessor(d) {' +
+    '  var inteiro = String(d.nome || "").replace(/\\s+/g, " ").trim();' +
     '  var corte = inteiro.indexOf(" ");' +
     '  document.getElementById("pnome").value = corte === -1 ? inteiro : inteiro.slice(0, corte);' +
     '  document.getElementById("psobrenome").value = corte === -1 ? "" : inteiro.slice(corte + 1);' +
+    '  document.getElementById("pcpf").value = d.cpf || "";' +
+    '  document.getElementById("ptelefone").value = d.telefone || "";' +
+    '  document.getElementById("pemail").value = d.email || "";' +
+    '  var sel = document.getElementById("pmodalidade");' +
+    '  if (sel) sel.value = d.modalidade || "";' +
+    '}' +
+    'function editarProfessor(slug, nome) {' +
+    '  var f = document.getElementById("form-prof");' +
+    '  if (!f || !slug) return;' +
+    /* A ABA DO CADASTRO PRIMEIRO: quem clica «Editar» a partir da aba das habilitações tem de
+     * aterrar onde o formulário está, e não a olhar para uma lista de caixas. */
+    '  if (typeof abrirCadastroDoProfessor === "function") abrirCadastroDoProfessor();' +
     '  var oculto = document.getElementById("prof-modo");' +
-    '  if (oculto) oculto.value = "dono";' +
+    '  if (oculto) oculto.value = "editar";' +
+    '  var alvo = document.getElementById("prof-alvo");' +
+    '  if (alvo) alvo.value = slug;' +
+    /* O NOME VEM DA LISTA E O RESTO DO SERVIDOR. Preencher o nome já é útil enquanto a resposta
+     * não chega: a ficha abre com a pessoa certa e os outros campos chegam a seguir. */
+    '  var inteiro = String(nome || "").replace(/\\s+/g, " ").trim();' +
+    '  var corte = inteiro.indexOf(" ");' +
+    '  document.getElementById("pnome").value = corte === -1 ? inteiro : inteiro.slice(0, corte);' +
+    '  document.getElementById("psobrenome").value = corte === -1 ? "" : inteiro.slice(corte + 1);' +
+    '  ["pcpf", "ptelefone", "pemail", "psenha"].forEach(function(id){' +
+    '    var el = document.getElementById(id); if (el) el.value = "";' +
+    '  });' +
     '  var senha = document.getElementById("prof-senha");' +
-    '  if (senha) senha.hidden = true;' +
+    '  if (senha) senha.hidden = false;' +
+    '  var notinha = document.getElementById("prof-senha-nota");' +
+    '  if (notinha) notinha.hidden = false;' +
     '  var nota = document.getElementById("prof-nota");' +
     '  if (nota) nota.hidden = false;' +
     '  var b = document.getElementById("prof-enviar");' +
-    '  if (b) b.textContent = "Gravar o novo nome";' +
+    '  if (b) b.textContent = "Gravar as mudanças";' +
     '  var c = document.getElementById("prof-cancelar");' +
     '  if (c) c.hidden = false;' +
     '  recado("", "");' +
-    // O foco vai para o campo que se vai mudar: quem clicou em «Editar» quer escrever ali.
-    '  var alvo = document.getElementById("pnome");' +
-    '  if (alvo && alvo.focus) { alvo.focus(); if (alvo.select) alvo.select(); }' +
-    '  if (alvo && alvo.scrollIntoView) { try { alvo.scrollIntoView({block: "nearest"}); } catch (err) {} }' +
+    /* A RESPOSTA SÓ PREENCHE SE A FICHA AINDA FOR A MESMA (16/11/2026). A leitura é assíncrona, e
+     * quem clica «Editar» e logo «Cancelar» recebia a ficha depois de ter mandado limpar o
+     * formulário — e via os campos voltarem a encher-se sozinhos. Medido a 16/11/2026 com o
+     * cancelamento imediato. A guarda é o estado que a própria tela declara: se o modo já não é
+     * «editar», ou se o alvo mudou, a resposta é de um gesto que já não está à vista. */
+    '  fetch("/api/bastidores/professor?slug=" + encodeURIComponent(slug))' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      if (modoDoProfessor() !== "editar" || valorDoCampo("prof-alvo") !== slug) return;' +
+    '      if (d && d.ok) preencherFichaDoProfessor(d);' +
+    '      else if (d && d.erro) recado("erro", "Erro: " + d.erro);' +
+    '    })' +
+    '    .catch(function(err){ recado("erro", "Erro ao ler a ficha: " + err.message); });' +
+    '  var primeiro = document.getElementById("pnome");' +
+    '  if (primeiro && primeiro.focus) { primeiro.focus(); if (primeiro.select) primeiro.select(); }' +
+    '  if (primeiro && primeiro.scrollIntoView) { try { primeiro.scrollIntoView({block: "nearest"}); } catch (err) {} }' +
     '}' +
     'function sairDaEdicaoDoProfessor() {' +
     '  var oculto = document.getElementById("prof-modo");' +
     '  if (oculto) oculto.value = "";' +
-    '  ["pnome", "psobrenome", "psenha"].forEach(function (id) {' +
+    '  var alvo = document.getElementById("prof-alvo");' +
+    '  if (alvo) alvo.value = "";' +
+    '  ["pnome", "psobrenome", "pcpf", "ptelefone", "pemail", "psenha"].forEach(function (id) {' +
     '    var el = document.getElementById(id);' +
     '    if (el) el.value = "";' +
     '  });' +
+    '  var sel = document.getElementById("pmodalidade");' +
+    '  if (sel) sel.value = "";' +
     '  var senha = document.getElementById("prof-senha");' +
     '  if (senha) senha.hidden = false;' +
+    '  var notinha = document.getElementById("prof-senha-nota");' +
+    '  if (notinha) notinha.hidden = true;' +
     '  var nota = document.getElementById("prof-nota");' +
     '  if (nota) nota.hidden = true;' +
     '  var b = document.getElementById("prof-enviar");' +
@@ -7937,19 +8267,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  var nome = document.getElementById("pnome").value.trim();' +
-    '  var sobrenome = document.getElementById("psobrenome").value.trim();' +
-    '  if (modoDoProfessor() === "dono") {' +
-    '    var inteiro = (nome + (sobrenome ? " " + sobrenome : "")).replace(/\s+/g, " ").trim();' +
-    '    if (!inteiro) { recado("erro", "Erro: informe o nome do professor."); return; }' +
-    '    var form = document.getElementById("form-prof");' +
-    '    var antes = ocuparBotao(form, "gravando...");' +
-    '    enviar("/api/bastidores/dono", {nome: inteiro}, "gravando o novo nome...", true)' +
-    '      .then(function () { liberarBotao(antes); }, function () { liberarBotao(antes); });' +
-    '    return;' +
+    '  var nome = valorDoCampo("pnome").trim();' +
+    '  var sobrenome = valorDoCampo("psobrenome").trim();' +
+    '  var corpo = {' +
+    '    nome: nome, sobrenome: sobrenome,' +
+    '    cpf: valorDoCampo("pcpf").trim(),' +
+    '    telefone: valorDoCampo("ptelefone").trim(),' +
+    '    email: valorDoCampo("pemail").trim(),' +
+    '    modalidade: valorDoCampo("pmodalidade"),' +
+    '    senha: valorDoCampo("psenha")' +
+    '  };' +
+    /* O MODO DE EDIÇÃO MANDA O SLUG (é ele que identifica a pessoa); o de cadastro, não. */
+    '  if (modoDoProfessor() === "editar") {' +
+    '    corpo.editar = valorDoCampo("prof-alvo");' +
+    '    if (!corpo.editar) { recado("erro", "Erro: não se sabe qual professor editar — recarregue a página."); return; }' +
+    '  } else if (!nome) {' +
+    '    recado("erro", "Erro: informe o nome do professor."); return;' +
     '  }' +
-    '  postar("form-prof", {nome: nome, sobrenome: sobrenome,' +
-    '    senha: document.getElementById("psenha").value});' +
+    '  postar("form-prof", corpo);' +
     '});' +
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -8062,115 +8397,170 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .catch(function(err){ liberarBotao(antes); if (res) { res.className = "res erro"; ' +
     'res.textContent = "Erro: " + err.message; } });' +
     '});' +
-    /* ------------------------------------------------ AS TRÊS ABAS DA AUDIÇÃO (09/11/2026)
+    /* ------------------------------------------------ AS ABAS: UM MOTOR, DOIS GRUPOS (16/11/2026)
      *
-     * UMA FUNÇÃO, TRÊS PORTAS. A tira do computador (`#lb-abas`), a folha do telemóvel
-     * (`#lb-abas-menu`) e o teclado chamam `abrirAbaDaAudicao`, e só ela decide — se cada porta
-     * soubesse a regra, a primeira correcção deixaria as outras duas a mentir.
+     * O QUE HAVIA. As três abas da Audição tinham o seu próprio motor — `abrirAbaDaAudicao`,
+     * `pintarAbasDaAudicao`, uma folha de telemóvel e um `keydown` —, escritos quando eram as
+     * únicas. Ao chegar o segundo grupo (Bastidores → Produção → Professores, com as abas
+     * «Cadastro de professor», «Habilitações» e «Desligamento»), havia duas saídas: copiar as
+     * cem linhas com outros `id`, ou extrair o que é comum. Copiar é o que se paga duas vezes —
+     * a primeira correcção deixaria os dois grupos a comportar-se de maneira diferente, e a
+     * diferença só apareceria no dia em que alguém reparam num deles.
      *
-     * O QUE MUDA NA TROCA: `aria-selected` nas abas, `hidden` nos painéis, e a FAIXA DOS PASSOS —
-     * que só existe na aba 1 (os quatro passos são o acto de compor o elenco; nas outras duas não
-     * há passo nenhum). A listagem NÃO se toca: ela vive fora dos painéis, e é isso que a mantém
-     * à vista nas três abas.
+     * O QUE FICOU COMUM, e é tudo menos a regra de cada grupo: ligar os botões da tira e os da
+     * folha à MESMA função de abrir; fechar a folha depois de escolher; `aria-selected` e
+     * `tabindex` na tira; `hidden` nos painéis; e o teclado (`role="tablist"` promete-o — sem
+     * ele, quem usa leitor de ecrã confia numa promessa que não existe).
      *
-     * `hidden` E NADA DE `display` EM LINHA: quem decide a aparência do painel é a folha, e um
-     * `style` escrito aqui seria a segunda identidade que a checagem 4 recusa. */
-    'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
-    'function fecharFolhaDasAbas() {' +
-    '  var m = document.getElementById("lb-abas-menu");' +
-    '  var v = document.getElementById("lb-abas-veu");' +
-    '  var b = document.getElementById("lb-abas-botao");' +
-    '  if (m) m.hidden = true;' +
-    '  if (v) v.hidden = true;' +
-    '  if (b) b.setAttribute("aria-expanded", "false");' +
+     * O QUE CADA GRUPO DECIDE, e vai por parâmetro:
+     *   · `pode(n)` — a aba que ainda não pode abrir não abre. Na Audição, as abas 2 e 3 só
+     *     existem depois do primeiro elenco; nas do professor, abrem todas, sempre;
+     *   · `aoTrocar(n)` — o que é de um grupo só. Na Audição é a FAIXA DOS PASSOS, que só vive
+     *     na aba 1: os quatro passos são o acto de compor o elenco, e nas outras duas não há
+     *     passo nenhum.
+     *
+     * O `hidden` E NADA DE `display` EM LINHA: quem decide a aparência do painel é a folha, e um
+     * `style` escrito aqui seria a segunda identidade que a checagem da casa recusa.
+     */
+    'function motorDeAbas(cfg) {' +
+    '  var nomes = cfg.nomes || [];' +
+    '  var pode = cfg.pode || function(){ return true; };' +
+    '  function porId(prefixo, n) { return document.getElementById(prefixo + n); }' +
+    '  function fecharFolha() {' +
+    '    var m = document.getElementById(cfg.menu);' +
+    '    var v = document.getElementById(cfg.veu);' +
+    '    var b = document.getElementById(cfg.botao);' +
+    '    if (m) m.hidden = true;' +
+    '    if (v) v.hidden = true;' +
+    '    if (b) b.setAttribute("aria-expanded", "false");' +
+    '  }' +
+    '  function abrir(n) {' +
+    '    if (nomes.indexOf(n) === -1) return;' +
+    '    if (!pode(n)) return;' +
+    '    nomes.forEach(function(k){' +
+    '      var b = porId(cfg.prefixoAba, k);' +
+    '      var p = porId(cfg.prefixoPainel, k);' +
+    '      var eu = k === n;' +
+    '      if (b) {' +
+    '        b.setAttribute("aria-selected", eu ? "true" : "false");' +
+    '        b.setAttribute("tabindex", eu ? "0" : "-1");' +
+    '      }' +
+    '      if (p) p.hidden = !eu;' +
+    '    });' +
+    '    if (cfg.aoTrocar) cfg.aoTrocar(n);' +
+    '    fecharFolha();' +
+    '  }' +
+    /* O `title` É A RAZÃO, e não a decoração: uma aba apagada e muda manda procurar o defeito. O
+     * `aria-disabled` acompanha o `disabled` porque o atributo sozinho não diz ao leitor de ecrã
+     * QUE ela existe; os dois juntos dizem-no. */
+    '  function pintar() {' +
+    '    nomes.forEach(function(k){' +
+    '      var ok = pode(k);' +
+    '      var b = porId(cfg.prefixoAba, k);' +
+    '      if (b) {' +
+    '        b.disabled = !ok;' +
+    '        b.setAttribute("aria-disabled", ok ? "false" : "true");' +
+    '        if (ok) b.removeAttribute("title"); else b.setAttribute("title", cfg.fraseSem);' +
+    '      }' +
+    '      var item = document.querySelector("#" + cfg.menu + " [data-aba=\\\"" + k + "\\\"]");' +
+    '      if (item) {' +
+    '        item.disabled = !ok;' +
+    '        item.setAttribute("aria-disabled", ok ? "false" : "true");' +
+    '        if (ok) item.removeAttribute("title"); else item.setAttribute("title", cfg.fraseSem);' +
+    '      }' +
+    '    });' +
+    /* A ABA ABERTA QUE PERDE O DIREITO FECHA-SE. Na Audição acontece num caminho só — apagar o
+     * último elenco enquanto a aba 2 ou a 3 está à vista —, e é o caso em que a tela ficaria a
+     * mostrar o recorte de um acervo que já não tem elenco nenhum. Voltar à primeira aba não
+     * perde trabalho: é lá que se começa. */
+    '    var atual = document.querySelector("#" + cfg.nav + " [aria-selected=\\\"true\\\"]");' +
+    '    var escolhida = atual && atual.getAttribute("data-aba");' +
+    '    if (escolhida && !pode(escolhida)) abrir(nomes[0]);' +
+    '  }' +
+    '  var nav = document.getElementById(cfg.nav);' +
+    '  if (nav) nav.addEventListener("keydown", function(e){' +
+    '    var teclas = ["ArrowRight", "ArrowLeft", "Home", "End"];' +
+    '    if (teclas.indexOf(e.key) === -1) return;' +
+    '    var atual = nav.querySelector("[aria-selected=\\\"true\\\"]");' +
+    '    var i = nomes.indexOf(atual && atual.getAttribute("data-aba"));' +
+    '    if (i === -1) i = 0;' +
+    '    if (e.key === "ArrowRight") i = (i + 1) % nomes.length;' +
+    '    if (e.key === "ArrowLeft") i = (i - 1 + nomes.length) % nomes.length;' +
+    '    if (e.key === "Home") i = 0;' +
+    '    if (e.key === "End") i = nomes.length - 1;' +
+    '    e.preventDefault();' +
+    '    abrir(nomes[i]);' +
+    '    var novo = porId(cfg.prefixoAba, nomes[i]);' +
+    '    if (novo) novo.focus();' +
+    '  });' +
+    '  return { abrir: abrir, pintar: pintar, fecharFolha: fecharFolha, nomes: nomes };' +
     '}' +
-    /* A ABA QUE AINDA NÃO PODE ABRIR NÃO ABRE (15/11/2026) — e a guarda fica AQUI, no sítio por
-     * onde passam as três portas (a tira, a folha do telemóvel e o teclado). O `disabled` do
-     * HTML é o que o professor vê; esta linha é o que impede que um caminho novo se esqueça
-     * dele. É a mesma regra do `podeVerPasso` do elenco: um passo ou aba que não abriu não se
-     * alcança por atalho nenhum. */
+    /* AS DUAS PORTAS DO CLIQUE — a tira e a folha. Um só ouvinte, no documento, e cada grupo
+     * responde pelo `data-abas` do seu `<nav>`: o botão diz A QUE GRUPO pertence pelo sítio onde
+     * está, e não por um prefixo no atributo. */
+    'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
+    'var ABAS_DO_PROFESSOR = ["cadastro", "habilitacoes", "desligamento"];' +
+    /* A ABA QUE AINDA NÃO PODE ABRIR NÃO ABRE (15/11/2026) — a regra é do grupo, e a guarda fica
+     * no motor, no sítio por onde passam as três portas (a tira, a folha e o teclado). O
+     * `disabled` do HTML é o que a pessoa vê; a guarda é o que impede que um caminho novo se
+     * esqueça dele. */
     'function abaDaAudicaoAberta(n) {' +
     '  return String(n) === "1" || ELENCOS_GRAVADOS > 0;' +
     '}' +
-    /* AS DUAS ABAS APRENDEM A ESPERAR — e desaprendem quando o primeiro elenco é gravado.
-     *
-     * O `title` é a razão, e não a decoração: uma aba apagada e muda manda procurar o defeito.
-     * O `aria-disabled` acompanha o `disabled` porque o atributo sozinho não diz ao leitor de
-     * ecrã QUE ela existe; os dois juntos dizem-no. */
-    'function pintarAbasDaAudicao() {' +
-    '  ABAS_DA_AUDICAO.forEach(function(k){' +
-    '    var pode = abaDaAudicaoAberta(k);' +
-    '    var b = document.getElementById("lb-aba-" + k);' +
-    '    if (b) {' +
-    '      b.disabled = !pode;' +
-    '      b.setAttribute("aria-disabled", pode ? "false" : "true");' +
-    '      if (pode) b.removeAttribute("title"); else b.setAttribute("title", FRASE_DA_ABA_SEM_ELENCO);' +
-    '    }' +
-    '    var item = document.querySelector("#lb-abas-menu [data-aba=\\"" + k + "\\"]");' +
-    '    if (item) {' +
-    '      item.disabled = !pode;' +
-    '      item.setAttribute("aria-disabled", pode ? "false" : "true");' +
-    '      if (pode) item.removeAttribute("title"); else item.setAttribute("title", FRASE_DA_ABA_SEM_ELENCO);' +
-    '    }' +
-    '  });' +
-    /* A ABA ABERTA QUE PERDE O DIREITO FECHA-SE. Acontece num caminho só — apagar o último
-     * elenco enquanto a aba 2 ou a 3 está à vista —, e é o caso em que a tela ficaria a mostrar
-     * o recorte de um acervo que já não tem elenco nenhum. Voltar à aba 1 não perde trabalho:
-     * é lá que se compõe o próximo. */
-    '  var atual = document.querySelector("#lb-abas [aria-selected=\\"true\\"]");' +
-    '  var escolhida = atual && atual.getAttribute("data-aba");' +
-    '  if (escolhida && !abaDaAudicaoAberta(escolhida)) abrirAbaDaAudicao("1");' +
-    '}' +
-    'function abrirAbaDaAudicao(n) {' +
-    '  if (ABAS_DA_AUDICAO.indexOf(n) === -1) return;' +
-    '  if (!abaDaAudicaoAberta(n)) return;' +
-    '  ABAS_DA_AUDICAO.forEach(function(k){' +
-    '    var b = document.getElementById("lb-aba-" + k);' +
-    '    var p = document.getElementById("lb-painel-" + k);' +
-    '    var eu = k === n;' +
-    '    if (b) {' +
-    '      b.setAttribute("aria-selected", eu ? "true" : "false");' +
-    '      b.setAttribute("tabindex", eu ? "0" : "-1");' +
-    '    }' +
-    '    if (p) p.hidden = !eu;' +
-    '  });' +
-    '  var faixa = document.getElementById("lb-faixa");' +
-    '  if (faixa) faixa.hidden = n !== "1";' +
-    '  fecharFolhaDasAbas();' +
-    '}' +
+    'var MOTOR_DA_AUDICAO = motorDeAbas({' +
+    '  nomes: ABAS_DA_AUDICAO, nav: "lb-abas", prefixoAba: "lb-aba-", prefixoPainel: "lb-painel-",' +
+    '  menu: "lb-abas-menu", botao: "lb-abas-botao", veu: "lb-abas-veu",' +
+    '  fraseSem: FRASE_DA_ABA_SEM_ELENCO, pode: abaDaAudicaoAberta,' +
+    '  aoTrocar: function(n){' +
+    '    var faixa = document.getElementById("lb-faixa");' +
+    '    if (faixa) faixa.hidden = n !== "1";' +
+    '  }' +
+    '});' +
+    'function fecharFolhaDasAbas() { MOTOR_DA_AUDICAO.fecharFolha(); }' +
+    'function abrirAbaDaAudicao(n) { MOTOR_DA_AUDICAO.abrir(String(n)); }' +
+    'function pintarAbasDaAudicao() { MOTOR_DA_AUDICAO.pintar(); }' +
+    /* O GRUPO DO PROFESSOR — três abas que abrem sempre. A ordem é a do trabalho: primeiro o
+     * cadastro (quem é a pessoa), depois o que ela sabe ensinar, depois o que fazer quando sai. */
+    'var MOTOR_DO_PROFESSOR = motorDeAbas({' +
+    '  nomes: ABAS_DO_PROFESSOR, nav: "pf-abas", prefixoAba: "pf-aba-", prefixoPainel: "pf-painel-",' +
+    '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: ""' +
+    '});' +
+    'function abrirAbaDoProfessor(n) { MOTOR_DO_PROFESSOR.abrir(String(n)); }' +
+    /* A ABA DO PROFESSOR PODE SER PEDIDA DE FORA — é o que faz o «Editar» de uma linha levar à
+     * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
+     * `data-aba-do-professor` no botão que o pede. */
+    'function abrirCadastroDoProfessor() { abrirAbaDoProfessor("cadastro"); }' +
     'document.addEventListener("click", function(e){' +
-    '  var alvo = e.target.closest("[data-aba]");' +
-    '  if (alvo) { abrirAbaDaAudicao(alvo.getAttribute("data-aba")); return; }' +
-    '  if (e.target.closest("#lb-abas-botao")) {' +
-    '    var m = document.getElementById("lb-abas-menu");' +
-    '    var v = document.getElementById("lb-abas-veu");' +
-    '    var b = document.getElementById("lb-abas-botao");' +
-    '    var abrir = !m || m.hidden;' +
-    '    if (m) m.hidden = !abrir;' +
-    '    if (v) v.hidden = !abrir;' +
-    '    if (b) b.setAttribute("aria-expanded", abrir ? "true" : "false");' +
+    '  var alvo = e.target.closest ? e.target.closest("[data-aba]") : null;' +
+    '  if (alvo) {' +
+    '    var grupo = alvo.closest("[data-abas]");' +
+    '    var nome = alvo.getAttribute("data-aba");' +
+    '    if (grupo && grupo.getAttribute("data-abas") === "professor") abrirAbaDoProfessor(nome);' +
+    '    else abrirAbaDaAudicao(nome);' +
     '    return;' +
     '  }' +
-    '  if (e.target.closest("#lb-abas-veu")) { fecharFolhaDasAbas(); }' +
-    '});' +
-    /* O TECLADO, PORQUE UMA TIRA `role="tablist"` VIVE DELE. As setas mudam de aba e movem o
-     * foco; o `Home`/`End` vão às pontas. Sem isto, o `role` prometeria um comportamento que não
-     * existe — e é pior do que não o declarar, porque quem usa leitor de ecrã confia nele. */
-    'var navAbas = document.getElementById("lb-abas");' +
-    'if (navAbas) navAbas.addEventListener("keydown", function(e){' +
-    '  var teclas = ["ArrowRight", "ArrowLeft", "Home", "End"];' +
-    '  if (teclas.indexOf(e.key) === -1) return;' +
-    '  var atual = navAbas.querySelector("[aria-selected=\\"true\\"]");' +
-    '  var i = ABAS_DA_AUDICAO.indexOf(atual && atual.getAttribute("data-aba"));' +
-    '  if (i === -1) i = 0;' +
-    '  if (e.key === "ArrowRight") i = (i + 1) % ABAS_DA_AUDICAO.length;' +
-    '  if (e.key === "ArrowLeft") i = (i - 1 + ABAS_DA_AUDICAO.length) % ABAS_DA_AUDICAO.length;' +
-    '  if (e.key === "Home") i = 0;' +
-    '  if (e.key === "End") i = ABAS_DA_AUDICAO.length - 1;' +
-    '  e.preventDefault();' +
-    '  abrirAbaDaAudicao(ABAS_DA_AUDICAO[i]);' +
-    '  var novo = document.getElementById("lb-aba-" + ABAS_DA_AUDICAO[i]);' +
-    '  if (novo) novo.focus();' +
+    /* AS PÍLULAS DO TELEMÓVEL — uma por grupo, e cada uma abre a sua folha. O `data-folha` diz
+     * qual, para não haver duas funções iguais a olhar para `id` diferentes. */
+    '  var pilula = e.target.closest ? e.target.closest("[data-folha]") : null;' +
+    '  if (pilula) {' +
+    '    var qual = pilula.getAttribute("data-folha");' +
+    '    var m = document.getElementById(qual + "-menu");' +
+    '    var v = document.getElementById(qual + "-veu");' +
+    '    var abrirAgora = !m || m.hidden;' +
+    '    if (m) m.hidden = !abrirAgora;' +
+    '    if (v) v.hidden = !abrirAgora;' +
+    '    pilula.setAttribute("aria-expanded", abrirAgora ? "true" : "false");' +
+    '    return;' +
+    '  }' +
+    '  if (e.target.closest && e.target.closest(".veu-do-menu")) {' +
+    '    fecharFolhaDasAbas();' +
+    '    var m2 = document.getElementById("pf-abas-menu");' +
+    '    var v2 = document.getElementById("pf-abas-veu");' +
+    '    var b2 = document.getElementById("pf-abas-botao");' +
+    '    if (m2) m2.hidden = true;' +
+    '    if (v2) v2.hidden = true;' +
+    '    if (b2) b2.setAttribute("aria-expanded", "false");' +
+    '  }' +
     '});' +
     /* A TRANSFERÊNCIA, NA ORDEM DO ACTO (09/11/2026).
      *
@@ -13029,7 +13419,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'document.addEventListener("click", function(e){' +
     '  var ed = e.target.closest("button.editar");' +
-    '  if (ed) { editarProfessor(ed.getAttribute("data-alvo")); return; }' +
+    /* O «EDITAR» PASSA O SLUG E O NOME (16/11/2026). O nome é o que a linha já tem à mão e serve
+     * para abrir a ficha já preenchida; o slug é a identidade que o servidor procura. Antes
+     * passava-se só o nome, e era ele que ia inteiro para uma divisão em duas palavras. */
+    '  if (ed) { editarProfessor(ed.getAttribute("data-slug"), ed.getAttribute("data-alvo")); return; }' +
     '  if (e.target.closest("button#prof-cancelar")) { sairDaEdicaoDoProfessor(); return; }' +
     // O «APAGAR» GENÉRICO SÓ ACTUA EM QUEM DECLARA O TIPO (02/11/2026).
     //
@@ -14837,6 +15230,67 @@ async function fetch(request, env, extras) {
     return json(200, { ok: true, escola, professores: lista });
   }
 
+  /* GET /api/bastidores/professor?slug= — A FICHA DE UM PROFESSOR, PARA A EDIÇÃO (16/11/2026).
+   *
+   * PORQUE É UMA ROTA E NÃO MARCAÇÃO. O CPF, o telefone, o e-mail e a habilidade vivem em dois
+   * sítios que a listagem não lê: `professores/<slug>/contato`, no KV, e
+   * `professores/<slug>/perfil.json`, no REPOSITÓRIO. Lê-los ao desenhar a lista seria uma
+   * requisição ao GitHub por professor em cada abertura da página — e a página abre uma vez por
+   * operação. Lê-se ao clicar, e só do professor que se vai editar: uma pessoa, um clique, duas
+   * leituras.
+   *
+   * O `dono` CAI NO CADASTRO DA ESCOLA quando não tem contato próprio. O professor principal foi
+   * criado com a escola, e os dados dele ficaram no cadastro dela (`bastidores/<escola>/cadastro`
+   * → `cpf`, `professorEmail`, `professorTelefone`); sem esta queda, a ficha do principal aparecia
+   * vazia exactamente na escola criada pela página — que é o caso dela. */
+  if (path === '/api/bastidores/professor' && request.method === 'GET') {
+    const alvo = String(url.searchParams.get('slug') || '').trim();
+    if (!alvo) return json(400, { ok: false, erro: 'informe o professor' });
+    const donoSlug = String(slugDoDono(env) || '').trim();
+    const ehDono = alvo === donoSlug;
+    const lista = await professores(kv, escola);
+    const achado = ehDono ? null : lista.find((p) => slugDoProfessor(p) === alvo);
+    if (!ehDono && !achado) return json(404, { ok: false, erro: 'professor não encontrado nesta escola' });
+    const nome = ehDono ? (await nomeDoDono(env, kv, escola)) : achado.nome;
+
+    const ficha = { ok: true, slug: alvo, nome: nome || '', dono: ehDono,
+      cpf: '', telefone: '', email: '', modalidade: '', desligado: false };
+    try {
+      const bruto = await kv.get('professores/' + alvo + '/contato');
+      const contato = bruto ? JSON.parse(bruto) : null;
+      if (contato) {
+        ficha.cpf = String(contato.cpf || '');
+        ficha.telefone = String(contato.telefone || '');
+        ficha.email = String(contato.email || '');
+      }
+    } catch (erro) { /* ficha sem contato: os campos vão vazios, e a tela não inventa */ }
+    if (ehDono && !ficha.cpf && !ficha.email && !ficha.telefone) {
+      try {
+        const bruto = await kv.get(RAIZ + '/' + escola + '/cadastro');
+        const cadastro = bruto ? JSON.parse(bruto) : null;
+        if (cadastro) {
+          ficha.cpf = String(cadastro.cpf || '');
+          ficha.telefone = String(cadastro.professorTelefone || '');
+          ficha.email = String(cadastro.professorEmail || '');
+          ficha.origemDosDados = 'cadastro da escola';
+        }
+      } catch (erro) { /* idem */ }
+    }
+    try {
+      const { lerPerfil } = require('./perfil-professor.js');
+      const perfil = await lerPerfil({
+        f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo,
+      });
+      const modalidades = (perfil && perfil.ok && perfil.perfil && perfil.perfil.modalidades) || [];
+      ficha.modalidade = String(modalidades[0] || '');
+      ficha.modalidades = Array.isArray(modalidades) ? modalidades : [];
+      ficha.perfilLido = Boolean(perfil && perfil.ok);
+    } catch (erro) { ficha.perfilLido = false; }
+    if (!ehDono && achado) ficha.desligado = desligamento.estaDesligado(achado);
+    return json(200, ficha);
+  }
+
   // POST /api/bastidores/professor — cadastrar professor (nome + senha).
   //
   // A TRAVA É PELO **SLUG**, e não pelo nome. O slug é o que vira pasta (`professores/<slug>/`)
@@ -14855,6 +15309,22 @@ async function fetch(request, env, extras) {
     if (!(await autorizacaoDirecaoOk(env, corpo))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
+    /* O MODO DE EDIÇÃO — «pode editar tudo, não tem campo desabilitado» (16/11/2026).
+     *
+     * O formulário do cadastro passou a ter dois modos, como a tela já dizia: cadastrar e
+     * editar. `editar` traz o SLUG da pessoa (ou o do `dono`), e é por ele que se a encontra —
+     * o nome é rótulo, e dois «Ana» são duas pessoas.
+     *
+     * O QUE SE PODE MUDAR, E O QUE NÃO SE PODE, e a linha é a MESMA de sempre: o NOME de quem já
+     * assinou documentos não muda (`professorPreso`), porque o mesmo trabalho passaria a
+     * aparecer com dois autores. Tudo o resto — CPF, telefone, e-mail, habilidade, senha — é
+     * editável, e é o que ela pediu. A tela não desabilita nada; quem recusa, se for o caso,
+     * é o servidor, e diz porquê.
+     *
+     * O QUE ESTA ROTA **NÃO** FAZ: mudar a pasta (o slug). Ele é a identidade que assina o que
+     * já está escrito, e renomear a pasta é um ato de migração, não de cadastro. */
+    const alvoDaEdicao = String(corpo.editar || '').trim();
+    if (alvoDaEdicao) return await editarProfessorDaEscola({ env, kv, escola, corpo, alvo: alvoDaEdicao });
     const nome = String(corpo.nome || '').trim();
     const sobrenome = String(corpo.sobrenome || '').trim();
     const senha = String(corpo.senha || '');
