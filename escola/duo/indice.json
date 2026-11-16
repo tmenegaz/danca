@@ -14,7 +14,7 @@
   },
   "shard": "lastro-teste",
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -70,6 +70,64 @@
       "proveniencia": {
         "auditada": true,
         "em": "2026-11-16T13:56:51.149Z",
+        "ancoras": [
+          {
+            "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+            "id": "ciclo-01-duo",
+            "hash": "b0e2948a867635258d311406a1ba3b6913761acd363dd939767f80377bfec9b3",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "76eb88068ca477e1ebd9d4d434816419e3596edc39258e9a27a5b5c103db7e78",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-16T15:13:36.950Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/duo/envelopes/.indice.json",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/assets/favicon.svg",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/assets/lib-cifra.js",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/assets/nav.js",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/assets/style.css",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/index.html",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/assets/markdown.js",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/conteudo/anamnese.json",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/index.html",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/plano/conteudo/plano.json",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/po/conteudo/po.json",
+        "professores/fernando-franciose/ciclos/ciclo-01-duo/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/fernando-franciose/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "duo/",
+          "bastidores/duo/"
+        ],
+        "em": "2026-11-16T15:13:36.950Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-16T15:13:32.593Z",
         "ancoras": [
           {
             "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.fipp",
