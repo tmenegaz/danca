@@ -674,27 +674,48 @@ const SCRIPT_DO_COFRE = '<script>(function(){' +
 const SCRIPT_DO_ACESSO = '<script>(function(){' +
   'var botoes=document.querySelectorAll("[data-comercial]");' +
   'if(!botoes.length)return;' +
-  'function recado(t,erro){' +
+  /* O RECADO, SEM SOMBRA. Aqui esteve `function recado(t,erro){ … var t=document.querySelector(…) }`
+   * — e o `var t` de dentro apagava o parâmetro: a mensagem que se lia era o `toString` de um
+   * `<table>`. Um nome que já significa uma coisa não pode significar outra três linhas abaixo. */
+  'function recado(texto,erro){' +
   '  var cx=document.getElementById("acesso-recado");' +
   '  if(!cx){cx=document.createElement("p");cx.id="acesso-recado";cx.className="aviso";' +
-  '    var t=document.querySelector("table");if(t&&t.parentNode)t.parentNode.insertBefore(cx,t.nextSibling);' +
+  '    var tabela=document.querySelector("table");' +
+  '    if(tabela&&tabela.parentNode)tabela.parentNode.insertBefore(cx,tabela.nextSibling);' +
   '    else document.body.appendChild(cx);}' +
-  '  cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
+  '  cx.textContent=texto||"";cx.className=erro?"aviso alerta":"aviso";}' +
+  /* OS BOTÕES DA MESMA LINHA, SEM SELETOR DE ATRIBUTO — e o motivo é o defeito que esteve aqui.
+   *
+   * A versão anterior montava `querySelectorAll("[data-escola=\"" + escola + "\"]")` dentro de uma
+   * string JS escrita entre plicas: o `\"` produz uma aspa LITERAL, que fecha o seletor a meio, e o
+   * resultado publicado foi `querySelectorAll("[data-escola=""+escola+""]")`. Isso não é um seletor
+   * inválido — é um ERRO DE SINTAXE, e um erro de sintaxe num `<script>` não estraga a linha que o
+   * usa: estraga o ficheiro inteiro. **O botão «Habilitar» não fazia nada porque nunca teve
+   * `addEventListener` nenhum**, e a página não dizia porquê.
+   *
+   * Um seletor construído por concatenação é uma string a atravessar três linguagens (JS, HTML, CSS)
+   * e a ser escapada em duas. Filtrar por `getAttribute` não atravessa nenhuma. */
+  'function daLinha(escola){' +
+  '  var todos=document.querySelectorAll("[data-escola]"),achados=[];' +
+  '  for(var i=0;i<todos.length;i++){' +
+  '    if(todos[i].getAttribute("data-escola")===escola)achados.push(todos[i]);}' +
+  '  return achados;}' +
+  'function ligar(irmaos,estado){for(var k=0;k<irmaos.length;k++)irmaos[k].disabled=estado;}' +
   'for(var i=0;i<botoes.length;i++)(function(b){' +
   '  b.addEventListener("click",function(){' +
   '    var escola=b.getAttribute("data-escola"),estado=b.getAttribute("data-comercial");' +
   '    if(!escola||!estado)return;' +
-  '    var irmaos=document.querySelectorAll("[data-escola=\""+escola+"\"]");' +
-  '    for(var j=0;j<irmaos.length;j++)irmaos[j].disabled=true;' +
+  '    var irmaos=daLinha(escola);' +
+  '    ligar(irmaos,true);' +
   '    recado((estado==="ativa"?"a habilitar ":"a desabilitar ")+escola+"…",false);' +
   '    fetch("/api/escola/comercial",{method:"POST",headers:{"Content-Type":"application/json"},' +
   '      body:JSON.stringify({escola:escola,estado:estado}),cache:"no-store"})' +
   '    .then(function(r){return r.json().catch(function(){return {};});})' +
   '    .then(function(d){' +
   '      if(d&&d.ok){location.reload();return;}' +
-  '      for(var k=0;k<irmaos.length;k++)irmaos[k].disabled=false;' +
+  '      ligar(irmaos,false);' +
   '      recado((d&&d.erro)||"não foi possível mudar o acesso",true);})' +
-  '    .catch(function(){for(var k=0;k<irmaos.length;k++)irmaos[k].disabled=false;' +
+  '    .catch(function(){ligar(irmaos,false);' +
   '      recado("falha de rede — nada foi alterado",true);});' +
   '  });' +
   '})(botoes[i]);' +

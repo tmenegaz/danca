@@ -568,6 +568,9 @@ async function dispararCriacao({ token, dono, repo, ref, inputs, fetchImpl }) {
   };
   const url = 'https://api.github.com/repos/' + dono + '/' + repo +
     '/actions/workflows/criar-escola.yml/dispatches';
+  /* O INSTANTE DO DISPARO, guardado ANTES do pedido (16/11/2026) — e é ele que torna a leitura de
+   * volta honesta. Ver o bloco abaixo. */
+  const disparadoEm = new Date().toISOString();
   const res = await f(url, {
     method: 'POST',
     headers: cabecalhos,
@@ -588,25 +591,43 @@ async function dispararCriacao({ token, dono, repo, ref, inputs, fetchImpl }) {
    * escola está «a nascer» — em vez de a pessoa descobrir por acidente, como hoje.
    *
    * A LEITURA NÃO FAZ FALHAR O DISPARO. Se ela falhar (rede, permissão), `run` vem `null` e a
-   * criação segue: o que se perde é a conveniência de ter o link, não a escola. */
+   * criação segue: o que se perde é a conveniência de ter o link, não a escola.
+   *
+   * **O RUN TEM DE SER DESTE PEDIDO, E A PRIMEIRA VERSÃO NÃO O GARANTIA.** Ela lia «o run mais
+   * recente do workflow» — e o mais recente, no instante logo a seguir ao dispatch, ainda é o
+   * ANTERIOR: o GitHub leva um ou dois segundos a registar o novo. Medido a 16/11/2026: a escola
+   * `breu` ficou com o link do run `43850296566`, que era de um diagnóstico meu, de uma hora antes.
+   * Um link errado num ecrã de diagnóstico é pior do que link nenhum — manda olhar para o trabalho
+   * de outra pessoa e concluir que ele é o desta escola.
+   *
+   * A CORREÇÃO É O TEMPO, e nada mais: só conta o run criado **depois** do instante do disparo. E
+   * espera-se por ele — três tentativas curtas, porque a corrida é de segundos. Se nenhum aparecer
+   * a tempo, `run` vem `null`: a linha «a nascer» fica sem link, e não com um link de outro. */
   let run = null;
-  try {
-    const lista = await f('https://api.github.com/repos/' + dono + '/' + repo +
-      '/actions/workflows/criar-escola.yml/runs?event=workflow_dispatch&per_page=1',
-      { headers: cabecalhos });
-    if (lista.ok) {
+  const desde = Date.parse(disparadoEm);
+  for (let tentativa = 0; tentativa < 3 && !run; tentativa += 1) {
+    if (tentativa > 0) await new Promise((r) => setTimeout(r, 700));
+    try {
+      const lista = await f('https://api.github.com/repos/' + dono + '/' + repo +
+        '/actions/workflows/criar-escola.yml/runs?event=workflow_dispatch&per_page=5',
+        { headers: cabecalhos });
+      if (!lista.ok) continue;
       const dados = await lista.json();
-      const primeiro = (dados && dados.workflow_runs && dados.workflow_runs[0]) || null;
-      if (primeiro && primeiro.id) {
+      const criados = (dados && dados.workflow_runs) || [];
+      // `created_at` tem resolução de segundo e o nosso instante tem milissegundos: comparar com
+      // um segundo de folga aceita o run deste pedido sem aceitar o da hora anterior.
+      const deste = criados.find((r) => r && r.id
+        && Date.parse(r.created_at || '') >= desde - 1000);
+      if (deste) {
         run = {
-          id: primeiro.id,
-          estado: primeiro.status || null,
-          url: primeiro.html_url || null,
+          id: deste.id,
+          estado: deste.status || null,
+          url: deste.html_url || null,
         };
       }
+    } catch (erro) {
+      run = null;
     }
-  } catch (erro) {
-    run = null;
   }
   return { status: res.status, ok: true, run };
 }
