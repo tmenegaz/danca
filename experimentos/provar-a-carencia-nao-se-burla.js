@@ -27,9 +27,13 @@
  *      apagadas vêm marcadas como tal, com o motivo;
  *   C. A ROTA (`/api/apagar-escola`) — recusa com 409, sem tocar no Cloudflare nem no GitHub, e
  *      diz porquê. A prova atira pedidos a sério à rota, com o KV e as duas metades falsas;
- *   D. A PÁGINA — em jsdom, com a resposta do servidor na mão: os cartões das escolas que não
- *      podem ser apagadas NÃO estão na lista, e a página diz quantas ficaram de fora e porquê;
- *   E. O CONTROLO NEGATIVO — com a guarda da rota desfeita, a mesma chamada apaga. É a prova de
+ *   D. NENHUMA ESCOLA FICA SEM CAMINHO — o botão «Desabilitar» existe para todas as que não estão
+ *      suspensas, e é por ali que a carência começa;
+ *   E. A CAIXA DE APAGAR, em jsdom — os cartões das escolas que não podem ser apagadas NÃO estão
+ *      lá, e a caixa já não explica o resto: sem nada para apagar, diz uma linha, só;
+ *   F. A ESCOLA RE-HABILITADA — o `desabilitadaEm` fica (é um facto), a etiqueta «pode apagar»
+ *      sai (é o estado de agora), e a conta antiga é reproduzida como controle negativo;
+ *   G. O CONTROLO NEGATIVO — com a guarda da rota desfeita, a mesma chamada apaga. É a prova de
  *      que o que se mede é a guarda, e não a sorte.
  *
  *   node experimentos/provar-a-carencia-nao-se-burla.js
@@ -244,7 +248,8 @@ function envCom(kv, contadores) {
         { slug: 'esperando', nome: 'Esperando', criada_em: iso(agora - 1 * MINUTO),
           comercial: { estado: 'aguardando', criadoEm: iso(agora - 1 * MINUTO) } },
         { slug: 'suspensa', nome: 'Suspensa', criada_em: iso(agora - 90 * 24 * 60 * MINUTO),
-          comercial: { estado: 'suspensa', desabilitadaEm: iso(agora - 2 * MINUTO), carenciaAte: iso(agora + 3 * MINUTO) } },
+          comercial: { estado: 'suspensa', desabilitadaEm: iso(agora - 2 * MINUTO),
+            carenciaAte: iso(agora + 3 * MINUTO), expurgavel: false, restanteMs: 3 * MINUTO } },
       ],
       professores: [],
     });
@@ -270,11 +275,47 @@ function envCom(kv, contadores) {
       /data-comercial="ativa"[^>]*>Habilitar/.test(linha('esperando')), null);
   }
 
-  console.log('\nE. A página: o cartão da escola em carência não está na lista');
+  console.log('\nE. A caixa de apagar: só lista o que se apaga — e não explica o resto');
   {
     const { JSDOM, VirtualConsole } = require('jsdom');
     const html = fs.readFileSync(path.join(RAIZ, 'raiz/index.html'), 'utf8');
-    /* A RESPOSTA É A DO SERVIDOR — a mesma forma que a secção B mediu, e não uma inventada. */
+    /* A RESPOSTA É A DO SERVIDOR — a mesma forma que a secção B mediu, e não uma inventada. A
+     * caixa abre-se pelo gesto, como ela a abre. */
+    const abrirACaixa = async (resposta) => {
+      const vc = new VirtualConsole();
+      const erros = [];
+      vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+      const dom = new JSDOM(html, {
+        runScripts: 'dangerously', url: 'https://danca.padd.com.br/', virtualConsole: vc,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+          w.scrollTo = () => {};
+          w.fetch = (u) => {
+            const c = String(u);
+            if (c.indexOf('api/escolas') !== -1) {
+              return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve(resposta) });
+            }
+            return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve({ ok: true }) });
+          };
+        },
+      });
+      await new Promise((r) => setTimeout(r, 350));
+      const d = dom.window.document;
+      /* O MODAL DA LISTA DE APAGAR abriu-se pelo gesto: o botão existe só no painel. */
+      const abrir = d.getElementById('btn-apagar') || Array.from(d.querySelectorAll('button'))
+        .find((b) => /apagar escola/i.test(b.textContent || ''));
+      if (abrir) abrir.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 500));
+      const lista = d.getElementById('apagar-lista');
+      return {
+        erros,
+        lista,
+        cartoes: lista ? Array.from(lista.querySelectorAll('.cartao')).map((c) => c.textContent) : [],
+        texto: lista ? String(lista.textContent || '') : '',
+        fechar() { dom.window.close(); },
+      };
+    };
+
     const resposta = {
       ok: true,
       carencia: '5 minutos (regime de teste)',
@@ -292,48 +333,92 @@ function envCom(kv, contadores) {
           url: 'https://vencida.padd.com.br/' },
       ],
     };
-    const vc = new VirtualConsole();
-    const erros = [];
-    vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
-    const dom = new JSDOM(html, {
-      runScripts: 'dangerously', url: 'https://danca.padd.com.br/', virtualConsole: vc,
-      beforeParse(w) {
-        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
-        w.scrollTo = () => {};
-        w.fetch = (u) => {
-          const c = String(u);
-          if (c.indexOf('api/escolas') !== -1) {
-            return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve(resposta) });
-          }
-          return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve({ ok: true }) });
-        };
-      },
-    });
-    await new Promise((r) => setTimeout(r, 350));
-    const d = dom.window.document;
-    /* O MODAL DA LISTA DE APAGAR abriu-se pelo gesto: o botão existe só no painel. */
-    const abrir = d.getElementById('btn-apagar') || Array.from(d.querySelectorAll('button'))
-      .find((b) => /apagar escola/i.test(b.textContent || ''));
-    if (abrir) abrir.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 500));
 
-    const lista = d.getElementById('apagar-lista');
-    const cartoes = lista ? Array.from(lista.querySelectorAll('.cartao')).map((c) => c.textContent) : [];
-    const texto = lista ? String(lista.textContent || '') : '';
-    conferir('a lista de apagar foi desenhada', Boolean(lista), null);
+    const tres = await abrirACaixa(resposta);
+    conferir('a lista de apagar foi desenhada', Boolean(tres.lista), null);
     conferir('NÃO há cartão para a escola habilitada',
-      !cartoes.some((t) => /^viva/.test(String(t).trim())), cartoes.map((t) => t.slice(0, 24)));
+      !tres.cartoes.some((t) => /^viva/.test(String(t).trim())), tres.cartoes.map((t) => t.slice(0, 24)));
     conferir('NÃO há cartão para a escola em carência',
-      !cartoes.some((t) => /em-carencia/.test(String(t))), cartoes.map((t) => t.slice(0, 24)));
+      !tres.cartoes.some((t) => /em-carencia/.test(String(t))), tres.cartoes.map((t) => t.slice(0, 24)));
     conferir('SÓ a que cumpriu a carência tem cartão',
-      cartoes.length === 1 && /vencida/.test(String(cartoes[0])), cartoes);
-    conferir('…e a página diz quantas ficaram de fora, e porquê',
-      /2 escolas não aparecem/.test(texto) && /carência/.test(texto), texto.slice(0, 200));
-    conferir('…e os scripts da página não lançam', erros.length === 0, erros.slice(0, 1));
-    dom.window.close();
+      tres.cartoes.length === 1 && /vencida/.test(String(tres.cartoes[0])), tres.cartoes);
+    /* «IMAGINA QUANDO EU TIVER 20.000 ESCOLAS, O TAMANHO QUE VAI SER ISSO» (16/11/2026). O rodapé
+     * que dizia «duo: a escola está habilitada: apagá-la seria apagar o que está a ser usado» saiu:
+     * a caixa responde a UMA pergunta, e o porquê de cada escola está na lista das vivas. */
+    conferir('…e a caixa JÁ NÃO diz quantas ficaram de fora, nem porquê',
+      !/não aparece/i.test(tres.texto) && !/apagá-la seria apagar/i.test(tres.texto)
+        && !/viva:|em-carencia:/.test(tres.texto), tres.texto.slice(0, 200));
+    conferir('…e os scripts da página não lançam', tres.erros.length === 0, tres.erros.slice(0, 1));
+    tres.fechar();
+
+    /* SEM NADA PARA APAGAR, UMA LINHA — e só uma. */
+    const nenhuma = await abrirACaixa({
+      ok: true, carencia: '5 minutos (regime de teste)',
+      escolas: resposta.escolas.filter((e) => e.expurgavel !== true),
+    });
+    conferir('sem escola expurgável, a caixa diz SÓ que não há',
+      nenhuma.texto.trim() === 'Não há escola para apagar.', nenhuma.texto);
+    conferir('…sem nomear escolas, nem dizer porquê',
+      !/viva|em-carencia|habilitada|carência/i.test(nenhuma.texto), nenhuma.texto);
+    conferir('…e os scripts da página não lançam', nenhuma.erros.length === 0, nenhuma.erros.slice(0, 1));
+    nenhuma.fechar();
   }
 
-  console.log('\nF. O controle negativo: sem a guarda, a mesma chamada apaga');
+  console.log('\nF. A escola re-habilitada perde a etiqueta — e conserva o facto');
+  {
+    const fuso = require(path.join(RAIZ, 'motor/nucleo/fuso.js'));
+    /* O QUE ELA VIU (16/11/2026): «Eu desabilitei a escola Duo, deixei o tempo correr e ela ficou
+     * apta para ser apagada. Só que eu fui lá e habilitei a escola novamente e ela continua com a
+     * etiqueta dizendo que pode apagar.»
+     *
+     * A ETIQUETA era calculada na página sobre `desabilitadaEm` — um facto HISTÓRICO, que não se
+     * apaga quando a escola volta a ser habilitada —, e por isso sobrevivia à habilitação. A
+     * correção não é apagar a data (ela responde a «já esteve suspensa?»): é a página ler o
+     * veredicto do servidor, que consulta o estado de AGORA.
+     *
+     * AQUI O TEMPO É ESCRITO, E NÃO ESPERADO: o KV nasce com a desabilitação de ontem (é o que a
+     * carência de cinco minutos do regime de teste deixaria), e o `gravarComercial` faz o que o
+     * botão «Habilitar» faz. O `desabilitadaEm` fica; o que tem de mudar é o veredicto. */
+    const kv = kvCom({
+      'expurgo/regime-de-teste-desde': iso(agora - 60 * MINUTO),
+      'bastidores/duo/comercial': JSON.stringify({
+        estado: 'suspensa', desabilitadaEm: iso(agora - 30 * MINUTO),
+        habilitadaEm: iso(agora - 90 * MINUTO), historico: [],
+      }),
+    });
+    const antes = raiz.comercialDaLista(await raiz.lerComercial(kv, 'duo'));
+    conferir('suspensa e com a carência vencida, a lista diria «pode apagar»',
+      antes.expurgavel === true, antes);
+
+    const voltou = await raiz.gravarComercial(kv, 'duo', { estado: 'ativa' }, 'prova');
+    conferir('o botão «Habilitar» grava o estado de agora', voltou.ok && voltou.comercial.estado === 'ativa', voltou);
+    conferir('…e o `desabilitadaEm` NÃO se apaga: é um facto, não um interruptor',
+      Boolean(voltou.comercial.desabilitadaEm), voltou.comercial.desabilitadaEm);
+
+    const depois = raiz.comercialDaLista(await raiz.lerComercial(kv, 'duo'));
+    conferir('re-habilitada, o veredicto do servidor deixa de a oferecer para apagar',
+      depois.expurgavel === false, depois);
+    conferir('…e não há carência a anunciar (ela não está suspensa)', depois.restanteMs === null, depois);
+
+    const painel = require(path.join(RAIZ, 'motor/servidor/painel-html.js'));
+    const pagina = painel.paginaDasVivas({
+      escolas: [{ slug: 'duo', nome: 'Duo', criada_em: iso(agora - 90 * 24 * 60 * MINUTO), comercial: depois }],
+      professores: [],
+    });
+    conferir('…e a linha já não diz «pode apagar»', !/pode apagar/.test(pagina), null);
+    conferir('…mas a data da desabilitação continua na linha (o histórico não se reescreve)',
+      pagina.includes(fuso.quandoLocal(voltou.comercial.desabilitadaEm)),
+      fuso.quandoLocal(voltou.comercial.desabilitadaEm));
+
+    /* O CONTROLO NEGATIVO: com a conta antiga — a data contra o relógio —, a mesma escola
+     * re-habilitada ainda diria «pode apagar». É a prova de que o defeito era o da etiqueta. */
+    const contaAntiga = !depois.desabilitadaEm ? false
+      : !(depois.carenciaAte && Date.parse(depois.carenciaAte) > Date.now());
+    conferir('a conta antiga (a data contra o relógio) diria «pode apagar» — o defeito reproduzido',
+      contaAntiga === true, { desabilitadaEm: depois.desabilitadaEm, carenciaAte: depois.carenciaAte });
+  }
+
+  console.log('\nG. O controle negativo: sem a guarda, a mesma chamada apaga');
   {
     /* A GUARDA É REPOSTA EM MEMÓRIA, e o que se mede é a diferença. Sem isto, o «409» da secção C
      * poderia estar a vir de outra coisa — o token, a confirmação, o próprio Cloudflare. */

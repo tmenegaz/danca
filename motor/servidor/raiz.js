@@ -38,6 +38,8 @@ const {
   pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
 } = require('./repo-escola.js');
 const painel = require('./painel-html.js');
+/* O RELÓGIO DA CASA — o mesmo que desenha as tabelas do painel (16/11/2026). */
+const fuso = require('../nucleo/fuso.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -249,6 +251,46 @@ async function escolasANascer({ kv, conhecidas }) {
   return pendentes;
 }
 
+/**
+ * O QUE A LISTA DAS VIVAS RECEBE DE CADA ESCOLA — com o veredicto do expurgo já resolvido
+ * (16/11/2026).
+ *
+ * O DEFEITO QUE ISTO CORRIGE, ao pé da letra: «Eu desabilitei a escola Duo, deixei o tempo correr e
+ * ela ficou apta para ser apagada. Só que eu fui lá e habilitei a escola novamente e ela continua
+ * com a etiqueta dizendo que pode apagar.»
+ *
+ * A ETIQUETA NÃO MENTIA POR CAUSA DA DATA — MENTIA PORQUE TINHA OPINIÃO PRÓPRIA. O `desabilitadaEm`
+ * é um FACTO histórico e não se apaga quando a escola volta a ser habilitada (é a resposta a «já
+ * esteve suspensa?»); a página, ao ver a data e o prazo vencido, escrevia «pode apagar» sem
+ * perguntar ao estado de agora. Duas regras sobre a mesma pergunta: a que apaga (e que recusava) e
+ * a que mostra (e que oferecia). Quem manda é a regra — `estadoDoExpurgo`, a mesma da lista de
+ * apagar, da rota e da varredura —, e a página passa a ler apenas o veredicto dela.
+ *
+ * `expurgavel` e `restanteMs` vêm no estado comercial porque é ali que a página os procura; o
+ * `carenciaAte` é o mesmo que sai do veredicto, para a etiqueta de carência não ter uma segunda
+ * conta.
+ */
+function comercialDaLista(comercial, opcoes) {
+  const c = comercial || {};
+  const veredicto = estadoDoExpurgo(c, opcoes);
+  return {
+    estado: c.estado,
+    plano: c.plano || null,
+    planoNome: c.planoNome || null,
+    valor: c.valor || null,
+    atualizadoEm: c.atualizadoEm || null,
+    /* AS DUAS DATAS QUE A LISTA MOSTRA (25/11/2026), e a carência que sai delas. A conta é feita
+     * AQUI, uma vez, e não na página: o HTML não sabe que meses têm 28 dias, e uma segunda regra
+     * de contagem dentro do desenho divergiria da primeira. */
+    habilitadaEm: c.habilitadaEm || null,
+    desabilitadaEm: c.desabilitadaEm || null,
+    carenciaAte: veredicto.carenciaAte,
+    expurgavel: veredicto.pode,
+    restanteMs: veredicto.restanteMs,
+    desconto: (opcoes && opcoes.desconto) || null,
+  };
+}
+
 async function escolasDoIndiceComComercial({ token, kv }) {
   const [escolas, professores] = await escolasDoIndice({ token });
   /* A JANELA DO CI FECHA-SE AQUI: o que existe no Cloudflare e ainda não está no índice entra na
@@ -262,24 +304,14 @@ async function escolasDoIndiceComComercial({ token, kv }) {
   const descontos = await lerDescontos(kv);
   const porEscola = new Map();
   for (const d of descontos) porEscola.set(d.escola, d);
+  /* A RÉGUA DE TESTE, uma leitura só para a página inteira. Sem ela, o veredicto da linha e o da
+   * lista de apagar mediriam com prazos diferentes no mesmo minuto. */
+  const regimeDesde = await regimeDeTeste(kv);
   const comEstado = [];
   for (const e of escolas) {
     const comercial = await lerComercial(kv, e.slug);
     comEstado.push(Object.assign({}, e, {
-      comercial: {
-        estado: comercial.estado,
-        plano: comercial.plano || null,
-        planoNome: comercial.planoNome || null,
-        valor: comercial.valor || null,
-        atualizadoEm: comercial.atualizadoEm || null,
-        /* AS DUAS DATAS QUE A LISTA MOSTRA (25/11/2026), e a carência que sai delas. A conta é
-         * feita AQUI, uma vez, e não na página: o HTML não sabe que meses têm 28 dias, e uma
-         * segunda regra de contagem dentro do desenho divergiria da primeira. */
-        habilitadaEm: comercial.habilitadaEm || null,
-        desabilitadaEm: comercial.desabilitadaEm || null,
-        carenciaAte: carenciaAte(comercial.desabilitadaEm),
-        desconto: porEscola.get(e.slug) || null,
-      },
+      comercial: comercialDaLista(comercial, { regimeDesde, desconto: porEscola.get(e.slug) || null }),
     }));
   }
   return [comEstado, professores];
@@ -1370,14 +1402,20 @@ function carenciaAte(desabilitadaEm, opcoes) {
 /**
  * O REGIME DE TESTE, EM HORAS — desde quando esta régua vale (16/11/2026).
  *
- * Lido por TRÊS chamadores: a varredura agendada, a lista do botão «Apagar escola» e a rota que
- * apaga à mão. Se cada um lesse a chave à sua maneira, a lista diria «pode apagar» sobre uma
- * escola que a rota recusa — que é exactamente a divergência que se está a corrigir.
+ * Lido por QUATRO chamadores: a varredura agendada, a lista do botão «Apagar escola», a rota que
+ * apaga à mão e a tabela das vivas (a etiqueta «pode apagar»). Se cada um lesse a chave à sua
+ * maneira, a lista diria «pode apagar» sobre uma escola que a rota recusa — que é exactamente a
+ * divergência que se está a corrigir.
  *
  * A CHAVE É ESCRITA NA PRIMEIRA LEITURA. A varredura corre de cinco em cinco minutos e seria ela
  * a escrevê-la; mas entre o deploy e a primeira passagem há uma janela, e nela a rota manual
  * contaria a carência de uma escola suspensa ANTES do regime — apagando-a por um prazo que nunca
- * lhe foi prometido. Quem lê, grava: a janela fecha-se no primeiro pedido de qualquer um dos três.
+ * lhe foi prometido. Quem lê, grava: a janela fecha-se no primeiro pedido de qualquer um dos
+ * chamadores.
+ *
+ * SÃO QUATRO, e o quarto entrou com a etiqueta da tabela das vivas (16/11/2026): a varredura
+ * agendada, a lista do botão «Apagar escola», a rota que apaga à mão e a lista das vivas — que
+ * mostra a mesma resposta no mesmo minuto, e por isso tem de medir com a mesma régua.
  */
 async function regimeDeTeste(kv, agora) {
   if (carenciaEmMs() === null) return null;
@@ -1405,9 +1443,11 @@ async function regimeDeTeste(kv, agora) {
  * o comentário da rota dizia, com todas as letras, «aqui não há prazo a esperar» — uma decisão
  * escrita que deixou de ser verdade no dia em que a carência nasceu, e ninguém a releu.
  *
- * A REGRA, agora, é esta função. E são TRÊS os chamadores, porque três é o número de sítios onde
- * se decide «esta escola pode ser apagada?»: a lista que se mostra, a rota que apaga, e a
- * varredura que apaga sozinha. Uma cópia a mais é uma cópia a divergir.
+ * A REGRA, agora, é esta função. E são QUATRO os chamadores, porque quatro é o número de sítios
+ * onde se decide «esta escola pode ser apagada?»: a lista que se mostra (`/api/escolas`), a rota
+ * que apaga, a varredura que apaga sozinha, e a tabela das vivas — que não apaga nada, mas escreve
+ * a etiqueta «pode apagar» ao lado da data. Uma cópia a mais é uma cópia a divergir, e foi uma
+ * delas que deixou a etiqueta na escola re-habilitada.
  *
  * O QUE SÓ SE APAGA: a escola `suspensa` cuja carência venceu.
  *
@@ -1471,13 +1511,17 @@ function estadoDoExpurgo(comercial, opcoes) {
   });
 }
 
-/** «16/11/2026 às 12:45» — a forma que as duas telas e o relatório já usam. */
+/**
+ * «16/11/2026 às 09:25» — a hora LOCAL, que é a de quem lê (16/11/2026).
+ *
+ * Aqui escrevia-se `… + ' UTC'` a partir dos getters de UTC. Era honesto e era ilegível: ela está
+ * em Passo Fundo, leu «12:25» às 09:59 e concluiu que o relógio estava errado. A frase do prazo é
+ * a única coisa que este texto tem de servir — «o prazo vence 16/11/2026 às 13:02» —, e uma frase
+ * dessas tem de estar na hora de quem vai decidir se já pode apagar. A conversão mora em
+ * `nucleo/fuso.js`; aqui só se pede.
+ */
 function emDataHora(iso) {
-  const d = new Date(String(iso || ''));
-  if (!Number.isFinite(d.getTime())) return '—';
-  const dois = (n) => (n < 10 ? '0' : '') + n;
-  return dois(d.getUTCDate()) + '/' + dois(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear()
-    + ' às ' + dois(d.getUTCHours()) + ':' + dois(d.getUTCMinutes()) + ' UTC';
+  return fuso.quandoLocal(iso);
 }
 
 /* =====================================================================================
@@ -2471,6 +2515,10 @@ async function fetch(request, env) {
         fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
         custo: r.custo,
         carencia: descricaoDaCarencia(),
+        /* QUE HORAS SÃO NA ESCOLA (16/11/2026). A página desenha a data da carência no fuso de quem
+         * a abre, a menos que lhe digam qual é o da casa. Vai no corpo da resposta, e não numa
+         * segunda chamada: é uma string, e a lista já está a ser servida. */
+        fuso: { id: fuso.FUSO_PADRAO, rotulo: fuso.ROTULO_DO_FUSO, etiqueta: fuso.etiquetaDoFuso(new Date()) },
         escolas: escolasComComercial.map(({ e, c }) => {
           const veredicto = estadoDoExpurgo(c, { regimeDesde: regimeDaLista });
           return {
@@ -2482,8 +2530,9 @@ async function fetch(request, env) {
             aNascer: nasceAgora.has(e.slug) || undefined,
             desabilitadaEm: c.desabilitadaEm || null,
             carenciaAte: veredicto.carenciaAte,
-            /* «PODE SER APAGADA?» — a resposta completa, e não só um booleano: o motivo é o que a
-             * lista diz à escola que fica de fora, e o que a rota repete se alguém insistir. */
+            /* «PODE SER APAGADA?» — a resposta completa, e não só um booleano: o motivo fica no
+             * corpo para quem diagnosticar (e é o que a rota repete se alguém insistir), mas a
+             * caixa de apagar já não o mostra escola a escola — ver `raiz/index.html`. */
             expurgavel: veredicto.pode,
             motivoDoExpurgo: veredicto.motivo,
             restanteMs: veredicto.restanteMs,
@@ -2861,6 +2910,10 @@ module.exports = {
   /* A REGRA DO EXPURGO É EXPORTADA PORQUE É UMA REGRA (16/11/2026). Três chamadores — a lista, a
    * rota que apaga e a varredura —, e a prova tem de poder afirmar os três sem subir o Worker. */
   estadoDoExpurgo, regimeDeTeste, CHAVE_DO_REGIME,
+  /* O VEREDICTO DA LISTA DAS VIVAS (16/11/2026). Exportado porque a etiqueta «pode apagar» é a
+   * ponta visível da mesma regra: a escola re-habilitada conserva o `desabilitadaEm` (facto) e não
+   * pode conservar a etiqueta. A prova tem de poder medir a linha desenhada sem subir o Worker. */
+  comercialDaLista,
   /* A JANELA ENTRE A ESCOLA E O ÍNDICE (16/11/2026). Exportada porque a regra «isto é uma escola a
    * nascer, e não o resto de uma criação que falhou» é exactamente o tipo de regra que se mede na
    * bancada e não em produção — onde o sintoma é a lista vazia de quem acabou de criar a escola. */

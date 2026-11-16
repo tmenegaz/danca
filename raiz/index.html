@@ -1643,6 +1643,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
           }
           var escolaEscolhida = null;
+          /* QUE HORAS SÃO NA ESCOLA (16/11/2026). O fuso vem do servidor, e é guardado aqui — uma
+           * variável do bloco do modal, e não do `fetch`. Escrevi-o dentro do `cartao` como `d.fuso`
+           * e `d` não existe ali: era o parâmetro da resposta, e o `ReferenceError` matava o
+           * desenho da lista inteira. A prova apanhou-o antes do deploy. */
+          var zonaDaEscola = null;
 
           function el(tag, classe, conteudo) {
             var n = document.createElement(tag);
@@ -1676,30 +1681,21 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                * cartão escondido não é a guarda: a guarda está na rota, e quem escrever o pedido
                * à mão bate nela.
                *
-               * A ESCOLA QUE FICA DE FORA NÃO DESAPARECE EM SILÊNCIO: o rodapé diz quantas são e
-               * PORQUE — a data da carência, ou o estado. Sem isso, «a minha escola não está na
-               * lista» lê-se como um defeito da lista. */
+               * SEM EXPLICAR AS QUE FICAM DE FORA (16/11/2026). Aqui havia um rodapé com uma
+               * razão por escola — «duo: a escola está habilitada: apagá-la seria apagar o que
+               * está a ser usado» —, e ela viu o tamanho que isso teria: «imagina quando eu tiver
+               * 20.000 escolas». A lista responde a UMA pergunta, «o que é que eu posso apagar?».
+               * Se não há nada, diz-se isso numa linha; se há, mostra-se o que há. O porquê de cada
+               * uma não é assunto desta caixa — está na lista das vivas, onde se lê uma escola de
+               * cada vez. */
+              zonaDaEscola = (d.fuso && d.fuso.id) || null;
               var todas = d.escolas || [];
               var expurgaveis = todas.filter(function (e) { return e.expurgavel === true; });
               if (!expurgaveis.length) {
-                listaApagar.appendChild(el("p", "nota", todas.length
-                  ? "Nenhuma escola pode ser apagada agora."
-                  : "Não há nenhuma escola no sistema."));
-                var razoes = todas.map(function (e) {
-                  return e.slug + ": " + (e.motivoDoExpurgo || e.estadoComercial || "sem estado");
-                });
-                if (razoes.length) listaApagar.appendChild(el("p", "nota", razoes.join(" · ")));
+                listaApagar.appendChild(el("p", "nota", "Não há escola para apagar."));
                 return;
               }
               expurgaveis.forEach(function (e) { listaApagar.appendChild(cartao(e)); });
-              var fora = todas.length - expurgaveis.length;
-              if (fora > 0) {
-                listaApagar.appendChild(el("p", "nota", fora === 1
-                  ? "1 escola não aparece: ela não pode ser apagada agora ("
-                    + "habilitada, ou em carência — ver a lista das vivas)."
-                  : fora + " escolas não aparecem: não podem ser apagadas agora ("
-                    + "habilitadas, ou em carência — ver a lista das vivas)."));
-              }
             }).catch(function (err) {
               listaApagar.textContent = "";
               resApagar.className = "res erro";
@@ -1733,8 +1729,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
              * porque é ela que explica porque é que esta escola está nesta lista e as outras não. */
             if (e.carenciaAte) {
               mi.appendChild(document.createElement("br"));
+              /* A DATA NO FUSO DA ESCOLA, e não no do navegador (16/11/2026). `toLocaleDateString`
+               * sozinho usa o fuso de QUEM ABRE — e o mesmo cartão diria dias diferentes a quem
+               * estivesse a viajar. O fuso vem do servidor (`d.fuso`), que é a única autoridade
+               * sobre que horas são na escola. Ver `motor/nucleo/fuso.js`. */
               mi.appendChild(el("span", "selo ok",
-                "carência vencida em " + new Date(e.carenciaAte).toLocaleDateString("pt-BR")));
+                "carência vencida em " + new Date(e.carenciaAte)
+                  .toLocaleDateString("pt-BR",
+                    zonaDaEscola ? { timeZone: zonaDaEscola } : undefined)));
             }
             mi.appendChild(document.createElement("br"));
             mi.appendChild(document.createTextNode(e.url));

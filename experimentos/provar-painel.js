@@ -442,12 +442,19 @@ async function principais() {
   conferir('SEM «Bastidores»', !/Bastidores/.test(menu), null);
   conferir('SEM menu que abre e fecha', !/<details class="menu">/.test(menu), null);
 
-  // ── 14. a data não passa por Date ──────────────────────────────────────────
+  // ── 14. a data é legível, e a hora é a de quem lê ─────────────────────────
+  /* AS TRÊS ASSERÇÕES DESTA SECÇÃO NÃO COMPARAVAM NADA (16/11/2026): passavam o valor esperado
+   * como TERCEIRO argumento, e o `conferir` só olha para o segundo — um texto é sempre verdadeiro,
+   * e as três imprimiam «ok» sobre o que quer que a função devolvesse. Agora comparam. E a
+   * expectativa mudou de propósito: `10:48Z` são 07:48 em Passo Fundo, e escrever «10:48» era o
+   * defeito que ela viu — o `Z` do ISO tratado como se não existisse. Ver `nucleo/fuso.js`. */
   conferir('microssegundos no ISO não viram NaN',
-    painel.dia('2026-10-19T18:18:57.289485+00:00'), '19/10/2026');
+    painel.dia('2026-10-19T18:18:57.289485+00:00') === '19/10/2026',
+    painel.dia('2026-10-19T18:18:57.289485+00:00'));
   conferir('ISO sem data devolve null, não «NaN/NaN/NaN»', painel.dia('nada') === null, painel.dia('nada'));
-  conferir('a hora é do carimbo, sem converter fuso',
-    painel.quando('2026-10-22T10:48:48.104Z'), '22/10/2026 às 10:48');
+  conferir('a hora é a de quem lê, e não o corte do ISO',
+    painel.quando('2026-10-22T10:48:48.104Z') === '22/10/2026 às 07:48',
+    painel.quando('2026-10-22T10:48:48.104Z'));
 }
 
 /** As primeiras células de cada linha de uma tabela — o que se lê na coluna que decide a ordem. */

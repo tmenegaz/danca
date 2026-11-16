@@ -190,15 +190,27 @@ function kvDeBolso(inicial) {
         habilitadaEm: '2026-08-01T10:30:00.000Z',
         desabilitadaEm: '2026-11-15T22:51:00.000Z',
         carenciaAte: '2027-02-15T22:51:00.000Z',
+        /* O VEREDICTO VEM DO SERVIDOR (`comercialDaLista`): a página não o recalcula. */
+        expurgavel: false, restanteMs: 90 * 24 * 60 * 60 * 1000,
       },
     }];
     const html = painel.paginaDasVivas({ escolas, professores: [] });
-    conferir('a tabela ganha a coluna «Habilitada»', html.includes('<th>Habilitada</th>'), null);
-    conferir('a tabela ganha a coluna «Desabilitada»', html.includes('<th>Desabilitada</th>'), null);
-    conferir('a data da habilitação vem com a HORA', html.includes('01/08/2026 às 10:30'), null);
-    conferir('a data da desabilitação vem com a HORA', html.includes('15/11/2026 às 22:51'), null);
+    /* AS COLUNAS TÊM `title` DESDE 16/11/2026 — ele diz de que relógio são as horas. A prova
+     * pergunta pela coluna, e não pelo texto exato: colada ao texto, ela reprovava uma correção
+     * certa (é a terceira vez que isto acontece com uma asserção minha). */
+    conferir('a tabela ganha a coluna «Habilitada»', /<th[^>]*>Habilitada<\/th>/.test(html), null);
+    conferir('a tabela ganha a coluna «Desabilitada»', /<th[^>]*>Desabilitada<\/th>/.test(html), null);
+    conferir('…e o cabeçalho diz de que relógio são as horas',
+      /<th title="[^"]*Brasília[^"]*">Habilitada/.test(html), null);
+    /* AS HORAS DESTAS DUAS LINHAS SÃO AS LOCAIS, E ANTES NÃO ERAM (16/11/2026). `10:30Z` são
+     * 07:30 em Passo Fundo; `22:51Z` são 19:51, e `22:51Z` de 15/02 são 19:51 do mesmo dia. O que
+     * aqui estava escrito era o corte do ISO — o mesmo defeito que ela viu na lista. */
+    conferir('a data da habilitação vem com a HORA, no fuso da escola',
+      html.includes('01/08/2026 às 07:30'), null);
+    conferir('a data da desabilitação vem com a HORA, no fuso da escola',
+      html.includes('15/11/2026 às 19:51'), null);
     conferir('…e a linha diz que ainda está em carência, com a data em que sai',
-      /em carência até 15\/02\/2027 às 22:51/.test(html), null);
+      /em carência até 15\/02\/2027 às 19:51/.test(html), null);
     conferir('as colunas de antes continuam lá (Plano, Acesso, Estado)',
       html.includes('<th>Plano</th>') && html.includes('<th>Acesso</th>') &&
       html.includes('<th>Estado</th>'), null);
@@ -207,10 +219,25 @@ function kvDeBolso(inicial) {
     const depois = painel.paginaDasVivas({
       escolas: [{ slug: 'velha', nome: 'Velha', criada_em: '2020-01-01',
         comercial: { estado: 'suspensa', desabilitadaEm: '2020-01-01T00:00:00.000Z',
-          carenciaAte: '2020-04-01T00:00:00.000Z' } }],
+          carenciaAte: '2020-04-01T00:00:00.000Z', expurgavel: true, restanteMs: null } }],
       professores: [],
     });
     conferir('passada a carência, a linha diz «pode apagar»', /pode apagar/.test(depois), null);
+
+    /* A ESCOLA QUE VOLTOU A SER HABILITADA CONSERVA A DATA E PERDE A ETIQUETA (16/11/2026).
+     * «Eu desabilitei a escola Duo […] habilitei a escola novamente e ela continua com a etiqueta
+     * dizendo que pode apagar.» O `desabilitadaEm` é um facto e fica — o que não pode ficar é a
+     * resposta a «pode apagar?», que agora vem resolvida pelo servidor. */
+    const reabilitada = painel.paginaDasVivas({
+      escolas: [{ slug: 'duo', nome: 'Duo', criada_em: '2020-01-01',
+        comercial: { estado: 'ativa', habilitadaEm: '2026-11-16T12:25:53.252Z',
+          desabilitadaEm: '2020-01-01T12:00:00.000Z', carenciaAte: '2020-04-01T00:00:00.000Z',
+          expurgavel: false, restanteMs: null } }],
+      professores: [],
+    });
+    conferir('re-habilitada, a mesma linha JÁ NÃO diz «pode apagar»', !/pode apagar/.test(reabilitada), null);
+    conferir('…e o facto histórico não se apagou: a data da desabilitação continua na linha',
+      reabilitada.includes('01/01/2020'), null);
   }
 
   console.log('\nF. A página do financeiro');
@@ -224,14 +251,18 @@ function kvDeBolso(inicial) {
     conferir('…e ele já vem com a chave que está a receber', html.includes('value="02150062917"'), null);
     conferir('tem o campo do titular', /id="pix-titular"/.test(html), null);
     conferir('tem o botão de guardar', /id="pix-gravar"/.test(html), null);
-    conferir('diz quando a chave mudou pela última vez', /Última alteração: 16\/11\/2026 às 01:00/.test(html), null);
+    /* `01:00Z` é 22:00 do DIA ANTERIOR em Passo Fundo — a hora e o dia mudam, e é isso que a
+     * leitura local corrige. Antes esta linha dizia «16/11/2026 às 01:00», que é o instante do
+     * servidor escrito como se fosse o dela. */
+    conferir('diz quando a chave mudou pela última vez, na hora dela',
+      /Última alteração: 15\/11\/2026 às 22:00/.test(html), null);
     conferir('tem o formulário do desconto, com a escola numa lista', /id="desconto-escola"/.test(html) &&
       html.includes('<option value="valse">') && html.includes('<option value="breu">'), null);
     conferir('…o valor, e a razão', /id="desconto-valor"/.test(html) && /id="desconto-motivo"/.test(html), null);
     conferir('a listagem mostra a escola, o valor, QUANDO e a razão',
       html.includes('Valse') === false && html.includes('<td>valse</td>') === false
         ? false
-        : (/R\$ 20,00/.test(html) && /15\/11\/2026 às 10:20/.test(html) && /início de atividade/.test(html)),
+        : (/R\$ 20,00/.test(html) && /15\/11\/2026 às 07:20/.test(html) && /início de atividade/.test(html)),
       null);
     conferir('…e cada linha tem como retirar o desconto',
       /data-retirar-desconto="valse"/.test(html), null);

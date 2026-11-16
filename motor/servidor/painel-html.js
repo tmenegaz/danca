@@ -34,6 +34,8 @@
 const { navDoPainel } = require('../../tools/templates/nav-html.js');
 /* O endereço das escolas tem UM compositor, e é o mesmo que cria o registo DNS. */
 const dominio = require('./dominio-da-escola.js');
+/* O RELÓGIO DA CASA (16/11/2026) — uma linha, e todas as datas desta página passam por ela. */
+const fuso = require('../nucleo/fuso.js');
 
 function esc(valor) {
   return String(valor == null ? '' : valor)
@@ -52,10 +54,13 @@ function esc(valor) {
  * `Invalid Date` aqui sairia como «NaN/NaN/NaN» na cara de quem lê. O dia é o do carimbo, como
  * ele foi gravado — não se converte fuso de um registo de calendário.
  */
-function dia(iso) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
-  if (!m) return null;
-  return m[3] + '/' + m[2] + '/' + m[1];
+function dia(iso, opcoes) {
+  /* A DATA É A LOCAL, E NÃO A DO TEXTO ISO (16/11/2026). Aqui cortavam-se os dígitos do ISO —
+   * `2026-11-16T12:25Z` dava «16/11/2026» e, pior, um carimbo das 23:30 de Passo Fundo (02:30Z do
+   * dia seguinte) dava o DIA seguinte. O `Z` não é decoração: é a diferença entre o dia que ela
+   * viveu e o dia que o servidor viveu. Ver `motor/nucleo/fuso.js`. */
+  const p = fuso.partesLocais(iso, opcoes && opcoes.fuso);
+  return p ? p.dia + '/' + p.mes + '/' + p.ano : null;
 }
 
 /** O dia, ou o traço que diz «não há» — nunca uma célula vazia, que se lê como defeito. */
@@ -63,11 +68,16 @@ function diaOuTraco(iso) {
   return dia(iso) || '—';
 }
 
-/** O carimbo com data e hora, para o registo do expurgo (onde a hora é a prova). */
-function quando(iso) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(String(iso || ''));
-  if (!m) return diaOuTraco(iso);
-  return m[3] + '/' + m[2] + '/' + m[1] + ' às ' + m[4] + ':' + m[5];
+/**
+ * O carimbo com data e hora, para o registo do expurgo (onde a hora é a prova).
+ *
+ * A HORA É A DELA, E É ESSA A CORREÇÃO (16/11/2026). Aqui cortavam-se os dígitos do ISO e escrevia-se
+ * «16/11/2026 às 12:25» sobre um instante que era 12:25 **UTC** — as 09:25 em Passo Fundo. Ela leu
+ * «a escola foi habilitada ao meio-dia e 25» às 09:59 e concluiu, com razão, que o relógio estava
+ * errado. Não estava: estava a mentir o rótulo.
+ */
+function quando(iso, opcoes) {
+  return fuso.quandoLocal(iso, opcoes && opcoes.fuso);
 }
 
 /**
@@ -321,14 +331,24 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
        * ou «em carência até DD/MM/AAAA»» — em vez de esconder a escola da lista: a lista é a
        * ferramenta com que ela limpa escolas de teste, e uma lista que esconde a escola que se
        * quer apagar é uma lista que não serve. O semáforo é a informação; o botão continua a ser
-       * dela. */
+       * dela.
+       *
+       * O SEMÁFORO VEM DO SERVIDOR, E NÃO DA DATA (16/11/2026). «Eu desabilitei a escola Duo,
+       * deixei o tempo correr e ela ficou apta para ser apagada. Só que eu fui lá e habilitei a
+       * escola novamente e ela continua com a etiqueta dizendo que pode apagar.» Aqui a conta era
+       * feita sobre `desabilitadaEm` — um FACTO que não se apaga quando a escola volta a ser
+       * habilitada —, e por isso a etiqueta sobrevivia à habilitação. A resposta a «pode apagar?»
+       * é uma só, `estadoDoExpurgo`, e chega resolvida em `comercial.expurgavel`/`restanteMs`
+       * (`comercialDaLista`, na raiz): esta célula limita-se a escrevê-la. */
       const desabilitadaEm = e.comercial && e.comercial.desabilitadaEm;
       const carencia = e.comercial && e.comercial.carenciaAte;
-      const carenciaTexto = !desabilitadaEm
-        ? ''
-        : (carencia && Date.parse(carencia) > Date.now()
+      const expurgavel = Boolean(e.comercial && e.comercial.expurgavel === true);
+      const emCarencia = Boolean(e.comercial && Number(e.comercial.restanteMs) > 0);
+      const carenciaTexto = expurgavel
+        ? '<br><span class="selo ok">pode apagar</span>'
+        : (emCarencia && carencia
           ? '<br><span class="selo discreto">em carência até ' + esc(quando(carencia)) + '</span>'
-          : '<br><span class="selo ok">pode apagar</span>');
+          : '');
       celulas.push('<td>' + esc(quando(desabilitadaEm)) + carenciaTexto + '</td>');
       /* «DESABILITAR» DEIXOU DE SER SÓ DA ESCOLA ATIVA (16/11/2026).
        *
@@ -373,7 +393,14 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     '<th>Criada</th>'];
   if (recorte !== 'vivas') colunas.push('<th>Apagada</th>');
   if (recorte === 'vivas') {
-    colunas.push('<th>Plano</th>', '<th>Habilitada</th>', '<th>Desabilitada</th>', '<th>Acesso</th>');
+    /* AS DUAS COLUNAS DIZEM DE QUE RELÓGIO SÃO (16/11/2026). A hora é a local — a dela —, e o
+     * `title` é para quem lê de outro fuso e precisa de saber qual: um número de horas sem sujeito
+     * é o que fez «12:25» parecer avaria. */
+    const relogio = fuso.ROTULO_DO_FUSO + ' (' + fuso.etiquetaDoFuso(new Date()) + ')';
+    colunas.push('<th>Plano</th>',
+      '<th title="' + esc(relogio) + '">Habilitada</th>',
+      '<th title="' + esc(relogio) + '">Desabilitada</th>',
+      '<th>Acesso</th>');
   }
   colunas.push('<th>Estado</th>');
   if (recorte !== 'vivas') colunas.push('<th>Registo</th>');

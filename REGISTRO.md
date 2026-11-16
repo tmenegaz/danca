@@ -47290,3 +47290,74 @@ acidente.
 **O que fica pendente, e é declarado.** A carência de teste continua em 5 minutos
 (`CARENCIA_DE_TESTE_MINUTOS = null` devolve os 3 meses). E a regra é do `expurgo` — a **recriação**
 de uma escola com o mesmo nome continua a ser outro caminho, com as suas próprias guardas.
+
+## 16/11/2026 — o relógio não mente, a caixa não explica, e a etiqueta pergunta à regra
+
+**O que motivou.** Três relatos da mesma sessão, e são três formas do mesmo erro — o dado certo com
+um texto ao lado a dizer outra coisa:
+
+1. «O relógio que você está usando como referência está errado. […] eu estou em Passo Fundo […] são
+   9:59. Então, está aparecendo para mim aqui que a escola, ela foi habilitada ao meio-dia e 25.»
+   **Não era o relógio**: o `habilitadaEm` estava certo (`2026-11-16T12:25:53Z`), e a tela cortava os
+   dígitos do ISO, escrevendo «12:25» como se o `Z` do fim não existisse. As 12:25 UTC são as 09:25
+   em Passo Fundo. O custo não é estético: a carência é lida nessa hora, e três horas de erro são a
+   diferença entre «já pode apagar» e «ainda não».
+2. «Imagina quando eu tiver 20.000 escolas, o tamanho que vai ser isso.» A caixa de expurgo listava
+   uma razão por escola que não podia ser apagada — «duo: a escola está habilitada: apagá-la seria
+   apagar o que está a ser usado» —, e isso não escala nem responde à pergunta que a caixa faz.
+3. «Eu desabilitei a escola Duo, deixei o tempo correr e ela ficou apta para ser apagada. Só que eu
+   fui lá e habilitei a escola novamente e ela continua com a etiqueta dizendo que pode apagar.»
+   A rota recusava; a etiqueta oferecia. Duas opiniões sobre a mesma pergunta.
+
+**O que foi decidido.**
+
+- **Guarda-se em UTC, mostra-se no fuso de quem usa.** O fuso da instalação é **declarado** numa
+  linha (`America/Sao_Paulo`), e não adivinhado do ambiente: o Worker corre em UTC e não sabe onde
+  fica a escola; o navegador sabe, mas cada um sabe o seu — e a mesma tabela não pode dizer horas
+  diferentes conforme quem a abre. A conversão acontece só na última linha, ao escrever para uma
+  pessoa. O instante continua guardado e comparado em UTC.
+- **A caixa de expurgo responde a UMA pergunta.** Sem nada para apagar, diz «Não há escola para
+  apagar.» e mais nada; com algo, mostra os cartões. Não nomeia nem justifica as que ficam de fora —
+  o porquê de cada uma vive na lista das vivas, onde se lê uma escola de cada vez. O
+  `motivoDoExpurgo` continua no corpo de `/api/escolas` para diagnóstico e para a recusa da rota.
+- **A etiqueta «pode apagar» é a resposta da regra, e não uma conta da página.** Era calculada sobre
+  `desabilitadaEm` — um facto histórico, que não se apaga quando a escola volta a ser habilitada —,
+  e por isso sobrevivia à habilitação. `comercialDaLista` resolve `expurgavel`, `restanteMs` e
+  `carenciaAte` com a mesma `estadoDoExpurgo` que a lista de apagar, a rota e a varredura já usam.
+  A tabela das vivas passa a ser o **quarto** chamador — ela não apaga nada, mas escreve a etiqueta,
+  e era a única a responder por conta própria.
+
+**Onde entrou.** `motor/nucleo/fuso.js` (novo: o fuso da instalação, as partes locais, a etiqueta
+`UTC−3` e a reserva para quando o runtime não trouxer ICU) · `motor/servidor/painel-html.js`
+(`dia`/`quando` no fuso local, e não no corte do ISO; as colunas «Habilitada»/«Desabilitada» dizem
+de que relógio são; a etiqueta lê o veredicto) · `motor/servidor/raiz.js` (`comercialDaLista`; a
+frase do prazo sem «UTC»; o fuso no corpo de `/api/escolas`) · `raiz/index.html` (a caixa sem
+explicações; a data da carência no fuso da escola, e não no de quem abre) ·
+`experimentos/provar-o-relogio-nao-mente.js` (novo) · `.gitignore` (a prova sai do rascunho).
+
+**O que não muda.** O instante gravado e comparado continua ISO/UTC — `desabilitadaEm`, os elos do
+estado comercial, a âncora. Nenhum limiar da carência mudou, e a regra do expurgo é a mesma: é ela
+que a etiqueta passa a ler, e não uma segunda opinião.
+
+**Com o quê.** `provar-o-relogio-nao-mente` **30/30** — a conversão (12:25Z → 09:25), a virada de
+dia (02:00Z = 23:00 do dia anterior), as três telas que mostram horas, e o controle negativo: o
+corte do ISO, reposto em memória, reproduz «16/11/2026 às 12:25». `provar-a-carencia-nao-se-burla`
+**58/58**, com duas secções novas — a caixa só lista o que se apaga (e, sem nada, diz uma linha),
+e a escola re-habilitada perde a etiqueta e conserva o facto (o controle negativo mostra que a
+conta antiga ainda diria «pode apagar»). Mais `provar-financeiro` 58/58 ·
+`provar-escola-a-nascer` 48/48 · `provar-cofre-e-shard` 129/129 · `provar-pagina-publica` 73/73 ·
+`check-identidade` 0 erros.
+
+**Correção de 16/11/2026 (mesmo dia) — três asserções que não comparavam nada.** Em
+`experimentos/provar-painel.js`, as três conferências da secção 14 passavam o valor esperado como
+**terceiro** argumento, e o `conferir` só olha para o segundo: um texto é sempre verdadeiro, e as
+três imprimiam «ok» sobre o que a função devolvesse. Passam a comparar — e a expectativa mudou de
+propósito: `10:48Z` são 07:48, e escrever «10:48» era exactamente o defeito acima.
+
+**O que ainda não está feito, e fica declarado.** `provar-painel` continua com **4 falhas** (os
+cinco destinos do menu e as quatro colunas das vivas) que **já falhavam no `HEAD` anterior a esta
+mudança** — medidas num worktree sem estas alterações, e portanto não são regressão deste commit.
+`experimentos/provar-expurgo-raiz.js` é rascunho local, não versionado, e está desactualizado em
+relação à guarda de carência: as falhas dele não medem este commit. O regime de teste continua em
+5 minutos; a recriação de uma escola com o mesmo nome continua a ser outro caminho, com as suas
+próprias guardas.
