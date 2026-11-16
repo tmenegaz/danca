@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "arquivos": [
     {
@@ -743,6 +743,63 @@
         ],
         "fontes": 1,
         "impressao": "fc47089d0c8c199daa2742c796b85097bf489d21c4ad71d46147cb992f2c44b2",
+        "resumo": {
+          "ancoras": 1,
+          "fontes": 1,
+          "variantes": 1,
+          "cobertos": 2
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-16T00:43:14.929Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "professores/dedao-aberto/ciclos/ciclo-01-breu.conf",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/index.html",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/dedao-aberto/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/dedao-aberto/ciclos/ciclo-01.conf"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": null,
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-16T00:43:14.929Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-16T00:43:09.809Z",
+        "ancoras": [
+          {
+            "caminho": "professores/dedao-aberto/ciclos/ciclo-01-breu.fipp",
+            "id": "ciclo-01-breu",
+            "hash": "fabbf9189e4b261c5366bd671a116a92a7eeef6c6c77e15064059bd9daa8095d",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 1,
+        "impressao": "e0f6c1343a43637bf332ddbd748e2e329981e2b3046db81df062f128f07420ec",
         "resumo": {
           "ancoras": 1,
           "fontes": 1,
