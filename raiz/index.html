@@ -123,7 +123,19 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           <section class="etapa" id="etapa-2" aria-labelledby="etapa-2-titulo" hidden>
             <h3 class="etapa-titulo" id="etapa-2-titulo">O professor principal</h3>
             <div class="etapa-campos">
-              <fieldset class="quem etapa-campo largo">
+              <!-- QUEM É O PROFESSOR: UMA PERGUNTA QUE SÓ O PAINEL FAZ (16/11/2026).
+                   «Para quem tá no sistema pela página que é pública [...] não precisa ter aquela
+                   seleção ali de professor se é novo ou não. Já é sempre novo de cara.»
+
+                   A marca `data-dono` é o que a retira do HTML público — não é a folha a
+                   escondê-la, é o servidor a não a servir. Sem a pergunta, a etapa do professor
+                   do público tem UM caminho, e um formulário com um caminho só não se apresenta
+                   como uma escolha: apresenta-se como um formulário.
+
+                   E A REGRA DE QUEM SE PODE REUTILIZAR NÃO MUDA: ela continua no painel, onde a
+                   lista existe. No público, um nome que já existe no sistema não é resolvido por
+                   quem preenche — é resolvido por quem administra, e a mensagem diz isso. -->
+              <fieldset class="quem etapa-campo largo" data-dono>
                 <legend>Quem é o professor desta escola?</legend>
                 <label class="opcao" id="opcao-novo">
                   <input type="radio" name="modo-professor" value="novo" id="modo-novo" checked>
@@ -189,19 +201,15 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 </p>
               </div>
 
-              <div class="etapa-campos largo" id="bloco-existente" hidden>
-                <!-- O PAINEL ESCOLHE NUMA LISTA; O PÚBLICO ESCREVE O NOME. Os dois campos existem
-                     no documento e o JavaScript mostra um só — a marca `data-dono` no primeiro
-                     garante que ele nem sequer viaja no HTML público, e o segundo nasce `hidden`
-                     para nunca aparecer no painel. -->
-                <p class="etapa-campo largo" id="campo-existente-lista" data-dono>
+              <!-- O BLOCO INTEIRO É DO PAINEL (16/11/2026). Houve aqui um campo escrito, para o
+                   público identificar o professor por nome — e ele existiu por um dia, entre eu ter
+                   retirado a escolha (errado) e ela ter dito qual é a regra (certa): no público o
+                   professor é SEMPRE NOVO. Um campo que nenhuma porta usa é um segundo caminho à
+                   espera de alguém lhe abrir a porta. -->
+              <div class="etapa-campos largo" id="bloco-existente" hidden data-dono>
+                <p class="etapa-campo largo" id="campo-existente-lista">
                   <label class="campo-rotulo" for="professor-existente">Professor</label>
                   <select id="professor-existente" name="professor-existente"></select>
-                </p>
-                <p class="etapa-campo largo" id="campo-existente-nome" hidden>
-                  <label class="campo-rotulo" for="professor-existente-nome">Professor que já existe</label>
-                  <input id="professor-existente-nome" name="professor-existente-nome" autocomplete="off"
-                         placeholder="ex.: Demi Plie — ou o nome da pasta dele">
                 </p>
               </div>
 
@@ -963,17 +971,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
            * atributo já está no documento quando o script começa, e `PAGINA` chega por `fetch`
            * — perguntar-lhe antes da resposta é perguntar a quem ainda não falou. */
           var PUBLICO = document.documentElement.getAttribute("data-pagina") === "publica";
-          var campoExistenteNome = document.getElementById("campo-existente-nome");
-          if (PUBLICO && campoExistenteNome) campoExistenteNome.hidden = false;
 
-          /** O professor que já existe, tal como esta página o sabe: escolhido ou escrito. */
+          /** O professor que já existe — a ESCOLHA da lista, e só ela (o público não a tem). */
           function professorExistenteEscolhido() {
-            if (!PUBLICO) return v("professor-existente");
-            /* O NOME ESCRITO É CONVERTIDO EM SLUG AQUI, com a MESMA função que o servidor usa
-             * (`slugificar`, em provisionar-escola.js). Escrever «Demi Plie» tem de chegar ao
-             * servidor como `demi-plie`, senão a pasta não é encontrada e o erro diria «não
-             * existe» a quem escreveu o nome certo. */
-            return slugificar(v("professor-existente-nome"));
+            if (PUBLICO) return "";
+            return v("professor-existente");
           }
 
           // A MESMA regra do servidor (`slugificar`, em provisionar-escola.js) — precisa ser a
@@ -1075,30 +1077,29 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           }
 
           function atualizarOpcaoExistente() {
+            /* NO PÚBLICO ESTA FUNÇÃO NÃO TEM OBJETO (16/11/2026). Não há pergunta, não há opção e
+             * não há lista: o professor é sempre novo. Sair aqui é mais honesto do que decidir
+             * condições sobre elementos que o servidor não serve — e é o que impede a página
+             * pública de voltar a oferecer um caminho que o servidor já não aceita. */
+            if (PUBLICO) return;
             var escola = slugDaEscola();
             var temProf = professoresEscolhiveis().length > 0;
             var livres = professoresLivres();
-            /* NO PÚBLICO NÃO HÁ LISTA PARA CONSULTAR — e por isso a opção não depende dela. Quem
-             * sabe que o professor já existe é quem preenche. Deixá-la desabilitada à espera de
-             * uma lista que não vem seria o botão que se vê e não abre, que é o defeito que ela
-             * já apontou duas vezes: «a opção de usar um professor que já existe não está
-             * habilitado». */
-            var pode = PUBLICO ? true : (Boolean(escola) && livres.length > 0);
+            var pode = Boolean(escola) && livres.length > 0;
 
             var radioExistente = document.getElementById("modo-existente");
             if (radioExistente) radioExistente.disabled = !pode;
             var opcaoExistente = document.getElementById("opcao-existente");
             if (opcaoExistente) opcaoExistente.classList.toggle("apagada", !pode);
             var dica = document.getElementById("dica-existente");
-            if (dica) dica.textContent = PUBLICO
-              ? "— escreva o nome dele, ou o nome da pasta em professores/"
-              : (!escola
-                ? "— informe o nome da escola primeiro"
-                : (!temProf ? "— nenhum professor cadastrado ainda"
-                  : (!livres.length ? "— o único professor é o desta escola, e ela já existe"
-                    : "— " + livres.length + (livres.length === 1 ? " professor cadastrado" : " professores cadastrados"))));
-            if (!pode && modo() === "existente") {
-              document.getElementById("modo-novo").checked = true;
+            if (dica) dica.textContent = !escola
+              ? "— informe o nome da escola primeiro"
+              : (!temProf ? "— nenhum professor cadastrado ainda"
+                : (!livres.length ? "— o único professor é o desta escola, e ela já existe"
+                  : "— " + livres.length + (livres.length === 1 ? " professor cadastrado" : " professores cadastrados")));
+            var radioNovo = document.getElementById("modo-novo");
+            if (!pode && modo() === "existente" && radioNovo) {
+              radioNovo.checked = true;
               pintarModo();
             }
 
@@ -1137,8 +1138,18 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           // sobrenome em branco, as duas senhas) e recebeu «informe o nome da escola, a senha do
           // administrador, o nome e a senha do professor» — sem saber qual dos quatro faltava.
           // Agora a escolha é explícita e cada caminho traz só os seus campos.
-          var radiosModo = document.querySelectorAll('input[name="modo-professor"]');
+          /* NO PÚBLICO NÃO HÁ ESCOLHA, e por isso não há botões de escolha (16/11/2026).
+           *
+           * «Para quem tá no sistema pela página que é pública [...] não precisa ter aquela
+           * seleção ali de professor se é novo ou não. Já é sempre novo de cara.»
+           *
+           * `radiosModo` fica VAZIA no público — o servidor retirou o `<fieldset>` do HTML —, e
+           * `modo()` responde «novo» sem consultar nada. É a única forma de o formulário e o
+           * servidor dizerem a mesma coisa: se a resposta dependesse de um elemento ausente, a
+           * queda seria para o primeiro `if` que alguém escrevesse a seguir. */
+          var radiosModo = PUBLICO ? [] : document.querySelectorAll('input[name="modo-professor"]');
           function modo() {
+            if (PUBLICO) return "novo";
             for (var i = 0; i < radiosModo.length; i++) {
               if (radiosModo[i].checked) return radiosModo[i].value;
             }
@@ -1146,8 +1157,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           }
           function pintarModo() {
             var novo = modo() === "novo";
-            document.getElementById("bloco-novo").hidden = !novo;
-            document.getElementById("bloco-existente").hidden = novo;
+            var blocoNovo = document.getElementById("bloco-novo");
+            var blocoExistente = document.getElementById("bloco-existente");
+            if (blocoNovo) blocoNovo.hidden = !novo;
+            if (blocoExistente) blocoExistente.hidden = novo;
           }
           for (var m = 0; m < radiosModo.length; m++) radiosModo[m].addEventListener("change", pintarModo);
           // O nome da escola é o que decide a lista e o aviso: digitar reavalia os dois. O
@@ -1535,17 +1548,26 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                  * que sabe a saída não deve limitar-se a MENCIONÁ-LA: quando o servidor diz QUAL
                  * é o professor (`colisao`), a página escolhe a opção por ele e leva-o à etapa 2
                  * com o campo preenchido. O que era um impasse passa a ser um clique. */
-                if (d.colisao) {
+                /* A COLISÃO, NAS DUAS PORTAS (16/11/2026).
+                 *
+                 * No PAINEL há saída por clique: a opção «um professor que já existe» está à
+                 * frente, tem a lista, e o servidor até diz QUAL é o professor (`colisao`).
+                 * Escolhe-se a opção, preenche-se o campo, volta-se à etapa — o que era um
+                 * impasse passa a ser um clique.
+                 *
+                 * NO PÚBLICO NÃO HÁ ESSA SAÍDA, e é de propósito: o professor é sempre novo, e a
+                 * decisão de reutilizar é da administração. Levar a pessoa à etapa 2 para lhe
+                 * mostrar um formulário que ela não pode submeter seria o beco com outro nome —
+                 * aqui a pessoa FICA onde está, com a mensagem do servidor, que diz o que fazer
+                 * e para onde escrever. */
+                if (d.colisao && !PUBLICO) {
                   var radioExistente = document.getElementById("modo-existente");
                   if (radioExistente && !radioExistente.disabled) {
                     radioExistente.checked = true;
                     pintarModo();
                   }
-                  var campoExistente = PUBLICO
-                    ? document.getElementById("professor-existente-nome")
-                    : document.getElementById("professor-existente");
-                  // O `colisao` é um slug (`demi-plie`), e é aceite nos dois campos: no público a
-                  // página volta a slugificá-lo, e um slug já é o próprio slug.
+                  var campoExistente = document.getElementById("professor-existente");
+                  // O `colisao` é um slug (`demi-plie`), e é ele que a lista usa como valor.
                   if (campoExistente) campoExistente.value = d.colisao;
                   // A ETAPA PRIMEIRO, A MENSAGEM DEPOIS: `irPara` limpa o campo do resultado (é o
                   // que impede um erro da etapa 3 de ficar escrito na etapa 1), e escrever a
@@ -1652,8 +1674,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             b.setAttribute("aria-pressed", "false");
             b.appendChild(el("b", null, e.slug));
             var mi = el("small");
-            mi.appendChild(document.createTextNode("professor " + (e.professor || "?")
-              + " · ciclo " + (e.ciclo || "?") + " · " + e.total + " arquivo(s)"));
+            /* A ESCOLA RECÉM-CRIADA AINDA NÃO TEM CICLO NEM ARQUIVOS (16/11/2026) — o CI está a
+             * escrevê-los. Dizer «ciclo ? · 0 arquivo(s)» lê-se como defeito; dizer «a nascer» diz
+             * o que é: a escola existe, e o resto está a caminho. */
+            mi.appendChild(document.createTextNode(e.aNascer
+              ? "professor " + (e.professor || "?")
+                + " · a nascer — o scaffold e o pacote estão a ser criados"
+              : "professor " + (e.professor || "?")
+                + " · ciclo " + (e.ciclo || "?") + " · " + e.total + " arquivo(s)"));
             /* A CARÊNCIA, NO CARTÃO (25/11/2026). Ela escolheu esta forma: «todas aparecem, e a
              * linha diz «pode apagar» ou «em carência até DD/MM/AAAA»». A lista não esconde a
              * escola — ela é a ferramenta com que se limpa uma escola de teste, e uma lista que

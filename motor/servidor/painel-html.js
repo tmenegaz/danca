@@ -234,13 +234,22 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
      * conciliação, ou suspensa por falta de pagamento. Três estados, três palavras, e a mesma
      * coluna — quem lê a lista quer saber se aquela escola abre, não se o Worker responde. */
     const estadoComercial = (e.comercial && e.comercial.estado) || 'ativa';
+    /* «A NASCER» — o estado da escola que já existe e o índice ainda não sabe (16/11/2026).
+     *
+     * Não é um estado comercial (não é `aguardando`, que é a conciliação): é a janela entre o
+     * momento em que a raiz cria a escola e o momento em que o CI commita o scaffold e o acervo a
+     * reconhece. Ela pediu que a escola apareça «independente de por onde for criada» — e a
+     * resposta honesta é aparecer JÁ, com o que se sabe: o nome, o professor, e que o resto vem. */
+    const aNascer = e.aNascer === true;
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
-      : (estadoComercial === 'suspensa'
+      : (aNascer
+        ? '<span class="selo discreto">a nascer</span>'
+        : (estadoComercial === 'suspensa'
         ? '<span class="selo alerta">suspensa</span>'
         : (estadoComercial === 'aguardando'
           ? '<span class="selo discreto">a aguardar conciliação</span>'
-          : '<span class="selo ok">ativa</span>'));
+          : '<span class="selo ok">ativa</span>')));
 
     const celulas = ['<td>' + rotulo + '</td>'];
     // O PROFESSOR, um ou vários, e NÃO É LIGAÇÃO DE SITE: uma pessoa não tem subdomínio. O nome

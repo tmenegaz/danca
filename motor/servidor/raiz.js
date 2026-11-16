@@ -176,8 +176,79 @@ async function escolasDoIndice({ token }) {
  * namespace (ao contrário da criação, onde a varredura é precisa), porque a lista já sabe os slugs
  * e enumerar traria as chaves de todas as escolas para responder sobre as que estão à vista.
  */
+/**
+ * AS ESCOLAS QUE JÁ EXISTEM E O ÍNDICE AINDA NÃO SABE — «a nascer» (16/11/2026).
+ *
+ * O DEFEITO, medido hoje: ela criou a escola «Abreu», a criação respondeu 201, e `Escolas vivas`
+ * não mostrava nada. E não era um caso dela — eu criei uma escola para diagnosticar e ela também
+ * não apareceu, vinte minutos depois.
+ *
+ * A CAUSA É UMA JANELA, e a janela é o desenho: a raiz cria o Worker e escreve o KV, mas a lista
+ * sai de `indices/acervo.json` — DERIVADO, e regerado por um workflow que só corre depois de o
+ * `criar-escola` commitar o scaffold. Entre o 201 e o fim do CI, a escola existe no Cloudflare e
+ * não existe no índice. Para quem acabou de a criar, «não aparece na lista» lê-se como «não foi
+ * criada» — e a nossa mensagem dizia «Escola criada», que é verdade e não serve de nada.
+ *
+ * O QUE SE ACRESCENTA À LISTA SÃO FACTOS QUE JÁ EXISTEM, e são dois, nesta ordem:
+ *
+ *   · o MAPA (`escolas/por-host`, KV) — escrito pelo provisionamento quando a escola nasce, e
+ *     apagado pelo expurgo. Diz «este sistema serve esta escola»;
+ *   · o registo COMERCIAL (`bastidores/<escola>/comercial`) — escrito DEPOIS de o disparo correr
+ *     bem, e nunca por um ensaio que falhou a meio. É o que separa «a escola nasceu» de «a criação
+ *     foi tentada e desfeita»: o rollback remove o Worker e deixa o mapa para trás.
+ *
+ * OS DOIS JUNTOS, e não um só, é o que torna a linha honesta: sem o segundo, uma criação abortada
+ * apareceria como escola; sem o primeiro, seria preciso enumerar o KV para descobrir candidatos —
+ * e a enumeração é a operação que estourou a cota em 18/10/2026.
+ *
+ * O CUSTO É UMA LEITURA DO MAPA, e uma por candidato. O mapa é uma chave só, e os candidatos são
+ * zero em regime normal.
+ */
+async function escolasANascer({ kv, conhecidas }) {
+  if (!kv || typeof kv.get !== 'function') return [];
+  let mapa = null;
+  try {
+    const texto = await kv.get('escolas/por-host');
+    mapa = texto ? JSON.parse(texto) : null;
+  } catch { return []; }
+  if (!mapa || typeof mapa !== 'object') return [];
+  const jaConhecidas = new Set((conhecidas || []).map((e) => e.slug));
+  const vistas = new Set();
+  const pendentes = [];
+  for (const slug of Object.values(mapa)) {
+    const limpo = String(slug || '').trim();
+    if (!limpo || jaConhecidas.has(limpo) || vistas.has(limpo)) continue;
+    vistas.add(limpo);
+    const comercial = await lerComercial(kv, limpo);
+    // Sem registo comercial NÃO é uma escola: é o resto de uma criação que falhou. `lerComercial`
+    // devolve `ativa` por omissão, e é o `criadoEm` que diz se alguém o escreveu alguma vez.
+    if (!comercial || !comercial.criadoEm) continue;
+    const cadastro = await lerCadastroDaEscola({ PADD_KV: kv }, limpo);
+    pendentes.push({
+      slug: limpo,
+      nome: (cadastro && cadastro.escolaNome) || limpo,
+      /* O PROFESSOR NÃO VEM DO CADASTRO: ele é o do elo (`bastidores/<escola>/professores`), e o
+       * registo comercial guarda-o quando a escola é criada. Cair no cadastro seria ler um campo
+       * que ali não existe — e um nome de professor a menos numa linha é melhor do que um nome
+       * errado. */
+      professor: comercial.professor || null,
+      professores: [],
+      criada_em: comercial.criadoEm || comercial.atualizadoEm || null,
+      expurgada_em: null,
+      expurgada: false,
+      expurgos: 0,
+      aNascer: true,
+    });
+  }
+  return pendentes;
+}
+
 async function escolasDoIndiceComComercial({ token, kv }) {
   const [escolas, professores] = await escolasDoIndice({ token });
+  /* A JANELA DO CI FECHA-SE AQUI: o que existe no Cloudflare e ainda não está no índice entra na
+   * lista, marcado — ver `escolasANascer`. */
+  const aNascer = await escolasANascer({ kv, conhecidas: escolas });
+  for (const e of aNascer) escolas.push(e);
   /* OS DESCONTOS SÃO LIDOS UMA VEZ, e não uma por escola (25/11/2026). Estão numa chave só
    * (`financeiro/descontos`), precisamente para isto: a lista das vivas abre muitas vezes, e uma
    * leitura por linha seria uma leitura por escola em cada abertura — a mesma família de erro que
@@ -259,7 +330,11 @@ function paginaSemToken() {
  * A UNICIDADE DO SLUG NÃO MORA AQUI: ela precisa do repositório (`listarProfessores`) para saber
  * o que já existe. Esta função é só a FORMA do pedido — sem I/O, e por isso provável sozinha.
  */
-function validarCriacaoEscola(corpo) {
+function validarCriacaoEscola(corpo, opcoes) {
+  /* `permiteReuso` ENTRA AQUI PORQUE A FRASE DEPENDE DELE (16/11/2026). No público o professor é
+   * sempre novo, e uma recusa que diz «ou escolha um professor que já existe» manda a pessoa
+   * procurar na tela um caminho que a tela já não tem. A mensagem é parte da regra. */
+  const permiteReuso = !opcoes || opcoes.permiteReuso !== false;
   const p = corpo || {};
   const campos = {
     nome: String(p.nome || '').trim(),
@@ -281,7 +356,13 @@ function validarCriacaoEscola(corpo) {
   // é o certo aqui, não um campo esquecido — e exigir o nome deste lado era o defeito.
   if (campos.professorExistente) return { ok: true, modo: 'existente', campos };
   if (!campos.professorNome) {
-    return { ok: false, status: 400, erro: 'informe o nome do professor — ou escolha um professor que já existe' };
+    return {
+      ok: false,
+      status: 400,
+      erro: permiteReuso
+        ? 'informe o nome do professor — ou escolha um professor que já existe'
+        : 'informe o nome do professor principal',
+    };
   }
   return { ok: true, modo: 'novo', campos };
 }
@@ -526,7 +607,23 @@ async function responderCriacao(request, env, opcoes) {
     // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
     // é a pessoa de contato da escola — o nome pode ser ajustado nos Bastidores.
     const professorEhDono = true;
-    const valido = validarCriacaoEscola(corpo);
+    /* NA PORTA PÚBLICA O PROFESSOR É SEMPRE NOVO (16/11/2026).
+     *
+     * «Para quem tá no sistema pela página que é pública [...] não precisa ter aquela seleção ali
+     * de professor se é novo ou não. Já é sempre novo de cara.» E o motivo é de fundo: reutilizar
+     * uma pasta é uma decisão de quem conhece o histórico das escolas — e quem chega pelo endereço
+     * aberto não conhece, nem tem por onde conhecer (a lista de professores não se publica).
+     *
+     * A RETIRADA É FEITA AQUI, e não na página. A página já não oferece a escolha; o que se fecha
+     * aqui é a PORTA — um pedido escrito à mão com `professorExistente` não atravessa. E retira-se
+     * em vez de recusar: uma página em cache que ainda mande o campo tem de conseguir criar a
+     * escola, e o que ela pediu a mais é simplesmente ignorado. */
+    if (origem === 'publico') {
+      delete corpo.professorExistente;
+      delete corpo['professor-existente'];
+      delete corpo['professor-existente-nome'];
+    }
+    const valido = validarCriacaoEscola(corpo, { permiteReuso: origem !== 'publico' });
     if (!valido.ok) return responderJson({ ok: false, erro: valido.erro }, valido.status);
     const { nome, senhaAdmin, professorNome, professorSobrenome, professorExistente, senhaProfessor } = valido.campos;
 
@@ -582,12 +679,28 @@ async function responderCriacao(request, env, opcoes) {
     if (cadastro.cpf) {
       const jaTem = await cpfJaUsado(env, cadastro.cpf);
       if (jaTem) {
+        /* A MESMA RECUSA, DUAS SAÍDAS — e a diferença é de quem é a decisão (16/11/2026).
+         *
+         * No PAINEL a saída é uma acção: a lista está à frente, e escolher o professor que existe é
+         * um clique. No PÚBLICO não há lista nem deve haver — «ali vai ser sempre novo» —, e
+         * portanto a saída não é dele: é de quem administra o sistema. Dizer «escolha um professor
+         * que já existe» a quem não tem a opção seria um erro que sabe a saída e a aponta para o
+         * lado errado. */
+        const contacto = enderecoDaAdministracao(env);
         return responderJson({
           ok: false,
-          erro: 'o CPF ' + cadastro.cpf + ' já é do professor «' + jaTem + '» — um CPF é um '
-            + 'professor, e a pasta dele já existe. Escolha «um professor que já existe» na '
-            + 'etapa do professor.',
+          erro: origem === 'publico'
+            ? 'o CPF ' + cadastro.cpf + ' já está registado no Sistema Lastro, como professor '
+              + '«' + jaTem + '». Cada CPF é um professor, e a pasta dele já existe — o cadastro '
+              + 'não pode ser refeito por aqui. Escreva para a administração do Sistema Lastro'
+              + (contacto ? ' (' + contacto + ')' : '')
+              + ' e peça a criação da escola com este professor: a escola nova é criada ao lado '
+              + 'da que ele já tem, sem tocar no que lá está.'
+            : 'o CPF ' + cadastro.cpf + ' já é do professor «' + jaTem + '» — um CPF é um '
+              + 'professor, e a pasta dele já existe. Escolha «um professor que já existe» na '
+              + 'etapa do professor.',
           professorExistente: jaTem,
+          procuraAAdministracao: origem === 'publico' ? true : undefined,
         }, 409);
       }
     }
@@ -638,7 +751,9 @@ async function responderCriacao(request, env, opcoes) {
       if (!professorSobrenome) {
         return new Response(JSON.stringify({
           ok: false,
-          erro: 'informe o sobrenome (ou um apelido) do professor — o nome vira a pasta `professores/<nome>/` e não pode repetir. Se for a mesma pessoa de um professor que já existe, use «usar este professor».',
+          erro: origem === 'publico'
+            ? 'informe o sobrenome (ou um apelido) do professor — é ele que separa dois professores do mesmo nome, porque o nome vira a pasta `professores/<nome>-<sobrenome>/` e não pode repetir.'
+            : 'informe o sobrenome (ou um apelido) do professor — o nome vira a pasta `professores/<nome>/` e não pode repetir. Se for a mesma pessoa de um professor que já existe, use «usar este professor».',
           professoresExistentes: existentes.map((p) => p.slug),
         }), {
           status: 400,
@@ -654,10 +769,26 @@ async function responderCriacao(request, env, opcoes) {
       }
       const colisao = existentes.find((p) => p.slug === professor);
       if (colisao) {
+        /* O NOME QUE JÁ EXISTE — e o que se pede a quem o escreveu (16/11/2026).
+         *
+         * No painel: mudar o sobrenome, ou escolher o professor que já existe. No público: não há
+         * escolha, e também não há como distinguir «é a mesma pessoa» de «é outra com o mesmo
+         * nome» — a pasta é que sabe, e quem sabe ler a pasta é a administração. A mensagem diz
+         * isso, e diz o que fazer. */
+        const contacto = enderecoDaAdministracao(env);
+        const quem = colisao.nome || colisao.slug;
         return new Response(JSON.stringify({
           ok: false,
-          erro: 'já existe o professor "' + (colisao.nome || colisao.slug) + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
+          erro: origem === 'publico'
+            ? 'já existe no Sistema Lastro um professor «' + quem + '», e o nome dele ocupa a '
+              + 'pasta `professores/' + professor + '/` — que é do sistema, e não da escola. '
+              + 'Se for OUTRA pessoa, acrescente um sobrenome ou um apelido que a distinga. Se for '
+              + 'a mesma, o cadastro não se refaz por aqui: escreva para a administração do '
+              + 'Sistema Lastro' + (contacto ? ' (' + contacto + ')' : '')
+              + ' e peça a escola nova com este professor.'
+            : 'já existe o professor "' + quem + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
           colisao: colisao.slug,
+          procuraAAdministracao: origem === 'publico' ? true : undefined,
         }), {
           status: 409,
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
@@ -808,6 +939,10 @@ async function responderCriacao(request, env, opcoes) {
       estado: estadoComercial,
       plano: escolha.plano,
       planoNome: escolha.planoNome,
+      /* O PROFESSOR JUNTO (16/11/2026): é ele que a linha «a nascer» mostra enquanto o índice não
+       * sabe da escola, e é o próprio facto que a criação já tem na mão. Guardá-lo aqui evita uma
+       * leitura a mais no dia em que a lista precisa dele. */
+      professor,
       valorCentavos: escolha.valorCentavos,
       valor: escolha.valor,
       periodicidade: escolha.periodicidade,
@@ -1278,6 +1413,22 @@ async function quemTemEsteNumero(env, { prefixo, sufixo, campo, valor, ignorar }
     }
   } catch (erro) { return null; }
   return null;
+}
+
+/**
+ * O ENDEREÇO DE QUEM ADMINISTRA — para uma recusa ter para onde apontar (16/11/2026).
+ *
+ * Ele vem do `CORREIO_DE`, que já é o remetente declarado do sistema
+ * (`Sistema Lastro <lastro@padd.com.br>`), e não de uma segunda `var`: dois endereços do mesmo
+ * sistema divergiriam no dia em que um mudasse. Sem `CORREIO_DE`, devolve `null` e as mensagens
+ * dizem «a administração do Sistema Lastro» sem inventar um endereço.
+ */
+function enderecoDaAdministracao(env) {
+  const bruto = String((env && env.CORREIO_DE) || '');
+  const dentro = /<([^>\s]+@[^>\s]+)>/.exec(bruto);
+  if (dentro) return dentro[1];
+  const solto = /[^\s<>,;]+@[^\s<>,;]+/.exec(bruto);
+  return solto ? solto[0] : null;
 }
 
 /** A escola que já tem este CNPJ — ou `null`. */
@@ -1992,11 +2143,19 @@ async function fetch(request, env) {
        *
        * A LEITURA É POR ESCOLA, e é o preço de o estado morar no cofre de cada uma. Não é
        * enumeração: são as escolas do índice, e a lista já as tem na mão. */
+      /* A JANELA DO CI, também aqui (16/11/2026): a lista do botão «Apagar escola» vem da mesma
+       * fonte que a lista das vivas, e uma escola recém-criada tem de poder ser apagada sem se
+       * esperar pelo workflow. Ver `escolasANascer`. */
+      const aNascer = await escolasANascer({ kv: env && env.PADD_KV, conhecidas: r.escolas });
+      const todas = r.escolas.concat(aNascer.map((e) => ({
+        slug: e.slug, professor: e.professor, ciclo: null, total: 0,
+      })));
       const escolasComComercial = [];
-      for (const e of r.escolas) {
+      for (const e of todas) {
         const c = await lerComercial(env && env.PADD_KV, e.slug);
         escolasComComercial.push({ e, c });
       }
+      const nasceAgora = new Set(aNascer.map((e) => e.slug));
       return responderJson({
         ok: true,
         fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
@@ -2007,6 +2166,7 @@ async function fetch(request, env) {
           ciclo: e.ciclo,
           total: e.total,
           estadoComercial: c.estado,
+          aNascer: nasceAgora.has(e.slug) || undefined,
           desabilitadaEm: c.desabilitadaEm || null,
           carenciaAte: carenciaAte(c.desabilitadaEm),
           /* O ENDEREÇO É O PRÓPRIO, E NÃO O `workers.dev` (14/11/2026). O técnico era o que
@@ -2339,4 +2499,8 @@ module.exports = {
    * em produção descobre-se em produção — com o dinheiro de alguém no meio. */
   lerPix, gravarPix, lerDescontos, concederDesconto, retirarDesconto,
   carenciaAte, MESES_DE_CARENCIA,
+  /* A JANELA ENTRE A ESCOLA E O ÍNDICE (16/11/2026). Exportada porque a regra «isto é uma escola a
+   * nascer, e não o resto de uma criação que falhou» é exactamente o tipo de regra que se mede na
+   * bancada e não em produção — onde o sintoma é a lista vazia de quem acabou de criar a escola. */
+  escolasANascer, enderecoDaAdministracao,
 };
