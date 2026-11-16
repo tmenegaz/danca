@@ -119,6 +119,45 @@ function calcular({ assinatura, lotes } = {}) {
 }
 
 /**
+ * AS EXTENSÕES QUE A PESSOA ESCOLHEU, conferidas contra o plano (16/11/2026).
+ *
+ * O CATÁLOGO DIZ QUE A ESCOLHA EXISTE, e até aqui ninguém a fazia: «É o cliente que escolhe se
+ * quer gerar ou só configurar» está escrito na descrição da extensão `turma-pronta-conteudo`. O
+ * plano que inclui as duas (`avancado`) oferecia-as as duas, sempre, e a escola ficava com a mais
+ * completa sem ninguém a ter pedido — ou sem poder ficar só com a mais simples.
+ *
+ * A REGRA É A MESMA DO RESTO DO MÓDULO: a página propõe, o servidor decide. Uma extensão que o
+ * plano não inclui é RECUSADA com o nome dela (não é ignorada em silêncio: quem pediu tem de
+ * saber que não ficou com o que pediu). Sem lista nenhuma, o comportamento antigo mantém-se — e é
+ * ele que a criação pelo formulário público e as recriações de antes desta mudança usam.
+ */
+function extensoesEscolhidas(planoId, pedidas) {
+  const incluidas = extensoesDoPlano(planoId);
+  if (!Array.isArray(pedidas) || !pedidas.length) {
+    return { ok: true, extensoes: incluidas.map((e) => e.id) };
+  }
+  const queridas = [];
+  for (const bruto of pedidas) {
+    const alvo = String(bruto == null ? '' : bruto).trim().toLowerCase();
+    if (!alvo) continue;
+    const achada = incluidas.find((e) => String(e.id).toLowerCase() === alvo);
+    if (!achada) {
+      const existe = EXTENSOES.find((e) => e && String(e.id).toLowerCase() === alvo);
+      return {
+        ok: false,
+        erro: existe
+          ? 'a extensão «' + alvo + '» não está incluída no plano «' + planoId + '»'
+          : 'a extensão «' + alvo + '» não existe no catálogo',
+      };
+    }
+    if (queridas.indexOf(achada.id) === -1) queridas.push(achada.id);
+  }
+  /* A ORDEM É A DO CATÁLOGO, e não a do pedido: duas escolas com as mesmas extensões têm de
+   * ficar com o mesmo registo, senão comparar duas linhas do painel passa a ser ler duas ordens. */
+  return { ok: true, extensoes: incluidas.filter((e) => queridas.indexOf(e.id) !== -1).map((e) => e.id) };
+}
+
+/**
  * A ESCOLHA DE PLANO QUE VEIO DA PÁGINA — validada, e não confiada.
  *
  * É a mesma disciplina do cadastro (`cadastro-da-escola.js`): a página propõe, o servidor decide.
@@ -135,6 +174,8 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
     lotes: { professores: p.lotesProfessores || [], alunos: p.lotesAlunos || [] },
   });
   if (!calculo.ok) return calculo;
+  const extensoes = extensoesEscolhidas(plano.id, p.extensoes);
+  if (!extensoes.ok) return { ok: false, erro: extensoes.erro };
   const dispensado = Boolean(podeDispensar && p.dispensarPagamento);
   return {
     ok: true,
@@ -145,7 +186,7 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
       lotesAlunos: calculo.lotes.alunos.map((l) => l.qtd),
       valorCentavos: calculo.totalCentavos,
       valor: calculo.total,
-      extensoes: calculo.extensoes,
+      extensoes: extensoes.extensoes,
       capacidade: calculo.capacidadeTotal,
       periodicidade: calculo.periodicidade,
       pagamento: dispensado ? 'dispensado-pelo-proprietario' : 'pix-a-conciliar',
@@ -231,6 +272,7 @@ module.exports = {
   comercialDaEscola,
   assinaturaPorId,
   extensoesDoPlano,
+  extensoesEscolhidas,
   lotesDe,
   calcular,
   validarEscolha,

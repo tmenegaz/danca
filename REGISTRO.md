@@ -47640,3 +47640,70 @@ outro trabalho, e o convite mostra o caminho (token, página pública, senha nov
 plano gratuito — 3.000 mensagens por mês e 100 por dia —, e o aviso ao proprietário gasta uma por
 cadastro. `provar-painel` continua com as **4 falhas pré-existentes** (destinos do menu e colunas das
 vivas), medidas antes desta mudança.
+
+## 16/11/2026 — o link que abria e não concluía, e a extensão que ninguém escolhia
+
+**O que motivou.** O primeiro clique a sério no convite, e ela colou o console: «POST
+https://lastro.padd.com.br/recriar/api/recriar/duo-a9fb… 404 (Not Found)» e a página a dizer «não
+foi possível concluir o cadastro». Na mesma frase, a segunda falta: «Faltou dar a possibilidade de
+escolher entre as extensões para o plano.»
+
+**O 404 era do caminho, e não da rota.** O pedido estava escrito `fetch("api/recriar/__TOKEN__")`,
+relativo — e a página vive em `/recriar/<token>`, onde isso resolve para
+`/recriar/api/recriar/<token>`. A rota existia, o convite era válido, e o pedido nunca lá chegou. É
+o primo do defeito do `if` que filtrava o título vazio: a pergunta «está aqui?» e a pergunta
+«existe?» não são a mesma. O caminho passou a `"/api/recriar/<token>"`, absoluto — um endereço que
+começa e termina no mesmo sítio não se escreve pela metade.
+
+**A escolha das extensões existia no catálogo e não existia na tela.** A descrição da extensão
+`turma-pronta-conteudo` diz, com todas as letras, «é o cliente que escolhe se quer gerar ou só
+configurar» — e o plano `avancado`, que inclui as duas, recebia as duas sem ninguém as pedir. Quem
+comprava o degrau mais alto não podia ficar só com a configuração, e quem comprava os outros não
+sabia que havia mais.
+
+**O que foi decidido.**
+
+- **A regra é uma, e mora no `comercial`.** `extensoesEscolhidas(plano, pedidas)` confere o que a
+  página propôs contra o que o plano inclui. Uma extensão fora do plano é RECUSADA com o nome dela —
+  ignorá-la em silêncio deixaria a escola a achar que contratou o que não contratou. Uma extensão que
+  não existe no catálogo diz-se de outra maneira, e a diferença importa a quem lê o erro.
+- **Sem lista, o comportamento de antes.** `extensoes` ausente ou vazia → o que o plano inclui. É o
+  que mantém de pé a criação pelo formulário público tal como estava, e as recriações anteriores a
+  esta mudança.
+- **Uma extensão não é uma escolha.** Com uma só, a caixa fecha-se e a lista diz o que o plano
+  inclui; um rádio solitário é um clique que não decide nada. Com duas, quem escolhe é a escola.
+- **A ordem do registo é a do catálogo, e não a do pedido.** Duas escolas com as mesmas extensões
+  ficam com o mesmo registo; senão, comparar duas linhas do painel seria ler duas ordens.
+- **As duas páginas fazem a mesma pergunta.** O convite e o formulário público nascem do mesmo
+  catálogo e servem a mesma pessoa; deixar a escolha só numa delas seria a divergência que o módulo
+  `comercial` existe para impedir.
+- **Um `p` virou `div` no formulário público.** O `fieldset.escolhas` não cabe dentro de um
+  parágrafo: o navegador fecha-o e o campo fica fora do sítio onde o script o procura. O defeito não
+  apareceria em nenhuma leitura do HTML — só a correr.
+- **A escolha repinta-se quando o plano muda.** Aqui o `change` chamava o resumo, o Pix e os lotes, e
+  não as extensões: quem trocasse de plano escolhia a extensão do plano anterior, e a prova em jsdom
+  foi o que o mostrou.
+
+**Onde entrou.** `motor/nucleo/comercial.js` (`extensoesEscolhidas`, e o `validarEscolha` a usá-la) ·
+`motor/servidor/raiz.js` (`receberOConvite` e `recriarEscola` levam e validam `extensoes`; a recusa
+do plano passou a ser a frase do catálogo, e não uma segunda opinião escrita na rota) ·
+`motor/servidor/painel-html.js` (a caixa das extensões na página do convite, alimentada pelo
+catálogo no `data-extensoes`; e o pedido para a raiz do sítio) · `raiz/index.html` (a mesma escolha
+no formulário público, o `p` → `div`, o repintar no `change`, e `extensoes` no corpo) ·
+`experimentos/provar-recriar-escola.js` (secção I, nova) · `experimentos/provar-pagina-publica.js`
+(secção I, nova).
+
+**Com o quê.** `provar-recriar-escola` **80/80**, com uma secção I que CORRE a página em jsdom, no
+endereço real do convite: um plano com uma extensão não pergunta nada; um plano com duas mostra as
+duas, com a primeira marcada; escolhida a segunda, é a segunda que vai no corpo; e o clique faz UM
+pedido a `/api/recriar/<token>` — a asserção que, escrita antes da correção, reprovava. Mais
+`provar-pagina-publica` **79/79** (a secção I mede a mesma escolha no formulário público, e que o
+`fieldset` aparece dentro de um `div`), `provar-indices` 64/64 · `provar-a-carencia-nao-se-burla`
+58/58 · `provar-escola-a-nascer` 48/48 · `provar-financeiro` 58/58 · `provar-cofre-e-shard` 129/129 ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica declarado.** O convite que ela recebeu **não se gastou** no 404 — a rota nunca foi
+alcançada —, e depois desta correção o mesmo link abre e conclui. A extensão escolhida fica no
+registo comercial (`extensoes`) e no aviso a quem concilia; o que ela muda no motor é a geração do
+conteúdo das turmas, e essa ligação ainda **não** está feita — o registo declara a intenção
+contratada, e é isso que hoje se sabe ler.

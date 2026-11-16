@@ -333,6 +333,27 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('…e com a instrução de escrever o nome da escola no Pix',
       /escreva o nome da escola/i.test(boa.html), null);
 
+    /* AS EXTENSÕES DO PLANO (16/11/2026) — «Faltou dar a possibilidade de escolher entre as
+     * extensões para o plano.» A caixa existe com o catálogo dentro, e é o script que mostra só as
+     * do plano escolhido: quais são e em que planos entram NÃO se copia para a página. */
+    conferir('…e com a caixa das extensões, alimentada pelo catálogo do servidor',
+      /id="convite-extensoes"/.test(boa.html) && /data-extensoes="/.test(boa.html), null);
+    const catalogoBruto = JSON.parse(
+      (boa.html.match(/data-extensoes="([^"]*)"/)[1] || '')
+        .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+    conferir('…com TODAS as extensões do catálogo (o filtro é do plano, e é do script)',
+      catalogoBruto.length === comercial.catalogoDaPagina().extensoes.length && catalogoBruto.length > 1,
+      catalogoBruto.map((e) => e.id));
+    conferir('…e cada uma diz em que planos entra', catalogoBruto.every((e) => Array.isArray(e.em) && e.em.length),
+      null);
+    /* O PEDIDO VAI PARA `/api/recriar/…` NA RAIZ DO SÍTIO. Aqui esteve um caminho relativo, que
+     * dentro de `/recriar/<token>` resolvia para `/recriar/api/recriar/<token>` — 404, e a página
+     * dizia «não foi possível concluir o cadastro» sobre um pedido que nunca chegou à rota. */
+    conferir('…e o pedido vai para a raiz do sítio, e não para o lado da página',
+      boa.html.indexOf('fetch("/api/recriar/') !== -1,
+      (boa.html.match(/fetch\("[^"]*"/) || [])[0]);
+    conferir('…levando as extensões escolhidas no corpo', /extensoes:extensoesEscolhidas\(\)/.test(boa.html), null);
+
     const errada = await abrir('duo-' + 'f'.repeat(32));
     conferir('com o token errado, 404 — e SEM formulário', errada.status === 404
       && !/convite-senha-escola/.test(errada.html), errada.status);
@@ -384,6 +405,18 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
         semSenha.status === 400 && /senha da escola/.test(semSenha.corpo.erro || ''), semSenha);
       conferir('…e nenhuma carta saiu com essa tentativa', cartas.length === 0, cartas.length);
 
+      /* A ESCOLHA DA EXTENSÃO, e a recusa da que o plano não inclui — a regra é a do catálogo, e
+       * a página não a pode contornar: o `POST` é público, e um corpo bem feito à mão vale tanto
+       * como um clique. */
+      const foraDoPlano = await submeter({
+        plano: PLANO, extensoes: [comercial.catalogoDaPagina().extensoes[1].id], senhaAdmin: 'x',
+      });
+      conferir('uma extensão que o plano não inclui: 400, e o nome dela na recusa',
+        foraDoPlano.status === 400
+          && String(foraDoPlano.corpo.erro || '').indexOf(comercial.catalogoDaPagina().extensoes[1].id) !== -1,
+        foraDoPlano);
+      conferir('…e nada foi criado com essa tentativa', cartas.length === 0, cartas.length);
+
       r = await submeter({ plano: PLANO, senhaAdmin: 'nova-da-escola', senhaProfessor: 'nova-do-professor' });
     } finally { delete globalThis.fetch; }
 
@@ -423,6 +456,12 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('a escola nasce «aguardando» — é a conciliação que abre o acesso',
       comercialDepois.estado === 'aguardando', comercialDepois.estado);
     conferir('…com a origem declarada como convite', comercialDepois.origem === 'convite', comercialDepois.origem);
+    /* SEM ESCOLHA, O REGISTO LEVA O QUE O PLANO INCLUI — é a regra do `validarEscolha`, e é ela que
+     * mantém de pé a criação pelo formulário público e as recriações de antes desta mudança. */
+    conferir('…e com as extensões do plano, quando a página não manda nenhuma',
+      JSON.stringify(comercialDepois.extensoes)
+        === JSON.stringify(comercial.extensoesDoPlano(PLANO).map((e) => e.id)),
+      comercialDepois.extensoes);
   }
 
   console.log('\nF. As duas listas: a que está a ser recriada muda de lado');
@@ -594,6 +633,103 @@ const PLANO = comercial.catalogoDaPagina().assinaturas[0].id;
     conferir('…e os scripts das duas páginas não lançam', erros.length === 0, erros.slice(0, 1));
     dom.window.close();
     dom2.window.close();
+  }
+
+  /* ── I. A PÁGINA DO CONVITE A CORRER (16/11/2026) ────────────────────────────────────────────
+   *
+   * O QUE ESTA SECÇÃO MEDE, e por que razão ela é de jsdom e não de expressão regular: os dois
+   * defeitos que ela encontrou a 16/11 só aparecem QUANDO ALGUÉM CARREGA. O pedido relativo
+   * (`fetch("api/recriar/…")`) resolvia para `/recriar/api/recriar/…` — 404 na cara de quem
+   * preencheu tudo e clicou; e a escolha das extensões não existia. Uma prova que só lesse o HTML
+   * diria «está lá o campo» sobre um pedido que nunca chegava à rota.
+   */
+  console.log('\nI. A página do convite a correr: o plano, as extensões e o pedido');
+  {
+    const { JSDOM, VirtualConsole } = require('jsdom');
+    const nucleo = require(path.join(RAIZ, 'motor/nucleo/convite.js'));
+    const segredo = nucleo.novoToken();
+    const token = 'duo-' + segredo;
+    const catalogo = comercial.catalogoDaPagina();
+    const comDuas = catalogo.assinaturas.find(
+      (a) => comercial.extensoesDoPlano(a.id).length > 1) || catalogo.assinaturas[catalogo.assinaturas.length - 1];
+    const comUma = catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 1)
+      || catalogo.assinaturas[0];
+    const html = painel.paginaDoConvite({
+      escola: 'duo', nome: 'Duo', token, catalogo,
+      pix: { chave: 'chave@pix.test', titular: 'Sistema Lastro' },
+      estado: { ok: true, expiraEm: nucleo.validadeDe() },
+    });
+
+    const vc = new VirtualConsole();
+    const erros = [];
+    vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+    const pedidos = [];
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously',
+      url: 'https://lastro.padd.com.br/recriar/' + token,
+      virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+        w.fetch = (u, init) => {
+          pedidos.push({ url: String(u), corpo: JSON.parse((init && init.body) || '{}') });
+          return Promise.resolve({
+            status: 201, ok: true,
+            json: () => Promise.resolve({
+              ok: true, escola: 'duo', nome: 'Duo', quando: new Date().toISOString(),
+              quandoTexto: '16/11/2026 às 11:40', url: 'https://duo.padd.com.br',
+            }),
+          });
+        };
+      },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const d = dom.window.document;
+    const trocarPlano = async (id) => {
+      const sel = d.getElementById('convite-plano');
+      sel.value = id;
+      sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+      await new Promise((r) => setTimeout(r, 50));
+    };
+
+    const caixa = d.getElementById('convite-extensoes');
+    conferir('a caixa das extensões existe na página', Boolean(caixa), null);
+
+    await trocarPlano(comUma.id);
+    conferir('um plano com UMA extensão não pede escolha — a caixa fecha-se',
+      caixa.hidden === true, { plano: comUma.id, escondida: caixa.hidden });
+
+    await trocarPlano(comDuas.id);
+    const opcoes = d.querySelectorAll('input[name="convite-extensao"]');
+    conferir('um plano com DUAS extensões mostra as duas, para escolher',
+      caixa.hidden === false && opcoes.length === 2, { plano: comDuas.id, opcoes: opcoes.length });
+    conferir('…com a primeira marcada, e cada uma com a sua descrição',
+      opcoes[0].checked === true && (d.querySelectorAll('#convite-extensoes small') || []).length === 2,
+      null);
+    conferir('…e são exatamente as do plano, segundo o catálogo',
+      Array.prototype.map.call(opcoes, (o) => o.value).join(',')
+        === comercial.extensoesDoPlano(comDuas.id).map((e) => e.id).join(','),
+      Array.prototype.map.call(opcoes, (o) => o.value));
+
+    /* ESCOLHE-SE A SEGUNDA — e é ela que tem de chegar ao servidor, não a primeira. */
+    opcoes[1].checked = true;
+    opcoes[0].checked = false;
+    d.getElementById('convite-senha-escola').value = 'nova-da-escola';
+    d.getElementById('convite-enviar').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 150));
+
+    conferir('o clique faz UM pedido, à raiz do sítio (era aqui que ele se perdia em 404)',
+      pedidos.length === 1 && pedidos[0].url.indexOf('/api/recriar/' + token) === 0,
+      pedidos.map((p) => p.url));
+    conferir('…com o plano, a senha e a extensão ESCOLHIDA — e a segunda, não a primeira',
+      pedidos[0].corpo.plano === comDuas.id
+        && pedidos[0].corpo.senhaAdmin === 'nova-da-escola'
+        && JSON.stringify(pedidos[0].corpo.extensoes)
+          === JSON.stringify([comercial.extensoesDoPlano(comDuas.id)[1].id]),
+      pedidos[0].corpo);
+    conferir('…e a página diz o que aconteceu a seguir (a conciliação é manual)',
+      /concilia/i.test(d.getElementById('convite-recado').textContent), null);
+    conferir('…sem um erro de jsdom a estragar o resto do script', erros.length === 0, erros.slice(0, 1));
+    dom.window.close();
   }
 
   console.log('');

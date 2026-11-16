@@ -2092,6 +2092,7 @@ async function receberOConvite(request, env) {
     env,
     escola: lido.escola,
     plano: corpo && corpo.plano,
+    extensoes: corpo && corpo.extensoes,
     senhaAdmin,
     senhaProfessor,
     origem: 'convite',
@@ -2136,7 +2137,7 @@ async function receberOConvite(request, env) {
   }), 201);
 }
 
-async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor, origem }) {
+async function recriarEscola({ env, escola, plano, extensoes, senhaAdmin, senhaProfessor, origem }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
   const ghToken = env && env.GITHUB_TOKEN;
@@ -2219,12 +2220,23 @@ async function recriarEscola({ env, escola, plano, senhaAdmin, senhaProfessor, o
    * plano raramente muda com um expurgo no meio). Sem nenhum dos dois, RECUSA: a escola nasceria
    * sem valor, e a chave Pix que se manda a seguir não teria quantia. */
   const planoPedido = String(plano || '').trim() || String(comercialDaVez.plano || '').trim();
-  const escolhaComercial = comercial.validarEscolha({ plano: planoPedido }, { podeDispensar: false });
+  /* AS EXTENSÕES VÊM DA PÁGINA DO CONVITE (16/11/2026): o plano diz quais existem, a escola diz
+   * qual quer. Sem lista — a recriação pelo painel, ou o plano que só tem uma —, `validarEscolha`
+   * aplica o que o plano inclui, que é o comportamento de antes. */
+  const escolhaComercial = comercial.validarEscolha(
+    { plano: planoPedido, extensoes }, { podeDispensar: false });
   if (!escolhaComercial.ok) {
+    /* A MENSAGEM É A DO CATÁLOGO, e não uma segunda opinião escrita aqui: o plano que falta e a
+     * extensão que o plano não inclui dizem-se com frases diferentes, e quem as sabe é quem tem a
+     * tabela. O que se acrescenta é só o nome do plano que veio — o resto é do `comercial`. */
+    const generica = 'escolha o plano da escola';
+    const erro = String(escolhaComercial.erro || '').trim();
     return {
       ok: false, status: 400,
-      erro: 'escolha o plano da escola — a recriação precisa dele para a chave Pix dizer o valor'
-        + (planoPedido ? ' (o plano «' + planoPedido + '» não está no catálogo)' : ''),
+      erro: !planoPedido
+        ? generica + ' — a recriação precisa dele para a chave Pix dizer o valor'
+        : (erro && erro !== generica ? erro
+          : 'o plano «' + planoPedido + '» não está no catálogo'),
     };
   }
   const escolha = escolhaComercial.escolha;

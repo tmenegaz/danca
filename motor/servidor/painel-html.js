@@ -725,6 +725,14 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
       '<label class="campo-rotulo" for="convite-plano">plano da escola</label>' +
       '<select id="convite-plano">' + planos + '</select>' +
       '<p class="nota" id="convite-valor"></p>' +
+      /* AS EXTENSÕES DO PLANO SÃO UMA ESCOLHA, e não uma linha de rodapé (16/11/2026). O catálogo
+       * diz «é o cliente que escolhe se quer gerar ou só configurar», e o plano que inclui as duas
+       * oferecia-as as duas sem ninguém as pedir. A lista é montada pelo script a partir do
+       * catálogo — quais são, e em que planos entram, não se copia para aqui —, e o `data-extensoes`
+       * é o catálogo em bruto para essa montagem. */
+      '<fieldset class="escolhas" id="convite-extensoes" data-extensoes="'
+        + esc(JSON.stringify((catalogo && catalogo.extensoes) || [])) + '" hidden>' +
+      '<legend>O que este plano inclui</legend></fieldset>' +
 
       '<h2>2. As senhas</h2>' +
       '<label class="campo-rotulo" for="convite-senha-escola">senha da escola (a direção)</label>' +
@@ -781,17 +789,55 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado }) {
 const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'var plano=document.getElementById("convite-plano"),valor=document.getElementById("convite-valor"),' +
   'se=document.getElementById("convite-senha-escola"),sp=document.getElementById("convite-senha-professor"),' +
-  'recado=document.getElementById("convite-recado"),enviar=document.getElementById("convite-enviar");' +
+  'recado=document.getElementById("convite-recado"),enviar=document.getElementById("convite-enviar"),' +
+  'caixa=document.getElementById("convite-extensoes");' +
   'if(!plano||!enviar)return;' +
+  /* O CATÁLOGO VEM NO `data-extensoes` DA CAIXA — em bruto, como o servidor o tem. O que se filtra
+   * aqui é só QUAIS são as do plano escolhido (`em` contém o id); o que cada uma custa e o que
+   * inclui continua a ser do servidor. */
+  'var catalogo=[];try{catalogo=JSON.parse((caixa&&caixa.getAttribute("data-extensoes"))||"[]");}catch(e){catalogo=[];}' +
   'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
   'function mostrarValor(){var o=plano.options[plano.selectedIndex];' +
   'if(valor)valor.textContent=o?("Primeira mensalidade: "+o.getAttribute("data-preco")):"";}' +
-  'plano.addEventListener("change",mostrarValor);mostrarValor();' +
+  /* UMA EXTENSÃO NÃO É UMA ESCOLHA: com uma só, a caixa fecha-se e o plano fica a dizer o que
+   * inclui, sem um rádio solitário a pedir um clique que não decide nada. Com duas, quem escolhe é
+   * ela — e é isso que a descrição da extensão sempre prometeu. */
+  'function pintarExtensoes(){' +
+  '  if(!caixa)return;' +
+  '  var legenda=caixa.querySelector("legend");' +
+  '  var minhas=[];for(var i=0;i<catalogo.length;i++){' +
+  '    var e=catalogo[i];if(e&&(e.em||[]).indexOf(plano.value)!==-1)minhas.push(e);}' +
+  '  caixa.innerHTML="";if(legenda)caixa.appendChild(legenda);' +
+  '  if(minhas.length<2){caixa.hidden=true;return;}' +
+  '  for(var k=0;k<minhas.length;k++)(function(e,primeira){' +
+  '    var rotulo=document.createElement("label");rotulo.className="escolha";' +
+  '    var r=document.createElement("input");r.type="radio";r.name="convite-extensao";' +
+  '    r.value=e.id;if(primeira)r.checked=true;' +
+  '    var texto=document.createElement("span");' +
+  '    texto.appendChild(document.createTextNode(e.nome||e.id));' +
+  '    if(e.descricao){var mi=document.createElement("small");' +
+  '      mi.appendChild(document.createElement("br"));' +
+  '      mi.appendChild(document.createTextNode(e.descricao));texto.appendChild(mi);}' +
+  '    rotulo.appendChild(r);rotulo.appendChild(texto);caixa.appendChild(rotulo);' +
+  '  })(minhas[k],k===0);' +
+  '  caixa.hidden=false;}' +
+  /* A ESCOLHA VAI COMO LISTA, e vazia quando não há nada a escolher: aí o servidor aplica o que o
+   * plano inclui (é a regra dele, e a mesma de quem cria pelo formulário público). */
+  'function extensoesEscolhidas(){var lista=[],r=document.getElementsByName("convite-extensao");' +
+  'for(var i=0;i<r.length;i++){if(r[i].checked)lista.push(r[i].value);}return lista;}' +
+  'plano.addEventListener("change",function(){mostrarValor();pintarExtensoes();});' +
+  'mostrarValor();pintarExtensoes();' +
   'enviar.addEventListener("click",function(){' +
   'if(!se||!se.value){dizer("escreva a senha da escola",true);if(se)se.focus();return;}' +
   'dizer("a criar o acesso…");enviar.disabled=true;' +
-  'fetch("api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
-  'body:JSON.stringify({plano:plano.value,senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
+  /* O PEDIDO VAI PARA A RAIZ DO SÍTIO, e não para o lado da página (16/11/2026). Aqui esteve
+   * `fetch("api/recriar/…")`, relativo: dentro de `/recriar/<token>` isso resolve para
+   * `/recriar/api/recriar/<token>` — 404, e a página dizia «não foi possível concluir o cadastro»
+   * sobre um pedido que nunca chegou à rota. Um caminho que começa e termina no mesmo sítio não se
+   * escreve pela metade. */
+  'fetch("/api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  'body:JSON.stringify({plano:plano.value,extensoes:extensoesEscolhidas(),' +
+  'senhaAdmin:se.value,senhaProfessor:sp?sp.value:""})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
   'if(d&&d.ok){' +

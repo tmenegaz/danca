@@ -229,7 +229,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               <fieldset class="escolhas etapa-campo largo" id="planos-lista">
                 <legend>Qual plano</legend>
               </fieldset>
-              <p class="etapa-campo largo" id="planos-extensoes"></p>
+              <!-- Um `div`, e não um `p`: com duas extensões o script monta aqui um
+                   `fieldset.escolhas`, que dentro de um parágrafo seria fechado pelo
+                   navegador e ficaria fora do sítio onde o script o procura. -->
+              <div class="etapa-campo largo" id="planos-extensoes"></div>
               <fieldset class="escolhas etapa-campo largo" id="lotes-lista" hidden>
                 <legend>Capacidade a mais (por lote, na mensalidade)</legend>
               </fieldset>
@@ -1236,6 +1239,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               r.addEventListener("change", function () {
                 PLANO = pl.id;
                 lotesDoPlano();
+                /* AS EXTENSÕES SÃO DO PLANO, e por isso se repintam quando ele muda (16/11/2026).
+                 * Sem esta linha a escolha ficava a do plano que estava escolhido quando a página
+                 * abriu — e quem mudasse de plano escolhia a extensão de outro. */
+                pintarExtensoes();
                 pintarResumo();
                 pintarPix();
               });
@@ -1246,28 +1253,72 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             pintarResumo();
           }
 
+          /* AS EXTENSÕES DO PLANO, E A ESCOLHA ENTRE ELAS (16/11/2026).
+           *
+           * O catálogo diz «é o cliente que escolhe se quer gerar ou só configurar», e até aqui a
+           * página só as LISTAVA. Um plano que inclui as duas ficava com a mais completa sem
+           * ninguém a ter pedido.
+           *
+           * COM UMA SÓ NÃO SE PERGUNTA NADA: a lista fechada diz o que o plano inclui, e um rádio
+           * solitário seria um clique que não decide. O valor vai vazio, e o servidor aplica o que
+           * o plano traz — a regra é dele, não desta página. */
+          var EXTENSAO = "";
+
           function pintarExtensoes() {
             var alvo = document.getElementById("planos-extensoes");
             if (!alvo) return;
             alvo.innerHTML = "";
+            EXTENSAO = "";
             var catalogo = (PAGINA && PAGINA.planos) || null;
             if (!catalogo || !PLANO) return;
             var minhas = (catalogo.extensoes || []).filter(function (e) {
               return (e.em || []).indexOf(PLANO) !== -1;
             });
             if (!minhas.length) return;
-            var titulo = document.createElement("p");
-            titulo.className = "campo-rotulo";
-            titulo.textContent = "O que este plano inclui";
-            alvo.appendChild(titulo);
-            var lista = document.createElement("ul");
-            lista.className = "nota";
-            minhas.forEach(function (e) {
-              var li = document.createElement("li");
-              li.textContent = e.nome + " — " + e.descricao;
-              lista.appendChild(li);
+
+            if (minhas.length < 2) {
+              var titulo = document.createElement("p");
+              titulo.className = "campo-rotulo";
+              titulo.textContent = "O que este plano inclui";
+              alvo.appendChild(titulo);
+              var lista = document.createElement("ul");
+              lista.className = "nota";
+              minhas.forEach(function (e) {
+                var li = document.createElement("li");
+                li.textContent = e.nome + " — " + e.descricao;
+                lista.appendChild(li);
+              });
+              alvo.appendChild(lista);
+              return;
+            }
+
+            var caixa = document.createElement("fieldset");
+            caixa.className = "escolhas";
+            var legenda = document.createElement("legend");
+            legenda.textContent = "Qual das extensões do plano";
+            caixa.appendChild(legenda);
+            minhas.forEach(function (e, i) {
+              var rotulo = document.createElement("label");
+              rotulo.className = "escolha";
+              var r = document.createElement("input");
+              r.type = "radio";
+              r.name = "extensao";
+              r.value = e.id;
+              if (i === 0) { r.checked = true; EXTENSAO = e.id; }
+              r.addEventListener("change", function () { EXTENSAO = e.id; });
+              var texto = document.createElement("span");
+              texto.appendChild(document.createTextNode(e.nome));
+              if (e.descricao) {
+                var mi = document.createElement("small");
+                mi.appendChild(document.createElement("br"));
+                mi.appendChild(document.createTextNode(e.descricao));
+                texto.appendChild(mi);
+              }
+              rotulo.appendChild(r);
+              rotulo.appendChild(texto);
+              caixa.appendChild(rotulo);
             });
-            alvo.appendChild(lista);
+            alvo.appendChild(caixa);
           }
 
           /* A CAPACIDADE A MAIS É POR LOTE, e o lote é RECORRENTE: entra na mensalidade todos os
@@ -1450,6 +1501,9 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                  * que não esteja no catálogo. O `dispensarPagamento` só tem efeito na porta do
                  * proprietário — o servidor ignora-o na pública, e é ele que decide. */
                 plano: PLANO,
+                /* A EXTENSÃO ESCOLHIDA, quando há mais de uma (16/11/2026). Vazia, o servidor
+                 * aplica o que o plano inclui — e é ele que recusa o que o plano não tem. */
+                extensoes: EXTENSAO ? [EXTENSAO] : [],
                 lotesProfessores: LOTES.professores,
                 lotesAlunos: LOTES.alunos,
                 dispensarPagamento: Boolean((document.getElementById("dispensar-pagamento") || {}).checked)

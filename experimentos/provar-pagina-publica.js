@@ -505,6 +505,86 @@ console.log('\nH. A página pública abre sem lançar');
     })(), null);
 }
 
+/* AS EXTENSÕES DO PLANO, NA PÁGINA PÚBLICA (16/11/2026) — «Faltou dar a possibilidade de
+ * escolher entre as extensões para o plano.» Aqui elas só se LISTAVAM, e um plano que inclui duas
+ * ficava com a mais completa sem ninguém a ter pedido. A página do convite ganhou a escolha; esta
+ * fica com a mesma regra, porque a pergunta é a mesma e duas respostas divergiriam.
+ *
+ * A ESCOLHA É DO SCRIPT, e é por isso que se mede a correr: o `fieldset.escolhas` é construído
+ * quando o plano muda, a partir do catálogo que o servidor serve em `/api/pagina`. Ler o HTML não
+ * veria nada — é o que já esteve aqui. */
+console.log('\nI. As extensões do plano: escolher quando há escolha');
+{
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const comercial = carregar('motor/nucleo/comercial.js');
+  const catalogo = comercial && typeof comercial.catalogoDaPagina === 'function'
+    ? comercial.catalogoDaPagina() : null;
+  const comDuas = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length > 1);
+  const comUma = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 1);
+  const comNenhuma = catalogo && catalogo.assinaturas.find((a) => comercial.extensoesDoPlano(a.id).length === 0);
+
+  if (!catalogo || !comDuas || !comUma) {
+    conferir('o catálogo tem um plano com duas extensões e outro com uma (é o que esta secção mede)',
+      false, catalogo && catalogo.assinaturas.map((a) => a.id));
+  } else {
+    const erros = [];
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+    const publico = typeof remover === 'function' && typeof marcar === 'function'
+      ? remover(marcar(htmlDaPagina, true))
+      : htmlDaPagina;
+    const dom = new JSDOM(publico, {
+      runScripts: 'dangerously',
+      url: 'https://lastro.padd.com.br/',
+      virtualConsole: vc,
+      beforeParse(win) {
+        win.fetch = () => Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ok: true, planos: catalogo, habilidades: [], pix: null }),
+        });
+      },
+    });
+    await new Promise((r) => setTimeout(r, 250));
+    const d = dom.window.document;
+    const alvo = d.getElementById('planos-extensoes');
+    conferir('a página pública tem o sítio das extensões, e ele é um `div` (o `fieldset` não cabe num `p`)',
+      Boolean(alvo) && String(alvo.tagName).toLowerCase() === 'div', alvo && alvo.tagName);
+
+    const trocar = async (id) => {
+      const r = d.querySelector('input[name="plano"][value="' + id + '"]');
+      if (!r) return false;
+      r.checked = true;
+      r.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+      await new Promise((x) => setTimeout(x, 60));
+      return true;
+    };
+
+    if (await trocar(comDuas.id)) {
+      const opcoes = alvo.querySelectorAll('input[name="extensao"]');
+      conferir('com DUAS extensões no plano, a página as oferece para escolher',
+        opcoes.length === 2, { plano: comDuas.id, opcoes: opcoes.length });
+      conferir('…e as duas são as do catálogo, com a primeira marcada',
+        Array.prototype.map.call(opcoes, (o) => o.value).join(',')
+          === comercial.extensoesDoPlano(comDuas.id).map((e) => e.id).join(',')
+          && opcoes[0].checked === true, null);
+      conferir('…e a escolha é visível: a legenda diz que se está a escolher uma extensão',
+        /extens/i.test((alvo.querySelector('legend') || {}).textContent || ''),
+        (alvo.querySelector('legend') || {}).textContent);
+    }
+    if (await trocar(comUma.id)) {
+      conferir('com UMA só, não se pergunta nada — a lista fechada diz o que o plano inclui',
+        alvo.querySelectorAll('input[name="extensao"]').length === 0
+          && /O que este plano inclui/.test(alvo.textContent), alvo.textContent.slice(0, 80));
+    }
+    if (comNenhuma && await trocar(comNenhuma.id)) {
+      conferir('e com nenhuma, o sítio fica vazio (não inventa uma linha em branco)',
+        alvo.textContent.trim() === '', alvo.textContent);
+    }
+    conferir('…e nada disto faz a página pública lançar', erros.length === 0, erros.slice(0, 1));
+    dom.window.close();
+  }
+}
+
 /* ==================================================================== o veredicto */
 
 console.log('');
