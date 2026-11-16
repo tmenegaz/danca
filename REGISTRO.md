@@ -47361,3 +47361,53 @@ mudança** — medidas num worktree sem estas alterações, e portanto não são
 relação à guarda de carência: as falhas dele não medem este commit. O regime de teste continua em
 5 minutos; a recriação de uma escola com o mesmo nome continua a ser outro caminho, com as suas
 próprias guardas.
+
+## 16/11/2026 — os dois botões da coluna «Acesso» empilhados, com o ar da casa
+
+**O que motivou.** «A tabela das escolas vivas, na coluna acesso, aumenta um pouco a largura dela
+porque quando eu clico em habilitar fica truncado o habilitar e o desabilitar. […] Vamos deixar na
+coluna acesso os dois botões […] sempre um abaixo do outro na vertical […] e arruma o espaço entre
+eles, porque as margens estão ficando acavaladas.»
+
+**O que a medida encontrou, e não era o que o relato supunha.** Os dois botões **já** caíam um
+abaixo do outro — `.acao` tem `white-space: nowrap` e não encolhe, e a coluna não cabia os dois lado
+a lado. O defeito era o **vão**: `.acao` declara `margin: 0` e não havia `gap` nenhum, e a distância
+entre o filete de baixo de um e o de cima do outro era **0px** em 1440, 1280, 900 e 390 — encostados,
+que é o «acavalado». A largura da coluna era a do conteúdo exacto, sem folga para um tipo de letra
+diferente do que eu medi. Acrescentar largura sozinha não resolveria: faltava ar.
+
+**O que foi decidido.**
+
+- **Uma peça nova, e não um caso da folha.** `.acoes-da-linha` — a coluna de gestos de **uma linha
+  de tabela**. O `<td>` não leva classe: `display: flex` numa célula deixaria de ser célula; a peça é
+  o contentor de dentro.
+- **O vão é o da casa**: `--esp-2` (8px), o mesmo passo que a `.acoes-da-aluna` usa entre os seus
+  dois botões. `--esp-4` (16px) é o do botão que GRAVA, e aqui não se grava nada — são dois gestos
+  irmãos.
+- **Os dois esticam** (`align-items: stretch`): empilhados com larguras diferentes lêem-se como dois
+  desenhos; iguais, como a coluna de gestos da mesma linha.
+- **A coluna tem 8rem de mínimo** — o rótulo mais largo («Desabilitar») mais folga. É a resposta ao
+  «aumenta um pouco a largura»: a coluna deixa de ser do tamanho exacto do conteúdo, e o zoom do
+  sistema ou um tipo de letra mais largo não estrangulam o botão. Medido: a célula vai de 106px a
+  145px nos ecrãs estreitos, e os botões de 74/87 (larguras diferentes, encostados) a 126/126.
+- **A `.acoes-da-lista` deixou de vestir uma célula.** Ela é o menu de acções *sobre* uma lista (a
+  pílula e a folha do telemóvel), e usá-la num `<td>` era a peça nº 2 fora do contexto dela — o
+  `margin` que ela declara, numa célula, nem sequer se aplica.
+
+**Onde entrou.** `tools/templates/ciclo.css` (a peça, com o porquê medido) ·
+`motor/servidor/painel-html.js` (a célula passa a `<div class="acoes-da-linha">`) ·
+`IDENTIDADE-VISUAL.md` (Quadro 1 e Quadro 2) · `.github/instructions/identidade-visual.instructions.md`
+(a linha do quadro curto) · as duas cópias da folha (`raiz/assets/style.css` e a do pacote `duo`) ·
+`experimentos/provar-acoes-da-linha.js` (novo) e o `.gitignore` que o tira do rascunho.
+
+**Com o quê.** `provar-acoes-da-linha` **75/75** — em navegador de verdade, a sete larguras: o
+empilhamento (mesma borda esquerda, o segundo abaixo), o vão igual a `--esp-2` lido da folha, a
+mesma largura nos dois, nenhum rótulo cortado (`scrollWidth <= clientWidth`), a folga de 8rem, e o
+caso de um tipo de letra mais largo. O **controlo negativo** repõe a marcação antiga em memória e
+mede o vão de **0px** e a largura de conteúdo — o «acavalado» reproduzido. Mais
+`provar-celular` 15/15 · `provar-vao-do-botao` 50/50 · `provar-a-carencia-nao-se-burla` 58/58 ·
+`provar-financeiro` 58/58 · `provar-escola-a-nascer` 48/48 · `provar-cofre-e-shard` 129/129 ·
+`check-identidade` 0 erros (incluindo «Circuito», com as duas cópias em dia).
+
+**O que ainda não está feito.** `provar-painel` continua com as **4 falhas pré-existentes** (os cinco
+destinos do menu e as quatro colunas das vivas), medidas antes desta mudança e não tocadas por ela.

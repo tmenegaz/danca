@@ -366,13 +366,18 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
        * muda de forma conforme o estado obriga a procurar onde se clica. */
       const podeHabilitar = estadoComercial !== 'ativa';
       const podeDesabilitar = estadoComercial !== 'suspensa';
-      celulas.push('<td class="acoes-da-lista">' +
+      /* OS DOIS BOTÕES EMPILHADOS (16/11/2026). «Vamos deixar na coluna acesso os dois botões […]
+       * sempre um abaixo do outro na vertical […] e arruma o espaço entre eles, porque as margens
+       * estão ficando acavaladas.» O vão e a largura da coluna são da peça `.acoes-da-linha`
+       * (`ciclo.css`): aqui só se diz o que é. A célula não leva classe — quem desenha é a peça, e
+       * um `<td>` com `display:flex` deixaria de ser célula. */
+      celulas.push('<td><div class="acoes-da-linha">' +
         '<button class="acao pequena" type="button" data-comercial="ativa" data-escola="' +
         esc(e.slug) + '"' + (podeHabilitar ? '' : ' disabled') + '>Habilitar</button>' +
         '<button class="acao pequena secundario" type="button" data-comercial="suspensa" ' +
         'data-escola="' + esc(e.slug) + '"' + (podeDesabilitar ? '' : ' disabled') +
         '>Desabilitar</button>' +
-        '</td>');
+        '</div></td>');
     }
     celulas.push('<td>' + selo + '</td>');
     if (recorte !== 'vivas') {

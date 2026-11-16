@@ -1461,3 +1461,10 @@ experimentos/modelo-formulario/*
 # mostram horas, a virada de dia (02:00Z = 23:00 do dia anterior), e o que NÃO pode mudar: o
 # instante continua comparado em UTC, para a carência não se deslocar três horas.
 !experimentos/provar-o-relogio-nao-mente.js
+
+# AS ACÇÕES DA COLUNA «ACESSO» FICAM EMPILHADAS, COM AR (16/11/2026). «fica truncado o habilitar e
+# o desabilitar […] deixa os dois botões sempre um abaixo do outro […] porque as margens estão
+# ficando acavaladas.» Medido: o vão entre os dois era 0px, e a coluna tinha a largura do conteúdo
+# exacto. A prova mede o empilhamento, o vão (`--esp-2`), a largura mínima da peça e o não-corte a
+# sete larguras, e reproduz o «acavalado» com a marcação antiga como controlo negativo.
+!experimentos/provar-acoes-da-linha.js

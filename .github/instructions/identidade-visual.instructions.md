@@ -20,6 +20,7 @@ escrever o primeiro `<div>`.
 | escolha entre muitas, ou variável | **`escolhedor`** |
 | valor único de lista fechada, com rótulo próprio | `select` + `.campo-rotulo` |
 | uma **ordem** (acontece ao clicar) | `.acao` (`secundario`, `perigo`, `grande`, `pequena`) |
+| as ordens de **uma linha de tabela**, empilhadas | `.acoes-da-linha` (coluna com `gap`, botões da mesma largura) |
 | a ação que grava um formulário | `.acao` (e `grande` se é a principal) **dentro** de `.par-botoes` |
 | um **estado** ou atributo do dado | `.selo` |
 | bloco de leitura | `.caixa` (+ `nota`, `falta`) |

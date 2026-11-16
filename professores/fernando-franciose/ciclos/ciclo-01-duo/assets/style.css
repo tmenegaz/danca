@@ -1547,6 +1547,39 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
 }
 .acoes-da-aluna .acao { margin: 0; }
 
+/* AS ACÇÕES DE UMA LINHA DE TABELA, EMPILHADAS (16/11/2026).
+ *
+ * O PEDIDO. «A tabela das escolas vivas, na coluna acesso, aumenta um pouco a largura dela porque
+ * quando eu clico em habilitar fica truncado o habilitar e o desabilitar. […] Vamos deixar na coluna
+ * acesso os dois botões […] sempre um abaixo do outro na vertical, vamos colocar assim, empilhados.
+ * E aí arruma o espaço entre eles, tá? Porque as margens estão ficando acavaladas.»
+ *
+ * MEDIDO, E O DEFEITO ERA O VÃO, NÃO A LARGURA. Numa célula em que os dois não cabem lado a lado, os
+ * botões são `inline-block` e quebram para duas linhas — e o vão entre elas é o da linha **e nada
+ * mais**: `.acao` declara `margin: 0`, e não havia `gap` nenhum. Em 1440, 1280, 900 e 390 a distância
+ * entre o filete de baixo do «Habilitar» e o de cima do «Desabilitar» era **0px** — encostados, que é
+ * o «acavalado» que ela viu. Acrescentar largura sozinha não resolveria: o que faltava era ar.
+ *
+ * O VÃO É O DA CASA: `--esp-2` (8px), o mesmo que `.acoes-da-aluna` usa entre os seus dois botões.
+ * `--esp-4` (16px) é o do botão que GRAVA, e aqui não se grava nada: são dois gestos irmãos.
+ *
+ * A LARGURA MÍNIMA é a do rótulo mais largo («Desabilitar», 87px a 12.5px no Chromium e ~93px num
+ * tipo de letra mais largo) mais folga: 8rem. É a resposta ao «aumenta um pouco a largura dela» — a
+ * coluna deixa de ser do tamanho exacto do conteúdo, e um tipo de letra diferente do meu, ou o zoom
+ * do sistema, não estrangula o botão.
+ *
+ * E OS DOIS ESTICAM (`align-items: stretch`): empilhados com larguras diferentes lêem-se como dois
+ * desenhos; iguais, lêem-se como a coluna de gestos da mesma linha. Os estados continuam a ser os do
+ * `.acao` (base, `:hover`, `:focus-visible`, `:disabled`) — esta peça é o arranjo, não um botão novo.
+ */
+.acoes-da-linha {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: var(--esp-2);
+  min-width: 8rem;
+  margin: 0;
+}
+.acoes-da-linha .acao { margin: 0; }
+
 /* ---------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI — e as setas dizem-no (06/11/2026) ----
    O PEDIDO. «as colunas elas vão crescer de forma dinâmica […] tem que prever que quando
    ultrapassar a largura da página precisa de um scroll horizontal […] E como é que fica o

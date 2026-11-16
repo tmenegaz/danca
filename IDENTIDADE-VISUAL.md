@@ -524,6 +524,7 @@ desenho.
 | **Uma ORDEM** — algo que acontece ao clicar | `.acao` | gravar, excluir, voltar, avançar | `<button class="acao">`; `secundario` para o que não é a ação principal, `perigo` para o que apaga |
 | **A ação de um formulário, na fileira** | `.par-botoes` + `.acao` | o botão que grava, e o «Cancelar» ao lado quando há edição | `<span class="par-botoes"><button class="acao grande">…</button></span>`. **A fileira é declarada na página da Produção** (`motor/servidor/bastidores.js`), e não na folha — mas é uma só para os cinco formulários de lá, e é ela que dá o vão |
 | **As acções de uma ESCOLHA, na linha de baixo** | `.acoes-da-aluna` | o menu das alunas da §6 da aula, e os dois gestos da anamnese de quem se escolheu | `<div class="acoes-da-aluna" data-prov-par="…">` + `a.acao secundario pequena`. O vão é dela (12px do menu) e o `gap` é dela (8px entre os dois botões) — sem ela os botões encostam no campo, e é o defeito de 06/11/2026 |
+| **As acções de uma LINHA de tabela, empilhadas** | `.acoes-da-linha` | a coluna «Acesso» da lista das escolas: «Habilitar» e «Desabilitar», um abaixo do outro | `<td><div class="acoes-da-linha"><button class="acao pequena">…</button><button class="acao pequena secundario">…</button></div></td>`. O `gap` é dela (8px, o mesmo da `.acoes-da-aluna`), os botões **esticam** para a mesma largura, e a coluna tem 8rem de mínimo — sem isto os dois encostavam (vão medido: 0px) e o rótulo mais largo ficava sem folga. Medido em `provar-acoes-da-linha.js` |
 | **Um ESTADO ou atributo do dado** | `.selo` | «livre», «em turma», «vigente» | `<span class="selo livre">`. **Um selo responde a UMA pergunta** (12/11/2026): quando há dois factos sobre a mesma linha, o que se compara é selo e o que só se sabe é **nota** (`.nota-falta`, a nota do cartão). A sala em turma **e** citada por planos diz `em turma` no selo e `citada por N planos de ensino` na nota — não dois selos |
 | **Um bloco de leitura** | `.caixa` | texto que se lê, com título | `<div class="caixa">` (+ `nota`, `falta`) |
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
@@ -558,6 +559,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
 | `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
 | `.acoes-da-aluna` | `ciclo.css` | base, e a quebra da fileira no telemóvel (`flex-wrap`) |
+| `.acoes-da-linha` | `ciclo.css` | base (coluna, `gap` de `--esp-2`, `min-width` de 8rem, botões esticados). Não tem estados próprios: os dos botões são os do `.acao` (`:hover`, `:focus-visible`, `:disabled`) |
 | `.ajuda` («?») | `porta/index.html` | base, `:hover`, `[aria-expanded="true"]`, e 30px de alvo no telefone |
 | `.explica` | `porta/index.html` | `hidden` (fechada), `aberto` (à vista; folha fixa ≤768px), e o «Fechar» que só existe dentro da folha |
 | `[hidden]` | `ciclo.css`, na base | esconde **sempre** — é a única linha da folha com `!important`, e a razão está na proibição 4 |
