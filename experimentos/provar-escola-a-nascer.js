@@ -189,6 +189,98 @@ function kvDeBolso(inicial) {
         require('fs').readFileSync(path.join(RAIZ, 'raiz/index.html'), 'utf8')), null);
   }
 
+  console.log('\nE. O host que nenhuma escola reclama não é um Worker mal configurado');
+  {
+    /* «Quando eu acesso a página breu.padd.com.br aparece uma mensagem, configuração incorreta do
+     * worker. [...] se não existe a escola não era nem para existir essa mensagem.» */
+    const producao = require(path.join(RAIZ, 'motor/servidor/producao.js'));
+    const env = {
+      ASSETS: { fetch: async () => new Response('nao', { status: 404 }) },
+      PADD_KV: null,
+    };
+    const semMapa = await producao.fetch(
+      new Request('https://fantasma.padd.com.br/'), env);
+    const texto = await semMapa.text();
+    conferir('um host fora do mapa responde 404, e não 500', semMapa.status === 404, semMapa.status);
+    conferir('…e não mostra a página de «Configuração incorreta do Worker»',
+      !/Configuração incorreta/i.test(texto), texto.slice(0, 120));
+    conferir('…nem manda reimplantar um Worker que não existe',
+      !/wrangler deploy/i.test(texto), texto.slice(0, 120));
+    /* O DIAGNÓSTICO NÃO SE PERDE: ele continua onde quem procura já sabe procurar. */
+    const saude = await producao.fetch(
+      new Request('https://fantasma.padd.com.br/api/saude'), env);
+    const jsonSaude = await saude.json().catch(() => ({}));
+    conferir('…e o diagnóstico continua em /api/saude, com o motivo',
+      /não está no mapa de escolas|nao esta no mapa de escolas/.test(String(jsonSaude.erro || '')),
+      jsonSaude.erro);
+
+    /* E AS OUTRAS DUAS RAZÕES DE IDENTIDADE INVÁLIDA CONTINUAM A SER O QUE ERAM: uma `vars` a
+     * dizer uma escola num host de outra é configuração errada de um Worker que serve alguém — e
+     * aí há mesmo o que consertar. */
+    const comVarsErradas = await producao.fetch(new Request('https://fantasma.padd.com.br/'), {
+      ASSETS: { fetch: async () => new Response('nao', { status: 404 }) },
+      ESCOLA_SLUG: 'outra-escola',
+    });
+    conferir('um Worker REAL com a vars divergente continua a dizer o que está errado',
+      comVarsErradas.status === 500, comVarsErradas.status);
+  }
+
+  console.log('\nF. O disparo lê o run de volta — o 204 não é «está a correr»');
+  {
+    const prov = require(path.join(RAIZ, 'motor/servidor/provisionar-escola.js'));
+    const respostas = [];
+    const falso = (url, opcoes) => {
+      respostas.push({ url: String(url), metodo: (opcoes && opcoes.method) || 'GET' });
+      if (String(url).indexOf('/dispatches') !== -1) return Promise.resolve({ status: 204, ok: true });
+      return Promise.resolve({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve({ workflow_runs: [{
+          id: 43850296566, status: 'queued',
+          html_url: 'https://github.com/tmenegaz/danca/actions/runs/43850296566',
+        }] }),
+      });
+    };
+    const r = await prov.dispararCriacao({
+      token: 'x', dono: 'tmenegaz', repo: 'danca', ref: 'main',
+      inputs: { escola: 'abreu' }, fetchImpl: falso,
+    });
+    conferir('o disparo continua a valer com o 204', r.ok === true && r.status === 204, r);
+    conferir('…e traz o RUN, com id, estado e endereço',
+      Boolean(r.run) && r.run.id === 43850296566 && r.run.estado === 'queued' &&
+      /actions\/runs\/43850296566/.test(String(r.run.url)), r.run);
+    conferir('…e o estado é o do GitHub — «queued» é uma resposta, não um silêncio',
+      r.run.estado === 'queued', r.run.estado);
+    conferir('…foram duas chamadas: o disparo e a leitura', respostas.length === 2, respostas.length);
+    conferir('…e a segunda é uma leitura, não um segundo disparo',
+      respostas[1].metodo === 'GET', respostas[1]);
+
+    /* A LEITURA QUE FALHA NÃO DERRUBA A CRIAÇÃO: o que se perde é o link, não a escola. */
+    const semLeitura = await prov.dispararCriacao({
+      token: 'x', dono: 'tmenegaz', repo: 'danca', ref: 'main', inputs: { escola: 'abreu' },
+      fetchImpl: (url) => (String(url).indexOf('/dispatches') !== -1
+        ? Promise.resolve({ status: 204, ok: true })
+        : Promise.reject(new Error('rede fora'))),
+    });
+    conferir('se a leitura do run falhar, o disparo continua válido e `run` vem nulo',
+      semLeitura.ok === true && semLeitura.run === null, semLeitura);
+
+    /* E A LISTA MOSTRA O TEMPO, que é o que transforma «a nascer» em «travou». */
+    const html = painel.paginaDasVivas({
+      escolas: [{
+        slug: 'abreu', nome: 'Escola Abreu', professor: 'ana',
+        criada_em: new Date(Date.now() - 60 * 60000).toISOString(), aNascer: true,
+        disparoRun: { id: 1, estado: 'queued', url: 'https://github.com/tmenegaz/danca/actions/runs/1' },
+        comercial: { estado: 'aguardando' },
+      }],
+      professores: [],
+    });
+    conferir('passados 15 minutos, a linha diz que a fila do GitHub não pegou o pedido',
+      /a fila do GitHub não pegou o pedido/.test(html), null);
+    conferir('…e diz há quantos minutos', /a nascer há 6\d min/.test(html), null);
+    conferir('…e leva ao run, para se ver o que se passa', /ver o run do GitHub/.test(html), null);
+  }
+
   console.log('');
   console.log(ko === 0 ? 'TUDO CERTO — ' + ok + ' asserção(ões).'
     : 'FALHOU — ' + ok + '/' + (ok + ko) + ' asserção(ões).');
