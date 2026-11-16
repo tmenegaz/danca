@@ -1424,3 +1424,11 @@ experimentos/modelo-formulario/*
 # metade do mesmo recado: no público o professor é sempre novo, e a recusa por conflito manda
 # procurar a administração em vez de apontar para uma lista que ali não existe.
 !experimentos/provar-escola-a-nascer.js
+
+# O SUSPENSO DIZ A VERDADE (16/11/2026). «Ao invés de dizer que a senha está errada, é melhor dizer
+# que a escola está desabilitada […] É melhor dizer a verdade do que mentir.» A prova mede os dois
+# defeitos que faziam o contrário: a PORTA (`validar-producao`) estava fora da lista das rotas que
+# só leem, e a suspensão fechava a única entrada para tudo o que é «só ler»; e as duas telas de
+# senha traduziam qualquer falha na mesma frase, mandando a pessoa conferir o que estava certo.
+# Mede também o que NÃO pode mudar: com a senha realmente errada, a tela continua a dizê-lo.
+!experimentos/provar-o-suspenso-diz-a-verdade.js
