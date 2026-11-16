@@ -1194,6 +1194,18 @@ intermédia (**+R$ 320** sobre a decisão) ao custo de o Intermediário vencer e
   com mais consultas, o que contradiz «ortogonal». A matriz substitui a sobretaxa por um preço
   unitário; é **mudança comercial declarada**.
 
+**O teto é 6 professores e 90 alunos, e acima disso a escola fala com ela (15/11/2026).** A
+pergunta de preço que esta decisão deixava em aberto fica **respondida**, e a resposta não é subir
+o preço: **6/90 é o teto da escada**, e uma escola maior não contrata um plano maior — ela
+**procura a proprietária**, que refaz o preço para aquele caso. O número não precisa de crescer
+porque há um caminho declarado para o que não cabe nele, e é isso que impede a tabela de ser ao
+mesmo tempo o máximo e a única resposta.
+
+Com isso, a receita que a decisão custou (**R$ 490/mês** nos quinze perfis medidos) deixa de ser
+uma perda em aberto e passa a ser o **preço de um teto explícito**: abaixo de 6/90 vende-se por
+tabela; acima, vende-se por conversa. As duas coisas são compatíveis porque são degraus
+diferentes de decisão, e não duas versões da mesma tabela.
+
 *(Afeta §L8 (a escada e o calculador), §L9b (a capacidade incluída) e a distribuição comercial de
 [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5 — **que não muda**:
 as consultas de cada degrau são as mesmas, 7 · 14 · 46.)*

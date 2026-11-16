@@ -75,7 +75,7 @@
     }
   ],
   "descontos": {
-    "_nota": "A POLÍTICA DE DESCONTO NÃO ESTÁ FECHADA (§L8, risco (b)): a regra de 5/10/20% «em relação ao preço mensal de referência» e a soma com adicionais precisam de uma ordem declarada. Por isso a tabela vai vazia e o calculador NÃO desconta: um desconto inventado num dado é um preço errado que ninguém sabe de onde veio.",
+    "_nota": "A POLÍTICA DE DESCONTO GERAL NÃO ESTÁ FECHADA (§L8, risco (b)): a regra de 5/10/20% «em relação ao preço mensal de referência» e a soma com adicionais precisam de uma ordem declarada. Por isso a tabela vai vazia e o calculador NÃO desconta: um desconto inventado num dado é um preço errado que ninguém sabe de onde veio. O DESCONTO QUE EXISTE É OUTRO (25/11/2026), e não é um percentual de tabela: é concedido ESCOLA A ESCOLA, à mão, no ecrã Financeiro do painel, com valor, data e razão — mora em `financeiro/descontos`, no KV, e não neste catálogo, porque é um facto sobre um cliente e não uma regra de preço.",
     "porPeriodo": {},
     "avista": null
   }
