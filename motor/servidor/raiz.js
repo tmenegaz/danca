@@ -601,7 +601,41 @@ async function moradaDaEscola({ token, slug, fetchImpl }) {
     let shard = '';
     try { shard = String((JSON.parse(doIndice) || {}).shard || '').trim(); } catch (erro) { shard = ''; }
     if (!shard) return null;
-    return { worker: shard, shard, kvNamespaceId: null, arquivo: 'escola/' + slug + '/indice.json', legivel: true };
+    /* O KV DE UMA ESCOLA DE SHARD É O DO SHARD — e o expurgo tem de o saber (16/11/2026).
+     *
+     * AQUI DEVOLVIA-SE `kvNamespaceId: null`, e a consequência era grave: `null` quer dizer «a
+     * escola não declara namespace, não havia o que limpar» — e o elo gravava `kv: { ok: true }`.
+     * Só que a escola de shard ESCREVE, e escreve no namespace do shard, com prefixos dela
+     * (`<slug>/` e `bastidores/<slug>/`). O resultado medido: a `batata`, expurgada, continuava
+     * com `alunas`, `curadorias`, `turmas`, `rubricas` e `linhas-de-base` no KV — o dado pessoal
+     * das alunas, vivo, depois de a página dizer «expurgada» e de o e-mail dizer «removida
+     * completamente do sistema». A frase da carta é que tornou isto inaceitável.
+     *
+     * O NAMESPACE É O QUE O SHARD DECLARA na configuração dele (`wrangler.<shard>.jsonc`) — o
+     * mesmo ficheiro de onde o deploy sai. Lido daí, e não inventado: um id errado apagaria as
+     * chaves de outra escola, e a limpeza é por prefixo mas a fronteira é o namespace. Sem a
+     * leitura, `null` continua a ser o valor — «não sei onde vive» é pior do que «não havia o que
+     * limpar», mas nenhum dos dois apaga o que não deve.
+     *
+     * A LIMPEZA EM SI NÃO MUDA DE REGRA: `prefixosDaEscola(slug)` só toca `<slug>/` e
+     * `bastidores/<slug>/`, e o `apagarChavesDeEscola` recusa prefixo vazio — a mesma guarda que
+     * protege o namespace partilhado de todas as escolas. */
+    let namespaceDoShard = null;
+    try {
+      const doShard = await lerArquivo({
+        token, dono: DONO, repo: REPO, ref: REF, caminho: 'wrangler.' + shard + '.jsonc', fetchImpl,
+      });
+      const cfgShard = doShard ? lerJsonc(doShard) : null;
+      const bloco = cfgShard && Array.isArray(cfgShard.kv_namespaces) ? cfgShard.kv_namespaces[0] : null;
+      namespaceDoShard = bloco && bloco.id ? String(bloco.id) : null;
+    } catch (erro) { namespaceDoShard = null; }
+    return {
+      worker: shard,
+      shard,
+      kvNamespaceId: namespaceDoShard,
+      arquivo: 'escola/' + slug + '/indice.json',
+      legivel: true,
+    };
   }
   const cfg = lerJsonc(texto);
   if (!cfg) return { worker: slug, kvNamespaceId: null, arquivo: caminho, legivel: false };
@@ -2001,6 +2035,77 @@ async function lerConvite({ env, token }) {
  * extrato «por proximidade». Falhar aqui não desfaz o cadastro: a escola existe, e o desfecho é
  * dito na resposta.
  */
+/**
+ * AS DUAS CARTAS DO EXPURGO (16/11/2026).
+ *
+ * «Quando eu expurgar uma escola, tem que disparar um e-mail para mim no lastro@padd.com.br e outro
+ * para o professor e para a escola, que são os e-mails cadastrados […] avisando que a escola foi
+ * removida completamente do sistema […] E que, no caso da escola e do professor, reforce o convite
+ * de que ele é bem-vindo para retornar ao uso do sistema quando quiser, e seja gentil.»
+ *
+ * DUAS MENSAGENS, DOIS TONS, E É A MESMA FUNÇÃO: a de quem administra diz o que se procura depois
+ * (o quê, quando, o que ficou por apagar); a de quem perdeu a escola diz o facto e deixa a porta
+ * aberta. Duas funções separadas divergiriam no dia em que uma delas aprendesse um facto novo.
+ *
+ * O QUE OS CONTACTOS TÊM DE SER LIDOS **ANTES** DO EXPURGO. A limpeza do KV apaga
+ * `bastidores/<slug>/` inteiro — o cadastro com o e-mail da escola vai com ele. Ler depois seria
+ * procurar o endereço numa gaveta que já foi para o lixo, e a carta não sairia precisamente no caso
+ * em que ela é mais devida. É por isso que os contactos chegam por parâmetro, já lidos.
+ *
+ * NÃO FAZ FALHAR O EXPURGO, e é a regra do resto do correio: a escola já não existe. O desfecho
+ * viaja no relatório, ao lado do que foi apagado.
+ */
+async function avisarDoExpurgo({ env, escola, nome, quando, professor, contactos, apagados,
+  kv, proveniencia, motivo }) {
+  const quandoTexto = fuso.quandoLocal(quando);
+  const lista = Array.isArray(contactos) ? contactos : [];
+
+  /* A DE QUEM PERDEU A ESCOLA — para o professor E para a escola, deduplicada. Vai mesmo quando
+   * não há endereço nenhum: o desfecho diz «não há e-mail a quem enviar», e esse facto é o que se
+   * quer ver no relatório (é a diferença entre «não mandei porque não sabia para onde» e «mandei»). */
+  const despedida = correio.comporDespedidaDaEscola({
+    escola, nome, quandoTexto, professor, apagados,
+  });
+  despedida.para = lista.slice();
+  const paraAEscola = lista.length
+    ? await correio.enviar({ mensagem: despedida, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE })
+    : { enviado: false, motivo: 'o cadastro desta escola não tinha e-mail nenhum' };
+  if (!paraAEscola.enviado && lista.length) {
+    await correio.guardarNaCaixaDeSaida({
+      kv: env && env.PADD_KV, escola: 'sistema', mensagem: despedida, desfecho: paraAEscola,
+    });
+  }
+
+  const doProprietario = await avisarOProprietarioDoExpurgo({
+    env, escola, nome, quando, quandoTexto, professor, contactos: lista, apagados, kv,
+    proveniencia, motivo,
+  });
+
+  return {
+    paraAEscola: Object.assign({ para: lista, assunto: despedida.assunto }, paraAEscola),
+    aoProprietario: doProprietario,
+  };
+}
+
+/** O par do de cima, com o destinatário fixo — o mesmo endereço de `avisarOProprietario`. */
+async function avisarOProprietarioDoExpurgo({ env, escola, nome, quando, quandoTexto, professor,
+  contactos, apagados, kv, proveniencia, motivo }) {
+  const para = String((env && env.CORREIO_DO_PROPRIETARIO) || 'lastro@padd.com.br').trim();
+  const mensagem = correio.comporAvisoDeExpurgoAoProprietario({
+    escola, nome, quando, quandoTexto, professor, contactos, apagados, kv, proveniencia, motivo,
+  });
+  mensagem.para = [para];
+  const desfecho = await correio.enviar({
+    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
+  });
+  if (!desfecho.enviado) {
+    await correio.guardarNaCaixaDeSaida({
+      kv: env && env.PADD_KV, escola: 'sistema', mensagem, desfecho,
+    });
+  }
+  return Object.assign({ para, assunto: mensagem.assunto }, desfecho);
+}
+
 async function avisarOProprietario({ env, escola, nome, escolha, quando, professor, contactos, recriada }) {
   const para = String((env && env.CORREIO_DO_PROPRIETARIO) || 'lastro@padd.com.br').trim();
   const mensagem = correio.comporAvisoAoProprietario({
@@ -3430,6 +3535,42 @@ async function fetch(request, env) {
       }), 500);
     }
 
+    /* 1-bis. QUEM É A ESCOLA, PARA AS CARTAS (16/11/2026).
+     *
+     * Os endereços que recebem a despedida são lidos AGORA, e não no fim: a limpeza do KV apaga
+     * `bastidores/<slug>/` inteiro, e com ele o cadastro que guarda o e-mail da escola. Procurá-lo
+     * depois seria procurá-lo numa gaveta que já foi para o lixo — e a carta não sairia exactamente
+     * no caso em que é mais devida.
+     *
+     * NADA AQUI FAZ FALHAR NADA: um elo ilegível ou um cadastro ausente dão carta sem endereço e um
+     * desfecho que o diz, e não uma escola por apagar. */
+    let eloDoExpurgo = null;
+    let paraAsCartas = null;
+    let nomeDaEscola = null;
+    try {
+      eloDoExpurgo = await eloDaEscola({ token: ghToken, slug });
+      const quem = eloDoExpurgo ? responsavelDoInventario(eloDoExpurgo) : { slug: '' };
+      const cadastroDaVez = await lerCadastroDaEscola(env, slug);
+      const paraOMail = await cadastroParaOMail({
+        env, escola: slug, professor: quem.slug, nome: null, registo: cadastroDaVez,
+      });
+      paraAsCartas = {
+        contatos: cadastroDaEscola.destinatarios(paraOMail),
+        professor: quem.nome || quem.slug || null,
+        professorSlug: quem.slug || null,
+      };
+      /* O NOME QUE SE ESCREVE é o do cadastro (é o que a pessoa reconhece), e o slug é o último
+       * recurso — mas nunca «undefined»: uma carta que não sabe o nome da escola que despediu é
+       * pior do que uma carta com o endereço dela dentro. */
+      nomeDaEscola = String(
+        (cadastroDaVez && cadastroDaVez.escolaNome)
+        || (eloDoExpurgo && eloDoExpurgo.escola)
+        || slug);
+    } catch (erro) {
+      paraAsCartas = { contatos: [], professor: null, professorSlug: null };
+      nomeDaEscola = slug;
+    }
+
     // 2. ONDE A ESCOLA VIVE, antes de apagar qualquer coisa. O `wrangler.<slug>.jsonc` diz o
     // nome do script e o namespace do KV; sem ele não se limpa o KV — e apagar o Worker
     // deixando o dado é o pior dos mundos. Não se começa o que não se termina. (Se o config
@@ -3521,6 +3662,44 @@ async function fetch(request, env) {
     // rota respondia `ok: true` sobre chaves que ninguém tinha tocado.
     const kvFalhou = Boolean(desfechoKv && desfechoKv.ok === false);
     const ok = noRepositorio && !kvFalhou;
+
+    /* 5. AS DUAS CARTAS, DEPOIS DE A ESCOLA SAIR (16/11/2026).
+     *
+     * «Quando eu expurgar uma escola, tem que disparar um e-mail para mim […] e outro para o
+     * professor e para a escola […] avisando que a escola foi removida completamente do sistema.»
+     *
+     * SÓ QUANDO O EXPURGO SE COMPLETOU (`ok`), e a razão é a frase que a carta diz: «removida
+     * completamente». Um expurgo que deixou o dado no KV, ou que não tirou a escola do
+     * repositório, não é isso — e mandar a despedida sobre uma remoção que não aconteceu seria
+     * dizer à escola uma coisa falsa, com o agravante de a escola poder continuar a abrir.
+     * A recusa (e a carência) também não manda carta: quem tenta apagar e é recusado não perdeu
+     * nada, e um e-mail de despedida por cada clique recusado seria um susto por engano.
+     *
+     * NÃO FAZ FALHAR O EXPURGO — a escola já não existe; o que faltar viaja no relatório. */
+    if (ok) {
+      try {
+        relatorio.cartas = await avisarDoExpurgo({
+          env,
+          escola: slug,
+          nome: nomeDaEscola,
+          quando: new Date().toISOString(),
+          professor: paraAsCartas && paraAsCartas.professor,
+          contactos: (paraAsCartas && paraAsCartas.contatos) || [],
+          /* O NÚMERO VEM DO RELATÓRIO DO REPOSITÓRIO (`totalApagado`, e `apagados` a lista): é o
+           * que dá à carta o facto «removidos N arquivos», e não uma contagem inventada aqui. */
+          apagados: (relatorio.repositorio
+            && (Number(relatorio.repositorio.totalApagado)
+              || (Array.isArray(relatorio.repositorio.apagados) ? relatorio.repositorio.apagados.length : 0)))
+            || 0,
+          kv: desfechoKv,
+          proveniencia: relatorio.proveniencia,
+          motivo,
+        });
+      } catch (erro) {
+        relatorio.cartas = { erro: (erro && erro.message) || String(erro) };
+      }
+    }
+
     return responderJson(
       Object.assign(relatorio, { ok, noRepositorio, noCloudflare, kvFalhou }),
       ok ? 200 : 500
@@ -3671,4 +3850,9 @@ module.exports = {
    * o token é a única autenticação de uma rota pública — e uma autenticação que só se mede em
    * produção descobre-se em produção. */
   criarConvite, lerConvite, chaveDoConvite,
+  /* AS DUAS CARTAS DO EXPURGO, exportadas pela mesma razão (16/11/2026): o que se quer afirmar é
+   * «a escola recebe uma despedida e a administração recebe o relatório», e isso é uma pergunta
+   * sobre mensagens compostas e endereços — não sobre pixels. Medir isto em produção exigiria
+   * apagar uma escola a cada ensaio. */
+  avisarDoExpurgo,
 };

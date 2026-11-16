@@ -45,12 +45,12 @@ function desfechoComoEra({ cloudflare, morada, slug }) {
 }
 
 /** O elo que o `apagarEscolaDoRepo` grava — pelo `comElo` de verdade. */
-function eloDe(kv) {
-  const texto = comElo('', {
+function eloDe(kv, extra) {
+  const texto = comElo('', Object.assign({
     slug: 'barra', professor: 'leticia', ciclo: '01',
     arquivos: ['wrangler.barra.jsonc'], motivo: 'prova', quando: '2026-11-01T00:00:00.000Z',
     kv,
-  });
+  }, extra || {}));
   return JSON.parse(texto).expurgo.pop();
 }
 
@@ -70,6 +70,19 @@ function conferir(nome, condicao, detalhe) {
   console.log((condicao ? '  ok   ' : '  FALHA') + '  ' + nome + (condicao ? '' : '  → ' + JSON.stringify(detalhe)));
   if (!condicao) falhas += 1;
 }
+
+/* O COMMIT QUE AINDA TINHA A ESCOLA INTEIRA (16/11/2026).
+ *
+ * O elo dizia O QUÊ saiu (`apagado`) e com que hashes estava a cadeia (`proveniencia`). Não dizia
+ * ONDE reencontrar os bytes. Eles estão no Git: o expurgo é um commit que APAGA, e o commit
+ * anterior é o último estado em que a escola existia por inteiro. Sem esta linha, encontrar esse
+ * ponto exigiria procurar por mensagem e por data — adivinhação, e a proveniência não se apoia em
+ * adivinhação. */
+const COM_COMMIT = eloDe(null, { commitAntes: 'a'.repeat(40) });
+conferir('o elo guarda o commit em que a escola ainda estava inteira', COM_COMMIT.commit_antes === 'a'.repeat(40), COM_COMMIT.commit_antes);
+conferir('…e um expurgo sem esse dado (os de antes) não inventa o campo',
+  eloDe(null).commit_antes === undefined, eloDe(null).commit_antes);
+
 
 console.log('O DESFECHO QUE VAI PARA O ELO (desfechoDoKvParaOElo)');
 

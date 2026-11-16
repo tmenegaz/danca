@@ -47841,3 +47841,114 @@ antes desta mudança**: medido no commit `efd50b26` e no `HEAD` anterior por `gi
 erro na mesma linha. Não é regressão desta alteração, e fica por investigar. E o efeito visível desta
 correção, para quem já estava com sessão aberta: **o painel volta a pedir a senha** na próxima carga,
 e é a nova (`1234` / `280500`) que abre.
+
+## 16/11/2026 — o que a recriação restaura, e o que ela não restaura
+
+**O que ela pediu para verificar.** «Verificar se, quando eu recriar uma escola, a proveniência daquele
+último instante da escola que estava valendo, aquele retrato último da escola antes de apagar, é
+completamente recarregado. A quantidade de alunos, compatível com o plano […] o elenco, os planos de
+observação, os ciclos, os documentos gerados, a turma, o verbete — se tudo isso está recuperado.»
+
+**A resposta, medida — e é NÃO.** A recriação reconstrói a **máquina**, não o retrato. O que volta e o
+que não volta:
+
+| o que | onde vive | depois de expurgar + recriar |
+|:--|:--|:--|
+| o pacote do ciclo (HTML, CSS, `nav.js`) | `professores/<prof>/ciclos/ciclo-NN-<escola>/` | **reconstruído** — mas é o *pacote zero*: a página existe e está vazia do conteúdo da escola |
+| os esquemas e o conteúdo PO (anamnese, plano, PO) | idem, `plano-observacao/conteudo/` | **reconstruídos como definição** (o que é uma anamnese), não como as anamneses preenchidas |
+| alunos, elenco (`curadorias`), turmas, rubricas, linhas de base | KV, `bastidores/<escola>/` | **sobrevivem** — e não por desenho, por defeito (ver abaixo) |
+| as senhas da direção e do professor | KV, `bastidores/<escola>/dono` | **sobrevivem**; a recriação por convite escreve um par novo, por cima |
+| os documentos preenchidos — anamneses, plano de ensino, PO, lançamentos de aula | repositório, `escola/<escola>/envelopes/` | **NÃO voltam**. São apagados pelo expurgo, e a recriação não os vai buscar |
+| a frequência, os dias e a duração do ciclo | `.conf` da encarnação | **NÃO voltam**: o `.conf` foi com o expurgo, e a recriação usa os valores por omissão da criação |
+
+**O que a proveniência guarda.** O elo (`escola/<slug>/indice.json`) guarda o **facto**: quem era o
+professor, o ciclo, o shard, os caminhos que saíram (`apagado[]`), e a impressão da cadeia de âncoras
+(`proveniencia.impressao`). Não guarda o **conteúdo** — e nunca guardou. É a diferença entre «a escola
+existiu e é esta a sua história» e «a escola está aqui».
+
+**E os bytes não se perderam.** O expurgo é um commit que APAGA; o commit anterior é o último estado em
+que a escola existia por inteiro. Verificado num caso real: o expurgo `5eb1d7a5` (a `batata`) apagou 8
+envelopes, e `5eb1d7a5^:escola/batata/envelopes/anamnese-20261115-1913.json` está lá, com 14 381
+bytes. O que faltava era **dizer onde**: o elo registava o quê e com que hashes, não o ponto de retorno.
+
+- **O elo passa a guardar `commit_antes`** — o commit que ainda tinha a escola inteira. Não é um
+  pedido de restauração: é o facto que a torna possível sem se reconstruir a linha do tempo à mão,
+  procurando por mensagem e por data.
+
+**O DEFEITO QUE A VERIFICAÇÃO ENCONTROU, e é o mais grave desta data.** O e-mail do expurgo diz
+«removida completamente do sistema». Para as escolas de **shard**, isso era **falso**: `moradaDaEscola`
+devolvia `kvNamespaceId: null`, o `apagarChavesDeEscola` lê `null` como «não havia o que limpar», e o
+elo gravava `kv: { ok: true }` — **sem apagar uma única chave**. Medido no namespace real: a `batata`,
+expurgada a 16/11, continuava com `alunas`, `curadorias`, `turmas`, `rubricas` e `linhas-de-base`; a
+`breu`, com o `cadastro` (que tem o e-mail) e o `dono`.
+
+- **O namespace da escola de shard é o do shard**, e está na configuração dele
+  (`wrangler.<shard>.jsonc`). Passa a ser lido de lá. Sem essa configuração, o valor continua `null` —
+  porque um id errado apagaria o dado de outra escola; e a limpeza continua a tocar só
+  `<slug>/` e `bastidores/<slug>/`, com a guarda do prefixo vazio intacta.
+- **Não se limpou o passado nesta mudança.** As chaves da `batata` e da `breu` continuam lá: apagá-las
+  é uma operação destrutiva sobre produção, e fica para quando ela disser. O que a correção garante é
+  que o **próximo** expurgo de uma escola de shard a remove de facto.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`moradaDaEscola`: o namespace do shard; `commit_antes` no
+elo, via `apagarEscolaDoRepo`) · `motor/servidor/repo-escola.js` (`comElo` aceita e grava
+`commit_antes`) · `experimentos/provar-cofre-e-shard.js` (o namespace do shard e o controlo negativo
+que não o inventa) · `experimentos/provar-elo-do-expurgo.js` (o `commit_antes` no elo, e o expurgo
+antigo que não ganha o campo).
+
+**Com o quê.** `provar-cofre-e-shard` **138/138** · `provar-elo-do-expurgo` todas · `provar-recriar-escola`
+81/81 · `provar-cartas-do-expurgo` 25/25 · `provar-expurgo-sem-listagem` 49/49 · `provar-financeiro`
+58/58 · `provar-escola-a-nascer` 48/48 · `provar-a-carencia-nao-se-burla` 58/58 ·
+`provar-token-da-escola` 17/17 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica por decidir, e é dela.** Uma restauração completa é outra obra, e tem uma pergunta de
+produto que só ela responde: **se o plano novo é menor do que os dados antigos**, o que fazer com as
+alunas a mais — recusar a recriação, restaurar e avisar, ou restaurar só até à capacidade contratada?
+Sem essa resposta, uma restauração automática seria uma decisão comercial tomada por mim.
+
+## 16/11/2026 — as duas cartas do expurgo
+
+**O que motivou.** «Quando eu expurgar uma escola, tem que disparar um e-mail para mim no
+lastro@padd.com.br e outro para o professor e para a escola, que são os e-mails cadastrados […]
+avisando que a escola foi removida completamente do sistema […] E que, no caso da escola e do
+professor, reforce o convite de que ele é bem-vindo para retornar ao uso do sistema quando quiser e
+seja gentil.»
+
+**O que foi decidido.**
+
+- **Duas cartas, dois tons, uma função.** A de quem administra diz o que se procura depois — o quê,
+  quando, quantos arquivos, o motivo, o desfecho do KV e a impressão da proveniência. A de quem perdeu
+  a escola diz o facto em palavras simples, guarda a memória («o registro da proveniência fica») e
+  deixa a porta aberta, com o endereço para onde escrever.
+- **Sem link, e é de propósito.** Um link de recriação é um segredo que vale uma vez (ver o convite).
+  Mandá-lo para uma caixa que talvez já não seja de quem decide seria oferecer a escola a quem abrisse
+  o e-mail. Quem quiser voltar pede, e recebe o convite.
+- **Os endereços são lidos ANTES de apagar.** A limpeza do KV apaga `bastidores/<slug>/` inteiro, e com
+  ele o cadastro que tem o e-mail da escola. Ler no fim seria procurar o endereço numa gaveta que já
+  foi para o lixo — e a carta não sairia precisamente no caso em que é mais devida.
+- **Só quando o expurgo se completou.** A carta diz «removida completamente»; um expurgo que deixou o
+  dado no KV ou que não tirou a escola do repositório não é isso. A recusa e a carência também não
+  mandam carta: um e-mail de despedida por cada clique recusado seria um susto por engano.
+- **Sem endereço, a carta da escola não sai — e o desfecho diz porquê.** A da administração sai sempre.
+  E nada diz «enviado» sem ter saído: sem `RESEND_API_KEY`, as duas ficam na caixa de saída do tenant.
+
+**O defeito que a prova encontrou, e era da caixa de saída.** O carimbo do nome tem resolução de
+milissegundo, e o expurgo escreve **duas** cartas no mesmo instante: a segunda apagava a primeira, em
+silêncio. O sintoma seria o pior — uma carta a menos na caixa, e ninguém a saber que faltava. A chave
+passa a ganhar sufixo quando já existe.
+
+**Onde entrou.** `motor/servidor/correio.js` (`comporDespedidaDaEscola`,
+`comporAvisoDeExpurgoAoProprietario`, e a caixa de saída sem colisão) · `motor/servidor/raiz.js`
+(`avisarDoExpurgo`, `avisarOProprietarioDoExpurgo`, a leitura dos contactos antes de apagar, e o envio
+no fim da rota `/api/apagar-escola`) · `experimentos/provar-cartas-do-expurgo.js` (novo) ·
+`.gitignore`.
+
+**Com o quê.** `provar-cartas-do-expurgo` **25/25**: as duas cartas e para quem (a da escola aos dois
+endereços do cadastro; a da administração ao endereço do proprietário); o que dizem (a remoção
+completa, o instante no fuso de quem lê, quantos arquivos, o convite de volta, o agradecimento, e
+nenhum link de recriação); e o que NÃO sai (sem endereço, sem chave, com o provedor a recusar), sempre
+com o motivo no desfecho. Mais as provas do expurgo listadas na entrada acima.
+
+**O que fica declarado.** O expurgo feito pelo **CLI local** (`escola/expurgar.js`) não manda cartas: é
+um comando de bancada, corre no computador de quem administra, não tem a chave do provedor nem o KV à
+mão. As cartas são do expurgo pela página, que é o gesto normal.

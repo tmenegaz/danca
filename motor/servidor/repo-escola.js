@@ -673,7 +673,8 @@ async function lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }) {
  * expurgada. Um arquivo ganha a entrada nova, ele não é reescrito — a proveniência
  * acrescenta. Criado se não existir (a `maria` não tem índice).
  */
-function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv, proveniencia }) {
+function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv, proveniencia,
+  commitAntes }) {
   let indice = null;
   try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
   if (!indice || typeof indice !== 'object') {
@@ -709,6 +710,19 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
     motivo: motivo || 'expurgada pela raiz',
     apagado: arquivos,
   };
+  /* O COMMIT QUE AINDA TINHA A ESCOLA INTEIRA (16/11/2026) — a chave que faltava para o retrato.
+   *
+   * O ELO JÁ DIZIA O QUÊ saiu (`apagado`: os caminhos) e com que hashes estava a cadeia
+   * (`proveniencia.impressao`). Não dizia ONDE reencontrar os bytes — e num repositório Git eles
+   * estão lá: o expurgo é um commit que APAGA, e o commit anterior é o último estado em que a
+   * escola existia por inteiro. Sem esta linha, encontrar esse ponto exige procurar por mensagem e
+   * por data («expurgar a escola X», em torno de tal instante) — que é adivinhação, e a
+   * proveniência não se apoia em adivinhação.
+   *
+   * NÃO É UM PEDIDO DE RESTAURAÇÃO. É o contrário: é o facto que deixa a porta aberta a que ela
+   * um dia exista, sem que ninguém tenha de reconstruir a linha do tempo à mão. O que a recriação
+   * restaura hoje — e o que não restaura — está declarado no REGISTRO de 16/11/2026. */
+  if (commitAntes) elo.commit_antes = String(commitAntes);
   // O QUE FICOU NO KV — e não é relato: é a PENDÊNCIA. A limpeza das chaves começa por
   // ENUMERAR, e a enumeração tem cota diária própria; quando ela falta, o expurgo tira a
   // escola do ar e do repositório e não consegue apagar o dado. Sem esta anotação, a
@@ -931,6 +945,9 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
     quando,
     kv,
     proveniencia,
+    /* O `commitSha` é a BASE desta árvore, e a árvore nova é a que APAGA — ou seja, o commit que
+     * nasce a seguir é o expurgo, e o `commitSha` é o último estado com a escola inteira. */
+    commitAntes: commitSha,
   });
 
   const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;

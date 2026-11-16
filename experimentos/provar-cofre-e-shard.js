@@ -1209,6 +1209,59 @@ function cloudflareFalso({ rotas = [] } = {}) {
       !/está sendo implantado/.test(corpoDesconhecido), corpoDesconhecido.slice(0, 160));
   });
 
+  /* ── O KV DA ESCOLA DE SHARD, QUE O EXPURGO NÃO LIMPAVA (16/11/2026) ─────────────────────────
+   *
+   * «Que a escola foi removida completamente do sistema.» A frase é do e-mail do expurgo, e era
+   * FALSA para as escolas de shard: `moradaDaEscola` devolvia `kvNamespaceId: null`, o
+   * `apagarChavesDeEscola` lê `null` como «não havia o que limpar», e o elo gravava
+   * `kv: { ok: true }` — sem apagar uma chave. Medido no namespace real: a `batata`, expurgada,
+   * continuava com `alunas`, `curadorias`, `turmas`, `rubricas` e `linhas-de-base`.
+   *
+   * O namespace da escola de shard é o do SHARD, e está na configuração dele. O que se mede aqui
+   * é a LEITURA — e, sobretudo, que ela não inventa: sem a configuração do shard, o valor continua
+   * a ser `null`, porque um id errado apagaria o dado de outra escola.
+   */
+  console.log('\nO KV da escola de shard (o que o expurgo tem de saber apagar)');
+  {
+    const raizMod = (() => { try { return require(path.join(RAIZ, 'motor/servidor/raiz.js')); } catch (e) { return null; } })();
+    const CFG = '{"name":"lastro-teste","kv_namespaces":[{"binding":"PADD_KV","id":"2ee331c7a5bc446ca86c8f2cb039ec16"}]}';
+    const IDX = JSON.stringify({ escola: 'duo', shard: 'lastro-teste' });
+    const para = (texto) => ({
+      ok: true, status: 200,
+      json: async () => ({ content: Buffer.from(texto).toString('base64'), encoding: 'base64' }),
+      text: async () => texto,
+    });
+    const naoAchado = { ok: false, status: 404, json: async () => ({}), text: async () => '' };
+    const comShard = async (url) => {
+      const u = decodeURIComponent(String(url));
+      if (/contents\/wrangler\.duo\.jsonc/.test(u)) return naoAchado;
+      if (/contents\/escola\/duo\/indice\.json/.test(u)) return para(IDX);
+      if (/contents\/wrangler\.lastro-teste\.jsonc/.test(u)) return para(CFG);
+      return naoAchado;
+    };
+    const semConfigDoShard = async (url) => {
+      const u = decodeURIComponent(String(url));
+      if (/contents\/escola\/duo\/indice\.json/.test(u)) return para(IDX);
+      return naoAchado;
+    };
+
+    if (!raizMod || typeof raizMod.moradaDaEscola !== 'function') {
+      provar('a morada da escola é alcançável pela bancada', false, 'moradaDaEscola não exportada');
+    } else {
+      const m = await raizMod.moradaDaEscola({ token: 't', slug: 'duo', fetchImpl: comShard });
+      provar('a escola de shard aponta o Worker do shard', Boolean(m) && m.worker === 'lastro-teste', m);
+      provar('…e o KV que ela usa é o do SHARD (é lá que o dado dela está)',
+        Boolean(m) && m.kvNamespaceId === '2ee331c7a5bc446ca86c8f2cb039ec16', m && m.kvNamespaceId);
+      const sem = await raizMod.moradaDaEscola({ token: 't', slug: 'duo', fetchImpl: semConfigDoShard });
+      provar('CONTROLE NEGATIVO: sem a configuração do shard, NÃO inventa um namespace',
+        Boolean(sem) && sem.kvNamespaceId === null, sem && sem.kvNamespaceId);
+      const { prefixosDaEscola } = require(path.join(RAIZ, 'motor/servidor/expurgar-escola.js'));
+      provar('…e a limpeza continua a tocar só os prefixos da escola',
+        JSON.stringify(prefixosDaEscola('duo')) === JSON.stringify(['duo/', 'bastidores/duo/']),
+        prefixosDaEscola('duo'));
+    }
+  }
+
   console.log('\n' + (ko === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + ok + '/' + (ok + ko)
     + ' asserção(ões)' + (ko ? ', ' + ko + ' falha(s)' : '') + '.');
   process.exit(ko === 0 ? 0 : 1);

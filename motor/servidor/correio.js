@@ -230,8 +230,26 @@ async function enviar({ mensagem, chave, de, fetchImpl, timeoutMs = 10000 } = {}
 async function guardarNaCaixaDeSaida({ kv, escola, mensagem, desfecho, quando } = {}) {
   if (!kv || typeof kv.put !== 'function' || !escola) return { guardada: false, motivo: 'sem KV' };
   const carimbo = String(quando || new Date().toISOString()).replace(/[:.]/g, '-');
-  const chave = 'bastidores/' + escola + '/correio/' + carimbo;
+  const base = 'bastidores/' + escola + '/correio/' + carimbo;
   try {
+    /* DUAS CARTAS NO MESMO MILISSEGUNDO NÃO SE SOBRESCREVEM (16/11/2026).
+     *
+     * O carimbo tem resolução de milissegundo, e há um gesto que escreve DUAS cartas de uma vez: o
+     * expurgo, que manda a despedida à escola e o relatório à administração. No mesmo isolate, as
+     * duas caem no mesmo milissegundo com frequência — e a segunda apagava a primeira, em silêncio.
+     * O sintoma seria a pior espécie: a caixa de saída com uma carta a menos, e ninguém a saber que
+     * faltava.
+     *
+     * A regra é simples e local: se a chave já existe, tenta-se `-2`, `-3`… até haver lugar. Não se
+     * muda o formato do carimbo (as chaves antigas continuam legíveis, e a lista ordena-se pelo
+     * nome), e não se perde nada.
+     */
+    let chave = base;
+    for (let n = 2; n <= 20; n += 1) {
+      const existente = await kv.get(chave);
+      if (!existente) break;
+      chave = base + '-' + n;
+    }
     await kv.put(chave, JSON.stringify({
       em: quando || new Date().toISOString(),
       para: mensagem.para,
@@ -426,6 +444,169 @@ function comporAvisoAoProprietario({ escola, nome, plano, valor, capacidade, qua
   };
 }
 
+/**
+ * A DESPEDIDA — o e-mail para a ESCOLA e o PROFESSOR quando a escola é expurgada (16/11/2026).
+ *
+ * O QUE ELA PEDIU: «tem que disparar um e-mail […] para o professor e para a escola, que são os
+ * e-mails cadastrados […] avisando que a escola foi removida completamente do sistema, que ela foi
+ * expurgada. E que […] reforce o convite de que ele é bem-vindo para retornar ao uso do sistema
+ * quando quiser, e seja gentil.»
+ *
+ * O TOM É O PEDIDO, e o conteúdo é o facto: a escola saiu, o que sai com ela, e a porta continua
+ * aberta. **NÃO DIZ «os seus dados foram apagados»** sem mais — seria assustador e não é o que
+ * acontece: o que fica é a memória de que a escola existiu (a proveniência), e ela é o que torna a
+ * volta possível. Também não promete prazo nenhum para voltar, porque não há prazo: a volta é
+ * quando quiserem.
+ *
+ * NÃO LEVA LINK, e é de propósito. Um link de recriação é um segredo que vale uma vez (ver
+ * `comporConvite`); mandá-lo para uma caixa que talvez já não seja de quem decide seria oferecer a
+ * escola a quem abrisse o e-mail. Quem quiser voltar pede — e a administração manda o convite.
+ */
+function comporDespedidaDaEscola({ escola, nome, quandoTexto, professor, apagados } = {}) {
+  const nomeDaEscola = String(nome || escola || '').trim();
+  const linhas = [];
+  linhas.push('Olá.');
+  linhas.push('');
+  linhas.push('A escola «' + nomeDaEscola + '» foi removida do Sistema Lastro'
+    + (quandoTexto ? ', em ' + String(quandoTexto) : '') + '.');
+  linhas.push('');
+  linhas.push('A remoção é completa: o endereço da escola não abre mais, e os documentos que ela');
+  linhas.push('tinha deixaram de estar disponíveis no sistema.');
+  if (Number(apagados) > 0) {
+    linhas.push('');
+    linhas.push('Foram removidos ' + Number(apagados) + ' arquivos: o pacote do ciclo, os');
+    linhas.push('planos, as anamneses e o acervo dos envelopes.');
+  }
+  linhas.push('');
+  linhas.push('O Sistema Lastro guarda a memória de que a escola existiu: o registro da');
+  linhas.push('proveniência fica, e é ele que permite que a escola volte a nascer com o mesmo');
+  linhas.push('nome e a mesma história.');
+  linhas.push('');
+  linhas.push('E é isso que queremos dizer: A PORTA CONTINUA ABERTA. Se em algum momento você');
+  linhas.push('quiser voltar a usar o sistema — com esta escola ou com outra —, escreva para');
+  linhas.push('lastro@padd.com.br. A volta é feita por convite, com uma página própria para');
+  linhas.push('escolher o plano e criar a senha, e não precisa de lembrar de nenhuma senha antiga.');
+  linhas.push('');
+  linhas.push('Foi um prazer ter a escola «' + nomeDaEscola + '» por aqui. Obrigado pelo tempo em');
+  linhas.push('que caminhámos juntos.');
+  linhas.push('');
+  linhas.push('O Sistema Lastro registra e organiza evidências para apoiar a reflexão pedagógica.');
+  linhas.push('Ele não avalia a aluna e não substitui o professor.');
+  linhas.push('');
+  linhas.push('— Sistema Lastro');
+  const texto = linhas.join('\n');
+
+  const escapar = (t) => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const html = [
+    '<div style="font-family:Georgia,serif;color:#2b2b2b;line-height:1.55;max-width:34rem">',
+    '<p style="margin:0 0 16px">Olá.</p>',
+    '<p style="margin:0 0 16px">A escola <strong>«' + escapar(nomeDaEscola) + '»</strong> foi '
+      + 'removida do Sistema Lastro' + (quandoTexto ? ', em ' + escapar(quandoTexto) : '') + '.</p>',
+    '<p style="margin:0 0 16px">A remoção é completa: o endereço da escola não abre mais, e os '
+      + 'documentos que ela tinha deixaram de estar disponíveis no sistema.</p>',
+    Number(apagados) > 0
+      ? '<p style="margin:0 0 16px">Foram removidos ' + Number(apagados) + ' arquivos — o pacote do '
+        + 'ciclo, os planos, as anamneses e o acervo dos envelopes.</p>'
+      : '',
+    '<p style="margin:0 0 16px">O Sistema Lastro guarda a memória de que a escola existiu: o registro '
+      + 'da proveniência fica, e é ele que permite que a escola volte a nascer com o mesmo nome e a '
+      + 'mesma história.</p>',
+    '<p style="margin:0 0 16px;padding:12px 16px;border:1px solid #8a6a3b;border-radius:8px">'
+      + '<strong>A porta continua aberta.</strong> Se em algum momento você quiser voltar a usar o '
+      + 'sistema — com esta escola ou com outra —, escreva para '
+      + '<a href="mailto:lastro@padd.com.br" style="color:#7a2e2e">lastro@padd.com.br</a>. A volta é '
+      + 'feita por convite, com uma página própria para escolher o plano e criar a senha, e não '
+      + 'precisa de lembrar de nenhuma senha antiga.</p>',
+    '<p style="margin:0 0 16px">Foi um prazer ter a escola «' + escapar(nomeDaEscola) + '» por aqui. '
+      + 'Obrigado pelo tempo em que caminhámos juntos.</p>',
+    '<p style="margin:0 0 16px;color:#5a5a5a">O Sistema Lastro registra e organiza evidências para '
+      + 'apoiar a reflexão pedagógica. Ele não avalia a aluna e não substitui o professor.</p>',
+    '<p style="margin:0;color:#5a5a5a">— Sistema Lastro</p>',
+    '</div>',
+  ].filter(Boolean).join('');
+
+  return {
+    para: [],
+    assunto: 'A escola «' + nomeDaEscola + '» foi removida do Sistema Lastro',
+    texto,
+    html,
+    escola: String(escola || ''),
+    professor: professor || null,
+  };
+}
+
+/**
+ * O AVISO A QUEM ADMINISTRA, quando uma escola é expurgada (16/11/2026).
+ *
+ * É o par do de cima: um vai para quem perdeu a escola, este para quem a apagou. O que ele tem de
+ * ter é o que se procura depois — **o quê, quando, e o que ficou por apagar**. As duas metades do
+ * expurgo (Cloudflare e repositório) podem separar-se, e é por isso que o desfecho do KV também
+ * aparece: um expurgo que deixou o dado no KV e disse «feito» é o defeito que o `kvFalhou` existe
+ * para não deixar passar.
+ */
+function comporAvisoDeExpurgoAoProprietario({ escola, nome, quando, quandoTexto, professor,
+  contactos, apagados, kv, proveniencia, motivo } = {}) {
+  const nomeDaEscola = String(nome || escola || '').trim();
+  const linhas = [];
+  linhas.push('A escola «' + nomeDaEscola + '» foi expurgada do Sistema Lastro.');
+  linhas.push('');
+  linhas.push('  Escola:      ' + nomeDaEscola + ' (' + String(escola || '') + ')');
+  linhas.push('  Quando:      ' + String(quandoTexto || quando || '—'));
+  if (professor) linhas.push('  Professor:   ' + String(professor));
+  if (contactos && contactos.length) linhas.push('  Contactos:   ' + contactos.join(', '));
+  if (Number(apagados) > 0) linhas.push('  Arquivos:    ' + Number(apagados) + ' removidos do repositório');
+  if (motivo) linhas.push('  Motivo:      ' + String(motivo));
+  if (kv) linhas.push('  KV:          ' + (kv.ok === false ? 'FALHOU — há chaves por apagar' : 'limpo'));
+  if (proveniencia && proveniencia.impressao) {
+    linhas.push('  Proveniência: ' + String(proveniencia.impressao).slice(0, 16) + '…');
+  }
+  linhas.push('');
+  linhas.push('A memória da escola fica: o elo da proveniência sobrevive ao expurgo, e é dele');
+  linhas.push('que a recriação tira o professor, o ciclo e o shard. Para a trazer de volta, use');
+  linhas.push('«Recriar» na lista das escolas apagadas.');
+  linhas.push('');
+  linhas.push('— Sistema Lastro');
+  const texto = linhas.join('\n');
+
+  const escapar = (t) => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const linhaHtml = (rotulo, dado) => (dado
+    ? '<tr><td style="padding:4px 12px 4px 0;color:#5a5a5a">' + escapar(rotulo)
+      + '</td><td style="padding:4px 0">' + escapar(dado) + '</td></tr>'
+    : '');
+  const html = [
+    '<div style="font-family:Georgia,serif;color:#2b2b2b;line-height:1.55;max-width:34rem">',
+    '<p style="margin:0 0 16px">A escola <strong>«' + escapar(nomeDaEscola) + '»</strong> foi '
+      + 'expurgada do Sistema Lastro.</p>',
+    '<table style="border-collapse:collapse;margin:0 0 16px;font-size:15px">',
+    linhaHtml('Escola', nomeDaEscola + ' (' + String(escola || '') + ')'),
+    linhaHtml('Quando', quandoTexto || quando),
+    linhaHtml('Professor', professor),
+    linhaHtml('Contactos', (contactos || []).join(', ')),
+    linhaHtml('Arquivos', Number(apagados) > 0 ? Number(apagados) + ' removidos do repositório' : ''),
+    linhaHtml('Motivo', motivo),
+    linhaHtml('KV', kv ? (kv.ok === false ? 'FALHOU — há chaves por apagar' : 'limpo') : ''),
+    linhaHtml('Proveniência', proveniencia && proveniencia.impressao
+      ? String(proveniencia.impressao).slice(0, 16) + '…' : ''),
+    '</table>',
+    '<p style="margin:0 0 16px">A memória da escola fica: o elo da proveniência sobrevive ao '
+      + 'expurgo, e é dele que a recriação tira o professor, o ciclo e o shard. Para a trazer de '
+      + 'volta, use «Recriar» na lista das escolas apagadas.</p>',
+    '<p style="margin:0;color:#5a5a5a">— Sistema Lastro</p>',
+    '</div>',
+  ].join('');
+
+  return {
+    para: [],
+    assunto: 'A escola «' + nomeDaEscola + '» foi expurgada do Sistema Lastro',
+    texto,
+    html,
+    escola: String(escola || ''),
+    quando: quando || null,
+  };
+}
+
 module.exports = {
   REMETENTE_PADRAO,
   API_DO_CORREIO,
@@ -434,6 +615,8 @@ module.exports = {
   comporMensagem,
   comporConvite,
   comporAvisoAoProprietario,
+  comporDespedidaDaEscola,
+  comporAvisoDeExpurgoAoProprietario,
   enviar,
   guardarNaCaixaDeSaida,
 };

@@ -1481,3 +1481,9 @@ experimentos/modelo-formulario/*
 # por isso atravessava o expurgo e a recriação. A prova mede a chave (muda com a senha, muda com a
 # escola) e o token (o de antes da troca já não vale; o de uma escola não abre outra).
 !experimentos/provar-token-da-escola.js
+
+# AS DUAS CARTAS DO EXPURGO (16/11/2026). «Quando eu expurgar uma escola, tem que disparar um e-mail
+# para mim no lastro@padd.com.br e outro para o professor e para a escola.» A prova mede as duas
+# cartas (para quem, com que palavras), o silêncio quando não há endereço ou chave, e a caixa de
+# saída — onde duas cartas do mesmo milissegundo já se apagaram uma à outra.
+!experimentos/provar-cartas-do-expurgo.js
