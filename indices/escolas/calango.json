@@ -1,5 +1,26 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "cinco-posicoes-4a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261116-0012",
+      "ultima": "20261116-0012",
+      "versoes": 1
+    },
+    {
+      "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261116-0012",
+      "ultima": "20261116-0012",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +98,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-15T22:07:20.172239+00:00",
@@ -107,7 +128,24 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-4a-pes",
+        "valor": "cinco-posicoes-4a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
+        "valor": "mobilidade-de-quadril-en-dehors-de-origem"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +188,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5df76cf"
+    "commit": "d8e90a3"
   },
-  "gerado_em": "2026-11-16T00:09",
+  "gerado_em": "2026-11-16T00:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +213,35 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "cinco-posicoes-4a-pes",
+        "mobilidade-de-quadril-en-dehors-de-origem"
+      ],
+      "atualizada_em": "2026-11-16T00:12:28.185Z",
+      "enviada_em": "2026-11-16T00:12:28.706Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "pe-pequeno",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/calango/linhas-de-base/tami--20261116-0012.json",
+          "aspectos": [
+            "cinco-posicoes-4a-pes",
+            "mobilidade-de-quadril-en-dehors-de-origem"
+          ],
+          "enviada_em": "2026-11-16T00:12:28.706Z",
+          "versao": "20261116-0012"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
