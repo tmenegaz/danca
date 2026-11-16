@@ -1,95 +1,42 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-16",
-        "caminho": "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
-        "cobertura": [
-          "professores/ana-diag/ciclos/ciclo-01-breu.conf",
-          "professores/ana-diag/ciclos/ciclo-01.conf"
-        ],
-        "hash": "2dcc229a2df8a2cd5d97f6df1d84578e4d809e767b301be43ee42f6614684d3f",
-        "hash_conteudo": "edba122aa83e8d751e5051a892589fd06ca3a0d9e626617aa56fa0d03477fb8f",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/ana-diag/ciclos/ciclo-01-breu.conf",
-        "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
-        "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:ana-diag/01/breu",
-      "numero": "01",
-      "pacote": null,
-      "professor": "ana-diag",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/ana-diag/ciclos/ciclo-01-breu.fipp",
-      "ciclo_id": "ciclo:ana-diag/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/ana-diag/ciclos/ciclo-01-breu.fipp",
-      "professor": "ana-diag",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/ana-diag/ciclos/ciclo-01-breu.conf",
-      "ciclo_id": "ciclo:ana-diag/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/ana-diag/ciclos/ciclo-01-breu.conf",
-      "professor": "ana-diag",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:ana-diag/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/ana-diag/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "ana-diag",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:ana-diag/01/breu"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
     "criada_em": "2026-11-16T10:58:23.994622+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-11-16T00:43:14.929Z",
-    "expurgos": 11,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-11-16T11:00:36.439Z",
+    "expurgos": 12,
+    "habilitada": false,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "ana-diag",
     "professores": [
-      "ana-diag"
+      "ana-diag",
+      "cafe-no-bule",
+      "colo-de-pe",
+      "coqui-de-redinha",
+      "dedao-aberto",
+      "grand-plie",
+      "luz-azul",
+      "pe-torto",
+      "redinha-rosa",
+      "rimel-preto",
+      "sapo-bailarino",
+      "tiago-menegaz",
+      "vaso-bonito"
     ],
     "registros": [],
     "slug": "breu"
@@ -97,42 +44,15 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:ana-diag/01/breu"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:ana-diag/01/breu"
-        ],
-        "rotulo": "ana-diag",
-        "valor": "ana-diag"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:ana-diag/01/breu"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c3de8a"
+    "commit": "0df2cdf"
   },
-  "gerado_em": "2026-11-16T10:58",
+  "gerado_em": "2026-11-16T11:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
