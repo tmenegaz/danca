@@ -1425,7 +1425,15 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       + '<span class="selo ' + (c.situacao === 'em-aberto' ? 'falha' : (c.situacao === 'em-dia' ? 'ok' : 'discreto'))
       + '">' + esc(c.situacao === 'em-aberto' ? 'em aberto' : (c.situacao === 'em-dia' ? 'pago' : 'a aguardar'))
       + '</span></summary>' +
-      '<p>' + esc(c.frase || '') + '</p>' +
+      '<p>' + esc(c.frase || '')
+      /* O AVISO DO ENSAIO TAMBÉM NO PAINEL (17/11/2026). Os meses que aqui aparecem passam a ser os
+       * que a escola vê — e em 17/11 de 2026 «dezembro» não existe. Sem esta linha, quem concilia
+       * veria meses futuros a mais e não saberia de onde vêm; com ela, sabe que são de ensaio e
+       * que o que se paga ali não é cobrança. */
+      + (c.ensaio && Number(c.ensaio.minutosPorPeriodo) > 0
+        ? ' <span class="selo discreto">em ensaio: ' + esc(String(c.ensaio.minutosPorPeriodo))
+          + ' min por período</span>' : '')
+      + '</p>' +
       '<div class="ficha">' +
       '<span>Plano: <strong>' + esc(c.planoNome || '—') + '</strong></span>' +
       '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
@@ -1445,10 +1453,38 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         : '') +
       '</div>' +
       corpoDaTabela +
+      /* INFORMAR UM PAGAMENTO — O CAMPO QUE FALTAVA (17/11/2026).
+       *
+       * «Pedi para parar porque você não colocou a conciliação no financeiro do
+       * danca.padd.com.br. Por isso não consegui informar o pagamento.»
+       *
+       * O BOTÃO DE CADA LINHA só existe para um mês QUE JÁ ESTÁ no extrato. Quando o mês que a
+       * escola está a pagar ainda não nasceu do lado de quem concilia — um pagamento adiantado, ou
+       * um mês que o relógio de ensaio abriu — não havia linha, logo não havia botão, e não havia
+       * caminho nenhum. Este campo é o caminho: escolhe-se o mês, e ele é registado com o valor e o
+       * plano do contrato em vigor — a mesma conta do servidor, não uma segunda.
+       *
+       * ELE NÃO SUBSTITUI O BOTÃO DA LINHA: os dois chamam a mesma rota. O botão da linha é o
+       * gesto rápido do caso comum; o campo é a saída quando o mês não está à vista.
+       *
+       * O `type="month"` é o campo nativo, e o seu valor é `AAAA-MM` — exactamente a competência
+       * que o livro guarda. Um campo de texto livre obrigaria a validar o formato à mão, e o
+       * formato é a única coisa que este campo tem de acertar. */
+      '<div class="caixa filtrar">' +
+      '<div class="campo-filtro">' +
+      '<label class="campo-rotulo" for="pagar-mes-' + esc(c.escola) + '">Informar um pagamento — ' +
+      'mês</label>' +
+      '<input id="pagar-mes-' + esc(c.escola) + '" type="month" data-pagamento-mes="' +
+      esc(c.escola) + '" value="' + esc(c.mesDeHoje || '') + '">' +
+      '</div>' +
+      '<button type="button" class="acao" data-pagamento-gravar="' + esc(c.escola) + '">' +
+      'Marcar como pago</button>' +
+      '</div>' +
+      '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>' +
       /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
        * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
        * upgrade ou downgrade ou nenhuma capacidade extra». */
-      '<details class="acordeao"><summary>Mudar o plano ou a capacidade desta escola</summary>' +
+      '<details class="acordeao"><summary>Mudar o plano ou a capacidade</summary>' +
       '<div class="col-form" data-contrato="' + esc(c.escola) + '">' +
       '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
       '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
@@ -1689,6 +1725,38 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '      alert("falha de rede — nada foi alterado");});' +
   '  });' +
   '})(pagar[j]);' +
+  /* ── INFORMAR UM PAGAMENTO PELO MÊS (17/11/2026) ─────────────────────────────────────────
+   *
+   * O caminho para o mês que ainda não tem linha. A rota é a MESMA do botão de cada linha — uma
+   * segunda rota para o mesmo acto seria uma segunda conta do mesmo pagamento.
+   *
+   * O MÊS VEM DO CAMPO, e vai como está: o servidor valida-o (`AAAA-MM` que exista no calendário) e
+   * recusa com a razão. Não se valida aqui uma segunda vez — um cliente que valida o que o servidor
+   * valida é um sítio a mais para as duas regras divergirem.
+   *
+   * O RECADO É DA ESCOLA, e não da página: com dez escolas abertas, um aviso único mentiria sobre
+   * qual delas mudou. */
+  'var informar=document.querySelectorAll("[data-pagamento-gravar]");' +
+  'for(var q=0;q<informar.length;q++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var escola=b.getAttribute("data-pagamento-gravar");if(!escola)return;' +
+  '    var campo=document.querySelector(\'[data-pagamento-mes="\'+escola+\'"]\');' +
+  '    var recado=document.querySelector(\'[data-pagamento-recado="\'+escola+\'"]\');' +
+  '    function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
+  '      recado.className=erro?"aviso alerta":"aviso";}' +
+  '    var mes=campo?String(campo.value||"").trim():"";' +
+  '    if(!/^[0-9]{4}-[0-9]{2}$/.test(mes)){dizer("escolha o mês a que o pagamento se refere",true);return;}' +
+  '    b.disabled=true;dizer("a registar…",false);' +
+  '    fetch("/api/financeiro/mensalidade",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,mes:mes}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){b.disabled=false;' +
+  '      if(d&&d.ok){location.reload();return;}' +
+  '      dizer((d&&d.erro)||"não foi possível registar o pagamento",true);})' +
+  '    .catch(function(){b.disabled=false;' +
+  '      dizer("falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(informar[q]);' +
   /* ── O CONTRATO: PLANO E CAPACIDADE (16/11/2026) ───────────────────────────────────────
    *
    * A MESMA CONTA DO SERVIDOR, e não uma segunda: o plano vem do `select`, os lotes das caixas, e
@@ -1714,9 +1782,11 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '        lotesProfessores:p,lotesAlunos:a}),cache:"no-store"})' +
   '    .then(function(r){return r.json().catch(function(){return {};});})' +
   '    .then(function(d){b.disabled=false;' +
-  '      if(d&&d.ok){dizer("Contrato gravado: "+(d.contrato&&d.contrato.planoNome||"")+" — "' +
-  '        +" R$ "+(d.contrato&&d.contrato.valor||"")+" por mês. Recarregue para ver o extrato.",false);' +
-  '        return;}' +
+  /* RECARREGA, COMO O PAGAMENTO (17/11/2026). Antes dizia «Recarregue para ver o extrato» — e ela
+   * recarregava e via o extrato IGUAL, porque o mês em curso não muda por desenho. Um recado que
+   * manda fazer uma coisa que não muda nada lê-se como «não funcionou». Agora a página repinta-se
+   * sozinha: o valor no topo do cartão muda, e é isso que mostra que ficou gravado. */
+  '      if(d&&d.ok){location.reload();return;}' +
   '      dizer((d&&d.erro)||"não foi possível gravar o contrato",true);})' +
   '    .catch(function(){b.disabled=false;dizer("falha de rede — nada foi alterado",true);});' +
   '  });' +

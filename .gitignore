@@ -1516,6 +1516,13 @@ experimentos/modelo-formulario/*
 # escola a sério cobra-lhe meses que não existem.
 !experimentos/provar-relogio-do-ensaio.js
 
+# A CONCILIAÇÃO DO PAINEL (17/11/2026). «Pedi para parar porque você não colocou a conciliação no
+# financeiro do danca.padd.com.br.» A prova compara as DUAS leituras do mesmo núcleo — a do painel e a
+# da escola —, porque o defeito vivia na diferença entre elas: a escola via os meses do ensaio e quem
+# conciliava não. Mede também o campo que informa um pagamento de um mês que ainda não tem linha, e a
+# recusa de uma escola inexistente (a rota gravava R$ 0,00 no livro, em silêncio).
+!experimentos/provar-conciliacao-do-painel.js
+
 # AS ABAS SÃO UMA PEÇA DA FOLHA (16/11/2026). «Anote aí também na nossa identidade visual que a gente
 # vai adotar abas.» Ela nasceu no `<style>` da Audição e ganhou três consumidores; a prova mede a
 # geometria num navegador (a aba activa pousa na linha, a tira sai no telemóvel) e afirma que

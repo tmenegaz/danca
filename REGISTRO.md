@@ -50001,3 +50001,65 @@ está. Dizer «passa a valer» sobre um mês que já se vê faz o leitor procura
 `provar-bateria-do-shard` não corre: `calango` e `batata` já não resolvem, e a prova rebenta em vez de
 os saltar — falha de ANTES, e não desta frente. (3) O ensaio fica LIGADO na Breu a 3 minutos, por
 pedido dela; o aviso da página diz como sair.
+
+## 17/11/2026 — A conciliação que faltava no painel: o mesmo mês dos dois lados, e o campo para informar o pagamento
+
+**O que motivou.** «Pedi para parar porque você não colocou a conciliação no financeiro do
+danca.padd.com.br. Por isso não consegui informar o pagamento e nem mudar de plano de pagos ou
+inadimplentes.»
+
+**O que se mediu antes, e a causa.** As duas superfícies chamam o MESMO núcleo
+(`mensalidades.situacaoDaEscola`), mas com entradas diferentes: a página da escola lia a chave
+`bastidores/<escola>/ensaio` e passava-a; o `extratoDasEscolas` do painel **não a lia**. Com o
+relógio comprimido ligado, a escola mostrava «dezembro · em aberto · R$ 169,90 · Pagar» e o painel
+continuava a mostrar só «novembro · pago». O mês que a escola pedia para pagar não existia do lado de
+quem concilia — e sem linha não há botão.
+
+E o botão de cada linha era o único caminho: só serve um mês que **já esteja** no extrato. Um
+pagamento adiantado, ou um mês que o ensaio abriu, não tinha por onde ser informado.
+
+**Um defeito que gravava dinheiro.** A rota `/api/financeiro/mensalidade` aceitava qualquer slug. Um
+`POST` com `escola: "zzz-nao-existe"` respondia `ok: true` e escrevia no livro uma linha de **R$
+0,00** — indistinguível de um pagamento a sério na soma do mês seguinte. Encontrado ao vivo e
+**limpo do livro** no mesmo dia (a chave `financeiro/mensalidades` foi reescrita com a linha da Breu
+apenas).
+
+**O que foi decidido.**
+
+- **Uma pergunta, uma resposta.** `extratoDasEscolas` passa a ler o ensaio por escola, com uma
+  função só (`raiz.lerEnsaio`) — a mesma validação dos dois lados. O extrato leva `ensaio` para a
+  página poder dizer que os meses que mostra são de ensaio, e `temContrato` para a rota saber o que
+  existe.
+- **A rota recusa o que não existe.** Sem contrato não há o que pagar: `400` com o nome da escola na
+  frase, e o livro intocado.
+- **O campo «Informar um pagamento — mês».** Um `input type="month"` (o valor é `AAAA-MM`, a
+  competência que o livro guarda) mais o botão «Marcar como pago», por escola, logo abaixo da tabela.
+  É o caminho para o mês que ainda não tem linha. Não substitui o botão da linha — os dois chamam a
+  mesma rota: o botão é o gesto rápido do caso comum, o campo é a saída quando o mês não está à vista.
+- **O contrato repinta a página.** O recado dizia «Recarregue para ver o extrato» — e recarregar
+  mostrava o extrato igual, porque o mês em curso não muda por desenho. Agora é `location.reload()`
+  como no pagamento: o valor no topo do cartão muda, e é isso que mostra que ficou gravado.
+
+**Onde entrou.** `motor/servidor/raiz.js` (`extratoDasEscolas` fora do `fetch` — era uma função
+declarada DENTRO dele, e por isso não podia ser exportada; `lerEnsaio`; o ensaio no extrato; a recusa
+da escola sem contrato; `extratoDasEscolas` e `lerEnsaio` exportados) ·
+`motor/servidor/painel-html.js` (o bloco «Informar um pagamento», o gesto `[data-pagamento-gravar]`, o
+selo «em ensaio», o contrato a recarregar) · `experimentos/provar-conciliacao-do-painel.js` (nova, 21
+asserções) · `.gitignore`.
+
+**Com o quê.** `provar-conciliacao-do-painel` **21/21** (nova) · `provar-financeiro` 58 ·
+`provar-paginacao` 120 · `provar-relogio-do-ensaio` 25 · `provar-monitoramento` 94 ·
+`check-identidade` 0 erros.
+
+**Controlo A/B, em três frentes.** O painel a não ver o ensaio → reprova a comparação dos meses. A
+rota a aceitar escola inexistente → reprova duas asserções e suja o livro. O campo de pagamento
+removido → reprova cinco.
+
+**Medido num navegador.** A 1280 o bloco fica na linha (campo 179px, botão 127px, sem transbordo);
+a 390 empilha. **Nota de antes, não desta frente:** a tabela do extrato transborda a 390px — medido
+no `HEAD` limpo, o `TABLE` chega a 466px e o transbordo existe igual. Fica registado, não corrigido
+aqui.
+
+**O que ainda não está feito.** (1) O ensaio continua **suspenso** na Breu, por pedido dela; agora
+que o painel o vê, basta religá-lo para testar a conciliação de um mês que nasce. (2) O transbordo da
+tabela a 390px, de antes. (3) A `ESTADO-ATUAL.md` segue a cadência dela.

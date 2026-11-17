@@ -1871,6 +1871,23 @@ function chaveComercial(escola) {
 }
 
 /** Lê o estado comercial. Sem registo (ou ilegível) → `ativa`, e o motivo é dito no campo. */
+/**
+ * A CHAVE DO ENSAIO DE UMA ESCOLA (17/11/2026) — `null` quando não há, que é o caso normal.
+ *
+ * Uma função e não uma linha repetida em dois sítios: o painel e a página da escola têm de ler a
+ * MESMA chave e validá-la da MESMA maneira, ou volta a haver duas respostas para «esta escola está
+ * em ensaio?» — que é o defeito que esta função existe para fechar.
+ */
+async function lerEnsaio(kv, escola) {
+  if (!kv || typeof kv.get !== 'function' || !escola) return null;
+  try {
+    const texto = await kv.get('bastidores/' + escola + '/ensaio');
+    if (!texto) return null;
+    const valor = JSON.parse(texto);
+    return valor && Number(valor.minutosPorPeriodo) > 0 ? valor : null;
+  } catch (erro) { return null; }
+}
+
 async function lerComercial(kv, escola) {
   const vazio = { estado: 'ativa', motivo: 'sem registo comercial', plano: null, valor: null };
   if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
@@ -3120,6 +3137,62 @@ async function servirAPagina(request, env, { modo }) {
   });
 }
 
+/**
+ * O EXTRATO DE CADA ESCOLA VIVA — o que a página do financeiro desenha (16/11/2026).
+ *
+ * UMA LEITURA POR ESCOLA, para o registo comercial (`bastidores/<escola>/comercial`), e UMA
+ * leitura do livro para todas. É o mesmo perfil de acesso dos descontos: poucas escolas, um ecrã
+ * que se abre algumas vezes por mês.
+ *
+ * O QUE NÃO SE FAZ AQUI: contar meses no cliente, somar valores, decidir o que está vencido. Isso é
+ * `mensalidades.situacaoDaEscola`, e a página limita-se a mostrar o que ela devolve — a mesma
+ * função que a escola vê no painel dela. Duas contas da mesma dívida dariam duas respostas, e a que
+ * ficasse a valer seria a que ela lesse primeiro.
+ */
+async function extratoDasEscolas({ env, escolas, agora }) {
+  const kv = env && env.PADD_KV;
+  const livro = await mensalidades.lerLivro(kv);
+  const lista = [];
+  for (const e of Array.isArray(escolas) ? escolas : []) {
+    const slug = String((e && e.slug) || '').trim();
+    if (!slug) continue;
+    let contrato = null;
+    try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
+    /* O MODO DE ENSAIO TAMBÉM AQUI (17/11/2026) — E A SUA AUSÊNCIA ERA O DEFEITO.
+     *
+     * «Pedi para parar porque você não colocou a conciliação no financeiro do danca.padd.com.br. Por
+     * isso não consegui informar o pagamento.»
+     *
+     * A chave `bastidores/<escola>/ensaio` era lida pela página da ESCOLA e não por este painel. Com
+     * o relógio comprimido ligado, a escola via «dezembro · em aberto · R$ 169,90 · Pagar» e quem
+     * conciliava continuava a ver só «novembro · pago» — o mês que a escola pedia não existia do
+     * lado de lá, e por isso não havia botão nenhum para o informar.
+     *
+     * A pergunta «que meses há?» tem de ter UMA resposta. A função que a responde é a mesma
+     * (`situacaoDaEscola`); o que faltava era dar-lhe a mesma entrada. */
+    const ensaio = await lerEnsaio(kv, slug);
+    const situacao = mensalidades.situacaoDaEscola({
+      escola: slug, contrato, livro, agora, ensaio,
+    });
+    lista.push(Object.assign({}, situacao, {
+      nome: (e && e.nome) || slug,
+      frase: mensalidades.fraseDaSituacao(situacao.situacao),
+      /* OS LOTES, para o formulário do contrato abrir no que está em vigor. Um registo antigo não
+       * os tem (nasceram hoje) — e aí as caixas abrem vazias, que é a verdade: não se sabe quais
+       * foram, só o total. */
+      lotesProfessores: Array.isArray(contrato && contrato.lotesProfessores)
+        ? contrato.lotesProfessores : [],
+      lotesAlunos: Array.isArray(contrato && contrato.lotesAlunos) ? contrato.lotesAlunos : [],
+      /* O ENSAIO VAI PARA A PÁGINA, para ela poder dizer que os meses que mostra são de ensaio.
+       * Sem isto, o painel passaria a ver «dezembro de 2026» em novembro de 2026 e não haveria nada
+       * no ecrã a explicar de onde vem. */
+      ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
+      temContrato: Boolean(contrato && contrato.plano),
+    }));
+  }
+  return lista;
+}
+
 async function fetch(request, env) {
   const url = new URL(request.url);
 
@@ -3506,43 +3579,6 @@ async function fetch(request, env) {
    * numa página aberta é a conta dela à vista; um desconto publicado é a negociação de um cliente
    * à vista de outro.
    * ===================================================================================== */
-/**
- * O EXTRATO DE CADA ESCOLA VIVA — o que a página do financeiro desenha (16/11/2026).
- *
- * UMA LEITURA POR ESCOLA, para o registo comercial (`bastidores/<escola>/comercial`), e UMA
- * leitura do livro para todas. É o mesmo perfil de acesso dos descontos: poucas escolas, um ecrã
- * que se abre algumas vezes por mês.
- *
- * O QUE NÃO SE FAZ AQUI: contar meses no cliente, somar valores, decidir o que está vencido. Isso é
- * `mensalidades.situacaoDaEscola`, e a página limita-se a mostrar o que ela devolve — a mesma
- * função que a escola vê no painel dela. Duas contas da mesma dívida dariam duas respostas, e a que
- * ficasse a valer seria a que ela lesse primeiro.
- */
-async function extratoDasEscolas({ env, escolas, agora }) {
-  const kv = env && env.PADD_KV;
-  const livro = await mensalidades.lerLivro(kv);
-  const lista = [];
-  for (const e of Array.isArray(escolas) ? escolas : []) {
-    const slug = String((e && e.slug) || '').trim();
-    if (!slug) continue;
-    let contrato = null;
-    try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
-    const situacao = mensalidades.situacaoDaEscola({
-      escola: slug, contrato, livro, agora,
-    });
-    lista.push(Object.assign({}, situacao, {
-      nome: (e && e.nome) || slug,
-      frase: mensalidades.fraseDaSituacao(situacao.situacao),
-      /* OS LOTES, para o formulário do contrato abrir no que está em vigor. Um registo antigo não
-       * os tem (nasceram hoje) — e aí as caixas abrem vazias, que é a verdade: não se sabe quais
-       * foram, só o total. */
-      lotesProfessores: Array.isArray(contrato && contrato.lotesProfessores)
-        ? contrato.lotesProfessores : [],
-      lotesAlunos: Array.isArray(contrato && contrato.lotesAlunos) ? contrato.lotesAlunos : [],
-    }));
-  }
-  return lista;
-}
 
   if (url.pathname === '/financeiro' && request.method === 'GET') {
     const token = env && env.GITHUB_TOKEN;
@@ -3912,6 +3948,18 @@ async function extratoDasEscolas({ env, escolas, agora }) {
     }
     let contrato = null;
     try { contrato = await lerComercial(env && env.PADD_KV, slug); } catch (erro) { contrato = null; }
+    /* A ESCOLA TEM DE EXISTIR, E ISTO NÃO É ZELO — É UM DEFEITO QUE GRAVOU DINHEIRO (17/11/2026).
+     *
+     * A rota aceitava qualquer slug. Um `POST` com `escola: "zzz-nao-existe"` respondia `ok: true` e
+     * escrevia no livro uma linha de R$ 0,00 — e uma linha dessas não se distingue de um pagamento a
+     * sério na soma do mês seguinte. O `lerComercial` devolvia `null` e o valor saía zero, em
+     * silêncio. Quem confere uma conta de escola contra o banco encontra um mês pago por ninguém.
+     *
+     * A EXISTÊNCIA É O REGISTO COMERCIAL: é ele que a lista das vivas usa para decidir o que é uma
+     * escola, e é ele que traz o valor a cobrar. Sem ele não há o que pagar — há um pedido errado. */
+    if (!contrato || !contrato.plano) {
+      return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
+    }
     const feito = await mensalidades.registarPagamento(env && env.PADD_KV, {
       escola: slug,
       mes: corpo.mes,
@@ -4567,4 +4615,9 @@ module.exports = {
    * commit é o último estado da escola», e isso é uma pergunta sobre o repositório — não sobre
    * pixels. Medir isto pela página exigiria um convite a cada ensaio. */
   lerRetratoDaEscola,
+  /* O EXTRATO DO PAINEL, exportado a 17/11/2026 para a prova poder compará-lo com o da ESCOLA. O
+   * defeito que ela apanhou — «não consegui informar o pagamento» — vivia na diferença entre as
+   * duas leituras: a mesma pergunta («que meses há?») respondida de duas maneiras. Só se mede
+   * comparando as duas, e comparar exige as duas em mãos. */
+  extratoDasEscolas, lerEnsaio,
 };
