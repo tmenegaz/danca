@@ -1873,7 +1873,9 @@ decisão.
   são os **minutos de Ações**, porque cada lançamento de aula passa por três workflows (reancorar,
   publicar as escolas, regerar os índices) e a mediana dos últimos 40 é de **54 s**. Com 30% de
   folga reservada para os picos (1.400 min/mês utilizáveis), cabem **três escolas no teto**
-  (3 × 396 = 1.188 min, 59% do total); a quarta levaria a 79% e já come a folga. **É por isso que
+  (3 × 396 = 1.188 min, 59% do total); a quarta levaria a 79% e já come a folga. *(A margem de 30%
+  foi retirada a 16/11/2026, e a conta refeita sem ela está abaixo — estes números ficam como o
+  registo do que se pensou antes da correcção, e não como a conta de hoje.)* **É por isso que
   20/500 é o teto e não um número redondo maior:** é o maior que mantém três estúdios desse tamanho
   a funcionar na conta gratuita, e a quarta é a conversa que ela já decidiu ter.
 
@@ -1888,8 +1890,8 @@ decisão.
      `reancorar` (10 s) + `descobrir` (6 s) + `publicar` (23 s) + `regerar` (25 s). Medido nos jobs
      reais: 64 s de relógio, **4 minutos de cota**. A conta anterior desta secção somava os 54 s como
      se fossem fracção de minuto, e por isso dava três escolas no pior caso — **dá uma, e no caso
-     comum nenhuma.** A tabela corrigida, contra os **1.400 min** utilizáveis (2.000 menos os 30% de
-     folga):
+     comum nenhuma.** A tabela, na altura contra os **1.400 min** (2.000 menos a margem de 30%, que
+     saiu a seguir — a conta sem margem está mais abaixo):
 
   | Cenário de uma escola | Turmas | Aulas/sem. | Lanç./mês | Min. facturados | Escolas em 1.400 min |
   |:--|--:|--:|--:|--:|--:|
@@ -1898,18 +1900,22 @@ decisão.
   | o máximo do teto (500 ÷ 5) | 100 | 3 | 1.300 | **5.200** | **0** — 2,6× a cota inteira |
 
   **A ALAVANCA ESTÁ NO NÚMERO DE JOBS, NÃO NO TETO.** Os quatro jobs por lançamento são 4 minutos de
-  cota para 64 segundos de trabalho. Se a reancoragem, a regeneração dos índices e a publicação
-  correrem como **passos de um único job**, o mesmo lançamento passa a custar **1 minuto** — e a
-  tabela muda de sinal:
+  cota para 64 segundos de trabalho. Consolidados num só, o mesmo lançamento passa a custar
+  **1 minuto** — e a tabela muda de sinal.
+  **A MARGEM DE 30% SAIU** *(16/11/2026)*: «vamos tirar essa margem de segurança porque, afinal de
+  contas, já que é por processo não faz sentido, não tem problema de espaço, não tem manobra para
+  ser feita.» É verdade — o consumo é **tempo de processo**, não espaço ocupado: não há depósito a
+  transbordar, e a conta que interessa é a cota inteira, **2.000 min**. A tabela, com um job por
+  lançamento e sem margem:
 
-  | Cenário, com um job por lançamento | Lanç./mês | Min. facturados | Escolas em 1.400 min |
+  | Cenário, com um job por lançamento | Lanç./mês | Min. facturados | Escolas em **2.000 min** |
   |:--|--:|--:|--:|
-  | o mínimo declarado (5/dia) | 110 | **110** | **12** (24%) |
-  | caso comum (30 turmas × 3/sem.) | 390 | **390** | **3** (84%) |
-  | o máximo do teto (100 turmas × 3/sem.) | 1.300 | **1.300** | **1** (93%) |
+  | o mínimo declarado (5/dia) | 110 | **110** | **18** (1.980 = 99%) |
+  | caso comum (30 turmas × 3/sem.) | 390 | **390** | **5** (1.950 = 97,5%) |
+  | o máximo do teto (100 turmas × 3/sem.) | 1.300 | **1.300** | **1** (65%) |
 
   É a diferença entre «o teto é uma promessa que a infraestrutura não sustenta» e «o teto é uma
-  promessa que três escolas do caso comum sustentam com a folga intacta».
+  promessa que cinco escolas do caso comum sustentam».
 
   **FEITO EM 16/11/2026, e o que ele custou.** Decidido por ela («consolidar agora»), os dois
   workflows do derivado — `reancorar.yml` e `regerar-indices.yml` — passaram a **um**
@@ -1921,6 +1927,42 @@ decisão.
   `deploy-escolas.yml`, que continua com **1 job de descoberta + N jobs de publicação** (um por
   escola). A próxima alavanca é essa — o número cresce com o número de escolas —, e está na conta
   abaixo como pendência, não como feito.
+
+- **O PREÇO, e a ordem das contratações** *(medido a 16/11/2026 nas páginas de preço do GitHub e da
+  Cloudflare — não é estimativa)*. **O GitHub vem primeiro**, e ela intuiu porquê: é ele que está
+  mais perto do limite. Duas coisas a saber sobre a factura do GitHub:
+
+  1. **O incluído é um valor em DÓLAR, não um pacote de minutos.** O plano gratuito inclui
+     **$12/mês de «compute»**, e o minuto do runner `ubuntu-24.04` (Linux 2-core) custa
+     **$0,006** — o que dá os 2.000 minutos que a página comercial anuncia. O excedente é cobrado
+     **ao mesmo preço por minuto**, com cartão registado; sem cartão, o uso **bloqueia** ao chegar
+     ao fim do incluído.
+  2. **Subir de plano é quase sempre pior do que pagar o excedente** — e é isso que torna a decisão
+     pequena: o Team custa **$4 por pessoa/mês** e inclui $18 (3.000 min); o Enterprise Cloud,
+     **$21 por pessoa/mês**, inclui $300 (50.000 min).
+
+  A escada, para **uma** pessoa, com os cruzamentos calculados ao cêntimo:
+
+  | Uso mensal | Caminho mais barato | Custo/mês |
+  |:--|:--|--:|
+  | até 2.000 min | **Grátis** | **$0** |
+  | 2.000 – 2.667 min | Grátis + excedente ($0,006/min) | até $4,00 |
+  | 2.667 – 5.833 min | **Team** ($4/pessoa, 3.000 min) | $4,00 (+ excedente acima de 3.000) |
+  | acima de 5.833 min | **Enterprise Cloud** ($21/pessoa, 50.000 min) | $21,00 |
+
+  Traduzido para a operação dela: **cinco escolas no caso comum = $0** (1.950 min). A **sexta**
+  custa **$2,04/mês** (340 min de excedente). Dez escolas no caso comum custam **$9,40/mês** — e
+  aí o Team ($4 + 900 min de excedente) empata com o excedente puro. **O Cloudflare vem depois e é
+  mais simples:** o plano pago é **$5/mês por conta** (10 milhões de pedidos e 30 milhões de ms de
+  CPU incluídos; os assets estáticos são gratuitos e ilimitados), e o plano gratuito já dá 100.000
+  pedidos/dia — a escola no teto consome menos de 1% disso. O que aperta no Cloudflare **não são os
+  pedidos**: são as **escritas de KV** (1.000/dia no gratuito), que ainda **não foram medidas** — a
+  estimativa que esta secção trazia («≈120/dia por escola») era um palpite e sai da conta;
+  mede-se quando o Cloudflare entrar na fila, e é por isso que ele vem em segundo.
+- **A ORDEM É GitHub, depois Cloudflare** *(16/11/2026)*. E o gatilho é mais tarde do que «três
+  escolas no teto»: pelos números de hoje, a **sexta** escola no caso comum — ou a **décima nona**
+  no mínimo declarado — é a primeira que custa alguma coisa. Não é uma decisão de arquitetura; é
+  uma linha na fatura.
 - **O que se vigia, então, não são 500 alunas: são as aulas lançadas no mês.** É essa a grandeza que
   o ecrã deve medir quando houver medição — e é ela, e não a contagem de fichas, que diz se a folga
   está a ser comida.
@@ -1928,10 +1970,9 @@ decisão.
   tamanho. Se chegar a ter 3 escolas desse tamanho, vamos para o plano pago.» Portanto **o que se
   muda ao chegar lá é o plano de GitHub/Cloudflare — nunca o teto de cada escola.** O teto é uma
   promessa comercial; a conta é uma decisão de infraestrutura, e uma promessa não se encolhe porque
-  a infraestrutura ficou pequena. **O gatilho, porém, é mais cedo do que três escolas:** pelos
-  números de hoje, a **primeira** escola a lançar no ritmo declarado (30 turmas, 3 aulas por semana)
-  já não cabe nos 1.400 min — ou se consolida o CI (1 job), ou a conta passa a paga **na primeira
-  escola que crescer**, e não na terceira.
+  a infraestrutura ficou pequena. **E o gatilho, com o CI consolidado, é ainda mais tarde:** a
+  quinta escola do caso comum cabe nos 2.000 min, e a sexta custa $2,04/mês — uma linha na fatura,
+  não uma decisão de arquitetura.
 - **O piso é uma reserva, e ela já existe na estrutura.** Quando o sistema particiona, cada escola
   tem o seu próprio par Worker + KV (`wrangler.<escola>.jsonc`), e é isso que garante o espaço do
   piso: o contrato de uma escola nunca divide namespace com o de outra. O que o piso pede é que o

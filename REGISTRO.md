@@ -48465,3 +48465,102 @@ N jobs de publicação**. Isso deixa de pesar nos lançamentos (que não tocam n
 nas gerações de pacote — e é a próxima alavanca se a conta apertar outra vez. Não foi tocado agora
 porque fundir a matriz num laço exige trocar a `strategy.matrix` por um `for` dentro do job, e esse
 é um trabalho com risco próprio para um passo que corre raramente.
+
+## 16/11/2026 — o piso vira trava do motor, e a margem de 30% sai da conta
+
+**Duas decisões, e a primeira é de vocabulário comercial.** «Tira a margem de segurança que eu pedi
+e me diz para quanto vai o preço» · «pode tirar e aí coloca no motor, sem dúvida, coloca no motor.»
+
+### 1. O piso é uma trava do motor — e não um número de ecrã
+
+«Coloca no motor» era o que faltava: o piso contratado existia no ecrã e não no servidor. Agora,
+**acima do piso, cadastrar professor ou aluna é recusado** — e a recusa obedece à regra da própria
+frente (§L9b): não diz «o Básico não permite dois professores» (que esconde que o bloqueio é
+reversível), diz que o piso está cheio e **nomeia as saídas com números**.
+
+**A diferença que a primeira escrita da função não fazia — e que os testes apanharam.** «Piso cheio»
+e «teto cheio» não são a mesma coisa:
+
+| Situação | O que resolve | O que a frase diz |
+|:--|:--|:--|
+| **piso cheio, teto à vista** (`piso ≤ tem < teto`) | um lote, **ou** subir de plano | «Há duas saídas: um lote de N (R$ X, na mensalidade) ou subir de plano — o de cima inclui M.» |
+| **no teto do plano** (`tem ≥ teto`) | só subir de plano | «Acrescentar um lote não abre mais lugar, porque o plano não vai além disso.» |
+| **no teto do último degrau** | falar com a proprietária | «Não há degrau acima — fale com o Sistema Lastro: o preço é refeito para o caso da escola.» |
+
+Oferecer «acrescente um lote» a quem está no teto seria vender o que não resolve o problema. E o
+contrário — dizer «suba de plano» a quem tem lugar — mandaria a escola pagar mais do que precisa.
+
+**O que conta, e o que não conta.** O **principal conta como um** (vive no secret, não na lista do
+KV), o **desligado não conta** (fica no registo por proveniência, mas não ocupa lugar), e a aluna
+conta pelo **cadastro** — não pelo elenco nem pela curadoria, que são outra coisa e podem repetir.
+
+**O que a trava não faz, e é deliberado.** Não recusa **sem contrato** (uma escola anterior à
+camada comercial não prometeu piso nenhum; travar-lhe o cadastro seria inventar um limite que
+ninguém contratou); não toca na **edição** (que sai antes, na rota do `editar`); e **não apaga
+nada** do que existe — o critério (vii) do §L9b: o mesmo dado continua legível e íntegro depois da
+recusa.
+
+### 2. A margem de 30% sai — e o preço do GitHub
+
+«Vamos tirar essa margem de segurança porque, afinal de contas, já que é por processo não faz
+sentido, não tem problema de espaço, não tem manobra para ser feita.» É verdade, e a razão é boa: o
+consumo é **tempo de processo**, não espaço ocupado — não há depósito a transbordar. A conta passa
+a ser contra os **2.000 min** inteiros:
+
+| Cenário (1 job por lançamento) | Lanç./mês | Min. | Escolas em 2.000 min |
+|:--|--:|--:|--:|
+| mínimo declarado (5/dia) | 110 | 110 | **18** (99%) |
+| caso comum (30 turmas × 3/sem.) | 390 | 390 | **5** (97,5%) |
+| máximo do teto (100 turmas × 3/sem.) | 1.300 | 1.300 | **1** (65%) |
+
+**O preço, medido nas páginas de preço do GitHub e da Cloudflare a 16/11/2026** — não é estimativa:
+o plano gratuito inclui **$12 de «compute»**, e o minuto do `ubuntu-24.04` custa **$0,006** (é o que
+dá os 2.000 min anunciados); o excedente é cobrado ao mesmo preço, com cartão, e **sem cartão o uso
+bloqueia**. A escada, para uma pessoa: **$0** até 2.000 min · até $4,00 no excedente puro · **Team
+$4/pessoa** (3.000 min) entre 2.667 e 5.833 min · **Enterprise $21/pessoa** (50.000 min) acima.
+
+Traduzido: **cinco escolas no caso comum = $0**; a sexta custa **$2,04/mês**. O Cloudflare vem
+depois, e é mais simples: **$5/mês por conta** no pago, e o gratuito já dá 100.000 pedidos/dia (a
+escola no teto usa menos de 1% disso). O que aperta lá não são os pedidos — são as **escritas de
+KV**, que ainda **não foram medidas**: a estimativa «≈120/dia por escola» que estava no §L9c era um
+palpite e **saiu da conta**. Mede-se quando o Cloudflare entrar na fila, e é por isso que ele vem
+em segundo — a ordem que ela intuiu («primeiro o GitHub») é a ordem certa, e está agora declarada.
+
+### 3. Três provas seguiram as regras para onde elas foram
+
+Nenhuma destas mudou comportamento; todas mediam o sítio antigo. A primeira foi causada por este
+trabalho, as outras duas por trabalho de hoje mais cedo:
+
+- `provar-cadastro-do-professor` (2 asserções): contava `data-aba` no **HTML inteiro**, e passou a
+  contar quatro quando a Produção ganhou o terceiro grupo de abas (a «A escola» também tem uma aba
+  `cadastro`). Passou a contar **dentro do menu do professor** — a mesma lição que a prova do
+  financeiro já trazia: mede-se no DOM, e no DOM daquele grupo. E a asserção «as abas usam as peças
+  da casa» esperava a peça declarada na página; desde que ela subiu para a folha, o certo é o
+  contrário — a página **não** a redeclara.
+- `provar-cofre-e-shard` (2 asserções): lia `regerar-indices.yml`, que deixou de existir na fusão de
+  hoje. Segue `derivados.yml`, que é quem corre os dois geradores agora.
+- `provar-geracao-do-ciclo` (1 asserção): lia `reancorar.yml`. Segue `derivados.yml` e os dois
+  scripts onde a conciliação do derivado vive desde 22/10 — `conflito-do-derivado.sh` e
+  `atualizar-commit-derivado.sh`.
+
+**Onde entrou.** `motor/nucleo/comercial.js` (`travaDoPiso`, `proximoLote`, `ROTULOS_DOS_EIXOS`) ·
+`motor/servidor/bastidores.js` (a guarda nas duas rotas, com as contagens de cada eixo) ·
+`experimentos/provar-piso.js` (novo) · `.gitignore` · `PLANEJAMENTO-LASTRO.md` §L9c (a margem fora,
+a escada de preços e a ordem das contratações) · `biblioteca/comercial/planos.json` (a `_nota` do
+teto) · as três provas acima.
+
+**Com o quê.** `provar-piso` **29/29**: a decisão nos seis casos (abaixo do piso, no piso, no teto do
+plano, no teto do último degrau, com lote, sem contrato), as duas rotas a recusar com 409 e a frase
+certa, o principal a contar, o desligado a não contar, a repetição a responder antes do piso, a
+edição a passar, e **nenhuma escrita** quando a recusa acontece. Mais `provar-cadastro-do-professor`
+49/49 · `provar-cofre-e-shard` 138/138 · `provar-geracao-do-ciclo` 14/14 · `provar-financeiro-da-
+escola` 90/90 · `provar-financeiro` 58/58 · `provar-recriar-escola` 92/92 ·
+`provar-escola-a-nascer` 48/48 · `provar-restaurar-retrato` 38/38 · `provar-cartas-do-expurgo`
+25/25 · `provar-a-carencia-nao-se-burla` 58/58 · `provar-pagina-publica` 79/79 · `provar-abas` 28/28
+· `provar-indices` 64/64 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica declarado, e não é desta mudança.** `provar-bateria-do-shard` falha por rede (as
+escolas `calango` e `batata` foram expurgadas e o domínio já não resolve) — é uma prova contra o ar,
+não contra o código. E a **trava não tem ainda o número à vista na tela**: a direção descobre o piso
+quando tenta cadastrar. Dizer «9 de 9» ao lado do formulário é a próxima peça, e é de desenho, não
+de motor.
