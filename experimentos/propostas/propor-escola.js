@@ -262,29 +262,75 @@ function painelDaSituacao(s) {
       + '</ul>'
     : '';
 
+  /* O «PAGAR» FICA AO LADO DO MÊS EM ABERTO (17/11/2026). «Para não ter que voltar até o pagar
+   * […] coloca ali do lado o botão de pagar, aí já abre a chave Pix.» Quem acabou de ver o mês
+   * vencido tem o gesto à mão, em vez de ter de o procurar na terceira caixa.
+   *
+   * É um BOTÃO, e não um segundo `.trio-item`: a caixa da fila abriria um painel a partir de
+   * dentro de outro painel, e a fila das três ficava a dizer que há quatro. O `data-abre` diz
+   * qual caixa abrir; o ouvinte da página trata disso — e o rótulo nomeia o mês, para o gesto
+   * não ser anónimo. */
+  const mesVencido = vencidos.length === 1 ? vencidos[0].nome.split(' de ')[0] : null;
+  const botaoPagar = '<button type="button" class="acao pequena" data-abre="pagar"'
+    + ' title="abrir a chave Pix para pagar o que está em aberto">'
+    + (mesVencido ? 'Pagar ' + esc(mesVencido) : 'Pagar') + '</button>';
+
   return titulo
     + (pares ? '<div class="trio-grade">' + pares + '</div>' : '')
     + emAberto
-    + '<p class="par-botoes"><a class="acao secundario pequena"'
+    + '<p class="par-botoes">' + botaoPagar
+    + '<a class="acao secundario pequena"'
     + ' href="/bastidores/financeiro" title="ver todos os meses, com o que foi pago e quando">'
     + 'Ver o mês a mês</a></p>';
 }
 
 /** O Pix — a antiga aba «Pagar», sem acordeão dentro de acordeão. */
-function painelDoPagar(pix) {
+function painelDoPagar(pix, s) {
   if (!pix || !pix.chave) {
     return '<p class="trio-nota">A chave Pix ainda não está configurada no sistema. Para pagar, '
       + 'fale com a administração do Sistema Lastro.</p>';
   }
+  /* DUAS COISAS NA DESCRIÇÃO, E NÃO UMA (17/11/2026). «Tem que dizer qual é a escola que está
+   * fazendo o pagamento e o mês, e dizer qual é o mês que está pagando.» O nome da escola liga o
+   * pagamento à escola; o mês liga-o à competência. Sem o segundo, um Pix de outubro pago em
+   * novembro podia ser lido como novembro — e a conciliação é feita à mão, por quem lê a
+   * descrição. */
+  const vencidos = (s && s.meses ? s.meses.filter((m) => m.venceu) : []);
+  const emAberto = vencidos.length
+    ? '<p class="trio-nota">Em aberto: <strong>' + esc(vencidos.map((m) => m.nome).join(' e '))
+      + '</strong>.</p>'
+    : '';
   return '<p class="trio-frase">Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro')
     + '</strong>.</p>'
-    + '<p class="trio-nota"><strong>Ao fazer o Pix, escreva o nome da escola</strong> — «'
-    + esc(CADASTRO.escolaNome) + '» — na descrição da transferência. A conciliação é feita à mão, '
-    + 'e é por esse nome que o pagamento é ligado à escola certa.</p>'
-    + '<label class="campo-rotulo" for="escola-pix-chave">Chave Pix (copia e cola)</label>'
-    + '<input id="escola-pix-chave" readonly value="' + esc(pix.chave) + '">'
+    + '<p class="trio-nota"><strong>Na descrição do Pix escreva duas coisas:</strong> o nome da '
+    + 'escola — «' + esc(CADASTRO.escolaNome) + '» — e o mês a que o pagamento se refere. A '
+    + 'conciliação é feita à mão, e é por esses dois nomes que o pagamento é ligado à escola e ao '
+    + 'mês certos.</p>'
+    + emAberto
+    + '<label class="campo-rotulo" for="escola-pix-chave">Chave Pix</label>'
+    + CHAVE_PIX(pix.chave)
     + '<p class="trio-nota">Confirmado o pagamento, o mês passa a «pago». A conciliação é feita '
     + 'em até 24 horas.</p>';
+}
+
+/**
+ * A CHAVE E O BOTÃO QUE A COPIA (17/11/2026).
+ *
+ * O PEDIDO: «quando abrir a chave Pix, coloca ali um botãozinho desse de copiar, igual a gente tem
+ * […] quando vai gerar a chave do GitHub». A razão é de quem usa: seleccionar texto à mão com o
+ * rato, num telefone, é onde a chave se copia mal — e uma chave Pix copiada mal não falha na hora,
+ * falha no dia em que o dinheiro não aparece.
+ *
+ * A PEÇA É A DA CASA. O `par-associar` já é «o controle e o botão na mesma linha» — é o que o
+ * verbete usa para o «+». Nada de contentor novo; o que a folha da página ganha é a mesma cedência
+ * que ela já dá ao `select` (`.par-associar select{flex:1 1 auto}`), agora para o `input`. */
+function CHAVE_PIX(chave) {
+  return '<p class="par-associar">'
+    + '<input id="escola-pix-chave" readonly value="' + esc(chave) + '"'
+    + ' aria-label="chave Pix da escola">'
+    + '<button type="button" class="acao secundario pequena" data-copiar="escola-pix-chave"'
+    + ' title="copiar a chave para a área de transferência">Copiar</button>'
+    + '</p>';
 }
 
 /* ============================================================================== o cartão
@@ -325,7 +371,7 @@ function cartaoDaEscolaProposto(dados, { aberto = '' } = {}) {
     + '</div>'
     + painel('contrato', painelDoContrato(s), { aberto: aberto === 'contrato' })
     + painel('situacao', painelDaSituacao(s), { aberto: aberto === 'situacao' })
-    + painel('pagar', painelDoPagar(dados.pix), { aberto: aberto === 'pagar' })
+    + painel('pagar', painelDoPagar(dados.pix, s), { aberto: aberto === 'pagar' })
     + '</li>';
 }
 
@@ -384,6 +430,57 @@ function listaDoExtrato(s) {
  * à esquerda, lista à direita — e não tem formulário nenhum: medido a 1280px, o cartão ocupa
  * 371px de 976, com 576px vazios ao lado.
  */
+/**
+ * OS DOIS GESTOS QUE A PÁGINA ACRESCENTA (17/11/2026) — e que a implementação leva consigo.
+ *
+ * 1. **COPIAR A CHAVE.** O `navigator.clipboard` é o caminho; quando ele não existe ou é negado
+ *    (contexto inseguro, permissão), o campo é seleccionado e o `execCommand("copy")` faz o
+ *    mesmo. O botão diz «Copiado» por 1,6s — sem resposta, a pessoa carrega outra vez a pensar
+ *    que não funcionou.
+ *
+ * 2. **ABRIR A CAIXA INDICADA.** O «Pagar» do painel da Situação não é uma quarta caixa da fila:
+ *    é um botão que pede à caixa «Pagar» que se abra. Um `.trio-item` dentro de um painel abriria
+ *    um painel a partir de outro, e a fila passaria a dizer que há quatro.
+ */
+const GESTOS = [
+  '(function () {',
+  '  document.addEventListener("click", function (e) {',
+  '    var b = e.target.closest("[data-copiar]");',
+  '    if (!b) return;',
+  '    var campo = document.getElementById(b.getAttribute("data-copiar"));',
+  '    if (!campo) return;',
+  '    var marcar = function () {',
+  '      var antes = b.textContent;',
+  '      b.textContent = "Copiado";',
+  '      setTimeout(function () { b.textContent = antes; }, 1600);',
+  '    };',
+  '    var escolher = function () {',
+  '      campo.focus();',
+  '      campo.select();',
+  '      try { document.execCommand("copy"); } catch (err) { /* o campo fica seleccionado */ }',
+  '      marcar();',
+  '    };',
+  '    if (navigator.clipboard && navigator.clipboard.writeText) {',
+  '      navigator.clipboard.writeText(campo.value).then(marcar, escolher);',
+  '    } else {',
+  '      escolher();',
+  '    }',
+  '  });',
+  '})();',
+  '(function () {',
+  '  document.addEventListener("click", function (e) {',
+  '    var b = e.target.closest("[data-abre]");',
+  '    if (!b) return;',
+  '    var cartao = b.closest("li");',
+  '    var alvo = cartao && cartao.querySelector(\'.trio-item[data-balao="\'',
+  '      + b.getAttribute("data-abre") + \'"]\');',
+  '    if (!alvo) return;',
+  '    e.preventDefault();',
+  '    alvo.click();',
+  '  });',
+  '})();',
+].join('\n');
+
 function documento({ corpo, variantes, largura, rotulo, estilo, script, abrir = '', umaColuna = true }) {
   return [
     '<!doctype html>',
@@ -400,6 +497,10 @@ function documento({ corpo, variantes, largura, rotulo, estilo, script, abrir = 
     '  .palco > h2 { margin: 0 0 .8rem; }',
     '  .palco > p { font: .85rem/1.5 var(--ui, system-ui); color: var(--texto-suave, #5a5348);',
     '    margin: 0 0 1rem; }',
+    /* O CAMPO DA CHAVE CEDE A LARGURA AO BOTÃO (17/11/2026) — a mesma regra que a página já dá
+     * ao `select` do `.par-associar`, aplicada ao `input`. Sem ela o campo não encolhe, e o
+     * «Copiar» sai da caixa no telemóvel. */
+    '  .par-associar input { flex: 1 1 auto; min-width: 0; max-width: none; }',
     /* AS DUAS SECÇÕES PASSAM A UMA COLUNA — a regra que a proposta introduz. A de «A escola»
      * porque não tem formulário ao lado; a do extrato porque é uma listagem de ponta a ponta.
      *
@@ -415,6 +516,9 @@ function documento({ corpo, variantes, largura, rotulo, estilo, script, abrir = 
     corpo,
     '</div>',
     script ? '<script>' + script + '</script>' : '',
+    '<script>',
+    GESTOS,
+    '</script>',
     '<script>',
     /* A CAIXA ABERTA À CHEGADA. A moldura mostra o estado fechado — que é como a página nasce —,
      * e quem quer ver o que há dentro abre a caixa com o clique que a página já tem. Este atalho
@@ -564,14 +668,16 @@ function paginaDaProposta() {
       'O mês corrente e o valor. <b>Não há secção de «em aberto»</b> — ela não existe quando não '
       + 'há nada em aberto, como você pediu. O link leva à página do mês a mês.'),
     lado('proposta-escola-desktop.html#pagar', 'desktop', 'Pagar', '1240 × 620',
-      'A chave Pix e a instrução de escrever o nome da escola na transferência.'),
+      'A chave Pix <b>com o botão que a copia</b>, e a instrução de escrever na descrição '
+      + '<b>o nome da escola e o mês</b> a que o pagamento se refere.'),
     '</div>',
 
     '<h2 class="rodada">Situação com um mês em aberto</h2>',
     '<div class="posturas">',
     lado('proposta-escola-desktop.html#situacao-aberto', 'desktop', 'Computador', '1240 × 620',
       'O mesmo painel, agora com outubro vencido: o bloco «Em aberto» aparece com o mês, a data em '
-      + 'que venceu e o valor — e desaparece quando não há nenhum.'),
+      + 'que venceu e o valor — e desaparece quando não há nenhum. <b>E o botão «Pagar outubro»</b> '
+      + 'abre a chave Pix sem ter de voltar à terceira caixa.'),
     lado('proposta-escola-celular.html#situacao-aberto', 'celular', 'Celular', '390 × 860',
       'No telemóvel o painel ocupa a largura toda, abaixo das três caixas.'),
     '</div>',
