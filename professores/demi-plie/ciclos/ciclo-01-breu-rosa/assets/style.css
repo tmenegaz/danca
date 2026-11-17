@@ -1930,6 +1930,51 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .escolha input:focus-visible + span { outline: 2px solid var(--foco); outline-offset: var(--esp-1); }
 .escolha input:disabled + span { opacity: .4; cursor: not-allowed; }
 
+/* ---------- barra de uma cota (17/11/2026) ---------------------------------
+   A DISTÂNCIA ATÉ UM TETO, desenhada. Nasceu com o painel de Monitoramento, onde
+   a pergunta que ela faz é sempre a mesma: «quanto falta para acabar?» — e a
+   resposta em percentagem num texto obriga a fazer a conta de cabeça.
+
+   O NOME É `.cota`, E NÃO `.barra` — `.barra` já é a barra fixa da porta (o cabeçalho do ato),
+   e duas peças com o mesmo nome é o defeito que a checagem «Forma» existe para apanhar. «Cota»
+   diz o que a peça mede, que é o que o nome de uma peça deve dizer.
+
+   É o `<progress>` NATIVO, e não um `<div>` com uma largura. Duas razões: a
+   largura de uma barra é cálculo, e cálculo mora no motor — a marcação não leva
+   `style=""` (regra 5); e o `<progress>` já É o que diz ser, com o valor
+   anunciado pelo leitor de ecrã sem um `aria-label` inventado que repita o
+   número visível.
+
+   O `data-nivel` pinta o estado, com a MESMA régua das outras cotas da casa:
+   `folga` (abaixo de 80%), `atencao` (80% a 95%) e `agora` (95% para cima). O
+   valor é a fracção em milésimos (`value`/`max="1000"`), para a barra não perder
+   resolução nos primeiros por cento — que é exactamente onde ela está hoje. */
+.cota {
+  appearance: none; -webkit-appearance: none;
+  display: block; width: 100%; height: .55rem;
+  margin: var(--esp-2) 0 0;
+  border: 1px solid var(--borda-campo); border-radius: 999px;
+  background: var(--fundo-faixa); overflow: hidden;
+}
+.cota::-webkit-progress-bar { background: var(--fundo-faixa); }
+.cota::-webkit-progress-value {
+  background: var(--ok); border-radius: 999px;
+  transition: width .3s ease;
+}
+.cota::-moz-progress-bar { background: var(--ok); border-radius: 999px; }
+.cota[data-nivel="atencao"]::-webkit-progress-value { background: var(--alerta); }
+.cota[data-nivel="atencao"]::-moz-progress-bar { background: var(--alerta); }
+.cota[data-nivel="agora"]::-webkit-progress-value { background: var(--falha); }
+.cota[data-nivel="agora"]::-moz-progress-bar { background: var(--falha); }
+/* A BARRA VAZIA NÃO É UM ERRO: `value="0"` pinta zero, e um zero com a cor da
+   falha leria como problema. É `--borda-campo` — a mesma tinta de «não há nada
+   aqui» que o resto da folha usa. */
+.cota[value="0"]::-webkit-progress-value { background: transparent; }
+.cota[value="0"]::-moz-progress-bar { background: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .cota::-webkit-progress-value { transition: none; }
+}
+
 /* ---------- selo -----------------------------------------------------------
    A pastilha que marca um atributo ou um estado. O desenho base é o do cabeçalho
    do ciclo (creme, filete de ouro, pílula); os estados trocam o par de cor pelo
