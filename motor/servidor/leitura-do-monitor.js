@@ -170,25 +170,40 @@ async function facturavelDoRunNoGithub({ token, dono, repo, id, fetchImpl } = {}
 }
 
 /**
- * O CONSUMO FACTURADO DO MÊS — a FONTE, e não a regra (17/11/2026).
+ * O CONSUMO FACTURADO DO MÊS — a FATURA, linha por linha (17/11/2026).
  *
- * PORQUE ISTO PASSA A SER O NÚMERO PRINCIPAL. Toda a conta do painel era uma REGRA (cada job
- * arredondado ao minuto) porque era o que se podia ler daqui. A regra não é a fatura, e no dia em
- * que se compararam as duas, discordaram: a regra dava ~3.600 min por 30 dias e a fatura da
- * proprietária dizia **1.930 minutos de 2.000, de 1 a 17 de Novembro** — um ciclo MENSAL, não uma
- * janela rolante. Duas correcções caíram de uma vez: o número principal é o da fatura, e a janela
- * é o mês.
+ * ── O ENDEREÇO MUDOU, E O ANTIGO MENTE ────────────────────────────────────────────────────────
+ * `/users/{login}/settings/billing/actions` respondia `{total_minutes_used, included_minutes}` e
+ * hoje responde **410 Gone** («This endpoint has been moved»). O que existe é o relatório de
+ * utilização da plataforma de facturação nova:
  *
- * A PERMISSÃO, e ela é exacta porque o GitHub a diz no próprio 403. O cabeçalho
- * `x-accepted-github-permissions` respondeu **`plan=read`**: um token fino precisa da permissão de
- * CONTA «Plan → Read-only». Sem ela, este pedido responde 403 — e o painel di-lo, com o caminho
- * para a resolver, em vez de mostrar a regra como se fosse a fatura.
+ *     GET /users/{login}/settings/billing/usage?year=AAAA&month=MM
  *
- * O ENDEREÇO DEPENDE DE QUEM É O DONO. `/users/{login}/settings/billing/actions` para uma conta de
- * pessoa, `/orgs/{org}/settings/billing/actions` para uma organização. Tenta-se o primeiro e, se
- * ele disser 404 (é uma organização), o segundo — dois pedidos no pior caso, e só de hora a hora.
+ * e ele devolve LINHAS — uma por dia e por SKU — com quatro números que respondem a quatro
+ * perguntas diferentes, e é a distinção que este módulo existe para não perder:
+ *
+ *   · `quantity`        QUANTOS minutos. É o consumo, em unidades.
+ *   · `grossAmount`     QUANTO VALEM esses minutos, sem desconto. É o número que assusta.
+ *   · `discountAmount`  QUANTO DESSE VALOR É ABSORVIDO. A franquia gratuita do GitHub não aparece
+ *                       como «minutos incluídos»: aparece como **desconto igual ao bruto**. Um mês
+ *                       dentro da franquia tem `gross === discount` e `net === 0`.
+ *   · `netAmount`       O QUE VAI SER COBRADO. É o único dos quatro que sai da conta dela.
+ *
+ * ── A LIÇÃO, e ela custou uma leitura errada ──────────────────────────────────────────────────
+ * Uma fatura com «nov. 2026 · bruto $11,60 · cobrado $0,00» lê-se como «vou pagar $18,11 da soma
+ * dos meses». Não é isso: cada mês foi **descontado até zero**, porque a franquia são **$12 por
+ * mês** e nenhum mês chegou lá. O número que decide não é o bruto de cada mês — é **quanto do
+ * crédito do mês corrente resta**, e `discountAmount` é exactamente o crédito já usado.
+ *
+ * ── A PERMISSÃO ──────────────────────────────────────────────────────────────────────────────
+ * É a mesma, e o GitHub di-la no próprio 403: `x-accepted-github-permissions: plan=read` — conta →
+ * «Plan → Read-only». O token em uso já a tem (17/11/2026).
+ *
+ * ── OS PEDIDOS ───────────────────────────────────────────────────────────────────────────────
+ * `per_page=100` e um tecto de páginas, como em todo o lado: um mês com mais de 300 linhas fica
+ * DECLARADO como truncado em vez de aparecer completo e errado. Na prática são ~1 linha por dia.
  */
-async function consumoFacturadoDoGithub({ token, dono, fetchImpl } = {}) {
+async function consumoFacturadoDoGithub({ token, dono, ano, mes, fetchImpl, paginas = 3 } = {}) {
   const f = fetchImpl || fetch;
   if (!token) return { ok: false, motivo: 'sem GITHUB_TOKEN', pede: 'plan=read' };
   const cabecalhos = {
@@ -196,39 +211,49 @@ async function consumoFacturadoDoGithub({ token, dono, fetchImpl } = {}) {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'sistema-lastro',
   };
-  const tentativas = [
-    { via: 'utilizador', url: 'https://api.github.com/users/' + dono + '/settings/billing/actions' },
-    { via: 'organizacao', url: 'https://api.github.com/orgs/' + dono + '/settings/billing/actions' },
-  ];
-  let motivo = 'não consegui falar com o GitHub';
-  for (const t of tentativas) {
+  const base = 'https://api.github.com/users/' + dono + '/settings/billing/usage'
+    + '?year=' + encodeURIComponent(String(ano)) + '&month=' + encodeURIComponent(String(mes));
+
+  const linhas = [];
+  let truncado = false;
+  let motivo = null;
+  let pede = null;
+  for (let p = 1; p <= paginas; p += 1) {
     let r = null;
     try {
-      r = await f(t.url, { headers: cabecalhos });
+      r = await f(base + '&per_page=100&page=' + p, { headers: cabecalhos });
     } catch (erro) {
-      continue;
+      motivo = 'não consegui falar com o GitHub';
+      break;
     }
-    if (r && r.status === 404) continue;
     if (!r || !r.ok) {
-      motivo = r && r.status === 403
+      motivo = r && (r.status === 403 || r.status === 401)
         ? 'o token não pode ler a facturação — falta a permissão de conta «Plan → Read-only» (plan=read)'
         : 'o GitHub respondeu ' + (r ? r.status : '?') + ' ao pedido da facturação';
-      return { ok: false, motivo, pede: r && r.status === 403 ? 'plan=read' : null };
+      pede = r && (r.status === 403 || r.status === 401) ? 'plan=read' : null;
+      break;
     }
     const d = await r.json().catch(() => null);
-    if (!d || !Number.isFinite(Number(d.total_minutes_used))) {
-      return { ok: false, motivo: 'a resposta da facturação veio sem o total de minutos', pede: null };
+    const it = (d && Array.isArray(d.usageItems)) ? d.usageItems : [];
+    for (const i of it) {
+      linhas.push({
+        quando: String(i.date || ''),
+        produto: String(i.product || ''),
+        sku: String(i.sku || ''),
+        unidade: String(i.unitType || ''),
+        quantidade: Math.max(0, Number(i.quantity) || 0),
+        precoUnitario: Math.max(0, Number(i.pricePerUnit) || 0),
+        bruto: Math.max(0, Number(i.grossAmount) || 0),
+        desconto: Math.max(0, Number(i.discountAmount) || 0),
+        liquido: Math.max(0, Number(i.netAmount) || 0),
+        repositorio: i.repositoryName ? String(i.repositoryName) : null,
+      });
     }
-    return {
-      ok: true,
-      via: t.via,
-      minutosUsados: Number(d.total_minutes_used) || 0,
-      minutosPagos: Number(d.total_paid_minutes_used) || 0,
-      incluidos: Number(d.included_minutes) || 0,
-      detalhe: d.minutes_used_breakdown || null,
-    };
+    if (it.length < 100) break;
+    if (p === paginas) truncado = true;
   }
-  return { ok: false, motivo, pede: null };
+  if (motivo) return { ok: false, motivo, pede, linhas };
+  return { ok: true, ano: String(ano), mes: String(mes), linhas, truncado };
 }
 
 /**

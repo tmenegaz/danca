@@ -131,28 +131,116 @@ function minutosDoRun(run, jobs) {
 }
 
 /**
+ * A FATURA DO MÊS, SOMADA — e os quatro números que ela tem de manter separados (17/11/2026).
+ *
+ * A REGRA QUE ESTE MÓDULO SEGUE, e que veio de uma leitura errada de uma fatura verdadeira: uma
+ * linha «nov. 2026 · bruto $11,60 · cobrado $0,00» NÃO significa «vou pagar $11,60». Significa
+ * «usou $11,60 de valor, e o desconto absorveu os $11,60». A franquia do GitHub não é apresentada
+ * como «minutos incluídos» — é apresentada como **desconto igual ao bruto**, mês a mês. Por isso:
+ *
+ *   · `bruto`     — o valor do consumo, sem desconto. É o número que assusta, e não é o que se paga.
+ *   · `desconto`  — o crédito da franquia que foi absorvido. É o crédito JÁ USADO.
+ *   · `liquido`   — o que sai da conta. `bruto − desconto`.
+ *   · `credito`   — a franquia do mês em dólares: `2.000 min × $0,006 = $12`.
+ *
+ * **O NÚMERO QUE DECIDE É O CRÉDITO QUE RESTA**, e não o bruto nem o líquido: enquanto
+ * `desconto < credito`, o mês ainda não custou nada, por muito grande que o bruto pareça. No dia em
+ * que o desconto empata com o crédito, cada minuto passa a ser pago.
+ *
+ * A `seriePorDia` existe para a página poder mostrar o dia em que a franquia acaba — que é a única
+ * data que interessa a quem quer «me programar antes que seja tarde».
+ */
+function resumirFactura({ linhas, creditoUsd } = {}) {
+  const ls = Array.isArray(linhas) ? linhas : [];
+  let minutos = 0;
+  let bruto = 0;
+  let desconto = 0;
+  let liquido = 0;
+  let precoMinuto = 0;
+  const porDia = new Map();
+  const skus = new Set();
+  for (const l of ls) {
+    const q = Math.max(0, Number(l.quantidade) || 0);
+    minutos += q;
+    bruto += Math.max(0, Number(l.bruto) || 0);
+    desconto += Math.max(0, Number(l.desconto) || 0);
+    liquido += Math.max(0, Number(l.liquido) || 0);
+    /* O preço unitário vem na linha: não se escreve à mão um preço que o fornecedor declara. */
+    if (q > 0 && Number(l.precoUnitario) > 0) precoMinuto = Number(l.precoUnitario);
+    if (l.sku) skus.add(String(l.sku));
+    const dia = String(l.quando || '').slice(0, 10);
+    if (!dia) continue;
+    const a = porDia.get(dia) || { dia, minutos: 0, bruto: 0, desconto: 0, liquido: 0 };
+    a.minutos += q;
+    a.bruto += Math.max(0, Number(l.bruto) || 0);
+    a.desconto += Math.max(0, Number(l.desconto) || 0);
+    a.liquido += Math.max(0, Number(l.liquido) || 0);
+    porDia.set(dia, a);
+  }
+  const serie = [...porDia.values()].sort((a, b) => (a.dia < b.dia ? -1 : 1));
+  const credito = Number(creditoUsd) > 0 ? Number(creditoUsd) : COTAS.github.computeIncluidoUsd;
+  const restante = Math.max(0, credito - desconto);
+  /* O DIA EM QUE A FRANQUIA ACABA — lido do passado, não adivinhado: percorre-se a série e pára-se
+   * no primeiro dia em que o crédito acumulado já não cobre o bruto acumulado. */
+  let acumulado = 0;
+  let diaEmQueAcabou = null;
+  for (const d of serie) {
+    acumulado += d.bruto;
+    if (acumulado > credito + 1e-9) { diaEmQueAcabou = d.dia; break; }
+  }
+  return {
+    minutos: Math.round(minutos),
+    brutoUsd: Math.round(bruto * 100) / 100,
+    descontoUsd: Math.round(desconto * 100) / 100,
+    liquidoUsd: Math.round(liquido * 100) / 100,
+    precoMinutoUsd: precoMinuto || COTAS.github.precoMinutoUsd,
+    creditoUsd: Math.round(credito * 100) / 100,
+    creditoRestanteUsd: Math.round(restante * 100) / 100,
+    creditoUsadoFraccao: fracao(desconto, credito),
+    diasComUso: serie.length,
+    seriePorDia: serie,
+    diaEmQueAcabou,
+    skus: [...skus],
+  };
+}
+
+/**
  * A PROJECÇÃO ATÉ AO FIM DO CICLO — «a este ritmo, onde é que isto pára?» (17/11/2026).
  *
- * UMA COTA MENSAL LIDA NO DIA 17 NÃO DIZ SE HÁ PROBLEMA. 1.930 de 2.000 é 96,5% — e é dia 17. O
- * número que serve para decidir é o do fim do mês, e ele lê-se com uma regra de três: o que já
- * andou dividido pelos dias que andaram, vezes os dias que o mês tem.
+ * UMA COTA MENSAL LIDA NO DIA 17 NÃO DIZ SE HÁ PROBLEMA. 1.933 de 2.000 é 96,7% — e é dia 17. O
+ * número que serve para decidir é o do FIM do mês, e ele sai de uma regra de três: o que já andou
+ * dividido pelos dias que andaram, vezes os dias que o mês tem.
  *
- * O `agora` diz em que dia do mês estamos; sem ele, não se projecta nada (e a página não inventa).
- * O dia conta-se a partir de 1, e o último dia do mês sai de `Date` — Fevereiro e os meses de 31
- * não se escrevem à mão.
+ * E O QUE SAI DA CONTA DELA NÃO É O BRUTO PROJETADO: é o bruto **menos a franquia**. Um mês que
+ * fecha em $20,47 brutos com $12 de franquia custa **$8,47** — e a página tem de dizer oito e
+ * quarenta e sete, não vinte. É a diferença entre assustar e informar.
+ *
+ * `diasAteAcabarCredito` é a resposta à pergunta que ela fez por outras palavras («me programar
+ * antes que seja tarde»): **quantos dias faltam até o crédito do mês se esgotar**. Sai do crédito
+ * que resta dividido pelo ritmo diário em dólares — e é `null` quando já se esgotou (aí o que
+ * interessa é o que já está a ser cobrado, e para isso há o líquido da fatura).
  */
-function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd } = {}) {
+function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, descontoUsd } = {}) {
   const g = Math.max(0, Number(gastos) || 0);
   const inc = Math.max(0, Number(incluido) || 0);
+  const preco = Number(precoMinutoUsd) > 0 ? Number(precoMinutoUsd) : COTAS.github.precoMinutoUsd;
+  const credito = Number(creditoUsd) > 0 ? Number(creditoUsd) : inc * preco;
+  const desconto = Number.isFinite(Number(descontoUsd)) ? Math.max(0, Number(descontoUsd)) : null;
   const d = agora ? new Date(agora) : null;
   if (!d || Number.isNaN(d.getTime())) {
-    return { gastos: g, incluido: inc, fraccao: fracao(g, inc), diasDecorridos: null, diasNoMes: null, projeccao: null, excedentePrevisto: null };
+    return {
+      gastos: g, incluido: inc, fraccao: fracao(g, inc), diasDecorridos: null, diasNoMes: null,
+      projeccao: null, excedentePrevisto: null, creditoUsd: credito, creditoRestanteUsd: null,
+      diasAteAcabarCredito: null, liquidoPrevistoUsd: null,
+    };
   }
   const diasNoMes = new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 0).getUTCDate();
   const diasDecorridos = Math.max(1, d.getUTCDate());
   const ritmo = g / diasDecorridos;
   const projeccao = Math.round(ritmo * diasNoMes);
-  const preco = Number(precoMinutoUsd) > 0 ? Number(precoMinutoUsd) : COTAS.github.precoMinutoUsd;
+  const brutoPrevisto = Math.round(projeccao * preco * 100) / 100;
+  const creditoRestante = desconto == null ? Math.max(0, credito - g * preco) : Math.max(0, credito - desconto);
+  const ritmoUsd = Math.round(ritmo * preco * 100) / 100;
   return {
     gastos: g,
     incluido: inc,
@@ -160,9 +248,17 @@ function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd } = {}) {
     diasDecorridos,
     diasNoMes,
     ritmoDia: Math.round(ritmo * 10) / 10,
+    ritmoUsdDia: ritmoUsd,
     projeccao,
+    brutoPrevistoUsd: brutoPrevisto,
+    creditoUsd: Math.round(credito * 100) / 100,
+    creditoRestanteUsd: Math.round(creditoRestante * 100) / 100,
+    /* Quantos dias até o crédito acabar. Com o ritmo a zero, não acaba nunca — `null`, e não 0. */
+    diasAteAcabarCredito: ritmoUsd > 0 ? Math.max(0, Math.ceil((creditoRestante / ritmoUsd) * 10) / 10) : null,
+    /* O QUE SAI DA CONTA: o bruto previsto menos a franquia. Nunca negativo. */
+    liquidoPrevistoUsd: Math.max(0, Math.round((brutoPrevisto - credito) * 100) / 100),
     excedentePrevisto: Math.max(0, projeccao - inc),
-    custoPrevistoUsd: Math.max(0, projeccao - inc) * preco,
+    custoPrevistoUsd: Math.max(0, Math.round((brutoPrevisto - credito) * 100) / 100),
     projeccaoExcede: projeccao > inc,
   };
 }
@@ -246,37 +342,13 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
   const total = minutosIncluidos({ computeUsd: degrau });
   const fluxos = [...porFluxo.values()].sort((a, b) => b.minutos - a.minutos);
 
-  /* ── O NÚMERO PRINCIPAL PASSA A SER O DA FATURA (17/11/2026) ─────────────────────────────────
+  /* ── A CONFERÊNCIA CONTRA O CAMPO DE FACTURAÇÃO (17/11/2026) ────────────────────────────────
    *
-   * TUDO O QUE ESTÁ ACIMA É ATRIBUIÇÃO, E NÃO É O CONSUMO. Os `minutos` somados por fluxo dizem
-   * QUEM gastou; quanto se gastou LÊ-SE NA FATURA, e a fatura não se calcula: pergunta-se. Medido
-   * no dia em que se comparou: a regra dava ~3.600 min por 30 dias, e a fatura dizia **1.930
-   * minutos de 2.000, de 1 a 17 de Novembro**. Duas coisas diferentes, e a que manda é a segunda.
+   * FICA REGISTADA, E NÃO APAGADA, porque é a prova de uma coisa que se aprendeu: `billable`, de
+   * `/runs/{id}/timing`, respondeu ZERO enquanto a fatura contava 1.933 minutos. O campo não serve
+   * para medir — e a página diz isso com essas palavras, em vez de o apresentar como se servisse.
    *
-   * E O CICLO É MENSAL, NÃO ROLANTE. A cota volta a zero no dia 1; uma janela de 30 dias rolantes
-   * comparada com um tecto mensal mede duas coisas diferentes e não se pode somar. Por isso a
-   * projecção: no dia 17 de 30, o que interessa não é «gastei 1.930», é «a este ritmo fecho o mês
-   * em X» — é essa a frase que permite «me programar antes que seja tarde».
-   */
-  const daFactura = facturado && facturado.ok && Number.isFinite(Number(facturado.minutosUsados));
-  const gastos = daFactura ? Number(facturado.minutosUsados) : minutos;
-  const incluido = daFactura && Number(facturado.incluidos) > 0 ? Number(facturado.incluidos) : total;
-  const ciclo = projectarCiclo({ gastos, incluido, agora, precoMinutoUsd: COTAS.github.precoMinutoUsd });
-
-  /* ── A CONFERÊNCIA CONTRA O FORNECEDOR (17/11/2026) ────────────────────────────────────────
-   *
-   * A CONTA ACIMA É UMA REGRA, NÃO UM EXTRACTO. Ela aplica o que o GitHub DOCUMENTA («cada job
-   * arredondado ao minuto»). O que ele FACTURA lê-se no campo `billable` de `/runs/<id>/timing`, e
-   * são coisas diferentes até prova em contrário.
-   *
-   * A PROVA APARECEU NO PRIMEIRO DIA EM PRODUÇÃO: para todas as execuções medidas, `billable` veio
-   * ZERO — com jobs que demoraram 13 a 34 segundos de relógio. A regra dá-lhes 1 minuto; o
-   * fornecedor dá-lhes 0. Um dos dois está errado, e não é o código que o decide: é a fatura. O
-   * que o painel pode fazer é não esconder nenhum dos dois, e é isto.
-   *
-   * `atesta` é a pergunta certa — «o fornecedor atesta consumo?» — e não «o número é zero?». Zero
-   * não é uma conclusão de graça: é a ausência de uma atestação, e a página di-lo com essas
-   * palavras.
+   * `atesta` é a pergunta certa — «o fornecedor confirma consumo?» — e não «o número é zero?».
    */
   let conferenciaFeita = null;
   if (conferencia && conferencia.facturavelMs != null && Number.isFinite(Number(conferencia.facturavelMs))) {
@@ -293,6 +365,31 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
     };
   }
 
+  /* ── O NÚMERO PRINCIPAL É O DA FATURA, E A FATURA TEM QUATRO NÚMEROS (17/11/2026) ───────────
+   *
+   * TUDO O QUE ESTÁ ACIMA É ATRIBUIÇÃO, E NÃO É O CONSUMO. Os `minutos` somados por fluxo dizem
+   * QUEM gastou; quanto se gastou lê-se nas LINHAS DA FATURA, e a fatura não se calcula: pede-se.
+   * Medido no dia em que se compararam: a regra dava 2.312 min até 17/11 e a fatura dizia **1.933**
+   * — a regra corre ~20% acima, porque conta como facturado o que o fornecedor não conta.
+   *
+   * E O CICLO É MENSAL, NÃO ROLANTE. A franquia volta a zero no dia 1; uma janela de 30 dias
+   * rolantes comparada com um tecto mensal mede duas coisas que não se somam.
+   *
+   * A FRANQUIA É UM DESCONTO, E NÃO UM LIMITE. O GitHub não diz «2.000 minutos incluídos» na
+   * fatura: diz **bruto $X, desconto $X, líquido $0**. O crédito é $12/mês, e o que decide o mês é
+   * quanto dele resta — não o bruto, que pode ser $11,60 e não custar nada.
+   */
+  const fatura = (facturado && facturado.ok && Array.isArray(facturado.linhas))
+    ? resumirFactura({ linhas: facturado.linhas, creditoUsd: total * COTAS.github.precoMinutoUsd })
+    : null;
+  const daFactura = Boolean(fatura);
+  const gastos = daFactura ? fatura.minutos : minutos;
+  const incluido = daFactura ? Math.round(fatura.creditoUsd / fatura.precoMinutoUsd) : total;
+  const ciclo = projectarCiclo({
+    gastos, incluido, agora, precoMinutoUsd: COTAS.github.precoMinutoUsd,
+    creditoUsd: daFactura ? fatura.creditoUsd : null,
+    descontoUsd: daFactura ? fatura.descontoUsd : null,
+  });
   return {
     provedor: 'github',
     janela: desde || null,
@@ -303,13 +400,12 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
     gastos,
     incluido,
     fonteDoGasto: daFactura ? 'factura' : 'regra',
-    facturado: daFactura ? {
-      minutosUsados: Number(facturado.minutosUsados) || 0,
-      minutosPagos: Number(facturado.minutosPagos) || 0,
-      incluidos: Number(facturado.incluidos) || 0,
-      via: facturado.via || null,
-      detalhe: facturado.detalhe || null,
-    } : null,
+    /* A fatura, tal como ela é: quatro números que não se podem confundir. */
+    fatura,
+    /* O DESVIO DA ATRIBUIÇÃO — e diz-se em vez de se esconder. A regra por fluxo não é a fatura:
+     * conta como facturado o que o fornecedor não conta (jobs saltados, arredondamentos). Serve
+     * para saber DE QUEM é o gasto, e não para medir o consumo. */
+    desvioDaRegra: (daFactura && gastos > 0) ? Math.round(((minutos / gastos) - 1) * 1000) / 1000 : null,
     facturacaoIndisponivel: daFactura ? null : (facturado && facturado.motivo) || null,
     pedePermissao: daFactura ? null : ((facturado && facturado.pede) || null),
     ciclo,
@@ -631,6 +727,7 @@ function contarEnvio(contadores, { mes, dia, quantos, enviado } = {}) {
 module.exports = {
   COTAS,
   projectarCiclo,
+  resumirFactura,
   CHAVE_DO_CORREIO,
   contadoresVazios,
   contarEnvio,

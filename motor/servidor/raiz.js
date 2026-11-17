@@ -3686,14 +3686,22 @@ async function extratoDasEscolas({ env, escolas, agora }) {
 
       /* A FACTURA DO MÊS — a fonte do número principal, lida de hora a hora.
        *
-       * A permissão que ela precisa está no `pede` que o leitor devolve, e é a que o próprio GitHub
-       * nomeia no 403: `plan=read` (conta → «Plan → Read-only»). Quando não a há, o painel NÃO
-       * mostra a regra como se fosse fatura: diz que a fatura não pôde ser lida e porquê. */
+       * O ENDEREÇO ANTIGO MUDOU (17/11/2026): `/settings/billing/actions` responde **410 Gone** e
+       * manda para a plataforma nova. O que se lê agora é `/settings/billing/usage?year&month`, que
+       * devolve LINHAS — uma por dia e por SKU — com `quantity`, `grossAmount`, `discountAmount` e
+       * `netAmount`. São quatro números, e o que decide o mês é o desconto contra a franquia.
+       *
+       * A permissão está no `pede` que o leitor devolve, e é a que o GitHub nomeia no 403:
+       * `plan=read` (conta → «Plan → Read-only»). Quando não a há, o painel NÃO mostra a regra como
+       * se fosse fatura: diz que não pôde lê-la, e porquê. */
       let facturado = cache.facturado || null;
       const facturaVelha = !cache.facturadoEm ||
-        (Date.now() - Date.parse(cache.facturadoEm)) > 3600 * 1000;
+        (Date.now() - Date.parse(cache.facturadoEm)) > 3600 * 1000 ||
+        (cache.facturado && (cache.facturado.ano !== hoje.slice(0, 4) || cache.facturado.mes !== String(Number(hoje.slice(5, 7)))));
       if (facturaVelha) {
-        facturado = await leituraDoMonitor.consumoFacturadoDoGithub({ token, dono: DONO });
+        facturado = await leituraDoMonitor.consumoFacturadoDoGithub({
+          token, dono: DONO, ano: hoje.slice(0, 4), mes: String(Number(hoje.slice(5, 7))),
+        });
         cache.facturado = facturado;
         cache.facturadoEm = agoraIso;
       }

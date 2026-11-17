@@ -40,6 +40,15 @@ const http = require('http');
 const path = require('path');
 const { execSync } = require('child_process');
 
+/* AS LINHAS DA FATURA DE NOVEMBRO, lidas da API a 17/11/2026 — a soma dá o que ela viu no
+ * ecrã: 1.933 min, $11,60 de valor, $11,60 de desconto, $0,00 a pagar. Duas linhas bastam para a
+ * aritmética; uma terceira, de OUTUBRO, prova que meses diferentes não se misturam. */
+const LINHAS_DA_FACTURA = [
+  { quando: '2026-11-01T00:51:40Z', produto: 'actions', sku: 'Actions Linux', unidade: 'Minutes',
+    quantidade: 141, precoUnitario: 0.006, bruto: 0.846, desconto: 0.846, liquido: 0 },
+  { quando: '2026-11-17T00:12:31Z', produto: 'actions', sku: 'Actions Linux', unidade: 'Minutes',
+    quantidade: 1792, precoUnitario: 0.006, bruto: 10.754, desconto: 10.754, liquido: 0 },
+];
 const RAIZ = path.join(__dirname, '..');
 const monitor = require(path.join(RAIZ, 'motor/nucleo/monitoramento.js'));
 const painel = require(path.join(RAIZ, 'motor/servidor/painel-html.js'));
@@ -351,9 +360,23 @@ function conferir(titulo, condicao, dado) {
     /* O QUE SE APRENDEU EM PRODUÇÃO, e a asserção muda com ele: o campo `billable` respondia ZERO
      * enquanto a fatura contava 1.930 minutos. Não é «a regra e o fornecedor discordam» — é «este
      * campo não serve». A página passa a dizê-lo com essas palavras. */
+    /* A nota do `billable` só faz sentido com a fatura ao lado — é o contraste que a prova. */
+    const gDivFact = monitor.resumirGithub({
+      runs: [{ id: '1', workflow: 'Fechar os derivados', segundos: 18, quando: '2026-11-17T01:00:00Z' }],
+      jobsPorRun: { 1: [{ segundos: 18 }] },
+      conferencia: { run: '1', workflow: 'Fechar os derivados', facturavelMs: 0, jobs: 1, segundos: 18, estimadoMinutos: 1 },
+      facturado: { ok: true, linhas: LINHAS_DA_FACTURA },
+      agora: '2026-11-17T12:00:00Z',
+    });
+    const htmlDivFact = painel.paginaDoMonitoramento({
+      retrato: monitor.retrato({
+        github: gDivFact, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+      }),
+      cambio: 5.4,
+    });
     conferir('…e quando o campo de facturação diz zero, o ecrã diz que ele não serve para medir',
-      /billable/.test(htmlDiv) && /não serve para medir/.test(htmlDiv)
-        && /0 min facturáveis/.test(htmlDiv), null);
+      /billable/.test(htmlDivFact) && /não serve para medir/.test(htmlDivFact)
+        && /0 min facturáveis/.test(htmlDivFact), null);
 
     /* A FATURA É O NÚMERO PRINCIPAL — quando ela pôde ser lida. E quando não pôde, a página diz
      * que o número é a regra e pede a permissão exacta que o GitHub nomeia no 403. */
@@ -373,26 +396,45 @@ function conferir(titulo, condicao, dado) {
     const gFact = monitor.resumirGithub({
       runs: [{ id: '1', workflow: 'X', segundos: 20, quando: '2026-11-10T00:00:00Z' }],
       jobsPorRun: { 1: [{ segundos: 20 }] },
-      facturado: { ok: true, minutosUsados: 1930, incluidos: 2000, minutosPagos: 0, via: 'utilizador' },
+      facturado: { ok: true, linhas: LINHAS_DA_FACTURA },
       agora: '2026-11-17T12:00:00Z',
     });
     conferir('o número principal passa a ser o da fatura, e a regra fica como atribuição',
-      gFact.gastos === 1930 && gFact.fonteDoGasto === 'factura' && gFact.minutos === 1,
+      gFact.gastos === 1933 && gFact.fonteDoGasto === 'factura' && gFact.minutos === 1,
       [gFact.gastos, gFact.fonteDoGasto, gFact.minutos]);
-    /* A PROJECÇÃO: no dia 17 de um mês de 30, 1.930 min é 113,5/dia e fecha em 3.406. */
+    /* OS QUATRO NÚMEROS DA FATURA, e o que decide é o crédito que resta: usado $11,60 de $12. */
+    conferir('…e guarda os quatro números da fatura sem os confundir (bruto, desconto, líquido, crédito)',
+      gFact.fatura.brutoUsd === 11.6 && gFact.fatura.descontoUsd === 11.6
+        && gFact.fatura.liquidoUsd === 0 && gFact.fatura.creditoRestanteUsd === 0.4,
+      [gFact.fatura.brutoUsd, gFact.fatura.descontoUsd, gFact.fatura.liquidoUsd, gFact.fatura.creditoRestanteUsd]);
+    /* A PROJECÇÃO: no dia 17 de um mês de 30, 1.933 min é 113,7/dia e fecha em 3.411. */
     conferir('…e projecta o fim do ciclo a partir do ritmo dos dias que já andaram',
-      gFact.ciclo.projeccao === 3406 && gFact.ciclo.excedentePrevisto === 1406
-        && Math.round(gFact.ciclo.custoPrevistoUsd * 100) === 844,
-      gFact.ciclo);
+      gFact.ciclo.projeccao === 3411 && gFact.ciclo.excedentePrevisto === 1411
+        && Math.round(gFact.ciclo.liquidoPrevistoUsd * 100) === 847,
+      [gFact.ciclo.projeccao, gFact.ciclo.excedentePrevisto, gFact.ciclo.liquidoPrevistoUsd]);
+    /* O CRÉDITO ACABA EM 0,6 DIAS: $0,40 que restam ÷ $0,68 por dia. É a resposta a «me programar». */
+    conferir('…e diz em quantos dias o crédito do mês se esgota',
+      Math.round(gFact.ciclo.diasAteAcabarCredito * 10) === 6, gFact.ciclo.diasAteAcabarCredito);
+    /* A FRANQUIA NÃO É UM LIMITE, É UM DESCONTO: um mês inteiro dentro dela paga ZERO. */
+    const dentroDaFranquia = monitor.resumirFactura({
+      linhas: [{ quando: '2026-10-05T00:00:00Z', quantidade: 1075, bruto: 6.45, desconto: 6.45, liquido: 0, precoUnitario: 0.006 }],
+    });
+    conferir('…e um mês inteiro dentro da franquia paga zero, por muito que o bruto assuste',
+      dentroDaFranquia.brutoUsd === 6.45 && dentroDaFranquia.liquidoUsd === 0
+        && dentroDaFranquia.creditoRestanteUsd === 5.55, dentroDaFranquia);
     const htmlFact = painel.paginaDoMonitoramento({
       retrato: monitor.retrato({
         github: gFact, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
       }),
       cambio: 5.4,
     });
-    conferir('…e o ecrã mostra a projecção, com o excedente em minutos e em dólar',
-      /A este ritmo, o mês fecha em 3406 min<\/strong>/.test(htmlFact) && /US\$ 8,44/.test(htmlFact),
-      (htmlFact.match(/A este ritmo[^<]*<strong>[^<]*/) || [null])[0]);
+    conferir('…e o ecrã mostra a projecção em DÓLARES, com o líquido a pagar (e não o bruto)',
+      /o mês fecha em 3411 min<\/strong>/.test(htmlFact) && /US\$ 20,47/.test(htmlFact)
+        && /US\$ 8,47/.test(htmlFact),
+      (htmlFact.match(/A este ritmo[\s\S]{0,320}/) || [null])[0]);
+    conferir('…e o crédito que resta é dito no ecrã, com a data em que acaba',
+      /crédito<\/strong> ainda por usar/.test(htmlFact) && /esgota-se em 0,6 dias/.test(htmlFact),
+      (htmlFact.match(/US\$ 0,40[\s\S]{0,200}/) || [null])[0]);
 
     conferir('…e diz que o Resend conta o que o sistema pediu, não a fatura',
       /não é a fatura|Bounces/i.test(html), null);

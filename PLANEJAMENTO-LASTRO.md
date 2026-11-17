@@ -2144,8 +2144,43 @@ decisão.
   para medir** (e não que «o fornecedor discorda» — foi o que a fatura provou); (x) com a fatura
   ilegível, o número grande é declarado como REGRA e a página nomeia a permissão que falta; (xi) o
   número principal é o da fatura quando ela é legível (`fonteDoGasto === 'factura'`), e a atribuição
-  por fluxo continua visível sem se confundir com ele; (xii) a projecção do fim do ciclo aparece com
-  o excedente em minutos **e** em dólar; (xiii) a janela começa no dia 1 do mês.
+  por fluxo continua visível sem se confundir com ele; (xii) a projecção do fim do ciclo aparece em
+  dólares, com o **líquido** a pagar e não o bruto; (xiii) a janela começa no dia 1 do mês.
+
+- **A FRANQUIA DO GITHUB NÃO É UM LIMITE — É UM DESCONTO, E FOI ISSO QUE SE LEU MAL.** Ela publicou
+  a decomposição de utilização de 2026, e ela diz, mês a mês: `bruto` e `cobrado`. Todos os meses
+  com **cobrado $0,00**:
+
+  | mês | bruto | cobrado |
+  |:--|--:|--:|
+  | mai a set. 2026 | $0,02 a $0,02 | $0,00 |
+  | out. 2026 | $6,45 | $0,00 |
+  | nov. 2026 (1 a 17) | $11,60 | $0,00 |
+
+  A leitura espontânea foi «vou pagar a soma desses meses, uns $18,11, no dia 30». **Não é isso.** A
+  franquia do GitHub não aparece como «minutos incluídos» na fatura: aparece como **desconto igual
+  ao valor usado**. Um mês dentro da franquia tem `bruto === desconto` e `líquido === 0`. A
+  franquia são **$12 por mês** (2.000 min × $0,006), e **nenhum mês chegou lá** — daí os $0,00.
+
+  O que isso muda no desenho, e é o quarto número que faltava:
+  1. **O número que decide é o crédito que RESTA** ($12,00 − desconto), não o bruto, não o líquido.
+     Em 17/11 restavam **$0,40**.
+  2. **A projecção passa a ser em dólares e em líquido.** O mês fecha em 3.411 min = $20,47 brutos;
+     descontada a franquia, **$8,47 a pagar** — e não «vinte dólares», que assustaria sem informar.
+  3. **A data em que o crédito acaba.** $0,40 ÷ $0,68 por dia = **0,6 dias**: o crédito esgota-se
+     **no próprio dia 17/18**. É a resposta literal a «me programar antes que seja tarde».
+  4. **A atribuição por fluxo passa a declarar o seu desvio.** A regra (cada job arredondado ao
+     minuto) deu 2.312 min até 17/11; a fatura diz **1.933**. A regra corre **+20%** acima, porque
+     conta como facturado o que o fornecedor não conta. A página di-lo no rodapé da tabela, em vez
+     de deixar duas somas a discordar sem explicação.
+- **O ENDEREÇO DA API MUDOU, e o antigo mente.** `/users/{login}/settings/billing/actions` responde
+  agora **410 Gone** («This endpoint has been moved»). O que existe é o relatório da plataforma
+  nova: `GET /users/{login}/settings/billing/usage?year=AAAA&month=MM`, com linhas por dia e por SKU
+  e os quatro campos (`quantity`, `grossAmount`, `discountAmount`, `netAmount`).
+- **Critérios verificáveis (acrescento dois).** (xiv) um mês inteiro dentro da franquia paga zero,
+  por muito que o bruto assuste (outubro: $6,45 bruto, $0,00 líquido, $5,55 de crédito por usar);
+  (xv) o ecrã mostra o crédito que resta **e a data em que ele acaba**, e mostra o **líquido**
+  projectado, não o bruto.
 - **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
   mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
   diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a

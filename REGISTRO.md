@@ -49055,3 +49055,47 @@ comentário. Enquanto isso não for decidido, esta nota é o aviso.
 
 **Com o quê.** `curl` em `/api/monitoramento` → 200, com o retrato completo · `provar-monitoramento`
 61/61 · `check-identidade` 0 erros.
+
+## 17/11/2026 — a franquia do GitHub é um desconto, e nenhum mês tinha chegado lá
+
+**Quinta nota do dia, e é a que fecha a conta.** A proprietária publicou a decomposição de
+utilização de 2026 — mês a mês, `bruto` e `cobrado` — e leu-a como «vou pagar a soma desses meses,
+uns $18,11, no dia 30». A tabela diz outra coisa:
+
+| mês | bruto | cobrado |
+|:--|--:|--:|
+| mai a set. 2026 | $0,02 a $0,02 | $0,00 |
+| out. 2026 | $6,45 | $0,00 |
+| nov. 2026 (1 a 17) | $11,60 | $0,00 |
+
+**Nada foi cobrado, em nenhum mês.** E a razão é o desenho da faturação do GitHub: a franquia não
+aparece como «minutos incluídos», aparece como **desconto igual ao valor usado** — `bruto ===
+desconto`, `líquido === 0`. A franquia são **$12 por mês** (2.000 min × $0,006), e nenhum mês
+chegou lá. O «12 dólares» que se lia como dívida era o **crédito**, não a conta.
+
+**O que passou a existir no painel, e é o quarto número que faltava.** O crédito que **resta** —
+$12,00 − desconto = **$0,40** em 17/11 —, e com ele duas frases: a projecção em **dólares e em
+líquido** («o mês fecha em 3.411 min = $20,47 brutos; descontada a franquia, **$8,47 a pagar**»), e
+a **data em que o crédito acaba** ($0,40 ÷ $0,68 por dia = **0,6 dias** — esgota-se hoje). A
+atribuição por fluxo passou a declarar o seu desvio: a regra deu 2.312 min, a fatura 1.933, e a
+regra corre **+20%** acima porque conta como facturado o que o fornecedor não conta.
+
+**O endereço da API mudou.** `/users/{login}/settings/billing/actions` responde **410 Gone**; o que
+existe é `GET /users/{login}/settings/billing/usage?year=AAAA&month=MM`, com uma linha por dia e por
+SKU. A permissão continua a mesma, `plan=read`, e o token actualizado da proprietária já a tem — o
+segredo do Worker foi reposto com ele (`wrangler secret put GITHUB_TOKEN`).
+
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js` (`consumoFacturadoDoGithub` reescrito para o
+relatório de utilização, com paginação e tecto) · `motor/nucleo/monitoramento.js`
+(`resumirFactura` — os quatro números e a série por dia; `projectarCiclo` em dólares, com
+`creditoRestanteUsd` e `diasAteAcabarCredito`; `desvioDaRegra`) · `motor/servidor/raiz.js` (o mês
+como parâmetro da leitura) · `motor/servidor/painel-html.js` (os quatro números, o crédito que resta
+com a data, a projecção em líquido) · `PLANEJAMENTO-LASTRO.md` §L9d (a tabela, as quatro mudanças e
+os critérios xiv e xv).
+
+**Com o quê.** `provar-monitoramento` **65/65** — incluindo «guarda os quatro números da fatura sem
+os confundir», «um mês inteiro dentro da franquia paga zero, por muito que o bruto assuste», «diz em
+quantos dias o crédito do mês se esgota», «o ecrã mostra a projecção em DÓLARES, com o líquido a
+pagar (e não o bruto)». E a leitura ao vivo da API confirma-a: 17 linhas, 1.933 min, $11,60 de
+bruto, $11,60 de desconto, $0,00 líquido, $0,40 de crédito. Mais `provar-financeiro-da-escola` 90/90
+· `provar-abas` 28/28 · `check-identidade` 0 erros.
