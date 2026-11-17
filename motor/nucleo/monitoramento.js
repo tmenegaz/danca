@@ -220,7 +220,7 @@ function resumirFactura({ linhas, creditoUsd } = {}) {
  * que resta dividido pelo ritmo diário em dólares — e é `null` quando já se esgotou (aí o que
  * interessa é o que já está a ser cobrado, e para isso há o líquido da fatura).
  */
-function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, descontoUsd } = {}) {
+function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, descontoUsd, serie } = {}) {
   const g = Math.max(0, Number(gastos) || 0);
   const inc = Math.max(0, Number(incluido) || 0);
   const preco = Number(precoMinutoUsd) > 0 ? Number(precoMinutoUsd) : COTAS.github.precoMinutoUsd;
@@ -231,14 +231,49 @@ function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, d
     return {
       gastos: g, incluido: inc, fraccao: fracao(g, inc), diasDecorridos: null, diasNoMes: null,
       projeccao: null, excedentePrevisto: null, creditoUsd: credito, creditoRestanteUsd: null,
-      diasAteAcabarCredito: null, liquidoPrevistoUsd: null,
+      diasAteAcabarCredito: null, liquidoPrevistoUsd: null, janelaDoRitmo: null,
     };
   }
   const diasNoMes = new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 0).getUTCDate();
   const diasDecorridos = Math.max(1, d.getUTCDate());
-  const ritmo = g / diasDecorridos;
-  const projeccao = Math.round(ritmo * diasNoMes);
+
+  /* ── O RITMO VEM DOS ÚLTIMOS DIAS, E NÃO DO MÊS INTEIRO (17/11/2026) ───────────────────────
+   *
+   * A MÉDIA DO MÊS MENTE QUANDO A ROTINA MUDA A MEIO DO MÊS. Medido neste dia: a publicação
+   * passou de 3 jobs por push para 1, e a média do mês — que inclui dezessete dias a 3 jobs —
+   * continuou a projectar ~3.400 min para um mês que já ia fechar muito abaixo disso. Uma
+   * projecção que ignora uma mudança estrutural não é conservadora: é errada, e leva a contratar
+   * um plano que já não é preciso.
+   *
+   * A JANELA É CURTA DE PROPÓSITO: os últimos 7 dias (ou os que houver), que é o tempo em que uma
+   * mudança de rotina já aparece nos números sem apagar a variação normal de uma semana. A página
+   * diz qual janela usou — uma média de 3 dias e uma de 7 não valem o mesmo.
+   */
+  const serieLimpa = Array.isArray(serie) ? serie.filter((x) => x && Number.isFinite(Number(x.minutos))) : [];
+  const janela = serieLimpa.slice(-7);
+  const usouCauda = janela.length >= 3;
+  const ritmo = usouCauda
+    ? janela.reduce((s, x) => s + Number(x.minutos), 0) / janela.length
+    : g / diasDecorridos;
+
+  /* ── «JÁ GASTO + RITMO × DIAS QUE FALTAM», E NÃO «RITMO × DIAS DO MÊS» (17/11/2026) ────────
+   *
+   * A SEGUNDA FÓRMULA RE-CONTABILIZA O PASSADO. `ritmo × 30` supõe que os dias que já passaram
+   * custaram o mesmo que os de agora — e quando a rotina muda a meio do mês, isso é falso nos dois
+   * sentidos: se o ritmo caiu, a projecção humilha o que já foi gasto; se subiu, apaga-o. Medido
+   * neste dia: com a média do mês, a projecção dizia 3.416 min; com `ritmo × 30` e a cauda de 7
+   * dias dizia 3.561 — as duas erradas, porque os 1.936 min já gastos NÃO vão ser gastos outra vez.
+   *
+   * A CONTA CERTA É A DO RUN RATE: o que já saiu, mais o que vai sair ao ritmo de agora. É a única
+   * que respeita as duas metades do mês, e é a que responde à pergunta que interessa — «este mês
+   * ainda cabe?»; a de Dezembro é outra, e é a que se lê na linha seguinte.
+   */
+  const diasRestantes = Math.max(0, diasNoMes - diasDecorridos);
+  const projeccao = Math.round(g + ritmo * diasRestantes);
   const brutoPrevisto = Math.round(projeccao * preco * 100) / 100;
+  /* O MÊS SEGUINTE, COM O RITMO DE AGORA E SEM HERANÇA NENHUMA — é onde a mudança de rotina
+   * aparece inteira, porque não há um dia caro a puxar a média para cima. */
+  const mesInteiroAoRitmo = Math.round(ritmo * diasNoMes);
   const creditoRestante = desconto == null ? Math.max(0, credito - g * preco) : Math.max(0, credito - desconto);
   const ritmoUsd = Math.round(ritmo * preco * 100) / 100;
   return {
@@ -248,8 +283,15 @@ function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, d
     diasDecorridos,
     diasNoMes,
     ritmoDia: Math.round(ritmo * 10) / 10,
+    /* DE ONDE VEM O RITMO — dito, porque muda o número e quem lê tem de saber qual dos dois é. */
+    janelaDoRitmo: usouCauda ? 'últimos ' + janela.length + ' dias' : 'média do mês',
     ritmoUsdDia: ritmoUsd,
     projeccao,
+    diasRestantes,
+    mesInteiroAoRitmo,
+    /* O CUSTO DO PRÓXIMO MÊS a este ritmo — `0` quando cabe na franquia, e é esse o número que
+     * responde a «preciso de contratar?». */
+    proximoMesUsd: Math.max(0, Math.round((mesInteiroAoRitmo * preco - credito) * 100) / 100),
     brutoPrevistoUsd: brutoPrevisto,
     creditoUsd: Math.round(credito * 100) / 100,
     creditoRestanteUsd: Math.round(creditoRestante * 100) / 100,
@@ -407,6 +449,7 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
     gastos, incluido, agora, precoMinutoUsd: COTAS.github.precoMinutoUsd,
     creditoUsd: daFactura ? fatura.creditoUsd : null,
     descontoUsd: daFactura ? fatura.descontoUsd : null,
+    serie: daFactura ? fatura.seriePorDia : null,
   });
   return {
     provedor: 'github',

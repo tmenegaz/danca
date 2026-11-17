@@ -1996,12 +1996,24 @@ function blocoDoGithub(g) {
     /* A PROJECÇÃO — a frase que permite decidir hoje em vez de no fim do mês. Em DÓLARES, e com o
      * líquido, porque é o líquido que sai da conta: um mês de $20,47 brutos com $12 de franquia
      * custa $8,47, e dizer «vinte» seria assustar sem informar. */
+    /* AS DUAS PERGUNTAS, EM DUAS FRASES. «Este mês ainda cabe?» responde-se com o run rate — o que
+     * já saiu mais o que vai sair ao ritmo de agora. «Preciso de contratar?» responde-se com o mês
+     * inteiro ao ritmo de agora, que é o único número sem herança nenhuma do mês caro. Confundi-las
+     * é o que faz alguém pagar um plano por causa de um mês que já passou. */
     (daFactura && ciclo.projeccao
-      ? '<p><strong>A este ritmo, o mês fecha em ' + ciclo.projeccao + ' min</strong> — ' +
-        String(ciclo.ritmoDia).replace('.', ',') + ' min por dia × ' + ciclo.diasNoMes + ' dias, ' +
-        'o que vale ' + dinheiro(ciclo.brutoPrevistoUsd) + '. Descontada a franquia, ' +
-        'ficam <strong>' + dinheiro(ciclo.liquidoPrevistoUsd) + ' a pagar</strong> no mês seguinte.' +
-        (ciclo.liquidoPrevistoUsd > 0 ? '' : ' Cabe na franquia.') + '</p>'
+      ? '<p><strong>Este mês fecha em ' + ciclo.projeccao + ' min</strong> — os ' + ciclo.gastos +
+        ' já gastos mais ' + String(ciclo.ritmoDia).replace('.', ',') + ' min/dia × ' +
+        ciclo.diasRestantes + ' dias que faltam. Descontada a franquia, ' +
+        (ciclo.liquidoPrevistoUsd > 0
+          ? '<strong>' + dinheiro(ciclo.liquidoPrevistoUsd) + ' a pagar</strong>.'
+          : 'não sobra nada a pagar.') +
+        ' <span class="sub">(ritmo medido sobre a ' + esc(ciclo.janelaDoRitmo) + '.)</span></p>' +
+        '<p><strong>Um mês inteiro a este ritmo seriam ' + ciclo.mesInteiroAoRitmo + ' min</strong> — ' +
+        (ciclo.proximoMesUsd > 0
+          ? dinheiro(ciclo.proximoMesUsd) + ' a pagar. É este o número que responde a «preciso de ' +
+            'contratar?»: o outro carrega os dias caros deste mês, este não.'
+          : 'dentro da franquia, <strong>sem nada a pagar</strong>. É este o número que responde a ' +
+            '«preciso de contratar?» — e a resposta é não.') + '</p>'
       : '') +
     (linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Processo</th><th>Vezes</th>' +

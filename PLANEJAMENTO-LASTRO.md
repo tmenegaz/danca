@@ -2195,6 +2195,20 @@ decisão.
   por muito que o bruto assuste (outubro: $6,45 bruto, $0,00 líquido, $5,55 de crédito por usar);
   (xv) o ecrã mostra o crédito que resta **e a data em que ele acaba**, e mostra o **líquido**
   projectado, não o bruto.
+
+- **A PROJECÇÃO PASSOU A SER RUN RATE, e ela própria mostrou porquê.** A primeira versão projectava
+  `ritmo × dias do mês`, e ficou errada no momento em que a rotina mudou a meio do mês: os dias
+  caros já passados eram re-contabilizados como se fossem repetir-se. Medido a 17/11/2026, no mesmo
+  dia da consolidação da publicação: a média do mês dava 3.416 min; a cauda de 7 dias com
+  `ritmo × 30` dava 3.561 — as duas erradas, porque **os 1.936 min já gastos não vão ser gastos
+  outra vez**.
+  **A conta certa é o run rate: já gasto + ritmo × dias que faltam.** E o ritmo vem dos **últimos 7
+  dias**, não do mês — uma média de 30 dias não vê uma mudança de rotina, uma de 7 vê.
+  **E são DUAS perguntas, com dois números:** «este mês ainda cabe?» (run rate, carrega a herança
+  dos dias caros) e «preciso de contratar?» (**mês inteiro ao ritmo de agora**, sem herança
+  nenhuma). Confundi-las é o que faz alguém pagar um plano por causa de um mês que já passou.
+- **Critérios verificáveis (mais um).** (xvi) a projecção é `já gasto + ritmo × dias que faltam`, e
+  não `ritmo × dias do mês`; o ritmo vem dos últimos 7 dias, e o ecrã **diz qual janela usou**.
 - **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
   mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
   diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a

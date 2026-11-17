@@ -457,10 +457,21 @@ function conferir(titulo, condicao, dado) {
       }),
       cambio: 5.4,
     });
+    /* A PROJECÇÃO PASSOU A SER RUN RATE (17/11/2026) — «já gasto + ritmo × dias que faltam» —, e a
+     * asserção mudou com ela. `ritmo × dias do mês` re-contabiliza os dias que já passaram e, num
+     * mês em que a rotina mudou a meio, erra nos dois sentidos. A fixture tem DOIS dias de factura
+     * (1 e 17), por isso não há cauda de 7 dias: o ritmo cai na média do mês, 1.933/17 = 113,7/dia,
+     * e 1.933 + 113,7 × 13 = 3.411 min. */
     conferir('…e o ecrã mostra a projecção em DÓLARES, com o líquido a pagar (e não o bruto)',
-      /o mês fecha em 3411 min<\/strong>/.test(htmlFact) && /US\$ 20,47/.test(htmlFact)
-        && /US\$ 8,47/.test(htmlFact),
-      (htmlFact.match(/A este ritmo[\s\S]{0,320}/) || [null])[0]);
+      /Este mês fecha em 3411 min<\/strong>/.test(htmlFact)
+        && /os 1933 já gastos mais 113,7 min\/dia × 13 dias que faltam/.test(htmlFact),
+      (htmlFact.match(/Este mês fecha[\s\S]{0,240}/) || [null])[0]);
+    /* E A SEGUNDA PERGUNTA — «preciso de contratar?» — tem o seu próprio número, sem a herança dos
+     * dias caros deste mês. É o que impede alguém de pagar um plano por causa de um mês passado. */
+    conferir('…e responde a «preciso de contratar?» com o mês inteiro ao ritmo de AGORA',
+      /Um mês inteiro a este ritmo seriam 3411 min/.test(htmlFact)
+        && /É este o número que responde a «preciso de contratar\?»/.test(htmlFact),
+      (htmlFact.match(/Um mês inteiro[\s\S]{0,240}/) || [null])[0]);
     /* O PREÇO UNITÁRIO NÃO PODE SER ARREDONDADO A CÊNTIMOS: $0,006 mostrado como $0,01 é um erro
      * de 67% num número que a própria página usa para explicar a conta. Apanhado ao vivo, e é por
      * isso que a asserção existe. */

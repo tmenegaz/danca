@@ -49185,3 +49185,23 @@ Sem pedido novo: a marca sai dos dados que o resumo já tem (a última execuçã
 o `agora`), e não de uma lista de nomes — uma lista apodreceria no dia seguinte. `provar-monitoramento`
 **68/68**, com as duas asserções: uma de conta (o antigo marcado, o vivo não) e uma de ecrã (a marca
 ao lado do nome).
+
+### Nota, no mesmo dia — a projecção re-contabilizava os dias caros
+
+A projecção do painel era `ritmo × dias do mês`. Ficou errada no instante em que a rotina mudou a
+meio do mês: os dias caros já passados eram projectados como se fossem repetir-se. Medido a
+17/11/2026, no mesmo dia da consolidação da publicação: a média do mês dava **3.416 min**; a cauda
+de 7 dias com a mesma fórmula dava **3.561** — as duas erradas, porque **os 1.936 min já gastos não
+vão ser gastos outra vez**.
+
+**A conta certa é o run rate — `já gasto + ritmo × dias que faltam`** — e o ritmo vem dos **últimos
+7 dias** e não do mês, porque uma média de 30 dias não vê uma mudança de rotina. E separaram-se
+**duas perguntas que estavam numa só frase**: «este mês ainda cabe?» (run rate) e «preciso de
+contratar?» (**mês inteiro ao ritmo de agora**, sem herança nenhuma). Confundi-las é o que faz
+alguém pagar um plano por causa de um mês que já passou.
+
+**Onde entrou.** `motor/nucleo/monitoramento.js` (`projectarCiclo` com `serie`, `janelaDoRitmo`,
+`diasRestantes`, `mesInteiroAoRitmo`, `proximoMesUsd`) · `motor/servidor/painel-html.js` (as duas
+frases, e a janela do ritmo dita) · `PLANEJAMENTO-LASTRO.md` §L9d (a correcção e o critério xvi) ·
+`experimentos/provar-monitoramento.js` (a asserção da projecção, e a nova da segunda pergunta).
+**`provar-monitoramento` 69/69 · `check-identidade` 0 erros.**
