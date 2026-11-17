@@ -50063,3 +50063,80 @@ aqui.
 **O que ainda não está feito.** (1) O ensaio continua **suspenso** na Breu, por pedido dela; agora
 que o painel o vê, basta religá-lo para testar a conciliação de um mês que nasce. (2) O transbordo da
 tabela a 390px, de antes. (3) A `ESTADO-ATUAL.md` segue a cadência dela.
+
+## 17/11/2026 — O login do professor volta a existir, e o ensaio passa a ligar-se no painel
+
+**O que motivou.** «O botão de ativar ou desativar o ensaio deve ficar no
+https://danca.padd.com.br/financeiro e o tempo deve ser de 10 minutos para cada mês. Eu ativo e
+desativo.» — e, ao ir pô-lo lá, apareceu o que estava por baixo.
+
+**O DEFEITO MAIS CARO DESTA FRENTE, e estava EM PRODUÇÃO.** No `ed0907d7`, ao reescrever o bloco de
+comentário da rota do ensaio, o **fecho do comentário** foi-se. O comentário passou a engolir **52
+linhas de código**, e com elas `if (path === '/api/bastidores/validar-senha')`. A rota deixou de
+existir:
+
+```
+POST https://breu.padd.com.br/api/bastidores/validar-senha  →  404
+```
+
+Ou seja: **os professores não conseguiam entrar** desde o `ed0907d7`.
+
+**O que o tornou invisível — e é a lição.** `node --check` diz **OK** (um comentário longo é
+JavaScript válido). As **120** asserções de `provar-paginacao` passaram, as **131** de
+`provar-financeiro-da-escola` passaram, `provar-abas` passou — porque quase todas constroem a
+**PÁGINA** e não chamam a **ROTA**. O que não é chamado não é medido, e uma prova de páginas não
+prova o servidor.
+
+**A prova nova — `provar-rotas-que-existem.js`.** Percorre os ficheiros do servidor com um leitor de
+**estados** (código, comentário de linha, comentário de bloco, string) e pergunta, **rota a rota**,
+se a declaração caiu dentro de um comentário. Não é uma busca de texto: procurar a string diria «está
+lá» exactamente no caso em que ela não está. Tem **controlo** — injeta o defeito num ficheiro
+temporário e confirma que reprova —, e o controlo também apanha o `//` de dentro de um `https://`,
+que aparece por todo este repositório.
+
+**O pedido: o controlo mudou de DONO, não só de sítio.** O ensaio nasceu com um botão de saída na
+página da **escola**, e o argumento era a saída de emergência. Esse argumento cai quando o comando é
+um botão no painel, e o que fica a valer é o outro: **um ensaio que a escola desliga não é um ensaio
+que a operação controla.** O botão e a rota da escola saíram; a página da escola continua a **dizer**
+o estado («Modo de ensaio: cada período vale N minutos…»), e diz onde ele se muda.
+
+- **Um botão, que muda de rótulo** — «Ligar o ensaio — 10 minutos por mês» / «Desligar o ensaio» —,
+  no cartão de cada escola, com a linha de estado ao lado («ligado — cada período vale 10 min…»).
+  Dois botões em que um está sempre inerte obrigam a ler os dois para saber em que estado se está.
+- **Os dez minutos moram numa constante só** (`painel.ENSAIO_PADRAO_MINUTOS`): o rótulo escreve-a e a
+  rota usa-a como padrão. Pedido **sem** minutos liga no padrão; **zero** desliga — a ausência não
+  pode valer zero, senão o clique mais simples apagava o ensaio em vez de o criar.
+- **A rota nova** é `POST /api/financeiro/ensaio`, na raiz, e **recusa uma escola sem contrato**: uma
+  chave de ensaio num slug inexistente ficaria à espera, e no dia em que alguém criasse essa escola
+  ela nasceria a correr contra um relógio de minutos que ninguém ligou.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a rota do ensaio e o `SCRIPT_DO_SAIR_DO_ENSAIO`
+removidos; a frase passa a dizer onde se muda) · `motor/servidor/raiz.js`
+(`POST /api/financeiro/ensaio`) · `motor/servidor/painel-html.js` (`ENSAIO_PADRAO_MINUTOS`, o
+controlo no cartão, o gesto `[data-ensaio-ligar]/[data-ensaio-desligar]`) ·
+`experimentos/provar-rotas-que-existem.js` (nova, 8 asserções) ·
+`experimentos/provar-conciliacao-do-painel.js` (secção 5, +14 asserções).
+
+**Com o quê.** `provar-rotas-que-existem` **8/8** (nova) · `provar-conciliacao-do-painel` **34/34**
+(eram 21) · `provar-relogio-do-ensaio` 25 · `provar-financeiro` 58 · `provar-paginacao` 120 ·
+`provar-abas-da-audicao` 124 · `provar-monitoramento` 94 · `provar-financeiro-da-escola` 133 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações. `provar-producao` **163/166** — as
+três de sempre.
+
+**Controlo A/B.** O comentário por fechar reposto → a prova das rotas reprova duas asserções, e
+nomeia a rota e a linha. O padrão trocado para 3 → reprova três. O pedido sem minutos a valer zero →
+reprova uma.
+
+**Medido num navegador.** Desligado: «Ligar o ensaio — 10 minutos por mês», estado «desligado — a
+cobrança é mensal», sem transbordo e sem erro de página. Ligado: «Desligar o ensaio», estado «ligado
+— cada período vale 10 min, e os meses que aqui aparecem são de ensaio», e o selo «em ensaio» na
+linha do cartão.
+
+**Ao vivo, nas duas direcções.** `POST /api/financeiro/ensaio {escola:'breu'}` → `ok`, painel a dizer
+«ligado — 10 min»; `{minutosPorPeriodo:0}` → `ok`, painel a dizer «desligado — a cobrança é mensal» e
+a página da escola sem a faixa. O ensaio fica **desligado**, para ela o ligar quando quiser. E
+`validar-senha` responde **200** outra vez.
+
+**O que ainda não está feito.** (1) A `ESTADO-ATUAL.md` segue a cadência dela. (2) O transbordo da
+tabela do extrato a 390px, de antes. (3) O ensaio de ontem mostrou que o `ed0907d7` saiu partido: vale
+a pena perguntar, de agora em diante, o que é que a entrega **não** chamou.
