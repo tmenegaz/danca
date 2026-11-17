@@ -354,6 +354,58 @@ function travaDoPiso({ contrato, eixo, cadastrados } = {}) {
       : (via === 'plano' ? ['plano'] : (via === 'lote' ? ['lote'] : ['conversa'])) }, base);
 }
 
+/**
+ * O MEDIDOR — «4 de 9», ao lado do formulário (16/11/2026).
+ *
+ * A TRAVA SEM AVISO É UMA ARMADILHA. Recusar o cadastro é a metade do trabalho; a outra é dizer,
+ * ANTES do clique, quantos lugares restam. Sem isto a direção descobre o piso ao ser recusada — e
+ * um limite que só se conhece pelo erro é um limite que parece um defeito.
+ *
+ * O QUE ELE DIZ, e porque é assim: o número grande é a contagem CONTRA O PISO («4 de 9»), porque é
+ * o piso que trava o cadastro; o teto aparece ao lado, e menor, porque é a resposta à pergunta
+ * seguinte («e se eu quiser mais?»). A palavra é «piso», e não «capacidade» — a correcção é dela:
+ * «capacidade dá ideia de teto, então dá ideia de que tem só nove professores e 120 alunos».
+ *
+ * A FRASE DA RECUSA É A MESMA OBJECTO. Quando o piso está cheio, o medidor devolve também o
+ * `recusa` de `travaDoPiso` — a página escreve-a, e o servidor recusa com ela: uma função, duas
+ * bocas, e nenhuma possibilidade de a tela prometer o que o motor não faz.
+ */
+function medidorDoPiso({ contrato, eixo, cadastrados } = {}) {
+  const nome = String(eixo || '');
+  if (nome !== 'professores' && nome !== 'alunos') return null;
+  const limites = limitesDoContrato(contrato);
+  if (!limites) return null;
+
+  const piso = Number(limites.piso[nome]) || 0;
+  const teto = Number(limites.teto[nome]) || 0;
+  const tem = Math.max(0, Math.round(Number(cadastrados) || 0));
+  const cheio = tem >= piso;
+  const noTeto = tem >= teto;
+  const restantes = Math.max(0, piso - tem);
+  const trava = travaDoPiso({ contrato, eixo: nome, cadastrados: tem });
+
+  return {
+    eixo: nome,
+    tem, piso, teto, cheio, noTeto, restantes,
+    contagem: tem + ' de ' + piso,
+    rotulo: ROTULOS_DOS_EIXOS[nome],
+    /* O PLURAL É PARA O MEDIDOR, e não é preciosismo: «Professor(es): 2 de 9» lê-se mal, e o
+     * parêntese é a marca de um texto que não decidiu. Na fileira de factos cabe o plural. */
+    rotuloPlural: nome === 'professores' ? 'Professores' : 'Alunas',
+    /* O selo diz o ESTADO, não a contagem: a contagem já está ao lado, e repeti-la num selo é
+     * dizer duas vezes a mesma coisa em duas tipografias. */
+    selo: cheio ? 'falha' : 'discreto',
+    seloTexto: cheio
+      ? (noTeto ? 'no teto do plano' : 'piso cheio')
+      : (restantes === 1 ? '1 lugar' : restantes + ' lugares'),
+    /* A RECUSA SÓ QUANDO HÁ RECUSA. Um aviso preventivo numa escola com lugar é ruído, e o ruído
+     * ensina a ignorar o aviso. */
+    recusa: cheio ? trava.erro : null,
+    via: cheio ? trava.via : null,
+    plano: limites.plano,
+  };
+}
+
 /** O catálogo como a página o recebe: sem os campos internos de nota. */
 function catalogoDaPagina() {
   return {
@@ -437,6 +489,7 @@ module.exports = {
   tetoDoPlano,
   limitesDoContrato,
   travaDoPiso,
+  medidorDoPiso,
   ROTULOS_DOS_EIXOS,
   calcular,
   validarEscolha,

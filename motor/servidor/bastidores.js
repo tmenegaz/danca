@@ -3539,6 +3539,35 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
   };
 }
 
+/**
+ * O MEDIDOR DO PISO, ao lado do formulário — «9 de 9» (16/11/2026).
+ *
+ * A DECISÃO É DO NÚCLEO (`comercial.medidorDoPiso`): quais números, que selo, e que frase quando o
+ * piso está cheio. Aqui só se desenha, com as peças da casa — `.ficha` (a fileira de factos do
+ * cartão da escola), `.selo` (o atributo do dado) e `.aviso` (o que ela precisa de ler antes do
+ * clique).
+ *
+ * A FRASE DA RECUSA É A MESMA que o servidor devolve no 409: quando ela insistir, o erro que
+ * aparecer já estava à vista, e não é uma surpresa.
+ */
+function medidorDoPisoHtml(medidor, id) {
+  if (!medidor) return '';
+  const n = esc(medidor.contagem);
+  const rotulo = esc(medidor.rotuloPlural);
+  /* O TETO É O SEGUNDO NÚMERO, e não o primeiro: a pergunta que o formulário faz é «cabe mais
+   * um?», e a resposta é a distância até ao piso. O teto responde à pergunta seguinte — e por
+   * isso vem depois, e é o mesmo número que o cartão de «A escola» mostra. */
+  return '<div class="ficha" id="' + esc(id) + '" data-piso="' + esc(medidor.eixo) + '">' +
+    '<span>' + rotulo + ': <strong>' + n + '</strong></span>' +
+    '<span>o plano vai até <strong>' + medidor.teto + '</strong></span>' +
+    '</div>' +
+    '<p class="sub"><span class="selo ' + esc(medidor.selo) + '" data-piso-selo>' +
+    esc(medidor.seloTexto) + '</span></p>' +
+    (medidor.recusa
+      ? '<p class="aviso" data-piso-recusa>' + esc(medidor.recusa) + '</p>'
+      : '');
+}
+
 /** O cartão «A escola», com o que ela preencheu, o que contratou e como está a pagar. */
 function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
   const c = cadastro || {};
@@ -3673,6 +3702,29 @@ function emReaisDoCartao(centavos) {
 }
 
 function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola) {
+  /* OS DOIS MEDIDORES DO PISO (16/11/2026) — calculados UMA vez, no topo.
+   *
+   * «Dizer "9 de 9" ao lado do formulário» é a metade que faltava da trava: sem isto, a direção
+   * descobre o limite ao ser recusada. O contrato vem no `dadosDaEscola` (a mesma leitura que o
+   * cartão de «A escola» usa), e as contagens são as MESMAS que a rota conta — o principal entra,
+   * o desligado não.
+   *
+   * SEM CONTRATO, NÃO HÁ MEDIDOR: uma escola anterior à camada comercial não prometeu piso nenhum,
+   * e mostrar «0 de 0» seria inventar um limite. */
+  const contratoDaEscola = (dadosDaEscola && dadosDaEscola.contrato) || null;
+  const listaDeProfs = Array.isArray(profs) ? profs : [];
+  const listaDeAlunas = Array.isArray(aluns) ? aluns : [];
+  const medidorDeProfessores = comercialDoNucleo.medidorDoPiso({
+    contrato: contratoDaEscola,
+    eixo: 'professores',
+    cadastrados: (String(donoSlug || '').trim() ? 1 : 0)
+      + listaDeProfs.filter((p) => !desligamento.estaDesligado(p)).length,
+  });
+  const medidorDeAlunas = comercialDoNucleo.medidorDoPiso({
+    contrato: contratoDaEscola,
+    eixo: 'alunos',
+    cadastrados: listaDeAlunas.length,
+  });
   /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
    *
    * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
@@ -5958,6 +6010,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="col-form" id="professores-miolo">' +
     /* ---------------------------------------------- ABA 1 — O CADASTRO */
     '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
+    /* O MEDIDOR ANTES DO FORMULÁRIO, e não depois: quem vai cadastrar precisa de saber se cabe
+     * ANTES de escrever o nome — e não depois de o servidor recusar. */
+    medidorDoPisoHtml(medidorDeProfessores, 'prof-piso') +
     // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
     // `prompt()` do navegador — a janelinha que parece um alert, com o nome num campo de uma
     // linha e sem nada em volta. O ato é o mesmo dos outros: muda-se um nome num formulário e
@@ -6084,6 +6139,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-alunas" hidden>' +
     tituloComAcordeao('sec-alunas', 'Alunas', 'alunas-miolo') +
     '<div class="col-form" id="alunas-miolo">' +
+    medidorDoPisoHtml(medidorDeAlunas, 'aluna-piso') +
     '<form id="form-aluna">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +

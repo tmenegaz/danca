@@ -48564,3 +48564,61 @@ escolas `calango` e `batata` foram expurgadas e o domínio já não resolve) —
 não contra o código. E a **trava não tem ainda o número à vista na tela**: a direção descobre o piso
 quando tenta cadastrar. Dizer «9 de 9» ao lado do formulário é a próxima peça, e é de desenho, não
 de motor.
+
+## 16/11/2026 — o medidor ao lado do formulário: «4 de 9», antes do clique
+
+**A trava sem aviso é uma armadilha.** Ontem (hoje, mais cedo) o piso passou a recusar no motor. Isso
+é metade do trabalho; a outra metade é dizer, **antes** do clique, quantos lugares restam — porque
+um limite que só se conhece pelo erro parece um defeito. «Dizer "9 de 9" ao lado do formulário é a
+próxima peça» — e agora está lá, nos dois formulários.
+
+**O que se lê.** Uma fileira de factos no topo do formulário do professor e no da aluna:
+
+> Professores: **4 de 9** · o plano vai até **20**
+> `5 lugares`
+
+O número grande é a contagem **contra o piso**, porque é o piso que trava o cadastro; o teto vem ao
+lado, e menor, porque responde à pergunta seguinte — «e se eu quiser mais?». O selo é o estado
+(`discreto` com lugares, `falha` quando cheio), e a palavra é **piso**: «capacidade dá ideia de teto,
+então dá ideia de que tem só nove professores e 120 alunos».
+
+**Quando o piso enche, aparece o porquê — e é a mesma frase do servidor.** O `.aviso` com a recusa
+só existe quando há recusa (um aviso preventivo numa escola com lugar é ruído, e o ruído ensina a
+ignorar o aviso). E a frase é **literalmente a que a rota devolve no 409**: a página e o motor leem
+`comercial.travaDoPiso`, uma vez; a prova compara as duas strings e falha se divergirem. Uma fonte,
+duas bocas — é a mesma disciplina de `fraseDaSituacao`.
+
+**As contagens são as mesmas dos dois lados.** O principal conta (vive no secret, não na lista do
+KV), o desligado não conta (fica no registo por proveniência), e a aluna conta pelo **cadastro**.
+Sem contrato **não há medidor** — uma escola anterior à camada comercial não prometeu piso nenhum, e
+mostrar «0 de 0» seria inventar um limite.
+
+**Nenhuma peça nova.** O medidor é composição de três peças da folha: `.ficha` (a fileira de factos
+que o cartão de «A escola» já usa), `.selo` (o atributo do dado) e `.aviso` (o que precisa de ser
+lido). A decisão de identidade é que isto é um **padrão** e não um ecrã: entrou como **regra 6** nas
+instruções da identidade — «todo limite que o motor aplica diz-se no ecrã, antes do clique» — e como
+linha no Quadro 1 do catálogo.
+
+**Onde entrou.** `motor/nucleo/comercial.js` (`medidorDoPiso`, com `rotuloPlural`) ·
+`motor/servidor/bastidores.js` (`medidorDoPisoHtml` e os dois medidores calculados no topo de
+`paginaProducao`, a partir do contrato que o `dadosDaEscola` já trazia) ·
+`experimentos/provar-piso.js` · `IDENTIDADE-VISUAL.md` (Quadro 1) ·
+`.github/instructions/identidade-visual.instructions.md` (regra 6, «as seis regras»).
+
+**Com o quê.** `provar-piso` **41/41** (de 29): a contagem e o teto no formulário do professor, o
+medidor das alunas no formulário delas, o selo a mudar de `discreto` para `falha` quando o piso
+enche, o `.aviso` ausente enquanto há lugar e presente quando não há, **a frase da tela a ser
+idêntica à do núcleo**, nenhum medidor sem contrato, o principal a contar e o desligado a não contar.
+Mais `provar-cadastro-do-professor` 49/49 · `provar-financeiro-da-escola` 90/90 ·
+`provar-cofre-e-shard` 138/138 · `provar-escola-a-nascer` 48/48 · `provar-recriar-escola` 92/92 ·
+`provar-abas` 28/28 · `provar-financeiro` 58/58 · `provar-restaurar-retrato` 38/38 ·
+`provar-cartas-do-expurgo` 25/25 · `provar-a-carencia-nao-se-burla` 58/58 · `provar-pagina-publica`
+79/79 · `provar-indices` 64/64 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**E uma prova que estava vermelha desde 15/11 — e não era do medidor.** `provar-geracao-do-ciclo`
+reprovava em «o acordo com o workflow» porque três asserções liam o corpo antigo de dois sítios que
+mudaram de casa: o alvo do deploy passou a ser escolhido por `shard_da_escola` (as escolas de shard
+não têm `wrangler.<escola>.jsonc`), e a conciliação do derivado e o commit vazio passaram a viver em
+`.github/scripts/conflito-do-derivado.sh` e `atualizar-commit-derivado.sh`. As regras são as mesmas;
+as asserções passaram a lê-las onde elas estão. **24/24** agora — e o número subiu de 14 para 24
+porque o bloco reprovava a meio, e as asserções seguintes nunca corriam.

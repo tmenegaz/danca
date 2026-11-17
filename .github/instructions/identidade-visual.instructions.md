@@ -40,7 +40,7 @@ saíram **encostados** no campo, e que «Atribuir curadoria», sem `.acao`, saiu
 mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da fileira
 `.par-botoes`. Quem guarda isso é a `experimentos/provar-vao-do-botao.js`.
 
-## As cinco regras que não se negociam
+## As seis regras que não se negociam
 
 1. **Nenhuma classe nasce no uso.** Se a marcação precisa de um contentor, ou ele é uma peça do
    catálogo, ou é um **gancho** declarado com razão em `tools/check-identidade.js` (lista
@@ -60,6 +60,12 @@ Audição fixou.
    dado é selo. `.acao[aria-pressed]` foi removido por isso.
 5. **Nada de `style=""` na marcação, e nenhum hex fora de `ciclo.css`.** Cor se usa por **papel**
    (`--fundo`, `--marca-texto`…), nunca por primitivo (`--cream`, `--burgundy`).
+6. **Todo limite que o motor aplica diz-se no ecrã, antes do clique** (16/11/2026). «A trava sem
+aviso é uma armadilha»: recusar é metade do trabalho, e a outra metade é dizer quanto resta *antes*
+de a pessoa escrever o nome. O medidor é **composição de peças que já existem** — `.ficha` (a
+fileira de factos), `.selo` (o estado) e `.aviso` (o porquê) —, e a frase da recusa é **a mesma
+função** que o servidor devolve no 409: uma fonte, duas bocas, nenhuma possibilidade de a tela
+prometer o que o motor não faz. Sem contrato não há medidor — não se inventa um limite.
 
 ## Onde estou — aprofundar não é sair (norma, 26/10/2026)
 

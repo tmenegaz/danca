@@ -306,7 +306,80 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
       semSenha.status === 401, semSenha.status);
   }
 
-  console.log('\nE. A palavra é «piso» — e o ecrã não diz «capacidade»');
+  console.log('\nE. O medidor ao lado do formulário — «9 de 9», antes do clique');
+  {
+    /* «Dizer "9 de 9" ao lado do formulário é a próxima peça.» A trava sem aviso é uma armadilha:
+     * recusar é metade do trabalho, e a outra metade é dizer quantos lugares restam ANTES de a
+     * pessoa escrever o nome. */
+    const pagina = (contrato, profs, aluns) => bastidores.paginaProducao(
+      'breu', {}, profs, aluns, 'Brise Volet', 'brise-volet', [], [], {}, [], [], [],
+      { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 }, null, null, [],
+      new Set(), contrato === undefined ? null : { ok: true, contrato },
+    );
+    const { JSDOM } = require('jsdom');
+    const PROFS = [{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h' }];
+
+    /* COM LUGAR: a contagem e o que resta, sem alarme e sem aviso. */
+    const comLugar = new JSDOM(pagina({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } },
+      PROFS, ['abreu', 'vava'])).window.document;
+    const medidorProfs = comLugar.getElementById('prof-piso');
+    conferir('o formulário do professor diz quantos são e quantos cabem',
+      medidorProfs && /2 de 9/.test(medidorProfs.textContent), medidorProfs && medidorProfs.textContent);
+    conferir('…e diz até onde o plano vai, ao lado — a pergunta seguinte',
+      /20/.test(medidorProfs.textContent), medidorProfs.textContent);
+    conferir('…com o selo do estado, e não um alarme quando há lugar',
+      /7 lugares/.test(medidorProfs.parentElement.parentElement.textContent)
+        && comLugar.querySelector('#prof-piso ~ p .selo.discreto') !== null, null);
+    /* SEM AVISO PREVENTIVO: o ruído ensina a ignorar o aviso. */
+    conferir('…e nenhuma frase de recusa enquanto há lugar',
+      comLugar.querySelector('[data-piso-recusa]') === null, null);
+    /* E AS ALUNAS CONTAM PELO CADASTRO, no seu próprio formulário. */
+    const medidorAlunas = comLugar.getElementById('aluna-piso');
+    conferir('o formulário das alunas tem o seu medidor, com a sua contagem',
+      medidorAlunas && /2 de 120/.test(medidorAlunas.textContent)
+        && /500/.test(medidorAlunas.textContent), medidorAlunas && medidorAlunas.textContent);
+
+    /* CHEIO: o selo muda, e a frase da recusa está À VISTA — a mesma que o servidor devolve. */
+    const cheio = new JSDOM(pagina({ plano: 'avancado', capacidade: { professores: 1, alunos: 120 } },
+      PROFS, ['abreu'])).window.document;
+    const caixaCheia = cheio.getElementById('prof-piso');
+    conferir('com o piso cheio, a contagem mostra que está cheio',
+      caixaCheia && /2 de 1/.test(caixaCheia.textContent), caixaCheia && caixaCheia.textContent);
+    conferir('…o selo passa a falha, e diz qual dos dois limites foi atingido',
+      /piso cheio/.test(cheio.getElementById('prof-piso').parentElement.parentElement.textContent)
+        && cheio.querySelector('#prof-piso ~ p .selo.falha') !== null, null);
+    const recusa = cheio.querySelector('[data-piso-recusa]');
+    conferir('…e a frase que explica as saídas está à vista, antes do clique',
+      recusa && /duas saídas|acrescente um lote|subir de plano/i.test(recusa.textContent), recusa && recusa.textContent);
+    /* A FRASE É A MESMA DO SERVIDOR: um objecto, duas bocas. */
+    const dadosDoMedidor = comercial.medidorDoPiso({
+      contrato: { plano: 'avancado', capacidade: { professores: 1, alunos: 120 } },
+      eixo: 'professores', cadastrados: 2,
+    });
+    conferir('…e é literalmente a mesma frase que a rota devolve no 409',
+      recusa && recusa.textContent === dadosDoMedidor.recusa, { naTela: recusa && recusa.textContent, noNucleo: dadosDoMedidor.recusa });
+
+    /* SEM CONTRATO NÃO SE INVENTA LIMITE — nem um medidor a dizer «0 de 0». */
+    const semContrato = pagina(null, PROFS, ['abreu']);
+    conferir('sem contrato, não há medidor nenhum — nada a prometer',
+      !/prof-piso/.test(semContrato) && !/aluna-piso/.test(semContrato), null);
+    /* E O PRINCIPAL CONTA: sem ele, uma escola de 2 professores diria «1 de 2» e deixaria
+     * cadastrar quem não cabe. */
+    const semDono = new JSDOM(pagina({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } },
+      [], [])).window.document;
+    conferir('o professor principal conta no medidor, como conta na trava',
+      /1 de 1/.test(semDono.getElementById('prof-piso').textContent),
+      semDono.getElementById('prof-piso').textContent);
+    /* E O DESLIGADO NÃO — a mesma regra dos dois lados. */
+    const comDesligado = new JSDOM(pagina({ plano: 'basico', capacidade: { professores: 2, alunos: 10 } },
+      [{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h', desligado_em: '2026-11-01' }], []))
+      .window.document;
+    conferir('…e o desligado não ocupa lugar, também no medidor',
+      /1 de 2/.test(comDesligado.getElementById('prof-piso').textContent),
+      comDesligado.getElementById('prof-piso').textContent);
+  }
+
+  console.log('\nF. A palavra é «piso» — e o ecrã não diz «capacidade»');
   {
     /* A FRASE DA RECUSA É O QUE A ESCOLA LÊ. Ela não pode dizer «capacidade», que foi a palavra
      * que a proprietária corrigiu: «capacidade dá ideia de teto». */

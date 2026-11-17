@@ -144,8 +144,16 @@ function oAcordo() {
   assert.match(yml, /tools\/gerar-ciclo\.sh "\$\{\{ inputs\.professor \}\}" "\$\{\{ inputs\.ciclo \}\}" "\$\{\{ inputs\.variante \|\| inputs\.escola \}\}"/);
   ok('o gerador recebe a VARIANTE — o `.conf` com as fontes, não o esqueleto da escola');
 
-  assert.match(yml, /wrangler deploy -c "wrangler\.\$\{\{ inputs\.escola \}\}\.jsonc"/);
-  ok('o deploy continua a usar o Worker da ESCOLA (o `assets.directory` dela)');
+  /* O ALVO DO DEPLOY DEIXOU DE SER UMA STRING FIXA (15/11/2026). Uma escola de shard não tem
+   * `wrangler.<escola>.jsonc`: o `cd1f39ca` trocou o comando literal por um `$alvo` escolhido por
+   * `shard_da_escola`, e esta asserção continuou a procurar a string antiga — reprovando uma regra
+   * que passou a estar certa. A regra que se afirma é a mesma: **publica-se o Worker que serve
+   * esta escola**, e não outro. */
+  assert.match(yml, /source tools\/lib-shard\.sh/);
+  assert.match(yml, /alvo="wrangler\.\$shard\.jsonc"/);
+  assert.match(yml, /alvo="wrangler\.\$\{\{ inputs\.escola \}\}\.jsonc"/);
+  assert.match(yml, /wrangler deploy -c "\$alvo"/);
+  ok('o deploy publica o Worker que serve a escola — o do shard, quando ela vive num');
 
   // O PUSH REBASEIA, E O `.fipp` CONFLITANTE É REGERADO — não escolhido (19/10/2026).
   //
@@ -157,12 +165,16 @@ function oAcordo() {
   // CONTEÚDO é um problema de desenho, e escondê-lo aqui seria pior.
   assert.match(yml, /git fetch origin main/);
   assert.match(yml, /git rebase origin\/main/);
-  assert.match(yml, /git diff --name-only --diff-filter=U/);
-  assert.match(yml, /grep -qv '\\\.fipp\$'/);
+  /* A CONCILIAÇÃO MUDOU-SE PARA UM SCRIPT (22/10/2026), e a asserção ficou a ler o corpo antigo.
+   * A regra é a mesma — o derivado não se escolhe, recalcula-se; o material falha —, e agora vive
+   * num arquivo só, partilhado pelo `derivados.yml`: `.github/scripts/conflito-do-derivado.sh`. */
+  const conciliacao = ler('.github/scripts/conflito-do-derivado.sh');
+  assert.match(yml, /\.github\/scripts\/conflito-do-derivado\.sh/);
   assert.match(yml, /git rebase --abort \|\| true/);
-  assert.match(yml, /git checkout --theirs -- '\*\.fipp'/);
   assert.match(yml, /tools\/hash-ciclo\.sh "\$\{\{ inputs\.professor \}\}"/);
-  assert.match(yml, /git commit --amend --no-edit/);
+  assert.match(conciliacao, /--diff-filter=U|diff-filter=U/);
+  assert.match(conciliacao, /\*\.fipp/);
+  assert.match(conciliacao, /theirs/);
   ok('o push rebaseia, e o conflito na âncora é REGERADO (os outros continuam a falhar)');
 
   // TODAS AS ÂNCORAS SÃO COMMITADAS, NÃO SÓ A DO CICLO (20/10/2026).
@@ -196,7 +208,12 @@ function oAcordo() {
   // era a das fontes antigas, o `main` já tinha a do pacote, e as duas convergiam depois de
   // regerar. Um commit vazio, aqui, quer dizer «a âncora já estava certa» — descarta-se o
   // commit, não a correcção.
-  assert.match(yml, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
+  /* O COMMIT VAZIO PASSOU A SER DECIDIDO POR UM SCRIPT (22/10/2026) — o mesmo dos dois laços, e
+   * pela razão que está no cabeçalho dele: um `--amend` cego reescreveu história alheia quando o
+   * rebase já tinha descartado o commit. A regra continua a ser «um commit vazio descarta-se». */
+  assert.match(yml, /\.github\/scripts\/atualizar-commit-derivado\.sh/);
+  assert.match(ler('.github/scripts/atualizar-commit-derivado.sh'),
+    /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
   ok('o pacote com commit vazio é dispensado, e não derruba o push');
 
   /* O FLUXO MUDOU DE NOME A 16/11/2026: `reancorar.yml` e `regerar-indices.yml` foram fundidos em
