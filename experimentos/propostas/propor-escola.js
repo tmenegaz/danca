@@ -698,6 +698,27 @@ function paginaDaProposta() {
     + 'aparecem — são janelas de 1240px, e encolhê-las mostraria outra página. Num ecrã largo '
     + 'vê-se tudo; num estreito ficam as do telemóvel, que é onde a decisão é difícil.</p>',
     '</main>',
+    /* O ENDEREÇO DAS MOLDURAS MUDA CONFORME ONDE A PÁGINA ESTÁ (17/11/2026).
+     *
+     * Em `file://` (a leitura local) o ficheiro tem de ser pedido com `.html`. Servida pelo
+     * Worker, o Cloudflare responde **307** a um `.html` e manda para o caminho limpo — e nesse
+     * redireccionamento vai o prefixo INTERNO da árvore partilhada (`/breu/propostas/…`), que
+     * não existe do lado público: as molduras ficavam vazias com 404. Medido ao vivo:
+     * `/propostas/proposta-escola` → **200**; `/propostas/proposta-escola.html` → **307** →
+     * **404**.
+     *
+     * A correcção é de UMA linha e vive na bancada, não no Worker: quando a página não veio do
+     * disco, o `src` perde a extensão e as molduras passam a usar o endereço que responde 200. */
+    '<script>',
+    '  if (location.protocol !== "file:") {',
+    '    var frames = document.querySelectorAll("iframe[src]");',
+    '    for (var i = 0; i < frames.length; i++) {',
+    '      var src = frames[i].getAttribute("src");',
+    '      if (src.indexOf(".html") === -1) continue;',
+    '      frames[i].setAttribute("src", src.replace(".html", ""));',
+    '    }',
+    '  }',
+    '</script>',
     '</body>',
     '</html>',
     '',
