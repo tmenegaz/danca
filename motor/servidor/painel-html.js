@@ -1834,4 +1834,325 @@ module.exports = {
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO,
+  /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */
+  paginaDoMonitoramento, barraDaCota, seloDoNivel,
 };
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * O MONITORAMENTO — O CONSUMO, A RECEITA E O EFEITO DE MUDAR DE PLANO (17/11/2026)
+ *
+ * O PEDIDO, e as três coisas que ele pediu juntas:
+ *
+ *   «eu quero saber cada processo quando ele ocorre, o quanto ele gastou, quanto falta para o teto,
+ *   qual é a capacidade total, tanto no GitHub com o workflow, o CICD, quanto no Cloudflare com
+ *   ocupação de espaços e os workers e o KV, quanto no Resend […] Eu também preciso que nesse
+ *   painel de monitoramento eu tenha a receita, quanto é faturado […] e preciso também fazer uma
+ *   comparação de quando eu migrar […] qual é o impacto na minha receita.»
+ *
+ * E a razão, que é o que decide o desenho: «para não ser pega de surpresa e poder se programar […]
+ * para tomar medidas antes que seja tarde demais.» Um painel que só mostra o número bonito não
+ * serve: o que serve é o número certo, com o que não foi medido dito ao lado, e a distância até o
+ * teto em percentagem — que é a única forma de «antes que seja tarde» ter um sinal.
+ *
+ * TRÊS ABAS, e é a forma adoptada (16/11/2026): «O consumo» · «A receita» · «A migração». A ordem
+ * é a das perguntas: quanto gastei, quanto entrou, o que muda se eu crescer.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** O dinheiro, em centavos → «R$ 239,00». Uma função, e não uma conta em cada sítio. */
+const reaisDeCentavos = (c) => 'R$ ' + ((Math.round(Number(c) || 0)) / 100).toFixed(2).replace('.', ',');
+const usd = (v) => 'US$ ' + (Math.round(Number(v) * 100) / 100).toFixed(2).replace('.', ',');
+const pct = (f) => (Math.round((Number(f) || 0) * 1000) / 10).toFixed(1).replace('.', ',') + '%';
+
+/**
+ * A BARRA DE UMA COTA — a distância até o teto, e o estado dela.
+ *
+ * PORQUE É UM `<progress>` E NÃO UM `<div>` COM UMA LARGURA. Duas razões, e as duas são regra:
+ *
+ *   1. **Nada de `style=""` na marcação** (regra 5 das instruções de identidade). Uma barra feita
+ *      de `<div>` precisa da largura no atributo, e a largura é cálculo — que mora no motor, não na
+ *      marcação. O `<progress>` leva o número em `value`/`max` e o desenho na folha.
+ *   2. **O `<progress>` já é o que ele diz ser.** Um leitor de ecrã anuncia-o como barra de
+ *      progresso, com o valor; um `<div>` com `role="img"` obriga a inventar um `aria-label` que
+ *      repita o número — e um `aria-label` que repete o visível é o primeiro a divergir dele.
+ *
+ * O `data-nivel` é o que pinta: `folga`, `atencao` (80%) e `agora` (95%) — a mesma régua em todas
+ * as cotas da casa. A peça chama-se `.cota` na folha, e não `.barra`: esse nome já é a barra fixa
+ * da porta.
+ */
+function barraDaCota({ fraccao, nivel, rotulo }) {
+  const f = Math.max(0, Math.min(1, Number(fraccao) || 0));
+  const valor = Math.round(f * 1000);
+  return '<progress class="cota" data-nivel="' + esc(nivel) + '" value="' + valor +
+    '" max="1000">' + pct(f) + '</progress>' +
+    '<p class="sub" data-cota-rotulo>' + esc(rotulo || '') + ': ' + pct(f) +
+    ' da capacidade</p>';
+}
+
+/** O selo do nível, com a palavra que ela lê. */
+function seloDoNivel(fraccao) {
+  const f = Number(fraccao) || 0;
+  if (f >= 0.95) return '<span class="selo falha">no limite</span>';
+  if (f >= 0.8) return '<span class="selo alerta">atenção</span>';
+  return '<span class="selo ok">folga</span>';
+}
+
+/**
+ * O BLOCO DO GITHUB — «cada processo quando ele ocorre, o quanto ele gastou».
+ *
+ * A tabela é por WORKFLOW, e não por run: um run isolado não é uma decisão, e vinte runs do mesmo
+ * fluxo são. A coluna «última» é a que responde ao «quando ele ocorre» — e o custo dessa última
+ * ocorrência vai ao lado, porque é o número que se multiplica quando se pensa em mudar a cadência.
+ */
+function blocoDoGithub(g) {
+  if (!g) return '';
+  const c = g.cotas;
+  const linhas = (g.fluxos || []).map((f) => '<tr>' +
+    '<td><strong>' + esc(f.workflow) + '</strong></td>' +
+    '<td>' + f.runs + '</td>' +
+    '<td>' + f.minutos + ' min</td>' +
+    '<td>' + (f.ultimaEm ? esc(quando(f.ultimaEm)) : '—') + '</td>' +
+    '<td>' + f.ultimoMinutos + ' min</td>' +
+    '</tr>').join('');
+
+  return '<div class="caixa" id="monitor-github">' +
+    '<h2>GitHub — o CI/CD</h2>' +
+    '<p>O plano <strong>' + esc(c.plano) + '</strong> inclui <strong>' + g.total + ' minutos</strong> ' +
+    'facturados por mês (' + usd(c.computeIncluidoUsd) + ' de compute a ' + usd(c.precoMinutoUsd) +
+    ' por minuto). O GitHub cobra <strong>cada job arredondado ao minuto</strong> — é por isso que ' +
+    'um «Guardar» de 11 segundos custa 1 minuto, e um de quatro jobs custa 4.</p>' +
+    '<div class="ficha">' +
+    '<span>Gastos na janela: <strong>' + g.minutos + ' min</strong></span>' +
+    '<span>de <strong>' + g.total + ' min</strong></span>' +
+    '<span>restam <strong>' + g.restantes + ' min</strong></span>' +
+    '<span>' + (g.runs ? g.minutosPorRun.toFixed(1).replace('.', ',') + ' min por run' : 'sem runs na janela') + '</span>' +
+    '</div>' +
+    barraDaCota({ fraccao: g.fraccao, nivel: g.fraccao >= 0.95 ? 'agora' : (g.fraccao >= 0.8 ? 'atencao' : 'folga'), rotulo: 'GitHub' }) +
+    '<p>' + seloDoNivel(g.fraccao) + ' ' + pct(g.fraccao) + ' do incluído' +
+    (g.excedenteMinutos ? ' · <strong>' + g.excedenteMinutos + ' min de excedente = ' +
+      usd(g.excedenteUsd) + '</strong>' : '') + '</p>' +
+    (linhas
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Processo</th><th>Vezes</th>' +
+        '<th>Gasto</th><th>Última vez</th><th>Nessa vez</th></tr></thead><tbody>' + linhas +
+        '</tbody></table></div>'
+      : '<p class="aviso">Nenhum run na janela. Uma tabela vazia quer dizer isso — não que a ' +
+        'leitura falhou.</p>') +
+    (g.estimados
+      ? '<p class="sub">' + g.estimados + ' de ' + g.runs + ' runs ainda não tinham os jobs medidos, ' +
+        'e entraram pelo <strong>mínimo</strong> (um job pelo tempo de relógio). O número é um piso ' +
+        'até a medição os alcançar.</p>'
+      : '') +
+    '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
+    '</div>';
+}
+
+/** O BLOCO DO CLOUDFLARE — a ocupação, e o que não se mede. */
+function blocoDoCloudflare(cf) {
+  if (!cf) return '';
+  const c = cf.cotas;
+  const linhas = (cf.porEscola || []).map((e) => '<tr>' +
+    '<td>' + esc(e.escola) + '</td>' +
+    '<td>' + e.chaves + '</td>' +
+    '<td>' + (e.bytes ? (e.bytes / 1024).toFixed(1).replace('.', ',') + ' KB' : '—') + '</td>' +
+    '</tr>').join('');
+  const naoMedido = (cf.naoMedido || []).map((n) => '<li>' + esc(n.o) + ' — cota <strong>' +
+    Number(n.cota).toLocaleString('pt-BR') + '</strong> por dia</li>').join('');
+
+  return '<div class="caixa" id="monitor-cloudflare">' +
+    '<h2>Cloudflare — os Workers e o KV</h2>' +
+    '<p>O plano <strong>' + esc(c.plano) + '</strong> dá ' + Number(c.pedidosDia).toLocaleString('pt-BR') +
+    ' pedidos, ' + Number(c.escritasKvDia).toLocaleString('pt-BR') + ' escritas e ' +
+    Number(c.leiturasKvDia).toLocaleString('pt-BR') + ' leituras de KV por dia, e ' +
+    c.armazenamentoKvGb + ' GB de armazenamento. O pago não é por uso: ' + usd(c.planoPagoUsd) +
+    ' por conta, por mês.</p>' +
+    '<div class="ficha">' +
+    '<span>Escolas no sistema: <strong>' + cf.escolas + '</strong></span>' +
+    '<span>Chaves no KV: <strong>' + cf.chaves + '</strong></span>' +
+    '<span>Ocupado: <strong>' + (cf.bytes ? (cf.bytes / 1024 / 1024).toFixed(2).replace('.', ',') + ' MB' : 'tamanho não medido') + '</strong></span>' +
+    '</div>' +
+    /* O ARMAZENAMENTO É O ÚNICO QUE SE MEDE DAQUI, e é o que menos aperta: 1 GB é muito para
+     * fichas de 15 KB. A barra existe para o número não ser uma surpresa no dia em que crescer. */
+    barraDaCota({ fraccao: cf.fraccaoArmazenamento, nivel: 'folga', rotulo: 'Armazenamento do KV' }) +
+    '<p>' + pct(cf.fraccaoArmazenamento) + ' do armazenamento de ' + c.armazenamentoKvGb + ' GB</p>' +
+    (linhas
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Escola</th><th>Chaves</th><th>Tamanho</th>' +
+        '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
+      : '') +
+    /* O QUE NÃO SE MEDE, DITO. É a parte que faz a diferença entre um painel e um enfeite. */
+    '<div class="aviso"><p><strong>O que este painel não mede</strong>, e porquê:</p>' +
+    '<ul>' + naoMedido + '</ul>' +
+    '<p>' + esc(cf.motivoNaoMedido) + '</p></div>' +
+    '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
+    '</div>';
+}
+
+/** O BLOCO DO RESEND — as duas cotas, e a que aperta primeiro. */
+function blocoDoCorreio(co) {
+  if (!co) return '';
+  const c = co.cotas;
+  const aperta = co.manda === 'dia';
+  return '<div class="caixa" id="monitor-resend">' +
+    '<h2>Resend — os e-mails</h2>' +
+    '<p>O plano <strong>' + esc(co.plano) + '</strong> dá <strong>' + co.total + ' e-mails por mês</strong>' +
+    (co.limiteDia ? ' <strong>e ' + co.limiteDia + ' por dia</strong>' : '') + '. As duas cotas contam' +
+    (co.limiteDia ? ' — e no plano gratuito a diária chega primeiro' : '') + '.</p>' +
+    '<div class="ficha">' +
+    '<span>Enviados no mês: <strong>' + co.enviados + '</strong></span>' +
+    '<span>restam <strong>' + co.restantes + '</strong></span>' +
+    '<span>Hoje: <strong>' + co.enviadosHoje + '</strong>' + (co.limiteDia ? ' de ' + co.limiteDia : '') + '</span>' +
+    '<span>Falhados: <strong>' + co.falhados + '</strong></span>' +
+    '</div>' +
+    barraDaCota({ fraccao: co.fraccao, nivel: co.fraccao >= 0.95 ? 'agora' : (co.fraccao >= 0.8 ? 'atencao' : 'folga'), rotulo: 'Resend no mês' }) +
+    '<p>Mês: ' + seloDoNivel(co.fraccao) + ' ' + pct(co.fraccao) +
+    (co.limiteDia ? ' · Dia: ' + seloDoNivel(co.fraccaoDia) + ' ' + pct(co.fraccaoDia) : '') + '</p>' +
+    /* A FRASE QUE ANTECIPA O PROBLEMA: qual das duas cotas manda. Sem ela, um dia de lote esgota a
+     * diária e o painel continuaria a dizer «96% de folga no mês». */
+    (aperta
+      ? '<p class="aviso alerta">Quem aperta primeiro é a cota <strong>diária</strong>: ' +
+        co.enviadosHoje + ' de ' + co.limiteDia + ' hoje. Um lote de e-mails de expurgo passa disto ' +
+        'numa tarde, mesmo com o mês quase vazio.</p>'
+      : '') +
+    '<p class="sub">O número é o que o SISTEMA pediu ao provedor, uma chamada por mensagem — não é ' +
+    'a fatura. Bounces e repetições contam no Resend e só aparecem lá. Fonte: ' + esc(c.fonte) +
+    ' — lido em ' + esc(c.lidoEm) + '.</p>' +
+    '</div>';
+}
+
+/** A ABA DA RECEITA — o que entra, o que foi recebido, o que está em aberto. */
+function blocoDaReceita(r, cambio) {
+  if (!r) return '';
+  const meses = [
+    ['Por mês (MRR)', reaisDeCentavos(r.mrrCentavos)],
+    ['Por ano (12 × MRR)', reaisDeCentavos(r.anualCentavos)],
+    ['Contratos em vigor', reaisDeCentavos(r.brutoCentavos)],
+    ['Descontos concedidos', reaisDeCentavos(r.descontosCentavos)],
+    ['Recebido no mês', reaisDeCentavos(r.recebidoNoMesCentavos)],
+    ['Em aberto (vencido)', reaisDeCentavos(r.emAbertoCentavos)],
+  ];
+  return '<div class="caixa" id="monitor-receita">' +
+    '<h2>A receita</h2>' +
+    '<p>Do mesmo livro que o Financeiro lê: a soma dos contratos em vigor, menos os descontos ' +
+    'concedidos. Uma segunda conta da receita daria um segundo número, e o que ficasse a valer ' +
+    'seria o que ela lesse primeiro.</p>' +
+    '<div class="rolagem-caixa"><table><thead><tr><th>O que</th><th>Valor</th></tr></thead><tbody>' +
+    meses.map(([a, b]) => '<tr><td><strong>' + esc(a) + '</strong></td><td>' + esc(b) + '</td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<p class="sub">Escolas com contrato: ' + r.escolas + '. Os descontos são mensais e um por ' +
+    'escola — o mais recente é o que vale.</p>' +
+    (cambio ? '<p class="sub">Câmbio usado no comparador: US$ 1 = R$ ' +
+      String(cambio).replace('.', ',') + '</p>' : '') +
+    '</div>';
+}
+
+/** A ABA DA MIGRAÇÃO — o custo de cada degrau e o que ele come da receita. */
+function blocoDaMigracao(m) {
+  if (!m) return '';
+  const linhas = (m.cenarios || []).map((c) => '<tr>' +
+    '<td><strong>' + esc(c.nome) + '</strong><br><span class="dono">' + esc(c.quando) + '</span></td>' +
+    '<td>' + usd(c.usdMes) + '/mês</td>' +
+    '<td>' + (c.delta > 0 ? '+' : '') + usd(c.delta) + '</td>' +
+    '<td>' + (c.fraccaoDaReceita == null ? '—' : pct(c.fraccaoDaReceita)) + '</td>' +
+    '</tr>').join('');
+  return '<div class="caixa" id="monitor-migracao">' +
+    '<h2>Se eu mudar de plano</h2>' +
+    '<p>' + esc(m.frase) + '</p>' +
+    '<div class="rolagem-caixa"><table><thead><tr><th>Plano</th><th>Custo</th>' +
+    '<th>Diferença</th><th>Da receita</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' +
+    '<p class="sub">A coluna «da receita» é a que decide: o mesmo ' + usd(5) + ' sobre uma receita ' +
+    'pequena pesa mais do que sobre uma grande. O custo é em dólar e a receita em real, e o câmbio ' +
+    'usado está na aba da receita.</p>' +
+    '<p class="sub">Todos os degraus somados: ' + usd(m.custoTotalSeTodosUsd) + '/mês. Estes ' +
+    'preços foram lidos nas páginas dos fornecedores em ' + esc(LIDO_EM_DO_MONITOR) +
+    ' — um número de cota sem data envelhece sem avisar.</p>' +
+    '</div>';
+}
+
+const LIDO_EM_DO_MONITOR = (() => {
+  const m = require('../nucleo/monitoramento.js');
+  return m.LIDO_EM;
+})();
+
+/**
+ * A PÁGINA DO MONITORAMENTO.
+ *
+ * As três abas, e o resumo no topo: o PIOR dos indicadores, e não a média. Uma cota a 95% e duas a
+ * 10% é uma cota a 95% — e é essa que decide se há tempo.
+ */
+function paginaDoMonitoramento({ retrato, cambio }) {
+  const r = retrato || {};
+  const nivel = r.nivel || 'folga';
+  const cabecalho = '<div class="caixa" id="monitor-resumo">' +
+    '<h2>Como está hoje</h2>' +
+    '<p>' + (nivel === 'agora'
+      ? '<strong>Há uma cota no limite.</strong> É o momento de agir: a conta abaixo diz qual, e a ' +
+        'aba da migração diz quanto custa resolver.'
+      : (nivel === 'atencao'
+        ? '<strong>Há uma cota a passar dos 80%.</strong> Ainda não dói; a decisão custa menos agora ' +
+          'do que depois.'
+        : '<strong>Folga em todas as cotas medidas.</strong> Nada a fazer — e o número que importa ' +
+          'ver crescer é o das aulas lançadas no mês, não o das fichas.')) + '</p>' +
+    '<div class="ficha">' +
+    '<span>Pior indicador: <strong>' + pct(r.piorFraccao) + '</strong></span>' +
+    '<span>GitHub: <strong>' + ((r.github && r.github.minutos) || 0) + ' de ' + ((r.github && r.github.total) || 0) + ' min</strong></span>' +
+    '<span>Resend: <strong>' + ((r.correio && r.correio.enviados) || 0) + ' de ' + ((r.correio && r.correio.total) || 0) + '</strong></span>' +
+    '<span>Receita: <strong>' + reaisDeCentavos((r.receita && r.receita.mrrCentavos) || 0) + '/mês</strong></span>' +
+    '</div>' +
+    (r.agora ? '<p class="sub">Lido em ' + esc(quando(r.agora)) + '.</p>' : '') +
+    '</div>';
+
+  const abas = [['consumo', 'O consumo'], ['receita', 'A receita'], ['migracao', 'A migração']];
+  const tira = '<nav class="abas" role="tablist" aria-label="Monitoramento — seções" id="mo-abas">' +
+    abas.map(([n, titulo], i) => '<button type="button" class="aba" role="tab" id="mo-aba-' + n + '" ' +
+      'data-aba="' + n + '" aria-controls="mo-painel-' + n + '" ' +
+      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+      esc(titulo) + '</button>').join('') +
+    '</nav>';
+  const painel = (n, corpo, primeiro) => '<div class="aba-painel" id="mo-painel-' + n + '" ' +
+    'role="tabpanel" aria-labelledby="mo-aba-' + n + '" tabindex="0"' + (primeiro ? '' : ' hidden') + '>' +
+    corpo + '</div>';
+
+  return pagina({
+    titulo: 'Monitoramento',
+    subtitulo: 'Quanto o sistema gasta, quanto falta até o teto de cada fornecedor, e o que isso '
+      + 'faz à receita. O que não é medido está dito — um painel que mente é pior do que não o ter.',
+    atual: 'monitoramento',
+    corpo: cabecalho + tira +
+      painel('consumo', blocoDoGithub(r.github) + blocoDoCloudflare(r.cloudflare) +
+        blocoDoCorreio(r.correio), true) +
+      painel('receita', blocoDaReceita(r.receita, cambio), false) +
+      painel('migracao', blocoDaMigracao(r.migracao), false) +
+      SCRIPT_DAS_ABAS_DO_MONITOR +
+      '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
+  });
+}
+
+/**
+ * O motor das abas desta página. É o mesmo contrato das outras (`aria-selected` na aba, `hidden` no
+ * painel, setas do teclado) com os prefixos `mo-`: a peça é a da folha, o motor é de cada página.
+ */
+const SCRIPT_DAS_ABAS_DO_MONITOR = '<script>(function(){' +
+  'var tira=document.getElementById("mo-abas");if(!tira)return;' +
+  'var abas=tira.querySelectorAll("[data-aba]");' +
+  'function abrir(nome){' +
+  '  for(var i=0;i<abas.length;i++){' +
+  '    var b=abas[i],k=b.getAttribute("data-aba"),eu=k===nome;' +
+  '    b.setAttribute("aria-selected",eu?"true":"false");' +
+  '    b.setAttribute("tabindex",eu?"0":"-1");' +
+  '    var p=document.getElementById("mo-painel-"+k);' +
+  '    if(p)p.hidden=!eu;}' +
+  '}' +
+  'tira.addEventListener("click",function(e){' +
+  '  var b=e.target.closest?e.target.closest("[data-aba]"):null;' +
+  '  if(!b||!tira.contains(b))return;abrir(b.getAttribute("data-aba"));' +
+  '});' +
+  'tira.addEventListener("keydown",function(e){' +
+  '  var i=-1;for(var k=0;k<abas.length;k++){if(abas[k]===document.activeElement)i=k;}' +
+  '  if(i<0)return;' +
+  '  var n=i;' +
+  '  if(e.key==="ArrowRight")n=(i+1)%abas.length;' +
+  '  else if(e.key==="ArrowLeft")n=(i-1+abas.length)%abas.length;' +
+  '  else if(e.key==="Home")n=0;' +
+  '  else if(e.key==="End")n=abas.length-1;' +
+  '  else return;' +
+  '  e.preventDefault();abrir(abas[n].getAttribute("data-aba"));abas[n].focus();' +
+  '});' +
+  '})();</script>';

@@ -1524,3 +1524,11 @@ experimentos/modelo-formulario/*
 # píxeis separam duas etiquetas. É a resposta ao «isso é um problema antigo, já tinha sido
 # ajustado isso. Toda hora tem que refazer» — o que não é medido volta.
 !experimentos/provar-a-coluna-do-formulario.js
+
+# O MONITORAMENTO (17/11/2026). «Eu preciso também de um monitor […] cada processo quando ele ocorre,
+# o quanto ele gastou, quanto falta para o teto, qual é a capacidade total […] e a receita […] e o
+# impacto na minha receita se eu mudar de plano.» A prova mede a conta que é fácil de errar (cada job
+# arredondado ao minuto, que é o que o GitHub cobra), as duas cotas do Resend, o que o Cloudflare NÃO
+# permite medir (e que o painel diz em vez de mostrar zero), a receita do mesmo livro do financeiro,
+# e a barra como peça da folha — `<progress>`, porque a largura é cálculo e não vai em `style=""`.
+!experimentos/provar-monitoramento.js

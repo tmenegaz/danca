@@ -28,6 +28,11 @@ const correio = require('./correio.js');
 /* A COMPOSIÇÃO COMERCIAL (25/11/2026) — os planos, a capacidade e a conta, de uma fonte só
  * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
 const comercial = require('../nucleo/comercial.js');
+/* O MONITOR (17/11/2026) — as cotas dos três fornecedores, a receita e o impacto da migração.
+ * Vive no núcleo porque é conta pura: a rota lê os dados (GitHub, KV, livro) e ele responde. */
+const monitoramento = require('../nucleo/monitoramento.js');
+/* O QUE O MONITOR LÊ DO MUNDO — GitHub, KV — separado da CONTA, para a conta se medir sem rede. */
+const leituraDoMonitor = require('./leitura-do-monitor.js');
 /* O diagnóstico do endereço próprio (`/api/dominio`) — o mesmo módulo que o provisionamento usa
  * para criar o registo e a rota. É de propósito: o diagnóstico não pode ter uma segunda opinião
  * sobre o que é «ter endereço». */
@@ -1681,6 +1686,67 @@ function semLacuna(valor) {
   return t;
 }
 
+/**
+ * O CONTADOR DO CORREIO — a leitura e a escrita, num sítio só (17/11/2026).
+ *
+ * PORQUE É QUE ISTO EXISTE. A caixa de saída guarda as cartas que NÃO saíram; um envio que deu
+ * certo não deixava rasto nenhum. Sem rasto não há monitor, e sem monitor a cota do Resend é uma
+ * surpresa — e a cota do plano gratuito é **100 por dia**, que se esgota num lote de e-mails de
+ * expurgo sem ninguém dar por isso.
+ *
+ * A CHAVE É UMA SÓ, com um objecto por mês: o KV não se enumera, e uma chave por mês obrigaria a
+ * listar para desenhar o painel — e a listagem também é cota.
+ */
+async function lerContadoresDoCorreio(kv) {
+  if (!kv || typeof kv.get !== 'function') return monitoramento.contadoresVazios(null);
+  try {
+    const texto = await kv.get(monitoramento.CHAVE_DO_CORREIO);
+    if (!texto) return monitoramento.contadoresVazios(null);
+    const guardado = JSON.parse(texto);
+    /* UM REGISTO ILEGÍVEL VALE ZERO, e não uma excepção: o painel tem de abrir mesmo com o
+     * contador estragado — um mês perdido é melhor do que um monitor que não abre. */
+    if (!guardado || typeof guardado !== 'object' || Array.isArray(guardado)) {
+      return monitoramento.contadoresVazios(null);
+    }
+    return Object.assign(monitoramento.contadoresVazios(guardado.mes), guardado);
+  } catch {
+    return monitoramento.contadoresVazios(null);
+  }
+}
+
+/**
+ * ENVIA E CONTA — o caminho único para o provedor.
+ *
+ * Toda a chamada ao Resend passa por aqui, e é de propósito: quem enviar sem contar deixa o painel
+ * a mentir, e um painel que mente é pior do que não haver painel. A contagem acontece **depois** do
+ * envio e não impede a resposta — se o KV recusar a escrita, o e-mail já saiu e o desfecho é o que
+ * interessa; perde-se a linha do contador, e o contador é uma aproximação declarada.
+ */
+async function enviarEContar({ env, mensagem }) {
+  const desfecho = await correio.enviar({
+    mensagem,
+    chave: env && env.RESEND_API_KEY,
+    de: env && env.CORREIO_DE,
+  });
+  try {
+    const kv = env && env.PADD_KV;
+    if (kv && typeof kv.put === 'function') {
+      const iso = new Date().toISOString();
+      const p = fuso.partesLocais(iso);
+      const mes = p ? p.ano + '-' + p.mes : iso.slice(0, 7);
+      const dia = p ? p.ano + '-' + p.mes + '-' + p.dia : iso.slice(0, 10);
+      const antes = await lerContadoresDoCorreio(kv);
+      const depois = monitoramento.contarEnvio(antes, {
+        mes, dia,
+        quantos: Array.isArray(mensagem && mensagem.para) ? mensagem.para.length : 0,
+        enviado: Boolean(desfecho && desfecho.enviado),
+      });
+      await kv.put(monitoramento.CHAVE_DO_CORREIO, JSON.stringify(depois));
+    }
+  } catch (erro) { /* o contador não derruba um envio que já aconteceu */ }
+  return desfecho;
+}
+
 /** O PIX que a página mostra: o do KV quando existe, o do segredo quando ainda não há. */
 async function lerPix(kv, env) {
   const doAmbiente = {
@@ -2111,9 +2177,7 @@ async function criarConvite({ env, escola, por }) {
     escola: slug, nome, url: link, expiraEm: registo.expiraEm, dias: convite.DIAS_DE_VALIDADE,
   });
   mensagem.para = cadastroDaEscola.destinatarios(paraOMail);
-  const desfecho = await correio.enviar({
-    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
-  });
+  const desfecho = await enviarEContar({ env, mensagem });
   if (!desfecho.enviado) {
     await correio.guardarNaCaixaDeSaida({ kv, escola: slug, mensagem, desfecho });
   }
@@ -2210,7 +2274,7 @@ async function avisarDoExpurgo({ env, escola, nome, quando, professor, contactos
   });
   despedida.para = lista.slice();
   const paraAEscola = lista.length
-    ? await correio.enviar({ mensagem: despedida, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE })
+    ? await enviarEContar({ env, mensagem: despedida })
     : { enviado: false, motivo: 'o cadastro desta escola não tinha e-mail nenhum' };
   if (!paraAEscola.enviado && lista.length) {
     await correio.guardarNaCaixaDeSaida({
@@ -2237,9 +2301,7 @@ async function avisarOProprietarioDoExpurgo({ env, escola, nome, quando, quandoT
     escola, nome, quando, quandoTexto, professor, contactos, apagados, kv, proveniencia, motivo,
   });
   mensagem.para = [para];
-  const desfecho = await correio.enviar({
-    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
-  });
+  const desfecho = await enviarEContar({ env, mensagem });
   if (!desfecho.enviado) {
     await correio.guardarNaCaixaDeSaida({
       kv: env && env.PADD_KV, escola: 'sistema', mensagem, desfecho,
@@ -2263,9 +2325,7 @@ async function avisarOProprietario({ env, escola, nome, escolha, quando, profess
     recriada,
   });
   mensagem.para = [para];
-  const desfecho = await correio.enviar({
-    mensagem, chave: env && env.RESEND_API_KEY, de: env && env.CORREIO_DE,
-  });
+  const desfecho = await enviarEContar({ env, mensagem });
   if (!desfecho.enviado) {
     await correio.guardarNaCaixaDeSaida({
       kv: env && env.PADD_KV, escola: 'sistema', mensagem, desfecho,
@@ -2822,11 +2882,7 @@ async function mandarBoasVindas({ env, escola, cadastro, url, dominio }) {
   if (!mensagem.para.length) {
     return { enviado: false, motivo: 'não há e-mail a quem enviar — o cadastro não trouxe nenhum' };
   }
-  const desfecho = await correio.enviar({
-    mensagem,
-    chave: env && env.RESEND_API_KEY,
-    de: env && env.CORREIO_DE,
-  });
+  const desfecho = await enviarEContar({ env, mensagem });
   /* A CAIXA DE SAÍDA GUARDA O QUE NÃO SAIU, e só isso. Guardar também o que saiu seria manter uma
    * segunda cópia do e-mail de quem recebeu — dado pessoal a mais — sem ninguém que a leia. */
   let caixa = null;
@@ -3511,6 +3567,137 @@ async function extratoDasEscolas({ env, escolas, agora }) {
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
         'não foi possível abrir o financeiro: ' + ((err && err.message) || String(err))), 500);
+    }
+  }
+
+  /* ── O MONITORAMENTO (17/11/2026) ─────────────────────────────────────────────────────────
+   *
+   * «Eu preciso também de um monitor aqui no danca.padd.com.br, um botão que vai ser monitoramento,
+   * e ali eu quero saber cada processo quando ele ocorre, o quanto ele gastou, quanto falta para o
+   * teto, qual é a capacidade total.»
+   *
+   * O QUE ESTA ROTA FAZ, e a ordem importa — cada passo gasta um recurso que ela quer vigiar:
+   *
+   *   1. lê os runs do GitHub na janela (1 a 5 pedidos, e não um por run);
+   *   2. mede os jobs dos runs que a cache ainda não tem, **com tecto**, porque cada medição é um
+   *      pedido e o Worker tem 50 subpedidos por invocação no plano gratuito;
+   *   3. conta as chaves do KV de cada escola, **com tecto**, porque `list()` é cota;
+   *   4. lê o livro das mensalidades e os descontos — a receita do mesmo sítio que o Financeiro;
+   *   5. devolve o retrato.
+   *
+   * A CACHE É O QUE TORNA ISTO SUSTENTÁVEL. Sem ela, abrir o painel custaria dezenas de pedidos e
+   * gastaria a cota que ele mede. Com ela, a segunda abertura não custa quase nada.
+   */
+  if (url.pathname === '/monitoramento' || url.pathname === '/api/monitoramento') {
+    const querJson = url.pathname === '/api/monitoramento';
+    const token = env && env.GITHUB_TOKEN;
+    try {
+      const agoraIso = new Date().toISOString();
+      const partes = fuso.partesLocais(agoraIso);
+      const hoje = partes ? partes.ano + '-' + partes.mes + '-' + partes.dia : agoraIso.slice(0, 10);
+      const mes = hoje.slice(0, 7);
+      const kv = env && env.PADD_KV;
+
+      /* A CACHE — uma chave, um objecto. `medidos` guarda a conta de cada run já fechado. */
+      let cache = { medidos: {}, lidoEm: null, chavesEm: null, chaves: {} };
+      try {
+        const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
+        if (texto) cache = Object.assign(cache, JSON.parse(texto));
+      } catch (erro) { /* cache ilegível vale cache vazia: o painel abre, só mede outra vez */ }
+
+      const janela = await leituraDoMonitor.runsDoGithub({
+        token, dono: DONO, repo: REPO, dias: 30, agora: agoraIso,
+      });
+
+      /* MEDIR OS JOBS QUE FALTAM, com tecto. 20 é o que cabe com folga nos 50 subpedidos, junto
+       * com a listagem dos runs e as chaves das escolas. */
+      let medidosAgora = 0;
+      const TECTO_DE_MEDICOES = 20;
+      const porMedir = janela.runs
+        .filter((r) => !cache.medidos[r.id] && r.estado === 'completed')
+        .slice(0, TECTO_DE_MEDICOES);
+      for (const r of porMedir) {
+        const jobs = await leituraDoMonitor.minutosDoRunNoGithub({
+          token, dono: DONO, repo: REPO, id: r.id,
+        });
+        if (jobs) { cache.medidos[r.id] = jobs; medidosAgora += 1; }
+      }
+
+      const github = monitoramento.resumirGithub({
+        runs: janela.runs, jobsPorRun: cache.medidos, desde: janela.desde,
+      });
+
+      /* AS CHAVES DO KV, com tecto. Cada `list()` é uma operação de LISTAGEM, e o plano gratuito dá
+       * 1.000 por dia. Com 30 escolas seriam 30 listagens por abertura do painel — e o painel
+       * passaria a ser o que gasta a cota. A cache de 1 hora existe para isso. */
+      const escolas = token ? (await escolasDoIndice({ token }))[0].filter((e) => !e.expurgada) : [];
+      const TECTO_DE_ESCOLAS = 20;
+      const chaves = Object.assign({}, cache.chaves || {});
+      let listouAgora = 0;
+      const velha = !cache.chavesEm || (Date.now() - Date.parse(cache.chavesEm)) > 3600 * 1000;
+      if (velha) {
+        for (const e of escolas.slice(0, TECTO_DE_ESCOLAS)) {
+          const r = await leituraDoMonitor.chavesDaEscola({ kv, escola: e.slug });
+          if (r) { chaves[e.slug] = r; listouAgora += 1; }
+        }
+        cache.chavesEm = agoraIso;
+      }
+      cache.chaves = chaves;
+
+      const cloudflare = monitoramento.resumirCloudflare({ escolas, chaves });
+
+      const contadores = await lerContadoresDoCorreio(kv);
+      const correio = monitoramento.resumirCorreio({ contadores, hoje });
+
+      const descontos = await lerDescontos(kv);
+      const extrato = await extratoDasEscolas({ env, escolas, agora: agoraIso });
+      const receita = monitoramento.receita({ extrato, descontos, mes, agora: agoraIso });
+
+      /* O CÂMBIO É DECLARADO, e não descoberto: buscar a cotação seria uma dependência externa que
+       * falha em silêncio e muda o número sem ninguém saber. Vem do `env` (`CAMBIO_USD_BRL`), e o
+       * painel diz qual usou. Sem ele, a percentagem não é calculada — e isso também se diz. */
+      const cambio = Number(env && env.CAMBIO_USD_BRL) > 0 ? Number(env.CAMBIO_USD_BRL) : null;
+
+      const retrato = monitoramento.retrato({
+        github, correio, cloudflare, receita,
+        cambio,
+        /* OS CUSTOS DE HOJE SÃO ZERO, e é o número certo: os três planos em uso são gratuitos.
+         * Quando um deles passar a ser pago, este é o valor que entra na coluna «diferença». */
+        custosAtuaisUsd: 0,
+        agora: agoraIso,
+      });
+
+      /* GUARDAR A CACHE — o que se mediu, e quando se leu. Nunca o resultado de um run a correr. */
+      try {
+        if (kv && typeof kv.put === 'function') {
+          const limpos = {};
+          const ids = janela.runs.map((r) => r.id);
+          for (const id of ids) if (cache.medidos[id]) limpos[id] = cache.medidos[id];
+          await kv.put('monitor/cache', JSON.stringify({
+            medidos: limpos, lidoEm: agoraIso, chavesEm: cache.chavesEm, chaves: cache.chaves,
+          }));
+        }
+      } catch (erro) { /* a cache não derruba a leitura */ }
+
+      if (querJson) {
+        return new Response(JSON.stringify(Object.assign({ ok: true }, retrato, {
+          medidosAgora, listouAgora, truncado: Boolean(janela.truncado),
+          janelaOk: Boolean(janela.ok), janelaMotivo: janela.motivo || null,
+        }), null, 2), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+      }
+      return painel.resposta(painel.paginaDoMonitoramento({ retrato, cambio }));
+    } catch (err) {
+      const motivo = 'não foi possível ler o monitoramento: ' + ((err && err.message) || String(err));
+      if (querJson) {
+        return new Response(JSON.stringify({ ok: false, erro: motivo }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+      }
+      return painel.resposta(painel.paginaSemToken(motivo), 500);
     }
   }
 

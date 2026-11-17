@@ -48790,3 +48790,118 @@ continuarem ditos em «A escola») · `provar-a-coluna-do-formulario` **17/17** 
 79/79 · `provar-indices` 64/64 · `provar-geracao-do-ciclo` 24/24 · `check-indices` 16/16 ·
 `check-identidade` 0 erros.
 
+
+## 17/11/2026 — o monitoramento: três cotas medidas, a receita, e o custo de crescer
+
+**O pedido, inteiro:** «A gente tem também que medir o Resend, porque agora a gente usa para envio
+de e-mails. Eu preciso de um monitor que me mostre isso, além dessa documentação […] como evidência
+no nosso cenário atual. Eu preciso também de um monitor aqui no danca.padd.com.br, um botão que vai
+ser monitoramento, e ali eu quero saber cada processo quando ele ocorre, o quanto ele gastou, quanto
+falta para o teto, qual é a capacidade total […] Eu também preciso que nesse painel eu tenha a
+receita […] e uma comparação de quando eu migrar […] qual é o impacto na minha receita.»
+
+E a razão, que é o que decide o desenho: **«para não ser pega de surpresa e poder me programar […]
+para tomar medidas antes que seja tarde demais.»**
+
+### 1. A cota que faltava, e a armadilha dela
+
+O Resend entra com a correspondência que já existia (convite de recriação, despedida da escola,
+aviso de expurgo). A cota do plano gratuito é **de duas naturezas ao mesmo tempo**: 3.000 por mês
+**e 100 por dia**. **A diária chega primeiro e é invisível numa leitura mensal** — no dia 3 do mês a
+mensal está a 3% e a diária pode estar a 100%: um lote de expurgo (uma escola de trinta alunas gera
+trinta cartas) esgota os 100 do dia numa tarde. Um painel que só mostrasse o mês diria «97% de
+folga» no minuto em que o provedor recusa. É a mesma família do défice que o §L9c já pagou duas
+vezes: **o número que se olha não é o número que aperta.**
+
+### 2. O que se mede, e o que se diz que não
+
+| Fornecedor | Mede-se | Não se mede (e porquê) |
+|:--|:--|:--|
+| **GitHub** | os runs da janela e os **minutos facturados** (cada job arredondado ao minuto, pela API dos jobs) | nada — é a cota que decide o teto |
+| **Resend** | o que o **sistema pediu**, por mês e por dia | a fatura (bounces e repetições contam lá e só lá) |
+| **Cloudflare** | a **ocupação**: escolas, chaves e bytes | pedidos e operações de KV por dia — a analítica exige um token com permissão própria, que o Worker não tem |
+
+**O que não se mede aparece DITO, com o motivo.** Um zero com cara de medição é pior do que a
+ausência do número: ninguém o confere, e a decisão toma-se sobre ele.
+
+### 3. A receita — e a coluna que decide
+
+A receita vem do **mesmo livro** que o Financeiro (contratos em vigor menos descontos, um por escola,
+o mais recente). Duas contas da receita dariam dois números, e o que ficasse a valer seria o que ela
+lesse primeiro.
+
+A coluna que decide a migração é a **fracção da receita**, e não o valor em dólar: o mesmo US$ 5
+sobre R$ 1.400 é 0,4% e não muda decisão nenhuma; sobre R$ 70 é 7%, e muda. A escada:
+
+| Degrau | Custo | Gatilho |
+|:--|--:|:--|
+| GitHub Team | US$ 4/pessoa | acima de 2.000 min no mês |
+| GitHub Enterprise | US$ 21/pessoa | acima de 5.833 min no mês |
+| Cloudflare Workers Paid | US$ 5/conta | ao chegar a 1.000 escritas de KV por dia |
+| Resend Pro | US$ 20 | ao chegar a 3.000 e-mails no mês, **ou 100 no dia** |
+| Resend Scale | US$ 90 | ao chegar a 50.000 e-mails no mês |
+
+Somados: **US$ 140/mês** — o teto do custo de infraestrutura da operação atual, e o número com que a
+receita tem de ser comparada.
+
+### 4. A peça nova, e porque é `<progress>`
+
+A barra que mostra a distância até o teto é o **`<progress>` nativo, despido na folha** (`.cota`), e
+não um `<div>` com uma largura. Duas razões, e as duas são regra: a largura de uma barra é **cálculo**,
+e cálculo mora no motor — a marcação não leva `style=""` (regra 5); e o `<progress>` já **É** o que
+diz ser, com o valor anunciado ao leitor de ecrã sem um `aria-label` inventado que repita o número
+visível. O nome é `.cota` e não `.barra` porque `.barra` já é a barra fixa da porta — a checagem
+«Forma» apanhou a colisão antes do ecrã.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` é congelado e ganha `.cota`
+(com `::-webkit-progress-value`, `::-moz-progress-bar`, os três níveis e o `prefers-reduced-motion`).
+A razão é a de sempre: uma peça que aparece na tela nasce na folha; a alternativa seria uma barra
+desenhada dentro de uma página, e a segunda cópia divergiria na primeira correcção. As três cópias
+(`raiz/assets`, `breu`, `breu-rosa`) foram sincronizadas no mesmo commit.
+
+### 5. A disciplina de leitura — porque abrir o painel não pode gastar a cota que ele mede
+
+- os runs vêm numa **listagem paginada**, não um pedido por run;
+- os jobs medem-se **uma vez por run e ficam em cache**, com tecto de 20 medições por abertura (para
+  caber nos 50 subpedidos do Worker no plano gratuito);
+- as chaves do KV de cada escola são lidas **de hora a hora**, com tecto de 20 escolas, porque
+  `list()` é operação de cota;
+- a cache guarda o RESULTADO da conta, **nunca** o de um run que ainda está a correr.
+
+### 6. O que ficou por fazer, e está declarado
+
+(a) O contador do correio **por escola** — hoje conta mensagens, não de quem; a conta «o correio
+desta escola cabe nos dois reais que ela paga?» fica por fazer. (b) Ler a analítica do Cloudflare,
+se ela autorizar um token com essa permissão. (c) O câmbio é **declarado** (`CAMBIO_USD_BRL`) e
+aparece no ecrã — buscar a cotação seria uma dependência que falha em silêncio.
+
+**Onde entrou.** `motor/nucleo/monitoramento.js` (novo: cotas com procedência e data, a conta dos
+minutos, o resumo do correio e do Cloudflare, a receita, o impacto da migração, o retrato) ·
+`motor/servidor/leitura-do-monitor.js` (novo: GitHub e KV, com janela e cache) ·
+`motor/servidor/painel-html.js` (`paginaDoMonitoramento`, três abas, e a barra) ·
+`motor/servidor/raiz.js` (a rota `/monitoramento` e `/api/monitoramento`, a cache, o
+`enviarEContar` como único caminho para o provedor, o `lerContadoresDoCorreio`) ·
+`raiz/index.html` (o botão «Monitoramento», ao lado do Financeiro) · `tools/templates/ciclo.css`
+(a peça `.cota`, com motivo declarado) · `IDENTIDADE-VISUAL.md` (Quadros 1 e 2) ·
+`PLANEJAMENTO-LASTRO.md` (§L9d novo, e o quadro de cobertura do monitor) ·
+`experimentos/provar-monitoramento.js` (novo).
+
+**Com o quê.** `provar-monitoramento` **50/50**: a conta dos minutos (11 s = 1 min; quatro jobs =
+4 min para 64 s de trabalho), o resumo por fluxo com a última vez e o custo dela, os 2.000 min do
+plano e o excedente em dólar, as duas cotas do Resend com «quem manda», o plano pago a tirar a cota
+diária, o Cloudflare com o que não se mede dito e a escola não lida marcada, a receita com o
+desconto contado uma vez, a migração em fracção da receita (e sem câmbio a não inventar), o pior
+indicador a mandar no nível, a janela do GitHub a cortar o que é antigo, e a página (três abas,
+`<progress class="cota">`, nenhum `style=""`) — mais a barra medida num navegador (altura de traço,
+`appearance: none`, cantos de pílula). Mais `provar-financeiro-da-escola` 90/90 ·
+`provar-financeiro` 58/58 · `provar-cadastro-do-professor` 49/49 · `provar-abas` 28/28 ·
+`provar-piso` 34/34 · `provar-recriar-escola` 92/92 · `provar-escola-a-nascer` 48/48 ·
+`provar-cartas-do-expurgo` 25/25 · `provar-cofre-e-shard` 138/138 · `provar-pagina-publica` 79/79 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `provar-restaurar-retrato` 38/38 · `provar-indices` 64/64 ·
+`provar-geracao-do-ciclo` 24/24 · `provar-abas-da-audicao` 100/100 ·
+`provar-a-coluna-do-formulario` 17/17 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**E uma prova que o contador fez falhar — e estava certa a falhar.** `provar-cartas-do-expurgo`
+procurava as cartas na caixa de saída pela palavra «correio», e o contador novo
+(`financeiro/correio`) tem a palavra no nome: três chaves onde há duas cartas. O filtro passou a ser
+o prefixo da caixa (`…/correio/<carimbo>`). O contador é um facto sobre o correio; não é uma carta.

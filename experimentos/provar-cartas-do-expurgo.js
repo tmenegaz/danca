@@ -193,8 +193,11 @@ function correioFalso({ falhar = false } = {}) {
     conferir('sem RESEND_API_KEY, nada é dado por enviado',
       desfecho.paraAEscola.enviado === false && desfecho.aoProprietario.enviado === false, desfecho);
     conferir('…o provedor nem é chamado', cf2.cartas.length === 0, cf2.cartas.length);
-    const guardadas = [...semChave.dados.keys()].filter((k) => k.indexOf('caixa') !== -1
-      || k.indexOf('correio') !== -1);
+    /* O FILTRO É O PREFIXO DA CAIXA, e não a palavra «correio» (17/11/2026). O contador do
+     * monitor (`financeiro/correio`) também tem a palavra no nome, e passou a entrar nesta lista —
+     * três chaves onde há duas cartas. A caixa de saída é `…/correio/<carimbo>`; o contador é
+     * `financeiro/correio` e não é uma carta. */
+    const guardadas = [...semChave.dados.keys()].filter((k) => k.indexOf('/correio/') !== -1);
     conferir('…e as duas mensagens ficam na caixa de saída, para não se perder o que se ia dizer',
       guardadas.length === 2, [...semChave.dados.keys()]);
 

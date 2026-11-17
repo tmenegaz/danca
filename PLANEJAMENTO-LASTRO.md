@@ -1986,6 +1986,89 @@ decisão.
   1 + N jobs** (um por escola): deixa de pesar nos lançamentos e passa a pesar nas gerações de
   pacote, e é a próxima alavanca se a conta apertar de novo.
 
+### L9d — O Resend, e o painel que mede as três cotas *(17/11/2026)*
+
+> **O QUE ELA PEDIU, e são duas coisas que só valem juntas:** «A gente tem também que medir o Resend,
+> porque agora a gente usa para envio de e-mails. Eu preciso de um monitor que me mostre isso, além
+> dessa documentação que eu estou te pedindo, que tem que estar lá no planejamento lastro como
+> evidência no nosso cenário atual.» E a razão, que decide o desenho: «para não ser pega de surpresa
+> e poder se programar, me planejar para poder tomar medidas antes que seja tarde demais.»
+
+- **A TERCEIRA COTA, e ela tem uma armadilha que as outras duas não têm.** O Resend entra no sistema
+  com a correspondência que já existe — o convite de recriação, a despedida da escola, o aviso de
+  expurgo à proprietária. A cota do plano gratuito é **de duas naturezas ao mesmo tempo**:
+
+  | Plano | Por mês | Por dia | Excedente |
+  |:--|--:|--:|:--|
+  | **Free** | 3.000 | **100** | não há — recusa |
+  | Pro | 50.000 | sem limite | US$ 0,90 / mil |
+  | Scale | 100.000 | sem limite | US$ 0,90 / mil |
+
+  **A diária chega primeiro, e é invisível numa leitura mensal.** No dia 3 do mês a cota mensal está
+  a 3% e a diária pode estar a 100%: um lote de e-mails de expurgo — uma escola com trinta alunas
+  gera trinta cartas — esgota os 100 do dia numa tarde. Um painel que só mostrasse o mês diria
+  «97% de folga» no minuto em que o provedor recusa o envio. É a mesma família do défice que o
+  §L9c já pagou duas vezes: o número que se olha não é o número que aperta.
+- **O QUE SE MEDE, E O QUE NÃO SE MEDE.** Cada fornecedor responde a uma pergunta diferente, e o
+  painel diz qual:
+
+  | Fornecedor | Mede-se | Não se mede (e porquê) |
+  |:--|:--|:--|
+  | **GitHub** | os runs da janela e os **minutos facturados** (cada job arredondado ao minuto, pela API dos jobs) | nada — é a cota que decide o teto, e é a que está medida de verdade |
+  | **Resend** | o que o **sistema pediu** ao provedor, por mês e por dia | a fatura (bounces e repetições contam lá e só lá) |
+  | **Cloudflare** | a **ocupação**: escolas, chaves no KV e bytes | pedidos e operações de KV por dia — a analítica exige um token com permissão própria, que o Worker não tem |
+
+  **O que não se mede é dito, e não aparece como zero.** Um zero com cara de medição é pior do que a
+  ausência do número: ninguém o vai conferir, e a decisão toma-se sobre ele.
+- **O CUSTO DO CORREIO POR ESCOLA, e porque é o próximo número a faltar.** Hoje o contador diz
+  quantas mensagens saíram; não diz de que escola. A conta que interessa — «o correio desta escola
+  cabe nos dois reais que ela paga?» — fica por fazer, e o obstáculo é o desenho: o prefixo do KV é
+  do tenant (`bastidores/<escola>/correio/`), e a caixa de saída guarda as cartas **que não saíram**.
+  Um contador por escola é uma linha em cada envio; fica declarado como a próxima peça.
+- **A RECEITA, E O QUE ELA FAZ AO CUSTO.** O painel lê o **mesmo livro** que o Financeiro — a soma
+  dos contratos em vigor menos os descontos concedidos — e mostra o mês, o ano, o recebido e o em
+  aberto. Uma segunda conta da receita daria um segundo número, e o que ficasse a valer seria o que
+  ela lesse primeiro. A coluna que decide a migração é a **fração da receita**, e não o valor em
+  dólar: o mesmo US$ 5 sobre R$ 1.400 é 0,4% e não muda decisão nenhuma; sobre R$ 70 é 7%, e muda.
+  O câmbio é **declarado** (`CAMBIO_USD_BRL`, no `env` do Worker) e aparece no ecrã — buscar a
+  cotação seria uma dependência que falha em silêncio e muda o número sem ninguém saber.
+- **A ESCADA DA MIGRAÇÃO, e o gatilho de cada degrau** (o que o comparador do painel calcula):
+
+  | Degrau | Custo | Gatilho |
+  |:--|--:|:--|
+  | GitHub Team | US$ 4/pessoa | acima de 2.000 min facturados no mês |
+  | GitHub Enterprise Cloud | US$ 21/pessoa | acima de 5.833 min no mês |
+  | Cloudflare Workers Paid | US$ 5/conta | ao chegar a 1.000 escritas de KV por dia |
+  | Resend Pro (50 mil) | US$ 20 | ao chegar a 3.000 e-mails no mês, **ou 100 no dia** |
+  | Resend Scale (100 mil) | US$ 90 | ao chegar a 50.000 e-mails no mês |
+
+  Somados, os cinco degraus são **US$ 140/mês**. É o teto do custo de infraestrutura da operação
+  atual — e é o número com que a receita tem de ser comparada, não com cada degrau isolado.
+- **Onde isto vive.** A conta é pura e mora em `motor/nucleo/monitoramento.js` (as cotas com
+  procedência e data, a conta dos minutos, a receita, o impacto da migração); a leitura do mundo —
+  GitHub e KV, com cache — em `motor/servidor/leitura-do-monitor.js`; a página em
+  `motor/servidor/painel-html.js` (`paginaDoMonitoramento`, três abas: consumo, receita, migração);
+  e a rota `/monitoramento` (e `/api/monitoramento`, em JSON) no `raiz.js`. O botão está na coluna
+  da esquerda do painel, ao lado do Financeiro, e é do dono pela mesma razão: as cotas e a receita
+  são a conta dela.
+- **A DISCIPLINA DE LEITURA, que é o que torna o painel sustentável.** Abrir o painel não pode gastar
+  a cota que ele mede. Por isso: os runs vêm numa listagem paginada (não um pedido por run), os jobs
+  medem-se **uma vez por run e ficam em cache** (com tecto de 20 medições por abertura, para caber
+  nos 50 subpedidos do Worker), e as chaves do KV de cada escola são lidas **de hora a hora** (com
+  tecto de 20 escolas), porque `list()` é operação de cota. O que a cache guarda é o RESULTADO da
+  conta, nunca o resultado de um run que ainda está a correr.
+- **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
+  mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
+  diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a
+  receita é a do livro do financeiro, com um desconto por escola (o mais recente); (v) a migração
+  traduz cada degrau em fração da receita, e não calcula nada sem câmbio declarado; (vi) a barra é
+  `<progress>` — peça da folha — e não um `<div>` com `style=""`; (vii) abrir o painel duas vezes
+  seguidas não repete as medições caras.
+- **O que fica por decidir.** (a) O contador do correio **por escola** (o custo unitário que falta);
+  (b) ler a analítica do Cloudflare, se ela autorizar um token com essa permissão; (c) o câmbio —
+  hoje declarado à mão, e um valor fixo envelhece: ou ela o revê, ou passa a vir de uma fonte, com o
+  custo de depender dela.
+
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
 - **Objetivo e justificativa.** Dar existência modelada aos conceitos com que as perguntas do
@@ -3015,6 +3098,21 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
 | §7 | Registar no handoff: a atualização, que não foi implementado, os arquivos alterados e as decisões abertas | `REGISTRO.md`, entrada de **16/10/2026**, que o `HANDOFF.md` **extrai** (é gerado) — com o bloco «O que ainda não está feito» |
 | §7 | Entrada datada no registo cronológico de decisões, no formato já usado | **`REGISTRO.md`**, `## 16/10/2026 — …` |
 | §8 | Os sete critérios de conclusão | **§9** (as pendências) e o resumo da entrega |
+
+### O monitor de 17/11/2026 — onde cada pergunta dela é respondida
+
+Não vem dos dois textos: é **pedido do dono do produto**, e é registado para que o painel não seja
+confundido com um relatório de vaidade.
+
+| O que ela pediu | Onde é respondido |
+|:--|:--|
+| Medir o Resend, que agora envia e-mails | **§L9d** — as duas cotas (3.000/mês **e** 100/dia), e por que a diária chega primeiro |
+| «Cada processo quando ele ocorre» | **§L9d** e o painel: o resumo do GitHub é por **workflow**, com a última ocorrência e o custo dela |
+| «O quanto ele gastou» | **§L9c** (a conta dos minutos facturados) e **§L9d** (o correio pedido ao provedor) |
+| «Quanto falta para o teto, qual é a capacidade total» | **§L9c** (GitHub) · **§L9d** (Resend e Cloudflare), no painel e não numa folha |
+| Cloudflare com «ocupação de espaços, os workers e o KV» | **§L9d** — a ocupação MEDE-SE; as operações por dia não, e o painel diz porquê |
+| «A receita, quanto é faturado» | **§L9d** — do mesmo livro do Financeiro (`$L8`), com os descontos contados uma vez |
+| «Qual é o impacto na minha receita» ao mudar de plano | **§L9d** — a escada dos cinco degraus e a coluna da fracção da receita |
 
 ### A matriz de capacidade de 10/11/2026 — onde cada item é respondido
 
