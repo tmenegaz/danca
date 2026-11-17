@@ -118,7 +118,7 @@ completo E gravado, a rota `POST /api/elicitar` faz duas coisas, **na ordem**:
 
 1. `escreverPO(envelope)` — deriva o Markdown (`nucleo/derivar-po.js`) e grava o arquivo no
    repositório via GitHub Contents API (GET para o `sha` atual, PUT com o conteúdo em base64).
-   O commit dispara o `reancorar.yml` já existente.
+   O commit dispara o `derivados.yml` (o antigo `reancorar.yml`) já existente.
 2. `disparar(contexto)` — o `workflow_dispatch` do `gerar-ciclo.yml`.
 
 O caminho da fonte segue a regra de `hash-ciclo.sh` (`professores/<slug>/ciclos/ciclo-<NN>-<escola>-po.md`),

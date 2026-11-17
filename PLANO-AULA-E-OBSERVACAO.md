@@ -565,7 +565,7 @@ Nasceu da decisão `linha de base`, e não estava no plano original.
 | 6 | `bastidores.js` (a frente da tabela) | baixo |
 
 **A âncora.** As peças 1–3 mudam **fontes** (o `.md` da aula 01, o do PO). Cada uma exige
-`tools/hash-ciclo.sh` e a reancoragem — que é o `reancorar.yml` a fazer, como sempre. O que **não**
+`tools/hash-ciclo.sh` e a reancoragem — que é o `derivados.yml` a fazer, como sempre. O que **não**
 muda: a fórmula do hash, a cobertura, os validadores e as 17 regras.
 
 ---

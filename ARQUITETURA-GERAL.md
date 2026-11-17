@@ -374,8 +374,7 @@ o documento gravado e invisível na estante.
 
 ```
 push para main ──► GitHub Actions
-                        ├── reancorar.yml    → a cadeia .fipp
-                        ├── regerar-indices.yml → indices/*.json
+                        ├── derivados.yml       → a cadeia .fipp E indices/*.json (um job)
                         ├── deploy-escolas.yml  → um Worker por escola
                         └── deploy-raiz.yml     → o Worker da raiz
                         │

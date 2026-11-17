@@ -30,7 +30,7 @@ inputs:
   instalar:
     description: >-
       'true' instala as dependências (quem chama `wrangler` ou `pagecrypt`). 'false' traz só o
-      interpretador — é o caso do `reancorar.yml`, que corre `hash-ciclo.sh` e os validadores,
+      interpretador — é o caso do `derivados.yml`, que corre `hash-ciclo.sh` e os validadores,
       e esses não têm dependência externa.
     required: false
     default: 'true'

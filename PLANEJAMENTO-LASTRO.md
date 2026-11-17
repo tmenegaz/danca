@@ -1909,10 +1909,18 @@ decisão.
   | o máximo do teto (100 turmas × 3/sem.) | 1.300 | **1.300** | **1** (93%) |
 
   É a diferença entre «o teto é uma promessa que a infraestrutura não sustenta» e «o teto é uma
-  promessa que três escolas do caso comum sustentam com a folga intacta». **A consolidação dos jobs
-  está proposta e não feita** — é infraestrutura congelada (CONGELAMENTO.md), muda a topologia do CI
-  e exige motivo declarado e commit próprio. Enquanto não for feita, o número honesto é o da primeira
-  tabela.
+  promessa que três escolas do caso comum sustentam com a folga intacta».
+
+  **FEITO EM 16/11/2026, e o que ele custou.** Decidido por ela («consolidar agora»), os dois
+  workflows do derivado — `reancorar.yml` e `regerar-indices.yml` — passaram a **um**
+  (`.github/workflows/derivados.yml`, um job e seis passos), e as três armadilhas que os dois
+  documentavam (o `--check` como guarda, o `conflito-do-derivado.sh` a recalcular em vez de
+  escolher, e o `atualizar-commit-derivado.sh` no lugar do `--amend` cego) foram uma a uma para o
+  arquivo novo. **Um lançamento passa a ser 1 job em vez de 2** — e o segundo não era trabalho: o
+  `reancorar` já regerava o índice, porque a âncora entra no acervo. **O que NÃO se fundiu:** o
+  `deploy-escolas.yml`, que continua com **1 job de descoberta + N jobs de publicação** (um por
+  escola). A próxima alavanca é essa — o número cresce com o número de escolas —, e está na conta
+  abaixo como pendência, não como feito.
 - **O que se vigia, então, não são 500 alunas: são as aulas lançadas no mês.** É essa a grandeza que
   o ecrã deve medir quando houver medição — e é ela, e não a contagem de fichas, que diz se a folga
   está a ser comida.
@@ -1930,10 +1938,12 @@ decisão.
   particionamento **não** junte duas escolas num namespace para poupar — pouparia um par de
   credenciais e custaria a garantia.
 - **O que fica por decidir.** (a) ~~a cadência~~ — **respondida a 16/11/2026: 5 lançamentos por dia
-  no mínimo, 3 ou mais por semana por turma.** (b) **A consolidação dos quatro jobs de uma
-  lançamento num só** — proposta, com a conta acima; é infraestrutura congelada e espera decisão.
-  (c) ~~o caminho ao chegar a três escolas no teto~~ — **decidido: plano pago**, e o teto não se
-  encolhe. (d) O número 20/500 está declarado no catálogo num sítio só; mudá-lo é mudar uma chave.
+  no mínimo, 3 ou mais por semana por turma.** (b) ~~a consolidação dos jobs do derivado~~ —
+  **decidida e feita a 16/11/2026** (`derivados.yml`, um job). (c) ~~o caminho ao chegar a três
+  escolas no teto~~ — **decidido: plano pago**, e o teto não se encolhe. (d) O número 20/500 está
+  declarado no catálogo num sítio só; mudá-lo é mudar uma chave. **(e) A publicação continua com
+  1 + N jobs** (um por escola): deixa de pesar nos lançamentos e passa a pesar nas gerações de
+  pacote, e é a próxima alavanca se a conta apertar de novo.
 
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 

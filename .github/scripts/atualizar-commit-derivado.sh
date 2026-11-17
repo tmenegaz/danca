@@ -4,7 +4,7 @@
 #
 # POR QUE ESTE ARQUIVO EXISTE (22/10/2026).
 #
-# Os três laços de publicação (`regerar-indices.yml`, `reancorar.yml`, `gerar-ciclo.yml`) fazem
+# Os dois laços de publicação (`derivados.yml`, `gerar-ciclo.yml`) fazem
 # a mesma coisa depois de um rebase: regeram o derivado e «actualizam» o commit com
 # `git commit --amend --no-edit`. Isso ASSUME que o topo do ramo é o commit que o job criou.
 # A suposição é falsa em pelo menos um caso — e ele aconteceu:

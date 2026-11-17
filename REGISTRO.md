@@ -48399,3 +48399,55 @@ que estoura a conta — é a **primeira** a lançar no ritmo declarado.
 **Com o quê.** `provar-financeiro-da-escola` 90/90 · `check-indices` 16/16 · `check-identidade` 0
 erros — nenhum valor comercial mudou; o teto continua 20/500 e a escada continua a mesma. O que mudou
 foi a **conta que o justifica**, e ela passou a estar certa.
+
+## 16/11/2026 — os dois workflows do derivado passam a um (motivo declarado)
+
+**A conta que obrigou.** O GitHub factura **cada job arredondado para o minuto**, e um «Guardar»
+disparava dois workflows do derivado — `reancorar` (10 s) e `regerar` (25 s) —, isto é **2 minutos
+de cota para 35 segundos de trabalho**. E o segundo job era, na maior parte, trabalho repetido: o
+`reancorar` já regera o índice no próprio commit, porque a âncora entra no acervo e ninguém a
+regeraria por ele depois — a regra escrita no próprio arquivo. Eram duas execuções para a mesma
+pergunta, com a corrida de sempre entre elas (as duas commitam no `main`, e mais de uma vez o retry
+de uma reconstruiu o commit da outra).
+
+**A decisão, e é dela.** «Consolidar agora» — com esta conta em cima da mesa: num lançamento,
+1 minuto sustenta três escolas do caso comum; 2 minutos não sustentam nenhuma.
+
+**O que mudou.** `reancorar.yml` e `regerar-indices.yml` deram lugar a
+**`.github/workflows/derivados.yml`**: um job, seis passos, os dois derivados no **mesmo commit**
+(as âncoras `.fipp` e o `indices/`) — que é o que a regra já exigia («quem commita com o
+`GITHUB_TOKEN` regera o derivado no próprio commit, porque ninguém vai fazer isso por ele depois»).
+O gatilho é a **união** dos dois, e o commit passa a correr **os dois geradores** (`gerar-indices.js`
+e `gerar-relacoes.js`) também no laço de retry — a lição do expurgo da `batata`: um retry que faz
+menos trabalho publica um resultado diferente.
+
+**Motivo declarado — a infraestrutura.** Isto altera a topologia do CI, que é infraestrutura: muda
+*como* as âncoras e os índices são derivados, e `CONGELAMENTO.md` manda que alterações à lógica de
+hash, validação e geração tenham motivo declarado, entrada no REGISTRO e commit próprio. Este é o
+commit próprio, e o motivo é o de cima: uma factura de 2 minutos por 35 segundos de trabalho, num
+recurso que é o que limita o teto comercial das escolas.
+
+**O que NÃO se perdeu.** As três armadilhas que os dois arquivos documentavam foram, uma a uma, para
+o arquivo novo: o `--check` como guarda (e não o `git status`, que nunca fica limpo por causa do
+`gerado_em`); o `.github/scripts/conflito-do-derivado.sh` a conciliar o derivado **recalculando**, e
+não escolhendo entre duas âncoras; e o `.github/scripts/atualizar-commit-derivado.sh` no lugar do
+`--amend` cego que reescreveu história alheia (run 39876375641). O `deploy-escolas.yml` **não foi
+tocado**: um upload interrompido é outra coisa, e lá o `cancel-in-progress` continua `false`.
+
+**Onde entrou.** `.github/workflows/derivados.yml` (novo) · remoção de `reancorar.yml` e
+`regerar-indices.yml` · `AGENTS.md` (a tabela dos cinco caminhos de escrita) · `ARQUITETURA-GERAL.md`
+(o diagrama do deploy) · `motor/servidor/README.md` · `PLANO-AULA-E-OBSERVACAO.md` ·
+`.github/workflows/criar-escola.yml`, `gerar-ciclo.yml`, `.github/actions/preparar-node/action.yml`,
+`.github/scripts/*.sh` (os comentários que nomeavam os arquivos extintos) ·
+`PLANEJAMENTO-LASTRO.md` §L9c · `biblioteca/comercial/planos.json` (a `_nota` do teto).
+
+**Com o quê.** Os seis passos passaram por `bash -n`; os cinco YAML do repositório passam por um
+leitor estrito; as duas guardas correm localmente verdes (`gerar-indices --check`: 6 arquivos em
+dia · `gerar-relacoes --check`: 2 mapas em dia); o `git add -A -- '*.fipp' indices/` foi testado no
+worktree. A prova que fecha o caso é o **primeiro run** — e ele é observado depois do push.
+
+**O que fica declarado como pendência.** O `deploy-escolas.yml` continua com **1 job de descoberta +
+N jobs de publicação**. Isso deixa de pesar nos lançamentos (que não tocam no pacote) e passa a pesar
+nas gerações de pacote — e é a próxima alavanca se a conta apertar outra vez. Não foi tocado agora
+porque fundir a matriz num laço exige trocar a `strategy.matrix` por um `for` dentro do job, e esse
+é um trabalho com risco próprio para um passo que corre raramente.

@@ -1,0 +1,318 @@
+name: Fechar os derivados
+
+# POR QUE ESTE WORKFLOW EXISTE (16/11/2026) — E ELE É A FUSÃO DE DOIS.
+#
+# Havia dois workflows para a mesma pergunta: `reancorar.yml` («o `.fipp` está em dia?») e
+# `regerar-indices.yml` («o `indices/` está em dia?»). Os dois observavam `professores/**`, os dois
+# commitavam com o `GITHUB_TOKEN`, e os dois gravavam no mesmo commit os mesmos dois derivados — o
+# `reancorar` já regera o índice, porque a âncora entra no acervo e ninguém a regeraria por ele
+# depois. Eram **duas execuções para um trabalho**, com a corrida de sempre entre elas.
+#
+# A CONTA É O QUE OBRIGOU A FUNDIR. O GitHub factura **cada job arredondado para o minuto**, e um
+# «Guardar» do PO disparava dois jobs (10 s de reancoragem + 25 s de índices) = **2 minutos de
+# cota** para 35 segundos de trabalho. Medido em 16/11/2026 nos jobs reais — e é essa a conta que
+# decide a promessa comercial do teto (PLANEJAMENTO-LASTRO §L9c): num lançamento, 1 minuto sustenta
+# três escolas do caso comum; 2 minutos não sustentam nenhuma.
+#
+# O QUE NÃO SE PERDE NA FUSÃO. As três armadilhas que os dois arquivos documentavam continuam
+# tratadas aqui, uma a uma: o `--check` como guarda (e não o `git status`, que nunca fica limpo por
+# causa do `gerado_em`); o rebase que concilia o derivado por `.github/scripts/conflito-do-derivado.sh`
+# e RECALCULA em vez de escolher; e o `atualizar-commit-derivado.sh` no lugar do `--amend` cego.
+# Quem commita com o `GITHUB_TOKEN` não redispara workflows, então isto não vira laço.
+#
+# O QUE ELE **NÃO** FAZ: publicar. O `deploy-escolas.yml` continua separado, e a razão é de outra
+# natureza — um upload interrompido é outra coisa, e por isso lá o `cancel-in-progress` é `false`.
+# O número de jobs do deploy (1 + N escolas) é a próxima alavanca, e está declarada no §L9c.
+
+on:
+  push:
+    branches: [main]
+    # A UNIÃO dos dois gatilhos que existiam. As fontes que a âncora cobre (`professores/**`,
+    # `tools/lib-fontes.sh`), as que a derivação olha (`escola/**`, `wrangler.*.jsonc`, o motor do
+    # índice), os próprios geradores, e os workflows que commitam com o token — mudar COMO eles
+    # commitam tem de valer também para o estado que já está no `main`.
+    paths:
+      - 'professores/**'
+      - 'escola/**'
+      - 'tools/lib-fontes.sh'
+      - 'wrangler.*.jsonc'
+      - 'motor/nucleo/indices.js'
+      - 'motor/servidor/indice-acervo.js'
+      - 'tools/gerar-indices.js'
+      - 'tools/gerar-relacoes.js'
+      - 'tools/hash-ciclo.sh'
+      - '.github/scripts/**'
+      - '.github/actions/**'
+      - '.github/workflows/derivados.yml'
+      - '.github/workflows/gerar-ciclo.yml'
+      - '.github/workflows/criar-escola.yml'
+  workflow_dispatch:
+
+# O push dos commits de derivado precisa de escrita. Um push feito com o `GITHUB_TOKEN` não
+# redispara workflows, então isto não vira laço.
+permissions:
+  contents: write
+
+# A derivação é IDEMPOTENTE e não tem estado: cancelar a anterior não deixa nada pela metade (o
+# commit ou entrou ou não entrou), e a seguinte recalcula tudo a partir das fontes. É o mesmo
+# argumento que os dois arquivos fundidos já traziam — e NÃO se aplica a um deploy.
+concurrency:
+  group: derivados-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  derivados:
+    # Fixo pelo mesmo motivo dos outros: o cache dos pacotes depende da imagem do runner.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # `hash-ciclo.sh` chama `node` duas vezes: validar-schema-ciclo.js e validar-po-ciclo.js. Os
+      # validadores, o gerador e a derivação não têm dependência externa — só o interpretador.
+      # `instalar: 'false'` porque este job não usa `wrangler`.
+      - uses: ./.github/actions/preparar-node
+        with:
+          instalar: 'false'
+
+      # ------------------------------ 1. A ÂNCORA ------------------------------
+      - name: Reancorar os ciclos que divergiram
+        id: reancorar
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          # A matriz sai do disco: um professor/ciclo/escola por manifesto de variante
+          # (`ciclo-XX-<escola>.conf`). O `ciclo-XX.conf` sozinho é o manifesto base, não uma
+          # escola — por isso ele não casa neste glob.
+          shopt -s nullglob
+          manifestos=(professores/*/ciclos/ciclo-*-*.conf)
+
+          # ZERO MANIFESTOS NÃO É ERRO (19/10/2026). Depois de expurgar a última escola, o
+          # repositório fica sem `.conf` de variante nenhum — e isso é um estado LEGÍTIMO: é o que
+          # existe entre o expurgo e a criação da próxima. A distinção que importa: «não há escola»
+          # (nada a fazer, sucesso) ≠ «há escola e a âncora não fecha» (falha). Só a segunda é
+          # sinal de problema.
+          if [ "${#manifestos[@]}" -eq 0 ]; then
+            echo "nenhuma escola no repositório — nada a reancorar"
+            echo "tocados=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tocados=0
+
+          for manifesto in "${manifestos[@]}"; do
+            # professores/<professor>/ciclos/ciclo-<NN>-<escola>.conf
+            resto="${manifesto#professores/}"
+            professor="${resto%%/*}"
+            nome="$(basename "$manifesto" .conf)"       # ciclo-<NN>-<escola>
+            sem_ciclo="${nome#ciclo-}"                  # <NN>-<escola>
+            ciclo="${sem_ciclo%%-*}"                    # <NN>  (já com dois dígitos)
+            escola="${sem_ciclo#*-}"                    # <escola>
+
+            alvo="$professor $ciclo $escola"
+
+            if tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+              echo "ok: $alvo — âncora íntegra"
+              continue
+            fi
+
+            echo "divergiu: $alvo — reancorando"
+
+            # Modo `gerar`: reescreve o .fipp do ciclo E os -aula-NN.fipp, numa só chamada. Se a
+            # fonte estiver inválida (schema da aula, PO), o próprio script recusa e o passo falha
+            # — é o sinal de que o problema é a fonte, não a âncora.
+            if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola"; then
+              echo "erro: não foi possível reancorar $alvo" >&2
+              exit 1
+            fi
+
+            if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+              echo "erro: $alvo continua divergente depois de reancorar" >&2
+              exit 1
+            fi
+
+            tocados=$((tocados + 1))
+          done
+
+          echo "ciclos reancorados: $tocados"
+          echo "tocados=$tocados" >> "$GITHUB_OUTPUT"
+
+      # ------------------------------ 2. O ÍNDICE ------------------------------
+      #
+      # A GUARDA É O `--check`, E NÃO O `git status` (22/10/2026). `gerado_em` e `fonte.commit`
+      # mudam a cada geração, então o `git status` NUNCA ficava limpo: todo push nas fontes
+      # produzia um commit de índice — e, atrás dele, outro par de deploys. Medido no `main`: a
+      # maior parte dos commits «regerar os índices» não mudava nada além do carimbo.
+      #
+      # OS DOIS GERADORES, E NÃO UM. `gerar-indices.js` e `gerar-relacoes.js` derivam das mesmas
+      # fontes e escrevem no mesmo `indices/`; se um ficasse para trás, as arestas apontariam para
+      # um acervo que já mudou. E `gerar-indices.js` SALTA `indices/relacoes/` de propósito (a
+      # pasta é saída do outro), por isso a tentativa que se repete tem de correr os DOIS — a lição
+      # do expurgo da `batata` (14/11/2026): um retry que faz menos trabalho publica um resultado
+      # diferente.
+      - name: Regerar os índices que divergiram
+        id: indices
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node tools/gerar-indices.js --check && node tools/gerar-relacoes.js --check; then
+            echo "sem divergência material — o índice está em dia"
+            echo "mudou=nao" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          node tools/gerar-indices.js
+          node tools/gerar-relacoes.js
+          echo "mudou=sim" >> "$GITHUB_OUTPUT"
+          echo "--- o que mudou:"
+          git status --porcelain -- indices/ || true
+
+      # A PROVA DE QUE O ÍNDICE NOVO É VÁLIDO — ANTES DE ENTRAR NO `main`. Se o `check` reprovasse
+      # depois do commit, o índice inválido já estaria publicado e o vermelho seria só uma nota de
+      # rodapé. Reprovar aqui deixa a árvore como estava e diz o que está errado.
+      - name: Conferir o índice novo
+        if: steps.indices.outputs.mudou == 'sim'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/check-indices.js
+
+      # ------------------------- 3. UM COMMIT PARA OS DOIS -------------------------
+      #
+      # A ÂNCORA ENTRA NO MESMO COMMIT QUE O ÍNDICE, e tem de entrar: a âncora está no índice
+      # (verificação 3 do `check-indices.js`), e quem commita com o `GITHUB_TOKEN` não é visto por
+      # mais ninguém — regerar o derivado no PRÓPRIO commit é a regra que já estava nos dois
+      # arquivos fundidos.
+      - name: Commitar os derivados
+        if: steps.reancorar.outputs.tocados != '0' || steps.indices.outputs.mudou == 'sim'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          # O `-A` no pathspec das âncoras: uma reancoragem pode APAGAR um `-aula-NN.fipp` que
+          # deixou de existir, e um `git add` sem `-A` deixaria o apagamento fora do commit.
+          git add -A -- '*.fipp' indices/
+
+          if git diff --cached --quiet; then
+            echo "nada a commitar — os derivados já estavam em dia"
+            exit 0
+          fi
+
+          git commit -m "chore(estrutura): fechar os derivados — âncoras e índices" \
+            -m "A âncora cobre as fontes do ciclo (-dados.json incluído: lançar uma aula
+          desatualiza a âncora) e o índice deriva do acervo. Os dois são DERIVADOS: este é o
+          lugar único que os refaz depois de qualquer escrita, e eles entram no mesmo commit
+          porque a âncora está dentro do índice." \
+            -m "Refs: tools/hash-ciclo.sh, tools/gerar-indices.js, tools/gerar-relacoes.js
+          Regras: P-03, P-04, P-08, P-17
+          Auditoria: --check antes de gerar + node tools/check-indices.js antes de commitar"
+
+          # A MENSAGEM FICA NUM ARQUIVO: o laço pode precisar de criar o commit de novo (quando o
+          # rebase descarta o vazio), e recriá-la à mão divergiria da original.
+          mensagem="$(mktemp)"
+          git log -1 --format=%B > "$mensagem"
+
+          # OS DOIS DERIVADOS REGERAM-SE DEPOIS DO REBASE. Uma vez que o commit assenta sobre um
+          # `main` novo, a âncora que ele carrega foi calculada sobre as fontes ANTIGAS e o índice
+          # foi derivado do acervo antigo — nenhum dos dois é texto que se escolha. O `--check`
+          # deixa intacto o que já fecha, então rodar isto sempre não gera commit por nada.
+          refazer_tudo() {
+            shopt -s nullglob
+            local m resto professor nome sem_ciclo ciclo escola mudou=0
+            for m in professores/*/ciclos/ciclo-*-*.conf; do
+              resto="${m#professores/}"
+              professor="${resto%%/*}"
+              nome="$(basename "$m" .conf)"
+              sem_ciclo="${nome#ciclo-}"
+              ciclo="${sem_ciclo%%-*}"
+              escola="${sem_ciclo#*-}"
+              if tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+                continue
+              fi
+              echo "reancorando $professor/$ciclo/$escola sobre o main novo"
+              if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" > /dev/null; then
+                echo "erro: não foi possível reancorar $professor/$ciclo/$escola" >&2
+                return 1
+              fi
+              mudou=1
+            done
+            # O ÍNDICE REGERA-SE SEMPRE, e não só quando a âncora mudou: o `main` novo pode ter
+            # mudado o acervo por outro caminho (o expurgo pela página, o cadastro de professor).
+            # O `--check` não é usado aqui de propósito — depois de um rebase a árvore tem de
+            # ficar derivada, não «provavelmente derivada».
+            git add -A -- '*.fipp'
+            node tools/gerar-indices.js || return 1
+            node tools/gerar-relacoes.js || return 1
+            git add -A -- indices/
+            if [ "$mudou" = 1 ] || ! git diff --cached --quiet; then
+              # A ÂNCORA REGERADA PODE SER A QUE O `main` NOVO JÁ TINHA — e o commit pode ter sido
+              # DESCARTADO pelo rebase (ficou vazio). Quem decide é
+              # `.github/scripts/atualizar-commit-derivado.sh`, que olha a mensagem: se o topo
+              # ainda é o commit DESTE job, actualiza-o (ou descarta-o, se ficou vazio); se o
+              # rebase o descartou, cria um novo. Um `--amend` cego reescreveu história alheia e
+              # o push foi recusado para sempre (run 39876375641, 23/10/2026).
+              .github/scripts/atualizar-commit-derivado.sh "$mensagem" || return 1
+            fi
+            return 0
+          }
+
+          # O PUSH PODE PERDER A CORRIDA, E OS DERIVADOS TÊM VÁRIOS DONOS (19/10/2026). Mais de um
+          # workflow escreve no `main` e o «Guardar» do PO dispara todos em segundos. Medido às
+          # 18:40:19 de 19/10/2026, no ciclo 01 de calango: `push` recusado e o rebase morria em
+          # «CONFLICT (content): ... ciclo-01-calango-bale-nivel-1-teste-1.fipp». Resolver esse
+          # conflito à mão seria escolher entre duas âncoras — o certo é rebasear, aceitar a versão
+          # que está a ser aplicada em `.fipp`/`indices`, e RECALCULAR.
+          for intento in 1 2 3 4 5 6 7 8; do
+            if git push; then
+              exit 0
+            fi
+            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            git fetch origin main
+
+            if git rebase origin/main; then
+              refazer_tudo
+              sleep $((intento * 5))
+              continue
+            fi
+
+            # O REBASE PODE NEM TER COMEÇADO (20/10/2026). Um arquivo UNTRACKED que o `main` novo
+            # também traz faz o git recusar o checkout antes de aplicar commit nenhum — e aí não
+            # há conflito para inspecionar. Os soltos que o `main` traz são SAÍDAS do que este
+            # workflow gera: a versão canónica é a do `main`, e a desta árvore regera-se na volta
+            # seguinte. Só esses se apagam — qualquer outro solto é de alguém.
+            if [ ! -d "$(git rev-parse --git-path rebase-merge)" ] &&
+               [ ! -d "$(git rev-parse --git-path rebase-apply)" ]; then
+              apagados=0
+              while IFS= read -r solto; do
+                [ -n "$solto" ] || continue
+                if git cat-file -e "origin/main:$solto" 2>/dev/null; then
+                  rm -f -- "$solto"
+                  apagados=$((apagados + 1))
+                fi
+              done < <(git ls-files --others --exclude-standard)
+              if [ "$apagados" -eq 0 ]; then
+                echo "erro: o rebase não começou e não há solto da geração para limpar — ver a saída acima" >&2
+                exit 1
+              fi
+              echo "o rebase não começou: $apagados solto(s) da geração removido(s) — nova tentativa"
+              sleep $((intento * 5))
+              continue
+            fi
+
+            # A CONCILIAÇÃO DO DERIVADO — UMA regra, num arquivo só (22/10/2026). O derivado
+            # (`indices/**`, `*.fipp`) não se concilia: fica com a versão do `main` e é
+            # RECALCULADO abaixo. O material continua a falhar, e o script diz qual é.
+            if ! .github/scripts/conflito-do-derivado.sh; then
+              git rebase --abort || true
+              exit 1
+            fi
+            GIT_EDITOR=true git rebase --continue
+
+            refazer_tudo
+            sleep $((intento * 5))
+          done
+          echo "erro: o push continuou recusado depois de 8 tentativas" >&2
+          exit 1

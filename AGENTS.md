@@ -63,7 +63,7 @@ assíncronos — rodam no GitHub enquanto a sessão está aberta.
 |:--|:--|
 | `.github/workflows/criar-escola.yml` | Action, depois de um `criar-escola` disparado pela página |
 | `.github/workflows/gerar-ciclo.yml` | Action, depois de gerar um ciclo |
-| `.github/workflows/reancorar.yml` | Action, a cada push de `professores/**` |
+| `.github/workflows/derivados.yml` | Action, a cada push de `professores/**` — as âncoras `.fipp` e os `indices/**` no mesmo commit (era `reancorar.yml` + `regerar-indices.yml`, fundidos a 16/11/2026) |
 | a página **Bastidores → Produção** | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
 | a página **danca → expurgo de escola** | API do GitHub, **apaga 70 a 80 arquivos num commit só** |
 

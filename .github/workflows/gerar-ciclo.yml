@@ -28,7 +28,7 @@ run-name: Gerar o ciclo · ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ input
 #
 # `tools/gerar-ciclo.sh` já VALIDA o pacote no fim (`node tools/check-pacote.js`):
 # não há passo de validação separado. A reancoragem usa o `--check` antes de gerar,
-# como em reancorar.yml — o .fipp só é tocado quando há divergência de verdade.
+# como em derivados.yml — o .fipp só é tocado quando há divergência de verdade.
 
 on:
   workflow_dispatch:
@@ -275,7 +275,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Só reancora se a âncora divergiu — idempotente, como em reancorar.yml.
+          # Só reancora se a âncora divergiu — idempotente, como em derivados.yml.
           if tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}" --check > /dev/null 2>&1; then
             echo "âncora íntegra — nada a reancorar"
           else
@@ -302,19 +302,19 @@ jobs:
           # inofensivo até o push ser recusado: o `git rebase` não começa quando o commit que
           # vai aplicar traz um arquivo que existe solto na árvore, e o laço lia isso como
           # «conflito de conteúdo» e desistia — culpando o sítio errado. O `*.fipp` daqui é o
-          # mesmo pathspec do `reancorar.yml`, que sempre as somou todas.
+          # mesmo pathspec do `derivados.yml`, que sempre as somou todas.
           git add -A -- "$pasta"
           git add -A -- '*.fipp'
 
           # O ÍNDICE ENTRA NO MESMO COMMIT — E TEM DE ENTRAR (22/10/2026). O acervo conta os
           # documentos e as âncoras do pacote que acabou de nascer, e este workflow commita com
-          # o `GITHUB_TOKEN`, que POR DESENHO não redispara workflows: o `regerar-indices.yml`
-          # nunca vê este commit. Mesma regra do `reancorar.yml` — quem commita com o token
+          # o `GITHUB_TOKEN`, que POR DESENHO não redispara workflows: o `derivados.yml`
+          # nunca vê este commit. Mesma regra do `derivados.yml` — quem commita com o token
           # regera o derivado no próprio commit, porque ninguém o fará depois.
           node tools/gerar-indices.js \
             || { echo "erro: os índices não foram regerados — o pacote novo não chegaria ao acervo" >&2; exit 1; }
           # O MAPA DE RELAÇÕES VAI NO MESMO COMMIT, PELA MESMA RAZÃO (05/11/2026): este workflow
-          # commita com o `GITHUB_TOKEN`, e o `regerar-indices.yml` nunca vê este commit. Um mapa
+          # commita com o `GITHUB_TOKEN`, e o `derivados.yml` nunca vê este commit. Um mapa
           # que ficasse para trás apontaria para uma aula que já existe e não está nele.
           node tools/gerar-relacoes.js \
             || { echo "erro: o mapa de relações não foi regerado — as arestas ficariam a apontar para um acervo velho" >&2; exit 1; }
@@ -340,7 +340,7 @@ jobs:
           # O PUSH PODE PERDER A CORRIDA, E O `.fipp` TEM DOIS DONOS (19/10/2026).
           #
           # O «Guardar» do PO commita as fontes uma a uma (o `escrever-ciclo.js`), e cada
-          # commit dispara o `reancorar.yml`. Segundos depois o Worker dispara ESTE
+          # commit dispara o `derivados.yml`. Segundos depois o Worker dispara ESTE
           # workflow. Quando a geração termina, o `reancorar` já commitou a mesma âncora —
           # com as fontes que existiam ANTES do pacote. Resultado medido às 17:47:41 de
           # 19/10/2026: `push` recusado, e o rebase morria em
@@ -396,7 +396,7 @@ jobs:
             # O rebase parou. O DERIVADO concilia-se; o MATERIAL não — dois donos do mesmo
             # TEXTO escrito à mão é um problema de desenho, e escondê-lo aqui seria pior. A regra
             # vive num arquivo só (`.github/scripts/conflito-do-derivado.sh`), partilhado com o
-            # `reancorar.yml`: o `indices/**` foi a segunda metade do problema (run 39788790994,
+            # `derivados.yml`: o `indices/**` foi a segunda metade do problema (run 39788790994,
             # 22/10/2026), e tratá-la aqui e não lá teria feito as duas versões divergirem.
             # O PACOTE DESTE CICLO É DERIVADO PARA NÓS (08/11/2026). Somos o gerador dele: um
             # conflito nos arquivos que o `gerar-ciclo.sh` produz (os PDFs, os JSON, o HTML do

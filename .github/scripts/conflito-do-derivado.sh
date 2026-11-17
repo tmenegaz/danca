@@ -4,7 +4,7 @@
 #
 # POR QUE ESTE ARQUIVO EXISTE (22/10/2026).
 #
-# O `reancorar.yml` e o `gerar-ciclo.yml` commitam com o `GITHUB_TOKEN`, que por desenho não
+# O `derivados.yml` e o `gerar-ciclo.yml` commitam com o `GITHUB_TOKEN`, que por desenho não
 # redispara workflows — logo cada um regera `indices/` no próprio commit, porque ninguém o faria
 # depois. Isso deu ao commit DOIS tipos de conteúdo, e só um deles se pode conciliar:
 #
