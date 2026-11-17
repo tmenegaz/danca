@@ -2221,6 +2221,59 @@ decisão.
   hoje declarado à mão, e um valor fixo envelhece: ou ela o revê, ou passa a vir de uma fonte, com o
   custo de depender dela.
 
+### L9e — A ROTAÇÃO: público enquanto o crédito aperta, privado no dia 1.º *(17/11/2026)*
+
+> **A DECISÃO DELA, e é dela:** «a gente vai migrar, mas a gente não vai migrar para cima. […]
+> o repositório ele vai se tornar público até o fechamento do mês e depois, no dia primeiro de cada
+> mês, ele volta a ser privado. […] Eu não vou arcar com esse custo.»
+
+**A POLÍTICA.** Enquanto o produto está em desenvolvimento, o `danca` (privado) consome o compute
+incluído do plano Free. Quando o crédito do mês está a **cinco dias do fim**, o repositório passa a
+**público** — porque *«standard GitHub-hosted runners in public repositories»* são **gratuitos e
+ilimitados** e não consomem o incluído — e no **dia 1.º de cada mês volta a privado**. Não há
+mudança de plano: a escada de preços do §L9c continua a ser a referência para o dia em que o
+volume justificar contratar.
+
+**PORQUE ISTO FUNCIONA, e o que custa.** O plano Free dá **$12 de compute por mês** (~2.000 min a
+$0,006). Em público essa conta desaparece. O que se troca é **exposição**: um repositório público é
+legível e clonável por qualquer pessoa. O que fica exposto, medido a 17/11/2026: **~62 MB**, com as
+fontes pedagógicas em `professores/`, a tabela de preços em `biblioteca/comercial/planos.json`, o
+motor em `motor/` e as provas em `experimentos/`. **Não fica exposto nenhum segredo** — `.dev.vars`,
+`tools/.senhas-locais` e `tools/.escolas-teste` estão no `.gitignore` e a conferência do `pre-push`
+(o hook real, corrido) dá «as 7 senhas não estão em arquivo versionado»; uma varredura ao
+**histórico inteiro** (2.600 commits) a `ghp_`, `github_pat_`, `sk-`, AWS e chaves privadas não
+encontra nada. Os *secrets* do GitHub são **write-only**: nem tornando o repositório público se lê
+um de volta.
+
+**O RISCO NÃO É O QUE SE EXPÕE — É O QUE SE ESQUECE.** A política é assimétrica: esquecer de a
+tornar pública dói no bolso e nota-se (as execuções bloqueiam ou a fatura aparece); esquecer de a
+tornar **privada no dia 1.º** não dói em lado nenhum — fica público e ninguém dá por isso. Por isso
+o lembrete vive **no painel**, onde ela olha todos os dias (§L9d), e não numa nota de rodapé: o
+bloco do GitHub diz em que metade do ciclo está, com o aviso explícito de que no dia 1.º volta a
+privado.
+
+**O PAINEL DEIXOU DE MENTIR SOBRE O DINHEIRO.** Num repositório público os minutos não são cobrados,
+portanto mostrar «US$ 8,91 a pagar» seria a mesma família de erro da amostra de 500 execuções — um
+número que parece medido e não é. Passaram a existir **três respostas distintas**, e o ecrã diz qual
+é qual: `repositorioPublico` (a visibilidade), `liquidoDaFaturaUsd` (o que a fatura registou) e
+`cobravelUsd` (o que sai da conta, **zero** em público). A projecção idem: em público, o previsto
+cobrável é zero.
+
+**Critérios verificáveis.** (xvii) num repositório público a cobrança é zero, mesmo com a fatura a
+registar valor, e a projecção do fim do mês também; (xviii) num privado a projecção continua a
+existir; (xix) o ecrã diz em que metade do ciclo está e **nomeia o dia 1.º** como o momento de
+voltar a privado; (xx) a visibilidade é lida do GitHub (`GET /repos/{dono}/{repo}` → `private`),
+com a mesma cache de hora da fatura — e `null` quando não se conseguiu ler, caso em que o painel
+não afirma nem uma coisa nem outra.
+
+**O QUE FICA POR DECIDIR.** (a) A conta tem **45 repositórios públicos** antigos (portfólio de
+ensino, 2017-2019) e três privados; nenhum dos públicos tem conteúdo do Lastro. (b) Um CPF **válido
+e não-sintético** (`021.500.629-17`) estava em fixtures de `experimentos/provar-cadastro-do-professor.js`
+e num comentário de `motor/servidor/unicidade.js`; foi substituído por um sintético (`987.654.321-00`)
+**no presente**, mas continua em **3 commits do histórico** (2026-11-16). As âncoras `.fipp` cobrem
+**conteúdo de ficheiros** e não commits, logo uma reescrita não as quebraria — mas custaria os SHAs
+citados no `REGISTRO.md`, que é a razão pela qual a decisão fica aberta e não foi tomada por mim.
+
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
 - **Objetivo e justificativa.** Dar existência modelada aos conceitos com que as perguntas do

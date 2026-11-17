@@ -256,7 +256,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
           status: 200, ok: true,
           json: () => Promise.resolve({
             ok: true, slug: 'brise-volet', nome: 'Brise Volet', dono: true,
-            cpf: '021.500.629-17', telefone: '(51) 99999-0000', email: 'brise@exemplo.com',
+            cpf: '987.654.321-00', telefone: '(51) 99999-0000', email: 'brise@exemplo.com',
             modalidade: 'bale-classico',
           }),
         });
@@ -277,7 +277,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     conferir('o nome é «Brise» e o sobrenome «Volet» — o `s` não é comido',
       campo('pnome') === 'Brise' && campo('psobrenome') === 'Volet',
       { nome: campo('pnome'), sobrenome: campo('psobrenome') });
-    conferir('o CPF vem preenchido do servidor', campo('pcpf') === '021.500.629-17', campo('pcpf'));
+    conferir('o CPF vem preenchido do servidor', campo('pcpf') === '987.654.321-00', campo('pcpf'));
     conferir('o telefone também', campo('ptelefone') === '(51) 99999-0000', campo('ptelefone'));
     conferir('o e-mail também', campo('pemail') === 'brise@exemplo.com', campo('pemail'));
     conferir('a habilidade vem a que ele declara', campo('pmodalidade') === 'bale-classico', campo('pmodalidade'));
@@ -304,14 +304,14 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       'bastidores/breu/professores': JSON.stringify(PROFS),
       'bastidores/breu/dono': JSON.stringify({ nome: 'Brise Volet', slug: 'brise-volet' }),
       'bastidores/breu/cadastro': JSON.stringify({
-        escolaNome: 'Breu', cpf: '021.500.629-17', professorEmail: 'brise@exemplo.com',
+        escolaNome: 'Breu', cpf: '987.654.321-00', professorEmail: 'brise@exemplo.com',
         professorTelefone: '(51) 99999-0000',
       }),
       'professores/ana-diag/contato': JSON.stringify({ cpf: '111.444.777-35', email: 'ana@exemplo.com' }),
       /* O CONTATO DO PRINCIPAL — é ele que a unicidade do CPF encontra. O CPF dele também está no
        * cadastro da escola; o `contato` é o documento que a varredura lê, e é o que a primeira
        * gravação da ficha escreve. Semear os dois é o estado de uma escola já corrigida uma vez. */
-      'professores/brise-volet/contato': JSON.stringify({ cpf: '021.500.629-17', email: 'brise@exemplo.com' }),
+      'professores/brise-volet/contato': JSON.stringify({ cpf: '987.654.321-00', email: 'brise@exemplo.com' }),
     });
     const gh = githubFalso({
       'professores/brise-volet/perfil.json': JSON.stringify({ slug: 'brise-volet', nome: 'Brise Volet', modalidades: ['bale-classico'], criado: '2026-11-16' }),
@@ -326,7 +326,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     const fichaDono = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: 'brise-volet' }));
     conferir('a ficha do principal responde 200', fichaDono.status === 200, fichaDono.status);
     conferir('…e traz o CPF do cadastro da escola quando ele não tem contato próprio',
-      fichaDono.dados.cpf === '021.500.629-17', fichaDono.dados);
+      fichaDono.dados.cpf === '987.654.321-00', fichaDono.dados);
     conferir('…e a habilidade, do perfil no repositório',
       fichaDono.dados.modalidade === 'bale-classico', fichaDono.dados.modalidade);
 
@@ -385,7 +385,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
 
     /* — O CPF DE OUTRA PESSOA. */
     const r4 = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({
-      editar: 'ana-diag', nome: 'Ana', sobrenome: 'Diagnóstico', cpf: '021.500.629-17',
+      editar: 'ana-diag', nome: 'Ana', sobrenome: 'Diagnóstico', cpf: '987.654.321-00',
     }));
     conferir('um CPF que já é de outro professor é recusado', r4.status === 409, r4.dados);
     conferir('…e a recusa diz de quem é o número', /já é do professor/i.test(String(r4.dados.erro)), r4.dados.erro);

@@ -190,6 +190,45 @@ function conferir(titulo, condicao, dado) {
       /Regerar os índices<\/strong><br><span class="sub">sem execuções nas últimas 24 h/.test(html), null);
   }
 
+  console.log('\nA3. A ROTAÇÃO: público enquanto o crédito aperta, privado no dia 1.º');
+  {
+    /* A POLÍTICA DECLARADA A 17/11/2026: em desenvolvimento, quando o crédito do mês aperta, o
+     * repositório passa a público — os minutos de Actions em repositório público são gratuitos e
+     * ilimitados — e no dia 1.º volta a privado. O painel tem de saber em que metade está, ou
+     * mostra uma conta a pagar sobre minutos que o fornecedor não cobra. */
+    const linhas = [{ quando: '2026-11-17T00:00:00Z', quantidade: 1936, bruto: 11.62,
+      desconto: 11.62, liquido: 0, precoUnitario: 0.006 }];
+    const pub = monitor.resumirGithub({
+      runs: [], facturado: { ok: true, linhas }, agora: '2026-11-17T12:00:00Z', repositorioPublico: true,
+    });
+    const priv = monitor.resumirGithub({
+      runs: [], facturado: { ok: true, linhas }, agora: '2026-11-17T12:00:00Z', repositorioPublico: false,
+    });
+    conferir('num repositório público a cobrança é zero, mesmo com a fatura a registar valor',
+      pub.repositorioPublico === true && pub.cobravel === false && pub.cobravelUsd === 0
+        && pub.liquidoDaFaturaUsd === 0, [pub.cobravel, pub.cobravelUsd, pub.liquidoDaFaturaUsd]);
+    conferir('…e a projecção do fim do mês também é zero — não há conta a pagar',
+      pub.liquidoPrevistoCobravelUsd === 0, pub.liquidoPrevistoCobravelUsd);
+    conferir('…enquanto num repositório privado a projecção continua a existir',
+      priv.cobravel === true && priv.liquidoPrevistoCobravelUsd > 0, priv.liquidoPrevistoCobravelUsd);
+
+    const co = monitor.resumirCorreio({ contadores: { mes: '2026-11', enviados: 3, dias: {} }, hoje: '2026-11-17' });
+    const cf = monitor.resumirCloudflare({ escolas: [], chaves: {} });
+    const r = monitor.receita({ extrato: [], descontos: [], mes: '2026-11' });
+    const html = (g) => painel.paginaDoMonitoramento({
+      retrato: monitor.retrato({ github: g, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z' }),
+      cambio: 5.4,
+    });
+    /* O LEMBRETE QUE A POLÍTICA PRECISA — e é assimétrico de propósito: esquecer de tornar público
+     * dói no bolso e nota-se; esquecer de tornar PRIVADO no dia 1.º não dói em lado nenhum. */
+    conferir('…e o ecrã diz que está público E que no dia 1.º volta a privado',
+      /O repositório está público/.test(html(pub))
+        && /No dia 1\.º ele volta a privado/.test(html(pub)), null);
+    conferir('…e no estado privado diz a política, para não depender da memória de ninguém',
+      /Repositório <strong>privado<\/strong>/.test(html(priv))
+        && /torná-lo público até ao dia 1\.º/.test(html(priv)), null);
+  }
+
   console.log('\nB. As duas cotas do Resend — e a que aperta primeiro');
   {
     const c = monitor.resumirCorreio({

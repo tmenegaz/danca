@@ -1945,8 +1945,36 @@ function blocoDoGithub(g) {
    * permite agir hoje. A ordem em que aparecem é essa — do que assusta ao que decide. */
   const dinheiro = (v) => usd(Number(v) || 0);
 
+  /* ── A METADE DO CICLO EM QUE O REPOSITÓRIO ESTÁ ─────────────────────────────────────────────
+   *
+   * A POLÍTICA DECLARADA (17/11/2026): em desenvolvimento, quando o crédito do mês aperta, o
+   * repositório passa a público — os minutos de Actions em repositório público são gratuitos e
+   * ilimitados — e no dia 1.º de cada mês volta a privado.
+   *
+   * O PERIGO DESTA POLÍTICA É O ESQUECIMENTO, e é de um tipo específico: não é esquecer de o tornar
+   * público (isso dói no bolso e nota-se), é esquecer de o tornar PRIVADO no dia 1.º — e isso não
+   * dói em lado nenhum: fica público sem ninguém dar por isso. Uma política que depende de memória
+   * tem de ter um lembrete no sítio onde ela olha, e é este. */
+  const publico = g.repositorioPublico === true;
+  const avisoDeCiclo = (g.repositorioPublico === true
+    ? '<p class="aviso"><strong>O repositório está público.</strong> Os minutos de Actions em ' +
+      'repositório público são <strong>gratuitos e ilimitados</strong> — é por isso que esta metade ' +
+      'do ciclo não custa nada. <strong>No dia 1.º ele volta a privado</strong>, e é essa a metade ' +
+      'que se esquece: enquanto estiver público, o código está aberto a quem o procurar.</p>'
+    : (g.repositorioPublico === false
+      ? '<p class="sub">Repositório <strong>privado</strong>: os minutos contam para o incluído. ' +
+        'Quando o crédito estiver a cinco dias do fim, a política é torná-lo público até ao dia 1.º ' +
+        'e voltar a privado no dia 1.º.</p>'
+      : '')) +
+    (publico
+      ? '<p class="sub">As linhas de dinheiro abaixo são o <strong>registo da fatura</strong> — o ' +
+        'que foi apurado enquanto o repositório era privado. A <strong>cobrança é ' +
+        dinheiro(g.cobravelUsd) + '</strong>.</p>'
+      : '');
+
   return '<div class="caixa" id="monitor-github">' +
     '<h2>GitHub — o CI/CD</h2>' +
+    avisoDeCiclo +
     '<p>A franquia do plano <strong>' + esc(c.plano) + '</strong> é de <strong>' + dinheiro(c.computeIncluidoUsd) +
     ' por mês</strong> — o que dá ' + g.incluido + ' minutos a ' + usdFino(c.precoMinutoUsd) + '. Ela não aparece ' +
     'na fatura como um tecto: aparece como um <strong>desconto igual ao valor usado</strong>. Por isso ' +

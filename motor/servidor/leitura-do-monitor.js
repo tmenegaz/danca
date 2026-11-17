@@ -257,6 +257,41 @@ async function consumoFacturadoDoGithub({ token, dono, ano, mes, fetchImpl, pagi
 }
 
 /**
+ * A VISIBILIDADE DO REPOSITÓRIO — porque ela muda a FACTURA (17/11/2026).
+ *
+ * «Standard GitHub-hosted runners in public repositories» são **gratuitos e ilimitados**, e não
+ * consomem o compute incluído. É a única forma de ter CI/CD sem os 2.000 minutos, e é a que a
+ * proprietária decidiu usar enquanto o produto está em desenvolvimento: quando o crédito do mês
+ * está a acabar, o repositório passa a público até ao dia 1.º, e no dia 1.º volta a privado.
+ *
+ * O PAINEL TEM DE SABER ISTO, ou mente. Um painel a dizer «US$ 8,91 a pagar» sobre minutos que o
+ * fornecedor não cobra é a mesma família de erro da amostra de 500 executuções: um número que
+ * parece medido e não é. A leitura é um pedido (`GET /repos/{dono}/{repo}`), feito de hora a hora
+ * com a factura.
+ *
+ * `null` = não se conseguiu ler; e então o painel NÃO afirma nem uma coisa nem outra.
+ */
+async function visibilidadeDoRepo({ token, dono, repo, fetchImpl } = {}) {
+  const f = fetchImpl || fetch;
+  if (!token) return null;
+  try {
+    const r = await f('https://api.github.com/repos/' + dono + '/' + repo, {
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'sistema-lastro',
+      },
+    });
+    if (!r || !r.ok) return null;
+    const d = await r.json().catch(() => null);
+    if (!d || typeof d.private !== 'boolean') return null;
+    return { privado: d.private, publico: d.private === false, lidoEm: new Date().toISOString() };
+  } catch (erro) {
+    return null;
+  }
+}
+
+/**
  * AS CHAVES DE UMA ESCOLA, com o tamanho de cada valor.
  *
  * O `list()` devolve nomes e metadados; o tamanho só vem com `include_metadata`, e nem todos os
@@ -293,5 +328,5 @@ async function chavesDaEscola({ kv, escola } = {}) {
 
 module.exports = {
   desde, runsDoGithub, minutosDoRunNoGithub, facturavelDoRunNoGithub,
-  consumoFacturadoDoGithub, chavesDaEscola,
+  consumoFacturadoDoGithub, visibilidadeDoRepo, chavesDaEscola,
 };

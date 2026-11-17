@@ -312,7 +312,7 @@ function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd, creditoUsd, d
  * o mapa `{ <id>: [{segundos}] }` do que já foi medido. O que não estiver no mapa entra como
  * estimado — e a página diz quantos são.
  */
-function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado, agora } = {}) {
+function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado, agora, repositorioPublico } = {}) {
   const lista = Array.isArray(runs) ? runs : [];
   const mapa = jobsPorRun || {};
   const porFluxo = new Map();
@@ -445,6 +445,17 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
   const daFactura = Boolean(fatura);
   const gastos = daFactura ? fatura.minutos : minutos;
   const incluido = daFactura ? Math.round(fatura.creditoUsd / fatura.precoMinutoUsd) : total;
+  /* ── REPOSITÓRIO PÚBLICO: OS MINUTOS NÃO SÃO COBRADOS (17/11/2026) ──────────────────────────
+   *
+   * «Standard GitHub-hosted runners in public repositories» são gratuitos e ilimitados, e não
+   * consomem o compute incluído. Num repositório público, portanto, os dólares que a fatura
+   * registou são HISTÓRIA — o que se pagou enquanto era privado — e não uma conta a pagar.
+   *
+   * A distinção é entre o que a fatura diz e o que vai ser cobrado, e o painel não pode confundi-las:
+   *   · `fatura.liquidoUsd` é o que a fatura registou;
+   *   · `cobravel` é o que sai da conta, e num repositório público é ZERO.
+   */
+  const publico = repositorioPublico === true;
   const ciclo = projectarCiclo({
     gastos, incluido, agora, precoMinutoUsd: COTAS.github.precoMinutoUsd,
     creditoUsd: daFactura ? fatura.creditoUsd : null,
@@ -461,6 +472,16 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
     gastos,
     incluido,
     fonteDoGasto: daFactura ? 'factura' : 'regra',
+    /* AS TRÊS RESPOSTAS A «QUANTO VOU PAGAR ESTE MÊS», e elas não são a mesma pergunta:
+     *   · `repositorioPublico` — o que torna os minutos gratuitos;
+     *   · `cobravel` — o que sai da conta, já com a visibilidade aplicada;
+     *   · `liquidoDaFaturaUsd` — o que a fatura registou, independentemente dela. */
+    repositorioPublico: publico,
+    cobravel: !publico,
+    liquidoDaFaturaUsd: daFactura ? fatura.liquidoUsd : null,
+    cobravelUsd: publico ? 0 : (daFactura ? fatura.liquidoUsd : null),
+    /* A PROJECÇÃO, IDEM: num repositório público não há conta a pagar no fim do mês. */
+    liquidoPrevistoCobravelUsd: publico ? 0 : (ciclo.liquidoPrevistoUsd == null ? null : ciclo.liquidoPrevistoUsd),
     /* A fatura, tal como ela é: quatro números que não se podem confundir. */
     fatura,
     /* O DESVIO DA ATRIBUIÇÃO — e diz-se em vez de se esconder. A regra por fluxo não é a fatura:

@@ -49205,3 +49205,59 @@ alguém pagar um plano por causa de um mês que já passou.
 frases, e a janela do ritmo dita) · `PLANEJAMENTO-LASTRO.md` §L9d (a correcção e o critério xvi) ·
 `experimentos/provar-monitoramento.js` (a asserção da projecção, e a nova da segunda pergunta).
 **`provar-monitoramento` 69/69 · `check-identidade` 0 erros.**
+
+## 17/11/2026 — a política de rotação: público enquanto o crédito aperta, privado no dia 1.º
+
+**Motivo declarado.** Ela decidiu: «a gente vai migrar, mas a gente não vai migrar para cima […]
+o repositório ele vai se tornar público até o fechamento do mês e depois, no dia primeiro de cada
+mês, ele volta a ser privado. […] Eu não vou arcar com esse custo.»
+
+**A política, escrita em §L9e do `PLANEJAMENTO-LASTRO.md`.** Em desenvolvimento, quando o crédito do
+mês está a cinco dias do fim, o `danca` passa a **público** — os minutos de Actions em repositório
+público são gratuitos e ilimitados — e no **dia 1.º volta a privado**. Nenhuma mudança de plano.
+
+**O que se verificou ANTES de a exposição ser sequer possível**, porque um repositório público
+publica também os 2.600 commits:
+
+1. **Segredos.** `.dev.vars`, `tools/.senhas-locais` e `tools/.escolas-teste` estão no `.gitignore` e
+   não estão versionados (só o `.exemplo`, com valores `senha-do-<slug>`). O hook **real** do
+   `pre-push`, corrido à mão: «ok — as 7 senha(s) de `.senhas-locais` não estão em arquivo
+   versionado».
+2. **Histórico.** Varredura aos 2.600 commits a `ghp_`, `github_pat_`, `re_`, `sk-`, `AKIA` e
+   `BEGIN … PRIVATE KEY`: **nada**. E os *secrets* do GitHub são write-only — nem em público se lê
+   um de volta.
+3. **Dados pessoais.** Encontrado **um CPF válido e não-sintético** (`021.500.629-17`) em fixtures
+   de `experimentos/provar-cadastro-do-professor.js` (6 ocorrências) e num comentário de
+   `motor/servidor/unicidade.js`. Os outros CPFs do repositório (`111.444.777-35`, `390.533.447-05`,
+   `529.982.247-25`) são os de teste conhecidos, públicos em tutoriais. **Substituído por um
+   sintético** (`987.654.321-00`) no presente; `provar-cadastro-do-professor` **49/49**.
+
+**O que NÃO se fez, e porquê.** O CPF continua em **3 commits do histórico** (todos de 2026-11-16).
+As âncoras `.fipp` cobrem **conteúdo de ficheiros** e não commits, portanto uma reescrita não as
+quebraria — mas custaria os SHAs citados ao longo deste `REGISTRO.md`, que são a forma como cada
+decisão se ancora a um commit. Fica declarado como decisão aberta, não tomada por mim.
+
+**O painel deixou de mentir sobre o dinheiro.** Num repositório público os minutos não são cobrados;
+mostrar «US$ 8,91 a pagar» seria a mesma família de erro da amostra de 500 execuções. Passaram a
+existir três respostas distintas, e o ecrã diz qual é qual: `repositorioPublico`,
+`liquidoDaFaturaUsd` e `cobravelUsd` (zero em público); a projecção idem. E o lembrete da política
+vive **no painel**, porque o esquecimento é assimétrico: esquecer de tornar público dói no bolso;
+esquecer de tornar **privado no dia 1.º** não dói em lado nenhum.
+
+**O que falta, e é um clique que não é meu.** O token tem `administration=**read**`; mudar a
+visibilidade exige `administration=**write**` (o GitHub di-lo no cabeçalho
+`x-accepted-github-permissions` da resposta 403). Enquanto o clique não for dado, o painel mostra o
+estado **privado** e a política — que é a verdade.
+
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js` (`visibilidadeDoRepo`) ·
+`motor/servidor/raiz.js` (lida na mesma cache da fatura) · `motor/nucleo/monitoramento.js`
+(`repositorioPublico`, `cobravel`, `cobravelUsd`, `liquidoDaFaturaUsd`,
+`liquidoPrevistoCobravelUsd`) · `motor/servidor/painel-html.js` (o aviso da metade do ciclo) ·
+`experimentos/provar-cadastro-do-professor.js` e `motor/servidor/unicidade.js` (o CPF sintético) ·
+`PLANEJAMENTO-LASTRO.md` §L9e (a política, o risco e os critérios xvii a xx).
+
+**Com o quê.** `provar-monitoramento` **74/74** — incluindo «num repositório público a cobrança é
+zero, mesmo com a fatura a registar valor», «…e a projecção do fim do mês também é zero», «…e o ecrã
+diz que está público E que no dia 1.º volta a privado», «…e no estado privado diz a política, para
+não depender da memória de ninguém». Mais `provar-cadastro-do-professor` 49/49 ·
+`check-identidade` 0 erros.

@@ -3602,6 +3602,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       let cache = {
         medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
         conferencia: null, conferenciaEm: null, facturado: null, facturadoEm: null,
+        visibilidade: null,
       };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
@@ -3706,9 +3707,24 @@ async function extratoDasEscolas({ env, escolas, agora }) {
         cache.facturadoEm = agoraIso;
       }
 
+      /* A VISIBILIDADE — porque ela decide se os minutos são cobrados (17/11/2026).
+       *
+       * Num repositório público, «standard GitHub-hosted runners» são gratuitos e ilimitados. A
+       * política declarada é rodar: quando o crédito aperta, o repositório passa a público até ao
+       * dia 1.º, e no dia 1.º volta a privado. O painel tem de saber em que metade do ciclo está,
+       * ou mostra uma conta a pagar sobre minutos que o fornecedor não cobra.
+       *
+       * Mesma cache da factura (1 hora): é um pedido, e não vale a pena repeti-lo a cada abertura. */
+      let visibilidade = cache.visibilidade || null;
+      if (facturaVelha || !cache.visibilidade) {
+        visibilidade = await leituraDoMonitor.visibilidadeDoRepo({ token, dono: DONO, repo: REPO });
+        cache.visibilidade = visibilidade;
+      }
+
       const github = monitoramento.resumirGithub({
         runs: janela.runs, jobsPorRun: cache.medidos, desde: janela.desde, conferencia,
         facturado, agora: agoraIso,
+        repositorioPublico: visibilidade ? visibilidade.publico : null,
       });
 
       /* AS CHAVES DO KV, com tecto. Cada `list()` é uma operação de LISTAGEM, e o plano gratuito dá
@@ -3762,6 +3778,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
             medidos: limpos, lidoEm: agoraIso, chavesEm: cache.chavesEm, chaves: cache.chaves,
             conferencia: cache.conferencia || null, conferenciaEm: cache.conferenciaEm || null,
             facturado: cache.facturado || null, facturadoEm: cache.facturadoEm || null,
+            visibilidade: cache.visibilidade || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }

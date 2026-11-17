@@ -11,7 +11,7 @@
  * SAIU DE LÁ PORQUE AGORA HÁ UM SEGUNDO SÍTIO: o cadastro do professor, na Produção, passou a
  * poder corrigir o CPF de quem já existe. A conta a fazer é a MESMA — «este número pertence a
  * outra pessoa?» —, e uma segunda cópia divergiria na primeira vez que uma delas esquecesse o
- * `soDigitos` (que é o que faz `021.500.629-17` e `02150062917` serem o mesmo número).
+ * `soDigitos` (que é o que faz `987.654.321-00` e `02150062917` serem o mesmo número).
  *
  * O QUE ELA CUSTA, e é bom que fique escrito: `kv.list` é a enumeração do namespace. Não há
  * índice de números, e criá-lo seria uma terceira cópia do dado (o cadastro já lá está) que se
