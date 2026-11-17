@@ -3813,24 +3813,49 @@ function painelDoContratoDaEscola(s) {
   const piso = s.piso || s.capacidade || {};
   const teto = s.teto || null;
   const gente = (q) => (q ? q.professores + ' professor(es) e ' + q.alunos + ' aluna(s)' : null);
+  /* A FRANQUIA DE AULAS — a unidade comercial desde 17/11/2026, e o primeiro par do cartão.
+   * `franquia` chega da `situacaoDaEscola` (que a deriva do catálogo + pacotes), e é ela que a
+   * escola lê: «100 aulas por mês», e não «1 professor e 10 alunas». O `usadas` só existe quando a
+   * rota conseguiu contar as aulas do mês; sem ele, o par diz a franquia e cala o consumo, que é
+   * melhor do que dizer «0 de 100» sobre uma contagem que não se fez. */
+  const franquia = s.franquia && typeof s.franquia === 'object' ? s.franquia : null;
+  const aulas = franquia
+    ? (franquia.franquia != null ? franquia.franquia + ' aulas por mês' : null)
+    : null;
+  const consumo = franquia && franquia.usadas != null && franquia.franquia
+    ? franquia.usadas + ' de ' + franquia.franquia + ' em ' + (franquia.mes || 'este mês')
+      + (franquia.excedente > 0 ? ' — ' + franquia.excedente + ' excedente(s)' : '')
+    : null;
   const aMais = s.extra
     ? [s.extra.professores && s.extra.professores.qtd
       ? '+' + s.extra.professores.qtd + ' professor(es)' : '',
     s.extra.alunos && s.extra.alunos.qtd ? '+' + s.extra.alunos.qtd + ' aluna(s)' : '']
       .filter(Boolean).join(' e ')
     : '';
+  const pacotes = Array.isArray(s.pacotes) && s.pacotes.length
+    ? s.pacotes.map((p) => '+' + p.aulas + ' aulas').join(' e ')
+    : null;
   const par = (rotulo, valor) => (valor
     ? '<div><span class="trio-k">' + esc(rotulo) + '</span><span class="trio-v">'
       + esc(String(valor)) + '</span></div>'
     : '');
   /* «A PARTIR DE» E «ATÉ» (16/11/2026) — «capacidade» dá ideia de teto, e o piso é uma garantia
-   * mínima. O par de palavras já estava decidido; o que muda aqui é o lugar, não a redação. */
+   * mínima. O par de palavras já estava decidido; o que muda aqui é o lugar, não a redação.
+   *
+   * E O QUE MUDA A 17/11/2026: O PRIMEIRO PAR PASSA A SER A FRANQUIA. A unidade comercial é a
+   * aula (§ADITIVO §1), e o cartão abre com ela. O piso e o teto de GENTE ficam — mas ditos como
+   * «tamanho de referência», porque o §ADITIVO §2 proíbe apresentá-los como limite comercial: a
+   * escola não é travada por ter mais gente, e um número chamado «teto do plano» a quem não é
+   * travado seria mentira. */
   const pares = [
     par('Plano', s.planoNome || s.plano),
     par('Mensalidade', s.valorCentavos ? 'R$ ' + emReaisDoCartao(s.valorCentavos) : null),
-    par('Piso contratado', gente(piso) ? 'a partir de ' + gente(piso) : null),
-    par('Além do piso', aMais || null),
-    par('Teto do plano', gente(teto) ? 'até ' + gente(teto) : null),
+    par('Franquia de aulas', aulas),
+    par('Aulas extras', pacotes),
+    par('Consumo do mês', consumo),
+    par('Tamanho de referência', gente(piso) ? 'cerca de ' + gente(piso) : null),
+    par('Além da referência', aMais || null),
+    par('Referência do topo', gente(teto) ? 'até ' + gente(teto) : null),
     par('Próximo vencimento', s.proximoVencimento
       ? s.proximoVencimento + (s.diasParaVencer != null
         ? (s.diasParaVencer >= 0

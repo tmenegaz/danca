@@ -50337,3 +50337,84 @@ os que esta rodada acrescentou (a linha das contradições, com **C24** e **C25*
 o preço das extensões), e **um a um** os seus parágrafos contêm **todas** as linhas do duplicado —
 **nenhuma linha dele ficou de fora**. O **§ADITIVO COMERCIAL** está no canónico **verbatim** (174
 linhas; a única diferença é a linha em branco de fecho), com as **oito** secções. Nada se perdeu.
+
+## 17/11/2026 — A unidade comercial vira AULA, o cadastro deixa de ser travado, e o plano do contador
+
+**O que aconteceu.**
+A proprietária confirmou a leitura do modelo — «100 aulas custa R$ 69,90, 300 aulas R$ 99,90 e 800
+aulas R$ 139,90, e nós temos as extensões» — e mandou implementar o que não dependia do contador:
+**o catálogo, a trava, o Financeiro do painel e a página da escola nos bastidores**. O contador
+ficou como planeamento, a partir de uma correcção importante dela sobre onde a aula nasce.
+
+**A correcção dela sobre o nascimento da aula, e o que ela mudou no diagnóstico.** Eu tinha dito que
+«não há nada no motor que conte a aula». Ela respondeu com o processo real: a aula nasce quando o PO
+está completo e se manda gerar os documentos; **a aula 02 em diante nascerá do lançamento dos dados
+da aula dada**; «o candidato a ter o contador é esse»; e a estimativa já existe, porque «quando a
+gente gera o ciclo […] a gente tem um calendário». E sobre o custo: **não importa se tem 20 alunas ou
+uma** — «o processo vai acontecer do mesmo jeito»; o que muda com aluna e professora é o **cadastro**,
+e isso é custo a medir, não a cobrar.
+
+**O que estava medido, e o que faltava.** Corrigi o meu próprio diagnóstico, e a diferença é esta:
+o **facto por aula já existe** (`lancada`, em `tools/gerar-ciclo.sh:583`), a **contagem por ciclo já
+existe** (`derivar-ciclo.js:1388`, `lancadas = Object.keys(aulas).length`), e a **data de cada aula**
+também (`aulas[].data`). O que **não** existe é a **agregação por escola e por mês** e a comparação
+com a franquia. O dado está lá; falta somar.
+
+**O que foi implementado, e onde.**
+
+| peça | onde |
+|:--|:--|
+| Franquias **100 / 300 / 800** e pacotes **+20 / +50 / +100** a R$ 0,50/aula | `biblioteca/comercial/planos.json` |
+| Os lotes de gente como **legado de leitura** — nada novo os vende | idem |
+| `franquiaDoPlano` · `franquiaDoContrato` · `situacaoDaFranquia` (folga/perto/limite/passou + excedente) | `motor/nucleo/comercial.js` |
+| **O cadastro deixou de ser travado** — `cabe` é sempre `true` | `comercial.js → travaDoPiso` |
+| Cartão da escola e Financeiro com a **franquia**; «piso/teto» passam a «referência» | `bastidores.js`, `painel-html.js` |
+| O contrato aceita **pacotes de aulas**, e a rota grava-os | `painel-html.js`, `raiz.js` |
+| A receita do monitor lida **em aulas** (franquia vendida, preço por aula) | `monitoramento.js` |
+| **O contador** | **não feito** — `PLANO-CONTADOR-DE-AULAS.md` |
+
+**A decisão que o código agora carrega, e o motivo dela.** O `travaDoPiso` recusava o cadastro acima
+do piso. O §ADITIVO §2 proíbe-o: «não usar essas quantidades para […] bloquear a escola por ter mais
+pessoas cadastradas». Uma escola com 30 professoras e 800 alunas que processe 40 aulas está **dentro**
+do que contratou. A contagem **fica** — «não é correto afirmar que fichas de alunos ou registros de
+professores não custam nada» —, e o que muda é que ela **informa** em vez de recusar. `cabe`
+continua a existir e é sempre `true`, porque as duas rotas perguntam `if (!trava.cabe)` e uma função
+que deixasse de devolver o campo faria as duas recusarem por `undefined`.
+
+**`null` não é zero, e é a regra que mais se pode partir.** Sem contador de aulas, `aulasUsadas` chega
+`null` e o cartão **cala o consumo**. Dizer «0 de 100» sobre uma contagem que não se fez afirmaria
+que a escola não trabalhou — a mesma família do `ancora: null`. E na receita do parque, a soma é
+**inteira ou não é**: um contrato sem contagem faz o total ser `null`, e não uma parte apresentada
+como o todo.
+
+**O plano do contador.** `PLANO-CONTADOR-DE-AULAS.md` fixa a definição («uma aula conta quando está
+no `aulas` do `-dados.json`, uma vez por número»), a competência (**a data da aula**, não a do
+lançamento), o que não conta (ajuste, regerar o pacote, reprocessamento, aula não dada), o alerta das
+previstas (`TOTAL_AULAS`), o desenho do botão «criar a aula N», sete passos de obra e **quatro
+perguntas que ficam para ela** — entre elas se a **aula 01 conta**, porque ela nasce com o ciclo.
+
+**Onde entrou.** `biblioteca/comercial/planos.json` · `motor/nucleo/comercial.js` ·
+`motor/nucleo/mensalidades.js` · `motor/nucleo/monitoramento.js` · `motor/servidor/bastidores.js` ·
+`motor/servidor/painel-html.js` · `motor/servidor/raiz.js` · `PLANO-CONTADOR-DE-AULAS.md` (novo) ·
+`experimentos/provar-a-franquia-de-aulas.js` (novo, 39 asserções) ·
+`experimentos/provar-piso.js` (**reescrita**: media a trava que foi revogada) ·
+`experimentos/provar-financeiro-da-escola.js` (o teto mudou de nome) · `.gitignore` ·
+`PLANEJAMENTO-LASTRO.md` §L9f ponto 11 e critérios (xxxiv)–(xxxix).
+
+**Com o quê.** `provar-a-franquia-de-aulas` **39/39** · `provar-piso` **41/41** (eram 34, e a
+reescrita é a decisão) · `provar-financeiro-da-escola` **133/133** · `provar-financeiro` 58 ·
+`provar-monitoramento` 94 · `provar-conciliacao-do-painel` 35 · `provar-paginacao` 120 ·
+`provar-rotas-que-existem` 8 · `provar-o-custo-de-uma-aula` 22 · `provar-escola-a-nascer` 48 ·
+`provar-cadastro-do-professor` 49 · `provar-abas-da-audicao` 124 · `provar-salas-e-elencos` 69 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `provar-plano-da-turma` 46 · `provar-jsonc` 22 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** Reposto o catálogo antigo **in-place** (franquias a zero, pacotes a R$ 0,20 — a
+proposta errada, abaixo do preço da aula do plano de cima), a prova **reprova 23 de 39**. E a prova
+foi corrigida nesse mesmo controlo: ela **rebentava** com `TypeError` em vez de reprovar, porque
+`situacaoDaFranquia` devolve `null` para um plano sem franquia. Uma prova que estoura não reprova —
+interrompe, e as asserções seguintes nunca correm.
+
+**Uma falha que é de antes, e fica dita.** `provar-derivacao-da-turma` rebenta com
+`URLSearchParams is not defined` — **medido no HEAD limpo, com as alterações em stash**: já rebentava,
+e não é regressão desta frente.

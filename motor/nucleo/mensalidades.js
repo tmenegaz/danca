@@ -283,7 +283,10 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
  *   · `meses` — a lista do extrato, do mais recente para o mais antigo, com `status`, `vencimento`,
  *     `valorCentavos` e o `em` do pagamento quando há.
  */
-function situacaoDaEscola({ escola, contrato, livro, agora, ensaio } = {}) {
+function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas } = {}) {
+  /* `aulasUsadas` chega de FORA, e é opcional de propósito: quem conta as aulas tem o plano
+   * próprio (PLANO-CONTADOR-DE-AULAS.md) e ainda não existe. Sem ele, a franquia é mostrada e
+   * o consumo é omitido — ver o comentário no `franquia` do objecto devolvido. */
   const slug = String(escola || '').trim();
   const c = contrato || {};
   /* O ENSAIO DE MINUTOS (17/11/2026). Presente e válido, o «hoje» é o do relógio comprimido; ausente,
@@ -398,6 +401,22 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio } = {}) {
     extra: extraDoContrato(c),
     extensoes: Array.isArray(c.extensoes) ? c.extensoes : [],
     estadoComercial: c.estado || null,
+    /* A FRANQUIA DE AULAS (17/11/2026) — o eixo comercial de hoje, derivado do catálogo e dos
+     * pacotes que a escola comprou. Vai para o cartão junto do resto porque é o PRIMEIRO número
+     * que a escola procura: quanto ela tem, e quanto usou.
+     *
+     * `aulasUsadas` NÃO SE INVENTA AQUI. Quem conta as aulas é a fonte do ciclo (o `-dados.json`
+     * → `aulas`), e essa contagem tem um plano próprio (PLANO-CONTADOR-DE-AULAS.md). Enquanto ela
+     * não estiver montada, este campo sai a `null` e o cartão CALA o consumo — mostrar «0 de 100»
+     * sobre uma contagem que não se fez seria dizer que a escola não trabalhou.
+     *
+     * O `ensaio` não mexe na franquia: ele comprime o RELÓGIO das mensalidades, e a franquia é do
+     * mês civil. Misturar os dois daria uma franquia que muda de tamanho enquanto se testa. */
+    franquia: comercial.situacaoDaFranquia({
+      contrato: c,
+      aulasUsadas: aulasUsadas == null ? null : aulasUsadas,
+    }),
+    pacotes: (comercial.franquiaDoContrato(c) || { pacotes: [] }).pacotes || [],
   };
 }
 

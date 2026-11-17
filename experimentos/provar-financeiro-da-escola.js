@@ -844,10 +844,19 @@ function kvCom(dados) {
       teto('basico').professores === 2 && teto('basico').alunos === 39
         && teto('intermediario').professores === 5 && teto('intermediario').alunos === 89,
       [teto('basico'), teto('intermediario')]);
-    /* SÓ O TOPO DECLARA UM NÚMERO, porque não tem degrau acima — e o número está no catálogo. */
+    /* SÓ O TOPO DECLARA UM NÚMERO, porque não tem degrau acima — e o número está no catálogo.
+     * A 17/11/2026 o campo mudou de nome: o teto de GENTE deixou de ser comercial e passou a
+     * REFERÊNCIA interna (`professoresReferencia`), porque a unidade comercial é a aula. O valor
+     * é o mesmo; o nome diz o que ele é. A leitura aceita os dois, e a nota fica aqui para quem
+     * procurar o nome antigo. */
+    const tetoDoCatalogo = (eixo) => {
+      const t = CATALOGO.teto || {};
+      const novo = eixo === 'professores' ? t.professoresReferencia : t.alunosReferencia;
+      return novo != null ? novo : t[eixo];
+    };
     conferir('o topo da escada declara o teto, e ele vem do catálogo',
-      teto('avancado').professores === CATALOGO.teto.professores
-        && teto('avancado').alunos === CATALOGO.teto.alunos, teto('avancado'));
+      teto('avancado').professores === tetoDoCatalogo('professores')
+        && teto('avancado').alunos === tetoDoCatalogo('alunos'), teto('avancado'));
     conferir('…e a escada é coerente: o piso de cada degrau cabe no teto do anterior',
       ['basico', 'intermediario', 'avancado'].every((id) => {
         const p = piso(id); const t2 = teto(id);

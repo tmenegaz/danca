@@ -1365,6 +1365,18 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         + '<span>+' + l.qtd + ' ' + rotulo + ' — R$ '
         + String(l.preco).replace('.', ',') + '/mês</span></label>').join('');
   };
+  /* OS PACOTES DE AULAS (17/11/2026) — as caixas da franquia, com a marca `data-contrato-pacote`.
+   * A lista vem do catálogo (`catalogoDeAulas.pacotesDeAulas`), e não de uma tabela escrita aqui:
+   * um preço repetido no ecrã é um preço que diverge do que o servidor cobra. */
+  const caixasDePacote = (escolhidos) => {
+    const lista = (Array.isArray(escolhidos) ? escolhidos : []).map((p) =>
+      (p && typeof p === 'object' ? String(p.id || '') : String(p || '')));
+    const doCatalogo = (cat && Array.isArray(cat.pacotesDeAulas)) ? cat.pacotesDeAulas : [];
+    return doCatalogo.map((pk) => '<label class="escolha"><input type="checkbox" data-contrato-pacote '
+      + 'data-pacote="' + esc(pk.id) + '"' + (lista.indexOf(String(pk.id)) !== -1 ? ' checked' : '') + '>'
+      + '<span>+' + pk.aulas + ' aulas — R$ ' + String(pk.preco).replace('.', ',') + '/mês</span></label>')
+      .join('');
+  };
 
   const cartaoDaConta = (c) => {
     const meses = Array.isArray(c.meses) ? c.meses : [];
@@ -1458,12 +1470,25 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       '<div class="ficha">' +
       '<span>Plano: <strong>' + esc(c.planoNome || '—') + '</strong></span>' +
       '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
-      '<span>Piso: <strong>' + (gente(piso) ? 'a partir de ' + esc(gente(piso)) : '—') + '</strong></span>' +
-      '<span>Teto do plano: ' + (gente(teto) ? 'até ' + esc(gente(teto)) : '—') + '</span>' +
-      /* O ADICIONAL, ABERTO (16/11/2026). «Está dizendo que foi contratado o avançado, mas não diz
-       * para mim qual é a capacidade extra contratada.» O total não responde à pergunta: o que ela
-       * quer saber é QUANTOS a mais, e quanto custam. */
-      (extraDaCapacidade ? '<span>Além do piso: ' + esc(extraDaCapacidade) + '</span>' : '') +
+      /* A FRANQUIA DE AULAS — O PRIMEIRO NÚMERO DA FICHA (17/11/2026). O eixo comercial passou a
+       * ser a aula (§ADITIVO §1), e é ele que se lê antes de tudo: quanto a escola tem e quanto
+       * usou. Quando a contagem do mês não existe, o `Consumo` NÃO se mostra — dizer «0 de 100»
+       * sobre uma contagem que não se fez seria afirmar que a escola não trabalhou. */
+      '<span>Franquia: <strong>' + (c.franquia && c.franquia.franquia
+        ? c.franquia.franquia + ' aulas/mês' : '—') + '</strong></span>' +
+      (c.franquia && c.franquia.usadas != null && c.franquia.franquia
+        ? '<span>Consumo do mês: <strong>' + esc(String(c.franquia.usadas)) + ' de '
+          + esc(String(c.franquia.franquia)) + '</strong>'
+          + (c.franquia.excedente > 0
+            ? ' <span class="selo falha">' + esc(String(c.franquia.excedente)) + ' excedente(s)</span>'
+            : (c.franquia.estado === 'perto' ? ' <span class="selo discreto">a chegar ao fim</span>' : ''))
+          + '</span>'
+        : '') +
+      /* AS PESSOAS DEIXARAM DE SER UM LIMITE, e por isso deixaram de se chamar piso e teto: o
+       * §ADITIVO §2 proíbe apresentá-las como limite comercial. O número continua dito como
+       * REFERÊNCIA — é custo interno medido, e a controladoria precisa dele —, e não trava nada. */
+      '<span>Referência de tamanho: <strong>' + (gente(piso) ? esc(gente(piso)) : '—') + '</strong></span>' +
+      (extraDaCapacidade ? '<span>Além da referência: ' + esc(extraDaCapacidade) + '</span>' : '') +
       (c.proximoVencimento
         ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
           + (c.diasParaVencer != null
@@ -1530,14 +1555,25 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
        * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
        * upgrade ou downgrade ou nenhuma capacidade extra». */
-      '<details class="acordeao"><summary>Mudar o plano ou a capacidade</summary>' +
+      '<details class="acordeao"><summary>Mudar o plano ou a franquia</summary>' +
       '<div class="col-form" data-contrato="' + esc(c.escola) + '">' +
       '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
       '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
       + '</select></p>' +
-      '<fieldset class="escolhas"><legend class="campo-rotulo">Adicionais (por lote, na ' +
-      'mensalidade)</legend>' + caixasDeLote('professores', 'professor(es)', c.lotesProfessores)
-      + caixasDeLote('alunos', 'aluna(s)', c.lotesAlunos) + '</fieldset>' +
+      /* OS PACOTES DE AULAS — o eixo comercial de hoje (§ADITIVO §5). Cada um soma à franquia do
+       * plano e entra na mesma mensalidade, porque a extensão é recorrente e «somar-se à franquia
+       * do plano em cada renovação mensal». O rótulo diz as aulas e o preço; a regra que fixou os
+       * preços (a aula da extensão custa mais do que a do plano de cima) está no `planos.json`. */
+      '<fieldset class="escolhas"><legend class="campo-rotulo">Pacotes de aulas (na ' +
+      'mensalidade)</legend>' + caixasDePacote(c.pacotes) + '</fieldset>' +
+      /* OS LOTES DE GENTE FICAM PARA OS CONTRATOS ANTIGOS, e não se escondem: uma escola que
+       * comprou lotes em 16/11 continua a pagá-los, e o formulário tem de a poder reproduzir. O
+       * que muda é a legenda — «legado» —, para não parecer que ainda se vendem. */
+      (((cat && cat.lotes) && ((cat.lotes.professores || []).length || (cat.lotes.alunos || []).length))
+        ? '<fieldset class="escolhas"><legend class="campo-rotulo">Adicionais antigos (por lote — '
+          + 'legado, já não se vendem)</legend>' + caixasDeLote('professores', 'professor(es)', c.lotesProfessores)
+          + caixasDeLote('alunos', 'aluna(s)', c.lotesAlunos) + '</fieldset>'
+        : '') +
       '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
       'Gravar o contrato</button></p>' +
       '<p class="aviso" data-contrato-recado hidden></p>' +
@@ -1848,13 +1884,18 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '    for(var m=0;m<lotes.length;m++){if(!lotes[m].checked)continue;' +
   '      var q=Number(lotes[m].getAttribute("data-qtd")||0);' +
   '      if(lotes[m].getAttribute("data-eixo")==="professores")p.push(q);else a.push(q);}' +
+  /* OS PACOTES DE AULAS (17/11/2026) — o eixo comercial de hoje. Vão como a LISTA de ids marcados,
+   * que é o que o servidor espera (`comercial.calcular({pacotes})`); a quantidade por pacote não se
+   * manda porque o catálogo já a diz, e um número que viaja a mais é um número que pode divergir. */
+  '    var pacotes=[],marcados=caixa.querySelectorAll("[data-contrato-pacote]");' +
+  '    for(var n=0;n<marcados.length;n++){if(marcados[n].checked)pacotes.push(marcados[n].getAttribute("data-pacote"));}' +
   '    var recado=caixa.querySelector("[data-contrato-recado]");' +
   '    function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
   '      recado.className=erro?"aviso alerta":"aviso";}' +
   '    b.disabled=true;dizer("a gravar…",false);' +
   '    fetch("/api/financeiro/contrato",{method:"POST",headers:{"Content-Type":"application/json"},' +
   '      body:JSON.stringify({escola:escola,plano:sel?sel.value:"",' +
-  '        lotesProfessores:p,lotesAlunos:a}),cache:"no-store"})' +
+  '        lotesProfessores:p,lotesAlunos:a,pacotes:pacotes}),cache:"no-store"})' +
   '    .then(function(r){return r.json().catch(function(){return {};});})' +
   '    .then(function(d){b.disabled=false;' +
   /* RECARREGA, COMO O PAGAMENTO (17/11/2026). Antes dizia «Recarregue para ver o extrato» — e ela
@@ -2296,14 +2337,45 @@ function blocoDaReceita(r, cambio) {
     ['Recebido no mês', reaisDeCentavos(r.recebidoNoMesCentavos)],
     ['Em aberto (vencido)', reaisDeCentavos(r.emAbertoCentavos)],
   ];
+  /* ── A MESMA RECEITA, LIDA EM AULAS (17/11/2026) ────────────────────────────────────────────
+   *
+   * A unidade comercial passou a ser a AULA (§ADITIVO §1), e esta é a tabela que responde à
+   * pergunta nova: quantas aulas estão vendidas, a quanto sai cada uma, e quantas foram usadas.
+   *
+   * A REGRA DA SOMA INTEIRA. O consumo só aparece quando TODOS os contratos têm contagem
+   * (`contratosComContagem === contratosComFranquia`). Somar os que têm daria um número que parece
+   * o do parque e é parte dele — e o §L9c já pagou uma vez por apresentar uma amostra como se
+   * fosse o total. Enquanto não houver contador de aulas, a linha «Aulas usadas» diz que ainda não
+   * há contagem, em vez de dizer zero. */
+  const a = r.aulas || null;
+  const contagemInteira = a && a.contratosComFranquia > 0
+    && a.contratosComContagem === a.contratosComFranquia;
+  const tabelaDeAulas = a && a.franquiaTotal > 0
+    ? '<div class="rolagem-caixa"><table><thead><tr><th>Aulas</th><th>Valor</th></tr></thead><tbody>' +
+      '<tr><td><strong>Franquia vendida (aulas/mês)</strong></td><td>' + esc(String(a.franquiaTotal)) + '</td></tr>' +
+      '<tr><td><strong>Preço por aula contratada</strong></td><td>' +
+        (a.precoContratadoCentavos != null ? reaisDeCentavos(a.precoContratadoCentavos) : '—') + '</td></tr>' +
+      '<tr><td><strong>Aulas usadas no mês</strong></td><td>' +
+        (contagemInteira
+          ? esc(String(a.usadas)) + ' de ' + esc(String(a.franquiaTotal))
+            + (a.precoUsadoCentavos != null
+              ? ' <span class="sub">(R$ ' + (a.precoUsadoCentavos / 100).toFixed(2).replace('.', ',')
+                + ' por aula usada)</span>' : '')
+          : '<span class="sub">ainda sem contagem de aulas — o contador está planeado</span>') + '</td></tr>' +
+      '</tbody></table></div>'
+    : '';
   return '<div class="caixa" id="monitor-receita">' +
     '<h2>A receita</h2>' +
     '<p>Do mesmo livro que o Financeiro lê: a soma dos contratos em vigor, menos os descontos ' +
     'concedidos. Uma segunda conta da receita daria um segundo número, e o que ficasse a valer ' +
     'seria o que ela lesse primeiro.</p>' +
     '<div class="rolagem-caixa"><table><thead><tr><th>O que</th><th>Valor</th></tr></thead><tbody>' +
-    meses.map(([a, b]) => '<tr><td><strong>' + esc(a) + '</strong></td><td>' + esc(b) + '</td></tr>').join('') +
+    meses.map(([a2, b]) => '<tr><td><strong>' + esc(a2) + '</strong></td><td>' + esc(b) + '</td></tr>').join('') +
     '</tbody></table></div>' +
+    /* O EIXO NOVO, NA MESMA CAIXA: é a mesma receita, e separá-la faria procurar duas vezes. */
+    (tabelaDeAulas
+      ? '<h3>Em aulas — a unidade que se vende desde 17/11/2026</h3>' + tabelaDeAulas
+      : '') +
     '<p class="sub">Escolas com contrato: ' + r.escolas + '. Os descontos são mensais e um por ' +
     'escola — o mais recente é o que vale.</p>' +
     (cambio ? '<p class="sub">Câmbio usado no comparador: US$ 1 = R$ ' +

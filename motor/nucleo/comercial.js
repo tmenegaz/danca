@@ -22,6 +22,9 @@ const CATALOGO = require('../../biblioteca/comercial/planos.json');
 const ASSINATURAS = Array.isArray(CATALOGO.assinaturas) ? CATALOGO.assinaturas : [];
 const LOTES = CATALOGO.lotes || { professores: [], alunos: [] };
 const EXTENSOES = Array.isArray(CATALOGO.extensoes) ? CATALOGO.extensoes : [];
+/** Os pacotes de aulas — o eixo que substituiu os lotes de gente (17/11/2026). */
+const PACOTES = (CATALOGO.pacotesDeAulas && Array.isArray(CATALOGO.pacotesDeAulas.itens))
+  ? CATALOGO.pacotesDeAulas.itens : [];
 
 /** O dinheiro não se guarda em vírgula flutuante, e é por isso que a conta é em cêntimos. */
 function centavos(valor) {
@@ -67,7 +70,7 @@ function lotesDe(eixo) {
  * é RECUSADA (e não arredondada para a mais próxima): um preço que não é o da tabela é um preço
  * que ninguém decidiu.
  */
-function calcular({ assinatura, lotes } = {}) {
+function calcular({ assinatura, lotes, pacotes } = {}) {
   const plano = assinaturaPorId(assinatura);
   if (!plano) return { ok: false, erro: 'escolha um plano' };
   const base = centavos(plano.preco);
@@ -86,6 +89,20 @@ function calcular({ assinatura, lotes } = {}) {
       capacidade += centavos(achado.preco);
     }
   }
+
+  /* OS PACOTES DE AULAS (17/11/2026) — o eixo comercial de hoje. `pacotes` chega como a lista de
+   * ids (`['p','m','p']`), e a mesma disciplina dos lotes vale: um id que não está no catálogo é
+   * RECUSADO, não arredondado. O preço soma-se à mensalidade e é recorrente. */
+  const aulasCompradas = [];
+  const pedidosDeAulas = (pacotes && Array.isArray(pacotes)) ? pacotes : [];
+  for (const bruto of pedidosDeAulas) {
+    const id = String(bruto || '').trim().toLowerCase();
+    const achado = PACOTES.find((x) => String(x.id).toLowerCase() === id);
+    if (!achado) { erros.push('o pacote de aulas «' + bruto + '» não existe na tabela'); continue; }
+    aulasCompradas.push({ id: achado.id, nome: achado.nome, aulas: Number(achado.aulas), preco: centavos(achado.preco) });
+    capacidade += centavos(achado.preco);
+  }
+
   if (erros.length) return { ok: false, erro: erros[0], erros };
 
   const total = base + capacidade;
@@ -97,8 +114,10 @@ function calcular({ assinatura, lotes } = {}) {
       professores: Number(plano.professores) || 0,
       alunos: Number(plano.alunos) || 0,
       consultas: Number(plano.consultas) || 0,
+      aulas: Number(plano.aulas) || 0,
     },
     lotes: escolhidos,
+    pacotes: aulasCompradas,
     baseCentavos: base,
     capacidadeCentavos: capacidade,
     descontoCentavos: 0,
@@ -106,12 +125,16 @@ function calcular({ assinatura, lotes } = {}) {
     base: precoEmTexto(plano.preco),
     capacidade: precoEmTexto(capacidade / 100),
     total: precoEmTexto(total / 100),
-    // O que a escola FICA COM: o incluído mais o que comprou por lote.
+    // O que a escola FICA COM: o incluído mais o que comprou. As pessoas são REFERÊNCIA (ver a
+    // `_nota` do catálogo): contam-se para a controladoria, não para um limite.
     capacidadeTotal: {
       professores: (Number(plano.professores) || 0)
         + escolhidos.professores.reduce((s, l) => s + Number(l.qtd), 0),
       alunos: (Number(plano.alunos) || 0)
         + escolhidos.alunos.reduce((s, l) => s + Number(l.qtd), 0),
+      // A FRANQUIA — o número comercial. É este que a escola lê e que o excedente compara.
+      aulas: (Number(plano.aulas) || 0)
+        + aulasCompradas.reduce((s, x) => s + Number(x.aulas), 0),
     },
     extensoes: extensoesDoPlano(plano.id).map((e) => e.id),
     periodicidade: CATALOGO.periodicidade || 'mês',
@@ -133,6 +156,9 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
   const calculo = calcular({
     assinatura: plano.id,
     lotes: { professores: p.lotesProfessores || [], alunos: p.lotesAlunos || [] },
+    /* OS PACOTES DE AULAS (17/11/2026) — a escolha que a página passou a poder fazer. Vêm como
+     * ids, e o `calcular` recusa um que não exista. */
+    pacotes: Array.isArray(p.pacotes) ? p.pacotes : [],
   });
   if (!calculo.ok) return calculo;
   const dispensado = Boolean(podeDispensar && p.dispensarPagamento);
@@ -143,6 +169,10 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
       planoNome: plano.nome,
       lotesProfessores: calculo.lotes.professores.map((l) => l.qtd),
       lotesAlunos: calculo.lotes.alunos.map((l) => l.qtd),
+      /* OS PACOTES GUARDADOS SÃO OS IDS — é o que o contrato precisa para reconstruir a franquia
+       * sem repetir preços (o preço é do catálogo, e um preço copiado diverge no dia em que a
+       * tabela muda). */
+      pacotes: calculo.pacotes.map((x) => x.id),
       valorCentavos: calculo.totalCentavos,
       valor: calculo.total,
       extensoes: calculo.extensoes,
@@ -151,6 +181,154 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
       pagamento: dispensado ? 'dispensado-pelo-proprietario' : 'pix-a-conciliar',
     },
     calculo,
+  };
+}
+
+/* ── A FRANQUIA DE AULAS — a unidade comercial de 17/11/2026 ────────────────────────────────────
+ *
+ * «A unidade comercial dos planos passa a ser a AULA, expressa como franquia mensal de aulas. […]
+ * uma aula registrada e processada consome uma unidade da franquia, tenha ela um aluno ou mil.»
+ * (§ADITIVO COMERCIAL §1)
+ *
+ * O QUE ISTO SUBSTITUI. O eixo `professores × alunos` do §L9b/C23 cobrava a capacidade de PESSOAS, e
+ * a trava do piso recusava cadastro acima do contratado. O §ADITIVO §2 corta as duas coisas: «não
+ * exibir limites comerciais de professores e alunos na oferta. Não usar essas quantidades para
+ * calcular a mensalidade nem para bloquear a escola». O que fica delas é a MEDIÇÃO — «não é correto
+ * afirmar que fichas de alunos ou registros de professores não custam nada» —, e é por isso que
+ * `professores`/`alunos` continuam no catálogo como referência e continuam a ser contados.
+ *
+ * E A FRANQUIA NÃO É UM TETO QUE BLOQUEIA. É um número que se compara com o que a escola processou:
+ * dentro dele, está pago; acima, há excedente e o excedente paga-se. «Se ela der mais aulas do que o
+ * que ela contratou, tem um excedente. Aí ela tem que pagar pelo excedente» — e por isso o estado
+ * devolve o número, e não uma recusa.
+ */
+
+/** Os pacotes de aulas que o catálogo vende — o que se pode acrescentar à franquia. */
+function pacotesDeAulas() {
+  return PACOTES
+    .filter((x) => x && Number(x.aulas) > 0)
+    .map((x) => ({
+      id: x.id,
+      nome: x.nome,
+      aulas: Number(x.aulas),
+      preco: Number(x.preco),
+      precoTexto: precoEmTexto(x.preco),
+    }));
+}
+
+/** A franquia de um plano, em aulas. `0` quando o plano não existe — e a página diz «—». */
+function franquiaDoPlano(id) {
+  const plano = assinaturaPorId(id);
+  if (!plano) return 0;
+  return Number(plano.aulas) || 0;
+}
+
+/**
+ * A FRANQUIA DE UM CONTRATO — o plano mais os pacotes que a escola comprou.
+ *
+ * `contrato` é o registo comercial (`bastidores/<escola>/comercial`), que guarda `plano` e, quando
+ * os há, `pacotes`. Um contrato anterior a 17/11/2026 não tem `pacotes` e não tem `aulas` — e o que
+ * ele tem é o que vale: a franquia sai do plano do catálogo, e os lotes antigos não a mudam, porque
+ * um lote de gente nunca comprou aulas. Isto é uma leitura, e não uma migração: quem contratou antes
+ * passa a ter a franquia do plano em que está, e é isso que o aditivo quer dizer com «a oferta é
+ * expressa em franquia mensal».
+ */
+function franquiaDoContrato(contrato) {
+  const c = contrato || {};
+  const plano = c.plano || c.assinatura || null;
+  if (!plano) return null;
+  const base = franquiaDoPlano(plano);
+  if (!base) return null;
+  /* OS PACOTES GUARDADOS são ids (`['p','m']`); os registos mais antigos podem ter objectos. As
+   * duas formas somam, e uma quantidade que não existe no catálogo vale zero em vez de rebentar —
+   * um contrato não pode deixar de ser legível porque o catálogo mudou. */
+  const guardados = Array.isArray(c.pacotes) ? c.pacotes : [];
+  let extra = 0;
+  const itens = [];
+  for (const bruto of guardados) {
+    if (bruto && typeof bruto === 'object') {
+      const aulas = Number(bruto.aulas) || 0;
+      extra += aulas;
+      if (aulas) itens.push({ id: bruto.id || null, aulas, preco: Number(bruto.preco) || 0 });
+      continue;
+    }
+    const achado = PACOTES.find((x) => String(x.id).toLowerCase() === String(bruto || '').trim().toLowerCase());
+    if (achado) { extra += Number(achado.aulas); itens.push({ id: achado.id, aulas: Number(achado.aulas), preco: Number(achado.preco) }); }
+  }
+  return { plano, baseAulas: base, aulasExtras: extra, franquia: base + extra, pacotes: itens };
+}
+
+/**
+ * A FRANQUIA CONTRA O CONSUMO — o número que a escola e o painel leem.
+ *
+ * `aulasUsadas` vem de FORA, e é o que mantém esta função pura (mede-se sem KV): quem conta as aulas
+ * é a fonte do ciclo (`-dados.json` → `aulas`), e essa contagem tem um plano próprio
+ * (PLANO-CONTADOR-DE-AULAS.md). Aqui só se compara.
+ *
+ * OS QUATRO ESTADOS, e o corte entre eles é declarado e não estético:
+ *   · `folga`   — abaixo de 80% da franquia. Nada a dizer.
+ *   · `perto`   — de 80% a 100%. O alarme serve para a escola decidir ANTES de passar.
+ *   · `limite`  — exactamente a franquia. Ainda não há excedente.
+ *   · `passou`  — acima. Há excedente, e o excedente paga-se.
+ *
+ * O `excedente` é o número que interessa quando `passou`, e é `0` nos outros três: uma escola dentro
+ * da franquia não deve nada, e dizer-lhe «0 de excedente» é diferente de «não há excedente».
+ */
+function situacaoDaFranquia({ contrato, aulasUsadas } = {}) {
+  const daFranquia = franquiaDoContrato(contrato);
+  if (!daFranquia) return null;
+  const franquia = daFranquia.franquia;
+  /* SEM CONTAGEM NÃO SE INVENTA UM ZERO. `aulasUsadas` ausente (`null`/`undefined`) devolve
+   * `usadas: null` e `estado: null` — o cartão mostra a franquia e cala o consumo. Zero seria uma
+   * afirmação: diria que a escola não lançou nenhuma aula no mês, e sobre uma contagem que não se
+   * fez isso é falso. É a mesma disciplina do `ancora: null` do envelope. */
+  const semContagem = aulasUsadas === null || aulasUsadas === undefined || aulasUsadas === '';
+  if (semContagem) {
+    return {
+      plano: daFranquia.plano,
+      baseAulas: daFranquia.baseAulas,
+      aulasExtras: daFranquia.aulasExtras,
+      franquia,
+      usadas: null,
+      restantes: null,
+      excedente: null,
+      fraccao: null,
+      percentagem: null,
+      estado: null,
+      frase: 'A franquia é de ' + franquia + ' aula(s) por mês. O consumo do mês ainda não é '
+        + 'contado por este ecrã.',
+      pacotes: daFranquia.pacotes,
+    };
+  }
+  const usadas = Math.max(0, Math.round(Number(aulasUsadas) || 0));
+  const fraccao = franquia > 0 ? usadas / franquia : 0;
+  const excedente = Math.max(0, usadas - franquia);
+  let estado = 'folga';
+  if (usadas > franquia) estado = 'passou';
+  else if (usadas === franquia && franquia > 0) estado = 'limite';
+  else if (fraccao >= 0.8) estado = 'perto';
+  const restantes = Math.max(0, franquia - usadas);
+  const frases = {
+    folga: 'Dentro da franquia: ' + restantes + ' aula(s) ainda disponíveis neste mês.',
+    perto: 'A franquia está a chegar ao fim: ' + restantes + ' aula(s) disponíveis. Passando disso, '
+      + 'há excedente.',
+    limite: 'A franquia deste mês está exactamente usada. A próxima aula é excedente.',
+    passou: 'A franquia deste mês foi ultrapassada em ' + excedente + ' aula(s) — as excedentes '
+      + 'são cobradas além da mensalidade.',
+  };
+  return {
+    plano: daFranquia.plano,
+    baseAulas: daFranquia.baseAulas,
+    aulasExtras: daFranquia.aulasExtras,
+    franquia,
+    usadas,
+    restantes,
+    excedente,
+    fraccao: Math.round(fraccao * 1000) / 1000,
+    percentagem: Math.round(fraccao * 100),
+    estado,
+    frase: frases[estado],
+    pacotes: daFranquia.pacotes,
   };
 }
 
@@ -206,7 +384,14 @@ function tetoDoPlano(id) {
     return { professores: Math.max(0, piso.professores - 1), alunos: Math.max(0, piso.alunos - 1) };
   }
   const declarado = CATALOGO.teto || {};
-  return { professores: Number(declarado.professores) || 0, alunos: Number(declarado.alunos) || 0 };
+  /* O TOPO DA ESCADA não tem degrau acima, e a referência de tamanho que ele declara é
+   * `professoresReferencia`/`alunosReferencia` — os nomes antigos (`professores`/`alunos`) ficaram
+   * como apelido porque um registo de catálogo lido por um isolate antigo não pode passar a dizer
+   * zero. Ver a `_nota` do `teto` no catálogo. */
+  return {
+    professores: Number(declarado.professoresReferencia != null ? declarado.professoresReferencia : declarado.professores) || 0,
+    alunos: Number(declarado.alunosReferencia != null ? declarado.alunosReferencia : declarado.alunos) || 0,
+  };
 }
 
 /** Quanto os lotes acrescentam ao piso — `lotes` é a lista de quantidades já escolhidas. */
@@ -287,71 +472,68 @@ function proximoLote(eixo) {
 }
 
 /**
- * A DECISÃO. `cabe: true` quando o cadastro pode seguir; `cabe: false` com a frase pronta quando
- * não pode.
+ * O CADASTRO DE PESSOAS DEIXOU DE SER TRAVADO (17/11/2026) — e a decisão é do §ADITIVO, não minha.
  *
- * Devolve também os números que a página usa para explicar o estado (o piso, o teto, quantos há),
- * e `via` — qual das duas saídas resolve: `lote`, `plano` (os dois), ou `conversa` (já no teto do
- * último degrau, e aí o caminho é falar com a proprietária — a decisão de 15/11/2026).
+ * «Não exibir limites comerciais de professores e alunos na oferta. Não usar essas quantidades para
+ * calcular a mensalidade nem para BLOQUEAR a escola por ter mais pessoas cadastradas.» (¶2)
+ *
+ * O QUE ISTO SUBSTITUI. Até hoje esta função recusava o cadastro acima do piso contratado, com as
+ * duas saídas («acrescente um lote» ou «suba de plano»). Com a unidade comercial na AULA, o piso de
+ * gente deixou de ser uma promessa: uma escola com 30 professoras e 800 alunos que processe 40 aulas
+ * por mês está DENTRO do que contratou, e travá-la por causa das fichas seria cobrar-lhe um eixo que
+ * o aditivo retirou. A franquia de aulas é que mede o consumo, e ela não bloqueia — ela devolve um
+ * excedente que se paga.
+ *
+ * O QUE FICA, E PORQUÊ. A contagem fica: «não é correto afirmar que fichas de alunos ou registros de
+ * professores não custam nada» — o cadastro consome KV, índice e workflow, e a controladoria precisa
+ * do número para decidir migração. O que muda é o uso: em vez de recusar, a função **informa**.
+ *
+ * `cabe` continua a existir e é **sempre `true`**. Mantê-lo não é preciosismo: as duas rotas que
+ * chamam esta função (`bastidores.js`, no cadastro de professor e de aluna) perguntam `if
+ * (!trava.cabe)`, e uma função que deixasse de devolver o campo faria as duas recusarem por
+ * `undefined` — o defeito silencioso exacto que se quer evitar. Quem quiser o aviso lê `aviso`;
+ * quem só quer saber se pode seguir lê `cabe`, e pode.
  */
 function travaDoPiso({ contrato, eixo, cadastrados } = {}) {
   const nome = String(eixo || '');
   if (nome !== 'professores' && nome !== 'alunos') return { cabe: true, motivo: 'eixo desconhecido' };
-  const limites = limitesDoContrato(contrato);
-  if (!limites) return { cabe: true, motivo: 'sem contrato — não há piso contratado' };
 
-  const piso = Number(limites.piso[nome]) || 0;
-  const teto = Number(limites.teto[nome]) || 0;
   const tem = Math.max(0, Math.round(Number(cadastrados) || 0));
-  const rotulo = ROTULOS_DOS_EIXOS[nome];
-  const base = { eixo: nome, piso, teto, cadastrados: tem, plano: limites.plano };
+  const referencia = referenciaDoPlano(contrato, nome);
+  const base = { eixo: nome, cadastrados: tem, referencia };
+  /* `aviso: null` EXPLÍCITO nos dois caminhos de saída. Um consumidor que leia `trava.aviso` e
+   * receba `undefined` faz o mesmo que com `null` — mas um que TESTE `'aviso' in trava` não, e é
+   * essa a diferença entre «não há aviso» e «esta função não sabe dizer». */
+  if (!referencia) return Object.assign({ cabe: true, aviso: null, motivo: 'sem contrato — nada a informar' }, base);
 
-  if (tem < piso) return Object.assign({ cabe: true }, base);
+  /* O AVISO EXISTE PARA A CONTROLADORIA, NÃO PARA A ESCOLA. Uma escola com mais gente do que o
+   * degrau esperava é um dado: pode ser crescimento (e aí o degrau é que está desajustado), pode ser
+   * cadastro a mais de quem não usa. Nenhuma das duas se resolve a recusar o cadastro. */
+  const acima = tem > referencia;
+  return Object.assign({
+    cabe: true,
+    acimaDaReferencia: acima,
+    aviso: acima
+      ? 'Esta escola tem ' + tem + ' ' + ROTULOS_DOS_EIXOS[nome] + ' e o degrau dela esperava cerca de '
+        + referencia + '. Não há bloqueio: a franquia que se cobra é de AULAS. O número fica medido '
+        + 'para a controladoria.'
+      : null,
+  }, base);
+}
 
-  /* DOIS BLOQUEIOS DIFERENTES, E DUAS RESPOSTAS DIFERENTES — e confundi-los foi o defeito da
-   * primeira escrita desta função. O piso cheio e o TETO cheio não são a mesma coisa:
-   *
-   *   · **piso cheio, teto à vista** (`piso <= tem < teto`): há espaço no plano dela, e o que falta
-   *     é contratar. Um lote resolve, e subir de plano também — as duas saídas.
-   *   · **teto cheio** (`tem >= teto`): um lote NÃO resolve, porque o plano não vai além do teto.
-   *     Ou se sobe de degrau, ou — no último degrau — se fala com a proprietária e o preço é
-   *     refeito (a decisão de 15/11/2026).
-   *
-   * Oferecer «acrescente um lote» a quem está no teto seria vender o que não resolve o problema. */
-  const acima = planoAcima(limites.plano);
-  const noTeto = tem >= teto;
-  const ultimoDegrau = acima === null;
-  /* O lote só se oferece quando ele RESOLVE: dentro do teto do plano, comprar abre lugar; no teto,
-   * não abre nada, porque o plano não vai além dele. */
-  const lote = noTeto ? null : proximoLote(nome);
-  /* O que o plano de cima inclui, quando há plano de cima. */
-  const ganho = acima ? pisoDoPlano(acima.id)[nome] : 0;
-  const via = noTeto
-    ? (ultimoDegrau ? 'conversa' : 'plano')
-    : (lote ? (ultimoDegrau ? 'lote' : 'lote-ou-plano') : (ultimoDegrau ? 'conversa' : 'plano'));
-
-  let erro = 'O piso contratado está cheio: esta escola contratou a partir de ' + piso + ' ' + rotulo
-    + ' e já tem ' + tem + '. ';
-  if (via === 'conversa') {
-    erro += 'O teto deste plano é ' + teto + ' ' + rotulo + ' e não há degrau acima — para ir '
-      + 'além, fale com o Sistema Lastro: o preço é refeito para o caso da escola.';
-  } else if (via === 'plano') {
-    erro += 'O teto deste plano é ' + teto + ' ' + rotulo + ': acrescentar um lote não abre mais '
-      + 'lugar, porque o plano não vai além disso. Para cadastrar mais, é subir de plano — o plano '
-      + 'de cima inclui ' + ganho + '. Fale com o Sistema Lastro.';
-  } else if (via === 'lote') {
-    erro += 'Há lugar no plano até ' + teto + ' ' + rotulo + ': acrescente um lote de ' + lote.qtd
-      + ' ' + rotulo + ' (' + lote.precoTexto + ', na mensalidade), no painel Financeiro do '
-      + 'Sistema Lastro.';
-  } else {
-    erro += 'Há duas saídas: acrescentar um lote de ' + lote.qtd + ' ' + rotulo + ' ('
-      + lote.precoTexto + ', na mensalidade) ou subir de plano — o plano de cima inclui ' + ganho
-      + '. Os dois se pedem no painel Financeiro do Sistema Lastro.';
-  }
-
-  return Object.assign({ cabe: false, erro, via, lote, planoAcima: acima ? acima.id : null,
-    tetoCheio: noTeto, saidas: via === 'lote-ou-plano' ? ['lote', 'plano']
-      : (via === 'plano' ? ['plano'] : (via === 'lote' ? ['lote'] : ['conversa'])) }, base);
+/**
+ * A REFERÊNCIA DE TAMANHO de um plano, para um eixo — o que o degrau esperava servir.
+ *
+ * Não é um piso nem um teto: é a expectativa, e o §ADITIVO §2 chama-lhe «custo interno». Devolve
+ * `null` quando não há contrato, para a função acima poder calar-se em vez de inventar um número.
+ */
+function referenciaDoPlano(contrato, eixo) {
+  const c = contrato || {};
+  const plano = c.plano || c.assinatura || null;
+  if (!plano) return null;
+  const p = pisoDoPlano(plano);
+  const n = Number(p[eixo]) || 0;
+  return n > 0 ? n : null;
 }
 
 /** O catálogo como a página o recebe: sem os campos internos de nota. */
@@ -360,13 +542,22 @@ function catalogoDaPagina() {
     moeda: CATALOGO.moeda,
     moeda_simbolo: CATALOGO.moeda_simbolo,
     periodicidade: CATALOGO.periodicidade,
+    // A UNIDADE COMERCIAL, dita uma vez para a página poder escrevê-la sem a inferir.
+    unidade: 'aula',
     assinaturas: ASSINATURAS.map((a) => ({
       id: a.id, nome: a.nome, preco: a.preco, precoTexto: precoEmTexto(a.preco),
-      professores: a.professores, alunos: a.alunos, consultas: a.consultas,
+      // A FRANQUIA é o que se mostra. `professores`/`alunos` vão no `referencia`, para a
+      // controladoria, e a página não os apresenta como limite (o §ADITIVO §2 proíbe).
+      aulas: Number(a.aulas) || 0,
+      referencia: { professores: Number(a.professores) || 0, alunos: Number(a.alunos) || 0 },
+      consultas: a.consultas,
       piso: pisoDoPlano(a.id), teto: tetoDoPlano(a.id),
       resumo: a.resumo, inclui: a.inclui || [],
     })),
+    // Os lotes ficam no catálogo como LEGADO DE LEITURA (ver a `_nota` no JSON): nada novo os
+    // vende, mas um contrato antigo continua a poder ser lido e mostrado.
     lotes: { professores: lotesDe('professores'), alunos: lotesDe('alunos') },
+    pacotesDeAulas: pacotesDeAulas(),
     extensoes: EXTENSOES.map((e) => ({
       id: e.id, nome: e.nome, descricao: e.descricao, em: e.em, preco: e.preco,
     })),
@@ -433,6 +624,11 @@ module.exports = {
   assinaturaPorId,
   extensoesDoPlano,
   lotesDe,
+  pacotesDeAulas,
+  franquiaDoPlano,
+  franquiaDoContrato,
+  situacaoDaFranquia,
+  referenciaDoPlano,
   pisoDoPlano,
   tetoDoPlano,
   limitesDoContrato,
@@ -443,4 +639,5 @@ module.exports = {
   catalogoDaPagina,
   ASSINATURAS,
   EXTENSOES,
+  PACOTES,
 };

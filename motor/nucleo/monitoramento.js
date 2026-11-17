@@ -653,6 +653,40 @@ function receita({ extrato, descontos, mes, agora } = {}) {
   }
 
   const mrr = Math.max(0, bruto - totalDescontos);
+
+  /* ── A LEITURA EM AULAS (17/11/2026) ──────────────────────────────────────────────────────
+   *
+   * A unidade comercial passou a ser a AULA (§ADITIVO §1), e a receita em reais não responde à
+   * pergunta que a decisão nova faz: «quantas aulas vendi, e a quanto sai cada uma?». Os reais
+   * continuam a ser o que entra na conta — o livro é que manda, e não uma segunda aritmética —, e
+   * estes dois números são a MESMA receita lida pelo eixo novo.
+   *
+   * O QUE NÃO SE INVENTA. A franquia soma-se dos contratos (`l.franquia.franquia`, que vem do
+   * catálogo). O CONSUMO só se soma quando existe: enquanto não houver contador de aulas
+   * (PLANO-CONTADOR-DE-AULAS.md), `aulasUsadas` é `null` — e a página cala-o, em vez de dizer que
+   * o parque não trabalhou.
+   *
+   * O PREÇO MÉDIO POR AULA é o número que a decisão comercial usa para comparar degraus, e sai da
+   * divisão certa: reais que entram ÷ aulas vendidas. Se a franquia total for zero (nenhum
+   * contrato com plano), ele é `null` — e não uma divisão por zero disfarçada. */
+  let franquiaAulas = 0;
+  let aulasUsadas = 0;
+  let comContagem = 0;
+  let contratosComFranquia = 0;
+  for (const l of vivas) {
+    const f = l && l.franquia;
+    if (!f || !Number.isFinite(Number(f.franquia))) continue;
+    franquiaAulas += Math.max(0, Number(f.franquia) || 0);
+    contratosComFranquia += 1;
+    if (f.usadas != null) { aulasUsadas += Math.max(0, Number(f.usadas) || 0); comContagem += 1; }
+  }
+  /* A SOMA SÓ VALE SE FOR INTEIRA. Com um contrato contado e outro não, somar os que têm daria um
+   * total que PARECE o do parque e é uma parte dele — o mesmo erro da amostra de 500 execuções, que
+   * esta casa já pagou uma vez. Ou todos contam, ou o número é `null` e a página diz que ainda não
+   * há contagem completa. */
+  const contagemCompleta = contratosComFranquia > 0 && comContagem === contratosComFranquia;
+  const algumaContagem = contagemCompleta;
+
   return {
     escolas: vivas.length,
     mes: competencia || null,
@@ -665,6 +699,19 @@ function receita({ extrato, descontos, mes, agora } = {}) {
     /* O ANO, a partir do mês: uma escola a pagar 12 meses vale 12× o MRR, e é o número que ela
      * precisa para comparar com um custo anual. */
     anualCentavos: mrr * 12,
+    /* O EIXO NOVO — a mesma receita, contada em aulas. */
+    aulas: {
+      contratosComFranquia,
+      contratosComContagem: comContagem,
+      franquiaTotal: franquiaAulas,
+      usadas: algumaContagem ? aulasUsadas : null,
+      /* O preço médio que a escola paga por aula contratada — e não por aula usada: a franquia é
+       * um direito, e o que se compara entre degraus é o preço do direito. */
+      precoContratadoCentavos: franquiaAulas > 0 ? Math.round(mrr / franquiaAulas) : null,
+      /* O preço por aula EFFECTIVAMENTE usada só existe quando há contagem, e é ele que diz se o
+       * degrau está bem dimensionado: uma escola que compra 300 e usa 40 paga caro por aula. */
+      precoUsadoCentavos: algumaContagem && aulasUsadas > 0 ? Math.round(mrr / aulasUsadas) : null,
+    },
   };
 }
 

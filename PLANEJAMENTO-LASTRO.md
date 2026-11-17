@@ -2681,6 +2681,36 @@ no tamanho máximo** (e não as 3 que o §L9c calculava). Mas o §L9c calculou e
 **440** aulas/mês — «20 professores × 1 aula/dia × 22 dias» —, e **110 ≠ 440 é um factor de 4**. Não
 escolho por dedução: é a **C25**.
 
+**11. O que já está implementado — e o que não está** *(acrescento do mesmo dia, 17/11/2026)*.
+
+O aditivo **substituiu a matriz comercial**, e uma matriz comercial em documento não muda o que o
+produto cobra. Foi por isso que uma parte foi implementada **no mesmo dia**, e a outra ficou
+declarada. A fronteira entre as duas é o **contador de aulas**, e ela é explícita:
+
+| peça | estado | onde |
+|:--|:--|:--|
+| O catálogo com as franquias **100 / 300 / 800** e os pacotes **+20 / +50 / +100** a R$ 0,50/aula | **feito** | `biblioteca/comercial/planos.json` — `assinaturas[].aulas`, `pacotesDeAulas` |
+| Os lotes de professores/alunos como **legado de leitura** — nada novo os vende, e um contrato antigo continua legível | **feito** | idem, `lotes._nota` |
+| `franquiaDoPlano`, `franquiaDoContrato`, `situacaoDaFranquia` (os quatro estados e o **excedente**) | **feito** | `motor/nucleo/comercial.js` |
+| **O cadastro deixou de ser travado** pelo plano — `cabe` é sempre `true`, e a referência de tamanho continua medida e avisada | **feito** | `comercial.js → travaDoPiso` |
+| O cartão da escola e o Financeiro do painel mostram **a franquia** e já não chamam «piso/teto» a um limite que não trava | **feito** | `bastidores.js`, `painel-html.js` |
+| O formulário do contrato aceita **pacotes de aulas**, e a rota grava-os | **feito** | `painel-html.js`, `raiz.js` |
+| A receita do monitoramento lida **em aulas** (franquia vendida, preço por aula contratada e usada) | **feito** | `monitoramento.js → receita().aulas` |
+| **O contador de aulas** — somar as aulas processadas por escola e por mês | **NÃO feito, e é o próximo** | `PLANO-CONTADOR-DE-AULAS.md` |
+| O **excedente cobrado** no Financeiro | **não** — depende do contador | — |
+| O botão «criar a aula N» | **não** — está desenhado | `PLANO-CONTADOR-DE-AULAS.md` §5 |
+| A telemetria separada de cadastro e de aulas (§ADITIVO §6) | **não** | — |
+
+**E o que não se fez tem uma razão que não é falta de tempo.** A franquia sem contador é uma
+promessa que não se pode verificar: o cartão mostra «100 aulas por mês» e **cala o consumo**, porque
+`aulasUsadas` chega `null`. Dizer «0 de 100» sobre uma contagem que não se fez seria afirmar que a
+escola não trabalhou. É a mesma regra do `ancora: null`: o campo que não tem produtor sai nulo, e
+não sai zero.
+
+**A aula 01 conta?** A pergunta fica aberta e está registada no plano do contador (§7): pela regra
+— «uma aula conta quando está no `aulas` do `-dados.json`» —, **sim**, e isso significa que um ciclo
+gerado e nunca usado consome uma unidade. É decisão dela.
+
 **Critérios verificáveis.** (xxvii) o painel mostra os minutos faturados da janela e eles batem com
 a fatura da API de uso dentro de 5% — o modelo `jobs × ⌈s/60⌉` é o que se usa, e `timing.billable`
 não se lê; (xxviii) o custo de **um lançamento** aparece como **1 minuto**, e um teste que o force a
@@ -2690,7 +2720,8 @@ uso declarada — nunca da franquia sozinha; (xxxi) o gatilho de migração é a
 2.000 min**, e não o crédito gasto; (xxxii) **o preço da aula de qualquer extensão é maior do que o
 preço da aula de qualquer plano** — a asserção corre sobre a tabela inteira, e uma extensão a R$ 0,30
 tem de reprovar; (xxxiii) o **ponto de viragem** de cada degrau é calculado e exibido, e acima dele o
-plano de cima tem de custar **menos** do que o plano de baixo com extensões de volume equivalente.
+plano de cima tem de custar **menos** do que o plano de baixo com extensões de volume equivalente;
+(xxxiv) o catálogo declara 100 / 300 / 800 e o código não repete nenhum desses números; (xxxv) `travaDoPiso` devolve `cabe: true` para qualquer quantidade de pessoas, e `referencia`/`aviso` quando passa; (xxxvi) a conta devolve `excedente` e nunca uma recusa por franquia; (xxxvii) `situacaoDaFranquia` distingue `usadas: null` de `usadas: 0`; (xxxviii) nenhuma superfície chama «piso» ou «teto» ao número de pessoas; (xxxix) a soma de aulas do parque é `null` quando algum contrato não tem contagem — nunca uma parte apresentada como o todo. Estes seis últimos são os da **implementação de 17/11/2026**, e correm em `experimentos/provar-a-franquia-de-aulas.js` (39 asserções).
 
 **O que esta auditoria NÃO mede, e não pode medir hoje.** (a) **A taxa de uso real de uma escola** —
 não existe nenhuma escola pagante a lançar aulas; o que há são as escolas de teste, e o consumo delas

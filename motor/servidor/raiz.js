@@ -4003,6 +4003,10 @@ async function fetch(request, env) {
       plano: corpo.plano,
       lotesProfessores: Array.isArray(corpo.lotesProfessores) ? corpo.lotesProfessores : [],
       lotesAlunos: Array.isArray(corpo.lotesAlunos) ? corpo.lotesAlunos : [],
+      /* OS PACOTES DE AULAS (17/11/2026) — a franquia que a escola compra além do plano. Sem esta
+       * linha, o pedido chegava ao servidor com os pacotes e eles eram DESCARTADOS em silêncio:
+       * a página mostrava o contrato novo e o extrato continuava a cobrar o antigo. */
+      pacotes: Array.isArray(corpo.pacotes) ? corpo.pacotes : [],
     }, { podeDispensar: false });
     if (!escolhaComercial.ok) {
       return responderJson({ ok: false, erro: escolhaComercial.erro }, 400);
@@ -4017,6 +4021,7 @@ async function fetch(request, env) {
       capacidade: escolha.capacidade,
       lotesProfessores: escolha.lotesProfessores,
       lotesAlunos: escolha.lotesAlunos,
+      pacotes: escolha.pacotes,
       extensoes: escolha.extensoes,
     }, 'proprietario');
     if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);

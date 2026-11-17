@@ -1,5 +1,5 @@
 {
-  "_nota": "OS PARÂMETROS COMERCIAIS, NUM LUGAR SÓ (25/11/2026). É a fonte única que a frente L8 do PLANEJAMENTO-LASTRO.md pede: «transformar a composição comercial (planos, capacidades, adicionais, períodos, descontos) em dado declarado num lugar só — para que o preço exibido, o calculado e o cobrado não divirjam». Nenhum valor desta tabela se repete em código: quem mostra, quem calcula e quem grava leem daqui. Os valores são os da escada DECIDIDA a 10/11/2026 (§L8 e C23), e não uma proposta: 69,90 · 99,90 · 139,90, com a capacidade incluída de 1 prof/10 alunos · 3/40 · 6/90. O lote de capacidade é RECORRENTE — entra na mensalidade, não se paga uma vez. O que fica por decidir está no PLANEJAMENTO (C23: a capacidade incluída subiu e o preço da assinatura não, logo a escada só perde receita).",
+  "_nota": "OS PARÂMETROS COMERCIAIS, NUM LUGAR SÓ (25/11/2026 · reescrito a 17/11/2026 para a unidade AULA). É a fonte única que a frente L8 do PLANEJAMENTO-LASTRO.md pede. A UNIDADE COMERCIAL PASSOU A SER A AULA PROCESSADA (§ADITIVO COMERCIAL de 17/11/2026): a escola contrata uma franquia mensal de aulas (100 · 300 · 800) e não uma quantidade de professores e alunas. As três assinaturas mantêm os nomes e os preços da escada decidida a 10/11/2026 (69,90 · 99,90 · 139,90); o que muda é o eixo contra o qual o preço se lê. OS CAMPOS `professores` E `alunos` JÁ NÃO SÃO LIMITE: são a REFERÊNCIA INTERNA do tamanho de escola que cada degrau espera servir, e existem porque o cadastro de uma pessoa consome recurso medido (KV, índice, workflow) — o §ADITIVO §2 diz que não é correcto afirmar que fichas não custam nada. Não bloqueiam cadastro, não entram na mensalidade e não se mostram à escola como limite. O que se mostra é a franquia de aulas e o consumo dela. O QUE FICA POR DECIDIR: a C25 do PLANEJAMENTO (a escola no tamanho máximo gasta 110 ou 440 aulas/mês) — enquanto não se decide, `teto.aulas` é null e a página não afirma um número que ninguém mediu.",
   "moeda": "BRL",
   "moeda_simbolo": "R$",
   "periodicidade": "mês",
@@ -8,6 +8,7 @@
       "id": "basico",
       "nome": "Básico",
       "preco": 69.9,
+      "aulas": 100,
       "professores": 1,
       "alunos": 10,
       "consultas": 7,
@@ -22,6 +23,7 @@
       "id": "intermediario",
       "nome": "Intermediário",
       "preco": 99.9,
+      "aulas": 300,
       "professores": 3,
       "alunos": 40,
       "consultas": 14,
@@ -36,6 +38,7 @@
       "id": "avancado",
       "nome": "Avançado",
       "preco": 139.9,
+      "aulas": 800,
       "professores": 6,
       "alunos": 90,
       "consultas": 46,
@@ -48,19 +51,32 @@
     }
   ],
   "teto": {
-    "_nota": "O TETO, E PORQUE É QUE SÓ O ÚLTIMO DEGRAU DECLARA UM NÚMERO (16/11/2026). «Qual é o teto de quem contrata o plano intermediário? É o base do plano avançado menos um.» É uma REGRA, e por isso não se copia para o dado: os degraus de baixo têm teto = piso do degrau de cima menos um (`comercial.tetoDoPlano`), e o número muda sozinho se a escada mudar. O Avançado não tem degrau acima, e é o único que precisa de um número declarado — e o número vem da conta da infraestrutura, não do gosto: 20 professores e 500 alunas é o tamanho em que uma escola ocupa ~20% da cota gratuita de Ações do GitHub (20 prof × 1 aula/dia × 22 dias = 440 lançamentos × 54 s medidos = ~396 min/mês de 2.000), e três escolas nesse tamanho ficam dentro dos 70% que sobram para os picos. A conta inteira está em PLANEJAMENTO-LASTRO.md §L9c. Duas decisões de 16/11/2026 fecham o que faltava: (i) o que aperta são as AULAS LANÇADAS — piso de 5 por dia, 3 ou mais por semana por turma — e o custo real por lançamento é de 4 minutos FACTURADOS, porque um «Guardar» dispara quatro jobs e o GitHub arredonda cada job para o minuto: com o derivado consolidado num só job (feito a 16/11/2026, `.github/workflows/derivados.yml`) cada lançamento custa 1 minuto, e a cota gratuita inteira de 2.000 min — a margem de 30% foi retirada em 16/11/2026 — sustenta cinco escolas no caso comum (5 x 390 = 1.950) e dezoito no mínimo declarado; a partir daí o preço é $0,006 por minuto, e a escada de planos (Team $4, Enterprise $21) está no §L9c; (ii) ao chegar a três escolas no teto, muda-se o plano de GitHub/Cloudflare para pago — o teto de cada escola NÃO se encolhe, porque ele é promessa comercial e a conta é decisão de infraestrutura.",
-    "professores": 20,
-    "alunos": 500
+    "_nota": "O TETO, DEPOIS DA UNIDADE AULA (17/11/2026). O teto comercial passou a ser a FRANQUIA DE AULAS somada às extensões: acima dela há excedente, e o excedente paga-se. Os números de professores e alunos que aqui estavam (20 prof / 500 alunas) eram a conta da INFRAESTRUTURA do §L9c — quantas pessoas cabiam na cota gratuita —, e essa conta continua a valer como MEDIÇÃO INTERNA, não como promessa comercial: uma escola com 500 fichas não gasta um minuto de Actions a mais por isso. `aulas` é null porque a C25 está aberta: a mesma escola no tamanho máximo aparece com 110 aulas/mês (a resposta que fechou a C24) e com 440 (§L9c, «20 prof × 1 aula/dia × 22 dias»), e um factor de 4 muda a capacidade de 13 escolas para 3. Não se escreve um teto que ninguém mediu.",
+    "aulas": null,
+    "professoresReferencia": 20,
+    "alunosReferencia": 500
   },
   "lotes": {
-    "_nota": "A CAPACIDADE É UM EIXO ORTOGONAL, e cobra-se por volume (C23). A regra é uma só: triplicar a quantidade custa 5/3 do preço. O lote é RECORRENTE — a mensalidade é `assinatura + Σ lotes`. A capacidade incluída do plano NÃO se desconta do lote: é a tabela decidida, e alterá-la é mudança comercial, não arredondamento.",
+    "_nota": "RETIRADO DO COMERCIAL A 17/11/2026 — NÃO APAGADO, E A RAZÃO É O LIVRO. O eixo professores×alunos deixou de ser comercial (o §ADITIVO §2 manda «não usar essas quantidades para calcular a mensalidade»), mas há CONTRATOS JÁ ESCRITOS que compraram lotes e mesalidades já pagas a esse preço. Apagar a tabela deixaria esses contratos sem forma de se reconstruírem — a página saberia que a escola tem lotes e não saberia quanto custaram. Fica como LEGADO DE LEITURA: `calcular` aceita lotes para reproduzir um contrato antigo, e nada novo os vende. A capacidade que a escola contratou continua a ser lida deles (`comercial.limitesDoContrato`), e continua a ser MOSTRADA — nunca bloqueante.",
     "professores": [
-      { "qtd": 1, "preco": 30 },
-      { "qtd": 3, "preco": 50 }
+      {
+        "qtd": 1,
+        "preco": 30
+      },
+      {
+        "qtd": 3,
+        "preco": 50
+      }
     ],
     "alunos": [
-      { "qtd": 10, "preco": 30 },
-      { "qtd": 30, "preco": 50 }
+      {
+        "qtd": 10,
+        "preco": 30
+      },
+      {
+        "qtd": 30,
+        "preco": 50
+      }
     ]
   },
   "extensoes": [
@@ -68,14 +84,20 @@
       "id": "turma-pronta-configuracao",
       "nome": "Turma pronta — configuração",
       "descricao": "Carregar as turmas iniciais já nomeadas e com o nível de referência. O ritmo (dias, hora, duração, período) NÃO vem: ele é do contrato da escola.",
-      "em": ["basico", "intermediario", "avancado"],
+      "em": [
+        "basico",
+        "intermediario",
+        "avancado"
+      ],
       "preco": 0
     },
     {
       "id": "turma-pronta-conteudo",
       "nome": "Turma pronta — configuração e conteúdo",
       "descricao": "Além da configuração, o conteúdo pedagógico das turmas é gerado. É o cliente que escolhe se quer gerar ou só configurar.",
-      "em": ["avancado"],
+      "em": [
+        "avancado"
+      ],
       "preco": 0
     }
   ],
@@ -83,5 +105,28 @@
     "_nota": "A POLÍTICA DE DESCONTO GERAL NÃO ESTÁ FECHADA (§L8, risco (b)): a regra de 5/10/20% «em relação ao preço mensal de referência» e a soma com adicionais precisam de uma ordem declarada. Por isso a tabela vai vazia e o calculador NÃO desconta: um desconto inventado num dado é um preço errado que ninguém sabe de onde veio. O DESCONTO QUE EXISTE É OUTRO (25/11/2026), e não é um percentual de tabela: é concedido ESCOLA A ESCOLA, à mão, no ecrã Financeiro do painel, com valor, data e razão — mora em `financeiro/descontos`, no KV, e não neste catálogo, porque é um facto sobre um cliente e não uma regra de preço.",
     "porPeriodo": {},
     "avista": null
+  },
+  "pacotesDeAulas": {
+    "_nota": "AS EXTENSÕES DE AULAS (§ADITIVO §5), medidas a R$ 0,50 por aula. O preço não é um custo a minimizar: é um COMANDO que escolhe onde a migração acontece. A regra que ele cumpre é a da proprietária: «o custo unitário da aula da extensão é maior do que o custo unitário da aula do próximo plano». A aula do Intermediário custa R$ 0,333 e a do Avançado R$ 0,175; a R$ 0,50 a extensão é mais cara do que o degrau para onde se migraria, e mais barata do que a aula do Básico (R$ 0,699) — no degrau de entrada ela melhora o preço médio de quem a compra. Consequência medida: a migração do Básico acontece às 160 aulas (160 de 300, 53% da franquia) e a do Intermediário às 380 (de 800, 48%). Abaixo do ponto de viragem o desembolso manda e a extensão ganha; acima, o preço por aula manda e o plano ganha. A R$ 0,20 (uma proposta anterior) a extensão ficaria MAIS BARATA do que a aula do Intermediário e ninguém migraria nunca — é o que a prova `provar-o-custo-de-uma-aula` reprova. Sobre o Avançado não há degrau acima: a extensão custa 2,86× a aula do próprio plano, e é declarado — acima de 800 aulas a conversa é com a proprietária.",
+    "itens": [
+      {
+        "id": "p",
+        "nome": "Pacote pequeno",
+        "aulas": 20,
+        "preco": 10
+      },
+      {
+        "id": "m",
+        "nome": "Pacote médio",
+        "aulas": 50,
+        "preco": 25
+      },
+      {
+        "id": "g",
+        "nome": "Pacote grande",
+        "aulas": 100,
+        "preco": 50
+      }
+    ]
   }
 }

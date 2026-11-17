@@ -2,34 +2,41 @@
 'use strict';
 
 /*
- * provar-piso.js — o piso contratado é uma trava do MOTOR, e a recusa nomeia as saídas
- * (16/11/2026).
+ * provar-piso.js — O CADASTRO NÃO É TRAVADO PELO PLANO; A FRANQUIA DE AULAS É QUE MEDE
+ * (16/11/2026, revisto a 17/11/2026 depois de a decisão ser revogada).
  *
- * O QUE ELA DECIDIU, e são três frases que só fazem sentido juntas:
+ * A HISTÓRIA, porque esta prova mudou de sentido e o registo tem de o dizer.
  *
- *   «Capacidade dá ideia de teto […] O nosso não é capacidade, o nosso é a partir de.» — o número
- *   do plano é o PISO que a escola contratou, não um máximo que ela tem.
+ *   · **16/11/2026 — a decisão que esta prova nasceu a medir.** «Capacidade dá ideia de teto […] O
+ *     nosso não é capacidade, o nosso é a partir de» e «Coloca no motor, sem dúvida». O piso
+ *     contratado (1 professor e 10 alunas no Básico) passou a ser uma TRAVA: acima dele o cadastro
+ *     era RECUSADO com 409, e a frase nomeava as duas saídas — comprar um lote ou subir de plano.
  *
- *   «Coloca no motor, sem dúvida.» — o piso não fica no ecrã: acima dele, o cadastro de professor
- *   e de aluna é RECUSADO. E a recusa é do servidor, porque «a interface não será considerada
- *   mecanismo suficiente de controle de acesso» (§L9b, citando a estratégia).
+ *   · **17/11/2026 — a decisão que a revogou, e é dela.** O ADITIVO COMERCIAL mudou a unidade de
+ *     contratação para a AULA PROCESSADA e disse, com todas as letras: «Não exibir limites
+ *     comerciais de professores e alunos na oferta. Não usar essas quantidades para calcular a
+ *     mensalidade nem para BLOQUEAR a escola por ter mais pessoas cadastradas.» (¶2)
  *
- *   E a regra da própria frente: a recusa NÃO diz «o Básico não permite dois professores» — diz
- *   que o piso está cheio e nomeia as duas saídas, porque «mensagens diferentes para o mesmo
- *   bloqueio escondem que a primeira é reversível».
+ * PORQUE É QUE A REVOGAÇÃO É CORRECTA, e não um capricho: uma escola com 30 professoras e 800
+ * alunas que processe 40 aulas por mês está DENTRO do que contratou. Travá-la por causa das fichas
+ * seria cobrar-lhe um eixo que já não existe — e o eixo que existe, a franquia, não bloqueia: ele
+ * devolve um EXCEDENTE que se paga («se ela der mais aulas do que o que ela contratou, tem um
+ * excedente. Aí ela tem que pagar pelo excedente»).
  *
- * O QUE ESTA PROVA MEDE:
+ * O QUE FICA DA DECISÃO ANTIGA, e continua a valer: a CONTAGEM. «Não é correto afirmar que fichas
+ * de alunos ou registros de professores não custam nada» — o cadastro consome KV, índice e
+ * workflow, e a controladoria precisa do número para decidir migração. O que muda é o USO do
+ * número: informa, não recusa.
  *
- *   A. A DECISÃO, pura: abaixo do piso cabe; no piso não cabe; no TETO a resposta é outra e não
- *      oferece um lote que não resolveria; no último degrau, a saída é a conversa.
- *   B. OS DOIS EIXOS NAS ROTAS: um professor a mais é 409 no Básico cheio; uma aluna a mais é 409
- *      quando o cadastro está cheio. E o que NÃO se recusa: a edição, a repetição (que tem uma
- *      mensagem mais específica) e a escola sem contrato.
- *   C. AS CONTAGENS SÃO AS DA FRENTE: o principal conta como um (vive no secret, não na lista), o
- *      desligado NÃO conta (está no registo por proveniência, e não ocupa lugar), e a aluna conta
- *      pelo CADASTRO — não pelo elenco.
- *   D. A RECUSA É LEGÍVEL: a frase tem o número do piso, o número que há, e as saídas; e a
- *      resposta traz os campos que o ecrã usa, em vez de uma string sem números.
+ * O QUE ESTA PROVA MEDE AGORA:
+ *
+ *   A. A DECISÃO, pura: `cabe` é SEMPRE `true` — inclusive acima da referência, no eixo das
+ *      alunas e no último degrau. E a referência continua a ser calculada, com aviso quando passa.
+ *   B. AS ROTAS: cadastrar um professor no Básico cheio é 201, e não 409. A escrita ACONTECE.
+ *   C. AS ROTAS, eixo das alunas: 201 também — o eixo morreu nos dois lados.
+ *   D. A FRANQUIA, que é o eixo que ficou: folga, perto, limite e passou; o excedente é o número
+ *      que se cobra, e os pacotes somam-se à franquia do plano.
+ *   E. A PÁGINA: não apresenta professores nem alunas como limite, e diz a franquia de aulas.
  *
  *   node experimentos/provar-piso.js
  */
@@ -140,121 +147,86 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
 });
 
 (async () => {
-  console.log('A. A decisão, no núcleo: o piso, o teto, e as saídas certas');
+  console.log('A. A decisão, no núcleo: `cabe` é sempre verdadeiro — e a referência continua medida');
   {
     const noPiso = (contrato, eixo, n) => comercial.travaDoPiso({ contrato, eixo, cadastrados: n });
     const basico = { plano: 'basico', capacidade: { professores: 1, alunos: 10 } };
 
-    conferir('abaixo do piso, o cadastro passa',
+    conferir('abaixo da referência, o cadastro passa',
       noPiso(basico, 'professores', 0).cabe === true && noPiso(basico, 'alunos', 9).cabe === true,
       noPiso(basico, 'professores', 0));
-    conferir('no piso, o cadastro não passa',
-      noPiso(basico, 'professores', 1).cabe === false && noPiso(basico, 'alunos', 10).cabe === false,
-      noPiso(basico, 'alunos', 10));
+    /* O CORAÇÃO DA REVOGAÇÃO: no piso, ACIMA do piso e muito acima, a resposta é a mesma — passa. */
+    conferir('NA referência, acima dela e muito acima, o cadastro passa sempre',
+      [1, 2, 10, 100].every((n) => noPiso(basico, 'professores', n).cabe === true),
+      [1, 2, 10, 100].map((n) => noPiso(basico, 'professores', n).cabe));
+    conferir('…e o eixo das alunas responde o mesmo que o dos professores',
+      [10, 11, 500].every((n) => noPiso(basico, 'alunos', n).cabe === true),
+      [10, 11, 500].map((n) => noPiso(basico, 'alunos', n).cabe));
 
-    /* AS DUAS SAÍDAS, com números: o lote mais pequeno do eixo e o que o plano de cima inclui. */
-    const noPisoBasico = noPiso(basico, 'professores', 1);
-    conferir('a recusa nomeia as DUAS saídas — o lote e o plano de cima',
-      /duas saídas/i.test(noPisoBasico.erro) && /lote de 1/.test(noPisoBasico.erro)
-        && /R\$ 30,00/.test(noPisoBasico.erro) && /plano de cima inclui 3/.test(noPisoBasico.erro),
-      noPisoBasico.erro);
-    conferir('…e a frase diz o piso e quantos já há, em vez de só recusar',
-      /a partir de 1 professor/.test(noPisoBasico.erro) && /já tem 1/.test(noPisoBasico.erro),
-      noPisoBasico.erro);
-    conferir('…e a resposta traz os números para o ecrã, não uma string solta',
-      noPisoBasico.piso === 1 && noPisoBasico.teto === 2 && noPisoBasico.cadastrados === 1
-        && JSON.stringify(noPisoBasico.saidas) === JSON.stringify(['lote', 'plano']), noPisoBasico);
+    /* A CONTAGEM NÃO SE PERDEU: «não é correto afirmar que fichas não custam nada». */
+    const dentro = noPiso(basico, 'alunos', 8);
+    const fora = noPiso(basico, 'alunos', 50);
+    conferir('a referência do plano continua a ser calculada e devolvida',
+      dentro.referencia === 10 && fora.referencia === 10, { dentro: dentro.referencia, fora: fora.referencia });
+    conferir('…e passar da referência produz um AVISO, e não uma recusa',
+      fora.cabe === true && fora.acimaDaReferencia === true && Boolean(fora.aviso)
+        && dentro.acimaDaReferencia === false && dentro.aviso === null,
+      { dentro: dentro.aviso, fora: fora.aviso && fora.aviso.slice(0, 60) });
+    /* O AVISO NOMEIA A FRANQUIA — senão a escola procuraria um limite de gente que já não existe. */
+    conferir('o aviso diz que não há bloqueio e que o que se cobra é a AULA',
+      /não há bloqueio/i.test(fora.aviso || '') && /AULAS/i.test(fora.aviso || ''), fora.aviso);
+    conferir('…e não traz a palavra «capacidade» nem a frase proibida',
+      !/capacidade/i.test(fora.aviso || '') && !/não permite/i.test(fora.aviso || ''), fora.aviso);
 
-    /* NO TETO A RESPOSTA É OUTRA: comprar lote não abre lugar nenhum. */
-    const noTeto = noPiso(basico, 'professores', 2);
-    conferir('no teto do plano, a recusa NÃO oferece um lote — porque um lote não resolveria',
-      noTeto.cabe === false && noTeto.tetoCheio === true && noTeto.lote === null
-        && /não abre mais lugar/i.test(noTeto.erro)
-        && !/acrescentar um lote de/.test(noTeto.erro), noTeto.erro);
-    conferir('…e a saída é subir de plano, com o que o plano de cima inclui',
-      JSON.stringify(noTeto.saidas) === JSON.stringify(['plano'])
-        && /plano de cima inclui 3/.test(noTeto.erro), noTeto.erro);
+    /* NO ÚLTIMO DEGRAU não há degrau acima — e isso já não muda nada, porque nada bloqueia. */
+    const avancado = { plano: 'avancado', capacidade: { professores: 9, alunos: 120 } };
+    conferir('no último degrau, acima da referência também passa',
+      noPiso(avancado, 'professores', 40).cabe === true, noPiso(avancado, 'professores', 40));
 
-    /* NO ÚLTIMO DEGRAU NÃO HÁ PLANO ACIMA — e a frase não inventa um botão. */
-    const ultimo = noPiso({ plano: 'avancado', capacidade: { professores: 20, alunos: 500 } }, 'professores', 20);
-    conferir('no último degrau, a saída é falar com a proprietária — não um plano que não existe',
-      ultimo.cabe === false && JSON.stringify(ultimo.saidas) === JSON.stringify(['conversa'])
-        && /fale com o Sistema Lastro/i.test(ultimo.erro), ultimo.erro);
-
-    /* E O PISO CHEIO COM TETO À VISTA: há lugar no plano dela, e só um lote resolve. */
-    const avancado = noPiso({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } }, 'professores', 9);
-    conferir('com lugar até ao teto do plano, um lote resolve — e é o lote que se oferece',
-      avancado.cabe === false && avancado.tetoCheio === false
-        && JSON.stringify(avancado.saidas) === JSON.stringify(['lote']) && /até 20 professor/.test(avancado.erro),
-      avancado.erro);
-
-    /* SEM CONTRATO NÃO SE INVENTA LIMITE. */
-    conferir('sem contrato, nada é recusado — não há piso prometido',
-      noPiso(null, 'professores', 50).cabe === true && noPiso(null, 'alunos', 500).cabe === true, null);
-    conferir('…e um contrato sem plano também não trava',
-      noPiso({ estado: 'ativa' }, 'alunos', 99).cabe === true, null);
-    /* UM EIXO DESCONHECIDO NÃO DERRUBA A ROTA. */
-    conferir('um eixo desconhecido não é uma recusa — é uma pergunta que não se faz',
-      noPiso(basico, 'turmas', 99).cabe === true, null);
+    /* SEM CONTRATO e EIXO DESCONHECIDO continuam a passar, e sem aviso — não se inventa um número. */
+    conferir('sem contrato, nada é recusado nem avisado',
+      noPiso(null, 'professores', 99).cabe === true && noPiso(null, 'professores', 99).aviso === null, null);
+    conferir('…e um eixo desconhecido não é uma pergunta que se faça',
+      noPiso(basico, 'salas', 99).cabe === true, noPiso(basico, 'salas', 99));
   }
 
-  console.log('\nB. As rotas: um professor a mais é recusado, e o principal conta');
+  console.log('\nB. As rotas: um professor a mais NÃO é recusado, e a escrita acontece');
   {
-    /* O BÁSICO INCLUI 1 PROFESSOR — e o principal é um. Logo, cadastrar o primeiro adicional é
-     * recusado: é a tradução comercial de «o Básico é uma turma, um professor». */
+    /* O CONTRATO DO BÁSICO É DE 1 PROFESSOR, e o principal é um. Até 16/11 isto era 409; a partir
+     * de 17/11 é 201, e a lista do KV cresce — que é o que se mede. */
     const kv = kvFalso({ 'bastidores/breu/comercial': CONTRATO('basico', 1, 10) });
     const env = envCom(kv);
 
     const primeiro = await pedir(env, '/api/bastidores/professor', 'POST',
       comSenha({ nome: 'Ana', sobrenome: 'Diag', senha: 'x1' }));
-    conferir('no Básico com o principal, cadastrar um professor é recusado (409)',
-      primeiro.status === 409 && primeiro.dados.ok === false, primeiro);
-    conferir('…e a recusa chega à tela com a frase que nomeia as saídas',
-      /piso contratado está cheio/i.test(primeiro.dados.erro || '')
-        && /duas saídas/i.test(primeiro.dados.erro || ''), primeiro.dados.erro);
-    /* NADA FOI ESCRITO: a recusa acontece antes, e o KV fica como estava. */
-    conferir('…e não houve escrita nenhuma: a lista do KV continua vazia',
-      (await kv.get('bastidores/breu/professores')) === null, await kv.get('bastidores/breu/professores'));
-
-    /* COMPRAR UM LOTE LIBERTA — sem tocar nos dados, que é o critério (viii) do §L9b. */
-    await kv.put('bastidores/breu/comercial', CONTRATO('basico', 4, 10));
-    const depoisDoLote = await pedir(env, '/api/bastidores/professor', 'POST',
-      comSenha({ nome: 'Ana', sobrenome: 'Diag', senha: 'x1' }));
-    conferir('acrescentar um lote liberta o cadastro, sem tocar nos dados',
-      depoisDoLote.status === 201, depoisDoLote.status);
+    conferir('no Básico com o principal, cadastrar um professor passa (201)',
+      primeiro.status === 201, primeiro);
     const lista = JSON.parse((await kv.get('bastidores/breu/professores')) || '[]');
-    conferir('…e o professor entrou na lista', lista.length === 1 && lista[0].slug === 'ana-diag', lista);
+    conferir('…E a escrita aconteceu — não é um 201 vazio', lista.length === 1 && lista[0].slug === 'ana-diag', lista);
 
-    /* O DESLIGADO NÃO OCUPA LUGAR: fica no registo (proveniência), mas não conta para o piso.
-     * O contrato é de DOIS professores (o principal + um lote) e há um desligado na lista: se ele
-     * contasse, o piso estava cheio e o cadastro seria recusado. Ele passa — e é isso que se mede. */
-    const kv2 = kvFalso({
-      'bastidores/breu/comercial': CONTRATO('basico', 2, 10),
-      'bastidores/breu/professores': JSON.stringify([
-        { nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h', desligado_em: '2026-11-01' },
-      ]),
-    });
-    const env2 = envCom(kv2);
-    const comDesligado = await pedir(env2, '/api/bastidores/professor', 'POST',
+    /* O SEGUNDO TAMBÉM, e o terceiro: o limite de gente deixou de existir nos dois sentidos. */
+    const segundo = await pedir(env, '/api/bastidores/professor', 'POST',
       comSenha({ nome: 'Bia', sobrenome: 'Nova', senha: 'x2' }));
-    conferir('um professor desligado não ocupa lugar no piso', comDesligado.status === 201, comDesligado.status);
+    conferir('…e o segundo também, com o mesmo contrato de um',
+      segundo.status === 201, segundo.status);
+    const tres = JSON.parse((await kv.get('bastidores/breu/professores')) || '[]');
+    conferir('…e os dois estão na lista', tres.length === 2, tres.map((p) => p.slug));
 
-    /* E A REACTIVAÇÃO DO MESMO NOME TAMBÉM PASSA, com um lugar livre: ela não é uma pessoa nova,
-     * e o registo do desligamento não é uma colisão (a rota substitui-o e limpa o desligamento).
-     * Numa bancada própria porque a de cima já encheu o piso com o cadastro anterior. */
-    const kv3 = kvFalso({
-      'bastidores/breu/comercial': CONTRATO('basico', 2, 10),
+    /* O DESLIGADO continua a contar em tudo o que contava, e o que ele já não faz é bloquear —
+     * mas a reactivação do mesmo nome continua a passar, que era a outra metade da regra. */
+    const kv2 = kvFalso({
+      'bastidores/breu/comercial': CONTRATO('basico', 1, 10),
       'bastidores/breu/professores': JSON.stringify([
         { nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h', desligado_em: '2026-11-01' },
       ]),
     });
-    const volta = await pedir(envCom(kv3), '/api/bastidores/professor', 'POST',
+    const volta = await pedir(envCom(kv2), '/api/bastidores/professor', 'POST',
       comSenha({ nome: 'Ana', sobrenome: 'Diag', senha: 'x3' }));
     conferir('…e o desligado pode voltar — a reactivação não colide consigo',
       volta.status === 201 || volta.status === 200, volta.status);
   }
 
-  console.log('\nC. As rotas: a aluna conta pelo CADASTRO, e a repetição responde primeiro');
+  console.log('\nC. As rotas, eixo das alunas: o limite morreu nos dois lados');
   {
     const dez = Array.from({ length: 10 }, (_, i) => 'aluna' + i);
     const kv = kvFalso({
@@ -263,69 +235,74 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
     });
     const env = envCom(kv);
     const maisUma = await pedir(env, '/api/bastidores/aluna', 'POST', comSenha({ apelido: 'nova' }));
-    conferir('com o cadastro de alunas no piso, mais uma é recusada (409)',
-      maisUma.status === 409 && /aluna/.test(maisUma.dados.erro || ''), maisUma);
-    conferir('…e a recusa do eixo das alunas fala de alunas, não de professores',
-      /aluna\(s\)/.test(maisUma.dados.erro || '') && !/professor/.test(maisUma.dados.erro || ''),
-      maisUma.dados.erro);
-    /* A REPETIÇÃO TEM UMA MENSAGEM MAIS ESPECÍFICA — e ela vem primeiro. */
+    conferir('com o cadastro de alunas no limite antigo, mais uma entra (201)',
+      maisUma.status === 201, maisUma);
+    const lista = JSON.parse((await kv.get('bastidores/breu/alunas')) || '[]');
+    conferir('…e está na lista — a décima primeira aluna existe', lista.length === 11 && lista.indexOf('nova') !== -1, lista.length);
+    /* A REPETIÇÃO CONTINUA A RESPONDER POR SI: ela é um erro de dado, e não uma questão de plano. */
     const repetida = await pedir(env, '/api/bastidores/aluna', 'POST', comSenha({ apelido: 'aluna3' }));
-    conferir('a aluna que já existe responde pela repetição, e não pelo piso',
+    conferir('a aluna que já existe responde pela repetição — esse erro não mudou',
       repetida.status === 409 && /já existe uma aluna com este apelido/.test(repetida.dados.erro || ''),
       repetida.dados.erro);
-    /* COM UM LUGAR LIVRE, ENTRA. */
-    await kv.put('bastidores/breu/comercial', CONTRATO('basico', 1, 11));
-    const comLugar = await pedir(env, '/api/bastidores/aluna', 'POST', comSenha({ apelido: 'nova' }));
-    conferir('com um lugar no piso, a aluna entra', comLugar.status === 201, comLugar.status);
   }
 
-  console.log('\nD. O que a trava NÃO faz: sem contrato, edição, e o que já existe');
+  console.log('\nD. A franquia de aulas — o eixo que ficou, e o excedente que se cobra');
   {
-    /* SEM CONTRATO: a escola anterior à camada comercial continua a cadastrar. */
-    const kv = kvFalso({});
-    const env = envCom(kv);
-    const semContrato = await pedir(env, '/api/bastidores/professor', 'POST',
-      comSenha({ nome: 'Ana', sobrenome: 'Diag', senha: 'x1' }));
-    conferir('sem contrato, o cadastro segue — não se inventa um limite que ninguém contratou',
-      semContrato.status === 201, semContrato.status);
+    /* O BÁSICO SÃO 100 AULAS. Os quatro estados têm fronteiras declaradas: 80% é «perto». */
+    const contrato = { plano: 'basico' };
+    const situacao = (n) => comercial.situacaoDaFranquia({ contrato, aulasUsadas: n });
+    conferir('a franquia do Básico é 100 aulas, e vem do catálogo',
+      situacao(0).franquia === 100 && comercial.franquiaDoPlano('basico') === 100, situacao(0).franquia);
+    conferir('aos 79 o estado é «folga» e aos 80 é «perto» — o corte é declarado',
+      situacao(79).estado === 'folga' && situacao(80).estado === 'perto',
+      [situacao(79).estado, situacao(80).estado]);
+    conferir('aos 100 o estado é «limite», e o excedente ainda é 0',
+      situacao(100).estado === 'limite' && situacao(100).excedente === 0, situacao(100));
+    /* O EXCEDENTE É O NÚMERO QUE SE COBRA — «se ela der mais aulas… tem um excedente… tem que pagar». */
+    const passou = situacao(140);
+    conferir('aos 140 o estado é «passou», e o excedente é 40',
+      passou.estado === 'passou' && passou.excedente === 40 && passou.restantes === 0, passou);
+    conferir('…e a frase diz que as excedentes são cobradas além da mensalidade',
+      /cobradas além da mensalidade/i.test(passou.frase || ''), passou.frase);
+    /* DENTRO DA FRANQUIA NÃO SE DEVE NADA — e a frase diz quantas restam, que é o que a escola quer. */
+    conferir('dentro da franquia o excedente é 0 e a frase diz quantas restam',
+      situacao(40).excedente === 0 && /60 aula\(s\) ainda disponíveis/.test(situacao(40).frase || ''),
+      situacao(40).frase);
 
-    /* A EDIÇÃO NÃO É CADASTRO: a rota do `editar` sai antes da trava. */
-    const kv2 = kvFalso({
-      'bastidores/breu/comercial': CONTRATO('basico', 1, 10),
-      'bastidores/breu/professores': JSON.stringify([{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h' }]),
-    });
-    const env2 = envCom(kv2);
-    const editar = await pedir(env2, '/api/bastidores/professor', 'POST',
-      comSenha({ editar: 'ana-diag', nome: 'Ana', sobrenome: 'Diag', senha: 'nova' }));
-    conferir('editar um professor que já existe passa, mesmo com o piso cheio',
-      editar.status === 200, editar);
-    /* E O QUE JÁ EXISTE NÃO É APAGADO PELA RECUSA — o critério (vii) do §L9b. */
-    const aindaLa = JSON.parse(await kv2.get('bastidores/breu/professores'));
-    conferir('…e nada foi removido da lista por causa de uma recusa', aindaLa.length === 1, aindaLa);
+    /* OS PACOTES SOMAM-SE À FRANQUIA — e o preço é o da tabela, não um cálculo à mão. */
+    const comPacote = comercial.situacaoDaFranquia({ contrato: { plano: 'basico', pacotes: ['p'] }, aulasUsadas: 110 });
+    conferir('um pacote de +20 leva a franquia do Básico a 120',
+      comPacote.franquia === 120 && comPacote.aulasExtras === 20, comPacote.franquia);
+    conferir('…e aos 110 a escola está em «perto», não em excedente',
+      comPacote.estado === 'perto' && comPacote.excedente === 0, comPacote.estado);
+    conferir('…e aos 130 o excedente é 10, contando já o pacote',
+      comercial.situacaoDaFranquia({ contrato: { plano: 'basico', pacotes: ['p'] }, aulasUsadas: 130 }).excedente === 10,
+      null);
 
-    /* A RECUSA É DO SERVIDOR, E NÃO DA TELA: sem a senha da direção, nem chega a ela. */
-    const semSenha = await pedir(env2, '/api/bastidores/professor', 'POST', { nome: 'X', senha: 'y' });
-    conferir('sem a senha da direção, a rota responde 401 antes de qualquer trava',
-      semSenha.status === 401, semSenha.status);
+    /* A CONTA DO PREÇO: os pacotes a R$ 0,50/aula, e a regra que os fixou. */
+    const pacotes = comercial.pacotesDeAulas();
+    conferir('os três pacotes são +20/+50/+100 e custam R$ 10 / R$ 25 / R$ 50',
+      pacotes.map((x) => x.aulas).join(',') === '20,50,100'
+        && pacotes.map((x) => x.preco).join(',') === '10,25,50', pacotes);
+    const porAula = pacotes.map((x) => x.preco / x.aulas);
+    conferir('…e todos custam R$ 0,50 por aula — um preço, não três',
+      porAula.every((v) => Math.abs(v - 0.5) < 1e-9), porAula);
+    /* A REGRA DELA, medida: a aula da extensão é mais caro do que a do plano de CIMA. */
+    const porAulaDoPlano = (id) => comercial.assinaturaPorId(id).preco / comercial.franquiaDoPlano(id);
+    conferir('a aula da extensão (R$ 0,50) é mais cara do que a do Intermediário (R$ 0,333)',
+      0.5 > porAulaDoPlano('intermediario'), porAulaDoPlano('intermediario'));
+    conferir('…e mais do que a do Avançado (R$ 0,175)',
+      0.5 > porAulaDoPlano('avancado'), porAulaDoPlano('avancado'));
+    /* O CONTRATO É QUE MANDA NA CONTA: um pacote com o preço da tabela, somado à mensalidade. */
+    const calculo = comercial.calcular({ assinatura: 'basico', pacotes: ['p'] });
+    conferir('Básico + 1 pacote = R$ 79,90 e 120 aulas',
+      calculo.total === 'R$ 79,90' && calculo.capacidadeTotal.aulas === 120, calculo.total);
+    conferir('…e um pacote que não existe é RECUSADO, não arredondado',
+      comercial.calcular({ assinatura: 'basico', pacotes: ['zzz'] }).ok === false, null);
   }
 
-  console.log('\nE. O número do piso NÃO se repete nos formulários — ele vive em «A escola»');
+  console.log('\nE. A página: a franquia é o que se mostra, e o cadastro não traz limite');
   {
-    /* A DECISÃO DELA, E É DE LIMPEZA (17/11/2026):
-     *
-     *   «Você está dizendo que professores eu tenho um de nove e que o plano vai até 20 […] e
-     *   embaixo dizendo que ainda tem oito lugares. Não tem sentido. […] o limite são 20. […] O
-     *   contador, um professor de nove também não precisa nem estar ali. […] E essa informação não
-     *   pode estar aqui em alunas e nem em professores. Só lá na escola, fica sujo, fica
-     *   poluído. […] pode tirar.»
-     *
-     * E há uma razão de DESENHO por baixo da limpeza: o piso é uma garantia MÍNIMA, e «faltam 8
-     * lugares» media a distância até ela — que não é limite nenhum. O número que limita é o TETO,
-     * e o teto já está dito, uma vez, no cartão de «A escola». Repetir a contagem em dois
-     * formulários era dizer o mesmo número em três sítios, com o do meio a sugerir um limite que
-     * não existe.
-     *
-     * O QUE FICA: a trava do motor (§B, §C) e a frase do 409 — que continua a nomear as saídas. */
     /* O `dadosDaEscola` É O QUE A ROTA MONTA: cadastro, contrato, pix e a SITUAÇÃO já derivada
      * (`situacaoDaEscola`), que é o que o cartão de «A escola» desenha. Passar só o contrato
      * deixaria o cartão vazio — e a prova diria «o piso não está lá» quando o que faltava era a
@@ -345,40 +322,42 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
     };
     const comContrato = pagina({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } });
 
+    /* O QUE NÃO PODE ESTAR: a contagem de gente como limite, e as frases de «faltam N lugares».
+     * A decisão de limpeza de 17/11/2026 continua a valer, e agora com mais razão: o número nem
+     * limite é. */
     conferir('o formulário do professor NÃO traz contagem nem lugares',
       !/prof-piso/.test(comContrato) && !/data-piso-selo/.test(comContrato)
         && !/data-piso-recusa/.test(comContrato), null);
-    conferir('…nem o formulário das alunas',
-      !/aluna-piso/.test(comContrato), null);
-    /* E NÃO É SÓ «NÃO TEM A PEÇA»: nenhuma das frases do medidor pode reaparecer noutro sítio. */
+    conferir('…nem o formulário das alunas', !/aluna-piso/.test(comContrato), null);
     conferir('…e nenhuma frase de «faltam N lugares» sobrevive na página',
       !/\d+ lugares?\b/.test(comContrato) && !/de \d+<\/strong>/.test(comContrato), null);
-    /* A PALAVRA «piso» CONTINUA NA PÁGINA, e no sítio certo: o cartão de «A escola». */
-    const iEscola = comContrato.indexOf('id="a-escola"');
+    /* O CARTÃO DE «A ESCOLA» continua a dizer o que a escola contratou — é lá que o número vive. */
+    /* O ID DA SECÇÃO MUDOU desde que esta asserção nasceu: é `sec-a-escola` (o cartão de «A
+     * escola»), e não `a-escola`. A asserção procurava o id antigo e reprovava sobre uma página
+     * certa — o defeito estava na prova, e não no ecrã. */
+    const iEscola = comContrato.indexOf('id="sec-a-escola"');
     const iProfs = comContrato.indexOf('id="sec-professores"');
-    conferir('o piso e o teto continuam ditos — no cartão de «A escola», e só lá',
+    /* OS RÓTULOS MUDARAM A 17/11/2026, e a mudança é a decisão: «Piso contratado» e «Teto do
+     * plano» diziam de gente um número que já não limita nada — o §ADITIVO §2 proíbe apresentá-lo
+     * como limite comercial. Passaram a «Tamanho de referência» e «Referência do topo»: o número
+     * continua dito (é custo interno medido, e a controladoria precisa dele), e deixa de se chamar
+     * teto a quem não trava. */
+    const cartao = comContrato.slice(iEscola, iProfs);
+    conferir('o tamanho de referência continua dito — no cartão de «A escola», e só lá',
       iEscola > 0 && iProfs > iEscola
-        && /Piso contratado/.test(comContrato.slice(iEscola, iProfs))
-        && /Teto do plano/.test(comContrato.slice(iEscola, iProfs)), null);
-
-    /* SEM CONTRATO, a página também não inventa nada — e agora não há o que inventar. */
+        && /Tamanho de referência/.test(cartao) && /Referência do topo/.test(cartao), null);
+    conferir('…e já NÃO se chama «piso contratado» nem «teto do plano», que prometiam um limite',
+      !/Piso contratado/.test(cartao) && !/Teto do plano/.test(cartao), null);
+    /* A FRANQUIA É O PRIMEIRO PAR — a unidade comercial de hoje. */
+    conferir('o cartão abre com a FRANQUIA DE AULAS, e ela vem do catálogo',
+      /Franquia de aulas/.test(cartao) && /aulas por mês/.test(cartao), null);
+    /* SEM CONTAGEM, o cartão cala o consumo em vez de dizer «0 de 100». */
+    conferir('sem contagem de aulas, o cartão não afirma um consumo que não mediu',
+      !/Consumo do mês/.test(cartao), cartao.slice(0, 200));
+    /* SEM CONTRATO, a página não inventa nada. */
     const semContrato = pagina(null);
-    conferir('sem contrato, a página não diz piso nenhum nos formulários',
+    conferir('sem contrato, a página não diz limite nenhum nos formulários',
       !/data-piso/.test(semContrato) && !/lugares?\b/.test(semContrato), null);
-  }
-
-  console.log('\nF. A palavra é «piso» — e o ecrã não diz «capacidade»');
-  {
-    /* A FRASE DA RECUSA É O QUE A ESCOLA LÊ. Ela não pode dizer «capacidade», que foi a palavra
-     * que a proprietária corrigiu: «capacidade dá ideia de teto». */
-    const erro = comercial.travaDoPiso({
-      contrato: { plano: 'basico', capacidade: { professores: 1, alunos: 10 } },
-      eixo: 'alunos', cadastrados: 10,
-    }).erro;
-    conferir('a recusa diz «piso» e não «capacidade»',
-      /piso/.test(erro) && !/capacidade/i.test(erro), erro);
-    conferir('…e não é a frase proibida — «o Básico não permite N professor»',
-      !/não permite/i.test(erro), erro);
   }
 
   console.log('');

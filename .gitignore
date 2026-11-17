@@ -1570,3 +1570,13 @@ experimentos/modelo-formulario/*
 # controlo nas duas frentes (a lista antiga tem de custar 2, e uma extensão abaixo de R$ 0,15/aula
 # tem de desabar a escada).
 !experimentos/provar-o-custo-de-uma-aula.js
+
+# A FRANQUIA DE AULAS (17/11/2026). A unidade comercial deixou de ser «professores × alunos» e
+# passou a ser a AULA PROCESSADA: 100 / 300 / 800 aulas por mês, com pacotes de +20 / +50 / +100 a
+# R$ 0,50 por aula. A prova fixa as três consequências que se podem partir em silêncio: o catálogo
+# diz a franquia e passa as pessoas a «referencia» (o §ADITIVO §2 proíbe apresentá-las como limite);
+# a conta devolve um EXCEDENTE em vez de uma recusa, e distingue `null` de `0` (sem contagem ≠ zero
+# aulas); e a página diz a franquia e cala o consumo que não mediu. Tem controlo: com o catálogo
+# posto a zero e os pacotes a R$ 0,20 — a proposta errada, abaixo do preço da aula do plano de cima
+# — a prova reprova 23 de 39.
+!experimentos/provar-a-franquia-de-aulas.js
