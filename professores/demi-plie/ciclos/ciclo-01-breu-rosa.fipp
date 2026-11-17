@@ -10,12 +10,12 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-rosa
-hash_conteudo: 5b060b8f7f3ad0a1a1e2dc046fea3a2ae369dcb55ee26c39e0a8883e584753f3
+hash_conteudo: 747f464f4c7655463379f557c6c89cfa63175edb32747336b4db24ccb47e1522
 parentHash: 
-hash: 4bef5455e501ba5eff234eba6fce24d84c6e9ce7da419ffa45567316debbf2cc
+hash: ffa84cc55358478cac74657793539064797166df78b86168d449763e541d73b8
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-17
 notacao: Benesh
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 46
 notacao_sha: bc7ce594ee6b90a049fe81d43dacbade7560c1e57d424be1e43f511ffe02aac7
 cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf
   - professores/demi-plie/ciclos/ciclo-01.conf
