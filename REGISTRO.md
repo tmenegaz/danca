@@ -48905,3 +48905,47 @@ indicador a mandar no nível, a janela do GitHub a cortar o que é antigo, e a p
 procurava as cartas na caixa de saída pela palavra «correio», e o contador novo
 (`financeiro/correio`) tem a palavra no nome: três chaves onde há duas cartas. O filtro passou a ser
 o prefixo da caixa (`…/correio/<carimbo>`). O contador é um facto sobre o correio; não é uma carta.
+
+## 17/11/2026 — o primeiro dia do monitor: o número estava 5× menor, e a correcção é de desenho
+
+**Nota de correcção, no mesmo dia, sobre a entrada «o monitoramento».** O painel foi ao ar e a
+primeira leitura ao vivo disse:
+
+> **GitHub:** 557 min de 2.000 · **27,7%** · `461 de 500 runs ainda não tinham os jobs medidos`
+
+Parecia folga. A contagem real da janela, feita à parte na API: **2.810 execuções em 30 dias**. Ou
+seja, o número mostrado era cerca de **um quinto** do real — e a cota provavelmente já está
+**estourada**, não a 28%. Para um monitor cuja razão de existir é «não ser pega de surpresa», é o
+pior defeito possível. Duas causas, e as duas eram de desenho:
+
+1. **A janela era uma amostra, apresentada como total.** O tecto de 5 páginas lia 500 das 2.810
+   execuções. O rodapé dizia-o («461 de 500»), mas o número grande em cima não — e é o número grande
+   que se lê. Passou a **30 páginas**, que é a janela inteira: 30 subpedidos, dentro dos 50 do Worker
+   no plano gratuito.
+2. **O não medido valia 1 minuto**, e uma execução deste sistema custa **4** quando tem quatro jobs
+   (a regra do arredondamento por job, que é a do fornecedor). Um piso arbitrário somado a milhares
+   de execuções não é um piso: é um erro de 5×. Passou a haver **calibragem por fluxo** — mede-se
+   uma amostra de cada workflow, calcula-se a **média de minutos facturados por execução daquele
+   fluxo**, e essa média vale para as que faltam. O fluxo sem medição nenhuma continua no mínimo de
+   1 minuto, e a página diz quantas foram medidas e quantas foram estimadas.
+
+**O que mudou no ecrã.** A tabela ganhou a coluna **«Por vez»** (a média por execução de cada
+fluxo), e o rodapé passou a dizer **«N de M execuções tiveram os jobs medidos um a um»**, com o que
+acontece às outras. Cada abertura do painel mede mais 12, e o número converge para o medido.
+
+**A lição, escrita para a próxima cota.** Um número parcial tem de ser apresentado **como parcial** —
+e o rodapé que o dizia estava certo; o que estava errado era o número grande em cima dele, que
+ninguém lê como parcial. E um piso repetido milhares de vezes deixa de ser um piso.
+
+**Onde entrou.** `motor/nucleo/monitoramento.js` (a calibragem por fluxo, `medidos` e
+`calibradoPorFluxo` no resumo) · `motor/servidor/raiz.js` (30 páginas, 12 medições por abertura) ·
+`motor/servidor/painel-html.js` (a coluna «Por vez» e a frase do medido/estimado) ·
+`PLANEJAMENTO-LASTRO.md` §L9d (o defeito e a correcção, declarados) ·
+`experimentos/provar-monitoramento.js` (a asserção do total virou «o não medido herda a média do
+seu fluxo», e nasceram as duas de calibragem).
+
+**Com o quê.** `provar-monitoramento` **52/52** — incluindo «o resumo soma os minutos facturados, e
+o não medido herda a média do seu fluxo», «diz quantas execuções foram medidas de facto» e «o fluxo
+sem nenhuma execução medida leva o mínimo de 1 minuto». Mais `provar-financeiro-da-escola` 90/90 ·
+`provar-abas` 28/28 · `provar-piso` 34/34 · `check-identidade` 0 erros.
+

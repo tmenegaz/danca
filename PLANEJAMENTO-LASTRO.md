@@ -2053,10 +2053,30 @@ decisão.
   são a conta dela.
 - **A DISCIPLINA DE LEITURA, que é o que torna o painel sustentável.** Abrir o painel não pode gastar
   a cota que ele mede. Por isso: os runs vêm numa listagem paginada (não um pedido por run), os jobs
-  medem-se **uma vez por run e ficam em cache** (com tecto de 20 medições por abertura, para caber
+  medem-se **uma vez por run e ficam em cache** (com tecto de 12 medições por abertura, para caber
   nos 50 subpedidos do Worker), e as chaves do KV de cada escola são lidas **de hora a hora** (com
   tecto de 20 escolas), porque `list()` é operação de cota. O que a cache guarda é o RESULTADO da
   conta, nunca o resultado de um run que ainda está a correr.
+- **O DEFEITO QUE O PRIMEIRO DIA EM PRODUÇÃO EXPÔS, e a correcção dele** *(17/11/2026)*. Na primeira
+  leitura ao vivo o painel mostrou **557 minutos de 2.000 (27,7%)**, com uma nota discreta de que 461
+  execuções estavam por medir. A contagem real da janela, feita à parte: **2.810 execuções em 30
+  dias**. Ou seja, o número mostrado era cerca de **um quinto** do real, e a cota provavelmente já
+  estava estourada — **o pior defeito possível num monitor**, e exactamente o que ela pediu para não
+  acontecer («para não ser pega de surpresa»). Duas causas, e as duas eram de desenho:
+
+  1. **A janela era uma amostra**: o tecto de 5 páginas lia 500 das 2.810 execuções. Uma amostra
+     apresentada como total é uma mentira por omissão. Passou a **30 páginas**, que é a janela
+     inteira (30 subpedidos, dentro dos 50 do Worker).
+  2. **O não medido valia 1 minuto**, e um run deste sistema custa 4 quando tem quatro jobs. O
+     mínimo por execução é um **piso arbitrário**, e um piso arbitrário somado a milhares de
+     execuções não é um piso: é um erro de 5×. Passou a haver **calibragem por fluxo**: mede-se uma
+     amostra por workflow, calcula-se a média de minutos facturados por execução **daquele fluxo**, e
+     essa média vale para as que faltam. O fluxo sem nenhuma medição continua no mínimo de 1, e a
+     página diz quantas foram medidas e quantas foram estimadas.
+
+  A lição, para a próxima cota que se medir: **um número parcial tem de ser apresentado como
+  parcial**, e o rodapé que o dizia estava certo — o que estava errado era o número grande em cima
+  dele, que ninguém lê como parcial.
 - **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
   mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
   diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a

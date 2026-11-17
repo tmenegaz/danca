@@ -1910,6 +1910,7 @@ function blocoDoGithub(g) {
     '<td><strong>' + esc(f.workflow) + '</strong></td>' +
     '<td>' + f.runs + '</td>' +
     '<td>' + f.minutos + ' min</td>' +
+    '<td>' + Math.round((f.minutos / (f.runs || 1)) * 10) / 10 + ' min</td>' +
     '<td>' + (f.ultimaEm ? esc(quando(f.ultimaEm)) : '—') + '</td>' +
     '<td>' + f.ultimoMinutos + ' min</td>' +
     '</tr>').join('');
@@ -1932,15 +1933,18 @@ function blocoDoGithub(g) {
       usd(g.excedenteUsd) + '</strong>' : '') + '</p>' +
     (linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Processo</th><th>Vezes</th>' +
-        '<th>Gasto</th><th>Última vez</th><th>Nessa vez</th></tr></thead><tbody>' + linhas +
-        '</tbody></table></div>'
+        '<th>Gasto</th><th>Por vez</th><th>Última vez</th><th>Nessa vez</th></tr></thead><tbody>' +
+        linhas + '</tbody></table></div>'
       : '<p class="aviso">Nenhum run na janela. Uma tabela vazia quer dizer isso — não que a ' +
         'leitura falhou.</p>') +
+    /* O QUE FOI MEDIDO E O QUE FOI ESTIMADO — dito, e não escondido. Uma estimativa apresentada como
+     * medição é exactamente a mentira que este painel existe para não contar. */
     (g.estimados
-      ? '<p class="sub">' + g.estimados + ' de ' + g.runs + ' runs ainda não tinham os jobs medidos, ' +
-        'e entraram pelo <strong>mínimo</strong> (um job pelo tempo de relógio). O número é um piso ' +
-        'até a medição os alcançar.</p>'
-      : '') +
+      ? '<p class="sub"><strong>' + g.medidos + ' de ' + g.runs + ' execuções</strong> tiveram os ' +
+        'jobs medidos um a um. As outras ' + g.estimados + ' levam a <strong>média do próprio ' +
+        'fluxo</strong> — e as de um fluxo que ainda não foi medido nenhuma vez levam 1 minuto. ' +
+        'Cada abertura do painel mede mais 12; o número converge para o medido a cada visita.</p>'
+      : '<p class="sub">Todas as ' + g.runs + ' execuções da janela tiveram os jobs medidos.</p>') +
     '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
     '</div>';
 }

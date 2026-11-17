@@ -80,8 +80,23 @@ function conferir(titulo, condicao, dado) {
       ],
       jobsPorRun: { 2: [{ segundos: 10 }, { segundos: 6 }, { segundos: 23 }, { segundos: 25 }] },
     });
-    conferir('o resumo soma os minutos facturados, e não o tempo de relógio',
-      g.minutos === 1 + 4 + 1, g.minutos);
+    /* A CALIBRAGEM ENTRA AQUI (17/11/2026), e a asserção muda com ela — de propósito.
+     *
+     * O run 3 é do fluxo «Publicar as escolas», que TEM um run medido (4 minutos). Sem medição
+     * própria, ele leva a média do fluxo: 4. Somar 1 seria o mínimo arbitrário que, em produção,
+     * fez o painel dizer 27,7% de uma cota estourada — com 2.810 execuções na janela e 500 lidas,
+     * o piso por execução dava um número 5× menor do que a fatura.
+     *
+     * O QUE SE AFIRMA, então: o medido manda, e o não medido herda a média do seu fluxo. */
+    conferir('o resumo soma os minutos facturados, e o não medido herda a média do seu fluxo',
+      g.minutos === 1 + 4 + 4, g.minutos);
+    conferir('…e diz quantas execuções foram medidas de facto',
+      g.medidos === 1 && g.estimados === 2, [g.medidos, g.estimados]);
+    /* O FLUXO SEM NENHUMA MEDIÇÃO fica com o mínimo de 1 minuto — e é o caso do «Fechar os
+     * derivados», que não tem jobs medidos nesta fixture. */
+    const fechar = g.fluxos.find((f) => f.workflow === 'Fechar os derivados');
+    conferir('o fluxo sem nenhuma execução medida leva o mínimo de 1 minuto',
+      fechar.minutos === 1 && fechar.calibrado === false, fechar);
     conferir('…e agrupa por workflow, do mais caro para o mais barato',
       g.fluxos.length === 2 && g.fluxos[0].workflow === 'Publicar as escolas' && g.fluxos[0].runs === 2,
       g.fluxos.map((f) => [f.workflow, f.minutos]));

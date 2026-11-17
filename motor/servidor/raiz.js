@@ -3605,14 +3605,21 @@ async function extratoDasEscolas({ env, escolas, agora }) {
         if (texto) cache = Object.assign(cache, JSON.parse(texto));
       } catch (erro) { /* cache ilegível vale cache vazia: o painel abre, só mede outra vez */ }
 
+      /* A JANELA INTEIRA, E NÃO UMA AMOSTRA (17/11/2026). Medido no primeiro dia em produção: este
+       * repositório tem **2.810 execuções em 30 dias**. Com o tecto de 5 páginas o painel via 500 e
+       * dizia 27,7% de uma cota que, na verdade, está estourada — o pior defeito possível num
+       * monitor. Uma listagem de 100 por página custa um subpedido, e 30 páginas cabem nos 50 do
+       * Worker: a janela passa a ser lida inteira, e o número passa a ser sobre o mês todo. */
       const janela = await leituraDoMonitor.runsDoGithub({
-        token, dono: DONO, repo: REPO, dias: 30, agora: agoraIso,
+        token, dono: DONO, repo: REPO, dias: 30, agora: agoraIso, paginas: 30,
       });
 
-      /* MEDIR OS JOBS QUE FALTAM, com tecto. 20 é o que cabe com folga nos 50 subpedidos, junto
-       * com a listagem dos runs e as chaves das escolas. */
+      /* MEDIR OS JOBS QUE FALTAM, com tecto. A conta dos subpedidos: 30 páginas de runs + 12
+       * medições + 2 de KV + 1 de listagem = 45, dentro dos 50 do plano gratuito. Cada abertura
+       * acrescenta 12 execuções medidas, e a calibragem por fluxo faz o resto — não é preciso medir
+       * 2.810 para saber quanto 2.810 custam. */
       let medidosAgora = 0;
-      const TECTO_DE_MEDICOES = 20;
+      const TECTO_DE_MEDICOES = 12;
       const porMedir = janela.runs
         .filter((r) => !cache.medidos[r.id] && r.estado === 'completed')
         .slice(0, TECTO_DE_MEDICOES);

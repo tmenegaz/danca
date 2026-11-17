@@ -143,17 +143,56 @@ function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
   const porFluxo = new Map();
   let minutos = 0;
   let estimados = 0;
+  let medidos = 0;
   let segundos = 0;
+
+  /* A CALIBRAGEM — e ela é o que torna este número utilizável (17/11/2026).
+   *
+   * O PROBLEMA QUE ELA RESOLVE, medido em produção no primeiro dia: a janela de 30 dias deste
+   * repositório tem **2.810 execuções**. Medir os jobs de todas seria 2.810 pedidos por abertura do
+   * painel — impossível, e gastaria a cota que o painel mede. Medir vinte e dar 1 minuto a cada uma
+   * das outras 2.790 seria pior do que não medir: o painel diria 27,7% de uma cota que na verdade
+   * está estourada.
+   *
+   * A SAÍDA É A MÉDIA POR FLUXO. Mede-se uma AMOSTRA (as mais recentes), calcula-se quantos minutos
+   * facturados cada execução daquele fluxo custa em média, e aplica-se essa média às que faltam. O
+   * número deixa de ser um piso arbitrário e passa a ser uma estimativa CALIBRADA — e a página diz
+   * quantas foram medidas e quantas foram estimadas, porque uma estimativa que se apresenta como
+   * medição é a mentira que este painel existe para não contar.
+   *
+   * O FLUXO SEM NENHUMA MEDIÇÃO fica com o mínimo de 1 minuto por execução, e é declarado. */
+  const somaPorFluxo = new Map();
+  for (const r of lista) {
+    if (!mapa[r.id]) continue;
+    const nome = String(r.workflow || r.name || 'sem nome');
+    const conta = minutosDoRun(r, mapa[r.id]);
+    const a = somaPorFluxo.get(nome) || { minutos: 0, runs: 0 };
+    a.minutos += conta.minutos;
+    a.runs += 1;
+    somaPorFluxo.set(nome, a);
+  }
+  const mediaDoFluxo = (nome) => {
+    const a = somaPorFluxo.get(nome);
+    return a && a.runs ? a.minutos / a.runs : null;
+  };
 
   for (const r of lista) {
     const conta = minutosDoRun(r, mapa[r.id]);
+    if (!conta.estimado) medidos += 1;
     const nome = String(r.workflow || r.name || 'sem nome');
     const actual = porFluxo.get(nome) || {
       workflow: nome, runs: 0, minutos: 0, segundos: 0, ultimaEm: null, ultimoMinutos: 0, estimados: 0,
     };
+    /* A EXECUÇÃO SEM OS JOBS MEDIDOS leva a média do SEU fluxo, quando há uma. O
+     * `Math.round` é proposital: minutos facturados são inteiros, e uma média de 1,4 min por
+     * execução não é um número que exista na fatura — mas somada a 300 execuções, ela é o que mais
+     * se aproxima do que a fatura vai cobrar. */
+    const media = conta.estimado ? mediaDoFluxo(nome) : null;
+    const minutosDaVez = media == null ? conta.minutos : Math.max(1, Math.round(media));
     actual.runs += 1;
-    actual.minutos += conta.minutos;
+    actual.minutos += minutosDaVez;
     actual.segundos += conta.segundos;
+    actual.calibrado = media != null;
     if (conta.estimado) { actual.estimados += 1; estimados += 1; }
     /* A ÚLTIMA VEZ É A MAIS RECENTE, e a lista não vem garantidamente ordenada de quem chama. */
     const quando = String(r.quando || '');
@@ -162,7 +201,7 @@ function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
       actual.ultimoMinutos = conta.minutos;
     }
     porFluxo.set(nome, actual);
-    minutos += conta.minutos;
+    minutos += minutosDaVez;
     segundos += conta.segundos;
   }
 
@@ -183,6 +222,11 @@ function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
     excedenteMinutos: Math.max(0, minutos - total),
     excedenteUsd: Math.max(0, minutos - total) * COTAS.github.precoMinutoUsd,
     estimados,
+    medidos,
+    /* O QUE A CALIBRAGEM ASSUME, dito para a página o poder dizer: as execuções que faltam valem a
+     * média das que foram medidas, por fluxo. Onde não há medição nenhuma, vale 1 minuto. */
+    calibradoPorFluxo: [...somaPorFluxo.entries()]
+      .map(([workflow, a]) => ({ workflow, medidos: a.runs, mediaMinutos: a.minutos / a.runs })),
     fluxos,
     cotas: COTAS.github,
   };
