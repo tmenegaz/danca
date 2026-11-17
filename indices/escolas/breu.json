@@ -1,43 +1,95 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-17",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+          "professores/demi-plie/ciclos/ciclo-01.conf"
+        ],
+        "hash": "cd5006ddabba8c7e60a0f31abdb709d6412b3f504451d0f557084132b8d7e223",
+        "hash_conteudo": "f924dd09df9d488b40d0bcd2432b096ed6b70689d664d5c3ba46857a2efafbf0",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+        "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:demi-plie/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "demi-plie",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+      "professor": "demi-plie",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "professor": "demi-plie",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "demi-plie",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:demi-plie/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
       "registros": 0
     },
-    "criada_em": "2026-11-16T11:29:49.576797+00:00",
-    "expurgada": true,
+    "criada_em": "2026-11-17T00:41:45.598067+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-16T12:44:22.236Z",
     "expurgos": 13,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
-    "professor": "brise-volet",
+    "professor": "demi-plie",
     "professores": [
-      "ana-diag",
-      "brise-volet",
-      "cafe-no-bule",
-      "colo-de-pe",
-      "coqui-de-redinha",
-      "dedao-aberto",
-      "grand-plie",
-      "luz-azul",
-      "pe-torto",
-      "redinha-rosa",
-      "rimel-preto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "demi-plie"
     ],
     "registros": [],
     "slug": "breu"
@@ -45,15 +97,42 @@
   "filtros": {
     "anos": [],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/breu"
+        ],
+        "rotulo": "demi-plie",
+        "valor": "demi-plie"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "0d1f27f"
+    "commit": "ca8cd29"
   },
-  "gerado_em": "2026-11-16T16:13",
+  "gerado_em": "2026-11-17T00:41",
   "nao_indexado": [
     {
       "familia": "conteudo",
