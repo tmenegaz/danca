@@ -1915,8 +1915,16 @@ function seloDoNivel(fraccao) {
 function blocoDoGithub(g) {
   if (!g) return '';
   const c = g.cotas;
+  /* A MARCA DE QUEM JÁ NÃO CORRE. A tabela agrega o MÊS, e o mês inclui fluxos que foram fundidos
+   * ou apagados: a 17/11/2026 o «Regerar os índices» (768 min) e o «Reancorar a cadeia» (342 min)
+   * já não existiam e continuavam no topo, a somar mais do que qualquer fluxo vivo. Quem olha para
+   * ali para decidir dinheiro lê «isto gasta 768 min por mês», e é falso. A marca não adivinha:
+   * diz o que se sabe — não houve execuções nas últimas 24 horas. */
   const linhas = (g.fluxos || []).map((f) => '<tr>' +
-    '<td><strong>' + esc(f.workflow) + '</strong></td>' +
+    '<td><strong>' + esc(f.workflow) + '</strong>' +
+    (f.activoUltimas24h === false
+      ? '<br><span class="sub">sem execuções nas últimas 24 h</span>'
+      : '') + '</td>' +
     '<td>' + f.runs + '</td>' +
     '<td>' + f.minutos + ' min</td>' +
     '<td>' + Math.round((f.minutos / (f.runs || 1)) * 10) / 10 + ' min</td>' +
@@ -1965,7 +1973,9 @@ function blocoDoGithub(g) {
         barraDaCota({ fraccao: g.fraccao, nivel, rotulo: 'Franquia do mês', doQue: 'dos ' + g.incluido + ' min' }) +
         '<p class="sub">Estes números são os <strong>da fatura</strong> (API de facturação do ' +
         'GitHub, ciclo de ' + esc(String(g.janela || '').slice(8, 10)) + ' até hoje), não uma conta ' +
-        'feita por mim. A tabela no fim atribui o gasto a cada processo e corre ' +
+        'feita por mim. A tabela abaixo é o <strong>histórico do mês</strong> e atribui o gasto a ' +
+        'cada processo: um fluxo fundido noutro conserva ali o nome antigo e os minutos que gastou ' +
+        'enquanto existia — o que decide não é o topo da tabela, é o total acima. E a coluna corre ' +
         (g.desvioDaRegra != null
           ? '<strong>' + (g.desvioDaRegra >= 0 ? '+' : '') + Math.round(g.desvioDaRegra * 100) + '%</strong> '
           : '') + 'em relação a ela — serve para saber de quem é o gasto, não para medir o consumo.</p>'

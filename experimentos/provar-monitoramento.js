@@ -161,6 +161,35 @@ function conferir(titulo, condicao, dado) {
       semConf.conferencia === null, semConf.conferencia);
   }
 
+  console.log('\nA2. Quem ainda corre, e quem só continua na tabela como história');
+  {
+    /* A TABELA AGREGA O MÊS, e o mês inclui fluxos fundidos ou apagados. A 17/11/2026 o «Regerar os
+     * índices» tinha 768 min no topo e já não existia — foi fundido no `derivados.yml` a 16/11. Quem
+     * olha para ali para decidir dinheiro lê «isto gasta 768 min por mês», e é falso. */
+    const g = monitor.resumirGithub({
+      runs: [
+        { id: '1', workflow: 'Regerar os índices', segundos: 15, quando: '2026-11-16T01:30:00Z' },
+        { id: '2', workflow: 'Publicar o sistema', segundos: 32, quando: '2026-11-17T13:10:00Z' },
+      ],
+      agora: '2026-11-17T16:00:00Z',
+    });
+    const antigo = g.fluxos.find((f) => f.workflow === 'Regerar os índices');
+    const vivo = g.fluxos.find((f) => f.workflow === 'Publicar o sistema');
+    conferir('um fluxo sem execuções nas últimas 24 h fica marcado, e um vivo não',
+      antigo.activoUltimas24h === false && vivo.activoUltimas24h === true,
+      [antigo.activoUltimas24h, vivo.activoUltimas24h]);
+
+    const co = monitor.resumirCorreio({ contadores: { mes: '2026-11', enviados: 3, dias: {} }, hoje: '2026-11-17' });
+    const cf = monitor.resumirCloudflare({ escolas: [], chaves: {} });
+    const r = monitor.receita({ extrato: [], descontos: [], mes: '2026-11' });
+    const html = painel.paginaDoMonitoramento({
+      retrato: monitor.retrato({ github: g, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T16:00:00Z' }),
+      cambio: 5.4,
+    });
+    conferir('…e o ecrã diz isso ao lado do nome, em vez de deixar o número a mentir',
+      /Regerar os índices<\/strong><br><span class="sub">sem execuções nas últimas 24 h/.test(html), null);
+  }
+
   console.log('\nB. As duas cotas do Resend — e a que aperta primeiro');
   {
     const c = monitor.resumirCorreio({

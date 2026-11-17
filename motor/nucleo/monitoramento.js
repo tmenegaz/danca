@@ -338,9 +338,27 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado,
     segundos += conta.segundos;
   }
 
+  /* QUEM AINDA CORRE, E QUEM JÁ NÃO — medido pelos próprios dados, sem pedido nenhum.
+   *
+   * A TABELA AGREGA O MÊS, e o mês inclui fluxos que já foram fundidos ou apagados: a 17/11/2026 o
+   * «Regerar os índices» (768 min) e o «Reancorar a cadeia» (342 min) já não existiam — tinham sido
+   * fundidos no `derivados.yml` — e continuavam no topo da tabela, a somar mais do que qualquer
+   * fluxo vivo. Quem olha para ali para decidir dinheiro lê «isto gasta 768 min por mês», e é
+   * falso. A marca não adivinha o futuro: diz que não houve execuções nas últimas 24 horas, que é
+   * o que se sabe.            */
+  const corte24 = agora && !Number.isNaN(Date.parse(agora))
+    ? new Date(Date.parse(agora) - 24 * 3600 * 1000).toISOString()
+    : null;
+
   const degrau = (plano && plano.computeUsd) || COTAS.github.computeIncluidoUsd;
   const total = minutosIncluidos({ computeUsd: degrau });
   const fluxos = [...porFluxo.values()].sort((a, b) => b.minutos - a.minutos);
+  /* A MARCA, aplicada depois de todas as execuções contadas — e ela é sobre a ÚLTIMA vez de cada
+   * fluxo, e não sobre a existência de um ficheiro: o código não tem lista de nomes (uma lista
+   * apodrece), tem o instante da última execução. */
+  if (corte24) {
+    for (const f of fluxos) f.activoUltimas24h = Boolean(f.ultimaEm && f.ultimaEm >= corte24);
+  }
 
   /* ── A CONFERÊNCIA CONTRA O CAMPO DE FACTURAÇÃO (17/11/2026) ────────────────────────────────
    *

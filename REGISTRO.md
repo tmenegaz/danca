@@ -49168,3 +49168,20 @@ segundo passo, feito) · e as referências em comentário em `tools/check-identi
 `wrangler`, no caminho de sucesso **e** no de falha (isola, continua, sai 1) ·
 `provar-publicacao-da-escola` 73/73 · `provar-cofre-e-shard` 138/138 ·
 `provar-bancadas-e-expurgo` 16/16 · `gerar-indices --check` 6 em dia · `check-identidade` 0 erros.
+
+### Nota, no mesmo dia — a tabela do monitor somava fluxos que já não existem
+
+Feita a fusão, ficou à vista um defeito do painel: a tabela agrega **o mês**, e o mês inclui fluxos
+fundidos ou apagados. O «Regerar os índices» continuava no topo com **768 min** e o «Reancorar a
+cadeia» com **342** — mais do que qualquer fluxo vivo — e nenhum dos dois existia desde a véspera.
+Quem olha para ali para decidir dinheiro lê «isto gasta 768 min por mês», e é falso.
+
+A marca não adivinha o futuro: diz o que se sabe. Um fluxo cuja última execução é anterior às
+últimas 24 horas aparece com **«sem execuções nas últimas 24 h»** ao lado do nome, e a nota da
+tabela passa a dizer que ela é o **histórico do mês** — um fluxo fundido noutro conserva ali o nome
+antigo. **O que decide não é o topo da tabela, é o total acima.**
+
+Sem pedido novo: a marca sai dos dados que o resumo já tem (a última execução de cada fluxo contra
+o `agora`), e não de uma lista de nomes — uma lista apodreceria no dia seguinte. `provar-monitoramento`
+**68/68**, com as duas asserções: uma de conta (o antigo marcado, o vivo não) e uma de ecrã (a marca
+ao lado do nome).
