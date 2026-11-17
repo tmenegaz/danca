@@ -49905,3 +49905,92 @@ nasce `disabled` e o da linha em aberto leva a `?abrir=pagar`.
 **O que ainda não está feito.** (1) A `ESTADO-ATUAL.md` segue a sua cadência e não foi tocada.
 (2) `provar-cartao-da-turma` continua com 16 falhas de antes. (3) A barra do menu continua a marcar
 «Produção» na página do mês a mês — não há item próprio para o financeiro.
+
+## 17/11/2026 — O plano contratado dito por palavras, o mês a mês dentro da Produção, e o ensaio que dura três minutos
+
+**O que motivou.** Quatro coisas, na voz dela: «A escola Breu contratou o plano que no total dá R$
+239,90. Ela já pagou […] aí ela quer mudar o plano, vai para o básico […] o total ficou R$ 169,90, só
+que isso é para o próximo mês. […] Precisa indicar que o plano contratado é básico, R$ 169,90 por
+mês. E aí a mudança vai passar a valer no mês seguinte.» · «Na transferência está escrito: a aluna
+sai do elenco e entra no outro no mesmo ato. Tem que tirar esse texto. Tem uma instrução que não é
+para ter esse tipo de texto.» · «Quando eu vou em escola, situação, e vou ver mês a mês, o menu todo
+de navegação desaparece do lado esquerdo. Tem que ficar aqui no mesmo lugar. […] basta você dizer que
+o endereço é bastidores produção financeiro.» · «Vamos colocar que um plano, ao invés de ser mensal,
+ele dura apenas 3 minutos, que daí eu vou poder criar uma listagem.»
+
+**O que se mediu antes.** A página do mês a mês tinha o plano SÓ no subtítulo («Breu · Básico · R$
+169,90 por mês»), sem dizer que era o plano contratado nem que a mudança esperava o mês seguinte — e
+por baixo uma linha «novembro · 239,90 · pago» que parecia erro de conta. O contrato real da Breu, no
+KV: `criadoEm` 17/11 00:41, `histórico` 23990 → 16990 às 16:56, `lotesProfessores` [3],
+`lotesAlunos` [30] — exactamente o que ela descreveu. E a coluna da esquerda não aparecia porque
+estava escrita dentro da `paginaProducao`.
+
+**O que foi decidido.**
+
+- **A moldura da página de trabalho passou a ter dono.** O `.corpo`, a `.lateral` e as duas media
+  queries saíram do meio do `<style>` da `paginaProducao` para `ESTILO_DA_PAGINA_DE_TRABALHO`, e a
+  coluna para `lateralDaProducao({prefixo, atual, grupoDeHoje, paginaDeHoje})`. A página da Produção
+  saiu **byte a byte igual** (280 166 bytes, comparados antes e depois) — foi esse o critério para
+  aceitar o corte.
+- **O endereço é `/bastidores/producao/financeiro`**, e o antigo responde 302 para lá. O endereço
+  não resolve sozinho — o que faltava era a coluna —, mas ler `/bastidores/financeiro` como um sítio
+  novo, fora da Produção, era metade do problema. Os destinos da coluna na página irmã passam a
+  `/bastidores/producao#…` (um `#turmas` ali seria um salto para lado nenhum) e o item «A escola»
+  vem marcado do SERVIDOR, porque o script que o marcaria é o mesmo que esconde as secções.
+- **O «plano contratado» é uma frase, e a mudança tem duas.** `mensalidades.mudancaDePlano` compara o
+  último mês PAGO com o contrato em vigor; havendo diferença, diz o mês em que a mudança pega
+  (dezembro de 2026) e o dia da primeira cobrança (17/12/2026), e afirma que a linha paga não se
+  reescreve. O mês seguinte ao último pago — e não «o primeiro em aberto», que em 17/11 responderia
+  «nada» a quem está precisamente a fazer a pergunta.
+- **O parágrafo da transferência saiu**, e não ficou um `.aviso` vazio: o estado («faltam dois
+  elencos») já tem o `#mv-sem-dois`. A regra é a mesma que ela já tinha dado para a Audição — o
+  formulário diz o que o sistema SABE, não como se usa.
+- **O relógio comprimido.** `mensalidades.instanteDoEnsaio` adianta o «hoje»: cada bloco de N minutos
+  vale um mês de calendário, com a mesma forma de competência (`AAAA-MM`), os mesmos rótulos e o
+  mesmo livro — o ensaio não desenha uma maquete, corre o mesmo código com outra hora. No ensaio o
+  período nasce VENCIDO (`<=` em vez de `<`), porque «passado o tempo, já tem que pagar de novo».
+  Desligado por omissão: sem a chave `bastidores/<escola>/ensaio` nada disto corre.
+- **A ASSIMETRIA DO ENSAIO É DELIBERADA.** Ligar pede um pedido explícito com a senha da direção
+  (`POST /api/bastidores/ensaio`); desligar é um clique no aviso da própria página. Um modo que
+  inventa competências não pode depender de ninguém se lembrar de um comando.
+
+**Um erro meu, apanhado antes de sair.** A primeira versão punha a base do ensaio na ADESÃO. A Breu
+aderiu às 00:41 e o ensaio seria ligado às 17h — dezasseis horas a três minutos por período são
+**trinta e três anos** de competências de uma vez, e o extrato abria em 2059. A base passou a ser o
+instante em que se liga, e a prova mede o disparate: uma base na adesão dá mais de vinte anos de
+salto.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`mudancaDePlano`, `instanteDoEnsaio`, o parâmetro
+`ensaio` em `situacaoDaEscola`) · `motor/servidor/bastidores.js` (`ESTILO_DA_PAGINA_DE_TRABALHO`,
+`lateralDaProducao`, `SCRIPT_DAS_FUNCOES_DO_MENU`, `SCRIPT_DO_GESTO_DO_MENU`,
+`SCRIPT_DO_SAIR_DO_ENSAIO`; `grupoDoMenu` com `prefixo` e `atual`; a ficha do plano e o aviso do
+ensaio; a rota `/bastidores/producao/financeiro`, o 302 do antigo e `POST /api/bastidores/ensaio`;
+`dadosDaEscolaParaAProducao` exportado e a ler a chave do ensaio) ·
+`experimentos/provar-relogio-do-ensaio.js` (nova, 25 asserções) ·
+`experimentos/provar-financeiro-da-escola.js` (E4 e E5; o endereço novo) ·
+`experimentos/provar-abas-da-audicao.js` (a prosa da transferência; e a bancada passou a ler o CSS da
+PÁGINA em vez de o recortar do ficheiro) · `experimentos/propostas/propor-escola.js` (o endereço).
+
+**Com o quê.** `provar-relogio-do-ensaio` **25/25** (nova) · `provar-financeiro-da-escola` **131/131**
+(eram 117) · `provar-abas-da-audicao` **124/124** · `provar-paginacao` 120 · `provar-abas` 34 ·
+`provar-salas-e-elencos` 69 · `provar-a-moldura-em-todas-as-telas` 111 · `provar-arvore-do-shard` 20 ·
+`provar-monitoramento` 94 · `provar-financeiro` 58 · `provar-escola-a-nascer` 48 ·
+`provar-identidade-ao-lado` 27 · `provar-vao-do-botao` 50 · `provar-a-coluna-do-formulario` 17 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações. `provar-producao` **163/166** — as
+três de sempre.
+
+**Controlo A/B, em cinco frentes.** Parágrafo da transferência reposto → reprova duas asserções. O
+ensaio a ignorar-se → 16/23. A ficha do plano vazia → reprova quatro. A coluna sem o item marcado →
+reprova três. E um controlo que **corrigiu o desenho**: a asserção do gesto da folha procurava o nome
+da função, e passaria com o script a rebentar no browser — foi assim que apareceu que a constante
+reutilizada abria o invólucro e não o fechava. Passou a COMPILAR cada `<script>` da página.
+
+**Medido num navegador.** A página da Produção saiu igual ao que era (coluna 248px `fixed`, conteúdo
+976px a 1280; barra `flex` e coluna `static` a 390), sem erro de página. A página do mês a mês: a
+1280 o `.corpo` mede 1280, a coluna 248 e o principal 976, com a tabela em 928 e sem transbordo; a
+390 vira barra («CONFIGURAÇÃO · Mês a mês» + «Seções») e a tabela rola dentro da caixa.
+
+**O que ainda não está feito.** (1) A `ESTADO-ATUAL.md` segue a cadência dela. (2)
+`provar-bateria-do-shard` não corre: `calango` e `batata` já não resolvem, e a prova rebenta em vez de
+os saltar — falha de ANTES, e não desta frente. (3) O ensaio fica LIGADO na Breu a 3 minutos, por
+pedido dela; o aviso da página diz como sair.

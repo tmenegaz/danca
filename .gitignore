@@ -1508,6 +1508,14 @@ experimentos/modelo-formulario/*
 # página em jsdom (os dois botões, e a ausência de um «não pago»), e a condição do CPF na rota.
 !experimentos/provar-financeiro-da-escola.js
 
+# O RELÓGIO COMPRIMIDO (17/11/2026). «Vamos colocar que um plano, ao invés de ser mensal, ele dura
+# apenas 3 minutos, que daí eu vou poder criar uma listagem.» A prova mede que cada bloco de minutos
+# vale um MÊS DE CALENDÁRIO (a mesma competência `AAAA-MM`, os mesmos rótulos), que cada período novo
+# nasce vencido, que DESLIGADO é desligado — seis formas de o desligar —, e que o ensaio de uma escola
+# não pega noutra nem escreve no livro. A 3 é a que importa: um modo que se ligue por acidente numa
+# escola a sério cobra-lhe meses que não existem.
+!experimentos/provar-relogio-do-ensaio.js
+
 # AS ABAS SÃO UMA PEÇA DA FOLHA (16/11/2026). «Anote aí também na nossa identidade visual que a gente
 # vai adotar abas.» Ela nasceu no `<style>` da Audição e ganhou três consumidores; a prova mede a
 # geometria num navegador (a aba activa pousa na linha, a tira sai no telemóvel) e afirma que

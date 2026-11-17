@@ -179,6 +179,53 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
 }
 
 /**
+ * O RELÓGIO COMPRIMIDO — um período de mensalidade que dura minutos (17/11/2026).
+ *
+ * O QUE ELA PEDIU, e porquê: «Para poder testar isso, vamos colocar que um plano, ao invés de ser
+ * mensal, ele dura apenas 3 minutos, que daí eu vou poder criar uma listagem e ver como é que está
+ * acontecendo. Então passado o tempo de 3 minutos, já tem que pagar de novo e fazer todo o processo
+ * e assim a gente tem uma listagem.»
+ *
+ * O QUE ISTO É, E O QUE NÃO É. Não é um segundo modelo de cobrança: é o MESMO, com o relógio
+ * adiantado. Cada bloco de N minutos vale um mês de calendário — a primeira competência é a da
+ * adesão, a segunda é a do mês seguinte, e por aí fora. Nada mais muda: as competências continuam a
+ * ser `AAAA-MM`, o livro continua a guardar o mês, os rótulos continuam a ser «novembro de 2026». É
+ * por isso que o que se vê no ensaio é o que se verá depois: o ensaio não desenha uma maquete, corre
+ * o mesmo código com outra hora.
+ *
+ * A BASE É A ADESÃO, e não o instante em que o ensaio foi ligado: uma escola que aderiu a 17/11 tem
+ * a primeira competência em novembro, e é a partir dela que os blocos contam. Sem base no passado
+ * não há o que comprimir — e aí devolve-se a hora real, em vez de inventar um passado.
+ *
+ * O INSTANTE CAI AO MEIO-DIA UTC do vencimento da competência. É a hora que, no fuso da escola
+ * (UTC−3), ainda é o MESMO dia — 12:00Z são 09:00 em Passo Fundo —, e é isso que impede a data de
+ * andar um dia para trás ao ser lida.
+ *
+ * DESLIGADO POR OMISSÃO, e o ensaio tem de ser LIGADO por escola: sem o objecto `ensaio` (ou com
+ * `minutosPorPeriodo` que não seja um número positivo) esta função devolve a hora real, e a
+ * cobrança é mensal como sempre foi. É a única forma de isto não poder tocar numa escola a sério.
+ */
+function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
+  const real = agora instanceof Date ? agora : new Date(agora || Date.now());
+  const minutos = Number(ensaio && ensaio.minutosPorPeriodo);
+  if (!(minutos > 0)) return real;
+
+  const c = contrato || {};
+  const baseTexto = (ensaio && ensaio.base) || c.criadoEm || c.habilitadaEm || null;
+  if (!baseTexto) return real;
+  const base = new Date(baseTexto);
+  if (Number.isNaN(base.getTime()) || base.getTime() > real.getTime()) return real;
+
+  const baseIso = base.toISOString();
+  const periodos = Math.floor((real.getTime() - base.getTime()) / (minutos * 60000));
+  const mes = somarMeses(competencia(baseIso), periodos);
+  const vencimento = vencimentoDe(mes, diaDaAdesao(baseIso));
+  if (!vencimento) return real;
+  const deslocado = new Date(vencimento + 'T12:00:00Z');
+  return Number.isNaN(deslocado.getTime()) ? real : deslocado;
+}
+
+/**
  * A SITUAÇÃO DE UMA ESCOLA — o extrato pronto a desenhar.
  *
  * `contrato` é o registo comercial (`bastidores/<escola>/comercial`, lido por `comercial.js`):
@@ -192,12 +239,20 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
  *   · `meses` — a lista do extrato, do mais recente para o mais antigo, com `status`, `vencimento`,
  *     `valorCentavos` e o `em` do pagamento quando há.
  */
-function situacaoDaEscola({ escola, contrato, livro, agora } = {}) {
+function situacaoDaEscola({ escola, contrato, livro, agora, ensaio } = {}) {
   const slug = String(escola || '').trim();
   const c = contrato || {};
-  const hoje = agora ? new Date(agora) : new Date();
+  /* O ENSAIO DE MINUTOS (17/11/2026). Presente e válido, o «hoje» é o do relógio comprimido; ausente,
+   * é a hora real. A segunda coisa que ele muda é uma linha mais abaixo: no ensaio o período está
+   * vencido desde o primeiro instante — «passado o tempo de 3 minutos, já tem que pagar de novo» —,
+   * e por isso a comparação é `<=` e não `<`. Fora do ensaio nada disto corre. */
+  const ensaioValido = Boolean(ensaio) && Number(ensaio.minutosPorPeriodo) > 0;
+  const hoje = ensaioValido
+    ? instanteDoEnsaio({ contrato: c, ensaio, agora })
+    : (agora ? new Date(agora) : new Date());
   const hojeIso = hoje.toISOString();
   const mesDeHoje = competencia(hojeIso);
+  const hojeDia = diaDoInstante(hojeIso);
 
   const limites = comercial.limitesDoContrato(c);
 
@@ -215,7 +270,9 @@ function situacaoDaEscola({ escola, contrato, livro, agora } = {}) {
   const linhas = meses.map((mes) => {
     const pago = pagamentos[mes] || null;
     const vencimento = vencimentoDe(mes, dia);
-    const venceu = vencimento ? (vencimento + 'T23:59:59') < hojeIso : false;
+    const venceu = vencimento
+      ? (ensaioValido ? vencimento <= hojeDia : (vencimento + 'T23:59:59') < hojeIso)
+      : false;
     return {
       mes,
       nome: nomeDoMes(mes),
@@ -379,6 +436,56 @@ function extraDoContrato(contrato) {
   };
 }
 
+/**
+ * A MUDANÇA DE PLANO QUE AINDA NÃO COBROU — «isto é para o próximo mês» (17/11/2026).
+ *
+ * O QUE ELA VIU, e o que faltava dizer: «A escola Breu contratou o plano que no total dá R$ 239,90.
+ * Ela já pagou. Aí ela quer mudar o plano, vai para o básico […] o total ficou R$ 169,90, só que
+ * isso é para o próximo mês. […] Precisa indicar aqui que o plano contratado é básico, R$ 169,90 por
+ * mês. E aí a mudança vai passar a valer no mês seguinte.»
+ *
+ * O extrato já estava certo e a página não o dizia: o mês PAGO guarda o plano com que foi pago
+ * (`livro`), e o mês EM ABERTO é cobrado pelo contrato de hoje (`situacaoDaEscola`). O que faltava
+ * era a FRASE que liga as duas coisas — sem ela, ler «plano contratado 169,90» por cima de uma
+ * linha «novembro · 239,90 · pago» parece erro de conta.
+ *
+ * A REGRA, e é a única que não inventa nada: compara-se o último mês PAGO com o contrato em vigor.
+ * Se o plano ou o valor mudaram, a mudança vale a partir do mês seguinte ao último pago — e o
+ * primeiro vencimento no plano novo é o dia da adesão, nesse mês.
+ *
+ * PORQUE O MÊS SEGUINTE AO ÚLTIMO PAGO, e não «o primeiro em aberto»: em 17/11 não há mês em aberto
+ * nenhum (novembro está pago e dezembro ainda não começou a existir no extrato). «O primeiro em
+ * aberto» responderia «nada» a quem está exactamente a fazer a pergunta. O mês seguinte ao último
+ * pago existe sempre, e é a resposta certa nos dois casos.
+ *
+ * Devolve `null` quando não há nada a dizer: sem mês pago, ou com o plano do último pago igual ao
+ * de hoje. Um aviso que aparece sempre deixa de ser aviso.
+ */
+function mudancaDePlano(situacao) {
+  const s = situacao || {};
+  const meses = Array.isArray(s.meses) ? s.meses : [];
+  const pagos = meses.filter((m) => m && m.status === 'pago' && m.mes);
+  if (!pagos.length) return null;
+  /* `situacaoDaEscola` devolve do mais recente para o mais antigo — a ordem do extrato, e é dela
+   * que sai «o último pago». */
+  const ultimo = pagos[0];
+  const mesmoPlano = String(ultimo.planoNome || '') === String(s.planoNome || '')
+    && Number(ultimo.valorCentavos) === Number(s.valorCentavos);
+  if (mesmoPlano) return null;
+  const seguinte = somarMeses(ultimo.mes, 1);
+  return {
+    de: {
+      mes: ultimo.mes,
+      nome: ultimo.nome,
+      planoNome: ultimo.planoNome || null,
+      valorCentavos: Number(ultimo.valorCentavos) || 0,
+    },
+    mes: seguinte,
+    nome: nomeDoMes(seguinte),
+    vencimento: vencimentoDe(seguinte, s.diaDoVencimento),
+  };
+}
+
 /** A FRASE DA SITUAÇÃO. Uma, escrita uma vez, para a página dela e a da escola dizerem o mesmo. */
 function fraseDaSituacao(situacao) {
   if (situacao === 'em-dia') return 'Em dia: não há mensalidade vencida em aberto.';
@@ -400,6 +507,8 @@ module.exports = {
   lerLivro,
   registarPagamento,
   situacaoDaEscola,
+  instanteDoEnsaio,
+  mudancaDePlano,
   extraDoContrato,
   fraseDaSituacao,
 };

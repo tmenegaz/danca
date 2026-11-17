@@ -88,17 +88,25 @@ function montarPagina() {
 
 /* ------------------------------------------------------------------ H. a geometria */
 
-/** O CSS da Produção, extraído do próprio JS — nada de cópia que possa envelhecer. */
+/**
+ * O CSS DA PRODUÇÃO — LIDO DA PÁGINA, E NÃO DO FICHEIRO (17/11/2026).
+ *
+ * Aqui a bancada recortava o `<style>` do TEXTO do `bastidores.js`, à procura de `'.lateral{position:`
+ * e do `</style></head>` seguinte. Funcionava enquanto as regras moravam dentro da função que monta
+ * a página. Quando a moldura (a coluna, o corpo, as media queries) passou a ser uma CONSTANTE de
+ * módulo — para a página do mês a mês a poder usar também —, o primeiro `'.lateral{` do ficheiro
+ * passou a estar muito acima, e o recorte passou a apanhar código em vez de CSS: o `<style>` saía
+ * com JavaScript lá dentro, e as duas asserções do filete reprovavam uma página que está certa.
+ *
+ * A LIÇÃO É A DE SEMPRE: medir a SAÍDA e não a FONTE. Quem decide que o CSS está bom é o que o
+ * servidor emite — e é isso que esta função passa a ler. Se a moldura mudar de sítio outra vez, a
+ * bancada não dá por isso.
+ */
 function cssDaProducao() {
-  const src = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
-  const i = src.indexOf("'.lateral{position:");
-  // O FIM DO BLOCO: o `</style>` da MESMA vista. Sem aspas no padrão — a linha do arquivo é
-  // `'</style></head><body …`, e uma aspa depois do `>` não existe.
-  const j = src.indexOf("</style></head>", i);
-  if (i < 0 || j < 0) throw new Error('bastidores.js: bloco de estilo da Produção não encontrado');
-  return [...src.slice(i, j).matchAll(/'((?:[^'\\]|\\.)*)'/g)]
-    .map((m) => m[1].replace(/\\'/g, "'"))
-    .join('\n');
+  const html = montarPagina();
+  const blocos = [...String(html).matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+  if (!blocos.length) throw new Error('a página da Produção não trouxe nenhum <style>');
+  return blocos.join('\n');
 }
 
 /** Uma listagem de elencos em miniatura, com as MESMAS classes que a página emite. */
@@ -648,6 +656,34 @@ async function principal() {
     prosasDoForm.length === 0, prosasDoForm.map((t) => t.slice(0, 50)));
   provar('…e a frase que ela apontou saiu da página',
     !/O nome é como a turma vai referir/.test(PAGINA));
+
+  /* E A MESMA REGRA NA TRANSFERÊNCIA (17/11/2026) — «a aluna sai do elenco e entra no outro no
+   * mesmo ato. Tem que tirar esse texto.»
+   *
+   * O parágrafo era um manual de instruções dentro do formulário: explicava o acto, a proveniência
+   * e a cascata («reveja a Turma, depois o plano de ensino»). Saiu inteiro, e não ficou um `.aviso`
+   * vazio à espera de texto: o estado que ali faz falta — «faltam dois elencos concluídos» — já
+   * tem o seu sítio no `#mv-sem-dois`.
+   *
+   * A medida é a mesma das outras: parágrafo com mais de sessenta caracteres dentro do painel, e a
+   * frase que ela citou, palavra por palavra. */
+  const iTransf = PAGINA.indexOf('id="lb-painel-3"');
+  const trechoTransferencia = PAGINA.slice(iTransf, PAGINA.indexOf('col-lista', iTransf));
+  /* O `#mv-sem-dois` NÃO CONTA, e a distinção é a regra inteira: ele é ESTADO — «a transferência
+   * precisa de dois elencos concluídos» —, e o cliente reescreve-o a cada leitura da lista. Uma
+   * prosa é texto que fica na página a explicar o acto, e não texto que diz o que falta agora. Por
+   * isso se mede o parágrafo SEM id: o que não tem id não é reescrito por ninguém, logo é prosa. */
+  const prosasDaTransferencia = [...trechoTransferencia.matchAll(/<p class="(?:sub|aviso|nota)"([^>]*)>([\s\S]*?)<\/p>/g)]
+    .filter((m) => !/id="/.test(m[1]))
+    .map((m) => m[2].replace(/<[^>]*>/g, '').trim()).filter((t) => t.length > 60);
+  provar('a transferência não traz parágrafo a explicar o acto',
+    prosasDaTransferencia.length === 0, prosasDaTransferencia.map((t) => t.slice(0, 50)));
+  provar('…e a frase que ela apontou saiu da página, palavra por palavra',
+    !/sai de um elenco e entra no outro/i.test(PAGINA)
+      && !/nunca fica sem elenco/i.test(PAGINA)
+      && !/a cascata abre-se/i.test(PAGINA));
+  provar('…e o parágrafo não foi trocado por um `.aviso` vazio à espera de texto',
+    !/id="mv-explica"/.test(PAGINA));
 
   console.log('\nB. A folha do telemóvel');
 

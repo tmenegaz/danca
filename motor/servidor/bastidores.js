@@ -1,3 +1,145 @@
+/* A MOLDURA DA PÁGINA DE TRABALHO — o corpo e a coluna da esquerda, escritos UMA vez (17/11/2026).
+ *
+ * PORQUE ISTO SAIU DO MEIO DA `paginaProducao`. «Eu estou em escola, situação, e vou ver mês a mês.
+ * Quando eu faço isso, o menu todo de navegação que eu tenho à minha disposição desaparece do lado
+ * esquerdo. Tem que ficar aqui no mesmo lugar.» O mês a mês é uma página própria, e nasceu sem a
+ * coluna da esquerda porque a coluna estava escrita lá dentro, no `<style>` de uma função só.
+ *
+ * COPIAR SERIA A RESPOSTA ERRADA, e é a que se dá sem pensar: duas cópias do mesmo desenho divergem
+ * na primeira correcção, e a segunda é sempre a que ninguém se lembra de corrigir — a lição que o
+ * `motor/nucleo/paginacao.js` já pagou uma vez. Aqui as regras passam a ter um dono só, e as duas
+ * páginas leem-no daqui.
+ *
+ * O QUE VEM PARA AQUI, e porquê:
+ *   · a `.lateral` no computador (posição, largura, fundo) e as duas peças que nela se escondem —
+ *     a barra e o véu do celular;
+ *   · o `.corpo` — a grade de uma coluna que RESERVA os 248px da coluna no `padding-left`, porque
+ *     a coluna é `fixed` e não ocupa célula; e o `body:has(.corpo)` que tira os 40px de baixo,
+ *     que numa página de trabalho viram uma barra de rolagem a mais;
+ *   · as duas media queries: a da barra S5 no computador e a do celular, onde a coluna vira
+ *     barra + folha que sobe de baixo.
+ *
+ * O QUE NÃO VEM: tudo o que é de uma página só — o portão, as secções, as listas, o formulário.
+ * Esta constante é a moldura, e uma moldura que cresce deixa de servir as duas.
+ */
+const ESTILO_DA_PAGINA_DE_TRABALHO =
+    '.lateral{position:fixed;left:0;top:0;bottom:0;width:248px;z-index:15;' +
+    'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
+    'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
+    'overflow-y:auto;}' +
+    '.lateral .lateral-voltar{margin:0 0 var(--esp-3);}' +
+    // A BARRA E A FOLHA DO CELULAR existem no HTML e ficam OCULTAS na tela larga: o menu
+    // em coluna continua a ser o de sempre, e nada disto aparece. São o MESMO elemento que
+    // vira folha no celular (`.lateral-lista`) — não há uma segunda lista para envelhecer.
+    '.lateral-barra,.lateral-veu{display:none;}' +
+    '.corpo{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;' +
+    'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(248px + var(--esp-4) + var(--esp-5));}' +
+    // A PÁGINA QUE CABE NA TELA NÃO ROLA (26/10/2026). «Eu não sei o que que está gerando o scroll
+    // vertical, porque eu estou numa página que não tem elemento suficiente para ter um scroll.»
+    // Era isto: o `body` da folha reserva 40px de padding em baixo, para o texto de um documento
+    // não encostar na borda. Numa página de trabalho, que já tem o seu próprio respiro (o
+    // `esp-6` do `.corpo`), esses 40px sobram e viram uma barra de rolagem de 40px numa página
+    // que cabe inteira — e um menu `sticky` andava esses 40px com ela.
+    'body:has(.corpo){padding-bottom:0;}' +
+    '@media (min-width:769px){' +
+      '.topnav .s5-sessao{display:flex;align-items:baseline;gap:6px;min-width:0;flex:0 1 auto;' +
+        'font:700 14px/1.2 var(--ui);color:var(--sobre-marca);}' +
+      '.topnav .s5-sessao small{flex:0 0 auto;font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--texto-destaque-marca);}' +
+      '.topnav .s5-sessao small::after{content:"·";margin-left:5px;}' +
+      '.topnav .s5-sessao .nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      /* A logomarca e a identificação da coluna têm o desenho na folha (é um componente —
+         `tools/templates/ciclo.css`, secção «A LOGOMARCA MORA NA COLUNA»): aqui, que é a
+         página que carrega a folha, não se redeclara nenhuma. */
+    '}' +
+    '@media (max-width:768px){' +
+      '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
+      // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
+      // está e o «Seções» abre a folha. Sem fundo e sem filete — o fundo escuro é da coluna.
+      // `width: auto` e `z-index: auto` desfazem o que a tela larga impôs (26/10/2026): sem eles
+      // a barra do celular continuaria com os 11rem do menu lateral, e um `z-index` a competir
+      // com a folha que sobe de baixo.
+      '.lateral{position:static;width:auto;height:auto;min-height:0;margin:0;z-index:auto;' +
+        'border-right:none;background:none;color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
+      '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
+      // A BARRA DA PÁGINA SAI DE QUADRO AO ROLAR (18/10/2026). Ela está no fluxo, logo
+      // abaixo do menu fixo: sem isto, ela descia por baixo do menu e ficava MEIO visível —
+      // e nesse instante havia dois «Seções» e dois «Pedagogia · Turmas» na tela. A S5
+      // promete que ela «sobe e sai»; sair é sumir, não ficar espiando por baixo.
+      'body[data-descido="sim"] .lateral-barra{display:none;}' +
+      // UMA LINHA, e não duas: «PRODUÇÃO» em cima de «Painel inicial» fazia o botão
+      // «Seções» assentar entre as duas (o `align-items:center` de um bloco de 33px), e a
+      // barra lia-se como três coisas soltas. Em uma linha — grupo miúdo, página, botão —
+      // lê-se como um caminho, que é o que ela é. Medido: 77px e 78px viravam 78 e 78.
+      '.lateral-atual{min-width:0;display:flex;align-items:baseline;gap:6px;' +
+        'font:700 15px/1.25 var(--ui);color:var(--texto);}' +
+      '.lateral-atual small{font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--texto-suave);}' +
+      // O SEPARADOR é do desenho, não do conteúdo: sem ele o `textContent` dos dois versos
+      // corre junto («ProduçãoPainel inicial») e a leitura de ecrã não tem onde respirar.
+      '.lateral-atual small::after{content:"·";margin-left:5px;}' +
+      // O BOTÃO É A PÍLULA DA FOLHA, e não uma segunda pílula igual a ela (26/10/2026): o
+      // desenho mora em `.pilula-do-menu`, em `tools/templates/ciclo.css`. Aqui fica só o
+      // lugar — à direita, na barra.
+      '.lateral-abrir{margin-left:auto;flex:0 0 auto;}' +
+      // A FOLHA: lugar e transição. A identidade (fundo bordô, canto, sombra, pegador) é a de
+      // `.folha-do-menu`/`.folha-puxador` — a mesma da navegação do ☰ e do menu «Ações».
+      // As regras dos grupos e dos itens que aqui estavam (h2, a, ✓) saíram: são as
+      // `.coluna-titulo`/`.coluna-itens` da folha, que é o que faz os três menus serem um.
+      '.lateral-lista{position:fixed;left:0;right:0;bottom:0;z-index:60;overflow-y:auto;' +
+        'transform:translateY(101%);transition:transform .22s ease;}' +
+      '.lateral[data-aberta="sim"] .lateral-lista{transform:translateY(0);}' +
+      '.lateral-veu{display:block;position:fixed;inset:0;z-index:55;' +
+        'background:var(--veu);opacity:0;pointer-events:none;' +
+        'transition:opacity .2s ease;}' +
+      '.lateral[data-aberta="sim"] .lateral-veu{opacity:1;pointer-events:auto;}' +
+      // ===== S5 · A SESSÃO SOBE PARA A BARRA DO SISTEMA (18/10/2026) ==================
+      //
+      // Em repouso nada disto aparece: as duas peças nascem `display:none` e a barra é
+      // exactamente a de hoje (marca, ☰, tema). Ao rolar, a `.lateral-barra` do conteúdo
+      // sai de quadro sozinha — é ela que «sobe», não uma cópia — e o caminho entra aqui.
+      //
+      // A REGRA QUE FAZ A ☰ NÃO ANDAR: ela tem `margin-left:auto`, e o que entra antes
+      // dela é o vão que o `auto` preenchia. Nada é inserido DEPOIS da ☰ (o tema já lá
+      // estava), e por isso a posição dela é a mesma nos dois estados.
+      '.topnav .s5-sessao{display:none;align-items:baseline;gap:6px;min-width:0;' +
+        'font:700 12.5px/1.2 var(--ui);color:var(--sobre-marca);}' +
+      '.topnav .s5-sessao small{font:700 8.5px/1.2 var(--ui);letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--ornamento-forte);flex:0 0 auto;}' +
+      // O separador é do desenho: sem ele o `textContent` dos dois versos corre junto
+      // («PedagogiaTurmas») e a leitura de ecrã não tem onde respirar.
+      '.topnav .s5-sessao small::after{content:"·";margin-left:4px;}' +
+      '.topnav .s5-sessao .nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      // O «SEÇÕES» É UM BOTÃO, E PARECE UM (18/10/2026). Antes era texto com uma borda
+      // fina — e no telefone dava a impressão de que era preciso um dedo muito delicado
+      // para acertar. Agora é PREENCHIDO (o par ouro/sobre-ouro que o próprio sistema já
+      // usa no link ativo, e que `check-identidade` mede), com altura de alvo de toque e
+      // a seta que diz que ele abre alguma coisa. A área de toque tem 40px de altura: o
+      // mínimo confortável é 44, e 40 é o que cabe sem crescer a barra (o ☰ tem 42).
+      '.topnav .s5-secoes{display:none;flex:0 0 auto;align-items:center;justify-content:center;gap:5px;' +
+        'cursor:pointer;touch-action:manipulation;min-height:2.5rem;padding:.45rem .9rem;' +
+        'border:1px solid var(--ativo-fundo);border-radius:999px;' +
+        'background:var(--ativo-fundo);color:var(--ativo-texto);' +
+        'font:700 12.5px/1 var(--ui);box-shadow:0 1px 2px rgba(0,0,0,.20);}' +
+      '.topnav .s5-secoes .seta{font-size:10px;line-height:1;opacity:.85;}' +
+      '.topnav .s5-secoes:hover{filter:brightness(1.06);}' +
+      '.topnav .s5-secoes:active{transform:translateY(1px);}' +
+      '.topnav .s5-secoes:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
+      // O `flex:1 1 0` NÃO É ESTÉTICA — É O QUE FAZ O NOME ENCOLHER EM VEZ DE EMPURRAR.
+      // O `.topnav` tem `flex-wrap: wrap` (o menu aberto precisa dele), e um contentor que
+      // quebra distribui os itens por linhas ANTES de qualquer encolhimento: com
+      // `flex-basis:auto`, «Vocabulário técnico» a 320px não encolhia — quebrava a barra em
+      // duas linhas e levava o ☰ para o lado e para baixo. Com base 0 a largura hipotética
+      // é zero, a linha não quebra, e quem cede é o nome (reticências). O ☰ fica parado,
+      // que é a condição da S5.
+      '.topnav[data-descido="sim"] .s5-sessao{display:flex;flex:1 1 0;overflow:hidden;}' +
+      '.topnav[data-descido="sim"] .s5-secoes{display:inline-flex;}' +
+      // A MARCA SAI AO ROLAR. No celular ela é o lugar reservado da logo (o `span.marca`
+      // vazio); escondê-la devolve ao caminho a largura que ele precisa, e a logo — que é
+      // o que fica — não se perde.
+      '.topnav[data-descido="sim"]>.marca{display:none;}' +
+    '}';
+
 'use strict';
 
 /**
@@ -3392,16 +3534,36 @@ function topnav(contexto, onde, extras) {
  * `data-secao` continua em cada `<a>` — é o que o script das secções lê para marcar a página
  * atual e para dizer, na barra do celular, em que grupo ela está.
  */
-function grupoDoMenu(rotulo, itens) {
+function grupoDoMenu(rotulo, itens, opcoes) {
+  const o = opcoes || {};
   const chave = String(rotulo).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  return '<div class="coluna-grupo" data-grupo="' + chave + '">' +
+  /* O PREFIXO E O ITEM ATUAL (17/11/2026) — o que faz esta coluna servir DUAS páginas.
+   *
+   * `prefixo` resolve o problema dos endereços: os destinos nascem `#turmas`, um salto dentro da
+   * página, e na Produção é isso que eles são. Numa página irmã (`/bastidores/producao/financeiro`)
+   * um `#turmas` seria um salto para lado nenhum — não há secções lá. Com prefixo, o destino passa
+   * a `/bastidores/producao#turmas`: sai da página irmã e chega à secção, que é o que quem clica
+   * quer. Só os destinos internos (`#`) levam o prefixo; os absolutos ficam como estão.
+   *
+   * `atual` marca o item da página em curso no SERVIDOR, e não só no cliente. Na Produção quem
+   * marca é o script das secções, que lê o `#`; numa página sem secções esse script não corre — e
+   * sem esta marca a coluna apareceria toda igual, sem dizer onde se está.
+   *
+   * Sem opções, a saída é byte a byte a de antes: é o que permite mudar isto sem tocar na Produção. */
+  const prefixo = o.prefixo || '';
+  const atual = o.atual || '';
+  const href = (destino) => (prefixo && String(destino).charAt(0) === '#' ? prefixo + destino : destino);
+  const dentro = itens.some(([, secao]) => secao === atual);
+  return '<div class="coluna-grupo" data-grupo="' + chave + '"' +
+    (dentro ? ' data-atual="sim"' : '') + '>' +
     '<button type="button" class="coluna-titulo" aria-expanded="false" ' +
     'aria-controls="g-' + chave + '"><span>' + rotulo + '</span>' +
     '<span class="coluna-seta" aria-hidden="true">\u203a</span></button>' +
     '<div class="coluna-itens" id="g-' + chave + '">' +
-    itens.map(([href, secao, nome]) =>
-      '<a href="' + href + '" data-secao="' + secao + '">' + nome + '</a>').join('') +
+    itens.map(([destino, secao, nome]) =>
+      '<a href="' + href(destino) + '" data-secao="' + secao + '"' +
+      (secao === atual ? ' class="ativo" aria-current="page"' : '') + '>' + nome + '</a>').join('') +
     '</div></div>';
 }
 
@@ -3529,15 +3691,30 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
   const cadastro = await ler(RAIZ + '/' + escola + '/cadastro');
   const contrato = await ler(RAIZ + '/' + escola + '/comercial');
   const pix = await ler('financeiro/pix');
+  /* O MODO DE ENSAIO — o relógio comprimido, por escola e desligado por omissão (17/11/2026).
+   *
+   * «Vamos colocar que um plano, ao invés de ser mensal, ele dura apenas 3 minutos, que daí eu vou
+   * poder criar uma listagem e ver como é que está acontecendo.»
+   *
+   * A chave é `padd/<escola>/ensaio` e o valor é `{minutosPorPeriodo: 3}`. Ele viaja daqui para o
+   * núcleo (`situacaoDaEscola`), que é quem sabe comprimir o relógio — esta função só o lê. Sem a
+   * chave, `ensaio` é `null` e nada muda: é a única forma de isto não poder tocar numa escola a
+   * sério, porque uma escola a sério não tem a chave.
+   *
+   * LER A CHAVE SEMPRE CUSTA UMA LEITURA POR PÁGINA, e é o preço certo: a alternativa seria um
+   * segundo caminho de dados para o ensaio, e dois caminhos divergem. O KV desta chave é o mesmo
+   * que já se lê três vezes aqui em cima. */
+  const ensaio = await ler(RAIZ + '/' + escola + '/ensaio');
   const livro = await mensalidadesDoNucleo.lerLivro(kv);
   const situacao = mensalidadesDoNucleo.situacaoDaEscola({
-    escola, contrato, livro,
+    escola, contrato, livro, ensaio,
   });
   return {
     ok: true,
     cadastro,
     contrato,
     pix: pix && pix.chave ? pix : null,
+    ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
     situacao: Object.assign({}, situacao, {
       frase: mensalidadesDoNucleo.fraseDaSituacao(situacao.situacao),
     }),
@@ -3565,7 +3742,7 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
  *
  * O QUE ELA DECIDIU SOBRE O CONTEÚDO, e está no código: (1) o bloco dos meses em aberto **não
  * existe** quando não há nenhum — «se não tiver nenhum em aberto, nem exibe»; (2) o mês a mês
- * completo muda para uma página própria (`/bastidores/financeiro`), que a caixa da Situação abre
+ * completo muda para uma página própria (`/bastidores/producao/financeiro`), que a caixa da Situação abre
  * por um link; (3) o «Pagar» fica ao lado do mês vencido, para não ter de voltar à terceira caixa;
  * (4) a chave Pix tem um botão que a copia.
  *
@@ -3726,7 +3903,7 @@ function painelDaSituacaoDaEscola(s) {
     + (pares ? '<div class="trio-grade">' + pares + '</div>' : '')
     + emAberto
     + '<p class="par-botoes">' + pagar
-    + '<a class="acao ' + (pagar ? 'secundario ' : '') + 'pequena" href="/bastidores/financeiro"'
+    + '<a class="acao ' + (pagar ? 'secundario ' : '') + 'pequena" href="/bastidores/producao/financeiro"'
     + ' title="ver todos os meses, com o que foi pago e quando">Ver o mês a mês</a>'
     + '</p>';
 }
@@ -3772,7 +3949,7 @@ function painelDoPixDaEscola(pix, s, nomeDaEscola) {
 }
 
 /**
- * A PÁGINA DO MÊS A MÊS — `/bastidores/financeiro` (17/11/2026).
+ * A PÁGINA DO MÊS A MÊS — `/bastidores/producao/financeiro` (17/11/2026).
  *
  * «Aqui a gente vai ter um link que vai levar para uma outra página, um outro URL […] mostra a
  * listagem mês a mês de tudo, seguindo também o mesmo padrão da listagem. Vai ocupar a página
@@ -3852,6 +4029,79 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
    *
    * SEM ESTAS DUAS COISAS A PÁGINA CRESCE SEM FIM: «imagina se isso cresce 10, 20, 30 anos. Vai
    * ficar gigantesco desse jeito.» */
+  /* O PLANO CONTRATADO — DITO, E NÃO SÓ CALCULADO (17/11/2026).
+   *
+   * «O breu básico R$ 169,90 por mês ficou a indicação do plano contratado acima. […] Tem que
+   * colocar breu, plano contratado básico, valor R$ 169,90 por mês. E aí a mudança vai passar a
+   * valer no mês seguinte.»
+   *
+   * A linha do plano sai do CONTRATO em vigor (`situacao`), e não da última mensalidade: é o que a
+   * escola paga hoje, e é a resposta à pergunta «quanto é que eu pago?». As linhas pagas continuam
+   * a mostrar o plano com que foram pagas — o que foi pago não se reescreve.
+   *
+   * E QUANDO AS DUAS COISAS NÃO COINCIDEM, DIZ-SE PORQUÊ. `mudancaDePlano` compara o último mês
+   * pago com o contrato de hoje; havendo diferença, a frase nomeia o mês em que a mudança passa a
+   * valer e o dia em que a primeira cobrança no plano novo vence. Sem ela, «contratado 169,90» por
+   * cima de «novembro · 239,90 · pago» lê-se como erro de conta.
+   */
+  const mudanca = mensalidadesDoNucleo.mudancaDePlano(s);
+  const dataEmTexto = (iso) => {
+    const v = String(iso || '');
+    return v ? v.slice(8, 10) + '/' + v.slice(5, 7) + '/' + v.slice(0, 4) : '';
+  };
+  const planoEmTexto = s.planoNome
+    ? esc(s.planoNome) + (s.valorCentavos
+      ? ' · R$ ' + esc(emReaisDoCartao(s.valorCentavos)) + ' por mês' : '')
+    : (s.valorCentavos ? 'R$ ' + esc(emReaisDoCartao(s.valorCentavos)) + ' por mês' : '');
+  const planoDoContrato = planoEmTexto
+    ? '<p class="trio-frase"><strong>Plano contratado:</strong> ' + planoEmTexto + '.</p>'
+    : '';
+  const avisoDaMudanca = mudanca
+    ? '<p class="trio-nota">' + (mudanca.de.planoNome || mudanca.de.valorCentavos
+      ? 'A mudança de plano passa a valer em <strong>' + esc(mudanca.nome) + '</strong>'
+        + (mudanca.vencimento
+          ? ' — a primeira cobrança no plano novo vence a <strong>'
+            + esc(dataEmTexto(mudanca.vencimento)) + '</strong>' : '')
+        + '. '
+      : 'A mensalidade passa a ser de <strong>R$ ' + esc(emReaisDoCartao(s.valorCentavos))
+        + '</strong> a partir de <strong>' + esc(mudanca.nome) + '</strong>'
+        + (mudanca.vencimento
+          ? ', com o primeiro vencimento a ' + esc(dataEmTexto(mudanca.vencimento)) : '')
+        + '. ')
+      + 'A linha de <strong>' + esc(mudanca.de.nome) + '</strong> fica como está: foi paga no '
+      + 'plano anterior'
+      + (mudanca.de.planoNome
+        ? ' (' + esc(mudanca.de.planoNome)
+          + (mudanca.de.valorCentavos
+            ? ' · R$ ' + esc(emReaisDoCartao(mudanca.de.valorCentavos)) : '') + ')'
+        : '')
+      + ', e o que foi pago não se reescreve.</p>'
+    : '';
+  /* O AVISO DO ENSAIO — «isto não são meses a sério» (17/11/2026).
+   *
+   * O modo de ensaio comprime um mês em minutos, e serve para ela ver a listagem a crescer. A
+   * partir daí os rótulos dizem «dezembro de 2026», «janeiro de 2027» — e em 17/11/2026 esses meses
+   * ainda não existem. Sem uma faixa a dizê-lo, o ecrã mente com toda a boa-fé do mundo: é a
+   * diferença entre um dado de ensaio e um dado inventado, e ela não pode ter de adivinhar qual é.
+   *
+   * A FAIXA É UM ESTADO, e não uma explicação: diz o que está a acontecer agora e como sair. */
+  const minutosDoEnsaio = dados && dados.ensaio && Number(dados.ensaio.minutosPorPeriodo);
+  const avisoDoEnsaio = minutosDoEnsaio > 0
+    ? '<p class="aviso" role="status">Modo de ensaio: cada período vale '
+      + esc(String(minutosDoEnsaio)) + ' minuto' + (minutosDoEnsaio === 1 ? '' : 's')
+      + ' em vez de um mês. O extrato avança ao ritmo real, e o que aqui se paga é ensaio — '
+      + 'não é cobrança.</p>'
+      /* A SAÍDA É UM CLIQUE, e é a única coisa desta página que escreve (17/11/2026). Um modo que
+       * inventa competências não pode depender de ninguém se lembrar de um comando. O token é o da
+       * sessão do gabinete, que já está no `sessionStorage` — a página do mês a mês é da mesma
+       * origem, e pedir a senha outra vez para SAIR seria o clique a mais que se aprende a dar sem
+       * ler. */
+      + '<p class="par-botoes"><button type="button" class="acao secundario pequena" '
+      + 'id="ensaio-desligar" title="voltar à cobrança mensal">Desligar o modo de ensaio</button></p>'
+    : '';
+
+  const fichaDoPlano = avisoDoEnsaio + planoDoContrato + avisoDaMudanca;
+
   const barra = meses.length
     ? '<div class="caixa filtrar">'
       + '<div class="campo-filtro">'
@@ -3878,24 +4128,49 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
       + '</div>'
     : '<p class="trio-frase">' + esc(resumo) + '</p>';
 
-  return cabecalhoDaVista('Bastidores · Mês a mês · ' + escola, aparencia) +
+  /* A MOLDURA É A DA PRODUÇÃO (17/11/2026). «O menu todo de navegação que eu tenho à minha
+   * disposição desaparece do lado esquerdo. Tem que ficar aqui no mesmo lugar.» Esta página é a
+   * irmã da Produção, e passa a vestir a mesma moldura: a barra de cima, o `.corpo` que reserva os
+   * 248px da coluna, e a coluna — a mesma função que a Produção usa (`lateralDaProducao`), não uma
+   * cópia dela.
+   *
+   * O QUE MUDA DE UMA PÁGINA PARA A OUTRA, e é só isto:
+   *   · `prefixo: '/bastidores/producao'` — aqui os destinos são `#turmas` para outra página, e um
+   *     `#turmas` sozinho seria um salto para lado nenhum (não há secções cá);
+   *   · `atual: 'a-escola'` — o item marcado vem do SERVIDOR, porque o script que o marcaria na
+   *     Produção é o mesmo que esconde as secções, e esse não corre aqui.
+   *
+   * A `.mes-a-mes` perde o `padding` que tinha: quem o dá agora é o `.corpo`, e dois paddings
+   * somados afastariam a tabela da coluna sem motivo. */
+  return cabecalhoDaVista('Bastidores · Produção · Mês a mês · ' + escola, aparencia) +
     '<style>' +
+    ESTILO_DA_PAGINA_DE_TRABALHO +
     'body{background:var(--fundo);margin:0;}' +
-    '.mes-a-mes{max-width:60rem;margin:0 auto;padding:1.6rem 1.25rem 3rem;}' +
+    '.mes-a-mes{max-width:60rem;margin:0;}' +
     '.mes-a-mes h1{color:var(--marca);font-size:1.5rem;margin:0 0 .2rem;}' +
-    '.mes-a-mes .sub{margin:0;}' +
+    '.mes-a-mes .sub{margin:0 0 .6rem;}' +
     '.mes-a-mes .voltar{display:inline-block;margin:0 0 1rem;}' +
-    '</style></head><body data-layout="painel" data-tela="financeiro">' +
+    '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'producao') +
+    '<div class="corpo">' +
+    lateralDaProducao({
+      prefixo: '/bastidores/producao',
+      atual: 'a-escola',
+      grupoDeHoje: 'Configuração',
+      paginaDeHoje: 'Mês a mês',
+    }) +
+    '<div class="principal">' +
     '<main class="mes-a-mes">' +
     '<a class="acao secundario pequena voltar" href="/bastidores/producao#a-escola">'
     + '\u2190 A escola</a>' +
     '<h1>Mês a mês</h1>' +
-    '<p class="sub">' + esc(nome) + (s.planoNome ? ' · ' + esc(s.planoNome) : '')
-    + (s.valorCentavos ? ' · R$ ' + esc(emReaisDoCartao(s.valorCentavos)) + ' por mês' : '')
-    + '</p>' +
+    '<p class="sub">' + esc(nome) + '</p>' +
+    fichaDoPlano +
     barra + tabela +
     '</main>' +
+    '</div></div>' +
+    '<script>' + SCRIPT_DAS_FUNCOES_DO_MENU + SCRIPT_DO_GESTO_DO_MENU + '</script>' +
+    (minutosDoEnsaio > 0 ? '<script>' + SCRIPT_DO_SAIR_DO_ENSAIO + '</script>' : '') +
     '<script>' + paginacao.script + '</script>' +
     fimDaVista();
 }
@@ -3903,6 +4178,217 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
 /** `6990` → `69,90`. A formatação da casa, e uma só para as duas páginas. */
 function emReaisDoCartao(centavos) {
   return ((Math.round(Number(centavos) || 0)) / 100).toFixed(2).replace('.', ',');
+}
+
+/**
+ * AS DUAS FUNÇÕES DA FOLHA DO MENU NO CELULAR — escritas uma vez, usadas por duas páginas
+ * (17/11/2026).
+ *
+ * Elas nasceram dentro do script da Produção, onde faziam sentido: a coluna de lá era a única que
+ * existia em duas formas (coluna no computador, barra + folha no celular). Quando o mês a mês passou
+ * a ter a mesma coluna, passou a precisar do mesmo gesto — e copiar `abrirMenu`/`fecharMenu` seria a
+ * segunda cópia do mesmo protocolo (`data-aberta`, `aria-expanded`, o `overflow` do `body`).
+ *
+ * O CONTRATO SÃO AS MARCAS, e está todo aqui: `data-aberta="sim|nao"` na `.lateral`, o
+ * `aria-expanded` nos dois botões que abrem a MESMA folha (o da barra da página e o «Seções» da
+ * barra do sistema), e o `overflow` do `body` travado enquanto a folha está aberta.
+ */
+const SCRIPT_DAS_FUNCOES_DO_MENU =
+    'function abrirMenu() {' +
+    '  var lat = document.querySelector(".lateral");' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  if (!lat || !b) return;' +
+    '  lat.setAttribute("data-aberta", "sim");' +
+    '  b.setAttribute("aria-expanded", "true");' +
+    // A S5: o botão que mora na barra do sistema abre a MESMA folha — não há uma segunda
+    // navegação para o celular. O `aria-expanded` vai nos dois, porque os dois são o mesmo
+    // controle em dois lugares.
+    '  var b5 = document.getElementById("s5-secoes");' +
+    '  if (b5) b5.setAttribute("aria-expanded", "true");' +
+    // Travar a rolagem do fundo: com a folha aberta, rolar a página POR BAIXO dela é o
+    // gesto que faz o usuário perder a folha de vista sem a ter fechado.
+    '  document.body.style.overflow = "hidden";' +
+    '}' +
+    'function fecharMenu() {' +
+    '  var lat = document.querySelector(".lateral");' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  if (!lat) return;' +
+    '  if (lat.getAttribute("data-aberta") !== "sim") return;' +
+    '  lat.setAttribute("data-aberta", "nao");' +
+    '  if (b) b.setAttribute("aria-expanded", "false");' +
+    '  var b5 = document.getElementById("s5-secoes");' +
+    '  if (b5) b5.setAttribute("aria-expanded", "false");' +
+    '  document.body.style.overflow = "";' +
+    '}';
+
+/**
+ * O GESTO DA FOLHA — quem a abre e quem a fecha (17/11/2026).
+ *
+ * O botão da barra abre, o véu fecha, o `Escape` fecha, e a janela que cresce para tela larga
+ * também: em tela larga a folha não existe, e o `overflow:hidden` ficaria a travar a página sem
+ * nada aberto. É a mesma peça nas duas páginas.
+ */
+const SCRIPT_DO_GESTO_DO_MENU =
+    '(function(){' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  var veu = document.getElementById("lateral-veu");' +
+    '  if (b) b.addEventListener("click", abrirMenu);' +
+    '  if (veu) veu.addEventListener("click", fecharMenu);' +
+    // S5 — O BOTÃO «SEÇÕES» DA BARRA DO SISTEMA abre a mesma folha. Ele existe só no
+    // celular (o CSS o esconde fora), e é o caminho para trocar de secção quando a barra
+    // da página já saiu de quadro.
+    '  var b5 = document.getElementById("s5-secoes");' +
+    '  if (b5) b5.addEventListener("click", abrirMenu);' +
+    // O `Escape` é o gesto que se espera de uma folha modal, e no teclado não há véu para
+    // clicar. Fecha também quando a janela cresce: em tela larga a folha não existe, e o
+    // `overflow:hidden` do `body` ficaria a travar a página sem nada aberto.
+    '  document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharMenu(); });' +
+    '  window.addEventListener("resize", function(){ if (window.innerWidth > 768) fecharMenu(); });' +
+    /* E FECHA-SE A SI MESMO (17/11/2026). Antes deste dia o `})();` do fim estava lá em baixo,
+   * depois do código da altura da barra, que vivia dentro do MESMO invólucro. A constante só é
+   * reutilizável se estiver completa — uma constante que abre uma função e deixa o fecho a quem a
+   * usa não é uma peça, é meia. Por isso o gesto fecha aqui, e o código da barra abre a sua
+   * própria função, na Produção. */
+    '})();';
+
+/**
+ * A SAÍDA DO MODO DE ENSAIO (17/11/2026).
+ *
+ * «O que aqui se paga é ensaio — não é cobrança» é metade da frase; a outra metade é poder sair.
+ * A página diz o estado e oferece o gesto, e o gesto é uma chamada à rota que já apaga a chave.
+ *
+ * O TOKEN VEM DA SESSÃO DO GABINETE (`producao:token`), e não de uma caixa de senha: as duas
+ * páginas são da mesma origem, e quem chegou aqui já se autenticou. Sem token, a rota recusa com
+ * 401 e a página diz que não conseguiu — e não finge que desligou, que seria o pior dos desfechos:
+ * o ensaio continuaria a correr com o ecrã a dizer que não.
+ */
+const SCRIPT_DO_SAIR_DO_ENSAIO = '(function(){' +
+  'var b = document.getElementById("ensaio-desligar");' +
+  'if (!b) return;' +
+  'b.addEventListener("click", function(){' +
+  '  var token = "";' +
+  '  try { token = sessionStorage.getItem("producao:token") || ""; } catch (e) {}' +
+  '  b.disabled = true;' +
+  '  b.textContent = "a desligar…";' +
+  '  fetch("/api/bastidores/ensaio", {' +
+  '    method: "POST", headers: { "Content-Type": "application/json" },' +
+  '    body: JSON.stringify({ token: token, minutosPorPeriodo: 0 })' +
+  '  }).then(function(r){ return r.json(); }).then(function(d){' +
+  '    if (d && d.ok) { location.reload(); return; }' +
+  '    b.disabled = false;' +
+  '    b.textContent = "Desligar o modo de ensaio";' +
+  '    alert("não consegui desligar o ensaio: " + ((d && d.erro) || "sem resposta"));' +
+  '  }).catch(function(){' +
+  '    b.disabled = false;' +
+  '    b.textContent = "Desligar o modo de ensaio";' +
+  '    alert("não consegui desligar o ensaio — sem ligação");' +
+  '  });' +
+  '});' +
+  '})();';
+
+/**
+ * A COLUNA DA ESQUERDA DA PÁGINA DE TRABALHO — uma peça, duas páginas (17/11/2026).
+ *
+ * «Quando eu vou em escola, situação, e vou ver mês a mês, você está me tirando aqui do lugar de
+ * produção … o menu todo de navegação que eu tenho à minha disposição desaparece do lado esquerdo.
+ * Tem que ficar aqui no mesmo lugar.»
+ *
+ * A coluna estava escrita dentro da `paginaProducao`, e o mês a mês — que é uma página própria —
+ * nasceu sem ela. Podia copiar-se o bloco; seria a segunda cópia a divergir na primeira correcção.
+ * Passa a haver uma: esta função, e as duas páginas leem-na daqui.
+ *
+ * `prefixo` e `atual` são o que a torna reutilizável sem a tornar uma segunda página:
+ *   · na Produção, os destinos são `#turmas` (saltos dentro da própria página) e quem marca o item
+ *     atual é o script das secções, que lê o `#`. Sem prefixo e sem `atual`, a saída é byte a byte
+ *     a de antes — é isso que permite mudar isto sem tocar na Produção;
+ *   · na página irmã, os destinos passam a `/bastidores/producao#turmas` (um `#turmas` ali seria um
+ *     salto para lado nenhum, porque secções não há), e o item atual vem marcado do SERVIDOR,
+ *     porque o script que o marcaria é o que esconde as secções, e esse não corre lá.
+ */
+function lateralDaProducao(opcoes) {
+  const o = opcoes || {};
+  const prefixo = o.prefixo || '';
+  const grupoDeHoje = o.grupoDeHoje || 'Produção';
+  const paginaDeHoje = o.paginaDeHoje || 'Painel inicial';
+  const nav = { prefixo: prefixo, atual: o.atual || '' };
+  return     '<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">' +
+    // A barra do celular: o grupo e a página em que se está, e o botão que abre a folha.
+    // Em tela larga ela não aparece — quem navega é a coluna abaixo.
+    '<div class="lateral-barra">' +
+    '<span class="lateral-atual"><small id="lateral-grupo">' + esc(grupoDeHoje) + '</small>' +
+    '<span id="lateral-nome">' + esc(paginaDeHoje) + '</span></span>' +
+    '<button type="button" class="lateral-abrir pilula-do-menu" id="lateral-abrir" ' +
+    'aria-expanded="false" aria-controls="lateral-lista">Seções<span class="seta-do-ato" ' +
+    'aria-hidden="true">\u25be</span></button>' +
+    '</div>' +
+    '<div class="lateral-lista folha-do-menu" id="lateral-lista">' +
+    '<span class="folha-puxador" aria-hidden="true"></span>' +
+    /* A LOGOMARCA NO ALTO DA COLUNA, E A IDENTIFICAÇÃO LOGO ABAIXO (13/11/2026).
+       A mesma peça que a coluna do Sistema Lastro passou a ter — a MESMA string
+       (`MARCA_NA_BARRA`), e não uma segunda cópia do SVG: no dia em que o desenho mudar,
+       as duas colunas mudam juntas. O `<span class="coluna-marca">` é a identificação da
+       área, e usa a classe que a folha já desenha no Sistema Lastro.
+
+       O `lateral-voltar` continua logo abaixo, e é outra coisa: a marca leva ao início do
+       site, o «← Sistema Lastro» é o caminho de volta explícito — ninguém lê uma logo como
+       «voltar». */
+    /* A IDENTIFICAÇÃO AO LADO DA MARCA (15/11/2026) — a mesma linha que o Sistema Lastro passou a
+       ter, e pela mesma razão: a marca e o nome da área são UMA coisa, e empilhados o olho tinha
+       de descer 44px de desenho para saber onde estava. O contêiner é o mesmo
+       (`.coluna-identidade`, em `tools/templates/ciclo.css`), para as duas colunas não voltarem a
+       divergir. */
+    '<div class="coluna-identidade">' +
+    MARCA_NA_BARRA +
+    '<span class="coluna-marca">Bastidores</span>' +
+    '</div>' +
+    /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
+       eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
+       está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um
+       caminho de volta explícito no alto da lista, e não com a marca da barra (que também
+       leva a `/`, mas ninguém a lê como «voltar»). */
+    '<a class="lateral-voltar" href="/">&larr; Sistema Lastro</a>' +
+    grupoDoMenu('Produção', [['#painel', 'painel', 'Painel inicial']], nav) +
+    // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui
+    // que só a escola e o professor principal chegam. O grupo é «Configuração» porque não é
+    // pedagogia nem pessoa — é a forma da casa.
+    /* «A ESCOLA» ENTRA EM CONFIGURAÇÃO (16/11/2026) — e não em «Pessoas» nem em «Pedagogia».
+     * É o cadastro da própria escola: quem ela é, o que contratou e como está a pagar. O grupo é o
+     * mesmo da Aparência pelo mesmo motivo que ela deu ao criá-lo — «não é pedagogia nem pessoa, é
+     * a forma da casa». */
+    grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência'],
+      ['#a-escola', 'a-escola', 'A escola']], nav) +
+    grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
+      ['#alunas', 'alunas', 'Alunas']], nav) +
+    /* OS NOMES MUDARAM A 07/11/2026, E A ESTRUTURA COM ELES.
+     *
+     *   antigo «Turma»      → SALA   (o ritmo: dias, horários, duração, período)
+     *   antigo «Linha de base» → ELENCO (o corpo de alunas e o recorte observado)
+     *   antigo «Curadoria»  → TURMA  (a relação: professor × modalidade × sala × elenco)
+     *
+     * E DEPOIS OS RÓTULOS, NO MESMO DIA — A COISA NÃO MUDOU, O NOME SIM.
+     *
+     *   secção «Elenco»          → AUDIÇÃO  (onde o professor FAZ a seleção e a configuração:
+     *                                        escolhe os corpos, lê os retratos, recorta)
+     *   secção «Verbetes da Notação» → ESTILO (o espaço onde se definem os exercícios que
+     *                                        conduzem o elenco ao domínio daquele estilo)
+     *
+     * A ENTIDADE CONTINUA A CHAMAR-SE ELENCO, e é por isso que o campo do formulário é «Nome do
+     * elenco» e o da Turma é «Elenco»: a Audição é o ATO, o elenco é o que fica dele. Renomear o
+     * campo teria partido a frase dela — «cada sala recebe um elenco, formando uma turma em
+     * funcionamento» —, e a nomenclatura pedida é a dos menus e dos títulos, não a dos dados.
+     *
+     * Os IDS das secções ficam (`#turmas`, `#corpo`, `#curadorias`): são âncoras de link e de
+     * prova, não rótulos. Mudá-los partiria atalhos e provas sem mudar nada do que se lê. */
+    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Salas'],
+      // O ELENCO ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ele não é operação nem
+      // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
+      // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
+      ['#corpo', 'corpo', 'Audição'],
+      ['#verbetes', 'verbetes', 'Estilo'],
+      ['#curadorias', 'curadorias', 'Turmas']], nav) +
+    '</div>' +
+    '<div class="lateral-veu" id="lateral-veu"></div>' +
+    '</nav>';
 }
 
 function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola) {
@@ -5105,15 +5591,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // telas, a barra começa DEPOIS dela (`left: 248px`, em `tools/templates/ciclo.css`) e as duas
     // peças têm a mesma largura e o mesmo desenho. Quem ocupa os 248px é a coluna; a barra não
     // passa por baixo dela.
-    '.lateral{position:fixed;left:0;top:0;bottom:0;width:248px;z-index:15;' +
-    'padding:var(--esp-4) var(--esp-3) var(--esp-5);' +
-    'background:var(--marca-fundo);color:var(--sobre-marca);border-right:3px solid var(--ornamento-forte);' +
-    'overflow-y:auto;}' +
-    '.lateral .lateral-voltar{margin:0 0 var(--esp-3);}' +
-    // A BARRA E A FOLHA DO CELULAR existem no HTML e ficam OCULTAS na tela larga: o menu
-    // em coluna continua a ser o de sempre, e nada disto aparece. São o MESMO elemento que
-    // vira folha no celular (`.lateral-lista`) — não há uma segunda lista para envelhecer.
-    '.lateral-barra,.lateral-veu{display:none;}' +
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
@@ -5132,15 +5609,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `esp-4` de padding e o `esp-5` do `gap`). A largura passou de 11rem a **248px** em
     // 13/11/2026, para ser a mesma da coluna do Sistema Lastro — o conteúdo começa agora a
     // 288px (248 + 16 + 24), e não aos 216px de antes. É a geometria que a decisão aprovou.
-    '.corpo{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;' +
-    'padding:var(--esp-5) var(--esp-4) var(--esp-6) calc(248px + var(--esp-4) + var(--esp-5));}' +
-    // A PÁGINA QUE CABE NA TELA NÃO ROLA (26/10/2026). «Eu não sei o que que está gerando o scroll
-    // vertical, porque eu estou numa página que não tem elemento suficiente para ter um scroll.»
-    // Era isto: o `body` da folha reserva 40px de padding em baixo, para o texto de um documento
-    // não encostar na borda. Numa página de trabalho, que já tem o seu próprio respiro (o
-    // `esp-6` do `.corpo`), esses 40px sobram e viram uma barra de rolagem de 40px numa página
-    // que cabe inteira — e um menu `sticky` andava esses 40px com ela.
-    'body:has(.corpo){padding-bottom:0;}' +
     // O FORMULÁRIO CEDE PRIMEIRO, E A LISTAGEM NÃO PAGA TUDO (10/11/2026).
     //
     // Era `minmax(0,34rem) minmax(24rem,1fr)`: o formulário tomava os 34rem (544px) INTEIROS
@@ -5919,104 +6387,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        A ordem é a da leitura: ela é a PRIMEIRA coisa da barra, como o `doc-atual` na escola; o
        dropdown «Bastidores» continua na ponta. O `s5-secoes` continua escondido — no computador
        quem navega é a coluna. */
-    '@media (min-width:769px){' +
-      '.topnav .s5-sessao{display:flex;align-items:baseline;gap:6px;min-width:0;flex:0 1 auto;' +
-        'font:700 14px/1.2 var(--ui);color:var(--sobre-marca);}' +
-      '.topnav .s5-sessao small{flex:0 0 auto;font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
-        'text-transform:uppercase;color:var(--texto-destaque-marca);}' +
-      '.topnav .s5-sessao small::after{content:"·";margin-left:5px;}' +
-      '.topnav .s5-sessao .nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-      /* A logomarca e a identificação da coluna têm o desenho na folha (é um componente —
-         `tools/templates/ciclo.css`, secção «A LOGOMARCA MORA NA COLUNA»): aqui, que é a
-         página que carrega a folha, não se redeclara nenhuma. */
-    '}' +
-    '@media (max-width:768px){' +
-      '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
-      // NO CELULAR A COLUNA VIRA A BARRA + A FOLHA (não a coluna escura): a barra diz onde se
-      // está e o «Seções» abre a folha. Sem fundo e sem filete — o fundo escuro é da coluna.
-      // `width: auto` e `z-index: auto` desfazem o que a tela larga impôs (26/10/2026): sem eles
-      // a barra do celular continuaria com os 11rem do menu lateral, e um `z-index` a competir
-      // com a folha que sobe de baixo.
-      '.lateral{position:static;width:auto;height:auto;min-height:0;margin:0;z-index:auto;' +
-        'border-right:none;background:none;color:inherit;overflow:visible;padding:0 0 var(--esp-3);}' +
-      '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
-      // A BARRA DA PÁGINA SAI DE QUADRO AO ROLAR (18/10/2026). Ela está no fluxo, logo
-      // abaixo do menu fixo: sem isto, ela descia por baixo do menu e ficava MEIO visível —
-      // e nesse instante havia dois «Seções» e dois «Pedagogia · Turmas» na tela. A S5
-      // promete que ela «sobe e sai»; sair é sumir, não ficar espiando por baixo.
-      'body[data-descido="sim"] .lateral-barra{display:none;}' +
-      // UMA LINHA, e não duas: «PRODUÇÃO» em cima de «Painel inicial» fazia o botão
-      // «Seções» assentar entre as duas (o `align-items:center` de um bloco de 33px), e a
-      // barra lia-se como três coisas soltas. Em uma linha — grupo miúdo, página, botão —
-      // lê-se como um caminho, que é o que ela é. Medido: 77px e 78px viravam 78 e 78.
-      '.lateral-atual{min-width:0;display:flex;align-items:baseline;gap:6px;' +
-        'font:700 15px/1.25 var(--ui);color:var(--texto);}' +
-      '.lateral-atual small{font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
-        'text-transform:uppercase;color:var(--texto-suave);}' +
-      // O SEPARADOR é do desenho, não do conteúdo: sem ele o `textContent` dos dois versos
-      // corre junto («ProduçãoPainel inicial») e a leitura de ecrã não tem onde respirar.
-      '.lateral-atual small::after{content:"·";margin-left:5px;}' +
-      // O BOTÃO É A PÍLULA DA FOLHA, e não uma segunda pílula igual a ela (26/10/2026): o
-      // desenho mora em `.pilula-do-menu`, em `tools/templates/ciclo.css`. Aqui fica só o
-      // lugar — à direita, na barra.
-      '.lateral-abrir{margin-left:auto;flex:0 0 auto;}' +
-      // A FOLHA: lugar e transição. A identidade (fundo bordô, canto, sombra, pegador) é a de
-      // `.folha-do-menu`/`.folha-puxador` — a mesma da navegação do ☰ e do menu «Ações».
-      // As regras dos grupos e dos itens que aqui estavam (h2, a, ✓) saíram: são as
-      // `.coluna-titulo`/`.coluna-itens` da folha, que é o que faz os três menus serem um.
-      '.lateral-lista{position:fixed;left:0;right:0;bottom:0;z-index:60;overflow-y:auto;' +
-        'transform:translateY(101%);transition:transform .22s ease;}' +
-      '.lateral[data-aberta="sim"] .lateral-lista{transform:translateY(0);}' +
-      '.lateral-veu{display:block;position:fixed;inset:0;z-index:55;' +
-        'background:var(--veu);opacity:0;pointer-events:none;' +
-        'transition:opacity .2s ease;}' +
-      '.lateral[data-aberta="sim"] .lateral-veu{opacity:1;pointer-events:auto;}' +
-      // ===== S5 · A SESSÃO SOBE PARA A BARRA DO SISTEMA (18/10/2026) ==================
-      //
-      // Em repouso nada disto aparece: as duas peças nascem `display:none` e a barra é
-      // exactamente a de hoje (marca, ☰, tema). Ao rolar, a `.lateral-barra` do conteúdo
-      // sai de quadro sozinha — é ela que «sobe», não uma cópia — e o caminho entra aqui.
-      //
-      // A REGRA QUE FAZ A ☰ NÃO ANDAR: ela tem `margin-left:auto`, e o que entra antes
-      // dela é o vão que o `auto` preenchia. Nada é inserido DEPOIS da ☰ (o tema já lá
-      // estava), e por isso a posição dela é a mesma nos dois estados.
-      '.topnav .s5-sessao{display:none;align-items:baseline;gap:6px;min-width:0;' +
-        'font:700 12.5px/1.2 var(--ui);color:var(--sobre-marca);}' +
-      '.topnav .s5-sessao small{font:700 8.5px/1.2 var(--ui);letter-spacing:.09em;' +
-        'text-transform:uppercase;color:var(--ornamento-forte);flex:0 0 auto;}' +
-      // O separador é do desenho: sem ele o `textContent` dos dois versos corre junto
-      // («PedagogiaTurmas») e a leitura de ecrã não tem onde respirar.
-      '.topnav .s5-sessao small::after{content:"·";margin-left:4px;}' +
-      '.topnav .s5-sessao .nome{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-      // O «SEÇÕES» É UM BOTÃO, E PARECE UM (18/10/2026). Antes era texto com uma borda
-      // fina — e no telefone dava a impressão de que era preciso um dedo muito delicado
-      // para acertar. Agora é PREENCHIDO (o par ouro/sobre-ouro que o próprio sistema já
-      // usa no link ativo, e que `check-identidade` mede), com altura de alvo de toque e
-      // a seta que diz que ele abre alguma coisa. A área de toque tem 40px de altura: o
-      // mínimo confortável é 44, e 40 é o que cabe sem crescer a barra (o ☰ tem 42).
-      '.topnav .s5-secoes{display:none;flex:0 0 auto;align-items:center;justify-content:center;gap:5px;' +
-        'cursor:pointer;touch-action:manipulation;min-height:2.5rem;padding:.45rem .9rem;' +
-        'border:1px solid var(--ativo-fundo);border-radius:999px;' +
-        'background:var(--ativo-fundo);color:var(--ativo-texto);' +
-        'font:700 12.5px/1 var(--ui);box-shadow:0 1px 2px rgba(0,0,0,.20);}' +
-      '.topnav .s5-secoes .seta{font-size:10px;line-height:1;opacity:.85;}' +
-      '.topnav .s5-secoes:hover{filter:brightness(1.06);}' +
-      '.topnav .s5-secoes:active{transform:translateY(1px);}' +
-      '.topnav .s5-secoes:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
-      // O `flex:1 1 0` NÃO É ESTÉTICA — É O QUE FAZ O NOME ENCOLHER EM VEZ DE EMPURRAR.
-      // O `.topnav` tem `flex-wrap: wrap` (o menu aberto precisa dele), e um contentor que
-      // quebra distribui os itens por linhas ANTES de qualquer encolhimento: com
-      // `flex-basis:auto`, «Vocabulário técnico» a 320px não encolhia — quebrava a barra em
-      // duas linhas e levava o ☰ para o lado e para baixo. Com base 0 a largura hipotética
-      // é zero, a linha não quebra, e quem cede é o nome (reticências). O ☰ fica parado,
-      // que é a condição da S5.
-      '.topnav[data-descido="sim"] .s5-sessao{display:flex;flex:1 1 0;overflow:hidden;}' +
-      '.topnav[data-descido="sim"] .s5-secoes{display:inline-flex;}' +
-      // A MARCA SAI AO ROLAR. No celular ela é o lugar reservado da logo (o `span.marca`
-      // vazio); escondê-la devolve ao caminho a largura que ele precisa, e a logo — que é
-      // o que fica — não se perde.
-      '.topnav[data-descido="sim"]>.marca{display:none;}' +
-    '}' +
+    ESTILO_DA_PAGINA_DE_TRABALHO +
     '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'producao', sessaoNaBarra()) +
     '<div class="corpo">' +
@@ -6041,84 +6412,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * «Seções») e a folha onde a lista sobe. As funcionalidades não mudaram: os mesmos grupos, os
      * mesmos destinos, e cada `<a>` continua a levar `data-secao`, que é o que o script lê.
      */
-    '<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">' +
-    // A barra do celular: o grupo e a página em que se está, e o botão que abre a folha.
-    // Em tela larga ela não aparece — quem navega é a coluna abaixo.
-    '<div class="lateral-barra">' +
-    '<span class="lateral-atual"><small id="lateral-grupo">Produção</small>' +
-    '<span id="lateral-nome">Painel inicial</span></span>' +
-    '<button type="button" class="lateral-abrir pilula-do-menu" id="lateral-abrir" ' +
-    'aria-expanded="false" aria-controls="lateral-lista">Seções<span class="seta-do-ato" ' +
-    'aria-hidden="true">\u25be</span></button>' +
-    '</div>' +
-    '<div class="lateral-lista folha-do-menu" id="lateral-lista">' +
-    '<span class="folha-puxador" aria-hidden="true"></span>' +
-    /* A LOGOMARCA NO ALTO DA COLUNA, E A IDENTIFICAÇÃO LOGO ABAIXO (13/11/2026).
-       A mesma peça que a coluna do Sistema Lastro passou a ter — a MESMA string
-       (`MARCA_NA_BARRA`), e não uma segunda cópia do SVG: no dia em que o desenho mudar,
-       as duas colunas mudam juntas. O `<span class="coluna-marca">` é a identificação da
-       área, e usa a classe que a folha já desenha no Sistema Lastro.
-
-       O `lateral-voltar` continua logo abaixo, e é outra coisa: a marca leva ao início do
-       site, o «← Sistema Lastro» é o caminho de volta explícito — ninguém lê uma logo como
-       «voltar». */
-    /* A IDENTIFICAÇÃO AO LADO DA MARCA (15/11/2026) — a mesma linha que o Sistema Lastro passou a
-       ter, e pela mesma razão: a marca e o nome da área são UMA coisa, e empilhados o olho tinha
-       de descer 44px de desenho para saber onde estava. O contêiner é o mesmo
-       (`.coluna-identidade`, em `tools/templates/ciclo.css`), para as duas colunas não voltarem a
-       divergir. */
-    '<div class="coluna-identidade">' +
-    MARCA_NA_BARRA +
-    '<span class="coluna-marca">Bastidores</span>' +
-    '</div>' +
-    /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
-       eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
-       está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um
-       caminho de volta explícito no alto da lista, e não com a marca da barra (que também
-       leva a `/`, mas ninguém a lê como «voltar»). */
-    '<a class="lateral-voltar" href="/">&larr; Sistema Lastro</a>' +
-    grupoDoMenu('Produção', [['#painel', 'painel', 'Painel inicial']]) +
-    // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui
-    // que só a escola e o professor principal chegam. O grupo é «Configuração» porque não é
-    // pedagogia nem pessoa — é a forma da casa.
-    /* «A ESCOLA» ENTRA EM CONFIGURAÇÃO (16/11/2026) — e não em «Pessoas» nem em «Pedagogia».
-     * É o cadastro da própria escola: quem ela é, o que contratou e como está a pagar. O grupo é o
-     * mesmo da Aparência pelo mesmo motivo que ela deu ao criá-lo — «não é pedagogia nem pessoa, é
-     * a forma da casa». */
-    grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência'],
-      ['#a-escola', 'a-escola', 'A escola']]) +
-    grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
-      ['#alunas', 'alunas', 'Alunas']]) +
-    /* OS NOMES MUDARAM A 07/11/2026, E A ESTRUTURA COM ELES.
-     *
-     *   antigo «Turma»      → SALA   (o ritmo: dias, horários, duração, período)
-     *   antigo «Linha de base» → ELENCO (o corpo de alunas e o recorte observado)
-     *   antigo «Curadoria»  → TURMA  (a relação: professor × modalidade × sala × elenco)
-     *
-     * E DEPOIS OS RÓTULOS, NO MESMO DIA — A COISA NÃO MUDOU, O NOME SIM.
-     *
-     *   secção «Elenco»          → AUDIÇÃO  (onde o professor FAZ a seleção e a configuração:
-     *                                        escolhe os corpos, lê os retratos, recorta)
-     *   secção «Verbetes da Notação» → ESTILO (o espaço onde se definem os exercícios que
-     *                                        conduzem o elenco ao domínio daquele estilo)
-     *
-     * A ENTIDADE CONTINUA A CHAMAR-SE ELENCO, e é por isso que o campo do formulário é «Nome do
-     * elenco» e o da Turma é «Elenco»: a Audição é o ATO, o elenco é o que fica dele. Renomear o
-     * campo teria partido a frase dela — «cada sala recebe um elenco, formando uma turma em
-     * funcionamento» —, e a nomenclatura pedida é a dos menus e dos títulos, não a dos dados.
-     *
-     * Os IDS das secções ficam (`#turmas`, `#corpo`, `#curadorias`): são âncoras de link e de
-     * prova, não rótulos. Mudá-los partiria atalhos e provas sem mudar nada do que se lê. */
-    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Salas'],
-      // O ELENCO ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ele não é operação nem
-      // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
-      // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
-      ['#corpo', 'corpo', 'Audição'],
-      ['#verbetes', 'verbetes', 'Estilo'],
-      ['#curadorias', 'curadorias', 'Turmas']]) +
-    '</div>' +
-    '<div class="lateral-veu" id="lateral-veu"></div>' +
-    '</nav>' +
+    lateralDaProducao({}) +
     '<div class="principal">' +
     // O TÍTULO «PRODUÇÃO» NÃO É O TÍTULO DE TODA PÁGINA (18/10/2026). Ele estava AQUI, acima
     // de tudo, e por isso TODA secção começava com «Produção · O gabinete da direção — só a
@@ -7525,11 +7819,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * uma justificação a cada mudança faria escrever «-» no campo. Quando ela existe, fica na
      * proveniência dos dois elencos. */
     '<div class="aba-painel" id="lb-painel-3" role="tabpanel" aria-labelledby="lb-aba-3" tabindex="0" hidden>' +
-    /* A PROSA FICA FORA DO FORMULÁRIO — a mesma regra do «Desligamento» (09/11/2026): rótulo,
-     * campo e placeholder dentro; a explicação do acto antes, na `.aviso`. */
-    '<p class="aviso" id="mv-explica">A aluna sai de um elenco e entra no outro <b>no mesmo ato</b> ' +
-    '— nunca fica sem elenco. As duas versões ficam na proveniência, e a cascata abre-se: reveja a ' +
-    'Turma, depois o plano de ensino e, por último, o plano de observação.</p>' +
+    /* AQUI VIVIA UM PARÁGRAFO A EXPLICAR O ACTO, E SAIU (17/11/2026).
+     *
+     * «Na transferência, lá na audição, está escrito assim: a aluna sai do elenco e entra no outro
+     * no mesmo ato. Tem que tirar esse texto. Tem uma instrução que não é para ter esse tipo de
+     * texto.»
+     *
+     * A regra já era desta casa, escrita no «Desligamento» e aplicada ao formulário da Audição: o
+     * formulário diz o que o sistema SABE — «carregando…», a contagem, o motivo de um botão estar
+     * fechado —, e não como se usa o sistema. «As duas versões ficam na proveniência, e a cascata
+     * abre-se: reveja a Turma, depois o plano de ensino» é um manual de instruções dentro de um
+     * formulário: quem já sabe não precisa dele, e quem não sabe lê-o como mais um campo.
+     *
+     * NÃO FICOU UM `.aviso` VAZIO, e a razão é que ele não teria quem o enchesse: o estado
+     * («faltam dois elencos concluídos») já tem o seu sítio, o `#mv-sem-dois`, mais abaixo. Um
+     * elemento à espera de um texto que ninguém escreve é o mesmo defeito do parágrafo, com menos
+     * letras. */
     '<form id="form-mover"' + (podeMover ? '' : ' hidden') + '>' +
     '<label class="campo-rotulo" for="mv-de">Do elenco (origem)</label>' +
     '<select id="mv-de">' + opcoesDeElencoParaMover + '</select>' +
@@ -8348,32 +8653,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `fecharMenu` e `abrirMenu` são declarações de função (não `var`), e por isso já
     // existem quando `mostrarSecao()` roda na linha seguinte — a ordem do texto não é a
     // ordem de execução.
-    'function abrirMenu() {' +
-    '  var lat = document.querySelector(".lateral");' +
-    '  var b = document.getElementById("lateral-abrir");' +
-    '  if (!lat || !b) return;' +
-    '  lat.setAttribute("data-aberta", "sim");' +
-    '  b.setAttribute("aria-expanded", "true");' +
-    // A S5: o botão que mora na barra do sistema abre a MESMA folha — não há uma segunda
-    // navegação para o celular. O `aria-expanded` vai nos dois, porque os dois são o mesmo
-    // controle em dois lugares.
-    '  var b5 = document.getElementById("s5-secoes");' +
-    '  if (b5) b5.setAttribute("aria-expanded", "true");' +
-    // Travar a rolagem do fundo: com a folha aberta, rolar a página POR BAIXO dela é o
-    // gesto que faz o usuário perder a folha de vista sem a ter fechado.
-    '  document.body.style.overflow = "hidden";' +
-    '}' +
-    'function fecharMenu() {' +
-    '  var lat = document.querySelector(".lateral");' +
-    '  var b = document.getElementById("lateral-abrir");' +
-    '  if (!lat) return;' +
-    '  if (lat.getAttribute("data-aberta") !== "sim") return;' +
-    '  lat.setAttribute("data-aberta", "nao");' +
-    '  if (b) b.setAttribute("aria-expanded", "false");' +
-    '  var b5 = document.getElementById("s5-secoes");' +
-    '  if (b5) b5.setAttribute("aria-expanded", "false");' +
-    '  document.body.style.overflow = "";' +
-    '}' +
+    SCRIPT_DAS_FUNCOES_DO_MENU +
     // O GRUPO de um destino: o `<h2>` que vem antes dele. Lido do próprio documento, e
     // não de uma segunda lista no JavaScript — a lista dos grupos já está no HTML, e uma
     // cópia aqui divergiria dela no dia em que um grupo mudasse.
@@ -8479,21 +8759,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    mostrarSecao();' +
     '  }' +
     '});' +
+    SCRIPT_DO_GESTO_DO_MENU +
+    /* O CÓDIGO DA BARRA ABRE A SUA PRÓPRIA FUNÇÃO (17/11/2026): ele vivia dentro do invólucro do
+     * gesto da folha, e o gesto passou a fechar-se sozinho para poder ser usado noutra página. */
     '(function(){' +
-    '  var b = document.getElementById("lateral-abrir");' +
-    '  var veu = document.getElementById("lateral-veu");' +
-    '  if (b) b.addEventListener("click", abrirMenu);' +
-    '  if (veu) veu.addEventListener("click", fecharMenu);' +
-    // S5 — O BOTÃO «SEÇÕES» DA BARRA DO SISTEMA abre a mesma folha. Ele existe só no
-    // celular (o CSS o esconde fora), e é o caminho para trocar de secção quando a barra
-    // da página já saiu de quadro.
-    '  var b5 = document.getElementById("s5-secoes");' +
-    '  if (b5) b5.addEventListener("click", abrirMenu);' +
-    // O `Escape` é o gesto que se espera de uma folha modal, e no teclado não há véu para
-    // clicar. Fecha também quando a janela cresce: em tela larga a folha não existe, e o
-    // `overflow:hidden` do `body` ficaria a travar a página sem nada aberto.
-    '  document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharMenu(); });' +
-    '  window.addEventListener("resize", function(){ if (window.innerWidth > 768) fecharMenu(); });' +
     // S5 — «DESCIDO» É UMA DECISÃO, NÃO UM NÚMERO CONTÍNUO. O limiar de 24px evita a
     // barra piscar a cada pixel, e é o mesmo do estudo de opções visuais. O evento é
     // `passive` porque o ouvinte só LÊ a posição: dizer isso ao navegador evita que ele
@@ -15589,7 +15858,11 @@ async function fetch(request, env, extras) {
   const ehBastidores = path === '/bastidores'
     || path === '/bastidores/estudio'
     || path === '/bastidores/producao'
+    /* O MÊS A MÊS MUDOU DE SÍTIO (17/11/2026), e o endereço antigo continua a responder — está
+     * mais abaixo, num 302. Ele entra nesta lista para o pedido antigo não cair fora dos
+     * Bastidores e ir parar à ponte de produção. */
     || path === '/bastidores/financeiro'
+    || path === '/bastidores/producao/financeiro'
     || path.startsWith('/api/bastidores');
   if (!ehBastidores) return null;
 
@@ -15624,7 +15897,27 @@ async function fetch(request, env, extras) {
   /* O MÊS A MÊS NUMA PÁGINA PRÓPRIA (17/11/2026) — «um outro URL», como ela pediu, e «só uma
    * listagem». É a mesma leitura do cartão da escola (`dadosDaEscolaParaAProducao`: cadastro,
    * contrato, livro das mensalidades) e nenhuma escrita. */
+  /* O MÊS A MÊS MUDOU PARA DENTRO DA PRODUÇÃO (17/11/2026) — «bastidores produção financeiro».
+   *
+   * O QUE ELA VIU. «Eu estou em escola, aí situação, e vou ver mês a mês. Quando eu faço isso, você
+   * está me tirando aqui do lugar de produção. […] O menu todo de navegação que eu tenho à minha
+   * disposição desaparece do lado esquerdo. Tem que ficar aqui no mesmo lugar. Então eu acho que
+   * basta você dizer que o endereço é bastidores produção financeiro.»
+   *
+   * O ENDEREÇO NÃO RESOLVE SOZINHO — o que faltava era a coluna, e ela passou a ser a mesma
+   * (`lateralDaProducao`). Mas o endereço também conta: `/bastidores/financeiro` lia-se como um
+   * sítio NOVO, fora da Produção; `/bastidores/producao/financeiro` lê-se como o que é — uma página
+   * da Produção. Um endereço é a primeira coisa que diz onde se está.
+   *
+   * O ANTIGO NÃO SE APAGA: 302 para o novo, e com a query, para um favorito antigo continuar a
+   * chegar ao mesmo sítio. */
   if (path === '/bastidores/financeiro') {
+    return new Response(null, {
+      status: 302,
+      headers: semCache({ Location: '/bastidores/producao/financeiro' + (url.search || '') }),
+    });
+  }
+  if (path === '/bastidores/producao/financeiro') {
     const [aparenciaDoMes, dadosDoMes] = await Promise.all([
       aparenciaDaEscola(kv, escola),
       dadosDaEscolaParaAProducao(env, kv, escola),
@@ -16544,6 +16837,59 @@ async function fetch(request, env, extras) {
       const agora = await aparenciaDaEscola(kv, escola);
       return json(200, { ok: true, modo: agora.modo, paleta: agora.paleta });
     }
+  }
+
+  /* POST /api/bastidores/ensaio — LIGA E DESLIGA O RELÓGIO COMPRIMIDO (17/11/2026).
+   *
+   * «Vamos colocar que um plano, ao invés de ser mensal, ele dura apenas 3 minutos, que daí eu vou
+   * poder criar uma listagem e ver como é que está acontecendo.»
+   *
+   * A ASSIMETRIA É DELIBERADA, e é a parte de segurança desta rota:
+   *
+   *   · LIGAR escreve uma chave que faz o sistema inventar meses que ainda não existem. Quem o faz
+   *     está a pedir um ensaio, e por isso é um pedido explícito, com a senha da direção — a mesma
+   *     de todas as escritas do gabinete;
+   *   · DESLIGAR é um clique na própria página (`ensaioDesligar`), porque é a saída de emergência:
+   *     um modo que inventa competências não pode depender de ninguém se lembrar do comando.
+   *     Também pede a direção — a página já tem o token da sessão —, mas não pede que se saiba
+   *     onde a chave mora.
+   *
+   * `minutosPorPeriodo` a zero (ou ausente) APAGA a chave. É o mesmo pedido que desliga, e não um
+   * segundo caminho — dois caminhos para o mesmo estado divergem no dia em que um deles muda.
+   */
+  if (path === '/api/bastidores/ensaio' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const minutos = Number(corpo.minutosPorPeriodo);
+    const chave = RAIZ + '/' + escola + '/ensaio';
+    if (!(minutos > 0)) {
+      try { await kv.delete(chave); } catch (erro) {
+        return json(500, { ok: false, erro: 'não consegui apagar o ensaio' });
+      }
+      return json(200, { ok: true, ensaio: null });
+    }
+    /* O TECTO DE 1440 MINUTOS (um dia) NÃO É ARBITRÁRIO: acima disso o «período» é mais longo do
+     * que aquilo que ela quer testar, e um valor absurdo (três milhões de minutos) produziria um
+     * relógio parado que parece avaria. O piso de 1 minuto é o mesmo princípio ao contrário. */
+    if (minutos > 1440) {
+      return json(400, { ok: false, erro: 'minutosPorPeriodo tem de estar entre 1 e 1440' });
+    }
+    /* A BASE É O INSTANTE EM QUE SE LIGA, e a primeira versão disto estava errada de uma forma que
+     * só se vê a correr: eu punha a base na ADESÃO. A Breu aderiu às 00:41 e o ensaio seria ligado
+     * às 17h do mesmo dia — dezasseis horas, que a três minutos por período são TRINTA E TRÊS ANOS
+     * de competências de uma vez. O extrato abria em 2059.
+     *
+     * O relógio comprimido conta a partir de agora. Assim o primeiro período é o mês de hoje — que é
+     * o mês que a escola está a viver —, e cada bloco de minutos acrescenta um mês a partir dele. É
+     * também o que torna o ensaio legível: o que aparece é o futuro próximo, e não um salto.
+    const valor = { minutosPorPeriodo: Math.round(minutos), base: new Date().toISOString() };
+    try { await kv.put(chave, JSON.stringify(valor)); } catch (erro) {
+      return json(500, { ok: false, erro: 'não consegui guardar o ensaio' });
+    }
+    return json(200, { ok: true, ensaio: valor });
   }
 
   // POST /api/bastidores/validar-senha — a anamnese valida a senha DO PROFESSOR.
@@ -19887,6 +20233,11 @@ module.exports = {
   /* A PÁGINA DO MÊS A MÊS, exportada para a prova (17/11/2026): ela recebe o dado já lido e
    * devolve a página — a bancada pode desenhá-la sem subir o Worker, como faz com o cartão. */
   paginaFinanceiro,
+  /* A LEITURA DO «A ESCOLA» — cadastro, contrato, chave e extrato —, exportada para a prova do
+   * relógio de ensaio (17/11/2026). O que se quer afirmar é que a chave `ensaio` de UMA escola não
+   * chega a outra, e isso é uma pergunta sobre o que a leitura devolve para dois KV distintos;
+   * respondê-la com um KV falso montado à mão mediria a prova, não o servidor. */
+  dadosDaEscolaParaAProducao,
   /* A REGRA DO ELENCO NA TURMA, exportada para a prova (07/11/2026). O cliente repinta o
    * `<select>` com o que a rota devolve, e a bancada tem de poder construir a mesma resposta sem
    * subir o Worker — uma resposta escrita à mão na prova mediria a prova, não a regra. */

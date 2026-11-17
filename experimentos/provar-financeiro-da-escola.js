@@ -465,7 +465,7 @@ function kvCom(dados) {
         p('situacao') && [...p('situacao').querySelectorAll('.trio-falta li')]
           .map((l) => l.textContent.trim().slice(0, 18)));
       conferir('…e leva à página do mês a mês por um link',
-        p('situacao') && /href="\/bastidores\/financeiro"/.test(p('situacao').innerHTML), null);
+        p('situacao') && /href="\/bastidores\/producao\/financeiro"/.test(p('situacao').innerHTML), null);
       /* O «PAGAR» SÓ APARECE QUANDO HÁ O QUE PAGAR (17/11/2026). «Esse botão de pagar só vai
        * aparecer quando a escola tiver inadimplente para aquele mês ali que aparece. Senão ele não
        * aparece.»
@@ -479,7 +479,7 @@ function kvCom(dados) {
           && /^pagar$/i.test(pagarEm(p('situacao'))[0].textContent.trim())
           && pagarEm(p('situacao'))[0].getAttribute('data-abre') === 'pagar', null);
       conferir('…e com ele ao lado, «Ver o mês a mês» fica secundário — um só gesto principal',
-        /class="acao secundario pequena" href="\/bastidores\/financeiro"/.test(p('situacao').innerHTML),
+        /class="acao secundario pequena" href="\/bastidores\/producao\/financeiro"/.test(p('situacao').innerHTML),
         null);
       /* A QUE ESTÁ EM DIA: nenhum «Pagar», e o «Ver o mês a mês» passa a ser o gesto principal.
        * O contrato começa em OUTUBRO e o livro tem os dois meses — não há vencido nenhum. */
@@ -502,7 +502,7 @@ function kvCom(dados) {
         situacaoEmDia && pagarEm(situacaoEmDia).length === 0
           && emDia.meses.every((m) => m.status === 'pago'), emDia.situacao);
       conferir('…e sem «Pagar», «Ver o mês a mês» deixa de ser secundário',
-        /class="acao pequena" href="\/bastidores\/financeiro"/.test(situacaoEmDia.innerHTML), null);
+        /class="acao pequena" href="\/bastidores\/producao\/financeiro"/.test(situacaoEmDia.innerHTML), null);
       /* UM MÊS SÓ: o botão diz QUAL. «Pagar» sozinho, numa escola com meses antigos em aberto, não
        * diz a que mês se está a pagar — e é o mês que liga o Pix à competência. */
       const umMes = mensalidades.situacaoDaEscola({
@@ -680,6 +680,129 @@ function kvCom(dados) {
     conferir('sem meses, a página diz que a cobrança ainda não começou',
       /A cobrança começa quando a escola é habilitada/.test(semMeses)
         && !/id="fi-meses"/.test(semMeses), null);
+
+    /* ─── E4. O «PLANO CONTRATADO», E A MUDANÇA QUE SÓ VALE NO MÊS SEGUINTE ───────────────
+     *
+     * «A escola Breu contratou o plano que no total dá R$ 239,90. Ela já pagou […] aí ela quer
+     * mudar o plano, vai para o básico […] o total ficou R$ 169,90, só que isso é para o próximo
+     * mês. […] Tem que colocar: breu, plano contratado básico, valor R$ 169,90 por mês. E aí a
+     * mudança vai passar a valer no mês seguinte.»
+     *
+     * O CASO DELA, ao cêntimo: adesão a 17/11, novembro pago a 239,90 no plano Avançado, contrato
+     * agora Básico a 169,90. O que se afirma é o que o ecrã tem de dizer — o plano que se cobra
+     * hoje, o mês em que a mudança pega, o dia em que vence, e que a linha paga NÃO se reescreve.
+     */
+    {
+      const situacaoQueMudou = mensalidades.situacaoDaEscola({
+        escola: 'teste',
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 16990,
+          capacidade: { professores: 4, alunos: 40 }, criadoEm: '2026-11-17T13:00:00Z', estado: 'ativa' },
+        livro: [{ escola: 'teste', mes: '2026-11', status: 'pago', valorCentavos: 23990,
+          planoNome: 'Avançado', em: '2026-11-17T14:00:00Z' }],
+        agora: '2026-11-17T15:00:00Z',
+      });
+      const html4 = bastidores.paginaFinanceiro('teste',
+        { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
+          cadastro: { escolaNome: 'Breu' },
+          situacao: Object.assign({}, situacaoQueMudou,
+            { frase: mensalidades.fraseDaSituacao(situacaoQueMudou.situacao) }),
+        });
+      const d4 = new JSDOM2(html4).window.document;
+      const ficha = d4.querySelector('.mes-a-mes');
+      conferir('o mês a mês diz «Plano contratado», com o plano e o valor que se cobra hoje',
+        /Plano contratado:\s*<\/strong>\s*Básico · R\$ 169,90 por mês/.test(ficha.innerHTML),
+        (ficha.textContent.match(/Plano contratado[^.]*\./) || [''])[0]);
+      conferir('…e não repete o plano no subtítulo, onde estava sem dizer de que plano se tratava',
+        !/class="sub">Breu · Básico/.test(html4)
+          && /<p class="sub">Breu<\/p>/.test(html4), null);
+      conferir('…e diz que a mudança passa a valer em dezembro de 2026',
+        /passa a valer em <strong>dezembro de 2026<\/strong>/.test(ficha.innerHTML)
+          && mensalidades.mudancaDePlano(situacaoQueMudou).mes === '2026-12', null);
+      conferir('…e nomeia o dia da primeira cobrança no plano novo — 17/12/2026',
+        /17\/12\/2026/.test(ficha.textContent), null);
+      conferir('…e não reescreve o mês pago: novembro continua com o plano com que foi pago',
+        /novembro de 2026/.test(ficha.textContent)
+          && /Avançado · R\$ 239,90/.test(ficha.textContent)
+          && /o que foi pago não se reescreve/.test(ficha.textContent), null);
+      /* A CONTA DO VALOR NA LINHA em aberto é a do CONTRATO, e a do PAGO é a do livro — é o que
+       * faz as duas linhas poderem dizer valores diferentes sem parecer erro de soma. */
+      conferir('…e a linha de novembro mostra o que foi PAGO, não o valor de hoje',
+        situacaoQueMudou.meses[0].valorCentavos === 23990
+          && situacaoQueMudou.valorCentavos === 16990, null);
+
+      /* SEM MUDANÇA, NADA SE DIZ: um aviso que aparece sempre deixa de ser aviso. */
+      const semMudanca = mensalidades.mudancaDePlano(mensalidades.situacaoDaEscola({
+        escola: 'teste',
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 16990,
+          criadoEm: '2026-10-05T12:00:00Z', estado: 'ativa' },
+        livro: [{ escola: 'teste', mes: '2026-11', status: 'pago', valorCentavos: 16990,
+          planoNome: 'Básico', em: '2026-11-06T10:00:00Z' }],
+        agora: '2026-11-20T12:00:00Z',
+      }));
+      conferir('…e com o mesmo plano no último mês pago, não há aviso nenhum a inventar',
+        semMudanca === null, semMudanca);
+    }
+
+    /* ─── E5. O MÊS A MÊS FICA DENTRO DA PRODUÇÃO, COM A COLUNA DELA ─────────────────────
+     *
+     * «Eu estou em escola, situação, e vou ver mês a mês. Quando eu faço isso, você está me
+     * tirando aqui do lugar de produção […] o menu todo de navegação que eu tenho à minha
+     * disposição desaparece do lado esquerdo. Tem que ficar aqui no mesmo lugar.»
+     *
+     * MEDE-SE A COLUNA, E NÃO A INTENÇÃO: se ela existe, se é a mesma peça (`.lateral` com os
+     * mesmos grupos), se o item «A escola» vem marcado do servidor — porque o script que o
+     * marcaria na Produção é o mesmo que esconde as secções, e esse não corre aqui —, e se os
+     * destinos apontam para a Produção em vez de serem saltos para lado nenhum.
+     */
+    {
+      const html5 = bastidores.paginaFinanceiro('teste',
+        { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
+          cadastro: { escolaNome: 'Escola Teste' },
+          situacao: Object.assign({}, situacao, { frase: 'x', meses: [] }),
+        });
+      const d5 = new JSDOM2(html5).window.document;
+      conferir('a página do mês a mês tem a coluna da esquerda da Produção',
+        !!d5.querySelector('.corpo > .lateral') && !!d5.querySelector('.corpo > .principal'), null);
+      conferir('…com os mesmos quatro grupos do menu',
+        [...d5.querySelectorAll('.lateral .coluna-grupo')]
+          .map((g) => g.getAttribute('data-grupo')).join(',') ===
+          'producao,configuracao,pessoas,pedagogia',
+        [...d5.querySelectorAll('.lateral .coluna-grupo')].map((g) => g.getAttribute('data-grupo')));
+      conferir('…e o item «A escola» marcado como a página em curso, do SERVIDOR',
+        (d5.querySelector('.lateral a[aria-current="page"]') || {}).textContent === 'A escola'
+          && d5.querySelector('.lateral .coluna-grupo[data-grupo="configuracao"]')
+            .getAttribute('data-atual') === 'sim', null);
+      /* OS DESTINOS SAEM DA PÁGINA: um `#turmas` aqui não levava a nada, porque secções não há. */
+      const destinos = [...d5.querySelectorAll('.lateral a[data-secao]')]
+        .map((a) => a.getAttribute('href'));
+      conferir('…e cada destino aponta para a Produção, e não para um `#` sem secções',
+        destinos.length > 0 && destinos.every((h) => /^\/bastidores\/producao#/.test(h)),
+        destinos.slice(0, 3));
+      conferir('…e a barra do celular já nasce com o grupo e a página certos',
+        d5.getElementById('lateral-grupo').textContent === 'Configuração'
+          && d5.getElementById('lateral-nome').textContent === 'Mês a mês', null);
+      /* A COLUNA É A MESMA FUNÇÃO, e a prova vê-o pela marca que só ela põe: o `data-grupo`. Se
+       * alguém copiar o bloco, as duas cópias continuam a passar aqui — e é por isso que a
+       * asserção seguinte compara com a Produção, e não com uma lista escrita à mão. */
+      conferir('…e é a MESMA coluna da Produção, grupo por grupo',
+        [...d5.querySelectorAll('.lateral .coluna-grupo')].map((g) => g.innerHTML).join('|')
+          .replace(/\/bastidores\/producao#/g, '#')
+          .replace(/ class="ativo" aria-current="page"/g, '') ===
+        [...new JSDOM2(html).window.document.querySelectorAll('.lateral .coluna-grupo')]
+          .map((g) => g.innerHTML).join('|'), null);
+      /* O GESTO DA FOLHA VEM COM A COLUNA, e sem ele o botão «Seções» do celular não abriria nada.
+       * A asserção não procura o nome da função — COMPILA cada `<script>` da página. Foi assim que
+       * um erro real apareceu nesta frente: o gesto e o código da altura da barra partilhavam o
+       * mesmo invólucro, e a constante reutilizada ficou com a abertura e sem o fecho. Uma procura
+       * por `function abrirMenu(` passaria com o script a rebentar no browser. */
+      const compila = (corpo) => { try { new Function(corpo); return true; } catch (e) { return false; } };
+      const guiões = [...html5.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+      conferir('…e o gesto da folha do celular vem com ela, e compila',
+        guiões.length > 0 && guiões.every(compila)
+          && /getElementById\("lateral-abrir"\)/.test(html5)
+          && /getElementById\("lateral-veu"\)/.test(html5),
+        guiões.map((g, i) => (compila(g) ? null : 'script ' + i)).filter(Boolean));
+    }
   }
 
   console.log('\nG. O piso e o teto — «a partir de» e «até»');
