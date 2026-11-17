@@ -50418,3 +50418,17 @@ interrompe, e as asserções seguintes nunca correm.
 **Uma falha que é de antes, e fica dita.** `provar-derivacao-da-turma` rebenta com
 `URLSearchParams is not defined` — **medido no HEAD limpo, com as alterações em stash**: já rebentava,
 e não é regressão desta frente.
+
+**O expurgo passa a levar o financeiro da escola consigo.** A proprietária foi explícita: «quando
+você expurgar [a escola] dessa vez, essa parte toda de pagamento e financeiro […] tem que deixar de
+existir.» E não acontecia, por desenho: tudo o que é de uma escola vive sob dois prefixos (`<slug>/`
+e `bastidores/<slug>/`), e o expurgo apaga por prefixo; **o livro das mensalidades vive em
+`financeiro/mensalidades`, uma chave só para todas as escolas** — um prefixo nunca o alcança. O
+sintoma seria o Financeiro a mostrar a conta de uma escola que já não existe e a receita do parque a
+contá-la. É a mesma família do expurgo que deixou as alunas da `batata` vivas no KV (19/10/2026): a
+limpeza a relatar sucesso sobre o que não alcançou. Agora `mensalidades.apagarEscolaDoLivro` remove as
+linhas daquela escola, **devolve quantas saíram** (uma limpeza que não conta o que limpou não se
+distingue de uma que não correu), compara o slug por **igualdade** e não por prefixo (`breu` ≠
+`breu-rosa`), e corre **depois** da limpeza por prefixo, que é o que complementa. Uma falha nela
+marca a limpeza como incompleta — a pendência fica, e a próxima tentativa parte do mesmo lugar.
+`provar-o-expurgo-do-financeiro` **15/15**.

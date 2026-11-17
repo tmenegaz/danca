@@ -4597,6 +4597,30 @@ async function fetch(request, env) {
         prefixo: null,
         slug,
       });
+      /* ── E O LIVRO DO FINANCEIRO, QUE O PREFIXO NÃO ALCANÇA (17/11/2026) ──────────────────
+       *
+       * «Quando você expurgar [a escola] dessa vez, essa parte toda de pagamento e financeiro […]
+       * tem que deixar de existir.»
+       *
+       * O DEFEITO, medido. Tudo o que é da escola vive sob dois prefixos (`<slug>/` e
+       * `bastidores/<slug>/`), e o `apagarChavesDeEscola` limpa ambos. O livro das mensalidades
+       * NÃO: ele vive em `financeiro/mensalidades`, **uma chave só para todas as escolas**, com a
+       * lista dentro. Um prefixo nunca o alcança, por construção — e expurgar a escola deixava as
+       * mensalidades dela na lista: o Financeiro mostrava a conta de uma escola que já não existe,
+       * e a receita do parque contava-a.
+       *
+       * A LIMPEZA É UMA LEITURA-ESCRITA, e por isso não cabe no `apagarChavesDeEscola`: remove as
+       * linhas daquela escola e deixa as outras. O resultado entra no mesmo `kv` que a retomada
+       * grava, num campo próprio — um expurgo que não conta o que limpou não se distingue de um
+       * que não correu. */
+      try {
+        const doLivro = await mensalidades.apagarEscolaDoLivro(env && env.PADD_KV, slug);
+        kv.livro = doLivro;
+        if (!doLivro.ok) kv.ok = false;
+      } catch (err) {
+        kv.livro = { ok: false, erro: (err && err.message) || String(err) };
+        kv.ok = false;
+      }
     } catch (err) {
       kv = { ok: false, erro: (err && err.message) || String(err) };
     }

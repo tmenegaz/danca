@@ -1580,3 +1580,11 @@ experimentos/modelo-formulario/*
 # posto a zero e os pacotes a R$ 0,20 — a proposta errada, abaixo do preço da aula do plano de cima
 # — a prova reprova 23 de 39.
 !experimentos/provar-a-franquia-de-aulas.js
+
+# O EXPURGO DO FINANCEIRO (17/11/2026). «Quando você expurgar [a escola] dessa vez, essa parte toda
+# de pagamento e financeiro […] tem que deixar de existir.» O livro das mensalidades vive em UMA
+# chave global (`financeiro/mensalidades`), e o expurgo apaga por PREFIXO — logo nunca o alcançava:
+# as mensalidades de uma escola expurgada ficavam na lista, o Financeiro mostrava a conta de uma
+# escola que já não existe e a receita do parque contava-a. A prova mede a limpeza, a fronteira
+# entre `breu` e `breu-rosa` (igualdade do slug, não prefixo), e que a rota do expurgo a CHAMA.
+!experimentos/provar-o-expurgo-do-financeiro.js

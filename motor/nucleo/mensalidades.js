@@ -179,6 +179,41 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
 }
 
 /**
+ * APAGA UMA ESCOLA DO LIVRO — o que o expurgo tem de fazer, e não fazia (17/11/2026).
+ *
+ * O QUE ELA PEDIU, por palavras próprias: «quando você expurgar [a escola] dessa vez, essa parte
+ * toda de pagamento e financeiro […] tem que deixar de existir.»
+ *
+ * O DEFEITO QUE ISTO CORRIGE, medido. O livro vive em `financeiro/mensalidades` — **uma chave
+ * global**, com a lista de todas as escolas —, e o expurgo (`expurgar-escola.js`) apaga por
+ * **prefixo**: `<slug>/` e `bastidores/<slug>/`, mais uma lista de chaves fixas. Nenhuma dessas
+ * alcança o livro, porque o livro não é da escola: é de todas. Resultado: expurgar uma escola
+ * deixava as mensalidades dela na lista, e o Financeiro passava a mostrar a conta de uma escola que
+ * já não existe — a receita do parque contava-a, e o `extratoDasEscolas` procurava um contrato
+ * ausente.
+ *
+ * O QUE NÃO SE APAGA. Um mês de OUTRA escola não se toca. E o `atualizadoEm` fica — é o carimbo da
+ * última escrita do livro, e a limpeza é uma escrita.
+ *
+ * Devolve quantas linhas saíram, para o expurgo poder dizer o que fez — uma limpeza que não conta o
+ * que limpou não se distingue de uma que não correu.
+ */
+async function apagarEscolaDoLivro(kv, escola) {
+  const slug = String(escola || '').trim();
+  if (!kv || typeof kv.put !== 'function' || !slug) return { ok: false, removidas: 0, erro: 'sem KV ou sem escola' };
+  const lista = await lerLivro(kv);
+  const ficam = lista.filter((l) => l.escola !== slug);
+  const removidas = lista.length - ficam.length;
+  if (!removidas) return { ok: true, removidas: 0 };
+  try {
+    await kv.put(CHAVE, JSON.stringify({ lista: ficam, atualizadoEm: new Date().toISOString() }));
+    return { ok: true, removidas };
+  } catch (erro) {
+    return { ok: false, removidas: 0, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/**
  * O RELÓGIO COMPRIMIDO — um período de mensalidade que dura minutos (17/11/2026).
  *
  * O QUE ELA PEDIU, e porquê: «Para poder testar isso, vamos colocar que um plano, ao invés de ser
@@ -578,6 +613,7 @@ module.exports = {
   diaDaAdesao,
   lerLivro,
   registarPagamento,
+  apagarEscolaDoLivro,
   situacaoDaEscola,
   instanteDoEnsaio,
   mesInicialDoEnsaio,
