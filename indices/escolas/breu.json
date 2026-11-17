@@ -71,14 +71,14 @@
       "ciclo:demi-plie/01/breu"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "recortes": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -91,11 +91,22 @@
     "professores": [
       "demi-plie"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261116-2201"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261116-2201"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
     "estados": [
       {
@@ -109,8 +120,9 @@
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261116-2201",
           "ciclo:demi-plie/01/breu"
         ],
         "rotulo": "demi-plie",
@@ -118,6 +130,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261116-2201"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -130,9 +150,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ca8cd29"
+    "commit": "f7fa4ed"
   },
-  "gerado_em": "2026-11-17T00:41",
+  "gerado_em": "2026-11-17T01:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -156,6 +176,17 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261116-2201",
+      "ciclo": null,
+      "data": "2026-11-16T22:01",
+      "id": "anamnese:anamnese-20261116-2201",
+      "professor": "demi-plie",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 7
 }
