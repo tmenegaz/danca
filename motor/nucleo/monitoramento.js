@@ -131,13 +131,50 @@ function minutosDoRun(run, jobs) {
 }
 
 /**
+ * A PROJECÇÃO ATÉ AO FIM DO CICLO — «a este ritmo, onde é que isto pára?» (17/11/2026).
+ *
+ * UMA COTA MENSAL LIDA NO DIA 17 NÃO DIZ SE HÁ PROBLEMA. 1.930 de 2.000 é 96,5% — e é dia 17. O
+ * número que serve para decidir é o do fim do mês, e ele lê-se com uma regra de três: o que já
+ * andou dividido pelos dias que andaram, vezes os dias que o mês tem.
+ *
+ * O `agora` diz em que dia do mês estamos; sem ele, não se projecta nada (e a página não inventa).
+ * O dia conta-se a partir de 1, e o último dia do mês sai de `Date` — Fevereiro e os meses de 31
+ * não se escrevem à mão.
+ */
+function projectarCiclo({ gastos, incluido, agora, precoMinutoUsd } = {}) {
+  const g = Math.max(0, Number(gastos) || 0);
+  const inc = Math.max(0, Number(incluido) || 0);
+  const d = agora ? new Date(agora) : null;
+  if (!d || Number.isNaN(d.getTime())) {
+    return { gastos: g, incluido: inc, fraccao: fracao(g, inc), diasDecorridos: null, diasNoMes: null, projeccao: null, excedentePrevisto: null };
+  }
+  const diasNoMes = new Date(d.getUTCFullYear(), d.getUTCMonth() + 1, 0).getUTCDate();
+  const diasDecorridos = Math.max(1, d.getUTCDate());
+  const ritmo = g / diasDecorridos;
+  const projeccao = Math.round(ritmo * diasNoMes);
+  const preco = Number(precoMinutoUsd) > 0 ? Number(precoMinutoUsd) : COTAS.github.precoMinutoUsd;
+  return {
+    gastos: g,
+    incluido: inc,
+    fraccao: fracao(g, inc),
+    diasDecorridos,
+    diasNoMes,
+    ritmoDia: Math.round(ritmo * 10) / 10,
+    projeccao,
+    excedentePrevisto: Math.max(0, projeccao - inc),
+    custoPrevistoUsd: Math.max(0, projeccao - inc) * preco,
+    projeccaoExcede: projeccao > inc,
+  };
+}
+
+/**
  * O CONSUMO DO GITHUB, por workflow e no total.
  *
  * `runs` chega como o painel o lê da API (`id`, `workflow`, `segundos`, `quando`), e `jobsPorRun` é
  * o mapa `{ <id>: [{segundos}] }` do que já foi medido. O que não estiver no mapa entra como
  * estimado — e a página diz quantos são.
  */
-function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia } = {}) {
+function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia, facturado, agora } = {}) {
   const lista = Array.isArray(runs) ? runs : [];
   const mapa = jobsPorRun || {};
   const porFluxo = new Map();
@@ -209,6 +246,23 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia } = {}) {
   const total = minutosIncluidos({ computeUsd: degrau });
   const fluxos = [...porFluxo.values()].sort((a, b) => b.minutos - a.minutos);
 
+  /* ── O NÚMERO PRINCIPAL PASSA A SER O DA FATURA (17/11/2026) ─────────────────────────────────
+   *
+   * TUDO O QUE ESTÁ ACIMA É ATRIBUIÇÃO, E NÃO É O CONSUMO. Os `minutos` somados por fluxo dizem
+   * QUEM gastou; quanto se gastou LÊ-SE NA FATURA, e a fatura não se calcula: pergunta-se. Medido
+   * no dia em que se comparou: a regra dava ~3.600 min por 30 dias, e a fatura dizia **1.930
+   * minutos de 2.000, de 1 a 17 de Novembro**. Duas coisas diferentes, e a que manda é a segunda.
+   *
+   * E O CICLO É MENSAL, NÃO ROLANTE. A cota volta a zero no dia 1; uma janela de 30 dias rolantes
+   * comparada com um tecto mensal mede duas coisas diferentes e não se pode somar. Por isso a
+   * projecção: no dia 17 de 30, o que interessa não é «gastei 1.930», é «a este ritmo fecho o mês
+   * em X» — é essa a frase que permite «me programar antes que seja tarde».
+   */
+  const daFactura = facturado && facturado.ok && Number.isFinite(Number(facturado.minutosUsados));
+  const gastos = daFactura ? Number(facturado.minutosUsados) : minutos;
+  const incluido = daFactura && Number(facturado.incluidos) > 0 ? Number(facturado.incluidos) : total;
+  const ciclo = projectarCiclo({ gastos, incluido, agora, precoMinutoUsd: COTAS.github.precoMinutoUsd });
+
   /* ── A CONFERÊNCIA CONTRA O FORNECEDOR (17/11/2026) ────────────────────────────────────────
    *
    * A CONTA ACIMA É UMA REGRA, NÃO UM EXTRACTO. Ela aplica o que o GitHub DOCUMENTA («cada job
@@ -243,14 +297,29 @@ function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia } = {}) {
     provedor: 'github',
     janela: desde || null,
     runs: lista.length,
+    /* `minutos` é a ATRIBUIÇÃO (a regra, por fluxo); `gastos` é o CONSUMO, e vem da fatura quando
+     * ela pôde ser lida. Quando não pôde, `gastos` cai na regra — e `fonte` diz qual dos dois é. */
     minutos,
+    gastos,
+    incluido,
+    fonteDoGasto: daFactura ? 'factura' : 'regra',
+    facturado: daFactura ? {
+      minutosUsados: Number(facturado.minutosUsados) || 0,
+      minutosPagos: Number(facturado.minutosPagos) || 0,
+      incluidos: Number(facturado.incluidos) || 0,
+      via: facturado.via || null,
+      detalhe: facturado.detalhe || null,
+    } : null,
+    facturacaoIndisponivel: daFactura ? null : (facturado && facturado.motivo) || null,
+    pedePermissao: daFactura ? null : ((facturado && facturado.pede) || null),
+    ciclo,
     segundos,
     minutosPorRun: lista.length ? Math.round((minutos / lista.length) * 10) / 10 : 0,
     total,
-    restantes: Math.max(0, total - minutos),
-    fraccao: fracao(minutos, total),
-    excedenteMinutos: Math.max(0, minutos - total),
-    excedenteUsd: Math.max(0, minutos - total) * COTAS.github.precoMinutoUsd,
+    restantes: Math.max(0, incluido - gastos),
+    fraccao: fracao(gastos, incluido),
+    excedenteMinutos: Math.max(0, gastos - incluido),
+    excedenteUsd: Math.max(0, gastos - incluido) * COTAS.github.precoMinutoUsd,
     estimados,
     medidos,
     /* O QUE A CALIBRAGEM ASSUME, dito para a página o poder dizer: as execuções que faltam valem a
@@ -561,6 +630,7 @@ function contarEnvio(contadores, { mes, dia, quantos, enviado } = {}) {
 
 module.exports = {
   COTAS,
+  projectarCiclo,
   CHAVE_DO_CORREIO,
   contadoresVazios,
   contarEnvio,

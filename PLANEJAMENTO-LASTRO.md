@@ -2105,10 +2105,47 @@ decisão.
   O que ela **nunca** faz é escolher um dos dois em silêncio: um painel que esconde a divergência
   entre o que calcula e o que lhe cobram não serve para «não ser pega de surpresa»; serve para o
   contrário.
+- **AS DUAS LEITURAS ACIMA FICARAM FECHADAS NO MESMO DIA, e nenhuma delas era a certa.** A
+  proprietária leu a fatura e respondeu com números, a 17/11/2026:
+
+  > «Esse mês eu tenho ultrapassado por dia mais ou menos uma média de 90 centavos de dólar. Esse
+  > mês passei **1930 minutos dos 2000 minutos/mês**. Do dia 1º de novembro até o dia 17 de
+  > novembro, eu tenho que pagar **12 dólares** no mês que vem. […] Alerta de pagamento aqui não
+  > tenho nenhum.»
+
+  Ou seja: **está a ser facturado** (a hipótese 1 cai) e **o campo `billable` é que não serve** (a
+  hipótese 2 confirma-se). E há uma terceira coisa, que nenhuma das duas leituras previa: o ciclo é
+  **mensal e reseta no dia 1**, enquanto o painel media **30 dias rolantes** — comparava duas coisas
+  que não se somam. Foi essa a razão de o painel dizer 3.623 min onde a fatura dizia 1.930.
+
+  **O que mudou, e é o desenho todo:**
+  1. **O número principal é o da fatura.** `GET /users/{login}/settings/billing/actions`
+     (`{total_minutes_used, included_minutes, total_paid_minutes_used}`) passa a ser a fonte;
+     a regra dos jobs passa a ser **atribuição** — diz de quem é o gasto, e a soma dela não tem de
+     bater com a fatura. A página diz qual dos dois números é qual, na mesma linha.
+  2. **A janela é o ciclo, não 30 dias.** Começa no dia 1, que é onde a fatura começa.
+  3. **A projecção.** Uma cota lida no dia 17 não diz se há problema: 1.930 de 2.000 é 96,5%. O
+     painel passa a fechar a conta do mês pelo ritmo — *a este ritmo, o mês fecha em 3.406 min;
+     passa o incluído em 1.406 min, o que dá US$ 8,44 de excedente*. É essa a frase que serve para
+     «me programar antes que seja tarde».
+  4. **O orçamento de subpedidos, explícito.** Com 20 escolas, 30 páginas + 12 medições + 20
+     listagens passavam dos 50 subpedidos do Worker e **a rota caía** — um monitor que derruba a
+     página que o mostra. As parcelas passam a ser atribuídas: facturação (1) + conferência (1) +
+     listagens (até 8) primeiro, e o resto divide-se entre páginas e medições.
+
+  **A permissão que falta, e ela é exacta porque o GitHub a diz no próprio 403.** O cabeçalho
+  `x-accepted-github-permissions` da resposta 403 respondeu **`plan=read`**. O token em uso é fino
+  (não envia `X-OAuth-Scopes`), e o que lhe falta é a permissão de **conta**: GitHub → Settings →
+  Developer settings → Personal access tokens → o token → *Account permissions* → **Plan:
+  Read-only**. Não é preciso token novo, nem muda o valor do token (logo, nada a actualizar nos
+  segredos das Actions).
 - **Critérios verificáveis (acrescento).** (viii) A conferência é nula quando o fornecedor não
-  respondeu — `null` não é zero; (ix) com `billable` a zero, a página diz que a regra e o fornecedor
-  discordam e não apresenta o zero como «de graça»; (x) com `billable` positivo, o número do
-  fornecedor aparece e é identificado como atestado.
+  respondeu — `null` não é zero; (ix) com `billable` a zero, a página diz que esse campo **não serve
+  para medir** (e não que «o fornecedor discorda» — foi o que a fatura provou); (x) com a fatura
+  ilegível, o número grande é declarado como REGRA e a página nomeia a permissão que falta; (xi) o
+  número principal é o da fatura quando ela é legível (`fonteDoGasto === 'factura'`), e a atribuição
+  por fluxo continua visível sem se confundir com ele; (xii) a projecção do fim do ciclo aparece com
+  o excedente em minutos **e** em dólar; (xiii) a janela começa no dia 1 do mês.
 - **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
   mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
   diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a

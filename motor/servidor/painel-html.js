@@ -1879,13 +1879,13 @@ const pct = (f) => (Math.round((Number(f) || 0) * 1000) / 10).toFixed(1).replace
  * as cotas da casa. A peça chama-se `.cota` na folha, e não `.barra`: esse nome já é a barra fixa
  * da porta.
  */
-function barraDaCota({ fraccao, nivel, rotulo }) {
+function barraDaCota({ fraccao, nivel, rotulo, doQue }) {
   const f = Math.max(0, Math.min(1, Number(fraccao) || 0));
   const valor = Math.round(f * 1000);
   return '<progress class="cota" data-nivel="' + esc(nivel) + '" value="' + valor +
     '" max="1000">' + pct(f) + '</progress>' +
     '<p class="sub" data-cota-rotulo>' + esc(rotulo || '') + ': ' + pct(f) +
-    ' da capacidade</p>';
+    ' ' + esc(doQue || 'do incluído') + '</p>';
 }
 
 /** O selo do nível, com a palavra que ela lê. */
@@ -1915,26 +1915,71 @@ function blocoDoGithub(g) {
     '<td>' + f.ultimoMinutos + ' min</td>' +
     '</tr>').join('');
 
+  /* ── A PROCEDÊNCIA DO NÚMERO GRANDE, DITA EM UMA LINHA ──────────────────────────────────────
+   *
+   * `gastos` vem da FATURA quando ela pôde ser lida, e da regra quando não. Qual dos dois é tem de
+   * estar no ecrã, ao lado do número — não num rodapé: um número grande é lido como facto, e um
+   * número grande que é uma estimativa tem de se apresentar como estimativa na mesma linha. */
+  const daFactura = g.fonteDoGasto === 'factura';
+  const ciclo = g.ciclo || {};
+  const nivel = g.fraccao >= 0.95 ? 'agora' : (g.fraccao >= 0.8 ? 'atencao' : 'folga');
+
   return '<div class="caixa" id="monitor-github">' +
     '<h2>GitHub — o CI/CD</h2>' +
-    '<p>O plano <strong>' + esc(c.plano) + '</strong> inclui <strong>' + g.total + ' minutos</strong> ' +
-    'facturados por mês (' + usd(c.computeIncluidoUsd) + ' de compute a ' + usd(c.precoMinutoUsd) +
-    ' por minuto). O GitHub cobra <strong>cada job arredondado ao minuto</strong> — é por isso que ' +
-    'um «Guardar» de 11 segundos custa 1 minuto, e um de quatro jobs custa 4.</p>' +
-    '<div class="ficha">' +
-    '<span>Gastos na janela: <strong>' + g.minutos + ' min</strong></span>' +
-    '<span>de <strong>' + g.total + ' min</strong></span>' +
-    '<span>restam <strong>' + g.restantes + ' min</strong></span>' +
-    '<span>' + (g.runs ? g.minutosPorRun.toFixed(1).replace('.', ',') + ' min por run' : 'sem runs na janela') + '</span>' +
-    '</div>' +
-    barraDaCota({ fraccao: g.fraccao, nivel: g.fraccao >= 0.95 ? 'agora' : (g.fraccao >= 0.8 ? 'atencao' : 'folga'), rotulo: 'GitHub' }) +
+    '<p>O plano <strong>' + esc(c.plano) + '</strong> inclui <strong>' + g.incluido + ' minutos</strong> ' +
+    'por mês (' + usd(c.computeIncluidoUsd) + ' de compute a ' + usd(c.precoMinutoUsd) + ' por minuto). ' +
+    'O GitHub cobra <strong>cada job arredondado ao minuto</strong> — é por isso que um «Guardar» de ' +
+    '11 segundos custa 1 minuto, e um de quatro jobs custa 4.</p>' +
+    (daFactura
+      ? '<div class="ficha">' +
+        '<span>Gastos no mês: <strong>' + g.gastos + ' min</strong></span>' +
+        '<span>de <strong>' + g.incluido + ' min</strong></span>' +
+        '<span>restam <strong>' + g.restantes + ' min</strong></span>' +
+        (ciclo.diasDecorridos
+          ? '<span>dia <strong>' + ciclo.diasDecorridos + '</strong> de ' + ciclo.diasNoMes + '</span>'
+          : '') +
+        '</div>' +
+        '<p class="sub">Este número é o da <strong>fatura</strong>, lido na API de facturação do ' +
+        'GitHub (ciclo de ' + esc((g.janela || '').slice(8, 10)) + ' até hoje). O número da regra ' +
+        '— que serve para atribuir o gasto a cada processo, e não para medir o consumo — é ' +
+        g.minutos + ' min. Não são o mesmo número, e o que manda é o primeiro.</p>'
+      : '<div class="ficha">' +
+        '<span>Pela regra: <strong>' + g.minutos + ' min</strong></span>' +
+        '<span>de <strong>' + g.incluido + ' min</strong></span>' +
+        '<span>restam <strong>' + g.restantes + ' min</strong></span>' +
+        '</div>' +
+        '<p class="aviso"><strong>A fatura não pôde ser lida, e por isso este número é a REGRA, ' +
+        'não o consumo.</strong> ' + esc(g.facturacaoIndisponivel || 'motivo não declarado') + '. ' +
+        (g.pedePermissao
+          ? 'Para o painel ler o consumo verdadeiro, o token do GitHub precisa da permissão de conta ' +
+            '<strong>Plan → Read-only</strong> (é o que o próprio GitHub pede: <code>' +
+            esc(g.pedePermissao) + '</code>). Em GitHub → Settings → Developer settings → ' +
+            'Personal access tokens → o token → Account permissions → Plan: Read-only.'
+          : '') +
+        '</p>') +
+    barraDaCota({ fraccao: g.fraccao, nivel, rotulo: 'GitHub' }) +
     '<p>' + seloDoNivel(g.fraccao) + ' ' + pct(g.fraccao) + ' do incluído' +
     (g.excedenteMinutos ? ' · <strong>' + g.excedenteMinutos + ' min de excedente = ' +
       usd(g.excedenteUsd) + '</strong>' : '') + '</p>' +
+    /* A PROJECÇÃO — a frase que permite decidir hoje em vez de no fim do mês. Uma cota lida no dia
+     * 17 não diz se há problema; o número do fim do mês diz. */
+    (ciclo.diasDecorridos && ciclo.projeccao
+      ? '<p><strong>A este ritmo, o mês fecha em ' + ciclo.projeccao + ' min</strong> — ' +
+        ciclo.ritmoDia.toFixed(1).replace('.', ',') + ' min por dia × ' + ciclo.diasNoMes +
+        ' dias. ' +
+        (ciclo.projeccaoExcede
+          ? 'Passa o incluído em <strong>' + ciclo.excedentePrevisto + ' min</strong>, o que dá ' +
+            '<strong>' + usd(ciclo.custoPrevistoUsd) + '</strong> de excedente a pagar no mês ' +
+            'seguinte.'
+          : 'Cabe no incluído, com ' + (ciclo.incluido - ciclo.projeccao) + ' min de folga.') +
+        '</p>'
+      : '') +
     (linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Processo</th><th>Vezes</th>' +
         '<th>Gasto</th><th>Por vez</th><th>Última vez</th><th>Nessa vez</th></tr></thead><tbody>' +
-        linhas + '</tbody></table></div>'
+        linhas + '</tbody></table></div>' +
+        '<p class="sub">A coluna «Gasto» desta tabela é a <strong>atribuição pela regra</strong>: ' +
+        'diz de quem é o gasto, e a soma dela não tem de bater com a fatura.</p>'
       : '<p class="aviso">Nenhum run na janela. Uma tabela vazia quer dizer isso — não que a ' +
         'leitura falhou.</p>') +
     /* O QUE FOI MEDIDO E O QUE FOI ESTIMADO — dito, e não escondido. Uma estimativa apresentada como
@@ -1945,28 +1990,22 @@ function blocoDoGithub(g) {
         'fluxo</strong> — e as de um fluxo que ainda não foi medido nenhuma vez levam 1 minuto. ' +
         'Cada abertura do painel mede mais 12; o número converge para o medido a cada visita.</p>'
       : '<p class="sub">Todas as ' + g.runs + ' execuções da janela tiveram os jobs medidos.</p>') +
-    /* A CONFERÊNCIA CONTRA A FATURA. A conta acima aplica a regra documentada; esta linha diz o
-     * que o fornecedor respondeu quando lhe perguntaram quanto facturou. Quando os dois discordam,
-     * o painel não escolhe: mostra os dois e manda à fatura, que é a única que sabe. */
+    /* A CONFERÊNCIA CONTRA O FORNECEDOR — e agora sabe-se o que ela vale. O campo `billable` da API
+     * respondeu ZERO enquanto a fatura dizia 1.930 minutos: o campo não serve para medir. A linha
+     * mantém-se porque é a prova, e chama-se ao sítio certo. */
     (g.conferencia
       ? (g.conferencia.atesta
         ? '<p class="sub"><strong>Conferido com o fornecedor:</strong> na execução mais recente ' +
           'medida (' + esc(g.conferencia.workflow) + ', ' + g.conferencia.jobs + ' job' +
           (g.conferencia.jobs === 1 ? '' : 's') + '), o campo de facturação do próprio GitHub diz ' +
-          '<strong>' + String(g.conferencia.facturavelMinutos).replace('.', ',') + ' min</strong> — ' +
-          'contra os ' + g.conferencia.estimadoMinutos + ' min que a regra do arredondamento dava. ' +
-          'A regra é a que está a ser aplicada acima.</p>'
-        : '<p class="sub"><strong>A regra e o fornecedor discordam.</strong> Na execução mais ' +
-          'recente medida (' + esc(g.conferencia.workflow) + ', ' + g.conferencia.jobs + ' job' +
-          (g.conferencia.jobs === 1 ? '' : 's') + ' de ' + g.conferencia.segundos + ' s), o campo ' +
-          'de facturação do próprio GitHub diz <strong>0 min facturáveis</strong> — e a regra do ' +
-          'arredondamento por job dá-lhe ' + g.conferencia.estimadoMinutos + ' min. <strong>O ' +
-          'número acima é a regra, não a fatura.</strong> Se a fatura do GitHub confirmar zero, o ' +
-          'tecto não está a ser consumido e a mudança de plano não tem razão de ser; se confirmar a ' +
-          'regra, o tecto está estourado. A pergunta faz-se em GitHub → Settings → Billing → ' +
-          'Actions, e é a única que fecha isto.</p>')
-      : '<p class="sub">Ainda não foi possível perguntar ao fornecedor quanto facturou nesta ' +
-        'execução. A conta acima é a regra documentada — não é um extracto.</p>') +
+          '<strong>' + String(g.conferencia.facturavelMinutos).replace('.', ',') + ' min</strong>.</p>'
+        : '<p class="sub"><strong>O campo <code>billable</code> da API do GitHub não serve para ' +
+          'medir:</strong> na execução mais recente medida (' + esc(g.conferencia.workflow) + ', ' +
+          g.conferencia.jobs + ' job' + (g.conferencia.jobs === 1 ? '' : 's') + ' de ' +
+          g.conferencia.segundos + ' s) ele diz <strong>0 min facturáveis</strong>, enquanto a ' +
+          'fatura do mesmo mês conta os minutos. Fica registado como o que é: uma leitura que não ' +
+          'se pode usar.</p>')
+      : '') +
     '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
     '</div>';
 }

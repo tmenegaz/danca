@@ -348,11 +348,51 @@ function conferir(titulo, condicao, dado) {
       github: gDiv, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
     });
     const htmlDiv = painel.paginaDoMonitoramento({ retrato: retratoDiv, cambio: 5.4 });
-    conferir('…e quando a regra e o fornecedor discordam, o ecrã mostra os dois e não escolhe',
-      /A regra e o fornecedor discordam/.test(htmlDiv) && /0 min facturáveis/.test(htmlDiv)
-        && /Billing/.test(htmlDiv), null);
-    conferir('…e sem resposta do fornecedor, a página diz que o número é a regra e não um extracto',
-      /não é um extracto/.test(html), null);
+    /* O QUE SE APRENDEU EM PRODUÇÃO, e a asserção muda com ele: o campo `billable` respondia ZERO
+     * enquanto a fatura contava 1.930 minutos. Não é «a regra e o fornecedor discordam» — é «este
+     * campo não serve». A página passa a dizê-lo com essas palavras. */
+    conferir('…e quando o campo de facturação diz zero, o ecrã diz que ele não serve para medir',
+      /billable/.test(htmlDiv) && /não serve para medir/.test(htmlDiv)
+        && /0 min facturáveis/.test(htmlDiv), null);
+
+    /* A FATURA É O NÚMERO PRINCIPAL — quando ela pôde ser lida. E quando não pôde, a página diz
+     * que o número é a regra e pede a permissão exacta que o GitHub nomeia no 403. */
+    const gSemFactura = monitor.resumirGithub({
+      runs: [{ id: '1', workflow: 'X', segundos: 20, quando: '2026-11-10T00:00:00Z' }],
+      jobsPorRun: { 1: [{ segundos: 20 }] },
+      facturado: { ok: false, motivo: 'o token não pode ler a facturação', pede: 'plan=read' },
+      agora: '2026-11-17T12:00:00Z',
+    });
+    const retratoSemFactura = monitor.retrato({
+      github: gSemFactura, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+    });
+    const htmlSemFactura = painel.paginaDoMonitoramento({ retrato: retratoSemFactura, cambio: 5.4 });
+    conferir('…e sem a fatura, a página diz que o número é a REGRA, e não o consumo',
+      /é a REGRA/.test(htmlSemFactura) && /Plan → Read-only/.test(htmlSemFactura), null);
+
+    const gFact = monitor.resumirGithub({
+      runs: [{ id: '1', workflow: 'X', segundos: 20, quando: '2026-11-10T00:00:00Z' }],
+      jobsPorRun: { 1: [{ segundos: 20 }] },
+      facturado: { ok: true, minutosUsados: 1930, incluidos: 2000, minutosPagos: 0, via: 'utilizador' },
+      agora: '2026-11-17T12:00:00Z',
+    });
+    conferir('o número principal passa a ser o da fatura, e a regra fica como atribuição',
+      gFact.gastos === 1930 && gFact.fonteDoGasto === 'factura' && gFact.minutos === 1,
+      [gFact.gastos, gFact.fonteDoGasto, gFact.minutos]);
+    /* A PROJECÇÃO: no dia 17 de um mês de 30, 1.930 min é 113,5/dia e fecha em 3.406. */
+    conferir('…e projecta o fim do ciclo a partir do ritmo dos dias que já andaram',
+      gFact.ciclo.projeccao === 3406 && gFact.ciclo.excedentePrevisto === 1406
+        && Math.round(gFact.ciclo.custoPrevistoUsd * 100) === 844,
+      gFact.ciclo);
+    const htmlFact = painel.paginaDoMonitoramento({
+      retrato: monitor.retrato({
+        github: gFact, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+      }),
+      cambio: 5.4,
+    });
+    conferir('…e o ecrã mostra a projecção, com o excedente em minutos e em dólar',
+      /A este ritmo, o mês fecha em 3406 min<\/strong>/.test(htmlFact) && /US\$ 8,44/.test(htmlFact),
+      (htmlFact.match(/A este ritmo[^<]*<strong>[^<]*/) || [null])[0]);
 
     conferir('…e diz que o Resend conta o que o sistema pediu, não a fatura',
       /não é a fatura|Bounces/i.test(html), null);

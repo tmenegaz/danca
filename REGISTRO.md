@@ -48983,3 +48983,46 @@ conferência di-lo — e não atesta consumo», «…sem apagar o número da reg
 painel», «…e sem resposta do fornecedor, a conferência é nula (não é zero)», «…e quando a regra e o
 fornecedor discordam, o ecrã mostra os dois e não escolhe». Mais `provar-financeiro-da-escola`
 90/90 · `provar-abas` 28/28 · `check-identidade` 0 erros.
+
+## 17/11/2026 — a fatura fecha as duas hipóteses, e abre uma terceira conta
+
+**Terceira nota do dia, sobre o monitor.** A entrada anterior deixou duas leituras em aberto — «não
+está a ser facturado» ou «o campo `billable` não é de confiança» — e mandou a pergunta à fatura. A
+proprietária respondeu com números:
+
+> «Esse mês passei **1930 minutos dos 2000 minutos/mês**. Do dia 1º de novembro até o dia 17 de
+> novembro, eu tenho que pagar **12 dólares** no mês que vem.»
+
+**Está a ser facturado** (a primeira leitura cai) e **o campo `billable` não serve** (a segunda
+confirma-se). E há uma terceira coisa que nenhuma das duas previa, e é a que explicava a diferença
+de números: o ciclo do GitHub é **mensal e reseta no dia 1**, e o painel media **30 dias rolantes** —
+comparava coisas que não se somam. 1.930 min em 17 dias = 113,5/dia; a 30 dias dá 3.406, e era isso
+que o painel estava a ver quando dizia 3.623.
+
+**O desenho mudou em quatro pontos.** (1) O número principal passa a ser o **da fatura** —
+`GET /users/{login}/settings/billing/actions` —, e a regra dos jobs passa a ser **atribuição**: diz
+de quem é o gasto, e a soma dela não tem de bater com a fatura; a página diz qual dos dois é qual na
+mesma linha. (2) A janela é o **ciclo**, a começar no dia 1. (3) Há **projecção**: no dia 17, «1.930
+de 2.000» não decide nada, mas «a este ritmo o mês fecha em 3.406 min, 1.406 de excedente, US$ 8,44
+a pagar no mês seguinte» decide. (4) O **orçamento de subpedidos** passou a ser explícito: com 20
+escolas, 30 páginas + 12 medições + 20 listagens passavam dos 50 do Worker e **a rota caía** — um
+monitor que derruba a página que o mostra.
+
+**A permissão que faltava, medida e não adivinhada.** O 403 do GitHub traz no cabeçalho
+`x-accepted-github-permissions` a permissão exigida, e ela é **`plan=read`**: token fino, permissão
+de **conta** «Plan → Read-only». Não é preciso token novo e o valor do token não muda — logo, não há
+nada a actualizar nos segredos das Actions.
+
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js` (`consumoFacturadoDoGithub`, e o corte da
+janela por `desdeIso`) · `motor/nucleo/monitoramento.js` (`projectarCiclo`, `gastos`/`incluido`/
+`fonteDoGasto`/`facturado`/`ciclo` no resumo) · `motor/servidor/raiz.js` (janela do mês, orçamento
+de subpedidos, leitura da fatura em cache de 1 h) · `motor/servidor/painel-html.js` (o número grande
+com a procedência, o aviso da permissão, a projecção) · `PLANEJAMENTO-LASTRO.md` §L9d (as duas
+leituras fechadas, o desenho novo e os critérios viii a xiii).
+
+**Com o quê.** `provar-monitoramento` **61/61** — incluindo «o número principal passa a ser o da
+fatura, e a regra fica como atribuição», «…e projecta o fim do ciclo a partir do ritmo dos dias que
+já andaram», «…e sem a fatura, a página diz que o número é a REGRA, e não o consumo» (com a
+permissão nomeada), «…e o ecrã mostra a projecção, com o excedente em minutos e em dólar». Mais
+`provar-financeiro-da-escola` 90/90 · `provar-abas` 28/28 · `provar-piso` 34/34 ·
+`check-identidade` 0 erros.

@@ -37,12 +37,15 @@ function desde(dias, agora) {
  *
  * `per_page=100` e um tecto de páginas: um repositório com muita actividade num mês passaria das
  * 100 páginas, e aí o número fica DECLARADO como truncado em vez de aparecer completo e errado.
- * O tecto é de 5 páginas (500 runs) — acima disso, o painel diz que a janela está cortada.
+ * O CORTE PODE SER UM INSTANTE (`desdeIso`) E NÃO SÓ UM NÚMERO DE DIAS (17/11/2026). A cota do
+ * GitHub não é uma janela móvel de 30 dias: é um CICLO MENSAL que volta a zero no dia 1. Medir 30
+ * dias rolantes e comparar com um tecto mensal comparava duas coisas diferentes — e foi assim que
+ * o painel mostrou 3.623 min de uma cota em que a fatura dizia 1.930.
  */
-async function runsDoGithub({ token, dono, repo, dias, agora, fetchImpl, paginas = 5 } = {}) {
+async function runsDoGithub({ token, dono, repo, dias, agora, desdeIso, fetchImpl, paginas = 5 } = {}) {
   const f = fetchImpl || fetch;
   if (!token) return { ok: false, motivo: 'sem GITHUB_TOKEN', runs: [], truncado: false };
-  const corte = desde(dias, agora);
+  const corte = desdeIso ? String(desdeIso) : desde(dias, agora);
   const lista = [];
   let truncado = false;
   for (let p = 1; p <= paginas; p += 1) {
@@ -167,6 +170,68 @@ async function facturavelDoRunNoGithub({ token, dono, repo, id, fetchImpl } = {}
 }
 
 /**
+ * O CONSUMO FACTURADO DO MÊS — a FONTE, e não a regra (17/11/2026).
+ *
+ * PORQUE ISTO PASSA A SER O NÚMERO PRINCIPAL. Toda a conta do painel era uma REGRA (cada job
+ * arredondado ao minuto) porque era o que se podia ler daqui. A regra não é a fatura, e no dia em
+ * que se compararam as duas, discordaram: a regra dava ~3.600 min por 30 dias e a fatura da
+ * proprietária dizia **1.930 minutos de 2.000, de 1 a 17 de Novembro** — um ciclo MENSAL, não uma
+ * janela rolante. Duas correcções caíram de uma vez: o número principal é o da fatura, e a janela
+ * é o mês.
+ *
+ * A PERMISSÃO, e ela é exacta porque o GitHub a diz no próprio 403. O cabeçalho
+ * `x-accepted-github-permissions` respondeu **`plan=read`**: um token fino precisa da permissão de
+ * CONTA «Plan → Read-only». Sem ela, este pedido responde 403 — e o painel di-lo, com o caminho
+ * para a resolver, em vez de mostrar a regra como se fosse a fatura.
+ *
+ * O ENDEREÇO DEPENDE DE QUEM É O DONO. `/users/{login}/settings/billing/actions` para uma conta de
+ * pessoa, `/orgs/{org}/settings/billing/actions` para uma organização. Tenta-se o primeiro e, se
+ * ele disser 404 (é uma organização), o segundo — dois pedidos no pior caso, e só de hora a hora.
+ */
+async function consumoFacturadoDoGithub({ token, dono, fetchImpl } = {}) {
+  const f = fetchImpl || fetch;
+  if (!token) return { ok: false, motivo: 'sem GITHUB_TOKEN', pede: 'plan=read' };
+  const cabecalhos = {
+    Authorization: 'Bearer ' + token,
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'sistema-lastro',
+  };
+  const tentativas = [
+    { via: 'utilizador', url: 'https://api.github.com/users/' + dono + '/settings/billing/actions' },
+    { via: 'organizacao', url: 'https://api.github.com/orgs/' + dono + '/settings/billing/actions' },
+  ];
+  let motivo = 'não consegui falar com o GitHub';
+  for (const t of tentativas) {
+    let r = null;
+    try {
+      r = await f(t.url, { headers: cabecalhos });
+    } catch (erro) {
+      continue;
+    }
+    if (r && r.status === 404) continue;
+    if (!r || !r.ok) {
+      motivo = r && r.status === 403
+        ? 'o token não pode ler a facturação — falta a permissão de conta «Plan → Read-only» (plan=read)'
+        : 'o GitHub respondeu ' + (r ? r.status : '?') + ' ao pedido da facturação';
+      return { ok: false, motivo, pede: r && r.status === 403 ? 'plan=read' : null };
+    }
+    const d = await r.json().catch(() => null);
+    if (!d || !Number.isFinite(Number(d.total_minutes_used))) {
+      return { ok: false, motivo: 'a resposta da facturação veio sem o total de minutos', pede: null };
+    }
+    return {
+      ok: true,
+      via: t.via,
+      minutosUsados: Number(d.total_minutes_used) || 0,
+      minutosPagos: Number(d.total_paid_minutes_used) || 0,
+      incluidos: Number(d.included_minutes) || 0,
+      detalhe: d.minutes_used_breakdown || null,
+    };
+  }
+  return { ok: false, motivo, pede: null };
+}
+
+/**
  * AS CHAVES DE UMA ESCOLA, com o tamanho de cada valor.
  *
  * O `list()` devolve nomes e metadados; o tamanho só vem com `include_metadata`, e nem todos os
@@ -201,4 +266,7 @@ async function chavesDaEscola({ kv, escola } = {}) {
   return { total, bytes, comTamanho };
 }
 
-module.exports = { desde, runsDoGithub, minutosDoRunNoGithub, facturavelDoRunNoGithub, chavesDaEscola };
+module.exports = {
+  desde, runsDoGithub, minutosDoRunNoGithub, facturavelDoRunNoGithub,
+  consumoFacturadoDoGithub, chavesDaEscola,
+};

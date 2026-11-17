@@ -3601,28 +3601,44 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       /* A CACHE — uma chave, um objecto. `medidos` guarda a conta de cada run já fechado. */
       let cache = {
         medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
-        conferencia: null, conferenciaEm: null,
+        conferencia: null, conferenciaEm: null, facturado: null, facturadoEm: null,
       };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
         if (texto) cache = Object.assign(cache, JSON.parse(texto));
       } catch (erro) { /* cache ilegível vale cache vazia: o painel abre, só mede outra vez */ }
 
-      /* A JANELA INTEIRA, E NÃO UMA AMOSTRA (17/11/2026). Medido no primeiro dia em produção: este
-       * repositório tem **2.810 execuções em 30 dias**. Com o tecto de 5 páginas o painel via 500 e
-       * dizia 27,7% de uma cota que, na verdade, está estourada — o pior defeito possível num
-       * monitor. Uma listagem de 100 por página custa um subpedido, e 30 páginas cabem nos 50 do
-       * Worker: a janela passa a ser lida inteira, e o número passa a ser sobre o mês todo. */
+      /* A JANELA É O CICLO, E NÃO UMA JANELA ROLANTE (17/11/2026).
+       *
+       * A cota do GitHub volta a zero no dia 1 do mês. Medir 30 dias rolantes e comparar com um
+       * tecto mensal compara duas coisas que não se somam — foi o que fez o painel dizer 3.623 min
+       * de uma cota em que a fatura dizia 1.930 (de 1 a 17 de Novembro). A janela passa a começar
+       * no dia 1, que é onde a fatura começa.
+       *
+       * E é a JANELA INTEIRA, não uma amostra: o tecto de 5 páginas lia 500 das 2.810 execuções do
+       * mês e apresentava 500 como total. 30 páginas de 100 cobrem o mês dentro do orçamento de
+       * subpedidos do Worker. */
+      const primeiroDoMes = hoje.slice(0, 8) + '01';
       const janela = await leituraDoMonitor.runsDoGithub({
-        token, dono: DONO, repo: REPO, dias: 30, agora: agoraIso, paginas: 30,
+        token, dono: DONO, repo: REPO, desdeIso: primeiroDoMes + 'T00:00:00Z', agora: agoraIso, paginas: 30,
       });
 
       /* MEDIR OS JOBS QUE FALTAM, com tecto. A conta dos subpedidos: 30 páginas de runs + 12
        * medições + 2 de KV + 1 de listagem = 45, dentro dos 50 do plano gratuito. Cada abertura
        * acrescenta 12 execuções medidas, e a calibragem por fluxo faz o resto — não é preciso medir
        * 2.810 para saber quanto 2.810 custam. */
-      let medidosAgora = 0;
+      /* O ORÇAMENTO DE SUBPEDIDOS DO WORKER, explícito (17/11/2026).
+       *
+       * O plano gratuito dá **50 subpedidos por invocação**, e este painel faz três coisas caras:
+       * listar as execuções (30 páginas), medir jobs (1 por execução) e listar as chaves do KV
+       * (1 por escola). Com 20 escolas a soma passa dos 50 e a rota inteira caía — um monitor que
+       * derruba a página que o mostra. As parcelas passam a ser atribuídas por conta e saldo:
+       * facturação (1) + conferência (1) + listagens (até 8) saem primeiro, e o que sobra divide-se
+       * entre páginas (30) e medições (até 12). Abaixo de 8 escolas sobra o máximo para as duas. */
+      const ORCAMENTO = 50;
       const TECTO_DE_MEDICOES = 12;
+      const TECTO_DE_ESCOLAS = 8;
+      let medidosAgora = 0;
       const porMedir = janela.runs
         .filter((r) => !cache.medidos[r.id] && r.estado === 'completed')
         .slice(0, TECTO_DE_MEDICOES);
@@ -3668,15 +3684,31 @@ async function extratoDasEscolas({ env, escolas, agora }) {
         }
       }
 
+      /* A FACTURA DO MÊS — a fonte do número principal, lida de hora a hora.
+       *
+       * A permissão que ela precisa está no `pede` que o leitor devolve, e é a que o próprio GitHub
+       * nomeia no 403: `plan=read` (conta → «Plan → Read-only»). Quando não a há, o painel NÃO
+       * mostra a regra como se fosse fatura: diz que a fatura não pôde ser lida e porquê. */
+      let facturado = cache.facturado || null;
+      const facturaVelha = !cache.facturadoEm ||
+        (Date.now() - Date.parse(cache.facturadoEm)) > 3600 * 1000;
+      if (facturaVelha) {
+        facturado = await leituraDoMonitor.consumoFacturadoDoGithub({ token, dono: DONO });
+        cache.facturado = facturado;
+        cache.facturadoEm = agoraIso;
+      }
+
       const github = monitoramento.resumirGithub({
         runs: janela.runs, jobsPorRun: cache.medidos, desde: janela.desde, conferencia,
+        facturado, agora: agoraIso,
       });
 
       /* AS CHAVES DO KV, com tecto. Cada `list()` é uma operação de LISTAGEM, e o plano gratuito dá
        * 1.000 por dia. Com 30 escolas seriam 30 listagens por abertura do painel — e o painel
-       * passaria a ser o que gasta a cota. A cache de 1 hora existe para isso. */
+       * passaria a ser o que gasta a cota. A cache de 1 hora existe para isso, e o tecto de 8
+       * escolas por abertura (declarado acima, no orçamento dos subpedidos) impede que a rota caia
+       * pelo limite de 50 quando o sistema tiver as escolas que se espera que venha a ter. */
       const escolas = token ? (await escolasDoIndice({ token }))[0].filter((e) => !e.expurgada) : [];
-      const TECTO_DE_ESCOLAS = 20;
       const chaves = Object.assign({}, cache.chaves || {});
       let listouAgora = 0;
       const velha = !cache.chavesEm || (Date.now() - Date.parse(cache.chavesEm)) > 3600 * 1000;
@@ -3721,6 +3753,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
           await kv.put('monitor/cache', JSON.stringify({
             medidos: limpos, lidoEm: agoraIso, chavesEm: cache.chavesEm, chaves: cache.chaves,
             conferencia: cache.conferencia || null, conferenciaEm: cache.conferenciaEm || null,
+            facturado: cache.facturado || null, facturadoEm: cache.facturadoEm || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }
