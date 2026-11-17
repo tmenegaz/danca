@@ -1,6 +1,27 @@
 {
   "aspectos": [
     {
+      "aspecto": "meia-ponta",
+      "contagem": 2,
+      "ids": [
+        "recorte:ami",
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261117-1709",
+      "versoes": 2
+    },
+    {
+      "aspecto": "cinco-posicoes-3a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:ami"
+      ],
+      "primeira": "20261117-1709",
+      "ultima": "20261117-1709",
+      "versoes": 1
+    },
+    {
       "aspecto": "equilibrio-unipodal",
       "contagem": 1,
       "ids": [
@@ -21,13 +42,23 @@
       "versoes": 1
     },
     {
-      "aspecto": "meia-ponta",
+      "aspecto": "forca-de-empurrar-push-ups",
       "contagem": 1,
       "ids": [
-        "recorte:tami"
+        "recorte:ami"
       ],
-      "primeira": "20261117-0102",
-      "ultima": "20261117-0102",
+      "primeira": "20261117-1709",
+      "ultima": "20261117-1709",
+      "versoes": 1
+    },
+    {
+      "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
+      "contagem": 1,
+      "ids": [
+        "recorte:ami"
+      ],
+      "primeira": "20261117-1709",
+      "ultima": "20261117-1709",
       "versoes": 1
     }
   ],
@@ -340,7 +371,7 @@
       "ciclos_com_ancora": 1,
       "planos": 1,
       "pos": 1,
-      "recortes": 1,
+      "recortes": 2,
       "registros": 4
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
@@ -380,6 +411,14 @@
       {
         "contagem": 1,
         "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "cinco-posicoes-3a-pes",
+        "valor": "cinco-posicoes-3a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
           "recorte:tami"
         ],
         "rotulo": "equilibrio-unipodal",
@@ -396,10 +435,27 @@
       {
         "contagem": 1,
         "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "forca-de-empurrar-push-ups",
+        "valor": "forca-de-empurrar-push-ups"
+      },
+      {
+        "contagem": 2,
+        "ids": [
+          "recorte:ami",
           "recorte:tami"
         ],
         "rotulo": "meia-ponta",
         "valor": "meia-ponta"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:ami"
+        ],
+        "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
+        "valor": "mobilidade-de-quadril-en-dehors-de-origem"
       }
     ],
     "estados": [
@@ -464,9 +520,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "49a38d3"
+    "commit": "8ab49be"
   },
-  "gerado_em": "2026-11-17T17:08",
+  "gerado_em": "2026-11-17T17:09",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -490,6 +546,37 @@
     }
   ],
   "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "cinco-posicoes-3a-pes",
+        "forca-de-empurrar-push-ups",
+        "meia-ponta",
+        "mobilidade-de-quadril-en-dehors-de-origem"
+      ],
+      "atualizada_em": "2026-11-17T17:08:59.598Z",
+      "enviada_em": "2026-11-17T17:09:00.098Z",
+      "id": "recorte:ami",
+      "linha": "ami",
+      "nome": "Ami",
+      "professor": "demi-plie",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/ami--20261117-1709.json",
+          "aspectos": [
+            "cinco-posicoes-3a-pes",
+            "meia-ponta",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "forca-de-empurrar-push-ups"
+          ],
+          "enviada_em": "2026-11-17T17:09:00.098Z",
+          "versao": "20261117-1709"
+        }
+      ],
+      "vigente": true
+    },
     {
       "alunas": 1,
       "aspectos": [
