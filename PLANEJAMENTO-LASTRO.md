@@ -2266,6 +2266,50 @@ voltar a privado; (xx) a visibilidade é lida do GitHub (`GET /repos/{dono}/{rep
 com a mesma cache de hora da fatura — e `null` quando não se conseguiu ler, caso em que o painel
 não afirma nem uma coisa nem outra.
 
+**O BOTÃO DE MIGRAR, E O QUE ELE RECUSA FAZER** *(acrescento do mesmo dia)*. Ela pediu: «todos esses
+planos aqui têm que ter o botão para migrar, **para aqueles que for possível**. […] a migração do
+plano gratuito ela é para o tipo, se aquele repositório ele é público ou privado. Dá para fazer isso
+por aqui sem eu precisar ir toda vez lá no GitHub?»
+
+A resposta, medida e não suposta:
+
+| degrau | migração por API? | porquê |
+|:--|:--|:--|
+| **GitHub Free** | **sim** | a migração não é de plano, é de **visibilidade**: `PATCH /repos/{dono}/{repo}` com `private`. É a rotação desta secção. |
+| GitHub Team / Enterprise | **não** | mudar de plano é uma **subscrição de pagamento**; o GitHub não expõe essa alteração na API, só a leitura do consumo. |
+| Cloudflare Workers Paid | **não** | a subscrição muda no painel, com perfil de facturação; o token do Worker não tem (nem deve ter) essa permissão. |
+| Resend Pro / Scale | **não** | o Resend não expõe mudança de plano na API. |
+
+A coluna «Migrar» existe em **todas** as linhas e o conteúdo é que muda: onde há caminho, há um
+formulário; onde não há, está a razão e o sítio onde se faz à mão. **Um botão que promete o que não
+faz é pior do que não ter botão** — quem carrega fica a achar que mudou de plano e só descobre o
+contrário na fatura seguinte.
+
+**Três decisões de desenho, e cada uma tem um motivo que não é estético:**
+
+1. **É um POST de formulário, não um `fetch`.** A acção mais perigosa desta casa — abrir o
+   repositório — não pode depender de um script correr. Sem JavaScript, o botão continua a
+   funcionar.
+2. **A confirmação é uma dobra, e o servidor exige `confirmado=sim`.** Tornar público não se
+   desfaz: quem já clonou, tem. Um clique acidental não pode ser suficiente, e a falta do campo é
+   **recusa** — não um valor por omissão.
+3. **A defesa contra CSRF é o `Origin`.** A autenticação é `Basic`, que o navegador reenvia sozinho;
+   um POST de outro sítio chegaria autenticado. Um pedido **sem** `Origin` (curl, script) passa — e
+   é o correcto: quem não tem o cabeçalho também não tem as credenciais do navegador de outra pessoa.
+
+**A permissão que falta, e como se sabe.** O token em uso tem `administration=**read**`; o `PATCH`
+responde **403** com `x-accepted-github-permissions: administration=write`. O botão não inventa
+sucesso: diz «não foi feito», mostra o motivo, e o motivo **nomeia a permissão lida do cabeçalho** —
+«o token não pode» não diz a ninguém o que corrigir. Para o botão funcionar: GitHub → Settings →
+Developer settings → o token → **Administration: Read and write**, e o segredo do Worker reposto com
+o token novo.
+
+**Critérios verificáveis.** (xxi) o plano gratuito está na escada a custo zero, e é o único com
+`migrar.possivel`; (xxii) os cinco planos pagos têm linha com migração recusada, motivo e ligação;
+(xxiii) no ecrã há **um** botão de submeter — o do gratuito; (xxiv) o formulário pede
+`confirmado=sim` e o servidor recusa sem ele; (xxv) um 403 devolve a permissão que falta, lida do
+cabeçalho; (xxvi) um pedido sem visibilidade definida é recusado em vez de assumir um valor.
+
 **O QUE FICA POR DECIDIR.** (a) A conta tem **45 repositórios públicos** antigos (portfólio de
 ensino, 2017-2019) e três privados; nenhum dos públicos tem conteúdo do Lastro. (b) Um CPF **válido
 e não-sintético** (`021.500.629-17`) estava em fixtures de `experimentos/provar-cadastro-do-professor.js`

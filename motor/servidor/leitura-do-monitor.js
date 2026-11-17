@@ -292,6 +292,62 @@ async function visibilidadeDoRepo({ token, dono, repo, fetchImpl } = {}) {
 }
 
 /**
+ * MUDAR A VISIBILIDADE — a única migração que uma API faz por nós (17/11/2026).
+ *
+ * `PATCH /repos/{dono}/{repo}` com `{"private": false}`. É a metade accionável da política de
+ * rotação do §L9e: em repositório público os minutos de Actions não são cobrados nem consomem o
+ * compute incluído, e no dia 1.º volta a privado.
+ *
+ * ── O QUE ESTA FUNÇÃO NÃO FAZ: ADIVINHAR ────────────────────────────────────────────────────────
+ * Se o token não tiver `administration=write`, o GitHub responde 403 e — isto é o que importa —
+ * diz no cabeçalho `x-accepted-github-permissions` qual a permissão que falta. É esse valor que
+ * se devolve, em vez de uma frase genérica: «o token não pode» não diz a ninguém o que corrigir.
+ *
+ * `confirmado` NÃO É BUROCRACIA. Tornar um repositório público é a única acção desta casa que não
+ * se desfaz: quem já clonou, tem. Por isso o pedido tem de dizer explicitamente que quer — e a
+ * falta desse campo é uma recusa, não um valor por omissão.
+ */
+async function definirVisibilidadeDoRepo({ token, dono, repo, publico, fetchImpl } = {}) {
+  const f = fetchImpl || fetch;
+  if (!token) return { ok: false, motivo: 'sem GITHUB_TOKEN', pede: 'administration=write' };
+  if (typeof publico !== 'boolean') {
+    return { ok: false, motivo: 'o pedido não diz para que visibilidade mudar', pede: null };
+  }
+  try {
+    const r = await f('https://api.github.com/repos/' + dono + '/' + repo, {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'sistema-lastro',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ private: publico === false }),
+    });
+    if (!r) return { ok: false, motivo: 'não consegui falar com o GitHub', pede: null };
+    if (!r.ok) {
+      const pede = (r.headers && typeof r.headers.get === 'function')
+        ? r.headers.get('x-accepted-github-permissions')
+        : null;
+      const motivo = r.status === 403
+        ? 'o token não pode mudar a visibilidade'
+          + (pede ? ' — falta a permissão ' + pede : '')
+        : r.status === 404
+          ? 'o repositório não existe ou está fora do alcance do token'
+          : 'o GitHub respondeu ' + r.status;
+      return { ok: false, motivo, pede: pede || (r.status === 403 ? 'administration=write' : null) };
+    }
+    const d = await r.json().catch(() => null);
+    if (!d || typeof d.private !== 'boolean') {
+      return { ok: false, motivo: 'o GitHub aceitou mas não devolveu a visibilidade', pede: null };
+    }
+    return { ok: true, privado: d.private, publico: d.private === false };
+  } catch (erro) {
+    return { ok: false, motivo: 'falhou a ligação ao GitHub: ' + ((erro && erro.message) || ''), pede: null };
+  }
+}
+
+/**
  * AS CHAVES DE UMA ESCOLA, com o tamanho de cada valor.
  *
  * O `list()` devolve nomes e metadados; o tamanho só vem com `include_metadata`, e nem todos os
@@ -328,5 +384,5 @@ async function chavesDaEscola({ kv, escola } = {}) {
 
 module.exports = {
   desde, runsDoGithub, minutosDoRunNoGithub, facturavelDoRunNoGithub,
-  consumoFacturadoDoGithub, visibilidadeDoRepo, chavesDaEscola,
+  consumoFacturadoDoGithub, visibilidadeDoRepo, definirVisibilidadeDoRepo, chavesDaEscola,
 };

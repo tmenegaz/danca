@@ -2166,20 +2166,78 @@ function blocoDaReceita(r, cambio) {
     '</div>';
 }
 
-/** A ABA DA MIGRAÇÃO — o custo de cada degrau e o que ele come da receita. */
-function blocoDaMigracao(m) {
+/**
+ * O BOTÃO DE MIGRAR DE UM PLANO — e a verdade sobre ele.
+ *
+ * «Todos esses planos aqui têm que ter o botão para migrar, para aqueles que for possível.» A
+ * coluna existe em todas as linhas, e o que muda é o conteúdo: onde há caminho por API, há um
+ * formulário que o percorre; onde não há, está a razão e o sítio onde a mudança se faz à mão.
+ *
+ * Um botão que promete o que não faz é pior do que não ter botão — quem carrega fica a achar que
+ * mudou de plano e só descobre o contrário no mês seguinte, na fatura.
+ */
+function celulaDeMigracao(c, visibilidade) {
+  const mg = c.migrar || {};
+  if (!mg.possivel) {
+    return '<span class="sub">' + esc(mg.motivo || 'sem caminho por API') + '</span>' +
+      (mg.ligacao ? '<br><a class="sub" href="' + esc(mg.ligacao) + '">abrir o sítio da mudança</a>' : '');
+  }
+  /* O ÚNICO DEGRAU ACCIONÁVEL: a visibilidade do repositório (a rotação do §L9e). */
+  if (mg.accao === 'visibilidade') {
+    const agoraPublico = visibilidade && visibilidade.publico === true;
+    const agoraPrivado = visibilidade && visibilidade.publico === false;
+    const paraPublico = !agoraPublico;
+    const estado = agoraPublico ? 'público' : (agoraPrivado ? 'privado' : 'não lido');
+    return '<span class="sub">está <strong>' + estado + '</strong></span>' +
+      /* A DOBRA É A CONFIRMAÇÃO. Abrir o repositório não se desfaz — quem já clonou, tem —, e por
+       * isso a acção está atrás de um passo: um clique para abrir, outro para fazer. */
+      '<details class="acordeao"><summary>' + (paraPublico ? 'Tornar público' : 'Tornar privado') +
+      '</summary>' +
+      '<form method="post" action="/monitoramento/visibilidade">' +
+      '<input type="hidden" name="publico" value="' + (paraPublico ? 'sim' : 'nao') + '">' +
+      '<input type="hidden" name="confirmado" value="sim">' +
+      '<p><button class="acao ' + (paraPublico ? 'perigo' : '') + ' pequena" type="submit">' +
+      (paraPublico ? 'Confirmar: tornar público' : 'Confirmar: tornar privado') + '</button></p>' +
+      '<p class="sub">' + (paraPublico
+        ? 'Em público os minutos de Actions não são cobrados. O código fica legível e clonável por '
+          + 'qualquer pessoa, e isso não se desfaz.'
+        : 'Em privado os minutos voltam a contar para o incluído. É o estado normal do dia 1.º.') +
+      '</p></form></details>';
+  }
+  return '<span class="sub">sem caminho por API</span>';
+}
+
+/** A ABA DA MIGRAÇÃO — o custo de cada degrau, o que ele come da receita, e o botão que o muda. */
+function blocoDaMigracao(m, visibilidade, recado) {
   if (!m) return '';
   const linhas = (m.cenarios || []).map((c) => '<tr>' +
     '<td><strong>' + esc(c.nome) + '</strong><br><span class="dono">' + esc(c.quando) + '</span></td>' +
     '<td>' + usd(c.usdMes) + '/mês</td>' +
     '<td>' + (c.delta > 0 ? '+' : '') + usd(c.delta) + '</td>' +
     '<td>' + (c.fraccaoDaReceita == null ? '—' : pct(c.fraccaoDaReceita)) + '</td>' +
+    '<td>' + celulaDeMigracao(c, visibilidade) + '</td>' +
     '</tr>').join('');
+  const aviso = recado
+    ? (recado.ok
+      /* A PALAVRA É DO ECRÃ, NÃO DO URL. `mudou=publico` chega sem acento porque um URL não é um
+       * sítio para português; quem escreve «público» é esta linha. Apanhado pela própria asserção,
+       * que lia «está agora publico». */
+      ? '<p class="aviso" id="mo-recado">Feito: o repositório está agora <strong>' +
+        (recado.mudou === 'publico' ? 'público' : esc(recado.mudou)) +
+        '</strong>. O painel já lê o estado novo.</p>'
+      : '<p class="aviso" id="mo-recado"><strong>Não foi feito.</strong> ' + esc(recado.falhou) +
+        '. Nada mudou no repositório.</p>')
+    : '';
   return '<div class="caixa" id="monitor-migracao">' +
-    '<h2>Se eu mudar de plano</h2>' +
+    '<h2>Se eu mudar de plano</h2>' + aviso +
     '<p>' + esc(m.frase) + '</p>' +
     '<div class="rolagem-caixa"><table><thead><tr><th>Plano</th><th>Custo</th>' +
-    '<th>Diferença</th><th>Da receita</th></tr></thead><tbody>' + linhas + '</tbody></table></div>' +
+    '<th>Diferença</th><th>Da receita</th><th>Migrar</th></tr></thead><tbody>' + linhas +
+    '</tbody></table></div>' +
+    '<p class="sub">Só o <strong>GitHub Free</strong> se muda por aqui: a migração dele é a ' +
+    'visibilidade do repositório, e é a rotação do §L9e. Os outros planos são subscrições de ' +
+    'pagamento, e nenhum dos três fornecedores expõe essa alteração na API — a coluna diz onde se ' +
+    'faz à mão, em vez de oferecer um botão que não cumpre.</p>' +
     '<p class="sub">A coluna «da receita» é a que decide: o mesmo ' + usd(5) + ' sobre uma receita ' +
     'pequena pesa mais do que sobre uma grande. O custo é em dólar e a receita em real, e o câmbio ' +
     'usado está na aba da receita.</p>' +
@@ -2200,7 +2258,7 @@ const LIDO_EM_DO_MONITOR = (() => {
  * As três abas, e o resumo no topo: o PIOR dos indicadores, e não a média. Uma cota a 95% e duas a
  * 10% é uma cota a 95% — e é essa que decide se há tempo.
  */
-function paginaDoMonitoramento({ retrato, cambio }) {
+function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
   const r = retrato || {};
   const nivel = r.nivel || 'folga';
   const cabecalho = '<div class="caixa" id="monitor-resumo">' +
@@ -2224,9 +2282,10 @@ function paginaDoMonitoramento({ retrato, cambio }) {
 
   const abas = [['consumo', 'O consumo'], ['receita', 'A receita'], ['migracao', 'A migração']];
   const tira = '<nav class="abas" role="tablist" aria-label="Monitoramento — seções" id="mo-abas">' +
-    abas.map(([n, titulo], i) => '<button type="button" class="aba" role="tab" id="mo-aba-' + n + '" ' +
+    abas.map(([n, titulo]) => '<button type="button" class="aba" role="tab" id="mo-aba-' + n + '" ' +
       'data-aba="' + n + '" aria-controls="mo-painel-' + n + '" ' +
-      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+      'aria-selected="' + (n === (aba || 'consumo') ? 'true' : 'false') + '" ' +
+      'tabindex="' + (n === (aba || 'consumo') ? '0' : '-1') + '">' +
       esc(titulo) + '</button>').join('') +
     '</nav>';
   const painel = (n, corpo, primeiro) => '<div class="aba-painel" id="mo-painel-' + n + '" ' +
@@ -2240,9 +2299,9 @@ function paginaDoMonitoramento({ retrato, cambio }) {
     atual: 'monitoramento',
     corpo: cabecalho + tira +
       painel('consumo', blocoDoGithub(r.github) + blocoDoCloudflare(r.cloudflare) +
-        blocoDoCorreio(r.correio), true) +
-      painel('receita', blocoDaReceita(r.receita, cambio), false) +
-      painel('migracao', blocoDaMigracao(r.migracao), false) +
+        blocoDoCorreio(r.correio), (aba || 'consumo') === 'consumo') +
+      painel('receita', blocoDaReceita(r.receita, cambio), aba === 'receita') +
+      painel('migracao', blocoDaMigracao(r.migracao, visibilidade, recado), aba === 'migracao') +
       SCRIPT_DAS_ABAS_DO_MONITOR +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });

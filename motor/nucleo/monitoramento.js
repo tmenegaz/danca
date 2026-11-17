@@ -687,34 +687,72 @@ function impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd } = {}) {
   const actual = Math.max(0, Number(custosAtuaisUsd) || 0);
 
   const cenarios = [];
-  const linha = (id, nome, quando, usdMes, nota) => {
+  /* ── O BOTÃO DE MIGRAR, E A VERDADE SOBRE ELE (17/11/2026) ───────────────────────────────────
+   *
+   * «Todos esses planos aqui têm que ter o botão para migrar, **para aqueles que for possível**.»
+   *
+   * O QUE É POSSÍVEL, MEDIDO E NÃO SUPOSTO:
+   *   · **GitHub Free** — a migração não é de plano, é de VISIBILIDADE: repositório público não
+   *     consome o compute incluído. É a única mudança que uma API faz por nós
+   *     (`PATCH /repos/{dono}/{repo}` com `private`), e é a política de rotação do §L9e.
+   *   · **GitHub Pro/Team/Enterprise** — mudar de plano é uma SUBSCRIÇÃO DE PAGAMENTO. Não há
+   *     endpoint: o GitHub não expõe a alteração de plano na API, só a leitura do consumo.
+   *   · **Cloudflare Workers Paid** — a subscrição muda no painel, com perfil de facturação; o
+   *     token deste Worker não tem essa permissão (e não deve ter).
+   *   · **Resend** — o plano muda no painel deles; não há endpoint.
+   *
+   * Um botão que promete o que não faz é pior do que não ter botão: quem carrega fica a achar que
+   * mudou de plano. Onde não é possível, a página diz que não é e manda ao sítio certo. */
+  const fazer = (possivel, accao, motivo, ligacao) => ({ possivel, accao, motivo, ligacao });
+  const linha = (id, nome, quando, usdMes, nota, migrar) => {
     const delta = usdMes - actual;
     const fraccaoDaReceita = receitaUsd && receitaUsd > 0 ? usdMes / receitaUsd : null;
     cenarios.push({
       id, nome, quando, usdMes, delta, nota,
       fraccaoDaReceita,
       exigeReceitaUsd: fraccaoDaReceita ? usdMes / 0.05 : null, // 5% da receita: o limite que ela fixou
+      migrar: migrar || fazer(false, null, 'não há caminho por API para este plano', null),
     });
   };
 
-  /* AS TRÊS ESCADAS, e o gatilho de cada degrau — os números que decidem, e não os nomes. */
+  /* AS ESCADAS, e o gatilho de cada degrau — os números que decidem, e não os nomes.
+   *
+   * O PRIMEIRO DEGRAU DO GITHUB É O GRÁTIS, e a migração dele não é de plano: é de visibilidade.
+   * Está nesta tabela porque é o degrau que se muda todos os meses, e porque a pergunta «e o
+   * grátis?» não tinha onde ser respondida. */
+  linha('github-free', 'GitHub Free', 'o plano de hoje — a migração é torná-lo público ou privado',
+    0,
+    'o plano gratuito dá $12 de compute. Em repositório PÚBLICO os minutos de Actions não são '
+    + 'cobrados nem consomem o incluído — é a rotação do §L9e.',
+    fazer(true, 'visibilidade', null, null));
   linha('github-team', 'GitHub Team', 'acima de 2.000 min facturados no mês',
     COTAS.github.planos[1].porPessoaUsd,
     'inclui $18 de compute (3.000 min). Entre 2.000 e 2.667 min, pagar excedente sai mais barato '
-    + 'do que o plano.');
+    + 'do que o plano.',
+    fazer(false, null, 'mudar de plano é uma subscrição de pagamento; o GitHub não expõe essa '
+      + 'alteração na API, só a leitura do consumo', 'https://github.com/settings/billing'));
   linha('github-enterprise', 'GitHub Enterprise Cloud', 'acima de 5.833 min no mês',
     COTAS.github.planos[2].porPessoaUsd,
     'inclui $300 de compute (50.000 min). Só compensa no volume em que o excedente do Team passaria '
-    + 'este valor.');
+    + 'este valor.',
+    fazer(false, null, 'idem: é subscrição de pagamento, e não há endpoint',
+      'https://github.com/settings/billing'));
   linha('cloudflare-paid', 'Cloudflare Workers Paid', 'ao chegar a 1.000 escritas de KV por dia',
     COTAS.cloudflare.planoPagoUsd,
-    'não é por uso: $5 por conta, com 10 milhões de pedidos e o KV desafogado.');
+    'não é por uso: $5 por conta, com 10 milhões de pedidos e o KV desafogado.',
+    fazer(false, null, 'a subscrição muda no painel, com perfil de facturação — o token deste '
+      + 'Worker não tem (nem deve ter) essa permissão',
+      'https://dash.cloudflare.com/?to=/:account/workers-and-pages'));
   linha('resend-pro', 'Resend Pro (50 mil)', 'ao chegar a 3.000 e-mails no mês, ou 100 no dia',
     COTAS.resend.planos[1].usdMes,
-    'tira o limite diário, que é o que aperta primeiro no plano gratuito.');
+    'tira o limite diário, que é o que aperta primeiro no plano gratuito.',
+    fazer(false, null, 'o Resend não expõe mudança de plano na API',
+      'https://resend.com/settings/billing'));
   linha('resend-scale', 'Resend Scale (100 mil)', 'ao chegar a 50.000 e-mails no mês',
     COTAS.resend.planos[2].usdMes,
-    'inclui 100 mil e-mails e o IP dedicado como extra.');
+    'inclui 100 mil e-mails e o IP dedicado como extra.',
+    fazer(false, null, 'o Resend não expõe mudança de plano na API',
+      'https://resend.com/settings/billing'));
 
   const totalAtual = cenarios.reduce((s, c) => s + c.usdMes, 0);
   return {

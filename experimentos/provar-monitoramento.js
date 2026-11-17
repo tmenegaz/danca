@@ -229,6 +229,81 @@ function conferir(titulo, condicao, dado) {
         && /torná-lo público até ao dia 1\.º/.test(html(priv)), null);
   }
 
+  console.log('\nA4. O botão de migrar — o que faz, e o que recusa fazer');
+  {
+    const receita = monitor.receita({ extrato: [{ escola: 'breu', valorCentavos: 23990, meses: [] }], descontos: [], mes: '2026-11' });
+    const m = monitor.impactoDaMigracao({ receita, cambio: 5.4, custosAtuaisUsd: 0 });
+    const livre = m.cenarios.find((c) => c.id === 'github-free');
+    const team = m.cenarios.find((c) => c.id === 'github-team');
+    conferir('o plano gratuito entra na escada, a custo zero',
+      Boolean(livre) && livre.usdMes === 0, livre && livre.usdMes);
+    conferir('…e é o ÚNICO cuja migração se faz por API: a visibilidade',
+      livre.migrar.possivel === true && livre.migrar.accao === 'visibilidade',
+      livre.migrar);
+    /* UM BOTÃO QUE PROMETE O QUE NÃO FAZ É PIOR DO QUE NÃO TER BOTÃO. Os planos pagos são
+     * subscrições: nenhum dos três fornecedores expõe a mudança na API — e cada linha diz onde se
+     * faz à mão, em vez de oferecer um clique que não cumpre. */
+    const pagos = m.cenarios.filter((c) => c.id !== 'github-free');
+    conferir('todos os planos pagos têm linha, com migração RECUSADA e o motivo dito',
+      pagos.length === 5 && pagos.every((c) => c.migrar.possivel === false && c.migrar.motivo),
+      pagos.map((c) => [c.id, c.migrar.possivel]));
+    conferir('…e mandam ao sítio onde a mudança se faz à mão',
+      pagos.every((c) => typeof c.migrar.ligacao === 'string' && /^https:\/\//.test(c.migrar.ligacao)),
+      pagos.map((c) => c.migrar.ligacao));
+
+    const co = monitor.resumirCorreio({ contadores: { mes: '2026-11', enviados: 3, dias: {} }, hoje: '2026-11-17' });
+    const cf = monitor.resumirCloudflare({ escolas: [], chaves: {} });
+    const html = (vis, rec) => painel.paginaDoMonitoramento({
+      retrato: monitor.retrato({ github: null, correio: co, cloudflare: cf, receita, cambio: 5.4, agora: '2026-11-17T12:00:00Z' }),
+      cambio: 5.4, visibilidade: vis, recado: rec, aba: 'migracao',
+    });
+    /* O FORMULÁRIO EXISTE E É UM POST DE VERDADE — não um `fetch`: a acção mais perigosa desta casa
+     * não pode depender de um script correr. */
+    const pub = html({ publico: true }, null);
+    conferir('com o repositório público, o botão oferece TORNAR PRIVADO',
+      /Tornar privado/.test(pub) && /name="publico" value="nao"/.test(pub)
+        && /action="\/monitoramento\/visibilidade"/.test(pub), null);
+    conferir('…e leva a confirmação explícita, porque abrir não se desfaz',
+      /name="confirmado" value="sim"/.test(pub), null);
+    const priv = html({ publico: false }, null);
+    conferir('com o repositório privado, o botão oferece TORNAR PÚBLICO, e avisa do que isso custa',
+      /Tornar público/.test(priv) && /name="publico" value="sim"/.test(priv)
+        && /não se desfaz/.test(priv), null);
+    conferir('…e nos planos pagos NÃO há botão de submeter, só a razão',
+      (priv.match(/type="submit"/g) || []).length === 1, (priv.match(/type="submit"/g) || []).length);
+
+    /* O RECADO — sucesso e falha, os dois ditos. Um recado que não se vê é o mesmo que não existir,
+     * e um sucesso inventado é a mentira que este painel existe para não contar. */
+    conferir('o recado de sucesso diz que ficou público',
+      /Feito: o repositório está agora <strong>público<\/strong>/.test(html({ publico: true }, { ok: true, mudou: 'publico' })),
+      (html({ publico: true }, { ok: true, mudou: 'publico' }).match(/mo-recado[\s\S]{0,160}/) || [null])[0]);
+    conferir('…e o de falha diz que NADA mudou, com o motivo',
+      /Não foi feito/.test(html({ publico: true }, { ok: false, falhou: 'o token não pode mudar a visibilidade' }))
+        && /Nada mudou no repositório/.test(html({ publico: true }, { ok: false, falhou: 'x' })), null);
+
+    /* A LEITURA/ESCRITA, sem rede: um `fetch` de mentira. O 403 traz a permissão no CABEÇALHO, e é
+     * de lá que ela tem de sair — «o token não pode» não diz a ninguém o que corrigir. */
+    const cabecalho = (v) => ({ headers: { get: (n) => (n.toLowerCase() === 'x-accepted-github-permissions' ? v : null) } });
+    const nega = async () => ({ ok: false, status: 403,
+      headers: { get: (n) => (n.toLowerCase() === 'x-accepted-github-permissions' ? 'administration=write' : null) },
+      json: async () => ({}) });
+    const r1 = await leitura.definirVisibilidadeDoRepo({ token: 'x', dono: 'd', repo: 'r', publico: true, fetchImpl: nega });
+    conferir('um 403 devolve a permissão que falta, lida do cabeçalho do próprio GitHub',
+      r1.ok === false && r1.pede === 'administration=write' && /administration=write/.test(r1.motivo),
+      r1);
+    const aceita = async (u, o) => ({
+      ok: true, status: 200, headers: { get: () => null },
+      json: async () => ({ private: JSON.parse(o.body).private }),
+    });
+    const r2 = await leitura.definirVisibilidadeDoRepo({ token: 'x', dono: 'd', repo: 'r', publico: true, fetchImpl: aceita });
+    conferir('…e um pedido aceite devolve o estado NOVO, lido da resposta e não suposto',
+      r2.ok === true && r2.publico === true && r2.privado === false, r2);
+    /* SEM `publico` DEFINIDO NÃO SE ADIVINHA: um booleano em falta é recusa. */
+    const r3 = await leitura.definirVisibilidadeDoRepo({ token: 'x', dono: 'd', repo: 'r', fetchImpl: aceita });
+    conferir('…e um pedido sem visibilidade é RECUSADO, em vez de assumir um valor',
+      r3.ok === false && /não diz para que visibilidade/.test(r3.motivo), r3.motivo);
+  }
+
   console.log('\nB. As duas cotas do Resend — e a que aperta primeiro');
   {
     const c = monitor.resumirCorreio({
@@ -313,8 +388,11 @@ function conferir(titulo, condicao, dado) {
     const m = monitor.impactoDaMigracao({ receita: r, cambio: 5, custosAtuaisUsd: 0 });
     conferir('com R$ 1.000/mês e câmbio 5, a receita em dólar é 200',
       Math.round(m.receitaUsd) === 200, m.receitaUsd);
-    conferir('…e os cinco degraus estão todos na tabela',
-      m.cenarios.length === 5 && m.cenarios.every((c) => c.usdMes > 0),
+    /* SÃO SEIS DESDE 17/11/2026: o GitHub FREE entrou na escada, a custo zero. Era a pergunta que
+     * não tinha onde ser respondida — «e o grátis?» —, e é o único degrau que se muda por API. */
+    conferir('…e os seis degraus estão todos na tabela, o gratuito incluído a zero',
+      m.cenarios.length === 6 && m.cenarios.filter((c) => c.usdMes > 0).length === 5
+        && m.cenarios.some((c) => c.id === 'github-free' && c.usdMes === 0),
       m.cenarios.map((c) => [c.id, c.usdMes]));
     /* O CLOUDFLARE É $5: sobre $200 de receita são 2,5%. A conta é o que ela quer ver. */
     const cf = m.cenarios.find((c) => c.id === 'cloudflare-paid');

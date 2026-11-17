@@ -49261,3 +49261,48 @@ zero, mesmo com a fatura a registar valor», «…e a projecção do fim do mês
 diz que está público E que no dia 1.º volta a privado», «…e no estado privado diz a política, para
 não depender da memória de ninguém». Mais `provar-cadastro-do-professor` 49/49 ·
 `check-identidade` 0 erros.
+
+### Nota, no mesmo dia — o botão de migrar: só um dos seis planos se muda por API
+
+**O pedido:** «todos esses planos aqui têm que ter o botão para migrar, para aqueles que for
+possível […] a migração do plano gratuito ela é para o tipo, se aquele repositório ele é público ou
+privado. Dá para fazer isso por aqui sem eu precisar ir toda vez lá no GitHub?»
+
+**A resposta medida.** Só o **GitHub Free** se muda por API, e a migração dele não é de plano é de
+**visibilidade** (`PATCH /repos/{dono}/{repo}`). Os outros cinco são **subscrições de pagamento**, e
+nenhum dos três fornecedores expõe a alteração na API. A coluna «Migrar» existe em todas as linhas;
+onde não há caminho, está a razão e a ligação para o sítio onde se faz à mão — **um botão que promete
+o que não faz é pior do que não ter botão**.
+
+**Três decisões que não são estéticas.** (1) É um **POST de formulário**, não um `fetch`: a acção
+mais perigosa desta casa não pode depender de um script correr. (2) A confirmação é uma **dobra**, e
+o servidor exige `confirmado=sim` — a falta do campo é recusa, não valor por omissão, porque abrir o
+repositório não se desfaz. (3) A defesa contra CSRF é o **`Origin`**: a autenticação é `Basic`, que o
+navegador reenvia sozinho, e um POST de outro sítio chegaria autenticado.
+
+**A permissão que falta, e como o ecrã a nomeia.** O token tem `administration=read`; o `PATCH`
+responde **403** com `x-accepted-github-permissions: administration=write`, e é **esse valor** que o
+recado mostra — «o token não pode» não diz a ninguém o que corrigir. Para o botão funcionar: GitHub →
+Settings → Developer settings → o token → **Administration: Read and write**, e o segredo do Worker
+reposto.
+
+**Dois defeitos apanhados pelas próprias asserções, antes de ir ao ar:** o recado escrevia «está
+agora **publico**» sem acento (a palavra vinha do URL — quem escreve «público» é o painel), e a
+contagem de degraus da escada estava fixa em cinco, quando passaram a ser seis com a entrada do
+gratuito.
+
+**Onde entrou.** `motor/nucleo/monitoramento.js` (o degrau `github-free` e o descritor `migrar` em
+cada linha) · `motor/servidor/leitura-do-monitor.js` (`definirVisibilidadeDoRepo`) ·
+`motor/servidor/raiz.js` (`POST /monitoramento/visibilidade`, com `Origin`, confirmação e
+invalidação da cache; e a aba/recado vindos do URL) · `motor/servidor/painel-html.js`
+(`celulaDeMigracao`, a coluna, a dobra de confirmação, o recado, e a aba inicial vinda do servidor —
+sem depender de JavaScript) · `PLANEJAMENTO-LASTRO.md` §L9e (a tabela e os critérios xxi a xxvi) ·
+`experimentos/provar-monitoramento.js`.
+
+**Com o quê.** `provar-monitoramento` **87/87** — incluindo «com o repositório público, o botão
+oferece TORNAR PRIVADO», «…e leva a confirmação explícita, porque abrir não se desfaz», «…e nos
+planos pagos NÃO há botão de submeter, só a razão», «um 403 devolve a permissão que falta, lida do
+cabeçalho do próprio GitHub», «…e um pedido sem visibilidade é RECUSADO, em vez de assumir um
+valor». Mais `provar-financeiro-da-escola` 90/90 · `provar-cadastro-do-professor` 49/49 ·
+`provar-abas` 28/28 · `provar-piso` 34/34 · `provar-publicacao-da-escola` 73/73 ·
+`gerar-indices --check` 6 em dia · `check-identidade` 0 erros.

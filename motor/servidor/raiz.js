@@ -3792,7 +3792,17 @@ async function extratoDasEscolas({ env, escolas, agora }) {
           headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
         });
       }
-      return painel.resposta(painel.paginaDoMonitoramento({ retrato, cambio }));
+      /* A ABA E O RECADO VÊM DA URL (17/11/2026). O redireccionamento do botão de migrar volta
+       * para `?aba=migracao&mudou=…` ou `&falhou=…`, e não há sessão onde guardar o recado. O
+       * limite de tamanho é defesa: a página escreve-o, e um valor sem fim no URL não pode virar
+       * um parágrafo na tela. */
+      const aba = String(url.searchParams.get('aba') || '').trim().slice(0, 20);
+      const mudou = String(url.searchParams.get('mudou') || '').trim().slice(0, 20);
+      const falhou = String(url.searchParams.get('falhou') || '').trim().slice(0, 200);
+      const recado = mudou ? { ok: true, mudou } : (falhou ? { ok: false, falhou } : null);
+      return painel.resposta(painel.paginaDoMonitoramento({
+        retrato, cambio, visibilidade, recado, aba,
+      }));
     } catch (err) {
       const motivo = 'não foi possível ler o monitoramento: ' + ((err && err.message) || String(err));
       if (querJson) {
@@ -3803,6 +3813,63 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       }
       return painel.resposta(painel.paginaSemToken(motivo), 500);
     }
+  }
+
+  /* ── A MIGRAÇÃO QUE UMA API FAZ POR NÓS: PÚBLICO ⇄ PRIVADO (17/11/2026) ─────────────────────
+   *
+   * Serve o botão da aba «A migração» do monitoramento. É um POST de FORMULÁRIO, e não um `fetch`
+   * com JSON, por uma razão concreta: assim funciona sem JavaScript, e a acção mais perigosa desta
+   * casa — abrir o repositório — não depende de um script correr.
+   *
+   * ── A DEFESA CONTRA CSRF, e porque é que ela aqui não é teórica ──────────────────────────────
+   * A autenticação é `Basic`, que o navegador reenvia sozinho. Um POST de outro sítio chegaria,
+   * portanto, autenticado. A defesa é o `Origin`: quando o cabeçalho vem, tem de ser este host; um
+   * navegador põe-no em todos os POST de formulário, e um pedido de outro sítio trá-lo-á errado. Um
+   * pedido SEM `Origin` (curl, um script) passa — e é o correcto: quem não tem o cabeçalho também
+   * não tem as credenciais do navegador de outra pessoa.
+   *
+   * ── O QUE SE DEVOLVE, SEMPRE ────────────────────────────────────────────────────────────────
+   * Um redireccionamento de volta para a aba da migração com o resultado na URL: `mudou=publico`,
+   * `mudou=privado`, ou `falhou=<motivo>`. Não há sessão onde guardar um recado, e um recado que
+   * não se vê é o mesmo que não existir — mas o que não se faz é INVENTAR sucesso: se o GitHub
+   * recusou, a página diz que recusou e porquê.
+   */
+  if (url.pathname === '/monitoramento/visibilidade' && request.method === 'POST') {
+    const origem = request.headers.get('Origin');
+    const aqui = url.origin;
+    if (origem && origem !== aqui) {
+      return new Response('origem não permitida', { status: 403 });
+    }
+    let corpo = {};
+    try {
+      const texto = await request.text();
+      corpo = Object.fromEntries(new URLSearchParams(texto || ''));
+    } catch (e) { corpo = {}; }
+    const pedido = String(corpo.publico || '').trim();
+    /* A CONFIRMAÇÃO EXPLÍCITA. Tornar público não se desfaz; o campo tem de vir preenchido, e a
+     * sua falta é recusa — não um valor por omissão. */
+    if (corpo.confirmado !== 'sim') {
+      return Response.redirect(aqui + '/monitoramento?aba=migracao&falhou=' + encodeURIComponent('falta a confirmação'), 303);
+    }
+    if (pedido !== 'sim' && pedido !== 'nao') {
+      return Response.redirect(aqui + '/monitoramento?aba=migracao&falhou=' + encodeURIComponent('pedido sem visibilidade'), 303);
+    }
+    const querPublico = pedido === 'sim';
+    const feito = await leituraDoMonitor.definirVisibilidadeDoRepo({
+      token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, publico: querPublico,
+    });
+    if (feito.ok) {
+      /* A CACHE DO MONITOR É INVALIDADA AGORA, e não daqui a uma hora: quem carrega no botão vai
+       * olhar para o resultado imediatamente, e ver o estado antigo seria o painel a mentir sobre
+       * a única coisa que ele acabou de mudar. */
+      try {
+        if (env && env.PADD_KV && typeof env.PADD_KV.delete === 'function') {
+          await env.PADD_KV.delete('monitor/cache');
+        }
+      } catch (e) { /* a cache não derruba a mudança: o GitHub já a fez */ }
+      return Response.redirect(aqui + '/monitoramento?aba=migracao&mudou=' + (feito.publico ? 'publico' : 'privado'), 303);
+    }
+    return Response.redirect(aqui + '/monitoramento?aba=migracao&falhou=' + encodeURIComponent(feito.motivo || 'falhou'), 303);
   }
 
   if (url.pathname === '/api/financeiro/pix' && request.method === 'POST') {
