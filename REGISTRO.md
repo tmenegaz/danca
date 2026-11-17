@@ -50140,3 +50140,51 @@ a página da escola sem a faixa. O ensaio fica **desligado**, para ela o ligar q
 **O que ainda não está feito.** (1) A `ESTADO-ATUAL.md` segue a cadência dela. (2) O transbordo da
 tabela do extrato a 390px, de antes. (3) O ensaio de ontem mostrou que o `ed0907d7` saiu partido: vale
 a pena perguntar, de agora em diante, o que é que a entrega **não** chamou.
+
+## 17/11/2026 — O ensaio começa no mês que NÃO está pago, senão não há o que testar
+
+**O que motivou.** «Agora está vindo tudo como pago já. Tem que vir como aberto para eu testar a
+funcionalidade, se está pagando, se não está pagando. […] Se chegar tudo pago, não tem como eu fazer
+o teste. Então lá no financeiro tem que chegar por pagar, porque senão eu não consigo fazer a
+conciliação e testar.»
+
+**A causa, e era aritmética.** A base do relógio comprimido era o instante em que se ligava, e nos
+primeiros minutos o «hoje» do ensaio dá o **mês da base** — o mês corrente, precisamente o que já
+está pago no livro. Durante dez minutos o ensaio mostrava exactamente o que o relógio real mostrava.
+O ensaio existia e não servia para o que foi pedido: não havia um mês em aberto para conciliar.
+
+**A regra nova.** O ensaio começa no **mês seguinte ao último pago** (`mensalidades.mesInicialDoEnsaio`,
+que lê o livro). Assim há um mês em aberto **no primeiro segundo**, e cada período acrescenta outro —
+que é a listagem que ela quer ver crescer.
+
+- **O seguinte ao último pago, e não «hoje»:** uma escola que pagou até janeiro tem de começar o
+  ensaio em fevereiro, e não em novembro. O que interessa não é a data de hoje — é **onde o dinheiro
+  parou**, e é o livro que o diz.
+- **Sem nada pago**, o mês inicial é o da adesão: é o primeiro que existe, e já nasce em aberto como
+  nasceria a sério.
+- **Um ensaio gravado antes desta regra** (sem o campo `mesInicial`) continua a correr como corria.
+  Um registo antigo não pode passar a dar erro por lhe faltar um campo novo — a prova afirma-o.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`mesInicialDoEnsaio`; `instanteDoEnsaio` a contar a
+partir do mês inicial quando ele existe) · `motor/servidor/raiz.js` (a rota do ensaio lê o livro e
+grava `mesInicial`) · `experimentos/provar-relogio-do-ensaio.js` (secção 3b, +10 asserções) ·
+`experimentos/provar-conciliacao-do-painel.js` (+1).
+
+**Com o quê.** `provar-relogio-do-ensaio` **35/35** (eram 25) · `provar-conciliacao-do-painel` **35/35**
+(eram 34) · `provar-paginacao` 120 · `provar-financeiro-da-escola` 133 · `provar-financeiro` 58 ·
+`provar-rotas-que-existem` 8 · `check-identidade` 0 erros.
+
+**Controlo A/B.** A contagem a partir do mês da base (o comportamento antigo) → reprova com
+`["2026-11:pago"]` — literalmente o que ela viu no ecrã. É esse o valor do controlo: o defeito fica
+reproduzido na prova.
+
+**Ao vivo, depois de publicar.** Ligado o ensaio, o painel passou a mostrar **abril de 2027 · R$
+199,90 · em aberto**, com o «Pagar» habilitado, e cinco meses pagos por baixo. As duas páginas — a do
+painel e a da escola — dão a **mesma** lista, ao mês e ao cêntimo. E o valor do mês em aberto é o do
+contrato de hoje (**Intermediário, R$ 199,90**), que é o plano para onde ela o mudou durante os
+testes: a mudança de plano já se reflecte no mês que ainda não foi pago, e não no que já foi.
+
+**O que ainda não está feito, e é um aviso.** O ensaio está **ligado** — é o que ela precisa para
+testar. A dez minutos por mês, uma hora acumula seis meses e uma noite inteira bate no tecto de 100
+meses que `mesesEntre` impõe. Não estraga nada (não se paga sozinho, não se apaga nada), mas enche o
+extrato de meses por pagar. Desliga-se no botão do painel quando o teste acabar.
