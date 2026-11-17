@@ -48622,3 +48622,98 @@ não têm `wrangler.<escola>.jsonc`), e a conciliação do derivado e o commit v
 `.github/scripts/conflito-do-derivado.sh` e `atualizar-commit-derivado.sh`. As regras são as mesmas;
 as asserções passaram a lê-las onde elas estão. **24/24** agora — e o número subiu de 14 para 24
 porque o bloco reprovava a meio, e as asserções seguintes nunca corriam.
+
+## 17/11/2026 — a listagem volta à direita, os passos recolhem com o formulário, e as etiquetas respiram
+
+**Quatro queixas no mesmo ecrã, e três delas são a mesma família: geometria que ninguém media.**
+
+### 1. A listagem à direita, o formulário dentro das abas
+
+«O padrão é que toda listagem fique à direita e o conteúdo de formulário fica dentro das abas.»
+
+Medido a 1440 px, antes da correcção: **a tira das abas a x=288 e o formulário a x=748** — a coluna
+da DIREITA —, com a listagem a cair para a linha de baixo, na coluna 1. Tudo ao contrário.
+
+A causa não era o `data-abas="sim"` nem a largura: era a **estrutura do grid**. O `.turmas-corpo` é
+uma grade de duas colunas, e a tira (com a pílula do telemóvel) era **filha directa** dela. Quatro
+filhos numa grade de duas colunas: a tira em (1,1), a pílula em (1,2), o `.col-form` em (2,1) e a
+listagem em (2,2). A correcção é a regra, e não um remendo: **a grade tem de ter dois filhos, e a
+tira pertence ao do formulário.** Ela entrou para dentro do `.col-form` — nos Professores e na
+Audição —, e a coluna 1 passou a ser «a tira e o formulário», a coluna 2 a listagem.
+
+Consequência que se aceita de propósito: recolher o `.col-form` leva a tira com ele. Era o que já se
+queria, e estava garantido à mão por **quatro linhas de CSS com quatro `id`** — que ficaram a
+descrever um layout que já não existe, e **saíram**. A regra que as substitui é a estrutura, não uma
+lista.
+
+### 2. Os passos recolhem com o formulário
+
+«Quando eu colapso o formulário, o step está ficando de fora do colapsar. Os steps também tem que
+ser colapsados, porque, afinal de contas, eles dizem respeito ao formulário.»
+
+E dizem: a tira diz onde se está **dentro** do formulário e serve para andar entre os passos dele.
+Recolhido o miolo, uma tira que navega um formulário ausente é a mesma contradição que as abas já
+resolviam. Uma regra, nas três secções que têm tira — Salas, Audição e Estilo:
+
+```
+.secao[data-recolhido="sim"] .passos,
+.secao[data-recolhido="sim"] .turmas-faixa { display: none; }
+```
+
+Dois seletores porque são duas famílias (o embrulho `.turmas-faixa` e a `.passos` solta do Estilo), e
+o descendente é preciso: **há exactamente três `.passos` na página, um por secção, sempre o do
+formulário.**
+
+**A decisão de 01/11/2026 foi revertida, e é bom dizê-lo.** Ela tinha pedido o contrário — «os steps
+vão ficar num bloco acima […] porque é eles que dizem onde se está» —, e a prova
+`provar-cartao-da-turma` afirmava `passosVisiveis === 3` com a secção recolhida. A asserção passou a
+afirmar `0`, com a razão escrita ao lado: a tira navega um formulário que já não está à vista.
+
+### 3. As etiquetas do piso tinham 1,6 px entre elas e o selo
+
+«Essas etiquetas estão coladas aonde diz que tem oito lugares. […] tem que ter espaço. Isso é um
+problema antigo, já tinha sido ajustado isso.»
+
+O culpado é uma classe que parece inócua: o selo estava num `<p class="sub">`, e o `.sub` **da
+Produção** tem `margin-top: .1rem` — **1,6 px** —, de propósito: ele é o subtítulo que se ENCOSTA ao
+que vem acima (o título de um bloco, o rótulo de um campo). Usá-lo para uma linha autónoma colou o
+que não devia. Passou a `<p>` liso, que recebe os **8 px** que a folha dá a todo parágrafo — o mesmo
+vão que as etiquetas têm entre si, porque é a mesma peça a respirar com a mesma régua.
+
+**Esta é a terceira vez.** É por isso que a prova nova mede o vão em píxeis: o que não é medido volta.
+
+### 4. A prova, e porque ela mede num navegador
+
+`experimentos/provar-a-coluna-do-formulario.js` **19/19**. As quatro queixas são de POSIÇÃO — onde a
+coluna começa, em que linha está, se o passo desaparece quando o pai recolhe, quantos píxeis separam
+duas etiquetas —, e nada disso se lê numa string. Ela serve a página **real** (o
+`bastidores.paginaProducao`) com a folha real, e afirma:
+
+- a tira nasce dentro do `.col-form` (nos dois sítios) e a listagem fica fora dele;
+- o formulário à esquerda, a listagem à direita, **na mesma linha** (|Δtopo| ≤ 2 px);
+- a tira começa onde o formulário começa e tem a largura da coluna dele;
+- o vão entre a fileira de etiquetas e o selo ≥ 7 px, e o parágrafo **não** é um `.sub`;
+- recolhida a secção, os passos **saem** nas três secções, e voltam quando ela abre;
+- recolhido, a tira sai e a **listagem fica** — a leitura não é do formulário.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a tira e a pílula para dentro do `.col-form` nos
+Professores e na Audição; a regra dos passos; a saída das quatro linhas de `id`; o selo num `<p>`) ·
+`experimentos/provar-a-coluna-do-formulario.js` (novo) · `experimentos/provar-abas-da-audicao.js`
+(a asserção das abas passou a afirmar a ESTRUTURA — que é a razão pela qual elas recolhem) ·
+`experimentos/provar-cartao-da-turma.js` (a asserção dos passos, invertida com a decisão) ·
+`.gitignore`.
+
+**Com o quê.** `provar-a-coluna-do-formulario` 19/19 · `provar-abas-da-audicao` **100/100** ·
+`provar-cadastro-do-professor` 49/49 · `provar-abas` 28/28 · `provar-piso` 41/41 ·
+`provar-financeiro-da-escola` 90/90 · `provar-escola-a-nascer` 48/48 · `provar-recriar-escola` 92/92
+· `provar-cofre-e-shard` 138/138 · `provar-financeiro` 58/58 · `provar-restaurar-retrato` 38/38 ·
+`provar-cartas-do-expurgo` 25/25 · `provar-a-carencia-nao-se-burla` 58/58 · `provar-pagina-publica`
+79/79 · `provar-indices` 64/64 · `provar-geracao-do-ciclo` 24/24 · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+
+**Duas provas que já estavam vermelhas, e não são desta mudança.** `provar-cartao-da-turma` tem 22
+falhas anteriores (mede a grade recolhida como duas colunas — o `.turmas-corpo` que o script recolhe
+é o PRIMEIRO do documento, e não o da secção; é um defeito de âmbito que fica declarado e não se
+resolve por arrastamento). E `provar-celula` morre em `TypeError` na linha 541, também antes desta
+mudança. Nenhuma das duas foi tocada além da asserção que esta decisão inverte.
+

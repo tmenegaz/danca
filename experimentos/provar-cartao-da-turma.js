@@ -474,8 +474,14 @@ const LI = 'li.turma[data-turma="tu1"]';
     recolhido.seta === '▸' && recolhido.expandido === 'false', recolhido);
   provar('…e a LISTAGEM ocupa a largura toda, abaixo da faixa',
     recolhido.lista === recolhido.corpo && recolhido.topoLista > recolhido.topoForm, recolhido);
-  provar('…sem esconder os três passos (é eles que dizem onde se está)',
-    recolhido.passosVisiveis === 3, recolhido.passosVisiveis);
+  /* A DECISÃO VIROU A 17/11/2026, e a asserção vira com ela. Até aqui os três passos FICAVAM à
+   * vista com a secção recolhida — «é eles que dizem onde se está» (01/11/2026). A proprietária
+   * viu o resultado e disse o contrário: «quando eu colapso o formulário, o step está ficando de
+   * fora do colapsar. Os steps também tem que ser colapsados, porque, afinal de contas, eles
+   * dizem respeito ao formulário.» E dizem: a tira navega os passos do formulário, e recolhido o
+   * formulário não há passo a que ir. O que se afirma agora é que eles SAEM com ele. */
+  provar('…e os três passos saem com ele (a tira navega um formulário que já não está à vista)',
+    recolhido.passosVisiveis === 0, recolhido.passosVisiveis);
 
   // A SETA outra vez devolve tudo.
   await pg.evaluate(() => { document.querySelector('#sec-turmas .alternar-form').click(); });

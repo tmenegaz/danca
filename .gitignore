@@ -1515,3 +1515,12 @@ experimentos/modelo-formulario/*
 # encheu»), as duas rotas, e o que a trava NÃO faz: sem contrato não bloqueia, editar não é
 # cadastrar, e nada do que existe é apagado por uma recusa.
 !experimentos/provar-piso.js
+
+# A COLUNA DO FORMULÁRIO, E OS PASSOS QUE RECOLHEM COM ELE (17/11/2026). «O padrão é que toda
+# listagem fique à direita e o conteúdo de formulário fica dentro das abas» · «os steps também tem
+# que ser colapsados, porque […] dizem respeito ao formulário» · «essas etiquetas estão coladas […]
+# tem que ter espaço». As quatro queixas são de GEOMETRIA, e por isso a prova mede num navegador:
+# onde a coluna começa, em que linha está, se o passo desaparece quando o pai recolhe, e quantos
+# píxeis separam duas etiquetas. É a resposta ao «isso é um problema antigo, já tinha sido
+# ajustado isso. Toda hora tem que refazer» — o que não é medido volta.
+!experimentos/provar-a-coluna-do-formulario.js

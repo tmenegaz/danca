@@ -289,10 +289,20 @@ async function principal() {
     /@media \(max-width:560px\)\{\.abas\{display:none;\}#lb-abas-folha[^{]*\{display:block/.test(PAGINA));
   provar('a faixa tem regra própria para o `hidden` (o `display:flex` vencia o atributo)',
     /\.turmas-faixa\[hidden\]\{display:none;\}/.test(PAGINA));
-  provar('recolhida a secção, as abas saem (não se troca painel que não está à vista)',
-    /\.secao\[data-recolhido="sim"\] #lb-abas,/.test(PAGINA) &&
-    /\.secao\[data-recolhido="sim"\] #lb-abas-folha/.test(PAGINA)
-    && /#lb-abas-folha[^{]*\{display:none;\}/.test(PAGINA));
+  /* AS ABAS RECOLHEM COM O FORMULÁRIO — E AGORA POR ESTRUTURA, NÃO POR UMA LISTA DE `id`
+   * (17/11/2026). A tira entrou para dentro do `.col-form` (a correcção que pôs a listagem à
+   * direita, a pedido dela: «o padrão é que toda listagem fique à direita e o conteúdo de
+   * formulário fica dentro das abas»), e recolher o pai leva a tira e a pílula com ele. A regra
+   * à mão — quatro `id` numa lista — descrevia um layout que já não existe, e saiu.
+   *
+   * O que se afirma é o que importa: a tira e a pílula estão DENTRO do que recolhe. */
+  const iColForm = PAGINA.indexOf('id="corpo-miolo"');
+  provar('a tira e a pílula vivem DENTRO do `.col-form` — recolher leva-as com ele',
+    iColForm !== -1 && PAGINA.indexOf('id="lb-abas"') > iColForm
+      && PAGINA.indexOf('id="lb-abas-folha"') > iColForm
+      && PAGINA.indexOf('id="lb-painel-1"') > iColForm);
+  provar('…e a pílula do telemóvel continua a nascer escondida no computador',
+    /#lb-abas-folha,#pf-abas-folha,#es-abas-folha\{grid-column:1\/-1;display:none;\}/.test(PAGINA));
 
   console.log('\nC. A troca, a correr (jsdom)');
 

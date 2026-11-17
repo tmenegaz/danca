@@ -3561,7 +3561,13 @@ function medidorDoPisoHtml(medidor, id) {
     '<span>' + rotulo + ': <strong>' + n + '</strong></span>' +
     '<span>o plano vai até <strong>' + medidor.teto + '</strong></span>' +
     '</div>' +
-    '<p class="sub"><span class="selo ' + esc(medidor.selo) + '" data-piso-selo>' +
+    /* PORQUE É UM `<p>` E NÃO UM `<p class="sub">` (17/11/2026). O `.sub` da Produção tem
+     * `margin-top: .1rem` — 1,6px —, e é de propósito: ele é o subtítulo que se ENCOSTA ao que
+     * vem acima (o título de um bloco, o rótulo de um campo). Usá-lo para uma linha autónoma
+     * colou as etiquetas do piso ao «5 lugares», e a correcção dela foi a de sempre: «tem que
+     * ter espaço». O `<p>` liso recebe os 8px que a folha dá a todo parágrafo — o MESMO vão que
+     * as etiquetas têm entre si, porque é a mesma peça a respirar com a mesma régua. */
+    '<p><span class="selo ' + esc(medidor.selo) + '" data-piso-selo>' +
     esc(medidor.seloTexto) + '</span></p>' +
     (medidor.recusa
       ? '<p class="aviso" data-piso-recusa>' + esc(medidor.recusa) + '</p>'
@@ -5049,6 +5055,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        é `display:flex`, e uma regra de autor vence o `display:none` do atributo — é a mesma
        armadilha que a `.passos[hidden]` já pagou em 01/11/2026. */
     '.turmas-faixa[hidden]{display:none;}' +
+    /* OS PASSOS SÃO DO FORMULÁRIO, E RECOLHEM COM ELE (17/11/2026).
+     *
+     * «Quando eu colapso o formulário, o step está ficando de fora do colapsar. Os steps também
+     * tem que ser colapsados, porque, afinal de contas, eles dizem respeito ao formulário.»
+     *
+     * E dizem: a tira diz onde se está DENTRO do formulário, e serve para andar entre os passos
+     * dele. Recolhido o miolo, uma tira que navega um formulário ausente é a mesma contradição
+     * que a `.secao[data-recolhido="sim"] #lb-abas` já resolvia para as abas — e resolve-se
+     * agora para os passos, nas três secções que os têm (Salas, Audição e Estilo).
+     *
+     * São DOIS seletores porque são duas famílias: a `.turmas-faixa` (o embrulho dos passos das
+     * Salas e da Audição) e a `.passos` solta (a tira do Estilo, que é filha directa da secção).
+     * E há só três `.passos` na página — um por secção, sempre o do formulário —, por isso o
+     * seletor descendente é preciso e não apanha passos de listagem nenhuma. */
+    '.secao[data-recolhido="sim"] .passos,' +
+    '.secao[data-recolhido="sim"] .turmas-faixa{display:none;}' +
     /* NO TELEMÓVEL A TIRA SAI E FICA A PÍLULA (09/11/2026). Três rótulos lado a lado a 360px não
        caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. É o mesmo
        corte do «Ações» da anamnese (560px), e a mesma folha. */
@@ -5057,14 +5079,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
     '#lb-abas-folha,#pf-abas-folha,#es-abas-folha{grid-column:1/-1;display:none;}' +
     '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha,#es-abas-folha{display:block;margin:0;}}' +
-    /* RECOLHIDA, A SECÇÃO NÃO OFERECE ABAS DE UM FORMULÁRIO QUE NÃO ESTÁ À VISTA
-       (09/11/2026). O recolhedor esconde o `.col-form` — e com ele os três painéis. Uma tira
-       que troca de painel invisível é navegação para nenhum sítio, e o mesmo vale para a
-       pílula do telemóvel. O seletor leva a secção para não tocar nas outras quatro. */
-    '.secao[data-recolhido="sim"] #lb-abas,' +
-    '.secao[data-recolhido="sim"] #lb-abas-folha,' +
-    '.secao[data-recolhido="sim"] #pf-abas,' +
-    '.secao[data-recolhido="sim"] #pf-abas-folha{display:none;}' +
+    /* AS ABAS RECOLHEM COM O FORMULÁRIO — E JÁ NÃO PRECISAM DE REGRA PRÓPRIA (17/11/2026).
+     *
+     * Aqui estiveram quatro linhas a esconder `#lb-abas`, `#lb-abas-folha`, `#pf-abas` e
+     * `#pf-abas-folha` quando a secção recolhia. Elas existiam porque a tira era FILHA DIRECTA
+     * da grade — fora do `.col-form`, que é quem recolhe. Desde que a tira entrou para dentro do
+     * `.col-form` (a correcção que pôs a listagem à direita), escondê-la é consequência de
+     * esconder o pai, e a regra à mão ficou a descrever um layout que já não existe. Sai — e o
+     * que a substitui é a regra de estrutura, não uma lista de `id`.
+     */
     // A FAIXA É A PRIMEIRA LINHA DO CORPO (01/11/2026). Os três passos deixaram de viver na
     // coluna do formulário — «os steps não vão ser posicionados apenas sobre o formulário […] vão
     // ficar num bloco acima, abaixo do título, mas acima do formulário e dos exercícios». A
@@ -5986,6 +6009,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * num sítio e não aparece no outro é um dado que se duplica à mão.
      */
     '<div class="turmas-corpo" data-abas="sim">' +
+    /* A TIRA E A PÍLULA ENTRAM NO `.col-form` (17/11/2026) — E É ISSO QUE PÕE A LISTAGEM À
+     * DIREITA.
+     *
+     * «O padrão é que toda listagem fique à direita e o conteúdo de formulário fica dentro das
+     * abas.» O `.turmas-corpo` é uma GRADE DE DUAS COLUNAS, e a tira era FILHA DIRECTA dela: a
+     * grade punha a tira na coluna 1, empurrava o `.col-form` para a coluna 2 e a listagem caía
+     * para a linha de baixo, na coluna 1. Medido a 1440 px: tira a x=288 e formulário a x=748 —
+     * a coluna da DIREITA —, com a lista por baixo da tira. Tudo ao contrário do que se quer, e
+     * o `data-abas="sim"` não tinha nada a ver com isso.
+     *
+     * A regra que fecha o caso é a de sempre: a grade tem de ter DOIS filhos, e a tira pertence
+     * ao do formulário. Com ela lá dentro, a coluna 1 é a tira e o formulário, a coluna 2 é a
+     * listagem — e recolher o `.col-form` leva a tira com ele, que é o que já se queria e é o que
+     * a regra `#pf-abas` do recolhimento garantia à mão.
+     *
+     * O MESMO ACONTECE NA AUDIÇÃO, e pelo mesmo motivo. */
+    '<div class="col-form" id="professores-miolo">' +
     '<nav class="abas" role="tablist" aria-label="Professores — seções" id="pf-abas" data-abas="professor">' +
     ABAS_DO_PROFESSOR_HTML.map(([n, t], i) => '<button type="button" class="aba" role="tab" id="pf-aba-' + n + '" ' +
       'data-aba="' + n + '" aria-controls="pf-painel-' + n + '" ' +
@@ -6007,7 +6047,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</ul>' +
     '</div>' +
     '</div>' +
-    '<div class="col-form" id="professores-miolo">' +
     /* ---------------------------------------------- ABA 1 — O CADASTRO */
     '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
     /* O MEDIDOR ANTES DO FORMULÁRIO, e não depois: quem vai cadastrar precisa de saber se cabe
@@ -7052,6 +7091,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
     tituloComAcordeao('sec-corpo', 'Audição', 'corpo-miolo') +
     '<div class="turmas-corpo" data-abas="sim">' +
+    /* A TIRA ENTRA NO `.col-form` AQUI TAMBÉM (17/11/2026) — ver a nota longa nos Professores.
+     * Era o mesmo defeito medido: a tira na coluna 1 da grade, o formulário na coluna 2 e a
+     * listagem a cair para a linha de baixo. A listagem continua visível em todas as abas, que é
+     * a regra desta secção e não muda: ela é a coluna da DIREITA, ao lado das abas. */
+    '<div class="col-form" id="corpo-miolo">' +
     /* ---------------------------------------------- AS TRÊS ABAS DA AUDIÇÃO (09/11/2026)
      *
      * PORQUE ELAS EXISTEM. A secção cresceu por acrescento e chegou a ter, na mesma coluna, três
@@ -7166,7 +7210,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         '</button></li>').join('') +
     '</ol>' +
     '</div>' +
-    '<div class="col-form" id="corpo-miolo">' +
     '<div class="aba-painel" id="lb-painel-1" role="tabpanel" aria-labelledby="lb-aba-1" tabindex="0">' +
     '<p class="aviso" id="lb-sem-anamnese" hidden></p>' +
     '<form id="form-linha-base">' +
