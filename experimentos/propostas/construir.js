@@ -50,7 +50,7 @@ const { relatorioDePacotes, umPacote, umaPagina } = require('../lib-pacote.js');
  * `breu` nasceu como esqueleto (ciclo-zero, sem `DOCS`): não há `aula-NN.html` em sítio nenhum. O
  * `umPacote()` do `lib-pacote` falha alto — e faz bem, porque as PROVAS que o usam medem um pacote
  * real e medir o vazio seria pior. Mas este ficheiro não é uma prova: é o construtor das bancadas,
- * e o que ele alimenta é o passo «Construir as bancadas de layout» do `deploy-escolas.yml`, que
+ * e o que ele alimenta é o passo «Construir as bancadas de layout» do `publicar.yml`, que
  * corre com `set -euo pipefail`. Resultado medido: a publicação das escolas passou a falhar em
  * TODOS os deploys, por causa de uma página de bancada.
  *
@@ -77,7 +77,7 @@ const { relatorioDePacotes, umPacote, umaPagina } = require('../lib-pacote.js');
  * ser uma frase e passar a ser um facto com data.
  *
  * PORQUE NÃO SE FALHA. Uma página de bancada não é razão para deixar uma escola sem publicar — e
- * era isso que acontecia: o passo do `deploy-escolas.yml` corre com `set -euo pipefail`, e as
+ * era isso que acontecia: o passo do `publicar.yml` corre com `set -euo pipefail`, e as
  * bancadas já degradam sozinhas no `montar-publicacao.js --com-propostas` («pedido sem propostas
  * montadas»). O `umPacote()` do `lib-pacote` continua a falhar alto, e deve: uma PROVA mede o
  * real. Este ficheiro não é uma prova.

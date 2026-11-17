@@ -147,7 +147,7 @@ provar('nenhum pacote usável é de escola expurgada',
 
 console.log('\n4. O construtor das bancadas nunca derruba o deploy');
 /* MEDIDO A SÉRIO: corre-se o construtor e olha-se para o código de saída. O passo do
-   `deploy-escolas.yml` corre com `set -euo pipefail`; um `1` aqui é uma escola sem publicar. */
+   `publicar.yml` corre com `set -euo pipefail`; um `1` aqui é uma escola sem publicar. */
 const executar = () => {
   const r = spawnSync(process.execPath, [path.join(RAIZ, 'experimentos/propostas/construir.js')],
     { cwd: RAIZ, encoding: 'utf8' });

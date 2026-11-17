@@ -138,7 +138,7 @@ function lerDoDisco() {
 
   /* OS SHARDS — os scripts que servem N escolas (15/11/2026; regra unificada a 24/11/2026).
    *
-   * A marca é a mesma que o `deploy-escolas.yml` procura para não os tratar como escola (a var
+   * A marca é a mesma que o `publicar.yml` procura para não os tratar como escola (a var
    * `PACOTE_PARTILHADO`), e a decisão passou a morar em `motor/nucleo/shards.js` — porque o
    * caminho do SERVIDOR (`indice-acervo.js`) não a fazia, e por isso o `indices/` daqui saía certo
    * enquanto a página ao vivo listava o `lastro-teste` como escola viva, com botão de apagar.

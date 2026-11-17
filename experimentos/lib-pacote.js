@@ -354,7 +354,7 @@ module.exports = {
 /**
  * A PASTA DO PACOTE-ZERO de uma escola — `professores/<prof>/ciclos/ciclo-NN-<slug>`.
  *
- * É a MESMA pergunta que o `deploy-escolas.yml` faz para decidir se publica («o pacote-zero desta
+ * É a MESMA pergunta que o `publicar.yml` faz para decidir se publica («o pacote-zero desta
  * escola ainda existe?»), e é de propósito que a resposta venha de uma função só: duas definições
  * de «esta escola tem o que publicar» divergem, e a que ficasse para trás seria a do ecrã.
  */

@@ -1211,8 +1211,12 @@ Verificado nesta fotografia, com os comandos da §9.
 - **A §4 da aula não pede nada a ninguém.** Consolida, por música, a grade de contagens do verbete e
   os exercícios que a usam; a música vem da sequência do plano. **CONFIRMADO** em 02/11/2026 por
   `provar-o-que-vem-do-dado` (mutação: trocar a música muda o documento).
-- **6 workflows** em `.github/workflows/`: `criar-escola`, `deploy-escolas`, `deploy-raiz`,
-  `gerar-ciclo`, `reancorar`, `regerar-indices`. **CONFIRMADO**.
+- **4 workflows** em `.github/workflows/`: `criar-escola`, `derivados`, `gerar-ciclo` e `publicar`.
+  **CONFIRMADO** em 17/11/2026. Eram **6** até 16/11 (`reancorar` + `regerar-indices` passaram a
+  `derivados`, commit `774f239a`), e **5** até 17/11 (`deploy-raiz` + `deploy-escolas` passaram a
+  `publicar`). A razão das duas fusões é a mesma e é de facturação: **o GitHub cobra cada JOB
+  arredondado ao minuto**, e um push que tocasse em `motor/**` pagava três jobs para ~60 s de
+  trabalho.
 - **Produção da escola `batata` responde** (`batata.tmenegaz77.workers.dev`). **CONFIRMADO**
   em 25/10/2026:
 
@@ -1265,7 +1269,8 @@ Verificado nesta fotografia, com os comandos da §9.
   teria sido falso. É a mesma família do «o worktree não sabe que o remoto mudou» — supor o que o
   outro lado faz, sem lá olhar.
 - **«O push publica» é verdade, mas não é «todo o push» — e a diferença é de custo.** O
-  `deploy-escolas.yml` tem **`paths:`** (linha 43), e o que lá está é **o que a escola serve**:
+  `publicar.yml` tem **`paths:`**, e o que lá está é **a união do que a raiz empacota com o que a
+  escola serve** (desde 17/11/2026, quando os dois fluxos passaram a um):
   `professores/**/ciclos/ciclo-*/**`, `professores/**/ciclos/*.conf`, `motor/**`, `workers/**`,
   `wrangler.*.jsonc`, `tools/templates/**`, `tools/montar-publicacao.js`, `tools/check-identidade.js`
   e `experimentos/propostas/**`. **Um commit que só toca `*.md` na raiz não publica nada** — medido

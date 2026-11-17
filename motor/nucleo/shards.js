@@ -2,7 +2,7 @@
  * shards.js — QUAIS DESTES SCRIPTS SÃO SHARDS, e não escolas (24/11/2026).
  *
  * A pergunta existia em três sítios e cada um respondia à sua maneira: o `gerar-indices.js` lia o
- * marcador do disco, o `deploy-escolas.yml` procurava-o no config com `grep`, e o caminho do
+ * marcador do disco, o `publicar.yml` procurava-o no config com `grep`, e o caminho do
  * SERVIDOR (`indice-acervo.js`) não a fazia de todo. O descompasso é o defeito: o `indices/` do
  * repositório saía certo — sem o `lastro-teste` — e a página ao vivo listava-o como escola viva,
  * pronta a apagar. Uma lista que mostra o que não é escola é uma armadilha com botão.

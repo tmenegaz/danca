@@ -1923,10 +1923,24 @@ decisão.
   documentavam (o `--check` como guarda, o `conflito-do-derivado.sh` a recalcular em vez de
   escolher, e o `atualizar-commit-derivado.sh` no lugar do `--amend` cego) foram uma a uma para o
   arquivo novo. **Um lançamento passa a ser 1 job em vez de 2** — e o segundo não era trabalho: o
-  `reancorar` já regerava o índice, porque a âncora entra no acervo. **O que NÃO se fundiu:** o
-  `deploy-escolas.yml`, que continua com **1 job de descoberta + N jobs de publicação** (um por
-  escola). A próxima alavanca é essa — o número cresce com o número de escolas —, e está na conta
-  abaixo como pendência, não como feito.
+  `reancorar` já regerava o índice, porque a âncora entra no acervo.
+
+  **FEITO TAMBÉM O SEGUNDO PASSO, a 17/11/2026 — e era a alavanca maior.** O que faltava era o
+  `deploy-raiz.yml` (1 job) e o `deploy-escolas.yml` (`descobrir` + `publicar` = 2 jobs): os dois
+  disparavam em **cada push que tocasse em `motor/**`**, porque os dois tinham esse caminho nos
+  `paths`. Medido no painel do monitor: **11 pushes → 11 execuções de cada um**, ou seja **3 jobs
+  — 3 minutos de cota — por push**, para ~60 segundos de trabalho. Passaram a **um fluxo, um job,
+  um minuto** (`.github/workflows/publicar.yml`): a raiz sobe primeiro, as escolas a seguir, num
+  laço em vez de uma matriz. A independência entre escolas que a matriz dava preserva-se
+  recolhendo as falhas e saindo vermelho no fim.
+
+  O que se ganhou, em número: **de 3 min por push para 1** — com os 42 pushes de um dia de
+  trabalho, de **126 min/dia para 42**, ou seja de ~3.700 min/mês para **~1.260**, dentro dos
+  2.000 do plano gratuito. **A conclusão que isso muda é a da contratação:** antes desta
+  consolidação, o GitHub Pro ($4) era o caminho mais barato ($6,50 contra $8,50 de excedente
+  puro). Depois dela, **o plano gratuito chega** — e a contratação deixa de ser necessária para
+  este volume. Planos maiores voltam à mesa quando o número de escolas empurrar o uso acima de
+  2.000 min outra vez, e o monitor diz quando.
 
 - **O PREÇO, e a ordem das contratações** *(medido a 16/11/2026 nas páginas de preço do GitHub e da
   Cloudflare — não é estimativa)*. **O GitHub vem primeiro**, e ela intuiu porquê: é ele que está

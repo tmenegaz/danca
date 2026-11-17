@@ -49108,3 +49108,63 @@ do parágrafo que existe para explicar a conta**. Nasceu `usdFino`, que mostra o
 precisar (até quatro) e nunca arredonda por baixo do que o número é. E nasceu a asserção que o
 apanha: «o preço por minuto aparece com os decimais que tem ($0,006, não $0,01)». `provar-monitoramento`
 **66/66**.
+
+## 17/11/2026 — a publicação passa a um job, e é a alavanca que faltava
+
+**Motivo declarado (CONGELAMENTO.md): alterar a lógica de publicação exige motivo, entrada no
+REGISTRO e commit próprio. É este.** Decidido por ela — «ambos»: primeiro a dieta dos workflows,
+depois reavaliar se o GitHub Pro ainda é preciso.
+
+**O DIAGNÓSTICO, e o primeiro número estava errado.** O painel dizia 768 execuções de «Regerar os
+índices» em 17 dias, e eu fui ver quem as disparava. Duas descobertas:
+
+1. **«Regerar os índices» e «Reancorar a cadeia» já não existem** — foram fundidos em `derivados.yml`
+   a 16/11 (`774f239a`), e o painel mostrava o histórico deles. **O worktree não sabia**: os dois
+   ficheiros que a API nomeia (`.github/workflows/regerar-indices.yml`, `reancorar.yml`) não estão
+   nem no local nem no `origin/main`. É a armadilha do «remoto primeiro» ao contrário: o remoto
+   também já os tinha apagado, e o que persistia era o *histórico de execuções*.
+2. **O custo que restava era outro, e media-se**: 25 execuções depois do merge, sendo **11 de
+   `Publicar a raiz` e 11 de `Publicar as escolas`** para 11 pushes. Os dois tinham `motor/**` nos
+   `paths`, e cada um custa **1 job** e **2 jobs** respectivamente. **3 jobs = 3 minutos por push**,
+   para ~60 segundos de trabalho.
+
+**O QUE SE FEZ.** `deploy-raiz.yml` (113 linhas) e `deploy-escolas.yml` (240 linhas) passaram a
+**`.github/workflows/publicar.yml`**: **um job, nove passos**. A raiz sobe primeiro (é a porta que
+ela usa enquanto trabalha), as escolas a seguir, e a **matriz passou a laço** — uma matriz com uma
+escola são dois jobs (o `descobrir` e o `publicar`), e cada um arredonda ao minuto.
+
+**O QUE SE PRESERVOU, uma a uma:** a conferência de identidade em duas formas (`--sem-pacotes` para a
+raiz, completa para as escolas — a distinção existe desde o incidente de 06/11/2026); a descoberta em
+`tools/escolas-para-publicar.js` e não em `bash`; o ramo do shard (`--shard` e a config do shard, não
+a da escola); a construção das bancadas; o filtro por `env` e nunca por interpolação; `concurrency`
+com `cancel-in-progress: false`; e a independência entre escolas — que a matriz dava de graça e que o
+laço preserva recolhendo as falhas e saindo vermelho no fim, em vez de parar na primeira.
+
+**UM DEFEITO APANHADO NO PRÓPRIO LAÇO, antes de ele correr em produção.** O primeiro ensaio do laço
+iterou **zero vezes** e teria saído com sucesso. A causa: `while IFS= read -r escola` devolve
+**falso** na última linha de um ficheiro que não termina em newline, e o corpo nunca corre para ela.
+Medido nos dois sentidos (`["breu"]` sem newline → 0 iterações; com newline → 1). A correcção é
+dupla: o ficheiro passa a ser escrito com newline final **e** o laço leva `|| [ -n "$escola" ]`. É a
+mesma família do `node -e` com `return` de topo que já tinha lido vazio em silêncio aqui, e é por
+isso que o passo **foi ensaiado com `wrangler` substituído por `echo`** antes de ir para o `main`.
+
+**A CONTA QUE ISSO MUDA.** Com 42 pushes num dia de trabalho: **126 min/dia → 42 min/dia**, isto é
+**~3.700 min/mês → ~1.260**, dentro dos 2.000 do plano gratuito. **A conclusão sobre contratar
+inverte-se:** antes, o GitHub Pro ($4, com $18 de compute) era o caminho mais barato — $6,50 contra
+$8,50 de excedente puro. Depois, **o gratuito chega**, e a contratação deixa de ser necessária para
+este volume. Fica escrito no §L9c, porque é lá que a escada de preços vive.
+
+**Onde entrou.** `.github/workflows/publicar.yml` (novo, 1 job) · `deploy-raiz.yml` e
+`deploy-escolas.yml` **apagados** · `experimentos/provar-publicacao-da-escola.js` e
+`experimentos/provar-cofre-e-shard.js` (as asserções seguem o ficheiro para onde ele foi) ·
+`ESTADO-ATUAL.md` (o inventário dizia **6 workflows**, e eram 5 desde a véspera) ·
+`ARQUITETURA-GERAL.md` (a árvore e a tabela de `concurrency`) · `PLANEJAMENTO-LASTRO.md` §L9c (o
+segundo passo, feito) · e as referências em comentário em `tools/check-identidade.js`,
+`tools/gerar-indices.js`, `tools/escolas-para-publicar.js`, `motor/nucleo/shards.js`,
+`motor/servidor/repo-escola.js`, `experimentos/propostas/construir.js` e `experimentos/lib-pacote.js`
+— um ficheiro apagado em comentário é documentação que mente.
+
+**Com o quê.** YAML estrito (um job, nove passos) · o laço ensaiado com `echo` no lugar do
+`wrangler`, no caminho de sucesso **e** no de falha (isola, continua, sai 1) ·
+`provar-publicacao-da-escola` 73/73 · `provar-cofre-e-shard` 138/138 ·
+`provar-bancadas-e-expurgo` 16/16 · `gerar-indices --check` 6 em dia · `check-identidade` 0 erros.

@@ -638,7 +638,7 @@ function compararPacotes() {
 }
 /* `--sem-pacotes` — A CONFERÊNCIA DOS PACOTES NÃO PERTENCE A TODA A PUBLICAÇÃO (06/11/2026).
  *
- * O `deploy-raiz.yml` publica `raiz/` e nada de `professores/`. Mesmo assim ele corria a
+ * O passo da raiz (`publicar.yml`) publica `raiz/` e nada de `professores/`. Mesmo assim corria a
  * comparação dos pacotes inteira e, em 06/11/2026, reprovou: o commit que ele tinha à frente
  * trazia a folha nova em `tools/templates/ciclo.css` e o `gerar-ciclo` concorrente ainda não
  * tinha commitado o pacote regenerado. A raiz ficou por publicar por causa de um ficheiro que
@@ -646,7 +646,9 @@ function compararPacotes() {
  *
  * O que se mede continua a ser tudo o resto (tokens, contraste, cópias da raiz, peças, respiro):
  * o que sai é só a comparação byte a byte dos pacotes de ciclo, e SÓ quando quem chama declara
- * que não os publica. Quem publica pacotes (`deploy-escolas.yml`) continua a correr tudo. */
+ * que não os publica. Quem publica pacotes (o passo seguinte do MESMO `publicar.yml`) continua a
+ * correr tudo. Desde 17/11/2026 os dois passos vivem num job só, e a distinção passou a ser de
+ * PASSO e já não de ficheiro — mas a razão dela não mudou. */
 const SEM_PACOTES = process.argv.includes('--sem-pacotes');
 if (SEM_PACOTES) ok.push('Circuito: pacotes de ciclo não conferidos (--sem-pacotes: esta publicação não os serve)');
 else compararPacotes();
@@ -657,7 +659,7 @@ else compararPacotes();
 //
 // O `nav.js` faltava nesta comparação (17/10/2026): só a folha era medida, e o
 // `gerar-raiz.sh` copia as DUAS. Uma raiz com o nav velho passava no contrato — e agora é
-// este contrato que autoriza o `deploy-raiz.yml` a publicar, sem passo de geração no
+// este contrato que autoriza o passo da raiz a publicar, sem passo de geração no
 // runner. Se ele não olha, a identidade velha chega à produção com aval de «ok».
 for (const [rel, origem] of [
   ['raiz/assets/style.css', 'tools/templates/ciclo.css'],

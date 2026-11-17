@@ -20,7 +20,7 @@ name: Fechar os derivados
 # e RECALCULA em vez de escolher; e o `atualizar-commit-derivado.sh` no lugar do `--amend` cego.
 # Quem commita com o `GITHUB_TOKEN` não redispara workflows, então isto não vira laço.
 #
-# O QUE ELE **NÃO** FAZ: publicar. O `deploy-escolas.yml` continua separado, e a razão é de outra
+# O QUE ELE **NÃO** FAZ: publicar. O `publicar.yml` continua separado, e a razão é de outra
 # natureza — um upload interrompido é outra coisa, e por isso lá o `cancel-in-progress` é `false`.
 # O número de jobs do deploy (1 + N escolas) é a próxima alavanca, e está declarada no §L9c.
 

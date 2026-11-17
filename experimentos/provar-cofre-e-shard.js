@@ -906,7 +906,9 @@ function cloudflareFalso({ rotas = [] } = {}) {
      * São duas respostas certas para a mesma pergunta, e a asserção é a de cada um. */
     const caminhos = [
       ['criar-escola.yml', /alvo="wrangler\.\$\{\{ inputs\.shard \}\}\.jsonc"/],
-      ['deploy-escolas.yml', /lib-shard\.sh/],
+      /* O NOME MUDOU A 17/11/2026 — ver `provar-publicacao-da-escola.js`: `deploy-escolas.yml` e
+       * `deploy-raiz.yml` passaram a um só, `publicar.yml`, porque a facturação é por job. */
+      ['publicar.yml', /lib-shard\.sh/],
       ['gerar-ciclo.yml', /lib-shard\.sh/],
     ];
     for (const [fluxo, alvo] of caminhos) {
@@ -1021,7 +1023,7 @@ function cloudflareFalso({ rotas = [] } = {}) {
     /* UMA ENTRADA POR WORKER. Duas escolas do mesmo shard são o MESMO Worker: duas entradas na
      * matriz seriam dois `wrangler deploy` em paralelo sobre a mesma versão activa — a disputa que
      * a `concurrency` do workflow existe para evitar, e que a matriz atravessa. */
-    const descobre = (() => { try { return lerFluxo('deploy-escolas.yml'); } catch (erro) { return ''; } })();
+    const descobre = (() => { try { return lerFluxo('publicar.yml'); } catch (erro) { return ''; } })();
     /* A REGRA MUDOU DE SÍTIO (24/11/2026): a descoberta deixou de ser `bash` no workflow e passou a
      * ser `tools/escolas-para-publicar.js`, porque o laço das escolas de shard — escrito em
      * `node -e` dentro de uma substituição de processo — nunca corria. A asserção segue a regra
@@ -1030,7 +1032,7 @@ function cloudflareFalso({ rotas = [] } = {}) {
       try { return fs.readFileSync(path.join(RAIZ_DO_CODIGO, 'tools/escolas-para-publicar.js'), 'utf8'); }
       catch (erro) { return ''; }
     })();
-    provar('a descoberta do deploy-escolas deduplica pelo ALVO (o shard), e não pela escola',
+    provar('a descoberta da publicação deduplica pelo ALVO (o shard), e não pela escola',
       /'shard:' \+ shard/.test(descobreFonte)
       && /tools\/escolas-para-publicar\.js/.test(descobre), null);
   });

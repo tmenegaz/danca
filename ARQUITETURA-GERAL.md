@@ -375,8 +375,7 @@ o documento gravado e invisível na estante.
 ```
 push para main ──► GitHub Actions
                         ├── derivados.yml       → a cadeia .fipp E indices/*.json (um job)
-                        ├── deploy-escolas.yml  → um Worker por escola
-                        └── deploy-raiz.yml     → o Worker da raiz
+                        └── publicar.yml        → o Worker da raiz E os Workers das escolas (um job)
                         │
                         ▼
                Cloudflare — um Worker por escola + ASSETS no CDN
@@ -1074,8 +1073,7 @@ está desactualizado e em que ordem se resolve.
 | `concurrency` por (professor, ciclo, variante), `cancel-in-progress: false` | `gerar-ciclo.yml` | duas gerações do mesmo ciclo **enfileiram**; a segunda corre sobre o `main` novo |
 | `concurrency: reancorar-<ref>`, `cancel-in-progress: true` | `reancorar.yml` | reancoragens se substituem — só interessa a última |
 | `concurrency: regerar-indices`, `cancel-in-progress: true` | `regerar-indices.yml` | os índices são derivados: só vale o último |
-| `concurrency: deploy-escolas`, `cancel-in-progress: false` | `deploy-escolas.yml` | deploys não se cancelam a meio |
-| `concurrency: deploy-raiz`, `cancel-in-progress: false` | `deploy-raiz.yml` | idem, para a raiz |
+| `concurrency: publicar`, `cancel-in-progress: false` | `publicar.yml` | deploys não se cancelam a meio — e a raiz e as escolas partilham o grupo desde 17/11/2026 |
 | Rebase + reancoragem **depois** do rebase | `gerar-ciclo.yml`, `reancorar.yml` | a âncora é recomputada sobre as fontes que o rebase deixou |
 | Conflito em **derivado** (`.fipp`, `indices/`) | idem | concilia-se e recompõe-se |
 | Conflito em **material** | idem | **falha dita** — dois donos do mesmo arquivo não se adivinham |

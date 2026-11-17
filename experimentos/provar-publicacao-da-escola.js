@@ -493,8 +493,12 @@ function principal() {
     //   1. a descoberta não pode depender do valor do `assets.directory`;
     //   2. a descoberta tem de encontrar o pacote-zero da escola que existe;
     //   3. o deploy não pode correr sem a pasta montada.
-    const depWf = fs.readFileSync(path.join(RAIZ, '.github/workflows/deploy-escolas.yml'), 'utf8');
-    checar('o `deploy-escolas.yml` não filtra mais pelo `assets.directory`',
+    /* O FLUXO DA PUBLICAÇÃO MUDOU DE NOME A 17/11/2026: `deploy-escolas.yml` e `deploy-raiz.yml`
+     * passaram a um só, `publicar.yml`, porque o GitHub factura por JOB e os dois disparavam em
+     * cada push que tocasse em `motor/**` — 3 jobs para ~60 segundos de trabalho. As asserções
+     * seguem o ficheiro para onde ele foi: medi-lo no nome antigo passaria a medir o vazio. */
+    const depWf = fs.readFileSync(path.join(RAIZ, '.github/workflows/publicar.yml'), 'utf8');
+    checar('o fluxo da publicação não filtra mais pelo `assets.directory`',
       depWf.indexOf('"directory": *"professores/') === -1,
       'o filtro pelo `assets.directory` voltou — é o que deixava `escolas` vazio em todos os runs');
     checar('e descobre pela pasta do pacote-zero, que é a FONTE do site',
@@ -563,7 +567,7 @@ function principal() {
       fs.rmSync(tmp, { recursive: true, force: true });
 
       /* O WORKFLOW CHAMA O SCRIPT — e não guarda uma segunda cópia da regra. */
-      checar('o `deploy-escolas.yml` corre `tools/escolas-para-publicar.js`',
+      checar('o fluxo da publicação corre `tools/escolas-para-publicar.js`',
         depWf.indexOf('tools/escolas-para-publicar.js') !== -1);
       checar('…e já não tem o `node -e` com `return` de topo, que não corria',
         depWf.indexOf('if (!fs.existsSync(dir)) return;') === -1);

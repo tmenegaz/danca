@@ -2,7 +2,10 @@
 'use strict';
 
 /**
- * escolas-para-publicar.js — QUEM a `deploy-escolas.yml` põe na matriz.
+ * escolas-para-publicar.js — QUEM o `publicar.yml` põe na lista de publicação.
+ *
+ * (Até 17/11/2026 era «uma matriz»; os dois fluxos de deploy passaram a um job só com um laço,
+ * porque o GitHub factura por job arredondado ao minuto. A regra daqui não mudou.)
  *
  * POR QUE ISTO SAIU DO `workflow` (24/11/2026). A descoberta era um bloco `bash` com dois laços e
  * um `node -e` embutido, e o segundo laço — o das escolas de shard — **nunca correu**. O
@@ -89,7 +92,7 @@ function escolasDasConfiguracoes(raiz) {
     const slug = nome.slice('wrangler.'.length, -'.jsonc'.length);
     if (!slug || slug === 'danca') continue;
     const cfg = lerJsonc(path.join(base, nome));
-    // O SHARD NÃO É UMA ESCOLA — o mesmo marcador que o `deploy-escolas` já usa.
+    // O SHARD NÃO É UMA ESCOLA — o mesmo marcador que o `publicar.yml` já usa.
     if (cfg && cfg.vars && cfg.vars.PACOTE_PARTILHADO) continue;
     if (!temPacoteZero(slug, base)) {
       console.error('pulando ' + slug + ' — o pacote-zero já não existe (escola expurgada)');

@@ -44,7 +44,7 @@ const linhasDeBaseRepo = require('./linhas-de-base-repo.js');
 // ORDEM DA ÁRVORE, e o descompasso deixou o `ciclo-01.conf` de um professor no repositório.
 const { responsavelDoInventario } = require('../nucleo/indices.js');
 const proveniencia = require('../nucleo/proveniencia.js');
-/* QUEM É SHARD — a mesma pergunta do `gerar-indices.js` e do `deploy-escolas.yml` (25/11/2026).
+/* QUEM É SHARD — a mesma pergunta do `gerar-indices.js` e do `publicar.yml` (25/11/2026).
  * Uma varredura que reconhece escola só por `wrangler.<slug>.jsonc` mostra o shard como escola e
  * esconde as escolas que vivem dentro dele; a marca está no config, e o dono da leitura é aqui. */
 const { scriptsDeShard } = require('../nucleo/shards.js');

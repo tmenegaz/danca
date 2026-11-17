@@ -1,0 +1,273 @@
+name: Publicar o sistema
+
+# UM JOB, E NÃO TRÊS (17/11/2026).
+#
+# POR QUE ESTE FLUXO EXISTE, e são duas histórias que já custaram incidentes: em 17/10/2026 o
+# dono do produto abriu as duas escolas de teste e não viu os ajustes — os commits estavam no
+# `main`, os pacotes versionados tinham a folha nova, e os dois Workers serviam a folha
+# ANTERIOR. Medido: `assets/style.css` no ar com md5 `91509d8…`, no repositório com `122e570…`.
+# Nada publicava. A raiz tinha a mesma falha e o mesmo preço, duas vezes no mesmo dia: a raiz no
+# ar era de 14:54 e o `criar-escola.sh` corrigido foi commitado às 15:04 — a escola `valse`
+# nasceu com o formulário antigo, e o `post-merge` que apagava a escola recém-criada continuou
+# no ar. Nos dois casos o commit estava certo e a produção, velha.
+#
+# ── O QUE MUDOU A 17/11/2026, E POR QUÊ ──────────────────────────────────────────────────────
+#
+# O GitHub factura **cada job arredondado ao minuto**. Na véspera, `reancorar` e `regerar` já
+# tinham passado a um job só (`774f239a`) pela mesma razão. Faltava o resto: `deploy-raiz` (1
+# job) e `deploy-escolas` (`descobrir` + `publicar` = 2 jobs) disparavam **ambos em cada push**
+# que tocasse em `motor/**`. Medido no painel: 11 pushes produziram 11 execuções de cada um, ou
+# seja **3 minutos de cota por push** para ~60 segundos de trabalho.
+#
+# Um job, um minuto. Os dois fluxos anteriores foram apagados, e o que se preservou foi o que
+# cada um guardava de lição — incluindo as que obrigam a correr a conferência de identidade de
+# duas maneiras diferentes (ver os passos).
+#
+# O QUE NÃO SE PERDEU: a independência entre os dois deploys. A raiz sobe primeiro e, se a
+# publicação das escolas falhar, a raiz fica no ar com a versão nova — exactamente como
+# acontecia quando eram dois fluxos, porque a falha de um nunca travou o outro. A diferença é
+# que agora isso acontece num job só, e o passo das escolas continua a ser o último.
+#
+# ── O QUE SE PUBLICA É O QUE ESTÁ NO COMMIT ──────────────────────────────────────────────────
+#
+# Não há passo de geração: `raiz/index.html`, `raiz/assets/*` e os pacotes de ciclo são
+# VERSIONADOS. Gerar no runner tornaria o deploy irreprodutível a partir do commit — e um
+# `pandoc` ou um `pdflatex` diferente do local travaria o deploy PARA SEMPRE, porque nenhum
+# `gerar-*.sh` rodado na máquina conseguiria reproduzir a saída do CI. Quem gera é quem tem as
+# fontes; quem publica é este fluxo, e publica o que passou no commit.
+
+on:
+  push:
+    branches: [main]
+    # A UNIÃO dos dois gatilhos que existiam — e ela é a mesma do `derivados.yml`: o que a raiz
+    # empacota, o que uma escola serve, e o que decide se uma escola existe.
+    paths:
+      # ── o que a RAIZ empacota ───────────────────────────────────────────────────────────────
+      # `motor/**` inteiro e não uma lista de ficheiros: o bundle é um SUBCONJUNTO da pasta
+      # (`motor/servidor/raiz.js` + o que ele `require`), e uma lista nominal apodreceria no dia
+      # em que alguém acrescentasse um `require` — com o modo de falha que este fluxo existe para
+      # matar: commit novo, raiz velha. Publicar sem necessidade custa segundos; publicar velho
+      # custou dois incidentes.
+      - 'motor/**'
+      - 'workers/**'
+      - 'raiz/**'
+      - 'wrangler.*.jsonc'
+      - 'biblioteca/comercial/**'
+      # ── o que uma ESCOLA serve ──────────────────────────────────────────────────────────────
+      # Não se lista arquivo por arquivo dentro do pacote: um `assets/nav.js` novo tem de
+      # publicar, e uma lista nominal apodreceria em silêncio. As fontes `.md`, os `-dados.json`,
+      # os `.fipp` e os relatórios NÃO estão aqui: nenhum deles é lido no caminho da publicação.
+      # A lista era `professores/**`, e isso subia o site inteiro por arquivos que ele não serve
+      # — medido no «Guardar» do PO de 21/10/2026 às 19:19: dez commits em quatro segundos, dez
+      # deploys enfileirados, cada um montando e subindo a escola para publicar exactamente o
+      # mesmo site. A pergunta do filtro é «este arquivo chega ao que a escola serve?», e quem
+      # responde é `tools/montar-publicacao.js`.
+      - 'professores/**/ciclos/ciclo-*/**'
+      - 'professores/**/ciclos/*.conf'
+      # O CATÁLOGO VAI DENTRO DO BUNDLE DA ESCOLA (03/11/2026): `catalogo-seed.js` e
+      # `notacao.js` fazem `require` dos JSON de `biblioteca/modalidades/`, e o esbuild embute-os
+      # porque o Worker não tem `fs`. Sem esta linha, um termo criado pela Produção chegava ao
+      # repositório e nunca ao Worker: o `POST` devolvia o termo, a tela acrescentava-o, e no
+      # `F5` seguinte ele desaparecia. Medido a 03/11/2026 nos commits `28cbc06` e `4cebff7`,
+      # que ficaram sem run por esta razão.
+      - 'biblioteca/modalidades/**'
+      - 'tools/templates/**'
+      # A montagem é ela própria parte do que se publica, e a conferência de identidade também:
+      # foi ela que impediu que uma folha velha chegasse à produção com aval de «ok».
+      - 'tools/montar-publicacao.js'
+      - 'tools/check-identidade.js'
+      # AS BANCADAS DE LAYOUT VÃO COM O SITE (24/10/2026) — a decisão de layout é tomada no
+      # telemone, e o telemone não lê o repositório. O sintoma de as esquecer é o pior possível
+      # numa bancada: abre-se `/propostas/`, vê-se a versão anterior, e conclui-se que a
+      # proposta descrita não existe.
+      - 'experimentos/propostas/**'
+      - '.github/workflows/publicar.yml'
+      - '.github/actions/**'
+  workflow_dispatch:
+    inputs:
+      escola:
+        description: 'Slug de UMA escola (vazio publica tudo, incluindo a raiz)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+# Um deploy de cada vez, e SEM cancelar o que já está a subir: dois `wrangler deploy`
+# simultâneos do mesmo Worker disputam a versão activa, e um upload interrompido é outra coisa
+# que um job cancelado. É a razão declarada de `cancel-in-progress: false`, e ela continua a
+# valer agora que a raiz e as escolas partilham o grupo: o que se ganha é o job, não o cancelamento.
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  # A LISTA É DESCOBERTA, NÃO ESCRITA À MÃO: cada escola é um `wrangler.<slug>.jsonc`, e o
+  # `wrangler.danca.jsonc` fica de fora porque a raiz não é escola. Uma escola nova passa a ser
+  # publicada no dia em que ganha o config — sem ninguém lembrar de editar este arquivo.
+  #
+  # O FILTRO PELO `assets.directory` MORREU A 22/10/2026, e com ele um mês de deploys
+  # silenciosamente vazios: ele procurava `"directory": "professores/…"`, o valor anterior à
+  # montagem em `publicacao/<escola>/`. Depois dessa mudança o `grep` deixou de casar, a lista
+  # saía `[]` e o job `publicar` ficava `skipped` em TODOS os runs. Medido no run 39660372285.
+  # A pergunta certa é «o pacote-zero desta escola ainda existe?» — e ela não depende de para
+  # onde o `assets.directory` aponta.
+  publicar:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar-node
+
+      # ── A RAIZ SOBE PRIMEIRO ───────────────────────────────────────────────────────────────
+      # É a porta de entrada do sistema (a página «Sistema Lastro», o «Criar nova escola», o
+      # cron do expurgo), e é a que serve as páginas que a proprietária usa enquanto trabalha.
+      - name: Conferir a identidade antes de publicar a raiz
+        shell: bash
+        run: |
+          set -euo pipefail
+          # `--sem-pacotes`: este passo serve a RAIZ e não publica pacote de ciclo nenhum. A
+          # comparação byte a byte dos pacotes fica com o passo das escolas, e continua no hook
+          # de pré-commit, onde o pacote é regenerado no mesmo acto. Em 06/11/2026 esta
+          # conferência reprovou a raiz por causa de um pacote que outro fluxo ia regenerar um
+          # segundo depois — e o vermelho pedia «regenere o pacote» a quem só estava a publicar
+          # a apresentação.
+          node tools/check-identidade.js --sem-pacotes
+
+      - name: Subir a raiz no Cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/wrangler deploy -c wrangler.danca.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
+      # ── E DEPOIS AS ESCOLAS ────────────────────────────────────────────────────────────────
+      # A conferência COMPLETA (com os pacotes) antes de publicar pacotes — é ela que impede que
+      # uma folha velha chegue à produção com aval de «ok», que foi exactamente o aval que faltou
+      # em 17/10/2026.
+      - name: Conferir a identidade antes de publicar as escolas
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/check-identidade.js
+
+      # AS BANCADAS DE LAYOUT SÃO GERADAS — e não estão no Git (`experimentos/propostas/*`).
+      # Sem este passo o `--com-propostas` avisa «pedido sem propostas montadas» e segue sem
+      # elas: num checkout limpo a pasta só tem o construtor. Aconteceu no primeiro deploy desta
+      # opção, e o aviso do próprio `montar-publicacao.js` disse qual era a linha que faltava.
+      # A PROPOSTA DA LISTAGEM DA LINHA DE BASE tem o seu construtor porque lê a página da
+      # Produção (montada pelo servidor) em jsdom — não mede um pacote de ciclo, e por isso não
+      # depende de existir escola com ciclo gerado. Sem esta linha, 404 nas três páginas.
+      - name: Construir as bancadas de layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          node experimentos/propostas/construir.js
+          node experimentos/propostas/propor-linha-de-base.js
+
+      # A DESCOBERTA É UM SCRIPT, E NÃO UM BLOCO `bash`. Aqui esteve um `node -e` embutido com
+      # um `return` de topo, que o Node recusa; como corria numa substituição de processo
+      # (`< <(…)`), o erro não chegava ao `set -e`, o `while` lia vazio, o passo dizia sucesso e
+      # a matriz saía `[]` — `publicar` ficava `skipped` em TODOS os runs e o motor nunca chegava
+      # ao shard. Medido no run 43759456951. A regra e as duas fontes estão em
+      # `tools/escolas-para-publicar.js`, onde uma falha falha.
+      #
+      # O FILTRO ENTRA POR `env`, não por interpolação no script: um valor digitado no
+      # `workflow_dispatch` nunca pode virar comando. Vazio (push) publica todas.
+      - name: Descobrir as escolas
+        shell: bash
+        env:
+          FILTRO: ${{ github.event.inputs.escola }}
+        run: |
+          set -euo pipefail
+          filtro="${FILTRO:-}"
+          if [ -n "$filtro" ]; then
+            node tools/escolas-para-publicar.js --filtro "$filtro" > /tmp/escolas.json
+          else
+            node tools/escolas-para-publicar.js > /tmp/escolas.json
+          fi
+          # OS NOMES UMA POR LINHA, num FICHEIRO. Não por substituição de processo nem por
+          # `node -e` dentro de um laço: é precisamente essa combinação que já leu vazio em
+          # silêncio aqui. Um ficheiro não tem esse modo de falha.
+          # O NEWLINE FINAL NÃO É ESTÉTICA: `while read` devolve FALSO na última linha de um
+          # ficheiro que não termina em newline, e o corpo do laço nunca corre para ela. Medido
+          # neste próprio passo: com a lista `["breu"]` gravada sem newline, o laço iterou ZERO
+          # vezes e o passo teria dito sucesso — a escola não subia e ninguém sabia. A guarda
+          # `|| [ -n "$escola" ]` no laço cobre o mesmo modo de falha por outro lado.
+          node -e 'const fs=require("fs");const l=JSON.parse(fs.readFileSync("/tmp/escolas.json","utf8"));fs.writeFileSync("/tmp/escolas.txt",l.length?l.join("\n")+"\n":"");console.log("escolas a publicar: "+(l.length?l.join(", "):"nenhuma"));'
+
+      # UM LAÇO, E NÃO UMA MATRIZ — é o ponto todo deste fluxo. Uma matriz com uma escola são
+      # DOIS jobs (o `descobrir` e o `publicar`), e cada um arredonda ao minuto. Um laço é um
+      # job. A independência entre escolas que a matriz dava («uma escola que falha não impede
+      # as outras de subir») preserva-se recolhendo as falhas e saindo vermelho no fim: são
+      # Workers independentes, e travar a publicação de uma por causa da outra esconde o
+      # problema em vez de o dizer.
+      - name: Montar e publicar cada escola
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -s /tmp/escolas.txt ]; then
+            echo "nenhuma escola para publicar — nenhum pacote-zero existe" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+            echo "nada a fazer"
+            exit 0
+          fi
+          source tools/lib-shard.sh
+          falhas=""
+          # `|| [ -n "$escola" ]`: ver a nota do newline final no passo anterior — um `while read`
+          # puro não entra na última linha de um ficheiro sem newline.
+          while IFS= read -r escola || [ -n "$escola" ]; do
+            [ -z "$escola" ] && continue
+            echo "::group::$escola"
+            # NO SHARD O `assets.directory` É `publicacao/` E A ÁRVORE É PARTILHADA: o
+            # `wrangler deploy` substitui a versão inteira, portanto montar uma escola e subir
+            # apagaria as páginas das outras. Num shard monta-se o shard inteiro (`--shard`, que
+            # recusa montar zero) e sobe-se a config do shard — a escola não tem config dela.
+            shard="$(shard_da_escola "$escola")"
+            if [ -n "$shard" ]; then
+              echo "servida pelo shard «$shard» — monta-se o shard inteiro"
+              alvo="wrangler.$shard.jsonc"
+              montar=(node tools/montar-publicacao.js --shard "$shard" --com-propostas)
+            else
+              alvo="wrangler.$escola.jsonc"
+              montar=(node tools/montar-publicacao.js "$escola" --com-propostas)
+            fi
+            # MONTAR ANTES DE PUBLICAR (22/10/2026): o `assets.directory` é uma SAÍDA, não está
+            # no repositório e não existe num checkout limpo. Sem este passo o `wrangler deploy`
+            # não encontra a pasta.
+            if "${montar[@]}" && ./node_modules/.bin/wrangler deploy -c "$alvo"; then
+              {
+                echo "### escola \`$escola\` publicada"
+                echo ""
+                echo "- motor: \`$alvo\`"
+                echo "- commit: \`$GITHUB_SHA\`"
+                echo "- https://$escola.tmenegaz77.workers.dev/"
+              } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+            else
+              echo "::error::a escola «$escola» (motor «$alvo») não subiu"
+              falhas="$falhas $escola"
+            fi
+            echo "::endgroup::"
+          done < /tmp/escolas.txt
+          if [ -n "$falhas" ]; then
+            echo "::error::escolas que não subiram:$falhas"
+            exit 1
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
+      - name: Dizer o que ficou no ar
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "### raiz publicada"
+            echo ""
+            echo "- commit: \`$GITHUB_SHA\`"
+            echo "- Worker: \`danca\` (raiz do sistema, não é escola)"
+            echo "- https://danca.tmenegaz77.workers.dev/"
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
