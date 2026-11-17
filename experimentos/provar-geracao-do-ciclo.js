@@ -199,27 +199,35 @@ function oAcordo() {
   assert.match(yml, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
   ok('o pacote com commit vazio é dispensado, e não derruba o push');
 
-  const reancorar = ler('.github/workflows/reancorar.yml');
+  /* O FLUXO MUDOU DE NOME A 16/11/2026: `reancorar.yml` e `regerar-indices.yml` foram fundidos em
+   * `derivados.yml`. O que se afirma permanece — só mudou de sítio, e uma asserção num arquivo
+   * extinto mediria o vazio (o `ler` lançaria, e a prova reprovava por ausência de ficheiro, não de
+   * regra). E a conciliação do derivado e o commit vazio vivem nos dois scripts desde 22/10/2026:
+   * a regra está lá, e é lá que se lê. */
+  const reancorar = ler('.github/workflows/derivados.yml');
+  const conflitoDoDerivado = ler('.github/scripts/conflito-do-derivado.sh');
+  const atualizarCommit = ler('.github/scripts/atualizar-commit-derivado.sh');
   assert.match(reancorar, /git push/);
   // O reancorar tinha o MESMO conflito do `gerar-ciclo.yml` e só ele continuava a morrer
   // nele: a correcção de 00fe05d ficou num workflow só. Medido às 18:40:19 de 19/10/2026 —
   // «CONFLICT (content): … ciclo-01-calango-bale-nivel-1-teste-1.fipp».
   assert.match(reancorar, /git fetch origin main/);
   assert.match(reancorar, /git rebase origin\/main/);
-  assert.match(reancorar, /grep -qv '\\\.fipp\$'/);
-  assert.match(reancorar, /git checkout --theirs -- '\*\.fipp'/);
+  assert.match(conflitoDoDerivado, /\*\.fipp/);
+  assert.match(conflitoDoDerivado, /\$\(resolver "\$caminho" theirs\)|resolver "\$caminho" theirs/);
   assert.equal(/git pull --rebase --autostash origin main/.test(reancorar), false,
     'o pull --rebase morre no conflito da âncora: rebase tem de ser explícito');
-  // A reancoragem do `reancorar` cobre TODOS os ciclos que divergirem: ela varre os
-  // manifestos, não recebe um alvo. Depois do rebase as fontes são outras, então a âncora
-  // é recalculada para todos — e o `--check` deixa intacto o que já fecha.
-  assert.match(reancorar, /reancorar_tudo\(\)/);
+  // A reancoragem cobre TODOS os ciclos que divergirem: ela varre os manifestos, não recebe um
+  // alvo. Depois do rebase as fontes são outras, então a âncora é recalculada para todos — e o
+  // `--check` deixa intacto o que já fecha. (A função chamava-se `reancorar_tudo`; na fusão
+  // passou a `refazer_tudo`, porque agora refaz os DOIS derivados.)
+  assert.match(reancorar, /refazer_tudo\(\)/);
   assert.match(reancorar, /professores\/\*\/ciclos\/ciclo-\*-\*\.conf/);
-  assert.match(reancorar, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
+  assert.match(atualizarCommit, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
   // E o mesmo diagnóstico honesto: o rebase que não começa não se confunde com conflito.
   assert.match(reancorar, /git rev-parse --git-path rebase-merge/);
   assert.match(reancorar, /git cat-file -e "origin\/main:\$solto"/);
-  ok('o reancorar rebaseia, regera a âncora de todos os ciclos e não morre no commit vazio');
+  ok('o derivado rebaseia, regera a âncora de todos os ciclos e não morre no commit vazio');
 
   // ZERO ESCOLAS NÃO É ERRO (19/10/2026). Depois de expurgar a última escola o glob não
   // acha manifesto nenhum, e o repositório sem escola é um estado LEGÍTIMO — o que existe
@@ -228,7 +236,7 @@ function oAcordo() {
   assert.match(reancorar, /nenhuma escola no repositório — nada a reancorar/);
   assert.equal(/nenhum manifesto de variante encontrado[\s\S]{0,40}exit 1/.test(reancorar), false,
     'o glob vazio voltou a ser tratado como erro');
-  ok('sem escola no repositório, o reancorar diz «nada a reancorar» — e não falha');
+  ok('sem escola no repositório, o derivado diz «nada a reancorar» — e não falha');
 
   // O CRIAR-ESCOLA TAMBÉM PERDE A CORRIDA (19/10/2026). Foi ele que falhou às 18:11:21:
   // `push` recusado DEPOIS de o motor já estar no ar, deixando um Worker a servir uma

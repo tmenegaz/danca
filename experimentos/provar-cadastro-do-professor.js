@@ -170,11 +170,23 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       posColLista > posUltimoPainel && posUltimoPainel > 0, { posColLista, posUltimoPainel });
     conferir('o «Seções» do telemóvel existe, e a pílula diz qual folha abre',
       /id="pf-abas-folha"/.test(html) && /data-folha="pf-abas"/.test(html), null);
+    /* A CONTAGEM É DENTRO DO MENU DO PROFESSOR (16/11/2026). Ela era feita no HTML inteiro, e
+     * passou a contar quatro quando a Produção ganhou o terceiro grupo de abas («A escola», cuja
+     * primeira aba também se chama `cadastro`): `data-aba` é o gancho de TODOS os grupos, e contar
+     * por ele no documento inteiro conta os grupos uns com os outros. É a mesma lição que a prova
+     * do financeiro já traz — mede-se no DOM, e no DOM daquele grupo. */
+    const menuDoProfessor = (html.match(/id="pf-abas-menu"[\s\S]*?<\/ul>/) || [''])[0];
     conferir('a folha do telemóvel tem os três itens',
-      (html.match(/class="menu-de-acoes-item" data-aba="(cadastro|habilitacoes|desligamento)"/g) || []).length === 3, null);
-    /* AS PEÇAS DA CASA, e não desenho novo: a tira usa `.abas`/`.aba`, o painel `.aba-painel`. */
-    conferir('as abas usam as peças da casa (`.abas`, `.aba`, `.aba-painel`)',
-      /\.abas\{/.test(html) && /\.aba-painel\{/.test(html) && /class="aba"/.test(html), null);
+      (menuDoProfessor.match(/class="menu-de-acoes-item" data-aba="(cadastro|habilitacoes|desligamento)"/g) || []).length === 3,
+      (menuDoProfessor.match(/data-aba="[a-z]+"/g) || []));
+    /* AS PEÇAS DA CASA, e não desenho novo. Desde 16/11/2026 a peça mora na FOLHA — a página não a
+     * redeclara, e é isso que se afirma: as marcas (`.aba`, `role="tab"`, `.aba-painel`) estão no
+     * documento, e a geometria não está (não há `.aba{` com desenho aqui). A regra `.abas{display:
+     * none}` que a página ainda tem é a decisão dela — esconder a tira onde há pílula —, e não uma
+     * segunda declaração da peça. */
+    conferir('as abas usam as peças da casa, e a página não redeclara a geometria',
+      /class="aba"/.test(html) && /aba-painel/.test(html)
+        && !/\.aba\{[^}]*border-radius/.test(html) && !/\.aba-painel\{[^}]*padding/.test(html), null);
     conferir('e os dois grupos têm as duas pílulas, cada uma com a sua folha',
       /data-folha="lb-abas"/.test(html) && /data-folha="pf-abas"/.test(html), null);
   }

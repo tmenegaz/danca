@@ -1004,8 +1004,13 @@ function cloudflareFalso({ rotas = [] } = {}) {
      * corre os dois juntos e é disparado por `professores/**` — mas o push do `criar-escola` usa o
      * `GITHUB_TOKEN`, e o GitHub não redispara workflows a partir desses pushes. Medido: o
      * `check-indices` reprovou a reconstrução com
-     * `indices/relacoes/pe-pequeno/01-calango.json: não existe no disco`, três vezes. */
-    for (const fluxo of ['criar-escola.yml', 'regerar-indices.yml']) {
+     * `indices/relacoes/pe-pequeno/01-calango.json: não existe no disco`, três vezes.
+     *
+     * E O FLUXO MUDOU DE NOME (16/11/2026): `regerar-indices.yml` e `reancorar.yml` foram fundidos
+     * em `derivados.yml`, que é quem corre os dois geradores agora. A asserção segue a regra para
+     * onde ela foi — medi-la no arquivo extinto mediria o vazio (`lerFluxo` devolve `''`), e era
+     * isso que ela estava a fazer: reprovar por ausência de ficheiro, e não por ausência de regra. */
+    for (const fluxo of ['criar-escola.yml', 'derivados.yml']) {
       const texto = (() => { try { return lerFluxo(fluxo); } catch (erro) { return ''; } })();
       provar(fluxo + ' regera o mapa de relações, e não só o índice', /gerar-relacoes\.js/.test(texto), null);
       provar(fluxo + ' …e o índice também (os dois são irmãos, no mesmo `indices/`)',
