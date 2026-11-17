@@ -392,6 +392,20 @@ function kvCom(dados) {
   {
     const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
     const usos = { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 };
+    /* UMA PÁGINA, UM CONSTRUTOR (17/11/2026). As asserções do «Pagar» comparam DUAS escolas — a
+     * que deve e a que está em dia —, e comparar duas páginas construídas por dois blocos de
+     * argumentos diferentes é comparar duas coisas e chamar-lhes o mesmo nome. A lista de
+     * argumentos fica aqui, uma vez; o que muda de caso para caso é a `situacao`. */
+    const paginaDaEscolaCom = (sit) => bastidores.paginaProducao('teste',
+      { professor: 'p', ciclo: '01', query: '' }, [], [], 'Dono', 'dono', [], [], [], [], [], [], usos,
+      { modo: 'clara', paleta: 'bordo' }, '', [], [], {
+        ok: true,
+        cadastro: { escolaNome: 'Escola Teste', cnpj: '12.345.678/0001-90', email: 'e@x.test',
+          telefone: '54 99999-0000' },
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 6990 },
+        pix: { chave: 'chave@pix.test', titular: 'Sistema Lastro' },
+        situacao: sit,
+      });
     const situacao = mensalidades.situacaoDaEscola({
       escola: 'teste',
       contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 6990,
@@ -400,15 +414,8 @@ function kvCom(dados) {
         planoNome: 'Básico', em: '2026-10-19T10:00:00Z' }],
       agora: '2026-11-20T12:00:00Z',
     });
-    const html = bastidores.paginaProducao('teste', { professor: 'p', ciclo: '01', query: '' }, [], [],
-      'Dono', 'dono', [], [], [], [], [], [], usos, { modo: 'clara', paleta: 'bordo' }, '', [], [], {
-        ok: true,
-        cadastro: { escolaNome: 'Escola Teste', cnpj: '12.345.678/0001-90', email: 'e@x.test',
-          telefone: '54 99999-0000' },
-        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 6990 },
-        pix: { chave: 'chave@pix.test', titular: 'Sistema Lastro' },
-        situacao: Object.assign({}, situacao, { frase: mensalidades.fraseDaSituacao(situacao.situacao) }),
-      });
+    const html = paginaDaEscolaCom(Object.assign({}, situacao,
+      { frase: mensalidades.fraseDaSituacao(situacao.situacao) }));
 
     conferir('a Produção ganhou a secção «A escola», no grupo Configuração',
       /id="sec-a-escola"/.test(html) && /data-secao="a-escola"/.test(html), null);
@@ -459,6 +466,57 @@ function kvCom(dados) {
           .map((l) => l.textContent.trim().slice(0, 18)));
       conferir('…e leva à página do mês a mês por um link',
         p('situacao') && /href="\/bastidores\/financeiro"/.test(p('situacao').innerHTML), null);
+      /* O «PAGAR» SÓ APARECE QUANDO HÁ O QUE PAGAR (17/11/2026). «Esse botão de pagar só vai
+       * aparecer quando a escola tiver inadimplente para aquele mês ali que aparece. Senão ele não
+       * aparece.»
+       *
+       * Duas escolas, a mesma página: a que deve (esta, com agosto, setembro e novembro vencidos) e
+       * a que está em dia. A regra é do ESTADO, e é por isso que a prova tem de medir os dois lados
+       * — um botão que aparece sempre passaria numa prova que só olhasse para a devedora. */
+      const pagarEm = (raiz) => [...raiz.querySelectorAll('[data-abre="pagar"]')];
+      conferir('quem deve um mês vê um «Pagar», e ele abre a caixa do Pix',
+        pagarEm(p('situacao')).length === 1
+          && /^pagar$/i.test(pagarEm(p('situacao'))[0].textContent.trim())
+          && pagarEm(p('situacao'))[0].getAttribute('data-abre') === 'pagar', null);
+      conferir('…e com ele ao lado, «Ver o mês a mês» fica secundário — um só gesto principal',
+        /class="acao secundario pequena" href="\/bastidores\/financeiro"/.test(p('situacao').innerHTML),
+        null);
+      /* A QUE ESTÁ EM DIA: nenhum «Pagar», e o «Ver o mês a mês» passa a ser o gesto principal.
+       * O contrato começa em OUTUBRO e o livro tem os dois meses — não há vencido nenhum. */
+      const emDia = mensalidades.situacaoDaEscola({
+        escola: 'teste',
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 6990,
+          capacidade: { professores: 1, alunos: 10 }, criadoEm: '2026-10-05T12:00:00Z', estado: 'ativa' },
+        livro: [
+          { escola: 'teste', mes: '2026-10', status: 'pago', valorCentavos: 6990,
+            planoNome: 'Básico', em: '2026-10-08T10:00:00Z' },
+          { escola: 'teste', mes: '2026-11', status: 'pago', valorCentavos: 6990,
+            planoNome: 'Básico', em: '2026-11-09T10:00:00Z' },
+        ],
+        agora: '2026-11-20T12:00:00Z',
+      });
+      const dEmDia = new JSDOM(paginaDaEscolaCom(Object.assign({}, emDia,
+        { frase: mensalidades.fraseDaSituacao(emDia.situacao) }))).window.document;
+      const situacaoEmDia = dEmDia.getElementById('es-painel-situacao');
+      conferir('…e quem está em dia NÃO vê botão de pagar — não se paga duas vezes o mesmo mês',
+        situacaoEmDia && pagarEm(situacaoEmDia).length === 0
+          && emDia.meses.every((m) => m.status === 'pago'), emDia.situacao);
+      conferir('…e sem «Pagar», «Ver o mês a mês» deixa de ser secundário',
+        /class="acao pequena" href="\/bastidores\/financeiro"/.test(situacaoEmDia.innerHTML), null);
+      /* UM MÊS SÓ: o botão diz QUAL. «Pagar» sozinho, numa escola com meses antigos em aberto, não
+       * diz a que mês se está a pagar — e é o mês que liga o Pix à competência. */
+      const umMes = mensalidades.situacaoDaEscola({
+        escola: 'teste',
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 6990,
+          capacidade: { professores: 1, alunos: 10 }, criadoEm: '2026-11-02T12:00:00Z', estado: 'ativa' },
+        livro: [], agora: '2026-11-20T12:00:00Z',
+      });
+      const dUmMes = new JSDOM(paginaDaEscolaCom(Object.assign({}, umMes,
+        { frase: mensalidades.fraseDaSituacao(umMes.situacao) }))).window.document;
+      conferir('…e com um mês só em aberto, o botão nomeia-o — «Pagar novembro»',
+        /^pagar novembro$/i.test(
+          (pagarEm(dUmMes.getElementById('es-painel-situacao'))[0] || { textContent: '' })
+            .textContent.trim()), umMes.meses.map((m) => m.mes));
       conferir('…e a chave de pagar vive na caixa de pagar, com o botão de copiar',
         p('pagar') && /chave@pix\.test/.test(p('pagar').innerHTML)
           && p('pagar').querySelectorAll('[data-copiar]').length === 1, null);
@@ -486,15 +544,62 @@ function kvCom(dados) {
     conferir('sem chave Pix configurada, a página diz isso em vez de abrir uma caixa vazia',
       /ainda não está configurada no sistema/.test(semPix), null);
 
+    /* O «PAGAR» DO MÊS A MÊS CHEGA AQUI COM A CAIXA ABERTA (17/11/2026).
+     *
+     * O link de cada linha em aberto é `/bastidores/producao?abrir=pagar#a-escola`, e quem o segue
+     * tem de encontrar a chave Pix à vista — «ele leva para o mesmo lugar que a gente tem lá na
+     * listagem da escola, que é o pagar, onde a gente exibe a informação e a chave Pix».
+     *
+     * ISTO EXECUTA O GESTO, e não procura o texto dele. A diferença importa: uma prova que
+     * verificasse a presença de `history.replaceState` na página passaria com o gesto a apontar
+     * para a caixa errada, ou a limpá-lo antes de o usar. Aqui o documento é construído com o
+     * `location` que o link produz, o JavaScript da página corre, e o que se mede é o resultado: a
+     * caixa aberta e o parâmetro fora do endereço.
+     *
+     * O `fetch` é substituído por uma promessa que nunca resolve — a página pede as listas ao
+     * servidor, e não há servidor aqui. Uma promessa pendente é mais honesta do que uma que
+     * responde vazio: o que se quer medir é o gesto que corre ANTES de qualquer resposta. */
+    {
+      const { JSDOM: JSDOMScripts, VirtualConsole } = require('jsdom');
+      const rota = 'https://x.test/bastidores/producao?abrir=pagar#a-escola';
+      const erros = [];
+      const vc = new VirtualConsole();
+      vc.on('jsdomError', (e) => erros.push(String(e.message)));
+      const d2 = new JSDOMScripts(html, {
+        runScripts: 'dangerously', url: rota, virtualConsole: vc,
+        beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
+      });
+      const p2 = d2.window.document.getElementById('es-painel-pagar');
+      conferir('o «Pagar» do mês a mês abre a caixa do Pix na listagem da escola',
+        !!p2 && p2.hidden === false, p2 && p2.hidden);
+      conferir('…e o `?abrir=` sai do endereço depois de usado — senão a caixa reabria sozinha',
+        d2.window.location.search === '' && d2.window.location.hash === '#a-escola',
+        { search: d2.window.location.search, hash: d2.window.location.hash });
+      /* SEM O PARÂMETRO, a caixa continua fechada: o gesto não é «abrir sempre». */
+      const domFechado = new JSDOMScripts(html, {
+        runScripts: 'dangerously', url: 'https://x.test/bastidores/producao#a-escola',
+        virtualConsole: vc, beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
+      });
+      conferir('…e sem o parâmetro a caixa do Pix nasce fechada',
+        domFechado.window.document.getElementById('es-painel-pagar').hidden === true, null);
+      conferir('…e o gesto não levanta erro nenhum ao correr',
+        erros.length === 0, erros.slice(0, 2));
+      d2.window.close(); domFechado.window.close();
+    }
+
     /* E3. A PÁGINA DO MÊS A MÊS (17/11/2026) — «um outro URL», «só uma listagem».
      *
      * «Aqui a gente vai ter um link que vai levar para uma outra página, um outro URL […] mostra
      * a listagem mês a mês de tudo, seguindo também o mesmo padrão da listagem. Vai ocupar a
      * página toda, mas aí é só uma listagem mesmo.»
      *
-     * Ela é medida pelo que o cartão dela DIZ: um por mês, do mais recente para o mais antigo, o
-     * selo do estado, o valor e o vencimento nos factos, e na linha de baixo só o que os factos
-     * não dizem — quando foi pago, ou porque não foi. O valor NÃO se repete. */
+     * UMA TABELA, E NÃO CARTÕES (17/11/2026). «Coloca aqui no mês a mês, coloca como tabela, tá? É
+     * bem mais fácil de ver.» A prova mudou com o desenho: mede a GRADE — as cinco colunas, o
+     * mais recente primeiro, o valor na sua coluna —, e não mais o cartão que deixou de existir.
+     *
+     * E MEDE A PAGINAÇÃO, que é o que impede a página de crescer sem fim: «imagina se isso cresce
+     * 10, 20, 30 anos. Vai ficar gigantesco desse jeito.» Dez por página, o rodapé da casa com os
+     * quatro botões, e o selector de 10/20/50/100 preso a ESTE painel. */
     const paginaDoMes = bastidores.paginaFinanceiro('teste',
       { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
         cadastro: { escolaNome: 'Escola Teste' },
@@ -502,33 +607,79 @@ function kvCom(dados) {
       });
     const { JSDOM: JSDOM2 } = require('jsdom');
     const d1 = new JSDOM2(paginaDoMes).window.document;
-    const cartoes = [...d1.querySelectorAll('.lb-cartoes > li')];
-    conferir('a página do mês a mês tem um cartão por mês',
-      cartoes.length === situacao.meses.length, { cartoes: cartoes.length, meses: situacao.meses.length });
+    const colunas = [...d1.querySelectorAll('#fi-meses table > thead > tr > th')].map((t) => t.textContent.trim());
+    conferir('o mês a mês é uma TABELA com as cinco colunas do extrato',
+      JSON.stringify(colunas) === JSON.stringify(['Mês', 'Vencimento', 'Valor', 'Situação', 'Pagar']),
+      colunas);
+    const linhas = [...d1.querySelectorAll('#fi-meses tbody > tr')];
+    conferir('…com uma linha por mês, e nenhum cartão em volta',
+      linhas.length === situacao.meses.length && !/lb-cartoes/.test(paginaDoMes),
+      { linhas: linhas.length, meses: situacao.meses.length });
     conferir('…e o mais recente vem primeiro (é assim que se lê um extrato)',
-      cartoes.length > 1 && /novembro/.test(cartoes[0].textContent)
-        && /agosto/.test(cartoes[cartoes.length - 1].textContent), null);
+      linhas.length > 1 && /novembro/.test(linhas[0].textContent)
+        && /agosto/.test(linhas[linhas.length - 1].textContent), null);
+    conferir('…e cada célula é um dado, na coluna dele — o valor não se mistura com o estado',
+      linhas.every((tr) => {
+        const td = [...tr.children];
+        return td.length === 5 && /^R\$ \d+,\d\d$/.test(td[2].textContent.trim())
+          && /selo/.test(td[3].innerHTML);
+      }), null);
     conferir('…cada um com o selo do seu estado',
       /selo ok/.test(paginaDoMes) && /selo falha/.test(paginaDoMes), null);
-    conferir('…e o valor não se repete na linha de baixo',
-      cartoes.every((c) => {
-        const dono = c.querySelector('.trio-dono');
-        return !dono || !/R\$/.test(dono.textContent);
-      }), cartoes.map((c) => (c.querySelector('.trio-dono') || {}).textContent));
-    conferir('…e a linha de baixo diz QUANDO foi pago, quando foi',
-      cartoes.some((c) => /pago em /.test(c.textContent)), null);
-    conferir('…e o rodapé conta os meses e quantos estão em aberto',
-      /mês\(es\)/.test(d1.querySelector('.trio-nota') ? d1.querySelector('.trio-nota').textContent : '')
-        && /em aberto/.test(paginaDoMes), null);
+    conferir('…e quando foi pago, o dia vive na coluna do estado — não numa sexta coluna',
+      /class="dono">\d\d\/\d\d\/\d{4}<\/span>/.test(paginaDoMes), null);
+    /* A PAGINAÇÃO. A peça nasce `hidden` e é o cliente que a mostra — o que se prova na marcação é
+     * que ela ESTÁ lá, presa a este painel, e com os quatro botões. */
+    const rodape = d1.querySelector('#fi-meses .paginas');
+    conferir('…e a tabela é paginada a dez por página, pelo painel `fi-meses`',
+      d1.querySelector('#fi-meses').getAttribute('data-por-pagina') === '10', null);
+    conferir('…e o rodapé é a peça da casa, com os quatro botões: primeira, anterior, seguinte, última',
+      !!rodape && ['paginas-primeira', 'paginas-ant', 'paginas-prox', 'paginas-ultima']
+        .every((k) => !!rodape.querySelector('.' + k)), null);
+    conferir('…e o seletor oferece 10, 20, 50 e 100, preso a ESTE painel por `data-tamanho-de`',
+      d1.querySelector('#fi-meses-por-pagina').getAttribute('data-tamanho-de') === 'fi-meses'
+        && [...d1.querySelectorAll('#fi-meses-por-pagina option')].map((o) => o.value).join(',')
+          === '10,20,50,100', null);
+    conferir('…e o rodapé fica FORA da caixa que rola de lado, senão a navegação andava com a tabela',
+      !d1.querySelector('#fi-meses .rolagem-caixa .paginas'), null);
+    /* O RESUMO vai para a barra de cima, e não para um rodapé de cartões: quantos meses, quantos
+     * pagos, quantos em aberto. É a pergunta «como está esta escola?» respondida antes da grade. */
+    const barra = d1.querySelector('.caixa.filtrar .sub');
+    conferir('…e a barra conta os meses e quantos estão em aberto',
+      !!barra && /mês\(es\)/.test(barra.textContent) && /em aberto/.test(barra.textContent),
+      barra && barra.textContent);
+
+    /* O «PAGAR» DE CADA LINHA (17/11/2026). «Para aqueles meses que já estão pagos, o botão de pagar
+     * ele fica visível, mas desabilitado. E para aquele mês que é em aberto, inadimplente, ele fica
+     * habilitado e ele leva para o mesmo lugar que a gente tem lá na listagem da escola.»
+     *
+     * A COLUNA EXISTE SEMPRE — o que muda é o estado do controlo. Uma coluna que aparecesse e
+     * desaparecesse linha a linha ler-se-ia como avaria. */
+    const pagarDe = (tr) => tr.children[4].querySelector('button, a');
+    const pagas = linhas.filter((tr) => /pago/.test(tr.children[3].textContent.trim()));
+    const abertas = linhas.filter((tr) => /em aberto/.test(tr.children[3].textContent.trim()));
+    conferir('cada linha tem um Pagar, e o do mês pago está DESABILITADO (visível, inerte)',
+      pagas.length > 0 && pagas.every((tr) => {
+        const b = pagarDe(tr);
+        return b && b.tagName === 'BUTTON' && b.hasAttribute('disabled')
+          && /^pagar$/i.test(b.textContent.trim());
+      }), { pagas: pagas.length });
+    conferir('…e o do mês em aberto está HABILITADO, e leva à caixa do Pix da listagem da escola',
+      abertas.length > 0 && abertas.every((tr) => {
+        const b = pagarDe(tr);
+        return b && b.tagName === 'A' && /^pagar$/i.test(b.textContent.trim())
+          && /\/bastidores\/producao\?abrir=pagar#a-escola$/.test(b.getAttribute('href'));
+      }), { abertas: abertas.length });
+
     conferir('…e há um caminho de volta para a escola',
       /href="\/bastidores\/producao#a-escola"/.test(paginaDoMes), null);
-    /* SEM MÊS NENHUM, a página diz porque — e não deixa uma lista vazia. */
+    /* SEM MÊS NENHUM, a página diz porque — e não deixa uma tabela vazia. */
     const semMeses = bastidores.paginaFinanceiro('teste',
       { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' },
       { cadastro: { escolaNome: 'Escola Teste' }, situacao: { meses: [] } });
     conferir('sem meses, a página diz que a cobrança ainda não começou',
       /A cobrança começa quando a escola é habilitada/.test(semMeses)
-        && !/class="lb-cartoes"/.test(semMeses), null);
+        && !/id="fi-meses"/.test(semMeses), null);
   }
 
   console.log('\nG. O piso e o teto — «a partir de» e «até»');

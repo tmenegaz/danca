@@ -3707,18 +3707,26 @@ function painelDaSituacaoDaEscola(s) {
     }).join('') + '</ul>'
     : '';
 
-  /* O «PAGAR» FICA AO LADO DO MÊS EM ABERTO (17/11/2026). «Para não ter que voltar até o pagar […]
-   * coloca ali do lado o botão de pagar, aí já abre a chave Pix.» É um botão com `data-abre` — e
-   * não uma quarta `.trio-item` —, para a fila não passar a dizer que há quatro caixas. */
+  /* O «PAGAR» SÓ APARECE QUANDO HÁ O QUE PAGAR (17/11/2026).
+   *
+   * «Esse botão de pagar só vai aparecer quando a escola tiver inadimplente para aquele mês ali que
+   * aparece […] Senão ele não aparece.» A regra é a do estado, e não a do gosto: quem está em dia
+   * não vê um botão para pagar — um botão que existe sem dívida convida a pagar duas vezes o mesmo
+   * mês. O que fica à vista é sempre a saída que serve a todos: «Ver o mês a mês».
+   *
+   * É um botão com `data-abre` — e não uma quarta `.trio-item` —, para a fila não passar a dizer
+   * que há quatro caixas. O rótulo nomeia o mês quando é um só, para o gesto não ser anónimo. */
   const mesVencido = vencidos.length === 1 ? vencidos[0].nome.split(' de ')[0] : null;
+  const pagar = vencidos.length
+    ? '<button type="button" class="acao pequena" data-abre="pagar"'
+      + ' title="abrir a chave Pix para pagar o que está em aberto">'
+      + (mesVencido ? 'Pagar ' + esc(mesVencido) : 'Pagar') + '</button>'
+    : '';
   return titulo
     + (pares ? '<div class="trio-grade">' + pares + '</div>' : '')
     + emAberto
-    + '<p class="par-botoes">'
-    + '<button type="button" class="acao pequena" data-abre="pagar"'
-    + ' title="abrir a chave Pix para pagar o que está em aberto">'
-    + (mesVencido ? 'Pagar ' + esc(mesVencido) : 'Pagar') + '</button>'
-    + '<a class="acao secundario pequena" href="/bastidores/financeiro"'
+    + '<p class="par-botoes">' + pagar
+    + '<a class="acao ' + (pagar ? 'secundario ' : '') + 'pequena" href="/bastidores/financeiro"'
     + ' title="ver todos os meses, com o que foi pago e quando">Ver o mês a mês</a>'
     + '</p>';
 }
@@ -3784,25 +3792,50 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
   const nome = String(c.escolaNome || escola || '').trim();
   const meses = Array.isArray(s.meses) ? s.meses : [];
 
-  const cartaoDoMes = (m) => {
-    const selo = m.status === 'pago'
+  const dia = (iso) => {
+    const v = String(iso || '');
+    return v ? v.slice(8, 10) + '/' + v.slice(5, 7) : '—';
+  };
+
+  /* UMA TABELA, E NÃO CARTÕES (17/11/2026). «Coloca aqui no mês a mês, coloca como tabela […] é bem
+   * mais fácil de ver.» Ela tem razão, e a razão é a do conteúdo: um extrato é uma GRADE de quatro
+   * números — mês, vencimento, valor, estado — e o cartão punha cada um numa linha de texto. A
+   * tabela alinha-os na vertical, e é isso que deixa comparar meses de relance.
+   *
+   * A TABELA É A DA CASA (`table` da folha, a mesma do extrato que viveu no cartão até hoje), e a
+   * última coluna é a AÇÃO. */
+  const linha = (m) => {
+    const pago = m.status === 'pago';
+    const vencido = !pago && m.venceu;
+    const selo = pago
       ? '<span class="selo ok">pago</span>'
-      : (m.venceu ? '<span class="selo falha">em aberto</span>'
+      : (vencido ? '<span class="selo falha">em aberto</span>'
         : '<span class="selo discreto">a vencer</span>');
-    const v = String(m.vencimento || '');
-    const dia = v.slice(8, 10) + '/' + v.slice(5, 7);
-    const quando = m.status === 'pago'
-      ? 'pago em ' + String(m.emTexto || '').split(' ')[0]
-      : (m.venceu ? 'sem pagamento registado' : 'ainda não venceu');
-    const valor = 'R$ ' + emReaisDoCartao(
-      m.status === 'pago' ? m.valorPagoCentavos : m.valorCentavos);
-    return '<li class="trio-plano">'
-      + '<div class="trio-linha"><span class="trio-nome"><b>' + esc(m.nome) + '</b> ' + selo
-      + '</span></div>'
-      + '<div class="fatos"><span>' + esc(valor) + '</span><span>'
-      + esc((m.status === 'pago' || m.venceu) ? 'venceu ' + dia : 'vence ' + dia)
-      + '</span></div>'
-      + '<div class="trio-dono">' + esc(quando) + '</div></li>';
+    const valor = 'R$ ' + emReaisDoCartao(pago ? m.valorPagoCentavos : m.valorCentavos);
+    /* O «PAGAR» DE CADA LINHA (17/11/2026). «Para aqueles meses que já estão pagos, o botão de
+     * pagar ele fica visível, mas desabilitado. E para aquele mês que é em aberto, inadimplente, ele
+     * fica habilitado e ele leva para o mesmo lugar que a gente tem lá na listagem da escola, que é
+     * o pagar, onde a gente exibe a informação e a chave Pix.»
+     *
+     * O PAGO FICA VISÍVEL E APAGADO, e não escondido: a coluna passa a dizer sempre a mesma coisa —
+     * «há uma ação, e é esta» —, e uma coluna que aparece e desaparece linha a linha lê-se como
+     * avaria. O DESABILITADO é o do `<button>`, e a folha já o desenha inerte.
+     *
+     * O CAMINHO É O DA LISTAGEM DA ESCOLA: `?abrir=pagar` chega à Produção e abre a caixa do Pix —
+     * a mesma caixa, não uma segunda cópia da chave nesta página. Uma chave escrita em dois sítios
+     * é a primeira a divergir. */
+    const acao = pago
+      ? '<button type="button" class="acao secundario pequena" disabled'
+        + ' aria-disabled="true" title="este mês está pago">Pagar</button>'
+      : '<a class="acao pequena" href="/bastidores/producao?abrir=pagar#a-escola"'
+        + ' title="abrir a chave Pix para pagar este mês">Pagar</a>';
+    return '<tr><td>' + esc(m.nome) + '</td>'
+      + '<td>' + esc(dia(m.vencimento)) + '</td>'
+      + '<td>' + esc(valor) + '</td>'
+      + '<td>' + selo
+      + (pago && m.emTexto ? ' <span class="dono">' + esc(String(m.emTexto).split(' ')[0])
+        + '</span>' : '') + '</td>'
+      + '<td class="acoes-da-linha">' + acao + '</td></tr>';
   };
 
   const pagos = meses.filter((m) => m.status === 'pago').length;
@@ -3812,12 +3845,45 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
       + (abertos ? ' · ' + abertos + ' em aberto' : ' · nada em aberto')
     : 'A cobrança começa quando a escola é habilitada.';
 
+  /* A PAGINAÇÃO E O TAMANHO, COM AS PEÇAS DA CASA (17/11/2026). O selector usa a barra de filtros
+   * que o Financeiro do painel já desenha (`.caixa.filtrar` + `.campo-filtro` + `.campo-rotulo`), e
+   * o `data-tamanho-de` prende-o ao painel certo. O rodapé é a peça do núcleo — a mesma que as sete
+   * listas da Produção usam e a mesma que o painel passou a usar, com os quatro botões.
+   *
+   * SEM ESTAS DUAS COISAS A PÁGINA CRESCE SEM FIM: «imagina se isso cresce 10, 20, 30 anos. Vai
+   * ficar gigantesco desse jeito.» */
+  const barra = meses.length
+    ? '<div class="caixa filtrar">'
+      + '<div class="campo-filtro">'
+      + '<label class="campo-rotulo" for="fi-meses-por-pagina">Meses por página</label>'
+      + '<select id="fi-meses-por-pagina" data-tamanho-de="fi-meses">'
+      + [10, 20, 50, 100].map((n) => '<option value="' + n + '"'
+        + (n === 10 ? ' selected' : '') + '>' + n + '</option>').join('')
+      + '</select></div>'
+      + '<p class="sub">' + esc(resumo) + '</p>'
+      + '</div>'
+    : '';
+
+  /* O RODAPÉ FICA FORA DA CAIXA QUE ROLA. `.rolagem-caixa` é `overflow-x:auto` — um rodapé lá
+   * dentro andaria de lado com a tabela, e a navegação passaria a depender do scroll horizontal. */
+  const tabela = meses.length
+    ? '<div data-paginar data-por-pagina="10" id="fi-meses">'
+      + '<div class="rolagem-caixa" tabindex="0">'
+      + '<table><thead><tr><th scope="col">Mês</th><th scope="col">Vencimento</th>'
+      + '<th scope="col">Valor</th><th scope="col">Situação</th>'
+      + '<th scope="col">Pagar</th></tr></thead>'
+      + '<tbody>' + meses.map(linha).join('') + '</tbody></table>'
+      + '</div>'
+      + paginacao.marcacao()
+      + '</div>'
+    : '<p class="trio-frase">' + esc(resumo) + '</p>';
+
   return cabecalhoDaVista('Bastidores · Mês a mês · ' + escola, aparencia) +
     '<style>' +
     'body{background:var(--fundo);margin:0;}' +
     '.mes-a-mes{max-width:60rem;margin:0 auto;padding:1.6rem 1.25rem 3rem;}' +
     '.mes-a-mes h1{color:var(--marca);font-size:1.5rem;margin:0 0 .2rem;}' +
-    '.mes-a-mes .sub{margin:0 0 1rem;}' +
+    '.mes-a-mes .sub{margin:0;}' +
     '.mes-a-mes .voltar{display:inline-block;margin:0 0 1rem;}' +
     '</style></head><body data-layout="painel" data-tela="financeiro">' +
     topnav(contexto, 'producao') +
@@ -3828,11 +3894,9 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     '<p class="sub">' + esc(nome) + (s.planoNome ? ' · ' + esc(s.planoNome) : '')
     + (s.valorCentavos ? ' · R$ ' + esc(emReaisDoCartao(s.valorCentavos)) + ' por mês' : '')
     + '</p>' +
-    (meses.length
-      ? '<ul class="lb-cartoes">' + meses.map(cartaoDoMes).join('') + '</ul>'
-        + '<p class="trio-nota">' + esc(resumo) + '</p>'
-      : '<p class="trio-frase">' + esc(resumo) + '</p>') +
+    barra + tabela +
     '</main>' +
+    '<script>' + paginacao.script + '</script>' +
     fimDaVista();
 }
 
@@ -13903,7 +13967,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '  var pedido = e.target.closest ? e.target.closest("[data-abre]") : null;' +
-    '  if (!pedido) return;' +
+    '  if (!pedido || pedido.tagName === "A") return;' +
     '  var cartao = pedido.closest("li");' +
     '  var caixa = cartao ? cartao.querySelector(\'.trio-item[data-balao="\' + ' +
     '    pedido.getAttribute("data-abre") + \'"]\') : null;' +
@@ -13911,6 +13975,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  e.preventDefault();' +
     '  caixa.click();' +
     '});' +
+    /* «ABRIR A CAIXA QUE VEM PEDIDA NO ENDEREÇO» (17/11/2026).
+     *
+     * O «Pagar» de cada linha do mês a mês é um LINK — `?abrir=pagar#a-escola` —, e ele tem de
+     * chegar aqui com a caixa do Pix já aberta. «Ele leva para o mesmo lugar que a gente tem lá na
+     * listagem da escola, que é o pagar, onde a gente exibe a informação e a chave Pix para a escola
+     * copiar.» É a MESMA caixa: uma chave escrita em dois sítios é a primeira a divergir.
+     *
+     * O parâmetro SAI DO ENDEREÇO depois de usado (`replaceState`). A página recarrega a cada
+     * operação — e sem isto o professor que acabou de pagar e gravou algo via o Pix a reabrir
+     * sozinho, como se o sistema lhe estivesse a pedir outra vez. O que fica é o `#a-escola`, que é
+     * só a posição na página. */
+    '(function(){' +
+    '  var pedido = new URLSearchParams(location.search).get("abrir");' +
+    '  if (!pedido) return;' +
+    '  var caixa = document.querySelector(\'.trio-item[data-balao="\' + pedido + \'"]\');' +
+    '  if (!caixa) return;' +
+    '  caixa.click();' +
+    '  var endereco = location.pathname + location.hash;' +
+    '  if (history.replaceState) history.replaceState(null, "", endereco);' +
+    '})();' +
     /* O «MOSTRAR MAIS» DO QUADRO DO RECORTE (07/11/2026). Delegado no `document` porque os
      * acordeões são redesenhados a cada resposta da lista — um ouvinte por botão morreria no
      * primeiro `innerHTML`. O alvo é o `data-mais`, e não a classe: `.acao` é de meia dúzia de

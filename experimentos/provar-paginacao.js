@@ -11,10 +11,10 @@
  *
  * A causa, numa linha:
  *
- *     var passos = b.className === "pag-prox" ? 1 : -1;
+ *     var passos = b.className === "paginas-prox" ? 1 : -1;
  *
  * O `className` de um elemento é o atributo `class` INTEIRO, e os botões nascem com
- * `class="pag-prox acao secundario pequena"`. A comparação era sempre falsa, os dois botões
+ * `class="paginas-prox acao secundario pequena"`. A comparação era sempre falsa, os dois botões
  * valiam -1, e como o `paginar()` trava a página em `[1, N]`, a página 1 era o fim da linha:
  * «›» recuava para 1, «‹» recuava para 1, e o número nunca subia.
  *
@@ -81,14 +81,20 @@ const LISTAS = [
   // passaria a provar a paginação de quinze linhas iguais, que é provar nada.
   { titulo: 'Professores cadastrados', chave: 'professores', itens: (i) => ({ id: 'p' + i, nome: 'Professor ' + i, slug: 'professor-' + i }) },
   { titulo: 'Alunas cadastradas', chave: 'alunas', itens: (i) => 'Aluna ' + i },
-  { titulo: 'Turmas cadastradas', chave: 'turmas', itens: (i) => ({ id: 't' + i, nome: 'Turma ' + i, modalidade: 'Balé clássico' }) },
-  /* «Termos cadastrados» SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). E ela nunca foi uma
-   * lista do KV: `termos()` lê o repositório, e a semente que aqui se punha em
-   * `bastidores/<escola>/vocabulario` já não era lida desde 28/10/2026 — a lista mostrava os
-   * termos do catálogo, não os semeados. A prova passou a medir uma lista que é mesmo do KV. */
-  { titulo: 'Curadorias atribuídas', chave: 'curadorias', itens: (i) => ({ id: 'c' + i, professor: 'Professor ' + i, modalidade: 'Balé clássico', turma: 'Turma ' + i }) },
+  { titulo: 'Salas cadastradas', chave: 'turmas', itens: (i) => ({ id: 't' + i, nome: 'Turma ' + i, modalidade: 'Balé clássico' }) },
+  { titulo: 'Turmas atribuídas', chave: 'curadorias', itens: (i) => ({ id: 'c' + i, professor: 'Professor ' + i, modalidade: 'Balé clássico', turma: 'Turma ' + i }) },
 ];
 
+/* DUAS DESTAS LISTAS NÃO SE DESENHAM NO SERVIDOR, e por isso não entram na semente: «Elencos»
+ * nasce com uma linha só («carregando…») e é o cliente que a preenche, e «Exercícios com verbete»
+ * nasce vazia. Uma prova que as semeasse estaria a medir um HTML que a página não produz. Elas
+ * continuam a ser cobertas pela varredura do ponto 1.1, que olha para TODOS os painéis.
+ *
+ * O QUE MUDOU AQUI (17/11/2026): os títulos. «Turmas cadastradas» chama-se hoje «Salas
+ * cadastradas», «Termos cadastrados» deixou de existir com a secção do vocabulário, e as
+ * «Curadorias atribuídas» chamam-se «Turmas atribuídas». A prova esteve a medir títulos de uma
+ * página que já não existe, e passou a falhar toda por isso — não porque a paginação tivesse
+ * partido. */
 /** Monta o mapa do KV com `quantos` itens em cada lista. `turma-conteudos` é um MAPA. */
 function semear(quantos) {
   const mapa = {};
@@ -125,6 +131,12 @@ async function abrirProducao(quantos) {
     runScripts: 'dangerously',
     virtualConsole: vc,
     url: 'https://prova.test/bastidores/producao',
+    /* O `fetch` DO JSDOM NÃO EXISTE, e a página pede as listas ao servidor assim que abre. Sem
+     * este substituto o script morria na primeira chamada e metade da página deixava de correr —
+     * o erro aparecia como «a página carrega sem erro de script», que é verdade e não diz nada
+     * sobre a paginação. A promessa pendente é o servidor que não responde: o que se mede aqui é
+     * o que a página faz com o que já tem. */
+    beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
   });
   return { dom, doc: dom.window.document, erros, html };
 }
@@ -144,8 +156,8 @@ function visiveis(painel) {
 }
 
 function textoDaPagina(painel) {
-  const info = painel.querySelector('.pag-info');
-  return info ? String(info.textContent).trim() : '(sem .pag-info)';
+  const info = painel.querySelector('.paginas-info');
+  return info ? String(info.textContent).trim() : '(sem .paginas-info)';
 }
 
 /** O texto de cada linha visível — para provar que nenhuma se perde nem se repete. */
@@ -161,8 +173,10 @@ function linhasVisiveis(painel) {
 
   checar('a página carrega sem erro de script', erros.length === 0, erros);
 
-  const paineis = doc.querySelectorAll('[data-paginar]');
-  checar('há CINCO listas pagináveis (a implementação é uma só)', paineis.length === 5, paineis.length);
+  const paineis = Array.from(doc.querySelectorAll('[data-paginar]'));
+  checar('as listas pagináveis da Produção são as quatro da semente',
+    LISTAS.every((l) => Boolean(painelDe(doc, l.titulo))),
+    paineis.map((p) => (p.querySelector('h3') || {}).textContent));
 
   for (const lista of LISTAS) {
     const painel = painelDe(doc, lista.titulo);
@@ -178,7 +192,7 @@ function linhasVisiveis(painel) {
     const paginas = Math.max(1, Math.ceil(total / porPagina));
     const ultima = total - porPagina * (paginas - 1);
 
-    const rodape = painel.querySelector('.paginacao');
+    const rodape = painel.querySelector('.paginas');
     checar('  o rodapé aparece com mais de uma página',
       Boolean(rodape) && rodape.hidden === false, rodape && rodape.hidden);
     checar('  diz «1 / ' + paginas + '»', textoDaPagina(painel) === '1 / ' + paginas, textoDaPagina(painel));
@@ -191,8 +205,8 @@ function linhasVisiveis(painel) {
     checar('  o ' + (porPagina + 1) + '.º item NÃO está na página 1',
       ul.children[porPagina].hidden === true, ul.children[porPagina].hidden);
 
-    const prox = painel.querySelector('.pag-prox');
-    const ant = painel.querySelector('.pag-ant');
+    const prox = painel.querySelector('.paginas-prox');
+    const ant = painel.querySelector('.paginas-ant');
     checar('  o «‹» nasce desabilitado na primeira página', ant.disabled === true, ant.disabled);
     checar('  o «›» nasce habilitado', prox.disabled === false, prox.disabled);
 
@@ -243,15 +257,15 @@ function linhasVisiveis(painel) {
   // -------------------------------------------------------------------------
   {
     const { doc: d7 } = await abrirProducao(7);
-    const painel = painelDe(d7, 'Turmas cadastradas');
+    const painel = painelDe(d7, 'Salas cadastradas');
     checar('7 itens: nenhuma página a mais', textoDaPagina(painel) === '1 / 1', textoDaPagina(painel));
-    checar('7 itens: o rodapé fica escondido', painel.querySelector('.paginacao').hidden === true);
+    checar('7 itens: o rodapé fica escondido', painel.querySelector('.paginas').hidden === true);
     checar('7 itens: e os sete estão à vista', visiveis(painel).length === 7, visiveis(painel).length);
   }
   {
     const { doc: d0 } = await abrirProducao(0);
-    const painel = painelDe(d0, 'Turmas cadastradas');
-    checar('0 itens: o rodapé fica escondido', painel.querySelector('.paginacao').hidden === true);
+    const painel = painelDe(d0, 'Salas cadastradas');
+    checar('0 itens: o rodapé fica escondido', painel.querySelector('.paginas').hidden === true);
     // Zero itens deixa UMA linha: o estado vazio («(nenhuma turma cadastrada)»). Ela é uma
     // linha e não um item — e é por isso que a contagem de páginas continua a dar 1.
     const so = visiveis(painel);
@@ -261,11 +275,11 @@ function linhasVisiveis(painel) {
   {
     // O caso de fronteira: 8 itens = duas páginas, e a segunda tem UMA linha.
     const { doc: d8 } = await abrirProducao(8);
-    const painel = painelDe(d8, 'Turmas cadastradas');
+    const painel = painelDe(d8, 'Salas cadastradas');
     checar('8 itens: duas páginas', textoDaPagina(painel) === '1 / 2', textoDaPagina(painel));
-    painel.querySelector('.pag-prox').click();
+    painel.querySelector('.paginas-prox').click();
     checar('8 itens: a página 2 tem a oitava linha', visiveis(painel).length === 1, visiveis(painel).length);
-    checar('8 itens: e o «›» desabilita', painel.querySelector('.pag-prox').disabled === true);
+    checar('8 itens: e o «›» desabilita', painel.querySelector('.paginas-prox').disabled === true);
   }
 
   // -------------------------------------------------------------------------
@@ -273,12 +287,12 @@ function linhasVisiveis(painel) {
   // -------------------------------------------------------------------------
   {
     const { doc: d } = await abrirProducao(15);
-    const turmas = painelDe(d, 'Turmas cadastradas');
-    const termos = painelDe(d, 'Termos cadastrados');
-    turmas.querySelector('.pag-prox').click();
-    turmas.querySelector('.pag-prox').click();
-    checar('as Turmas vão à página 3', textoDaPagina(turmas) === '3 / 3', textoDaPagina(turmas));
-    checar('e o Vocabulário fica na 1', textoDaPagina(termos) === '1 / 3', textoDaPagina(termos));
+    const turmas = painelDe(d, 'Salas cadastradas');
+    const termos = painelDe(d, 'Alunas cadastradas');
+    turmas.querySelector('.paginas-prox').click();
+    turmas.querySelector('.paginas-prox').click();
+    checar('as Salas vão à página 3', textoDaPagina(turmas) === '3 / 3', textoDaPagina(turmas));
+    checar('e as Alunas ficam na 1', textoDaPagina(termos) === '1 / 3', textoDaPagina(termos));
     checar('com as suas 7 linhas intactas', visiveis(termos).length === 7, visiveis(termos).length);
   }
 
@@ -287,15 +301,163 @@ function linhasVisiveis(painel) {
   // -------------------------------------------------------------------------
   {
     const { doc: d } = await abrirProducao(15);
-    const painel = painelDe(d, 'Turmas cadastradas');
-    const prox = painel.querySelector('.pag-prox');
+    const painel = painelDe(d, 'Salas cadastradas');
+    const prox = painel.querySelector('.paginas-prox');
     checar('o botão carrega MAIS do que a classe que o identifica',
-      prox.className !== 'pag-prox' && prox.className.indexOf('pag-prox') === 0,
+      prox.className !== 'paginas-prox' && prox.className.indexOf('paginas-prox') === 0,
       prox.className);
     checar('e ainda assim é reconhecido como «próximo»',
-      prox.classList.contains('pag-prox') === true);
+      prox.classList.contains('paginas-prox') === true);
     checar('o «‹» não é confundido com o «›»',
-      painel.querySelector('.pag-ant').classList.contains('pag-prox') === false);
+      painel.querySelector('.paginas-ant').classList.contains('paginas-prox') === false);
+  }
+
+  // -------------------------------------------------------------------------
+  console.log('\n5. Os quatro botões — primeira, anterior, seguinte, última');
+  // -------------------------------------------------------------------------
+  {
+    /* «Eu posso tanto avançar para a página dois quanto voltar para a página um, quanto ir para a
+     * última página, quanto voltar para a primeira página. Coloca esse modelo de navegação.»
+     *
+     * A PEÇA É UMA SÓ para as três superfícies (a Produção, as listas, o Financeiro do painel):
+     * por isso é aqui que o modelo se prova, e não três vezes em três provas. */
+    const { doc: d } = await abrirProducao(15);
+    const painel = painelDe(d, 'Salas cadastradas');
+    const rodape = painel.querySelector('.paginas');
+    const b = (k) => rodape.querySelector('.paginas-' + k);
+    checar('o rodapé tem os quatro botões, e não dois',
+      ['primeira', 'ant', 'prox', 'ultima'].every((k) => Boolean(b(k))),
+      [...rodape.querySelectorAll('button')].map((x) => x.getAttribute('aria-label')));
+    checar('cada um diz o seu destino a quem o ouve, e não o carácter que mostra',
+      b('primeira').getAttribute('aria-label') === 'Primeira página'
+        && b('ultima').getAttribute('aria-label') === 'Última página'
+        && b('ant').getAttribute('aria-label') === 'Página anterior'
+        && b('prox').getAttribute('aria-label') === 'Página seguinte', null);
+    checar('na página 1, «primeira» e «anterior» nascem desabilitados',
+      b('primeira').disabled === true && b('ant').disabled === true, null);
+    checar('…e «seguinte» e «última» nascem habilitados',
+      b('prox').disabled === false && b('ultima').disabled === false, null);
+    b('ultima').click();
+    checar('«última» salta para o fim — 3 / 3', textoDaPagina(painel) === '3 / 3', textoDaPagina(painel));
+    checar('…e lá «seguinte» e «última» ficam desabilitados',
+      b('prox').disabled === true && b('ultima').disabled === true, null);
+    checar('…e «primeira» e «anterior» ficam habilitados',
+      b('primeira').disabled === false && b('ant').disabled === false, null);
+    b('primeira').click();
+    checar('«primeira» volta ao princípio — 1 / 3', textoDaPagina(painel) === '1 / 3', textoDaPagina(painel));
+    b('ultima').click();
+    b('ant').click();
+    checar('…e de a última, o passo atrás é a penúltima', textoDaPagina(painel) === '2 / 3', textoDaPagina(painel));
+  }
+
+  // -------------------------------------------------------------------------
+  console.log('\n6. O mês a mês da escola: TABELA, dez por página, e o selector a mandar');
+  // -------------------------------------------------------------------------
+  {
+    /* «Imagina se isso cresce 10, 20, 30 anos. Vai ficar gigantesco desse jeito. Então você tem que
+     * colocar uma paginação.» Trinta e sete meses é o que três anos dão — e é a conta que a página
+     * tem de aguentar hoje, não um dia.
+     *
+     * É AQUI que o selector prova o contrato da peça, e não no painel: esta página não tem script
+     * próprio nenhum, o `data-tamanho-de` é a única coisa que a põe a andar. */
+    const meses = [];
+    for (let i = 36; i >= 0; i -= 1) {
+      const d = new Date(Date.UTC(2026, 10 - i, 10));
+      const ano = d.getUTCFullYear();
+      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const pago = i > 3;
+      meses.push({
+        mes: ano + '-' + mes,
+        nome: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
+          'setembro', 'outubro', 'novembro', 'dezembro'][d.getUTCMonth()] + ' de ' + ano,
+        vencimento: ano + '-' + mes + '-10',
+        status: pago ? 'pago' : 'em-aberto',
+        venceu: !pago,
+        valorCentavos: 6990,
+        valorPagoCentavos: 6990,
+        emTexto: pago ? '1' + mes + '/' + ano + ' às 10:00' : null,
+      });
+    }
+    const htmlDoMes = bastidores.paginaFinanceiro('teste',
+      { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' },
+      { cadastro: { escolaNome: 'Escola Teste' }, situacao: { meses, planoNome: 'Básico', valorCentavos: 6990 } });
+    const vc6 = new VirtualConsole();
+    const erros6 = [];
+    vc6.on('jsdomError', (e) => erros6.push(e.message));
+    const d6 = new JSDOM(htmlDoMes, {
+      runScripts: 'dangerously', virtualConsole: vc6,
+      url: 'https://prova.test/bastidores/financeiro',
+      beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
+    }).window.document;
+    const painelMes = d6.getElementById('fi-meses');
+    const linhas = () => Array.from(painelMes.querySelectorAll('tbody > tr'));
+    checar('a página do mês a mês carrega sem erro de script', erros6.length === 0, erros6);
+    checar('os 37 meses estão na tabela, e dez à vista',
+      linhas().length === 37 && linhas().filter((tr) => !tr.hidden).length === 10,
+      { total: linhas().length, visiveis: linhas().filter((tr) => !tr.hidden).length });
+    checar('…e o rodapé diz «1 / 4»', textoDaPagina(painelMes) === '1 / 4', textoDaPagina(painelMes));
+    painelMes.querySelector('.paginas-ultima').click();
+    checar('«última» salta para os 7 meses mais antigos',
+      linhas().filter((tr) => !tr.hidden).length === 7 && /4 \/ 4/.test(textoDaPagina(painelMes)),
+      { visiveis: linhas().filter((tr) => !tr.hidden).length, info: textoDaPagina(painelMes) });
+    const escolha = d6.getElementById('fi-meses-por-pagina');
+    escolha.value = '20';
+    escolha.dispatchEvent(new d6.defaultView.Event('change', { bubbles: true }));
+    checar('escolher 20 por página mostra vinte e volta à página 1',
+      linhas().filter((tr) => !tr.hidden).length === 20 && textoDaPagina(painelMes) === '1 / 2',
+      { visiveis: linhas().filter((tr) => !tr.hidden).length, info: textoDaPagina(painelMes) });
+    escolha.value = '100';
+    escolha.dispatchEvent(new d6.defaultView.Event('change', { bubbles: true }));
+    checar('…e com 100 os 37 cabem numa página, e o rodapé desaparece',
+      linhas().filter((tr) => !tr.hidden).length === 37
+        && painelMes.querySelector('.paginas').hidden === true,
+      linhas().filter((tr) => !tr.hidden).length);
+    /* O RODAPÉ FICA FORA DA CAIXA QUE ROLA: dentro dela, andava de lado com a tabela. */
+    checar('…e o rodapé não vive dentro da caixa que rola de lado',
+      !painelMes.querySelector('.rolagem-caixa .paginas'), null);
+  }
+
+  // -------------------------------------------------------------------------
+  console.log('\n7. O Financeiro do painel — a mesma peça, depois da poda');
+  // -------------------------------------------------------------------------
+  {
+    /* A paginação desta página «não ficou nada boa» e a queixa era justa: dois botões, sem
+     * primeira nem última, e sem saber em que página se estava. Agora é a peça da casa — e o
+     * selector deixou de ter um ouvinte próprio (ver o comentário em `painel-html.js`). */
+    const painelHtml = require(path.join(RAIZ, 'motor/servidor/painel-html.js'));
+    const escolas = [];
+    const extrato = [];
+    for (let i = 0; i < 25; i += 1) {
+      const slug = 'escola-' + i;
+      escolas.push({ escola: slug, nome: 'Escola ' + i, dominio: slug + '.padd.com.br', situacao: 'ativa' });
+      extrato.push({ escola: slug, nome: 'Escola ' + i, planoNome: 'Professor', valorCentavos: 9900,
+        situacao: 'em-dia', pago: true, mesAtual: 'novembro de 2026', emAberto: [], classe: 'ok',
+        selo: 'em dia', frase: 'Em dia.', meses: [] });
+    }
+    const paginaDoPainel = painelHtml.paginaFinanceira({ pix: { chave: 'k', titular: 'T' },
+      descontos: [], escolas, extrato, catalogo: null });
+    const vc7 = new VirtualConsole();
+    const erros7 = [];
+    vc7.on('jsdomError', (e) => erros7.push(e.message));
+    const d7 = new JSDOM(paginaDoPainel, {
+      runScripts: 'dangerously', virtualConsole: vc7,
+      url: 'https://painel.test/financeiro',
+      beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
+    }).window.document;
+    const contas = d7.getElementById('fi-contas');
+    checar('o Financeiro do painel carrega sem erro de script', erros7.length === 0, erros7);
+    checar('ele pagina a dez, e diz em que página está — as duas coisas que faltavam',
+      textoDaPagina(contas) === '1 / 3' && visiveis(contas).length === 10,
+      { info: textoDaPagina(contas), visiveis: visiveis(contas).length });
+    checar('…e tem os quatro botões',
+      ['primeira', 'ant', 'prox', 'ultima'].every((k) => Boolean(contas.querySelector('.paginas-' + k))),
+      null);
+    const escolha7 = d7.getElementById('fi-por-pagina');
+    escolha7.value = '20';
+    escolha7.dispatchEvent(new d7.defaultView.Event('change', { bubbles: true }));
+    checar('…e o selector dele obedece: 20 por página, «1 / 2»',
+      visiveis(contas).length === 20 && textoDaPagina(contas) === '1 / 2',
+      { visiveis: visiveis(contas).length, info: textoDaPagina(contas) });
   }
 
   console.log('');

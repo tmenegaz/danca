@@ -49832,3 +49832,76 @@ próprio para o financeiro, e inventá-lo seria mais um destino num menu que ela
 (2) O `provar-cartao-da-turma` continua com 16 falhas de antes, não tocadas por esta frente.
 (3) A `ESTADO-ATUAL.md` não foi actualizada: esta entrega está no REGISTRO, e a fotografia curada
 segue a sua própria cadência.
+
+## 17/11/2026 — O «Pagar» só quando se deve, o mês a mês vira tabela paginada, e a paginação do painel deixa de ser dois botões
+
+**O que motivou.** Quatro pedidos, na mesma frase: «Esse botão de pagar só vai aparecer quando a
+escola tiver inadimplente para aquele mês ali que aparece […] Senão ele não aparece.» · «Imagina se
+isso cresce 10, 20, 30 anos. Vai ficar gigantesco desse jeito. Então você tem que colocar uma
+paginação […] eu posso avançar de página em página […] ou eu posso colocar um filtro de página que
+pode ser 10, 20, 50 ou 100 itens.» · «Coloca aqui no mês a mês, coloca como tabela, tá? É bem mais
+fácil de ver.» · «Aproveita e já faz o mesmo ajuste da navegação na página aqui no danca.padd.com.br
+no financeiro, porque a solução de paginação que você fez aqui ficou muito ruim.»
+
+**O que se mediu antes.** A paginação da casa tinha **dois** botões (`‹` `›`) e um contador; a
+página do mês a mês era uma lista de cartões, um por mês, sem rodapé nenhum — dez anos davam cento e
+vinte cartões numa página só; e o `provar-paginacao.js` estava a medir uma marcação que já não
+existe (`.paginacao`, `.pag-info`, `.pag-prox`, `.pag-ant`) e um título que já não existe («Termos
+cadastrados»), pelo que **reprovava toda** desde antes desta frente.
+
+**O que foi decidido.**
+
+- **A peça da paginação ganha os dois saltos.** `motor/nucleo/paginacao.js` passa a emitir cinco
+  elementos — `«` `‹` contador `›` `»` — e a escolher a lista por `[data-linhas]` → `tbody` → `ul`,
+  para a tabela do mês a mês poder ser paginada pela mesma peça que as sete listas. Os quatro botões
+  são **ganchos**, não desenho: quem os pinta é `.acao`, que é a peça do botão. Declarados em
+  `tools/check-identidade.js` (`paginas-primeira`, `paginas-ultima`) — a folha não é tocada.
+- **O selector de quantos por página é da peça, e não de cada página.** O `data-tamanho-de="<id>"`
+  diz de que painel o `<select>` manda. O Financeiro do painel tinha um ouvinte próprio desde
+  16/11; foi **podado**, e o `<select>` passou a declarar `data-tamanho-de="fi-contas"`. A prova
+  apanhou a duplicação: apagar a peça deixava aquela página a funcionar na mesma — passar por duas
+  razões é não provar nenhuma.
+- **O «Pagar» do cartão da escola só existe quando há vencido.** Quem está em dia não vê botão de
+  pagar (um botão sem dívida convida a pagar duas vezes o mesmo mês), e nesse caso «Ver o mês a
+  mês» deixa de ser secundário — fica um só gesto principal. Com um mês só em aberto, o botão
+  nomeia-o («Pagar novembro»), porque é o mês que liga o Pix à competência.
+- **O mês a mês é uma TABELA** — Mês · Vencimento · Valor · Situação · Pagar —, dez por página,
+  com o rodapé **fora** da `.rolagem-caixa` (dentro dela andaria de lado com a tabela). O resumo
+  («N mês(es) · N pago(s) · N em aberto») subiu para a barra de filtros.
+- **A acção por linha:** pago → `<button disabled>` visível e inerte (uma coluna que aparecesse e
+  desaparecesse linha a linha lê-se como avaria); em aberto → link para
+  `/bastidores/producao?abrir=pagar#a-escola`, que abre a caixa do Pix na listagem da escola. É a
+  mesma caixa, não uma segunda cópia da chave. O parâmetro sai do endereço depois de usado
+  (`replaceState`), senão a caixa reabria sozinha a cada gravação.
+
+**Onde entrou.** `motor/nucleo/paginacao.js` (marcação com os quatro botões, o cliente a tratar os
+quatro por `classList`, o `data-tamanho-de` delegado) · `motor/servidor/bastidores.js`
+(`painelDaSituacaoDaEscola`: o «Pagar» condicional · `paginaFinanceiro`: tabela, paginação, acção
+por linha · o gesto `?abrir=`) · `motor/servidor/painel-html.js` (o `<select>` passa a
+`data-tamanho-de`, o `SCRIPT_DAS_CONTAS` perde o ouvinte próprio) · `tools/check-identidade.js` (os
+dois ganchos novos) · `experimentos/provar-financeiro-da-escola.js` (**E3** reescrita para a tabela
+e a paginação; o «Pagar» condicional medido em **duas** escolas — a que deve e a que está em dia; e
+o `?abrir=pagar` **executado** em jsdom, não procurado por texto) · `experimentos/provar-paginacao.js`
+(revivida: as classes da peça, os títulos de hoje, o `fetch` substituído; secções 5, 6 e 7 novas).
+
+**Com o quê.** `provar-financeiro-da-escola` **117/117** (eram 101) · `provar-paginacao` **120/120**
+(estava a reprovar toda) · `provar-abas` 34 · `provar-abas-da-audicao` 121 · `provar-salas-e-elencos`
+69 · `provar-financeiro` 58 · `provar-escola-a-nascer` 48 · `provar-identidade-ao-lado` 27 ·
+`provar-vao-do-botao` 50 · `provar-a-coluna-do-formulario` 17 · `provar-monitoramento` 94 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações. `provar-producao` **163/166** — as
+três de sempre. `provar-ajustes-anamnese` não corre (módulo em falta) — **igual no `2b4edd3e` limpo**.
+
+**Controlo A/B, em quatro frentes.** (1) A peça de volta a dois botões → reprova «o rodapé é a peça
+da casa, com os quatro botões» e a secção 5 pára na primeira asserção. (2) O rodapé reposto dentro
+da `.rolagem-caixa` → reprova. (3) O mês pago com um «Pagar» a sério → reprova o desabilitado.
+(4) O `?abrir=` sem `replaceState` → reprova, com o endereço ainda a dizer `?abrir=pagar`. E o
+controlo que **corrigiu o desenho**: apagar o delegado do selector não reprovava nada, porque o
+painel tinha o seu próprio ouvinte — foi essa experiência que levou à poda.
+
+**Medido num navegador, na página real:** 37 meses na tabela, 10 à vista, «1 / 4»; a «última» dá 7
+linhas e «4 / 4»; 20 por página dá «1 / 2» e 17 na última; sem transbordo horizontal; o botão da linha paga
+nasce `disabled` e o da linha em aberto leva a `?abrir=pagar`.
+
+**O que ainda não está feito.** (1) A `ESTADO-ATUAL.md` segue a sua cadência e não foi tocada.
+(2) `provar-cartao-da-turma` continua com 16 falhas de antes. (3) A barra do menu continua a marcar
+«Produção» na página do mês a mês — não há item próprio para o financeiro.

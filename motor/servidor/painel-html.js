@@ -1484,7 +1484,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         '<div class="caixa filtrar">' +
         '<div class="campo-filtro">' +
         '<label class="campo-rotulo" for="fi-por-pagina">Escolas por página</label>' +
-        '<select id="fi-por-pagina">' +
+        '<select id="fi-por-pagina" data-tamanho-de="fi-contas">' +
         [10, 20, 50, 100].map((n) => '<option value="' + n + '"'
           + (n === 10 ? ' selected' : '') + '>' + n + '</option>').join('') +
         '</select></div>' +
@@ -1559,15 +1559,15 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
  * está à vista, e não o da última vez. Um botão que não muda de rótulo obriga a clicar para saber.
  */
 const SCRIPT_DAS_CONTAS = '<script>(function(){' +
+  /* O SELECTOR JÁ NÃO VIVE AQUI (17/11/2026). Ele esteve neste script desde 16/11 — e enquanto
+   * foi o único, era só feio. Quando o «mês a mês» da escola passou a precisar do mesmo selector,
+   * passou a ser a segunda cópia do mesmo comportamento, e a segunda cópia é sempre a que ninguém
+   * se lembra de corrigir: a peça do núcleo já lê `data-tamanho-de` e trata do `change`. O select
+   * declara de QUEM é (`data-tamanho-de="fi-contas"`) e não precisa de mais nada.
+   *
+   * A prova apanhou isto: apagar a peça deixava esta página a funcionar na mesma. Uma página que
+   * passa por duas razões não prova nenhuma delas. */
   'var painel=document.getElementById("fi-contas");' +
-  'var escolha=document.getElementById("fi-por-pagina");' +
-  'if(painel&&escolha){' +
-  '  escolha.addEventListener("change",function(){' +
-  '    painel.setAttribute("data-por-pagina",escolha.value);' +
-  '    painel.setAttribute("data-pagina","1");' +
-  '    if(window.paginar)window.paginar();' +
-  '  });' +
-  '}' +
   'var botao=document.getElementById("fi-dobrar");' +
   'function dobras(){return painel?painel.querySelectorAll("details"):[];}' +
   'function todasAbertas(){' +
