@@ -1877,39 +1877,63 @@ decisão.
   20/500 é o teto e não um número redondo maior:** é o maior que mantém três estúdios desse tamanho
   a funcionar na conta gratuita, e a quarta é a conversa que ela já decidiu ter.
 
-- **A CONTA DEPENDE DAS TURMAS, NÃO DAS ALUNAS — e o mínimo de 5 por turma é o que liga as duas
-  coisas** *(declarado a 16/11/2026)*. «Acho que serão no mínimo 5 alunos.» Com esse mínimo, o teto
-  de 500 alunas dá **no máximo 100 turmas** (500 ÷ 5), e é essa a ponte entre o número comercial e o
-  número que gasta Ações: **o que consome é `turmas × aulas por semana`**, e uma aula lançada custa
-  54 s independentemente de a turma ter 5 ou 30 alunas.
+- **A CONTA DO QUE CONSOME: AULAS LANÇADAS, E NÃO ALUNAS** *(declarado a 16/11/2026)*. «Eu quis
+  dizer aulas.» E são **no mínimo 5 por dia**, com cada turma lançada **três vezes ou mais por
+  semana**. Duas consequências, e a segunda é a que corrige o que esta frente dizia antes:
 
-  | Turmas (no teto de 20 prof) | Aulas/semana por turma | Lançamentos/mês | Minutos/mês | Escolas no teto na conta grátis |
-  |--:|--:|--:|--:|--:|
-  | 100 (o máximo: 500 ÷ 5) | 1 | ≈433 | **390** | **3** |
-  | 100 | 2 | ≈867 | **780** | **1** (duas passam dos 1.400) |
-  | 30 (500 ÷ ~17, o caso comum) | 1 | ≈130 | **117** | 9 |
-  | 30 | 2 | ≈260 | **234** | 5 |
-  | 20 (500 ÷ 25) | 1 | ≈87 | **78** | 12 |
+  1. **O que consome é `turmas × aulas por semana`**, e uma aula lançada custa o mesmo quer a turma
+     tenha 5 ou 30 alunas. As 500 fichas do teto não gastam nada — são registo, não actores.
+  2. **O CUSTO POR LANÇAMENTO NÃO É 54 SEGUNDOS — É 4 MINUTOS FACTURADOS.** O GitHub factura cada
+     *job* arredondado para o minuto, e um único «Guardar» dispara **quatro jobs** em três workflows:
+     `reancorar` (10 s) + `descobrir` (6 s) + `publicar` (23 s) + `regerar` (25 s). Medido nos jobs
+     reais: 64 s de relógio, **4 minutos de cota**. A conta anterior desta secção somava os 54 s como
+     se fossem fracção de minuto, e por isso dava três escolas no pior caso — **dá uma, e no caso
+     comum nenhuma.** A tabela corrigida, contra os **1.400 min** utilizáveis (2.000 menos os 30% de
+     folga):
 
-  Ou seja: **o teto só se torna apertado no pior caso** — a escola com 500 alunas todas em turmas de
-  5, cada uma lançada duas vezes por semana. No caso comum (turmas de 15 a 25), três escolas no teto
-  gastam menos de 30% dos 1.400 min. Isto **não muda o teto**, muda o que se vigia: o ecrã não deve
-  olhar para 500 alunas, deve olhar para as aulas lançadas no mês.
+  | Cenário de uma escola | Turmas | Aulas/sem. | Lanç./mês | Min. facturados | Escolas em 1.400 min |
+  |:--|--:|--:|--:|--:|--:|
+  | o mínimo declarado (5/dia) | — | — | 110 | **440** | **3** (1.320 = 94%) |
+  | caso comum (500 ÷ ~17) | 30 | 3 | 390 | **1.560** | **0** — uma escola já passa |
+  | o máximo do teto (500 ÷ 5) | 100 | 3 | 1.300 | **5.200** | **0** — 2,6× a cota inteira |
+
+  **A ALAVANCA ESTÁ NO NÚMERO DE JOBS, NÃO NO TETO.** Os quatro jobs por lançamento são 4 minutos de
+  cota para 64 segundos de trabalho. Se a reancoragem, a regeneração dos índices e a publicação
+  correrem como **passos de um único job**, o mesmo lançamento passa a custar **1 minuto** — e a
+  tabela muda de sinal:
+
+  | Cenário, com um job por lançamento | Lanç./mês | Min. facturados | Escolas em 1.400 min |
+  |:--|--:|--:|--:|
+  | o mínimo declarado (5/dia) | 110 | **110** | **12** (24%) |
+  | caso comum (30 turmas × 3/sem.) | 390 | **390** | **3** (84%) |
+  | o máximo do teto (100 turmas × 3/sem.) | 1.300 | **1.300** | **1** (93%) |
+
+  É a diferença entre «o teto é uma promessa que a infraestrutura não sustenta» e «o teto é uma
+  promessa que três escolas do caso comum sustentam com a folga intacta». **A consolidação dos jobs
+  está proposta e não feita** — é infraestrutura congelada (CONGELAMENTO.md), muda a topologia do CI
+  e exige motivo declarado e commit próprio. Enquanto não for feita, o número honesto é o da primeira
+  tabela.
+- **O que se vigia, então, não são 500 alunas: são as aulas lançadas no mês.** É essa a grandeza que
+  o ecrã deve medir quando houver medição — e é ela, e não a contagem de fichas, que diz se a folga
+  está a ser comida.
 - **A resposta quando a conta aperta está decidida** *(16/11/2026)*: «difícil achar 3 escolas desse
-  tamanho. Se chegar a ter 3 escolas desse tamanho, vamos para o plano pago.» Portanto **três
-  escolas no teto é o limite declarado, e o que se muda ao chegar lá é o plano de GitHub/Cloudflare
-  — nunca o teto de cada escola.** O teto é uma promessa comercial; a conta é uma decisão de
-  infraestrutura, e uma promessa não se encolhe porque a infraestrutura ficou pequena.
+  tamanho. Se chegar a ter 3 escolas desse tamanho, vamos para o plano pago.» Portanto **o que se
+  muda ao chegar lá é o plano de GitHub/Cloudflare — nunca o teto de cada escola.** O teto é uma
+  promessa comercial; a conta é uma decisão de infraestrutura, e uma promessa não se encolhe porque
+  a infraestrutura ficou pequena. **O gatilho, porém, é mais cedo do que três escolas:** pelos
+  números de hoje, a **primeira** escola a lançar no ritmo declarado (30 turmas, 3 aulas por semana)
+  já não cabe nos 1.400 min — ou se consolida o CI (1 job), ou a conta passa a paga **na primeira
+  escola que crescer**, e não na terceira.
 - **O piso é uma reserva, e ela já existe na estrutura.** Quando o sistema particiona, cada escola
   tem o seu próprio par Worker + KV (`wrangler.<escola>.jsonc`), e é isso que garante o espaço do
   piso: o contrato de uma escola nunca divide namespace com o de outra. O que o piso pede é que o
   particionamento **não** junte duas escolas num namespace para poupar — pouparia um par de
   credenciais e custaria a garantia.
-- **O que fica por decidir.** (a) O número 20/500 está declarado no catálogo num sítio só; mudá-lo
-  é mudar uma chave. (b) **A cadência — quantas vezes por semana cada turma é lançada** — é a única
-  variável que ainda move a conta, e é a escola que a decide, não o contrato; a tabela acima dá o
-  orçamento para cada caso, e nenhum deles derruba o teto. (c) ~~o caminho ao chegar a três escolas
-  no teto~~ — **decidido a 16/11/2026: plano pago**, e o teto não se encolhe.
+- **O que fica por decidir.** (a) ~~a cadência~~ — **respondida a 16/11/2026: 5 lançamentos por dia
+  no mínimo, 3 ou mais por semana por turma.** (b) **A consolidação dos quatro jobs de uma
+  lançamento num só** — proposta, com a conta acima; é infraestrutura congelada e espera decisão.
+  (c) ~~o caminho ao chegar a três escolas no teto~~ — **decidido: plano pago**, e o teto não se
+  encolhe. (d) O número 20/500 está declarado no catálogo num sítio só; mudá-lo é mudar uma chave.
 
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 

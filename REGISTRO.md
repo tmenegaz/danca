@@ -48356,3 +48356,46 @@ provado.
 **O que continua em aberto, e não é desta frente.** A trava do cadastro no piso (§L9b) — recusar um
 professor ou uma aluna acima do contratado — **não está implementada**: o número está no ecrã e não
 no motor. É a fatia barata que o §L9b descreve, e ela é a próxima se a prioridade for essa.
+
+## 16/11/2026 — a conta do teto, corrigida: 4 minutos facturados por lançamento
+
+**Nota de correcção, datada, sobre a entrada de hoje «a conta do teto depende das turmas».** Essa
+entrada leu «no mínimo 5 alunos» como **5 alunas por turma** e concluiu que o pior caso caberia em
+três escolas. A resposta da proprietária foi outra: «eu quis dizer aulas». E a medição dos jobs
+mostrou um segundo erro, maior: **o custo de um lançamento não são os 54 segundos que a soma dos
+workflows dava — são 4 minutos facturados.**
+
+**O que foi medido.** Um único «Guardar» dispara três workflows e **quatro jobs**: `reancorar` (10 s)
++ `descobrir` (6 s) + `publicar` (23 s) + `regerar` (25 s) = 64 s de relógio. O GitHub factura **cada
+job arredondado para o minuto**, logo **4 minutos de cota por lançamento** — 4,4× o que a soma dos
+segundos sugeria. As durações vieram dos jobs reais (`/actions/runs/<id>/jobs`), não de uma
+estimativa.
+
+**A tabela corrigida**, contra os 1.400 min utilizáveis (2.000 menos os 30% de folga):
+
+| Uma escola | Turmas | Aulas/sem. | Lanç./mês | Min. facturados | Escolas em 1.400 |
+|:--|--:|--:|--:|--:|--:|
+| o mínimo declarado (5/dia) | — | — | 110 | **440** | **3** (94%) |
+| caso comum (500 ÷ ~17) | 30 | 3 | 390 | **1.560** | **0** |
+| o máximo do teto (500 ÷ 5) | 100 | 3 | 1.300 | **5.200** | **0** (2,6× a cota) |
+
+**A alavanca não é o teto, é o número de jobs.** Os quatro jobs são 4 minutos para 64 segundos de
+trabalho. Consolidados em **um job** (reancorar → regerar → publicar como passos), o mesmo lançamento
+custa **1 minuto**, e o mesmo orçamento passa a sustentar **três escolas do caso comum** (3 × 390 =
+1.170 min, 84%) e **uma no máximo do teto** (1.300, 93%), com a folga intacta. É a diferença entre
+uma promessa que a infraestrutura não sustenta e uma que sustenta.
+
+**O que fica decidido, e o que fica proposto.** Decidido (16/11/2026): ao chegar ao limite, muda-se o
+**plano de GitHub/Cloudflare para pago**, e o **teto de cada escola não se encolhe**. Proposto e
+**não feito**: a consolidação dos quatro jobs num só — é infraestrutura congelada
+(CONGELAMENTO.md), muda a topologia do CI (três workflows a commitar passam a um só, com o risco de
+o push de um re-disparar o outro), e por isso exige motivo declarado e commit próprio. **E o gatilho
+do plano pago é mais cedo do que se pensava**: pelos números de hoje, não é a terceira escola no teto
+que estoura a conta — é a **primeira** a lançar no ritmo declarado.
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` §L9c (a secção da conta reescrita, com as duas tabelas) ·
+`biblioteca/comercial/planos.json` (a `_nota` do teto regista a medição).
+
+**Com o quê.** `provar-financeiro-da-escola` 90/90 · `check-indices` 16/16 · `check-identidade` 0
+erros — nenhum valor comercial mudou; o teto continua 20/500 e a escada continua a mesma. O que mudou
+foi a **conta que o justifica**, e ela passou a estar certa.
