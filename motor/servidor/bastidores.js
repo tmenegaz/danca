@@ -15578,6 +15578,32 @@ async function fetch(request, env, extras) {
 
     const donoSlug = slugDoDono(env);
     const lista = await professores(kv, escola);
+
+    /* A TRAVA DO PISO — o cadastro de professor para no que foi contratado (16/11/2026).
+     *
+     * «Pode colocar no motor, sem dúvida.» O piso — o número a partir do qual a escola tem espaço
+     * garantido — não é um número de ecrã: acima dele, cadastrar é recusado. A decisão é do núcleo
+     * (`comercial.travaDoPiso`), e a frase que sai já nomeia as saídas; aqui só se CONTAM as
+     * pessoas, que é o que o núcleo não sabe.
+     *
+     * O QUE CONTA. O principal (o dono, que vive no secret e não nesta lista) conta como um, e os
+     * demais contam se estão a trabalhar: um professor desligado permanece no registo — é
+     * proveniência, e apagá-lo seria reescrever a história — mas não ocupa lugar.
+     *
+     * E O QUE NÃO BLOQUEIA: a EDIÇÃO (que já saiu por cima, na rota do `editar`) e a escola sem
+     * contrato — uma escola anterior à camada comercial não prometeu piso nenhum, e travar-lhe o
+     * cadastro seria inventar um limite que ninguém contratou. */
+    {
+      const donoConta = String(donoSlug || '').trim() ? 1 : 0;
+      const aTrabalhar = lista.filter((p) => !desligamento.estaDesligado(p)).length;
+      const trava = comercialDoNucleo.travaDoPiso({
+        contrato: await comercialDoNucleo.lerComercial(kv, escola),
+        eixo: 'professores',
+        cadastrados: donoConta + aTrabalhar,
+      });
+      if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
+    }
+
     const slug = slugificar(nome + (sobrenome ? ' ' + sobrenome : ''));
     // O NOME EXIBIDO leva o sobrenome junto: no seletor, dois «Tiago» com pastas diferentes
     // seriam duas opções idênticas — e a pessoa não saberia qual escolheu. O exibido é o nome
@@ -15703,6 +15729,18 @@ async function fetch(request, env, extras) {
     if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
     const lista = await alunas(kv, escola);
     if (lista.indexOf(apelido) !== -1) return json(409, { ok: false, erro: 'já existe uma aluna com este apelido' });
+    /* A TRAVA DO PISO, no eixo das alunas (16/11/2026). A ORDEM IMPORTA: a repetição responde
+     * primeiro, porque «já existe uma aluna com este apelido» é mais específico e mais útil do que
+     * «o piso está cheio» para quem tentou cadastrar quem já lá está. O piso vem depois, e conta o
+     * CADASTRO de alunas — não o elenco nem a curadoria, que são outra coisa e podem repetir. */
+    {
+      const trava = comercialDoNucleo.travaDoPiso({
+        contrato: await comercialDoNucleo.lerComercial(kv, escola),
+        eixo: 'alunos',
+        cadastrados: lista.length,
+      });
+      if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
+    }
     lista.push(apelido);
     await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
     return json(201, { ok: true, aluna: apelido });

@@ -249,6 +249,111 @@ function limitesDoContrato(contrato) {
   return { plano, piso, teto, planoInclui: base, inclui };
 }
 
+/* ── A TRAVA DO PISO — «a partir de», e o que acontece quando o cadastro chega lá ─────────────
+ *
+ * O PISO NÃO É UM NÚMERO DE ECRÃ: é a linha acima da qual o cadastro deixa de ser aceite sozinho.
+ * «Numa escola no teto, cadastrar mais um professor ou aluna é recusado com a mensagem que nomeia
+ * as DUAS saídas: acrescentar um lote ou subir de assinatura» (§L9b, critério vi).
+ *
+ * E A RECUSA NÃO DIZ «o Básico não permite 2 professores». Essa frase esconde que o bloqueio é
+ * reversível, e a própria frente diz porquê: «mensagens diferentes para o mesmo bloqueio escondem
+ * que a primeira é reversível». A frase diz o que está cheio, quanto, e as duas saídas.
+ *
+ * O QUE ESTA FUNÇÃO **NÃO** FAZ — e é de propósito:
+ *   · não recusa quando não há contrato. Uma escola anterior à camada comercial não prometeu piso
+ *     nenhum; travar-lhe o cadastro seria inventar um limite que ninguém contratou.
+ *   · não conta o que já saiu. Um professor desligado permanece no registo (é proveniência), mas
+ *     não ocupa lugar no piso; quem conta é quem está a trabalhar. Quem soma os números é a rota —
+ *     esta função recebe o número pronto, e é pura para poder ser medida sem um KV.
+ *   · não limita LEITURA nem escrita do que já existe. O piso limita o **cadastro**, e mais nada:
+ *     uma escola acima do piso continua a ler, a exportar e a registar as aulas das turmas que já
+ *     tem — a alternativa seria punir o dado da escola por causa de um contrato.
+ */
+
+/** Os rótulos dos dois eixos. Uma vez, para a recusa e a tela dizerem a mesma palavra. */
+const ROTULOS_DOS_EIXOS = { professores: 'professor(es)', alunos: 'aluna(s)' };
+
+/**
+ * O que o próximo passo custa e liberta — o que a recusa oferece, com números e não com adjectivos.
+ * `null` quando não há lote que resolva (já no teto) ou quando o catálogo não tem lotes do eixo.
+ */
+function proximoLote(eixo) {
+  const lotes = lotesDe(eixo);
+  if (!lotes.length) return null;
+  /* O lote MAIS PEQUENO resolve o primeiro lugar, e é o mais barato: oferecer o maior primeiro é
+   * vender o que não foi pedido. */
+  const menor = lotes.slice().sort((a, b) => Number(a.qtd) - Number(b.qtd))[0];
+  return { qtd: Number(menor.qtd) || 0, preco: Number(menor.preco) || 0, precoTexto: precoEmTexto(menor.preco) };
+}
+
+/**
+ * A DECISÃO. `cabe: true` quando o cadastro pode seguir; `cabe: false` com a frase pronta quando
+ * não pode.
+ *
+ * Devolve também os números que a página usa para explicar o estado (o piso, o teto, quantos há),
+ * e `via` — qual das duas saídas resolve: `lote`, `plano` (os dois), ou `conversa` (já no teto do
+ * último degrau, e aí o caminho é falar com a proprietária — a decisão de 15/11/2026).
+ */
+function travaDoPiso({ contrato, eixo, cadastrados } = {}) {
+  const nome = String(eixo || '');
+  if (nome !== 'professores' && nome !== 'alunos') return { cabe: true, motivo: 'eixo desconhecido' };
+  const limites = limitesDoContrato(contrato);
+  if (!limites) return { cabe: true, motivo: 'sem contrato — não há piso contratado' };
+
+  const piso = Number(limites.piso[nome]) || 0;
+  const teto = Number(limites.teto[nome]) || 0;
+  const tem = Math.max(0, Math.round(Number(cadastrados) || 0));
+  const rotulo = ROTULOS_DOS_EIXOS[nome];
+  const base = { eixo: nome, piso, teto, cadastrados: tem, plano: limites.plano };
+
+  if (tem < piso) return Object.assign({ cabe: true }, base);
+
+  /* DOIS BLOQUEIOS DIFERENTES, E DUAS RESPOSTAS DIFERENTES — e confundi-los foi o defeito da
+   * primeira escrita desta função. O piso cheio e o TETO cheio não são a mesma coisa:
+   *
+   *   · **piso cheio, teto à vista** (`piso <= tem < teto`): há espaço no plano dela, e o que falta
+   *     é contratar. Um lote resolve, e subir de plano também — as duas saídas.
+   *   · **teto cheio** (`tem >= teto`): um lote NÃO resolve, porque o plano não vai além do teto.
+   *     Ou se sobe de degrau, ou — no último degrau — se fala com a proprietária e o preço é
+   *     refeito (a decisão de 15/11/2026).
+   *
+   * Oferecer «acrescente um lote» a quem está no teto seria vender o que não resolve o problema. */
+  const acima = planoAcima(limites.plano);
+  const noTeto = tem >= teto;
+  const ultimoDegrau = acima === null;
+  /* O lote só se oferece quando ele RESOLVE: dentro do teto do plano, comprar abre lugar; no teto,
+   * não abre nada, porque o plano não vai além dele. */
+  const lote = noTeto ? null : proximoLote(nome);
+  /* O que o plano de cima inclui, quando há plano de cima. */
+  const ganho = acima ? pisoDoPlano(acima.id)[nome] : 0;
+  const via = noTeto
+    ? (ultimoDegrau ? 'conversa' : 'plano')
+    : (lote ? (ultimoDegrau ? 'lote' : 'lote-ou-plano') : (ultimoDegrau ? 'conversa' : 'plano'));
+
+  let erro = 'O piso contratado está cheio: esta escola contratou a partir de ' + piso + ' ' + rotulo
+    + ' e já tem ' + tem + '. ';
+  if (via === 'conversa') {
+    erro += 'O teto deste plano é ' + teto + ' ' + rotulo + ' e não há degrau acima — para ir '
+      + 'além, fale com o Sistema Lastro: o preço é refeito para o caso da escola.';
+  } else if (via === 'plano') {
+    erro += 'O teto deste plano é ' + teto + ' ' + rotulo + ': acrescentar um lote não abre mais '
+      + 'lugar, porque o plano não vai além disso. Para cadastrar mais, é subir de plano — o plano '
+      + 'de cima inclui ' + ganho + '. Fale com o Sistema Lastro.';
+  } else if (via === 'lote') {
+    erro += 'Há lugar no plano até ' + teto + ' ' + rotulo + ': acrescente um lote de ' + lote.qtd
+      + ' ' + rotulo + ' (' + lote.precoTexto + ', na mensalidade), no painel Financeiro do '
+      + 'Sistema Lastro.';
+  } else {
+    erro += 'Há duas saídas: acrescentar um lote de ' + lote.qtd + ' ' + rotulo + ' ('
+      + lote.precoTexto + ', na mensalidade) ou subir de plano — o plano de cima inclui ' + ganho
+      + '. Os dois se pedem no painel Financeiro do Sistema Lastro.';
+  }
+
+  return Object.assign({ cabe: false, erro, via, lote, planoAcima: acima ? acima.id : null,
+    tetoCheio: noTeto, saidas: via === 'lote-ou-plano' ? ['lote', 'plano']
+      : (via === 'plano' ? ['plano'] : (via === 'lote' ? ['lote'] : ['conversa'])) }, base);
+}
+
 /** O catálogo como a página o recebe: sem os campos internos de nota. */
 function catalogoDaPagina() {
   return {
@@ -331,6 +436,8 @@ module.exports = {
   pisoDoPlano,
   tetoDoPlano,
   limitesDoContrato,
+  travaDoPiso,
+  ROTULOS_DOS_EIXOS,
   calcular,
   validarEscolha,
   catalogoDaPagina,
