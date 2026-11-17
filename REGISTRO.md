@@ -50188,3 +50188,75 @@ testes: a mudança de plano já se reflecte no mês que ainda não foi pago, e n
 testar. A dez minutos por mês, uma hora acumula seis meses e uma noite inteira bate no tecto de 100
 meses que `mesesEntre` impõe. Não estraga nada (não se paga sozinho, não se apaga nada), mas enche o
 extrato de meses por pagar. Desliga-se no botão do painel quando o teste acabar.
+
+## 17/11/2026 — A auditoria dos workflows: a aula custa um minuto, e a cota gratuita deixa de ser o teto
+
+**O que aconteceu.**
+A unidade comercial passou a ser a **aula processada** (franquias de 100 / 300 / 800 por mês, a
+R$ 69,90 / 99,90 / 139,90), e com ela a pergunta deixou de ser «quantos professores e alunas cabem»
+para ser «quantas aulas cabem». A pesquisadora pediu a auditoria que responde com números: «o próximo
+passo mais produtivo é fazer uma auditoria quantitativa dos workflows optimizados, com minutos
+faturados, quantidade de execuções e projecção mensal. Assim dimensionamos as extensões com dados
+reais, e não com estimativas.»
+
+**O que foi medido, e como.** A API dos jobs (`GET /actions/runs/{id}/jobs`) em **1.000 execuções**
+(8 a 17/11 — a paginação satura em 1.000), a **fatura de uso** das duas competências, e os quatro
+workflows. O campo `timing.billable` veio **`0` nas dezassete execuções amostradas**: a única via é
+reconstruir `jobs × ⌈segundos/60⌉` — e o modelo foi conferido contra a fatura, posto a posto, nas dez
+linhas diárias: **sobrestima 3,5%**, e nenhum posto erra mais de 8,9%. Um modelo que erra para cima é
+o que se quer numa conta de capacidade.
+
+**Os cinco números que ela pediu.**
+
+| a pergunta | a resposta medida |
+|:--|:--|
+| minutos facturados por processamento | **lançar uma aula = 1 min** (1 job, 14 s) · publicar = 1 min · gerar o pacote = 2 min · habilitar escola = 1 min (máx 23) |
+| processamentos por dia | **285 pushes em dez dias** (28,5/dia) no regime antigo; **44,4 min/dia** no modelo de hoje |
+| minutos por mês | **1.332 min = 67% da cota** — o modelo antigo projectava **3.852 = 193%** |
+| capacidade para novas escolas | **1.478 aulas/mês** (2.000 − 522 de engenharia): 14 Básico / 4 Intermediário / 1 Avançado no teto |
+| em que momento migrar | a **projecção acima de 2.000 min**, e não o crédito gasto |
+
+**A consolidação, medida dos dois lados.** Antes do corte de 17/11 (13:01Z): 285 pushes, 972
+execuções, 1.155 jobs, **1.284 min** — **4,51 min/push** (mediana 3, p90 10). Depois: 23 pushes, 28
+execuções, 28 jobs, **28 min** — **1,22 min/push**, **1,00 min/execução**. O contrafactual, com o
+mesmo trabalho de dez dias sob o modelo de hoje: **444 min, −65,4%**. E há uma segunda economia que
+não estava à vista: no regime antigo 1.284 min de cota compravam 447 min de relógio (**2,87×** de
+desperdício de arredondamento); hoje, 28 min compram 16,3 (**1,72×**).
+
+**O achado que reordena a conta, e não era o que se procurava.** O maior consumidor da cota gratuita
+**não são as escolas: é o desenvolvimento do produto** — 522 min/mês projectados, mais do que uma
+escola inteira do Intermediário. A fatura de novembro gastou **1.965 dos 2.000 minutos em 17 dias**,
+com **US$ 11,79 de bruto descontado** e **US$ 0,21 de crédito restante**; outubro tinha gasto 1.075.
+O que estava a comer o mês era a nossa própria obra.
+
+**O gatilho da migração não é o dinheiro.** O minuto excedente custa **US$ 0,006 = R$ 0,033**, contra
+uma receita de **R$ 0,175 a R$ 0,699 por aula** — a margem do compute é de 81% a 95%, e dentro da
+cota é 100%. O que dói é a **paragem**: em repositório privado e cota esgotada o GitHub **bloqueia as
+execuções**, e o lançamento da professora falha sem ninguém ter dito que ia falhar. Migra-se quando a
+**projecção do mês** passa dos 2.000 min — a escada em minutos está no §L9f: 2.000 → Free; até 2.666 →
+Free + excedente; acima de 2.666 → **Team (US$ 4)**, porque 666 min × $0,006 = $4.
+
+**O piso das extensões, e o que ele proíbe.** A regra declarada — o plano superior tem de ser mais
+vantajoso por aula do que somar extensões — fixa um **piso de R$ 0,15/aula**: abaixo disso, o Básico
+com extensões compra o Intermediário mais barato e a escada desaba. A **proposta** (medida, não
+decidida) é **R$ 0,20/aula** em quatro tamanhos: **P +100 = R$ 19,90 · M +300 = R$ 59,90 · G +800 =
+R$ 159,90 · GG +2.000 = R$ 399,90**, cada um verificado degrau a degrau.
+
+**A contradição que a aritmética achou (C24).** O mínimo de uso declarado — «no mínimo 5 aulas por
+dia» — são **110 aulas/mês**, e a franquia do **Básico é 100**. O degrau de entrada é menor do que o
+menor uso já declarado. Duas leituras (as 5/dia são de uma escola no tamanho máximo, ou de qualquer
+escola) e a decisão depende de uma pergunta só. Não foi escolhida por dedução.
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` (§L9f novo, com o registo no cabeçalho; §3 **C24**; a
+quinta matriz de cobertura em §8; o §9 com as extensões declaradas **não decididas**) ·
+`experimentos/provar-o-custo-de-uma-aula.js` (novo, 15 asserções) · `.gitignore` (a excepção).
+
+**Com o quê.** `provar-o-custo-de-uma-aula` **15/15**. A prova lê as duas listas `on.push.paths`,
+aplica o casamento de caminhos do GitHub (`**`, `*`, `?`) e conta os jobs — porque o minuto de uma
+aula **não vive em ficheiro nenhum**: vive na intersecção de dois YAML que ninguém relê.
+
+**Controlo A/B.** Reposta a lista que existia até 17/11 (`professores/**` no `publicar.yml`) numa
+cópia, a prova **reprova 13/15**, nomeia os seis caminhos do lançamento que passariam a disparar a
+publicação, e diz `custo → 2`. E a escada: a R$ 0,10/aula a prova mostra o Básico a comprar o
+Intermediário por **R$ 89,90**; a R$ 0,15 empata; a R$ 0,20 aguenta. Sem os dois controlos, as
+asserções passariam e não estariam a medir nada.

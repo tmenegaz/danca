@@ -1560,3 +1560,13 @@ experimentos/modelo-formulario/*
 # permite medir (e que o painel diz em vez de mostrar zero), a receita do mesmo livro do financeiro,
 # e a barra como peça da folha — `<progress>`, porque a largura é cálculo e não vai em `style=""`.
 !experimentos/provar-monitoramento.js
+
+# O CUSTO DE UMA AULA (17/11/2026). A unidade comercial passou a ser a AULA PROCESSADA, e o §L9f do
+# PLANEJAMENTO-LASTRO.md mediu que **lançar uma aula custa 1 minuto facturado**. Esse número não vive
+# em ficheiro nenhum: vive na intersecção de duas listas `on.push.paths` em dois YAML que ninguém
+# relê. No dia em que alguém voltar a pôr `professores/**` no `publicar.yml` — e foi isso que existiu
+# até 17/11 — a aula custa 2 em silêncio, a franquia de 100 aulas vale 50 e nada no ecrã muda. A
+# prova lê os dois filtros, aplica o casamento do GitHub (`**`, `*`, `?`) e conta os jobs; tem
+# controlo nas duas frentes (a lista antiga tem de custar 2, e uma extensão abaixo de R$ 0,15/aula
+# tem de desabar a escada).
+!experimentos/provar-o-custo-de-uma-aula.js

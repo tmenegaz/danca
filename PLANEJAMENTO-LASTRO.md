@@ -127,6 +127,22 @@
 > outra vez»), e é o princípio que o §L1 tem de respeitar: **um campo por dado, e o dado no sítio onde
 > se decide**. Nenhuma linha de código de produto foi alterada nesta rodada de planeamento.
 
+> **Registo de 17/11/2026 — a auditoria dos workflows, e o minuto que virou unidade comercial.** A
+> unidade de cobrança passou a ser **a aula processada** (franquias de 100 / 300 / 800 por mês, a
+> R$ 69,90 / 99,90 / 139,90), e com ela a pergunta deixou de ser «quantos professores e alunas cabem»
+> para ser «quantas aulas cabem». O §L9f responde com medição e não com estimativa: **uma aula
+> custa um minuto facturado** (1 job, 14 s, medido em quatro execuções), a **consolidação dos
+> workflows reduziu 65,4%** do custo do mesmo trabalho (4,51 → 1,56 min/push), e o modelo
+> `jobs × ⌈s/60⌉` **reproduz a fatura do GitHub com 3,5% de erro** nas dez linhas diárias em que foi
+> conferido. A fatura de novembro gastou **1.965 dos 2.000 minutos em 17 dias** — e o achado que
+> reordena a conta é que **o maior consumidor é o desenvolvimento do produto (522 min/mês), não as
+> escolas**. A projecção caiu de 193% para **67% da cota**, a capacidade é de **1.478 aulas/mês**, e
+> o gatilho de migração é a **projecção acima de 2.000 min** — porque o que dói não é o preço do
+> minuto (R$ 0,033, contra R$ 0,175 a 0,699 de receita por aula) e sim o **bloqueio das execuções**,
+> que faz o lançamento da professora falhar em silêncio. Nasceu **C24**: o mínimo de uso declarado
+> (5 aulas/dia = 110/mês) é **maior** do que a franquia do plano de entrada (100). Nenhuma linha de
+> código de produto foi alterada — a auditoria é leitura da API, da fatura e dos workflows.
+
 ---
 
 ## 1. O nome e o que ele designa
@@ -429,7 +445,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entrou em 10/11/2026: C23** a **assimetria da escada** — a assinatura subiu +37,50 sempre, enquanto a capacidade sobe 3× a quantidade por 5/3 do preço, e o passo de R$ 30 não compra capacidade nenhuma porque um lote de 30 alunos custa os mesmos R$ 30. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entrou em 10/11/2026: C23** a **assimetria da escada** — a assinatura subiu +37,50 sempre, enquanto a capacidade sobe 3× a quantidade por 5/3 do preço, e o passo de R$ 30 não compra capacidade nenhuma porque um lote de 30 alunos custa os mesmos R$ 30. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Entrou em 17/11/2026: C24** o **plano de entrada é menor do que o menor uso declarado** — franquia do Básico **100 aulas/mês** contra o mínimo de **5/dia = 110/mês** (§L9f), e a decisão depende de uma pergunta só: o mínimo é da escola de uma turma ou da escola no tamanho máximo. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -1209,6 +1225,37 @@ diferentes de decisão, e não duas versões da mesma tabela.
 *(Afeta §L8 (a escada e o calculador), §L9b (a capacidade incluída) e a distribuição comercial de
 [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5 — **que não muda**:
 as consultas de cada degrau são as mesmas, 7 · 14 · 46.)*
+
+---
+
+**C24 — O plano de entrada é menor do que o menor uso já declarado.** Aberta a 17/11/2026 pela
+aritmética da auditoria (§L9f), **não resolvida** — e ela é de uma linha, o que a torna fácil de
+não ver.
+
+**O que a conta mostra.** O §L9c registou, a 16/11/2026, que o consumo se conta em **aulas lançadas**
+e que «são **no mínimo 5 por dia**». Cinco por dia em 22 dias úteis são **110 aulas por mês**. A
+franquia do **Básico** — a unidade comercial declarada nesta rodada — é de **100 aulas por mês**.
+**O degrau de entrada vende menos do que o menor uso que já se declarou possível**, e nasce em
+extensão.
+
+**As duas leituras, e porque não se escolhe por dedução.**
+
+- *(i)* As 5/dia são da **escola inteira**, e o §L9c estava a falar de uma escola no **teto**
+  (20 professores). Uma escola do Básico é **1 professor, 1 turma**: a 3 lançamentos por semana são
+  ~**13 aulas/mês**, e 100 é **sete vezes e meia** o que ela usa — folgado, e a franquia está bem
+  dimensionada. Sob esta leitura não há contradição: há duas frases a falar de escalas diferentes.
+- *(ii)* As 5/dia são de **qualquer** escola que use o sistema a sério, e então o Básico **não serve
+  a ninguém que o contrate para trabalhar** — o que é um defeito de dimensionamento, não de redacção.
+
+**A pergunta que decide, e é uma só:** o mínimo de 5/dia foi dito a pensar na **escola de uma
+turma** ou na **escola no seu tamanho máximo**? A resposta muda o preço do degrau de entrada, e é
+ela que sabe — o documento não adivinha. Nota que a leitura *(i)* tem a favor o resto da escada:
+100 → 300 → 800 acompanha 1 → 3 → 6 professores, e 100 aulas para uma turma é coerente com
+~13/mês de uso com margem para quem lança mais.
+
+*(Afeta §L9f (a capacidade e as franquias) e §L8 (a escada). Enquanto não se decide, a auditoria do
+§L9f usa a franquia como **teto** e declara a taxa de uso em vez de a medir — porque ainda não há
+escola pagante a lançar aulas.)*
 
 ---
 
@@ -2318,6 +2365,190 @@ e num comentário de `motor/servidor/unicidade.js`; foi substituído por um sint
 **conteúdo de ficheiros** e não commits, logo uma reescrita não as quebraria — mas custaria os SHAs
 citados no `REGISTRO.md`, que é a razão pela qual a decisão fica aberta e não foi tomada por mim.
 
+### L9f — A auditoria dos workflows: o minuto, a aula e a conta *(17/11/2026)*
+
+> **O PEDIDO, nas palavras dela:** «O próximo passo mais produtivo é fazer uma auditoria quantitativa
+> dos workflows optimizados, com minutos faturados, quantidade de execuções e projecção mensal. Assim
+> dimensionamos as extensões com dados reais, e não com estimativas.» E os cinco números que a
+> auditoria tem de responder: minutos facturados por processamento · processamentos por dia · minutos
+> por mês num cenário real · capacidade disponível para novas escolas · em que momento migrar para
+> plano pago, pela conta `capacidade = minutos disponíveis ÷ minutos facturados por processamento`.
+>
+> **O que esta secção dimensiona.** A unidade comercial declarada nesta rodada — **a aula
+> processada**, com franquias de **100 / 300 / 800 aulas por mês** (Básico / Intermediário /
+> Avançado) e os preços **R$ 69,90 / 99,90 / 139,90**. *O aditivo que fixa essa unidade por escrito
+> ainda não está neste ficheiro à data desta auditoria; a auditoria vale pelos números que mede, e
+> eles não dependem de onde o aditivo está escrito.*
+
+**1. O método, e a prova de que o método presta.** O GitHub não devolve os minutos facturados por
+execução: o campo `timing.billable` veio **`0` nas dezassete execuções amostradas** (dezassete nomes
+de fluxo, um representante de cada), tal como o §L9d já tinha achado. A única via é reconstruir a
+regra da casa — **cada job arredondado ao minuto, para cima** — e conferi-la contra a fatura.
+
+| posto (por volume) | medido (jobs × ⌈s/60⌉) | fatura | erro |
+|:--|--:|--:|--:|
+| 1.º | 348 | 321 | +8,4% |
+| 2.º | 214 | 205 | +4,4% |
+| 3.º | 186 | 177 | +5,1% |
+| 4.º | 153 | 151 | +1,3% |
+| 5.º | 114 | 118 | −3,4% |
+| 6.º | 110 | 101 | +8,9% |
+| 7.º | 70 | 73 | −4,1% |
+| 8.º | 50 | 54 | −7,4% |
+| 9.º | 36 | 37 | −2,7% |
+| 10.º | 31 | 31 | 0% |
+| **soma** | **1.312** | **1.268** | **+3,5%** |
+
+A fatura de novembro traz **uma linha por dia**, mas a API de uso **não devolve a data de cada
+linha** — por isso a conferência é **por posto e não por data**: os dez volumes medidos (8 a 17/11)
+ordenados, contra as dez linhas da fatura ordenadas. As duas séries casam **posto a posto**, e o
+erro nunca passa de 8,9%. E o erro tem sinal: o modelo **sobrestima 3,5%** no total, porque conta o
+job inteiro quando a fatura pode arredondar de outra maneira. Um modelo que erra para cima é o que
+se quer numa conta de capacidade. *(As 1.000 execuções analisadas vêm da paginação da API, que
+satura em 1.000: a janela pedida foi de 30 dias e o que voltou cobre **8 a 17/11**. A fatura cobre o
+mês inteiro, e é ela que dá os dias 1 a 7 — 697 min em sete dias, 99,6/dia.)*
+
+**2. Quanto custa cada operação — medido, não estimado.**
+
+| operação | fluxo | jobs | relógio (p50) | minutos facturados | n |
+|:--|:--|--:|--:|--:|--:|
+| **lançar uma aula** | `Fechar os derivados` | **1** | 14 s | **1 min** | 10 |
+| editar o `.conf` de uma variante | `Fechar os derivados` **+** `Publicar o sistema` | 2 | 51 s no total | **2 min** | 3 |
+| **publicar código** | `Publicar o sistema` | **1** | 40 s | **1 min** | 21 |
+| **gerar o pacote de um ciclo** | `Gerar o ciclo` | **1** | 110 s | **2 min** | 52 |
+| **habilitar uma escola** | `Criar a escola` | **1** | 39 s | **1 min** (p90 65 s; máx **1.363 s = 23 min**) | 23 |
+
+**A aula custa um minuto, e é o número que a franquia comercial usa.** O «Guardar» do lançamento
+escreve `professores/<prof>/ciclos/ciclo-NN-<variante>-*` num **commit só** (a árvore, não um ficheiro
+de cada vez): casa `professores/**` do `derivados.yml` e **não** casa nenhuma das entradas do
+`publicar.yml` — o `professores/**/ciclos/ciclo-*/**` pede uma **pasta**, e o lançamento escreve
+**ficheiros**; o `professores/**/ciclos/*.conf` pede um `.conf`, e o lançamento não toca nele. Um
+job, um minuto. Medido depois do corte: **quatro execuções de `Fechar os derivados`, 16 s e 33 s
+(dois pares) — 1 minuto cada.**
+
+**3. A consolidação, medida dos dois lados.** O mesmo trabalho, antes e depois:
+
+| | pushes | execuções | jobs | minutos | min/push |
+|:--|--:|--:|--:|--:|--:|
+| **8–17/11 até ao corte (13:01Z)** | 285 | 972 | 1.155 | **1.284** | **4,51** (mediana 3 · p90 10 · máx 27) |
+| **17/11 depois do corte** | 23 | 28 | 28 | **28** | **1,22** (mediana 1 · p90 2 · máx 2) |
+| **contrafactual**: os mesmos 285 pushes, com o modelo de hoje | 285 | — | — | **444** | **1,56** |
+
+**A redução é de 65,4%.** E há uma segunda economia que não estava à vista: no regime antigo
+1.284 min de cota compravam 447 min de relógio (**2,87×** de desperdício de arredondamento); no
+regime novo, 28 min compram 16,3 min (**1,72×**). **A consolidação não encurtou o trabalho — tirou
+o arredondamento que se pagava por trabalho que não existia.**
+
+**4. A fatura, e o crédito que resta.** Lido hoje pela API de uso, nas duas competências:
+
+| mês | minutos | bruto | desconto | **cobrado** |
+|:--|--:|--:|--:|--:|
+| outubro/2026 | **1.075** | US$ 6,45 | US$ 6,45 | **US$ 0,00** |
+| novembro/2026 (1–17) | **1.965** | US$ 11,79 | US$ 11,79 | **US$ 0,00** |
+
+Novembro gastou **98,25% da cota em 17 dias**, e o crédito de $12 está a **US$ 0,21 do fim**. É o
+estado que o §L9e antecipou: o `pagar` só aparece quando o crédito acaba, e ele está a acabar.
+
+**5. Quem consome: a engenharia, não as escolas.** O contrafactual partido por classe, nos mesmos
+dez dias:
+
+| classe | minutos (modelo de hoje) | projecção/mês |
+|:--|--:|--:|
+| **engenharia (deploys do sistema)** | **174** | **522** |
+| escola (lançamentos) | 173 | 519 |
+| geração de pacotes | 74 | 222 |
+| habilitação de escolas | 23 | 69 |
+
+**O maior consumidor da cota gratuita é o desenvolvimento do próprio produto — 522 min/mês, mais do
+que uma escola inteira do Intermediário.** É a descoberta que muda a leitura do §L9c: a pergunta
+«quantas escolas cabem» tem, à frente, uma pergunta que ninguém tinha feito — «quanto é que a nossa
+própria obra come». E é por isso que o §L9e existe (rotação para público) e que ele é
+**temporário**: no dia em que houver escola pagante, o repositório tem de ficar **privado**, porque
+as fontes pedagógicas não se expõem. **Toda a conta desta secção é a conta do mundo privado.**
+
+**6. A projecção do mês.** 444 min em dez dias = **44,4 min/dia → 1.332 min/mês = 67% da cota**. No
+modelo antigo, o mesmo trabalho projectava **3.852 min = 193%** — mais do que o dobro da cota, com
+execuções bloqueadas perto do dia 20. **A consolidação mudou o mês de «não cabe» para «cabe com um
+terço de folga», sem reduzir um único passo do trabalho.**
+
+**7. A capacidade para novas escolas.** `capacidade = (2.000 − engenharia) ÷ minutos por aula` =
+`(2.000 − 522) ÷ 1` = **1.478 aulas/mês**. Repartidas pela franquia (que é um **teto**, não um
+consumo):
+
+| só com um plano | franquia | min/escola | escolas no teto | a 40% de uso | receita/mês a 40% |
+|:--|--:|--:|--:|--:|--:|
+| Básico | 100 aulas | 100 | **14** | **36** | R$ 2.516 |
+| Intermediário | 300 aulas | 300 | **4** | **12** | R$ 1.199 |
+| Avançado | 800 aulas | 800 | **1** | **4** | R$ 560 |
+
+**A cota gratuita favorece muitas escolas pequenas, e não poucas grandes** — a franquia do Avançado
+(800 aulas) come 40% da cota inteira sozinha. Não é um problema de desenho; é a aritmética a dizer
+que **o plano de topo é o que obriga a pagar**, e ele é o que paga menos por minuto.
+
+**8. Quando migrar — e o gatilho não é o dinheiro.** O minuto excedente custa **US$ 0,006 = R$ 0,033**
+(câmbio 5,50). Uma aula além da cota custa **três cêntimos e três décimos** contra uma receita de
+**R$ 0,175 a R$ 0,699 por aula**: a margem do compute é de **81% a 95%**, e dentro da cota é 100%.
+**O compute nunca foi o problema económico.** A escada, em minutos:
+
+| degrau | franquia | custo | ponto de indiferença |
+|:--|--:|--:|:--|
+| Free | 2.000 min | US$ 0 | até 2.000 min |
+| Free + excedente | — | US$ 0,006/min | 2.000 → 2.666 min (o excedente custa até $4) |
+| **Team** | 3.000 min | **US$ 4/pessoa** | **acima de 2.666 min** — 666 min × $0,006 = $4 |
+| Free+excedente ou Team+excedente | — | — | ~5.833 min (2.833 × $0,006 + $4 = $21) |
+| **Enterprise** | 50.000 min | US$ 21/pessoa | acima de ~5.833 min |
+
+**O que dói não é a fatura, é a paragem.** Em repositório privado e cota esgotada, o GitHub **bloqueia
+as execuções** — e o lançamento da professora falha sem que ninguém tenha dito que ia falhar. O
+gatilho da migração é, portanto, **de disponibilidade, e não de preço**: migra-se quando a
+**projecção do mês** passa dos 2.000 min, e a projecção existe no painel do §L9d exactamente para
+isso ser visto antes e não depois. Hoje a projecção é **67%**.
+
+**9. O dimensionamento das extensões — a aritmética, e o que ela proíbe.** A regra declarada é que
+**o plano superior tem de ser mais vantajoso por aula do que somar extensões**. Isso fixa um **piso**
+por degrau, e não um gosto:
+
+| degrau que se quer proteger | conta | piso |
+|:--|:--|--:|
+| Intermediário (300 aulas, R$ 99,90) contra Básico + extensões | 69,90 + ext(200) > 99,90 | **ext(200) > R$ 30,00 → R$ 0,15/aula** |
+| Avançado (800 aulas, R$ 139,90) contra Intermediário + extensões | 99,90 + ext(500) > 139,90 | **ext(500) > R$ 40,00 → R$ 0,08/aula** |
+
+**O piso que manda é o de cima, R$ 0,15 por aula.** Abaixo disso, o Básico com extensões compra o
+Intermediário mais barato e a escada desaba. Acima disso, o preço é posicionamento, não aritmética —
+e há duas âncoras: o **Avançado a R$ 0,175/aula** (uma extensão abaixo disso compete com o topo) e a
+**conciliação manual do §L11** (uma extensão de R$ 12 custa mais em administração do que rende).
+Uma proposta, para ela decidir: **R$ 0,20/aula**, em quatro tamanhos que espelham as franquias —
+**P +100 = R$ 19,90 · M +300 = R$ 59,90 · G +800 = R$ 159,90 · GG +2.000 = R$ 399,90**. Verificado
+degrau a degrau: do Básico, **P leva a 200 aulas por R$ 89,80** e o Intermediário dá 300 por R$ 99,90
+— **subir ganha**; do Intermediário a 800 aulas por extensões custa **R$ 199,40** (cinco P) e o
+Avançado custa **R$ 139,90** — **subir ganha**. **A margem do compute numa extensão de 300 aulas é
+de 83%** (R$ 9,90 de compute contra R$ 59,90), e de 100% enquanto couber na cota.
+
+**10. A contradição que a aritmética revelou (C24).** O mínimo declarado para o consumo real é
+**«no mínimo 5 aulas por dia»** (§L9c, 16/11) = **110 aulas/mês**, e a franquia do **Básico é 100**.
+**O degrau de entrada é menor do que o menor uso já declarado.** Duas leituras, e não se escolhe por
+dedução: *(i)* as 5/dia são da **escola** inteira e uma escola do Básico (1 professor, 1 turma)
+lança ~13/mês, caso em que 100 é folgado e a frase do §L9c estava a falar de outra coisa; *(ii)* as
+5/dia são de **qualquer** escola, e então o Básico nasce em extensão. Qual das duas é verdade muda o
+preço do degrau de entrada, e é ela que sabe.
+
+**Critérios verificáveis.** (xxvii) o painel mostra os minutos faturados da janela e eles batem com
+a fatura da API de uso dentro de 5% — o modelo `jobs × ⌈s/60⌉` é o que se usa, e `timing.billable`
+não se lê; (xxviii) o custo de **um lançamento** aparece como **1 minuto**, e um teste que o force a
+2 reprova; (xxix) a projecção do mês aparece **em minutos e em percentagem da cota**, com o número de
+dias que faltam; (xxx) a capacidade em escolas é calculada a partir da franquia **e** de uma taxa de
+uso declarada — nunca da franquia sozinha; (xxxi) o gatilho de migração é a **projecção acima de
+2.000 min**, e não o crédito gasto; (xxxii) nenhuma extensão pode deixar um plano inferior alcançar
+a franquia do superior por menos dinheiro — a conta dos dois pisos corre numa prova.
+
+**O que esta auditoria NÃO mede, e não pode medir hoje.** (a) **A taxa de uso real de uma escola** —
+não existe nenhuma escola pagante a lançar aulas; o que há são as escolas de teste, e o consumo delas
+é o *nosso*. Por isso as tabelas do ponto 7 têm a coluna «a 40% de uso» **declarada**, não medida.
+(b) **O tráfego de leitura** (KV, pedidos ao Worker): a fatura do GitHub não o vê e o §L9c já mostrou
+que ele é fração de 1%; medir isso é o painel do §L9d, e ele já o lê. (c) **O custo das outras
+quotas** — Resend (3.000/mês **e** 100/dia) e Cloudflare — continuam onde o §L9d as pôs: medidas,
+mas fora desta conta, que é a dos minutos.
+
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
 - **Objetivo e justificativa.** Dar existência modelada aos conceitos com que as perguntas do
@@ -3382,6 +3613,19 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | A aresta dos 30 alunos **fica declarada**, sem terceiro lote | **§L9b** · **§3 C23** |
 | O que a decisão custou, e o que fica em aberto | **§3 C23** — o Intermediário passa a ser o mais vendido (7 de 15 perfis) **e a escada perde R$ 490/mês** nos quinze perfis medidos |
 
+### A auditoria de 17/11/2026 — as cinco perguntas, e onde cada uma é respondida
+
+| A pergunta | Onde é respondida | Com que número |
+|:--|:--|:--|
+| Quantos **minutos facturados por processamento** | **§L9f** ponto 2 | lançar uma aula = **1 min** (1 job, 14 s) · publicar = **1 min** · gerar o pacote = **2 min** · habilitar escola = **1 min** (máx 23) |
+| Quantos **processamentos por dia** | **§L9f** pontos 3–5 | 285 pushes em 10 dias = **28,5/dia** no regime antigo; **44,4 min/dia** no modelo de hoje |
+| Quantos **minutos por mês** num cenário real | **§L9f** ponto 6 | **1.332 min = 67% da cota** (o modelo antigo projectava **3.852 = 193%**) |
+| **Capacidade** disponível para novas escolas | **§L9f** ponto 7 | **1.478 aulas/mês** depois de 522 min de engenharia — 14 Básico / 4 Intermediário / 1 Avançado **no teto**, e 36 / 12 / 4 **a 40% de uso** |
+| **Em que momento** migrar para plano pago | **§L9f** ponto 8 | a **projecção acima de 2.000 min** — não o crédito gasto; e o gatilho é **disponibilidade**, não preço |
+| O que **fundamenta** a conta | **§L9f** ponto 1 | o modelo `jobs × ⌈s/60⌉` reproduz a fatura em **+3,5%** (dez linhas diárias); `timing.billable` vem **0** |
+| O **dimensionamento** de P/M/G/GG | **§L9f** ponto 9 | piso de **R$ 0,15/aula** (senão a escada desaba) e proposta a **R$ 0,20/aula**: +100 · +300 · +800 · +2.000 |
+| A contradição que a aritmética achou | **§3 C24** | franquia do Básico **100** × mínimo declarado **110 aulas/mês** |
+
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
 1. **A definição de «contexto», «componente», «intervenção» e «resposta observada»** (§3 C10) —
@@ -3419,6 +3663,12 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
   este documento tinha deixado aberta — foi decidido no mesmo dia: `1 prof/10 alunos · 3/40 ·
   6/90`, com a tabela dos quinze perfis a prová-lo (§3 C23). O que continua **não** decidido, e é
   decisão de negócio, é o **preço do degrau de alunos acima de 30** e a **cobrança real**.
+- **Não decidiu os tamanhos nem os preços das extensões P/M/G/GG** *(17/11/2026)*. A auditoria
+  (§L9f ponto 9) fixa o **piso** que a escada impõe — **R$ 0,15 por aula**, senão um plano inferior
+  alcança a franquia do superior por menos dinheiro — e propõe **R$ 0,20/aula** em quatro tamanhos
+  (+100 · +300 · +800 · +2.000, de R$ 19,90 a R$ 399,90), cada um verificado degrau a degrau. A
+  **proposta** está medida; a **decisão** é dela, e o número que a fecha não é aritmético: é o
+  **bilhete mínimo** que a conciliação manual do §L11 justifica.
 - **Não alterou** nenhum arquivo de produto, nenhuma fonte de ciclo, nem o KV (a leitura foi
   somente leitura) — e **não implementou** a versão explícita decidida em C3: esta fase é
   diagnóstico e planeamento, e as três medidas que delimitam a implementação foram feitas em
