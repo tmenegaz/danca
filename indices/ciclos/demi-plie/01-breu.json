@@ -34,15 +34,18 @@
     "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
+    "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
     "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json",
     "documento:glossario:professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md",
     "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
+    "documento:indice:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclos.json",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
     "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
     "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
     "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
     "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
+    "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu-rosa/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -60,7 +63,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -78,6 +81,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -105,7 +113,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -113,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "62a6009"
+    "commit": "8cf792a"
   },
-  "gerado_em": "2026-11-17T01:31",
+  "gerado_em": "2026-11-17T01:32",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
