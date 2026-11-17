@@ -1861,6 +1861,15 @@ module.exports = {
 /** O dinheiro, em centavos → «R$ 239,00». Uma função, e não uma conta em cada sítio. */
 const reaisDeCentavos = (c) => 'R$ ' + ((Math.round(Number(c) || 0)) / 100).toFixed(2).replace('.', ',');
 const usd = (v) => 'US$ ' + (Math.round(Number(v) * 100) / 100).toFixed(2).replace('.', ',');
+/* UM PREÇO UNITÁRIO NÃO TEM DOIS DECIMAIS. `$0,006` por minuto, arredondado a cêntimos, aparece
+ * como `$0,01` — um erro de 67% num número que a página usa para explicar a conta. Este formatador
+ * mostra os decimais que o valor precisar, até quatro, e nunca mente por arredondamento. */
+const usdFino = (v) => {
+  const n = Number(v) || 0;
+  let casas = 2;
+  while (casas < 4 && Math.abs(Math.round(n * Math.pow(10, casas)) - n * Math.pow(10, casas)) > 0.0001) casas += 1;
+  return 'US$ ' + n.toFixed(casas).replace('.', ',');
+};
 const pct = (f) => (Math.round((Number(f) || 0) * 1000) / 10).toFixed(1).replace('.', ',') + '%';
 
 /**
@@ -1931,9 +1940,9 @@ function blocoDoGithub(g) {
   return '<div class="caixa" id="monitor-github">' +
     '<h2>GitHub — o CI/CD</h2>' +
     '<p>A franquia do plano <strong>' + esc(c.plano) + '</strong> é de <strong>' + dinheiro(c.computeIncluidoUsd) +
-    ' por mês</strong> — o que dá ' + g.incluido + ' minutos a ' + usd(c.precoMinutoUsd) + '. Ela não aparece ' +
-    'na fatura como um tecto: aparece como um <strong>desconto igual ao valor usado</strong>. Por isso um mês ' +
-    'com $11,60 de valor e $11,60 de desconto paga <strong>$0,00</strong>.</p>' +
+    ' por mês</strong> — o que dá ' + g.incluido + ' minutos a ' + usdFino(c.precoMinutoUsd) + '. Ela não aparece ' +
+    'na fatura como um tecto: aparece como um <strong>desconto igual ao valor usado</strong>. Por isso ' +
+    'um mês em que o valor usado é igual ao desconto paga <strong>zero</strong>.</p>' +
     (daFactura
       ? '<div class="ficha">' +
         '<span>Usado no mês: <strong>' + fat.minutos + ' min</strong></span>' +

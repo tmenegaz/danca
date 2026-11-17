@@ -432,6 +432,12 @@ function conferir(titulo, condicao, dado) {
       /o mês fecha em 3411 min<\/strong>/.test(htmlFact) && /US\$ 20,47/.test(htmlFact)
         && /US\$ 8,47/.test(htmlFact),
       (htmlFact.match(/A este ritmo[\s\S]{0,320}/) || [null])[0]);
+    /* O PREÇO UNITÁRIO NÃO PODE SER ARREDONDADO A CÊNTIMOS: $0,006 mostrado como $0,01 é um erro
+     * de 67% num número que a própria página usa para explicar a conta. Apanhado ao vivo, e é por
+     * isso que a asserção existe. */
+    conferir('o preço por minuto aparece com os decimais que tem ($0,006, não $0,01)',
+      /a US\$ 0,006/.test(htmlFact) && !/a US\$ 0,01/.test(htmlFact), null);
+
     conferir('…e o crédito que resta é dito no ecrã, com a data em que acaba',
       /crédito<\/strong> ainda por usar/.test(htmlFact) && /esgota-se em 0,6 dias/.test(htmlFact),
       (htmlFact.match(/US\$ 0,40[\s\S]{0,200}/) || [null])[0]);

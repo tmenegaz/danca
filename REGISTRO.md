@@ -49099,3 +49099,12 @@ quantos dias o crédito do mês se esgota», «o ecrã mostra a projecção em D
 pagar (e não o bruto)». E a leitura ao vivo da API confirma-a: 17 linhas, 1.933 min, $11,60 de
 bruto, $11,60 de desconto, $0,00 líquido, $0,40 de crédito. Mais `provar-financeiro-da-escola` 90/90
 · `provar-abas` 28/28 · `check-identidade` 0 erros.
+
+### Nota de correcção, no mesmo dia — `US$ 0,01` por minuto
+
+A primeira leitura ao vivo do painel novo mostrou, na frase que explica a franquia: «2.000 minutos a
+**US$ 0,01**». O preço é `$0,006`, e o formatador arredondava a cêntimos — **um erro de 67% dentro
+do parágrafo que existe para explicar a conta**. Nasceu `usdFino`, que mostra os decimais que o valor
+precisar (até quatro) e nunca arredonda por baixo do que o número é. E nasceu a asserção que o
+apanha: «o preço por minuto aparece com os decimais que tem ($0,006, não $0,01)». `provar-monitoramento`
+**66/66**.
