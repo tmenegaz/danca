@@ -1172,6 +1172,36 @@ header.doc, main, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
 [data-largura="matriz"] main,
 [data-largura="matriz"] .rodape { max-width: 1180px; }
 
+/* A TELA DE MONITORAMENTO LÊ-SE MAIS LARGA QUE O DOCUMENTO (17/11/2026).
+ *
+ * O DEFEITO, MEDIDO NUM NAVEGADOR: numa janela de 1920px o `main` ocupava a largura toda — o
+ * layout de painel já o destrava — e o `.conteudo` lá dentro continuava preso a **900px**, com a
+ * tabela da migração a 850. Ou seja: **47% da página usada**, e a coluna «Da receita» com 72px a
+ * partir o título em duas linhas. A pesquisadora: «está muito apertado, você não está usando nem a
+ * metade da página […] está tudo apertadinho».
+ *
+ * PORQUE NÃO SE ALARGA O `.conteudo` EM TODO O LADO: os 900px não são um número qualquer — são a
+ * medida de leitura da casa, e valem para a prosa (aula, caderno, relatório). Uma linha de 1350px
+ * de texto cansa. Mas o monitoramento não é prosa: é um painel de tabelas de cinco e seis colunas,
+ * e a matriz já tinha aberto esta excepção a 1180px pela mesma razão («900 é pouco para uma tabela
+ * de sete colunas»).
+ *
+ * O ESCOPO É A TELA, E NÃO O LAYOUT: `data-tela="monitoramento"` já existia no `<body>` (é o que
+ * diz em que ecrã se está), portanto não nasce vocabulário novo. As outras telas de painel ficam
+ * com a medida de sempre — «depois a gente vê as outras páginas, mas por enquanto faz só essa».
+ *
+ * O VALOR É O QUE ELA PEDIU — «uns 50% a mais do que já tem»: 900 × 1,5 = 1350. E o `calc` é
+ * cinto de segurança: numa janela de 1280 a caixa nunca passa do que cabe, com o mesmo ar de 24px
+ * de cada lado que o `padding` já declara. */
+[data-tela="monitoramento"] .conteudo {
+  max-width: min(1350px, calc(100vw - 48px));
+}
+/* A COLUNA DO TÍTULO NÃO SE PARTE. «Da receita» com 72px virava duas linhas e inflava a faixa do
+ * cabeçalho da tabela para 67px em todas as linhas. Com a caixa mais larga há espaço; o `nowrap`
+ * garante que o título não volta a partir-se numa janela mais estreita — e é só nos títulos, nunca
+ * no conteúdo das células, que precisa de quebrar. */
+[data-tela="monitoramento"] thead th { white-space: nowrap; }
+
 /* O CABEÇALHO RESPIRA, E O RESPIRO É PADDING — NÃO MARGEM (06/11/2026).
  *
  * Medido no documento real da aula 01, com a folha de hoje: no estado PRESO o `h1` começava

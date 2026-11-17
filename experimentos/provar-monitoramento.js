@@ -685,6 +685,76 @@ function conferir(titulo, condicao, dado) {
         conferir('…e é a peça despida da folha, não o `<progress>` do navegador',
           m.aparencia === 'none', m.aparencia);
         conferir('…e os cantos são de pílula', m.raio.every((r) => /999px/.test(r)), m.raio);
+
+        /* ── A LARGURA DA TELA DE MONITORAMENTO (17/11/2026) ────────────────────────────────────
+         *
+         * «Está muito apertado, você não está usando nem a metade da página.» O DEFEITO MEDIDO:
+         * numa janela de 1920 o `main` ocupava a largura toda e o `.conteudo` continuava preso a
+         * 900px — 47% da página —, e a coluna «Da receita» partia o título em duas linhas (67px de
+         * faixa). A correcção é uma regra de escopo `data-tela="monitoramento"` que sobe a caixa
+         * para 1350px (900 × 1,5, o que ela pediu) e mantém os títulos numa linha.
+         *
+         * A asserção mede as duas coisas que doem: a fracção da janela usada e a altura da faixa
+         * do cabeçalho da tabela. Números, não texto de CSS. */
+        const paginaDoMonitor = painel.paginaDoMonitoramento({
+          retrato: monitor.retrato({
+            github: null,
+            correio: monitor.resumirCorreio({ contadores: { mes: '2026-11', enviados: 0, dias: {} }, hoje: '2026-11-17' }),
+            cloudflare: monitor.resumirCloudflare({ escolas: [], chaves: {} }),
+            receita: monitor.receita({ extrato: [], descontos: [], mes: '2026-11' }),
+            cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+          }),
+          cambio: 5.4, visibilidade: { publico: true }, aba: 'migracao',
+        });
+        const srv2 = http.createServer((req, res) => {
+          if (req.url.indexOf('/assets/style.css') === 0) {
+            res.writeHead(200, { 'Content-Type': 'text/css' });
+            res.end(css);
+            return;
+          }
+          res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+          res.end(paginaDoMonitor);
+        });
+        await new Promise((r) => srv2.listen(0, '127.0.0.1', r));
+        const base2 = 'http://127.0.0.1:' + srv2.address().port;
+        const pg2 = await br.newPage();
+        try {
+          await pg2.setViewport({ width: 1920, height: 1000 });
+          await pg2.goto(base2 + '/', { waitUntil: 'load' });
+          const larg = await pg2.evaluate(() => {
+            const c = document.querySelector('.conteudo').getBoundingClientRect().width;
+            const ths = [...document.querySelectorAll('#monitor-migracao thead th')]
+              .map((e) => Math.round(e.getBoundingClientRect().height));
+            return {
+              vw: window.innerWidth,
+              conteudo: Math.round(c),
+              th: ths,
+              transborda: document.documentElement.scrollWidth > window.innerWidth + 1,
+            };
+          });
+          /* A FRACÇÃO: 1350 de 1920 é 70%. Eram 47% (900 de 1920). O limiar é o meio da página —
+           * abaixo dele o painel volta a desperdiçar metade do ecrã. */
+          conferir('numa janela de 1920 a coluna usa mais de metade da página (era 47%)',
+            larg.conteudo / larg.vw > 0.6 && larg.conteudo === 1350,
+            { conteudo: larg.conteudo, vw: larg.vw, fraccao: Math.round((larg.conteudo / larg.vw) * 100) + '%' });
+          conferir('…e o título das colunas cabe numa linha (42px, não 67)',
+            larg.th.length > 0 && larg.th.every((h) => h <= 48), larg.th);
+          conferir('…sem fazer a página transbordar na horizontal', larg.transborda === false, larg.transborda);
+
+          /* E O ECRÃ ESTREITO: a caixa nunca passa do que cabe, e a tabela rola dentro do bloco. */
+          await pg2.setViewport({ width: 414, height: 900 });
+          await pg2.goto(base2 + '/', { waitUntil: 'load' });
+          const estreito = await pg2.evaluate(() => ({
+            vw: window.innerWidth,
+            conteudo: Math.round(document.querySelector('.conteudo').getBoundingClientRect().width),
+            transborda: document.documentElement.scrollWidth > window.innerWidth + 1,
+          }));
+          conferir('…e a 414px a caixa encolhe com a janela, em vez de forçar scroll',
+            estreito.conteudo < 400 && estreito.transborda === false, estreito);
+        } finally {
+          await pg2.close();
+          srv2.close();
+        }
       } finally {
         await br.close();
         srv.close();

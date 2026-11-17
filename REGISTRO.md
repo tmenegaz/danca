@@ -49348,3 +49348,70 @@ obriga a adivinhar; este diz exactamente a permissão que falta.
 **Um detalhe tipográfico corrigido no mesmo passo:** o recado lia «Não foi feito. **o** token não
 pode…». O motivo vem em minúscula do servidor, porque é uma frase dentro de outra; a maiúscula é do
 ecrã. `provar-monitoramento` **90/90**.
+
+## 17/11/2026 — o monitoramento usava 47% da página, e a coluna do título partia-se
+
+**Motivo declarado (CONGELAMENTO.md): alteração em `tools/templates/`, com entrada no REGISTRO e
+commit próprio. É este.**
+
+**O pedido:** «alargar os espaços que tem aqui dentro do monitoramento, porque está muito apertado,
+você não está usando nem a metade da página […] tem colunas aqui na migração que estão com duas
+linhas no título […] pode aumentar uns 50% a mais do que já tem».
+
+**O DEFEITO, MEDIDO NUM NAVEGADOR antes de se mexer em nada** — não deduzido do CSS:
+
+| janela | `main` | `.conteudo` | tabela | faixa do `th` | «Da receita» |
+|:--|--:|--:|--:|--:|:--|
+| 1920 px | 1920 | **900** | 850 | **67 px** | 72 px, em duas linhas |
+| 1440 px | 1440 | **900** | 850 | 67 px | idem |
+
+Ou seja: **47% da página**. O layout de painel já destravava o `main` desde 1200px
+(`[data-layout="painel"] main { max-width: none }`), mas o `.conteudo` lá dentro continuava preso à
+medida de leitura de 900px — a regra que existe para a prosa da aula, do caderno e do relatório.
+
+**A CORRECÇÃO, e porque não é «alargar o `.conteudo` em todo o lado».** Os 900px não são um número
+qualquer: são a medida de leitura da casa, e uma linha de 1350px de texto cansa. Uma tela de painel
+com tabelas de cinco e seis colunas é outra coisa — a matriz já tinha aberto esta excepção a 1180px
+pela mesma razão («900 é pouco para uma tabela de sete colunas»). Nasceu portanto **uma regra com
+escopo de TELA**, não de layout:
+
+```css
+[data-tela="monitoramento"] .conteudo { max-width: min(1350px, calc(100vw - 48px)); }
+[data-tela="monitoramento"] thead th { white-space: nowrap; }
+```
+
+- **O escopo é `data-tela`**, que já existia no `<body>` — não nasce vocabulário novo. As outras
+  telas de painel ficam com a medida de sempre: «depois a gente vê as outras páginas, mas por
+  enquanto faz só essa».
+- **1350 é 900 × 1,5** — o que ela pediu, em número. O `min(…, calc(100vw - 48px))` é o cinto de
+  segurança: a caixa nunca passa do que cabe, com o mesmo ar de 24px por lado.
+- **O `nowrap` é só nos títulos**, nunca nas células — «Da receita» com 72px partia-se em duas
+  linhas e inflava a faixa para 67px em **todas** as linhas da tabela.
+
+**O RESULTADO, medido depois, nas três abas e em cinco larguras:**
+
+| janela | `.conteudo` | fracção da página | faixa do `th` | transborda? |
+|:--|--:|--:|--:|:--|
+| 1920 | **1350** | **70%** | **42 px** | não |
+| 1440 | **1350** | 94% | 42 px | não |
+| 1280 | 1232 | 96% | 42 px | não |
+| 1024 | 852 | — | 42 px | não |
+| 414 | 366 | — | 42 px | não |
+
+De **47% para 70%** na janela grande, e a faixa do cabeçalho de **67px para 42px**. Abaixo de
+1200px a caixa segue a medida da casa, e a tabela rola dentro do `.rolagem-caixa` — que é a peça que
+já existia para isso.
+
+**As três cópias da folha foram regeneradas**, e a checagem «Circuito» do `check-identidade.js`
+foi quem o exigiu (reprovou as três, como devia): `raiz/assets/style.css` por
+`tools/gerar-raiz.sh`, e os dois pacotes por `tools/gerar-ciclo.sh`. O `ciclo-01-breu` **não
+regenera** — o `.conf` tem `DOCS=""` (é um ciclo sem fonte, resto de uma escola expurgada) —, e a
+folha dele foi sincronizada pelo mesmo `cp` que o gerador faz.
+
+**Com o quê.** `provar-monitoramento` **94/94**, com quatro asserções novas **medidas num
+navegador de verdade** (não lidas do texto do CSS): «numa janela de 1920 a coluna usa mais de metade
+da página (era 47%)», «…e o título das colunas cabe numa linha (42px, não 67)», «…sem fazer a página
+transbordar na horizontal», «…e a 414px a caixa encolhe com a janela, em vez de forçar scroll». Mais
+`provar-financeiro-da-escola` 90/90 · `provar-abas` 28/28 · `provar-piso` 34/34 ·
+`provar-identidade-ao-lado` 27/27 · `check-identidade` 0 erros (as 22 verificações, incluindo o
+Circuito).
