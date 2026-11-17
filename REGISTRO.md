@@ -48212,3 +48212,28 @@ Mais `provar-financeiro` 58/58 · `provar-recriar-escola` 92/92 · `provar-cofre
 16); se quiser dia 5 ou dia 10 para todas, é uma linha — mas muda a data de quem já está a pagar, e
 por isso não se muda sozinho. E não há **aviso** de vencimento: o sistema mostra o estado, não
 persegue ninguém.
+
+## 16/11/2026 — a tira das abas não se esconde sozinha (motivo declarado)
+
+**O defeito que apareceu ao usar a peça no quarto sítio.** A folha mandava `display: none` na tira
+abaixo de 560px, para dar lugar à pílula das abas. Isso estava certo enquanto **todas** as páginas
+que usavam a peça tinham pílula. O Financeiro não tem — o painel é uma ferramenta de computador —, e
+com a regra da folha a segunda e a terceira abas ficavam `hidden` e **inalcançáveis** num telemóvel:
+uma página sem forma de mudar de aba. Não era um defeito de desenho; era a folha a decidir pela
+página uma coisa que só a página sabe.
+
+**O que muda.** A folha deixa de esconder: abaixo de 560px a tira **rola dentro de si** (com a barra
+escondida, o mesmo tratamento que a casa já dá às matrizes largas). Esconder passa a ser decisão de
+quem tem pílula, e a regra vive na folha dessa página — a Produção já a tinha na sua.
+
+**Motivo declarado — o congelado.** `tools/templates/ciclo.css` é congelado e muda aqui pela segunda
+vez no mesmo dia: a alternativa seria deixar uma página com conteúdo inalcançável, ou pôr no painel
+uma folha de estilos própria — o painel não tem nenhuma, e uma página a redeclarar a peça é
+exactamente o que a regra da identidade existe para impedir.
+
+- **O que muda:** o `@media (max-width: 560px)` da peça passa de `display: none` para `overflow-x:
+  auto` (e `.aba { flex: 0 0 auto; }`, para as abas não encolherem até ao ilegível).
+- **O que não muda:** a Produção, onde a tira continua a sair e a pílula a entrar — a regra local
+  dela não foi tocada.
+- **A prova:** `provar-abas.js` **25/25** — a folha não manda a tira desaparecer, a página que tem
+  pílula esconde-a na folha dela, a 390px a tira continua lá e rola, e a 700px não rola.

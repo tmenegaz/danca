@@ -21,8 +21,11 @@
  *      comprimento a cada clique e a página pareceria tremer.
  *   D. AS MARCAS SÃO O CONTRATO. `role="tab"`, `aria-selected` e o painel `hidden` — o motor de
  *      cada página é dela, mas as marcas são o que a folha desenha e o que o leitor de ecrã lê.
- *   E. NO TELEMÓVEL A TIRA SAI (560px), porque três rótulos lado a lado a 360px não caberiam sem
- *      reticências em todos — e uma aba com o nome cortado não se escolhe.
+ *   E. NO TELEMÓVEL A TIRA NÃO DESAPARECE SOZINHA (560px). Três rótulos lado a lado a 360px não
+ *      caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe —, mas a
+ *      folha não pode resolver isso escondendo a peça: uma página sem pílula ficaria sem NENHUMA
+ *      forma de mudar de aba, com o segundo e o terceiro painéis inalcançáveis. A folha faz rolar;
+ *      esconder é decisão da página que tem pílula, e é lá que se mede.
  *
  *   node experimentos/provar-abas.js
  */
@@ -67,8 +70,8 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
       /\.aba\[aria-selected="true"\]/.test(css), null);
     conferir('…com o estado da aba que ainda não pode abrir',
       /\.aba\[disabled\]/.test(css), null);
-    conferir('…e com o corte do telemóvel, onde a tira sai',
-      /@media \(max-width: 560px\) \{\s*\n\s*\.abas \{ display: none; \}/.test(css), null);
+    conferir('…e com o corte do telemóvel, onde a tira passa a rolar',
+      /@media \(max-width: 560px\) \{[\s\S]{0,400}?\.abas \{[\s\S]{0,200}?overflow-x: auto/.test(css), null);
 
     /* NENHUMA PÁGINA A REDECLARA. Este é o defeito que a peça na folha existe para impedir: uma
      * segunda declaração com outro vão, ou outra tinta, é a mesma peça a fingir que é duas. */
@@ -80,6 +83,12 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
     });
     conferir('…e nenhuma página a redeclara (o desenho mora num sítio só)',
       redeclaram.length === 0, redeclaram);
+    /* A FOLHA NÃO ESCONDE A PEÇA (corrigido em 16/11/2026): esconder é decisão de quem tem pílula,
+     * e essa regra vive na folha da página que a tem. */
+    conferir('…e a folha não manda a tira desaparecer — quem tem pílula é que a esconde',
+      !/\.abas\s*\{[^}]*display:\s*none/.test(css), null);
+    conferir('…e a página que tem pílula esconde-a na folha dela',
+      /\.abas\{display:none;\}/.test(fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8')), null);
     /* A CÓPIA DAS SUPERFÍCIES É A MESMA FOLHA — o `check-identidade` confere-o, e aqui confirma-se
      * que a cópia que o painel serve já tem a peça. */
     const copia = fs.readFileSync(path.join(RAIZ, 'raiz/assets/style.css'), 'utf8');
@@ -199,9 +208,22 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
         { um: largo.painelVisivel, dois: largo.escondidoVisivel });
       conferir('a aba tem altura de alvo confortável (≥ 30px)', largo.altura >= 30, largo.altura);
 
+      /* 390px: A TIRA CONTINUA LÁ, e rola. O que se afirma é que a peça não se esconde sozinha —
+       * o defeito que isto corrige era uma página sem pílula ficar com os painéis 2 e 3
+       * inalcançáveis. */
       const estreito = await medir(390);
-      conferir('no telemóvel (390px) a tira sai, e fica a pílula das abas',
-        estreito.navDisplay === 'none', estreito.navDisplay);
+      conferir('no telemóvel (390px) a tira não desaparece — a peça nunca se esconde sozinha',
+        estreito.navDisplay !== 'none', estreito.navDisplay);
+      /* E ROLA, em vez de empurrar a página para o lado. */
+      const rolavel = await page.evaluate(() => {
+        const n = document.querySelector('.abas');
+        if (!n) return null;
+        const cs = getComputedStyle(n);
+        return { overflow: cs.overflowX, agora: n.scrollWidth <= n.clientWidth + 1 };
+      });
+      conferir('…e o que não couber rola dentro dela',
+        rolavel && (rolavel.overflow === 'auto' || rolavel.overflow === 'scroll' || rolavel.agora === true),
+        rolavel);
       const meio = await medir(700);
       conferir('a 700px a tira ainda está', meio.navDisplay !== 'none', meio.navDisplay);
     } finally {

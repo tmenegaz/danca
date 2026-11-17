@@ -1638,11 +1638,27 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
    `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
    `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba traz. */
 .aba-painel { min-width: 0; }
-/* A PÍLULA DAS ABAS NO TELEMÓVEL (09/11/2026). Três rótulos lado a lado a 360px não caberiam sem
-   reticências em todos — e uma aba com o nome cortado não se escolhe. Abaixo de 560px a tira sai e
-   fica a pílula, que sobe uma folha com as mesmas abas. O corte é o do «Ações» da anamnese. */
+/* AS ABAS NO TELEMÓVEL (09/11/2026 · corrigido em 16/11/2026). Três rótulos lado a lado a 360px não
+   caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. A saída é a
+   pílula, que sobe uma folha com as mesmas abas; o corte é o do «Ações» da anamnese.
+
+   O QUE ESTAVA ERRADO, e apareceu quando a peça ganhou o quarto consumidor. Esta regra punha
+   `display: none` na tira — e uma página sem pílula ficava SEM NENHUMA forma de mudar de aba: o
+   painel da segunda e da terceira aba continuavam `hidden`, e o conteúdo era inalcançável num
+   telemóvel. A folha estava a decidir pela página uma coisa que só a página sabe: se ela tem, ou
+   não, uma pílula para pôr no lugar.
+
+   Agora a folha faz o que é dela — **a tira passa a rolar em vez de sair** —, e quem tem pílula
+   esconde a tira na sua própria folha de estilos, que é onde essa decisão pertence. A tira é a
+   mesma peça em todos os casos; o que muda é quem a substitui. */
 @media (max-width: 560px) {
-  .abas { display: none; }
+  .abas {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .abas::-webkit-scrollbar { display: none; }
+  .aba { flex: 0 0 auto; }
 }
 
 /* ---------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI — e as setas dizem-no (06/11/2026) ----
