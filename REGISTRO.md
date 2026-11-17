@@ -48446,6 +48446,20 @@ leitor estrito; as duas guardas correm localmente verdes (`gerar-indices --check
 dia · `gerar-relacoes --check`: 2 mapas em dia); o `git add -A -- '*.fipp' indices/` foi testado no
 worktree. A prova que fecha o caso é o **primeiro run** — e ele é observado depois do push.
 
+**A prova, medida — os dois caminhos do passo que commita.** O primeiro run
+(`44005045732`, commit `774f239a`) provou o caminho «nada a fazer»: **1 job, 11 s, `success`**, com o
+passo do commit saltado porque as âncoras e os índices já estavam em dia — o caso de quase todos os
+pushes. O segundo exercitou o caminho que importa de verdade: uma âncora foi **anulada de propósito**
+(`f4f904fb`, com o hook local saltado), o run (`f4f904fb`) correu **1 job, 11 s**, e o passo
+«Commitar os derivados» **executou e commitou** (`356b0e24`, «fechar os derivados — âncoras e
+índices»). Conferido depois: a âncora reparada é **byte a byte igual** à que existia antes do teste,
+`hash-ciclo.sh --check` sai 0 e `check-indices` 16/16. **O commit de teste fica no histórico** — é a
+prova, e o `.fipp` que ele estragou já não existe em `main`.
+
+**O número.** Um lançamento passou de **2 minutos facturados** (dois jobs) para **1** (um job de
+11 s). Era esse o número que fazia a diferença entre «três escolas do caso comum cabem nos 1.400 min
+utilizáveis» e «nenhuma cabe».
+
 **O que fica declarado como pendência.** O `deploy-escolas.yml` continua com **1 job de descoberta +
 N jobs de publicação**. Isso deixa de pesar nos lançamentos (que não tocam no pacote) e passa a pesar
 nas gerações de pacote — e é a próxima alavanca se a conta apertar outra vez. Não foi tocado agora
