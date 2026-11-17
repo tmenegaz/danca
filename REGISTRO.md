@@ -49758,3 +49758,77 @@ escola num shard — e a decisão de uma proposta de layout é, por natureza, um
 **O que ainda não está feito.** As bancadas continuam a não estar no `nav.json` — por desenho («não
 são um documento da escola») —, e quem as quiser tem de saber o endereço. E a proposta «A escola
 como listagem» ainda não está implementada: o que esta entrada põe no ar é a bancada.
+
+## 17/11/2026 — «A escola» vira listagem: três caixas, o mês a mês noutra página, e a chave que se copia
+
+**O que motivou.** «A gente vai mudar completamente a forma de demonstração. Ao invés de colocar
+assim um bloco que dentro desse bloco que tem bordas tem as abas, o cadastro, o contrato e o
+pagamento […] a gente vai fazer igual na audição. […] lá na escola a gente vai ter também uma
+listagem, ocupa toda a largura da página, e a gente vai ter as informações que é o nome da escola e
+o contato da escola, e-mail e telefone bem rapidinho ali.»
+
+**O que se mediu antes.** A secção `#sec-a-escola` é filha da grade de duas colunas (`.secao`) e não
+tem formulário para pôr à esquerda: a 1280px o cartão ocupava **458px de 1205**, com 576px vazios ao
+lado. Três abas dentro de 38% da página.
+
+**O que foi decidido.**
+
+- **A forma é a do cartão da casa** (`motor/nucleo/lista-html.js`): `ul.lb-cartoes → li.trio-plano`,
+  a linha do nome com o selo do estado, a linha dos contactos (e-mail · telefone), a linha do
+  contexto (CNPJ · responsável), e **três caixas** — Contrato, Situação e Pagar — que abrem os
+  painéis. Nenhuma classe nova: `.trio-*`, `.fatos`, `.selo` vêm todos da folha.
+- **A secção passa a uma coluna** (`#sec-a-escola{grid-template-columns:minmax(0,1fr)}`), e a
+  listagem ocupa a largura da página. Medido: 976px de 976.
+- **A situação mostra o mês corrente e só o que está em aberto.** «Se não tiver nenhum em aberto,
+  nem exibe» — o bloco usa o `.trio-falta` da folha e **não existe** quando não há vencido. O título
+  é um só: havendo vencido, é a lista; não havendo, é a frase do núcleo (`fraseDaSituacao`). A
+  primeira versão dizia «Em aberto» duas vezes em três linhas, e foi corrigida antes de sair.
+- **O mês a mês mudou de página.** `/bastidores/financeiro` — «um outro URL […] só uma listagem» —,
+  com o mesmo cartão, do mais recente para o mais antigo, sem caixa para abrir. O link vive na caixa
+  da Situação. O valor não se repete na linha de baixo: ela diz quando foi pago, ou porque não foi.
+- **O «Pagar» fica ao lado do mês vencido.** «Para não ter que voltar até o pagar […] coloca ali do
+  lado o botão de pagar, aí já abre a chave Pix.» É um botão com `data-abre` que pede à caixa
+  «Pagar» que se abra — e não uma quarta `.trio-item`, que faria a fila dizer que há quatro.
+- **A chave Pix tem botão de copiar** — «igual a gente tem quando vai gerar a chave do GitHub». A
+  peça é o `.par-associar` (controle e botão na mesma linha); a página só ganhou a mesma cedência
+  que ele já dava ao `select`, agora ao `input`. Seleccionar texto à mão num telefone é onde a chave
+  se copia mal, e uma chave copiada mal falha no dia em que o dinheiro não aparece.
+- **A descrição do Pix pede duas coisas, e não uma:** o nome da escola **e o mês**. «Tem que dizer
+  qual é a escola que está fazendo o pagamento e o mês.» Sem o segundo, um Pix de outubro pago em
+  novembro podia ser lido como novembro — e a conciliação é feita à mão, por quem lê a descrição.
+
+**O que saiu, e porquê.** A tira de abas da escola e o seu motor (`ABAS_DA_ESCOLA`,
+`MOTOR_DA_ESCOLA`, `abrirAbaDaEscola`, o ramo `qual === "escola"` e os seletores `#es-abas-*` do
+telemóvel). Manter as duas formas — abas e caixas — seria dizer duas vezes a mesma coisa com dois
+desenhos.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `cartaoDaEscola` reescrito; `painelDoContratoDaEscola`,
+`painelDaSituacaoDaEscola`, `painelDoPixDaEscola` e `paginaFinanceiro` novos; a rota
+`/bastidores/financeiro`; os dois gestos (`[data-copiar]` e `[data-abre]`) ao lado do ouvinte que
+abre as caixas; as regras `#sec-a-escola{…}` e `.par-associar input{…}` · `experimentos/provar-abas.js`
+(a contagem dos grupos desce a dois; a secção do cartão mede caixas, fila e painéis em vez de tira) ·
+`experimentos/provar-financeiro-da-escola.js` (o extrato do cartão dá lugar ao selo; a secção que
+media abas passa a medir caixas; **E3** nova, que mede a página do mês a mês) ·
+`experimentos/provar-abas-da-audicao.js` (a pílula já não tem `#es-abas-folha`).
+
+**Com o quê.** `provar-abas` **34/34** · `provar-financeiro-da-escola` **101/101** (eram 90) ·
+`provar-abas-da-audicao` **121/121** · `provar-salas-e-elencos` 69 ·
+`provar-anamnese-antes-da-aluna` 21 · `provar-identidade-ao-lado` 27 · `provar-vao-do-botao` 50 ·
+`provar-a-coluna-do-formulario` 17 · `provar-monitoramento` 94 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 432 ficheiros, 0 violações. `provar-producao` **163/166** — e uma dessas
+quatro passou a verde: «nenhum formulário traz explicação», porque o último `<p class="sub">` da
+página era o do extrato da escola. As três que restam são de antes (`oito secções`, as duas da
+tradição). `provar-cartao-da-turma` 16 falhas — **iguais às do `fbdbfa66` limpo**, medidas num
+worktree separado.
+
+**Medido num navegador, na página real:** a 1280px a secção e o cartão medem **976** (eram 458), as
+três caixas ficam na mesma linha; a 390px, 358 e as três continuam numa fila; a 360px empilham pela
+regra da folha; sem transbordo horizontal em nenhuma. O «Pagar outubro» abre o Pix e fecha a
+Situação, o «Copiar» põe a chave na área de transferência e diz «Copiado», e
+`/bastidores/financeiro` desenha um cartão por mês.
+
+**O que ainda não está feito.** (1) A barra do menu marca «Produção» na página nova — não há item
+próprio para o financeiro, e inventá-lo seria mais um destino num menu que ela já achou comprido.
+(2) O `provar-cartao-da-turma` continua com 16 falhas de antes, não tocadas por esta frente.
+(3) A `ESTADO-ATUAL.md` não foi actualizada: esta entrega está no REGISTRO, e a fotografia curada
+segue a sua própria cadência.

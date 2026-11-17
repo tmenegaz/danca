@@ -3544,26 +3544,95 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
   };
 }
 
-/** O cartão «A escola», com o que ela preencheu, o que contratou e como está a pagar. */
+/**
+ * «A ESCOLA» — A LISTAGEM, E NÃO UMA CAIXA COM TRÊS ABAS (17/11/2026).
+ *
+ * O PEDIDO. «A gente vai mudar completamente a forma de demonstração. Ao invés de colocar assim um
+ * bloco que dentro desse bloco que tem bordas tem as abas, o cadastro, o contrato e o pagamento […]
+ * a gente vai fazer igual na audição. […] lá na escola a gente vai ter também uma listagem, ocupa
+ * toda a largura da página, e a gente vai ter as informações que é o nome da escola e o contato da
+ * escola, e-mail e telefone bem rapidinho ali.»
+ *
+ * O QUE ESTAVA ERRADO, medido a 1280px: a secção é filha da grade de duas colunas (`.secao`) e não
+ * tem formulário para pôr à esquerda — o cartão ocupava **458px de 1205**, com a coluna da direita
+ * vazia. Três abas dentro de 38% da página.
+ *
+ * A FORMA É A DO `cartaoDaLista` (`motor/nucleo/lista-html.js`), que é quem desenha as listas do
+ * acervo: a linha do nome com o selo, a linha dos factos, a linha do contexto, e as caixas que se
+ * abrem. As três caixas são os três assuntos que eram abas — **Contrato**, **Situação** e
+ * **Pagar** —, e nenhuma classe nasce aqui: `.trio-plano`, `.trio-item`, `.trio-painel`,
+ * `.trio-grade`, `.trio-falta`, `.fatos` e os selos vêm todos da folha.
+ *
+ * O QUE ELA DECIDIU SOBRE O CONTEÚDO, e está no código: (1) o bloco dos meses em aberto **não
+ * existe** quando não há nenhum — «se não tiver nenhum em aberto, nem exibe»; (2) o mês a mês
+ * completo muda para uma página própria (`/bastidores/financeiro`), que a caixa da Situação abre
+ * por um link; (3) o «Pagar» fica ao lado do mês vencido, para não ter de voltar à terceira caixa;
+ * (4) a chave Pix tem um botão que a copia.
+ *
+ * O QUE ELE NÃO PODE FAZER: escrever. Não há botão que mude o estado comercial, o plano ou o
+ * pagamento. Quem habilita é ela, no painel do `danca`; quem concilia é ela, à mão.
+ */
 function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
   const c = cadastro || {};
-  const nome = String(c.escolaNome || escola || '').trim();
-  const linha = (rotulo, dado) => (dado
-    ? '<tr><th scope="row">' + esc(rotulo) + '</th><td>' + esc(String(dado)) + '</td></tr>'
-    : '');
-  const dados = [
-    linha('Nome', nome),
-    linha('CNPJ', c.cnpj),
-    linha('E-mail', c.email || c.escolaEmail),
-    linha('Telefone', c.telefone || c.escolaTelefone),
-    linha('Responsável', c.responsavel),
-  ].filter(Boolean).join('');
-
   const s = situacao || {};
-  /* O PISO E O TETO — e a palavra «capacidade» sai do ecrã (16/11/2026): «Capacidade dá ideia de
-   * teto, então dá ideia de que tem só nove professores e 120 alunos. O nosso não é capacidade, o
-   * nosso é a partir de.» O piso é o que ela contratou; o teto é até onde o plano dela vai. Quem lê
-   * «a partir de 9 e até 20» entende as duas coisas, e quem lia «capacidade 9» entendia a errada. */
+  const nome = String(c.escolaNome || escola || '').trim();
+
+  /* O ESTADO NUMA PALAVRA, e a mesma que o extrato já usa: `ok` (pago), `falha` (vencido),
+   * `discreto` (a esperar). O selo é o que se lê de relance; o detalhe está no painel. */
+  const estado = s.situacao === 'em-aberto' ? 'falha'
+    : (s.situacao === 'aguardando' ? 'discreto' : 'ok');
+  const rotuloEstado = s.situacao === 'em-aberto' ? 'em aberto'
+    : (s.situacao === 'aguardando' ? 'aguardando' : 'em dia');
+
+  const meses = Array.isArray(s.meses) ? s.meses : [];
+  const vencidos = meses.filter((m) => m.venceu);
+  const doMes = meses.find((m) => m.mes === s.mesDeHoje) || meses[0] || null;
+
+  /* O VALOR DA CAIXA «SITUAÇÃO» NÃO REPETE O SELO (17/11/2026). O selo diz o estado geral; a caixa
+   * diz o mês corrente — duas frases diferentes sobre o mesmo assunto, e não a mesma duas vezes. */
+  const valorDaSituacao = vencidos.length
+    ? (vencidos.length === 1 ? '1 mês em aberto' : vencidos.length + ' meses em aberto')
+    : (doMes ? doMes.nome.split(' de ')[0] + ' · pago' : 'aguardando');
+
+  const fatos = [c.email || c.escolaEmail, c.telefone || c.escolaTelefone].filter(Boolean);
+  const contexto = [c.cnpj ? 'CNPJ ' + c.cnpj : null,
+    c.responsavel ? 'responsável ' + c.responsavel : null].filter(Boolean).join(' · ');
+
+  const caixa = (balao, rotulo, valor) =>
+    '<button type="button" class="trio-item" data-balao="' + balao + '" aria-expanded="false"'
+    + ' aria-controls="es-painel-' + balao + '" aria-label="ver ' + rotulo.toLowerCase()
+    + ' da escola">'
+    + '<span class="trio-k">' + rotulo + '</span>'
+    + '<span class="trio-v">' + esc(valor) + '</span>'
+    + '<span class="trio-q" aria-hidden="true">?</span></button>';
+
+  return '<ul class="lb-cartoes" id="es-lista">'
+    + '<li class="trio-plano" id="es-cartao">'
+    + '<div class="trio-linha"><span class="trio-nome"><b>' + esc(nome) + '</b>'
+    + ' <span class="selo ' + estado + '" title="como está a mensalidade desta escola">'
+    + esc(rotuloEstado) + '</span></span></div>'
+    + (fatos.length
+      ? '<div class="fatos">' + fatos.map((f) => '<span>' + esc(f) + '</span>').join('') + '</div>'
+      : '')
+    + (contexto ? '<div class="trio-dono">' + esc(contexto) + '</div>' : '')
+    + '<div class="trio">'
+    + caixa('contrato', 'Contrato', s.planoNome || s.plano || '—')
+    + caixa('situacao', 'Situação', valorDaSituacao)
+    + caixa('pagar', 'Pagar', pix && pix.chave ? 'Pix' : 'sem chave')
+    + '</div>'
+    /* OS PAINÉIS VÊM DEPOIS DA FILA, e não dentro dela: é a `.trio-painel` que a folha desenha
+     * abaixo das três caixas, e um painel dentro de uma caixa partiria a fila em três. */
+    + '<div class="trio-painel" data-painel="contrato" id="es-painel-contrato" hidden>'
+    + painelDoContratoDaEscola(s) + '</div>'
+    + '<div class="trio-painel" data-painel="situacao" id="es-painel-situacao" hidden>'
+    + painelDaSituacaoDaEscola(s) + '</div>'
+    + '<div class="trio-painel" data-painel="pagar" id="es-painel-pagar" hidden>'
+    + painelDoPixDaEscola(pix, s, nome) + '</div>'
+    + '</li></ul>';
+}
+
+/** O que a escola CONTRATOU — a antiga aba «O contrato e o pagamento», sem o extrato. */
+function painelDoContratoDaEscola(s) {
   const piso = s.piso || s.capacidade || {};
   const teto = s.teto || null;
   const gente = (q) => (q ? q.professores + ' professor(es) e ' + q.alunos + ' aluna(s)' : null);
@@ -3573,13 +3642,19 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
     s.extra.alunos && s.extra.alunos.qtd ? '+' + s.extra.alunos.qtd + ' aluna(s)' : '']
       .filter(Boolean).join(' e ')
     : '';
-  const contratoLinhas = [
-    linha('Plano', s.planoNome || s.plano),
-    linha('Mensalidade', s.valorCentavos ? 'R$ ' + emReaisDoCartao(s.valorCentavos) : null),
-    linha('Piso contratado', gente(piso) ? 'a partir de ' + gente(piso) : null),
-    linha('Além do piso', aMais || null),
-    linha('Teto do plano', gente(teto) ? 'até ' + gente(teto) : null),
-    linha('Próximo vencimento', s.proximoVencimento
+  const par = (rotulo, valor) => (valor
+    ? '<div><span class="trio-k">' + esc(rotulo) + '</span><span class="trio-v">'
+      + esc(String(valor)) + '</span></div>'
+    : '');
+  /* «A PARTIR DE» E «ATÉ» (16/11/2026) — «capacidade» dá ideia de teto, e o piso é uma garantia
+   * mínima. O par de palavras já estava decidido; o que muda aqui é o lugar, não a redação. */
+  const pares = [
+    par('Plano', s.planoNome || s.plano),
+    par('Mensalidade', s.valorCentavos ? 'R$ ' + emReaisDoCartao(s.valorCentavos) : null),
+    par('Piso contratado', gente(piso) ? 'a partir de ' + gente(piso) : null),
+    par('Além do piso', aMais || null),
+    par('Teto do plano', gente(teto) ? 'até ' + gente(teto) : null),
+    par('Próximo vencimento', s.proximoVencimento
       ? s.proximoVencimento + (s.diasParaVencer != null
         ? (s.diasParaVencer >= 0
           ? ' (em ' + s.diasParaVencer + ' dia(s))'
@@ -3587,89 +3662,178 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
         : '')
       : null),
   ].filter(Boolean).join('');
+  return pares
+    ? '<div class="trio-grade">' + pares + '</div>'
+    : '<p class="trio-nota">O contrato desta escola ainda não está registado.</p>';
+}
 
+/**
+ * A SITUAÇÃO — o mês corrente, e SÓ o que está em aberto.
+ *
+ * «Quando expandir esse bloco a gente vai ter as informações do mês corrente, se está pago e se tem
+ * algum em aberto. É isso que vai exibir somente. Se não tiver nenhum em aberto, nem exibe.»
+ *
+ * O TÍTULO É UM SÓ, e diz a mesma coisa uma vez: havendo mês vencido, o título é a lista (o rótulo
+ * e os meses, que é o que há para saber); não havendo, é a frase que o núcleo já compõe
+ * (`mensalidades.fraseDaSituacao`). As duas versões responderam a mesma pergunta, e nada se repete.
+ */
+function painelDaSituacaoDaEscola(s) {
   const meses = Array.isArray(s.meses) ? s.meses : [];
-  const extrato = meses.length
-    ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Vencimento</th><th>Valor</th>' +
-      '<th>Situação</th></tr></thead><tbody>' +
-      meses.map((m) => '<tr><td>' + esc(m.nome || m.mes) + '</td><td>' + esc(m.vencimento || '—') +
-        '</td><td>' + (m.valorPagoCentavos != null
-          ? 'R$ ' + emReaisDoCartao(m.valorPagoCentavos)
-          : (m.valorCentavos ? 'R$ ' + emReaisDoCartao(m.valorCentavos) : '—')) + '</td>' +
-        '<td>' + (m.status === 'pago'
-          ? '<span class="selo ok">pago</span> <span class="dono">' + esc(m.emTexto || '') + '</span>'
-          : (m.venceu ? '<span class="selo falha">em aberto</span>'
-            : '<span class="selo discreto">a vencer</span>')) + '</td></tr>').join('') +
-      '</tbody></table></div>'
-    : '<p class="sub">Ainda não há mensalidade a cobrar — a contagem começa quando a escola é criada.</p>';
+  const vencidos = meses.filter((m) => m.venceu);
+  const doMes = meses.find((m) => m.mes === s.mesDeHoje) || meses[0] || null;
+  const par = (rotulo, valor) => (valor
+    ? '<div><span class="trio-k">' + esc(rotulo) + '</span><span class="trio-v">'
+      + esc(String(valor)) + '</span></div>'
+    : '');
+  const pares = [
+    par('Mês corrente', doMes ? doMes.nome : null),
+    par('Situação', doMes
+      ? (doMes.status === 'pago'
+        ? 'pago em ' + String(doMes.emTexto || '').split(' ')[0]
+        : (doMes.venceu ? 'venceu sem pagamento' : 'a vencer'))
+      : null),
+    par('Valor', doMes ? 'R$ ' + emReaisDoCartao(
+      doMes.status === 'pago' ? doMes.valorPagoCentavos : doMes.valorCentavos) : null),
+  ].filter(Boolean).join('');
 
-  /* A CHAVE DE PAGAR, SEM ACORDEÃO (16/11/2026). Era um `details` — «Pagar agora — ver a chave
-   * Pix» —, e ela cortou-o: «o pagar não precisa ter esse botão de colapsar e expandir. A aba já é
-   * isso.» É verdade, e o acordeão dentro da aba era a mesma decisão pedida duas vezes: um clique
-   * para escolher o assunto e outro para o ver. A chave já é pública para quem paga; o que não pode
-   * é ser publicada numa página aberta, e esta não é. */
-  const blocoDoPix = pix && pix.chave
-    ? '<p>Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro') + '</strong>:</p>' +
-      '<p><strong>Ao fazer o Pix, escreva o nome da escola</strong> — «' + esc(nome)
-      + '» — na descrição da transferência. A conciliação é feita à mão, e é por esse nome que o '
-      + 'pagamento é ligado à escola certa.</p>' +
-      '<p><label class="campo-rotulo" for="escola-pix-chave">Chave Pix (copia e cola)</label>' +
-      '<input id="escola-pix-chave" readonly value="' + esc(pix.chave) + '"></p>' +
-      '<p class="sub">Confirmado o pagamento, o mês passa a «pago» no extrato desta página. A '
-      + 'conciliação é feita em até 24 horas.</p>'
-    : '<p class="aviso">A chave Pix ainda não está configurada no sistema. Para pagar, fale com a '
-      + 'administração do Sistema Lastro.</p>';
+  const titulo = vencidos.length
+    ? '<p class="trio-nota">Em aberto:</p>'
+    : '<p class="trio-frase">' + esc(s.frase || '') + '</p>';
+  const emAberto = vencidos.length
+    ? '<ul class="trio-falta">' + vencidos.map((m) => {
+      const v = String(m.vencimento || '');
+      return '<li>' + esc(m.nome) + ' · venceu ' + esc(v.slice(8, 10) + '/' + v.slice(5, 7))
+        + ' · R$ ' + esc(emReaisDoCartao(m.valorCentavos)) + '</li>';
+    }).join('') + '</ul>'
+    : '';
 
-  /* TRÊS ABAS, E NÃO TRÊS BLOCOS EMPILHADOS (16/11/2026).
-   *
-   * «O que a gente vai fazer é organizar isso daqui do jeito que você fez em abas.» Os três
-   * assuntos são de naturezas diferentes — quem a escola É, o que ela CONTRATOU (e como está a
-   * pagar), e o que ela FAZ para pagar —, e empilhados o último ficava sempre por baixo dos outros
-   * dois. As abas dizem qual dos três está à vista.
-   *
-   * A TIRA É A MESMA PEÇA dos Professores e da Audição (`.abas`/`.aba`, na folha desde hoje), e o
-   * MOTOR é o mesmo (`motorDeAbas`): o `data-abas="escola"` é o que diz ao ouvinte do clique a que
-   * grupo pertence a aba. */
-  const abas = ['cadastro', 'contrato', 'pagar'];
-  const titulos = { cadastro: 'O cadastro', contrato: 'O contrato e o pagamento', pagar: 'Pagar' };
-  const tira = '<nav class="abas" role="tablist" aria-label="A escola — seções" id="es-abas" data-abas="escola">' +
-    abas.map((n, i) => '<button type="button" class="aba" role="tab" id="es-aba-' + n + '" ' +
-      'data-aba="' + n + '" aria-controls="es-painel-' + n + '" ' +
-      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
-      esc(titulos[n]) + '</button>').join('') +
-    '</nav>' +
-    '<div class="acoes-da-lista" id="es-abas-folha">' +
-    '<button type="button" class="acoes-do-menu pilula-do-menu" id="es-abas-botao" data-folha="es-abas" ' +
-    'aria-expanded="false" aria-controls="es-abas-menu">Abas<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>' +
-    '<div class="veu-do-menu" id="es-abas-veu" hidden></div>' +
-    '<div class="menu-de-acoes folha-do-menu" id="es-abas-menu" hidden>' +
-    '<span class="folha-puxador" aria-hidden="true"></span>' +
-    '<ul class="menu-de-acoes-lista">' +
-    abas.map((n) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
-      esc(titulos[n]) + '</button></li>').join('') +
-    '</ul></div></div>';
+  /* O «PAGAR» FICA AO LADO DO MÊS EM ABERTO (17/11/2026). «Para não ter que voltar até o pagar […]
+   * coloca ali do lado o botão de pagar, aí já abre a chave Pix.» É um botão com `data-abre` — e
+   * não uma quarta `.trio-item` —, para a fila não passar a dizer que há quatro caixas. */
+  const mesVencido = vencidos.length === 1 ? vencidos[0].nome.split(' de ')[0] : null;
+  return titulo
+    + (pares ? '<div class="trio-grade">' + pares + '</div>' : '')
+    + emAberto
+    + '<p class="par-botoes">'
+    + '<button type="button" class="acao pequena" data-abre="pagar"'
+    + ' title="abrir a chave Pix para pagar o que está em aberto">'
+    + (mesVencido ? 'Pagar ' + esc(mesVencido) : 'Pagar') + '</button>'
+    + '<a class="acao secundario pequena" href="/bastidores/financeiro"'
+    + ' title="ver todos os meses, com o que foi pago e quando">Ver o mês a mês</a>'
+    + '</p>';
+}
 
-  const painel = (n, corpo, primeiro) => '<div class="aba-painel" id="es-painel-' + n + '" ' +
-    'role="tabpanel" aria-labelledby="es-aba-' + n + '" tabindex="0"' + (primeiro ? '' : ' hidden') + '>' +
-    corpo + '</div>';
+/**
+ * O PIX — a chave, o botão que a copia, e as DUAS coisas que a descrição tem de dizer.
+ *
+ * «Tem que dizer qual é a escola que está fazendo o pagamento e o mês, e dizer qual é o mês que está
+ * pagando.» O nome da escola liga o pagamento à escola; o mês liga-o à competência. Sem o segundo,
+ * um Pix de outubro pago em novembro podia ser lido como novembro — e a conciliação é feita à mão,
+ * por quem lê a descrição.
+ *
+ * O BOTÃO DE COPIAR («igual a gente tem quando vai gerar a chave do GitHub») existe porque
+ * seleccionar texto à mão num telefone é onde a chave se copia mal — e uma chave copiada mal não
+ * falha na hora, falha no dia em que o dinheiro não aparece. A peça é o `.par-associar`: o
+ * controle e o botão na mesma linha, como no «+» do verbete.
+ */
+function painelDoPixDaEscola(pix, s, nomeDaEscola) {
+  if (!pix || !pix.chave) {
+    return '<p class="trio-nota">A chave Pix ainda não está configurada no sistema. Para pagar, '
+      + 'fale com a administração do Sistema Lastro.</p>';
+  }
+  const vencidos = (Array.isArray(s && s.meses) ? s.meses : []).filter((m) => m.venceu);
+  return '<p class="trio-frase">Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro')
+    + '</strong>.</p>'
+    + '<p class="trio-nota"><strong>Na descrição do Pix escreva duas coisas:</strong> o nome da '
+    + 'escola — «' + esc(nomeDaEscola) + '» — e o mês a que o pagamento se refere. A conciliação '
+    + 'é feita à mão, e é por esses dois nomes que o pagamento é ligado à escola e ao mês certos.'
+    + '</p>'
+    + (vencidos.length
+      ? '<p class="trio-nota">Em aberto: <strong>'
+        + esc(vencidos.map((m) => m.nome).join(' e ')) + '</strong>.</p>'
+      : '')
+    + '<label class="campo-rotulo" for="escola-pix-chave">Chave Pix</label>'
+    + '<p class="par-associar">'
+    + '<input id="escola-pix-chave" readonly value="' + esc(pix.chave) + '"'
+    + ' aria-label="chave Pix da escola">'
+    + '<button type="button" class="acao secundario pequena" data-copiar="escola-pix-chave"'
+    + ' title="copiar a chave para a área de transferência">Copiar</button>'
+    + '</p>'
+    + '<p class="trio-nota">Confirmado o pagamento, o mês passa a «pago». A conciliação é feita '
+    + 'em até 24 horas.</p>';
+}
 
-  /* O PAINEL FICA ABAIXO DA TIRA, E NÃO AO LADO (16/11/2026). «O conteúdo que se lê de cada aba
-   * tem que ficar abaixo da aba. Então quando eu leio o cadastro, ele não pode ficar à direita do
-   * conjunto de abas.» A caixa usava a `.turmas-corpo`, que é uma GRADE DE DUAS COLUNAS — a tira na
-   * esquerda e o conteúdo na direita —, e essa grade é a dos formulários de edição (o passo à
-   * esquerda, o campo à direita). Aqui não há passo nenhum para pôr de lado: há uma tira e o que
-   * ela abriu. A `.caixa` é a peça certa, e a tira pousa nela. */
-  return '<div class="caixa" data-abas="sim" id="a-escola" data-situacao="' +
-    esc(s.situacao || 'aguardando') + '">' +
-    tira +
-    painel('cadastro', dados
-      ? '<table><tbody>' + dados + '</tbody></table>'
-      : '<p class="sub">O cadastro da escola não está guardado neste sistema.</p>', true) +
-    painel('contrato', '<p>' + esc(s.frase || '') + '</p>' +
-      (contratoLinhas ? '<table><tbody>' + contratoLinhas + '</tbody></table>' : '') +
-      '<h3>Mês a mês</h3>' + extrato, false) +
-    painel('pagar', blocoDoPix, false) +
-    '</div>';
+/**
+ * A PÁGINA DO MÊS A MÊS — `/bastidores/financeiro` (17/11/2026).
+ *
+ * «Aqui a gente vai ter um link que vai levar para uma outra página, um outro URL […] mostra a
+ * listagem mês a mês de tudo, seguindo também o mesmo padrão da listagem. Vai ocupar a página
+ * toda, mas aí é só uma listagem mesmo. E aí fica bem fácil do dono da escola se achar.»
+ *
+ * É a MESMA peça da listagem — um cartão por mês, do mais recente para o mais antigo, como se lê um
+ * extrato —, e sem caixa nenhuma para abrir: o cartão já diz o mês, o valor, o vencimento e, quando
+ * está pago, quando. O valor não se repete na linha de baixo; o que ela diz é o que a linha dos
+ * factos não diz.
+ *
+ * O CASCO É O DO ESTÚDIO (`paginaEstudio`): a mesma barra, a mesma folha, e um `<main>` próprio —
+ * não a grade de duas colunas da Produção, que aqui só deixaria meia página vazia.
+ */
+function paginaFinanceiro(escola, contexto, aparencia, dados) {
+  const s = (dados && dados.situacao) || {};
+  const c = (dados && dados.cadastro) || {};
+  const nome = String(c.escolaNome || escola || '').trim();
+  const meses = Array.isArray(s.meses) ? s.meses : [];
+
+  const cartaoDoMes = (m) => {
+    const selo = m.status === 'pago'
+      ? '<span class="selo ok">pago</span>'
+      : (m.venceu ? '<span class="selo falha">em aberto</span>'
+        : '<span class="selo discreto">a vencer</span>');
+    const v = String(m.vencimento || '');
+    const dia = v.slice(8, 10) + '/' + v.slice(5, 7);
+    const quando = m.status === 'pago'
+      ? 'pago em ' + String(m.emTexto || '').split(' ')[0]
+      : (m.venceu ? 'sem pagamento registado' : 'ainda não venceu');
+    const valor = 'R$ ' + emReaisDoCartao(
+      m.status === 'pago' ? m.valorPagoCentavos : m.valorCentavos);
+    return '<li class="trio-plano">'
+      + '<div class="trio-linha"><span class="trio-nome"><b>' + esc(m.nome) + '</b> ' + selo
+      + '</span></div>'
+      + '<div class="fatos"><span>' + esc(valor) + '</span><span>'
+      + esc((m.status === 'pago' || m.venceu) ? 'venceu ' + dia : 'vence ' + dia)
+      + '</span></div>'
+      + '<div class="trio-dono">' + esc(quando) + '</div></li>';
+  };
+
+  const pagos = meses.filter((m) => m.status === 'pago').length;
+  const abertos = meses.filter((m) => m.venceu).length;
+  const resumo = meses.length
+    ? meses.length + ' mês(es) · ' + pagos + ' pago(s)'
+      + (abertos ? ' · ' + abertos + ' em aberto' : ' · nada em aberto')
+    : 'A cobrança começa quando a escola é habilitada.';
+
+  return cabecalhoDaVista('Bastidores · Mês a mês · ' + escola, aparencia) +
+    '<style>' +
+    'body{background:var(--fundo);margin:0;}' +
+    '.mes-a-mes{max-width:60rem;margin:0 auto;padding:1.6rem 1.25rem 3rem;}' +
+    '.mes-a-mes h1{color:var(--marca);font-size:1.5rem;margin:0 0 .2rem;}' +
+    '.mes-a-mes .sub{margin:0 0 1rem;}' +
+    '.mes-a-mes .voltar{display:inline-block;margin:0 0 1rem;}' +
+    '</style></head><body data-layout="painel" data-tela="financeiro">' +
+    topnav(contexto, 'producao') +
+    '<main class="mes-a-mes">' +
+    '<a class="acao secundario pequena voltar" href="/bastidores/producao#a-escola">'
+    + '\u2190 A escola</a>' +
+    '<h1>Mês a mês</h1>' +
+    '<p class="sub">' + esc(nome) + (s.planoNome ? ' · ' + esc(s.planoNome) : '')
+    + (s.valorCentavos ? ' · R$ ' + esc(emReaisDoCartao(s.valorCentavos)) + ' por mês' : '')
+    + '</p>' +
+    (meses.length
+      ? '<ul class="lb-cartoes">' + meses.map(cartaoDoMes).join('') + '</ul>'
+        + '<p class="trio-nota">' + esc(resumo) + '</p>'
+      : '<p class="trio-frase">' + esc(resumo) + '</p>') +
+    '</main>' +
+    fimDaVista();
 }
 
 /** `6990` → `69,90`. A formatação da casa, e uma só para as duas páginas. */
@@ -4952,6 +5116,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // turmas. O estado vive na `.secao` porque é ELA que tem a grade, e uma grade não se
     // muda a partir do filho.
     '.secao[data-recolhido="sim"]{grid-template-columns:minmax(0,1fr);}' +
+    /* «A ESCOLA» É UMA COLUNA SÓ (17/11/2026). A `.secao` é uma grade de duas colunas —
+     * formulário à esquerda, lista à direita — e esta secção não tem formulário nenhum:
+     * medido a 1280px, o cartão ocupava 458px de 1205, com 576px vazios ao lado. A
+     * listagem passa a ocupar a largura da página, que é o que ela pediu. */
+    '#sec-a-escola{grid-template-columns:minmax(0,1fr);}' +
     '.secao[data-recolhido="sim"]>.col-form{display:none;}' +
     '.secao[data-recolhido="sim"]>.secao-titulo{border-bottom:1px solid var(--borda-campo);' +
     'padding:0 0 .35rem;}' +
@@ -5048,8 +5217,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.aba-painel>.aviso[hidden]+form{margin-top:1rem;}' +
     /* AS DUAS PÍLULAS DE «ABAS» DO TELEMÓVEL (16/11/2026). Uma por grupo — a Audição e os
      * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
-    '#lb-abas-folha,#pf-abas-folha,#es-abas-folha{grid-column:1/-1;display:none;}' +
-    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha,#es-abas-folha{display:block;margin:0;}}' +
+    '#lb-abas-folha,#pf-abas-folha{grid-column:1/-1;display:none;}' +
+    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha{display:block;margin:0;}}' +
     /* AS ABAS RECOLHEM COM O FORMULÁRIO — E JÁ NÃO PRECISAM DE REGRA PRÓPRIA (17/11/2026).
      *
      * Aqui estiveram quatro linhas a esconder `#lb-abas`, `#lb-abas-folha`, `#pf-abas` e
@@ -5458,6 +5627,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
     '.par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
     '.par-associar button{flex:0 0 auto;}' +
+    // O CAMPO TAMBÉM CEDE (17/11/2026). A regra acima cedência é do `select`; a chave Pix
+    // é um `input`, e sem esta linha ele não encolhe e o «Copiar» sai da caixa no telemóvel.
+    '.par-associar input{flex:1 1 auto;min-width:0;max-width:none;}' +
     '.par-botoes{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.55rem 0 0;}' +
     // A TABELA DO CONTEÚDO, NO PAINEL DA TURMA (12/11/2026). A peça é a `table` da folha; o que
     // esta linha acrescenta é o que o PAINEL pede — uma tabela dentro de uma caixa de leitura não
@@ -8787,10 +8959,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * está, e não por um prefixo no atributo. */
     'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
     'var ABAS_DO_PROFESSOR = ["cadastro", "habilitacoes", "desligamento"];' +
-    /* AS TRÊS ABAS DE «A ESCOLA» (16/11/2026). «O que a gente vai fazer é organizar isso daqui do
-     * jeito que você fez em abas.» O cadastro, o contrato com o pagamento, e o gesto de pagar —
-     * três trabalhos de naturezas diferentes que estavam empilhados na mesma coluna. */
-    'var ABAS_DA_ESCOLA = ["cadastro", "contrato", "pagar"];' +
+    /* «A ESCOLA» DEIXOU DE SER TRÊS ABAS (17/11/2026). As abas deram lugar a três CAIXAS que se
+     * abrem, no cartão da listagem — a peça da Audição —, e com isso o grupo saiu da página. O
+     * aviso fica: quem procurar a tira da escola não a encontra porque a decisão foi outra. */
     /* A ABA QUE AINDA NÃO PODE ABRIR NÃO ABRE (15/11/2026) — a regra é do grupo, e a guarda fica
      * no motor, no sítio por onde passam as três portas (a tira, a folha e o teclado). O
      * `disabled` do HTML é o que a pessoa vê; a guarda é o que impede que um caminho novo se
@@ -8817,12 +8988,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: ""' +
     '});' +
     'function abrirAbaDoProfessor(n) { MOTOR_DO_PROFESSOR.abrir(String(n)); }' +
-    /* O GRUPO DA ESCOLA — três abas que abrem sempre, e nenhuma depende de outra. */
-    'var MOTOR_DA_ESCOLA = motorDeAbas({' +
-    '  nomes: ABAS_DA_ESCOLA, nav: "es-abas", prefixoAba: "es-aba-", prefixoPainel: "es-painel-",' +
-    '  menu: "es-abas-menu", botao: "es-abas-botao", veu: "es-abas-veu", fraseSem: ""' +
-    '});' +
-    'function abrirAbaDaEscola(n) { MOTOR_DA_ESCOLA.abrir(String(n)); }' +
     /* A ABA DO PROFESSOR PODE SER PEDIDA DE FORA — é o que faz o «Editar» de uma linha levar à
      * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
      * `data-aba-do-professor` no botão que o pede. */
@@ -8834,7 +8999,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var nome = alvo.getAttribute("data-aba");' +
     '    var qual = grupo && grupo.getAttribute("data-abas");' +
     '    if (qual === "professor") abrirAbaDoProfessor(nome);' +
-    '    else if (qual === "escola") abrirAbaDaEscola(nome);' +
     '    else abrirAbaDaAudicao(nome);' +
     '    return;' +
     '  }' +
@@ -13706,6 +13870,47 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  q.setAttribute("aria-expanded", abertoAgora ? "false" : "true");' +
     '});' +
     'document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharPaineis(null); });' +
+    /* OS DOIS GESTOS DA ESCOLA (17/11/2026). Ficam aqui, ao lado do ouvinte que abre as caixas,
+     * porque é do mesmo assunto: o que uma caixa faz quando é pedida.
+     *
+     * 1. COPIAR A CHAVE PIX — «coloca ali um botãozinho desse de copiar, igual a gente tem quando
+     *    vai gerar a chave do GitHub». O `navigator.clipboard` é o caminho; quando ele não existe
+     *    ou é negado (contexto inseguro, permissão), o campo é seleccionado e o
+     *    `execCommand("copy")` faz o mesmo. O botão diz «Copiado» por 1,6s — sem resposta, a
+     *    pessoa carrega outra vez a pensar que não funcionou.
+     *
+     * 2. ABRIR A CAIXA INDICADA — o «Pagar» do painel da Situação não é uma quarta caixa da fila:
+     *    é um botão que pede à caixa «Pagar» que se abra. Um `.trio-item` dentro de um painel
+     *    abriria um painel a partir de outro, e a fila passaria a dizer que há quatro. */
+    'document.addEventListener("click", function(e){' +
+    '  var copiar = e.target.closest ? e.target.closest("[data-copiar]") : null;' +
+    '  if (copiar) {' +
+    '    var campo = document.getElementById(copiar.getAttribute("data-copiar"));' +
+    '    if (!campo) return;' +
+    '    var marcar = function(){' +
+    '      var antes = copiar.textContent;' +
+    '      copiar.textContent = "Copiado";' +
+    '      setTimeout(function(){ copiar.textContent = antes; }, 1600);' +
+    '    };' +
+    '    var escolher = function(){' +
+    '      campo.focus(); campo.select();' +
+    '      try { document.execCommand("copy"); } catch (err) { /* o campo fica seleccionado */ }' +
+    '      marcar();' +
+    '    };' +
+    '    if (navigator.clipboard && navigator.clipboard.writeText) {' +
+    '      navigator.clipboard.writeText(campo.value).then(marcar, escolher);' +
+    '    } else { escolher(); }' +
+    '    return;' +
+    '  }' +
+    '  var pedido = e.target.closest ? e.target.closest("[data-abre]") : null;' +
+    '  if (!pedido) return;' +
+    '  var cartao = pedido.closest("li");' +
+    '  var caixa = cartao ? cartao.querySelector(\'.trio-item[data-balao="\' + ' +
+    '    pedido.getAttribute("data-abre") + \'"]\') : null;' +
+    '  if (!caixa) return;' +
+    '  e.preventDefault();' +
+    '  caixa.click();' +
+    '});' +
     /* O «MOSTRAR MAIS» DO QUADRO DO RECORTE (07/11/2026). Delegado no `document` porque os
      * acordeões são redesenhados a cada resposta da lista — um ouvinte por botão morreria no
      * primeiro `innerHTML`. O alvo é o `data-mais`, e não a classe: `.acao` é de meia dúzia de
@@ -15300,6 +15505,7 @@ async function fetch(request, env, extras) {
   const ehBastidores = path === '/bastidores'
     || path === '/bastidores/estudio'
     || path === '/bastidores/producao'
+    || path === '/bastidores/financeiro'
     || path.startsWith('/api/bastidores');
   if (!ehBastidores) return null;
 
@@ -15330,6 +15536,16 @@ async function fetch(request, env, extras) {
   const contexto = contextoDaPorta(env, escola, url);
   if (path === '/bastidores/estudio') {
     return html(paginaEstudio(escola, contexto, await aparenciaDaEscola(kv, escola)));
+  }
+  /* O MÊS A MÊS NUMA PÁGINA PRÓPRIA (17/11/2026) — «um outro URL», como ela pediu, e «só uma
+   * listagem». É a mesma leitura do cartão da escola (`dadosDaEscolaParaAProducao`: cadastro,
+   * contrato, livro das mensalidades) e nenhuma escrita. */
+  if (path === '/bastidores/financeiro') {
+    const [aparenciaDoMes, dadosDoMes] = await Promise.all([
+      aparenciaDaEscola(kv, escola),
+      dadosDaEscolaParaAProducao(env, kv, escola),
+    ]);
+    return html(paginaFinanceiro(escola, contexto, aparenciaDoMes, dadosDoMes));
   }
   if (path === '/bastidores/producao') {
     const [profs, aluns, trms, trmos, rbs] = await Promise.all([
@@ -19584,6 +19800,9 @@ module.exports = {
    * Exportado em vez de copiado para a prova, pela razão de sempre: um cartão escrito à mão na
    * bancada mediria a bancada. */
   cartaoDaEscola,
+  /* A PÁGINA DO MÊS A MÊS, exportada para a prova (17/11/2026): ela recebe o dado já lido e
+   * devolve a página — a bancada pode desenhá-la sem subir o Worker, como faz com o cartão. */
+  paginaFinanceiro,
   /* A REGRA DO ELENCO NA TURMA, exportada para a prova (07/11/2026). O cliente repinta o
    * `<select>` com o que a rota devolve, e a bancada tem de poder construir a mesma resposta sem
    * subir o Worker — uma resposta escrita à mão na prova mediria a prova, não a regra. */

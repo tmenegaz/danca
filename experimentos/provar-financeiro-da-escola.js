@@ -416,49 +416,60 @@ function kvCom(dados) {
       && /12\.345\.678\/0001-90/.test(html) && /e@x\.test/.test(html), null);
     conferir('…com o CONTRATO: o plano e o que a mensalidade inclui',
       /Básico/.test(html) && /R\$ 69,90/.test(html) && /1 professor\(es\) e 10 aluna\(s\)/.test(html), null);
-    conferir('…com o EXTRATO: o mês pago e o mês em aberto',
-      /outubro de 2026/.test(html) && /selo ok">pago/.test(html)
-        && /novembro de 2026/.test(html) && /selo falha">em aberto/.test(html), null);
-    /* AS TRÊS ABAS DE «A ESCOLA» — o cadastro, o contrato com o extrato, e o pagamento. A ordem é
-     * a do trabalho: quem a escola É, o que ela CONTRATOU e como está a pagar, e o que ela FAZ para
-     * pagar. Empilhados, o último ficava sempre debaixo dos outros dois. */
+    /* O ESTADO DO CARTÃO (17/11/2026). O extrato saiu do cartão — vive na página própria —, e o
+     * que o cartão diz de relance é o SELO. Nesta situação há mês vencido (setembro e novembro não
+     * estão no livro, e as duas datas já passaram a 20/11), portanto o selo é «em aberto». */
+    conferir('…com o estado à vista: um mês vencido faz o selo dizer «em aberto»',
+      /selo falha"[^>]*>em aberto/.test(html), null);
+    /* AS TRÊS CAIXAS DE «A ESCOLA» (17/11/2026) — a secção deixou de ser uma caixa com abas e
+     * passou a ser o cartão da listagem, com Contrato, Situação e Pagar. O que se afirma é o que
+     * ela pediu: as três na fila, os painéis abaixo, e o «em aberto» só quando há. */
     {
       const { JSDOM } = require('jsdom');
       const d0 = new JSDOM(html).window.document;
-      const cartao = d0.getElementById('a-escola');
-      const abas = cartao ? [...cartao.querySelectorAll('#es-abas [role="tab"]')]
-        .map((b) => b.getAttribute('data-aba')) : [];
-      conferir('«A escola» está em três abas: cadastro, contrato e pagar',
-        JSON.stringify(abas) === JSON.stringify(['cadastro', 'contrato', 'pagar']), abas);
+      const cartao = d0.getElementById('es-cartao');
+      const caixas = cartao ? [...cartao.querySelectorAll('.trio-item')]
+        .map((b) => b.getAttribute('data-balao')) : [];
+      conferir('«A escola» tem três caixas: contrato, situação e pagar',
+        JSON.stringify(caixas) === JSON.stringify(['contrato', 'situacao', 'pagar']), caixas);
+      conferir('…e a listagem já não tem tira de abas',
+        d0.getElementById('es-abas') === null, null);
       const p = (n) => d0.getElementById('es-painel-' + n);
-      conferir('…e abre no cadastro, com os outros dois escondidos',
-        p('cadastro') && !p('cadastro').hidden && p('contrato').hidden && p('pagar').hidden,
-        p('cadastro') ? [!p('cadastro').hidden, p('contrato').hidden, p('pagar').hidden] : null);
-      /* O CONTRATO E O EXTRATO NA MESMA ABA, e o extrato NÃO no cadastro: são a mesma pergunta —
-       * «o que ela contratou e como está a pagar» — e quem abre uma quer ver a outra. */
-      conferir('…o contrato e o extrato ficam juntos, na aba do contrato',
+      conferir('…e os três painéis nascem escondidos',
+        p('contrato') && p('contrato').hidden && p('situacao').hidden && p('pagar').hidden, null);
+      /* O CONTRATO CARREGA O QUE SE CONTRATOU, e não o extrato: o mês a mês tem página própria. */
+      conferir('…o painel do contrato traz o plano, a mensalidade e o piso',
         p('contrato') && /Básico/.test(p('contrato').innerHTML)
-          && /outubro de 2026/.test(p('contrato').innerHTML)
-          && !/outubro de 2026/.test(p('cadastro').innerHTML), null);
-      conferir('…e a chave de pagar vive na aba de pagar',
+          && /R\$ 69,90/.test(p('contrato').innerHTML)
+          && /1 professor\(es\) e 10 aluna\(s\)/.test(p('contrato').innerHTML), null);
+      conferir('…e NÃO traz o extrato — o mês a mês mudou para a página própria',
+        p('contrato') && !/outubro de 2026/.test(p('contrato').innerHTML), null);
+      /* O MÊS CORRENTE, E SÓ O QUE ESTÁ EM ABERTO. A `agora` da bancada é 20/11/2026, por isso o
+       * mês corrente é novembro — e ele mesmo já venceu (dia 10), tal como setembro: os dois
+       * entram na lista, e OUTUBRO não (está pago, e é o que o livro tem). */
+      conferir('…a situação mostra o mês corrente, e não a data da última mensalidade',
+        p('situacao') && /novembro de 2026/.test(p('situacao').innerHTML), null);
+      /* Três vencidos nesta bancada: agosto, setembro e novembro (o dia da adesão é 16, e a
+       * «agora» é 20/11). Outubro está pago, e é o que NÃO pode aparecer na lista. */
+      conferir('…e lista o que está vencido, e só isso',
+        p('situacao') && p('situacao').querySelectorAll('.trio-falta li').length === 3
+          && /setembro de 2026/.test(p('situacao').innerHTML)
+          && p('situacao').querySelectorAll('.trio-falta li')[0].textContent.indexOf('outubro') === -1,
+        p('situacao') && [...p('situacao').querySelectorAll('.trio-falta li')]
+          .map((l) => l.textContent.trim().slice(0, 18)));
+      conferir('…e leva à página do mês a mês por um link',
+        p('situacao') && /href="\/bastidores\/financeiro"/.test(p('situacao').innerHTML), null);
+      conferir('…e a chave de pagar vive na caixa de pagar, com o botão de copiar',
         p('pagar') && /chave@pix\.test/.test(p('pagar').innerHTML)
-          && !/chave@pix\.test/.test(p('cadastro').innerHTML), null);
-      conferir('…e as três abas dizem a que grupo pertencem, para o ouvinte do clique',
-        cartao.querySelector('#es-abas').getAttribute('data-abas') === 'escola', null);
-      /* O PAINEL FICA ABAIXO DA TIRA (16/11/2026): «o conteúdo que se lê de cada aba tem que ficar
-       * abaixo da aba. Então quando eu leio o cadastro, ele não pode ficar à direita do conjunto de
-       * abas.» O defeito era a caixa estar numa `.turmas-corpo` — uma GRADE DE DUAS COLUNAS —, e é
-       * isso que se afirma: o contentor não é a grade, e a tira é o primeiro filho. */
-      conferir('…e o painel fica ABAIXO da tira, e não ao lado (a caixa não é a grade de duas colunas)',
-        !/turmas-corpo/.test(cartao.className)
-          && cartao.firstElementChild && cartao.firstElementChild.id === 'es-abas',
-        { classe: cartao.className, primeiro: cartao.firstElementChild && cartao.firstElementChild.id });
+          && p('pagar').querySelectorAll('[data-copiar]').length === 1, null);
     }
 
-    /* SEM ACORDEÃO DENTRO DA ABA (16/11/2026): «o pagar não precisa ter esse botão de colapsar e
-     * expandir. A aba já é isso.» A chave está à vista, e a instrução com ela. */
-    conferir('…e a aba de pagar mostra a chave Pix, com a instrução do nome na descrição',
-      /chave@pix\.test/.test(html) && /escreva o nome da escola/i.test(html), null);
+    /* SEM ACORDEÃO DENTRO DA CAIXA (16/11/2026): «o pagar não precisa ter esse botão de colapsar e
+     * expandir. A caixa já é isso.» A chave está à vista quando a caixa abre, e a instrução com
+     * ela — agora com as DUAS coisas: o nome da escola e o mês. */
+    conferir('…e a caixa de pagar mostra a chave Pix, com a instrução do nome E do mês',
+      /chave@pix\.test/.test(html) && /o nome da escola/i.test(html)
+        && /o mês a que o pagamento se refere/i.test(html), null);
     conferir('…sem um acordeão dentro da aba — a aba já é a dobra',
       !/Pagar agora — ver a chave Pix/.test(html)
         && !/es-painel-pagar"[^>]*>[\s\S]{0,400}?<details/.test(html), null);
@@ -474,6 +485,50 @@ function kvCom(dados) {
       });
     conferir('sem chave Pix configurada, a página diz isso em vez de abrir uma caixa vazia',
       /ainda não está configurada no sistema/.test(semPix), null);
+
+    /* E3. A PÁGINA DO MÊS A MÊS (17/11/2026) — «um outro URL», «só uma listagem».
+     *
+     * «Aqui a gente vai ter um link que vai levar para uma outra página, um outro URL […] mostra
+     * a listagem mês a mês de tudo, seguindo também o mesmo padrão da listagem. Vai ocupar a
+     * página toda, mas aí é só uma listagem mesmo.»
+     *
+     * Ela é medida pelo que o cartão dela DIZ: um por mês, do mais recente para o mais antigo, o
+     * selo do estado, o valor e o vencimento nos factos, e na linha de baixo só o que os factos
+     * não dizem — quando foi pago, ou porque não foi. O valor NÃO se repete. */
+    const paginaDoMes = bastidores.paginaFinanceiro('teste',
+      { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
+        cadastro: { escolaNome: 'Escola Teste' },
+        situacao: Object.assign({}, situacao, { frase: mensalidades.fraseDaSituacao(situacao.situacao) }),
+      });
+    const { JSDOM: JSDOM2 } = require('jsdom');
+    const d1 = new JSDOM2(paginaDoMes).window.document;
+    const cartoes = [...d1.querySelectorAll('.lb-cartoes > li')];
+    conferir('a página do mês a mês tem um cartão por mês',
+      cartoes.length === situacao.meses.length, { cartoes: cartoes.length, meses: situacao.meses.length });
+    conferir('…e o mais recente vem primeiro (é assim que se lê um extrato)',
+      cartoes.length > 1 && /novembro/.test(cartoes[0].textContent)
+        && /agosto/.test(cartoes[cartoes.length - 1].textContent), null);
+    conferir('…cada um com o selo do seu estado',
+      /selo ok/.test(paginaDoMes) && /selo falha/.test(paginaDoMes), null);
+    conferir('…e o valor não se repete na linha de baixo',
+      cartoes.every((c) => {
+        const dono = c.querySelector('.trio-dono');
+        return !dono || !/R\$/.test(dono.textContent);
+      }), cartoes.map((c) => (c.querySelector('.trio-dono') || {}).textContent));
+    conferir('…e a linha de baixo diz QUANDO foi pago, quando foi',
+      cartoes.some((c) => /pago em /.test(c.textContent)), null);
+    conferir('…e o rodapé conta os meses e quantos estão em aberto',
+      /mês\(es\)/.test(d1.querySelector('.trio-nota') ? d1.querySelector('.trio-nota').textContent : '')
+        && /em aberto/.test(paginaDoMes), null);
+    conferir('…e há um caminho de volta para a escola',
+      /href="\/bastidores\/producao#a-escola"/.test(paginaDoMes), null);
+    /* SEM MÊS NENHUM, a página diz porque — e não deixa uma lista vazia. */
+    const semMeses = bastidores.paginaFinanceiro('teste',
+      { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' },
+      { cadastro: { escolaNome: 'Escola Teste' }, situacao: { meses: [] } });
+    conferir('sem meses, a página diz que a cobrança ainda não começou',
+      /A cobrança começa quando a escola é habilitada/.test(semMeses)
+        && !/class="lb-cartoes"/.test(semMeses), null);
   }
 
   console.log('\nG. O piso e o teto — «a partir de» e «até»');

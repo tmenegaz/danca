@@ -118,26 +118,34 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
       copia === css, { igual: copia === css });
   }
 
-  console.log('\nA2. As telas que usam a peça — e são quatro grupos de abas');
+  console.log('\nA2. As telas que usam a peça — e são dois grupos de abas');
   {
     /* A PEÇA SÓ VALE SE FOR USADA, e só é uma peça se todas as telas usarem a MESMA. Aqui
-     * enumeram-se os grupos que existem hoje: três na Produção (a Audição, o Professor e — desde
-     * 16/11/2026 — «A escola») e um no painel (o Financeiro). Um grupo novo que invente marcas
-     * próprias reprova aqui antes de chegar ao ecrã. */
+     * enumeram-se os grupos que existem hoje: dois na Produção (a Audição e o Professor) e um no
+     * painel (o Financeiro). Um grupo novo que invente marcas próprias reprova aqui antes de
+     * chegar ao ecrã.
+     *
+     * «A ESCOLA» SAIU DA LISTA (17/11/2026) — e não por a peça ter sido abandonada: a secção
+     * passou a ser uma LISTAGEM com três caixas que se abrem (`.trio-item` + `.trio-painel`), a
+     * peça do cartão da casa. Ter as duas formas na mesma secção seria dizer duas vezes a mesma
+     * coisa com dois desenhos. A história está no REGISTRO, não aqui. */
     const bastidores = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
     const painel = fs.readFileSync(path.join(RAIZ, 'motor/servidor/painel-html.js'), 'utf8');
-    const grupos = ['"lb-abas"', '"pf-abas"', '"es-abas"']
+    const grupos = ['"lb-abas"', '"pf-abas"']
       .filter((n) => bastidores.indexOf('nav: ' + n) !== -1);
-    conferir('a Produção tem três grupos de abas — a Audição, o Professor e «A escola»',
-      grupos.length === 3, grupos);
+    conferir('a Produção tem dois grupos de abas — a Audição e o Professor',
+      grupos.length === 2, grupos);
+    conferir('…e «A escola» já não tem tira de abas (passou a listagem)',
+      bastidores.indexOf('nav: "es-abas"') === -1
+        && bastidores.indexOf('ABAS_DA_ESCOLA') === -1, null);
     conferir('…e cada um traz a lista de nomes que o motor recebe',
-      ['ABAS_DA_AUDICAO', 'ABAS_DO_PROFESSOR', 'ABAS_DA_ESCOLA']
+      ['ABAS_DA_AUDICAO', 'ABAS_DO_PROFESSOR']
         .every((v) => bastidores.indexOf('nomes: ' + v) !== -1), null);
     /* O `data-abas` NO OUVIDOR DO CLIQUE é o que separa os grupos: sem ele, a aba do Professor
      * abriria o painel da Audição, porque os dois usam `data-aba` como gancho. */
     conferir('…e o ouvinte do clique distingue os grupos pelo `data-abas`',
       /getAttribute\("data-abas"\)/.test(bastidores)
-        && /qual === "professor"/.test(bastidores) && /qual === "escola"/.test(bastidores), null);
+        && /qual === "professor"/.test(bastidores), null);
     /* O PAINEL TEM O SEU MOTOR, e o que o prende à peça são as mesmas marcas. */
     conferir('o Financeiro monta a tira com a mesma peça, e com as mesmas marcas',
       /class="abas" role="tablist"/.test(painel) && /role="tab"/.test(painel)
@@ -256,51 +264,74 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
       const meio = await medir(700);
       conferir('a 700px a tira ainda está', meio.navDisplay !== 'none', meio.navDisplay);
 
-      /* O PAINEL ABAIXO DA TIRA — medido, e não lido no markup (16/11/2026).
+      /* «A ESCOLA» DEIXOU DE SER UMA TIRA DE ABAS (17/11/2026) — e o que se mede agora é o
+       * cartão da listagem: a fila de três caixas, os painéis DEPOIS dela, e o «sem em aberto»
+       * que não existe quando não há nenhum.
        *
-       * «O conteúdo que se lê de cada aba tem que ficar abaixo da aba. Então quando eu leio o
-       * cadastro, ele não pode ficar à direita do conjunto de abas.» O cartão estava dentro de uma
-       * `.turmas-corpo`, que é grade de duas colunas: a tira à esquerda, o conteúdo à direita. A
-       * medida que diz se o defeito voltou é esta — o topo do painel tem de estar DEPOIS do fim da
-       * tira, e a esquerda dos dois tem de começar no mesmo sítio. */
+       * A MEDIDA QUE IMPORTA É A DA FILA: três caixas na mesma linha (é a forma do cartão da
+       * casa), e o painel a abrir ABAIXO das três — não ao lado, não dentro de uma delas. */
       await page.setViewport({ width: 1280, height: 900 });
       await page.goto(base + '/escola', { waitUntil: 'load' });
-      const abaixo = await page.evaluate(() => {
+      const cartao = await page.evaluate(() => {
         const r = (el) => el.getBoundingClientRect();
-        const tira = document.getElementById('es-abas');
-        const painel = document.getElementById('es-painel-cadastro');
-        if (!tira || !painel) return null;
+        const li = document.getElementById('es-cartao');
+        if (!li) return null;
+        const caixas = [...li.querySelectorAll('.trio-item')];
+        /* OS PAINÉIS SÃO MEDIDOS À VISTA. `hidden` dá `display:none`, e um elemento assim mede
+         * zero: a comparação «o painel começa depois da fila» passaria a comparar 0 com o fim da
+         * fila e reprovaria uma correção certa. Abrem-se, mede-se, e fecha-se de novo. */
+        const paineis = [...li.querySelectorAll('.trio-painel')];
+        const estavam = paineis.map((p) => p.hidden);
+        paineis.forEach((p) => { p.hidden = false; });
+        const fila = li.querySelector('.trio');
         return {
-          topoTira: Math.round(r(tira).top), baseTira: Math.round(r(tira).bottom),
-          topoPainel: Math.round(r(painel).top),
-          esquerdaTira: Math.round(r(tira).left), esquerdaPainel: Math.round(r(painel).left),
-          larguraPainel: Math.round(r(painel).width), larguraTira: Math.round(r(tira).width),
+          caixas: caixas.length,
+          nomes: caixas.map((c) => c.querySelector('.trio-k').textContent.trim()),
+          topo: [...new Set(caixas.map((c) => Math.round(r(c).top)))].length,
+          larguraFila: Math.round(r(fila).width),
+          larguraCartao: Math.round(r(li).width),
+          /* NENHUM PAINEL COMEÇA ANTES DO FIM DA FILA — e é isso que os põe abaixo dela. */
+          paineisAbaixo: paineis.every((p) => r(p).top >= r(fila).bottom - 1),
+          selo: (li.querySelector('.selo') || {}).textContent,
+          _fechar: estavam,
         };
       });
-      conferir('no cartão de «A escola» o painel começa ABAIXO da tira',
-        abaixo && abaixo.topoPainel >= abaixo.baseTira,
-        abaixo && { baseDaTira: abaixo.baseTira, topoDoPainel: abaixo.topoPainel });
-      /* «AO LADO» QUER DIZER UMA COLUNA À DIREITA: a tira e o painel começando no mesmo sítio, e o
-       * painel ocupando a largura do conteúdo, isso não acontece. Era o que a grade de duas colunas
-       * fazia — a tira em 20rem à esquerda e o painel na coluna da direita. */
-      conferir('…e não ao lado: a tira e o painel começam na mesma coluna, com a mesma largura',
-        abaixo && Math.abs(abaixo.esquerdaPainel - abaixo.esquerdaTira) <= 2
-          && abaixo.larguraPainel >= abaixo.larguraTira,
-        abaixo && { esqTira: abaixo.esquerdaTira, esqPainel: abaixo.esquerdaPainel,
-          largTira: abaixo.larguraTira, largPainel: abaixo.larguraPainel });
-      /* E A ABA DE PAGAR NÃO TEM DOBRA DENTRO: «o pagar não precisa ter esse botão de colapsar e
-       * expandir. A aba já é isso.» A chave fica à vista quando a aba abre — e a prova a que abre a
-       * aba é a do financeiro; aqui mede-se o que o cartão entrega: nenhum `details` naquele painel.
-       * (A aba não se abre nesta bancada porque quem a abre é o motor da Produção, que não está
-       * nesta página — testar o clique aqui mediria a bancada, não o cartão.) */
+      conferir('o cartão de «A escola» tem três caixas: Contrato, Situação e Pagar',
+        cartao && cartao.caixas === 3
+          && cartao.nomes.join('|') === 'Contrato|Situação|Pagar',
+        cartao && cartao.nomes);
+      conferir('…e as três ficam na MESMA linha, como as caixas do cartão da casa',
+        cartao && cartao.topo === 1, cartao && cartao.topo);
+      conferir('…e os painéis abrem ABAIXO da fila (não dentro, nem ao lado)',
+        cartao && cartao.paineisAbaixo === true, cartao && cartao.paineisAbaixo);
+      /* A LISTAGEM OCUPA A LARGURA DA SECÇÃO — o defeito medido a 16/11 era o cartão em 38%. */
+      conferir('…e a fila ocupa a largura do cartão, que ocupa a da secção',
+        cartao && cartao.larguraFila >= cartao.larguraCartao - 24,
+        cartao && { fila: cartao.larguraFila, cartao: cartao.larguraCartao });
+
+      /* «SE NÃO TIVER NENHUM EM ABERTO, NEM EXIBE» — a regra dela, medida no DOM. O cartão desta
+       * bancada tem `meses: []`, portanto não há nada vencido: a lista não pode existir. */
+      const semAberto = await page.evaluate(() => {
+        const p = document.getElementById('es-painel-situacao');
+        return p ? { falta: p.querySelectorAll('.trio-falta').length,
+          frase: /Em dia/.test(p.textContent) } : null;
+      });
+      conferir('sem mês vencido, a lista de «em aberto» NÃO existe no painel',
+        semAberto && semAberto.falta === 0, semAberto);
+      conferir('…e o painel diz o estado em vez de ficar em branco',
+        semAberto && semAberto.frase === true, semAberto);
+
+      /* A ABA DE PAGAR NÃO TEM DOBRA DENTRO: a caixa já é a dobra. */
       const pagar = await page.evaluate(() => {
         const p = document.getElementById('es-painel-pagar');
         if (!p) return null;
         return { detalhes: p.querySelectorAll('details').length,
-          chave: /chave@pix\.test/.test(p.innerHTML) };
+          chave: /chave@pix\.test/.test(p.innerHTML),
+          copiar: p.querySelectorAll('[data-copiar]').length };
       });
-      conferir('a aba de pagar não tem acordeão dentro — a aba já é a dobra',
+      conferir('a caixa de pagar não tem acordeão dentro — a caixa já é a dobra',
         pagar && pagar.detalhes === 0 && pagar.chave === true, pagar);
+      conferir('…e a chave tem o botão que a copia', pagar && pagar.copiar === 1, pagar);
     } finally {
       await browser.close();
       srv.close();

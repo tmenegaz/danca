@@ -679,8 +679,12 @@ async function principal() {
     iColForm !== -1 && PAGINA.indexOf('id="lb-abas"') > iColForm
       && PAGINA.indexOf('id="lb-abas-folha"') > iColForm
       && PAGINA.indexOf('id="lb-painel-1"') > iColForm);
+  /* «A ESCOLA» SAIU DA LISTA (17/11/2026): deixou de ter tira e pílula — passou a ser a listagem
+   * com três caixas. As duas que ficam são a da Audição e a do Professor, e a asserção é sobre o
+   * COMPORTAMENTO (nascem escondidas no computador), não sobre o texto exacto do seletor. */
   provar('…e a pílula do telemóvel continua a nascer escondida no computador',
-    /#lb-abas-folha,#pf-abas-folha,#es-abas-folha\{grid-column:1\/-1;display:none;\}/.test(PAGINA));
+    /#lb-abas-folha,#pf-abas-folha\{grid-column:1\/-1;display:none;\}/.test(PAGINA)
+      && PAGINA.indexOf('#es-abas-folha') === -1);
 
   console.log('\nC. A troca, a correr (jsdom)');
 
