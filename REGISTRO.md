@@ -48717,3 +48717,76 @@ falhas anteriores (mede a grade recolhida como duas colunas — o `.turmas-corpo
 resolve por arrastamento). E `provar-celula` morre em `TypeError` na linha 541, também antes desta
 mudança. Nenhuma das duas foi tocada além da asserção que esta decisão inverte.
 
+## 17/11/2026 — o número do piso sai dos formulários, e o recolhedor passa a saber de que secção é
+
+### 1. A contagem sai dos formulários — e o erro que ela escondia
+
+«Você está dizendo que professores eu tenho um de nove e que o plano vai até 20 […] e embaixo dizendo
+que ainda tem oito lugares. Não tem sentido. […] o limite são 20. […] O contador, um professor de
+nove também não precisa nem estar ali. […] E essa informação não pode estar aqui em alunas e nem em
+professores. Só lá na escola, fica sujo, fica poluído. […] pode tirar.»
+
+Ela tem razão, e por uma razão de desenho que vale escrever: **o piso é uma garantia MÍNIMA.** «Faltam
+8 lugares» media a distância até esse mínimo — que **não é limite nenhum**. O número que limita é o
+**teto** (20 professores, 500 alunas), e o teto já está dito uma vez no cartão de «A escola», ao lado
+do piso contratado. A contagem dizia o mesmo número em três sítios e, no do meio, sugeria um máximo
+que não existe.
+
+**O que saiu:** o medidor dos dois formulários (`medidorDoPisoHtml`), os dois cálculos no topo de
+`paginaProducao`, e a função que os alimentava no núcleo (`comercial.medidorDoPiso`, com o
+`rotuloPlural` que só ela usava). Não é código morto guardado «para o caso»: um medidor que ninguém
+põe é a próxima pessoa a pô-lo de volta.
+
+**O que fica:** a trava do motor (§L9b, commit `851a869b`) e a frase do 409, que continua a nomear as
+duas saídas. O motor não precisa do ecrã para travar — e o ecrã não repete o número.
+
+E a **regra 6** das instruções de identidade mudou com isto: era «todo limite que o motor aplica
+diz-se no ecrã, antes do clique»; passa a ser **«o mesmo número não se diz em três sítios»**. A
+primeira estava certa para uma trava que a pessoa encontra sem aviso; a segunda é a que este projeto
+precisa, porque a informação já existe no sítio certo.
+
+### 2. O recolhedor das Salas recolhia a grade dos Professores
+
+O `definirFormularioRecolhido` fazia `document.querySelector(".turmas-corpo")` — **sem âmbito**, logo
+o primeiro do documento. E o primeiro `.turmas-corpo` da página **não é o das Salas: é o dos
+Professores**, que fica ~7.000 caracteres antes no HTML (medido: `sec-professores` em 33.913,
+primeiro `.turmas-corpo` em 34.225, `sec-turmas` em 41.327).
+
+O sintoma era o que ela via como «a listagem não ocupa a largura toda» quando recolhia as Salas: o
+`data-recolhido` ia para a grade errada, a das Salas ficava de duas colunas, e a lista não subia. Os
+quatro `getElementById` do mesmo bloco (`turmas-form`, `turmas-paineis`, `alternar-form`) eram
+singulares por sorte, e passaram a ser procurados **a partir da secção** — quem sabe de quem é o
+miolo é a secção.
+
+A lição não é «pôr um `#id` no seletor»: é que um `querySelector` global numa página com **quatro
+grades da mesma classe** devolve a primeira e cala-se. Enquanto a peça tinha um consumidor, o seletor
+dizia a verdade; no dia em que passou a ter quatro, deixou de dizer qual.
+
+**E a mesma correcção no sítio de onde ela foi copiada:** a prova `provar-cartao-da-turma` media
+`document.querySelector('.turmas-corpo')` — a mesma linha, o mesmo erro. Passou a
+`#sec-turmas .turmas-corpo`. Resultado medido: **de 22 falhas para 16**, e as seis que desapareceram
+são exactamente as do recolhimento — «a seta recolhe: uma coluna», «a listagem ocupa a largura toda»,
+«a mesma seta reabre», «o formulário aberto são duas colunas», «aplicar o filtro recolhe», «o
+recolhimento é lembrado depois de recarregar». As 16 restantes são anteriores a este trabalho e não
+têm relação com o âmbito: falam de filtro de termos, de curadoria, de planos de ensino e da faixa a
+414 px.
+
+**Onde entrou.** `motor/nucleo/comercial.js` (saem `medidorDoPiso` e `rotuloPlural`) ·
+`motor/servidor/bastidores.js` (saem `medidorDoPisoHtml`, os dois medidores e as duas chamadas;
+entra o âmbito da secção no `definirFormularioRecolhido`) · `experimentos/provar-piso.js` (a secção E
+passou a afirmar o contrário: o número **não** se repete nos formulários, e vive em «A escola») ·
+`experimentos/provar-a-coluna-do-formulario.js` (a âncora deixou de ser o medidor; a contagem de
+colunas passou a ler as faixas resolvidas) · `experimentos/provar-cartao-da-turma.js` (o âmbito) ·
+`IDENTIDADE-VISUAL.md` e `.github/instructions/identidade-visual.instructions.md` (a linha do
+medidor sai, a regra 6 é reescrita).
+
+**Com o quê.** `provar-piso` **34/34** (a regressão do número repetido, e o piso e o teto a
+continuarem ditos em «A escola») · `provar-a-coluna-do-formulario` **17/17** ·
+`provar-cartao-da-turma` 22 → **16 falhas, todas anteriores** · `provar-abas` 28/28 ·
+`provar-abas-da-audicao` 100/100 · `provar-cadastro-do-professor` 49/49 ·
+`provar-financeiro-da-escola` 90/90 · `provar-escola-a-nascer` 48/48 · `provar-recriar-escola` 92/92
+· `provar-cofre-e-shard` 138/138 · `provar-financeiro` 58/58 · `provar-restaurar-retrato` 38/38 ·
+`provar-cartas-do-expurgo` 25/25 · `provar-a-carencia-nao-se-burla` 58/58 · `provar-pagina-publica`
+79/79 · `provar-indices` 64/64 · `provar-geracao-do-ciclo` 24/24 · `check-indices` 16/16 ·
+`check-identidade` 0 erros.
+

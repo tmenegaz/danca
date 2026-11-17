@@ -60,12 +60,13 @@ Audição fixou.
    dado é selo. `.acao[aria-pressed]` foi removido por isso.
 5. **Nada de `style=""` na marcação, e nenhum hex fora de `ciclo.css`.** Cor se usa por **papel**
    (`--fundo`, `--marca-texto`…), nunca por primitivo (`--cream`, `--burgundy`).
-6. **Todo limite que o motor aplica diz-se no ecrã, antes do clique** (16/11/2026). «A trava sem
-aviso é uma armadilha»: recusar é metade do trabalho, e a outra metade é dizer quanto resta *antes*
-de a pessoa escrever o nome. O medidor é **composição de peças que já existem** — `.ficha` (a
-fileira de factos), `.selo` (o estado) e `.aviso` (o porquê) —, e a frase da recusa é **a mesma
-função** que o servidor devolve no 409: uma fonte, duas bocas, nenhuma possibilidade de a tela
-prometer o que o motor não faz. Sem contrato não há medidor — não se inventa um limite.
+6. **O mesmo número não se diz em três sítios** (17/11/2026). O contrato de uma escola — o **piso**
+   que ela contratou e o **teto** do plano — diz-se **uma vez**, no cartão de «A escola». O piso é
+   uma garantia *mínima*: a distância até ele **não é um limite**, e escrevê-la num formulário
+   sugere um máximo que não existe. A contagem chegou a existir nos formulários de Professores e de
+   Alunas e foi retirada no mesmo dia — *«essa informação não pode estar aqui em alunas e nem em
+   professores. Só lá na escola, fica sujo, fica poluído.»* O motor continua a travar no piso, e a
+   recusa (409) nomeia as saídas; o ecrã não repete o número.
 
 ## Onde estou — aprofundar não é sair (norma, 26/10/2026)
 

@@ -437,10 +437,17 @@ const LI = 'li.turma[data-turma="tu1"]';
   // à vista e a seta. O que se mede é a GEOMETRIA, porque é ela que a pessoa sente: a lista
   // passa da coluna da direita para a linha inteira, e sobe para debaixo da faixa.
   const geometria = () => pg.evaluate(() => {
-    const corpo = document.querySelector('.turmas-corpo');
+    /* A GRADE DAS SALAS, E NÃO «A PRIMEIRA DA PÁGINA» (17/11/2026). Aqui estava
+     * `document.querySelector('.turmas-corpo')` — sem âmbito —, e o primeiro `.turmas-corpo` do
+     * documento é o dos **Professores**. A prova media a grade errada, e por isso a secção das
+     * Salas reprovava mesmo depois de a correcção estar certa. É o MESMO defeito que o script da
+     * página tinha (e que também se corrigiu hoje, do lado do produto): uma peça partilhada por
+     * quatro sítios e um seletor que não diz de qual deles se fala. */
+    const secao = document.getElementById('sec-turmas');
+    const corpo = secao.querySelector('.turmas-corpo');
     const form = document.getElementById('turmas-form');
     const miolo = document.getElementById('turmas-paineis');
-    const lista = document.querySelector('#sec-turmas .col-lista');
+    const lista = secao.querySelector('.col-lista');
     const seta = document.getElementById('alternar-form');
     return {
       recolhido: corpo.getAttribute('data-recolhido'),

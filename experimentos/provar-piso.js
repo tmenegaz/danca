@@ -39,6 +39,9 @@ const path = require('path');
 const RAIZ = path.resolve(__dirname, '..');
 const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
 const comercial = require(path.join(RAIZ, 'motor/nucleo/comercial.js'));
+/* A SITUAÇÃO DA ESCOLA — a mesma função que a rota usa para montar o `dadosDaEscola` que o cartão
+ * de «A escola» desenha. Sem ela, a prova do cartão mediria a bancada. */
+const mensalidades = require(path.join(RAIZ, 'motor/nucleo/mensalidades.js'));
 
 let ok = 0;
 let ko = 0;
@@ -306,77 +309,62 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
       semSenha.status === 401, semSenha.status);
   }
 
-  console.log('\nE. O medidor ao lado do formulário — «9 de 9», antes do clique');
+  console.log('\nE. O número do piso NÃO se repete nos formulários — ele vive em «A escola»');
   {
-    /* «Dizer "9 de 9" ao lado do formulário é a próxima peça.» A trava sem aviso é uma armadilha:
-     * recusar é metade do trabalho, e a outra metade é dizer quantos lugares restam ANTES de a
-     * pessoa escrever o nome. */
-    const pagina = (contrato, profs, aluns) => bastidores.paginaProducao(
-      'breu', {}, profs, aluns, 'Brise Volet', 'brise-volet', [], [], {}, [], [], [],
-      { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 }, null, null, [],
-      new Set(), contrato === undefined ? null : { ok: true, contrato },
-    );
-    const { JSDOM } = require('jsdom');
-    const PROFS = [{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h' }];
+    /* A DECISÃO DELA, E É DE LIMPEZA (17/11/2026):
+     *
+     *   «Você está dizendo que professores eu tenho um de nove e que o plano vai até 20 […] e
+     *   embaixo dizendo que ainda tem oito lugares. Não tem sentido. […] o limite são 20. […] O
+     *   contador, um professor de nove também não precisa nem estar ali. […] E essa informação não
+     *   pode estar aqui em alunas e nem em professores. Só lá na escola, fica sujo, fica
+     *   poluído. […] pode tirar.»
+     *
+     * E há uma razão de DESENHO por baixo da limpeza: o piso é uma garantia MÍNIMA, e «faltam 8
+     * lugares» media a distância até ela — que não é limite nenhum. O número que limita é o TETO,
+     * e o teto já está dito, uma vez, no cartão de «A escola». Repetir a contagem em dois
+     * formulários era dizer o mesmo número em três sítios, com o do meio a sugerir um limite que
+     * não existe.
+     *
+     * O QUE FICA: a trava do motor (§B, §C) e a frase do 409 — que continua a nomear as saídas. */
+    /* O `dadosDaEscola` É O QUE A ROTA MONTA: cadastro, contrato, pix e a SITUAÇÃO já derivada
+     * (`situacaoDaEscola`), que é o que o cartão de «A escola» desenha. Passar só o contrato
+     * deixaria o cartão vazio — e a prova diria «o piso não está lá» quando o que faltava era a
+     * bancada. */
+    const pagina = (contrato) => {
+      const situacao = contrato ? mensalidades.situacaoDaEscola({
+        escola: 'breu', contrato, livro: [], agora: '2026-11-17T12:00:00Z',
+      }) : null;
+      return bastidores.paginaProducao(
+        'breu', {}, [{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h' }], ['abreu', 'vava'],
+        'Brise Volet', 'brise-volet', [], [], {}, [], [], [],
+        { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 }, null, null, [],
+        new Set(), contrato
+          ? { ok: true, contrato, situacao: Object.assign({}, situacao, { frase: 'Em dia.' }) }
+          : { ok: true, contrato: null },
+      );
+    };
+    const comContrato = pagina({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } });
 
-    /* COM LUGAR: a contagem e o que resta, sem alarme e sem aviso. */
-    const comLugar = new JSDOM(pagina({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } },
-      PROFS, ['abreu', 'vava'])).window.document;
-    const medidorProfs = comLugar.getElementById('prof-piso');
-    conferir('o formulário do professor diz quantos são e quantos cabem',
-      medidorProfs && /2 de 9/.test(medidorProfs.textContent), medidorProfs && medidorProfs.textContent);
-    conferir('…e diz até onde o plano vai, ao lado — a pergunta seguinte',
-      /20/.test(medidorProfs.textContent), medidorProfs.textContent);
-    conferir('…com o selo do estado, e não um alarme quando há lugar',
-      /7 lugares/.test(medidorProfs.parentElement.parentElement.textContent)
-        && comLugar.querySelector('#prof-piso ~ p .selo.discreto') !== null, null);
-    /* SEM AVISO PREVENTIVO: o ruído ensina a ignorar o aviso. */
-    conferir('…e nenhuma frase de recusa enquanto há lugar',
-      comLugar.querySelector('[data-piso-recusa]') === null, null);
-    /* E AS ALUNAS CONTAM PELO CADASTRO, no seu próprio formulário. */
-    const medidorAlunas = comLugar.getElementById('aluna-piso');
-    conferir('o formulário das alunas tem o seu medidor, com a sua contagem',
-      medidorAlunas && /2 de 120/.test(medidorAlunas.textContent)
-        && /500/.test(medidorAlunas.textContent), medidorAlunas && medidorAlunas.textContent);
+    conferir('o formulário do professor NÃO traz contagem nem lugares',
+      !/prof-piso/.test(comContrato) && !/data-piso-selo/.test(comContrato)
+        && !/data-piso-recusa/.test(comContrato), null);
+    conferir('…nem o formulário das alunas',
+      !/aluna-piso/.test(comContrato), null);
+    /* E NÃO É SÓ «NÃO TEM A PEÇA»: nenhuma das frases do medidor pode reaparecer noutro sítio. */
+    conferir('…e nenhuma frase de «faltam N lugares» sobrevive na página',
+      !/\d+ lugares?\b/.test(comContrato) && !/de \d+<\/strong>/.test(comContrato), null);
+    /* A PALAVRA «piso» CONTINUA NA PÁGINA, e no sítio certo: o cartão de «A escola». */
+    const iEscola = comContrato.indexOf('id="a-escola"');
+    const iProfs = comContrato.indexOf('id="sec-professores"');
+    conferir('o piso e o teto continuam ditos — no cartão de «A escola», e só lá',
+      iEscola > 0 && iProfs > iEscola
+        && /Piso contratado/.test(comContrato.slice(iEscola, iProfs))
+        && /Teto do plano/.test(comContrato.slice(iEscola, iProfs)), null);
 
-    /* CHEIO: o selo muda, e a frase da recusa está À VISTA — a mesma que o servidor devolve. */
-    const cheio = new JSDOM(pagina({ plano: 'avancado', capacidade: { professores: 1, alunos: 120 } },
-      PROFS, ['abreu'])).window.document;
-    const caixaCheia = cheio.getElementById('prof-piso');
-    conferir('com o piso cheio, a contagem mostra que está cheio',
-      caixaCheia && /2 de 1/.test(caixaCheia.textContent), caixaCheia && caixaCheia.textContent);
-    conferir('…o selo passa a falha, e diz qual dos dois limites foi atingido',
-      /piso cheio/.test(cheio.getElementById('prof-piso').parentElement.parentElement.textContent)
-        && cheio.querySelector('#prof-piso ~ p .selo.falha') !== null, null);
-    const recusa = cheio.querySelector('[data-piso-recusa]');
-    conferir('…e a frase que explica as saídas está à vista, antes do clique',
-      recusa && /duas saídas|acrescente um lote|subir de plano/i.test(recusa.textContent), recusa && recusa.textContent);
-    /* A FRASE É A MESMA DO SERVIDOR: um objecto, duas bocas. */
-    const dadosDoMedidor = comercial.medidorDoPiso({
-      contrato: { plano: 'avancado', capacidade: { professores: 1, alunos: 120 } },
-      eixo: 'professores', cadastrados: 2,
-    });
-    conferir('…e é literalmente a mesma frase que a rota devolve no 409',
-      recusa && recusa.textContent === dadosDoMedidor.recusa, { naTela: recusa && recusa.textContent, noNucleo: dadosDoMedidor.recusa });
-
-    /* SEM CONTRATO NÃO SE INVENTA LIMITE — nem um medidor a dizer «0 de 0». */
-    const semContrato = pagina(null, PROFS, ['abreu']);
-    conferir('sem contrato, não há medidor nenhum — nada a prometer',
-      !/prof-piso/.test(semContrato) && !/aluna-piso/.test(semContrato), null);
-    /* E O PRINCIPAL CONTA: sem ele, uma escola de 2 professores diria «1 de 2» e deixaria
-     * cadastrar quem não cabe. */
-    const semDono = new JSDOM(pagina({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } },
-      [], [])).window.document;
-    conferir('o professor principal conta no medidor, como conta na trava',
-      /1 de 1/.test(semDono.getElementById('prof-piso').textContent),
-      semDono.getElementById('prof-piso').textContent);
-    /* E O DESLIGADO NÃO — a mesma regra dos dois lados. */
-    const comDesligado = new JSDOM(pagina({ plano: 'basico', capacidade: { professores: 2, alunos: 10 } },
-      [{ nome: 'Ana Diag', slug: 'ana-diag', sal: 's', hash: 'h', desligado_em: '2026-11-01' }], []))
-      .window.document;
-    conferir('…e o desligado não ocupa lugar, também no medidor',
-      /1 de 2/.test(comDesligado.getElementById('prof-piso').textContent),
-      comDesligado.getElementById('prof-piso').textContent);
+    /* SEM CONTRATO, a página também não inventa nada — e agora não há o que inventar. */
+    const semContrato = pagina(null);
+    conferir('sem contrato, a página não diz piso nenhum nos formulários',
+      !/data-piso/.test(semContrato) && !/lugares?\b/.test(semContrato), null);
   }
 
   console.log('\nF. A palavra é «piso» — e o ecrã não diz «capacidade»');

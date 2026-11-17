@@ -14,11 +14,11 @@
  *      tira a x=288 e formulário a x=748 (a coluna da DIREITA), com a lista por baixo da tira.
  *   2. «Quando eu colapso o formulário, o step está ficando de fora do colapsar. Os steps também
  *      tem que ser colapsados, porque, afinal de contas, eles dizem respeito ao formulário.»
- *   3. «Essas etiquetas estão coladas aonde diz que tem oito lugares. […] tem que ter espaço.» O
- *      medidor do piso usava `<p class="sub">`, e o `.sub` da Produção tem `margin-top: .1rem`
- *      — 1,6 px —, porque é o subtítulo que se ENCOSTA ao que vem acima.
- *   4. «Isso é um problema antigo, já tinha sido ajustado isso.» É a razão de esta prova existir:
- *      o que não é medido volta.
+ *   3. «Isso é um problema antigo, já tinha sido ajustado isso. Toda hora tem que refazer esse tipo
+ *      de problema.» É a razão de esta prova existir: o que não é medido volta. A terceira queixa
+ *      daquele dia — as etiquetas do piso coladas ao «8 lugares» — resolveu-se tirando as
+ *      etiquetas do sítio errado (elas viviam nos formulários, e o número que limita é o teto, que
+ *      já está dito em «A escola»); a regressão disso está em `provar-piso`, secção E.
  *
  * PORQUE EM NAVEGADOR, E NÃO NO TEXTO DO HTML. As quatro são POSIÇÃO: onde a coluna começa, em
  * que linha está, se o passo desaparece quando o pai recolhe, quantos píxeis separam duas
@@ -132,7 +132,10 @@ const PAGINA = bastidores.paginaProducao(
 
     console.log('\nB. A geometria: o formulário à esquerda, a listagem à direita, na mesma linha');
     {
-      await mostrar('#prof-piso');
+      /* A ÂNCORA É O FORMULÁRIO, e não o medidor do piso: ele existiu entre 16 e 17/11/2026 e foi
+       * retirado a pedido dela — «essa informação não pode estar aqui em alunas e nem em
+       * professores». A geometria que esta secção mede não dependede dele. */
+      await mostrar('#form-prof');
       const m = await page.evaluate(() => {
         const r = (el) => { if (!el) return null; const q = el.getBoundingClientRect(); return { x: Math.round(q.left), dir: Math.round(q.right), topo: Math.round(q.top), larg: Math.round(q.width) }; };
         const sec = document.getElementById('sec-professores');
@@ -154,34 +157,25 @@ const PAGINA = bastidores.paginaProducao(
       conferir('…e tem a largura da coluna do formulário, não a da página',
         m.tira && m.form && m.tira.larg <= m.form.larg + 2,
         { tira: m.tira.larg, form: m.form.larg });
+      /* DUAS COLUNAS — contadas por TRACKS, e não pelo texto: o navegador devolve a forma
+       * resolvida (`431.672px 675.531px`), e o que se quer saber é quantas faixas a grade tem.
+       * Conta-se separando por espaço fora de parênteses, que é como se lê uma lista de tracks. */
+      const colunas = String(m.colunas || '').trim();
+      let tracks = 0;
+      let fundura = 0;
+      if (colunas) {
+        tracks = 1;
+        for (const c of colunas) {
+          if (c === '(') fundura += 1;
+          else if (c === ')') fundura -= 1;
+          else if (c === ' ' && fundura === 0) tracks += 1;
+        }
+      }
       conferir('a grade continua a ser de DUAS colunas (o que mudou foi quem é filho dela)',
-        /px px$/.test(String(m.colunas).trim()) || String(m.colunas).trim().split(/\s+/).length === 2,
-        m.colunas);
+        tracks === 2, { colunas: m.colunas, tracks });
     }
 
-    console.log('\nC. As etiquetas do piso têm espaço (a queixa de «estão coladas»)');
-    {
-      const g = await page.evaluate(() => {
-        const f = document.querySelector('#prof-piso');
-        const s = document.querySelector('[data-piso-selo]');
-        if (!f || !s) return null;
-        const rf = f.getBoundingClientRect();
-        const rs = s.getBoundingClientRect();
-        return {
-          vao: Math.round(rs.top - rf.bottom),
-          margemDoParagrafo: getComputedStyle(s.parentElement).marginTop,
-          classeDoParagrafo: s.parentElement.className,
-        };
-      });
-      /* O VÃO É O DA FOLHA: oito píxeis, os mesmos que as etiquetas têm entre si. Um valor maior
-       * seria uma segunda régua dentro do mesmo bloco. */
-      conferir('entre a fileira de etiquetas e o selo há o vão da folha — não 1,6 px',
-        g && g.vao >= 7, g && g.vao);
-      conferir('…e o parágrafo do selo NÃO é um `.sub` (o `.sub` encosta ao que vem acima)',
-        g && g.classeDoParagrafo !== 'sub', g && g.classeDoParagrafo);
-    }
-
-    console.log('\nD. Os passos recolhem com o formulário — nas três secções');
+    console.log('\nC. Os passos recolhem com o formulário — nas três secções');
     {
       /* «Os steps também tem que ser colapsados, porque, afinal de contas, eles dizem respeito ao
        * formulário.» A asserção é a do comportamento: recolhido, o display é `none`; aberto,
@@ -210,7 +204,7 @@ const PAGINA = bastidores.paginaProducao(
       }
     }
 
-    console.log('\nE. Recolhido, o formulário leva as abas consigo (e a listagem fica)');
+    console.log('\nD. Recolhido, o formulário leva as abas consigo (e a listagem fica)');
     {
       const r = await page.evaluate(() => {
         const sec = document.getElementById('sec-professores');
