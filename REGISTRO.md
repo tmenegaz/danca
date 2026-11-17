@@ -50260,3 +50260,70 @@ cópia, a prova **reprova 13/15**, nomeia os seis caminhos do lançamento que pa
 publicação, e diz `custo → 2`. E a escada: a R$ 0,10/aula a prova mostra o Básico a comprar o
 Intermediário por **R$ 89,90**; a R$ 0,15 empata; a R$ 0,20 aguenta. Sem os dois controlos, as
 asserções passariam e não estariam a medir nada.
+
+## 17/11/2026 — A regra das extensões: a aula da extensão custa mais do que a aula do plano de cima
+
+**O que aconteceu.**
+A proprietária leu a auditoria, respondeu às duas perguntas que ela deixara abertas e **corrigiu o
+critério** com que eu tinha dimensionado as extensões. O aditivo comercial — que estava escrito fora
+do documento, numa cópia em `tools/` — foi incorporado ao `PLANEJAMENTO-LASTRO.md` **verbatim**.
+
+**O que eu tinha errado, e como.**
+Eu deduzi um **piso** («a extensão não pode ser tão barata que o plano de baixo alcance a franquia do
+de cima»), calculei-o em **R$ 0,15/aula** — e a conta está certa — e **parei aí**, propondo o preço
+mais próximo do piso, R$ 0,20. Um piso, sozinho, autoriza qualquer preço acima dele. O critério dela
+é outro e é mais forte:
+
+> «O custo unitário da aula da extensão é **maior** do que o custo unitário da aula no próximo plano.
+> […] Vai chegar um momento que quem vai crescer de verdade migra de plano, mas quem está crescendo
+> aos pouquinhos compra a extensão.»
+
+A aula do Intermediário custa **R$ 0,333** (99,90 ÷ 300). **R$ 0,20 está abaixo disso** — na minha
+proposta a extensão seria mais barata por aula do que o plano para onde se migraria, e **ninguém
+migraria nunca**. O erro era de leitura, não de aritmética.
+
+**O que a prova corrigiu, depois da prosa.** Ao escrever a asserção, ela reprovou duas vezes — e as
+duas reprovações eram minhas, não do código:
+
+- **«mais caro do que qualquer plano»** é **impossível**: no Básico a aula custa R$ 0,699, e uma
+  extensão acima disso deixaria de ser expansão para ser penalidade. A regra é sobre o **plano de
+  cima**, e não sobre todos.
+- **As janelas dos três degraus são disjuntas** — (0,333; 0,699), (0,175; 0,333) e uma vazia no
+  Avançado —, logo **não existe preço único que satisfaça as duas pontas em toda a escada**
+  (`max(pisos) = 0,333 ≥ min(tectos) = 0,175`). É por isso que a regra que se escreve é a de cima,
+  que um preço único cumpre; a ponta de baixo é **bónus do degrau de entrada**.
+
+**A proposta, agora com o critério dela: R$ 0,50/aula** nos três tamanhos do aditivo (+20 / +50 /
++100) = **R$ 10 / R$ 25 / R$ 50**. A migração fica às **160** aulas (do Básico, 53% da franquia de
+300) e às **380** (do Intermediário, 48% da de 800) — perto de metade, que é o ponto em que a escola
+já sabe que cresceu. **O preço da extensão é um comando, não um custo a minimizar: ele escolhe onde a
+migração acontece.** E a margem do compute é de **93%** (R$ 0,033 de minuto contra R$ 0,50 de
+receita), o que confirma que o preço não se decide pelo custo.
+
+**O critério que morreu.** Eu tinha escrito que o preço se fechava pelo «bilhete mínimo que a
+conciliação manual justifica». **Está errado:** o aditivo já define a extensão como recorrente e
+**somada à franquia**, logo entra no **mesmo Pix mensal** — não acrescenta uma linha a conciliar, só
+muda o número da que existe. O que sobra é o arredondamento, e foi por aí que os R$ 0,50 foram
+escolhidos.
+
+**A C24 fica resolvida, e abre a C25.** «É uma escola. Uma escola no **tamanho máximo**, exatamente.»
+As 5 aulas/dia são de uma escola no tamanho máximo, e uma escola do Básico (1 professor, 1 turma)
+lança ~13/mês — **100 é folgado, e não havia contradição**. Mas ao fechá-la apareceu outra: a mesma
+escola no tamanho máximo tem **110 aulas/mês** nesta resposta e **440** no §L9c («20 prof × 1
+aula/dia × 22 dias»). Um factor de 4 que muda a capacidade de **13 escolas para 3** e a conta da
+escola grande de **R$ 79,90 para R$ 139,90**. Não se resolve por dedução: não há escola pagante a
+lançar aulas.
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` — o **§ADITIVO COMERCIAL** no fim (verbatim, 174 linhas) ·
+o registo no cabeçalho · o **§L9f ponto 9** reescrito e o **ponto 10** com a C24 resolvida · o **§3
+C24** (resolvida) e **C25** (aberta) · a **quarta matriz do §8** (o que o aditivo fixa) · o **§9** com
+as extensões e a C25 declaradas **não decididas** · `experimentos/provar-o-custo-de-uma-aula.js`
+(secção 2 reescrita, 15 → **22 asserções**).
+
+**Com o quê.** `provar-o-custo-de-uma-aula` **22/22** · `check-identidade` 0 erros ·
+`check-sem-destruicao` 0 violações · as 4.206 linhas do documento com as tabelas de colunas coerentes.
+
+**Controlo A/B.** As duas propostas erradas **reprovam** na prova, e é isso que a torna útil: R$ 0,20
+(a minha) e R$ 0,30 (três cêntimos abaixo da fronteira) ficam **abaixo** da aula do Intermediário.
+Abaixo das 160 aulas o Básico com extensões desembolsa **menos** do que o Intermediário; acima,
+**mais** — e é o segundo que faz a escola migrar.

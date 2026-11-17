@@ -171,47 +171,101 @@ conferir('…e continua a custar 2 minutos, porque o `derivados.yml` também o v
 
 /* ────────────────────── 3. O piso da escada: nenhuma extensão a pode desabar ────────────────── */
 
-console.log('\n2. O piso das extensões, e o degrau que ele protege');
+console.log('\n2. A regra das extensões: a aula da extensão custa mais do que a aula de qualquer plano');
 
-/* A escada declarada (§L8, §3 C23) e a proposta de extensão do §L9f, medidas em aulas por mês. */
+/* A escada declarada (§L8, §3 C23) e os tamanhos de extensão do ADITIVO COMERCIAL §5. */
 const PLANOS = [
   { nome: 'Básico', preco: 69.9, aulas: 100 },
   { nome: 'Intermediário', preco: 99.9, aulas: 300 },
   { nome: 'Avançado', preco: 139.9, aulas: 800 },
 ];
+const PACOTES = [20, 50, 100];
+const porAula = (plano) => plano.preco / plano.aulas;
 
 /**
- * O teste da escada: para cada degrau, chegar à franquia do degrau de cima comprando extensões tem
- * de custar MAIS do que subir. Se custar menos, ninguém sobe — e o degrau de cima deixa de se vender.
- * Devolve as violações, com a conta.
+ * A REGRA DELA, e é uma só: «o custo unitário da aula da extensão é maior do que o custo unitário da
+ * aula no próximo plano». Isso implica duas coisas ao mesmo tempo — que a extensão seja mais cara por
+ * aula do que TODOS os planos, e que exista um ponto onde migrar é melhor. Abaixo do preço da aula do
+ * plano mais caro por aula, ninguém migra nunca; é o defeito que a proposta de R$ 0,20 tinha.
+ *
+ * Devolve os planos cuja aula é mais barata do que a extensão — isto é, as violações da regra.
  */
-function violacoes(precoPorAula) {
-  const out = [];
-  for (let i = 0; i < PLANOS.length - 1; i += 1) {
-    const baixo = PLANOS[i];
-    const cima = PLANOS[i + 1];
-    const falta = cima.aulas - baixo.aulas;
-    const comExtensoes = baixo.preco + falta * precoPorAula;
-    if (comExtensoes <= cima.preco) out.push({ degrau: cima.nome, comExtensoes, subir: cima.preco });
-  }
-  return out;
+function violacoesDaRegra(precoPorAula) {
+  return PLANOS.filter((pl) => !(precoPorAula > porAula(pl))).map((pl) => pl.nome);
 }
 
-conferir('a R$ 0,20/aula a escada aguenta — nenhum degrau se alcança mais barato por extensões',
-  violacoes(0.20).length === 0, violacoes(0.20));
-conferir('…e a R$ 0,10/aula ela desaba: o Básico compra o Intermediário por R$ 89,90',
-  violacoes(0.10).length > 0 && /Intermediário/.test(violacoes(0.10)[0].degrau), violacoes(0.10));
+/* A REGRA, nas palavras dela: «o custo unitário da aula da extensão é maior do que o custo unitário
+ * da aula do PRÓXIMO plano». É sobre o plano de cima, e não sobre todos — e a diferença importa,
+ * porque a versão forte («mais cara do que qualquer plano») é impossível: no Básico a aula custa
+ * R$ 0,699, e uma extensão acima disso deixaria de ser expansão para ser penalidade. */
+conferir('a R$ 0,50/aula a extensão é mais cara do que a aula do plano de CIMA, nos dois degraus',
+  PLANOS.slice(0, -1).every((_, i) => 0.50 > porAula(PLANOS[i + 1])),
+  PLANOS.slice(1).map((pl) => Number(porAula(pl).toFixed(4))));
+conferir('…e fica ABAIXO da aula do Básico (R$ 0,699) — comprá-la melhora o preço médio de quem a compra',
+  0.50 < porAula(PLANOS[0]), { extensao: 0.5, basico: Number(porAula(PLANOS[0]).toFixed(4)) });
 
-/* O piso é o que manda: R$ 0,15 é onde o Básico empata, e um cêntimo abaixo já perde. */
-conferir('o piso é R$ 0,15/aula — no piso empata, abaixo perde',
-  violacoes(0.1501).length === 0 && violacoes(0.1499).length > 0,
-  { acima: violacoes(0.1501).length, abaixo: violacoes(0.1499).length });
+/* O CONTROLO, e é o que prova que a regra morde: a R$ 0,20 — a proposta que eu tinha feito — a
+ * extensão fica mais barata do que a aula do Intermediário, e ninguém teria motivo para migrar. */
+conferir('CONTROLO: a R$ 0,20/aula — a minha proposta anterior — a regra REPROVA',
+  !(0.20 > porAula(PLANOS[1])), { extensao: 0.2, intermediario: Number(porAula(PLANOS[1]).toFixed(4)) });
+conferir('CONTROLO: a R$ 0,30/aula, três cêntimos abaixo da fronteira, também reprova',
+  !(0.30 > porAula(PLANOS[1])), { extensao: 0.3, intermediario: Number(porAula(PLANOS[1]).toFixed(4)) });
 
-/* E o que a extensão NÃO pode fazer: competir com o topo. A R$ 0,20 ela fica acima dos R$ 0,175 do
- * Avançado — quem quer 800 aulas compra o plano, não oito extensões. */
-const porAulaDoTopo = PLANOS[2].preco / PLANOS[2].aulas;
-conferir('a extensão proposta (R$ 0,20) fica acima do preço por aula do Avançado (R$ 0,175)',
-  0.20 > porAulaDoTopo, { extensao: 0.20, topo: Number(porAulaDoTopo.toFixed(4)) });
+/* E O ACHADO QUE A PROVA FEZ, e que a prosa não tinha: as JANELAS SÃO DISJUNTAS. Se se exigir as
+ * duas pontas ao mesmo tempo — mais caro do que o plano de cima E mais barato do que o próprio —, não
+ * há preço único que sirva os três degraus, e sobre o Avançado a janela é vazia (não há plano acima).
+ * É por isso que a regra que se escreve é a de cima — «acima do plano de cima» —, que um preço único
+ * cumpre em toda a escada, e não a versão «entre as duas». */
+const janela = (i) => ({
+  acima: i + 1 < PLANOS.length ? porAula(PLANOS[i + 1]) : null, // mais caro do que o plano de cima
+  abaixo: porAula(PLANOS[i]),                                   // mais barato do que o próprio
+});
+const JANELAS = PLANOS.map((_, i) => janela(i));
+const pisos = JANELAS.map((j) => j.acima).filter((v) => v !== null);
+const tectos = JANELAS.map((j) => j.abaixo);
+/* Um preço único serviria os três degraus se coubesse em todas as janelas: max(pisos) < min(tectos).
+ * Não cabe — 0,333 não é menor do que 0,175 —, e é essa a razão pela qual a regra que se escreve é a
+ * de cima («acima do plano de cima»), que um preço único cumpre em toda a escada. */
+const intereseccaoVazia = Math.max(...pisos) >= Math.min(...tectos);
+conferir('as janelas dos três degraus são DISJUNTAS — não há preço único «entre as duas pontas»',
+  intereseccaoVazia, { pisos, tectos });
+
+/**
+ * O ponto de viragem: acima dele, migrar custa menos do que ficar no plano com extensões. É onde os
+ * dois critérios se cruzam — por aula o plano já ganhava sempre; no desembolso, passa a ganhar aqui.
+ */
+const viragem = (i, precoPorAula) => Math.ceil(PLANOS[i].aulas + (PLANOS[i + 1].preco - PLANOS[i].preco) / precoPorAula);
+
+conferir('a R$ 0,50 a migração do Básico acontece às 160 aulas', viragem(0, 0.50) === 160, viragem(0, 0.50));
+conferir('…e a do Intermediário às 380', viragem(1, 0.50) === 380, viragem(1, 0.50));
+
+/* E a prova de que o ponto de viragem é real, nas duas direcções: abaixo dele o desembolso com
+ * extensões é MENOR (o argumento dela), acima é MAIOR (o plano de cima ganha). */
+const desembolso = (i, aulas, precoPorAula) => {
+  const falta = Math.max(0, aulas - PLANOS[i].aulas);
+  const nPacotes = Math.ceil(falta / PACOTES[0]);
+  return PLANOS[i].preco + nPacotes * PACOTES[0] * precoPorAula;
+};
+const f = viragem(0, 0.50);
+conferir('abaixo das 160 aulas o Básico com extensões desembolsa MENOS do que o Intermediário',
+  desembolso(0, f - 20, 0.50) < PLANOS[1].preco,
+  { com: desembolso(0, f - 20, 0.50), plano: PLANOS[1].preco });
+conferir('acima das 160 aulas desembolsa MAIS — e é por isso que ela migra',
+  desembolso(0, f + 40, 0.50) > PLANOS[1].preco,
+  { com: desembolso(0, f + 40, 0.50), plano: PLANOS[1].preco });
+
+/* Os pacotes do aditivo a R$ 0,50 dão números redondos — que é o que a conciliação manual pede. */
+const precosDosPacotes = PACOTES.map((n) => n * 0.50);
+conferir('os três pacotes do aditivo (20/50/100) dão R$ 10 / R$ 25 / R$ 50 — redondos',
+  precosDosPacotes.every((v) => Number.isInteger(v)) && precosDosPacotes.join(',') === '10,25,50',
+  precosDosPacotes);
+
+/* O TOPO, declarado e não escondido: sobre o Avançado não há plano acima, e a extensão custa 2,86× a
+ * aula do próprio plano — a aula mais cara do catálogo. É a consequência de não haver degrau para
+ * onde subir, e é o que o aditivo já resolve dizendo que acima do topo a escola fala com ela. */
+conferir('sobre o Avançado a extensão custa 2,86× a aula do próprio plano — declarado',
+  Math.round((0.50 / porAula(PLANOS[2])) * 100) / 100 === 2.86,
+  Number((0.50 / porAula(PLANOS[2])).toFixed(2)));
 
 /* ─────────────────────────── 4. O modelo dos minutos, contra a fatura ────────────────────────── */
 

@@ -139,9 +139,29 @@
 > escolas**. A projecção caiu de 193% para **67% da cota**, a capacidade é de **1.478 aulas/mês**, e
 > o gatilho de migração é a **projecção acima de 2.000 min** — porque o que dói não é o preço do
 > minuto (R$ 0,033, contra R$ 0,175 a 0,699 de receita por aula) e sim o **bloqueio das execuções**,
-> que faz o lançamento da professora falhar em silêncio. Nasceu **C24**: o mínimo de uso declarado
-> (5 aulas/dia = 110/mês) é **maior** do que a franquia do plano de entrada (100). Nenhuma linha de
-> código de produto foi alterada — a auditoria é leitura da API, da fatura e dos workflows.
+> que faz o lançamento da professora falhar em silêncio. Nasceu **C24** (o mínimo de uso declarado de
+> 5 aulas/dia = 110/mês contra a franquia de 100 do plano de entrada) — **e a proprietária fechou-a no
+> mesmo dia**: as 5/dia são de uma escola **no tamanho máximo**, e uma escola do Básico lança ~13/mês,
+> logo 100 é folgado. Fechá-la abriu a **C25** (a mesma escola máxima aparece com 110 e com 440
+> aulas/mês, um factor de 4 na capacidade). E a **regra das extensões foi corrigida por ela**: não é
+> um piso de R$ 0,15 — é que **o preço da aula da extensão seja maior do que o preço da aula do plano
+> de cima**, o que põe o preço em R$ 0,50/aula (e não nos R$ 0,20 que eu propunha, abaixo da fronteira
+> dos R$ 0,333) e faz do preço da extensão um **comando** — ele escolhe **onde a migração acontece**
+> (às 160 aulas do Básico, às 380 do Intermediário) — e não um custo a minimizar. A prova fixa as duas
+> coisas e **reprova** a minha proposta anterior. Nenhuma linha de código de produto foi alterada — a
+> auditoria é leitura da API, da fatura e dos workflows.
+
+> **Registo de 17/11/2026 — o ADITIVO COMERCIAL entra no documento.** O aditivo que declara a
+> **aula processada** como unidade de contratação — franquias de 100 / 300 / 800, renovação mensal
+> **não cumulativa**, ensaios e oficinas contando igual, professores e alunos como **custo interno
+> medido e não limite comercial**, downgrade sem apagar dados, extensões de +20 / +50 / +100 e a regra
+> de que **o plano superior tem de ser mais vantajoso por aula** — estava escrito **fora** do
+> documento (numa cópia em `tools/`), e o §L9f da auditoria já o citava como ausente. Passa a ser o
+> **§ADITIVO COMERCIAL**, no fim, **verbatim**: o texto é dela, e traduzi-lo perdê-lo-ia. Ele
+> **substitui, para o desenho da oferta**, as capacidades por professores e alunas dos §L8, §L9b e
+> §L9c — e essas passagens **ficam** como histórico das medições que trouxeram até aqui. O
+> `biblioteca/comercial/planos.json` continua com a matriz **antiga** (1/10 · 3/40 · 6/90), que é o
+> que o produto cobra hoje: a distância entre o aditivo e o dado é a obra que a L8 tem pela frente.
 
 ---
 
@@ -445,7 +465,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entrou em 10/11/2026: C23** a **assimetria da escada** — a assinatura subiu +37,50 sempre, enquanto a capacidade sobe 3× a quantidade por 5/3 do preço, e o passo de R$ 30 não compra capacidade nenhuma porque um lote de 30 alunos custa os mesmos R$ 30. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Entrou em 17/11/2026: C24** o **plano de entrada é menor do que o menor uso declarado** — franquia do Básico **100 aulas/mês** contra o mínimo de **5/dia = 110/mês** (§L9f), e a decisão depende de uma pergunta só: o mínimo é da escola de uma turma ou da escola no tamanho máximo. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Entrou em 10/11/2026: C23** a **assimetria da escada** — a assinatura subiu +37,50 sempre, enquanto a capacidade sobe 3× a quantidade por 5/3 do preço, e o passo de R$ 30 não compra capacidade nenhuma porque um lote de 30 alunos custa os mesmos R$ 30. **Entraram em 01–02/11/2026: C19** o que é uma **«turma pronta»** (só o esqueleto, ou o conteúdo pedagógico) e **de quem é o ritmo** — **resolvida a 02/11/2026 nas duas metades**: a extensão depende do plano contratado, e o ritmo é **do contrato** (já existe, obrigatório, no cadastro da turma) · **C20** os **três aspectos macro** que o Lastro observa (força e flexibilidade · técnica/código · poiésis) e a **Regra 4**, que pede o primeiro e é alimentada por um campo sobre o espaço · **C21** a **Regra 15 substituída** (o dado venceu o arquivo paralelo) · **C22** o **verbete como átomo do syllabus**, os quatro degraus com os seus bloqueios e a **viabilidade do motor**, medida — e, a 02/11/2026, a **correção de leitura**: o gerador **não é o quarto produto**, é o **meio**, e o que se vende são **três**. A decisão de **como** isso se constrói está no [PLANO-PRODUTOS-DO-MOTOR.md](./PLANO-PRODUTOS-DO-MOTOR.md), que declara ainda as **nove colisões** com os planos existentes e o ajuste de cada uma. **Entrou em 17/11/2026: C24** o **plano de entrada é menor do que o menor uso declarado** — franquia do Básico **100 aulas/mês** contra o mínimo de **5/dia = 110/mês** (§L9f) — **RESOLVIDA no mesmo dia** pela proprietária: as 5/dia são de uma escola **no tamanho máximo**, e uma escola do Básico lança ~13/mês, logo 100 é folgado. **E, ao fechá-la, abriu-se a C25**: a **mesma** escola no tamanho máximo aparece com **110 aulas/mês** (a resposta da C24) e com **440** (§L9c, «20 prof × 1 aula/dia × 22 dias») — um factor de 4 que muda a capacidade de **13 escolas para 3** e a conta da escola grande de **R$ 79,90 para R$ 139,90**, sem decisão. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -1229,33 +1249,60 @@ as consultas de cada degrau são as mesmas, 7 · 14 · 46.)*
 ---
 
 **C24 — O plano de entrada é menor do que o menor uso já declarado.** Aberta a 17/11/2026 pela
-aritmética da auditoria (§L9f), **não resolvida** — e ela é de uma linha, o que a torna fácil de
-não ver.
+aritmética da auditoria (§L9f) e **RESOLVIDA no mesmo dia** pela resposta da proprietária. O registo
+fica, porque a pergunta era boa e a resposta é curta.
 
-**O que a conta mostra.** O §L9c registou, a 16/11/2026, que o consumo se conta em **aulas lançadas**
-e que «são **no mínimo 5 por dia**». Cinco por dia em 22 dias úteis são **110 aulas por mês**. A
-franquia do **Básico** — a unidade comercial declarada nesta rodada — é de **100 aulas por mês**.
-**O degrau de entrada vende menos do que o menor uso que já se declarou possível**, e nasce em
-extensão.
+**O que a conta mostrava.** O §L9c registou, a 16/11/2026, que o consumo se conta em **aulas
+lançadas** e que «são **no mínimo 5 por dia**». Cinco por dia em 22 dias úteis são **110 aulas por
+mês**. A franquia do **Básico** — a unidade comercial declarada nesta rodada — é de **100 aulas por
+mês**. O degrau de entrada parecia vender menos do que o menor uso já declarado.
 
-**As duas leituras, e porque não se escolhe por dedução.**
+**A resposta dela, e é decisiva:** «É uma escola. Uma escola no **tamanho máximo**, exatamente.»
+As 5/dia são o consumo de uma escola **no tamanho máximo**, e não de qualquer escola — a pergunta era
+se o mínimo de 5/dia fora dito a pensar na escola de uma turma ou na escola no seu tamanho máximo, e
+a resposta é a segunda.
 
-- *(i)* As 5/dia são da **escola inteira**, e o §L9c estava a falar de uma escola no **teto**
-  (20 professores). Uma escola do Básico é **1 professor, 1 turma**: a 3 lançamentos por semana são
-  ~**13 aulas/mês**, e 100 é **sete vezes e meia** o que ela usa — folgado, e a franquia está bem
-  dimensionada. Sob esta leitura não há contradição: há duas frases a falar de escalas diferentes.
-- *(ii)* As 5/dia são de **qualquer** escola que use o sistema a sério, e então o Básico **não serve
-  a ninguém que o contrate para trabalhar** — o que é um defeito de dimensionamento, não de redacção.
+**O que isso fecha.** Uma escola do **Básico** é **1 professor, 1 turma**, a 3 lançamentos por semana
+— ~**13 aulas/mês**. A franquia de 100 é **sete vezes e meia** o que ela usa. **O degrau de entrada
+está folgado, não apertado; não havia contradição — havia duas frases a falar de escalas
+diferentes.** E há uma consequência de desenho que vale registar: para chegar às 100 aulas «aos
+pouquinhos» uma escola teria de ser ~8× a escola mínima, logo **a extensão não serve o crescimento
+miudinho a partir do Básico** — serve a escola que já é grande e precisa de mais um professor-de-aulas
+do que a franquia dá.
 
-**A pergunta que decide, e é uma só:** o mínimo de 5/dia foi dito a pensar na **escola de uma
-turma** ou na **escola no seu tamanho máximo**? A resposta muda o preço do degrau de entrada, e é
-ela que sabe — o documento não adivinha. Nota que a leitura *(i)* tem a favor o resto da escada:
-100 → 300 → 800 acompanha 1 → 3 → 6 professores, e 100 aulas para uma turma é coerente com
-~13/mês de uso com margem para quem lança mais.
+*(Afeta §L9f ponto 10 (a capacidade) e §L8 (a escada). A taxa de uso continua **declarada** e não
+medida — não há escola pagante a lançar aulas.)*
 
-*(Afeta §L9f (a capacidade e as franquias) e §L8 (a escada). Enquanto não se decide, a auditoria do
-§L9f usa a franquia como **teto** e declara a taxa de uso em vez de a medir — porque ainda não há
-escola pagante a lançar aulas.)*
+---
+
+**C25 — A escola no tamanho máximo gasta 110 ou 440 aulas por mês.** Aberta a 17/11/2026 **pela
+resposta que fechou a C24**, e não resolvida — porque a resposta que fecha uma pergunta abre esta.
+
+**O que a conta mostra.** A resposta da C24 fixa o consumo de uma escola no tamanho máximo em
+**110 aulas/mês** (5 por dia × 22 dias). O §L9c, ao calcular o teto de 20 professores e 500 alunas,
+usou outra conta para a **mesma** escola: «20 professores × 1 aula/dia × 22 dias» = **440 aulas/mês**.
+**As duas descrevem a escola no tamanho máximo e diferem por um factor de quatro.**
+
+**O que muda, e não é pouco.**
+
+| leitura | aulas/mês na escola máxima | capacidade na cota (1.478 aulas) | o plano que essa escola compra |
+|:--|--:|--:|:--|
+| a da C24 | **110** | **13 escolas** | **Básico + 1 pacote (+20) = R$ 79,90** |
+| a do §L9c | **440** | **3 escolas** | **Avançado = R$ 139,90** |
+
+**É a diferença entre 13 escolas na cota gratuita e 3 — e entre a escola grande pagar R$ 79,90 ou
+R$ 139,90.** E a segunda coluna explica-se: a 440 aulas o Avançado vence as alternativas
+(Intermediário + 140 aulas de extensão custaria R$ 169,90 contra R$ 139,90), enquanto a 110 aulas a
+rota mais barata é o Básico com um pacote. **A mesma escola, o mesmo produto, R$ 60 de diferença por
+mês.**
+
+**A pergunta que decide:** a escola máxima lança **5 aulas por dia** (uma escola de 20 professores
+onde só cinco lançam por dia, o que é plausível em dias rotativos) ou **uma aula por professor por
+dia** (440)? As duas são hipóteses de trabalho, e nenhuma foi medida — **não há escola pagante a
+lançar aulas**, e é essa a razão pela qual o número não se pode derivar.
+
+*(Afeta §L9f pontos 7 e 10, §L8 e a receita projectada. Enquanto não se decide, o §L9f mostra as duas
+colunas e não escolhe.)*
 
 ---
 
@@ -2504,33 +2551,135 @@ gatilho da migração é, portanto, **de disponibilidade, e não de preço**: mi
 **projecção do mês** passa dos 2.000 min, e a projecção existe no painel do §L9d exactamente para
 isso ser visto antes e não depois. Hoje a projecção é **67%**.
 
-**9. O dimensionamento das extensões — a aritmética, e o que ela proíbe.** A regra declarada é que
-**o plano superior tem de ser mais vantajoso por aula do que somar extensões**. Isso fixa um **piso**
-por degrau, e não um gosto:
+**9. As extensões — a regra dela, e porque a minha estava incompleta.** *(Reescrito a 17/11/2026
+depois de ela corrigir o critério; a versão anterior está no `REGISTRO.md` como o que se pensou
+primeiro.)*
 
-| degrau que se quer proteger | conta | piso |
+**O que eu tinha escrito, e o que faltava.** Eu deduzi um **piso** — «a extensão não pode ser tão
+barata que o plano de baixo alcance a franquia do de cima» — e parei aí. O piso é
+**R$ 0,15/aula** para o Básico (69,90 + 200 × 0,15 = 99,90) e R$ 0,08 para o Intermediário, e a
+aritmética está certa. Mas um piso, sozinho, diz que **qualquer preço acima de 15 centavos serve** —
+e eu propus o mais próximo do piso (R$ 0,20). Foi essa a leitura errada, e não a conta.
+
+**A regra dela, e é a que manda:** «o custo unitário da aula da extensão é **maior** do que o custo
+unitário da aula no próximo plano». O piso de 15 centavos é uma **consequência fraca** dessa regra; a
+regra é mais forte e produz um número diferente:
+
+| o que se compara | conta | resultado |
 |:--|:--|--:|
-| Intermediário (300 aulas, R$ 99,90) contra Básico + extensões | 69,90 + ext(200) > 99,90 | **ext(200) > R$ 30,00 → R$ 0,15/aula** |
-| Avançado (800 aulas, R$ 139,90) contra Intermediário + extensões | 99,90 + ext(500) > 139,90 | **ext(500) > R$ 40,00 → R$ 0,08/aula** |
+| a aula do **Intermediário** (o plano acima do Básico) | 99,90 ÷ 300 | **R$ 0,333** |
+| a aula do **Avançado** | 139,90 ÷ 800 | **R$ 0,175** |
+| a aula do **Básico** (o que a escola já tem) | 69,90 ÷ 100 | **R$ 0,699** |
 
-**O piso que manda é o de cima, R$ 0,15 por aula.** Abaixo disso, o Básico com extensões compra o
-Intermediário mais barato e a escada desaba. Acima disso, o preço é posicionamento, não aritmética —
-e há duas âncoras: o **Avançado a R$ 0,175/aula** (uma extensão abaixo disso compete com o topo) e a
-**conciliação manual do §L11** (uma extensão de R$ 12 custa mais em administração do que rende).
-Uma proposta, para ela decidir: **R$ 0,20/aula**, em quatro tamanhos que espelham as franquias —
-**P +100 = R$ 19,90 · M +300 = R$ 59,90 · G +800 = R$ 159,90 · GG +2.000 = R$ 399,90**. Verificado
-degrau a degrau: do Básico, **P leva a 200 aulas por R$ 89,80** e o Intermediário dá 300 por R$ 99,90
-— **subir ganha**; do Intermediário a 800 aulas por extensões custa **R$ 199,40** (cinco P) e o
-Avançado custa **R$ 139,90** — **subir ganha**. **A margem do compute numa extensão de 300 aulas é
-de 83%** (R$ 9,90 de compute contra R$ 59,90), e de 100% enquanto couber na cota.
+**A extensão tem de ficar acima de R$ 0,333.** Abaixo disso ela seria mais barata do que a aula do
+plano de cima, e **ninguém migraria nunca** — foi exactamente o defeito da minha proposta de
+R$ 0,20. E há uma segunda ponta, que só existe no degrau de entrada: acima de **R$ 0,699** ela seria
+mais cara do que a aula do **próprio** plano em que a escola está, e deixaria de ser expansão para ser
+penalidade.
 
-**10. A contradição que a aritmética revelou (C24).** O mínimo declarado para o consumo real é
-**«no mínimo 5 aulas por dia»** (§L9c, 16/11) = **110 aulas/mês**, e a franquia do **Básico é 100**.
-**O degrau de entrada é menor do que o menor uso já declarado.** Duas leituras, e não se escolhe por
-dedução: *(i)* as 5/dia são da **escola** inteira e uma escola do Básico (1 professor, 1 turma)
-lança ~13/mês, caso em que 100 é folgado e a frase do §L9c estava a falar de outra coisa; *(ii)* as
-5/dia são de **qualquer** escola, e então o Básico nasce em extensão. Qual das duas é verdade muda o
-preço do degrau de entrada, e é ela que sabe.
+**E aqui a prova corrigiu a prosa, que é para isso que ela serve.** Se se exigirem as duas pontas ao
+mesmo tempo, as janelas **não se tocam**:
+
+| degrau | «mais caro do que o plano de cima» | «mais barato do que o próprio» | janela |
+|:--|--:|--:|:--|
+| sobre o **Básico** | R$ 0,333 | R$ 0,699 | **(0,333 ; 0,699)** |
+| sobre o **Intermediário** | R$ 0,175 | R$ 0,333 | (0,175 ; 0,333) |
+| sobre o **Avançado** | não há plano acima | R$ 0,175 | **vazia** |
+
+**A interseção das três é vazia** — `max(pisos) = 0,333` não é menor do que `min(tectos) = 0,175` —,
+logo **não existe um preço único que satisfaça as duas pontas em toda a escada**. A conclusão não é
+que a regra está errada: é que **a regra que se escreve é a de cima** («o preço da aula da extensão é
+maior do que o preço da aula do plano de cima»), essa sim cumprível por um preço único, e a ponta de
+baixo é um **bónus do degrau de entrada**, não uma condição. Nas palavras dela, é assim mesmo: o que
+tem de valer é que **migrar seja melhor por aula**; que a extensão seja ou não melhor do que o plano
+em que a escola já está é secundário — e quando não é, o efeito é empurrar para cima, que é o que se
+quer.
+
+**O argumento dela, e ele fecha.** «Vai chegar um momento que quem vai crescer de verdade migra de
+plano, mas quem está crescendo aos pouquinhos compra a extensão.» Há, então, **dois** critérios ao
+mesmo tempo, e eles não se contradizem — cruzam-se num ponto:
+
+1. **Por aula, o plano para onde se migraria é sempre melhor.** É a regra acima: a extensão custa
+   mais por aula do que **o plano de cima**. Sempre. Não há preço que mude isso — e é isso que
+   garante que subir nunca sai mais caro por unidade.
+2. **No desembolso de hoje, a extensão é menor.** Quem precisa de 140 aulas paga R$ 85,90
+   (Básico + 2 pacotes) e não R$ 99,90 — e não compra 300 aulas que não vai usar.
+
+**O ponto de viragem (F\*) é onde as duas coisas se encontram:** `F* = franquia do plano + (preço do
+plano de cima − preço do plano de baixo) ÷ preço da aula da extensão`. Abaixo de F\*, o desembolso
+manda e a extensão ganha; acima, o preço por aula manda e o plano ganha. **E o preço da extensão é,
+portanto, um comando e não um custo a minimizar: ele escolhe ONDE a migração acontece.**
+
+| preço da aula da extensão | migra do Básico aos | % da franquia de 300 | migra do Intermediário aos | % da franquia de 800 | +20 | +50 | +100 |
+|:--|--:|--:|--:|--:|--:|--:|--:|
+| R$ 0,30 — **reprova a regra** | 200 | 67% | 433 | 54% | R$ 6 | R$ 15 | R$ 30 |
+| R$ 0,35 | 186 | 62% | 414 | 52% | R$ 7 | R$ 17,50 | R$ 35 |
+| R$ 0,40 | 175 | 58% | 400 | 50% | R$ 8 | R$ 20 | R$ 40 |
+| **R$ 0,50** | **160** | **53%** | **380** | **48%** | **R$ 10** | **R$ 25** | **R$ 50** |
+| R$ 0,60 | 150 | 50% | 367 | 46% | R$ 12 | R$ 30 | R$ 60 |
+
+**A proposta: R$ 0,50 por aula**, nos três tamanhos que o aditivo já fixa (+20 / +50 / +100). Os
+motivos, e são três:
+
+- **Cumpre a regra dela com folga** (0,50 > 0,333 > 0,175) e fica **abaixo da aula do próprio Básico**
+  (0,699) — no degrau de entrada a extensão **melhora** o preço médio de quem a compra, que é o que a
+  torna atraente nesse degrau. Nos dois de cima ela fica acima (0,50 > 0,333) e o efeito inverte-se:
+  encarece o médio e **empurra para o plano de cima**, que é exactamente o que se quer.
+- **Dá os números redondos que a conciliação manual pede:** R$ 10, R$ 25, R$ 50. Com R$ 0,40 sairiam
+  R$ 8, R$ 20, R$ 40 — também redondos. Com R$ 0,35, R$ 7 / R$ 17,50 / R$ 35: não.
+- **Põe a migração perto de metade da franquia** (160 de 300; 380 de 800), que é o ponto em que a
+  escola já sabe que cresceu. Mais perto do tecto (R$ 0,30) e ela migra sem ter crescido; mais longe
+  e a extensão vira o plano de facto.
+
+**O desembolso, medido com os pacotes de +20 e a R$ 0,50:**
+
+| a escola precisa de | Básico + pacotes | desembolso | o Intermediário dá 300 por | quem ganha |
+|:--|:--|--:|--:|:--|
+| 120 aulas | +1 | **R$ 79,90** | R$ 99,90 | extensão |
+| 140 aulas | +2 | **R$ 89,90** | R$ 99,90 | extensão |
+| 160 aulas | +3 | **R$ 99,90** | R$ 99,90 | **empate — e é aqui que se migra** |
+| 200 aulas | +5 | R$ 119,90 | **R$ 99,90** | plano |
+| 300 aulas | +10 | R$ 169,90 | **R$ 99,90** | plano, por R$ 70 |
+
+**A margem do compute não muda com isto:** uma aula custa **R$ 0,033** de minuto excedente (ou nada,
+dentro da cota), contra **R$ 0,50** de receita. **A extensão tem 93% de margem**, e o preço dela não
+se decide pelo custo — decide-se pelo posicionamento. Foi por isso que o meu «bilhete mínimo para a
+conciliação manual» era um critério errado: **a extensão não é uma segunda cobrança.** O aditivo já a
+define como recorrente e **somada à franquia** («somar-se à franquia do plano em cada renovação
+mensal»), logo entra no **mesmo Pix mensal** da escola. Não acrescenta uma linha a conciliar — só
+muda o número da que já existe. O critério morre, e o número que sobra é o arredondamento, que é por
+onde a proposta acima foi escolhida.
+
+**Onde a ponta de baixo não se aplica, e são os dois degraus de cima.** A R$ 0,50 a extensão fica
+**acima** da aula do Intermediário (R$ 0,333) e muito acima da do Avançado (R$ 0,175) — logo, para
+quem já está nesses planos, a extensão é **mais cara por aula do que o plano que ele tem**. Não é um
+defeito: é a regra a empurrar para cima, e no Intermediário a migração fica às **380 aulas** — o
+Avançado dá 800 por R$ 139,90, e quem chega lá compra-o. E no **topo** é o limite do desenho: **não há
+plano acima**, a janela é vazia, e uma extensão no Avançado custa **2,86× a aula do próprio plano** —
+a aula mais cara do catálogo. É consequência **declarada**: acima de 800 aulas não há upgrade, há
+conversa, e o aditivo já diz que acima do topo a escola fala com ela.
+
+**10. A contradição que a aritmética revelou (C24) — RESOLVIDA a 17/11/2026.** O §L9c registou «no
+mínimo 5 aulas por dia», que são **110 aulas/mês**, e a franquia do **Básico é 100**. Perguntei se as
+5/dia eram da escola de uma turma ou da escola no tamanho máximo, porque a resposta mudava o preço do
+degrau de entrada.
+
+**A resposta dela, e é decisiva: «É uma escola. Uma escola no tamanho máximo, exatamente.»** As
+5/dia — 110 aulas/mês — são o consumo de uma **escola no tamanho máximo**, e não de qualquer escola.
+Logo:
+
+- **Uma escola do Básico (1 professor, 1 turma, 3 lançamentos por semana) lança ~13 aulas/mês.** A
+  franquia de 100 é **sete vezes e meia** o que ela usa. O degrau de entrada está folgado, e não
+  apertado: **não há contradição**, havia duas frases a falar de escalas diferentes.
+- **Nenhuma escola vai precisar de extensão por crescer «aos pouquinhos» a partir do Básico** — para
+  chegar às 100 aulas ela tem de ser ~8× a escola mínima. **A extensão serve a escola que já é
+  grande**, e é por isso que ela existe numa escada de três degraus com saltos de 3× e 2,7×.
+
+**O que a resposta dela muda na conta da capacidade — e é o achado desta rodada.** Se a escola no
+tamanho máximo consome **110 aulas/mês**, então a cota gratuita sustenta `1.478 ÷ 110` = **13 escolas
+no tamanho máximo** (e não as 3 que o §L9c calculava). Mas o §L9c calculou essas 3 a partir de
+**440** aulas/mês — «20 professores × 1 aula/dia × 22 dias» —, e **110 ≠ 440 é um factor de 4**. Não
+escolho por dedução: é a **C25**.
 
 **Critérios verificáveis.** (xxvii) o painel mostra os minutos faturados da janela e eles batem com
 a fatura da API de uso dentro de 5% — o modelo `jobs × ⌈s/60⌉` é o que se usa, e `timing.billable`
@@ -2538,8 +2687,10 @@ não se lê; (xxviii) o custo de **um lançamento** aparece como **1 minuto**, e
 2 reprova; (xxix) a projecção do mês aparece **em minutos e em percentagem da cota**, com o número de
 dias que faltam; (xxx) a capacidade em escolas é calculada a partir da franquia **e** de uma taxa de
 uso declarada — nunca da franquia sozinha; (xxxi) o gatilho de migração é a **projecção acima de
-2.000 min**, e não o crédito gasto; (xxxii) nenhuma extensão pode deixar um plano inferior alcançar
-a franquia do superior por menos dinheiro — a conta dos dois pisos corre numa prova.
+2.000 min**, e não o crédito gasto; (xxxii) **o preço da aula de qualquer extensão é maior do que o
+preço da aula de qualquer plano** — a asserção corre sobre a tabela inteira, e uma extensão a R$ 0,30
+tem de reprovar; (xxxiii) o **ponto de viragem** de cada degrau é calculado e exibido, e acima dele o
+plano de cima tem de custar **menos** do que o plano de baixo com extensões de volume equivalente.
 
 **O que esta auditoria NÃO mede, e não pode medir hoje.** (a) **A taxa de uso real de uma escola** —
 não existe nenhuma escola pagante a lançar aulas; o que há são as escolas de teste, e o consumo delas
@@ -3613,6 +3764,21 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | A aresta dos 30 alunos **fica declarada**, sem terceiro lote | **§L9b** · **§3 C23** |
 | O que a decisão custou, e o que fica em aberto | **§3 C23** — o Intermediário passa a ser o mais vendido (7 de 15 perfis) **e a escada perde R$ 490/mês** nos quinze perfis medidos |
 
+### O aditivo de 17/11/2026 — o que ele fixa, e onde
+
+| O que o aditivo decide | Onde |
+|:--|:--|
+| A unidade comercial é a **aula processada** — ensaios, oficinas e actividades extraordinárias contam igual, sábado incluído | **§ADITIVO §1** · **§L9f** inteiro |
+| Uma aula = **um minuto facturado** (1 job), e é isso que a franquia mede | **§L9f** pontos 1–2 (medido na fatura) |
+| **Franquias** de 100 / 300 / 800 aulas/mês, a quatro semanas por mês | **§ADITIVO §3** (proposta) · **§L9f** ponto 7 |
+| Renovação **mensal e não cumulativa**; downgrade sem apagar dados | **§ADITIVO §4** |
+| **Professores e alunos** deixam de ser limite comercial exposto — e continuam custo interno medido | **§ADITIVO §2** · muda o **§L9b** e o **§L9c** |
+| Extensões de **+20 / +50 / +100** aulas/mês, recorrentes | **§ADITIVO §5** |
+| **O preço da aula da extensão é maior do que o preço da aula de qualquer plano** — e por isso há um ponto de viragem onde migrar é melhor | **§L9f** ponto 9 (a regra corrigida por ela) · critérios (xxxii)–(xxxiii) |
+| A proposta de preço da extensão: **R$ 0,50/aula** = R$ 10 / R$ 25 / R$ 50 | **§L9f** ponto 9 — migra aos **160** e aos **380** aulas |
+| O consumo da escola **no tamanho máximo** | **§3 C24** (110/mês, resolvida) e **§3 C25** (110 × 440, aberta) |
+| O que **não** se sabe ainda: o evento técnico que debita uma unidade, e o custo do cadastro | **§ADITIVO §6–7** — a instrumentação é obra, não mapa |
+
 ### A auditoria de 17/11/2026 — as cinco perguntas, e onde cada uma é respondida
 
 | A pergunta | Onde é respondida | Com que número |
@@ -3623,8 +3789,8 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | **Capacidade** disponível para novas escolas | **§L9f** ponto 7 | **1.478 aulas/mês** depois de 522 min de engenharia — 14 Básico / 4 Intermediário / 1 Avançado **no teto**, e 36 / 12 / 4 **a 40% de uso** |
 | **Em que momento** migrar para plano pago | **§L9f** ponto 8 | a **projecção acima de 2.000 min** — não o crédito gasto; e o gatilho é **disponibilidade**, não preço |
 | O que **fundamenta** a conta | **§L9f** ponto 1 | o modelo `jobs × ⌈s/60⌉` reproduz a fatura em **+3,5%** (dez linhas diárias); `timing.billable` vem **0** |
-| O **dimensionamento** de P/M/G/GG | **§L9f** ponto 9 | piso de **R$ 0,15/aula** (senão a escada desaba) e proposta a **R$ 0,20/aula**: +100 · +300 · +800 · +2.000 |
-| A contradição que a aritmética achou | **§3 C24** | franquia do Básico **100** × mínimo declarado **110 aulas/mês** |
+| O **dimensionamento** das extensões (+20 / +50 / +100) | **§L9f** ponto 9 | a janela **(R$ 0,333 ; R$ 0,699)** e a proposta a **R$ 0,50/aula** = R$ 10 / R$ 25 / R$ 50; migra aos **160** e aos **380** aulas |
+| A contradição que a aritmética achou | **§3 C24** — **resolvida**: as 5/dia são de uma escola **no tamanho máximo**, e o Básico lança ~13/mês | e **C25**, aberta por essa resposta: **110 × 440 aulas/mês** na mesma escola máxima |
 
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
@@ -3663,12 +3829,20 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
   este documento tinha deixado aberta — foi decidido no mesmo dia: `1 prof/10 alunos · 3/40 ·
   6/90`, com a tabela dos quinze perfis a prová-lo (§3 C23). O que continua **não** decidido, e é
   decisão de negócio, é o **preço do degrau de alunos acima de 30** e a **cobrança real**.
-- **Não decidiu os tamanhos nem os preços das extensões P/M/G/GG** *(17/11/2026)*. A auditoria
-  (§L9f ponto 9) fixa o **piso** que a escada impõe — **R$ 0,15 por aula**, senão um plano inferior
-  alcança a franquia do superior por menos dinheiro — e propõe **R$ 0,20/aula** em quatro tamanhos
-  (+100 · +300 · +800 · +2.000, de R$ 19,90 a R$ 399,90), cada um verificado degrau a degrau. A
-  **proposta** está medida; a **decisão** é dela, e o número que a fecha não é aritmético: é o
-  **bilhete mínimo** que a conciliação manual do §L11 justifica.
+- **Não decidiu o preço das extensões** *(17/11/2026)*. A auditoria (§L9f ponto 9) fixa a **janela**
+  que a regra dela impõe — **R$ 0,333 a R$ 0,699 por aula**, porque abaixo de R$ 0,333 a extensão
+  seria mais barata do que a aula do plano de cima e ninguém migraria, e acima de R$ 0,699 seria mais
+  cara do que a aula do próprio plano — e propõe **R$ 0,50/aula**, que dá **R$ 10 / R$ 25 / R$ 50**
+  nos três tamanhos do aditivo e põe a migração aos **160** e aos **380** aulas. A **proposta** está
+  medida; a **decisão** é dela. O critério que eu tinha usado («o bilhete mínimo que a conciliação
+  manual justifica») **morreu**: a extensão soma-se à franquia no **mesmo Pix mensal**, logo não
+  acrescenta uma linha a conciliar — o que sobra é o arredondamento, e é por aí que a proposta foi
+  escolhida.
+- **Não decidiu quanto gasta a escola no tamanho máximo** *(17/11/2026)* — **C25**. As duas contas que
+  existem no documento para a *mesma* escola dão **110** e **440** aulas/mês, e a diferença decide se
+  a cota gratuita sustenta **13 escolas ou 3** e se a escola grande paga **R$ 79,90 ou R$ 139,90**.
+  Não há como derivar o número: não existe escola pagante a lançar aulas, e as duas hipóteses são
+  declarações, não medições.
 - **Não alterou** nenhum arquivo de produto, nenhuma fonte de ciclo, nem o KV (a leitura foi
   somente leitura) — e **não implementou** a versão explícita decidida em C3: esta fase é
   diagnóstico e planeamento, e as três medidas que delimitam a implementação foram feitas em
@@ -3851,3 +4025,181 @@ nomeou-as. Nenhuma tem resposta dedutível do repositório:
    *quando*, mas **deslocou-a**. As duas pontas (*A* e *B*) terminam na escola; o que muda é **onde
    o valor mora** — no provisionamento (território de **C11/C16**) ou no dado da escola criado no
    primeiro uso. Deixa de bloquear a **V0** e passa a ser pergunta da **V5**.
+
+---
+
+## ADITIVO COMERCIAL — capacidade por aulas mensais (17/11/2026)
+
+> **Este aditivo registra a nova direção comercial definida pelo proprietário do produto em
+> 17/11/2026.** Ele substitui, para fins de desenho da oferta, as capacidades por professores e
+> alunas descritas em L8, L9b e L9c. As passagens anteriores permanecem como histórico das
+> decisões e das medições que levaram até aqui; não devem ser lidas como a matriz comercial
+> vigente. Os preços ainda não foram decididos.
+
+### 1. Unidade de contratação: aula processada
+
+A unidade comercial dos planos passa a ser a **aula**, expressa como franquia mensal de aulas.
+A escola contrata volume de atividade pedagógica processada no Lastro, e não quantidade de
+professores, alunos, salas, endereços ou tamanho de turma.
+
+Para a escola, a regra é simples: **uma aula registrada e processada consome uma unidade da
+franquia, tenha ela um aluno ou mil, seja o professor mais caro ou mais barato**. A cobrança não
+varia com a remuneração do professor, com o número de alunos presentes ou com a quantidade de
+salas/unidades da escola.
+
+Contam como aula as atividades pedagógicas registradas no sistema, incluindo:
+
+- aulas regulares;
+- ensaios;
+- oficinas;
+- aulas especiais;
+- atividades pedagógicas extraordinárias.
+
+Atividades de sábado entram na mesma franquia, sem calendário ou categoria comercial separados.
+A franquia é única por escola e soma as atividades de todas as suas salas e endereços.
+
+### 2. Professores e alunos: custo interno, não unidade comercial
+
+Professores e alunos continuam a existir como entidades e registros necessários ao funcionamento
+do produto. Seu cadastro, alteração e remoção geram operações e algum consumo de infraestrutura:
+leituras/escritas no KV, processamento de índices e demais operações que o fluxo efetivamente
+executar. Portanto, **não é correto afirmar que fichas de alunos ou registros de professores não
+custam nada**.
+
+A diferença é de intensidade e frequência: o cadastro e a manutenção de professores tendem a ser
+mais estáveis; os registros de alunos mudam mais, mas essas operações são relativamente pontuais.
+Já o ciclo recorrente das aulas — criação/preparação do plano, lançamento, edição, validação e
+processamento — é o principal vetor esperado de consumo. Por isso, a franquia comercial deve
+acompanhar aulas, enquanto o produto monitora internamente o custo dos demais registros.
+
+Não exibir limites comerciais de professores e alunos na oferta. Não usar essas quantidades para
+calcular a mensalidade nem para bloquear a escola por ter mais pessoas cadastradas. Isso não
+elimina a necessidade de telemetria interna: medir separadamente operações de cadastro/manutenção
+e operações ligadas às aulas permite identificar abuso, regressões e mudanças no perfil de custo.
+
+### 3. Franquias mensais de referência
+
+A escada mantém os nomes **Básico, Intermediário e Avançado**, mas sua capacidade passa a ser
+expressa em aulas por mês. A conversão comercial de referência usa quatro semanas por mês, para
+produzir números simples e previsíveis na comunicação:
+
+| Plano | Referência semanal | Franquia mensal proposta |
+|:--|--:|--:|
+| Básico | 25 aulas | **100 aulas/mês** |
+| Intermediário | 75 aulas | **300 aulas/mês** |
+| Avançado | 200 aulas | **800 aulas/mês** |
+
+Essas franquias são uma **proposta de estrutura**, ainda sujeita à simulação de preços, à medição
+de consumo e à validação da capacidade operacional. A referência de quatro semanas é comercial;
+não pretende afirmar que todos os meses têm exatamente quatro semanas.
+
+### 4. Renovação, não acumulação e mudança de plano
+
+A franquia é renovada a cada mês de vigência, acompanhando o ciclo mensal dos custos recorrentes
+da plataforma. É **não cumulativa**: unidades não utilizadas expiram no encerramento do período e
+não são transferidas para o mês seguinte. Exemplo: uma escola com 100 aulas/mês que utiliza 50
+não passa a ter 150 no mês seguinte; recebe novamente as 100 contratadas.
+
+A escola pode:
+
+1. permanecer no plano e utilizar sua franquia mensal;
+2. contratar aulas adicionais recorrentes para acomodar um crescimento gradual;
+3. migrar para o plano seguinte quando o volume justificar a mudança;
+4. solicitar downgrade quando seu volume diminuir, aplicado no próximo ciclo de cobrança, sem
+   apagar registros ou histórico pedagógico.
+
+A redução de plano não pode apagar dados existentes. Se a escola iniciar um novo período com
+franquia inferior ao volume que pretende processar, o sistema deve informar a capacidade
+contratada e oferecer as alternativas comerciais cabíveis; não deve destruir nem ocultar o
+histórico já produzido.
+
+### 5. Extensões de aulas
+
+Manter a possibilidade de expansão por adicionais, agora expressos exclusivamente em aulas por
+mês. Como ponto de partida para simulação comercial:
+
+| Extensão | Acréscimo mensal proposto |
+|:--|--:|
+| Pacote pequeno | +20 aulas/mês |
+| Pacote médio | +50 aulas/mês |
+| Pacote grande | +100 aulas/mês |
+
+Os tamanhos dos pacotes são hipóteses de trabalho, não preços aprovados. A extensão deve ser
+recorrente enquanto contratada e somar-se à franquia do plano em cada renovação mensal. Não há
+acumulação de saldo não utilizado.
+
+A regra de posicionamento de preço fica definida: **o plano superior deve ser mais vantajoso por
+aula do que permanecer no plano inferior comprando extensões em quantidade suficiente para
+alcançar volume semelhante**. A extensão deve atender à escola que cresce gradualmente e precisa
+de um acréscimo menor, com desembolso imediato menor; não deve tornar economicamente irracional a
+migração de plano. Quando o volume se aproxima de forma recorrente da franquia superior, a troca
+de plano deve ser a opção de melhor custo-benefício.
+
+### 6. Regra de consumo e instrumentação técnica
+
+A unidade comercial é a aula processada, mas o medidor precisa corresponder aos eventos reais do
+sistema. Não se deve presumir que qualquer clique, edição ou validação equivale automaticamente
+a uma aula consumida, nem que todos esses eventos disparam o mesmo conjunto de workflows.
+
+A implementação deverá declarar e testar quais operações compõem o ciclo faturável. A proposta
+funcional é contar **uma unidade por aula/sessão pedagógica**, independentemente de quantas
+operações técnicas internas sejam necessárias para preparar, editar, validar, registrar ou
+processar essa mesma sessão. Reprocessamentos técnicos causados por falha do sistema não devem
+consumir uma segunda unidade. A definição final do evento de débito deve evitar tanto a cobrança
+duplicada quanto o processamento ilimitado sem medição.
+
+A telemetria deve distinguir, no mínimo:
+
+- operações de cadastro, alteração e remoção de professores;
+- operações de cadastro, alteração e remoção de alunos;
+- criação e preparação inicial de turmas e seus documentos pedagógicos;
+- criação/planejamento de aula;
+- lançamento, edição, validação e processamento de cada sessão;
+- reprocessamentos automáticos e falhas, identificando se foram causados pelo sistema ou pelo
+  usuário.
+
+### 7. Base técnica já documentada e ressalvas
+
+L9c registrou que as listas de professores e alunas estão no KV e que as contagens eram derivadas
+dessas listas, sem contador persistido. Também registrou consumo de KV e de GitHub Actions. A
+medição histórica de um «Guardar» encontrou quatro jobs, arredondados individualmente, equivalentes
+a quatro minutos faturados de Actions para cerca de 64 segundos de relógio. O próprio planejamento
+identificou a consolidação dos jobs como alavanca para reduzir esse consumo a um minuto faturado
+por lançamento.
+
+Esses números são **medições da arquitetura naquele momento**, não uma garantia de custo atual nem
+uma regra comercial. Antes de fixar preços e franquias como definitivos, atualizar a medição no
+fluxo vigente e verificar quais operações de aula disparam workflows, quantos jobs são faturados,
+quais escritas/leitura de KV ocorrem e quais operações de IA têm custo variável. O custo de
+cadastro de alunos e professores deve entrar no modelo econômico interno, mas não precisa ser
+apresentado à escola como limite ou componente de preço.
+
+### 8. Decisões tomadas e pendências
+
+**Decidido em 17/11/2026:**
+
+- a unidade comercial passa a ser aula processada;
+- a oferta é expressa em franquia mensal;
+- aulas regulares, ensaios, oficinas e atividades extraordinárias contam igualmente;
+- sábado está incluído;
+- professores e alunos deixam de ser limites comerciais expostos à escola;
+- a franquia renova mensalmente e não acumula saldo;
+- adicionais continuam existindo como expansão gradual;
+- a migração para o plano superior deve oferecer melhor custo por aula do que a soma de
+  extensões equivalentes;
+- downgrade é permitido quando o volume diminuir, sem exclusão de dados.
+
+**Propostas ainda não aprovadas:**
+
+- franquias de 100, 300 e 800 aulas/mês;
+- extensões de 20, 50 e 100 aulas/mês;
+- preços dos três planos e das extensões;
+- limites operacionais internos e alertas de aproximação/esgotamento da franquia;
+- evento técnico exato que debita uma unidade, incluindo a distinção entre sessão pedagógica e
+  reprocessamento técnico.
+
+**Próxima validação:** atualizar a medição técnica do custo por sessão e dos custos marginais de
+cadastro; em seguida, simular a escada de preços e extensões em escolas com diferentes volumes,
+verificando que o plano superior seja mais econômico por aula sem retirar da escola pequena a
+opção de crescer gradualmente.
+
