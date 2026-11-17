@@ -247,6 +247,138 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
       (livro.lista || []).some((l) => l.mes === '2026-11' && l.valorCentavos === 23990), livro.lista);
   }
 
+  /* ── 5. O ENSAIO LIGA-SE E DESLIGA-SE NO PAINEL ──────────────────────────────────────────
+   *
+   * «O botão de ativar ou desativar o ensaio deve ficar no https://danca.padd.com.br/financeiro e o
+   * tempo deve ser de 10 minutos para cada mês. Eu ativo e desativo.»
+   *
+   * O QUE MUDA, e é uma mudança de DONO e não de desenho: o ensaio nasceu com um botão de saída na
+   * página da ESCOLA, porque a saída de emergência não podia depender de ninguém se lembrar de um
+   * comando. Agora há um controlo no painel, que é de quem concilia — e o botão da escola sai. Um
+   * ensaio que a escola pode desligar não é um ensaio que a operação controla.
+   *
+   * O TEMPO PASSA A DEZ MINUTOS. Não é gosto: três minutos são suficientes para ver um mês nascer,
+   * e curtos de mais para pagar dois seguidos e chegar a uma listagem com vários — que é o que ela
+   * quer ver. Dez minutos dão para informar o pagamento com calma e ainda ver o mês seguinte abrir.
+   */
+  console.log('\n5. O ensaio liga-se e desliga-se no painel, a dez minutos por mês');
+  {
+    const env = envCom(null);
+    const html = painel.paginaFinanceira({
+      pix: { chave: 'k', titular: 'T' }, descontos: [], escolas: ESCOLAS,
+      extrato: [{
+        escola: 'breu', nome: 'Breu', planoNome: 'Básico', valorCentavos: 16990,
+        situacao: 'em-dia', mesDeHoje: '2026-11', emAberto: [], vencidos: [],
+        meses: [{ mes: '2026-11', nome: 'novembro de 2026', vencimento: '2026-11-16',
+          status: 'pago', valorCentavos: 23990, valorPagoCentavos: 23990, planoNome: 'Avançado' }],
+        estadoComercial: 'ativa', frase: 'Em dia.', capacidade: { professores: 4, alunos: 40 },
+        piso: { professores: 4, alunos: 40 }, teto: { professores: 5, alunos: 89 },
+        proximoVencimento: null, diasParaVencer: null,
+        lotesProfessores: [3], lotesAlunos: [30], ensaio: null,
+      }],
+      catalogo: null,
+    });
+    const d = new JSDOM(html).window.document;
+    conferir('o cartão da escola no PAINEL tem o controlo do ensaio',
+      Boolean(d.querySelector('[data-ensaio-ligar]')), null);
+    conferir('…e o rótulo diz o tempo — «10 minutos», e não «ensaio»',
+      /10 minutos/.test((d.querySelector('[data-ensaio-ligar]') || {}).textContent || ''),
+      (d.querySelector('[data-ensaio-ligar]') || {}).textContent);
+    conferir('…e diz o que faz, com o mês no texto — ligar o relógio, não «activar»',
+      /ligar/i.test((d.querySelector('[data-ensaio-ligar]') || {}).textContent || ''),
+      (d.querySelector('[data-ensaio-ligar]') || {}).textContent);
+
+    /* LIGADO: o mesmo lugar passa a oferecer DESLIGAR, e diz em que estado está. */
+    const ligado = painel.paginaFinanceira({
+      pix: { chave: 'k', titular: 'T' }, descontos: [], escolas: ESCOLAS,
+      extrato: [{
+        escola: 'breu', nome: 'Breu', planoNome: 'Básico', valorCentavos: 16990,
+        situacao: 'em-dia', mesDeHoje: '2026-11', emAberto: [], vencidos: [], meses: [],
+        estadoComercial: 'ativa', frase: 'Em dia.', capacidade: {}, piso: {}, teto: null,
+        lotesProfessores: [], lotesAlunos: [],
+        ensaio: { minutosPorPeriodo: 10, base: '2026-11-17T18:00:00Z' },
+      }],
+      catalogo: null,
+    });
+    const dl = new JSDOM(ligado).window.document;
+    conferir('…e com o ensaio ligado o botão passa a dizer «desligar»',
+      Boolean(dl.querySelector('[data-ensaio-desligar]'))
+        && /desligar/i.test((dl.querySelector('[data-ensaio-desligar]') || {}).textContent || ''),
+      (dl.querySelector('[data-ensaio-desligar]') || {}).textContent);
+    conferir('…e diz de quanto está ligado, em vez de o deixar adivinhar',
+      /10 min/.test(ligado), null);
+
+    /* A ROTA: ligar grava a chave com a base de agora; desligar apaga-a. */
+    const antes = Array.from(Object.keys(env.PADD_KV._guardado));
+    const ligar = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'breu', minutosPorPeriodo: 10 }),
+    }), env);
+    const corpoLigar = await ligar.json();
+    conferir('a rota liga o ensaio e devolve o que gravou',
+      corpoLigar.ok === true && corpoLigar.ensaio && corpoLigar.ensaio.minutosPorPeriodo === 10,
+      corpoLigar);
+    const guardado = JSON.parse(await env.PADD_KV.get('bastidores/breu/ensaio'));
+    conferir('…e a base é o INSTANTE DE AGORA — é o que faz o ensaio começar no mês de hoje',
+      Math.abs(Date.parse(guardado.base) - Date.now()) < 5000, guardado.base);
+    const desligar = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'breu', minutosPorPeriodo: 0 }),
+    }), env);
+    const corpoDesligar = await desligar.json();
+    conferir('…e desliga-o apagando a chave', corpoDesligar.ok === true
+      && (await env.PADD_KV.get('bastidores/breu/ensaio')) === null, corpoDesligar);
+    /* E O LIVRO NÃO É TOCADO — ligar e desligar o ensaio não é um pagamento. */
+    conferir('…e nem ligar nem desligar tocam no livro',
+      JSON.stringify(Array.from(Object.keys(env.PADD_KV._guardado))) === JSON.stringify(antes)
+        || (await env.PADD_KV.get('financeiro/mensalidades')) === JSON.stringify(LIVRO),
+      Object.keys(env.PADD_KV._guardado));
+
+    /* PEDIDO SEM MINUTOS = LIGAR NO PADRÃO, e não desligar. Um botão que manda só `{escola}` tem de
+     * ligar — se a ausência valesse zero, o clique mais simples apagava o ensaio em vez de o criar. */
+    const semMinutos = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'breu' }),
+    }), env);
+    const corpoSemMinutos = await semMinutos.json();
+    conferir('…e um pedido sem minutos liga no padrão do botão, em vez de desligar',
+      corpoSemMinutos.ok === true
+        && corpoSemMinutos.ensaio
+        && corpoSemMinutos.ensaio.minutosPorPeriodo === painel.ENSAIO_PADRAO_MINUTOS,
+      corpoSemMinutos);
+    conferir('…e o padrão é dez, como o rótulo do botão diz',
+      painel.ENSAIO_PADRAO_MINUTOS === 10, painel.ENSAIO_PADRAO_MINUTOS);
+
+    /* UMA ESCOLA QUE NÃO EXISTE NÃO GANHA UM ENSAIO. A chave ficaria lá, e um dia a escola seria
+     * criada com aquele slug e nasceria a correr contra um relógio de minutos que ninguém ligou. */
+    const inexistente = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'zzz-nao-existe', minutosPorPeriodo: 10 }),
+    }), env);
+    const corpoInexistente = await inexistente.json();
+    conferir('…e uma escola que não existe não ganha ensaio',
+      corpoInexistente.ok === false
+        && (await env.PADD_KV.get('bastidores/zzz-nao-existe/ensaio')) === null, corpoInexistente);
+
+    /* O BOTÃO DA ESCOLA SAIU. A página da escola continua a DIZER que está em ensaio — o estado é
+     * informação, e quem lá está precisa de saber por que vê dezembro em novembro. O que ela deixa
+     * de ter é o CONTROL O: um ensaio que a escola desliga não é um ensaio que a operação controla. */
+    const paginaDaEscola = bastidores.paginaFinanceiro('breu',
+      { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
+        cadastro: { escolaNome: 'Breu' },
+        ensaio: { minutosPorPeriodo: 10, base: '2026-11-17T18:00:00Z' },
+        situacao: { meses: [], planoNome: 'Básico', valorCentavos: 16990 },
+      });
+    conferir('…e a página da ESCOLA diz o estado, mas já não tem o botão de desligar',
+      /Modo de ensaio/.test(paginaDaEscola)
+        && !/ensaio-desligar/.test(paginaDaEscola)
+        && !/Desligar o modo de ensaio/.test(paginaDaEscola), null);
+  }
+
   console.log('');
   if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
   console.log('TUDO CERTO — ' + n + ' asserção(ões).');

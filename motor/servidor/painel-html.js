@@ -41,6 +41,22 @@ const fuso = require('../nucleo/fuso.js');
  * segundo acordo é uma segunda coisa para corrigir. */
 const paginacao = require('../nucleo/paginacao.js');
 
+/**
+ * OS MINUTOS DE UM PERÍODO DE ENSAIO (17/11/2026) — um número, num sítio só.
+ *
+ * «O tempo deve ser de 10 minutos para cada mês.»
+ *
+ * MORA AQUI, e não na rota, porque é AQUI que ele vira texto: o botão do painel diz «10 minutos por
+ * mês», e a rota usa o mesmo valor quando o pedido não o traz. Duas cópias do número divergem no dia
+ * em que ela disser «agora quinze» — e a divergência aparece como um botão a prometer o que a rota
+ * não faz.
+ *
+ * DEZ E NÃO TRÊS. Três minutos chegam para ver um mês nascer e são curtos de mais para o que ela
+ * quer: pagar dois seguidos e chegar a uma listagem com vários. Dez dão para informar o pagamento
+ * com calma e ainda ver o mês seguinte abrir.
+ */
+const ENSAIO_PADRAO_MINUTOS = 10;
+
 function esc(valor) {
   return String(valor == null ? '' : valor)
     .replace(/&/g, '&amp;')
@@ -1363,6 +1379,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
      * A coluna repete-se em cada linha, e não só na primeira: a linha é lida sozinha («o mês de
      * outubro está pago, e a escola estava habilitada»), e uma célula em branco nas linhas de baixo
      * obrigaria a subir o olho para saber de que escola se trata. */
+    /* O ESTADO DO ENSAIO, lido uma vez (17/11/2026). A página recebe `ensaio` no extrato — o mesmo
+     * objecto que o núcleo usa para comprimir o relógio —, e é dele que sai o rótulo do botão. Não
+     * se lê a chave outra vez aqui: duas leituras do mesmo estado dão duas respostas no dia em que
+     * uma delas falhar. */
+    const emEnsaio = Boolean(c.ensaio) && Number(c.ensaio.minutosPorPeriodo) > 0;
     const seloDaEscola = c.estadoComercial === 'ativa'
       ? '<span class="selo ok">habilitada</span>'
       : (c.estadoComercial === 'suspensa'
@@ -1430,7 +1451,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
        * que a escola vê — e em 17/11 de 2026 «dezembro» não existe. Sem esta linha, quem concilia
        * veria meses futuros a mais e não saberia de onde vêm; com ela, sabe que são de ensaio e
        * que o que se paga ali não é cobrança. */
-      + (c.ensaio && Number(c.ensaio.minutosPorPeriodo) > 0
+      + (emEnsaio
         ? ' <span class="selo discreto">em ensaio: ' + esc(String(c.ensaio.minutosPorPeriodo))
           + ' min por período</span>' : '')
       + '</p>' +
@@ -1481,6 +1502,31 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       'Marcar como pago</button>' +
       '</div>' +
       '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>' +
+      /* O ENSAIO — LIGAR E DESLIGAR AQUI, E NÃO NA PÁGINA DA ESCOLA (17/11/2026).
+       *
+       * «O botão de ativar ou desativar o ensaio deve ficar no danca.padd.com.br/financeiro e o
+       * tempo deve ser de 10 minutos para cada mês. Eu ativo e desativo.»
+       *
+       * O CONTROL É DE QUEM CONCILIA. Ele nasceu do outro lado, na página da escola, e o argumento
+       * era a saída de emergência — que cai quando a saída passa a ser um botão aqui. O que fica a
+       * valer é o contrário: um ensaio que a escola desliga não é um ensaio que a operação
+       * controla. A página da escola continua a DIZER que está em ensaio; deixa de o poder mudar.
+       *
+       * UM BOTÃO SÓ, QUE MUDA DE RÓTULO, e não dois: dois botões em que um está sempre inerte
+       * obrigam a ler os dois para saber em que estado se está. O rótulo diz o tempo (dez minutos)
+       * porque é isso que a pessoa precisa de saber antes de carregar. */
+      '<div class="caixa filtrar">' +
+      '<p class="campo-filtro"><span class="campo-rotulo">Relógio de ensaio</span>' +
+      '<span class="sub">' + (emEnsaio
+        ? 'ligado — cada período vale ' + esc(String(c.ensaio.minutosPorPeriodo)) + ' min, '
+          + 'e os meses que aqui aparecem são de ensaio'
+        : 'desligado — a cobrança é mensal') + '</span></p>' +
+      '<button type="button" class="acao ' + (emEnsaio ? 'secundario' : '') + '" ' +
+      (emEnsaio ? 'data-ensaio-desligar' : 'data-ensaio-ligar') + '="' + esc(c.escola) + '">' +
+      (emEnsaio ? 'Desligar o ensaio'
+        : 'Ligar o ensaio — ' + ENSAIO_PADRAO_MINUTOS + ' minutos por mês') + '</button>' +
+      '</div>' +
+      '<p class="aviso" data-ensaio-recado="' + esc(c.escola) + '" hidden></p>' +
       /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
        * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
        * upgrade ou downgrade ou nenhuma capacidade extra». */
@@ -1757,6 +1803,35 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '      dizer("falha de rede — nada foi alterado",true);});' +
   '  });' +
   '})(informar[q]);' +
+  /* ── O ENSAIO, LIGADO E DESLIGADO DAQUI (17/11/2026) ────────────────────────────────────
+   *
+   * Um botão, dois sentidos, e a rota é uma só (`/api/financeiro/ensaio`): ligar manda os minutos,
+   * desligar manda zero. Dois caminhos para o mesmo estado divergem no dia em que um deles muda.
+   *
+   * O RECADO É DA ESCOLA, como o do pagamento: com dez cartões abertos, um aviso único mentiria
+   * sobre qual delas mudou. E a página RECARREGA ao conseguir — porque o que muda não é só o rótulo
+   * do botão: o extrato inteiro ganha (ou perde) meses, e repô-lo à mão seria uma segunda cópia da
+   * regra que o desenha. */
+  'var ligarEnsaio=document.querySelectorAll("[data-ensaio-ligar],[data-ensaio-desligar]");' +
+  'for(var w=0;w<ligarEnsaio.length;w++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var desligar=b.hasAttribute("data-ensaio-desligar");' +
+  '    var escola=b.getAttribute(desligar?"data-ensaio-desligar":"data-ensaio-ligar");if(!escola)return;' +
+  '    var recado=document.querySelector(\'[data-ensaio-recado="\'+escola+\'"]\');' +
+  '    function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
+  '      recado.className=erro?"aviso alerta":"aviso";}' +
+  '    var rotulo=b.textContent;' +
+  '    b.disabled=true;b.textContent=(desligar?"a desligar…":"a ligar…");dizer("",false);' +
+  '    fetch("/api/financeiro/ensaio",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,minutosPorPeriodo:desligar?0:10}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){if(d&&d.ok){location.reload();return;}' +
+  '      b.disabled=false;b.textContent=rotulo;' +
+  '      dizer((d&&d.erro)||"não foi possível mudar o ensaio",true);})' +
+  '    .catch(function(){b.disabled=false;b.textContent=rotulo;' +
+  '      dizer("falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(ligarEnsaio[w]);' +
   /* ── O CONTRATO: PLANO E CAPACIDADE (16/11/2026) ───────────────────────────────────────
    *
    * A MESMA CONTA DO SERVIDOR, e não uma segunda: o plano vem do `select`, os lotes das caixas, e
@@ -1903,7 +1978,7 @@ module.exports = {
   indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
   paginaDoConvite,
-  paginaFinanceira, SCRIPT_DO_FINANCEIRO,
+  paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */
   paginaDoMonitoramento, barraDaCota, seloDoNivel,
 };

@@ -1523,6 +1523,13 @@ experimentos/modelo-formulario/*
 # recusa de uma escola inexistente (a rota gravava R$ 0,00 no livro, em silêncio).
 !experimentos/provar-conciliacao-do-painel.js
 
+# UMA ROTA DENTRO DE UM COMENTÁRIO NÃO EXISTE (17/11/2026). O fecho de um bloco de comentário foi-se
+# ao reescrevê-lo, e o comentário engoliu 52 linhas — com elas a rota do login do professor. O
+# `node --check` disse OK e todas as provas de página passaram; em produção, os professores deixaram
+# de entrar. A prova percorre os ficheiros com um leitor de estados (código, comentário, string) e
+# pergunta, rota a rota, se ela caiu dentro de um comentário — com controlo, para saber falhar.
+!experimentos/provar-rotas-que-existem.js
+
 # AS ABAS SÃO UMA PEÇA DA FOLHA (16/11/2026). «Anote aí também na nossa identidade visual que a gente
 # vai adotar abas.» Ela nasceu no `<style>` da Audição e ganhou três consumidores; a prova mede a
 # geometria num navegador (a aba activa pousa na linha, a tira sai no telemóvel) e afirma que

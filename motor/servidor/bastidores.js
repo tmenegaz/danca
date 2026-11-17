@@ -4093,14 +4093,16 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     ? '<p class="aviso" role="status">Modo de ensaio: cada período vale '
       + esc(String(minutosDoEnsaio)) + ' minuto' + (minutosDoEnsaio === 1 ? '' : 's')
       + ' em vez de um mês. O extrato avança ao ritmo real, e o que aqui se paga é ensaio — '
-      + 'não é cobrança.</p>'
-      /* A SAÍDA É UM CLIQUE, e é a única coisa desta página que escreve (17/11/2026). Um modo que
-       * inventa competências não pode depender de ninguém se lembrar de um comando. O token é o da
-       * sessão do gabinete, que já está no `sessionStorage` — a página do mês a mês é da mesma
-       * origem, e pedir a senha outra vez para SAIR seria o clique a mais que se aprende a dar sem
-       * ler. */
-      + '<p class="par-botoes"><button type="button" class="acao secundario pequena" '
-      + 'id="ensaio-desligar" title="voltar à cobrança mensal">Desligar o modo de ensaio</button></p>'
+      + 'não é cobrança.'
+      /* A SAÍDA MUDOU DE LADO (17/11/2026). «O botão de ativar ou desativar o ensaio deve ficar no
+       * danca.padd.com.br/financeiro […] Eu ativo e desativo.»
+       *
+       * O botão nasceu aqui, e o argumento era a saída de emergência: um modo que inventa
+       * competências não pode depender de ninguém se lembrar de um comando. Esse argumento cai
+       * quando o comando é um botão no painel, e o que fica a valer é o outro — um ensaio que a
+       * ESCOLA desliga não é um ensaio que a operação controla. Esta página deixa de escrever: diz
+       * o estado, e diz onde ele se muda. */
+      + ' Quem liga e desliga é a administração, no financeiro do painel.</p>'
     : '';
 
   const fichaDoPlano = avisoDoEnsaio + planoDoContrato + avisoDaMudanca;
@@ -4173,7 +4175,6 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     '</main>' +
     '</div></div>' +
     '<script>' + SCRIPT_DAS_FUNCOES_DO_MENU + SCRIPT_DO_GESTO_DO_MENU + '</script>' +
-    (minutosDoEnsaio > 0 ? '<script>' + SCRIPT_DO_SAIR_DO_ENSAIO + '</script>' : '') +
     '<script>' + paginacao.script + '</script>' +
     fimDaVista();
 }
@@ -4253,41 +4254,6 @@ const SCRIPT_DO_GESTO_DO_MENU =
    * usa não é uma peça, é meia. Por isso o gesto fecha aqui, e o código da barra abre a sua
    * própria função, na Produção. */
     '})();';
-
-/**
- * A SAÍDA DO MODO DE ENSAIO (17/11/2026).
- *
- * «O que aqui se paga é ensaio — não é cobrança» é metade da frase; a outra metade é poder sair.
- * A página diz o estado e oferece o gesto, e o gesto é uma chamada à rota que já apaga a chave.
- *
- * O TOKEN VEM DA SESSÃO DO GABINETE (`producao:token`), e não de uma caixa de senha: as duas
- * páginas são da mesma origem, e quem chegou aqui já se autenticou. Sem token, a rota recusa com
- * 401 e a página diz que não conseguiu — e não finge que desligou, que seria o pior dos desfechos:
- * o ensaio continuaria a correr com o ecrã a dizer que não.
- */
-const SCRIPT_DO_SAIR_DO_ENSAIO = '(function(){' +
-  'var b = document.getElementById("ensaio-desligar");' +
-  'if (!b) return;' +
-  'b.addEventListener("click", function(){' +
-  '  var token = "";' +
-  '  try { token = sessionStorage.getItem("producao:token") || ""; } catch (e) {}' +
-  '  b.disabled = true;' +
-  '  b.textContent = "a desligar…";' +
-  '  fetch("/api/bastidores/ensaio", {' +
-  '    method: "POST", headers: { "Content-Type": "application/json" },' +
-  '    body: JSON.stringify({ token: token, minutosPorPeriodo: 0 })' +
-  '  }).then(function(r){ return r.json(); }).then(function(d){' +
-  '    if (d && d.ok) { location.reload(); return; }' +
-  '    b.disabled = false;' +
-  '    b.textContent = "Desligar o modo de ensaio";' +
-  '    alert("não consegui desligar o ensaio: " + ((d && d.erro) || "sem resposta"));' +
-  '  }).catch(function(){' +
-  '    b.disabled = false;' +
-  '    b.textContent = "Desligar o modo de ensaio";' +
-  '    alert("não consegui desligar o ensaio — sem ligação");' +
-  '  });' +
-  '});' +
-  '})();';
 
 /**
  * A COLUNA DA ESQUERDA DA PÁGINA DE TRABALHO — uma peça, duas páginas (17/11/2026).
@@ -16840,59 +16806,6 @@ async function fetch(request, env, extras) {
       const agora = await aparenciaDaEscola(kv, escola);
       return json(200, { ok: true, modo: agora.modo, paleta: agora.paleta });
     }
-  }
-
-  /* POST /api/bastidores/ensaio — LIGA E DESLIGA O RELÓGIO COMPRIMIDO (17/11/2026).
-   *
-   * «Vamos colocar que um plano, ao invés de ser mensal, ele dura apenas 3 minutos, que daí eu vou
-   * poder criar uma listagem e ver como é que está acontecendo.»
-   *
-   * A ASSIMETRIA É DELIBERADA, e é a parte de segurança desta rota:
-   *
-   *   · LIGAR escreve uma chave que faz o sistema inventar meses que ainda não existem. Quem o faz
-   *     está a pedir um ensaio, e por isso é um pedido explícito, com a senha da direção — a mesma
-   *     de todas as escritas do gabinete;
-   *   · DESLIGAR é um clique na própria página (`ensaioDesligar`), porque é a saída de emergência:
-   *     um modo que inventa competências não pode depender de ninguém se lembrar do comando.
-   *     Também pede a direção — a página já tem o token da sessão —, mas não pede que se saiba
-   *     onde a chave mora.
-   *
-   * `minutosPorPeriodo` a zero (ou ausente) APAGA a chave. É o mesmo pedido que desliga, e não um
-   * segundo caminho — dois caminhos para o mesmo estado divergem no dia em que um deles muda.
-   */
-  if (path === '/api/bastidores/ensaio' && request.method === 'POST') {
-    let corpo = {};
-    try { corpo = await request.json(); } catch { corpo = {}; }
-    if (!(await autorizacaoDirecaoOk(env, corpo))) {
-      return json(401, { ok: false, erro: 'senha da direção inválida' });
-    }
-    const minutos = Number(corpo.minutosPorPeriodo);
-    const chave = RAIZ + '/' + escola + '/ensaio';
-    if (!(minutos > 0)) {
-      try { await kv.delete(chave); } catch (erro) {
-        return json(500, { ok: false, erro: 'não consegui apagar o ensaio' });
-      }
-      return json(200, { ok: true, ensaio: null });
-    }
-    /* O TECTO DE 1440 MINUTOS (um dia) NÃO É ARBITRÁRIO: acima disso o «período» é mais longo do
-     * que aquilo que ela quer testar, e um valor absurdo (três milhões de minutos) produziria um
-     * relógio parado que parece avaria. O piso de 1 minuto é o mesmo princípio ao contrário. */
-    if (minutos > 1440) {
-      return json(400, { ok: false, erro: 'minutosPorPeriodo tem de estar entre 1 e 1440' });
-    }
-    /* A BASE É O INSTANTE EM QUE SE LIGA, e a primeira versão disto estava errada de uma forma que
-     * só se vê a correr: eu punha a base na ADESÃO. A Breu aderiu às 00:41 e o ensaio seria ligado
-     * às 17h do mesmo dia — dezasseis horas, que a três minutos por período são TRINTA E TRÊS ANOS
-     * de competências de uma vez. O extrato abria em 2059.
-     *
-     * O relógio comprimido conta a partir de agora. Assim o primeiro período é o mês de hoje — que é
-     * o mês que a escola está a viver —, e cada bloco de minutos acrescenta um mês a partir dele. É
-     * também o que torna o ensaio legível: o que aparece é o futuro próximo, e não um salto.
-    const valor = { minutosPorPeriodo: Math.round(minutos), base: new Date().toISOString() };
-    try { await kv.put(chave, JSON.stringify(valor)); } catch (erro) {
-      return json(500, { ok: false, erro: 'não consegui guardar o ensaio' });
-    }
-    return json(200, { ok: true, ensaio: valor });
   }
 
   // POST /api/bastidores/validar-senha — a anamnese valida a senha DO PROFESSOR.

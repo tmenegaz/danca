@@ -4032,6 +4032,72 @@ async function fetch(request, env) {
     });
   }
 
+  /* O ENSAIO — LIGAR E DESLIGAR O RELÓGIO COMPRIMIDO, DO LADO DE QUEM CONCILIA (17/11/2026).
+   *
+   * «O botão de ativar ou desativar o ensaio deve ficar no https://danca.padd.com.br/financeiro e o
+   * tempo deve ser de 10 minutos para cada mês. Eu ativo e desativo.»
+   *
+   * O QUE MUDA É O DONO, e não só o sítio. O ensaio nasceu com um botão de saída na página da
+   * ESCOLA, e o argumento era a segurança: a saída de emergência não podia depender de ninguém se
+   * lembrar de um comando. Esse argumento cai quando o comando é um botão no painel — e o que fica
+   * a valer é o outro: um ensaio que a escola desliga não é um ensaio que a operação controla. O
+   * botão da escola sai; o estado fica lá dito, porque quem vê «dezembro» em novembro precisa de
+   * saber porquê.
+   *
+   * A CHAVE É A MESMA (`bastidores/<escola>/ensaio`) e o núcleo é o mesmo
+   * (`mensalidades.instanteDoEnsaio`). Não há um segundo relógio para o painel: haveria duas
+   * respostas a «que meses há?», que foi exactamente a avaria de hoje.
+   *
+   * O TEMPO PADRÃO É O DO BOTÃO (`painel.ENSAIO_PADRAO_MINUTOS`), e não um número escrito aqui: o
+   * rótulo que ela lê e o valor que a rota grava têm de ser o mesmo, ou o botão promete o que a rota
+   * não faz. Pedido sem minutos = ligar no padrão; zero = desligar. */
+  if (url.pathname === '/api/financeiro/ensaio' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const slug = String(corpo.escola || '').trim();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    const kv = env && env.PADD_KV;
+    if (!kv || typeof kv.put !== 'function') {
+      return responderJson({ ok: false, erro: 'PADD_KV ausente na raiz — sem ele não há ensaio' }, 500);
+    }
+    /* A ESCOLA TEM DE EXISTIR. Um ensaio ligado a um slug que não existe ficaria à espera no KV, e
+     * no dia em que alguém criasse essa escola ela nasceria a correr contra um relógio de minutos
+     * que ninguém ligou — meses a nascer sozinhos numa conta a sério. É a mesma guarda do pagamento,
+     * pela mesma razão. */
+    let contrato = null;
+    try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
+    if (!contrato || !contrato.plano) {
+      return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
+    }
+    const chave = 'bastidores/' + slug + '/ensaio';
+    const pedido = corpo.minutosPorPeriodo === undefined || corpo.minutosPorPeriodo === null
+      ? painel.ENSAIO_PADRAO_MINUTOS
+      : Number(corpo.minutosPorPeriodo);
+    const minutos = Number.isFinite(pedido) && pedido > 0 ? Math.round(pedido) : 0;
+    if (!minutos) {
+      try { await kv.delete(chave); } catch (erro) {
+        return responderJson({ ok: false, erro: 'não consegui desligar o ensaio' }, 500);
+      }
+      return responderJson({ ok: true, ensaio: null });
+    }
+    /* O TECTO DE 1440 MINUTOS (um dia) e o piso de 1 são os mesmos da rota da escola: acima de um
+     * dia o «período» é mais longo do que aquilo que se quer testar, e um valor absurdo produz um
+     * relógio parado que parece avaria. */
+    if (minutos > 1440) {
+      return responderJson({ ok: false, erro: 'minutosPorPeriodo tem de estar entre 1 e 1440' }, 400);
+    }
+    /* A BASE É O INSTANTE DE AGORA — a lição que o ensaio de ontem ensinou: com a base na adesão,
+     * dezasseis horas a três minutos por período davam trinta e três anos de competências de uma
+     * vez. O primeiro período é o mês de hoje, e cada bloco acrescenta um mês a partir dele. */
+    const valor = { minutosPorPeriodo: minutos, base: new Date().toISOString() };
+    try { await kv.put(chave, JSON.stringify(valor)); } catch (erro) {
+      return responderJson({ ok: false, erro: 'não consegui guardar o ensaio' }, 500);
+    }
+    return responderJson({ ok: true, ensaio: valor });
+  }
+
   if (url.pathname === '/api/financeiro/desconto' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
