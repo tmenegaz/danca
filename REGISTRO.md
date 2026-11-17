@@ -49601,3 +49601,59 @@ a hipótese da cota diária do KV continua por confirmar. O que esta entrada fec
 a falha: a próxima vez que a leitura cair, a tela dirá que caiu. (3) A frase «Ainda não há
 mensalidade a cobrar» continua a ser a única prosa que `provar-producao` apanha fora das secções
 isentas; não foi tocada por não ser desta frente.
+
+## 17/11/2026 — O ar entre a aba e o bloco que ela abre
+
+**O que motivou.** «Quando eu estou na aba escolha de elenco, o bloco do formulário que está
+cercado por bordas está encostando, ele não tem espaço com a aba. Quando eu vou para o Recorte, o
+recorte está certo.» Ela pediu que o espaço da aba 1 fosse o mesmo do Recorte, e que a aba 3 fosse
+conferida.
+
+**O que se mediu, antes de mexer (1280px, página real com a folha servida).**
+
+| painel | primeiro elemento | vão até a tira |
+|:--|:--|--:|
+| Audição, aba 1 | `form#form-linha-base` | **0px** |
+| Audição, aba 2 (Recorte) | `.caixa` | **16px** |
+| Professores, abas 1 e 2 | `form#form-prof`, `form#form-habilitacao` | **0px** |
+
+**A causa, e por que não é da aba.** O vão do Recorte não é uma decisão da aba — vem da
+`margin: 16px` da `.caixa`, que é a peça do bloco de leitura e mora na folha. O `form` da página
+nasceu com `margin: 0 0 1rem`, e o zero está certo **onde ele nasceu**: nas secções sem abas há um
+título ou uma faixa acima, e o ar já existe. Debaixo de uma tira não há nada entre os dois filetes.
+
+**O que foi decidido.** Uma regra só, na folha de página (não na folha congelada):
+
+```css
+.aba-painel>form:first-child,
+.aba-painel>.aviso[hidden]+form { margin-top: 1rem; }
+```
+
+O valor é **o do Recorte**, `1rem`, porque o que ela pediu foi a mesma distância — uma segunda
+medida para a mesma fronteira seria uma segunda regra a divergir. São duas formas porque são duas
+estruturas reais: o formulário que é o primeiro filho do painel (os dois dos Professores) e o que
+vem depois de um aviso **escondido** (os da Audição — o aviso é o primeiro texto do painel e, quando
+há o que dizer, traz a sua própria margem). O `[hidden]` entra no seletor porque o atributo é o
+estado; sem ele, no estado de falha da leitura o formulário ganharia 32px entre o aviso e si.
+
+**Corrigiu também os Professores**, e é de propósito: os dois painéis tinham o mesmo vão 0 pela
+mesma causa. Não é uma secção a mais na regra — é a mesma fronteira, no mesmo componente.
+
+**O que NÃO mudou.** A aba do Recorte continua com os seus 16px (a `.caixa` não entra na regra:
+somar as duas daria 32px na aba que ela declarou certa). A aba 3 (Transferência), medida com dois
+elencos, tem o aviso a 12px da tira — a margem própria da peça — e o formulário 149px abaixo, atrás
+dele. Em 414px a tira sai (é a regra dos 560px) e a pílula toma o lugar; não há tira para encostar.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a regra e o motivo, junto das regras de abas da
+página) · `experimentos/provar-abas-da-audicao.js` (secção **H3**, com quatro asserções medidas num
+navegador e um controlo A/B; e o stub do `jsdom` passou a devolver `registradas`, sem o que a
+bancada acendia o aviso das anamneses e media o aviso em vez da página).
+
+**Com o quê.** `provar-abas-da-audicao` **121/121** (eram 117; +4: a bancada sã, o ar ≥12px, a
+igualdade com o Recorte, e o A/B que devolve o vão a 0) · `provar-vao-do-botao` 50 ·
+`provar-abas` 28 · `provar-identidade-ao-lado` 27 · `provar-a-coluna-do-formulario` 17 ·
+`provar-salas-e-elencos` 69 · `provar-anamnese-antes-da-aluna` 21 · `check-identidade` 0 erros.
+
+**O que ainda não está feito.** A aba 3 só se vê com dois elencos concluídos, e a medição dela foi
+feita na bancada com dois — na escola ao vivo há um. O resto do formulário da aba 1 (os quatro
+passos) não foi tocado.

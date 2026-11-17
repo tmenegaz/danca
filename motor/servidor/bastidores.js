@@ -5022,6 +5022,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. É o mesmo
        corte do «Ações» da anamnese (560px), e a mesma folha. */
     '.turmas-corpo[data-abas="sim"]{row-gap:.7rem;}' +
+    /* O FORMULÁRIO DE UMA ABA NÃO ENCOSTA NA TIRA (17/11/2026).
+     *
+     * O QUE ELA VIU. «Quando eu estou na aba escolha de elenco, o bloco do formulário que está
+     * cercado por bordas está encostando, ele não tem espaço com a aba. Quando eu vou para o
+     * Recorte, o recorte está certo.» Medido a 1280px: na aba 1 o filete de cima do `<form>`
+     * começava no MESMO pixel da aresta de baixo da tira (vão **0**); no Recorte havia **16px**.
+     *
+     * A CAUSA É ONDE O AR MORA. O vão do Recorte não é uma decisão da aba — vem da `margin: 16px`
+     * da própria `.caixa`, que é a peça do bloco de leitura (folha). O `form` desta página nasceu
+     * com `margin: 0 0 1rem`, e o zero é certo onde ele nasceu: nas secções sem abas há um título
+     * ou uma faixa acima, e o ar já existe. Debaixo de uma tira de abas não há nada entre os dois
+     * filetes — e dois filetes a um pixel um do outro leem-se como um bloco mal fechado.
+     *
+     * SÃO DUAS FORMAS, e as duas são medíveis: o formulário que é o primeiro filho do painel
+     * (os dois painéis dos Professores) e o que vem depois de um aviso **escondido** (os da
+     * Audição — o aviso é o primeiro texto do painel, e quando há o que dizer ele traz a sua
+     * própria margem). O `[hidden]` entra no seletor porque o atributo é o estado: quando o aviso
+     * está à vista o ar já existe, e somar `1rem` daria 32px entre o aviso e o formulário.
+     *
+     * O VALOR É O DO RECORTE, `1rem`, porque o que ela pediu foi a MESMA distância — uma segunda
+     * medida para a mesma fronteira seria uma segunda regra a divergir. A `.caixa` não entra: ela
+     * já traz o seu `margin`, e somar os dois daria 32px na aba que ela declarou certa. */
+    '.aba-painel>form:first-child,' +
+    '.aba-painel>.aviso[hidden]+form{margin-top:1rem;}' +
     /* AS DUAS PÍLULAS DE «ABAS» DO TELEMÓVEL (16/11/2026). Uma por grupo — a Audição e os
      * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
     '#lb-abas-folha,#pf-abas-folha,#es-abas-folha{grid-column:1/-1;display:none;}' +

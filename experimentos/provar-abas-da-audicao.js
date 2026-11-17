@@ -45,6 +45,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const http = require('http');
 const { execSync } = require('child_process');
 
 const RAIZ = path.join(__dirname, '..');
@@ -233,6 +234,138 @@ async function medirFaixaAcima(PAGINA) {
   } finally {
     await browser.close();
     fs.rmSync(arquivo, { force: true });
+  }
+}
+
+/**
+ * O FORMULÁRIO DE UMA ABA NÃO ENCOSTA NA TIRA — MEDIDO (17/11/2026).
+ *
+ * O QUE ELA VIU. «Quando eu estou na aba escolha de elenco, o bloco do formulário que está
+ * cercado por bordas, ele está encostando, ele não tem espaço com a aba. Quando eu vou para o
+ * Recorte, o recorte está certo.»
+ *
+ * A MEDIDA QUE INTERESSA NÃO É UM NÚMERO ESCRITO À MÃO: é a IGUALDADE entre as duas abas. O ar do
+ * Recorte vem da `margin` da `.caixa` (a peça da folha), e o do formulário passou a vir de uma
+ * regra da página; comparar os dois é o que diz se as duas fronteiras se leem com a mesma
+ * distância — e o que continua verdadeiro se a folha mudar de medida.
+ *
+ * A FOLHA ENTRA NA BANCADA. Em `file://` o `<link href="assets/style.css">` não resolve, e sem a
+ * folha a `.caixa` do Recorte mede zero de borda e zero de margem — a bancada mediria a ausência
+ * do ficheiro, não o desenho. O `<style>` com a folha entra logo depois do `<head>`, que é a
+ * ORDEM da produção (link primeiro, folha da página depois), e por isso as regras da página
+ * continuam a vencer como vencem no ar.
+ */
+async function medirVaoDaAba(PAGINA) {
+  const executablePath = process.env.CHROME_PATH ||
+    ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
+      .find((p) => fs.existsSync(p));
+  if (!executablePath) {
+    naoMedida('o formulário da aba 1 não encosta na tira', 'sem Chrome/Chromium');
+    naoMedida('…e o A/B da distância', 'sem Chrome/Chromium');
+    return;
+  }
+  let puppeteer;
+  try {
+    const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team', 'marp-cli');
+    puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+  } catch (e) {
+    naoMedida('o formulário da aba 1 não encosta na tira', 'sem puppeteer-core');
+    naoMedida('…e o A/B da distância', 'sem puppeteer-core');
+    return;
+  }
+  const folha = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+  /* O A/B: a regra da distância neutralizada. Uma asserção verde que passa com a regra apagada
+   * não está a medir a regra — está a medir outra coisa qualquer. */
+  const semARegra = PAGINA.replace('</head>',
+    '<style>.aba-painel>form:first-child,.aba-painel>.aviso[hidden]+form{margin-top:0;}</style></head>');
+
+  /* A BANCADA É SERVIDA POR HTTP, e não em `file://` (17/11/2026). Em `file://` o
+   * `<link href="assets/style.css">` não resolve — a `.caixa` do Recorte mediria zero —, e as
+   * chamadas `/api/*` falham, o que faz aparecer o aviso das anamneses e empurra o formulário
+   * 101px para baixo. A bancada mediria o aviso, não a fronteira. O servidor de porta efémera em
+   * 127.0.0.1 com as respostas de `/api` em stub é o padrão da casa, e é o que dá o estado real:
+   * a leitura sã, o aviso escondido, o formulário no alto do painel. */
+  const linhas = linhasDaProva();
+  const servidor = http.createServer((req, res) => {
+    const url = String(req.url).split('?')[0];
+    if (url === '/bastidores/producao' || url === '/sem') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(url === '/sem' ? semARegra : PAGINA);
+    }
+    if (/\/assets\/style\.css$/.test(url)) {
+      res.writeHead(200, { 'Content-Type': 'text/css' });
+      return res.end(folha);
+    }
+    if (/\/assets\//.test(url)) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript' });
+      return res.end('');
+    }
+    if (url.startsWith('/api/bastidores/alunas-com-anamnese')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, registradas: 1,
+        alunas: [{ aluna: 'Aluna Um', carimbo: 'anamnese-a', novo: false, lidaEm: null }] }));
+    }
+    if (url.startsWith('/api/bastidores/campos-do-corpo')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, campos: [], grupos: [] }));
+    }
+    if (url.startsWith('/api/bastidores/linhas-de-base')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, linhas, elencos: elencosDaRota() }));
+    }
+    if (url.startsWith('/api/')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end('{"ok":true}');
+    }
+    res.writeHead(404); res.end('');
+  });
+  await new Promise((r) => servidor.listen(0, '127.0.0.1', r));
+  const base = 'http://127.0.0.1:' + servidor.address().port;
+
+  const browser = await puppeteer.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+    /** O vão de cada aba, em px: da aresta de baixo da tira ao topo do bloco que a abre. */
+    const vaos = async (caminho) => {
+      await page.goto(base + caminho, { waitUntil: 'networkidle0' });
+      await page.evaluate(() => {
+        const c = document.getElementById('conteudo');
+        if (c) c.hidden = false;
+        document.querySelectorAll('section.secao').forEach((s) => { s.hidden = false; });
+      });
+      const ler = (aba, alvo) => page.evaluate((aba, alvo) => {
+        document.getElementById('lb-aba-' + aba).click();
+        const nav = document.querySelector('#sec-corpo .abas').getBoundingClientRect();
+        const el = document.querySelector(alvo);
+        if (!el) return null;
+        return Math.round(el.getBoundingClientRect().top - nav.bottom);
+      }, aba, alvo);
+      return {
+        elenco: await ler('1', '#form-linha-base'),
+        recorte: await ler('2', '#lb-painel-2 .caixa'),
+        avisoEscondido: await page.evaluate(() => {
+          const a = document.getElementById('lb-sem-anamnese');
+          return !a || a.hidden === true;
+        }),
+      };
+    };
+
+    const v = await vaos('/bastidores/producao');
+    /* Sem isto, a medida do vão estaria a medir o aviso das anamneses em vez da fronteira. */
+    provar('a bancada arranca com a leitura sã (o aviso das anamneses escondido)',
+      v.avisoEscondido === true, JSON.stringify(v));
+    provar('o formulário da aba «Escolha de elenco» não encosta na tira (tem ar, como o Recorte)',
+      v.elenco !== null && v.elenco >= 12, JSON.stringify(v));
+    provar('…e o ar é o MESMO do Recorte — uma fronteira, uma distância',
+      v.elenco === v.recorte, JSON.stringify(v));
+
+    const sem = await vaos('/sem');
+    provar('CONTROLO A/B: sem a regra, o formulário volta a encostar (vão 0)',
+      sem.elenco === 0, 'vão medido sem a regra: ' + JSON.stringify(sem));
+  } finally {
+    await browser.close();
+    servidor.close();
   }
 }
 
@@ -578,7 +711,11 @@ async function principal() {
       w.fetch = (u) => {
         const url = String(u);
         const corpo = url.indexOf('alunas-com-anamnese') !== -1
-          ? { ok: true, alunas: [{ aluna: 'Aluna Um', carimbo: 'anamnese-a', novo: false, lidaEm: null }] }
+          /* A ROTA DEVOLVE `registradas` (15/11/2026), e a bancada também: uma resposta sem o
+           * número é «não consegui ler» desde 17/11/2026, e o stub sem ele acendia o aviso das
+           * anamneses em todas as asserções seguintes — a bancada mediria o aviso, não a página. */
+          ? { ok: true, registradas: 1,
+              alunas: [{ aluna: 'Aluna Um', carimbo: 'anamnese-a', novo: false, lidaEm: null }] }
           : url.indexOf('campos-do-corpo') !== -1
             ? { ok: true, campos: [{ id: 'x', nome: 'X', grupo: 'g', eixo: 'Funcional',
                 dimensao: 'funcional', opcoes: ['A', 'B'] }], grupos: ['g'] }
@@ -839,6 +976,9 @@ async function principal() {
 
   console.log('\nH2. A faixa dos passos, medida no ecrã (navegador)');
   await medirFaixaAcima(PAGINA);
+
+  console.log('\nH3. O ar entre a tira das abas e o bloco que ela abre (navegador)');
+  await medirVaoDaAba(PAGINA);
 
   console.log('\nK. Uma leitura que falha não é um acervo vazio');
   await medirLeituraQueFalha(PAGINA, JSDOM, VirtualConsole);
