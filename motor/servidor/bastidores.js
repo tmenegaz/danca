@@ -230,6 +230,12 @@ function escolaDe(env, url) {
 const { hashSenha, salAleatorio } = require('../nucleo/senha.js');
 // O ESTADO COMERCIAL — a mesma leitura que a porta faz, para as duas respostas dizerem o mesmo.
 const comercialDoNucleo = require('../nucleo/comercial.js');
+/* O CONTRATO E O EXTRATO DA ESCOLA, DO LADO DELA (16/11/2026). «Se ela estiver inadimplente ou se
+ * chegar a data do vencimento e ela quiser pagar, ela pode clicar, então tem um botão de ação onde
+ * ela pode clicar em pagar. Ali vai aparecer então a chave Pix.» O núcleo é o mesmo que serve o
+ * painel da proprietária: a dívida de uma escola é uma conta só, e duas contas dariam duas. */
+const mensalidadesDoNucleo = require('../nucleo/mensalidades.js');
+const fusoDoNucleo = require('../nucleo/fuso.js');
 
 /** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
 const gerarSal = salAleatorio;
@@ -3488,7 +3494,133 @@ function paginaEstudio(escola, contexto, aparencia) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas) {
+/**
+ * «A ESCOLA» — O DADO DA ESCOLA, DO LADO DELA (16/11/2026).
+ *
+ * O QUE ELA PEDIU, e o nome não é decoração: «a gente precisa criar lá em bastidores […] um espaço
+ * que é da escola, que tem os dados da escola. Então lá vai ter esses dados que são preenchidos
+ * aqui no formulário de criar escola. Vai ter também se ela fez o pagamento, se ela está
+ * adimplente, a data que ela fez o pagamento e o próximo vencimento. E tem um status […] E aí vai
+ * estar o valor e o que ela contratou também […] e ali, se ela estiver inadimplente ou se chegar a
+ * data do vencimento e ela quiser pagar, ela pode clicar […] aparece a chave Pix.»
+ *
+ * PORQUE É QUE ISTO É UM CARTÃO DA PRODUÇÃO e não uma página nova: é o MESMO assunto das outras
+ * secções — a escola a saber de si. Uma página à parte seria mais um destino num menu que ela já
+ * achou comprido, para um dado que se consulta de vez em quando.
+ *
+ * O QUE ELE NÃO PODE FAZER: escrever. Não há aqui botão que mude o estado comercial, o plano ou o
+ * pagamento. Quem habilita é ela, no painel do `danca`; quem concilia é ela, à mão. Um botão de
+ * «marcar pago» do lado da escola seria a escola a declarar-se em dia sozinha.
+ */
+async function dadosDaEscolaParaAProducao(env, kv, escola) {
+  const vazio = { ok: false, cadastro: null, contrato: null, situacao: null, pix: null };
+  if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
+  const ler = async (chave) => {
+    try {
+      const texto = await kv.get(chave);
+      return texto ? JSON.parse(texto) : null;
+    } catch (erro) { return null; }
+  };
+  const cadastro = await ler(RAIZ + '/' + escola + '/cadastro');
+  const contrato = await ler(RAIZ + '/' + escola + '/comercial');
+  const pix = await ler('financeiro/pix');
+  const livro = await mensalidadesDoNucleo.lerLivro(kv);
+  const situacao = mensalidadesDoNucleo.situacaoDaEscola({
+    escola, contrato, livro,
+  });
+  return {
+    ok: true,
+    cadastro,
+    contrato,
+    pix: pix && pix.chave ? pix : null,
+    situacao: Object.assign({}, situacao, {
+      frase: mensalidadesDoNucleo.fraseDaSituacao(situacao.situacao),
+    }),
+  };
+}
+
+/** O cartão «A escola», com o que ela preencheu, o que contratou e como está a pagar. */
+function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
+  const c = cadastro || {};
+  const nome = String(c.escolaNome || escola || '').trim();
+  const linha = (rotulo, dado) => (dado
+    ? '<tr><th scope="row">' + esc(rotulo) + '</th><td>' + esc(String(dado)) + '</td></tr>'
+    : '');
+  const dados = [
+    linha('Nome', nome),
+    linha('CNPJ', c.cnpj),
+    linha('E-mail', c.email || c.escolaEmail),
+    linha('Telefone', c.telefone || c.escolaTelefone),
+    linha('Responsável', c.responsavel),
+  ].filter(Boolean).join('');
+
+  const s = situacao || {};
+  const capacidade = s.capacidade || {};
+  const contratoLinhas = [
+    linha('Plano', s.planoNome || s.plano),
+    linha('Mensalidade', s.valorCentavos ? 'R$ ' + emReaisDoCartao(s.valorCentavos) : null),
+    linha('Capacidade incluída', capacidade.professores != null
+      ? capacidade.professores + ' professor(es) e ' + capacidade.alunos + ' aluna(s)' : null),
+    linha('Próximo vencimento', s.proximoVencimento
+      ? s.proximoVencimento + (s.diasParaVencer != null
+        ? (s.diasParaVencer >= 0
+          ? ' (em ' + s.diasParaVencer + ' dia(s))'
+          : ' (venceu há ' + Math.abs(s.diasParaVencer) + ' dia(s))')
+        : '')
+      : null),
+  ].filter(Boolean).join('');
+
+  const meses = Array.isArray(s.meses) ? s.meses : [];
+  const extrato = meses.length
+    ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Vencimento</th><th>Valor</th>' +
+      '<th>Situação</th></tr></thead><tbody>' +
+      meses.map((m) => '<tr><td>' + esc(m.nome || m.mes) + '</td><td>' + esc(m.vencimento || '—') +
+        '</td><td>' + (m.valorPagoCentavos != null
+          ? 'R$ ' + emReaisDoCartao(m.valorPagoCentavos)
+          : (m.valorCentavos ? 'R$ ' + emReaisDoCartao(m.valorCentavos) : '—')) + '</td>' +
+        '<td>' + (m.status === 'pago'
+          ? '<span class="selo ok">pago</span> <span class="dono">' + esc(m.emTexto || '') + '</span>'
+          : (m.venceu ? '<span class="selo falha">em aberto</span>'
+            : '<span class="selo discreto">a vencer</span>')) + '</td></tr>').join('') +
+      '</tbody></table></div>'
+    : '<p class="sub">Ainda não há mensalidade a cobrar — a contagem começa quando a escola é criada.</p>';
+
+  /* O BOTÃO DE PAGAR — e ele abre a chave em vez de levar a outro sítio. «Ela pode clicar […]
+   * aparece a chave Pix»: um `details` faz exactamente isso, no sítio onde ela está, e sem um
+   * script que possa falhar. A chave já é pública para quem paga; o que não pode é ser publicada
+   * numa página aberta, e esta não é. */
+  const blocoDoPix = pix && pix.chave
+    ? '<details class="acordeao"><summary>Pagar agora — ver a chave Pix</summary>' +
+      '<p>Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro') + '</strong>:</p>' +
+      '<p><strong>Ao fazer o Pix, escreva o nome da escola</strong> — «' + esc(nome)
+      + '» — na descrição da transferência. A conciliação é feita à mão, e é por esse nome que o '
+      + 'pagamento é ligado à escola certa.</p>' +
+      '<p><label class="campo-rotulo" for="escola-pix-chave">Chave Pix (copia e cola)</label>' +
+      '<input id="escola-pix-chave" readonly value="' + esc(pix.chave) + '"></p>' +
+      '<p class="sub">Confirmado o pagamento, o mês passa a «pago» no extrato desta página. A '
+      + 'conciliação é feita em até 24 horas.</p>' +
+      '</details>'
+    : '<p class="aviso">A chave Pix ainda não está configurada no sistema. Para pagar, fale com a '
+      + 'administração do Sistema Lastro.</p>';
+
+  return '<div class="caixa" id="a-escola" data-situacao="' + esc(s.situacao || 'aguardando') + '">' +
+    '<h3>O cadastro da escola</h3>' +
+    (dados ? '<table><tbody>' + dados + '</tbody></table>'
+      : '<p class="sub">O cadastro da escola não está guardado neste sistema.</p>') +
+    '<h3>O contrato e o pagamento</h3>' +
+    '<p>' + esc(s.frase || '') + '</p>' +
+    (contratoLinhas ? '<table><tbody>' + contratoLinhas + '</tbody></table>' : '') +
+    extrato +
+    blocoDoPix +
+    '</div>';
+}
+
+/** `6990` → `69,90`. A formatação da casa, e uma só para as duas páginas. */
+function emReaisDoCartao(centavos) {
+  return ((Math.round(Number(centavos) || 0)) / 100).toFixed(2).replace('.', ',');
+}
+
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola) {
   /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
    *
    * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
@@ -5640,7 +5772,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui
     // que só a escola e o professor principal chegam. O grupo é «Configuração» porque não é
     // pedagogia nem pessoa — é a forma da casa.
-    grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência']]) +
+    /* «A ESCOLA» ENTRA EM CONFIGURAÇÃO (16/11/2026) — e não em «Pessoas» nem em «Pedagogia».
+     * É o cadastro da própria escola: quem ela é, o que contratou e como está a pagar. O grupo é o
+     * mesmo da Aparência pelo mesmo motivo que ela deu ao criá-lo — «não é pedagogia nem pessoa, é
+     * a forma da casa». */
+    grupoDoMenu('Configuração', [['#aparencia', 'aparencia', 'Aparência'],
+      ['#a-escola', 'a-escola', 'A escola']]) +
     grupoDoMenu('Pessoas', [['#professores', 'professores', 'Professores'],
       ['#alunas', 'alunas', 'Alunas']]) +
     /* OS NOMES MUDARAM A 07/11/2026, E A ESTRUTURA COM ELES.
@@ -5739,6 +5876,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub">Vale para a <b>escola inteira</b>: quem abrir esta escola vê o que aqui ' +
     'se escolher. Não é uma preferência de cada um.</p>' +
     '</div>' +
+    '</section>' +
+    /* A ESCOLA, COM O QUE ELA CONTRATOU E COMO ESTÁ A PAGAR (16/11/2026). A secção é uma só e o
+     * cartão vem inteiro do servidor: não há aqui nada que um script tenha de buscar, e por isso
+     * ela abre mesmo com a rede lenta — o dado já veio na página. */
+    '<section class="secao" id="sec-a-escola" hidden>' +
+    '<h2>A escola</h2>' +
+    cartaoDaEscola(Object.assign({ escola }, dadosDaEscola || {})) +
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
     tituloComAcordeao('sec-professores', 'Professores', 'professores-miolo') +
@@ -15084,8 +15228,12 @@ async function fetch(request, env, extras) {
     // conhece a turma pelo NOME; a Produção filtra a listagem por ID. A resolução é aqui,
     // onde a lista das turmas já está carregada — a tela não compõe o identificador.
     const turmaEmFoco = String(url.searchParams.get('turma') || '').trim();
+    /* O DADO DA ESCOLA vai junto com os outros (16/11/2026): três leituras de KV que já existem
+     * noutros sítios, e nenhuma delas é nova — o cadastro, o registo comercial e o livro das
+     * mensalidades. Carregam-se em paralelo com as que já estavam. */
+    const dadosDaEscola = await dadosDaEscolaParaAProducao(env, kv, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      aparencia, turmaEmFoco, linhas, alunasObservadas));
+      aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.

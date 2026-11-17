@@ -48057,3 +48057,86 @@ entra nele por três razões, todas do mesmo pedido:
 O que se abre mão, e fica dito: um CLI a mais na pasta congelada é um contrato a manter. Em troca, a
 escola que volta traz os documentos dela — que era o que faltava para «voltar a nascer» querer dizer
 alguma coisa.
+
+## 16/11/2026 — o CPF valida a identidade, e a mensalidade ganha livro
+
+**O que motivou, nas palavras dela.** «Agora nós temos o CPF, né? E essa regra tem que ser validada
+pelo CPF, porque o professor pode ter o mesmo nome, pode ser homônimo, inclusive nome e sobrenome.
+Enquanto a gente estava fazendo testes, o formulário era pequeninho, a regra estava válida. Beleza.
+Agora é só fazer uma mudança no código que o que vai validar agora é o CPF, porque o CPF é único e
+não mais o nome.» E, na mesma mensagem, o financeiro inteiro: o espaço da escola em Bastidores com o
+cadastro e o pagamento; o extrato mês a mês no painel do `danca`; o botão «pago»; e o upgrade e o
+downgrade de plano e de capacidade.
+
+**O CPF — o que mudou, e o que ficou.** A recusa por NOME nasceu quando o formulário não tinha CPF:
+sem número, o único sinal de identidade era o nome, e o nome vira a pasta `professores/<slug>/`, que
+é do sistema e não pode repetir. Estava certo para o que havia.
+
+- **Com CPF, a pergunta «é a mesma pessoa?» passa a ter resposta** — e ela é dada antes: um CPF que
+  já existe é recusado na verificação de unicidade, com a saída certa na frase («escolha um professor
+  que já existe»).
+- **Chegar à colisão de nome com CPF novo significa uma coisa só: é OUTRA pessoa.** Dois homônimos
+  com números diferentes são dois professores, e recusar seria dizer «mude o nome» a quem já provou,
+  pelo número, que é outra. A pasta do segundo nasce ao lado — `ana-souza`, `ana-souza-2` —, e o
+  sufixo é o primeiro número livre, e não uma contagem (duas criações simultâneas receberiam o mesmo
+  número).
+- **Sem CPF, a regra antiga continua inteira**, e tem de continuar: é o único sinal que resta, e a
+  alternativa separaria em duas a história de um professor só. As duas mensagens (painel e público)
+  passam a apontar o CPF como a saída, e não só o sobrenome.
+
+**O FINANCEIRO — o livro, e o que ele guarda.** Nasce `motor/nucleo/mensalidades.js`, e as decisões
+que ele fixa:
+
+- **A competência é o MÊS DE CALENDÁRIO, no fuso da casa.** Um pagamento às 22h de 31 de janeiro em
+  Passo Fundo é 01h de 1 de fevereiro em UTC — cortar o ISO punha-o no mês seguinte, no livro, para
+  sempre. É o mesmo defeito do «habilitada ao meio-dia e 25», agora com consequência contabilística.
+- **O vencimento é o dia da adesão** (uma escola criada a 16/11 vence a 16 de cada mês), e um dia 31
+  num mês de 30 vence no último dia do mês. Uma data que não existe é pior do que uma deslocada,
+  porque não se pode pagar.
+- **O «próximo vencimento» é o mês MAIS ANTIGO em aberto**, e não o mais recente: com dois meses por
+  pagar, a data útil é a do primeiro que se deixou passar.
+- **O valor é gravado no momento do clique.** Um mês pago em novembro por R$ 69,90 continua a valer
+  R$ 69,90 depois de um upgrade — o extrato de um ano atrás não pode dizer outra coisa. O plano vai
+  junto pelo mesmo motivo.
+- **«Não pago» não existe**, como ela disse. O único gesto é «isto foi pago»; desfazer um pagamento é
+  correcção de contabilidade, e não um botão ao lado do que paga.
+
+**Do lado dela (o painel `danca`, em `/financeiro`).** Um cartão por escola com o extrato do mais
+recente para o mais antigo, o valor, o estado (`pago`, `em aberto`, `a vencer`) e o botão
+**«Marcar pago»** — que só aparece nos meses em aberto. Abaixo, o contrato: o plano e os lotes, com o
+que está em vigor seleccionado, para upgrade, downgrade ou nenhuma capacidade extra. Gravar o
+contrato não toca no mês em curso nem no estado comercial — pôr uma escola em dia por mudar de preço
+seria dar acesso por um gesto de preço.
+
+**Do lado da escola (Bastidores → Configuração → «A escola»).** O cadastro que ela preencheu na
+criação (nome, CNPJ, e-mail, telefone, responsável), o contrato (plano, mensalidade, capacidade
+incluída, próximo vencimento) e o extrato dela. E o botão **«Pagar agora — ver a chave Pix»**, que
+abre a chave no próprio sítio, com a instrução de escrever o nome da escola na descrição. **A escola
+não escreve nada aqui**: não há botão que mude estado, plano ou pagamento — quem habilita e quem
+concilia é a proprietária.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (novo) · `motor/servidor/raiz.js` (o CPF como
+validador e o sufixo do homônimo; `extratoDasEscolas`; as rotas `POST /api/financeiro/mensalidade` e
+`POST /api/financeiro/contrato`; os lotes no registo comercial da criação e da recriação) ·
+`motor/servidor/painel-html.js` (`paginaFinanceira` com o extrato e o contrato, e o script dos dois
+botões) · `motor/servidor/bastidores.js` (`dadosDaEscolaParaAProducao`, `cartaoDaEscola`, a secção
+`sec-a-escola` e o destino no grupo «Configuração») · `experimentos/provar-financeiro-da-escola.js`
+(novo) · `.gitignore`.
+
+**Com o quê.** `provar-financeiro-da-escola` **53/53**: a competência no fuso local (o pagamento das
+23h do último dia fica no mês que ela viveu); o vencimento com o dia 31 em fevereiro a 28; o extrato
+com pago/em aberto/a vencer e as três situações (em dia, em aberto, aguardando); o valor guardado no
+momento do clique a sobreviver a um upgrade; a página em jsdom (o «Marcar pago» a pedir o mês certo,
+o contrato a levar o plano e os lotes em vigor, e a ausência de um «não pago»); o cartão da escola na
+Produção, com o cadastro, o contrato, o extrato, a chave Pix — e a ausência de qualquer botão de
+escrita do lado dela; e as quatro condições do CPF na rota. Mais `provar-financeiro` 58/58 ·
+`provar-recriar-escola` 92/92 · `provar-cofre-e-shard` 138/138 · `provar-restaurar-retrato` 38/38 ·
+`provar-escola-a-nascer` 48/48 · `provar-a-carencia-nao-se-burla` 58/58 ·
+`provar-cartas-do-expurgo` 25/25 · `provar-pagina-publica` 79/79 · `provar-indices` 58/58 ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica declarado, e é o que falta combinar.** O dia do vencimento é o da adesão — se ela quiser
+outro (dia 5, dia 10), é uma linha, mas é uma decisão dela e não minha. Não há **aviso** de
+vencimento (nem à escola nem a ela): o sistema mostra o estado, não persegue ninguém. E o pagamento
+continua a ser conciliado à mão, como ela decidiu: o botão «Marcar pago» é o registo DEPOIS da
+conferência no banco, e não uma cobrança.

@@ -53,6 +53,9 @@ const { responsavelDoInventario } = require('../nucleo/indices.js');
  * fica, quem sai, e a frase do aviso); o Worker lê o commit e o índice, e o `tools/retrato` escreve
  * os ficheiros no runner. Uma segunda conta da capacidade no cliente diria outro número. */
 const retrato = require('../nucleo/retrato.js');
+/* AS MENSALIDADES — o livro do que foi pago, mês a mês, e a situação de cada escola (16/11/2026).
+ * O núcleo é puro: quem lê o KV e quem desenha a página são as funções abaixo. */
+const mensalidades = require('../nucleo/mensalidades.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -1046,14 +1049,29 @@ async function responderCriacao(request, env, opcoes) {
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
         });
       }
+      /* O NOME QUE JÁ EXISTE — E O CPF QUE DECIDE (16/11/2026).
+       *
+       * «Agora nós temos o CPF, né? E essa regra tem que ser validada pelo CPF, porque o professor
+       * pode ter o mesmo nome, pode ser homônimo, inclusive nome e sobrenome.»
+       *
+       * A REGRA ANTIGA ERA DO TEMPO EM QUE O FORMULÁRIO NÃO TINHA CPF. Sem número, o único sinal
+       * de identidade era o nome, e o nome vira a pasta (`professores/<slug>/`) — que é do
+       * SISTEMA, guarda pacote, cadernos, relatórios e âncoras, e não pode repetir. Colidir era,
+       * então, a única coisa que se sabia fazer. Estava certo para o que havia.
+       *
+       * COM CPF, a pergunta «é a mesma pessoa?» passa a ter RESPOSTA, e ela é dada antes, na
+       * verificação de unicidade: um CPF que já existe é recusado lá, com a saída certa na frase.
+       * Chegar a esta linha significa uma coisa só — **o CPF é novo**, logo é OUTRA pessoa. Dois
+       * homônimos com CPFs diferentes são dois professores, e a pasta do segundo não pode ser a
+       * do primeiro: ela nasce ao lado, com um sufixo que a distingue. Recusar aqui seria dizer
+       * «mude o nome» a quem já provou, pelo número, que é outra pessoa.
+       *
+       * SEM CPF, a regra antiga continua inteira — e tem de continuar: é o único sinal que resta,
+       * e a alternativa (criar uma pasta ao lado de uma que talvez seja da mesma pessoa) separaria
+       * em duas a história de um professor só. */
       const colisao = existentes.find((p) => p.slug === professor);
-      if (colisao) {
-        /* O NOME QUE JÁ EXISTE — e o que se pede a quem o escreveu (16/11/2026).
-         *
-         * No painel: mudar o sobrenome, ou escolher o professor que já existe. No público: não há
-         * escolha, e também não há como distinguir «é a mesma pessoa» de «é outra com o mesmo
-         * nome» — a pasta é que sabe, e quem sabe ler a pasta é a administração. A mensagem diz
-         * isso, e diz o que fazer. */
+      if (colisao && !cadastro.cpf) {
+        /* O NOME QUE JÁ EXISTE — e o que se pede a quem o escreveu (16/11/2026). */
         const contacto = enderecoDaAdministracao(env);
         const quem = colisao.nome || colisao.slug;
         return new Response(JSON.stringify({
@@ -1061,17 +1079,26 @@ async function responderCriacao(request, env, opcoes) {
           erro: origem === 'publico'
             ? 'já existe no Sistema Lastro um professor «' + quem + '», e o nome dele ocupa a '
               + 'pasta `professores/' + professor + '/` — que é do sistema, e não da escola. '
-              + 'Se for OUTRA pessoa, acrescente um sobrenome ou um apelido que a distinga. Se for '
-              + 'a mesma, o cadastro não se refaz por aqui: escreva para a administração do '
+              + 'Se for OUTRA pessoa, acrescente um sobrenome ou um apelido que a distinga, e '
+              + 'informe o CPF dela — é o CPF que separa dois homônimos. Se for a mesma, o '
+              + 'cadastro não se refaz por aqui: escreva para a administração do '
               + 'Sistema Lastro' + (contacto ? ' (' + contacto + ')' : '')
               + ' e peça a escola nova com este professor.'
-            : 'já existe o professor "' + quem + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
+            : 'já existe o professor "' + quem + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe o CPF dela — é o CPF que separa dois homônimos, e a pasta nova nasce ao lado. Se for a mesma, use «usar este professor».',
           colisao: colisao.slug,
           procuraAAdministracao: origem === 'publico' ? true : undefined,
         }), {
           status: 409,
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
         });
+      }
+      /* O HOMÔNIMO COM CPF NOVO: a pasta nasce ao lado. `ana-souza`, `ana-souza-2`, `ana-souza-3`.
+       * O sufixo é o PRIMEIRO número livre, e não a contagem — duas criações podem correr ao mesmo
+       * tempo, e uma contagem feita em paralelo daria o mesmo número às duas. */
+      if (colisao) {
+        let sufixo = 2;
+        while (existentes.some((p) => p.slug === professor + '-' + sufixo) && sufixo < 99) sufixo += 1;
+        professor = professor + '-' + sufixo;
       }
       nomeDeExibicao = professorNome + ' ' + professorSobrenome;
     }
@@ -1226,6 +1253,11 @@ async function responderCriacao(request, env, opcoes) {
       valor: escolha.valor,
       periodicidade: escolha.periodicidade,
       capacidade: escolha.capacidade,
+      /* OS LOTES ESCOLHIDOS, além do total (16/11/2026). A `capacidade` diz quantos são; os lotes
+       * dizem COMO se chegou lá — e é isso que o formulário do contrato precisa de abrir
+       * preenchido, senão ela reescreve o contrato sem saber o que estava em vigor. */
+      lotesProfessores: escolha.lotesProfessores,
+      lotesAlunos: escolha.lotesAlunos,
       extensoes: escolha.extensoes,
       pagamento: escolha.pagamento,
       origem,
@@ -2622,6 +2654,8 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
     valor: escolha.valor,
     periodicidade: escolha.periodicidade,
     capacidade: escolha.capacidade,
+    lotesProfessores: escolha.lotesProfessores,
+    lotesAlunos: escolha.lotesAlunos,
     extensoes: escolha.extensoes,
     pagamento: escolha.pagamento,
     /* O PROFESSOR VAI NO REGISTO, e é ele que a linha «a nascer» mostra enquanto o acervo não
@@ -3416,6 +3450,44 @@ async function fetch(request, env) {
    * numa página aberta é a conta dela à vista; um desconto publicado é a negociação de um cliente
    * à vista de outro.
    * ===================================================================================== */
+/**
+ * O EXTRATO DE CADA ESCOLA VIVA — o que a página do financeiro desenha (16/11/2026).
+ *
+ * UMA LEITURA POR ESCOLA, para o registo comercial (`bastidores/<escola>/comercial`), e UMA
+ * leitura do livro para todas. É o mesmo perfil de acesso dos descontos: poucas escolas, um ecrã
+ * que se abre algumas vezes por mês.
+ *
+ * O QUE NÃO SE FAZ AQUI: contar meses no cliente, somar valores, decidir o que está vencido. Isso é
+ * `mensalidades.situacaoDaEscola`, e a página limita-se a mostrar o que ela devolve — a mesma
+ * função que a escola vê no painel dela. Duas contas da mesma dívida dariam duas respostas, e a que
+ * ficasse a valer seria a que ela lesse primeiro.
+ */
+async function extratoDasEscolas({ env, escolas, agora }) {
+  const kv = env && env.PADD_KV;
+  const livro = await mensalidades.lerLivro(kv);
+  const lista = [];
+  for (const e of Array.isArray(escolas) ? escolas : []) {
+    const slug = String((e && e.slug) || '').trim();
+    if (!slug) continue;
+    let contrato = null;
+    try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
+    const situacao = mensalidades.situacaoDaEscola({
+      escola: slug, contrato, livro, agora,
+    });
+    lista.push(Object.assign({}, situacao, {
+      nome: (e && e.nome) || slug,
+      frase: mensalidades.fraseDaSituacao(situacao.situacao),
+      /* OS LOTES, para o formulário do contrato abrir no que está em vigor. Um registo antigo não
+       * os tem (nasceram hoje) — e aí as caixas abrem vazias, que é a verdade: não se sabe quais
+       * foram, só o total. */
+      lotesProfessores: Array.isArray(contrato && contrato.lotesProfessores)
+        ? contrato.lotesProfessores : [],
+      lotesAlunos: Array.isArray(contrato && contrato.lotesAlunos) ? contrato.lotesAlunos : [],
+    }));
+  }
+  return lista;
+}
+
   if (url.pathname === '/financeiro' && request.method === 'GET') {
     const token = env && env.GITHUB_TOKEN;
     try {
@@ -3429,7 +3501,13 @@ async function fetch(request, env) {
       const pix = await lerPix(env && env.PADD_KV, env);
       const descontos = await lerDescontos(env && env.PADD_KV);
       const vivas = (escolas || []).filter((e) => !e.expurgada);
-      return painel.resposta(painel.paginaFinanceira({ pix, descontos, escolas: vivas }));
+      /* O EXTRATO E O CATÁLOGO (16/11/2026). O catálogo vai junto porque o formulário do contrato
+       * tem de oferecer os planos e os lotes que EXISTEM — e a fonte deles é o JSON comercial, não
+       * uma lista copiada para a página. */
+      const extrato = await extratoDasEscolas({ env, escolas: vivas });
+      return painel.resposta(painel.paginaFinanceira({
+        pix, descontos, escolas: vivas, extrato, catalogo: comercial.catalogoDaPagina(),
+      }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
         'não foi possível abrir o financeiro: ' + ((err && err.message) || String(err))), 500);
@@ -3445,6 +3523,94 @@ async function fetch(request, env) {
     }, 'proprietario');
     if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 400);
     return responderJson({ ok: true, pix: gravado.pix });
+  }
+
+  /* MARCAR UM MÊS COMO PAGO (16/11/2026). «Tem um botão que indica se foi pago.»
+   *
+   * O VALOR É O DO CONTRATO NO MOMENTO DO CLIQUE, e é gravado no livro: um mês pago em janeiro por
+   * R$ 69,90 continua a valer R$ 69,90 depois de um upgrade, e recalculá-lo mais tarde faria o
+   * extrato de um ano atrás dizer outra coisa. O plano vai junto pelo mesmo motivo.
+   *
+   * NÃO HÁ «DESMARCAR». Desfazer um pagamento é correcção de contabilidade, e não um botão. */
+  if (url.pathname === '/api/financeiro/mensalidade' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const slug = String(corpo.escola || '').trim();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    let contrato = null;
+    try { contrato = await lerComercial(env && env.PADD_KV, slug); } catch (erro) { contrato = null; }
+    const feito = await mensalidades.registarPagamento(env && env.PADD_KV, {
+      escola: slug,
+      mes: corpo.mes,
+      valorCentavos: contrato && contrato.valorCentavos,
+      plano: contrato && contrato.plano,
+      planoNome: contrato && contrato.planoNome,
+      por: 'proprietario',
+    });
+    if (!feito.ok) return responderJson({ ok: false, erro: feito.erro }, 400);
+    return responderJson({
+      ok: true,
+      pagamento: Object.assign({}, feito.pagamento, {
+        emTexto: fuso.quandoLocal(feito.pagamento.em),
+      }),
+    });
+  }
+
+  /* MUDAR O CONTRATO — plano e capacidade, para cima ou para baixo (16/11/2026).
+   *
+   * «Tem que ser possível eu mexer aqui no financeiro e mudar o plano da escola, e também mudar a
+   * capacidade extra. Se ela quiser, eu posso fazer upgrade ou downgrade […] ou nenhuma capacidade
+   * extra.»
+   *
+   * A VALIDAÇÃO É A DO CATÁLOGO (`comercial.validarEscolha`), a mesma da criação: um plano que não
+   * existe, ou um lote que não está na tabela, é recusado com o nome dele na frase. Não há caminho
+   * próprio para o financeiro — um segundo cálculo do preço seria um segundo preço.
+   *
+   * O QUE O CONTRATO NÃO FAZ: não muda o mês em curso. O livro guarda o que foi cobrado em cada
+   * mês; o plano novo vale a partir da próxima mensalidade, e é o que a página diz.
+   *
+   * O QUE ELE NÃO TOCA: o `estado` (ativa/suspensa/aguardando). Pôr uma escola em dia por mudar de
+   * plano seria dar acesso por um gesto de preço. */
+  if (url.pathname === '/api/financeiro/contrato' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const slug = String(corpo.escola || '').trim();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    const escolhaComercial = comercial.validarEscolha({
+      plano: corpo.plano,
+      lotesProfessores: Array.isArray(corpo.lotesProfessores) ? corpo.lotesProfessores : [],
+      lotesAlunos: Array.isArray(corpo.lotesAlunos) ? corpo.lotesAlunos : [],
+    }, { podeDispensar: false });
+    if (!escolhaComercial.ok) {
+      return responderJson({ ok: false, erro: escolhaComercial.erro }, 400);
+    }
+    const escolha = escolhaComercial.escolha;
+    const gravado = await gravarComercial(env && env.PADD_KV, slug, {
+      plano: escolha.plano,
+      planoNome: escolha.planoNome,
+      valorCentavos: escolha.valorCentavos,
+      valor: escolha.valor,
+      periodicidade: escolha.periodicidade,
+      capacidade: escolha.capacidade,
+      lotesProfessores: escolha.lotesProfessores,
+      lotesAlunos: escolha.lotesAlunos,
+      extensoes: escolha.extensoes,
+    }, 'proprietario');
+    if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
+    return responderJson({
+      ok: true,
+      contrato: {
+        plano: escolha.plano,
+        planoNome: escolha.planoNome,
+        valor: escolha.valor,
+        valorCentavos: escolha.valorCentavos,
+        capacidade: escolha.capacidade,
+      },
+    });
   }
 
   if (url.pathname === '/api/financeiro/desconto' && request.method === 'POST') {

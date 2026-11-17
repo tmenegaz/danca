@@ -1246,11 +1246,13 @@ function paginaDosProfessores({ professores, escolas, ordem }) {
  * as peças da folha. Um ecrã do painel que inventasse uma grelha própria seria o segundo desenho
  * do mesmo formulário nesta casa, e a folha é uma.
  */
-function paginaFinanceira({ pix, descontos, escolas }) {
+function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
   const chave = (pix && pix.chave) || '';
   const titular = (pix && pix.titular) || '';
   const lista = Array.isArray(descontos) ? descontos : [];
   const vivas = Array.isArray(escolas) ? escolas : [];
+  const contas = Array.isArray(extrato) ? extrato : [];
+  const cat = catalogo || null;
 
   const blocoDaChave = '<div class="caixa" id="financeiro-pix">' +
     '<h2>A chave que recebe os pagamentos</h2>' +
@@ -1313,12 +1315,113 @@ function paginaFinanceira({ pix, descontos, escolas }) {
       '<p>Um desconto concedido aparece aqui com a data, o valor e a razão — e é essa linha que ' +
       'responde, seis meses depois, à pergunta «porque é que esta escola paga menos?».</p></div>';
 
+  /* ── AS MENSALIDADES, MÊS A MÊS (16/11/2026) ────────────────────────────────────────────
+   *
+   * «Eu preciso ter também uma forma de acompanhar mês a mês o pagamento de cada escola, como se
+   * fosse um extrato, e com um botão que indica se foi pago. […] E tem que ser possível eu mexer
+   * aqui no financeiro e mudar o plano da escola, e também mudar a capacidade extra.»
+   *
+   * UM CARTÃO POR ESCOLA, e não uma tabela única com todas: o extrato de uma escola é uma
+   * sequência, e a sequência de outra ao lado não ajuda a lê-la. O que se procura aqui é «esta
+   * escola está em dia?» — e essa pergunta é sobre uma escola de cada vez.
+   *
+   * O CONTRATO FICA NA MESMA CAIXA DO EXTRATO, e é a decisão de desenho que importa: mudar o
+   * plano é a resposta a «esta escola está a pagar o quê?», que é a mesma pergunta do extrato. Em
+   * dois ecrãs, o segundo nunca seria aberto no dia em que se olha a conta. */
+  /** `6990` → `69,90`. A formatação é a da casa: vírgula decimal, sem milhares. */
+  const emReais = (centavos) => ((Math.round(Number(centavos) || 0)) / 100).toFixed(2).replace('.', ',');
+  /* O PLANO EM VIGOR VEM SELECCIONADO, e os lotes também — quando o registo os guardou. É a
+   * diferença entre «mudar o contrato» e «escrever o contrato de novo sem saber o que lá está»:
+   * um `select` que abre no primeiro plano faz dela a autora de um downgrade que não pediu. */
+  const opcoesDoPlano = (atual) => ((cat && cat.assinaturas) || []).map((p) =>
+    '<option value="' + esc(p.id) + '" data-centavos="' + Math.round(Number(p.preco) * 100) + '"'
+    + (p.id === atual ? ' selected' : '') + '>'
+    + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
+  const caixasDeLote = (eixo, rotulo, escolhidos) => {
+    const lista = Array.isArray(escolhidos) ? escolhidos : [];
+    return ((cat && cat.lotes && cat.lotes[eixo]) || [])
+      .map((l) => '<label class="escolha"><input type="checkbox" data-contrato-lote data-eixo="' + eixo
+        + '" data-qtd="' + l.qtd + '"' + (lista.indexOf(Number(l.qtd)) !== -1 ? ' checked' : '') + '>'
+        + '<span>+' + l.qtd + ' ' + rotulo + ' — R$ '
+        + String(l.preco).replace('.', ',') + '/mês</span></label>').join('');
+  };
+
+  const cartaoDaConta = (c) => {
+    const meses = Array.isArray(c.meses) ? c.meses : [];
+    const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
+      '<td><strong>' + esc(m.nome || m.mes) + '</strong></td>' +
+      '<td>' + esc(m.vencimento || '—') + '</td>' +
+      '<td>' + (m.valorPagoCentavos != null
+        ? 'R$ ' + emReais(m.valorPagoCentavos)
+        : (m.valorCentavos ? 'R$ ' + emReais(m.valorCentavos) : '—')) + '</td>' +
+      '<td>' + (m.status === 'pago'
+        ? '<span class="selo ok">pago</span> <span class="dono">' + esc(m.emTexto || '') + '</span>'
+        : (m.venceu ? '<span class="selo falha">em aberto</span>'
+          : '<span class="selo discreto">a vencer</span>')) + '</td>' +
+      '<td>' + (m.status === 'pago'
+        ? (m.planoNome ? esc(m.planoNome) : '—')
+        : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
+          + ' data-mes="' + esc(m.mes) + '">Marcar pago</button>') + '</td>' +
+      '</tr>').join('');
+
+    const corpoDaTabela = linhas
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Vencimento</th><th>Valor</th>' +
+        '<th>Situação</th><th>Pago / ação</th></tr></thead><tbody>' + linhas + '</tbody></table></div>'
+      : '<p class="aviso">Ainda não há mensalidade a cobrar desta escola — a contagem começa ' +
+        'quando ela é criada. Uma lista vazia quer dizer isso, e não que a leitura falhou.</p>';
+
+    const capacidade = c.capacidade || {};
+    return '<div class="caixa" data-conta="' + esc(c.escola) + '">' +
+      '<h2>' + esc(c.nome || c.escola) + ' <span class="dono">(' + esc(c.escola) + ')</span></h2>' +
+      '<p>' + esc(c.frase || '') + '</p>' +
+      '<div class="ficha">' +
+      '<span>Plano: <strong>' + esc(c.planoNome || '—') + '</strong></span>' +
+      '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
+      '<span>Capacidade: ' + esc(String(capacidade.professores == null ? '—' : capacidade.professores))
+        + ' professor(es) · ' + esc(String(capacidade.alunos == null ? '—' : capacidade.alunos)) + ' aluna(s)</span>' +
+      (c.proximoVencimento
+        ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
+          + (c.diasParaVencer != null
+            ? ' (' + (c.diasParaVencer >= 0
+              ? 'em ' + c.diasParaVencer + ' dia(s)'
+              : 'venceu há ' + Math.abs(c.diasParaVencer) + ' dia(s)') + ')'
+            : '') + '</span>'
+        : '') +
+      '</div>' +
+      corpoDaTabela +
+      /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
+       * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
+       * upgrade ou downgrade ou nenhuma capacidade extra». */
+      '<details class="acordeao"><summary>Mudar o plano ou a capacidade desta escola</summary>' +
+      '<div class="col-form" data-contrato="' + esc(c.escola) + '">' +
+      '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
+      '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
+      + '</select></p>' +
+      '<fieldset class="escolhas"><legend class="campo-rotulo">Capacidade a mais (por lote, na ' +
+      'mensalidade)</legend>' + caixasDeLote('professores', 'professor(es)', c.lotesProfessores)
+      + caixasDeLote('alunos', 'aluna(s)', c.lotesAlunos) + '</fieldset>' +
+      '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
+      'Gravar o contrato</button></p>' +
+      '<p class="aviso" data-contrato-recado hidden></p>' +
+      '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
+      'mês, e o plano novo vale a partir da próxima mensalidade.</p>' +
+      '</div></details>' +
+      '</div>';
+  };
+
+  const blocoDasContas = '<h2>Mensalidades, escola por escola</h2>' +
+    (contas.length
+      ? contas.map(cartaoDaConta).join('')
+      : '<div class="caixa nota"><h2>Nenhuma escola viva para cobrar</h2>' +
+        '<p>Uma escola aparece aqui assim que existir. Uma lista vazia quer dizer que nenhuma ' +
+        'existe, não que a leitura falhou.</p></div>');
+
   return pagina({
     titulo: 'Financeiro',
-    subtitulo: 'A chave que recebe os pagamentos, e os descontos concedidos. A conciliação é ' +
-      'manual: o pagamento entra nesta conta e é conferido à mão.',
+    subtitulo: 'A chave que recebe os pagamentos, as mensalidades de cada escola e os descontos ' +
+      'concedidos. A conciliação é manual: o pagamento entra nesta conta e é conferido à mão.',
     atual: 'financeiro',
-    corpo: blocoDaChave + blocoDoDesconto + tabela +
+    corpo: blocoDaChave + blocoDasContas + blocoDoDesconto + tabela +
       SCRIPT_DO_FINANCEIRO +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
@@ -1371,6 +1474,65 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '    .catch(function(){b.disabled=false;recado("desconto-recado","falha de rede — nada foi alterado",true);});' +
   '  });' +
   '})(retirar[i]);' +
+  /* ── MARCAR UM MÊS COMO PAGO (16/11/2026) ──────────────────────────────────────────────
+   *
+   * «Tem um botão que indica se foi pago. Quando eu clicar ali que foi pago aquele mês, então vai
+   * ter ali também a data do pagamento.» O botão NÃO pergunta nada: o gesto é a confirmação, e uma
+   * caixa de «tem a certeza?» a mais num ecrã que se usa todos os meses é ruído. O que ele faz é
+   * desligar-se enquanto o pedido corre e, quando volta, RECARREGAR — porque a linha muda de
+   * estado, de data e de valor, e repô-la à mão seria uma segunda cópia da regra que a desenha.
+   *
+   * «NÃO PAGO» NÃO EXISTE, e ela foi directa: «não tem como eu clicar e dizer não pago, isso não
+   * existe». Desfazer um pagamento é correcção de contabilidade, e não um botão ao lado do que
+   * paga — um par de botões iguais em que um mente é pior do que um caminho só. */
+  'var pagar=document.querySelectorAll("[data-pagar]");' +
+  'for(var j=0;j<pagar.length;j++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var escola=b.getAttribute("data-pagar"),mes=b.getAttribute("data-mes");' +
+  '    if(!escola||!mes)return;' +
+  '    b.disabled=true;b.textContent="a registar…";' +
+  '    fetch("/api/financeiro/mensalidade",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,mes:mes}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){if(d&&d.ok){location.reload();return;}' +
+  '      b.disabled=false;b.textContent="Marcar pago";' +
+  '      alert((d&&d.erro)||"não foi possível registar o pagamento");})' +
+  '    .catch(function(){b.disabled=false;b.textContent="Marcar pago";' +
+  '      alert("falha de rede — nada foi alterado");});' +
+  '  });' +
+  '})(pagar[j]);' +
+  /* ── O CONTRATO: PLANO E CAPACIDADE (16/11/2026) ───────────────────────────────────────
+   *
+   * A MESMA CONTA DO SERVIDOR, e não uma segunda: o plano vem do `select`, os lotes das caixas, e
+   * é o `POST` que valida contra o catálogo. A página não calcula preço nenhum — o valor que
+   * aparece no extrato é o que o servidor gravar. */
+  'var gravarContrato=document.querySelectorAll("[data-contrato-gravar]");' +
+  'for(var k=0;k<gravarContrato.length;k++)(function(b){' +
+  '  b.addEventListener("click",function(){' +
+  '    var escola=b.getAttribute("data-contrato-gravar");if(!escola)return;' +
+  '    var caixa=b.closest("[data-contrato]")||document;' +
+  '    var sel=caixa.querySelector("[data-contrato-plano]");' +
+  '    var lotes=caixa.querySelectorAll("[data-contrato-lote]");' +
+  '    var p=[],a=[];' +
+  '    for(var m=0;m<lotes.length;m++){if(!lotes[m].checked)continue;' +
+  '      var q=Number(lotes[m].getAttribute("data-qtd")||0);' +
+  '      if(lotes[m].getAttribute("data-eixo")==="professores")p.push(q);else a.push(q);}' +
+  '    var recado=caixa.querySelector("[data-contrato-recado]");' +
+  '    function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
+  '      recado.className=erro?"aviso alerta":"aviso";}' +
+  '    b.disabled=true;dizer("a gravar…",false);' +
+  '    fetch("/api/financeiro/contrato",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,plano:sel?sel.value:"",' +
+  '        lotesProfessores:p,lotesAlunos:a}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){b.disabled=false;' +
+  '      if(d&&d.ok){dizer("Contrato gravado: "+(d.contrato&&d.contrato.planoNome||"")+" — "' +
+  '        +" R$ "+(d.contrato&&d.contrato.valor||"")+" por mês. Recarregue para ver o extrato.",false);' +
+  '        return;}' +
+  '      dizer((d&&d.erro)||"não foi possível gravar o contrato",true);})' +
+  '    .catch(function(){b.disabled=false;dizer("falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(gravarContrato[k]);' +
   '})();</script>';
 
 /**

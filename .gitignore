@@ -1494,3 +1494,10 @@ experimentos/modelo-formulario/*
 # tempo, com o documento próprio a desempatar), as três guardas do corte, e o CLI a correr num
 # repositório de verdade — com um expurgo que apaga e um elo que aponta o estado anterior.
 !experimentos/provar-restaurar-retrato.js
+
+# O CPF É O VALIDADOR, E A MENSALIDADE TEM LIVRO (16/11/2026). «Essa regra tem que ser validada pelo
+# CPF, porque o professor pode ter o mesmo nome, pode ser homônimo.» E: «acompanhar mês a mês o
+# pagamento de cada escola, como se fosse um extrato, com um botão que indica se foi pago.» A prova
+# mede a competência no fuso local, o vencimento, o extrato, o valor guardado no momento do clique, a
+# página em jsdom (os dois botões, e a ausência de um «não pago»), e a condição do CPF na rota.
+!experimentos/provar-financeiro-da-escola.js
