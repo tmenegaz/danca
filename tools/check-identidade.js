@@ -978,6 +978,14 @@ const GANCHOS = new Map(Object.entries({
      `.acao`, que é a peça do botão. */
   'paginas-ant': 'o «anterior» do rodapé de páginas, que o script procura e desabilita',
   'paginas-prox': 'o «próximo» do rodapé de páginas, idem',
+  /* OS DOIS SALTOS (17/11/2026). «Eu posso tanto avançar para a página dois quanto voltar para a
+     página um, quanto ir para a última página, quanto voltar para a primeira página.» Com
+     quarenta meses de mensalidades, andar de dez em dez até ao fim é uma tarefa.
+     São ganchos pela mesma razão que os dois passos: não têm desenho — quem os pinta é `.acao`,
+     que é a peça do botão — e o que o script faz com eles é desabilitá-los nos extremos. A folha
+     não é tocada, e o « e o » que eles mostram é desenho de conteúdo, não de forma. */
+  'paginas-primeira': 'o salto para a primeira página, que o script procura e desabilita',
+  'paginas-ultima': 'o salto para a última página, idem',
   'paginas-info': 'o contador do rodapé de páginas, que o script escreve',
   menu: 'o `<details>` da barra, que `nav.js` abre e fecha (o desenho é de `summary`)',
   'ctx-turma': 'o bloco do contexto da turma na porta, que o script preenche',
