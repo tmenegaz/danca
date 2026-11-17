@@ -48313,3 +48313,46 @@ dentro. Mais `provar-financeiro` 58/58 · `provar-recriar-escola` 92/92 · `prov
 professor por dia**; com duas, o teto do Avançado cai para metade no que toca às Ações. E se a
 plataforma passar a ter mais de três escolas no teto, o caminho é **plano pago** de
 GitHub/Cloudflare — não um teto menor para cada uma.
+
+## 16/11/2026 — a conta do teto depende das turmas, e o plano pago é a resposta
+
+**As duas perguntas do §L9c ficaram respondidas, e nenhuma das duas mudou o teto.**
+
+**1. O mínimo de 5 alunas por turma é o que liga os dois números.** «Acho que serão no mínimo 5
+alunos.» Com esse mínimo, o teto de 500 alunas dá **no máximo 100 turmas** — e é essa a ponte entre
+o número comercial e o número que gasta Ações: o que consome é **`turmas × aulas por semana`**, e
+uma aula lançada custa os mesmos 54 s quer a turma tenha 5 ou 30 alunas. O orçamento passa a ser uma
+tabela, e não uma estimativa:
+
+| Turmas (no teto) | Aulas/semana por turma | Lançamentos/mês | Minutos/mês | Escolas no teto na conta grátis |
+|--:|--:|--:|--:|--:|
+| 100 (o máximo: 500 ÷ 5) | 1 | ≈433 | **390** | **3** |
+| 100 | 2 | ≈867 | **780** | **1** |
+| 30 (500 ÷ ~17, o caso comum) | 1 | ≈130 | **117** | 9 |
+| 30 | 2 | ≈260 | **234** | 5 |
+| 20 (500 ÷ 25) | 1 | ≈87 | **78** | 12 |
+
+**O teto só aperta no pior caso** — 500 alunas todas em turmas de 5, cada uma lançada duas vezes por
+semana. No caso comum (turmas de 15 a 25), três escolas no teto gastam menos de 30% dos 1.400 min
+utilizáveis. E a variável que sobra — quantas vezes por semana cada turma é lançada — **é a escola
+que a decide, não o contrato**: nenhuma das combinações acima derruba o teto, e por isso ele fica
+onde está.
+
+**2. Ao chegar a três escolas no teto, muda-se o plano de infraestrutura.** «Difícil achar 3 escolas
+desse tamanho. Se chegar a ter 3 escolas desse tamanho, vamos para o plano pago.» Fica declarado:
+**três escolas no teto é o limite, e o que se muda ao chegar lá é o plano de GitHub/Cloudflare — o
+teto de cada escola não se encolhe.** O teto é promessa comercial; a conta é decisão de
+infraestrutura, e uma promessa não se encolhe porque a infraestrutura ficou pequena.
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` §L9c (a tabela das turmas e a decisão do plano pago; o item
+(c) das decisões em aberto passa a fechado) · `biblioteca/comercial/planos.json` (a `_nota` do teto
+regista as duas decisões, para que quem ler o dado saiba o que o número promete).
+
+**Com o quê.** `provar-financeiro-da-escola` 90/90 (o teto declarado continua a bater com o
+catálogo, e a escada continua coerente) · `check-indices` 16/16 · `check-identidade` 0 erros. Não
+houve mudança de comportamento: a decisão é de número e de conta, e o código que a mostra já estava
+provado.
+
+**O que continua em aberto, e não é desta frente.** A trava do cadastro no piso (§L9b) — recusar um
+professor ou uma aluna acima do contratado — **não está implementada**: o número está no ecrã e não
+no motor. É a fatia barata que o §L9b descreve, e ela é a próxima se a prioridade for essa.

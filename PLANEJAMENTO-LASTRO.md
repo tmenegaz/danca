@@ -1876,16 +1876,40 @@ decisão.
   (3 × 396 = 1.188 min, 59% do total); a quarta levaria a 79% e já come a folga. **É por isso que
   20/500 é o teto e não um número redondo maior:** é o maior que mantém três estúdios desse tamanho
   a funcionar na conta gratuita, e a quarta é a conversa que ela já decidiu ter.
+
+- **A CONTA DEPENDE DAS TURMAS, NÃO DAS ALUNAS — e o mínimo de 5 por turma é o que liga as duas
+  coisas** *(declarado a 16/11/2026)*. «Acho que serão no mínimo 5 alunos.» Com esse mínimo, o teto
+  de 500 alunas dá **no máximo 100 turmas** (500 ÷ 5), e é essa a ponte entre o número comercial e o
+  número que gasta Ações: **o que consome é `turmas × aulas por semana`**, e uma aula lançada custa
+  54 s independentemente de a turma ter 5 ou 30 alunas.
+
+  | Turmas (no teto de 20 prof) | Aulas/semana por turma | Lançamentos/mês | Minutos/mês | Escolas no teto na conta grátis |
+  |--:|--:|--:|--:|--:|
+  | 100 (o máximo: 500 ÷ 5) | 1 | ≈433 | **390** | **3** |
+  | 100 | 2 | ≈867 | **780** | **1** (duas passam dos 1.400) |
+  | 30 (500 ÷ ~17, o caso comum) | 1 | ≈130 | **117** | 9 |
+  | 30 | 2 | ≈260 | **234** | 5 |
+  | 20 (500 ÷ 25) | 1 | ≈87 | **78** | 12 |
+
+  Ou seja: **o teto só se torna apertado no pior caso** — a escola com 500 alunas todas em turmas de
+  5, cada uma lançada duas vezes por semana. No caso comum (turmas de 15 a 25), três escolas no teto
+  gastam menos de 30% dos 1.400 min. Isto **não muda o teto**, muda o que se vigia: o ecrã não deve
+  olhar para 500 alunas, deve olhar para as aulas lançadas no mês.
+- **A resposta quando a conta aperta está decidida** *(16/11/2026)*: «difícil achar 3 escolas desse
+  tamanho. Se chegar a ter 3 escolas desse tamanho, vamos para o plano pago.» Portanto **três
+  escolas no teto é o limite declarado, e o que se muda ao chegar lá é o plano de GitHub/Cloudflare
+  — nunca o teto de cada escola.** O teto é uma promessa comercial; a conta é uma decisão de
+  infraestrutura, e uma promessa não se encolhe porque a infraestrutura ficou pequena.
 - **O piso é uma reserva, e ela já existe na estrutura.** Quando o sistema particiona, cada escola
   tem o seu próprio par Worker + KV (`wrangler.<escola>.jsonc`), e é isso que garante o espaço do
   piso: o contrato de uma escola nunca divide namespace com o de outra. O que o piso pede é que o
   particionamento **não** junte duas escolas num namespace para poupar — pouparia um par de
   credenciais e custaria a garantia.
-- **O que fica por decidir, e é dela.** (a) O número 20/500 está agora declarado no catálogo, num
-  sítio só; mudá-lo é mudar uma chave. (b) A cadência assumida é **1 aula lançada por professor por
-  dia**: com duas, o teto cai para metade no que toca às Ações. (c) Se a plataforma passar a ter
-  mais de três escolas no teto, o caminho é plano pago de GitHub/Cloudflare — e não um teto menor
-  para cada uma.
+- **O que fica por decidir.** (a) O número 20/500 está declarado no catálogo num sítio só; mudá-lo
+  é mudar uma chave. (b) **A cadência — quantas vezes por semana cada turma é lançada** — é a única
+  variável que ainda move a conta, e é a escola que a decide, não o contrato; a tabela acima dá o
+  orçamento para cada caso, e nenhum deles derruba o teto. (c) ~~o caminho ao chegar a três escolas
+  no teto~~ — **decidido a 16/11/2026: plano pago**, e o teto não se encolhe.
 
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
