@@ -48140,3 +48140,19 @@ outro (dia 5, dia 10), é uma linha, mas é uma decisão dela e não minha. Não
 vencimento (nem à escola nem a ela): o sistema mostra o estado, não persegue ninguém. E o pagamento
 continua a ser conciliado à mão, como ela decidiu: o botão «Marcar pago» é o registo DEPOIS da
 conferência no banco, e não uma cobrança.
+
+**Motivo declarado — os congelados.** A peça das abas sobe para `tools/templates/ciclo.css`, e a
+razão é a que ela deu sobre a identidade: «Anote aí também na nossa identidade visual que a gente vai
+adotar abas.» O desenho nasceu no `<style>` da Audição (09/11/2026), quando era um ecrã só; com o
+segundo e o terceiro consumidor — o financeiro e a secção «A escola» —, a alternativa a subir a peça
+é copiar vinte linhas, e a segunda cópia divergiria na primeira correcção. Uma aba com o vão de um
+desenho e a tinta de outro é a mesma peça a fingir que é duas.
+
+- **O que muda:** a folha ganha `.abas`, `.aba`, `.aba-painel` (com `:hover`, `:focus-visible`,
+  `[aria-selected="true"]` e `[disabled]`) e o corte dos 560px, onde a tira sai e fica a pílula.
+  Nada do que já existia mudou de valor: é o mesmo desenho, mudado de sítio.
+- **O que sai das páginas:** o bloco de vinte linhas do `<style>` da Produção. Fica lá só a
+  `.turmas-faixa[hidden]`, que é daquela página e de mais nenhuma.
+- **A prova:** `provar-abas.js` — a peça é da folha, nenhuma página a redeclara, a cópia servida é
+  byte a byte a mesma, e a geometria é medida num navegador de verdade (a aba activa pousa na linha,
+  a desligada está esbatida mas existe, e a 390px a tira sai).

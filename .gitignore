@@ -1501,3 +1501,9 @@ experimentos/modelo-formulario/*
 # mede a competência no fuso local, o vencimento, o extrato, o valor guardado no momento do clique, a
 # página em jsdom (os dois botões, e a ausência de um «não pago»), e a condição do CPF na rota.
 !experimentos/provar-financeiro-da-escola.js
+
+# AS ABAS SÃO UMA PEÇA DA FOLHA (16/11/2026). «Anote aí também na nossa identidade visual que a gente
+# vai adotar abas.» Ela nasceu no `<style>` da Audição e ganhou três consumidores; a prova mede a
+# geometria num navegador (a aba activa pousa na linha, a tira sai no telemóvel) e afirma que
+# NENHUMA página a redeclara — que é o defeito que uma peça partilhada existe para impedir.
+!experimentos/provar-abas.js

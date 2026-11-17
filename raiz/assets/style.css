@@ -1580,6 +1580,71 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
 }
 .acoes-da-linha .acao { margin: 0; }
 
+/* ---------- AS ABAS — o fichário, e a aba que pousa (16/11/2026) -------------------------
+ *
+ * A DECISÃO DELA, e é de identidade, não de um ecrã: «Anote aí também na nossa identidade visual que
+ * a gente vai adotar abas […] Da mesma forma que a gente já adotou lá na audição, a gente vai adotar
+ * abas. Então quando for criar as contas, não cria assim desse jeito listado, que é muito feio.
+ * Vamos criar as abas.»
+ *
+ * O DESENHO NASCEU NA AUDIÇÃO (09/11/2026), escrito no `<style>` daquela página. Com o segundo e o
+ * terceiro consumidor — o financeiro e «A escola» — havia duas saídas: copiar as vinte linhas, ou
+ * subir a peça para a folha. Copiar é o que se paga duas vezes, e a segunda cópia divergiria na
+ * primeira correcção: uma aba com o vão de um desenho e a tinta de outro é a mesma peça a fingir que
+ * é duas.
+ *
+ * A METÁFORA É A DELA: «um fichário ou um caderno de matérias na horizontal» — abas encostadas à
+ * linha, e a que está aberta pousa sobre ela. Por isso a aba activa tem fundo e o filete de baixo
+ * dela desaparece (fica na cor da superfície): é o que faz a aba POUSAR no conteúdo em vez de
+ * flutuar por cima de um filete.
+ *
+ * A LINHA NÃO PERTENCE À ABA, e é por isso que ela está no contentor: um filete desenhado só na aba
+ * activa mudaria de comprimento a cada clique, e a página inteira pareceria tremer.
+ *
+ * O QUE ESTA PEÇA NÃO TRAZ, e é de propósito: o motor. Abrir e fechar abas é script, e cada página
+ * liga o dela — o da Produção (`motorDeAbas`) e o do painel partilham as marcas (`role="tab"`,
+ * `aria-selected`, `hidden`), que são o contrato entre o desenho e o comportamento. */
+.abas {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: .2rem; margin: var(--esp-1) 0 0; padding: 0 0 0 .15rem;
+  border-bottom: 1px solid var(--borda-campo);
+}
+.aba {
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin: 0 0 -1px; padding: .5rem .9rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--raio-1) var(--raio-1) 0 0;
+  color: var(--texto-suave);
+  font: 600 .92rem/1.3 var(--ui);
+  cursor: pointer;
+}
+.aba:hover { background: var(--fundo-hover); color: var(--marca-texto); }
+.aba[aria-selected="true"] {
+  background: var(--superficie); border-color: var(--borda-campo);
+  border-bottom-color: var(--superficie); color: var(--marca);
+}
+.aba:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* A ABA QUE AINDA NÃO PODE ABRIR (15/11/2026) — «as abas recorte e transferência não podem estar
+   habilitadas enquanto não existir um elenco gravado». A tinta é a do estado inerte que a folha já
+   usa nos botões desligados; o que ela NÃO faz é desaparecer com a aba: quem lê tem de poder saber
+   que ela existe e por que espera, e o `title` diz o porquê. */
+.aba[disabled] {
+  color: var(--texto-tenue, var(--texto-suave)); opacity: .55; cursor: default;
+  background: transparent;
+}
+.aba[disabled]:hover { background: transparent; color: var(--texto-tenue, var(--texto-suave)); }
+/* O PAINEL DA ABA. Sem desenho próprio: quem desenha é o conteúdo lá dentro (o formulário, a
+   `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
+   `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba traz. */
+.aba-painel { min-width: 0; }
+/* A PÍLULA DAS ABAS NO TELEMÓVEL (09/11/2026). Três rótulos lado a lado a 360px não caberiam sem
+   reticências em todos — e uma aba com o nome cortado não se escolhe. Abaixo de 560px a tira sai e
+   fica a pílula, que sobe uma folha com as mesmas abas. O corte é o do «Ações» da anamnese. */
+@media (max-width: 560px) {
+  .abas { display: none; }
+}
+
 /* ---------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI — e as setas dizem-no (06/11/2026) ----
    O PEDIDO. «as colunas elas vão crescer de forma dinâmica […] tem que prever que quando
    ultrapassar a largura da página precisa de um scroll horizontal […] E como é que fica o

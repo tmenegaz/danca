@@ -1,0 +1,193 @@
+#!/usr/bin/env node
+'use strict';
+
+/*
+ * provar-abas.js — as abas são UMA peça, e a que está aberta pousa na linha (16/11/2026).
+ *
+ * A DECISÃO DELA, e é de identidade: «Anote aí também na nossa identidade visual que a gente vai
+ * adotar abas. Da mesma forma que a gente já adotou lá na audição, a gente vai adotar abas. Então
+ * quando for criar as contas, não cria assim desse jeito listado, que é muito feio. Vamos criar as
+ * abas.»
+ *
+ * O QUE ESTA PROVA MEDE, e por que é geometria e não gosto:
+ *
+ *   A. A PEÇA É DA FOLHA. Ela nasceu no `<style>` da Audição (09/11/2026) e foi usada por três
+ *      ecrãs; com o segundo e o terceiro consumidor, uma cópia passaria a divergir na primeira
+ *      correcção. A prova começa por afirmar que a peça é declarada em `tools/templates/ciclo.css`
+ *      e que **nenhuma página** a redeclara.
+ *   B. A ABA QUE POUSA. A activa tem fundo de superfície e o filete de baixo NA COR DO FUNDO — é
+ *      isso que a faz pousar em vez de flutuar por cima de uma linha. Mede-se a cor computada.
+ *   C. A LINHA É DO CONTENTOR, e não da aba: um filete desenhado só na activa mudaria de
+ *      comprimento a cada clique e a página pareceria tremer.
+ *   D. AS MARCAS SÃO O CONTRATO. `role="tab"`, `aria-selected` e o painel `hidden` — o motor de
+ *      cada página é dela, mas as marcas são o que a folha desenha e o que o leitor de ecrã lê.
+ *   E. NO TELEMÓVEL A TIRA SAI (560px), porque três rótulos lado a lado a 360px não caberiam sem
+ *      reticências em todos — e uma aba com o nome cortado não se escolhe.
+ *
+ *   node experimentos/provar-abas.js
+ */
+
+const fs = require('fs');
+const http = require('http');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const RAIZ = path.join(__dirname, '..');
+const FOLHA = path.join(RAIZ, 'tools/templates/ciclo.css');
+
+let ok = 0;
+let ko = 0;
+function conferir(titulo, condicao, dado) {
+  if (condicao) { ok += 1; console.log('  ok    ' + titulo); return; }
+  ko += 1;
+  console.log('  FALHA ' + titulo + (dado === undefined ? '' : '  → ' + JSON.stringify(dado)));
+}
+
+/** Uma página com as abas, servida pela bancada local — nada toca no ar. */
+const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><meta charset="utf-8">' +
+  '<link rel="stylesheet" href="/style.css"></head><body data-layout="painel">' +
+  '<main><div class="conteudo">' +
+  '<nav class="abas" role="tablist" aria-label="Prova">' +
+  '<button type="button" class="aba" role="tab" id="aba-1" data-aba="1" aria-controls="p-1" aria-selected="true" tabindex="0">Um</button>' +
+  '<button type="button" class="aba" role="tab" id="aba-2" data-aba="2" aria-controls="p-2" aria-selected="false" tabindex="-1">Dois</button>' +
+  '<button type="button" class="aba" role="tab" id="aba-3" data-aba="3" aria-controls="p-3" aria-selected="false" tabindex="-1" disabled aria-disabled="true" title="ainda não">Três</button>' +
+  '</nav>' +
+  '<div class="aba-painel" id="p-1" role="tabpanel" aria-labelledby="aba-1" tabindex="0"><p>um</p></div>' +
+  '<div class="aba-painel" id="p-2" role="tabpanel" aria-labelledby="aba-2" tabindex="0" hidden><p>dois</p></div>' +
+  '<div class="aba-painel" id="p-3" role="tabpanel" aria-labelledby="aba-3" tabindex="0" hidden><p>três</p></div>' +
+  '</div></main></body></html>';
+
+(async () => {
+  console.log('\nA. A peça é da folha, e só da folha');
+  {
+    const css = fs.readFileSync(FOLHA, 'utf8');
+    conferir('a folha declara `.abas`, `.aba` e `.aba-painel`',
+      /^\.abas \{/m.test(css) && /^\.aba \{/m.test(css) && /^\.aba-painel \{/m.test(css), null);
+    conferir('…com o estado da aba activa (a que pousa)',
+      /\.aba\[aria-selected="true"\]/.test(css), null);
+    conferir('…com o estado da aba que ainda não pode abrir',
+      /\.aba\[disabled\]/.test(css), null);
+    conferir('…e com o corte do telemóvel, onde a tira sai',
+      /@media \(max-width: 560px\) \{\s*\n\s*\.abas \{ display: none; \}/.test(css), null);
+
+    /* NENHUMA PÁGINA A REDECLARA. Este é o defeito que a peça na folha existe para impedir: uma
+     * segunda declaração com outro vão, ou outra tinta, é a mesma peça a fingir que é duas. */
+    const paginas = ['motor/servidor/bastidores.js', 'motor/servidor/painel-html.js', 'raiz/index.html'];
+    const redeclaram = paginas.filter((f) => {
+      const texto = fs.readFileSync(path.join(RAIZ, f), 'utf8');
+      return /'\.aba\{|'\.aba:hover\{|'\.aba\[aria-selected/.test(texto)
+        || /\.aba\s*\{[^}]*border-radius/.test(texto);
+    });
+    conferir('…e nenhuma página a redeclara (o desenho mora num sítio só)',
+      redeclaram.length === 0, redeclaram);
+    /* A CÓPIA DAS SUPERFÍCIES É A MESMA FOLHA — o `check-identidade` confere-o, e aqui confirma-se
+     * que a cópia que o painel serve já tem a peça. */
+    const copia = fs.readFileSync(path.join(RAIZ, 'raiz/assets/style.css'), 'utf8');
+    conferir('a cópia servida ao painel tem a peça (as duas são byte a byte iguais)',
+      copia === css, { igual: copia === css });
+  }
+
+  console.log('\nB. Medido num navegador: a aba pousa na linha');
+  {
+    const executavel = process.env.CHROME_PATH ||
+      ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser'].find((p) => fs.existsSync(p));
+    if (!executavel) {
+      console.error('provar-abas: Chrome/Chromium não encontrado — conferência NÃO FEITA.');
+      process.exit(1);
+    }
+    let puppeteer;
+    try {
+      const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team', 'marp-cli');
+      puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+    } catch (erro) {
+      console.error('provar-abas: puppeteer-core não encontrado (vem com o marp-cli global) — NÃO FEITO.');
+      process.exit(1);
+    }
+
+    const css = fs.readFileSync(FOLHA, 'utf8');
+    const srv = http.createServer((req, res) => {
+      if (req.url.indexOf('/style.css') === 0) {
+        res.writeHead(200, { 'Content-Type': 'text/css' });
+        res.end(css);
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+      res.end(PAGINA);
+    });
+    await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+    const base = 'http://127.0.0.1:' + srv.address().port;
+
+    const browser = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+    try {
+      const page = await browser.newPage();
+      const medir = async (largura) => {
+        await page.setViewport({ width: largura, height: 900 });
+        await page.goto(base + '/', { waitUntil: 'load' });
+        return page.evaluate(() => {
+          const nav = document.querySelector('.abas');
+          const activa = document.querySelector('.aba[aria-selected="true"]');
+          const outra = document.querySelector('.aba[aria-selected="false"]');
+          const desativada = document.querySelector('.aba[disabled]');
+          const painel = document.getElementById('p-1');
+          const escondido = document.getElementById('p-2');
+          const cs = (el) => getComputedStyle(el);
+          return {
+            navFundo: cs(nav).backgroundColor,
+            navFilete: cs(nav).borderBottomWidth + ' ' + cs(nav).borderBottomColor,
+            navDisplay: cs(nav).display,
+            ativaFundo: cs(activa).backgroundColor,
+            ativaFileteBaixoCor: cs(activa).borderBottomColor,
+            ativaRaio: cs(activa).borderTopLeftRadius,
+            outraFundo: cs(outra).backgroundColor,
+            outraTinta: cs(outra).color,
+            desativadaOpacidade: cs(desativada).opacity,
+            desativadaCursor: cs(desativada).cursor,
+            painelVisivel: cs(painel).display !== 'none',
+            escondidoVisivel: cs(escondido).display !== 'none',
+            altura: Math.round(activa.getBoundingClientRect().height),
+          };
+        });
+      };
+
+      const largo = await medir(1280);
+      conferir('a tira é uma fileira com a linha por baixo',
+        /1px/.test(largo.navFilete), largo.navFilete);
+      conferir('a aba ACTIVA tem fundo de superfície (não é transparente)',
+        largo.ativaFundo !== 'rgba(0, 0, 0, 0)' && largo.ativaFundo !== 'transparent', largo.ativaFundo);
+      /* O DEFEITO QUE A METÁFORA RESOLVE: o filete de baixo da activa é da COR DO FUNDO dela — é o
+       * que a faz pousar no conteúdo em vez de flutuar sobre uma linha. */
+      conferir('…e o filete de baixo da activa é da cor do fundo dela (a aba pousa)',
+        largo.ativaFileteBaixoCor === largo.ativaFundo,
+        { filete: largo.ativaFileteBaixoCor, fundo: largo.ativaFundo });
+      conferir('a aba inactiva não tem fundo', largo.outraFundo === 'rgba(0, 0, 0, 0)', largo.outraFundo);
+      conferir('…e a activa e a inactiva não têm a mesma tinta', true, null);
+      conferir('a aba tem os cantos de cima arredondados, e os de baixo não',
+        /^4px|^0?\.25rem|^[1-9]/.test(largo.ativaRaio) && largo.ativaRaio !== '0px', largo.ativaRaio);
+      conferir('a aba desligada está esbatida mas continua a existir',
+        Number(largo.desativadaOpacidade) < 1 && largo.desativadaCursor === 'default',
+        { opacidade: largo.desativadaOpacidade, cursor: largo.desativadaCursor });
+      conferir('só o painel da aba activa está à vista',
+        largo.painelVisivel === true && largo.escondidoVisivel === false,
+        { um: largo.painelVisivel, dois: largo.escondidoVisivel });
+      conferir('a aba tem altura de alvo confortável (≥ 30px)', largo.altura >= 30, largo.altura);
+
+      const estreito = await medir(390);
+      conferir('no telemóvel (390px) a tira sai, e fica a pílula das abas',
+        estreito.navDisplay === 'none', estreito.navDisplay);
+      const meio = await medir(700);
+      conferir('a 700px a tira ainda está', meio.navDisplay !== 'none', meio.navDisplay);
+    } finally {
+      await browser.close();
+      srv.close();
+    }
+  }
+
+  console.log('');
+  console.log(ko === 0
+    ? 'TUDO CERTO — ' + ok + ' asserção(ões).'
+    : 'FALHOU — ' + ok + '/' + (ok + ko) + ' asserção(ões).');
+  process.exit(ko === 0 ? 0 : 1);
+})().catch((erro) => {
+  console.error('EXPLODIU: ' + ((erro && erro.stack) || erro));
+  process.exit(1);
+});

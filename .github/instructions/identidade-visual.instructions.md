@@ -22,6 +22,7 @@ escrever o primeiro `<div>`.
 | uma **ordem** (acontece ao clicar) | `.acao` (`secundario`, `perigo`, `grande`, `pequena`) |
 | as ordens de **uma linha de tabela**, empilhadas | `.acoes-da-linha` (coluna com `gap`, botões da mesma largura) |
 | a ação que grava um formulário | `.acao` (e `grande` se é a principal) **dentro** de `.par-botoes` |
+| **conteúdo com mais de um assunto**, uma secção de cada vez à vista | `.abas` (+ `.aba`, `.aba-painel`) — **é a forma adotada** (16/11/2026); não se empilha em listas longas |
 | um **estado** ou atributo do dado | `.selo` |
 | bloco de leitura | `.caixa` (+ `nota`, `falta`) |
 | resultado de uma ação | `.res` (`ok`/`erro`) |
@@ -39,7 +40,7 @@ saíram **encostados** no campo, e que «Atribuir curadoria», sem `.acao`, saiu
 mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da fileira
 `.par-botoes`. Quem guarda isso é a `experimentos/provar-vao-do-botao.js`.
 
-## As quatro regras que não se negociam
+## As cinco regras que não se negociam
 
 1. **Nenhuma classe nasce no uso.** Se a marcação precisa de um contentor, ou ele é uma peça do
    catálogo, ou é um **gancho** declarado com razão em `tools/check-identidade.js` (lista
@@ -49,9 +50,15 @@ mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da f
 2. **Uma peça não se usa fora do contexto em que está declarada.** `form .nota` só existe dentro
    de um `<form>`; fora dele o parágrafo sai com o corpo do texto.
    *Foi assim que a nota da Aparência saiu a 17px ao lado de controles de 14.*
-3. **Uma peça não faz o trabalho de outra.** Ação é ordem; estado é pílula ou selo; atributo do
+3. **O conteúdo com mais de um assunto vai em ABAS** (16/11/2026). «A escola», o financeiro, os
+Professores e a Audição já vivem assim, e a decisão é de identidade, não de um ecrã: *«Anote aí
+também na nossa identidade visual que a gente vai adotar abas […] não cria assim desse jeito
+listado, que é muito feio.»* A tira é `.abas`/`.aba` (na folha), o painel é `.aba-painel`, e **a
+listagem de uma secção fica fora dos painéis** quando ela serve a todas as abas — é a regra que a
+Audição fixou.
+4. **Uma peça não faz o trabalho de outra.** Ação é ordem; estado é pílula ou selo; atributo do
    dado é selo. `.acao[aria-pressed]` foi removido por isso.
-4. **Nada de `style=""` na marcação, e nenhum hex fora de `ciclo.css`.** Cor se usa por **papel**
+5. **Nada de `style=""` na marcação, e nenhum hex fora de `ciclo.css`.** Cor se usa por **papel**
    (`--fundo`, `--marca-texto`…), nunca por primitivo (`--cream`, `--burgundy`).
 
 ## Onde estou — aprofundar não é sair (norma, 26/10/2026)
