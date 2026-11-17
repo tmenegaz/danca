@@ -49721,3 +49721,40 @@ abrem e fecham com o ouvinte extraído da página real; `check-identidade` 0 err
 (2) A rota `/bastidores/financeiro` **não existe**: a página do mês a mês está na proposta e ainda
 não é servida. (3) A barra e o menu da página nova não estão desenhados (a proposta não os mostra,
 para não roubar largura). (4) O nome do endereço é sugestão.
+
+## 17/11/2026 — As bancadas de layout não atravessavam o shard
+
+**O que motivou.** Ao publicar a proposta «A escola como listagem» e ir ver o endereço no ar,
+`breu.padd.com.br/propostas/index.html` respondeu **404** — com as bancadas geradas no mesmo run,
+listadas no log (`propor-escola: 6 páginas`) e a montagem a dizer sucesso.
+
+**O que se mediu.** `montarShard` relança a montagem por escola num processo filho
+(`spawnSync`) e passava-lhe só `--raiz`. O `--com-propostas` chegava ao processo pai e morria ali.
+A mesma montagem feita à mão com a flag dá **16 páginas** em `publicacao/<escola>/propostas/`; pelo
+shard dava **zero**. É defeito de antes desta frente, e atinge todas as escolas servidas por shard
+— hoje, a `breu`.
+
+**O que foi decidido.** A flag passa a viajar para o filho, e só isso. O `--shard` continua a
+recusar montar zero escolas (a guarda contra apagar a árvore de todas), a montagem por escola
+continua a ser a mesma função, e nada muda na fórmula do hash, na cobertura da âncora, nos
+validadores, nas regras ou nas pétreas.
+
+**Motivo declarado — os congelados.** `tools/` é congelado, e esta alteração entra por três razões
+que o congelamento exige: (1) **o motivo está acima** — uma flag que não atravessa o processo filho
+é um defeito medido, não uma preferência; (2) **a alteração é de passagem de argumento**, não de
+comportamento de publicação — não muda o que se publica, muda o que se pede ao filho; (3) **o
+alcance é mínimo e verificável** — duas linhas, e a verificação é a contagem de ficheiros copiados
+(0 → 16 na `breu`). **O que não muda:** a fórmula de hash, a cobertura da âncora, os validadores,
+as regras e as pétreas. Sem esta correção, nenhuma bancada de layout chega ao telemóvel de quem tem
+escola num shard — e a decisão de uma proposta de layout é, por natureza, uma decisão de telemóvel.
+
+**Onde entrou.** `tools/montar-publicacao.js` — `const comPropostas = …` e
+`.concat(extra, comPropostas)` no `spawnSync` do `montarShard`.
+
+**Com o quê.** `node tools/montar-publicacao.js --shard lastro-teste --com-propostas` →
+`propostas: 16 página(s) em /propostas/`, e `publicacao/breu/propostas/` com **16** ficheiros
+(antes: pasta inexistente). `node --check` limpo.
+
+**O que ainda não está feito.** As bancadas continuam a não estar no `nav.json` — por desenho («não
+são um documento da escola») —, e quem as quiser tem de saber o endereço. E a proposta «A escola
+como listagem» ainda não está implementada: o que esta entrada põe no ar é a bancada.

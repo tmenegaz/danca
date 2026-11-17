@@ -1177,6 +1177,17 @@ function montarShard(shard) {
   }
   const iRaiz = process.argv.indexOf('--raiz');
   const extra = iRaiz !== -1 ? ['--raiz', process.argv[iRaiz + 1]] : [];
+  /* AS BANCADAS DE LAYOUT ATRAVESSAM O SHARD (17/11/2026).
+   *
+   * O DEFEITO, medido: o `--com-propostas` chegava a este processo e morria aqui. Este ramo
+   * relança a montagem por escola (`spawnSync`) e passava só `--raiz` — a flag não viajava, e a
+   * escola servida por um shard ficava sem `/propostas/`. Sintoma ao vivo, antes desta correcção:
+   * `breu.padd.com.br/propostas/index.html` → **404**, com as bancadas geradas no mesmo run e
+   * listadas no log. Montada à mão com a flag, a mesma pasta dava **16 páginas**.
+   *
+   * O que isto NÃO muda: a montagem por escola continua a ser a mesma função, e o shard continua
+   * a montar-se inteiro (`--shard` recusa montar zero). Muda só o que se passa ao filho. */
+  const comPropostas = process.argv.indexOf('--com-propostas') !== -1 ? ['--com-propostas'] : [];
   const raizDosIndices = iRaiz !== -1 ? path.resolve(process.argv[iRaiz + 1]) : RAIZ;
   const declaradas = escolasDoShard(shard, raizDosIndices);
 
@@ -1210,7 +1221,8 @@ function montarShard(shard) {
   }
   console.log('shard «' + shard + '»: ' + escolas.length + ' escola(s) — ' + escolas.join(', '));
   for (const escola of escolas) {
-    const r = require('child_process').spawnSync(process.execPath, [__filename, escola].concat(extra),
+    const r = require('child_process').spawnSync(process.execPath,
+      [__filename, escola].concat(extra, comPropostas),
       { stdio: 'inherit', cwd: RAIZ });
     if (r.status !== 0) {
       console.error('erro: a montagem de «' + escola + '» falhou — o shard NÃO se publica pela metade.');
