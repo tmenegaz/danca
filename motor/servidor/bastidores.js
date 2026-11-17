@@ -7029,6 +7029,65 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o clique não fazia nada. A regra é a das outras quatro secções: sem id, a seta é da secção. */
     tituloComAcordeao('sec-corpo', 'Audição', 'corpo-miolo') +
     '<div class="turmas-corpo" data-abas="sim">' +
+    '<div class="turmas-faixa" id="lb-faixa">' +
+    /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
+     *
+     * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe trinta aspectos — corpo, técnica e poiesis. O plano
+     * lia sempre os MESMOS quinze, escritos à mão no conteúdo (`lidoDasAnamneses`) desde
+     * 02/11/2026 — a mesma lista para todos os professores, todas as turmas e todos os ciclos.
+     * Ficavam de fora «Formato anatômico dos joelhos», «Arquitetura do arco plantar», «Impulsão
+     * e absorção (allegro)» — que em balé clássico não são acessórios. A pesquisadora, 05/11:
+     * «a definição do que compõe a Linha de Base do Corpo para um determinado trabalho passa a
+     * ser uma escolha ativa e customizada do professor».
+     *
+     * O QUE A SECÇÃO NÃO É. Não é um cadastro de campos: os campos são os da anamnese, e a
+     * anamnese é norma. Ela escolhe ENTRE eles — e o servidor recusa um id que a anamnese não
+     * tenha (`linhaDeBaseNucleo.normalizar`), para um documento nunca apontar para o nada.
+     *
+     * A ESTRUTURA É A DAS OUTRAS SECÇÕES SEM PASSOS (Professores, Alunas): o formulário à
+     * esquerda, a lista à direita, o mesmo `tituloComAcordeao`, as mesmas peças. Nada de desenho
+     * novo — a checagem 8 (Peça) reprova o que inventar, e é a folha que manda.
+     *
+     * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
+     * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
+    /* ---------------------------------------------- O ELENCO, EM QUATRO PASSOS
+     *
+     * (05/11/2026, terceira passagem; quatro desde 07/11/2026.) A secção nasceu como um
+     * formulário só, e ela organizou-a: «ele vai ser por steps, assim como a gente fez no verbete
+     * da anotação». A ORDEM dos passos não é arrumação de ecrã — é a ordem em que o professor
+     * PENSA:
+     *
+     *   1. Identificação — que elenco é este, e de quem.
+     *   2. Alunas — de quem é o corpo que se vai olhar. É antes do resto porque sem corpos não há
+     *      o que cruzar. Dez de cada vez, com rolagem: a escola pode ter quatrocentos alunos, e
+     *      uma lista de quatrocentas caixas não se lê.
+     *   3. Anamneses — o que o grupo mostra, cruzado nas quatro perguntas que ela fez: o que precisa
+     *      de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em comum.
+     *   4. Recorte — o que ESTE ciclo vai observar. Depois da leitura, e é isso que dá sentido à
+     *      escolha: antes de ver, escolher seria adivinhar.
+     *
+     * O QUINTO PASSO («Turma») SAIU A 07/11/2026 — a atribuição passou para a TURMA, que escolhe
+     * o Elenco no próprio formulário. Gravar o elenco é o fim deste acto: ele fica disponível na
+     * lista, e qualquer Turma o pode receber.
+     *
+     * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
+     * `podeIrParaVerbete(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
+     * com falta nos anteriores — nem o clique na tira, nem o «Seguir», nem o passo lembrado ao
+     * reabrir a página.
+     *
+     * SEM NENHUMA ANAMNESE NADA DISTO EXISTE. O estado vazio é o único que não tem passo nenhum a
+     * que se chegar: sem retratos não há alunas para escolher, e a secção diz isso em vez de
+     * mostrar um formulário que não leva a lado nenhum.
+     */
+    '<ol class="passos" id="lb-tira" aria-label="Passos do elenco" data-editando="nao">' +
+    LB_PASSOS.map(([n, t]) =>
+      '<li><button type="button" class="passo" data-passo="' + n + '">' +
+        '<span class="passo-n">' + n + '</span> ' +
+        '<span class="passo-t">' + t + '</span>' +
+        ' <span class="passo-t" id="lb-v' + n + '">—</span>' +
+        '</button></li>').join('') +
+    '</ol>' +
+    '</div>' +
     /* A TIRA ENTRA NO `.col-form` AQUI TAMBÉM (17/11/2026) — ver a nota longa nos Professores.
      * Era o mesmo defeito medido: a tira na coluna 1 da grade, o formulário na coluna 2 e a
      * listagem a cair para a linha de baixo. A listagem continua visível em todas as abas, que é
@@ -7089,65 +7148,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</ul>' +
     '</div>' +
     '</div>' +
-    '<div class="turmas-faixa" id="lb-faixa">' +
-    /* ---------------------------------------------- O CORPO — A LINHA DE BASE (05/11/2026)
-     *
-     * PORQUE ESTA SECÇÃO EXISTE. A anamnese recolhe trinta aspectos — corpo, técnica e poiesis. O plano
-     * lia sempre os MESMOS quinze, escritos à mão no conteúdo (`lidoDasAnamneses`) desde
-     * 02/11/2026 — a mesma lista para todos os professores, todas as turmas e todos os ciclos.
-     * Ficavam de fora «Formato anatômico dos joelhos», «Arquitetura do arco plantar», «Impulsão
-     * e absorção (allegro)» — que em balé clássico não são acessórios. A pesquisadora, 05/11:
-     * «a definição do que compõe a Linha de Base do Corpo para um determinado trabalho passa a
-     * ser uma escolha ativa e customizada do professor».
-     *
-     * O QUE A SECÇÃO NÃO É. Não é um cadastro de campos: os campos são os da anamnese, e a
-     * anamnese é norma. Ela escolhe ENTRE eles — e o servidor recusa um id que a anamnese não
-     * tenha (`linhaDeBaseNucleo.normalizar`), para um documento nunca apontar para o nada.
-     *
-     * A ESTRUTURA É A DAS OUTRAS SECÇÕES SEM PASSOS (Professores, Alunas): o formulário à
-     * esquerda, a lista à direita, o mesmo `tituloComAcordeao`, as mesmas peças. Nada de desenho
-     * novo — a checagem 8 (Peça) reprova o que inventar, e é a folha que manda.
-     *
-     * A LEITURA DA TURMA É UM SEGUNDO BLOCO, e não o formulário: ler não é decidir. O professor
-     * lê o que a turma mostra, e depois marca o que o trabalho dele vai observar. */
-    /* ---------------------------------------------- O ELENCO, EM QUATRO PASSOS
-     *
-     * (05/11/2026, terceira passagem; quatro desde 07/11/2026.) A secção nasceu como um
-     * formulário só, e ela organizou-a: «ele vai ser por steps, assim como a gente fez no verbete
-     * da anotação». A ORDEM dos passos não é arrumação de ecrã — é a ordem em que o professor
-     * PENSA:
-     *
-     *   1. Identificação — que elenco é este, e de quem.
-     *   2. Alunas — de quem é o corpo que se vai olhar. É antes do resto porque sem corpos não há
-     *      o que cruzar. Dez de cada vez, com rolagem: a escola pode ter quatrocentos alunos, e
-     *      uma lista de quatrocentas caixas não se lê.
-     *   3. Anamneses — o que o grupo mostra, cruzado nas quatro perguntas que ela fez: o que precisa
-     *      de ser trabalhado, o que já é bom, a musicalidade, e o que o grupo tem em comum.
-     *   4. Recorte — o que ESTE ciclo vai observar. Depois da leitura, e é isso que dá sentido à
-     *      escolha: antes de ver, escolher seria adivinhar.
-     *
-     * O QUINTO PASSO («Turma») SAIU A 07/11/2026 — a atribuição passou para a TURMA, que escolhe
-     * o Elenco no próprio formulário. Gravar o elenco é o fim deste acto: ele fica disponível na
-     * lista, e qualquer Turma o pode receber.
-     *
-     * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
-     * `podeIrParaVerbete(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
-     * com falta nos anteriores — nem o clique na tira, nem o «Seguir», nem o passo lembrado ao
-     * reabrir a página.
-     *
-     * SEM NENHUMA ANAMNESE NADA DISTO EXISTE. O estado vazio é o único que não tem passo nenhum a
-     * que se chegar: sem retratos não há alunas para escolher, e a secção diz isso em vez de
-     * mostrar um formulário que não leva a lado nenhum.
-     */
-    '<ol class="passos" id="lb-tira" aria-label="Passos do elenco" data-editando="nao">' +
-    LB_PASSOS.map(([n, t]) =>
-      '<li><button type="button" class="passo" data-passo="' + n + '">' +
-        '<span class="passo-n">' + n + '</span> ' +
-        '<span class="passo-t">' + t + '</span>' +
-        ' <span class="passo-t" id="lb-v' + n + '">—</span>' +
-        '</button></li>').join('') +
-    '</ol>' +
-    '</div>' +
+
     '<div class="aba-painel" id="lb-painel-1" role="tabpanel" aria-labelledby="lb-aba-1" tabindex="0">' +
     '<p class="aviso" id="lb-sem-anamnese" hidden></p>' +
     '<form id="form-linha-base">' +

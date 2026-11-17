@@ -119,6 +119,117 @@ function paginaDaLista({ semMargem = false, semFilete = false } = {}) {
     '</div></div></div></body></html>';
 }
 
+/**
+ * A FAIXA ACIMA DE TUDO — MEDIDO, NÃO LIDO (17/11/2026).
+ *
+ * As asserções de texto acima dizem que a faixa vem antes das abas no HTML. Isso não é o mesmo que
+ * ela ficar ACIMA delas no ecrã, nem que ela ocupe a LARGURA da grade: um `position`, um `order`
+ * ou uma coluna de 1/2 mudavam o desenho sem mexer no texto. Foi exactamente assim que o defeito
+ * passou — a faixa foi para dentro do `.col-form` e as asserções de texto continuaram a passar.
+ *
+ * O QUE SE MEDE, e é o que ela descreveu: «ele fica acima da aba e também acima da listagem». A
+ * faixa tem de começar acima do topo das abas E acima do topo da listagem, e tem de ser tão larga
+ * quanto a grade — não quanto uma coluna.
+ */
+async function medirFaixaAcima(PAGINA) {
+  const executablePath = process.env.CHROME_PATH ||
+    ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
+      .find((p) => fs.existsSync(p));
+  if (!executablePath) {
+    naoMedida('a faixa acima das abas e da listagem', 'sem Chrome/Chromium');
+    naoMedida('…e a faixa com a largura da grade', 'sem Chrome/Chromium');
+    return;
+  }
+  let puppeteer;
+  try {
+    const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team', 'marp-cli');
+    puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
+  } catch (e) {
+    naoMedida('a faixa acima das abas e da listagem', 'sem puppeteer-core');
+    naoMedida('…e a faixa com a largura da grade', 'sem puppeteer-core');
+    return;
+  }
+  /* A PÁGINA É A VERDADEIRA — a produzida pelo `paginaProducao`, e não uma miniatura. A miniatura
+   * mediria a miniatura; o defeito vivia na estrutura real. */
+  const arquivo = path.join(os.tmpdir(), 'provar-audicao-faixa.html');
+  fs.writeFileSync(arquivo, PAGINA);
+
+  const browser = await puppeteer.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.goto('file://' + arquivo, { waitUntil: 'load' });
+    /* DUAS COISAS NASCEM `hidden` — as cinco secções E o `#conteudo` que as embrulha. Abrir só as
+     * secções deixava tudo a medir ZERO (o pai continuava `display:none`), e as asserções de
+     * posição passavam por acidente: `0 < 0` é falso, mas a de largura comparava 0 com 0. */
+    await page.evaluate(() => {
+      const c = document.getElementById('conteudo');
+      if (c) c.hidden = false;
+      document.querySelectorAll('section.secao').forEach((s) => { s.hidden = false; });
+    });
+    const m = await page.evaluate(() => {
+      const r = (el) => (el ? el.getBoundingClientRect() : null);
+      const faixa = r(document.getElementById('lb-faixa'));
+      const abas = r(document.getElementById('lb-abas'));
+      const lista = r(document.querySelector('#sec-corpo .col-lista'));
+      const grade = r(document.querySelector('#sec-corpo .turmas-corpo'));
+      return {
+        faixa: faixa && { top: Math.round(faixa.top), largura: Math.round(faixa.width) },
+        abas: abas && { top: Math.round(abas.top) },
+        lista: lista && { top: Math.round(lista.top) },
+        grade: grade && { largura: Math.round(grade.width) },
+        /* O NÚMERO DE PASSOS QUE CABEM NUMA LINHA: cada `li` tem de estar à mesma altura do
+         * primeiro. Se a faixa estiver numa coluna estreita, os quatro passos empilham. */
+        passosPorLinha: (() => {
+          const li = [...document.querySelectorAll('#lb-tira > li')];
+          if (!li.length) return 0;
+          const topo = Math.round(li[0].getBoundingClientRect().top);
+          return li.filter((e) => Math.round(e.getBoundingClientRect().top) === topo).length;
+        })(),
+        totalPassos: document.querySelectorAll('#lb-tira > li').length,
+        /* O TRUNCAMENTO É A QUEIXA VERDADEIRA. «os steps não cabem ali dentro» não quer dizer que
+         * eles empilhem — em 480px os quatro ainda cabem numa linha, porque cada rótulo ENCOLHE
+         * com reticências. O que se vê é «1 Identifi…», «3 Anamn…»: caber, cabem; ler-se, não se
+         * leem. Mede-se o `scrollWidth` de cada rótulo contra o `clientWidth` — cortado é quando o
+         * conteúdo é mais largo que a caixa. */
+        rotulosCortados: [...document.querySelectorAll('#lb-tira .passo-t')]
+          .filter((e) => e.scrollWidth > e.clientWidth + 1)
+          .map((e) => e.textContent.trim().slice(0, 18)),
+      };
+    });
+    provar('a faixa dos passos começa ACIMA da tira das abas',
+      m.faixa && m.abas && m.faixa.top < m.abas.top, JSON.stringify({ faixa: m.faixa, abas: m.abas }));
+    provar('…e ACIMA da listagem (que é a coluna da direita)',
+      m.faixa && m.lista && m.faixa.top < m.lista.top, JSON.stringify({ faixa: m.faixa, lista: m.lista }));
+    provar('…e ocupa a LARGURA DA GRADE, não a de uma coluna',
+      m.faixa && m.grade && m.faixa.largura >= m.grade.largura - 2,
+      JSON.stringify({ faixa: m.faixa.largura, grade: m.grade.largura }));
+    provar('…e os quatro passos cabem numa linha só',
+      m.totalPassos === 4 && m.passosPorLinha === 4,
+      JSON.stringify({ porLinha: m.passosPorLinha, total: m.totalPassos }));
+    /* E CABER NÃO BASTA: o rótulo tem de se LER. Dentro do `.col-form` os quatro passos cabiam
+     * numa linha de 480px — com todos os nomes cortados em reticências. Era isso que ela via. */
+    provar('…e nenhum rótulo de passo fica cortado (cabem, e leem-se)',
+      m.rotulosCortados.length === 0, m.rotulosCortados);
+
+    /* E RECOLHIDO, a faixa DESAPARECE — a regra que ela pediu no mesmo dia. */
+    await page.evaluate(() => {
+      document.getElementById('sec-corpo').setAttribute('data-recolhido', 'sim');
+    });
+    const recolhido = await page.evaluate(() => {
+      const el = document.getElementById('lb-faixa');
+      const caixa = el.getBoundingClientRect();
+      return { visivel: getComputedStyle(el).display !== 'none' && caixa.height > 0,
+        altura: Math.round(caixa.height) };
+    });
+    provar('recolhida a secção, a faixa dos passos recolhe com ela',
+      recolhido.visivel === false, recolhido);
+  } finally {
+    await browser.close();
+    fs.rmSync(arquivo, { force: true });
+  }
+}
+
 async function medirRespiro() {
   const executablePath = process.env.CHROME_PATH ||
     ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
@@ -260,8 +371,28 @@ async function principal() {
   const iPainel3 = PAGINA.indexOf('id="lb-painel-3"');
   const iLista = PAGINA.indexOf('id="lb-lista"');
   const iColLista = PAGINA.indexOf('<div class="col-lista"', iPainel1);
+  /* A FAIXA FICA ACIMA DE TUDO — e a asserção antiga não o garantia (17/11/2026).
+   *
+   * O DEFEITO QUE ELA DEIXOU PASSAR: a tira das abas e a faixa foram para dentro do `.col-form`
+   * (a correcção do «a listagem fica à direita»), e a faixa — que tem `grid-column: 1/-1` e nasceu
+   * para ser filha da GRADE — passou a viver dentro de uma coluna de 1/2. Os quatro passos não
+   * cabiam, e a pesquisadora viu-o: «você colocou o step dentro da aba escolher o elenco e os
+   * steps não cabem ali dentro, eles têm que voltar para onde estavam […] ele fica acima da aba e
+   * também acima da listagem, ele fica logo abaixo da audição».
+   *
+   * A ASSERÇÃO ANTIGA ERA `iFaixa < iPainel1`, e isso é verdade mesmo com a faixa dentro do
+   * `.col-form` — media a ordem no texto, não o pai do elemento. Três asserções passam a medir o
+   * que interessa: a faixa vem antes das abas E antes do `.col-form`, e o pai dela é a GRADE. */
+  const iAbas = PAGINA.indexOf('id="lb-abas"');
+  const iColForm = PAGINA.indexOf('id="corpo-miolo"');
   provar('a faixa dos passos fica FORA dos painéis (e acima deles)',
     iFaixa !== -1 && iPainel1 !== -1 && iFaixa < iPainel1);
+  provar('…e ACIMA da tira das abas — os passos veem-se antes de se escolher a aba',
+    iFaixa !== -1 && iAbas !== -1 && iFaixa < iAbas,
+    'faixa=' + iFaixa + ', abas=' + iAbas);
+  provar('…e FORA do `.col-form`, que é a coluna do formulário (a faixa é da grade)',
+    iFaixa !== -1 && iColForm !== -1 && iFaixa < iColForm,
+    'faixa=' + iFaixa + ', col-form=' + iColForm);
   provar('a listagem fica DEPOIS dos três painéis — e fora deles',
     iColLista > iPainel3 && iLista > iColLista,
     'índices: painel3=' + iPainel3 + ', col-lista=' + iColLista + ', lista=' + iLista);
@@ -295,8 +426,8 @@ async function principal() {
    * formulário fica dentro das abas»), e recolher o pai leva a tira e a pílula com ele. A regra
    * à mão — quatro `id` numa lista — descrevia um layout que já não existe, e saiu.
    *
-   * O que se afirma é o que importa: a tira e a pílula estão DENTRO do que recolhe. */
-  const iColForm = PAGINA.indexOf('id="corpo-miolo"');
+   * O que se afirma é o que importa: a tira e a pílula estão DENTRO do que recolhe. (O `iColForm`
+   * e o `iAbas` vêm de cima, da asserção da faixa — redeclarar um `const` não compila.) */
   provar('a tira e a pílula vivem DENTRO do `.col-form` — recolher leva-as com ele',
     iColForm !== -1 && PAGINA.indexOf('id="lb-abas"') > iColForm
       && PAGINA.indexOf('id="lb-abas-folha"') > iColForm
@@ -591,6 +722,9 @@ async function principal() {
 
   console.log('\nH. O respiro entre os cartões do elenco (navegador)');
   await medirRespiro();
+
+  console.log('\nH2. A faixa dos passos, medida no ecrã (navegador)');
+  await medirFaixaAcima(PAGINA);
 
   console.log('\nI. O «Cancelar» — o botão que nunca aparecia');
 

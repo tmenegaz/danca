@@ -49476,3 +49476,51 @@ serem carregadas como instruções).
 (é a visibilidade)», «um PUT/POST ao repositório inteiro é RECUSADO», «a lista de exclusões tem
 exactamente dois nomes». Mais `check-sem-destruicao` 432 ficheiros, 0 violações · `check-identidade`
 0 erros · e o ensaio real do hook, que recusou o commit.
+
+## 17/11/2026 — Os passos da Audição voltam para cima das abas
+
+**O que aconteceu.**
+A correcção de 16/11 («toda a listagem à direita, o formulário dentro das abas») levou a tira dos
+passos para dentro da `.col-form`, e ali ela **não cabe**: os quatro rótulos («Identificação — a
+nomear», «Anamneses — por ler», …) passam a ser cortados em reticências dentro de 480px. Na
+Audição, além disso, a tira é a única forma de o utilizador perceber que os passos são navegáveis —
+escondida numa coluna, deixa de se ver que se anda por eles.
+
+**O que foi decidido.**
+A `.turmas-faixa` volta a ser **filha da grade** (`.turmas-corpo`), e não de uma coluna, como
+primeiro elemento da secção: **acima da tira de abas, acima da listagem**. Nas Salas e no Estilo a
+peça já era filha directa da secção; é a mesma regra nas três. A razão é estrutural, não estética:
+a faixa tem `grid-column: 1 / -1` — nasceu para atravessar a grade, e dentro de uma coluna essa
+declaração não tem o que atravessar.
+
+**O BURACO NA PROVA — o mais importante desta entrada.**
+A asserção que existia (`iFaixa < iPainel1`) comparava **posições no HTML**, não **paternidade no
+DOM**. Com a faixa dentro da `.col-form` ela continuava a aparecer antes dos painéis, e a prova
+passava. **Passou a medir nada.** Uma prova que mede ordem de texto num ficheiro não vê geometria no
+ecrã — e foi por isso que o defeito atravessou uma correcção inteira.
+
+Passou a haver três asserções de texto (antes dos painéis, antes das abas, **fora da `.col-form`**) e
+cinco de geometria num navegador a 1280px: a faixa começa acima das abas; acima da listagem; ocupa a
+largura da grade (não a de uma coluna); os quatro passos cabem numa linha; e **nenhum rótulo fica
+cortado** (`scrollWidth > clientWidth`).
+
+**Foi o truncamento que faltava.** Com o defeito reintroduzido, «os quatro passos cabem numa linha»
+**passava** — cabiam, encolhidos, com todos os nomes cortados. Era exactamente o que ela via. A
+asserção do corte é a que transforma «cabem» em «leem-se».
+
+**Controlo negativo.** O defeito foi reposto de propósito numa cópia do ficheiro e a prova
+**reprovou 4 de 108**: fora da `.col-form`, acima da listagem (`faixa.top 2818 = lista.top 2818`),
+largura da grade (`480` contra `1264`) e o corte dos rótulos. Depois o ficheiro foi restaurado e a
+prova voltou a **108/108**. Sem este ensaio, uma asserção verde não se distingue de uma asserção
+que não olha.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a faixa saiu da `.col-form` e passou a primeiro
+filho de `.turmas-corpo`; o CSS do recolhimento não mudou — ele já escondia `.passos` e
+`.turmas-faixa` dentro de `[data-recolhido="sim"]`, pelo que os passos continuam a recolher com o
+formulário) · `experimentos/provar-abas-da-audicao.js` (+2 asserções de texto, secção H2 nova com 5
+de geometria, `medirFaixaAcima`).
+
+**Com o quê.** `provar-abas-da-audicao` **108/108** · `provar-abas` 28 · `provar-identidade-ao-lado`
+27 · `provar-financeiro-da-escola` 90 · `provar-trava-de-repositorio` 17 · `provar-piso` 34 ·
+`provar-publicacao-da-escola` 73 · `provar-monitoramento` 94 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 432 ficheiros, 0 violações.
