@@ -70,7 +70,7 @@
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "recortes": 0,
+        "recortes": 1,
         "registros": 1
       },
       "criada_em": "2026-11-17T00:41:45.598067+00:00",
@@ -336,9 +336,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f7fa4ed"
+    "commit": "f534bac"
   },
-  "gerado_em": "2026-11-17T01:01",
+  "gerado_em": "2026-11-17T01:02",
   "nao_indexado": [
     {
       "familia": "conteudo",

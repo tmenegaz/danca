@@ -1,5 +1,36 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "equilibrio-unipodal",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261117-0102",
+      "versoes": 1
+    },
+    {
+      "aspecto": "flexibilidade-anteroposterior-grand-ecart",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261117-0102",
+      "versoes": 1
+    },
+    {
+      "aspecto": "meia-ponta",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261117-0102",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +108,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
@@ -107,7 +138,32 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "equilibrio-unipodal",
+        "valor": "equilibrio-unipodal"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "flexibilidade-anteroposterior-grand-ecart",
+        "valor": "flexibilidade-anteroposterior-grand-ecart"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "meia-ponta",
+        "valor": "meia-ponta"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +206,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f7fa4ed"
+    "commit": "f534bac"
   },
-  "gerado_em": "2026-11-17T01:01",
+  "gerado_em": "2026-11-17T01:02",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +231,37 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "equilibrio-unipodal",
+        "flexibilidade-anteroposterior-grand-ecart",
+        "meia-ponta"
+      ],
+      "atualizada_em": "2026-11-17T01:02:02.554Z",
+      "enviada_em": "2026-11-17T01:02:03.052Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "tami",
+      "professor": "demi-plie",
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261117-0102.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "equilibrio-unipodal"
+          ],
+          "enviada_em": "2026-11-17T01:02:03.052Z",
+          "versao": "20261117-0102"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
