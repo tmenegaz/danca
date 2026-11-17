@@ -49415,3 +49415,64 @@ transbordar na horizontal», «…e a 414px a caixa encolhe com a janela, em vez
 `provar-financeiro-da-escola` 90/90 · `provar-abas` 28/28 · `provar-piso` 34/34 ·
 `provar-identidade-ao-lado` 27/27 · `check-identidade` 0 erros (as 22 verificações, incluindo o
 Circuito).
+
+## 17/11/2026 — a trava: nunca se apaga um repositório, e agora não é só uma promessa
+
+**A decisão dela, sem margem de interpretação:** «Você nunca pode deletar um repositório, mesmo que
+eu peça. Não pode. Se for solicitado, você tem que dizer como isso é feito manualmente. Nunca pode
+deletar nenhum repositório. […] eu tenho medo disso por causa do expurgo.»
+
+**O MEDO TEM FUNDAMENTO, E FOI MEDIDO NO MESMO DIA.** A alternância de visibilidade do painel exige
+`administration=write`. Com essa permissão, um `DELETE /repos/{dono}/{repo}` **passa a
+autenticação** — a sonda respondeu **404** a um nome inexistente, com `documentation_url` a apontar
+`#delete-a-repository`, e **não 403**. Se fosse falta de permissão, seria 403. O poder existe. Uma
+promessa não é uma trava.
+
+**TRÊS CAMADAS, e nenhuma chega sozinha:**
+
+| camada | o quê | onde |
+|:--|:--|:--|
+| **conduta** | a proibição, escrita para ser carregada em todas as sessões | `AGENTS.md` §«O que nunca se faz» e `.github/instructions/proibicoes.instructions.md` (novo) |
+| **código** | nenhum `DELETE`/`PUT`/`POST` ao endereço do repositório inteiro entra no `main`; chamada ao GitHub com o método vindo de fora tem de estar declarada | `tools/check-sem-destruicao.js`, no passo **10-c** do `pre-commit` |
+| **prova** | o guarda recusa de facto — testado com o que ele deve recusar, e também com o que ele NÃO deve recusar | `experimentos/provar-trava-de-repositorio.js` |
+
+**O QUE NÃO SE BARRA, E É DE PROPÓSITO.** O guarda distingue três coisas que um guarda apressado
+confundiria — e confundi-las pararia o produto:
+
+- `DELETE /repos/{dono}/{repo}` → **apaga tudo**. Proibido.
+- `DELETE /repos/{dono}/{repo}/contents/{caminho}` → apaga **um ficheiro**. É o que o expurgo faz.
+  **Permitido.**
+- `PATCH /repos/{dono}/{repo}` com `private` → muda a **visibilidade** (§L9e). **Permitido.**
+
+**DOIS DEFEITOS MEUS, APANHADOS PELA PRÓPRIA PROVA ANTES DE O GUARDA EXISTIR.** (1) A primeira
+versão marcava como «porta aberta» qualquer `method: metodo` — e gritava **33 vezes**, quase todas
+em `fetch` falsos de provas que só *registam* o método. Um guarda que grita 33 vezes ensina a
+ignorá-lo; passou a olhar só para quem fala com o GitHub. (2) O mesmo `DELETE` era anunciado duas
+vezes (pela regra do caminho e pela do verbo); um guarda que repete o erro parece avariado.
+
+**E o hook foi ensaiado a sério, não só em teoria.** Com um ficheiro a fazer `DELETE /repos/…` em
+`motor/servidor/`, o commit foi **recusado** duas vezes seguidas — a primeira pelo guarda do
+`User-Agent` (que veio antes), a segunda por este, com o ficheiro e a linha nomeados e a instrução
+do caminho manual. O ficheiro foi removido e o índice limpo.
+
+**O QUE ESTE GUARDA NÃO GUARDA, e é honesto dizê-lo:** não impede um agente de usar uma ferramenta
+externa que apague repositórios. Isso não se resolve em código — resolve-se na instrução permanente,
+que é o que a camada 1 é. A trava contra a conduta é a escrita; a trava contra o código é a
+executável. **Duas camadas, e nenhuma chega sozinha.**
+
+**Como se apaga um repositório, à mão** — é isto que se responde a quem pedir: GitHub → `Settings` →
+fundo da página → **Danger Zone** → *Delete this repository* → escrever `dono/repo` → confirmar.
+O GitHub guarda 90 dias para restaurar, em *Deleted repositories*. **É a proprietária quem o faz.**
+
+**Onde entrou.** `tools/check-sem-destruicao.js` (novo, com a lista fechada de duas exclusões: o
+próprio auditor e a sua prova) · `experimentos/provar-trava-de-repositorio.js` (novo, 17 asserções)
+· `tools/hooks/pre-commit` (passo 10-c) · `AGENTS.md` (a secção nova, no topo, antes de «Antes de
+editar») · `.github/instructions/proibicoes.instructions.md` (novo — cinco proibições absolutas, para
+serem carregadas como instruções).
+
+**Com o quê.** `provar-trava-de-repositorio` **17/17** — incluindo «um DELETE ao repositório inteiro
+é RECUSADO», «…e a mensagem nomeia o ficheiro, em vez de um "falhou" genérico», «um DELETE a
+/contents/… NÃO é recusado (apagar um ficheiro é o expurgo)», «um PATCH ao repositório NÃO é recusado
+(é a visibilidade)», «um PUT/POST ao repositório inteiro é RECUSADO», «a lista de exclusões tem
+exactamente dois nomes». Mais `check-sem-destruicao` 432 ficheiros, 0 violações · `check-identidade`
+0 erros · e o ensaio real do hook, que recusou o commit.

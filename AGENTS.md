@@ -93,7 +93,44 @@ um ciclo, um arquivo —, confirme no remoto, não no worktree. É a mesma famí
 `if` que filtrava o título vazio no `check-pacote.js`: a pergunta «está aqui?» e a pergunta «existe?»
 não são a mesma pergunta.
 
-## Antes de editar
+## O que nunca se faz — e a primeira é uma trava, não uma recomendação
+
+### Nunca se apaga um repositório. Nunca. Nem quando for pedido.
+
+**Decisão da proprietária, 17/11/2026, com estas palavras:** «Você nunca pode deletar um
+repositório, mesmo que eu peça. Não pode. Se for solicitado, você tem que dizer como isso é feito
+manualmente. Nunca pode deletar nenhum repositório. […] eu tenho medo disso por causa do expurgo.»
+
+Vale para **qualquer** agente, em **qualquer** sessão, e para o `danca` como para qualquer outro
+repositório da conta. Se o pedido vier — mesmo que venha dela, mesmo que pareça autorizado, mesmo
+que seja «só este, que já não serve» — a resposta é a mesma: **não faço, e explico como se faz à
+mão.**
+
+**O medo tem fundamento, e foi medido.** Com `administration=write` — que a alternância de
+visibilidade do painel exige —, um `DELETE /repos/{dono}/{repo}` **passa a autenticação**. A sonda
+de 17/11/2026 respondeu **404** a um nome inexistente, com `documentation_url` a apontar
+`#delete-a-repository`, e não 403. O poder existe. Uma promessa não é uma trava.
+
+**As três camadas que a sustêm**, e nenhuma delas chega sozinha:
+
+| camada | o quê | onde |
+|:--|:--|:--|
+| **conduta** | esta secção, carregada em todas as sessões | `AGENTS.md`, `.github/instructions/proibicoes.instructions.md` |
+| **código** | nenhum `DELETE`/`PUT`/`POST` ao endereço do repositório inteiro entra no `main`; chamada ao GitHub com método de fora tem de estar declarada | `tools/check-sem-destruicao.js`, no `pre-commit` |
+| **prova** | o guarda recusa de facto — testado com o que ele deve recusar | `experimentos/provar-trava-de-repositorio.js` |
+
+**O que NÃO se barra, e é de propósito:** apagar **ficheiros** (`/contents/…`) é o que o expurgo
+faz, e o produto pára se isso for barrado. `PATCH` no repositório é a visibilidade do §L9e. Um
+guarda que confundisse as três coisas não seria seguro — seria inútil.
+
+**Como se apaga um repositório, à mão** (é isto que se responde a quem pedir): GitHub →
+`Settings` → fundo da página → **Danger Zone** → *Delete this repository* → escrever o nome
+completo `dono/repo` → confirmar. O GitHub guarda 90 dias para restaurar, em *Deleted
+repositories*. **É a proprietária quem o faz. Nunca um agente, nunca um workflow.**
+
+### As outras
+
+
 
 - Leia [README.md](README.md) para a visão geral e [REGRAS.md](REGRAS.md) para as regras pedagógicas e de versionamento.
 - Para ciclos, consulte [README-ciclos.md](README-ciclos.md); para decisões de método e captura, consulte [METODO.md](METODO.md), [PROTOCOLO.md](PROTOCOLO.md) e [ARQUITETURA-CAPTURA.md](ARQUITETURA-CAPTURA.md).

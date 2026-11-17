@@ -465,6 +465,39 @@ if printf '%s\n' "$arquivos" | grep -qE '^motor/servidor/.*\.js$'; then
 fi
 
 # ---------------------------------------------------------------------------
+# 10-c) O REPOSITÓRIO NÃO SE APAGA — NEM POR CÓDIGO, NEM POR PROVA (17/11/2026)
+#
+#    A decisão é dela, e não é preferência de estilo: «Você nunca pode deletar um repositório,
+#    mesmo que eu peça. Não pode. […] eu tenho medo disso por causa do expurgo.»
+#
+#    O MEDO TEM FUNDAMENTO, e a sonda do mesmo dia provou-o: com `administration=write` — que a
+#    alternância de visibilidade do painel exige —, um `DELETE /repos/{dono}/{repo}` PASSA a
+#    autenticação (respondeu 404 a um nome inexistente, com `documentation_url` a apontar
+#    `#delete-a-repository`, e não 403). O poder existe. Uma promessa não é uma trava.
+#
+#    O QUE ESTE PASSO GUARDA, e o que ele NÃO guarda. Guarda o CÓDIGO: nenhum `DELETE`, `PUT` nem
+#    `POST` ao endereço do repositório inteiro entra no `main`, e uma chamada ao GitHub cujo método
+#    venha de fora tem de estar declarada. NÃO guarda a CONDUTA de um agente com ferramentas
+#    externas — isso vive na instrução permanente (`AGENTS.md` §«O que nunca se faz» e
+#    `.github/instructions/proibicoes.instructions.md`), carregada em todas as sessões. São duas
+#    camadas, e nenhuma chega sozinha.
+#
+#    Estático: não faz pedido, não gasta cota, não precisa de token.
+# ---------------------------------------------------------------------------
+if printf '%s\n' "$arquivos" | grep -qE '^(motor/|tools/|experimentos/|porta/|raiz/)'; then
+  echo "pre-commit: conferindo que o repositório não se apaga ..."
+  if node tools/check-sem-destruicao.js > /tmp/pre-commit-destruicao.log 2>&1; then
+    echo "pre-commit: nenhuma chamada apaga o repositório ($(grep -c '^  ok' /tmp/pre-commit-destruicao.log) verificações)"
+  else
+    echo "pre-commit: recusado — há uma chamada que pode apagar o repositório." >&2
+    grep -E '^  (ERRO|       )' /tmp/pre-commit-destruicao.log | head -6 >&2
+    echo "  o repositório NÃO se apaga por código, por script nem por prova." >&2
+    echo "  apagar faz-se à mão: GitHub → Settings → Danger Zone, e é a proprietária quem o faz." >&2
+    exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
 # 11) O MOLDE E OS SCHEMAS DOS PROFESSORES DIZEM O MESMO CONTRATO
 #
 #     O caso que originou isto (01/11/2026): os `required` do schema do plano foram corrigidos
