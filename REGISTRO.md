@@ -49657,3 +49657,67 @@ igualdade com o Recorte, e o A/B que devolve o vão a 0) · `provar-vao-do-botao
 **O que ainda não está feito.** A aba 3 só se vê com dois elencos concluídos, e a medição dela foi
 feita na bancada com dois — na escola ao vivo há um. O resto do formulário da aba 1 (os quatro
 passos) não foi tocado.
+
+## 17/11/2026 — A escola como listagem: a proposta, para ela ver antes de se implementar
+
+**O que motivou.** «A gente vai mudar completamente a forma de demonstração. Ao invés de colocar
+assim um bloco que dentro desse bloco que tem bordas tem as abas, o cadastro, o contrato e o
+pagamento […] a gente vai fazer igual na audição. […] lá na escola a gente vai ter também uma
+listagem, ocupa toda a largura da página, e a gente vai ter as informações que é o nome da escola e
+o contato da escola, e-mail e telefone bem rapidinho ali.» E, ao fim: «me mostra primeiro lá no
+experimento o layout disso que você entendeu para eu ver se está adequado e aí a gente implementar».
+
+**O QUE SE MEDIU ANTES DE DESENHAR, e é o número que justifica a mudança.** A secção `#sec-a-escola`
+é filha da grade de duas colunas (`.secao`, `minmax(0,1fr) 17rem` de apoio) e não tem formulário
+para pôr à esquerda. Medido a 1280px, com a folha servida: o cartão ocupa **458px de 1205** (38%) e
+**356px** de altura, com a coluna da direita vazia. As três abas cabem nesse bloco estreito, e é
+por isso que o cadastro, o contrato e o pagar se leem mal.
+
+**O que a proposta faz.** A secção passa a **uma coluna** e o conteúdo passa a ser a listagem da
+casa — `ul.lb-cartoes → li.trio-plano`, o mesmo cartão do `motor/nucleo/lista-html.js`, com a linha
+do nome (escola + selo do estado), a linha dos contactos (e-mail · telefone) e a linha do contexto
+(CNPJ · responsável). As três abas viram **três caixas** que se abrem — `.trio-item` + `.trio-painel`,
+as peças da Audição —, e cada uma abre o que era a aba inteira:
+
+| caixa | mostra | quando abre |
+|:--|:--|:--|
+| **Contrato** | plano, mensalidade, piso («a partir de»), além do piso, teto, próximo vencimento | sempre |
+| **Situação** | mês corrente com o valor, e **só** os meses vencidos | «em aberto» só aparece quando há algum |
+| **Pagar** | a chave Pix e a instrução de escrever o nome da escola | sempre |
+
+**As duas decisões de conteúdo que ela deu, e como ficaram.** (1) «se não tiver nenhum em aberto, nem
+exibe» — o bloco dos meses vencidos usa o `.trio-falta` da folha e **não existe** no estado em dia;
+(2) o mês a mês completo muda de sítio: um **link** no painel da Situação leva a uma página nova,
+`/bastidores/financeiro`, que é «só uma listagem» — um cartão por mês, do mais recente para o mais
+antigo, sem caixa para abrir, porque o cartão já diz o mês, o valor, o vencimento e quando foi pago.
+
+**O QUE NÃO FOI FEITO, e é o pedido.** Nada de produção mudou: `cartaoDaEscola` continua a emitir a
+caixa com as três abas, e a secção continua na coluna estreita. O que existe é a bancada.
+
+**Onde entrou.** `experimentos/propostas/propor-escola.js` (novo) · `.gitignore` (a linha que
+abre a fonte da bancada, com o motivo) · `.github/workflows/publicar.yml` (o passo que a gera antes
+de `montar-publicacao --com-propostas`, sem o que a pasta não teria as páginas num checkout limpo).
+
+**O «antes» é o cartão REAL.** A moldura «Hoje» não é um desenho meu do que a produção faria: é a
+saída de `bastidores.cartaoDaEscola`, chamada com os mesmos dados. Sem isso, a comparação podia ser
+desenhada a favor da proposta — e foi preciso uma correcção para o garantir: a primeira versão
+aplicava a regra de uma coluna também à moldura «Hoje», e o «antes» saía com a largura do «depois».
+
+**Como se vê.** `node experimentos/propostas/propor-escola.js` escreve seis páginas em
+`experimentos/propostas/`; a que se abre é `proposta-escola.html` (oito molduras, quatro larguras).
+Cada moldura é um `<iframe>` de 1240px ou 390px, e não uma `<div>` de largura fixa: as regras de
+telemóvel da folha são `@media (max-width)`, e numa `<div>` dentro de um ecrã largo elas não
+disparavam. Os estados são escolhidos pelo **endereço** — `#contrato`, `#situacao`, `#pagar` —, e a
+listagem do cenário «com um mês em aberto» viaja na mesma página (`#situacao-aberto`), o que
+reduziu a bancada de oito páginas de 190kB para seis.
+
+**Com o quê.** Medido num navegador a 1240px, 390px e 360px: o cartão ocupa a largura da secção
+(1205px), as três caixas ficam numa fila de 395px cada (112px a 390px; uma coluna a 360px, pela regra
+`max-width:360px` da folha), **nenhum rótulo nem valor fica cortado**, e não há transbordo
+horizontal em nenhuma das quatro larguras do invólucro (1600, 1280, 1024, 414). Os três painéis
+abrem e fecham com o ouvinte extraído da página real; `check-identidade` 0 erros.
+
+**O que ainda não está feito.** (1) A implementação em produção — depende da aprovação do desenho.
+(2) A rota `/bastidores/financeiro` **não existe**: a página do mês a mês está na proposta e ainda
+não é servida. (3) A barra e o menu da página nova não estão desenhados (a proposta não os mostra,
+para não roubar largura). (4) O nome do endereço é sugestão.

@@ -167,6 +167,7 @@ jobs:
           set -euo pipefail
           node experimentos/propostas/construir.js
           node experimentos/propostas/propor-linha-de-base.js
+          node experimentos/propostas/propor-escola.js
 
       # A DESCOBERTA É UM SCRIPT, E NÃO UM BLOCO `bash`. Aqui esteve um `node -e` embutido com
       # um `return` de topo, que o Node recusa; como corria numa substituição de processo

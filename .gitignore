@@ -180,6 +180,12 @@ experimentos/propostas/*
 # página da Produção pelo servidor, carrega-a em jsdom e escreve as três páginas que se abrem em
 # `/propostas/`. Sem esta linha, a proposta viajava para o ar e a forma de a refazer perdia-se.
 !experimentos/propostas/propor-linha-de-base.js
+# O CONSTRUTOR DA ESCOLA COMO LISTAGEM (17/11/2026). Mesma razão, outra proposta: é FONTE, não
+# saída. Ele monta a secção «A escola» com as peças da folha e as três caixas da Audição, e escreve
+# as oito páginas que se abrem em `/propostas/`. O «antes» que ele mostra é o cartão REAL, lido de
+# `bastidores.cartaoDaEscola` — e é a única prova de que a comparação não foi desenhada a favor da
+# proposta. Sem esta linha, o ficheiro viajava para o ar e a forma de o refazer perdia-se.
+!experimentos/propostas/propor-escola.js
 # A prova do CAMPO DA SENHA no lançamento (20/10/2026): o campo existia onde a página o pedia?
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
