@@ -49971,7 +49971,7 @@ ensaio; a rota `/bastidores/producao/financeiro`, o 302 do antigo e `POST /api/b
 `experimentos/provar-abas-da-audicao.js` (a prosa da transferência; e a bancada passou a ler o CSS da
 PÁGINA em vez de o recortar do ficheiro) · `experimentos/propostas/propor-escola.js` (o endereço).
 
-**Com o quê.** `provar-relogio-do-ensaio` **25/25** (nova) · `provar-financeiro-da-escola` **131/131**
+**Com o quê.** `provar-relogio-do-ensaio` **25/25** (nova) · `provar-financeiro-da-escola` **133/133**
 (eram 117) · `provar-abas-da-audicao` **124/124** · `provar-paginacao` 120 · `provar-abas` 34 ·
 `provar-salas-e-elencos` 69 · `provar-a-moldura-em-todas-as-telas` 111 · `provar-arvore-do-shard` 20 ·
 `provar-monitoramento` 94 · `provar-financeiro` 58 · `provar-escola-a-nascer` 48 ·
@@ -49984,6 +49984,13 @@ ensaio a ignorar-se → 16/23. A ficha do plano vazia → reprova quatro. A colu
 reprova três. E um controlo que **corrigiu o desenho**: a asserção do gesto da folha procurava o nome
 da função, e passaria com o script a rebentar no browser — foi assim que apareceu que a constante
 reutilizada abria o invólucro e não o fechava. Passou a COMPILAR cada `<script>` da página.
+
+**O ensaio ao vivo ensinou uma frase.** Três minutos depois de o ligar na Breu, dezembro apareceu —
+em aberto, R$ 169,90, com o «Pagar» habilitado — e novembro continuava pago a R$ 239,90. Só que a
+frase dizia «a mudança **passa a valer** em dezembro», e dezembro já estava na lista: o futuro
+passou a ser falso. `mudancaDePlano` ganhou `emVigor`, e há duas frases porque são duas realidades —
+«passa a valer em dezembro» enquanto o mês não existe, «já está em vigor em dezembro» quando já lá
+está. Dizer «passa a valer» sobre um mês que já se vê faz o leitor procurar o que ainda falta.
 
 **Medido num navegador.** A página da Produção saiu igual ao que era (coluna 248px `fixed`, conteúdo
 976px a 1280; barra `flex` e coluna `static` a 390), sem erro de página. A página do mês a mês: a

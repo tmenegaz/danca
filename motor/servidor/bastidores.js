@@ -4058,7 +4058,10 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     : '';
   const avisoDaMudanca = mudanca
     ? '<p class="trio-nota">' + (mudanca.de.planoNome || mudanca.de.valorCentavos
-      ? 'A mudança de plano passa a valer em <strong>' + esc(mudanca.nome) + '</strong>'
+      ? (mudanca.emVigor
+        ? 'A mudança de plano <strong>já está em vigor</strong> em <strong>'
+          + esc(mudanca.nome) + '</strong>'
+        : 'A mudança de plano passa a valer em <strong>' + esc(mudanca.nome) + '</strong>')
         + (mudanca.vencimento
           ? ' — a primeira cobrança no plano novo vence a <strong>'
             + esc(dataEmTexto(mudanca.vencimento)) + '</strong>' : '')

@@ -473,6 +473,14 @@ function mudancaDePlano(situacao) {
     && Number(ultimo.valorCentavos) === Number(s.valorCentavos);
   if (mesmoPlano) return null;
   const seguinte = somarMeses(ultimo.mes, 1);
+  /* O MÊS NOVO JÁ EXISTE NO EXTRATO? (17/11/2026.) Em 17/11 não existe — dezembro ainda não
+   * começou —, e a frase é futuro: «a mudança passa a valer em dezembro». A partir de dezembro
+   * (ou a qualquer momento com o relógio de ensaio a correr), o mês já está lá e em aberto, e o
+   * futuro passa a ser falso: a mudança JÁ está em vigor, e o que há é uma cobrança por pagar.
+   *
+   * São duas frases porque são duas realidades, e a diferença não é de estilo: dizer «passa a
+   * valer» sobre um mês que já está na lista faria o leitor procurar o que ainda falta acontecer. */
+  const emVigor = meses.some((m) => m && m.mes === seguinte);
   return {
     de: {
       mes: ultimo.mes,
@@ -483,6 +491,7 @@ function mudancaDePlano(situacao) {
     mes: seguinte,
     nome: nomeDoMes(seguinte),
     vencimento: vencimentoDe(seguinte, s.diaDoVencimento),
+    emVigor,
   };
 }
 

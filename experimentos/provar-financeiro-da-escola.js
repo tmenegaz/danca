@@ -414,6 +414,7 @@ function kvCom(dados) {
         planoNome: 'Básico', em: '2026-10-19T10:00:00Z' }],
       agora: '2026-11-20T12:00:00Z',
     });
+    const mudancasDePlano = (modulo, sit) => modulo.mudancaDePlano(sit);
     const html = paginaDaEscolaCom(Object.assign({}, situacao,
       { frase: mensalidades.fraseDaSituacao(situacao.situacao) }));
 
@@ -720,6 +721,29 @@ function kvCom(dados) {
           && mensalidades.mudancaDePlano(situacaoQueMudou).mes === '2026-12', null);
       conferir('…e nomeia o dia da primeira cobrança no plano novo — 17/12/2026',
         /17\/12\/2026/.test(ficha.textContent), null);
+      conferir('…e em 17/11 o mês novo ainda não existe, por isso a frase é FUTURO',
+        mudancasDePlano(mensalidades, situacaoQueMudou).emVigor === false
+          && /passa a valer em/.test(ficha.textContent), null);
+      /* A PARTIR DE DEZEMBRO O MÊS JÁ ESTÁ NA LISTA, E O FUTURO PASSA A SER FALSO: a mudança já
+       * está em vigor, e o que há é uma cobrança por pagar. Dizer «passa a valer» sobre um mês que
+       * já está no extrato faria o leitor procurar o que ainda falta acontecer. */
+      const jaEmDezembro = mensalidades.situacaoDaEscola({
+        escola: 'teste',
+        contrato: { plano: 'basico', planoNome: 'Básico', valorCentavos: 16990,
+          capacidade: { professores: 4, alunos: 40 }, criadoEm: '2026-11-17T13:00:00Z', estado: 'ativa' },
+        livro: [{ escola: 'teste', mes: '2026-11', status: 'pago', valorCentavos: 23990,
+          planoNome: 'Avançado', em: '2026-11-17T14:00:00Z' }],
+        agora: '2026-12-18T12:00:00Z',
+      });
+      const htmlDez = bastidores.paginaFinanceiro('teste',
+        { professor: 'p', ciclo: '01', query: '' }, { modo: 'clara', paleta: 'bordo' }, {
+          cadastro: { escolaNome: 'Breu' }, situacao: jaEmDezembro,
+        });
+      const fichaDez = new JSDOM2(htmlDez).window.document.querySelector('.mes-a-mes');
+      conferir('…e em dezembro a frase vira «já está em vigor», porque o mês já está no extrato',
+        mensalidades.mudancaDePlano(jaEmDezembro).emVigor === true
+          && /já está em vigor/.test(fichaDez.textContent)
+          && !/passa a valer/.test(fichaDez.textContent), null);
       conferir('…e não reescreve o mês pago: novembro continua com o plano com que foi pago',
         /novembro de 2026/.test(ficha.textContent)
           && /Avançado · R\$ 239,90/.test(ficha.textContent)
