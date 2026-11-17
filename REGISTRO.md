@@ -48156,3 +48156,59 @@ desenho e a tinta de outro é a mesma peça a fingir que é duas.
 - **A prova:** `provar-abas.js` — a peça é da folha, nenhuma página a redeclara, a cópia servida é
   byte a byte a mesma, e a geometria é medida num navegador de verdade (a aba activa pousa na linha,
   a desligada está esbatida mas existe, e a 390px a tira sai).
+
+## 16/11/2026 — as abas chegam às telas, e o financeiro diz o que a escola contratou
+
+**A decisão que veio primeiro, e é de identidade.** «Anote aí também na nossa identidade visual que
+a gente vai adotar abas. Da mesma forma que a gente já adotou lá na audição, a gente vai adotar
+abas.» A peça já subira para a folha no commit anterior; o que faltava era **usá-la** onde ela
+mandou: o cartão «A escola» da Produção e o **Financeiro** do painel. Os dois estavam a empilhar
+caixas na mesma coluna, e o último assunto ficava sempre por baixo dos outros dois.
+
+**O que passou a viver em cada aba.**
+
+- **«A escola» (Produção da escola).** *O cadastro* (o que ela preencheu na criação: nome, CNPJ,
+  e-mail, telefone, responsável) · *O contrato e o pagamento* (plano, mensalidade, capacidade
+  incluída, a frase da situação, e o extrato mês a mês) · *Pagar* (a chave Pix e a instrução de
+  escrever o nome da escola na descrição). Abre no cadastro, porque é o que se confere primeiro.
+- **Financeiro (painel `danca`).** *Mensalidades* (o extrato e o contrato de cada escola — é o que se
+  abre todos os meses) · *A chave Pix* (configura-se raramente) · *Os descontos* (a excepção). Abre
+  nas mensalidades, e não na chave.
+
+**O financeiro passou a dizer a capacidade a mais.** «Foi contratado o plano avançado de R$ 139,90
+mais a capacidade de mais três professores e mais 30 alunos. Aqui no espaço da dança, no financeiro,
+não está dizendo isso.» O cartão de cada escola agora abre a diferença — **«Além do plano: +3
+professor(es) (R$ 50,00) e +30 aluna(s) (R$ 50,00)»** —, e a conta é feita no núcleo
+(`extraDoContrato`), não na página: quando os lotes não ficaram guardados no contrato, a diferença é
+decomposta pela tabela de preços, e é a mesma frase que o cartão da escola mostra. Os lotes de hoje
+passam a ser gravados na criação e na recriação, para que a decomposição deixe de ser uma
+reconstrução.
+
+**A coluna do estado, dentro do extrato.** «Se eu desabilitar lá na escola viva, aqui no financeiro
+tem que mostrar que está desabilitado.» A tabela do extrato ganhou a coluna **«Escola»**, com o selo
+`habilitada` / `desabilitada` / `a aguardar`. O estado é o mesmo — `bastidores/<escola>/comercial`,
+lido pela mesma `lerComercial` que a lista das vivas usa —, e o selo repete-se em cada linha, porque a
+linha se lê sozinha. Sem estado não se escreve «habilitada»: uma escola que ainda não foi habilitada
+não está nem numa coisa nem na outra, e dizer a mais é pior do que não dizer.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`extraDoContrato`) · `motor/servidor/painel-html.js`
+(as três abas do financeiro, `SCRIPT_DAS_ABAS`, o selo na coluna «Escola», a capacidade a mais na
+ficha) · `motor/servidor/bastidores.js` (as três abas de «A escola», `ABAS_DA_ESCOLA`, `MOTOR_DA_ESCOLA`,
+o grupo `escola` no ouvinte do clique, e a pílula do telemóvel `es-abas-folha`) ·
+`experimentos/provar-financeiro-da-escola.js` · `experimentos/provar-abas.js`.
+
+**Com o quê.** `provar-financeiro-da-escola` **73/73**: as três abas do financeiro (um só painel à
+vista, e é o das mensalidades; a chave e o desconto dentro dos seus), a troca de aba em jsdom, as três
+abas de «A escola» com o contrato e o extrato juntos, o selo da coluna nos três estados, e a
+decomposição da capacidade a mais com o preço de cada lote e o total a fechar. `provar-abas`
+**22/22**: quatro grupos de abas (a Audição, o Professor, «A escola», o Financeiro), o ouvinte a
+distinguir os grupos pelo `data-abas`, e o motor do painel a esconder os outros painéis pelo `hidden`.
+Mais `provar-financeiro` 58/58 · `provar-recriar-escola` 92/92 · `provar-cofre-e-shard` 138/138 ·
+`provar-restaurar-retrato` 38/38 · `provar-escola-a-nascer` 48/48 · `provar-a-carencia-nao-se-burla`
+58/58 · `provar-cartas-do-expurgo` 25/25 · `provar-pagina-publica` 79/79 · `provar-indices` 64/64 ·
+`check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica por decidir, e é dela.** O **dia do vencimento** continua a ser o da adesão (o de hoje é
+16); se quiser dia 5 ou dia 10 para todas, é uma linha — mas muda a data de quem já está a pagar, e
+por isso não se muda sozinho. E não há **aviso** de vencimento: o sistema mostra o estado, não
+persegue ninguém.

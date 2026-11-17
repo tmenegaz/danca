@@ -215,6 +215,103 @@ function kvCom(dados) {
       (catalogo.assinaturas || []).every((a) => html.indexOf('value="' + a.id + '"') !== -1),
       (catalogo.assinaturas || []).filter((a) => html.indexOf('value="' + a.id + '"') === -1).map((a) => a.id));
 
+    /* AS TRÊS ABAS DO FINANCEIRO (16/11/2026) — «cada um desses vai viver em uma aba». O que se
+     * afirma é o contrato com a folha: três abas com `role="tab"`, UM painel à vista e os outros
+     * dois `hidden`; e cada assunto DENTRO do seu painel — a chave na «chave», o desconto nos
+     * «descontos», e o extrato nas «mensalidades», que é a que abre. */
+    {
+      const { JSDOM } = require('jsdom');
+      const d0 = new JSDOM(html).window.document;
+      const abas = [...d0.querySelectorAll('#fi-abas [role="tab"]')].map((b) => b.getAttribute('data-aba'));
+      conferir('o financeiro está em três abas: mensalidades, chave e descontos',
+        JSON.stringify(abas) === JSON.stringify(['mensalidades', 'chave', 'descontos']), abas);
+      const paineis = ['mensalidades', 'chave', 'descontos']
+        .map((n) => d0.getElementById('fi-painel-' + n));
+      conferir('…com um só painel à vista, e é o das mensalidades (é o que se abre todos os meses)',
+        paineis[0] && !paineis[0].hidden && paineis[1].hidden && paineis[2].hidden,
+        paineis.map((p) => !!(p && p.hidden)));
+      conferir('…e a aba à vista é a que está marcada como selecionada',
+        d0.getElementById('fi-aba-mensalidades').getAttribute('aria-selected') === 'true'
+          && d0.getElementById('fi-aba-chave').getAttribute('aria-selected') === 'false', null);
+      conferir('…a chave Pix vive na aba da chave, e não na das mensalidades',
+        paineis[1].querySelector('#pix-chave') && !paineis[0].querySelector('#pix-chave'), null);
+      conferir('…o formulário do desconto vive na aba dos descontos',
+        paineis[2].querySelector('#financeiro-desconto')
+          && !paineis[0].querySelector('#financeiro-desconto'), null);
+      conferir('…e o extrato de cada escola fica nas mensalidades',
+        paineis[0].querySelector('[data-conta="teste"]')
+          && !paineis[2].querySelector('[data-conta="teste"]'), null);
+    }
+
+    /* A COLUNA «ESCOLA» — o estado da escola viva, dentro do financeiro (16/11/2026): «Se eu
+     * desabilitar lá na escola viva, aqui no financeiro tem que mostrar que está desabilitado».
+     * São dois sítios a ler o MESMO estado, e é isso que se mede: o selo vem do contrato, e não de
+     * uma cópia guardada no livro. */
+    {
+      const comEstado = (e) => Object.assign({}, extrato[0], { escola: e, nome: e, estadoComercial: e === 'null' ? null : e });
+      const tres = painel.paginaFinanceira({
+        pix: { chave: 'k@p.test', titular: 'T' }, descontos: [],
+        escolas: [{ slug: 'ativa', nome: 'Ativa' }, { slug: 'suspensa', nome: 'Suspensa' }],
+        extrato: [comEstado('ativa'), comEstado('suspensa'), comEstado('null')], catalogo,
+      });
+      const { JSDOM } = require('jsdom');
+      const d0 = new JSDOM(tres).window.document;
+      const linha = (e) => {
+        const c = d0.querySelector('[data-conta="' + e + '"]');
+        return c ? c.querySelector('table') : null;
+      };
+      /* O SELO É A SEGUNDA CÉLULA — «Mês | Escola | Vencimento | Valor | Situação | Pago/ação» —, e
+       * repete-se em cada linha de propósito: a linha lê-se sozinha. */
+      const selos = (e) => {
+        const tab = linha(e);
+        return tab ? [...tab.querySelectorAll('tbody tr')]
+          .map((tr) => (tr.children[1] || {}).textContent.trim()) : [];
+      };
+      const cabecalho = (d0.querySelector('[data-conta="ativa"] thead') || { textContent: '' }).textContent;
+      conferir('o extrato ganhou a coluna «Escola», ao lado do mês',
+        /MêsEscola/.test(cabecalho.replace(/\s+/g, '')), cabecalho.replace(/\s+/g, ' '));
+      conferir('…habilitada quando o contrato está activo',
+        selos('ativa').every((s) => /habilitada/.test(s)), selos('ativa'));
+      conferir('…desabilitada quando ela foi suspensa nas escolas vivas',
+        selos('suspensa').every((s) => /desabilitada/.test(s)), selos('suspensa'));
+      /* SEM ESTADO NÃO SE INVENTA «HABILITADA»: uma escola que ainda não foi habilitada não está
+       * nem numa coisa nem na outra, e dizer «habilitada» seria pior do que não dizer nada. */
+      conferir('…e «a aguardar» quando ainda não há estado nenhum',
+        selos('null').every((s) => /a aguardar/.test(s)), selos('null'));
+    }
+
+    /* A CAPACIDADE EXTRA, DECOMPOSTA (16/11/2026): «foi contratado o plano avançado de R$ 139,90
+     * mais a capacidade de mais três professores e mais 30 alunos» — e o financeiro tem de dizer o
+     * mesmo que o cartão da escola, senão são duas contas diferentes para a mesma mensalidade. */
+    {
+      const avancado = comercial.catalogoDaPagina().assinaturas.find((a) => /avancado/i.test(a.id));
+      if (!avancado) conferir('o catálogo tem o plano avançado', false, null);
+      else {
+        /* O CASO DA «duo»: 9 professores e 120 alunas no avançado, e os lotes não ficaram guardados
+         * no contrato — a decomposição tem de sair da tabela de preços, e não do nada. */
+        const extra = mensalidades.extraDoContrato({
+          plano: avancado.id, valorCentavos: avancado.precoCentavos + 5000 + 5000,
+          capacidade: { professores: (avancado.inclui.professores || 6) + 3,
+            alunos: (avancado.inclui.alunos || 90) + 30 },
+        });
+        conferir('a capacidade extra é decomposta em professores e alunas',
+          extra && extra.professores.qtd === 3 && extra.alunos.qtd === 30, extra);
+        /* O PREÇO DO LOTE É O DA TABELA, em reais — 50 por cada professor e por cada alunas —, e o
+         * total fecha com o que ficou por cima do plano. */
+        const preco = (q) => (q.lotes || []).reduce((s, l) => s + Number(l.preco || 0), 0);
+        conferir('…com o preço de cada lote, e um total que fecha com a mensalidade',
+          extra && preco(extra.professores) === 50 && preco(extra.alunos) === 50
+            && extra.totalCentavos === 10000, extra && [extra.professores.lotes, extra.alunos.lotes, extra.totalCentavos]);
+        /* SEM EXTRA, NADA A DIZER — e `null` é a resposta, para a página não escrever «+0». */
+        conferir('sem capacidade extra, a decomposição é vazia',
+          mensalidades.extraDoContrato({
+            plano: avancado.id, valorCentavos: avancado.precoCentavos,
+            capacidade: { professores: avancado.inclui.professores, alunos: avancado.inclui.alunos },
+            lotesProfessores: [], lotesAlunos: [],
+          }) === null, null);
+      }
+    }
+
     /* A CORRER, em jsdom: o clique do «Marcar pago» e o do contrato. */
     const { JSDOM, VirtualConsole } = require('jsdom');
     const erros = [];
@@ -244,6 +341,17 @@ function kvCom(dados) {
     const d = dom.window.document;
     conferir('…um só seletor de plano na página', d.querySelectorAll('[data-contrato-plano]').length === 1,
       d.querySelectorAll('[data-contrato-plano]').length);
+
+    /* A ABA TROCA DE VERDADE — e a que estava à vista esconde-se. Sem isto, `role="tablist"` seria
+     * uma promessa por cumprir, e as três caixas ficavam todas à vista por baixo. */
+    d.getElementById('fi-aba-chave').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    conferir('o clique na aba «A chave Pix» mostra o painel dela e esconde o das mensalidades',
+      !d.getElementById('fi-painel-chave').hidden && d.getElementById('fi-painel-mensalidades').hidden
+        && d.getElementById('fi-aba-chave').getAttribute('aria-selected') === 'true', null);
+    /* E VOLTA-SE ÀS MENSALIDADES, porque é lá que está o botão do clique seguinte. */
+    d.getElementById('fi-aba-mensalidades').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    conferir('…e o clique na aba das mensalidades devolve o extrato à vista',
+      !d.getElementById('fi-painel-mensalidades').hidden && d.getElementById('fi-painel-chave').hidden, null);
 
     d.querySelector('[data-pagar]').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 120));
@@ -309,6 +417,34 @@ function kvCom(dados) {
     conferir('…com o EXTRATO: o mês pago e o mês em aberto',
       /outubro de 2026/.test(html) && /selo ok">pago/.test(html)
         && /novembro de 2026/.test(html) && /selo falha">em aberto/.test(html), null);
+    /* AS TRÊS ABAS DE «A ESCOLA» — o cadastro, o contrato com o extrato, e o pagamento. A ordem é
+     * a do trabalho: quem a escola É, o que ela CONTRATOU e como está a pagar, e o que ela FAZ para
+     * pagar. Empilhados, o último ficava sempre debaixo dos outros dois. */
+    {
+      const { JSDOM } = require('jsdom');
+      const d0 = new JSDOM(html).window.document;
+      const cartao = d0.getElementById('a-escola');
+      const abas = cartao ? [...cartao.querySelectorAll('#es-abas [role="tab"]')]
+        .map((b) => b.getAttribute('data-aba')) : [];
+      conferir('«A escola» está em três abas: cadastro, contrato e pagar',
+        JSON.stringify(abas) === JSON.stringify(['cadastro', 'contrato', 'pagar']), abas);
+      const p = (n) => d0.getElementById('es-painel-' + n);
+      conferir('…e abre no cadastro, com os outros dois escondidos',
+        p('cadastro') && !p('cadastro').hidden && p('contrato').hidden && p('pagar').hidden,
+        p('cadastro') ? [!p('cadastro').hidden, p('contrato').hidden, p('pagar').hidden] : null);
+      /* O CONTRATO E O EXTRATO NA MESMA ABA, e o extrato NÃO no cadastro: são a mesma pergunta —
+       * «o que ela contratou e como está a pagar» — e quem abre uma quer ver a outra. */
+      conferir('…o contrato e o extrato ficam juntos, na aba do contrato',
+        p('contrato') && /Básico/.test(p('contrato').innerHTML)
+          && /outubro de 2026/.test(p('contrato').innerHTML)
+          && !/outubro de 2026/.test(p('cadastro').innerHTML), null);
+      conferir('…e a chave de pagar vive na aba de pagar',
+        p('pagar') && /chave@pix\.test/.test(p('pagar').innerHTML)
+          && !/chave@pix\.test/.test(p('cadastro').innerHTML), null);
+      conferir('…e as três abas dizem a que grupo pertencem, para o ouvinte do clique',
+        cartao.querySelector('#es-abas').getAttribute('data-abas') === 'escola', null);
+    }
+
     conferir('…e o botão de pagar abre a chave Pix, com a instrução do nome na descrição',
       /Pagar agora — ver a chave Pix/.test(html) && /chave@pix\.test/.test(html)
         && /escreva o nome da escola/i.test(html), null);

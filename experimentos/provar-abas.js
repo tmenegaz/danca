@@ -87,6 +87,34 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
       copia === css, { igual: copia === css });
   }
 
+  console.log('\nA2. As telas que usam a peça — e são quatro grupos de abas');
+  {
+    /* A PEÇA SÓ VALE SE FOR USADA, e só é uma peça se todas as telas usarem a MESMA. Aqui
+     * enumeram-se os grupos que existem hoje: três na Produção (a Audição, o Professor e — desde
+     * 16/11/2026 — «A escola») e um no painel (o Financeiro). Um grupo novo que invente marcas
+     * próprias reprova aqui antes de chegar ao ecrã. */
+    const bastidores = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
+    const painel = fs.readFileSync(path.join(RAIZ, 'motor/servidor/painel-html.js'), 'utf8');
+    const grupos = ['"lb-abas"', '"pf-abas"', '"es-abas"']
+      .filter((n) => bastidores.indexOf('nav: ' + n) !== -1);
+    conferir('a Produção tem três grupos de abas — a Audição, o Professor e «A escola»',
+      grupos.length === 3, grupos);
+    conferir('…e cada um traz a lista de nomes que o motor recebe',
+      ['ABAS_DA_AUDICAO', 'ABAS_DO_PROFESSOR', 'ABAS_DA_ESCOLA']
+        .every((v) => bastidores.indexOf('nomes: ' + v) !== -1), null);
+    /* O `data-abas` NO OUVIDOR DO CLIQUE é o que separa os grupos: sem ele, a aba do Professor
+     * abriria o painel da Audição, porque os dois usam `data-aba` como gancho. */
+    conferir('…e o ouvinte do clique distingue os grupos pelo `data-abas`',
+      /getAttribute\("data-abas"\)/.test(bastidores)
+        && /qual === "professor"/.test(bastidores) && /qual === "escola"/.test(bastidores), null);
+    /* O PAINEL TEM O SEU MOTOR, e o que o prende à peça são as mesmas marcas. */
+    conferir('o Financeiro monta a tira com a mesma peça, e com as mesmas marcas',
+      /class="abas" role="tablist"/.test(painel) && /role="tab"/.test(painel)
+        && /aria-selected/.test(painel) && /aba-painel/.test(painel), null);
+    conferir('…e o motor do painel abre um painel e esconde os outros pelo `hidden`',
+      /getElementById\("fi-painel-"\+k\)/.test(painel) && /p\.hidden=!eu/.test(painel), null);
+  }
+
   console.log('\nB. Medido num navegador: a aba pousa na linha');
   {
     const executavel = process.env.CHROME_PATH ||

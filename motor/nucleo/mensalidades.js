@@ -27,6 +27,9 @@
  */
 
 const fuso = require('./fuso.js');
+/* O CATÁLOGO — para dizer o que o plano inclui, que é metade da conta da capacidade a mais. A outra
+ * metade é o registo comercial, que chega por parâmetro. Duas fontes, nenhuma copiada para o ecrã. */
+const comercial = require('./comercial.js');
 
 /** UMA chave com a lista dentro — a mesma forma dos descontos, e pelo mesmo motivo: o KV não se
  *  enumera, e uma chave por mês obrigaria a listar para desenhar o extrato. */
@@ -268,8 +271,102 @@ function situacaoDaEscola({ escola, contrato, livro, agora } = {}) {
     plano: c.plano || null,
     planoNome: c.planoNome || null,
     capacidade: c.capacidade || null,
+    /* O QUE FOI CONTRATADO ALÉM DO PLANO — e a conta de onde vem o valor (16/11/2026).
+     *
+     * «Aqui diz que a capacidade incluída foi nove professores e 120 alunos […] a mensalidade é
+     * R$ 239. Isso quer dizer então que foi contratado o plano avançado de R$ 139,90 mais a
+     * capacidade de mais três professores e mais 30 alunos. Aqui no espaço da dança, no financeiro,
+     * não está dizendo isso.»
+     *
+     * E não dizia porque o extrato só mostrava o total. A conta faz-se AQUI, uma vez, e não na
+     * página: `capacidade` menos o que o plano inclui. As duas fontes são as de sempre — o registo
+     * comercial e o catálogo —, e nenhuma das duas se copia para o ecrã.
+     *
+     * OS LOTES GUARDADOS MANDAM, quando existem: são o que ela escolheu, e o total pode ter sido
+     * calculado a partir deles. Um registo antigo não os tem (nasceram hoje), e aí a diferença
+     * responde — é o caso da `duo`, com 9/120 no plano `avancado`, que inclui 6/90. */
+    extra: extraDoContrato(c),
     extensoes: Array.isArray(c.extensoes) ? c.extensoes : [],
     estadoComercial: c.estado || null,
+  };
+}
+
+/**
+ * A CAPACIDADE A MAIS QUE FOI CONTRATADA, com o preço de cada lote.
+ *
+ * `{ professores: {qtd, lotes:[...]}, alunos: {...}, totalCentavos }` — ou `null` quando não há
+ * nada a mais. Os lotes trazem o preço do catálogo, e não do registo: o preço de um lote é a tabela
+ * em vigor, e o que se guardou foi a quantidade.
+ *
+ * Devolve `null` quando a conta não fecha — sem plano no catálogo não se sabe o que está incluído,
+ * e inventar uma diferença seria dizer que ela contratou o que não se sabe.
+ */
+function extraDoContrato(contrato) {
+  const c = contrato || {};
+  const capacidade = c.capacidade || {};
+  if (capacidade.professores == null && capacidade.alunos == null) return null;
+
+  const guardados = {
+    professores: Array.isArray(c.lotesProfessores) ? c.lotesProfessores.map(Number) : null,
+    alunos: Array.isArray(c.lotesAlunos) ? c.lotesAlunos.map(Number) : null,
+  };
+  const temLotes = Boolean((guardados.professores && guardados.professores.length)
+    || (guardados.alunos && guardados.alunos.length));
+
+  let incluido = { professores: 0, alunos: 0 };
+  let tabela = { professores: [], alunos: [] };
+  try {
+    const plano = comercial.assinaturaPorId(c.plano);
+    if (!plano && !temLotes) return null;
+    if (plano) {
+      incluido = { professores: Number(plano.professores) || 0, alunos: Number(plano.alunos) || 0 };
+      tabela = { professores: comercial.lotesDe('professores'), alunos: comercial.lotesDe('alunos') };
+    }
+  } catch (erro) { return null; }
+
+  const umEixo = (eixo) => {
+    const total = Number(capacidade[eixo]) || 0;
+    const quantidades = temLotes && guardados[eixo]
+      ? guardados[eixo]
+      : null;
+    const aMais = quantidades
+      ? quantidades.reduce((s, q) => s + q, 0)
+      : Math.max(0, total - incluido[eixo]);
+    if (!aMais) return null;
+    /* SEM OS LOTES GUARDADOS, a diferença DECOMPÕE-SE PELA TABELA — é o caso da `duo`, com 9
+     * professores num plano que inclui 6: a mais são 3, e 3 é um lote de R$ 50. Sem esta
+     * decomposição o valor extra sairia zero, e a página diria «contratou 3 professores a mais» sem
+     * conseguir dizer quanto por isso — que é metade da pergunta dela. */
+    const decompor = (falta, lotes) => {
+      const partes = [];
+      let resta = falta;
+      const ordenados = lotes.slice().sort((a, b) => Number(b.qtd) - Number(a.qtd));
+      for (const l of ordenados) {
+        while (resta >= Number(l.qtd) && Number(l.qtd) > 0) {
+          partes.push({ qtd: Number(l.qtd), preco: l.preco });
+          resta -= Number(l.qtd);
+        }
+      }
+      return resta === 0 ? partes : [];
+    };
+    const lotes = quantidades
+      ? quantidades.map((q) => {
+        const daTabela = tabela[eixo].find((l) => Number(l.qtd) === q) || null;
+        return { qtd: q, preco: daTabela ? daTabela.preco : null };
+      })
+      : decompor(aMais, tabela[eixo]);
+    return { qtd: aMais, lotes };
+  };
+
+  const professores = umEixo('professores');
+  const alunos = umEixo('alunos');
+  if (!professores && !alunos) return null;
+
+  const totalCentavos = (professores ? professores.lotes.reduce((s, l) => s + (comercial.centavos(l.preco || 0)), 0) : 0)
+    + (alunos ? alunos.lotes.reduce((s, l) => s + (comercial.centavos(l.preco || 0)), 0) : 0);
+  return {
+    professores, alunos, incluido, totalCentavos,
+    total: totalCentavos ? comercial.precoEmTexto(totalCentavos / 100) : null,
   };
 }
 
@@ -294,5 +391,6 @@ module.exports = {
   lerLivro,
   registarPagamento,
   situacaoDaEscola,
+  extraDoContrato,
   fraseDaSituacao,
 };

@@ -3603,15 +3603,49 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
     : '<p class="aviso">A chave Pix ainda não está configurada no sistema. Para pagar, fale com a '
       + 'administração do Sistema Lastro.</p>';
 
-  return '<div class="caixa" id="a-escola" data-situacao="' + esc(s.situacao || 'aguardando') + '">' +
-    '<h3>O cadastro da escola</h3>' +
-    (dados ? '<table><tbody>' + dados + '</tbody></table>'
-      : '<p class="sub">O cadastro da escola não está guardado neste sistema.</p>') +
-    '<h3>O contrato e o pagamento</h3>' +
-    '<p>' + esc(s.frase || '') + '</p>' +
-    (contratoLinhas ? '<table><tbody>' + contratoLinhas + '</tbody></table>' : '') +
-    extrato +
-    blocoDoPix +
+  /* TRÊS ABAS, E NÃO TRÊS BLOCOS EMPILHADOS (16/11/2026).
+   *
+   * «O que a gente vai fazer é organizar isso daqui do jeito que você fez em abas.» Os três
+   * assuntos são de naturezas diferentes — quem a escola É, o que ela CONTRATOU (e como está a
+   * pagar), e o que ela FAZ para pagar —, e empilhados o último ficava sempre por baixo dos outros
+   * dois. As abas dizem qual dos três está à vista.
+   *
+   * A TIRA É A MESMA PEÇA dos Professores e da Audição (`.abas`/`.aba`, na folha desde hoje), e o
+   * MOTOR é o mesmo (`motorDeAbas`): o `data-abas="escola"` é o que diz ao ouvinte do clique a que
+   * grupo pertence a aba. */
+  const abas = ['cadastro', 'contrato', 'pagar'];
+  const titulos = { cadastro: 'O cadastro', contrato: 'O contrato e o pagamento', pagar: 'Pagar' };
+  const tira = '<nav class="abas" role="tablist" aria-label="A escola — seções" id="es-abas" data-abas="escola">' +
+    abas.map((n, i) => '<button type="button" class="aba" role="tab" id="es-aba-' + n + '" ' +
+      'data-aba="' + n + '" aria-controls="es-painel-' + n + '" ' +
+      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+      esc(titulos[n]) + '</button>').join('') +
+    '</nav>' +
+    '<div class="acoes-da-lista" id="es-abas-folha">' +
+    '<button type="button" class="acoes-do-menu pilula-do-menu" id="es-abas-botao" data-folha="es-abas" ' +
+    'aria-expanded="false" aria-controls="es-abas-menu">Abas<span class="seta-do-ato" aria-hidden="true">\u25be</span></button>' +
+    '<div class="veu-do-menu" id="es-abas-veu" hidden></div>' +
+    '<div class="menu-de-acoes folha-do-menu" id="es-abas-menu" hidden>' +
+    '<span class="folha-puxador" aria-hidden="true"></span>' +
+    '<ul class="menu-de-acoes-lista">' +
+    abas.map((n) => '<li><button type="button" class="menu-de-acoes-item" data-aba="' + n + '">' +
+      esc(titulos[n]) + '</button></li>').join('') +
+    '</ul></div></div>';
+
+  const painel = (n, corpo, primeiro) => '<div class="aba-painel" id="es-painel-' + n + '" ' +
+    'role="tabpanel" aria-labelledby="es-aba-' + n + '" tabindex="0"' + (primeiro ? '' : ' hidden') + '>' +
+    corpo + '</div>';
+
+  return '<div class="turmas-corpo" data-abas="sim" id="a-escola" data-situacao="' +
+    esc(s.situacao || 'aguardando') + '">' +
+    tira +
+    painel('cadastro', dados
+      ? '<table><tbody>' + dados + '</tbody></table>'
+      : '<p class="sub">O cadastro da escola não está guardado neste sistema.</p>', true) +
+    painel('contrato', '<p>' + esc(s.frase || '') + '</p>' +
+      (contratoLinhas ? '<table><tbody>' + contratoLinhas + '</tbody></table>' : '') +
+      '<h3>Mês a mês</h3>' + extrato, false) +
+    painel('pagar', blocoDoPix, false) +
     '</div>';
 }
 
@@ -4933,39 +4967,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `.passo-painel`, e é isso que a mantém a mesma nos três passos.
     '.turmas-corpo{grid-column:1/-1;display:grid;grid-template-columns:minmax(20rem,min(34rem,38%)) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.turmas-form{min-width:0;}' +
-    /* ------------------------------------------- AS ABAS (09/11/2026)
+    /* ------------------------------------------- AS ABAS (09/11/2026; folha desde 16/11/2026)
      *
-     * O DESENHO É DESTA PÁGINA, como `.passos`, `.turmas-corpo` e `.secao` — a folha é a fonte da
-     * identidade, não o depósito das peças de um ecrã. O que se usa dela são os papéis (`--marca`,
-     * `--superficie`, `--borda-campo`, `--texto-suave`) e a linguagem das pílulas do `.passo`.
-     *
-     * A METÁFORA É A D ELA: «um fichário ou um caderno de matérias na horizontal» — abas encostadas
-     * à linha, e a que está aberta pousa sobre ela. Por isso a aba activa tem fundo e a linha por
-     * baixo dela desaparece (`border-bottom` da própria aba na cor da superfície): é o que faz a
-     * aba «pousar» no conteúdo em vez de flutuar por cima de um filete.
-     *
-     * A LINHA NÃO PERTENCE À ABA, e é por isso que ela está no `<nav>`: um filete que se desenhasse
-     * só na aba activa mudaria de comprimento a cada clique, e a página inteira pareceria tremer. */
-    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:flex-end;gap:.2rem;' +
-    'margin:.2rem 0 0;padding:0 0 0 .15rem;border-bottom:1px solid var(--borda-campo);}' +
-    '.aba{display:inline-flex;align-items:center;gap:.4rem;margin:0 0 -1px;padding:.5rem .9rem;' +
-    'background:transparent;border:1px solid transparent;border-radius:var(--raio-1) var(--raio-1) 0 0;' +
-    'color:var(--texto-suave);font:600 .92rem/1.3 var(--ui);cursor:pointer;}' +
-    '.aba:hover{background:var(--fundo-hover);color:var(--marca-texto);}' +
-    '.aba[aria-selected="true"]{background:var(--superficie);border-color:var(--borda-campo);' +
-    'border-bottom-color:var(--superficie);color:var(--marca);}' +
-    '.aba:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
-    /* A ABA QUE AINDA NÃO PODE ABRIR (15/11/2026) — «as abas recorte e transferência não podem
-       estar habilitadas enquanto não existir um elenco gravado». A tinta é a do estado inerte
-       que a folha já usa nos botões desligados; o que ela NÃO faz é desaparecer com a aba: o
-       professor tem de poder ler que ela existe e por que espera, e o `title` diz o porquê. */
-    '.aba[disabled]{color:var(--texto-tenue, var(--texto-suave));opacity:.55;cursor:default;' +
-    'background:transparent;}' +
-    '.aba[disabled]:hover{background:transparent;color:var(--texto-tenue, var(--texto-suave));}' +
-    /* O PAINEL DA ABA. Sem desenho próprio: quem desenha é o conteúdo lá dentro (o formulário, a
-       `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
-       `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba 1 traz. */
-    '.aba-painel{min-width:0;}' +
+     * O DESENHO DESTAS ABAS SUBIU PARA A FOLHA a 16/11/2026, quando o financeiro e a secção «A
+     * escola» passaram a usá-las: uma peça com três consumidores não vive no `<style>` de um deles.
+     * O que fica aqui é só o que é DESTA página, e é uma linha: a faixa dos passos é `display:flex`,
+     * e uma regra de autor vence o `display:none` do atributo `hidden` — a `.turmas-faixa[hidden]`
+     * evita a armadilha que a `.passos[hidden]` já pagou em 01/11/2026.
+     */
     /* A FAIXA DOS PASSOS SÓ VIVE NA ABA 1, e o `hidden` precisa da regra própria: `.turmas-faixa`
        é `display:flex`, e uma regra de autor vence o `display:none` do atributo — é a mesma
        armadilha que a `.passos[hidden]` já pagou em 01/11/2026. */
@@ -4976,8 +4985,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.turmas-corpo[data-abas="sim"]{row-gap:.7rem;}' +
     /* AS DUAS PÍLULAS DE «ABAS» DO TELEMÓVEL (16/11/2026). Uma por grupo — a Audição e os
      * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
-    '#lb-abas-folha,#pf-abas-folha{grid-column:1/-1;display:none;}' +
-    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha{display:block;margin:0;}}' +
+    '#lb-abas-folha,#pf-abas-folha,#es-abas-folha{grid-column:1/-1;display:none;}' +
+    '@media (max-width:560px){.abas{display:none;}#lb-abas-folha,#pf-abas-folha,#es-abas-folha{display:block;margin:0;}}' +
     /* RECOLHIDA, A SECÇÃO NÃO OFERECE ABAS DE UM FORMULÁRIO QUE NÃO ESTÁ À VISTA
        (09/11/2026). O recolhedor esconde o `.col-form` — e com ele os três painéis. Uma tira
        que troca de painel invisível é navegação para nenhum sítio, e o mesmo vale para a
@@ -8689,6 +8698,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * está, e não por um prefixo no atributo. */
     'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
     'var ABAS_DO_PROFESSOR = ["cadastro", "habilitacoes", "desligamento"];' +
+    /* AS TRÊS ABAS DE «A ESCOLA» (16/11/2026). «O que a gente vai fazer é organizar isso daqui do
+     * jeito que você fez em abas.» O cadastro, o contrato com o pagamento, e o gesto de pagar —
+     * três trabalhos de naturezas diferentes que estavam empilhados na mesma coluna. */
+    'var ABAS_DA_ESCOLA = ["cadastro", "contrato", "pagar"];' +
     /* A ABA QUE AINDA NÃO PODE ABRIR NÃO ABRE (15/11/2026) — a regra é do grupo, e a guarda fica
      * no motor, no sítio por onde passam as três portas (a tira, a folha e o teclado). O
      * `disabled` do HTML é o que a pessoa vê; a guarda é o que impede que um caminho novo se
@@ -8715,6 +8728,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: ""' +
     '});' +
     'function abrirAbaDoProfessor(n) { MOTOR_DO_PROFESSOR.abrir(String(n)); }' +
+    /* O GRUPO DA ESCOLA — três abas que abrem sempre, e nenhuma depende de outra. */
+    'var MOTOR_DA_ESCOLA = motorDeAbas({' +
+    '  nomes: ABAS_DA_ESCOLA, nav: "es-abas", prefixoAba: "es-aba-", prefixoPainel: "es-painel-",' +
+    '  menu: "es-abas-menu", botao: "es-abas-botao", veu: "es-abas-veu", fraseSem: ""' +
+    '});' +
+    'function abrirAbaDaEscola(n) { MOTOR_DA_ESCOLA.abrir(String(n)); }' +
     /* A ABA DO PROFESSOR PODE SER PEDIDA DE FORA — é o que faz o «Editar» de uma linha levar à
      * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
      * `data-aba-do-professor` no botão que o pede. */
@@ -8724,7 +8743,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (alvo) {' +
     '    var grupo = alvo.closest("[data-abas]");' +
     '    var nome = alvo.getAttribute("data-aba");' +
-    '    if (grupo && grupo.getAttribute("data-abas") === "professor") abrirAbaDoProfessor(nome);' +
+    '    var qual = grupo && grupo.getAttribute("data-abas");' +
+    '    if (qual === "professor") abrirAbaDoProfessor(nome);' +
+    '    else if (qual === "escola") abrirAbaDaEscola(nome);' +
     '    else abrirAbaDaAudicao(nome);' +
     '    return;' +
     '  }' +

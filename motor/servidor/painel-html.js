@@ -1348,8 +1348,25 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
 
   const cartaoDaConta = (c) => {
     const meses = Array.isArray(c.meses) ? c.meses : [];
+    /* A ESCOLA ESTÁ HABILITADA? (16/11/2026). «Você vai colocar aqui mais uma coluna que é para
+     * saber se a escola está habilitada ou não. Ela tem uma relação direta com as escolas vivas: se
+     * eu desabilitar lá, aqui no financeiro tem que mostrar que está desabilitado.»
+     *
+     * O ESTADO É O MESMO — `bastidores/<escola>/comercial`, lido pela mesma `lerComercial` que a
+     * lista das vivas usa. Uma segunda fonte para «está habilitada?» seria uma segunda resposta à
+     * mesma pergunta, e a que sobra é sempre a que se lê primeiro.
+     *
+     * A coluna repete-se em cada linha, e não só na primeira: a linha é lida sozinha («o mês de
+     * outubro está pago, e a escola estava habilitada»), e uma célula em branco nas linhas de baixo
+     * obrigaria a subir o olho para saber de que escola se trata. */
+    const seloDaEscola = c.estadoComercial === 'ativa'
+      ? '<span class="selo ok">habilitada</span>'
+      : (c.estadoComercial === 'suspensa'
+        ? '<span class="selo falha">desabilitada</span>'
+        : '<span class="selo discreto">a aguardar</span>');
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
       '<td><strong>' + esc(m.nome || m.mes) + '</strong></td>' +
+      '<td>' + seloDaEscola + '</td>' +
       '<td>' + esc(m.vencimento || '—') + '</td>' +
       '<td>' + (m.valorPagoCentavos != null
         ? 'R$ ' + emReais(m.valorPagoCentavos)
@@ -1365,12 +1382,26 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       '</tr>').join('');
 
     const corpoDaTabela = linhas
-      ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Vencimento</th><th>Valor</th>' +
-        '<th>Situação</th><th>Pago / ação</th></tr></thead><tbody>' + linhas + '</tbody></table></div>'
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Escola</th>' +
+        '<th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pago / ação</th>' +
+        '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
       : '<p class="aviso">Ainda não há mensalidade a cobrar desta escola — a contagem começa ' +
         'quando ela é criada. Uma lista vazia quer dizer isso, e não que a leitura falhou.</p>';
 
     const capacidade = c.capacidade || {};
+    /* «+3 professor(es) (R$ 50,00) e +30 aluna(s) (R$ 50,00)» — a frase é montada a partir do que o
+     * núcleo calculou, e não de uma diferença feita aqui: os lotes vêm com o preço da tabela, e uma
+     * segunda conta diria outro número. */
+    const partes = [];
+    const e = c.extra || null;
+    for (const [eixo, rotulo] of [['professores', 'professor(es)'], ['alunos', 'aluna(s)']]) {
+      const q = e && e[eixo];
+      if (!q) continue;
+      const precos = (q.lotes || []).map((l) => l.preco).filter((v) => v != null);
+      const soma = precos.reduce((s, v) => s + (Math.round(Number(v) * 100) / 100), 0);
+      partes.push('+' + q.qtd + ' ' + rotulo + (soma ? ' (R$ ' + emReais(Math.round(soma * 100)) + ')' : ''));
+    }
+    const extraDaCapacidade = partes.length ? partes.join(' e ') : '';
     return '<div class="caixa" data-conta="' + esc(c.escola) + '">' +
       '<h2>' + esc(c.nome || c.escola) + ' <span class="dono">(' + esc(c.escola) + ')</span></h2>' +
       '<p>' + esc(c.frase || '') + '</p>' +
@@ -1379,6 +1410,10 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
       '<span>Capacidade: ' + esc(String(capacidade.professores == null ? '—' : capacidade.professores))
         + ' professor(es) · ' + esc(String(capacidade.alunos == null ? '—' : capacidade.alunos)) + ' aluna(s)</span>' +
+      /* A CAPACIDADE A MAIS, ABERTA (16/11/2026). «Está dizendo que foi contratado o avançado, mas
+       * não diz para mim qual é a capacidade extra contratada.» O total não responde à pergunta: o
+       * que ela quer saber é QUANTOS a mais, e quanto custam. */
+      (extraDaCapacidade ? '<span>Além do plano: ' + esc(extraDaCapacidade) + '</span>' : '') +
       (c.proximoVencimento
         ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
           + (c.diasParaVencer != null
@@ -1416,16 +1451,84 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         '<p>Uma escola aparece aqui assim que existir. Uma lista vazia quer dizer que nenhuma ' +
         'existe, não que a leitura falhou.</p></div>');
 
+  /* TRÊS ABAS, CADA ASSUNTO NA SUA (16/11/2026).
+   *
+   * «Aqui também você vai organizar em abas […] considera um desconto, é aba. A parte da mensalidade
+   * e escola por escola, aqui você vai colocar também isto em abas […] Essa chave de receber o
+   * pagamento você também vai colocar numa aba. Então cada um desses vai viver em uma aba.»
+   *
+   * A ORDEM É A DO TRABALHO: primeiro as mensalidades (é o que se abre todos os meses, e é a
+   * pergunta «quem está em dia?»), depois a chave — que se configura raramente —, e por último os
+   * descontos, que são a excepção. A aba que abre é a primeira, e é a que ela vai querer ver.
+   *
+   * A TIRA É A MESMA PEÇA dos Professores, da Audição e de «A escola» — `.abas`/`.aba`, na folha.
+   * O motor é desta página (`SCRIPT_DAS_ABAS`), e o contrato com a folha são as marcas:
+   * `role="tab"`, `aria-selected` e o painel `hidden`. */
+  const abas = [['mensalidades', 'Mensalidades'], ['chave', 'A chave Pix'],
+    ['descontos', 'Os descontos']];
+  const tira = '<nav class="abas" role="tablist" aria-label="Financeiro — seções" id="fi-abas">' +
+    abas.map(([n, titulo], i) => '<button type="button" class="aba" role="tab" id="fi-aba-' + n + '" ' +
+      'data-aba="' + n + '" aria-controls="fi-painel-' + n + '" ' +
+      'aria-selected="' + (i === 0 ? 'true' : 'false') + '" tabindex="' + (i === 0 ? '0' : '-1') + '">' +
+      esc(titulo) + '</button>').join('') +
+    '</nav>';
+  const painel = (n, corpo, primeiro) => '<div class="aba-painel" id="fi-painel-' + n + '" ' +
+    'role="tabpanel" aria-labelledby="fi-aba-' + n + '" tabindex="0"' + (primeiro ? '' : ' hidden') + '>' +
+    corpo + '</div>';
+
   return pagina({
     titulo: 'Financeiro',
     subtitulo: 'A chave que recebe os pagamentos, as mensalidades de cada escola e os descontos ' +
       'concedidos. A conciliação é manual: o pagamento entra nesta conta e é conferido à mão.',
     atual: 'financeiro',
-    corpo: blocoDaChave + blocoDasContas + blocoDoDesconto + tabela +
-      SCRIPT_DO_FINANCEIRO +
+    corpo: tira +
+      painel('mensalidades', blocoDasContas, true) +
+      painel('chave', blocoDaChave, false) +
+      painel('descontos', blocoDoDesconto + tabela, false) +
+      SCRIPT_DAS_ABAS + SCRIPT_DO_FINANCEIRO +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
+
+/**
+ * O MOTOR DAS ABAS DO PAINEL — o mesmo contrato da Produção, em duas dúzias de linhas.
+ *
+ * O `motorDeAbas` da Produção (em `bastidores.js`) tem a folha do telemóvel, o teclado e o
+ * `pode(n)`; aqui não há nada disso — o painel é uma página de trabalho no computador, com três
+ * abas que abrem sempre. Copiar aquele motor inteiro seria trazer três funcionalidades que esta
+ * página não usa; escrever um segundo motor com outras marcas seria o defeito que a peça na folha
+ * existe para impedir. O que é comum — e é o que importa — são as MARCAS, e são as mesmas:
+ * `aria-selected` na aba, `hidden` no painel.
+ */
+const SCRIPT_DAS_ABAS = '<script>(function(){' +
+  'var tira=document.getElementById("fi-abas");if(!tira)return;' +
+  'var abas=tira.querySelectorAll("[data-aba]");' +
+  'function abrir(nome){' +
+  '  for(var i=0;i<abas.length;i++){' +
+  '    var b=abas[i],k=b.getAttribute("data-aba"),eu=k===nome;' +
+  '    b.setAttribute("aria-selected",eu?"true":"false");' +
+  '    b.setAttribute("tabindex",eu?"0":"-1");' +
+  '    var p=document.getElementById("fi-painel-"+k);' +
+  '    if(p)p.hidden=!eu;}' +
+  '}' +
+  'tira.addEventListener("click",function(e){' +
+  '  var b=e.target.closest?e.target.closest("[data-aba]"):null;' +
+  '  if(!b||!tira.contains(b))return;abrir(b.getAttribute("data-aba"));' +
+  '});' +
+  /* O TECLADO — `role="tablist"` promete-o. Sem isto, quem usa leitor de ecrã confia numa promessa
+   * que não existe; é a mesma regra da Produção. */
+  'tira.addEventListener("keydown",function(e){' +
+  '  var i=-1;for(var k=0;k<abas.length;k++){if(abas[k]===document.activeElement)i=k;}' +
+  '  if(i<0)return;' +
+  '  var n=i;' +
+  '  if(e.key==="ArrowRight")n=(i+1)%abas.length;' +
+  '  else if(e.key==="ArrowLeft")n=(i-1+abas.length)%abas.length;' +
+  '  else if(e.key==="Home")n=0;' +
+  '  else if(e.key==="End")n=abas.length-1;' +
+  '  else return;' +
+  '  e.preventDefault();abrir(abas[n].getAttribute("data-aba"));abas[n].focus();' +
+  '});' +
+  '})();</script>';
 
 /**
  * O JAVASCRIPT DO FINANCEIRO.
