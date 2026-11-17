@@ -2,20 +2,22 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-11-17",
-    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
-      "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "cd5006ddabba8c7e60a0f31abdb709d6412b3f504451d0f557084132b8d7e223",
-    "hash_conteudo": "f924dd09df9d488b40d0bcd2432b096ed6b70689d664d5c3ba46857a2efafbf0",
-    "id": "ciclo-01-breu",
+    "hash": "4bef5455e501ba5eff234eba6fce24d84c6e9ce7da419ffa45567316debbf2cc",
+    "hash_conteudo": "5b060b8f7f3ad0a1a1e2dc046fea3a2ae369dcb55ee26c39e0a8883e584753f3",
+    "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
