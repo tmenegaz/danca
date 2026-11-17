@@ -304,6 +304,27 @@ function conferir(titulo, condicao, dado) {
       r3.ok === false && /não diz para que visibilidade/.test(r3.motivo), r3.motivo);
   }
 
+  console.log('\nA5. O estado da visibilidade não pode ser servido de uma cache velha');
+  {
+    /* MEDIDO AO VIVO NO PRIMEIRO MINUTO (17/11/2026): o repositório foi tornado público à mão no
+     * GitHub e o painel continuou a dizer «está privado», porque a cache de UMA HORA — a da factura
+     * — guardava a leitura anterior. Um painel que mostra o estado antigo da única coisa que ele
+     * próprio muda é pior do que não mostrar estado nenhum.
+     *
+     * A correcção é a visibilidade ter cache PRÓPRIA e curta (5 minutos), e não a da factura. O
+     * dinheiro não muda de minuto a minuto; a visibilidade muda com um clique. */
+    const fonte = fs.readFileSync(path.join(RAIZ, 'motor/servidor/raiz.js'), 'utf8');
+    conferir('a visibilidade tem carimbo próprio (`visibilidadeEm`), e não o da factura',
+      /cache\.visibilidadeEm/.test(fonte) && /visibilidadeVelha/.test(fonte), null);
+    conferir('…e a janela dela é de cinco minutos, não de uma hora',
+      /5 \* 60 \* 1000/.test(fonte), null);
+    /* E O CÂMBIO DECLARADO: sem ele a coluna «Da receita» fica sempre vazia, e a decisão de
+     * contratar existe sem a conta que a informa. */
+    const wr = fs.readFileSync(path.join(RAIZ, 'wrangler.danca.jsonc'), 'utf8');
+    conferir('o câmbio está declarado no Worker — sem ele não há percentagem da receita',
+      /"CAMBIO_USD_BRL"\s*:/.test(wr), null);
+  }
+
   console.log('\nB. As duas cotas do Resend — e a que aperta primeiro');
   {
     const c = monitor.resumirCorreio({

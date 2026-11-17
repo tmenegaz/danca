@@ -49306,3 +49306,25 @@ cabeçalho do próprio GitHub», «…e um pedido sem visibilidade é RECUSADO, 
 valor». Mais `provar-financeiro-da-escola` 90/90 · `provar-cadastro-do-professor` 49/49 ·
 `provar-abas` 28/28 · `provar-piso` 34/34 · `provar-publicacao-da-escola` 73/73 ·
 `gerar-indices --check` 6 em dia · `check-identidade` 0 erros.
+
+### Nota de correcção, no mesmo dia — o painel dizia «privado» com o repositório público
+
+A primeira leitura ao vivo da aba da migração mostrou **«está privado»** — e o repositório estava
+público desde minutos antes. A causa: a visibilidade era lida na **mesma cache de uma hora da
+factura**, e essa cache guardava a leitura anterior. **Um painel que mostra o estado antigo da única
+coisa que ele próprio muda é pior do que não mostrar estado nenhum** — e é exactamente o defeito que
+esta série de correcções vem perseguindo.
+
+A visibilidade passou a ter **carimbo próprio e janela de cinco minutos**. O dinheiro não muda de
+minuto a minuto (a factura fica na hora); a visibilidade muda com um clique, e é isso que se está a
+olhar. Dentro da janela não há pedido nenhum, e a leitura é **um** subpedido.
+
+**E a coluna «Da receita» estava sempre vazia, por uma razão diferente:** o `CAMBIO_USD_BRL` **nunca
+foi declarado** no Worker. A aba traduzia o custo em percentagem da receita e não tinha como — dizia
+«sem câmbio declarado» a quem pediu precisamente essa comparação. Declarado em
+`wrangler.danca.jsonc` (5,40), à mão e de propósito: buscar a cotação seria uma dependência externa
+que falha em silêncio e muda o número sem ninguém saber. O preço é que o valor envelhece, e o painel
+di-lo.
+
+**`provar-monitoramento` 90/90**, com as três asserções novas: a visibilidade tem carimbo próprio, a
+janela dela é de cinco minutos, e o câmbio está declarado. Mais `check-identidade` 0 erros.

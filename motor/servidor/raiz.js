@@ -3602,7 +3602,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       let cache = {
         medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
         conferencia: null, conferenciaEm: null, facturado: null, facturadoEm: null,
-        visibilidade: null,
+        visibilidade: null, visibilidadeEm: null,
       };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
@@ -3715,10 +3715,22 @@ async function extratoDasEscolas({ env, escolas, agora }) {
        * ou mostra uma conta a pagar sobre minutos que o fornecedor não cobra.
        *
        * Mesma cache da factura (1 hora): é um pedido, e não vale a pena repeti-lo a cada abertura. */
+      /* A VISIBILIDADE TEM CACHE PRÓPRIA, E CURTA (17/11/2026) — cinco minutos, e não a hora da
+       * factura. Medido ao vivo no primeiro minuto: o repositório foi tornado público à mão no
+       * GitHub e o painel continuou a dizer «está privado», porque a cache de uma hora guardava a
+       * leitura anterior. Um painel que mostra o estado ANTIGO da única coisa que ele próprio muda
+       * é pior do que não mostrar estado nenhum.
+       *
+       * Cinco minutos não gastam subpedidos: dentro da janela não há pedido nenhum, e a leitura é
+       * UM pedido. A factura fica na hora porque o dinheiro não muda de minuto a minuto; a
+       * visibilidade muda com um clique, e é isso que se está a olhar. */
       let visibilidade = cache.visibilidade || null;
-      if (facturaVelha || !cache.visibilidade) {
+      const visibilidadeVelha = !cache.visibilidadeEm ||
+        (Date.now() - Date.parse(cache.visibilidadeEm)) > 5 * 60 * 1000;
+      if (visibilidadeVelha) {
         visibilidade = await leituraDoMonitor.visibilidadeDoRepo({ token, dono: DONO, repo: REPO });
         cache.visibilidade = visibilidade;
+        cache.visibilidadeEm = agoraIso;
       }
 
       const github = monitoramento.resumirGithub({
@@ -3779,6 +3791,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
             conferencia: cache.conferencia || null, conferenciaEm: cache.conferenciaEm || null,
             facturado: cache.facturado || null, facturadoEm: cache.facturadoEm || null,
             visibilidade: cache.visibilidade || null,
+            visibilidadeEm: cache.visibilidadeEm || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }

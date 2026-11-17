@@ -68,7 +68,18 @@
     // (Resend) para este endereço poder enviar. O TOKEN NÃO ESTÁ AQUI: é o secret
     // `RESEND_API_KEY` (`npx wrangler secret put RESEND_API_KEY --config wrangler.danca.jsonc`).
     // Sem ele o sistema não finge que enviou — compõe, guarda a mensagem e di-lo na tela.
-    "CORREIO_DE": "Sistema Lastro <lastro@padd.com.br>"
+    "CORREIO_DE": "Sistema Lastro <lastro@padd.com.br>",
+
+    // O CÂMBIO DECLARADO (17/11/2026). A aba «A migração» do monitoramento traduz cada degrau de
+    // custo em percentagem da receita — e a receita está em real, o custo em dólar. Sem esta `var`
+    // o painel dizia «sem câmbio declarado» e a coluna «Da receita» ficava sempre vazia: a decisão
+    // de contratar existia, a conta que a informa não.
+    //
+    // É DECLARADO À MÃO, E DE PROPÓSITO. Buscar a cotação seria uma dependência externa que falha
+    // em silêncio e muda o número sem ninguém saber — o mesmo raciocínio do `CAMBIO_USD_BRL` em
+    // `motor/servidor/raiz.js`. O preço disto é que o valor ENVELHECE: quem o lê no painel sabe
+    // que é um número declarado numa data, e não uma cotação de agora.
+    "CAMBIO_USD_BRL": "5.40"
 
     // A CHAVE PIX DO PAGAMENTO (25/11/2026). A decisão dela: «a gente vai colocar ali a minha
     // chave Pix e o pagamento direto para a minha conta. Bateu na minha conta, eu verifico e aí
