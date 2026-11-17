@@ -49026,3 +49026,32 @@ já andaram», «…e sem a fatura, a página diz que o número é a REGRA, e n�
 permissão nomeada), «…e o ecrã mostra a projecção, com o excedente em minutos e em dólar». Mais
 `provar-financeiro-da-escola` 90/90 · `provar-abas` 28/28 · `provar-piso` 34/34 ·
 `check-identidade` 0 erros.
+
+## 17/11/2026 — o segredo do Worker tinha expirado, e isso derrubou o monitor
+
+**Quarta nota do mesmo dia, e é operacional.** Depois de o painel passar a medir pela fatura, a rota
+`/api/monitoramento` começou a responder **500**:
+
+> `não foi possível ler o monitoramento: não li indices/acervo.json: Bad credentials`
+
+`Bad credentials` é 401 do GitHub, e não é cota (a cota responde 403 com outra frase). O token do
+`.dev.vars` continuava bom — verificado à mão, `/user` e `contents/indices/acervo.json` a 200. Logo,
+o segredo `GITHUB_TOKEN` **do Worker** era outro valor, e esse tinha deixado de valer: expirou ou foi
+revogado. O sintoma é o pior tipo — o monitor inteiro cai com uma frase sobre outro ficheiro
+(`acervo.json`), que não tem nada a ver com o que se estava a ler.
+
+**O que se fez.** Reposto o segredo com o token válido (`wrangler secret put GITHUB_TOKEN
+-c wrangler.danca.jsonc`), e o painel voltou: **1.851 execuções** no ciclo de Novembro, regra a
+2.312 min, projecção de 4.080 min para o fim do mês.
+
+**O que fica declarado, porque vai voltar a acontecer.** O token em uso **expira a 17/12/2026**
+(cabeçalho `github-authentication-token-expiration` da própria API). Nessa data o Worker volta a
+responder 500 exactamente com esta frase, e a leitura é a de hoje: repor o segredo com um token
+novo. Duas saídas, e a escolha é da proprietária: emitir o token **sem expiração** (menos seguro,
+menos surpresas) ou manter a expiração e **anotar a data** — de preferência onde se vê, não num
+comentário. Enquanto isso não for decidido, esta nota é o aviso.
+
+**Onde entrou.** Nada de código: `wrangler secret put` no Worker `danca` (`wrangler.danca.jsonc`).
+
+**Com o quê.** `curl` em `/api/monitoramento` → 200, com o retrato completo · `provar-monitoramento`
+61/61 · `check-identidade` 0 erros.
