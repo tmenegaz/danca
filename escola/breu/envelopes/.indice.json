@@ -2,7 +2,8 @@
   "versao": 4,
   "nomes": [
     "anamnese-20261116-2201.json",
-    "plano-20261116-2227.json"
+    "plano-20261116-2227.json",
+    "po-20261116-2230.json"
   ],
   "resumos": {
     "anamnese-20261116-2201.json": {
@@ -30,6 +31,23 @@
         "Plié"
       ],
       "professorNome": "demi-plie"
+    },
+    "po-20261116-2230.json": {
+      "id": "po-20261116-2230",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-16T22:30",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261116-2227"
+      ]
     }
   }
 }
