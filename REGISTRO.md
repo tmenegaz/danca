@@ -50327,3 +50327,13 @@ as extensões e a C25 declaradas **não decididas** · `experimentos/provar-o-cu
 (a minha) e R$ 0,30 (três cêntimos abaixo da fronteira) ficam **abaixo** da aula do Intermediário.
 Abaixo das 160 aulas o Básico com extensões desembolsa **menos** do que o Intermediário; acima,
 **mais** — e é o segundo que faz a escola migrar.
+
+**O duplicado foi apagado, e o confronto está registado.** A cópia que a proprietária mantinha em
+`tools/PLANEJAMENTO-LASTRO-atualizado.md` (324 KB, 3.781 linhas, nunca versionada) **já não é a
+expressão da verdade** — nas palavras dela, «pelo momento que eu mexi já não é mais» — e foi
+**apagada** depois de confrontada com o canónico. O confronto, medido e não presumido: **434 dos 436
+parágrafos** do duplicado estão **literais** no `PLANEJAMENTO-LASTRO.md`; os **dois** que não estão são
+os que esta rodada acrescentou (a linha das contradições, com **C24** e **C25**, e o bullet do §9 sobre
+o preço das extensões), e **um a um** os seus parágrafos contêm **todas** as linhas do duplicado —
+**nenhuma linha dele ficou de fora**. O **§ADITIVO COMERCIAL** está no canónico **verbatim** (174
+linhas; a única diferença é a linha em branco de fecho), com as **oito** secções. Nada se perdeu.
