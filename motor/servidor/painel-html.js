@@ -2225,7 +2225,10 @@ function blocoDaMigracao(m, visibilidade, recado) {
       ? '<p class="aviso" id="mo-recado">Feito: o repositório está agora <strong>' +
         (recado.mudou === 'publico' ? 'público' : esc(recado.mudou)) +
         '</strong>. O painel já lê o estado novo.</p>'
-      : '<p class="aviso" id="mo-recado"><strong>Não foi feito.</strong> ' + esc(recado.falhou) +
+      /* O MOTIVO VEM EM MINÚSCULA DO SERVIDOR — é uma frase dentro de outra, e a maiúscula é daqui.
+       * Um «Não foi feito. o token não pode…» é o tipo de detalhe que faz duvidar do resto. */
+      : '<p class="aviso" id="mo-recado"><strong>Não foi feito.</strong> ' +
+        esc(String(recado.falhou || '').replace(/^./, (c) => c.toUpperCase())) +
         '. Nada mudou no repositório.</p>')
     : '';
   return '<div class="caixa" id="monitor-migracao">' +

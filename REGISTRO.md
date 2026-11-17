@@ -49328,3 +49328,23 @@ di-lo.
 
 **`provar-monitoramento` 90/90**, com as três asserções novas: a visibilidade tem carimbo próprio, a
 janela dela é de cinco minutos, e o câmbio está declarado. Mais `check-identidade` 0 erros.
+
+### E a rota foi ensaiada contra o servidor a sério, não só em fixture
+
+O POST de `/monitoramento/visibilidade` foi testado ao vivo, e cada guarda respondeu o que devia:
+
+| ensaio | resultado |
+|:--|:--|
+| sem `confirmado` | **303** → `falhou=falta a confirmação`; o GitHub **não** foi chamado |
+| sem `publico` | **303** → `falhou=pedido sem visibilidade` |
+| com `Origin` de outro sítio | **403**, sem corpo — a defesa contra CSRF a funcionar |
+| pedido completo | **303** → «o token não pode mudar a visibilidade — falta a permissão `administration=write`», e o repositório **continuou público** |
+
+O último é o que importa: o botão tentou, o GitHub recusou, a página disse que recusou **e nada
+mudou**. E o motivo que ela lê é o que o GitHub escreve no cabeçalho
+`x-accepted-github-permissions` — não uma frase genérica. Um «não foi possível» sem o que corrigir
+obriga a adivinhar; este diz exactamente a permissão que falta.
+
+**Um detalhe tipográfico corrigido no mesmo passo:** o recado lia «Não foi feito. **o** token não
+pode…». O motivo vem em minúscula do servidor, porque é uma frase dentro de outra; a maiúscula é do
+ecrã. `provar-monitoramento` **90/90**.
