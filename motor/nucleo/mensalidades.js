@@ -205,6 +205,44 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
  * `minutosPorPeriodo` que não seja um número positivo) esta função devolve a hora real, e a
  * cobrança é mensal como sempre foi. É a única forma de isto não poder tocar numa escola a sério.
  */
+/**
+ * O MÊS EM QUE O ENSAIO COMEÇA — o primeiro que NÃO está pago (17/11/2026).
+ *
+ * «AGORA ESTÁ VINDO TUDO COMO PAGO JÁ. Tem que vir como aberto para eu testar a funcionalidade, se
+ * está pagando, se não está pagando. […] Se chegar tudo pago, não tem como eu fazer o teste.»
+ *
+ * A CAUSA ERA ARITMÉTICA, e não de desenho: a base do relógio era o instante em que se ligava, e
+ * nos primeiros minutos o «hoje» comprimido dá o MÊS DA BASE — o mês corrente, precisamente o que
+ * já está pago. Durante dez minutos o ensaio mostrava exactamente o que o relógio real mostrava, e
+ * ela não tinha um mês em aberto para conciliar. O ensaio existia e não servia para o que foi
+ * pedido.
+ *
+ * A REGRA: o ensaio começa no mês SEGUINTE AO ÚLTIMO PAGO. Assim, no instante em que se liga há um
+ * mês em aberto para pagar — o que torna o ensaio utilizável a partir do primeiro segundo —, e cada
+ * período que passa acrescenta outro, que é a listagem que ela quer ver crescer.
+ *
+ * PORQUE O SEGUINTE AO ÚLTIMO PAGO, e não «hoje»: uma escola que pagou até janeiro tem de começar o
+ * ensaio em fevereiro, e não em novembro. O que interessa não é a data de hoje, é onde o DINHEIRO
+ * parou — e é isso que o livro diz.
+ *
+ * Sem nada pago, o mês inicial é o da adesão: é o primeiro mês que existe, e já nasce em aberto como
+ * nasceria a sério. Sem adesão datada, o mês corrente.
+ */
+function mesInicialDoEnsaio({ escola, contrato, livro } = {}) {
+  const slug = String(escola || '').trim();
+  const c = contrato || {};
+  const inicio = c.criadoEm || c.habilitadaEm || null;
+  const pagos = (Array.isArray(livro) ? livro : [])
+    .filter((l) => l && l.escola === slug && l.mes && l.status === 'pago'
+      && partesDaCompetencia(l.mes))
+    .map((l) => String(l.mes))
+    .sort();
+  if (!pagos.length) {
+    return inicio ? competencia(inicio) : competencia(new Date().toISOString());
+  }
+  return somarMeses(pagos[pagos.length - 1], 1);
+}
+
 function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
   const real = agora instanceof Date ? agora : new Date(agora || Date.now());
   const minutos = Number(ensaio && ensaio.minutosPorPeriodo);
@@ -218,7 +256,13 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
 
   const baseIso = base.toISOString();
   const periodos = Math.floor((real.getTime() - base.getTime()) / (minutos * 60000));
-  const mes = somarMeses(competencia(baseIso), periodos);
+  /* DE QUE MÊS PARTE A CONTAGEM (17/11/2026). Com `mesInicial` — o que a rota grava hoje —, conta-se
+   * a partir do primeiro mês SEM PAGAMENTO, e o relógio nasce com um mês em aberto à frente. Sem ele
+   * (um registo gravado antes desta regra), conta-se do mês da base, que era o comportamento antigo.
+   * Um registo antigo não pode passar a dar erro por lhe faltar um campo novo. */
+  const partida = (ensaio && partesDaCompetencia(ensaio.mesInicial))
+    ? String(ensaio.mesInicial) : competencia(baseIso);
+  const mes = somarMeses(partida, periodos);
   const vencimento = vencimentoDe(mes, diaDaAdesao(baseIso));
   if (!vencimento) return real;
   const deslocado = new Date(vencimento + 'T12:00:00Z');
@@ -517,6 +561,7 @@ module.exports = {
   registarPagamento,
   situacaoDaEscola,
   instanteDoEnsaio,
+  mesInicialDoEnsaio,
   mudancaDePlano,
   extraDoContrato,
   fraseDaSituacao,

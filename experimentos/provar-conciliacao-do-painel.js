@@ -308,6 +308,18 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
     conferir('…e diz de quanto está ligado, em vez de o deixar adivinhar',
       /10 min/.test(ligado), null);
 
+    /* A ROTA GRAVA O MÊS DE PARTIDA — o primeiro sem pagamento. É o que faz o ensaio servir no
+     * primeiro segundo, em vez de mostrar o mês já pago durante dez minutos. */
+    const ligou = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'breu', minutosPorPeriodo: 10 }),
+    }), env);
+    const corpoLigou = await ligou.json();
+    conferir('a rota grava o MÊS DE PARTIDA: o seguinte ao último pago (novembro → dezembro)',
+      corpoLigou.ok === true && corpoLigou.ensaio
+        && corpoLigou.ensaio.mesInicial === '2026-12', corpoLigou.ensaio);
+
     /* A ROTA: ligar grava a chave com a base de agora; desligar apaga-a. */
     const antes = Array.from(Object.keys(env.PADD_KV._guardado));
     const ligar = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/ensaio', {

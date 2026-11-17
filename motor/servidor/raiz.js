@@ -4090,8 +4090,23 @@ async function fetch(request, env) {
     }
     /* A BASE É O INSTANTE DE AGORA — a lição que o ensaio de ontem ensinou: com a base na adesão,
      * dezasseis horas a três minutos por período davam trinta e três anos de competências de uma
-     * vez. O primeiro período é o mês de hoje, e cada bloco acrescenta um mês a partir dele. */
-    const valor = { minutosPorPeriodo: minutos, base: new Date().toISOString() };
+     * vez. Cada bloco de minutos acrescenta um mês a partir daqui.
+     *
+     * E O MÊS DE PARTIDA É O PRIMEIRO SEM PAGAMENTO (17/11/2026). «Está vindo tudo como pago já. Tem
+     * que vir como aberto para eu testar.» Com a contagem a partir do mês da base, o ensaio mostrava
+     * o mês corrente — que é o que já está pago — durante os primeiros dez minutos, e não havia nada
+     * para conciliar. Agora o relógio nasce um mês à frente do último pago, e há o que testar no
+     * primeiro segundo.
+     *
+     * O LIVRO É LIDO AQUI, uma vez, e não no cliente: quem sabe onde o dinheiro parou é ele. */
+    let livro = [];
+    try { livro = await mensalidades.lerLivro(kv); } catch (erro) { livro = []; }
+    const mesInicial = mensalidades.mesInicialDoEnsaio({ escola: slug, contrato, livro });
+    const valor = {
+      minutosPorPeriodo: minutos,
+      base: new Date().toISOString(),
+      mesInicial,
+    };
     try { await kv.put(chave, JSON.stringify(valor)); } catch (erro) {
       return responderJson({ ok: false, erro: 'não consegui guardar o ensaio' }, 500);
     }

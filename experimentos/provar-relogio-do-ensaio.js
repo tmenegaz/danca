@@ -120,6 +120,99 @@ console.log('\n3. Desligado é desligado — a cobrança mensal de sempre');
     semContrato.getTime() === BASE, semContrato.toISOString());
 }
 
+console.log('\n3b. O ensaio começa no mês que NÃO está pago — senão não há o que testar');
+{
+  /* «AGORA ESTÁ VINDO TUDO COMO PAGO JÁ. Tem que vir como aberto para eu testar a funcionalidade,
+   * se está pagando, se não está pagando.»
+   *
+   * A CAUSA, e é aritmética: a base do relógio era o instante em que se ligava, e nos primeiros dez
+   * minutos o «hoje» comprimido dá o MÊS DA BASE — que é o mês corrente, precisamente o que já está
+   * pago no livro. Durante dez minutos o ensaio mostrava o mesmo que o relógio real, e ela não tinha
+   * um mês em aberto para conciliar. O ensaio existia e não servia para o que foi pedido.
+   *
+   * A REGRA NOVA: o ensaio começa no PRIMEIRO MÊS SEM PAGAMENTO — o mês seguinte ao último pago.
+   * Assim, no instante em que se liga, há um mês em aberto para pagar; dez minutos depois há outro,
+   * e é isso que produz a listagem que ela quer ver.
+   */
+  const tres = { minutosPorPeriodo: 10 };
+  const livroSoNovembro = [{ escola: 'breu', mes: '2026-11', status: 'pago',
+    valorCentavos: 23990, planoNome: 'Avançado', em: '2026-11-17T00:48:32Z' }];
+
+  const mesInicial = mensalidades.mesInicialDoEnsaio({
+    escola: 'breu', contrato: CONTRATO, livro: livroSoNovembro,
+  });
+  conferir('o mês inicial do ensaio é o SEGUINTE ao último pago', mesInicial === '2026-12', mesInicial);
+
+  /* LIGADO AGORA, com a base a ser o agora: o mês em aberto tem de aparecer JÁ, e não dez minutos
+   * depois. É esta a asserção que responde ao que ela disse. */
+  const ligadoAgora = mensalidades.situacaoDaEscola({
+    escola: 'breu', contrato: CONTRATO, livro: livroSoNovembro, agora: emMinutos(0),
+    ensaio: { minutosPorPeriodo: 10, base: emMinutos(0), mesInicial },
+  });
+  const abertosAgora = ligadoAgora.meses.filter((m) => m.status !== 'pago');
+  conferir('…e ligado agora já há UM mês em aberto — não é preciso esperar dez minutos',
+    abertosAgora.length === 1 && abertosAgora[0].mes === '2026-12',
+    ligadoAgora.meses.map((m) => m.mes + ':' + m.status));
+  conferir('…e novembro continua pago, com o valor com que foi pago',
+    ligadoAgora.meses.some((m) => m.mes === '2026-11' && m.status === 'pago'
+      && m.valorPagoCentavos === 23990), ligadoAgora.meses);
+  conferir('…e o mês em aberto está VENCIDO (é o que faz o «Pagar» aparecer)',
+    abertosAgora[0].venceu === true, abertosAgora[0]);
+
+  /* DEZ MINUTOS DEPOIS há dois em aberto — é a listagem a crescer. */
+  const dezDepois = mensalidades.situacaoDaEscola({
+    escola: 'breu', contrato: CONTRATO, livro: livroSoNovembro, agora: emMinutos(10),
+    ensaio: { minutosPorPeriodo: 10, base: emMinutos(0), mesInicial },
+  });
+  conferir('…e dez minutos depois são dois em aberto (é a listagem a crescer)',
+    dezDepois.meses.filter((m) => m.status !== 'pago').length === 2,
+    dezDepois.meses.map((m) => m.mes + ':' + m.status));
+
+  /* PAGO O MÊS, ele sai da conta — e o ensaio não o ressuscita. */
+  const depoisDePagar = mensalidades.situacaoDaEscola({
+    escola: 'breu', contrato: CONTRATO, agora: emMinutos(0),
+    livro: livroSoNovembro.concat([{ escola: 'breu', mes: '2026-12', status: 'pago',
+      valorCentavos: 16990, planoNome: 'Básico', em: emMinutos(1) }]),
+    ensaio: { minutosPorPeriodo: 10, base: emMinutos(0), mesInicial },
+  });
+  conferir('…e o mês que ela informar como pago deixa de estar em aberto',
+    depoisDePagar.meses.find((m) => m.mes === '2026-12').status === 'pago',
+    depoisDePagar.meses.map((m) => m.mes + ':' + m.status));
+
+  /* SEM NADA PAGO, o ensaio começa no mês da adesão — que já é o primeiro que existe. */
+  const nadaPago = mensalidades.mesInicialDoEnsaio({ escola: 'breu', contrato: CONTRATO, livro: [] });
+  conferir('…e sem nada pago o mês inicial é o da adesão', nadaPago === '2026-11', nadaPago);
+
+  /* UM LIVRO COM VÁRIOS PAGOS: o inicial é o seguinte ao MAIS RECENTE, e não ao primeiro. */
+  const varios = mensalidades.mesInicialDoEnsaio({
+    escola: 'breu', contrato: CONTRATO,
+    livro: [
+      { escola: 'breu', mes: '2026-11', status: 'pago' },
+      { escola: 'breu', mes: '2027-01', status: 'pago' },
+      { escola: 'breu', mes: '2026-12', status: 'pago' },
+    ],
+  });
+  conferir('…e com vários meses pagos, o inicial é o seguinte ao mais recente (2027-02)',
+    varios === '2027-02', varios);
+
+  /* O LIVRO DE OUTRA ESCOLA NÃO CONTA. */
+  const outraEscola = mensalidades.mesInicialDoEnsaio({
+    escola: 'breu', contrato: CONTRATO,
+    livro: [{ escola: 'outra', mes: '2027-05', status: 'pago' }],
+  });
+  conferir('…e o que outra escola pagou não conta para esta', outraEscola === '2026-11', outraEscola);
+
+  /* COMPATIBILIDADE: um ensaio gravado ANTES desta regra (sem `mesInicial`) continua a correr —
+   * um registo antigo não pode passar a dar erro por lhe faltar um campo novo. */
+  const semMesInicial = mensalidades.situacaoDaEscola({
+    escola: 'breu', contrato: CONTRATO, livro: livroSoNovembro, agora: emMinutos(10),
+    ensaio: { minutosPorPeriodo: 10, base: emMinutos(0) },
+  });
+  conferir('…e um ensaio antigo, sem o campo novo, continua a correr (dez minutos → dezembro)',
+    semMesInicial.meses.some((m) => m.mes === '2026-12'),
+    semMesInicial.meses.map((m) => m.mes));
+}
+
 console.log('\n4. O ensaio é de UMA escola, e não toca no livro');
 {
   /* A CHAVE É POR ESCOLA, e é o servidor que a lê. A prova mede o que `dadosDaEscolaParaAProducao`
