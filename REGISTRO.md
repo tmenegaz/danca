@@ -49524,3 +49524,80 @@ de geometria, `medirFaixaAcima`).
 27 · `provar-financeiro-da-escola` 90 · `provar-trava-de-repositorio` 17 · `provar-piso` 34 ·
 `provar-publicacao-da-escola` 73 · `provar-monitoramento` 94 · `check-identidade` 0 erros ·
 `check-sem-destruicao` 432 ficheiros, 0 violações.
+
+## 17/11/2026 — O elenco não se perdeu: a leitura falhou, e o ecrã disse que não havia nada
+
+**O que motivou.** Depois do deploy da correcção dos passos, ela abriu a Audição e escreveu: «você
+estragou o código que tinha. Eu tinha um elenco aqui, não tenho mais […] simplesmente não tem nada,
+é só o formulário» e «você está dizendo também ainda não há nenhum aluno cadastrado na escola. Como
+não há aluno? Tem aluno sim cadastrado». O relato atribuía a perda à correcção de layout do mesmo
+dia.
+
+**O que se mediu, e o que se encontrou.** Nada foi apagado. Com a página como estava, uma sonda de
+leitura (sem abrir a página) respondeu pela escola ao vivo:
+`GET /api/bastidores/linhas-de-base` → **200**, com o elenco **`tami`** — 1 aluna, 3 recortes,
+`atualizada_em` 17/11 01:02 —; `GET /api/bastidores/alunas-com-anamnese` → **200**, com a anamnese
+dela (`registradas: 1`); `GET /api/bastidores/diagnostico/repositorio` → **200** nas quatro provas
+(repositório, árvore, e os dois `.indice.json`). O HTML publicado contém a listagem e os cartões: o
+`#lb-lista` está lá. O que ela viu não foi uma página sem dados — foi uma **leitura que falhou
+enquanto a página estava aberta** e um ecrã que traduziu a falha como ausência.
+
+**O defeito, e por que é grave.** Dois caminhos pintavam «não há» depois de uma leitura falhada:
+
+- `carregarLinhas` tinha `.catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); })`, e o
+  `pintarLinhas` escrevia «(nenhum elenco ainda — o primeiro nasce no formulário, no passo 1)»;
+- a rota das anamneses devolvia `registradas: 0` quando não conseguia ler — e o cliente só olhava
+  para o número, nunca para `ok` —, com o que o aviso anunciava uma escola sem alunas.
+
+A consequência não é só de leitura: um professor que acredita que o elenco se perdeu grava por cima
+do que achou perdido. O próprio código já tinha a regra escrita («uma falha de leitura e “ninguém
+tem anamnese” são coisas diferentes»); o que faltava era cumpri-la nos dois sítios onde o número se
+transformava em frase.
+
+**O que foi decidido.**
+
+- **Uma falha não se pinta como vazio.** A lista ganhou `LINHAS_FALHARAM`: quando a leitura falha,
+  diz «não consegui ler os elencos agora — nada foi apagado, e o que está gravado continua no
+  repositório. Recarregue a página». O sucesso volta a pôr a marca a `false`.
+- **A contagem é tri-estado.** `registradas` passa a `null` quando não se conseguiu contar — tanto
+  no `catch` da rota como na leitura da lista de alunas. `lerLista` ganhou o modo `estrito`, e é
+  ele que a contagem pede: a leitura frouxa (lista vazia quando falha) é certa para desenhar uma
+  página e errada para CONTAR — sem ela, o `catch` da contagem nunca disparava, porque a falha
+  chegava já convertida em zero.
+- **O cliente distingue três respostas.** `leu` exige `ok !== false` **e** um número. Sem número, o
+  aviso diz «não consegui ler o acervo agora — nada foi apagado, e as anamneses continuam
+  guardadas. Recarregue a página». Os dois estados vazios verdadeiros — escola sem aluna, escola com
+  aluna e sem anamnese — continuam a dizer o que diziam.
+- **A isenção da Audição caiu.** «Você botou um monte de mensagens aqui, sai dizendo o nome, como a
+  turma vai referir-se ao elenco.» As quatro frases de prosa do formulário (o nome, o professor, a
+  leitura do passo 3, os aspectos do passo 4) saíram. Ficam as mensagens de estado — «carregando…»,
+  a contagem dos aspectos, o motivo de o «Seguir» estar fechado —, que dizem o que o sistema sabe e
+  não como se usa o sistema. A isenção de `provar-producao` deixou de ser «percurso de cinco passos»
+  e passou a ser «estado de espera», com a razão reescrita.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (as quatro frases removidas; `LINHAS_FALHARAM` e o
+ramo de falha em `pintarLinhas`; `leu`/`ALUNAS_REGISTRADAS` e as três frases do aviso;
+`lerLista(…, estrito)` e `alunas(…, { estrito })`; `registradas: null` nos dois `catch` da rota) ·
+`experimentos/provar-abas-da-audicao.js` (secção **K**: uma leitura que falha não é um acervo vazio,
+com três cenários e os controlos; duas asserções de prosa contra o tamanho das frases) ·
+`experimentos/provar-anamnese-antes-da-aluna.js` (as três asserções de recado apontavam para frases
+que já não existiam desde uma redacção anterior — vermelho de antes, corrigido agora — e ganhou duas
+da contagem tri-estado, com um KV que recusa) · `experimentos/provar-producao.js` (a razão da
+isenção da `sec-corpo`).
+
+**Com o quê.** `provar-abas-da-audicao` **117/117** (eram 108; +9: três de prosa e seis de falha e
+controlo) · `provar-anamnese-antes-da-aluna` **21/21** (eram 15 com 4 falhas de antes) ·
+`provar-salas-e-elencos` 69 · `provar-abas` 28 · `provar-identidade-ao-lado` 27 ·
+`provar-vao-do-botao` 50 · `provar-a-coluna-do-formulario` 17 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 432 ficheiros, 0 violações. `provar-producao` **162/166**: as quatro
+falhas são **de antes** — «as oito secções», as duas da tradição na curadoria, e «nenhum formulário
+traz explicação», que apanha um `<p class="sub">` na secção «A escola» (`d770faa7`, «Ainda não há
+mensalidade a cobrar»), fora do âmbito desta entrada.
+
+**O que ainda não está feito.** (1) O trabalho está no worktree, **sem commit e sem deploy** — a
+página dela só muda depois disso. (2) A **causa** da leitura falhada não foi identificada: os
+endpoints respondem 200 agora, e o `/api/monitoramento` pede autenticação (respondeu 401), pelo que
+a hipótese da cota diária do KV continua por confirmar. O que esta entrada fecha é a **mentira**, não
+a falha: a próxima vez que a leitura cair, a tela dirá que caiu. (3) A frase «Ainda não há
+mensalidade a cobrar» continua a ser a única prosa que `provar-producao` apanha fora das secções
+isentas; não foi tocada por não ser desta frente.

@@ -652,18 +652,22 @@ async function principal() {
   // todos. Por isso a contagem é feita com a secção retirada, em vez de afrouxar a regra para
   // toda a página.
   //
-  // A SEGUNDA EXCEÇÃO, E ELA É DE OUTRA NATUREZA (05/11/2026): «Corpo — linha de base» é um
-  // PERCURSO de cinco passos, e cada passo faz uma pergunta diferente — de quem é o corpo, o que
-  // o grupo mostra, o que este ciclo observa, para onde vão as alunas. A regra do cadastro
-  // («quem preenche já conhece o sistema») não chega aqui: ninguém conhece um percurso que ainda
-  // não existia, e a pesquisadora disse-o por palavras — «não entendi para que serve», sobre a
-  // lista dos aspectos. Uma frase por passo é o que separa um percurso de cinco caixas sem nome.
+  // A SEGUNDA EXCEÇÃO MUDOU DE RAZÃO (05/11/2026 → 17/11/2026). «Corpo — linha de base» esteve
+  // isenta porque era um PERCURSO de cinco passos, e uma frase por passo separava-o de «cinco
+  // caixas sem nome». A pesquisadora revogou-a: «você botou um monte de mensagens aqui, sai dizendo
+  // o nome, como a turma vai referir-se ao elenco». As quatro frases de prosa saíram, e o que
+  // sobra na secção são três estados de espera («carregando…», «ainda sem leitura.»), que
+  // desaparecem à primeira leitura.
+  //
+  // A isenção FICA, com a razão reescrita, porque o contador não distingue prosa de estado. Quem
+  // guarda a secção contra a prosa é a prova dela: `provar-abas-da-audicao` mede o tamanho das
+  // frases e reprova qualquer `p.sub` com mais de sessenta caracteres dentro do formulário.
   //
   // O QUE NÃO SE AFROUXOU: continua a ser ZERO em todas as outras secções, e a exceção é uma
   // lista nominal de secções, com o motivo escrito — não um `includes` que aceita o que vier.
   const FORA_DA_REGRA = {
     'sec-aparencia': 'ajuste da casa: a frase diz de QUEM é a escolha (18/10/2026)',
-    'sec-corpo': 'percurso de cinco passos: uma frase por pergunta, e o passo não se adivinha (05/11/2026)',
+    'sec-corpo': 'estado de espera («carregando…»): a prosa por passo saiu a 17/11/2026, e quem a guarda é provar-abas-da-audicao',
   };
   const semAparencia = Object.keys(FORA_DA_REGRA).reduce(
     (acc, id) => acc.replace(new RegExp('<section class="secao" id="' + id + '"[\\s\\S]*?</section>'), ''),

@@ -255,12 +255,17 @@ async function temProfessor(env) {
   return profs.length > 0;
 }
 
-async function lerLista(kv, chave) {
+async function lerLista(kv, chave, estrito) {
   try {
     const t = await kv.get(chave);
     const v = t ? JSON.parse(t) : [];
     return Array.isArray(v) ? v : [];
   } catch (e) {
+    /* O MODO ESTRITO (17/11/2026). Quem DESENHA uma página quer a lista vazia quando a leitura
+     * falha — a página diz o que sabe e não morre. Quem CONTA não pode receber zero: uma escola
+     * sem alunas e uma leitura falhada passariam a ser a mesma resposta. `estrito` é a diferença,
+     * pedida no sítio onde a diferença importa. */
+    if (estrito) throw e;
     return [];
   }
 }
@@ -421,8 +426,8 @@ async function gravarAparencia(kv, escola, mudanca, por) {
 async function professores(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/professores');
 }
-async function alunas(kv, escola) {
-  return lerLista(kv, RAIZ + '/' + escola + '/alunas');
+async function alunas(kv, escola, opcoes) {
+  return lerLista(kv, RAIZ + '/' + escola + '/alunas', opcoes && opcoes.estrito);
 }
 async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
@@ -7156,12 +7161,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="lb-nome">Nome do elenco</label>' +
     '<input id="lb-nome" name="nome" autocomplete="off" placeholder="ex.: Nível 1 — mobilidade e pés">' +
-    '<p class="sub">O nome é como a turma vai referir este elenco. Use um nome que diga para que ' +
-    'serve: a mesma sala pode receber mais de um ao longo do ano.</p>' +
     '<label class="campo-rotulo" for="lb-professor">Professor responsável</label>' +
     '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
-    '<p class="sub">O elenco é de quem avalia: é o professor que observa estas alunas. Os de ' +
-    'outros professores ficam visíveis na lista — quem assume lê o que estava antes, e faz o seu.</p>' +
     '</div>' +
     '<div class="passo-painel" data-passo="2" hidden>' +
     '<label class="campo-rotulo">Alunas deste recorte</label>' +
@@ -7171,16 +7172,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'Carregar mais alunas</button> <span class="sub" id="lb-mais-nota"></span></p>' +
     '</div>' +
     '<div class="passo-painel" data-passo="3" hidden>' +
-    '<p class="sub">A leitura abre a anamnese mais recente de cada aluna escolhida e cruza o que ' +
-    'elas mostram. O resultado fica guardado — reabrir a secção não relê nada.</p>' +
     '<p class="par-botoes"><button type="button" class="acao" id="lb-ler" disabled>Ler as anamneses ' +
     'destas alunas</button></p>' +
     '<div id="lb-leitura"><p class="sub">ainda sem leitura.</p></div>' +
     '</div>' +
     '<div class="passo-painel" data-passo="4" hidden>' +
-    '<p class="sub">Estes são os aspectos que a anamnese recolhe. Marque os que <b>este ciclo</b> ' +
-    'vai observar — é o recorte que o plano de ensino importa e que a aula imprime. A leitura do ' +
-    'passo 3 serve para decidir; não é ela que fica.</p>' +
     '<div id="lb-campos"><p class="sub">carregando os aspectos da anamnese…</p></div>' +
     '<p class="sub" id="lb-contagem">nenhum aspecto escolhido</p>' +
     '</div>' +
@@ -13806,6 +13802,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var CAMPOS_DO_CORPO = [];' +
     'var LINHAS_DE_BASE = [];' +
+    /* A LISTA SABE SE NÃO CONSEGUIU LER (17/11/2026). Sem esta marca, o `catch` esvaziava a
+     * lista e o `pintarLinhas` escrevia «nenhum elenco ainda» — a mesma frase para um acervo
+     * vazio e para uma leitura falhada. A pesquisadora viu-o ao vivo, com o elenco dela gravado:
+     * «eu tinha um elenco aqui, não tenho mais». Nada tinha sido apagado; o que falhou foi a
+     * leitura, e o ecrã disse a coisa errada. */
+    'var LINHAS_FALHARAM = false;' +
     /* AS REVISÕES PENDENTES, POR ELENCO (12/11/2026). Chegam prontas do servidor — a regra é do
      * núcleo e a frase é composta de lá para cá. O cliente não recalcula nada: duas contas da
      * mesma regra divergem ao primeiro caso novo, e esta é uma marca que só existe se for exacta
@@ -14199,25 +14201,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      ALUNAS_COM_ANAMNESE = (d && d.alunas) || [];' +
-    '      ALUNAS_REGISTRADAS = (d && typeof d.registradas === "number") ? d.registradas : 0;' +
+    /* «NÃO HÁ NENHUMA ALUNA» E «NÃO CONSEGUI LER» SÃO RESPOSTAS DIFERENTES (17/11/2026).
+     *
+     * A rota já respondia `ok:false` quando a leitura falhava, mas a tela só olhava para o número —
+     * e o número vinha zero. O resultado foi o que a pesquisadora viu ao vivo: «ainda não há
+     * nenhum aluno cadastrado na escola», com a aluna dela cadastrada e a anamnese feita. Uma
+     * leitura falhada não é um acervo vazio: é uma pergunta sem resposta, e a tela tem de o dizer.
+     *
+     * `leu` é o que separa as duas: `ok:true` E um número. Qualquer outra coisa — `ok:false`,
+     * campo ausente — é «não sei», e «não sei» não se pinta como «não há». */
+    '      var leu = Boolean(d && d.ok !== false && typeof d.registradas === "number");' +
+    '      ALUNAS_REGISTRADAS = leu ? d.registradas : null;' +
     '      pintarAlunas(alunasMarcadas());' +
     '      var aviso = document.getElementById("lb-sem-anamnese");' +
     '      if (aviso) {' +
     '        aviso.hidden = ALUNAS_COM_ANAMNESE.length > 0;' +
-    '        aviso.textContent = ALUNAS_COM_ANAMNESE.length ? "" :' +
-    /* O TEXTO DIZ O QUE AINDA ABRE E O QUE ESPERA (07/11/2026). Dizia «nenhum passo se abre», e
-     * desde que o passo 1 deixou de depender de retrato isso passou a ser falso — e um aviso que
-     * mente sobre o que está disponível faz o professor desistir do que podia fazer. */
-    /* O AVISO DIZ A MESMA VERDADE QUE O PASSO 2 (15/11/2026) — e pela mesma razão: sem aluna
-     * cadastrada, mandar «fazer a anamnese» é mandar a um beco. Duas frases, uma para cada falta;
-     * o número vem do servidor.
-     *
-     * E ELE DIZ O QUE ACONTECE A CADA PASSO, desde que a tira obedece ao «Seguir» (15/11/2026): o
-     * passo 2 abre (nome e professor são do acto, não do retrato), mas sem lista nenhuma; quem
-     * espera a anamnese são o 3 e o 4. Dizer «os passos 2 a 4 abrem quando houver a anamnese»
-     * passaria a mentir sobre o 2, e um aviso que mente sobre o que está disponível faz o
-     * professor desistir do que podia fazer. */
-    '          (!ALUNAS_REGISTRADAS' +
+    '        aviso.textContent = ALUNAS_COM_ANAMNESE.length ? "" : (!leu' +
+    '          ? "N\u00e3o consegui ler o acervo agora — nada foi apagado, e as anamneses continuam ' +
+    'guardadas. Recarregue a p\u00e1gina."' +
+    /* AS DUAS FALTAS CONTINUAM DISTINTAS (07/11 e 15/11/2026): sem aluna, mandar «fazer a anamnese»
+     * é mandar a um beco; com aluna e sem retrato, a falta é outra. E o texto diz o que abre em
+     * cada passo — o 2 abre sem lista, os 3 e 4 esperam a anamnese. */
+    '          : (!ALUNAS_REGISTRADAS' +
     '            ? "Ainda n\u00e3o h\u00e1 nenhuma aluna cadastrada nesta escola. Pode nomear o elenco e ' +
     'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas — e a anamnese \u00e9 de ' +
     'uma aluna. Cadastre a primeira em «Pessoas \u2192 Alunas», e depois fa\u00e7a a anamnese dela: o ' +
@@ -14225,13 +14230,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '            : "Ainda n\u00e3o h\u00e1 nenhuma anamnese registada nesta escola. Pode nomear o elenco e ' +
     'grav\u00e1-lo agora: o recorte, por\u00e9m, l\u00ea-se dos retratos das alunas, e sem retrato n\u00e3o h\u00e1 ' +
     'o que recortar — o passo 2 abre sem lista nenhuma, e os passos 3 e 4 esperam a anamnese ' +
-    'de pelo menos uma aluna, na lista da anamnese.");' +
+    'de pelo menos uma aluna, na lista da anamnese."));' +
     '      }' +
     '      if (!ALUNAS_COM_ANAMNESE.length) { travarTudo(); }' +
     '      pintarTravasLb();' +
     '    })' +
     '    .catch(function(){' +
     '      ALUNAS_COM_ANAMNESE = [];' +
+    /* A FALHA DE REDE DIZ-SE (17/11/2026). Até aqui o `catch` só esvaziava a lista e a área do
+     * passo 2 ficava calada — e o aviso do topo, que nunca era escrito, também. O professor via
+     * uma secção sem alunas e sem explicação: a mesma leitura que «não há nenhuma». */
+    '      ALUNAS_REGISTRADAS = null;' +
+    '      var aviso = document.getElementById("lb-sem-anamnese");' +
+    '      if (aviso) {' +
+    '        aviso.hidden = false;' +
+    '        aviso.textContent = "N\u00e3o consegui ler o acervo agora — nada foi apagado, e as ' +
+    'anamneses continuam guardadas. Recarregue a p\u00e1gina.";' +
+    '      }' +
     /* O «CARREGANDO…» NÃO FICA NO ECRÃ (15/11/2026). Sem esta linha, uma leitura falhada deixava
      * a caixa das alunas com o texto de espera para sempre — e «carregando» é uma promessa que
      * não se vai cumprir. A área do passo 2 diz o que sabe: nada. */
@@ -14465,6 +14480,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function pintarLinhas() {' +
     '  var alvo = document.getElementById("lb-lista");' +
     '  if (!alvo) return;' +
+    /* A LEITURA QUE FALHOU NÃO É UMA LISTA VAZIA (17/11/2026). A frase é a da casa para o mesmo
+     * caso («Nada foi apagado — tente de novo»), e o que ela acrescenta é o que importa aqui: o
+     * elenco continua guardado. Um estado vazio que se lê como perda ensina o professor a
+     * desconfiar do acervo — e a próxima vez que ele gravar, grava por cima do que achou perdido. */
+    '  if (LINHAS_FALHARAM) {' +
+    '    alvo.innerHTML = "<li class=\\"vazia\\">não consegui ler os elencos agora — nada foi ' +
+    'apagado, e o que está gravado continua no repositório. Recarregue a página.</li>";' +
+    '    return;' +
+    '  }' +
     '  if (!LINHAS_DE_BASE.length) {' +
     '    alvo.innerHTML = "<li class=\\"vazia\\">(nenhum elenco ainda — o primeiro nasce ' +
     'no formulário, no passo 1)</li>";' +
@@ -14646,6 +14670,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
     '      LINHAS_DE_BASE = (d && d.linhas) || [];' +
+    '      LINHAS_FALHARAM = false;' +
     /* AS REVISÕES ENTRAM ANTES DE SE PINTAR (12/11/2026) — e a ordem é a diferença entre a marca
      * funcionar e não funcionar. O `pintarLinhas` desenha os cartões dos elencos e lê o mapa: com
      * o mapa ainda no valor anterior, a marca ficava acesa depois de o trabalho estar feito (e
@@ -14683,7 +14708,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // aqui só se marca a linha, sem repetir a regra.
     '      marcarCuradoriasDivergentes((d && d.divergentes) || []);' +
     '    })' +
-    '    .catch(function(){ LINHAS_DE_BASE = []; pintarLinhas(); });' +
+    '    .catch(function(){ LINHAS_FALHARAM = true; LINHAS_DE_BASE = []; pintarLinhas(); });' +
     '}' +
     /* O ÍNDICE DO RECORTE (05/11/2026) — o que os professores olham no corpo, e o que não olham.
      *
@@ -16937,8 +16962,18 @@ async function fetch(request, env, extras) {
      * Renomear a lista seria mais uma mudança no ficheiro grande, e o nome dela está certo — o que
      * faltava era distância. E a prova passou a CHAMAR a rota: um `grep` no fonte não apanha um
      * erro de escopo, e foi por isso que o defeito atravessou a bancada. */
-    let registradas = 0;
-    try { registradas = (await alunas(kv, escola)).length; } catch (erro) { registradas = 0; }
+    let registradas = null;
+    /* A CONTAGEM QUE FALHA NÃO VIROU ZERO (17/11/2026). O `catch` punha `0`, e zero não é uma
+     * omissão: é o facto «esta escola não tem alunas». Com ele, uma leitura falhada fazia a tela
+     * anunciar uma escola vazia — foi o que se viu ao vivo, com a aluna cadastrada. `null` é «não
+     * se sabe», e o cliente trata um número ausente como falha de leitura, nunca como acervo vazio.
+     *
+     * A LEITURA É A ESTRITA, e é essa a metade que faltava. `lerLista` engole o erro e devolve uma
+     * lista vazia — que é o comportamento certo para desenhar uma página e o errado para CONTAR: a
+     * falha chegava aqui já convertida em zero, e este `catch` nunca disparava. Um `catch` que não
+     * dispara não distingue nada. */
+    try { registradas = (await alunas(kv, escola, { estrito: true })).length; }
+    catch (erro) { registradas = null; }
     const legado = criarCloudflare(env);
     const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
     try {
@@ -16972,8 +17007,14 @@ async function fetch(request, env, extras) {
       return json(200, { ok: true, escola, alunas, registradas });
     } catch (erro) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
-       * diferentes, e a tela tem de as distinguir para poder dizer a verdade. */
-      return json(200, { ok: false, escola, alunas: [], erro: 'não consegui ler o acervo agora' });
+       * diferentes, e a tela tem de as distinguir para poder dizer a verdade.
+       *
+       * E NÃO SE INVENTA O NÚMERO ZERO (17/11/2026). A frase acima já estava escrita, e a resposta
+       * contradizia-a: com `registradas: 0` a tela lia «não há nenhuma aluna cadastrada nesta
+       * escola» quando o que havia era uma leitura falhada — a pesquisadora viu-o ao vivo, com a
+       * aluna dela cadastrada. `null` é «não se sabe»; zero é um facto, e este ramo não o tem. */
+      return json(200, { ok: false, escola, alunas: [], registradas: null,
+        erro: 'não consegui ler o acervo agora' });
     }
   }
 

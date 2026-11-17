@@ -33,6 +33,12 @@
  *   J. o FORMULÁRIO ABERTO ACOMPANHA A TRANSFERÊNCIA — sem isto, a caixa marcada no passo 2
  *      gravaria o elenco velho por cima do acto no «Seguir» seguinte.
  *
+ *   K. UMA LEITURA QUE FALHA NÃO É UM ACERVO VAZIO (17/11/2026) — a lista e o aviso das
+ *      anamneses, cada um com o seu cenário de falha e o seu controlo de estado vazio verdadeiro.
+ *
+ *   L. as abas 2 e 3 sem elenco gravado (15/11/2026) — a trava das abas, o `title` que a explica
+ *      e o rascunho que não conta como elenco.
+ *
  *   uso: node experimentos/provar-abas-da-audicao.js
  */
 
@@ -333,6 +339,94 @@ async function medirRespiro() {
   }
 }
 
+/* UMA LEITURA QUE FALHA NÃO É UM ACERVO VAZIO (17/11/2026).
+ *
+ * O QUE ELA VIU, AO VIVO: «eu tinha um elenco aqui, não tenho mais» e «você está dizendo também
+ * ainda não há nenhum aluno cadastrado na escola. Como não há aluno? Tem aluno sim cadastrado».
+ * Os dois dados estavam inteiros — o elenco `tami`, com a aluna e os recortes, e a anamnese dela —,
+ * e a tela dizia que não existiam. O defeito não era a listagem ter sido apagada: era a LEITURA
+ * ter falhado e o ecrã ter traduzido a falha como ausência.
+ *
+ * Dois caminhos faziam isso, e os dois estão medidos aqui: `carregarLinhas` esvaziava a lista num
+ * `catch` e o `pintarLinhas` escrevia «nenhum elenco ainda»; e a rota das anamneses devolvia
+ * `registradas: 0` quando não conseguia ler, com o que a tela anunciava uma escola sem alunas.
+ * A regra é a da casa, escrita no próprio `catch` da rota: uma falha e um acervo vazio são
+ * respostas diferentes, e quem pinta tem de as distinguir.
+ *
+ * O CONTROLO IMPORTA TANTO COMO A CORRECÇÃO: os mesmos dois estados vazios verdadeiros — escola
+ * sem aluna, escola com aluna e sem anamnese — têm de continuar a dizer o que diziam. Uma frase
+ * de falha que substituísse todas as outras seria outra mentira, ao contrário. */
+async function medirLeituraQueFalha(PAGINA, JSDOM, VirtualConsole) {
+  const montar = async (respostaDasAlunas, falharLinhas) => {
+    const vc = new VirtualConsole();
+    vc.on('jsdomError', () => {});
+    vc.on('error', () => {});
+    const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/producao',
+      pretendToBeVisual: true, virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+          addListener() {}, removeListener() {} });
+        w.confirm = () => true;
+        w.alert = () => {};
+        w.fetch = (u) => {
+          const url = String(u);
+          if (url.indexOf('linhas-de-base') !== -1) {
+            return falharLinhas
+              ? Promise.reject(new Error('a leitura do repositório falhou'))
+              : Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(
+                { ok: true, linhas: linhasDaProva(), elencos: elencosDaRota() }),
+                text: () => Promise.resolve('') });
+          }
+          const corpo = url.indexOf('alunas-com-anamnese') !== -1 ? respostaDasAlunas
+            : url.indexOf('campos-do-corpo') !== -1 ? { ok: true, campos: [], grupos: [] }
+              : { ok: true };
+          return Promise.resolve({ ok: true, status: 200,
+            json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+        };
+      },
+    });
+    const win = dom.window;
+    await new Promise((r) => win.setTimeout(r, 300));
+    return { dom, doc: win.document, win };
+  };
+
+  const falha = await montar({ ok: false, alunas: [], registradas: null }, true);
+  const lista = falha.doc.getElementById('lb-lista');
+  const aviso = falha.doc.getElementById('lb-sem-anamnese');
+
+  provar('a lista falhada NÃO diz que não há elenco nenhum',
+    !/nenhum elenco ainda/.test(lista.textContent), lista.textContent.slice(0, 80));
+  provar('…diz que não conseguiu ler, e que nada foi apagado',
+    /não consegui ler os elencos/.test(lista.textContent) &&
+    /nada foi apagado/.test(lista.textContent), lista.textContent.slice(0, 130));
+  provar('a anamnese que não se conseguiu ler NÃO diz que não há aluna cadastrada',
+    aviso.hidden === false && !/nenhuma aluna cadastrada/.test(aviso.textContent),
+    aviso.textContent.slice(0, 110));
+  provar('…diz que não conseguiu ler, e que as anamneses continuam guardadas',
+    /consegui ler o acervo/.test(aviso.textContent) &&
+    /nada foi apagado/.test(aviso.textContent), aviso.textContent.slice(0, 130));
+  falha.dom.window.close();
+
+  const semAluna = await montar({ ok: true, alunas: [], registradas: 0 }, false);
+  const avisoSemAluna = semAluna.doc.getElementById('lb-sem-anamnese');
+  provar('CONTROLO: escola de facto sem aluna continua a dizer que não há aluna',
+    /nenhuma aluna cadastrada/.test(avisoSemAluna.textContent),
+    avisoSemAluna.textContent.slice(0, 90));
+  provar('…e a lista com elencos pinta os cartões (não a frase de falha)',
+    !/não consegui ler os elencos/.test(semAluna.doc.getElementById('lb-lista').textContent) &&
+    semAluna.doc.querySelectorAll('#lb-lista .trio-plano').length === 2,
+    'cartões: ' + semAluna.doc.querySelectorAll('#lb-lista .trio-plano').length);
+  semAluna.dom.window.close();
+
+  const semRetrato = await montar({ ok: true, alunas: [], registradas: 1 }, false);
+  const avisoSemRetrato = semRetrato.doc.getElementById('lb-sem-anamnese');
+  provar('CONTROLO: com aluna e sem anamnese, a falta que se anuncia é a anamnese',
+    /nenhuma anamnese registada/.test(avisoSemRetrato.textContent),
+    avisoSemRetrato.textContent.slice(0, 90));
+  semRetrato.dom.window.close();
+}
+
 async function principal() {
   const PAGINA = montarPagina();
 
@@ -401,6 +495,26 @@ async function principal() {
     /id="lb-painel-1"/.test(trechoPaineis) &&
     /id="lb-painel-2"/.test(trechoPaineis) &&
     /id="lb-painel-3"/.test(trechoPaineis));
+
+  /* NENHUMA PROSA NO FORMULÁRIO (17/11/2026) — a instrução dela, e a regra da casa.
+   *
+   * «Você botou um monte de mensagens aqui, sai dizendo o nome, como a turma vai referir-se ao
+   * elenco.» A Audição era a ÚNICA secção isenta da regra «nenhum formulário traz explicação»
+   * (a isenção está em `provar-producao.js`, com o motivo de 05/11/2026: um percurso de cinco
+   * passos que ninguém conhecia). Ela revogou a isenção. O que fica são as mensagens de ESTADO —
+   * «carregando…», a contagem dos aspectos, o motivo de o «Seguir» estar fechado —, que dizem o
+   * que o sistema sabe, e não como se usa o sistema.
+   *
+   * A medida é o TAMANHO da frase, e não uma lista de frases: uma prosa tem mais de sessenta
+   * caracteres, um estado não. Uma lista de frases proibidas só travaria a que já saiu. */
+  const iForm = PAGINA.indexOf('<form id="form-linha-base">');
+  const trechoForm = PAGINA.slice(iForm, PAGINA.indexOf('</form>', iForm));
+  const prosasDoForm = [...trechoForm.matchAll(/<p class="sub"[^>]*>([^<]*)<\/p>/g)]
+    .map((m) => m[1].trim()).filter((t) => t.length > 60);
+  provar('o formulário da Audição não traz prosa explicativa — só estado',
+    prosasDoForm.length === 0, prosasDoForm.map((t) => t.slice(0, 50)));
+  provar('…e a frase que ela apontou saiu da página',
+    !/O nome é como a turma vai referir/.test(PAGINA));
 
   console.log('\nB. A folha do telemóvel');
 
@@ -726,6 +840,9 @@ async function principal() {
   console.log('\nH2. A faixa dos passos, medida no ecrã (navegador)');
   await medirFaixaAcima(PAGINA);
 
+  console.log('\nK. Uma leitura que falha não é um acervo vazio');
+  await medirLeituraQueFalha(PAGINA, JSDOM, VirtualConsole);
+
   console.log('\nI. O «Cancelar» — o botão que nunca aparecia');
 
   const caixaCancelar = doc.getElementById('lb-linha-cancelar');
@@ -880,7 +997,7 @@ async function principal() {
    * tem elenco. Um RASCUNHO não conta: «gravado» é o que passou do passo 1 e tem recorte, que é
    * a mesma lista que a transferência oferece.
    */
-  console.log('\nK. as abas 2 e 3 sem elenco gravado (15/11/2026)');
+  console.log('\nL. as abas 2 e 3 sem elenco gravado (15/11/2026)');
   {
     const tituloDas = (n) => aba(n) && aba(n).getAttribute('title');
     /* O CONTROLE NEGATIVO NÃO PODE QUEBRAR A PROVA: com o código de antes da correção a função

@@ -105,14 +105,30 @@ function envDeEscola() {
     corpoRota.registradas === 2, corpoRota.registradas);
   provar('…sem inventar retratos: ninguém tem anamnese ainda',
     Array.isArray(corpoRota.alunas) && corpoRota.alunas.length === 0, corpoRota.alunas);
+  /* A ROTA QUE NÃO CONSEGUE LER NÃO RESPONDE ZERO (17/11/2026).
+   *
+   * `registradas: 0` é um facto — «esta escola não tem alunas» —, e o `catch` o devolvia por
+   * omissão. A tela lia o número e anunciava uma escola sem alunas quando o acervo estava apenas
+   * ilegível. Mede-se com um KV que recusa: o que sai tem de ser «não sei», e «não sei» não é zero. */
+  const envQueFalha = envDeEscola();
+  envQueFalha.PADD_KV.get = async () => { throw new Error('KV fora do ar'); };
+  const rotaQueFalha = await producao.fetch(
+    new Request('https://batata.padd.com.br/api/bastidores/alunas-com-anamnese'), envQueFalha);
+  const corpoQueFalha = await rotaQueFalha.json();
+  provar('a contagem que não se conseguiu fazer NÃO vira zero',
+    corpoQueFalha.registradas === null, corpoQueFalha.registradas);
+  provar('…e o cliente lê a ausência de número como falha de leitura, não como escola vazia',
+    /ALUNAS_REGISTRADAS = leu \? d\.registradas : null/.test(html), null);
   provar('o recado de «sem aluna» existe, e manda CADASTRAR primeiro',
-    /Nenhuma aluna cadastrada/.test(html) && /Cadastrar a aluna →/.test(html), null);
+    /Ainda não há nenhuma aluna cadastrada nesta escola/.test(html) &&
+    /Cadastre a primeira em «Pessoas → Alunas»/.test(html), null);
   provar('…e diz a ORDEM: cadastrar, e depois a anamnese',
-    /cadastre a aluna, e depois faça a anamnese dela/i.test(html), null);
+    /cadastre a primeira em «Pessoas → Alunas», e depois faça a anamnese dela/i.test(html), null);
   provar('o recado de «sem anamnese» continua a existir, para quando a aluna já existe',
-    /Nenhuma aluna com anamnese/.test(html), null);
+    /Ainda não há nenhuma anamnese registada nesta escola/.test(html), null);
   provar('a página alimenta a contagem a partir da rota (e não de uma contagem própria)',
-    /ALUNAS_REGISTRADAS = \(d && typeof d\.registradas === "number"\)/.test(html), null);
+    /ALUNAS_REGISTRADAS = leu \? d\.registradas : null/.test(html) &&
+    /typeof d\.registradas === "number"/.test(html), null);
 
   /* ── B. O DESTINO DO LINK ─────────────────────────────────────────────────────────────────── */
   provar('o link da anamnese aponta para a LISTA, e não para o formulário',
