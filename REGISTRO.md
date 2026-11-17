@@ -48949,3 +48949,37 @@ o não medido herda a média do seu fluxo», «diz quantas execuções foram med
 sem nenhuma execução medida leva o mínimo de 1 minuto». Mais `provar-financeiro-da-escola` 90/90 ·
 `provar-abas` 28/28 · `provar-piso` 34/34 · `check-identidade` 0 erros.
 
+## 17/11/2026 — a regra diz 1 minuto, o fornecedor diz zero
+
+**Segunda nota do mesmo dia, sobre o monitor.** Fechada a emenda da amostra (§L9d), faltava a
+pergunta seguinte, e é a que interessa a quem paga: **a conta do painel é a mesma que a fatura?**
+Não se sabe. Perguntou-se ao GitHub, no campo de facturação do próprio
+(`GET …/actions/runs/{id}/timing` → `billable`), e a resposta, para as execuções medidas, foi:
+
+> `billable.UBUNTU.total_ms = 0` — em todas, com jobs de 13 a 34 segundos de relógio.
+
+A regra documentada («cada job arredondado ao minuto») dá-lhes 1 minuto por job. O fornecedor dá
+zero. Uma das duas está errada, e **não é o código que o decide — é a fatura**. A favor de «não está
+a ser facturado» há um facto operacional: 2.812 execuções em 30 dias passariam dos 2.000 minutos
+incluídos, e um plano gratuito com repositório privado sem meio de pagamento **bloquearia** as
+execuções bem antes disso. As publicações correm. Mas isso é uma inferência, e um painel não vive de
+inferências.
+
+**O que o código passou a fazer.** Pede o campo de facturação **uma vez de 6 em 6 horas** (um
+subpedido, quatro por dia) e mostra-o **ao lado** do número da regra. Quando os dois discordam, a
+página di-lo, diz qual dos dois é o número grande, e manda à única fonte que fecha a questão —
+GitHub → Settings → Billing → Actions. O que ela **não** faz é escolher um dos dois em silêncio:
+esconder a divergência entre o que se calcula e o que se cobra é o contrário de «não ser pega de
+surpresa».
+
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js` (`facturavelDoRunNoGithub`) ·
+`motor/nucleo/monitoramento.js` (a `conferencia` no resumo, com `atesta` — e não «é zero?») ·
+`motor/servidor/raiz.js` (a conferência, em cache de 6 h, sobre a execução medida mais recente) ·
+`motor/servidor/painel-html.js` (a linha que mostra os dois números) · `PLANEJAMENTO-LASTRO.md` §L9d
+(a descoberta, as duas leituras e os critérios viii a x).
+
+**Com o quê.** `provar-monitoramento` **58/58** — incluindo «com o fornecedor a dizer zero, a
+conferência di-lo — e não atesta consumo», «…sem apagar o número da regra, que continua a ser o do
+painel», «…e sem resposta do fornecedor, a conferência é nula (não é zero)», «…e quando a regra e o
+fornecedor discordam, o ecrã mostra os dois e não escolhe». Mais `provar-financeiro-da-escola`
+90/90 · `provar-abas` 28/28 · `check-identidade` 0 erros.

@@ -3599,7 +3599,10 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       const kv = env && env.PADD_KV;
 
       /* A CACHE — uma chave, um objecto. `medidos` guarda a conta de cada run já fechado. */
-      let cache = { medidos: {}, lidoEm: null, chavesEm: null, chaves: {} };
+      let cache = {
+        medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
+        conferencia: null, conferenciaEm: null,
+      };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
         if (texto) cache = Object.assign(cache, JSON.parse(texto));
@@ -3630,8 +3633,43 @@ async function extratoDasEscolas({ env, escolas, agora }) {
         if (jobs) { cache.medidos[r.id] = jobs; medidosAgora += 1; }
       }
 
+      /* A CONFERÊNCIA CONTRA O FORNECEDOR — UM pedido, de 6 em 6 horas.
+       *
+       * «O painel calcula pela regra; o fornecedor factura» são duas coisas, e no primeiro dia em
+       * produção elas discordaram por completo: `billable` veio ZERO para todas as execuções
+       * medidas, com jobs de 13 a 34 segundos. Perguntar isto a cada abertura custaria um subpedido
+       * por abertura para ouvir a mesma resposta; perguntar de 6 em 6 horas custa quatro por dia e
+       * mantém a divergência à vista, que é o que interessa.
+       *
+       * A execução conferida é a mais recente que já tem os jobs medidos: é a que está mais perto
+       * do presente, e comparar com ela não exige medir nada de novo. */
+      let conferencia = cache.conferencia || null;
+      const conferenciaVelha = !cache.conferenciaEm ||
+        (Date.now() - Date.parse(cache.conferenciaEm)) > 6 * 3600 * 1000;
+      if (conferenciaVelha) {
+        const alvo = janela.runs.find((r) => cache.medidos[r.id] && r.estado === 'completed');
+        if (alvo) {
+          const fact = await leituraDoMonitor.facturavelDoRunNoGithub({
+            token, dono: DONO, repo: REPO, id: alvo.id,
+          });
+          if (fact) {
+            conferencia = {
+              run: alvo.id,
+              workflow: alvo.workflow,
+              quando: alvo.quando,
+              facturavelMs: fact.ms,
+              jobs: fact.jobs,
+              segundos: fact.relogioSegundos,
+              estimadoMinutos: monitoramento.minutosDoRun(alvo, cache.medidos[alvo.id]).minutos,
+            };
+            cache.conferencia = conferencia;
+            cache.conferenciaEm = agoraIso;
+          }
+        }
+      }
+
       const github = monitoramento.resumirGithub({
-        runs: janela.runs, jobsPorRun: cache.medidos, desde: janela.desde,
+        runs: janela.runs, jobsPorRun: cache.medidos, desde: janela.desde, conferencia,
       });
 
       /* AS CHAVES DO KV, com tecto. Cada `list()` é uma operação de LISTAGEM, e o plano gratuito dá
@@ -3682,6 +3720,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
           for (const id of ids) if (cache.medidos[id]) limpos[id] = cache.medidos[id];
           await kv.put('monitor/cache', JSON.stringify({
             medidos: limpos, lidoEm: agoraIso, chavesEm: cache.chavesEm, chaves: cache.chaves,
+            conferencia: cache.conferencia || null, conferenciaEm: cache.conferenciaEm || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }

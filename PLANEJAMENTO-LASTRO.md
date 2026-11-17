@@ -2077,6 +2077,38 @@ decisão.
   A lição, para a próxima cota que se medir: **um número parcial tem de ser apresentado como
   parcial**, e o rodapé que o dizia estava certo — o que estava errado era o número grande em cima
   dele, que ninguém lê como parcial.
+
+- **A SEGUNDA DESCOBERTA DO MESMO DIA, e é pior do que a primeira: a REGRA e o FORNECEDOR não
+  concordam.** A conta do painel aplica o que o GitHub **documenta** — «cada job arredondado ao
+  minuto». O que o GitHub **factura** lê-se noutro sítio: no campo `billable` de
+  `GET /repos/{dono}/{repo}/actions/runs/{id}/timing`. Perguntou-se-lhe, e a resposta, para as
+  execuções medidas:
+
+  > `billable.UBUNTU.total_ms = 0` — em **todas** elas, com os jobs a demorarem **13 a 34 segundos**
+  > de relógio.
+
+  A regra dá-lhes 1 minuto por job; o fornecedor dá-lhes zero. Uma das duas coisas está errada, e
+  não é o código que o decide: **é a fatura**. Duas leituras possíveis, e nenhuma delas se pode
+  fechar daqui:
+
+  1. **O repositório não está a ser facturado** (e então o tecto não está a ser consumido, e a
+     mudança para o plano Team não tem razão de ser). A favor desta leitura está um facto
+     operacional: são 2.812 execuções em 30 dias — mais de 2.800 minutos mesmo a 1 minuto cada — e
+     um plano gratuito com repositório privado sem meio de pagamento **bloquearia** as execuções bem
+     antes disso. As publicações correm, e correram hoje.
+  2. **O campo `billable` não é de confiança nesta conta** e a fatura mostra outra coisa.
+
+  **O que o código passou a fazer, porque isto não se resolve com uma opinião:** pede o campo de
+  facturação **uma vez de 6 em 6 horas** (um subpedido, quatro por dia) e mostra-o **ao lado** do
+  número da regra. Quando os dois discordam, a página diz que discordam, diz qual dos dois é o
+  número grande, e manda à única fonte que fecha a questão — GitHub → Settings → Billing → Actions.
+  O que ela **nunca** faz é escolher um dos dois em silêncio: um painel que esconde a divergência
+  entre o que calcula e o que lhe cobram não serve para «não ser pega de surpresa»; serve para o
+  contrário.
+- **Critérios verificáveis (acrescento).** (viii) A conferência é nula quando o fornecedor não
+  respondeu — `null` não é zero; (ix) com `billable` a zero, a página diz que a regra e o fornecedor
+  discordam e não apresenta o zero como «de graça»; (x) com `billable` positivo, o número do
+  fornecedor aparece e é identificado como atestado.
 - **Critérios verificáveis.** (i) Um run de 11 s conta 1 minuto, e um de quatro jobs conta 4 — a
   mesma regra que fez a conta do §L9c mudar de sinal; (ii) o painel mostra as duas cotas do Resend e
   diz qual manda; (iii) o que não foi medido aparece dito, com o motivo, e nunca como zero; (iv) a

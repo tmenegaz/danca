@@ -137,7 +137,7 @@ function minutosDoRun(run, jobs) {
  * o mapa `{ <id>: [{segundos}] }` do que já foi medido. O que não estiver no mapa entra como
  * estimado — e a página diz quantos são.
  */
-function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
+function resumirGithub({ runs, jobsPorRun, plano, desde, conferencia } = {}) {
   const lista = Array.isArray(runs) ? runs : [];
   const mapa = jobsPorRun || {};
   const porFluxo = new Map();
@@ -209,6 +209,36 @@ function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
   const total = minutosIncluidos({ computeUsd: degrau });
   const fluxos = [...porFluxo.values()].sort((a, b) => b.minutos - a.minutos);
 
+  /* ── A CONFERÊNCIA CONTRA O FORNECEDOR (17/11/2026) ────────────────────────────────────────
+   *
+   * A CONTA ACIMA É UMA REGRA, NÃO UM EXTRACTO. Ela aplica o que o GitHub DOCUMENTA («cada job
+   * arredondado ao minuto»). O que ele FACTURA lê-se no campo `billable` de `/runs/<id>/timing`, e
+   * são coisas diferentes até prova em contrário.
+   *
+   * A PROVA APARECEU NO PRIMEIRO DIA EM PRODUÇÃO: para todas as execuções medidas, `billable` veio
+   * ZERO — com jobs que demoraram 13 a 34 segundos de relógio. A regra dá-lhes 1 minuto; o
+   * fornecedor dá-lhes 0. Um dos dois está errado, e não é o código que o decide: é a fatura. O
+   * que o painel pode fazer é não esconder nenhum dos dois, e é isto.
+   *
+   * `atesta` é a pergunta certa — «o fornecedor atesta consumo?» — e não «o número é zero?». Zero
+   * não é uma conclusão de graça: é a ausência de uma atestação, e a página di-lo com essas
+   * palavras.
+   */
+  let conferenciaFeita = null;
+  if (conferencia && conferencia.facturavelMs != null && Number.isFinite(Number(conferencia.facturavelMs))) {
+    const facturavelMinutos = Math.round((Number(conferencia.facturavelMs) / 60000) * 100) / 100;
+    conferenciaFeita = {
+      run: String(conferencia.run || ''),
+      workflow: String(conferencia.workflow || ''),
+      quando: conferencia.quando || null,
+      jobs: Math.max(0, Number(conferencia.jobs) || 0),
+      segundos: Math.max(0, Number(conferencia.segundos) || 0),
+      facturavelMinutos,
+      estimadoMinutos: Math.max(0, Number(conferencia.estimadoMinutos) || 0),
+      atesta: facturavelMinutos > 0,
+    };
+  }
+
   return {
     provedor: 'github',
     janela: desde || null,
@@ -227,6 +257,7 @@ function resumirGithub({ runs, jobsPorRun, plano, desde } = {}) {
      * média das que foram medidas, por fluxo. Onde não há medição nenhuma, vale 1 minuto. */
     calibradoPorFluxo: [...somaPorFluxo.entries()]
       .map(([workflow, a]) => ({ workflow, medidos: a.runs, mediaMinutos: a.minutos / a.runs })),
+    conferencia: conferenciaFeita,
     fluxos,
     cotas: COTAS.github,
   };

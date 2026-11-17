@@ -1945,6 +1945,28 @@ function blocoDoGithub(g) {
         'fluxo</strong> — e as de um fluxo que ainda não foi medido nenhuma vez levam 1 minuto. ' +
         'Cada abertura do painel mede mais 12; o número converge para o medido a cada visita.</p>'
       : '<p class="sub">Todas as ' + g.runs + ' execuções da janela tiveram os jobs medidos.</p>') +
+    /* A CONFERÊNCIA CONTRA A FATURA. A conta acima aplica a regra documentada; esta linha diz o
+     * que o fornecedor respondeu quando lhe perguntaram quanto facturou. Quando os dois discordam,
+     * o painel não escolhe: mostra os dois e manda à fatura, que é a única que sabe. */
+    (g.conferencia
+      ? (g.conferencia.atesta
+        ? '<p class="sub"><strong>Conferido com o fornecedor:</strong> na execução mais recente ' +
+          'medida (' + esc(g.conferencia.workflow) + ', ' + g.conferencia.jobs + ' job' +
+          (g.conferencia.jobs === 1 ? '' : 's') + '), o campo de facturação do próprio GitHub diz ' +
+          '<strong>' + String(g.conferencia.facturavelMinutos).replace('.', ',') + ' min</strong> — ' +
+          'contra os ' + g.conferencia.estimadoMinutos + ' min que a regra do arredondamento dava. ' +
+          'A regra é a que está a ser aplicada acima.</p>'
+        : '<p class="sub"><strong>A regra e o fornecedor discordam.</strong> Na execução mais ' +
+          'recente medida (' + esc(g.conferencia.workflow) + ', ' + g.conferencia.jobs + ' job' +
+          (g.conferencia.jobs === 1 ? '' : 's') + ' de ' + g.conferencia.segundos + ' s), o campo ' +
+          'de facturação do próprio GitHub diz <strong>0 min facturáveis</strong> — e a regra do ' +
+          'arredondamento por job dá-lhe ' + g.conferencia.estimadoMinutos + ' min. <strong>O ' +
+          'número acima é a regra, não a fatura.</strong> Se a fatura do GitHub confirmar zero, o ' +
+          'tecto não está a ser consumido e a mudança de plano não tem razão de ser; se confirmar a ' +
+          'regra, o tecto está estourado. A pergunta faz-se em GitHub → Settings → Billing → ' +
+          'Actions, e é a única que fecha isto.</p>')
+      : '<p class="sub">Ainda não foi possível perguntar ao fornecedor quanto facturou nesta ' +
+        'execução. A conta acima é a regra documentada — não é um extracto.</p>') +
     '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
     '</div>';
 }

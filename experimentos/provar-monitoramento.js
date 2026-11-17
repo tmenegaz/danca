@@ -117,6 +117,39 @@ function conferir(titulo, condicao, dado) {
       [estourado.excedenteMinutos, estourado.excedenteUsd]);
     conferir('…e o Team muda o incluído, sem mudar a conta',
       monitor.minutosIncluidos({ computeUsd: 18 }) === 3000, null);
+
+    /* ── A CONFERÊNCIA CONTRA O FORNECEDOR (17/11/2026) ──────────────────────────────────────
+     *
+     * A conta é uma REGRA; a facturação é um CAMPO do fornecedor. No primeiro dia em produção os
+     * dois discordaram por completo (`billable` zero com jobs de 13 a 34 segundos), e o painel tem
+     * de mostrar os dois em vez de escolher um em silêncio. Estas três asserções fixam o que o
+     * resumo faz com essa discordância. */
+    const confere = monitor.resumirGithub({
+      runs: [{ id: '9', workflow: 'Fechar os derivados', segundos: 18, quando: '2026-11-17T03:00:00Z' }],
+      jobsPorRun: { 9: [{ segundos: 18 }] },
+      conferencia: {
+        run: '9', workflow: 'Fechar os derivados', quando: '2026-11-17T03:00:00Z',
+        facturavelMs: 0, jobs: 1, segundos: 18, estimadoMinutos: 1,
+      },
+    });
+    conferir('com o fornecedor a dizer zero, a conferência di-lo — e não atesta consumo',
+      confere.conferencia && confere.conferencia.facturavelMinutos === 0 && confere.conferencia.atesta === false,
+      confere.conferencia);
+    conferir('…sem apagar o número da regra, que continua a ser o do painel',
+      confere.minutos === 1, confere.minutos);
+    const confereCobrado = monitor.resumirGithub({
+      runs: [{ id: '9', workflow: 'X', segundos: 18, quando: 'q' }],
+      jobsPorRun: { 9: [{ segundos: 18 }] },
+      conferencia: { run: '9', workflow: 'X', facturavelMs: 120000, jobs: 2, segundos: 95, estimadoMinutos: 2 },
+    });
+    conferir('…e quando o fornecedor atesta 2 minutos, diz 2 e atesta',
+      confereCobrado.conferencia.facturavelMinutos === 2 && confereCobrado.conferencia.atesta === true,
+      confereCobrado.conferencia);
+    const semConf = monitor.resumirGithub({
+      runs: [{ id: '9', workflow: 'X', segundos: 18, quando: 'q' }],
+    });
+    conferir('…e sem resposta do fornecedor, a conferência é nula (não é zero)',
+      semConf.conferencia === null, semConf.conferencia);
   }
 
   console.log('\nB. As duas cotas do Resend — e a que aperta primeiro');
@@ -303,6 +336,24 @@ function conferir(titulo, condicao, dado) {
     /* «O QUE NÃO SE MEDE» TEM DE ESTAR NA PÁGINA — é a metade que faz disto um painel. */
     conferir('a página diz o que não foi medido, em vez de mostrar zero',
       /não mede|não foi medido/i.test(html) && /escritas de KV por dia/i.test(html), null);
+    /* A DIVERGÊNCIA ENTRE A REGRA E A FATURA TEM DE APARECER NO ECRÃ. Sem a conferência, a página
+     * di-lo (e não finge zero); com a conferência a zero, diz que os dois discordam e manda à
+     * fatura. É a diferença entre um painel e um oráculo. */
+    const gDiv = monitor.resumirGithub({
+      runs: [{ id: '1', workflow: 'Fechar os derivados', segundos: 18, quando: '2026-11-17T01:00:00Z' }],
+      jobsPorRun: { 1: [{ segundos: 18 }] },
+      conferencia: { run: '1', workflow: 'Fechar os derivados', facturavelMs: 0, jobs: 1, segundos: 18, estimadoMinutos: 1 },
+    });
+    const retratoDiv = monitor.retrato({
+      github: gDiv, correio: co, cloudflare: cf, receita: r, cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+    });
+    const htmlDiv = painel.paginaDoMonitoramento({ retrato: retratoDiv, cambio: 5.4 });
+    conferir('…e quando a regra e o fornecedor discordam, o ecrã mostra os dois e não escolhe',
+      /A regra e o fornecedor discordam/.test(htmlDiv) && /0 min facturáveis/.test(htmlDiv)
+        && /Billing/.test(htmlDiv), null);
+    conferir('…e sem resposta do fornecedor, a página diz que o número é a regra e não um extracto',
+      /não é um extracto/.test(html), null);
+
     conferir('…e diz que o Resend conta o que o sistema pediu, não a fatura',
       /não é a fatura|Bounces/i.test(html), null);
     /* A RECEITA E A MIGRAÇÃO trazem os números, e não só os títulos. */

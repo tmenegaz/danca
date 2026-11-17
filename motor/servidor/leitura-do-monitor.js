@@ -119,6 +119,54 @@ async function minutosDoRunNoGithub({ token, dono, repo, id, fetchImpl } = {}) {
 }
 
 /**
+ * O QUE O FORNECEDOR DIZ QUE FOI FACTURADO — a conferência contra a fonte, num pedido só.
+ * (17/11/2026)
+ *
+ * PORQUE ISTO EXISTE, e não é zelo abstracto. O painel calcula os minutos pela REGRA DOCUMENTADA
+ * do GitHub («cada job arredondado ao minuto»). Uma regra documentada não é a fatura. No primeiro
+ * dia em produção, `.../runs/<id>/timing` — o próprio campo de facturação do fornecedor — respondeu
+ * `billable.UBUNTU.total_ms = 0` a **todas** as execuções medidas, com os jobs a demorarem 13 a 34
+ * segundos de relógio. Ou seja: a regra dava 1 minuto por job e o fornecedor dava zero.
+ *
+ * Qual dos dois está certo não se decide dentro do código: decide-se na fatura. O que o código pode
+ * fazer — e passa a fazer — é **mostrar os dois** e deixar a divergência à vista, em vez de
+ * apresentar uma conta como se fosse um extracto. O painel pede este campo uma vez de vez em quando
+ * (6 horas de cache), para não gastar subpedidos a repetir a mesma pergunta.
+ *
+ * `null` significa «não deu para perguntar», e não «zero».
+ */
+async function facturavelDoRunNoGithub({ token, dono, repo, id, fetchImpl } = {}) {
+  const f = fetchImpl || fetch;
+  const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/actions/runs/' + id + '/timing';
+  try {
+    const r = await f(url, {
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'sistema-lastro',
+      },
+    });
+    if (!r || !r.ok) return null;
+    const dados = await r.json().catch(() => null);
+    const billable = (dados && dados.billable) || {};
+    let ms = 0;
+    let jobs = 0;
+    for (const chave of Object.keys(billable)) {
+      const b = billable[chave] || {};
+      ms += Math.max(0, Number(b.total_ms) || 0);
+      jobs += Math.max(0, Number(b.jobs) || 0);
+    }
+    return {
+      ms,
+      jobs,
+      relogioSegundos: Math.max(0, Math.round((Number(dados && dados.run_duration_ms) || 0) / 1000)),
+    };
+  } catch (erro) {
+    return null;
+  }
+}
+
+/**
  * AS CHAVES DE UMA ESCOLA, com o tamanho de cada valor.
  *
  * O `list()` devolve nomes e metadados; o tamanho só vem com `include_metadata`, e nem todos os
@@ -153,4 +201,4 @@ async function chavesDaEscola({ kv, escola } = {}) {
   return { total, bytes, comTamanho };
 }
 
-module.exports = { desde, runsDoGithub, minutosDoRunNoGithub, chavesDaEscola };
+module.exports = { desde, runsDoGithub, minutosDoRunNoGithub, facturavelDoRunNoGithub, chavesDaEscola };
