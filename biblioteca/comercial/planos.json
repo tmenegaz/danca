@@ -47,6 +47,11 @@
       ]
     }
   ],
+  "teto": {
+    "_nota": "O TETO, E PORQUE É QUE SÓ O ÚLTIMO DEGRAU DECLARA UM NÚMERO (16/11/2026). «Qual é o teto de quem contrata o plano intermediário? É o base do plano avançado menos um.» É uma REGRA, e por isso não se copia para o dado: os degraus de baixo têm teto = piso do degrau de cima menos um (`comercial.tetoDoPlano`), e o número muda sozinho se a escada mudar. O Avançado não tem degrau acima, e é o único que precisa de um número declarado — e o número vem da conta da infraestrutura, não do gosto: 20 professores e 500 alunas é o tamanho em que uma escola ocupa ~20% da cota gratuita de Ações do GitHub (20 prof × 1 aula/dia × 22 dias = 440 lançamentos × 54 s medidos = ~396 min/mês de 2.000), e três escolas nesse tamanho ficam dentro dos 70% que sobram para os picos. A conta inteira está em PLANEJAMENTO-LASTRO.md §L9c.",
+    "professores": 20,
+    "alunos": 500
+  },
   "lotes": {
     "_nota": "A CAPACIDADE É UM EIXO ORTOGONAL, e cobra-se por volume (C23). A regra é uma só: triplicar a quantidade custa 5/3 do preço. O lote é RECORRENTE — a mensalidade é `assinatura + Σ lotes`. A capacidade incluída do plano NÃO se desconta do lote: é a tabela decidida, e alterá-la é mudança comercial, não arredondamento.",
     "professores": [

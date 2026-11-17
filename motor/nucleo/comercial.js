@@ -154,6 +154,101 @@ function validarEscolha(pedido, { podeDispensar = false } = {}) {
   };
 }
 
+/* ── O PISO E O TETO — «a partir de» e «até» (16/11/2026) ──────────────────────────────────────
+ *
+ * A PALAVRA «CAPACIDADE» DAVA A IDEIA ERRADA, e a correcção é dela: «Capacidade dá ideia de teto,
+ * então dá ideia de que tem só nove professores e 120 alunos. O nosso não é capacidade, o nosso é a
+ * partir de.» O número do plano não é um máximo que a escola tem — é o **piso** que ela contratou,
+ * e é a garantia de que, quando a gente particiona, aquela escola tem espaço para operar.
+ *
+ * E o teto é outra coisa, e ela também o nomeou: «ela tem um teto […] Qual é o teto de quem contrata
+ * o plano intermediário? É o base do plano avançado menos um.» Ou seja:
+ *
+ *   · **piso** = o que a escola comprou (o plano + os lotes). É a trava do cadastro (§L9b): acima
+ *     disto, cadastrar professor ou aluna é recusado com as duas saídas — comprar um lote ou subir
+ *     de plano.
+ *   · **teto** = até onde o plano dela vai. Acima disto não é questão de preço: é subir de degrau,
+ *     ou falar com a proprietária (a decisão de 15/11/2026: «acima, vende-se por conversa»).
+ *
+ * O TETO DOS DEGRAUS DE BAIXO É DERIVADO, e não copiado: o do Básico é o piso do Intermediário
+ * menos um (2 professores e 39 alunas), o do Intermediário é o do Avançado menos um (5 e 89). Só o
+ * Avançado declara um número, porque não tem degrau acima — e esse número vem da conta da
+ * infraestrutura (§L9c do PLANEJAMENTO), não do gosto.
+ *
+ * O TETO NUNCA FICA ABAIXO DO PISO. Quem compra um lote no Básico leva o piso a 4 professores, e um
+ * teto de 2 punha a própria escola fora do teto ao comprar — o adicional viraria uma armadilha. O
+ * teto sobe então até ao piso, e não além: para crescer, o caminho é o degrau de cima.
+ */
+
+/** O piso que um plano dá — o que ele inclui. Ausente no catálogo → zero, e a página diz «—». */
+function pisoDoPlano(id) {
+  const plano = assinaturaPorId(id);
+  if (!plano) return { professores: 0, alunos: 0 };
+  return { professores: Number(plano.professores) || 0, alunos: Number(plano.alunos) || 0 };
+}
+
+/** O degrau acima na escada — a ordem é a do catálogo, que é a ordem de preço. */
+function planoAcima(id) {
+  const i = ASSINATURAS.findIndex((a) => a && String(a.id).toLowerCase() === String(id || '').trim().toLowerCase());
+  if (i === -1 || i + 1 >= ASSINATURAS.length) return null;
+  return ASSINATURAS[i + 1];
+}
+
+/**
+ * O teto de um plano: o piso do degrau de cima menos um; no topo da escada, o número declarado.
+ * Devolve `null` quando o plano não existe — e a página diz «—» em vez de inventar um limite.
+ */
+function tetoDoPlano(id) {
+  if (!assinaturaPorId(id)) return null;
+  const acima = planoAcima(id);
+  if (acima) {
+    const piso = pisoDoPlano(acima.id);
+    return { professores: Math.max(0, piso.professores - 1), alunos: Math.max(0, piso.alunos - 1) };
+  }
+  const declarado = CATALOGO.teto || {};
+  return { professores: Number(declarado.professores) || 0, alunos: Number(declarado.alunos) || 0 };
+}
+
+/** Quanto os lotes acrescentam ao piso — `lotes` é a lista de quantidades já escolhidas. */
+function acrescimoDosLotes(lotes) {
+  const somar = (eixo) => (Array.isArray(lotes && lotes[eixo]) ? lotes[eixo] : [])
+    .reduce((s, q) => s + (Number(q) || 0), 0);
+  return { professores: somar('professores'), alunos: somar('alunos') };
+}
+
+/**
+ * O PISO E O TETO DE UM CONTRATO — o par que a escola lê como «a partir de … até …».
+ *
+ * `contrato` pode ser o registo comercial inteiro (com `plano` e `capacidade`) ou só a escolha
+ * (`{plano, lotes}`): a página às vezes tem um, às vezes tem o outro, e uma segunda função para
+ * cada forma daria duas respostas à mesma pergunta.
+ */
+function limitesDoContrato(contrato) {
+  const c = contrato || {};
+  const plano = c.plano || c.assinatura || null;
+  if (!plano) return null;
+  const base = pisoDoPlano(plano);
+  const tetoDoPlanoDela = tetoDoPlano(plano);
+  if (!tetoDoPlanoDela) return null;
+  /* O PISO VEM DO CONTRATO QUANDO ELE O TEM. O registo comercial guarda `capacidade` — o total que
+   * a escola contratou —, e é ele que manda; os lotes são o caminho para o reconstruir quando o
+   * registo é antigo e não os tem. */
+  const guardado = c.capacidade || null;
+  const acrescimo = acrescimoDosLotes(c.lotes || c);
+  const piso = {
+    professores: guardado && guardado.professores != null
+      ? Number(guardado.professores) || 0 : base.professores + acrescimo.professores,
+    alunos: guardado && guardado.alunos != null
+      ? Number(guardado.alunos) || 0 : base.alunos + acrescimo.alunos,
+  };
+  const teto = {
+    professores: Math.max(tetoDoPlanoDela.professores, piso.professores),
+    alunos: Math.max(tetoDoPlanoDela.alunos, piso.alunos),
+  };
+  const inclui = teto.professores > piso.professores || teto.alunos > piso.alunos;
+  return { plano, piso, teto, planoInclui: base, inclui };
+}
+
 /** O catálogo como a página o recebe: sem os campos internos de nota. */
 function catalogoDaPagina() {
   return {
@@ -163,6 +258,7 @@ function catalogoDaPagina() {
     assinaturas: ASSINATURAS.map((a) => ({
       id: a.id, nome: a.nome, preco: a.preco, precoTexto: precoEmTexto(a.preco),
       professores: a.professores, alunos: a.alunos, consultas: a.consultas,
+      piso: pisoDoPlano(a.id), teto: tetoDoPlano(a.id),
       resumo: a.resumo, inclui: a.inclui || [],
     })),
     lotes: { professores: lotesDe('professores'), alunos: lotesDe('alunos') },
@@ -232,6 +328,9 @@ module.exports = {
   assinaturaPorId,
   extensoesDoPlano,
   lotesDe,
+  pisoDoPlano,
+  tetoDoPlano,
+  limitesDoContrato,
   calcular,
   validarEscolha,
   catalogoDaPagina,

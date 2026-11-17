@@ -36,6 +36,10 @@ const { navDoPainel } = require('../../tools/templates/nav-html.js');
 const dominio = require('./dominio-da-escola.js');
 /* O RELÓGIO DA CASA (16/11/2026) — uma linha, e todas as datas desta página passam por ela. */
 const fuso = require('../nucleo/fuso.js');
+/* A PAGINAÇÃO É A PEÇA DA CASA (23/10/2026) — a mesma das listas da Produção e das páginas de
+ * lista. Não se escreve uma segunda: o rodapé, o `hidden` e o `data-por-pagina` são o acordo, e um
+ * segundo acordo é uma segunda coisa para corrigir. */
+const paginacao = require('../nucleo/paginacao.js');
 
 function esc(valor) {
   return String(valor == null ? '' : valor)
@@ -765,7 +769,7 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }
       '<p class="nota" id="convite-valor"></p>' +
       (temLotes
         ? '<fieldset class="escolhas" id="convite-capacidade" data-moeda="' + esc(moeda) + '">' +
-          '<legend>Capacidade a mais (por lote, na mensalidade)</legend>' +
+          '<legend>Adicionais (por lote, na mensalidade)</legend>' +
           lotesDeProfessores + lotesDeAlunos + '</fieldset>'
         : '') +
 
@@ -907,7 +911,7 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * outro plano». Leva o foco ao seletor e diz o que fazer. */
   '  var nao=document.getElementById("convite-perda-nao");' +
   '  if(nao)nao.addEventListener("click",function(){perdeu=false;esconderPerda();' +
-  '    dizer("Escolha outro plano, ou mais capacidade, e eu volto a conferir.",false);' +
+  '    dizer("Escolha outro plano, ou mais adicionais, e eu volto a conferir.",false);' +
   '    if(plano)plano.focus();});}' +
   'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
   'function reais(c){return moeda+" "+(Math.round(c)/100).toFixed(2).replace(".",",");}' +
@@ -1402,18 +1406,35 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       partes.push('+' + q.qtd + ' ' + rotulo + (soma ? ' (R$ ' + emReais(Math.round(soma * 100)) + ')' : ''));
     }
     const extraDaCapacidade = partes.length ? partes.join(' e ') : '';
-    return '<div class="caixa" data-conta="' + esc(c.escola) + '">' +
-      '<h2>' + esc(c.nome || c.escola) + ' <span class="dono">(' + esc(c.escola) + ')</span></h2>' +
+    /* O PISO E O TETO (16/11/2026). «Capacidade dá ideia de teto, então dá ideia de que tem só nove
+     * professores e 120 alunos. O nosso não é capacidade, o nosso é a partir de.» O piso é o que a
+     * escola contratou; o teto é até onde o plano dela vai — e é o teto que faltava dizer, porque
+     * sem ele «9 professores» prometia um máximo que ninguém combinou. */
+    const piso = c.piso || capacidade || {};
+    const teto = c.teto || null;
+    const gente = (q) => (q && q.professores != null
+      ? q.professores + ' professor(es) e ' + q.alunos + ' aluna(s)' : null);
+    /* O BLOCO DOBRÁVEL (16/11/2026). «A gente vai empilhar […] tem que poder colapsar.» Com uma
+     * escola a página é uma página; com vinte, o extrato de cada uma aberto é uma parede. O
+     * `<details>` é a peça que a casa já usa para dobrar, e o resumo fica à vista com o que basta
+     * para reconhecer a escola: o nome, o plano e a situação. */
+    return '<details class="acordeao" open data-conta="' + esc(c.escola) + '">' +
+      '<summary><strong>' + esc(c.nome || c.escola) + '</strong> '
+      + '<span class="dono">(' + esc(c.escola) + ')</span> '
+      + '<span class="selo discreto">' + esc(c.planoNome || '—') + '</span> '
+      + '<span class="selo ' + (c.situacao === 'em-aberto' ? 'falha' : (c.situacao === 'em-dia' ? 'ok' : 'discreto'))
+      + '">' + esc(c.situacao === 'em-aberto' ? 'em aberto' : (c.situacao === 'em-dia' ? 'pago' : 'a aguardar'))
+      + '</span></summary>' +
       '<p>' + esc(c.frase || '') + '</p>' +
       '<div class="ficha">' +
       '<span>Plano: <strong>' + esc(c.planoNome || '—') + '</strong></span>' +
       '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
-      '<span>Capacidade: ' + esc(String(capacidade.professores == null ? '—' : capacidade.professores))
-        + ' professor(es) · ' + esc(String(capacidade.alunos == null ? '—' : capacidade.alunos)) + ' aluna(s)</span>' +
-      /* A CAPACIDADE A MAIS, ABERTA (16/11/2026). «Está dizendo que foi contratado o avançado, mas
-       * não diz para mim qual é a capacidade extra contratada.» O total não responde à pergunta: o
-       * que ela quer saber é QUANTOS a mais, e quanto custam. */
-      (extraDaCapacidade ? '<span>Além do plano: ' + esc(extraDaCapacidade) + '</span>' : '') +
+      '<span>Piso: <strong>' + (gente(piso) ? 'a partir de ' + esc(gente(piso)) : '—') + '</strong></span>' +
+      '<span>Teto do plano: ' + (gente(teto) ? 'até ' + esc(gente(teto)) : '—') + '</span>' +
+      /* O ADICIONAL, ABERTO (16/11/2026). «Está dizendo que foi contratado o avançado, mas não diz
+       * para mim qual é a capacidade extra contratada.» O total não responde à pergunta: o que ela
+       * quer saber é QUANTOS a mais, e quanto custam. */
+      (extraDaCapacidade ? '<span>Além do piso: ' + esc(extraDaCapacidade) + '</span>' : '') +
       (c.proximoVencimento
         ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
           + (c.diasParaVencer != null
@@ -1432,7 +1453,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
       '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
       + '</select></p>' +
-      '<fieldset class="escolhas"><legend class="campo-rotulo">Capacidade a mais (por lote, na ' +
+      '<fieldset class="escolhas"><legend class="campo-rotulo">Adicionais (por lote, na ' +
       'mensalidade)</legend>' + caixasDeLote('professores', 'professor(es)', c.lotesProfessores)
       + caixasDeLote('alunos', 'aluna(s)', c.lotesAlunos) + '</fieldset>' +
       '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
@@ -1441,12 +1462,38 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
       'mês, e o plano novo vale a partir da próxima mensalidade.</p>' +
       '</div></details>' +
-      '</div>';
+      '</details>';
   };
 
+  /* AS CONTAS, EMPILHADAS E PAGINADAS (16/11/2026). «A gente vai ter o Breu e depois o Calango e
+   * depois a batata […] Tem que poder colapsar. E coloca uma paginação que exibe no máximo 10 por
+   * página e que eu possa classificar em quantidades que eu quero exibir por página, 10, 20, 50 e
+   * 100.»
+   *
+   * A PAGINAÇÃO É A DA CASA, e não uma nova: `motor/nucleo/paginacao.js` é a peça que a Produção
+   * inventou e as páginas de lista já consomem — o `data-paginar`, o `data-por-pagina`, o rodapé
+   * `.paginas` que nasce `hidden` (com uma página só ele não aparece, e sem JavaScript a lista
+   * mostra tudo). A única coisa nova aqui é o SELECTOR de quantas por página: a peça lê o
+   * `data-por-pagina`, portanto mudá-lo e chamar `paginar()` é tudo o que é preciso. */
+  const blocos = contas.map((c) => '<li>' + cartaoDaConta(c) + '</li>').join('');
   const blocoDasContas = '<h2>Mensalidades, escola por escola</h2>' +
     (contas.length
-      ? contas.map(cartaoDaConta).join('')
+      ? /* A BARRA DE CONTROLO usa as peças da casa e não inventa nenhuma: `.caixa.filtrar` é a
+         * barra de campos em fileira que a Produção já usa, e `.campo-filtro` é o par rótulo+campo
+         * dentro dela. O botão de dobrar alinha-se com os campos porque a barra já alinha ao fundo. */
+        '<div class="caixa filtrar">' +
+        '<div class="campo-filtro">' +
+        '<label class="campo-rotulo" for="fi-por-pagina">Escolas por página</label>' +
+        '<select id="fi-por-pagina">' +
+        [10, 20, 50, 100].map((n) => '<option value="' + n + '"'
+          + (n === 10 ? ' selected' : '') + '>' + n + '</option>').join('') +
+        '</select></div>' +
+        '<button type="button" class="acao secundario" id="fi-dobrar">Recolher todas</button>' +
+        '</div>' +
+        '<div data-paginar data-por-pagina="10" id="fi-contas">' +
+        '<ul class="trio-lista">' + blocos + '</ul>' +
+        paginacao.marcacao() +
+        '</div>'
       : '<div class="caixa nota"><h2>Nenhuma escola viva para cobrar</h2>' +
         '<p>Uma escola aparece aqui assim que existir. Uma lista vazia quer dizer que nenhuma ' +
         'existe, não que a leitura falhou.</p></div>');
@@ -1485,7 +1532,8 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       painel('mensalidades', blocoDasContas, true) +
       painel('chave', blocoDaChave, false) +
       painel('descontos', blocoDoDesconto + tabela, false) +
-      SCRIPT_DAS_ABAS + SCRIPT_DO_FINANCEIRO +
+      SCRIPT_DAS_ABAS + SCRIPT_DAS_CONTAS + '<script>' + paginacao.script + '</script>' +
+      SCRIPT_DO_FINANCEIRO +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
@@ -1500,6 +1548,43 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
  * existe para impedir. O que é comum — e é o que importa — são as MARCAS, e são as mesmas:
  * `aria-selected` na aba, `hidden` no painel.
  */
+/**
+ * O SELECTOR DE QUANTAS POR PÁGINA, E O «RECOLHER TODAS» (16/11/2026).
+ *
+ * Nenhum dos dois precisa do servidor: a paginação lê `data-por-pagina` do painel, e as dobras são
+ * `<details>` no DOM. Mudar os dois por `fetch` faria a página recarregar para esconder texto que já
+ * está ali — e é o oposto do que ela pediu ao dizer «tem que poder colapsar».
+ *
+ * O BOTÃO DIZ O QUE FAZ, e não onde está: «Recolher todas» / «Expandir todas» segue o estado do que
+ * está à vista, e não o da última vez. Um botão que não muda de rótulo obriga a clicar para saber.
+ */
+const SCRIPT_DAS_CONTAS = '<script>(function(){' +
+  'var painel=document.getElementById("fi-contas");' +
+  'var escolha=document.getElementById("fi-por-pagina");' +
+  'if(painel&&escolha){' +
+  '  escolha.addEventListener("change",function(){' +
+  '    painel.setAttribute("data-por-pagina",escolha.value);' +
+  '    painel.setAttribute("data-pagina","1");' +
+  '    if(window.paginar)window.paginar();' +
+  '  });' +
+  '}' +
+  'var botao=document.getElementById("fi-dobrar");' +
+  'function dobras(){return painel?painel.querySelectorAll("details"):[];}' +
+  'function todasAbertas(){' +
+  '  var d=dobras();for(var i=0;i<d.length;i++){if(!d[i].open)return false;}return d.length>0;' +
+  '}' +
+  'function rotular(){if(botao)botao.textContent=todasAbertas()?"Recolher todas":"Expandir todas";}' +
+  'if(botao){' +
+  '  botao.addEventListener("click",function(){' +
+  '    var abrir=!todasAbertas(),d=dobras();' +
+  '    for(var i=0;i<d.length;i++)d[i].open=abrir;' +
+  '    rotular();' +
+  '  });' +
+  '  painel.addEventListener("toggle",rotular,true);' +
+  '  rotular();' +
+  '}' +
+  '})();</script>';
+
 const SCRIPT_DAS_ABAS = '<script>(function(){' +
   'var tira=document.getElementById("fi-abas");if(!tira)return;' +
   'var abas=tira.querySelectorAll("[data-aba]");' +

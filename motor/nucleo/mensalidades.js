@@ -199,6 +199,8 @@ function situacaoDaEscola({ escola, contrato, livro, agora } = {}) {
   const hojeIso = hoje.toISOString();
   const mesDeHoje = competencia(hojeIso);
 
+  const limites = comercial.limitesDoContrato(c);
+
   const pagamentos = (Array.isArray(livro) ? livro : [])
     .filter((l) => l && l.escola === slug)
     .reduce((mapa, l) => { mapa[l.mes] = l; return mapa; }, {});
@@ -271,6 +273,13 @@ function situacaoDaEscola({ escola, contrato, livro, agora } = {}) {
     plano: c.plano || null,
     planoNome: c.planoNome || null,
     capacidade: c.capacidade || null,
+    /* O PISO E O TETO DO CONTRATO (16/11/2026) — «a partir de» e «até». A `capacidade` acima é o
+     * mesmo número que o piso, e continua a sair porque é o nome que o registo comercial usa; o que
+     * a tela lê é este par, que é o que a escola entende: ela contratou a partir de 9 professores, e
+     * o plano dela vai até 20. O teto dos degraus de baixo é derivado do degrau de cima
+     * (`comercial.tetoDoPlano`), e não guardado — a regra é uma, e não uma por plano. */
+    piso: limites ? limites.piso : null,
+    teto: limites ? limites.teto : null,
     /* O QUE FOI CONTRATADO ALÉM DO PLANO — e a conta de onde vem o valor (16/11/2026).
      *
      * «Aqui diz que a capacidade incluída foi nove professores e 120 alunos […] a mensalidade é

@@ -3555,12 +3555,25 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
   ].filter(Boolean).join('');
 
   const s = situacao || {};
-  const capacidade = s.capacidade || {};
+  /* O PISO E O TETO — e a palavra «capacidade» sai do ecrã (16/11/2026): «Capacidade dá ideia de
+   * teto, então dá ideia de que tem só nove professores e 120 alunos. O nosso não é capacidade, o
+   * nosso é a partir de.» O piso é o que ela contratou; o teto é até onde o plano dela vai. Quem lê
+   * «a partir de 9 e até 20» entende as duas coisas, e quem lia «capacidade 9» entendia a errada. */
+  const piso = s.piso || s.capacidade || {};
+  const teto = s.teto || null;
+  const gente = (q) => (q ? q.professores + ' professor(es) e ' + q.alunos + ' aluna(s)' : null);
+  const aMais = s.extra
+    ? [s.extra.professores && s.extra.professores.qtd
+      ? '+' + s.extra.professores.qtd + ' professor(es)' : '',
+    s.extra.alunos && s.extra.alunos.qtd ? '+' + s.extra.alunos.qtd + ' aluna(s)' : '']
+      .filter(Boolean).join(' e ')
+    : '';
   const contratoLinhas = [
     linha('Plano', s.planoNome || s.plano),
     linha('Mensalidade', s.valorCentavos ? 'R$ ' + emReaisDoCartao(s.valorCentavos) : null),
-    linha('Capacidade incluída', capacidade.professores != null
-      ? capacidade.professores + ' professor(es) e ' + capacidade.alunos + ' aluna(s)' : null),
+    linha('Piso contratado', gente(piso) ? 'a partir de ' + gente(piso) : null),
+    linha('Além do piso', aMais || null),
+    linha('Teto do plano', gente(teto) ? 'até ' + gente(teto) : null),
     linha('Próximo vencimento', s.proximoVencimento
       ? s.proximoVencimento + (s.diasParaVencer != null
         ? (s.diasParaVencer >= 0
@@ -3585,21 +3598,20 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
       '</tbody></table></div>'
     : '<p class="sub">Ainda não há mensalidade a cobrar — a contagem começa quando a escola é criada.</p>';
 
-  /* O BOTÃO DE PAGAR — e ele abre a chave em vez de levar a outro sítio. «Ela pode clicar […]
-   * aparece a chave Pix»: um `details` faz exactamente isso, no sítio onde ela está, e sem um
-   * script que possa falhar. A chave já é pública para quem paga; o que não pode é ser publicada
-   * numa página aberta, e esta não é. */
+  /* A CHAVE DE PAGAR, SEM ACORDEÃO (16/11/2026). Era um `details` — «Pagar agora — ver a chave
+   * Pix» —, e ela cortou-o: «o pagar não precisa ter esse botão de colapsar e expandir. A aba já é
+   * isso.» É verdade, e o acordeão dentro da aba era a mesma decisão pedida duas vezes: um clique
+   * para escolher o assunto e outro para o ver. A chave já é pública para quem paga; o que não pode
+   * é ser publicada numa página aberta, e esta não é. */
   const blocoDoPix = pix && pix.chave
-    ? '<details class="acordeao"><summary>Pagar agora — ver a chave Pix</summary>' +
-      '<p>Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro') + '</strong>:</p>' +
+    ? '<p>Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro') + '</strong>:</p>' +
       '<p><strong>Ao fazer o Pix, escreva o nome da escola</strong> — «' + esc(nome)
       + '» — na descrição da transferência. A conciliação é feita à mão, e é por esse nome que o '
       + 'pagamento é ligado à escola certa.</p>' +
       '<p><label class="campo-rotulo" for="escola-pix-chave">Chave Pix (copia e cola)</label>' +
       '<input id="escola-pix-chave" readonly value="' + esc(pix.chave) + '"></p>' +
       '<p class="sub">Confirmado o pagamento, o mês passa a «pago» no extrato desta página. A '
-      + 'conciliação é feita em até 24 horas.</p>' +
-      '</details>'
+      + 'conciliação é feita em até 24 horas.</p>'
     : '<p class="aviso">A chave Pix ainda não está configurada no sistema. Para pagar, fale com a '
       + 'administração do Sistema Lastro.</p>';
 
@@ -3636,7 +3648,13 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
     'role="tabpanel" aria-labelledby="es-aba-' + n + '" tabindex="0"' + (primeiro ? '' : ' hidden') + '>' +
     corpo + '</div>';
 
-  return '<div class="turmas-corpo" data-abas="sim" id="a-escola" data-situacao="' +
+  /* O PAINEL FICA ABAIXO DA TIRA, E NÃO AO LADO (16/11/2026). «O conteúdo que se lê de cada aba
+   * tem que ficar abaixo da aba. Então quando eu leio o cadastro, ele não pode ficar à direita do
+   * conjunto de abas.» A caixa usava a `.turmas-corpo`, que é uma GRADE DE DUAS COLUNAS — a tira na
+   * esquerda e o conteúdo na direita —, e essa grade é a dos formulários de edição (o passo à
+   * esquerda, o campo à direita). Aqui não há passo nenhum para pôr de lado: há uma tira e o que
+   * ela abriu. A `.caixa` é a peça certa, e a tira pousa nela. */
+  return '<div class="caixa" data-abas="sim" id="a-escola" data-situacao="' +
     esc(s.situacao || 'aguardando') + '">' +
     tira +
     painel('cadastro', dados
@@ -19406,6 +19424,12 @@ module.exports = {
   // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
   // texto do HTML: mede-se a posição do elemento — antes e depois do clique.
   paginaProducao,
+  /* O CARTÃO DE «A ESCOLA», exportado para a prova o medir num navegador (16/11/2026). O defeito
+   * que ela apanhou — o painel da aba a ficar à DIREITA da tira, porque a caixa estava na grade de
+   * duas colunas dos formulários — não se vê no texto do HTML: vê-se na posição do elemento.
+   * Exportado em vez de copiado para a prova, pela razão de sempre: um cartão escrito à mão na
+   * bancada mediria a bancada. */
+  cartaoDaEscola,
   /* A REGRA DO ELENCO NA TURMA, exportada para a prova (07/11/2026). O cliente repinta o
    * `<select>` com o que a rota devolve, e a bancada tem de poder construir a mesma resposta sem
    * subir o Worker — uma resposta escrita à mão na prova mediria a prova, não a regra. */

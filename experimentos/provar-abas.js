@@ -47,6 +47,28 @@ function conferir(titulo, condicao, dado) {
 }
 
 /** Uma página com as abas, servida pela bancada local — nada toca no ar. */
+/* O CARTÃO DE «A ESCOLA», gerado pelo servidor. Ele vai para o banco de provas para que a medida
+ * seja a do que é servido; se amanhã o contentor mudar, esta prova muda com ele — e é isso que a
+ * torna uma prova e não uma fotografia. */
+const CARTAO_DA_ESCOLA = (() => {
+  const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
+  const cartao = bastidores.cartaoDaEscola({
+    escola: 'prova',
+    cadastro: { escolaNome: 'Escola da Prova', email: 'e@x.test' },
+    contrato: { plano: 'avancado', valorCentavos: 23900 },
+    situacao: {
+      plano: 'avancado', planoNome: 'Avançado', valorCentavos: 23900, situacao: 'em-dia',
+      piso: { professores: 9, alunos: 120 }, teto: { professores: 20, alunos: 500 },
+      meses: [], frase: 'Em dia.',
+    },
+    pix: { chave: 'chave@pix.test', titular: 'Sistema Lastro' },
+  });
+  return '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><meta charset="utf-8">' +
+    '<link rel="stylesheet" href="/style.css"></head><body data-layout="painel">' +
+    '<main><div class="conteudo"><section class="secao"><h2>A escola</h2>' + cartao +
+    '</section></div></main></body></html>';
+})();
+
 const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><meta charset="utf-8">' +
   '<link rel="stylesheet" href="/style.css"></head><body data-layout="painel">' +
   '<main><div class="conteudo">' +
@@ -143,6 +165,13 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
 
     const css = fs.readFileSync(FOLHA, 'utf8');
     const srv = http.createServer((req, res) => {
+      if (req.url.indexOf('/escola') === 0) {
+        /* O CARTÃO REAL de «A escola», servido tal como o servidor o produz — é a única forma de
+         * medir a geometria do que se entrega, e não de um exemplo parecido com ele. */
+        res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+        res.end(CARTAO_DA_ESCOLA);
+        return;
+      }
       if (req.url.indexOf('/style.css') === 0) {
         res.writeHead(200, { 'Content-Type': 'text/css' });
         res.end(css);
@@ -226,6 +255,52 @@ const PAGINA = '<!doctype html><html lang="pt-BR" data-paleta="bordo"><head><met
         rolavel);
       const meio = await medir(700);
       conferir('a 700px a tira ainda está', meio.navDisplay !== 'none', meio.navDisplay);
+
+      /* O PAINEL ABAIXO DA TIRA — medido, e não lido no markup (16/11/2026).
+       *
+       * «O conteúdo que se lê de cada aba tem que ficar abaixo da aba. Então quando eu leio o
+       * cadastro, ele não pode ficar à direita do conjunto de abas.» O cartão estava dentro de uma
+       * `.turmas-corpo`, que é grade de duas colunas: a tira à esquerda, o conteúdo à direita. A
+       * medida que diz se o defeito voltou é esta — o topo do painel tem de estar DEPOIS do fim da
+       * tira, e a esquerda dos dois tem de começar no mesmo sítio. */
+      await page.setViewport({ width: 1280, height: 900 });
+      await page.goto(base + '/escola', { waitUntil: 'load' });
+      const abaixo = await page.evaluate(() => {
+        const r = (el) => el.getBoundingClientRect();
+        const tira = document.getElementById('es-abas');
+        const painel = document.getElementById('es-painel-cadastro');
+        if (!tira || !painel) return null;
+        return {
+          topoTira: Math.round(r(tira).top), baseTira: Math.round(r(tira).bottom),
+          topoPainel: Math.round(r(painel).top),
+          esquerdaTira: Math.round(r(tira).left), esquerdaPainel: Math.round(r(painel).left),
+          larguraPainel: Math.round(r(painel).width), larguraTira: Math.round(r(tira).width),
+        };
+      });
+      conferir('no cartão de «A escola» o painel começa ABAIXO da tira',
+        abaixo && abaixo.topoPainel >= abaixo.baseTira,
+        abaixo && { baseDaTira: abaixo.baseTira, topoDoPainel: abaixo.topoPainel });
+      /* «AO LADO» QUER DIZER UMA COLUNA À DIREITA: a tira e o painel começando no mesmo sítio, e o
+       * painel ocupando a largura do conteúdo, isso não acontece. Era o que a grade de duas colunas
+       * fazia — a tira em 20rem à esquerda e o painel na coluna da direita. */
+      conferir('…e não ao lado: a tira e o painel começam na mesma coluna, com a mesma largura',
+        abaixo && Math.abs(abaixo.esquerdaPainel - abaixo.esquerdaTira) <= 2
+          && abaixo.larguraPainel >= abaixo.larguraTira,
+        abaixo && { esqTira: abaixo.esquerdaTira, esqPainel: abaixo.esquerdaPainel,
+          largTira: abaixo.larguraTira, largPainel: abaixo.larguraPainel });
+      /* E A ABA DE PAGAR NÃO TEM DOBRA DENTRO: «o pagar não precisa ter esse botão de colapsar e
+       * expandir. A aba já é isso.» A chave fica à vista quando a aba abre — e a prova a que abre a
+       * aba é a do financeiro; aqui mede-se o que o cartão entrega: nenhum `details` naquele painel.
+       * (A aba não se abre nesta bancada porque quem a abre é o motor da Produção, que não está
+       * nesta página — testar o clique aqui mediria a bancada, não o cartão.) */
+      const pagar = await page.evaluate(() => {
+        const p = document.getElementById('es-painel-pagar');
+        if (!p) return null;
+        return { detalhes: p.querySelectorAll('details').length,
+          chave: /chave@pix\.test/.test(p.innerHTML) };
+      });
+      conferir('a aba de pagar não tem acordeão dentro — a aba já é a dobra',
+        pagar && pagar.detalhes === 0 && pagar.chave === true, pagar);
     } finally {
       await browser.close();
       srv.close();

@@ -39,6 +39,8 @@ const RAIZ = path.join(__dirname, '..');
 const mensalidades = require(path.join(RAIZ, 'motor/nucleo/mensalidades.js'));
 const comercial = require(path.join(RAIZ, 'motor/nucleo/comercial.js'));
 const painel = require(path.join(RAIZ, 'motor/servidor/painel-html.js'));
+/* O CATÁLOGO CRU — a prova do teto lê o número declarado, e não a função que o devolve. */
+const CATALOGO = JSON.parse(fs.readFileSync(path.join(RAIZ, 'biblioteca/comercial/planos.json'), 'utf8'));
 
 let ok = 0;
 let ko = 0;
@@ -443,11 +445,23 @@ function kvCom(dados) {
           && !/chave@pix\.test/.test(p('cadastro').innerHTML), null);
       conferir('…e as três abas dizem a que grupo pertencem, para o ouvinte do clique',
         cartao.querySelector('#es-abas').getAttribute('data-abas') === 'escola', null);
+      /* O PAINEL FICA ABAIXO DA TIRA (16/11/2026): «o conteúdo que se lê de cada aba tem que ficar
+       * abaixo da aba. Então quando eu leio o cadastro, ele não pode ficar à direita do conjunto de
+       * abas.» O defeito era a caixa estar numa `.turmas-corpo` — uma GRADE DE DUAS COLUNAS —, e é
+       * isso que se afirma: o contentor não é a grade, e a tira é o primeiro filho. */
+      conferir('…e o painel fica ABAIXO da tira, e não ao lado (a caixa não é a grade de duas colunas)',
+        !/turmas-corpo/.test(cartao.className)
+          && cartao.firstElementChild && cartao.firstElementChild.id === 'es-abas',
+        { classe: cartao.className, primeiro: cartao.firstElementChild && cartao.firstElementChild.id });
     }
 
-    conferir('…e o botão de pagar abre a chave Pix, com a instrução do nome na descrição',
-      /Pagar agora — ver a chave Pix/.test(html) && /chave@pix\.test/.test(html)
-        && /escreva o nome da escola/i.test(html), null);
+    /* SEM ACORDEÃO DENTRO DA ABA (16/11/2026): «o pagar não precisa ter esse botão de colapsar e
+     * expandir. A aba já é isso.» A chave está à vista, e a instrução com ela. */
+    conferir('…e a aba de pagar mostra a chave Pix, com a instrução do nome na descrição',
+      /chave@pix\.test/.test(html) && /escreva o nome da escola/i.test(html), null);
+    conferir('…sem um acordeão dentro da aba — a aba já é a dobra',
+      !/Pagar agora — ver a chave Pix/.test(html)
+        && !/es-painel-pagar"[^>]*>[\s\S]{0,400}?<details/.test(html), null);
     /* O LADO DA ESCOLA NÃO ESCREVE: nenhum botão muda estado, plano ou pagamento. */
     conferir('…e NÃO há botão que mude o estado, o plano ou o pagamento — quem concilia é ela',
       !/data-pagar=/.test(html) && !/data-contrato-gravar/.test(html)
@@ -460,6 +474,98 @@ function kvCom(dados) {
       });
     conferir('sem chave Pix configurada, a página diz isso em vez de abrir uma caixa vazia',
       /ainda não está configurada no sistema/.test(semPix), null);
+  }
+
+  console.log('\nG. O piso e o teto — «a partir de» e «até»');
+  {
+    /* «Capacidade dá ideia de teto, então dá ideia de que tem só nove professores e 120 alunos. O
+     * nosso não é capacidade, o nosso é a partir de.» E o teto também foi dito: «qual é o teto de
+     * quem contrata o plano intermediário? É o base do plano avançado menos um.» */
+    const piso = (id) => comercial.pisoDoPlano(id);
+    const teto = (id) => comercial.tetoDoPlano(id);
+    conferir('o piso é o que o plano inclui — 1/10 · 3/40 · 6/90',
+      JSON.stringify([piso('basico'), piso('intermediario'), piso('avancado')])
+        === JSON.stringify([{ professores: 1, alunos: 10 }, { professores: 3, alunos: 40 },
+          { professores: 6, alunos: 90 }]), null);
+    conferir('o teto dos degraus de baixo é DERIVADO: o piso do degrau de cima menos um',
+      teto('basico').professores === 2 && teto('basico').alunos === 39
+        && teto('intermediario').professores === 5 && teto('intermediario').alunos === 89,
+      [teto('basico'), teto('intermediario')]);
+    /* SÓ O TOPO DECLARA UM NÚMERO, porque não tem degrau acima — e o número está no catálogo. */
+    conferir('o topo da escada declara o teto, e ele vem do catálogo',
+      teto('avancado').professores === CATALOGO.teto.professores
+        && teto('avancado').alunos === CATALOGO.teto.alunos, teto('avancado'));
+    conferir('…e a escada é coerente: o piso de cada degrau cabe no teto do anterior',
+      ['basico', 'intermediario', 'avancado'].every((id) => {
+        const p = piso(id); const t2 = teto(id);
+        return p.professores <= t2.professores && p.alunos <= t2.alunos;
+      }), null);
+    /* O TETO NUNCA FICA ABAIXO DO PISO — senão o próprio adicional punha a escola fora do teto. */
+    const comLote = comercial.limitesDoContrato({ plano: 'basico', lotes: { professores: [3], alunos: [] } });
+    conferir('um adicional no plano de baixo levanta o piso, e o teto acompanha (nunca fica atrás)',
+      comLote.piso.professores === 4 && comLote.teto.professores === 4, comLote);
+    /* E O ECRÃ DIZ AS DUAS COISAS. O total contratado sem os lotes guardados também é piso. */
+    const duo = comercial.limitesDoContrato({ plano: 'avancado', capacidade: { professores: 9, alunos: 120 } });
+    conferir('o contrato da «duo» lê-se «a partir de 9 / até 20 professores»',
+      duo.piso.professores === 9 && duo.teto.professores === 20, duo);
+  }
+
+  console.log('\nH. A página do financeiro: empilhar, paginar, colapsar');
+  {
+    const catalogo = comercial.catalogoDaPagina();
+    const conta = (slug) => ({
+      escola: slug, nome: slug.toUpperCase(), situacao: 'em-dia', plano: 'basico',
+      planoNome: 'Básico', valorCentavos: 6990, piso: { professores: 1, alunos: 10 },
+      teto: { professores: 2, alunos: 39 }, meses: [],
+    });
+    const catorze = Array.from({ length: 14 }, (_, i) => conta('escola' + i));
+    const html = painel.paginaFinanceira({
+      pix: { chave: 'k@p.test', titular: 'T' }, descontos: [],
+      escolas: catorze.map((c) => ({ slug: c.escola, nome: c.nome })), extrato: catorze, catalogo,
+    });
+    const { JSDOM } = require('jsdom');
+    const d = new JSDOM(html).window.document;
+    /* «A gente vai empilhar […] Tem que botar aqui no bloco todo um botão de colapsar.» */
+    conferir('as escolas ficam empilhadas numa lista, e cada uma é dobrável',
+      d.querySelectorAll('#fi-contas ul.trio-lista > li').length === 14
+        && d.querySelectorAll('#fi-contas details[open][data-conta]').length === 14, null);
+    conferir('…e o resumo de cada uma diz quem é, mesmo dobrada',
+      /ESCOLA0/.test(d.querySelector('details[data-conta="escola0"] summary').textContent)
+        && /Básico/.test(d.querySelector('details[data-conta="escola0"] summary').textContent), null);
+    /* «coloca uma paginação que exibe no máximo 10 por página». */
+    conferir('a lista é paginada com o máximo de 10 por página',
+      d.getElementById('fi-contas').getAttribute('data-por-pagina') === '10', null);
+    conferir('…e o rodapé das páginas é a peça da casa (nasce escondido)',
+      d.querySelector('#fi-contas .paginas[hidden]') && d.querySelector('#fi-contas .paginas-info'), null);
+    /* «que eu possa classificar em quantidades que eu quero exibir por página, 10, 20, 50 e 100». */
+    const opcoes = [...d.querySelectorAll('#fi-por-pagina option')].map((o) => o.value);
+    conferir('…e o seletor oferece 10, 20, 50 e 100',
+      JSON.stringify(opcoes) === JSON.stringify(['10', '20', '50', '100']), opcoes);
+    conferir('…e o botão de dobrar todas existe, ao lado do seletor',
+      d.getElementById('fi-dobrar') && /Recolher todas/.test(d.getElementById('fi-dobrar').textContent), null);
+    /* A PÁGINA ANDA DE VERDADE: o script da peça é o da casa, e ele esconde os itens das outras. */
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously', url: 'https://danca.padd.com.br/financeiro',
+      beforeParse(w) { w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} }); },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const dd = dom.window.document;
+    const visiveis = [...dd.querySelectorAll('#fi-contas ul.trio-lista > li')].filter((li) => !li.hidden);
+    conferir('a primeira página mostra dez das catorze',
+      visiveis.length === 10, visiveis.length);
+    conferir('…e o rodapé diz em que página se está',
+      /1 \/ 2/.test(dd.querySelector('#fi-contas .paginas-info').textContent),
+      dd.querySelector('#fi-contas .paginas-info').textContent);
+    /* O SELECTOR MANDA NA PEÇA: muda o `data-por-pagina` e repagina. */
+    const sel = dd.getElementById('fi-por-pagina');
+    sel.value = '20';
+    sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 50));
+    const depois = [...dd.querySelectorAll('#fi-contas ul.trio-lista > li')].filter((li) => !li.hidden);
+    conferir('escolher 20 por página mostra as catorze de uma vez',
+      depois.length === 14
+        && dd.querySelector('#fi-contas .paginas').hidden === true, depois.length);
+    dom.window.close();
   }
 
   console.log('\nF. O CPF é o validador — o homônimo deixa de ser recusado');

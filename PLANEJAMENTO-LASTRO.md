@@ -1830,6 +1830,63 @@ decisão.
   entrar antes do resto — é leitura do KV que a Produção já faz, e é o que impede a escola de
   crescer sem contrato.
 
+### L9c — O piso e o teto: «a partir de», e até onde *(16/11/2026)*
+
+> **A PALAVRA ESTAVA ERRADA, e a correcção é dela:** «Capacidade dá ideia de teto, então dá ideia de
+> que tem só nove professores e 120 alunos. O nosso não é capacidade, o nosso é a partir de.» O
+> número do plano **não é um máximo** que a escola tem — é o **piso** que ela contratou: a garantia
+> de que, quando o sistema particiona, aquela escola tem espaço para operar. E há um **teto**, que
+> não estava dito: «ela tem um teto […] Qual é o teto de quem contrata o plano intermediário? É o
+> base do plano avançado menos um.» Esta frente é a que dá nome e número às duas coisas.
+
+- **As duas palavras, e o que cada uma trava.**
+  - **Piso** — o que a escola comprou (o plano + os adicionais). É a trava do **cadastro** (§L9b):
+    acima dele, cadastrar professor ou aluna é recusado com as duas saídas, comprar um adicional ou
+    subir de degrau.
+  - **Teto** — até onde o plano dela vai. Acima dele não é questão de preço: é subir de degrau, ou
+    falar com a proprietária (a decisão de 15/11/2026, «acima, vende-se por conversa»).
+- **A regra do teto é derivada, e não copiada.** `teto(plano) = piso(plano de cima) − 1`:
+
+  | Plano | Piso | Teto | De onde vem o teto |
+  |:--|--:|--:|:--|
+  | Básico | 1 prof · 10 alunas | **2 · 39** | o piso do Intermediário menos um |
+  | Intermediário | 3 · 40 | **5 · 89** | o piso do Avançado menos um |
+  | Avançado | 6 · 90 | **20 · 500** | declarado — é o topo da escada, e o número vem da conta abaixo |
+
+  Só o topo declara um número (`planos.json`, chave `teto`): os outros dois o mudam sozinhos se a
+  escada mudar, e um teto copiado à mão é o primeiro número a divergir. **O teto nunca fica abaixo
+  do piso**: quem compra um adicional no plano de baixo leva o piso a 4 professores, e um teto de 2
+  punha a escola fora do teto ao comprar. O teto sobe até ao piso, e não além.
+- **A conta do teto do Avançado, com o que foi medido.** Quinze perfis de 500 alunas e 20
+  professores é um estúdio grande; a pergunta era se a infraestrutura gratuita o suporta. Medido:
+
+  | Recurso | Cota gratuita | Uma escola no teto | Fração |
+  |:--|--:|--:|--:|
+  | **GitHub Actions** (repo privado) | **2.000 min/mês** | 20 prof × 1 aula/dia × 22 dias = 440 lançamentos × **54 s** = **396 min/mês** | **20%** |
+  | Escritas de KV | 1.000/dia | 20 prof × 2 lançamentos × 3 escritas ≈ 120/dia | 17% |
+  | Pedidos ao Worker | 100.000/dia | 20 prof × 6 cargas × 3 pedidos ≈ 360/dia | 0,5% |
+  | Leituras de KV | 100.000/dia | ≈ 1.000/dia | 1,4% |
+  | Armazenamento de KV | 1 GB | 440 envelopes/mês × 14,5 KB ≈ 6,4 MB/mês (77 MB/ano) | 8%/ano |
+  | Workers AI | 10.000 Neurons/dia | só no Avançado; ~116 interações/dia na conta (§L7) | — |
+
+  O que aperta **não** são as alunas — 500 fichas são registo, não actores —, e não são os pedidos:
+  são os **minutos de Ações**, porque cada lançamento de aula passa por três workflows (reancorar,
+  publicar as escolas, regerar os índices) e a mediana dos últimos 40 é de **54 s**. Com 30% de
+  folga reservada para os picos (1.400 min/mês utilizáveis), cabem **três escolas no teto**
+  (3 × 396 = 1.188 min, 59% do total); a quarta levaria a 79% e já come a folga. **É por isso que
+  20/500 é o teto e não um número redondo maior:** é o maior que mantém três estúdios desse tamanho
+  a funcionar na conta gratuita, e a quarta é a conversa que ela já decidiu ter.
+- **O piso é uma reserva, e ela já existe na estrutura.** Quando o sistema particiona, cada escola
+  tem o seu próprio par Worker + KV (`wrangler.<escola>.jsonc`), e é isso que garante o espaço do
+  piso: o contrato de uma escola nunca divide namespace com o de outra. O que o piso pede é que o
+  particionamento **não** junte duas escolas num namespace para poupar — pouparia um par de
+  credenciais e custaria a garantia.
+- **O que fica por decidir, e é dela.** (a) O número 20/500 está agora declarado no catálogo, num
+  sítio só; mudá-lo é mudar uma chave. (b) A cadência assumida é **1 aula lançada por professor por
+  dia**: com duas, o teto cai para metade no que toca às Ações. (c) Se a plataforma passar a ter
+  mais de três escolas no teto, o caminho é plano pago de GitHub/Cloudflare — e não um teto menor
+  para cada uma.
+
 ### L10 — O vocabulário do domínio que falta (identificadores estáveis · contexto · intervenção · resposta)
 
 - **Objetivo e justificativa.** Dar existência modelada aos conceitos com que as perguntas do
@@ -2872,6 +2929,7 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | O lote é **recorrente**: a mensalidade é `assinatura + Σ lotes` | **§L8** entrega (c) e critério (v) · **§2.9** |
 | A escada `69,90 · 99,90 · 139,90` com capacidade `1/10 · 3/40 · 6/90` — e o preço por unidade **cai a cada degrau** (−59% · −35%), sem ser constante | **§L8** («A escada, decidida…») · critério (vi) · **§3 C23** |
 | A trava é **do motor**, e a recusa tem **dois remédios** | **§L9b** · a estratégia §9, já citada em §L12 |
+| A capacidade chama-se **piso** (o que a escola contrata, «a partir de»), e tem um **teto** derivado do degrau de cima | **§L9c** (16/11/2026) — `comercial.tetoDoPlano` |
 | A capacidade **não** limita leitura nem exportação | **§L9b** («O que esta frente NÃO faz») · [PLANO-INDICES](./PLANO-INDICES.md) §6.5 · [PLANO-PERGUNTAS](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §5.6 |
 | Onde vive a verdade da capacidade | **§L9b** («O lugar da verdade»): `escola/<slug>/indice.json → estado.plano` — **nunca** `professores/<slug>/perfil.json` |
 | A régua dos 20% por professor adicional **deixa de existir** | **§L8** risco (c) — mudança comercial **declarada** |

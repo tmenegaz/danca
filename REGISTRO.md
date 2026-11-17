@@ -48237,3 +48237,79 @@ exactamente o que a regra da identidade existe para impedir.
   dela não foi tocada.
 - **A prova:** `provar-abas.js` **25/25** — a folha não manda a tira desaparecer, a página que tem
   pílula esconde-a na folha dela, a 390px a tira continua lá e rola, e a 700px não rola.
+
+## 16/11/2026 — o piso e o teto: «capacidade» sai do ecrã, e a conta que dá o número
+
+**A palavra estava errada, e a correcção é dela.** «Capacidade dá ideia de teto, então dá ideia de
+que tem só nove professores e 120 alunos. O nosso não é capacidade, o nosso é a partir de.» O
+número do plano não é um máximo que a escola tem — é o **piso** que ela contratou, e é a garantia
+de que, quando o sistema particiona, aquela escola tem espaço para operar. E o **teto** não estava
+dito: «qual é o teto de quem contrata o plano intermediário? É o base do plano avançado menos um.»
+
+**O piso.** É o que a escola comprou (o plano + os adicionais), e é a trava do cadastro que o §L9b
+já previa. No ecrã lê-se **«Piso: a partir de 9 professor(es) e 120 aluna(s)»**, e o adicional
+passou a ser **«Além do piso: +3 professor(es) (R$ 50,00) e +30 aluna(s) (R$ 50,00)»**. A palavra
+«capacidade» continua a ser o nome do **dado** (`capacidade`, no registo comercial) — ela própria
+achou o termo bom como marca —, mas o que se lê é o piso, porque é o piso que tem um sentido.
+
+**O teto, e a regra que o gera.** `teto(plano) = piso(plano de cima) − 1`: o Básico vai até 2
+professores e 39 alunas, o Intermediário até 5 e 89, e o Avançado — que não tem degrau acima —
+declara o número. **Só o topo declara** (`planos.json`, chave `teto`): os outros dois mudam-se
+sozinhos se a escada mudar, e um teto copiado à mão é o primeiro número a divergir. E o teto nunca
+fica abaixo do piso: quem compra um adicional no plano de baixo leva o piso a 4, e um teto de 2
+punha a escola fora do teto **ao comprar**.
+
+**O número do topo, com a conta feita.** 20 professores e 500 alunas. O que aperta não são as
+alunas — 500 fichas são registo, não actores —, nem os pedidos ao Worker (0,5% da cota). São os
+**minutos de Ações do GitHub**: cada aula lançada passa por três workflows, e a mediana dos últimos
+40 é de **54 s** (reancorar 17 s · publicar as escolas 22 s · regerar os índices 15 s). Uma escola
+no teto, a 1 aula/dia por professor e 22 dias, são 440 lançamentos ≈ **396 min/mês** — 20% dos
+2.000 do plano gratuito. Com os 30% de folga que ela pediu (1.400 min), cabem **três** escolas
+nesse tamanho (59%); a quarta come a folga. As escritas de KV vêm a seguir (17% cada). A conta
+inteira, com as seis cotas, está no PLANEJAMENTO §L9c.
+
+**Duas correcções de tela que vinham no mesmo pedido.**
+
+- **O painel da aba fica ABAIXO da tira.** «Quando eu leio o cadastro, ele não pode ficar à direita
+  do conjunto de abas.» O cartão de «A escola» estava dentro de uma `.turmas-corpo`, que é a
+  **grade de duas colunas** dos formulários de edição (o passo à esquerda, o campo à direita).
+  Passou a `.caixa`, que é bloco. Medido num navegador: o topo do painel fica depois do fim da
+  tira, e as duas começam na mesma coluna.
+- **O «Pagar» perdeu o acordeão.** «O pagar não precisa ter esse botão de colapsar e expandir. A
+  aba já é isso.» Era um `<details>` dentro da aba — a mesma decisão pedida duas vezes. A chave
+  Pix passou a estar à vista quando a aba abre.
+
+**O financeiro empilha, dobra e pagina.** «A gente vai ter o Breu e depois o Calango e depois a
+batata […] Tem que poder colapsar. E coloca uma paginação que exibe no máximo 10 por página e que
+eu possa classificar em quantidades que eu quero exibir por página, 10, 20, 50 e 100.» Cada escola
+é agora um `<details>` que nasce aberto e cujo **resumo fica à vista com o nome, o plano e a
+situação**; acima da lista, um selector de 10/20/50/100 e o botão **«Recolher todas» / «Expandir
+todas»** (o rótulo segue o estado do que se vê). A paginação é a **peça da casa**
+(`motor/nucleo/paginacao.js`), e não uma nova — o `data-paginar`, o `data-por-pagina` e o rodapé
+`.paginas` que nasce `hidden`; o selector só muda o atributo e chama `paginar()`.
+
+**Onde entrou.** `biblioteca/comercial/planos.json` (a chave `teto`) ·
+`motor/nucleo/comercial.js` (`pisoDoPlano`, `tetoDoPlano`, `limitesDoContrato`) ·
+`motor/nucleo/mensalidades.js` (`piso` e `teto` no que a escola lê) ·
+`motor/servidor/bastidores.js` (a caixa, o Pix sem acordeão, o piso e o teto no contrato, o
+`cartaoDaEscola` exportado para a prova o medir) · `motor/servidor/painel-html.js` (o piso e o teto
+na ficha, o cartão dobrável, a barra de controlo, a paginação, e o «Capacidade» que sobrava no
+convite de recriação) · `motor/servidor/correio.js` («Piso contratado» no aviso à proprietária) ·
+`PLANEJAMENTO-LASTRO.md` (§L9c e uma linha na matriz de capacidade) ·
+`experimentos/provar-financeiro-da-escola.js` · `experimentos/provar-abas.js`.
+
+**Com o quê.** `provar-financeiro-da-escola` **90/90**: o piso dos três planos, o teto derivado dos
+dois degraus de baixo, o teto declarado do topo a bater com o catálogo, a coerência da escada, o
+adicional que levanta o piso sem deixar o teto atrás, a lista de catorze escolas paginada em 10 com
+o rodapé `1 / 2` e o selector dos 20 a mostrar as catorze; a ficha com «a partir de» e «até»; e o
+painel da aba abaixo da tira. `provar-abas` **28/28**, agora com o **cartão real** servido e medido
+num navegador (a tira e o painel na mesma coluna, o painel por baixo) e a aba de pagar sem acordeão
+dentro. Mais `provar-financeiro` 58/58 · `provar-recriar-escola` 92/92 · `provar-cofre-e-shard`
+138/138 · `provar-restaurar-retrato` 38/38 · `provar-escola-a-nascer` 48/48 ·
+`provar-a-carencia-nao-se-burla` 58/58 · `provar-cartas-do-expurgo` 25/25 · `provar-pagina-publica`
+79/79 · `provar-indices` 64/64 · `check-indices` 16/16 · `check-identidade` 0 erros.
+
+**O que fica por decidir, e é dela.** A cadência que a conta assume é **1 aula lançada por
+professor por dia**; com duas, o teto do Avançado cai para metade no que toca às Ações. E se a
+plataforma passar a ter mais de três escolas no teto, o caminho é **plano pago** de
+GitHub/Cloudflare — não um teto menor para cada uma.

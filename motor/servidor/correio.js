@@ -397,7 +397,7 @@ function comporAvisoAoProprietario({ escola, nome, plano, valor, capacidade, qua
   linhas.push('  Plano:      ' + String(plano || '—'));
   linhas.push('  Valor:      ' + String(valor || '—'));
   if (TEXTO_DA_CAPACIDADE(capacidade)) {
-    linhas.push('  Capacidade: ' + TEXTO_DA_CAPACIDADE(capacidade));
+    linhas.push('  Piso contratado: ' + TEXTO_DA_CAPACIDADE(capacidade));
   }
   if (professor) linhas.push('  Professor:  ' + String(professor));
   if (contactos && contactos.length) linhas.push('  Contactos:  ' + contactos.join(', '));
@@ -424,7 +424,9 @@ function comporAvisoAoProprietario({ escola, nome, plano, valor, capacidade, qua
     linhaHtml('Horário', quandoTexto || quando),
     linhaHtml('Plano', plano),
     linhaHtml('Valor', valor),
-    linhaHtml('Capacidade', TEXTO_DA_CAPACIDADE(capacidade)),
+    /* «CAPACIDADE» SAIU DO ECRÃ E DO E-MAIL (16/11/2026): o que a escola contrata é o PISO — o
+     * número a partir do qual ela tem espaço garantido. Ver PLANEJAMENTO-LASTRO §L9c. */
+    linhaHtml('Piso contratado', TEXTO_DA_CAPACIDADE(capacidade)),
     linhaHtml('Professor', professor),
     linhaHtml('Contactos', (contactos || []).join(', ')),
     '</table>',
