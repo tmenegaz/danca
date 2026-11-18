@@ -51274,3 +51274,69 @@ passou a exigir largura maior que zero — media 0 contra 0 desde então, e agor
 pressuposto de todas as provas que o medem. As que reprovaram avisaram; a que passou não avisou nada,
 e teria ficado assim. Um verde que não se confirma é mais perigoso do que um vermelho — o vermelho
 obriga a olhar.
+
+## 18/11/2026 — Os botões do Estilo nos seus sítios, e o «Cancelar» fecha o formulário
+
+**Dois pedidos no mesmo acto, e o segundo vale para as cinco secções.** No Estilo: o «Voltar» não
+deve existir no passo 1, falta um «Cancelar», o «Limpar» pertence à decomposição e não à barra de
+navegação, e o «Cancelar a edição» de baixo sobrava. Nas secções: *«Quando clicar em cancelar, tem
+que colapsar de novo o formulário e limpar todos os campos que estiverem preenchidos. […] o cancelar
+cancela de fato aquela edição, aquela derivação, mas vai colapsar o formulário. Essa é a regra agora
+que tem que acontecer para todos.»*
+
+**O QUE ELA DESCREVEU, e o que estava errado em cada um.** O «Voltar» no passo 1 estava `disabled` —
+um botão apagado num sítio onde não há para onde voltar é ruído: promete um passado que o formulário
+não tem. Passou a `hidden`. O «Cancelar» não existia: quem abria uma derivação e mudava de ideias
+tinha de sair pelo menu, e o formulário ficava aberto com o que estava escrito. O «Limpar» estava na
+barra de navegação, ao lado de «Voltar» e «Gravar verbete» — que são actos do FORMULÁRIO —, quando
+ele age sobre o PAINEL da decomposição; desceu para a linha do «Acrescentar trecho». E havia DOIS
+«Cancelar a edição»: o do aviso «Em edição», em cima, e um segundo junto à decomposição. Ficou o de
+cima, que está à vista em qualquer passo, junto da frase que diz o que se está a corrigir.
+
+**A REGRA DO CANCELAR É UMA, e por isso é uma função.** `cancelarOFormularioDe(idDaSecao)` é o par
+exacto do `abrirOFormularioDe` criado hoje de manhã: a abertura tinha um nome e um sítio; o fecho não
+tinha nenhum, e cada formulário ficava aberto depois de cancelado. Limpar os campos continua a ser de
+cada um — só ele sabe quais são —, mas o ÚLTIMO gesto passou a ser comum.
+
+**AS SALAS TÊM OUTRA ENGRENAGEM, e o nome esconde isso de quem chama.** Nas cinco secções de uma coisa
+só o recolhimento é `data-recolhido` na secção; nas Salas é o `#turmas-paineis`, com chave própria,
+porque o que recolhe lá é o miolo dos passos e a faixa fica. Duas engrenagens, um nome só: quem
+chamar `cancelarOFormularioDe("sec-turmas")` não tem de saber disto.
+
+**NAS SALAS A ORDEM IMPORTA.** O `cancelarEdicao` recarrega a página, e o estado do recolhimento vive
+no `sessionStorage`: escrevê-lo DEPOIS do `location.reload()` nunca chegaria a ser lido, e a página
+voltava aberta com o recado de cancelado.
+
+**ALUNAS NÃO TEM «CANCELAR», e é honesto dizê-lo.** Ela listou-a, mas a Alunas não tem derivação nem
+edição — o formulário só cadastra. Não há nada a cancelar, e um botão que fecha o formulário num
+sítio onde não há edição seria uma peça a inventar.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o «Voltar» `hidden` no passo 1; o «Cancelar» novo na
+barra; o «Limpar» movido para a linha da decomposição e sem o `hidden` que o escondia fora do passo
+6; o «Cancelar a edição» de baixo removido, com o bloco do `pintarPassos` que o pintava; o
+`cancelarOFormularioDe` e as seis chamadas — Salas, Turmas, Estilo, Audição nos dois caminhos, e
+Professores).
+
+**Com o quê.** `provar-acordeoes` **TUDO CERTO**, com uma secção nova que carrega no gesto, escreve
+nos campos e carrega no «Cancelar» — nas cinco secções — e outra que mede a posição de cada botão do
+Estilo em pixels · `provar-trecho-do-verbete` 36/36 · `provar-passo-um-do-verbete` 29/29 ·
+`provar-a-coluna-do-formulario` 17/17 · `provar-abas-da-audicao` 124/124 ·
+`provar-salas-e-elencos` 131/131 · `provar-verbete` **35/39** (as mesmas 4 do HEAD) ·
+`check-identidade` 0 erros. O script que a página serve compila.
+
+**Controlo A/B.** O cancelar a deixar de fechar: **reprova 5**, uma por secção, com o nome de cada. O
+«Voltar» a voltar a aparecer no passo 1: **reprova 1**. O «Limpar» a voltar para a barra de
+navegação: **reprova 1**. E o «Cancelar a edição» de baixo a voltar: a asserção da marcação apanha-o.
+
+**DUAS PROVAS QUE REBENTAVAM DESDE O COMMIT ANTERIOR, e ninguém sabia.** A `provar-trecho-do-verbete`
+e a `provar-passo-um-do-verbete` faziam `page.click` em botões dentro do formulário — e com as secções
+a nascerem recolhidas (commit `d3cd2012`), o botão não tem caixa e o clique rebenta com «Node is
+either not clickable». Não é uma falha: é a prova a MORRER, e uma prova que morre não avisa ninguém.
+Medido no HEAD com o motor em stash: as duas rebentavam. As duas passaram a abrir a secção pela função
+da própria página. É a quarta vez esta semana, e o padrão é sempre o mesmo: mudar um estado por
+omissão muda o pressuposto de todas as provas que o medem.
+
+**UMA NOTA SOBRE A GEOMETRIA, para não ser surpresa.** Na coluna estreita do formulário (334 px) o
+grupo «Voltar + Gravar verbete + Cancelar» não cabe numa linha e passa a duas — é o `flex-wrap` da
+peça `.par-botoes`, e a ordem mantém-se. O «Cancelar» fica na linha de baixo, à esquerda, debaixo do
+«Gravar verbete». Não é um defeito de desenho: é a coluna a ser mais estreita do que os três botões.

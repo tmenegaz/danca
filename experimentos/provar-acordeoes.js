@@ -461,6 +461,143 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
       todasFechadas);
   }
 
+  /* ---- O «CANCELAR» FECHA O FORMULÁRIO (18/11/2026) --------------------------------
+   *
+   * «Quando clicar em cancelar, tem que colapsar de novo o formulário e limpar todos os campos
+   * que estiverem preenchidos. […] o cancelar cancela de fato aquela edição, aquela derivação,
+   * mas vai colapsar o formulário. Essa é a regra agora que tem que acontecer para todos.»
+   *
+   * MEDE-SE O EFEITO, e não a chamada: o formulário deixa de ter largura, a secção passa a dizer
+   * `data-recolhido="sim"`, e o campo que se tinha escrito fica vazio. Uma asserção que só visse
+   * o atributo passaria com um formulário ainda à vista — que é o estado que ela descreveu como
+   * errado: cancelar e ficar aberto, com os campos vazios, à espera de ser confundido com
+   * trabalho pronto.
+   *
+   * O CAMINHO É O DELA: primeiro o gesto que abre (a lista), depois o «Cancelar».
+   */
+  {
+    const CANCELARES = [
+      ['Turmas', 'sec-curadorias', '[data-curadoria-ajustar]', '#cu-cancelar', '#form-curadoria'],
+      ['Salas', 'sec-turmas', '[data-turma-ajustar]', '#t-cancelar', '#form-turma'],
+      ['Estilo', 'sec-verbetes', '[data-editar-verbete]', '#vb-cancelar', '#form-verbete'],
+      ['Audição', 'sec-corpo', '[data-lb-editar]', '#lb-cancelar', '#form-linha-base'],
+      ['Professores', 'sec-professores', 'button.editar', '#prof-cancelar', '#form-prof'],
+    ];
+    for (const [nome, id, seletorDoGesto, seletorDoCancelar, seletorDoForm] of CANCELARES) {
+      await pg.setViewport({ width: 1280, height: 1400 });
+      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
+      await pg.reload({ waitUntil: 'load' });
+      await abrir(pg, id);
+      await new Promise((r) => setTimeout(r, 250));
+
+      await pg.evaluate((sel) => { const b = document.querySelector(sel); if (b) b.click(); }, seletorDoGesto);
+      await new Promise((r) => setTimeout(r, 400));
+
+      // Escreve-se em TODOS os campos de texto do formulário: é o que a pessoa faria, e é o que
+      // permite verificar que a limpeza é do formulário inteiro e não de um campo à sorte.
+      await pg.evaluate((sel) => {
+        const f = document.querySelector(sel);
+        if (!f) return;
+        for (const c of f.querySelectorAll('input[type="text"], input:not([type]), input[type="email"], input[type="tel"]')) {
+          if (!c.readOnly && !c.disabled && c.type !== 'hidden' && c.type !== 'checkbox' && c.type !== 'radio') c.value = 'lixo-de-prova';
+        }
+      }, seletorDoForm);
+      await new Promise((r) => setTimeout(r, 120));
+
+      const antes3 = await pg.evaluate(([idDaSecao, selForm, selCancelar]) => {
+        const s = document.getElementById(idDaSecao);
+        const form = s.querySelector('.col-form');
+        const f = document.querySelector(selForm);
+        const c = document.querySelector(selCancelar);
+        const preenchidos = f ? [...f.querySelectorAll('input')]
+          .filter((x) => x.value === 'lixo-de-prova').length : 0;
+        return {
+          aberto: s.getAttribute('data-recolhido'),
+          formVisivel: Boolean(form) && form.getBoundingClientRect().width > 0,
+          cancelarVisivel: Boolean(c) && !c.hidden && c.getBoundingClientRect().width > 0,
+          preenchidos,
+        };
+      }, [id, seletorDoForm, seletorDoCancelar]);
+      provar(`${nome}: antes do «Cancelar» o formulário está aberto, com o cancelar à vista e os campos escritos`,
+        antes3.aberto === 'nao' && antes3.formVisivel && antes3.cancelarVisivel && antes3.preenchidos > 0,
+        antes3);
+
+      await pg.evaluate((sel) => { const b = document.querySelector(sel); if (b) b.click(); }, seletorDoCancelar);
+      await new Promise((r) => setTimeout(r, 600));
+
+      const depois3 = await pg.evaluate(([idDaSecao, selForm]) => {
+        const s = document.getElementById(idDaSecao);
+        const form = s.querySelector('.col-form');
+        const f = document.querySelector(selForm);
+        const restou = f ? [...f.querySelectorAll('input')]
+          .filter((x) => x.value === 'lixo-de-prova').length : 0;
+        return {
+          estado: s.getAttribute('data-recolhido'),
+          formVisivel: Boolean(form) && form.getBoundingClientRect().width > 0,
+          restou,
+        };
+      }, [id, seletorDoForm]);
+      provar(`${nome}: o «Cancelar» FECHA o formulário e limpa os campos`,
+        depois3.estado === 'sim' && depois3.formVisivel === false && depois3.restou === 0,
+        depois3);
+    }
+  }
+
+  /* ---- O ESTILO: ONDE CADA BOTÃO MORA (18/11/2026) ---------------------------------
+   *
+   * As quatro regras do pedido, medidas na geometria e não na intenção:
+   *   1. no passo 1 não há «Voltar» — nem apagado, nem escondido por CSS: não está;
+   *   2. há um «Cancelar» na barra de navegação, ao lado de «Seguir»/«Gravar verbete»;
+   *   3. o «Limpar» subiu para a linha do «Acrescentar trecho» — MESMA linha, medida em pixels;
+   *   4. o «Cancelar a edição» de baixo desapareceu, e o de cima (no aviso «Em edição») fica.
+   */
+  {
+    await pg.setViewport({ width: 1280, height: 1400 });
+    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
+    await pg.reload({ waitUntil: 'load' });
+    await abrir(pg, 'sec-verbetes');
+    await pg.evaluate(() => { definirSecaoRecolhida('sec-verbetes', false); });
+    await new Promise((r) => setTimeout(r, 300));
+    await pg.evaluate(() => { irParaPassoVerbete(1); });
+    await new Promise((r) => setTimeout(r, 200));
+
+    const noUm = await pg.evaluate(() => {
+      const r = (s) => { const e = document.querySelector(s); if (!e) return null; const q = e.getBoundingClientRect(); return { visivel: q.width > 0 && q.height > 0, hidden: e.hidden }; };
+      return { voltar: r('#vb-voltar'), cancelar: r('#vb-cancelar'), seguir: r('#vb-seguir') };
+    });
+    provar('Estilo · passo 1: NÃO há «Voltar» — nem apagado, nem à vista',
+      noUm.voltar !== null && noUm.voltar.visivel === false, noUm.voltar);
+    provar('Estilo · passo 1: o «Cancelar» está lá, e o «Seguir» também',
+      noUm.cancelar && noUm.cancelar.visivel && noUm.seguir && noUm.seguir.visivel, noUm);
+
+    await pg.evaluate(() => { irParaPassoVerbete(6); });
+    await new Promise((r) => setTimeout(r, 300));
+    const noSeis = await pg.evaluate(() => {
+      const r = (s) => { const e = document.querySelector(s); if (!e) return null; const q = e.getBoundingClientRect(); return { topo: Math.round(q.top), esq: Math.round(q.left), visivel: q.width > 0 }; };
+      const nav = document.getElementById('vb-nav');
+      return {
+        voltar: r('#vb-voltar'), cancelar: r('#vb-cancelar'), gravar: r('#vb-gravar'),
+        acrescentar: r('#vb-cel-acrescentar'), limpar: r('#vbnovo'),
+        cancelarDaEdicaoDeBaixo: Boolean(document.getElementById('vb-cancelar-edicao-2')),
+        cancelarDaEdicaoDeCima: Boolean(document.getElementById('vb-cancelar-edicao')),
+        mesmaNav: Boolean(nav && nav.querySelector('#vb-cancelar')),
+      };
+    });
+    provar('Estilo · passo 6: o «Voltar» volta a estar à vista', noSeis.voltar && noSeis.voltar.visivel, noSeis.voltar);
+    provar('Estilo · passo 6: o «Cancelar» está na barra de navegação, com o «Gravar verbete»',
+      noSeis.mesmaNav === true && noSeis.cancelar.visivel && noSeis.gravar.visivel, noSeis);
+    provar('Estilo · passo 6: o «Limpar» está na MESMA linha do «Acrescentar trecho»',
+      noSeis.limpar && noSeis.acrescentar && noSeis.limpar.visivel &&
+      noSeis.limpar.topo === noSeis.acrescentar.topo &&
+      noSeis.limpar.esq > noSeis.acrescentar.esq, { limpar: noSeis.limpar, acrescentar: noSeis.acrescentar });
+    provar('Estilo · passo 6: o «Cancelar a edição» de BAIXO desapareceu',
+      noSeis.cancelarDaEdicaoDeBaixo === false, noSeis.cancelarDaEdicaoDeBaixo);
+    provar('…e o do aviso «Em edição» continua na marcação — é o único que fica',
+      noSeis.cancelarDaEdicaoDeCima === true, noSeis.cancelarDaEdicaoDeCima);
+  }
+
   await br.close();
   srv.close();
   console.log(`\nprovar-acordeoes: ${falhas === 0 ? 'TUDO CERTO' : falhas + ' FALHA(S)'}`);

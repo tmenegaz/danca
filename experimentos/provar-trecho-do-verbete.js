@@ -192,6 +192,13 @@ function servir(html) {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       location.hash = '#verbetes';
       if (typeof mostrarSecao === 'function') mostrarSecao();
+      /* A SECÇÃO NASCE RECOLHIDA (18/11/2026) — «quando abrir a primeira vez, deve estar
+       * colapsado». Com o formulário fechado, o `page.click` não encontra caixa nenhuma para
+       * clicar e a prova rebenta com «Node is either not clickable». Quem sabe abrir a secção é a
+       * própria página: chama-se a função dela, e não se imita o efeito. */
+      if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida('sec-verbetes', false);
+      var cf = document.querySelector('#sec-verbetes .col-form');
+      if (cf) cf.hidden = false;
     });
     await new Promise((r) => setTimeout(r, 600));
 
@@ -284,7 +291,9 @@ function servir(html) {
       naEdicao.aviso.rotulo === 'Em edição' && /^\d+$/.test(String(naEdicao.aviso.qual)), naEdicao.aviso);
 
     await page.evaluate(() => {
-      const b = document.getElementById('vb-cancelar-edicao-2');
+      /* O «CANCELAR A EDIÇÃO» DE BAIXO SAIU (18/11/2026) — «no lugar dele agora está o botão
+       * limpar». O que fica é o do aviso «Em edição», e é nele que se carrega agora. */
+      const b = document.getElementById('vb-cancelar-edicao');
       if (b) b.click();
     });
     await new Promise((r) => setTimeout(r, 400));
@@ -330,7 +339,9 @@ function servir(html) {
     checar('…e do 3 volta-se ao 4 — a regra vale nos dois sentidos',
       dentro4outra === 4, { foiPara: dentro4outra });
     await page.evaluate(() => {
-      const b = document.getElementById('vb-cancelar-edicao-2');
+      /* O «CANCELAR A EDIÇÃO» DE BAIXO SAIU (18/11/2026) — «no lugar dele agora está o botão
+       * limpar». O que fica é o do aviso «Em edição», e é nele que se carrega agora. */
+      const b = document.getElementById('vb-cancelar-edicao');
       if (b) b.click();
     });
     await new Promise((r) => setTimeout(r, 300));

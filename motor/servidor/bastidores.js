@@ -7888,7 +7888,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * inteira voltar a ser o caso comum, o caminho é um botão que diga «duplicar todos» ao lado
      * deste, e não um que o faça por omissão. */
     '<button type="button" class="acao secundario" id="vb-cel-guardar" hidden>Guardar a alteração</button>' +
-    '<button type="button" class="acao secundario" id="vb-cancelar-edicao-2" hidden>Cancelar a edição</button>' +
+    /* O «LIMPAR» SUBIU PARA AQUI, E O «CANCELAR A EDIÇÃO» DE BAIXO SAIU (18/11/2026).
+     *
+     * «Esse botão limpar diz respeito à decomposição. Então ele vai ficar ao lado do botão
+     * acrescentar trecho. […] E aqui embaixo tinha o botão cancelar edição, ele tem que ser
+     * removido, porque no lugar dele agora está o botão limpar.»
+     *
+     * A RAZÃO É DE SÍTIO, e não de gosto: o «Limpar» limpa ESTA decomposição, e estava na barra
+     * de navegação — ao lado de «Voltar» e «Gravar verbete», que são actos do FORMULÁRIO. Um
+     * botão que age sobre o painel não pertence à barra que age sobre o percurso.
+     *
+     * E O «CANCELAR A EDIÇÃO» QUE SAI É O DE BAIXO, não o de cima: o aviso «Em edição» continua a
+     * ter o dele, e é esse que fica — está à vista em qualquer passo, junto da frase que diz o
+     * que se está a corrigir. Dois botões para o mesmo acto, em sítios diferentes, é a receita
+     * para se carregar no que não se queria. */
+    '<button type="button" class="acao secundario" id="vbnovo">Limpar</button>' +
     /* O «APAGAR» SAIU DO PASSO 6 (02/11/2026, segunda correcção do mesmo dia).
      *
      * ELE ESTEVE AQUI E ERA UM ERRO DE SÍTIO. Na manhã de 02/11/2026 a pesquisadora pediu-o «na
@@ -7923,7 +7937,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="escolha" id="vb-como-nova-caixa" hidden>' +
     '<input type="checkbox" id="vb-como-nova">' +
     '<span>guardar como música nova, e manter a de <b id="vb-como-nova-antiga"></b></span></label>' +
-    '<button type="button" id="vbnovo" hidden>Limpar</button>' +
+    /* O «CANCELAR» ENTRA NA BARRA DE NAVEGAÇÃO (18/11/2026) — «Vai ficar o botão cancelar» nesta
+     * linha, «onde tem o botão que é voltar, avançar ou gravar verbete». É o par do «Voltar»: um
+     * desfaz um passo, o outro desfaz a edição inteira. Sem ele, quem abria uma derivação e
+     * mudava de ideias tinha de sair pelo menu — e o formulário ficava aberto, com o que estava
+     * escrito, à espera de ser confundido com trabalho a sério. */
+    '<button type="button" class="acao secundario" id="vb-cancelar">Cancelar</button>' +
     '</span>' +
     '<p class="nota" id="vb-gravar-nota"></p>' +
     '</div>' +
@@ -8643,6 +8662,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function abrirOFormularioDe(idDaSecao){' +
     '  if (!document.getElementById(idDaSecao)) return;' +
     '  definirSecaoRecolhida(idDaSecao, false);' +
+    '}' +
+    /* CANCELAR FECHA O FORMULÁRIO (18/11/2026).
+     *
+     * «Quando clicar em cancelar, tem que colapsar de novo o formulário e limpar todos os campos
+     * que estiverem preenchidos. […] o cancelar cancela de fato aquela edição, aquela derivação,
+     * mas vai colapsar o formulário. Essa é a regra agora que tem que acontecer para todos.»
+     *
+     * É o par exacto do `abrirOFormularioDe`, e é aqui pelo mesmo motivo: a regra é uma, os
+     * sítios são cinco. Limpar os campos continua a ser de cada formulário — só ele sabe quais
+     * são, e cada um já tinha o seu código de limpeza. O que faltava era o ÚLTIMO gesto, o de
+     * fechar, e era o que ninguém fazia: cancelar deixava o formulário aberto, com os campos
+     * vazios, à espera de ser confundido com um formulário pronto a preencher.
+     *
+     * AS SALAS TÊM OUTRO MECANISMO, e por isso o desvio. Nas cinco secções de uma coisa só o
+     * recolhimento é `data-recolhido` na secção; nas Salas é o `#turmas-paineis`, com a própria
+     * chave — porque o que recolhe lá é o miolo dos passos, e a faixa fica. Duas engrenagens, um
+     * nome só: quem chamar `cancelarOFormularioDe("sec-turmas")` não tem de saber disto. */
+    'function cancelarOFormularioDe(idDaSecao){' +
+    '  if (!document.getElementById(idDaSecao)) return;' +
+    '  if (idDaSecao === "sec-turmas") { definirFormularioRecolhido(true); return; }' +
+    '  definirSecaoRecolhida(idDaSecao, true);' +
     '}' +
     'for (var sec = 0; sec < SECOES_COM_ACORDEAO.length; sec++) {' +
     '  definirSecaoRecolhida(SECOES_COM_ACORDEAO[sec], secaoRecolhida(SECOES_COM_ACORDEAO[sec]));' +
@@ -9583,6 +9623,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var c = document.getElementById("prof-cancelar");' +
     '  if (c) c.hidden = true;' +
     '  recado("", "");' +
+    /* E O FORMULÁRIO FECHA-SE (18/11/2026). Esta função tem um só chamador — o «Cancelar» —, e é
+     * por isso que o fecho pode viver aqui: não há segundo caminho que a use para «acabei de
+     * gravar», e um formulário que se fecha depois de gravar seria outra regra. */
+    '  cancelarOFormularioDe("sec-professores");' +
     '}' +
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -11902,6 +11946,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var seletorElenco = document.getElementById("cuelenco");' +
     '    if (seletorElenco) seletorElenco.value = "";' +
     '    mostrarElenco("");' +
+    // E O FORMULÁRIO FECHA-SE (18/11/2026). Ver `cancelarOFormularioDe`.
+    '    cancelarOFormularioDe("sec-curadorias");' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -12000,6 +12046,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    sessionStorage.removeItem("producao:vinc-turma");' +
     '    sessionStorage.setItem("producao:passo", "turma");' +
     '  } catch (err) {}' +
+    /* E O FORMULÁRIO FECHA-SE (18/11/2026) — «o cancelar cancela de fato aquela edição […] mas
+     * vai colapsar o formulário». A ordem importa: o estado vai para o `sessionStorage` ANTES do
+     * `location.reload()`, porque é o carregamento seguinte que o lê. Escrito depois, nunca
+     * chegaria a ser lido — e a página voltava aberta, com o recado de cancelado. */
+    '  cancelarOFormularioDe("sec-turmas");' +
     '  if (location && typeof location.reload === "function") location.reload();' +
     '}' +
     'function rubricaDaTurma(t){' +
@@ -13278,8 +13329,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var rotuloDoAviso = document.getElementById("vb-edicao-rotulo");' +
     '    if (rotuloDoAviso) rotuloDoAviso.textContent = TRECHO_NOVO ? "A compor" : "Em edição";' +
     '  }' +
-    '  var cancelar2 = document.getElementById("vb-cancelar-edicao-2");' +
-    '  if (cancelar2) cancelar2.hidden = !trechoEmCurso();' +
     // O «ACRESCENTAR» SAI DE CENA COM UM TRECHO EM CURSO, e o «GUARDAR» entra (02/11/2026;
     // 15/11/2026 para o trecho novo). São dois botões porque são duas acções: acrescentar abre o
     // gesto, guardar fecha-o — e o rótulo de guardar diz qual dos dois trechos se está a fechar.
@@ -13293,15 +13342,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O «APAGAR» JÁ NÃO VIVE AQUI (02/11/2026, segunda correcção do mesmo dia). O bloco que
      * pintava o `#vb-cel-apagar` saiu com o botão: o verbo existe só na listagem, e um botão
      * escondido por script que já não está na marcação é código que ninguém executa. */
+    /* NO PASSO 1 NÃO HÁ «VOLTAR» (18/11/2026) — «se eu estou no step um, não tem que ter o botão
+     * voltar». Era `disabled`, e um botão apagado num sítio onde não há para onde voltar é ruído:
+     * promete um passado que o formulário não tem. `hidden` diz o mesmo sem prometer nada. */
     '  var voltar = document.getElementById("vb-voltar");' +
-    '  if (voltar) voltar.disabled = (PASSO === 1);' +
+    '  if (voltar) voltar.hidden = (PASSO === 1);' +
     '  var seguir = document.getElementById("vb-seguir");' +
     '  if (seguir) seguir.hidden = (PASSO === ULTIMO_PASSO);' +
     '  var bGravar = document.getElementById("vb-gravar");' +
     '  if (bGravar) bGravar.hidden = (PASSO !== ULTIMO_PASSO);' +
     '  pintarComoNova();' +
-    '  var bLimpar = document.getElementById("vbnovo");' +
-    '  if (bLimpar) bLimpar.hidden = (PASSO !== ULTIMO_PASSO);' +
+    /* O «LIMPAR» MUDOU DE SÍTIO E DE REGRA DE VISIBILIDADE (18/11/2026). Ele vivia nesta barra, e
+     * por isso precisava de ser escondido fora do último passo. Agora está DENTRO do painel da
+     * decomposição, que é ele que se esconde: uma segunda condição seria a mesma pergunta
+     * respondida duas vezes, e a que ficasse para trás esconderia o botão no passo certo. */
+
     // O BLOCO DO PASSO 1 É REPINTADO COM OS PASSOS (02/11/2026): ele depende do que está escrito
     // no nome E do exercício escolhido, e o exercício escolhido é o `editarVerbete` que o põe —
     // sem esta chamada, abrir um verbete deixaria a frase apagada até ao primeiro clique.
@@ -15074,7 +15129,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * divergir dela. Ver o comentário do «Voltar», acima. */
     '  irParaPassoVerbete(passoVizinho(PASSO, 1));' +
     '});' +
-    '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
+    /* UM SÓ «CANCELAR A EDIÇÃO» (18/11/2026): o de baixo saiu, e o que fica é o do aviso «Em
+     * edição». A lista perdeu o segundo id — deixá-lo seria procurar um botão que já não está na
+     * marcação, e um `forEach` sobre ids ausentes não falha: apenas não faz nada, para sempre. */
+    '["vb-cancelar-edicao"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
     '  if (b) b.addEventListener("click", cancelarEdicaoDoVerbete);' +
     '});' +
@@ -15094,6 +15152,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (can) { cancelarEdicaoDoVerbete(); return; }' +
     '  });' +
     '}' +
+    /* O «CANCELAR» DO ESTILO (18/11/2026) — o botão que faltava.
+     *
+     * «Essa derivação, se eu quiser cancelar, tem que ter o botão cancelar aqui para poder
+     * cancelar.» E a regra geral que ela deu para todas as secções: «o cancelar cancela de fato
+     * aquela edição, aquela derivação, mas vai colapsar o formulário».
+     *
+     * O QUE ELE FAZ, e por que não é o «Limpar». O «Limpar» limpa a decomposição e deixa a pessoa
+     * a escrever outro verbete no mesmo formulário — é um gesto de trabalho. O «Cancelar» abandona
+     * o trabalho: fecha a correcção em curso (o `cancelarEdicaoDoVerbete`, que já existe), esvazia
+     * o formulário, volta ao passo 1 e FECHA a secção. Quem carregou em «Cancelar» disse que não
+     * quer aquilo — e o que ele não quer é a edição inteira, não só os campos.
+     *
+     * A ORDEM É A DO GESTO: primeiro abandonar o estado (a correcção, os sinais, os contadores),
+     * depois limpar o que está escrito, e só no fim fechar — fechar antes de limpar esconderia um
+     * formulário que continuaria preenchido para quem o reabrisse. */
+    'var bCancelarVerbete = document.getElementById("vb-cancelar");' +
+    'if (bCancelarVerbete) bCancelarVerbete.addEventListener("click", function(){' +
+    '  cancelarEdicaoDoVerbete();' +
+    '  var f = document.getElementById("form-verbete");' +
+    '  if (f) f.reset();' +
+    '  var acao = document.getElementById("vbacao");' +
+    '  if (acao) acao.value = "criar";' +
+    '  MUSICA_ABERTA = "";' +
+    '  irParaPassoVerbete(1);' +
+    '  carregarRascunho();' +
+    '  recado("", "");' +
+    '  cancelarOFormularioDe("sec-verbetes");' +
+    '});' +
     // ACRESCENTAR O TRECHO. A recusa diz O QUE FALTA, campo a campo — e nunca «faltam campos».
     // A DIREÇÃO E A ORIENTAÇÃO FICAM depois de acrescentar, e só os sinais, a contagem e a frase
     // se limpam: é o que permite emendar o en croix sem reescolher a direção a cada trecho.
@@ -17111,7 +17197,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'if (lbCancelar) lbCancelar.addEventListener("click", function(){' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var aberto = (modo && modo.value) || "";' +
-    '  if (!aberto) { corpoRes("", ""); limparForm(); return; }' +
+    /* SEM EDIÇÃO ABERTA, CANCELAR SÓ LIMPA E FECHA (18/11/2026). Os dois caminhos fecham porque
+     * os dois são o mesmo gesto para quem carrega: um descarta o que está no servidor, o outro
+     * descarta o que está no ecrã. Deixar um deles aberto faria o botão comportar-se de duas
+     * maneiras conforme houvesse ou não um elenco gravado — que é a pergunta que ninguém fez. */
+    '  if (!aberto) { corpoRes("", ""); limparForm(); cancelarOFormularioDe("sec-corpo"); return; }' +
     /* O BOTÃO É DESLIGADO À MÃO: o `ocuparBotao` procura um `button[type=submit]` DENTRO de um
      * formulário, e este é um botão solto (`type="button"`). Reutilizá-lo aqui não faria nada —
      * e um «descartando…» que não aparece é pior do que nenhum. */
@@ -17138,6 +17228,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        return;' +
     '      }' +
     '      limparForm();' +
+    '      cancelarOFormularioDe("sec-corpo");' +
     '      corpoRes("ok", d.aviso || "alterações descartadas.");' +
     '      carregarLinhas();' +
     '    })' +

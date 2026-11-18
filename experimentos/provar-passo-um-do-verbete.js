@@ -197,6 +197,13 @@ function nomesRepetidos(script) {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       location.hash = '#verbetes';
       if (typeof mostrarSecao === 'function') mostrarSecao();
+      /* A SECÇÃO NASCE RECOLHIDA (18/11/2026) — «quando abrir a primeira vez, deve estar
+       * colapsado». Com o formulário fechado, o `page.click` não encontra caixa nenhuma para
+       * clicar e a prova rebenta com «Node is either not clickable». Quem sabe abrir a secção é a
+       * própria página: chama-se a função dela, e não se imita o efeito. */
+      if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida('sec-verbetes', false);
+      var cf = document.querySelector('#sec-verbetes .col-form');
+      if (cf) cf.hidden = false;
     });
     await new Promise((r) => setTimeout(r, 700));
 
