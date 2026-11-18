@@ -8,8 +8,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1449",
-      "versoes": 3
+      "ultima": "20261118-1452",
+      "versoes": 4
     },
     {
       "aspecto": "equilibrio-unipodal",
@@ -18,8 +18,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1449",
-      "versoes": 2
+      "ultima": "20261118-1452",
+      "versoes": 3
     },
     {
       "aspecto": "flexibilidade-anteroposterior-grand-ecart",
@@ -28,8 +28,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1449",
-      "versoes": 2
+      "ultima": "20261118-1452",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-3a-pes",
@@ -520,9 +520,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "90b2e1e"
+    "commit": "49a9509"
   },
-  "gerado_em": "2026-11-18T14:51",
+  "gerado_em": "2026-11-18T14:53",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -584,14 +584,25 @@
         "flexibilidade-anteroposterior-grand-ecart",
         "meia-ponta"
       ],
-      "atualizada_em": "2026-11-18T14:49:27.449Z",
-      "enviada_em": "2026-11-18T14:49:27.990Z",
+      "atualizada_em": "2026-11-18T14:52:47.098Z",
+      "enviada_em": "2026-11-18T14:52:47.587Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "tami",
       "professor": "demi-plie",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261118-1452.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "equilibrio-unipodal"
+          ],
+          "enviada_em": "2026-11-18T14:52:47.587Z",
+          "versao": "20261118-1452"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/tami--20261118-1449.json",
