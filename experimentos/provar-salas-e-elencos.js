@@ -527,6 +527,71 @@ const RITMO = {
   conferir('a «Tabela de atividades» não está implementada (PLANO: «nada foi implementado»)',
     daTabela.length === 0, daTabela);
 
+  console.log('\nF. A RUBRICA É DE UM PROFESSOR, e o passo 3 tem UM gesto (18/11/2026)');
+  {
+    /* O QUE ELA VIU, e são duas coisas na mesma frase: «essa rubrica aqui, ela precisa também estar
+     * vinculada a um professor […] é o professor que vai aplicar esse tipo de rubrica na aula. […]
+     * Outro professor pode adotar outra rubrica.» E, sobre o passo 3: «não tem sentido ter esse
+     * botão de associar rubrica ou desassociar rubrica […] E ele também não faz nada.»
+     *
+     * A SEGUNDA METADE ERA VERDADE LITERAL: o «Associar rubrica» e o «Gravar sala» chamavam a
+     * MESMA rota com o MESMO corpo, e a única diferença era o `concluir: true` do segundo. Dois
+     * botões para um ato, e o da esquerda não concluía nada. */
+    const e2 = ambiente();
+    /* O DONO da escola de prova chama-se «Leticia» e não declara `PROFESSOR_SLUG`: o slug vem do
+     * nome (`slugDoDono`), e é `leticia`. É ele que a rubrica guarda. */
+    const DONO = 'leticia';
+    const umaPagina = () => bastidores.paginaProducao(
+      e2.ESCOLA_SLUG, {}, [], [], e2.PROFESSOR_NOME, DONO, [], [], {}, [],
+      [{ id: 'padrao', nome: 'Padrão', professor: DONO, niveis: ['Ótimo', 'Bom'] }],
+      [], { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+      null, null, [], new Set(), { ok: true, contrato: null },
+    );
+
+    /* 1. O SERVIDOR GRAVA O PROFESSOR, e o devolve na rubrica criada. */
+    const comDono = await postar(e2, '/api/bastidores/rubrica', {
+      nome: 'Régua da Brise', professor: DONO, niveis: ['Ótimo', 'Bom'],
+    });
+    conferir('a rubrica grava o professor que a aplica',
+      (comDono.status === 201 || comDono.status === 200)
+        && comDono.corpo.rubrica && comDono.corpo.rubrica.professor === DONO,
+      { status: comDono.status, professor: comDono.corpo.rubrica && comDono.corpo.rubrica.professor });
+
+    /* 2. UM PROFESSOR QUE NÃO É DA ESCOLA É RECUSADO, e a frase nomeia o slug. */
+    const fantasma = await postar(e2, '/api/bastidores/rubrica', {
+      nome: 'Régua Fantasma', professor: 'ninguem-desta-escola', niveis: ['X'],
+    });
+    conferir('um professor que não é desta escola é recusado (400), e a frase nomeia o slug',
+      fantasma.status === 400 && /ninguem-desta-escola/.test(String(fantasma.corpo.erro || '')),
+      { status: fantasma.status, erro: fantasma.corpo.erro });
+
+    /* 3. SEM PROFESSOR É LEGÍTIMO — e grava-se `null`, e não `""`. Uma rubrica anterior a este
+     *    campo não tem dono, e inventar-lhe um seria escrever história. */
+    const semDono = await postar(e2, '/api/bastidores/rubrica', {
+      nome: 'Régua Antiga', niveis: ['X'],
+    });
+    conferir('uma rubrica sem professor grava `null` — e não uma string vazia',
+      semDono.corpo.rubrica && semDono.corpo.rubrica.professor === null,
+      semDono.corpo.rubrica && semDono.corpo.rubrica.professor);
+
+    /* 4. O SELECT ESTÁ NO PASSO 2, com os professores da escola. */
+    const pagina = umaPagina();
+    conferir('o passo 2 tem o select do professor da rubrica', /id="rubr-professor"/.test(pagina), null);
+    conferir('…com o vazio explícito, que é a rubrica sem dono',
+      /<option value="">— sem professor —<\/option>/.test(pagina), null);
+    conferir('…e com o professor da escola como opção', new RegExp('<option value="' + DONO + '"').test(pagina), null);
+
+    /* 5. OS DOIS BOTÕES DO PASSO 3 SAÍRAM — e a página continua com o gesto que grava. */
+    conferir('o «Associar rubrica» saiu do passo 3', !/id="vinc-associar"/.test(pagina), null);
+    conferir('…e o «Desassociar rubrica» também', !/id="vinc-desassociar"/.test(pagina), null);
+    conferir('…e o «Gravar sala» ficou — é ele o gesto que conclui',
+      /id="vinc-gravar"/.test(pagina), null);
+    /* O FORM TEM DE TRATAR O `submit`: sem botão de submeter, a tecla Enter faria o form nativo
+     * recarregar a página por GET e perder a escolha. */
+    conferir('…e o `submit` do formulário está tratado, para o Enter não recarregar a página',
+      /getElementById\("form-vincular"\)\.addEventListener\("submit"/.test(pagina), null);
+  }
+
   console.log('');
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));

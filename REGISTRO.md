@@ -50536,3 +50536,62 @@ perguntas fechadas**) · `PLANEJAMENTO-LASTRO.md` (a escada, o regime de teste, 
 `provar-a-franquia-de-aulas` 42 · `provar-piso` 41 · `provar-financeiro` 58 ·
 `provar-financeiro-da-escola` 135 · `provar-conciliacao-do-painel` 35 ·
 `provar-o-expurgo-do-financeiro` 15 · `check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+## 18/11/2026 — A rubrica é de um professor, e o passo 3 fica com um gesto só
+
+**O que aconteceu.**
+Na página de Produção → Salas, a pesquisadora pediu dois ajustes que são a mesma coisa vista de dois
+lados: a rubrica passa a ter **dono**, e o passo 3 deixa de ter **dois botões para um ato**.
+
+**«A rubrica tem que estar vinculada ao professor.»** As palavras dela: «é o professor que vai aplicar
+esse tipo de rubrica na aula. Ele vai dizer se é ótimo, bom, regular, insuficiente. É dele isso aqui.
+Outro professor pode adotar outra rubrica.» O passo 2 ganhou um `select` — **Professor que aplica esta
+rubrica** —, e o slug viaja até ao KV: a régua deixou de ser um critério sem autor.
+
+Quatro decisões, e cada uma tem motivo:
+
+- **O valor é o SLUG, e não o nome** — o slug é a pasta (`professores/<slug>/`); um nome que muda
+  deixaria a rubrica apontada para ninguém. É a mesma disciplina do seletor das habilitações.
+- **A lista é renderizada no servidor**, com o dono primeiro e marcado «(principal)». Quem está
+  desligado não se oferece: uma régua atribuída a quem já não dá aula é uma régua parada.
+- **O servidor RECUSA um professor que não é da escola**, e a frase nomeia o slug — «o professor
+  «fantasma» não é professor desta escola». O dono entra na lista apesar de viver no secret: sem
+  isso, a rubrica dele seria recusada na escola em que ele é o único professor.
+- **Sem professor é legítimo**, e grava `null` — não `""`. Uma rubrica anterior a este campo não tem
+  dono, e inventar-lhe um seria escrever história. O `select` tem a opção explícita «— sem professor —».
+
+**O professor sobrevive à recarga, e foram três sítios.** Cada operação recarrega a página, e a
+rubrica volta do rascunho em `sessionStorage`. Faltava o campo em `estadoDoFormulario` (o dono
+desaparecia a cada gravação), em `aplicarEstadoDoFormulario` e no «Editar» da turma — e em todos eles
+o «Avançar» seguinte gravava `professor: ""` e **apagava o dono em silêncio**.
+
+**«Não tem sentido ter esse botão de associar rubrica ou desassociar rubrica.»** E não fazia: o
+`vinc-associar` e o `vinc-gravar` chamavam a **mesma rota** (`/api/bastidores/turma-rubrica`) com o
+**mesmo corpo** — `{turma, rubricaId}` —, e a única diferença era o `concluir: true` do segundo. Dois
+botões para um ato, e o da esquerda não concluía nada. Saíram os dois, os dois handlers e as duas
+linhas que os trancavam (`aplicarTravas`).
+
+**O que ficou, e o que isso custa — declarado.** O `select` da régua e o «Gravar sala». A função
+`rubricaDaTurma`, no servidor, continua a aplicar a régua padrão quando não há vínculo. O `submit` do
+formulário **fica tratado**, e mudou de destino: sem botão de submeter, a tecla Enter faria o form
+nativo recarregar a página por GET e perder a escolha — um formulário sem `submit` tratado é uma
+armadilha silenciosa, não uma limpeza. Agora o Enter chama o «Gravar sala».
+
+**O passo 3 diz de quem é a régua.** «Hoje: X é medida por «Padrão» — Ótimo · Bom. **Aplicada por
+Brise Volet.**» Sem dono, diz «Sem professor atribuído» em vez de o omitir.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `normalizarRubrica` (o campo), a rota
+`/api/bastidores/rubrica` (a validação e o dono na lista), `opcoesDeProfessorDaRubrica`, o `select` do
+passo 2, os três sítios de memória do formulário, a remoção dos dois botões e dos handlers, o `submit`
+redireccionado, e `nomeDoProfessor` para a frase do passo 3 ·
+`experimentos/provar-salas-e-elencos.js` (69 → **79** asserções, secção F).
+
+**Com o quê.** `provar-salas-e-elencos` **79/79** · `provar-plano-da-turma` 46 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `provar-abas-da-audicao` 124 · `provar-cadastro-do-professor`
+49 · `provar-sujeitos-da-turma` 41 · `provar-rotas-que-existem` 8 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 0 violações. A página foi ainda carregada em jsdom com o script a correr:
+**zero erros**, o `select` com as opções certas, e o pedido de gravação a levar
+`{nome: "Régua da Brise", professor: "brise-volet"}`.
+
+**Controlo A/B.** Repostos os dois defeitos (a rubrica sem o campo, e os dois botões de volta), a prova
+**reprova 5 de 79** — e nomeia-os. Restaurado, 79/79.
