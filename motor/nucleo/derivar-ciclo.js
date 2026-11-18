@@ -1255,8 +1255,20 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
            * inventada que o `IDENTIDADE-VISUAL.md` proíbe. */
           accoes = 'sem anamnese registada — ' + liga(endereco(nome, ''), 'fazer a anamnese');
         }
+        /* A ORIGEM METODOLÓGICA DECLARADA (18/11/2026). Ela pediu que a matriz de origem do item
+         * 50 aparecesse nos documentos derivados — e o §6 é o sítio da proveniência: é ele que diz,
+         * aluna a aluna, de onde vem o corpo que se vai observar. Ao lado do nome, porque é uma
+         * qualidade de QUEM é observado, e não um dado da aula.
+         *
+         * SEM DECLARAÇÃO, DIZ-SE. Uma aluna sem anamnese, ou com uma anamnese anterior a este
+         * campo existir, não recebe uma escola inventada: sai «origem metodológica não declarada»,
+         * que é a verdade e é o que o professor precisa de saber para pedir o novo registo. */
+        const metodo = String(dado && typeof dado === 'object' ? dado.metodo || '' : '').trim();
         html.push('<div class="acoes-da-aluna" data-prov-par="'
-          + escaparHtmlAtributo(nome) + '">' + accoes + '</div>');
+          + escaparHtmlAtributo(nome) + '">' + accoes
+          + '<span class="origem-da-aluna">' + (metodo
+            ? 'origem metodológica declarada: <strong>' + escaparHtml(metodo) + '</strong>'
+            : 'origem metodológica não declarada') + '</span></div>');
       }
       /* O SCRIPT É A PEÇA MAIS FRÁGIL DESTA SECÇÃO, e por isso é uma linha por instrução: ele é
        * escrito como TEXTO dentro de uma string, e não há verificador que o leia. Mantê-lo curto e
@@ -1360,7 +1372,7 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
  * diz é a lista explícita das chaves do elenco atual. O formulário lista `elenco` e usa `apelidos`
  * para os nomes: uma coisa é «quem está na turma», outra é «como se chama quem já passou por ela».
  */
-function derivarDados({ po, contexto, linhaDeBase, anteriores }) {
+function derivarDados({ po, contexto, linhaDeBase, anteriores, anamneses }) {
   /* O ELENCO VEM DA LINHA DE BASE (06/11/2026) — ver `elencoDoCiclo`. Era o defeito que ela viu no
    * formulário: «presentes aluno A, B e C», com a turma a ter duas. */
   const sujeitos = elencoDoCiclo(po, linhaDeBase);
@@ -1414,6 +1426,22 @@ function derivarDados({ po, contexto, linhaDeBase, anteriores }) {
      * pelo mapa de nomes (que é união, de propósito). Sem ela (um ficheiro anterior a esta
      * regra), o formulário lista o mapa inteiro, como sempre fez. */
     elenco: doElenco.map(([slug]) => slug),
+    /* A ORIGEM METODOLÓGICA DE CADA ALUNA (18/11/2026) — o item 50 da anamnese, por chave, para o
+     * formulário da aula a poder mostrar sem abrir envelope nenhum. É a MESMA leitura da §6 do
+     * guia (o `anamneses` que quem chama resolve), e por isso as duas não divergem.
+     *
+     * SÓ QUEM DECLARA ENTRA NO MAPA. Uma chave a `null` seria uma afirmação de ignorância sobre
+     * uma aluna que talvez nunca tenha tido anamnese — e o formulário tem de saber distinguir
+     * «não declarada» de «declarada como escola livre», que são coisas diferentes. */
+    origem: (() => {
+      const mapa = {};
+      for (const [slug, nome] of doElenco) {
+        const dado = anamneses && anamneses[nome];
+        const metodo = String(dado && typeof dado === 'object' ? dado.metodo || '' : '').trim();
+        if (metodo) mapa[slug] = metodo;
+      }
+      return mapa;
+    })(),
     aulas,
     _nota: (lancadas
       ? 'JSON de dados do ciclo: `aulas` traz as ' + lancadas + ' aula(s) já lançada(s), '
@@ -2084,7 +2112,7 @@ function precisaGravar(anterior, nova) {
 }
 
 /** A folha de captura da Aula 01 — para impressão — derivada do PO. */
-function derivarCaptura({ po, plano, contexto, linhaDeBase }) {
+function derivarCaptura({ po, plano, contexto, linhaDeBase, anamneses }) {
   /* AS LINHAS DAS TABELAS SÃO O ELENCO — e o elenco é o da linha de base (06/11/2026). Era o mesmo
    * `resp(po,'sujeitos')`, e por isso a folha impressa e o `captura-XX.json` extraído dela também
    * traziam a aluna de fora. A folha é a fonte do config: o que ela imprime, o formulário lê. */
@@ -2118,6 +2146,22 @@ function derivarCaptura({ po, plano, contexto, linhaDeBase }) {
   saida.push('**Data:** `___/___/____` · **Presentes:** ☐ ' + presentes +
     ' · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`');
   saida.push('');
+  /* A ORIGEM METODOLÓGICA DE CADA ALUNA, NA FOLHA (18/11/2026). Ela pediu que a matriz de origem
+   * da anamnese (item 50) chegasse aos documentos derivados — e a folha de captura É o formulário
+   * da aula: é ela que vai para a sala, e é nela que o professor precisa de saber de que escola
+   * vem o corpo que vai marcar.
+   *
+   * QUEM NÃO DECLARA É DITO, e não escondido: «não declarada» é a informação que faz o professor
+   * pedir o novo registo. A linha só aparece quando há elenco — sem alunas não há de quem falar. */
+  if (sujeitos.length) {
+    const origens = sujeitos.map((nome) => {
+      const dado = anamneses && anamneses[String(nome).trim()];
+      const metodo = String(dado && typeof dado === 'object' ? dado.metodo || '' : '').trim();
+      return nome + ' — ' + (metodo || 'não declarada');
+    });
+    saida.push('**Origem metodológica (anamnese):** ' + origens.join(' · '));
+    saida.push('');
+  }
 
   saida.push('## Condições de contorno');
   saida.push('');

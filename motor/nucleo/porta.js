@@ -517,7 +517,18 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * A modalidade viaja no `contexto` do envelope, que é onde as coisas internas do acto vivem — ela
  * foi explícita: «não precisa ter separação disso lá na anamnese dizendo é da modalidade tal, isso
  * é algo interno, controle nosso». */
-const VERSAO_DO_RESUMO = 5;
+/* VERSÃO 6 (18/11/2026) — a MATRIZ METODOLÓGICA DE ORIGEM entra no resumo.
+ *
+ * O item 50 da anamnese declara de que escola é o corpo que chega («RAD · Vaganova ·
+ * Francesa/Cecchetti · Cubana · Escola livre»), e ela pediu que a Cubana existisse **e** que a
+ * escolha aparecesse nos documentos derivados. Para o documento poder imprimi-la, alguém tem de a
+ * LER — e a regra da estante é que isso se faz com metadado, numa leitura só: sem o campo no
+ * resumo, o guia da aula teria de abrir um envelope por aluna para saber uma palavra.
+ *
+ * `null` quando o envelope não a declara, e é o caso de toda a anamnese anterior a hoje. Quem lê
+ * trata `null` como «não se sabe» — nunca como «nenhuma».
+ */
+const VERSAO_DO_RESUMO = 6;
 
 /**
  * OS CAMPOS QUE A DEFINIÇÃO DE HOJE ESCREVE SEMPRE — e a razão de eles existirem (24/10/2026).
@@ -569,6 +580,10 @@ function resumoDoEnvelope(envelope, nome) {
      * e é o caso de todas as anamneses anteriores a hoje: quem lê tem de tratar `null` como «não
      * se sabe», e não como «nenhuma». */
     resumo.modalidade = contexto.modalidade || null;
+    /* A MATRIZ METODOLÓGICA DE ORIGEM (18/11/2026) — ver `VERSAO_DO_RESUMO`. É a resposta do item
+     * 50, e não um campo do contexto: ela é declarada pela aluna (ou pelo professor, com ela), e
+     * não é controlo interno do acto como a modalidade. */
+    resumo.metodo = valorDe(envelope, 'matriz-metodologica-de-origem') || null;
   }
   // O PLANO: o objetivo é o rótulo humano da estante; a turma diz de quem é o plano.
   //
@@ -2174,6 +2189,10 @@ async function planos(armazenamento, recorte) {
       vinculada: por.length > 0,
       por,
       ajuste_de: resumo.ajuste_de || null,
+      /* A ORIGEM METODOLÓGICA VAI JUNTO (18/11/2026): é o item 50 do envelope, e quem o imprime
+       * nos documentos derivados é o guia da aula (§6) e o `-dados.json`. Sem ele aqui, cada um
+       * desses leitores teria de abrir o envelope — e a regra desta estante é uma leitura só. */
+      metodo: resumo.metodo || null,
     });
   }
   /* A MARCA DA CADEIA. `ajuste_de` é a seta do elo: um plano que alguém ajustou tem um sucessor

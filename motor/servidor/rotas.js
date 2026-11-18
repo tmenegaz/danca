@@ -1596,7 +1596,11 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
         /* `vinculada` VAI JUNTO (06/11/2026): decide se a linha do documento oferece «editar» ou
          * «novo registo». É a mesma pergunta que a lista da Área do Professor faz, respondida
          * pela mesma função — `porta.anamneses` já a traz, e a regra de 04/11 não se repete. */
-        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada) };
+        /* A ORIGEM METODOLÓGICA VAI JUNTO (18/11/2026) — é o item 50 do envelope, e é ela que o
+         * guia da aula (§6) e o `-dados.json` imprimem. `null` é «não declarada», e os dois
+         * documentos dizem isso em vez de inventar uma escola. */
+        const metodo = String((o && o.metodo) || '').trim();
+        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada), metodo: metodo || null };
       }
     } catch (erro) { /* a §6 declara a lacuna */ }
     return mapa;

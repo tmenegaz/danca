@@ -569,7 +569,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       try { dadosAnteriores = JSON.parse(dadosAtuais.texto); } catch (e) { dadosAnteriores = null; }
     }
     const dadosDerivados = derivarDados({
-      po, contexto: ctx, linhaDeBase, anteriores: dadosAnteriores,
+      po, contexto: ctx, linhaDeBase, anteriores: dadosAnteriores, anamneses,
     });
 
     const fontes = [
@@ -597,7 +597,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * liam o `sujeitos` do PO e a turma saía com uma aluna a mais — a que o PO herdou de um
        * envelope anterior à regra. Ver `elencoDoCiclo` em `derivar-ciclo.js`. */
       { sufixo: '-captura-aula-01.md',
-        md: derivarCaptura({ po, plano, contexto: ctx, linhaDeBase }) },
+        md: derivarCaptura({ po, plano, contexto: ctx, linhaDeBase, anamneses }) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
       { sufixo: '-dados.json', md: dadosDerivados },
     ];
