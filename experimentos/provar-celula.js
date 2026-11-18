@@ -449,9 +449,42 @@ function estado() {
   // mede a constante dela, não o comportamento — e já ficou com números errados quando a lista
   // mudou de tamanho. (`let`, e não `const`: a página ainda está em `about:blank` aqui.)
   let ULTIMO = null;
+  /* A BANCADA ANDA DE PASSO — E NÃO ANDAVA (18/11/2026).
+   *
+   * Aqui a guarda era `typeof irParaPasso === 'function'`, e NÃO EXISTE nenhuma função com esse
+   * nome: a chamada nunca acontecia. O efeito era o pior possível numa bancada — as provas
+   * corriam no passo em que a página estivesse, os campos que deviam estar à vista estavam
+   * escondidos, e `page.select`/`page.focus` escreviam em elementos ocultos sem ninguém notar.
+   * Meia dúzia de asserções passavam por não medir nada.
+   *
+   * O nome certo é `irParaPassoVerbete` — o colocador do estado, que é explicitamente público
+   * («as provas colocam-se no passo que medem»). */
   const irA = async (n) => {
-    await page.evaluate((k) => { if (typeof irParaPasso === 'function') irParaPassoVerbete(k); }, n);
-    await new Promise((r) => setTimeout(r, 150));
+    await page.evaluate((k) => {
+      if (typeof irParaPassoVerbete === 'function') irParaPassoVerbete(k);
+    }, n);
+    await new Promise((r) => setTimeout(r, 200));
+  };
+  /* RECOMEÇAR O FORMULÁRIO — pelo gesto da casa, e não por escrita de campos (18/11/2026).
+   *
+   * AS SECÇÕES 7 A 13 MEDEM O ACRESCENTAR DE UM TRECHO NUM VERBETE VAZIO. A decomposição do
+   * «Battement tendu» tinha ficado carregada da secção 2 (8 tempos, 4 trechos), e a partir daí a
+   * contagem começava no 3, a tabela já tinha linhas e a cobertura dizia «cobre 8 de 4» — as
+   * asserções passavam a medir o estado que vinha de trás. O «Limpar» é o gesto que a tela oferece
+   * para isso, e é ele que se usa; o resto é o que o formulário espera (a música antes do
+   * exercício — ver a secção 2). */
+  const recomecar = async (nome, tempos, compasso) => {
+    await page.evaluate(() => { const b = document.getElementById('vbnovo'); if (b) b.click(); });
+    await new Promise((r) => setTimeout(r, 300));
+    await page.evaluate((t) => {
+      const c = document.getElementById('vbtempos');
+      c.value = t;
+      c.dispatchEvent(new Event('input'));
+    }, tempos);
+    await page.select('#vbcompasso', compasso);
+    await noPassoDe('#vbnome');
+    await page.select('#vbnome', nome);
+    await new Promise((r) => setTimeout(r, 400));
   };
   const noPassoDe = async (seletor) => {
     const n = passoDe(seletor);
@@ -466,6 +499,28 @@ function estado() {
       (alvo.closest('label') || alvo).click();
     }, seletor);
     await new Promise((r) => setTimeout(r, 200));
+  };
+  /* O GESTO DO TRECHO SÃO DOIS BOTÕES, E DOIS MOMENTOS (15/11/2026).
+   *
+   * «Acrescentar trecho» ABRE um trecho em branco; «Guardar o trecho» FECHA-o. A bancada nasceu
+   * na altura em que o mesmo botão fazia as duas coisas, e por isso compunha primeiro e clicava
+   * depois — com a tela de hoje isso não acrescenta nada: o «Guardar» está escondido enquanto não
+   * houver um trecho em curso, e o clique cai no vazio sem erro nenhum. É mais uma forma do
+   * defeito desta prova: passos que não mediam o que diziam medir.
+   *
+   * A ordem que a tela pede é esta, e é a que a bancada passa a usar: ABRIR, compor, GUARDAR. */
+  const abrirOTrecho = async () => {
+    await noPassoDe('#vb-cel-acrescentar');
+    await page.click('#vb-cel-acrescentar');
+    await new Promise((r) => setTimeout(r, 250));
+  };
+  const guardarOTrecho = async (espera = 350) => {
+    /* A BARRA DO TRECHO VIVE NO ÚLTIMO PASSO — é lá que ela tem altura para ser clicada. Nos
+     * outros, o contentor está recolhido e o Puppeteer recusa o clique («not clickable»), que é o
+     * mesmo sintoma de uma bancada a clicar em algo que o utilizador não vê. */
+    await noPassoDe('#vb-cel-acrescentar');
+    await page.click('#vb-cel-guardar');
+    await new Promise((r) => setTimeout(r, espera));
   };
   /* O PASSO 1 TEM QUATRO OBRIGATÓRIOS (02/11/2026): o nome, «o que acontece», a categoria e a
    * tradição de referência. Antes desta data os dois `<select>` nasciam com uma resposta já
@@ -500,6 +555,14 @@ function estado() {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       location.hash = '#verbetes';
       if (typeof mostrarSecao === 'function') mostrarSecao();
+      /* A SECÇÃO NASCE RECOLHIDA (18/11/2026). «quando abrir a primeira vez, deve estar colapsado»
+       * — e com o formulário recolhido todos os painéis medem zero de altura, o que fazia esta
+       * prova de geometria medir o acordeão em vez do formulário. Quem sabe abri-la é a própria
+       * página: chama-se a função dela, e não se imita o efeito (é o mesmo cuidado de
+       * `provar-passo-um-do-verbete`). */
+      if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida('sec-verbetes', false);
+      var cf = document.querySelector('#sec-verbetes .col-form');
+      if (cf) cf.hidden = false;
     });
     await new Promise((r) => setTimeout(r, 700));
 
@@ -524,18 +587,27 @@ function estado() {
     conferir('nem «Gravar exercício» nem «Cancelar»: quem grava é o «Seguir →»',
       inicial.botoesDoPasso1.length === 1
       && /Carregar as turmas iniciais/.test(inicial.botoesDoPasso1[0]), inicial.botoesDoPasso1);
-    conferir('a decomposição pede o exercício antes de o haver',
-      /Escolha o exercício/.test(await page.evaluate(
-        () => document.getElementById('vb-tabela').textContent)));
+    /* A DECOMPOSIÇÃO VAZIA NÃO INSTRUI (03/11/2026). Aqui dizia-se «escolha o exercício…», e a
+     * frase saiu com as outras instruções do formulário: o botão que acrescenta o trecho está à
+     * vista, e a tabela vazia já diz que está vazia. O que se mede agora é o vazio — e o
+     * contra-sentido de a tabela afirmar coisa nenhuma sobre um exercício que não está escolhido. */
+    conferir('a decomposição está vazia enquanto não há exercício, e não instrui',
+      (await page.evaluate(() => document.getElementById('vb-tabela').textContent)).trim() === '');
 
     console.log('\n2. A TABELA MOSTRA O QUE O ALFABETO COBRE, SEM PERGUNTAR');
-    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
+    /* A MÚSICA ANTES DO EXERCÍCIO (18/11/2026) — e a ordem não é preferência, é a mecânica da
+     * página. Quem carrega a decomposição é `carregarRascunho`, e ele corre no `change` do
+     * EXERCÍCIO (mudar a música não reescreve o que já está escrito — decisão de 03/11/2026). Com
+     * a música posta DEPOIS, o `change` via uma música vazia, não carregava célula nenhuma, e a
+     * tabela ficava em «cobre 0 de 8» sobre um verbete que tem os oito — o que esta prova lia como
+     * «a tabela não aparece». A bancada passa a fazer o que o formulário espera. */
     await page.evaluate(() => {
       const t = document.getElementById('vbtempos');
       t.value = '8';
       t.dispatchEvent(new Event('input'));
     });
-    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
+    await page.select('#vbcompasso', '4/4');
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
     await new Promise((r) => setTimeout(r, 400));
     const comExercicio = await page.evaluate(estado);
     conferir('a decomposição é UMA tabela, com a direção como coluna', comExercicio.tabela.length === 1,
@@ -653,14 +725,18 @@ function estado() {
       repetido.exercicioEscolhido);
 
     console.log('\n7. O EDITOR DE TRECHO É DE PÍLULAS, E OS DOIS EIXOS ESTÃO SEPARADOS');
-    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
+    await recomecar('Battement tendu', '4', '2/4');
+    /* A FRASE VEM ANTES DO GESTO (18/11/2026). «Acrescentar trecho» só abre quando os passos
+     * anteriores estão cumpridos (`faltasAntesDe`), e o último que falta é «o que acontece» — a
+     * definição do exercício. Escrevê-la aqui é o que a tela pede a quem vai compor; sem ela o
+     * botão está `disabled`, o clique não dispara, e a bancada compunha dentro de um gesto que
+     * nunca abriu (era o que fazia as secções 9 a 13 medirem um estado que não existia). */
     await page.evaluate(() => {
-      const t = document.getElementById('vbtempos');
-      t.value = '4';
-      t.dispatchEvent(new Event('input'));
+      const d = document.getElementById('vb-frase');
+      d.value = 'a perna sai e volta';
+      d.dispatchEvent(new Event('input'));
     });
-    await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '2/4');
-    await new Promise((r) => setTimeout(r, 400));
+    await abrirOTrecho();
     const eixos = await page.evaluate(estado);
     conferir('não há uma única lista suspensa no trecho', eixos.suspensasNoTrecho === 0, eixos.suspensasNoTrecho);
     // A DIREÇÃO PASSOU A SER OPCIONAL (01/11/2026). «sem direção» entra primeiro, como o
@@ -760,8 +836,11 @@ function estado() {
     // descreveu como «toda vez que eu vou acrescentar um trecho, eu preciso digitar novamente o
     // que acontece»: o campo vivia no passo do trecho e era reescrito a cada acrescento. Agora a
     // frase é do exercício, e escolher sinais não a muda — muda o «lê-se» que se lhe acrescenta.
+    /* A SETENÇA MUDOU COM A REGRA NOVA (18/11/2026), e o que se mede é o mesmo: escolher sinais
+     * não toca na frase. Antes ela comparava com `''` porque o gesto abria sem frase escrita; hoje
+     * o gesto só abre com ela, e comparar com o vazio mediria a bancada. */
     conferir('escolher sinais não reescreve a frase do verbete',
-      composto.frase === '', composto.frase);
+      composto.frase === 'a perna sai e volta', composto.frase);
     conferir('e o último passo ainda não tem trechos para mostrar',
       /Ainda não há trechos/.test(composto.fica), composto.fica);
     await clicar('#vb-sinais input[data-sinal="1ª"]');
@@ -812,8 +891,7 @@ function estado() {
       d.value = '';
       d.dispatchEvent(new Event('input'));
     });
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
-    await new Promise((r) => setTimeout(r, 250));
+    await guardarOTrecho(250);
     conferir('a recusa nomeia a frase que falta, e o passo onde se escreve',
       /Falta a frase do verbete \(no passo 1\)/.test((await page.evaluate(estado)).recado),
       (await page.evaluate(estado)).recado);
@@ -824,8 +902,7 @@ function estado() {
       d.dispatchEvent(new Event('input'));
     });
     ULTIMO_CORPO = null;
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
-    await new Promise((r) => setTimeout(r, 350));
+    await guardarOTrecho(350);
     const acrescentado = await page.evaluate(estado);
     conferir('acrescentado, o trecho entra na tabela com a notação composta',
       /\[Pé: 1ª → \+ 1ª ●\]/.test(acrescentado.tabela[0].linhas.join(' ')),
@@ -937,20 +1014,36 @@ function estado() {
       contaDasPistas);
 
     console.log('\n16. FECHADA A MÚSICA, A GRAVAÇÃO PASSA — E LEVA A ORIENTAÇÃO');
-    // O TRECHO QUE FALTA: a contagem que a tela ainda oferece, escolhida como a mão a escolhe.
-    const contagensLivres = (await page.evaluate(estado)).contagens
-      .map((c) => c.valor).filter(Boolean);
-    conferir('a tela oferece a contagem que falta', contagensLivres.length > 0, contagensLivres);
-    // A QUE FECHA: as opções são crescentes, e a última é a que cobre o resto dos dois tempos. A
-    // primeira seria 1 tempo, e o verbete continuaria a não fechar.
-    await clicar('#vb-contagem input[data-valor="'
-      + contagensLivres[contagensLivres.length - 1] + '"]');
-    const sinaisDoTrecho = await page.evaluate(() => {
-      const s = document.querySelector('#vb-sinais input[data-sinal]');
-      return s ? s.getAttribute('data-sinal') : null;
-    });
-    await clicar('#vb-sinais input[data-sinal="' + sinaisDoTrecho + '"]');
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    /* A DECOMPOSIÇÃO RECOMECA AQUI (18/11/2026) — e a causa é a guarda do próprio formulário.
+     *
+     * O `submit` da secção 15 é RECUSADO, e ao recusar recarrega o rascunho da música em foco. A
+     * música desta secção (4 tempos em 2/4) não tem células no alfabeto, e o rascunho volta a
+     * zero: o trecho que a secção 12 acrescentou deixa de existir — não porque se perdeu, mas
+     * porque o formulário o recarregou da fonte. A bancada antiga não dava por isso porque
+     * contava com o estado do gesto anterior, que agora é um gesto por trecho.
+     *
+     * Recompõem-se os DOIS trechos que fecham a música, cada um no seu gesto (é o que a mão faz):
+     * a contagem que a tela oferece, a direção, a orientação e um sinal. */
+    const comporUmTrecho = async () => {
+      await abrirOTrecho();
+      const livres = (await page.evaluate(estado)).contagens.map((c) => c.valor).filter(Boolean);
+      await clicar('#vb-contagem input[data-valor="' + livres[livres.length - 1] + '"]');
+      const sinal = await page.evaluate(() => {
+        const x = document.querySelector('#vb-sinais input[data-sinal]');
+        return x ? x.getAttribute('data-sinal') : null;
+      });
+      await clicar('#vb-sinais input[data-sinal="' + sinal + '"]');
+      await clicar('#vb-dir input[data-valor="devant"]');
+      await clicar('#vb-orient input[data-valor="croise"]');
+      await guardarOTrecho(400);
+    };
+    /* QUANTOS CABEM: a tela oferece as contagens que ainda cabem, e a última é a que mais
+     * preenche. Compõe-se até a música fechar — o número de trechos é consequência, e escrevê-lo
+     * à mão seria a bancada a decidir por uma conta que é do formulário. */
+    for (let i = 0; i < 6; i += 1) {
+      if (/Cobre os 4 tempos/.test((await page.evaluate(estado)).cobertura)) break;
+      await comporUmTrecho();
+    }
     await new Promise((r) => setTimeout(r, 350));
     const comDoisTrechos = await page.evaluate(estado);
     conferir('o trecho que faltava entra, e a cobertura fecha a música',
@@ -992,6 +1085,10 @@ function estado() {
       t.dispatchEvent(new Event('input'));
     });
     await noPassoDe('#vbcompasso'); await page.select('#vbcompasso', '4/4');
+    /* O VERBETE RECARREGA-SE DA FONTE (18/11/2026). O submit da secção 16 gravou e a lista foi
+     * recarregada; escolher o exercício outra vez é o que traz do alfabeto as células de 8|4/4 —
+     * as que o «×» vai medir. Sem isto a tabela está vazia e a secção mede o vazio. */
+    await noPassoDe('#vbnome'); await page.select('#vbnome', 'Battement tendu');
     await new Promise((r) => setTimeout(r, 500));
     const antesDeTirar = await page.evaluate(estado);
     const linhasAntes = antesDeTirar.tabela[0].linhas.length;
@@ -1050,12 +1147,13 @@ function estado() {
       }, texto);
     };
     const acrescentar = async (dir) => {
+      await abrirOTrecho();
       await noPassoDe('#vb-dir');
       await clicar('#vb-dir input[data-valor="' + dir + '"]');
       const oferecidas = valores((await page.evaluate(estado)).contagens);
       await clicar('#vb-contagem input[data-valor="' + oferecidas[0] + '"]');
       for (const sg of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-      await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+      await guardarOTrecho(400);
       await new Promise((r) => setTimeout(r, 400));
       return oferecidas;
     };
@@ -1128,12 +1226,13 @@ function estado() {
       comDefinicao.fica.indexOf('Lê-se') === -1, comDefinicao.fica);
     // A DEFINIÇÃO NÃO É TEXTO A REESCREVER: quem ajustou não a vê voltar sozinha.
     await escreverFrase('o círculo da perna no ar, a partir do retiré');
+    await abrirOTrecho();
     await noPassoDe('#vb-dir');
     await clicar('#vb-dir input[data-valor="devant"]');
     await clicar('#vb-contagem input[data-valor="1"]');
     // Os sinais do fixture (a lista real tem 18; aqui bastam dois para compor a leitura).
     for (const sg of ['-', '1ª']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await guardarOTrecho(400);
     await new Promise((r) => setTimeout(r, 400));
     const ajustada = await page.evaluate(estado);
     conferir('a frase ajustada sobrevive a escolher a direção e os sinais',
@@ -1268,6 +1367,7 @@ function estado() {
     await escreverFrase('sobe e desce');
     // Três trechos que partilham a pista, e que por isso partilham o relógio.
     for (let i = 0; i < 3; i += 1) {
+      await abrirOTrecho();
       await noPassoDe('#vb-dir');
       await clicar('#vb-dir input[data-valor="devant"]');
       // `#vb-categoria` é o id do fieldset, e é ele que o `PASSO_DE` conhece — o seletor por
@@ -1276,9 +1376,8 @@ function estado() {
       const opcoes = valores((await page.evaluate(estado)).contagens);
       await clicar('#vb-contagem input[data-valor="' + opcoes[0] + '"]');
       for (const sg of ['1ª', '↓']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-      await noPassoDe('#vb-cel-acrescentar');
-      await page.click('#vb-cel-acrescentar');
-      await new Promise((r) => setTimeout(r, 350));
+      // O GESTO FECHA-SE COM O «GUARDAR» — o «Acrescentar» é o que o abre (15/11/2026).
+      await guardarOTrecho(350);
     }
     const antesDeEditar = await page.evaluate(estado);
     /* «ACRESCENTAR TRECHO» NÃO SAI DA DECOMPOSIÇÃO (02/11/2026). Era `irParaPasso(PASSOS_DO_TRECHO[0])`,
@@ -1310,7 +1409,9 @@ function estado() {
     conferir('em edição e no passo dos sinais, está à vista o painel dos sinais — e só ele',
       areaEmEdicao.paineisVisiveis.length === 1 && areaEmEdicao.paineisVisiveis[0] === 5,
       areaEmEdicao.paineisVisiveis);
-    await page.evaluate(() => { document.getElementById('vb-cel-acrescentar').click(); });
+    // EM EDIÇÃO, QUEM FECHA O GESTO É O «GUARDAR» (15/11/2026): o «Acrescentar» é o que o abre, e
+    // está escondido enquanto há um trecho em curso.
+    await page.evaluate(() => { document.getElementById('vb-cel-guardar').click(); });
     await new Promise((r) => setTimeout(r, 400));
     const depoisDeEditar = await page.evaluate(estado);
     conferir('depois de corrigir, o trecho continua no COMPASSO 1 — e não foi para o 2',
@@ -1373,13 +1474,14 @@ function estado() {
     await page.select('#vbcompasso', '2/4');
     await new Promise((r) => setTimeout(r, 400));
     await escreverFrase('sobe e desce');
+    await abrirOTrecho();
     await noPassoDe('#vb-dir');
     await clicar('#vb-dir input[data-valor="devant"]');
     await clicar('#vb-categoria input[value="Perna"]');
     const contagemUnica = valores((await page.evaluate(estado)).contagens);
     await clicar('#vb-contagem input[data-valor="' + contagemUnica[0] + '"]');
     for (const sg of ['1ª', '↓']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await guardarOTrecho(400);
     await new Promise((r) => setTimeout(r, 400));
     const antesDoX = await page.evaluate(() => Object.keys(CELULAS));
     await page.evaluate(() => { document.querySelector('#vb-tabela button[data-tirar]').click(); });
@@ -1486,6 +1588,7 @@ function estado() {
     await page.select('#vbcompasso', '4/4');
     await new Promise((r) => setTimeout(r, 400));
     await escreverFrase('sobe e desce');
+    await abrirOTrecho();
     await noPassoDe('#vb-dir');
     await clicar('#vb-dir input[data-valor="devant"]');
     await clicar('#vb-categoria input[value="Pé"]');
@@ -1585,7 +1688,7 @@ function estado() {
     const contagemP = valores((await page.evaluate(estado)).contagens);
     await clicar('#vb-contagem input[data-valor="' + contagemP[0] + '"]');
     for (const sg of ['1ª', '→', '+']) await clicar('#vb-sinais input[data-sinal="' + sg + '"]');
-    await noPassoDe('#vb-cel-acrescentar'); await page.click('#vb-cel-acrescentar');
+    await guardarOTrecho(400);
     await new Promise((r) => setTimeout(r, 400));
 
     // Estica a música: é o gesto de «evoluir o exercício», e é o que muda a chave.

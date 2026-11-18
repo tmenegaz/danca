@@ -1276,7 +1276,15 @@ async function principal() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(Object.assign({ senhaDirecao: senha }, corpo)),
     });
-    await postar('/api/bastidores/professor', { nome: 'Curador', senha: 'senha-do-curador' });
+    /* O PROFESSOR ENTRA PELO CADASTRO DIRECTO NO KV (18/11/2026).
+     *
+     * O `POST /api/bastidores/professor` passou a exigir o REPOSITÓRIO — ele cria a estrutura do
+     * professor (o `professor.json`, a pasta dos ciclos) e sem token responde 502, recusando o
+     * cadastro. Nesta bancada não há GitHub, e o que esta secção mede é a CURADORIA, não o
+     * cadastro do professor (que tem prova própria, `provar-cadastro-do-professor`). Escrever a
+     * mesma lista que a página lê é o que mantém a bancada a medir a regra certa: uma curadoria
+     * aponta para um professor que existe. */
+    await kv.put('bastidores/barra/professores', JSON.stringify([{ nome: 'Curador', slug: 'curador' }]));
     await postar('/api/bastidores/aluna', { apelido: 'Aluna Um' });
     await postar('/api/bastidores/turma', {
       nome: 'Turma da Curadoria', frequencia: 2, dias: ['ter', 'qui'], duracaoMin: 60,
@@ -1348,6 +1356,7 @@ async function principal() {
       linhaDeBase: 'elenco-da-prova',
     }));
     const corpoComElenco = await comElenco.json();
+
     conferir('a curadoria aceita o ELENCO escolhido na Turma', comElenco.status, 201);
     conferir('…e guarda o id e o nome do elenco',
       [corpoComElenco.curadoria.linhaDeBase, corpoComElenco.curadoria.linhaDeBaseNome],

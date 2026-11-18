@@ -992,16 +992,31 @@ async function aOrigemDoVocabulario() {
    * sai é o pedido, porque ela passa a escrever-se nos sinais do trecho. */
   checar('a FRASE está no passo 1, ao lado do nome — o exercício define-se quando se nomeia',
     (() => {
-      const p1 = (html.match(/<div class="passo-painel" data-passo="1">([\s\S]*?)<div class="passo-painel" data-passo="2"/) || [])[1] || '';
+      /* O PAINEL 2 TAMBÉM PASSOU A TER ATRIBUTOS (18/11/2026): o `hidden` deixou de ser fixo na
+       * marcação (o passo 1 é o que nasce aberto, e os outros é o script que os esconde). Um
+       * padrão que exigia `data-passo="2"` colado recortava o painel errado — e a asserção da
+       * frase lia o vazio. */
+      /* O FORMULÁRIO DO VERBETE, E NÃO O PRIMEIRO DA PÁGINA (18/11/2026). Há TRÊS painéis
+       * `data-passo="1"` na Produção — o da Turma, o do verbete e o da linha de base —, e recortar
+       * «o primeiro passo 1 até o primeiro passo 2» lia o da TURMA. A asserção da frase, então,
+       * media a ausência dela num painel que nunca a teve. O recorte passa a começar no
+       * `#form-verbete`, que é o formulário que esta secção mede. */
+      const formula = (html.match(/<form id="form-verbete">([\s\S]*?)<\/form>/) || [])[1] || '';
+      const p1 = (formula.match(/<div class="passo-painel" data-passo="1"[^>]*>([\s\S]*?)<div class="passo-painel" data-passo="2"/) || [])[1] || '';
       return /id="vb-frase"/.test(p1);
     })());
   checar('o seletor do exercício está no passo 2 — e o passo 2 já não pede a posição',
     (() => {
-      const p2 = (html.match(/<div class="passo-painel" data-passo="2" hidden>([\s\S]*?)<div class="passo-painel" data-passo="3"/) || [])[1] || '';
+      const formula = (html.match(/<form id="form-verbete">([\s\S]*?)<\/form>/) || [])[1] || '';
+      const p2 = (formula.match(/<div class="passo-painel" data-passo="2"[^>]*>([\s\S]*?)<div class="passo-painel" data-passo="3"/) || [])[1] || '';
       return /id="vbnome"/.test(p2) && !/id="vbposicao"/.test(html);
     })());
-  checar('e a tira anuncia SEIS passos, com o exercício novo em primeiro',
-    /data-passo="6"/.test(html) && /<span class="passo-t">O exercício novo<\/span>/.test(html));
+  /* O PRIMEIRO PASSO MUDOU DE NOME A 10/11/2026 — «O exercício novo» anunciava a regra que
+   * trancava o formulário (só servia para criar); passou a «O exercício», que procura no
+   * vocabulário e aceita um nome inédito. Ver `provar-celula` §1, onde a mesma mudança se mede
+   * pelo outro lado (os rótulos da tira). */
+  checar('e a tira anuncia SEIS passos, com o exercício em primeiro',
+    /data-passo="6"/.test(html) && /<span class="passo-t">O exercício<\/span>/.test(html));
   checar('e o botão de semear deixou de prometer o vocabulário',
     /Carregar as turmas iniciais/.test(html) && !/turmas \+ vocabulário/.test(html));
 
@@ -1404,8 +1419,13 @@ async function aTradicaoDeReferencia() {
     new Request('https://e.workers.dev/bastidores/producao'), env)).text();
 
   /** As opções de um `<select>` por id, como `{valor, texto}`. */
+  /* O `<select>` PASSOU A TRAZER ATRIBUTOS (18/11/2026) — `id`, e mais coisas. A expressão exigia
+   * `id="…">` colado, e um `<select id="cutradicao" data-…>` deixava de casar: a asserção da
+   * curadoria lia uma lista vazia e a das duas listas contava as que sobravam. Um padrão que
+   * depende de o atributo ser o último é uma asserção sobre a ordem dos atributos, não sobre a
+   * tela. */
   const opcoesDe = (id) => {
-    const bloco = (html.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || [])[1] || '';
+    const bloco = (html.match(new RegExp('<select id="' + id + '"[^>]*>([\\s\\S]*?)</select>')) || [])[1] || '';
     return [...bloco.matchAll(/<option value="([^"]*)"[^>]*>([^<]*)<\/option>/g)]
       .map((m) => ({ valor: m[1], texto: m[2] }));
   };
@@ -1420,12 +1440,19 @@ async function aTradicaoDeReferencia() {
       === 'RAD,francesa,Vaganova,cubana,compartilhada',
     doVerbete);
 
-  // A MESMA COISA NA CURADORIA E NO PROGRAMA DA TURMA — a «reverberação» que ela pediu. As duas
-  // listas excluem «compartilhada» (é o que sobra quando não há tradição declarada, não uma
-  // tradição que a escola adota), e isso é uma regra antiga, não um esquecimento.
-  const daCuradoria = opcoesDe('cutradicao');
-  checar('a curadoria mostra as mesmas, sem «compartilhada» — e agora com Cubana',
-    daCuradoria.map((o) => o.texto).join(',') === 'RAD,Francesa,Vaganova,Cubana', daCuradoria);
+  /* A CURADORIA DEIXOU DE PERGUNTAR A TRADIÇÃO (18/11/2026) — e a asserção muda com a regra.
+   *
+   * O QUE ELA GUARDAVA: `#cutradicao` mostrava as tradições adotáveis, sem «compartilhada». O
+   * campo saiu do formulário porque a tradição passou a vir da SALA: «na turma pode então já tirar
+   * o campo professor, modalidade e tradição […] quando vier a tradição já pela sala, isso já tem
+   * que estar funcionando também». Uma prova que continuasse a exigir o `<select>` estaria a exigir
+   * uma pergunta que ninguém faz — e a `provar-matriz-metodologica` mede a lista onde ela ainda
+   * vive (o verbete e o nó 50).
+   *
+   * O que se afirma agora é a regra nova, nas duas metades: o campo NÃO existe, e a tradição que
+   * manda no grau vem da sala (é o `TRADICAO_DA_SALA` que o script lê). */
+  checar('a curadoria já não pergunta a tradição — ela vem da sala',
+    !/id="cutradicao"/.test(html) && /var TRADICAO_DA_SALA/.test(html));
 
   const doMetodo = opcoesDe('vbmetodo');
   checar('o «Método deste exercício» lê a MESMA lista, e o valor é a chave',
@@ -1454,11 +1481,15 @@ async function aTradicaoDeReferencia() {
 
   // OS DOIS RÓTULOS SÃO DO MESMO SÍTIO: nenhuma opção de tradição tem texto diferente da chave
   // em caixa alta. É esta a asserção que impede alguém de escrever a lista à mão outra vez.
-  const todasAsOpcoesDeTradicao = ['vntradicao', 'cutradicao', 'vbmetodo']
+  /* OS SELECTORES QUE AINDA PERGUNTAM A TRADIÇÃO (18/11/2026): dois, e não três — a curadoria
+   * deixou de a perguntar (vem da sala). O piso desce com eles, e o que ele guarda continua a ser
+   * o que importa: não é um número de opções, é «encontrei os selectores e todos dizem o mesmo».
+   * Um piso alto obrigaria a prova a contar a tela, e a contagem muda sempre que uma lista cresce. */
+  const todasAsOpcoesDeTradicao = ['vntradicao', 'vbmetodo']
     .flatMap((id) => opcoesDe(id))
     .filter((o) => doDisco.tradicoes.indexOf(o.valor) !== -1);
-  checar('em todos os selectores, o texto de uma tradição é o rótulo do ficheiro',
-    todasAsOpcoesDeTradicao.length >= 14
+  checar('em todos os selectores que perguntam a tradição, o texto é o rótulo do ficheiro',
+    todasAsOpcoesDeTradicao.length >= 10
       && todasAsOpcoesDeTradicao.every((o) => o.texto === catalogo.rotuloDaTradicao(o.valor)),
     todasAsOpcoesDeTradicao.map((o) => o.valor + '→' + o.texto));
 
@@ -1698,12 +1729,21 @@ async function oDocumentoAntigo() {
   /* O MESMO CUIDADO DA §I: o alfabeto do módulo pode não ter verbete nenhum — ela apagou os 11
    * em 02/11/2026. A prova planta o que precisa e restaura o que estava, sem depender de haver
    * conteúdo editorial. */
+  /* A PLANTA ENTRA SEMPRE (18/11/2026) — e o comentário acima já o prometia.
+   *
+   * A condição `if (!tinha)` plantava só quando o alfabeto NÃO tinha o verbete. No repositório ele
+   * tem: existe um «Battement tendu» gravado, com a forma que a Produção lhe deu, e a prova ficava
+   * a depender desse dado editorial — o oposto do que a frase acima declara. O sintoma foi medido:
+   * com o verbete real, as células não têm a forma que a derivação da aula espera (`sinais`), o
+   * documento sai com `**conferir**` na coluna da notação, e o cenário das versões não se mede.
+   *
+   * Planta-se sempre, e restaura-se no fim (o `finally` abaixo já o faz, com `original`). */
   const tinha = Boolean(alfabeto.verbetes && alfabeto.verbetes['Battement tendu']);
   const planta = { '8|4/4': { cobre: 4, posicao: null, celulas: celulasDeQuatro('planta') } };
-  if (!tinha) {
-    alfabeto.verbetes = alfabeto.verbetes || {};
-    alfabeto.verbetes['Battement tendu'] = JSON.parse(JSON.stringify(planta));
-  }
+  const anteriorAoPlanto = tinha
+    ? JSON.parse(JSON.stringify(alfabeto.verbetes['Battement tendu'])) : undefined;
+  alfabeto.verbetes = alfabeto.verbetes || {};
+  alfabeto.verbetes['Battement tendu'] = JSON.parse(JSON.stringify(planta));
   const registo = alfabeto.verbetes['Battement tendu']['8|4/4'];
   const original = JSON.parse(JSON.stringify(registo));
 

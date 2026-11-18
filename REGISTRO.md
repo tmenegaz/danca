@@ -52485,3 +52485,80 @@ divergente, a checagem reprova e nomeia o ficheiro.
 vivos com o mesmo apelido continuam impossíveis (409) — o que mudou é que o passado de um deixa de ser
 lido como sendo do outro. Levar o `alunaId` ao `sujeitos` do PO (que hoje é uma lista de apelidos) é
 o passo seguinte dessa mudança, e não é desta frente.
+
+## 18/11/2026 — as três provas vermelhas: o que cada uma media, e onde ficou cada uma
+
+**O pedido:** «Três provas já estavam vermelhas antes desta frente […] Pode reparar». E a regra da
+casa para isto: uma prova que não mede é pior do que uma prova que falha — a primeira dá um verde
+que ninguém conferiu.
+
+### `provar-verbete` — 37 asserções, 36 verdes
+
+Cinco vermelhas de origem, todas por marcação que mudou e ninguém acompanhou:
+
+- **A frase lida no painel errado.** O recorte era «o primeiro `data-passo="1"` até o primeiro
+  `data-passo="2"`» — e há **três** painéis `data-passo="1"` na Produção (Turma, verbete, linha de
+  base). Lia o da Turma, e a asserção da frase media a ausência dela num painel que nunca a teve.
+  Passa a recortar dentro do `#form-verbete`.
+- **`<select id="…">` com atributos a mais.** A expressão exigia o `>` colado ao id; um select com
+  outro atributo deixava de casar, e a lista saía vazia. Um padrão que depende de o atributo ser o
+  último é uma asserção sobre a ordem dos atributos, não sobre a tela.
+- **«O exercício novo»** virou **«O exercício»** a 10/11/2026 — o rótulo anunciava a regra que
+  trancava o formulário.
+- **`#cutradicao` deixou de existir** a 18/11/2026: a tradição passou a vir da SALA. A asserção
+  passa a medir a regra nova — o campo não existe, e quem manda no grau é `TRADICAO_DA_SALA`.
+- **A planta do alfabeto era condicional.** `if (!tinha)` plantava o verbete de prova só quando o
+  alfabeto **não** tinha um «Battement tendu»; no repositório ele tem, e a prova ficava a depender
+  do dado editorial — o oposto do que a própria linha acima dela declara. Passa a plantar sempre, e
+  a restaurar no fim.
+
+**A que falta:** «o documento datado de ANTES do ajuste sai com a notação ANTIGA». O documento sai
+com `1–2 · 3–4 **conferir**` na coluna da notação — a derivação da aula não compõe os sinais das
+células da versão antiga, e a marca `conferir` é ela a dizer que não leu. **Não foi tocada**: mudar
+a asserção para aceitar `conferir` seria transformar a única prova que verifica uma afirmação sobre
+o passado numa prova que aceita não saber. Fica vermelha, e o próximo passo é a derivação (ou a
+asserção que a alimenta), não a expectativa.
+
+### `provar-celula` — 176 asserções alcançadas, 157 verdes
+
+Morria na **terceira** asserção; hoje corre até à 23.ª secção. As reparações são de bancada, e cada
+uma repõe uma medição que não existia:
+
+1. **`irA` nunca navegava.** A guarda era `typeof irParaPasso === 'function'` — e não existe função
+   com esse nome. Todas as chamadas de `noPassoDe`/`irA` eram no-ops: as provas corriam no passo em
+   que a página estivesse, e `page.select`/`page.focus` escreviam em elementos ocultos sem erro.
+   Meia dúzia de asserções passava por não medir nada.
+2. **A secção nasce recolhida** (18/11/2026): com o formulário fechado, todos os painéis medem zero
+   de altura e a prova de geometria media o acordeão. Abre-se pelo gesto da própria página.
+3. **A música vem antes do exercício.** Quem carrega a decomposição é o `change` do exercício; com a
+   música posta depois, a tabela ficava em «cobre 0 de 8» sobre um verbete que tem os oito.
+4. **O gesto do trecho são DOIS botões** (15/11/2026): «Acrescentar» abre, «Guardar» fecha. A
+   bancada compunha primeiro e clicava depois — num botão escondido, sem erro. Passa a abrir,
+   compor e guardar.
+5. **A frase antes do gesto**, porque `faltasAntesDe` a exige para o «Acrescentar» abrir.
+6. **A instrução que saiu da decomposição** (03/11/2026) e a **prosa do passo 1** (18/11/2026)
+   deixaram de ser exigidas; mede-se o vazio e a ausência.
+7. **O `submit` recusado recarrega o rascunho** — e como a música da prova não tem células no
+   alfabeto, o estado volta a zero. A secção 16 recompõe o que a música pede, em vez de contar com
+   o gesto anterior.
+
+**As 19 que faltam** medem UI que mudou em três frentes e ainda não foram revistas uma a uma:
+`button.verbetes-editar` (o nome deixou de ser botão a 18/11), o «duplicar exercício» que já não
+existe, a nota da posição, a geometria do formulário em duas colunas. **Cada uma é uma decisão**, e
+mudá-las em bloco seria escrever a expectativa depois de ver o resultado — que é exactamente o que
+esta casa não faz. Ficam vermelhas, nomeadas.
+
+### `provar-producao` — diagnosticada, não reparada
+
+Duas causas, e nenhuma é do texto da prova:
+
+- **O cadastro do professor passou a exigir o repositório** (cria a estrutura dele) e, na bancada
+  sem token, responde **502** — o professor não existe, e a curadoria ficava com `professor: ""`.
+  O professor passa a ser escrito na lista que a página lê (o cadastro tem prova própria).
+- **A regra «uma sala recebe uma Turma»** (09/11/2026) recusa a curadoria da secção porque a sala já
+  está ocupada — e a bancada criava a Turma e a curadoria para a mesma sala. Continua a morrer no
+  cenário do elenco.
+
+**O que fica dito, e é o que importa:** nenhuma das três foi «consertada» por relaxar a asserção.
+Onde a tela mudou por decisão, a asserção mudou com a decisão e o motivo está escrito ao lado; onde
+o que falta é a própria coisa medida, a prova continua vermelha.
