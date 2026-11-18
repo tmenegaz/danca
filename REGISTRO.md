@@ -51963,7 +51963,15 @@ escrevê-lo N vezes e esquecê-lo na próxima. Vai em **commit próprio**, como 
 31) · `provar-pagina-publica` 79/79 · `provar-conciliacao-do-painel` 35/35 · `provar-rotas-que-existem`
 8/8 · `provar-monitoramento` 104/104 · `provar-pedido-da-anamnese` 11/11 ·
 `provar-listas-do-acervo` 113/113 · `provar-acoes-da-linha` 75/75 · `provar-a-forma-do-veu` 31/31 ·
-`provar-ciclos-e-anamnese` 34/34 · `check-pacote` do `breu-rosa` 0 erros · `check-identidade` 0 erros.
+`provar-ciclos-e-anamnese` 34/34 · `check-identidade` 0 erros (22 verificações).
+
+**Nota de correção, 18/11/2026, na mesma sessão.** Esta entrada dizia «`check-pacote` do
+`breu-rosa` 0 erros». O pacote foi medido, e passou — e depois **deixou de existir**: o ciclo
+01 da `breu-rosa` foi apagado no `origin/main` (`1750db46`) enquanto esta frente corria, pelo
+expurgo da escola. O rebase apanhou-o como conflito de *modify/delete* no `assets/nav.js`, e a
+resolução foi **seguir a deleção** — repor o ficheiro seria ressuscitar um ciclo que ela
+apagou. A linha fica corrigida em vez de apagada (P-03): a medição aconteceu, e o que mudou foi
+o objecto medido.
 
 **Controlo A/B.** O rodapé não injetado: **reprova 40**. A janela a não fechar depois do envio:
 **reprova 1**. O botão do WhatsApp reposto: **reprova 2**. O sininho não chamado: **reprova 2**. Nome e
