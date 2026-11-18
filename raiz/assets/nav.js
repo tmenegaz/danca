@@ -904,3 +904,246 @@
     return;
   }
 })();
+
+/* ============================================================================
+ * O RODAPÉ É UM CANAL — «FALE CONOSCO» EM TODAS AS TELAS (18/11/2026)
+ *
+ * O QUE ELA PEDIU, e são três pedidos numa frase: «Coloca também essa mesma
+ * solução de rodapé que a gente tem nas páginas das escolas […] se eu estiver
+ * nos bastidores quanto se eu estiver no sistema lastro. […] E isso vai para o
+ * motor, né? Porque aí toda a escola já nasce com isso.»
+ *
+ * PORQUE É AQUI, E NÃO EM CADA GERADOR. Este ficheiro é o ÚNICO script que todas
+ * as telas carregam — a raiz, os Bastidores, a porta do plano e do PO, e os
+ * documentos publicados de cada escola —, e é copiado para dentro de cada pacote
+ * na montagem. Uma linha aqui chega a todas as escolas no deploy seguinte, sem
+ * regerar ciclo nenhum e sem tocar no `.fipp` de nenhuma. É a mesma razão pela
+ * qual o véu da operação e o «onde estou» já vivem aqui.
+ *
+ * O QUE SE ACRESCENTA, E NÃO SE SUBSTITUI. As páginas do ciclo JÁ têm um
+ * `<footer class="rodape">` com a identificação do ciclo; a linha do canal entra
+ * DENTRO dele, como mais um parágrafo. Um segundo rodapé na mesma página seria
+ * dois rodapés a dizer coisas diferentes — e o de baixo é o que ninguém lê.
+ *
+ * O FORMULÁRIO ENVIA, NÃO ABRE NADA (18/11/2026, segunda passagem). «O formulário
+ * é para enviar direto, não vai abrir nada, ele vai enviar, igual a gente fez a
+ * solução quando a secretaria cadastra um novo aluno e escolhe o professor.» O
+ * `mailto:` saiu do caminho: ele abria o programa de correio de quem escreve, e
+ * dependia de a pessoa o enviar por lá. Agora o `POST /api/contato` grava e
+ * manda o aviso por e-mail do servidor. O clique no endereço do rodapé continua
+ * a abrir o programa de correio — isso ela quis manter, e é outra coisa: ali a
+ * pessoa sabe que está a escrever de próprio punho.
+ *
+ * O WHATSAPP DO FORMULÁRIO SAIU, O DO RODAPÉ FICOU. «Não tem o botão abrir o
+ * WhatsApp» — não há API de WhatsApp nesta casa, e um botão que abre um `wa.me`
+ * sem a mensagem composta promete o que não cumpre. O número continua escrito no
+ * rodapé, que é onde ele é útil: quem quiser, clica e escreve por lá.
+ * ========================================================================== */
+(function () {
+  /* UMA VEZ POR PÁGINA. O `raiz/index.html` teve o seu próprio rodapé e o seu
+   * próprio modal até 18/11/2026; se uma página trouxer o canal, não se acrescenta
+   * outro. A marca é o atributo, e não o id: os ids do modal são os mesmos nos dois
+   * desenhos de propósito, para as provas poderem medir o que está à vista. */
+  if (document.querySelector('[data-fale-conosco]')) return;
+
+  var EMAIL = 'lastro@padd.com.br';
+  /* O `wa.me` quer os dígitos com o país: 55 (Brasil) + 54 (o DDD) + o número.
+   * Escrito à mão como `+55 (54) 99175-2662` o link não abre — e é por isso que o
+   * endereço legível e o endereço que funciona vivem separados. */
+  var WHATSAPP = '5554991752662';
+  var WHATSAPP_ESCRITO = '+55 (54) 99175-2662';
+
+  function esc(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ── 1. A LINHA DO RODAPÉ ───────────────────────────────────────────────── */
+  var rodape = document.querySelector('footer.rodape') || document.querySelector('.rodape');
+  var propria = false;
+  if (!rodape) {
+    rodape = document.createElement('footer');
+    rodape.className = 'rodape';
+    propria = true;
+    (document.body || document.documentElement).appendChild(rodape);
+  }
+  var linha = document.createElement('p');
+  linha.setAttribute('data-fale-conosco', 'sim');
+  linha.innerHTML =
+    '<button class="acao secundario pequena" id="btn-fale-conosco" type="button">Fale conosco</button>'
+    + ' &middot; E-mail: <a href="mailto:' + EMAIL + '">' + EMAIL + '</a>'
+    + ' &middot; WhatsApp: <a href="https://wa.me/' + WHATSAPP + '" target="_blank" rel="noopener">'
+    + WHATSAPP_ESCRITO + '</a>';
+  rodape.appendChild(linha);
+
+  /* O RECADO DO ENVIO, AO LADO DO BOTÃO. O modal fecha-se depois de enviar — foi o
+   * que ela pediu —, e sem esta linha o formulário desaparecia sem dizer nada a
+   * quem o preencheu. `role="status"` é o que faz o leitor de ecrã anunciá-la. */
+  var recado = document.createElement('p');
+  recado.className = 'res ok';
+  recado.setAttribute('role', 'status');
+  recado.setAttribute('data-fale-recado', 'sim');
+  recado.hidden = true;
+  if (propria) rodape.appendChild(recado);
+  else linha.parentNode.insertBefore(recado, linha.nextSibling);
+
+  /* ── 2. A JANELA ────────────────────────────────────────────────────────── */
+  var caixa = document.createElement('div');
+  caixa.className = 'modal';
+  caixa.id = 'modal-fale';
+  caixa.hidden = true;
+  caixa.innerHTML =
+    '<div class="modal-fundo" data-fechar-fale></div>'
+    + '<div class="modal-caixa modal-largo" role="dialog" aria-modal="true" aria-labelledby="fale-titulo">'
+    + '  <div class="modal-cab">'
+    + '    <h2 id="fale-titulo">Fale conosco</h2>'
+    + '    <button class="modal-x" id="btn-fechar-fale" type="button" aria-label="Fechar">&times;</button>'
+    + '  </div>'
+    + '  <form class="form" id="form-fale" novalidate>'
+    + '    <div class="etapa-campos">'
+    + '      <p class="etapa-campo largo">Escreva aqui como quer falar conosco.</p>'
+    + '      <p class="etapa-campo">'
+    + '        <label class="campo-rotulo" for="fale-nome">Seu nome</label>'
+    + '        <input id="fale-nome" autocomplete="name" placeholder="Nome e sobrenome">'
+    + '      </p>'
+    + '      <p class="etapa-campo">'
+    + '        <label class="campo-rotulo" for="fale-escola">Nome da escola</label>'
+    + '        <input id="fale-escola" autocomplete="organization" placeholder="A escola onde você trabalha">'
+    + '      </p>'
+    + '      <p class="etapa-campo">'
+    + '        <label class="campo-rotulo" for="fale-email">Seu e-mail</label>'
+    + '        <input type="email" id="fale-email" autocomplete="email" placeholder="voce@exemplo.com.br">'
+    + '      </p>'
+    + '      <p class="etapa-campo">'
+    /* O TELEFONE NÃO É `type="tel"`: a folha desenha os campos por TIPO, e `tel`
+     * nunca esteve na lista — o campo saía com o desenho cru do navegador no meio
+     * de uma janela desenhada, e ela viu-o e chamou-lhe «muito feio, destoante». A
+     * convenção da casa é `inputmode="tel"` num campo de texto, como no cadastro
+     * da escola: teclado numérico no celular, campo da folha no ecrã. */
+    + '        <label class="campo-rotulo" for="fale-telefone">Seu telefone (WhatsApp)</label>'
+    + '        <input id="fale-telefone" autocomplete="off" inputmode="tel" placeholder="(51) 99999-0000">'
+    + '      </p>'
+    + '      <p class="etapa-campo largo">'
+    + '        <label class="campo-rotulo" for="fale-mensagem">Mensagem</label>'
+    + '        <textarea id="fale-mensagem" rows="4"'
+    + '          placeholder="Conte o que você precisa ou autorize que um consultor entre em contato com você."></textarea>'
+    + '      </p>'
+    + '      <p class="etapa-campo largo res" id="fale-res"></p>'
+    + '    </div>'
+    + '    <div class="modal-acoes">'
+    + '      <button class="acao" id="fale-enviar" type="submit">Enviar por e-mail</button>'
+    + '    </div>'
+    + '  </form>'
+    + '</div>';
+  (document.body || document.documentElement).appendChild(caixa);
+
+  var res = document.getElementById('fale-res');
+  var botaoEnviar = document.getElementById('fale-enviar');
+
+  function valor(id) {
+    var e = document.getElementById(id);
+    return e ? String(e.value || '').trim() : '';
+  }
+  function dizer(estado, texto) {
+    if (!res) return;
+    res.className = 'etapa-campo largo res' + (estado ? ' ' + estado : '');
+    res.textContent = texto;
+    if (texto && res.scrollIntoView) res.scrollIntoView({ block: 'nearest' });
+  }
+  function abrir() {
+    caixa.hidden = false;
+    dizer('', '');
+    recado.hidden = true;
+    var primeiro = document.getElementById('fale-nome');
+    if (primeiro) primeiro.focus();
+  }
+  function fechar() {
+    caixa.hidden = true;
+  }
+
+  /* AS CINCO RESPOSTAS SÃO OBRIGATÓRIAS — «obrigatoriamente tem que saber os nomes, o
+   * e-mail e o telefone e mensagem para poder enviar». A ordem das perguntas é a
+   * ordem das mensagens, e a validação de verdade é a do servidor (a mesma regra,
+   * uma vez só): aqui evita-se a viagem de ida e volta e diz-se o que falta. */
+  function recolher() {
+    var d = {
+      nome: valor('fale-nome'),
+      escola: valor('fale-escola'),
+      email: valor('fale-email'),
+      telefone: valor('fale-telefone'),
+      mensagem: valor('fale-mensagem'),
+    };
+    var faltas = [
+      [d.nome, 'o seu nome', 'fale-nome'],
+      [d.escola, 'o nome da escola', 'fale-escola'],
+      [d.email, 'o seu e-mail', 'fale-email'],
+      [d.telefone, 'o seu telefone', 'fale-telefone'],
+      [d.mensagem, 'a sua mensagem', 'fale-mensagem'],
+    ];
+    for (var i = 0; i < faltas.length; i++) {
+      if (faltas[i][0]) continue;
+      dizer('aviso', 'Falta ' + faltas[i][1] + ' — todos os campos são necessários para lhe respondermos.');
+      var campo = document.getElementById(faltas[i][2]);
+      if (campo) campo.focus();
+      return null;
+    }
+    return d;
+  }
+
+  function enviar() {
+    var d = recolher();
+    if (!d) return;
+    if (botaoEnviar) { botaoEnviar.disabled = true; botaoEnviar.textContent = 'A enviar…'; }
+    dizer('', '');
+    fetch('/api/contato', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d),
+    })
+      .then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (x) { return x || {}; })
+      .catch(function () { return {}; })
+      .then(function (x) {
+        if (botaoEnviar) { botaoEnviar.disabled = false; botaoEnviar.textContent = 'Enviar por e-mail'; }
+        /* OS DOIS DESFECHOS SÃO DIFERENTES, E A TELA NÃO OS CONFUNDE: o pedido ficar
+         * registado do nosso lado e o aviso sair por e-mail são coisas distintas. A
+         * janela só se fecha quando AS DUAS aconteceram — fechá-la sobre um aviso que
+         * não saiu seria dizer «enviado» sobre uma mensagem que ninguém recebeu. */
+        if (x.ok && x.enviado) {
+          fechar();
+          var form = document.getElementById('form-fale');
+          if (form) form.reset();
+          if (recado) {
+            recado.className = 'res ok';
+            recado.textContent = 'Mensagem enviada. Respondemos pelo e-mail ou pelo WhatsApp que você deixou.';
+            recado.hidden = false;
+          }
+          return;
+        }
+        if (x.ok) {
+          dizer('aviso', 'O seu pedido ficou registado, mas o aviso por e-mail não saiu'
+            + (x.dica ? ' (' + x.dica + ')' : '')
+            + '. Escreva para ' + EMAIL + ' — este texto está à sua frente para copiar.');
+          return;
+        }
+        dizer('erro', (x && x.erro) ? String(x.erro) : 'Não foi possível enviar agora. Tente de novo, ou escreva para ' + EMAIL + '.');
+      });
+  }
+
+  /* A LIGAÇÃO É DELEGADA NO DOCUMENTO: em algumas páginas o rodapé é escrito DEPOIS
+   * deste script (a lista de escolas da raiz é injetada), e um `getElementById` no
+   * momento em que isto corre ligaria o botão a nulo — o defeito que a prova de
+   * 18/11/2026 apanhou, com o botão a dizer «Fale conosco» e a não abrir nada. */
+  document.addEventListener('click', function (e) {
+    var alvo = e.target;
+    if (!alvo || !alvo.closest) return;
+    if (alvo.closest('#btn-fale-conosco')) { abrir(); return; }
+    if (alvo.closest('#btn-fechar-fale') || alvo.closest('[data-fechar-fale]')) fechar();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !caixa.hidden) fechar();
+  });
+  var form = document.getElementById('form-fale');
+  if (form) form.addEventListener('submit', function (e) { e.preventDefault(); enviar(); });
+})();

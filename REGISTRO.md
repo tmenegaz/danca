@@ -51892,3 +51892,94 @@ derivados delas dirão «não declarada», e isso é a verdade, não um defeito:
 uma correcção da existente, faz aparecer a palavra. E a Cubana continua sem linhas próprias em
 `diferencasDeNomenclatura` nessa fonte das tradições, como desde 02/11/2026 — a opção existe e
 grava; o vocabulário comparado do ramo é outra frente.
+
+## 18/11/2026 — «O formulário é para enviar direto» — e o canal em todas as telas
+
+**O que motivou, e são quatro pedidos que se cruzam.** «O formulário é para enviar direto, não vai
+abrir nada, ele vai enviar, igual a gente fez a solução quando a secretaria cadastra um novo aluno e
+escolhe o professor. […] quando enviar por e-mail, fecha o modal.» «Não tem o botão abrir o
+WhatsApp.» «Faltou colocar nesse formulário o nome da pessoa e da escola.» «Coloca também essa mesma
+solução de rodapé que a gente tem […] e isso vai para o motor, porque aí toda a escola já nasce com
+isso.» E, do outro lado do balcão: «mais duas colunas nos contatos» e «um sininho sinalizando para
+mim que chegou uma mensagem».
+
+**1. O `mailto:` saiu do caminho.** O formulário compunha a mensagem e entregava-a ao programa de
+correio de quem escrevia — o pedido só chegava se a pessoa o enviasse por lá, e fechar a janela
+matava-o em silêncio. Passou a `POST /api/contato` → grava → **envia** (Resend, o mesmo caminho da
+matrícula da aluna) → diz o que aconteceu. A janela fecha quando o e-mail sai, e só então. O clique
+no endereço escrito no rodapé continua a abrir o programa de correio — isso ela quis manter, e é
+outra coisa: ali a pessoa sabe que está a escrever de próprio punho.
+
+**A PERGUNTA DELA, E A RESPOSTA HONESTA.** «Essa mensagem chega a passar pelo e-mail ou não? É uma
+mensagem interna direta do servidor que chega para mim, nem gasta recursos do e-mail. É isso
+mesmo?» **Não é.** Cada pedido gasta um e-mail do Resend (100 por dia no plano gratuito). O registo
+na caixa de entrada é que não gasta nada. Foi por isso que a coluna «Aviso» passou a existir: ela
+mostra, pedido a pedido, se o e-mail saiu, se não saiu (com o motivo no `title`) ou se não se sabe —
+sem isso, os três casos ficavam iguais na tela.
+
+**2. Os cinco campos são obrigatórios.** «Obrigatoriamente tem que saber os nomes, o e-mail e o
+telefone e mensagem para poder enviar.» A regra de antes — mensagem + **um** dos dois contactos —
+caiu: um pedido anónimo não é um pedido, é um recado que não se pode devolver. A validação é a da
+casa (`normalizarNome`/`normalizarEmail`/`normalizarTelefone` de `cadastro-da-escola`), e não uma
+segunda cópia.
+
+**3. O rodapé passou a ser UM, em `tools/templates/nav.js`.** É o único script que todas as telas
+carregam — a raiz, os Bastidores, a porta do plano e do PO, e os documentos de cada escola —, e é
+copiado para dentro de cada pacote na montagem. Uma linha ali chega a todas as escolas no deploy
+seguinte, sem regerar ciclo nenhum e sem tocar no `.fipp` de nenhuma. O rodapé que existia na raiz
+foi **retirado**, e com ele o modal e o script: uma segunda cópia do mesmo formulário é a que fica a
+mentir no dia em que só uma delas é corrigida.
+
+**E o Worker da escola também serve a rota.** O `POST /api/contato` passou a ser um módulo partilhado
+(`motor/servidor/contato-do-site.js`) que a raiz e o Worker do shard usam — duas cópias divergiriam.
+A caixa de entrada é a **mesma chave de KV** (`contatos/entradas`) porque os dois Workers estão
+ligados ao mesmo namespace: o que se escreve no site de uma escola aparece no painel dela sem
+sincronização, sem cópia e sem rota de transferência. A rota responde **antes** das travas da escola
+— o pedido não é conteúdo da escola, e a escola suspensa é justamente onde alguém precisa de falar
+com a casa.
+
+**4. O que saiu do formulário, e porquê.** O botão «Abrir o WhatsApp» foi retirado: não há API de
+WhatsApp nesta casa, e um botão que abre um `wa.me` **sem** a mensagem composta promete o que não
+cumpre. O número continua escrito no rodapé, que é onde ele é útil.
+
+**5. O sininho, e a pergunta «chega a passar pelo e-mail?»** O botão «Contatos» do painel ganhou um
+selo com os pedidos por ler, alimentado por `GET /api/contatos/quantos` — uma leitura da **mesma**
+lista que a página mostra, porque um contador à parte passaria a divergir dela no dia em que uma
+marca de lido falhasse. Se a leitura falhar, o selo fica escondido: um painel que anuncia uma avaria
+no canto do botão ensina a ignorar o canto do botão.
+
+**Onde entrou.** `motor/nucleo/contato.js` (os cinco campos, `comporAviso`, `marcarAviso`) ·
+`motor/servidor/contato-do-site.js` (novo — o manipulador dos dois Workers) · `motor/servidor/raiz.js`
+(o contador do correio, `/api/contatos/quantos`) · `motor/servidor/producao.js` (a rota na escola) ·
+`motor/servidor/painel-html.js` (nome, escola e aviso) · `tools/templates/nav.js` + as três cópias
+versionadas · `raiz/index.html` (sai o duplicado, entra o sininho).
+
+**MOTIVO DECLARADO — OS CONGELADOS.** `CONGELAMENTO.md` congela `tools/` e `tools/templates/`, e
+`nav.js` é a barra e o comportamento de todas as páginas. O motivo é o pedido dela, na letra: «isso
+vai para o motor, porque aí toda a escola já nasce com isso». Pôr o rodapé em cada gerador seria
+escrevê-lo N vezes e esquecê-lo na próxima. Vai em **commit próprio**, como o congelamento exige.
+
+**Com o quê.** `provar-fale-conosco` **58/58** (eram 35) · `provar-contatos-do-site` **57/57** (eram
+31) · `provar-pagina-publica` 79/79 · `provar-conciliacao-do-painel` 35/35 · `provar-rotas-que-existem`
+8/8 · `provar-monitoramento` 104/104 · `provar-pedido-da-anamnese` 11/11 ·
+`provar-listas-do-acervo` 113/113 · `provar-acoes-da-linha` 75/75 · `provar-a-forma-do-veu` 31/31 ·
+`provar-ciclos-e-anamnese` 34/34 · `check-pacote` do `breu-rosa` 0 erros · `check-identidade` 0 erros.
+
+**Controlo A/B.** O rodapé não injetado: **reprova 40**. A janela a não fechar depois do envio:
+**reprova 1**. O botão do WhatsApp reposto: **reprova 2**. O sininho não chamado: **reprova 2**. Nome e
+escola facultativos: **reprova 9**. O aviso por e-mail desligado: **reprova 3**. A tabela antiga, sem
+as duas colunas: **reprova 4**. A rota `/api/contatos/quantos` retirada: **reprova 4**. A rota
+`/api/contato` retirada do Worker da escola: **reprova 6**.
+
+**Duas provas foram endurecidas por causa do próprio A/B.** `provar-fale-conosco` e
+`provar-contatos-do-site` **explodiam** quando o defeito era «a peça não existe» — `modal.hidden` de
+um nulo, `dados.porLer` de uma resposta que veio em texto. Uma prova que rebenta não conta o que se
+perdeu, e o defeito que ela existe para apanhar era precisamente esse. Passaram a devolver a forma
+vazia e a **reprovar**: foi assim que o controlo A/B deixou de ser um `stack trace` e passou a ser um
+número.
+
+**O que ainda não está feito.** Não há limite de pedidos por origem (um `POST` repetido enche a caixa
+de entrada e empurra os antigos para fora do tecto de 200). A resposta ao pedido não volta por e-mail
+a quem escreveu — o `from` da casa não aceita `reply-to` neste desenho, e por isso o endereço de quem
+escreveu vai escrito no corpo. E o rodapé injetado não entra no PDF nem no que o pandoc gera: ele é
+canal de tela, e um PDF impresso não leva um formulário.

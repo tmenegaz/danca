@@ -315,59 +315,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
       </div>
     </div>
 
-    <!-- ── FALE CONOSCO (18/11/2026) ─────────────────────────────────────────────────────
-         «Lá no rodapé tá escrito Projeto Ciclo Raiz. Pode tirar isso daqui, você vai colocar um
-         Fale Conosco e o e-mail é lastro@padd.com.br.»
+    <!-- O «FALE CONOSCO» MUDOU DE CASA (18/11/2026). «Coloca também essa mesma solução de rodapé
+         […] e isso vai para o motor, né? Porque aí toda a escola já nasce com isso.»
 
-         O QUE ELE É: dois canais e um formulário que serve aos dois. A pessoa escreve UMA vez —
-         o e-mail e o telefone são os dela, e a mensagem é o que quer dizer — e escolhe por onde
-         mandar. O e-mail abre o cliente de correio dela, com o assunto e o corpo já compostos; o
-         WhatsApp abre o `wa.me` com o mesmo texto.
-
-         E O PEDIDO FICA REGISTADO DO NOSSO LADO (18/11/2026) — «tá salvando isso aonde? eu preciso
-         ter um lugar no painel para acessar quem me procurou». Antes não ficava em sítio nenhum: se
-         a pessoa fechasse o programa de correio sem enviar, nada chegava e não havia rasto de que
-         alguém tinha tentado. O `POST /api/contato` grava o pedido antes de o canal abrir, e ele
-         aparece em `/contatos`, no painel. O envio continua a ser dela: o que se guarda é o pedido,
-         não uma mensagem que ninguém mandou. -->
-    <div class="modal" id="modal-fale" hidden>
-      <div class="modal-fundo" data-fechar-fale></div>
-      <div class="modal-caixa modal-largo" role="dialog" aria-modal="true" aria-labelledby="fale-titulo">
-        <div class="modal-cab">
-          <h2 id="fale-titulo">Fale conosco</h2>
-          <button class="modal-x" id="btn-fechar-fale" type="button" aria-label="Fechar">&times;</button>
-        </div>
-        <form class="form" id="form-fale">
-          <div class="etapa-campos">
-            <p class="etapa-campo largo">Escreva aqui como quer falar conosco.</p>
-            <p class="etapa-campo">
-              <label class="campo-rotulo" for="fale-email">Seu e-mail</label>
-              <input type="email" id="fale-email" autocomplete="email" placeholder="voce@exemplo.com.br">
-            </p>
-            <p class="etapa-campo">
-              <label class="campo-rotulo" for="fale-telefone">Seu telefone (WhatsApp)</label>
-              <!-- O TELEFONE NÃO É `type="tel"` (18/11/2026). A folha desenha os campos por TIPO, e
-                   `tel` não está na lista: o campo saía com o desenho cru do navegador no meio de
-                   uma janela desenhada — o que ela viu e chamou «muito feio, destoante». A
-                   convenção desta casa para telefone é `inputmode="tel"` num campo de texto, que é
-                   a do cadastro da escola e a do professor: o teclado do celular é o numérico, e o
-                   campo é o da folha. -->
-              <input id="fale-telefone" autocomplete="off" inputmode="tel" placeholder="(51) 99999-0000">
-            </p>
-            <p class="etapa-campo largo">
-              <label class="campo-rotulo" for="fale-mensagem">Mensagem</label>
-              <textarea id="fale-mensagem" rows="4"
-                placeholder="Conte o que você precisa ou autorize que um consultor entre em contato com você."></textarea>
-            </p>
-            <p class="etapa-campo largo res" id="fale-res"></p>
-          </div>
-          <div class="modal-acoes">
-            <button class="acao secundario" id="fale-por-email" type="button">Enviar por e-mail</button>
-            <button class="acao" id="fale-por-whatsapp" type="button">Abrir o WhatsApp</button>
-          </div>
-        </form>
-      </div>
-    </div>
+         O rodapé e a janela vivem agora em `assets/nav.js`, que é o único script que TODAS as
+         telas carregam — a raiz, os Bastidores e o site de cada escola. Aqui havia uma segunda
+         cópia, e uma segunda cópia do mesmo formulário é a que fica a mentir no dia em que só
+         uma delas é corrigida. O que esta página guarda é o SININHO, ao lado do botão
+         «Contatos», que é dela e não das escolas. -->
 
     <main>
       <!-- ── AS DUAS COLUNAS CONGELADAS (22/10/2026) ────────────────────────────────────────
@@ -396,7 +351,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
              acessar quem me procurou.» É do dono pela mesma razão do Financeiro: são pedidos
              dirigidos a ela, com o e-mail e o telefone de quem escreveu. No público o botão não
              chega ao HTML, e o caminho responde 404 — a marca aqui é a segunda barreira. -->
-        <a class="acao secundario" href="/contatos" data-dono>Contatos</a>
+        <!-- O SININHO (18/11/2026) — «vale a pena colocar um sininho aqui em contatos sinalizando
+             para mim que chegou uma mensagem […], sempre sinalizando que chegou uma mensagem».
+             O número é o dos pedidos POR LER, e vem de `GET /api/contatos/quantos`, que lê a
+             mesma lista que a página mostra: um contador à parte passaria a divergir dela no dia
+             em que uma marca de lido falhasse. O selo nasce escondido e só aparece quando há o
+             que anunciar — «0» ao lado de um botão é ruído, não aviso. -->
+        <a class="acao secundario" href="/contatos" data-dono>Contatos<span class="selo alerta"
+          id="contatos-por-ler" hidden></span></a>
         <!-- O FINANCEIRO É DO DONO E SÓ DELE (25/11/2026): uma chave Pix e uma lista de descontos
              são a conta e a negociação dela. No público o botão nem chega ao HTML, e no servidor
              o caminho responde 404 — a marca aqui é a segunda barreira, não a primeira. -->
@@ -1876,145 +1838,29 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           if (modalApagar) modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
           if (modalApagar) document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalApagar.hidden) fecharApagar(); });
 
-          /* ── FALE CONOSCO (18/11/2026) ──────────────────────────────────────────────────
+          /* ── O SININHO DOS CONTATOS (18/11/2026) ───────────────────────────────────────
            *
-           * DOIS CANAIS, UM TEXTO. A pessoa escreve uma vez e escolhe por onde mandar — o
-           * e-mail e o telefone dela entram no corpo da mensagem, para quem responde saber a
-           * quem responde.
+           * «Vale a pena colocar um sininho aqui em contatos sinalizando para mim que chegou uma
+           * mensagem.» O número vem de `/api/contatos/quantos`, que lê a MESMA lista que a
+           * página mostra — um contador à parte passaria a divergir dela no dia em que uma marca
+           * de lido falhasse.
            *
-           * NADA É ENVIADO DAQUI, e é de propósito: não há rota no servidor para isto, e uma
-           * caixa de contacto é o primeiro sítio onde alguém põe publicidade. O que a página
-           * faz é COMPOR a mensagem e entregá-la ao canal que a pessoa escolheu — o programa de
-           * correio dela, ou o WhatsApp Web. O endereço e o número são os da casa, escritos uma
-           * vez só (aqui, e repetidos à vista no próprio modal, para quem preferir copiá-los).
-           *
-           * O `wa.me` quer o número em dígitos com o país: 55 (Brasil) + 54 (o DDD) + o número.
-           * Escrito à mão como `+55 (54) 99175-2662` o link não abre — e é por isso que o
-           * endereço legível e o endereço que funciona vivem separados. */
-          var CONTATO_EMAIL = "lastro@padd.com.br";
-          var CONTATO_WHATSAPP = "5554991752662";
-          var modalFale = document.getElementById("modal-fale");
-          var resFale = document.getElementById("fale-res");
-
-          function abrirFale() {
-            if (!modalFale) return;
-            modalFale.hidden = false;
-            if (resFale) { resFale.className = "etapa-campo largo res"; resFale.textContent = ""; }
-            var primeiro = document.getElementById("fale-email");
-            if (primeiro) primeiro.focus();
+           * O selo NÃO é um alarme: se a leitura falhar, fica escondido. Um painel que anuncia
+           * uma avaria no canto do botão ensina a ignorar o canto do botão. */
+          function pintarSininho() {
+            var selo = document.getElementById("contatos-por-ler");
+            if (!selo) return;
+            fetch("/api/contatos/quantos", { headers: { "Accept": "application/json" } })
+              .then(function (r) { return r.json(); })
+              .then(function (d) {
+                var n = d && typeof d.porLer === "number" ? d.porLer : 0;
+                if (!n) { selo.hidden = true; selo.textContent = ""; return; }
+                selo.textContent = n > 99 ? "99+" : String(n);
+                selo.hidden = false;
+              })
+              .catch(function () { selo.hidden = true; });
           }
-          function fecharFale() { if (modalFale) modalFale.hidden = true; }
-          function recadoDoFale(estado, texto) {
-            if (!resFale) return;
-            resFale.className = "etapa-campo largo res " + estado;
-            resFale.textContent = texto;
-            if (resFale.scrollIntoView) resFale.scrollIntoView({ block: "nearest" });
-          }
-          function lerFale() {
-            var v = function (id) {
-              var e = document.getElementById(id);
-              return e ? String(e.value || "").trim() : "";
-            };
-            return { email: v("fale-email"), telefone: v("fale-telefone"), mensagem: v("fale-mensagem") };
-          }
-          /* O TEXTO É O MESMO NOS DOIS CANAIS — duas versões dariam duas mensagens, e quem
-           * respondesse por um caminho não saberia o que foi dito no outro. */
-          function corpoDoFale(d) {
-            var linhas = ["Contato pelo site do Sistema Lastro", ""];
-            linhas.push("E-mail: " + (d.email || "(não informado)"));
-            linhas.push("Telefone (WhatsApp): " + (d.telefone || "(não informado)"));
-            linhas.push("");
-            linhas.push(d.mensagem);
-            return linhas.join("\n");
-          }
-          function fale() {
-            var d = lerFale();
-            if (!d.mensagem) {
-              recadoDoFale("aviso", "Escreva a sua mensagem antes de escolher por onde mandá-la.");
-              var campo = document.getElementById("fale-mensagem");
-              if (campo) campo.focus();
-              return null;
-            }
-            if (!d.email && !d.telefone) {
-              recadoDoFale("aviso", "Deixe um e-mail ou um telefone — sem um dos dois não há como "
-                + "lhe responder.");
-              var primeiro = document.getElementById("fale-email");
-              if (primeiro) primeiro.focus();
-              return null;
-            }
-            return corpoDoFale(d);
-          }
-          /* O PEDIDO FICA REGISTADO ANTES DE O CANAL ABRIR (18/11/2026).
-           *
-           * A ORDEM NÃO É DETALHE: `mailto:` e `wa.me` NAVEGAM — a página sai de cena, e um
-           * pedido disparado depois não chegaria a lado nenhum. Regista-se primeiro, e só então
-           * se entrega a mensagem ao canal.
-           *
-           * SE O REGISTO FALHAR, O CANAL ABRE NA MESMA. A pessoa tem o que escreveu à frente, e
-           * impedi-la de mandar por causa de um erro nosso seria trocar um problema por dois. O
-           * que não se faz é dizer que ficou guardado: o recado diz que a mensagem vai pelo canal
-           * e que o pedido não ficou registado. */
-          function registarPedido() {
-            var d = lerFale();
-            return fetch("/api/contato", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email: d.email, telefone: d.telefone, mensagem: d.mensagem }),
-            }).then(function (r) { return r.json().catch(function () { return {}; }); })
-              .then(function (x) { return !!(x && x.ok); })
-              .catch(function () { return false; });
-          }
-          function falePorEmail() {
-            var corpo = fale();
-            if (!corpo) return;
-            var botao = document.getElementById("fale-por-email");
-            if (botao) botao.disabled = true;
-            registarPedido().then(function (registado) {
-              if (botao) botao.disabled = false;
-              /* `location.href` e não `window.open`: o programa de correio é um aplicativo do
-               * sistema, e a aba nova ficaria em branco depois de ele abrir. */
-              window.location.href = "mailto:" + CONTATO_EMAIL
-                + "?subject=" + encodeURIComponent("Fale conosco — Sistema Lastro")
-                + "&body=" + encodeURIComponent(corpo);
-              recadoDoFale(registado ? "ok" : "aviso",
-                (registado
-                  ? "Pedido registado. Abrimos o seu programa de correio com a mensagem já escrita — "
-                    + "envie por lá para que ela chegue."
-                  : "Não conseguimos registar o pedido aqui. Abrimos o seu programa de correio com a "
-                    + "mensagem já escrita: envie por lá, que ela chega. ")
-                + " Se ele não abrir, escreva para " + CONTATO_EMAIL + ".");
-            });
-          }
-          function falePorWhatsapp() {
-            var corpo = fale();
-            if (!corpo) return;
-            var botao = document.getElementById("fale-por-whatsapp");
-            if (botao) botao.disabled = true;
-            registarPedido().then(function (registado) {
-              if (botao) botao.disabled = false;
-              var destino = "https://wa.me/" + CONTATO_WHATSAPP + "?text=" + encodeURIComponent(corpo);
-              var janela = window.open(destino, "_blank", "noopener");
-              if (!janela) window.location.href = destino;
-              recadoDoFale(registado ? "ok" : "aviso",
-                (registado
-                  ? "Pedido registado. Abrimos o WhatsApp com a mensagem já escrita — envie por lá "
-                    + "para que ela chegue."
-                  : "Não conseguimos registar o pedido aqui. Abrimos o WhatsApp com a mensagem já "
-                    + "escrita: envie por lá, que ela chega.")
-                + " Se ele não abrir, o número é +55 (54) 99175-2662.");
-            });
-          }
-          /* O BOTÃO DO RODAPÉ VEM DEPOIS DESTE SCRIPT, e por isso não se liga por `aoClicar`
-           * — `getElementById` devolveria nulo e o botão ficaria morto, a dizer «Fale conosco»
-           * sem abrir nada. A ligação é delegada no documento, que existe sempre. */
-          document.addEventListener("click", function (e) {
-            if (e.target && e.target.closest && e.target.closest("#btn-fale-conosco")) abrirFale();
-          });
-          aoClicar("btn-fechar-fale", fecharFale);
-          aoClicar("fale-por-email", falePorEmail);
-          aoClicar("fale-por-whatsapp", falePorWhatsapp);
-          if (modalFale) modalFale.addEventListener("click", function (e) { if (e.target.closest("[data-fechar-fale]")) fecharFale(); });
-          if (modalFale) document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalFale.hidden) fecharFale(); });
+          pintarSininho();
 
           if (btnConfirmar) btnConfirmar.addEventListener("click", function () {
             if (!escolaEscolhida) return;
@@ -2268,15 +2114,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
     <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
     <!-- o mesmo comportamento do site: tema e, quando houver, navbar -->
     <script src="assets/nav.js"></script>
-    <!-- O RODAPÉ PASSOU A SER UM CANAL (18/11/2026). «Projeto Ciclo · raiz» dizia o nome de
-         dentro de casa a quem chegou de fora. O que uma pessoa procura no fim desta página é
-         como falar com quem fez o sistema — e é isso que está aqui, com o canal aberto pela
-         mesma porta dos dois lados (o e-mail escrito, o WhatsApp escrito). -->
-    <footer class="rodape">
-      <p><button class="acao secundario pequena" id="btn-fale-conosco" type="button">Fale conosco</button></p>
-      <p>E-mail: <a href="mailto:lastro@padd.com.br">lastro@padd.com.br</a> &middot;
-        WhatsApp: <a href="https://wa.me/5554991752662" target="_blank" rel="noopener">+55 (54) 99175-2662</a></p>
-    </footer>
+    <!-- O RODAPÉ VEM DO MOTOR, E NÃO DAQUI (18/11/2026). «Projeto Ciclo · raiz» dizia o nome de
+         dentro de casa a quem chegou de fora, e saiu. No lugar dele está o canal — «Fale conosco»,
+         o e-mail e o WhatsApp —, escrito em `assets/nav.js` para que TODAS as telas o tenham: a
+         raiz, os Bastidores e o site de cada escola, as de hoje e as que nascerem. Uma cópia aqui
+         seria a segunda, e a segunda é a que envelhece. -->
   </body>
 
 </html>
