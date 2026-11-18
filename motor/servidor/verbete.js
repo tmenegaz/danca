@@ -490,6 +490,28 @@ function listarVerbetes(dados, escola) {
       direcoes: direcoesDoVerbete(verbetes[nome], escola),
       compassos: compassosDoVerbete(verbetes[nome], escola),
       porMusica: detalhePorMusica(nome, verbetes[nome], escola, dados),
+      /* QUANDO ESTE VERBETE FOI AJUSTADO PELA ÚLTIMA VEZ (18/11/2026).
+       *
+       * «Essa etiqueta de ajustado em […] tem que existir […] também na de professores, na de salas,
+       * na de audição, na de estilo e na de turma.» No estilo, o ajuste tem nome e lugar próprios: é
+       * a gravação de um verbete que já compõe o repertório de uma turma, e o que ela deixa é o
+       * estado anterior em `versoes[]`, com a data em que deixou de valer (`ate`). Essa data É a data
+       * do ajuste — não há uma segunda a manter em sincronia.
+       *
+       * O MAIOR `ate` de todos os registos do verbete: um exercício tem N músicas, cada uma com o
+       * seu histórico, e a etiqueta da linha fala do exercício. Sem histórico nenhum não se escreve
+       * a etiqueta — um verbete corrigido no lugar nunca foi ajustado, e dizer que sim seria a
+       * mesma mentira que a lista das alunas contava antes de hoje. */
+      ajustadaEm: (() => {
+        let quando = '';
+        for (const registo of Object.values(registosDaEscola(verbetes[nome], escola))) {
+          for (const v of (Array.isArray(registo && registo.versoes) ? registo.versoes : [])) {
+            const dia = String((v && v.ate) || '').slice(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dia) && dia > quando) quando = dia;
+          }
+        }
+        return quando || null;
+      })(),
     }))
     /* UM EXERCÍCIO SEM MÚSICA VISÍVEL NÃO ENTRA NA LISTA (03/11/2026). Desde que o alfabeto guarda
      * o verbete de cada escola, há exercícios que existem só do outro lado: o verbete da `breu` não

@@ -839,6 +839,323 @@ async function principal() {
     }
   }
 
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * O — «EDITAR» OU «DERIVAR», E A ETIQUETA QUE SÓ PERTENCE À DERIVAÇÃO (18/11/2026)
+   *
+   * «Aluno A e aluno B tudo bem derivar, porque eles já estão vinculados à turma. […] Os demais,
+   * que estão livres e que nunca existiu plano de ensino para eles, e não estão numa turma, não
+   * estão nem sequer num elenco, que é o caso do aluno C e do aluno D — eles não são derivar, eles
+   * são editar.» E: «essa etiqueta de ajustado em surge só na derivação. Eles não foram derivados
+   * […] aluno C e aluno D não tem que ter essa etiqueta.»
+   *
+   * DOIS DEFEITOS, e o segundo é o que ninguém veria sozinho: a lista escrevia «Derivar» em todas
+   * as linhas, e a etiqueta «ajustada em» em todas as que tinham `pedidaEm` — que é TODA a gente
+   * que passou pelo formulário, porque é lá que a data nasce. O primeiro cadastro não é um ajuste.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+  console.log('\nO — «Editar» para quem está livre, «Derivar» para quem está preso');
+  {
+    /* DUAS ALUNAS, e a diferença entre elas é a única coisa que importa: a «Vavá» está numa
+     * curadoria (logo, numa turma), a «Tami» não está em nada. Ambas com vínculo de anamnese —
+     * é isso que faz o caso do aluno C e do aluno D: quem tem vínculo e não está preso edita-se. */
+    const kvO = criarKV({
+      [RAIZ + '/professores']: JSON.stringify([
+        { nome: 'Demi Plier', slug: 'demi-plier' },
+        { nome: 'Redinha Rosa', slug: 'redinha-rosa' },
+      ]),
+      'professores/demi-plier/contato': JSON.stringify({ email: 'demi@example.test' }),
+      [RAIZ + '/alunas']: JSON.stringify(['Vavá', 'Tami']),
+      [RAIZ + '/curadorias']: JSON.stringify([
+        { id: 'rosa', modalidade: 'Balé clássico', professor: 'demi-plier', turma: 'Rosa', alunas: ['Vavá'] },
+      ]),
+      [RAIZ + '/matriculas']: JSON.stringify([
+        { id: 'vava-bale-classico', aluna: 'Vavá', modalidade: 'Balé clássico',
+          professor: 'demi-plier', pedidaEm: '2026-11-01' },
+        { id: 'tami-jazz', aluna: 'Tami', modalidade: 'Jazz', professor: 'redinha-rosa',
+          pedidaEm: '2026-11-02' },
+      ]),
+    });
+    const envO = ambiente(kvO);
+    const entradaO = await pedir(envO, '/api/bastidores/validar-producao', { senha: 'segredo' });
+    const TOKEN_O = entradaO.dados && entradaO.dados.token;
+
+    const pagO = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envO);
+    const htmlO = await pagO.text();
+    const cartaoDe = (nome) => {
+      const m = new RegExp('<li class="turma" data-aluna="' + nome + '">([\\s\\S]*?)</li>').exec(htmlO);
+      return m ? m[1] : '';
+    };
+    const cartaoVava = cartaoDe('Vavá');
+    const cartaoTami = cartaoDe('Tami');
+    provar('a aluna que está numa turma diz «Derivar»', /data-aluna-modo="derivar"/.test(cartaoVava)
+      && />Derivar</.test(cartaoVava), cartaoVava.slice(0, 200));
+    provar('a aluna que não está em turma, nem em elenco, nem em plano diz «Editar»',
+      /data-aluna-modo="editar"/.test(cartaoTami) && />Editar</.test(cartaoTami),
+      cartaoTami.slice(0, 200));
+    provar('e a «Editar» leva o vínculo, para o servidor saber o que corrige',
+      /data-aluna-modo="editar"[^>]*/.test(cartaoTami) && /data-aluna-derivar="tami-jazz"/.test(cartaoTami));
+    provar('nenhum dos dois cartões traz «ajustada em» — nenhum deles foi derivado',
+      !/ajustada em/.test(cartaoVava) && !/ajustada em/.test(cartaoTami),
+      { vava: /ajustada em/.test(cartaoVava), tami: /ajustada em/.test(cartaoTami) });
+
+    console.log('\nO.1 — a correcção no lugar, que é o que o «Editar» faz');
+    const antes = JSON.parse(kvO.dados.get(RAIZ + '/matriculas') || '[]');
+    const quantosAntes = antes.length;
+    const corrigiu = await pedir(envO, '/api/bastidores/matricula', {
+      aluna: 'Tami', modalidade: 'Jazz', professor: 'redinha-rosa',
+      editarDe: 'tami-jazz', motivo: 'o professor certo é a Redinha', token: TOKEN_O,
+    });
+    provar('corrigir um vínculo livre é 200, e a resposta diz que foi correcção',
+      corrigiu.status === 200 && corrigiu.dados && corrigiu.dados.corrigida === true,
+      { status: corrigiu.status, corrigida: corrigiu.dados && corrigiu.dados.corrigida,
+        erro: corrigiu.dados && corrigiu.dados.erro });
+    const depois = JSON.parse(kvO.dados.get(RAIZ + '/matriculas') || '[]');
+    provar('NÃO nasce elo nenhum — a lista tem os mesmos vínculos',
+      depois.length === quantosAntes, { antes: quantosAntes, depois: depois.length });
+    const oMesmo = depois.find((m) => m.id === 'tami-jazz');
+    provar('o vínculo é o mesmo, com o professor corrigido',
+      oMesmo && oMesmo.professor === 'redinha-rosa', oMesmo && oMesmo.professor);
+    provar('…e não ganha `substitui`: não houve derivação',
+      oMesmo && !oMesmo.substitui, oMesmo && oMesmo.substitui);
+    provar('…e a correcção fica datada (`corrigidaEm`)',
+      Boolean(oMesmo && /^\d{4}-\d{2}-\d{2}$/.test(String(oMesmo.corrigidaEm || ''))),
+      oMesmo && oMesmo.corrigidaEm);
+
+    console.log('\nO.2 — as recusas da correcção');
+    const inexistente = await pedir(envO, '/api/bastidores/matricula', {
+      aluna: 'Tami', modalidade: 'Jazz', professor: 'demi-plier',
+      editarDe: 'nao-existe', token: TOKEN_O,
+    });
+    provar('corrigir um vínculo que não existe é 404', inexistente.status === 404);
+    const deOutra = await pedir(envO, '/api/bastidores/matricula', {
+      aluna: 'Outra Aluna', modalidade: 'Jazz', professor: 'demi-plier',
+      editarDe: 'tami-jazz', token: TOKEN_O,
+    });
+    provar('corrigir o vínculo de OUTRA aluna é 400 — o apelido não se muda por aqui',
+      deOutra.status === 400, deOutra.dados && deOutra.dados.erro);
+
+    /* AS DUAS TRAVAS QUE VALEM MAIS. A primeira: a anamnese já foi feita — e aí corrigir o
+     * professor punha o que ele observou debaixo do nome de outra pessoa. A segunda: ela está
+     * numa turma que já tem plano de ensino.
+     *
+     * AS DUAS LEITURAS VÊM DE `porta`, e é aí que a prova as fornece. Não é uma forja do
+     * resultado: é o mesmo corte que o código faz — o `bastidores.js` não fala com o acervo, fala
+     * com o núcleo, e é essa fronteira que a prova substitui para poder medir a guarda. */
+    const porta = require(path.join(raiz, 'motor/nucleo/porta.js'));
+    const resumosVerdadeiros = porta.resumosDeEnvelopes;
+    porta.resumosDeEnvelopes = async (arm, padrao) => [
+      { nome: 'anamnese-tami.json', resumo: { contexto: { aluna: 'Tami', modalidade: 'Jazz' },
+        gerado_em: '2026-11-12' } },
+      { nome: 'plano-rosa.json', resumo: { professor: 'demi-plier', turma: 'Rosa', ciclo: '01' } },
+    ].filter((x) => padrao.test(x.nome));
+    try {
+      const feita = await pedir(envO, '/api/bastidores/matricula', {
+        aluna: 'Tami', modalidade: 'Jazz', professor: 'demi-plier',
+        editarDe: 'tami-jazz', token: TOKEN_O,
+      });
+      provar('anamnese já FEITA: corrigir o vínculo é 409 — deriva-se',
+        feita.status === 409 && /Derivar/.test(String(feita.dados && feita.dados.erro)),
+        { status: feita.status, erro: feita.dados && feita.dados.erro });
+      const presa = await pedir(envO, '/api/bastidores/matricula', {
+        aluna: 'Vavá', modalidade: 'Balé clássico', professor: 'demi-plier',
+        editarDe: 'vava-bale-classico', token: TOKEN_O,
+      });
+      provar('aluna em turma COM plano de ensino: 409, e a frase manda derivar',
+        presa.status === 409 && /Derivar/.test(String(presa.dados && presa.dados.erro)),
+        { status: presa.status, erro: presa.dados && presa.dados.erro });
+    } finally {
+      porta.resumosDeEnvelopes = resumosVerdadeiros;
+    }
+
+    console.log('\nO.3 — derivar, e só então a etiqueta');
+    const derivou = await pedir(envO, '/api/bastidores/matricula', {
+      aluna: 'Tami', modalidade: 'Jazz', professor: 'demi-plier',
+      derivarDe: 'tami-jazz', motivo: 'a aluna trocou de professor', token: TOKEN_O,
+    });
+    provar('derivar a aluna livre é gravado (201)', derivou.status === 201,
+      derivou.dados && derivou.dados.erro);
+    const pagO2 = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envO);
+    const htmlO2 = await pagO2.text();
+    const cartaoTami2 = (new RegExp('<li class="turma" data-aluna="Tami">([\\s\\S]*?)</li>')
+      .exec(htmlO2) || [])[1] || '';
+    provar('depois de derivar, a etiqueta «ajustada em» aparece — com o motivo',
+      /ajustada em \d\d\/\d\d\/\d{4} · a aluna trocou de professor/.test(cartaoTami2),
+      cartaoTami2.slice(0, 300));
+    provar('e a outra aluna continua sem etiqueta (ninguém a derivou)',
+      !/ajustada em/.test((new RegExp('<li class="turma" data-aluna="Vavá">([\\s\\S]*?)</li>')
+        .exec(htmlO2) || [])[1] || ''));
+    const jaDerivado = await pedir(envO, '/api/bastidores/matricula', {
+      aluna: 'Tami', modalidade: 'Jazz', professor: 'redinha-rosa',
+      editarDe: 'tami-jazz', token: TOKEN_O,
+    });
+    provar('corrigir um vínculo que já desceu ao histórico é 409',
+      jaDerivado.status === 409, jaDerivado.dados && jaDerivado.dados.erro);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * P — A ETIQUETA «AJUSTADO EM» NAS OUTRAS LISTAS (18/11/2026)
+   *
+   * «Essa etiqueta tem que existir na listagem de alunos que já estão na regra de derivação,
+   * também na de professores, na de salas, na de audição, na de estilo e na de turma.» A Turma e a
+   * Sala já a tinham; as outras três não tinham nenhuma.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+  console.log('\nP — a etiqueta nas listagens de professores, audição e estilo');
+  {
+    /* PROFESSORES — a data vem do registo, escrita pelo «Editar» da ficha. */
+    const kvP = criarKV({
+      [RAIZ + '/professores']: JSON.stringify([
+        { nome: 'Demi Plier', slug: 'demi-plier' },
+        { nome: 'Redinha Rosa', slug: 'redinha-rosa', atualizado_em: '2026-11-17T10:00:00.000Z' },
+      ]),
+      [RAIZ + '/alunas']: JSON.stringify([]),
+      /* UM ELENCO QUE JÁ FOI DERIVADO: a versão vigente diz de qual veio (`anterior`) e quando
+       * (`gravada_em`). É o único par que distingue «derivado» de «o primeiro». */
+      [RAIZ + '/linhas-de-base']: JSON.stringify([{
+        id: 'elenco-a', nome: 'Elenco A', professor: 'demi-plier',
+        campos: [{ id: 'formato-anatomico-dos-joelhos' }], alunas: ['Vavá'],
+        anterior: 'escola/breu/linhas-de-base/elenco-a--20261101-1000.json',
+        gravada_em: '2026-11-17T09:00:00.000Z', atualizada_em: '2026-11-17T09:00:00.000Z',
+      }]),
+    });
+    const envP = ambiente(kvP);
+    const pagP = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envP);
+    const htmlP = await pagP.text();
+    provar('o professor com ficha corrigida mostra «ajustado em», com a data',
+      (() => {
+        /* A JANELA É A DA LINHA DELE, e não o ficheiro todo: o nome aparece também no `<option>`
+         * das habilitações, e uma asserção sobre o HTML inteiro passaria por acidente. */
+        const i = htmlP.indexOf('data-alvo="Redinha Rosa"');
+        if (i === -1) return false;
+        return /ajustado em 17\/11\/2026/.test(htmlP.slice(Math.max(0, i - 900), i));
+      })(),
+      (() => {
+        const i = htmlP.indexOf('data-alvo="Redinha Rosa"');
+        return i === -1 ? '(linha não encontrada)' : htmlP.slice(Math.max(0, i - 400), i).slice(-260);
+      })());
+    provar('e o professor que nunca foi corrigido não mostra nada',
+      (() => {
+        const i = htmlP.indexOf('data-alvo="Demi Plier"');
+        if (i === -1) return false;
+        return !/ajustado em/.test(htmlP.slice(Math.max(0, i - 900), i));
+      })());
+
+    /* O «EDITAR» DA FICHA GRAVA A DATA — senão a etiqueta nunca teria o que mostrar. */
+    const entradaP = await pedir(envP, '/api/bastidores/validar-producao', { senha: 'segredo' });
+    const corrigiuFicha = await pedir(envP, '/api/bastidores/professor', {
+      editar: 'demi-plier', nome: 'Demi', sobrenome: 'Plier',
+      email: 'demi@example.test', token: entradaP.dados && entradaP.dados.token,
+    });
+    provar('o «Editar» da ficha do professor grava (200)', corrigiuFicha.status === 200,
+      corrigiuFicha.dados && corrigiuFicha.dados.erro);
+    const registos = JSON.parse(kvP.dados.get(RAIZ + '/professores') || '[]');
+    const demi = registos.find((p) => p.slug === 'demi-plier');
+    provar('…e deixa a data da correcção no registo dele',
+      Boolean(demi && /^\d{4}-\d{2}-\d{2}T/.test(String(demi.atualizado_em || ''))),
+      demi && demi.atualizado_em);
+
+    /* ESTILO — a data é o maior `ate` do histórico do verbete, que é a data em que a versão
+     * anterior deixou de valer. Mede-se no núcleo, que é quem compõe a lista. */
+    const verbete = require(path.join(raiz, 'motor/servidor/verbete.js'));
+    const alfabeto = {
+      verbetes: {
+        'Plié': {
+          '8|4/4': {
+            celulas: { frente: [{ categoria: 'dobradiça' }] },
+            cobre: 8, posicao: null, escola: 'breu',
+            versoes: [{ ate: '2026-11-09', cobre: 4, motivo: 'correção de notação' },
+              { ate: '2026-11-17', cobre: 6, motivo: 'outra correção' }],
+          },
+        },
+        'Tendu': { '8|4/4': { celulas: { frente: [{ categoria: 'extensão' }] }, cobre: 8, escola: 'breu' } },
+      },
+      vocabulario: {},
+    };
+    const listados = verbete.listarVerbetes(alfabeto, 'breu');
+    const plie = listados.find((x) => x.nome === 'Plié');
+    const tendu = listados.find((x) => x.nome === 'Tendu');
+    provar('o verbete com histórico traz a data do ÚLTIMO ajuste, e não a do primeiro',
+      plie && plie.ajustadaEm === '2026-11-17', plie && plie.ajustadaEm);
+    provar('e o verbete sem histórico não traz data nenhuma — não foi ajustado',
+      tendu && !tendu.ajustadaEm, tendu && tendu.ajustadaEm);
+
+    /* AUDIÇÃO E ESTILO — as duas listas são desenhadas NO CLIENTE, e por isso mede-se o que se vê:
+     * a página é montada num DOM, com as leituras de rede substituídas pelo que o servidor
+     * mandaria, e o que se procura é a etiqueta na linha certa. Uma asserção sobre o TEXTO do
+     * `<script>` passaria mesmo com o ramo morto lá dentro — foi medido, e passava. */
+    {
+      let JSDOM = null;
+      let VC = null;
+      try { ({ JSDOM, VirtualConsole: VC } = require('jsdom')); } catch (e) { JSDOM = null; }
+      if (!JSDOM) {
+        provar('a etiqueta da Audição e do Estilo (jsdom)', false, 'jsdom ausente');
+      } else {
+        const pagA = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envP);
+        const htmlA = await pagA.text();
+        const vc = new VC();
+        const dom = new JSDOM(htmlA.replace(/<script src="[^"]*"><\/script>/g, ''), {
+          runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao',
+          pretendToBeVisual: true, virtualConsole: vc,
+          beforeParse(w) {
+            w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+              addListener() {}, removeListener() {} });
+            w.alert = () => {};
+            w.confirm = () => true;
+            w.fetch = (u) => {
+              const url = String(u);
+              let corpo = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [],
+                grupos: [], matriculas: [], posicoes: [] };
+              /* UM VERBETE AJUSTADO E UM QUE NUNCA FOI — um só não mede a diferença, e é a
+               * diferença que a etiqueta tem de fazer. */
+              if (/\/linhas-de-base$/.test(url)) {
+                corpo = { ok: true, revisoes: {}, linhas: [{
+                  id: 'elenco-a', nome: 'Elenco A', professor: 'demi-plier',
+                  campos: [{ id: 'formato-anatomico-dos-joelhos' }], alunas: ['Vavá'],
+                  anterior: 'escola/breu/linhas-de-base/elenco-a--20261101-1000.json',
+                  gravada_em: '2026-11-17T09:00:00.000Z',
+                }] };
+              }
+              if (/\/verbete$/.test(url)) {
+                corpo = { ok: true, posicoes: [], exercicios: [
+                  { nome: 'Plié', escola: 'breu', emTurma: [], ajustadaEm: '2026-11-17',
+                    porMusica: [{ chave: '8|4/4', tempos: 8, compasso: '4/4', trechos: 1,
+                      direcoes: [], categorias: [], cobre: 8, escola: 'breu' }] },
+                  { nome: 'Tendu', escola: 'breu', emTurma: [],
+                    porMusica: [{ chave: '8|4/4', tempos: 8, compasso: '4/4', trechos: 1,
+                      direcoes: [], categorias: [], cobre: 8, escola: 'breu' }] },
+                ] };
+              }
+              /* O `text()` DEVOLVE O MESMO CORPO: uma das leituras da página (`lerResposta`) lê
+               * `r.text()` e faz `JSON.parse` — não `r.json()`. Um stub que só servisse `json()`
+               * deixava a lista do Estilo a dizer «a resposta não veio em condições», e a prova
+               * teria medido o stub em vez da página. */
+              return Promise.resolve({ ok: true, status: 200,
+                json: () => Promise.resolve(corpo),
+                text: () => Promise.resolve(JSON.stringify(corpo)) });
+            };
+          },
+        });
+        const w = dom.window;
+        const d = w.document;
+        await new Promise((r) => w.setTimeout(r, 700));
+
+        const linhaDoElenco = d.querySelector('[data-elenco="elenco-a"]');
+        provar('a Audição mostra «ajustado em» no elenco que foi derivado',
+          Boolean(linhaDoElenco) && /ajustado em 17\/11\/2026/.test(linhaDoElenco.textContent),
+          linhaDoElenco ? linhaDoElenco.textContent.slice(0, 140) : '(elenco não desenhado)');
+
+        const verbete = (nome) => {
+          const li = Array.prototype.slice.call(d.querySelectorAll('#lista-verbetes [data-verbete]'))
+            .find((x) => x.getAttribute('data-verbete') === nome);
+          return li ? li.textContent : '';
+        };
+        provar('o Estilo mostra «ajustado em» no verbete que tem histórico',
+          /ajustado em 17\/11\/2026/.test(verbete('Plié')), verbete('Plié').slice(0, 140));
+        provar('…e não mostra nada no que nunca foi ajustado',
+          verbete('Tendu') !== '' && !/ajustado em/.test(verbete('Tendu')),
+          verbete('Tendu').slice(0, 140));
+      }
+    }
+  }
+
   const falhas = provas.filter((p) => !p.ok);
   console.log('\n' + (falhas.length ? 'FALHOU — ' : 'TUDO CERTO — ') + provas.length
     + ' asserções, ' + falhas.length + ' falha(s)');

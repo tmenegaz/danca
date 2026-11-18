@@ -1604,8 +1604,10 @@ experimentos/modelo-formulario/*
 # (ver a nota do `provar-barra-unica` e a do `provar-aula-prosa`): a regra é que a prova que um
 # `REGISTRO.md` cita por nome tem de estar versionada, senão a citação não se pode verificar.
 #
-# `provar-cadastro-da-aluna` é a mais grave das cinco: mede o cadastro da aluna (76 asserções, é ela
-# que fixa a forma do registo e o destinatário do e-mail da anamnese) e nunca esteve no repositório.
+# `provar-cadastro-da-aluna` é a mais grave das cinco: mede o cadastro da aluna (102 asserções, é ela
+# que fixa a forma do registo, o destinatário do e-mail da anamnese, e — desde as secções O e P —
+# «Derivar» ou «Editar» em cada listagem e a etiqueta «ajustado em», que só pertence à derivação) e
+# nunca esteve no repositório.
 !experimentos/provar-cadastro-da-aluna.js
 !experimentos/provar-fale-conosco.js
 !experimentos/provar-pedido-da-anamnese.js

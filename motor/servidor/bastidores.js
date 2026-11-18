@@ -3291,7 +3291,7 @@ async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
       }
       await kv.put(chave, JSON.stringify(dono));
     } else {
-      const novo = Object.assign({}, registo, { nome: nomeExibido });
+      const novo = Object.assign({}, registo, { nome: nomeExibido, atualizado_em: quando });
       if (senha) {
         const sal = gerarSal();
         novo.sal = sal;
@@ -3372,6 +3372,27 @@ async function nomeDoDono(env, kv, escola) {
     }
   } catch (e) { /* sem sobreposição — usa o secret */ }
   return String((env && env.PROFESSOR_NOME) || '').trim();
+}
+
+/**
+ * O REGISTO DO DONO INTEIRO, e não só o nome (18/11/2026).
+ *
+ * «Essa etiqueta [ajustado em] tem que existir […] também na de professores.» A etiqueta diz QUANDO
+ * a ficha foi corrigida pela última vez, e o professor principal não vive em
+ * `professores/<escola>/professores` como os outros: ele tem a chave dele. `nomeDoDono` lê essa
+ * chave e devolve só o nome — o resto do registo (o `atualizadoEm` que o «Editar» grava) ficava
+ * lido e deitado fora. Esta função devolve o registo, e quem quer o nome usa o campo.
+ *
+ * `null` quando a chave não existe ou não se leu: uma escola antiga entra pelo `env`, e a ausência
+ * do registo não é um erro — é a diferença entre «nunca foi corrigida» e «não se sabe».
+ */
+async function registoDoDono(env, kv, escola) {
+  try {
+    const t = await kv.get(RAIZ + '/' + escola + '/dono');
+    if (!t) return null;
+    const o = JSON.parse(t);
+    return o && typeof o === 'object' ? o : null;
+  } catch (e) { return null; }
 }
 
 /**
@@ -4644,7 +4665,7 @@ function lateralDaProducao(opcoes) {
     '</nav>';
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal) {
   /* OS VÍNCULOS DA ALUNA ENTRAM NA PÁGINA (18/11/2026). É a lista `matriculas` que o cadastro
    * em dois passos grava — o par (aluna × modalidade) com o professor que fará a anamnese. A
    * listagem das alunas precisa dela para dizer «faz ballet, turma rosa, prof. fulano», e a
@@ -4842,6 +4863,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const presoPorProveniencia = donoCurado || professorVinculadoA(usos, oDonoComoProfessor);
   const motivoDoPreso = professorVinculadoA(usos, oDonoComoProfessor) ? 'plano de ensino' : 'curadoria';
   const linhasProfs = [];
+  /* A ETIQUETA DO AJUSTE, QUE FALTAVA AQUI (18/11/2026).
+   *
+   * «Essa etiqueta de ajustado em […] tem que existir na listagem de alunos que já estão na regra de
+   * derivação, também na de professores, na de salas, na de audição, na de estilo e na de turma.»
+   *
+   * A Turma e a Sala já a tinham; os professores não tinham nenhuma. A data é a da última correcção
+   * da ficha — `atualizado_em` no registo dele, `atualizadoEm` no registo do principal, ambas
+   * escritas pelo «Editar» (`editarProfessorDaEscola`). Sem data não se escreve nada: uma etiqueta
+   * sem data diria «foi corrigido» sobre uma ficha que ninguém tocou desde que nasceu. */
+  const seloDoAjusteDoProfessor = (quando) => {
+    const dia = String(quando || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dia)) return '';
+    return '<span class="selo vigencia" title="a ficha deste professor foi corrigida nesta data">'
+      + 'ajustado em ' + esc(dataBr(dia)) + '</span>';
+  };
   if (donoNome) {
     // A LINHA DO DONO PERDEU O SLUG (18/10/2026). Ele era mostrado «para o dono não
     // perder de vista o identificador que a página gravou» — só que o slug é um termo
@@ -4867,7 +4903,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Ele fica ANTES do «Editar», na coluna do nome, porque é uma qualidade da pessoa — e o selo
      * `principal` continua ao lado do nome, onde sempre esteve. */
     linhasProfs.push('<li>' +
-      '<span class="nome">' + linhaDoNome(donoNome) +
+      '<span class="nome">' + linhaDoNome(donoNome, seloDoAjusteDoProfessor(registoDoDonoPrincipal && registoDoDonoPrincipal.atualizadoEm)) +
       '<span class="dono">principal</span>' +
       '<span class="dono" data-perfil-de="' + esc(String(donoSlug || '')) + '"></span></span>' +
       colunaDeTurmas(turmasDoProfessor.get(String(donoSlug || '').trim()), donoNome, 'pessoa') +
@@ -4948,7 +4984,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS TURMAS DO PROFESSOR: pelo slug do cadastro e, como o plano pode ter gravado o nome
     // em vez do slug, também pelo slug do nome. As duas chaves descrevem a mesma pessoa.
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
-    linhasProfs.push('<li><span class="nome">' + linhaDoNome(p.nome, seloProf) +
+    linhasProfs.push('<li><span class="nome">' + linhaDoNome(p.nome, seloProf + seloDoAjusteDoProfessor(p.atualizado_em)) +
       '<span class="dono" data-perfil-de="' + esc(String(slug || '')) + '"></span></span>' +
       colunaDeTurmas(turmasDele, p.nome, 'pessoa') +
       /* TODA A LINHA TEM «EDITAR» (16/11/2026). Antes só o principal tinha — o dele mudava o
@@ -5105,15 +5141,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               + 'o que ficou dela nos elencos e nos planos">desligada</span>'
             : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>');
 
-        /* O SELO DO AJUSTE, COM O MOTIVO — «acrescente também o motivo, se tiver, do ajuste». O
-         * mais recente dos vínculos é o que se mostra: é o que mudou por último. Sem motivo, o
-         * selo diz só a data, como já fazia na Sala. */
         const ultimo = meus.length ? meus[meus.length - 1] : null;
-        if (ultimo && ultimo.pedidaEm) {
-          selos.push('<span class="selo vigencia" title="o último vínculo desta aluna foi pedido nesta data'
-            + (ultimo.motivoDoAjuste ? ': ' + esc(ultimo.motivoDoAjuste) : '')
-            + '">ajustada em ' + esc(dataBr(ultimo.pedidaEm))
-            + (ultimo.motivoDoAjuste ? ' · ' + esc(ultimo.motivoDoAjuste) : '') + '</span>');
+
+        /* «DERIVAR» OU «EDITAR» — A MESMA PERGUNTA DAS OUTRAS LISTAS (18/11/2026).
+         *
+         * «Aluno A e aluno B tudo bem derivar, porque eles já estão vinculados à turma. […] Os
+         * demais, que estão livres e que nunca existiu plano de ensino para eles, e não estão numa
+         * turma, não estão nem sequer num elenco, que é o caso do aluno C e do aluno D — eles não
+         * são derivar, eles são editar.»
+         *
+         * A LISTA DIZIA «DERIVAR» A TODOS. Derivar é criar um elo novo, e um elo novo só se cria
+         * quando o que está lá está PRESO a alguma coisa: a curadoria que a pôs na turma, o elenco
+         * que a escolheu, o plano de ensino que já a declarou. Quem não está em nada disso não tem
+         * passado a preservar — corrigir o vínculo no lugar é o que a palavra «Editar» quer dizer, e
+         * é o que as listas da Turma, da Sala e do Estilo já fazem pela mesma razão.
+         *
+         * SEM VÍNCULO NENHUM NÃO HÁ O QUE EDITAR. Uma aluna anterior aos vínculos (ou cujo vínculo
+         * nunca foi pedido) só tem um acto possível — abrir a primeira anamnese —, e esse acto é
+         * derivar. Por isso a condição exige `meus.length`. */
+        const elencosDela = elencosPorAluna.get(String(a).trim()) || [];
+        const emCuradoria = cursVigentes.some((c) => c && Array.isArray(c.alunas)
+          && c.alunas.map((x) => String(x).trim()).indexOf(String(a).trim()) !== -1);
+        const presaAAlgo = presa || emCuradoria || elencosDela.length > 0;
+        const modoDoBotao = (meus.length && !presaAAlgo) ? 'editar' : 'derivar';
+
+        /* O SELO DO AJUSTE, COM O MOTIVO — «acrescente também o motivo, se tiver, do ajuste».
+         *
+         * ELE SÓ EXISTE NA DERIVAÇÃO (18/11/2026). «Essa etiqueta de ajustado em surge só na
+         * derivação. Eles não foram derivados […] aluno C e aluno D não tem que ter essa etiqueta.»
+         *
+         * O selo lia `pedidaEm` de qualquer vínculo — e todo vínculo nasce com `pedidaEm`, porque é
+         * a data em que a anamnese foi pedida ao professor. O resultado era uma etiqueta «ajustada
+         * em» em cima de gente que nunca tinha sido ajustada: o primeiro cadastro não é um ajuste.
+         * O que marca a derivação é o elo que ela deixou — `substitui` (mesma modalidade, o anterior
+         * desceu) ou `derivadoDe` (outra modalidade, as duas ficam). Sem um dos dois, não houve
+         * derivação nenhuma, e a etiqueta não se escreve. */
+        const derivado = meus.filter((m) => m && (m.substitui || m.derivadoDe));
+        const ajuste = derivado.length ? derivado[derivado.length - 1] : null;
+        if (ajuste && ajuste.pedidaEm) {
+          selos.push('<span class="selo vigencia" title="o vínculo desta aluna foi derivado nesta data'
+            + (ajuste.motivoDoAjuste ? ': ' + esc(ajuste.motivoDoAjuste) : '')
+            + '">ajustada em ' + esc(dataBr(ajuste.pedidaEm))
+            + (ajuste.motivoDoAjuste ? ' · ' + esc(ajuste.motivoDoAjuste) : '') + '</span>');
         }
 
         /* AS LINHAS DO VÍNCULO — uma por modalidade. Cada uma diz a modalidade, a turma DELA (a
@@ -5192,7 +5261,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * O ELENCO ganha o par: um link que abre a Audição NA LINHA dele (`data-abrir="elenco:<id>"`),
          * o mesmo mecanismo que o cartão da Turma já usa para «Abrir o Elenco». Sem isto, a
          * secretaria sabe que a aluna está num elenco e não tem por onde lá chegar. */
-        const elencosDela = elencosPorAluna.get(String(a).trim()) || [];
         const atalhoDoElenco = elencosDela.map((e) =>
           '<a class="acao secundario pequena" href="#corpo" data-abrir="elenco:' + esc(e.id) + '" '
           + 'title="Abrir a Audição na linha deste elenco">elenco · ' + esc(e.nome) + '</a>').join('');
@@ -5205,8 +5273,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           + esc(ultimo && ultimo.id ? ultimo.id : '') + '" data-aluna-nome="' + esc(a) + '" '
           + 'data-aluna-modalidade="' + esc(modalidadeDoVinculo) + '" '
           + 'data-aluna-professor="' + esc(professorDoVinculo) + '" '
-          + 'title="Fazer uma anamnese nova — o mesmo professor ou outro, a mesma modalidade ou outra. '
-          + 'A anamnese anterior fica no histórico quando a modalidade é a mesma.">Derivar</button>'
+          + 'data-aluna-modo="' + modoDoBotao + '" '
+          + (modoDoBotao === 'editar'
+            ? 'title="Corrigir o vínculo desta aluna no lugar — ela ainda não está em turma, nem em '
+              + 'elenco, nem num plano de ensino, por isso nada ficou congelado. Não se cria elo novo: '
+              + 'o vínculo é o mesmo, corrigido.">Editar</button>'
+            : 'title="Fazer uma anamnese nova — o mesmo professor ou outro, a mesma modalidade ou outra. '
+              + 'A anamnese anterior fica no histórico quando a modalidade é a mesma.">Derivar</button>')
           + (presa
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
             : '<button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="'
@@ -7385,6 +7458,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * vazio, e é correcto que venha. Se o rótulo do botão dependesse do id, esse caso diria
      * «Cadastrar aluna» a quem está a derivar alguém que já existe. */
     '<input type="hidden" id="aluna-em-derivacao" value="">' +
+    /* O MODO, SEPARADO DA MARCA (18/11/2026) — «aluno C e aluno D […] eles não são derivar, eles são
+     * editar». O formulário é o mesmo, como sempre foi; o que muda é o que o `submit` faz com ele.
+     * «derivar» cria elo novo; «editar» corrige o vínculo no lugar. A marca de cima continua a dizer
+     * «há um vínculo debaixo disto»; este diz QUAL é o acto. */
+    '<input type="hidden" id="aluna-modo" value="">' +
     '<div id="aluna-motivo-campo" hidden>' +
     '<label class="campo-rotulo" for="amotivo">Motivo do ajuste (opcional)</label>' +
     '<input id="amotivo" autocomplete="off" placeholder="ex.: a aluna pediu para mudar de modalidade">' +
@@ -10084,21 +10162,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não houve ajuste nenhum. Na derivação, o motivo é o que a etiqueta da listagem vai mostrar,
      * e é o que ela pediu: «acrescente também o motivo, se tiver, do ajuste». */
     '  var derivando = String((document.getElementById("aluna-em-derivacao") || {}).value || "") !== "";' +
+    /* «EDITAR» PEDE OUTRO RÓTULO (18/11/2026) — o botão não pode dizer «Gravar a anamnese nova» a
+     * quem está a corrigir o vínculo que já existe. São três actos, e três rótulos. */
+    '  var editando = derivando && String((document.getElementById("aluna-modo") || {}).value || "") === "editar";' +
     '  var blocoMotivo = document.getElementById("aluna-motivo-campo");' +
     '  if (blocoMotivo) blocoMotivo.hidden = !(alvo === 2 && derivando);' +
     '  var rotulo = document.getElementById("aluna-gravar");' +
-    '  if (rotulo) rotulo.textContent = derivando ? "Gravar a anamnese nova" : "Cadastrar aluna";' +
-    /* A NOTA DIZ O QUE VAI ACONTECER, e é diferente nos dois casos: no cadastro, a aluna nasce; na
-     * derivação, a aluna já existe e o que nasce é um vínculo novo. Deixar a nota do cadastro à
-     * vista enquanto se deriva diria «ao cadastrar» a quem não está a cadastrar ninguém. */
+    '  if (rotulo) rotulo.textContent = editando ? "Gravar a correção"' +
+    '    : (derivando ? "Gravar a anamnese nova" : "Cadastrar aluna");' +
+    /* A NOTA DIZ O QUE VAI ACONTECER, e é diferente nos três casos: no cadastro, a aluna nasce; na
+     * derivação, a aluna já existe e o que nasce é um vínculo novo; na correcção, o vínculo é o
+     * mesmo e o que muda é o que ele declara. Deixar a nota do cadastro à vista enquanto se deriva
+     * diria «ao cadastrar» a quem não está a cadastrar ninguém. */
     '  var nota = document.getElementById("aluna-anamnese-nota");' +
     '  if (nota) {' +
-    '    nota.innerHTML = derivando' +
+    '    nota.innerHTML = editando' +
     '      ? "Ao gravar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
-    '        "A anamnese nova fica <strong>pedida</strong> até ele a fazer. Se a modalidade for a mesma, " +' +
-    '        "a anamnese anterior fica no histórico; se for outra, as duas ficam."' +
-    '      : "Ao cadastrar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
-    '        "A anamnese fica <strong>pedida</strong> até ele a fazer — no tempo dele, sem prazo.";' +
+    '        "A correção não cria elo novo: o vínculo é o mesmo, corrigido, e a anamnese volta a ficar " +' +
+    '        "<strong>pedida</strong>. Se ela já tivesse sido feita, não se corrige aqui — deriva-se."' +
+    '      : (derivando' +
+    '        ? "Ao gravar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
+    '          "A anamnese nova fica <strong>pedida</strong> até ele a fazer. Se a modalidade for a mesma, " +' +
+    '          "a anamnese anterior fica no histórico; se for outra, as duas ficam."' +
+    '        : "Ao cadastrar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
+    '          "A anamnese fica <strong>pedida</strong> até ele a fazer — no tempo dele, sem prazo.");' +
     '  }' +
     '}' +
     /* A MODALIDADE MANDA NA LISTA DE PROFESSORES — «a modalidade vai listar somente os professores
@@ -10215,7 +10302,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* `reset()` NÃO LIMPA `type="hidden"` QUE NASCEU VAZIO? Limpa — mas o `value` que o script
      * escreveu no campo escondido é reposto ao valor do ATRIBUTO, e é isso que se quer. O que ele
      * não repõe é a marca escrita por `propriedade`: por isso ela se limpa aqui, à mão. */
-    '    ["aluna-derivar-de", "aluna-em-derivacao"].forEach(function(id){' +
+    '    ["aluna-derivar-de", "aluna-em-derivacao", "aluna-modo"].forEach(function(id){' +
     '      var c = document.getElementById(id); if (c) c.value = "";' +
     '    });' +
     '    var prof = document.getElementById("aprofessor");' +
@@ -10235,43 +10322,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!professor) { recado("erro", "escolha o professor que vai fazer a anamnese."); return; }' +
     '  var derivarDe = String((document.getElementById("aluna-derivar-de") || {}).value || "");' +
     '  var emDerivacao = String((document.getElementById("aluna-em-derivacao") || {}).value || "") === "sim";' +
+    '  var modo = String((document.getElementById("aluna-modo") || {}).value || "");' +
+    /* «EDITAR» NÃO É «DERIVAR» (18/11/2026). Os dois usam o mesmo formulário e o mesmo id debaixo
+     * dele; o que os separa é o que o servidor faz com esse id — criar um elo novo, ou corrigir o
+     * que lá está. O cliente não decide nada além de dizer qual dos dois foi pedido. */
+    '  var editando = derivarDe !== "" && modo === "editar";' +
     '  var motivo = String((document.getElementById("amotivo") || {}).value || "").trim();' +
-    '  var antes = ocuparBotao(e.target, derivarDe ? "gravando..." : "cadastrando...");' +
-    '  recado("", derivarDe ? "gravando a anamnese nova..." : "cadastrando a aluna...");' +
-    /* DERIVAR NÃO CRIA ALUNA (18/11/2026). O apelido é o da aluna que já existe, e mandá-lo outra
-     * vez ao cadastro devolveria 409 — a recusa está certa, a chamada é que seria a errada. O que
-     * a derivação grava é o VÍNCULO, e leva o id do vínculo que está a ser derivado: é o servidor
-     * que decide, por ele, se o anterior desce (mesma modalidade) ou fica (outra modalidade). */
-    '  if (derivarDe) {' +
-    '    return fetch("/api/bastidores/matricula", {' +
-    '      method: "POST", headers: {"Content-Type": "application/json"},' +
-    '      body: JSON.stringify({aluna: apelido, modalidade: modalidade, professor: professor,' +
-    '        derivarDe: derivarDe, motivo: motivo, token: TOKEN})' +
-    '    }).then(function(r){ return r.json(); }).then(function(m){' +
-    '      if (!m.ok) { liberarBotao(antes); recado("erro", "Erro: " + (m.erro || "desconhecido")); return; }' +
-    '      var c = m.correio || {};' +
-    '      recado(c.enviado ? "ok" : "aviso", c.enviado' +
-    '        ? "anamnese nova gravada, e o pedido seguiu para o professor."' +
-    '        : "anamnese nova gravada. O e-mail ao professor NÃO saiu: " + (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
-    '      setTimeout(function(){ location.reload(); }, 2500);' +
-    '    }).catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
-    '  }' +
+    '  var antes = ocuparBotao(e.target, editando ? "gravando a correção..."' +
+    '    : (derivarDe ? "gravando..." : "cadastrando..."));' +
+    '  recado("", editando ? "gravando a correção..."' +
+    '    : (derivarDe ? "gravando a anamnese nova..." : "cadastrando a aluna..."));' +
     /* UM PEDIDO SÓ (18/11/2026) — ver o comentário da rota `/matricula`: a aluna e o vínculo são o
      * mesmo acto para quem está no formulário. Separá-los em dois pedidos fazia o segundo nunca
      * acontecer quando a aluna já existia — o primeiro devolvia 409 («já existe uma aluna com este
      * apelido») e o cliente abortava ali, sem vínculo, sem e-mail e sem nada na listagem. Quem
-     * decide se a aluna nasce é o servidor. */
+     * decide se a aluna nasce é o servidor.
+     *
+     * E DERIVAR NÃO CRIA ALUNA (18/11/2026). O apelido é o da aluna que já existe, e mandá-lo outra
+     * vez ao cadastro devolveria 409 — a recusa está certa, a chamada é que seria a errada. O que a
+     * derivação grava é o VÍNCULO, e leva o id do vínculo que está a ser derivado: é o servidor que
+     * decide, por ele, se o anterior desce (mesma modalidade) ou fica (outra modalidade). A
+     * correcção leva o mesmo id noutro campo, e é o servidor que volta a decidir — agora entre
+     * corrigir e recusar. */
     '  return fetch("/api/bastidores/matricula", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({aluna: apelido, modalidade: modalidade, professor: professor,' +
-    '      derivarDe: derivarDe, motivo: motivo, token: TOKEN})' +
+    '      derivarDe: editando ? "" : derivarDe, editarDe: editando ? derivarDe : "",' +
+    '      motivo: motivo, token: TOKEN})' +
     '  }).then(function(r){ return r.json(); }).then(function(m){' +
     '    if (!m.ok) { liberarBotao(antes); recado("erro", "Erro: " + (m.erro || "desconhecido")); return; }' +
     /* O DESFECHO DO CORREIO DIZ-SE, e não se esconde atrás de um recarregamento. Um e-mail que não
      * saiu é a diferença entre «o professor sabe» e «o professor não sabe», e quem cadastrou tem de
      * poder avisá-lo por outro caminho. */
     '    var c = m.correio || {};' +
-    '    var feito = emDerivacao ? "anamnese gravada" : "aluna cadastrada";' +
+    '    var feito = m.corrigida ? "vínculo corrigido" : (emDerivacao ? "anamnese gravada" : "aluna cadastrada");' +
     '    if (!c.enviado) {' +
     '      recado("aviso", feito + ". O e-mail ao professor NÃO saiu: " +' +
     '        (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
@@ -10328,15 +10412,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function derivarAluna(botao){' +
     '  var nome = botao.getAttribute("data-aluna-nome") || "";' +
     '  var id = botao.getAttribute("data-aluna-derivar") || "";' +
+    '  var modo = botao.getAttribute("data-aluna-modo") || "derivar";' +
     '  var mod = botao.getAttribute("data-aluna-modalidade") || "";' +
     '  var prof = botao.getAttribute("data-aluna-professor") || "";' +
     '  var campoNome = document.getElementById("anome");' +
     '  var campoDerivar = document.getElementById("aluna-derivar-de");' +
     '  var marcaDerivacao = document.getElementById("aluna-em-derivacao");' +
+    '  var campoModo = document.getElementById("aluna-modo");' +
     '  if (!campoNome || !campoDerivar) return;' +
     '  campoNome.value = nome;' +
     '  campoDerivar.value = id;' +
-    '  if (marcaDerivacao) marcaDerivacao.value = "sim";' +
+    /* «EDITAR» NÃO CRIA ELO NENHUM (18/11/2026) — e a tela tem de dizê-lo antes, não depois. A marca
+     * de derivação continua a dizer «há um vínculo debaixo disto»; o modo diz qual é o acto. */
+    '  if (campoModo) campoModo.value = modo;' +
+    '  if (marcaDerivacao) marcaDerivacao.value = (id !== "" || modo === "derivar") ? "sim" : "";' +
     '  var selMod = document.getElementById("amodalidade");' +
     '  if (selMod) selMod.value = mod;' +
     '  professoresDaAluna();' +
@@ -10366,7 +10455,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  };' +
     '  tentar();' +
     '  var rotulo = document.getElementById("aluna-gravar");' +
-    '  if (rotulo) rotulo.textContent = id ? "Gravar a anamnese nova" : "Cadastrar aluna";' +
+    '  if (rotulo) rotulo.textContent = modo === "editar" ? "Gravar a correção"' +
+    '    : (id ? "Gravar a anamnese nova" : "Cadastrar aluna");' +
     '  recado("", "");' +
     '  mostrarPassoAluna(2);' +
     '  pintarTravasDaAluna();' +
@@ -15215,6 +15305,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'nenhuma turma; gravar corrige o verbete no lugar\\">livre</span>");' +
     '      }' +
     '      if (x.descontinuado) selos += " <span class=\\"selo alerta\\">descontinuado</span>";' +
+    /* A ETIQUETA DO AJUSTE (18/11/2026) — «na de estilo» também. Ela vem do servidor em
+     * `x.ajustadaEm`, que é o maior `ate` do histórico do verbete: a data em que a versão anterior
+     * deixou de valer, que é a data do ajuste. Sem histórico não há etiqueta. */
+    '      if (x.ajustadaEm) {' +
+    '        selos += " <span class=\\"selo vigencia\\" title=\\"o verbete foi ajustado nesta data; a ' +
+    'versão anterior fica no histórico, e os documentos daquela data continuam a ler-se como foram ' +
+    'escritos\\">ajustado em " +' +
+    '          escHtml(String(x.ajustadaEm).slice(0, 10).split("-").reverse().join("/")) + "</span>";' +
+    '      }' +
     /* A REGRA DOS BOTÕES SAI DO MESMO FACTO DO SELO (18/11/2026). `x.emTurma` já vinha do
      * servidor — é ele que acende «em turma» —, e usar outra fonte para decidir os botões daria o
      * absurdo de a linha dizer «livre» e o botão dizer «Derivar». Um facto, uma leitura. */
@@ -17373,6 +17472,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        "\\">!</span>"' +
     '      : "";' +
     '    var id = String(indice + 1);' +
+    /* A ETIQUETA DO AJUSTE, que aqui faltava (18/11/2026).
+     *
+     * «Essa etiqueta de ajustado em […] tem que existir […] também na de professores, na de salas, na
+     * de audição, na de estilo e na de turma.» O elenco derivado guarda o ELO na própria versão
+     * (`anterior`, a chave da versão que ficou atrás) e a DATA em `gravada_em`. Os dois juntos são a
+     * prova de que houve derivação: sem `anterior`, a versão é a primeira, e não se ajustou nada.
+     * É a mesma regra da lista das alunas — o selo pertence à derivação, não ao cadastro. */
+    '    var ajuste = (l.anterior && l.gravada_em)' +
+    '      ? " <span class=\\"selo vigencia\\" title=\\"este elenco foi derivado nesta data; a versão ' +
+    'que a turma lia fica no repositório\\">ajustado em " +' +
+    '        escHtml(String(l.gravada_em).slice(0, 10).split("-").reverse().join("/")) + "</span>"' +
+    '      : "";' +
     '    var caixa = function(rotulo, valor, dica, chave){' +
     '      chave = chave || rotulo.toLowerCase();' +
     '      return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + chave + "\\" " +' +
@@ -17387,7 +17498,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * identidade no DOM — a sala já tinha `data-turma`, o verbete `data-verbete`. */
     '    return "<li class=\\\"trio-plano\\\" data-elenco=\\\"" + escHtml(l.id) + "\\\">" +' +
     '      "<div class=\\"trio-linha\\">" +' +
-    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + marca + "</span>" +' +
+    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + ajuste + marca + "</span>" +' +
     /* OS DOIS GESTOS SÃO OS DA SALA, E A REGRA É A MESMA (18/11/2026).
      *
      * «Aqui eu tenho um elenco que está vinculado a uma turma e aí tem o botão de editar e de
@@ -18164,6 +18275,10 @@ async function fetch(request, env, extras) {
       rubricas(kv, escola),
     ]);
     const dono = await nomeDoDono(env, kv, escola);
+    /* O MESMO REGISTO, À MÃO PARA A ETIQUETA DO AJUSTE (18/11/2026) — ver `registoDoDono`. A etiqueta
+     * diz QUANDO a ficha foi corrigida, e o `atualizadoEm` do professor principal vive nesta chave.
+     * Lê-se aqui porque `paginaProducao` é desenho puro e não deve ir ao KV buscar um campo. */
+    const registoDoDonoPrincipal = await registoDoDono(env, kv, escola);
     const donoSlug = slugDoDono(env);
     const curs = await curadorias(kv, escola);
     // O MAPA COMPOSTO (03/11/2026): o que a turma aprende é o mapa antigo somado ao que as
@@ -18200,7 +18315,8 @@ async function fetch(request, env, extras) {
     const dadosDaEscola = await dadosDaEscolaParaAProducao(env, kv, escola);
     const matriculasDaEscola = await matriculas(kv, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola));
+      aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola,
+      registoDoDonoPrincipal));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -18810,20 +18926,111 @@ async function fetch(request, env, extras) {
       if (String(anterior.modalidade) === modalidade) idQueDesce = anterior.id;
     }
 
-    const novo = {
+    /* ── «EDITAR»: A CORRECÇÃO NO LUGAR (18/11/2026) ────────────────────────────────────────
+     *
+     * «Aluno A e aluno B tudo bem derivar, porque eles já estão vinculados à turma. […] Os demais,
+     * que estão livres e que nunca existiu plano de ensino para eles, e não estão numa turma, não
+     * estão nem sequer num elenco, que é o caso do aluno C e do aluno D — eles não são derivar, eles
+     * são editar.»
+     *
+     * DERIVAR CRIA UM ELO NOVO, e um elo novo existe para guardar o que ficou para trás. Quem está
+     * livre não tem passado a guardar: corrigir o vínculo no lugar é o acto certo, e não deixa
+     * histórico de uma versão que nunca valeu nada.
+     *
+     * A GUARDA É AQUI, e não no botão. A tela é uma leitura do estado, e entre a leitura e o clique
+     * a aluna pode ter entrado num elenco ou o professor pode ter feito a anamnese. Quando qualquer
+     * das duas já aconteceu, a resposta é 409 com a frase que a tela daria — derivar.
+     *
+     * A ANAMNESE FEITA É O CASO QUE MAIS IMPORTA. O envelope é do par (aluna × modalidade), mas
+     * quem o assina é o professor. Corrigir o professor de um vínculo cuja anamnese já foi feita
+     * punha o retrato de um corpo debaixo do nome de outra pessoa — e nada no ecrã o diria. Nessa
+     * situação deriva-se: o elo novo pede a anamnese ao professor certo, e o anterior fica.
+     *
+     * A LEITURA QUE FALHA CONTA COMO «JÁ FEITA». É a mesma regra de `usos === null` nos planos: na
+     * dúvida, não se mexe no que já assinou. E derivar está sempre à mão. */
+    const editarDe = String(corpo.editarDe || '').trim();
+    let corrigido = null;
+    if (editarDe) {
+      const iDoVinculo = lista.findIndex((m) => m && m.id === editarDe);
+      if (iDoVinculo === -1) return json(404, { ok: false, erro: 'vínculo não encontrado: ' + editarDe });
+      const registo = lista[iDoVinculo];
+      if (registo.substituidaPor) {
+        return json(409, {
+          ok: false,
+          erro: 'este vínculo já foi derivado — o que vale agora é «' + registo.substituidaPor
+            + '». Recarregue a página e corrija o vínculo vigente.',
+          vigente: registo.substituidaPor,
+        });
+      }
+      if (String(registo.aluna || '').trim() !== aluna) {
+        return json(400, {
+          ok: false,
+          erro: 'este vínculo é da aluna «' + registo.aluna + '» — o apelido não se muda por aqui',
+        });
+      }
+      if (alunaVinculadaA(await paresComPlano(env, escola), await curadorias(kv, escola), aluna)) {
+        return json(409, {
+          ok: false,
+          vinculado: true,
+          erro: 'a aluna «' + aluna + '» já está numa turma que tem plano de ensino — o vínculo dela '
+            + 'não se corrige no lugar. Use «Derivar»: a anamnese nova passa a valer, e a anterior '
+            + 'fica no histórico.',
+        });
+      }
+      let estado = null;
+      try {
+        const legado = criarCloudflare(env);
+        const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+        const resumos = await porta.resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
+        estado = estadoDaAnamnese(registo, resumos.map((x) => x.resumo)).estado;
+      } catch (e) {
+        estado = null;
+      }
+      if (estado !== 'pedida') {
+        return json(409, {
+          ok: false,
+          vinculado: true,
+          erro: 'a anamnese de «' + aluna + '» em ' + modalidade + ' '
+            + (estado === 'concluida'
+              ? 'já foi feita pelo professor — corrigir o vínculo punha o que ele observou debaixo '
+                + 'do nome de outra pessoa'
+              : 'não se pôde confirmar como pendente agora')
+            + '. Use «Derivar»: o vínculo novo pede a anamnese ao professor certo, e o que já existe '
+            + 'fica no histórico.',
+        });
+      }
+      corrigido = Object.assign({}, registo, {
+        modalidade, professor, pedidaEm: hoje,
+        por: String(corpo.por || 'direção').trim() || 'direção',
+        corrigidaEm: hoje,
+      });
+      const motivoDaCorrecao = motivoDoAjuste(corpo.motivo);
+      if (motivoDaCorrecao) corrigido.motivoDoAjuste = motivoDaCorrecao;
+      else delete corrigido.motivoDoAjuste;
+      lista[iDoVinculo] = corrigido;
+    }
+
+    const novo = corrigido || {
       id: idDaMatricula(aluna, modalidade, lista),
       aluna, modalidade, professor,
       pedidaEm: hoje,
       por: String(corpo.por || 'direção').trim() || 'direção',
     };
-    const motivo = motivoDoAjuste(corpo.motivo);
-    if (motivo) novo.motivoDoAjuste = motivo;
-    if (idQueDesce) {
-      novo.substitui = idQueDesce;
-      const i = lista.findIndex((m) => m && m.id === idQueDesce);
-      lista[i] = Object.assign({}, lista[i], { substituidaPor: novo.id, substituidaEm: hoje });
+    if (!corrigido) {
+      const motivo = motivoDoAjuste(corpo.motivo);
+      if (motivo) novo.motivoDoAjuste = motivo;
+      if (idQueDesce) {
+        novo.substitui = idQueDesce;
+        const i = lista.findIndex((m) => m && m.id === idQueDesce);
+        lista[i] = Object.assign({}, lista[i], { substituidaPor: novo.id, substituidaEm: hoje });
+      }
+      /* DERIVAR PARA OUTRA MODALIDADE NÃO DEIXA RASTO (18/11/2026). O `substitui` só existe quando
+       * o elo anterior desce, e é a mesma modalidade que o decide. Sem uma marca própria, uma
+       * derivação para outra modalidade ficava indistinguível de um primeiro cadastro — e a
+       * listagem não tinha como dizer «ajustada em» a quem foi ajustada. */
+      else if (derivarDe) novo.derivadoDe = derivarDe;
+      lista.push(novo);
     }
-    lista.push(novo);
     await kv.put(RAIZ + '/' + escola + '/matriculas', JSON.stringify(lista));
 
     /* O E-MAIL AO PROFESSOR — «vai dizer que ele tem uma aluna nova para fazer anamnese e vai
@@ -18865,7 +19072,9 @@ async function fetch(request, env, extras) {
       desfechoDoCorreio = { enviado: false, motivo: String((e && e.message) || e) };
     }
 
-    return json(201, { ok: true, matricula: novo, correio: desfechoDoCorreio });
+    return json(corrigido ? 200 : 201, {
+      ok: true, matricula: novo, corrigida: Boolean(corrigido), correio: desfechoDoCorreio,
+    });
   }
 
   // DELETE /api/bastidores/aluna — excluir aluna (apelido estável).

@@ -52116,3 +52116,83 @@ foram tocados — o campo saiu dos índices, e a próxima escola que nascer já 
 que corra `criar-escola.sh` a sério (cria Worker e DNS no Cloudflare); o que se mede é o bloco que
 escreve o índice, por leitura declarada como tal. E a `batata` e o `calango` continuam com
 `wrangler.<slug>.jsonc` no elo de reserva que já não existe — é dado antigo, e não é desta frente.
+
+## 18/11/2026 — «Eles não são derivar, eles são editar» — e a etiqueta que só pertence à derivação
+
+**O que motivou.** «Eu estou aqui em alunos nos bastidores. Aluno A e aluno B tudo bem derivar,
+porque eles já estão vinculados à turma. […] Os demais, que estão livres e que nunca existiu plano de
+ensino para eles, e não estão numa turma, não estão nem sequer num elenco, que é o caso do aluno C e
+do aluno D — eles não são derivar, eles são editar. […] E essa etiqueta de ajustado em surge só na
+derivação. Eles não foram derivados. Essa etiqueta tem que existir na listagem de alunos que já estão
+na regra de derivação, também na de professores, na de salas, na de audição, na de estilo e na de
+turma.»
+
+**Os dois defeitos, e o segundo era mais fundo do que parecia.**
+
+1. **A lista de Alunas escrevia «Derivar» em TODAS as linhas.** Derivar cria um elo novo, e um elo
+   novo só existe para guardar o que ficou para trás. Quem não está em curadoria, nem em elenco, nem
+   num plano de ensino não tem passado a guardar: corrigir o vínculo no lugar é o acto certo. A regra
+   passou a ser a mesma das outras listas — `presa` (curadoria com plano), **ou** em curadoria
+   vigente, **ou** em elenco → «Derivar»; livre e com vínculo → «Editar». Sem vínculo nenhum não há o
+   que editar: o único acto é abrir a primeira anamnese, e esse é derivar.
+2. **A etiqueta «ajustada em» aparecia em cima de quem nunca foi ajustada.** Ela lia `pedidaEm` de
+   qualquer vínculo — e **todo** vínculo nasce com `pedidaEm`, porque é a data em que a anamnese foi
+   pedida ao professor. O primeiro cadastro não é um ajuste. O que marca a derivação é o elo que ela
+   deixou: `substitui` (mesma modalidade, o anterior desceu) ou `derivadoDe` (outra modalidade, as
+   duas ficam) — este último **passou a ser gravado**, porque uma derivação para outra modalidade não
+   deixava rasto nenhum e ficava indistinguível de um primeiro cadastro.
+
+**O «Editar» não é um rótulo — é um acto.** `POST /api/bastidores/matricula` ganhou `editarDe`:
+corrige o vínculo **no lugar** (modalidade, professor), devolve **200** com `corrigida: true`, não
+cria elo, não mexe no `id` e grava `corrigidaEm`/`motivoDoAjuste`. O e-mail ao professor sai na mesma,
+com o link do par corrigido.
+
+**As três recusas da correcção, e a que mais importa.** 404 para vínculo inexistente; 400 quando o
+apelido do corpo não é o do vínculo; **409 quando o vínculo já desceu ao histórico** («o que vale
+agora é X»); **409 quando ela está numa Turma com plano de ensino** — a mesma guarda do `DELETE`; e
+**409 quando a anamnese já foi feita**. Esta última é a que ninguém veria: o envelope é do par (aluna
+× modalidade), mas quem o assina é o professor, e corrigir o professor de um vínculo já respondido
+punha o retrato de um corpo debaixo do nome de outra pessoa — sem nada na tela o dizer. Em todas, a
+frase manda derivar. Leitura que falha conta como «já feita»: na dúvida, não se mexe no que assinou.
+
+**A mesma etiqueta nas outras listas** — «também na de professores, na de salas, na de audição, na de
+estilo e na de turma». Turma e Sala já a tinham. Entraram:
+
+- **Professores** — `atualizado_em` no registo dele (escrito pelo «Editar» da ficha) e
+  `atualizadoEm` no registo do principal (que vive noutra chave e só o nome era lido). A página
+  passou a receber esse registo: `registoDoDono` é nova, e o `paginaProducao` ganhou o 20.º
+  parâmetro.
+- **Audição** — o elenco derivado guarda o elo na própria versão (`anterior`) e a data
+  (`gravada_em`); o selo acende com os dois.
+- **Estilo** — `listarVerbetes` passou a devolver `ajustadaEm`, o **maior `ate`** do histórico do
+  verbete: a data em que a versão anterior deixou de valer, que é a data do ajuste.
+
+**Com o quê.** `provar-cadastro-da-aluna` **102/102** (eram 76; as secções O e P são novas) ·
+`provar-listas-do-acervo` 113/113 · `provar-matriz-metodologica` 50/50 · `provar-fale-conosco` 58/58 ·
+`provar-contatos-do-site` 57/57 · `check-identidade` ok (22/22).
+
+**Controlo A/B, cada metade medida sozinha.** Só «Derivar» (a regra de antes): **reprova 2**. A
+etiqueta a ler qualquer vínculo: **reprova 2**. O ramo `editarDe` a não existir: **reprova 8**. A
+data do professor não gravada e o selo fora: **reprova 2**. O `ajustadaEm` do verbete fora:
+**reprova 1**. A condição do elenco desligada: **reprova 1**. O ramo do estilo desligado: **reprova
+1**. E vale registar o que o A/B **ensinou**: as duas primeiras asserções sobre Audição e Estilo eram
+**estáticas** — liam o texto do `<script>` — e passavam **com o ramo morto lá dentro**. Foram
+substituídas por medição no DOM (jsdom, com as leituras substituídas pelo que o servidor mandaria).
+
+**O que a prova teve de aprender para medir.** O `lerResposta` da página lê `r.text()` e faz
+`JSON.parse` — um stub que só servisse `json()` deixava a lista do Estilo a dizer «a resposta não veio
+em condições», e a prova teria medido o stub.
+
+**A regra da exclusão de aluno — conferida, e é a documentada.** Ela pediu: «só dá para excluir o
+aluno se ele já não estiver mais no elenco […] tem uma regra documentada». A regra de
+`ARQUITETURA-GERAL.md` §3.3 é outra, e o código cumpre-a: `DELETE /api/bastidores/aluna` responde
+**409 enquanto ela estiver numa Turma que já tem plano de ensino**, e a ordem é **elenco → Turma →
+pessoa** — apagar o apelido é limpeza, não remoção. Estar num elenco **não** trava a pessoa; o que
+trava é o **elenco** ser apagado enquanto uma Turma o lê. Nada mudado: se ela quiser a trava no
+elenco, é uma decisão nova, e não uma correcção.
+
+**O que ainda não está feito.** A `batata` e o `calango` continuam com `wrangler.<slug>.jsonc` no
+`apagado` dos elos de expurgo antigos. Medi antes de apagar: **não é referência morta** — o ficheiro
+existia e foi apagado em cada um desses elos (o `criar-escola` recriava-o, o expurgo apagava-o), e a
+lista `apagado` é o manifesto do acto. Apagá-la seria reescrever o registo do que aconteceu, que é o
+que P-03 proíbe. Ficou.
