@@ -50595,3 +50595,83 @@ redireccionado, e `nomeDoProfessor` para a frase do passo 3 ·
 
 **Controlo A/B.** Repostos os dois defeitos (a rubrica sem o campo, e os dois botões de volta), a prova
 **reprova 5 de 79** — e nomeia-os. Restaurado, 79/79.
+
+## 18/11/2026 — A sala diz a modalidade e o professor
+
+**O que ela viu e pediu.** Duas coisas na mesma frase, e a segunda depende da primeira: *«A sala ela
+atende a uma modalidade nesses dias, com essa duração, no período inicial até o período final. Então, a
+gente vai ter isso também por sala.»* E, sobre a listagem das salas: *«a gente vai acrescentar mais um
+[nicho] aqui, que é o professor. […] quando abrir o nicho do professor, vai dizer ali qual é a
+modalidade que ele atende.»*
+
+**Isto reverte, para a sala, uma remoção de 03/11/2026 — e a diferença é a palavra.** A `modalidade` e o
+`professor` saíram da turma a 03/11/2026 («a turma deixa de ser carregada com definições rígidas de
+nível pedagógico»), e o enquadramento foi para a curadoria. O que ela pede agora é outra coisa: lá era o
+enquadramento **pedagógico** — que nível, que tradição, que professor responde —; aqui é o
+**operacional** da sala: que modalidade cabe naquele horário, naquela duração, naquele período, e quem a
+dá. E a diferença é observável: uma sala de balé clássico às 19h de terça não pode receber uma curadoria
+de jazz sem alguém notar. O `modalidade` da sala é o que dá à curadoria uma **restrição declarada** em
+vez de uma suposição.
+
+**O que entrou.**
+- `normalizarTurma` voltou a aceitar `modalidade` e `professor`, e — o que faltaria em silêncio — as
+  **duas** listas `CAMPOS_DO_FORMULARIO` (edição e derivação) passaram a copiá-los. Um campo fora
+  dessas listas é um campo que o ecrã aceita e o servidor ignora na gravação seguinte.
+- O passo 1 ganhou dois `select`: **professor** (antes da modalidade, porque é dele que vêm as
+  habilitações) e **modalidade**.
+- O `value` da modalidade é o **nome** (`Jazz`), e não o id — a mesma convenção da Turma e da curadoria,
+  e a razão está escrita no núcleo: «o perfil do professor guarda ids (`bale-classico`) e a Turma guarda
+  o nome que o formulário oferece». Guardar um id aqui faria o `enquadramento.js`, que já lê
+  `turma.modalidade`, comparar um id com um nome.
+- O cartão da sala passou de `trio-duo` (duas caixas) a `trio` (três): **Ritmo · Régua · Professor**. O
+  terceiro nicho abre num painel que diz o nome do professor e a modalidade que ele ali ensina.
+
+**A lista da modalidade recolhe-se às habilitações dele — e não tranca.** Escolher o professor filtra o
+`<select>` da modalidade às modalidades que ele declara, pela **mesma rota e pela mesma tabela de
+memória** que a curadoria já usa (`/api/bastidores/perfil`, `HABILITACOES`). Sem declaração, ou sem
+resposta, a lista volta a ser a do catálogo **com uma nota a dizê-lo**: «não sei» não pode virar «não
+pode», que é a regra escrita no núcleo do perfil.
+
+**Uma leitura que eu cheguei a escrever e retirei, e porquê.** Cheguei a pôr no servidor um mapa
+`slug → modalidades`, lido no `Promise.all` da página — uma leitura ao repositório **por professor, em
+cada carregamento**. Estava errado: o cliente já tinha o caminho preguiçoso, que só lê quando alguém
+escolhe um professor. O mapa servia ao cartão, e o cartão **não precisa dele** — o nicho diz a modalidade
+que a própria sala declara, que é a que o professor ali ensina. N leituras por carregamento para repetir
+o que a sala já guarda é custo sem pergunta.
+
+**O que NÃO se mudou, e é deliberado.** O cartão de uma sala de antes desta regra continua a valer, e o
+painel diz o que lhe falta em vez de desaparecer: «Esta sala ainda não diz quem a dá nem a modalidade que
+aí se ensina. É no passo 1 da sala que se escolhem os dois.» O servidor **não** exige os dois campos —
+uma gravação que os exigisse recusaria corrigir o ritmo de uma sala antiga, que é precisamente o que se
+quer poder fazer. Quem os pede é a tela, no «Avançar» do passo 1.
+
+**Um defeito que a prova apanhou, e que não era do desenho.** O nome do professor no cartão saía como o
+**slug** (`leticia`) quando ele era o **dono** da escola. A causa: o dono vive no secret (`PROFESSOR_SLUG`)
+e no `nome`, não na lista `professores` do KV — o auxiliar só olhava para a lista. Corrigido em
+`nomeDoProfessorDaSala`, com o dono como primeira comparação.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `normalizarTurma`, as duas `CAMPOS_DO_FORMULARIO`, os
+dois `select` do passo 1, `nomeDoProfessorDaSala`, `nomeDaModalidade` (do núcleo, não uma tabela
+paralela), o painel e o trio do cartão, `faltaDaTurma`, o corpo enviado, `ajustarTurma`, e no cliente
+`preencherSelect`, `modalidadeDaSalaPintar`, `modalidadeDaSalaCasa` e `filtrarModalidadeDaSala` ·
+`experimentos/provar-salas-e-elencos.js` (79 → **94** asserções: a secção A actualizada, a A1 nova e a G
+nova).
+
+**Com o quê.** `provar-salas-e-elencos` **94/94** · `provar-monitoramento` 104 ·
+`provar-financeiro-da-escola` 135 · `provar-a-moldura-em-todas-as-telas` 111 · `provar-paginacao` 120 ·
+`provar-abas-da-audicao` 124 · `provar-financeiro` 58 · `provar-plano-da-turma` 46 ·
+`provar-a-franquia-de-aulas` 42 · `provar-piso` 41 · `provar-a-escola-que-nasce` 25 ·
+`provar-o-expurgo-do-financeiro` 15 · `provar-rotas-que-existem` 8 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 0 violações.
+
+**Um erro que valeu a lição, e fica escrito.** O primeiro `partes.push("<option value=\"" …)` saiu com o
+escape comido pelo literal, e o JS gerado ficou `value=""` — **sintaxe quebrada numa linha de 64 KB**. O
+`node --check` do ficheiro passou, porque o ficheiro é válido: quem não era era o **script que ele
+emite**. E não partiu só a Produção — partiu a **Audição** também, porque as duas páginas partilham o
+mesmo bloco de cliente, e a prova reprovou **8 de 79** por causa de um `"`. A verificação certa não é
+`node --check` no fonte: é compilar o `<script>` que a página serve.
+
+**Controlo A/B.** Reposto o `trio-duo` e tirado o terceiro nicho: a prova **reprova 3**. Tirados os dois
+campos de `normalizarTurma`: **reprova 2** — o cartão cala os dois, e a sala deixa de os guardar. Desligado
+o filtro da modalidade: **reprova 2** — a lista fica com as cinco e a nota não aparece. Restaurado,
+94/94.

@@ -15,10 +15,13 @@
  *    falsa sobre o que a sala é, e o painel por trás dela desenhava chips de um mapa que já não
  *    lhe pertence.
  *
- *    O QUE FICA: o RITMO em que a aula ocorre e a RÉGUA com que se mede. E o cartão passa a ter
- *    a forma de DOIS — `trio trio-duo` —, porque a `.trio` é de três (é a forma de todas as
- *    listas do acervo: de quem é, quem fez, quando) e deixá-la em três daria um terço VAZIO à
- *    direita, que se lê como dado em falta.
+ *    O QUE FICOU: o RITMO em que a aula ocorre e a RÉGUA com que se mede — e o cartão passou a ter
+ *    a forma de DOIS (`trio trio-duo`), porque a `.trio` é de três e deixá-la em três daria um
+ *    terço VAZIO à direita, que se lê como dado em falta.
+ *
+ *    A 18/11/2026 O TERCEIRO NÚMERO VOLTOU, E É OUTRO — ver a secção A1. O terço deixou de estar
+ *    vazio: a sala ganhou o PROFESSOR e a MODALIDADE que aí se ensina. A `.trio` volta a ser a
+ *    forma certa, e o `trio-duo` sai sem deixar rasto.
  *
  * B. O ELENCO PODE SER CRIADO SEM ANAMNESE (07/11/2026) — e nunca precisou de SALA.
  *
@@ -144,8 +147,8 @@ const RITMO = {
   })();
   conferir('o cartão da sala está na página', trecho.length > 0);
 
-  conferir('o cartão usa a forma de DOIS (`trio trio-duo`)',
-    /class="trio trio-duo"/.test(trecho), trecho.slice(0, 200));
+  conferir('o cartão usa a forma de TRÊS (`trio`), e já não a de dois',
+    /class="trio"/.test(trecho) && !/class="trio trio-duo"/.test(trecho), trecho.slice(0, 200));
   conferir('…e continua a dizer o RITMO', /data-balao="ritmo"/.test(trecho), null);
   conferir('…e a RÉGUA', /data-balao="regua"/.test(trecho), null);
   conferir('…e NÃO diz «Conteúdos»', !/data-balao="conteudos"/.test(trecho),
@@ -153,6 +156,70 @@ const RITMO = {
   conferir('…nem emite o painel de conteúdos', !/data-painel="conteudos"/.test(trecho), null);
   conferir('…e o painel dos conteúdos não existe em lugar nenhum da página',
     html.indexOf('data-painel="conteudos"') === -1, null);
+
+  // -------------------------------------------------------------------------------------------
+  console.log('\nA1. A SALA DIZ A MODALIDADE E O PROFESSOR (18/11/2026)');
+
+  /* O QUE ELA PEDIU, por palavras próprias: «a sala ela atende a uma modalidade nesses dias, com
+   * essa duração, no período inicial até o período final»; e «a gente vai acrescentar mais um
+   * [nicho] aqui, que é o professor […] quando abrir o nicho do professor, vai dizer ali qual é a
+   * modalidade que ele atende».
+   *
+   * A SALA ACIMA NÃO TEM NENHUM DOS DOIS — foi criada só com o ritmo, como as salas de antes desta
+   * regra. É de propósito: ela é o caso em que o painel tem de DIZER O QUE FALTA em vez de
+   * desaparecer. E é a primeira coisa que se mede aqui. */
+  conferir('a sala sem professor nem modalidade continua a valer (o passado não é reescrito)',
+    trecho.indexOf('Sala de Prova') !== -1, null);
+  conferir('…e o cartão dela diz que ainda não se sabe quem a dá',
+    /ainda não diz quem a dá nem a modalidade/.test(trecho), null);
+  conferir('…e o terceiro nicho existe de qualquer maneira', /data-balao="professor"/.test(trecho), null);
+  conferir('…com o painel dele', /data-painel="professor"/.test(trecho), null);
+
+  /* AGORA UMA SALA COM OS DOIS, e o cartão tem de os dizer pelo NOME — um slug na tela é
+   * `leticia`, e o que uma pessoa lê é «Leticia». */
+  const comDono = await postar(env, '/api/bastidores/turma',
+    Object.assign({ nome: 'Sala de Jazz', professor: 'leticia', modalidade: 'Jazz' }, RITMO));
+  /* A ROTA DEVOLVE O NOME DA SALA, e não o registo — é o contrato dela desde 16/10/2026
+   * (`{ ok, turma: nova.nome, nome, id, modo }`). Quem prova que os dois campos ficaram gravados é
+   * a LEITURA seguinte: a página é desenhada a partir do que está no armazenamento, e o cartão só
+   * pode dizer «Leticia» e «Jazz» se os dois lá estiverem. É por isso que a asserção seguinte
+   * existe, e é ela a prova — esta confirma que a gravação não foi recusada. */
+  conferir('a sala com professor e modalidade é aceite (201/200), e o id volta',
+    (comDono.status === 201 || comDono.status === 200) && Boolean(comDono.corpo.id),
+    { status: comDono.status, corpo: comDono.corpo });
+
+  const pagina2 = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const html2 = await pagina2.text();
+  const trecho2 = (() => {
+    const i = html2.indexOf('Sala de Jazz');
+    return i === -1 ? '' : html2.slice(i, i + 4000);
+  })();
+  conferir('o nicho do professor mostra o NOME, e não o slug',
+    /data-balao="professor"[\s\S]{0,400}?Leticia/.test(trecho2), trecho2.slice(0, 300));
+  conferir('…e o painel dele diz a modalidade que ali se ensina',
+    /data-painel="professor"[\s\S]{0,900}?Jazz/.test(trecho2), null);
+
+  /* O FORMULÁRIO — o passo 1 passou a pedir os dois. */
+  conferir('o passo 1 tem o select do professor da sala', /id="tprofessor"/.test(html2), null);
+  conferir('…e o da modalidade da sala', /id="tmodalidade"/.test(html2), null);
+  /* A MODALIDADE DA SALA GUARDA O NOME, E NÃO O ID — a convenção da Turma, e a razão está escrita
+   * no núcleo: «o perfil do professor guarda ids (`bale-classico`) e a Turma guarda o nome que o
+   * formulário oferece (`Balé clássico`)». Guardar um id aqui faria o `enquadramento.js` — que já
+   * lê `turma.modalidade` — comparar um id com um nome, e o «sem quem a ensine» acenderia em salas
+   * que o professor dá todos os dias.
+   *
+   * A OUTRA CONVENÇÃO NÃO É UM DEFEITO, e a prova não a pode confundir: o select da HABILIDADE do
+   * professor (`pmodalidade`) leva o ID, porque é para o perfil que ele escreve. As duas coexistem,
+   * e o `idDaModalidade` do núcleo é a ponte. Por isso o recorte é o `tmodalidade`, e não a página. */
+  const soDaSala = (() => {
+    const i = html2.indexOf('id="tmodalidade"');
+    if (i === -1) return '';
+    const j = html2.indexOf('</select>', i);
+    return j === -1 ? html2.slice(i) : html2.slice(i, j);
+  })();
+  conferir('…e a opção da modalidade da SALA leva o NOME no `value`, como na Turma',
+    /<option value="Jazz"/.test(soDaSala) && !/<option value="jazz"/.test(soDaSala),
+    (soDaSala.match(/<option value="[^"]*"/g) || []));
 
   // -------------------------------------------------------------------------------------------
   console.log('\nB. O ELENCO sem anamnese — o nome grava, e o servidor aceita-o');
@@ -592,6 +659,111 @@ const RITMO = {
       /getElementById\("form-vincular"\)\.addEventListener\("submit"/.test(pagina), null);
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nG. A MODALIDADE DA SALA RECOLHE-SE ÀS HABILITAÇÕES DO PROFESSOR (18/11/2026)');
+
+  /* «O professor carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a
+   * modalidade.» A lista da modalidade da sala começa com as cinco do catálogo e RECOLHE-SE às que
+   * o professor escolhido declara — pela mesma rota e pela mesma tabela de memória que a curadoria
+   * já usa. O que esta secção mede é a TELA A CORRER, e não a presença de um `id`: o filtro é
+   * feito de `fetch` e de `innerHTML`, e nenhuma expressão regular prova que ele funciona. */
+  {
+    let JSDOM2 = null;
+    try { ({ JSDOM: JSDOM2 } = require('jsdom')); } catch (e) { JSDOM2 = null; }
+    if (!JSDOM2) {
+      naoMedida('o filtro da modalidade pela habilitação do professor', 'jsdom ausente');
+    } else {
+      const vc2 = new VirtualConsole();
+      vc2.on('jsdomError', () => {});
+      vc2.on('error', () => {});
+      /* O PERFIL DEVOLVIDO É O QUE O SERVIDOR DEVOLVE PARA UM PROFESSOR QUE SÓ DECLARA JAZZ, e o
+       * `fetch` do jsdom é o único ponto substituído. Se a página não chamar a rota, o `<select>`
+       * fica com as cinco e a prova reprova. */
+      const dom2 = new JSDOM(html2.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        virtualConsole: vc2,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.alert = () => {};
+          w.confirm = () => true;
+          w.fetch = (u) => {
+            const url = String(u);
+            const corpo = url.indexOf('/api/bastidores/perfil') !== -1
+              ? { ok: true, existe: true, modalidades: ['jazz'],
+                  catalogo: [{ id: 'jazz', nome: 'Jazz', temConteudo: false }] }
+              : { ok: true, alunas: [], linhas: [], divergentes: [], campos: [], grupos: [] };
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const win2 = dom2.window;
+      const valores = () => [...win2.document.querySelectorAll('#tmodalidade option')]
+        .map((o) => o.value).filter(Boolean);
+
+      conferir('o passo 1 nasce com as cinco modalidades do catálogo',
+        valores().length === 5, valores());
+
+      /* ESCOLHER O PROFESSOR É O GESTO QUE RECOLHE A LISTA. O `change` é o mesmo que o browser
+       * dispara — a prova não chama a função, empurra o evento, porque é o evento que o formulário
+       * escuta. */
+      const selP2 = win2.document.getElementById('tprofessor');
+      selP2.value = 'leticia';
+      selP2.dispatchEvent(new win2.Event('change'));
+      await new Promise((r) => win2.setTimeout(r, 250));
+
+      conferir('…e escolher o professor recolhe-a às habilitações dele',
+        valores().length === 1 && valores()[0] === 'Jazz', valores());
+      conferir('…e a nota com o estado da lista fica escondida quando ele declara',
+        win2.document.getElementById('t-habilidade-nota').hidden === true,
+        win2.document.getElementById('t-habilidade-nota').textContent);
+
+      /* ---- SEGUNDO CENÁRIO: O PROFESSOR NÃO DECLAROU NADA. ----
+       *
+       * «NÃO SEI» NÃO PODE VIRAR «NÃO PODE», que é a regra escrita no núcleo do perfil: sem
+       * declaração, a lista volta a ser a do catálogo — com uma nota a dizer que ele ainda não
+       * declarou. Uma lista que encolhesse para nada trancaria o formulário por um dado que falta.
+       *
+       * É OUTRA PÁGINA E NÃO OUTRA ESCOLHA, e o motivo é o `select`: a escola da prova tem UM
+       * professor, e pôr em `sel.value` um slug que não é opção dá `""` — o browser não aceita o
+       * que não existe. O que muda entre os dois cenários é só o que a rota do perfil devolve. */
+      const vc3 = new VirtualConsole();
+      vc3.on('jsdomError', () => {});
+      vc3.on('error', () => {});
+      const dom3 = new JSDOM(html2.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        virtualConsole: vc3,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.alert = () => {};
+          w.confirm = () => true;
+          w.fetch = (u) => {
+            const url = String(u);
+            const corpo = url.indexOf('/api/bastidores/perfil') !== -1
+              ? { ok: true, existe: true, modalidades: [], catalogo: [] }
+              : { ok: true, alunas: [], linhas: [], divergentes: [], campos: [], grupos: [] };
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const win3 = dom3.window;
+      const selP3 = win3.document.getElementById('tprofessor');
+      selP3.value = 'leticia';
+      selP3.dispatchEvent(new win3.Event('change'));
+      await new Promise((r) => win3.setTimeout(r, 250));
+      const valores3 = () => [...win3.document.querySelectorAll('#tmodalidade option')]
+        .map((o) => o.value).filter(Boolean);
+      const nota3 = win3.document.getElementById('t-habilidade-nota');
+      conferir('…e um professor sem habilitações devolve a lista do catálogo',
+        valores3().length === 5, valores3());
+      conferir('…com a nota a dizer que ele ainda não declarou',
+        nota3.hidden === false && /ainda não declarou/.test(nota3.textContent), nota3.textContent);
+    }
+  }
+
   console.log('');
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));
@@ -600,7 +772,7 @@ const RITMO = {
     console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + n + ' asserções: o cartão da sala diz dois (ritmo e régua) e não'
+  console.log('TUDO CERTO — ' + n + ' asserções: o cartão da sala diz três — ritmo, régua e o professor com a modalidade que ali ensina — e não'
     + ' emite conteúdos em lugar nenhum; o elenco cria-se sem anamnese e sem turma, e o cliente'
     + ' deixou de desligar o nome; o passo 2 obedece ao «Seguir» e o espaço das alunas'
     + ' fica vazio sem anamnese; a sala sem ritmo não recebe turma e a com ritmo recebe — e a Tabela de'

@@ -206,6 +206,11 @@ const conteudos = require('../nucleo/conteudos.js');
 const tradicoesNucleo = require('../nucleo/tradicoes.js');
 // A HABILITAÇÃO DO PROFESSOR (03/11/2026) — o núcleo puro que diz quem ensina o quê.
 const perfilNucleo = require('../nucleo/perfil-do-professor.js');
+/* O NOME DE UMA MODALIDADE — o mesmo do núcleo, e não uma segunda tabela (18/11/2026). O cartão da
+ * sala diz «Contemporâneo», não `contemporaneo`; e quem sabe traduzir o id é o catálogo, não a
+ * página. Uma lista paralela aqui divergiria do catálogo no dia em que se acrescentasse uma
+ * modalidade, e ninguém daria por isso. */
+const nomeDaModalidade = perfilNucleo.nomeDaModalidade;
 // A pergunta «isto é orçamento?» tem dono próprio (`subpedidos.js`): há duas frases para o mesmo
 // facto — a nossa e a do Cloudflare —, e quem as conhece é o módulo que conta.
 const { ehOrcamento } = require('./subpedidos.js');
@@ -349,6 +354,36 @@ function slugificar(nome) {
  * Entradas antigas (sem `slug`) continuam funcionando: o slug é derivado do nome, como antes.
  * A leitura aceita as duas formas; a escrita grava sempre a nova.
  */
+/** O NOME DE UM PROFESSOR A PARTIR DO SLUG — para o cartão da sala (18/11/2026).
+ *
+ * O cartão guarda o SLUG (`t.professor`), e um slug na tela é `ana-silva`: não é o que uma pessoa
+ * lê. A lista de professores da escola já vem com a página (é um parâmetro de `paginaProducao`), e
+ * é dela que sai o nome — sem leitura nova, e sem inventar um.
+ *
+ * QUANDO NÃO ESTÁ NA LISTA, devolve o próprio slug e não uma string vazia: um professor que já não
+ * está na lista da escola mas continua ligado a uma sala antiga é um facto que se mostra, não se
+ * apaga. Mostrar `—` diria «não há professor», que é outra coisa.
+ */
+function nomeDoProfessorDaSala(slug, profs, donoSlug, donoNome) {
+  const alvo = String(slug || '').trim();
+  if (!alvo) return '';
+  /* O DONO NÃO ESTÁ NA LISTA DO KV, e é ele que dá aula na maioria das escolas de hoje: o slug
+   * dele vive no secret (`PROFESSOR_SLUG`) e o nome no `DONO` da página. Sem esta primeira
+   * comparação, o nicho de uma sala dada pelo dono mostraria `leticia` — o slug — em vez de
+   * «Leticia», que é o que uma pessoa lê. Foi o que a prova mediu antes de esta linha existir. */
+  if (String(donoSlug || '').trim() === alvo) {
+    const nomeDoDono = String(donoNome || '').trim();
+    if (nomeDoDono) return nomeDoDono;
+  }
+  for (const p of (Array.isArray(profs) ? profs : [])) {
+    if (slugDoProfessor(p) === alvo) {
+      const nome = String((p && (p.nome || p.apelido)) || '').trim();
+      if (nome) return nome;
+    }
+  }
+  return alvo;
+}
+
 function slugDoProfessor(p) {
   if (!p) return '';
   return String(p.slug || '').trim() || slugificar(String(p.nome || ''));
@@ -2371,6 +2406,29 @@ function normalizarTurma(corpo) {
     // padrão que a impede de distinguir «não escolhi» de «escolhi o padrão».
     rubrica: niveisLimpos(corpo.rubrica),
     rubricaId: String(corpo.rubricaId || '').trim(),
+    /* A SALA ATENDE A UMA MODALIDADE, E TEM UM PROFESSOR (18/11/2026).
+     *
+     * «A sala ela atende a uma modalidade nesses dias, com essa duração, no período inicial até o
+     * período final. Então, a gente vai ter isso também por sala.» E, três frases à frente: «essas
+     * salas agora vai estão vinculadas, né, a um professor e a modalidade.»
+     *
+     * ISTO VOLTA, E NÃO É UM REGRESSO. A `modalidade` e o `professor` saíram da turma a
+     * 03/11/2026 — «a turma deixa de ser carregada com definições rígidas de nível pedagógico», e
+     * o enquadramento foi para a curadoria. O que ela pede agora é OUTRA COISA, e a diferença está
+     * na palavra: lá era o enquadramento PEDAGÓGICO (que nível, que tradição, que professor
+     * responde); aqui é o ENQUADRAMENTO OPERACIONAL da sala — que modalidade cabe naquele horário,
+     * naquela duração, naquele período, e quem a dá.
+     *
+     * E a diferença é observável: uma sala de balé clássico às 19h de terça não pode receber uma
+     * curadoria de jazz sem alguém notar. O `modalidade` da sala é o que dá à curadoria uma
+     * restrição declarada em vez de uma suposição — e o `professor` é o que faz o nicho do cartão
+     * ter de onde ler as habilitações dele.
+     *
+     * OS DOIS SÃO OPCIONAIS NA GRAVAÇÃO, e não por frouxidão: as turmas que já existem não os têm,
+     * e uma gravação que os exigisse obrigaria a escola a preencher o passado. Quem os exige é o
+     * avanço do passo 1 (`faltaDaTurma`, no cliente) para uma sala NOVA. */
+    modalidade: String(corpo.modalidade || '').trim(),
+    professor: String(corpo.professor || '').trim(),
     ativo: corpo.ativo !== false,
   };
 }
@@ -4990,6 +5048,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<p class="trio-nota">Medida por <b>' + esc(nomeDaRubrica) + '</b>.</p>' : '') +
           '<div class="trio-escala">' + regua.map((n, i) =>
             '<span class="' + classeDoNivel(n, i, regua.length) + '">' + esc(n) + '</span>').join('') + '</div>';
+        /* O PAINEL DO PROFESSOR (18/11/2026) — o que ele ensina nesta sala.
+         *
+         * «O professor carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a
+         * modalidade.» O painel diz as duas coisas que a sala declarou: quem é, e que modalidade
+         * ele dá aqui. Não é uma segunda leitura do perfil — é a leitura do que a própria sala
+         * guarda, e é o que permite a quem abre o cartão conferir, sem sair da página, se a sala
+         * de jazz está com o professor de jazz.
+         *
+         * A FRASE QUANDO FALTA NÃO É UM ERRO: uma sala criada antes desta regra é uma sala por
+         * completar, e o painel diz o que falta e onde se completa («Editar», no passo 1). */
+        const nomeDoProfessorSala = nomeDoProfessorDaSala(t.professor, profs, donoSlug, dono);
+        const nomeDaModalidadeSala = t.modalidade ? nomeDaModalidade(t.modalidade) : '';
+        const painelProfessor = (nomeDoProfessorSala || nomeDaModalidadeSala)
+          ? '<div class="trio-grade">' +
+            '<div><span class="trio-k">Professor</span><span class="trio-v">' +
+              esc(nomeDoProfessorSala || '—') + '</span></div>' +
+            '<div><span class="trio-k">Modalidade que aqui ensina</span><span class="trio-v">' +
+              esc(nomeDaModalidadeSala || '—') + '</span></div>' +
+            '</div>' +
+            (nomeDoProfessorSala && nomeDaModalidadeSala ? '' :
+              '<p class="trio-nota">Falta ' + (nomeDoProfessorSala ? 'a modalidade' : 'o professor') +
+              ' desta sala — completa-se em «Editar», no passo 1.</p>')
+          : '<p class="trio-frase">Esta sala ainda não diz quem a dá nem a modalidade que aí se ensina.</p>' +
+            '<p class="trio-nota">É no passo 1 da sala que se escolhem os dois — e é disso que a ' +
+            'curadoria passa a saber o que cabe neste horário.</p>';
         // O «EDITAR RUBRICA» QUE VIVIA AQUI SAIU (18/10/2026). A régua continua a abrir e a
         // mostrar a escala — o painel é LEITURA. A edição da rubrica passou a ser uma das
         // três coisas que o «Editar» do cartão da turma abre, e um segundo botão de edição
@@ -5030,14 +5113,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span></div>' +
           (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
           (avisoDeRitmo || '') +
-          // DUAS CAIXAS, E NÃO TRÊS: a sala diz o RITMO e a RÉGUA. O terceiro número era
-          // «Conteúdos», e o conteúdo da aula é da Turma (ver a nota em `itensTurmas`).
-          '<div class="trio trio-duo">' +
+          /* TRÊS CAIXAS, E NÃO DUAS (18/11/2026). A terceira é o PROFESSOR, e é o pedido com todas
+           * as letras: «a gente vai acrescentar mais um aqui, que é o professor. […] quando abrir o
+           * nicho do professor, vai dizer ali qual é a modalidade que ele atende.»
+           *
+           * O QUE ELE DIZ, E PORQUE NÃO É UMA CONSULTA. O nicho mostra a modalidade DA SALA, que
+           * é a que o professor ali ensina — a sala declara as duas coisas juntas, no passo 1, e o
+           * formulário não a deixa escolher fora das habilitações dele. Ler o perfil outra vez aqui
+           * só para repetir o que a sala já diz seria uma leitura ao repositório por cartão.
+           *
+           * E A AUSÊNCIA É DITA, NÃO ESCONDIDA: uma sala antiga, de antes desta regra, não tem
+           * professor nem modalidade. Ela mostra «—» em vez de sumir com a caixa, porque uma caixa
+           * que desaparece faz a sala parecer outra coisa — e o que ela é, é uma sala por completar.
+           */
+          '<div class="trio">' +
           metrica('Ritmo', valorRitmo || '—', 'ritmo', 'ver o ritmo desta turma') +
           metrica('Régua', regua.length === 1 ? '1 nível' : regua.length + ' níveis', 'regua', 'ver a régua desta turma') +
+          metrica('Professor', nomeDoProfessorDaSala(t.professor, profs, donoSlug, dono) || '—', 'professor',
+            'ver quem dá esta sala e a modalidade que ele aí ensina') +
           '</div>' +
           '<div class="trio-painel" data-painel="ritmo" hidden>' + painelRitmo + '</div>' +
           '<div class="trio-painel" data-painel="regua" hidden>' + painelRegua + '</div>' +
+          '<div class="trio-painel" data-painel="professor" hidden>' + painelProfessor + '</div>' +
           historico +
           '</li>';
       }).join('')
@@ -6781,6 +6878,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<label class="campo-rotulo" for="tnome">Nome da sala</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
+    /* A MODALIDADE E O PROFESSOR DA SALA (18/11/2026) — «a sala ela atende a uma modalidade nesses
+     * dias, com essa duração, no período inicial até o período final».
+     *
+     * A ORDEM É A DA CAUSA, e é a mesma dos dias antes da frequência: o PROFESSOR primeiro, a
+     * MODALIDADE depois. A modalidade é o que ele declara ensinar nas habilitações — «o professor
+     * carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a modalidade» —, logo
+     * a lista da modalidade depende de quem está escolhido, e não o contrário.
+     *
+     * O `select` da modalidade é renderizado com TODAS as opções do catálogo, e o script as
+     * RECOLHE às habilitações do professor quando ele as declara. Duas razões para não as filtrar
+     * no servidor: (i) o professor pode estar por escolher, e a lista tem de existir antes disso; e
+     * (ii) um professor sem perfil lido não pode deixar a sala sem modalidade nenhuma — o
+     * `HABILIDADES` traz `null` para «não consegui ler», e `null` mostra tudo. */
+    '<label class="campo-rotulo" for="tprofessor">Professor da sala</label>' +
+    '<select id="tprofessor" name="professor">' +
+    '<option value="">— escolher —</option>' + opcoesDeProfessorDaRubrica +
+    '</select>' +
+    '<label class="campo-rotulo" for="tmodalidade">Modalidade da sala</label>' +
+    /* O `value` É O NOME, E NÃO O ID — a mesma convenção da curadoria, e não uma nova. O
+     * `idDaModalidade` do núcleo explica porquê: «o perfil do professor guarda ids
+     * (`bale-classico`) e a Turma guarda o nome que o formulário oferece (`Balé clássico`) — o
+     * `<option>` da modalidade leva o nome no `value`, e é ele que vai no corpo». Guardar aqui um
+     * id faria a mesma turma ter duas formas de dizer a mesma modalidade, e o `enquadramento.js`
+     * — que já lê `turma.modalidade` — compararia um id com um nome. */
+    '<select id="tmodalidade" name="modalidade"><option value="">— escolher —</option>' +
+    MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
+      (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
+    '</select>' +
+    '<p class="sub" id="t-habilidade-nota" hidden></p>' +
     // «POSIÇÃO NA LISTA» SAIU (18/10/2026). Era um número que a direção tinha de inventar para
     // dizer o que já sabia: a turma nova é a que acabou de ser criada. O servidor põe cada
     // turma nova no TOPO, e a ordem das antigas não se mexe.
@@ -8235,6 +8361,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!dur || !(Number(dur.value) > 0)) falta.push("a duração de cada aula");' +
     '  if (!ini || !String(ini.value || "").trim()) falta.push("o início do período");' +
     '  if (!fim || !String(fim.value || "").trim()) falta.push("o fim do período");' +
+    /* O PROFESSOR E A MODALIDADE ENTRAM NA TRAVA (18/11/2026), e a razão é a mesma que fez a
+     * trava existir: sem eles, a sala não se pode atribuir. A modalidade é o que diz à curadoria o
+     * que CABE naquele horário, e o professor é quem a aplica — uma sala sem os dois é uma sala
+     * que a curadoria tem de adivinhar.
+     *
+     * A TRAVA É DA TELA (o `disabled` do «Avançar»), e o servidor NÃO a repete. Isso é de
+     * propósito: as salas que já existem não têm os dois campos, e um servidor que os exigisse
+     * recusaria gravar a correção do RITMO de uma sala antiga — que é precisamente o que se quer
+     * poder fazer sem tocar no resto. A ordem certa é: a sala antiga ganha os campos quando
+     * alguém a abrir em «Editar»; até lá, ela continua a valer e o painel diz o que lhe falta. */
+    '  var prof = document.getElementById("tprofessor");' +
+    '  var mod = document.getElementById("tmodalidade");' +
+    '  if (!prof || !String(prof.value || "").trim()) falta.push("o professor da sala");' +
+    '  if (!mod || !String(mod.value || "").trim()) falta.push("a modalidade da sala");' +
     '  return falta;' +
     '}' +
     'function faltaDaAssociacao() {' +
@@ -10215,10 +10355,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A POSIÇÃO NÃO SE ENVIA (18/10/2026): quem a decide é o servidor, pondo a turma nova no
     // topo. Enviar o campo vazio obrigaria o servidor a distinguir «não quis dizer nada» de
     // «quer no fim» — e o fim nunca é o que a direção quer ao criar uma turma.
-    // O ENQUADRAMENTO NÃO SE MANDA DAQUI (03/11/2026): professor, modalidade, tradição e nível
-    // saíram do formulário da turma e passaram para a curadoria. Mandá-los em branco apagaria o
-    // que uma turma antiga guarda — e é a lista de campos do servidor que os preserva. Ver
+    // O ENQUADRAMENTO PEDAGÓGICO NÃO SE MANDA DAQUI (03/11/2026) — tradição e nível continuam na
+    // curadoria, e mandá-los em branco apagaria o que uma turma antiga guarda. Ver
     // `motor/nucleo/enquadramento.js`.
+    //
+    // MAS O PROFESSOR E A MODALIDADE VOLTARAM (18/11/2026), e são outra coisa: são o
+    // enquadramento OPERACIONAL da sala — quem a dá, e que modalidade cabe naquele horário. Eles
+    // TÊM campo no passo 1, e por isso são enviados; se o servidor não os recebesse, o ecrã
+    // aceitava a escolha e a escolha sumia.
+    '    professor: (document.getElementById("tprofessor") || {}).value || "",' +
+    '    modalidade: (document.getElementById("tmodalidade") || {}).value || "",' +
     // A NOTA TAMBÉM NÃO (03/11/2026): saiu do cadastro por decisão dela. Não se manda vazia —
     // mandá-la vazia apagaria a nota de uma turma antiga. Simplesmente deixou de existir aqui.
 
@@ -10333,9 +10479,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  nome.value = t.nome || ""; nome.readOnly = derivar;' +
     // O PROGRAMA É UMA LISTA: se o valor gravado for de uma época anterior (texto livre), ele
     // entra como opção própria — abrir a turma não pode perder a referência que ela declara.
-    // O ENQUADRAMENTO NÃO SE PREENCHE AQUI (03/11/2026): ele vive na curadoria. O que a turma
-    // antiga guarda continua no registo dela, intocado — não é este formulário que o reescreve.
-    // E a NOTA deixou de ter campo (03/11/2026): não há `<input>` para preencher.
+    // O ENQUADRAMENTO PEDAGÓGICO NÃO SE PREENCHE AQUI (03/11/2026): tradição e nível vivem na
+    // curadoria. O que a turma antiga guarda continua no registo dela, intocado.
+    // O PROFESSOR E A MODALIDADE, SIM (18/11/2026): são da sala, e abrir a sala em «Editar» é o
+    // momento em que uma sala antiga ganha os dois. Um valor gravado que já não esteja na lista
+    // (professor que saiu da escola) entra como opção própria — abrir a sala não pode perdê-lo.
+    '  preencherSelect("tprofessor", t.professor || "");' +
+    '  filtrarModalidadeDaSala();' +
+    // A NOTA DEPOIS DO FILTRO, e não antes: é o filtro que a escreve quando a lista se recolhe às
+    // habilitações do professor.
+    '  preencherSelect("tmodalidade", t.modalidade || "");' +
+    // E A NOTA deixou de ter campo (03/11/2026): não há `<input>` para preencher.
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
     '  document.getElementById("tfim").value = t.periodoFim || "";' +
@@ -10571,6 +10725,113 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return op;' +
     '}' +
+    /* =========================================================================
+     * A MODALIDADE DA SALA, RECOLHIDA ÀS HABILITAÇÕES DO PROFESSOR (18/11/2026)
+     * =========================================================================
+     * «O professor carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a
+     * modalidade.» A lista da modalidade da sala começa com as cinco do catálogo e RECOLHE-SE às
+     * que o professor escolhido declara — pela mesma rota e pela mesma tabela de memória que a
+     * curadoria já usa (`HABILITACOES`, `/api/bastidores/perfil`), e não por um caminho novo.
+     *
+     * A FALHA NÃO TRANCA, e a regra é a da curadoria: sem resposta, ou com um professor que não
+     * declarou nada, a lista fica a do catálogo com uma nota a dizê-lo. Restringir por um dado que
+     * não existe seria transformar «não sei» em «não pode».
+     *
+     * A ESCOLHA ANTERIOR SOBREVIVE QUANDO AINDA É POSSÍVEL. Abrir uma sala em «Editar» repõe o que
+     * ela gravou; o filtro corre depois e não lhe tira o valor se o professor o declarar. Se não o
+     * declarar, a nota diz porquê — em vez de o valor desaparecer sem explicação.
+     */
+    'function preencherSelect(id, valor){' +
+    '  var sel = document.getElementById(id);' +
+    '  if (!sel) return;' +
+    '  var v = String(valor == null ? "" : valor);' +
+    '  var achou = false;' +
+    '  for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === v) achou = true; }' +
+    '  if (v && !achou) {' +
+    // UM VALOR GRAVADO QUE JÁ NÃO ESTÁ NA LISTA ENTRA COMO OPÇÃO PRÓPRIA: é o professor que saiu da
+    // escola, ou a modalidade que saiu do catálogo. Abrir a sala não pode apagá-lo em silêncio.
+    '    var o = document.createElement("option");' +
+    '    o.value = v; o.textContent = v + " (já não na lista)";' +
+    '    sel.appendChild(o);' +
+    '  }' +
+    '  sel.value = v;' +
+        '}' +
+    'function modalidadeDaSalaPintar(ids, nota){' +
+    '  var sel = document.getElementById("tmodalidade");' +
+    '  if (!sel) return;' +
+    '  var antes = sel.value;' +
+    '  var partes = ["<option value=\u0027\u0027>— escolher —</option>"];' +
+    '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
+    '    var m = CATALOGO_DE_MODALIDADES[i];' +
+    '    if (ids && ids.length && ids.length > 0) {' +
+    // A MEMÓRIA DO FILTRO É POR ID (é o que o perfil guarda) e o `<select>` é por NOME (é o que a
+    // turma guarda). É o `idDaModalidade` do núcleo, do lado do cliente, e sem ele a comparação
+    // dava sempre «não declara» — o defeito que o comentário do núcleo descreve.
+    '      if (!modalidadeDaSalaCasa(ids, m)) continue;' +
+    '    }' +
+    '    partes.push("<option value=\\\"" + m.nome + "\\\">" + m.nome +' +
+    '      (m.temConteudo ? "" : " (sem conteúdo ainda)") + "</option>");' +
+    '  }' +
+    '  sel.innerHTML = partes.join("");' +
+    '  var aindaVale = false;' +
+    '  for (var j = 0; j < sel.options.length; j++) { if (sel.options[j].value === antes) aindaVale = true; }' +
+    '  sel.value = aindaVale ? antes : "";' +
+    '  if (antes && !aindaVale) {' +
+    '    var o = document.createElement("option");' +
+    '    o.value = antes; o.textContent = antes + " (já não nas habilitações dele)";' +
+    '    sel.appendChild(o); sel.value = antes;' +
+    '  }' +
+    '  var aviso = document.getElementById("t-habilidade-nota");' +
+    '  if (aviso) { aviso.hidden = !nota; aviso.textContent = nota || ""; }' +
+    '}' +
+    'function modalidadeDaSalaCasa(ids, m){' +
+    '  for (var i = 0; i < ids.length; i++) {' +
+    '    var s = String(ids[i] || "");' +
+    '    if (s === m.id || s === m.nome) return true;' +
+    '    if (s.toLowerCase() === String(m.nome).toLowerCase()) return true;' +
+    '  }' +
+    '  return false;' +
+    '}' +
+    'function filtrarModalidadeDaSala(){' +
+    '  var selP = document.getElementById("tprofessor");' +
+    '  if (!selP) return;' +
+    '  var slug = String(selP.value || "");' +
+    '  if (!slug) { modalidadeDaSalaPintar(null, ""); return; }' +
+    '  if (Object.prototype.hasOwnProperty.call(HABILITACOES, slug)) {' +
+    '    var ja = HABILITACOES[slug];' +
+    '    modalidadeDaSalaPintar(ja, (ja && ja.length) ? "" :' +
+    '      "Este professor ainda não declarou as habilitações — a lista é a do catálogo.");' +
+    '    return;' +
+    '  }' +
+    '  if (HABILITACOES_EM_CURSO[slug]) return;' +
+    '  HABILITACOES_EM_CURSO[slug] = true;' +
+    // ENQUANTO NÃO CHEGA, a lista é a do catálogo: o formulário nunca fica com um `select` vazio à
+    // espera de uma resposta que pode não vir.
+    '  modalidadeDaSalaPintar(null, "");' +
+    '  fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(slug))' +
+    '    .then(function(r){ return r.json(); })' +
+    '    .then(function(d){' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    '      HABILITACOES[slug] = (d && d.existe && Array.isArray(d.modalidades)) ? d.modalidades : null;' +
+    '      var selAgora = document.getElementById("tprofessor");' +
+    // A RESPOSTA DE UM PROFESSOR QUE JÁ NÃO ESTÁ ESCOLHIDO NÃO SE APLICA: quem trocou de professor
+    // enquanto a leitura corria ficaria com a lista do anterior.
+    '      if (!selAgora || String(selAgora.value || "") !== slug) return;' +
+    '      var ids = HABILITACOES[slug];' +
+    '      modalidadeDaSalaPintar(ids, (ids && ids.length) ? "" :' +
+    '        "Este professor ainda não declarou as habilitações — a lista é a do catálogo.");' +
+    '    })' +
+    '    .catch(function(){' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    '      HABILITACOES[slug] = null;' +
+    '      var selAgora = document.getElementById("tprofessor");' +
+    '      if (!selAgora || String(selAgora.value || "") !== slug) return;' +
+    '      modalidadeDaSalaPintar(null, "Não foi possível ler as habilitações — a lista é a do catálogo.");' +
+    '    });' +
+    '}' +
+    'var selProfSala = document.getElementById("tprofessor");' +
+    'if (selProfSala) selProfSala.addEventListener("change", function(){ filtrarModalidadeDaSala(); });' +
+    'filtrarModalidadeDaSala();' +
     'function pintarModalidades(opcoes, nota){' +
     '  var sel = document.getElementById("cumodalidade");' +
     '  if (!sel) return;' +
@@ -17201,8 +17462,11 @@ async function fetch(request, env, extras) {
     // A NOTA SAIU DA LISTA (03/11/2026): o campo deixou de ser pedido, e um campo que não se
     // copia fica onde está no registo anterior. É a mesma técnica do enquadramento — a memória
     // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
-    const CAMPOS_DO_FORMULARIO = ['nome',
-      'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+    /* `modalidade` E `professor` ENTRAM NA LISTA (18/11/2026). Sem eles aqui, mudar a modalidade
+     * de uma sala não gravava nada: a lista é o que a edição e a derivação COPIAM do formulário
+     * para o registo, e um campo fora dela é um campo que o ecrã aceita e o servidor ignora. */
+    const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
+      'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
@@ -17289,8 +17553,8 @@ async function fetch(request, env, extras) {
     // A NOTA SAIU DA LISTA (03/11/2026): o campo deixou de ser pedido, e um campo que não se
     // copia fica onde está no registo anterior. É a mesma técnica do enquadramento — a memória
     // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
-    const CAMPOS_DO_FORMULARIO = ['nome',
-      'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+    const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
+      'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
     const nova = Object.assign({}, anterior, ajustado);
