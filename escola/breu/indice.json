@@ -15,24 +15,6 @@
   "estado": {
     "habilitada": true
   },
-  "arquivos": [
-    {
-      "caminho": "professores/demi-plie/ciclos/ciclo-01.conf",
-      "tipo": "manifesto base"
-    },
-    {
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.conf",
-      "tipo": "manifesto variante"
-    },
-    {
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
-      "tipo": "schemas"
-    },
-    {
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu/",
-      "tipo": "pacote zero"
-    }
-  ],
   "expurgo": [
     {
       "em": "2026-10-20T02:03:34.668Z",

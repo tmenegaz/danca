@@ -15,28 +15,6 @@
   "estado": {
     "habilitada": false
   },
-  "arquivos": [
-    {
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01.conf",
-      "tipo": "manifesto base"
-    },
-    {
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata.conf",
-      "tipo": "manifesto variante"
-    },
-    {
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
-      "tipo": "schemas"
-    },
-    {
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata/",
-      "tipo": "pacote zero"
-    },
-    {
-      "caminho": "wrangler.batata.jsonc",
-      "tipo": "config do Worker"
-    }
-  ],
   "expurgo": [
     {
       "em": "2026-10-19T18:02:43.841Z",

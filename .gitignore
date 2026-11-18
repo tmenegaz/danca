@@ -1616,3 +1616,9 @@ experimentos/modelo-formulario/*
 # opção deixaria a próxima sessão a procurar a prova do resto. A entrada antiga sai, e a nova entra;
 # o REGISTRO mantém o nome antigo onde ele foi citado, com a nota datada.
 !experimentos/provar-matriz-metodologica.js
+
+# A LISTA DO EXPURGO (18/11/2026). A prova que decidiu se o campo `arquivos` do índice se apagava ou
+# se mantinha — e a resposta foi «apaga». Ela mede o `apagarEscolaDoRepo` de verdade, com um GitHub
+# falso, e a asserção decisiva compara as remoções de dois expurgos: um com o índice a apontar para o
+# professor errado, outro sem o campo. A lista é a mesma nas duas — é isso que torna o campo inerte.
+!experimentos/provar-lista-do-expurgo.js

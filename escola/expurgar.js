@@ -211,7 +211,9 @@ function registrarElo(slug, professor, ciclo, relatorio) {
     professor: { slug: professor || null },
     ciclo: ciclo || null,
     senha: { chave: 'SENHA_' + slug.toUpperCase().replace(/[^A-Z0-9]/g, '_'), arquivo: 'tools/.senhas-locais' },
-    arquivos: [],
+    /* SEM `arquivos` (18/11/2026) — o campo saiu do índice do TODO o sistema: ninguém o lê, o
+     * expurgo deriva da árvore, e o registro do que saiu é o `apagado` do elo, logo abaixo. Um
+     * índice criado daqui nascia com uma lista vazia que parecia autoridade. */
   };
   indice.expurgo = indice.expurgo || [];
   const elo = {

@@ -16,24 +16,6 @@
   "estado": {
     "habilitada": false
   },
-  "arquivos": [
-    {
-      "caminho": "professores/fernando-franciose/ciclos/ciclo-01.conf",
-      "tipo": "manifesto base"
-    },
-    {
-      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo.conf",
-      "tipo": "manifesto variante"
-    },
-    {
-      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
-      "tipo": "schemas"
-    },
-    {
-      "caminho": "professores/fernando-franciose/ciclos/ciclo-01-duo/",
-      "tipo": "pacote zero"
-    }
-  ],
   "expurgo": [
     {
       "em": "2026-11-16T13:56:53.907Z",

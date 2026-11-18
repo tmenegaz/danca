@@ -15,28 +15,6 @@
   "estado": {
     "habilitada": false
   },
-  "arquivos": [
-    {
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01.conf",
-      "tipo": "manifesto base"
-    },
-    {
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-calango.conf",
-      "tipo": "manifesto variante"
-    },
-    {
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
-      "tipo": "schemas"
-    },
-    {
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-calango/",
-      "tipo": "pacote zero"
-    },
-    {
-      "caminho": "wrangler.calango.jsonc",
-      "tipo": "config do Worker"
-    }
-  ],
   "expurgo": [
     {
       "em": "2026-10-19T19:48:38.649Z",

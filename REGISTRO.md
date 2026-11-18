@@ -52053,3 +52053,66 @@ e a nota; esta entrada guarda o nome antigo, para quem o procurar o encontrar.
 como desde 02/11/2026 — é deliberado (não se inventam diferenças de nomenclatura), e a nota do
 método di-lo. E os fixtures da escola de teste (`teste/*.json`) continuam a responder a matriz de
 origem com a palavra antiga: são registos do que foi respondido, e não se reescrevem.
+
+## 18/11/2026 — «Se é assim, apaga» — o campo `arquivos` do índice, e o que ele não fazia
+
+**O que motivou.** Ao fechar a frente anterior, reportei um defeito: o `escola/breu/indice.json`
+tinha um campo `arquivos` a apontar para `professores/sapo-bailarino/…`, e escrevi que «é a lista que
+o expurgo lê». Ela respondeu: «Se é assim, apaga.» Antes de apagar, medi.
+
+**A MEDIÇÃO, E O QUE ELA DESMENTIU.** O expurgo **não lê esse campo**. `apagarEscolaDoRepoUmaVez`
+deriva o que apaga de `escolaDosCaminhos(slug, arvore)` — da ÁRVORE do repositório —, e o registro
+do que saiu é `expurgo[].apagado`, escrito no instante em que saiu. O campo de topo é uma **lista de
+intenção** escrita na criação por `tools/criar-escola.sh`, que ninguém lê e que envelhece em
+silêncio: nasceu errada na `breu` (professor `sapo-bailarino` num índice que sempre disse
+`demi-plie`), e continua errada na `batata` e no `calango`.
+
+A prova que decidiu é `provar-lista-do-expurgo`: corre o `apagarEscolaDoRepo` de verdade — com um
+GitHub falso e uma árvore falsa — **duas vezes**, uma com o índice a apontar para o professor errado
+e outra sem o campo nenhum, e compara as remoções que ele manda ao Git. São a **mesma lista**. Contra
+o código de antes (com o expurgo a ler o campo), as duas listas divergem: 13 contra 9, e quatro
+caminhos de `sapo-bailarino` a serem apagados.
+
+**A DECISÃO: apaga-se o campo.** Uma lista que ninguém lê e que envelhece em silêncio não é neutra —
+ela **parece autoridade**. Foi o que aconteceu: ela enganou quem a leu (eu), e produziu um relatório
+inteiro sobre um efeito que não existe. O que não se lê, não se escreve.
+
+**Onde entrou.** `tools/criar-escola.sh` (bloco 8 — o gerador deixa de o escrever, **commit
+próprio**, o ficheiro é congelado) · `escola/expurgar.js` (o índice de reserva nasce sem ele) ·
+`escola/{batata,breu,calango,duo}/indice.json` (o campo sai dos quatro).
+
+**Nota de correção, mesma data.** O commit `3b9c9dd4`, desta sessão, afirma no corpo que o campo «é a
+lista que o expurgo lê» e que corrigi-lo evita que «o pacote fique para trás». **É falso nas duas
+metades** — o expurgo nunca o leu, e o pacote nunca ficou para trás. A entrada fica corrigida aqui em
+vez de reescrita (P-03), e o commit seguinte é o que a substitui.
+
+**Com o quê.** `provar-lista-do-expurgo` **26/26** (novo) · `provar-proveniencia-do-expurgo` **38/38**
+(eram 33 de 38) · `provar-recriar-escola` **93/93** · `provar-po-completo` **21/21** ·
+`provar-elo-do-expurgo` ok · `provar-dono-do-expurgo` 11/11 · `provar-cartas-do-expurgo` 25/25 ·
+`provar-restaurar-retrato` 38/38 · `provar-expurgo-por-carencia` 34/34 ·
+`provar-a-escola-que-nasce` 25/25 · `provar-financeiro-da-escola` 135/135 ·
+`gerar-indices --check` 6 em dia · `check-indices` 16/16 · `check-identidade` 22/22.
+
+**Controlo A/B.** O expurgo a ler o campo do índice: **reprova 2**. O campo reposto num índice:
+**reprova 1**. O gerador a escrevê-lo de novo: **reprova 1**.
+
+**Três provas mediam mundos que já não existem — e foram ajustadas, não apagadas.**
+1. **`provar-po-completo`** esperava «Notação dominada», e o rótulo é «Notação de dança» desde a
+   renomeação de hoje. A asserção passou a olhar as duas metades, e ganhou uma nova: um plano
+   **antigo** que ainda declare `Benesh` não põe `Benesh` no documento novo — o valor é do sistema.
+   A/B: com a notação a vir da resposta, **reprova**.
+2. **`provar-recriar-escola`** media **lotes de gente** («+3 professores»), e a unidade comercial
+   passou a ser a **aula processada**: as caixas são `[data-pacote]`, e o corpo leva `pacotes`. A
+   secção foi reescrita na unidade nova, e as três asserções que falhavam por isso passaram a medir
+   o pacote. A/B: sem `pacotes` no corpo **reprova 2**; sem `data-aulas` na linha, **reprova 3**.
+3. **`provar-proveniencia-do-expurgo`** falhava havia tempo, e por **duas** razões que se somavam: o
+   endereço da prova não declarava `HOST_DONO`, e desde a separação público/painel (25/11/2026) isso
+   dava **404** em vez do 409 que ela mede; e a rota passou a exigir **escola suspensa com carência
+   vencida**, o que fazia as quatro últimas asserções medirem a recusa COMERCIAL e chamarem-lhe
+   «proveniência». Corrigidas as duas, e o 409 volta a vir da auditoria.
+
+**O que ainda não está feito.** Os **perfis dos professores** e os pacotes das escolas de teste não
+foram tocados — o campo saiu dos índices, e a próxima escola que nascer já não o terá. Não há prova
+que corra `criar-escola.sh` a sério (cria Worker e DNS no Cloudflare); o que se mede é o bloco que
+escreve o índice, por leitura declarada como tal. E a `batata` e o `calango` continuam com
+`wrangler.<slug>.jsonc` no elo de reserva que já não existe — é dado antigo, e não é desta frente.
