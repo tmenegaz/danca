@@ -1261,6 +1261,22 @@ function paginaDosProfessores({ professores, escolas, ordem }) {
 }
 
 /**
+ * O NÚMERO QUE O `wa.me` ACEITA — em dígitos, com o país (18/11/2026).
+ *
+ * A PRIMEIRA VERSÃO TIRAVA UM «55» DO INÍCIO, e isso estragava um número verdadeiro: o DDD 55 é de
+ * Santa Maria e da região, e `(55) 99999-0000` virava `55999990000` — um número que não existe.
+ * A conta certa pergunta pelo COMPRIMENTO, não pelo prefixo: o número nacional brasileiro tem 10
+ * ou 11 dígitos (DDD + 8 ou 9); o internacional tem 12 ou 13 e já começa por 55. Só o segundo
+ * dispensa o prefixo.
+ */
+function numeroDoWhatsapp(telefone) {
+  const digitos = String(telefone || '').replace(/\D/g, '');
+  if (!digitos) return '';
+  if ((digitos.length === 12 || digitos.length === 13) && digitos.indexOf('55') === 0) return digitos;
+  return '55' + digitos;
+}
+
+/**
  * A PÁGINA DOS CONTACTOS — quem procurou o sistema, e o que queria (18/11/2026).
  *
  * O PEDIDO, na letra: «eu preciso ter um lugar lá no painel para poder acessar quem me procurou,
@@ -1285,7 +1301,7 @@ function paginaDosContatos({ contatos } = {}) {
         const quem = [
           e.email ? '<a href="mailto:' + esc(e.email) + '">' + esc(e.email) + '</a>' : '',
           e.telefone
-            ? '<a href="https://wa.me/55' + esc(String(e.telefone).replace(/\D/g, '').replace(/^55/, ''))
+            ? '<a href="https://wa.me/' + esc(numeroDoWhatsapp(e.telefone))
               + '" target="_blank" rel="noopener">' + esc(e.telefone) + '</a>'
             : '',
         ].filter(Boolean).join('<br>');

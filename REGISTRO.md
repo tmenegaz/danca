@@ -51804,13 +51804,16 @@ lado de cá.
 (`paginaDosContatos`) · `raiz/index.html` (a janela, o botão «Contatos» na coluna das ações, e o
 registo antes do canal).
 
-**Com o quê.** `provar-contatos-do-site` **28/28** (novo) · `provar-fale-conosco` **35/35** (eram
+**Com o quê.** `provar-contatos-do-site` **31/31** (novo) · `provar-fale-conosco` **35/35** (eram
 23) · `provar-pedido-da-anamnese` 11/11 · `provar-pagina-publica` 79/79 ·
 `provar-conciliacao-do-painel` 35/35 · `provar-financeiro` 58/58 · `provar-monitoramento` 104/104 ·
 `check-identidade` 0 erros.
 
 **Controlo A/B.** O `type="tel"` reposto: **reprova 2**. O registo do pedido desligado: **reprova
-4**. O caminho público do `/api/contato` retirado: **reprova 10**.
+4**. O caminho público do `/api/contato` retirado: **reprova 10**. O número do WhatsApp a tirar um
+«55» do início: **reprova 1** — e esse era um defeito meu, apanhado antes de ela o ver: o DDD 55
+existe, e `(55) 99999-0000` virava `55999990000`, que não é de ninguém. A conta certa pergunta pelo
+comprimento (10–11 dígitos é nacional, 12–13 já traz o país), não pelo prefixo.
 
 **O que ainda não está feito.** Não há limite de pedidos por origem (um `POST` repetido enche a
 caixa de entrada e empurra os antigos para fora do tecto). Não há aviso por e-mail à proprietária a
