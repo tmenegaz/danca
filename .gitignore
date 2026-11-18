@@ -1596,3 +1596,18 @@ experimentos/modelo-formulario/*
 # cadastro, linhas-de-base, ensaio) — é a lista que salva o dia em que o `kv.list` não responde —; e
 # que o ensaio nasce desligado e, ligado, começa no mês que NÃO está pago.
 !experimentos/provar-a-escola-que-nasce.js
+
+# AS PROVAS DE 18/11/2026 FICARAM FORA DO REPOSITÓRIO, e o `git add` não avisou ninguém: o
+# `experimentos/*` fecha a pasta, e uma prova nova nasce ignorada até alguém escrever o `!` dela. As
+# quatro estavam a passar na máquina onde nasceram e a não existir para mais ninguém — e três delas
+# são citadas como auditoria em commits já publicados. É a terceira vez que esta armadilha aparece
+# (ver a nota do `provar-barra-unica` e a do `provar-aula-prosa`): a regra é que a prova que um
+# `REGISTRO.md` cita por nome tem de estar versionada, senão a citação não se pode verificar.
+#
+# `provar-cadastro-da-aluna` é a mais grave das cinco: mede o cadastro da aluna (76 asserções, é ela
+# que fixa a forma do registo e o destinatário do e-mail da anamnese) e nunca esteve no repositório.
+!experimentos/provar-cadastro-da-aluna.js
+!experimentos/provar-fale-conosco.js
+!experimentos/provar-pedido-da-anamnese.js
+!experimentos/provar-contatos-do-site.js
+!experimentos/provar-cubana-na-anamnese.js
