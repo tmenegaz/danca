@@ -1,5 +1,5 @@
 {
-  "versao": 5,
+  "versao": 6,
   "nomes": [
     "anamnese-20261116-2201.json",
     "anamnese-20261117-1407.json",
@@ -17,7 +17,8 @@
       "ajuste_de": null,
       "gerado_em": "2026-11-16T22:01",
       "aluna": "Aluna A",
-      "modalidade": null
+      "modalidade": null,
+      "metodo": "Francesa/Cecchetti"
     },
     "anamnese-20261117-1407.json": {
       "id": "anamnese-20261117-1407",
@@ -28,7 +29,8 @@
       "ajuste_de": null,
       "gerado_em": "2026-11-17T14:07",
       "aluna": "Aluna B",
-      "modalidade": null
+      "modalidade": null,
+      "metodo": "Escola livre"
     },
     "anamnese-20261118-1205.json": {
       "id": "anamnese-20261118-1205",
@@ -39,7 +41,8 @@
       "ajuste_de": "anamnese-20261116-2201",
       "gerado_em": "2026-11-18T12:05",
       "aluna": "Aluna A",
-      "modalidade": null
+      "modalidade": null,
+      "metodo": "Francesa/Cecchetti"
     },
     "plano-20261116-2227.json": {
       "id": "plano-20261116-2227",
