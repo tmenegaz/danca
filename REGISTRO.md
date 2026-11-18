@@ -52167,12 +52167,13 @@ estilo e na de turma». Turma e Sala já a tinham. Entraram:
 - **Estilo** — `listarVerbetes` passou a devolver `ajustadaEm`, o **maior `ate`** do histórico do
   verbete: a data em que a versão anterior deixou de valer, que é a data do ajuste.
 
-**Com o quê.** `provar-cadastro-da-aluna` **102/102** (eram 76; as secções O e P são novas) ·
+**Com o quê.** `provar-cadastro-da-aluna` **106/106** (eram 76; as secções O e P são novas) ·
 `provar-listas-do-acervo` 113/113 · `provar-matriz-metodologica` 50/50 · `provar-fale-conosco` 58/58 ·
 `provar-contatos-do-site` 57/57 · `check-identidade` ok (22/22).
 
 **Controlo A/B, cada metade medida sozinha.** Só «Derivar» (a regra de antes): **reprova 2**. A
-etiqueta a ler qualquer vínculo: **reprova 2**. O ramo `editarDe` a não existir: **reprova 8**. A
+etiqueta a ler qualquer vínculo: **reprova 2**. O ramo `editarDe` a não existir: **reprova 8**. O cliente a mandar `derivarDe` em vez de
+`editarDe`: **reprova 1**. A
 data do professor não gravada e o selo fora: **reprova 2**. O `ajustadaEm` do verbete fora:
 **reprova 1**. A condição do elenco desligada: **reprova 1**. O ramo do estilo desligado: **reprova
 1**. E vale registar o que o A/B **ensinou**: as duas primeiras asserções sobre Audição e Estilo eram
@@ -52205,3 +52206,8 @@ a mensagem — que, com o primeiro recusado, ainda era a do commit anterior. O c
 desta entrada; quem descreve o que ele faz é o texto acima. Fica corrigido aqui em vez de reescrito:
 o `push` já tinha acontecido e o `publicar.yml` já o tinha publicado (verde), e reescrever um ato
 publicado é o que P-03 proíbe — o ajuste é um elo novo.
+
+**Nota de correção, mesma data (a segunda desta entrada).** O commit `acc58963` levou a prova com
+**102** asserções; ao medir o gesto no cliente — o botão «Editar», o rótulo «Gravar a correção» e o
+corpo com `editarDe` — ficaram **106**. Os números desta entrada foram corrigidos aqui, e não
+reescritos no commit publicado.

@@ -897,6 +897,71 @@ async function principal() {
       !/ajustada em/.test(cartaoVava) && !/ajustada em/.test(cartaoTami),
       { vava: /ajustada em/.test(cartaoVava), tami: /ajustada em/.test(cartaoTami) });
 
+    /* O GESTO, NO CLIENTE. O servidor recusar ou aceitar já está medido acima; o que falta medir é
+     * o que ela VÊ e o que a página MANDA — um botão que diz «Editar» e um `submit` que manda
+     * `derivarDe` seria a pior das combinações: o rótulo certo, o acto errado, e nenhum aviso. */
+    {
+      let JSDOM = null;
+      let VC = null;
+      try { ({ JSDOM, VirtualConsole: VC } = require('jsdom')); } catch (e) { JSDOM = null; }
+      if (!JSDOM) {
+        provar('o «Editar» no cliente (jsdom)', false, 'jsdom ausente');
+      } else {
+        const vc = new VC();
+        const pedidos = [];
+        const dom = new JSDOM(htmlO.replace(/<script src="[^"]*"><\/script>/g, ''), {
+          runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao',
+          pretendToBeVisual: true, virtualConsole: vc,
+          beforeParse(w) {
+            w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+              addListener() {}, removeListener() {} });
+            w.alert = () => {};
+            w.confirm = () => true;
+            w.fetch = (u, o) => {
+              const url = String(u);
+              let corpo = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [],
+                grupos: [], matriculas: [], posicoes: [], exercicios: [] };
+              if (/\/matricula$/.test(url)) {
+                pedidos.push(JSON.parse((o && o.body) || '{}'));
+                corpo = { ok: true, corrigida: true, correio: { enviado: false, motivo: 'sem chave' } };
+              }
+              if (/professor=/.test(url)) {
+                corpo = { ok: true, existe: true, modalidades: ['bale-classico', 'jazz'],
+                  tradicoes: {}, catalogo: [] };
+              }
+              return Promise.resolve({ ok: true, status: 200,
+                json: () => Promise.resolve(corpo),
+                text: () => Promise.resolve(JSON.stringify(corpo)) });
+            };
+          },
+        });
+        const w = dom.window;
+        const d = w.document;
+        await new Promise((r) => w.setTimeout(r, 500));
+        const cartaoTami = Array.prototype.slice.call(d.querySelectorAll('[data-aluna="Tami"]'))[0];
+        const botao = cartaoTami && cartaoTami.querySelector('[data-aluna-derivar]');
+        provar('o botão da aluna livre diz «Editar»', Boolean(botao) && botao.textContent === 'Editar',
+          botao && botao.textContent);
+        if (botao) botao.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+        await new Promise((r) => w.setTimeout(r, 500));
+        provar('ao clicar, o rótulo do gravar diz «Gravar a correção»',
+          (d.getElementById('aluna-gravar') || {}).textContent === 'Gravar a correção',
+          (d.getElementById('aluna-gravar') || {}).textContent);
+        provar('o formulário sabe que está a corrigir, e o que corrige',
+          (d.getElementById('aluna-modo') || {}).value === 'editar'
+          && (d.getElementById('aluna-derivar-de') || {}).value === 'tami-jazz',
+          { modo: (d.getElementById('aluna-modo') || {}).value,
+            vinculo: (d.getElementById('aluna-derivar-de') || {}).value });
+        d.getElementById('form-aluna')
+          .dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+        await new Promise((r) => w.setTimeout(r, 500));
+        const enviado = pedidos[0] || {};
+        provar('…e o pedido leva `editarDe`, e NÃO `derivarDe`',
+          enviado.editarDe === 'tami-jazz' && !enviado.derivarDe,
+          { editarDe: enviado.editarDe, derivarDe: enviado.derivarDe });
+      }
+    }
+
     console.log('\nO.1 — a correcção no lugar, que é o que o «Editar» faz');
     const antes = JSON.parse(kvO.dados.get(RAIZ + '/matriculas') || '[]');
     const quantosAntes = antes.length;
