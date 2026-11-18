@@ -184,7 +184,11 @@ function kvCom(dados) {
       escola: 'teste', nome: 'Teste', frase: 'Em aberto: há mensalidade vencida sem pagamento registado.',
       situacao: 'em-aberto', plano: plano.id, planoNome: plano.nome, valorCentavos: 6990,
       valor: plano.precoTexto, capacidade: { professores: 1, alunos: 10 },
-      lotesProfessores: [1], lotesAlunos: [],
+      /* O CONTRATO DE TESTE PASSA A TER UM PACOTE DE AULAS (17/11/2026), e não lotes de gente:
+       * é o eixo que existe. O `franquia` vem como a `situacaoDaEscola` o devolve. */
+      pacotes: ['p'], lotesProfessores: [], lotesAlunos: [],
+      franquia: { plano: plano.id, baseAulas: 100, aulasExtras: 20, franquia: 120,
+        usadas: null, restantes: null, excedente: null, estado: null, frase: '' },
       proximoVencimento: '2026-11-16', diasParaVencer: -3,
       meses: [
         { mes: '2026-11', nome: 'novembro de 2026', vencimento: '2026-11-16', status: 'aberto', venceu: true, valorCentavos: 6990, valorPagoCentavos: null },
@@ -206,8 +210,13 @@ function kvCom(dados) {
     conferir('a página diz que a escola está em aberto', /Em aberto/.test(html), null);
     conferir('…e o contrato abre no plano em vigor, e não no primeiro da lista',
       new RegExp('<option value="' + plano.id + '"[^>]*selected').test(html), null);
-    conferir('…e os lotes em vigor vêm marcados',
-      /data-contrato-lote data-eixo="professores" data-qtd="1" checked/.test(html), null);
+    /* O PACOTE EM VIGOR VEM MARCADO — e é a mesma regra que valia para os lotes: «um `select` que
+     * abre no primeiro plano faz dela a autora de um downgrade que não pediu». Um formulário que
+     * abre com o pacote por marcar retira-lho no próximo «Gravar». */
+    conferir('…e o pacote de aulas em vigor vem marcado',
+      /data-contrato-pacote data-pacote="p" checked/.test(html), null);
+    conferir('…e o formulário já não oferece lotes de gente',
+      !/data-contrato-lote/.test(html), null);
     conferir('…e há um botão para gravar o contrato',
       /data-contrato-gravar="teste"/.test(html), null);
     /* O CATÁLOGO INTEIRO, e não só o plano em vigor: é o que torna «upgrade ou downgrade» possível
@@ -363,23 +372,32 @@ function kvCom(dados) {
     conferir('…e não houve recusa nenhuma (o caminho de sucesso não passa por um `alert`)',
       erros.filter((e) => e.indexOf('alert: ') === 0).length === 0, erros.slice(0, 1));
 
-    /* O CONTRATO: escolhe o plano mais caro e marca um lote de alunas. */
+    /* O CONTRATO: escolhe o plano mais caro e marca um PACOTE DE AULAS (17/11/2026).
+     *
+     * As caixas de lote de gente saíram do formulário — «aquele adicional antigo por lote legado
+     * que já não se vende mais, a gente também vai tirar» —, e o que se marca agora é a franquia a
+     * mais. Esta asserção mede o que o pedido LEVA, que é onde o defeito estaria: um pacote marcado
+     * na página e não enviado seria um valor a mais no ecrã e a menos no livro. */
     recarregou = false;
     pedidos.length = 0;
     const caixa = d.querySelector('[data-contrato="teste"]');
     const select = caixa.querySelector('[data-contrato-plano]');
     select.value = catalogo.assinaturas[catalogo.assinaturas.length - 1].id;
-    const loteAlunas = caixa.querySelector('[data-contrato-lote][data-eixo="alunos"]');
-    loteAlunas.checked = true;
+    const pacote = caixa.querySelector('[data-contrato-pacote]');
+    pacote.checked = true;
     caixa.querySelector('[data-contrato-gravar]').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 120));
-    conferir('o «Gravar o contrato» vai a `/api/financeiro/contrato` com o plano e os lotes',
+    conferir('o «Gravar o contrato» vai a `/api/financeiro/contrato` com o plano e o pacote de aulas',
       pedidos.length === 1 && pedidos[0].url === '/api/financeiro/contrato'
         && pedidos[0].corpo.plano === catalogo.assinaturas[catalogo.assinaturas.length - 1].id
-        && JSON.stringify(pedidos[0].corpo.lotesAlunos) === JSON.stringify([Number(loteAlunas.getAttribute('data-qtd'))]),
+        && JSON.stringify(pedidos[0].corpo.pacotes) === JSON.stringify([pacote.getAttribute('data-pacote')]),
       pedidos[0]);
-    conferir('…e o lote de professores que já estava em vigor vai junto',
-      JSON.stringify(pedidos[0].corpo.lotesProfessores) === JSON.stringify([1]), pedidos[0].corpo.lotesProfessores);
+    /* E OS LOTES DE GENTE VÃO VAZIOS: o formulário já não os tem, e um contrato gravado daqui deixa
+     * de os carregar. É a consequência declarada de os retirar. */
+    conferir('…e os lotes de gente vão vazios — o eixo não se vende mais',
+      JSON.stringify(pedidos[0].corpo.lotesProfessores) === '[]'
+        && JSON.stringify(pedidos[0].corpo.lotesAlunos) === '[]',
+      [pedidos[0].corpo.lotesProfessores, pedidos[0].corpo.lotesAlunos]);
     /* O `location.reload()` É O FIM DO CAMINHO DE SUCESSO, e o jsdom não navega: ele emite
      * «Not implemented: navigation». Isso não é um erro da página — é o teste a chegar ao sítio
      * onde a página já fez o que tinha de fazer. Tudo o resto é erro. */
@@ -422,8 +440,14 @@ function kvCom(dados) {
       /id="sec-a-escola"/.test(html) && /data-secao="a-escola"/.test(html), null);
     conferir('…com o CADASTRO que ela preencheu na criação', /Escola Teste/.test(html)
       && /12\.345\.678\/0001-90/.test(html) && /e@x\.test/.test(html), null);
-    conferir('…com o CONTRATO: o plano e o que a mensalidade inclui',
-      /Básico/.test(html) && /R\$ 69,90/.test(html) && /1 professor\(es\) e 10 aluna\(s\)/.test(html), null);
+    /* O CONTRATO DIZ O QUE SE COBRA (17/11/2026): o plano, a mensalidade e a FRANQUIA. O número de
+     * professores e alunas saiu do cartão por decisão dela — «Isso não existe mais, esse tipo de
+     * referência não existe mais» —, e o que ficou é a unidade que se vende. */
+    conferir('…com o CONTRATO: o plano, a mensalidade e a franquia de aulas',
+      /Básico/.test(html) && /R\$ 69,90/.test(html) && /Franquia de aulas/.test(html)
+        && /aulas por mês/.test(html), null);
+    conferir('…e já sem o número de professores e alunas, que saiu a 17/11/2026',
+      !/1 professor\(es\) e 10 aluna\(s\)/.test(html), null);
     /* O ESTADO DO CARTÃO (17/11/2026). O extrato saiu do cartão — vive na página própria —, e o
      * que o cartão diz de relance é o SELO. Nesta situação há mês vencido (setembro e novembro não
      * estão no livro, e as duas datas já passaram a 20/11), portanto o selo é «em aberto». */
@@ -446,10 +470,10 @@ function kvCom(dados) {
       conferir('…e os três painéis nascem escondidos',
         p('contrato') && p('contrato').hidden && p('situacao').hidden && p('pagar').hidden, null);
       /* O CONTRATO CARREGA O QUE SE CONTRATOU, e não o extrato: o mês a mês tem página própria. */
-      conferir('…o painel do contrato traz o plano, a mensalidade e o piso',
+      conferir('…o painel do contrato traz o plano, a mensalidade e a franquia',
         p('contrato') && /Básico/.test(p('contrato').innerHTML)
           && /R\$ 69,90/.test(p('contrato').innerHTML)
-          && /1 professor\(es\) e 10 aluna\(s\)/.test(p('contrato').innerHTML), null);
+          && /Franquia de aulas/.test(p('contrato').innerHTML), null);
       conferir('…e NÃO traz o extrato — o mês a mês mudou para a página própria',
         p('contrato') && !/outubro de 2026/.test(p('contrato').innerHTML), null);
       /* O MÊS CORRENTE, E SÓ O QUE ESTÁ EM ABERTO. A `agora` da bancada é 20/11/2026, por isso o

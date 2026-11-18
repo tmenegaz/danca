@@ -244,21 +244,57 @@ o mês, e devolve um número. Tudo o que está acima já existe para o receber.
 
 ---
 
-## 7. O que este plano NÃO decide
+## 7. As quatro perguntas — duas respondidas a 17/11/2026
 
-1. **A C25 — quanto gasta a escola no tamanho máximo.** A resposta que fechou a C24 diz **110
-   aulas/mês** para a escola máxima; o §L9c calculou **440** para a mesma escola. Um factor de 4 que
-   muda a capacidade de 13 escolas para 3 e a conta da escola grande de R$ 79,90 para R$ 139,90. O
-   contador **mede**; não decide qual das duas é a certa, e enquanto não se decidir o
-   `planos.json → teto.aulas` fica `null`.
-2. **A aula 01 conta como uma aula?** Ela nasce na geração do ciclo, sem lançamento. Pela regra do
-   §2, sim — está no `aulas` do `-dados.json` desde o primeiro dia. Mas isso significa que **um ciclo
-   gerado e nunca usado consome uma unidade**, e a proprietária terá de dizer se é isso que quer.
+Este plano deixou quatro perguntas abertas. A proprietária respondeu a duas, e a resposta a uma delas
+fecha uma contradição que estava a mudar a capacidade do produto por um factor de 4.
+
+### 7.1 A aula 01 conta? — **CONTA**, e não era pergunta
+
+> «É claro que a aula um conta, que nasce com o ciclo. É a primeira aula, ela se chama aula um. É
+> meio lógico isso.»
+
+Tem razão, e a pergunta foi minha — não dela. A regra do §2 é a que vale, sem excepção: **uma aula
+conta quando está no `aulas` do `-dados.json`**, e a aula 01 está lá desde o primeiro dia. O que a
+pergunta tentava resolver era outra coisa, e fica dito para não voltar: **um ciclo gerado e nunca
+usado consome uma unidade.** Isso é consequência da regra, não um defeito dela — a geração do ciclo é
+o acto que cria a primeira aula, e é o mais caro de todos (2 minutos de Actions, medidos). Se um dia
+incomodar, o remédio é comercial (o degrau de entrada tem folga de 7×, ver a C24 resolvida), e não um
+contador que ignora o que aconteceu.
+
+### 7.2 A C25 — **RESOLVIDA: conta-se 440**, e a prudência é dela
+
+A contradição era esta: a escola no tamanho máximo gasta **110 aulas/mês** (a resposta que fechou a
+C24, «5 por dia × 22 dias») ou **440** (§L9c, «20 professores × 1 aula/dia × 22 dias»)? Um factor de
+4 que muda a capacidade de **13 escolas para 3**.
+
+> «Depende, depende. Eu acho que a gente tem que contar com a capacidade **menor**, né? Para a gente
+> ser prudente.»
+
+**A decisão: 440 aulas/mês para a escola no tamanho máximo**, que é a leitura **conservadora** — 3
+escolas na cota gratuita, e não 13. E ela acrescentou a razão pela qual o número real não se pode
+saber hoje, que é a mais importante desta secção:
+
+> «A escola vai gastar o 110 no mês é o valor da hora aula do professor que cobra por aula […] A
+> gente não sabe como é que a escola vai adotar de fato dentro do seu negócio de verdade, se ela vai
+> pagar percentual para o professor ou se ela vai pagar por hora aula.»
+
+Ou seja: **o número não se deriva, porque depende de um modelo de negócio da escola que ainda não
+existe.** A conta de «5 por dia» foi construída sobre um modelo (a hora-aula), e o modelo é uma
+hipótese. Por isso a decisão certa é a prudente: **planear com o pior caso e medir com o contador**
+quando houver escolas a lançar. O `planos.json → teto.aulas` fica **null** na mesma — não por indecisão
+agora, mas porque um teto comercial é uma promessa, e a promessa é a franquia (100/300/800). O que a
+C25 decidia era a **capacidade da infraestrutura**, e essa está decidida: 3 escolas no tamanho máximo.
+
+### 7.3 O que fica aberto, e são duas
+
 3. **O que acontece a um mês sem pagamento e com aulas processadas.** O excedente de um mês em aberto
    soma-se à dívida? Fica suspenso? O §ADITIVO não o diz, e a L11 (a porta paga) é quem o decide.
-4. **O `ensaio`.** O relógio comprimido move os meses das mensalidades; a franquia é do mês civil. O
-   plano não os liga — e a razão está escrita: uma franquia que muda de tamanho enquanto se testa não
-   se pode comparar com nada.
+   *(Não foi perguntado, e não se decide por dedução.)*
+4. **O `ensaio` e a franquia.** O relógio comprimido move os meses das mensalidades; a franquia é do
+   mês civil. O plano **não os liga**, e a razão está escrita: uma franquia que muda de tamanho
+   enquanto se testa não se pode comparar com nada. O ensaio **nasce desligado** numa escola nova, e
+   ligado começa no mês que não está pago — medido em `provar-a-escola-que-nasce` (25 asserções).
 
 ---
 

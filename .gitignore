@@ -1588,3 +1588,11 @@ experimentos/modelo-formulario/*
 # escola que já não existe e a receita do parque contava-a. A prova mede a limpeza, a fronteira
 # entre `breu` e `breu-rosa` (igualdade do slug, não prefixo), e que a rota do expurgo a CHAMA.
 !experimentos/provar-o-expurgo-do-financeiro.js
+
+# A ESCOLA QUE NASCE (17/11/2026). «Quando eu nascer a escola nova já vai estar certo? É isso que você
+# está me dizendo? Preciso saber disso.» É uma pergunta de sim ou não, e só se responde medindo: a
+# prova verifica que uma escola criada com «Intermediário + pacote P» grava R$ 109,90, `pacotes: ['p']`
+# e NENHUM lote de gente; que o expurgo apaga as chaves que nasceram depois da lista (comercial,
+# cadastro, linhas-de-base, ensaio) — é a lista que salva o dia em que o `kv.list` não responde —; e
+# que o ensaio nasce desligado e, ligado, começa no mês que NÃO está pago.
+!experimentos/provar-a-escola-que-nasce.js

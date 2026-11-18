@@ -736,11 +736,15 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }
      * a linha do valor; uma segunda conta da capacidade no cliente divergiria da do servidor. */
     + ' data-professores="' + (Number(p.professores) || 0) + '"'
     + ' data-alunos="' + (Number(p.alunos) || 0) + '"'
-    /* O QUE O DEGRAU JÁ INCLUI, ao lado do nome: «+3 professores» não diz três a mais do que quê,
-     * e a pergunta é a primeira que quem contrata faz. */
-    + ' data-inclui="' + esc('inclui ' + p.professores + (Number(p.professores) === 1
-      ? ' professor' : ' professores') + ' e ' + p.alunos + (Number(p.alunos) === 1
-      ? ' aluna' : ' alunas')) + '">'
+    /* O QUE O DEGRAU JÁ INCLUI, ao lado do nome: «+20 aulas» não diz vinte a mais do que quê, e a
+     * pergunta é a primeira que quem contrata faz. A 17/11/2026 passou a ser a FRANQUIA — «inclui
+     * 300 aulas» —, e não professores e alunas: são eles que já não são a unidade.
+     *
+     * `data-professores`/`data-alunos` FICAM, e é de propósito: não se mostram a ninguém, e são o
+     * que a confirmação de perda de dados compara com o retrato da escola (quantos documentos dela
+     * cabem no degrau novo). Sem eles a pergunta «vão perder-se 12 professores, confirma?» deixava
+     * de ser feita — e ela pediu-a por palavras próprias. */
+    + ' data-inclui="' + esc('inclui ' + (Number(p.aulas) || 0) + ' aulas por mês') + '">'
     + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
   const moeda = String((catalogo && catalogo.moeda_simbolo) || 'R$');
   const emReais = (v) => moeda + ' ' + (Math.round(Number(v) * 100) / 100).toFixed(2).replace('.', ',');
@@ -754,15 +758,22 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }
    *
    * OS LOTES SÃO RENDERIZADOS NO SERVIDOR, e não montados pelo script: são dado do catálogo, e o
    * que a página faz com eles é somar o preço que vem escrito em cada linha. */
-  const linhasDeLote = (eixo, rotulo) => ((catalogo && catalogo.lotes && catalogo.lotes[eixo]) || [])
-    .map((l) => '<label class="escolha">'
-      + '<input type="checkbox" data-lote data-eixo="' + eixo + '" data-qtd="' + l.qtd + '"'
-      + ' data-centavos="' + Math.round(Number(l.preco) * 100) + '">'
-      + '<span>+' + l.qtd + ' ' + rotulo + ' — ' + emReais(l.preco) + '/mês</span>'
+  /* OS PACOTES DE AULAS, E NÃO OS LOTES DE GENTE (17/11/2026). Esta página é por onde nasce uma
+   * escola nova — «só me garante que tá funcionando no motor que a gente cria uma escola nova e faz
+   * funcionar» —, e o que ela oferecia era o eixo antigo: mais três professores, mais trinta
+   * alunas. Uma escola criada por aqui nascia a comprar um eixo que já não existe, e o contrato
+   * saía com lotes que a página do painel já não sabia mostrar.
+   *
+   * O QUE ENTRA: os pacotes do catálogo (`pacotesDeAulas`), com as aulas e o preço de cada um. */
+  const linhasDePacote = ((catalogo && Array.isArray(catalogo.pacotesDeAulas))
+    ? catalogo.pacotesDeAulas : [])
+    .map((pk) => '<label class="escolha">'
+      + '<input type="checkbox" data-pacote data-pacote-id="' + esc(pk.id) + '"'
+      + ' data-aulas="' + pk.aulas + '"'
+      + ' data-centavos="' + Math.round(Number(pk.preco) * 100) + '">'
+      + '<span>+' + pk.aulas + ' aulas — ' + emReais(pk.preco) + '/mês</span>'
       + '</label>').join('');
-  const lotesDeProfessores = linhasDeLote('professores', 'professor(es)');
-  const lotesDeAlunos = linhasDeLote('alunos', 'aluna(s)');
-  const temLotes = Boolean(lotesDeProfessores || lotesDeAlunos);
+  const temLotes = Boolean(linhasDePacote);
   const temPix = Boolean(pix && pix.chave);
   /* SÓ HÁ PERGUNTA A FAZER SE HOUVER O QUE PERDER: um convite a uma escola sem documentos não
    * mostra caixa nenhuma — a mesma regra que a rota aplica para não recusar. */
@@ -785,8 +796,8 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }
       '<p class="nota" id="convite-valor"></p>' +
       (temLotes
         ? '<fieldset class="escolhas" id="convite-capacidade" data-moeda="' + esc(moeda) + '">' +
-          '<legend>Adicionais (por lote, na mensalidade)</legend>' +
-          lotesDeProfessores + lotesDeAlunos + '</fieldset>'
+          '<legend>Pacotes de aulas (na mensalidade)</legend>' +
+          linhasDePacote + '</fieldset>'
         : '') +
 
       /* A PERDA, PERGUNTADA (16/11/2026). «Avisa que dados serão perdidos e pergunta se quer mesmo
@@ -870,6 +881,10 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'var plano=document.getElementById("convite-plano"),valor=document.getElementById("convite-valor"),' +
   'se=document.getElementById("convite-senha-escola"),sp=document.getElementById("convite-senha-professor"),' +
   'recado=document.getElementById("convite-recado"),enviar=document.getElementById("convite-enviar"),' +
+  /* O ID `convite-capacidade` FICA, e o nome é o único que não mudou: o que ele carrega agora são os
+   * pacotes de aulas. Renomeá-lo obrigaria a mexer nos dois lados sem ganho — e o `data-moeda` que
+   * dele se lê continua a ser o símbolo do catálogo.
+   */
   'lotes=document.getElementById("convite-capacidade");' +
   'if(!plano||!enviar)return;' +
   'var moeda=(lotes&&lotes.getAttribute("data-moeda"))||"R$";' +
@@ -879,18 +894,16 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * de plano: uma confirmação dada para um plano não vale para o seguinte — quem aceitou perder
    * 30 alunas no Básico não aceitou o mesmo no Intermediário sem voltar a ser perguntado. */
   'var perdeu=false;' +
-  /* A CAPACIDADE CONTRATADA: o incluído do plano MAIS os lotes marcados. É a mesma conta que o
-   * servidor faz (`comercial.calcular`), e a página só a repete porque tem de perguntar antes de
-   * enviar; quem decide continua a ser ele. */
+  /* A CAPACIDADE CONTRATADA, para a pergunta de perda de dados (17/11/2026). Ela é SÓ o que o plano
+   * inclui: os pacotes de aulas não acrescentam professores nem alunas, logo não mudam esta conta.
+   *
+   * A pergunta que ela serve continua a fazer sentido — «vão perder-se 12 professores, confirma?» —,
+   * e o número que a responde é o do degrau, não o de um lote. O que saiu foi a soma dos lotes
+   * marcados, que já não são marcáveis. */
   'function capacidade(){' +
   '  var o=plano.options[plano.selectedIndex];' +
-  '  var p=Number((o&&o.getAttribute("data-professores"))||0);' +
-  '  var a=Number((o&&o.getAttribute("data-alunos"))||0);' +
-  '  var todas=caixas();' +
-  '  for(var i=0;i<todas.length;i++){if(!todas[i].checked)continue;' +
-  '    var q=Number(todas[i].getAttribute("data-qtd")||0);' +
-  '    if(todas[i].getAttribute("data-eixo")==="professores")p+=q;else a+=q;}' +
-  '  return {professores:p,alunos:a};}' +
+  '  return {professores:Number((o&&o.getAttribute("data-professores"))||0),' +
+  '    alunos:Number((o&&o.getAttribute("data-alunos"))||0)};}' +
   'function quantos(lista){return Array.isArray(lista)?lista.length:0;}' +
   'function oQueSePerde(){' +
   '  if(!retrato)return null;' +
@@ -934,10 +947,14 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   /* A ESCOLHA DOS LOTES — as caixas que o SERVIDOR renderizou (16/11/2026). A página não sabe
    * quais são: lê as que estão. Cada uma diz o eixo, a quantidade e o preço em cêntimos, e é isso
    * que a soma usa. */
-  'function caixas(){return document.querySelectorAll("[data-lote]");}' +
-  'function doEixo(eixo){var r=[],todas=caixas();' +
-  'for(var i=0;i<todas.length;i++){if(todas[i].checked&&todas[i].getAttribute("data-eixo")===eixo)' +
-  'r.push(Number(todas[i].getAttribute("data-qtd")));}return r;}' +
+  /* AS CAIXAS SÃO AS DOS PACOTES DE AULAS (17/11/2026) — `[data-pacote]`, com o id do catálogo.
+   * A função devolve os IDS marcados, que é o que o servidor espera (`comercial.calcular({pacotes})`):
+   * a quantidade de aulas de cada pacote está no catálogo, e mandá-la daqui seria um segundo sítio
+   * onde ela pode divergir. */
+  'function caixas(){return document.querySelectorAll("[data-pacote]");}' +
+  'function doPacotes(){var r=[],todas=caixas();' +
+  'for(var i=0;i<todas.length;i++){if(todas[i].checked)r.push(todas[i].getAttribute("data-pacote-id"));}' +
+  'return r;}' +
   /* O TOTAL É UMA PRÉVIA, e não a conta que cobra: a que cobra é a do servidor (`comercial.calcular`,
    * a mesma da criação). Aqui soma-se o que está escrito nas linhas do catálogo só para a pessoa ver
    * de onde vem o valor antes de pagar — e um total que não se explica é o que a faz desistir no Pix. */
@@ -946,8 +963,7 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   '  var base=Number(o.getAttribute("data-centavos")||0),partes=[],extra=0,todas=caixas();' +
   '  for(var i=0;i<todas.length;i++){var c=todas[i];if(!c.checked)continue;' +
   '    var v=Number(c.getAttribute("data-centavos")||0);extra+=v;' +
-  '    partes.push("+"+c.getAttribute("data-qtd")+" "+(c.getAttribute("data-eixo")==="professores"' +
-  '      ?"professor(es)":"aluna(s)")+" ("+reais(v)+")");}' +
+  '    partes.push("+"+c.getAttribute("data-aulas")+" aulas ("+reais(v)+")");}' +
   '  var inclui=o.getAttribute("data-inclui")||"";' +
   '  return {total:reais(base+extra),' +
   '    texto:o.textContent.split(" — ")[0]+": "+reais(base)+(inclui?" ("+inclui+")":"")' +
@@ -971,8 +987,8 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * sobre um pedido que nunca chegou à rota. Um caminho que começa e termina no mesmo sítio não se
    * escreve pela metade. */
   'fetch("/api/recriar/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},' +
-  'body:JSON.stringify({plano:plano.value,lotesProfessores:doEixo("professores"),' +
-  'lotesAlunos:doEixo("alunos"),senhaAdmin:se.value,senhaProfessor:sp?sp.value:"",' +
+  'body:JSON.stringify({plano:plano.value,pacotes:doPacotes(),' +
+  'lotesProfessores:[],lotesAlunos:[],senhaAdmin:se.value,senhaProfessor:sp?sp.value:"",' +
   'perderDados:perdeu===true})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
@@ -1357,14 +1373,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
     '<option value="' + esc(p.id) + '" data-centavos="' + Math.round(Number(p.preco) * 100) + '"'
     + (p.id === atual ? ' selected' : '') + '>'
     + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
-  const caixasDeLote = (eixo, rotulo, escolhidos) => {
-    const lista = Array.isArray(escolhidos) ? escolhidos : [];
-    return ((cat && cat.lotes && cat.lotes[eixo]) || [])
-      .map((l) => '<label class="escolha"><input type="checkbox" data-contrato-lote data-eixo="' + eixo
-        + '" data-qtd="' + l.qtd + '"' + (lista.indexOf(Number(l.qtd)) !== -1 ? ' checked' : '') + '>'
-        + '<span>+' + l.qtd + ' ' + rotulo + ' — R$ '
-        + String(l.preco).replace('.', ',') + '/mês</span></label>').join('');
-  };
+  /* AS CAIXAS DOS LOTES DE GENTE FORAM RETIRADAS A 17/11/2026 — e com elas a função que as
+   * desenhava. Um gerador de marcação que já não tem chamador é código morto que parece vivo: o
+   * próximo que ler o ficheiro acha que os lotes ainda se vendem. Os contratos antigos guardam os
+   * seus (é história); o que se deixou de ter é onde os comprar. */
+
   /* OS PACOTES DE AULAS (17/11/2026) — as caixas da franquia, com a marca `data-contrato-pacote`.
    * A lista vem do catálogo (`catalogoDeAulas.pacotesDeAulas`), e não de uma tabela escrita aqui:
    * um preço repetido no ecrã é um preço que diverge do que o servidor cobra. */
@@ -1425,28 +1438,17 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       : '<p class="aviso">Ainda não há mensalidade a cobrar desta escola — a contagem começa ' +
         'quando ela é criada. Uma lista vazia quer dizer isso, e não que a leitura falhou.</p>';
 
-    const capacidade = c.capacidade || {};
-    /* «+3 professor(es) (R$ 50,00) e +30 aluna(s) (R$ 50,00)» — a frase é montada a partir do que o
-     * núcleo calculou, e não de uma diferença feita aqui: os lotes vêm com o preço da tabela, e uma
-     * segunda conta diria outro número. */
-    const partes = [];
-    const e = c.extra || null;
-    for (const [eixo, rotulo] of [['professores', 'professor(es)'], ['alunos', 'aluna(s)']]) {
-      const q = e && e[eixo];
-      if (!q) continue;
-      const precos = (q.lotes || []).map((l) => l.preco).filter((v) => v != null);
-      const soma = precos.reduce((s, v) => s + (Math.round(Number(v) * 100) / 100), 0);
-      partes.push('+' + q.qtd + ' ' + rotulo + (soma ? ' (R$ ' + emReais(Math.round(soma * 100)) + ')' : ''));
-    }
-    const extraDaCapacidade = partes.length ? partes.join(' e ') : '';
-    /* O PISO E O TETO (16/11/2026). «Capacidade dá ideia de teto, então dá ideia de que tem só nove
-     * professores e 120 alunos. O nosso não é capacidade, o nosso é a partir de.» O piso é o que a
-     * escola contratou; o teto é até onde o plano dela vai — e é o teto que faltava dizer, porque
-     * sem ele «9 professores» prometia um máximo que ninguém combinou. */
-    const piso = c.piso || capacidade || {};
-    const teto = c.teto || null;
-    const gente = (q) => (q && q.professores != null
-      ? q.professores + ' professor(es) e ' + q.alunos + ' aluna(s)' : null);
+    /* O QUE SAIU DAQUI A 17/11/2026 (17/11/2026): a frase «+3 professor(es) (R$ 50,00) e +30
+     * aluna(s) (R$ 50,00)», o piso, o teto e o «gente». Ela foi directa: «Ah, entendi. Então quer
+     * dizer que todo esse que já não se vende mais vai sair quando eu expurgar a escola» — e tem
+     * razão. Um adicional de gente ao lado de uma franquia de aulas é a promessa de um eixo que já
+     * não se vende, e um número que se mostra é um número que se pode exigir. O contrato continua
+     * a GUARDAR os lotes de quem os comprou (é história, e a história não se apaga); o que deixou
+     * de haver é o lugar onde eles se apresentam como se ainda fossem oferta.
+     *
+     * O `capacidade` também sai do ecrã — mas não do registo: ele é a referência interna do tamanho
+     * da escola, e a controladoria lê-o em `situacaoDaEscola`. */
+
     /* O BLOCO DOBRÁVEL (16/11/2026). «A gente vai empilhar […] tem que poder colapsar.» Com uma
      * escola a página é uma página; com vinte, o extrato de cada uma aberto é uma parede. O
      * `<details>` é a peça que a casa já usa para dobrar, e o resumo fica à vista com o que basta
@@ -1484,11 +1486,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
             : (c.franquia.estado === 'perto' ? ' <span class="selo discreto">a chegar ao fim</span>' : ''))
           + '</span>'
         : '') +
-      /* AS PESSOAS DEIXARAM DE SER UM LIMITE, e por isso deixaram de se chamar piso e teto: o
-       * §ADITIVO §2 proíbe apresentá-las como limite comercial. O número continua dito como
-       * REFERÊNCIA — é custo interno medido, e a controladoria precisa dele —, e não trava nada. */
-      '<span>Referência de tamanho: <strong>' + (gente(piso) ? esc(gente(piso)) : '—') + '</strong></span>' +
-      (extraDaCapacidade ? '<span>Além da referência: ' + esc(extraDaCapacidade) + '</span>' : '') +
+      /* AS REFERÊNCIAS DE GENTE SAÍRAM (17/11/2026) — «Isso não existe mais, esse tipo de
+       * referência não existe mais.» O cartão dizia «Referência de tamanho» e «Além da
+       * referência»; com a unidade comercial na aula, nenhum dos dois é uma promessa, e um número
+       * de gente ao lado de um preço lê-se como se fosse parte dele. Fica o que se cobra: o plano,
+       * a mensalidade, a franquia, o consumo e o vencimento. */
       (c.proximoVencimento
         ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
           + (c.diasParaVencer != null
@@ -1566,14 +1568,15 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
        * preços (a aula da extensão custa mais do que a do plano de cima) está no `planos.json`. */
       '<fieldset class="escolhas"><legend class="campo-rotulo">Pacotes de aulas (na ' +
       'mensalidade)</legend>' + caixasDePacote(c.pacotes) + '</fieldset>' +
-      /* OS LOTES DE GENTE FICAM PARA OS CONTRATOS ANTIGOS, e não se escondem: uma escola que
-       * comprou lotes em 16/11 continua a pagá-los, e o formulário tem de a poder reproduzir. O
-       * que muda é a legenda — «legado» —, para não parecer que ainda se vendem. */
-      (((cat && cat.lotes) && ((cat.lotes.professores || []).length || (cat.lotes.alunos || []).length))
-        ? '<fieldset class="escolhas"><legend class="campo-rotulo">Adicionais antigos (por lote — '
-          + 'legado, já não se vendem)</legend>' + caixasDeLote('professores', 'professor(es)', c.lotesProfessores)
-          + caixasDeLote('alunos', 'aluna(s)', c.lotesAlunos) + '</fieldset>'
-        : '') +
+      /* OS LOTES DE GENTE SAÍRAM DO FORMULÁRIO (17/11/2026). «Aquele adicional antigo por lote
+       * legado que já não se vende mais, a gente também vai tirar.» Eles ficaram aqui uma tarde —
+       * o tempo de um contrato antigo poder ser reproduzido —, e ela decidiu: sai. Um campo que já
+       * não se vende, num formulário de contrato, é um convite a vendê-lo outra vez.
+       *
+       * O QUE ACONTECE A UM CONTRATO ANTIGO: os `lotesProfessores`/`lotesAlunos` que ele guarda
+       * continuam no registo (a história não se apaga), e deixam de ser reenviados quando o
+       * contrato é gravado — porque o formulário já não os tem. É a consequência declarada de os
+       * retirar, e a única escola com eles é de teste. */
       '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
       'Gravar o contrato</button></p>' +
       '<p class="aviso" data-contrato-recado hidden></p>' +
@@ -1879,11 +1882,9 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '    var escola=b.getAttribute("data-contrato-gravar");if(!escola)return;' +
   '    var caixa=b.closest("[data-contrato]")||document;' +
   '    var sel=caixa.querySelector("[data-contrato-plano]");' +
-  '    var lotes=caixa.querySelectorAll("[data-contrato-lote]");' +
-  '    var p=[],a=[];' +
-  '    for(var m=0;m<lotes.length;m++){if(!lotes[m].checked)continue;' +
-  '      var q=Number(lotes[m].getAttribute("data-qtd")||0);' +
-  '      if(lotes[m].getAttribute("data-eixo")==="professores")p.push(q);else a.push(q);}' +
+  /* OS LOTES DE GENTE SAÍRAM DO PEDIDO (17/11/2026). O formulário já não os desenha, logo este
+   * script não tinha o que ler — e um `querySelectorAll` que devolve vazio é a forma mais fácil de
+   * limpar, em silêncio, os lotes de um contrato antigo. Vão sempre vazios, e é a decisão. */
   /* OS PACOTES DE AULAS (17/11/2026) — o eixo comercial de hoje. Vão como a LISTA de ids marcados,
    * que é o que o servidor espera (`comercial.calcular({pacotes})`); a quantidade por pacote não se
    * manda porque o catálogo já a diz, e um número que viaja a mais é um número que pode divergir. */
@@ -1895,7 +1896,7 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '    b.disabled=true;dizer("a gravar…",false);' +
   '    fetch("/api/financeiro/contrato",{method:"POST",headers:{"Content-Type":"application/json"},' +
   '      body:JSON.stringify({escola:escola,plano:sel?sel.value:"",' +
-  '        lotesProfessores:p,lotesAlunos:a,pacotes:pacotes}),cache:"no-store"})' +
+  '        lotesProfessores:[],lotesAlunos:[],pacotes:pacotes}),cache:"no-store"})' +
   '    .then(function(r){return r.json().catch(function(){return {};});})' +
   '    .then(function(d){b.disabled=false;' +
   /* RECARREGA, COMO O PAGAMENTO (17/11/2026). Antes dizia «Recarregue para ver o extrato» — e ela

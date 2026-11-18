@@ -155,6 +155,19 @@ function prefixosDaEscola(slug) {
 const CHAVES_FIXAS_DA_ESCOLA = [
   'professores', 'alunas', 'dono', 'turmas', 'turma-conteudos',
   'rubricas', 'vocabulario', 'curadorias', 'aparencia',
+  /* QUATRO QUE FALTAVAM (17/11/2026) — e a falta delas é do mesmo tipo que a lista existe para
+   * evitar: num dia em que o `kv.list` não responde (a cota diária já estourou duas vezes nesta
+   * casa), o expurgo apagava o que a lista conhece e deixava o resto a fingir de apagado.
+   *
+   *   · `comercial` — o contrato: plano, valor, pacotes e o estado de pagamento. Sair do KV é o
+   *     que ela pediu por palavras próprias: «essa parte toda de pagamento e financeiro […] tem que
+   *     deixar de existir». E é o registo que decide se a escola «existe» para o painel.
+   *   · `cadastro` — o nome, o e-mail e o telefone da escola. É dado pessoal, e é o que a carta do
+   *     expurgo promete ter removido.
+   *   · `linhas-de-base` — o que a escola declarou como ponto de partida das turmas.
+   *   · `ensaio` — o relógio comprimido de quem testou a cobrança. Deixá-lo faria a escola NOVA
+   *     nascer em ensaio, com meses por pagar que ninguém ligou: o oposto de «nascer certo». */
+  'comercial', 'cadastro', 'linhas-de-base', 'ensaio',
 ];
 
 /** Os nomes completos das chaves fixas de uma escola. */

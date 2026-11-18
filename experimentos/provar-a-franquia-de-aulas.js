@@ -180,11 +180,26 @@ function paginaDaEscola(contrato, aulasUsadas) {
     const passou = paginaDaEscola({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } }, 130);
     conferir('acima da franquia, o cartão diz o excedente', /30 excedente/.test(passou), null);
 
-    /* O QUE NÃO PODE ESTAR: um limite de gente apresentado como limite. */
+    /* O QUE NÃO PODE ESTAR: número nenhum de gente. A referência de tamanho passou por aqui uma
+     * tarde (17/11/2026) e saiu no mesmo dia, por decisão dela: «Isso não existe mais, esse tipo de
+     * referência não existe mais.» */
     conferir('o cartão já não diz «Piso contratado» nem «Teto do plano»',
       !/Piso contratado/.test(semContagem) && !/Teto do plano/.test(semContagem), null);
-    conferir('…e diz «Tamanho de referência», que é o que o número é',
-      /Tamanho de referência/.test(semContagem), null);
+    conferir('…nem «Tamanho de referência» nem «Referência do topo», que também saíram',
+      !/Tamanho de referência/.test(semContagem) && !/Referência do topo/.test(semContagem), null);
+    /* E O QUE FICA É O QUE SE COBRA: o plano, a mensalidade REAL, a franquia e o que foi contratado
+     * além. O contrato do teste acima não declara valor — e um contrato sem valor não mostra a
+     * linha, que é o comportamento certo (não se inventa um preço). Este declara. */
+    const comValor = paginaDaEscola({
+      plano: 'intermediario', pacotes: ['p'], valorCentavos: 10990, valor: 'R$ 109,90',
+      capacidade: { professores: 3, alunos: 40 },
+    });
+    conferir('…e o cartão diz a mensalidade real do contrato: R$ 109,90',
+      /Mensalidade/.test(comValor) && /R\$ 109,90/.test(comValor), null);
+    conferir('…e a franquia com o pacote somado: 320 aulas por mês',
+      /Franquia de aulas/.test(comValor) && /320 aulas por mês/.test(comValor), null);
+    conferir('…e o que foi contratado além dela: +20 aulas',
+      /Aulas extras/.test(comValor) && /\+20 aulas/.test(comValor), null);
   }
 
   console.log('\nE. A receita em aulas: a mesma receita, no eixo novo');

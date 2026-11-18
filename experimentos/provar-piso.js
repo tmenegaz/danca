@@ -337,16 +337,21 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
      * certa — o defeito estava na prova, e não no ecrã. */
     const iEscola = comContrato.indexOf('id="sec-a-escola"');
     const iProfs = comContrato.indexOf('id="sec-professores"');
-    /* OS RÓTULOS MUDARAM A 17/11/2026, e a mudança é a decisão: «Piso contratado» e «Teto do
-     * plano» diziam de gente um número que já não limita nada — o §ADITIVO §2 proíbe apresentá-lo
-     * como limite comercial. Passaram a «Tamanho de referência» e «Referência do topo»: o número
-     * continua dito (é custo interno medido, e a controladoria precisa dele), e deixa de se chamar
-     * teto a quem não trava. */
+    /* OS NÚMEROS DE GENTE SAÍRAM DO CARTÃO, E É A DECISÃO — revista duas vezes no mesmo dia.
+     *
+     * Ao princípio eram «Piso contratado» e «Teto do plano»; a 17/11/2026 passaram a «Tamanho de
+     * referência», porque o §ADITIVO §2 proíbe apresentá-los como limite. Ela foi mais longe e
+     * fechou a questão: «também não tem que ter mais o tamanho de referência […] Isso não existe
+     * mais.» Um número de gente ao lado de um preço lê-se como se fizesse parte dele, e não faz.
+     *
+     * O QUE FICA NO CARTÃO: o plano, a mensalidade real, a franquia de aulas, o que foi contratado
+     * além dela, o consumo do mês e o vencimento. */
     const cartao = comContrato.slice(iEscola, iProfs);
-    conferir('o tamanho de referência continua dito — no cartão de «A escola», e só lá',
+    conferir('o cartão de «A escola» já não diz referência nenhuma de professores e alunas',
       iEscola > 0 && iProfs > iEscola
-        && /Tamanho de referência/.test(cartao) && /Referência do topo/.test(cartao), null);
-    conferir('…e já NÃO se chama «piso contratado» nem «teto do plano», que prometiam um limite',
+        && !/Tamanho de referência/.test(cartao) && !/Referência do topo/.test(cartao)
+        && !/Além da referência/.test(cartao), null);
+    conferir('…nem os nomes antigos, «piso contratado» e «teto do plano»',
       !/Piso contratado/.test(cartao) && !/Teto do plano/.test(cartao), null);
     /* A FRANQUIA É O PRIMEIRO PAR — a unidade comercial de hoje. */
     conferir('o cartão abre com a FRANQUIA DE AULAS, e ela vem do catálogo',

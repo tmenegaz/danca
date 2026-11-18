@@ -2427,6 +2427,11 @@ async function receberOConvite(request, env) {
      * recusado lá, com o número dele na frase. */
     lotesProfessores: corpo && corpo.lotesProfessores,
     lotesAlunos: corpo && corpo.lotesAlunos,
+    /* OS PACOTES DE AULAS (17/11/2026) — a franquia que a escola compra além do plano, e o eixo
+     * pelo qual uma escola NOVA passa a nascer. Sem esta linha, o convite mandava os pacotes e o
+     * servidor descartava-os em silêncio: a página mostrava o valor com o pacote e o contrato era
+     * gravado sem ele. */
+    pacotes: corpo && corpo.pacotes,
     senhaAdmin,
     senhaProfessor,
     /* O RETRATO E A CONFIRMAÇÃO DA PERDA (16/11/2026). A página pergunta, ela responde, e a
@@ -2482,7 +2487,7 @@ async function receberOConvite(request, env) {
   }), 201);
 }
 
-async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos,
+async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos, pacotes,
   senhaAdmin, senhaProfessor, origem, retrato: doRetrato, perderDados }) {
   const slug = String(escola || '').trim();
   if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return { ok: false, status: 400, erro: 'slug de escola inválido' };
@@ -2572,6 +2577,10 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
     plano: planoPedido,
     lotesProfessores: Array.isArray(lotesProfessores) ? lotesProfessores : [],
     lotesAlunos: Array.isArray(lotesAlunos) ? lotesAlunos : [],
+    /* OS PACOTES DE AULAS (17/11/2026) — é por aqui que uma escola NOVA nasce com a franquia que
+     * comprou. Sem esta linha, o convite mostrava «Básico + 1 pacote = R$ 79,90» e o contrato era
+     * gravado só com o plano — o valor certo no ecrã e o valor errado no livro. */
+    pacotes: Array.isArray(pacotes) ? pacotes : [],
   }, { podeDispensar: false });
   if (!escolhaComercial.ok) {
     /* A MENSAGEM É A DO CATÁLOGO, e não uma segunda opinião escrita aqui: o plano que falta e a
@@ -2733,6 +2742,7 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
     capacidade: escolha.capacidade,
     lotesProfessores: escolha.lotesProfessores,
     lotesAlunos: escolha.lotesAlunos,
+    pacotes: escolha.pacotes,
     extensoes: escolha.extensoes,
     pagamento: escolha.pagamento,
     /* O PROFESSOR VAI NO REGISTO, e é ele que a linha «a nascer» mostra enquanto o acervo não

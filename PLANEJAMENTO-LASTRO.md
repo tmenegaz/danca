@@ -143,7 +143,8 @@
 > 5 aulas/dia = 110/mês contra a franquia de 100 do plano de entrada) — **e a proprietária fechou-a no
 > mesmo dia**: as 5/dia são de uma escola **no tamanho máximo**, e uma escola do Básico lança ~13/mês,
 > logo 100 é folgado. Fechá-la abriu a **C25** (a mesma escola máxima aparece com 110 e com 440
-> aulas/mês, um factor de 4 na capacidade). E a **regra das extensões foi corrigida por ela**: não é
+> aulas/mês, um factor de 4 na capacidade) — **e a C25 foi resolvida no mesmo dia**: conta-se **440**,
+> por prudência. E a **regra das extensões foi corrigida por ela**: não é
 > um piso de R$ 0,15 — é que **o preço da aula da extensão seja maior do que o preço da aula do plano
 > de cima**, o que põe o preço em R$ 0,50/aula (e não nos R$ 0,20 que eu propunha, abaixo da fronteira
 > dos R$ 0,333) e faz do preço da extensão um **comando** — ele escolhe **onde a migração acontece**
@@ -1276,7 +1277,7 @@ medida — não há escola pagante a lançar aulas.)*
 ---
 
 **C25 — A escola no tamanho máximo gasta 110 ou 440 aulas por mês.** Aberta a 17/11/2026 **pela
-resposta que fechou a C24**, e não resolvida — porque a resposta que fecha uma pergunta abre esta.
+resposta que fechou a C24**, e **RESOLVIDA no mesmo dia** pela proprietária.
 
 **O que a conta mostra.** A resposta da C24 fixa o consumo de uma escola no tamanho máximo em
 **110 aulas/mês** (5 por dia × 22 dias). O §L9c, ao calcular o teto de 20 professores e 500 alunas,
@@ -1301,8 +1302,16 @@ onde só cinco lançam por dia, o que é plausível em dias rotativos) ou **uma 
 dia** (440)? As duas são hipóteses de trabalho, e nenhuma foi medida — **não há escola pagante a
 lançar aulas**, e é essa a razão pela qual o número não se pode derivar.
 
-*(Afeta §L9f pontos 7 e 10, §L8 e a receita projectada. Enquanto não se decide, o §L9f mostra as duas
-colunas e não escolhe.)*
+**A decisão dela, e a razão:** «Eu acho que a gente tem que contar com a capacidade **menor**, né?
+Para a gente ser prudente.» Conta-se **440 aulas/mês** para a escola no tamanho máximo — a leitura
+conservadora, **3 escolas** na cota gratuita e não 13. E a razão pela qual o número real não se pode
+derivar hoje é a que fica registada: «a gente não sabe como é que a escola vai adotar de fato dentro
+do seu negócio de verdade, se ela vai pagar percentual para o professor ou se ela vai pagar por hora
+aula.» O número depende de um **modelo de negócio da escola** que ainda não existe; planeia-se com o
+pior caso e mede-se com o contador quando houver escolas a lançar. *(Afeta §L9f pontos 7 e 10, §L8 e
+a receita projectada. O `planos.json → teto.aulas` continua `null`, e por outro motivo: a promessa
+comercial é a franquia — 100/300/800 —, e o teto de aulas era a capacidade da infraestrutura, que
+esta decisão fixa.)*
 
 ---
 
@@ -2707,9 +2716,20 @@ promessa que não se pode verificar: o cartão mostra «100 aulas por mês» e *
 escola não trabalhou. É a mesma regra do `ancora: null`: o campo que não tem produtor sai nulo, e
 não sai zero.
 
-**A aula 01 conta?** A pergunta fica aberta e está registada no plano do contador (§7): pela regra
-— «uma aula conta quando está no `aulas` do `-dados.json`» —, **sim**, e isso significa que um ciclo
-gerado e nunca usado consome uma unidade. É decisão dela.
+**A aula 01 conta — e a pergunta foi minha, não dela.** «É claro que a aula um conta, que nasce com
+o ciclo. É a primeira aula, ela se chama aula um.» A regra do plano do contador não tem excepção: uma
+aula conta quando está no `aulas` do `-dados.json`, e a aula 01 está lá desde o primeiro dia. Fica
+dito o que isso implica, para não voltar como surpresa: **um ciclo gerado e nunca usado consome uma
+unidade** — a geração do ciclo é o acto que cria a primeira aula, e é o mais caro de todos (2 minutos
+de Actions). Se incomodar, o remédio é comercial, não um contador que ignora o que aconteceu.
+
+**E a C25 ficou resolvida no mesmo dia, com a prudência dela:** «Eu acho que a gente tem que contar
+com a capacidade menor, né? Para a gente ser prudente.» **440 aulas/mês** para a escola no tamanho
+máximo — a leitura conservadora, **3 escolas** na cota gratuita e não 13. A razão pela qual o número
+real não se pode derivar é a que fica: «a gente não sabe como é que a escola vai adotar de fato
+dentro do seu negócio de verdade, se ela vai pagar percentual para o professor ou se ela vai pagar
+por hora aula.» O número depende de um modelo de negócio da escola que ainda não existe; planeia-se
+com o pior caso e mede-se com o contador quando houver escolas a lançar.
 
 **Critérios verificáveis.** (xxvii) o painel mostra os minutos faturados da janela e eles batem com
 a fatura da API de uso dentro de 5% — o modelo `jobs × ⌈s/60⌉` é o que se usa, e `timing.billable`
@@ -3807,7 +3827,7 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | Extensões de **+20 / +50 / +100** aulas/mês, recorrentes | **§ADITIVO §5** |
 | **O preço da aula da extensão é maior do que o preço da aula de qualquer plano** — e por isso há um ponto de viragem onde migrar é melhor | **§L9f** ponto 9 (a regra corrigida por ela) · critérios (xxxii)–(xxxiii) |
 | A proposta de preço da extensão: **R$ 0,50/aula** = R$ 10 / R$ 25 / R$ 50 | **§L9f** ponto 9 — migra aos **160** e aos **380** aulas |
-| O consumo da escola **no tamanho máximo** | **§3 C24** (110/mês, resolvida) e **§3 C25** (110 × 440, aberta) |
+| O consumo da escola **no tamanho máximo** | **§3 C24** (110/mês, resolvida) e **§3 C25** (440/mês — resolvida a 17/11/2026, prudência) |
 | O que **não** se sabe ainda: o evento técnico que debita uma unidade, e o custo do cadastro | **§ADITIVO §6–7** — a instrumentação é obra, não mapa |
 
 ### A auditoria de 17/11/2026 — as cinco perguntas, e onde cada uma é respondida
@@ -3821,7 +3841,7 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
 | **Em que momento** migrar para plano pago | **§L9f** ponto 8 | a **projecção acima de 2.000 min** — não o crédito gasto; e o gatilho é **disponibilidade**, não preço |
 | O que **fundamenta** a conta | **§L9f** ponto 1 | o modelo `jobs × ⌈s/60⌉` reproduz a fatura em **+3,5%** (dez linhas diárias); `timing.billable` vem **0** |
 | O **dimensionamento** das extensões (+20 / +50 / +100) | **§L9f** ponto 9 | a janela **(R$ 0,333 ; R$ 0,699)** e a proposta a **R$ 0,50/aula** = R$ 10 / R$ 25 / R$ 50; migra aos **160** e aos **380** aulas |
-| A contradição que a aritmética achou | **§3 C24** — **resolvida**: as 5/dia são de uma escola **no tamanho máximo**, e o Básico lança ~13/mês | e **C25**, aberta por essa resposta: **110 × 440 aulas/mês** na mesma escola máxima |
+| A contradição que a aritmética achou | **§3 C24** — **resolvida**: as 5/dia são de uma escola **no tamanho máximo**, e o Básico lança ~13/mês | e **C25**, aberta por essa resposta e **resolvida no mesmo dia**: **440 aulas/mês** na escola máxima, por prudência |
 
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
@@ -3869,11 +3889,11 @@ registada aqui para que a **assinatura** e a **capacidade** não voltem a ser co
   manual justifica») **morreu**: a extensão soma-se à franquia no **mesmo Pix mensal**, logo não
   acrescenta uma linha a conciliar — o que sobra é o arredondamento, e é por aí que a proposta foi
   escolhida.
-- **Não decidiu quanto gasta a escola no tamanho máximo** *(17/11/2026)* — **C25**. As duas contas que
-  existem no documento para a *mesma* escola dão **110** e **440** aulas/mês, e a diferença decide se
-  a cota gratuita sustenta **13 escolas ou 3** e se a escola grande paga **R$ 79,90 ou R$ 139,90**.
-  Não há como derivar o número: não existe escola pagante a lançar aulas, e as duas hipóteses são
-  declarações, não medições.
+- **Decidiu quanto gasta a escola no tamanho máximo** *(17/11/2026)* — **C25, resolvida**: **440
+  aulas/mês**, que é a leitura **conservadora** («a gente tem que contar com a capacidade menor, para
+  a gente ser prudente»), e portanto **3 escolas** na cota gratuita e não 13. O número real não se
+  deriva hoje porque depende de um modelo de negócio da escola que ainda não existe — «se ela vai
+  pagar percentual para o professor ou se ela vai pagar por hora aula».
 - **Não alterou** nenhum arquivo de produto, nenhuma fonte de ciclo, nem o KV (a leitura foi
   somente leitura) — e **não implementou** a versão explícita decidida em C3: esta fase é
   diagnóstico e planeamento, e as três medidas que delimitam a implementação foram feitas em

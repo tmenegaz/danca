@@ -50432,3 +50432,60 @@ distingue de uma que não correu), compara o slug por **igualdade** e não por p
 `breu-rosa`), e corre **depois** da limpeza por prefixo, que é o que complementa. Uma falha nela
 marca a limpeza como incompleta — a pendência fica, e a próxima tentativa parte do mesmo lugar.
 `provar-o-expurgo-do-financeiro` **15/15**.
+
+**As referências de gente saíram dos dois ecrãs, e a escola que nasce já nasce certa.** Ela foi
+directa: «Também não tem que ter mais o tamanho de referência […] Isso não existe mais.» Saíram
+**«Tamanho de referência», «Além da referência» e «Referência do topo»** do cartão da escola, e
+**«Referência de tamanho» e «Além da referência»** do Financeiro do painel. Saiu também o
+**«adicional antigo por lote — legado»**, que eu tinha deixado no formulário para um contrato antigo
+poder ser reproduzido: «Aquele adicional antigo por lote legado que já não se vende mais, a gente
+também vai tirar.» Com ele saiu a função que desenhava as caixas — um gerador de marcação sem
+chamador é código morto que parece vivo.
+
+**O que ficou no cartão, e é o que se cobra:** o plano, a mensalidade real, a franquia de aulas, o
+que foi contratado além dela, o consumo do mês e o vencimento.
+
+**E a pergunta dela — «quando eu nascer a escola nova já vai estar certo?» — tinha um defeito por
+baixo, que foi encontrado ao medir.** O convite (`/recriar/<token>`) é por onde nasce uma escola, e
+oferecia **lotes de gente**: uma escola criada por ali nascia a comprar um eixo que já não existe, e
+o contrato saía com lotes que o painel já não sabia mostrar. Passou a oferecer **pacotes de aulas**, e
+o pedido leva `pacotes` até ao contrato gravado. `criar-escola` (o workflow) não grava contrato — essa
+parte sempre foi do Worker, e é a que está coberta.
+
+**O expurgo ganhou as quatro chaves que faltavam.** A limpeza por prefixo cobre-as; a **lista
+declarada** (`CHAVES_FIXAS_DA_ESCOLA`) é a rede para o dia em que o `kv.list` não responde — e é a
+cota diária que já estourou duas vezes nesta casa. Faltavam `comercial` (o contrato: plano, valor,
+pacotes, estado de pagamento), `cadastro` (nome, e-mail, telefone — dado pessoal), `linhas-de-base` e
+**`ensaio`** — esta última faria a escola NOVA nascer em ensaio, com meses por pagar que ninguém ligou:
+o oposto de «nascer certo».
+
+**As duas perguntas dela, respondidas.** A **aula 01 conta** — «é claro que conta, nasce com o ciclo»
+— e o que isso implica fica dito: um ciclo gerado e nunca usado consome uma unidade, e o remédio, se
+incomodar, é comercial. E a **C25 ficou resolvida**: conta-se **440 aulas/mês** para a escola no
+tamanho máximo, que é a leitura conservadora — «a gente tem que contar com a capacidade menor, para a
+gente ser prudente» —, logo **3 escolas** na cota gratuita e não 13. A razão pela qual o número real
+não se deriva fica registada: «a gente não sabe como é que a escola vai adotar de fato dentro do seu
+negócio de verdade, se ela vai pagar percentual para o professor ou se ela vai pagar por hora aula.»
+
+**O contrato da Breu foi corrigido no KV** (é escola de teste, e ela autorizou): estava **R$ 159,90**
+com plano Intermediário e dois lotes de gente, que é o preço de um eixo que já não existe. Passou a
+**R$ 109,90** — Intermediário (R$ 99,90, 300 aulas) **+ pacote P** (+20 aulas, R$ 10) = **320 aulas**
+—, com `pacotes: ['p']`, sem lotes, e um elo novo no histórico a dizer porquê. As mensalidades **já
+pagas** não se tocam: um mês pago é um facto.
+
+**Onde entrou.** `motor/servidor/bastidores.js` · `motor/servidor/painel-html.js` ·
+`motor/servidor/raiz.js` · `motor/servidor/expurgar-escola.js` · `PLANO-CONTADOR-DE-AULAS.md` §7 ·
+`PLANEJAMENTO-LASTRO.md` (C25 resolvida, a aula 01, o §9) ·
+`experimentos/provar-a-escola-que-nasce.js` (novo, 25 asserções) ·
+`experimentos/provar-a-franquia-de-aulas.js` (39 → 42) ·
+`experimentos/provar-financeiro-da-escola.js` (133 → 135) · `experimentos/provar-piso.js` · `.gitignore`.
+
+**Com o quê.** `provar-a-escola-que-nasce` **25/25** · `provar-a-franquia-de-aulas` **42/42** ·
+`provar-piso` **41/41** · `provar-financeiro-da-escola` **135/135** · `provar-financeiro` 58 ·
+`provar-monitoramento` 94 · `provar-conciliacao-do-painel` 35 · `provar-o-expurgo-do-financeiro` 15 ·
+`provar-paginacao` 120 · `provar-abas-da-audicao` 124 · `provar-a-moldura-em-todas-as-telas` 111 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** Repostas as quatro chaves fora da lista do expurgo, `provar-a-escola-que-nasce`
+**reprova 21/25** — e nomeia as quatro. É a diferença entre «a lista está completa» e «a lista está
+completa para as chaves de ontem».
