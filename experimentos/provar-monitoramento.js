@@ -751,6 +751,75 @@ function conferir(titulo, condicao, dado) {
           }));
           conferir('…e a 414px a caixa encolhe com a janela, em vez de forçar scroll',
             estreito.conteudo < 400 && estreito.transborda === false, estreito);
+
+          /* ── A INADIMPLÊNCIA (17/11/2026) ──────────────────────────────────────────────
+           *
+           * A ESCADA DELA: «não pagou um mês, fica inadimplente […] não pagou três meses, tá
+           * inadimplente, aí eu posso expurgar». A tabela do monitor é o que lhe diz quem
+           * contactar; a decisão de desabilitar e de expurgar continua a ser dela.
+           *
+           * O CASO, montado à mão e com os três degraus: uma escola em dia, uma com dois meses, e
+           * uma com três. A de três tem de cair em «pode expurgar», e as contas têm de fechar. */
+          const extratoDaEscada = [
+            { escola: 'emdia', nome: 'Em Dia', plano: 'basico', valorCentavos: 6990,
+              contratoVivo: true,
+              meses: [{ mes: '2026-11', venceu: true, status: 'pago', valorCentavos: 6990 }] },
+            { escola: 'dois', nome: 'Dois Meses', plano: 'intermediario', valorCentavos: 9990,
+              contratoVivo: true,
+              meses: [
+                { mes: '2026-11', venceu: true, status: 'aberto', valorCentavos: 9990 },
+                { mes: '2026-10', venceu: true, status: 'aberto', valorCentavos: 9990 },
+              ] },
+            { escola: 'tres', nome: 'Três Meses', plano: 'avancado', valorCentavos: 13990,
+              contratoVivo: true,
+              meses: [
+                { mes: '2026-11', venceu: true, status: 'aberto', valorCentavos: 13990 },
+                { mes: '2026-10', venceu: true, status: 'aberto', valorCentavos: 13990 },
+                { mes: '2026-09', venceu: true, status: 'aberto', valorCentavos: 13990 },
+              ] },
+          ];
+          const inad = monitor.inadimplencia({ extrato: extratoDaEscada, agora: '2026-11-17T12:00:00Z' });
+          conferir('a escada conta as três classes: 1 em dia, 1 com dois meses, 1 com três',
+            inad.emDia === 1 && inad.inadimplentes === 1 && inad.paraExpurgar === 1, inad);
+          conferir('…e a dívida soma só o que venceu e não está pago',
+            inad.dividaTotalCentavos === 9990 * 2 + 13990 * 3, inad.dividaTotalCentavos);
+          conferir('…e a lista é só de quem deve, o mais antigo primeiro',
+            inad.devedoras.length === 2 && inad.devedoras[0].escola === 'tres',
+            inad.devedoras.map((d) => d.escola));
+          conferir('…e a de três meses está no degrau «pode expurgar»',
+            inad.devedoras[0].classe === 'para-expurgar' && inad.devedoras[0].mesesVencidos === 3,
+            inad.devedoras[0].classe);
+          conferir('…e a de dois, no degrau da conversa',
+            inad.devedoras[1].classe === 'inadimplente' && inad.devedoras[1].mesesVencidos === 2,
+            inad.devedoras[1].classe);
+          /* O MÊS QUE AINDA NÃO VENCEU NÃO É DÍVIDA — cobrá-lo seria contar o futuro. */
+          const soFuturo = monitor.inadimplencia({
+            extrato: [{ escola: 'x', nome: 'X', contratoVivo: true,
+              meses: [{ mes: '2026-11', venceu: false, status: 'aberto', valorCentavos: 6990 }] }],
+            agora: '2026-11-17T12:00:00Z',
+          });
+          conferir('um mês que ainda não venceu não conta como atraso',
+            soFuturo.inadimplentes === 0 && soFuturo.devedoras.length === 0, soFuturo);
+          /* E A PÁGINA MOSTRA-A, com os três degraus ditos por palavras. */
+          const paginaInad = painel.paginaDoMonitoramento({
+            retrato: monitor.retrato({
+              github: null,
+              correio: monitor.resumirCorreio({ contadores: { mes: '2026-11', enviados: 0, dias: {} }, hoje: '2026-11-17' }),
+              cloudflare: monitor.resumirCloudflare({ escolas: [], chaves: {} }),
+              receita: monitor.receita({ extrato: extratoDaEscada, descontos: [], mes: '2026-11' }),
+              inadimplencia: inad,
+              cambio: 5.4, agora: '2026-11-17T12:00:00Z',
+            }),
+            cambio: 5.4, visibilidade: { publico: true }, aba: 'receita',
+          });
+          conferir('a aba da receita traz a caixa da inadimplência', /monitor-inadimplencia/.test(paginaInad), null);
+          conferir('…com as duas escolas devedoras e o degrau de cada uma',
+            /Dois Meses/.test(paginaInad) && /Três Meses/.test(paginaInad)
+              && /pode expurgar/.test(paginaInad) && /contactar/.test(paginaInad), null);
+          conferir('…e NÃO traz a que está em dia — a lista é para trabalhar',
+            !/Em Dia/.test(paginaInad), null);
+          conferir('…e diz que a decisão é dela, e não do sistema',
+            /decisões dela/.test(paginaInad), null);
         } finally {
           await pg2.close();
           srv2.close();

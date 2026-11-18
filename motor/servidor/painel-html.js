@@ -2328,6 +2328,59 @@ function blocoDoCorreio(co) {
 }
 
 /** A ABA DA RECEITA — o que entra, o que foi recebido, o que está em aberto. */
+/**
+ * A INADIMPLÊNCIA — quem deve, há quantos meses, e o que fazer (17/11/2026).
+ *
+ * A REGRA DELA, e a escada tem três degraus: «não pagou um mês, fica inadimplente […] não pagou
+ * três meses, tá inadimplente, aí eu posso expurgar a escola. […] eu vou entrar em contato com a
+ * escola, ver o que que aconteceu, tentar resolver e não perder o cliente.»
+ *
+ * A TABELA É PARA TRABALHAR, e não para olhar: uma linha por escola que DEVE, o mais antigo
+ * primeiro, com o telefone de contacto ao lado. Uma lista com as escolas em dia misturada faria
+ * procurar o que interessa no meio do que não interessa.
+ *
+ * E A DECISÃO NÃO SE AUTOMATIZA. O ecrã diz em que degrau está cada escola; quem desabilita, quem
+ * telefona e quem expurga é ela — «sou eu. Eu que faço isso. […] é uma estratégia minha para
+ * negociação.»
+ */
+function blocoDaInadimplencia(i) {
+  if (!i) return '';
+  const devedoras = Array.isArray(i.devedoras) ? i.devedoras : [];
+  const reais = (c) => 'R$ ' + ((Math.round(Number(c) || 0)) / 100).toFixed(2).replace('.', ',');
+  const selo = (classe) => (classe === 'para-expurgar'
+    ? '<span class="selo falha">3 meses ou mais — pode expurgar</span>'
+    : '<span class="selo alerta">1 a 2 meses — contactar</span>');
+  const linhas = devedoras.map((d) => '<tr>' +
+    '<td><strong>' + esc(d.nome || d.escola) + '</strong>'
+    + (d.planoNome ? '<br><span class="sub">' + esc(d.planoNome) + '</span>' : '') + '</td>' +
+    '<td>' + esc(String(d.mesesVencidos)) + '</td>' +
+    '<td>' + (d.desde ? esc(d.desde) : '—') + '</td>' +
+    '<td>' + esc(reais(d.dividaCentavos)) + '</td>' +
+    '<td>' + selo(d.classe) + '</td>' +
+    '</tr>').join('');
+  const tabela = devedoras.length
+    ? '<div class="rolagem-caixa"><table><thead><tr><th>Escola</th><th>Meses em atraso</th>' +
+      '<th>Devendo desde</th><th>Dívida</th><th>Degrau</th></tr></thead><tbody>' + linhas +
+      '</tbody></table></div>'
+    : '<p class="sub">Nenhuma escola com mensalidade vencida por pagar. Uma tabela vazia quer ' +
+      'dizer isso, e não que a leitura falhou.</p>';
+  return '<div class="caixa" id="monitor-inadimplencia">' +
+    '<h2>A inadimplência</h2>' +
+    '<p>Quem tem mensalidade vencida e não paga. O mês em curso que ainda não venceu não conta ' +
+    'como atraso — cobrá-lo seria contar o futuro.</p>' +
+    '<p><strong>' + esc(String(i.emDia)) + '</strong> em dia · <strong>'
+    + esc(String(i.inadimplentes)) + '</strong> com um ou dois meses · <strong>'
+    + esc(String(i.paraExpurgar)) + '</strong> com ' + esc(String(i.limiar))
+    + ' ou mais, já na saída da escada. Dívida total: <strong>' + esc(reais(i.dividaTotalCentavos))
+    + '</strong>.</p>' +
+    tabela +
+    '<p class="sub">A escada é a dela: um ou dois meses é a janela da conversa — contactar, ' +
+    'perceber o que aconteceu, tentar resolver sem perder o cliente. Aos três meses o sistema ' +
+    'diz que o prazo chegou; desabilitar e expurgar continuam a ser decisões dela, no painel da ' +
+    'escola e na lista das vivas.</p>' +
+    '</div>';
+}
+
 function blocoDaReceita(r, cambio) {
   if (!r) return '';
   const meses = [
@@ -2521,7 +2574,13 @@ function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
     corpo: cabecalho + tira +
       painel('consumo', blocoDoGithub(r.github) + blocoDoCloudflare(r.cloudflare) +
         blocoDoCorreio(r.correio), (aba || 'consumo') === 'consumo') +
-      painel('receita', blocoDaReceita(r.receita, cambio), aba === 'receita') +
+            /* A INADIMPLÊNCIA FICA NA ABA DA RECEITA, e não numa quarta (17/11/2026): é a mesma
+       * pergunta do dinheiro — «quanto entra» e «quem não pagou» lêem-se juntas, e uma aba a mais
+       * para uma tabela que se abre no mesmo gesto é um clique a mais todos os meses. Entra
+       * DEPOIS da receita e ANTES da migração: a receita diz o tamanho, a inadimplência diz quem
+       * está fora dele. */
+      painel('receita', blocoDaReceita(r.receita, cambio)
+        + blocoDaInadimplencia(r.inadimplencia), aba === 'receita') +
       painel('migracao', blocoDaMigracao(r.migracao, visibilidade, recado), aba === 'migracao') +
       SCRIPT_DAS_ABAS_DO_MONITOR +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',

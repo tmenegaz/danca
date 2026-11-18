@@ -715,6 +715,94 @@ function receita({ extrato, descontos, mes, agora } = {}) {
   };
 }
 
+/* ── A INADIMPLÊNCIA: QUEM DEVE, HÁ QUANTOS MESES, E O QUE FAZER ───────────────────────────────
+ *
+ * A REGRA DELA, e é uma escada de três degraus com uma acção em cada:
+ *
+ *   «A escola não pagou um mês, ela fica inadimplente. […] não pagou dois […] não pagou três meses,
+ *   tá inadimplente, aí eu posso expurgar a escola. […] pelo monitoramento eu vou saber se a escola
+ *   está adimplente ou inadimplente e vou entrar em contato com a escola, ver o que que aconteceu,
+ *   tentar resolver e não perder o cliente.»
+ *
+ * O QUE JÁ EXISTIA, e não se duplica: `situacaoDaEscola` (no extrato) já calcula, mês a mês, se
+ * venceu e se está pago; e `estadoDoExpurgo` (no `raiz.js`) já decide se a escola pode ser apagada.
+ * Esta função NÃO decide nada disso — ela CONTA os meses em atraso e dá-lhes o nome que a conversa
+ * usa. Uma segunda conta da dívida daria um segundo número, e o que ficasse a valer seria o que ela
+ * lesse primeiro.
+ *
+ * OS TRÊS NOMES, e porquê:
+ *   · `em-dia` — nada vencido por pagar. Não se contacta ninguém.
+ *   · `inadimplente` — um ou dois meses vencidos. É a janela da CONVERSA: «entrar em contato, ver o
+ *     que aconteceu, tentar resolver, e não perder o cliente». O número de meses é o que diz o tom.
+ *   · `para-expurgar` — três ou mais. É a saída da escada, e a decisão continua a ser dela: o
+ *     sistema diz que o prazo chegou, não apaga sozinho.
+ *
+ * A SUSPENSÃO NÃO ENTRA AQUI. Quem desabilita é ela («sou eu. Eu que faço isso. […] é uma
+ * estratégia minha para negociação»), e o estado comercial vem do registo — não se deriva de uma
+ * contagem de meses. Derivá-lo tirar-lhe-ia a alavanca: uma escola a quem ela decidiu dar mais um
+ * mês apareceria como suspensa por um número, e não pela decisão dela.
+ */
+const MESES_ATE_EXPURGAR = 3;
+
+function inadimplencia({ extrato, agora } = {}) {
+  const linhas = Array.isArray(extrato) ? extrato : [];
+  const vivas = linhas.filter((l) => l && l.contratoVivo !== false);
+  const porEscola = [];
+  let emDia = 0;
+  let inadimplentes = 0;
+  let paraExpurgar = 0;
+  let dividaTotalCentavos = 0;
+
+  for (const l of vivas) {
+    const meses = Array.isArray(l.meses) ? l.meses : [];
+    /* O QUE CONTA COMO DÍVIDA: o mês VENCEU e NÃO está pago. Um mês que ainda não venceu não é
+     * atraso — é o mês em curso, e cobrá-lo como dívida seria contar o futuro. E um mês pago não
+     * conta, mesmo que tenha sido pago tarde: o atraso já foi resolvido, e o que interessa à
+     * conversa é o que falta pagar. */
+    const vencidos = meses.filter((m) => m && m.venceu && m.status !== 'pago');
+    const n = vencidos.length;
+    const divida = vencidos.reduce((s, m) => s + Math.max(0, Number(m.valorCentavos) || 0), 0);
+    dividaTotalCentavos += divida;
+    let classe = 'em-dia';
+    if (n >= MESES_ATE_EXPURGAR) { classe = 'para-expurgar'; paraExpurgar += 1; }
+    else if (n > 0) { classe = 'inadimplente'; inadimplentes += 1; }
+    else emDia += 1;
+    if (n > 0) {
+      porEscola.push({
+        escola: l.escola,
+        nome: l.nome || l.escola,
+        mesesVencidos: n,
+        /* O MÊS MAIS ANTIGO é o que âncora a conversa: «está devendo desde agosto». */
+        desde: vencidos.length ? String(vencidos[vencidos.length - 1].mes || '') : null,
+        dividaCentavos: divida,
+        classe,
+        plano: l.plano || null,
+        planoNome: l.planoNome || null,
+        estadoComercial: l.estadoComercial || null,
+      });
+    }
+  }
+
+  /* O MAIS ANTIGO PRIMEIRO: é a ordem do trabalho — quem deve há mais tempo é quem se contacta
+   * primeiro, e a lista é para isso. */
+  porEscola.sort((a, b) => (b.mesesVencidos - a.mesesVencidos)
+    || String(a.desde || '').localeCompare(String(b.desde || '')));
+
+  return {
+    agora: agora || null,
+    limiar: MESES_ATE_EXPURGAR,
+    escolas: vivas.length,
+    emDia,
+    inadimplentes,
+    paraExpurgar,
+    dividaTotalCentavos,
+    /* A LISTA SÓ TEM QUEM DEVE. Uma lista com as escolas em dia ao lado das devedoras faria
+     * procurar o que interessa no meio do que não interessa — e a pergunta desta tabela é «quem é
+     * que eu tenho de contactar». */
+    devedoras: porEscola,
+  };
+}
+
 /* ── A MIGRAÇÃO: O QUE CUSTA, E O QUE FAZ À RECEITA ─────────────────────────────────────────── */
 
 /**
@@ -825,7 +913,7 @@ function impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd } = {}) {
  * O que a página desenha, num objecto só. `agora` é o carimbo (ISO) e `hoje` é o dia LOCAL — a
  * mesma separação do `mensalidades.js`: o mês e o dia de uma cota são os do fuso da escola.
  */
-function retrato({ github, correio, cloudflare, receita: r, cambio, custosAtuaisUsd, agora } = {}) {
+function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad, cambio, custosAtuaisUsd, agora } = {}) {
   const migracao = impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd });
   /* O ALERTA É O PIOR DOS TRÊS, e não a média: uma cota a 95% e duas a 10% é uma cota a 95%. */
   const fraccoes = [github && github.fraccao, correio && correio.fraccao, correio && correio.fraccaoDia,
@@ -837,6 +925,10 @@ function retrato({ github, correio, cloudflare, receita: r, cambio, custosAtuais
     correio: correio || null,
     cloudflare: cloudflare || null,
     receita: r || null,
+    /* A INADIMPLÊNCIA ENTRA NO RETRATO (17/11/2026): é a mesma família da receita — dinheiro que
+     * devia ter entrado e não entrou —, e é a lista de quem contactar. Vai separada da receita
+     * porque responde a outra pergunta: a receita diz «quanto entra», esta diz «quem não pagou». */
+    inadimplencia: inad || null,
     migracao,
     piorFraccao: pior,
     /* OS TRÊS NÍVEIS, e a mesma régua em todas as cotas da casa: 80% é «atenção», 95% é «agora». */
@@ -905,6 +997,8 @@ module.exports = {
   resumirCorreio,
   resumirCloudflare,
   receita,
+  inadimplencia,
+  MESES_ATE_EXPURGAR,
   impactoDaMigracao,
   retrato,
 };

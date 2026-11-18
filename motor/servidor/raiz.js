@@ -3811,6 +3811,11 @@ async function fetch(request, env) {
       const descontos = await lerDescontos(kv);
       const extrato = await extratoDasEscolas({ env, escolas, agora: agoraIso });
       const receita = monitoramento.receita({ extrato, descontos, mes, agora: agoraIso });
+      /* QUEM DEVE, E HÁ QUANTOS MESES (17/11/2026). «Pelo monitoramento eu vou saber se a escola
+       * está adimplente ou inadimplente e vou entrar em contato com a escola, ver o que que
+       * aconteceu, tentar resolver e não perder o cliente.» A conta é do núcleo (`inadimplencia`),
+       * e o monitor só a mostra — a mesma disciplina da receita, que vem do livro. */
+      const inadimplencia = monitoramento.inadimplencia({ extrato, agora: agoraIso });
 
       /* O CÂMBIO É DECLARADO, e não descoberto: buscar a cotação seria uma dependência externa que
        * falha em silêncio e muda o número sem ninguém saber. Vem do `env` (`CAMBIO_USD_BRL`), e o
@@ -3818,7 +3823,7 @@ async function fetch(request, env) {
       const cambio = Number(env && env.CAMBIO_USD_BRL) > 0 ? Number(env.CAMBIO_USD_BRL) : null;
 
       const retrato = monitoramento.retrato({
-        github, correio, cloudflare, receita,
+        github, correio, cloudflare, receita, inadimplencia,
         cambio,
         /* OS CUSTOS DE HOJE SÃO ZERO, e é o número certo: os três planos em uso são gratuitos.
          * Quando um deles passar a ser pago, este é o valor que entra na coluna «diferença». */

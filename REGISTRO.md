@@ -50489,3 +50489,50 @@ pagas** não se tocam: um mês pago é um facto.
 **Controlo A/B.** Repostas as quatro chaves fora da lista do expurgo, `provar-a-escola-que-nasce`
 **reprova 21/25** — e nomeia as quatro. É a diferença entre «a lista está completa» e «a lista está
 completa para as chaves de ontem».
+
+**A inadimplência tem uma escada, e quem a percorre é ela.** A pergunta que ficara aberta — «o que
+acontece a um mês sem pagamento e com aulas processadas?» — foi respondida por inteiro: «a escola não
+pagou três meses, tá inadimplente, aí eu posso expurgar a escola […] pelo monitoramento eu vou saber se
+a escola está adimplente ou inadimplente e vou entrar em contato […] tentar resolver e não perder o
+cliente.»
+
+**A resposta, e o que já estava feito.** Uma escola sem pagamento **fica desabilitada** — «o máximo que
+ela consegue é visualizar as coisas, ela não consegue criar, editar, não consegue fazer nada». Isso já
+era o comportamento, com as mesmas palavras dela: `producao.js` devolve **402** à escrita
+(`ehEscrita`) e deixa passar toda a leitura, porque «cortar a leitura de um relatório já escrito seria
+apagar trabalho, não cobrar». E **quem desabilita é ela**: «sou eu. Eu que faço isso. […] é uma
+estratégia minha para negociação.»
+
+**O que foi acrescentado: a tabela do monitor.** `monitoramento.inadimplencia` conta, por escola, os
+meses vencidos e não pagos, o mês desde quando, a dívida e o degrau — **1 a 2 meses = contactar; 3 ou
+mais = pode expurgar**. Três decisões de desenho, e cada uma tem motivo:
+
+- **Só quem deve.** Uma lista com as escolas em dia ao lado das devedoras faria procurar o que
+  interessa no meio do que não interessa.
+- **O mais antigo primeiro** — é a ordem do trabalho: quem deve há mais tempo é quem se contacta
+  primeiro.
+- **O mês que ainda não venceu não conta.** Cobrá-lo seria contar o futuro.
+
+**E a suspensão NÃO se deriva da contagem.** O estado comercial vem do registo, e não de um número:
+uma escola a quem ela decidiu dar mais um mês apareceria como suspensa por um número, e não pela
+decisão dela — e a alavanca da negociação é justamente essa. **O sistema conta; ela decide.** É a
+mesma disciplina do resto da casa: o painel mostra o facto, a decisão fica onde tem dono.
+
+**O regime de teste está LIGADO, e fica declarado.** `CARENCIA_DE_TESTE_MINUTOS = 5`, e a chave
+`expurgo/regime-de-teste-desde` existe no KV desde 16/11/2026 (`2026-11-16T12:29:36.744Z`): hoje a
+carência do expurgo é de **cinco minutos**, não de três meses. O próprio código o diz — «uma escola
+suspensa por engano é apagada cinco minutos depois». A regra de negócio enunciada é de **três meses**,
+logo o interruptor tem de voltar a `null` **antes** de existir uma escola de verdade a pagar. Não o
+desliguei: é decisão dela, e a Breu está em teste.
+
+**Onde entrou.** `motor/nucleo/monitoramento.js` (`inadimplencia`, `MESES_ATE_EXPURGAR`, e o
+`inadimplencia` no `retrato`) · `motor/servidor/raiz.js` (a conta e a passagem ao retrato) ·
+`motor/servidor/painel-html.js` (`blocoDaInadimplencia`, na aba da receita e não numa quarta — «quanto
+entra» e «quem não pagou» lêem-se juntos) · `PLANO-CONTADOR-DE-AULAS.md` §7.3 e §7.4 (**as quatro
+perguntas fechadas**) · `PLANEJAMENTO-LASTRO.md` (a escada, o regime de teste, e os critérios
+(xl)–(xliii)) · `experimentos/provar-monitoramento.js` (94 → 104).
+
+**Com o quê.** `provar-monitoramento` **104/104** · `provar-a-escola-que-nasce` 25 ·
+`provar-a-franquia-de-aulas` 42 · `provar-piso` 41 · `provar-financeiro` 58 ·
+`provar-financeiro-da-escola` 135 · `provar-conciliacao-do-painel` 35 ·
+`provar-o-expurgo-do-financeiro` 15 · `check-identidade` 0 erros · `check-sem-destruicao` 0 violações.

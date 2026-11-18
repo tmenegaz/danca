@@ -244,10 +244,11 @@ o mês, e devolve um número. Tudo o que está acima já existe para o receber.
 
 ---
 
-## 7. As quatro perguntas — duas respondidas a 17/11/2026
+## 7. As quatro perguntas — todas respondidas a 17/11/2026
 
-Este plano deixou quatro perguntas abertas. A proprietária respondeu a duas, e a resposta a uma delas
-fecha uma contradição que estava a mudar a capacidade do produto por um factor de 4.
+Este plano deixou quatro perguntas abertas. A proprietária respondeu às quatro, e uma delas fecha uma
+contradição que estava a mudar a capacidade do produto por um factor de 4. **A ordem em que ficam é a
+da decisão, e não a da pergunta.**
 
 ### 7.1 A aula 01 conta? — **CONTA**, e não era pergunta
 
@@ -286,15 +287,56 @@ quando houver escolas a lançar. O `planos.json → teto.aulas` fica **null** na
 agora, mas porque um teto comercial é uma promessa, e a promessa é a franquia (100/300/800). O que a
 C25 decidia era a **capacidade da infraestrutura**, e essa está decidida: 3 escolas no tamanho máximo.
 
-### 7.3 O que fica aberto, e são duas
+### 7.3 A inadimplência — a escada, e quem a percorre
 
-3. **O que acontece a um mês sem pagamento e com aulas processadas.** O excedente de um mês em aberto
-   soma-se à dívida? Fica suspenso? O §ADITIVO não o diz, e a L11 (a porta paga) é quem o decide.
-   *(Não foi perguntado, e não se decide por dedução.)*
-4. **O `ensaio` e a franquia.** O relógio comprimido move os meses das mensalidades; a franquia é do
-   mês civil. O plano **não os liga**, e a razão está escrita: uma franquia que muda de tamanho
-   enquanto se testa não se pode comparar com nada. O ensaio **nasce desligado** numa escola nova, e
-   ligado começa no mês que não está pago — medido em `provar-a-escola-que-nasce` (25 asserções).
+> «A escola não pagou um mês, ela fica inadimplente. […] não pagou três meses, tá inadimplente, aí eu
+> posso expurgar a escola. […] Pelo monitoramento eu vou saber se a escola está adimplente ou
+> inadimplente e vou entrar em contato com a escola, ver o que que aconteceu, tentar resolver e não
+> perder o cliente.»
+
+**A resposta à pergunta que estava aberta: a escola fica DESABILITADA.** E o que «desabilitada»
+significa já estava implementado, com as palavras dela: **«só tem acesso a ler as coisas que já foram
+desenvolvidas […] mas fica impossível criar qualquer outro documento, fazer qualquer edição.»** É o
+que `producao.js` faz — `ehEscrita(request, path)` devolve **402** com a frase do núcleo, e a leitura
+passa toda. A decisão de **desabilitar é dela**, e não do sistema: «quem é que habilita ou
+desabilita? Sou eu. Eu que faço isso. […] é uma estratégia minha para negociação.»
+
+**A escada, e o que o sistema faz em cada degrau:**
+
+| meses em atraso | o que o sistema diz | o que ela faz |
+|:--|:--|:--|
+| **0** | em dia | nada |
+| **1 a 2** | `inadimplente` — a janela da conversa | contacta, percebe o que aconteceu, tenta resolver, não perde o cliente |
+| **3 ou mais** | `para-expurgar` | decide: mais um mês, ou o expurgo (que exige a carência cumprida) |
+
+**O que foi acrescentado ao monitor** (`monitoramento.inadimplencia`): a lista de quem deve, o mais
+antigo primeiro, com os meses em atraso, o mês desde quando, a dívida e o degrau. **Só quem deve** —
+uma lista com as escolas em dia ao lado faria procurar o que interessa no meio do que não interessa.
+E o **mês que ainda não venceu não conta**: cobrá-lo seria contar o futuro.
+
+**O que NÃO se automatizou, e é a decisão:** a suspensão não se deriva de uma contagem. Uma escola a
+quem ela decidiu dar mais um mês apareceria como suspensa por um número, e não pela decisão dela — e
+a alavanca da negociação é justamente essa. O sistema conta; ela decide.
+
+**O regime de teste está LIGADO, e é um risco declarado.** `CARENCIA_DE_TESTE_MINUTOS = 5` e a chave
+`expurgo/regime-de-teste-desde` existe no KV (gravada a 16/11/2026): hoje a carência é de **cinco
+minutos**, e não de três meses. O próprio código o diz — «uma escola suspensa por engano é apagada
+cinco minutos depois». Enquanto a regra de negócio é de três meses, o interruptor tem de voltar a
+`null` **antes** de existir uma escola de verdade a pagar.
+
+### 7.4 O que fica aberto
+
+**Nada, das quatro.** As duas primeiras foram respondidas em §7.1 e §7.2, a terceira em §7.3, e a
+quarta — o `ensaio` e a franquia — fecha-se com uma regra e não com uma pergunta: o relógio comprimido
+move os meses das **mensalidades**, e a franquia é do **mês civil**; o plano **não os liga**, e a razão
+está escrita (uma franquia que muda de tamanho enquanto se testa não se pode comparar com nada). O
+ensaio **nasce desligado** numa escola nova, e ligado começa no mês que não está pago — medido em
+`provar-a-escola-que-nasce` (25 asserções).
+
+**O que continua a ser obra, e não pergunta:** o contador de aulas do §6. Enquanto ele não existir, a
+franquia mostra-se e o consumo cala-se — e o excedente da escola inadimplente não se pode calcular,
+porque não há número de aulas usadas. **A escada da inadimplência não depende dele:** ela conta meses
+do livro, e o livro já existe.
 
 ---
 

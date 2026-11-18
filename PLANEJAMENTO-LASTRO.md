@@ -2723,6 +2723,27 @@ dito o que isso implica, para não voltar como surpresa: **um ciclo gerado e nun
 unidade** — a geração do ciclo é o acto que cria a primeira aula, e é o mais caro de todos (2 minutos
 de Actions). Se incomodar, o remédio é comercial, não um contador que ignora o que aconteceu.
 
+**E a inadimplência tem uma escada, e é uma regra de negócio inteira** *(17/11/2026)*: um mês sem
+pagamento → contactar; dois → contactar outra vez; **três → a escola pode ser expurgada**. E a
+resposta à pergunta que faltava — «o que acontece a uma escola sem pagamento e com aulas
+processadas?» — é: **fica desabilitada**. «O máximo que ela consegue é visualizar as coisas, ela não
+consegue criar, editar, não consegue fazer nada, só consegue visualizar. E aí isso vai durar três
+meses e aí não tendo jeito de resolver, ela vai ser expurgada.»
+
+**Quem desabilita é ela**, e isso não é detalhe de implementação — é a alavanca: «quem é que habilita
+ou desabilita? Sou eu. Eu que faço isso. […] é uma estratégia minha para negociação.» O que estava
+feito continua a valer: a suspensão devolve **402** à escrita e deixa passar toda a leitura
+(`producao.js`, `ehEscrita`), porque cortar a leitura de um relatório já escrito seria apagar
+trabalho, e não cobrar. O que foi **acrescentado** é a tabela do monitor: quem deve, há quantos meses,
+desde quando, quanto, e em que degrau da escada — **só quem deve**, o mais antigo primeiro, e o mês
+que ainda não venceu não conta.
+
+**O regime de teste está LIGADO, e é um risco medido.** `CARENCIA_DE_TESTE_MINUTOS = 5` e a chave
+`expurgo/regime-de-teste-desde` existe no KV (gravada a 16/11/2026): hoje a carência do expurgo é de
+**cinco minutos**, e não de três meses. O próprio código o declara — «uma escola suspensa por engano é
+apagada cinco minutos depois». A regra de negócio que ela acaba de enunciar é de **três meses**, logo
+o interruptor tem de voltar a `null` **antes** de existir uma escola de verdade a pagar.
+
 **E a C25 ficou resolvida no mesmo dia, com a prudência dela:** «Eu acho que a gente tem que contar
 com a capacidade menor, né? Para a gente ser prudente.» **440 aulas/mês** para a escola no tamanho
 máximo — a leitura conservadora, **3 escolas** na cota gratuita e não 13. A razão pela qual o número
@@ -2741,7 +2762,7 @@ uso declarada — nunca da franquia sozinha; (xxxi) o gatilho de migração é a
 preço da aula de qualquer plano** — a asserção corre sobre a tabela inteira, e uma extensão a R$ 0,30
 tem de reprovar; (xxxiii) o **ponto de viragem** de cada degrau é calculado e exibido, e acima dele o
 plano de cima tem de custar **menos** do que o plano de baixo com extensões de volume equivalente;
-(xxxiv) o catálogo declara 100 / 300 / 800 e o código não repete nenhum desses números; (xxxv) `travaDoPiso` devolve `cabe: true` para qualquer quantidade de pessoas, e `referencia`/`aviso` quando passa; (xxxvi) a conta devolve `excedente` e nunca uma recusa por franquia; (xxxvii) `situacaoDaFranquia` distingue `usadas: null` de `usadas: 0`; (xxxviii) nenhuma superfície chama «piso» ou «teto» ao número de pessoas; (xxxix) a soma de aulas do parque é `null` quando algum contrato não tem contagem — nunca uma parte apresentada como o todo. Estes seis últimos são os da **implementação de 17/11/2026**, e correm em `experimentos/provar-a-franquia-de-aulas.js` (39 asserções).
+(xxxiv) o catálogo declara 100 / 300 / 800 e o código não repete nenhum desses números; (xxxv) `travaDoPiso` devolve `cabe: true` para qualquer quantidade de pessoas, e `referencia`/`aviso` quando passa; (xxxvi) a conta devolve `excedente` e nunca uma recusa por franquia; (xxxvii) `situacaoDaFranquia` distingue `usadas: null` de `usadas: 0`; (xxxviii) nenhuma superfície chama «piso» ou «teto» ao número de pessoas; (xxxix) a soma de aulas do parque é `null` quando algum contrato não tem contagem — nunca uma parte apresentada como o todo. Estes seis últimos são os da **implementação de 17/11/2026**, e correm em `experimentos/provar-a-franquia-de-aulas.js` (42 asserções). Os quatro seguintes são os da **inadimplência**, que a proprietária enunciou como regra de negócio a 17/11/2026: (xl) a escola suspensa **lê tudo e não escreve nada** — a escrita devolve 402 com a frase do núcleo, e a leitura passa; (xli) a inadimplência conta **só os meses vencidos e não pagos**, e um mês que ainda não venceu não é atraso; (xlii) a lista de devedores traz **só quem deve**, o mais antigo primeiro, e diz o degrau de cada escola (1–2 = contactar; 3+ = pode expurgar); (xliii) o sistema **conta e não decide** — desabilitar e expurgar não se derivam de uma contagem de meses, porque a alavanca da negociação é dela. Correm em `experimentos/provar-monitoramento.js` (104 asserções).
 
 **O que esta auditoria NÃO mede, e não pode medir hoje.** (a) **A taxa de uso real de uma escola** —
 não existe nenhuma escola pagante a lançar aulas; o que há são as escolas de teste, e o consumo delas
