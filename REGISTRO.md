@@ -51499,3 +51499,65 @@ asserção do elenco **passava com o link removido** — porque procurava `data-
 página inteira e o cartão da Turma também o emite. Passou a ser recortada no `<li>` da aluna. É a
 mesma família de erro que esta casa persegue: uma asserção que encontra o que procura no sítio errado
 não mede nada.
+
+## 18/11/2026 — «Turma não encontrada: (vazio)», e o cadastro da aluna que nunca acontecia
+
+**Os dois defeitos eram meus, e os dois do dia de hoje.** Ela foi derivar uma Sala e recebeu
+`turma não encontrada: (vazio)`; foi cadastrar uma aluna já existente e nada aconteceu — nem
+listagem, nem e-mail.
+
+**1. O `derivarDe` desapareceu com o campo da data.** Ao tirar o «Vale a partir de» (`ab173012`),
+apaguei com ele a linha `campos.derivarDe = derivando;` — ela vivia entre o ramo do «editar» e o do
+motivo, e saiu junto. Ficaram **dois caminhos certos** (criar e editar) e **um a mandar um corpo sem
+identidade**: o servidor recebia `derivarDe` vazio, não encontrava a sala, e respondia com o
+`(vazio)` que ela leu. A linha voltou, com o comentário que diz o que ela é.
+
+**Porque não se viu, e a lição que fica.** A tira dos passos **não grava** — só navega —, e por isso
+«ir ao step 2 pelo step» funcionava; era o «Avançar» que chamava o `submit`. E a prova que existia
+media o `ajustarTurma` a **preencher** o formulário, não o que ele **envia**: a metade que faltava
+é exactamente a que estava quebrada. A secção K da prova passa a medir o corpo do pedido.
+
+**2. Dois pedidos para um acto, e o primeiro a fechar a porta.** O cliente fazia `POST /aluna` e só
+depois `POST /matricula`. Para uma aluna **que já existe** — e as desta escola existem todas, criadas
+antes de os vínculos serem inventados —, o primeiro devolvia **409** e o cliente **abortava ali**:
+sem vínculo, sem e-mail, sem nada na listagem. O 409 estava certo; a chamada é que era a errada.
+Passou a ser **um pedido só**, e quem decide se a aluna nasce é o servidor. O piso conta só a aluna
+nova: um vínculo novo numa aluna que já estava no cadastro não ocupa lugar que não fosse dela.
+
+**E o e-mail continua a não sair — mas agora diz porquê.** `RESEND_API_KEY` não está posta no Worker
+(é o estado documentado a 16/11). A mensagem é composta, o desfecho diz `enviado: false` e a tela
+avisa. O que faltava era o vínculo existir para a mensagem ser composta.
+
+**O véu dizia «turma» no botão que grava a sala.** *«aparece quando eu clico em gravar sala, aparece
+gravar turma no véu. E ele está gravando a sala, né? Ele não está gravando uma turma.»* A rota
+`/api/bastidores/turma-rubrica` não estava no mapa de frases, e o véu mostrava a frase que o gesto lhe
+passava de fora — escrita quando a secção ainda se chamava Turmas. As quatro frases da Sala passaram a
+dizer **Sala**, e a asserção recusa qualquer «turma» nas quatro.
+
+**A aluna antiga deriva com o que a escola já sabe.** *«quando eu clico em derivar esses campos estão
+vazios de novo.»* Uma aluna sem `matriculas` está, mesmo assim, numa curadoria — e a curadoria diz a
+modalidade e o professor dela. O botão passa a levá-los. O **id** fica vazio, e é a verdade: não há
+vínculo a substituir, esta anamnese é a primeira. A marca de derivação passou a ser um campo próprio
+(`aluna-em-derivacao`), separada do id, porque o rótulo do botão não pode depender de haver vínculo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`campos.derivarDe`; `turma-rubrica` no mapa do véu e
+as quatro frases; a rota `/matricula` a garantir o cadastro; o cliente com um pedido só;
+`modalidadeDoVinculo`/`professorDoVinculo`; `aluna-em-derivacao`) ·
+`experimentos/provar-cadastro-da-aluna.js` (secções K, L e M).
+
+**Com o quê.** `provar-cadastro-da-aluna` **59/59** (eram 52) · `provar-acordeoes` TUDO CERTO ·
+`provar-salas-e-elencos` 131/131 · `provar-abas-da-audicao` 125/125 · `provar-vao-do-botao` 38/38 ·
+`check-identidade` 0 erros · o `<script>` servido compila.
+
+**Controlo A/B.** O `derivarDe` a faltar: **reprova 1**. O cliente a voltar aos dois pedidos:
+**reprova 1**. O véu sem a rota: **reprova 2**. A aluna antiga sem o que se sabe: **reprova 3**.
+
+**E DUAS ASSERÇÕES QUE NASCERAM A MEDIR NADA, as duas minhas, e as duas apanhadas pelo A/B:**
+- a do «um pedido só» recortava o fonte a partir do `id="form-aluna"` com uma janela de 4 000
+  caracteres — e o `submit` está a milhares de distância; recebia a string vazia e **passava por não
+  haver nada para ler**;
+- a seguir, com a janela a partir do handler, o tecto de 3 000 caracteres ficou **4 caracteres curto**
+  do defeito injectado — e voltou a passar.
+
+Passou a encontrar o **fim do handler** em vez de o estimar. Um tecto fixo numa região de tamanho
+variável é uma asserção que se desliga sozinha no dia em que alguém acrescenta uma linha.
