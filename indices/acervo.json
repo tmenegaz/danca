@@ -64,14 +64,14 @@
         "ciclo:demi-plie/01/breu"
       ],
       "contagens": {
-        "anamneses": 2,
+        "anamneses": 3,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "recortes": 0,
-        "registros": 2
+        "registros": 3
       },
       "criada_em": "2026-11-17T00:41:45.598067+00:00",
       "expurgada": false,
@@ -86,7 +86,8 @@
       ],
       "registros": [
         "anamnese:anamnese-20261116-2201",
-        "anamnese:anamnese-20261117-1407"
+        "anamnese:anamnese-20261117-1407",
+        "anamnese:anamnese-20261118-1737"
       ],
       "slug": "breu"
     },
@@ -156,7 +157,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -329,7 +330,7 @@
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       }
@@ -337,9 +338,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e7218db"
+    "commit": "70a26ef"
   },
-  "gerado_em": "2026-11-18T19:11",
+  "gerado_em": "2026-11-18T20:37",
   "nao_indexado": [
     {
       "familia": "conteudo",
