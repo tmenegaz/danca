@@ -178,9 +178,15 @@ function nomesRepetidos(script) {
       tradicao: (q('vntradicao') || {}).value,
       frase: (q('vb-frase') || {}).value || '',
       bloqueados: ['vncategoria', 'vntradicao', 'vb-frase'].map((id) => Boolean((q(id) || {}).disabled)),
-      oficial: ((q('vb-oficial') || {}).textContent || '').trim(),
-      notaDaFrase: ((q('vb-frase-nota') || {}).textContent || '').trim(),
-      notoDoBloqueio: ((q('vb-vigor-nota') || {}).textContent || '').trim(),
+      /* AS TRÊS LINHAS DE PROSA DO PASSO 1 SAÍRAM (18/11/2026), e o que se mede é a AUSÊNCIA
+       * delas — não o texto que tinham. Ver `provar-producao` para a regra; aqui mede-se que
+       * nenhuma sobrevive no documento que o navegador montou. */
+      sobras: ['vb-frase-nota', 'vb-oficial', 'vb-vigor-nota'].filter((id) => q(id)),
+      /* O «CANCELAR» — escondido ao abrir, aceso pela edição (18/11/2026). */
+      cancelar: (() => {
+        const b = q('vb-cancelar');
+        return b ? { hidden: b.hidden, visivel: visivel(b) } : null;
+      })(),
       seguir: seguir ? { disabled: seguir.disabled, titulo: seguir.getAttribute('title') || '' } : null,
       dicionario: (window.VERBETES && window.VERBETES.exerciciosDoVocabulario || []).map((t) => t && t.termo),
     };
@@ -206,6 +212,13 @@ function nomesRepetidos(script) {
       if (cf) cf.hidden = false;
     });
     await new Promise((r) => setTimeout(r, 700));
+    /* O ESTADO DO ARRANQUE, LIDO ANTES DE ALGUÉM LHE TOCAR (18/11/2026). É a única leitura que
+     * responde a «como é que a página abre»; daqui para a frente a prova escreve nos campos e o
+     * que se mede já é o efeito do que ela escreveu. */
+    const aoAbrir = await estado();
+    conferir('ao abrir, o passo 1 está vazio (o navegador repõe os campos, e nenhum é resposta)',
+      JSON.stringify([aoAbrir.categoria, aoAbrir.tradicao, aoAbrir.frase]) === '["","",""]',
+      [aoAbrir.categoria, aoAbrir.tradicao, aoAbrir.frase]);
 
     console.log('\nB. OS QUATRO OBRIGATÓRIOS — e o «Seguir» acorda com o último');
     // A ORDEM DELA: o nome, a categoria, a tradição — e a definição por último. É a ordem que
@@ -259,10 +272,12 @@ function nomesRepetidos(script) {
     conferir('a frase do professor NÃO é bloqueada', depois.bloqueados[2] === false, depois.bloqueados);
     conferir('…e é a que ela escreveu que fica no campo', depois.frase === 'Lançamento rápido da perna estendida.',
       depois.frase);
-    conferir('a definição oficial aparece como REFERÊNCIA, e é a do dicionário',
-      /Lançamento rápido da perna estendida a uma altura baixa/.test(depois.oficial), depois.oficial);
-    conferir('…e diz que não se edita por ali — para a mudar, edita-se o termo',
-      /edite o termo no vocabulário/.test(depois.oficial), depois.oficial);
+    /* A LINHA DA DEFINIÇÃO OFICIAL SAIU (18/11/2026), e a asserção vai atrás dela. Ela mostrava a
+     * definição do dicionário como referência ao lado do campo; o pedido foi que o passo 1 ficasse
+     * com rótulo, campo e placeholder — e a definição já chega ao campo. Uma prova que continuasse
+     * a exigir o texto dela estaria a exigir uma tela que já não existe. */
+    conferir('o passo 1 não guarda nenhuma das três linhas de prosa que ele tinha',
+      depois.sobras.length === 0, depois.sobras);
     /* A CORRECÇÃO À MÃO SOBREVIVE À SUGESTÃO (18/11/2026 — a asserção que substitui as duas que
      * mediam o texto do antigo bloqueio, e que a regra de 10/11 apagou de propósito).
      *
@@ -353,7 +368,7 @@ function nomesRepetidos(script) {
         tradicao: (q('vntradicao') || {}).value,
         // A FRASE: preenchida a partir do dicionário quando não há nada gravado (P-03/P-04).
         frase: (q('vb-frase') || {}).value || '',
-        oficial: ((q('vb-oficial') || {}).textContent || '').trim(),
+        sobras: ['vb-frase-nota', 'vb-oficial', 'vb-vigor-nota'].filter((id) => document.getElementById(id)),
         bloqueados: ['vncategoria', 'vntradicao', 'vb-frase'].map((id) => Boolean((q(id) || {}).disabled)),
       };
     });
@@ -365,8 +380,76 @@ function nomesRepetidos(script) {
     conferir('…e os três ficam editáveis, como os outros — o dicionário sugere, não tranca',
       daLista.bloqueados[0] === false && daLista.bloqueados[1] === false
         && daLista.bloqueados[2] === false, daLista.bloqueados);
-    conferir('…e a definição oficial continua à vista como referência',
-      /altura baixa/.test(daLista.oficial), daLista.oficial);
+    conferir('…e a lista de sugestões não ressuscita a linha da definição oficial',
+      daLista.sobras.length === 0, daLista.sobras);
+
+    /* ======================================================================================
+     * H. O FORMULÁRIO NASCE LIMPO, E O «CANCELAR» SÓ EXISTE QUANDO HÁ O QUE CANCELAR
+     * ======================================================================================
+     *
+     * «Nesse primeiro [passo] não tem esse botão cancelar» e «limpar o formulário quando carrega
+     * ele na página, mantém ele limpo» (18/11/2026).
+     *
+     * OS DOIS DEFEITOS TÊM A MESMA FORMA: a tela a mostrar um estado que ninguém declarou. O
+     * botão, à vista sem haver o que desfazer; os quatro campos do passo 1, preenchidos com o que
+     * uma sessão anterior tinha escrito (o navegador repõe `<input>` e `<select>` sozinho, e os
+     * dois `<select>` voltavam com «passo» e «compartilhada» como se fossem resposta).
+     *
+     * MEDE-SE A CONTRATO, e não o acidente: sujam-se os campos de propósito, chama-se a limpeza
+     * que o arranque chama, e mede-se o que sai. A contraprova está na mesma secção — com os
+     * campos sujos, o estado que se mede antes é o sujo. Sem isso, uma função que não fizesse
+     * nada passaria a elogiar-se a si mesma. */
+    console.log('\nH. O FORMULÁRIO NASCE LIMPO — e o «Cancelar» só existe com edição em curso');
+    /* A LEITURA É A DO ARRANQUE (`aoAbrir`), e não a de agora: as secções B a F escreveram nos
+     * campos, e o que se pergunta aqui é o que a página mostra a quem chega.
+     *
+     * O `hidden` DO MARKUP NÃO É O QUE ISTO MEDE, e vale a pena dizer porquê: ele está lá para o
+     * botão não aparecer no instante entre o HTML e o script — uma janela que nenhuma prova lê.
+     * O que a prova lê é a decisão, e ela é do `pintarCancelarDoVerbete`, chamado pela limpeza do
+     * arranque. */
+    conferir('ao abrir a página não há nada para cancelar, e o botão não está à vista',
+      aoAbrir.cancelar && aoAbrir.cancelar.hidden === true && aoAbrir.cancelar.visivel === false,
+      aoAbrir.cancelar);
+    /* A CHAMADA DO ARRANQUE É ESTÁTICA, e vê-se no texto do script: é a única linha que garante
+     * que a limpeza corre sem ninguém carregar em nada. Uma prova só do contrato da função
+     * deixaria passar o dia em que a chamada desaparecesse do fim da página. */
+    conferir('…e o arranque da página chama a limpeza, depois de tudo o resto',
+      /preencherPerfisVisiveis\(\);[\s\S]{0,400}limparOFormularioDoEstilo\(\)/.test(script));
+    const sujo = await page.evaluate(() => {
+      const q = (id) => document.getElementById(id);
+      q('vnnome').value = 'Plié';
+      q('vncategoria').value = 'passo';
+      q('vntradicao').value = 'compartilhada';
+      q('vb-frase').value = 'Dobradiça dos joelhos.';
+      q('vbacao').value = 'atualizar';
+      window.MUSICA_ABERTA = '8|2/4';
+      window.pintarCancelarDoVerbete();
+      return {
+        nome: q('vnnome').value,
+        acao: q('vbacao').value,
+        cancelar: { hidden: q('vb-cancelar').hidden, visivel: !q('vb-cancelar').hidden },
+      };
+    });
+    conferir('com edição em curso, o «Cancelar» aparece',
+      sujo.cancelar.hidden === false, sujo.cancelar);
+    const limpo = await page.evaluate(() => {
+      window.limparOFormularioDoEstilo();
+      const q = (id) => document.getElementById(id);
+      return {
+        nome: q('vnnome').value, categoria: q('vncategoria').value, tradicao: q('vntradicao').value,
+        frase: q('vb-frase').value, acao: q('vbacao').value,
+        musicaAberta: window.MUSICA_ABERTA,
+        cancelar: { hidden: q('vb-cancelar').hidden },
+      };
+    });
+    conferir('a limpeza esvazia os quatro campos do passo 1',
+      JSON.stringify([limpo.nome, limpo.categoria, limpo.tradicao, limpo.frase]) === '["","","",""]',
+      [limpo.nome, limpo.categoria, limpo.tradicao, limpo.frase]);
+    conferir('…devolve a acção a «criar» — senão gravaria por cima de um verbete que ninguém abriu',
+      limpo.acao === 'criar', limpo.acao);
+    conferir('…esquece a música aberta', limpo.musicaAberta === '', limpo.musicaAberta);
+    conferir('…e esconde o «Cancelar» com o que ele cancelaria',
+      limpo.cancelar.hidden === true, limpo.cancelar);
 
     console.log('\nG. NENHUM ERRO DE JAVASCRIPT');
     /* O `Unexpected token '<'` que a página já dava antes desta correção é do `perfil` — a rota

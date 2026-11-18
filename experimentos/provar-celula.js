@@ -320,6 +320,9 @@ function estado() {
     // último passo mostra o texto composto de cada trecho (frase + «lê-se») — que é o que se
     // grava. É este par que se mede, e não um campo que já não há.
     frase: (q('vb-frase') || {}).value || '',
+    /* A NOTA DA FRASE SAIU DO PASSO 1 (18/11/2026). O parágrafo deixou de existir, e uma leitura
+     * que estoirasse ao não o encontrar mediria a prova, não a tela: fica a ausência, que é o que
+     * a decisão declara. Quem voltar a introduzir uma nota aqui vê esta asserção reprovar. */
     notaDaFrase: (q('vb-frase-nota') || {}).textContent || '',
     fica: (q('vb-fica') || {}).textContent.replace(/\s+/g, ' ').trim(),
     blocosDaFica: document.querySelectorAll('#vb-fica p').length,
@@ -2097,7 +2100,7 @@ function estado() {
       return {
         cat: q('vncategoria').disabled, ariaCat: q('vncategoria').getAttribute('aria-disabled'),
         tra: q('vntradicao').disabled, frase: q('vb-frase').disabled,
-        nota: q('vb-vigor-nota').textContent.trim(),
+        nota: ((q('vb-vigor-nota') || {}).textContent || '').trim(),
       };
     });
     conferir('sem nome do exercício novo, a categoria, a tradição e a frase ficam DESACTIVADAS',
@@ -2105,9 +2108,12 @@ function estado() {
       semNomeVigor);
     conferir('…e o `aria-disabled` diz o mesmo a quem lê com leitor de ecrã',
       semNomeVigor.ariaCat === 'true', semNomeVigor.ariaCat);
-    conferir('a nota diz porque, e que sem nome se avança livremente',
-      /entram em vigor quando houver um exercício/.test(semNomeVigor.nota)
-        && /avançar livremente/.test(semNomeVigor.nota), semNomeVigor.nota);
+    /* A NOTA QUE EXPLICAVA O BLOQUEIO SAIU DO PASSO 1 (18/11/2026) — «esse monte de comentário
+     * […] a categoria, a tradição e o que acontece e outras coisas, tira também». O que se mede
+     * passa a ser a ausência: o passo 1 fica com rótulo, campo e placeholder, e a regra do
+     * bloqueio vive no `disabled`, não numa frase. */
+    conferir('…e não há prosa a explicar o bloqueio — o passo 1 não se explica',
+      semNomeVigor.nota === '', semNomeVigor.nota);
 
     // ---- 24-B. COM NOME, ACORDAM ------------------------------------------------
     const comNomeVigor = await page.evaluate(() => {
@@ -2117,7 +2123,7 @@ function estado() {
       const q = (id) => document.getElementById(id);
       return {
         cat: q('vncategoria').disabled, tra: q('vntradicao').disabled, frase: q('vb-frase').disabled,
-        nota: q('vb-vigor-nota').textContent.trim(),
+        nota: ((q('vb-vigor-nota') || {}).textContent || '').trim(),
       };
     });
     conferir('escrito o nome, os três passam a estar em vigor',
@@ -2150,15 +2156,15 @@ function estado() {
         frase: q('vb-frase').disabled, cat: q('vncategoria').disabled, tra: q('vntradicao').disabled,
         valorCat: q('vncategoria').value,
         congelado: q('vncategoria').getAttribute('data-congelado'),
-        nota: q('vb-vigor-nota').textContent.trim(),
+        nota: ((q('vb-vigor-nota') || {}).textContent || '').trim(),
       };
     });
     conferir('com um exercício ESCOLHIDO no passo 2, os três campos ficam CONGELADOS (disabled)',
       aCorrigir.frase === true && aCorrigir.cat === true && aCorrigir.tra === true, aCorrigir);
     conferir('…e a categoria aparece preenchida com a do exercício, não vazia',
       aCorrigir.valorCat === 'passo' && aCorrigir.congelado === 'sim', aCorrigir);
-    conferir('…e a nota diz que a definição é do dicionário e onde se muda',
-      /dicionário/.test(aCorrigir.nota) && /bloqueados/.test(aCorrigir.nota), aCorrigir.nota);
+    conferir('…e nenhuma nota repete de onde vem a definição — ela chega ao campo',
+      aCorrigir.nota === '', aCorrigir.nota);
 
     // ---- 24-D. O MÉTODO HERDA A TRADIÇÃO DO EXERCÍCIO ---------------------------
     // «Ao selecionar um exercício no Step 2, o campo Método deste Exercício deve ser preenchido

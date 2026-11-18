@@ -8344,7 +8344,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      */
     '<label class="campo-rotulo" for="vb-frase">O que acontece — a definição do exercício</label>' +
     '<textarea id="vb-frase" rows="4" placeholder="a definição do exercício; cada trecho acrescenta, abaixo, o «lê-se» da sua notação"></textarea>' +
-    '<p class="nota" id="vb-frase-nota"></p>' +
+    /* AS TRÊS LINHAS DE PROSA SAÍRAM DO PASSO 1 (18/11/2026).
+     *
+     * «Esse monte de comentário que está aqui, ele desaparece. E aí tem um comentário lá embaixo que
+     * explica como é que usa […] escolha exercício no passo 1. A frase dele vem do dicionário, tira
+     * isso. E embaixo diz assim, a categoria, a tradição e o que acontece e outras coisas, tira
+     * também.»
+     *
+     * ERAM TRÊS, e cada uma explicava uma coisa que o próprio campo já diz:
+     *   · `#vb-frase-nota` — «Escolha o exercício no passo 1: a frase dele vem do dicionário», e as
+     *     variantes («Definição do dicionário para «X»…», «A sua frase…»). A frase aparece no campo;
+     *     a nota a dizer de onde veio é ruído em cima do que se está a ler;
+     *   · `#vb-oficial` — a definição do dicionário como referência, com a explicação de onde se
+     *     edita. Quando o exercício tem definição, ela JÁ CHEGA ao campo;
+     *   · `#vb-vigor-nota` — «A categoria, a tradição e o que acontece entram em vigor quando houver
+     *     um exercício…». A regra é do servidor e o «Seguir» aplica-a; uma frase a anunciá-la é a
+     *     tela a explicar-se em vez de a funcionar.
+     *
+     * A REGRA QUE ISTO REPÕE é a da casa, e está escrita no `provar-producao`: o formulário não
+     * explica — só rótulo, campo e placeholder. As três linhas eram a excepção, e a excepção
+     * cresceu. */
     /* A DEFINIÇÃO OFICIAL FICA À VISTA, E NÃO NO CAMPO (07/11/2026).
      *
      * O CAMPO ACIMA É DO PROFESSOR: é a frase dele, é ela que os trechos levam, e ela nunca se
@@ -8358,7 +8377,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * se edita.
      *
      * A PEÇA É A MESMA DO RESTO DO PASSO (`.nota`): nenhuma classe nova, nenhum desenho novo. */
-    '<p class="nota" id="vb-oficial"></p>' +
     /* OS QUATRO CAMPOS DO PASSO 1 SÃO UM BLOCO, E O NOME É A CHAVE (02/11/2026).
      *
      * O pedido dela, e a segunda vez que o fez: «os campos Categoria, Tradição de Referência e O
@@ -8370,7 +8388,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * faltava era a tela dizê-lo antes do clique. Um campo habilitado que não vale nada é pior do
      * que um campo apagado: parece pedir uma resposta que ninguém vai ler.
      */
-    '<p class="nota" id="vb-vigor-nota"></p>' +
     '<div class="res" data-res="vb-novo"></div>' +
     /* O BOTÃO DAS TURMAS INICIAIS FICA AQUI (01/11/2026 — e é do passo 1 desde 02/11/2026).
      *
@@ -8704,7 +8721,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * desfaz um passo, o outro desfaz a edição inteira. Sem ele, quem abria uma derivação e
      * mudava de ideias tinha de sair pelo menu — e o formulário ficava aberto, com o que estava
      * escrito, à espera de ser confundido com trabalho a sério. */
-    '<button type="button" class="acao secundario" id="vb-cancelar">Cancelar</button>' +
+    /* O «CANCELAR» NASCE ESCONDIDO (18/11/2026) — «Nesse primeiro não tem esse botão cancelar».
+     *
+     * Ele apareceu a 18/11/2026 na barra de navegação, e ficou à vista desde o primeiro instante —
+     * enquanto as outras cinco secções (professor, alunas, salas, audição, turmas) só o mostram
+     * quando há uma edição ou uma derivação em curso. Um botão que se vê sem haver o que cancelar
+     * é a mesma mentira dos «Excluir» apagados sem motivo: promete um efeito que não existe.
+     *
+     * Passa a seguir a regra das outras: escondido ao abrir, e aceso por `editarVerbete` — que é o
+     * único caminho que põe o formulário num estado de onde há que sair. Quem decide é
+     * `pintarCancelarDoVerbete`, num sítio só. */
+    '<button type="button" class="acao secundario" id="vb-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '<p class="nota" id="vb-gravar-nota"></p>' +
     '</div>' +
@@ -14338,26 +14365,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  linhas.forEach(function(l){ if (l.indexOf("Lê-se:") !== 0) cima.push(l); });' +
     '  return cima.join("\\n").trim();' +
     '}' +
-    // A NOTA DO PASSO 2. Diz de onde veio a frase e para que serve — e o que fazer quando o
-    // exercício ainda não tem definição. Nenhuma nota é escrita quando o campo está vazio e nada
-    // foi escolhido: uma nota a explicar o vazio que se vê é ruído.
-    'function pintarNotaDaFrase(){' +
-    '  var nota = document.getElementById("vb-frase-nota");' +
-    '  if (!nota) return;' +
-    '  var exercicio = definicaoDoExercicio();' +
-    '  var escrito = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
-    '  if (!nomeDoExercicio()) {' +
-    '    nota.textContent = "Escolha o exercício no passo 1: a frase dele vem do dicionário.";' +
-    '  } else if (exercicio && escrito === exercicio.texto) {' +
-    '    var fonte = exercicio.fonte ? " (" + exercicio.fonte + ")" : "";' +
-    '    nota.textContent = "Definição do dicionário para «" + nomeDoExercicio() + "»" + fonte +' +
-    '      ". Ela vale para todos os trechos deste verbete — cada trecho acrescenta, abaixo, o «lê-se» da sua notação. Ajuste à vontade: é a sua frase que fica gravada.";' +
-    '  } else if (escrito) {' +
-    '    nota.textContent = "A sua frase — vale para todos os trechos deste verbete, e cada trecho acrescenta, abaixo, o «lê-se» da sua notação.";' +
-    '  } else {' +
-    '    nota.textContent = "Este exercício ainda não tem definição no dicionário. Escreva a frase: é ela que a página da aula mostra, em todos os trechos.";' +
-    '  }' +
-    '}' +
+    /* A NOTA DO PASSO 2 SAIU COM A SUA LINHA (18/11/2026) — ver o comentário do markup, em
+     * `#vb-frase`. `pintarNotaDaFrase` existia para escrever ali a proveniência da frase, e sem o
+     * parágrafo não há onde escrever: a função e as suas cinco chamadas saíram na mesma passagem.
+     * Deixá-la a correr para um elemento ausente seria código que ninguém executa e que faz o
+     * próximo leitor procurar o parágrafo. */
     /* UM TRECHO, UMA DOBRA FECHADA (03/11/2026) — o pedido dela, na letra.
      *
      * «À medida que o professor adiciona múltiplos trechos, os textos descritivos expandem a tela
@@ -14767,6 +14779,51 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // dela. Sem esta chamada, entrar na edição mudava o aviso e o «!» e deixava a linha igual.
     '  pintarTabela();' +
     '}' +
+    /* O «CANCELAR» SÓ EXISTE QUANDO HÁ O QUE CANCELAR (18/11/2026).
+     *
+     * Um sítio só decide, e é este: o botão acende quando o formulário entra num estado de onde há
+     * que sair — uma edição, uma derivação, ou um trecho em correcção —, e apaga-se quando não há.
+     * A alternativa era repetir o `hidden = false` em cada caminho que abre um verbete, e a
+     * segunda cópia é a que fica para trás no dia em que aparecer um terceiro caminho. */
+    'function pintarCancelarDoVerbete(){' +
+    '  var b = document.getElementById("vb-cancelar");' +
+    '  if (!b) return;' +
+    '  var haQueCancelar = Boolean(MUSICA_ABERTA) || Boolean(EM_EDICAO)' +
+    '    || String((document.getElementById("vbacao") || {}).value || "") === "atualizar";' +
+    '  b.hidden = !haQueCancelar;' +
+    '}' +
+    /* O FORMULÁRIO DO ESTILO NASCE LIMPO, E CONTINUA LIMPO (18/11/2026).
+     *
+     * «E aí limpar o formulário quando carrega ele na página, mantém ele limpo.»
+     *
+     * O ESTADO QUE NÃO SE VÊ É QUE SUJAVA O ECRÃ. O `<form>` é servido vazio, mas o navegador
+     * repõe o que a pessoa escreveu da última vez (é o que ele faz a qualquer `<input>` e
+     * `<select>` sem `autocomplete`), e os `<select>` da categoria e da tradição voltavam com o
+     * valor anterior — «passo» e «compartilhada» — como se fossem resposta. A definição, essa,
+     * voltava pelo `carregarRascunho`, que a lê do dicionário assim que há exercício em foco.
+     *
+     * POR ISSO É UM `reset()` NO ARRANQUE, e não uma promessa: o `reset` devolve cada campo ao
+     * valor com que o servidor o escreveu, que é vazio. E o resto do estado vai com ele — a música
+     * aberta, o trecho e a acção —, porque um formulário limpo com `vbacao` a dizer «atualizar»
+     * gravaria por cima de um verbete que ninguém abriu.
+     *
+     * O `select` do exercício continua a abrir no passo 2 de propósito (ver o «Limpar»): quem
+     * limpa para escrever outro exercício não quer voltar a escrever-lhe o nome. */
+    'function limparOFormularioDoEstilo(){' +
+    '  var f = document.getElementById("form-verbete");' +
+    '  if (f) f.reset();' +
+    '  var acao = document.getElementById("vbacao");' +
+    '  if (acao) acao.value = "criar";' +
+    '  MUSICA_ABERTA = "";' +
+    '  EM_EDICAO = null;' +
+    '  FRASE = "";' +
+    '  FRASE_ANTERIOR = "";' +
+    '  EXERCICIO_EM_FOCO = "";' +
+    '  CELULAS = {};' +
+    '  SINAIS = [];' +
+    '  SINAL_EM_TROCA = null;' +
+    '  pintarCancelarDoVerbete();' +
+    '}' +
     'function cancelarEdicaoDoVerbete(){' +
     // CANCELAR SAI DA CORRECÇÃO E NÃO MEXE NO PASSO (02/11/2026) — é o comportamento que ela
     // marcou como CORRECTO e pediu para preservar. Antes ele saltava para o último passo, o que
@@ -14780,6 +14837,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `experimentos/provar-plano-e-curadoria.js` §E e por `provar-cartao-da-turma`.
     '  EM_EDICAO = null;' +
     '  TRECHO_NOVO = false;' +
+    /* E O «CANCELAR» VOLTA A ESCONDER-SE (18/11/2026). Ele existe para sair de uma edição ou de
+     * uma derivação; quando já não há nenhuma em curso, não há o que cancelar — e um botão que se
+     * vê sem efeito é a mesma mentira dos «Excluir» apagados sem motivo. */
+    '  pintarCancelarDoVerbete();' +
     '  DIRECAO = ""; ORIENTACAO = ""; CONTAGEM = ""; SINAIS = []; SINAL_EM_TROCA = null; REPETICOES = 1;' +
     '  var selRepX = document.getElementById("vb-repeticoes"); if (selRepX) selRepX.value = "1";' +
     '  pintarPassos();' +
@@ -14833,9 +14894,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O QUE DEIXOU DE CONGELAR, E PORQUÊ (07/11/2026). Ela mandou os três congelados a 02/11 —
      * e a 07/11 corrigiu: «a definição oficial do dicionário deve ser exibida como referência
      * (leitura/bloqueada), mas o espaço para notas/anotações pedagógicas personalizadas do
-     * professor deve estar liberado e interativo». As duas coisas só cabem se forem dois sítios:
-     * a definição oficial fica na linha `#vb-oficial`, que ninguém edita; a frase escrita no
-     * campo é DO PROFESSOR — é ela que os trechos levam, e ela não se bloqueia.
+     * professor deve estar liberado e interativo». As duas coisas só cabem se forem dois sítios —
+     * e o segundo é o campo, que é do professor e não se bloqueia.
+     *
+     * (A linha `#vb-oficial`, que mostrava a definição como referência, saiu a 18/11/2026 com as
+     * outras duas notas do passo 1 — ver o comentário do markup, em `#vb-frase`.)
      *
      * E o congelamento da frase era uma contradição visível: a nota do passo 2 dizia «ajuste à
      * vontade: é a sua frase que fica gravada» com o campo desactivado por baixo. Um campo que
@@ -14879,31 +14942,29 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    campoDaFrase.setAttribute("aria-disabled", emVigor ? "false" : "true");' +
     '    campoDaFrase.removeAttribute("data-congelado");' +
     '  }' +
-    // A DEFINIÇÃO OFICIAL, À VISTA E FORA DO CAMPO — é esta que o `disabled` protege.
-    '  pintarOficial();' +
-    // O ESTADO DA PROCURA, em uma linha: encontrado no vocabulário, ou novo. É a resposta à
-    // pergunta que o campo faz, e sem ela a pessoa não sabe se o que vai criar já existe — que é
+    // O ESTADO DA PROCURA, em uma etiqueta curta: encontrado no vocabulário, ou novo. É a resposta
+    // à pergunta que o campo faz, e sem ela a pessoa não sabe se o que vai criar já existe — que é
     // exactamente o duplicado que ela pediu para não acontecer.
     '  pintarEstadoDoExercicio();' +
-    '  var nota = document.getElementById("vb-vigor-nota");' +
-    '  if (nota) {' +
-    '    nota.textContent = emVigor ? "" :' +
-    '      "A categoria, a tradição e o que acontece entram em vigor quando houver um exercício — ' +
-    '      escreva o nome acima, ou escolha um no passo 2. Sem nome, pode avançar livremente.";' +
-    '  }' +
     // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Seguir» e a tira repintam-se com ele.
     '  pintarNavegacao();' +
     '}' +
-    /* A LINHA QUE DIZ «JÁ EXISTE» OU «É NOVO» (10/11/2026).
+    /* A ETIQUETA QUE DIZ «JÁ EXISTE» OU «É NOVO» (10/11/2026) — e, desde 18/11/2026, uma ETIQUETA
+     * e não uma frase.
      *
-     * Duas frases, e cada uma faz um trabalho diferente. A primeira impede o duplicado: quem
-     * escreveu «Battement fondu» e vê «já está no vocabulário» não cria um segundo. A segunda
-     * impede a surpresa: quem escreveu «cabriole duplo» fica a saber que vai criar um exercício —
-     * e que os três campos passam a ser obrigatórios, que é a regra do passo.
+     * O QUE ELA PROTEGE CONTINUA A SER O QUE IMPORTA: quem escreveu «Battement fondu» e lê «já está
+     * no vocabulário» não cria um segundo; quem escreveu «cabriole duplo» fica a saber que vai
+     * criar um exercício. É a diferença entre procurar e inventar, dita no momento em que se digita.
      *
-     * A grafia CANÓNICA também se anuncia, porque o documento publica o nome do dicionário: quem
-     * escreveu «battement fondu» fica com «Battement fondu», e vê-lo escrito é o que explica a
-     * correcção em vez de a impor em silêncio. */
+     * O QUE SAIU FOI A PROSA. Ela dizia, em duas linhas, que a categoria, a tradição e a definição
+     * «vieram de lá», que «pode ajustá-las para este verbete», que «o termo do dicionário não é
+     * alterado», e que os três campos «passam a ser obrigatórios» — quatro explicações para um
+     * facto de três palavras, e a pesquisadora já pediu que elas desapareçam do passo 1 («esse monte
+     * de comentário […] a categoria, a tradição e o que acontece e outras coisas, tira também»).
+     *
+     * O QUE FICA É O FACTO, e a grafia canónica continua a anunciar-se: quem escreveu «battement
+     * fondu» vê «Battement fondu», e vê-lo é o que explica a correcção em vez de a impor em
+     * silêncio. */
     'function pintarEstadoDoExercicio(){' +
     '  var el = document.getElementById("vn-estado");' +
     '  if (!el) return;' +
@@ -14911,34 +14972,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var digitado = campo ? String(campo.value || "").trim() : "";' +
     '  if (!digitado) { el.textContent = ""; return; }' +
     '  var achado = exercicioExistente(digitado);' +
-    '  if (achado) {' +
-    '    el.textContent = "«" + achado.termo + "» já está no vocabulário: a categoria, a tradição e " +' +
-    '      "a definição vieram de lá. Pode ajustá-las para este verbete — o termo do dicionário não " +' +
-    '      "é alterado.";' +
-    '    return;' +
-    '  }' +
-    '  el.textContent = "Nenhum exercício com esse nome — «" + digitado + "» vai ser criado como novo, " +' +
-    '    "e a categoria, a tradição e o que acontece passam a ser obrigatórios.";' +
+    /* O NOME DO DICIONÁRIO APARECE MESMO QUANDO É O MESMO, e não é redundância: a caixa diz «já
+     * está no vocabulário» e o nome ao lado mostra a grafia com que ele está lá. */
+    '  el.textContent = achado' +
+    '    ? ("já está no vocabulário: " + achado.termo)' +
+    '    : "novo — vai ser criado no vocabulário";' +
     '}' +
-    /* A DEFINIÇÃO OFICIAL, COMO REFERÊNCIA (07/11/2026).
-     *
-     * Ela existe para poder ser LIDA ao lado da frase que se está a escrever — e é por isso que
-     * não pode ser o próprio campo: assim que a professora ajustasse a frase, o oficial
-     * desaparecia, precisamente quando se precisa de comparar.
-     *
-     * QUANDO NÃO HÁ O QUE MOSTRAR, a linha fica vazia: uma nota a explicar o vazio que se vê é
-     * ruído, e o passo 2 já diz, com todas as letras, que este exercício ainda não tem definição
-     * no dicionário.
-     */
-    'function pintarOficial(){' +
-    '  var el = document.getElementById("vb-oficial");' +
-    '  if (!el) return;' +
-    '  var ex = definicaoDoExercicio();' +
-    '  el.textContent = ex' +
-    '    ? ("Definição no dicionário" + (ex.fonte ? " (" + ex.fonte + ")" : "") + " — «" + ex.texto +' +
-    '       "». Fica aqui como referência e não se edita por aqui: para a mudar, edite o termo no vocabulário.")' +
-    '    : "";' +
-    '}' +
+    /* A LINHA DA DEFINIÇÃO OFICIAL SAIU (18/11/2026) — ver o comentário do markup, em
+     * `#vb-frase`. Quando o exercício tem definição no dicionário, ela já chega ao campo da frase;
+     * o parágrafo ao lado dizia o mesmo por outras palavras, com a instrução de onde a editar. A
+     * peça que ela pediu em 07/11/2026 — «a definição oficial deve ser exibida como referência» —
+     * fica servida pelo campo, que é onde o texto se lê; o que sai é a PROSA em volta dele. */
     /* O PASSO 1 LÊ O PASSO 2 (02/11/2026) — o pedido dela, na letra: «ao selecionar um exercício
      * na listagem do Step 2, preencha automaticamente a Categoria, Tradição e "O que acontece" no
      * Step 1».
@@ -15153,7 +15197,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      FRASE_ANTERIOR = definicao;' +
     '    }' +
     '  }' +
-    '  pintarNotaDaFrase();' +
     '  alternarPasso1();' +
     '}' +
     'function oQueFaltaNoPasso1(){' +
@@ -15285,7 +15328,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      FRASE_ANTERIOR = fraseDoTermo;' +
     '      var campoF = document.getElementById("vb-frase");' +
     '      if (campoF) campoF.value = fraseDoTermo;' +
-    '      pintarNotaDaFrase();' +
     '    }' +
     /* A CATEGORIA E A TRADIÇÃO VÊM DO TERMO, E AGORA VÊM MESMO (07/11/2026). Elas são
      * preenchidas por `sincronizarPasso1ComExercicio`, que só corria no `change` do `select` — e
@@ -15343,7 +15385,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  FRASE_ANTERIOR = FRASE;' +
     '  if (campoFrase) campoFrase.value = FRASE;' +
-    '  pintarNotaDaFrase();' +
     '  pintarTrecho();' +
     '  pintarDesacordo();' +
     '  pintarTabela();' +
@@ -15846,6 +15887,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * corpo, e os passos 4 e 5 voltam a fechar. */
     '  EM_EDICAO = null; TRECHO_NOVO = false;' +
     '  irParaPassoVerbete(1);' +
+    /* O «CANCELAR» ACENDE AQUI, e é aqui que ele passa a ter significado: `MUSICA_ABERTA` e o
+     * `vbacao` já estão escritos, e é a partir deste instante que há uma edição para abandonar. */
+    '  pintarCancelarDoVerbete();' +
     '  recado("", "a editar «" + nome + "» (" + chave + ")");' +
     '}' +
     // ESTA CONTA NUNCA CORREU (03/11/2026). Ela chamava-se `temposDaContagem` — o mesmo nome da que
@@ -16156,6 +16200,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // escrever outro nome — quem quer criar um exercício vai ao 1 de propósito.
     '  EM_EDICAO = null;' +
     '  MUSICA_ABERTA = "";' +
+    /* E O «CANCELAR» APAGA-SE COM O QUE ELE CANCELARIA (18/11/2026) — limpar é sair do estado de
+     * edição, e sem edição o botão não tem a que responder. */
+    '  pintarCancelarDoVerbete();' +
     '  irParaPassoVerbete(2);' +
     '  carregarRascunho();' +
     '});' +
@@ -16221,7 +16268,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!f) return;' +
     '  f.addEventListener("input", function(){' +
     '    FRASE = partirFrase(f.value);' +
-    '    pintarNotaDaFrase();' +
     '    pintarTira();' +
     '    pintarFica();' +
     /* ESCREVER A DEFINIÇÃO TEM DE ACORDAR O «SEGUIR» (07/11/2026). A frase é um dos quatro
@@ -18514,6 +18560,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * primeira vista, que é a pior forma de estar certo. */
     'if (typeof preencherTradicoesDasTurmas === "function") preencherTradicoesDasTurmas();' +
     'if (typeof preencherPerfisVisiveis === "function") preencherPerfisVisiveis();' +
+    /* E O FORMULÁRIO DO ESTILO ENTRA VAZIO — aqui, no fim, pela mesma razão das duas linhas acima
+     * e de `repintarCadeiaGuardada`: o `reset()` só pode correr depois de o navegador ter reposto
+     * o que tinha para repor, e é este o último instante em que isso já aconteceu e nada do que a
+     * página mostra foi ainda escrito por ninguém. */
+    'if (typeof limparOFormularioDoEstilo === "function") limparOFormularioDoEstilo();' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o

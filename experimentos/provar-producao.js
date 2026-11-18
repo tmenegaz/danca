@@ -262,6 +262,18 @@ function criarElemento(tag, classe) {
       return null;
     },
     addEventListener() {},
+    /* O `reset()` DE UM `<form>` (18/11/2026). O DOM falso não tinha este método, e a página
+     * passou a chamá-lo no arranque (`limparOFormularioDoEstilo`, que é o que garante o passo 1
+     * vazio a quem chega). Sem ele, o script da página morria no último `if` do load e a prova
+     * acusava a página — quando o que faltava era um método que todos os formulários têm.
+     * Devolve os campos ao vazio, que é o que o `reset` faz a um formulário servido sem valores. */
+    reset() {
+      el.value = '';
+      for (const f of descendentes(el)) {
+        f.value = '';
+        f.checked = false;
+      }
+    },
   };
   el.atributos = {};
   return el;

@@ -310,12 +310,14 @@ function servir(html) {
     ['o estado da associação da turma («Hoje: …»)', 'vinc-estado'],
     ['o modo de edição do verbete', 'vb-edicao'],
     ['a nota do método herdado', 'vb-metodo-nota'],
-    ['a nota da frase do dicionário', 'vb-frase-nota'],
+    /* A NOTA DA FRASE SAIU (18/11/2026). Ela não é feedback funcional: repetia de onde vinha a
+     * frase, e a frase está no campo. Ver `provar-passo-um-do-verbete` §D/H — a ausência das três
+     * linhas de prosa do passo 1 é medida lá, onde se mede a tela. */
     ['a nota das habilitações da curadoria', 'cu-habilitacao-nota'],
     ['a nota das tradições da modalidade', 'cu-tradicao-nota'],
   ];
   const emFalta = vivos.filter(([, id]) => !html.includes('id="' + id + '"')).map(([nome]) => nome);
-  provar('os nove blocos de feedback funcional continuam na página', emFalta.length === 0, emFalta);
+  provar('os oito blocos de feedback funcional continuam na página', emFalta.length === 0, emFalta);
   provar('…e a nota que repete a substituição da música continua escrita',
     /Gravar substitui a música de /.test(script));
 
