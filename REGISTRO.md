@@ -51820,3 +51820,75 @@ caixa de entrada e empurra os antigos para fora do tecto). Não há aviso por e-
 cada pedido — o painel é onde ela lê, e um aviso por pedido seria uma segunda mensagem para a mesma
 coisa. E a caixa de entrada não entra no expurgo de escola nenhuma, porque não é de escola: é do
 sistema.
+
+## 18/11/2026 — «Tem mais uma opção que tem que existir: a metodologia cubana»
+
+**O que motivou.** «Quando eu estou na anamnese do aluno e eu estou no item 50, matriz metodológica
+de origem, tanto no mapa quanto no formulário, tem assim: RAD, Vaganova, Francesa/Cecchetti e Escola
+Livre. Tem mais uma opção que tem que existir, que é a metodologia cubana […] E tem desdobramentos
+para o ciclo, para a aula e para o formulário da aula.»
+
+**Onde estava a lacuna.** Não era no vocabulário da casa: a `cubana` já é uma tradição declarada
+desde 02/11/2026 em `biblioteca/modalidades/bale-classico/tradicoes.json` — chave `cubana`, rótulo
+`Cubana` (`_rotulos`), e já aparece na proveniência do plano. **O item 50 da anamnese é que nunca a
+ofereceu.** A lista de quatro opções era uma segunda lista, escrita à mão no conteúdo, e por isso
+envelheceu sem ninguém dar por isso: quem declara a tradição de um corpo podia dizer RAD, Vaganova,
+Francesa/Cecchetti ou Escola livre, e não podia dizer a Cubana.
+
+**Onde entrou, e porquê.** Entre «Francesa/Cecchetti» e «Escola livre» — a mesma ordem relativa da
+fonte das tradições (as escolas nomeadas juntas, a `compartilhada` no fim), e «Escola livre» continua
+a ser a última porque **não é uma escola**: é o que se declara quando não há método formal (o «sem
+método formal declarado» da §5.3 de `ARQUITETURA-ANAMNESE.md`). O mapa do documento e o conteúdo do
+formulário dizem agora a mesma lista.
+
+**O desdobramento, de ponta a ponta — e é uma leitura só.** Para a escolha chegar aos documentos
+derivados, alguém tem de a ler, e a regra da estante é que se lê uma vez, no índice:
+1. `resumoDoEnvelope` passou a guardar `metodo` (`VERSAO_DO_RESUMO` **5 → 6**), e `anamneses()` a
+   entregá-lo. `null` quando o envelope não declara — e quem lê trata `null` como «não se sabe»,
+   nunca como «nenhuma».
+2. `rotas.js` (`anamnesesDaTurma`) leva `metodo` no mapa `{carimbo, vinculada, metodo}`.
+3. §6 do guia da aula: ao lado do nome, «origem metodológica declarada: **Cubana**» — ou «não
+   declarada», que é a verdade para quem nunca respondeu ao item 50.
+4. Folha de captura: a linha «Origem metodológica (anamnese):» com o elenco e o que cada uma
+   declarou.
+5. `-dados.json`: o mapa `origem` (chave do elenco → método). **Só quem declara entra no mapa** —
+   uma chave a `null` seria afirmar ignorância sobre uma aluna que talvez nunca tenha tido anamnese.
+6. Formulário da aula (`tools/templates/lancamento.html`): `linhaDaOrigem()` imprime a mesma frase
+   por aluna, e **não aparece** quando a turma está vazia.
+
+**O que NÃO se fez, e é decisão declarada.** A matriz de origem **não semeia o plano de ensino**: o
+sujeito da anamnese é a aluna e o do plano é o professor, e essa fronteira está escrita em
+`FRENTES.md` (24). O desdobramento que ela pediu é para os documentos derivados, e é só aí que ele
+acontece.
+
+**Onde entrou.** `porta/conteudo/anamnese.json` (e as duas cópias do pacote) · `ARQUITETURA-ANAMNESE.md`
+(§3.3 e §5.3) · `motor/nucleo/porta.js` · `motor/nucleo/derivar-ciclo.js` · `motor/servidor/rotas.js`
+· `motor/servidor/escrever-ciclo.js` · `tools/templates/lancamento.html`.
+
+**Com o quê.** `provar-cubana-na-anamnese` **26/26** (novo) · `provar-listas-do-acervo` **113/113** ·
+`provar-contexto-do-ato` 45/45 · `provar-cadastro-da-aluna` 76/76 · `provar-indice-de-envelopes`
+44/44 · `provar-acervo-envelopes` 52/52 · `provar-cadeia-do-ajuste` 34/34 ·
+`provar-cabecalho-do-documento` ok · `provar-aula-e-plano-legiveis` 12/12 · `provar-ficha-visual`
+21/21 · `check-pacote` do `breu-rosa` 0 erros · `check-identidade` 0 erros.
+
+**Controlo A/B.** A opção retirada do conteúdo: **reprova 3**. O `metodo` retirado do resumo:
+**reprova 3**. A linha da §6 retirada do guia: **reprova 1**. A chamada de `linhaDaOrigem()` retirada
+do formulário: **reprova 1**.
+
+**Uma asserção que media a regra de ontem, outra vez.** `provar-listas-do-acervo` exigia
+`VERSAO_DO_RESUMO === 5`; a versão subiu para 6, e a asserção passou a exigir a 6, com a razão
+escrita ao lado. É o terceiro dia seguido que esta linha aparece — fixar o número é o que obriga quem
+sobe a versão a vir dizer porquê.
+
+**Duas provas vizinhas não correm nesta máquina, e não é desta mudança.** `provar-colunas-da-aula` e
+`provar-aula-prosa` morrem em `ENOENT` sobre fixtures locais que já não existem
+(`escola/breu/envelopes/plano-20261104-1732.json`, a escola `perna-boa`). `provar-po-completo` falha
+em «Notação dominada» — e falha **igual no `HEAD`**, antes desta mudança: a prova ficou a esperar o
+rótulo antigo, e o guia diz «Notação de dança» desde a renomeação. Fica registado, não corrigido
+aqui: não é desta frente, e misturar as duas torna o laudo mentiroso.
+
+**O que ainda não está feito.** As anamneses já gravadas não declaram o item 50 — os documentos
+derivados delas dirão «não declarada», e isso é a verdade, não um defeito: só uma anamnese nova, ou
+uma correcção da existente, faz aparecer a palavra. E a Cubana continua sem linhas próprias em
+`diferencasDeNomenclatura` nessa fonte das tradições, como desde 02/11/2026 — a opção existe e
+grava; o vocabulário comparado do ramo é outra frente.

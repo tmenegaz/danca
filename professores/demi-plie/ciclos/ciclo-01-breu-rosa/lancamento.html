@@ -1117,6 +1117,38 @@ async function gerarMd() {
   atualizarBotaoMd();
 }
 
+/*
+ * A ORIGEM METODOLÓGICA DE CADA ALUNA (18/11/2026).
+ *
+ * O item 50 da anamnese — a matriz metodológica de origem — chegou até aqui, e chegou a pedido
+ * dela: «se ele marcar a metodologia cubana, ela tem que aparecer lá nos documentos que são
+ * gerados depois». O dado vem no `-dados.json` (`origem`, por chave de aluna), que é o ficheiro
+ * que esta página já lê — a derivação que o escreve é a mesma que imprime a folha de captura, e
+ * por isso as duas não podem dizer coisas diferentes.
+ *
+ * UMA LINHA, E NÃO UMA COLUNA EM CADA TABELA. São doze tabelas por aula, e repetir a origem em
+ * todas seria ruído no sítio onde se MARCA. Aqui ela é contexto: quem é a turma, e de que escola
+ * vem o corpo de cada uma.
+ *
+ * QUEM NÃO DECLARA É DITO. «não declarada» é informação — é o que faz o professor pedir o novo
+ * registo —, e é diferente de «Escola livre», que é uma escola declarada.
+ */
+function linhaDaOrigem(dados, m, id) {
+  const mapa = (dados && dados.origem) || {};
+  /* O NOMES SÃO OS DA AULA lida quando há uma; sem ela, os do elenco de hoje. A linha fala das
+   * alunas que esta aula tem, e não de quem já saiu da turma. */
+  const a = dados && dados.aulas ? dados.aulas[id] : null;
+  const deHoje = Array.isArray(dados && dados.elenco) ? dados.elenco : null;
+  const presentes = a && Array.isArray(a.presentes) && a.presentes.length ? a.presentes : deHoje;
+  const chaves = (presentes && presentes.length ? presentes : Object.keys((dados && dados.apelidos) || {}));
+  if (!chaves.length) return '';
+  const partes = chaves.map((k) => {
+    const nome = ((dados && dados.apelidos) || {})[k] || k;
+    return esc(nome) + ' — ' + esc(mapa[k] || 'não declarada');
+  });
+  return `<p class="linha"><strong>Origem metodológica (anamnese):</strong> ${partes.join(' · ')}</p>`;
+}
+
 // A PRESENÇA AO VIVO (06/11/2026): a lista de apelidos que os checkboxes dizem AGORA, ou `null`
 // quando vale o que está gravado. Vive no módulo e não no DOM porque quem a lê é a renderização
 // da matriz, e o DOM é reconstruído a cada render.
@@ -1917,6 +1949,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     ${esc(marco.marco)}</p>` : ''}
   ${comRegua ? `<p class="linha"><strong>Régua desta turma:</strong>
     ${reguaAtual.map(esc).join(' · ')}</p>` : ''}
+  ${linhaDaOrigem(dados, m, id)}
   ${captura ? '' : `<p class="fraco">[Preencher: o config desta aula
     (<code>${esc(configDaAula(m, id) || 'captura-' + m.id + '.json')}</code>) não está no pacote —
     sem ele o painel não sabe o que esta aula observa.]</p>`}
