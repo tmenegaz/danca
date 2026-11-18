@@ -8,8 +8,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1452",
-      "versoes": 4
+      "ultima": "20261118-1710",
+      "versoes": 5
     },
     {
       "aspecto": "equilibrio-unipodal",
@@ -38,8 +38,8 @@
         "recorte:ami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261117-1709",
-      "versoes": 1
+      "ultima": "20261118-1710",
+      "versoes": 2
     },
     {
       "aspecto": "forca-de-empurrar-push-ups",
@@ -48,8 +48,8 @@
         "recorte:ami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261117-1709",
-      "versoes": 1
+      "ultima": "20261118-1710",
+      "versoes": 2
     },
     {
       "aspecto": "mobilidade-de-quadril-en-dehors-de-origem",
@@ -58,8 +58,8 @@
         "recorte:ami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261117-1709",
-      "versoes": 1
+      "ultima": "20261118-1710",
+      "versoes": 2
     }
   ],
   "aulas": [
@@ -524,9 +524,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a5b8703"
+    "commit": "8461d9d"
   },
-  "gerado_em": "2026-11-18T15:05",
+  "gerado_em": "2026-11-18T17:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -558,14 +558,26 @@
         "meia-ponta",
         "mobilidade-de-quadril-en-dehors-de-origem"
       ],
-      "atualizada_em": "2026-11-17T17:08:59.598Z",
-      "enviada_em": "2026-11-17T17:09:00.098Z",
+      "atualizada_em": "2026-11-18T17:10:23.529Z",
+      "enviada_em": "2026-11-18T17:10:24.031Z",
       "id": "recorte:ami",
       "linha": "ami",
       "nome": "Ami",
       "professor": "demi-plie",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/ami--20261118-1710.json",
+          "aspectos": [
+            "cinco-posicoes-3a-pes",
+            "meia-ponta",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "forca-de-empurrar-push-ups"
+          ],
+          "enviada_em": "2026-11-18T17:10:24.031Z",
+          "versao": "20261118-1710"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/ami--20261117-1709.json",
