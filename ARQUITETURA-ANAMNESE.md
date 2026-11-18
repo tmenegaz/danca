@@ -358,10 +358,14 @@ auditar a **incorporação real** — o que sobreviveu ao tempo ou ao método.
 
 | Campo | O que investiga |
 |:--|:--|
-| **Matriz metodológica de origem** | RAD · Vaganova · Francesa/Cecchetti · Escola livre |
+| **Matriz metodológica de origem** | RAD · Vaganova · Francesa/Cecchetti · **Cubana** · Escola livre |
 | **Tempo de interrupção** | Prática contínua · Pausa curta · Pausa longa · Retorno após anos |
 | **Auditoria de `port de bras`** | Incorporado · Desincorporado (sobe os braços soltando as costelas) |
 | **Auditoria de memória motora sob destreino** | Memória latente ativa · *Tabula rasa* |
+
+A **Cubana** entrou a 18/11/2026, a pedido dela, e ocupa o lugar das outras escolas nomeadas —
+antes de «Escola livre», que continua a ser a última porque **não é uma escola**: é o que se
+declara quando não há método formal («sem método formal declarado», §5.3).
 
 Cada ramo do Módulo A traz **três perguntas de triagem**; o Módulo B traz **quatro campos de
 auditoria**. As perguntas exatas são declaração da entrevista, não deste desenho — e este documento
@@ -553,10 +557,10 @@ que foi declarado e o que se observa**, registrada como fato — exatamente o me
 outra coisa, é avaliação, e a avaliação "é fronteira de outro módulo, ainda não desenhado"
 ([`AGENTS.md`](AGENTS.md)).
 
-### 5.3 O método de origem: RAD, Vaganova
+### 5.3 O método de origem: RAD, Vaganova, Cubana
 
 Aqui a P-16 faz todo o trabalho: **metodologia e notação são declaradas na Elicitação**. O método de
-origem (RAD, Vaganova, outro, ou "sem método formal declarado") é, portanto:
+origem (RAD, Vaganova, Francesa/Cecchetti, Cubana, outro, ou "sem método formal declarado") é, portanto:
 
 - **um campo elicitado**, não um campo inferido;
 - **o que determina o vocabulário do ramo** — a mesma exigência de *tendu* não se formula igual nas
