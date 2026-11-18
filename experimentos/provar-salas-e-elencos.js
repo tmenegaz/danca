@@ -1125,6 +1125,123 @@ const RITMO = {
     }
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nK. OS GESTOS SÃO OS DA SALA, NAS TRÊS LISTAS — e a palavra é «Excluir» (18/11/2026)');
+
+  /* «Aqui tem regra de derivação, então não pode ter excluir em um elenco que está vinculado a uma
+   * turma e o botão não é editar, é derivar. […] A sala está funcionando bem, a sala é um bom
+   * exemplo. […] O estilo tem que fazer esse ajuste e a turma também está certo, é derivar.»
+   *
+   * E a padronização: «a gente está usando excluir e apagar. Vamos usar tudo o mesmo, excluir.»
+   *
+   * A regra é UMA: em turma → Derivar + Excluir desabilitado; livre → Editar + Excluir. Nas três
+   * listas, e pelo mesmo facto (`emTurma`), para não haver duas respostas para a mesma pergunta. */
+  {
+    const e4 = ambiente();
+    /* OS CAMPOS DO CORPO VÊM DO SERVIDOR — inventá-los dá 400 e a prova mediria o engano dela, não
+     * a regra. É a lição de sempre: um dado de prova inventado prova o dado, não o código. */
+    const catalogoDeCampos = await pedir(e4, '/api/bastidores/campos-do-corpo', { method: 'GET' });
+    const umCampo = ((catalogoDeCampos.corpo && catalogoDeCampos.corpo.campos) || [])
+      .map((c) => String(c && c.id || '')).filter(Boolean)[0] || '';
+
+    /* ---- 1. O ELENCO QUE UMA TURMA LÊ NÃO SE EXCLUI — a recusa é do SERVIDOR. ---- */
+    const elenco = await postar(e4, '/api/bastidores/linha-de-base', {
+      nome: 'Elenco da Turma', professor: 'leticia', alunas: [],
+      campos: umCampo ? [umCampo] : [], rascunho: !umCampo,
+    });
+    conferir('o elenco é criado para o teste', elenco.status === 200 || elenco.status === 201,
+      { status: elenco.status, erro: elenco.corpo && elenco.corpo.erro });
+    const idElenco = (elenco.corpo && elenco.corpo.linha && elenco.corpo.linha.id) || '';
+    conferir('…e tem id', Boolean(idElenco), elenco.corpo);
+
+    await postar(e4, '/api/bastidores/turma', Object.assign({ nome: 'Sala K', modalidade: 'Balé clássico' }, RITMO));
+    await postar(e4, '/api/bastidores/rubrica', {
+      nome: 'Régua K', professor: 'leticia', turma: 'sala-k', niveis: ['Ótimo'],
+    });
+    const cu = await postar(e4, '/api/bastidores/curadoria', {
+      turma: 'Sala K', linhaDeBase: idElenco, grau: '', nivel: '',
+    });
+    conferir('a Turma usa esse elenco', cu.status === 200 || cu.status === 201,
+      { status: cu.status, erro: cu.corpo && cu.corpo.erro });
+
+    const recusa = await pedir(e4, '/api/bastidores/linha-de-base', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: SENHA, id: idElenco }),
+    });
+    conferir('o SERVIDOR recusa excluir um elenco que uma Turma lê (409)',
+      recusa.status === 409, { status: recusa.status, erro: recusa.corpo && recusa.corpo.erro });
+    /* A FRASE DIZ O CAMINHO — sem isso a recusa é um beco: quem tentou não sabe o que fazer. */
+    conferir('…e a recusa diz o que fazer (outro elenco, ou derivar)',
+      /outro elenco|derive/i.test(String(recusa.corpo && recusa.corpo.erro)),
+      recusa.corpo && recusa.corpo.erro);
+
+    /* ---- 2. UM ELENCO LIVRE EXCLUI-SE. Sem isto a guarda acima poderia ser só uma parede. ---- */
+    const livre = await postar(e4, '/api/bastidores/linha-de-base', {
+      nome: 'Elenco Livre', professor: 'leticia', alunas: [],
+      campos: umCampo ? [umCampo] : [], rascunho: !umCampo,
+    });
+    const idLivre = (livre.corpo && livre.corpo.linha && livre.corpo.linha.id) || '';
+    const apagado = await pedir(e4, '/api/bastidores/linha-de-base', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: SENHA, id: idLivre }),
+    });
+    conferir('…e um elenco que nenhuma Turma lê exclui-se (200)', apagado.status === 200,
+      { status: apagado.status, erro: apagado.corpo && apagado.corpo.erro });
+
+    /* ---- 3. A LISTAGEM DOS ELENCOS: «Excluir» desabilitado em turma. ---- */
+    const paginaK = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), e4);
+    const htmlK = await paginaK.text();
+    /* O cartão do elenco é desenhado pelo CLIENTE (`LINHAS_DE_BASE`), e o que se lê no HTML são
+     * as duas metades da regra dentro do script: a condição e o `disabled`. */
+    conferir('o cartão do elenco escolhe o gesto por `usadaPor.length`',
+      /usadaPor\.length[\s\S]{0,600}?Derivar<\/button>/.test(htmlK)
+        && /usadaPor\.length[\s\S]{0,900}?disabled[\s\S]{0,200}?>Excluir</.test(htmlK),
+      null);
+    conferir('…e oferece «Editar» a quem está livre',
+      /data-lb-editar[\s\S]{0,200}?Editar<\/button>/.test(htmlK), null);
+
+    /* ---- 4. A LISTAGEM DO ESTILO: o nome não é botão, e a classe antiga desapareceu. ---- */
+    conferir('no Estilo, o nome do exercício já não é um botão',
+      htmlK.indexOf('verbetes-editar') === -1, (htmlK.match(/verbetes-editar/g) || []).length);
+    conferir('…e o gesto passou para um botão da coluna das acções',
+      /data-editar-verbete=/.test(htmlK), null);
+    conferir('…que se chama «Derivar» quando o exercício está em turma',
+      /data-editar-verbete[\s\S]{0,300}?Derivar<\/button>/.test(htmlK), null);
+    conferir('…e «Editar» quando está livre',
+      /data-editar-verbete[\s\S]{0,400}?Editar<\/button>/.test(htmlK), null);
+
+    /* ---- 5. A PALAVRA É «EXCLUIR» EM TODA A PÁGINA. ---- */
+    /* O rótulo «Apagar» era o do Estilo; as outras listas já diziam «Excluir». A padronização é
+     * dela: «Vamos usar tudo o mesmo, excluir.» */
+    conferir('nenhum botão da página diz «Apagar» — a palavra é «Excluir»',
+      !/>Apagar</.test(htmlK) && !/\bApagar o verbete/.test(htmlK),
+      (htmlK.match(/[^<>]{0,30}Apagar[^<>]{0,30}/g) || []).slice(0, 3));
+    conferir('…e «Excluir» aparece nas listas', (htmlK.match(/>Excluir</g) || []).length >= 3,
+      (htmlK.match(/>Excluir</g) || []).length);
+
+    /* ---- 6. A TURMA É O MESMO PAR — e o par tem de ser coerente. ---- */
+    /* Um `|| true` no fim de uma asserção não a torna tolerante: torna-a decorativa. Ou mede, ou
+     * sai. E o que se mede na Turma não é «nunca edita»: é o MESMO par da sala — vinculada oferece
+     * «Derivar» e «Excluir» desabilitado; livre oferece «Editar» e «Excluir». A asserção antiga
+     * supunha a primeira metade e por isso nunca podia ser verdadeira com a Turma livre que esta
+     * secção cria. */
+    /* O par é emitido CONTÍGUO pela mesma função (`acoesDaCuradoria`: botão + excluir), e por isso
+     * se lê no próprio HTML, sem executar o script. Fatia-se por `data-modo` e corta-se no fecho do
+     * cartão: uma janela fixa de caracteres atravessava o cartão seguinte e media o botão errado. */
+    const paresDaTurma = htmlK.split(/data-modo="/).slice(1).map((f) => {
+      const corpo = f.split('</div>')[0];
+      return {
+        modo: (corpo.match(/^(editar|derivar)/) || [])[1] || '',
+        excluirDesabilitado: /disabled[^>]*>\s*Excluir</.test(corpo),
+        temExcluir: />\s*Excluir</.test(corpo),
+      };
+    }).filter((p) => p.modo && p.temExcluir);
+    const incoerentes = paresDaTurma.filter((p) => (p.modo === 'derivar' ? !p.excluirDesabilitado : p.excluirDesabilitado));
+    conferir('a Turma segue o mesmo par: «Derivar» exige «Excluir» desabilitado, «Editar» não',
+      paresDaTurma.length > 0 && incoerentes.length === 0,
+      { pares: paresDaTurma, incoerentes: incoerentes.length });
+  }
+
   console.log('');
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));

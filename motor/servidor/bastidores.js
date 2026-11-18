@@ -868,6 +868,29 @@ async function apagarElenco(env, kv, escola, repoLinhas, id, { por } = {}) {
     return { ok: false, erro: 'elenco não encontrado: ' + alvo, codigo: 404 };
   }
   const removida = idx !== -1 ? lista[idx] : Object.assign({}, doActo, { carimbo: doActo.carimbo });
+  /* O ELENCO QUE UMA TURMA LÊ NÃO SE APAGA (18/11/2026) — e a guarda é do SERVIDOR, não do botão.
+   *
+   * «Aqui tem regra de derivação, então não pode ter excluir em um elenco que está vinculado a uma
+   * turma.» É a mesma família do que já se faz com o professor e com o termo: a tela evita o erro,
+   * o servidor garante. Um botão escondido é uma promessa; a recusa é uma regra.
+   *
+   * E A RECUSA DIZ O CAMINHO. Apagar o elenco que a Turma escolheu deixaria a Turma a apontar para
+   * um corpo que já não existe — e o plano de ensino, que lê o elenco pela Turma, passaria a ler o
+   * vazio sem dizer nada. Quem quer tirar o corpo de uma Turma escolhe outro elenco lá; quem quer
+   * mudar o corpo deriva (a versão anterior fica no repositório, e é isso que a derivação é). */
+  const turmaQueLe = (await curadorias(kv, escola)).find(
+    (c) => c && String(c.linhaDeBase || '') === alvo && !c.substituidaPor);
+  if (turmaQueLe) {
+    return {
+      ok: false, codigo: 409,
+      erro: 'o elenco «' + removida.nome + '» não se exclui: a Turma de '
+        + (turmaQueLe.professor || 'um professor') + ' lê este corpo'
+        + (Array.isArray(turmaQueLe.turmas) && turmaQueLe.turmas.length
+          ? ' (sala ' + turmaQueLe.turmas.join(', ') + ')' : '')
+        + '. Escolha outro elenco nessa Turma, ou derive este — a versão anterior fica no '
+        + 'repositório e nada do que já foi escrito se perde.',
+    };
+  }
   const eraActo = Boolean(removida.carimbo || removida.turma);
   if (eraActo && repoLinhas.activo) {
     const lapide = await repoLinhas.apagar(alvo, { por: por || null });
@@ -14250,17 +14273,39 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'nenhuma turma; gravar corrige o verbete no lugar\\">livre</span>");' +
     '      }' +
     '      if (x.descontinuado) selos += " <span class=\\"selo alerta\\">descontinuado</span>";' +
+    /* A REGRA DOS BOTÕES SAI DO MESMO FACTO DO SELO (18/11/2026). `x.emTurma` já vinha do
+     * servidor — é ele que acende «em turma» —, e usar outra fonte para decidir os botões daria o
+     * absurdo de a linha dizer «livre» e o botão dizer «Derivar». Um facto, uma leitura. */
+    '      var emTurma = Boolean(x.emTurma && x.emTurma.length);' +
     // `porMusica` é o que o servidor passou a mandar. Quando ele não vem — uma página antiga
     // contra um servidor novo, ou o contrário — a listagem cai na linha única de antes, em vez
     // de ficar em branco.
     '      var ms = x.porMusica && x.porMusica.length ? x.porMusica : null;' +
     '      if (!ms) {' +
     '        var t0 = Number(x.trechos) || 0;' +
-    '        linhas.push("<li><span class=\\"nome\\"><span class=\\"linha1\\">" +' +
-    '          "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" + x.nome +' +
-    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button> " + selos +' +
-    '          "</span><span class=\\"dono\\">" + (t0 + (t0 === 1 ? " trecho" : " trechos")) +' +
-    '          "</span></span></li>");' +
+    /* O RAMO DO VERBETE SEM MÚSICA TAMBÉM TEM OS DOIS GESTOS (18/11/2026). Ele ficou de fora da
+     * primeira passagem e teria deixado duas listas com regras diferentes na mesma secção: uma
+     * linha com botões, outra com o nome clicável. A regra é a mesma — só muda o que a linha diz
+     * por baixo do nome. */
+    '        linhas.push("<li class=\\"turma\\" data-verbete=\\"" + escHtml(x.nome) + "\\">" +' +
+    '          "<div class=\\"linha-turma\\"><span class=\\"nome\\">" + escHtml(x.nome) +' +
+    '          " " + selos + "</span>" +' +
+    '          (x.escola' +
+    '            ? "<span class=\\"acoes\\">" + (emTurma' +
+    '                ? "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" +' +
+    '                  escHtml(x.nome) + "\\" title=\\"Derivar: este exercício já está no repertório ' +
+    'de uma turma — a versão que ela lê fica\\">Derivar</button>" +' +
+    '                  "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" disabled ' +
+    'title=\\"Não se exclui: o exercício está no repertório de uma turma\\">Excluir</button>"' +
+    '                : "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" +' +
+    '                  escHtml(x.nome) + "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" +' +
+    '                  "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" +' +
+    '                  escHtml(x.nome) + "\\" title=\\"Excluir o verbete deste exercício\\">Excluir</button>") +' +
+    '              "</span>"' +
+    '            : "") +' +
+    '          "</div>" +' +
+    '          "<div class=\\"dono\\">" + (t0 + (t0 === 1 ? " trecho" : " trechos")) +' +
+    '          " · ainda sem música — o verbete existe, e o trecho não tem compasso</div></li>");' +
     '        return;' +
     '      }' +
     /* O CARTÃO — as peças da lista de turmas (02/11/2026, escolha dela).
@@ -14284,9 +14329,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        if (m.compasso) detalhe.push(m.compasso);' +
     '        detalhe.push(m.trechos + (m.trechos === 1 ? " trecho" : " trechos"));' +
     '        if ((m.categorias || []).length) detalhe.push(m.categorias.join(", "));' +
-    '        var alvoDeMusica = "<button type=\\"button\\" class=\\"verbetes-editar\\" data-nome=\\"" +' +
-    '          x.nome + "\\" data-musica=\\"" + m.chave +' +
-    '          "\\" title=\\"abrir este verbete no formulário\\">" + x.nome + "</button>";' +
+    /* O NOME DEIXOU DE SER O CONTROLE (18/11/2026).
+     *
+     * «quando eu clico no nome do exercício com verbete, ele não faz nada. Essa funcionalidade não
+     * tem que ter mais. Para poder editar ou derivar tem que ir até o botão editar e derivar igual
+     * os demais.»
+     *
+     * E o «não faz nada» era literal, não impressão: o botão existia com a classe
+     * `.verbetes-editar` e o handler procurava-o — mas o resultado visível era nenhum numa lista
+     * onde o nome PARECE texto. Um nome que é botão e não se anuncia como botão é uma armadilha
+     * silenciosa: quem não descobre o clique conclui que a lista é só de leitura.
+     *
+     * O nome passa a ser texto, como o da Sala, o do Elenco e o da Turma. O gesto vai para onde
+     * todos os outros estão: um botão na coluna das ações. */
+    '        var alvoDeMusica = escHtml(x.nome);' +
     /* A LISTAGEM MARCA O DESACORDO (03/11/2026), e é o que torna a regra utilizável: a tela aceita
      * gravar uma música que não fecha, portanto tem de haver onde se ver QUAIS ficaram por
      * resolver — senão o professor teria de abrir os verbetes um a um para descobrir. A conta é a
@@ -14312,9 +14368,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // de cada escola; apagar o do catálogo pela tela de uma escola tirá-lo-ia a todas. A versão do
     // catálogo mostra o selo «do catálogo» e não tem botão — um botão que recusa é pior do que a
     // ausência dele, porque parece avaria.
-    '          (i === 0 && m.escola ? "<span class=\\"acoes\\">" +' +
-    '            "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" +' +
-    '            x.nome + "\\" title=\\"apagar o verbete deste exercício\\">Apagar</button></span>" : "") +' +
+    /* OS DOIS GESTOS, E A MESMA REGRA DAS OUTRAS LISTAS (18/11/2026).
+     *
+     * «Se eu estou em turma […] não pode ter o botão de apagar. Se eu não estou em turma, não estou
+     * vinculado a nada, então eu posso ter o botão de editar e o botão de apagar. […] a gente está
+     * usando excluir e apagar. Vamos usar tudo o mesmo, excluir.»
+     *
+     * EM TURMA: «Derivar» e «Excluir» desabilitado. LIVRE: «Editar» e «Excluir».
+     *
+     * O QUE DECIDE «ESTAR EM TURMA» é o repertório de uma curadoria activa — a mesma referência que
+     * o SERVIDOR já confere antes de apagar (a rota do DELETE recusa com 409 e nomeia a curadoria).
+     * Duas respostas para a mesma pergunta divergiriam no primeiro desacordo, e por isso as duas
+     * leem `CURADORIAS`: aqui para desenhar, lá para recusar.
+     *
+     * A VERSÃO DO CATÁLOGO NÃO TEM GESTOS, e a razão é a de sempre: apagar o verbete do catálogo
+     * pela tela de uma escola tirá-lo-ia a todas. O selo «do catálogo» já o diz. */
+    '          (i === 0 && m.escola' +
+    '            ? "<span class=\\"acoes\\">" + (' +
+    '                emTurma' +
+    '                  ? "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
+    '                    escHtml(x.nome) + "\\" data-musica=\\"" + escHtml(m.chave) + ' +
+    '                    "\\" title=\\"Derivar: este exercício já está no repertório de uma turma — a ' +
+    'versão que ela lê fica, e esta passa a valer a partir de agora\\">Derivar</button>" + ' +
+    '                    "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" disabled ' +
+    'title=\\"Não se exclui: o exercício está no repertório de uma turma. Retire-o do repertório ' +
+    'dessa turma, ou derive este verbete\\">Excluir</button>"' +
+    '                  : "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
+    '                    escHtml(x.nome) + "\\" data-musica=\\"" + escHtml(m.chave) + ' +
+    '                    "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" + ' +
+    '                    "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" + ' +
+    '                    escHtml(x.nome) + "\\" title=\\"Excluir o verbete deste exercício\\">Excluir</button>"' +
+    '              ) + "</span>"' +
+    '            : "") +' +
     '          "</div>" +' +
     '          "<div class=\\"dono\\">" + detalhe.join(" · ") + desacordo + "</div>" +' +
     '          "<div class=\\"trio\\">" +' +
@@ -14415,7 +14500,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      */
     'function apagarOVerbete(qual){' +
     '  if (!qual) return;' +
-    '  var certo = window.confirm("Apagar o verbete de «" + qual + "»? A decomposição dele sai do ' +
+    /* «APAGAR» VIROU «EXCLUIR» TAMBÉM AQUI (18/11/2026) — «a gente está usando excluir e apagar.
+     * Vamos usar tudo o mesmo, excluir». A confirmação é o texto que a pessoa lê no momento da
+     * decisão; deixá-la com a outra palavra faria o produto dizer duas coisas para o mesmo gesto,
+     * e é exactamente nesse sítio que a diferença se nota. */
+    '  var certo = window.confirm("Excluir o verbete de «" + qual + "»? A decomposição dele sai do ' +
     '    alfabeto, e não há como a ler de volta. Uma aula já publicada que use este exercício ' +
     '    passa a sair com a notação em lacuna. O exercício continua no dicionário. " +' +
     '    "Se ele já compõe um plano de ensino, o sistema recusa — e diz porquê.");' +
@@ -14463,8 +14552,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // verbo é um só, e ela pediu-o em dois sítios. Duas cópias divergiriam na primeira correcção.
     '    var ap = e.target.closest ? e.target.closest("button[data-apagar-verbete]") : null;' +
     '    if (ap) { apagarOVerbete(ap.getAttribute("data-apagar-verbete")); return; }' +
-    '    var b = e.target.closest ? e.target.closest("button.verbetes-editar") : null;' +
-    '    if (b) editarVerbete(b.getAttribute("data-nome"), b.getAttribute("data-musica"));' +
+    /* O GESTO MUDOU DE NOME (18/11/2026): o nome do exercício deixou de ser botão, e quem abre o
+     * verbete é um botão da coluna das ações, como em todas as outras listas. O `data-musica`
+     * continua a viajar — é ele que abre a música certa num exercício com duas.
+     *
+     * A CLASSE ANTIGA NÃO FICA como alias: um alias é uma segunda porta para o mesmo ato, e a
+     * próxima pessoa a mexer nesta lista escolheria uma das duas ao acaso. `verbetes-editar`
+     * deixou de existir no HTML, e o handler que a procurava também. */
+    '    var b = e.target.closest ? e.target.closest("button[data-editar-verbete]") : null;' +
+    '    if (b) editarVerbete(b.getAttribute("data-editar-verbete"), b.getAttribute("data-musica"));' +
     '  });' +
     '}' +
     'var formVerbete = document.getElementById("form-verbete");' +
@@ -16272,12 +16368,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return "<li class=\\\"trio-plano\\\" data-elenco=\\\"" + escHtml(l.id) + "\\\">" +' +
     '      "<div class=\\"trio-linha\\">" +' +
     '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + marca + "</span>" +' +
+    /* OS DOIS GESTOS SÃO OS DA SALA, E A REGRA É A MESMA (18/11/2026).
+     *
+     * «Aqui eu tenho um elenco que está vinculado a uma turma e aí tem o botão de editar e de
+     * excluir. Aqui tem regra de derivação, então não pode ter excluir em um elenco que está
+     * vinculado a uma turma e o botão não é editar, é derivar. […] A sala está funcionando bem, a
+     * sala é um bom exemplo.»
+     *
+     * EM TURMA: «Derivar» e o «Excluir» DESABILITADO (e não ausente — é a mesma escolha da Sala,
+     * e ela confirmou-a: «Na sala também é desabilitado. É isso mesmo, está certo»). O porquê do
+     * desabilitado está no `title`, porque um controle apagado sem explicação é o pior dos mundos.
+     *
+     * LIVRE: «Editar» e «Excluir» a valer.
+     *
+     * E O NOME DIZ A VERDADE SOBRE O ATO, o que é raro e é o que a torna aceitável: concluir um
+     * elenco JÁ grava uma VERSÃO nova no repositório (`linhas-de-base/<id>--<carimbo>.json`, e a
+     * vigente é a de carimbo maior). Um elenco que a Turma lê não se corrige no lugar — deriva-se,
+     * e a versão que a Turma lia fica onde está. No elenco livre o mesmo ato é uma correção, e
+     * chamar-lhe derivação seria inventar história que ninguém escreveu. */
     '      "<span class=\\"trio-acoes\\">" +' +
-    '      "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
-    '      "\\" title=\\"Abrir este elenco para corrigir\\">Editar</button>" +' +
-    '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-lb-apagar=\\"" +' +
-    '      escHtml(l.id) + "\\" data-nome=\\"" + escHtml(l.nome) +' +
-    '      "\\" title=\\"Excluir este elenco\\">Excluir</button></span></div>" +' +
+    '      (usadaPor.length' +
+    '        ? "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
+    '          "\\" title=\\"Derivar: um elenco que está numa turma não se corrige no lugar — a versão ' +
+    'que a turma lê fica, e esta passa a valer a partir de agora\\">Derivar</button>" +' +
+    '          "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" disabled ' +
+    'title=\\"Não se exclui: a Turma lê este corpo. Escolha outro elenco nessa Turma, ou derive este\\">' +
+    'Excluir</button>"' +
+    '        : "<button type=\\"button\\" class=\\"acao pequena\\" data-lb-editar=\\"" + escHtml(l.id) +' +
+    '          "\\" title=\\"Abrir este elenco para corrigir\\">Editar</button>" +' +
+    '          "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-lb-apagar=\\"" +' +
+    '          escHtml(l.id) + "\\" data-nome=\\"" + escHtml(l.nome) +' +
+    '          "\\" title=\\"Excluir este elenco\\">Excluir</button>") +' +
+    '      "</span></div>" +' +
     '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
     '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
     '      "<div class=\\"trio trio-duo\\">" +' +

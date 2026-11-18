@@ -51003,3 +51003,54 @@ Restaurado, tudo verde.
 «Benesh» até serem regeradas (`professores/*/ciclos/*`), e o nome `glossario-benesh.html` é uma chave
 técnica que não se renomeia sem migrar os registos. Se quiser que a palavra desapareça também dos
 ciclos já publicados, é uma regeração — e ela reescreve as âncoras `.fipp`, por isso é decisão dela.
+
+## 18/11/2026 — Os gestos são os mesmos nas três listas, e a palavra é «Excluir»
+
+**Ela deu o exemplo e a regra no mesmo parágrafo.** *«Aqui tem regra de derivação, então não pode ter
+excluir em um elenco que está vinculado a uma turma e o botão não é editar, é derivar.»* E apontou o
+modelo: *«A sala está funcionando bem, a sala é um bom exemplo. […] O estilo tem que fazer esse ajuste
+e a turma também está certo, é derivar.»* Sobre a Sala, uma correcção à leitura fácil: *«Ah não, na
+sala também é desabilitado. É isso mesmo, está certo. Então quando deriva o botão de excluir ele fica
+desabilitado.»* — ou seja, o Excluir **não desaparece**: apaga-se. E a quarta coisa, que era só
+vocabulário: *«a gente está usando excluir e apagar. Vamos usar tudo o mesmo, excluir.»*
+
+**A REGRA É UMA, e por isso se escreve uma vez.** Em turma → **Derivar** + **Excluir desabilitado**;
+livre → **Editar** + **Excluir**. O facto que decide é o mesmo nas três listas (`usadaPor.length` no
+elenco, `x.emTurma.length` no verbete, `vinculada` na curadoria) — é o mesmo facto do selo, e não uma
+segunda resposta para a mesma pergunta.
+
+**A GUARDA VEM ANTES DO BOTÃO.** `apagarElenco` passou a recusar com **409** quando uma curadoria
+activa lê o elenco, e a recusa **diz o caminho** («escolha outro elenco nessa Turma, ou derive este»).
+Um botão desabilitado é uma promessa; a recusa do servidor é a regra. Sem a frase, a recusa é um beco.
+O ramo oposto também está medido: um elenco que nenhuma Turma lê **exclui-se** (200) — senão a guarda
+seria só uma parede.
+
+**O NOME DEIXOU DE SER BOTÃO.** No Estilo, clicar no nome do exercício «não faz nada» — ela: *«Essa
+funcionalidade não tem que ter mais. Para poder editar ou derivar tem que ir até o botão editar e
+derivar igual os demais.»* A classe `verbetes-editar` saiu do nome, o gesto passou para a coluna das
+acções (`data-editar-verbete`), e o handler migrou de `.verbetes-editar` para `[data-editar-verbete]`.
+O ramo do exercício sem música — que é o mesmo cartão por outro caminho — foi corrigido também.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`apagarElenco` com a guarda e a frase; o cartão do
+elenco com os dois gestos; o cartão do Estilo com os dois gestos e «Excluir»; o handler) ·
+`experimentos/provar-salas-e-elencos.js` (secção K).
+
+**Com o quê.** `provar-salas-e-elencos` **131/131** (eram 116; a secção K traz 15) · `provar-verbete`
+**35/39**, as mesmas 4 do HEAD limpo, medido com as alterações em stash · `provar-historico-do-ajuste`
+37/37 · `provar-abas-da-audicao` 124 · `check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** O elenco em turma a voltar a dizer «Editar»: **reprova 1**. A classe
+`verbetes-editar` a voltar ao botão: **reprova 1**. «Excluir» a voltar a «Apagar» no Estilo:
+**reprova 1**. Restaurado, 131/131.
+
+**Uma asserção que era decorativa, e foi apanhada aqui.** A secção K nasceu com `|| true` no fim de
+uma asserção — «a Turma continua a derivar». Isso não a tornava tolerante: tornava-a **verde sempre**.
+Ao medi-la a sério descobriu-se que eu tinha escrito a regra errada: a Turma **livre** oferece
+«Editar», e só depois de nascer o plano de ensino passa a «Derivar». A asserção passou a medir o par
+inteiro (`modo` ↔ `Excluir` desabilitado), e é por isso que ela agora pode falhar.
+
+**Um dado de prova inventado prova o dado, não o código.** A mesma secção enviava
+`campos: ['contracao']` a criar o elenco; o servidor recusava com 400 («campo(s) que a anamnese não
+tem»), o elenco não existia, e as seis asserções seguintes ficavam sem id — três delas davam por isso
+mesmo «falha» e a mensagem não dizia a causa. Os campos passam a ser lidos de
+`/api/bastidores/campos-do-corpo`.
