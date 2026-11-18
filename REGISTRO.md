@@ -51103,3 +51103,51 @@ imprime é exactamente a que ela leu (««Plié» já está no vocabulário»). 
 não existe. Uma prova que reprova 26 vezes não avisa ninguém — é ruído, e ruído é pior do que a
 ausência, porque dá a impressão de cobertura. Fica declarado e por decidir: ou se reescreve contra o
 formulário de hoje, ou se retira. Não a apaguei sem ela saber, e não a «arranjei» a fingir que media.
+
+## 18/11/2026 — Não se apagou a prova: corrigiram-se as quatro que estavam velhas
+
+**A ordem era condicional, e a condição não se verificava — por causa de um erro meu.** Ela disse:
+*«apaga a prova se ela se não serve ninguém»*. Eu tinha-lhe dito que a `provar-passo-um-do-verbete`
+estava «em 4 de 30» e que «reprovava 26 vezes». **É o contrário:** a linha final da prova diz
+`FALHOU — 26 de 30 asserções`, e o formato é `(total − falhas) de total` — **26 passavam, 4
+falhavam**. Eu li o número ao contrário, e induzi-a a autorizar o apagamento de uma prova que está
+84% viva.
+
+**A armadilha que produziu o erro, e que fica declarada.** As duas provas imprimem a mesma
+expressão com sentidos opostos: esta diz «26 de 30 asserções» para dizer quantas **passaram**, e a
+`provar-trecho-do-verbete` diz «1 de 36 reprovaram» para dizer quantas **falharam**. Quem lê muitas
+provas seguidas não tem como saber qual das convenções está à frente. Um número que precisa de
+contexto para ser lido é um número que vai ser mal lido.
+
+**O QUE AS QUATRO FALHAS ERAM.** Todas a mesma coisa: o **bloqueio** de `vncategoria` e
+`vntradicao`. A prova nasceu a 02/11, quando os três campos ficavam congelados; a 10/11 ela reviu
+essa decisão — *«ajustes manuais»* — e os campos passaram a ser editáveis. A prova continuou a medir
+o desenho revogado. Duas das quatro asserções mediam ainda o **texto** de uma nota de bloqueio que a
+nova regra apaga de propósito (`vb-vigor-nota` fica vazia quando há exercício) — uma frase morta, que
+não protege nada.
+
+**O QUE AS OUTRAS 26 MEDEM, e é a razão de não se apagar.** A secção A é **a única prova do
+repositório que verifica o próprio script**: nenhuma função de topo declarada duas vezes (o defeito
+que fez o «Seguir» chamar a navegação de outra superfície), com **contraprova do detector**. A
+secção E guarda que as navegações da turma e da linha de base continuam a ser delas. A B mede os
+quatro obrigatórios e o «Seguir» a acordar com o último. Apagar isto para eliminar quatro asserções
+velhas seria deitar fora o único detector de nomes duplicados que existe.
+
+**A CORRECÇÃO, e a asserção com dentes.** As quatro passam a medir a regra de hoje, e no lugar das
+duas que liam o texto morto entra uma que mede **comportamento**: *«uma correcção à mão não é
+reescrita pela sugestão do dicionário»*. O gesto é o dela — corrige a categoria e a tradição, e
+volta a escolher o mesmo exercício. O que a torna útil é o par: dizer «os campos estão editáveis»
+seria decorativo; impedir que a sugestão os reescreva é a promessa que o código faz
+(`if (!cat.value || cat.value === CATEGORIA_SUGERIDA)`).
+
+**Onde entrou.** `experimentos/provar-passo-um-do-verbete.js` (as quatro, e o cabeçalho) ·
+`experimentos/README.md` (a linha da prova descrevia o bloqueio) · `ESTADO-ATUAL.md` (§11, entrada
+nova — a §11 acrescenta, não reescreve).
+
+**Com o quê.** `provar-passo-um-do-verbete` **29/29** (eram 26) · **controlo A/B**: a condição do
+`sincronizarPasso1ComExercicio` a sair, e a sugestão a reescrever por cima da correcção —
+**reprova 1**, com a categoria a voltar a `passo`. Restaurado, 29/29.
+
+**A lição, para não se repetir.** Antes de dizer a alguém que uma prova «não serve», conte as
+asserções uma a uma e leia o **formato** da linha final de cada prova. «Não serve ninguém» é uma
+conclusão forte, e eu apresentei-a com base num número que não tinha lido.

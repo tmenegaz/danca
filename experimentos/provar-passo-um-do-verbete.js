@@ -236,11 +236,17 @@ function nomesRepetidos(script) {
       PEDIDOS.length === 1 && PEDIDOS[0].termo === 'Battement jeté'
       && PEDIDOS[0].descricao === 'Lançamento rápido da perna estendida.', PEDIDOS);
 
-    console.log('\nD. OS TRÊS CAMPOS — a classificação congela, a frase é dela, o oficial fica à vista');
+    console.log('\nD. OS TRÊS CAMPOS — a classificação sugere, a correcção é dela, o oficial fica à vista');
     conferir('a categoria veio do termo, e está preenchida', depois.categoria === 'passo', depois.categoria);
     conferir('a tradição veio do termo, e está preenchida', depois.tradicao === 'RAD', depois.tradicao);
-    conferir('a categoria e a tradição ficam BLOQUEADAS — são a classificação do dicionário',
-      depois.bloqueados[0] === true && depois.bloqueados[1] === true, depois.bloqueados);
+    /* A CLASSIFICAÇÃO VIROU SUGESTÃO (10/11/2026). «a classificação congela» foi o desenho de
+     * 02/11; ela reviu-o e pediu «ajustes manuais». Os três campos ficam editáveis, e o que a
+     * regra passou a proteger é outra coisa — e é isso que se mede a seguir: a sugestão do
+     * dicionário não reescreve uma correcção humana. Uma asserção que só dissesse «estão
+     * editáveis» seria decorativa; o que dá dentes é o par com a de baixo. */
+    conferir('os três campos ficam EDITÁVEIS — a classificação do dicionário é sugestão, não sentença',
+      depois.bloqueados[0] === false && depois.bloqueados[1] === false
+        && depois.bloqueados[2] === false, depois.bloqueados);
     /* A DEFINIÇÃO NÃO SE BLOQUEIA (07/11/2026): «o espaço para notas/anotações pedagógicas
      * personalizadas do professor deve estar liberado e interativo». */
     conferir('a frase do professor NÃO é bloqueada', depois.bloqueados[2] === false, depois.bloqueados);
@@ -250,11 +256,30 @@ function nomesRepetidos(script) {
       /Lançamento rápido da perna estendida a uma altura baixa/.test(depois.oficial), depois.oficial);
     conferir('…e diz que não se edita por ali — para a mudar, edita-se o termo',
       /edite o termo no vocabulário/.test(depois.oficial), depois.oficial);
-    conferir('a nota do bloqueio fala da categoria e da tradição, e já não promete «três campos»',
-      /categoria e a tradição/.test(depois.notoDoBloqueio)
-      && !/três campos/.test(depois.notoDoBloqueio), depois.notoDoBloqueio);
-    conferir('…e diz que a frase acima é dela', /A frase acima é a sua/.test(depois.notoDoBloqueio),
-      depois.notoDoBloqueio);
+    /* A CORRECÇÃO À MÃO SOBREVIVE À SUGESTÃO (18/11/2026 — a asserção que substitui as duas que
+     * mediam o texto do antigo bloqueio, e que a regra de 10/11 apagou de propósito).
+     *
+     * Aqui estava a medir-se uma frase que já não existe («a nota do bloqueio fala da categoria e
+     * da tradição»), e uma frase morta não protege nada. O que o código promete hoje é concreto: a
+     * sugestão do dicionário só preenche quando o campo está vazio ou ainda tem a sugestão
+     * anterior. Se voltar a reescrever por cima, o ajuste manual dela desaparece sem aviso — e esse
+     * é o defeito que a frase antiga tentava descrever.
+     *
+     * O GESTO É O DELA: corrige a categoria à mão e volta a escolher o mesmo exercício. */
+    const correcaoAMao = await page.evaluate(() => {
+      const cat = document.getElementById('vncategoria');
+      const tra = document.getElementById('vntradicao');
+      cat.value = 'salto';
+      tra.value = 'francesa';
+      cat.dispatchEvent(new Event('change', { bubbles: true }));
+      tra.dispatchEvent(new Event('change', { bubbles: true }));
+      // O mesmo exercício, escolhido outra vez — é o caminho que sugeriria por cima.
+      const sel = document.getElementById('vbnome');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      return { categoria: cat.value, tradicao: tra.value };
+    });
+    conferir('…e uma correcção à mão NÃO é reescrita pela sugestão do dicionário',
+      correcaoAMao.categoria === 'salto' && correcaoAMao.tradicao === 'francesa', correcaoAMao);
     conferir('o termo encontrado entrou no dicionário da PÁGINA — é dele que os campos se enchem',
       depois.dicionario.indexOf('Battement jeté') !== -1, depois.dicionario);
 
@@ -330,9 +355,9 @@ function nomesRepetidos(script) {
     conferir('…a tradição idem', daLista.tradicao === 'RAD', daLista.tradicao);
     conferir('…a frase nasce com a definição do dicionário, pronta a ajustar',
       /Lançamento rápido da perna estendida/.test(daLista.frase), daLista.frase);
-    conferir('…e a categoria e a tradição ficam bloqueadas, mas a frase não',
-      daLista.bloqueados[0] === true && daLista.bloqueados[1] === true && daLista.bloqueados[2] === false,
-      daLista.bloqueados);
+    conferir('…e os três ficam editáveis, como os outros — o dicionário sugere, não tranca',
+      daLista.bloqueados[0] === false && daLista.bloqueados[1] === false
+        && daLista.bloqueados[2] === false, daLista.bloqueados);
     conferir('…e a definição oficial continua à vista como referência',
       /altura baixa/.test(daLista.oficial), daLista.oficial);
 

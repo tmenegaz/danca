@@ -4600,6 +4600,21 @@ página publicada — é a conferência final, não a exploração (ver §12 e a
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **18/11/2026** — **Uma prova que parecia morta estava viva: 26 de 30 passavam.** A
+  `provar-passo-um-do-verbete` aparecia na §9 como vermelha, e a leitura fácil era «não serve
+  ninguém». **CONFIRMADO**, contando as asserções uma a uma: **26 passavam e 4 falhavam**, e as 4
+  eram a mesma coisa — o **bloqueio** de `vncategoria`/`vntradicao`, que a decisão de 10/11/2026
+  («ajustes manuais») revogou de propósito. As outras 26 medem o que ninguém mais mede: a secção A
+  é a única prova do repositório que verifica **o próprio script** (nenhum nome de topo declarado
+  duas vezes, com contraprova do detector), e a E guarda as navegações da turma e da linha de base.
+  **Não se apagou: corrigiram-se as 4.** A asserção que as substitui tem dentes — «uma correcção à
+  mão não é reescrita pela sugestão do dicionário» —, e o controlo A/B reprova quando a condição do
+  `sincronizarPasso1ComExercicio` sai. **CONFIRMADO**: `provar-passo-um-do-verbete` **29/29**.
+  **E fica uma armadilha declarada:** esta prova imprime «26 de 30 asserções» para dizer quantas
+  **passaram**, e a `provar-trecho-do-verbete` imprime «1 de 36 reprovaram» para dizer quantas
+  **falharam**. A mesma expressão, dois sentidos — foi o que produziu o erro de leitura. Ver a
+  entrada de 18/11/2026 no `REGISTRO.md`.
+
 - **15/11/2026** — **As saídas do pacote deixaram de se carimbar.** Ela: «não tem sentido ficar
   carimbando toda hora». O diagnóstico **CONFIRMADO**: não era um carimbo lento, era um laço sem
   ponto fixo — o `SOURCE_DATE_EPOCH` vinha de `git log` sobre a **pasta** do ciclo, que contém as
