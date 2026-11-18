@@ -159,9 +159,21 @@ async function enviar({ mensagem, chave, de, fetchImpl, timeoutMs = 10000 } = {}
     return {
       enviado: false,
       motivo: 'sem RESEND_API_KEY',
-      dica: 'Crie uma chave em resend.com e guarde-a como secret do Worker: '
-        + '`npx wrangler secret put RESEND_API_KEY --config wrangler.danca.jsonc`. '
-        + 'A mensagem fica guardada e pronta.',
+      /* O COMANDO TEM DE APONTAR AO WORKER QUE SERVE A ESCOLA (18/11/2026).
+       *
+       * O aviso dizia `--config wrangler.danca.jsonc` e só isso. Numa instalação com SHARD, a
+       * escola NÃO corre no `danca`: corre no script do shard, e o segredo posto no `danca` não
+       * chega lá. Foi o que aconteceu — o `danca` tem o `RESEND_API_KEY` desde 25/11, a `breu` não
+       * manda e-mail nenhum, e a dica mandava pôr a chave num sítio onde ela já estava. Quem
+       * seguisse a dica repetia o que já estava feito e nada mudava.
+       *
+       * Aqui dizem-se os dois destinos possíveis, e a regra que os separa: o Worker que responde
+       * pelo endereço da escola. */
+      dica: 'Crie uma chave em resend.com e guarde-a como secret do WORKER QUE SERVE A ESCOLA — '
+        + 'o do shard (`npx wrangler secret put RESEND_API_KEY --config wrangler.lastro-teste.jsonc`) '
+        + 'quando a instalação serve as escolas por um shard, ou o da página '
+        + '(`--config wrangler.danca.jsonc`) quando não serve. Um segredo posto no Worker errado não '
+        + 'chega a esta escola. A mensagem fica guardada e pronta.',
       para: destinatariosFinais,
     };
   }

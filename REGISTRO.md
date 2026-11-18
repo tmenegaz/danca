@@ -51561,3 +51561,61 @@ as quatro frases; a rota `/matricula` a garantir o cadastro; o cliente com um pe
 
 Passou a encontrar o **fim do handler** em vez de o estimar. Um tecto fixo numa região de tamanho
 variável é uma asserção que se desliga sozinha no dia em que alguém acrescenta uma linha.
+
+## 18/11/2026 — «O gravar anamnese nova está bloqueado», e o e-mail que ia para o Worker errado
+
+**Ela disse três coisas, e as três eram verdade.** «O gravar anamnese nova está bloqueado. Mesmo que
+eu troque de modalidade […] continua bloqueado. Mesmo que eu coloque uma justificativa, continua
+bloqueado.» «Não recebi e-mail nenhum, e não aparece, não gravou.» «Continua dizendo que nenhuma
+modalidade escolhida ainda.»
+
+**1. O botão apagava-se depois de já estar certo.** `derivarAluna` põe a modalidade e chama
+`professoresDaAluna()`, que é uma **leitura de rede** — o perfil de cada professor, um ficheiro por
+um. Nesse instante o `<select>` ainda diz «a carregar…», e `pintarTravasDaAluna` contava o professor
+como faltando e **apagava o botão**. O professor chegava 100 ms depois e ninguém recalculava a trava:
+o botão ficava morto para sempre, **com o campo preenchido à frente**. Medido: `disabled: true` aos
+100, 300, 600 e 1200 ms, com `aprofessor.value = 'demi-plier'`.
+
+**2. Trocar de modalidade perdia a escolha.** A repintura da lista faz `innerHTML = …`, e isso
+devolve o `<select>` ao primeiro item — o vazio. Quem tinha escolhido um professor perdia-o sem ver.
+O valor passou a ser guardado antes e reposto depois, **se ainda valer**; quando ele sai mesmo da
+lista (por não declarar a modalidade nova), é apagado e o botão apaga-se com ele.
+
+**3. O aviso do correio era escrito num sítio invisível.** O `.res` das alunas vivia **dentro do
+passo 1**, e no passo 2 está `hidden`. A frase «o e-mail ao professor NÃO saiu: …» era escrita — e
+ninguém a podia ler. Por isso a leitura dela foi a certa: não aconteceu nada. O `.res` saiu dos
+passos e passou a ser irmão dos dois: o cadastro começa no passo 1 e termina no passo 2, e a
+resposta pertence ao acto inteiro. E ganhou-se a nota `#aluna-pendencia`, que **escreve** o que o
+`title` do botão só dizia a quem passasse o rato por cima.
+
+**4. A listagem declarava ignorância que o sistema não tem.** «Eu refiz a anamnese da aluna A, que
+ela é vinculada já, e continua dizendo que nenhuma modalidade escolhida ainda.» Sem `matriculas`, a
+frase era essa — sobre uma aluna que a **curadoria** pôs numa turma de balé. A modalidade e o
+professor passaram a ser lidos da curadoria quando não há vínculo, e a linha diz o que se sabe:
+`Balé clássico · sem vínculo de anamnese ainda`. A aluna que nada declara continua a ouvir que nada
+se sabe — e isso é a verdade.
+
+**O E-MAIL: a chave está no Worker errado.** `RESEND_API_KEY` existe no `danca` (desde 25/11) e
+**não existe no `lastro-teste`**, que é o shard que serve as escolas. O aviso de `correio.js` dizia
+só `--config wrangler.danca.jsonc` — mandava pôr a chave onde ela já estava, e quem seguisse a dica
+repetia o que estava feito sem nada mudar. O texto passou a dizer os dois destinos e a regra que os
+separa: **o Worker que responde pelo endereço da escola**. O comando, para esta instalação:
+
+    npx wrangler secret put RESEND_API_KEY --config wrangler.lastro-teste.jsonc
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a trava recalculada no ciclo que repõe o professor;
+o professor preservado na repintura; o `.res` fora dos passos; `#aluna-pendencia`;
+`modalidadeDoVinculo` na linha da listagem) · `motor/servidor/correio.js` (a dica) ·
+`experimentos/provar-cadastro-da-aluna.js` (secção N e a secção I com dentes).
+
+**Com o quê.** `provar-cadastro-da-aluna` **74/74** (eram 72; a secção I passou a ter habilitações
+declaradas de verdade, senão media um filtro que não filtrava) · `provar-acordeoes` TUDO CERTO ·
+`provar-salas-e-elencos` 131/131 · `provar-abas-da-audicao` 125/125 · `check-identidade` 0 erros ·
+o `<script>` servido compila.
+
+**Controlo A/B.** Os quatro defeitos repostos: **reprova 10**.
+
+**UMA ASSERÇÃO MINHA MEDIA A REGRA ANTIGA, e foi apanhada pela prova nova.** A da secção I dizia
+«apaga outra vez quando a lista é repintada» — era o comportamento de então, e era precisamente o
+defeito. Passou a medir as duas metades: sobrevive quando ainda integra a lista, é apagado quando já
+não integra.

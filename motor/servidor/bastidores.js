@@ -5105,8 +5105,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               + '<span data-anamnese-de="' + esc(m.id) + '"></span>'
               + '</div>';
           }).join('')
-          : '<p class="nota">Nenhuma modalidade escolhida ainda — a aluna foi cadastrada antes de o '
-            + 'cadastro perguntar. «Derivar» abre a anamnese dela.</p>';
+          /* SEM VÍNCULO, MAS COM O QUE A ESCOLA JÁ SABE (18/11/2026).
+           *
+           * «Eu refiz a anamnese da aluna A, que ela é vinculada já, e continua dizendo que nenhuma
+           * modalidade escolhida ainda. A aluna foi cadastrada antes do cadastro perguntar derivar
+           * abre a anamnese dela.»
+           *
+           * A FRASE ESTAVA CERTA E ERA INÚTIL. Uma aluna criada antes de os vínculos existirem não
+           * tem `matriculas` — e a frase dizia isso. Mas a escola SABE a modalidade dela: está na
+           * curadoria, que a pôs na turma. Dizer «não se sabe» sobre um dado que está a três
+           * colunas de distância, no mesmo cartão, é a mesma família do «sem apelido» das fichas:
+           * a tela a declarar ignorância que o sistema não tem.
+           *
+           * O que se diz agora: o que se sabe, e o que falta — a anamnese. Sem inventar a data nem
+           * o professor de um vínculo que não existe. */
+          : (modalidadeDoVinculo
+            ? '<p class="nota">' + '<span class="selo marca">' + esc(modalidadeDoVinculo) + '</span> '
+              + 'sem vínculo de anamnese ainda — ela está em turma, mas a anamnese nunca foi pedida. '
+              + '«Derivar» abre a primeira.</p>'
+            : '<p class="nota">Nenhuma modalidade escolhida ainda — e nenhuma turma a declara. '
+              + '«Derivar» abre a anamnese dela.</p>');
 
         /* O ELENCO E A TURMA, NA LINHA DO NOME — e os dois são BOTÕES, não texto.
          *
@@ -7281,7 +7299,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
-    '<div class="res" data-res="alunas"></div>' +
     // A FILEIRA DO BOTÃO É A DO PROFESSOR (26/10/2026). O `.acao` sozinho depois do `.res`
     // encostava no campo: a folha só dá vão ao botão que vem LOGO depois de um controle
     // (`input + button.acao`), e o `.res` — que é `display:none` até haver resposta — quebra
@@ -7339,7 +7356,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="submit" class="acao grande" id="aluna-gravar" disabled>Cadastrar aluna</button>' +
     '<button type="button" class="acao secundario" id="aluna-cancelar-2" hidden>Cancelar</button>' +
     '</span>' +
+    /* O QUE FALTA, DITO ONDE SE VÊ (18/11/2026). O botão apagado tinha o motivo só no `title` — um
+     * balão que ninguém vê sem passar o rato por cima, e que no telemóvel não existe. Ela ficou
+     * com o botão morto e o campo preenchido à frente, e a única leitura possível era «está
+     * quebrado». A frase é a mesma que o `title` leva, mas escrita. */
+    '<p class="nota" id="aluna-pendencia" hidden></p>' +
     '</div>' +
+    /* O RECADO É DO FORMULÁRIO, E NÃO DO PASSO 1 (18/11/2026).
+     *
+     * «não recebi e-mail nenhum, e não aparece, não gravou.» O aviso do desfecho do correio ERA
+     * escrito — dentro do `.res` do passo 1, que está `hidden` quando se está no passo 2. A frase
+     * existia num sítio que ninguém podia ver, e por isso a leitura dela foi a certa: não aconteceu
+     * nada.
+     *
+     * O `.res` sai dos passos e passa a ser irmão dos dois: o cadastro começa no passo 1 e termina
+     * no passo 2, e a resposta pertence ao acto inteiro. O `alvoDoRecado()` continua a encontrá-lo
+     * — é o primeiro `.res` da secção —, e agora ele está sempre à vista. */
+    '<div class="res" data-res="alunas"></div>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -10038,21 +10071,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!prof) faltam.push("o professor que vai fazer a anamnese");' +
     '  b.disabled = faltam.length > 0;' +
     '  b.title = faltam.length ? "Falta " + faltam.join(", ") + "." : "";' +
+    '  var aviso = document.getElementById("aluna-pendencia");' +
+    '  if (aviso) {' +
+    '    aviso.hidden = faltam.length === 0;' +
+    '    aviso.textContent = faltam.length ? "Para gravar, falta " + faltam.join(", ") + "." : "";' +
+    '  }' +
     '}' +
     'function professoresDaAluna() {' +
     '  var sel = document.getElementById("amodalidade");' +
     '  var alvo = document.getElementById("aprofessor");' +
     '  if (!sel || !alvo) return;' +
     '  var mod = String(sel.value || "");' +
+    /* O PROFESSOR JÁ ESCOLHIDO NÃO SE PERDE AO TROCAR DE MODALIDADE (18/11/2026).
+     *
+     * «Mesmo que eu troque de modalidade, ele está bloqueado.» A repintura da lista faz
+     * `innerHTML = …`, e isso devolve o `<select>` ao primeiro item — que é o vazio. Quem tinha
+     * escolhido um professor perdia-o sem ver, e o botão apagava-se sem uma frase a dizer porquê.
+     * O valor é guardado antes e reposto depois, se ele ainda estiver na lista nova. */
+    '  var guardado = String(alvo.value || "");' +
     '  if (!mod) {' +
     /* AS ASPAS DOS ATRIBUTOS SÃO SIMPLES, e não é estilo: a string que o gerador emite é
      * delimitada por `"`, e um `value=""` dentro dela FECHA a string a meio. O `<script>` servido
      * deixava de compilar — o `node --check` do fonte passa, porque o fonte está certo; quem está
      * errado é o que ele emite. É a armadilha desta casa, e ela custou outra vez a apanhá-la. */
     '    alvo.innerHTML = "<option value=\'\'>— escolha a modalidade primeiro —</option>";' +
+    '    pintarTravasDaAluna();' +
     '    return;' +
     '  }' +
     '  alvo.innerHTML = "<option value=\'\'>a carregar…</option>";' +
+    '  pintarTravasDaAluna();' +
     '  professoresDaModalidade(mod).then(function(lista){' +
     '    var s2 = document.getElementById("amodalidade");' +
     '    if (!s2 || String(s2.value || "") !== mod) return;' +
@@ -10071,9 +10118,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que tinha corrido mal. */
     '      return "<option value=\x27" + escHtml(p.slug) + "\x27>" + escHtml(p.rotulo) + "</option>";' +
     '    }).join("");' +
-    /* REPINTAR A LISTA DEVOLVE O `<select>` AO VAZIO (é o primeiro item que fica escolhido), e por
-     * isso a trava é recalculada aqui: sem esta linha o botão ficaria aceso com o professor em
-     * branco — que é o defeito que ela acabou de ver, com outra cara. */
+    /* REPINTAR A LISTA DEVOLVE O `<select>` AO VAZIO, e o valor guardado volta se ainda valer — é o
+     * que faz «trocar de modalidade» não apagar a escolha de quem já escolheu. */
+    '    if (guardado) {' +
+    '      var aindaVale = false;' +
+    '      for (var q = 0; q < alvo.options.length; q++) {' +
+    '        if (alvo.options[q].value === guardado) aindaVale = true;' +
+    '      }' +
+    '      if (aindaVale) alvo.value = guardado;' +
+    '    }' +
     '    pintarTravasDaAluna();' +
     '  });' +
     '}' +
@@ -10235,11 +10288,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (selMod) selMod.value = mod;' +
     '  professoresDaAluna();' +
     '  var esperar = 0;' +
+    /* O PROFESSOR CHEGA DEPOIS, E A TRAVA TEM DE SABER (18/11/2026).
+     *
+     * «o gravar anamnese nova está bloqueado. Mesmo que eu troque de modalidade […] continua
+     * bloqueado. Eu não consigo gravar a anamnese.»
+     *
+     * A CAUSA. A lista dos professores é uma LEITURA de rede (o perfil de cada um, um por
+     * ficheiro). `derivarAluna` põe a modalidade e chama `professoresDaAluna()`, e nesse instante o
+     * `<select>` ainda diz «a carregar…» — logo `pintarTravasDaAluna` conta o professor como
+     * faltando e APAGA o botão. O professor chega 100 ms depois, mas a trava não era recalculada: o
+     * botão ficava apagado para sempre, com o campo preenchido à frente. Era a pior combinação
+     * possível — o dado certo, o controle morto, e nenhuma frase a explicar.
+     *
+     * Agora o ciclo que repõe o professor é também quem acende o botão. */
     '  var tentar = function(){' +
     '    var selProf = document.getElementById("aprofessor");' +
     '    if (!selProf) return;' +
     '    if (!prof || Array.prototype.some.call(selProf.options, function(o){ return o.value === prof; })) {' +
     '      if (selProf) selProf.value = prof;' +
+    '      pintarTravasDaAluna();' +
     '      return;' +
     '    }' +
     '    if (esperar++ < 40) setTimeout(tentar, 50);' +
