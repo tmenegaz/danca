@@ -554,14 +554,28 @@ function distribuicaoDoTempo(estrutura, volume, volumeTotal, duracaoMin) {
 
 
 /**
- * A notação escolhida (P-15): o front-matter do plano declara `contexto-notacao` como
- * `Benesh`/`Laban`/`Nenhuma`/… Só há registro/glossário quando uma notação foi ESCOLHIDA —
- * `Nenhuma` (ou ausente) não gera o par.
+ * A NOTAÇÃO DEIXOU DE SER ESCOLHA (18/11/2026) — e a razão é dela, com duas metades.
+ *
+ * A JURÍDICA: «esses nomes são de marca e eu não tenho as licenças deles […] não nos pertence.»
+ * A EDITORIAL, que é a mesma coisa dita pelo lado de dentro: «o que nós construímos aqui é
+ * inspirado no Benesh e no Laban. O que nós usamos é o nosso pseudocódigo, a nossa própria
+ * notação de dança.» Chamar-lhe pelo nome de outro seria declarar uma filiação que não existe.
+ *
+ * E POR ISSO DEIXA DE SER PERGUNTA. «Ele já vem pronto, já vai ser preenchido, já vai estar
+ * definido. Não vai mais ser uma escolha.» O campo saiu do formulário do plano
+ * (`porta/plano/conteudo/plano.json`), e esta função passou a devolver a constante.
+ *
+ * O QUE ELA AINDA LÊ DO PLANO: NADA. E isso é de propósito — uma resposta antiga (`Benesh`,
+ * `Laban`) não pode continuar a mandar no documento novo. Um ciclo regerado depois de hoje sai
+ * com o código que é nosso, mesmo que o envelope dele tenha sido escrito ontem.
+ *
+ * O `plano` FICA NO PARÂMETRO porque os quatro chamadores passam-no e um deles lê o envelope para
+ * outras coisas; tirá-lo obrigaria a mexer em cinco sítios para não ganhar nada.
  */
-function notacaoEscolhida(plano) {
-  const v = String(resp(plano, 'contexto-notacao') || '').trim().toLowerCase();
-  if (!v || v === 'nenhuma' || v === 'nenhum' || v === 'nao' || v === 'não') return null;
-  return v.charAt(0).toUpperCase() + v.slice(1); // Benesh / Laban / …
+const NOTACAO_DO_CICLO = 'Código de dança';
+
+function notacaoEscolhida(plano) { // eslint-disable-line no-unused-vars
+  return NOTACAO_DO_CICLO;
 }
 
 // ---------------------------------------------------------------------------
@@ -1495,7 +1509,10 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Documento de apoio');
   saida.push('ciclo: "' + ciclo + '"');
-  saida.push('title: "Notação em ' + notacao + '"');
+  /* O TÍTULO NÃO DIZ MAIS «Notação em <nome>» (18/11/2026). Com a notação fixa, ele sairia
+   * «Notação em Código de dança» — que não é português e repetia a palavra duas vezes. O nome do
+   * documento passa a ser o do objecto: «Notação de dança». */
+  saida.push('title: "Notação de dança"');
   /* A TURMA TAMBÉM NA NOTAÇÃO (06/11/2026). O pedido dela: «você colocou no documento plano para
    * a aula um a turma logo acima do botão abrir notação e não colocou a turma dentro da notação,
    * precisa colocar». A notação é um documento de APOIO — abre-se a meio da aula, e o professor
@@ -1778,7 +1795,7 @@ function derivarGlossario({ plano, contexto }) {
       saida.push('');
     }
     saida.push('> **[Preencher: verbetes dos sinais do ciclo]** — cada exercício registrado na');
-    saida.push('> [Notação em ' + notacao + '](notacao.html) que introduza um sinal novo ganha aqui o seu verbete.');
+    saida.push('> [Notação de dança](notacao.html) que introduza um sinal novo ganha aqui o seu verbete.');
     return saida.join('\n') + '\n';
   }
 

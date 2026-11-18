@@ -231,15 +231,15 @@
           }
         },
         {
+          "_nota": "O CAMPO «NOTAÇÃO DOMINADA» SAIU A 18/11/2026, e a razão é dela: «esses nomes são de marca e eu não tenho as licenças deles […] o que nós usamos é o nosso pseudocódigo, a nossa própria notação de dança». Além disso a pergunta deixou de fazer sentido: «Ele já vem pronto, já vai ser preenchido, já vai estar definido. Não vai mais ser uma escolha.» O plano passou a declarar «Código de dança» por derivação (`notacaoEscolhida`, no `derivar-ciclo.js`), e um envelope antigo que ainda traga `contexto-notacao` tem a resposta IGNORADA — não é ela que manda no documento novo.",
           "id": "contexto-notacao",
-          "campo": "Notação dominada",
+          "campo": "Notação de dança",
           "obrigatorio": false,
-          "forma": "Benesh · Laban · Nenhuma",
-          "aberto": true,
+          "fixo": "Código de dança",
           "explicacao": {
-            "oQueE": "O sistema com que você ESCREVE movimento (Benesh, Laban) — se usa algum.",
-            "preencher": "Benesh, Laban ou «Nenhuma». Se usa outro, escreva no campo aberto.",
-            "porQue": "A notação segue a metodologia: o que se escreve também diz o que se observa. Declarar «nenhuma» evita supor."
+            "oQueE": "O código com que o sistema ESCREVE movimento. É um só, e é nosso: um pseudocódigo inspirado nas notações clássicas, não um sistema de terceiros.",
+            "preencher": "Não se preenche — vem pronto.",
+            "porQue": "O ciclo sempre regista o que foi feito, e regista-o no código do projeto. Perguntar qual seria pedir uma decisão que já está tomada."
           }
         }
       ]

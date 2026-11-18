@@ -1039,13 +1039,21 @@ async function aOrigemDoVocabulario() {
     /orientacoes: Object\.entries/.test(fonte) && /direcoes: Object\.entries/.test(fonte)
     && !/direcoesDoMembro \|\| \{\}\)\s*\.concat/.test(fonte));
 
-  // «BLOCO» QUERIA DIZER DUAS COISAS (28/10/2026). No plano, `Bloco` é Solo · Barra · Centro; na
-  // célula, era a notação. A pesquisadora leu «bloco» e entendeu — com razão — o sentido do
-  // plano. O campo passou a chamar-se Sinais Benesh, e a palavra «bloco» não pode voltar ao
-  // formulário com o outro sentido.
-  checar('o campo da notação chama-se «Sinais Benesh», e não «bloco»',
-    /Sinais Benesh/.test(html) && !/for="vb-cel-bloco"/.test(html)
+  /* «BLOCO» QUERIA DIZER DUAS COISAS (28/10/2026). No plano, `Bloco` é Solo · Barra · Centro; na
+   * célula, era a notação. A pesquisadora leu «bloco» e entendeu — com razão — o sentido do plano.
+   * O campo passou a chamar-se pelos sinais da notação, e a palavra «bloco» não pode voltar ao
+   * formulário com o outro sentido.
+   *
+   * O NOME MUDOU OUTRA VEZ A 18/11/2026: «Sinais Benesh» virou «Sinais de notação de dança». Ela
+   * foi explícita — «esses nomes são de marca e eu não tenho as licenças deles […] Aonde quer que
+   * tenha essa palavra Benesh ou Laban, a gente tem que tirar». A asserção mudou com o rótulo e
+   * ganhou o que a torna uma guarda a sério: o nome do sistema de terceiros não pode voltar. */
+  checar('o campo da notação chama-se «Sinais de notação de dança», e não «bloco»',
+    /Sinais de notação de dança/.test(html) && !/for="vb-cel-bloco"/.test(html)
     && !/bloco, ex\.:/.test(html));
+  checar('…e o nome do sistema de terceiros não aparece na página',
+    !/Benesh/i.test(html) && !/Laban/i.test(html),
+    (html.match(/[^<>]{0,40}(Benesh|Laban)[^<>]{0,40}/gi) || []).slice(0, 3));
 
   // A CONTAGEM E OS SINAIS COMPÕEM-SE, NÃO SE ESCREVEM. Não há campo de texto livre para a
   // notação, e a contagem é uma lista de pílulas que o script preenche com o que cabe no
@@ -1754,7 +1762,73 @@ async function oDocumentoAntigo() {
     { apagado: !tinha, pistas: Object.keys(registo.celulas || {}) });
 }
 
+/* ------------------------------------------------------------------------------------------
+ * O NOME DO SISTEMA DE TERCEIROS NÃO PERTENCE AO PRODUTO (18/11/2026).
+ *
+ * «esses nomes são de marca e eu não tenho as licenças deles. […] Aonde quer que tenha essa palavra
+ * Benesh ou Laban, a gente tem que tirar, porque não nos pertence.» E a razão de o substituto ser
+ * «código de dança»: «o que nós construímos aqui é inspirado no Benesh e no Laban. O que nós usamos
+ * é o nosso pseudocódigo, a nossa própria notação de dança.»
+ *
+ * A segunda metade do pedido é a que se esquece: a notação deixou de ser PERGUNTA — «Ele já vem
+ * pronto, já vai ser preenchido, já vai estar definido. Não vai mais ser uma escolha.» */
+function aNotacaoEDoProjeto() {
+  console.log('\nA NOTAÇÃO DE DANÇA — o nome é nosso, e a escolha deixou de existir (18/11/2026)');
+
+  const nucleo = require(path.join(RAIZ, 'motor/nucleo/notacao.js'));
+  const derivar = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
+  const po = require(path.join(RAIZ, 'motor/nucleo/derivar-po.js'));
+
+  /* 1. A NOTAÇÃO É UMA CONSTANTE — e o envelope antigo não manda nela. */
+  checar('a notação é a mesma com ou sem resposta no plano',
+    derivar.notacaoEscolhida({}) === 'Código de dança'
+      && derivar.notacaoEscolhida({ respostas: { 'contexto-notacao': { valor: 'Benesh' } } })
+        === 'Código de dança',
+    derivar.notacaoEscolhida({}));
+
+  /* 2. O ALFABETO ENCONTRA-SE PELO NOME NOVO, e o `aplicaseA` do ficheiro é que o diz. */
+  const alfa = nucleo.paraNotacao('Código de dança');
+  checar('o alfabeto encontra-se pelo nome do código de dança', Boolean(alfa) && Boolean(alfa.id), alfa && alfa.id);
+  /* E NÃO SE EMPRESTA ALFABETO a uma notação que não tem: é a regra que a `provar-notacao` guarda,
+   * e ela continua inteira. */
+  checar('…e uma notação que não é a nossa não recebe alfabeto emprestado',
+    nucleo.paraNotacao('Laban') === null && nucleo.paraNotacao('Nenhuma') === null, null);
+
+  /* 3. O DOCUMENTO DO PLANO DECLARA A NOTAÇÃO — mesmo que o envelope diga outra coisa. */
+  /* `comporContexto` e `comporMetodologiaENotacao` não são exportados individualmente; a linha é
+   * composta pelo compositor registado, que É exportado. Mede-se o que ele devolve. */
+  const compor = po.COMPOR_DO_CONTEXTO['contexto-notacao'];
+  checar('o compositor do documento ignora a resposta antiga e escreve o código do projeto',
+    typeof compor === 'function' && compor('Benesh') === 'Código de dança', compor && compor('Benesh'));
+  checar('…e o rótulo do documento já não pergunta «dominada»',
+    po.ROTULOS_DO_CONTEXTO['contexto-notacao'] === 'Notação de dança',
+    po.ROTULOS_DO_CONTEXTO['contexto-notacao']);
+
+  /* 4. O CAMPO SAIU DO FORMULÁRIO DO PLANO — deixou de ser escolha. */
+  const conteudo = require(path.join(RAIZ, 'porta/plano/conteudo/plano.json'));
+  const achados = [];
+  const varrer = (no) => {
+    if (!no || typeof no !== 'object') return;
+    if (Array.isArray(no)) { no.forEach(varrer); return; }
+    if (no.id === 'contexto-notacao') achados.push(no);
+    for (const k of Object.keys(no)) varrer(no[k]);
+  };
+  varrer(conteudo);
+  checar('o campo «notação» do plano está marcado como fixo, e não como escolha',
+    achados.length === 1 && achados[0].fixo === 'Código de dança'
+      && !achados[0].forma && !achados[0].aberto,
+    achados.map((x) => ({ id: x.id, fixo: x.fixo, forma: x.forma })));
+
+  /* 5. O ALFABETO NÃO SE DIZ DE TERCEIROS. O ficheiro é conteúdo, e é dele que saem as páginas. */
+  const ficheiro = fs.readFileSync(
+    path.join(RAIZ, 'biblioteca/modalidades/bale-classico/notacao.json'), 'utf8');
+  checar('o alfabeto não invoca o nome de um sistema de terceiros',
+    !/benesh/i.test(ficheiro) && !/laban/i.test(ficheiro),
+    (ficheiro.match(/[^"\n]{0,50}(Benesh|Laban)[^"\n]{0,50}/gi) || []).slice(0, 3));
+}
+
 aValidacao();
+aNotacaoEDoProjeto();
 aEscrita().then(aRota).then(aPagina).then(aOrigemDoVocabulario).then(aGuardaDeProveniencia).then(aTradicaoDeReferencia).then(oVersionamento).then(oDocumentoAntigo).then(() => {
   console.log('');
   if (falhas) { console.log('FALHOU — ' + falhas + ' asserção(ões).'); process.exit(1); }

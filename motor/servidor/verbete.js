@@ -206,7 +206,7 @@ function validarVerbete(verbete, alfabeto, vocabulario, musicaDeclarada) {
         }
         // A NOTAÇÃO VEM DE DOIS CAMPOS (28/10/2026): `categoria` e `sinais`. O `bloco` de texto
         // deixou de existir no dado — «bloco» já queria dizer Solo · Barra · Centro, e pedir a
-        // notação escrita à mão era pedir Benesh de cabeça. A validação compõe-na e confere-a
+        // notação escrita à mão era pedir o código de cabeça. A validação compõe-na e confere-a
         // como antes; o que muda é que agora se pode compor na tela.
         const categoria = String(c.categoria || '').trim();
         const sinais = Array.isArray(c.sinais) ? c.sinais.map((x) => String(x).trim()).filter(Boolean) : [];

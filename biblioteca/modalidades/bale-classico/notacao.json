@@ -15,11 +15,11 @@
     "precisa de uma cópia dele. Por isso NENHUM nome de escola aparece aqui — nem vivo, nem",
     "expurgado. A prova (`experimentos/provar-notacao.js`) verifica-o.",
     "",
-    "O alfabeto NÃO é o sistema Benesh. É um conjunto pequeno de sinais BASEADO em conceitos do",
-    "sistema, com o qual os exercícios deste ciclo podem ser lidos de volta sem depender da memória",
-    "de quem deu a aula. Cada sinal declara a sua ORIGEM: `sistema`, quando corresponde a um",
-    "conceito do sistema de notação (conferível na fonte); `convenção do ciclo`, quando foi",
-    "escolhido para este código e só vale aqui.",
+    "O alfabeto NÃO é o sistema de ninguém. É o CÓDIGO DE DANÇA deste projeto: um conjunto pequeno",
+    "de sinais INSPIRADO nas notações clássicas, com o qual os exercícios deste ciclo podem ser",
+    "lidos de volta sem depender da memória de quem deu a aula. Cada sinal declara a sua ORIGEM:",
+    "`sistema`, quando corresponde a um conceito de uma notação clássica (conferível na fonte);",
+    "`convenção do ciclo`, quando foi escolhido para este código e só vale aqui.",
     "",
     "A proveniência deste alfabeto: os sinais e a forma da grade foram recuperados de um ciclo",
     "ANTERIOR deste projeto, onde a notação foi escrita e conferida à mão. `↓`, `↑`, `ED` e `EI` são",
@@ -99,10 +99,10 @@
   ],
   "id": "ballet-classico",
   "modalidade": "bale-classico",
-  "nome": "Código do ciclo — base Benesh (ballet clássico)",
+  "nome": "Código de dança (ballet clássico)",
   "versao": 46,
   "aplicaseA": [
-    "benesh"
+    "codigo-de-danca"
   ],
   "convencoes": {
     "abre": {

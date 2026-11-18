@@ -468,7 +468,10 @@ const ROTULOS_DO_CONTEXTO = {
   'contexto-volume': 'Volume de trabalho',
   'contexto-registro': 'Condição de registro',
   'contexto-metodologia': 'Metodologia de referência',
-  'contexto-notacao': 'Notação dominada',
+  /* «NOTAÇÃO DOMINADA» VIROU «NOTAÇÃO DE DANÇA» (18/11/2026). O nome antigo descrevia uma
+   * PERGUNTA — que sistema o professor domina —, e a pergunta deixou de existir: o código é um só,
+   * é nosso, e vem pronto. O rótulo passou a descrever o facto. */
+  'contexto-notacao': 'Notação de dança',
 };
 
 // Os COMPOSITORES: o valor CRU do envelope do plano vira o texto que o documento lê. O plano
@@ -485,6 +488,15 @@ const COMPOR_DO_CONTEXTO = {
   'contexto-calendario': comporData,
   'contexto-volume': comporMedida,
   'contexto-registro': condicaoDeRegistroEmTexto,
+  /* A NOTAÇÃO NÃO SE LÊ DA RESPOSTA (18/11/2026) — ela é declarada pelo sistema.
+   *
+   * O envelope de um plano antigo traz `contexto-notacao: 'Benesh'`. Deixá-lo passar punha a marca
+   * de terceiros no documento novo, que é exactamente o que ela mandou tirar. E deixá-lo VAZIO
+   * punha «[a decidir]» numa linha que já não se decide.
+   *
+   * A constante é a mesma do derivador do ciclo (`NOTACAO_DO_CICLO`), e não uma segunda cópia: o
+   * documento da aula e o do plano dizem o mesmo nome porque leem a mesma coisa. */
+  'contexto-notacao': () => 'Código de dança',
 };
 
 // Uma linha `Rótulo: valor` composta, pulando o que não veio; `[a decidir]` quando nada veio.

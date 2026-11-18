@@ -72,7 +72,8 @@ function chaveDoRegistro(escola, contexto) {
 
 /**
  * OS DOCUMENTOS que o ciclo derivou, em nomes legíveis. O registro guarda os nomes
- * técnicos (`aula-01`, `glossario-benesh`); a tela mostra o que a pessoa reconhece.
+ * técnicos (`aula-01`, `glossario-benesh`); a tela mostra o que a pessoa reconhece. As chaves
+ * são históricas e não se renomeiam (ver a nota em `glossario-benesh`); os rótulos, sim.
  */
 const NOMES_DOS_DOCUMENTOS = {
   /* OS DOIS PLANOS TÊM NOMES QUE SE DISTINGUEM (04/11/2026). Antes: «Plano de ensino» e «Aula
@@ -83,8 +84,17 @@ const NOMES_DOS_DOCUMENTOS = {
   'harmonizacao': 'Harmonização',
   'aula-01': 'Plano para a Aula 01',
   'captura-aula-01': 'Captura da aula 01',
-  'notacao': 'Notação',
-  'glossario-benesh': 'Glossário Benesh',
+  'notacao': 'Notação de dança',
+  /* O NOME QUE A PESSOA LÊ MUDOU (18/11/2026); A CHAVE TÉCNICA NÃO.
+   *
+   * «Glossário Benesh» era o rótulo de um documento cuja chave no registo é `glossario-benesh` —
+   * e a chave é o que já está gravado em todos os ciclos existentes. Renomeá-la faria os registos
+   * de ontem apontarem para um documento que passou a ter outro nome, e um ciclo antigo deixaria
+   * de encontrar o seu glossário. O mesmo par de sempre: o rótulo muda, a chave fica.
+   *
+   * O que se lê passa a ser «Glossário do código de dança» — o código é nosso, e o nome dele não é
+   * de ninguém. */
+  'glossario-benesh': 'Glossário do código de dança',
   'referencias': 'Referências',
 };
 

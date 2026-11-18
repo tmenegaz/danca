@@ -248,7 +248,10 @@ SELO_ALFABETO=""
 NOTACAO_DECLARADA=""
 _plano_fonte="$(fonte_md plano 2>/dev/null || true)"
 if [ -n "$_plano_fonte" ] && [ -f "$_plano_fonte" ]; then
-  NOTACAO_DECLARADA="$(sed -n 's/^| *\*\*Notação dominada\*\* *| *\([^|]*[^| ]\) *|.*$/\1/p' "$_plano_fonte" | head -1)"
+  # O RÓTULO DA NOTAÇÃO MUDOU A 18/11/2026 («Notação dominada» → «Notação de dança»), e o selo
+  # tem de o encontrar nos dois: um ciclo gerado ontem ainda diz o antigo até ser regerado, e um
+  # `--check` num ciclo antigo não pode perder o selo do alfabeto por causa de um rótulo.
+  NOTACAO_DECLARADA="$(sed -n 's/^| *\*\*Notação d[eo]minada\*\* *| *\([^|]*[^| ]\) *|.*$/\1/p; s/^| *\*\*Notação de dança\*\* *| *\([^|]*[^| ]\) *|.*$/\1/p' "$_plano_fonte" | head -1)"
 fi
 if [ -n "$NOTACAO_DECLARADA" ]; then
   SELO_ALFABETO="$(node -e '

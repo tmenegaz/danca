@@ -396,7 +396,7 @@ const TRILHA_DO_DOCUMENTO = [
      Planos não é sair de Planos: o degrau do meio diz «Planos», e o grupo «Ciclos» fica aceso. */
   { re: /\/(?:plano|referencias)(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
   /* NOTAÇÃO E GLOSSÁRIO SÃO ACESSADOS A PARTIR DA AULA (27/10/2026). A lista independente de
-     Notação deixa de existir; a vista em Benesh e o glossário pertencem ao percurso de Aulas. */
+     Notação deixa de existir; a vista da notação e o glossário pertencem ao percurso de Aulas. */
   { re: /\/notacao(?:\.html)?$/, grupo: 'Área do Professor', rotulo: 'Aulas', href: '/aulas/' },
   { re: /\/glossario[-a-z]*(?:\.html)?$/, grupo: 'Área do Professor', rotulo: 'Aulas', href: '/aulas/' },
   /* O GRUPO DO DOCUMENTO É ONDE A LISTA MORA, e não o nome da lista. Com «Aulas» dentro da Área

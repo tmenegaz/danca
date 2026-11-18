@@ -50915,3 +50915,91 @@ deixando de ler a tradição da sala: **reprova 1**. Tirado o lugar do perfil na
 **primeira** gravada na curadoria, e a linha de leitura mostra as duas. Se quiser escolher a segunda,
 é uma decisão a tomar — hoje não há campo para isso, e inventá-lo sem lhe perguntar seria decidir por
 ela.
+
+## 18/11/2026 — O código de dança é nosso, e a Turma mostra a tradição da sala
+
+**O pedido tem duas metades, e a segunda é jurídica.** *«Nós temos a anotação Benesh, temos a
+anotação Laban […] Acontece que a gente não vai mais usar esses termos. A gente vai chamar de código
+de dança.»* E a razão: *«esses nomes são de marca e eu não tenho as licenças deles. […] Eu não tenho
+o direito de usar esses nomes porque são marcas registadas.»* Com o que o produto é, dito por ela:
+*«o que nós construímos aqui é inspirado no Benesh e no Laban. O que nós usamos é o nosso
+pseudocódigo, a nossa própria notação de dança.»*
+
+**A OUTRA METADE É QUE DEIXOU DE SER PERGUNTA.** *«Ele já vem pronto, já vai ser preenchido, já vai
+estar definido. Não vai mais ser uma escolha.»* O campo «Notação dominada» saiu do formulário do
+plano (`porta/plano/conteudo/plano.json`) e passou a `fixo: "Código de dança"`. `notacaoEscolhida`
+devolve a constante e **ignora a resposta do envelope** — é de propósito: um plano gravado ontem com
+`Benesh` não pode continuar a mandar no documento de hoje.
+
+**O QUE MUDOU DE NOME, e onde.** «Sinais Benesh deste trecho» → **«Sinais de notação de dança deste
+trecho»** (o passo 5 do Estilo, que é onde ela estava). «Glossário Benesh» → «Glossário do código de
+dança». O `nome` do alfabeto → «Código de dança (ballet clássico)». O título do documento de apoio
+→ «Notação de dança» (era «Notação em <nome>», que sairia «Notação em Código de dança»). O rótulo do
+plano e do PO → «Notação de dança». O `_comentario` do alfabeto deixou de invocar o sistema alheio.
+
+**A CHAVE TÉCNICA NÃO MUDOU, e é deliberado.** `glossario-benesh` é a chave que já está gravada em
+todos os registos existentes; renomeá-la faria os ciclos de ontem apontarem para um documento que
+passou a ter outro nome. Rótulo muda, chave fica — o mesmo par de sempre. **E as saídas geradas
+(`professores/*/ciclos/*/glossario-benesh.html`, os `.md` que ainda dizem «Benesh») não se editam à
+mão**: são saídas, e regeneram-se. Fica declarado porque a palavra ainda está lá até isso acontecer.
+
+**Uma tentação minha que a prova travou.** Cheguei a pôr em `paraNotacao` uma queda — «se a
+modalidade tem um alfabeto só, devolve-o mesmo que o nome não case» — para um plano antigo não perder
+o glossário. A prova reprovou-a («uma notação sem alfabeto publicado devolve `null` — e não um
+alfabeto emprestado»), e tinha razão: resolvia o rótulo velho à custa de afirmar que uma notação
+desconhecida tem alfabeto. O caso real resolve-se do outro lado, em `notacaoEscolhida`.
+
+**O `hash-ciclo.sh` aceita os dois rótulos.** O selo do alfabeto na âncora lia
+`**Notação dominada**`; um ciclo regerado passa a dizer `**Notação de dança**`. O `sed` aceita os
+dois — senão um `--check` num ciclo antigo perdia o selo por causa de um rótulo.
+
+**E a listagem da Turma, que é a segunda coisa que ela viu.** *«está escrito assim na listagem: ballet
+clássico francesa nível 1, professor Demi Plier […] mas que a tradição é francesa, isso está errado. A
+tradição é a que agora a turma carrega. A sala é quem carrega.»*
+
+A causa foi medida no KV: o registo guarda `tradicao: "francesa"` (valor anterior à derivação) e o
+perfil do professor daquela sala declara **RAD**. **O registo não é reescrito** — o passado é o que
+foi declarado —, mas a **leitura** passa a ser a do presente: o servidor desenha o lugar reservado
+com o professor e a modalidade, e o valor chega quando a secção das Turmas fica à vista, pela mesma
+memória do resto da página. Enquanto não chega, mostra o que o registo diz: pode estar velho, mas não
+é inventado.
+
+**E o link deixou de ser o nome da pessoa.** *«Demi Plier está me levando até o plano de ensino desse
+professor do Demi Plier. […] pode dizer aqui plano de ensino como link e não Demi Plier.»* O nome
+fica nome; quem leva ao plano é a palavra que o diz — **«plano de ensino»** —, e só quando há plano.
+
+**Um defeito meu, apanhado pela prova e não pelo browser.** `mostrarSecao()` corre no **arranque** do
+script, e `CATALOGO_DE_MODALIDADES` só ganha valor mais abaixo (`var` é içado, o valor não): a minha
+chamada rebentava com `TypeError` no arranque e **a página parava ali** — os links do menu deixavam de
+acender. Corrigido com guarda, e com uma segunda chamada no **fim** do script, onde tudo já existe:
+sem ela, quem abrisse a página já na secção das Turmas veria a tradição velha até mudar de secção e
+voltar — certo ao segundo clique e errado à primeira vista, que é a pior forma de estar certo.
+
+**Onde entrou.** `biblioteca/modalidades/bale-classico/notacao.json` (nome, `aplicaseA`,
+`_comentario`) · `porta/plano/conteudo/plano.json` (o campo passa a fixo) ·
+`motor/nucleo/notacao.js` (a regra do alfabeto, com o comentário da tentação travada) ·
+`motor/nucleo/derivar-ciclo.js` (`NOTACAO_DO_CICLO`, os dois títulos) · `motor/nucleo/derivar-po.js`
+(rótulo e compositor) · `motor/servidor/geracao.js` (o rótulo do glossário) ·
+`motor/servidor/bastidores.js` (o rótulo do passo 5, `data-tradicao-da-turma`,
+`preencherTradicoesDasTurmas`, `rotuloDaTradicaoNoCliente`, as guardas, a chamada no fim, e o
+complemento da Turma) · `tools/hash-ciclo.sh` (o `sed` dos dois rótulos) ·
+`experimentos/provar-verbete.js` (o rótulo, a guarda de que a marca não volta, e a secção nova da
+notação) · `experimentos/provar-salas-e-elencos.js` (secção J).
+
+**Com o quê.** `provar-salas-e-elencos` **116/116** · `provar-verbete` **35/39** — as 4 são anteriores
+(medido no HEAD limpo: 4) · `provar-financeiro-da-escola` 135 · `provar-paginacao` 120 ·
+`provar-abas-da-audicao` 124 · `provar-a-moldura-em-todas-as-telas` 111 · `provar-monitoramento` 104 ·
+`provar-habilitacao-do-professor` 80 · `provar-financeiro` 58 · `provar-cadastro-do-professor` 49 ·
+`provar-plano-da-turma` 46 · `provar-a-franquia-de-aulas` 42 · `provar-piso` 41 ·
+`provar-sujeitos-da-turma` 41 · `provar-historico-do-ajuste` 37 · `provar-a-escola-que-nasce` 25 ·
+`provar-o-expurgo-do-financeiro` 15 · `provar-rotas-que-existem` 8 · `check-identidade` 0 erros ·
+`check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** O link a voltar a ser o nome do professor: **reprova 2**. A tradição a voltar a vir
+só do registo: **reprova 2**. `notacaoEscolhida` a voltar a ler a resposta do plano: **reprova 2**.
+Restaurado, tudo verde.
+
+**O que fica por fazer, e fica dito.** As saídas geradas dos ciclos antigos continuam a dizer
+«Benesh» até serem regeradas (`professores/*/ciclos/*`), e o nome `glossario-benesh.html` é uma chave
+técnica que não se renomeia sem migrar os registos. Se quiser que a palavra desapareça também dos
+ciclos já publicados, é uma regeração — e ela reescreve as âncoras `.fipp`, por isso é decisão dela.

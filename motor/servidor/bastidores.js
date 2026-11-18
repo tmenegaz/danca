@@ -5484,9 +5484,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * sala no bloco «Sala», as alunas no bloco «Elenco». Dizê-los duas vezes na mesma linha
          * de leitura é o que a peça evita — o `.dono` é o complemento do NOME, e um bloco que
          * abre não precisa de estar também resumido por cima. */
+        /* A TRADIÇÃO NÃO SE LÊ DO REGISTO — LÊ-SE DA SALA (18/11/2026).
+         *
+         * O QUE ELA VIU: «está escrito assim na listagem: ballet clássico francesa nível 1,
+         * professor Demi Plier. […] mas que a tradição é francesa, isso está errado. A tradição é a
+         * que agora a turma carrega. A sala é quem carrega, porque através da sala eu sei qual é o
+         * professor e eu sei qual é a derivação que tem.»
+         *
+         * A CAUSA, medida no KV da Breu: o registo da curadoria guarda `tradicao: "francesa"` — um
+         * valor gravado antes de a tradição passar a derivar-se —, enquanto o perfil do professor
+         * daquela sala declara RAD. O registo não é reescrito (P-03: o passado é o que foi
+         * declarado), mas a LEITURA é do presente: a turma carrega a sala, a sala carrega o
+         * professor, e é ele que diz em que tradição ensina.
+         *
+         * E POR ISSO É PREGUIÇOSA. O perfil vive no repositório, não no KV: lê-lo ao desenhar a
+         * lista seriam N leituras por carregamento. O `.dono` sai com o lugar reservado e os dois
+         * dados que a leitura precisa (o professor e a modalidade); o valor chega quando a secção
+         * fica à vista, pela mesma memória do resto da página. Enquanto não chega, mostra o que o
+         * registo diz — e é o registo que fala se a leitura falhar, em vez de ficar um traço. */
+        const tradicaoDoRegisto = rotuloDaTradicao(c.tradicao);
+        const lugarDaTradicao = '<span data-tradicao-da-turma="' + esc(String(c.professor || '')) +
+          '" data-modalidade="' + esc(String(c.modalidade || '')) + '">' +
+          esc(tradicaoDoRegisto || '—') + '</span>';
         const atributos = [
           perfilNucleo.nomeDaModalidade(c.modalidade) || c.modalidade,
-          rotuloDaTradicao(c.tradicao),
+          lugarDaTradicao,
           nivelDaCuradoria.rotulo,
         ].filter(Boolean);
         const retrato = [estadoDoCatalogo].filter(Boolean);
@@ -5573,12 +5595,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // caía na regra das pessoas — e era por isso que ela aparecia com a linha do nome
         // partida de outra maneira. Usar a peça é o que faz a listagem ser a mesma em toda a
         // parte, e é o que a checagem «Peça» da identidade já exigia.
-        const complemento = atributos.map((p) => esc(p));
-        const professorNaLinha = urlDoPlanoDaCuradoria
-          ? '<a class="nome-link" href="' + esc(urlDoPlanoDaCuradoria) +
-            '" title="Abrir o plano de ensino deste professor">' + esc(rotuloProfessor) + '</a>'
-          : esc(rotuloProfessor);
-        if (rotuloProfessor) complemento.push(professorNaLinha);
+        /* O COMPLEMENTO: modalidade · tradição · nível · professor · plano de ensino · catálogo.
+         *
+         * O `atributos` JÁ VEM ESCAPADO — dois deles são texto e um é um `<span>` com o lugar
+         * reservado da tradição. Escapá-lo outra vez escrevia `&lt;span…` no ecrã; por isso a
+         * travessia é directa, e a nota fica aqui para quem acrescentar mais um.
+         *
+         * O NOME DO PROFESSOR DEIXOU DE SER O LINK (18/11/2026). «Demi Plier está me levando até o
+         * plano de ensino desse professor do Demi Plier. […] pode dizer aqui plano de ensino como
+         * link e não Demi Plier, porque não tem sentido professor e plano de ensino desse jeito.»
+         * Um nome que leva a um documento não é o nome de uma pessoa: é um atalho disfarçado. O
+         * nome fica nome, e quem leva ao plano é a palavra que diz «plano de ensino». */
+        const complemento = atributos.slice();
+        if (rotuloProfessor) complemento.push(esc(rotuloProfessor));
+        if (urlDoPlanoDaCuradoria) {
+          complemento.push('<a class="nome-link" href="' + esc(urlDoPlanoDaCuradoria) +
+            '" title="Abrir o plano de ensino ' + esc(rotuloProfessor) +
+            '">plano de ensino</a>');
+        }
         for (const p of retrato) complemento.push(esc(p));
         /* ------------------------------------------------------------------------------------
          * OS TRÊS BLOCOS DA TURMA (12/11/2026) — a mesma forma da Sala, do Elenco e do Estilo.
@@ -7641,7 +7675,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
     // ---- O FORMULÁRIO DE UM TRECHO -------------------------------------------------------
     // Três coisas dizem o mesmo trecho em três línguas: a CONTAGEM (a do compasso), os SINAIS
-    // BENESH (a da notação) e O QUE ACONTECE (a do português). As duas primeiras compõem-se; a
+    // DA NOTAÇÃO DE DANÇA (a do código) e O QUE ACONTECE (a do português). As duas primeiras
+    // compõem-se; a
     // terceira escreve-se — e vem sugerida do dicionário da modalidade.
     // TUDO EM PÍLULAS (28/10/2026). O `<select>` dos sinais tinha um defeito que só se vê a
     // usar: escolher um sinal SUBSTITUÍA o anterior em vez de o acrescentar à sequência — e uma
@@ -7703,7 +7738,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<fieldset class="escolhas" id="vb-sinais">' +
     '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem</legend>' +
     '</fieldset>' +
-    '<p class="campo-rotulo">Sinais Benesh deste trecho</p>' +
+    /* «SINAIS DE NOTAÇÃO DE DANÇA DESTE TRECHO» (18/11/2026), e não «Sinais Benesh».
+     *
+     * A razão dela, e é jurídica antes de ser editorial: «esses nomes são de marca e eu não tenho
+     * as licenças deles. […] Eu não tenho o direito de usar esses nomes porque são marcas
+     * registadas.» «Aonde quer que tenha essa palavra Benesh ou Laban, a gente tem que tirar.»
+     *
+     * E a razão de o substituto ser este: o que o produto escreve não é o sistema de ninguém — é
+     * um pseudocódigo nosso, «inspirado no Benesh e no Laban», mas construído aqui. Chamar-lhe pelo
+     * nome de outro seria declarar uma filiação que não existe e usar uma marca que não é nossa. */
+    '<p class="campo-rotulo">Sinais de notação de dança deste trecho</p>' +
     '<p id="vb-chips" class="par-associar"></p>' +
     '</div>' +
     // ---- PASSO 5: A DECOMPOSIÇÃO (31/10/2026 — passo 5 desde 01/11/2026) ---------------
@@ -9042,6 +9086,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * uma entre oito, e servir as outras sete não pode pagar por ela. `preencherPerfisVisiveis`
      * salta o que já leu (`data-lido`), por isso voltar à secção não repete nada. */
     '  if (visivel === "professores" && typeof preencherPerfisVisiveis === "function") preencherPerfisVisiveis();' +
+    '  if (visivel === "turmas" && typeof preencherTradicoesDasTurmas === "function") preencherTradicoesDasTurmas();' +
     '  var links = document.querySelectorAll(".lateral a[data-secao]");' +
     '  for (var j = 0; j < links.length; j++) {' +
     '    if (links[j].getAttribute("data-secao") === visivel) {' +
@@ -11192,6 +11237,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function idDaModalidadeDoCatalogo(valor){' +
     '  var v = String(valor || "");' +
     '  if (!v) return "";' +
+    '  if (typeof CATALOGO_DE_MODALIDADES === "undefined") return v;' +
     '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
     '    if (CATALOGO_DE_MODALIDADES[i].id === v) return v;' +
     '    if (CATALOGO_DE_MODALIDADES[i].nome === v) return CATALOGO_DE_MODALIDADES[i].id;' +
@@ -11206,6 +11252,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * `data-lido` marca o que já foi pedido: um segundo clique na secção não repete as leituras, e
      * o `perfilDoProfessor` guarda-as de qualquer forma. */
+    /* A TRADIÇÃO DE CADA TURMA, LIDA DA SALA DELA (18/11/2026).
+     *
+     * «A tradição é a que agora a turma carrega. A sala é quem carrega, porque através da sala eu
+     * sei qual é o professor.»
+     *
+     * O SERVIDOR NÃO O PODE FAZER ao desenhar: o perfil do professor vive no repositório, e lê-lo
+     * para cada Turma em cada carregamento seriam N pedidos para uma linha de texto. O lugar fica
+     * reservado com o professor e a modalidade, e o valor chega quando a secção das Turmas fica à
+     * vista — a mesma leitura preguiçosa, e a mesma memória (`perfilDoProfessor`), do que a lista
+     * de professores já usa.
+     *
+     * E O QUE ACONTECE QUANDO NÃO SE CONSEGUE LER: fica o que o REGISTO diz. É a escolha certa
+     * porque o registo é o que foi declarado — pode estar velho, mas não é inventado. Trocar por um
+     * traço apagaria um facto por causa de uma leitura falhada. */
+    'function preencherTradicoesDasTurmas(){' +
+    '  if (!temTela()) return;' +
+    /* O CATÁLOGO TEM DE EXISTIR (18/11/2026), e este guarda não é zelo: `mostrarSecao()` corre no
+     * ARRANQUE do script, e `CATALOGO_DE_MODALIDADES` só é atribuído mais abaixo — `var` é içado,
+     * o valor não. Sem o guarda, o arranque rebentava com `TypeError` e a página parava ali: os
+     * links do menu deixavam de acender. Apanhado pela prova, não pelo browser. */
+    '  if (typeof CATALOGO_DE_MODALIDADES === "undefined") return;' +
+    '  var alvos = document.querySelectorAll("[data-tradicao-da-turma]");' +
+    '  Array.prototype.slice.call(alvos).forEach(function(el){' +
+    '    if (el.getAttribute("data-lido") === "sim") return;' +
+    '    var slug = el.getAttribute("data-tradicao-da-turma");' +
+    '    var mod = idDaModalidadeDoCatalogo(el.getAttribute("data-modalidade"));' +
+    '    if (!slug || !mod) return;' +
+    '    el.setAttribute("data-lido", "sim");' +
+    '    perfilDoProfessor(slug).then(function(corpo){' +
+    '      if (!temTela() || !corpo) return;' +
+    '      var mapa = corpo.tradicoes || {};' +
+    '      if (!Object.prototype.hasOwnProperty.call(mapa, mod)) return;' +
+    '      var lista = Array.isArray(mapa[mod]) ? mapa[mod] : [];' +
+    // `[]` é «declarou que não ensina nenhuma» — e isso diz-se, em vez de deixar o valor do registo
+    // a passar por actual.
+    '      el.textContent = lista.length ? rotuloDaTradicaoNoCliente(lista) : "sem tradição";' +
+    '    });' +
+    '  });' +
+    '}' +
+    'function rotuloDaTradicaoNoCliente(lista){' +
+    '  var partes = [];' +
+    '  for (var i = 0; i < lista.length; i++) partes.push(ROTULOS_DE_TRADICAO[lista[i]] || lista[i]);' +
+    '  return partes.join(" / ");' +
+    '}' +
     'function preencherPerfisVisiveis(){' +
     '  if (!temTela()) return;' +
     '  var alvos = document.querySelectorAll("[data-perfil-de]");' +
@@ -11933,8 +12023,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // ================= O TRECHO, O COMPASSO E A NOTAÇÃO (28/10/2026) ================
     // Três coisas dizem o mesmo trecho em três línguas: a CONTAGEM (a do compasso), os SINAIS
-    // BENESH (a da notação) e O QUE ACONTECE (a do português). As duas primeiras compõem-se; a
-    // terceira escreve-se, e vem sugerida do dicionário da modalidade.
+    // DA NOTAÇÃO DE DANÇA (a do código) e O QUE ACONTECE (a do português). As duas primeiras
+    // compõem-se; a terceira escreve-se, e vem sugerida do dicionário da modalidade.
     //
     // O que esta secção resolve, e a pesquisadora viu na tela:
     //   · a contagem era um campo de escrita livre — e não pode ser: ela vai de 1 até o
@@ -11942,7 +12032,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //     mesma direção acabou. As opções são calculadas, e por isso o compasso não fica com
     //     buraco;
     //   · o «bloco» era texto a escrever — e «bloco» JÁ queria dizer Solo · Barra · Centro no
-    //     plano. O campo passa a chamar-se Sinais Benesh e compõe-se: categoria, e os sinais
+    //     plano. O campo passa a chamar-se Sinais de notação de dança e compõe-se: categoria, e os sinais
     //     pela ordem, cada um com o nome;
     //   · havia duas tabelas a dizer a mesma coisa. Passa a haver uma.
     'var CELULAS = {};' +
@@ -12694,13 +12784,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  pintarChips();' +
     '}' +
     // A NOTAÇÃO EM COMPOSIÇÃO. A categoria vem das pílulas; os sinais, das pílulas agrupadas, e
-    // cada um entra numa ficha com o «×». É o que evita escrever Benesh de cabeça.
+    // cada um entra numa ficha com o «×». É o que evita escrever a notação de cabeça.
     'function categoriaEscolhida(){' +
     '  var marcado = document.querySelector("input[name=vb-cat]:checked");' +
     '  return marcado ? marcado.value : "Pé";' +
     '}' +
     // OS SINAIS EM PÍLULAS, AGRUPADOS PELO GRUPO DO ALFABETO. Cada pílula diz o glifo e o nome
-    // — «→ conduz a» e não um «→» sozinho —, porque quem está a compor não tem de saber Benesh
+    // — «→ conduz a» e não um «→» sozinho —, porque quem está a compor não tem de saber a notação
     // de cor. Um sinal pode repetir-se no mesmo bloco (`[Pé: 1ª → + ● 1ª]`), e é por isso que o
     // clique ACRESCENTA SEMPRE ao fim e a remoção é só pelos «×» das fichas.
     'function pintarSinais(){' +
@@ -16806,6 +16896,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '} else {' +
     '  repintarCadeiaGuardada();' +
     '}' +
+    /* AS LEITURAS PREGUIÇOSAS DA SECÇÃO ABERTA, AGORA QUE TUDO EXISTE (18/11/2026).
+     *
+     * `mostrarSecao()` é chamada no arranque, e no arranque os mapas que estas leituras usam
+     * (`CATALOGO_DE_MODALIDADES`, `ROTULOS_DE_TRADICAO`) ainda não têm valor — `var` é içado, o
+     * valor não. Aquela chamada acende o menu, que é o que ela tem de fazer cedo; estas duas
+     * precisam do contrário, e por isso correm aqui, no fim.
+     *
+     * Sem isto, quem abrisse a página já na secção das Turmas veria a tradição do registo — a
+     * velha — até mudar de secção e voltar. O painel estaria certo ao segundo clique e errado à
+     * primeira vista, que é a pior forma de estar certo. */
+    'if (typeof preencherTradicoesDasTurmas === "function") preencherTradicoesDasTurmas();' +
+    'if (typeof preencherPerfisVisiveis === "function") preencherPerfisVisiveis();' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o

@@ -25,8 +25,8 @@
  * inteiros, e o documento diz isso em vez de arredondar. Aritmética é onde um documento não pode
  * ser plausível — tem de estar certo.
  *
- * O QUE ELE NÃO É. Não é o sistema Benesh: é um código do ciclo, baseado em conceitos do sistema,
- * e o documento declara-o de si mesmo (P-15). E não é determinístico por acidente: sem relógio,
+ * O QUE ELE NÃO É. Não é o sistema de nenhuma escola: é o CÓDIGO DE DANÇA deste projecto,
+ * baseado em conceitos das notações clássicas, e o documento declara-o de si mesmo (P-15). E não é determinístico por acidente: sem relógio,
  * sem aleatoriedade, sem rede — o mesmo plano e o mesmo alfabeto dão sempre o mesmo documento, que
  * é o que a âncora de proveniência exige para poder ser reproduzida.
  */
@@ -101,8 +101,21 @@ function paraNotacao(declarada, modalidade) {
     const aceita = (alfabeto.aplicaseA || []).map(slug);
     if (aceita.indexOf(alvo) !== -1) casam.push(alfabeto);
   }
-  // Ambíguo não se resolve por sorteio: uma notação que casa com dois alfabetos e chega sem
-  // modalidade é uma pergunta sem resposta, e a resposta certa é dizer isso.
+  /* NÃO SE EMPRESTA ALFABETO A UMA NOTAÇÃO QUE NÃO O TEM (18/11/2026).
+   *
+   * Cheguei a escrever aqui uma queda — «se a modalidade tem um alfabeto só, devolve-o mesmo que o
+   * nome não case» — e a prova (`provar-notacao`, «uma notação sem alfabeto publicado devolve
+   * `null` — e não um alfabeto emprestado») reprovou-a. Tinha razão: a queda resolvia o problema de
+   * um rótulo velho à custa de afirmar que uma notação desconhecida tem alfabeto. O nome do
+   * alfabeto é o `aplicaseA` do ficheiro, e é ele que decide.
+   *
+   * O QUE RESOLVE O CASO REAL, e está no outro lado: `notacaoEscolhida` deixou de ler a resposta do
+   * plano e devolve a constante «Código de dança» — que casa com o `aplicaseA` deste alfabeto. Um
+   * plano antigo que traga outro nome já não manda no documento: a derivação escreve o nosso, e é
+   * esse que se procura aqui.
+   *
+   * Ambíguo não se resolve por sorteio: uma notação que casa com dois alfabetos e chega sem
+   * modalidade é uma pergunta sem resposta, e a resposta certa é dizer isso. */
   return casam.length === 1 ? casam[0] : null;
 }
 
@@ -249,7 +262,7 @@ function orientacaoEmPalavras(alfabeto, orientacao) {
  *
  * O dado guardava o bloco como TEXTO — `"[Pé: 1ª → +]"` —, e a tela pedia que se escrevesse.
  * Mas «bloco» já queria dizer Solo · Barra · Centro na linha do plano, e pedir a notação de
- * cabeça a quem administra o verbete é pedir que se escreva Benesh em texto livre. A célula
+ * cabeça a quem administra o verbete é pedir que se escreva a notação em texto livre. A célula
  * passou a declarar `categoria` e `sinais` — as duas coisas que a tela sabe oferecer — e a
  * notação é DERIVADA aqui. Uma representação só, e é a que se lê no documento.
  */

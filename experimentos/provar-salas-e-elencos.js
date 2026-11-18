@@ -1017,6 +1017,114 @@ const RITMO = {
       (htmlProfs.match(/data-perfil-de=/g) || []).length);
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nJ. A LISTAGEM DA TURMA — a tradição vem da sala, e o link é do plano (18/11/2026)');
+
+  /* O QUE ELA VIU, e são duas coisas na mesma linha: «está escrito assim na listagem: ballet
+   * clássico francesa nível 1, professor Demi Plier. […] mas que a tradição é francesa, isso está
+   * errado. A tradição é a que agora a turma carrega. A sala é quem carrega.» E, sobre o link:
+   * «Demi Plier está me levando até o plano de ensino desse professor do Demi Plier. […] pode dizer
+   * aqui plano de ensino como link e não Demi Plier».
+   *
+   * A CAUSA DO PRIMEIRO é medida, não suposta: o registo da curadoria guarda `tradicao: "francesa"`
+   * — um valor gravado antes de a tradição passar a derivar-se — e o perfil do professor daquela
+   * sala declara RAD. O registo NÃO é reescrito (o passado é o que foi declarado); a LEITURA é que
+   * passa a ser a do presente. */
+  {
+    const TURMA_J = [{
+      id: 'sala-j', nome: 'Rosa', dias: ['ter'], horarios: { ter: '19:00' }, duracaoMin: 60,
+      periodoInicio: '2026-01-01', periodoFim: '2026-06-01',
+      modalidade: 'Balé clássico', professor: 'demi-plie',
+    }];
+    const curadoriaJ = [{
+      id: 'c-j', professor: 'demi-plie', modalidade: 'Balé clássico', tradicao: 'francesa',
+      grau: 'Básico', nivel: '1', nivelReferencia: 'Básico 1', linhaDeBase: 'ami', turmas: ['Rosa'],
+    }];
+    const htmlJ = bastidores.paginaProducao('breu', {},
+      [{ nome: 'Demi Plié', slug: 'demi-plie' }], [], 'Demi', 'demi-plie',
+      TURMA_J, [], {}, curadoriaJ,
+      [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
+      [{ professor: 'demi-plie', turma: 'Rosa', ciclo: '01' }],
+      { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+      null, null, [], new Set(), { ok: true, contrato: null });
+    /* O RECORTE COMEÇA NO CARTÃO DA TURMA, e não no primeiro `.dono` da página: o cartão do
+     * PROFESSOR também tem `.dono`, e vem antes. `data-curadoria` é a identidade da linha. */
+    const recorteDe = (texto) => {
+      const i = texto.indexOf('data-curadoria');
+      if (i === -1) return '';
+      const j = texto.indexOf('class="dono"', i);
+      return j === -1 ? '' : texto.slice(j, texto.indexOf('</div>', j));
+    };
+    const dono = recorteDe(htmlJ);
+
+    /* A TRADIÇÃO TEM LUGAR RESERVADO, com os dois dados que a leitura precisa. O valor NÃO vem no
+     * HTML: o perfil está no repositório, e lê-lo por Turma em cada carregamento seriam N pedidos
+     * para uma linha de texto. */
+    conferir('a tradição da Turma sai com o lugar reservado — professor e modalidade da sala',
+      /data-tradicao-da-turma="demi-plie"/.test(dono)
+        && /data-modalidade="Balé clássico"/.test(dono), dono.slice(0, 400));
+    /* E ENQUANTO A LEITURA NÃO CHEGA, mostra o que o REGISTO diz — pode estar velho, mas não é
+     * inventado; um traço apagaria um facto por causa de uma leitura que ainda não aconteceu. */
+    conferir('…e mostra o valor do registo enquanto a leitura não chega',
+      /Francesa|francesa/.test(dono), dono.slice(0, 400));
+
+    /* O NOME DO PROFESSOR É TEXTO; O LINK É DO PLANO. */
+    conferir('o nome do professor está na linha como texto',
+      /Demi/.test(dono), dono.slice(0, 500));
+    conferir('…e o link diz «plano de ensino», e não o nome da pessoa',
+      /<a class="nome-link"[^>]*>plano de ensino<\/a>/.test(dono), dono.slice(0, 600));
+    conferir('…e o nome NÃO é um link',
+      !/<a[^>]*>\s*Demi\s*<\/a>/.test(dono), dono.slice(0, 600));
+
+    /* SEM PLANO, NÃO HÁ LINK — a promessa de uma página que não existe é pior do que a ausência. */
+    const htmlSemPlano = bastidores.paginaProducao('breu', {},
+      [{ nome: 'Demi Plié', slug: 'demi-plie' }], [], 'Demi', 'demi-plie',
+      TURMA_J, [], {}, curadoriaJ,
+      [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
+      [], { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+      null, null, [], new Set(), { ok: true, contrato: null });
+    const donoSem = recorteDe(htmlSemPlano);
+    conferir('sem plano de ensino, nenhum link de plano aparece',
+      !/plano de ensino<\/a>/.test(donoSem), donoSem.slice(0, 400));
+
+    /* A TELA A CORRER: a leitura preguiçosa troca o valor do registo pelo do PERFIL. */
+    let JSDOM5 = null;
+    let VC5 = null;
+    try { ({ JSDOM: JSDOM5, VirtualConsole: VC5 } = require('jsdom')); } catch (e) { JSDOM5 = null; }
+    if (!JSDOM5) {
+      naoMedida('a tradição da Turma corrigida na tela', 'jsdom ausente');
+    } else {
+      const vcJ = new VC5();
+      vcJ.on('jsdomError', () => {});
+      vcJ.on('error', () => {});
+      const domJ = new JSDOM5(htmlJ.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas', pretendToBeVisual: true,
+        virtualConsole: vcJ,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.alert = () => {};
+          w.confirm = () => true;
+          w.fetch = (u) => {
+            const url = String(u);
+            let corpo = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [], grupos: [] };
+            if (url.indexOf('/api/bastidores/perfil') !== -1) {
+              corpo = { ok: true, existe: true, modalidades: ['bale-classico'],
+                tradicoes: { 'bale-classico': ['RAD'] }, catalogo: [] };
+            }
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const winJ = domJ.window;
+      await new Promise((r) => winJ.setTimeout(r, 400));
+      const lugar = winJ.document.querySelector('[data-tradicao-da-turma]');
+      conferir('…e o valor do registo («Francesa») é substituído pelo do perfil («RAD»)',
+        Boolean(lugar) && /RAD/.test(lugar.textContent), lugar && lugar.textContent);
+    }
+  }
+
   console.log('');
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));
