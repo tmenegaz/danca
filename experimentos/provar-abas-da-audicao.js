@@ -1057,12 +1057,21 @@ async function principal() {
 
   console.log('\nI. O «Cancelar» — o botão que nunca aparecia');
 
-  const caixaCancelar = doc.getElementById('lb-linha-cancelar');
+  /* O «CANCELAR» É UM BOTÃO DA BARRA, E NÃO UM GRUPO (18/11/2026). Ele vivia num `.par-botoes`
+   * próprio, na linha de baixo — «o padrão é que vai ficar um ao lado do outro, eles estão na mesma
+   * linha». O que se mede é o próprio botão, que passou a ser irmão do «Voltar» e do «Seguir». */
+  const botaoCancelar = doc.getElementById('lb-cancelar');
   win.limparForm();
-  provar('fora da edição, o «Cancelar» não está à vista', caixaCancelar.hidden === true);
+  provar('fora da edição, o «Cancelar» não está à vista', botaoCancelar.hidden === true);
 
   win.editarLinha('elenco-a');
-  provar('no modo de edição o «Cancelar» aparece', caixaCancelar.hidden === false);
+  provar('no modo de edição o «Cancelar» aparece', botaoCancelar.hidden === false);
+  /* E NA MESMA BARRA DO «SEGUIR» — que é a regra que ela pediu: «no step um eu tenho o botão
+   * seguir e ao lado o botão cancelar». Medido pelo pai, e não pela posição: uma prova de geometria
+   * em jsdom não vê linhas. */
+  provar('…na MESMA barra do «Seguir» e do «Gravar elenco»',
+    botaoCancelar.parentElement && botaoCancelar.parentElement.id === 'lb-nav',
+    botaoCancelar.parentElement && botaoCancelar.parentElement.id);
   provar('…e o botão diz o que faz e o nome que a Turma usa',
     /descartar/i.test(doc.getElementById('lb-cancelar').getAttribute('title') || '') &&
     doc.getElementById('lb-cancelar').textContent.trim() === 'Cancelar',
@@ -1097,7 +1106,7 @@ async function principal() {
     'pedidos: ' + JSON.stringify(descartes));
   provar('…e o formulário fica limpo: o id sai, o nome sai',
     doc.getElementById('lb-modo').value === '' && doc.getElementById('lb-nome').value === '');
-  provar('…e o botão volta a esconder-se', caixaCancelar.hidden === true);
+  provar('…e o botão volta a esconder-se', botaoCancelar.hidden === true);
   provar('…e a frase diz o que ficou',
     /descartad/i.test(doc.querySelector('[data-res="linha-base"]').textContent),
     doc.querySelector('[data-res="linha-base"]').textContent);

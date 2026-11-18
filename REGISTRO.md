@@ -51340,3 +51340,33 @@ omissão muda o pressuposto de todas as provas que o medem.
 grupo «Voltar + Gravar verbete + Cancelar» não cabe numa linha e passa a duas — é o `flex-wrap` da
 peça `.par-botoes`, e a ordem mantém-se. O «Cancelar» fica na linha de baixo, à esquerda, debaixo do
 «Gravar verbete». Não é um defeito de desenho: é a coluna a ser mais estreita do que os três botões.
+
+## 18/11/2026 — O «Cancelar» da Audição passa a ser da mesma linha
+
+**Ela apontou a Audição como a excepção:** *«eu tenho o botão seguir e o botão cancelar que está
+abaixo do seguir. O padrão é que vai ficar um ao lado do outro, eles estão na mesma linha. […]
+conforme eu vou avançando, quando carrega o recorte, eu tenho lá por fim então o botão gravar elenco
+e ao lado dele vai estar o botão cancelar e eu tenho do lado esquerdo o botão voltar. […] E no step
+um eu tenho o botão seguir e ao lado o botão cancelar.»*
+
+**E era verdade, por uma razão de mecânica.** O «Cancelar» vivia num `.par-botoes` **próprio**, logo
+abaixo da barra — uma segunda linha só para ele. A barra passa a ter os quatro botões, e os que não
+se aplicam ao passo escondem-se: no 1, «Seguir» + «Cancelar»; nos intermédios, «Voltar» + «Seguir» +
+«Cancelar»; no último, «Voltar» + «Gravar elenco» + «Cancelar».
+
+**O que mudou de dono.** O `hidden` era do **parágrafo** que agrupava — porque o vão vazio de um grupo
+sem filhos vê-se. Sem grupo, o `hidden` passa a ser do **botão**. E a troca não era cosmética: uma
+função que continua a procurar `#lb-linha-cancelar` devolve cedo e cala-se, e o botão ficaria à vista
+para sempre — o defeito oposto ao que a regra de 09/11 corrigiu.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a barra `#lb-nav`, `pintarCancelarLb`) ·
+`experimentos/provar-abas-da-audicao.js` (a secção I, e uma asserção nova).
+
+**Com o quê.** `provar-abas-da-audicao` **125/125** (eram 124) · `provar-acordeoes` TUDO CERTO.
+
+**Controlo A/B.** O «Cancelar» a voltar para a linha de baixo: **reprova 1** — a asserção que mede o
+pai do botão.
+
+**O RECORTE E A TRANSFERÊNCIA NÃO FORAM TOCADOS**, e por palavras dela: *«No recorte ele é apenas
+visual, eu apenas vou ver os recortes e na transferência é um processo que faço se precisar. São
+ações e visualizações, aqui não tem nada a mexer nessas duas abas.»*

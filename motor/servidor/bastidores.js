@@ -8234,6 +8234,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O `pintarTravasLb` reescreve-o a cada passo e a cada elenco aberto — ver a nota lá. O que
      * está aqui é só o estado de repouso, para a página nascer certa sem JavaScript. */
     '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Criar elenco</button>' +
+    /* O «CANCELAR» PASSOU A SER DA MESMA LINHA (18/11/2026).
+     *
+     * «eu tenho o botão seguir e o botão cancelar que está abaixo do seguir. O padrão é que vai
+     * ficar um ao lado do outro, eles estão na mesma linha. […] E no step um eu tenho o botão
+     * seguir e ao lado o botão cancelar. É assim que tem que ser.»
+     *
+     * ELE ESTAVA NUM `.par-botoes` PRÓPRIO, logo abaixo — uma segunda linha só para ele, que
+     * empurrava o conteúdo para baixo e fazia a Audição parecer um formulário com dois grupos de
+     * acções. A barra é uma só em todas as secções; o «Cancelar» é o quarto botão dela. */
+    '<button type="button" class="acao secundario" id="lb-cancelar" hidden ' +
+    'title="Descartar as alterações a este elenco e sair da edição">Cancelar</button>' +
     '</span>' +
     /* POR QUE NÃO SE AVANÇA — ESCRITO, E NÃO SÓ NO `title` (07/11/2026).
      *
@@ -8251,9 +8262,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * no KV e continuava a ser a versão que a listagem mostra — a mesma família de defeito da
      * transferência. O gesto é DIRETO, como o «Cancelar» da Turma: um clique cessa a edição; não há
      * caixa de confirmação para responder. */
-    '<p class="par-botoes" id="lb-linha-cancelar" hidden><button type="button" ' +
-    'class="acao secundario" id="lb-cancelar" ' +
-    'title="Descartar as alterações a este elenco e sair da edição">Cancelar</button></p>' +
     '</form>' +
     '</div>' +
     /* O ÍNDICE DO RECORTE — o que os professores olham no corpo (05/11/2026, ABA a 09/11/2026).
@@ -16021,13 +16029,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (`#lb-modo` com id). Ele nasce escondido na marcação e ficava escondido para sempre — era o
      * defeito, e a razão de ela pedir o botão que já estava escrito.
      *
-     * O `hidden` do parágrafo, e não do botão: o `.par-botoes` já é a peça que agrupa, e esconder
-     * o grupo inteiro é o que impede um vão vazio quando o botão não deve estar lá. */
+     * O `hidden` É DO BOTÃO, E MUDOU DE DONO A 18/11/2026. Ele punha-se no `<p>` que agrupava —
+     * porque o vão vazio de um grupo sem filhos se vê. O grupo desapareceu (o botão passou a ser
+     * irmão do «Voltar» e do «Seguir», na mesma barra), e esconder o grupo deixaria de esconder
+     * coisa nenhuma: o `#lb-linha-cancelar` já não existe, e uma função que procura um elemento
+     * ausente devolve cedo e cala-se — o botão ficaria à vista para sempre, e o defeito seria o
+     * oposto do que 09/11 corrigiu. */
     'function pintarCancelarLb() {' +
     '  var modo = document.getElementById("lb-modo");' +
-    '  var caixa = document.getElementById("lb-linha-cancelar");' +
-    '  if (!caixa) return;' +
-    '  caixa.hidden = !(modo && modo.value);' +
+    '  var b = document.getElementById("lb-cancelar");' +
+    '  if (!b) return;' +
+    '  b.hidden = !(modo && modo.value);' +
     '}' +
     // TROCAR DE PASSO É SÓ TROCAR DE PAINEL — e a trava vale para TODOS os caminhos: a tira, o
     // «Seguir», o passo lembrado ao reabrir. Quem tenta chegar a um passo com falta nos anteriores
