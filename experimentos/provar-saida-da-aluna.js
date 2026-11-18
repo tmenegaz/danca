@@ -111,6 +111,18 @@ function githubDeBolso({ arquivos: iniciais = {}, falharEscrita = false } = {}) 
 const ESCOLA = 'breu';
 const RAIZ = 'bastidores/' + ESCOLA;
 
+/* CPFs SINTÉTICOS, e que passam o dígito verificador — a regra da casa: um número de prova não pode
+ * pertencer a ninguém, mas também não pode ser inválido, senão a prova não mede o que diz medir.
+ * (O normalizador do projeto confere a FORMA — 11 dígitos e não repetidos —, não o verificador; os
+ * cinco abaixo são válidos pelas duas contas.) */
+const CPF = {
+  A: '11144477735',
+  B: '22255588846',
+  C: '33366699957',
+  D: '44477711107',
+  E: '55588822200',
+};
+
 function ambiente(kv) {
   return {
     ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'segredo',
@@ -186,16 +198,16 @@ async function principal() {
    * ══════════════════════════════════════════════════════════════════════════════════════════ */
   console.log('\nA — o registo tem id, e o mesmo apelido pode ser outra pessoa');
   const ghA = githubDeBolso();
-  const criar = (apelido) => pedir(env, '/api/bastidores/aluna', { apelido, token: TOKEN },
-    { fetchImpl: ghA.fetchFalso });
+  const criar = (apelido, cpf) => pedir(env, '/api/bastidores/aluna',
+    { apelido, cpf, token: TOKEN }, { fetchImpl: ghA.fetchFalso });
 
   await comResumos([], async () => {
-    const a1 = await criar('Aluno A');
+    const a1 = await criar('Aluno A', CPF.A);
     provar('o cadastro responde 201 e devolve o id', a1.status === 201 && a1.dados && a1.dados.id,
       a1.dados && { id: a1.dados.id, erro: a1.dados.erro });
     provar('o primeiro «Aluno A» fica com o id do apelido', a1.dados && a1.dados.id === 'aluno-a',
       a1.dados && a1.dados.id);
-    const a1b = await criar('Aluno A');
+    const a1b = await criar('Aluno A', CPF.B);
     provar('criar o MESMO apelido com a aluna activa é 409 — duas «Aluno A» ao mesmo tempo '
       + 'tornariam o apelido ambíguo nos documentos', a1b.status === 409, a1b.dados && a1b.dados.erro);
 
@@ -221,7 +233,7 @@ async function principal() {
       Array.isArray(listaDepois.dados && listaDepois.dados.alunas)
       && listaDepois.dados.alunas.length === 0, listaDepois.dados && listaDepois.dados.alunas);
 
-    const a2 = await criar('Aluno A');
+    const a2 = await criar('Aluno A', CPF.A);
     provar('o apelido volta a estar livre — criar outra «Aluno A» é 201',
       a2.status === 201, a2.dados && a2.dados.erro);
     provar('…e o id dela é OUTRO, e nunca reutilizado', a2.dados && a2.dados.id === 'aluno-a-2',
@@ -433,7 +445,8 @@ async function principal() {
     };
     try {
       const novo = await pedir(envE, '/api/bastidores/matricula', {
-        aluna: 'Aluno A', modalidade: 'Balé clássico', professor: 'Demi Plier', token: TOKEN_E,
+        aluna: 'Aluno A', modalidade: 'Balé clássico', professor: 'Demi Plier',
+        cpf: CPF.A, token: TOKEN_E,
       }, { fetchImpl: ghE.fetchFalso });
       provar('o vínculo da segunda é gravado (201)', novo.status === 201,
         novo.dados && novo.dados.erro);
@@ -497,7 +510,8 @@ async function principal() {
       .dados.token;
     await comResumos([], async () => {
       const novo = await pedir(envE2, '/api/bastidores/matricula', {
-        aluna: 'Aluno A', modalidade: 'Balé clássico', professor: 'Demi Plier', token: TOKEN_E2,
+        aluna: 'Aluno A', modalidade: 'Balé clássico', professor: 'Demi Plier',
+        cpf: CPF.A, token: TOKEN_E2,
       }, { fetchImpl: ghE2.fetchFalso });
       provar('a aluna é recriada (201)', novo.status === 201, novo.dados && novo.dados.erro);
       provar('…e o id dela NÃO é o que os vínculos antigos reivindicam',
@@ -512,6 +526,114 @@ async function principal() {
       provar('…e o cartão dela nasce VAZIO de história — só o vínculo novo',
         (cartao.match(/data-vinculo="/g) || []).length === 1,
         (cartao.match(/data-vinculo="/g) || []).length);
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * E.3 O CPF, E A LIGAÇÃO ENTRE PASSAGENS — «volta a se conectar, mas não reabre»
+   *
+   * A decisão dela, quando lhe perguntei o que acontece a quem volta: «não é que reabre o registro
+   * antigo […] Volta a se conectar com o registro antigo, mas não reabre, porque é um outro
+   * momento, a criança mudou […] ela não volta para o mesmo elenco que estava antes, ela não volta
+   * para a mesma turma, não é a relação com o mesmo professor, tudo isso tem que ser definido
+   * novamente na secretaria.»
+   *
+   * É isso que estas asserções medem: a passagem nova tem id próprio, vínculo próprio e anamnese
+   * própria, e aponta para a anterior por `ligadaA` e `pessoaId`. Nada é restaurado.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+  console.log('\nE.3 — o CPF é obrigatório, e a passagem nova liga-se à anterior sem a reabrir');
+  {
+    const gh = githubDeBolso();
+    const kvP = criarKV({
+      [RAIZ + '/professores']: JSON.stringify([{ nome: 'Demi Plier', slug: 'demi-plier' }]),
+      'professores/demi-plier/contato': JSON.stringify({ email: 'demi@example.test' }),
+      [RAIZ + '/alunas']: JSON.stringify([]),
+    });
+    const envP = ambiente(kvP);
+    const TOKEN_P = (await pedir(envP, '/api/bastidores/validar-producao', { senha: 'segredo' }))
+      .dados.token;
+    await comResumos([], async () => {
+      const semCpf = await pedir(envP, '/api/bastidores/matricula', {
+        aluna: 'Vavá', modalidade: 'Balé clássico', professor: 'Demi Plier', token: TOKEN_P,
+      }, { fetchImpl: gh.fetchFalso });
+      provar('cadastrar sem CPF é 400 — e a recusa nomeia o campo', semCpf.status === 400
+        && semCpf.dados && /CPF da aluna/.test(String(semCpf.dados.erro)),
+        { status: semCpf.status, erro: semCpf.dados && semCpf.dados.erro });
+
+      const cpfMau = await pedir(envP, '/api/bastidores/matricula', {
+        aluna: 'Vavá', modalidade: 'Balé clássico', professor: 'Demi Plier',
+        cpf: '123', token: TOKEN_P,
+      }, { fetchImpl: gh.fetchFalso });
+      provar('CPF com menos de 11 dígitos é 400, e a mensagem diz quantos vieram',
+        cpfMau.status === 400 && /11 dígitos/.test(String(cpfMau.dados && cpfMau.dados.erro)),
+        cpfMau.dados && cpfMau.dados.erro);
+
+      /* ── A PRIMEIRA PASSAGEM ── */
+      const p1 = await pedir(envP, '/api/bastidores/matricula', {
+        aluna: 'Vavá', modalidade: 'Balé clássico', professor: 'Demi Plier',
+        cpf: CPF.A, token: TOKEN_P,
+      }, { fetchImpl: gh.fetchFalso });
+      provar('com CPF, a aluna nasce (201)', p1.status === 201, p1.dados && p1.dados.erro);
+      const registos1 = JSON.parse(kvP.dados.get(RAIZ + '/alunas') || '[]');
+      const r1 = registos1[0] || {};
+      provar('o registo guarda o CPF normalizado (só dígitos)', r1.cpf === CPF.A, r1.cpf);
+      provar('sem passagem anterior, `pessoaId` é o próprio id e não há `ligadaA`',
+        r1.pessoaId === r1.id && r1.ligadaA === undefined, { pessoaId: r1.pessoaId, ligadaA: r1.ligadaA });
+
+      const outroCpfMesmaPessoa = await pedir(envP, '/api/bastidores/matricula', {
+        aluna: 'Vavá B', modalidade: 'Jazz', professor: 'Demi Plier',
+        cpf: CPF.A, token: TOKEN_P,
+      }, { fetchImpl: gh.fetchFalso });
+      provar('duas alunas ACTIVAS com o mesmo CPF é 409 — é a mesma pessoa, e ela não está duas '
+        + 'vezes na escola',
+        outroCpfMesmaPessoa.status === 409
+        && outroCpfMesmaPessoa.dados && outroCpfMesmaPessoa.dados.alunaExistente === 'Vavá',
+        { status: outroCpfMesmaPessoa.status, erro: outroCpfMesmaPessoa.dados && outroCpfMesmaPessoa.dados.erro });
+
+      /* ── A SAÍDA, E A VOLTA ── */
+      const saiu = await apagar(envP, 'Vavá', TOKEN_P, { fetchImpl: gh.fetchFalso });
+      provar('a aluna sai (200)', saiu.status === 200, saiu.dados && saiu.dados.erro);
+      const voltou = await pedir(envP, '/api/bastidores/matricula', {
+        aluna: 'Vavá', modalidade: 'Jazz', professor: 'Demi Plier',
+        cpf: CPF.A, token: TOKEN_P,
+      }, { fetchImpl: gh.fetchFalso });
+      provar('a mesma pessoa volta: é 201, com passagem NOVA', voltou.status === 201,
+        voltou.dados && voltou.dados.erro);
+      provar('…e a resposta DIZ que ela já esteve aqui', /já esteve nesta escola/.test(
+        String(voltou.dados && voltou.dados.avisoDaPassagem)),
+        voltou.dados && voltou.dados.avisoDaPassagem);
+      const registos2 = JSON.parse(kvP.dados.get(RAIZ + '/alunas') || '[]');
+      const antiga = registos2.find((r) => r.id === 'vava');
+      const nova = registos2.find((r) => r.id === 'vava-2');
+      provar('a passagem nova tem id PRÓPRIO, e não é o da antiga',
+        Boolean(nova) && nova.id === 'vava-2', nova && nova.id);
+      provar('…e aponta para a anterior (`ligadaA`)', nova && nova.ligadaA === 'vava', nova && nova.ligadaA);
+      provar('…e partilha o `pessoaId` com ela — é a mesma pessoa',
+        nova && antiga && nova.pessoaId === antiga.pessoaId && nova.pessoaId === 'vava',
+        { nova: nova && nova.pessoaId, antiga: antiga && antiga.pessoaId });
+      provar('A ANTIGA NÃO FOI REABERTA: continua marcada como saída',
+        antiga && /^\d{4}-\d{2}-\d{2}T/.test(String(antiga.desligadaEm || '')), antiga && antiga.desligadaEm);
+      provar('…e os vínculos dela continuam fechados com ela, e os da nova são só dela',
+        (() => {
+          const v = JSON.parse(kvP.dados.get(RAIZ + '/matriculas') || '[]');
+          const daAntiga = v.filter((m) => m.alunaId === 'vava');
+          const daNova = v.filter((m) => m.alunaId === 'vava-2');
+          return daAntiga.length === 1 && daNova.length === 1
+            && daAntiga[0].modalidade === 'Balé clássico' && daNova[0].modalidade === 'Jazz';
+        })(), JSON.parse(kvP.dados.get(RAIZ + '/matriculas') || '[]').map((m) => [m.id, m.alunaId]));
+
+      /* O cartão da passagem nova: sem turma, sem elenco, sem a modalidade de antes. */
+      const pagina = await bastidores.fetch(
+        new Request('https://breu.example/bastidores/producao'), envP, { fetchImpl: gh.fetchFalso });
+      const html = await pagina.text();
+      const cartao = (new RegExp('<li class="turma" data-aluna="Vavá">([\\s\\S]*?)</li>')
+        .exec(html) || [])[1] || '';
+      provar('o cartão da passagem nova traz UM vínculo — o de agora, com a modalidade de agora',
+        (cartao.match(/data-vinculo="/g) || []).length === 1
+        && /<span class="selo marca">Jazz<\/span>/.test(cartao),
+        cartao.slice(0, 240));
+      provar('…e diz que ela já esteve na escola, com a data do registo anterior',
+        /já esteve nesta escola/.test(cartao), cartao.slice(0, 400));
     });
   }
 

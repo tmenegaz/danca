@@ -234,11 +234,16 @@ const CONTRATO = (plano, professores, alunos) => JSON.stringify({
       'bastidores/breu/alunas': JSON.stringify(dez),
     });
     const env = envCom(kv);
-    const maisUma = await pedir(env, '/api/bastidores/aluna', 'POST', comSenha({ apelido: 'nova' }));
+    /* O CPF PASSOU A SER OBRIGATÓRIO NO CADASTRO DA ALUNA (18/11/2026) — o corpo leva um sintético,
+     * e a asserção não muda: o que se mede aqui é o LUGAR, e não o CPF. */
+    const maisUma = await pedir(env, '/api/bastidores/aluna', 'POST',
+      comSenha({ apelido: 'nova', cpf: '11144477735' }));
     conferir('com o cadastro de alunas no limite antigo, mais uma entra (201)',
       maisUma.status === 201, maisUma);
     const lista = JSON.parse((await kv.get('bastidores/breu/alunas')) || '[]');
-    conferir('…e está na lista — a décima primeira aluna existe', lista.length === 11 && lista.indexOf('nova') !== -1, lista.length);
+    conferir('…e está na lista — a décima primeira aluna existe',
+      lista.length === 11 && lista.some((a) => (a && a.apelido) === 'nova' || a === 'nova'),
+      lista.length);
     /* A REPETIÇÃO CONTINUA A RESPONDER POR SI: ela é um erro de dado, e não uma questão de plano. */
     const repetida = await pedir(env, '/api/bastidores/aluna', 'POST', comSenha({ apelido: 'aluna3' }));
     conferir('a aluna que já existe responde pela repetição — esse erro não mudou',

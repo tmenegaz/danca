@@ -34,15 +34,23 @@ function soDigitos(valor) {
  * regra impede é o erro de digitação (dez ou doze dígitos, letras, máscara colada duas vezes),
  * que é o erro que acontece. Um CPF bem formado e falso passa; isso está dito, e não é silêncio.
  */
-function normalizarCpf(valor) {
+/**
+ * O CPF: onze dígitos, e a mesma disciplina do CNPJ — forma, não verificador.
+ *
+ * O `de` ENTROU A 18/11/2026, quando o CPF passou a ser pedido também à ALUNA («ele é outra pessoa,
+ * ele tem outro CPF»). Sem ele, a resposta de um erro no cadastro da aluna dizia «CPF do professor»
+ * — e uma mensagem que nomeia a pessoa errada manda corrigir o campo errado. O valor por omissão é
+ * o de sempre, para os chamadores antigos não mudarem.
+ */
+function normalizarCpf(valor, { de = 'CPF do professor' } = {}) {
   const bruto = String(valor == null ? '' : valor).trim();
-  if (!bruto) return { ok: false, erro: 'informe o CPF do professor' };
+  if (!bruto) return { ok: false, erro: 'informe o ' + de };
   const digitos = soDigitos(bruto);
   if (digitos.length !== 11) {
-    return { ok: false, erro: 'o CPF do professor tem de ter 11 dígitos (vieram ' + digitos.length + ')' };
+    return { ok: false, erro: 'o ' + de + ' tem de ter 11 dígitos (vieram ' + digitos.length + ')' };
   }
   if (/^(\d)\1{10}$/.test(digitos)) {
-    return { ok: false, erro: 'o CPF do professor não pode ser um número repetido' };
+    return { ok: false, erro: 'o ' + de + ' não pode ser um número repetido' };
   }
   return { ok: true, valor: digitos };
 }

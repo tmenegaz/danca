@@ -165,6 +165,10 @@ async function principal() {
   const entradaDono = await pedir(envDono, '/api/bastidores/validar-producao', { senha: 'segredo' });
   const rDono = await pedir(envDono, '/api/bastidores/matricula', {
     aluna: 'Vavá', modalidade: 'Balé clássico', professor: 'dono-da-escola',
+    /* O CPF PASSOU A SER OBRIGATÓRIO (18/11/2026) — é o que distingue duas pessoas com o mesmo
+     * apelido e o que permite reconhecer quem volta. Sintético e válido (11 dígitos, com o
+     * verificador a fechar): um número de prova não pode pertencer a ninguém. */
+    cpf: '11144477735',
     token: entradaDono.dados && entradaDono.dados.token,
   });
   const cDono = rDono.dados && rDono.dados.correio;
@@ -340,6 +344,9 @@ async function principal() {
        * professores (Demi Plier e Redinha Rosa) na lista do KV, e são eles que a página desenha. */
       try { w.abrirOFormularioDe('sec-alunas'); } catch (e) {}
       d.getElementById('anome').value = 'Zezé';
+      /* O CPF ENTROU NO CADASTRO (18/11/2026) — e é obrigatório, como a modalidade e o professor. */
+      const campoCpf = d.getElementById('acpf');
+      if (campoCpf) campoCpf.value = '11144477735';
       d.getElementById('aluna-seguir').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
       const sel = d.getElementById('amodalidade');
       sel.value = 'Balé clássico';
@@ -362,7 +369,7 @@ async function principal() {
        * esta secção mede), `comTexto` fica vazio, `comTexto[0].value` rebenta, e as três provas da
        * trava nunca chegavam a correr. */
       const umProfessor = comTexto.length ? comTexto[0].value : '';
-      provar('«Cadastrar aluna» só acende com os três campos',
+      provar('«Cadastrar aluna» só acende com os quatro campos (o CPF entrou em 18/11/2026)',
         Boolean(botao) && botao.disabled === true,
         botao ? { disabled: botao.disabled, title: botao.title } : 'o botão não existe');
       const ap = d.getElementById('aprofessor');
@@ -803,6 +810,13 @@ async function principal() {
       provar('o professor preenchido é o do vínculo',
         d.getElementById('aprofessor').value === 'demi-plier',
         d.getElementById('aprofessor').value);
+      /* O CPF NÃO SE PEDE A QUEM JÁ EXISTE (18/11/2026). Derivar e corrigir não criam pessoa: o CPF
+       * já está no registo dela, e um campo que se pede e não se usa ensina a preenchê-lo por
+       * engano. O bloco esconde-se no mesmo passo em que o formulário passa a «anamnese nova». */
+      const blocoCpf = d.getElementById('aluna-cpf-campo');
+      provar('ao derivar, o campo do CPF desaparece — a pessoa já está no cadastro',
+        Boolean(blocoCpf) && blocoCpf.hidden === true,
+        blocoCpf ? { hidden: blocoCpf.hidden } : 'o campo não existe');
 
       /* ---- 3. TROCAR DE MODALIDADE NÃO PERDE O PROFESSOR. ---- */
       const sel = d.getElementById('amodalidade');

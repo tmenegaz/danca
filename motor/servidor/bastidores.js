@@ -644,7 +644,7 @@ function normalizarRegistoDeAluna(bruto) {
     const apelido = String(bruto.apelido || bruto.nome || '').trim();
     if (!apelido) return null;
     const registo = { id: String(bruto.id || '').trim() || idLegadoDaAluna(apelido), apelido };
-    for (const campo of ['criadaEm', 'desligadaEm', 'motivoDaSaida']) {
+    for (const campo of ['cpf', 'pessoaId', 'ligadaA', 'criadaEm', 'desligadaEm', 'motivoDaSaida']) {
       const valor = String(bruto[campo] == null ? '' : bruto[campo]).trim();
       if (valor) registo[campo] = valor;
     }
@@ -652,6 +652,46 @@ function normalizarRegistoDeAluna(bruto) {
   }
   const apelido = String(bruto == null ? '' : bruto).trim();
   return apelido ? { id: idLegadoDaAluna(apelido), apelido } : null;
+}
+
+/**
+ * O CPF DA ALUNA, E A LIGAÇÃO ENTRE PASSAGENS (18/11/2026).
+ *
+ * A DECISÃO DELA, na letra, quando lhe perguntei o que acontece a quem volta:
+ *
+ *   «não é que reabre o registro antigo […] Volta a se conectar com o registro antigo, mas não
+ *   reabre, porque é um outro momento, a criança mudou, a pessoa mudou. Aí ela não volta para o
+ *   mesmo elenco que estava antes, ela não volta para a mesma turma, não é a relação com o mesmo
+ *   professor, tudo isso tem que ser definido novamente na secretaria. Mas fica ligada ao registro
+ *   antigo de fato […] a história dela pré-existe à nova história que ela vai construir dali para
+ *   frente.»
+ *
+ * É POR ISSO QUE NÃO HÁ «REABRIR». Reabrir seria desfazer a saída e voltar a pôr a mesma pessoa no
+ * mesmo elenco, com o mesmo professor — e nada disso é verdade: ela volta noutro momento, com outro
+ * corpo. O que se cria é uma PASSAGEM nova: registo próprio, id próprio, vínculos próprios, turma e
+ * elenco definidos de novo, anamnese nova. E um elo que diz de onde vem.
+ *
+ * DOIS CAMPOS, e cada um responde a uma pergunta diferente:
+ *
+ *   · `pessoaId` — QUEM é. É o mesmo em todas as passagens da mesma pessoa, e nasce igual ao `id`
+ *     da primeira. É o que responde «todas as passagens desta pessoa»;
+ *   · `ligadaA` — QUAL foi a passagem anterior. É o id do registo imediatamente antes. É o que
+ *     responde «de onde ela veio», e é legível sem índice nenhum.
+ *
+ * O CPF É A CHAVE QUE OS UNE, e é por isso que passou a ser pedido. Sem ele, o `id` distingue as
+ * pessoas mas não as reúne: a que volta seria sempre uma desconhecida.
+ */
+function acharPassagemAnterior(registos, cpf) {
+  if (!cpf) return null;
+  const alvo = String(cpf);
+  /* A ÚLTIMA DA LISTA É A MAIS RECENTE — a lista é acrescentada por ordem de criação. Comparar os
+   * ids em texto daria `aluno-a-9` depois de `aluno-a-10`, que é o erro clássico de ordenar
+   * identificadores como se fossem números. */
+  let achada = null;
+  for (const r of (Array.isArray(registos) ? registos : [])) {
+    if (r && r.cpf && String(r.cpf) === alvo) achada = r;
+  }
+  return achada;
 }
 
 /** O id de uma aluna nova: o do apelido, ou o primeiro sufixo que nunca foi usado. */
@@ -4877,8 +4917,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * vazio serve as provas antigas (sem registos, cai na derivação do apelido, que é o
    * comportamento de antes). */
   const idPorApelido = new Map();
+  const registoDaAlunaPorId = new Map();
   for (const r of (Array.isArray(registosDeAlunas) ? registosDeAlunas : [])) {
-    if (r && r.apelido) idPorApelido.set(String(r.apelido).trim(), String(r.id || '').trim());
+    if (!r) continue;
+    if (r.apelido && !r.desligadaEm) idPorApelido.set(String(r.apelido).trim(), String(r.id || '').trim());
+    if (r.id) registoDaAlunaPorId.set(String(r.id).trim(), r);
   }
   /* OS VÍNCULOS DA ALUNA ENTRAM NA PÁGINA (18/11/2026). É a lista `matriculas` que o cadastro
    * em dois passos grava — o par (aluna × modalidade) com o professor que fará a anamnese. A
@@ -5405,6 +5448,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             + (ajuste.motivoDoAjuste ? ' · ' + esc(ajuste.motivoDoAjuste) : '') + '</span>');
         }
 
+        /* «ELA JÁ ESTEVE NESTA ESCOLA» (18/11/2026) — e o que isso quer dizer, e o que não quer.
+         *
+         * A decisão dela: a passagem nova LIGA-SE à anterior e não a reabre. A frase diz as duas
+         * metades, porque a segunda é a que se poderia ler mal: quem vê o nome repetido na lista
+         * pode concluir que a turma, o elenco e a anamnese voltaram com ela. Não voltaram.
+         *
+         * A leitura é `ligadaA` — o elo que o cadastro gravou quando a pessoa voltou. Sem ele não
+         * se escreve nada: uma aluna que nunca saiu não tem passagem anterior. */
+        const registoDela = registoDaAlunaPorId.get(String(idDela)) || null;
+        const anteriorDela = registoDela && registoDela.ligadaA
+          ? registoDaAlunaPorId.get(String(registoDela.ligadaA)) || null : null;
+        const linhaDaPassagem = anteriorDela
+          ? '<p class="nota">já esteve nesta escola — o registo anterior é de '
+            + esc(dataBr(String(anteriorDela.criadaEm || '').slice(0, 10)))
+            + ', e a história dela está ligada a este. Turma, elenco, professor e anamnese são '
+            + 'de agora: nada do que era de antes voltou com ela.</p>'
+          : '';
+
         /* AS LINHAS DO VÍNCULO — uma por modalidade. Cada uma diz a modalidade, a turma DELA (a
          * que tem a mesma modalidade, e não a primeira da lista), o professor e o lugar onde o
          * estado da anamnese vai aparecer. */
@@ -5508,6 +5569,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
                   + 'anamnese, que é a proveniência'
                 : 'Excluir aluna') + '">Excluir</button>')
           + '</span></div>'
+          + linhaDaPassagem
           + linhasDoVinculo
           + '</li>';
       }).join('')
@@ -7645,6 +7707,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
+    /* O CPF, E PORQUÊ (18/11/2026). «ele é outro aluno A, ele tem outro CPF» — é o CPF que
+     * distingue duas pessoas com o mesmo apelido, e é ele que permite reconhecer quem volta à
+     * escola noutro momento e ligar a passagem nova à anterior. Obrigatório, e só no cadastro:
+     * uma derivação ou uma correcção não criam pessoa, e o campo esconde-se (ver `mostrarPassoAluna`).
+     *
+     * `inputmode="tel"` NUM `<input>` SEM `type` — a convenção da casa, porque a folha não desenha
+     * `input[type=tel]`, e o teclado numérico do telemóvel vem do `inputmode`. */
+    '<div id="aluna-cpf-campo">' +
+    '<label class="campo-rotulo" for="acpf">CPF da aluna</label>' +
+    '<input id="acpf" inputmode="tel" autocomplete="off" placeholder="000.000.000-00">' +
+    '<p class="nota">É o que distingue duas pessoas com o mesmo apelido, e o que permite reconhecer ' +
+    'a aluna se ela voltar à escola. Fica só no cadastro da escola — não vai para documento nenhum.</p>' +
+    '</div>' +
     // A FILEIRA DO BOTÃO É A DO PROFESSOR (26/10/2026). O `.acao` sozinho depois do `.res`
     // encostava no campo: a folha só dá vão ao botão que vem LOGO depois de um controle
     // (`input + button.acao`), e o `.res` — que é `display:none` até haver resposta — quebra
@@ -10382,6 +10457,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não houve ajuste nenhum. Na derivação, o motivo é o que a etiqueta da listagem vai mostrar,
      * e é o que ela pediu: «acrescente também o motivo, se tiver, do ajuste». */
     '  var derivando = String((document.getElementById("aluna-em-derivacao") || {}).value || "") !== "";' +
+    /* O CPF DESAPARECE QUANDO NÃO SE ESTÁ A CRIAR (18/11/2026) — ver `pintarTravasDaAluna`. Um campo
+     * que se pede e não se usa ensina a preenchê-lo por engano; e o CPF de uma pessoa já cadastrada
+     * não se reescreve por aqui. */
+    '  var blocoCpf = document.getElementById("aluna-cpf-campo");' +
+    '  if (blocoCpf) blocoCpf.hidden = derivando;' +
     /* «EDITAR» PEDE OUTRO RÓTULO (18/11/2026) — o botão não pode dizer «Gravar a anamnese nova» a
      * quem está a corrigir o vínculo que já existe. São três actos, e três rótulos. */
     '  var editando = derivando && String((document.getElementById("aluna-modo") || {}).value || "") === "editar";' +
@@ -10425,8 +10505,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var nome = String((document.getElementById("anome") || {}).value || "").trim();' +
     '  var mod = String((document.getElementById("amodalidade") || {}).value || "");' +
     '  var prof = String((document.getElementById("aprofessor") || {}).value || "");' +
+    /* O CPF SÓ CONTA NO CADASTRO (18/11/2026). Derivar e corrigir não criam pessoa: a aluna já
+     * está no cadastro e o CPF dela já lá está. Pedi-lo outra vez seria pedir duas vezes a mesma
+     * coisa, e o campo está escondido nesses dois casos (ver `mostrarPassoAluna`). */
+    '  var cpf = String((document.getElementById("acpf") || {}).value || "").trim();' +
+    '  var criando = String((document.getElementById("aluna-em-derivacao") || {}).value || "") === "";' +
     '  var faltam = [];' +
     '  if (!nome) faltam.push("o apelido da aluna");' +
+    '  if (criando && !cpf) faltam.push("o CPF da aluna");' +
     '  if (!mod) faltam.push("a modalidade");' +
     '  if (!prof) faltam.push("o professor que vai fazer a anamnese");' +
     '  b.disabled = faltam.length > 0;' +
@@ -10522,6 +10608,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* `reset()` NÃO LIMPA `type="hidden"` QUE NASCEU VAZIO? Limpa — mas o `value` que o script
      * escreveu no campo escondido é reposto ao valor do ATRIBUTO, e é isso que se quer. O que ele
      * não repõe é a marca escrita por `propriedade`: por isso ela se limpa aqui, à mão. */
+    '    var campoCpf = document.getElementById("acpf"); if (campoCpf) campoCpf.value = "";' +
     '    ["aluna-derivar-de", "aluna-em-derivacao", "aluna-modo"].forEach(function(id){' +
     '      var c = document.getElementById(id); if (c) c.value = "";' +
     '    });' +
@@ -10547,6 +10634,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * dele; o que os separa é o que o servidor faz com esse id — criar um elo novo, ou corrigir o
      * que lá está. O cliente não decide nada além de dizer qual dos dois foi pedido. */
     '  var editando = derivarDe !== "" && modo === "editar";' +
+    '  var cpf = String((document.getElementById("acpf") || {}).value || "").trim();' +
     '  var motivo = String((document.getElementById("amotivo") || {}).value || "").trim();' +
     '  var antes = ocuparBotao(e.target, editando ? "gravando a correção..."' +
     '    : (derivarDe ? "gravando..." : "cadastrando..."));' +
@@ -10568,7 +10656,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify({aluna: apelido, modalidade: modalidade, professor: professor,' +
     '      derivarDe: editando ? "" : derivarDe, editarDe: editando ? derivarDe : "",' +
-    '      motivo: motivo, token: TOKEN})' +
+    '      cpf: cpf, motivo: motivo, token: TOKEN})' +
     '  }).then(function(r){ return r.json(); }).then(function(m){' +
     '    if (!m.ok) { liberarBotao(antes); recado("erro", "Erro: " + (m.erro || "desconhecido")); return; }' +
     /* O DESFECHO DO CORREIO DIZ-SE, e não se esconde atrás de um recarregamento. Um e-mail que não
@@ -10576,6 +10664,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * poder avisá-lo por outro caminho. */
     '    var c = m.correio || {};' +
     '    var feito = m.corrigida ? "vínculo corrigido" : (emDerivacao ? "anamnese gravada" : "aluna cadastrada");' +
+    /* A PASSAGEM LIGADA DIZ-SE (18/11/2026). Quem cadastrou tem de saber que esta aluna já esteve na
+     * escola e que a história dela está ligada — e que nada de antes é reaproveitado. */
+    '    if (m.avisoDaPassagem) { feito += ". " + m.avisoDaPassagem; }' +
     '    if (!c.enviado) {' +
     '      recado("aviso", feito + ". O e-mail ao professor NÃO saiu: " +' +
     '        (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
@@ -19077,16 +19168,48 @@ async function fetch(request, env, extras) {
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
     }
+    /* O CPF É OBRIGATÓRIO AQUI TAMBÉM (18/11/2026). A rota é a mesma pessoa do outro caminho, e uma
+     * regra que só existe numa das portas não é uma regra: quem chegar por esta criaria uma aluna
+     * sem a chave que a reconhece se ela voltar. */
+    const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
+    const cpfNormalizado = cadastroDaEscola.normalizarCpf(String(corpo.cpf || '').trim(),
+      { de: 'CPF da aluna' });
+    if (!cpfNormalizado.ok) {
+      return json(400, { ok: false, erro: cpfNormalizado.erro, falta: ['cpf'] });
+    }
+    const cpf = cpfNormalizado.valor;
+    const jaNaEscola = registos.find((r) => !r.desligadaEm && r.cpf && r.cpf === cpf);
+    if (jaNaEscola) {
+      return json(409, {
+        ok: false,
+        erro: 'este CPF já é da aluna «' + jaNaEscola.apelido + '», que está nesta escola.',
+        alunaExistente: jaNaEscola.apelido,
+        falta: ['cpf'],
+      });
+    }
     /* O ID TAMBÉM SE ESQUIVA AOS VÍNCULOS (18/11/2026) — ver `idNovoDaAluna`. Uma aluna apagada
      * antes de o registo existir deixou vínculos que reivindicam o id do apelido, e o novo titular
      * não os pode herdar. */
+    const passagemAnterior = acharPassagemAnterior(registos, cpf);
     const registo = {
       id: idNovoDaAluna(registos, apelido, idsDosVinculos(await matriculas(kv, escola))),
-      apelido, criadaEm: new Date().toISOString(),
+      apelido, cpf, criadaEm: new Date().toISOString(),
+      pessoaId: passagemAnterior ? String(passagemAnterior.pessoaId || passagemAnterior.id) : undefined,
+      ...(passagemAnterior ? { ligadaA: passagemAnterior.id } : {}),
     };
+    if (!registo.pessoaId) registo.pessoaId = registo.id;
     registos.push(registo);
     await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registos));
-    return json(201, { ok: true, aluna: apelido, id: registo.id });
+    return json(201, {
+      ok: true, aluna: apelido, id: registo.id, cpf,
+      ...(passagemAnterior ? {
+        ligadaA: passagemAnterior.id,
+        aviso: 'esta pessoa já esteve nesta escola (registo de ' +
+          dataBr(String(passagemAnterior.criadaEm || '').slice(0, 10)) + '). A passagem nova fica '
+          + 'ligada à anterior: a história dela continua alcançável, e nada do que era de antes é '
+          + 'reaproveitado — turma, elenco, professor e anamnese são de agora.',
+      } : {}),
+    });
   }
 
   /* GET /api/bastidores/matriculas — os vínculos das alunas (18/11/2026).
@@ -19175,7 +19298,37 @@ async function fetch(request, env, extras) {
      * O PISO CONTA SÓ A ALUNA NOVA, e entre as ACTIVAS: o lugar de quem saiu fica livre. */
     const registosDaAluna = await registosDeAlunas(kv, escola);
     let registoDaAluna = registosDaAluna.find((r) => r.apelido === aluna && !r.desligadaEm) || null;
+    /* A PASSAGEM NOVA FICA LIGADA À ANTERIOR — e nunca a reabre (18/11/2026). Ver
+     * `acharPassagemAnterior`: `pessoaId` é quem, `ligadaA` é de onde veio, e o elo não devolve a
+     * ninguém o elenco, a turma, o professor nem a anamnese de antes. */
+    let passagemAnterior = null;
     if (!registoDaAluna) {
+      /* O CPF É OBRIGATÓRIO PARA QUEM NASCE (18/11/2026) — é a chave que reúne as passagens. Quem
+       * já está na escola não o repete: o vínculo não cria pessoa. */
+      const cpfBruto = String(corpo.cpf || '').trim();
+      const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
+      const cpfNormalizado = cadastroDaEscola.normalizarCpf(cpfBruto, { de: 'CPF da aluna' });
+      if (!cpfNormalizado.ok) {
+        return json(400, {
+          ok: false, erro: cpfNormalizado.erro, falta: ['cpf'],
+          ajuda: 'o CPF é o que permite reconhecer a aluna se ela voltar à escola noutro momento — '
+            + 'sem ele, quem volta seria sempre uma desconhecida.',
+        });
+      }
+      const cpf = cpfNormalizado.valor;
+      /* DUAS ALUNAS ACTIVAS COM O MESMO CPF SÃO A MESMA PESSOA, e uma pessoa não está duas vezes na
+       * escola. A recusa nomeia a outra — sem isso, quem digitou o CPF não sabe o que corrigir. */
+      const jaNaEscola = registosDaAluna.find((r) => !r.desligadaEm && r.cpf && r.cpf === cpf);
+      if (jaNaEscola) {
+        return json(409, {
+          ok: false,
+          erro: 'este CPF já é da aluna «' + jaNaEscola.apelido + '», que está nesta escola. Se for '
+            + 'a mesma pessoa, abra a ficha dela em vez de cadastrar outra; se for outra pessoa, '
+            + 'confira o número.',
+          alunaExistente: jaNaEscola.apelido,
+          falta: ['cpf'],
+        });
+      }
       const activas = registosDaAluna.filter((r) => !r.desligadaEm).length;
       const trava = comercialDoNucleo.travaDoPiso({
         contrato: await comercialDoNucleo.lerComercial(kv, escola),
@@ -19183,10 +19336,19 @@ async function fetch(request, env, extras) {
         cadastrados: activas,
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
+      passagemAnterior = acharPassagemAnterior(registosDaAluna, cpf);
       registoDaAluna = {
         id: idNovoDaAluna(registosDaAluna, aluna, idsDosVinculos(await matriculas(kv, escola))),
-        apelido: aluna, criadaEm: new Date().toISOString(),
+        apelido: aluna, cpf, criadaEm: new Date().toISOString(),
+        /* A PASSAGEM ANTERIOR, QUANDO HÁ: o mesmo `pessoaId` (ou um novo, que é o id desta se não
+         * houver antes) e o elo para o registo de onde vem. A história dela pré-existe a esta — é
+         * o que a ligação diz, e é tudo o que ela diz. */
+        pessoaId: passagemAnterior
+          ? String(passagemAnterior.pessoaId || passagemAnterior.id)
+          : undefined,
+        ...(passagemAnterior ? { ligadaA: passagemAnterior.id } : {}),
       };
+      if (!registoDaAluna.pessoaId) registoDaAluna.pessoaId = registoDaAluna.id;
       registosDaAluna.push(registoDaAluna);
       await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registosDaAluna));
     }
@@ -19383,6 +19545,16 @@ async function fetch(request, env, extras) {
 
     return json(corrigido ? 200 : 201, {
       ok: true, matricula: novo, corrigida: Boolean(corrigido), correio: desfechoDoCorreio,
+      /* A LIGAÇÃO À PASSAGEM ANTERIOR VAI NA RESPOSTA (18/11/2026): quem cadastrou tem de saber que
+       * esta aluna já esteve aqui, e que a passagem nova está ligada à de antes — e que nada daquela
+       * é reaproveitado. `passagemAnterior` só existe quando o registo nasceu nesta chamada. */
+      ...(passagemAnterior ? {
+        ligadaA: passagemAnterior.id,
+        avisoDaPassagem: 'esta pessoa já esteve nesta escola (registo de '
+          + dataBr(String(passagemAnterior.criadaEm || '').slice(0, 10)) + '). A passagem nova fica '
+          + 'ligada à anterior: a história dela continua alcançável, e nada do que era de antes é '
+          + 'reaproveitado — turma, elenco, professor e anamnese são de agora.',
+      } : {}),
     });
   }
 

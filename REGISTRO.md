@@ -52278,7 +52278,7 @@ poder explicar o desaparecimento — sem isso, o professor que fez aquela anamne
 registo se perdeu: a mesma leitura errada do «sem apelido», ao contrário. **A leitura que falha não
 filtra**: sem saber quem está na escola, a lista sai inteira e `registradas` é `null`.
 
-**Com o quê.** `provar-saida-da-aluna` **41/41** (novo) · `provar-cadastro-da-aluna` 106/106 ·
+**Com o quê.** `provar-saida-da-aluna` **57/57** (novo) · `provar-cadastro-da-aluna` 107/107 ·
 `provar-listas-do-acervo` 113/113 · `provar-sujeitos-da-turma` 41/41 ·
 `provar-transferencia-e-desligamento` 97/97 · `provar-gestos-do-shard` 31/31 ·
 `provar-abas-da-audicao` 125/125 · `provar-anamnese-sem-cofre` 13/13 · `check-identidade` ok.
@@ -52287,15 +52287,38 @@ filtra**: sem saber quem está na escola, a lista sai inteira e `registradas` é
 repetido, a herança do vínculo, a anamnese herdada e o cartão com dois vínculos). Sem a cascata para
 os elencos: **reprova 10**. O cadastro apagado antes dos elencos: **reprova 1** (a aluna continuava na
 escola). O passo 2 sem o cruzamento com o cadastro: **reprova 1** (a excluída voltava à lista). O
-cartão a filtrar por apelido: **reprova 1**. A anamnese a casar só pelo nome: **reprova 1**. E o caso de hoje dela — as alunas apagadas com o
+cartão a filtrar por apelido: **reprova 1**. A anamnese a casar só pelo nome: **reprova 1**. E os do CPF e da passagem: o CPF facultativo
+**reprova 7** (as duas recusas de forma, o CPF guardado, o duplicado activo e os três elos da
+passagem) · a passagem a **reabrir** a anterior em vez de se ligar a ela **reprova 1** · o campo do
+CPF a não se esconder ao derivar **reprova 1** (este na prova do cadastro). E o caso de hoje dela — as alunas apagadas com o
 `splice` antigo, sem registo e com os vínculos de pé — mede-se à parte: com o id a não se esquivar aos
 vínculos, **reprova 2** (o id repetido e o cartão com a história da outra).
 
-**O que fica por decidir — e não se decide sem ela.** O **CPF** da aluna, que é a chave para
-RECONHECER quem volta («ele é outro aluno A, ele tem outro CPF»). O `id` diz que são duas pessoas; o
-CPF é o que permitiria dizer «esta que chegou é a mesma que saiu em março» e reabrir o registo dela em
-vez de criar um terceiro. Fica proposto, e não implementado: exige um campo no
-formulário e uma regra de unicidade, e a decisão é dela.
+**A ALUNA QUE VOLTA: O CPF, E A LIGAÇÃO QUE NÃO REABRE.** A pergunta foi-lhe feita, e a resposta
+reescreveu o desenho:
+
+> «não é que reabre o registro antigo […] Volta a se conectar com o registro antigo, mas não reabre,
+> porque é um outro momento, a criança mudou, a pessoa mudou. Aí ela não volta para o mesmo elenco
+> que estava antes, ela não volta para a mesma turma, não é a relação com o mesmo professor, tudo
+> isso tem que ser definido novamente na secretaria. Mas fica ligada ao registro antigo de fato […]
+> a história dela pré-existe à nova história que ela vai construir dali para frente.»
+
+**Portanto: passagem nova, ligada à anterior — e nada reaberto.** O CPF passou a ser **obrigatório
+no cadastro da aluna** (as duas portas: `POST /matricula` e `POST /aluna`, porque uma regra que só
+existe numa delas não é uma regra), validado com a mesma disciplina do professor e com a mensagem a
+nomear a aluna (`{de: 'CPF da aluna'}`, que é uma opção nova do `normalizarCpf` — antes dizia «CPF do
+professor» a quem estava a cadastrar uma criança). Duas alunas **activas** com o mesmo CPF → **409**,
+e a frase nomeia a outra.
+
+Dois campos, e cada um responde a uma pergunta diferente: **`pessoaId`** diz QUEM é (igual em todas
+as passagens, nasce igual ao id da primeira) e **`ligadaA`** diz DE ONDE veio (o id do registo
+anterior). A passagem nova tem id próprio, vínculos próprios, turma e elenco definidos de novo, e
+anamnese nova; a antiga **continua marcada como saída**. O cartão da aluna di-lo por extenso: «já
+esteve nesta escola — o registo anterior é de DD/MM/AAAA […] nada do que era de antes voltou com ela».
+
+**O que fica por decidir, e não é desta frente:** o CPF **do professor** e o da aluna não se cruzam
+ainda (uma pessoa que seja professora e aluna tem dois registos, um em cada cadastro). É uma decisão
+de produto, e não um defeito de código.
 
 **Nota de alcance.** O `DELETE` continua a recusar **409** quando a aluna está numa Turma que já tem
 plano de ensino — a regra de proveniência não mudou. A Turma sem plano não é tocada pela exclusão: o
