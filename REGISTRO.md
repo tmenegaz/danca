@@ -51444,3 +51444,58 @@ asserção que a guarda compila o que é servido.
    respostas que começou na primeira. Ficou por mudar porque as duas cópias da chave (a da porta e a
    do painel de `listas-do-acervo.js`) já divergem entre si, e mudar uma só partiria o «continuar de
    onde parei». É dívida declarada, não esquecimento.
+
+## 18/11/2026 — A derivação da Sala vinha quebrada, e a lista de professores vinha sem nomes
+
+**Três defeitos, e o primeiro era meu.** Ela abriu a Sala em «Derivar» e viu o nome preenchido, a
+modalidade vazia, os dias a mais e as horas erradas: *«eu acho que quem está atrapalhando isso é o
+teste que a gente tem, a ação que a gente tem que preenche os formulários para teste. […] eu acho que
+o teste, ele diz que a aula é somente nas quartas e nas sextas às 16:30.»* Desconfiou do sítio certo
+e da coisa errada: o preenchimento de teste não tinha culpa nenhuma — mas o que ela viu **eram** os
+dias de um preenchimento anterior, repostos pela memória, porque o formulário morria antes de os
+preencher.
+
+**1. `preencherSelect` não existia.** O commit `3bbbb8b8` (a modalidade a mandar na sala) reescreveu
+o filtro dos professores e, no meio da reescrita, apagou a função — deixando as duas chamadas que
+`ajustarTurma` lhe faz. Um `ReferenceError` dentro do `addEventListener` **não rebenta a página**:
+matava aquele gesto em silêncio, e o formulário ficava com o que a linha anterior tinha posto (o
+nome) e com a memória do preenchimento no resto. O `node --check` do fonte passa; a página compila; o
+erro só aparece ao clicar. A função voltou, com o comentário que diz o que ela faz e por que a falta
+dela mentia.
+
+**2. A lista de professores estava lá, sem nomes.** `professoresDaModalidade` devolve `{slug, rotulo}`
+— é o que o `pintarProfessores` das Salas consome —, e o pintor das Alunas lia `p.nome`, que nesse
+objecto não existe. `escHtml(undefined)` dá `""`: o `<select>` ficava com as opções certas e sem
+texto visível. Ela leu *«não listou nenhum professor, está vazio»*, e era isso que se via. O rótulo
+passou a ser `rotulo`.
+
+**3. O botão do cadastro aceitava nascer aceso.** *«O botão cadastrar não pode estar disponível se eu
+não tenho todos os campos preenchidos, tá? Não tem sentido isso.»* Com a lista sem nomes, o primeiro
+item — o vazio — parecia um professor, e o clique seguiu para o servidor, que recusou. Agora o botão
+nasce desabilitado e só acende com os três campos, com o `title` a dizer **qual** falta; e a trava é
+recalculada quando a lista de professores é repintada, porque repintar devolve o `<select>` ao vazio.
+
+**E o vínculo que a listagem deixou de dizer.** *«A Aluna A, ela está vinculada a uma turma e não
+está aqui mais a turma. Você tirou o botão que tinha ali que me levava para a turma que ela está
+vinculada. E você também não está me dizendo qual é o elenco que ela está vinculada.»* As duas coisas
+são o mesmo erro de desenho, e é meu: na reescrita de hoje o cartão passou a **dizer** a turma em
+texto e deixou de a **oferecer**. O botão `turmas · Rosa` (que filtra a listagem de Turmas e existia
+desde 22/10) voltou, e o elenco ganhou o par que faltava — `elenco · AMI`, com
+`data-abrir="elenco:<id>"`, o mesmo mecanismo que o cartão da Turma já usa para «Abrir o Elenco».
+
+**A regra que ela mesma confirmou, e que não mudou:** não há elenco sem aluna. A Audição escolhe de
+entre as alunas cadastradas, e é por isso que a ordem é cadastro → anamnese → elenco → turma.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a `preencherSelect` reposta; `escHtml(p.rotulo)`;
+`pintarTravasDaAluna` e as seis chamadas; `elencosPorAluna` e os dois atalhos na listagem).
+
+**Com o quê.** `provar-cadastro-da-aluna` **40/40** (eram 31 — secção I com jsdom a ler o TEXTO das
+opções e a medir a trava, e secção J a medir o cartão recortado) · `provar-acordeoes` TUDO CERTO ·
+`provar-salas-e-elencos` 131/131 · `provar-abas-da-audicao` 125/125 · `check-identidade` 0 erros ·
+o `<script>` servido compila.
+
+**Controlo A/B.** Os cinco defeitos repostos de uma vez: **reprova 6**. E a primeira versão da
+asserção do elenco **passava com o link removido** — porque procurava `data-abrir="elenco:ami"` na
+página inteira e o cartão da Turma também o emite. Passou a ser recortada no `<li>` da aluna. É a
+mesma família de erro que esta casa persegue: uma asserção que encontra o que procura no sítio errado
+não mede nada.

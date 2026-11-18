@@ -5004,6 +5004,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       || slugDoProfessor(x) === alvo));
     return (p && p.nome) || alvo;
   };
+  /* OS ELENCOS DE CADA ALUNA (18/11/2026), lidos uma vez.
+   *
+   * «você também não está me dizendo qual é o elenco que ela está vinculada.» O elenco é a linha
+   * de base — o corpo que a Audição declarou —, e a lista já a tem na mão (`linhas`): o que
+   * faltava era mostrá-la. As apagadas ficam de fora: um elenco apagado não é um vínculo, é
+   * história, e a história tem o seu sítio na Audição. */
+  const elencosPorAluna = new Map();
+  for (const l of (Array.isArray(linhas) ? linhas : [])) {
+    if (!l || l.apagada_em) continue;
+    const nome = String(l.nome || l.id || '').trim();
+    if (!nome) continue;
+    for (const uma of (Array.isArray(l.alunas) ? l.alunas : [])) {
+      const k = String(uma == null ? '' : uma).trim();
+      if (!k) continue;
+      if (!elencosPorAluna.has(k)) elencosPorAluna.set(k, []);
+      const lista = elencosPorAluna.get(k);
+      if (!lista.some((x) => x.id === l.id)) lista.push({ id: l.id, nome });
+    }
+  }
   const itensAlunas = aluns.length
     ? aluns.map((a) => {
         const presa = alunaVinculadaA(pares, curs, a);
@@ -5071,8 +5090,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           : '<p class="nota">Nenhuma modalidade escolhida ainda — a aluna foi cadastrada antes de o '
             + 'cadastro perguntar. «Derivar» abre a anamnese dela.</p>';
 
+        /* O ELENCO E A TURMA, NA LINHA DO NOME — e os dois são BOTÕES, não texto.
+         *
+         * «A Aluna A, ela está vinculada a uma turma e não está aqui mais a turma. Você tirou o
+         * botão que tinha ali que me levava para a turma que ela está vinculada.»
+         *
+         * Era verdade, e o botão existia desde 22/10: `colunaDeTurmas` desenha «turmas · Rosa» e
+         * filtra a listagem de Turmas ao clicar. Ele saiu na reescrita de 18/11 porque a linha do
+         * vínculo passou a dizer a turma em texto — e um nome que não se carrega não leva a lado
+         * nenhum. Voltou, com o mesmo nome da peça e o mesmo gesto.
+         *
+         * O ELENCO ganha o par: um link que abre a Audição NA LINHA dele (`data-abrir="elenco:<id>"`),
+         * o mesmo mecanismo que o cartão da Turma já usa para «Abrir o Elenco». Sem isto, a
+         * secretaria sabe que a aluna está num elenco e não tem por onde lá chegar. */
+        const elencosDela = elencosPorAluna.get(String(a).trim()) || [];
+        const atalhoDoElenco = elencosDela.map((e) =>
+          '<a class="acao secundario pequena" href="#corpo" data-abrir="elenco:' + esc(e.id) + '" '
+          + 'title="Abrir a Audição na linha deste elenco">elenco · ' + esc(e.nome) + '</a>').join('');
         return '<li class="turma" data-aluna="' + esc(a) + '">'
           + '<div class="linha-turma"><span class="nome">' + linhaDoNome(a, selos.join(' ')) + '</span>'
+          + colunaDeTurmas(turmasDela, a, 'pessoa')
+          + (atalhoDoElenco ? '<span class="par-botoes">' + atalhoDoElenco + '</span>' : '')
           + '<span class="acoes">'
           + '<button type="button" class="acao pequena" data-aluna-derivar="'
           + esc(ultimo && ultimo.id ? ultimo.id : '') + '" data-aluna-nome="' + esc(a) + '" '
@@ -7267,7 +7305,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     + 'fazer — no tempo dele, sem prazo.</p>' +
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="aluna-voltar">← Voltar</button>' +
-    '<button type="submit" class="acao grande" id="aluna-gravar">Cadastrar aluna</button>' +
+    /* O BOTÃO NASCE DESABILITADO (18/11/2026) — «o botão cadastrar não pode estar disponível se eu
+     * não tenho todos os campos preenchidos, tá? Não tem sentido isso.»
+     *
+     * E não é zelo: com o `<select>` dos professores sem rótulos (o defeito que este mesmo dia
+     * corrigiu), ela escolheu «professor» — o primeiro item da lista, que era o vazio — e o botão
+     * aceitou o clique. O servidor recusou com um «escolha o professor», e ela ficou sem saber se
+     * o erro era dela ou do sistema. Um botão que só se acende quando há o que gravar não deixa
+     * essa dúvida nascer. */
+    '<button type="submit" class="acao grande" id="aluna-gravar" disabled>Cadastrar aluna</button>' +
     '<button type="button" class="acao secundario" id="aluna-cancelar-2" hidden>Cancelar</button>' +
     '</span>' +
     '</div>' +
@@ -9950,6 +9996,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * daquela modalidade». É a MESMA leitura que o passo 2 da Sala usa (`professoresDaModalidade`):
      * uma segunda forma de perguntar «quem dá esta modalidade» daria duas respostas no primeiro
      * perfil mal preenchido. */
+    /* AS TRAVAS DO CADASTRO (18/11/2026). Três campos, e o botão só acende com os três: o apelido
+     * (passo 1), a modalidade e o professor (passo 2). O `title` diz QUAL falta — um botão apagado
+     * sem explicação é o pior dos mundos, e é a regra que esta casa já segue nos «Excluir».
+     *
+     * O QUE ELA NÃO É: não é uma segunda regra. O servidor continua a recusar (`400`) os três
+     * casos, e tem de continuar — a tela não é a guarda. Isto é o mesmo que a guarda diz, dito
+     * antes de a pessoa preencher tudo para o ouvir no fim. */
+    'function pintarTravasDaAluna(){' +
+    '  var b = document.getElementById("aluna-gravar");' +
+    '  if (!b) return;' +
+    '  var nome = String((document.getElementById("anome") || {}).value || "").trim();' +
+    '  var mod = String((document.getElementById("amodalidade") || {}).value || "");' +
+    '  var prof = String((document.getElementById("aprofessor") || {}).value || "");' +
+    '  var faltam = [];' +
+    '  if (!nome) faltam.push("o apelido da aluna");' +
+    '  if (!mod) faltam.push("a modalidade");' +
+    '  if (!prof) faltam.push("o professor que vai fazer a anamnese");' +
+    '  b.disabled = faltam.length > 0;' +
+    '  b.title = faltam.length ? "Falta " + faltam.join(", ") + "." : "";' +
+    '}' +
     'function professoresDaAluna() {' +
     '  var sel = document.getElementById("amodalidade");' +
     '  var alvo = document.getElementById("aprofessor");' +
@@ -9972,12 +10038,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      return;' +
     '    }' +
     '    alvo.innerHTML = "<option value=\'\'>— escolher —</option>" + lista.map(function(p){' +
-    '      return "<option value=\x27" + escHtml(p.slug) + "\x27>" + escHtml(p.nome) + "</option>";' +
+    /* O RÓTULO É `rotulo`, E NÃO `nome` (18/11/2026) — e a diferença deixou a lista «vazia».
+     *
+     * `professoresDaModalidade` devolve `{slug, rotulo}` (é o que o `pintarProfessores` das Salas
+     * consome), e este pintor lia `p.nome` — que nesse objecto não existe. `escHtml(undefined)`
+     * devolve `""`: o `<select>` ficava com as opções certas e SEM TEXTO VISÍVEL. Ela viu a lista
+     * em branco e leu «não tem nenhum professor para eu escolher»; os professores estavam lá, e
+     * escolher um deles dava um `value` válido — por isso o servidor aceitava, e nada explicava o
+     * que tinha corrido mal. */
+    '      return "<option value=\x27" + escHtml(p.slug) + "\x27>" + escHtml(p.rotulo) + "</option>";' +
     '    }).join("");' +
+    /* REPINTAR A LISTA DEVOLVE O `<select>` AO VAZIO (é o primeiro item que fica escolhido), e por
+     * isso a trava é recalculada aqui: sem esta linha o botão ficaria aceso com o professor em
+     * branco — que é o defeito que ela acabou de ver, com outra cara. */
+    '    pintarTravasDaAluna();' +
     '  });' +
     '}' +
     'var selModAluna = document.getElementById("amodalidade");' +
     'if (selModAluna) selModAluna.addEventListener("change", professoresDaAluna);' +
+    'var campoNomeTravas = document.getElementById("anome");' +
+    'if (campoNomeTravas) campoNomeTravas.addEventListener("input", pintarTravasDaAluna);' +
+    'var campoModTravas = document.getElementById("amodalidade");' +
+    'if (campoModTravas) campoModTravas.addEventListener("change", pintarTravasDaAluna);' +
+    'var campoProfTravas = document.getElementById("aprofessor");' +
+    'if (campoProfTravas) campoProfTravas.addEventListener("change", pintarTravasDaAluna);' +
     'var bSeguirAluna = document.getElementById("aluna-seguir");' +
     'if (bSeguirAluna) bSeguirAluna.addEventListener("click", function(){' +
     '  var nome = String((document.getElementById("anome") || {}).value || "").trim();' +
@@ -10134,6 +10218,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (rotulo) rotulo.textContent = id ? "Gravar a anamnese nova" : "Cadastrar aluna";' +
     '  recado("", "");' +
     '  mostrarPassoAluna(2);' +
+    '  pintarTravasDaAluna();' +
     '}' +
     'Array.prototype.slice.call(document.querySelectorAll("[data-aluna-derivar]")).forEach(function(b){' +
     '  b.addEventListener("click", function(){' +
@@ -10142,6 +10227,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '});' +
     'mostrarPassoAluna(1);' +
+    'pintarTravasDaAluna();' +
     /* AS HABILITAÇÕES — LER AO ESCOLHER, GRAVAR AO SUBMETER (03/11/2026).
      *
      * A LEITURA É POR GESTO, e não na carga da página: são N professores da escola e, hoje,
@@ -11780,6 +11866,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o processo que correu a prova. Custou uma prova a vermelho para ser visto, e a página do
      * produto nunca o mostraria — é o género de defeito que só aparece fora do browser. */
     'function temTela(){ return typeof document !== "undefined" && !!document.getElementById; }' +
+    /* O `<select>` DE UM VALOR GRAVADO — REPOSTO A 18/11/2026, e a falta dele custou uma derivação.
+     *
+     * O DEFEITO, medido. O commit `3bbbb8b8` (a modalidade a mandar na sala) reescreveu o filtro
+     * dos professores e, no meio da reescrita, APAGOU esta função — deixando as duas chamadas que
+     * `ajustarTurma` lhe faz. `preencherSelect("tmodalidade", …)` passou a ser um `ReferenceError`,
+     * e `ajustarTurma` morria naquela linha.
+     *
+     * O QUE ISSO PARECE, do lado de quem usa. O formulário abre, o NOME vem preenchido (é a linha
+     * anterior), e mais nada: a modalidade vazia, a duração vazia, os dias por marcar, as horas
+     * vazias, a rubrica vazia. O que não vem vazio vem da MEMÓRIA DO PREENCHIMENTO, reposta no
+     * arranque — e é por isso que o sintoma mentia com tanta convicção: os dias que apareciam
+     * eram os de um preenchimento anterior (o «preenchimento de teste»), e não os da sala. Ela
+     * desconfiou exactamente disso: «eu acho que o teste, ele diz que a aula é somente nas quartas
+     * e nas sextas». Era.
+     *
+     * PORQUE NINGUÉM VIU. O `node --check` do fonte passa (a chamada é sintaxe válida), a página
+     * compila, e o erro só aparece ao CLICAR. Um `ReferenceError` dentro de um `addEventListener`
+     * não interrompe a página: interrompe aquele gesto, em silêncio, e deixa o resto a funcionar.
+     *
+     * A FUNÇÃO. Põe o valor gravado no `<select>`, e — se ele já não estiver entre as opções —
+     * acrescenta-o como opção própria: é a modalidade que saiu do catálogo, e abrir a sala não
+     * pode apagá-la em silêncio. */
+    'function preencherSelect(id, valor){' +
+    '  var sel = document.getElementById(id);' +
+    '  if (!sel) return;' +
+    '  var v = String(valor == null ? "" : valor);' +
+    '  var achou = false;' +
+    '  for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === v) achou = true; }' +
+    '  if (v && !achou) {' +
+    '    var o = document.createElement("option");' +
+    '    o.value = v; o.textContent = v + " (já não na lista)";' +
+    '    sel.appendChild(o);' +
+    '  }' +
+    '  sel.value = v;' +
+    '}' +
     'function pintarProfessores(id, lista, valorAtual, rotuloVazio){' +
     '  if (!temTela()) return;' +
     '  var sel = document.getElementById(id);' +
