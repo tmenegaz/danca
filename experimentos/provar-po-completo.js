@@ -251,7 +251,12 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
     ]],
     'metodologia e notação': ['metodologiaENotacao', [
       ['Metodologia de referência: ' + mk('contexto-metodologia'), 'a metodologia vem do plano'],
-      ['Notação dominada: ' + mk('contexto-notacao'), 'e a notação'],
+      /* «NOTAÇÃO DOMINADA» VIROU «NOTAÇÃO DE DANÇA» (18/11/2026), e a asserção media o rótulo
+       * antigo. O rótulo é o que o documento diz; o VALOR deixou de vir da resposta: a notação é
+       * declarada pelo sistema (`Código de dança`), e o envelope pode trazer o que quiser — um
+       * plano antigo traz `Benesh`, e é exactamente isso que não pode aparecer no documento novo.
+       * A asserção passou a olhar para as duas metades: o rótulo novo, e o valor do sistema. */
+      ['Notação de dança: Código de dança', 'a notação é do sistema, e não da resposta'],
     ]],
   };
   for (const [nome, [chave, esperados2]] of Object.entries(doPlano)) {
@@ -526,6 +531,24 @@ const texto = JSON.stringify; // conveniência de leitura abaixo
     + chaves.join(' | '));
   assert.ok(chaves.indexOf('um item só meu') !== -1, 'e o que é do professor continua lá');
   ok('o objetivo que o professor já escreveu não aparece duas vezes na folha');
+
+  // 21. A NOTAÇÃO ANTIGA NÃO ENTRA NO DOCUMENTO NOVO. É a outra metade da asserção do bloco A, e
+  //     ela existe porque a mudança de 18/11/2026 tem um lado que se perde em silêncio: um plano
+  //     gravado antes dela traz `Benesh` na resposta, e um `||` distraído punha a marca de
+  //     terceiros de volta no documento — exactamente o que a pesquisadora mandou tirar («esses
+  //     nomes são de marca e eu não tenho as licenças deles»). O valor é do SISTEMA, não da
+  //     resposta: o que o envelope diga é irrelevante, e é isso que se mede.
+  {
+    const planoComBenesh = JSON.parse(JSON.stringify(PLANO));
+    planoComBenesh.respostas['contexto-notacao'] = { valor: 'Benesh' };
+    const { markdown: comBenesh } = derivarPO(ENVELOPE, planoComBenesh,
+      { rotulos: rotulosDoChecklist(CONTEUDO_PO) });
+    assert.ok(!comBenesh.includes('Benesh'),
+      'a notação de terceiros de um plano antigo NÃO pode voltar ao documento');
+    assert.ok(comBenesh.includes('Notação de dança: Código de dança'),
+      'e o documento novo diz a notação do sistema');
+    ok('a notação declarada por um plano ANTIGO (`Benesh`) não volta ao documento novo');
+  }
 
   console.log(`\nOK: ${n} verificações — o PO completo chega inteiro aos derivados.`);
 })().catch((e) => {

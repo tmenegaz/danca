@@ -401,7 +401,31 @@ const auditarArvore = (estado, arvore) => repo.auditarProvenienciaDaEscola({
    * chega a ser chamado. Se fosse chamado, o relatório diria. */
   const raiz = require('../motor/servidor/raiz.js');
   const autorizacao = { Authorization: 'Basic ' + Buffer.from('tmenegaz:segredo').toString('base64') };
-  const envDaRota = { SENHA_RAIZ: 'segredo', GITHUB_TOKEN: 'x', CLOUDFLARE_API_TOKEN: 'y', ASSETS: null };
+  /* `HOST_DONO` É O QUE FAZ ESTE ENDEREÇO SER O PAINEL (25/11/2026). Sem ele, `danca.internal`
+   * não é `*.workers.dev` nem o host do dono, e `ehPaginaPublica` responde **404** — a prova
+   * passou a medir a ausência da rota em vez do 409 que ela existe para medir.
+   *
+   * E O ESTADO COMERCIAL ENTROU NA PROVA (16/11/2026). A rota passou a exigir que a escola esteja
+   * SUSPENSA e com a carência vencida antes de auditar a proveniência — «apagá-la seria apagar o
+   * que está a ser usado». Sem essa metade, a prova media a recusa COMERCIAL nas quatro asserções
+   * seguintes, e chamava-lhe «proveniência»: o 409 vinha do sítio errado. A `PADD_KV` de memória
+   * declara a escola suspensa desde 2025, muito antes dos três meses de carência. */
+  const dadosKv = new Map([
+    ['bastidores/zzz/comercial', JSON.stringify({ estado: 'suspensa', desabilitadaEm: '2025-06-01T00:00:00.000Z' })],
+    /* O MARCO DO REGIME DE TESTE, declarado à mão. Sem esta chave o próprio `regimeDeTeste` a
+     * CRIA com a hora de agora — e uma escola suspensa em 2025 fica «antes de este prazo existir»,
+     * que é a recusa certa para o caso errado. Com o marco a 2025-01-01, a suspensão de Junho é
+     * posterior a ele, e a carência conta como contaria a sério. */
+    ['expurgo/regime-de-teste-desde', '2025-01-01T00:00:00.000Z'],
+  ]);
+  const kvDaRota = {
+    async get(k) { return dadosKv.has(k) ? dadosKv.get(k) : null; },
+    async put(k, v) { dadosKv.set(k, String(v)); },
+    async delete(k) { dadosKv.delete(k); },
+    async list() { return { keys: [], list_complete: true }; },
+  };
+  const envDaRota = { SENHA_RAIZ: 'segredo', GITHUB_TOKEN: 'x', CLOUDFLARE_API_TOKEN: 'y',
+    ASSETS: null, HOST_DONO: 'danca.internal', PADD_KV: kvDaRota };
   const pedirExpurgo = async (corpo, estado) => {
     const original = globalThis.fetch;
     globalThis.fetch = async (url, init) => {

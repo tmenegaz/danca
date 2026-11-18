@@ -335,19 +335,23 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
     conferir('…e com a instrução de escrever o nome da escola no Pix',
       /escreva o nome da escola/i.test(boa.html), null);
 
-    /* A CAPACIDADE A MAIS (16/11/2026) — «as extensões do plano: mais três professores ou mais
-     * cinco, mais 10 alunos ou mais 30, e cada um tem um preço». É a tabela `lotes` do catálogo, a
-     * MESMA que a criação pelo formulário público oferece, e o que aqui se mostra é que ela está na
-     * página com o preço ao lado. Uma «extensão» de outra natureza não se oferece — a escolha que
-     * esteve aqui por umas horas foi retirada. */
-    conferir('…com a capacidade a mais, e um lote por linha', /id="convite-capacidade"/.test(boa.html)
-      && (boa.html.match(/type="checkbox" data-lote/g) || []).length
-        === comercial.catalogoDaPagina().lotes.professores.length
-          + comercial.catalogoDaPagina().lotes.alunos.length,
-      (boa.html.match(/type="checkbox" data-lote/g) || []).length);
-    conferir('…cada linha diz quanto acrescenta e quanto custa por mês',
-      /\+1 professor\(es\) — R\$ 30,00\/mês/.test(boa.html)
-        && /\+30 aluna\(s\) — R\$ 50,00\/mês/.test(boa.html), null);
+    /* A CAPACIDADE A MAIS PASSOU A SER PACOTES DE AULAS (17/11/2026) — e esta asserção media os
+     * `data-lote` de gente, que já não existem na página. O que se mede agora é o mesmo facto na
+     * unidade que se vende: uma caixa por pacote do catálogo, com as aulas e o preço ao lado. */
+    const pacotes = comercial.catalogoDaPagina().pacotesDeAulas;
+    const simbolo = comercial.catalogoDaPagina().moeda_simbolo;
+    conferir('…com a capacidade a mais, e um pacote por linha', /id="convite-capacidade"/.test(boa.html)
+      && (boa.html.match(/type="checkbox" data-pacote /g) || []).length === pacotes.length,
+      (boa.html.match(/type="checkbox" data-pacote /g) || []).length);
+    conferir('…cada linha diz quantas aulas acrescenta e quanto custa por mês',
+      /* `reais` recebe CÊNTIMOS (é o `reais(c)` do sistema); o catálogo guarda reais. A conversão
+       * fica explícita aqui para a asserção não passar a medir outra unidade em silêncio. */
+      /* O PREÇO SAI COM O SÍMBOLO (`R$ 10,00`): `comercial.reais` devolve «10,00», sem moeda, e é a
+       * página que lhe põe o símbolo à frente. A asserção monta a mesma frase que a página monta. */
+      pacotes.every((pk) => boa.html.indexOf('+' + pk.aulas + ' aulas — '
+        + simbolo + ' ' + comercial.reais(comercial.centavos(pk.preco)) + '/mês') !== -1),
+      pacotes.map((pk) => '+' + pk.aulas + ' aulas — '
+        + simbolo + ' ' + comercial.reais(comercial.centavos(pk.preco)) + '/mês'));
     conferir('…e NENHUMA escolha entre «extensões»: isso não é desta conversa',
       !/convite-extensoes/.test(boa.html) && !/convite-extensao"/.test(boa.html), null);
     /* O PEDIDO VAI PARA `/api/recriar/…` NA RAIZ DO SÍTIO. Aqui esteve um caminho relativo, que
@@ -356,9 +360,12 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
     conferir('…e o pedido vai para a raiz do sítio, e não para o lado da página',
       boa.html.indexOf('fetch("/api/recriar/') !== -1,
       (boa.html.match(/fetch\("[^"]*"/) || [])[0]);
-    conferir('…levando os lotes escolhidos no corpo',
-      /lotesProfessores:doEixo\("professores"\)/.test(boa.html)
-        && /lotesAlunos:doEixo\("alunos"\)/.test(boa.html), null);
+    conferir('…levando os pacotes escolhidos no corpo',
+      /pacotes:doPacotes\(\)/.test(boa.html)
+        /* Os lotes de gente continuam a ir, VAZIOS: o contrato antigo é lido pelo servidor, e um
+         * campo que desaparecesse do corpo seria uma chave a menos para quem já gravou com ela. */
+        && /lotesProfessores:\[\]/.test(boa.html) && /lotesAlunos:\[\]/.test(boa.html),
+      (boa.html.match(/pacotes:[^,]*/) || [])[0]);
 
     const errada = await abrir('duo-' + 'f'.repeat(32));
     conferir('com o token errado, 404 — e SEM formulário', errada.status === 404
@@ -787,42 +794,62 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
 
     /* «+3 professores» não diz três a mais do que quê — e a pergunta é a primeira que quem
      * contrata faz. A linha diz o que o degrau JÁ traz, e só depois o que se acrescenta. */
+    /* «INCLUI 100 AULAS POR MÊS» — a frase dizia «inclui N professor», e a unidade mudou. O que se
+     * mede é a mesma coisa: o degrau diz o que JÁ traz, com a mensalidade ao lado. */
     conferir('a página abre com um plano escolhido, o que ele inclui e a mensalidade dita',
-      /inclui \d+ professor/.test(d.getElementById('convite-valor').textContent)
+      /inclui \d+ aulas/.test(d.getElementById('convite-valor').textContent)
         && /\d\d,\d\d por mês/.test(d.getElementById('convite-valor').textContent),
       d.getElementById('convite-valor').textContent);
 
+    /* ── A CAPACIDADE A MAIS PASSOU A SER «PACOTES DE AULAS» (17/11/2026) ────────────────────
+     *
+     * ESTA SECÇÃO MEDIA LOTES DE GENTE («+3 professores», «+30 alunas»), e a unidade comercial
+     * mudou: o que se vende é a AULA PROCESSADA, 100/300/800 por mês, e o que se acrescenta são
+     * pacotes de +20/+50/+100 aulas. O `data-eixo` e o `data-lote` desapareceram da página, e a
+     * prova passou a explodir no `loteDeProfessor.checked` — sobre um modelo que já não existe.
+     *
+     * O QUE SE MEDE AGORA é o mesmo facto na unidade nova: há uma caixa por pacote do CATÁLOGO, e
+     * marcar uma muda a mensalidade dizendo de onde vem a diferença. */
     const caixa = d.getElementById('convite-capacidade');
-    conferir('a capacidade a mais está lá, com uma caixa por lote', Boolean(caixa)
-      && caixa.querySelectorAll('[data-lote]').length
-        === catalogo.lotes.professores.length + catalogo.lotes.alunos.length,
-      caixa && caixa.querySelectorAll('[data-lote]').length);
+    const pacotesDoCatalogo = catalogo.pacotesDeAulas || [];
+    conferir('a capacidade a mais está lá, com uma caixa por pacote do catálogo', Boolean(caixa)
+      && caixa.querySelectorAll('[data-pacote]').length === pacotesDoCatalogo.length,
+      { naPagina: caixa && caixa.querySelectorAll('[data-pacote]').length,
+        noCatalogo: pacotesDoCatalogo.length });
 
-    /* O LOTE ESCOLHIDO MUDA O VALOR — e é esta a razão de a capacidade estar na página: quem paga
-     * R$ 119,90 tem de ver de onde vêm os R$ 50. */
-    const semLote = d.getElementById('convite-valor').textContent;
-    const loteDeProfessor = caixa.querySelector('[data-eixo="professores"]');
-    loteDeProfessor.checked = true;
-    loteDeProfessor.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    const semPacote = d.getElementById('convite-valor').textContent;
+    const pacote = pacotesDoCatalogo[0];
+    const caixaDoPacote = caixa.querySelector('[data-pacote-id="' + pacote.id + '"]');
+    conferir('a caixa do pacote traz as aulas e o preço do catálogo',
+      Boolean(caixaDoPacote)
+      && Number(caixaDoPacote.getAttribute('data-aulas')) === pacote.aulas
+      /* O CATÁLOGO GUARDA REAIS (`preco: 10`) E A PÁGINA MANDA CÊNTIMOS — a conversão é a
+       * `comercial.centavos`, a mesma do resto do sistema. Comparar `10` com `1000` seria a prova a
+       * medir a unidade errada. */
+      && Number(caixaDoPacote.getAttribute('data-centavos')) === comercial.centavos(pacote.preco),
+      caixaDoPacote && [caixaDoPacote.getAttribute('data-aulas'), caixaDoPacote.getAttribute('data-centavos')]);
+
+    caixaDoPacote.checked = true;
+    caixaDoPacote.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 40));
-    const comLote = d.getElementById('convite-valor').textContent;
-    const precoDoLote = catalogo.lotes.professores[0];
-    conferir('…e marcar um lote muda a mensalidade, e diz de onde vem a diferença',
-      comLote !== semLote && comLote.indexOf('+' + precoDoLote.qtd + ' professor') !== -1
-        && comLote.indexOf('por mês') !== -1, { sem: semLote, com: comLote });
+    const comPacote = d.getElementById('convite-valor').textContent;
+    conferir('…e marcar um pacote muda a mensalidade, e diz de onde vem a diferença',
+      comPacote !== semPacote && comPacote.indexOf('+' + pacote.aulas + ' aulas') !== -1
+        && comPacote.indexOf('por mês') !== -1, { sem: semPacote, com: comPacote });
 
-    /* TROCA-SE DE PLANO COM UM LOTE MARCADO: o lote não se perde, e o valor refaz-se sobre a nova
-     * assinatura. Perder a escolha ao mudar de plano é o defeito que a pessoa só descobre no Pix. */
+    /* TROCA-SE DE PLANO COM UM PACOTE MARCADO: o pacote não se perde, e o valor refaz-se sobre a
+     * nova assinatura. Perder a escolha ao mudar de plano é o defeito que a pessoa só descobre no
+     * Pix. */
     const outroPlano = catalogo.assinaturas.find((p) => p.id !== catalogo.assinaturas[0].id);
     const sel = d.getElementById('convite-plano');
     sel.value = outroPlano.id;
     sel.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 60));
     const depoisDaTroca = d.getElementById('convite-valor').textContent;
-    conferir('…e trocar de plano não perde o lote marcado',
-      /\+\d+ professor/.test(depoisDaTroca) && loteDeProfessor.checked === true, depoisDaTroca);
+    conferir('…e trocar de plano não perde o pacote marcado',
+      /\+\d+ aulas/.test(depoisDaTroca) && caixaDoPacote.checked === true, depoisDaTroca);
     const conta = comercial.calcular({
-      assinatura: outroPlano.id, lotes: { professores: [precoDoLote.qtd], alunos: [] },
+      assinatura: outroPlano.id, pacotes: [pacote.id], lotes: { professores: [], alunos: [] },
     });
     conferir('…e o total que a página mostra é o da tabela do servidor',
       depoisDaTroca.indexOf(conta.total) !== -1, { pagina: depoisDaTroca, servidor: conta.total });
@@ -834,10 +861,11 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
     conferir('o clique faz UM pedido, à raiz do sítio (era aqui que ele se perdia em 404)',
       pedidos.length === 1 && pedidos[0].url.indexOf('/api/recriar/' + token) === 0,
       pedidos.map((p) => p.url));
-    conferir('…com o plano, a senha e os LOTES escolhidos no corpo',
+    conferir('…com o plano, a senha e os PACOTES escolhidos no corpo',
       pedidos[0].corpo.plano === outroPlano.id
         && pedidos[0].corpo.senhaAdmin === 'nova-da-escola'
-        && JSON.stringify(pedidos[0].corpo.lotesProfessores) === JSON.stringify([precoDoLote.qtd])
+        && JSON.stringify(pedidos[0].corpo.pacotes) === JSON.stringify([pacote.id])
+        && JSON.stringify(pedidos[0].corpo.lotesProfessores) === JSON.stringify([])
         && JSON.stringify(pedidos[0].corpo.lotesAlunos) === JSON.stringify([]),
       pedidos[0].corpo);
     conferir('…e a página diz o que aconteceu a seguir (a conciliação é manual)',
