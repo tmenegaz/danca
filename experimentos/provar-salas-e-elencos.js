@@ -158,33 +158,39 @@ const RITMO = {
     html.indexOf('data-painel="conteudos"') === -1, null);
 
   // -------------------------------------------------------------------------------------------
-  console.log('\nA1. A SALA DIZ A MODALIDADE E O PROFESSOR (18/11/2026)');
+  console.log('\nA1. A SALA DIZ A MODALIDADE — E SÓ ELA (18/11/2026)');
 
-  /* O QUE ELA PEDIU, por palavras próprias: «a sala ela atende a uma modalidade nesses dias, com
-   * essa duração, no período inicial até o período final»; e «a gente vai acrescentar mais um
-   * [nicho] aqui, que é o professor […] quando abrir o nicho do professor, vai dizer ali qual é a
-   * modalidade que ele atende».
+  /* «A modalidade que está aqui no step sala define o professor da sala no step professor. É lá que
+   * eu vou escolher o professor da sala e não aqui. […] O professor da sala não existe aqui como
+   * campo, tá? Tira ele daqui. […] Aí você colocou também uma informação, um texto logo abaixo, não
+   * tem essas coisas. Eu já tinha dito isso para você.»
    *
-   * A SALA ACIMA NÃO TEM NENHUM DOS DOIS — foi criada só com o ritmo, como as salas de antes desta
-   * regra. É de propósito: ela é o caso em que o painel tem de DIZER O QUE FALTA em vez de
-   * desaparecer. E é a primeira coisa que se mede aqui. */
-  conferir('a sala sem professor nem modalidade continua a valer (o passado não é reescrito)',
-    trecho.indexOf('Sala de Prova') !== -1, null);
-  conferir('…e o cartão dela diz que ainda não se sabe quem a dá',
-    /ainda não diz quem a dá nem a modalidade/.test(trecho), null);
-  conferir('…e o terceiro nicho existe de qualquer maneira', /data-balao="professor"/.test(trecho), null);
-  conferir('…com o painel dele', /data-painel="professor"/.test(trecho), null);
+   * São DUAS remoções, e a segunda é a que se esquece: o campo e a nota que o explicava. */
+  conferir('o passo 1 já NÃO tem o campo do professor da sala',
+    !/id="tprofessor"/.test(html), (html.match(/id="tprofessor"/g) || []).length);
+  conferir('…nem a nota que o explicava', !/id="t-habilidade-nota"/.test(html), null);
+  conferir('…e a modalidade FICA, que é o que o passo 1 declara',
+    /id="tmodalidade"/.test(html), null);
+  /* A MODALIDADE GUARDA O NOME, E NÃO O ID — a convenção da Turma e da curadoria, e a razão está
+   * escrita no núcleo: «o perfil do professor guarda ids e a Turma guarda o nome que o formulário
+   * oferece». Guardar um id aqui faria o `enquadramento.js` comparar um id com um nome. */
+  const soDaSala = (() => {
+    const i = html.indexOf('id="tmodalidade"');
+    if (i === -1) return '';
+    const j = html.indexOf('</select>', i);
+    return j === -1 ? html.slice(i) : html.slice(i, j);
+  })();
+  conferir('…e a opção da modalidade leva o NOME no `value`, como na Turma',
+    /<option value="Jazz"/.test(soDaSala) && !/<option value="jazz"/.test(soDaSala),
+    (soDaSala.match(/<option value="[^"]*"/g) || []));
 
-  /* AGORA UMA SALA COM OS DOIS, e o cartão tem de os dizer pelo NOME — um slug na tela é
-   * `leticia`, e o que uma pessoa lê é «Leticia». */
+  /* AGORA UMA SALA COM MODALIDADE E PROFESSOR — gravados pelo passo 2, que é o passo de quem dá a
+   * aula. O cartão tem de dizer os dois, e o painel do nicho tem de reservar o lugar da TRADIÇÃO:
+   * «quando eu expando aqui o nicho do professor, aparece o nome dele, a modalidade que ele ensina,
+   * falta a tradição. Tem que dizer qual é a tradição que ele ensina.» */
   const comDono = await postar(env, '/api/bastidores/turma',
-    Object.assign({ nome: 'Sala de Jazz', professor: 'leticia', modalidade: 'Jazz' }, RITMO));
-  /* A ROTA DEVOLVE O NOME DA SALA, e não o registo — é o contrato dela desde 16/10/2026
-   * (`{ ok, turma: nova.nome, nome, id, modo }`). Quem prova que os dois campos ficaram gravados é
-   * a LEITURA seguinte: a página é desenhada a partir do que está no armazenamento, e o cartão só
-   * pode dizer «Leticia» e «Jazz» se os dois lá estiverem. É por isso que a asserção seguinte
-   * existe, e é ela a prova — esta confirma que a gravação não foi recusada. */
-  conferir('a sala com professor e modalidade é aceite (201/200), e o id volta',
+    Object.assign({ nome: 'Sala de Jazz', modalidade: 'Jazz' }, RITMO));
+  conferir('a sala com modalidade é aceite (201/200), e o id volta',
     (comDono.status === 201 || comDono.status === 200) && Boolean(comDono.corpo.id),
     { status: comDono.status, corpo: comDono.corpo });
 
@@ -192,34 +198,34 @@ const RITMO = {
   const html2 = await pagina2.text();
   const trecho2 = (() => {
     const i = html2.indexOf('Sala de Jazz');
-    return i === -1 ? '' : html2.slice(i, i + 4000);
+    return i === -1 ? '' : html2.slice(i, i + 5000);
   })();
-  conferir('o nicho do professor mostra o NOME, e não o slug',
-    /data-balao="professor"[\s\S]{0,400}?Leticia/.test(trecho2), trecho2.slice(0, 300));
-  conferir('…e o painel dele diz a modalidade que ali se ensina',
-    /data-painel="professor"[\s\S]{0,900}?Jazz/.test(trecho2), null);
+  conferir('o nicho do professor existe no cartão', /data-balao="professor"/.test(trecho2), null);
+  /* A SALA AINDA NÃO TEM PROFESSOR — e o painel diz o que falta e ONDE, sem inventar. */
+  conferir('sem professor, o painel do nicho diz o que falta e onde se completa',
+    /Falta o professor/.test(trecho2), trecho2.slice(0, 200));
 
-  /* O FORMULÁRIO — o passo 1 passou a pedir os dois. */
-  conferir('o passo 1 tem o select do professor da sala', /id="tprofessor"/.test(html2), null);
-  conferir('…e o da modalidade da sala', /id="tmodalidade"/.test(html2), null);
-  /* A MODALIDADE DA SALA GUARDA O NOME, E NÃO O ID — a convenção da Turma, e a razão está escrita
-   * no núcleo: «o perfil do professor guarda ids (`bale-classico`) e a Turma guarda o nome que o
-   * formulário oferece (`Balé clássico`)». Guardar um id aqui faria o `enquadramento.js` — que já
-   * lê `turma.modalidade` — comparar um id com um nome, e o «sem quem a ensine» acenderia em salas
-   * que o professor dá todos os dias.
-   *
-   * A OUTRA CONVENÇÃO NÃO É UM DEFEITO, e a prova não a pode confundir: o select da HABILIDADE do
-   * professor (`pmodalidade`) leva o ID, porque é para o perfil que ele escreve. As duas coexistem,
-   * e o `idDaModalidade` do núcleo é a ponte. Por isso o recorte é o `tmodalidade`, e não a página. */
-  const soDaSala = (() => {
-    const i = html2.indexOf('id="tmodalidade"');
-    if (i === -1) return '';
-    const j = html2.indexOf('</select>', i);
-    return j === -1 ? html2.slice(i) : html2.slice(i, j);
+  /* O PROFESSOR ENTRA PELA ROTA DO PASSO 2 — que é «lá» onde ela o escolhe. A rota da rubrica
+   * recebe a sala e grava-lhe o professor no mesmo ato: é o que impede a sala de ficar órfã no
+   * instante em que o formulário do passo 1 deixou de o pedir. */
+  const salaId = comDono.corpo.id;
+  const regua = await postar(env, '/api/bastidores/rubrica', {
+    nome: 'Régua do Jazz', professor: 'leticia', turma: salaId, niveis: ['Ótimo', 'Bom'],
+  });
+  conferir('a rubrica do passo 2 grava o professor NA SALA',
+    (regua.status === 201 || regua.status === 200) && regua.corpo.sala === 'Sala de Jazz',
+    { status: regua.status, sala: regua.corpo && regua.corpo.sala });
+
+  const pagina3 = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const html3 = await pagina3.text();
+  const trecho3 = (() => {
+    const i = html3.indexOf('Sala de Jazz');
+    return i === -1 ? '' : html3.slice(i, i + 5000);
   })();
-  conferir('…e a opção da modalidade da SALA leva o NOME no `value`, como na Turma',
-    /<option value="Jazz"/.test(soDaSala) && !/<option value="jazz"/.test(soDaSala),
-    (soDaSala.match(/<option value="[^"]*"/g) || []));
+  conferir('…e o cartão passa a dizer o professor pelo NOME',
+    /data-balao="professor"[\s\S]{0,400}?Leticia/.test(trecho3), trecho3.slice(0, 300));
+  conferir('…com o lugar da tradição reservado no painel',
+    /data-tradicao-de="leticia"/.test(trecho3), null);
 
   // -------------------------------------------------------------------------------------------
   console.log('\nB. O ELENCO sem anamnese — o nome grava, e o servidor aceita-o');
@@ -663,22 +669,15 @@ const RITMO = {
   console.log('\nG. A MODALIDADE MANDA, E OS PROFESSORES RECOLHEM-SE A ELA (18/11/2026)');
 
   /* «ao escolher a modalidade aqui no step um, o step dois que tem a rubrica […] deve carregar
-   * apenas os professores da modalidade escolhida aqui no step um». E o modelo, por palavras dela:
-   * «a sala de aula, ela é preparada para atender uma modalidade e tem professores que dão aquela
-   * modalidade. […] nessa sala, nesses dias, ocorre essa modalidade de ensino com esse professor».
+   * apenas os professores da modalidade escolhida aqui no step um».
    *
-   * A DIREÇÃO É ESTA E NÃO A CONTRÁRIA. A véspera tinha o contrário — a modalidade recolhia-se ao
-   * professor —, e o contrário responde à pergunta da curadoria («quem é o professor e o que ele
-   * sabe ensinar»), não à da sala («que modalidade acontece aqui, e quem a pode dar»).
+   * A 18/11/2026 a modalidade passou a ser o ÚNICO campo do passo 1 — o professor saiu de lá, e é
+   * no passo 2 que se escolhe. A lista do passo 2 continua a recolher-se à modalidade, e é isso que
+   * se mede aqui: a tela a correr, porque o filtro é `fetch` e `innerHTML`, e nenhuma expressão
+   * regular prova que ele funciona.
    *
-   * O QUE SE MEDE É A TELA A CORRER, e não a presença de um `id`: o filtro é feito de `fetch` e de
-   * `innerHTML`, e nenhuma expressão regular prova que ele funciona. O `fetch` do jsdom é o único
-   * ponto substituído — se a página não chamar a rota do perfil, a lista fica com todos e a prova
-   * reprova.
-   *
-   * TRÊS PROFESSORES E TRÊS CASOS, de propósito: um que declara jazz, um que declara clássico (logo
-   * fica de fora do jazz), e um que não declarou nada (que NÃO pode desaparecer — «não sei» ≠ «não
-   * pode»). Com um professor só, nenhuma destas três coisas se distingue. */
+   * TRÊS PROFESSORES E TRÊS CASOS: um que declara jazz, um que declara clássico (logo fica de fora
+   * do jazz), e um que não declarou nada (que NÃO pode desaparecer — «não sei» ≠ «não pode»). */
   {
     let JSDOM2 = null;
     let VC2 = null;
@@ -686,21 +685,14 @@ const RITMO = {
     if (!JSDOM2) {
       naoMedida('o filtro dos professores pela modalidade da sala', 'jsdom ausente');
     } else {
-      const DONO_G = 'Leticia';
-      const DONO_SLUG_G = 'leticia';
-      const PROFESSORES_G = [
-        { nome: 'Petorto', slug: 'pe-torto' },
-        { nome: 'Marina Souza', slug: 'marina' },
-      ];
-      /* O QUE CADA PERFIL DECLARA — o `null` é «não consegui ler», o `[]` é «não declarou nada», e
-       * a página trata os dois como permissivos e marcados. */
       const PERFIS = { leticia: ['jazz'], 'pe-torto': ['bale-classico'], marina: [] };
-      const htmlG = bastidores.paginaProducao('breu', {}, PROFESSORES_G, [], DONO_G, DONO_SLUG_G,
-        [], [], {}, [], [], []);
+      const htmlG = bastidores.paginaProducao('breu', {},
+        [{ nome: 'Petorto', slug: 'pe-torto' }, { nome: 'Marina Souza', slug: 'marina' }],
+        [], 'Leticia', 'leticia', [], [], {}, [], [], []);
       const vcG = new VC2();
       vcG.on('jsdomError', () => {});
       vcG.on('error', () => {});
-      const domG = new JSDOM(htmlG.replace(/<script src="[^"]*"><\/script>/g, ''), {
+      const domG = new JSDOM2(htmlG.replace(/<script src="[^"]*"><\/script>/g, ''), {
         runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
         virtualConsole: vcG,
         beforeParse(w) {
@@ -716,7 +708,7 @@ const RITMO = {
               const slug = decodeURIComponent(m[1]);
               const ids = PERFIS[slug];
               corpo = { ok: true, existe: true, modalidades: ids === null ? null : (ids || []),
-                catalogo: [] };
+                tradicoes: {}, catalogo: [] };
             }
             return Promise.resolve({ ok: true, status: 200,
               json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
@@ -728,7 +720,6 @@ const RITMO = {
         .map((o) => o.value).filter(Boolean);
       const rotulos = (id) => [...winG.document.querySelectorAll('#' + id + ' option')]
         .map((o) => o.textContent);
-      const nota = () => winG.document.getElementById('t-habilidade-nota');
       const escolher = async (id, valor) => {
         const sel = winG.document.getElementById(id);
         sel.value = valor;
@@ -737,73 +728,27 @@ const RITMO = {
       };
       await new Promise((r) => winG.setTimeout(r, 300));
 
-      /* ---- 1. A ORDEM NO FORMULÁRIO: a modalidade vem antes do professor. ---- */
-      const ordem = [...winG.document.querySelectorAll('#form-turma select')]
-        .map((s) => s.id).filter((x) => x === 'tmodalidade' || x === 'tprofessor');
-      conferir('no passo 1, a modalidade vem ANTES do professor',
-        ordem[0] === 'tmodalidade' && ordem[1] === 'tprofessor', ordem);
-
-      /* ---- 2. SEM MODALIDADE, TODOS — a lista existe antes da escolha. ---- */
-      conferir('sem modalidade escolhida, o professor da sala oferece os três',
-        valores('tprofessor').length === 3, valores('tprofessor'));
-      conferir('…e o professor da rubrica também',
+      /* ---- 1. SEM MODALIDADE, TODOS — a lista existe antes da escolha. ---- */
+      conferir('sem modalidade escolhida, o professor da rubrica oferece os três',
         valores('rubr-professor').length === 3, valores('rubr-professor'));
 
-      /* ---- 3. ESCOLHIDO JAZZ, SAEM OS QUE DECLARAM OUTRA MODALIDADE — nos DOIS sítios. ----
-       *
-       * Ficam DOIS e não um: a Leticia porque declara jazz, e a Marina porque não declarou nada —
-       * e essa é a regra escrita no núcleo do perfil, «não sei» ≠ «não pode». Quem sai é o Petorto,
-       * que declarou clássico e por isso se sabe que não dá jazz. */
+      /* ---- 2. ESCOLHIDO JAZZ, SAEM OS QUE DECLARAM OUTRA MODALIDADE. ---- */
       await escolher('tmodalidade', 'Jazz');
-      conferir('escolher «Jazz» tira da SALA quem declara outra modalidade — e só esse',
-        valores('tprofessor').indexOf('pe-torto') === -1
-          && valores('tprofessor').indexOf('leticia') !== -1,
-        valores('tprofessor'));
-      conferir('…e o professor da RUBRICA (passo 2) fica com a MESMA lista',
-        JSON.stringify(valores('rubr-professor')) === JSON.stringify(valores('tprofessor')),
-        { rubrica: valores('rubr-professor'), sala: valores('tprofessor') });
-      conferir('…e a nota diz por que a lista é mais curta',
-        nota().hidden === false && /declararam Jazz/.test(nota().textContent), nota().textContent);
+      conferir('escolher «Jazz» tira quem declara outra modalidade — e só esse',
+        valores('rubr-professor').indexOf('pe-torto') === -1
+          && valores('rubr-professor').indexOf('leticia') !== -1,
+        valores('rubr-professor'));
 
-      /* ---- 4. QUEM NÃO DECLAROU NADA NÃO DESAPARECE, e é dito. ---- */
+      /* ---- 3. QUEM NÃO DECLAROU NADA NÃO DESAPARECE, e é dito. ---- */
       await escolher('tmodalidade', 'Balé clássico');
-      /* Petorto declara clássico; Marina não declarou nada. As duas ficam — a segunda marcada, com
-       * «sem habilitações declaradas». Esconder Marina seria trancar a escola por um dado que ela
-       * não tem como saber que falta. */
       conferir('quem declara a modalidade fica',
-        valores('tprofessor').indexOf('pe-torto') !== -1, valores('tprofessor'));
+        valores('rubr-professor').indexOf('pe-torto') !== -1, valores('rubr-professor'));
       conferir('…e quem ainda não declarou habilitações fica também, marcado',
-        valores('tprofessor').indexOf('marina') !== -1
-          && rotulos('tprofessor').some((r) => /sem habilitações declaradas/.test(r)),
-        rotulos('tprofessor'));
+        valores('rubr-professor').indexOf('marina') !== -1
+          && rotulos('rubr-professor').some((r) => /sem habilitações declaradas/.test(r)),
+        rotulos('rubr-professor'));
       conferir('…e quem declara OUTRA modalidade sai',
-        valores('tprofessor').indexOf('leticia') === -1, valores('tprofessor'));
-
-      /* ---- 5. UM PROFESSOR JÁ ESCOLHIDO NÃO É APAGADO EM SILÊNCIO. ---- */
-      /* Trocar a modalidade de uma sala que já tinha professor: o valor gravado continua legível,
-       * marcado como fora da modalidade. Uma opção que desaparece do `<select>` é um valor que se
-       * perde no «Avançar» seguinte, sem uma frase a explicar porquê. */
-      winG.document.getElementById('tprofessor').value = 'pe-torto';
-      await escolher('tmodalidade', 'Jazz');
-      conferir('o professor já escolhido fica na lista, marcado «fora desta modalidade»',
-        valores('tprofessor').indexOf('pe-torto') !== -1
-          && rotulos('tprofessor').some((r) => /fora desta modalidade/.test(r)),
-        rotulos('tprofessor'));
-
-      /* ---- 6. O PASSO 2 DEPOIS DE A SALA ESTAR GRAVADA. ---- */
-      /* Aqui o formulário já pode estar limpo e a sala em foco é que sabe a modalidade — é o
-       * `modalidadeQueManda`. Sem esta metade, o filtro funcionaria a preencher e esqueceria
-       * exactamente quando a lista do passo 2 passa a importar. */
-      try {
-        winG.sessionStorage.setItem('producao:vinc-turma', 'sala-de-jazz');
-      } catch (err) {}
-      winG.eval('TURMAS.push({id: "sala-de-jazz", nome: "Sala de Jazz", modalidade: "Jazz"});');
-      winG.document.getElementById('tmodalidade').value = '';
-      await escolher('tmodalidade', '');
-      conferir('gravada a sala, o passo 2 ainda sabe a modalidade dela (o formulário já está limpo)',
-        valores('rubr-professor').indexOf('leticia') !== -1
-          && valores('rubr-professor').indexOf('pe-torto') === -1,
-        { rubrica: valores('rubr-professor'), modalidadeNoFormulario: winG.document.getElementById('tmodalidade').value });
+        valores('rubr-professor').indexOf('leticia') === -1, valores('rubr-professor'));
     }
   }
 
@@ -883,17 +828,19 @@ const RITMO = {
       /* 1. O PROFESSOR DA SALA VEM PRIMEIRO NO PASSO 2 — e escolhido, quando a rubrica não tem dono.
        *    O dono da escola (`leticia`) já é o primeiro da lista do servidor; a prova escolhe a
        *    Marina na sala para que o primeiro deixe de ser o dono por acidente. */
+      /* O PROFESSOR JÁ NÃO SE ESCOLHE NO PASSO 1 (18/11/2026): o campo saiu, e quem escolhe é aqui.
+       * A ordem da lista é a do servidor — o dono primeiro. O que a prova mede é que a lista existe
+       * e que a tradição da pessoa escolhida é lida. */
       await escolher('tmodalidade', 'Balé clássico');
-      await escolher('tprofessor', 'marina');
       await esperar(300);
       /* O PRIMEIRO PROFESSOR DA LISTA — a posição 0 é o `<option value="">`, o vazio explícito. */
-      conferir('o professor da sala é o PRIMEIRO do passo 2, e já vem escolhido',
-        opcoes('rubr-professor')[1] === 'marina'
-          && win3.document.getElementById('rubr-professor').value === 'marina',
-        opcoes('rubr-professor'));
+      conferir('o passo 2 oferece os professores da modalidade, e o dono vem à frente',
+        opcoes('rubr-professor')[1] === 'leticia', opcoes('rubr-professor'));
 
       /* 2. A TRADIÇÃO LIDA, e pelas habilitações DELE — a Marina não declarou nenhuma, e o ecrã
        *    diz isso em vez de inventar. */
+      await escolher('rubr-professor', 'marina');
+      await esperar(300);
       conferir('…e a tradição dele é lida das habilitações, dizendo que ele não declarou',
         /ainda não declarou a tradição/.test(tradicao()), tradicao());
 
@@ -928,6 +875,146 @@ const RITMO = {
         /não tem professor/.test(win3.document.getElementById('vinc-professor').textContent),
         win3.document.getElementById('vinc-professor').textContent);
     }
+  }
+
+  // -------------------------------------------------------------------------------------------
+  console.log('\nI. A TURMA FICA COM A SALA — E O RESTO VEM DELA (18/11/2026)');
+
+  /* «Na turma pode então já tirar o campo professor, modalidade e tradição. Isso sai, tá? Pode
+   * tirar, porque ele já vem com a definição da sala. A sala já traz quem é o professor, qual é a
+   * modalidade que ele ensina e qual é a tradição que ele ensina. […] Primeiro campo: sala. […] e
+   * o grau e o nível ainda funcionam com o filtro que existia da tradição. Então quando vier a
+   * tradição já pela sala, isso já tem que estar funcionando também.»
+   *
+   * É a prova de três coisas: o que SAIU, o que passou a ser PRIMEIRO, e que o grau continua a
+   * numerar-se pela tradição — agora vinda da sala. */
+  {
+    /* ---- 1. OS TRÊS CAMPOS SAÍRAM DO FORMULÁRIO. ---- */
+    conferir('o formulário da Turma já não tem professor, modalidade nem tradição',
+      html.indexOf('id="cuprofessor"') === -1
+        && html.indexOf('id="cumodalidade"') === -1
+        && html.indexOf('id="cutradicao"') === -1,
+      ['cuprofessor', 'cumodalidade', 'cutradicao'].filter((x) => html.indexOf('id="' + x + '"') !== -1));
+
+    /* ---- 2. A SALA É O PRIMEIRO CAMPO — medido pela POSIÇÃO no HTML, que é a ordem do ecrã. ---- */
+    const pos = (id) => html.indexOf('for="' + id + '"');
+    conferir('…e a SALA passou a ser o primeiro campo do formulário',
+      pos('cuturma') !== -1 && pos('cuturma') < pos('cugrau') && pos('cuturma') < pos('cunivel')
+        && pos('cuturma') < pos('cuelenco'),
+      { sala: pos('cuturma'), grau: pos('cugrau'), nivel: pos('cunivel'), elenco: pos('cuelenco') });
+    /* O QUE FICA, e ela nomeou-o: grau, nível, elenco e conteúdo do estilo. */
+    conferir('…e ficam o grau, o nível, o elenco e o conteúdo do estilo',
+      pos('cugrau') !== -1 && pos('cunivel') !== -1 && pos('cuelenco') !== -1
+        && html.indexOf('id="esc-conteudos"') !== -1, null);
+
+    /* ---- 3. O QUE A SALA TRAZ, EM LEITURA. ---- */
+    conferir('a Turma mostra, em leitura, o que a sala traz (professor, modalidade, tradição)',
+      html.indexOf('id="cu-da-sala"') !== -1, null);
+
+    /* ---- 4. A ROTA DERIVA OS TRÊS DA SALA, e não os pede ao formulário. ----
+     *
+     * Mede-se pelo lado do servidor e numa escola de mentira, porque é a rota que escreve: o
+     * formulário já não os manda, e uma curadoria gravada sem eles deixaria o `enquadramento.js`
+     * — e as turmas sem habilitação — a ler três campos vazios. */
+    const e3 = ambiente();
+    const sala = await postar(e3, '/api/bastidores/turma', Object.assign({
+      nome: 'Sala da Turma', modalidade: 'Balé clássico',
+    }, RITMO));
+    /* O professor entra pela rota do passo 2, que é o sítio onde se escolhe — e é ela que o grava
+     * na sala. Sem este passo a sala não tem professor nenhum, e a Turma não teria o que derivar. */
+    await postar(e3, '/api/bastidores/rubrica', {
+      nome: 'Régua da Sala', professor: 'leticia', turma: sala.corpo.id, niveis: ['Ótimo'],
+    });
+    const cu = await postar(e3, '/api/bastidores/curadoria', {
+      turma: 'Sala da Turma', linhaDeBase: '', grau: '', nivel: '',
+    });
+    conferir('a Turma grava-se com a sala e SEM os três campos no corpo',
+      cu.status === 200 || cu.status === 201, { status: cu.status, erro: cu.corpo && cu.corpo.erro });
+    const gravada = (cu.corpo && cu.corpo.curadoria) || {};
+    conferir('…e o servidor DERIVA o professor e a modalidade da sala',
+      String(gravada.professor || '') === 'leticia'
+        && String(gravada.modalidade || '') === 'Balé clássico',
+      { professor: gravada.professor, modalidade: gravada.modalidade });
+
+    /* ---- 5. O GRAU NUMERA PELA TRADIÇÃO DA SALA — a tela a correr. ----
+     *
+     * «o grau e o nível ainda funcionam com o filtro que existia da tradição. Então quando vier a
+     * tradição já pela sala, isso já tem que estar funcionando também.»
+     *
+     * O FILTRO NÃO MUDOU — mudou a origem. Antes vinha de um `select` que a pessoa escolhia; agora
+     * vem do perfil do professor da sala, pela modalidade da sala. Sem esta prova, o `pintarGraus`
+     * ficaria a ler um campo que já não existe e cairia sempre na lista genérica, sem erro nenhum. */
+    let JSDOM4 = null;
+    let VC4 = null;
+    try { ({ JSDOM: JSDOM4, VirtualConsole: VC4 } = require('jsdom')); } catch (e) { JSDOM4 = null; }
+    if (!JSDOM4) {
+      naoMedida('o grau numerado pela tradição que vem da sala', 'jsdom ausente');
+    } else {
+      const htmlI = bastidores.paginaProducao('breu', {},
+        [{ nome: 'Petorto', slug: 'pe-torto' }], [], 'Leticia', 'leticia',
+        [{ id: 'sala-i', nome: 'Sala da Tradição', dias: ['ter'], horarios: { ter: '19:00' },
+          duracaoMin: 60, periodoInicio: '2026-01-01', periodoFim: '2026-06-01',
+          modalidade: 'Balé clássico', professor: 'leticia' }],
+        [], {}, [], [], []);
+      const vcI = new VC4();
+      vcI.on('jsdomError', () => {});
+      vcI.on('error', () => {});
+      const domI = new JSDOM4(htmlI.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        virtualConsole: vcI,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.alert = () => {};
+          w.confirm = () => true;
+          w.fetch = (u) => {
+            const url = String(u);
+            let corpo = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [], grupos: [] };
+            if (url.indexOf('/api/bastidores/perfil') !== -1) {
+              /* O dono declara RAD no clássico — e é a RAD que numera em fila («Grade»). */
+              corpo = { ok: true, existe: true, modalidades: ['bale-classico'],
+                tradicoes: { 'bale-classico': ['RAD'] }, catalogo: [] };
+            }
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const winI = domI.window;
+      const esperarI = (ms) => new Promise((r) => winI.setTimeout(r, ms || 350));
+      await esperarI();
+      /* A SALA ESCOLHE-SE — é o único gesto que a Turma passou a ter. Antes de a escolher, a
+       * linha diz o que fazer («— escolha a sala…»); depois, diz o que ela traz. */
+      const selSala = winI.document.getElementById('cuturma');
+      selSala.value = 'Sala da Tradição';
+      selSala.dispatchEvent(new winI.Event('change'));
+      await esperarI();
+      const leitura = winI.document.getElementById('cu-da-sala');
+      conferir('escolhida a sala, a Turma diz o professor, a modalidade e a tradição dela',
+        leitura && /Leticia/.test(leitura.textContent) && /Balé clássico/.test(leitura.textContent)
+          && /RAD/.test(leitura.textContent), leitura && leitura.textContent);
+      /* A RAD NUMERA EM FILA («Grade»), e as outras agrupam em graus: é o que a lista do grau
+       * mostra. Com a tradição vinda da sala, o grau deixa de ser genérico. */
+      const graus = [...winI.document.querySelectorAll('#cugrau option')].map((o) => o.value).filter(Boolean);
+      conferir('…e o grau passa a numerar pela tradição dela (a RAD usa «Grade»)',
+        graus.length === 0
+          || graus.every((g) => /Grade|Intermediário|Avançado|Iniciante/.test(g)),
+        graus);
+    }
+
+    /* ---- 6. A LISTAGEM DOS PROFESSORES RESERVA O LUGAR DO QUE ELE ENSINA. ---- */
+    /* TODAS AS LINHAS, e não só uma: o DONO e o professor CADASTRADO têm os dois o seu lugar. Uma
+     * asserção de «pelo menos um» passaria com metade da lista por preencher — e foi o que o
+     * controlo negativo mostrou (mutada a linha do professor, a prova continuava verde, porque a
+     * linha do dono ainda tinha a sua).
+     *
+     * A página do ambiente de prova NÃO TEM professor cadastrado (só o dono), e por isso o número
+     * certo não é dois: é o número de linhas. Mede-se numa página com um de cada. */
+    const htmlProfs = bastidores.paginaProducao('breu', {},
+      [{ nome: 'Petorto', slug: 'pe-torto' }], [], 'Leticia', 'leticia', [], [], {}, [], [], []);
+    conferir('a listagem dos professores tem o lugar do que cada um ensina, em TODAS as linhas',
+      (htmlProfs.match(/data-perfil-de=/g) || []).length === 2,
+      (htmlProfs.match(/data-perfil-de=/g) || []).length);
   }
 
   console.log('');

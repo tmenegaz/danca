@@ -50841,3 +50841,77 @@ ela e **não** foi implementada: ela escolheu «só o step 2». Quando for, o qu
 curadoria. A cadeia com o plano de ensino **não parte**: o envelope do plano já traz
 `contexto.professor` (slug) e `contexto-turma` (nome da sala), e é dele que sai o par — nunca da
 curadoria.
+
+## 18/11/2026 — O professor sai da sala, e a Turma fica com a sala
+
+**O que ela viu, e a visão que o explica.** *«A modalidade que está aqui no step sala define o
+professor da sala no step professor. É lá que eu vou escolher o professor da sala e não aqui. […]
+O professor da sala não existe aqui como campo, tá? Tira ele daqui.»* E a visão, que é o que manda
+na ordem: *«essa sala é a sala que dá aula de balé. Então, quem é o professor? Aí ela vai para o
+professor. Então, primeiro ela vai pensar a sala.»*
+
+O step 1 responde **que modalidade acontece neste horário**; o step 2, **quem a dá**. Eram duas
+perguntas no mesmo passo, e a segunda depende da primeira — o que só se vê quando se separam. Saíram
+o campo **e a nota que o explicava** (*«você colocou também uma informação, um texto logo abaixo, não
+tem essas coisas. Eu já tinha dito isso para você»*).
+
+**O que a sala NÃO perdeu: o professor.** Ele é gravado na sala pela **rota do passo 2**, no mesmo
+ato que grava a régua (`{...turma, professor}`). Sem isso a sala ficaria órfã de professor no instante
+em que o formulário deixou de o pedir. E é uma transação só, de propósito: «esta sala tem este
+professor, que aplica esta régua» é um ato da escola. **Não se deriva a sala por isto** — a derivação
+existe para o que o plano já leu (o ritmo), e o professor da sala não está no plano: o envelope traz
+o seu próprio `contexto.professor`.
+
+**O nicho do professor ganhou a tradição.** *«quando eu expando aqui o nicho do professor, aparece o
+nome dele, a modalidade que ele ensina, falta a tradição.»* Ela é lida **quando o nicho abre**, e não
+ao servir a página: vive em `professores/<slug>/perfil.json`, e lê-la ao desenhar a lista seriam N
+leituras por carregamento para encher um painel que a maioria das visitas não abre. A modalidade do
+cartão é que escolhe a tradição — um professor de clássico e jazz tem tradições diferentes em cada um.
+
+**A Turma ficou com a sala como primeiro campo.** Saíram **professor, modalidade e tradição**. Ficaram
+**grau, nível, elenco e conteúdo do estilo** — e o grau continua a numerar pela tradição, que agora
+vem da sala. O registo da curadoria **continua a guardar os três** (o `enquadramento.js` e as turmas
+sem habilitação vivem deles); o que mudou foi a origem: a **rota deriva-os da sala**, e a tradição sai
+do perfil do professor dela, pela modalidade dela.
+
+**E a listagem dos professores passou a dizer o que cada um ensina** — modalidade e tradição ao lado
+do nome. Também em leitura preguiçosa: `data-perfil-de`, preenchido quando a secção fica à vista
+(`mostrarSecao`), com `data-lido` a impedir repetir as leituras.
+
+**Dois defeitos apanhados no caminho, e os dois do mesmo género.** O `pintarGraus` lia
+`#cutradicao`, que deixou de existir — cairia sempre na lista genérica, **sem erro nenhum**; passou a
+ler `TRADICAO_DA_SALA`, escrito por `pintarDaSala()`. E o `ajustarCuradoria` escrevia em três campos
+ausentes (`TypeError` a abrir qualquer turma em edição) — substituído por `pintarDaSala()`.
+
+**Um controlo negativo que não reprovava.** A asserção da listagem media `>= 1` ocorrência de
+`data-perfil-de`; mutada a linha do professor, a prova continuava verde porque a linha do **dono**
+ainda tinha a sua. Passou a medir o número exacto numa página com um de cada — e aí reprova.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — a saída do campo e da nota do passo 1, a trava
+(`faltaDaTurma`) e o corpo enviado, `professorDaSalaEmFoco`, `pintarProfessores`, o `ajustarTurma`, a
+rota `/api/bastidores/rubrica` (grava o professor na sala), o painel e o gancho `data-tradicao-de`, a
+leitura ao abrir o nicho, `faltaNaCuradoria` e a rota da curadoria (deriva os três), o formulário da
+Turma (sala primeiro; `cu-da-sala`), `TRADICAO_DA_SALA`, `pintarGraus`, `pintarDaSala`,
+`ajustarCuradoria`, as travas e o corpo do envio, `data-perfil-de`, `preencherPerfisVisiveis`,
+`nomeDaModalidadeDoCatalogo`, e a chamada em `mostrarSecao` ·
+`experimentos/provar-salas-e-elencos.js` (106 → **109**, secções A1 e G reescritas, H ajustada, I
+nova).
+
+**Com o quê.** `provar-salas-e-elencos` **109/109** · `provar-habilitacao-do-professor` 80 ·
+`provar-financeiro-da-escola` 135 · `provar-abas-da-audicao` 124 · `provar-paginacao` 120 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `provar-monitoramento` 104 · `provar-financeiro` 58 ·
+`provar-cadastro-do-professor` 49 · `provar-plano-da-turma` 46 · `provar-a-franquia-de-aulas` 42 ·
+`provar-piso` 41 · `provar-sujeitos-da-turma` 41 · `provar-historico-do-ajuste` 37 ·
+`provar-a-escola-que-nasce` 25 · `provar-o-expurgo-do-financeiro` 15 · `provar-rotas-que-existem` 8 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** Reposto o campo do professor no passo 1: **reprova 1**. A rota deixando de gravar o
+professor na sala: **reprova 4**. A Turma voltando a pedir os três: **reprova 2**. `pintarGraus`
+deixando de ler a tradição da sala: **reprova 1**. Tirado o lugar do perfil na linha do professor:
+**reprova 1**. Restaurado, tudo verde.
+
+**O que NÃO foi feito, e fica dito.** A tradição da Turma continua a ser **uma só** no registo (o
+`select` de grau numera por ela); um professor que declara duas tradições numa modalidade tem a
+**primeira** gravada na curadoria, e a linha de leitura mostra as duas. Se quiser escolher a segunda,
+é uma decisão a tomar — hoje não há campo para isso, e inventá-lo sem lhe perguntar seria decidir por
+ela.
