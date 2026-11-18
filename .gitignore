@@ -1633,3 +1633,12 @@ experimentos/modelo-formulario/*
 # as activas) e a ligação entre passagens: a que volta tem id próprio e liga-se à anterior, sem a
 # reabrir.
 !experimentos/provar-saida-da-aluna.js
+
+# O RODAPÉ DO PAINEL (18/11/2026). A quinta vez que a armadilha do `experimentos/*` aparece — e
+# desta vez foi apanhada antes do commit. Ela mede a GEOMETRIA do rodapé do «Fale conosco» na página
+# de trabalho: a borda esquerda à direita da coluna de 248px, a direita dentro da janela, e o rodapé
+# como último filho do `.corpo`. A asserção decisiva é `elementsFromPoint`: com o rodapé pendurado no
+# `body`, quem está por cima do canto dele é a `.lateral` — o sintoma que ela descreveu ao pé da
+# letra («parte dele está escondido atrás do menu vertical»). Mede também a raiz do Sistema Lastro,
+# que não tem coluna e não podia mudar.
+!experimentos/provar-rodape-do-painel.js

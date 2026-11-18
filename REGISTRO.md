@@ -52325,3 +52325,95 @@ plano de ensino — a regra de proveniência não mudou. A Turma sem plano não 
 elenco perde a aluna, e a divergência entre os dois aparece no cartão da Turma («reveja a Turma»), que
 é o sinal honesto de que o corpo mudou. Reescrever a Turma por arrasto seria mexer num registo que
 ninguém pediu para mexer.
+
+## 18/11/2026 — «Ele está escondido atrás do menu» e «nesse primeiro não tem esse botão cancelar»
+
+**Dois pedidos na mesma frase, e nenhum deles é de gosto:**
+
+> «No bastidores produção é que não ficou. Então tem que ajustar isso, é só colocar ele mais para a
+> direita. Ele está escondido, parte dele está escondido atrás do menu vertical à esquerda. Então eu
+> só consigo ler «ponto com br», WhatsApp e o número do WhatsApp.»
+
+> «quando eu estou em professor, em qualquer um desses formulários […] o botão cancelar ele não
+> aparece. […] no estilo, ele já está carregando o formulário com os campos do primeiro step, o
+> exercício, com o plié, a categoria e o compartilhado. […] Vamos tirar esse botão cancelar daqui
+> […] limpar o formulário quando carrega ele na página, mantém ele limpo. E esse monte de comentário
+> que está aqui, ele desaparece.»
+
+### O rodapé: a causa é de sítio, não de estilo
+
+A página de trabalho tem a coluna do menu **fixa** à esquerda — `.lateral{position:fixed;left:0;
+width:248px}` — e é o `.corpo` que reserva esse espaço, no `padding-left: calc(248px + esp-4 +
+esp-5)`. Um rodapé pendurado no `body` nasce em **x=0**: começa debaixo da coluna, e o que sobra à
+vista é a cauda da linha. É exactamente o que ela descreveu. Na raiz do Sistema Lastro não há coluna
+— por isso lá ele sempre se leu bem, e por isso o defeito só apareceu nos Bastidores.
+
+**A correcção não inventa margem nenhuma**: se a página tem `.corpo`, o rodapé passa a ser o seu
+**último filho**, e herda o mesmo recuo da listagem. Quem sabe onde o conteúdo começa é o contentor
+do conteúdo. Nas páginas sem `.corpo` nada muda.
+
+**Medido, e é geometria:** `provar-rodape-do-painel` (**novo, 17/17**) — a 1280, 1024 e 390px; a
+borda esquerda à direita da coluna, a direita dentro da janela, o rodapé como último filho do
+`.corpo`, e — a asserção que dá dentes — `elementsFromPoint` no canto dele: quem está por cima não é
+a `.lateral`. Mede também a raiz do Sistema Lastro, que não podia mudar (o rodapé continua o último
+elemento do `body` e cobre a largura da página).
+
+**Controlo A/B.** Com o rodapé pendurado no `body`, como estava, **reprovam 7 de 17** — e a 1280 a
+borda esquerda mede **0**, com `"lateral"` por cima do canto. É o defeito, lido no sítio onde ela o
+viu.
+
+### O formulário do Estilo: um botão que prometia o que não havia, e três linhas a explicar o que o campo já diz
+
+**O «Cancelar».** Ele nasceu a 18/11 na barra do formulário, e ficou à vista desde o primeiro
+instante — enquanto as outras cinco secções só o mostram quando há edição ou derivação em curso. Um
+botão que se vê sem haver o que cancelar é a mesma mentira dos «Excluir» apagados sem motivo. Passa
+a decidir-se **num sítio só** (`pintarCancelarDoVerbete`): acende em `editarVerbete`, apaga no
+«Cancelar», no «Limpar» e na limpeza do arranque. A segunda cópia do `hidden = false` seria a que
+ficava para trás no dia em que aparecesse um terceiro caminho.
+
+**O formulário sujo.** O `<form>` é servido vazio, mas o navegador repõe `<input>` e `<select>`
+sozinho, e os dois `<select>` voltavam com «passo» e «compartilhada» **como se fossem resposta** —
+é o «já está carregando com o plié, a categoria e o compartilhado». Passa a haver um `reset()` no
+fim do arranque (`limparOFormularioDoEstilo`), que devolve cada campo ao valor com que o servidor o
+escreveu e leva com ele o estado que não se vê: a música aberta, o trecho, a acção — porque um
+formulário limpo com `vbacao` a dizer «atualizar» gravaria por cima de um verbete que ninguém abriu.
+
+**As três linhas de prosa.** Saíram `#vb-frase-nota` («Escolha o exercício no passo 1: a frase dele
+vem do dicionário»), `#vb-oficial` (a definição do dicionário como referência) e `#vb-vigor-nota`
+(«A categoria, a tradição e o que acontece entram em vigor quando houver um exercício»), com as
+funções que as escreviam (`pintarNotaDaFrase`, `pintarOficial`) e as cinco chamadas. A regra é a da
+casa, e está escrita no `provar-producao`: **o formulário não explica — só rótulo, campo e
+placeholder**. A etiqueta de estado da procura («já está no vocabulário: Plié» / «novo — vai ser
+criado no vocabulário») ficou: é um facto de três palavras, não uma explicação.
+
+**Medido.** `provar-passo-um-do-verbete` **36/36** (secção H, nova: o estado do arranque lido antes
+de alguém lhe tocar, e o contrato da limpeza com contraprova — com os campos sujos, o que se mede
+antes é o sujo) · `provar-fale-conosco` 58/58 · `provar-trecho-do-verbete` 36/36 ·
+`provar-saida-da-aluna` 57/57 · `provar-cadastro-da-aluna` 107/107 · `check-identidade` ok (22
+checagens).
+
+**Controlo A/B.** Sem o `hidden` do markup **e** sem a pintura: **reprovam 2**. Com a linha
+`#vb-oficial` de volta: **reprovam 2**. Só com o `hidden` do markup fora: **reprovam 0** — e está
+certo: esse atributo é o que impede o botão de aparecer no instante entre o HTML e o script, uma
+janela que nenhuma prova lê; quem decide é a pintura.
+
+### O que NÃO é desta frente, e ficou medido
+
+Quatro provas estão vermelhas, e **as quatro já estavam vermelhas no `HEAD`** — medido, não suposto,
+repondo `motor/servidor/bastidores.js` ao commit anterior e correndo-as:
+
+- **`provar-celula`** morre em «o passo 1 está à vista»: a secção nasce **recolhida** desde 18/11 e a
+  bancada não a abre. Atrás disso há mais (§24-C ainda mede o congelamento que saiu a 10/11). O que
+  se fez aqui foi só o que a mudança de hoje obrigava: as três leituras de `#vb-vigor-nota` passaram
+  a ser à prova de ausência, e as duas asserções que exigiam o texto da nota passaram a medir a
+  ausência dela — uma prova que exigisse a nota estaria a exigir uma tela que já não existe.
+- **`provar-producao`** chega ao cenário do elenco e recebe **409** («a sala «Turma da Curadoria» já
+  está ocupada»): é estado da bancada, não da página. Aproveitou-se para lhe dar o `reset()` que
+  faltava no DOM falso — um `<form>` tem esse método, e sem ele o script da página morria no load.
+- **`provar-verbete`**: 5 asserções, as mesmas do `HEAD` (o passo 1, os seis passos da tira, e três
+  do catálogo de tradições).
+- **`provar-curadoria-e-limpeza`**: 4 de 26, as mesmas do `HEAD`. A lista dos «blocos de feedback que
+  ficam» perdeu a nota da frase — ela saiu hoje, e a lista foi atrás; as outras três são anteriores.
+
+Nenhuma delas foi misturada nesta entrega: reparar uma prova que mede um mundo que mudou é trabalho
+próprio, com o seu laudo.

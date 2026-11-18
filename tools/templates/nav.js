@@ -966,7 +966,23 @@
     rodape = document.createElement('footer');
     rodape.className = 'rodape';
     propria = true;
-    (document.body || document.documentElement).appendChild(rodape);
+    /* ONDE ELE NASCE, QUANDO A PÁGINA NÃO TEM UM (18/11/2026).
+     *
+     * «No bastidores produção é que não ficou […] Ele está escondido, parte dele está escondido
+     * atrás do menu vertical à esquerda. Então eu só consigo ler «ponto com br», WhatsApp e o
+     * número do WhatsApp.»
+     *
+     * A CAUSA É DE SÍTIO, e não de estilo. A página de trabalho tem a coluna do menu FIXA à
+     * esquerda (248px) e o conteúdo dentro de `.corpo`, que é quem reserva esse espaço no
+     * `padding-left`. Um rodapé pendurado no `body` começa em x=0 — debaixo da coluna. Na raiz do
+     * Sistema Lastro não há coluna, e por isso lá ele sempre se leu bem.
+     *
+     * A correcção é entrar onde o conteúdo está: se a página tem `.corpo`, o rodapé é o ÚLTIMO
+     * filho dele, e herda o mesmo recuo que a listagem. Não se inventa margem nem número mágico —
+     * quem sabe onde o conteúdo começa é o contentor do conteúdo. Nas páginas sem `.corpo` nada
+     * muda: continua a ser o último elemento do `body`, como sempre foi. */
+    var corpo = document.querySelector('.corpo');
+    (corpo || document.body || document.documentElement).appendChild(rodape);
   }
   var linha = document.createElement('p');
   linha.setAttribute('data-fale-conosco', 'sim');
