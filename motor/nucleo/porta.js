@@ -2391,6 +2391,16 @@ async function anamneses(armazenamento, recorte, elenco) {
       vinculada: por.length > 0,
       por,
       ajuste_de: resumo.ajuste_de || null,
+      /* A ORIGEM METODOLÓGICA VAI JUNTO (18/11/2026) — é o item 50 do envelope, e é ela que a §6
+       * do guia da aula e o `-dados.json` imprimem.
+       *
+       * AQUI, E NÃO SÓ EM `planos()`. A primeira versão desta frente pôs o campo na lista dos
+       * PLANOS, que é outra função e responde a outra pergunta — e `rotas.anamnesesDaTurma` lê
+       * ESTA. O resultado seria o pior tipo de defeito: tudo carregava, tudo passava, e a §6 dizia
+       * «não declarada» para toda a gente, sempre, porque `o.metodo` era `undefined` em cada
+       * linha. A prova da altura injectava o mapa à mão e por isso não o viu; a de hoje vai pela
+       * cadeia inteira. */
+      metodo: resumo.metodo || null,
     });
   }
   opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));

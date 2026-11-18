@@ -51991,3 +51991,65 @@ de entrada e empurra os antigos para fora do tecto de 200). A resposta ao pedido
 a quem escreveu — o `from` da casa não aceita `reply-to` neste desenho, e por isso o endereço de quem
 escreveu vai escrito no corpo. E o rodapé injetado não entra no PDF nem no que o pandoc gera: ele é
 canal de tela, e um PDF impresso não leva um formulário.
+
+## 18/11/2026 — «Francesa e Cecchetti são coisas diferentes» — a matriz de origem, e a cadeia que não a lia
+
+**O que motivou.** «Na anamnese, o nosso 50 continua errado. Você incluiu a cubana, mas você manteve
+unificado francesa e tchequete. São coisas diferentes, são metodologias diferentes, tradições
+diferentes de dança. Então você tem que separar. […] Vai passar a ter RAD, francesa, Vaganova, cubana
+e tchequete e escola livre. É assim que tem que ficar aqui. E tem desdobramentos também, você tem
+que ver isso para a geração do ciclo e dos demais documentos.»
+
+**1. A barra colava duas escolas.** A opção era «Francesa/Cecchetti» num único item. O resto do
+repositório já as tratava separadas: `biblioteca/modalidades/bale-classico/tradicoes.json` tem a
+`francesa` como coluna só dela, `bastidores.js` lista o `Cecchetti` entre os `METODOS_LIVRES`
+(«métodos que não são tradições do catálogo, e a nota do método di-lo»), e o próprio
+`motor/nucleo/tradicoes.js` escreve no cabeçalho «RAD, Francesa, Vaganova, Cubana, Cecchetti».
+**Só esta lista as unia** — a mesma doença do dia anterior: uma segunda lista, escrita à mão ao lado
+do catálogo, que envelhece em silêncio. Agora são seis, na ordem que ela fixou:
+**RAD · Francesa · Vaganova · Cubana · Cecchetti · Escola livre**. «Escola livre» continua a última
+porque não é uma escola: é o que se declara quando não há método formal.
+
+**2. UM DEFEITO MEU, que ela não viu e que a prova da véspera não apanhou.** Na frente da Cubana eu
+pus `metodo` em `porta.planos()` — a lista dos **planos** — em vez de `porta.anamneses()`. E
+`rotas.anamnesesDaTurma()` lê `o.metodo` da lista das **anamneses**. Consequência: `metodo` era
+`undefined` em cada linha, `null` no mapa, e a §6 do guia da aula dizia «origem metodológica não
+declarada» **para toda a gente, sempre**. Tudo carregava, tudo passava, e o commit da véspera
+afirmava «`anamneses()` entrega-o» — a afirmação era falsa.
+
+A prova não o apanhou porque **injectava o mapa à mão**: media o que eu lhe dava, não o que o produto
+lê. É o defeito de sempre, na forma mais pura — a prova e o código a partilharem a mesma suposição.
+A prova nova vai pela cadeia inteira: `porta.anamneses()` a ler o índice real da escola viva, como o
+Worker o lê, com o armazenamento em disco (`envelope/` → `envelopes/`). O controlo A/B confirma-a:
+sem o campo em `anamneses()`, **reprova 10**.
+
+**3. O que já estava gravado não se reescreve.** As anamneses da `breu` foram respondidas quando a
+lista ainda colava as duas escolas, e o índice guarda «Francesa/Cecchetti». A P-03 proíbe reescrever
+o facto, e o sistema não pode adivinhar qual das duas ela quis. O valor fica, chega aos documentos
+como foi declarado, e no formulário volta para o campo aberto (`abertoAtual`) em vez de acender um
+rádio que já não existe. Quem quiser a palavra nova faz uma anamnese nova — um elo novo, não uma
+sobrescrita.
+
+**Onde entrou.** `porta/conteudo/anamnese.json` (+ a cópia do pacote) · `ARQUITETURA-ANAMNESE.md`
+(§3.3 e §5.3) · `porta/plano/conteudo/plano.json` (a descrição de «Metodologia de referência» dizia
+«francesa/Cecchetti» e omitia a Cubana — é o texto que os documentos do ciclo imprimem) ·
+`motor/nucleo/porta.js` (`metodo` em `anamneses()`).
+
+**Com o quê.** `provar-matriz-metodologica` **50/50** (novo, substitui `provar-cubana-na-anamnese`,
+que media só uma opção) · `provar-listas-do-acervo` 113/113 · `provar-contexto-do-ato` 45/45 ·
+`provar-cadastro-da-aluna` 76/76 · `provar-ficha-visual` 21/21 · `provar-indice-de-envelopes` 44/44
+· `provar-acervo-envelopes` 52/52 · `provar-ciclos-e-anamnese` 34/34 · `provar-pedido-da-anamnese`
+11/11 · `provar-fale-conosco` 58/58 · `provar-contatos-do-site` 57/57 · `check-identidade` 0 erros.
+
+**Controlo A/B.** O `metodo` retirado de `anamneses()`: **reprova 10**. A barra reposta na lista:
+**reprova 5**. A Cecchetti retirada: **reprova 3**. O mapa do documento na redacção antiga:
+**reprova 2**.
+
+**A prova mudou de nome, e o nome antigo fica registado.** Chamava-se `provar-cubana-na-anamnese`
+enquanto a frente era só a Cubana; agora mede o item 50 inteiro. O `.gitignore` ganhou a negação nova
+e a nota; esta entrada guarda o nome antigo, para quem o procurar o encontrar.
+
+**O que ainda não está feito.** O `Cecchetti` continua sem coluna em `diferencasDeNomenclatura`,
+como desde 02/11/2026 — é deliberado (não se inventam diferenças de nomenclatura), e a nota do
+método di-lo. E os fixtures da escola de teste (`teste/*.json`) continuam a responder a matriz de
+origem com a palavra antiga: são registos do que foi respondido, e não se reescrevem.

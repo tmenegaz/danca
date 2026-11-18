@@ -1610,4 +1610,9 @@ experimentos/modelo-formulario/*
 !experimentos/provar-fale-conosco.js
 !experimentos/provar-pedido-da-anamnese.js
 !experimentos/provar-contatos-do-site.js
-!experimentos/provar-cubana-na-anamnese.js
+# A PROVA DA MATRIZ DE ORIGEM MUDOU DE NOME (18/11/2026). Chamava-se
+# `provar-cubana-na-anamnese` enquanto a frente era só a Cubana; com a separação da Francesa e da
+# Cecchetti ela passou a medir o item 50 inteiro e os desdobramentos — e um nome que fala de uma
+# opção deixaria a próxima sessão a procurar a prova do resto. A entrada antiga sai, e a nova entra;
+# o REGISTRO mantém o nome antigo onde ele foi citado, com a nota datada.
+!experimentos/provar-matriz-metodologica.js

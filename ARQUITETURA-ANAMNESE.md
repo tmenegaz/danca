@@ -358,14 +358,21 @@ auditar a **incorporação real** — o que sobreviveu ao tempo ou ao método.
 
 | Campo | O que investiga |
 |:--|:--|
-| **Matriz metodológica de origem** | RAD · Vaganova · Francesa/Cecchetti · **Cubana** · Escola livre |
+| **Matriz metodológica de origem** | RAD · Francesa · Vaganova · Cubana · Cecchetti · Escola livre |
 | **Tempo de interrupção** | Prática contínua · Pausa curta · Pausa longa · Retorno após anos |
 | **Auditoria de `port de bras`** | Incorporado · Desincorporado (sobe os braços soltando as costelas) |
 | **Auditoria de memória motora sob destreino** | Memória latente ativa · *Tabula rasa* |
 
-A **Cubana** entrou a 18/11/2026, a pedido dela, e ocupa o lugar das outras escolas nomeadas —
-antes de «Escola livre», que continua a ser a última porque **não é uma escola**: é o que se
+**As duas que estavam coladas ficaram separadas a 18/11/2026.** A opção era «Francesa/Cecchetti», e a
+barra colava duas escolas que têm vocabulário, progressão e `port de bras` próprios — «são coisas
+diferentes, são metodologias diferentes, tradições diferentes de dança». O resto do repositório já
+as tratava assim (`biblioteca/modalidades/bale-classico/tradicoes.json` tem a `francesa` como coluna
+só dela, e o `Cecchetti` é um método que o catálogo não adopta); **só esta lista as unia**. A ordem
+é a que ela fixou, e «Escola livre» continua a última porque **não é uma escola**: é o que se
 declara quando não há método formal («sem método formal declarado», §5.3).
+
+A **Cubana** entrou a 18/11/2026, no mesmo dia e pelo mesmo caminho — a lista do item 50 era uma
+segunda lista, escrita à mão ao lado do catálogo, e envelhecia sem ninguém dar por isso.
 
 Cada ramo do Módulo A traz **três perguntas de triagem**; o Módulo B traz **quatro campos de
 auditoria**. As perguntas exatas são declaração da entrevista, não deste desenho — e este documento
@@ -557,10 +564,10 @@ que foi declarado e o que se observa**, registrada como fato — exatamente o me
 outra coisa, é avaliação, e a avaliação "é fronteira de outro módulo, ainda não desenhado"
 ([`AGENTS.md`](AGENTS.md)).
 
-### 5.3 O método de origem: RAD, Vaganova, Cubana
+### 5.3 O método de origem: RAD, Francesa, Vaganova, Cubana, Cecchetti
 
 Aqui a P-16 faz todo o trabalho: **metodologia e notação são declaradas na Elicitação**. O método de
-origem (RAD, Vaganova, Francesa/Cecchetti, Cubana, outro, ou "sem método formal declarado") é, portanto:
+origem (RAD, Francesa, Vaganova, Cubana, Cecchetti, outro, ou "sem método formal declarado") é, portanto:
 
 - **um campo elicitado**, não um campo inferido;
 - **o que determina o vocabulário do ramo** — a mesma exigência de *tendu* não se formula igual nas

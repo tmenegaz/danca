@@ -612,11 +612,13 @@
         {
           "id": "matriz-metodologica-de-origem",
           "campo": "Matriz metodológica de origem",
+          "_nota": "A FRANCESA E A CECCHETTI SÃO DUAS, E NÃO UMA (18/11/2026). «Você manteve unificado francesa e tchequete. São coisas diferentes, são metodologias diferentes, tradições diferentes de dança. Então você tem que separar.» A opção era «Francesa/Cecchetti», e a barra colava duas escolas que têm vocabulário, progressão e port de bras próprios — o mesmo erro que a casa já evita em `biblioteca/modalidades/bale-classico/tradicoes.json`, onde a Francesa é uma coluna só dela. A ORDEM é a dela: RAD · Francesa · Vaganova · Cubana · Cecchetti · Escola livre, e «Escola livre» continua a última porque não é uma escola — é o que se declara quando não há método formal.",
           "opcoes": [
             "RAD",
+            "Francesa",
             "Vaganova",
-            "Francesa/Cecchetti",
             "Cubana",
+            "Cecchetti",
             "Escola livre"
           ]
         },
