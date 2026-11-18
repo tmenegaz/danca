@@ -8,8 +8,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1807",
-      "versoes": 6
+      "ultima": "20261118-1908",
+      "versoes": 7
     },
     {
       "aspecto": "equilibrio-unipodal",
@@ -18,8 +18,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1807",
-      "versoes": 4
+      "ultima": "20261118-1908",
+      "versoes": 5
     },
     {
       "aspecto": "flexibilidade-anteroposterior-grand-ecart",
@@ -28,8 +28,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261118-1807",
-      "versoes": 4
+      "ultima": "20261118-1908",
+      "versoes": 5
     },
     {
       "aspecto": "cinco-posicoes-3a-pes",
@@ -270,9 +270,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4c042c9"
+    "commit": "968d50c"
   },
-  "gerado_em": "2026-11-18T18:08",
+  "gerado_em": "2026-11-18T19:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -340,13 +340,13 @@
       "vigente": true
     },
     {
-      "alunas": 1,
+      "alunas": 0,
       "aspectos": [
         "equilibrio-unipodal",
         "flexibilidade-anteroposterior-grand-ecart",
         "meia-ponta"
       ],
-      "atualizada_em": "2026-11-18T18:07:51.521Z",
+      "atualizada_em": "2026-11-18T19:08:19.198Z",
       "enviada_em": "2026-11-18T18:07:52.039Z",
       "id": "recorte:tami",
       "linha": "tami",
@@ -354,6 +354,17 @@
       "professor": "demi-plie",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 0,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261118-1908.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "equilibrio-unipodal"
+          ],
+          "enviada_em": "2026-11-18T18:07:52.039Z",
+          "versao": "20261118-1908"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/tami--20261118-1807.json",
