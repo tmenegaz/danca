@@ -599,6 +599,26 @@ function compararPacotes() {
         // com o globo do navegador — um defeito que ninguém vê até reparar. Aqui ele é
         // comparado como os outros dois: a cópia tem de ser a fonte, byte a byte.
         ['tools/templates/marca/favicon.svg', 'assets/favicon.svg'],
+        /* O CONTRATO DA PORTA TAMBÉM VIAJA, E TAMBÉM ENVELHECE (18/11/2026).
+         *
+         * O QUE ACONTECEU, medido. O contexto da anamnese ganhou dois campos (`alunaId` e
+         * `modalidade`), e o ESQUEMA que os valida — `envelope/elicitacao-schema.json` — é copiado
+         * de `porta/` para o pacote, e é ESSA CÓPIA que o Worker carrega dos assets. Mudou-se a
+         * fonte, não a cópia: o motor passou a emitir dois campos que o contrato servido
+         * recusava, com `additionalProperties: false`. O efeito não seria um campo a menos — seria
+         * a anamnese inteira a não gravar, com um «não passou na validação» que ninguém liga a um
+         * ficheiro de contrato.
+         *
+         * E O CONTEÚDO É O MESMO CASO. O item 50 da anamnese (a matriz metodológica) vive em
+         * `conteudo/anamnese.json`, também copiado: uma lista nova na fonte e uma lista velha no
+         * pacote dão uma escola que não oferece a opção que o mapa já documenta.
+         *
+         * A COMPARAÇÃO É O QUE FECHA A CLASSE. Não é estilo: é a mesma regra do `assets/style.css`
+         * — a cópia tem de ser a fonte, byte a byte, e quem divergir regenera o pacote. */
+        ['porta/envelope/elicitacao-schema.json', 'plano-observacao/envelope/elicitacao-schema.json'],
+        ['porta/conteudo/anamnese.json', 'plano-observacao/conteudo/anamnese.json'],
+        ['porta/plano/conteudo/plano.json', 'plano-observacao/plano/conteudo/plano.json'],
+        ['porta/po/conteudo/po.json', 'plano-observacao/po/conteudo/po.json'],
       ]) {
         const fonteArq = path.join(raiz, origem);
         const copia = path.join(pacote, destino);
