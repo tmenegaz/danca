@@ -858,14 +858,20 @@ indice = {
     # a apagar aponta ao shard, e não a um script com o nome da escola.
     **({"shard": shard} if shard else {}),
     "estado": {"habilitada": True},
-    "arquivos": [
-        {"caminho": "professores/%s/ciclos/ciclo-%s.conf" % (professor, ciclo), "tipo": "manifesto base"},
-        {"caminho": "professores/%s/ciclos/ciclo-%s-%s.conf" % (professor, ciclo, escola), "tipo": "manifesto variante"},
-        {"caminho": "professores/%s/ciclos/ciclo-%s-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json" % (professor, ciclo), "tipo": "schemas"},
-        {"caminho": "professores/%s/ciclos/ciclo-%s-%s/" % (professor, ciclo, escola), "tipo": "pacote zero"},
-        *([{"caminho": "wrangler.%s.jsonc" % worker, "tipo": "config do Worker"}]
-          if not shard else []),
-    ],
+    # O CAMPO `arquivos` SAIU DAQUI (18/11/2026) — e a decisão é de quem o leu a fundo.
+    #
+    # Ele era uma LISTA DE INTENÇÃO escrita na criação: os caminhos que aquela escola iria gerar.
+    # Ninguém a lê. O expurgo deriva o que apaga da ÁRVORE (`escolaDosCaminhos`, em
+    # `motor/servidor/repo-escola.js`), e o registro do que saiu vive no elo (`expurgo[].apagado`),
+    # escrito no instante em que saiu. Medido em `experimentos/provar-lista-do-expurgo.js`: o
+    # expurgo corre com este campo a apontar para o professor ERRADO e sem o campo nenhum, e manda
+    # ao Git exatamente a mesma lista de remoções.
+    #
+    # Uma lista que ninguém lê e que envelhece em silêncio não é neutra: ela PARECE autoridade. Foi
+    # o que aconteceu — a `breu` nasceu com `sapo-bailarino` em vez de `demi-plie`, e a `batata` e
+    # o `calango` ainda têm o de outros professores. Alguém leu aquilo como «a lista que o expurgo
+    # lê» e escreveu um relatório inteiro sobre um efeito que não existe. O que não se lê, não se
+    # escreve.
 }
 with open(arq, "w", encoding="utf-8") as f:
     json.dump(indice, f, ensure_ascii=False, indent=2)
