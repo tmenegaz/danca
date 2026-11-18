@@ -18,7 +18,7 @@
  *      escolheria no cabeçalho do plano um ritmo que já não vale;
  *   3. a substituída continua guardada, com o elo (`substituidaPor` + `substituidaEm`) — é o
  *      passado, e o passado não se reescreve;
- *   4. o ID da derivada leva a vigência (`teste-2026-11-01`) e não colide com o da anterior,
+ *   4. o ID da derivada leva a vigência (`teste-2026-01-05`) e não colide com o da anterior,
  *      que continua a ser `teste`;
  *   5. o que a escola NÃO está a ajustar sobrevive — a ligação à rubrica e os vínculos
  *      turma↔termo. Perder a régua por ter corrigido uma hora seria perder trabalho;
@@ -98,63 +98,100 @@ async function principal() {
 
   // --- 2. a derivação ------------------------------------------------------
   const derivar = (corpo) => json(env, '/api/bastidores/turma-derivar', 'POST', corpo);
-  conferir('derivar sem data de vigência é recusado',
-    (await derivar({ derivarDe: 'teste', frequencia: 3 })).status, 400);
+  /* A DATA DEIXOU DE SE PERGUNTAR (18/11/2026) — e por isso deixou de ser obrigatória. O que se
+   * mede agora é o que a decisão garante: sem data, o elo nasce com o dia do acto; com data
+   * FUTURA, é recusado, porque o sistema não agenda e aceitá-la era escrever uma vigência que
+   * ninguém cumpre. Ver `vigenciaDoAjuste`.
+   *
+   * Numa turma PRÓPRIA, e não na «Teste»: estas duas derivações criam e recusam elos, e a «Teste»
+   * é a turma que a prova inteira usa para medir a cadeia. Medir numa e seguir na outra seria a
+   * prova a estragar a sua própria preparação — foi o que aconteceu à primeira tentativa. */
+  const HOJE = (() => {
+    const p = require('../motor/nucleo/fuso.js').partesLocais(new Date().toISOString());
+    return p.ano + '-' + p.mes + '-' + p.dia;
+  })();
+  const ritmoInteiro = { dias: ['ter', 'qua', 'qui'],
+    horarios: { ter: '11:00', qua: '11:00', qui: '11:00' },
+    duracaoMin: 55, periodoInicio: '2026-10-16', periodoFim: '2026-12-18' };
+  conferir('a turma do caso sem data é criada', (await novo({ nome: 'Sem Data' })).status, 201);
+  /* O RITMO VAI INTEIRO, e é isso que isola o que se mede: uma derivação sem dias nem horas é
+   * recusada por FALTA DE RITMO, e o 400 diria respeito a outra regra. */
+  conferir('derivar sem data usa o DIA DO ACTO — a data deixou de se perguntar',
+    (await derivar(Object.assign({ derivarDe: 'sem-data' }, ritmoInteiro))).status, 201);
+  conferir('…e o id do elo leva essa data',
+    (await listaCrua()).some((t) => t.id === 'sem-data-' + HOJE), true);
+  {
+    const futura = await derivar(Object.assign({ derivarDe: 'sem-data-' + HOJE,
+      vigencia: '2099-01-01' }, ritmoInteiro));
+    const corpoFutura = await futura.json();
+    conferir('uma data FUTURA é recusada — o sistema não agenda', futura.status, 400);
+    conferir('…e a recusa diz porquê, em vez de aceitar em silêncio',
+      /não agenda/.test(String(corpoFutura.erro)), true);
+    conferir('…e nada foi gravado',
+      (await listaCrua()).some((t) => t.vigenteDe === '2099-01-01'), false);
+  }
+  /* A partir daqui a prova deriva com datas PASSADAS: é o caso legítimo que se mantém — dizer que
+   * a mudança já valia antes de o sistema o saber. */
   conferir('derivar uma turma que não existe é 404',
-    (await derivar({ derivarDe: 'nao-existe', vigencia: '2026-11-01' })).status, 404);
+    (await derivar({ derivarDe: 'nao-existe', vigencia: '2026-01-05' })).status, 404);
 
   // A escola corrige a hora e a frequência a partir de 01/11.
   const d1 = await derivar({
-    derivarDe: 'teste', vigencia: '2026-11-01',
+    derivarDe: 'teste', vigencia: '2026-01-05',
     frequencia: 3, dias: ['ter', 'qua', 'qui'],
     horarios: { ter: '11:00', qua: '11:00', qui: '11:00' },
     duracaoMin: 55, periodoInicio: '2026-10-16', periodoFim: '2026-12-18',
   });
   conferir('a derivação é aceita', d1.status, 201);
   const corpo1 = await d1.json();
-  conferir('…e o id leva a vigência', corpo1.id, 'teste-2026-11-01');
+  conferir('…e o id leva a vigência', corpo1.id, 'teste-2026-01-05');
   conferir('…e diz de onde deriva', corpo1.substitui, 'teste');
   conferir('…e o NOME não muda (é o que a curadoria e o plano referenciam)',
     corpo1.turma, 'Teste');
 
   // --- 3. o que fica guardado ---------------------------------------------
   const crua = await listaCrua();
-  conferir('as duas versões ficam guardadas', crua.length, 2);
+  /* A CADEIA DA «TESTE» LÊ-SE FILTRANDO PELA «TESTE» (18/11/2026). A prova cria agora uma turma
+   * própria («Sem Data») para medir o caso da data que deixou de se perguntar, e ela vive na mesma
+   * lista. Contar a lista inteira passaria a medir as duas cadeias somadas. */
+  const daTeste = (l) => l.filter((t) => String(t.nome) === 'Teste');
+  conferir('as duas versões ficam guardadas', daTeste(crua).length, 2);
   const anterior = crua.find((t) => t.id === 'teste');
-  const vigente = crua.find((t) => t.id === 'teste-2026-11-01');
-  conferir('a anterior diz quem a substituiu', anterior.substituidaPor, 'teste-2026-11-01');
-  conferir('…e a partir de quando', anterior.substituidaEm, '2026-11-01');
+  const vigente = crua.find((t) => t.id === 'teste-2026-01-05');
+  conferir('a anterior diz quem a substituiu', anterior.substituidaPor, 'teste-2026-01-05');
+  conferir('…e a partir de quando', anterior.substituidaEm, '2026-01-05');
   conferir('…e o ritmo dela NÃO foi reescrito', anterior.frequencia, 2);
   conferir('…nem as horas de antes', anterior.horarios, { ter: '09:00', qui: '09:00' });
   conferir('a vigente tem o ritmo novo', vigente.frequencia, 3);
   conferir('…e as horas novas', vigente.horarios, { ter: '11:00', qua: '11:00', qui: '11:00' });
   conferir('…e sabe de onde veio', vigente.substitui, 'teste');
-  conferir('…e a data de vigência', vigente.vigenteDe, '2026-11-01');
+  conferir('…e a data de vigência', vigente.vigenteDe, '2026-01-05');
   conferir('…e não nasce marcada como substituída', !!vigente.substituidaPor, false);
 
   // --- 4. a lista viva mostra só a vigente --------------------------------
-  const vivas = await listaViva();
+  const vivas = daTeste(await listaViva());
   conferir('a lista da Produção e do plano traz só a vigente', vivas.map((t) => t.id),
-    ['teste-2026-11-01']);
+    ['teste-2026-01-05']);
   conferir('…e o nome continua a ser o mesmo', vivas[0].nome, 'Teste');
 
   // --- 5. o que não se está a ajustar sobrevive ---------------------------
   // A régua e os conteúdos são ligados ANTES do ajuste, como a escola faria.
   await json(env, '/api/bastidores/rubrica', 'POST', { nome: 'Régua X', niveis: ['Ótimo', 'Bom'] });
   conferir('a régua liga-se à turma vigente', (await json(env, '/api/bastidores/turma-rubrica',
-    'POST', { turma: 'teste-2026-11-01', rubricaId: 'regua-x' })).status, 200);
+    'POST', { turma: 'teste-2026-01-05', rubricaId: 'regua-x' })).status, 200);
 
-  const d2 = await derivar({ derivarDe: 'teste-2026-11-01', vigencia: '2026-12-01',
+  const d2 = await derivar({ derivarDe: 'teste-2026-01-05', vigencia: '2026-02-10',
     frequencia: 2, dias: ['sex'], horarios: { sex: '15:00' }, duracaoMin: 75,
     periodoInicio: '2026-10-16', periodoFim: '2026-12-18' });
   conferir('uma segunda derivação é aceita', d2.status, 201);
   const corpo2 = await d2.json();
-  conferir('…e o id continua a não colidir', corpo2.id, 'teste-2026-12-01');
+  conferir('…e o id continua a não colidir', corpo2.id, 'teste-2026-02-10');
   const crua2 = await listaCrua();
   conferir('…e a régua vai com a turma para a versão nova',
-    crua2.find((t) => t.id === 'teste-2026-12-01').rubricaId, 'regua-x');
-  conferir('…e a cadeia tem três elos', crua2.length, 3);
-  conferir('…e a lista viva tem um só', (await listaViva()).map((t) => t.id), ['teste-2026-12-01']);
+    crua2.find((t) => t.id === 'teste-2026-02-10').rubricaId, 'regua-x');
+  conferir('…e a cadeia tem três elos', daTeste(crua2).length, 3);
+  conferir('…e a lista viva tem um só', daTeste(await listaViva()).map((t) => t.id),
+    ['teste-2026-02-10']);
 
   // --- 6. uma turma já substituída não se deriva outra vez ----------------
   /* A RECUSA MUDOU DE FORMA A 10/11/2026, e a razão é de quem está do outro lado do ecrã: a
@@ -162,12 +199,12 @@ async function principal() {
    * não lhe diz onde está a que abre. O 409 nomeia a VIGENTE — o topo da cadeia, e não o elo
    * imediatamente seguinte. A recusa continua a ser recusa: nada é gravado. */
   {
-    const vencida = await derivar({ derivarDe: 'teste', vigencia: '2026-12-15', frequencia: 2 });
+    const vencida = await derivar({ derivarDe: 'teste', vigencia: '2026-03-15', frequencia: 2 });
     const corpoVencida = await vencida.json();
     conferir('derivar uma turma já substituída é recusado (409)', vencida.status, 409);
-    conferir('…e a recusa aponta a turma VIGENTE', corpoVencida.vigente, 'teste-2026-12-01');
+    conferir('…e a recusa aponta a turma VIGENTE', corpoVencida.vigente, 'teste-2026-02-10');
     conferir('…e o id que nunca existiu continua a ser 404',
-      (await derivar({ derivarDe: 'nao-existe', vigencia: '2026-12-15', frequencia: 2 })).status, 404);
+      (await derivar({ derivarDe: 'nao-existe', vigencia: '2026-03-15', frequencia: 2 })).status, 404);
   }
 
   // --- 7. o nome repetido contra a vigente continua a ser recusado --------
@@ -177,14 +214,14 @@ async function principal() {
     (await novo({ nome: 'Outra' })).status, 201);
 
   // --- 8. excluir acerta a LINHA CERTA ------------------------------------
-  // 'Teste' (a original) e a vigente 'teste-2026-12-01' partilham o nome. Excluir pelo id da
+  // 'Teste' (a original) e a vigente 'teste-2026-02-10' partilham o nome. Excluir pelo id da
   // vigente tem de levar a VIGENTE — não a do passado, que é o que a busca por nome fazia.
-  const del = await json(env, '/api/bastidores/turma', 'DELETE', { id: 'teste-2026-12-01' });
+  const del = await json(env, '/api/bastidores/turma', 'DELETE', { id: 'teste-2026-02-10' });
   conferir('excluir pelo id é aceito', del.status, 200);
-  conferir('…e remove a versão pedida', (await del.json()).turma, 'teste-2026-12-01');
+  conferir('…e remove a versão pedida', (await del.json()).turma, 'teste-2026-02-10');
   const depois = await listaCrua();
   conferir('…e a do PASSADO continua lá', depois.some((t) => t.id === 'teste'), true);
-  conferir('…e a vigente desapareceu', depois.some((t) => t.id === 'teste-2026-12-01'), false);
+  conferir('…e a vigente desapareceu', depois.some((t) => t.id === 'teste-2026-02-10'), false);
   conferir('…e a outra turma não foi tocada', depois.some((t) => t.id === 'outra'), true);
 
   // --- 9. LIVRE edita-se; VINCULADA deriva-se (16/10/2026) -----------------
@@ -213,7 +250,7 @@ async function principal() {
 
   // E a derivação continua a valer para ela.
   conferir('…e a mesma turma aceita derivar',
-    (await derivar({ derivarDe: 'outra', vigencia: '2026-11-15',
+    (await derivar({ derivarDe: 'outra', vigencia: '2026-04-20',
       frequencia: 2, dias: ['sab'], horarios: { sab: '10:00' }, duracaoMin: 50,
       periodoInicio: '2026-10-16', periodoFim: '2026-12-18' })).status, 201);
 
@@ -317,12 +354,12 @@ async function principal() {
 
   // E deriva.
   const der = await json(env, '/api/bastidores/curadoria-derivar', 'POST', {
-    derivarDe: idCuradoria, vigencia: '2026-11-20',
+    derivarDe: idCuradoria, vigencia: '2026-05-12',
     tradicao: 'RAD', turmas: ['Turma A'], alunas: ['Ana'], repertorio: ['Tendu'],
   });
   conferir('…e a curadoria vinculada aceita derivar', der.status, 201);
   const derivada = (await der.json()).curadoria;
-  conferir('…com id que leva a vigência', derivada.id, idCuradoria + '-2026-11-20');
+  conferir('…com id que leva a vigência', derivada.id, idCuradoria + '-2026-05-12');
   conferir('…e o par professor × modalidade preservado',
     [derivada.professor, derivada.modalidade], ['leticia', 'Balé Clássico']);
   conferir('…e sabe de onde veio', derivada.substitui, idCuradoria);
@@ -335,8 +372,18 @@ async function principal() {
   conferir('a lista da operação traz só a vigente', vivasCuradoria.map((c) => c.id), [derivada.id]);
   const doProfessor = (await (await pedir(env, '/api/bastidores/curadoria-professor?professor=leticia')).json()).curadorias;
   conferir('…e é ela que autoriza o professor', doProfessor.map((c) => c.id), [derivada.id]);
-  conferir('derivar sem data de vigência é recusado',
-    (await json(env, '/api/bastidores/curadoria-derivar', 'POST', { derivarDe: derivada.id })).status, 400);
+  /* A MESMA REGRA DA SALA (18/11/2026): uma data futura é recusada, porque o sistema não agenda.
+   * A recusa NÃO GRAVA NADA, e é de propósito que se mede só ela aqui: uma derivação «sem data»
+   * feita neste ponto substituiria a vigente e estragaria as asserções seguintes — a prova
+   * passaria a medir o efeito da sua própria preparação. Esse caso já está medido, na Sala. */
+  {
+    const futuraCu = await json(env, '/api/bastidores/curadoria-derivar', 'POST',
+      { derivarDe: derivada.id, vigencia: '2099-01-01' });
+    conferir('uma data futura é recusada na curadoria também', futuraCu.status, 400);
+    const cruaDepoisDaRecusa = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]');
+    conferir('…e a recusa não gravou elo nenhum',
+      cruaDepoisDaRecusa.filter((c) => !c.substituidaPor).map((c) => c.id), [derivada.id]);
+  }
 
   // A página: o selinho e o botão certo.
   const pagina2 = await (await pedir(env, '/bastidores/producao')).text();
@@ -351,14 +398,18 @@ async function principal() {
   // mudar a modalidade em que ela funciona. O que se mede: o registo nasce com o par novo, o id
   // nasce desse par, e a versão anterior continua no histórico a apontar para o elo.
   const derOutroPar = await json(env, '/api/bastidores/curadoria-derivar', 'POST', {
-    derivarDe: derivada.id, vigencia: '2026-12-01',
+    derivarDe: derivada.id, vigencia: '2026-02-10',
     professor: 'Novo', modalidade: 'Jazz', tradicao: 'RAD', turmas: ['Turma B'],
   });
   conferir('a derivação aceita trocar professor e modalidade', derOutroPar.status, 201);
-  const derivadaOutra = (await derOutroPar.json()).curadoria;
+  /* ACESSO DEFENSIVO, e não zelo: se a derivação acima for recusada — é o que acontece quando
+   * se repõe o defeito da data futura, para o controlo A/B —, o `curadoria` não vem, e ler
+   * `.professor` de `undefined` ABORTA a prova em vez de a reprovar. Uma prova que estoura
+   * não mede: interrompe. */
+  const derivadaOutra = (await derOutroPar.json()).curadoria || {};
   conferir('…e o registo nasce com o par novo',
     [derivadaOutra.professor, derivadaOutra.modalidade], ['novo', 'Jazz']);
-  conferir('…e o id nasce do par final', derivadaOutra.id, 'novo-jazz-turma-b-2026-12-01');
+  conferir('…e o id nasce do par final', derivadaOutra.id, 'novo-jazz-turma-b-2026-02-10');
   conferir('…e continua a saber de onde veio', derivadaOutra.substitui, derivada.id);
   const cruaOutroPar = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]');
   conferir('…e a versão anterior fica no histórico com o elo',
@@ -481,13 +532,23 @@ async function principal() {
   // «Associar», e é de lá que o plano lê. A curadoria devolve só as alunas.
   conferir('…e as alunas voltam como fichas', cen.editar.alunas, ['Ana']);
   conferir('…e o repertório já não é pedido na curadoria', cen.editar.repertorio, []);
-  conferir('«Derivar» põe o modo e MOSTRA a data', [cen.derivar.modo, cen.derivar.vigenciaOculta],
-    ['derivar', false]);
+  /* A DATA SAIU DO FORMULÁRIO (18/11/2026) — as duas asserções que a mediam passam a medir a
+   * ausência dela e a presença do que ficou. «O bloco da derivação mostra o motivo e não pergunta
+   * a data» é a afirmação inteira: o bloco continua a existir (é onde vive o motivo), e o campo da
+   * data já não está lá. Sem o par, uma asserção só sobre o motivo passaria com o campo de volta. */
+  conferir('«Derivar» põe o modo e MOSTRA o bloco do ajuste',
+    [cen.derivar.modo, cen.derivar.vigenciaOculta], ['derivar', false]);
+  conferir('…e o campo da data JÁ NÃO EXISTE no formulário', cen.derivar.temCampoDaData, false);
+  conferir('…e o motivo, que ficou, continua lá', cen.derivar.temCampoDoMotivo, true);
   conferir('…e o botão passa a «Gravar ajuste»', cen.derivar.botao, 'Gravar ajuste');
   conferir('…e o professor e a modalidade ficam LIVRES na derivação',
     [cen.derivar.professorTravado, cen.derivar.modalidadeTravada], [false, false]);
-  conferir('…e a data nasce com hoje (o caso normal: corrigir agora)',
-    /^\d{4}-\d{2}-\d{2}$/.test(cen.derivar.vigencia), true);
+  /* E O CLIENTE NÃO MANDA A DATA (18/11/2026). A tela deixou de a perguntar, mas a linha que a
+   * enviava podia ficar no script — e um `campos.vigencia` sobrevivente mandaria `""`, que o
+   * servidor trataria como ausente. Funcionaria por acidente. O que se mede aqui é a ausência da
+   * linha: quem a repuser não a repõe a dormir. */
+  conferir('…e o script servido já não envia `vigencia` no corpo do pedido',
+    /campos\.vigencia/.test(pagina2), false);
 
   // --- 14. a hora só se habilita para o dia escolhido (a página) ---------
   // Este bloco roda o SCRIPT SERVIDO num DOM de mentira, com as sete pílulas e os sete campos
@@ -537,7 +598,12 @@ function exercitarHoras(html) {
     .map((m) => m[1]).filter((c) => c.includes('sincronizarHoras')).join('\n') ||
     fs.readFileSync(__filename, 'utf8'); // (não usado: o script vem da página servida)
   const DIAS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  const dias = DIAS.map((d) => ({ name: 'dia', value: d, checked: false }));
+  /* O DIA TAMBÉM É LIDO POR `getAttribute` (18/11/2026). O `sincronizarHoras` recebe o alvo do
+   * evento e pergunta-lhe o `value` como atributo — no DOM a sério, um `<input>` responde aos
+   * dois. O objeto de mentira só tinha a propriedade, e por isso a prova morria em
+   * «alvo.getAttribute is not a function» antes de reportar uma única asserção. */
+  const dias = DIAS.map((d) => ({ name: 'dia', value: d, checked: false,
+    getAttribute: (k) => (k === 'value' ? d : null) }));
   const horas = DIAS.map((d) => ({ value: '', disabled: false, getAttribute: (k) => (k === 'data-dia' ? d : null) }));
   const elementos = new Map();
   const doId = (id) => {
@@ -568,7 +634,13 @@ function exercitarHoras(html) {
   const ctx = { document: documento, window: { addEventListener() {} }, location: { reload() {}, hash: '' },
     console: { log() {}, error() {}, warn() {} }, alert() {}, setTimeout, clearTimeout,
     fetch: () => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
-    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent };
+    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent,
+    // O DOM DE MENTIRA NÃO É UM NAVEGADOR (18/11/2026). O script servido usa `URLSearchParams`
+    // ao ler o `location.hash` das secções, e o contexto do `vm` só tem o que aqui se declara:
+    // sem esta linha a prova abortava com «URLSearchParams is not defined» — e o sintoma era a
+    // prova a morrer a meio, sem dizer que asserção falhou. Estava assim no HEAD, e é a mesma
+    // família do `<script>` que compila no fonte e rebenta no que a página serve.
+    URLSearchParams, TextEncoder, TextDecoder };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(code, ctx);
@@ -651,7 +723,13 @@ function exercitarCuradoria(html, id) {
     location: { reload() {}, hash: '' }, console: { log() {}, error() {}, warn() {} },
     alert() {}, setTimeout, clearTimeout,
     fetch: () => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
-    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent };
+    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent,
+    // O DOM DE MENTIRA NÃO É UM NAVEGADOR (18/11/2026). O script servido usa `URLSearchParams`
+    // ao ler o `location.hash` das secções, e o contexto do `vm` só tem o que aqui se declara:
+    // sem esta linha a prova abortava com «URLSearchParams is not defined» — e o sintoma era a
+    // prova a morrer a meio, sem dizer que asserção falhou. Estava assim no HEAD, e é a mesma
+    // família do `<script>` que compila no fonte e rebenta no que a página serve.
+    URLSearchParams, TextEncoder, TextDecoder };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(code, ctx);
@@ -661,6 +739,11 @@ function exercitarCuradoria(html, id) {
     return {
       modo: doId('cumodo').value,
       vigenciaOculta: doId('cu-vigencia-campo').hidden,
+      // O FORMULÁRIO TEM O MOTIVO E NÃO TEM A DATA (18/11/2026) — o `doId` cria o elemento que
+      // lhe pedirem, e por isso perguntar-lhe pela data devolveria um objeto. O que se mede é o
+      // HTML servido.
+      temCampoDaData: /cuvigencia/.test(html),
+      temCampoDoMotivo: /cumotivo/.test(html),
       botao: doId('cu-enviar').textContent,
       professorTravado: doId('cuprofessor').disabled,
       modalidadeTravada: doId('cumodalidade').disabled,
@@ -668,7 +751,6 @@ function exercitarCuradoria(html, id) {
       modalidade: doId('cumodalidade').value,
       turma: doId('cuturma').value,
       tradicao: doId('cutradicao').value,
-      vigencia: doId('cuvigencia').value,
       alunas: (fichas['esc-alunas'] || []).map((f) => f._valor),
       repertorio: (fichas['esc-repertorio'] || []).map((f) => f._valor), // já não é preenchido
     };
@@ -727,7 +809,13 @@ function exercitarFiltroAlunas(html) {
     location: { reload() {}, hash: '' }, console: { log() {}, error() {}, warn() {} },
     alert() {}, setTimeout, clearTimeout,
     fetch: () => Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
-    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent };
+    JSON, Date, Math, String, Number, Array, Object, encodeURIComponent, decodeURIComponent,
+    // O DOM DE MENTIRA NÃO É UM NAVEGADOR (18/11/2026). O script servido usa `URLSearchParams`
+    // ao ler o `location.hash` das secções, e o contexto do `vm` só tem o que aqui se declara:
+    // sem esta linha a prova abortava com «URLSearchParams is not defined» — e o sintoma era a
+    // prova a morrer a meio, sem dizer que asserção falhou. Estava assim no HEAD, e é a mesma
+    // família do `<script>` que compila no fonte e rebenta no que a página serve.
+    URLSearchParams, TextEncoder, TextDecoder };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(code, ctx);

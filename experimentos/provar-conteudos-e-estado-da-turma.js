@@ -303,7 +303,7 @@ async function aRota() {
       ]),
     });
     const r = await pedir(env, '/api/bastidores/turma-derivar', Object.assign({}, TURMA, {
-      derivarDe: 'bale-nivel-1', vigencia: '2027-05-01', duracaoMin: 90,
+      derivarDe: 'bale-nivel-1', vigencia: '2026-09-01', duracaoMin: 90,
     }));
     checar('derivar uma turma CURADA é aceite (é a saída que a recusa indica)', r.status === 201, r.status);
     const lista = JSON.parse(kv.mapa.get('bastidores/breu/turmas'));

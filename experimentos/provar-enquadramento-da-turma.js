@@ -246,7 +246,7 @@ async function aMemoria() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      senhaDirecao: 'x', derivarDe: 'bale-nivel-1', vigencia: '2027-03-01',
+      senhaDirecao: 'x', derivarDe: 'bale-nivel-1', vigencia: '2026-09-01',
       dias: ['ter'], horarios: { ter: '20:00' }, duracaoMin: 60,
       periodoInicio: '2027-02-01', periodoFim: '2027-04-30',
     }),

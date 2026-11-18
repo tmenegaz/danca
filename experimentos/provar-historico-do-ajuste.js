@@ -321,7 +321,7 @@ function kvDeMentira(inicial) {
 
     // A SEGUNDA derivação, sem motivo: o elo novo não pode herdar o do anterior.
     const r2 = await pedir(ambiente, '/api/bastidores/turma-derivar', {
-      derivarDe: novo.id, vigencia: '2026-12-01', senhaDirecao: SENHA,
+      derivarDe: novo.id, vigencia: '2026-10-20', senhaDirecao: SENHA,
       duracaoMin: 90, dias: ['ter', 'qui'], horarios: { ter: '19:00', qui: '19:00' },
       periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
     });

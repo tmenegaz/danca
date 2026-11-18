@@ -51151,3 +51151,63 @@ nova — a §11 acrescenta, não reescreve).
 **A lição, para não se repetir.** Antes de dizer a alguém que uma prova «não serve», conte as
 asserções uma a uma e leia o **formato** da linha final de cada prova. «Não serve ninguém» é uma
 conclusão forte, e eu apresentei-a com base num número que não tinha lido.
+
+## 18/11/2026 — «Vale a partir de» não agendava nada, e o campo saiu
+
+**A pergunta dela era uma suspeita, e a suspeita estava certa.** *«Quer dizer que se eu colocar aqui
+no vale a partir de uma data futura, o sistema vai se lembrar de aplicar isso naquela data futura?
+Você tem certeza de que isso está feito assim?»* E o caso, dito por ela: *«a partir do dia 20 de
+janeiro eu posso então trocar a turma. […] Agora, dia 20 de janeiro, então, por alguma forma, de
+alguma maneira, o sistema sabe que não é mais a turma [antiga]?»*
+
+**NÃO SABIA — e o sistema fazia o contrário do que prometia.** Medido, não lido: com a vigência em
+`2027-01-20` e o dia em `2026-11-18`, a derivação marcou a anterior com `substituidaPor`/`substituidaEm`
+e a nova ficou **vigente no mesmo instante**. O horário novo (20:00) passou a valer a 18 de
+novembro. E o registo ficou a afirmar `vigenteDe: 2027-01-20` — uma data que ainda não chegou —, com
+o cartão a mostrar o selo «ajustada em 20/01/2027». **O dado mentia sobre si mesmo**, e nada no
+sistema esperava por data nenhuma: `turmasVigentes` filtra por `!substituidaPor` e nunca olhou para
+a data.
+
+O que existia não era agendamento — era a **data do acto** a poder ser escrita à mão. Ela nasce com
+hoje porque o caso normal é a escola descobrir o erro e corrigir agora; escolher outra data só fazia
+sentido para dizer que a mudança já valia antes, e mesmo isso era aceite para o futuro, onde não
+significa nada.
+
+**A decisão, com as três saídas à frente** (agendar a sério, tirar o campo, ou só hoje/passado):
+**tirar o campo.** A derivação vale a partir do dia em que é feita.
+
+**O QUE FICA, e não é pouco.** O **motivo** fica — sem o porquê, o histórico do cartão diz o que
+mudou e nunca por que, e um histórico sem porquê é fotografia, não auditoria. E uma data **passada**
+continua a ser aceite, pela porta da API: é o caso legítimo de «o horário já tinha mudado no dia 1, e
+só agora o sistema soube», e é o que mantém verdadeira a pergunta «que ritmo valia em Março».
+
+**A GARANTIA É DO SERVIDOR, não do formulário.** `vigenciaDoAjuste` põe o dia do acto no fuso da
+instalação (`partesLocais` do `fuso.js` — a regra «guarda-se em UTC, lê-se no fuso de quem usa»; um
+dia sem fuso é um dia errado por três horas, e três horas são a diferença entre hoje e ontem) e
+**recusa uma data futura** com a razão escrita. Um `<input>` fora do formulário não impede ninguém de
+chamar a rota: a interface evita o erro, o servidor garante. A mesma regra na Sala e na Curadoria —
+dois elos do mesmo tipo não podem dar duas respostas à mesma pergunta.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`vigenciaDoAjuste`; as duas rotas de derivação; os
+dois blocos do formulário, que ficam só com o motivo; o estado em `sessionStorage`, que já não guarda
+a data; os focos, que apontavam para um campo que deixou de existir) · `experimentos/provar-*` (as
+que enviavam datas).
+
+**Com o quê.** `provar-derivacao-da-turma` **126/148** · `provar-historico-do-ajuste` **37/37** (era
+33: uma data futura) · `provar-estado-da-turma` 28/28 · `provar-derivacao-e-identidade` 19/19 ·
+`provar-salas-e-elencos` 131/131 · `provar-direcao-do-documento` 32 · `provar-a-autoria-na-troca-de-professor`
+41 · `provar-monitoramento` 104 · `check-identidade` 0 erros. As 22 falhas que restam na
+`provar-derivacao-da-turma` são **as mesmas 22 do HEAD** (medido com o motor em stash, lista
+comparada) e não tocam na vigência — são do plano de ensino e do DOM de mentira da curadoria.
+
+**Controlo A/B.** A recusa da data futura a sair: **reprova 3** (as três asserções novas). O cliente a
+voltar a mandar `campos.vigencia`: **reprova 1**. Reposto, 126/148 nas duas.
+
+**E UMA PROVA QUE ESTAVA MORTA SEM NINGUÉM SABER.** A `provar-derivacao-da-turma` **abortava** a meio
+desde antes deste trabalho: `URLSearchParams is not defined` no contexto do `vm`, e
+`alvo.getAttribute is not a function` porque o objeto que faz de dia não respondia ao atributo. Como a
+prova acumula as asserções e só as imprime no fim, **não imprimia uma única linha** — e um
+`npm test` que não diz nada lê-se como «não há problema». Corrigido: o DOM de mentira passou a
+responder ao que o script servido pergunta. É a terceira prova desta semana a morrer em silêncio; o
+padrão é sempre o mesmo, e a regra que o fecha é a de sempre: **medir o que a página serve, não o
+que o fonte parece dizer.**

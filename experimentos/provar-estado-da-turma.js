@@ -101,7 +101,7 @@ const TURMA = {
 const PROFESSOR = 'coqui';
 const CURADORIA = {
   id: 'c1', professor: PROFESSOR, modalidade: 'Balé Clássico', tradicao: 'Vaganova',
-  turmas: ['Balé Nível 1'], alunas: ['Vavá'], vigencia: '2027-02-01', duracaoMin: 60,
+  turmas: ['Balé Nível 1'], alunas: ['Vavá'], vigencia: '2026-09-01', duracaoMin: 60,
 };
 
 function ambiente(comPlano) {

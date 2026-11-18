@@ -2081,6 +2081,59 @@ function idDerivado(nome, vigencia, lista) {
   return base + '-' + n;
 }
 
+/**
+ * A VIGÊNCIA DE UM AJUSTE — e o sistema NÃO AGENDA (18/11/2026).
+ *
+ * O QUE ELA PERGUNTOU, e a suspeita era certeira: *«se eu colocar aqui no vale a partir de uma data
+ * futura, o sistema vai se lembrar de aplicar isso naquela data futura? Você tem certeza de que
+ * isso está feito assim?»* **Não estava.** Medido com a vigência em 20/01/2027 e o dia de hoje em
+ * 18/11/2026: a versão nova passou a valer imediatamente, a anterior foi marcada como substituída,
+ * e o registo ficou a afirmar «vale a partir de 20/01/2027» — uma data que ainda não chegou. O
+ * dado mentia sobre si mesmo, e nada no sistema esperava por data nenhuma.
+ *
+ * O que existia não era agendamento: era a **data do acto** a poder ser escrita à mão. A vigência
+ * nasce com hoje porque o caso normal é a escola descobrir o erro e corrigir agora. Escolher outra
+ * data só fazia sentido para uma coisa — dizer que a mudança já valia antes de o sistema o saber —,
+ * e mesmo essa era aceite para o futuro, onde não significa nada.
+ *
+ * A DECISÃO DELA, com as três saídas à frente: *tirar o campo*. O formulário deixa de perguntar a
+ * data, e ela passa a ser **o dia em que o ajuste é feito**, no fuso da instalação (a regra do
+ * `fuso.js`: guarda-se em UTC, lê-se no fuso de quem usa; um dia sem fuso é um dia errado por três
+ * horas, e três horas são a diferença entre «hoje» e «ontem»).
+ *
+ * O QUE NÃO SE PERDE, e é de propósito: uma data **passada** continua a ser aceite. Serve para o
+ * caso legítimo — «o horário já tinha mudado no dia 1, e só agora o sistema soube» —, e é o que
+ * mantém verdadeira a pergunta «que ritmo valia em Março». Uma data **futura** é recusada com a
+ * razão escrita, porque aceitá-la era o defeito: prometia um agendamento que ninguém cumpre.
+ *
+ * A RECUSA É DO SERVIDOR, não da tela. Um `<input type="date">` fora do formulário não impede
+ * ninguém de chamar a rota — e a regra desta casa é a de sempre: a interface evita o erro, o
+ * servidor garante.
+ */
+function vigenciaDoAjuste(corpo) {
+  /* O DIA DO ACTO EM ISO, e não em forma de leitura. O `diaLocal` do `fuso.js` devolve
+   * «18/11/2026» — é o que se escreve para uma pessoa, e aqui é o contrário: este valor vai para
+   * o id do registo e para uma comparação de ordem alfabética, e «18/11/2026» não ordena nem
+   * identifica. A conversão é a mesma; a montagem é que tem de ser ISO. */
+  const p = fusoDoNucleo.partesLocais(new Date().toISOString());
+  const hoje = p ? p.ano + '-' + p.mes + '-' + p.dia : new Date().toISOString().slice(0, 10);
+  const pedida = String((corpo && corpo.vigencia) || '').trim();
+  if (!pedida) return { ok: true, vigencia: hoje };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(pedida)) {
+    return { ok: false, erro: 'a data do ajuste tem de ser uma data (AAAA-MM-DD)' };
+  }
+  if (pedida > hoje) {
+    return {
+      ok: false,
+      erro: 'o sistema não agenda mudanças: um ajuste vale a partir do dia em que é feito. '
+        + 'A data de ' + pedida + ' está no futuro — hoje é ' + hoje + '. '
+        + 'Faça o ajuste no dia em que ele passa a valer; se ele já valia antes, escolha essa data '
+        + 'no passado.',
+    };
+  }
+  return { ok: true, vigencia: pedida };
+}
+
 /** Os dias da semana, PADRONIZADOS — a Produção só deixa marcar, nunca escrever.
  *  É o que evita «sexta», «seis» e «sexta-feira» conviverem como se fossem o mesmo dia. */
 const DIAS_DA_SEMANA = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
@@ -7067,9 +7120,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // mudou («ter 18:00 → 19:00»); sem o motivo ele dizia o quê e nunca o porquê, e um histórico
     // sem porquê não é auditoria, é fotografia. A peça é a mesma do «Motivo (opcional)» da
     // transferência de aluna — rótulo e campo, nada inventado.
+    /* O CAMPO DA DATA SAIU (18/11/2026). Ela perguntou o que ele fazia, e a resposta era
+     * constrangedora: nada. A mudança passava a valer no instante da gravação, e a data escrita
+     * ficava a afirmar uma vigência que não se cumpria. O caso que a fez desconfiar é o da letra
+     * — «a partir do dia 20 de janeiro eu posso então trocar a turma» —, e o sistema aplicava a
+     * troca a 18 de novembro. Ver `vigenciaDoAjuste`, onde está a medição.
+     *
+     * O QUE FICA É O MOTIVO, e ele não é decoração: sem o porquê, o histórico do cartão diz o que
+     * mudou e nunca por que, e um histórico sem porquê é fotografia, não auditoria. */
     '<div class="aviso-derivar" id="t-vigencia-campo" hidden>' +
-    '<label class="campo-rotulo" for="tvigencia">Vale a partir de</label>' +
-    '<input id="tvigencia" type="date" autocomplete="off">' +
     '<label class="campo-rotulo" for="tmotivo">Motivo do ajuste (opcional)</label>' +
     '<input id="tmotivo" autocomplete="off" placeholder="ex.: a sala mudou para o período da tarde">' +
     '</div>' +
@@ -7886,9 +7945,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // entra em «Editar» vê o modo no próprio formulário e cancela ao lado do botão. Ficam a
     // DATA e o MOTIVO — as duas coisas que a derivação acrescenta, e a segunda é opcional
     // (10/11/2026), pela mesma razão que na Sala.
+    /* A DATA SAIU TAMBÉM AQUI (18/11/2026) — a mesma decisão, pelo mesmo motivo: uma curadoria e
+     * uma sala são elos do mesmo tipo, e deixar uma a perguntar a data seria dar duas respostas à
+     * mesma pergunta. Ver `vigenciaDoAjuste`. */
     '<div class="aviso-derivar" id="cu-vigencia-campo" hidden>' +
-    '<label class="campo-rotulo" for="cuvigencia">Vale a partir de</label>' +
-    '<input id="cuvigencia" type="date" autocomplete="off">' +
     '<label class="campo-rotulo" for="cumotivo">Motivo do ajuste (opcional)</label>' +
     '<input id="cumotivo" autocomplete="off" placeholder="ex.: a professora passou a assumir a turma">' +
     '</div>' +
@@ -8775,7 +8835,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    });' +
     '    t.__derivar = (document.getElementById("tderivar") || {}).value || "";' +
     '    t.__modo = (document.getElementById("tmodo") || {}).value || "";' +
-    '    t.__vigencia = (document.getElementById("tvigencia") || {}).value || "";' +
     // O MOTIVO SOBREVIVE AO RECARREGAMENTO (10/11/2026), como a data: cada operação recarrega a
     // página, e um motivo escrito e perdido obrigaria a escrevê-lo outra vez — ou, pior, a gravar
     // o elo sem ele.
@@ -8822,7 +8881,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    });' +
     '    document.getElementById("tderivar").value = t.__derivar || "";' +
     '    document.getElementById("tmodo").value = t.__modo || "";' +
-    '    document.getElementById("tvigencia").value = t.__vigencia || "";' +
     '    var campoMotivo = document.getElementById("tmotivo");' +
     '    if (campoMotivo) campoMotivo.value = t.__motivo || "";' +
     // A DATA SÓ APARECE NA DERIVAÇÃO: a turma vinculada ganha um elo novo com vigência; a
@@ -10732,10 +10790,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    campos.id = derivando;' +
     '    enviar("/api/bastidores/turma-editar", campos, "gravando a turma...", true, avancarParaRubricas); return;' +
     '  }' +
-    '  var vig = document.getElementById("tvigencia").value;' +
-    '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
-    '  campos.derivarDe = derivando;' +
-    '  campos.vigencia = vig;' +
+    /* A DATA NÃO VAI (18/11/2026): o servidor põe o dia do acto, no fuso da instalação. Ver
+   * `vigenciaDoAjuste`. Mandá-la daqui seria a tela a decidir o que o servidor já garante — e
+   * duas fontes para a mesma data divergem no primeiro fuso mal configurado. */
+
     // O MOTIVO VAI, E PODE IR VAZIO (10/11/2026): é ele que o histórico do cartão mostra ao lado
     // do que mudou. Vazio não é um motivo inventado — o elo fica sem a chave, e o bloco não
     // escreve uma razão que ninguém deu.
@@ -10879,16 +10937,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  sincronizarAssociacao();' +
     // A data de vigência nasce com hoje: é o caso normal (a escola descobre o erro e corrige
     // agora). A escola muda se o ajuste for retroativo.
-    '  var hoje = new Date();' +
-    '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
-    '  document.getElementById("tvigencia").value = iso;' +
-    // O MOTIVO NASCE VAZIO A CADA «DERIVAR» (10/11/2026) — a mesma regra da Turma: ele é desta
+        // O MOTIVO NASCE VAZIO A CADA «DERIVAR» (10/11/2026) — a mesma regra da Turma: ele é desta
     // derivação, e herdá-lo escreveria no elo novo a razão do ajuste anterior.
     '  var campoMotivoT = document.getElementById("tmotivo");' +
     '  if (campoMotivoT) campoMotivoT.value = "";' +
     '  mostrarPasso("turma");' +
     '  if (derivar) document.getElementById("t-vigencia-campo").scrollIntoView({block: "center"});' +
-    '  (derivar ? document.getElementById("tvigencia") : nome).focus();' +
+    // O FOCO VAI PARA O MOTIVO NA DERIVAÇÃO (18/11/2026) — a data deixou de existir, e um
+    // `.focus()` sobre um elemento ausente rebenta o `try` da página inteira.
+    '  var focoEmDerivar = document.getElementById("tmotivo");' +
+    '  (derivar && focoEmDerivar ? focoEmDerivar : nome).focus();' +
     '  gravarEstado();' +
     '}' +
     'document.addEventListener("click", function(e){' +
@@ -11694,9 +11752,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '    par[1].forEach(function(v){ adicionarFicha(el, v); });' +
     '  });' +
-    '  var hoje = new Date();' +
-    '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
-    '  document.getElementById("cuvigencia").value = iso;' +
+    /* A DATA NÃO SE PREENCHE (18/11/2026): o campo deixou de existir, e o dia do acto é o
+     * servidor que o põe. Um `document.getElementById(...).value = ...` sobre um elemento que já
+     * não está na página é um `TypeError` que mata o handler inteiro — e o sintoma seria «o botão
+     * Derivar não faz nada». */
     // O MOTIVO NASCE VAZIO A CADA «DERIVAR» (10/11/2026): ele é da derivação que se vai fazer, e
     // não do registo. Herdá-lo seria escrever no elo novo a razão do ajuste anterior.
     '  var campoMotivoCu = document.getElementById("cumotivo");' +
@@ -11707,7 +11766,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (seletorElenco) seletorElenco.value = elencoDaCuradoria;' +
     '  mostrarElenco(elencoDaCuradoria);' +
     '  document.getElementById("form-curadoria").scrollIntoView({block: "start"});' +
-    '  (derivar ? document.getElementById("cuvigencia") : document.getElementById("cu-enviar")).focus();' +
+    '  var focoCu = derivar ? document.getElementById("cumotivo") : null;' +
+    '  (focoCu || document.getElementById("cu-enviar")).focus();' +
     '}' +
     /* A PÁGINA PERGUNTA O ESTADO OUTRA VEZ (15/11/2026) — a correcção da etiqueta mentirosa.
      *
@@ -15329,10 +15389,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    campos.idAntigo = alvo;' +
     '    enviar("/api/bastidores/curadoria", campos, "gravando turma...", true, concluirCuradoria); return;' +
     '  }' +
-    '  var vig = document.getElementById("cuvigencia").value;' +
-    '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
+    /* A DATA NÃO VAI DAQUI (18/11/2026). O servidor põe o dia do acto no fuso da instalação —
+     * ver `vigenciaDoAjuste` —, e a pergunta «informe a data» desapareceu com o campo. */
     '  campos.derivarDe = alvo;' +
-    '  campos.vigencia = vig;' +
     // O MOTIVO (10/11/2026) — a mesma peça e a mesma regra do formulário da Sala: vai, e pode ir
     // vazio; o sistema não inventa razão nenhuma.
     '  campos.motivo = (document.getElementById("cumotivo") || {}).value || "";' +
@@ -18445,10 +18504,12 @@ async function fetch(request, env, extras) {
       }
       return json(404, { ok: false, erro: 'turma não encontrada: ' + (alvoId || '(vazio)') });
     }
-    const vigencia = String(corpo.vigencia || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
-      return json(400, { ok: false, erro: 'informe a data a partir da qual a turma ajustada vale (AAAA-MM-DD)' });
-    }
+    /* A VIGÊNCIA NÃO SE PERGUNTA MAIS (18/11/2026) — ver `vigenciaDoAjuste`, onde está a medição
+     * do defeito e a razão de a data futura passar a ser recusada. O formulário deixou de ter o
+     * campo; o servidor garante que ninguém agenda pela porta de trás. */
+    const dataDoAjuste = vigenciaDoAjuste(corpo);
+    if (!dataDoAjuste.ok) return json(400, { ok: false, erro: dataDoAjuste.erro });
+    const vigencia = dataDoAjuste.vigencia;
     // O registo novo: o MESMO nome, o id com a vigência, e os campos que a escola declarou.
     // Ele NASCE DO ANTERIOR (`Object.assign({}, anterior, …)`), e não do zero: o que a escola
     // não está a ajustar tem de sobreviver.
@@ -21104,10 +21165,12 @@ async function fetch(request, env, extras) {
         });
       }
     }
-    const vigencia = String(corpo.vigencia || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
-      return json(400, { ok: false, erro: 'informe a data a partir da qual a turma ajustada vale (AAAA-MM-DD)' });
-    }
+    /* A MESMA REGRA DA SALA, e pelo mesmo motivo (18/11/2026) — uma curadoria e uma sala são
+     * dois elos do mesmo tipo, e deixar um deles a agendar seria dar duas respostas à mesma
+     * pergunta. Ver `vigenciaDoAjuste`. */
+    const dataDoAjuste = vigenciaDoAjuste(corpo);
+    if (!dataDoAjuste.ok) return json(400, { ok: false, erro: dataDoAjuste.erro });
+    const vigencia = dataDoAjuste.vigencia;
     const turmasPedidas = Array.isArray(corpo.turmas)
       ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
       : [String(corpo.turma || '').trim()].filter(Boolean);
