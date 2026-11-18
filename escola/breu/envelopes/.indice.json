@@ -2,7 +2,8 @@
   "versao": 6,
   "nomes": [
     "anamnese-20261116-2201.json",
-    "anamnese-20261117-1407.json"
+    "anamnese-20261117-1407.json",
+    "anamnese-20261118-1737.json"
   ],
   "resumos": {
     "anamnese-20261116-2201.json": {
@@ -28,6 +29,19 @@
       "aluna": "Aluna B",
       "modalidade": null,
       "metodo": "Escola livre"
+    },
+    "anamnese-20261118-1737.json": {
+      "id": "anamnese-20261118-1737",
+      "fonte": "anamnese",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": null,
+      "ajuste_de": null,
+      "gerado_em": "2026-11-18T17:37",
+      "aluna": "Aluna A",
+      "alunaId": "aluna-a-3",
+      "modalidade": "Balé clássico",
+      "metodo": "Cubana"
     }
   }
 }
