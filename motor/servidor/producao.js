@@ -53,6 +53,11 @@ const mapaDeEscolas = require('./mapa-de-escolas.js');
  * escolas, e a `SENHA_CRIPTO` deixou de poder viver lá com um valor por Worker. */
 const chaveMestra = require('../nucleo/chave-mestra.js');
 const aulasDadas = require('./aulas-dadas.js');
+/* O RODAPÉ «FALE CONOSCO» TAMBÉM ESCREVE AQUI (18/11/2026). O pedido é o mesmo formulário em todas
+ * as telas, e quem o serve neste Worker é o mesmo módulo que a raiz serve — não uma cópia. A caixa
+ * de entrada é a MESMA chave de KV (os dois Workers partilham o namespace), e é por isso que o que
+ * se escreve no site de uma escola aparece no painel dela sem sincronização nenhuma. */
+const contatoDoSite = require('./contato-do-site.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 // AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
@@ -755,6 +760,21 @@ async function fetch(request, env) {
   }
 
   // A trava, de fato: sem identidade, NADA serve — erro visível, não freio.
+  /* O «FALE CONOSCO» NÃO É CONTEÚDO DA ESCOLA, e por isso vem ANTES das travas dela (18/11/2026).
+   *
+   * O rodapé com o canal para a casa está em TODAS as telas de TODAS as escolas, e o pedido que ele
+   * manda não é sobre a escola: é alguém a tentar falar com quem fez o sistema. Prender esta rota
+   * atrás do estado comercial ou do freio daria o pior desfecho possível — a escola suspensa fica
+   * sem forma de pedir ajuda sobre a própria suspensão, e a pessoa que clica no rodapé recebe 402
+   * ou 503 sem entender porquê.
+   *
+   * O QUE ISSO NÃO ABRE: nada da escola. A rota não lê um único ficheiro do pacote, não conhece o
+   * `ESCOLA_SLUG` e não devolve nada do acervo — escreve numa chave de KV do pedido e manda um
+   * e-mail para a casa. É a mesma coisa que a raiz faz, com o mesmo módulo. */
+  if (path === '/api/contato') {
+    return await contatoDoSite.responderContato(request, env);
+  }
+
   /* O PACOTE DIZ OUTRA ESCOLA — e nenhuma das outras travas apanha isto, porque o host e a var
    * podem estar certos e o `assets.directory` errado. Só o conteúdo sabe que conteúdo é, e é por
    * isso que ele é conferido. */

@@ -1294,9 +1294,29 @@ function paginaDosContatos({ contatos } = {}) {
   const lista = Array.isArray(contatos) ? contatos : [];
   const porLer = lista.filter((e) => e && !e.lido).length;
 
+  /* CADA LINHA DIZ TRÊS COISAS, e a terceira é a que ela perguntou (18/11/2026):
+   *
+   *   «essa mensagem que está sendo enviada para falar comigo, esse contato aqui, chega a passar
+   *   pelo e-mail ou não? É uma mensagem interna direta do servidor que chega para mim, nem gasta
+   *   recursos do e-mail. É isso mesmo?»
+   *
+   * Não é: desde que o formulário passou a enviar sozinho, cada pedido gasta UM e-mail (Resend).
+   * O registo na lista é interno e não gasta nada — mas o aviso sai pelo correio. Por isso a
+   * coluna «Aviso» existe: ela mostra, pedido a pedido, se o e-mail saiu, se não saiu (e porquê no
+   * `title`), ou se não se sabe. Sem ela, os dois casos ficavam iguais na tela.
+   *
+   * AS COLUNAS «NOME» E «ESCOLA» são o que faltava para se saber a quem se responde: «tem que
+   * saber o nome da pessoa e o nome da escola». */
+  const avisoDe = (e) => {
+    if (!e || !e.aviso) return '<span class="selo discreto" title="pedido anterior ao envio automático">sem aviso</span>';
+    if (e.aviso.enviado) return '<span class="selo ok">enviado</span>';
+    return '<span class="selo alerta" title="' + esc(e.aviso.motivo || 'motivo não declarado') + '">não saiu</span>';
+  };
+
   const corpo = lista.length
     ? '<table>' +
-      '<thead><tr><th>Quando</th><th>Quem</th><th>Mensagem</th><th>Estado</th></tr></thead>' +
+      '<thead><tr><th>Quando</th><th>Nome</th><th>Escola</th><th>Como falar</th><th>Mensagem</th>' +
+      '<th>Aviso</th><th>Estado</th></tr></thead>' +
       '<tbody>' + lista.map((e) => {
         const quem = [
           e.email ? '<a href="mailto:' + esc(e.email) + '">' + esc(e.email) + '</a>' : '',
@@ -1307,8 +1327,14 @@ function paginaDosContatos({ contatos } = {}) {
         ].filter(Boolean).join('<br>');
         return '<tr>' +
           '<td>' + esc(quando(e.quando) || diaOuTraco(e.quando)) + '</td>' +
+          /* OS PEDIDOS ANTERIORES A 18/11/2026 NÃO TÊM NOME NEM ESCOLA — o formulário não os
+           * pedia. `diaOuTraco` é a convenção da casa para «não há dado»: um traço, nunca uma
+           * frase a inventar. */
+          '<td>' + (e.nome ? esc(e.nome) : diaOuTraco(e.nome)) + '</td>' +
+          '<td>' + (e.escola ? esc(e.escola) : diaOuTraco(e.escola)) + '</td>' +
           '<td>' + quem + '</td>' +
           '<td style="overflow-wrap:anywhere">' + esc(e.mensagem) + '</td>' +
+          '<td>' + avisoDe(e) + '</td>' +
           '<td>' + (e.lido
             ? '<span class="selo discreto">lido</span>'
             : '<span class="selo alerta">novo</span>') +
@@ -1317,9 +1343,10 @@ function paginaDosContatos({ contatos } = {}) {
           '</td>' +
           '</tr>';
       }).join('') + '</tbody></table>' +
-      '<p class="aviso">Cada linha é um pedido feito no «Fale conosco» do site. Quem escreve ainda ' +
-      'tem de mandar a mensagem pelo e-mail ou pelo WhatsApp — o registo existe para que ela não se ' +
-      'perca se ele fechar a janela sem enviar. A lista guarda os últimos 200 pedidos.</p>' +
+      '<p class="aviso">Cada linha é um pedido feito no «Fale conosco» do site. O pedido é gravado ' +
+      'aqui <strong>e</strong> o aviso é enviado por e-mail para lastro@padd.com.br — a coluna ' +
+      '«Aviso» diz se ele saiu. Um pedido com «não saiu» está nesta lista e não na sua caixa de ' +
+      'correio: é a esta página que se volta. A lista guarda os últimos 200 pedidos.</p>' +
       '<script>' +
       'document.addEventListener("click", function (e) {' +
       '  var b = e.target.closest && e.target.closest("[data-lido]");' +
@@ -1334,8 +1361,8 @@ function paginaDosContatos({ contatos } = {}) {
       '</script>'
     : '<div class="caixa nota">' +
       '<h2>Ninguém procurou ainda</h2>' +
-      '<p>Quando alguém escrever pelo «Fale conosco» do site, o pedido aparece aqui — com o ' +
-      'e-mail ou o telefone de quem escreveu, e a mensagem.</p>' +
+      '<p>Quando alguém escrever pelo «Fale conosco» do site, o pedido aparece aqui — com o nome, ' +
+      'a escola, o e-mail e o telefone de quem escreveu, e a mensagem.</p>' +
       '</div>';
 
   return pagina({

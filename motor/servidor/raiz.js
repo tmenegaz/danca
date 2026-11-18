@@ -64,6 +64,11 @@ const mensalidades = require('../nucleo/mensalidades.js');
 /* QUEM QUER FALAR CONOSCO (18/11/2026) — o pedido do «Fale conosco»: a regra no núcleo, a caixa de
  * entrada no KV, e a lista no painel. O núcleo valida e carimba; aqui só se lê e se grava. */
 const contato = require('../nucleo/contato.js');
+/* O MANIPULADOR É O MESMO DO WORKER DAS ESCOLAS (18/11/2026). O rodapé com o «Fale conosco» existe
+ * nos dois mundos, e duas cópias do mesmo POST divergiriam no primeiro dia em que uma fosse
+ * corrigida — com o sintoma pior possível: funcionar numa tela e mentir na outra. O que muda entre
+ * os dois é só o contador do correio, que é passado daqui. */
+const contatoDoSite = require('./contato-do-site.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -2966,61 +2971,23 @@ function hostDoProprietario(env) {
  * «Quando a pessoa coloca o e-mail dela aqui e o telefone, o que que acontece? Tá salvando isso
  * aonde? […] Eu preciso ter um lugar lá no painel para poder acessar quem me procurou.»
  *
- * ANTES, EM SÍTIO NENHUM. A mensagem era composta e entregue ao correio ou ao WhatsApp de quem
- * escrevia; se a pessoa fechasse a janela do programa de correio sem enviar, nada chegava — nem o
- * facto de ela ter tentado. O que existe agora é o registo do lado de cá.
+ * A REGRA E O ENVIO VIVEM EM `motor/servidor/contato-do-site.js`, e não aqui: o mesmo formulário é
+ * servido pelo Worker das escolas, e duas cópias divergiriam no primeiro dia em que uma delas fosse
+ * corrigida — com o sintoma pior possível, o formulário a funcionar numa tela e a mentir na outra.
+ * O que fica nesta página é o que só ela tem: o CONTADOR do correio, que é o que impede a cota do
+ * Resend de aparecer como surpresa.
  *
  * A ROTA É PÚBLICA, e tem de ser: quem a chama não tem senha nenhuma — está no site, a pedir para
- * falar. É a SEGUNDA porta pública que ESCREVE (a primeira é criar escola, e a do convite), e por
- * isso o que ela aceita é mínimo e o que ela recusa é explícito: nada de campos livres, nada de
+ * falar. O que ela aceita é mínimo e o que ela recusa é explícito: nada de campos livres, nada de
  * lista de destinatários, nada que possa ser usado para escrever noutro sítio.
  *
- * O QUE ELA NÃO FAZ: não envia e-mail. Quem manda a mensagem é a pessoa, pelo canal que escolher —
- * e o registo é para que a mensagem não se perca se ela não a mandar. Um aviso por e-mail à
- * proprietária a cada pedido seria uma segunda mensagem para a mesma coisa, e mais uma chave gasta
- * no Resend; o painel é onde ela lê.
+ * O AVISO POR E-MAIL VAI PARA A CASA (`lastro@padd.com.br`) e não para a escola onde o rodapé
+ * estava: o pedido é dela, não da escola. E ele SAI DAQUI — o programa de correio de quem escreve
+ * deixou de estar no caminho.
  */
 async function responderContato(request, env) {
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ ok: false, erro: 'use POST' }), {
-      status: 405, headers: { 'Content-Type': 'application/json;charset=utf-8' },
-    });
-  }
-  const kv = env && env.PADD_KV;
-  if (!kv) {
-    return new Response(JSON.stringify({
-      ok: false,
-      erro: 'o sistema não tem onde guardar o pedido agora — escreva para lastro@padd.com.br',
-    }), { status: 503, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
-  }
-  let corpo = {};
-  try { corpo = await request.json(); } catch (erro) { corpo = {}; }
-
-  const lido = contato.lerEntrada(corpo);
-  if (!lido.ok) {
-    return new Response(JSON.stringify({ ok: false, erro: lido.erro }), {
-      status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' },
-    });
-  }
-
-  try {
-    const lista = contato.lerLista(await kv.get(contato.CHAVE));
-    await kv.put(contato.CHAVE, JSON.stringify(contato.acrescentar(lista, lido.entrada)));
-  } catch (erro) {
-    /* A MENSAGEM NÃO SE PERDE POR ISTO. A pessoa ainda tem o canal à frente — o correio e o
-     * WhatsApp são abertos de qualquer forma —, e a resposta di-lo para que ela saiba que o
-     * pedido não ficou registado e mande a mensagem pelo canal. Dizer «registado» sobre uma
-     * escrita que falhou seria a mentira que este sistema inteiro evita. */
-    return new Response(JSON.stringify({
-      ok: false,
-      registado: false,
-      erro: 'não foi possível guardar o pedido — mande a mensagem pelo e-mail ou pelo WhatsApp',
-    }), { status: 502, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
-  }
-
-  return new Response(JSON.stringify({ ok: true, registado: true }), {
-    status: 201,
-    headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+  return contatoDoSite.responderContato(request, env, {
+    enviar: (mensagem) => enviarEContar({ env, mensagem }),
   });
 }
 
@@ -3406,6 +3373,23 @@ async function fetch(request, env) {
     const marcada = contato.marcarLido(lista, corpo.quando);
     await kv.put(contato.CHAVE, JSON.stringify(marcada));
     return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+  /* O SININHO (18/11/2026) — «vale a pena colocar um sininho aqui em contatos sinalizando para mim
+   * que chegou uma mensagem […], sempre sinalizando que chegou uma mensagem».
+   *
+   * É uma LEITURA e não um estado guardado: o número sai da mesma lista que a página mostra, e um
+   * contador à parte passaria a divergir dela no dia em que uma marca de lido falhasse. Custa uma
+   * leitura de KV por abertura do painel — uma chave só, e não uma enumeração.
+   *
+   * O QUE ELE NÃO DIZ: que houve um e-mail. Um pedido pode estar na lista e o aviso por e-mail ter
+   * falhado; o selo é sobre o pedido, e o painel mostra o desfecho do aviso linha a linha. */
+  if (url.pathname === '/api/contatos/quantos') {
+    const kv = env && env.PADD_KV;
+    const lista = contato.lerLista(kv ? await kv.get(contato.CHAVE) : null);
+    return new Response(JSON.stringify({ ok: true, porLer: contato.quantosPorLer(lista) }), {
       status: 200,
       headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
     });

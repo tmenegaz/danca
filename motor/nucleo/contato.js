@@ -25,9 +25,23 @@
  * tecto sai pelo fim: um pedido de contacto de há dois anos não é proveniência — é uma caixa de
  * entrada, e uma caixa de entrada que cresce sem fim acaba por ser um arquivo de dados pessoais
  * que ninguém lê e que ninguém sabe que tem.
+ *
+ * ── O QUE MUDOU A 18/11/2026, SEGUNDA PASSAGEM ────────────────────────────────────────────────
+ *
+ * «Faltou colocar nesse formulário de entrar em contato o nome da pessoa e da escola. Tem que saber
+ * o nome da pessoa e o nome da escola, então obrigatoriamente tem que saber os nomes, o e-mail e o
+ * telefone e mensagem para poder enviar.»
+ *
+ * Os cinco campos passaram a ser OBRIGATÓRIOS, e a regra de antes — «a mensagem e um dos dois
+ * contactos» — caiu: quem responde a um pedido tem de saber a quem, de que escola, e por onde. Um
+ * pedido anónimo não é um pedido; é um recado que não se pode devolver.
+ *
+ * E O PEDIDO PASSOU A IR POR E-MAIL, do servidor (ver `comporAviso`). Antes ele abria o programa de
+ * correio de quem escrevia e ficava à espera que a pessoa enviasse; ela disse que não é isso que
+ * quer — «o formulário é para enviar direto, não vai abrir nada, ele vai enviar».
  */
 
-const { normalizarEmail, normalizarTelefone } = require('./cadastro-da-escola.js');
+const { normalizarEmail, normalizarTelefone, normalizarNome } = require('./cadastro-da-escola.js');
 
 /* A CHAVE É UMA SÓ, e não uma por contacto (18/11/2026).
  *
@@ -53,40 +67,34 @@ const MAXIMO_DA_MENSAGEM = 2000;
 /**
  * A ENTRADA, validada e carimbada.
  *
- * A REGRA DO CONTACTO: a mensagem é obrigatória, e **um** dos dois — e-mail ou telefone — também.
- * Sem a mensagem não há o que responder; sem um contacto não há a quem. Ter os dois é o caso bom,
- * e não é exigência: quem só tem telefone escreve e deixa o e-mail em branco.
+ * A REGRA DO CONTACTO: **os cinco campos são obrigatórios** — nome, escola, e-mail, telefone e
+ * mensagem. Não é zelo de formulário: sem o nome não há a quem responder, sem a escola não se sabe
+ * de onde vem o pedido, e sem um canal não há como responder. O que ela pediu, na letra: «tem que
+ * saber o nome da pessoa e o nome da escola, então obrigatoriamente tem que saber os nomes, o
+ * e-mail e o telefone e mensagem para poder enviar».
  *
  * A VALIDAÇÃO É A DA CASA (`cadastro-da-escola`), e não uma segunda cópia: o e-mail de quem nos
  * procura é o mesmo dado que o e-mail da escola, e duas regras para o mesmo dado divergem no dia em
  * que uma delas muda.
  */
-function lerEntrada({ email, telefone, mensagem, quando } = {}) {
+function lerEntrada({ nome, escola, email, telefone, mensagem, quando } = {}) {
   const texto = String(mensagem == null ? '' : mensagem).trim().replace(/[ \t]+/g, ' ');
   if (!texto) return { ok: false, erro: 'escreva a sua mensagem' };
   if (texto.length > MAXIMO_DA_MENSAGEM) {
     return { ok: false, erro: 'a mensagem é longa de mais (máximo ' + MAXIMO_DA_MENSAGEM + ' caracteres)' };
   }
 
-  let mail = '';
-  const brutoEmail = String(email == null ? '' : email).trim();
-  if (brutoEmail) {
-    const n = normalizarEmail(brutoEmail, { de: 'e-mail' });
-    if (!n.ok) return { ok: false, erro: n.erro };
-    mail = n.valor;
-  }
+  const n = normalizarNome(nome, { de: 'nome' });
+  if (!n.ok) return { ok: false, erro: n.erro };
 
-  let fone = '';
-  const brutoFone = String(telefone == null ? '' : telefone).trim();
-  if (brutoFone) {
-    const n = normalizarTelefone(brutoFone, { de: 'telefone' });
-    if (!n.ok) return { ok: false, erro: n.erro };
-    fone = n.valor;
-  }
+  const e = normalizarNome(escola, { de: 'nome da escola' });
+  if (!e.ok) return { ok: false, erro: e.erro };
 
-  if (!mail && !fone) {
-    return { ok: false, erro: 'deixe um e-mail ou um telefone — sem um dos dois não há como responder' };
-  }
+  const mail = normalizarEmail(email, { de: 'e-mail' });
+  if (!mail.ok) return { ok: false, erro: mail.erro };
+
+  const fone = normalizarTelefone(telefone, { de: 'telefone' });
+  if (!fone.ok) return { ok: false, erro: fone.erro };
 
   return {
     ok: true,
@@ -95,10 +103,16 @@ function lerEntrada({ email, telefone, mensagem, quando } = {}) {
        * uma chave derivada do e-mail os confundiria. O ISO completo cabe na chave e ordena-se
        * sozinho — e é ele que a lista mostra, no fuso da instalação. */
       quando: String(quando || new Date().toISOString()),
-      email: mail || null,
-      telefone: fone || null,
+      nome: n.valor,
+      escola: e.valor,
+      email: mail.valor,
+      telefone: fone.valor,
       mensagem: texto,
       lido: false,
+      /* O DESFECHO DO AVISO POR E-MAIL VAI JUNTO, e é escrito por quem envia. `null` quer dizer
+       * «ainda não se sabe» — e não «não foi enviado»: são coisas diferentes, e o painel di-lo
+       * assim. Um pedido que chegou ao painel e não saiu por e-mail não é um pedido perdido. */
+      aviso: null,
     },
   };
 }
@@ -145,13 +159,100 @@ function quantosPorLer(lista) {
   return (Array.isArray(lista) ? lista : []).filter((e) => e && !e.lido).length;
 }
 
+/**
+ * O AVISO POR E-MAIL — o pedido que sai do servidor, e não da máquina de quem escreve.
+ *
+ * «O formulário é para enviar direto, não vai abrir nada, ele vai enviar, igual a gente fez a
+ * solução quando a secretaria cadastra um novo aluno e escolhe o professor. O e-mail vai direto.»
+ *
+ * É a MESMA estrada da matrícula da aluna: `correio.enviar` (Resend), do Worker. O programa de
+ * correio de quem escreve deixa de entrar no caminho — e deixa de haver o caso em que a pessoa
+ * fecha a janela sem enviar e o pedido morre ali.
+ *
+ * O DESTINO É UM SÓ, e é o da casa: quem responde aos pedidos é a proprietária, e não a escola onde
+ * o rodapé estava quando a pessoa clicou. Um pedido feito em `breu.padd.com.br` é dela, não da
+ * escola — e é por isso que o aviso não vai para o e-mail da escola.
+ *
+ * A MENSAGEM DIZ O QUE É PRECISO PARA RESPONDER, e nada mais: quem escreveu, de onde, por onde se
+ * responde, e o que escreveu. Sem marketing, sem link de rastreio.
+ */
+const DESTINO_DO_PEDIDO = 'lastro@padd.com.br';
+
+function comporAviso(entrada, { para } = {}) {
+  const e = entrada || {};
+  const nome = String(e.nome || '').trim() || '(sem nome)';
+  const escola = String(e.escola || '').trim() || '(sem escola)';
+  const mensagem = String(e.mensagem || '').trim();
+
+  const linhas = [];
+  linhas.push('Pedido de contacto pelo site do Sistema Lastro.');
+  linhas.push('');
+  linhas.push('Nome:     ' + nome);
+  linhas.push('Escola:   ' + escola);
+  linhas.push('E-mail:   ' + (e.email || '(não informado)'));
+  linhas.push('WhatsApp: ' + (e.telefone || '(não informado)'));
+  linhas.push('Quando:   ' + (e.quando || ''));
+  linhas.push('');
+  linhas.push('Mensagem:');
+  linhas.push('');
+  linhas.push(mensagem);
+  linhas.push('');
+  /* O `reply-to` não é um campo do Resend que este sistema use; responder ao e-mail chega ao
+   * endereço da casa — e por isso o endereço de quem escreveu vai escrito no corpo, em cima. */
+  linhas.push('Para responder, escreva a ' + (e.email || '(sem e-mail)') + '.');
+  const texto = linhas.join('\n');
+
+  const escapar = (t) => String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const html = [
+    '<div style="font-family:Georgia,serif;color:#2b2b2b;line-height:1.55;max-width:34rem">',
+    '<p style="margin:0 0 16px">Pedido de contacto pelo site do Sistema Lastro.</p>',
+    '<table style="border-collapse:collapse;margin:0 0 16px;font-size:15px">',
+    '<tr><td style="padding:2px 12px 2px 0;color:#5a5a5a">Nome</td><td><strong>' + escapar(nome) + '</strong></td></tr>',
+    '<tr><td style="padding:2px 12px 2px 0;color:#5a5a5a">Escola</td><td>' + escapar(escola) + '</td></tr>',
+    '<tr><td style="padding:2px 12px 2px 0;color:#5a5a5a">E-mail</td><td>' + escapar(e.email || '—') + '</td></tr>',
+    '<tr><td style="padding:2px 12px 2px 0;color:#5a5a5a">WhatsApp</td><td>' + escapar(e.telefone || '—') + '</td></tr>',
+    '<tr><td style="padding:2px 12px 2px 0;color:#5a5a5a">Quando</td><td>' + escapar(e.quando || '—') + '</td></tr>',
+    '</table>',
+    '<p style="margin:0 0 8px;color:#5a5a5a">Mensagem</p>',
+    '<p style="margin:0 0 16px;white-space:pre-wrap">' + escapar(mensagem) + '</p>',
+    '<p style="margin:0;color:#5a5a5a">Para responder, escreva a ' + escapar(e.email || '(sem e-mail)') + '.</p>',
+    '</div>',
+  ].join('');
+
+  return {
+    para: (Array.isArray(para) && para.length ? para : [DESTINO_DO_PEDIDO]),
+    assunto: 'Fale conosco — ' + nome + ' (' + escola + ')',
+    texto,
+    html,
+  };
+}
+
+/**
+ * GRAVA O DESFECHO DO AVISO NO PEDIDO — e é pelo carimbo, pela mesma razão que `marcarLido`.
+ *
+ * PORQUE É QUE ISTO EXISTE: o pedido fica na caixa de entrada mesmo quando o e-mail não sai (sem
+ * `RESEND_API_KEY`, provedor fora do ar). Sem o desfecho, o painel mostraria os dois casos iguais —
+ * e ela não saberia, ao ver um pedido antigo, se ele chegou à caixa de correio dela ou só ali.
+ */
+function marcarAviso(lista, quando, aviso) {
+  const alvo = String(quando || '').trim();
+  if (!alvo) return Array.isArray(lista) ? lista.slice() : [];
+  return (Array.isArray(lista) ? lista : []).map((e) => (e && e.quando === alvo
+    ? Object.assign({}, e, { aviso: aviso || null })
+    : e));
+}
+
 module.exports = {
   CHAVE,
+  DESTINO_DO_PEDIDO,
   MAXIMO_NA_LISTA,
   MAXIMO_DA_MENSAGEM,
   lerEntrada,
   acrescentar,
   lerLista,
   marcarLido,
+  marcarAviso,
   quantosPorLer,
+  comporAviso,
 };
