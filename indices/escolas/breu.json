@@ -137,10 +137,10 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 1,
+      "planos": 0,
       "pos": 0,
       "recortes": 2,
-      "registros": 4
+      "registros": 3
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -156,20 +156,18 @@
     "registros": [
       "anamnese:anamnese-20261116-2201",
       "anamnese:anamnese-20261117-1407",
-      "anamnese:anamnese-20261118-1205",
-      "plano:plano-20261116-2227"
+      "anamnese:anamnese-20261118-1205"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
-          "anamnese:anamnese-20261118-1205",
-          "plano:plano-20261116-2227"
+          "anamnese:anamnese-20261118-1205"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -238,13 +236,12 @@
     ],
     "professores": [
       {
-        "contagem": 5,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
           "anamnese:anamnese-20261118-1205",
-          "ciclo:demi-plie/01/breu",
-          "plano:plano-20261116-2227"
+          "ciclo:demi-plie/01/breu"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -268,20 +265,12 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "plano:plano-20261116-2227"
-        ],
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "65368e9"
+    "commit": "97d3fc9"
   },
   "gerado_em": "2026-11-18T17:12",
   "nao_indexado": [
@@ -432,18 +421,6 @@
       "id": "anamnese:anamnese-20261118-1205",
       "professor": "demi-plie",
       "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "plano-20261116-2227",
-      "ciclo": "01",
-      "data": "2026-11-16T22:27",
-      "id": "plano:plano-20261116-2227",
-      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
-      "professor": "demi-plie",
-      "tipo": "plano",
-      "turma": "Rosa"
     }
   ],
   "versao": 7
