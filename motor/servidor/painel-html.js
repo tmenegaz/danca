@@ -1261,6 +1261,79 @@ function paginaDosProfessores({ professores, escolas, ordem }) {
 }
 
 /**
+ * A PÁGINA DOS CONTACTOS — quem procurou o sistema, e o que queria (18/11/2026).
+ *
+ * O PEDIDO, na letra: «eu preciso ter um lugar lá no painel para poder acessar quem me procurou,
+ * né? Quem quer falar comigo. E o que que a pessoa quer falar comigo e qual foi a mensagem.»
+ *
+ * A ORDEM É A DA CAIXA DE ENTRADA: o de agora primeiro. É a única ordem que responde à pergunta
+ * que traz alguém a esta página — «chegou alguma coisa?» —, e o tecto da lista (duzentos) é o que
+ * impede que um dia ela seja um arquivo.
+ *
+ * NENHUMA PEÇA NOVA: `table`, `selo`, `caixa`, `acao` — as da folha. A mensagem vai numa célula
+ * própria, com `overflow-wrap`, porque uma mensagem longa sem espaços alargaria a tabela e
+ * empurraria as outras colunas para fora do ecrã (o mesmo defeito que a faixa do ato já pagou).
+ */
+function paginaDosContatos({ contatos } = {}) {
+  const lista = Array.isArray(contatos) ? contatos : [];
+  const porLer = lista.filter((e) => e && !e.lido).length;
+
+  const corpo = lista.length
+    ? '<table>' +
+      '<thead><tr><th>Quando</th><th>Quem</th><th>Mensagem</th><th>Estado</th></tr></thead>' +
+      '<tbody>' + lista.map((e) => {
+        const quem = [
+          e.email ? '<a href="mailto:' + esc(e.email) + '">' + esc(e.email) + '</a>' : '',
+          e.telefone
+            ? '<a href="https://wa.me/55' + esc(String(e.telefone).replace(/\D/g, '').replace(/^55/, ''))
+              + '" target="_blank" rel="noopener">' + esc(e.telefone) + '</a>'
+            : '',
+        ].filter(Boolean).join('<br>');
+        return '<tr>' +
+          '<td>' + esc(quando(e.quando) || diaOuTraco(e.quando)) + '</td>' +
+          '<td>' + quem + '</td>' +
+          '<td style="overflow-wrap:anywhere">' + esc(e.mensagem) + '</td>' +
+          '<td>' + (e.lido
+            ? '<span class="selo discreto">lido</span>'
+            : '<span class="selo alerta">novo</span>') +
+            (e.lido ? '' : '<br><button class="acao secundario pequena" data-lido="' + esc(e.quando) +
+              '" type="button">Marcar como lido</button>') +
+          '</td>' +
+          '</tr>';
+      }).join('') + '</tbody></table>' +
+      '<p class="aviso">Cada linha é um pedido feito no «Fale conosco» do site. Quem escreve ainda ' +
+      'tem de mandar a mensagem pelo e-mail ou pelo WhatsApp — o registo existe para que ela não se ' +
+      'perca se ele fechar a janela sem enviar. A lista guarda os últimos 200 pedidos.</p>' +
+      '<script>' +
+      'document.addEventListener("click", function (e) {' +
+      '  var b = e.target.closest && e.target.closest("[data-lido]");' +
+      '  if (!b) return;' +
+      '  b.disabled = true;' +
+      '  fetch("/api/contatos/lido", { method: "POST", headers: { "Content-Type": "application/json" },' +
+      '    body: JSON.stringify({ quando: b.getAttribute("data-lido") }) })' +
+      '    .then(function (r) { return r.json(); })' +
+      '    .then(function (d) { if (d && d.ok) location.reload(); else b.disabled = false; })' +
+      '    .catch(function () { b.disabled = false; });' +
+      '});' +
+      '</script>'
+    : '<div class="caixa nota">' +
+      '<h2>Ninguém procurou ainda</h2>' +
+      '<p>Quando alguém escrever pelo «Fale conosco» do site, o pedido aparece aqui — com o ' +
+      'e-mail ou o telefone de quem escreveu, e a mensagem.</p>' +
+      '</div>';
+
+  return pagina({
+    titulo: 'Contatos',
+    subtitulo: porLer
+      ? porLer + (porLer === 1 ? ' pedido por ler' : ' pedidos por ler') +
+        ' — quem procurou o sistema, e o que queria.'
+      : 'Quem procurou o sistema pelo site, e o que queria.',
+    atual: 'contatos',
+    corpo: corpo + '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
+  });
+}
+
+/**
  * O FINANCEIRO — a chave que recebe, e quem paga menos (25/11/2026).
  *
  * O QUE ELA PEDIU, na letra: «vamos criar aqui o botão da onde eu coloco a minha chave Pix, tá?
@@ -2019,6 +2092,7 @@ module.exports = {
   MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
   indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
+  paginaDosContatos,
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */

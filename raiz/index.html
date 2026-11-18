@@ -322,33 +322,42 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
          O QUE ELE É: dois canais e um formulário que serve aos dois. A pessoa escreve UMA vez —
          o e-mail e o telefone são os dela, e a mensagem é o que quer dizer — e escolhe por onde
          mandar. O e-mail abre o cliente de correio dela, com o assunto e o corpo já compostos; o
-         WhatsApp abre o `wa.me` com o mesmo texto. Nenhum dos dois é enviado por aqui: não há
-         servidor no caminho, e nada fica guardado nesta página. -->
+         WhatsApp abre o `wa.me` com o mesmo texto.
+
+         E O PEDIDO FICA REGISTADO DO NOSSO LADO (18/11/2026) — «tá salvando isso aonde? eu preciso
+         ter um lugar no painel para acessar quem me procurou». Antes não ficava em sítio nenhum: se
+         a pessoa fechasse o programa de correio sem enviar, nada chegava e não havia rasto de que
+         alguém tinha tentado. O `POST /api/contato` grava o pedido antes de o canal abrir, e ele
+         aparece em `/contatos`, no painel. O envio continua a ser dela: o que se guarda é o pedido,
+         não uma mensagem que ninguém mandou. -->
     <div class="modal" id="modal-fale" hidden>
       <div class="modal-fundo" data-fechar-fale></div>
-      <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="fale-titulo">
+      <div class="modal-caixa modal-largo" role="dialog" aria-modal="true" aria-labelledby="fale-titulo">
         <div class="modal-cab">
           <h2 id="fale-titulo">Fale conosco</h2>
           <button class="modal-x" id="btn-fechar-fale" type="button" aria-label="Fechar">&times;</button>
         </div>
         <form class="form" id="form-fale">
           <div class="etapa-campos">
-            <p class="etapa-campo largo">
-              <span class="aviso">Escreva aqui e escolha por onde prefere falar conosco. Nada é
-                enviado sem você mandar: o e-mail abre no seu programa de correio, e o WhatsApp,
-                no seu WhatsApp.</span>
-            </p>
+            <p class="etapa-campo largo">Escreva aqui como quer falar conosco.</p>
             <p class="etapa-campo">
               <label class="campo-rotulo" for="fale-email">Seu e-mail</label>
               <input type="email" id="fale-email" autocomplete="email" placeholder="voce@exemplo.com.br">
             </p>
             <p class="etapa-campo">
               <label class="campo-rotulo" for="fale-telefone">Seu telefone (WhatsApp)</label>
-              <input type="tel" id="fale-telefone" autocomplete="tel" placeholder="(51) 99999-0000">
+              <!-- O TELEFONE NÃO É `type="tel"` (18/11/2026). A folha desenha os campos por TIPO, e
+                   `tel` não está na lista: o campo saía com o desenho cru do navegador no meio de
+                   uma janela desenhada — o que ela viu e chamou «muito feio, destoante». A
+                   convenção desta casa para telefone é `inputmode="tel"` num campo de texto, que é
+                   a do cadastro da escola e a do professor: o teclado do celular é o numérico, e o
+                   campo é o da folha. -->
+              <input id="fale-telefone" autocomplete="off" inputmode="tel" placeholder="(51) 99999-0000">
             </p>
             <p class="etapa-campo largo">
               <label class="campo-rotulo" for="fale-mensagem">Mensagem</label>
-              <textarea id="fale-mensagem" rows="4" placeholder="Conte o que você precisa."></textarea>
+              <textarea id="fale-mensagem" rows="4"
+                placeholder="Conte o que você precisa ou autorize que um consultor entre em contato com você."></textarea>
             </p>
             <p class="etapa-campo largo res" id="fale-res"></p>
           </div>
@@ -357,8 +366,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             <button class="acao" id="fale-por-whatsapp" type="button">Abrir o WhatsApp</button>
           </div>
         </form>
-        <p>E-mail: <a href="mailto:lastro@padd.com.br">lastro@padd.com.br</a> &middot;
-          WhatsApp: <a href="https://wa.me/5554991752662" target="_blank" rel="noopener">+55 (54) 99175-2662</a></p>
       </div>
     </div>
 
@@ -385,6 +392,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
         <a class="acao secundario" href="/escolas-apagadas" data-dono>Ver só as apagadas</a>
         <a class="acao secundario" href="/escolas-vivas" data-dono>Ver só as vivas</a>
         <a class="acao secundario" href="/professores" data-dono>Professores</a>
+        <!-- QUEM PROCUROU O SISTEMA (18/11/2026). «Eu preciso ter um lugar lá no painel para poder
+             acessar quem me procurou.» É do dono pela mesma razão do Financeiro: são pedidos
+             dirigidos a ela, com o e-mail e o telefone de quem escreveu. No público o botão não
+             chega ao HTML, e o caminho responde 404 — a marca aqui é a segunda barreira. -->
+        <a class="acao secundario" href="/contatos" data-dono>Contatos</a>
         <!-- O FINANCEIRO É DO DONO E SÓ DELE (25/11/2026): uma chave Pix e uma lista de descontos
              são a conta e a negociação dela. No público o botão nem chega ao HTML, e no servidor
              o caminho responde 404 — a marca aqui é a segunda barreira, não a primeira. -->
@@ -1932,25 +1944,65 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             }
             return corpoDoFale(d);
           }
+          /* O PEDIDO FICA REGISTADO ANTES DE O CANAL ABRIR (18/11/2026).
+           *
+           * A ORDEM NÃO É DETALHE: `mailto:` e `wa.me` NAVEGAM — a página sai de cena, e um
+           * pedido disparado depois não chegaria a lado nenhum. Regista-se primeiro, e só então
+           * se entrega a mensagem ao canal.
+           *
+           * SE O REGISTO FALHAR, O CANAL ABRE NA MESMA. A pessoa tem o que escreveu à frente, e
+           * impedi-la de mandar por causa de um erro nosso seria trocar um problema por dois. O
+           * que não se faz é dizer que ficou guardado: o recado diz que a mensagem vai pelo canal
+           * e que o pedido não ficou registado. */
+          function registarPedido() {
+            var d = lerFale();
+            return fetch("/api/contato", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: d.email, telefone: d.telefone, mensagem: d.mensagem }),
+            }).then(function (r) { return r.json().catch(function () { return {}; }); })
+              .then(function (x) { return !!(x && x.ok); })
+              .catch(function () { return false; });
+          }
           function falePorEmail() {
             var corpo = fale();
             if (!corpo) return;
-            /* `location.href` e não `window.open`: o programa de correio é um aplicativo do
-             * sistema, e a aba nova ficaria em branco depois de ele abrir. */
-            window.location.href = "mailto:" + CONTATO_EMAIL
-              + "?subject=" + encodeURIComponent("Fale conosco — Sistema Lastro")
-              + "&body=" + encodeURIComponent(corpo);
-            recadoDoFale("ok", "Abrimos o seu programa de correio com a mensagem já escrita. "
-              + "Se ele não abrir, escreva para " + CONTATO_EMAIL + ".");
+            var botao = document.getElementById("fale-por-email");
+            if (botao) botao.disabled = true;
+            registarPedido().then(function (registado) {
+              if (botao) botao.disabled = false;
+              /* `location.href` e não `window.open`: o programa de correio é um aplicativo do
+               * sistema, e a aba nova ficaria em branco depois de ele abrir. */
+              window.location.href = "mailto:" + CONTATO_EMAIL
+                + "?subject=" + encodeURIComponent("Fale conosco — Sistema Lastro")
+                + "&body=" + encodeURIComponent(corpo);
+              recadoDoFale(registado ? "ok" : "aviso",
+                (registado
+                  ? "Pedido registado. Abrimos o seu programa de correio com a mensagem já escrita — "
+                    + "envie por lá para que ela chegue."
+                  : "Não conseguimos registar o pedido aqui. Abrimos o seu programa de correio com a "
+                    + "mensagem já escrita: envie por lá, que ela chega. ")
+                + " Se ele não abrir, escreva para " + CONTATO_EMAIL + ".");
+            });
           }
           function falePorWhatsapp() {
             var corpo = fale();
             if (!corpo) return;
-            var destino = "https://wa.me/" + CONTATO_WHATSAPP + "?text=" + encodeURIComponent(corpo);
-            var janela = window.open(destino, "_blank", "noopener");
-            if (!janela) window.location.href = destino;
-            recadoDoFale("ok", "Abrimos o WhatsApp com a mensagem já escrita. Se ele não abrir, "
-              + "o número é +55 (54) 99175-2662.");
+            var botao = document.getElementById("fale-por-whatsapp");
+            if (botao) botao.disabled = true;
+            registarPedido().then(function (registado) {
+              if (botao) botao.disabled = false;
+              var destino = "https://wa.me/" + CONTATO_WHATSAPP + "?text=" + encodeURIComponent(corpo);
+              var janela = window.open(destino, "_blank", "noopener");
+              if (!janela) window.location.href = destino;
+              recadoDoFale(registado ? "ok" : "aviso",
+                (registado
+                  ? "Pedido registado. Abrimos o WhatsApp com a mensagem já escrita — envie por lá "
+                    + "para que ela chegue."
+                  : "Não conseguimos registar o pedido aqui. Abrimos o WhatsApp com a mensagem já "
+                    + "escrita: envie por lá, que ela chega.")
+                + " Se ele não abrir, o número é +55 (54) 99175-2662.");
+            });
           }
           /* O BOTÃO DO RODAPÉ VEM DEPOIS DESTE SCRIPT, e por isso não se liga por `aoClicar`
            * — `getElementById` devolveria nulo e o botão ficaria morto, a dizer «Fale conosco»

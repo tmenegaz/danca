@@ -51758,3 +51758,62 @@ ficou a reprovar um acerto. Passou a exigir a 5, com a razão escrita.
 **O que ainda não está feito.** O `mailto:` não navega num jsdom, e por isso a prova do e-mail mede
 o endereço visível na janela e o aviso do clique — não o que o navegador faz com ele. A abertura do
 WhatsApp Web a sério fica para o teste dela, no ambiente dela.
+
+## 18/11/2026 — «Tá salvando isso aonde?» — a caixa de entrada do Fale conosco
+
+**O que motivou.** Ela aprovou o «Fale conosco» e fez-lhe três ajustes de forma — e, no fim, a
+pergunta que importava: «quando a pessoa coloca o e-mail dela aqui e o telefone, o que que acontece?
+Tá salvando isso aonde? […] Eu preciso ter um lugar lá no painel para poder acessar quem me
+procurou. Quem quer falar comigo. E o que que a pessoa quer falar comigo e qual foi a mensagem.»
+
+**Não estava a salvar em sítio nenhum.** O formulário compunha a mensagem e entregava-a ao correio
+ou ao WhatsApp de quem escrevia. Quem abrisse o programa de correio e fechasse sem enviar não
+chegava a ninguém — e não havia rasto de que tivesse tentado. O que existe agora é o registo do
+lado de cá.
+
+**A decisão.**
+- O pedido é gravado **antes** de o canal abrir (`POST /api/contato`). A ordem não é detalhe:
+  `mailto:` e `wa.me` navegam, e um pedido disparado depois não chegaria a lado nenhum.
+- Se o registo falhar, **o canal abre na mesma** — e o recado diz que o pedido não ficou guardado.
+  Impedir a pessoa de mandar por um erro nosso seria trocar um problema por dois; dizer «registado»
+  sobre uma escrita que falhou seria a mentira que este sistema evita.
+- A regra vive no núcleo (`motor/nucleo/contato.js`) e é pura: a mensagem é obrigatória, e **um**
+  dos dois contactos também. A validação do e-mail e do telefone é a do cadastro da escola — duas
+  regras para o mesmo dado divergem no dia em que uma muda.
+- A caixa de entrada é **uma chave** (`contatos/entradas`), e não uma por pedido com `kv.list`: a
+  enumeração é o que já estourou a cota diária desta casa duas vezes. O preço é declarado — duas
+  submissões no mesmo instante disputam a chave, e é o mesmo que o índice dos envelopes já paga.
+- **Tecto de 200.** Um formulário de contacto não é proveniência; uma caixa de entrada que cresce
+  sem fim é um arquivo de dados pessoais que ninguém lê e que ninguém sabe que tem.
+- `/contatos` no painel: quem, quando, a mensagem, o selo «novo» e «marcar como lido». A marca é do
+  **carimbo**, não da posição — a lista muda a cada pedido novo, e um índice apontaria para o
+  vizinho. No endereço público responde 404, e sem a senha da raiz, 401.
+
+**As três correções de forma, e uma delas era um defeito a sério.**
+1. A janela passou a `modal-largo` — duas colunas, como o cadastro da escola.
+2. A introdução ficou numa linha («escreva aqui como quer falar conosco»), e a repetição do e-mail
+   e do WhatsApp saiu de dentro da janela: eles vivem no rodapé, que é onde ela os quis.
+3. **O campo do telefone não seguia a identidade porque `input[type=tel]` não existe na folha.** A
+   folha desenha os campos por TIPO, e `tel` nunca esteve na lista — este formulário foi o primeiro
+   do sistema a usá-lo, e o campo saiu com o desenho cru do navegador no meio de uma janela
+   desenhada. A convenção da casa é `inputmode="tel"` num campo de texto, como no cadastro da escola
+   e no do professor: teclado numérico no celular, campo da folha no ecrã.
+
+**Onde entrou.** `motor/nucleo/contato.js` (novo) · `motor/servidor/raiz.js` (`responderContato`,
+`/contatos`, `/api/contatos/lido`, e o caminho público) · `motor/servidor/painel-html.js`
+(`paginaDosContatos`) · `raiz/index.html` (a janela, o botão «Contatos» na coluna das ações, e o
+registo antes do canal).
+
+**Com o quê.** `provar-contatos-do-site` **28/28** (novo) · `provar-fale-conosco` **35/35** (eram
+23) · `provar-pedido-da-anamnese` 11/11 · `provar-pagina-publica` 79/79 ·
+`provar-conciliacao-do-painel` 35/35 · `provar-financeiro` 58/58 · `provar-monitoramento` 104/104 ·
+`check-identidade` 0 erros.
+
+**Controlo A/B.** O `type="tel"` reposto: **reprova 2**. O registo do pedido desligado: **reprova
+4**. O caminho público do `/api/contato` retirado: **reprova 10**.
+
+**O que ainda não está feito.** Não há limite de pedidos por origem (um `POST` repetido enche a
+caixa de entrada e empurra os antigos para fora do tecto). Não há aviso por e-mail à proprietária a
+cada pedido — o painel é onde ela lê, e um aviso por pedido seria uma segunda mensagem para a mesma
+coisa. E a caixa de entrada não entra no expurgo de escola nenhuma, porque não é de escola: é do
+sistema.

@@ -61,6 +61,9 @@ const retrato = require('../nucleo/retrato.js');
 /* AS MENSALIDADES — o livro do que foi pago, mês a mês, e a situação de cada escola (16/11/2026).
  * O núcleo é puro: quem lê o KV e quem desenha a página são as funções abaixo. */
 const mensalidades = require('../nucleo/mensalidades.js');
+/* QUEM QUER FALAR CONOSCO (18/11/2026) — o pedido do «Fale conosco»: a regra no núcleo, a caixa de
+ * entrada no KV, e a lista no painel. O núcleo valida e carimba; aqui só se lê e se grava. */
+const contato = require('../nucleo/contato.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -2957,6 +2960,70 @@ function hostDoProprietario(env) {
   return declarado || 'danca.padd.com.br';
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * O «FALE CONOSCO» — A CAIXA DE ENTRADA (18/11/2026)
+ *
+ * «Quando a pessoa coloca o e-mail dela aqui e o telefone, o que que acontece? Tá salvando isso
+ * aonde? […] Eu preciso ter um lugar lá no painel para poder acessar quem me procurou.»
+ *
+ * ANTES, EM SÍTIO NENHUM. A mensagem era composta e entregue ao correio ou ao WhatsApp de quem
+ * escrevia; se a pessoa fechasse a janela do programa de correio sem enviar, nada chegava — nem o
+ * facto de ela ter tentado. O que existe agora é o registo do lado de cá.
+ *
+ * A ROTA É PÚBLICA, e tem de ser: quem a chama não tem senha nenhuma — está no site, a pedir para
+ * falar. É a SEGUNDA porta pública que ESCREVE (a primeira é criar escola, e a do convite), e por
+ * isso o que ela aceita é mínimo e o que ela recusa é explícito: nada de campos livres, nada de
+ * lista de destinatários, nada que possa ser usado para escrever noutro sítio.
+ *
+ * O QUE ELA NÃO FAZ: não envia e-mail. Quem manda a mensagem é a pessoa, pelo canal que escolher —
+ * e o registo é para que a mensagem não se perca se ela não a mandar. Um aviso por e-mail à
+ * proprietária a cada pedido seria uma segunda mensagem para a mesma coisa, e mais uma chave gasta
+ * no Resend; o painel é onde ela lê.
+ */
+async function responderContato(request, env) {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ ok: false, erro: 'use POST' }), {
+      status: 405, headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+  const kv = env && env.PADD_KV;
+  if (!kv) {
+    return new Response(JSON.stringify({
+      ok: false,
+      erro: 'o sistema não tem onde guardar o pedido agora — escreva para lastro@padd.com.br',
+    }), { status: 503, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+  }
+  let corpo = {};
+  try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+
+  const lido = contato.lerEntrada(corpo);
+  if (!lido.ok) {
+    return new Response(JSON.stringify({ ok: false, erro: lido.erro }), {
+      status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+
+  try {
+    const lista = contato.lerLista(await kv.get(contato.CHAVE));
+    await kv.put(contato.CHAVE, JSON.stringify(contato.acrescentar(lista, lido.entrada)));
+  } catch (erro) {
+    /* A MENSAGEM NÃO SE PERDE POR ISTO. A pessoa ainda tem o canal à frente — o correio e o
+     * WhatsApp são abertos de qualquer forma —, e a resposta di-lo para que ela saiba que o
+     * pedido não ficou registado e mande a mensagem pelo canal. Dizer «registado» sobre uma
+     * escrita que falhou seria a mentira que este sistema inteiro evita. */
+    return new Response(JSON.stringify({
+      ok: false,
+      registado: false,
+      erro: 'não foi possível guardar o pedido — mande a mensagem pelo e-mail ou pelo WhatsApp',
+    }), { status: 502, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+  }
+
+  return new Response(JSON.stringify({ ok: true, registado: true }), {
+    status: 201,
+    headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
+
 function ehPaginaPublica(request, env) {
   const host = hostDaRequisicao(request);
   if (!host) return false;                    // sem host legível, não se inventa um modo
@@ -3244,6 +3311,10 @@ async function fetch(request, env) {
       || url.pathname === '/index.html'
       || url.pathname.startsWith('/assets/')
       || (url.pathname === '/api/criar-escola' && request.method === 'POST')
+      /* O «FALE CONOSCO» É PÚBLICO, e é a razão de a página existir (18/11/2026). Escreve, e por
+       * isso é a segunda porta pública que escreve — o que ela aceita é mínimo e é validado em
+       * `responderContato`: uma mensagem, e um dos dois contactos. */
+      || (url.pathname === '/api/contato' && request.method === 'POST')
       || url.pathname === '/api/pagina'
       || ehConvite
       || ehEnvioDoConvite;
@@ -3253,6 +3324,7 @@ async function fetch(request, env) {
         headers: { 'Content-Type': 'text/plain;charset=utf-8', 'Cache-Control': 'no-store' },
       });
     }
+    if (url.pathname === '/api/contato') return await responderContato(request, env);
     if (url.pathname === '/api/pagina') {
       return await respostaDaPagina(env, 'publico');
     }
@@ -3298,6 +3370,44 @@ async function fetch(request, env) {
     return new Response(null, {
       status: 301,
       headers: { Location: url.pathname === '/painel' ? '/' : '/escolas-apagadas' },
+    });
+  }
+
+  /* ── QUEM PROCUROU O SISTEMA (18/11/2026) ──────────────────────────────────────────────
+   *
+   * A CAIXA DE ENTRADA do «Fale conosco», e o painel é o único sítio onde ela se lê. O caminho
+   * está FORA da lista de excepções públicas — no endereço público responde 404 —, e o que o
+   * formulário público faz é `POST`, que tem porta própria (`responderContato`).
+   *
+   * A ESCRITA PÚBLICA CHEGA AQUI TAMBÉM, e é de propósito: a página que tem o formulário é a
+   * mesma nos dois endereços. Sem esta linha, o «Fale conosco» funcionava no site e falhava no
+   * painel — e o defeito apareceria exactamente a quem estivesse a experimentar o botão. */
+  if (url.pathname === '/api/contato' && request.method === 'POST') {
+    return await responderContato(request, env);
+  }
+  if (url.pathname === '/contatos') {
+    const kv = env && env.PADD_KV;
+    const lista = contato.lerLista(kv ? await kv.get(contato.CHAVE) : null);
+    return painel.resposta(painel.paginaDosContatos({ contatos: lista }));
+  }
+  /* MARCAR COMO LIDO — o único gesto desta página, e é `POST` porque escreve. A marca é do
+   * CARIMBO e não da posição: a lista muda a cada pedido novo, e um índice apontaria para o
+   * vizinho. */
+  if (url.pathname === '/api/contatos/lido' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+    const kv = env && env.PADD_KV;
+    if (!kv) {
+      return new Response(JSON.stringify({ ok: false, erro: 'sem KV nesta instalação' }), {
+        status: 503, headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      });
+    }
+    const lista = contato.lerLista(await kv.get(contato.CHAVE));
+    const marcada = contato.marcarLido(lista, corpo.quando);
+    await kv.put(contato.CHAVE, JSON.stringify(marcada));
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
     });
   }
 
