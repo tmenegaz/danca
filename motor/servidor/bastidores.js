@@ -606,8 +606,74 @@ async function gravarAparencia(kv, escola, mudanca, por) {
 async function professores(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/professores');
 }
+/**
+ * A ALUNA TEM UM IDENTIFICADOR, E ELE NÃO É O APELIDO (18/11/2026).
+ *
+ * O PROBLEMA, na letra dela: «ao recriar o aluno que já tem proveniência, eu tenho um problema
+ * também, porque o aluno tem a sua relação com a proveniência pelo nome do aluno. E se eu criar de
+ * novo um aluno que se chama aluno A pelo apelido, como é que vai ficar? E ele é outra pessoa, ele
+ * é outro aluno A, ele tem outro CPF, ele tem outro pai e mãe, ele nasceu em outra cidade.»
+ *
+ * O APELIDO É RÓTULO, NÃO IDENTIDADE. Enquanto uma aluna está na escola, os dois coincidem — e é
+ * isso que faz os documentos (que dizem o apelido, porque um humano os lê) serem legíveis e
+ * verdadeiros. Quando ela sai, o apelido fica livre; quem o usar a seguir é OUTRA pessoa, e o
+ * registo antigo tem de continuar a apontar para a primeira. Quem faz essa separação é o `id`.
+ *
+ * ELE NASCE NA CRIAÇÃO E NUNCA SE REPETE. O primeiro «Aluno A» fica `aluno-a`; o segundo, criado
+ * depois de o primeiro ter saído, fica `aluno-a-2`. O sufixo não é bonito de propósito: um id que
+ * se pudesse confundir com outro id seria pior do que um feio.
+ *
+ * A SAÍDA NÃO BORRA O REGISTO — marca-o (`desligadaEm`). É a mesma regra do professor desligado: o
+ * que a pessoa fez na escola é proveniência, e o que a lista mostra é quem está na escola AGORA.
+ * Sem o registo, o id não teria onde viver, e a segunda «Aluno A» herdaria a história da primeira
+ * sem ninguém dar por isso.
+ *
+ * O QUE O `id` LIGA HOJE: o cadastro e o vínculo (`matriculas.alunaId`). A cadeia pedagógica
+ * — o envelope da anamnese, o elenco, o PO, os documentos — continua a dizer o APELIDO, e está
+ * certo: esses ficheiros são lidos por pessoas, e dentro da janela em que ela esteve na escola o
+ * apelido identifica uma só pessoa (é o que a unicidade entre as activas garante). Um `alunaId`
+ * no envelope é o passo seguinte, e não é preciso para o defeito de hoje.
+ */
+function idLegadoDaAluna(apelido) {
+  return slugificar(String(apelido == null ? '' : apelido)) || 'aluna';
+}
+
+/** O registo normalizado. Um apelido solto na lista é o registo antigo, e o id dele é derivado. */
+function normalizarRegistoDeAluna(bruto) {
+  if (bruto && typeof bruto === 'object') {
+    const apelido = String(bruto.apelido || bruto.nome || '').trim();
+    if (!apelido) return null;
+    const registo = { id: String(bruto.id || '').trim() || idLegadoDaAluna(apelido), apelido };
+    for (const campo of ['criadaEm', 'desligadaEm', 'motivoDaSaida']) {
+      const valor = String(bruto[campo] == null ? '' : bruto[campo]).trim();
+      if (valor) registo[campo] = valor;
+    }
+    return registo;
+  }
+  const apelido = String(bruto == null ? '' : bruto).trim();
+  return apelido ? { id: idLegadoDaAluna(apelido), apelido } : null;
+}
+
+/** O id de uma aluna nova: o do apelido, ou o primeiro sufixo que nunca foi usado. */
+function idNovoDaAluna(registos, apelido) {
+  const base = idLegadoDaAluna(apelido);
+  const usados = new Set((Array.isArray(registos) ? registos : []).map((r) => r && r.id));
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(base + '-' + n)) n += 1;
+  return base + '-' + n;
+}
+
+/** TODOS os registos, inclusive os de quem já saiu — é o que a exclusão e o id precisam. */
+async function registosDeAlunas(kv, escola, opcoes) {
+  const brutos = await lerLista(kv, RAIZ + '/' + escola + '/alunas', opcoes && opcoes.estrito);
+  return brutos.map(normalizarRegistoDeAluna).filter(Boolean);
+}
+
+/** AS ALUNAS DA ESCOLA — as que estão nela agora. É a leitura de todas as listagens. */
 async function alunas(kv, escola, opcoes) {
-  return lerLista(kv, RAIZ + '/' + escola + '/alunas', opcoes && opcoes.estrito);
+  const registos = await registosDeAlunas(kv, escola, opcoes);
+  return registos.filter((r) => !r.desligadaEm).map((r) => r.apelido);
 }
 
 /* ================= O VÍNCULO DA ALUNA — a modalidade e o professor (18/11/2026) =============
@@ -681,10 +747,29 @@ function estadoDaAnamnese(matricula, anamneses) {
   const aluna = String((matricula && matricula.aluna) || '').trim();
   const modalidade = String((matricula && matricula.modalidade) || '').trim();
   if (!aluna) return { estado: 'pedida', desde: (matricula && matricula.pedidaEm) || '' };
+  /* A ANAMNESE É DE UMA PESSOA, E NÃO DE UM APELIDO (18/11/2026).
+   *
+   * O DEFEITO QUE ISTO FECHA. As anamneses são indexadas pelo `contexto.aluna`, que é o apelido.
+   * Quando «Aluno A» sai da escola e outra «Aluno A» entra, o vínculo novo procurava a anamnese
+   * pelo nome e encontrava a da primeira — e a tela dizia «anamnese feita» sobre um corpo que
+   * ninguém tinha entrevistado. O mesmo `apelido` a identificar duas pessoas é exactamente o que a
+   * exclusão com registo veio impedir.
+   *
+   * A REGRA, e ela vale nos dois sentidos:
+   *   · o vínculo tem `alunaId` e o envelope também → têm de ser iguais;
+   *   · o envelope NÃO tem `alunaId` (gravado antes de hoje) → pertence ao PRIMEIRO titular do
+   *     apelido, que é o id derivado (`aluno-a`). É o que mantém as escolas antigas a ler as suas
+   *     anamneses sem migração, e o que impede a segunda «Aluno A» de as herdar.
+   *   · o vínculo não tem `alunaId` (anterior a hoje) → cai na mesma derivação, e o par antigo
+   *     continua a casar consigo próprio. */
+  const idDoVinculo = String((matricula && matricula.alunaId) || '').trim()
+    || idLegadoDaAluna(aluna);
+  const idDoEnvelope = (c) => String((c && c.alunaId) || '').trim() || idLegadoDaAluna(aluna);
   const achada = (Array.isArray(anamneses) ? anamneses : []).find((a) => {
     const c = (a && (a.contexto || a.meta)) || {};
     return String(c.aluna || '').trim() === aluna
-      && String(c.modalidade || '').trim() === modalidade;
+      && String(c.modalidade || '').trim() === modalidade
+      && idDoEnvelope(c) === idDoVinculo;
   });
   if (!achada) return { estado: 'pedida', desde: (matricula && matricula.pedidaEm) || '' };
   return { estado: 'concluida', desde: String(achada.gerado_em || achada.quando || '').slice(0, 10) };
@@ -991,6 +1076,103 @@ async function apagarElenco(env, kv, escola, repoLinhas, id, { por } = {}) {
   }
   const usos = await linhasDeBaseEmUso(env, escola, alvo);
   return { ok: true, removida, usos, eraActo };
+}
+
+/**
+ * A ALUNA SAI DA ESCOLA, E SAI DOS ELENCOS (18/11/2026).
+ *
+ * É o acto que a exclusão do cadastro dispara. Percorre os elencos — os RASCUNHOS do KV e as
+ * VERSÕES do repositório — e, em cada um que a tenha, grava uma versão nova sem ela, com o facto
+ * escrito (`saiu`). A versão anterior fica: o recorte daquele dia tinha aquela aluna, e isso não
+ * deixou de ser verdade por ela ter saído depois.
+ *
+ * A ORDEM É A DO LADO SEGURO, e é a mesma da transferência: **primeiro os elencos, depois o
+ * cadastro**. Se uma versão falhar, nada se apaga — a resposta é um 502 que nomeia o elenco, e
+ * repetir completa o que faltou (um elenco que já não a tem devolve `ausente` e é saltado, por
+ * isso a repetição não cria versões vazias).
+ *
+ * O ELENCO QUE FICA COM ZERO NÃO SE APAGA, ao contrário do que faz a transferência. Aqui há uma
+ * Turma a apontar para ele, e uma lápide partiria o ponteiro. Fica com zero — a listagem já tem o
+ * selo que o diz («sem alunas: a turma ficou sem corpo») — e a resposta avisa, porque quem apaga a
+ * aluna tem de saber o que deixou atrás.
+ *
+ * Devolve `{ versoes, rascunhos, avisos, falhas }`. `falhas` vazio é o único desfecho que permite
+ * apagar o cadastro.
+ */
+async function sairDosElencos(env, kv, escola, repoLinhas, aluna, { quando, motivo, por } = {}) {
+  const apelido = String(aluna || '').trim();
+  const relato = { versoes: [], rascunhos: [], avisos: [], falhas: [] };
+  if (!apelido) return relato;
+  const em = String(quando || new Date().toISOString());
+  const turmasDaEscola = await curadorias(kv, escola);
+
+  /* 1. OS RASCUNHOS. Não são facto — são trabalho a meio —, e por isso não ganham versão: sai ela
+   * da lista e mais nada. Uma versão de um rascunho seria um acto que nunca existiu. */
+  const rascunhos = await rascunhosDe(kv, escola);
+  let mexeu = false;
+  const novos = rascunhos.map((r) => {
+    const decisao = transferencia.sairDoElenco(r, { aluna: apelido, quando: em, motivo, por });
+    if (!decisao.ok) return r;
+    mexeu = true;
+    relato.rascunhos.push(String(r.id));
+    return decisao.linha;
+  });
+  if (mexeu) {
+    /* O PUT GUARDA A LISTA INTEIRA, e o `rascunhosDe` já filtrou os registos antigos (sem
+     * `campos`). Escrever só os filtrados apagaria os outros — por isso o que se guarda é a lista
+     * crua do KV com as linhas trocadas. É a mesma armadilha de `rascunhosDeLinhasDeBase`. */
+    const crua = await rascunhosDeLinhasDeBase(kv, escola);
+    const porId = new Map(novos.map((l) => [String(l && l.id), l]));
+    await kv.put(RAIZ + '/' + escola + '/linhas-de-base', JSON.stringify(
+      crua.map((l) => (l && porId.has(String(l.id)) ? porId.get(String(l.id)) : l))));
+  }
+
+  /* 2. OS ACTOS DO REPOSITÓRIO. Sem repositório não há série onde escrever a versão — e a resposta
+   * di-lo em vez de fingir que o elenco ficou limpo. O cadastro NÃO se apaga nesse caso: a aluna
+   * ficaria fora da escola e dentro do corpo, e nada o diria. */
+  if (!repoLinhas || !repoLinhas.activo) {
+    relato.falhas.push({
+      erro: 'esta escola não tem repositório configurado ('
+        + ((repoLinhas && repoLinhas.motivo) || 'sem token') + '): a saída da aluna tem de ficar '
+        + 'escrita nos elencos, e sem repositório não há onde. Nada foi apagado.',
+    });
+    return relato;
+  }
+  const vigentes = await repoLinhas.vigentes().catch(() => null);
+  if (!Array.isArray(vigentes)) {
+    relato.falhas.push({ erro: 'não consegui ler os elencos do repositório agora — nada foi apagado' });
+    return relato;
+  }
+  for (const linha of vigentes) {
+    const decisao = transferencia.sairDoElenco(linha, {
+      aluna: apelido, quando: em, motivo, por: por || null,
+    });
+    if (!decisao.ok) continue;
+    const gravado = await repoLinhas.concluir(decisao.linha, {
+      quando: em,
+      mensagem: 'chore(elenco): ' + apelido + ' sai do elenco — removida do cadastro da escola',
+    });
+    if (!gravado.ok) {
+      relato.falhas.push({
+        id: String(linha.id), nome: String(linha.nome || linha.id),
+        erro: gravado.erro || 'não consegui gravar a versão',
+      });
+      continue;
+    }
+    relato.versoes.push({
+      id: String(linha.id), nome: String(linha.nome || linha.id),
+      carimbo: gravado.carimbo || null, zerada: decisao.zerada === true,
+    });
+    if (decisao.zerada) {
+      const turmas = turmasDoElenco(turmasDaEscola, linha.id);
+      relato.avisos.push('o elenco «' + String(linha.nome || linha.id) + '» ficou sem nenhuma aluna'
+        + (turmas.length
+          ? ' — e a Turma ' + (turmas.length === 1 ? '«' + turmas[0] + '»' : '«' + turmas.join('», «') + '»')
+            + ' lê este corpo. Escolha outro elenco para a Turma, ou traga as alunas de volta'
+          : ''));
+    }
+  }
+  return relato;
 }
 
 /**
@@ -4665,7 +4847,16 @@ function lateralDaProducao(opcoes) {
     '</nav>';
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal, registosDeAlunas) {
+  /* O ID DE CADA ALUNA, À MÃO PARA O CARTÃO (18/11/2026). Ver `idLegadoDaAluna`: o vínculo é
+   * filtrado pelo id, e não pelo apelido, porque o apelido pode ter pertencido a outra pessoa.
+   * O mapa é derivado da lista de registos que a rota já leu — nenhuma leitura nova, e o default
+   * vazio serve as provas antigas (sem registos, cai na derivação do apelido, que é o
+   * comportamento de antes). */
+  const idPorApelido = new Map();
+  for (const r of (Array.isArray(registosDeAlunas) ? registosDeAlunas : [])) {
+    if (r && r.apelido) idPorApelido.set(String(r.apelido).trim(), String(r.id || '').trim());
+  }
   /* OS VÍNCULOS DA ALUNA ENTRAM NA PÁGINA (18/11/2026). É a lista `matriculas` que o cadastro
    * em dois passos grava — o par (aluna × modalidade) com o professor que fará a anamnese. A
    * listagem das alunas precisa dela para dizer «faz ballet, turma rosa, prof. fulano», e a
@@ -5122,8 +5313,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           observada: Boolean(alunasObservadas && alunasObservadas.has(String(a).trim())),
         });
         const turmasDela = turmasDaAluna.get(String(a).trim()) || [];
+        /* O VÍNCULO É DELA, E NÃO DO NOME (18/11/2026). Ver `idLegadoDaAluna`: o apelido passou a
+         * poder pertencer a outra pessoa quando a anterior saiu, e um vínculo sem `alunaId`
+         * (gravado antes de hoje) pertence ao primeiro titular. Filtrar só por `aluna` fazia a
+         * segunda «Aluno A» herdar a anamnese e o professor da primeira. */
+        const idDela = idPorApelido.get(String(a).trim()) || idLegadoDaAluna(a);
+        const idDoVinculo = (m) => String(m.alunaId || '').trim() || idLegadoDaAluna(m.aluna);
         const meus = (Array.isArray(matriculasDaEscola) ? matriculasDaEscola : [])
-          .filter((m) => m && !m.substituidaPor && String(m.aluna || '').trim() === String(a).trim());
+          .filter((m) => m && !m.substituidaPor && idDoVinculo(m) === idDela);
 
         /* OS SELOS. «vinculada» quer dizer o que sempre quis — está numa curadoria com plano de
          * ensino, e apagá-la romperia a proveniência. O que ela pediu a mais é o DESTINO: «na
@@ -16596,7 +16793,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
-    '    if (d.ok) { location.reload(); }' +
+    /* O QUE A EXCLUSÃO MEXEU ATRÁS, DITO ANTES DE RECARREGAR (18/11/2026).
+     *
+     * Apagar uma aluna agora grava uma versão nova em cada elenco que a tinha, e pode deixar um
+     * elenco sem ninguém. Recarregar em silêncio esconderia as duas coisas — e a segunda é a que
+     * precisa de providência (a Turma ficou sem corpo). Só aparece quando há o que dizer: uma
+     * exclusão que não tocou em elenco nenhum recarrega como sempre. */
+    '    if (d.ok) {' +
+    '      var atras = [];' +
+    '      if (d.elencos && d.elencos.length) {' +
+    '        atras.push("saiu do(s) elenco(s): " + d.elencos.map(function(e){ return "«" + e.nome + "»"; }).join(", ") + ".");' +
+    '      }' +
+    '      if (d.rascunhos && d.rascunhos.length) {' +
+    '        atras.push("saiu do rascunho de elenco: " + d.rascunhos.join(", ") + ".");' +
+    '      }' +
+    '      if (d.avisos && d.avisos.length) { atras.push(d.avisos.join(" ")); }' +
+    '      if (atras.length) { alert("Excluída. " + atras.join(" ")); }' +
+    '      location.reload();' +
+    '    }' +
     '    else { liberar(); alert("Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ liberar(); alert("Erro: " + err.message); });' +
     '});' +
@@ -16684,6 +16898,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * quem tem retrato — ver `registradas` em `/api/bastidores/alunas-com-anamnese`. É este número
      * que distingue «falta a anamnese» de «falta a aluna», e a diferença decide o recado. */
     'var ALUNAS_REGISTRADAS = 0;' +
+    /* QUANTAS ANAMNESES SÃO DE QUEM JÁ SAIU (18/11/2026). A lista do passo 2 cruza o cadastro com os
+     * retratos, e por isso uma anamnese de uma aluna que deixou a escola deixa de se oferecer. Sem
+     * este número, ela desaparecia do ecrã sem explicação — e o professor saberia que a fez. */
+    'var ALUNAS_FORA_DO_CADASTRO = 0;' +
     // O PASSO EM QUE SE ESTÁ, e as faltas de cada passo. Uma variável, não um atributo no DOM: é
     // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
     'var LB_PASSO = 1;' +
@@ -17061,6 +17279,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ? novas + (novas === 1 ? " aluna tem anamnese nova" : " alunas têm anamnese nova") +' +
     '        " — marcada com «novo». Escolha de quem é o corpo que este trabalho observa."' +
     '      : "Escolha de quem é o corpo que este trabalho observa. Nenhuma anamnese nova por ler.";' +
+    /* QUEM SAIU DA ESCOLA NÃO SE OFERECE, E O SILÊNCIO SOBRE ISSO É EXPLICADO (18/11/2026).
+     *
+     * A anamnese dela continua no acervo — é proveniência —, e por isso ela deixa de aparecer aqui
+     * sem desaparecer de lado nenhum. Sem esta frase, o professor que fez aquela anamnese veria a
+     * aluna desaparecer da lista e concluiria que o registo se perdeu: é a mesma leitura errada do
+     * «sem apelido», ao contrário. */
+    '    if (ALUNAS_FORA_DO_CADASTRO > 0) {' +
+    '      nota.textContent += " " + ALUNAS_FORA_DO_CADASTRO + (ALUNAS_FORA_DO_CADASTRO === 1' +
+    '        ? " anamnese é de uma aluna que já saiu desta escola"' +
+    '        : " anamneses são de alunas que já saíram desta escola") +' +
+    '        " — ficam na proveniência, e não se oferecem aqui.";' +
+    '    }' +
     '  }' +
     '  Array.prototype.slice.call(alvo.querySelectorAll("input")).forEach(function(x){' +
     '    x.addEventListener("change", function(){ pintarTravasLb(); });' +
@@ -17082,6 +17312,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * campo ausente — é «não sei», e «não sei» não se pinta como «não há». */
     '      var leu = Boolean(d && d.ok !== false && typeof d.registradas === "number");' +
     '      ALUNAS_REGISTRADAS = leu ? d.registradas : null;' +
+    '      ALUNAS_FORA_DO_CADASTRO = leu && Number(d.foraDoCadastro) > 0 ? Number(d.foraDoCadastro) : 0;' +
     '      pintarAlunas(alunasMarcadas());' +
     '      var aviso = document.getElementById("lb-sem-anamnese");' +
     '      if (aviso) {' +
@@ -17111,6 +17342,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * passo 2 ficava calada — e o aviso do topo, que nunca era escrito, também. O professor via
      * uma secção sem alunas e sem explicação: a mesma leitura que «não há nenhuma». */
     '      ALUNAS_REGISTRADAS = null;' +
+    '      ALUNAS_FORA_DO_CADASTRO = 0;' +
     '      var aviso = document.getElementById("lb-sem-anamnese");' +
     '      if (aviso) {' +
     '        aviso.hidden = false;' +
@@ -18279,6 +18511,10 @@ async function fetch(request, env, extras) {
      * diz QUANDO a ficha foi corrigida, e o `atualizadoEm` do professor principal vive nesta chave.
      * Lê-se aqui porque `paginaProducao` é desenho puro e não deve ir ao KV buscar um campo. */
     const registoDoDonoPrincipal = await registoDoDono(env, kv, escola);
+    /* OS REGISTOS DAS ALUNAS, COM O ID (18/11/2026) — o cartão filtra os vínculos pelo id. São a
+     * MESMA leitura de `alunas(kv, escola)` (a lista das activas sai desta), e por isso não custa
+     * uma segunda ida ao KV: uma lista, dois usos. */
+    const registosDasAlunas = await registosDeAlunas(kv, escola);
     const donoSlug = slugDoDono(env);
     const curs = await curadorias(kv, escola);
     // O MAPA COMPOSTO (03/11/2026): o que a turma aprende é o mapa antigo somado ao que as
@@ -18316,7 +18552,7 @@ async function fetch(request, env, extras) {
     const matriculasDaEscola = await matriculas(kv, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
       aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola,
-      registoDoDonoPrincipal));
+      registoDoDonoPrincipal, registosDasAlunas));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -18793,23 +19029,35 @@ async function fetch(request, env, extras) {
     }
     const apelido = String(corpo.apelido || '').trim();
     if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
-    const lista = await alunas(kv, escola);
-    if (lista.indexOf(apelido) !== -1) return json(409, { ok: false, erro: 'já existe uma aluna com este apelido' });
+    /* A UNICIDADE É ENTRE AS ACTIVAS (18/11/2026). Com o registo que fica depois de a aluna sair,
+     * um apelido usado por quem já saiu volta a estar livre — e é isso que permite recriar «Aluno
+     * A» como OUTRA pessoa. O que não pode haver são duas «Aluno A» ao mesmo tempo: dentro da
+     * janela em que as duas estariam activas, o apelido deixaria de identificar uma só, e os
+     * documentos (que dizem o apelido) passariam a ser ambíguos. */
+    const registos = await registosDeAlunas(kv, escola);
+    const activas = registos.filter((r) => !r.desligadaEm);
+    if (activas.some((r) => r.apelido === apelido)) {
+      return json(409, { ok: false, erro: 'já existe uma aluna com este apelido' });
+    }
     /* A TRAVA DO PISO, no eixo das alunas (16/11/2026). A ORDEM IMPORTA: a repetição responde
      * primeiro, porque «já existe uma aluna com este apelido» é mais específico e mais útil do que
      * «o piso está cheio» para quem tentou cadastrar quem já lá está. O piso vem depois, e conta o
-     * CADASTRO de alunas — não o elenco nem a curadoria, que são outra coisa e podem repetir. */
+     * CADASTRO de alunas — não o elenco nem a curadoria, que são outra coisa e podem repetir.
+     *
+     * E CONTA AS ACTIVAS (18/11/2026): o lugar de quem saiu fica livre. Uma escola que apagou cinco
+     * alunas não pode continuar a pagar por cinco lugares que ninguém ocupa. */
     {
       const trava = comercialDoNucleo.travaDoPiso({
         contrato: await comercialDoNucleo.lerComercial(kv, escola),
         eixo: 'alunos',
-        cadastrados: lista.length,
+        cadastrados: activas.length,
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
     }
-    lista.push(apelido);
-    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
-    return json(201, { ok: true, aluna: apelido });
+    const registo = { id: idNovoDaAluna(registos, apelido), apelido, criadaEm: new Date().toISOString() };
+    registos.push(registo);
+    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registos));
+    return json(201, { ok: true, aluna: apelido, id: registo.id });
   }
 
   /* GET /api/bastidores/matriculas — os vínculos das alunas (18/11/2026).
@@ -18888,16 +19136,28 @@ async function fetch(request, env, extras) {
      *
      * O PISO CONTA SÓ A ALUNA NOVA. Um vínculo novo numa aluna que já estava no cadastro não
      * consome lugar nenhum no piso: o lugar já era dela. */
-    const cadastro = await alunas(kv, escola);
-    if (cadastro.indexOf(aluna) === -1) {
+    /* O REGISTO DA ALUNA, E O ID DELE VAI NO VÍNCULO (18/11/2026).
+     *
+     * É este `alunaId` que impede a confusão que ela descreveu: apagar «Aluno A» e criar outra
+     * «Aluno A» dão dois registos com ids diferentes, e o cartão de cada uma mostra só os vínculos
+     * DELA. Sem ele, a segunda herdava a anamnese e o professor da primeira — dois factos que
+     * pertenciam a outra pessoa.
+     *
+     * O PISO CONTA SÓ A ALUNA NOVA, e entre as ACTIVAS: o lugar de quem saiu fica livre. */
+    const registosDaAluna = await registosDeAlunas(kv, escola);
+    let registoDaAluna = registosDaAluna.find((r) => r.apelido === aluna && !r.desligadaEm) || null;
+    if (!registoDaAluna) {
+      const activas = registosDaAluna.filter((r) => !r.desligadaEm).length;
       const trava = comercialDoNucleo.travaDoPiso({
         contrato: await comercialDoNucleo.lerComercial(kv, escola),
         eixo: 'alunos',
-        cadastrados: cadastro.length,
+        cadastrados: activas,
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
-      cadastro.push(aluna);
-      await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(cadastro));
+      registoDaAluna = { id: idNovoDaAluna(registosDaAluna, aluna), apelido: aluna,
+        criadaEm: new Date().toISOString() };
+      registosDaAluna.push(registoDaAluna);
+      await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registosDaAluna));
     }
 
     const lista = await matriculas(kv, escola);
@@ -18968,6 +19228,19 @@ async function fetch(request, env, extras) {
           erro: 'este vínculo é da aluna «' + registo.aluna + '» — o apelido não se muda por aqui',
         });
       }
+      /* O MESMO APELIDO PODE SER OUTRA PESSOA (18/11/2026). Se o vínculo pertence ao primeiro
+       * titular do apelido e quem está à frente é o segundo, corrigir «o vínculo dela» seria
+       * corrigir o de outra pessoa. A frase nomeia o id porque é a única coisa que os distingue. */
+      const idDoVinculoEmCausa = String(registo.alunaId || '').trim() || idLegadoDaAluna(aluna);
+      if (idDoVinculoEmCausa !== registoDaAluna.id) {
+        return json(400, {
+          ok: false,
+          erro: 'este vínculo é de outra pessoa que usou o apelido «' + aluna + '» (registo '
+            + idDoVinculoEmCausa + '; a aluna de agora é ' + registoDaAluna.id + '). O apelido '
+            + 'pode repetir-se entre quem já saiu e quem chega, mas a história de cada uma é a '
+            + 'dela — abra o vínculo pela linha dele, na ficha da aluna certa.',
+        });
+      }
       if (alunaVinculadaA(await paresComPlano(env, escola), await curadorias(kv, escola), aluna)) {
         return json(409, {
           ok: false,
@@ -19013,6 +19286,11 @@ async function fetch(request, env, extras) {
     const novo = corrigido || {
       id: idDaMatricula(aluna, modalidade, lista),
       aluna, modalidade, professor,
+      /* O VÍNCULO É DELA, E NÃO DO NOME (18/11/2026). Ver `idLegadoDaAluna`: o apelido identifica
+       * uma pessoa enquanto ela está na escola, e o `id` identifica-a sempre. O vínculo antigo
+       * — sem `alunaId`, gravado antes de hoje — pertence ao primeiro titular do apelido, e é essa
+       * a regra que a leitura aplica. */
+      alunaId: registoDaAluna.id,
       pedidaEm: hoje,
       por: String(corpo.por || 'direção').trim() || 'direção',
     };
@@ -19086,9 +19364,28 @@ async function fetch(request, env, extras) {
     }
     const apelido = String(corpo.apelido || '').trim();
     if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
-    const lista = await alunas(kv, escola);
-    const idx = lista.indexOf(apelido);
-    if (idx === -1) return json(404, { ok: false, erro: 'aluna não encontrada' });
+    /* O REGISTO, E NÃO A LISTA DAS ACTIVAS (18/11/2026). A exclusão precisa do registo para o
+     * poder marcar — a lista das activas já não a tem depois de ela sair, e uma segunda exclusão
+     * tem de dizer «já saiu» em vez de «não encontrada». */
+    const registos = await registosDeAlunas(kv, escola);
+    /* A ACTIVA PRIMEIRO (18/11/2026). O apelido pode ter mais do que um registo — o de quem saiu
+     * fica —, e a exclusão é sobre quem está na escola agora. Procurar só pelo apelido encontrava o
+     * registo antigo e respondia «já saiu» a quem tinha acabado de entrar com o mesmo nome. */
+    const iRegisto = registos.findIndex((r) => r.apelido === apelido && !r.desligadaEm);
+    if (iRegisto === -1) {
+      const saiu = registos.find((r) => r.apelido === apelido && r.desligadaEm);
+      if (saiu) {
+        return json(404, {
+          ok: false,
+          erro: 'a aluna «' + apelido + '» já saiu desta escola em '
+            + dataBr(String(saiu.desligadaEm).slice(0, 10))
+            + '. O registo fica — é o que liga a proveniência dela —, e o apelido pode ser usado por '
+            + 'outra pessoa a partir de agora.',
+          jaSaiu: true,
+        });
+      }
+      return json(404, { ok: false, erro: 'aluna não encontrada' });
+    }
     // PROVENIÊNCIA (18/10/2026): a aluna está numa curadoria? E a curadoria já tem plano?
     {
       const pares = await paresComPlano(env, escola);
@@ -19102,9 +19399,39 @@ async function fetch(request, env, extras) {
         });
       }
     }
-    lista.splice(idx, 1);
-    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
-    return json(200, { ok: true, aluna: apelido, removida: true });
+    /* A SAÍDA DA ESCOLA LEVA-A FORA DOS ELENCOS (18/11/2026) — ver `sairDosElencos`.
+     *
+     * «ele resolveu sair da escola […] esse processo de exclusão do aluno tem que tirar o aluno do
+     * elenco.» E é por isso que a ordem é esta: os elencos primeiro, o cadastro depois. Se uma
+     * versão falhar, o cadastro NÃO se toca — a resposta diz qual elenco recusou, e nada ficou a
+     * meio de um estado que ninguém saberia ler. */
+    const quando = new Date().toISOString();
+    const elencos = await sairDosElencos(env, kv, escola, repoLinhas, apelido, {
+      quando, motivo: corpo.motivo, por: String(corpo.por || 'direção').trim() || 'direção',
+    });
+    if (elencos.falhas.length) {
+      return json(502, {
+        ok: false,
+        erro: 'não consegui tirar a aluna «' + apelido + '» do(s) elenco(s): '
+          + elencos.falhas.map((f) => (f.nome || f.id ? '«' + (f.nome || f.id) + '» — ' : '') + f.erro)
+            .join(' · ')
+          + '. NADA foi apagado: a aluna continua na escola. Corrija e repita — o que já ficou '
+          + 'escrito não se repete.',
+        elencos,
+      });
+    }
+    registos[iRegisto] = Object.assign({}, registos[iRegisto], {
+      desligadaEm: quando,
+      ...(String(corpo.motivo || '').trim() ? { motivoDaSaida: String(corpo.motivo).trim() } : {}),
+    });
+    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registos));
+    /* A RESPOSTA DIZ O QUE ACONTECEU ATRÁS (18/11/2026). Uma exclusão que mexeu em elencos sem o
+     * dizer é a família de defeito que este projecto persegue: o acto certo e o silêncio por cima.
+     * `id` e `apelido` viajam para a tela poder repetir a frase sem inventar. */
+    return json(200, {
+      ok: true, aluna: apelido, id: registos[iRegisto].id, removida: true,
+      elencos: elencos.versoes, rascunhos: elencos.rascunhos, avisos: elencos.avisos,
+    });
   }
 
   // DELETE /api/bastidores/professor — excluir professor cadastrado no KV.
@@ -20278,6 +20605,10 @@ async function fetch(request, env, extras) {
      * faltava era distância. E a prova passou a CHAMAR a rota: um `grep` no fonte não apanha um
      * erro de escopo, e foi por isso que o defeito atravessou a bancada. */
     let registradas = null;
+    /* OS REGISTOS, E NÃO SÓ A CONTAGEM (18/11/2026). A contagem já se lia aqui; agora lê-se a
+     * lista, porque é ela que diz QUEM está na escola — e é isso que a lista do passo 2 tem de
+     * respeitar. */
+    let registosDaEscola = null;
     /* A CONTAGEM QUE FALHA NÃO VIROU ZERO (17/11/2026). O `catch` punha `0`, e zero não é uma
      * omissão: é o facto «esta escola não tem alunas». Com ele, uma leitura falhada fazia a tela
      * anunciar uma escola vazia — foi o que se viu ao vivo, com a aluna cadastrada. `null` é «não
@@ -20287,8 +20618,11 @@ async function fetch(request, env, extras) {
      * lista vazia — que é o comportamento certo para desenhar uma página e o errado para CONTAR: a
      * falha chegava aqui já convertida em zero, e este `catch` nunca disparava. Um `catch` que não
      * dispara não distingue nada. */
-    try { registradas = (await alunas(kv, escola, { estrito: true })).length; }
-    catch (erro) { registradas = null; }
+    try {
+      registosDaEscola = await registosDeAlunas(kv, escola, { estrito: true });
+      registradas = registosDaEscola.filter((r) => !r.desligadaEm).length;
+    }
+    catch (erro) { registradas = null; registosDaEscola = null; }
     const legado = criarCloudflare(env);
     const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
     try {
@@ -20296,18 +20630,44 @@ async function fetch(request, env, extras) {
       const porAluna = new Map();
       for (const [carimbo, estado] of Object.entries(estados || {})) {
         if (!estado || !estado.vigente || !estado.apelido) continue;
-        porAluna.set(String(estado.apelido), String(estado.carimbo || carimbo));
+        /* A CHAVE É O ID, E NÃO O APELIDO (18/11/2026) — a mesma regra de `estadoDaAnamnese`: um
+         * envelope gravado antes de hoje pertence ao PRIMEIRO titular do apelido. Sem isto, a
+         * segunda «Aluno A» apareceria no passo 2 com a anamnese da primeira. */
+        const id = String(estado.alunaId || '').trim() || idLegadoDaAluna(estado.apelido);
+        porAluna.set(id, String(estado.carimbo || carimbo));
       }
+      /* QUEM SAIU DA ESCOLA NÃO SE OFERECE (18/11/2026).
+       *
+       * «ele não pode mais aparecer, apesar da proveniência da anamnese dele existir, porque ele tem
+       * proveniência. […] mas ele não faz mais parte da escola, ele foi removido da escola.»
+       *
+       * A LISTA DO PASSO 2 SAI DAS ANAMNESES, e não do cadastro — é isso que a torna o sítio onde o
+       * removido sobrevive. A anamnese fica (é proveniência), e por isso a lista passou a cruzar as
+       * duas fontes: fica quem tem retrato **e** está na escola hoje.
+       *
+       * A LEITURA QUE FALHA NÃO FILTRA. Com `registosDaEscola === null` não se sabe quem está na
+       * escola, e esconder todas as anamneses por causa de uma leitura falhada seria a mentira ao
+       * contrário do «sem apelido»: a tela a dizer que não há corpos quando o que faltou foi a
+       * resposta. Nesse caso a lista sai inteira, como antes, e o `registradas: null` já diz à tela
+       * que a contagem não se sabe. */
+      const activosPorId = new Map();
+      if (Array.isArray(registosDaEscola)) {
+        for (const r of registosDaEscola) if (r && !r.desligadaEm) activosPorId.set(String(r.id), r.apelido);
+      }
+      const doCadastro = [...porAluna.entries()].map(([id, carimbo]) => ({
+        aluna: Array.isArray(registosDaEscola) ? activosPorId.get(id) : id,
+        carimbo,
+      })).filter((x) => x.aluna);
+      const foraDoCadastro = Array.isArray(registosDaEscola)
+        ? [...porAluna.keys()].filter((id) => !activosPorId.has(id)).length : 0;
       /* A ETIQUETA «NOVO» É DE PROVENIÊNCIA (05/11/2026), e é o núcleo que a decide: uma aluna é
        * nova quando a anamnese vigente dela é mais recente do que o carimbo que alguma linha de
        * base registou ao lê-la. Primeira vez (ninguém a leu) → nova; já lida → não; anamnese nova
        * → nova outra vez. Nada se marca com um campo: o sinal é derivado de cada vez, e por isso
        * não há como mentir. */
       const linhas = await linhasDeBase(kv, escola, repoLinhas);
-      const alunas = linhaDeBaseNucleo.marcarNovas(
-        linhas,
-        [...porAluna.entries()].map(([aluna, carimbo]) => ({ aluna, carimbo })),
-      ).sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt'));
+      const alunas = linhaDeBaseNucleo.marcarNovas(linhas, doCadastro)
+        .sort((a, b) => a.aluna.localeCompare(b.aluna, 'pt'));
       /* QUANTAS ALUNAS EXISTEM, E NÃO SÓ QUANTAS TÊM RETRATO (15/11/2026).
        *
        * O pedido, ao vivo, na `batata` recém-criada: «eu ainda não tenho aluna; então essa mensagem
@@ -20319,7 +20679,7 @@ async function fetch(request, env, extras) {
        * Custa UMA leitura de KV (`bastidores/<escola>/alunas`), a mesma que a Produção já faz. A
        * alternativa — a tela pedir `/api/bastidores/alunas` em paralelo — seria um segundo pedido
        * para responder a uma pergunta que esta rota já está a fazer. */
-      return json(200, { ok: true, escola, alunas, registradas });
+      return json(200, { ok: true, escola, alunas, registradas, foraDoCadastro });
     } catch (erro) {
       /* Não se inventa uma lista vazia: uma falha de leitura e «ninguém tem anamnese» são coisas
        * diferentes, e a tela tem de as distinguir para poder dizer a verdade.

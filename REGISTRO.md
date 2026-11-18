@@ -52211,3 +52211,92 @@ publicado é o que P-03 proíbe — o ajuste é um elo novo.
 **102** asserções; ao medir o gesto no cliente — o botão «Editar», o rótulo «Gravar a correção» e o
 corpo com `editarDe` — ficaram **106**. Os números desta entrada foram corrigidos aqui, e não
 reescritos no commit publicado.
+
+## 18/11/2026 — «Ele saiu da escola» — o registo com id, e a exclusão que leva a aluna fora dos elencos
+
+**O que motivou, em duas metades.** A primeira é um facto consumado: «Eu apaguei do lado dos alunos
+todos os alunos, eu consegui excluir todos eles. E aí eu vou recriar esses alunos.» A segunda é o
+que esse acto revelou: «ao recriar o aluno que já tem proveniência, eu tenho um problema também,
+porque o aluno tem a sua relação com a proveniência pelo nome do aluno. E se eu criar de novo um
+aluno que se chama aluno A pelo apelido, como é que vai ficar? E ele é outra pessoa, ele é outro
+aluno A, ele tem outro CPF, ele tem outro pai e mãe, ele nasceu em outra cidade.»
+
+E a instrução sobre o que acontece ao elenco: «ele resolveu sair da escola […] esse processo de
+exclusão do aluno tem que tirar o aluno do elenco. E aí quando eu clicar em derivar esse elenco ou
+editar esse elenco, na etapa de alunos, que é o step dois, ele não pode mais aparecer, apesar da
+proveniência da anamnese dele existir.»
+
+**O QUE ESTAVA ERRADO, medido.** Três coisas, e a terceira é a que ninguém veria:
+
+1. **O `DELETE` só tirava o apelido da lista do KV.** Os elencos — que vivem no repositório — ficavam
+   com ela dentro, e a lista do passo 2 saía das ANAMNESES, não do cadastro: por isso a aluna
+   excluída continuava a ser oferecida, com a anamnese que de facto existe.
+2. **O cadastro era uma lista de apelidos.** Apagar era `splice`, e a identidade da pessoa era o
+   nome. Recriar «Aluno A» depois de a primeira ter saído dava o MESMO nome sem nada que os
+   distinguisse.
+3. **O vínculo e a anamnese eram do apelido, não da pessoa.** `estadoDaAnamnese` casava por
+   `contexto.aluna` + `modalidade`, e o cartão filtrava os vínculos por `m.aluna === a`. Resultado: a
+   segunda «Aluno A» herdava a anamnese da primeira — «feita» sobre um corpo que ninguém
+   entrevistou — e o professor dela.
+
+**A DECISÃO: a identidade é um registo, e o apelido é rótulo.** O `alunas` do KV deixou de ser
+`["Aluno A"]` e passou a ser `[{id, apelido, criadaEm, desligadaEm}]`, com leitura compatível (uma
+string é o registo antigo, e o id dela é derivado). Três regras, e cada uma tem uma razão:
+
+- **O `id` nasce na criação e nunca se repete.** O primeiro «Aluno A» é `aluno-a`; o segundo, criado
+  depois de o primeiro sair, é `aluno-a-2`. O sufixo não é bonito de propósito — um id que se
+  confundisse com outro seria pior do que um feio.
+- **O apelido continua a ser a chave, mas só entre as ACTIVAS.** Dentro da janela em que uma pessoa
+  está na escola, o apelido identifica uma só — e é isso que mantém legíveis os documentos que o
+  dizem (envelope, elenco, PO, `-dados.json`). Duas «Aluno A» ao mesmo tempo tornariam esses
+  documentos ambíguos, e por isso o cadastro responde **409**.
+- **A saída não borra o registo — marca-o.** `desligadaEm` (e o motivo). É a mesma regra do professor
+  desligado: o que a pessoa fez é proveniência, e a lista mostra quem está na escola agora. Sem o
+  registo, o id não teria onde viver.
+
+**O que o `id` liga hoje, e o que NÃO liga.** Liga o cadastro e o vínculo (`matriculas.alunaId`). A
+cadeia pedagógica continua a dizer o **apelido** — e está certo: esses ficheiros são lidos por
+pessoas, e o `alunaId` no envelope é o passo seguinte, não o de hoje. A leitura resolve a ausência
+com a mesma regra nos dois sentidos: **um registo sem `alunaId` pertence ao primeiro titular do
+apelido**, que é o id derivado. É o que mantém as escolas antigas a ler as suas anamneses sem
+migração, e o que impede a segunda «Aluno A» de as herdar.
+
+**A exclusão, agora: os elencos primeiro.** `sairDosElencos` percorre as versões vigentes do
+repositório e os rascunhos do KV, e em cada um que a tenha grava uma **versão nova** sem ela, com o
+facto escrito (`saiu: {aluna, em, motivo, por}`) e o elo (`anterior`) intacto. A versão anterior fica
+— o recorte daquele dia tinha aquela aluna, e isso não deixou de ser verdade por ela ter saído
+depois. Se uma escrita falhar, o cadastro **não** se toca: a resposta é **502** que nomeia o elenco, e
+repetir completa o que faltou (um elenco que já não a tem devolve `ausente` e é saltado).
+
+**O elenco que fica com zero não se apaga** — ao contrário do que faz a transferência. Há uma Turma a
+apontar para ele, e uma lápide partiria o ponteiro. A resposta avisa («o elenco «X» ficou sem nenhuma
+aluna — e a Turma «Y» lê este corpo»), e a listagem já tinha o selo «sem alunas».
+
+**O passo 2 passou a cruzar as duas fontes.** Fica quem tem retrato **e** está na escola hoje. A
+anamnese de quem saiu continua no acervo, e a resposta diz quantas são (`foraDoCadastro`) para a nota
+poder explicar o desaparecimento — sem isso, o professor que fez aquela anamnese concluiria que o
+registo se perdeu: a mesma leitura errada do «sem apelido», ao contrário. **A leitura que falha não
+filtra**: sem saber quem está na escola, a lista sai inteira e `registradas` é `null`.
+
+**Com o quê.** `provar-saida-da-aluna` **38/38** (novo) · `provar-cadastro-da-aluna` 106/106 ·
+`provar-listas-do-acervo` 113/113 · `provar-sujeitos-da-turma` 41/41 ·
+`provar-transferencia-e-desligamento` 97/97 · `provar-gestos-do-shard` 31/31 ·
+`provar-abas-da-audicao` 125/125 · `provar-anamnese-sem-cofre` 13/13 · `check-identidade` ok.
+
+**Controlo A/B, cada metade medida sozinha.** O id sempre derivado do apelido: **reprova 4** (o id
+repetido, a herança do vínculo, a anamnese herdada e o cartão com dois vínculos). Sem a cascata para
+os elencos: **reprova 10**. O cadastro apagado antes dos elencos: **reprova 1** (a aluna continuava na
+escola). O passo 2 sem o cruzamento com o cadastro: **reprova 1** (a excluída voltava à lista). O
+cartão a filtrar por apelido: **reprova 1**. A anamnese a casar só pelo nome: **reprova 1**.
+
+**O que fica por decidir — e não se decide sem ela.** O **CPF** da aluna, que é a chave para
+RECONHECER quem volta («ele é outro aluno A, ele tem outro CPF»). O `id` diz que são duas pessoas; o
+CPF é o que permitiria dizer «esta que chegou é a mesma que saiu em março» e reabrir o registo dela em
+vez de criar um terceiro. Fica proposto, e não implementado: exige um campo no
+formulário e uma regra de unicidade, e a decisão é dela.
+
+**Nota de alcance.** O `DELETE` continua a recusar **409** quando a aluna está numa Turma que já tem
+plano de ensino — a regra de proveniência não mudou. A Turma sem plano não é tocada pela exclusão: o
+elenco perde a aluna, e a divergência entre os dois aparece no cartão da Turma («reveja a Turma»), que
+é o sinal honesto de que o corpo mudou. Reescrever a Turma por arrasto seria mexer num registo que
+ninguém pediu para mexer.

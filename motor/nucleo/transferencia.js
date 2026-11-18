@@ -251,7 +251,60 @@ function ajustarRascunho(rascunho, { de, para, aluna } = {}) {
   return novo;
 }
 
+/**
+ * A ALUNA QUE SAI DA ESCOLA SAI DO ELENCO (18/11/2026).
+ *
+ * O PEDIDO, na letra dela: «se eu quero tirar, o aluno resolveu sair da escola, ele não quer trocar
+ * de elenco, ele saiu da escola. Então eu vou lá no aluno e vou excluir aquele aluno. Aí esse
+ * processo de exclusão do aluno tem que tirar o aluno do elenco. E aí quando eu clicar em derivar
+ * esse elenco ou editar esse elenco, na etapa de alunos, que é o step dois, ele não pode mais
+ * aparecer, apesar da proveniência da anamnese dele existir.»
+ *
+ * A TRANSFERÊNCIA TINHA DESTINO; ESTA SAÍDA NÃO TEM. É por isso que ela não é `moverAluna` com um
+ * destino vazio: a transferência move um corpo para outro recorte, e esta operação remove um corpo
+ * do recorte porque a pessoa deixou de estar na escola. O elenco não fica «sem ela por enquanto» —
+ * fica sem ela, e a versão anterior (com ela dentro) continua a ser a verdade do dia em que foi
+ * gravada.
+ *
+ * O QUE **NÃO** SE RECUSA AQUI, e a diferença é deliberada: se ela for a última aluna de um elenco
+ * que uma Turma lê, `moverAluna` recusa (a aluna ficaria fora de todos os elencos, e a turma sem
+ * corpo). Aqui não se recusa — a pessoa saiu da escola, e o sistema não pode impedir um facto. O
+ * elenco fica com zero e a listagem já tem o selo que o diz («sem alunas: a turma ficou sem
+ * corpo»). Recusar seria transformar um facto da vida numa prisão administrativa.
+ *
+ * `zerada` viaja com a decisão porque é ela que a resposta usa para AVISAR: quem apaga a aluna tem
+ * de saber que a Turma ficou sem corpo, e não descobri-lo depois.
+ */
+function sairDoElenco(linha, { aluna, quando, motivo, por } = {}) {
+  const apelido = String(aluna == null ? '' : aluna).trim();
+  const em = String(quando == null ? '' : quando).trim();
+  if (!apelido) return { ok: false, erros: ['informe a aluna que sai'] };
+  if (!em) return { ok: false, erros: ['informe o instante do acto'] };
+  const antes = alunasDe(linha);
+  /* AUSENTE NÃO É ERRO. Quem apaga a aluna percorre N elencos, e a maioria não a tem. `ausente` é
+   * o sinal para quem chama a passar ao seguinte sem escrever versão nenhuma — e é também o que
+   * torna o acto idempotente: repetir depois de uma falha a meio não cria versões vazias. */
+  if (antes.indexOf(apelido) === -1) {
+    return { ok: false, ausente: true, erros: ['a aluna «' + apelido + '» não está neste elenco'] };
+  }
+  const nova = semMarcasDaVersao(linha);
+  nova.alunas = antes.filter((a) => a !== apelido);
+  nova.atualizada_em = em;
+  /* A LEITURA CAI, PELA MESMA RAZÃO DA TRANSFERÊNCIA: ela descreve os corpos que estavam juntos, e
+   * a partir daqui não é verdade. `lida` é proveniência (que anamneses foram abertas) e fica. */
+  delete nova.leitura;
+  /* O FACTO, ESCRITO NO ELENCO. `transferida` diz para onde foi; `saiu` diz que deixou de estar —
+   * e é o que faz a versão contar a história sem abrir o cadastro da escola. */
+  nova.saiu = {
+    aluna: apelido, em,
+    motivo: String(motivo == null ? '' : motivo).trim() || null,
+    por: String(por == null ? '' : por).trim() || null,
+  };
+  return { ok: true, erros: [], linha: nova, zerada: nova.alunas.length === 0 };
+}
+
 module.exports = {
-  moverAluna, ajustarRascunho, motivoDoElencoQueFicariaVazio, avisoDoElencoQueSeraExcluido,
+  moverAluna, ajustarRascunho, sairDoElenco,
+  motivoDoElencoQueFicariaVazio, avisoDoElencoQueSeraExcluido,
   MODELO_RECUSA_TURMA, MODELO_AVISO_EXCLUSAO,
 };
