@@ -315,6 +315,53 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
       </div>
     </div>
 
+    <!-- ── FALE CONOSCO (18/11/2026) ─────────────────────────────────────────────────────
+         «Lá no rodapé tá escrito Projeto Ciclo Raiz. Pode tirar isso daqui, você vai colocar um
+         Fale Conosco e o e-mail é lastro@padd.com.br.»
+
+         O QUE ELE É: dois canais e um formulário que serve aos dois. A pessoa escreve UMA vez —
+         o e-mail e o telefone são os dela, e a mensagem é o que quer dizer — e escolhe por onde
+         mandar. O e-mail abre o cliente de correio dela, com o assunto e o corpo já compostos; o
+         WhatsApp abre o `wa.me` com o mesmo texto. Nenhum dos dois é enviado por aqui: não há
+         servidor no caminho, e nada fica guardado nesta página. -->
+    <div class="modal" id="modal-fale" hidden>
+      <div class="modal-fundo" data-fechar-fale></div>
+      <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="fale-titulo">
+        <div class="modal-cab">
+          <h2 id="fale-titulo">Fale conosco</h2>
+          <button class="modal-x" id="btn-fechar-fale" type="button" aria-label="Fechar">&times;</button>
+        </div>
+        <form class="form" id="form-fale">
+          <div class="etapa-campos">
+            <p class="etapa-campo largo">
+              <span class="aviso">Escreva aqui e escolha por onde prefere falar conosco. Nada é
+                enviado sem você mandar: o e-mail abre no seu programa de correio, e o WhatsApp,
+                no seu WhatsApp.</span>
+            </p>
+            <p class="etapa-campo">
+              <label class="campo-rotulo" for="fale-email">Seu e-mail</label>
+              <input type="email" id="fale-email" autocomplete="email" placeholder="voce@exemplo.com.br">
+            </p>
+            <p class="etapa-campo">
+              <label class="campo-rotulo" for="fale-telefone">Seu telefone (WhatsApp)</label>
+              <input type="tel" id="fale-telefone" autocomplete="tel" placeholder="(51) 99999-0000">
+            </p>
+            <p class="etapa-campo largo">
+              <label class="campo-rotulo" for="fale-mensagem">Mensagem</label>
+              <textarea id="fale-mensagem" rows="4" placeholder="Conte o que você precisa."></textarea>
+            </p>
+            <p class="etapa-campo largo res" id="fale-res"></p>
+          </div>
+          <div class="modal-acoes">
+            <button class="acao secundario" id="fale-por-email" type="button">Enviar por e-mail</button>
+            <button class="acao" id="fale-por-whatsapp" type="button">Abrir o WhatsApp</button>
+          </div>
+        </form>
+        <p>E-mail: <a href="mailto:lastro@padd.com.br">lastro@padd.com.br</a> &middot;
+          WhatsApp: <a href="https://wa.me/5554991752662" target="_blank" rel="noopener">+55 (54) 99175-2662</a></p>
+      </div>
+    </div>
+
     <main>
       <!-- ── AS DUAS COLUNAS CONGELADAS (22/10/2026) ────────────────────────────────────────
            À ESQUERDA, as ações: empilhadas e presas ao rolar. São as mesmas quatro coisas que
@@ -1817,6 +1864,106 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           if (modalApagar) modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
           if (modalApagar) document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalApagar.hidden) fecharApagar(); });
 
+          /* ── FALE CONOSCO (18/11/2026) ──────────────────────────────────────────────────
+           *
+           * DOIS CANAIS, UM TEXTO. A pessoa escreve uma vez e escolhe por onde mandar — o
+           * e-mail e o telefone dela entram no corpo da mensagem, para quem responde saber a
+           * quem responde.
+           *
+           * NADA É ENVIADO DAQUI, e é de propósito: não há rota no servidor para isto, e uma
+           * caixa de contacto é o primeiro sítio onde alguém põe publicidade. O que a página
+           * faz é COMPOR a mensagem e entregá-la ao canal que a pessoa escolheu — o programa de
+           * correio dela, ou o WhatsApp Web. O endereço e o número são os da casa, escritos uma
+           * vez só (aqui, e repetidos à vista no próprio modal, para quem preferir copiá-los).
+           *
+           * O `wa.me` quer o número em dígitos com o país: 55 (Brasil) + 54 (o DDD) + o número.
+           * Escrito à mão como `+55 (54) 99175-2662` o link não abre — e é por isso que o
+           * endereço legível e o endereço que funciona vivem separados. */
+          var CONTATO_EMAIL = "lastro@padd.com.br";
+          var CONTATO_WHATSAPP = "5554991752662";
+          var modalFale = document.getElementById("modal-fale");
+          var resFale = document.getElementById("fale-res");
+
+          function abrirFale() {
+            if (!modalFale) return;
+            modalFale.hidden = false;
+            if (resFale) { resFale.className = "etapa-campo largo res"; resFale.textContent = ""; }
+            var primeiro = document.getElementById("fale-email");
+            if (primeiro) primeiro.focus();
+          }
+          function fecharFale() { if (modalFale) modalFale.hidden = true; }
+          function recadoDoFale(estado, texto) {
+            if (!resFale) return;
+            resFale.className = "etapa-campo largo res " + estado;
+            resFale.textContent = texto;
+            if (resFale.scrollIntoView) resFale.scrollIntoView({ block: "nearest" });
+          }
+          function lerFale() {
+            var v = function (id) {
+              var e = document.getElementById(id);
+              return e ? String(e.value || "").trim() : "";
+            };
+            return { email: v("fale-email"), telefone: v("fale-telefone"), mensagem: v("fale-mensagem") };
+          }
+          /* O TEXTO É O MESMO NOS DOIS CANAIS — duas versões dariam duas mensagens, e quem
+           * respondesse por um caminho não saberia o que foi dito no outro. */
+          function corpoDoFale(d) {
+            var linhas = ["Contato pelo site do Sistema Lastro", ""];
+            linhas.push("E-mail: " + (d.email || "(não informado)"));
+            linhas.push("Telefone (WhatsApp): " + (d.telefone || "(não informado)"));
+            linhas.push("");
+            linhas.push(d.mensagem);
+            return linhas.join("\n");
+          }
+          function fale() {
+            var d = lerFale();
+            if (!d.mensagem) {
+              recadoDoFale("aviso", "Escreva a sua mensagem antes de escolher por onde mandá-la.");
+              var campo = document.getElementById("fale-mensagem");
+              if (campo) campo.focus();
+              return null;
+            }
+            if (!d.email && !d.telefone) {
+              recadoDoFale("aviso", "Deixe um e-mail ou um telefone — sem um dos dois não há como "
+                + "lhe responder.");
+              var primeiro = document.getElementById("fale-email");
+              if (primeiro) primeiro.focus();
+              return null;
+            }
+            return corpoDoFale(d);
+          }
+          function falePorEmail() {
+            var corpo = fale();
+            if (!corpo) return;
+            /* `location.href` e não `window.open`: o programa de correio é um aplicativo do
+             * sistema, e a aba nova ficaria em branco depois de ele abrir. */
+            window.location.href = "mailto:" + CONTATO_EMAIL
+              + "?subject=" + encodeURIComponent("Fale conosco — Sistema Lastro")
+              + "&body=" + encodeURIComponent(corpo);
+            recadoDoFale("ok", "Abrimos o seu programa de correio com a mensagem já escrita. "
+              + "Se ele não abrir, escreva para " + CONTATO_EMAIL + ".");
+          }
+          function falePorWhatsapp() {
+            var corpo = fale();
+            if (!corpo) return;
+            var destino = "https://wa.me/" + CONTATO_WHATSAPP + "?text=" + encodeURIComponent(corpo);
+            var janela = window.open(destino, "_blank", "noopener");
+            if (!janela) window.location.href = destino;
+            recadoDoFale("ok", "Abrimos o WhatsApp com a mensagem já escrita. Se ele não abrir, "
+              + "o número é +55 (54) 99175-2662.");
+          }
+          /* O BOTÃO DO RODAPÉ VEM DEPOIS DESTE SCRIPT, e por isso não se liga por `aoClicar`
+           * — `getElementById` devolveria nulo e o botão ficaria morto, a dizer «Fale conosco»
+           * sem abrir nada. A ligação é delegada no documento, que existe sempre. */
+          document.addEventListener("click", function (e) {
+            if (e.target && e.target.closest && e.target.closest("#btn-fale-conosco")) abrirFale();
+          });
+          aoClicar("btn-fechar-fale", fecharFale);
+          aoClicar("fale-por-email", falePorEmail);
+          aoClicar("fale-por-whatsapp", falePorWhatsapp);
+          if (modalFale) modalFale.addEventListener("click", function (e) { if (e.target.closest("[data-fechar-fale]")) fecharFale(); });
+          if (modalFale) document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalFale.hidden) fecharFale(); });
+
           if (btnConfirmar) btnConfirmar.addEventListener("click", function () {
             if (!escolaEscolhida) return;
             var slug = escolaEscolhida.slug;
@@ -2069,8 +2216,14 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
     <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
     <!-- o mesmo comportamento do site: tema e, quando houver, navbar -->
     <script src="assets/nav.js"></script>
+    <!-- O RODAPÉ PASSOU A SER UM CANAL (18/11/2026). «Projeto Ciclo · raiz» dizia o nome de
+         dentro de casa a quem chegou de fora. O que uma pessoa procura no fim desta página é
+         como falar com quem fez o sistema — e é isso que está aqui, com o canal aberto pela
+         mesma porta dos dois lados (o e-mail escrito, o WhatsApp escrito). -->
     <footer class="rodape">
-      <p>Projeto Ciclo &middot; <strong>raiz</strong></p>
+      <p><button class="acao secundario pequena" id="btn-fale-conosco" type="button">Fale conosco</button></p>
+      <p>E-mail: <a href="mailto:lastro@padd.com.br">lastro@padd.com.br</a> &middot;
+        WhatsApp: <a href="https://wa.me/5554991752662" target="_blank" rel="noopener">+55 (54) 99175-2662</a></p>
     </footer>
   </body>
 

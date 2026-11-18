@@ -913,6 +913,20 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
       <span class="campo"><label for="ctx-aluna">aluna</label>
         <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
         <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
+      <!-- A MODALIDADE CONTRATADA, À VISTA (18/11/2026).
+           «É bom dizer aqui no contexto do ato, onde diz qual é o professor, a aluna, e colocar
+           aqui qual é a modalidade contratada.»
+           ELA É LEITURA, E NÃO ESCOLHA — e é a própria razão de existir: a modalidade é controlo
+           da escola, chega no endereço do pedido de anamnese («a anamnese já nasce sabendo de que
+           modalidade ela é»), e não há nada que o professor faça com ela. Por isso é uma inscrição
+           (`.ctx-rotulo` + `.ctx-inscricao`), como as cinco leituras do PO — e não um `<select>`,
+           que ofereceria uma escolha que não é dele.
+           NASCE OCULTA e é `pintarModalidadeDoAto` que a mostra, quando o endereço a traz. Um
+           atalho antigo, sem `?modalidade=`, não vê a linha: escrever «—» ali seria declarar uma
+           ignorância sobre um ato que simplesmente não a declarou. -->
+      <span class="campo ctx-turma" id="ctx-modalidade-campo" hidden>
+        <span class="ctx-rotulo">modalidade</span>
+        <span class="ctx-inscricao" id="ctx-modalidade-conteudo">—</span></span>
       <span class="campo campo-senha"><label for="senha">senha do professor</label>
         <input type="password" id="senha" autocomplete="off">
         <span class="senha-status" id="senha-status"></span></span>
@@ -2681,6 +2695,26 @@ function contextoFaltandoCompleto() {
   const faltam = contextoFaltando();
   if (turmaFaltando()) faltam.push('turma');
   return faltam;
+}
+
+/* A MODALIDADE CONTRATADA NA BARRA (18/11/2026).
+ *
+ * Ela chega no endereço do pedido de anamnese e é a única do contexto que não se escolhe — por
+ * isso é leitura, e por isso não entra em `CAMPOS_DO_CONTEXTO`: não é campo do envelope nem
+ * pode faltar. O que ela faz é o que ela pediu: dizer, ao lado do professor e da aluna, em que
+ * modalidade o ato está a acontecer.
+ *
+ * SEM `?modalidade=` A LINHA NÃO APARECE. Mostrar «—» seria declarar que não se sabe — e um
+ * atalho antigo não declarou nada; ele só não traz o parâmetro. É a mesma diferença que o
+ * `contexto.modalidade` guarda no envelope (`null` = não se sabe, e não «nenhuma»).
+ */
+function pintarModalidadeDoAto() {
+  const caixa = document.getElementById('ctx-modalidade-campo');
+  if (!caixa) return;
+  const alvo = document.getElementById('ctx-modalidade-conteudo');
+  const daUrl = (new URLSearchParams(location.search).get('modalidade') || '').trim();
+  if (alvo) alvo.textContent = daUrl || '—';
+  caixa.hidden = !daUrl;
 }
 
 /*
@@ -9872,6 +9906,10 @@ async function iniciar() {
    * autorizar nada. O sintoma foi o que a pesquisadora viu: «cliquei em continuar de onde parei
    * e ele tá me levando de novo pra aquele lugar intermediário». */
   if (FONTE === 'anamnese') await carregarAlunas();
+  /* A MODALIDADE CONTRATADA, À VISTA, ANTES DE QUALQUER RESPOSTA (18/11/2026). Ela é leitura e
+   * não trava nada: não decide se o ato abre, só diz de que modalidade ele é. Fica aqui, com as
+   * outras leituras do cabeçalho, e não dentro do `montarContexto` — que só corre no fecho. */
+  if (FONTE === 'anamnese') pintarModalidadeDoAto();
   const bilhete = new URLSearchParams(location.search).get('ato');
   if (bilhete) {
     const r = await fetch('/api/bastidores/ato/consumir', {

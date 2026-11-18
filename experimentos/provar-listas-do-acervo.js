@@ -252,9 +252,14 @@ let ESCOLA = 'escola';
     provar('a terceira caixa diz o dia em que foi gravada', valores[2] === '22/10/2026', valores);
     provar('…e o painel diz o mesmo por extenso', /Registada em/.test(p.cartoes[0]), true);
     /* A versão do resumo sobe quando o resumo ganha um campo: sem isso o índice antigo (sem
-     * `gerado_em`) seria servido tal e qual, e a data vinha vazia para sempre. */
-    provar('o resumo do índice é a versão 4 (a que traz `gerado_em`)',
-      porta.VERSAO_DO_RESUMO === 4, porta.VERSAO_DO_RESUMO);
+     * `gerado_em`) seria servido tal e qual, e a data vinha vazia para sempre.
+     *
+     * A 5 é a da MODALIDADE (18/11/2026): o resumo ganhou o campo, e o índice da escola que já
+     * existia tem de ser regerado para o vínculo da anamnese poder dizer «concluída». A
+     * asserção desta prova ficou na 4 quando a versão subiu — media a regra de ontem, e por
+     * isso reprovava sobre um acerto. */
+    provar('o resumo do índice é a versão 5 (a que traz a modalidade)',
+      porta.VERSAO_DO_RESUMO === 5, porta.VERSAO_DO_RESUMO);
   }
 
   console.log('\n4 · O selo diz o estado, e a caixa diz a turma — ou «sem turma»');

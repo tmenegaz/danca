@@ -743,6 +743,45 @@ function scriptDoPainel(chave, escola) {
     ATOS.plano = c.plano || '';
   }
 
+  /* O PEDIDO DO ENDEREÇO MANDA — E MANDA UMA VEZ (18/11/2026).
+   *
+   * O DEFEITO, na letra dela: «o aluno que eu fiz esse pedido para anamnese é o aluno C. Foi
+   * para ele que eu pedi e chegou preenchido o aluno A.» O endereço do e-mail traz o professor,
+   * a aluna e a modalidade — e esta página não lia o endereço em sítio nenhum: o painel nascia
+   * do localStorage, que guardava a escolha da visita anterior. O link dizia uma coisa e a tela
+   * mostrava outra, e o professor só descobria depois de já estar a preencher a anamnese da
+   * aluna errada.
+   *
+   * A PRECEDÊNCIA é a do resto da casa: o que alguém ACABOU de pedir vence o que ficou guardado.
+   * O contexto guardado é memória; o pedido do endereço é de agora.
+   *
+   * E O PARÂMETRO SAI DO ENDEREÇO depois de usado — a mesma regra do bilhete na porta. Ficando
+   * lá, um F5 desfaria a escolha que o professor tivesse acabado de fazer no painel, e a página
+   * passaria a discutir com quem a usa. */
+  function semearDoEndereco() {
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    /* A MODALIDADE É SÓ DA ANAMNESE, e é a única que não tem campo: ela fica à espera, para
+     * viajar no endereço da porta (ver a função endereco). */
+    var nomes = CFG.ehAnamnese
+      ? ['professor', 'aluna', 'modalidade']
+      : ['professor'];
+    var usados = [];
+    nomes.forEach(function (nome) {
+      var v = String(q.get(nome) || '').trim();
+      if (!v) return;
+      usados.push(nome);
+      if (nome === 'modalidade') { MODALIDADE_DO_ATO = v; return; }
+      ATOS[nome] = v;
+    });
+    if (!usados.length) return;
+    try {
+      usados.forEach(function (nome) { q.delete(nome); });
+      var resto = q.toString();
+      history.replaceState(history.state, '', location.pathname + (resto ? '?' + resto : ''));
+    } catch (e) { /* sem histórico (modo local) — o contexto já está semeado */ }
+  }
+
   function memoria() {
     try { var b = localStorage.getItem(chaveDaMemoria()); return b ? JSON.parse(b) : null; }
     catch (e) { return null; }
@@ -787,6 +826,11 @@ function scriptDoPainel(chave, escola) {
   /* O que foi escolhido antes de esta página carregar — e que os 'select' só podem receber
    * depois de as opções chegarem. */
   var ATOS = { professor: '', aluna: '', turma: '', plano: '' };
+  /* A MODALIDADE QUE O PEDIDO DECLARA (18/11/2026). Não tem campo neste painel — é controlo da
+   * escola, e a anamnese «já nasce sabendo de que modalidade ela é» —, mas chega no endereço do
+   * pedido e tem de seguir para a porta: é dela que o envelope precisa para o estado da anamnese
+   * poder casar o vínculo. Sem este transporte, a anamnese gravada ficava para sempre «pedida». */
+  var MODALIDADE_DO_ATO = '';
 
   function faltam() {
     var falta = [];
@@ -1222,6 +1266,10 @@ function scriptDoPainel(chave, escola) {
      * valor a mais para a porta interpretar (e a mais para o bilhete ter de casar). */
     if (!CFG.ehAnamnese && valor('ciclo')) q.push('ciclo=' + encodeURIComponent(valor('ciclo')));
     if (CFG.ehAnamnese && valor('aluna')) q.push('aluna=' + encodeURIComponent(valor('aluna')));
+    /* A MODALIDADE VAI NO ENDEREÇO DA PORTA (18/11/2026). Sem este transporte a anamnese era
+     * gravada sem modalidade — e o estado do vínculo, que a procura por (aluna x modalidade),
+     * ficava «pedida» para sempre, sobre uma anamnese já concluída. */
+    if (CFG.ehAnamnese && MODALIDADE_DO_ATO) q.push('modalidade=' + encodeURIComponent(MODALIDADE_DO_ATO));
     if (CFG.fonte !== 'anamnese') q.push('fonte=' + CFG.fonte);
     /* O PLANO VAI NO ENDEREÇO. Sem ele a porta escolhe o PRIMEIRO da estante — e o professor
      * escolheu este. Duas escolhas para o mesmo ato e a da tela perdia. */
@@ -1482,6 +1530,9 @@ function scriptDoPainel(chave, escola) {
   else if (largo.addListener) largo.addListener(ajustarAoModo);
 
   restaurarContexto();
+  /* O ENDEREÇO DEPOIS DA MEMÓRIA, e nesta ordem de propósito: o que ficou guardado é o que
+   * havia; o que o pedido traz é o que se quer agora. */
+  semearDoEndereco();
   carregarProfessores().then(function () { pintar(); return carregarCuradoria(); })
     .then(function () { return carregarAlunas(); })
     .then(function () { return carregarTurmas(); })

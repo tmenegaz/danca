@@ -127,6 +127,10 @@ function montarDocumento() {
   definir('ctx-professor', 'select');
   definir('ctx-ciclo', 'input');
   definir('ctx-aluna', 'select');
+  /* A MODALIDADE CONTRATADA NA BARRA (18/11/2026): uma LEITURA, e a linha só aparece quando o
+   * pedido a declara. Os dois elementos que a função procura. */
+  definir('ctx-modalidade-campo', 'span');
+  definir('ctx-modalidade-conteudo', 'span');
   const comecar = criarElemento('comecar', 'button');
   porId.set('comecar', comecar);
   const acc = criarElemento('acordeao', 'details');
@@ -147,6 +151,7 @@ function carregarPorta(opcoes) {
   js = js.replace(/^iniciar\(\);\s*$/m, '');
   js += '\nglobalThis.__porta = { contextoFaltando, contextoDaBarra, marcarContextoFaltando,'
       + ' atualizarComecar, carregarAlunas, carregarProfessores, aplicarCuradoria, FONTE,'
+      + ' pintarModalidadeDoAto,'
       + ' definirCuradoria: (carregada, lista) => { CURADORIA_CARREGADA = carregada; CURADORIAS = lista; } };';
 
   const dom = montarDocumento();
@@ -453,6 +458,61 @@ async function main() {
   porta.aplicarCuradoria();
   provar('voltando a um professor sem curadoria, trava outra vez',
     dom.porId.get('comecar').disabled === true);
+}
+
+// ------------------------------- 5) a modalidade contratada é uma LEITURA na barra
+
+/* O QUE ELA PEDIU (18/11/2026): «é bom dizer aqui no contexto do ato, onde diz qual é o
+ * professor, a aluna, e colocar aqui qual é a modalidade contratada» — e, na mesma frase, o que
+ * a modalidade NÃO é: «não tem aqui nada de ação para o professor».
+ *
+ * São duas metades, e as duas se medem: a linha aparece com o valor que o pedido traz, e NÃO
+ * aparece quando o pedido não a traz. A segunda metade é a que impede a tela de declarar «—»
+ * sobre um ato que simplesmente não declarou modalidade nenhuma. */
+{
+  const comModalidade = carregarPorta({
+    caminho: '/anamnese/?professor=tiago-menegaz&escola=fita&aluna=Mari&modalidade=Bal%C3%A9%20cl%C3%A1ssico',
+    alunas: ['Mari'],
+  });
+  comModalidade.porta.pintarModalidadeDoAto();
+  const caixa = comModalidade.dom.porId.get('ctx-modalidade-campo');
+  const texto = comModalidade.dom.porId.get('ctx-modalidade-conteudo');
+  provar('a modalidade do pedido aparece escrita na barra',
+    texto.textContent === 'Balé clássico', texto.textContent);
+  provar('…e o campo fica à vista (não nasce escondido quando há o que dizer)',
+    caixa.hidden === false, caixa.hidden);
+
+  const semModalidade = carregarPorta({
+    caminho: '/anamnese/?professor=tiago-menegaz&escola=fita&aluna=Mari',
+    alunas: ['Mari'],
+  });
+  semModalidade.porta.pintarModalidadeDoAto();
+  const caixaSem = semModalidade.dom.porId.get('ctx-modalidade-campo');
+  provar('sem modalidade no pedido, a linha NÃO aparece — não se declara o que não se sabe',
+    caixaSem.hidden === true, caixaSem.hidden);
+
+  /* E ELA NÃO É CAMPO: a anamnese com modalidade continua a fechar com os mesmos três do
+   * contexto. Se a modalidade entrasse em CAMPOS_DO_CONTEXTO, o ato passaria a pedir ao
+   * professor uma coisa que não é dele. */
+  preencher(comModalidade.dom, {
+    'ctx-escola': 'fita',
+    'ctx-professor': { opcoes: ['tiago-menegaz'], escolhido: 'tiago-menegaz' },
+    'ctx-aluna': { opcoes: ['Mari'], escolhido: 'Mari' },
+  });
+  /* A LIGAÇÃO — o que esta secção não pode deixar de fora: a função existir e ninguém a
+   * chamar daria uma prova verde sobre uma barra que nunca mostra a modalidade. O arranque não
+   * corre neste harness (faz fetch), e por isso a ligação mede-se no fonte: a chamada, e a peça
+   * que ela preenche. */
+  const fontePorta = fs.readFileSync(FONTE, 'utf8');
+  provar('o arranque da anamnese PINTA a modalidade (senão a função é código morto)',
+    /if \(FONTE === 'anamnese'\) pintarModalidadeDoAto\(\);/.test(fontePorta));
+  provar('…e a barra tem a peça da leitura, com o rótulo e o valor',
+    /id="ctx-modalidade-campo"[\s\S]{0,200}class="ctx-rotulo">modalidade</.test(fontePorta)
+    && /id="ctx-modalidade-conteudo"/.test(fontePorta));
+
+  provar('a modalidade NÃO entra nos campos que o professor tem de preencher',
+    JSON.stringify(comModalidade.porta.contextoFaltando()) === JSON.stringify([]),
+    JSON.stringify(comModalidade.porta.contextoFaltando()));
 }
 
 // ------------------------------------------------------------------- relatório

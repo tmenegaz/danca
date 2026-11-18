@@ -51702,3 +51702,59 @@ rótulo antigo.
 
 **O que ainda não está feito.** Se um dia a derivação do professor for a sério (elo novo, vigência,
 nome que muda com o passado preservado), esta decisão tem de ser revista — hoje ela é rótulo, e só.
+
+## 18/11/2026 — «Pedi a anamnese da aluna C e abriu na aluna A»
+
+**O que motivou.** O e-mail chegou, o link estava certo — «na URL, o get está passado certo» — e
+o formulário abria na aluna da visita anterior. E, na mesma frase, duas coisas mais: o contexto do
+ato devia declarar a modalidade contratada; e o rodapé da página pública dizia «Projeto Ciclo ·
+raiz» a quem chega de fora.
+
+**1. A página da lista não lia o endereço — em sítio nenhum.** O pedido da anamnese aponta para
+`/area-do-professor/anamnese/?professor=…&aluna=…&modalidade=…`, e o painel nascia só do
+`localStorage`. O link dizia uma coisa e a tela mostrava outra, e o professor descobria depois de
+começar a preencher. Passou a haver `semearDoEndereco()`, chamado **depois** de `restaurarContexto`:
+o que se acabou de pedir vence o que ficou guardado, e os parâmetros saem do endereço depois de
+usados (a mesma regra do bilhete) para um `F5` não desfazer a escolha feita no painel.
+
+**E a modalidade passou a viajar até à porta.** Sem ela no endereço da porta, o envelope era
+gravado sem modalidade — e `estadoDaAnamnese`, que procura o par (aluna × modalidade), nunca casava
+o vínculo: a anamnese ficava «pedida» para sempre, sobre um documento já concluído.
+
+**2. A modalidade no contexto do ato, como LEITURA.** «É bom dizer aqui no contexto do ato […]
+qual é a modalidade contratada» — e, na mesma frase, «não tem aqui nada de ação para o professor».
+É uma inscrição (`.ctx-rotulo` + `.ctx-inscricao`), como as cinco leituras do PO, e não um
+`<select>`: um controle que oferece uma escolha que não é dele é pior do que nenhum. Sem
+`?modalidade=` a linha **não aparece** — escrever «—» seria declarar que não se sabe sobre um ato
+que apenas não a declarou.
+
+**3. O rodapé é um canal.** Saiu «Projeto Ciclo · raiz»; entrou **Fale conosco**, com o e-mail
+`lastro@padd.com.br` e o WhatsApp `+55 (54) 99175-2662`. O clique abre uma janela com três campos
+(e-mail, telefone, mensagem) e dois destinos: o programa de correio, com o assunto e o corpo
+compostos, e o WhatsApp Web, com o mesmo texto. **Nada é enviado daqui** — não há rota para isto, e
+uma caixa de contacto é o primeiro sítio onde alguém põe publicidade. Sem mensagem, ou sem um
+contacto, não se abre nada e diz-se por quê.
+
+**UM DEFEITO MEU, apanhado pela própria prova.** O botão do rodapé vinha **depois** do `<script>`,
+e `aoClicar` — que faz `getElementById` no momento em que corre — ligava-o a nulo: o botão dizia
+«Fale conosco» e não abria nada. A ligação passou a ser delegada no `document`.
+
+**Onde entrou.** `motor/servidor/listas-do-acervo.js` (`semearDoEndereco`, `MODALIDADE_DO_ATO` no
+endereço da porta) · `porta/index.html` (`pintarModalidadeDoAto`, a peça da leitura e a chamada no
+arranque; as duas cópias do pacote regeradas) · `raiz/index.html` (o rodapé, a janela e o script).
+
+**Com o quê.** `provar-pedido-da-anamnese` **11/11** (novo) · `provar-fale-conosco` **22/22**
+(novo) · `provar-contexto-do-ato` **45/45** (eram 38) · `provar-pagina-publica` 79/79 ·
+`provar-listas-do-acervo` 113/113 · `provar-cadastro-da-aluna` 76/76 · `provar-cadastro-do-professor`
+53/53 · `check-identidade` 0 erros.
+
+**Controlo A/B.** `semearDoEndereco` desligado: **reprova 8** — e reproduz a queixa na letra
+(«Aluna A» no seletor). O rodapé antigo: **reprova 5**. A ligação por `aoClicar`: **reprova 1**.
+
+**Uma asserção que estava a medir a regra de ontem.** A de `provar-listas-do-acervo` exigia
+`VERSAO_DO_RESUMO === 4`; a versão subiu para 5 com o campo `modalidade` do resumo, e a asserção
+ficou a reprovar um acerto. Passou a exigir a 5, com a razão escrita.
+
+**O que ainda não está feito.** O `mailto:` não navega num jsdom, e por isso a prova do e-mail mede
+o endereço visível na janela e o aviso do clique — não o que o navegador faz com ele. A abertura do
+WhatsApp Web a sério fica para o teste dela, no ambiente dela.
