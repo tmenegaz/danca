@@ -139,6 +139,24 @@
       ],
       "alunas": 0,
       "anterior": "tami--20261118-1807.json"
+    },
+    "tami--20261118-1911.json": {
+      "id": "tami",
+      "carimbo": "20261118-1911",
+      "arquivo": "escola/breu/linhas-de-base/tami--20261118-1911.json",
+      "nome": "Tami",
+      "professor": "demi-plie",
+      "turma": null,
+      "atualizada_em": "2026-11-18T19:08:19.198Z",
+      "enviada_em": "2026-11-18T18:07:52.039Z",
+      "aspectos": [
+        "meia-ponta",
+        "flexibilidade-anteroposterior-grand-ecart",
+        "equilibrio-unipodal"
+      ],
+      "alunas": 0,
+      "anterior": "tami--20261118-1908.json",
+      "apagada_em": "2026-11-18T19:11:10.996Z"
     }
   }
 }
