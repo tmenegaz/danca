@@ -8,7 +8,27 @@
         "recorte:tami"
       ],
       "primeira": "20261117-0102",
-      "ultima": "20261117-1709",
+      "ultima": "20261118-1449",
+      "versoes": 3
+    },
+    {
+      "aspecto": "equilibrio-unipodal",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261118-1449",
+      "versoes": 2
+    },
+    {
+      "aspecto": "flexibilidade-anteroposterior-grand-ecart",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261117-0102",
+      "ultima": "20261118-1449",
       "versoes": 2
     },
     {
@@ -19,26 +39,6 @@
       ],
       "primeira": "20261117-1709",
       "ultima": "20261117-1709",
-      "versoes": 1
-    },
-    {
-      "aspecto": "equilibrio-unipodal",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261117-0102",
-      "ultima": "20261117-0102",
-      "versoes": 1
-    },
-    {
-      "aspecto": "flexibilidade-anteroposterior-grand-ecart",
-      "contagem": 1,
-      "ids": [
-        "recorte:tami"
-      ],
-      "primeira": "20261117-0102",
-      "ultima": "20261117-0102",
       "versoes": 1
     },
     {
@@ -520,9 +520,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9f541fb"
+    "commit": "02e832b"
   },
-  "gerado_em": "2026-11-18T11:55",
+  "gerado_em": "2026-11-18T14:49",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -584,14 +584,25 @@
         "flexibilidade-anteroposterior-grand-ecart",
         "meia-ponta"
       ],
-      "atualizada_em": "2026-11-17T01:02:02.554Z",
-      "enviada_em": "2026-11-17T01:02:03.052Z",
+      "atualizada_em": "2026-11-18T14:49:27.449Z",
+      "enviada_em": "2026-11-18T14:49:27.990Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "tami",
       "professor": "demi-plie",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261118-1449.json",
+          "aspectos": [
+            "meia-ponta",
+            "flexibilidade-anteroposterior-grand-ecart",
+            "equilibrio-unipodal"
+          ],
+          "enviada_em": "2026-11-18T14:49:27.990Z",
+          "versao": "20261118-1449"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/tami--20261117-0102.json",
