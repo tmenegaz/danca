@@ -1,5 +1,5 @@
 {
-  "versao": 4,
+  "versao": 5,
   "nomes": [
     "anamnese-20261116-2201.json",
     "anamnese-20261117-1407.json",
@@ -15,7 +15,8 @@
       "ciclo": null,
       "ajuste_de": null,
       "gerado_em": "2026-11-16T22:01",
-      "aluna": "Aluna A"
+      "aluna": "Aluna A",
+      "modalidade": null
     },
     "anamnese-20261117-1407.json": {
       "id": "anamnese-20261117-1407",
@@ -25,7 +26,8 @@
       "ciclo": null,
       "ajuste_de": null,
       "gerado_em": "2026-11-17T14:07",
-      "aluna": "Aluna B"
+      "aluna": "Aluna B",
+      "modalidade": null
     },
     "plano-20261116-2227.json": {
       "id": "plano-20261116-2227",
