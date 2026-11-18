@@ -52196,3 +52196,12 @@ elenco, é uma decisão nova, e não uma correcção.
 existia e foi apagado em cada um desses elos (o `criar-escola` recriava-o, o expurgo apagava-o), e a
 lista `apagado` é o manifesto do acto. Apagá-la seria reescrever o registo do que aconteceu, que é o
 que P-03 proíbe. Ficou.
+
+**Nota de correção, mesma data.** O commit `acc58963` — o desta entrada — saiu com o **corpo da
+mensagem errado**: descreve a remoção do campo `arquivos` do índice, que é o commit anterior. O
+assunto está certo; o corpo não. A causa foi de processo: o primeiro `git commit` foi **recusado** pelo
+`commit-msg` (o escopo `bastidores` não está na lista), e o segundo leu `git log -1` para reaproveitar
+a mensagem — que, com o primeiro recusado, ainda era a do commit anterior. O conteúdo commitado é o
+desta entrada; quem descreve o que ele faz é o texto acima. Fica corrigido aqui em vez de reescrito:
+o `push` já tinha acontecido e o `publicar.yml` já o tinha publicado (verde), e reescrever um ato
+publicado é o que P-03 proíbe — o ajuste é um elo novo.
