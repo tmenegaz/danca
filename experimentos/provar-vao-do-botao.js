@@ -180,7 +180,19 @@ function medir(formularios) {
       if (gate) gate.hidden = true;
       const conteudo = document.getElementById('conteudo');
       if (conteudo) conteudo.hidden = false;
-      document.querySelectorAll('.secao').forEach((s) => { s.hidden = false; });
+      /* E O RECOLHIMENTO (18/11/2026). As secções passaram a nascer recolhidas — «quando abrir a
+       * primeira vez, deve estar colapsado» —, e recolhida a secção o formulário sai da frente com
+       * `display:none`: o botão deixa de ter caixa e o vão mede zero. Quem sabe abrir uma secção é
+       * a página; chama-se a função dela, em vez de imitar o efeito. */
+      document.querySelectorAll('.secao').forEach((s) => {
+        s.hidden = false;
+        if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida(s.id, false);
+        else {
+          s.setAttribute('data-recolhido', 'nao');
+          s.querySelectorAll('.col-form').forEach((f) => { f.hidden = false; });
+        }
+      });
+      if (typeof definirFormularioRecolhido === 'function') definirFormularioRecolhido(false);
     });
     const medidas = await p.evaluate(medir, FORMULARIOS);
 

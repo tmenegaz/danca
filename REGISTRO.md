@@ -51211,3 +51211,66 @@ prova acumula as asserções e só as imprime no fim, **não imprimia uma única
 responder ao que o script servido pergunta. É a terceira prova desta semana a morrer em silêncio; o
 padrão é sempre o mesmo, e a regra que o fecha é a de sempre: **medir o que a página serve, não o
 que o fonte parece dizer.**
+
+## 18/11/2026 — O formulário nasce recolhido, e «Derivar» abre-o
+
+**O pedido tem três regras, e a terceira é a que corrige um defeito.** *«Se estiver com o formulário
+colapsado e clicar em derivar, tem que expandir o formulário. Expande o formulário para poder o
+usuário fazer a edição que ele quiser fazer […] Se não, deixa fechado por padrão […] Mas se estiver
+colapsado e clicar em derivar, expande. E quando abrir a primeira vez, deve estar colapsado.»*
+
+**O DEFEITO QUE A TERCEIRA REGRA FECHA.** O botão do gesto vive na LISTA — que é exactamente o que
+fica à vista quando o formulário recolhe. Sem ligação entre os dois, clicar em «Derivar» preenchia
+campos dentro de um painel fechado: o trabalho acontecia e não se via nada. O sintoma que ela teria
+é o pior de todos os desta casa — «cliquei e não aconteceu nada» —, porque não dá erro nenhum.
+
+**O QUE ENTROU.** `abrirOFormularioDe(idDaSecao)`, uma função para os cinco gestos: o «Derivar» da
+Turma, o da Sala, o do Estilo, o da Audição e o «Editar» do Professor. É uma função e não cinco
+linhas copiadas porque são cinco sítios onde a mesma regra vale, e a cópia que ficasse de fora seria
+a que ninguém notaria até alguém clicar num formulário recolhido.
+
+**O PADRÃO INVERTIDO EXIGIU UM TERCEIRO ESTADO.** O estado vivia em `sessionStorage` com dois
+valores — `"sim"` e a chave apagada a significar «aberto». Com o padrão em «colapsado», apagar a
+chave passaria a significar «volta ao padrão», e o formulário fechava-se logo depois do gesto que o
+mandou abrir: a página recarrega a cada operação, e o «Derivar» abriria o formulário por um instante.
+Passou a haver **três valores** — `"sim"` recolhido, `"nao"` aberto, **chave ausente = nunca ninguém
+decidiu = o padrão**. É a diferença entre «não decidiu» e «decidiu abrir», e ela fica guardada.
+
+**A PÁGINA NASCE NO ESTADO FINAL.** As seis secções passam a ser servidas com `data-recolhido="sim"`,
+a seta com `aria-expanded="false"` e o miolo das Salas com `hidden`. Sem isso, a página aparecia
+aberta e fechava-se quando o script corria — e um script que falhasse deixava os formulários abertos
+a contradizer a regra.
+
+**O `sessionStorage` FICA, e é a decisão de 18/10/2026 que se mantém** («sem ser preferência para
+amanhã»): a página recarrega a cada operação, e a memória existe para o recolhimento durar mais do que
+um clique. Ela disse «cada usuário, cada navegador tem o seu jeito» — e é isso que ele é: local, por
+aba, e nunca uma preferência guardada no servidor.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`formularioRecolhido`/`definirFormularioRecolhido`,
+`secaoRecolhida`/`definirSecaoRecolhida`, `abrirOFormularioDe` e as cinco chamadas; as seis secções e
+a seta nascem recolhidas; o miolo das Salas com `hidden`).
+
+**Com o quê.** `provar-acordeoes` **TUDO CERTO** (o guião foi invertido: nasce fechada, o primeiro
+toque abre, o segundo fecha, e há uma secção nova com os cinco gestos por clique a sério) ·
+`provar-a-coluna-do-formulario` 17/17 · `provar-abas-da-audicao` 124/124 · `provar-vao-do-botao`
+50/50 · `provar-menu-da-producao` 55/55 · `provar-salas-e-elencos` 131/131 ·
+`provar-a-moldura-em-todas-as-telas` 111 · `check-identidade` 0 erros · `check-sem-destruicao` 0
+violações.
+
+**Controlo A/B.** Os cinco gestos a deixarem de abrir: **reprova 5**, uma por secção, com o nome de
+cada. O padrão a voltar a «aberta»: **reprova 79**. Restaurado, tudo verde.
+
+**E TRÊS PROVAS QUE PASSARAM A MEDIR ZEROS — o pior desfecho possível.** Com as secções a nascerem
+recolhidas, `provar-a-coluna-do-formulario`, `provar-abas-da-audicao` e `provar-vao-do-botao` mediam
+um formulário em `display:none`. A primeira e a segunda reprovaram (e foram corrigidas); a terceira
+**passou** — 50 de 50 — a comparar zero com zero. Uma delas já tinha o aviso escrito no próprio
+código («as asserções de posição passavam por acidente: 0 < 0 é falso, mas a de largura comparava 0
+com 0»), e foi a mesma armadilha outra vez. As três passaram a abrir a secção **pela função da
+própria página**, e não a imitar o efeito por manipulação de atributos: imitado, ele divergiria no
+dia em que o mecanismo mudasse. Na `provar-acordeoes`, a asserção do «Carregar catálogo inicial»
+passou a exigir largura maior que zero — media 0 contra 0 desde então, e agora mede 222 contra 334.
+
+**Uma nota sobre o método, que é a terceira vez esta semana.** Mudar o padrão de um estado é mudar o
+pressuposto de todas as provas que o medem. As que reprovaram avisaram; a que passou não avisou nada,
+e teria ficado assim. Um verde que não se confirma é mais perigoso do que um vermelho — o vermelho
+obriga a olhar.

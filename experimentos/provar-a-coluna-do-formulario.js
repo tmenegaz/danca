@@ -122,11 +122,20 @@ const PAGINA = bastidores.paginaProducao(
     /* AS SECÇÕES NASCEM ESCONDIDAS, e quem as mostra é a navegação da página. Para medir
      * geometria de CSS, mostra-se a cadeia inteira do elemento que se vai medir — e nada mais:
      * a prova é da folha e da marcação, não do roteador de secções. */
+    /* ABRIR A SECÇÃO INCLUI TIRAR O RECOLHIMENTO (18/11/2026). As secções passaram a NASCER
+     * recolhidas — «quando abrir a primeira vez, deve estar colapsado» —, e a folha esconde o
+     * `.col-form` quando a secção diz `data-recolhido="sim"`. Sem esta linha, a prova media
+     * geometria de um formulário que a página tinha decidido esconder, e todos os números davam
+     * zero: um zero medido é pior do que uma falha, porque parece um resultado. */
     const mostrar = async (seletor) => page.evaluate((s) => {
       const el = document.querySelector(s);
       if (!el) return false;
       let n = el;
-      while (n) { if (n.hidden) n.hidden = false; n = n.parentElement; }
+      while (n) {
+        if (n.hidden) n.hidden = false;
+        if (n.classList && n.classList.contains('secao')) n.setAttribute('data-recolhido', 'nao');
+        n = n.parentElement;
+      }
       return true;
     }, seletor);
 
@@ -192,6 +201,9 @@ const PAGINA = bastidores.paginaProducao(
           if (!sec || !el) return { achou: false };
           let n = sec;
           while (n) { if (n.hidden) n.hidden = false; n = n.parentElement; }
+          // O «ANTES» É O ESTADO ABERTO (18/11/2026): a secção nasce recolhida, e medir o
+          // «antes» sem a abrir compararia o recolhimento consigo mesmo.
+          sec.setAttribute('data-recolhido', 'nao');
           const antes = getComputedStyle(el).display;
           sec.setAttribute('data-recolhido', 'sim');
           const depois = getComputedStyle(el).display;
@@ -210,6 +222,8 @@ const PAGINA = bastidores.paginaProducao(
         const sec = document.getElementById('sec-professores');
         let n = sec;
         while (n) { if (n.hidden) n.hidden = false; n = n.parentElement; }
+        // A secção nasce recolhida (18/11/2026): o «antes» desta asserção é o formulário ABERTO.
+        sec.setAttribute('data-recolhido', 'nao');
         const visivel = (el) => !!(el && (el.offsetParent !== null || el.getClientRects().length));
         const antes = { tira: visivel(document.getElementById('pf-abas')), lista: visivel(sec.querySelector('.col-lista')) };
         sec.setAttribute('data-recolhido', 'sim');

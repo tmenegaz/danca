@@ -180,7 +180,23 @@ async function medirFaixaAcima(PAGINA) {
     await page.evaluate(() => {
       const c = document.getElementById('conteudo');
       if (c) c.hidden = false;
-      document.querySelectorAll('section.secao').forEach((s) => { s.hidden = false; });
+      /* ABRIR A SECÇÃO INCLUI TIRAR O RECOLHIMENTO (18/11/2026). As secções passaram a nascer
+       * recolhidas, e o recolhimento esconde o `.col-form` por DUAS vias — o atributo
+       * `data-recolhido` (a folha) e o `hidden` que o script põe no miolo. Limpar só a primeira
+       * deixava o formulário em `display:none` e as medidas em ZERO: é exactamente o acidente que
+       * o comentário acima já descreve — uma prova que mede zeros passa sem provar nada.
+       *
+       * Quem sabe abrir uma secção é a própria página. Chama-se a função dela em vez de imitar o
+       * efeito: imitado, ele divergiria no dia em que o mecanismo mudasse. */
+      document.querySelectorAll('section.secao').forEach((s) => {
+        s.hidden = false;
+        if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida(s.id, false);
+        else {
+          s.setAttribute('data-recolhido', 'nao');
+          s.querySelectorAll('.col-form').forEach((f) => { f.hidden = false; });
+        }
+      });
+      if (typeof definirFormularioRecolhido === 'function') definirFormularioRecolhido(false);
     });
     const m = await page.evaluate(() => {
       const r = (el) => (el ? el.getBoundingClientRect() : null);
@@ -340,7 +356,23 @@ async function medirVaoDaAba(PAGINA) {
       await page.evaluate(() => {
         const c = document.getElementById('conteudo');
         if (c) c.hidden = false;
-        document.querySelectorAll('section.secao').forEach((s) => { s.hidden = false; });
+        /* ABRIR A SECÇÃO INCLUI TIRAR O RECOLHIMENTO (18/11/2026). As secções passaram a nascer
+       * recolhidas, e o recolhimento esconde o `.col-form` por DUAS vias — o atributo
+       * `data-recolhido` (a folha) e o `hidden` que o script põe no miolo. Limpar só a primeira
+       * deixava o formulário em `display:none` e as medidas em ZERO: é exactamente o acidente que
+       * o comentário acima já descreve — uma prova que mede zeros passa sem provar nada.
+       *
+       * Quem sabe abrir uma secção é a própria página. Chama-se a função dela em vez de imitar o
+       * efeito: imitado, ele divergiria no dia em que o mecanismo mudasse. */
+      document.querySelectorAll('section.secao').forEach((s) => {
+        s.hidden = false;
+        if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida(s.id, false);
+        else {
+          s.setAttribute('data-recolhido', 'nao');
+          s.querySelectorAll('.col-form').forEach((f) => { f.hidden = false; });
+        }
+      });
+      if (typeof definirFormularioRecolhido === 'function') definirFormularioRecolhido(false);
       });
       const ler = (aba, alvo) => page.evaluate((aba, alvo) => {
         document.getElementById('lb-aba-' + aba).click();

@@ -2749,8 +2749,8 @@ function tituloComAcordeao(idDaSecao, titulo, idDoMiolo, idDoBotao) {
   return '<h2 class="secao-titulo"><span class="secao-nome">' + titulo + '</span>' +
     '<button type="button" class="alternar-form" ' +
     (idDoBotao ? 'id="' + idDoBotao + '" ' : 'data-acordeao="' + idDaSecao + '" ') +
-    'aria-expanded="true" aria-controls="' + idDoMiolo + '" ' +
-    'aria-label="Recolher o formulário" title="Recolher o formulário">▾</button></h2>';
+    'aria-expanded="false" aria-controls="' + idDoMiolo + '" ' +
+    'aria-label="Abrir o formulário" title="Abrir o formulário">▸</button></h2>';
 }
 
 /* O RODAPÉ DE PÁGINAS MUDOU-SE PARA O NÚCLEO (23/10/2026). Ele era uma função daqui, e a
@@ -6794,7 +6794,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>A escola</h2>' +
     cartaoDaEscola(Object.assign({ escola }, dadosDaEscola || {})) +
     '</section>' +
-    '<section class="secao" id="sec-professores" hidden>' +
+    '<section class="secao" id="sec-professores" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-professores', 'Professores', 'professores-miolo') +
     /* ------------------------------ AS TRÊS ABAS DO PROFESSOR (16/11/2026)
      *
@@ -7022,7 +7022,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</div>' +
     '</section>' +
-    '<section class="secao" id="sec-alunas" hidden>' +
+    '<section class="secao" id="sec-alunas" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-alunas', 'Alunas', 'alunas-miolo') +
     '<div class="col-form" id="alunas-miolo">' +
     '<form id="form-aluna">' +
@@ -7045,7 +7045,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</section>' +
-    '<section class="secao" id="sec-turmas" hidden>' +
+    '<section class="secao" id="sec-turmas" data-recolhido="sim" hidden>' +
     // A SETA SUBIU PARA O TÍTULO (01/11/2026). Ela vivia no FIM da faixa dos passos, e a
     // pesquisadora viu a diferença entre esta secção e as outras quatro: «os steps de Turma
     // têm o botão de colapsar ou expandir na mesma linha dos steps […] nos demais, o botão
@@ -7095,9 +7095,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     // O FORMULÁRIO DO PASSO — a coluna da esquerda. Ele deixou de envolver a faixa: a faixa é
     // a linha de cima, e este div é a célula da esquerda da linha de baixo.
-    '<div class="turmas-form" id="turmas-form" data-recolhido="nao">' +
-    // O MIOLO — os três painéis. É ele que recolhe; a faixa fica.
-    '<div id="turmas-paineis">' +
+    '<div class="turmas-form" id="turmas-form" data-recolhido="sim">' +
+    /* O MIOLO NASCE FECHADO (18/11/2026) — «quando abrir a primeira vez, deve estar colapsado».
+     * O `hidden` é o MESMO que o `definirFormularioRecolhido` põe; ele está aqui para a página
+     * nascer no estado final em vez de aparecer aberta e fechar-se quando o script corre. O
+     * script reabre-o no arranque se a pessoa o tinha deixado aberto. */
+    '<div id="turmas-paineis" hidden>' +
     // O CORPO DA SECÇÃO: à esquerda o FORMULÁRIO DO PASSO (um de cada vez), à direita a
     // LISTAGEM. A listagem é a MESMA nos três passos — «Salas cadastradas» — e por isso ela
     // vive FORA dos painéis: trocar de passo troca o formulário, nunca a lista.
@@ -7435,7 +7438,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // não pertence a nenhuma —, e grava no REPOSITÓRIO, porque é de lá que o gerador o lê. A tela
     // é conveniência; a guarda é o servidor (`motor/servidor/verbete.js`).
     // ---------------------------------------------------------------------------
-    '<section class="secao" id="sec-verbetes" hidden>' +
+    '<section class="secao" id="sec-verbetes" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-verbetes', 'Estilo', 'verbetes-miolo') +
     // A TIRA DOS PASSOS É A PRIMEIRA LINHA DA SECÇÃO (01/11/2026). Ela nasceu fora do
     // formulário — «os steps vão ficar fora do formulário, igual o modelo que a gente tem na
@@ -7933,7 +7936,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</section>' +
-    '<section class="secao" id="sec-curadorias" hidden>' +
+    '<section class="secao" id="sec-curadorias" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-curadorias', 'Turmas', 'curadorias-miolo') +
     '<div class="col-form" id="curadorias-miolo">' +
     '<form id="form-curadoria">' +
@@ -8044,7 +8047,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     rodapePaginacao() +
     '</div>' +
     '</section>' +
-    '<section class="secao" id="sec-corpo" hidden>' +
+    '<section class="secao" id="sec-corpo" data-recolhido="sim" hidden>' +
     /* O 4.º ARGUMENTO NÃO SE PASSA AQUI (05/11/2026) — e passar um foi o defeito.
      *
      * `tituloComAcordeao(a, b, c, d)` usa `d` como o **id** do botão; sem `d`, o botão nasce com
@@ -8433,14 +8436,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // e um formulário que se reabre sozinho depois de cada associação desfaria o recolhimento
     // que a pessoa acabou de pedir. `sessionStorage`, não a URL: a URL já é do menu.
     'var CHAVE_RECOLHIDO = "producao:form-recolhido";' +
+    /* O FORMULÁRIO NASCE COLAPSADO, E O ESTADO TEM TRÊS VALORES (18/11/2026).
+     *
+     * «quando abrir a primeira vez, deve estar colapsado». Antes, a chave ausente valia «aberto»
+     * — e o `definirFormularioRecolhido(false)` APAGAVA a chave. Isso funcionava enquanto o
+     * padrão era «aberto»; com o padrão em «colapsado», apagar a chave passaria a significar
+     * «volta ao padrão», e o formulário fechava-se logo depois do gesto que o mandou abrir — a
+     * página recarrega a cada operação, e o «Derivar» abria o formulário por um instante.
+     *
+     * Por isso o estado passou a ser escrito SEMPRE: `"sim"` é recolhido, `"nao"` é aberto, e a
+     * chave AUSENTE é o que nunca ninguém decidiu — e é aí que o padrão manda. Três valores, e a
+     * diferença entre «não decidiu» e «decidiu abrir» fica guardada. */
     'function formularioRecolhido() {' +
-    '  try { return sessionStorage.getItem(CHAVE_RECOLHIDO) === "sim"; } catch (err) { return false; }' +
+    '  try {' +
+    '    var v = sessionStorage.getItem(CHAVE_RECOLHIDO);' +
+    '    return v === null ? true : v === "sim";' +
+    '  } catch (err) { return true; }' +
     '}' +
     'function definirFormularioRecolhido(sim) {' +
-    '  try {' +
-    '    if (sim) sessionStorage.setItem(CHAVE_RECOLHIDO, "sim");' +
-    '    else sessionStorage.removeItem(CHAVE_RECOLHIDO);' +
-    '  } catch (err) {}' +
+    '  try { sessionStorage.setItem(CHAVE_RECOLHIDO, sim ? "sim" : "nao"); } catch (err) {}' +
     /* A SECÇÃO ANTES DE TUDO, E TUDO DENTRO DELA (17/11/2026).
      *
      * O DEFEITO QUE ISTO CORRIGE. Aqui estava `document.querySelector(".turmas-corpo")` — sem
@@ -8584,14 +8598,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // pedir — sem ser preferência para amanhã.
     'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-verbetes","sec-curadorias","sec-corpo"];' +
     'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
+    /* AS SECÇÕES NASCEM COLAPSADAS, e o estado tem os mesmos três valores do formulário das Salas
+     * (18/11/2026): `"sim"` recolhida, `"nao"` aberta, chave AUSENTE = ninguém decidiu = padrão,
+     * que passou a ser recolhida. Ver o comentário de `CHAVE_RECOLHIDO`. */
     'function secaoRecolhida(id){' +
-    '  try { return sessionStorage.getItem(chaveDaSecao(id)) === "sim"; } catch (err) { return false; }' +
+    '  try {' +
+    '    var v = sessionStorage.getItem(chaveDaSecao(id));' +
+    '    return v === null ? true : v === "sim";' +
+    '  } catch (err) { return true; }' +
     '}' +
     'function definirSecaoRecolhida(id, sim){' +
-    '  try {' +
-    '    if (sim) sessionStorage.setItem(chaveDaSecao(id), "sim");' +
-    '    else sessionStorage.removeItem(chaveDaSecao(id));' +
-    '  } catch (err) {}' +
+    '  try { sessionStorage.setItem(chaveDaSecao(id), sim ? "sim" : "nao"); } catch (err) {}' +
     '  var secao = document.getElementById(id);' +
     '  if (!secao) return;' +
     '  var miolo = secao.querySelector(".col-form");' +
@@ -8607,6 +8624,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    seta.setAttribute("title", rotulo);' +
     '    seta.textContent = sim ? "\\u25B8" : "\\u25BE";' +
     '  }' +
+    '}' +
+    /* ABRIR O FORMULÁRIO DA SECÇÃO — o gesto que o «Editar» e o «Derivar» fazem ANTES de
+     * preencher (18/11/2026).
+     *
+     * «se estiver com o formulário colapsado e clicar em derivar, tem que expandir o formulário.
+     * Expande o formulário para poder o usuário fazer a edição que ele quiser fazer.»
+     *
+     * E o motivo de isto ser uma função e não uma linha em cada sítio: são cinco secções, e a
+     * regra é uma só. Quem abrir o sexto gesto no futuro tem um nome para chamar, em vez de
+     * copiar a linha — e a cópia que ficasse de fora seria a que ninguém notaria até alguém
+     * clicar «Derivar» num formulário recolhido e não acontecer nada visível. É exactamente o
+     * defeito que o recolhimento cria quando não é compensado.
+     *
+     * A GUARDA DA SECÇÃO EXISTENTE NÃO É ZELO: `definirSecaoRecolhida` corre num documento que
+     * pode não ter a secção (as provas de jsdom montam páginas parciais), e gravar o estado de
+     * uma secção ausente deixaria uma chave no `sessionStorage` para uma secção que não existe. */
+    'function abrirOFormularioDe(idDaSecao){' +
+    '  if (!document.getElementById(idDaSecao)) return;' +
+    '  definirSecaoRecolhida(idDaSecao, false);' +
     '}' +
     'for (var sec = 0; sec < SECOES_COM_ACORDEAO.length; sec++) {' +
     '  definirSecaoRecolhida(SECOES_COM_ACORDEAO[sec], secaoRecolhida(SECOES_COM_ACORDEAO[sec]));' +
@@ -9477,6 +9513,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!f || !slug) return;' +
     /* A ABA DO CADASTRO PRIMEIRO: quem clica «Editar» a partir da aba das habilitações tem de
      * aterrar onde o formulário está, e não a olhar para uma lista de caixas. */
+    /* E O FORMULÁRIO DO PROFESSOR ABRE-SE TAMBÉM (18/11/2026) — antes da aba do cadastro, para a
+     * aba e o corpo aparecerem juntos. Ver `abrirOFormularioDe`. */
+    '  abrirOFormularioDe("sec-professores");' +
     '  if (typeof abrirCadastroDoProfessor === "function") abrirCadastroDoProfessor();' +
     '  var oculto = document.getElementById("prof-modo");' +
     '  if (oculto) oculto.value = "editar";' +
@@ -11701,6 +11740,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    modo = "derivar";' +
     '    recado("aviso", "esta Turma já tem plano de ensino — abre-se em «Derivar»: a versão nova passa a valer a partir de uma data, e a anterior fica no histórico.");' +
     '  }' +
+    /* «DERIVAR» NUM FORMULÁRIO RECOLHIDO ABRE-O (18/11/2026) — «se estiver com o formulário
+     * colapsado e clicar em derivar, tem que expandir o formulário». Antes da linha seguinte,
+     * porque o resto do gesto preenche campos que só existem para serem vistos: preenchê-los
+     * dentro de um painel escondido é trabalho que ninguém vê, e o sintoma que a pesquisadora
+     * teria era «cliquei em Derivar e não aconteceu nada». */
+    '  abrirOFormularioDe("sec-curadorias");' +
     '  var derivar = modo !== "editar";' +
     '  document.getElementById("cuderivar").value = c.id;' +
     '  document.getElementById("cumodo").value = derivar ? "derivar" : "editar";' +
@@ -14546,6 +14591,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // FRASE; a frase subiu para o passo 1, e é ela que se vem editar quando se abre um verbete. Ir
     // para o 2 deixaria o comportamento certo (não encher campos fora do ecrã) com o sítio errado.
     // O seletor do exercício continua a um clique na tira.
+    /* O FORMULÁRIO DO ESTILO ABRE-SE PARA RECEBER O VERBETE (18/11/2026). Ver `abrirOFormularioDe`. */
+    '  abrirOFormularioDe("sec-verbetes");' +
     '  MUSICA_ABERTA = chave;' +
     /* ABRIR UM VERBETE NÃO ABRE UM TRECHO (15/11/2026). O gesto do trecho é da decomposição e não
      * sobrevive à troca de verbete: quem abriu outro exercício pela listagem está a ler outro
@@ -16762,6 +16809,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function editarLinha(id) {' +
     '  var alvo = LINHAS_DE_BASE.filter(function(l){ return l.id === id; })[0];' +
     '  if (!alvo) return;' +
+    // O FORMULÁRIO DA AUDIÇÃO ABRE-SE PARA RECEBER O ELENCO (18/11/2026). Ver `abrirOFormularioDe`.
+    '  abrirOFormularioDe("sec-corpo");' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var nome = document.getElementById("lb-nome");' +
     '  var prof = document.getElementById("lb-professor");' +

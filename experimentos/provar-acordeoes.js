@@ -90,6 +90,26 @@ const CURADORIAS = [{
   turmas: ['Balé nível 1, Grade 1'], alunas: ['Vavá'], repertorio: ['plié'],
 }];
 
+/** O verbete que faz existir um cartão no Estilo — e o gesto dele na coluna das acções. */
+const VERBETE = {
+  ok: true,
+  verbetes: { 'Plié': { '4/4|A': { metodo: 'RAD', posicao: 'barra', trechos: [] } } },
+  exercicios: [{
+    nome: 'Plié', escola: true, emTurma: [], trechos: 1,
+    porMusica: [{ chave: '4/4|A', tempos: '4/4', compasso: '4/4', trechos: 1, escola: true,
+      categorias: ['passo'], direcoes: [], orientacoes: [] }],
+  }],
+  exerciciosDoVocabulario: [{ termo: 'Plié', categoria: 'passo', tradicao: 'RAD', descricao: 'dobra' }],
+  posicoes: [], direcoes: [], orientacoes: [], categoriasDeBloco: ['Pé'],
+  descricoes: {}, sinais: [{ sinal: '→', nome: 'conduz a', grupo: 'Movimento' }],
+};
+
+/** O elenco que faz existir um cartão na Audição, com o «Editar» dele. */
+const ELENCOS = [{
+  id: 'elenco-1', nome: 'Elenco 1', professor: 'Leticia',
+  alunas: ['Vavá'], campos: [], turma: '',
+}];
+
 function pagina(motor) {
   const b = require(path.join(motor, 'servidor/bastidores.js'));
   return b.paginaProducao('fita', CONTEXTO, PROFS, ALUNAS, 'Tiago Menegaz', 'tiago-menegaz',
@@ -105,6 +125,12 @@ function servir(html) {
     };
     if (caminho.endsWith('/assets/style.css')) return ok('text/css; charset=utf-8', fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css')));
     if (caminho.endsWith('/assets/nav.js')) return ok('text/javascript', fs.readFileSync(path.join(raiz, 'tools/templates/nav.js')));
+    /* OS DADOS QUE FALTAM PARA OS GESTOS EXISTIREM (18/11/2026). O «Derivar» do Estilo e o da
+     * Audição são botões DESENHADOS PELO CLIENTE a partir destas duas rotas; com o `{ok:true}`
+     * genérico a lista fica vazia, não há botão nenhum, e a asserção do gesto passaria por
+     * ausência — que é a pior forma de uma prova passar. */
+    if (caminho === '/api/bastidores/verbete') return ok('application/json', JSON.stringify(VERBETE));
+    if (caminho === '/api/bastidores/linhas-de-base') return ok('application/json', JSON.stringify({ ok: true, linhas: ELENCOS }));
     if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
     ok('text/html; charset=utf-8', html);
   });
@@ -231,47 +257,65 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
         Boolean(document.querySelector('#' + idDaSecao + ' .alternar-form')), id);
       provar(`@${w} · ${nome}: a secção tem a seta do acordeão`, temSeta === true, temSeta);
 
+      /* A REGRA NOVA (18/11/2026) — «quando abrir a primeira vez, deve estar colapsado».
+       *
+       * A prova media o contrário: nascia aberta e o primeiro toque recolhia. Com o padrão
+       * invertido, ela mediria o rastro da regra antiga em cada medida — por isso a ordem do
+       * guião mudou: agora começa fechada, o primeiro toque ABRE, e o segundo fecha. O que se
+       * mede é o mesmo (estado, geometria, memória); o sentido é que se inverteu. */
+      const inicial = await ler(pg, id);
+      provar(`@${w} · ${nome}: a primeira vez nasce RECOLHIDA — o formulário não está à vista`,
+        inicial.recolhido === 'sim' && !inicial.formVisivel && inicial.tituloVisivel &&
+        inicial.seta === '\u25B8' && inicial.expandido === 'false' &&
+        /Abrir/.test(String(inicial.rotulo)) &&
+        inicial.lista === inicial.secao && inicial.colunas === 1, inicial);
+
+      // O ESTADO DAS OUTRAS ANTES DO TOQUE: a asserção do isolamento é «não MUDOU», e não
+      // «está aberta». Com o padrão recolhido, «as outras estão abertas» deixou de ser verdade
+      // no arranque — mas «o meu toque não lhes toca» continua a ser o que se quer saber.
+      const antesDoToque = await pg.evaluate(([idDaSecao, ids]) => {
+        const fora = {};
+        // A PRÓPRIA SECÇÃO SAI DA COMPARAÇÃO: é ela que o toque muda, e compará-la consigo
+        // mesma seria pedir que o gesto não fizesse nada.
+        for (const outro of ids) {
+          if (outro === idDaSecao) continue;
+          fora[outro] = document.getElementById(outro).getAttribute('data-recolhido');
+        }
+        return fora;
+      }, [id, SECOES.map((x) => x[1])]);
+
+      const tocou = await tocarSeta(pg, id);
+      provar(`@${w} · ${nome}: a seta responde ao toque`, tocou === true, tocou);
+      await new Promise((r) => setTimeout(r, 90));
+
       const aberto = await ler(pg, id);
-      provar(`@${w} · ${nome}: aberto, o formulário está à vista e a lista na coluna dela`,
+      provar(`@${w} · ${nome}: a seta abre — o formulário entra e a lista volta à coluna dela`,
         aberto.recolhido === 'nao' && aberto.formVisivel && aberto.tituloVisivel &&
         aberto.seta === '\u25BE' && aberto.expandido === 'true' &&
         aberto.colunas === (estreita ? 1 : 2), aberto);
 
-      const recolheu = await tocarSeta(pg, id);
-      provar(`@${w} · ${nome}: a seta responde ao toque`, recolheu === true, recolheu);
-      await new Promise((r) => setTimeout(r, 90));
-
-      const recolhido = await ler(pg, id);
-      provar(`@${w} · ${nome}: a seta recolhe — o formulário sai, o título fica, a seta diz o estado`,
-        recolhido.recolhido === 'sim' && !recolhido.formVisivel && recolhido.tituloVisivel &&
-        recolhido.seta === '\u25B8' && recolhido.expandido === 'false' &&
-        /Abrir/.test(String(recolhido.rotulo)), recolhido);
-      // A LISTAGEM OCUPA A LARGURA TODA — é o pedido, medido em pixels e não em intenção.
-      provar(`@${w} · ${nome}: recolhido, a listagem mede a largura inteira da secção`,
-        recolhido.lista === recolhido.secao && recolhido.colunas === 1, recolhido);
-
-      // AS OUTRAS NÃO SE MEXERAM. É a regressão que o `data-acordeao` evita: as cinco setas
+      // AS OUTRAS NÃO SE MEXERAM. É a regressão que o `data-acordeao` evita: as seis setas
       // têm a mesma classe, e sem o gancho a do vocabulário recolhia as turmas.
-      const outras = await pg.evaluate(([idDaSecao, ids]) => {
+      const depois = await pg.evaluate(([idDaSecao, ids]) => {
         const fora = {};
         for (const outro of ids) {
           if (outro === idDaSecao) continue;
-          const s = document.getElementById(outro);
-          fora[outro] = s.getAttribute('data-recolhido');
+          fora[outro] = document.getElementById(outro).getAttribute('data-recolhido');
         }
         return fora;
       }, [id, SECOES.map((x) => x[1])]);
-      provar(`@${w} · ${nome}: a seta dela não recolhe as outras secções`,
-        Object.values(outras).every((v) => v !== 'sim'), outras);
+      provar(`@${w} · ${nome}: a seta dela não mexe nas outras secções`,
+        JSON.stringify(depois) === JSON.stringify(antesDoToque), depois);
 
-      // A MESMA SETA REABRE.
+      // A MESMA SETA RECOLHE, e recolhida a listagem ocupa a largura toda — é o pedido de
+      // 18/10/2026, medido em pixels e não em intenção.
       await tocarSeta(pg, id);
       await new Promise((r) => setTimeout(r, 90));
-      const reaberto = await ler(pg, id);
-      provar(`@${w} · ${nome}: a mesma seta reabre, e a lista volta à coluna dela`,
-        reaberto.recolhido === 'nao' && reaberto.formVisivel && reaberto.seta === '\u25BE' &&
-        reaberto.colunas === (estreita ? 1 : 2) &&
-        (!estreita || reaberto.lista === reaberto.secao), reaberto);
+      const recolhido = await ler(pg, id);
+      provar(`@${w} · ${nome}: a mesma seta recolhe — e a listagem mede a largura inteira`,
+        recolhido.recolhido === 'sim' && !recolhido.formVisivel && recolhido.tituloVisivel &&
+        recolhido.seta === '\u25B8' && recolhido.expandido === 'false' &&
+        recolhido.lista === recolhido.secao && recolhido.colunas === 1, recolhido);
     }
 
     // O BOTÃO DO CATÁLOGO INICIAL. Ele é `nowrap` por herança da folha — decisão certa para
@@ -282,6 +326,12 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     // até se clicar — e uma caixa escondida não tem largura. Abre-se o modo do exercício antes de
     // medir; sem isso, `getBoundingClientRect` devolve zero e a prova passaria sem medir nada.
     await abrir(pg, 'sec-verbetes');
+    /* A SECÇÃO TEM DE ESTAR ABERTA PARA O BOTÃO TER LARGURA (18/11/2026). Ela passou a nascer
+     * recolhida, e a folha esconde o `.col-form` — a caixa do «+» fica dentro de um `display:none`
+     * e mede ZERO. A asserção seguinte comparava 0 com 0 e passava sem medir nada: é a
+     * «prova que passa por ausência», a pior de todas. Abre-se com a seta, que é o gesto real. */
+    await tocarSeta(pg, 'sec-verbetes');
+    await new Promise((r) => setTimeout(r, 90));
     await pg.evaluate(() => { if (typeof modoExercicio === 'function') modoExercicio(true); });
     await new Promise((r) => setTimeout(r, 150));
     const semear = await pg.evaluate(() => {
@@ -297,7 +347,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
       };
     });
     provar(`@${w} · «Carregar catálogo inicial» cabe na coluna (${semear.linha})`,
-      semear.botao <= semear.coluna, semear);
+      semear.botao > 0 && semear.coluna > 0 && semear.botao <= semear.coluna, semear);
 
     const estouro = await pg.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     provar(`@${w} · a página não estoura na horizontal`, estouro <= 1, estouro);
@@ -312,6 +362,11 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
   await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
   await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
   await pg.reload({ waitUntil: 'load' });
+  /* O QUE SE LEMBRA AGORA É O ABERTO (18/11/2026). Antes, o padrão era «aberta» e o que se
+   * guardava era o recolhimento; com o padrão recolhido, `"nao"` passou a ser a decisão a
+   * preservar. Mede-se o par: quem ABRIU o Estilo volta a encontrá-lo aberto, e quem nunca lhe
+   * tocou volta a encontrá-lo fechado — que é a prova de que a chave ausente não é o mesmo
+   * facto que a chave com «nao». */
   await abrir(pg, 'sec-verbetes');
   await tocarSeta(pg, 'sec-verbetes');
   await pg.reload({ waitUntil: 'load' });
@@ -320,9 +375,91 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     const g = (id) => document.getElementById(id).getAttribute('data-recolhido');
     return { verbetes: g('sec-verbetes'), alunas: g('sec-alunas'), professores: g('sec-professores') };
   });
-  provar('o recolhimento é lembrado depois de recarregar — e só o da secção recolhida',
-    lembrado.verbetes === 'sim' && lembrado.alunas === 'nao' && lembrado.professores === 'nao',
+  provar('o estado é lembrado depois de recarregar — só o da secção mexida',
+    lembrado.verbetes === 'nao' && lembrado.alunas === 'sim' && lembrado.professores === 'sim',
     lembrado);
+  const lembradoVisivel = await pg.evaluate(() =>
+    document.querySelector('#sec-verbetes .col-form')
+      ? document.querySelector('#sec-verbetes .col-form').getBoundingClientRect().width > 0 : false);
+  provar('…e o formulário que ela abriu está mesmo à vista, e não só o atributo',
+    lembradoVisivel === true, lembradoVisivel);
+
+  // ---- «DERIVAR» E «EDITAR» ABREM O FORMULÁRIO RECOLHIDO (18/11/2026) ------------------
+  //
+  // O PEDIDO, ao pé da letra: «se eu estou em turma ou em estilo ou em audição ou em salas, ou em
+  // alunas ou em professor, qualquer um desses se estiver com o formulário colapsado e clicar em
+  // derivar, tem que expandir o formulário. Expande o formulário para poder o usuário fazer a
+  // edição que ele quiser fazer».
+  //
+  // PORQUE ISTO É UM DEFEITO E NÃO UM PORMENOR. O botão do gesto vive na LISTA, que fica à vista
+  // quando o formulário recolhe. Sem esta ligação, clicar em «Derivar» preenchia campos dentro de
+  // um painel fechado: o trabalho acontecia e não se via nada — «cliquei e não aconteceu nada».
+  //
+  // MEDE-SE POR CLIQUE A SÉRIO no botão do gesto, e a asserção é a GEOMETRIA de depois: o
+  // formulário com largura maior que zero. Um `data-recolhido="nao"` sozinho diria que o atributo
+  // mudou, não que a pessoa passou a ver o formulário.
+  {
+    const GESTOS = [
+      ['Turmas', 'sec-curadorias', '[data-curadoria-ajustar]'],
+      ['Salas', 'sec-turmas', '[data-turma-ajustar]'],
+      ['Estilo', 'sec-verbetes', '[data-editar-verbete]'],
+      ['Audição', 'sec-corpo', '[data-lb-editar]'],
+      ['Professores', 'sec-professores', 'button.editar'],
+    ];
+    for (const [nome, id, seletor] of GESTOS) {
+      await pg.setViewport({ width: 1280, height: 1400 });
+      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
+      await pg.reload({ waitUntil: 'load' });
+      await abrir(pg, id);
+      // As rotas respondem com `fetch` de verdade, e o cartão do elenco e o do verbete são
+      // desenhados DEPOIS da resposta: sem esta espera, o clique procuraria um botão que ainda
+      // não existe e a asserção falharia por pressa, não por defeito.
+      await new Promise((r) => setTimeout(r, 250));
+
+      const antes2 = await ler(pg, id);
+      const temBotao = await pg.evaluate((sel) => Boolean(document.querySelector(sel)), seletor);
+      provar(`${nome}: o cartão oferece o gesto, e o formulário está recolhido antes do clique`,
+        temBotao === true && antes2.recolhido === 'sim' && !antes2.formVisivel,
+        { temBotao, recolhido: antes2.recolhido, formVisivel: antes2.formVisivel });
+
+      const clicou = await pg.evaluate((sel) => {
+        const b = document.querySelector(sel);
+        if (!b) return false;
+        b.click();
+        return true;
+      }, seletor);
+      provar(`${nome}: o gesto responde ao clique`, clicou === true, clicou);
+      await new Promise((r) => setTimeout(r, 400));
+
+      const depois2 = await ler(pg, id);
+      provar(`${nome}: o gesto ABRE o formulário recolhido — é o que ela pediu`,
+        depois2.recolhido === 'nao' && depois2.formVisivel && depois2.seta === '\u25BE' &&
+        depois2.expandido === 'true', depois2);
+    }
+
+    /* E A OUTRA METADE: QUEM NUNCA CLICOU EM NADA ENCONTRA O FORMULÁRIO FECHADO. Sem esta
+     * asserção, «abre no gesto» poderia estar a passar porque TUDO abre no arranque — e o
+     * recolhimento por omissão, que é metade do pedido, ficaria por medir. */
+    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
+    await pg.reload({ waitUntil: 'load' });
+    const todasFechadas = await pg.evaluate((ids) => {
+      const fora = {};
+      for (const id of ids) {
+        const s = document.getElementById(id);
+        const form = s.querySelector('.col-form');
+        fora[id] = {
+          estado: s.getAttribute('data-recolhido'),
+          visivel: Boolean(form) && form.getBoundingClientRect().width > 0,
+        };
+      }
+      return fora;
+    }, SECOES.map((x) => x[1]));
+    provar('sem ninguém tocar em nada, as cinco secções nascem TODAS fechadas',
+      Object.values(todasFechadas).every((x) => x.estado === 'sim' && x.visivel === false),
+      todasFechadas);
+  }
 
   await br.close();
   srv.close();
