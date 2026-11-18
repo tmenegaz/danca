@@ -16,12 +16,9 @@ hash: ffa84cc55358478cac74657793539064797166df78b86168d449763e541d73b8
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
 po_state: Input_PO_Validado
-ancorado_em: 2026-11-17
+ancorado_em: 2026-11-18
 notacao: Benesh
-notacao_modalidade: bale-classico
-notacao_alfabeto: ballet-classico
-notacao_versao: 46
-notacao_sha: bc7ce594ee6b90a049fe81d43dacbade7560c1e57d424be1e43f511ffe02aac7
+notacao_alfabeto: (sem alfabeto publicado para esta notacao)
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md

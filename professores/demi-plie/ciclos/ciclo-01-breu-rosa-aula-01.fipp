@@ -14,7 +14,7 @@ hash_conteudo: a9a2f12423b0c06c4d589f30a266aceb058d9a37cc697ae6876fac39ec76ac90
 parentHash: 
 hash: 7a08c963cddf26f97421cf1c94b1ff6e77e8d0925ae9719cda3794457dbe96ce
 algoritmo: SHA-256
-ancorado_em: 2026-11-17
+ancorado_em: 2026-11-18
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
