@@ -2,10 +2,27 @@
 'use strict';
 
 /*
- * provar-historico-do-ajuste.js — o bloco «ajustes anteriores» diz o QUE mudou, QUANDO e PORQUÊ
- * (10/11/2026).
+ * provar-historico-do-ajuste.js — a PEÇA «ajustes anteriores» diz o QUE mudou, QUANDO e PORQUÊ —
+ * e NÃO APARECE NA LISTAGEM (18/11/2026).
  *
- * O QUE ESTA PROVA FIXA, e porquê. O bloco existia desde 16/10/2026 e dizia o ritmo de cada
+ * O QUE MUDOU A 18/11/2026, e é o que manda no resto deste ficheiro. Ela viu o acordeão no cartão
+ * da sala e cortou-o: «Esse é um item de auditoria […] Ele não tem que aparecer aqui na tela. Pode
+ * tirar. […] Imagina, isso aqui vai ficar gigantesco se colocar esse histórico toda vez. […] por
+ * enquanto, ele existe internamente, mas ele não aparece aqui na listagem.»
+ *
+ * A CONSEQUÊNCIA PARA ESTA PROVA, e ela é o motivo de o ficheiro ter sido reescrito: as asserções
+ * que liam o bloco da PÁGINA deixaram de ter onde o ler. O que se mede agora é a PEÇA — chamada
+ * directamente, porque `historicoDoAjuste` e `diferencaDeRitmo` passaram a ser exportadas —, mais
+ * uma secção nova que prova a AUSÊNCIA na listagem. A peça não fica órfã nem apodrece em silêncio
+ * até ao dia em que o item de auditoria for desenhado.
+ *
+ * (Já antes desta data a prova estava parcialmente quebrada: a lista de TURMAS perdeu o histórico
+ * a 11/11/2026 e ninguém reviu as oito asserções que contavam dois blocos na página. Fica dito, em
+ * vez de varrido para debaixo do tapete.)
+ *
+ * O que se prova, contra o código servido:
+ *
+ * O QUE ESTA PROVA FIXAVA, e porquê. O bloco existia desde 16/10/2026 e dizia o ritmo de cada
  * versão em texto corrido. A pesquisadora perguntou para que servia — «por que a pessoa gostaria
  * de saber isso?» —, e a resposta honesta era: para saber desde quando vale o ritmo de hoje e o
  * que valia antes. A tela não respondia nem uma nem outra de forma directa:
@@ -18,8 +35,8 @@
  *
  * Aqui prova-se, contra o código servido:
  *
- *   A. O RÓTULO em português corrente, singular e plural — e nenhum `(ões)`/`(es)` na página.
- *   B. A DIFERENÇA calculada (Salas): a hora agrupada por transição, a duração, o período — e
+ *   A. O RÓTULO em português corrente, singular e plural — e nenhum `(ões)`/`(es)`.
+ *   B. A DIFERENÇA calculada: a hora agrupada por transição, a duração, o período — e
  *      «(sem alteração)» quando uma derivação não mudou nada.
  *   C. A DATA em BR nas DUAS listas, e no selo «ajustada em».
  *   D. O MOTIVO: aparece quando foi declarado, NÃO aparece quando não foi — o sistema não
@@ -89,25 +106,30 @@ function pagina(extra) {
     [], {}, e.curadorias || [], [], []);
 }
 
-/** O miolo do `<details class="historico">`, ou `''` quando não há bloco. */
-function bloco(html) {
-  const i = html.indexOf('<details class="historico">');
-  if (i === -1) return '';
-  const j = html.indexOf('</details>', i);
-  return j === -1 ? html.slice(i) : html.slice(i, j + 10);
+/** A PEÇA, chamada directamente — e não colhida da página (18/11/2026).
+ *
+ * `elos` é a cadeia como a derivação a produz, e a peça espera `{versao, sucessor}`: a versão
+ * antiga e a que tomou o seu lugar. É o mesmo emparelhamento que a listagem fazia antes de o bloco
+ * sair do ecrã, e ele fica aqui para a prova não depender de uma tela que já não o tem. */
+function peca(salas) {
+  const lista = (salas || []).slice();
+  if (lista.length < 2) return '';
+  /* A ÚLTIMA É A VIGENTE, e as outras são o passado — emparelhadas como a listagem as lia: cada
+   * versão antiga com a que lhe tomou o lugar, e a MAIS RECENTE primeiro (o elo que acabou de
+   * acontecer é o que se procura). O `i === 0` é o elo da versão imediatamente anterior com a
+   * versão de hoje. */
+  const atual = lista[lista.length - 1];
+  const passado = lista.slice(0, -1).reverse();
+  const elos = passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? atual : passado[i - 1] }));
+  return bastidores.historicoDoAjuste(elos, bastidores.diferencaDeRitmo);
 }
 
-function todosOsBlocos(html) {
-  const saida = [];
-  let i = 0;
-  for (;;) {
-    const a = html.indexOf('<details class="historico">', i);
-    if (a === -1) break;
-    const b = html.indexOf('</details>', a);
-    saida.push(html.slice(a, b === -1 ? undefined : b + 10));
-    i = b === -1 ? html.length : b + 10;
-  }
-  return saida;
+/** O miolo do `<details class="historico">`, ou `''` quando a peça não produz bloco. */
+function bloco(html) {
+  const i = String(html || '').indexOf('<details class="historico">');
+  if (i === -1) return '';
+  const j = String(html).indexOf('</details>', i);
+  return j === -1 ? String(html).slice(i) : String(html).slice(i, j + 10);
 }
 
 /** O texto de um bloco, sem marcação — é o que a pessoa lê. */
@@ -134,32 +156,28 @@ function kvDeMentira(inicial) {
   console.log('\nA. O RÓTULO — português corrente, singular e plural');
 
   {
-    const comTres = pagina();
-    const blocoTres = bloco(comTres);
+    const comTres = peca(cadeiaDeSalas());
     provar('três versões na cadeia dão dois ajustes anteriores',
-      /2 ajustes anteriores/.test(texto(blocoTres)), texto(blocoTres));
-    provar('…e NENHUM «(ões)» na página inteira', !/\(ões\)|\(es\)/.test(comTres),
+      /2 ajustes anteriores/.test(texto(comTres)), texto(comTres));
+    provar('…e NENHUM «(ões)» no que a peça escreve', !/\(ões\)|\(es\)/.test(comTres),
       (comTres.match(/[^ ]*\(ões\)[^ ]*/g) || []).slice(0, 3));
 
-    const comUma = pagina({
-      salas: [
-        sala({ substituidaPor: 'so-uma', substituidaEm: '2026-03-15' }),
-        sala({ id: 'so-uma', substitui: 'bale-nivel-1', vigenteDe: '2026-03-15' }),
-      ],
-    });
+    const comUma = peca([
+      sala({ substituidaPor: 'so-uma', substituidaEm: '2026-03-15' }),
+      sala({ id: 'so-uma', substitui: 'bale-nivel-1', vigenteDe: '2026-03-15' }),
+    ]);
     provar('uma versão anterior diz «1 ajuste anterior», sem o plural',
-      /1 ajuste anterior/.test(texto(bloco(comUma))), texto(bloco(comUma)));
-    provar('…e não escreve «ajustes»', !/1 ajustes/.test(texto(bloco(comUma))));
+      /1 ajuste anterior/.test(texto(comUma)), texto(comUma));
+    provar('…e não escreve «1 ajustes»', !/1 ajustes/.test(texto(comUma)));
 
-    const semElo = pagina({ salas: [sala()] });
-    provar('sem versão anterior não há bloco nenhum', bloco(semElo) === '', bloco(semElo));
+    provar('sem versão anterior não há bloco nenhum', peca([sala()]) === '', peca([sala()]));
   }
 
   // ==========================================================================================
   console.log('\nB. A DIFERENÇA — o que mudou, e não duas fotografias');
 
   {
-    const t = texto(bloco(pagina()));
+    const t = texto(peca(cadeiaDeSalas()));
     provar('a hora agrupada por transição: «ter, qui: 18:00 → 19:00»',
       /ter, qui: 18:00 → 19:00/.test(t), t);
     provar('…e não repetida por dia (a versão anterior dizia duas vezes)',
@@ -170,59 +188,47 @@ function kvDeMentira(inicial) {
     provar('cada linha começa pelo fim da validade da versão', /até 01\/11\/2026/.test(t), t);
 
     // Uma derivação sem alteração nenhuma não pode inventar uma diferença.
-    const igual = sala({
-      id: 's-igual-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01',
-    });
-    const semMudanca = pagina({ salas: [sala({ substituidaPor: 's-igual-2', substituidaEm: '2026-11-01' }), igual] });
+    const semMudanca = peca([
+      sala({ substituidaPor: 's-igual-2', substituidaEm: '2026-11-01' }),
+      sala({ id: 's-igual-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01' }),
+    ]);
     provar('derivar sem mudar nada diz «(sem alteração)», e não finge uma diferença',
-      /\(sem alteração\)/.test(texto(bloco(semMudanca))), texto(bloco(semMudanca)));
+      /\(sem alteração\)/.test(texto(semMudanca)), texto(semMudanca));
 
     // A entrada e a saída de um dia são ditas como tal, e não como mudança de hora.
-    const mudouDia = sala({
-      id: 's-dia-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01',
-      dias: ['ter', 'sex'], horarios: { ter: '18:00', sex: '18:00' },
-    });
-    const trocaDeDia = pagina({
-      salas: [sala({ substituidaPor: 's-dia-2', substituidaEm: '2026-11-01' }), mudouDia],
-    });
-    const td = texto(bloco(trocaDeDia));
+    const trocaDeDia = peca([
+      sala({ substituidaPor: 's-dia-2', substituidaEm: '2026-11-01' }),
+      sala({
+        id: 's-dia-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01',
+        dias: ['ter', 'sex'], horarios: { ter: '18:00', sex: '18:00' },
+      }),
+    ]);
+    const td = texto(trocaDeDia);
     provar('um dia que entrou é «entrou sex 18:00»', /entrou sex 18:00/.test(td), td);
     provar('…e um que saiu é «saiu qui 18:00»', /saiu qui 18:00/.test(td), td);
 
     // O período também é um eixo do ritmo.
-    const periodo = sala({
-      id: 's-per-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01', periodoFim: '2026-12-15',
-    });
-    const comPeriodo = pagina({
-      salas: [sala({ substituidaPor: 's-per-2', substituidaEm: '2026-11-01' }), periodo],
-    });
+    const comPeriodo = peca([
+      sala({ substituidaPor: 's-per-2', substituidaEm: '2026-11-01' }),
+      sala({ id: 's-per-2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01', periodoFim: '2026-12-15' }),
+    ]);
     provar('o fim do período aparece como mudança: «fim 31/12/2026 → 15/12/2026»',
-      /fim 31\/12\/2026 → 15\/12\/2026/.test(texto(bloco(comPeriodo))), texto(bloco(comPeriodo)));
+      /fim 31\/12\/2026 → 15\/12\/2026/.test(texto(comPeriodo)), texto(comPeriodo));
   }
 
   // ==========================================================================================
-  console.log('\nC. A DATA — em BR, nas duas listas e no selo');
+  console.log('\nC. A DATA — em BR, e nunca em ISO');
 
   {
-    const html = pagina({
-      curadorias: [{
-        id: 'c-velha', professor: 'pe-torto', modalidade: 'Balé clássico', tradicao: 'RAD',
-        turmas: [NOME_DA_SALA], alunas: ['Ana'], repertorio: [],
-        substituidaPor: 'c-nova', substituidaEm: '2026-11-01',
-      }, {
-        id: 'c-nova', professor: 'pe-torto', modalidade: 'Balé clássico', tradicao: 'RAD',
-        turmas: [NOME_DA_SALA], alunas: ['Ana'], repertorio: [],
-        vigenteDe: '2026-11-01', substitui: 'c-velha',
-      }],
-    });
-    const blocos = todosOsBlocos(html);
-    provar('a página tem os dois blocos (Salas e Turmas)', blocos.length === 2, blocos.length);
-    provar('a data sai em BR no bloco das Salas', /até 01\/11\/2026/.test(texto(blocos[0])), texto(blocos[0]));
-    provar('…e também no bloco das Turmas', /até 01\/11\/2026/.test(texto(blocos[1])), texto(blocos[1]));
-    provar('…e nenhuma data ISO crua em nenhum dos dois',
-      !/\d{4}-\d{2}-\d{2}/.test(texto(blocos[0]) + ' ' + texto(blocos[1])),
-      [texto(blocos[0]), texto(blocos[1])]);
-    provar('o selo «ajustada em» também está em BR', /ajustada em 01\/11\/2026/.test(html),
+    const t = texto(peca(cadeiaDeSalas()));
+    provar('a data sai em BR no bloco', /até 01\/11\/2026/.test(t), t);
+    provar('…e nenhuma data ISO crua', !/\d{4}-\d{2}-\d{2}/.test(t),
+      (t.match(/\d{4}-\d{2}-\d{2}/g) || []).slice(0, 2));
+    /* O SELO CONTINUA NA PÁGINA — e é a única parte do histórico que fica à vista: ele diz que
+     * ESTA versão nasceu de um ajuste, que é presente, e não a cadeia de elos. */
+    const html = pagina();
+    provar('o selo «ajustada em» continua na listagem, em BR',
+      /ajustada em 01\/11\/2026/.test(html),
       (html.match(/ajustada em [^<]*/g) || []).slice(0, 2));
   }
 
@@ -230,37 +236,30 @@ function kvDeMentira(inicial) {
   console.log('\nD. O MOTIVO — aparece quando existe, cala-se quando não');
 
   {
-    const comMotivo = texto(bloco(pagina()));
+    const comMotivo = texto(peca(cadeiaDeSalas()));
     provar('o motivo declarado é mostrado', /motivo: «a sala mudou para o período da noite»/.test(comMotivo), comMotivo);
 
     // Sem motivo no elo, o bloco NÃO escreve razão nenhuma.
-    const semMotivo = pagina({
-      salas: [
-        sala({ substituidaPor: 's2', substituidaEm: '2026-11-01' }),
-        sala({ id: 's2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01', duracaoMin: 75 }),
-      ],
-    });
-    const t = texto(bloco(semMotivo));
+    const semMotivo = peca([
+      sala({ substituidaPor: 's2', substituidaEm: '2026-11-01' }),
+      sala({ id: 's2', substitui: 'bale-nivel-1', vigenteDe: '2026-11-01', duracaoMin: 75 }),
+    ]);
+    const t = texto(semMotivo);
     provar('sem motivo declarado, o bloco não escreve «motivo:»', !/motivo:/.test(t), t);
     provar('…e continua a mostrar a mudança', /60 min → 75 min/.test(t), t);
 
     /* O MOTIVO NÃO SE HERDA. A derivação faz `Object.assign({}, anterior, …)`: sem o `delete`,
      * a razão do primeiro ajuste viajaria para todos os elos seguintes. Aqui a cadeia tem o
      * motivo no elo do MEIO, e o último (que não declarou nada) não pode exibi-lo. */
-    const herdado = pagina({
-      salas: [
-        sala({ substituidaPor: 's2', substituidaEm: '2026-03-15' }),
-        sala({
-          id: 's2', substitui: 'bale-nivel-1', substituidaPor: 's3', substituidaEm: '2026-11-01',
-          duracaoMin: 75, motivoDoAjuste: 'razão do ajuste do meio',
-        }),
-        sala({
-          id: 's3', substitui: 's2', vigenteDe: '2026-11-01', duracaoMin: 90,
-        }),
-      ],
-    });
-    const blocos = todosOsBlocos(herdado);
-    const th = texto(blocos[0]);
+    const herdado = peca([
+      sala({ substituidaPor: 's2', substituidaEm: '2026-03-15' }),
+      sala({
+        id: 's2', substitui: 'bale-nivel-1', substituidaPor: 's3', substituidaEm: '2026-11-01',
+        duracaoMin: 75, motivoDoAjuste: 'razão do ajuste do meio',
+      }),
+      sala({ id: 's3', substitui: 's2', vigenteDe: '2026-11-01', duracaoMin: 90 }),
+    ]);
+    const th = texto(herdado);
     provar('o motivo aparece uma vez em toda a cadeia', (th.match(/motivo:/g) || []).length === 1, th);
     /* A linha do elo MAIS RECENTE é a primeira (`até 01/11/2026 75 → 90`): ela foi substituída
      * por um ajuste que não declarou razão, e por isso não pode exibir a do ajuste do meio. A
@@ -332,46 +331,70 @@ function kvDeMentira(inicial) {
     provar('sem motivo no corpo, o elo novo fica SEM motivo — a razão do anterior não é herdada',
       segundo && segundo.motivoDoAjuste === undefined, segundo && segundo.motivoDoAjuste);
 
-    // E a página servida depois disso mostra a mudança, com o motivo só onde ele existe.
+    /* DEPOIS DA PÁGINA SERVIR, A PEÇA DIZ O MESMO — e a listagem não diz nada. O `bloco` que se
+     * mede aqui é o da peça, não o do ecrã: o ecrã deixou de o ter a 18/11/2026, e é isso que a
+     * secção F prova. */
+    const tDepois = texto(peca(lista2));
+    provar('a peça mostra dois ajustes, com o motivo uma vez',
+      /2 ajustes anteriores/.test(tDepois) && (tDepois.match(/motivo:/g) || []).length === 1, tDepois);
+    provar('…e a mudança do segundo ajuste é a duração: «75 min → 90 min»',
+      /75 min → 90 min/.test(tDepois), tDepois);
+
+    /* E A LISTAGEM SERVIDA COM ESSA MESMA CADEIA NÃO EMITE O BLOCO. É a decisão de 18/11/2026,
+     * e ela mede-se onde se vê: na página. */
     const htmlDepois = bastidores.paginaProducao(ESCOLA,
       { professor: 'pe-torto', ciclo: '01', query: '' },
       [{ nome: 'Petorto', slug: 'pe-torto' }], ['Ana'], 'Petorto', 'pe-torto',
       lista2, [], {}, [], [], []);
-    const blocosDepois = todosOsBlocos(htmlDepois);
-    const tDepois = texto(blocosDepois[0]);
-    provar('a página mostra dois ajustes, com o motivo uma vez',
-      /2 ajustes anteriores/.test(tDepois) && (tDepois.match(/motivo:/g) || []).length === 1, tDepois);
-    provar('…e a mudança do segundo ajuste é a duração: «75 min → 90 min»',
-      /75 min → 90 min/.test(tDepois), tDepois);
+    provar('…e a listagem das Salas, com dois ajustes na cadeia, não mostra bloco nenhum',
+      htmlDepois.indexOf('<details class="historico">') === -1,
+      (htmlDepois.match(/<details class="historico">/g) || []).length);
   }
 
   // ==========================================================================================
-  console.log('\nF. A TURMA (curadoria) — a diferença nomeia o professor, não o slug');
+  console.log('\nF. O BLOCO NÃO APARECE NA TELA (18/11/2026) — e a peça continua a existir');
 
   {
+    /* O QUE ELA DISSE: «Esse é um item de auditoria […] Ele não tem que aparecer aqui na tela.
+     * Pode tirar. […] Imagina, isso aqui vai ficar gigantesco se colocar esse histórico toda vez.
+     * […] por enquanto, ele existe internamente, mas ele não aparece aqui na listagem.»
+     *
+     * São duas coisas, e as duas se medem: (i) NÃO APARECE — nem na lista das Salas, nem na das
+     * Turmas, com uma cadeia de três versões em cada; e (ii) EXISTE INTERNAMENTE — a peça é
+     * exportada e devolve o bloco certo, que é o que a secção A a D acabou de medir. */
     const curadorias = [{
       id: 'c-velha', professor: 'pe-torto', modalidade: 'Balé clássico', tradicao: 'RAD',
       turmas: [NOME_DA_SALA], alunas: ['Ana'], repertorio: [],
       substituidaPor: 'c-nova', substituidaEm: '2026-11-01',
     }, {
-      id: 'c-nova', professor: 'marina', modalidade: 'Dança contemporânea', tradicao: 'Laban',
-      turmas: ['Balé Nível 2'], alunas: ['Ana', 'Bia'], repertorio: [],
-      vigenteDe: '2026-11-01', substitui: 'c-velha', motivoDoAjuste: 'a professora passou a assumir',
+      id: 'c-nova', professor: 'pe-torto', modalidade: 'Balé clássico', tradicao: 'RAD',
+      turmas: [NOME_DA_SALA], alunas: ['Ana'], repertorio: [],
+      vigenteDe: '2026-11-01', substitui: 'c-velha', motivoDoAjuste: 'a turma mudou de horário',
     }];
     const html = pagina({ curadorias });
-    const blocos = todosOsBlocos(html);
-    const t = texto(blocos[blocos.length - 1]);
-    provar('o professor aparece pelo NOME: «professor Petorto → Marina Souza»',
-      /professor Petorto → Marina Souza/.test(t), t);
-    provar('…e o slug não aparece no histórico', !/pe-torto →|→ marina/.test(t), t);
-    provar('a sala que mudou é «sala Balé Nível 1 → Balé Nível 2»',
-      /sala Balé Nível 1 → Balé Nível 2/.test(t), t);
-    provar('a modalidade e a tradição também são ditas',
-      /modalidade Balé clássico → Dança contemporânea/.test(t) && /tradição RAD → Laban/.test(t), t);
-    provar('o elenco/alunas entram quando mudam: «1 aluna → 2»', /1 aluna → 2/.test(t), t);
-    provar('…e o motivo fecha a linha', /motivo: «a professora passou a assumir»/.test(t), t);
-    provar('o rótulo é o mesmo da outra lista: «1 ajuste anterior»',
-      /1 ajuste anterior/.test(t), t);
+    provar('a listagem das Salas não emite o bloco, mesmo com uma cadeia de três versões',
+      html.indexOf('<details class="historico">') === -1,
+      (html.match(/<details class="historico">/g) || []).length);
+    provar('…e a das Turmas também não, com uma curadoria derivada',
+      html.indexOf('<details class="historico">') === -1, null);
+    provar('…e a palavra «ajustes anteriores» não aparece em lado nenhum da página',
+      !/ajustes? anteriores/.test(html),
+      (html.match(/[^>]{0,30}ajustes? anteriores/g) || []).slice(0, 2));
+
+    /* O QUE FICA VISÍVEL É O PRESENTE: que esta versão nasceu de um ajuste, e quando. */
+    provar('o selo «ajustada em» fica — ele diz o presente, não a cadeia',
+      /ajustada em 01\/11\/2026/.test(html), null);
+
+    /* E A PEÇA CONTINUA A EXISTIR, exportada — se um dia o item de auditoria for desenhado, ele
+     * encontra isto a funcionar em vez de um cadáver. */
+    provar('a peça do histórico continua exportada, para o item de auditoria que ela vai desenhar',
+      typeof bastidores.historicoDoAjuste === 'function'
+        && typeof bastidores.diferencaDeRitmo === 'function',
+      { historicoDoAjuste: typeof bastidores.historicoDoAjuste,
+        diferencaDeRitmo: typeof bastidores.diferencaDeRitmo });
+    provar('…e ela ainda sabe escrever o bloco, com a cadeia que a derivação produz',
+      /2 ajustes anteriores/.test(texto(peca(cadeiaDeSalas()))),
+      texto(peca(cadeiaDeSalas())).slice(0, 120));
   }
 
   globalThis.fetch = fetchOriginal;

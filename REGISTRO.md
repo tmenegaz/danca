@@ -50675,3 +50675,78 @@ mesmo bloco de cliente, e a prova reprovou **8 de 79** por causa de um `"`. A ve
 campos de `normalizarTurma`: **reprova 2** — o cartão cala os dois, e a sala deixa de os guardar. Desligado
 o filtro da modalidade: **reprova 2** — a lista fica com as cinco e a nota não aparece. Restaurado,
 94/94.
+
+## 18/11/2026 — A modalidade manda, e o histórico sai da tela
+
+**Duas coisas na mesma frase, e a segunda é uma inversão.** Ela disse: *«ao escolher a modalidade aqui
+no step um, o step dois que tem a rubrica […] deve carregar apenas os professores da modalidade
+escolhida aqui no step um»*. E deu o modelo: *«a sala de aula, ela é preparada para atender uma
+modalidade e tem professores que dão aquela modalidade. […] ah, nessa sala, nesses dias, ocorre essa
+modalidade de ensino com esse professor.»*
+
+**A DIREÇÃO DO FILTRO INVERTEU, e a véspera estava errada.** Ontem a modalidade recolhia-se às
+habilitações do professor já escolhido — que é a pergunta da **curadoria** («quem é o professor desta
+turma e o que ele sabe ensinar»). A pergunta da **sala** é outra: «que modalidade acontece neste
+horário, e quem a pode dar». A modalidade é escolha de cronograma; o professor é a consequência. Por
+isso a ordem no passo 1 também inverteu: **modalidade primeiro, professor depois**.
+
+**O QUE ENTROU.**
+- Escolhida a modalidade, a lista de professores recolhe-se — nos **dois** sítios: o professor da sala
+  (passo 1) e o professor da rubrica (passo 2). São a mesma pergunta feita duas vezes, e deixá-las
+  divergir seria a escola escolher a rubrica de quem não dá a modalidade.
+- As habilitações continuam a vir do **perfil** (`professores/<slug>/perfil.json`), pela mesma rota e
+  pela mesma memória que a curadoria usa. A leitura é **preguiçosa**: só quando alguém escolhe uma
+  modalidade, e uma vez por professor.
+- `modalidadeQueManda()` — o **formulário** manda enquanto tem valor (é ele que se acabou de mexer); a
+  **sala em foco** manda quando o formulário já está limpo. Esta segunda metade é o que faz o passo 2
+  funcionar: ao gravar, o formulário perde a modalidade, e um filtro que só lesse o formulário
+  esqueceria exactamente quando a lista do passo 2 passa a importar.
+
+**QUEM NÃO DECLAROU NADA NÃO DESAPARECE.** Um professor sem perfil lido, ou que ainda não declarou
+habilitações, continua na lista — marcado «sem habilitações declaradas», com uma nota a dizer que a
+lista não o pôde conferir. É a regra escrita no núcleo do perfil, «não sei» ≠ «não pode»: escondê-lo
+trancaria a escola por um dado que falta, e a escola não tem como saber que o dado falta. E um
+professor **já escolhido** que fica fora da modalidade nova entra como opção própria, «fora desta
+modalidade» — uma opção que desaparece do `<select>` é um valor que se perde no «Avançar» seguinte sem
+uma frase a explicar porquê.
+
+**O histórico do ajuste saiu da listagem.** Palavras dela: *«você incluiu aqui na listagem um acordeon
+que é ajuste anterior. Esse é um item de auditoria […] Ele não tem que aparecer aqui na tela. Pode
+tirar. […] Imagina, isso aqui vai ficar gigantesco se colocar esse histórico toda vez. […] por
+enquanto, ele existe internamente, mas ele não aparece aqui na listagem.»*
+
+É a **mesma regra** que já tinha tirado o histórico da lista de Turmas (11/11/2026) e a contagem de
+planos de cada sala (12/11/2026): a listagem é do trabalho, e a cadeia de elos é auditoria. Uma sala com
+cinco ajustes empurrava todas as outras para fora do ecrã. **A cadeia não se perde** — os elos, o
+`substitui`/`substituidaPor` e o motivo continuam gravados. O selo «ajustada em» **fica**: ele diz o
+presente («esta versão nasceu de um ajuste»), não o passado. E `historicoDoAjuste` passou a ser
+**exportada**, para a peça não apodrecer em silêncio até ao dia em que o item de auditoria for
+desenhado — uma peça que ninguém lê e ninguém prova já está quebrada e ainda não se sabe.
+
+**Uma prova que já estava quebrada, e fica dito.** `provar-historico-do-ajuste` estava em **31/39 no
+HEAD**, com as oito falhas a virem de 11/11/2026: a lista de Turmas perdeu o bloco e a prova continuou
+a contar dois blocos na página. Não era regressão minha; era dívida antiga. Reescrita: mede a **peça**
+chamada directamente (A–D), as **rotas** que gravam o motivo (E), e a **ausência na tela** (F).
+
+**Um defeito que só aparece fora do browser.** O `.then` do filtro corria depois de a janela do jsdom
+fechar, e `document` ficava indefinido — a excepção não tratada derrubava o processo da prova
+(`provar-financeiro-da-escola` foi a vermelho por isso). É o género de defeito que a página do produto
+nunca mostraria: uma resposta que chega depois de a pessoa navegar. Guardado com `temTela()`.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — a lista canónica `professoresDaEscola` e o
+`PROFESSORES_DA_ESCOLA` emitido para o cliente, a ordem dos dois `select` do passo 1, `temTela`,
+`perfilDoProfessor`, `pintarProfessores`, `professoresDaModalidade`, `modalidadeQueManda`,
+`filtrarProfessoresPelaModalidade`, `ajustarTurma`, a saída do `historico` do cartão, a exportação de
+`historicoDoAjuste`/`diferencaDeRitmo` · `experimentos/provar-salas-e-elencos.js` (94 → **100**, secção
+G reescrita) · `experimentos/provar-historico-do-ajuste.js` (31/39 → **37/37**, reescrita).
+
+**Com o quê.** `provar-salas-e-elencos` **100/100** · `provar-historico-do-ajuste` **37/37** ·
+`provar-financeiro-da-escola` 135 · `provar-monitoramento` 104 · `provar-paginacao` 120 ·
+`provar-abas-da-audicao` 124 · `provar-financeiro` 58 · `provar-cadastro-do-professor` 49 ·
+`provar-plano-da-turma` 46 · `provar-a-franquia-de-aulas` 42 · `provar-piso` 41 ·
+`provar-sujeitos-da-turma` 41 · `provar-a-escola-que-nasce` 25 · `provar-o-expurgo-do-financeiro` 15 ·
+`provar-rotas-que-existem` 8 · `check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** Reposto o histórico no cartão: **reprova 4**. Desligado o filtro: **reprova 6** — as
+listas ficam com todos e a nota não aparece. Posto o professor antes da modalidade: **reprova 1**, a da
+ordem. Restaurado, tudo verde.

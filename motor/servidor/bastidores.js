@@ -4530,6 +4530,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     }
     return out.join('');
   })();
+  /* A LISTA CANÓNICA DOS PROFESSORES, PARA O CLIENTE FILTRAR (18/11/2026).
+   *
+   * «ao escolher a modalidade aqui no step um, o step dois que tem a rubrica […] deve carregar apenas
+   * os professores da modalidade escolhida». Filtrar um `<select>` já desenhado pelo servidor obriga a
+   * reconstruí-lo, e reconstruí-lo exige a lista inteira do lado do cliente — com o NOME de cada um,
+   * que o `<option>` perde ao ser removido.
+   *
+   * É a MESMA lista que desenha as opções (`opcoesDeProfessorDaRubrica`), e não uma segunda: o dono
+   * primeiro e marcado, depois quem está a trabalhar, e quem saiu não entra. Duas listas paralelas
+   * divergiriam no dia em que uma escola desligasse um professor.
+   *
+   * O NOME E O SLUG, e mais nada: a modalidade de cada um é lida à parte, quando for precisa, porque
+   * ela vive no perfil (`professores/<slug>/perfil.json`) e são N leituras — caras ao abrir a página e
+   * gratuitas quando ninguém escolhe modalidade nenhuma. */
+  const professoresDaEscola = (() => {
+    const out = [];
+    const nomeDoPrincipal = String(dono || '').trim();
+    if (nomeDoPrincipal) {
+      out.push({ slug: String(donoSlug || '').trim(), nome: nomeDoPrincipal, principal: true });
+    }
+    for (const p of (profs || [])) {
+      if (!p || !p.nome) continue;
+      if (desligamento.estaDesligado(p)) continue;
+      const sl = slugDoProfessor(p);
+      if (!sl || sl === donoSlug) continue;
+      out.push({ slug: sl, nome: String(p.nome) });
+    }
+    return out;
+  })();
   const listaTermos = (trmos || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo)));
   const termoPorId = new Map(listaTermos.map((t) => [t.id, t]));
   const relObj = rel || {};
@@ -4919,9 +4948,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           passado.push(cursor);
           cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
         }
-        const historico = historicoDoAjuste(
-          passado.map((v, i) => ({ versao: v, sucessor: i === 0 ? t : passado[i - 1] })),
-          diferencaDeRitmo);
+        /* `historico` DEIXOU DE SE CALCULAR AQUI (18/11/2026). A peça continua a existir
+         * (`historicoDoAjuste`), mas calcular o bloco para o deitar fora seria trabalho pago a
+         * ninguém — a mesma regra que fez sair o `diferencaDeCuradoria` quando a lista de Turmas
+         * perdeu o histórico. O `passado` continua a vir do servidor porque alimenta o selo
+         * «ajustada em» e o cartão das versões anteriores noutros sítios. */
         const seloVigencia = t.vigenteDe
           ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
             esc(dataBr(t.vigenteDe)) + '</span>'
@@ -5135,7 +5166,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '<div class="trio-painel" data-painel="ritmo" hidden>' + painelRitmo + '</div>' +
           '<div class="trio-painel" data-painel="regua" hidden>' + painelRegua + '</div>' +
           '<div class="trio-painel" data-painel="professor" hidden>' + painelProfessor + '</div>' +
-          historico +
+          /* O «AJUSTES ANTERIORES» SAIU DA LISTAGEM (18/11/2026), e por decisão dela: «você incluiu
+           * aqui na listagem um acordeon que é ajuste anterior. Esse é um item de auditoria […]
+           * Ele não tem que aparecer aqui na tela. Pode tirar. […] Imagina, isso aqui vai ficar
+           * gigantesco se colocar esse histórico toda vez. […] por enquanto, ele existe
+           * internamente, mas ele não aparece aqui na listagem.»
+           *
+           * É a MESMA REGRA que já tinha tirado o histórico da lista de TURMAS (11/11/2026) e a
+           * contagem de planos de cada sala (12/11/2026): a listagem é do trabalho, e a cadeia de
+           * elos é auditoria. Uma sala com cinco ajustes empurrava todas as outras para fora do
+           * ecrã, e o que se lê primeiro passava a ser o passado — não o presente.
+           *
+           * A CADEIA NÃO SE PERDE: os elos, o `substitui`/`substituidaPor` e o motivo continuam
+           * gravados, e `historicoDoAjuste` continua a existir como peça — ela disse-o com todas
+           * as letras: «por enquanto, ele existe internamente». O que sai é a sua exibição. O
+           * selo «ajustada em» fica: ele diz que ESTA versão nasceu de um ajuste, que é presente,
+           * e não a cadeia. */
           '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
@@ -6881,30 +6927,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* A MODALIDADE E O PROFESSOR DA SALA (18/11/2026) — «a sala ela atende a uma modalidade nesses
      * dias, com essa duração, no período inicial até o período final».
      *
-     * A ORDEM É A DA CAUSA, e é a mesma dos dias antes da frequência: o PROFESSOR primeiro, a
-     * MODALIDADE depois. A modalidade é o que ele declara ensinar nas habilitações — «o professor
-     * carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a modalidade» —, logo
-     * a lista da modalidade depende de quem está escolhido, e não o contrário.
+     * A ORDEM INVERTEU A 18/11/2026, e a razão é dela: «a sala de aula, ela é preparada para
+     * atender uma modalidade e tem professores que dão aquela modalidade. […] ah, nessa sala,
+     * nesses dias, ocorre essa modalidade de ensino com esse professor». A MODALIDADE É A CHAVE, e
+     * o professor é quem a pode dar — por isso ela vem primeiro, e a lista dele recolhe-se a ela.
      *
-     * O `select` da modalidade é renderizado com TODAS as opções do catálogo, e o script as
-     * RECOLHE às habilitações do professor quando ele as declara. Duas razões para não as filtrar
-     * no servidor: (i) o professor pode estar por escolher, e a lista tem de existir antes disso; e
-     * (ii) um professor sem perfil lido não pode deixar a sala sem modalidade nenhuma — o
-     * `HABILIDADES` traz `null` para «não consegui ler», e `null` mostra tudo. */
-    '<label class="campo-rotulo" for="tprofessor">Professor da sala</label>' +
-    '<select id="tprofessor" name="professor">' +
-    '<option value="">— escolher —</option>' + opcoesDeProfessorDaRubrica +
-    '</select>' +
-    '<label class="campo-rotulo" for="tmodalidade">Modalidade da sala</label>' +
-    /* O `value` É O NOME, E NÃO O ID — a mesma convenção da curadoria, e não uma nova. O
-     * `idDaModalidade` do núcleo explica porquê: «o perfil do professor guarda ids
+     * A véspera desta decisão tinha o contrário, e o contrário estava errado: a modalidade
+     * recolhia-se às habilitações do professor já escolhido. Isso serve para a curadoria, onde a
+     * pergunta é «quem é o professor desta turma e o que ele pode ensinar»; aqui a pergunta é
+     * «que modalidade acontece nesta sala, e quem a pode dar» — e a resposta certa depende do
+     * cronograma da escola, não de um professor que se escolheu primeiro.
+     *
+     * A MODALIDADE NÃO SE FILTRA NO SERVIDOR, e é deliberado: ela pode ser escolhida antes de
+     * qualquer professor, e uma lista que dependesse de uma escolha ainda não feita seria um
+     * `select` vazio. O que se filtra é a lista de QUEM, e essa filtragem é do cliente porque é
+     * ela que lê as habilitações (uma por professor, só quando alguém escolhe modalidade).
+     *
+     * O `value` DA MODALIDADE É O NOME, E NÃO O ID — a mesma convenção da curadoria, e não uma
+     * nova. O `idDaModalidade` do núcleo explica porquê: «o perfil do professor guarda ids
      * (`bale-classico`) e a Turma guarda o nome que o formulário oferece (`Balé clássico`) — o
      * `<option>` da modalidade leva o nome no `value`, e é ele que vai no corpo». Guardar aqui um
      * id faria a mesma turma ter duas formas de dizer a mesma modalidade, e o `enquadramento.js`
      * — que já lê `turma.modalidade` — compararia um id com um nome. */
+    '<label class="campo-rotulo" for="tmodalidade">Modalidade da sala</label>' +
     '<select id="tmodalidade" name="modalidade"><option value="">— escolher —</option>' +
     MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
       (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="tprofessor">Professor da sala</label>' +
+    '<select id="tprofessor" name="professor">' +
+    '<option value="">— escolher —</option>' + opcoesDeProfessorDaRubrica +
     '</select>' +
     '<p class="sub" id="t-habilidade-nota" hidden></p>' +
     // «POSIÇÃO NA LISTA» SAIU (18/10/2026). Era um número que a direção tinha de inventar para
@@ -10449,6 +10501,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // quando a modalidade muda — o servidor não pode repintar um formulário que ainda não foi
     // submetido.
     'var ROTULOS_DE_TRADICAO = ' + JSON.stringify(CATALOGO.ROTULOS || {}) + ';' +
+    'var PROFESSORES_DA_ESCOLA = ' + JSON.stringify(professoresDaEscola) + ';' +
     'var CATALOGO_DE_MODALIDADES = ' + JSON.stringify(
       ((MODALIDADES && MODALIDADES.modalidades) || []).map((m) => ({
         id: m.id, nome: m.nome, temConteudo: Boolean(m.temConteudo) }))) + ';' +
@@ -10484,11 +10537,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O PROFESSOR E A MODALIDADE, SIM (18/11/2026): são da sala, e abrir a sala em «Editar» é o
     // momento em que uma sala antiga ganha os dois. Um valor gravado que já não esteja na lista
     // (professor que saiu da escola) entra como opção própria — abrir a sala não pode perdê-lo.
-    '  preencherSelect("tprofessor", t.professor || "");' +
-    '  filtrarModalidadeDaSala();' +
-    // A NOTA DEPOIS DO FILTRO, e não antes: é o filtro que a escreve quando a lista se recolhe às
-    // habilitações do professor.
+    // A MODALIDADE PRIMEIRO, E O FILTRO DEPOIS DELA (18/11/2026): é a modalidade que decide que
+    // professores o `select` oferece, e o professor já gravado entra como opção própria se ficar
+    // fora dela — «fora desta modalidade», e não apagado.
     '  preencherSelect("tmodalidade", t.modalidade || "");' +
+    '  filtrarProfessoresPelaModalidade();' +
+    '  preencherSelect("tprofessor", t.professor || "");' +
     // E A NOTA deixou de ter campo (03/11/2026): não há `<input>` para preencher.
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
@@ -10726,65 +10780,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  return op;' +
     '}' +
     /* =========================================================================
-     * A MODALIDADE DA SALA, RECOLHIDA ÀS HABILITAÇÕES DO PROFESSOR (18/11/2026)
+     * A MODALIDADE MANDA, E OS PROFESSORES RECOLHEM-SE A ELA (18/11/2026)
      * =========================================================================
-     * «O professor carrega a habilidade dele, o que ele ensina. Então, o que ele ensina é a
-     * modalidade.» A lista da modalidade da sala começa com as cinco do catálogo e RECOLHE-SE às
-     * que o professor escolhido declara — pela mesma rota e pela mesma tabela de memória que a
-     * curadoria já usa (`HABILITACOES`, `/api/bastidores/perfil`), e não por um caminho novo.
+     * «ao escolher a modalidade aqui no step um, o step dois que tem a rubrica […] deve carregar
+     * apenas os professores da modalidade escolhida aqui no step um». E o modelo, por palavras
+     * dela: «a sala de aula, ela é preparada para atender uma modalidade e tem professores que dão
+     * aquela modalidade. […] nessa sala, nesses dias, ocorre essa modalidade de ensino com esse
+     * professor».
      *
-     * A FALHA NÃO TRANCA, e a regra é a da curadoria: sem resposta, ou com um professor que não
-     * declarou nada, a lista fica a do catálogo com uma nota a dizê-lo. Restringir por um dado que
-     * não existe seria transformar «não sei» em «não pode».
+     * A DIREÇÃO É ESTA E NÃO A CONTRÁRIA. A modalidade é uma escolha de CRONOGRAMA — quem monta a
+     * sala sabe que às terças às 19h acontece clássico. Quem a pode dar é a pergunta seguinte. O
+     * contrário (recolher a modalidade ao professor que já está escolhido) responde à pergunta da
+     * curadoria, que é outra: «quem é o professor desta turma e o que ele sabe ensinar».
      *
-     * A ESCOLHA ANTERIOR SOBREVIVE QUANDO AINDA É POSSÍVEL. Abrir uma sala em «Editar» repõe o que
-     * ela gravou; o filtro corre depois e não lhe tira o valor se o professor o declarar. Se não o
-     * declarar, a nota diz porquê — em vez de o valor desaparecer sem explicação.
+     * A LEITURA É PREGUIÇOSA E POR PROFESSOR. As habilitações vivem em
+     * `professores/<slug>/perfil.json`, no repositório; cada perfil é uma leitura, e só se pede
+     * quando alguém escolhe uma modalidade. O resultado fica em `HABILITACOES`, que é o mesmo
+     * mapa que a curadoria usa — duas memórias para a mesma pergunta acabariam a divergir.
+     *
+     * QUEM NÃO DECLARA NADA NÃO DESAPARECE. «Não sei» não pode virar «não pode», que é a regra
+     * escrita no núcleo do perfil: um professor sem perfil lido, ou que ainda não declarou
+     * habilitações, continua na lista — marcado, e com a nota a dizer que a lista não o pôde
+     * conferir. Escondê-lo trancaria a escola por causa de um dado que falta, e a escola não tem
+     * como saber que o dado falta.
+     *
+     * QUEM JÁ ESTAVA ESCOLHIDO NÃO É APAGADO EM SILÊNCIO. Ao abrir uma sala em «Editar», ou ao
+     * trocar a modalidade de uma sala que já tinha professor, o valor gravado continua a poder
+     * ler-se — marcado como «fora desta modalidade». Uma opção que desaparece do `<select>` é um
+     * valor que se perde no próximo «Avançar», sem uma frase a explicar porquê.
      */
-    'function preencherSelect(id, valor){' +
-    '  var sel = document.getElementById(id);' +
-    '  if (!sel) return;' +
-    '  var v = String(valor == null ? "" : valor);' +
-    '  var achou = false;' +
-    '  for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === v) achou = true; }' +
-    '  if (v && !achou) {' +
-    // UM VALOR GRAVADO QUE JÁ NÃO ESTÁ NA LISTA ENTRA COMO OPÇÃO PRÓPRIA: é o professor que saiu da
-    // escola, ou a modalidade que saiu do catálogo. Abrir a sala não pode apagá-lo em silêncio.
-    '    var o = document.createElement("option");' +
-    '    o.value = v; o.textContent = v + " (já não na lista)";' +
-    '    sel.appendChild(o);' +
-    '  }' +
-    '  sel.value = v;' +
-        '}' +
-    'function modalidadeDaSalaPintar(ids, nota){' +
-    '  var sel = document.getElementById("tmodalidade");' +
-    '  if (!sel) return;' +
-    '  var antes = sel.value;' +
-    '  var partes = ["<option value=\u0027\u0027>— escolher —</option>"];' +
-    '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
-    '    var m = CATALOGO_DE_MODALIDADES[i];' +
-    '    if (ids && ids.length && ids.length > 0) {' +
-    // A MEMÓRIA DO FILTRO É POR ID (é o que o perfil guarda) e o `<select>` é por NOME (é o que a
-    // turma guarda). É o `idDaModalidade` do núcleo, do lado do cliente, e sem ele a comparação
-    // dava sempre «não declara» — o defeito que o comentário do núcleo descreve.
-    '      if (!modalidadeDaSalaCasa(ids, m)) continue;' +
-    '    }' +
-    '    partes.push("<option value=\\\"" + m.nome + "\\\">" + m.nome +' +
-    '      (m.temConteudo ? "" : " (sem conteúdo ainda)") + "</option>");' +
-    '  }' +
-    '  sel.innerHTML = partes.join("");' +
-    '  var aindaVale = false;' +
-    '  for (var j = 0; j < sel.options.length; j++) { if (sel.options[j].value === antes) aindaVale = true; }' +
-    '  sel.value = aindaVale ? antes : "";' +
-    '  if (antes && !aindaVale) {' +
-    '    var o = document.createElement("option");' +
-    '    o.value = antes; o.textContent = antes + " (já não nas habilitações dele)";' +
-    '    sel.appendChild(o); sel.value = antes;' +
-    '  }' +
-    '  var aviso = document.getElementById("t-habilidade-nota");' +
-    '  if (aviso) { aviso.hidden = !nota; aviso.textContent = nota || ""; }' +
-    '}' +
-    'function modalidadeDaSalaCasa(ids, m){' +
+    'function modalidadeCasa(ids, m){' +
     '  for (var i = 0; i < ids.length; i++) {' +
     '    var s = String(ids[i] || "");' +
     '    if (s === m.id || s === m.nome) return true;' +
@@ -10792,46 +10817,137 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return false;' +
     '}' +
-    'function filtrarModalidadeDaSala(){' +
-    '  var selP = document.getElementById("tprofessor");' +
-    '  if (!selP) return;' +
-    '  var slug = String(selP.value || "");' +
-    '  if (!slug) { modalidadeDaSalaPintar(null, ""); return; }' +
+    /* O PERFIL DE UM PROFESSOR, uma vez por sessão de página. Devolve a PROMESSA, e não o valor:
+     * vários `<select>` pedem o mesmo perfil no mesmo instante, e sem a promessa guardada seriam
+     * N pedidos para o mesmo slug. `HABILITACOES[slug]` fica `null` quando não se conseguiu ler —
+     * e `null` é «não sei», não «não tem». */
+    'function perfilDoProfessor(slug){' +
+    '  if (!slug) return Promise.resolve(null);' +
     '  if (Object.prototype.hasOwnProperty.call(HABILITACOES, slug)) {' +
-    '    var ja = HABILITACOES[slug];' +
-    '    modalidadeDaSalaPintar(ja, (ja && ja.length) ? "" :' +
-    '      "Este professor ainda não declarou as habilitações — a lista é a do catálogo.");' +
-    '    return;' +
+    '    return Promise.resolve(HABILITACOES[slug]);' +
     '  }' +
-    '  if (HABILITACOES_EM_CURSO[slug]) return;' +
-    '  HABILITACOES_EM_CURSO[slug] = true;' +
-    // ENQUANTO NÃO CHEGA, a lista é a do catálogo: o formulário nunca fica com um `select` vazio à
-    // espera de uma resposta que pode não vir.
-    '  modalidadeDaSalaPintar(null, "");' +
-    '  fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(slug))' +
+    '  if (HABILITACOES_EM_CURSO[slug]) return HABILITACOES_EM_CURSO[slug];' +
+    '  var p = fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(slug))' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
-    '      delete HABILITACOES_EM_CURSO[slug];' +
     '      HABILITACOES[slug] = (d && d.existe && Array.isArray(d.modalidades)) ? d.modalidades : null;' +
-    '      var selAgora = document.getElementById("tprofessor");' +
-    // A RESPOSTA DE UM PROFESSOR QUE JÁ NÃO ESTÁ ESCOLHIDO NÃO SE APLICA: quem trocou de professor
-    // enquanto a leitura corria ficaria com a lista do anterior.
-    '      if (!selAgora || String(selAgora.value || "") !== slug) return;' +
-    '      var ids = HABILITACOES[slug];' +
-    '      modalidadeDaSalaPintar(ids, (ids && ids.length) ? "" :' +
-    '        "Este professor ainda não declarou as habilitações — a lista é a do catálogo.");' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    '      return HABILITACOES[slug];' +
     '    })' +
     '    .catch(function(){' +
-    '      delete HABILITACOES_EM_CURSO[slug];' +
     '      HABILITACOES[slug] = null;' +
-    '      var selAgora = document.getElementById("tprofessor");' +
-    '      if (!selAgora || String(selAgora.value || "") !== slug) return;' +
-    '      modalidadeDaSalaPintar(null, "Não foi possível ler as habilitações — a lista é a do catálogo.");' +
+    '      delete HABILITACOES_EM_CURSO[slug];' +
+    '      return null;' +
     '    });' +
+    '  HABILITACOES_EM_CURSO[slug] = p;' +
+    '  return p;' +
     '}' +
-    'var selProfSala = document.getElementById("tprofessor");' +
-    'if (selProfSala) selProfSala.addEventListener("change", function(){ filtrarModalidadeDaSala(); });' +
-    'filtrarModalidadeDaSala();' +
+    /* UM `<select>` DE PROFESSORES, RECONSTRUÍDO (18/11/2026). O `value` é o slug; o rótulo é o
+     * nome. `marcar` é o sufixo de quem ficou na lista por já estar escolhido. */
+    /* `temTela()` ANTES DE TOCAR NO DOM (18/11/2026). Uma resposta que chega DEPOIS de a página
+     * sair — navegação, fecho do separador, ou a janela de uma prova a ser fechada — encontra
+     * `document` indefinido, e um `document.getElementById` sem guarda estoura dentro de um
+     * `.then`, onde não há ninguém para o apanhar: o erro sobe como excepção não tratada e derruba
+     * o processo que correu a prova. Custou uma prova a vermelho para ser visto, e a página do
+     * produto nunca o mostraria — é o género de defeito que só aparece fora do browser. */
+    'function temTela(){ return typeof document !== "undefined" && !!document.getElementById; }' +
+    'function pintarProfessores(id, lista, valorAtual, rotuloVazio){' +
+    '  if (!temTela()) return;' +
+    '  var sel = document.getElementById(id);' +
+    '  if (!sel) return;' +
+    '  var antes = (valorAtual === undefined) ? String(sel.value || "") : String(valorAtual || "");' +
+    '  var partes = ["<option value=\u0027\u0027>" + (rotuloVazio || "— escolher —") + "</option>"];' +
+    '  var presente = false;' +
+    '  for (var i = 0; i < lista.length; i++) {' +
+    '    if (lista[i].slug === antes) presente = true;' +
+    '    partes.push("<option value=\u0027" + lista[i].slug + "\u0027>" + lista[i].rotulo + "</option>");' +
+    '  }' +
+    '  sel.innerHTML = partes.join("");' +
+    '  if (antes && !presente) {' +
+    // O valor que a escola já tinha entra como opção própria — ver o bloco acima.
+    '    var o = document.createElement("option");' +
+    '    o.value = antes; o.textContent = (NOMES_DE_PROFESSOR[antes] || antes) + " (fora desta modalidade)";' +
+    '    sel.appendChild(o);' +
+    '  }' +
+    '  sel.value = antes;' +
+    '}' +
+    /* A REGRA, NUM SÍTIO SÓ: escolhida uma modalidade, ficam os professores que a declaram MAIS os
+     * que não declaram nada (porque não se sabe). Sem modalidade escolhida, ficam todos. */
+    'function professoresDaModalidade(modalidade){' +
+    '  var nome = String(modalidade || "");' +
+    '  var rotulo = function(p, sufixo){' +
+    '    return p.nome + (p.principal ? " (principal)" : "") + (sufixo || "");' +
+    '  };' +
+    // SEM MODALIDADE, TODOS — a lista existe antes da escolha, senão o `<select>` nasceria morto.
+    '  if (!nome) return Promise.resolve(PROFESSORES_DA_ESCOLA.map(function(p){' +
+    '    return { slug: p.slug, rotulo: rotulo(p, "") }; }));' +
+    '  var alvo = null;' +
+    '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
+    '    if (CATALOGO_DE_MODALIDADES[i].nome === nome) alvo = CATALOGO_DE_MODALIDADES[i];' +
+    '  }' +
+    '  return Promise.all(PROFESSORES_DA_ESCOLA.map(function(p){' +
+    '    return perfilDoProfessor(p.slug);' +
+    '  })).then(function(todos){' +
+    '    var lista = [];' +
+    '    for (var j = 0; j < PROFESSORES_DA_ESCOLA.length; j++) {' +
+    '      var p = PROFESSORES_DA_ESCOLA[j];' +
+    '      var ids = todos[j];' +
+    // DECLAROU E NÃO INCLUI A MODALIDADE: sai. É a única saída, e é a que ela pediu.
+    '      if (ids && ids.length && alvo && !modalidadeCasa(ids, alvo)) continue;' +
+    // NÃO DECLAROU (ou não se conseguiu ler): fica, marcado. «Não sei» ≠ «não pode».
+    '      var sufixo = (!ids || !ids.length) ? " — sem habilitações declaradas" : "";' +
+    '      lista.push({ slug: p.slug, rotulo: rotulo(p, sufixo) });' +
+    '    }' +
+    '    return lista;' +
+    '  });' +
+    '}' +
+    /* O GESTO: mudar a modalidade no passo 1 reescreve DUAS listas — a do professor da sala (passo
+     * 1) e a do professor da rubrica (passo 2). São a mesma pergunta feita em dois sítios, e
+     * deixá-las divergir seria a escola escolher a rubrica de quem não dá a modalidade. */
+    /* QUEM MANDA NA MODALIDADE (18/11/2026). O formulário enquanto se preenche; a SALA EM FOCO
+     * depois de ela estar gravada. Esta segunda metade é o que faz o passo 2 funcionar: ao gravar,
+     * o formulário é limpo, e um filtro que só lesse o formulário esqueceria a modalidade
+     * exactamente quando a lista do passo 2 passa a importar. A sala em foco sabe a sua porque a
+     * gravou consigo — é o mesmo registo que o cartão lê. */
+    'function modalidadeQueManda(){' +
+    '  if (!temTela()) return "";' +
+    // O FORMULÁRIO MANDA ENQUANTO TEM VALOR — é ele que a pessoa acabou de mexer. Trocar a
+    // modalidade de uma sala em edição tem de refiltrar a lista, e a sala em foco ainda guarda a
+    // modalidade ANTIGA: preferi-la faria o filtro ignorar o gesto que o provocou.
+    '  var selM = document.getElementById("tmodalidade");' +
+    '  var doForm = selM ? String(selM.value || "") : "";' +
+    '  if (doForm) return doForm;' +
+    // SEM FORMULÁRIO, A SALA EM FOCO — é o caso do passo 2 depois de a sala estar gravada.
+    '  var t = null;' +
+    '  try { t = turmaDoFoco ? turmaDoFoco() : null; } catch (err) { t = null; }' +
+    '  return (t && String(t.modalidade || "")) ? String(t.modalidade) : "";' +
+    '}' +
+    'function filtrarProfessoresPelaModalidade(){' +
+    '  if (!temTela()) return;' +
+    '  var mod = modalidadeQueManda();' +
+    '  var nota = document.getElementById("t-habilidade-nota");' +
+    '  professoresDaModalidade(mod).then(function(lista){' +
+    '    if (!temTela()) return;' +
+    '    var selA = document.getElementById("tmodalidade");' +
+    // A RESPOSTA DE UMA MODALIDADE QUE JÁ NÃO ESTÁ ESCOLHIDA NÃO SE APLICA: quem trocou enquanto a
+    // leitura corria ficaria com a lista da anterior.
+    '    if (modalidadeQueManda() !== mod) return;' +
+    '    pintarProfessores("tprofessor", lista, undefined, "— escolher —");' +
+    '    var selR = document.getElementById("rubr-professor");' +
+    '    if (selR) pintarProfessores("rubr-professor", lista, undefined, "— sem professor —");' +
+    '    if (nota) {' +
+    '      if (!mod) { nota.hidden = true; nota.textContent = ""; }' +
+    '      else {' +
+    '        nota.hidden = false;' +
+    '        nota.textContent = "A lista mostra os professores que declararam " + mod +' +
+    '          ". Quem ainda não declarou habilitações continua na lista, marcado.";' +
+    '      }' +
+    '    }' +
+    '  });' +
+    '}' +
+    'var selModSala = document.getElementById("tmodalidade");' +
+    'if (selModSala) selModSala.addEventListener("change", function(){ filtrarProfessoresPelaModalidade(); });' +
+    'filtrarProfessoresPelaModalidade();' +
     'function pintarModalidades(opcoes, nota){' +
     '  var sel = document.getElementById("cumodalidade");' +
     '  if (!sel) return;' +
@@ -20525,6 +20641,15 @@ async function fetchComRede(request, env, extras) {
 }
 
 module.exports = {
+  /* A PEÇA DO HISTÓRICO, EXPORTADA E NÃO EXIBIDA (18/11/2026).
+   *
+   * Ela saiu da listagem — «é um item de auditoria […] ele não tem que aparecer aqui na tela» —, e
+   * continua a existir internamente, como ela disse. Exportá-la é o que impede a peça de apodrecer
+   * em silêncio até ao dia em que o item de auditoria for desenhado: a prova continua a medir o que
+   * ela diz, mesmo sem a ver na página. Uma peça que ninguém lê e ninguém prova é uma peça que já
+   * está quebrada e ainda não se sabe. */
+  historicoDoAjuste,
+  diferencaDeRitmo,
   // O `fetch` EXPORTADO é a moldura: quem chama de fora recebe sempre JSON em `/api/**`, mesmo
   // quando uma rota estoura. O corpo está em `fetch`, e não se chama sem a moldura.
   fetch: fetchComRede,
