@@ -83,6 +83,14 @@
         "turma": {
           "type": "string",
           "description": "O IDENTIFICADOR da turma a que o ato pertence (o `id` do cadastro de turmas da Produção — ex.: `teste`, `bale-nivel-1`). Entrou em 16/10/2026, com o ciclo a passar a ser DA TURMA: o plano de ensino é de uma turma, e a observação é daquela turma. É ele que compõe o nome da variante da fonte (`ciclo-NN-<escola>-<turma>-plano.md`), e por isso dois planos de duas turmas da MESMA escola deixaram de escrever no mesmo arquivo. Ausente nos envelopes anteriores a essa data — quem lê trata a ausência como «a escola é a variante», que era o modelo antigo."
+        },
+        "alunaId": {
+          "type": "string",
+          "description": "O ID DA PESSOA no cadastro da escola (18/11/2026). O `aluna` acima é o apelido, e o apelido deixou de identificar uma pessoa no dia em que a primeira «Aluna A» saiu da escola e outra entrou. Sem este campo, a anamnese da nova era lida como sendo a da primeira — que já não estava lá —, e a tela não a mostrava em sítio nenhum onde se escolhe uma aluna. Ausente nos envelopes anteriores a esta data; quem lê trata a ausência como «não declarado», e o envelope pertence então ao primeiro titular do apelido."
+        },
+        "modalidade": {
+          "type": "string",
+          "description": "A MODALIDADE da anamnese (18/11/2026) — controlo interno da escola, e não pergunta do formulário: «não precisa ter separação disso lá na anamnese dizendo é da modalidade tal, isso é algo interno, controle nosso». É ela que o cadastro da aluna lê para saber se a anamnese DESTA modalidade já foi feita, e o resumo do envelope a guarda para que a pergunta se responda numa leitura só. Ausente nos envelopes anteriores a esta data — e a ausência não se lê como «nenhuma»."
         }
       }
     }

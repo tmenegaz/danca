@@ -150,12 +150,18 @@ async function montarArquivoCifrado(envelope, senha, cifrar) {
     documento: e.documento || 'anamnese',
     envelope: e.envelope || null,
     gerado_em: e.gerado_em || null,
-    contexto: {
-      escola: contexto.escola || null,
-      professor: contexto.professor || null,
-      ciclo: contexto.ciclo || null,
-      aluna: contexto.aluna || null,
-    },
+    /* O CONTEXTO INTEIRO, E NÃO QUATRO CAMPOS ESCOLHIDOS (18/11/2026).
+     *
+     * Era uma lista fixa — escola, professor, ciclo, aluna —, e a lista não acompanhou o envelope:
+     * a MODALIDADE (a anamnese é uma por modalidade) e o ID DA PESSOA (duas «Aluna A» são duas
+     * pessoas) entravam no envelope e eram deitadas fora ao gravar. Só se via o efeito: o cadastro
+     * dizia «anamnese pedida» para sempre, e a lista do passo 2 não encontrava o retrato da aluna
+     * certa.
+     *
+     * O contexto é METADADO do acto, e o que é metadado não se escolhe aqui: quem o compõe é
+     * `normalizarContexto` (no núcleo) e o esquema do contrato. Uma segunda lista, neste ficheiro,
+     * é uma segunda verdade — e a primeira coisa que ela faz é ficar para trás. */
+    contexto: Object.assign({}, contexto),
     ajuste_de: e.ajuste_de || undefined,
     estado: e.estado || undefined,
     respostas: { _cifrado, _nota: NOTA },

@@ -528,6 +528,21 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * `null` quando o envelope não a declara, e é o caso de toda a anamnese anterior a hoje. Quem lê
  * trata `null` como «não se sabe» — nunca como «nenhuma».
  */
+/* A VERSÃO NÃO SOBE POR CAUSA DO `alunaId` (18/11/2026) — e a razão é a diferença entre «campo em
+ * falta» e «campo que o dado não tem».
+ *
+ * O DEFEITO QUE A FRENTE FECHOU: a aluna passou a ter `id` no cadastro, e a lista do passo 2 passou
+ * a cruzar a anamnese com o cadastro POR ID — mas o envelope continuava a declarar só o apelido. A
+ * leitura caía na regra dos envelopes antigos («sem id, é do primeiro titular do apelido»), e a
+ * anamnese feita hoje para a SEGUNDA «Aluna A» era lida como sendo da primeira — que já tinha
+ * saído da escola. O retrato existia, estava gravado, e não aparecia em sítio nenhum.
+ *
+ * O `alunaId` entra no resumo dos envelopes NOVOS (ver `resumoDoEnvelope`). Mas subir a versão
+ * obrigaria TODAS as escolas a refazer o índice — o que custa uma leitura e uma decifra por
+ * envelope — só para escrever `null` em registos que, por definição, não declaram id nenhum. Aqui
+ * `null` é o valor verdadeiro: a ausência do campo e o campo a `null` dizem a mesma coisa, e quem
+ * lê trata as duas como «não declarado». É o oposto do `gerado_em` da versão 4, que estava EM
+ * FALTA num registo que o tinha — aí o campo existia no dado e não no índice. */
 const VERSAO_DO_RESUMO = 6;
 
 /**
@@ -576,6 +591,10 @@ function resumoDoEnvelope(envelope, nome) {
   // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
   if (fonte === 'anamnese') {
     resumo.aluna = contexto.aluna || null;
+    /* O ID DA PESSOA (18/11/2026) — ver `VERSAO_DO_RESUMO`. Ausente nos envelopes gravados antes
+     * de hoje, e ausente é `null`: quem lê trata-o como «não declarado» e cai na derivação do
+     * apelido, que é a regra certa para o acervo antigo. */
+    resumo.alunaId = contexto.alunaId || null;
     /* A MODALIDADE (18/11/2026) — ver `VERSAO_DO_RESUMO`. `null` quando o envelope não a declara,
      * e é o caso de todas as anamneses anteriores a hoje: quem lê tem de tratar `null` como «não
      * se sabe», e não como «nenhuma». */
@@ -2384,6 +2403,9 @@ async function anamneses(armazenamento, recorte, elenco) {
       valor: aluna,
       rotulo: aluna + (quando ? ' · ' + quando : ''),
       carimbo,
+      /* O ID DA PESSOA (18/11/2026) — é ele que distingue duas «Aluna A», e é ele que a gravação
+       * usa para não substituir o retrato de outra pessoa. `null` nos envelopes antigos. */
+      alunaId: String((resumo && resumo.alunaId) || '').trim() || null,
       detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
       escola: resumo.escola || null,
       professor: resumo.professor || null,
@@ -2404,6 +2426,18 @@ async function anamneses(armazenamento, recorte, elenco) {
     });
   }
   opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
+  /* UM SUJEITO POR NOME, E O MAIS RECENTE — e a escolha é deliberada (18/11/2026).
+   *
+   * Duas «Aluna A» podem existir no ACERVO (a que saiu e a que entrou), e nenhuma pode ser
+   * escondida — é isso que `estadosDasAnamneses` passou a garantir, com o `vigente` por pessoa.
+   * MAS ESTA LISTA NÃO É A DO ACERVO: é a dos SUJEITOS que um documento pode nomear, e o nome é
+   * o que o documento guarda (`sujeitos` é uma lista de apelidos). Duas linhas com o mesmo
+   * apelido seriam duas opções indistinguíveis no ecrã e o mesmo valor no envelope.
+   *
+   * O QUE SE ESCOLHE É O RETRATO MAIS RECENTE, e a ordenação é decrescente pelo carimbo: quem
+   * está hoje na escola tem a anamnese mais nova. Quem saiu da escola não é oferecido pelo
+   * recorte da curadoria e do elenco (ver `alunasDaTurma`), e a lista dos que saíram vive no
+   * passo 2 da Produção, onde o cadastro existe para a distinguir. */
   const vistos = new Set();
   const vigentes = [];
   for (const o of opcoes) {
@@ -2415,9 +2449,24 @@ async function anamneses(armazenamento, recorte, elenco) {
   return vigentes;
 }
 
-/** O registro VIGENTE de um sujeito — `{carimbo, vinculada}` ou null. */
-async function vigenteDoSujeito(armazenamento, aluna, elenco) {
-  const o = (await anamneses(armazenamento, null, elenco)).find((x) => x.valor === aluna);
+/**
+ * O REGISTRO VIGENTE DE UM SUJEITO — `{carimbo, vinculada}` ou null.
+ *
+ * A PESSOA, E NÃO O NOME (18/11/2026). Era `x.valor === aluna`, e com duas «Aluna A» no acervo
+ * isso fazia a anamnese da NOVA cair por cima do registro da primeira: a política de gravação é
+ * «substitui enquanto não vinculada», e o registro antigo da outra pessoa era o «vigente» que
+ * ela encontrava. O sintoma que isto fecha é o pior da família — um retrato a desaparecer, sem
+ * aviso, por causa de um nome repetido.
+ *
+ * A REGRA É A MESMA DAS OUTRAS LEITURAS: o envelope sem id pertence ao primeiro titular do
+ * apelido (`recorte.idDe`), e o envelope com id pertence a quem ele declara. Quando o chamador
+ * não sabe o id (uma bancada, um pedido antigo), cai na derivação do apelido — que é o
+ * comportamento de antes, e o certo para o acervo antigo.
+ */
+async function vigenteDoSujeito(armazenamento, aluna, elenco, alunaId) {
+  const alvo = String(alunaId || '').trim() || recorte.idDe(aluna);
+  const lista = await anamneses(armazenamento, null, elenco);
+  const o = lista.find((x) => (String(x.alunaId || '').trim() || recorte.idDe(x.valor)) === alvo);
   return o ? { carimbo: o.carimbo, vinculada: o.vinculada } : null;
 }
 
@@ -2445,20 +2494,31 @@ async function estadosDasAnamneses(armazenamento, elenco) {
     if (apelido) contagem.set(apelido, (contagem.get(apelido) || 0) + 1);
   }
 
-  // O VIGENTE é o carimbo MAIS RECENTE de cada apelido — a mesma regra da `anamneses()`
-  // (ordenação decrescente do carimbo, o primeiro que aparece ganha). Derivada dos mesmos
-  // envelopes, para as duas listas nunca discordarem sobre quem é o vigente.
+  /* O VIGENTE É O CARIMBO MAIS RECENTE DE CADA PESSOA (18/11/2026).
+   *
+   * Era «de cada apelido», e essa era a regra certa enquanto o apelido identificava uma pessoa.
+   * Deixou de o ser: depois de a primeira «Aluna A» sair e outra entrar, dois envelopes do mesmo
+   * nome são de duas pessoas — e agrupá-los pelo nome fazia o retrato da nova parecer o
+   * «substituído» (ou o contrário, conforme qual deles era o mais recente). O `vigente` é a
+   * pergunta «qual é o retrato atual desta pessoa», e a pessoa é o id.
+   *
+   * O ENVELOPE ANTIGO, SEM ID, cai na derivação do apelido — a mesma regra de todas as leituras
+   * de hoje: ele pertence ao primeiro titular. É o que mantém o acervo anterior a hoje a ser lido
+   * sem migração, e o que impede a segunda «Aluna A» de herdar o retrato da primeira. */
+  const identidade = (alunaId, apelido) => String(alunaId || '').trim() || recorte.idDe(apelido);
   const maisRecente = new Map();
   for (const e of envelopes) {
     if (!e.apelido) continue;
-    const atual = maisRecente.get(e.apelido);
-    if (!atual || atual < e.carimbo) maisRecente.set(e.apelido, e.carimbo);
+    const chave = identidade(e.resumo && e.resumo.alunaId, e.apelido);
+    const atual = maisRecente.get(chave);
+    if (!atual || atual < e.carimbo) maisRecente.set(chave, e.carimbo);
   }
 
   const estados = {};
   for (const { resumo, apelido, carimbo } of envelopes) {
     const por = apelido ? ligacoes.get(apelido) || [] : [];
-    const vigente = apelido !== null && maisRecente.get(apelido) === carimbo;
+    const alunaId = String((resumo && resumo.alunaId) || '').trim() || null;
+    const vigente = apelido !== null && maisRecente.get(identidade(alunaId, apelido)) === carimbo;
     let estado;
     if (apelido === null) estado = 'sem-sujeito';
     else if (por.length > 0) estado = 'vinculada';
@@ -2472,6 +2532,9 @@ async function estadosDasAnamneses(armazenamento, elenco) {
       estado,
       carimbo,
       apelido,
+      /* O ID DA PESSOA, quando o envelope o declara (18/11/2026). `null` nos envelopes antigos —
+       * e quem lê o trata como «não declarado», nunca como «é de ninguém». */
+      alunaId,
       semSujeito: apelido === null,
       vinculada: por.length > 0,
       por,
@@ -2635,7 +2698,10 @@ async function elicitar(armazenamento, corpo, dados) {
      * do registo dela — o modo de falha que a proveniência existe para impedir, e o único desta
      * família que apaga em vez de acrescentar. O `elenco` chega pelo `dados`, como o resto do que
      * a ponte sabe e o núcleo não vai buscar. */
-    const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna, dados.elenco) : null;
+    /* O ID VEM DO CONTEXTO (18/11/2026): é ele que distingue duas «Aluna A» — ver
+     * `vigenteDoSujeito`. Quem o resolve é a rota, que lê o cadastro; aqui ele só é usado. */
+    const alunaId = String((corpo && corpo.contexto && corpo.contexto.alunaId) || '').trim();
+    const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna, dados.elenco, alunaId) : null;
     if (vigente && vigente.vinculada) {
       opcoes.ajuste = { de: vigente.carimbo, motivo: (corpo && corpo.motivo) || null };
     } else if (vigente) {

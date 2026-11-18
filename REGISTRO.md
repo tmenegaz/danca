@@ -52417,3 +52417,71 @@ repondo `motor/servidor/bastidores.js` ao commit anterior e correndo-as:
 
 Nenhuma delas foi misturada nesta entrega: reparar uma prova que mede um mundo que mudou é trabalho
 próprio, com o seu laudo.
+
+## 18/11/2026 — «Não aparece a aluna que eu fiz a anamnese» — a anamnese é de uma pessoa, e o envelope não o dizia
+
+**O relato, depois de o cadastro da aluna ganhar `id`:**
+
+> «Eu fiz a anamnese da aluna A com o CPF e gerei com sucesso a anamnese. Agora estou tentando criar o
+> elenco e não consigo porque não aparece a aluna que eu fiz a anamnese. Na listagem de anamneses
+> aparece a aluna A, que é a antiga, justamente esse o objetivo do teste. Ela é a antiga, ela aparece
+> desvinculada, mas não aparece a aluna A nova, a que tem CPF. […] tem que garantir que no motor da
+> próxima escola, quando for criada, isso já funcione também.»
+
+**Três causas independentes, e as três na mesma frase.** Nenhuma delas dá erro; as três produzem o
+mesmo silêncio — um retrato gravado que não aparece onde deveria.
+
+1. **O envelope não declarava a pessoa.** O contexto do acto levava o apelido e mais nada. Toda a
+   leitura caía na regra dos envelopes antigos («sem id, é do primeiro titular do apelido»), e a
+   anamnese de hoje era lida como sendo da ALUNA A ANTIGA — que já saiu da escola. A lista do passo 2
+   cruzava-a com o cadastro por id, não a encontrava, e calava-se. A segunda «Aluna A» era, para o
+   sistema inteiro, a primeira.
+2. **O contexto era filtrado em dois sítios que não sabiam um do outro.** O núcleo copiava só a lista
+   fixa `CAMPOS_DE_CONTEXTO` — que não tinha `alunaId` nem `modalidade` —, e o acervo que cifra a
+   anamnese reconstruía o contexto com **quatro campos escolhidos à mão**. Nos dois, o que sobrava era
+   descartado em silêncio: nada falhava, e o documento saía a afirmar uma identidade incompleta.
+3. **O estado do vínculo lia a forma errada.** `estadoDaAnamnese` procurava `a.contexto`, e as listas
+   passam RESUMOS (campos achatados). Nunca casava: o cartão da aluna dizia «anamnese pedida» **para
+   sempre**, mesmo com a anamnese gravada — a mesma família do «sem apelido», a tela a afirmar um
+   facto que não leu.
+
+**A correcção, em três peças que se confirmam.** A rota da porta resolve o `id` da pessoa no servidor
+(há três degraus: o id que o contexto já traz, o do registo anterior, o do registo ACTIVO com aquele
+apelido — único por construção, porque o cadastro recusa duas activas com o mesmo apelido) e
+escreve-o no contexto; o núcleo e o acervo passam a deixar passar o contexto inteiro; e o estado do
+vínculo aceita as duas formas de registo. O `vigente` de uma anamnese passou a ser **por pessoa** e
+não por apelido — é a pergunta «qual é o retrato actual DESTA pessoa», e a pessoa é o id.
+
+**Medido.** `provar-anamnese-da-aluna-certa` (**novo, 18/18**) — a gravação pela rota de verdade
+(o envelope sai com `alunaId` e `modalidade`), o acervo antigo que não migra (o envelope sem id
+continua a ser do primeiro titular, e a segunda «Aluna A» não o herda), a lista do passo 2 a trazer a
+aluna que está na escola **com o carimbo de hoje**, o cartão do vínculo a dizer «concluída», e uma
+escola criada do zero a passar pelo mesmo caminho — a última secção é a garantia que ela pediu, e ela
+reprova se a correcção estiver nos dados da `breu` em vez de no motor.
+
+**Controlo A/B, cada peça sozinha.** `CAMPOS_DE_CONTEXTO` sem os dois campos: **reprova 4**. O acervo
+a filtrar o contexto em quatro campos: **reprova 4**. O resumo sem `alunaId`: **reprova 4**. O
+`vigente` agrupado pelo apelido: **reprova 2**. `estadoDaAnamnese` a ler só o `contexto`: **reprova
+3**. E o controlo negativo dentro da prova (o mesmo acervo com o envelope novo sem id) deixa a lista
+vazia — é o defeito dela, reproduzido.
+
+**O contrato que ficou para trás, e a classe que isso fecha.** O esquema do envelope
+(`envelope/elicitacao-schema.json`) é copiado de `porta/` para o pacote, e é a **cópia** que o Worker
+carrega dos assets. Mudar a fonte e não a cópia daria o pior desfecho possível: o motor a emitir dois
+campos que o contrato servido recusa (`additionalProperties: false`), e **a anamnese inteira a não
+gravar**. A cópia do pacote foi actualizada, e a checagem 8 (`check-identidade`) passou a comparar os
+quatro JSON que viajam no circuito da porta — esquema e os três conteúdos. A/B: com a cópia
+divergente, a checagem reprova e nomeia o ficheiro.
+
+**Com o quê.** `provar-matriz-metodologica` 50/50 · `provar-cadastro-da-aluna` 107/107 ·
+`provar-saida-da-aluna` 57/57 · `provar-listas-do-acervo` 113/113 · `provar-indice-de-envelopes`
+44/44 · `provar-acervo-envelopes` 52/52 · `provar-anamnese-sem-cofre` 13/13 ·
+`provar-cadeia-do-ajuste` 34/34 · `provar-apagar-da-listagem` 51/51 · `provar-gestos-do-shard` 31/31 ·
+`provar-sujeitos-da-turma` 41/41 · `provar-transferencia-e-desligamento` 97/97 ·
+`provar-abas-da-audicao` 125/125 · `provar-a-moldura-em-todas-as-telas` 111/111 ·
+`check-identidade` 22/22.
+
+**O que isto NÃO decide.** O apelido continua a ser o rótulo que o documento publica, e dois registos
+vivos com o mesmo apelido continuam impossíveis (409) — o que mudou é que o passado de um deixa de ser
+lido como sendo do outro. Levar o `alunaId` ao `sujeitos` do PO (que hoje é uma lista de apelidos) é
+o passo seguinte dessa mudança, e não é desta frente.

@@ -828,14 +828,31 @@ function estadoDaAnamnese(matricula, anamneses) {
   const idDoVinculo = String((matricula && matricula.alunaId) || '').trim()
     || idLegadoDaAluna(aluna);
   const idDoEnvelope = (c) => String((c && c.alunaId) || '').trim() || idLegadoDaAluna(aluna);
+  /* DUAS FORMAS DE REGISTO, E A LEITURA ACEITA AS DUAS (18/11/2026).
+   *
+   * O ENVELOPE INTEIRO traz o `contexto` (é lá que a aluna, a modalidade e o id vivem). O RESUMO
+   * do índice traz os MESMOS campos, mas achatados — e é ele que as listas passam, porque a regra
+   * desta casa é que uma lista se faz com metadado, numa leitura só.
+   *
+   * AQUI SÓ SE LIA O `contexto`, e o resultado era medido: `POST /api/bastidores/matriculas`
+   * respondia «pedida» para sempre, mesmo com a anamnese feita. O cadastro da aluna nunca dizia
+   * «concluída» — o mesmo tipo de defeito do «sem apelido»: a tela a afirmar um facto que não leu,
+   * e ninguém a duvidar dele porque ele parecia o estado normal. */
+  const campos = (a) => {
+    const c = a && (a.contexto || a.meta);
+    if (c) return { aluna: c.aluna, modalidade: c.modalidade, alunaId: c.alunaId,
+      gerado_em: a.gerado_em };
+    return a || {};
+  };
   const achada = (Array.isArray(anamneses) ? anamneses : []).find((a) => {
-    const c = (a && (a.contexto || a.meta)) || {};
+    const c = campos(a);
     return String(c.aluna || '').trim() === aluna
       && String(c.modalidade || '').trim() === modalidade
       && idDoEnvelope(c) === idDoVinculo;
   });
   if (!achada) return { estado: 'pedida', desde: (matricula && matricula.pedidaEm) || '' };
-  return { estado: 'concluida', desde: String(achada.gerado_em || achada.quando || '').slice(0, 10) };
+  const r = campos(achada);
+  return { estado: 'concluida', desde: String(r.gerado_em || r.quando || '').slice(0, 10) };
 }
 async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
@@ -23509,6 +23526,12 @@ module.exports = {
    * está quebrada e ainda não se sabe. */
   historicoDoAjuste,
   diferencaDeRitmo,
+  /* O ESTADO DA ANAMNESE DE UM VÍNCULO, exportado (18/11/2026). É ele que responde «a anamnese
+   * desta modalidade já foi feita?», e a resposta depende de duas coisas que só se medem juntas:
+   * a forma do registo (o envelope inteiro traz `contexto`; o resumo do índice traz os mesmos
+   * campos achatados) e a identidade da pessoa. Uma prova que só lesse a rota mediria o resultado
+   * e não a regra; exportá-la deixa a bancada fazer a pergunta directamente. */
+  estadoDaAnamnese,
   // O `fetch` EXPORTADO é a moldura: quem chama de fora recebe sempre JSON em `/api/**`, mesmo
   // quando uma rota estoura. O corpo está em `fetch`, e não se chama sem a moldura.
   fetch: fetchComRede,

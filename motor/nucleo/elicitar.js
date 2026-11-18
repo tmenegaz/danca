@@ -100,7 +100,22 @@ const VERSAO_DO_ENVELOPE = '1.3.0';
  * `contexto-turma` do plano E a identidade da variante da fonte: é daqui que
  * sai o `<escola>-<turma>` dos caminhos de escrita.
  */
-const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna', 'turma'];
+/* A LISTA CRESCEU DUAS VEZES, E AS DUAS PELO MESMO MOTIVO (18/11/2026).
+ *
+ * O QUE ACONTECEU, medido. A modalidade da anamnese e o id da pessoa passaram a viajar no
+ * `contexto` — o sítio das «coisas internas do acto», como ela o definiu —, e ESTA LISTA NÃO
+ * CRESCEU COM ELES. `normalizarContexto` só copia o que está aqui, e o resto é descartado em
+ * silêncio: o envelope saía com `escola`, `professor`, `aluna`, e mais nada.
+ *
+ * O EFEITO NÃO ERA UM CAMPO VAZIO — ERA UMA AFIRMAÇÃO FALSA. Sem `modalidade`, o estado do
+ * vínculo («a anamnese desta modalidade já foi feita?») nunca podia casar, e o cadastro da aluna
+ * dizia «pedida» para sempre, mesmo com a anamnese gravada. E sem `alunaId`, a anamnese da
+ * segunda «Aluna A» era lida como sendo da primeira, que já tinha saído da escola.
+ *
+ * `modalidade` é controlo da escola (não é pergunta, e a tela não a mostra); `alunaId` é a
+ * identidade da pessoa, e o apelido sozinho deixou de a identificar. Os dois são metadado do
+ * acto, e é por isso que vivem aqui — e não nas respostas. */
+const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna', 'alunaId', 'modalidade', 'turma'];
 /** Declarado em claro, não adivinhado pela extensão — como na âncora `.fipp`. */
 const DIGEST_ALGORITMO = 'sha256';
 

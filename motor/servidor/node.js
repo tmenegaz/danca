@@ -128,7 +128,21 @@ function montar() {
       return [];
     }
   };
-  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO, escolaDoWorker: process.env.ESCOLA_SLUG || '', lerCuradorias });
+  /* O CADASTRO DAS ALUNAS na bancada local — a mesma chave do `bastidores.js`. É dele que sai o
+   * `id` que a anamnese passa a declarar no contexto (18/11/2026): sem esta leitura, a bancada
+   * comportar-se-ia como uma escola antiga, e o defeito que a correcção fecha não apareceria em
+   * casa nenhuma — nem na prova, nem nos olhos de quem ensaia. */
+  const lerAlunas = async (escola) => {
+    if (!escola) return [];
+    try {
+      const bruto = await armazenamento.ler('bastidores/' + escola + '/alunas');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) {
+      return [];
+    }
+  };
+  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO, escolaDoWorker: process.env.ESCOLA_SLUG || '', lerCuradorias, lerAlunas });
 }
 
 async function pedidoParaRequest(req) {

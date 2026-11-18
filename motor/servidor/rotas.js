@@ -75,7 +75,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, lerAlunas, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -147,6 +147,61 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       curadorias: await ler(lerCuradorias),
     }))();
     return elencoDoPedido;
+  };
+
+  /* A PESSOA QUE A ANAMNESE DECLARA (18/11/2026).
+   *
+   * O DEFEITO, na letra dela: «Eu fiz a anamnese da aluna A com o CPF e gerei com sucesso a
+   * anamnese. Agora estou tentando criar o elenco e não consigo porque não aparece a aluna que eu
+   * fiz a anamnese. […] aparece a aluna A, que é a antiga […] mas não aparece a aluna A nova, a que
+   * tem CPF.»
+   *
+   * A CAUSA. O cadastro da aluna passou a ter `id` — duas pessoas podem chamar-se «Aluno A» ao
+   * longo do tempo —, e todas as leituras passaram a casar por id. A GRAVAÇÃO ficou para trás: o
+   * envelope da anamnese nasce na porta, e o contexto do acto só levava o apelido. Sem id, toda a
+   * leitura cai na regra dos envelopes antigos («sem id, é do primeiro titular do apelido»), e o
+   * retrato da aluna nova era lido como sendo o da antiga — que já tinha saído da escola.
+   *
+   * O QUE SE FAZ AQUI, E PORQUE AQUI. O id resolve-se no servidor, e não no cliente: a página não
+   * conhece o cadastro, e um pedido feito à mão (ou por outra tela amanhã) tem de gravar a mesma
+   * verdade. A resolução tem três degraus, e o primeiro que responder ganha:
+   *
+   *   1. o id que o contexto JÁ TRAZ — um contexto que o declara foi escrito por quem sabia, e
+   *      não se corrige;
+   *   2. o id do registro ANTERIOR — a edição de um envelope que já declara a pessoa não pode
+   *      perdê-la só porque o cliente reenvia o contexto da barra, que é só o apelido;
+   *   3. o registo ACTIVO que tem este apelido. É único por construção: o cadastro recusa (409)
+   *      duas alunas activas com o mesmo apelido. Quando não há nenhum — uma aluna que nunca foi
+   *      cadastrada, ou uma escola antiga —, não se escreve id nenhum, e a leitura fica como
+   *      estava. */
+  const identidadeDaAluna = async (apelido) => {
+    const nome = String(apelido || '').trim();
+    if (!nome || typeof lerAlunas !== 'function') return null;
+    const slug = escolaDoWorker || (identidade && identidade.escola) || '';
+    if (!slug) return null;
+    let registos = [];
+    try {
+      const r = await lerAlunas(slug);
+      registos = Array.isArray(r) ? r : [];
+    } catch (erro) { return null; }
+    const activo = registos.find((x) => {
+      const r = x && typeof x === 'object' ? x : { apelido: x };
+      return String(r.apelido || r.nome || '').trim() === nome && !r.desligadaEm;
+    });
+    if (!activo) return null;
+    const id = String(activo.id || '').trim();
+    return id || null;
+  };
+  const comAAlunaIdentificada = async (contexto, anterior) => {
+    const c = Object.assign({}, contexto || {});
+    const apelido = String(c.aluna || '').trim();
+    if (!apelido) return c;
+    if (String(c.alunaId || '').trim()) return c;
+    const herdado = String((anterior && anterior.contexto && anterior.contexto.alunaId) || '').trim();
+    if (herdado) { c.alunaId = herdado; return c; }
+    const id = await identidadeDaAluna(apelido);
+    if (id) c.alunaId = id;
+    return c;
   };
 
   // 1. /assets/style.css — a identidade visual da produção (o FONTE).
@@ -742,7 +797,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       id: novoId,
       geradoEm: carimbo,
       endereco: porta.ENDERECOS.anamnese,
-      contexto: comAEscolaDoWorker(anterior.contexto),
+      contexto: comAEscolaDoWorker(await comAAlunaIdentificada(anterior.contexto, anterior)),
       ajuste: {
         de: params.id,
         em: carimbo,
@@ -796,7 +851,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       id: recarimba ? agora.id : params.id,
       geradoEm: recarimba ? agora.geradoEm : anterior.gerado_em,
       endereco: porta.ENDERECOS.anamnese,
-      contexto: comAEscolaDoWorker(corpo.contexto || anterior.contexto),
+      contexto: comAEscolaDoWorker(await comAAlunaIdentificada(corpo.contexto || anterior.contexto, anterior)),
       esquema,
     });
     if (relatorio.errosDoDocumento.length) {
@@ -1222,6 +1277,13 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     const doPlano = await cicloDoPlanoDeclarado({ armazenamento, corpo });
     if (doPlano.existe && doPlano.ciclo && corpo.contexto) {
       corpo.contexto.ciclo = doPlano.ciclo;
+    }
+
+    /* A PESSOA QUE A ANAMNESE DECLARA — antes da gravação, e só para a anamnese (18/11/2026).
+     * Ver `comAAlunaIdentificada`, acima, para o defeito que isto fecha. O plano e o PO não têm
+     * sujeito: o plano é da turma, e o PO observa o plano. */
+    if (corpo.fonte === 'anamnese') {
+      corpo.contexto = await comAAlunaIdentificada(corpo.contexto);
     }
 
     /* A REGRA PE → PO E A SEQUÊNCIA ESTRITA — antes de qualquer gravação, e com o acervo à mão. */

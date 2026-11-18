@@ -87,7 +87,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, fuso, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, lerDados, lancamentoSeguro, consolidarLancamentos, fuso, escolaDoWorker, lerCuradorias, lerTurmas, lerLinhasDeBase, lerAlunas, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -130,6 +130,9 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     // sobre um dado que a escola declarou.
     lerTurmas,
     lerLinhasDeBase,
+    // O CADASTRO DAS ALUNAS (18/11/2026) — é dele que sai o `id` da pessoa que a anamnese passa a
+    // declarar no contexto. Ver `lerAlunasDoEnv`.
+    lerAlunas,
   });
   return (request) => roteador.responder(request);
 }
@@ -146,6 +149,35 @@ function lerCuradoriasDoEnv(env) {
     if (!kv || !slug) return [];
     try {
       const bruto = await kv.get('bastidores/' + slug + '/curadorias');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) {
+      return [];
+    }
+  };
+}
+
+/**
+ * OS REGISTOS DAS ALUNAS DA ESCOLA, lidos do KV — a mesma chave que os Bastidores escrevem.
+ *
+ * PORQUE A PORTA PRECISA DELES (18/11/2026). O envelope da anamnese nasce na porta, e a anamnese
+ * é de uma PESSOA. O contexto do acto só trazia o apelido, e o apelido deixou de identificar uma
+ * pessoa no dia em que a primeira «Aluna A» saiu e outra entrou. O `id` do cadastro é o que
+ * distingue as duas, e é ele que a gravação passa a escrever no envelope.
+ *
+ * A LEITURA DEVOLVE A LISTA CRUA, e quem resolve o apelido é a rota — a mesma regra que
+ * `lerCuradorias` segue. Ausente o binding, devolve `[]`: a rota então não escreve id nenhum, e o
+ * envelope cai na derivação do apelido, que é o comportamento de antes desta correcção. Degradar
+ * para o que havia é o lado seguro — recusar a gravação por falta de leitura seria transformar
+ * uma limitação de bancada numa proibição de trabalhar.
+ */
+function lerAlunasDoEnv(env) {
+  return async (escola) => {
+    const kv = env && env.PADD_KV;
+    const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+    if (!kv || !slug) return [];
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/alunas');
       const lista = bruto ? JSON.parse(bruto) : [];
       return Array.isArray(lista) ? lista : [];
     } catch (erro) {
@@ -541,6 +573,9 @@ async function fetch(request, env, opcoes) {
     lerCuradorias: lerCuradoriasDoEnv(env),
     lerTurmas: lerTurmasDoEnv(env),
     lerLinhasDeBase: lerLinhasDeBaseDoEnv(env),
+    /* O CADASTRO DAS ALUNAS (18/11/2026) — a anamnese é de uma pessoa, e é o `id` do cadastro que
+     * a distingue quando duas partilham o apelido. Mesma chave do `bastidores.js`. */
+    lerAlunas: lerAlunasDoEnv(env),
     // O ÍNDICE (fase 4). O cache vive no KV da escola — é derivado, e a perda dele não perde
     // dado nenhum. `comApelido` é verdadeiro aqui porque quem serve é o Worker da ESCOLA.
     indice: criarIndice(env, { kv: criarCloudflare(env), escola: (env && env.ESCOLA_SLUG) || '' }),
@@ -559,4 +594,4 @@ async function fetch(request, env, opcoes) {
  * uma turma. Exportá-lo permite à bancada medir AS DUAS leituras da mesma lista (esta e a da
  * Produção) contra o mesmo KV, que é a única forma de provar que elas dizem o mesmo: uma prova que
  * reconstruísse o leitor mediria a prova, não a regra. */
-module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico, criarArmazenamento, lerLinhasDeBaseDoEnv };
+module.exports = { fetch, montarPorta, passosDeGeracao, carregarEstatico, servirEstatico, criarArmazenamento, lerLinhasDeBaseDoEnv, lerAlunasDoEnv };

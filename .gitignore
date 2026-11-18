@@ -1642,3 +1642,8 @@ experimentos/modelo-formulario/*
 # letra («parte dele está escondido atrás do menu vertical»). Mede também a raiz do Sistema Lastro,
 # que não tem coluna e não podia mudar.
 !experimentos/provar-rodape-do-painel.js
+
+# A ANAMNESE É DE UMA PESSOA (18/11/2026). A prova que fixa o id no envelope — e a que garante que
+# uma escola criada do zero passa pelo mesmo caminho, sem dado semeado. Sexta aparição da armadilha
+# do `experimentos/*`: ela nasceu ignorada.
+!experimentos/provar-anamnese-da-aluna-certa.js
