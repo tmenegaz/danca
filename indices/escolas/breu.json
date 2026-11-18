@@ -62,94 +62,25 @@
       "versoes": 2
     }
   ],
-  "aulas": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-18",
-        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
-        "cobertura": [
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
-        ],
-        "hash": "7a08c963cddf26f97421cf1c94b1ff6e77e8d0925ae9719cda3794457dbe96ce",
-        "hash_conteudo": "a9a2f12423b0c06c4d589f30a266aceb058d9a37cc697ae6876fac39ec76ac90",
-        "id": "ciclo-01-breu-rosa-aula-01",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "documento": null,
-      "id": "ciclo:demi-plie/01/breu/rosa/aula-01",
-      "numero": "01",
-      "variante": "rosa"
-    }
-  ],
+  "aulas": [],
   "ciclos": [
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-18",
-        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
+        "ancorado_em": "2026-11-17",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
         "cobertura": [
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
-          "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
+          "professores/demi-plie/ciclos/ciclo-01-breu.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "ffa84cc55358478cac74657793539064797166df78b86168d449763e541d73b8",
-        "hash_conteudo": "747f464f4c7655463379f557c6c89cfa63175edb32747336b4db24ccb47e1522",
-        "id": "ciclo-01-breu-rosa",
+        "hash": "cd5006ddabba8c7e60a0f31abdb709d6412b3f504451d0f557084132b8d7e223",
+        "hash_conteudo": "f924dd09df9d488b40d0bcd2432b096ed6b70689d664d5c3ba46857a2efafbf0",
+        "id": "ciclo-01-breu",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [
-        {
-          "ancora": {
-            "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-18",
-            "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
-            "cobertura": [
-              "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-              "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
-            ],
-            "hash": "7a08c963cddf26f97421cf1c94b1ff6e77e8d0925ae9719cda3794457dbe96ce",
-            "hash_conteudo": "a9a2f12423b0c06c4d589f30a266aceb058d9a37cc697ae6876fac39ec76ac90",
-            "id": "ciclo-01-breu-rosa-aula-01",
-            "lida": true,
-            "parent_hash": ""
-          },
-          "documento": null,
-          "id": "ciclo:demi-plie/01/breu/rosa/aula-01",
-          "numero": "01",
-          "variante": "rosa"
-        }
-      ],
+      "aulas": [],
       "documentos": [
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclos.json",
-        "professores/demi-plie/ciclos/ciclo-01-breu-rosa/plano-observacao/envelope/elicitacao-schema.json",
         "professores/demi-plie/ciclos/ciclo-01-breu.conf",
         "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
         "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -163,42 +94,14 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
-        "aula",
-        "dados",
-        "declaracao",
-        "glossario",
-        "harmonizacao",
-        "indice",
         "manifesto",
-        "notacao",
-        "plano",
-        "po",
-        "referencias",
         "schema"
       ]
     }
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
-      "professor": "demi-plie",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
-      "professor": "demi-plie",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -207,97 +110,7 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
-      "professor": "demi-plie",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
-      "professor": "demi-plie",
-      "tipo": "aula"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
-      "professor": "demi-plie",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
-      "professor": "demi-plie",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
-      "professor": "demi-plie",
-      "tipo": "dados"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json",
-      "professor": "demi-plie",
-      "tipo": "declaracao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:glossario:professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-benesh.md",
-      "professor": "demi-plie",
-      "tipo": "glossario"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
-      "professor": "demi-plie",
-      "tipo": "harmonizacao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclos.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:indice:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclos.json",
-      "professor": "demi-plie",
-      "tipo": "indice"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
-      "professor": "demi-plie",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -306,52 +119,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
-      "professor": "demi-plie",
-      "tipo": "notacao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
-      "professor": "demi-plie",
-      "tipo": "plano"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
-      "professor": "demi-plie",
-      "tipo": "po"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
-      "professor": "demi-plie",
-      "tipo": "referencias"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu-rosa/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "demi-plie",
-      "tipo": "schema"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-rosa",
+      "ancora_id": "ciclo-01-breu",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -366,13 +134,13 @@
     ],
     "contagens": {
       "anamneses": 3,
-      "aulas": 1,
+      "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 1,
+      "pos": 0,
       "recortes": 2,
-      "registros": 5
+      "registros": 4
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -389,21 +157,19 @@
       "anamnese:anamnese-20261116-2201",
       "anamnese:anamnese-20261117-1407",
       "anamnese:anamnese-20261118-1205",
-      "plano:plano-20261116-2227",
-      "po:po-20261116-2230"
+      "plano:plano-20261116-2227"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
           "anamnese:anamnese-20261118-1205",
-          "plano:plano-20261116-2227",
-          "po:po-20261116-2230"
+          "plano:plano-20261116-2227"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -472,14 +238,13 @@
     ],
     "professores": [
       {
-        "contagem": 6,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
           "anamnese:anamnese-20261118-1205",
           "ciclo:demi-plie/01/breu",
-          "plano:plano-20261116-2227",
-          "po:po-20261116-2230"
+          "plano:plano-20261116-2227"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -511,22 +276,14 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "po:po-20261116-2230"
-        ],
-        "rotulo": "Plano de observação",
-        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "8461d9d"
+    "commit": "65368e9"
   },
-  "gerado_em": "2026-11-18T17:11",
+  "gerado_em": "2026-11-18T17:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -687,16 +444,6 @@
       "professor": "demi-plie",
       "tipo": "plano",
       "turma": "Rosa"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "po-20261116-2230",
-      "ciclo": "01",
-      "data": "2026-11-16T22:30",
-      "id": "po:po-20261116-2230",
-      "professor": "demi-plie",
-      "tipo": "po"
     }
   ],
   "versao": 7
