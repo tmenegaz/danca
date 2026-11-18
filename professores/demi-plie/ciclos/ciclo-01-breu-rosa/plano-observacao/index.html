@@ -797,37 +797,20 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
   <div class="nav-links" id="nav-links">
   <a href="/index.html">Sistema Lastro</a>
   <details class="menu">
-    <summary>Ciclos</summary>
-    <div class="submenu">
-      <a href="/plano.html">Plano do Ciclo 01 — breu</a>
-      <a href="/referencias.html">Referências Bibliográficas</a>
-    </div>
-  </details>
-  <details class="menu">
-    <summary>Aulas</summary>
-    <div class="submenu">
-      <a href="/aula-01.html">Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical</a>
-    </div>
-  </details>
-  <details class="menu">
-    <summary>Planejamento</summary>
-    <div class="submenu">
-      <a href="/glossario-benesh.html">Glossário do código Benesh do ciclo</a>
-      <a href="/notacao.html">Notação em Benesh</a>
-    </div>
-  </details>
-  <details class="menu">
     <summary>Área do Professor</summary>
     <div class="submenu">
       <a href="/anamnese/?professor=demi-plie&escola=breu-rosa&ciclo=01">Anamnese do aluno</a>
-      <a href="/captura-aula-01.html">Captura em aula — Aula 01 — para impressão</a>
-      <a href="/harmonizacao.html">Harmonização de linguagem</a>
-      <a href="/lancamento.html">Lançamento de aula — formulário eletrônico</a>
       <a href="/plano-ensino/?professor=demi-plie&escola=breu-rosa&ciclo=01&fonte=plano">Plano de ensino</a>
       <a class="ativo" href="/plano-observacao/?professor=demi-plie&escola=breu-rosa&ciclo=01&fonte=po">Plano de Observação</a>
     </div>
   </details>
-  <a class="pdf" href="/ciclo-01-breu-rosa.pdf">PDF do ciclo</a>
+  <details class="menu">
+    <summary>Bastidores</summary>
+    <div class="submenu">
+      <a href="/bastidores/estudio">Estúdio de Dança</a>
+      <a href="/bastidores/producao">Produção</a>
+    </div>
+  </details>
   </div>
 </nav>
 
@@ -3089,6 +3072,24 @@ function contextoDaBarra() {
    * ser o mesmo valor. No PO, `turmaDoAto()` já devolve a turma do PLANO referenciado — é a
    * decisão de que a turma do PO vem do plano, e a reconciliação não a contraria: só impede
    * que a resposta diga outra coisa. */
+  /* A MODALIDADE DA ANAMNESE (18/11/2026). Ela NÃO é pergunta e não tem campo na barra — é
+   * controlo da escola, e ela foi explícita: «não precisa ter separação disso lá na anamnese
+   * dizendo é da modalidade tal, isso é algo interno, controle nosso. Então a anamnese já nasce
+   * sabendo de que modalidade ela é.» O lugar das coisas internas do ato é o `contexto`, e é por
+   * isso que ela entra aqui e não num `<select>`.
+   *
+   * ELA CHEGA PELO ENDEREÇO, e só por ele: o link do pedido de anamnese — o que o cadastro da
+   * aluna manda ao professor por e-mail — traz `?modalidade=`. Sem o parâmetro (um atalho antigo,
+   * um marcador guardado), o contexto fica sem modalidade — e o resumo do envelope grava `null`,
+   * que quer dizer «não se sabe», e não «nenhuma». É a diferença que o estado da anamnese lê para
+   * não atribuir a uma modalidade uma anamnese que talvez seja de outra.
+   *
+   * O `?turma=` NÃO se copia deste padrão: a turma tem seletor, e um seletor que se preenchesse
+   * pelo endereço seria uma segunda verdade sobre a mesma escolha. */
+  if (FONTE === 'anamnese') {
+    const daUrl = (new URLSearchParams(location.search).get('modalidade') || '').trim();
+    if (daUrl !== '') contexto.modalidade = daUrl;
+  }
   const turma = turmaDoAto();
   if (turma !== '') {
     contexto.turma = turma;

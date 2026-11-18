@@ -609,7 +609,103 @@ function comporAvisoDeExpurgoAoProprietario({ escola, nome, quando, quandoTexto,
   };
 }
 
+/**
+ * O PEDIDO DE ANAMNESE A UM PROFESSOR (18/11/2026).
+ *
+ * «Nesse momento dispara um e-mail que vai para o professor […] No e-mail do professor vai dizer
+ * que ele tem uma aluna nova para fazer anamnese e vai dizer qual é o apelido dessa aluna e qual é
+ * a modalidade que ela vai fazer. E aí tem um link que leva o professor direto para anamnese.»
+ *
+ * O QUE A MENSAGEM NÃO FAZ, e é de propósito:
+ *
+ *   · NÃO PEDE NEM LEMBRA A SENHA. O link leva ao formulário; a senha é dele e digita-se lá. Uma
+ *     senha por e-mail é uma senha numa caixa de correio — e o módulo do correio já tem a mesma
+ *     regra escrita para o e-mail de boas-vindas;
+ *   · NÃO INVENTA PRAZO. Ela foi explícita: «o professor vai fazer isso no tempo dele». Uma data
+ *     limite inventada seria uma regra que ninguém decidiu.
+ *
+ * O QUE ELA DIZ É O QUE O PROFESSOR PRECISA DE SABER AO ABRIR A CAIXA: quem é a aluna (o apelido,
+ * que é o nome estável do produto — nunca o nome completo), em que modalidade, e por onde se
+ * começa. E diz também que há uma folha para imprimir, porque há: o professor que faz a anamnese
+ * à mão na sala precisa de saber que o sistema não o obriga ao ecrã.
+ */
+function comporPedidoDeAnamnese({ escola, aluno, modalidade, professor, url } = {}) {
+  const nomeDaEscola = String(escola || '').trim();
+  const apelido = String(aluno || '').trim();
+  const modalidadeTexto = String(modalidade || '').trim();
+  const endereco = String(url || '').trim();
+
+  const assunto = 'Uma aluna nova para a anamnese: «' + apelido + '»';
+
+  const linhas = [];
+  linhas.push('Olá' + (professor ? ', ' + String(professor).trim() : '') + '.');
+  linhas.push('');
+  linhas.push('A escola «' + (nomeDaEscola || 'a sua escola') + '» cadastrou uma aluna nova e');
+  linhas.push('escolheu você para fazer a anamnese dela.');
+  linhas.push('');
+  linhas.push('    Aluna: ' + apelido);
+  if (modalidadeTexto) linhas.push('    Modalidade: ' + modalidadeTexto);
+  linhas.push('');
+  if (endereco) {
+    linhas.push('A anamnese começa aqui, com o seu nome e o da aluna já preenchidos:');
+    linhas.push('');
+    linhas.push('    ' + endereco);
+    linhas.push('');
+    linhas.push('Você vai precisar da sua senha, que é a mesma de sempre — ela não vai por');
+    linhas.push('e-mail, e não é pedida por e-mail a ninguém.');
+    linhas.push('');
+    linhas.push('Se preferir fazer a anamnese à mão, na sala, a mesma página tem a folha para');
+    linhas.push('imprimir. O que se escreve no papel entra depois, no mesmo lugar.');
+    linhas.push('');
+    linhas.push('Não há prazo: faça no seu tempo. Enquanto a anamnese não estiver feita, o');
+    linhas.push('cadastro da aluna diz que ela está pedida — é assim que a escola sabe.');
+  } else {
+    linhas.push('A anamnese dela está pedida. Entre na Área do Professor da escola para a');
+    linhas.push('fazer — não há prazo, faça no seu tempo.');
+  }
+  linhas.push('');
+  linhas.push('— Sistema Lastro');
+  const texto = linhas.join('\n');
+
+  const linhasHtml = [
+    '<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.55;color:#232323">',
+    '<p style="margin:0 0 12px">' + escapar(linhas[0]) + '</p>',
+    '<p style="margin:0 0 12px">A escola «' + escapar(nomeDaEscola || 'a sua escola') + '» cadastrou uma '
+      + 'aluna nova e escolheu você para fazer a anamnese dela.</p>',
+    '<p style="margin:0 0 12px">Aluna: <strong>' + escapar(apelido) + '</strong>'
+      + (modalidadeTexto ? '<br>Modalidade: <strong>' + escapar(modalidadeTexto) + '</strong>' : '') + '</p>',
+    endereco
+      ? '<p style="margin:0 0 4px">A anamnese começa aqui, com o seu nome e o da aluna já preenchidos:</p>'
+        + '<p style="margin:0 0 12px"><a href="' + escapar(endereco) + '">' + escapar(endereco) + '</a></p>'
+        + '<p style="margin:0 0 12px;color:#5a5a5a">Você vai precisar da sua senha, que é a mesma de '
+        + 'sempre — ela não vai por e-mail, e não é pedida por e-mail a ninguém.</p>'
+        + '<p style="margin:0 0 12px;color:#5a5a5a">Se preferir fazer a anamnese à mão, na sala, a mesma '
+        + 'página tem a folha para imprimir.</p>'
+      : '<p style="margin:0 0 12px">A anamnese dela está pedida. Entre na Área do Professor da escola '
+        + 'para a fazer.</p>',
+    '<p style="margin:0 0 16px;color:#5a5a5a">Não há prazo: faça no seu tempo. Enquanto a anamnese '
+      + 'não estiver feita, o cadastro da aluna diz que ela está pedida — é assim que a escola sabe.</p>',
+    '<p style="margin:0;color:#5a5a5a">— Sistema Lastro</p>',
+    '</div>',
+  ];
+
+  return {
+    para: [],
+    assunto,
+    texto,
+    html: linhasHtml.join(''),
+  };
+}
+
+/** O `&`, o `<` e as aspas — o mínimo para um valor entrar num atributo sem o partir. */
+function escapar(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 module.exports = {
+  comporPedidoDeAnamnese,
   REMETENTE_PADRAO,
   API_DO_CORREIO,
   assuntoDe,

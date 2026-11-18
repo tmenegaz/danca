@@ -505,7 +505,19 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * aqui entra é o que um dia uma lista pediu — se uma lista nova precisar de outro campo, é
  * aqui que ele passa a existir, e o índice se reconstrói sozinho (a `versao` sobe).
  */
-const VERSAO_DO_RESUMO = 4;
+/* VERSÃO 5 (18/11/2026) — a MODALIDADE da anamnese entra no resumo.
+ *
+ * A aluna passa a ter uma anamnese POR MODALIDADE («no momento em que ela escolhe mudar de
+ * modalidade ou ter mais uma modalidade […] tem que ser feito a anamnese dela para ver o retrato
+ * dela atual»). O cadastro da aluna precisa de saber, sem ler envelope nenhum, se a anamnese
+ * daquela modalidade já foi feita — e a regra desta estante é que uma lista se faz com metadado,
+ * numa leitura só. Sem o campo no resumo, o cadastro teria de abrir cada anamnese para responder
+ * a uma pergunta de uma linha.
+ *
+ * A modalidade viaja no `contexto` do envelope, que é onde as coisas internas do acto vivem — ela
+ * foi explícita: «não precisa ter separação disso lá na anamnese dizendo é da modalidade tal, isso
+ * é algo interno, controle nosso». */
+const VERSAO_DO_RESUMO = 5;
 
 /**
  * OS CAMPOS QUE A DEFINIÇÃO DE HOJE ESCREVE SEMPRE — e a razão de eles existirem (24/10/2026).
@@ -551,7 +563,13 @@ function resumoDoEnvelope(envelope, nome) {
     gerado_em: (envelope && envelope.gerado_em) || null,
   };
   // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
-  if (fonte === 'anamnese') resumo.aluna = contexto.aluna || null;
+  if (fonte === 'anamnese') {
+    resumo.aluna = contexto.aluna || null;
+    /* A MODALIDADE (18/11/2026) — ver `VERSAO_DO_RESUMO`. `null` quando o envelope não a declara,
+     * e é o caso de todas as anamneses anteriores a hoje: quem lê tem de tratar `null` como «não
+     * se sabe», e não como «nenhuma». */
+    resumo.modalidade = contexto.modalidade || null;
+  }
   // O PLANO: o objetivo é o rótulo humano da estante; a turma diz de quem é o plano.
   //
   // O REPERTÓRIO E O NOME DO PROFESSOR ENTRAM AQUI (20/10/2026) porque a regra de proveniência

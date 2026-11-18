@@ -281,6 +281,9 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 // agora lê o índice do acervo, que é uma leitura só e traz o que a regra compara.
 const acervo = require('./acervo-envelopes.js');
 const porta = require('../nucleo/porta.js');
+/* O CORREIO ENTRA AQUI A 18/11/2026 — o pedido de anamnese ao professor. Ele já existia para o
+ * e-mail de boas-vindas da escola; o que muda é quem o chama. */
+const correio = require('./correio.js');
 const paginacao = require('../nucleo/paginacao.js');
 /* A LINHA DE BASE (05/11/2026) — o recorte da anamnese que o professor escolhe. O núcleo diz o
  * que é «corpo» e o que é musicalidade; o `corpo-seed` traz os campos da anamnese para dentro do
@@ -605,6 +608,86 @@ async function professores(kv, escola) {
 }
 async function alunas(kv, escola, opcoes) {
   return lerLista(kv, RAIZ + '/' + escola + '/alunas', opcoes && opcoes.estrito);
+}
+
+/* ================= O VÍNCULO DA ALUNA — a modalidade e o professor (18/11/2026) =============
+ *
+ * O QUE ELA PEDIU, e o que isto resolve. A aluna era um APELIDO numa lista e mais nada: quem a
+ * ensinava, em que modalidade e quem fazia a anamnese dela não existia em sítio nenhum. A partir
+ * de hoje o cadastro tem dois passos, e o segundo — «Anamnese» — cria um VÍNCULO: a aluna, a
+ * modalidade em que ela entra, e o professor que vai fazer a anamnese.
+ *
+ * O VÍNCULO NÃO ESTÁ «PENDENTE» À ESPERA DA ANAMNESE. Foi ela quem corrigiu a leitura fácil:
+ * «O fato do professor não fazer a anamnese naquele momento não é impeditivo para cadastrar a
+ * aluna. O professor vai fazer isso no tempo dele. […] Não dá para cadastrar a aluna e ficar
+ * esperando a anamnese para daí terminar o vínculo.» O vínculo nasce no acto do cadastro; o que
+ * fica pendente é a ANAMNESE, e o seu estado é LIDO (ver `estadoDaAnamnese`), nunca guardado.
+ *
+ * UMA ANAMNESE POR MODALIDADE, e a razão é dela: «no momento em que ela escolhe mudar de
+ * modalidade ou ter mais uma modalidade ou abandonar uma modalidade, tem que ser feito a anamnese
+ * dela para ver o retrato dela atual, como é que ela está atualmente, qual é o corpo dela naquele
+ * momento, naquele instante.» O vínculo é, então, o par (aluna × modalidade) — e é ele que a
+ * derivação substitui quando a modalidade é a mesma, ou ao lado do qual nasce um novo quando a
+ * modalidade é outra.
+ *
+ * A MODALIDADE É CONTROLO NOSSO, e ela foi explícita: «não precisa ter separação disso lá na
+ * anamnese dizendo é da modalidade tal, isso é algo interno, controle nosso. Então a anamnese já
+ * nasce sabendo de que modalidade ela é.» Por isso ela não vira pergunta no formulário — viaja no
+ * `contexto` do envelope, que é onde as coisas internas do acto vivem. */
+async function matriculas(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/matriculas');
+}
+
+/** Os vínculos VIGENTES — os que não foram substituídos por uma derivação. */
+function matriculasVigentes(lista) {
+  return (Array.isArray(lista) ? lista : []).filter((m) => m && !m.substituidaPor);
+}
+
+/**
+ * O ID DE UM VÍNCULO — o par (aluna × modalidade), e só ele.
+ *
+ * Não leva carimbo, ao contrário do elo de uma Sala: dois vínculos da mesma aluna em modalidades
+ * diferentes são dois vínculos, e o par já os distingue. Quando o par se repete — uma segunda
+ * anamnese da MESMA modalidade —, quem o distingue é o `substituidaPor` da derivação, e o id
+ * ganha sufixo para os dois elos poderem coexistir no registo.
+ */
+function idDaMatricula(aluna, modalidade, lista) {
+  const base = slugificar(aluna) + '-' + slugificar(modalidade);
+  const usados = new Set((Array.isArray(lista) ? lista : []).map((m) => m && m.id));
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(base + '-' + n)) n += 1;
+  return base + '-' + n;
+}
+
+/**
+ * O ESTADO DA ANAMNESE DE UM VÍNCULO — DERIVADO, e nunca guardado.
+ *
+ * «Quando o professor terminar a anamnese, a anamnese concluída daquela aluna, já tem que saber,
+ * então, enviar informação lá para o cadastro da aluna para dizer, ó, já tem a anamnese dessa
+ * modalidade.»
+ *
+ * O que se procura é um envelope de anamnese cujo `contexto` declare ESTA aluna e ESTA
+ * modalidade. Não há um segundo registo de estado para manter em sincronia — um campo «concluída»
+ * gravado no vínculo seria uma segunda verdade, e a primeira vez que alguém apagasse uma anamnese
+ * pela listagem as duas divergiam em silêncio. É a mesma regra do selo «vinculada» da Sala e do
+ * «em turma» do elenco: o estado deriva do que existe.
+ *
+ * SEM MODALIDADE NO ENVELOPE NÃO SE AFIRMA NADA. As anamneses anteriores a hoje não a declaram, e
+ * marcá-las como «não é desta modalidade» faria toda a escola antiga aparecer com a anamnese por
+ * fazer. Uma anamnese sem modalidade não responde à pergunta — e o vínculo fica «pedida», que é a
+ * verdade que se pode afirmar. */
+function estadoDaAnamnese(matricula, anamneses) {
+  const aluna = String((matricula && matricula.aluna) || '').trim();
+  const modalidade = String((matricula && matricula.modalidade) || '').trim();
+  if (!aluna) return { estado: 'pedida', desde: (matricula && matricula.pedidaEm) || '' };
+  const achada = (Array.isArray(anamneses) ? anamneses : []).find((a) => {
+    const c = (a && (a.contexto || a.meta)) || {};
+    return String(c.aluna || '').trim() === aluna
+      && String(c.modalidade || '').trim() === modalidade;
+  });
+  if (!achada) return { estado: 'pedida', desde: (matricula && matricula.pedidaEm) || '' };
+  return { estado: 'concluida', desde: String(achada.gerado_em || achada.quando || '').slice(0, 10) };
 }
 async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
@@ -4524,7 +4607,13 @@ function lateralDaProducao(opcoes) {
     '</nav>';
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola) {
+  /* OS VÍNCULOS DA ALUNA ENTRAM NA PÁGINA (18/11/2026). É a lista `matriculas` que o cadastro
+   * em dois passos grava — o par (aluna × modalidade) com o professor que fará a anamnese. A
+   * listagem das alunas precisa dela para dizer «faz ballet, turma rosa, prof. fulano», e a
+   * derivação precisa dela para saber o que já existe. O default é a lista vazia porque a
+   * assinatura é posicional e as provas antigas chamam a função com menos argumentos: uma
+   * aluna sem vínculo é uma aluna antiga, e é o que se deve ler.
   /* TODAS AS CURADORIAS, declaradas UMA VEZ e no TOPO da página (03/11/2026).
    *
    * O cartão da TURMA passou a ler o enquadramento dela (`enquadramento.resumoDoEnquadramento`)
@@ -4882,6 +4971,39 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // ela já esteve num elenco, e é isso que o selo `legado` (o do traço ponteado) passa a dizer. A
   // derivação é a de `desligamento.estadoDaAluna`; a GUARDA do «Excluir» não muda — apagar o
   // cadastro é limpeza, e o ato substantivo é o do elenco (ver ARQUITETURA-GERAL §3.3).
+  /* ================= A LISTAGEM DAS ALUNAS, NO PADRÃO DAS OUTRAS (18/11/2026) =============
+   *
+   * «A listagem da aluna tem que fazer ela no mesmo padrão das demais. Então, por exemplo, veja a
+   * listagem da sala de aula como exemplo. Eu tenho ali o nome, eu sei se está vinculada ou não e
+   * eu sei quando é que foi ajustado, tem essa etiqueta, essa etiqueta é muito boa. Nessa etiqueta
+   * do ajuste, ajustado em, acrescente também o motivo, se tiver, do ajuste.»
+   *
+   * O QUE A LISTA PASSA A DIZER, e é o que ela descreveu: o nome, os selos, e — em cada linha do
+   * vínculo — «faz ballet, está na turma rosa, o professor é fulano, a anamnese está pedida».
+   * Uma aluna com duas modalidades é UM cartão com duas linhas, e não dois cartões: «a secretaria
+   * olha e diz assim, ah, essa aluna faz ballet e jazz».
+   *
+   * O ESTADO DA ANAMNESE NÃO SE DESENHA AQUI. Ele exige o índice dos envelopes, que é uma leitura
+   * de rede — e esta lista é servida com a página. Fica um LUGAR RESERVADO (`data-anamnese-de`) que
+   * o cliente preenche ao entrar na secção, com uma leitura só para todos os cartões: é o mesmo
+   * padrão do `data-perfil-de` dos professores e do `data-tradicao-de` das turmas, e a razão é a
+   * mesma — N leituras por carregamento seriam a página a pagar por uma pergunta de uma linha.
+   */
+  const salasPorNome = new Map((Array.isArray(trms) ? trms : []).map((t) => [String(t && t.nome), t]));
+  /* O NOME DO PROFESSOR DO VÍNCULO. O vínculo guarda o slug (é ele que o `<select>` do formulário
+   * manda), e a listagem mostra o nome — a mesma tradução que a lista das Salas faz.
+   *
+   * Não se usa o `nomeDoProfessor` da curadoria: ele é declarado mais abaixo nesta função (é
+   * `const`, e não `function`), e chamá-lo daqui seria lê-lo antes de existir — a página estourava
+   * com «Cannot access 'nomeDoProfessor' before initialization». É a mesma armadilha do
+   * `const` que só se vê ao correr, e é por isso que a prova da listagem existe. */
+  const nomeDoProfessorDoVinculo = (slugOuNome) => {
+    const alvo = String(slugOuNome || '').trim();
+    if (!alvo) return '';
+    const p = (Array.isArray(profs) ? profs : []).find((x) => x && (String(x.nome) === alvo
+      || slugDoProfessor(x) === alvo));
+    return (p && p.nome) || alvo;
+  };
   const itensAlunas = aluns.length
     ? aluns.map((a) => {
         const presa = alunaVinculadaA(pares, curs, a);
@@ -4891,24 +5013,83 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           curadorias: Array.isArray(curs) ? curs : [],
           observada: Boolean(alunasObservadas && alunasObservadas.has(String(a).trim())),
         });
-        const selo = presa
+        const turmasDela = turmasDaAluna.get(String(a).trim()) || [];
+        const meus = (Array.isArray(matriculasDaEscola) ? matriculasDaEscola : [])
+          .filter((m) => m && !m.substituidaPor && String(m.aluna || '').trim() === String(a).trim());
+
+        /* OS SELOS. «vinculada» quer dizer o que sempre quis — está numa curadoria com plano de
+         * ensino, e apagá-la romperia a proveniência. O que ela pediu a mais é o DESTINO: «na
+         * etiqueta de vinculada […] acrescentar ao lado uma etiqueta que diz se ela é vinculada,
+         * então ela é vinculada a qual modalidade». O destino vai na linha do vínculo, e não no
+         * selo: um selo é uma palavra, e «vinculada a balé clássico e jazz, turma rosa e pirueta»
+         * não é uma palavra. */
+        const selos = [];
+        selos.push(presa
           ? '<span class="selo vinculada" title="esta aluna está numa curadoria que já tem plano de ensino; apagá-la romperia a proveniência">vinculada</span>'
           : desligada.desligada
             ? '<span class="selo legado" title="esta aluna já fez parte de um elenco e já não está em nenhum'
               + (desligada.sala ? ' (esteve na turma «' + esc(desligada.sala) + '»)' : '')
               + '; o registo fica como proveniência, e apagá-lo é limpeza do cadastro — não apaga '
               + 'o que ficou dela nos elencos e nos planos">desligada</span>'
-            : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>';
-        return '<li><span class="nome">' + linhaDoNome(a, selo) + '</span>'
-          + colunaDeTurmas(turmasDaAluna.get(String(a).trim()), a, 'pessoa')
-          + '<span class="acoes">' + (presa
+            : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>');
+
+        /* O SELO DO AJUSTE, COM O MOTIVO — «acrescente também o motivo, se tiver, do ajuste». O
+         * mais recente dos vínculos é o que se mostra: é o que mudou por último. Sem motivo, o
+         * selo diz só a data, como já fazia na Sala. */
+        const ultimo = meus.length ? meus[meus.length - 1] : null;
+        if (ultimo && ultimo.pedidaEm) {
+          selos.push('<span class="selo vigencia" title="o último vínculo desta aluna foi pedido nesta data'
+            + (ultimo.motivoDoAjuste ? ': ' + esc(ultimo.motivoDoAjuste) : '')
+            + '">ajustada em ' + esc(dataBr(ultimo.pedidaEm))
+            + (ultimo.motivoDoAjuste ? ' · ' + esc(ultimo.motivoDoAjuste) : '') + '</span>');
+        }
+
+        /* AS LINHAS DO VÍNCULO — uma por modalidade. Cada uma diz a modalidade, a turma DELA (a
+         * que tem a mesma modalidade, e não a primeira da lista), o professor e o lugar onde o
+         * estado da anamnese vai aparecer. */
+        /* A LINHA DO VÍNCULO NÃO INVENTA PEÇA. A folha já tem o `.nota` (a linha de texto
+         * secundário) e o `.selo` (a etiqueta), com os modificadores `.ok` e `.alerta` — é com
+         * esses quatro nomes que a linha se desenha, e não com um `.vinculo-modalidade` novo que
+         * a checagem 8 haveria de recusar, e com razão: um nome novo para dizer «é uma etiqueta»
+         * é uma segunda forma de desenhar o que a primeira já desenha. */
+        const linhasDoVinculo = meus.length
+          ? meus.map((m) => {
+            const daMesmaModalidade = turmasDela.filter((nome) => {
+              const sala = salasPorNome.get(String(nome));
+              return sala && String(sala.modalidade || '') === String(m.modalidade || '');
+            });
+            return '<div class="nota" data-vinculo="' + esc(m.id) + '">'
+              + '<span class="selo marca">' + esc(m.modalidade) + '</span> '
+              + (daMesmaModalidade.length
+                ? daMesmaModalidade.map((nome) => '<span class="selo ok">' + esc(nome) + '</span> ').join('')
+                : '<span class="selo discreto" title="esta modalidade ainda não tem turma ocupada por '
+                  + 'esta aluna: ela entra quando a audição a puser num elenco e a Turma a chamar">sem turma</span> ')
+              + 'prof. ' + esc(nomeDoProfessorDoVinculo(m.professor) || '—') + ' '
+              + '<span data-anamnese-de="' + esc(m.id) + '"></span>'
+              + '</div>';
+          }).join('')
+          : '<p class="nota">Nenhuma modalidade escolhida ainda — a aluna foi cadastrada antes de o '
+            + 'cadastro perguntar. «Derivar» abre a anamnese dela.</p>';
+
+        return '<li class="turma" data-aluna="' + esc(a) + '">'
+          + '<div class="linha-turma"><span class="nome">' + linhaDoNome(a, selos.join(' ')) + '</span>'
+          + '<span class="acoes">'
+          + '<button type="button" class="acao pequena" data-aluna-derivar="'
+          + esc(ultimo && ultimo.id ? ultimo.id : '') + '" data-aluna-nome="' + esc(a) + '" '
+          + 'data-aluna-modalidade="' + esc(ultimo ? String(ultimo.modalidade || '') : '') + '" '
+          + 'data-aluna-professor="' + esc(ultimo ? String(ultimo.professor || '') : '') + '" '
+          + 'title="Fazer uma anamnese nova — o mesmo professor ou outro, a mesma modalidade ou outra. '
+          + 'A anamnese anterior fica no histórico quando a modalidade é a mesma.">Derivar</button>'
+          + (presa
             ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
             : '<button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="'
               + (desligada.desligada
                 ? 'Excluir do cadastro — é limpeza: o nome dela continua nos elencos, nos planos e na '
                   + 'anamnese, que é a proveniência'
                 : 'Excluir aluna') + '">Excluir</button>')
-          + '</span></li>';
+          + '</span></div>'
+          + linhasDoVinculo
+          + '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
@@ -7025,7 +7206,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-alunas" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-alunas', 'Alunas', 'alunas-miolo') +
     '<div class="col-form" id="alunas-miolo">' +
+    /* O CADASTRO DA ALUNA PASSOU A TER DOIS PASSOS (18/11/2026).
+     *
+     * «Eu cadastro alunas, aí eu coloco aqui o apelido da aluna e aí eu cadastro essa aluna. Essa
+     * aluna precisa que seja feito a respeito dela uma anamnese. Aí quando eu cadastrar a aluna,
+     * eu vou colocar aqui um outro step no cadastro da aluna que eu vou dizer que se chama
+     * anamnese.»
+     *
+     * O PRIMEIRO PASSO NÃO PEDE MAIS NADA ALÉM DO APELIDO — «não precisa de mais nada além disso».
+     * O SEGUNDO é a anamnese: a modalidade, e o professor que a vai fazer, filtrado pela
+     * modalidade. Gravar aqui cria o VÍNCULO (ver `matriculas`) e manda o pedido ao professor.
+     *
+     * E NÃO SE ESPERA PELA ANAMNESE. Foi ela quem corrigiu a leitura fácil: «o professor vai fazer
+     * isso no tempo dele […] Não dá para cadastrar a aluna e ficar esperando a anamnese para daí
+     * terminar o vínculo.» O que o segundo passo fecha é o PEDIDO; o que fica pendente é a
+     * anamnese, e o estado dela lê-se na listagem. */
     '<form id="form-aluna">' +
+    '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
     '<div class="res" data-res="alunas"></div>' +
@@ -7035,13 +7232,50 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // essa vizinhança. O `.par-botoes` é a peça que o professor e a turma já usam, e é ela
     // que dá o vão. Não se inventou contentor novo.
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande">Cadastrar aluna</button>' +
+    '<button type="button" class="acao" id="aluna-seguir">Seguir →</button>' +
+    '<button type="button" class="acao secundario" id="aluna-cancelar-1" hidden>Cancelar</button>' +
     '</span>' +
+    '</div>' +
+    '<div class="passo-painel" data-passo="2" hidden>' +
+    '<label class="campo-rotulo" for="amodalidade">Modalidade da aluna</label>' +
+    '<select id="amodalidade"><option value="">— escolher —</option>' +
+    MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.nome) + '">' + esc(m.nome) + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="aprofessor">Professor que vai fazer a anamnese</label>' +
+    '<select id="aprofessor"><option value="">— escolha a modalidade primeiro —</option></select>' +
+    /* A DERIVAÇÃO É O MESMO FORMULÁRIO, e é por isso que ela não tem um segundo.
+     *
+     * «A derivação é fazer uma nova anamnese. E nessa derivação da nova anamnese para essa aluna,
+     * então, eu vou poder escolher o mesmo professor ou um outro professor. E também vou poder
+     * escolher se é outra modalidade.» É exactamente o passo 2 — modalidade e professor —, com a
+     * aluna que já existe. O que muda é o que o `submit` faz com isto: não cria aluna, cria
+     * VÍNCULO, e leva o id do vínculo que está a ser derivado.
+     *
+     * O campo é escondido e não um segundo ecrã: um ecrã a repetir dois `select` iguais seria
+     * duas cópias da mesma pergunta, e a segunda a divergir da primeira. */
+    '<input type="hidden" id="aluna-derivar-de" value="">' +
+    '<div id="aluna-motivo-campo" hidden>' +
+    '<label class="campo-rotulo" for="amotivo">Motivo do ajuste (opcional)</label>' +
+    '<input id="amotivo" autocomplete="off" placeholder="ex.: a aluna pediu para mudar de modalidade">' +
+    '<p class="nota">O motivo fica no elo novo e aparece na etiqueta do ajuste, na listagem.</p>' +
+    '</div>' +
+    /* O QUE ACONTECE AO GRAVAR, dito ANTES. Ela pediu o e-mail; quem grava tem de saber que ele
+     * sai, e que a anamnese fica PEDIDA até o professor a fazer — senão o silêncio do professor
+     * lê-se como falha do cadastro. */
+    '<p class="nota" id="aluna-anamnese-nota">Ao cadastrar, o professor escolhido recebe um e-mail '
+    + 'com o apelido da aluna e a modalidade. A anamnese fica <strong>pedida</strong> até ele a '
+    + 'fazer — no tempo dele, sem prazo.</p>' +
+    '<span class="par-botoes">' +
+    '<button type="button" class="acao secundario" id="aluna-voltar">← Voltar</button>' +
+    '<button type="submit" class="acao grande" id="aluna-gravar">Cadastrar aluna</button>' +
+    '<button type="button" class="acao secundario" id="aluna-cancelar-2" hidden>Cancelar</button>' +
+    '</span>' +
+    '</div>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Alunas cadastradas</h3>' +
-    '<div class="rolagem"><ul class="lista">' + itensAlunas + '</ul></div>' +
+    '<div class="rolagem"><ul class="lista" id="lista-alunas">' + itensAlunas + '</ul></div>' +
     rodapePaginacao() +
     '</div>' +
     '</section>' +
@@ -9657,10 +9891,257 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  postar("form-prof", corpo);' +
     '});' +
+    /* ================= O CADASTRO DA ALUNA EM DOIS PASSOS (18/11/2026) =================
+     *
+     * O passo 1 pergunta o apelido; o 2, a modalidade e o professor. Quem grava no fim manda os
+     * dois pedidos — a aluna e o vínculo — e é o VÍNCULO que dispara o e-mail ao professor (a
+     * rota faz as duas coisas e devolve o desfecho do correio).
+     *
+     * PORQUE DOIS PEDIDOS E NÃO UM. A aluna é um registo que já existia e tem as suas regras (o
+     * piso, a repetição, a proveniência); o vínculo é novo e tem outras (a modalidade, o professor
+     * habilitado, a derivação). Juntá-los numa rota só faria uma rota com duas metades que falham
+     * por motivos diferentes — e a segunda não pode desfazer a primeira, porque a aluna já está
+     * criada e visível na lista. */
+    'function passoDaAluna() {' +
+    '  var p = document.getElementById("form-aluna");' +
+    '  if (!p) return 1;' +
+    '  var paineis = p.querySelectorAll(".passo-painel");' +
+    '  for (var i = 0; i < paineis.length; i++) {' +
+    '    if (!paineis[i].hidden) return Number(paineis[i].getAttribute("data-passo")) || 1;' +
+    '  }' +
+    '  return 1;' +
+    '}' +
+    'function mostrarPassoAluna(n) {' +
+    '  var f = document.getElementById("form-aluna");' +
+    '  if (!f) return;' +
+    '  var alvo = Number(n) === 2 ? 2 : 1;' +
+    '  Array.prototype.slice.call(f.querySelectorAll(".passo-painel")).forEach(function(pp){' +
+    '    pp.hidden = Number(pp.getAttribute("data-passo")) !== alvo;' +
+    '  });' +
+    /* O «CANCELAR» APARECE QUANDO HÁ O QUE CANCELAR (18/11/2026) — a mesma regra que a Audição
+     * já usa para o dela: um botão de cancelar num formulário vazio é um botão que não faz nada. */
+    '  var c1 = document.getElementById("aluna-cancelar-1");' +
+    '  var c2 = document.getElementById("aluna-cancelar-2");' +
+    '  var escrito = String((document.getElementById("anome") || {}).value || "").trim() !== "";' +
+    '  if (c1) c1.hidden = !(alvo === 1 && escrito);' +
+    '  if (c2) c2.hidden = alvo !== 2;' +
+    /* O MOTIVO SÓ EXISTE NA DERIVAÇÃO (18/11/2026). Um cadastro novo não tem «motivo do ajuste» —
+     * não houve ajuste nenhum. Na derivação, o motivo é o que a etiqueta da listagem vai mostrar,
+     * e é o que ela pediu: «acrescente também o motivo, se tiver, do ajuste». */
+    '  var derivando = String((document.getElementById("aluna-derivar-de") || {}).value || "") !== "";' +
+    '  var blocoMotivo = document.getElementById("aluna-motivo-campo");' +
+    '  if (blocoMotivo) blocoMotivo.hidden = !(alvo === 2 && derivando);' +
+    '  var rotulo = document.getElementById("aluna-gravar");' +
+    '  if (rotulo) rotulo.textContent = derivando ? "Gravar a anamnese nova" : "Cadastrar aluna";' +
+    /* A NOTA DIZ O QUE VAI ACONTECER, e é diferente nos dois casos: no cadastro, a aluna nasce; na
+     * derivação, a aluna já existe e o que nasce é um vínculo novo. Deixar a nota do cadastro à
+     * vista enquanto se deriva diria «ao cadastrar» a quem não está a cadastrar ninguém. */
+    '  var nota = document.getElementById("aluna-anamnese-nota");' +
+    '  if (nota) {' +
+    '    nota.innerHTML = derivando' +
+    '      ? "Ao gravar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
+    '        "A anamnese nova fica <strong>pedida</strong> até ele a fazer. Se a modalidade for a mesma, " +' +
+    '        "a anamnese anterior fica no histórico; se for outra, as duas ficam."' +
+    '      : "Ao cadastrar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
+    '        "A anamnese fica <strong>pedida</strong> até ele a fazer — no tempo dele, sem prazo.";' +
+    '  }' +
+    '}' +
+    /* A MODALIDADE MANDA NA LISTA DE PROFESSORES — «a modalidade vai listar somente os professores
+     * daquela modalidade». É a MESMA leitura que o passo 2 da Sala usa (`professoresDaModalidade`):
+     * uma segunda forma de perguntar «quem dá esta modalidade» daria duas respostas no primeiro
+     * perfil mal preenchido. */
+    'function professoresDaAluna() {' +
+    '  var sel = document.getElementById("amodalidade");' +
+    '  var alvo = document.getElementById("aprofessor");' +
+    '  if (!sel || !alvo) return;' +
+    '  var mod = String(sel.value || "");' +
+    '  if (!mod) {' +
+    /* AS ASPAS DOS ATRIBUTOS SÃO SIMPLES, e não é estilo: a string que o gerador emite é
+     * delimitada por `"`, e um `value=""` dentro dela FECHA a string a meio. O `<script>` servido
+     * deixava de compilar — o `node --check` do fonte passa, porque o fonte está certo; quem está
+     * errado é o que ele emite. É a armadilha desta casa, e ela custou outra vez a apanhá-la. */
+    '    alvo.innerHTML = "<option value=\'\'>— escolha a modalidade primeiro —</option>";' +
+    '    return;' +
+    '  }' +
+    '  alvo.innerHTML = "<option value=\'\'>a carregar…</option>";' +
+    '  professoresDaModalidade(mod).then(function(lista){' +
+    '    var s2 = document.getElementById("amodalidade");' +
+    '    if (!s2 || String(s2.value || "") !== mod) return;' +
+    '    if (!lista.length) {' +
+    '      alvo.innerHTML = "<option value=\'\'>— nenhum professor desta modalidade —</option>";' +
+    '      return;' +
+    '    }' +
+    '    alvo.innerHTML = "<option value=\'\'>— escolher —</option>" + lista.map(function(p){' +
+    '      return "<option value=\x27" + escHtml(p.slug) + "\x27>" + escHtml(p.nome) + "</option>";' +
+    '    }).join("");' +
+    '  });' +
+    '}' +
+    'var selModAluna = document.getElementById("amodalidade");' +
+    'if (selModAluna) selModAluna.addEventListener("change", professoresDaAluna);' +
+    'var bSeguirAluna = document.getElementById("aluna-seguir");' +
+    'if (bSeguirAluna) bSeguirAluna.addEventListener("click", function(){' +
+    '  var nome = String((document.getElementById("anome") || {}).value || "").trim();' +
+    '  if (!nome) { recado("erro", "escreva o apelido da aluna para seguir."); return; }' +
+    '  mostrarPassoAluna(2);' +
+    '});' +
+    'var bVoltarAluna = document.getElementById("aluna-voltar");' +
+    'if (bVoltarAluna) bVoltarAluna.addEventListener("click", function(){ mostrarPassoAluna(1); });' +
+    'var campoNomeAluna = document.getElementById("anome");' +
+    'if (campoNomeAluna) campoNomeAluna.addEventListener("input", function(){' +
+    '  if (passoDaAluna() === 1) mostrarPassoAluna(1);' +
+    '});' +
+    /* CANCELAR: esvazia o formulário, volta ao passo 1 e FECHA a secção — a regra que ela deu para
+     * todos («o cancelar cancela de fato aquela edição […] mas vai colapsar o formulário»). É o par
+     * do `abrirOFormularioDe`, e a mesma função que as outras secções chamam. */
+    '[["aluna-cancelar-1", 1], ["aluna-cancelar-2", 2]].forEach(function(par){' +
+    '  var b = document.getElementById(par[0]);' +
+    '  if (!b) return;' +
+    '  b.addEventListener("click", function(){' +
+    '    var f = document.getElementById("form-aluna");' +
+    '    if (f) f.reset();' +
+    '    var prof = document.getElementById("aprofessor");' +
+    '    if (prof) prof.innerHTML = "<option value=\'\'>— escolha a modalidade primeiro —</option>";' +
+    '    mostrarPassoAluna(1);' +
+    '    recado("", "");' +
+    '    cancelarOFormularioDe("sec-alunas");' +
+    '  });' +
+    '});' +
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
+    '  var apelido = String((document.getElementById("anome") || {}).value || "").trim();' +
+    '  var modalidade = String((document.getElementById("amodalidade") || {}).value || "");' +
+    '  var professor = String((document.getElementById("aprofessor") || {}).value || "");' +
+    '  if (!apelido) { recado("erro", "escreva o apelido da aluna."); mostrarPassoAluna(1); return; }' +
+    '  if (!modalidade) { recado("erro", "escolha a modalidade da aluna."); return; }' +
+    '  if (!professor) { recado("erro", "escolha o professor que vai fazer a anamnese."); return; }' +
+    '  var derivarDe = String((document.getElementById("aluna-derivar-de") || {}).value || "");' +
+    '  var motivo = String((document.getElementById("amotivo") || {}).value || "").trim();' +
+    '  var antes = ocuparBotao(e.target, derivarDe ? "gravando..." : "cadastrando...");' +
+    '  recado("", derivarDe ? "gravando a anamnese nova..." : "cadastrando a aluna...");' +
+    /* DERIVAR NÃO CRIA ALUNA (18/11/2026). O apelido é o da aluna que já existe, e mandá-lo outra
+     * vez ao cadastro devolveria 409 — a recusa está certa, a chamada é que seria a errada. O que
+     * a derivação grava é o VÍNCULO, e leva o id do vínculo que está a ser derivado: é o servidor
+     * que decide, por ele, se o anterior desce (mesma modalidade) ou fica (outra modalidade). */
+    '  if (derivarDe) {' +
+    '    return fetch("/api/bastidores/matricula", {' +
+    '      method: "POST", headers: {"Content-Type": "application/json"},' +
+    '      body: JSON.stringify({aluna: apelido, modalidade: modalidade, professor: professor,' +
+    '        derivarDe: derivarDe, motivo: motivo, token: TOKEN})' +
+    '    }).then(function(r){ return r.json(); }).then(function(m){' +
+    '      if (!m.ok) { liberarBotao(antes); recado("erro", "Erro: " + (m.erro || "desconhecido")); return; }' +
+    '      var c = m.correio || {};' +
+    '      recado(c.enviado ? "ok" : "aviso", c.enviado' +
+    '        ? "anamnese nova gravada, e o pedido seguiu para o professor."' +
+    '        : "anamnese nova gravada. O e-mail ao professor NÃO saiu: " + (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
+    '      setTimeout(function(){ location.reload(); }, 2500);' +
+    '    }).catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
+    '  }' +
+    /* A ALUNA PRIMEIRO, o vínculo depois. Se a aluna já existe, o servidor recusa com 409 e o
+     * vínculo nem chega a ser tentado — é a resposta certa: o passo 1 é o cadastro de uma aluna
+     * NOVA, e uma segunda aluna com o mesmo apelido é outra pessoa aos olhos do produto. */
+    '  fetch("/api/bastidores/aluna", {' +
+    '    method: "POST", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({apelido: apelido, token: TOKEN})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (!d.ok) { liberarBotao(antes); recado("erro", "Erro: " + (d.erro || "desconhecido")); return; }' +
+    '    return fetch("/api/bastidores/matricula", {' +
+    '      method: "POST", headers: {"Content-Type": "application/json"},' +
+    '      body: JSON.stringify({aluna: apelido, modalidade: modalidade, professor: professor, token: TOKEN})' +
+    '    }).then(function(r){ return r.json(); }).then(function(m){' +
+    '      if (!m.ok) { liberarBotao(antes); recado("erro", "A aluna foi cadastrada, mas o vínculo falhou: " + (m.erro || "desconhecido") + ". Cadastre o vínculo na lista, com «Derivar»."); return; }' +
+    /* O DESFECHO DO CORREIO DIZ-SE, e não se esconde atrás de um recarregamento. Um e-mail que não
+     * saiu é a diferença entre «o professor sabe» e «o professor não sabe», e quem cadastrou tem de
+     * poder avisá-lo por outro caminho. */
+    '      var c = m.correio || {};' +
+    '      if (!c.enviado) {' +
+    '        recado("aviso", "aluna cadastrada. O e-mail ao professor NÃO saiu: " + (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
+    '      } else {' +
+    '        recado("ok", "aluna cadastrada, e o pedido de anamnese seguiu para o professor.");' +
+    '      }' +
+    '      setTimeout(function(){ location.reload(); }, 2500);' +
+    '    });' +
+    '  }).catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
     '});' +
+    /* ================== O ESTADO DA ANAMNESE NA LISTAGEM (18/11/2026) ====================
+     *
+     * Uma leitura para todos os cartões. O lugar onde o estado aparece já vem no HTML
+     * (`data-anamnese-de`, escrito pela listagem); o que falta é o índice dos envelopes, que é
+     * rede — e por isso não se desenha no servidor com a página.
+     *
+     * SE A LEITURA FALHAR, O LUGAR FICA VAZIO. Não se escreve «por pedir»: uma anamnese feita que
+     * a leitura não viu lê-se como uma anamnese que ninguém pediu, e é exactamente a mentira do
+     * «sem apelido» das fichas, com outro nome.
+     */
+    'function pintarEstadosDasAnamneses(){' +
+    '  var alvos = document.querySelectorAll("[data-anamnese-de]");' +
+    '  if (!alvos.length) return;' +
+    '  fetch("/api/bastidores/matriculas").then(function(r){ return r.json(); }).then(function(d){' +
+    '    var porId = {};' +
+    '    ((d && d.matriculas) || []).forEach(function(m){ if (m && m.id) porId[m.id] = m; });' +
+    '    Array.prototype.slice.call(alvos).forEach(function(el){' +
+    '      var m = porId[el.getAttribute("data-anamnese-de")];' +
+    '      if (!m) { el.textContent = ""; return; }' +
+    '      var a = m.anamnese || {};' +
+    '      if (!a.estado) {' +
+    '        el.textContent = "anamnese: não foi possível ler";' +
+    '        el.className = "selo discreto";' +
+    '        el.title = "o índice dos envelopes não se leu agora — não quer dizer que a anamnese não exista";' +
+    '        return;' +
+    '      }' +
+    '      el.textContent = a.estado === "concluida" ? "anamnese feita" : "anamnese pedida";' +
+    '      el.className = "selo " + (a.estado === "concluida" ? "ok" : "alerta");' +
+    '      el.title = a.estado === "concluida"' +
+    '        ? "feita" + (a.desde ? " em " + a.desde.split("-").reverse().join("/") : "")' +
+    '        : "pedida" + (a.desde ? " em " + a.desde.split("-").reverse().join("/") : "") + " — o professor a fará no tempo dele";' +
+    '    });' +
+    '  }).catch(function(){ /* falhou a leitura: os lugares ficam vazios, e nada se inventa */ });' +
+    '}' +
+    'pintarEstadosDasAnamneses();' +
+    /* ================== «DERIVAR» — A ANAMNESE NOVA (18/11/2026) ==================
+     *
+     * «A derivação é fazer uma nova anamnese. E nessa derivação […] eu vou poder escolher o mesmo
+     * professor ou um outro professor. E também vou poder escolher se é outra modalidade.»
+     *
+     * O botão abre o formulário — a regra dela para todas as secções («se estiver colapsado e
+     * clicar em derivar, expande») — e leva ao passo 2 já preenchido com o vínculo que está a ser
+     * derivado. O passo 1 não se pede: o apelido já existe, e é ele que se está a derivar.
+     */
+    'function derivarAluna(botao){' +
+    '  var nome = botao.getAttribute("data-aluna-nome") || "";' +
+    '  var id = botao.getAttribute("data-aluna-derivar") || "";' +
+    '  var mod = botao.getAttribute("data-aluna-modalidade") || "";' +
+    '  var prof = botao.getAttribute("data-aluna-professor") || "";' +
+    '  var campoNome = document.getElementById("anome");' +
+    '  var campoDerivar = document.getElementById("aluna-derivar-de");' +
+    '  if (!campoNome || !campoDerivar) return;' +
+    '  campoNome.value = nome;' +
+    '  campoDerivar.value = id;' +
+    '  var selMod = document.getElementById("amodalidade");' +
+    '  if (selMod) selMod.value = mod;' +
+    '  professoresDaAluna();' +
+    '  var esperar = 0;' +
+    '  var tentar = function(){' +
+    '    var selProf = document.getElementById("aprofessor");' +
+    '    if (!selProf) return;' +
+    '    if (!prof || Array.prototype.some.call(selProf.options, function(o){ return o.value === prof; })) {' +
+    '      if (selProf) selProf.value = prof;' +
+    '      return;' +
+    '    }' +
+    '    if (esperar++ < 40) setTimeout(tentar, 50);' +
+    '  };' +
+    '  tentar();' +
+    '  var rotulo = document.getElementById("aluna-gravar");' +
+    '  if (rotulo) rotulo.textContent = id ? "Gravar a anamnese nova" : "Cadastrar aluna";' +
+    '  recado("", "");' +
+    '  mostrarPassoAluna(2);' +
+    '}' +
+    'Array.prototype.slice.call(document.querySelectorAll("[data-aluna-derivar]")).forEach(function(b){' +
+    '  b.addEventListener("click", function(){' +
+    '    abrirOFormularioDe("sec-alunas");' +
+    '    derivarAluna(b);' +
+    '  });' +
+    '});' +
+    'mostrarPassoAluna(1);' +
     /* AS HABILITAÇÕES — LER AO ESCOLHER, GRAVAR AO SUBMETER (03/11/2026).
      *
      * A LEITURA É POR GESTO, e não na carga da página: são N professores da escola e, hoje,
@@ -17424,8 +17905,9 @@ async function fetch(request, env, extras) {
      * noutros sítios, e nenhuma delas é nova — o cadastro, o registo comercial e o livro das
      * mensalidades. Carregam-se em paralelo com as que já estavam. */
     const dadosDaEscola = await dadosDaEscolaParaAProducao(env, kv, escola);
+    const matriculasDaEscola = await matriculas(kv, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola));
+      aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -17919,6 +18401,137 @@ async function fetch(request, env, extras) {
     lista.push(apelido);
     await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
     return json(201, { ok: true, aluna: apelido });
+  }
+
+  /* GET /api/bastidores/matriculas — os vínculos das alunas (18/11/2026).
+   *
+   * Devolve, por vínculo, o estado da ANAMNESE — «pedida» ou «concluída» — derivado do índice dos
+   * envelopes. A LEITURA É BEST-EFFORT: se o índice não se puder ler, os vínculos vão com
+   * `anamnese: null` e um `naoLido: true`. Inventar «pedida» seria afirmar que a anamnese não foi
+   * feita quando o que falhou foi a leitura — a mesma família de erro do «sem apelido» nas fichas.
+   */
+  if (path === '/api/bastidores/matriculas') {
+    const lista = matriculasVigentes(await matriculas(kv, escola));
+    let resumos = null;
+    try {
+      const legado = criarCloudflare(env);
+      const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+      resumos = await porta.resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
+    } catch (e) {
+      resumos = null;
+    }
+    const comEstado = lista.map((m) => Object.assign({}, m,
+      resumos ? { anamnese: estadoDaAnamnese(m, resumos.map((x) => x.resumo)) } : { anamnese: null, naoLido: true }));
+    return json(200, { ok: true, escola, matriculas: comEstado, lido: Boolean(resumos) });
+  }
+
+  /* POST /api/bastidores/matricula — o segundo passo do cadastro, e a derivação (18/11/2026).
+   *
+   * O QUE GRAVA, e por que é um vínculo e não um campo da aluna: é o par (aluna × modalidade) —
+   * ver `matriculas`. A aluna pode ter N; cada uma com o seu professor e a sua anamnese.
+   *
+   * DERIVAR, e as duas metades. Com a MESMA modalidade, o elo anterior desce ao histórico
+   * (`substituidaPor`) e nasce um novo: é uma segunda anamnese do mesmo par, e a razão é dela —
+   * «ver o retrato dela atual, qual é o corpo dela naquele momento». Com OUTRA modalidade, o elo
+   * anterior NÃO desce: ela passa a fazer duas coisas, e as duas ficam. O que decide é a
+   * modalidade, e não o acto de carregar no botão.
+   *
+   * O CORREIO É BEST-EFFORT, e o cadastro não depende dele. A mesma regra do cadastro da escola:
+   * gravar e mandar correio são coisas diferentes, e a que está feita é a que fica. O desfecho
+   * viaja na resposta (`correio: {enviado, motivo}`) e a tela di-lo ao lado do sucesso.
+   */
+  if (path === '/api/bastidores/matricula' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const aluna = String(corpo.aluna || '').trim();
+    const modalidade = String(corpo.modalidade || '').trim();
+    const professor = String(corpo.professor || '').trim();
+    if (!aluna) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
+    if (!modalidade) return json(400, { ok: false, erro: 'escolha a modalidade — é ela que diz quem pode fazer a anamnese' });
+    if (!professor) return json(400, { ok: false, erro: 'escolha o professor que vai fazer a anamnese' });
+
+    const profs = await professores(kv, escola);
+    const dono = slugDoDono(env);
+    const oProfessor = profs.find((p) => p && (slugDoProfessor(p) === professor || String(p.nome || '') === professor));
+    if (!oProfessor && professor !== dono) {
+      return json(400, { ok: false, erro: 'professor não reconhecido nesta escola: ' + professor });
+    }
+
+    const lista = await matriculas(kv, escola);
+    const derivarDe = String(corpo.derivarDe || '').trim();
+    /* O DIA DO ACTO, no fuso da instalação — a mesma regra de `vigenciaDoAjuste`. Aqui não se
+     * pergunta data nenhuma: o vínculo vale a partir de hoje, e o que é futuro não existe. */
+    const p = fusoDoNucleo.partesLocais(new Date().toISOString());
+    const hoje = p ? p.ano + '-' + p.mes + '-' + p.dia : new Date().toISOString().slice(0, 10);
+
+    /* QUEM DESCE AO HISTÓRICO — e a pergunta é sobre a MODALIDADE, não sobre o clique.
+     * A mesma modalidade: é uma segunda anamnese do mesmo par («ver o retrato dela atual, qual é o
+     * corpo dela naquele momento»), e o elo anterior desce. Outra modalidade: ela passa a fazer
+     * duas coisas, e as duas ficam. Ver o comentário do cabeçalho desta rota. */
+    let idQueDesce = '';
+    if (derivarDe) {
+      const anterior = lista.find((m) => m && m.id === derivarDe);
+      if (!anterior) return json(404, { ok: false, erro: 'vínculo não encontrado: ' + derivarDe });
+      if (anterior.substituidaPor) {
+        return json(409, {
+          ok: false,
+          erro: 'este vínculo já foi derivado — o que vale agora é «' + anterior.substituidaPor
+            + '». Recarregue a página e derive o vínculo vigente.',
+          vigente: anterior.substituidaPor,
+        });
+      }
+      if (String(anterior.modalidade) === modalidade) idQueDesce = anterior.id;
+    }
+
+    const novo = {
+      id: idDaMatricula(aluna, modalidade, lista),
+      aluna, modalidade, professor,
+      pedidaEm: hoje,
+      por: String(corpo.por || 'direção').trim() || 'direção',
+    };
+    const motivo = motivoDoAjuste(corpo.motivo);
+    if (motivo) novo.motivoDoAjuste = motivo;
+    if (idQueDesce) {
+      novo.substitui = idQueDesce;
+      const i = lista.findIndex((m) => m && m.id === idQueDesce);
+      lista[i] = Object.assign({}, lista[i], { substituidaPor: novo.id, substituidaEm: hoje });
+    }
+    lista.push(novo);
+    await kv.put(RAIZ + '/' + escola + '/matriculas', JSON.stringify(lista));
+
+    /* O E-MAIL AO PROFESSOR — «vai dizer que ele tem uma aluna nova para fazer anamnese e vai
+     * dizer qual é o apelido dessa aluna e qual é a modalidade que ela vai fazer. E aí tem um link
+     * que leva o professor direto para anamnese». O endereço é o DESTA escola, tirado do próprio
+     * pedido: a página que ela usa é a que o professor conhece. */
+    let desfechoDoCorreio = { enviado: false, motivo: 'não tentado' };
+    try {
+      const email = String((oProfessor && oProfessor.email) || '').trim();
+      if (!email) {
+        desfechoDoCorreio = { enviado: false, motivo: 'o professor «' + professor
+          + '» não tem e-mail no cadastro — a anamnese dele fica pedida, e o aviso tem de ser dado de outra maneira' };
+      } else {
+        const origem = new URL(request.url).origin;
+        const link = origem + '/area-do-professor/anamnese/?professor=' + encodeURIComponent(professor)
+          + '&aluna=' + encodeURIComponent(aluna)
+          + '&modalidade=' + encodeURIComponent(modalidade);
+        const mensagem = correio.comporPedidoDeAnamnese({
+          escola, aluno: aluna, modalidade, professor: (oProfessor && oProfessor.nome) || professor, url: link,
+        });
+        mensagem.para = [email];
+        const r = await correio.enviar({ mensagem, chave: env.RESEND_API_KEY });
+        desfechoDoCorreio = r;
+        try {
+          await correio.guardarNaCaixaDeSaida({ kv, escola, mensagem, desfecho: r, quando: new Date().toISOString() });
+        } catch (e) { /* a caixa de saída é registo, não condição */ }
+      }
+    } catch (e) {
+      desfechoDoCorreio = { enviado: false, motivo: String((e && e.message) || e) };
+    }
+
+    return json(201, { ok: true, matricula: novo, correio: desfechoDoCorreio });
   }
 
   // DELETE /api/bastidores/aluna — excluir aluna (apelido estável).

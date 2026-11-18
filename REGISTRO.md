@@ -51370,3 +51370,77 @@ pai do botão.
 **O RECORTE E A TRANSFERÊNCIA NÃO FORAM TOCADOS**, e por palavras dela: *«No recorte ele é apenas
 visual, eu apenas vou ver os recortes e na transferência é um processo que faço se precisar. São
 ações e visualizações, aqui não tem nada a mexer nessas duas abas.»*
+
+## 18/11/2026 — O cadastro da aluna em dois passos, e a anamnese que tem modalidade
+
+**O pedido.** *«Eu cadastro alunas, aí eu coloco aqui o apelido da aluna e aí eu cadastro essa aluna.
+Essa aluna precisa que seja feito a respeito dela uma anamnese. Aí quando eu cadastrar a aluna, eu
+vou colocar aqui um outro step no cadastro da aluna que eu vou dizer que se chama anamnese. […] eu
+vou escolher nessa etapa da anamnese a modalidade primeiro e aí a modalidade vai listar somente os
+professores daquela modalidade. […] Nesse momento dispara um e-mail que vai para o professor […]
+dizendo que ele tem uma aluna nova para fazer anamnese, o apelido dela e a modalidade que ela vai
+fazer. E aí tem um link que leva o professor direto para anamnese.»*
+
+**A pergunta que decidiu o modelo de dados, e a resposta dela.** O que acontece quando a aluna já tem
+uma anamnese e muda de modalidade, ou faz outra na mesma? *«No momento em que ela escolhe mudar de
+modalidade ou ter mais uma modalidade […] tem que ser feito a anamnese dela para ver o retrato dela
+atual.»* — **Duas anamneses, uma por modalidade.** E: *«não precisa ter separação disso lá na anamnese
+dizendo é da modalidade tal, isso é algo interno, controle nosso. Então a anamnese já nasce sabendo
+de que modalidade ela é.»*
+
+**A decisão.** O vínculo da aluna passa a ser o **par (aluna × modalidade)** — uma lista `matriculas`
+no KV da escola, não um campo da aluna. Cada vínculo tem o seu professor, a sua data de pedido e o seu
+motivo. **A derivação decide-se pela modalidade, e não pelo gesto:** a mesma modalidade põe o elo
+anterior no histórico (`substituidaPor`), porque são duas anamneses do mesmo par e não podem valer ao
+mesmo tempo; outra modalidade **não** derruba o anterior, porque ela passa a fazer as duas coisas.
+
+**E NÃO SE ESPERA PELA ANAMNESE.** Foi ela quem corrigiu a leitura fácil: *«o professor vai fazer isso
+no tempo dele.»* O segundo passo fecha o **pedido**; o que fica pendente é a anamnese, e o estado dela
+lê-se na listagem — `pedida` ou `concluída`, derivado do índice dos envelopes, nunca guardado.
+
+**A modalidade viaja no `contexto`, e não numa pergunta.** O link do e-mail leva `?modalidade=`, e a
+porta põe-no no contexto do ato. O resumo do envelope sobe para a versão **5** e passa a gravar
+`modalidade` — e `null` quer dizer **«não se sabe»**, não «nenhuma»: uma anamnese anterior a hoje não
+tem como dizer a que modalidade pertence, e atribuí-la à primeira seria inventar proveniência.
+
+**A listagem, no padrão das outras.** Um cartão por aluna, com os selos (`vinculada`, `livre`,
+`desligada`, e o do ajuste) e **uma linha por vínculo** — a modalidade, a turma dela, o professor e o
+estado da anamnese. O selo do ajuste passa a levar o **motivo**, quando há: *«Nessa etiqueta do
+ajuste, ajustado em, acrescente também o motivo, se tiver, do ajuste.»* «Derivar» abre a anamnese
+nova; o «Excluir» fica desabilitado enquanto ela está vinculada, como na Sala e na Turma.
+
+**O correio não finge.** Sem `RESEND_API_KEY`, ou com um professor sem e-mail no cadastro, a resposta
+diz `enviado: false` **com o motivo escrito**, e a tela mostra-o ao lado do sucesso — porque a
+diferença entre «o professor sabe» e «o professor não sabe» é a diferença entre uma anamnese que se
+faz e uma que não se faz, e quem cadastrou tem de a ver para poder avisar por outro caminho.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`matriculas`, `matriculasVigentes`, `idDaMatricula`,
+`estadoDaAnamnese`; as rotas `GET /api/bastidores/matriculas` e `POST /api/bastidores/matricula`; o
+formulário em dois passos, o «Derivar» e a listagem em cartão) · `motor/servidor/correio.js`
+(`comporPedidoDeAnamnese`) · `motor/nucleo/porta.js` (`VERSAO_DO_RESUMO` 4 → 5, `modalidade` no
+resumo) · `porta/index.html` (o `?modalidade=` no `contextoDaBarra`) ·
+`experimentos/provar-cadastro-da-aluna.js` (nova).
+
+**Com o quê.** `provar-cadastro-da-aluna` **31/31** · `provar-acordeoes` TUDO CERTO ·
+`provar-abas-da-audicao` 125/125 · `provar-salas-e-elencos` 131/131 ·
+`provar-a-coluna-do-formulario` 17/17 · `provar-vao-do-botao` 38/38 · `check-sem-destruicao` ok.
+
+**Controlo A/B.** A derivação a deixar de descer o elo anterior: **reprova 6**. O escape das aspas a
+voltar ao que estava: **reprova 1**, com `Unexpected string` — a prova compila o `<script>` que a
+página **serve**, e não o fonte.
+
+**A ARMADILHA COBROU-SE OUTRA VEZ, e é a terceira nesta semana.** O script da página é gerado por
+concatenação de literais; um `value=\"\"` dentro de um literal delimitado por `"` produz `value=""`,
+fecha a string a meio e quebra o `<script>` inteiro. O `node --check` do **fonte** passa — o fonte está
+certo, quem está errado é o que ele emite. A correcção foi usar aspas simples nos atributos, e a
+asserção que a guarda compila o que é servido.
+
+**DUAS NOTAS QUE FICAM ESCRITAS, para não serem surpresa:**
+1. As anamneses anteriores a hoje têm `modalidade: null`. Numa escola com histórico, elas aparecem
+   como não pertencentes a modalidade nenhuma, e o vínculo fica «pedida» — é a verdade que se pode
+   afirmar, e é melhor do que atribuí-las à primeira modalidade da lista.
+2. O depósito local do rascunho (`chaveDaMemoria`) **não** inclui a modalidade. A mesma aluna, o mesmo
+   professor e duas modalidades partilham a chave — o professor que abrir a segunda encontrará as
+   respostas que começou na primeira. Ficou por mudar porque as duas cópias da chave (a da porta e a
+   do painel de `listas-do-acervo.js`) já divergem entre si, e mudar uma só partiria o «continuar de
+   onde parei». É dívida declarada, não esquecimento.
