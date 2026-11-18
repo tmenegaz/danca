@@ -83,9 +83,22 @@ function checar(descricao, condicao, detalhe) {
 const ALFABETO = {
   ok: true,
   versao: 5,
-  exercicios: [{ nome: 'Plié', categoria: 'passo', temConteudo: true }],
-  verbetes: { 'Plié': { '8|2/4': { metodo: '', posicao: '', trechos: [] } } },
-  exerciciosDoVocabulario: [{ termo: 'Plié', categoria: 'passo', tradicao: 'RAD' }],
+  /* DOIS EXERCÍCIOS, e não um (18/11/2026). O defeito que a secção F mede só aparece a partir do
+   * SEGUNDO: abrir um verbete e o passo 1 continuar a mostrar o anterior. Com um exercício só não
+   * há «anterior» nenhum, e a prova passaria sem provar. */
+  exercicios: [
+    { nome: 'Plié', categoria: 'passo', temConteudo: true, escola: true, emTurma: [], trechos: 0 },
+    { nome: 'Battement tendu', categoria: 'passo', temConteudo: true, escola: true, emTurma: [], trechos: 0 },
+  ],
+  verbetes: {
+    'Plié': { '8|2/4': { metodo: '', posicao: '', trechos: [] } },
+    'Battement tendu': { '8|2/4': { metodo: 'RAD', posicao: '', trechos: [] } },
+  },
+  exerciciosDoVocabulario: [
+    { termo: 'Plié', categoria: 'passo', tradicao: 'RAD' },
+    { termo: 'Battement tendu', categoria: 'passo', tradicao: 'RAD',
+      descricao: 'Esticar a perna de trabalho com o pé a raspar o chão.' },
+  ],
   posicoes: [],
   direcoes: [{ termo: 'devant', nome: 'à frente', glifo: '+' }],
   orientacoes: [{ termo: 'en-face', nome: 'de frente', tradicao: 'en face', glifo: 'en-face' }],
@@ -279,6 +292,87 @@ function servir(html) {
     checar('«Cancelar» fecha o gesto', cancelado.gesto === false && cancelado.emEdicao === false, cancelado);
     checar('…e devolve à decomposição', cancelado.passo === 6, cancelado.passo);
     checar('…e o 4 e o 5 voltam a fechar', cancelado.tira[4].disabled === true && cancelado.tira[5].disabled === true, cancelado.tira);
+
+    /* A VOLTA ATRAVESSA OS MESMOS PASSOS QUE A IDA (18/11/2026).
+     *
+     * «eu clico em seguir. Do step três ele dá um salto para o step seis. Isso está certo […]
+     * Só que agora que vem a estranheza, quando eu clico em voltar, ele volta para o step cinco. E
+     * quando eu clico em voltar de novo, ele volta para o step quatro e daí chega no step três.
+     * Não pode isso, tá? Isso é um bug.»
+     *
+     * O salto vivia só no «Seguir», e por isso os dois sentidos não descreviam a mesma travessia.
+     * O que se mede aqui é essa coerência: do 6 volta-se ao 3, sem parar em degraus que a ida
+     * saltou — e, com um trecho em curso, o 4 e o 5 são degraus legítimos nos DOIS sentidos. */
+    console.log('\nE. A VOLTA ATRAVESSA OS MESMOS PASSOS QUE A IDA');
+    const ir = async (id) => {
+      await page.evaluate((i) => { const b = document.getElementById(i); if (b) b.click(); }, id);
+      await new Promise((r) => setTimeout(r, 250));
+      return page.evaluate(() => window.PASSO);
+    };
+    const passoDeVolta = [await ir('vb-voltar'), await ir('vb-voltar')];
+    checar('do 6, «Voltar» vai ao 3 — e não pára no 5 nem no 4',
+      passoDeVolta[0] === 3, { foiPara: passoDeVolta[0] });
+    checar('…e do 3 vai ao 2, como sempre foi', passoDeVolta[1] === 2, { foiPara: passoDeVolta[1] });
+    const passoDeIda = [await ir('vb-seguir'), await ir('vb-seguir')];
+    checar('do 2, «Seguir» vai ao 3 e depois salta ao 6',
+      passoDeIda[0] === 3 && passoDeIda[1] === 6, { foiPara: passoDeIda });
+    /* COM UM TRECHO EM CURSO, O 4 E O 5 CONTAM — nos dois sentidos. É a outra metade da regra
+     * dela: «Eu só vou ter acesso ao step quatro e cinco na derivação quando eu clicar em editar a
+     * decomposição.» Dentro do gesto, o 4 é degrau; fora dele, é saltado. */
+    await page.evaluate(() => { document.getElementById('vb-cel-acrescentar').click(); });
+    await new Promise((r) => setTimeout(r, 350));
+    const dentro4 = await page.evaluate(() => window.PASSO);
+    const dentro3 = await ir('vb-voltar');
+    const dentro4outra = await ir('vb-seguir');
+    checar('dentro do gesto, o 4 abre-se ao «Seguir» como sempre', dentro4 === 4, { foiPara: dentro4 });
+    checar('…e o «Voltar» do 4 pára no 3 (o 4 é degrau, não é salto)',
+      dentro3 === 3, { foiPara: dentro3 });
+    checar('…e do 3 volta-se ao 4 — a regra vale nos dois sentidos',
+      dentro4outra === 4, { foiPara: dentro4outra });
+    await page.evaluate(() => {
+      const b = document.getElementById('vb-cancelar-edicao-2');
+      if (b) b.click();
+    });
+    await new Promise((r) => setTimeout(r, 300));
+
+    /* ABRIR UM VERBETE ABRE *ESSE* VERBETE (18/11/2026).
+     *
+     * «eu cliquei em derivar bat matandji e apareceu plié. Não entendi nada. Eu cliquei em uma
+     * coisa e apareceu outra.»
+     *
+     * O passo 1 mostrava o exercício que lá estava de antes: o `<select>` recebia o nome e o campo
+     * de texto do passo 1 ficava com o anterior, porque a cópia entre os dois vivia só no `change`
+     * do `<select>`. Duas respostas para a mesma pergunta — que exercício é este — é o defeito que
+     * esta casa trata como o pior, porque não dá erro nenhum. */
+    console.log('\nF. ABRIR UM VERBETE ABRE *ESSE* VERBETE — o passo 1 não fica no anterior');
+    const antesDeAbrir = await page.evaluate(() => ({
+      campo: (document.getElementById('vnnome') || {}).value,
+      select: (document.getElementById('vbnome') || {}).value,
+    }));
+    checar('antes, o passo 1 e o passo 2 dizem o mesmo (o «Plié» que estava aberto)',
+      antesDeAbrir.campo === 'Plié' && antesDeAbrir.select === 'Plié', antesDeAbrir);
+    await page.evaluate(() => {
+      const b = document.querySelector('[data-editar-verbete="Battement tendu"]');
+      if (b) b.click();
+    });
+    await new Promise((r) => setTimeout(r, 500));
+    const depoisDeAbrir = await page.evaluate(() => ({
+      campo: (document.getElementById('vnnome') || {}).value,
+      select: (document.getElementById('vbnome') || {}).value,
+      estado: (document.getElementById('vn-estado') || {}).textContent || '',
+      frase: (document.getElementById('vb-frase') || {}).value || '',
+    }));
+    checar('abrir o «Battement tendu» põe «Battement tendu» no passo 2', depoisDeAbrir.select === 'Battement tendu', depoisDeAbrir);
+    checar('…e TAMBÉM no passo 1 — os dois campos não podem divergir',
+      depoisDeAbrir.campo === 'Battement tendu', depoisDeAbrir);
+    checar('…e a linha de estado fala do exercício aberto, não do anterior',
+      depoisDeAbrir.estado.indexOf('Battement tendu') !== -1 && depoisDeAbrir.estado.indexOf('Plié') === -1,
+      depoisDeAbrir.estado);
+    /* A FRASE É A DO EXERCÍCIO ABERTO, e não a que lá estava. Era o resto do mesmo defeito: com o
+     * passo 1 a mostrar outro exercício, a frase que ficava à vista também era a do outro. */
+    checar('…e a frase é a do exercício aberto, não a do anterior',
+      /esticar a perna/i.test(depoisDeAbrir.frase), depoisDeAbrir.frase);
+
     checar('nenhum erro de script na página', erros.length === 0, erros);
   } finally {
     await browser.close();

@@ -51054,3 +51054,52 @@ inteiro (`modo` ↔ `Excluir` desabilitado), e é por isso que ela agora pode fa
 tem»), o elenco não existia, e as seis asserções seguintes ficavam sem id — três delas davam por isso
 mesmo «falha» e a mensagem não dizia a causa. Os campos passam a ser lidos de
 `/api/bastidores/campos-do-corpo`.
+
+## 18/11/2026 — O passo 1 abre o verbete que se abriu, e a volta atravessa o que a ida atravessa
+
+**Dois defeitos, e o segundo ela diagnosticou sozinha.** O primeiro: *«eu cliquei em derivar bat
+matandji e apareceu plié. Não entendi nada. Eu cliquei em uma coisa e apareceu outra.»* O segundo,
+com o nome do sítio: *«eu clico em seguir. Do step três ele dá um salto para o step seis. Isso está
+certo […] Só que agora que vem a estranheza, quando eu clico em voltar, ele volta para o step
+cinco. E quando eu clico em voltar de novo, ele volta para o step quatro e daí chega no step três.
+Não pode isso, tá? Isso é um bug.»*
+
+**O QUE ELA VIU não era um bloco novo — era o texto que já existia, a falar de outro exercício.**
+*«apareceu um monte de texto, de informações que não é para ter. […] você colocou um texto aqui,
+plié já está no vocabulário, a categoria.»* Essa frase é a `pintarEstadoDoExercicio`, e é a prova de
+que o campo do passo 1 continuava com o exercício anterior. **A causa é de mecânica:**
+`#vbnome` (o `<select>` do passo 2) recebia o nome do verbete aberto, mas `#vnnome` (o campo do
+passo 1, que é o que a tela mostra) não — a cópia entre os dois vivia **só** no `change` do
+`<select>`, e o `editarVerbete` escreve o valor sem o disparar. Quem tivesse escrito «Plié» no passo
+1 abria qualquer outro verbete e continuava a ler «Plié», com a nota ao lado a afirmá-lo. É a mesma
+regra que a casa já escrevera para o `change`: os dois campos respondem à MESMA pergunta e não
+podem dizer coisas diferentes. A correcção escreve o campo no `editarVerbete`, no sítio onde a
+função já faz — e na ordem certa — tudo o que o evento faria.
+
+**A NAVEGAÇÃO TINHA DOIS CAMINHOS E SÓ UM SABIA A REGRA.** O «Seguir» saltava os passos do trecho
+(4 e 5) quando não havia trecho em curso, porque a tira os apaga e ir para um passo apagado é abrir
+um painel que o botão ao lado diz estar fechado. O «Voltar» era `PASSO - 1` e parava em cada degrau
+que a ida tinha saltado. Passa a haver **uma função** — `passoVizinho(de, sentido)` — por onde os
+dois sentidos passam, e a regra não pode divergir de si mesma. Com um trecho em curso, o 4 e o 5
+são degraus legítimos nos dois sentidos, que é a outra metade do que ela disse: *«Eu só vou ter
+acesso ao step quatro e cinco na derivação quando eu clicar em editar a decomposição.»*
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`editarVerbete` e o par `passoVizinho`/«Voltar» ·
+«Seguir») · `experimentos/provar-trecho-do-verbete.js` (secções E e F, e o alfabeto da bancada
+passa a ter dois exercícios — o defeito do passo 1 só aparece a partir do segundo).
+
+**Com o quê.** `provar-trecho-do-verbete` **36/36** (eram 25) · `provar-salas-e-elencos` 131/131 ·
+`provar-leitura-da-decomposicao` verde · `provar-verbete` **35/39** e `provar-musica-do-verbete`
+**21/22**, as mesmas falhas do HEAD limpo (medido com as alterações em stash) · o script que a
+página serve compila · `check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** A escrita do campo do passo 1 a sair: **reprova 2** — e a mensagem que a prova
+imprime é exactamente a que ela leu (««Plié» já está no vocabulário»). O «Voltar» a voltar a ser
+`PASSO - 1`: **reprova 3** (5 → 4 → 6 onde se esperava 3 → 2 → 6). Restaurado, 36/36.
+
+**DUAS COISAS QUE FICAM DITAS, porque custam a ver.** A prova `provar-passo-um-do-verbete` está em
+**4 de 30** e não foi tocada aqui: as suas asserções são anteriores a mudanças que ela própria pediu
+(a posição saiu do formulário, a frase subiu para o passo 1) e estão a medir um formulário que já
+não existe. Uma prova que reprova 26 vezes não avisa ninguém — é ruído, e ruído é pior do que a
+ausência, porque dá a impressão de cobertura. Fica declarado e por decidir: ou se reescreve contra o
+formulário de hoje, ou se retira. Não a apaguei sem ela saber, e não a «arranjei» a fingir que media.

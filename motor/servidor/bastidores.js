@@ -14448,6 +14448,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    nomes.value = nome;' +
     '  }' +
+    /* O PASSO 1 ACOMPANHA O VERBETE QUE SE ABRIU (18/11/2026).
+     *
+     * «eu cliquei em derivar bat matandji e apareceu plié. Não entendi nada. Eu cliquei em uma
+     * coisa e apareceu outra.»
+     *
+     * E era literal: `#vbnome` (o exercício escolhido, passo 2) recebia o nome, mas `#vnnome` (o
+     * campo do passo 1, que é o que a tela MOSTRA) ficava com o que lá estava de antes. A causa é
+     * de mecânica: a cópia do passo 2 para o passo 1 vive no `change` de `#vbnome`, e esta função
+     * escreve o valor sem o disparar. Quem tivesse escrito «Plié» no passo 1 e abrisse outro
+     * verbete continuava a ler «Plié» — com a nota ao lado a dizer ««Plié» já está no vocabulário»
+     * sobre um exercício que não era o aberto.
+     *
+     * É a mesma regra que a casa já escreveu para o `change`: os dois campos respondem à MESMA
+     * pergunta — que exercício é este — e não podem dizer coisas diferentes. Escreve-se aqui em
+     * vez de disparar o evento porque esta função já faz, e na ordem certa, tudo o que o evento
+     * faria: o `carregarRascunho` e o `sincronizarPasso1ComExercicio` vêm a seguir. */
+    '  var campoDoPasso1 = document.getElementById("vnnome");' +
+    '  if (campoDoPasso1) campoDoPasso1.value = nome;' +
     '  var partes = chave.split("|");' +
     '  document.getElementById("vbtempos").value = partes[0];' +
     '  document.getElementById("vbcompasso").value = partes[1];' +
@@ -14908,8 +14926,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'Array.prototype.slice.call(document.querySelectorAll("#vb-tira button.passo")).forEach(function(b){' +
     '  b.addEventListener("click", function(){ irParaPassoVerbete(b.getAttribute("data-passo")); });' +
     '});' +
+    /* ANDAR PARA TRÁS ATRAVESSA O QUE ANDAR PARA A FRENTE ATRAVESSA (18/11/2026).
+     *
+     * «eu clico em seguir. Do step três ele dá um salto para o step seis. Isso está certo […]
+     * Só que agora que vem a estranheza, quando eu clico em voltar, ele volta para o step cinco. E
+     * quando eu clico em voltar de novo, ele volta para o step quatro e daí chega no step três.
+     * Não pode isso, tá? Isso é um bug.»
+     *
+     * O salto existia só no «Seguir»: ele pulava os passos do trecho porque, fora de um trecho em
+     * curso, a tira os apaga — e ir para um passo apagado é abrir um painel que o botão ao lado
+     * diz estar fechado. O «Voltar» era `PASSO - 1` e não sabia nada disto, por isso parava em
+     * cada degrau que o «Seguir» tinha saltado: dois caminhos para a mesma travessia, e só um
+     * deles sabia a regra.
+     *
+     * Agora é uma função, e os dois sentidos passam por ela. Com um trecho em curso
+     * (`trechoEmCurso()`) os passos 4 e 5 são degraus legítimos e nada se salta — que é a outra
+     * metade do que ela disse: «Eu só vou ter acesso ao step quatro e cinco na derivação quando eu
+     * clicar em editar a decomposição.» */
+    'function passoVizinho(de, sentido){' +
+    '  var alvo = Number(de) + sentido;' +
+    '  while (alvo >= 1 && alvo <= ULTIMO_PASSO && !trechoEmCurso()' +
+    '    && PASSOS_DO_TRECHO.indexOf(alvo) !== -1) alvo += sentido;' +
+    '  return Math.max(1, Math.min(ULTIMO_PASSO, alvo));' +
+    '}' +
     'var bVoltar = document.getElementById("vb-voltar");' +
-    'if (bVoltar) bVoltar.addEventListener("click", function(){ irParaPassoVerbete(PASSO - 1); });' +
+    'if (bVoltar) bVoltar.addEventListener("click", function(){ irParaPassoVerbete(passoVizinho(PASSO, -1)); });' +
     /* O «SEGUIR» GRAVA O EXERCÍCIO QUANDO ESTÁ NO PASSO 1 (02/11/2026). É o único ponto do
      * formulário em que avançar tem um efeito além de avançar — e tem de ter: o passo 2 escolhe
      * de uma lista que ainda não tem o exercício que se acabou de escrever. Nos outros passos
@@ -14920,10 +14961,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O «SEGUIR» NÃO LEVA A UM PASSO FECHADO (15/11/2026). Sem esta conta, sair do passo 3 com um
      * trecho fechado punha o professor num passo que a tira acabou de apagar — o painel aberto e o
      * botão desligado. Salta os passos do trecho, e a paragem seguinte é a decomposição, que é
-     * onde o gesto começa. */
-    '  var alvo = PASSO + 1;' +
-    '  while (alvo <= ULTIMO_PASSO && !trechoEmCurso() && PASSOS_DO_TRECHO.indexOf(alvo) !== -1) alvo += 1;' +
-    '  irParaPassoVerbete(alvo);' +
+     * onde o gesto começa.
+     *
+     * A CONTA MUDOU DE SÍTIO (18/11/2026): vive em `passoVizinho`, para o «Voltar» não poder
+     * divergir dela. Ver o comentário do «Voltar», acima. */
+    '  irParaPassoVerbete(passoVizinho(PASSO, 1));' +
     '});' +
     '["vb-cancelar-edicao", "vb-cancelar-edicao-2"].forEach(function(id){' +
     '  var b = document.getElementById(id);' +
