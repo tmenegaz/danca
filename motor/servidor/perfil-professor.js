@@ -115,7 +115,19 @@ async function gravarPerfil({ f, token, dono, repo, ref, slug, perfil, sha, mens
   if (!token) return { ok: false, status: 401, erro: 'sem token do repositório' };
   // O `atualizado` É O MOMENTO DA ESCRITA, e quem o sabe é o servidor. Sem isto, o campo saía
   // vazio em toda a gravação — e um campo que nunca diz quando foi mexido não diz nada.
-  const validado = nucleo.normalizarPerfil(perfil, { hoje: new Date().toISOString().slice(0, 10) });
+  /* O CATÁLOGO DAS TRADIÇÕES VAI JUNTO (18/11/2026), e vem de quem sabe: o `catalogo-seed` é do
+   * servidor, e o núcleo do perfil não o pode importar sem inverter as camadas. Sem esta lista,
+   * `normalizarPerfil` aceitaria qualquer nome — e um `tradicoes: {jazz: ['Martha Graham']}` passaria
+   * hoje para, no dia em que o jazz tiver catálogo, ficar a apontar para nada.
+   *
+   * A LISTA É DERIVADA DA MESMA FONTE QUE A CURADORIA USA (`tradicoesAdotaveis`): as de
+   * `tradicoes.json` sem «compartilhada», que descreve um termo e não uma linha de ensino. Uma
+   * segunda lista aqui divergiria da primeira no dia em que se acrescentasse uma tradição. */
+  const validado = nucleo.normalizarPerfil(perfil, {
+    hoje: new Date().toISOString().slice(0, 10),
+    tradicoesValidas: (require('./catalogo-seed.js').TRADICOES || [])
+      .filter((t) => t !== 'compartilhada'),
+  });
   if (!validado.ok) return { ok: false, status: 400, erro: validado.erros.join('; '), erros: validado.erros };
 
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;

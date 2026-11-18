@@ -212,6 +212,45 @@ async function oFicheiro() {
     checar('…e o nome de exibição que já estava não se perde',
       depois.nome === 'Braço em Quinta', depois.nome);
 
+    /*  A TRADIÇÃO ATRAVESSA A ROTA (18/11/2026) — e este é o par de asserções que impede o
+     *  defeito silencioso: o ecrã manda `tradicoes`, a rota deixava-o cair, e a gravação
+     *  devolvia as antigas. Um campo que se escreve, se grava e se perde não dá erro nenhum.
+     *
+     *  As duas metades são diferentes de propósito:
+     *    · MANDAR as tradições grava-as;
+     *    · NÃO MANDAR (cliente antigo) não as apaga — «ausente» ≠ «vazio». */
+    const r6 = await bastidores.fetch(new Request(BASE + '/api/bastidores/perfil', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'x', professor: 'braco-em-quinta',
+        modalidades: ['bale-classico', 'jazz'],
+        tradicoes: { 'bale-classico': ['RAD', 'cubana'], jazz: [] } }),
+    }), env);
+    const d6 = await r6.json();
+    /* O ACESSO DEFENSIVO, pela razão escrita na secção F: um valor que não existe tem de dar
+     * «falhou», e não `TypeError`. Foi o controlo negativo desta própria asserção que o mostrou —
+     * removido o campo da rota, a prova estourava em vez de reprovar. */
+    const lerPerfilGravado = () => {
+      const bruto = repo.arquivos.get('professores/braco-em-quinta/perfil.json');
+      if (!bruto) return {};
+      try { return JSON.parse(bruto.conteudo); } catch (e) { return {}; }
+    };
+    const trad6 = (lerPerfilGravado().tradicoes || {})['bale-classico'] || [];
+    checar('as tradições atravessam a rota e ficam no ficheiro',
+      r6.status === 200 && d6.ok === true && trad6.join(',') === 'RAD,cubana',
+      { status: r6.status, tradicoes: lerPerfilGravado().tradicoes });
+
+    const r7 = await bastidores.fetch(new Request(BASE + '/api/bastidores/perfil', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'x', professor: 'braco-em-quinta',
+        modalidades: ['bale-classico', 'jazz'] }),
+    }), env);
+    const trad7 = (lerPerfilGravado().tradicoes || {});
+    checar('…e um cliente que NÃO as manda não as apaga (ausente ≠ vazio)',
+      r7.status === 200 && Array.isArray(trad7.jazz) && trad7.jazz.length === 0,
+      { status: r7.status, tradicoes: trad7 });
+
     // A GUARDA: o perfil de quem não é desta escola não se edita aqui.
     const r4 = await bastidores.fetch(new Request(BASE + '/api/bastidores/perfil', {
       method: 'POST',
@@ -392,9 +431,21 @@ function oNivel() {
   ]) {
     checar('o formulário da curadoria traz ' + oque, html.indexOf(campo) !== -1);
   }
-  checar('…e o formulário da TURMA já não traz nenhum deles (o enquadramento saiu do cadastro)',
+  /* A MODALIDADE VOLTOU AO CADASTRO DA SALA (18/11/2026), e esta asserção mudou com ela.
+   *
+   * O QUE ELA DIZIA: que o formulário da sala não trazia grau, nível, modalidade nem programa — a
+   * decisão de 03/11/2026, que levou o enquadramento inteiro para a curadoria.
+   *
+   * O QUE MUDOU, e é OUTRA COISA: aquele enquadramento era o PEDAGÓGICO (que nível, que tradição,
+   * que grau). O `modalidade` que voltou é o OPERACIONAL da sala — «a sala atende a uma modalidade
+   * nesses dias, com essa duração, no período inicial até o período final». O grau e o nível
+   * continuam fora: sem uma tradição escolhida não há como numerá-los, e é na curadoria que se
+   * declara em que linha a aula acontece.
+   *
+   * A asserção fica mais estreita, e é isso que a mantém útil: ela agora guarda o que NÃO voltou. */
+  checar('…e o formulário da SALA não traz grau, nível nem programa (o pedagógico ficou na curadoria)',
     html.indexOf('id="tgrau"') === -1 && html.indexOf('id="tnivel"') === -1
-      && html.indexOf('id="tmodalidade"') === -1 && html.indexOf('id="tprograma"') === -1);
+      && html.indexOf('id="tprograma"') === -1);
   checar('…e o grau é repovoado pela tradição escolhida (o dado vai para o cliente)',
     html.indexOf('NIVEIS_POR_TRADICAO') !== -1 && html.indexOf('function pintarGraus') !== -1);
 
@@ -405,6 +456,118 @@ function oNivel() {
     (html.match(/name="hab-modalidade"/g) || []).length === nucleo.LISTA_DE_MODALIDADES.length
       && html.indexOf('sem conteúdo ainda') !== -1,
     (html.match(/name="hab-modalidade"/g) || []).length);
+
+  // ---------------------------------------------------------------------------------------
+  /* §F A TRADIÇÃO DO PROFESSOR — POR MODALIDADE, COM FILTRO, E «NENHUMA» É UMA RESPOSTA
+   * (18/11/2026).
+   *
+   * O QUE ELA PEDIU, e é o problema inteiro numa frase: «Se ele ensina ballet e jazz […] ele vai
+   * ensinar uma tradição, ou é o RAD, ou é a cubana, ou é a francesa, ou é o Cecchetti […]. Agora,
+   * se for o jazz, o jazz tem tradições? Eu não sei […] Então eu acho que tem que ter um filtro,
+   * quando ele diz a modalidade que ele ensina […] filtra quais são as tradições dessa modalidade
+   * […] se ele escolher ballet clássico e jazz […] tem que poder listar as tradições tanto do
+   * ballet quanto do jazz».
+   *
+   * E o terceiro estado: «ele vai poder dizer também que é nenhuma, ele não ensina nenhuma
+   * tradição […] um generalista». */
+  console.log('\nF. A TRADIÇÃO DO PROFESSOR — por modalidade, e «nenhuma» é uma resposta');
+
+  {
+    /* O MAPA, no núcleo. Duas modalidades, três Estados distintos. */
+    const dois = nucleo.normalizarPerfil({
+      slug: 'duas-linhas', nome: 'Duas Linhas',
+      modalidades: ['bale-classico', 'jazz'],
+      tradicoes: { 'bale-classico': ['RAD', 'Vaganova'], jazz: [] },
+    }, { tradicoesValidas: ['RAD', 'francesa', 'Vaganova', 'cubana'] });
+    /* O ACESSO É DEFENSIVO, E NÃO É ZELO (18/11/2026). Com uma leitura directa
+     * (`dois.perfil.tradicoes.jazz.length`), um mapa que perca a chave faz a prova ESTOURAR com
+     * `TypeError` em vez de reprovar — e uma prova que estoura não reprova: interrompe, e o resto
+     * do ficheiro deixa de correr. Foi o que aconteceu no controlo negativo desta mesma asserção,
+     * que devolveu «0 falhas» para uma mutação que quebrava a regra. Uma prova tem de poder
+     * dizer «falhou» sobre um valor que não existe. */
+    const mapaDois = (dois.ok && dois.perfil && dois.perfil.tradicoes) || {};
+    checar('a tradição grava-se POR MODALIDADE',
+      dois.ok
+        && Array.isArray(mapaDois['bale-classico']) && mapaDois['bale-classico'].length === 2
+        && Array.isArray(mapaDois.jazz) && mapaDois.jazz.length === 0,
+      dois.erros.concat([mapaDois]));
+
+    checar('as tradições do clássico leem-se com `tradicoesDoPerfil`',
+      JSON.stringify(nucleo.tradicoesDoPerfil(dois.perfil, 'bale-classico')) === '["RAD","Vaganova"]',
+      nucleo.tradicoesDoPerfil(dois.perfil, 'bale-classico'));
+
+    /* OS TRÊS ESTADOS, e o que os distingue — é isto que impede o sistema de chamar «generalista»
+     * a quem apenas ainda não foi perguntado. */
+    const jazzDeclarado = nucleo.tradicoesDoPerfil(dois.perfil, 'jazz');
+    checar('«declarou nenhuma» é uma lista vazia, e NÃO é o mesmo que «não declarou»',
+      Array.isArray(jazzDeclarado) && jazzDeclarado.length === 0
+        && nucleo.tradicoesDoPerfil(dois.perfil, 'circo') === null,
+      { jazz: jazzDeclarado, circo: nucleo.tradicoesDoPerfil(dois.perfil, 'circo') });
+
+    /* A TRADIÇÃO ÓRFÃ É RECUSADA, e a frase diz qual: uma tradição declarada para uma modalidade
+     * que ele NÃO declara ensinar é uma afirmação sobre uma coisa que ele não faz. */
+    const orfa = nucleo.normalizarPerfil({
+      modalidades: ['jazz'], tradicoes: { 'bale-classico': ['RAD'] },
+    }, { tradicoesValidas: ['RAD'] });
+    checar('uma tradição para uma modalidade que ele não ensina é recusada (400), e a frase nomeia-a',
+      !orfa.ok && /bale-classico/.test(orfa.erros.join(' ')), orfa.erros);
+
+    const inventada = nucleo.normalizarPerfil({
+      modalidades: ['bale-classico'], tradicoes: { 'bale-classico': ['Cecchetti'] },
+    }, { tradicoesValidas: ['RAD', 'francesa', 'Vaganova', 'cubana'] });
+    checar('uma tradição fora do catálogo é recusada, e a frase diz quais existem',
+      !inventada.ok && /Cecchetti/.test(inventada.erros.join(' '))
+        && /RAD/.test(inventada.erros.join(' ')), inventada.erros);
+
+    /* A UNIÃO DAS DUAS MODALIDADES — «tem que poder listar as tradições tanto do ballet quanto do
+     * jazz». `tradicoesDeclaradas` achata o mapa sem repetir. */
+    checar('as tradições declaradas das duas modalidades somam-se, sem repetir',
+      JSON.stringify(nucleo.tradicoesDeclaradas(dois.perfil)) === '["RAD","Vaganova"]',
+      nucleo.tradicoesDeclaradas(dois.perfil));
+
+    /* O PERFIL QUE NUNCA TEVE TRADIÇÕES NÃO GANHA UM MAPA VAZIO — fica sem a chave, que é «não
+     * declarado». É o que todos os perfis anteriores a hoje já são. */
+    const antigo = nucleo.normalizarPerfil({ modalidades: ['bale-classico'] });
+    checar('um perfil sem tradições fica SEM a chave — «não declarado», e não «nenhuma»',
+      antigo.ok && !('tradicoes' in antigo.perfil), antigo.perfil);
+
+    // ---------------------------------------------------------------- A TELA
+    checar('o passo 2 chama-se «Professor»', /passo-t">Professor</.test(html), null);
+    checar('…e já não se chama «Rubricas»', !/passo-t">Rubricas</.test(html), null);
+    /* A ORDEM: professor, nome da rubrica, tradição. Mede-se pelas POSIÇÕES no HTML — é o que a
+     * pessoa vê de cima para baixo. */
+    const posProf = html.indexOf('for="rubr-professor"');
+    const posNome = html.indexOf('for="rubr-nome"');
+    const posTrad = html.indexOf('id="rubr-tradicao"');
+    checar('no passo 2, o professor vem antes do nome da rubrica',
+      posProf !== -1 && posNome !== -1 && posProf < posNome, { posProf, posNome });
+    checar('…e a tradição fica entre os dois', posTrad !== -1 && posProf < posTrad && posTrad < posNome,
+      { posProf, posTrad, posNome });
+    checar('…e é LEITURA, e não um campo: não há `input` nem `select` para a tradição',
+      !/id="rubr-tradicao"[^>]*>/.test(html.replace(/<p class="sub" id="rubr-tradicao">/, ''))
+        && html.indexOf('<input id="rubr-tradicao"') === -1
+        && html.indexOf('<select id="rubr-tradicao"') === -1, null);
+
+    /* O PASSO 3 diz de quem é a régua escolhida — é o circuito que fecha. */
+    checar('o passo 3 tem a linha que diz de quem é a rubrica escolhida',
+      html.indexOf('id="vinc-professor"') !== -1, null);
+
+    /* AS HABILITAÇÕES: um bloco por modalidade, para ela declarar a tradição lá. */
+    const blocos = (html.match(/id="hab-trad-[a-z-]+"/g) || []);
+    checar('as habilidades têm um bloco de tradição por modalidade do catálogo',
+      blocos.length === nucleo.LISTA_DE_MODALIDADES.length, blocos);
+    /* E SÓ O CLÁSSICO OFERECE TRADIÇÕES, porque só ele tem catálogo próprio. Oferecer RAD ao jazz
+     * seria a «afirmação falsa sobre o que se escolhe» que a nota da curadoria já recusa. */
+    const iBloco = html.indexOf('id="hab-trad-bale-classico"');
+    const iJazz = html.indexOf('id="hab-trad-jazz"');
+    checar('…o do clássico oferece as quatro tradições',
+      iBloco !== -1 && /value="RAD"/.test(html.slice(iBloco, iJazz)), null);
+    checar('…e um bloco de modalidade sem catálogo diz que ainda não há — não inventa',
+      iJazz !== -1 && /Ainda não há tradições cadastradas/.test(html.slice(iJazz, iJazz + 400)),
+      html.slice(iJazz, iJazz + 200));
+    checar('…e o generalista tem caixa própria, porque «nenhuma» é uma declaração',
+      html.indexOf('name="hab-sem-tradicao"') !== -1, null);
+  }
 }
 
 oNucleo();
@@ -416,7 +579,8 @@ oFicheiro()
     console.log('');
     if (falhas) { console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).'); process.exit(1); }
     console.log('TUDO CERTO — a habilitação é da pessoa e vive no perfil do professor, a turma');
-    console.log('sem quem a ensine fica marcada (e volta atrás), e o nível tem a forma da tradição.');
+    console.log('sem quem a ensine fica marcada (e volta atrás), o nível tem a forma da tradição,');
+    console.log('e a tradição que ele ensina declara-se POR modalidade — com «nenhuma» a valer.');
   })
   .catch((erro) => {
     console.error('erro na prova:', erro);

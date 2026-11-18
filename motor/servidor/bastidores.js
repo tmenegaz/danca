@@ -6780,6 +6780,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<label class="escolha"><input type="checkbox" name="hab-modalidade" value="' + esc(m.id) + '">' +
       '<span>' + esc(m.nome) + (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</span></label>').join('') +
     '</div>' +
+    /* AS TRADIÇÕES, POR MODALIDADE — o sítio onde ela as escreve (18/11/2026).
+     *
+     * «a gente vai dizer a tradição do professor lá na configuração dos professores, tá? Em
+     * habilidades. É lá que tem que existir qual é a tradição que ele ensina.»
+     *
+     * UM BLOCO POR MODALIDADE, e não uma lista só — porque a pergunta é por modalidade. O bloco
+     * aparece quando a modalidade está marcada, e as caixas são as tradições DAQUELA modalidade:
+     * «tem que ter um filtro, quando ele diz a modalidade que ele ensina […] filtra quais são as
+     * tradições dessa modalidade». Um professor de clássico e jazz vê os dois blocos, e pode marcar
+     * em cada um.
+     *
+     * SÓ SE OFERECE O QUE EXISTE DE FACTO. Uma modalidade sem tradições próprias — jazz, circo,
+     * contemporâneo — cai hoje na lista compartilhada, que é a do clássico (ver
+     * `tradicoesDaModalidade`). Oferecer RAD a um professor de jazz seria a «afirmação falsa sobre
+     * o que se escolhe» que a nota da curadoria já recusa. Nesse caso o bloco diz que ainda não há
+     * tradições cadastradas para aquela modalidade — e não se inventa nenhuma.
+     *
+     * MARCAR NENHUMA É UMA DECLARAÇÃO. O professor pode ser generalista — «ele vai poder dizer
+     * também que é nenhuma, ele não ensina nenhuma tradição». Por isso o bloco traz uma caixa
+     * explícita, e não só a ausência de marcas: sem ela, «não ensina» e «ainda não foi perguntado»
+     * ficavam indistinguíveis no ecrã, e é essa distinção que o perfil guarda. */
+    MODALIDADES.modalidades.map((m) => {
+      const r = tradicoesNucleo.tradicoesDaModalidade(m.id,
+        { porModalidade: TRADICOES_POR_MODALIDADE, compartilhadas: tradicoesAdotaveis() });
+      const proprias = r.de === 'modalidade' ? r.lista : [];
+      /* O `id` EXISTE PARA SE ACHAR O BLOCO SEM UM SELECTOR COM ASPAS DENTRO DE OUTRAS (18/11/2026).
+       * `document.querySelector("input[name=\"x\"]")` dentro de um literal de JS é uma armadilha de
+       * escapes, e ela já custou duas provas nesta sessão. Com `id`, `getElementById` resolve — e um
+       * `id` de modalidade é um slug, portanto é um `id` válido. */
+      return '<div id="hab-trad-' + esc(m.id) + '" data-modalidade="' + esc(m.id) + '" hidden>' +
+        '<label class="campo-rotulo">Tradições que ele ensina em ' + esc(m.nome) + '</label>' +
+        (proprias.length
+          ? '<div class="escolhas">' + proprias.map((t) =>
+              '<label class="escolha"><input type="checkbox" name="hab-tradicao" data-modalidade="' +
+              esc(m.id) + '" value="' + esc(t) + '"><span>' + esc(t) + '</span></label>').join('') +
+            '</div>' +
+            '<label class="escolha"><input type="checkbox" name="hab-sem-tradicao" data-modalidade="' +
+            esc(m.id) + '"><span>Não ensina nenhuma tradição em ' + esc(m.nome) + ' (generalista)</span></label>'
+          : '<p class="sub">Ainda não há tradições cadastradas para ' + esc(m.nome) +
+            '. Não se inventam aqui: o bloco aparece quando o catálogo dessa modalidade existir.</p>') +
+        '</div>';
+    }).join('') +
     '<p class="sub" id="hab-nota">Escolha o professor para ver o que ele já declara.</p>' +
     '<div class="res" data-res="habilitacao"></div>' +
     '<span class="par-botoes">' +
@@ -6876,8 +6918,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // era isso que empurrava «Associar» para a segunda linha no telefone.
     '<li><button type="button" class="passo ativo" data-passo="turma" aria-current="step">' +
     '<span class="passo-n">1</span> <span class="passo-t">Sala</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
+    /* O PASSO 2 CHAMA-SE «PROFESSOR» (18/11/2026), e o nome novo diz o que o passo é.
+     *
+     * «O step 2, que é a rubrica, ele vai mudar de nome agora. Ele vai passar a se chamar
+     * professor.» E é uma correção de leitura, não um gosto: o passo sempre perguntou DE QUEM é a
+     * régua — desde 18/11/2026 há um `select` de professor lá dentro —, e chamar-lhe «Rubricas»
+     * punha o nome da FERRAMENTA na porta do SUJEITO. Quem entra neste passo vem decidir quem dá a
+     * sala; a régua é o que ele aplica.
+     *
+     * O `data-passo="rubrica"` NÃO MUDA: é a chave do painel, do `sessionStorage` e das provas, e
+     * renomeá-la obrigaria a migrar memória de formulário por causa de um rótulo. */
     '<li><button type="button" class="passo" data-passo="rubrica">' +
-    '<span class="passo-n">2</span> <span class="passo-t">Rubricas</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
+    '<span class="passo-n">2</span> <span class="passo-t">Professor</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026), porque o passo passou a ter
     // duas coisas: a régua com que a turma é medida e os conteúdos que ela usa.
     //
@@ -7041,24 +7093,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<form id="form-rubrica">' +
     '<p class="turma-em-foco" id="rubr-turma" hidden></p>' +
     '<input type="hidden" id="rubr-id">' +
-    '<label class="campo-rotulo" for="rubr-nome">Nome da rubrica</label>' +
-    '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Padrão">' +
-    /* O PROFESSOR DA RUBRICA (18/11/2026) — «essa rubrica aqui, ela precisa também estar
-     * vinculada a um professor […] É o professor que vai aplicar esse tipo de rubrica na aula.
-     * […] Outro professor pode adotar outra rubrica.»
+    // O NOME DA RUBRICA DESCE PARA DEPOIS DO PROFESSOR — ver o bloco acima do select.
+    /* A ORDEM DO PASSO 2, E ELA É A DO PEDIDO (18/11/2026).
      *
-     * A LISTA É A DOS PROFESSORES DA ESCOLA, com o dono primeiro e marcado «(principal)» — a
-     * mesma montagem do seletor das habilitações, e pela mesma razão: quem saiu não se oferece
-     * (não vai assumir trabalho novo), e quem está a trabalhar aparece. As opções são renderizadas
-     * no SERVIDOR, como as dos lotes: é dado da escola, e o script não tem de o reconstruir.
+     * «Eu vou ter a rubrica que eu vou colocar o nome dela. Eu tenho também o professor que já foi
+     * filtrado no step 1 […]. Ele tem que ser o primeiro a aparecer. O nome da rubrica que eu vou
+     * usar e também que balé que ele ensina, qual é a tradição que ele ensina.»
      *
-     * O VAZIO É UMA OPÇÃO LEGÍTIMA, e diz o que é: «— sem professor —». Uma rubrica criada antes
-     * de este campo existir não tem dono, e inventar-lhe um seria escrever história. */
+     * PROFESSOR → NOME DA RUBRICA → TRADIÇÃO. O professor primeiro porque é o sujeito do passo; a
+     * rubrica é a ferramenta que ele aplica; e a tradição é o que ele já declarou nas habilitações —
+     * não se pergunta aqui, mostra-se aqui.
+     *
+     * A LISTA JÁ VEM RECOLHIDA PELA MODALIDADE DA SALA (passo 1), e o professor daquela sala vem
+     * primeiro e escolhido. Quem quiser outro escolhe outro: a sala manda na modalidade, não no
+     * nome de quem a dá.
+     */
     '<label class="campo-rotulo" for="rubr-professor">Professor que aplica esta rubrica</label>' +
     '<select id="rubr-professor">' +
     '<option value="">— sem professor —</option>' +
     opcoesDeProfessorDaRubrica +
     '</select>' +
+    /* A TRADIÇÃO QUE ELE ENSINA — LEITURA, e não pergunta.
+     *
+     * «A tradição também já está definida na sala, no step professor. Ali já está definido qual é a
+     * tradição desse professor. […] É apenas listar aqui […] a gente já sabe qual é a tradição
+     * dele. […] É lá que tem que existir qual é a tradição que ele ensina», e «lá» é a
+     * configuração dos professores, em habilidades.
+     *
+     * O QUE ESTE BLOCO NÃO É: um campo. Escrever a tradição aqui faria a mesma afirmação em dois
+     * sítios — e o segundo ganharia, porque é o que a pessoa acabou de mexer. O sítio de escrever
+     * é o perfil; este é o sítio de LER, para quem está a montar a sala saber em que linha a aula
+     * vai acontecer.
+     *
+     * O TEXTO NÃO É UM `input disabled` nem um `readonly`: não há valor a submeter. É um `<p>`,
+     * porque é uma frase — e as três frases possíveis («RAD, Vaganova», «não ensina tradição
+     * declarada», «ainda não declarou») são o que o servidor sabe, ditas por palavras. */
+    '<label class="campo-rotulo">Tradição que ele ensina (das habilitações dele)</label>' +
+    '<p class="sub" id="rubr-tradicao">—</p>' +
+    '<label class="campo-rotulo" for="rubr-nome">Nome da rubrica</label>' +
+    '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Padrão">' +
     '<label class="campo-rotulo">Níveis</label>' +
     // OS NÍVEIS NASCEM VAZIOS (18/10/2026). Antes o editor vinha com os quatro níveis padrão
     // («Satisfatório · Razoável · Em desenvolvimento · Não se aplica») já escritos — e isso
@@ -7129,6 +7202,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * destino, e não um segundo gesto. O servidor continua a aceitar o pedido sem `rubricaId`
      * (`DELETE` do vínculo não existe; a rota apaga com `delete turma.rubricaId`), portanto a
      * capacidade não se perdeu: perdeu-se o botão que a ela chamava. */
+    /* DE QUEM É A RÉGUA QUE SE ACABOU DE ESCOLHER (18/11/2026).
+     *
+     * «aqui no associar, quando eu escolho a rubrica, que é o que eu vou associar, eu vou ter uma
+     * lista de rubricas que foi criada no step anterior. E aí ela já carrega então quem é o
+     * professor dessa rubrica. E aí ela vai ser listada aqui, o professor vai ser listado aqui com
+     * a modalidade que ele ensina.»
+     *
+     * É a linha que fecha o circuito: o passo 3 escolhe a FERRAMENTA, e esta linha diz de QUEM ela
+     * é — com a modalidade que a sala declarou no passo 1. Sem ela, quem escolhe a régua não fica a
+     * saber de quem é o critério que acabou de aplicar.
+     *
+     * `vinc-estado` continua a ser a frase da régua que a sala JÁ TEM (o presente). Este é sobre a
+     * que está ESCOLHIDA agora — e enquanto não se escolhe nada, fica calado. */
+    '<p class="nota" id="vinc-professor" hidden></p>' +
     '<p class="nota" id="vinc-estado"></p>' +
     '</fieldset>' +
     // OS CONTEÚDOS SAÍRAM DESTE PASSO (03/11/2026). Aqui estava «Conteúdos desta turma» — os
@@ -9343,12 +9430,76 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ? "Declara ensinar: " + marcadas.length + " modalidade(s)." :' +
     '      "Declara NÃO ensinar modalidade nenhuma — é uma declaração, não um vazio.";' +
     '  }' +
+    /* OS BLOCOS DE TRADIÇÃO APARECEM SÓ PARA AS MODALIDADES MARCADAS (18/11/2026). Um bloco por
+     * modalidade que ele declara; as caixas marcadas são o que o perfil guarda. */
+    '  pintarTradicoesDaHabilitacao(d);' +
     '  var fora = (d && d.descontinuadas) || [];' +
     '  if (fora.length) {' +
     '    nota.textContent += " Turma(s) que ficam DESCONTINUADAS (não se apagam): " +' +
     '      fora.map(function(t){ return t.nome; }).join(", ") + ".";' +
     '  }' +
     '}' +
+    /* Pinta as tradições de cada modalidade que ele declara (18/11/2026).
+     *
+     * TRÊS ESTADOS, e o ecrã distingue-os — é a mesma distinção do perfil:
+     *   · a chave não existe            → nada marcado, e a caixa do generalista desmarcada;
+     *   · a chave existe e está vazia   → a caixa do generalista marcada;
+     *   · a chave tem nomes             → as desses nomes marcadas.
+     *
+     * Enquanto não há resposta, os blocos ficam como estão: nunca se apaga a marca de alguém por
+     * causa de uma leitura que falhou. */
+    'function pintarTradicoesDaHabilitacao(d){' +
+    '  var mapa = (d && d.tradicoes) || {};' +
+    '  var marcadas = (d && d.modalidades) || [];' +
+    '  var blocos = document.querySelectorAll("#form-habilitacao div[data-modalidade]");' +
+    '  Array.prototype.slice.call(blocos).forEach(function(b){' +
+    '    var mod = b.getAttribute("data-modalidade");' +
+    '    var ativo = marcadas.indexOf(mod) !== -1;' +
+    '    b.hidden = !ativo;' +
+    '    if (!ativo) return;' +
+    '    var temChave = Object.prototype.hasOwnProperty.call(mapa, mod);' +
+    '    var lista = temChave && Array.isArray(mapa[mod]) ? mapa[mod] : [];' +
+    '    Array.prototype.slice.call(b.querySelectorAll("input[name=hab-tradicao]")).forEach(function(x){' +
+    '      x.checked = lista.indexOf(x.value) !== -1;' +
+    '    });' +
+    '    var sem = b.querySelector("input[name=hab-sem-tradicao]");' +
+    '    if (sem) sem.checked = temChave && lista.length === 0;' +
+    '  });' +
+    '}' +
+    /* MARCAR/DESMARCAR UMA MODALIDADE ABRE/FECHA O BLOCO DELA, sem pedir nada ao servidor. O que
+     * já estava marcado nas tradições dessa modalidade NÃO se apaga ao fechá-la: o bloco esconde-se,
+     * e voltar a marcá-la devolve as marcas. Apagar seria perder o trabalho por um clique de
+     * exploração. */
+    'function sincronizarBlocosDeTradicao(){' +
+    '  var marcadas = marcados("hab-modalidade");' +
+    '  var blocos = document.querySelectorAll("#form-habilitacao div[data-modalidade]");' +
+    '  Array.prototype.slice.call(blocos).forEach(function(b){' +
+    '    b.hidden = marcadas.indexOf(b.getAttribute("data-modalidade")) === -1;' +
+    '  });' +
+    '}' +
+    'var caixaHab = document.getElementById("hab-modalidades");' +
+    'if (caixaHab) caixaHab.addEventListener("change", function(e){' +
+    '  if (e.target && e.target.name === "hab-modalidade") sincronizarBlocosDeTradicao();' +
+    '});' +
+    /* «GENERALISTA» E UMA TRADIÇÃO DA MESMA MODALIDADE SÃO EXCLUSIVOS (18/11/2026): «não ensina
+     * nenhuma» e «ensina esta» não podem ser verdade ao mesmo tempo. Marcar uma desmarca a outra —
+     * na mesma modalidade, e só nela: um professor pode ensinar RAD no clássico e nada no jazz. */
+    'document.addEventListener("change", function(e){' +
+    '  var alvo = e.target;' +
+    '  if (!alvo || !alvo.name) return;' +
+    '  var mod = alvo.getAttribute("data-modalidade");' +
+    '  if (!mod) return;' +
+    '  var doBloco = document.getElementById("hab-trad-" + mod);' +
+    '  if (!doBloco) return;' +
+    '  if (alvo.name === "hab-sem-tradicao" && alvo.checked) {' +
+    '    Array.prototype.slice.call(doBloco.querySelectorAll("input[name=hab-tradicao]"))' +
+    '      .forEach(function(x){ x.checked = false; });' +
+    '  }' +
+    '  if (alvo.name === "hab-tradicao" && alvo.checked) {' +
+    '    var sem = doBloco.querySelector("input[name=hab-sem-tradicao]");' +
+    '    if (sem) sem.checked = false;' +
+    '  }' +
+    '});' +
     'function carregarHabilitacoes(){' +
     '  var sel = document.getElementById("hab-professor");' +
     '  if (!sel || !sel.value) return;' +
@@ -9368,6 +9519,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    professor: sel ? sel.value : "",' +
     '    nome: opt ? (opt.getAttribute("data-nome") || "") : "",' +
     '    modalidades: marcados("hab-modalidade"),' +
+    /* AS TRADIÇÕES VÃO EM MAPA (18/11/2026), e o mapa leva TODAS as modalidades marcadas — inclusivo
+     * as que ele declarou que não ensina (`[]`). Um bloco por modalidade declarada; um sem a chave
+     * é «ainda não foi perguntado» e não entra. É o que faz o generalista ser distinguível do
+     * silêncio. */
+    '    tradicoes: (function(){' +
+    '      var mapa = {};' +
+    '      var mods = marcados("hab-modalidade");' +
+    '      for (var i = 0; i < mods.length; i++) {' +
+    '        var m = mods[i];' +
+    '        var doBloco = document.getElementById("hab-trad-" + m);' +
+    '        if (!doBloco) continue;' +
+    // Uma modalidade sem catálogo próprio não tem caixas: nada se declara, e a chave não entra.
+    '        var caixas = doBloco.querySelectorAll("input[name=hab-tradicao]");' +
+    '        var semCaixa = doBloco.querySelector("input[name=hab-sem-tradicao]");' +
+    '        if (!caixas.length && !semCaixa) continue;' +
+    '        var lista = [];' +
+    '        Array.prototype.slice.call(caixas).forEach(function(x){ if (x.checked) lista.push(x.value); });' +
+    '        mapa[m] = lista;' +
+    '      }' +
+    '      return mapa;' +
+    '    })(),' +
     '    token: TOKEN' +
     '  };' +
     '  var antes = ocuparBotao(formHab, "gravando...", "Habilitações");' +
@@ -10821,20 +10993,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * vários `<select>` pedem o mesmo perfil no mesmo instante, e sem a promessa guardada seriam
      * N pedidos para o mesmo slug. `HABILITACOES[slug]` fica `null` quando não se conseguiu ler —
      * e `null` é «não sei», não «não tem». */
+    /* O PERFIL INTEIRO, e não só as modalidades (18/11/2026). O passo 2 mostra a TRADIÇÃO que o
+     * professor declarou, e ela vive no mesmo `perfil.json` que as modalidades — pedi-la numa
+     * segunda rota seria duas leituras ao repositório para o mesmo ficheiro.
+     *
+     * `HABILITACOES[slug]` CONTINUA A SER A LISTA DE MODALIDADES. Duas memórias, cada uma com a
+     * sua forma, porque há dois consumidores com duas perguntas: `aplicarHabilitacao` (a curadoria)
+     * quer os ids; o passo 2 quer o perfil. Guardar só o perfil obrigaria a curadoria a desembrulhar
+     * um objecto para ler uma lista — e `HABILITACOES[slug]` é lido em cinco sítios. */
+    'var PERFIS = {};' +
     'function perfilDoProfessor(slug){' +
     '  if (!slug) return Promise.resolve(null);' +
-    '  if (Object.prototype.hasOwnProperty.call(HABILITACOES, slug)) {' +
-    '    return Promise.resolve(HABILITACOES[slug]);' +
+    '  if (Object.prototype.hasOwnProperty.call(PERFIS, slug)) {' +
+    '    return Promise.resolve(PERFIS[slug]);' +
     '  }' +
     '  if (HABILITACOES_EM_CURSO[slug]) return HABILITACOES_EM_CURSO[slug];' +
     '  var p = fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(slug))' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
-    '      HABILITACOES[slug] = (d && d.existe && Array.isArray(d.modalidades)) ? d.modalidades : null;' +
+    '      var corpo = (d && d.existe) ? d : null;' +
+    '      PERFIS[slug] = corpo;' +
+    '      HABILITACOES[slug] = corpo ? (Array.isArray(corpo.modalidades) ? corpo.modalidades : []) : null;' +
     '      delete HABILITACOES_EM_CURSO[slug];' +
-    '      return HABILITACOES[slug];' +
+    '      return corpo;' +
     '    })' +
     '    .catch(function(){' +
+    '      PERFIS[slug] = null;' +
     '      HABILITACOES[slug] = null;' +
     '      delete HABILITACOES_EM_CURSO[slug];' +
     '      return null;' +
@@ -10891,7 +11075,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var lista = [];' +
     '    for (var j = 0; j < PROFESSORES_DA_ESCOLA.length; j++) {' +
     '      var p = PROFESSORES_DA_ESCOLA[j];' +
-    '      var ids = todos[j];' +
+    '      var corpo = todos[j];' +
+    '      var ids = corpo ? (Array.isArray(corpo.modalidades) ? corpo.modalidades : []) : null;' +
     // DECLAROU E NÃO INCLUI A MODALIDADE: sai. É a única saída, e é a que ela pediu.
     '      if (ids && ids.length && alvo && !modalidadeCasa(ids, alvo)) continue;' +
     // NÃO DECLAROU (ou não se conseguiu ler): fica, marcado. «Não sei» ≠ «não pode».
@@ -10922,6 +11107,95 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  try { t = turmaDoFoco ? turmaDoFoco() : null; } catch (err) { t = null; }' +
     '  return (t && String(t.modalidade || "")) ? String(t.modalidade) : "";' +
     '}' +
+    /* O PROFESSOR DA SALA EM FOCO, ou o que está no formulário do passo 1 (18/11/2026).
+     *
+     * É ele que tem de aparecer PRIMEIRO na lista do passo 2 — «eu tenho também o professor que já
+     * foi filtrado no step 1 […]. Ele tem que ser o primeiro a aparecer» — e é ele que já vem
+     * escolhido quando a rubrica ainda não tem dono. A ordem do servidor (`opcoesDeProfessorDaRubrica`)
+     * põe o dono da escola primeiro, que é a ordem certa para uma rubrica nova e a errada para uma
+     * sala que já decidiu quem a dá. */
+    'function professorDaSalaEmFoco(){' +
+    '  if (!temTela()) return "";' +
+    '  var selP = document.getElementById("tprofessor");' +
+    '  var doForm = selP ? String(selP.value || "") : "";' +
+    '  if (doForm) return doForm;' +
+    '  var t = null;' +
+    '  try { t = turmaDoFoco ? turmaDoFoco() : null; } catch (err) { t = null; }' +
+    '  return (t && String(t.professor || "")) ? String(t.professor) : "";' +
+    '}' +
+    /* A LISTA DO PASSO 2 POSTA NA ORDEM DO PASSO 1. Move o professor da sala para o topo sem tocar
+     * nos outros, e não duplica: se ele já lá está, sai de onde estava e volta à frente. */
+    'function professoresComOSalaPrimeiro(lista){' +
+    '  var alvo = professorDaSalaEmFoco();' +
+    '  if (!alvo) return lista;' +
+    '  var escolhido = null;' +
+    '  var resto = [];' +
+    '  for (var i = 0; i < lista.length; i++) {' +
+    '    if (lista[i].slug === alvo) escolhido = lista[i];' +
+    '    else resto.push(lista[i]);' +
+    '  }' +
+    '  if (!escolhido) return lista;' +
+    '  return [escolhido].concat(resto);' +
+    '}' +
+    /* A TRADIÇÃO QUE ELE ENSINA, dita por palavras (18/11/2026).
+     *
+     * TRÊS RESPOSTAS, E NÃO DUAS — é o mapa do perfil a falar. A modalidade que se lê é a DA SALA
+     * (`modalidadeQueManda`): um professor que ensina clássico e jazz tem tradições diferentes em
+     * cada um, e a pergunta aqui é sobre ESTA sala. Sem modalidade escolhida não se pergunta nada
+     * ao perfil — não há pergunta a fazer. */
+    'function idDaModalidadeDoCatalogo(valor){' +
+    '  var v = String(valor || "");' +
+    '  if (!v) return "";' +
+    '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
+    '    if (CATALOGO_DE_MODALIDADES[i].id === v) return v;' +
+    '    if (CATALOGO_DE_MODALIDADES[i].nome === v) return CATALOGO_DE_MODALIDADES[i].id;' +
+    '  }' +
+    '  return v;' +
+    '}' +
+    'function pintarTradicaoDoProfessor(slug){' +
+    '  if (!temTela()) return;' +
+    '  var alvo = document.getElementById("rubr-tradicao");' +
+    '  if (!alvo) return;' +
+    '  if (!slug) { alvo.textContent = "— escolha o professor para ver a tradição dele."; return; }' +
+    '  alvo.textContent = "…";' +
+    '  perfilDoProfessor(slug).then(function(corpo){' +
+    '    if (!temTela()) return;' +
+    '    var el = document.getElementById("rubr-tradicao");' +
+    '    if (!el) return;' +
+    '    var selP = document.getElementById("rubr-professor");' +
+    // A resposta de um professor que já não está escolhido não se aplica.
+    '    if (selP && String(selP.value || "") !== slug) return;' +
+    '    if (!corpo) {' +
+    '      el.textContent = "Não foi possível ler as habilitações deste professor agora.";' +
+    '      return;' +
+    '    }' +
+    /* O MAPA É POR ID, E A SALA GUARDA O NOME (18/11/2026).
+     *
+     * `perfil.json` → `tradicoes: {"bale-classico": ["RAD"]}`, porque um id é estável e um rótulo
+     * muda. A sala → `modalidade: "Balé clássico"`, porque é o que o `<option>` oferece e o que a
+     * curadoria já guarda (ver o comentário do `select` no passo 1). Ler o mapa com o NOME dava
+     * «não declarou» para toda a gente — a chave existia e ninguém a encontrava. É o mesmo par
+     * id/nome que o `idDaModalidade` do núcleo resolve do lado do servidor; aqui resolve-se com o
+     * catálogo que a página já traz. */
+    '    var modId = idDaModalidadeDoCatalogo(modalidadeQueManda());' +
+    '    var mapa = corpo.tradicoes || {};' +
+    '    var temChave = modId && Object.prototype.hasOwnProperty.call(mapa, modId);' +
+    '    if (!modId) {' +
+    '      el.textContent = "A modalidade ainda não está escolhida no passo 1 — sem ela não se sabe ' +
+        'que tradições dele valem aqui.";' +
+    '      return;' +
+    '    }' +
+    '    if (!temChave) {' +
+    '      el.textContent = "Este professor ainda não declarou a tradição para " + modalidadeQueManda() +' +
+    '        ". Declara-se na configuração dele, em habilidades.";' +
+    '      return;' +
+    '    }' +
+    '    var lista = Array.isArray(mapa[modId]) ? mapa[modId] : [];' +
+    '    el.textContent = lista.length' +
+    '      ? lista.join(" · ")' +
+    '      : "Este professor declarou que não ensina tradição em " + modalidadeQueManda() + ".";' +
+    '  });' +
+    '}' +
     'function filtrarProfessoresPelaModalidade(){' +
     '  if (!temTela()) return;' +
     '  var mod = modalidadeQueManda();' +
@@ -10934,7 +11208,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (modalidadeQueManda() !== mod) return;' +
     '    pintarProfessores("tprofessor", lista, undefined, "— escolher —");' +
     '    var selR = document.getElementById("rubr-professor");' +
-    '    if (selR) pintarProfessores("rubr-professor", lista, undefined, "— sem professor —");' +
+    '    if (selR) {' +
+    /* O PASSO 2 RECEBE A LISTA COM O PROFESSOR DA SALA À FRENTE (18/11/2026) — e, se a rubrica
+     * ainda não tem dono, ele já vem ESCOLHIDO. É a leitura do pedido: «o professor que já foi
+     * filtrado no step 1 […] tem que ser o primeiro a aparecer».
+     *
+     * NÃO SE IMPÕE QUANDO JÁ HÁ DONO. Uma rubrica que já tem professor é uma decisão tomada, e
+     * trocá-la ao abrir a página seria o sistema a desfazer o que alguém escolheu — a mesma regra
+     * do `sincronizarAssociacao`, que só sugere a régua em modo de edição. */
+    '      var ordem = professoresComOSalaPrimeiro(lista);' +
+    '      pintarProfessores("rubr-professor", ordem, undefined, "— sem professor —");' +
+    '      if (!selR.value) {' +
+    '        var daSala = professorDaSalaEmFoco();' +
+    '        for (var q = 0; q < ordem.length; q++) {' +
+    '          if (ordem[q].slug === daSala) { selR.value = daSala; }' +
+    '        }' +
+    '      }' +
+    '      pintarTradicaoDoProfessor(String(selR.value || ""));' +
+    '    }' +
     '    if (nota) {' +
     '      if (!mod) { nota.hidden = true; nota.textContent = ""; }' +
     '      else {' +
@@ -10947,6 +11238,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var selModSala = document.getElementById("tmodalidade");' +
     'if (selModSala) selModSala.addEventListener("change", function(){ filtrarProfessoresPelaModalidade(); });' +
+    /* TROCAR O PROFESSOR DA SALA REPÕE O PASSO 2 (18/11/2026): é ele que tem de estar à frente na
+     * lista da rubrica — «o professor que já foi filtrado no step 1 […] tem que ser o primeiro a
+     * aparecer». Sem este ouvinte, a ordem ficava a do último evento da modalidade, e escolher
+     * outro professor no passo 1 não mudava nada no passo 2. */
+    'var selProfSala = document.getElementById("tprofessor");' +
+    'if (selProfSala) selProfSala.addEventListener("change", function(){ filtrarProfessoresPelaModalidade(); });' +
+    /* TROCAR O PROFESSOR NO PASSO 2 REPINTA A TRADIÇÃO. É o gesto que muda a frase — e a frase é
+     * a única coisa que o passo mostra sobre o que ele ensina. */
+    'var selProfRubr = document.getElementById("rubr-professor");' +
+    'if (selProfRubr) selProfRubr.addEventListener("change", function(){' +
+    '  pintarTradicaoDoProfessor(String(this.value || ""));' +
+    '});' +
+    'pintarTradicaoDoProfessor(String((selProfRubr || {}).value || ""));' +
     'filtrarProfessoresPelaModalidade();' +
     'function pintarModalidades(opcoes, nota){' +
     '  var sel = document.getElementById("cumodalidade");' +
@@ -11352,6 +11656,40 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  for (var i = 0; i < TURMAS.length; i++) { if (TURMAS[i] && TURMAS[i].id === id) return TURMAS[i]; }' +
     '  return null;' +
     '}' +
+    /* DE QUEM É A RÉGUA ESCOLHIDA NO PASSO 3 (18/11/2026).
+     *
+     * «quando eu escolho a rubrica […] ela já carrega então quem é o professor dessa rubrica. E aí
+     * ela vai ser listada aqui, o professor vai ser listado aqui com a modalidade que ele ensina.»
+     *
+     * A MODALIDADE É A DA SALA, e não a do professor: um professor que ensina clássico e jazz tem
+     * as duas no perfil, e a pergunta feita aqui é «esta sala». Mostrar as dele todas seria
+     * responder a outra coisa.
+     *
+     * SEM DONO, DIZ-SE. Uma rubrica criada antes de 18/11/2026 não tem professor, e calar faria
+     * parecer que tem — a mesma regra da frase `vinc-estado`. */
+    'function pintarProfessorDaRubricaEscolhida(){' +
+    '  if (!temTela()) return;' +
+    '  var alvo = document.getElementById("vinc-professor");' +
+    '  if (!alvo) return;' +
+    '  var selR = document.getElementById("vinc-rubrica");' +
+    '  var idR = selR ? String(selR.value || "") : "";' +
+    '  if (!idR) { alvo.hidden = true; alvo.textContent = ""; return; }' +
+    '  var r = null;' +
+    '  for (var i = 0; i < RUBRICAS.length; i++) { if (RUBRICAS[i] && RUBRICAS[i].id === idR) r = RUBRICAS[i]; }' +
+    '  if (!r) { alvo.hidden = true; alvo.textContent = ""; return; }' +
+    '  var slug = String(r.professor || "");' +
+    '  var mod = modalidadeQueManda();' +
+    '  alvo.hidden = false;' +
+    '  if (!slug) {' +
+    '    alvo.textContent = "A rubrica «" + r.nome + "» não tem professor — o critério não é de ninguém.";' +
+    '    return;' +
+    '  }' +
+    '  var nome = nomeDoProfessor(slug);' +
+    '  alvo.textContent = "A rubrica «" + r.nome + "» é de " + (nome || slug) +' +
+    '    (mod ? ", que ensina " + mod + " nesta sala." : ".");' +
+    '}' +
+    'var selRubrVinc = document.getElementById("vinc-rubrica");' +
+    'if (selRubrVinc) selRubrVinc.addEventListener("change", function(){ pintarProfessorDaRubricaEscolhida(); });' +
     'function sincronizarAssociacao(){' +
     '  var id = turmaEmFoco();' +
     '  var t = turmaDoFoco();' +
@@ -11392,6 +11730,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // «Gravar turma» pode ser premido.
     '  if (typeof gravarEstado === "function") gravarEstado();' +
     '  if (typeof aplicarTravas === "function") aplicarTravas();' +
+    '  pintarProfessorDaRubricaEscolhida();' +
     '}' +
     /* --- o FIM DO PASSO 3: um gesto, um ato ------------------------------------------
      *
@@ -16519,6 +16858,16 @@ async function fetch(request, env, extras) {
       existe: Boolean(lido.existe),
       perfil: lido.perfil,
       modalidades: perfilNucleo.modalidadesDoPerfil(lido.perfil),
+      /* AS TRADIÇÕES, POR MODALIDADE (18/11/2026). O mapa vem como está gravado — com as chaves
+       * ausentes a significarem «não declarou» e as vazias «declarou que não ensina». O ecrã usa
+       * os três estados; achatar aqui apagaria o terceiro, e é ele que distingue o generalista de
+       * quem ainda não foi perguntado. */
+      tradicoes: (lido.perfil && lido.perfil.tradicoes) || {},
+      /* E O CATÁLOGO POR MODALIDADE, para a tela filtrar sem ir ao servidor a cada mudança. É o
+       * mesmo `mapaDeTradicoes` que a curadoria consome — uma segunda cópia divergiria. */
+      tradicoesPorModalidade: tradicoesNucleo.mapaDeTradicoes(
+        (MODALIDADES && MODALIDADES.modalidades) || [],
+        { porModalidade: TRADICOES_POR_MODALIDADE, compartilhadas: tradicoesAdotaveis() }),
       descontinuadas,
       // A LISTA DO CATÁLOGO vai junto para a tela não ter uma segunda cópia das modalidades.
       catalogo: perfilNucleo.LISTA_DE_MODALIDADES,
@@ -16556,6 +16905,18 @@ async function fetch(request, env, extras) {
       sha: atual.sha || undefined,
       perfil: Object.assign({}, atual.perfil || {}, {
         slug: alvo, nome, modalidades: corpo.modalidades,
+        /* AS TRADIÇÕES VÊM DO CORPO, E SÃO O QUE ELE MANDOU (18/11/2026).
+         *
+         * Sem esta linha, o `Object.assign` manteria as tradições ANTIGAS do perfil mesmo quando a
+         * pessoa as tivesse mudado no ecrã: o campo mudava, gravava, e o valor anterior voltava. É
+         * o mesmo género de defeito silencioso que o campo do professor da rubrica teve a 18/11 —
+         * um campo que o ecrã aceita e a gravação não transporta.
+         *
+         * AUSENTE ≠ VAZIO. Um cliente antigo que não manda `tradicoes` não pode apagar o que está
+         * gravado; só um `tradicoes: {}` explícito é uma declaração de «não tenho nenhuma». Por
+         * isso o campo só entra quando existe no corpo. */
+        ...(corpo.tradicoes && typeof corpo.tradicoes === 'object' && !Array.isArray(corpo.tradicoes)
+          ? { tradicoes: corpo.tradicoes } : {}),
         // O `criado` de um perfil que já existia NÃO se reescreve: é desde quando a pessoa está
         // no sistema. O `atualizado` é hoje, e é o que o servidor põe.
         criado: (atual.perfil && atual.perfil.criado) || new Date().toISOString().slice(0, 10),

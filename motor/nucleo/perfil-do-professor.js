@@ -110,6 +110,10 @@ function perfilVazio({ slug, nome, modalidades, hoje } = {}) {
     slug: String(slug || '').trim(),
     nome: String(nome || '').trim(),
     modalidades: lista,
+    /* AS TRADIÇÕES NASCEM VAZIAS, e não com uma por omissão (18/11/2026). Uma tradição inventada
+     * no nascimento seria o sistema a afirmar em que linha a pessoa ensina — e ela disse o
+     * contrário: «ele vai poder dizer também que é nenhuma, ele não ensina nenhuma tradição». */
+    tradicoes: {},
     criado: String(hoje || ''),
     atualizado: String(hoje || ''),
   };
@@ -127,7 +131,64 @@ function perfilVazio({ slug, nome, modalidades, hoje } = {}) {
  * declaração, e é ela que **descontinua** as turmas daquele professor (ver `turmasDescontinuadas`).
  * Recusá-la obrigaria a mentir para desligar uma habilitação.
  */
-function normalizarPerfil(corpo, { hoje } = {}) {
+/**
+ * AS TRADIÇÕES DO PERFIL, POR MODALIDADE (18/11/2026) — a forma, e por que é esta.
+ *
+ * O QUE ELA DISSE, e é o problema inteiro: «Se ele ensina ballet e jazz […] ele vai ensinar uma
+ * tradição, ou é o RAD, ou é a cubana, ou é a francesa, ou é o Cecchetti […] Agora, se for o jazz,
+ * o jazz tem tradições? Eu não sei […] Se é dança contemporânea, é teatro físico, é release, é o
+ * quê? Então eu acho que tem que ter um filtro, quando ele diz a modalidade que ele ensina […]
+ * filtra quais são as tradições dessa modalidade […] se ele escolher ballet clássico e jazz […]
+ * tem que poder listar as tradições tanto do ballet quanto do jazz para ele poder escolher mais de
+ * uma, porque ele ensina duas.»
+ *
+ * A FORMA É UM MAPA `{ modalidadeId: [tradição, …] }`, e não uma lista solta:
+ *
+ *   · uma lista solta — `["RAD", "cubana"]` — não diz A QUE modalidade cada tradição pertence, e
+ *     com duas modalidades isso deixa de ser recuperável: «RAD» é do clássico, mas a lista não o
+ *     sabe, e um ecrã que filtrasse por modalidade teria de adivinhar;
+ *   · o mapa diz, e a mesma pessoa pode declarar RAD no clássico e nada no jazz sem ambiguidade.
+ *
+ * E HÁ TRÊS ESTADOS, NÃO DOIS — é a regra do «não sei ≠ não pode» levada ao campo:
+ *
+ *   · a chave NÃO EXISTE          → ele ainda não declarou (não sabemos);
+ *   · a chave existe com `[]`     → ele DECLAROU QUE NÃO ENSINA tradição nenhuma — «um generalista»,
+ *                                   nas palavras dela;
+ *   · a chave existe com nomes    → declarou essas.
+ *
+ * Colapsar os dois primeiros num só faria o sistema dizer «não ensina tradição» sobre alguém que
+ * simplesmente ainda não foi perguntado — e ela não contrataria um generalista por engano.
+ */
+function tradicoesDoPerfil(perfil, modalidade) {
+  const mapa = (perfil && perfil.tradicoes) || {};
+  if (!modalidade) return null;
+  const chave = String(modalidade).trim();
+  if (!Object.prototype.hasOwnProperty.call(mapa, chave)) return null;
+  const lista = mapa[chave];
+  return (Array.isArray(lista) ? lista : [])
+    .map((t) => String(t == null ? '' : t).trim())
+    .filter(Boolean);
+}
+
+/**
+ * TODAS AS TRADIÇÕES QUE ELE DECLARA, achatadas — para o que precisa do conjunto e não do mapa.
+ * Devolve `null` quando ele não declarou NENHUMA modalidade com tradição, que é «não sei».
+ */
+function tradicoesDeclaradas(perfil) {
+  const mapa = (perfil && perfil.tradicoes) || {};
+  const chaves = Object.keys(mapa);
+  if (!chaves.length) return null;
+  const saida = [];
+  for (const k of chaves) {
+    for (const t of (Array.isArray(mapa[k]) ? mapa[k] : [])) {
+      const nome = String(t == null ? '' : t).trim();
+      if (nome && saida.indexOf(nome) === -1) saida.push(nome);
+    }
+  }
+  return saida;
+}
+
+function normalizarPerfil(corpo, { hoje, tradicoesValidas } = {}) {
   const bruto = corpo && typeof corpo === 'object' ? corpo : {};
   const erros = [];
   const validos = idsDeModalidade();
@@ -148,6 +209,46 @@ function normalizarPerfil(corpo, { hoje } = {}) {
       + ' — as que existem são: ' + [...validos].join(', '));
   }
 
+  /* AS TRADIÇÕES: só se aceitam para uma modalidade que ele DECLARA, e só nomes do catálogo.
+   *
+   * A PRIMEIRA REGRA É A QUE IMPEDE UM MAPA ÓRFÃO: uma tradição declarada para «jazz» num perfil
+   * que não declara jazz é uma afirmação sobre uma coisa que ele não ensina. A tela nem a oferece
+   * (filtra as modalidades dele), mas a rota é pública dentro da escola — e o servidor não confia
+   * na tela.
+   *
+   * A SEGUNDA EXIGE O CATÁLOGO, e ele vem por parâmetro: o núcleo não conhece o `catalogo-seed`
+   * do servidor (seria a camada de baixo a importar a de cima). Sem catálogo, os nomes passam —
+   * e é declarado: quem chama sem catálogo está a gravar sem validar, e o único chamador que o
+   * faz é o próprio gravador, que o passa sempre. */
+  const tradicoes = {};
+  const mapaBruto = bruto.tradicoes;
+  if (mapaBruto && typeof mapaBruto === 'object' && !Array.isArray(mapaBruto)) {
+    const validas = Array.isArray(tradicoesValidas) ? tradicoesValidas.map(String) : null;
+    for (const chave of Object.keys(mapaBruto)) {
+      const id = String(chave || '').trim();
+      if (!id) continue;
+      if (vistas.indexOf(id) === -1) {
+        erros.push('tradição declarada para uma modalidade que ele não ensina: ' + id
+          + ' — as que ele declara são: ' + (vistas.join(', ') || 'nenhuma'));
+        continue;
+      }
+      const lista = Array.isArray(mapaBruto[chave]) ? mapaBruto[chave] : [];
+      const limpa = [];
+      for (const t of lista) {
+        const nome = String(t == null ? '' : t).trim();
+        if (!nome) continue;
+        if (validas && validas.indexOf(nome) === -1) {
+          erros.push('tradição desconhecida: ' + nome + ' — as que existem são: ' + validas.join(', '));
+          continue;
+        }
+        if (limpa.indexOf(nome) === -1) limpa.push(nome);
+      }
+      /* A CHAVE FICA MESMO COM A LISTA VAZIA — é o que distingue «declarou que não ensina» de
+       * «ainda não foi perguntado». Apagá-la transformaria uma declaração em silêncio. */
+      tradicoes[id] = limpa;
+    }
+  }
+
   return {
     ok: erros.length === 0,
     erros,
@@ -155,6 +256,9 @@ function normalizarPerfil(corpo, { hoje } = {}) {
       slug: String(bruto.slug || '').trim(),
       nome: String(bruto.nome || '').trim(),
       modalidades: vistas,
+      // Um perfil que nunca teve tradições não ganha um mapa vazio: fica sem a chave, que é
+      // «não declarado» — e é o que os perfis antigos já são.
+      ...(Object.keys(tradicoes).length ? { tradicoes } : {}),
       criado: String(bruto.criado || hoje || ''),
       atualizado: String(hoje || bruto.atualizado || ''),
     },
@@ -243,6 +347,8 @@ module.exports = {
   modalidadeTemConteudo,
   perfilVazio,
   normalizarPerfil,
+  tradicoesDoPerfil,
+  tradicoesDeclaradas,
   modalidadesDoPerfil,
   estadoDaHabilitacao,
   turmasDescontinuadas,

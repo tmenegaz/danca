@@ -50750,3 +50750,94 @@ G reescrita) · `experimentos/provar-historico-do-ajuste.js` (31/39 → **37/37*
 **Controlo A/B.** Reposto o histórico no cartão: **reprova 4**. Desligado o filtro: **reprova 6** — as
 listas ficam com todos e a nota não aparece. Posto o professor antes da modalidade: **reprova 1**, a da
 ordem. Restaurado, tudo verde.
+
+## 18/11/2026 — O passo 2 vira «Professor», e a tradição vai para as habilitações
+
+**O que ela pediu, e são três coisas encadeadas.** *«O step 2, que é a rubrica, ele vai mudar de nome
+agora. Ele vai passar a se chamar professor.»* Depois: *«Eu tenho também o professor que já foi
+filtrado no step 1 […]. Ele tem que ser o primeiro a aparecer. O nome da rubrica que eu vou usar e
+também que balé que ele ensina, qual é a tradição que ele ensina.»* E a terceira é o sítio de
+escrever: *«a gente vai dizer a tradição do professor lá na configuração dos professores, tá? Em
+habilidades. É lá que tem que existir qual é a tradição que ele ensina.»*
+
+**O NOME NOVO É UMA CORREÇÃO DE LEITURA.** O passo sempre perguntou **de quem** é a régua — desde
+18/11/2026 há lá um `select` de professor —, e chamar-lhe «Rubricas» punha o nome da ferramenta na
+porta do sujeito. Quem entra vem decidir quem dá a sala; a régua é o que ele aplica. O
+`data-passo="rubrica"` **não mudou**: é a chave do painel, do `sessionStorage` e das provas, e
+renomeá-la obrigaria a migrar memória de formulário por causa de um rótulo.
+
+A ordem passou a ser **professor → nome da rubrica → tradição**. O professor da sala vem **primeiro
+e escolhido**, quando a rubrica ainda não tem dono.
+
+**A TRADIÇÃO É UM MAPA, POR MODALIDADE — e a forma é a proposta que ela pediu.** Palavras dela: *«Se
+ele ensina ballet e jazz […] ele vai ensinar uma tradição, ou é o RAD, ou é a cubana, ou é a francesa
+[…] Agora, se for o jazz, o jazz tem tradições? Eu não sei […] tem que ter um filtro, quando ele diz
+a modalidade que ele ensina […] filtra quais são as tradições dessa modalidade […] se ele escolher
+ballet clássico e jazz […] tem que poder listar as tradições tanto do ballet quanto do jazz.»*
+
+`perfil.json` ganhou `tradicoes: { "bale-classico": ["RAD","Vaganova"], "jazz": [] }`. **Uma lista
+solta não servia**: `["RAD","cubana"]` não diz a que modalidade cada tradição pertence, e com duas
+modalidades isso deixa de ser recuperável — um ecrã que filtrasse por modalidade teria de adivinhar.
+
+**E HÁ TRÊS ESTADOS, NÃO DOIS** — é o «não sei ≠ não pode» levado ao campo: chave **ausente** = ainda
+não declarou; chave com **`[]`** = declarou que não ensina tradição nenhuma (*«ele vai poder dizer
+também que é nenhuma […] um generalista»*); chave com nomes = declarou essas. Colapsar os dois
+primeiros faria o sistema chamar «generalista» a quem apenas ainda não foi perguntado.
+
+**O FILTRO É O CATÁLOGO, E SÓ SE OFERECE O QUE EXISTE.** As habilidades têm agora um bloco por
+modalidade, e as caixas de cada bloco são as tradições **daquela** modalidade. Uma modalidade sem
+lista própria — jazz, circo, contemporâneo — cai hoje na compartilhada, que é a do clássico; oferecer
+RAD a um professor de jazz seria a «afirmação falsa sobre o que se escolhe» que a nota da curadoria já
+recusa. Nesses casos o bloco **diz que ainda não há tradições cadastradas** e não inventa nenhuma. A
+caixa «não ensina nenhuma tradição» é explícita, e é exclusiva das tradições da mesma modalidade.
+
+**O QUE NÃO SE MUDOU, e é deliberado.** A tradição no passo 2 é **leitura**, não campo: escrever
+também aqui faria a mesma afirmação em dois sítios, e o segundo ganharia. O sítio de escrever é o
+perfil. O passo 3 ganhou uma linha que diz **de quem é a rubrica escolhida**, com a modalidade da
+sala — e diz «não tem professor» quando não tem, em vez de o omitir.
+
+**Três defeitos apanhados pela prova, e os três são de leitura silenciosa.**
+1. O mapa é por **id** (`bale-classico`) e a sala guarda o **nome** (`Balé clássico`) — ler o mapa com
+   o nome dava «não declarou» para toda a gente, com a chave lá. Resolvido com
+   `idDaModalidadeDoCatalogo`, do lado do cliente.
+2. A rota **POST** montava o perfil com `Object.assign` sem transportar `tradicoes`: o ecrã mudava, a
+   gravação aceitava, e o valor antigo voltava. Corrigido com «ausente ≠ vazio» — um cliente antigo
+   que não mande o campo não apaga o que está gravado.
+3. A checagem 8 da identidade reprovou a classe `tradicoes-da-modalidade` — uma classe que **não
+   desenha nada** é exactamente o que ela recusa, e tinha razão. O bloco passou a ser achado pelo
+   `div[data-modalidade]`, sem peça inventada.
+
+**E uma prova que estourava em vez de reprovar.** Dois controlos negativos devolveram «0 falhas» para
+mutações que quebravam a regra: a prova morria com `TypeError` em `perfil.tradicoes.jazz.length`
+porque a chave deixara de existir. **Uma prova que estoura não reprova — interrompe.** Passou a usar
+acesso defensivo, e os dois controlos passaram a reprovar 2.
+
+**Onde entrou.** `motor/nucleo/perfil-do-professor.js` — `tradicoes` no `perfilVazio`, a validação no
+`normalizarPerfil` (com o catálogo por parâmetro), `tradicoesDoPerfil`, `tradicoesDeclaradas` ·
+`motor/servidor/perfil-professor.js` — o catálogo entra no gravador · `motor/servidor/bastidores.js` —
+o rótulo do passo 2, a ordem nova dos campos, `rubr-tradicao`, `vinc-professor`, o mapa de tradições na
+rota GET e no POST, os blocos das habilidades, `idDaModalidadeDoCatalogo`, `professorDaSalaEmFoco`,
+`professoresComOSalaPrimeiro`, `pintarTradicaoDoProfessor`, `pintarProfessorDaRubricaEscolhida`, e o
+ouvinte que repõe o passo 2 ao trocar o professor da sala ·
+`experimentos/provar-habilitacao-do-professor.js` (61 → **80**, secção F nova) ·
+`experimentos/provar-salas-e-elencos.js` (100 → **106**, secção H nova).
+
+**Com o quê.** `provar-habilitacao-do-professor` **80/80** · `provar-salas-e-elencos` **106/106** ·
+`provar-financeiro-da-escola` 135 · `provar-monitoramento` 104 · `provar-paginacao` 120 ·
+`provar-abas-da-audicao` 124 · `provar-a-moldura-em-todas-as-telas` 111 · `provar-financeiro` 58 ·
+`provar-cadastro-do-professor` 49 · `provar-plano-da-turma` 46 · `provar-a-franquia-de-aulas` 42 ·
+`provar-piso` 41 · `provar-sujeitos-da-turma` 41 · `provar-historico-do-ajuste` 37 ·
+`provar-a-escola-que-nasce` 25 · `provar-o-expurgo-do-financeiro` 15 · `provar-rotas-que-existem` 8 ·
+`check-identidade` 0 erros · `check-sem-destruicao` 0 violações.
+
+**Controlo A/B.** O passo 2 de volta a «Rubricas»: **reprova 2**. O professor da sala fora da frente:
+**reprova 1**. O mapa a perder a chave vazia: **reprova 2**. A rota sem transportar `tradicoes`:
+**reprova 2**. Restaurado, tudo verde.
+
+**O que ela NÃO pediu para eu fazer hoje, e fica dito.** A mudança da **Turma** — professor e
+modalidade saem de lá, a sala passa a ser o primeiro campo e preenche-os em leitura — foi descrita por
+ela e **não** foi implementada: ela escolheu «só o step 2». Quando for, o que muda é que
+`turmasSemHabilitacao` e `turmasDescontinuadas` passam a ler esses campos **na sala** e não na
+curadoria. A cadeia com o plano de ensino **não parte**: o envelope do plano já traz
+`contexto.professor` (slug) e `contexto-turma` (nome da sala), e é dele que sai o par — nunca da
+curadoria.

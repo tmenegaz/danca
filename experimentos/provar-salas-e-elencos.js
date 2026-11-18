@@ -807,6 +807,129 @@ const RITMO = {
     }
   }
 
+  // -------------------------------------------------------------------------------------------
+  console.log('\nH. O PASSO 2 («PROFESSOR») E A TRADIÇÃO QUE ELE ENSINA (18/11/2026)');
+
+  /* «O step 2, que é a rubrica, ele vai mudar de nome agora. Ele vai passar a se chamar professor.
+   * […] Eu tenho também o professor que já foi filtrado no step 1 […]. Ele tem que ser o primeiro a
+   * aparecer. […] e também que balé que ele ensina, qual é a tradição que ele ensina.»
+   *
+   * E a tradição vem das habilitações dele, filtrada pela modalidade DA SALA: um professor de
+   * clássico e jazz tem tradições diferentes em cada um, e a pergunta aqui é sobre esta sala. */
+  {
+    let JSDOM3 = null;
+    let VC3 = null;
+    try { ({ JSDOM: JSDOM3, VirtualConsole: VC3 } = require('jsdom')); } catch (e) { JSDOM3 = null; }
+    if (!JSDOM3) {
+      naoMedida('o passo 2 com o professor da sala à frente e a tradição lida', 'jsdom ausente');
+    } else {
+      /* AS RUBRICAS VÊM DO SERVIDOR, e não empurradas por `eval` depois: o `<select>` do passo 3 é
+       * desenhado no HTML, e uma opção que não existe no DOM não pode ser escolhida — `sel.value`
+       * com um id desconhecido dá `""`. A primeira versão desta prova caía nisso. */
+      const RUBRICAS_H = [
+        { id: 'regua-da-leticia', nome: 'Régua da Leticia', professor: 'leticia', niveis: ['Ótimo', 'Bom'] },
+        { id: 'regua-orfa', nome: 'Régua Órfã', professor: '', niveis: ['X'] },
+      ];
+      const html3 = bastidores.paginaProducao('breu', {},
+        [{ nome: 'Petorto', slug: 'pe-torto' }, { nome: 'Marina Souza', slug: 'marina' }], [],
+        'Leticia', 'leticia', [], [], {}, [], RUBRICAS_H, []);
+      const vc3 = new VC3();
+      vc3.on('jsdomError', () => {});
+      vc3.on('error', () => {});
+      /* O PERFIL DE CADA UM, com tradições a sério: o dono declara RAD e Vaganova no clássico e
+       * nada no jazz; a Marina não declarou tradição nenhuma (perfil vazio). */
+      const PERFIS3 = {
+        leticia: { modalidades: ['bale-classico', 'jazz'],
+          tradicoes: { 'bale-classico': ['RAD', 'Vaganova'], jazz: [] } },
+        'pe-torto': { modalidades: ['bale-classico'], tradicoes: { 'bale-classico': ['cubana'] } },
+        marina: { modalidades: ['bale-classico'], tradicoes: {} },
+      };
+      const dom3 = new JSDOM3(html3.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        virtualConsole: vc3,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.alert = () => {};
+          w.confirm = () => true;
+          w.fetch = (u) => {
+            const url = String(u);
+            let corpo = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [], grupos: [] };
+            const m = /professor=([^&]+)/.exec(url);
+            if (url.indexOf('/api/bastidores/perfil') !== -1 && m) {
+              const p = PERFIS3[decodeURIComponent(m[1])];
+              corpo = p
+                ? { ok: true, existe: true, modalidades: p.modalidades, tradicoes: p.tradicoes,
+                    catalogo: [] }
+                : { ok: true, existe: false, modalidades: [], tradicoes: {}, catalogo: [] };
+            }
+            return Promise.resolve({ ok: true, status: 200,
+              json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
+          };
+        },
+      });
+      const win3 = dom3.window;
+      const esperar = (ms) => new Promise((r) => win3.setTimeout(r, ms || 300));
+      const escolher = async (id, valor) => {
+        const sel = win3.document.getElementById(id);
+        sel.value = valor;
+        sel.dispatchEvent(new win3.Event('change'));
+        await esperar(300);
+      };
+      const tradicao = () => win3.document.getElementById('rubr-tradicao').textContent;
+      const opcoes = (id) => [...win3.document.querySelectorAll('#' + id + ' option')].map((o) => o.value);
+      await esperar();
+
+      /* 1. O PROFESSOR DA SALA VEM PRIMEIRO NO PASSO 2 — e escolhido, quando a rubrica não tem dono.
+       *    O dono da escola (`leticia`) já é o primeiro da lista do servidor; a prova escolhe a
+       *    Marina na sala para que o primeiro deixe de ser o dono por acidente. */
+      await escolher('tmodalidade', 'Balé clássico');
+      await escolher('tprofessor', 'marina');
+      await esperar(300);
+      /* O PRIMEIRO PROFESSOR DA LISTA — a posição 0 é o `<option value="">`, o vazio explícito. */
+      conferir('o professor da sala é o PRIMEIRO do passo 2, e já vem escolhido',
+        opcoes('rubr-professor')[1] === 'marina'
+          && win3.document.getElementById('rubr-professor').value === 'marina',
+        opcoes('rubr-professor'));
+
+      /* 2. A TRADIÇÃO LIDA, e pelas habilitações DELE — a Marina não declarou nenhuma, e o ecrã
+       *    diz isso em vez de inventar. */
+      conferir('…e a tradição dele é lida das habilitações, dizendo que ele não declarou',
+        /ainda não declarou a tradição/.test(tradicao()), tradicao());
+
+      /* 3. TROCAR PARA QUEM DECLARA, na mesma modalidade: aparecem as dele. */
+      await escolher('rubr-professor', 'leticia');
+      await esperar(300);
+      conferir('…e quem declarou mostra as suas, na modalidade da sala',
+        /RAD/.test(tradicao()) && /Vaganova/.test(tradicao()), tradicao());
+
+      /* 4. A MESMA PESSOA, OUTRA MODALIDADE DA SALA: as tradições são as DAQUELA modalidade. É a
+       *    prova de que o mapa é por modalidade, e não uma lista achatada. */
+      await escolher('tmodalidade', 'Jazz');
+      await esperar(300);
+      conferir('…e trocando a modalidade da sala, as tradições mudam com ela',
+        /não ensina tradição em Jazz/.test(tradicao()), tradicao());
+
+      /* 5. O PASSO 3: escolher a rubrica diz de quem ela é, com a modalidade da sala. */
+      try { win3.sessionStorage.setItem('producao:vinc-turma', 'sala-de-prova-h'); } catch (err) {}
+      win3.eval('TURMAS.push({id: "sala-de-prova-h", nome: "Sala H", modalidade: "Jazz", '
+        + 'professor: "leticia"});');
+      await escolher('vinc-rubrica', 'regua-da-leticia');
+      await esperar(300);
+      const linha = win3.document.getElementById('vinc-professor');
+      conferir('o passo 3 diz de quem é a rubrica escolhida, com a modalidade da sala',
+        linha && linha.hidden === false && /Leticia/.test(linha.textContent)
+          && /Jazz/.test(linha.textContent), linha && linha.textContent);
+
+      /* 6. UMA RUBRICA SEM DONO DIZ QUE NÃO TEM — calar faria parecer que tem. */
+      await escolher('vinc-rubrica', 'regua-orfa');
+      await esperar(300);
+      conferir('…e uma rubrica sem professor di-lo, em vez de o omitir',
+        /não tem professor/.test(win3.document.getElementById('vinc-professor').textContent),
+        win3.document.getElementById('vinc-professor').textContent);
+    }
+  }
+
   console.log('');
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));
