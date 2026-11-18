@@ -655,13 +655,36 @@ function normalizarRegistoDeAluna(bruto) {
 }
 
 /** O id de uma aluna nova: o do apelido, ou o primeiro sufixo que nunca foi usado. */
-function idNovoDaAluna(registos, apelido) {
+/**
+ * O id de uma aluna nova: o do apelido, ou o primeiro sufixo que nunca foi usado.
+ *
+ * «NUNCA FOI USADO» INCLUI OS VÍNCULOS, E NÃO SÓ OS REGISTOS (18/11/2026). Quem apagou uma aluna
+ * ANTES de o registo existir deixou vínculos sem `alunaId` — e esses vínculos pertencem ao primeiro
+ * titular do apelido, por derivação. Se o id novo fosse o do apelido, a aluna que chega hoje
+ * herdava-os: exactamente a confusão que este trabalho veio desfazer, num caso que os registos
+ * sozinhos não conseguem ver. A lista de ids em uso é a que os vínculos declaram (ou deixam
+ * implícita), e quem chama passa-a.
+ */
+function idNovoDaAluna(registos, apelido, idsEmUso) {
   const base = idLegadoDaAluna(apelido);
   const usados = new Set((Array.isArray(registos) ? registos : []).map((r) => r && r.id));
+  if (idsEmUso instanceof Set) for (const id of idsEmUso) if (id) usados.add(id);
+  else if (Array.isArray(idsEmUso)) for (const id of idsEmUso) if (id) usados.add(id);
   if (!usados.has(base)) return base;
   let n = 2;
   while (usados.has(base + '-' + n)) n += 1;
   return base + '-' + n;
+}
+
+/** Os ids que os vínculos já reivindicam — o explícito, ou o derivado do apelido quando não há. */
+function idsDosVinculos(listaDeVinculos) {
+  const ids = new Set();
+  for (const m of (Array.isArray(listaDeVinculos) ? listaDeVinculos : [])) {
+    if (!m) continue;
+    const id = String(m.alunaId || '').trim() || idLegadoDaAluna(m.aluna);
+    if (id) ids.add(id);
+  }
+  return ids;
 }
 
 /** TODOS os registos, inclusive os de quem já saiu — é o que a exclusão e o id precisam. */
@@ -19054,7 +19077,13 @@ async function fetch(request, env, extras) {
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
     }
-    const registo = { id: idNovoDaAluna(registos, apelido), apelido, criadaEm: new Date().toISOString() };
+    /* O ID TAMBÉM SE ESQUIVA AOS VÍNCULOS (18/11/2026) — ver `idNovoDaAluna`. Uma aluna apagada
+     * antes de o registo existir deixou vínculos que reivindicam o id do apelido, e o novo titular
+     * não os pode herdar. */
+    const registo = {
+      id: idNovoDaAluna(registos, apelido, idsDosVinculos(await matriculas(kv, escola))),
+      apelido, criadaEm: new Date().toISOString(),
+    };
     registos.push(registo);
     await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registos));
     return json(201, { ok: true, aluna: apelido, id: registo.id });
@@ -19154,8 +19183,10 @@ async function fetch(request, env, extras) {
         cadastrados: activas,
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
-      registoDaAluna = { id: idNovoDaAluna(registosDaAluna, aluna), apelido: aluna,
-        criadaEm: new Date().toISOString() };
+      registoDaAluna = {
+        id: idNovoDaAluna(registosDaAluna, aluna, idsDosVinculos(await matriculas(kv, escola))),
+        apelido: aluna, criadaEm: new Date().toISOString(),
+      };
       registosDaAluna.push(registoDaAluna);
       await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(registosDaAluna));
     }

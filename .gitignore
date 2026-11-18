@@ -1629,5 +1629,5 @@ experimentos/modelo-formulario/*
 # `experimentos/*` aparece: a prova nasceu ignorada, e o `git add` não avisa. Ela mede as três
 # metades do pedido dela — o registo com `id` que não se repete, a exclusão a gravar uma versão nova
 # em cada elenco (e a NÃO apagar o cadastro quando essa escrita falha), e o passo 2 a deixar de
-# oferecer quem saiu sem perder a anamnese. Os seis controlos A/B estão no REGISTRO.
+# oferecer quem saiu sem perder a anamnese. Os sete controlos A/B estão no REGISTRO.
 !experimentos/provar-saida-da-aluna.js

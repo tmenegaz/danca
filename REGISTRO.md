@@ -52278,7 +52278,7 @@ poder explicar o desaparecimento — sem isso, o professor que fez aquela anamne
 registo se perdeu: a mesma leitura errada do «sem apelido», ao contrário. **A leitura que falha não
 filtra**: sem saber quem está na escola, a lista sai inteira e `registradas` é `null`.
 
-**Com o quê.** `provar-saida-da-aluna` **38/38** (novo) · `provar-cadastro-da-aluna` 106/106 ·
+**Com o quê.** `provar-saida-da-aluna` **41/41** (novo) · `provar-cadastro-da-aluna` 106/106 ·
 `provar-listas-do-acervo` 113/113 · `provar-sujeitos-da-turma` 41/41 ·
 `provar-transferencia-e-desligamento` 97/97 · `provar-gestos-do-shard` 31/31 ·
 `provar-abas-da-audicao` 125/125 · `provar-anamnese-sem-cofre` 13/13 · `check-identidade` ok.
@@ -52287,7 +52287,9 @@ filtra**: sem saber quem está na escola, a lista sai inteira e `registradas` é
 repetido, a herança do vínculo, a anamnese herdada e o cartão com dois vínculos). Sem a cascata para
 os elencos: **reprova 10**. O cadastro apagado antes dos elencos: **reprova 1** (a aluna continuava na
 escola). O passo 2 sem o cruzamento com o cadastro: **reprova 1** (a excluída voltava à lista). O
-cartão a filtrar por apelido: **reprova 1**. A anamnese a casar só pelo nome: **reprova 1**.
+cartão a filtrar por apelido: **reprova 1**. A anamnese a casar só pelo nome: **reprova 1**. E o caso de hoje dela — as alunas apagadas com o
+`splice` antigo, sem registo e com os vínculos de pé — mede-se à parte: com o id a não se esquivar aos
+vínculos, **reprova 2** (o id repetido e o cartão com a história da outra).
 
 **O que fica por decidir — e não se decide sem ela.** O **CPF** da aluna, que é a chave para
 RECONHECER quem volta («ele é outro aluno A, ele tem outro CPF»). O `id` diz que são duas pessoas; o

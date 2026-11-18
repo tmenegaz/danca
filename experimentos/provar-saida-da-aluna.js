@@ -470,6 +470,52 @@ async function principal() {
   }
 
   /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * E.2 O CASO DELA, HOJE: as alumnas foram apagadas ANTES de o registo existir
+   *
+   * «Eu apaguei do lado dos alunos todos os alunos, eu consegui excluir todos eles. E aí eu vou
+   * recriar esses alunos.» Com a exclusão ANTIGA (o `splice`), não ficou registo nenhum — mas os
+   * VÍNCULOS ficaram, e um vínculo sem `alunaId` reivindica o id do apelido. Se o id novo fosse o
+   * do apelido, a aluna recriada herdava-os: o defeito, outra vez, por uma porta que os registos
+   * sozinhos não vêem. É este o caso que a asserção seguinte mede.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+  console.log('\nE.2 — recriar quem foi apagado ANTES do registo existir também não herda nada');
+  {
+    const ghE2 = githubDeBolso();
+    const kvE2 = criarKV({
+      [RAIZ + '/professores']: JSON.stringify([{ nome: 'Demi Plier', slug: 'demi-plier' }]),
+      'professores/demi-plier/contato': JSON.stringify({ email: 'demi@example.test' }),
+      /* O CADASTRO VAZIO, como ela o deixou: o `splice` antigo não deixou rasto. */
+      [RAIZ + '/alunas']: JSON.stringify([]),
+      /* E os vínculos da pessoa anterior, sem `alunaId` — que é como todos os de hoje estão. */
+      [RAIZ + '/matriculas']: JSON.stringify([
+        { id: 'aluno-a-bale-classico', aluna: 'Aluno A', modalidade: 'Balé clássico',
+          professor: 'demi-plier', pedidaEm: '2026-11-02' },
+      ]),
+    });
+    const envE2 = ambiente(kvE2);
+    const TOKEN_E2 = (await pedir(envE2, '/api/bastidores/validar-producao', { senha: 'segredo' }))
+      .dados.token;
+    await comResumos([], async () => {
+      const novo = await pedir(envE2, '/api/bastidores/matricula', {
+        aluna: 'Aluno A', modalidade: 'Balé clássico', professor: 'Demi Plier', token: TOKEN_E2,
+      }, { fetchImpl: ghE2.fetchFalso });
+      provar('a aluna é recriada (201)', novo.status === 201, novo.dados && novo.dados.erro);
+      provar('…e o id dela NÃO é o que os vínculos antigos reivindicam',
+        novo.dados && novo.dados.matricula && novo.dados.matricula.alunaId === 'aluno-a-2',
+        novo.dados && novo.dados.matricula && novo.dados.matricula.alunaId);
+
+      const pagina = await bastidores.fetch(
+        new Request('https://breu.example/bastidores/producao'), envE2, { fetchImpl: ghE2.fetchFalso });
+      const html = await pagina.text();
+      const cartao = (new RegExp('<li class="turma" data-aluna="Aluno A">([\\s\\S]*?)</li>')
+        .exec(html) || [])[1] || '';
+      provar('…e o cartão dela nasce VAZIO de história — só o vínculo novo',
+        (cartao.match(/data-vinculo="/g) || []).length === 1,
+        (cartao.match(/data-vinculo="/g) || []).length);
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
    * F. AS RECUSAS QUE CONTINUAM DE PÉ
    * ══════════════════════════════════════════════════════════════════════════════════════════ */
   console.log('\nF — a proveniência continua a travar a exclusão');
