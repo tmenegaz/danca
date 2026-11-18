@@ -417,6 +417,37 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       dasCaixas.length === doCatalogo.length && doCatalogo.length > 0, doCatalogo.length);
   }
 
+  console.log('\nF. O rótulo da ficha: «Editar» enquanto é livre, «Derivar» quando já está em turma');
+  {
+    /* A REGRA (18/11/2026). «O professor já está vinculado a uma turma. Então lá é derivar, não é
+     * editar.» É a mesma leitura que a Turma faz, e o rótulo tem de a seguir — senão a lista diz
+     * «Editar» sobre quem já não é um registo solto.
+     *
+     * O GESTO NÃO MUDA: a classe continua `editar`, e é ela que o ouvinte delegado procura. Por
+     * isso se mede o RÓTULO (o texto) e a presença do atributo que o clique usa — não a classe
+     * sozinha, que passaria mesmo com o rótulo errado. */
+    const curs = [{
+      id: 'ana-diag-bale-classico-rosa', professor: 'Ana Diag', modalidade: 'bale-classico',
+      turmas: ['Rosa'], alunas: ['abreu'], criadaEm: '2026-11-18',
+    }];
+    const html = bastidores.paginaProducao('breu', {}, PROFS, ['abreu'], 'Brise Volet', 'brise-volet',
+      [], [], {}, curs, [], [], USOS_VAZIOS(), null, null, [], new Set());
+    const linha = (nome) => {
+      const m = new RegExp('<button class="editar[^>]*data-alvo="' + nome + '"[\\s\\S]{0,400}?<\\/button>')
+        .exec(html);
+      return m ? m[0] : '';
+    };
+    conferir('o professor que está numa turma diz «Derivar»',
+      />Derivar<\/button>$/.test(linha('Ana Diag')) && /class="editar/.test(linha('Ana Diag')),
+      linha('Ana Diag').slice(0, 120));
+    conferir('…e o que está livre continua a dizer «Editar»',
+      />Editar<\/button>$/.test(linha('Brise Volet')), linha('Brise Volet').slice(0, 120));
+    conferir('…e o «Derivar» abre a MESMA ficha — leva o slug, como o «Editar»',
+      /data-slug="ana-diag"/.test(linha('Ana Diag')));
+    conferir('…e o título diz que é a mesma ficha, corrigida no lugar',
+      /abre o mesmo formul/i.test(linha('Ana Diag')), linha('Ana Diag').slice(0, 200));
+  }
+
   console.log('');
   console.log(ko === 0
     ? 'TUDO CERTO — ' + ok + ' asserção(ões).'

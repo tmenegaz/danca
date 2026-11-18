@@ -3375,6 +3375,43 @@ async function nomeDoDono(env, kv, escola) {
 }
 
 /**
+ * O E-MAIL DE UM PROFESSOR — onde ele vive de verdade (18/11/2026).
+ *
+ * O DEFEITO. A rota do vínculo lia `oProfessor.email`, e esse campo NÃO EXISTE no registo: o
+ * professor é `{nome, slug, sal, hash}`, e o e-mail mora em `professores/<slug>/contato` — o mesmo
+ * documento que o «Editar» da ficha escreve. Resultado: o e-mail aparecia na ficha (a leitura certa)
+ * e a rota do vínculo concluía sempre «o professor não tem e-mail no cadastro», mesmo com ele
+ * preenchido. A mensagem não saía, e o motivo apontava para um campo que nunca estava vazio.
+ *
+ * A ORDEM É A MESMA DA FICHA (`/ficha-do-professor`), e é de propósito — duas ordens de leitura
+ * para o mesmo dado divergiriam na primeira correcção:
+ *   1. `professores/<slug>/contato` → `email` (é onde o «Editar» grava);
+ *   2. o próprio registo (escolas antigas, anteriores ao contato separado);
+ *   3. o `dono` cai no cadastro da escola (`professorEmail`), de onde ele foi criado.
+ *
+ * Devolve `''` quando não há nada — e aí a resposta diz que falta, em vez de inventar um destino.
+ */
+async function emailDoProfessor({ env, kv, escola, alvo, ehDono, registo } = {}) {
+  const slug = String(alvo || '').trim();
+  if (slug) {
+    try {
+      const bruto = await kv.get('professores/' + slug + '/contato');
+      const contato = bruto ? JSON.parse(bruto) : null;
+      const email = String((contato && contato.email) || '').trim();
+      if (email) return email;
+    } catch (e) { /* sem contato legível: segue para a queda */ }
+  }
+  const doRegisto = String((registo && registo.email) || '').trim();
+  if (doRegisto) return doRegisto;
+  if (!ehDono) return '';
+  try {
+    const bruto = await kv.get(RAIZ + '/' + escola + '/cadastro');
+    const cadastro = bruto ? JSON.parse(bruto) : null;
+    return String((cadastro && cadastro.professorEmail) || '').trim();
+  } catch (e) { return ''; }
+}
+
+/**
  * A SENHA DO PROFESSOR, PELO REGISTO DA ESCOLA — `true`, `false`, ou `null` quando não há registo.
  *
  * O `null` é o que separa «esta senha está errada» de «esta escola não tem registo, e a resposta
@@ -4838,15 +4875,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        * campo desabilitado», e a ficha tem sete campos: só um deles (o nome) pode estar preso
        * pela proveniência. Um botão apagado escondia os outros seis, e a pessoa não tinha como
        * corrigir o CPF de quem já assinou um plano. O que fica preso é o CAMPO, não a ficha: o
-       * servidor recusa a mudança do nome e di-lo com a razão; o resto grava. */
+       * servidor recusa a mudança do nome e di-lo com a razão; o resto grava.
+       *
+       * O RÓTULO MUDA QUANDO ELE JÁ ESTÁ VINCULADO (18/11/2026) — «ele já é um professor
+       * vinculado em turma. Então lá é derivar, não é editar.» É a mesma leitura que a Turma faz:
+       * quem já está numa turma não se «corrige» como se fosse um registo solto. O GESTO É O
+       * MESMO — abre esta ficha, e grava no lugar, sem elo de histórico (decisão dela: a escola
+       * é de teste e será expurgada). A CLASSE CONTINUA `editar` de propósito: é ela que o
+       * ouvinte delegado procura (`button.editar`); renomeá-la para combinar com o rótulo
+       * partiria o clique. */
       '<span class="acoes">' +
         '<button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" ' +
         'data-slug="' + esc(String(donoSlug || '')) + '"' +
         (presoPorProveniencia
-          ? ' title="Editar a ficha do professor principal — o NOME não muda: ele já vai nos documentos ('
+          ? ' title="Derivar a ficha do professor principal — abre o mesmo formulário, e a ficha é '
+            + 'corrigida no lugar. O NOME não muda: ele já vai nos documentos ('
             + esc(motivoDoPreso) + ')"'
           : ' title="Editar a ficha do professor principal"') +
-        '>Editar</button>' +
+        '>' + (presoPorProveniencia ? 'Derivar' : 'Editar') + '</button>' +
       '</span>' +
       '</li>');
   }
@@ -4909,9 +4955,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        * nome, e mais nada. Agora a ficha inteira é editável em qualquer linha (CPF, telefone,
        * e-mail, habilidade, senha), e o «Excluir» continua a obedecer às travas da proveniência:
        * apagar é diferente de corrigir, e uma trava de exclusão não deve fechar a correção. */
+      /* O RÓTULO DA FICHA DELE SEGUE A MESMA REGRA (18/11/2026) — «Derivar» quando já está
+       * vinculado, «Editar» enquanto é livre. Ver o comentário da linha do principal. */
       '<span class="acoes">' +
         '<button class="editar acao pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" ' +
-        'data-slug="' + esc(String(slug || '')) + '" title="Editar a ficha deste professor">Editar</button>' +
+        'data-slug="' + esc(String(slug || '')) + '" title="' +
+        esc(profPreso
+          ? 'Derivar a ficha deste professor — abre o mesmo formulário, e a ficha é corrigida no '
+            + 'lugar; o NOME não muda porque ele já vai nos documentos'
+          : 'Editar a ficha deste professor') + '">' +
+        (profPreso ? 'Derivar' : 'Editar') + '</button>' +
         (desligadoAgora
           ? '<span class="sub" title="o desligamento não apaga o registo: ele é a memória de quem deu '
             + 'estas aulas">fora da escola</span>'
@@ -18779,10 +18832,20 @@ async function fetch(request, env, extras) {
      * pedido: a página que ela usa é a que o professor conhece. */
     let desfechoDoCorreio = { enviado: false, motivo: 'não tentado' };
     try {
-      const email = String((oProfessor && oProfessor.email) || '').trim();
+      /* O E-MAIL VEM DE ONDE ELE VIVE (18/11/2026). Aqui lia-se `oProfessor.email`, campo que o
+       * registo não tem: a ficha mostrava o e-mail (lido do `contato`) e esta rota dizia que ele
+       * não existia. Ver `emailDoProfessor`. */
+      const ehDono = professor === dono;
+      const email = await emailDoProfessor({
+        env, kv, escola,
+        alvo: oProfessor ? slugDoProfessor(oProfessor) : professor,
+        ehDono,
+        registo: oProfessor,
+      });
       if (!email) {
         desfechoDoCorreio = { enviado: false, motivo: 'o professor «' + professor
-          + '» não tem e-mail no cadastro — a anamnese dele fica pedida, e o aviso tem de ser dado de outra maneira' };
+          + '» não tem e-mail no cadastro — preencha-o em Professores → Editar. A anamnese dele '
+          + 'fica pedida, e o aviso tem de ser dado de outra maneira' };
       } else {
         const origem = new URL(request.url).origin;
         const link = origem + '/area-do-professor/anamnese/?professor=' + encodeURIComponent(professor)

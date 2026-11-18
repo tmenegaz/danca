@@ -51619,3 +51619,86 @@ o `<script>` servido compila.
 «apaga outra vez quando a lista é repintada» — era o comportamento de então, e era precisamente o
 defeito. Passou a medir as duas metades: sobrevive quando ainda integra a lista, é apagado quando já
 não integra.
+
+## 18/11/2026 — «O e-mail aparece na ficha e a rota diz que ele não existe»
+
+**O que motivou.** Ela cadastrou uma aluna e o aviso disse que o e-mail ao professor não saiu —
+outra vez. E disse onde estava a contradição, com a precisão de sempre: «quando eu vou em editar
+aparece o e-mail do professor. Está certo isso, tem que aparecer mesmo. Então o ambiente ali tem
+acesso ao e-mail do professor. Por que é que eu não consigo ter esse e-mail para enviar?»
+
+**A causa, e era só uma.** A rota do vínculo lia `oProfessor.email`. Esse campo **não existe** no
+registo do professor: o registo é `{nome, slug, sal, hash}`, e o e-mail vive em
+`professores/<slug>/contato` — o documento que o «Editar» da ficha escreve. A ficha lia do sítio
+certo; a rota do vínculo, do errado. Resultado: com o e-mail preenchido e visível na tela, a
+mensagem nunca era composta, e o motivo acusava um campo que não estava vazio.
+
+**Porque a prova não apanhou.** A fixture de `provar-cadastro-da-aluna` punha o `email` **dentro**
+do registo do professor — uma forma que a página nunca grava. A prova media a sua própria invenção.
+É a mesma família de erro que este repositório persegue: uma asserção que encontra o que procura no
+sítio errado não mede nada.
+
+**A decisão.**
+- O e-mail de um professor lê-se numa função só, `emailDoProfessor`, na **mesma ordem** que a ficha
+  já usa: `professores/<slug>/contato` → o próprio registo (escolas antigas) → o `dono` cai no
+  `professorEmail` do cadastro da escola.
+- A fixture da prova passou a gravar o e-mail onde o sistema o grava, e a asserção exige o
+  **destino** (`para`) e o motivo certo — sem ela, «não saiu» aceitava tanto «falta a chave» como
+  «falta o e-mail», e eram precisamente esses dois que se confundiam.
+- Acrescentou-se o caso do principal sem `contato`, que é quem cria a escola e mais cadastra.
+
+**E a chave, que se dizia faltar, faltava mesmo.** Medido com `wrangler secret list` em
+`wrangler.lastro-teste.jsonc`: o shard tinha `GITHUB_TOKEN`, `SENHA_ADMIN`, `SENHA_MESTRA` e
+`SENHA_PROFESSOR` — e **não tinha** `RESEND_API_KEY`. Ela disse «ele está no `.env`», e estava: o
+`.env` alimenta o `wrangler` local e o `secret put`, não o Worker que está no ar. A chave foi posta
+no shard a partir do `.env` (`printf '%s' "$RESEND_API_KEY" | wrangler secret put … -c
+wrangler.lastro-teste.jsonc`), e a lista confirma-a. O que faltava a seguir era o código deste
+commit chegar ao Worker — e é o `publicar.yml` que o leva no push.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`emailDoProfessor`; a rota `/matricula` a usá-la; o
+motivo a dizer onde se preenche o e-mail) · `experimentos/provar-cadastro-da-aluna.js` (fixtures na
+forma real; a asserção do destino; o caso do principal).
+
+**Com o quê.** `provar-cadastro-da-aluna` **76/76** (eram 74) · `provar-acordeoes` TUDO CERTO ·
+`provar-salas-e-elencos` 131/131 · `provar-abas-da-audicao` 125/125 · `check-identidade` 0 erros.
+
+**Controlo A/B.** A leitura antiga (`oProfessor.email`) reposta: **reprova 2**.
+
+**O que ainda não está feito.** A chave já está no shard; o que falta é o código deste commit
+chegar ao Worker — o `publicar.yml` faz isso no push. Até lá, a rota no ar continua a ler
+`oProfessor.email` (a versão antiga) e o e-mail continua a dizer que o professor não tem endereço,
+mesmo com a chave posta.
+
+## 18/11/2026 — No professor vinculado, o botão diz «Derivar» (e abre a mesma ficha)
+
+**O que motivou.** «Eu fui ali em professor, cliquei em editar, que ali não pode ser editar, né?
+Tem que ser derivar também, porque o professor já está vinculado a uma turma […] Então lá é derivar,
+não é editar.»
+
+**O que foi decidido.** O rótulo do botão da ficha segue o estado do professor, como o da Turma já
+faz: **livre → «Editar»**, **vinculado (curadoria ou plano) → «Derivar»**. O **gesto não muda**:
+abre o mesmo formulário, corrige a ficha no lugar, sem elo de histórico — foi ela quem o disse
+(«só o rótulo […] corrige a ficha sem histórico»), e a razão é declarada: a escola é de teste e
+será expurgada; a de produção nasce depois, com o fluxo já certo.
+
+**Porque a classe não muda.** O ouvinte do clique procura `button.editar` no `document`. Renomear a
+classe para combinar com o rótulo partiria o clique, e o botão ficaria a dizer «Derivar» sem fazer
+nada. O que muda é o **texto** e o `title`; a classe fica, e o comentário no fonte diz porquê.
+
+**O que NÃO se promete.** Não é uma derivação de verdade: não há elo novo, não há vigência, e o
+nome continua preso pela proveniência (`professorPreso`). O `title` diz-o — «abre o mesmo
+formulário, e a ficha é corrigida no lugar». Um rótulo que prometesse histórico seria pior do que o
+rótulo antigo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (os dois botões da lista de professores) ·
+`experimentos/provar-cadastro-do-professor.js` (secção F).
+
+**Com o quê.** `provar-cadastro-do-professor` **53/53** (eram 49) · `provar-cadastro-da-aluna`
+76/76 · `provar-acordeoes` TUDO CERTO · `provar-salas-e-elencos` 131/131 ·
+`provar-abas-da-audicao` 125/125 · `provar-uma-linha-por-professor` 19/19 · `check-identidade`
+0 erros.
+
+**Controlo A/B.** O rótulo fixo («Editar» sempre) reposto: **reprova 1**.
+
+**O que ainda não está feito.** Se um dia a derivação do professor for a sério (elo novo, vigência,
+nome que muda com o passado preservado), esta decisão tem de ser revista — hoje ela é rótulo, e só.
