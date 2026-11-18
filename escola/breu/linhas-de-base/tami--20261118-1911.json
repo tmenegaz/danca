@@ -1,0 +1,38 @@
+{
+  "id": "tami",
+  "nome": "Tami",
+  "professor": "demi-plie",
+  "alunas": [],
+  "campos": [
+    {
+      "id": "meia-ponta",
+      "nome": "a meia ponta",
+      "grupo": "Os elementos basilares"
+    },
+    {
+      "id": "flexibilidade-anteroposterior-grand-ecart",
+      "nome": "Flexibilidade anteroposterior (grand écart)",
+      "grupo": "Flexibilidade e Amplitude Articular"
+    },
+    {
+      "id": "equilibrio-unipodal",
+      "nome": "Equilíbrio unipodal",
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core"
+    }
+  ],
+  "atualizada_em": "2026-11-18T19:08:19.198Z",
+  "lida": {
+    "Aluna A": "anamnese-20261116-2201"
+  },
+  "enviada_em": "2026-11-18T18:07:52.039Z",
+  "saiu": {
+    "aluna": "Aluna A",
+    "em": "2026-11-18T19:08:19.198Z",
+    "motivo": null,
+    "por": "direção"
+  },
+  "carimbo": "20261118-1911",
+  "anterior": "tami--20261118-1908.json",
+  "gravada_em": "2026-11-18T19:08:19.198Z",
+  "apagada_em": "2026-11-18T19:11:10.996Z"
+}
