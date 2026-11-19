@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 54,
+  "versao": 55,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -587,6 +587,28 @@
           ]
         },
         "escola": "batata"
+      },
+      "4|2/4@breu": {
+        "cobre": 4,
+        "posicao": null,
+        "metodo": "compartilhada",
+        "celulas": {
+          "": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "1ª",
+                "↓",
+                "↑"
+              ],
+              "descricao": "Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.\nLê-se: Perna, varredura para fora, primeira posição, cede, sobe.",
+              "repeticoes": 2
+            }
+          ]
+        },
+        "escola": "breu"
       }
     },
     "Battement tendu": {
