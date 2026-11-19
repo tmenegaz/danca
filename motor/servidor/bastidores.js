@@ -166,11 +166,6 @@ const ESTILO_DA_PAGINA_DE_TRABALHO =
 
 const RAIZ = 'bastidores';
 
-// A ESCOLA DE TESTE — o número sai do slug e o preenchidor é o MESMO script da porta.
-// Aqui ele só é injetado na página de Produção, depois do script grande; a rota que o
-// serve vive em `producao.js`, que é quem conhece a URL pública do asset.
-const { numeroDoTeste } = require('./teste-fixtures.js');
-
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
@@ -4326,7 +4321,17 @@ function sessaoNaBarra() {
 
 /** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
  *  servida por este Worker) e, DEPOIS dela, o `<style>` da vista — que manda. */
-function cabecalhoDaVista(titulo, aparencia, teste) {
+/* A ESCOLA DE TESTE JÁ NÃO ENTRA AQUI (19/11/2026).
+ *
+ * O terceiro argumento era o número do teste, e escrevia `data-escola-teste` no `<html>` para o
+ * preenchedor dos formulários saber que estava numa escola de teste. Ela deixou de ser usada na
+ * Produção — «na parte de produção para os formulários a gente não vai mais usar para nenhum deles,
+ * pode tirar, não faz mais sentido ter aquilo» —, e o atributo sai com ela: um atributo que declara
+ * uma capacidade que já não existe é a promessa que ninguém cumpre.
+ *
+ * O `data-escola-teste` continua a existir na PORTA (anamnese, plano de ensino, plano de
+ * observação), onde o preenchedor ficou: é o `producao.js` que o escreve, ao servir aquelas páginas. */
+function cabecalhoDaVista(titulo, aparencia) {
   // A APARÊNCIA VEM DO SERVIDOR (18/10/2026), nos DOIS eixos. Ela entra no `<html>` antes de a
   // página sair, e o `data-modo-fonte="escola"` diz de QUEM é a decisão: é esse atributo que
   // faz o `assets/nav.js` não aplicar por cima a escolha antiga do navegador. O «anti-flash»
@@ -4340,8 +4345,7 @@ function cabecalhoDaVista(titulo, aparencia, teste) {
   const ap = aparenciaDaVez(aparencia);
   const modo = ap.modo;
   return '<!doctype html><html lang="pt-BR" data-modo="' + modo + '" data-paleta="' +
-    esc(ap.paleta) + '" data-modo-fonte="escola"' +
-    (teste ? ' data-escola-teste="' + Number(teste) + '"' : '') + '>' +
+    esc(ap.paleta) + '" data-modo-fonte="escola">' +
     '<head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
@@ -5140,9 +5144,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
   // da escola, e o segredo do Worker é outra fronteira. A lista não duplica.
   const donoNome = String(dono || '').trim();
-  // A ESCOLA DE TESTE (19/10/2026): o número sai do slug. A página de Produção recebe
-  // o atributo e o preenchidor; a de Estúdio não tem formulário e não recebe nada.
-  const teste = numeroDoTeste(escola);
+  /* O PREENCHEDOR JÁ NÃO ENTRA NA PRODUÇÃO (19/11/2026). «A gente tem a solução de testes que
+   * preenche os campos dos formulários lá na parte dos bastidores produção. Pode remover de lá, não
+   * vamos mais usar. Vamos usar apenas no anamnese, plano de ensino e no plano de observação.»
+   *
+   * Era aqui que o número do teste saía do slug da escola, e a página levava o atributo e o
+   * `<script>`. Os dois saem — e com eles a razão de esta função saber que a escola é de teste.
+   * Quem mede o preenchimento na porta continua a tê-lo: é o `producao.js` que injeta o script, e
+   * só nas páginas com `data-tela="porta"`. */
   // O ATALHO DA PORTA chega com o NOME da turma (o plano de ensino só conhece o nome). A
   // listagem filtra por ID: a conversão é aqui, com a lista vigente já na mão. Um nome que
   // não casa não vira filtro — uma lista vazia seria pior do que a lista inteira.
@@ -6748,7 +6757,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma turma atribuída)</li>';
 
-  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }, teste) +
+  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }) +
     '<style>' +
     // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
@@ -19335,10 +19344,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'if (typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
     'if (typeof retomarAbaDoProfessor === "function") retomarAbaDoProfessor();' +
     '</script>' +
-    // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
-    // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
-    // atributo `data-escola-teste`, o próprio script não faz nada.
-    (teste ? '<script src="/scripts/teste-preenchimento.js"></script>' : '') +
+    // O PREENCHEDOR NÃO ENTRA MAIS AQUI (19/11/2026) — ver a nota no alto de `paginaProducao`.
+    // Ele continua a ser servido em `/scripts/teste-preenchimento.js` e injetado nas páginas da
+    // porta; o que deixou de existir é a versão que preenchia os formulários da Produção.
+
     /* O VÉU DA OPERAÇÃO — a MESMA peça da porta (10/11/2026).
      *
      * A PORTA tinha véu desde 08/11; os BASTIDORES não tinham nenhum, e é aqui que ela trabalha

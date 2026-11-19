@@ -91,132 +91,37 @@ async function producao() {
   const envReal = { ESCOLA_SLUG: 'escola-real', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
     SENHA_PROFESSOR: 'y', PROFESSOR_NOME: 'Docente', PADD_KV: criarKv() };
 
-  const rTeste = await bastidores.fetch(new Request('https://batata.example/bastidores/producao'), envTeste);
-  const htmlTeste = await rTeste.text();
-  assert.match(htmlTeste, /data-escola-teste="2"/);
-  assert.match(htmlTeste, /\/scripts\/teste-preenchimento\.js/);
-  ok('a Produção da escola de teste recebe o atributo e o preenchidor');
+  /* A PRODUÇÃO NÃO RECEBE O PREENCHEDOR — E NÃO É POR A ESCOLA SER DE TESTE OU NÃO (19/11/2026).
+   *
+   * «A gente tem a solução de testes que preenche os campos dos formulários lá na parte dos
+   * bastidores produção. Pode remover de lá, não vamos mais usar.»
+   *
+   * A asserção mudou de sinal de propósito: antes media que a escola de teste RECEBIA o atributo e
+   * o `<script>`; agora mede que nenhuma das duas os recebe. Uma prova que só olhasse para a escola
+   * normal passaria com o preenchedor ainda lá. */
+  for (const [nome, env] of [['de teste', envTeste], ['normal', envReal]]) {
+    const html = await (await bastidores.fetch(
+      new Request('https://' + env.ESCOLA_SLUG + '.example/bastidores/producao'), env)).text();
+    assert.doesNotMatch(html, /data-escola-teste=/, 'a Produção ' + nome + ' ainda traz o atributo');
+    assert.doesNotMatch(html, /teste-preenchimento\.js/, 'a Produção ' + nome + ' ainda traz o script');
+  }
+  ok('a Produção não recebe o preenchedor — nem na escola de teste, nem na normal');
 
-  const rReal = await bastidores.fetch(new Request('https://escola-real.example/bastidores/producao'), envReal);
-  const htmlReal = await rReal.text();
-  assert.doesNotMatch(htmlReal, /data-escola-teste=/);
-  assert.doesNotMatch(htmlReal, /teste-preenchimento\.js/);
-  ok('a Produção de uma escola normal não recebe nenhum dos dois');
-
+  /* A PORTA CONTINUA A RECEBÊ-LO: é lá que ele ficou, e é isso que a secção 3 mede no navegador.
+   * Aqui mede-se só o contrato do `producao.js`, que é quem injeta: com uma página de porta, o
+   * script entra; com outra, não. */
   const prod = require('../motor/servidor/producao.js');
   const apiTeste = await prod.fetch(new Request('https://batata.example/api/teste'), envTeste);
   assert.equal(apiTeste.status, 200);
   const dados = await apiTeste.json();
   assert.equal(dados.teste, 2);
-  assert.equal(dados.fixture.producao.turmas.length, 3);
+  assert.ok(dados.fixture.anamnese, 'o fixture ainda tem a anamnese');
+  assert.ok(dados.fixture.plano, 'o fixture ainda tem o plano de ensino');
   ok('/api/teste devolve o fixture da escola certa');
 
   const apiReal = await prod.fetch(new Request('https://escola-real.example/api/teste'), envReal);
   assert.equal(apiReal.status, 404);
   ok('/api/teste responde 404 para escola normal');
-}
-
-
-// ================= 2b. A PRODUÇÃO PREENCHIDA ================================
-
-async function producaoNoNavegador() {
-  const escola = 'batata';
-  const kv = criarKv();
-  const turmas = FIXTURE.producao.turmas.map((t, i) => Object.assign({}, t, {
-    id: 'turma-' + i, ativo: true, vigenteDe: '2026-10-20',
-  }));
-  const rubricas = FIXTURE.producao.rubricas.map((r, i) => Object.assign({}, r, { id: 'rubrica-' + i }));
-  const termos = FIXTURE.producao.vocabulario.map((v, i) => Object.assign({}, v, { id: 'termo-' + i }));
-  await kv.put('bastidores/' + escola + '/turmas', JSON.stringify(turmas));
-  await kv.put('bastidores/' + escola + '/rubricas', JSON.stringify(rubricas));
-  // O VOCABULÁRIO JÁ NÃO SE PÕE NO KV (28/10/2026). Ele vive no repositório, e a tela lê-o do
-  // bundle — pô-lo aqui seria criar o fixture de uma cópia que já não existe, e a prova passaria
-  // a medir uma página que nenhum Worker serve.
-  await kv.put('bastidores/' + escola + '/alunas', JSON.stringify(FIXTURE.producao.alunas));
-
-  const env = { ESCOLA_SLUG: escola, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
-    SENHA_PROFESSOR: 'y', PROFESSOR_NOME: 'Docente', PADD_KV: kv };
-  const pagina = await bastidores.fetch(new Request('https://' + escola + '.example/bastidores/producao'), env);
-  const html = await pagina.text();
-
-  const pedidos = [];
-  const srv = http.createServer((req, res) => {
-    const u = new URL(req.url, 'http://x');
-    pedidos.push(req.method);
-    const envia = (tipo, corpo, status) => {
-      res.writeHead(status || 200, { 'Content-Type': tipo, 'Cache-Control': 'no-store' });
-      res.end(corpo);
-    };
-    if (u.pathname === '/api/teste') {
-      return envia(MIME['.json'], JSON.stringify({ ok: true, teste: 1, escola: escola, fixture: FIXTURE }));
-    }
-    if (u.pathname.startsWith('/api/bastidores/')) {
-      return envia(MIME['.json'], JSON.stringify({ ok: true, turmas: [], alunas: [], termos: [],
-        rubricas: [], professores: [{ nome: 'Docente', slug: 'docente' }] }));
-    }
-    if (u.pathname === '/assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
-    if (u.pathname === '/assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
-    if (u.pathname === '/scripts/teste-preenchimento.js') return envia(MIME['.js'], SCRIPT);
-    if (u.pathname === '/assets/favicon.svg') return envia(MIME['.svg'], fs.readFileSync(path.join(RAIZ, 'tools/templates/marca/favicon.svg')));
-    if (u.pathname === '/bastidores/producao' || u.pathname === '/bastidores/producao/') return envia(MIME['.html'], html);
-    return envia('text/plain', '404 ' + u.pathname, 404);
-  });
-  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
-  const base = 'http://127.0.0.1:' + srv.address().port;
-  const abrirProducao = async (editando) => {
-    const problemas = [];
-    const vc = new VirtualConsole();
-    vc.on('jsdomError', (e) => { if (!/Not implemented/.test(e.message)) problemas.push(e.message); });
-    vc.on('error', (...a) => problemas.push(a.join(' ')));
-    const dom = await JSDOM.fromURL(base + '/bastidores/producao', {
-      runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc,
-      beforeParse(w) {
-        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
-          addListener() {}, removeListener() {} });
-        w.fetch = (u, i) => fetch(new URL(String(u), base + '/bastidores/producao'), i);
-        w.confirm = () => true; w.alert = () => {}; w.scrollTo = () => {};
-        if (editando) {
-          try { w.sessionStorage.setItem('producao:editando', 'turma'); } catch (e) {}
-        }
-      },
-    });
-    await espera(900);
-    return { dom, d: dom.window.document, problemas };
-  };
-
-  const primeira = await abrirProducao(false);
-  /* A SALA E A RÉGUA JÁ NÃO SE PREENCHEM, E ISSO É A CORRECÇÃO (19/11/2026).
-   *
-   * A SALA. As salas do fixture são as MESMAS que este teste põe no KV (`turmas` acima) — é uma
-   * escola de teste, e o fixture é o que ela já tem. Escrever o nome de uma delas num formulário de
-   * CRIAR é pedir ao servidor para criar o que já existe: era assim que a pesquisadora recebia «já
-   * existe uma turma com este nome» depois de corrigir o nome da sala e o preenchimento lhe pôr o
-   * antigo outra vez. Ver `provar-sala-e-portao.js`, secção A.
-   *
-   * A RÉGUA. `#rubr-nome` deixou de ser a rubrica da ESCOLA: a régua é do professor, e vive no
-   * passo 2 do cadastro dele. Preencher aqui seria escrever a régua de uma pessoa que o fixture
-   * não conhece.
-   *
-   * O QUE O PREENCHEDOR CONTINUA A FAZER: o termo e a aluna — esses sim, campos de criação. */
-  assert.equal(primeira.d.getElementById('tnome').value, '');
-  assert.equal(primeira.d.getElementById('rubr-nome').value, '');
-  /* O TERMO PASSOU PARA O «+» DO VERBETE (01/11/2026). O preenchimento escreve agora em
-   * `vnnome` — os campos do exercício —, e abre o modo do exercício antes, porque esses campos
-   * só existem quando ele está aberto. O `vtermo` da secção do vocabulário deixou de existir. */
-  assert.equal(primeira.d.getElementById('vnnome').value, FIXTURE.producao.vocabulario[0].termo);
-  assert.equal(primeira.d.getElementById('anome').value, FIXTURE.producao.alunas[0]);
-  assert.ok(primeira.d.querySelector('details.teste-painel'), 'o painel de teste não apareceu na Produção');
-  assert.deepEqual([...new Set(pedidos)], ['GET']);
-  ok('a Produção nasce com termo e aluna preenchidos — e a sala que já existe não se propõe criar');
-  primeira.dom.window.close();
-
-  const emEdicao = await abrirProducao(true);
-  assert.equal(emEdicao.d.getElementById('tnome').value, '');
-  assert.ok(emEdicao.d.querySelector('details.teste-painel'), 'o painel sumiu no modo edição');
-  ok('em modo edição o fixture NÃO passa por cima do formulário; o painel continua');
-  emEdicao.dom.window.close();
-
-  srv.close();
 }
 
 
@@ -393,14 +298,31 @@ function apiDe(rota, fonte) {
     return { ok: true, escola: 'batata', professores: [{ nome: 'Docente', slug: 'docente' }] };
   }
   if (rota.startsWith('api/bastidores/alunas')) {
-    return { ok: true, alunas: FIXTURE.producao.alunas };
+    /* AS ALUNAS SAEM DO PRÓPRIO FIXTURE (19/11/2026). Havia aqui um bloco `producao` no JSON — o
+     * dado que o preenchedor escrevia nos formulários da Produção —, e ele foi apagado com o
+     * preenchedor. As alunas que a porta precisa são as que a anamnese do fixture nomeia: é delas
+     * que o preenchimento fala, e é a mesma lista. */
+    const alunas = [...new Set((FIXTURE.anamnese || []).map((a) => a.aluna).filter(Boolean))];
+    return { ok: true, alunas: alunas };
   }
   if (rota.startsWith('api/bastidores/turmas')) {
     /* AS TURMAS DO CADASTRO — mais as que a prova recorta na curadoria sem elas existirem no
      * fixture (ver `CURADORIA_RECORTADA`). Sem isto, o recorte para uma turma desconhecida
      * esvaziava o seletor pelo motivo errado: não é «a curadoria aponta para fora do cadastro»,
      * é «esta turma não tem plano de fixture». São coisas diferentes, e a prova mede a segunda. */
-    const turmas = FIXTURE.producao.turmas.map((t) => Object.assign({}, t, { id: t.nome }));
+    /* E AS TURMAS, DO MESMO MODO: são as que o plano do fixture nomeia (ver a nota das alunas).
+     *
+     * COM O RITMO, e ele não é decoração: o plano resolve frequência, duração e calendário do
+     * CADASTRO da turma, e sem estes campos a asserção da secção 3 falharia por falta do dado que
+     * ela mede. É o cadastro que a escola declara — nos Bastidores da escola de teste ele está no
+     * KV —, e esta bancada finge o KV, por isso o declara aqui. */
+    const turmas = [...new Set((FIXTURE.plano || []).map((p) => p.turma).filter(Boolean))]
+      .map((nome) => ({
+        id: nome, nome: nome, ativo: true,
+        dias: ['seg', 'qua'], horarios: { seg: '18:00', qua: '18:00' },
+        duracaoMin: 50, frequencia: 2,
+        periodoInicio: '2027-02-01', periodoFim: '2027-04-30',
+      }));
     for (const nome of CURADORIA_RECORTADA || []) {
       if (!turmas.some((t) => t.nome === nome)) {
         turmas.push({ id: nome, nome: nome, ativo: true, frequencia: 2, dias: ['seg'],
@@ -1065,7 +987,6 @@ async function porta() {
   console.log('Escolas de teste — fixture por nome, e só preenchimento\n');
   detectar();
   await producao();
-  await producaoNoNavegador();
   await estadoForaDaEdicao();
   await porta();
   console.log(`\nprovar-teste: ${n} verificações passaram`);

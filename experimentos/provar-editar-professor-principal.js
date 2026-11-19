@@ -469,7 +469,17 @@ async function principais() {
     const erro = await nav.avaliar(`
       (function(){
         var b = document.getElementById('prof-enviar');
-        var r = document.querySelector('#sec-professores .res'); var q = r.getBoundingClientRect();
+        /* O RECADO É O QUE ESTÁ À VISTA (19/11/2026) — a mesma regra de \`alvoDoRecado\`, no produto.
+         * Cada passo do cadastro tem o seu \`.res\`, e o do passo 1 fica escondido quando o passo 2
+         * abre: ler «o primeiro da secção» media um elemento invisível e dizia que a mensagem não
+         * tinha sido escrita. */
+        var todos = document.querySelectorAll('#sec-professores .res');
+        var r = null;
+        for (var i = 0; i < todos.length; i++) {
+          if (!todos[i].closest('[hidden]')) { r = todos[i]; break; }
+        }
+        if (!r) r = todos[0] || document.getElementById('res');
+        var q = r.getBoundingClientRect();
         return JSON.stringify({ rotulo: b.textContent, habilitado: !b.disabled,
           recado: r.textContent, naTela: q.top >= 0 && q.bottom <= window.innerHeight && q.height > 0,
           topo: Math.round(q.top), altura: Math.round(q.height), janela: window.innerHeight,

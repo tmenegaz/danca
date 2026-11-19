@@ -21,11 +21,11 @@
  *
  * O QUE ESTA PROVA MEDE — e cada alínea reprova sem a correcção:
  *
- *   A. O PREENCHEDOR NÃO ESCREVE POR CIMA. Com o fixture a trazer uma sala que já existe, o
- *      preenchimento automático não entra; com um campo já tocado por ela, o que ela escreveu
- *      sobrevive; e num campo limpo ele continua a preencher. No `HEAD`, a primeira alínea falha —
- *      e era ela que fabricava o «já existe uma turma com este nome», porque o formulário estava
- *      em modo de CRIAR com o nome de uma sala que já lá estava.
+ *   A. O PREENCHEDOR SAIU DA PRODUÇÃO (19/11/2026). Ele fabricava o «já existe uma turma com este
+ *      nome» — escrevia no formulário de CRIAR o nome de uma sala que já existia —, e a correcção
+ *      de então foi ensiná-lo a não escrever por cima. A decisão de agora é outra e é mais curta:
+ *      ele deixou de existir aqui. A alínea mede isso — a página não traz o atributo nem o script,
+ *      e corrido à mão sobre a Produção ele não escreve nada. No `HEAD` as três falham.
  *   B. AS RECUSAS DIZEM «SALA», e dizem QUAL é a que ocupa o nome — e a colisão do `turma-editar`
  *      deixa de olhar para registos já substituídos.
  *   C. O PORTÃO NÃO PEDE SENHA ENQUANTO RETOMA. Com um token guardado, o campo `type="password"`
@@ -104,11 +104,11 @@ async function aPaginaAberta() {
 }
 
 /**
- * A página do PREENCHEDOR. O preenchimento automático corre no arranque do script servido, e é por
- * isso que «correr o script outra vez» é a simulação fiel de uma recarga: o estado da página fica
- * (o que ela escreveu incluído) e o preenchedor volta a entrar — é exatamente o que ela viveu.
+ * A página da Produção COM o script do preenchedor corrido à mão — que é a prova mais dura que se
+ * pode fazer a esta remoção: mesmo que alguém volte a injectar o `<script>`, ele não pode escrever
+ * nada aqui. O `fetch` de `/api/teste` responde com um fixture de propósito.
  */
-async function paginaComOPreenchedor(salaDoFixture, antesDePreencher) {
+async function paginaComOPreenchedor(salaDoFixture) {
   const vc = new VirtualConsole();
   const queixas = [];
   vc.on('jsdomError', (e) => queixas.push((e && e.detail && e.detail.message) || (e && e.message)));
@@ -125,7 +125,7 @@ async function paginaComOPreenchedor(salaDoFixture, antesDePreencher) {
          * solta. Uma bancada com a forma errada lia o vazio e passava todas as asserções sem
          * medir nada, que é a pior espécie de prova verde. */
         const corpo = url.indexOf('/api/teste') !== -1
-          ? { ok: true, fixture: { producao: { turmas: [salaDoFixture] } } }
+          ? { ok: true, fixture: { anamnese: [], plano: [], po: [], turmas: [salaDoFixture] } }
           : { ok: true, existe: true, modalidades: [], tradicoes: {}, alunas: [], linhas: [] };
         return Promise.resolve({ ok: true, status: 200,
           json: () => Promise.resolve(corpo), text: () => Promise.resolve('') });
@@ -138,7 +138,6 @@ async function paginaComOPreenchedor(salaDoFixture, antesDePreencher) {
   });
   const w = dom.window;
   await new Promise((r) => w.setTimeout(r, 300));
-  if (antesDePreencher) antesDePreencher(w.document);
   try { w.eval(preenchedor.SCRIPT); } catch (err) { queixas.push('preenchedor: ' + err.message); }
   await new Promise((r) => w.setTimeout(r, 250));
   return { win: w, doc: w.document, queixas };
@@ -154,41 +153,31 @@ const SALA_NOVA = { nome: 'Sala Nova', dias: ['sex'], horarios: ['08:00'], durac
   }
 
   // ===========================================================================================
-  bloco('A. O PREENCHEDOR NÃO ESCREVE POR CIMA — o defeito que fabricava o 409');
+  bloco('A. O PREENCHEDOR SAIU DA PRODUÇÃO — e não volta a escrever aqui');
 
-  /* O FIXTURE É O DA ESCOLA DE TESTE, e o primeiro registo é justamente uma sala que JÁ EXISTE — é
-   * o estado real da `breu`: o fixture traz «Balé Nível 1 — Teste 3», e essa sala está no KV. Um
-   * preenchedor que a escreva no formulário de CRIAR está a pedir ao servidor para criar o que já
-   * existe, e o servidor responde, com razão, que já existe. */
-  const a1 = await paginaComOPreenchedor(SALAS[0], null);
+  /* O ESTADO NO `HEAD`: a página da escola de teste trazia `data-escola-teste` e o `<script>`, e o
+   * preenchimento automático escrevia o nome de uma sala do fixture no formulário de CRIAR —
+   * fabricando o «já existe uma turma com este nome» que ela leu. A correcção de ontem ensinou-o a
+   * não escrever por cima; a de hoje é a que ela pediu: «pode remover de lá, não vamos mais usar».
+   *
+   * AS TRÊS ALÍNEAS SÃO A REMOÇÃO INTEIRA, e cada uma fecha uma porta:
+   *   1. o HTML não traz o atributo — sem ele o script sai na primeira linha;
+   *   2. o HTML não traz o `<script>` — não há pedido a fazer;
+   *   3. corrido à mão sobre a página (a prova mais dura), ele não escreve nada. */
+  const html = aPagina();
+  provar('a Produção não traz o atributo da escola de teste',
+    !/data-escola-teste=/.test(html), null);
+  provar('…nem o `<script>` do preenchedor',
+    !/teste-preenchimento\.js/.test(html), null);
+
+  const a1 = await paginaComOPreenchedor(SALAS[0]);
   provar('a página arranca sem excepção', a1.queixas.length === 0, a1.queixas);
   const campoNome = a1.doc.getElementById('tnome');
   provar('o formulário da sala tem o campo do nome', !!campoNome, null);
-  provar('o preenchimento automático NÃO escreve o nome de uma sala que já existe',
+  provar('corrido à mão sobre a Produção, o preenchedor não escreve nada',
     String(campoNome.value) === '', campoNome.value);
-
-  /* ELA ESCREVEU, E O PREENCHEDOR VOLTA A ENTRAR. É o caso que ela descreveu — «ele não deixa eu
-   * colocar o nome da sala que eu quiser» —, medido no caminho real: o mesmo registo do fixture,
-   * outra vez, num DOM onde «#tnome» já tem o que ela escreveu. O preenchedor é o script servido,
-   * corrido uma segunda vez: é a mesma função («preencherTurma»), com o estado que ela deixou. */
-  const a2 = await paginaComOPreenchedor(SALA_NOVA, null);
-  provar('o preenchimento automático escreve num campo limpo («Sala Nova»)',
-    String(a2.doc.getElementById('tnome').value) === 'Sala Nova',
-    a2.doc.getElementById('tnome').value);
-
-  /* A SEGUNDA PASSAGEM É A DO PAINEL, e não uma reinvenção: é o `<select>` do próprio painel de
-   * teste que chama `preencherTurma` outra vez (é o caminho de quem escolhe um registo ali). Um
-   * `eval` novo do script criaria um estado novo — e não mediria nada. */
-  const campoDela = a2.doc.getElementById('tnome');
-  campoDela.value = 'Sala Rosa';
-  campoDela.dispatchEvent(new a2.win.Event('input', { bubbles: true }));
-  const seletor = a2.doc.querySelector('.teste-painel select');
-  provar('o painel de teste oferece o seletor dos registos do fixture', !!seletor, null);
-  if (seletor) seletor.dispatchEvent(new a2.win.Event('change', { bubbles: true }));
-  await new Promise((r) => a2.win.setTimeout(r, 120));
-  provar('…e o que ela escreveu sobrevive à passagem seguinte («Sala Rosa»)',
-    String(a2.doc.getElementById('tnome').value) === 'Sala Rosa',
-    a2.doc.getElementById('tnome').value);
+  provar('…e não monta o painel de teste',
+    !a1.doc.querySelector('details.teste-painel'), null);
 
   // ===========================================================================================
   bloco('\nB. AS RECUSAS DIZEM «SALA», E DIZEM QUAL É');

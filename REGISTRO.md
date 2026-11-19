@@ -52905,3 +52905,60 @@ de verdade:** `provar-teste` (44 verificações, agora passa — media `#vinc-ru
 existe), `provar-editar-professor-principal` (**13 falhas no `HEAD`, 33/33** — e passou a apanhar os
 erros do CARREGAMENTO, que é onde a excepção do `perfilDoProfessor` vivia sem deixar rasto) e
 `provar-cadastro-visivel` (**8 de 12 no `HEAD`, 12/12** — o botão medido mudou de passo).
+
+### 19/11/2026 — o preenchedor sai da Produção, e fica onde sempre pertenceu: na porta
+
+> «A gente tem a solução de testes que preenche os campos dos formulários lá na parte dos bastidores
+> produção. Pode remover de lá, não vamos mais usar. Vamos usar apenas no anamnese, plano de ensino e
+> no plano de observação. Na parte de produção para os formulários a gente não vai mais usar para
+> nenhum deles, pode tirar, não faz mais sentido ter aquilo.»
+
+**Saiu inteiro, e não ficou desligado por uma condição.** O preenchedor entrou na Produção a
+19/10/2026 para poupar digitação nas escolas de teste, e nas últimas semanas foi ele próprio a causa
+de dois defeitos: escrevia no formulário de CRIAR o nome de uma sala que já existia — e o servidor
+respondia, com razão, «já existe uma sala com este nome» —, e disputava o teclado com quem estava a
+trabalhar. A correcção de ontem ensinou-o a não escrever por cima; a de hoje é a que ela pediu, e é
+mais curta: dois donos do mesmo teclado é um a mais.
+
+O que foi removido, e de onde:
+
+1. **O `<script>` e o atributo.** `paginaProducao` deixou de os emitir, e `cabecalhoDaVista` deixou de
+   receber o número do teste — um atributo que declara uma capacidade que já não existe é a promessa
+   que ninguém cumpre. O `require` de `numeroDoTeste` em `bastidores.js` saiu com eles.
+2. **O ramo dos Bastidores no cliente.** `teste-cliente.js` ficou só com a PORTA: saíram
+   `preencherTurma`, `preencherRubrica`, `preencherTermo`, `preencherVerbetes`, `preencherAluna`,
+   `preencherCuradoria`, `autoProducao`, `painelProducao`, as fichas (`limparFichas`,
+   `adicionarFichas`), o `preencher`/`escolher` com a marca de «campo tocado» e a guarda
+   `emEdicao()` — todos existiam para os formulários da Produção. `seletorDeRegistros`, `texto`,
+   `porId`, `limparStatus` e `dizer` ficaram: a porta usa-os.
+3. **O dado.** O bloco `producao` (alunas, turmas, rubricas, vocabulário, curadorias) saiu dos três
+   fixtures, e com ele o `verbete` do `breu` — era o que o preenchedor escrevia, e o único leitor
+   era ele. A anamnese, o plano e o PO ficam: são o que a porta preenche.
+
+**O que continua a existir, e é o que ela quer:** `/api/teste` e `/scripts/teste-preenchimento.js`
+continuam servidos, e o `producao.js` continua a injectar o script — mas **só** em páginas com
+`data-tela="porta"`. Na anamnese, no plano de ensino e no plano de observação tudo funciona como
+antes.
+
+**Medido** — `experimentos/provar-teste.js`: a secção 2 mudou de sinal de propósito (antes media que a
+Produção da escola de teste RECEBIA o atributo e o script; agora mede que nenhuma escola os recebe —
+uma prova que só olhasse para a escola normal passaria com o preenchedor ainda lá), e a secção do
+preenchimento da Produção foi apagada com o que ela media. `experimentos/provar-sala-e-portao.js`,
+secção A, passou a medir a remoção inteira em três alíneas — sem o atributo, sem o `<script>`, e sem
+escrita mesmo quando o script é corrido à mão sobre a página (**3 falham no `HEAD`, 27/27 agora**).
+
+Foram reparadas três asserções que a remoção tornou falsas: a dos assets (`os Bastidores já não
+injectam`), a do `provar-teste` que lia `FIXTURE.producao` (as alunas e as turmas da porta saem agora
+da própria anamnese e do próprio plano do fixture) e duas leituras de `.res` que apanhavam o painel
+escondido do passo 1 em vez do recado à vista.
+
+**Fica por fazer, e não é desta frente:** `provar-assets-sem-worker.js` não corre — lê
+`wrangler.calango.jsonc`, que já não existe (o config da `calango` foi apagado quando ela disse «se não
+serve mais para nada pode apagar»). A bancada precisa de varrer os `wrangler.*.jsonc` que existem, e
+não de uma lista fixa.
+
+**Bancadas, medidas:** `provar-teste` 41 (eram 44: as três da Produção preenchida saíram com ela),
+`provar-sala-e-portao` 27, `provar-avancar-nao-grava` 24, `provar-salas-e-elencos` 132,
+`provar-pagina-do-professor` 17, `provar-regua-do-professor` 42, `provar-cadastro-visivel` 12,
+`provar-editar-professor-principal` 33, `provar-estado-da-turma` 28, `provar-producao` 147/159 (as
+mesmas 12), `check-identidade` ok.

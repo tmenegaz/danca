@@ -172,9 +172,12 @@ console.log('\n3 · os scripts gerados pelo motor vivem fora de `/assets/`');
   provar('nenhum script gerado ficou debaixo de `/assets/`', !geradosEmAssets);
   provar('a injeção na página aponta para `/scripts/`',
     ponte.includes('/scripts/geracao.js') && ponte.includes('/scripts/teste-preenchimento.js'));
+  /* OS BASTIDORES JÁ NÃO INJETAM NADA (19/11/2026) — «pode remover de lá, não vamos mais usar».
+   * A asserção mudou de sinal de propósito: antes media que ele injetava; agora mede que não. O
+   * script continua a ser servido (a porta usa-o), e é isso que as duas linhas de cima guardam. */
   const bastidores = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
-  provar('os Bastidores também injetam `/scripts/teste-preenchimento.js`',
-    bastidores.includes('/scripts/teste-preenchimento.js'));
+  provar('os Bastidores já não injetam `/scripts/teste-preenchimento.js`',
+    !bastidores.includes('/scripts/teste-preenchimento.js'));
 }
 
 /* ── 4. CONTROLO NEGATIVO ───────────────────────────────────────────────────────────────── */
