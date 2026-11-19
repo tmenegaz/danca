@@ -125,7 +125,7 @@
       "id": "glossario",
       "rotulo": "Glossário da notação",
       "familia": "derivado",
-      "padrao": "-glossario(?:-[a-z]+)?\\.md$",
+      "padrao": "-glossario(?:-[a-z0-9_]+)?\\.md$",
       "publico": false,
       "classificado_pelo_motor": true,
       "latente": false
@@ -168,7 +168,7 @@
     },
     {
       "id": "paginas-do-pacote",
-      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:[a-z0-9-]+/)*[a-z0-9-]+\\.html$",
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:[a-z0-9_-]+/)*[a-z0-9_-]+\\.html$",
       "motivo": "a página é a saída do pacote; o que o índice guarda é o PACOTE (o diretório) e o `ciclos.json`, não cada HTML gerado. Era `/index\\.html$`, estreita de mais: dizia-o da capa e não das nove páginas que o gerador escreve ao lado dela"
     },
     {

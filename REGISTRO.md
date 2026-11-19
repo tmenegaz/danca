@@ -54212,3 +54212,36 @@ formulário que não recolheu.
 verificações), `check-sem-destruicao` ok. Vermelhas, e já estavam: `provar-verbete` (§J, o documento
 datado de antes do ajuste), `provar-producao` 142/159 e `provar-produtos` 87/89 — as mesmas, comparadas
 com o `HEAD`.
+
+### 19/11/2026 — «sem tipo declarado»: o glossário com underscore travava o fecho dos derivados
+
+Encontrado ao conferir o deploy do commit anterior, e não é deste commit: a execução
+**75** do `derivados.yml` (`8ae0c443`, 20:52) reprovou na verificação **8 (Declaração)** do
+`check-indices`, o passo «Commitar os derivados» ficou `skipped`, e o derivado **não fechou**. As
+duas linhas que a reprovaram, e o diagnóstico:
+
+```
+professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-codigo_de_danca.md: sem tipo declarado
+professores/demi-plie/ciclos/ciclo-01-breu-rosa/glossario-codigo_de_danca.html: sem tipo declarado
+```
+
+**A causa é uma letra que os padrões não previam.** O `slugDe` do `derivar-ciclo.js` foi escrito para
+**chaves** de captura e colunas, e o comentário dele diz isso: «acentos fora, espaços → `_`». Aplicado
+a um **nome de arquivo**, dá `codigo_de_danca` — enquanto os padrões de declaração do acervo só
+conheciam `[a-z]` (`-glossario(?:-[a-z]+)?\.md$`) e `[a-z0-9-]` (`…/[a-z0-9-]+\.html$`). O glossário
+do «Código de dança» é o **primeiro** cujo slug tem mais de uma palavra, e por isso o defeito só
+apareceu hoje. O «Benesh» nunca o revelou porque não tem separador nenhum.
+
+**A correcção é declarativa e não mexe em dado nenhum:** os dois padrões passam a aceitar `_`
+(`[a-z0-9_]+` no sufixo do glossário, `[a-z0-9_-]+` nas páginas do pacote). Renomear os ficheiros para
+kebab-case seria a outra saída — e é **decisão da proprietária**, não minha: o nome já está no
+`DOCS` do manifesto e no pacote publicado, e mudá-lo mexe em dado e em âncora. Fica declarado aqui.
+
+**E o gatilho do workflow ficou completo:** `indices/esquema/**` passou a estar na lista `paths`.
+Faltava — ao lado dos geradores que lêem a declaração (`tools/gerar-indices.js`,
+`motor/servidor/indice-acervo.js`), que já lá estavam. Sem isso, corrigir a declaração não re-avalia o
+estado que já está no `main`.
+
+**Medido:** `check-indices` **16 verificações, 0 falhas** (antes: 2 falhas na verificação 8);
+`check-pacote` do `demi-plie/ciclos/ciclo-01-breu-rosa` ok, 0 erros e 0 avisos; `check-glossario` ok;
+`provar-dicionario` 123; `check-sem-destruicao` ok.

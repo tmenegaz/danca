@@ -38,6 +38,13 @@ on:
       - 'wrangler.*.jsonc'
       - 'motor/nucleo/indices.js'
       - 'motor/servidor/indice-acervo.js'
+      # A DECLARAÇÃO DOS TIPOS ENTRA AQUI (19/11/2026). Ela é o que a verificação 8 do
+      # `check-indices` lê para dizer se todo arquivo do acervo casa um tipo — e ficou de fora desta
+      # lista, ao lado dos geradores que a usam. O sintoma que o revelou: um glossário novo
+      # (`-glossario-codigo_de_danca.md`, com underscore) reprovou a verificação em três execuções
+      # seguidas, o passo «Commitar os derivados» ficou `skipped`, e o derivado não fechou. Mudar a
+      # declaração tem de valer para o estado que já está no `main`, como qualquer gerador.
+      - 'indices/esquema/**'
       - 'tools/gerar-indices.js'
       - 'tools/gerar-relacoes.js'
       - 'tools/hash-ciclo.sh'
