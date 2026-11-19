@@ -53993,3 +53993,32 @@ reescrita para a regra de hoje, com a negativa ao lado (membro inventado continu
 nela a falha da §J, que já reprovava no `HEAD`. Vizinhas: `provar-producao` 142/159 (as mesmas do
 `HEAD`, medido nos dois lados), `provar-produtos` 87/89 (as mesmas do `HEAD`), `provar-menu-da-
 producao` 55/55, `provar-painel` ok.
+
+### 19/11/2026 — «Grava e não persiste»: a prova no dado, e a escrita que ia para o catálogo
+
+**O que se viu no repositório, depois da correcção.** As duas edições que ela fez no Dicionário, no
+mesmo dia, mostram o antes e o depois — e são a demonstração mais directa de que o defeito era de
+destino e não de gravação:
+
+| commit | quando | a que cópia foi | o que mudou |
+|:--|:--|:--|:--|
+| `4ee5df1f` / `9a96e4a2` | 16:31 / 16:34 | **a do CATÁLOGO** | `complexidade: simples → complexo` |
+| `b05b3274` | 16:47 | **a da `breu`** | `passo → posicao`, `compartilhada → francesa`, `simples → complexo` |
+| `57ce458a` | 16:50 | **a da `breu`** | e desfez a anterior — a `breu` volta a `passo`, `compartilhada`, `simples` |
+
+O primeiro par é o defeito: ela mudava o «Plié» que **via** (o da `breu`) e o commit caía no termo
+do **catálogo**, porque as rotas procuravam só pelo `id` e o `findIndex` achava a primeira cópia. A
+tela continuava a mostrar a versão dela, intocada — daí «grava e não persiste». O segundo commit,
+feito já com a correcção no ar, foi para a cópia certa e com os três campos que ela pediu.
+
+**A correcção do dado que o primeiro par deixou.** O «Plié» do catálogo ficou com `complexidade:
+complexo` por efeito do defeito, não por decisão — a classificação decidida para os `passo` é
+`simples`, e é a que as outras escolas devem ver. Reposto. O da `breu` **ela própria desfez** três
+minutos depois de o gravar (`57ce458a`), e ficou como estava — a decisão é dela, e o registo guarda
+as duas coisas: o que o defeito escreveu no sítio errado, e o que ela quis depois de o poder gravar
+no sítio certo. Nota datada, porque mexe em dado que ela escreveu: **se a intenção for outra, é uma
+edição no Dicionário, e agora grava onde se vê.**
+
+**E o dado que continua a ser dela:** o «Plié» da `breu` está com a **definição do «Tandu»**. Não é
+código, e não se corrige por inferência — editar o termo, ou apagá-lo para a versão do catálogo
+voltar a valer (o `DELETE` passou a fazer isso, e diz que o fez).
