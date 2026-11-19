@@ -183,7 +183,13 @@ async function abrir({ turmas = [SALA_ROSA], curadorias = [], profs = PROF_COM_R
 
   await espera(400);
   const d = dom.window.document;
+  /* O CONTEÚDO E O MIOLO ABERTOS COMO A APLICAÇÃO OS ABRE (19/11/2026). Sem isto, `#conteudo` e
+   * `#turmas-paineis` ficam `[hidden]` no jsdom (é o portão e o acordeão), e `alvoDoRecado` — que
+   * prefere o `.res` À VISTA — não encontra nenhum e cai no primeiro, que está escondido. A bancada
+   * estaria a medir a própria falta de sessão em vez da página. */
+  dom.window.document.getElementById('conteudo').hidden = false;
   d.getElementById('sec-turmas').hidden = false;
+  if (typeof dom.window.definirFormularioRecolhido === 'function') dom.window.definirFormularioRecolhido(false);
 
   const clicar = (el) => el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
   const escolher = (id, valor) => {
@@ -416,6 +422,116 @@ const vigentes = (kv) => JSON.parse(kv.bruto.get('bastidores/breu/turmas') || '[
     conferir('…e o ritmo novo foi gravado', salva && Number(salva.duracaoMin) === 75, salva && salva.duracaoMin);
     conferir('…e o professor dela NÃO se perdeu', salva && salva.professor === 'bom-bom', salva && salva.professor);
     conferir('…e nem a modalidade', salva && salva.modalidade === 'Balé clássico', salva && salva.modalidade);
+    a.fechar();
+  }
+
+  // ===========================================================================================
+  console.log('\nG. Compor no passo 1 uma sala que JÁ EXISTE: é a mesma sala, e ela recebe o professor');
+
+  {
+    /* O SILÊNCIO QUE ELA ENCONTROU, e não estava em nenhuma das correcções anteriores.
+     *
+     * Ela compôs a sala no passo 1 — nome «Rosa», os dias e as horas —, avançou, escolheu a
+     * modalidade e o professor, e clicou «Gravar sala». O cliente tomou o caminho de CRIAR (não
+     * havia sala em foco, porque ela não clicou «Editar»), e o servidor recusou: «já existe uma sala
+     * com o nome «Rosa»». A associação não era gravada, e a recusa ia para o `.res` do PASSO 1 — que
+     * está `hidden` enquanto o passo 2 está aberto. A tela ficava igual.
+     *
+     * A sala não tem nome próprio: o `id` dela é o slug do nome. Duas com o mesmo nome e o mesmo
+     * ritmo são a mesma sala, e o acto é o mesmo — completá-la. É o que esta secção mede. */
+    const a = await abrir();
+    const preencher = (id, valor) => {
+      const el = a.d.getElementById(id);
+      el.value = valor;
+      el.dispatchEvent(new a.W.Event('input', { bubbles: true }));
+    };
+    preencher('tnome', 'Sala Rosa');
+    preencher('tduracao', '60');
+    preencher('tinicio', '2026-11-01');
+    preencher('tfim', '2026-12-01');
+    const seg = a.d.querySelector('#tdias input[name="dia"][value="seg"]');
+    if (seg) { seg.checked = true; seg.dispatchEvent(new a.W.Event('change', { bubbles: true })); }
+    const hora = a.d.querySelector('.hora-do-dia[data-dia="seg"]');
+    if (hora) { hora.value = '18:00'; hora.dispatchEvent(new a.W.Event('change', { bubbles: true })); }
+    await espera(150);
+
+    a.clicar(a.d.getElementById('t-enviar'));
+    await espera(150);
+    conferir('o passo «Associar» abre com a sala composta', !a.d.getElementById('passo-vincular').hidden, null);
+    a.escolher('vinc-modalidade', 'Balé clássico');
+    await espera(250);
+    a.escolher('vinc-professor', 'bom-bom');
+    await espera(100);
+
+    const antes = a.escritas().length;
+    a.clicar(a.d.getElementById('vinc-gravar'));
+    await espera(600);
+    const feitas = a.escritas().slice(antes);
+
+    conferir('gravar a associação de uma sala que já existe é UM pedido', feitas.length === 1,
+      feitas.map((p) => p.caminho + ' ' + p.status));
+    conferir('…e ele responde 200 — a sala que já existe não é recusada', feitas[0] && feitas[0].status === 200,
+      feitas[0] && feitas[0].resposta);
+    conferir('…e a resposta diz que a sala foi reaproveitada',
+      feitas[0] && /"reaproveitada":\s*true/.test(feitas[0].resposta), feitas[0] && feitas[0].resposta);
+
+    const salas = vigentes(a.kv);
+    conferir('…e NÃO nasceu uma segunda sala com o mesmo nome', salas.length === 1, salas.map((t) => t.nome));
+    const salva = salas.find((t) => t.nome === 'Sala Rosa');
+    conferir('…e a sala ficou com o professor que se associou',
+      salva && salva.professor === 'bom-bom', salva && salva.professor);
+    conferir('…e com a modalidade', salva && salva.modalidade === 'Balé clássico', salva && salva.modalidade);
+    /* O RITMO DELA NÃO É TOCADO: o passo 2 acrescenta o par, e não reescreve o que o passo 1 não
+     * mudou. */
+    conferir('…e o ritmo que já estava não foi reescrito', salva && Number(salva.duracaoMin) === 60,
+      salva && salva.duracaoMin);
+    a.fechar();
+  }
+
+  // ===========================================================================================
+  console.log('\nH. E a recusa aparece ONDE SE CLICOU — no passo «Associar», à vista');
+
+  {
+    /* A MESMA SALA, OUTRO RITMO: aí são duas intenções a disputar um nome, e a recusa é a resposta
+     * certa. O que não pode acontecer é ela ser escrita num `.res` escondido — foi o que fez três
+     * relatos de «não gravou» sem uma única mensagem à vista. */
+    const a = await abrir();
+    const preencher = (id, valor) => {
+      const el = a.d.getElementById(id);
+      el.value = valor;
+      el.dispatchEvent(new a.W.Event('input', { bubbles: true }));
+    };
+    preencher('tnome', 'Sala Rosa');
+    preencher('tduracao', '60');
+    preencher('tinicio', '2026-11-01');
+    preencher('tfim', '2026-12-01');
+    const seg = a.d.querySelector('#tdias input[name="dia"][value="seg"]');
+    if (seg) { seg.checked = true; seg.dispatchEvent(new a.W.Event('change', { bubbles: true })); }
+    const hora = a.d.querySelector('.hora-do-dia[data-dia="seg"]');
+    if (hora) { hora.value = '19:30'; hora.dispatchEvent(new a.W.Event('change', { bubbles: true })); }
+    await espera(150);
+    a.clicar(a.d.getElementById('t-enviar'));
+    await espera(150);
+    a.escolher('vinc-modalidade', 'Balé clássico');
+    await espera(250);
+    a.escolher('vinc-professor', 'bom-bom');
+    await espera(100);
+
+    const antes = a.escritas().length;
+    a.clicar(a.d.getElementById('vinc-gravar'));
+    await espera(600);
+    const feitas = a.escritas().slice(antes);
+    conferir('com outro ritmo, a recusa é 409', feitas[0] && feitas[0].status === 409,
+      feitas[0] && feitas[0].status);
+
+    const resDoPar = a.d.querySelector('.res[data-res="sala-par"]');
+    conferir('o passo «Associar» tem o seu próprio recado', Boolean(resDoPar), null);
+    conferir('…e é ELE que recebe a recusa, e não o do passo 1',
+      resDoPar && /já existe uma sala com o nome/.test(resDoPar.textContent), resDoPar && resDoPar.textContent);
+    conferir('…e está à vista — não dentro de um painel escondido',
+      resDoPar && !resDoPar.closest('[hidden]'), resDoPar && Boolean(resDoPar.closest('[hidden]')));
+    conferir('…e a sala ficou sem professor, e continua uma só',
+      vigentes(a.kv).length === 1 && !vigentes(a.kv)[0].professor, vigentes(a.kv).map((t) => [t.nome, t.professor]));
     a.fechar();
   }
 

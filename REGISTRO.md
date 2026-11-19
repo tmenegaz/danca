@@ -53310,3 +53310,52 @@ escrita, e quem encadeia manda na recarga.
 `provar-salas-e-elencos` 132, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
 `provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-abas-da-audicao` 125,
 `provar-teste` 41, `check-identidade` ok.
+
+### 19/11/2026 — O terceiro relato do mesmo «não gravou»: a recusa ia para um painel escondido
+
+«Não deu certo. Não gravou a associação da sala com o professor.»
+
+**Medido em produção, antes de mexer em nada.** `GET /api/bastidores/turmas` da `breu`: uma sala,
+`Rosa`, com `professor: ''` e `modalidade: ''` — e o ritmo dela correcto (seg, qua, sex às 16:30,
+45 min, 2027-03-03 a 2027-06-30). Ou seja: o pedido da associação **não** chegou a escrever. O
+servidor, com esses mesmos dados, responde **200** quando lhe chega o par — reproduzido nas duas
+rotas, `turma-editar` e `turma-derivar`. A falha não estava no que eu tinha corrigido.
+
+**A causa, encontrada ao reproduzir o gesto e não a rota.** Ela compôs a sala **no passo 1** — nome,
+dias, horas —, avançou, escolheu a modalidade e o professor, e clicou «Gravar sala» **sem** ter
+clicado «Editar» na lista. O cliente tomou o caminho de CRIAR (não havia sala em foco), e o servidor
+recusou: *«já existe uma sala com o nome «Rosa» — abra-a em «Editar» para a corrigir»*. E a recusa foi
+escrita num `.res` **dentro do painel do passo 1, que está `hidden`** enquanto o passo 2 está aberto:
+`alvoDoRecado()` prefere o `.res` à vista e, sem nenhum, cai no primeiro da secção — o escondido. O
+erro existia no DOM, o trabalho não era gravado, e a tela ficava igual. Três relatos, zero mensagens.
+
+**Duas correções, e a segunda é a que faltava desde o primeiro relato.**
+
+1. **O passo 2 tem o seu próprio `.res`** (`data-res="sala-par"`). O passo que age é o passo que
+   responde — e é a mesma lição do `.res` do professor, que já tinha obrigado a corrigir este
+   critério a 19/11. Sem isto, qualquer recusa do «Associar» volta a ser silenciosa.
+2. **A sala que já existe não se recusa: completa-se.** A sala não tem nome próprio — o `id` é o slug
+   do nome. Quando o que se compõe tem o **mesmo nome e o mesmo ritmo** de uma sala gravada, é a
+   mesma sala, e o passo 2 acrescenta-lhe o professor **numa escrita**, sem tocar no ritmo. Nome
+   igual com ritmo diferente é outra coisa — duas intenções a disputar um nome —, e aí a recusa
+   mantém-se (agora à vista, e a dizer o caminho).
+
+**Medido** — `provar-associar-grava.js` cresceu de 36 para **49 asserções**, com duas secções novas:
+a **G** compõe a sala que já existe e verifica o 200, o `reaproveitada: true`, a ausência de uma
+segunda sala e o par gravado com o ritmo intacto; a **H** compõe com outro horário e verifica o 409,
+o recado no `.res` do passo 2 e que ele **não** está dentro de um `[hidden]`. **Controle negativo**
+(recusa sempre, e sem o `.res` novo): a G falha as cinco asserções do par e a H falha as duas do
+recado — «o passo «Associar» tem o seu próprio recado → null».
+
+A bancada passou a abrir `#conteudo` e `#turmas-paineis` como a aplicação os abre: sem isso, o
+`[hidden]` do portão e do acordeão fazia `alvoDoRecado` cair no primeiro `.res` e a bancada media a
+própria falta de sessão em vez da página.
+
+**Nota operacional.** O `wrangler.breu.jsonc` não existe na raiz (só `wrangler.danca.jsonc` e
+`wrangler.lastro-teste.jsonc`): o diagnóstico em produção foi feito pela rota pública de leitura das
+salas, uma chamada — sem tocar no KV e sem gastar cota.
+
+**Bancadas, medidas:** `provar-associar-grava` 49, `provar-avancar-nao-grava` 24,
+`provar-salas-e-elencos` 132, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
+`provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-abas-da-audicao` 125,
+`provar-passos-uniformes` 45, `provar-teste` 41, `check-identidade` ok.

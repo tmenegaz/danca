@@ -287,6 +287,18 @@ continuo», e a recarga é dele — o `enviar` não recarrega por ele. Uma escri
 perde; uma cadeia, sim. Medido em `provar-associar-grava.js`, com as rotas a correr a sério: um POST
 por gravação, e o par no elo certo.
 
+**E UM RECADO QUE NINGUÉM VÊ É PIOR DO QUE NENHUM (19/11/2026).** Cada passo de um formulário precisa
+do seu `.res`: `alvoDoRecado()` prefere o primeiro `.res` **à vista**, e sem nenhum cai no primeiro da
+secção — que pode estar dentro do painel escondido. Foi assim que uma recusa («já existe uma sala com
+o nome «Rosa» — abra-a em «Editar»») existiu no DOM, o trabalho não foi gravado, e a tela ficou igual,
+três vezes. A regra: **o passo que age é o passo que responde**, e o recado dele vive dentro dele.
+
+**E A SALA QUE JÁ EXISTE NÃO SE RECUSA — COMPLETA-SE (19/11/2026).** A sala não tem nome próprio: o
+`id` é o slug do nome, e é por ele que a curadoria e o plano a referenciam. Quando o passo 1 compõe
+uma sala com o nome **e o ritmo** de uma que já está gravada, é a mesma sala: o passo 2 acrescenta-lhe
+o professor, numa escrita, e o ritmo dela não é tocado. Nome igual com ritmo diferente é outra coisa —
+duas intenções a disputar um nome —, e aí a recusa é a resposta certa (e diz-se à vista).
+
 **E O QUE NÃO VEIO DO FORMULÁRIO NÃO SE APAGA (19/11/2026).** `normalizarTurma` emite `modalidade` e
 `professor` sempre — vazios quando o corpo não os manda —, e a edição copia os campos presentes: um
 vazio copiado é um campo apagado. Como o passo 1 já não recolhe os dois, corrigir o ritmo de uma sala

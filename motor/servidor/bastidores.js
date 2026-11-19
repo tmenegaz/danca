@@ -8557,6 +8557,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="vinc-regua">—</p>' +
     '<p class="nota" id="vinc-estado"></p>' +
     '</fieldset>' +
+    /* O RECADO DESTE PASSO TEM DE ESTAR À VISTA (19/11/2026) — e a falta dele custou três relatos.
+     *
+     * «Não gravou a associação da sala com o professor.» O pedido saía, o servidor recusava com uma
+     * frase que dizia exactamente o que fazer («já existe uma sala com o nome «Rosa» — abra-a em
+     * «Editar» para a corrigir»), e a frase era escrita no `.res` do PASSO 1 — que está `hidden`
+     * enquanto o passo 2 está aberto. `alvoDoRecado()` procura o primeiro `.res` à vista e, sem
+     * nenhum, cai no primeiro da secção: o escondido. O erro existia no DOM, o trabalho não era
+     * gravado, e a tela ficava igual. É a pior espécie de silêncio, e é a mesma família do recado
+     * do professor que a 19/11 já tinha obrigado a corrigir este mesmo critério.
+     *
+     * Com um `.res` aqui dentro, o passo 2 tem para onde dizer o que correu mal — e é este que
+     * `alvoDoRecado` encontra enquanto este painel está aberto. */
+    '<div class="res" data-res="sala-par"></div>' +
     // OS CONTEÚDOS NÃO ESTÃO AQUI (03/11/2026) — eles passaram para a curadoria, que é onde se
     // declara o que se ensina. A nota antiga fica na memória do registo: `motor/nucleo/conteudos.js`
     // continua a LER o mapa antigo, e o cartão da turma continua a mostrá-lo.
@@ -21968,6 +21981,33 @@ async function conferirOParDaSala({ env, kv, escola, modalidade, professor }) {
   return { ok: true, modalidade: mod, professor: prof, regua };
 }
 
+/* DUAS SALAS COM O MESMO RITMO SÃO A MESMA SALA (19/11/2026).
+ *
+ * A SALA NÃO TEM NOME PRÓPRIO: o `id` dela é o slug do nome, e é por ele que a curadoria e o plano
+ * a referenciam. Duas salas com o mesmo nome e o mesmo ritmo são, para todos os efeitos, a mesma
+ * sala — e é isso que impede a sequência de se partir quando a pessoa compõe no passo 1 uma sala
+ * que já existe.
+ *
+ * A COMPARAÇÃO É DO RITMO INTEIRO, e não do nome: se o nome coincide mas os dias, as horas, a
+ * duração ou o período não, então são duas intenções diferentes a disputar um nome — e aí a recusa
+ * é a resposta certa. O que se quer distinguir é «é a mesma sala» de «quer uma sala nova com um
+ * nome que já está tomado».
+ */
+function mesmoRitmoDaSala(a, b) {
+  const x = a || {};
+  const y = b || {};
+  const dias = (t) => (Array.isArray(t.dias) ? t.dias.slice() : []).map(String).sort().join(',');
+  const hora = (t, d) => String(((t.horarios || {})[d]) || '');
+  const horas = (t) => (Array.isArray(t.dias) ? t.dias.slice() : []).map(String).sort()
+    .map((d) => d + '=' + hora(t, d)).join(',');
+  const num = (v) => (v == null || v === '' ? '' : String(Number(v)));
+  return dias(x) === dias(y)
+    && horas(x) === horas(y)
+    && num(x.duracaoMin) === num(y.duracaoMin)
+    && String(x.periodoInicio || '') === String(y.periodoInicio || '')
+    && String(x.periodoFim || '') === String(y.periodoFim || '');
+}
+
 /* O PAR QUE O PEDIDO TRAZ, COMPLETADO PELO QUE A SALA JÁ TEM (19/11/2026).
  *
  * `corpo.modalidade || registo.modalidade` é a regra de sempre — quem manda só metade não apaga a
@@ -22094,19 +22134,40 @@ function parDaSalaNoCorpo(corpo, registo) {
         });
       }
       const ocupa = turmaVigentePorNome(lista, declarada.nome);
-      if (ocupa) {
+      if (ocupa && !mesmoRitmoDaSala(ocupa, declarada)) {
+        /* O NOME ESTÁ TOMADO POR OUTRA INTENÇÃO, e a recusa diz o que fazer. O recado desta rota
+         * aparece no `.res` do passo «Associar» — à vista, e não no do passo 1, que está escondido
+         * (era por isso que esta mensagem existia no DOM e ninguém a via). */
         return json(409, {
           ok: false,
-          erro: 'já existe uma sala com o nome «' + declarada.nome + '» — abra-a em «Editar» para a corrigir',
+          erro: 'já existe uma sala com o nome «' + declarada.nome + '» e outro ritmo — abra-a em '
+            + '«Editar» para a corrigir, ou dê outro nome a esta',
+          falta: ['nome'],
         });
       }
-      if (declarada.ordem === null) {
-        declarada.ordem = (lista.reduce((menor, t) => (t && Number.isFinite(Number(t.ordem))
-          ? Math.min(menor, Number(t.ordem)) : menor), 0)) - 1;
+      if (ocupa) {
+        /* É A MESMA SALA (19/11/2026) — «não persistiu os dados que eu gravei na associação».
+         *
+         * O passo 1 compõe o ritmo; o passo 2 dá-lhe o professor. Quando a sala composta já existe
+         * com aquele nome E aquele ritmo, o acto é o mesmo: completá-la. Recusar obrigava a pessoa
+         * a sair do formulário, encontrar a sala na lista, clicar «Editar» e repetir tudo — e, como
+         * a recusa era escrita num `.res` escondido, ela não sabia sequer que havia recusa.
+         *
+         * O que NÃO se faz é tocar no ritmo dela: nenhum campo é reescrito aqui. O que se acrescenta
+         * é o par, três parágrafos abaixo, na mesma escrita.
+         */
+        sala = ocupa;
+        corpo.criada = false;
+        corpo.reaproveitada = true;
+      } else {
+        if (declarada.ordem === null) {
+          declarada.ordem = (lista.reduce((menor, t) => (t && Number.isFinite(Number(t.ordem))
+            ? Math.min(menor, Number(t.ordem)) : menor), 0)) - 1;
+        }
+        lista.push(declarada);
+        sala = declarada;
+        corpo.criada = true;
       }
-      lista.push(declarada);
-      sala = declarada;
-      corpo.criada = true;
     }
 
     /* O PAR, CONFERIDO PELA FUNÇÃO QUE AS TRÊS ROTAS PARTILHAM (19/11/2026) — ver
@@ -22145,6 +22206,7 @@ function parDaSalaNoCorpo(corpo, registo) {
        * lista mostrava a sala, e o passo 2 pedia uma sala que existia. */
       id: sala.id,
       criada: corpo.criada === true,
+      reaproveitada: corpo.reaproveitada === true,
       professor,
       modalidade,
       rubrica: { nome: regua.nome, niveis: regua.niveis },
