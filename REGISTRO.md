@@ -54022,3 +54022,69 @@ edição no Dicionário, e agora grava onde se vê.**
 **E o dado que continua a ser dela:** o «Plié» da `breu` está com a **definição do «Tandu»**. Não é
 código, e não se corrige por inferência — editar o termo, ou apagá-lo para a versão do catálogo
 voltar a valer (o `DELETE` passou a fazer isso, e diz que o fez).
+
+### 19/11/2026 — «Recarregou a página inteira» — e o «complexidade» que passou a «classificação»
+
+**1. A pergunta dela era de arquitectura, e a resposta não é o KV.**
+
+> «Quando eu estou no framework do Angular, por exemplo, ou do React, e eu faço uma edição, eu uso o
+> PUT, eu vejo que a página inteira não é carregada. […] Agora eu fiz um ajuste […] apareceu o véu de
+> gravar, só que aí recarregou a página inteira […] Parece que eu estou gastando mais recurso fazendo
+> isso. […] Ou isso é algo da nossa arquitetura e não tem como fazer isso sem aumentar os custos do
+> KV?»
+
+**O KV nunca entrou nesta conta.** Desde 19/10/2026 o acervo é o repositório, e o vocabulário está
+**empacotado no bundle** do Worker: `GET /api/bastidores/termos` compõe a lista em memória — zero
+linha de KV, zero ida ao GitHub. O que recarregava era o **padrão de desenho** — a página é
+desenhada no servidor, e a maneira de a manter verdadeira era pedi-la outra vez. Um `PUT` respondia
+`ok`, e o cliente chamava `location.reload()`.
+
+**O que se perdia não era tempo, era o fio.** O véu cruzava o ecrã, a página voltava ao topo, o
+formulário desaparecia e o ponto de leitura perdia-se — por causa de um campo que mudou numa linha.
+E o custo era, de facto, maior: redesenhar ~350 KB de HTML e voltar a correr todos os scripts para
+mostrar «Passo» onde passou a estar «Posição».
+
+**A regra, e é a que o elenco já seguia desde 09/11/2026: a lista recarrega-se, a página não.**
+Duas metades, um critério — se a tela é montada no cliente a partir de um endpoint, relê-se o
+endpoint; se a escrita mudou a **identidade** do registo (derivar uma turma troca o `id`) ou o estado
+que os passos leem da página, recarrega-se, e aí há motivo. Escrito na §5.30 do
+`ARQUITETURA-GERAL.md`, porque esta pergunta vai voltar.
+
+**Os três gestos do Dicionário passaram a mudar a lista no lugar** — gravar, apagar e «Carregar
+verbetes». O formulário fica **aberto e limpo** depois de gravar (recolher é o gesto do «Cancelar», e
+quem corrige vários verbetes seguidos fecharia e reabriria a cada um), e o recado diz o que
+aconteceu — incluindo o `criouVersao`, que é a diferença entre «gravei» e «gravei para mim». A
+exclusão e a carga escrevem num `.res` **na coluna da listagem**: o formulário pode estar recolhido,
+e um recado dentro dele não se lê.
+
+**2. «Não é complexidade o label do campo.»**
+
+> «Na complexidade, que a gente vai chamar de classificação, não é complexidade o label do campo. Aí
+> os valores sim, é simples ou complexo, mas o nome não é complexidade. No label você vai substituir
+> por classificação.»
+
+O rótulo passou a **«Classificação»** — no formulário, no cartão e no «?». A **chave gravada continua
+`complexidade`**: renomeá-la reescreveria 98 verbetes (e os da escola) para dizer a mesma coisa.
+
+**E o texto do «?» estava a explicar outra coisa, e ela corrigiu-o.** Dizia «o mesmo exercício é
+simples para quem já o tem e complexo para quem o está a aprender» — uma explicação de gosto. A régua
+é outra: **simples** é o que não pede nenhum exercício, passo ou movimento anterior, e ensina-se
+directo; **complexo** é o que reúne mais de um simples, e quem o aprende já tem de ter aprendido os
+que o compõem (o *fondue* pede o *plié*, o *coupé*, o *retiré* e o *attitude*). E serve para uma coisa
+concreta — é um **aviso a quem monta a aula**: «minha turma é iniciante, se eu botar algo complexo
+aqui já não está legal». É a proposta dela, e é declarada como tal: os professores, em geral, não
+classificam o passo; consideram a combinação na música. O que fica escrito é o critério dela, para o
+sistema não inventar outro.
+
+**Medido.** `provar-dicionario` passou a **112** asserções. As três secções novas que interessam:
+- **§J corre o script num DOM (jsdom)** — é a única prova desta casa que mede a *ausência de
+  navegação*: grava, apaga e carrega, e conta as navegações que o jsdom recusa. **Zero.** O cartão
+  muda à vista, o formulário fica limpo, e o recado aparece onde deve.
+- A negativa: nenhum dos três gestos do Dicionário chama `location.reload`.
+- O rótulo e o texto: «Classificação», e a régua escrita com as três peças (simples sem precedência,
+  complexo a reunir, aviso à aula).
+
+**Controlo negativo:** repondo o `location.reload()` na gravação, **9 de 112 reprovam**.
+`check-identidade` ok (22 verificações). Vizinhas: `provar-verbete` (a falha da §J, que já reprovava
+no `HEAD`), `provar-producao` 142/159 — **as mesmas 17 do `HEAD`**, comparadas uma a uma —,
+`provar-menu-da-producao` 55/55, `provar-painel` ok.

@@ -8730,8 +8730,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // contrário.
     //
     // AS TRÊS CLASSIFICAÇÕES SÃO OS TRÊS NICHOS da listagem: a categoria (o que o exercício é na
-    // gramática), a tradição (de onde vem o nome) e a complexidade (simples ou complexo, aos olhos
-    // de quem ensina).
+    // gramática), a tradição (de onde vem o nome) e a CLASSIFICAÇÃO — o nome do campo passou a ser
+    // este a 19/11/2026. «Complexidade» era o rótulo, e dizia outra coisa: ver a nota do campo,
+    // mais abaixo, onde a régua dela está escrita.
     // ---------------------------------------------------------------------------
     '<section class="secao" id="sec-dicionario" data-recolhido="sim" hidden>' +
     tituloComAcordeao('sec-dicionario', 'Dicionário', 'dicionario-miolo') +
@@ -8758,9 +8759,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     TRADICOES_DO_VOCABULARIO.map((t) =>
       '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('') +
     '</select>' +
-    /* A COMPLEXIDADE É O CAMPO NOVO, e o vazio é uma resposta: «ainda não classificado». Os 98
-     * verbetes que já existem estão nesse estado, e nenhum deles é um erro. */
-    '<label class="campo-rotulo" for="diccomplexidade">Complexidade</label>' +
+    /* «CLASSIFICAÇÃO», E NÃO «COMPLEXIDADE» (19/11/2026).
+     *
+     * «Na complexidade […] não é complexidade o label do campo. Aí os valores sim, é simples ou
+     * complexo, mas o nome não é complexidade. No label você vai substituir por classificação.»
+     *
+     * O `id` e a chave gravada continuam `diccomplexidade` e `complexidade`: o nome do campo no
+     * DADO não muda quando o rótulo muda — renomear a chave reescreveria os 98 verbetes (e o
+     * `complexidade` dos da escola) para dizer a mesma coisa, e é a classe de mudança que este
+     * repositório não faz sem motivo. O que se lia na tela é o que se corrige.
+     *
+     * O VAZIO É UMA RESPOSTA: «ainda não classificado». Os 98 verbetes anteriores a este campo
+     * estão nesse estado, e nenhum deles é um erro. */
+    '<label class="campo-rotulo" for="diccomplexidade">Classificação</label>' +
     '<select id="diccomplexidade">' +
     '<option value="">— ainda não classificado —</option>' +
     COMPLEXIDADES_DO_VOCABULARIO.map((c) =>
@@ -8800,6 +8811,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `display` para o pai e sai deitado — as três caixas ficam ao lado dos botões e espremidas na
      * coluna que sobra. É o mesmo defeito que a Audição corrigiu a 05/11/2026 com o `.lb-cartoes`,
      * e a peça certa é a declarada na folha: `.trio-lista`, o `<ul>` dos cartões. */
+    /* O RECADO DA LISTAGEM (19/11/2026). O `.res` do formulário serve o que se grava nele — mas o
+     * formulário RECOLHE, e um recado escrito lá dentro não se lê. Excluir e «Carregar verbetes»
+     * acontecem com o formulário fechado (o Excluir está no cartão), e a resposta tem de aparecer
+     * ao lado do que mudou. É a peça `.res`, que a folha já desenha — não nasce classe nenhuma. */
+    '<div class="res" data-res="dic-lista" id="dic-res-lista"></div>' +
     '<div class="rolagem"><ul class="trio-lista" id="lista-dicionario"></ul></div>' +
     rodapePaginacao() +
     '</div>' +
@@ -17413,12 +17429,42 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    "<div class=\\"trio\\">" +' +
     '      caixaDoDicionario("categoria", "Categoria", cat || "—", "ver a categoria", id) +' +
     '      caixaDoDicionario("tradicao", "Tradição", tra || "—", "ver a tradição", id) +' +
-    '      caixaDoDicionario("complexidade", "Complexidade", cplx, "ver a complexidade", id) +' +
+    '      caixaDoDicionario("complexidade", "Classificação", cplx, "ver a classificação", id) +' +
     '    "</div>" +' +
     '    painelDoDicionario("categoria", id, "<p class=\\"trio-nota\\">A categoria diz o que o exercício é na gramática — passo, posição, direção, ligação, salto ou giro. É ela que separa os exercícios na lista do Estilo.</p>") +' +
     '    painelDoDicionario("tradicao", id, "<p class=\\"trio-nota\\">A tradição diz de onde vem o nome. É a mesma que o «Método deste exercício» herda no Estilo.</p>") +' +
-    '    painelDoDicionario("complexidade", id, "<p class=\\"trio-nota\\">A complexidade é a classificação de quem ensina: o mesmo exercício é simples para quem já o tem e complexo para quem o está a aprender. «—» quer dizer ainda não classificado.</p>") +' +
+    /* O QUE O CAMPO QUER DIZER — na régua dela, e não na minha (19/11/2026).
+     *
+     * O texto anterior («o mesmo exercício é simples para quem já o tem e complexo para quem o
+     * está a aprender») era uma explicação de gosto, e ela corrigiu-o: a classificação não é o que
+     * o professor acha do exercício, é o que o exercício EXIGE para ser aprendido. «Simples» é o
+     * que não tem precedente — pode ensinar-se directo; «complexo» reúne mais de um simples, e
+     * quem o aprende já tem de ter aprendido os que o compõem (o fondue pede o plié, o coupé, o
+     * retiré e o attitude primeiro).
+     *
+     * E serve para uma coisa concreta: é um aviso a quem monta a aula. «Minha turma é iniciante, se
+     * eu botar algo complexo aqui já não está legal.» O texto diz isso, porque é isso que a
+     * classificação é — e não uma nota sobre a dificuldade em abstracto. */
+    '    painelDoDicionario("complexidade", id, "<p class=\\"trio-nota\\"><b>Simples</b> é o exercício que não pede nenhum exercício, passo ou movimento anterior — pode ser ensinado directo, sem precedência. <b>Complexo</b> é o que reúne mais de um simples: quem o aprende já tem de ter aprendido os que o compõem. Serve de aviso ao montar a aula — numa turma iniciante, o complexo pede primeiro os simples que lhe faltam. «—» quer dizer ainda não classificado.</p>") +' +
     '    "</li>";' +
+    '}' +
+    /* PINTAR É UMA COISA, IR BUSCAR É OUTRA (19/11/2026). Estavam na mesma função, e por isso
+     * quem já tinha o registo na mão (a resposta da gravação) não tinha como o pôr na lista sem
+     * voltar a pedir a lista inteira. Separadas, o `carregarDicionario` relê e manda pintar — e é
+     * ele que serve o gesto de gravar, porque a composição (o que é da escola, o que é do catálogo,
+     * os rótulos) é decidida no servidor, e não se adivinha no cliente. */
+    'function pintarDicionario(){' +
+    '  var lista = document.getElementById("lista-dicionario");' +
+    '  if (!lista) return;' +
+    '  lista.innerHTML = DICIONARIO.map(linhaDoDicionario).join("") ||' +
+    '    "<li>O dicionário está vazio — declare o primeiro exercício no formulário, ao lado.</li>";' +
+    /* A PAGINAÇÃO DEPOIS DE ENCHER (19/11/2026). O rodapé de páginas nasce `hidden` e é o
+     * `paginar()` que o acende — mas ele corre no arranque da página, quando esta lista ainda tem
+     * o «carregando…» de uma linha. Sem esta chamada, o dicionário com 30 verbetes mostrava os 30
+     * e nenhum rodapé: a regra da casa (`.paginas`, 7 por página nesta coluna) existia na folha e
+     * não chegava a esta lista. A MESMA armadilha vale para qualquer lista que o cliente preencha
+     * depois do arranque — a da Audição já a tinha resolvido no `carregarLinhas`. */
+    '  if (typeof paginar === "function") paginar();' +
     '}' +
     'function carregarDicionario(){' +
     '  var lista = document.getElementById("lista-dicionario");' +
@@ -17426,18 +17472,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  return fetch("/api/bastidores/termos").then(function(r){ return r.json(); }).then(function(d){' +
     '    if (!d || !d.ok) { lista.innerHTML = "<li>Erro: " + ((d && d.erro) || "desconhecido") + "</li>"; return; }' +
     '    DICIONARIO = d.termos || [];' +
-    '    lista.innerHTML = DICIONARIO.map(linhaDoDicionario).join("") ||' +
-    '      "<li>O dicionário está vazio — declare o primeiro exercício no formulário, ao lado.</li>";' +
-    /* A PAGINAÇÃO DEPOIS DE ENCHER (19/11/2026). O rodapé de páginas nasce `hidden` e é o
-     * `paginar()` que o acende — mas ele corre no arranque da página, quando esta lista ainda tem
-     * o «carregando…» de uma linha. Sem esta chamada, o dicionário com 30 verbetes mostrava os 30
-     * e nenhum rodapé: a regra da casa (`.paginas`, 7 por página nesta coluna) existia na folha e
-     * não chegava a esta lista. A MESMA armadilha vale para qualquer lista que o cliente preencha
-     * depois do arranque — a da Audição já a tinha resolvido no `carregarLinhas`. */
-    '    if (typeof paginar === "function") paginar();' +
+    '    pintarDicionario();' +
     '  }).catch(function(err){' +
     '    lista.innerHTML = "<li>Erro: " + (err && err.message ? err.message : err) + "</li>";' +
     '  });' +
+    '}' +
+    /* O RECADO DA LISTAGEM, escrito onde se lê (19/11/2026) — ver a nota do `#dic-res-lista`. */
+    'function recadoDoDicionario(texto, estado){' +
+    '  var alvo = document.getElementById("dic-res-lista");' +
+    '  if (!alvo) { recado(estado, texto); return; }' +
+    '  alvo.className = "res" + (estado ? " " + estado : "");' +
+    '  alvo.textContent = texto || "";' +
+    '}' +
+    /* LIMPAR O FORMULÁRIO É UM GESTO SÓ (19/11/2026): o «Cancelar» e a gravação fazem-no os dois, e
+     * duas cópias divergiriam na primeira vez que um campo novo entrasse. O `.res` NÃO se limpa
+     * aqui — quem grava acabou de escrever nele o que aconteceu. */
+    'function limparFormularioDoDicionario(){' +
+    '  var f = document.getElementById("form-dicionario");' +
+    '  if (f && f.reset) f.reset();' +
+    '  var oculto = document.getElementById("dicid"); if (oculto) oculto.value = "";' +
+    '  var b = document.getElementById("dic-gravar"); if (b) b.textContent = "Criar dicionário";' +
     '}' +
     /* A GRAVAÇÃO DO FORMULÁRIO — `POST` para criar, `PUT` para corrigir. Os dois caminhos são
      * distintos de propósito: criar um exercício que já existe é um facto a dizer («já está»),
@@ -17481,9 +17535,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (res) { res.className = "res erro"; res.textContent = msg; } else { recado("erro", msg); }' +
     '      return;' +
     '    }' +
-    // A RECARGA É O CAMINHO DA CASA DEPOIS DE GRAVAR: a lista vem do servidor, e o termo novo ou
-    // corrigido aparece com o id e com o dono que o repositório lhe deu.
-    '    location.reload();' +
+    /* A LISTA REPINTA-SE, A PÁGINA NÃO (19/11/2026) — a mesma regra do elenco, desde 09/11/2026.
+     *
+     * «Quando eu mandei gravar, apareceu o véu de gravar, só que aí recarregou a página inteira […]
+     * fica bem estranho. Parece que eu estou gastando mais recurso fazendo isso.»
+     *
+     * A recarga era o caminho da casa desde que esta página é desenhada no servidor — e deixou de
+     * ser precisa quando a listagem passou a ser montada no cliente a partir de
+     * `/api/bastidores/termos`, que é o vocabulário JÁ EMPACOTADO no Worker: relê-lo custa uma
+     * chamada ao próprio Worker, zero KV e zero ida ao GitHub. O que a recarga fazia a mais era
+     * redesenhar a página inteira — e com ela voltar ao topo, perder o formulário aberto e o ponto
+     * onde se estava a ler.
+     *
+     * O FORMULÁRIO FICA ABERTO E LIMPO, e o recado diz o que aconteceu — não recolhe: recolher
+     * depois de gravar seria o gesto do «Cancelar», e quem está a corrigir vários verbetes seguidos
+     * fecharia e reabriria a cada um. Quem quiser fechar tem o «Cancelar» ao lado.
+     *
+     * E O `d.criouVersao` DIZ-SE: quando o termo era do catálogo, o que ficou gravado foi a versão
+     * DESTA escola — e o catálogo não mudou. É a diferença entre «gravei» e «gravei para mim», e
+     * sem a frase o professor não tem como saber qual das duas aconteceu. */
+    '    var eraEdicao = !!id;' +
+    '    var frase = eraEdicao' +
+    '      ? ("«" + corpo.nome + "» gravado.")' +
+    '      : ("«" + corpo.nome + "» está no dicionário.");' +
+    '    if (d.criouVersao) frase += " Passou a ter a versão desta escola — o catálogo fica como estava.";' +
+    '    limparFormularioDoDicionario();' +
+    '    if (res) { res.className = "res ok"; res.textContent = frase; } else { recado("ok", frase); }' +
+    '    carregarDicionario();' +
     '  }).catch(function(err){' +
     '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
     '  });' +
@@ -17533,10 +17611,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    body: JSON.stringify({token: TOKEN, id: id})' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    liberar();' +
-    '    if (!d || !d.ok) { recado("erro", "Erro: " + ((d && d.erro) || "desconhecido")); return; }' +
-    '    location.reload();' +
+    '    if (!d || !d.ok) { recadoDoDicionario("Erro: " + ((d && d.erro) || "desconhecido"), "erro"); return; }' +
+    /* APAGAR TAMBÉM NÃO RECARREGA (19/11/2026) — e aqui a recarga era pior do que na gravação: o
+     * cartão sai da lista, e a página inteira voltava ao topo por causa de uma linha que deixou de
+     * existir. A mensagem vai para o `.res` da LISTAGEM, e não para o do formulário, porque o
+     * «Excluir» está no cartão — o formulário pode estar fechado. */
+    '    carregarDicionario();' +
+    '    recadoDoDicionario(d.voltouAoCatalogo' +
+    '      ? ("«" + nome + "» saiu do dicionário desta escola — a versão do catálogo volta a valer aqui.")' +
+    '      : ("«" + nome + "» saiu do dicionário."), "ok");' +
     '  }).catch(function(err){' +
-    '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
+    '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
     '  });' +
     '}' +
     'var formDicionario = document.getElementById("form-dicionario");' +
@@ -17557,12 +17642,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'var bCancelarDicionario = document.getElementById("dic-cancelar");' +
     'if (bCancelarDicionario) bCancelarDicionario.addEventListener("click", function(){' +
-    '  var f = document.getElementById("form-dicionario");' +
-    '  if (f) f.reset();' +
-    '  var oculto = document.getElementById("dicid"); if (oculto) oculto.value = "";' +
-    '  var b = document.getElementById("dic-gravar"); if (b) b.textContent = "Criar dicionário";' +
+    '  limparFormularioDoDicionario();' +
     '  var res = document.querySelector("[data-res=\\"dic\\"]");' +
     '  if (res) { res.className = "res"; res.textContent = ""; }' +
+    '  recadoDoDicionario("", "");' +
     '  recado("", "");' +
     '  cancelarOFormularioDe("sec-dicionario");' +
     '});' +
@@ -17572,7 +17655,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'Vêm os exercícios que a progressão de referência do catálogo declara, e passam a ser DESTA ' +
     'escola: a partir daí ela classifica-os e corrige-os sem tocar no catálogo.\\n\\n' +
     'Os que já são da escola não são duplicados.")) return;' +
-    '  enviar("/api/bastidores/semear-verbetes", {}, "carregando os verbetes iniciais\\u2026", true);' +
+    /* SEMEAR TAMBÉM REPINTA NO SÍTIO (19/11/2026). Era `enviar(…, true)` — o quarto argumento é a
+     * recarga —, e o gesto devolvia a página ao topo depois de carregar verbetes que aparecem no
+     * fim dela. O pedido é o mesmo; o que muda é o que se faz com a resposta: a lista relê-se, e a
+     * frase diz quantos entraram — ou que já estavam todos, que é a resposta de quem clica duas
+     * vezes. */
+    '  ocupar("carregando os verbetes iniciais\u2026", "Dicionário");' +
+    '  fetch("/api/bastidores/semear-verbetes", {' +
+    '    method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({token: TOKEN})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    liberar();' +
+    '    if (!d || !d.ok) { recadoDoDicionario("Erro: " + ((d && d.erro) || "desconhecido"), "erro"); return; }' +
+    '    var n = (d.acrescentados || []).length;' +
+    '    carregarDicionario();' +
+    '    recadoDoDicionario(n' +
+    '      ? (n + (n === 1 ? " verbete carregado" : " verbetes carregados") + " — passam a ser desta escola.")' +
+    '      : "os verbetes da progressão já estavam todos aqui.", "ok");' +
+    '  }).catch(function(err){' +
+    '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
+    '  });' +
     '});' +
     'var listaVerbetes = document.getElementById("lista-verbetes");' +
     'if (listaVerbetes) {' +
@@ -24374,7 +24477,7 @@ function parDaSalaNoCorpo(corpo, registo) {
     if (novo.complexidade && COMPLEXIDADES_DO_VOCABULARIO.indexOf(novo.complexidade) === -1) {
       return json(400, {
         ok: false,
-        erro: 'escolha a complexidade: ' + COMPLEXIDADES_DO_VOCABULARIO.join(' · '),
+        erro: 'escolha a classificação: ' + COMPLEXIDADES_DO_VOCABULARIO.join(' · '),
       });
     }
     // A GRAVAÇÃO É NO REPOSITÓRIO (28/10/2026). O vocabulário passou a ter uma verdade só — o

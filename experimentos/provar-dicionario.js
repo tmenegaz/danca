@@ -33,6 +33,9 @@
  *      campo, e não por uma lista de nomes escrita à mão. Sem esta secção, um campo novo do
  *      vocabulário (a `complexidade`, a 19/11/2026) fica no ficheiro e a tela mostra-o vazio: a
  *      gravação é aceite, o commit é feito, e o sintoma lê-se como «não grava».
+ *   J. A GRAVAÇÃO NÃO RECARREGA A PÁGINA — e o que ela toca muda à vista, sem F5. Medido a
+ *      correr (jsdom): gravar edita o cartão no lugar, apagar tira-o, e o número de navegações é
+ *      zero. Antes, os três gestos do Dicionário terminavam em `location.reload()`.
  *   I. A EDIÇÃO GRAVA NO TERMO CERTO — o da escola, e não o do catálogo. Com duas cópias do mesmo
  *      `id` no ficheiro, procurar só pelo `id` editava a do catálogo: a escola não via a sua
  *      mudança («mudei a complexidade para complexo e não gravou») e as outras mudavam sem ninguém
@@ -102,7 +105,7 @@ console.log('\nB. O formulário: os cinco campos e as listas que vêm do dado');
     ['dicnome', 'Exercício'],
     ['diccategoria', 'Categoria'],
     ['dictradicao', 'Tradição de referência'],
-    ['diccomplexidade', 'Complexidade'],
+    ['diccomplexidade', 'Classificação'],
     ['dicfrase', 'O que acontece'],
   ]) {
     provar('o campo «' + rotulo + '» existe', new RegExp('id="' + id + '"').test(secao));
@@ -176,6 +179,35 @@ console.log('\nC. A listagem: os três nichos, com a peça da casa');
       && /class="paginas"/.test(secaoDicionario));
   provar('…e o cliente a chama depois de encher a lista',
     /if \(typeof paginar === "function"\) paginar\(\);/.test(script));
+
+  /* ── O CAMPO CHAMA-SE «CLASSIFICAÇÃO» (19/11/2026) ────────────────────────────────────────
+   *
+   * «Na complexidade […] não é complexidade o label do campo. […] No label você vai substituir
+   * por classificação.» O RÓTULO muda; a CHAVE gravada não — renomear `complexidade` no dado
+   * reescreveria 98 verbetes para dizer a mesma coisa. As duas metades medem-se juntas. */
+  provar('o nicho do cartão diz «Classificação», e não «Complexidade»',
+    /caixaDoDicionario\("complexidade", "Classificação"/.test(script)
+      && !/caixaDoDicionario\("complexidade", "Complexidade"/.test(script));
+  provar('…e a chave gravada continua `complexidade` — o rótulo muda, o dado não',
+    /complexidade: String\(\(document\.getElementById\("diccomplexidade"\)/.test(script));
+
+  /* ── A RÉGUA, ESCRITA COMO ELA A DEFINIU ────────────────────────────────────────────────
+   *
+   * O texto anterior era uma explicação de gosto («simples para quem já o tem»), e não é isso:
+   * simples é o que NÃO TEM PRECEDENTE, e complexo é o que reúne mais de um simples. O que se
+   * mede não é a redacção — é a presença das três peças que a tornam verdadeira: a ausência de
+   * precedência no simples, a reunião no complexo, e o aviso ao montar a aula. */
+  const painelDaClassificacao = (script.match(/painelDoDicionario\("complexidade", id, "([\s\S]*?)"\)/) || [])[1] || '';
+  provar('o texto do «?» diz que o SIMPLES não pede exercício anterior',
+    /Simples<\/b> é o exercício que não pede nenhum exercício, passo ou movimento anterior/.test(painelDaClassificacao),
+    painelDaClassificacao.slice(0, 120));
+  provar('…e que o COMPLEXO reúne mais de um simples',
+    /Complexo<\/b> é o que reúne mais de um simples/.test(painelDaClassificacao));
+  provar('…e para que serve: um aviso a quem monta a aula',
+    /aviso ao montar a aula/.test(painelDaClassificacao)
+      && /turma iniciante/.test(painelDaClassificacao));
+  provar('…e o «—» continua a querer dizer «ainda não classificado»',
+    /ainda não classificado/.test(painelDaClassificacao));
 }
 
 /* ============================================================================================= */
@@ -653,6 +685,175 @@ console.log('\nI. A edição grava no termo certo — e o «membro» deixou de b
     estado.termos.some((t) => t && t.id === 'aplomb' && String(t.escola || '') === 'viva'), null);
 }
 
+/* ============================================================================================= */
+console.log('\nJ. A gravação não recarrega a página — e o cartão muda à vista');
+
+{
+  /* ESTA SECÇÃO FAZ O QUE AS OUTRAS NÃO FAZEM: CORRE O SCRIPT. As outras medem marcação e rotas, e
+   * a marcação estava certa no dia em que a página inteira recarregava — o defeito vivia no
+   * `location.reload()` no fim de cada gesto. Só um DOM a sério o apanha.
+   *
+   * O QUE SE CONTA É A NAVEGAÇÃO. O jsdom não navega: pede-a, e o pedido chega ao
+   * `virtualConsole` como `Not implemented: navigation`. Zero desses eventos é a asserção de que
+   * a página ficou onde estava. */
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const vc = new VirtualConsole();
+  const navegacoes = [];
+  vc.on('jsdomError', (e) => { navegacoes.push(String((e && e.message) || e)); });
+  vc.on('error', () => {});
+
+  /* A LISTA É VIVA: as respostas de `/api/bastidores/termos` vêm do que as rotas fingidas
+   * escreveram. Uma lista congelada mediria o primeiro desenho para sempre — e o que se mede aqui
+   * é exactamente a tela a acompanhar o servidor. */
+  let lista = [
+    { id: 'plie', termo: 'Plié', categoria: 'passo', categoriaRotulo: 'Passo',
+      tradicao: 'compartilhada', tradicaoRotulo: 'Compartilhada', complexidade: 'simples',
+      descricao: 'flexão contínua', origem: 'escolaa' },
+    { id: 'releve', termo: 'Relevé', categoria: 'passo', categoriaRotulo: 'Passo',
+      tradicao: 'compartilhada', tradicaoRotulo: 'Compartilhada', complexidade: 'complexo',
+      descricao: 'elevação', origem: 'catalogo' },
+  ];
+  let pedidos = { termos: 0, put: 0, del: 0, semear: 0 };
+
+  const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    pretendToBeVisual: true, virtualConsole: vc,
+    beforeParse(w) {
+      w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+        addListener() {}, removeListener() {} });
+      w.confirm = () => true;
+      w.alert = () => {};
+      w.scrollTo = () => {};
+      w.fetch = (u, o) => {
+        const url = String(u);
+        const metodo = (o && o.method) || 'GET';
+        const responde = (corpo) => Promise.resolve({
+          ok: true, status: 200,
+          json: () => Promise.resolve(corpo), text: () => Promise.resolve(''),
+        });
+        if (url.indexOf('/api/bastidores/termos') !== -1) {
+          pedidos.termos += 1;
+          return responde({ ok: true, termos: lista.map((t) => Object.assign({}, t)) });
+        }
+        if (url.indexOf('/api/bastidores/termo') !== -1 && metodo === 'PUT') {
+          pedidos.put += 1;
+          const corpo = JSON.parse((o && o.body) || '{}');
+          lista = lista.map((t) => (t.id === corpo.id
+            ? Object.assign({}, t, {
+              categoria: corpo.categoria, categoriaRotulo: corpo.categoria === 'posicao' ? 'Posição' : corpo.categoria,
+              tradicao: corpo.tradicao, tradicaoRotulo: 'Francesa',
+              complexidade: corpo.complexidade, descricao: corpo.descricao,
+            })
+            : t));
+          return responde({ ok: true, criouVersao: true, termo: { id: corpo.id, termo: corpo.nome } });
+        }
+        if (url.indexOf('/api/bastidores/termo') !== -1 && metodo === 'POST') {
+          pedidos.post = (pedidos.post || 0) + 1;
+          const corpo = JSON.parse((o && o.body) || '{}');
+          lista = lista.concat([{ id: 'cabriole', termo: corpo.nome, categoria: corpo.categoria,
+            categoriaRotulo: 'Salto', tradicao: corpo.tradicao, tradicaoRotulo: 'Francesa',
+            complexidade: corpo.complexidade, descricao: corpo.descricao, origem: 'escola' }]);
+          return responde({ ok: true, termo: corpo.nome, id: 'cabriole' });
+        }
+        if (url.indexOf('/api/bastidores/termo') !== -1 && metodo === 'DELETE') {
+          pedidos.del += 1;
+          const corpo = JSON.parse((o && o.body) || '{}');
+          lista = lista.filter((t) => t.id !== corpo.id);
+          return responde({ ok: true, voltouAoCatalogo: true });
+        }
+        if (url.indexOf('semear-verbetes') !== -1) {
+          pedidos.semear += 1;
+          return responde({ ok: true, acrescentados: ['tandu'], jaExistiam: [] });
+        }
+        return responde({ ok: true });
+      };
+    },
+  });
+  const w = dom.window;
+  const d = w.document;
+  const esperar = (ms) => new Promise((r) => setTimeout(r, ms || 60));
+  await esperar(120);
+
+  const cartao = (id) => d.querySelector('li[data-dicionario="' + id + '"]');
+  provar('a lista do dicionário carregou com os dois verbetes',
+    Boolean(cartao('plie')) && Boolean(cartao('releve')),
+    d.getElementById('lista-dicionario') ? d.getElementById('lista-dicionario').children.length : null);
+
+  /* ── GRAVAR UMA CORRECÇÃO ─────────────────────────────────────────────────────────────── */
+  cartao('plie').querySelector('button[data-editar-dicionario]').click();
+  provar('«Editar» abre o formulário com o verbete dentro',
+    d.getElementById('dicid').value === 'plie' && d.getElementById('dicnome').value === 'Plié',
+    d.getElementById('dicid').value);
+  d.getElementById('diccategoria').value = 'posicao';
+  d.getElementById('dictradicao').value = 'francesa';
+  d.getElementById('diccomplexidade').value = 'complexo';
+  const antesDaGravacao = pedidos.termos;
+  d.getElementById('form-dicionario').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  await esperar(160);
+
+  provar('gravar não navegou — a página ficou onde estava', navegacoes.length === 0, navegacoes.slice(0, 2));
+  provar('…e a listagem foi relida do servidor, sem F5', pedidos.termos > antesDaGravacao,
+    { antes: antesDaGravacao, agora: pedidos.termos });
+  provar('…e o CARTAÃO mostra a categoria nova — é o que ela foi verificar',
+    (cartao('plie') || { textContent: '' }).textContent.indexOf('Posição') !== -1,
+    (cartao('plie') || {}).textContent);
+  provar('…e a classificação nova, no mesmo cartão',
+    (cartao('plie') || { textContent: '' }).textContent.indexOf('complexo') !== -1,
+    (cartao('plie') || {}).textContent);
+  provar('…e o formulário fica limpo, pronto ao próximo, em vez de fechado',
+    d.getElementById('dicid').value === '' && d.getElementById('dic-gravar').textContent === 'Criar dicionário',
+    [d.getElementById('dicid').value, d.getElementById('dic-gravar').textContent]);
+  provar('…e o recado diz o que aconteceu, ali no formulário',
+    /gravado/.test(d.querySelector('[data-res="dic"]').textContent),
+    d.querySelector('[data-res="dic"]').textContent);
+  provar('…e diz TAMBÉM que a versão passou a ser desta escola (o catálogo não mudou)',
+    /versão desta escola/.test(d.querySelector('[data-res="dic"]').textContent),
+    d.querySelector('[data-res="dic"]').textContent);
+
+  /* ── APAGAR ───────────────────────────────────────────────────────────────────────────── */
+  cartao('releve').querySelector('button[data-apagar-dicionario]').click();
+  await esperar(160);
+  provar('apagar não navegou', navegacoes.length === 0, navegacoes.slice(0, 2));
+  provar('…e o cartão saiu da lista', !cartao('releve'), Boolean(cartao('releve')));
+  provar('…e o recado aparece ao lado da LISTA, porque o formulário pode estar fechado',
+    /saiu do dicionário/.test(d.getElementById('dic-res-lista').textContent),
+    d.getElementById('dic-res-lista').textContent);
+
+  /* ── CARREGAR VERBETES ───────────────────────────────────────────────────────────────── */
+  d.getElementById('dic-semear').click();
+  await esperar(160);
+  provar('«Carregar verbetes» não navegou', navegacoes.length === 0, navegacoes.slice(0, 2));
+  provar('…e a frase diz quantos entraram, em vez de «ok (feito)»',
+    /1 verbete carregado/.test(d.getElementById('dic-res-lista').textContent),
+    d.getElementById('dic-res-lista').textContent);
+
+  /* ── CRIAR, QUE É O OUTRO CAMINHO ────────────────────────────────────────────────────── */
+  d.getElementById('dicnome').value = 'Cabriole';
+  d.getElementById('diccategoria').value = 'salto';
+  d.getElementById('dictradicao').value = 'francesa';
+  d.getElementById('diccomplexidade').value = 'complexo';
+  d.getElementById('dicfrase').value = 'um salto';
+  d.getElementById('form-dicionario').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  await esperar(160);
+  provar('criar também não navegou', navegacoes.length === 0, navegacoes.slice(0, 2));
+  provar('…e o verbete novo está na lista, sem F5', Boolean(cartao('cabriole')),
+    d.getElementById('lista-dicionario').children.length);
+  provar('…e o formulário fica pronto ao próximo, com o botão de criar',
+    d.getElementById('dicnome').value === '' && d.getElementById('dic-gravar').textContent === 'Criar dicionário',
+    [d.getElementById('dicnome').value, d.getElementById('dic-gravar').textContent]);
+
+  /* ── A NEGATIVA, QUE É A LIÇÃO ───────────────────────────────────────────────────────── */
+  const scriptDoDicionario = (() => {
+    const i = aPagina().indexOf('function gravarDicionario');
+    const j = aPagina().indexOf('var bSemearVerbetes');
+    return aPagina().slice(i, j);
+  })();
+  provar('nenhum dos três gestos do Dicionário chama `location.reload`',
+    scriptDoDicionario.indexOf('location.reload') === -1, null);
+
+  dom.window.close();
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: o Dicionário é irmão das outras secções e guarda o '
@@ -661,7 +862,8 @@ console.log('\n' + (falhas
     + '«Carregar verbetes» adopta a progressão de referência, sem duplicar; e o que o vocabulário '
     + 'diz chega inteiro à tela — a ponte do catálogo não perde campo; e o dicionário é de cada '
     + 'escola, filtrado automaticamente pela escola do Worker; e a edição grava no termo dessa '
-    + 'escola, não no do catálogo.'));
+    + 'escola, não no do catálogo; e gravar, apagar e semear mudam a lista no lugar, sem recarregar '
+    + 'a página.'));
 process.exit(falhas ? 1 : 0);
 }
 

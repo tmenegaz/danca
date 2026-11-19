@@ -2727,16 +2727,27 @@ Estilo criava o termo** — nome, categoria, tradição, definição — antes d
 exercício ia ter verbete. Resultado: quem só queria declarar um exercício entrava pelo Estilo, e
 quem estava no Estilo via dois cadastros no mesmo formulário.
 
-**A regra.** O **Dicionário** declara o exercício (nome, categoria, tradição, **complexidade** e a
+**A regra.** O **Dicionário** declara o exercício (nome, categoria, tradição, **classificação** e a
 definição); o **Estilo** escolhe dele e decompõe-no. Uma direcção só, e é a do dado: o verbete aponta
 para o exercício, e nunca o contrário. Os seis passos do verbete passam a **cinco** — o 1.º é a
 escolha (com o método, que é do exercício), e os outros quatro são o que muda de trecho para trecho.
 
-**A complexidade é nova, e é opcional.** «simples» ou «complexo», uma classificação de quem ensina —
-o mesmo *battement tendu* é simples para quem já o tem e complexo para quem o aprende. Não há nada no
-dado de onde a derivar sem inventar, e é por isso que é um campo de quem ensina. É opcional porque os
-98 verbetes anteriores a ela existem: exigi-la recusaria a edição de todos até alguém os classificar.
-Em branco é «ainda não classificado», e a listagem di-lo com um «—», não com um vazio.
+**A classificação é nova, e é opcional.** O campo chama-se **«Classificação»** desde 19/11/2026 —
+«não é complexidade o label do campo […] no label você vai substituir por classificação»; a chave
+gravada continua `complexidade`, porque renomeá-la reescreveria 98 verbetes para dizer o mesmo. E o
+que ela **significa** foi corrigido no mesmo dia, porque a primeira redacção era uma explicação de
+gosto:
+
+- **Simples** — o exercício que não pede nenhum exercício, passo ou movimento anterior. Ensina-se
+  directo, sem precedência.
+- **Complexo** — o que reúne mais de um simples. Quem o aprende já tem de ter aprendido os que o
+  compõem (o *fondue* pede o *plié*, o *coupé*, o *retiré* e o *attitude* primeiro).
+
+Serve para uma coisa concreta, e é o que a torna útil: **é um aviso a quem monta a aula** — «minha
+turma é iniciante, se eu botar algo complexo aqui já não está legal». Não é a dificuldade em
+abstracto, e não é o juízo do professor sobre o exercício. É opcional porque os 98 verbetes
+anteriores a ela existem: exigi-la recusaria a edição de todos até alguém os classificar. Em branco é
+«ainda não classificado», e a listagem di-lo com um «—», não com um vazio.
 
 **O que NÃO se mudou de sítio.** Os campos do cadastro continuam no DOM do Estilo, dentro de um bloco
 `hidden`. Não é preguiça: `#vb-frase` é a frase com que os trechos nascem (cada célula guarda-a), e
@@ -2755,11 +2766,52 @@ script inteiro e a página nasceu morta (os formulários a submeter por GET, a �
 a mesma família da armadilha de 19/11 que a `provar-pagina-do-professor` guarda: **um elemento que
 sai leva o ouvinte com ele**.
 
-**A prova.** `provar-dicionario` — **51 asserções** em seis secções (a secção e o menu; o formulário e
+**A prova.** `provar-dicionario` — **112 asserções** em dez secções (a secção e o menu; o formulário e
 as listas que vêm do dado; os três nichos da listagem; os cinco passos e o cadastro oculto; a
-complexidade e a edição que não rouba o dono; a carga idempotente). **Controle negativo contra o
-`HEAD`: 36 falhas, e depois a prova aborta** — no estado anterior não existem `COMPLEXIDADES` nem
-`editarTermo`, e é isso que ela mede.
+classificação e a edição que não rouba o dono; a carga idempotente; a ponte do catálogo; o filtro por
+escola; a edição que grava no termo certo; e a gravação que não recarrega a página). **Controle
+negativo em três eixos**, e é o que dá valor à prova: a ponte antiga reprova 3; o `termo-repo` de
+ontem reprova 14; e o `location.reload()` de volta reprova 9.
+
+### 5.30 Gravar não recarrega a página — e não é por causa do KV
+
+> «Quando eu estou no framework do Angular […] eu vejo que a página inteira não é carregada. […] Como
+> é que a gente faz para poder ter esse efeito que não carrega a página inteira? Ou isso é algo da
+> nossa arquitetura e não tem como fazer isso sem aumentar os custos do KV? […] Me parece que custa
+> mais caro carregar a página toda do que apenas trocar o dado.»
+
+**Não é a arquitectura, e não é o KV.** O KV não entra nesta conta desde 19/10/2026: o acervo é o
+repositório, e o vocabulário está **empacotado no bundle** do Worker. A lista do Dicionário vem de
+`GET /api/bastidores/termos`, que a compõe em memória — **zero linha de KV, zero ida ao GitHub**. O
+que recarregava era o **padrão de desenho**: esta página é desenhada no servidor
+(`paginaProducao`), e durante muito tempo a maneira de a manter verdadeira foi pedi-la outra vez. Um
+`PUT` respondia `ok`, e o cliente chamava `location.reload()`.
+
+**O que se perdia, e não era só o tempo.** O véu cruzava o ecrã, a página voltava ao topo, o
+formulário desaparecia e o ponto onde se estava a ler perdia-se — por causa de um campo que mudou
+numa linha. E o custo não era o KV: era redesenhar 350 KB de HTML e voltar a correr todos os scripts
+para mostrar um «Passo» que passou a «Posição».
+
+**A regra que fica, e é a que o elenco já seguia desde 09/11/2026: a lista recarrega-se, a página
+não.** O critério é um só, e tem duas metades:
+
+1. **A tela é montada no cliente a partir de um endpoint?** Então relê-se o endpoint e repinta-se a
+   lista — um pedido pequeno, no sítio onde o registo está. É o caso do Dicionário (a listagem, o
+   cartão, a paginação) e do elenco.
+2. **A escrita mudou a IDENTIDADE do registo, ou o estado que os passos leem da página?** Então
+   recarrega-se — e há motivo, não hábito. Derivar uma turma troca o `id` (o elo novo nasce com a
+   data, o anterior desce ao histórico), e o gesto seguinte chegaria com um `id` que já não vale; o
+   formulário do professor guarda o passo em que se está e os valores que o servidor desenhou. Aí a
+   página é a fonte, e pedi-la outra vez é o caminho certo.
+
+**E o recado tem de caber onde se lê.** A mensagem do Dicionário vai para o `.res` do formulário
+quando é uma gravação (o formulário fica aberto, limpo) e para um `.res` na coluna da **listagem**
+quando é uma exclusão ou uma carga — o formulário pode estar recolhido, e um recado escrito lá dentro
+não se lê. É a peça `.res` da folha, e não nasceu classe nenhuma.
+
+**A prova corre o script.** `provar-dicionario` §J abre a página num DOM (jsdom), conta as navegações
+que o jsdom recusa, grava uma correcção, apaga um verbete e carrega verbetes: **zero navegações**, o
+cartão muda à vista, o formulário fica limpo, e o recado diz onde deve.
 
 ## 6. Por que é mais barato
 
