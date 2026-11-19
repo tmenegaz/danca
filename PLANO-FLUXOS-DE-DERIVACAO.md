@@ -158,6 +158,19 @@ com o professor (`turma-professor`, `turma-editar` e `turma-derivar` leem as dua
 não encontra o que bloquear. É por isso que este passo continua aberto — o que falta aqui não é o
 disparo, é a **decisão** e a regra que dela sai.
 
+**O que se sabe do código hoje, antes de decidir** — três factos, e o segundo é o que dá peso à
+pergunta:
+
+| o quê | onde se leu | o que diz |
+|:--|:--|:--|
+| a travessia **corre** numa troca só de modalidade e **deriva** (mesmo autor) | medido: `nucleoCadeia.indice` devolve `pendente` no plano e no PO, não `bloqueada` | o comportamento de hoje já é «derivar com aviso» — a decisão não é implementar, é **confirmar ou bloquear** |
+| a travessia **não vê** a modalidade | `motor/nucleo/cadeia.js`, `direcaoDeHoje` | compara `professor` e `turma`; uma troca só de modalidade percorre tudo e não encontra o que dizer |
+| o PO derivado **não relê a régua** | `motor/servidor/cadeia.js`, `derivarPO` | as `respostas` são copiadas verbatim (é a regra: a cadeia preserva as respostas) — e é nelas que vivem os níveis contra os quais o PO mede. A régua muda com o par (`conferirOParDaSala`), o PO não |
+
+E a «Modalidade» que o documento impresso mostra **não é** a modalidade contratada da Sala: é a
+**habilitação do professor** (`tools/montar-publicacao.js` → `perfilDoProfessor`). Logo, uma troca de
+modalidade na Sala não muda o que o documento diz — mas muda a **escala** contra a qual ele mede.
+
 **A decidir:** modalidade nova → deriva o plano (mesmo autor, outro referencial) ou exige plano novo?
 A recomendação é **derivar com aviso**, porque o autor é o mesmo e o que muda é a leitura do cadastro;
 mas os níveis e os conteúdos podem deixar de fazer sentido, e isso é pedagogia — provavelmente é
