@@ -120,6 +120,21 @@ async function escrever({ f, token, dono, repo, ref, termos, sha, mensagem }) {
 const CATEGORIAS = ['passo', 'posicao', 'direcao', 'ligacao', 'salto', 'giro'];
 const MEMBROS = ['pes', 'pernas', 'bracos'];
 
+/**
+ * A COMPLEXIDADE DO EXERCÍCIO (19/11/2026) — «simples» ou «complexo».
+ *
+ * É uma classificação do EXERCÍCIO, feita pelo professor, e não uma medida do sistema: o mesmo
+ * «battement tendu» é simples para quem já o tem e complexo para quem o está a aprender. Por isso
+ * é um campo de quem ensina, e por isso não tem regra derivada — não há nada no dado de onde a
+ * inferir sem inventar.
+ *
+ * É OPCIONAL, e a razão é o dado que já existe: o vocabulário tem 98 verbetes anteriores a este
+ * campo, e exigi-lo passaria a recusar a edição de todos eles até alguém os classificar. Um campo
+ * em branco diz «ainda não classificado», que é a verdade; um campo obrigatório diria «erro» sobre
+ * uma escola que não errou.
+ */
+const COMPLEXIDADES = ['simples', 'complexo'];
+
 /** O `id` de um termo — a mesma derivação que a notação e o plano usam. */
 function idDe(nome) {
   return String(nome || '')
@@ -154,6 +169,12 @@ function validarTermo(corpo, tradicoes) {
   } else if (membro && MEMBROS.indexOf(membro) === -1) {
     erros.push('membro desconhecido: ' + membro);
   }
+  /* A COMPLEXIDADE É VALIDADA SÓ QUANDO VEM (19/11/2026). Vazia não é erro: é «ainda não
+   * classificado», e é o estado de todos os verbetes que já existem. */
+  const complexidade = String((corpo && corpo.complexidade) || '').trim();
+  if (complexidade && COMPLEXIDADES.indexOf(complexidade) === -1) {
+    erros.push('escolha a complexidade: ' + COMPLEXIDADES.join(' · '));
+  }
   return {
     ok: erros.length === 0,
     erros,
@@ -163,6 +184,7 @@ function validarTermo(corpo, tradicoes) {
       categoria: categoria,
       ...(membro ? { membro: membro } : {}),
       tradicao: tradicao,
+      ...(complexidade ? { complexidade: complexidade } : {}),
       alternativos: Array.isArray(corpo && corpo.alternativos)
         ? corpo.alternativos.map((a) => String(a).trim()).filter(Boolean) : [],
       descricao: String((corpo && corpo.descricao) || '').trim(),
@@ -234,6 +256,64 @@ async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola,
 }
 
 /**
+ * EDITA o termo inteiro — o que o Dicionário da Produção faz (19/11/2026).
+ *
+ * O QUE ELE RESOLVE, e é o que a `editarNomeDoTermo` não fazia: a categoria, a tradição, a
+ * complexidade e a definição de um verbete não tinham por onde se corrigir. Quem as escrevia mal
+ * ficava com o erro no dicionário para sempre, ou apagava o termo e criava outro — e apagar um
+ * termo é apagar a referência que um verbete, um plano ou uma associação de turma apontam.
+ *
+ * O QUE ELE NÃO TOCA, e é deliberado: o DONO (`escola`) e os campos que este formulário não
+ * pergunta (`alternativos`, `fonte`, `observacoes`). Uma edição de tela não muda de quem é o
+ * termo, e apagar o que não se mostrou é a maneira mais silenciosa de perder dado.
+ *
+ * O NOME CONTINUA A SER A CHAVE. Mudá-lo muda o `id`, e um `id` pode estar referido — por isso a
+ * colisão é recusada com o nome de quem já o tem. O que o `id` antigo referencia (o verbete, que é
+ * chaveado pelo NOME do exercício) não é migrado aqui: quem muda o nome de um exercício em uso
+ * tem de saber que está a mudar uma referência, e a tela di-lo antes de gravar.
+ */
+async function editarTermo({ f, token, dono, repo, ref, idAntigo, corpo, tradicoes }) {
+  const lido = await ler({ f, token, dono, repo, ref });
+  if (!lido.ok) return lido;
+  const idx = lido.termos.findIndex((t) => t && t.id === idAntigo);
+  if (idx === -1) return { ok: false, status: 404, erro: 'termo não encontrado' };
+  const conferido = validarTermo(corpo, tradicoes);
+  if (!conferido.ok) return { ok: false, status: 400, erro: 'termo inválido', erros: conferido.erros };
+
+  const antes = lido.termos[idx];
+  const donoDoTermo = String(antes.escola || '').trim();
+  const novo = Object.assign({}, antes, conferido.termo, {
+    escola: antes.escola,
+    alternativos: antes.alternativos || [],
+    fonte: antes.fonte || '',
+    observacoes: antes.observacoes || '',
+  });
+  if (antes.estado) novo.estado = antes.estado;
+
+  if (novo.id !== idAntigo) {
+    const colide = lido.termos.some((t, i) => i !== idx && t && t.id === novo.id
+      && String(t.escola || '').trim() === donoDoTermo);
+    if (colide) {
+      return { ok: false, status: 409, erro: 'já existe «' + novo.termo + '» no dicionário'
+        + (donoDoTermo ? ' desta escola' : '') };
+    }
+  }
+
+  const mudouNome = novo.termo !== antes.termo;
+  lido.termos[idx] = novo;
+  const escrito = await escrever({
+    f, token, dono, repo, ref, termos: lido.termos, sha: lido.sha,
+    mensagem: 'docs(biblioteca): ajustar «' + novo.termo + '» no vocabulário do balé clássico'
+      + (mudouNome ? ' (era «' + antes.termo + '»)' : '') + '\n\n'
+      + 'Editado pela Produção (Sistema Lastro).\n',
+  });
+  if (!escrito.ok) {
+    return { ok: false, status: escrito.status, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' };
+  }
+  return { ok: true, status: 200, de: idAntigo, para: novo.id, termo: novo, commit: escrito.commit };
+}
+
+/**
  * EDITA o nome de um termo — e com ele o `id`, porque o `id` é derivado do nome.
  *
  * O que muda de nome muda de `id`, e um `id` antigo pode estar referido num verbete, numa posição
@@ -269,9 +349,11 @@ module.exports = {
   ler,
   escrever,
   criarTermo,
+  editarTermo,
   editarNomeDoTermo,
   validarTermo,
   idDe,
   CATEGORIAS,
   MEMBROS,
+  COMPLEXIDADES,
 };

@@ -264,6 +264,13 @@ function rotuloDaCategoria(categoria) {
   const chave = String(categoria == null ? '' : categoria).trim();
   return ROTULOS_DE_CATEGORIA[chave] || chave;
 }
+/* A COMPLEXIDADE DO EXERCÍCIO (19/11/2026) — a lista e o rótulo, num sítio só.
+ *
+ * A lista é a do `termo-repo.js`, que é quem valida: duas listas do mesmo vocabulário divergem
+ * ao primeiro item novo, e é sempre a do validador que manda. O rótulo é o que se lê, e o valor
+ * gravado é a chave — a mesma regra da categoria. */
+const COMPLEXIDADES_DO_VOCABULARIO = require('./termo-repo.js').COMPLEXIDADES;
+const rotuloDaComplexidade = (c) => (String(c || '').trim() ? String(c).trim() : '—');
 // A RÉGUA DA RUBRICA — o padrão DECLARADO (Regra 10, camada 1: «plano do ciclo piloto»), e
 // a MESMA constante que a derivação do plano usa como reserva. A régua é da TURMA (a escola
 // a edita aqui); esta é a lista que nasce com uma turma nova e o que vale quando nenhuma foi
@@ -2952,6 +2959,8 @@ function normalizarTermo(corpo) {
     termo: termo,
     categoria: String(corpo.categoria || '').trim(),
     tradicao: String(corpo.tradicao || 'compartilhada').trim(),
+    // A COMPLEXIDADE (19/11/2026) — vazia é «ainda não classificado», e não erro.
+    complexidade: String(corpo.complexidade || '').trim(),
     alternativos: altos,
     descricao: String(corpo.descricao || '').trim(),
     fonte: String(corpo.fonte || '').trim(),
@@ -4033,24 +4042,36 @@ const TOKEN_TTL_MS = 12 * 60 * 60 * 1000;
  * exercício é escolhido, e a posição é a mesma lista curta que acompanha esse exercício. Quem
  * começa um verbete responde às três de seguida ou não responde a nenhuma.
  *
- * O que fica de fora do passo 1 é o que muda de trecho para trecho: a MÚSICA (2), o PARA ONDE
- * (3), os SINAIS (4) e a DECOMPOSIÇÃO (5) — que é a leitura do que se escreveu.
+ * E DEPOIS CINCO, DESDE 19/11/2026: o passo 1 ficou com a ESCOLHA do exercício e o 2 com a
+ * música, porque o CADASTRO do exercício (nome, categoria, tradição, definição, complexidade)
+ * mudou-se para o Dicionário — ver `sec-dicionario`. O que fica de fora do passo 1 é o que muda
+ * de trecho para trecho: a MÚSICA (2), o PARA ONDE (3), os SINAIS (4) e a DECOMPOSIÇÃO (5) — que
+ * é a leitura do que se escreveu.
  *
- * A FRASE CONTINUA A SER DO EXERCÍCIO, E ESCRITA UMA VEZ (31/10/2026). «O que acontece» era
- * pedido a cada trecho, e quem acrescentava três trechos escrevia três vezes a mesma definição;
- * o texto escreve-se uma vez e cada trecho acrescenta-lhe, abaixo, o «lê-se» da sua notação.
+ * A FRASE CONTINUA A SER DO EXERCÍCIO, E ESCRITA UMA VEZ (31/10/2026) — e desde 19/11/2026 é
+ * escrita no DICIONÁRIO. «O que acontece» era pedido a cada trecho, e quem acrescentava três
+ * trechos escrevia três vezes a mesma definição; o texto escreve-se uma vez e cada trecho
+ * acrescenta-lhe, abaixo, o «lê-se» da sua notação.
  */
 const PASSOS_DO_VERBETE = [
-  /* «O EXERCÍCIO NOVO» PASSOU A «O EXERCÍCIO» (10/11/2026). O rótulo dizia a regra que trancava o
-   * formulário: quem já tinha um exercício lia que aquele passo era para os novos, e era o único
-   * campo que perguntava «que exercício é este». Agora o passo 1 procura no vocabulário e aceita um
-   * nome que ainda não existe — as duas coisas —, e o rótulo diz as duas. */
+  /* «O EXERCÍCIO NOVO» PASSOU A «O EXERCÍCIO» (10/11/2026), E O PASSO 2 FUNDIU-SE NELE
+   * (19/11/2026).
+   *
+   * ERAM DOIS PASSOS COM O MESMO OBJECTO, e ela viu-o na tira: «o exercício está comprimido aqui,
+   * tem alguma outra coisa escrita junto. Aparece escrito assim, ó, o exercício a escolher. A gente
+   * vai chamar apenas de o exercício.» O 1 chamava-se «O exercício» e criava; o 2 chamava-se «O
+   * exercício do verbete» e escolhia. Lidos em sequência, os dois rótulos diziam «o exercício do…
+   * a escolher».
+   *
+   * A CAUSA ERA O CADASTRO NO SÍTIO ERRADO. Quem cria o exercício é o DICIONÁRIO, e o Estilo passou
+   * a só escolher dele — logo há UMA pergunta sobre o exercício, e um passo. Os cinco abaixo são a
+   * sequência do trabalho: qual é, com que música, para onde vai, com que sinais se escreve, e o
+   * que sai escrito. */
   ['1', 'O exercício'],
-  ['2', 'O exercício do verbete'],
-  ['3', 'A música'],
-  ['4', 'Para onde'],
-  ['5', 'Os sinais'],
-  ['6', 'A decomposição'],
+  ['2', 'A música'],
+  ['3', 'Para onde'],
+  ['4', 'Os sinais'],
+  ['5', 'A decomposição'],
 ];
 
 /**
@@ -4131,7 +4152,9 @@ const ABAS_DO_PROFESSOR_HTML = [
  * e são eles, e não outros, porque um trecho se corrige na direção, na contagem, na orientação e
  * nos sinais. A fusão de 01/11/2026 puxou-os de 5 e 6 para 3 e 4: os números são estes, e não os
  * de antes, e é por isso que o aviso de edição e a prova os leem daqui em vez de os escreverem. */
-const PASSOS_DO_TRECHO = [4, 5];
+/* OS PASSOS DO TRECHO DESCERAM UM (19/11/2026), com a fusão do exercício: eram 4 e 5 (contagem e
+ * sinais), passam a 3 e 4. A constante é a mesma — o que mudou foi a numeração à frente dela. */
+const PASSOS_DO_TRECHO = [3, 4];
 
 function b64url(bytes) {
   const a = new Uint8Array(bytes);
@@ -5186,6 +5209,16 @@ function lateralDaProducao(opcoes) {
       // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
       // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
       ['#audicao', 'corpo', 'Audição'],
+      /* O DICIONÁRIO ENTRA AO LADO DO ESTILO, E ANTES DELE (19/11/2026).
+       *
+       * «A gente vai criar, irmão das salas, audição, estilo e turmas, o dicionário.» Ele é o
+       * vocabulário técnico da modalidade — o sítio onde o EXERCÍCIO nasce (nome, categoria,
+       * tradição, complexidade e a definição). O Estilo já não o cria: escolhe dele.
+       *
+       * A ordem é a do trabalho, e não a alfabética: a Sala dá a modalidade, a Audição dá o corpo,
+       * o Dicionário dá o exercício, o Estilo dá o verbete do exercício, e as Turmas juntam tudo.
+       * Ler o menu é ler essa sequência. */
+      ['#dicionario', 'dicionario', 'Dicionário'],
       ['#estilo', 'verbetes', 'Estilo'],
       ['#curadorias', 'curadorias', 'Turmas']], nav) +
     '</div>' +
@@ -8677,6 +8710,94 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * curadoria, que são os sítios onde eles são usados.
      */
     // ---------------------------------------------------------------------------
+    // O DICIONÁRIO (19/11/2026) — o EXERCÍCIO, e não o verbete dele.
+    //
+    // «A gente vai criar, irmão das salas, audição, estilo e turmas, o dicionário. E aí esse
+    // formulário, exercício que a gente declara, a categoria que a gente declara, a tradição que a
+    // gente declara e o que acontece, que é a definição do exercício […] vai mudar para esse novo
+    // espaço que é dicionário.»
+    //
+    // ELE NASCE DE UMA SEPARAÇÃO QUE JÁ EXISTIA NO DADO E NÃO EXISTIA NA TELA. O vocabulário
+    // técnico (o conceito) e o verbete da notação (o exercício decomposto em trechos, música e
+    // sinais) sempre foram dois ficheiros: `biblioteca/modalidades/.../vocabulario.json` e o
+    // alfabeto do verbete. Mas o passo 1 do Estilo criava o termo — nome, categoria, tradição,
+    // definição — antes de se saber se aquele exercício ia ter verbete. Quem só queria declarar o
+    // exercício tinha de entrar pelo Estilo, e quem estava no Estilo via dois cadastros no mesmo
+    // formulário: o do termo e o do verbete.
+    //
+    // A REGRA QUE FICA: o exercício nasce AQUI, com a sua classificação; o Estilo ESCOLHE dele e
+    // decompõe-no. Uma direcção só, e é a do dado — o verbete aponta para o exercício, e nunca o
+    // contrário.
+    //
+    // AS TRÊS CLASSIFICAÇÕES SÃO OS TRÊS NICHOS da listagem: a categoria (o que o exercício é na
+    // gramática), a tradição (de onde vem o nome) e a complexidade (simples ou complexo, aos olhos
+    // de quem ensina).
+    // ---------------------------------------------------------------------------
+    '<section class="secao" id="sec-dicionario" data-recolhido="sim" hidden>' +
+    tituloComAcordeao('sec-dicionario', 'Dicionário', 'dicionario-miolo') +
+    '<div class="col-form" id="dicionario-miolo">' +
+    '<form id="form-dicionario">' +
+    /* O `id` DO TERMO EM EDIÇÃO. Vazio é criar; preenchido é editar aquele verbete em sítio. Não é
+     * um «modo» à parte: o que muda é o verbo da gravação (`POST` × `PUT`) e o rótulo do botão, e
+     * é o mesmo campo oculto que a listagem preenche ao abrir. */
+    '<input type="hidden" id="dicid" value="">' +
+    '<label class="campo-rotulo" for="dicnome">Exercício</label>' +
+    '<input id="dicnome" autocomplete="off" placeholder="ex.: Battement fondu">' +
+    /* A CATEGORIA COMEÇA VAZIA, pela razão que a 02/11/2026 já fixou no Estilo: um `<select>` que
+     * nasce com a primeira opção escolhida responde por quem ainda não respondeu, e o campo
+     * obrigatório nunca pode faltar. */
+    '<label class="campo-rotulo" for="diccategoria">Categoria</label>' +
+    '<select id="diccategoria">' +
+    '<option value="">— escolha a categoria —</option>' +
+    CATEGORIAS_DO_VOCABULARIO.map((c) =>
+      '<option value="' + esc(c) + '">' + esc(rotuloDaCategoria(c)) + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="dictradicao">Tradição de referência</label>' +
+    '<select id="dictradicao">' +
+    '<option value="">— escolha a tradição —</option>' +
+    TRADICOES_DO_VOCABULARIO.map((t) =>
+      '<option value="' + esc(t) + '">' + esc(rotuloDaTradicao(t)) + '</option>').join('') +
+    '</select>' +
+    /* A COMPLEXIDADE É O CAMPO NOVO, e o vazio é uma resposta: «ainda não classificado». Os 98
+     * verbetes que já existem estão nesse estado, e nenhum deles é um erro. */
+    '<label class="campo-rotulo" for="diccomplexidade">Complexidade</label>' +
+    '<select id="diccomplexidade">' +
+    '<option value="">— ainda não classificado —</option>' +
+    COMPLEXIDADES_DO_VOCABULARIO.map((c) =>
+      '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('') +
+    '</select>' +
+    '<label class="campo-rotulo" for="dicfrase">O que acontece — a definição do exercício</label>' +
+    '<textarea id="dicfrase" rows="4" placeholder="a definição do exercício — o que ele é e como se executa"></textarea>' +
+    // O RECADO DA GRAVAÇÃO, dentro do formulário e antes dos botões: é aqui que `alvoDoRecado`
+    // procura, e é aqui que a recusa do repositório tem de aparecer.
+    '<div class="res" data-res="dic"></div>' +
+    /* A AÇÃO QUE GRAVA, na fileira — a peça é a do «Cadastrar professor» (`.acao grande` dentro de
+     * `.par-botoes`). O rótulo diz o gesto pedido: «Criar dicionário». Em edição passa a «Gravar
+     * alterações», porque «Criar» sobre um verbete que já existe seria a tela a mentir sobre o que
+     * vai acontecer. */
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande" id="dic-gravar">Criar dicionário</button>' +
+    '<button type="button" class="acao secundario" id="dic-cancelar" hidden>Cancelar</button>' +
+    '</span>' +
+    '<p class="nota" id="dic-nota"></p>' +
+    '</form>' +
+    /* «CARREGAR VERBETES» (19/11/2026) — o botão que a 01/11/2026 pôs no passo 1 do Estilo, com o
+     * nome que agora diz a verdade.
+     *
+     * Ele chamava-se «Carregar as turmas iniciais» e chamava `semear-catalogo`, que carrega SALAS.
+     * Aqui o que se carrega são os verbetes iniciais do catálogo — os exercícios que a progressão
+     * de referência declara —, e passam a ser da escola, para ela os poder classificar e corrigir
+     * sem tocar no catálogo. Ver `POST /api/bastidores/semear-verbetes` para a regra e para o
+     * porquê de não serem os 98. */
+    '<p><button type="button" class="acao secundario" id="dic-semear">Carregar verbetes</button></p>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Dicionário</h3>' +
+    '<div class="rolagem"><ul class="lista" id="lista-dicionario"></ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
+    '</section>' +
+    // ---------------------------------------------------------------------------
     // OS VERBETES DA NOTAÇÃO (28/10/2026). A secção é da MODALIDADE, não da escola — o alfabeto
     // não pertence a nenhuma —, e grava no REPOSITÓRIO, porque é de lá que o gerador o lê. A tela
     // é conveniência; a guarda é o servidor (`motor/servidor/verbete.js`).
@@ -8763,6 +8884,39 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * acrescenta-o localmente enquanto não há outra leitura.
      */
     '<div class="passo-painel" data-passo="1">' +
+    /* ═══════════════════════════════════════════════════════════════════════════════════════════
+     * O PASSO 1 É A ESCOLHA — e o cadastro do exercício mudou-se para o DICIONÁRIO (19/11/2026).
+     *
+     * «Agora o step um do estilo passa a ser o exercício. Só que o exercício está comprimido aqui,
+     * tem alguma outra coisa escrita junto. […] A gente vai chamar apenas de o exercício.»
+     *
+     * O QUE ESTAVA AQUI ERAM DOIS CADASTROS NO MESMO SÍTIO: o do TERMO (nome, categoria, tradição,
+     * definição — o que o dicionário guarda) e o do VERBETE (que é a decomposição daquele exercício
+     * em música, direção e sinais). A secção nova ficou com o primeiro; esta fica com o segundo, e
+     * o passo 1 passa a ser a pergunta que sobra: QUAL exercício é este verbete.
+     *
+     * OS SEIS CAMPOS DO CADASTRO NÃO FORAM APAGADOS DO DOM — estão no bloco `hidden` abaixo, com o
+     * comentário que explica porquê. Tirá-los de lá partiria o motor que os lê: `#vb-frase` é a
+     * frase com que os trechos nascem (as células guardam-na), e `#vncategoria`/`#vntradicao`/`#vnnome`
+     * são a memória do passo 1 que `sincronizarPasso1ComExercicio` preenche a partir do dicionário.
+     * O que muda é que já não são o que a pessoa vê nem o que ela tem de preencher.
+     * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+    // A ESCOLHA, que era o passo 2 e passou a ser o passo 1.
+    '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
+    '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
+    /* O MÉTODO VEM COM O EXERCÍCIO, e é onde ele sempre esteve: é uma propriedade do exercício
+     * neste verbete — «neste sou RAD, nos outros sou francês» —, e não uma decisão da música. */
+    '<label class="campo-rotulo" for="vbmetodo">Método deste exercício</label>' +
+    '<select id="vbmetodo">' +
+    '<option value="">— herda a metodologia do plano —</option>' +
+    METODOS_DO_VERBETE.map((m) =>
+      '<option value="' + esc(m.valor) + '">' + esc(m.rotulo) + '</option>').join('') +
+    '</select>' +
+    '<p class="nota" id="vb-metodo-nota"></p>' +
+    /* O BLOCO RECOLHIDO — o cadastro que passou a ser do Dicionário. `hidden` e não apagado, pela
+     * razão escrita acima: o motor lê estes campos, e três deles são preenchidos pelo dicionário
+     * quando o exercício é escolhido. */
+    '<div hidden id="vb-cadastro-do-exercicio">' +
     /* O NOME DO EXERCÍCIO É UMA BUSCA, E NÃO UM CADASTRO (10/11/2026).
      *
      * O DEFEITO QUE ISTO FECHA, medido na bancada: quem já sabia qual era o exercício escrevia o
@@ -8894,7 +9048,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Quando o catálogo passar a trazer o ritmo (ou quando a carga o perguntar a quem clica), o
      * aviso encurta com a mesma naturalidade.
      */
-    '<p><button id="semear" type="button">Carregar as turmas iniciais</button></p>' +
+    '</div>' +   // /#vb-cadastro-do-exercicio
     '</div>' +
 
     // ---- MODO A: o verbete ---------------------------------------------------------------
@@ -8950,55 +9104,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // escolha do exercício (o dicionário responde à escolha), e a posição é a lista curta que
     // acompanha o mesmo exercício. Desde 02/11/2026 as três são o passo 2 — o exercício novo é
     // o passo 1, e é o «Avançar» dele que grava o termo antes de se chegar aqui.
+    /* O PASSO 2 SAIU (19/11/2026) — o exercício e o método passaram para o passo 1, e esta
+     * posição no mapa fechou-se. O que ele continha era a escolha do exercício (agora no 1) e o
+     * «Método deste exercício» (também no 1, porque é do exercício, não da música). A música desce
+     * a passo 2, e com ela os três seguintes. */
     '<div class="passo-painel" data-passo="2" hidden>' +
-    '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
-    '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
-    /* A POSIÇÃO SAIU DAQUI (02/11/2026), a pedido dela: «essa mesma configuração já é tratada de
-     * forma muito mais granular, robusta e organizada no Step 4 (Para Onde) e no Step 5 (Sinais)».
-     *
-     * O QUE ELA DIZIA, e não era mentira: a posição era um selo guardado no verbete
-     * (`posicao: {membro, termo}`), lido pela listagem e pelo documento. O que era verdade é que
-     * ela não dizia NADA que os sinais das células já não dissessem — e dizia-o pior, porque era
-     * uma segunda declaração do mesmo facto, escrita à parte e nunca conferida contra eles.
-     *
-     * O CAMPO DO DADO NÃO SAI. Os verbetes que já o têm continuam a mostrá-lo na listagem e no
-     * documento, e o validador continua a conferi-lo quando existe. O que sai é a TELA que pedia
-     * uma segunda resposta para uma pergunta que os sinais já respondem.
-     */
-    // O MÉTODO DESTE VERBETE (02/11/2026) — e ele HERDA, não duplica.
-    //
-    // O plano já declara «Metodologia de referência» e é obrigatório: o ciclo inteiro tem um
-    // padrão, e é de lá que sai. Este campo existe para o exercício que foge ao padrão — «neste
-    // sou RAD, nos outros sou francês» —, e a primeira opção diz exactamente isso. Duas
-    // declarações do mesmo facto divergiriam ao primeiro caso; uma herança com sobreposição
-    // não: quem não escolhe nada herda, e o que herda vê-se escrito.
-    //
-    // A razão de ele existir é a 3ª posição: os dois braços acima da cabeça são a 3ª na escola
-    // francesa e a 5ª na RAD. O rótulo do sinal já diz as duas («3ª · quinta (braços)»); o
-    // método decide QUAL delas vem primeiro, e é isso que o documento publica.
-    '<label class="campo-rotulo" for="vbmetodo">Método deste exercício</label>' +
-    '<select id="vbmetodo">' +
-    '<option value="">— herda a metodologia do plano —</option>' +
-    /* AS TRADIÇÕES SÃO AS DA LISTA ÚNICA, E O VALOR É A CHAVE (02/11/2026).
-     *
-     * DEFEITO QUE ESTAVA AQUI, medido: a opção dizia `Francesa` e a tabela
-     * `diferencasDeNomenclatura` tem a coluna `francesa`. `linha["Francesa"]` é `undefined`, e a
-     * nota do método dizia sempre «O alfabeto não declara esta posição em Francesa» — a negar um
-     * dado que existe. A causa é a de sempre: a lista escrita à mão ao lado da lista do dado.
-     *
-     * AGORA O VALOR É A CHAVE E O TEXTO É O RÓTULO, e os dois vêm de `METODOS_DO_VERBETE`: as
-     * tradições do `tradicoes.json` e os métodos livres (`Cecchetti`, `Escola livre`), somados
-     * UMA vez e sem repetir. A repetição que ela viu — «a opção Compartilhada duplicada, no meio
-     * e no final da lista» — não vinha daqui: vinha do `sugerirMetodo`, que acrescentava uma
-     * opção nova sempre que o valor sugerido não era o que já estava escolhido, mesmo quando ele
-     * já existia na lista. Está corrigido lá, e a lista aqui passa a ser a fonte.
-     */
-    METODOS_DO_VERBETE.map((m) =>
-      '<option value="' + esc(m.valor) + '">' + esc(m.rotulo) + '</option>').join('') +
-    '</select>' +
-    '<p class="nota" id="vb-metodo-nota"></p>' +
-    '</div>' +
-    '<div class="passo-painel" data-passo="3" hidden>' +
     '<label class="campo-rotulo" for="vbtempos">Música — quantos tempos</label>' +
     '<input id="vbtempos" type="number" min="1" max="256" step="1" placeholder="ex.: 8">' +
     '<label class="campo-rotulo" for="vbcompasso">Em que compasso</label>' +
@@ -9032,7 +9142,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Quatro escolhas que respondem à mesma pergunta: a direção do membro, a orientação do
     // corpo, a categoria e a contagem. Estavam misturadas com os sinais e com a tabela, e era
     // esse emaranhado que a pesquisadora achou confuso.
-    '<div class="passo-painel" data-passo="4" hidden>' +
+    '<div class="passo-painel" data-passo="3" hidden>' +
     '<fieldset class="escolhas" id="vb-dir">' +
     // A DIREÇÃO É OPCIONAL (01/11/2026) — e a legenda diz que é, no mesmo desenho da orientação,
     // que já era. Sem isto, a ausência de escolha lia-se como campo por preencher.
@@ -9079,7 +9189,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</select>' +
     '</div>' +
     // ---- PASSO 4: COMO O TRECHO SE ESCREVE (31/10/2026 — passo 4 desde 01/11/2026) -----
-    '<div class="passo-painel" data-passo="5" hidden>' +
+    '<div class="passo-painel" data-passo="4" hidden>' +
     '<fieldset class="escolhas" id="vb-sinais">' +
     '<legend class="campo-rotulo">Sinais, pela ordem em que acontecem</legend>' +
     '</fieldset>' +
@@ -9104,7 +9214,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o campo continuava a pedir a MESMA frase a cada trecho. A frase é do exercício e passou
     // para o passo 1; o que este passo mostra é o que fica ESCRITO em cada trecho, já composto
     // (frase + «lê-se»), sem nada para reescrever.
-    '<div class="passo-painel" data-passo="6" hidden>' +
+    '<div class="passo-painel" data-passo="5" hidden>' +
     // Havia DUAS tabelas — «direções que este verbete cobre» e «células deste verbete» —, e elas
     // diziam a mesma coisa: a primeira era a segunda agrupada. Sem células, as duas diziam «não
     // há nada». É o mesmo defeito das duas listas de direções no dado, repetido na tela; a
@@ -9767,6 +9877,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  ["sec-alunas", ["aluna-cancelar-1", "aluna-cancelar-2"]],' +
     '  ["sec-turmas", ["t-cancelar", "vinc-cancelar"]],' +
     '  ["sec-corpo", ["lb-cancelar"]],' +
+    '  ["sec-dicionario", ["dic-cancelar"]],' +
     '  ["sec-verbetes", ["vb-cancelar"]],' +
     '  ["sec-curadorias", ["cu-cancelar"]]' +
     '];' +
@@ -9810,6 +9921,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  ["sec-alunas", function(v){ return v("aluna-em-derivacao") !== "" || v("aluna-modo") !== ""; }],' +
     '  ["sec-turmas", function(v){ return v("tmodo") !== "" || v("tderivar") !== ""; }],' +
     '  ["sec-corpo", function(v){ return v("lb-modo") !== ""; }],' +
+    /* O DICIONÁRIO ESTÁ EM EDIÇÃO QUANDO O `#dicid` TEM UM ID (19/11/2026) — é o mesmo campo oculto
+     * que decide `POST` × `PUT`. Uma pergunta, uma resposta: se a trava do «Excluir» lesse outro
+     * sinal, a linha diria «a editar» e o botão diria «podes apagar». */
+    '  ["sec-dicionario", function(v){ return v("dicid") !== ""; }],' +
     '  ["sec-verbetes", function(v){ return v("vbacao") === "atualizar"; }],' +
     '  ["sec-curadorias", function(v){ return v("cuderivar") !== ""; }]' +
     '];' +
@@ -10033,7 +10148,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // decisão da página inteira. `sessionStorage` pela razão de sempre: a página recarrega a
     // cada operação, e um formulário que se reabre sozinho desfaria o que a pessoa acabou de
     // pedir — sem ser preferência para amanhã.
-    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-verbetes","sec-curadorias","sec-corpo"];' +
+    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-dicionario","sec-verbetes","sec-curadorias","sec-corpo"];' +
     'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
     /* AS SECÇÕES NASCEM COLAPSADAS, e o estado tem os mesmos três valores do formulário das Salas
      * (18/11/2026): `"sim"` recolhida, `"nao"` aberta, chave AUSENTE = ninguém decidiu = padrão,
@@ -15859,17 +15974,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * avaria. E diz-se de TODAS as que faltam antes do passo pedido, não só da imediatamente
      * anterior — quem tenta o 5 e ficou no 2 precisa de saber as duas coisas.
      */
+    /* AS CINCO FALTAS, UMA POR PASSO (19/11/2026) — a numeração desceu um com a fusão. O passo 1
+     * deixou de perguntar categoria, tradição e definição: esses campos passaram a ser do
+     * DICIONÁRIO, e pedi-los aqui seria pedir na tela errada o que a tela certa já não guarda. */
     'function faltasDoPasso(n){' +
     '  if (n === 1) return oQueFaltaNoPasso1();' +
-    '  if (n === 2) return exercicioEscolhido() ? [] : ["o exercício (passo 2)"];' +
-    '  if (n === 3) return temposTotais() > 0 ? [] : ["quantos tempos tem a música (passo 3)"];' +
-    '  if (n === 4) return CONTAGEM ? [] : ["a contagem (passo 4)"];' +
+    '  if (n === 2) return temposTotais() > 0 ? [] : ["quantos tempos tem a música (passo 2)"];' +
+    '  if (n === 3) return CONTAGEM ? [] : ["a contagem (passo 3)"];' +
     // O PASSO 5 É O DOS SINAIS — mas ele não fecha a leitura de um verbete que JÁ TEM trechos.
     // Sem esta segunda metade, abrir um verbete gravado e querer ver a decomposição obrigaria a
     // compor um trecho novo: os sinais do editor nascem vazios, e o passo 6 ficaria inalcançável
     // sobre um dado que já existe. Exigir sinais é exigir o que se vai ACRESCENTAR; o que já está
     // escrito é o que o passo 6 mostra.
-    '  if (n === 5) return (SINAIS.length || Object.keys(CELULAS).length) ? [] : ["ao menos um sinal (passo 5)"];' +
+    '  if (n === 4) return (SINAIS.length || Object.keys(CELULAS).length) ? [] : ["ao menos um sinal (passo 4)"];' +
     '  return [];' +
     '}' +
     'function faltasAntesDe(n){' +
@@ -15964,13 +16081,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  direcoesDaGramatica().forEach(function(d){ if (DIRECAO && d.termo === DIRECAO) onde.push(d.nome); });' +
     '  if (orient) onde.push(orient);' +
     '  if (CONTAGEM) onde.push("tempo " + CONTAGEM);' +
+    /* CINCO VALORES, CINCO PASSOS (19/11/2026). O 1 dizia «a criar» — e o que ele mostra agora é o
+     * exercício ESCOLHIDO, que é a única coisa que aquele passo decide. */
     '  var valores = {' +
-    '    1: (document.getElementById("vnnome") || {}).value || "a criar",' +
-    '    2: (nome || "a escolher") + (posicao ? " · " + posicao : ""),' +
-    '    3: (tempos || "—") + " tempos · " + (compasso || "—"),' +
-    '    4: onde.length ? onde.join(" · ") : "a escolher",' +
-    '    5: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
-    '    6: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
+    '    1: nome || "a escolher",' +
+    '    2: (tempos || "—") + " tempos · " + (compasso || "—"),' +
+    '    3: onde.length ? onde.join(" · ") : "a escolher",' +
+    '    4: SINAIS.length ? SINAIS.length + (SINAIS.length === 1 ? " sinal" : " sinais") : "a escolher",' +
+    '    5: (function(){ var t = 0; Object.keys(CELULAS).forEach(function(d){ (CELULAS[d] || []).forEach(function(c){ t += 1; }); }); return t ? t + (t === 1 ? " trecho" : " trechos") : "nenhum trecho"; })()' +
     '  };' +
     '  Object.keys(valores).forEach(function(n){' +
     '    var el = document.getElementById("vb-v" + n);' +
@@ -16463,16 +16581,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  alternarPasso1();' +
     '}' +
+    /* O PASSO 1 PEDE UMA COISA SÓ: QUAL É O EXERCÍCIO (19/11/2026).
+     *
+     * Ele perguntava quatro — nome, definição, categoria e tradição —, porque era ele que criava o
+     * termo. O termo passou a nascer no DICIONÁRIO, e aqui resta a escolha. As três perguntas que
+     * saíram não se perderam: quem as responde é o Dicionário, e o que o Estilo faz é ler a
+     * resposta (`sincronizarPasso1ComExercicio` continua a preencher os campos que o motor usa). */
     'function oQueFaltaNoPasso1(){' +
-    '  var campo = document.getElementById("vnnome");' +
-    '  var nome = campo ? campo.value.trim() : "";' +
-    '  if (!nome) return [];' +
-    '  var falta = [];' +
-    '  var frase = partirFrase((document.getElementById("vb-frase") || {}).value || "");' +
-    '  if (!frase) falta.push("o que acontece (a definição do exercício)");' +
-    '  if (!document.getElementById("vncategoria").value) falta.push("a categoria");' +
-    '  if (!document.getElementById("vntradicao").value) falta.push("a tradição de referência");' +
-    '  return falta;' +
+    '  return exercicioEscolhido() ? [] : ["o exercício"];' +
     '}' +
     'function criarExercicioDoPasso1(depois){' +
     '  var campo = document.getElementById("vnnome");' +
@@ -17213,6 +17329,200 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    liberar();' +
     '  }).catch(function(err){ liberar(); recado("erro", "Erro: " + err.message); });' +
     '}' +
+    /* ==========================================================================================
+     * O DICIONÁRIO (19/11/2026) — a lista, o formulário e os três gestos.
+     *
+     * O QUE ESTA SECÇÃO ACRESCENTA AO QUE JÁ HAVIA. O vocabulário sempre foi lido (pelo plano, pelo
+     * Estilo, pela curadoria); o que nunca houve foi um sítio onde o EXERCÍCIO se declarasse sem ser
+     * a caminho de outra coisa. O Estilo criava-o no passo 1 porque não havia outro lugar — e por
+     * isso o mesmo formulário era dois cadastros.
+     *
+     * A LISTA É A DO VOCABULÁRIO COMPOSTO (`/api/bastidores/termos`): os termos do catálogo que a
+     * escola vê, mais os que ela declarou, com a precedência que `compor` já decide. Nada é
+     * filtrado aqui — um segundo filtro divergiria do dicionário ao primeiro termo.
+     * ========================================================================================== */
+    'var DICIONARIO = [];' +
+    'function dicionarioCarregado(){ return DICIONARIO; }' +
+    /* AS TRÊS CAIXAS DO CARTÃO SÃO UM NICHO, e o nicho é a peça que a lista de salas já fixou
+     * (`.trio`/`.trio-item`/`.trio-painel`). Elas respondem às três classificações que ela pediu:
+     * «vai ter também a categoria que a gente contempla, vai ter também a tradição que a gente
+     * contempla e vai ter também […] complexidade». */
+    'function caixaDoDicionario(qual, rotulo, valor, dica){' +
+    '  return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + qual +' +
+    '    "\\" aria-expanded=\\"false\\" aria-label=\\"" + dica + "\\">" +' +
+    '    "<span class=\\"trio-k\\">" + rotulo + "</span>" +' +
+    '    "<span class=\\"trio-v\\">" + escHtml(valor) + "</span>" +' +
+    '    "<span class=\\"trio-q\\" aria-hidden=\\"true\\">?</span></button>";' +
+    '}' +
+    'function painelDoDicionario(qual, miolo){' +
+    '  return "<div class=\\"trio-painel\\" data-painel=\\"" + qual + "\\" hidden>" + miolo + "</div>";' +
+    '}' +
+    'function linhaDoDicionario(t){' +
+    '  var nome = String(t.termo || "");' +
+    '  var cat = String(t.categoriaRotulo || t.categoria || "");' +
+    '  var tra = String(t.tradicaoRotulo || t.tradicao || "");' +
+    /* A COMPLEXIDADE VAZIA DIZ-SE (19/11/2026). «—» é uma resposta — «ainda não classificado» —, e
+     * não um campo que falhou: os 98 verbetes anteriores a este campo estão todos assim. */
+    '  var cplx = String(t.complexidade || "—");' +
+    '  var daEscola = String(t.escola || "") !== "";' +
+    '  var selo = daEscola' +
+    '    ? "<span class=\\"selo vinculada\\" title=\\"verbete declarado por esta escola\\">da escola</span>"' +
+    '    : "<span class=\\"selo livre\\" title=\\"verbete do catálogo — a escola ainda não o adoptou\\">catálogo</span>";' +
+    '  return "<li class=\\"trio-plano\\" data-dicionario=\\"" + escHtml(String(t.id || "")) + "\\">" +' +
+    '    "<div class=\\"trio-linha\\"><span class=\\"trio-nome\\"><b>" + escHtml(nome) + "</b> " + selo +' +
+    '    "</span><span class=\\"acoes\\">" +' +
+    '      "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-dicionario=\\"" +' +
+    '        escHtml(String(t.id || "")) + "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" +' +
+    '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-dicionario=\\"" +' +
+    '        escHtml(String(t.id || "")) + "\\" title=\\"Excluir este verbete do dicionário\\">Excluir</button>" +' +
+    '    "</span></div>" +' +
+    '    "<div class=\\"trio\\">" +' +
+    '      caixaDoDicionario("categoria", "Categoria", cat || "—", "ver a categoria") +' +
+    '      caixaDoDicionario("tradicao", "Tradição", tra || "—", "ver a tradição") +' +
+    '      caixaDoDicionario("complexidade", "Complexidade", cplx, "ver a complexidade") +' +
+    '    "</div>" +' +
+    '    painelDoDicionario("categoria", "<p class=\\"trio-nota\\">A categoria diz o que o exercício é na gramática — passo, salto, ligação, giro. É ela que agrupa a lista de exercícios do Estilo.</p>") +' +
+    '    painelDoDicionario("tradicao", "<p class=\\"trio-nota\\">A tradição diz de onde vem o nome. É a mesma que o «Método deste exercício» herda no Estilo.</p>") +' +
+    '    painelDoDicionario("complexidade", "<p class=\\"trio-nota\\">A complexidade é a classificação de quem ensina: o mesmo exercício é simples para quem já o tem e complexo para quem o está a aprender. «—» quer dizer ainda não classificado.</p>") +' +
+    '    "</li>";' +
+    '}' +
+    'function carregarDicionario(){' +
+    '  var lista = document.getElementById("lista-dicionario");' +
+    '  if (!lista) return null;' +
+    '  return fetch("/api/bastidores/termos").then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (!d || !d.ok) { lista.innerHTML = "<li>Erro: " + ((d && d.erro) || "desconhecido") + "</li>"; return; }' +
+    '    DICIONARIO = d.termos || [];' +
+    '    lista.innerHTML = DICIONARIO.map(linhaDoDicionario).join("") ||' +
+    '      "<li>O dicionário está vazio — declare o primeiro exercício no formulário, ao lado.</li>";' +
+    '  }).catch(function(err){' +
+    '    lista.innerHTML = "<li>Erro: " + (err && err.message ? err.message : err) + "</li>";' +
+    '  });' +
+    '}' +
+    /* A GRAVAÇÃO DO FORMULÁRIO — `POST` para criar, `PUT` para corrigir. Os dois caminhos são
+     * distintos de propósito: criar um exercício que já existe é um facto a dizer («já está»),
+     * corrigir um que existe é reescrever o mesmo registo. Misturá-los faria o «Criar» comportar-se
+     * como «Editar» quando o nome colidisse — a tela a mentir sobre o que aconteceu. */
+    'function gravarDicionario(e){' +
+    '  if (e) e.preventDefault();' +
+    '  var id = String((document.getElementById("dicid") || {}).value || "");' +
+    '  var corpo = {' +
+    '    token: TOKEN,' +
+    '    nome: String((document.getElementById("dicnome") || {}).value || "").trim(),' +
+    '    categoria: String((document.getElementById("diccategoria") || {}).value || ""),' +
+    '    tradicao: String((document.getElementById("dictradicao") || {}).value || ""),' +
+    '    complexidade: String((document.getElementById("diccomplexidade") || {}).value || ""),' +
+    '    descricao: String((document.getElementById("dicfrase") || {}).value || "").trim()' +
+    '  };' +
+    // A RECUSA CHEGA ANTES DA REDE, e diz qual campo falta — «faltam campos» não serve.
+    '  var falta = [];' +
+    '  if (!corpo.nome) falta.push("o exercício");' +
+    '  if (!corpo.categoria) falta.push("a categoria");' +
+    '  if (!corpo.tradicao) falta.push("a tradição");' +
+    '  if (falta.length) { recado("aviso", "Falta " + falta.join(", ") + "."); return; }' +
+    '  if (id) corpo.id = id;' +
+    '  var res = document.querySelector("[data-res=\\"dic\\"]");' +
+    '  if (res) { res.className = "res"; res.textContent = ""; }' +
+    '  ocupar("gravando o exercício\\u2026", null);' +
+    /* O VERBO É LITERAL, E NÃO UMA VARIÁVEL (19/11/2026) — a mesma regra do
+     * `tools/check-sem-destruicao.js`, e ela tem razão: um `method` que vem de fora é invisível à
+     * leitura estática, e é por essa fenda que passaria um `DELETE` ao endereço errado. Dois
+     * caminhos escritos por extenso custam quatro linhas e podem ser lidos. */
+    '  var pedido = id' +
+    '    ? fetch("/api/bastidores/termo", {method: "PUT",' +
+    '        headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    : fetch("/api/bastidores/termo", {method: "POST",' +
+    '        headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)});' +
+    '  pedido.then(function(r){ return r.json(); }).then(function(d){' +
+    '    liberar();' +
+    '    if (!d || !d.ok) {' +
+    '      var msg = "Erro: " + ((d && d.erro) || "desconhecido")' +
+    '        + (d && d.erros && d.erros.length ? " — " + d.erros.join("; ") : "");' +
+    '      if (res) { res.className = "res erro"; res.textContent = msg; } else { recado("erro", msg); }' +
+    '      return;' +
+    '    }' +
+    // A RECARGA É O CAMINHO DA CASA DEPOIS DE GRAVAR: a lista vem do servidor, e o termo novo ou
+    // corrigido aparece com o id e com o dono que o repositório lhe deu.
+    '    location.reload();' +
+    '  }).catch(function(err){' +
+    '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
+    '  });' +
+    '}' +
+    'function editarNoDicionario(id){' +
+    '  var t = null;' +
+    '  DICIONARIO.forEach(function(x){ if (x && String(x.id) === String(id)) t = x; });' +
+    '  if (!t) { recado("erro", "Este verbete não está na lista carregada — recarregue a página."); return; }' +
+    '  document.getElementById("dicid").value = String(t.id || "");' +
+    '  document.getElementById("dicnome").value = String(t.termo || "");' +
+    '  document.getElementById("diccategoria").value = String(t.categoria || "");' +
+    '  document.getElementById("dictradicao").value = String(t.tradicao || "");' +
+    '  document.getElementById("diccomplexidade").value = String(t.complexidade || "");' +
+    '  document.getElementById("dicfrase").value = String(t.descricao || "");' +
+    '  var b = document.getElementById("dic-gravar");' +
+    '  if (b) b.textContent = "Gravar alterações";' +
+    '  var f = document.getElementById("form-dicionario");' +
+    '  if (f) { f.dispatchEvent(new Event("input", {bubbles: true})); }' +
+    '  abrirOFormularioDe("sec-dicionario");' +
+    /* A LISTA VOLTA AO TOPO DO FORMULÁRIO. Ela pode estar a 3000px de distância do cartão que se
+     * clicou, e sem isto o gesto abria um formulário fora do ecrã — o mesmo defeito que a
+     * pesquisadora leu como «não faz nada». */
+    '  var secao = document.getElementById("sec-dicionario");' +
+    '  if (secao && secao.scrollIntoView) secao.scrollIntoView({block: "start"});' +
+    '}' +
+    'function apagarDoDicionario(id){' +
+    '  var t = null;' +
+    '  DICIONARIO.forEach(function(x){ if (x && String(x.id) === String(id)) t = x; });' +
+    '  var nome = t ? String(t.termo || "") : String(id || "");' +
+    '  if (!confirm("Excluir «" + nome + "» do dicionário?\\n\\n' +
+    'O verbete deixa de existir para TODAS as escolas: o vocabulário é um ficheiro só. ' +
+    'Se algum plano ou alguma turma o usar, o sistema recusa — e diz onde.")) return;' +
+    '  ocupar("excluindo\\u2026", null);' +
+    '  fetch("/api/bastidores/termo", {' +
+    '    method: "DELETE",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({token: TOKEN, id: id})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    liberar();' +
+    '    if (!d || !d.ok) { recado("erro", "Erro: " + ((d && d.erro) || "desconhecido")); return; }' +
+    '    location.reload();' +
+    '  }).catch(function(err){' +
+    '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
+    '  });' +
+    '}' +
+    'var formDicionario = document.getElementById("form-dicionario");' +
+    'if (formDicionario) formDicionario.addEventListener("submit", gravarDicionario);' +
+    'var listaDicionario = document.getElementById("lista-dicionario");' +
+    'if (listaDicionario) {' +
+    '  carregarDicionario();' +
+    '  listaDicionario.addEventListener("click", function(e){' +
+    '    var ed = e.target.closest ? e.target.closest("button[data-editar-dicionario]") : null;' +
+    '    if (ed) { editarNoDicionario(ed.getAttribute("data-editar-dicionario")); return; }' +
+    '    var ap = e.target.closest ? e.target.closest("button[data-apagar-dicionario]") : null;' +
+    '    if (ap) {' +
+    '      if (excluirTravado(ap)) return;' +
+    '      apagarDoDicionario(ap.getAttribute("data-apagar-dicionario"));' +
+    '      return;' +
+    '    }' +
+    '  });' +
+    '}' +
+    'var bCancelarDicionario = document.getElementById("dic-cancelar");' +
+    'if (bCancelarDicionario) bCancelarDicionario.addEventListener("click", function(){' +
+    '  var f = document.getElementById("form-dicionario");' +
+    '  if (f) f.reset();' +
+    '  var oculto = document.getElementById("dicid"); if (oculto) oculto.value = "";' +
+    '  var b = document.getElementById("dic-gravar"); if (b) b.textContent = "Criar dicionário";' +
+    '  var res = document.querySelector("[data-res=\\"dic\\"]");' +
+    '  if (res) { res.className = "res"; res.textContent = ""; }' +
+    '  recado("", "");' +
+    '  cancelarOFormularioDe("sec-dicionario");' +
+    '});' +
+    'var bSemearVerbetes = document.getElementById("dic-semear");' +
+    'if (bSemearVerbetes) bSemearVerbetes.addEventListener("click", function(){' +
+    '  if (!confirm("Carregar os verbetes iniciais?\\n\\n' +
+    'Vêm os exercícios que a progressão de referência do catálogo declara, e passam a ser DESTA ' +
+    'escola: a partir daí ela classifica-os e corrige-os sem tocar no catálogo.\\n\\n' +
+    'Os que já são da escola não são duplicados.")) return;' +
+    '  enviar("/api/bastidores/semear-verbetes", {}, "carregando os verbetes iniciais\\u2026", true);' +
+    '});' +
     'var listaVerbetes = document.getElementById("lista-verbetes");' +
     'if (listaVerbetes) {' +
     '  carregarVerbetes();' +
@@ -17621,7 +17931,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * continua a ser só navegação. */
     'var bSeguir = document.getElementById("vb-seguir");' +
     'if (bSeguir) bSeguir.addEventListener("click", function(){' +
-    '  if (PASSO === 1) { criarExercicioDoPasso1(function(){ irParaPassoVerbete(2); }); return; }' +
+    /* O «AVANÇAR» DO PASSO 1 JÁ NÃO GRAVA NADA (19/11/2026) — ele agora é só navegação. Era ele
+     * que criava o termo (`criarExercicioDoPasso1`), e o termo passou a nascer no Dicionário; o
+     * gesto daqui é escolher, e escolher não escreve. */
+    '  if (PASSO === 1) { irParaPassoVerbete(2); return; }' +
     /* O «SEGUIR» NÃO LEVA A UM PASSO FECHADO (15/11/2026). Sem esta conta, sair do passo 3 com um
      * trecho fechado punha o professor num passo que a tira acabou de apagar — o painel aberto e o
      * botão desligado. Salta os passos do trecho, e a paragem seguinte é a decomposição, que é
@@ -17947,19 +18260,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (linha && linha.className === "linha-regua") linha.parentElement.removeChild(linha);' +
     '  gravarEstado();' +
     '});' +
-    // O DIÁLOGO DIZ O QUE VEM **E** O QUE NÃO VEM (01/11/2026). O texto anterior — «turmas já
-    // existentes não são duplicadas» — dizia a única coisa que não faz falta a quem decide. O que
-    // faz falta é saber que a turma carregada nasce SEM o ritmo e que, por isso, ainda não gera
-    // ciclo: sem isso, o professor carrega, vai eliciar o plano, e o manifesto recusa a turma com
-    // quatro faltas que ele não tem como adivinhar de onde vieram.
-    'document.getElementById("semear").addEventListener("click", function(e){' +
-    '  if (!confirm("Carregar as turmas iniciais?\\n\\n' +
-    'Vem o nome e o nível de referência de cada turma — NÃO vem o ritmo (dias, hora, duração ' +
-    'e período). Uma sala carregada assim serve para a turma, mas ainda não gera ciclo: ' +
-    'complete o cadastro dela antes de eliciar o plano.\\n\\n' +
-    'Turmas já existentes não são duplicadas.")) return;' +
-    '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
-    '});' +
+    /* O BOTÃO «CARREGAR AS TURMAS INICIAIS» MUDOU-SE (19/11/2026), com o ouvinte e tudo.
+     *
+     * Ele vivia no passo 1 do Estilo e chamava `semear-catalogo`, que carrega SALAS. A secção nova
+     * — o Dicionário — tem o botão que lhe corresponde, com o nome que diz o que faz («Carregar
+     * verbetes») e a rota que carrega o que o nome promete (`semear-verbetes`). Este ouvinte saiu
+     * com o botão: procurar `#semear` nesta página passou a dar `null`, e um `null.addEventListener`
+     * derruba o script inteiro — a página nasce morta, com os formulários todos a submeter por GET.
+     *
+     * A CARGA DAS SALAS NÃO SE PERDEU: ela continua a existir na rota (`semear-catalogo`), e quem
+     * a quer chamar tem-na lá. O que se retirou foi o botão deste formulário, onde ela já não
+     * pertence — o Estilo decompõe exercícios, e não cria salas.
+     */
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
     // A SALA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
@@ -21566,8 +21878,16 @@ async function fetch(request, env, extras) {
     // os campos vazios, e o documento a dizer «os tempos e o compasso ainda não estão declarados».
     // O alfabeto é `require`-ado no bundle do Worker (zero KV, zero ida ao GitHub); vai aqui
     // porque é esta a rota que a porta do plano já pede — uma rota nova seria uma leitura a mais.
+    /* OS RÓTULOS VÃO JUNTO (19/11/2026). O Dicionário mostra a categoria, a tradição e a
+     * complexidade em caixas de leitura, e a chave gravada (`posicao`, `compartilhada`) não é o que
+     * se lê. O rótulo é derivado AQUI, do mesmo mapa que serviu o `<select>` do formulário — duas
+     * traduções do mesmo vocabulário divergiriam ao primeiro item novo. */
     const comMusicas = lista.map((t) => Object.assign({}, t,
-      { musicas: musica.get(String(t.termo || '')) || [] }));
+      {
+        musicas: musica.get(String(t.termo || '')) || [],
+        categoriaRotulo: rotuloDaCategoria(t.categoria),
+        tradicaoRotulo: t.tradicao ? rotuloDaTradicao(t.tradicao) : '',
+      }));
     const opcoes = lista.map((t) => ({ valor: t.id, rotulo: t.termo }));
     return json(200, { ok: true, escola, termos: comMusicas, opcoes: opcoes });
   }
@@ -23996,6 +24316,16 @@ function parDaSalaNoCorpo(corpo, registo) {
         erro: 'escolha a tradição: ' + TRADICOES_DO_VOCABULARIO.join(' · '),
       });
     }
+    /* A COMPLEXIDADE, CONFERIDA ANTES DA GRAVAÇÃO (19/11/2026). O caminho do termo que JÁ EXISTE
+     * (`reutilizar`) devolve antes de a `validarTermo` correr, e é justamente o caminho de quem
+     * escreve um nome que o dicionário já tem — sem esta linha, um valor inventado passava por
+     * ali sem ninguém o olhar. */
+    if (novo.complexidade && COMPLEXIDADES_DO_VOCABULARIO.indexOf(novo.complexidade) === -1) {
+      return json(400, {
+        ok: false,
+        erro: 'escolha a complexidade: ' + COMPLEXIDADES_DO_VOCABULARIO.join(' · '),
+      });
+    }
     // A GRAVAÇÃO É NO REPOSITÓRIO (28/10/2026). O vocabulário passou a ter uma verdade só — o
     // ficheiro da modalidade —, e é dele que saem o plano, o verbete e a notação. Gravar no KV
     // criaria a segunda lista que esta alteração veio eliminar. Ver `termo-repo.js`.
@@ -24010,6 +24340,10 @@ function parDaSalaNoCorpo(corpo, registo) {
       corpo: {
         termo: novo.termo, categoria: novo.categoria, tradicao: novo.tradicao,
         membro: String(corpo.membro || '').trim(),
+        /* A COMPLEXIDADE ENTRA AQUI (19/11/2026) — «simples» ou «complexo», uma classificação de
+         * quem ensina. Vazia é «ainda não classificado», e é o estado de todos os verbetes que já
+         * existem; a `validarTermo` só a confere quando ela vem. */
+        complexidade: novo.complexidade,
         alternativos: novo.alternativos, descricao: novo.descricao,
         fonte: novo.fonte, observacoes: novo.observacoes,
       },
@@ -24052,6 +24386,10 @@ function parDaSalaNoCorpo(corpo, registo) {
         id: termoMesmo.id,
         termo: termoMesmo.termo,
         categoria: termoMesmo.categoria || '',
+        /* A TELA PRECISA DELE PARA REPINTAR O FORMULÁRIO (19/11/2026): o termo criado agora não
+         * está na lista que veio no carregamento, e sem este campo a classificação ficava por
+         * dizer depois de a pessoa a ter acabado de escrever. */
+        complexidade: termoMesmo.complexidade || '',
         tradicao: termoMesmo.tradicao || '',
         tradicaoRotulo: termoMesmo.tradicao ? rotuloDaTradicao(termoMesmo.tradicao) : '',
         descricao: termoMesmo.descricao || '',
@@ -24074,8 +24412,37 @@ function parDaSalaNoCorpo(corpo, registo) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
     const idAntigo = idDe(String(corpo.id || corpo.termo || '').trim());
-    const novoNome = String(corpo.novoNome || '').trim();
     if (!idAntigo) return json(400, { ok: false, erro: 'informe o termo a editar' });
+    /* DUAS FORMAS DE EDITAR, UM SÓ CAMINHO DE ESCRITA (19/11/2026).
+     *
+     *   · `novoNome` sozinho — o contrato antigo, que só muda o nome (o «editar» da lista antiga);
+     *   · os campos do DICIONÁRIO (`nome`/`termo`, `categoria`, `tradicao`, `complexidade`,
+     *     `descricao`) — o formulário da secção nova, que edita o verbete inteiro.
+     *
+     * O DICIONÁRIO MANDA O CONJUNTO, e não as diferenças: um campo em branco é uma resposta
+     * («não tem tradição de referência»), e tratar o vazio como «não veio» faria a limpeza de um
+     * campo não se gravar nunca. Quem só quer o nome continua a mandar `novoNome`. */
+    const camposDoDicionario = ['categoria', 'tradicao', 'complexidade', 'descricao', 'nome']
+      .some((k) => Object.prototype.hasOwnProperty.call(corpo, k));
+    if (camposDoDicionario) {
+      const { editarTermo } = require('./termo-repo.js');
+      const r = await editarTermo({
+        f: (u, o) => globalThis.fetch(u, o),
+        token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz', repo: 'danca', ref: 'main',
+        idAntigo,
+        corpo: {
+          termo: String(corpo.nome || corpo.termo || corpo.novoNome || '').trim(),
+          categoria: String(corpo.categoria || '').trim(),
+          tradicao: String(corpo.tradicao || 'compartilhada').trim(),
+          complexidade: String(corpo.complexidade || '').trim(),
+          descricao: String(corpo.descricao || '').trim(),
+        },
+        tradicoes: TRADICOES_DO_VOCABULARIO,
+      });
+      return json(r.ok ? 200 : (r.status || 400), r);
+    }
+    const novoNome = String(corpo.novoNome || '').trim();
     if (!novoNome) return json(400, { ok: false, erro: 'informe o novo nome' });
     const { editarNomeDoTermo } = require('./termo-repo.js');
     const r = await editarNomeDoTermo({
@@ -24247,6 +24614,89 @@ function parDaSalaNoCorpo(corpo, registo) {
     await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
 
     return json(200, { ok: true, turmasNovas, termosNovos, associacoes });
+  }
+
+  /* POST /api/bastidores/semear-verbetes — os VERBETES INICIAIS do catálogo, para o dicionário da
+   * escola (19/11/2026).
+   *
+   * O QUE ELE É, e a diferença que o separa do `semear-catalogo` acima: aquele semeia o que é da
+   * ESCOLA (as salas e a associação sala↔conteúdo); este semeia o DICIONÁRIO, que é o vocabulário
+   * técnico — o sítio de onde saem o repertório do plano, a lista de exercícios do verbete e as
+   * posições da notação.
+   *
+   * A ADOPÇÃO, e não a cópia cega. O vocabulário é um ficheiro só, e cada termo declara o seu dono
+   * (`escola` ausente = do catálogo). Esta rota grava, como termos DA ESCOLA, os que a progressão
+   * de referência do catálogo declara — `progressao.json` → `relacoes` —, e só os que ainda não
+   * são dela. O efeito é o que o nome promete: o dicionário da escola passa a ter os seus verbetes
+   * iniciais, e a partir daí ela classifica-os e corrige-os sem tocar no catálogo.
+   *
+   * PORQUE A PROGRESSÃO, E NÃO OS 98. Adoptar o vocabulário inteiro criaria 98 cópias de escola
+   * que passariam a sombrear o catálogo para sempre — e o catálogo é a lista de onde o produto
+   * vende. Os «verbetes iniciais» são os que a progressão inicial nomeia: é o mesmo conjunto que
+   * o `semear-catalogo` usa para a relação sala↔conteúdo, e é o que uma escola precisa para
+   * começar.
+   *
+   * É IDEMPOTENTE: correr duas vezes não duplica nada, e o segundo clique devolve
+   * `acrescentados: 0` com os que já lá estavam contados. */
+  if (path === '/api/bastidores/semear-verbetes' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const alvo = String((env && env.ESCOLA_SLUG) || escola || '').trim();
+    if (!alvo) return json(400, { ok: false, erro: 'a escola não está identificada neste Worker' });
+
+    const { ler: lerVocabulario, escrever: escreverVocabulario } = require('./termo-repo.js');
+    const lido = await lerVocabulario({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main',
+    });
+    if (!lido.ok) return json(lido.status || 502, { ok: false, erro: lido.erro });
+
+    const jaDela = new Set(lido.termos
+      .filter((t) => t && String(t.escola || '').trim() === alvo)
+      .map((t) => String(t.id || '')));
+    const doCatalogo = new Map(lido.termos
+      .filter((t) => t && !String(t.escola || '').trim() && t.id)
+      .map((t) => [String(t.id), t]));
+
+    const queridos = [];
+    for (const r of CATALOGO.RELACOES) {
+      const id = idDe(String(r.termo || ''));
+      if (id && queridos.indexOf(id) === -1) queridos.push(id);
+    }
+
+    const acrescentados = [];
+    const jaExistiam = [];
+    for (const id of queridos) {
+      if (jaDela.has(id)) { jaExistiam.push(id); continue; }
+      const doCat = doCatalogo.get(id);
+      if (!doCat) continue;             // o catálogo não tem este exercício: nada a adoptar
+      lido.termos.push(Object.assign({}, doCat, { escola: alvo }));
+      acrescentados.push(id);
+    }
+
+    if (!acrescentados.length) {
+      return json(200, {
+        ok: true, escola: alvo, acrescentados: [], jaExistiam, total: queridos.length,
+      });
+    }
+
+    const escrito = await escreverVocabulario({
+      f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz', repo: 'danca', ref: 'main', termos: lido.termos, sha: lido.sha,
+      mensagem: 'feat(biblioteca): os verbetes iniciais do dicionário da escola ' + alvo + '\n\n'
+        + 'Carregados pela Produção (Sistema Lastro): ' + acrescentados.length
+        + ' exercício(s) da progressão de referência passam a ser da escola.\n',
+    });
+    if (!escrito.ok) {
+      return json(escrito.status || 400, { ok: false, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' });
+    }
+    return json(200, {
+      ok: true, escola: alvo, acrescentados, jaExistiam, total: queridos.length,
+      commit: escrito.commit,
+    });
   }
 
   // ---------------------------------------------------------------------------

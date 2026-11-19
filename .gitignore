@@ -114,6 +114,7 @@ experimentos/*
 # conteúdo: as fixtures são declaradas dentro da própria prova.
 !experimentos/provar-produtos.js
 !experimentos/provar-derivacao-da-turma.js
+!experimentos/provar-dicionario.js
 !experimentos/provar-plano-da-turma.js
 !experimentos/provar-escola-fixa.js
 !experimentos/provar-escola-do-documento.js

@@ -2715,6 +2715,52 @@ declarar os três nomes — a regra nova impede a invenção seguinte, não rees
 E é por isso que ele não foi tocado por conta própria.
 
 
+### 5.29 O exercício nasce no DICIONÁRIO, e o Estilo escolhe dele
+
+«A gente vai criar, irmão das salas, audição, estilo e turmas, o dicionário.» A secção nova não
+inventa um conceito: separa dois que já viviam em ficheiros diferentes e estavam juntos na tela.
+
+**O que já era verdade no dado, e não era na tela.** O vocabulário técnico
+(`biblioteca/modalidades/…/vocabulario.json`, o conceito) e o verbete da notação (a decomposição do
+exercício em música, direção, sinais e trechos) sempre foram dois registos. Mas o **passo 1 do
+Estilo criava o termo** — nome, categoria, tradição, definição — antes de se saber se aquele
+exercício ia ter verbete. Resultado: quem só queria declarar um exercício entrava pelo Estilo, e
+quem estava no Estilo via dois cadastros no mesmo formulário.
+
+**A regra.** O **Dicionário** declara o exercício (nome, categoria, tradição, **complexidade** e a
+definição); o **Estilo** escolhe dele e decompõe-no. Uma direcção só, e é a do dado: o verbete aponta
+para o exercício, e nunca o contrário. Os seis passos do verbete passam a **cinco** — o 1.º é a
+escolha (com o método, que é do exercício), e os outros quatro são o que muda de trecho para trecho.
+
+**A complexidade é nova, e é opcional.** «simples» ou «complexo», uma classificação de quem ensina —
+o mesmo *battement tendu* é simples para quem já o tem e complexo para quem o aprende. Não há nada no
+dado de onde a derivar sem inventar, e é por isso que é um campo de quem ensina. É opcional porque os
+98 verbetes anteriores a ela existem: exigi-la recusaria a edição de todos até alguém os classificar.
+Em branco é «ainda não classificado», e a listagem di-lo com um «—», não com um vazio.
+
+**O que NÃO se mudou de sítio.** Os campos do cadastro continuam no DOM do Estilo, dentro de um bloco
+`hidden`. Não é preguiça: `#vb-frase` é a frase com que os trechos nascem (cada célula guarda-a), e
+`#vnnome`/`#vncategoria`/`#vntradicao` são a memória que `sincronizarPasso1ComExercicio` preenche a
+partir do dicionário. O que mudou é que já não são o que a pessoa vê.
+
+**O botão mudou de nome e de verbo.** «Carregar as turmas iniciais» chamava `semear-catalogo`, que
+carrega **salas**. No Dicionário chama-se **«Carregar verbetes»** e chama `semear-verbetes`, que
+adopta os exercícios da **progressão de referência** (`progressao.json` → `relacoes`) como termos da
+escola. Adoptar o vocabulário inteiro criaria 98 cópias de escola que sombreariam o catálogo para
+sempre — e o catálogo é o que se vende. É idempotente, e o segundo clique di-lo com números.
+
+**O que a mudança podia matar, e matou por um instante.** Tirar o `#semear` da marcação sem tirar o
+`getElementById("semear").addEventListener(...)` deu `null.addEventListener` — a excepção parou o
+script inteiro e a página nasceu morta (os formulários a submeter por GET, a «URL imensa» de novo). É
+a mesma família da armadilha de 19/11 que a `provar-pagina-do-professor` guarda: **um elemento que
+sai leva o ouvinte com ele**.
+
+**A prova.** `provar-dicionario` — **51 asserções** em seis secções (a secção e o menu; o formulário e
+as listas que vêm do dado; os três nichos da listagem; os cinco passos e o cadastro oculto; a
+complexidade e a edição que não rouba o dono; a carga idempotente). **Controle negativo contra o
+`HEAD`: 36 falhas, e depois a prova aborta** — no estado anterior não existem `COMPLEXIDADES` nem
+`editarTermo`, e é isso que ela mede.
+
 ## 6. Por que é mais barato
 
 

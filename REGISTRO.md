@@ -53694,3 +53694,70 @@ catálogo (03/11/2026) — commit novo, Worker velho —, e é o que aquele flux
 
 **PENDENTE — a listagem das ALUNAS CADASTRADAS**, nos nichos do cartão da sala (mantém-se da entrega
 anterior, e continua por fazer).
+
+### 19/11/2026 — «A gente vai criar o dicionário» — o exercício sai do Estilo, e o Estilo fica a escolher
+
+**O pedido, e ele tem quatro partes.**
+
+> «A gente vai criar, irmão das salas, audição, estilo e turmas, o dicionário. E aí esse formulário,
+> exercício que a gente declara, a categoria que a gente declara, a tradição que a gente declara e o
+> que acontece, que é a definição do exercício, e o botão carregar as turmas iniciais, que agora não
+> vai se chamar mais carregar turmas iniciais, ele vai se chamar carregar verbetes, vai mudar para
+> esse novo espaço que é dicionário. […] A gente vai dizer se o exercício é simples ou complexo. […]
+> Agora o step um do estilo passa a ser o exercício. Só que o exercício está comprimido aqui […]
+> A gente vai chamar apenas de o exercício.»
+
+**O que já era verdade no dado, e não era na tela.** O vocabulário (o conceito) e o verbete (a
+decomposição) sempre foram dois registos — dois ficheiros. Mas o passo 1 do Estilo *criava o termo*
+antes de se saber se o exercício ia ter verbete: dois cadastros no mesmo formulário, e quem só queria
+declarar um exercício tinha de entrar pelo Estilo.
+
+**A secção nova.** `sec-dicionario`, irmã das Salas, Audição, Estilo e Turmas, no menu «Pedagogia»
+entre a Audição e o Estilo — a ordem do trabalho (a Sala dá a modalidade, a Audição dá o corpo, o
+Dicionário dá o exercício, o Estilo dá o verbete, as Turmas juntam). Formulário com os cinco campos —
+exercício, categoria, tradição, **complexidade**, o que acontece —, as listas vindas do dado (nunca
+escritas à mão), a acção a gravar dentro de `.par-botoes` («Criar dicionário» + «Cancelar»), e a
+listagem com os três nichos que ela pediu: **categoria**, **tradição** e **complexidade**, com a peça
+do cartão da sala (`.trio-item`/`.trio-painel`), mais «Editar» e «Excluir».
+
+**A complexidade é nova.** «simples» ou «complexo», classificação de quem ensina — não há nada no
+dado de onde a derivar sem inventar. É **opcional**: os 98 verbetes anteriores a ela existem, e
+exigi-la passaria a recusar a edição de todos. Em branco diz «ainda não classificado», e a listagem
+mostra «—» em vez de um vazio que se lê como falha.
+
+**O Estilo passou a cinco passos.** O 1.º é «O exercício» — a escolha, com o método (que é do
+exercício, não da música) — e os outros quatro são o que muda de trecho para trecho: a música, o para
+onde, os sinais e a decomposição. E o «Avançar» do passo 1 deixou de gravar: escolher não escreve.
+
+**O que ficou no DOM, e porquê.** Os campos do cadastro antigo continuam lá, dentro de um bloco
+`hidden`. Não é vestígio: `#vb-frase` é a frase com que os trechos nascem (cada célula guarda-a), e
+`#vnnome`/`#vncategoria`/`#vntradicao` são a memória que `sincronizarPasso1ComExercicio` preenche a
+partir do dicionário. O que mudou é que já não são o que a pessoa vê nem o que ela preenche.
+
+**O botão mudou de nome e de verbo.** «Carregar as turmas iniciais» chamava `semear-catalogo`, que
+carrega **salas**. Passa a «Carregar verbetes» e a chamar `semear-verbetes`, que adopta como termos
+da escola os exercícios da **progressão de referência** — 5, e não os 98: adoptar o vocabulário
+inteiro criaria 98 cópias de escola que sombreariam o catálogo para sempre, e o catálogo é o que se
+vende. Idempotente, e o segundo clique di-lo com números.
+
+**Dois defeitos apanhados a construir, e os dois da mesma família.**
+
+1. **`null.addEventListener`.** Tirar o `#semear` da marcação sem tirar o ouvinte parou o script
+   inteiro: a página nasceu morta, com os formulários a submeter por GET. A `provar-pagina-do-professor`
+   apanhou-o na primeira corrida («o arranque não lança nenhuma excepção») — **um elemento que sai
+   leva o ouvinte com ele**.
+2. **O `data-passo` não diz de que peça é.** A primeira versão da prova ancorava o painel 1 em
+   `indexOf('data-passo="1"')` e apanhava o **botão da tira**, não o painel: a fatia saía entre dois
+   botões. Corrigido para `class="passo-painel" data-passo="1"`.
+
+**Medido, e não estimado.** `experimentos/provar-dicionario.js` — **51 asserções** em seis secções
+(secção e menu; formulário e listas do dado; os três nichos; os cinco passos e o cadastro oculto; a
+complexidade e a edição que não rouba o dono nem apaga o que o formulário não pergunta; a carga
+idempotente). **Controle negativo contra o `HEAD`: 36 falhas, e depois aborta** — no estado anterior
+não existem `COMPLEXIDADES` nem `editarTermo`.
+
+Vizinhas, todas verdes: `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
+`provar-listas-do-acervo` 113, `provar-teste` 43, `provar-estado-da-turma` 28,
+`provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `check-identidade` ok.
+
+`ARQUITETURA-GERAL.md` §5.29 documenta a regra; `experimentos/README.md` a linha da bancada.
