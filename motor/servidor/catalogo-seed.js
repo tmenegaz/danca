@@ -57,19 +57,34 @@ function slugificar(nome) {
  * E ESTA É A ÚNICA LISTA DE TERMOS. O ficheiro que o esbuild embute aqui é o mesmo que o gerador lê
  * do disco quando compõe um documento — a cópia por escola no KV deixou de existir em 28/10/2026.
  * Um termo novo chega ao Worker no deploy que o commit do cadastro dispara.
+ *
+ * O TERMO ATRAVESSA INTEIRO — E NÃO CAMPO A CAMPO (19/11/2026). Aqui estava um mapa com dez nomes
+ * escritos à mão, e um mapa de nomes é a SEGUNDA LISTA do mesmo dado: o dia em que o vocabulário
+ * ganhou `complexidade`, ela ficou no ficheiro e não chegou à tela. A pesquisadora classificou o
+ * plié, a gravação foi aceite, o commit foi feito — e o campo continuou vazio, porque o bundle
+ * nunca o teve. O sintoma lia-se como «não grava», e a causa era esta linha: `Object.assign` do
+ * dado primeiro, e só depois os valores por omissão dos campos que os têm.
+ *
+ * O QUE NÃO ATRAVESSA, e é a única excepção: `escola`. Ela existe no vocabulário (5 termos de
+ * `breu`, `calango` e `batata`), e `termos()` conta com ela para não mostrar o termo de uma escola
+ * na outra — mas hoje não a recebe, e por isso a composição a trata como catálogo. Honrá-la agora
+ * mudaria o que se vê nas escolas de imediato, e um dos termos de escola que existem (o «Plié» da
+ * `breu`) está com a definição do «Tandu». Fica declarado como pendência no ESTADO-ATUAL: primeiro
+ * corrige-se o dado, depois liga-se o filtro.
  */
-const TERMOS = vocabulario.map((t) => ({
-  id: t.id,
-  termo: t.termo,
-  categoria: t.categoria,
-  membro: t.membro || '',
-  tradicao: t.tradicao,
-  alternativos: t.alternativos || [],
-  descricao: t.descricao || '',
-  fonte: t.fonte || '',
-  observacoes: t.observacoes || '',
-  estado: t.estado || 'documentado',
-}));
+const TERMOS = vocabulario.map((t) => {
+  const copia = Object.assign({}, t, {
+    id: t.id,
+    membro: t.membro || '',
+    alternativos: t.alternativos || [],
+    descricao: t.descricao || '',
+    fonte: t.fonte || '',
+    observacoes: t.observacoes || '',
+    estado: t.estado || 'documentado',
+  });
+  delete copia.escola;
+  return copia;
+});
 
 /** As turmas, na forma que `bastidores.js` consome (`normalizarTurma`). */
 const TURMAS = (progressao.turmas || []).map((t) => ({

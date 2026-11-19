@@ -53826,3 +53826,50 @@ paginação» e «As acções de uma lista não são uma coluna» —, e o resum
 `.github/instructions/identidade-visual.instructions.md`. As três armadilhas ficam escritas porque
 ela já disse o que custa isto: «cada vez que eu tenho que puxar pela minha memória, pode ser que eu
 invente uma outra».
+
+### 19/11/2026 — «A complexidade não grava» — e gravava: era a ponte do catálogo que a perdia
+
+**O relato.**
+
+> «A classificação da complexidade não grava. Eu peguei no plié como exemplo, cliquei em editar. […]
+> quando eu clico em editar e guardo a complexidade […] a complexidade do plié não foi persistida,
+> não salvou. […] a complexidade continua vindo vazia e na listagem também não demonstra a
+> complexidade.»
+
+**O commit diz que gravou — e grava.** `git log` mostra `d0eacdd1 docs(biblioteca): ajustar «Plié»
+no vocabulário do balé clássico`, feito às 16:20:58. O ficheiro do vocabulário tem a `complexidade`
+nos **98** termos, e a rota `PUT /api/bastidores/termo` → `editarTermo` não tem uma linha que a
+descarte. O que não a tinha era outra coisa: **a ponte entre o ficheiro e a tela**.
+
+**A CAUSA, numa linha de `motor/servidor/catalogo-seed.js`.** O bundle do Worker é montado por um
+`vocabulario.map((t) => ({ id: t.id, termo: t.termo, categoria: t.categoria, … }))` — dez nomes
+escritos à mão. Um mapa de nomes é a **segunda lista do mesmo dado**, e o dia em que o vocabulário
+ganhou um campo novo (`complexidade`) esse campo ficou no ficheiro e não chegou a `CATALOGO.TERMOS`.
+Medido ao vivo, antes da correcção: `GET /api/bastidores/termos` devolvia **94 termos e 0 com
+complexidade**. A tela recebia `undefined`, mostrava «—», e o sintoma lia-se como «não grava».
+
+**A correcção — o termo atravessa inteiro.** `Object.assign({}, t, { …valores por omissão })`: o
+dado primeiro, e só depois as omissões dos campos que as têm. Um campo novo do vocabulário passa a
+chegar à tela **sem tocar neste ficheiro** — que é a regra da casa («duas listas do mesmo
+vocabulário divergem ao primeiro item novo»), aplicada ao bundle.
+
+**O QUE NÃO ATRAVESSA, e é declarado:** o `escola`. Ele existe (5 termos de escola no ficheiro) e
+`termos()` conta com ele para não mostrar o termo de uma escola noutra — mas **nunca o recebeu**, e
+por isso a composição os trata a todos como catálogo. Honrá-lo agora mudaria o ecrã das escolas de
+imediato, e o «Plié» da `breu` está gravado **com a definição do «Tandu»**. Primeiro corrige-se o
+dado, depois liga-se o filtro. Fica no `ESTADO-ATUAL.md` §10 e na nota de correcção do
+`ARQUITETURA-GERAL.md` §11.1, que afirmava o contrário do que o código fazia.
+
+**Cinco asserções vizinhas que a minha entrega anterior deixou a reprovar.** `provar-verbete`
+media o Estilo de antes do Dicionário: esperava SEIS passos (são cinco), o `#semear` no passo 1
+(mudou-se para o Dicionário como «Carregar verbetes»), o seletor do exercício no passo 2 (é a
+escolha do passo 1, com o cadastro escondido atrás) e um «Seguir →» que criava o exercício (já não
+cria — ele vem do dicionário). As cinco foram reescritas para a regra em vigor; as que restam
+vermelhas nessa bancada (uma, §J) já reprovavam no `HEAD`.
+
+**Medido.** `provar-dicionario` **61** asserções (a secção G, cinco novas: a ponte não perde campo,
+a complexidade chega à listagem, o plié vem classificado, e os rótulos dos nichos). **Controlo
+negativo:** repondo o `catalogo-seed.js` do `HEAD`, **3 de 61 reprovam**, e a mensagem é o defeito
+dela — `plie.complexidade: "simples" → undefined`, `{servidos: 94, comComplexidade: 0}`.
+Vizinhas sem alteração: `provar-producao` 142/159 (as mesmas do `HEAD`, medido nos dois lados),
+`provar-menu-da-producao` 55/55, `provar-painel` ok, `provar-verbete` (as 5 acima corrigidas).

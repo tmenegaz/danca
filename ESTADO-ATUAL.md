@@ -4528,6 +4528,17 @@ poupa uma ida à curadoria.
 **PENDENTE dela, e só ela pode decidir:** a **Regra 4** — «força e flexibilidade» no texto, ou o
 campo do espaço —, agora que a força e a flexibilidade se sabe onde estão e já chegam ao PO.
 
+**PENDENTE declarada a 19/11/2026 — o filtro por escola do vocabulário não está ligado.** O
+vocabulário é um ficheiro só e cada termo declara o seu dono (`escola`); `termos()`
+(`motor/servidor/bastidores.js`) conta com esse campo para não mostrar o termo de `breu` em
+`calango`. Ele **não chega**: a ponte `motor/servidor/catalogo-seed.js` montava o termo campo a
+campo, e o dono não estava na lista — logo a composição trata-os todos como catálogo, e hoje há
+**5 termos de escola** no ficheiro (`breu` 2, `calango` 2, `batata` 1) que aparecem em todas. A
+ponte foi corrigida a 19/11/2026 para o termo atravessar **inteiro** (era ela que também perdia a
+`complexidade`), mas o `escola` continua de fora **de propósito, e com uma condição**: o «Plié» da
+`breu` está gravado com a definição do «Tandu». **Primeiro corrige-se o dado; depois liga-se o
+filtro** — ligá-lo antes punha essa definição no ecrã da `breu` como se fosse a do Plié.
+
 **Da Fase 1 falta um item:** as **seleções no plano** (§1.6). Todo o resto do alfabeto está feito — o
 verbete administrável, os dois eixos, o dicionário, o «lê-se», os cinco passos com o trecho editável, e
 a frase escrita **uma vez** por exercício.

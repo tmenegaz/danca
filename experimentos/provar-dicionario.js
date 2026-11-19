@@ -29,6 +29,10 @@
  *      formulário não pergunta.
  *   F. «CARREGAR VERBETES». A rota adopta os exercícios da progressão de referência, é idempotente,
  *      e não copia o catálogo inteiro.
+ *   G. A PONTE DO CATÁLOGO. O que o ficheiro do vocabulário diz chega INTEIRO à tela — campo a
+ *      campo, e não por uma lista de nomes escrita à mão. Sem esta secção, um campo novo do
+ *      vocabulário (a `complexidade`, a 19/11/2026) fica no ficheiro e a tela mostra-o vazio: a
+ *      gravação é aceite, o commit é feito, e o sintoma lê-se como «não grava».
  *
  *   node experimentos/provar-dicionario.js
  */
@@ -340,12 +344,69 @@ console.log('\nF. «Carregar verbetes» adopta a progressão, e não o catálogo
     { depoisDaPrimeira: tamanhoDepoisDaPrimeira, agora: guardado.length, catalogo: catalogo.length });
 }
 
+/* ============================================================================================= */
+console.log('\nG. O que o vocabulário diz chega inteiro à tela');
+
+{
+  /* A PONTE É `catalogo-seed.js` → `termos()` → `/api/bastidores/termos`, e a prova atravessa-a
+   * toda: compara o FICHEIRO com o que a ROTA devolve. É a única comparação que apanha o defeito,
+   * porque o defeito é precisamente uma perda no meio do caminho. */
+  const vocabulario = require(path.join(raiz, 'biblioteca/modalidades/bale-classico/vocabulario.json'));
+  const mem = new Map();
+  const env = {
+    ESCOLA_SLUG: 'breu', SENHA_ADMIN: 's', GITHUB_TOKEN: 'x',
+    PADD_KV: {
+      async get(k) { return mem.has(k) ? mem.get(k) : null; },
+      async put(k, v) { mem.set(k, String(v)); },
+      async delete(k) { mem.delete(k); },
+      async list() { return { keys: [...mem.keys()].map((name) => ({ name })), list_complete: true }; },
+    },
+  };
+  const resposta = await bastidores.fetch(
+    new Request('https://escola.tmenegaz77.workers.dev/api/bastidores/termos'), env);
+  const corpo = resposta && resposta.json ? await resposta.json() : {};
+  const servidos = (corpo && corpo.termos) || [];
+  const porId = new Map(servidos.map((t) => [String(t.id), t]));
+
+  provar('a rota responde com os termos', servidos.length > 0, servidos.length);
+
+  /* A COMPARAÇÃO É CAMPO A CAMPO, e o campo que interessa é o que a tela mostra. `escola` fica de
+   * fora por decisão declarada (ver `catalogo-seed.js` e a pendência no ESTADO-ATUAL). */
+  const perderam = [];
+  for (const t of vocabulario) {
+    const dono = String(t.escola || '').trim();
+    if (dono) continue; // o termo de uma escola não atravessa a composição de outra
+    const veio = porId.get(String(t.id));
+    if (!veio) { perderam.push(t.id + ' (não veio)'); continue; }
+    for (const chave of Object.keys(t)) {
+      if (chave === 'escola') continue;
+      const antes = JSON.stringify(t[chave]);
+      const depois = JSON.stringify(veio[chave]);
+      if (antes !== depois) perderam.push(t.id + '.' + chave + ': ' + antes + ' → ' + depois);
+    }
+  }
+  provar('todo o campo do ficheiro chega ao que a tela recebe — nenhum se perde na ponte',
+    perderam.length === 0, perderam.slice(0, 6));
+
+  const comComplexidade = servidos.filter((t) => String(t.complexidade || '').trim());
+  provar('a COMPLEXIDADE chega à listagem, e não só ao ficheiro (o defeito de 19/11/2026)',
+    comComplexidade.length === servidos.length,
+    { servidos: servidos.length, comComplexidade: comComplexidade.length });
+  const plie = porId.get('plie');
+  provar('…e o plié, que ela classificou à mão, vem classificado',
+    plie && plie.complexidade === 'simples', plie && plie.complexidade);
+  provar('…com o rótulo da categoria e da tradição, que é o que os nichos leem',
+    plie && plie.categoriaRotulo && plie.tradicaoRotulo !== undefined,
+    plie && { categoriaRotulo: plie.categoriaRotulo, tradicaoRotulo: plie.tradicaoRotulo });
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: o Dicionário é irmão das outras secções e guarda o '
     + 'exercício (nome, categoria, tradição, complexidade, definição); o Estilo escolhe dele e '
-    + 'ficou com cinco passos; a complexidade é opcional e não se escreve em cima do dono; e '
-    + '«Carregar verbetes» adopta a progressão de referência, sem duplicar.'));
+    + 'ficou com cinco passos; a complexidade é opcional e não se escreve em cima do dono; '
+    + '«Carregar verbetes» adopta a progressão de referência, sem duplicar; e o que o vocabulário '
+    + 'diz chega inteiro à tela — a ponte do catálogo não perde campo.'));
 process.exit(falhas ? 1 : 0);
 }
 

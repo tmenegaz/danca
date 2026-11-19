@@ -975,8 +975,12 @@ async function aOrigemDoVocabulario() {
    * asserções medem a AUSÊNCIA, que é o que distingue o pedido dela do que eu tinha feito: nada
    * de «+», nada de «Gravar exercício», nada de «Cancelar». */
   const painel1 = (html.match(/<div class="passo-painel" data-passo="1">([\s\S]*?)<div id="vb-modo-verbete">/) || [])[1] || '';
-  checar('o passo 1 tem os quatro controlos, e só eles',
-    ['vnnome', 'vncategoria', 'vntradicao', 'semear']
+  /* O «SEMEAR» SAIU DAQUI (19/11/2026). O botão que carregava as turmas iniciais virou «Carregar
+   * verbetes», e mudou-se para o DICIONÁRIO — o exercício passou a nascer lá. O passo 1 do Estilo
+   * ficou com os campos do exercício e mais nada. A asserção mede o que resta: os campos, e a
+   * ausência do botão que já não é desta secção. */
+  checar('o passo 1 tem os campos do exercício, e só eles',
+    ['vnnome', 'vncategoria', 'vntradicao', 'vb-frase']
       .every((id) => new RegExp('id="' + id + '"').test(painel1))
     && painel1.length > 0, painel1.length);
   checar('e NÃO tem o «+» — criar o exercício deixou de ser um botão que abre um cadastro',
@@ -1005,20 +1009,33 @@ async function aOrigemDoVocabulario() {
       const p1 = (formula.match(/<div class="passo-painel" data-passo="1"[^>]*>([\s\S]*?)<div class="passo-painel" data-passo="2"/) || [])[1] || '';
       return /id="vb-frase"/.test(p1);
     })());
-  checar('o seletor do exercício está no passo 2 — e o passo 2 já não pede a posição',
+  /* E O EXERCÍCIO JÁ NÃO SE ESCREVE NO PASSO 2: ESCOLHE-SE NO 1 (19/11/2026). O `#vbnome` do passo
+   * 2 nasceu quando o dicionário não existia e cada verbete inventava o seu exercício; agora a
+   * secção irmã guarda-o, e o passo 1 é a escolha (`#vbacao`) com o cadastro escondido por trás.
+   * O passo 2 passou a ser a música. O que continua a valer é a outra metade: o formulário não
+   * pede a posição — ela lê-se dos sinais do trecho. */
+  checar('o exercício escolhe-se no passo 1 — e o formulário já não pede a posição',
     (() => {
       const formula = (html.match(/<form id="form-verbete">([\s\S]*?)<\/form>/) || [])[1] || '';
-      const p2 = (formula.match(/<div class="passo-painel" data-passo="2"[^>]*>([\s\S]*?)<div class="passo-painel" data-passo="3"/) || [])[1] || '';
-      return /id="vbnome"/.test(p2) && !/id="vbposicao"/.test(html);
+      const p1 = (formula.match(/<div class="passo-painel" data-passo="1"[^>]*>([\s\S]*?)<div class="passo-painel" data-passo="2"/) || [])[1] || '';
+      /* O `#vbnome` deixou de ser o campo de texto do passo 2 e passou a ser o `<select>` que
+       * ESCOLHE — e o cadastro existe, escondido, para o nome que ainda não está no dicionário. */
+      return /<select id="vbnome">/.test(p1) && /<div hidden id="vb-cadastro-do-exercicio">/.test(p1)
+        && !/id="vbposicao"/.test(html);
     })());
   /* O PRIMEIRO PASSO MUDOU DE NOME A 10/11/2026 — «O exercício novo» anunciava a regra que
    * trancava o formulário (só servia para criar); passou a «O exercício», que procura no
    * vocabulário e aceita um nome inédito. Ver `provar-celula` §1, onde a mesma mudança se mede
    * pelo outro lado (os rótulos da tira). */
-  checar('e a tira anuncia SEIS passos, com o exercício em primeiro',
-    /data-passo="6"/.test(html) && /<span class="passo-t">O exercício<\/span>/.test(html));
-  checar('e o botão de semear deixou de prometer o vocabulário',
-    /Carregar as turmas iniciais/.test(html) && !/turmas \+ vocabulário/.test(html));
+  /* CINCO PASSOS, E NÃO SEIS (19/11/2026): o «Identificação» fundiu-se com o 1.º — o exercício
+   * passou a ser escolhido, e não declarado duas vezes. Ver `provar-dicionario` §D. */
+  checar('e a tira anuncia CINCO passos, com o exercício em primeiro',
+    /data-passo="5"/.test(html) && /<span class="passo-t">O exercício<\/span>/.test(html)
+    && !/data-passo="6"/.test(html));
+  /* O BOTÃO DE SEMEAR MUDOU DE SECÇÃO E DE NOME. Ele prometia «as turmas iniciais», depois «turmas
+   * + vocabulário»; agora é «Carregar verbetes», no Dicionário, e o Estilo não o tem. */
+  checar('e o Estilo deixou de ter o botão de semear — ele é do Dicionário, e chama-se «Carregar verbetes»',
+    !/id="semear"/.test(html) && /Carregar verbetes/.test(html));
 
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
     .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
@@ -1127,15 +1144,18 @@ async function aOrigemDoVocabulario() {
     Boolean(dicionario['[Pé: 1ª → +]']) && !dicionario['Plié'], Object.keys(dicionario).slice(0, 2));
 
 
-  /* AS REGRAS DO PASSO 1, medidas no texto do script — e a regra mudou outra vez (02/11/2026).
+  /* AS REGRAS DO PASSO 1, medidas no texto do script — e a regra mudou outra vez (19/11/2026).
    *
    * JÁ FOI: o «modo B» escondia o «modo A», bloqueava o `select` e o «+», e o `submit` do verbete
    * não passava enquanto ele estava aberto.
    * DEPOIS: o cadastro abria dentro do passo 1, com «Gravar exercício» e «Cancelar» próprios.
-   * AGORA: não há cadastro nenhum — o passo 1 SÃO os campos do exercício, e quem o grava é o
-   * «Seguir →», que já existia. Sem «+», sem segundo botão, sem segundo caminho. */
-  checar('o «Seguir →» grava o exercício quando está no passo 1, e só então',
-    /if \(PASSO === 1\) \{ criarExercicioDoPasso1/.test(script));
+   * DEPOIS DISSO: o passo 1 SÃO os campos do exercício, e quem o grava é o «Seguir →».
+   * AGORA: O EXERCÍCIO NÃO SE GRAVA AQUI — ele já existe no Dicionário. O «Seguir →» no passo 1
+   * só avança. A gravação do exercício continua a existir para o caminho do Enter, e é lá que ela
+   * se mede (a asserção do `criarExercicioDoPasso1` abaixo). */
+  checar('o «Seguir →» no passo 1 avança, e não cria exercício — criá-lo é do Dicionário',
+    /if \(PASSO === 1\) \{ irParaPassoVerbete\(2\); return; \}/.test(script)
+    && !/if \(PASSO === 1\) \{ criarExercicioDoPasso1/.test(script));
   checar('e o «+», o «Gravar exercício» e o «Cancelar» já não existem no script',
     !/vb-novo-exercicio/.test(script) && !/vb-criar-exercicio/.test(script)
     && !/vb-cancelar-exercicio/.test(script) && !/modoExercicio/.test(script));
