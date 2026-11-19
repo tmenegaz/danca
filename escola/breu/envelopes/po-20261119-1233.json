@@ -56,13 +56,11 @@
     },
     "sujeitos": {
       "valor": [
-        "Aluna A",
-        "Aluna B",
-        "Aluna C"
+        "Aluna A"
       ],
-      "origem": "perguntado",
+      "origem": "importado",
       "respondente": "professor",
-      "nota": null
+      "nota": "Corrigido a 19/11/2026: o valor anterior (Aluna A, Aluna B, Aluna C) foi escrito pelo preenchedor automático de teste, a partir do fixture, e a turma «Rosa» nunca teve essas três — o elenco dela é a linha de base «Tami» e declara uma aluna. Nada do que o professor respondeu neste documento foi tocado; a lista reposta é a do elenco, lida de turma → linha de base → alunas."
     },
     "condicoes-de-contorno": {
       "valor": "Sala com barra, espelho e aparelho de som; piso adequado. A observação acontece na aula regular, sem aula extra e sem vídeo.",

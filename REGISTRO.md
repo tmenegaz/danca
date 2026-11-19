@@ -53635,5 +53635,56 @@ os três nomes. A regra nova impede a invenção seguinte; não reescreve a ante
 passado é o que este sistema existe para não fazer. Corrigi-lo é um acto a declarar (apagar o PO e
 criá-lo de novo, agora nasce certo, ou ajustá-lo com o motivo), e é uma decisão dela.
 
+**Correcção — 19/11/2026: a fixture deixa de dizer quem está na turma, e o registo da `breu` é corrigido**
+
+Ela perguntou o que ninguém tinha perguntado ainda: «Você está me dizendo que quem causou esse problema
+foi o ambiente de teste, foi a fixture? Então você precisa corrigir a fixture para que não tenha esse
+tipo de problema de novo.» Sim — e a auditoria mostrou que a correcção do preenchedor era metade.
+
+**O que a fixture dizia.** `teste/{batata,breu,calango}.json` traziam, nos nove planos de observação,
+duas cópias da mesma lista: `po[].sujeitos` e `po[].respostas.sujeitos`, sempre as três alunas do
+fixture de teste. É um campo que o sistema **deriva** da turma (`"semeado": "turma"`), e um ficheiro
+de teste a declará-lo é um ficheiro de teste a dizer quem está na turma. **Saíram as 18 linhas.**
+
+**O que a prova dizia.** A asserção `os sujeitos observados são as alunas do fixture` comparava a
+tela com o campo do fixture — e passava nos dois mundos, com o sistema a semear o elenco e com o
+preenchedor a copiar o fixture. Enquanto o fixture e o elenco coincidissem, a prova não distinguia.
+Na `breu` não coincidiam: o elenco da turma `Rosa` tem **uma** aluna, o fixture tinha três. A prova
+nova exige duas coisas: (a) que o fixture **não declare** `sujeitos` (guarda contra a reincidência);
+(b) que a lista da tela seja a do **elenco**. E a distinção mede-se mandando o preenchedor correr de
+propósito com nomes impossíveis — «Fantasma Um», «Fantasma Dois» — e exigindo que o formulário não
+mude. **A primeira versão desta prova abria a página outra vez e esperava: dependia do tempo, e com o
+preenchedor antigo passava.** Medido e corrigido — a invocação passou a ser explícita.
+
+**O registo que já estava gravado.** O `po-20261119-1233` da `breu` — escola de teste — declarava as
+três, e a correcção do preenchedor não reescreve o passado. O valor foi **corrigido para o do elenco**
+(`["Aluna A"]`), com `origem: importado` e uma `nota` datada que diz o que aconteceu e o que **não**
+foi tocado (nada do que o professor respondeu). E não bastava o envelope: o resumo do índice
+(`escola/breu/envelopes/.indice.json`) continuava a dizer as três, e é **dele** que o `vinculos` lê.
+Corrigido, e é por isso que a invariante abaixo passou a ser medida.
+
+**A invariante nova, e é a lição.** O `lerIndice` só reconstrói o resumo que **falta**
+(`if (resumos[nome]) continue`) — um resumo que existe nunca é refeito, mesmo que o envelope mude.
+Um cache que discorda do dado é a mesma família de erro do worktree que não sabe que o remoto mudou.
+`provar-indice-de-envelopes` ganhou a secção 8: para cada envelope versionado, os campos que o resumo
+**afirma** têm de ser os do ficheiro. **Contra o índice de ontem, reprova** com o campo exacto
+(`po-20261119-1233.json` → `sujeitos`, `["Aluna A","Aluna B","Aluna C"]` contra `["Aluna A"]`).
+
+**Medido.** `provar-teste` **43** (era 41); `provar-indice-de-envelopes` **46** (era 45). Controlo
+negativo, numa árvore de `4634795a`: a bancada nova **reprova** em «o fixture voltou a declarar
+sujeitos» com a fixture antiga, e em «o PO não ficou completo: faltam ["sujeitos"]» com a fixture
+nova e o preenchedor antigo — as duas metades são precisas, e cada uma reprova sozinha. Vizinhos:
+`provar-a-homonima` 25, `provar-listas-do-acervo` 113, `provar-salas-e-elencos` 132,
+`provar-alunas-da-anamnese` 16, `provar-anamnese-da-aluna-certa` 18, `provar-estado-da-turma` 28,
+`check-identidade` ok.
+
+**O fluxo, confirmado com o dado real** (pergunta dela: «eu falei o fluxo certo?»). É o que ela
+descreveu: **plano de ensino → turma → elenco (linha de base) → aluna**. Medido na `breu`:
+`plano-20261119-1143` → `contexto.turma = "Rosa"` → a turma escolhe a linha de base `tami`
+(vigente, 20:39) → `alunas = ["Aluna A"]`. A sala dá modalidade, professor e ritmo; a turma liga a
+sala ao elenco. O `sujeitos` do PO não é um campo a preencher — é essa leitura, congelada no dia em
+que o PO foi gravado. **Por isso ela não viu nada de declaração de sujeito no «Ajustar» — e está
+certo que não visse.**
+
 **PENDENTE — a listagem das ALUNAS CADASTRADAS**, nos nichos do cartão da sala (mantém-se da entrega
 anterior, e continua por fazer).

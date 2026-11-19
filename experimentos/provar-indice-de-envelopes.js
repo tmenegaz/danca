@@ -340,6 +340,71 @@ async function main() {
       ((r2[0] || {}).resumo || {}).gerado_em === '2026-10-19T10:00', (r2[0] || {}).resumo);
   }
 
+  /* =========================================================================================
+   * 8. O CACHE NÃO PODE DISCORDAR DO DADO — medido nos envelopes REAIS das escolas
+   *
+   * O DEFEITO QUE ISTO FECHOU (19/11/2026), e ele estava em produção. O `lerIndice` só reconstrói
+   * o resumo que FALTA (`if (resumos[nome]) continue`); um resumo que existe nunca é refeito. E
+   * o resumo não é decoração: é dele que o `porta.vinculos` lê os `sujeitos` de cada PO para
+   * dizer se a anamnese de uma aluna está presa a uma observação.
+   *
+   * O caso: o `po-20261119-1233` da `breu` gravara `sujeitos: ["Aluna A","Aluna B","Aluna C"]` —
+   * nomes que o preenchedor automático de teste copiara do fixture —, e a turma «Rosa» tinha uma
+   * aluna. Corrigir o ENVELOPE não bastava: o índice continuava a dizer os três, e a leitura
+   * continuava a prendê-la. Uma correcção que não chega à leitura não é uma correcção.
+   *
+   * A invariante que passa a ser medida: para cada envelope versionado, o resumo do índice é
+   * IGUAL ao que o `resumoDoEnvelope` produz do próprio ficheiro. Uma divergência é sempre um
+   * erro de um dos dois lados, e a prova não escolhe qual — diz onde. */
+  console.log('\n8. O resumo do índice é o do envelope — nos envelopes reais das escolas');
+
+  {
+    const raizEscolas = path.join(RAIZ, 'escola');
+    const escolas = fs.existsSync(raizEscolas)
+      ? fs.readdirSync(raizEscolas).filter((d) => fs.existsSync(path.join(raizEscolas, d, 'envelopes')))
+      : [];
+    checar('há escolas com envelopes para conferir', escolas.length > 0, escolas);
+
+    let conferidos = 0;
+    const divergentes = [];
+    for (const escola of escolas) {
+      const pasta = path.join(raizEscolas, escola, 'envelopes');
+      const caminhoIndice = path.join(pasta, '.indice.json');
+      if (!fs.existsSync(caminhoIndice)) continue;
+      let indice;
+      try {
+        indice = JSON.parse(fs.readFileSync(caminhoIndice, 'utf8'));
+      } catch (erro) { continue; }
+      for (const nome of Object.keys(indice.resumos || {})) {
+        if (!nome.endsWith('.json')) continue;
+        const caminho = path.join(pasta, nome);
+        if (!fs.existsSync(caminho)) continue;
+        let envelope;
+        try {
+          envelope = JSON.parse(fs.readFileSync(caminho, 'utf8'));
+        } catch (erro) { continue; }
+        conferidos += 1;
+        const esperado = porta.resumoDoEnvelope(envelope, nome);
+        const guardado = indice.resumos[nome];
+        /* O QUE SE COMPARA SÃO OS CAMPOS QUE O RESUMO AFIRMA — e não a igualdade literal dos dois
+         * objectos. O índice guarda campos que ele não deriva sozinho (o `metodo` da anamnese vem
+         * do conteúdo, não do envelope), e exigi-los aqui faria a prova reprovar por uma diferença
+         * que não mente sobre nada. O que não pode divergir é o que o envelope DIZ: se o resumo
+         * afirma um valor, ele tem de ser o do ficheiro. */
+        const campos = Object.keys(esperado).filter((k) => esperado[k] !== null
+          && esperado[k] !== undefined
+          && JSON.stringify(esperado[k]) !== JSON.stringify(guardado[k]));
+        if (campos.length) {
+          divergentes.push({ escola, nome, campos,
+            guardado: campos.map((k) => guardado[k]), esperado: campos.map((k) => esperado[k]) });
+        }
+      }
+    }
+
+    checar('o índice e o envelope dizem o mesmo em todos eles (' + conferidos + ' conferidos)',
+      divergentes.length === 0, divergentes.slice(0, 3));
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));

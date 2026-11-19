@@ -869,30 +869,29 @@ async function porta() {
   assert.deepEqual(base, esperado['linha-de-base']);
   ok('os campos pedidos vêm todos do fixture, incluindo itens por dimensão e ponto de partida');
 
-  const sujeitos = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
-  assert.deepEqual(sujeitos, registro.sujeitos);
-  ok('os sujeitos observados são as alunas do fixture');
-
-  /* A PROVA DE QUE ELES NÃO VÊM DO FIXTURE (19/11/2026). As três alunas do fixture da «batata»
-   * são exactamente as três do elenco que a estante devolve, e por isso a asserção acima passa nos
-   * dois mundos — não distingue «o sistema semeou» de «o preenchedor escreveu». A distinção mede-se
-   * estragando o fixture: se o preenchedor escrevesse o `sujeitos`, estes nomes impossíveis
-   * apareciam no formulário; se a lista vem do elenco, nada muda.
+  /* OS SUJEITOS VÊM DO ELENCO, E O FIXTURE JÁ NÃO OS DECLARA (19/11/2026).
    *
-   * Foi exactamente este o defeito da «breu»: lá o elenco verdadeiro tinha MENOS nomes do que o
-   * fixture, e os inventados entraram no dado da escola — a Aluna B passou a ler-se «vinculada» a
-   * um Plano de Observação sem nunca ter estado em elenco nenhum. O `sujeitos` é cópia semeada, e
-   * quem o escreve é o sistema. */
-  const sujeitosVerdadeiros = registro.sujeitos.slice();
-  registro.sujeitos = ['Fantasma Um', 'Fantasma Dois'];
-  registro.respostas.sujeitos = ['Fantasma Um', 'Fantasma Dois'];
-  const po2 = await abrir('plano-observacao/?professor=docente&ciclo=01');
-  const depois = JSON.parse(await po2.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
-  registro.sujeitos = sujeitosVerdadeiros;
-  registro.respostas.sujeitos = sujeitosVerdadeiros;
-  po2.dom.window.close();
-  assert.deepEqual(depois, sujeitosVerdadeiros);
-  ok('os sujeitos vêm do elenco e não do fixture — o preenchedor não os escreve');
+   * A asserção que aqui estava — «os sujeitos são as alunas do fixture» — comparava a lista da
+   * tela com o campo do fixture, e por isso **passava nos dois mundos**: com o sistema a semear o
+   * elenco e com o preenchedor a copiar o fixture. Enquanto o fixture e o elenco coincidissem, os
+   * dois davam o mesmo, e a prova não distinguia. Foi essa cegueira que deixou passar o defeito da
+   * «breu»: lá o elenco verdadeiro da turma tinha MENOS nomes do que o fixture, e os inventados
+   * entraram no dado da escola — a Aluna B passou a ler-se «vinculada» a um Plano de Observação
+   * sem nunca ter estado em elenco nenhum.
+   *
+   * Duas coisas mudaram, e cada uma fecha metade do caminho:
+   *   1. o fixture deixou de declarar `sujeitos` — o campo que o sistema deriva não se escreve
+   *      num ficheiro de teste, senão é um ficheiro de teste a dizer quem está na turma;
+   *   2. a expectativa passa a ser o ELENCO que a estante serve (as alunas da anamnese), que é a
+   *      única fonte de que a semente se alimenta. */
+  const ELENCO = [...new Set((FIXTURE.anamnese || []).map((a) => a.aluna).filter(Boolean))];
+  assert.ok(!('sujeitos' in registro) && !('sujeitos' in (registro.respostas || {})),
+    'o fixture voltou a declarar sujeitos — é o campo que o sistema deriva da turma');
+  ok('o fixture não declara sujeitos: quem os diz é o elenco da turma');
+
+  const sujeitos = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
+  assert.deepEqual(sujeitos, ELENCO);
+  ok('os sujeitos observados são as alunas do elenco da turma');
 
   /* A DIMENSÃO é DERIVADA dos blocos da aula que o plano marca — não vem do fixture.
    *
@@ -965,6 +964,33 @@ async function porta() {
       'a sugestão derivada não disse nada: ' + dicaDerivada);
     ok('a sugestão derivada responde — e não parece avaria');
   }
+
+  /* A ORDEM DOS GRAVADORES, MEDIDA NO FIM — porque o preenchimento corre a página inteira.
+   * O bloco anterior deixou a asserção DEPOIS dos campos do fixture e ANTES da dimensão, e
+   * mandar correr o preenchedor a meio apagava o que as asserções seguintes liam (a dimensão sai
+   * de um `carregarDimensoesDoPlano` assíncrono, e o `clear()` do preenchimento levava-o). */
+  /* E A PROVA DE QUE ELES NÃO VÊM DO FIXTURE: estraga-se o fixture e manda-se o preenchedor
+   * correr de propósito, pelo caminho em que ele corre de propósito (o `__preencherTeste.po`).
+   * Se ele escrevesse o `sujeitos`, estes nomes impossíveis ficavam no formulário; como o campo é
+   * `semeado`, ele passa ao lado e a lista continua a do elenco.
+   *
+   * A INVOCAÇÃO É EXPLÍCITA, e não uma segunda abertura da página: a semente só age quando o
+   * campo está vazio, portanto o que se mede aqui é a ORDEM — quem escreve primeiro ganha. Numa
+   * segunda abertura a corrida com o arranque da página decidia o resultado, e a asserção passava
+   * ou falhava conforme o tempo. Medido: com o `teste-cliente.js` de `HEAD` a versão anterior
+   * desta prova passava, e era por isso que ela não valia nada. */
+  const fantasma = Object.assign({}, registro, {
+    sujeitos: ['Fantasma Um', 'Fantasma Dois'],
+    respostas: Object.assign({}, registro.respostas,
+      { sujeitos: ['Fantasma Um', 'Fantasma Dois'] }),
+  });
+  await po.win.eval('window.__preencherTeste.po(' + JSON.stringify(fantasma) + ')');
+  await espera(400);
+  const depois = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
+  assert.ok(depois.indexOf('Fantasma Um') === -1,
+    'o preenchedor escreveu um nó que o mapa declara semeado: ' + JSON.stringify(depois));
+  assert.deepEqual(depois, ELENCO);
+  ok('os sujeitos vêm do elenco e não do fixture — o preenchedor passa ao lado do nó semeado');
 
   const metodosPo = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPo, ['GET']);

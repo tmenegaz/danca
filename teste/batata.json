@@ -658,11 +658,6 @@
   "po": [
     {
       "turma": "Balé Nível 1 — Teste 2",
-      "sujeitos": [
-        "Aluna A",
-        "Aluna B",
-        "Aluna C"
-      ],
       "respostas": {
         "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
         "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
@@ -688,11 +683,6 @@
             "sujeito": "Técnica — Expressão",
             "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
           }
-        ],
-        "sujeitos": [
-          "Aluna A",
-          "Aluna B",
-          "Aluna C"
         ],
         "linha-de-base": [
           {
@@ -724,11 +714,6 @@
     },
     {
       "turma": "Balé Nível 2 — Teste 2",
-      "sujeitos": [
-        "Aluna A",
-        "Aluna B",
-        "Aluna C"
-      ],
       "respostas": {
         "horizonte": "Ao fim do ano, a turma do Nível 2 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
         "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
@@ -754,11 +739,6 @@
             "sujeito": "Técnica — Expressão",
             "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
           }
-        ],
-        "sujeitos": [
-          "Aluna A",
-          "Aluna B",
-          "Aluna C"
         ],
         "linha-de-base": [
           {
@@ -790,11 +770,6 @@
     },
     {
       "turma": "Balé Nível 3 — Teste 2",
-      "sujeitos": [
-        "Aluna A",
-        "Aluna B",
-        "Aluna C"
-      ],
       "respostas": {
         "horizonte": "Ao fim do ano, a turma do Nível 3 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
         "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
@@ -820,11 +795,6 @@
             "sujeito": "Técnica — Expressão",
             "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
           }
-        ],
-        "sujeitos": [
-          "Aluna A",
-          "Aluna B",
-          "Aluna C"
         ],
         "linha-de-base": [
           {

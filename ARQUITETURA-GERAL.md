@@ -2694,6 +2694,21 @@ três nomes — e foi por isso que o defeito só apareceu na `breu`, onde o elen
 **menos** nomes. A prova nova **estraga o fixture de propósito** (dois «Fantasma») e exige que o
 formulário não mude: se o preenchedor escrevesse, os fantasmas apareciam.
 
+**O cache que discorda do dado.** O resumo de cada envelope mora num índice
+(`escola/<escola>/envelopes/.indice.json`), e é dele que o `vinculos` lê os `sujeitos` de cada PO —
+sem abrir um envelope. O `lerIndice` reconstrói apenas o resumo que **falta**: um resumo que existe
+nunca é refeito, nem quando o envelope muda. Corrigir o registo sem corrigir o resumo deixaria a
+leitura a dizer o que o ficheiro já não diz — e não há sintoma: o índice *parece* atual. Passa a ser
+medido em `provar-indice-de-envelopes` (secção 8), comparando, para cada envelope versionado, os
+campos que o resumo **afirma** com os do ficheiro. É a mesma família do worktree que não sabe que o
+remoto mudou: um cache limpo quer dizer «nada mudou *aqui*», não «nada mudou».
+
+**A fixture não diz quem está na turma.** Os `teste/*.json` traziam `po[].sujeitos` e
+`po[].respostas.sujeitos` — o campo que o sistema deriva. Um ficheiro de teste a declará-lo é um
+ficheiro de teste a dizer quem está na turma, e foi assim que a `breu` ganhou duas alunas que nunca
+estiveram em elenco nenhum. Saíram; e a prova passou a exigi-lo, com a distinção feita por nomes
+impossíveis («Fantasma») em vez de por uma abertura de página que dependia do tempo.
+
 **O que isto não resolve, e fica dito.** O `po-20261119-1233` que já está gravado continua a
 declarar os três nomes — a regra nova impede a invenção seguinte, não reescreve a anterior. Corrigi-lo
 é um acto a declarar: apagar o PO e criá-lo de novo (agora nasce certo), ou ajustá-lo com o motivo.
