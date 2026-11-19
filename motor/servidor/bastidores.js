@@ -6946,8 +6946,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O VALOR É O DO RECORTE, `1rem`, porque o que ela pediu foi a MESMA distância — uma segunda
      * medida para a mesma fronteira seria uma segunda regra a divergir. A `.caixa` não entra: ela
      * já traz o seu `margin`, e somar os dois daria 32px na aba que ela declarou certa. */
-    '.aba-painel>form:first-child,' +
-    '.aba-painel>.aviso[hidden]+form{margin-top:1rem;}' +
+    /* A MARGEM DA ABA É ESTRUTURAL — NÃO DEPENDE DE QUEM ESTÁ EM PRIMEIRO (19/11/2026).
+     *
+     * ESTA REGRA JÁ FOI CORRIGIDA DUAS VEZES, e as duas pelo mesmo motivo: ela nomeia o FILHO
+     * (`.aba-painel>form:first-child`) e basta o painel ganhar um embrulho — o `#pf-cadastro-paineis`
+     * que separa os dois passos do Cadastro — para ela deixar de casar EM SILÊNCIO. Nada falha, nada
+     * avisa: o formulário só fica encostado ao filete das abas. Medido a 1280px: **0px** no
+     * Cadastro contra **16px** nas Habilitações, que é a distância que ela declarou certa.
+     *
+     * A pergunta certa não é «o primeiro filho é um `form`?» — é «o que vem primeiro tem o ar
+     * certo?». E a resposta tem de ser a MESMA para todos, senão volta a haver um caso que
+     * ninguém previu: por isso a regra não tem excepções. Um `.aviso` em primeiro lugar traz
+     * `12px` de margem própria (medido), e a aba do Desligamento ficava a 12 enquanto as
+     * Habilitações ficavam a 16 — duas distâncias para a mesma fronteira. Aqui a margem é
+     * DEFINIDA, não somada: o primeiro filho recebe `1rem`, venha ele com a margem que vier. E
+     * recebe-a mesmo quando o primeiro filho está `hidden` — o `[hidden]+*` é o caso do aviso da
+     * Audição, que aparece e desaparece.
+     *
+     * É esta regra que `experimentos/provar-a-margem-da-aba.js` mede em geometria de verdade: o vão
+     * entre o fundo da tira de abas e o topo do primeiro conteúdo do painel é 16px em TODAS as abas
+     * das duas secções que as têm. */
+    '.aba-painel>:first-child,' +
+    '.aba-painel>[hidden]+*{margin-top:1rem;}' +
     /* AS DUAS PÍLULAS DE «ABAS» DO TELEMÓVEL (16/11/2026). Uma por grupo — a Audição e os
      * Professores —, pela mesma razão que a tira: cada uma abre a folha do seu `<nav>`. */
     '#lb-abas-folha,#pf-abas-folha{grid-column:1/-1;display:none;}' +

@@ -53030,3 +53030,54 @@ aberto»). `ARQUITETURA-GERAL.md` §3.3 diz o mesmo junto ao quadro do passo que
 `provar-acordeoes` ok, `provar-estado-da-turma` 28, `provar-teste` 41, `provar-sala-e-portao` 27,
 `provar-avancar-nao-grava` 24, `provar-cadastro-visivel` 12, `provar-editar-professor-principal` 33,
 `provar-turma-sem-professor` 23, `provar-producao` 147/159 (as mesmas 12), `check-identidade` ok.
+
+### 19/11/2026 — O ar debaixo das abas, pela terceira vez: a regra deixou de nomear o filho
+
+Ela reportou o mesmo defeito pela terceira vez: «na aba cadastros, logo que ela abre o formulário, a
+margem superior do formulário está colada na margem das abas. O correto é igual a habilitações […] e
+documentar isso para não acontecer mais.» A insistência é o dado: uma correção que volta três vezes
+não é uma correção, é um sintoma.
+
+**A causa.** A regra era `.aba-painel > form:first-child { margin-top: 1rem }` — nomeava o FILHO. A
+cada embrulho novo no painel, ela deixava de casar **sem falhar**: o `#pf-cadastro-paineis` que
+separa os dois passos do Cadastro, o `.caixa` da aba 2 da Audição, o `.aviso` que abre o
+Desligamento. Nada avisa; o formulário só encosta ao filete.
+
+**Medido a 1280 px, com a regra antiga (controle negativo, por substituição de uma linha):**
+Cadastro **0 px**; Desligamento **12 px**; terceira aba da Audição **2 px**; o 16 só aparecia onde o
+primeiro filho era mesmo um `<form>`. Com a regra nova: **16 px nas seis abas** das duas secções.
+
+**A correção** — três decisões, e cada uma fecha um regresso:
+
+```
+.aba-painel > :first-child,
+.aba-painel > [hidden] + * { margin-top: 1rem; }
+```
+
+1. `:first-child` em vez de `form:first-child`: a pergunta certa é «o que está em primeiro lugar tem
+   o ar certo?», não «o primeiro filho é um formulário?». Embrulhos novos herdam a margem.
+2. **A margem é definida, não somada — e a regra não tem excepções.** Isentar o `.aviso` (que traz
+   12 px próprios) dava duas distâncias para a mesma fronteira: 12 no Desligamento contra 16 nas
+   Habilitações. É a mesma lição do vão do botão.
+3. `[hidden] + *` para o primeiro que se vê: na Audição o primeiro filho é um aviso que nasce
+   escondido, e sem esta linha o formulário subia até às abas quando ele desaparecia.
+
+**A prova:** `experimentos/provar-a-margem-da-aba.js`, novo, 12 asserções em Chrome com geometria
+real (jsdom não tem layout). **5 falham no `HEAD`, 12/12 agora.** A secção B não mede o sintoma —
+mede a forma: reprova a volta do `form` na regra que o servidor emite. É essa que impede o quarto
+regresso, e é por isso que a documentação faz parte da correção.
+
+`IDENTIDADE-VISUAL.md` ganhou a secção «O ar debaixo das abas é 16px — e não depende de quem está em
+primeiro», com as três quebras nomeadas, e o Quadro 2 passou a dizer que esta margem é do `<style>`
+da Produção, e não da folha congelada (a folha não é tocada).
+
+**Bancadas, medidas:** `provar-a-margem-da-aba` 12, `provar-passos-uniformes` 45,
+`provar-regua-do-professor` 44, `provar-pagina-do-professor` 17, `provar-salas-e-elencos` 132,
+`provar-abas-da-audicao` 125, `provar-acordeoes` ok, `provar-estado-da-turma` 28, `provar-teste` 41,
+`provar-sala-e-portao` 27, `provar-avancar-nao-grava` 24, `provar-cadastro-visivel` 12,
+`provar-editar-professor-principal` 33, `provar-turma-sem-professor` 23,
+`provar-producao` 147/159 (as mesmas 12 de bancada), `check-identidade` ok.
+
+**Por fazer, e é frente própria:** `provar-assets-sem-worker.js` não corre — lê
+`wrangler.calango.jsonc`, que já não existe (a `calango` foi apagada). Precisa de varrer os
+`wrangler.*.jsonc` que existem, em vez da lista fixa.

@@ -649,7 +649,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.seta-do-ato` | `ciclo.css` | `▾` fechada, `▸` rodada 180° aberta. **Não se chama `.seta`**: esse nome já é a seta do bloco de sessão que o `bastidores.js` emite, e a checagem «Forma» reprova dois desenhos com o mesmo nome |
 | `.campos-do-ato` / `.acoes-do-ato` / `.estado-do-ato` | `ciclo.css` | os campos quebram em fileira; o estado tem `data-falta="sim"` para o que impede o avanço |
 | `.cota` | `ciclo.css` | base (o `<progress>` despido: `appearance:none`, altura de 0,55rem, pílula, fundo de faixa); `::-webkit-progress-bar` e `::-webkit-progress-value` (e o `::-moz-progress-bar`, porque o Firefox não usa os do WebKit); `[data-nivel="atencao"]` (âmbar, 80%) e `[data-nivel="agora"]` (falha, 95%); `[value="0"]` fica sem tinta — um zero com a cor da falha leria como problema. `prefers-reduced-motion` desliga a transição. Medido em `provar-monitoramento.js` |
-| `.abas` / `.aba` / `.aba-painel` | `ciclo.css` | base; `:hover`; `:focus-visible`; `[aria-selected="true"]` (a aba que POUSA: fundo de superfície e o filete de baixo na cor dele); `[disabled]` (a que ainda não pode abrir — com `title` a dizer porquê, e sem desaparecer). Abaixo de 560px **a tira passa a rolar** (a peça nunca desaparece sozinha — uma página sem pílula ficaria sem forma de mudar de aba); onde há pílula das abas, é a página que esconde a tira na folha dela. Medido em `provar-abas.js` |
+| `.abas` / `.aba` / `.aba-painel` | `ciclo.css` (as marcas e os estados) + **o `<style>` da Produção** (o ar debaixo da tira: `.aba-painel>:first-child{margin-top:1rem}`, ver «O ar debaixo das abas») | base; `:hover`; `:focus-visible`; `[aria-selected="true"]` (a aba que POUSA: fundo de superfície e o filete de baixo na cor dele); `[disabled]` (a que ainda não pode abrir — com `title` a dizer porquê, e sem desaparecer). Abaixo de 560px **a tira passa a rolar** (a peça nunca desaparece sozinha — uma página sem pílula ficaria sem forma de mudar de aba); onde há pílula das abas, é a página que esconde a tira na folha dela. Medido em `provar-abas.js` |
 | `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.rolagem` / `.rolagem-caixa` / `.rolagem-setas` | `ciclo.css` | `[data-rolagem="sim"]` (há para onde ir: a fileira das setas aparece) e `"nao"`/ausente (não há: nada ocupa lugar). A caixa é `role="region"` + `tabindex="0"`; a tabela de dentro **não** tem scroller próprio |
@@ -746,6 +746,50 @@ Uma peça nova **nasce inteira**, no mesmo commit, e nesta ordem:
 
 Enquanto isso não acontecer, a peça **não existe** — e usá-la é o defeito que este catálogo
 existe para impedir.
+
+### O ar debaixo das abas é 16px — e não depende de quem está em primeiro *(19/11/2026)*
+
+> «Na aba cadastros, logo que ela abre o formulário, a margem superior do formulário está colada na
+> margem das abas. O correto é igual a habilitações, existe um espaço entre a aba e a margem
+> superior do formulário. Cadastros já havia sido corrigido anteriormente e agora voltou a acontecer
+> esse mesmo problema.»
+
+**A regra, e ela é uma só:** o primeiro conteúdo de um `.aba-painel` fica **`1rem` (16px) abaixo do
+fundo da tira de abas** — a distância que ela declarou certa nas Habilitações. Vale para as duas
+secções que têm abas (Professores e Audição), nas seis abas, e é medida em geometria de verdade por
+`experimentos/provar-a-margem-da-aba.js`.
+
+**Porque é que isto já voltou três vezes.** A regra nasceu a nomear o FILHO —
+`.aba-painel > form:first-child` — e três vezes o painel ganhou um embrulho que a fez deixar de
+casar **em silêncio**: o `#pf-cadastro-paineis` que separa os dois passos do Cadastro, o `.caixa` da
+aba 2 da Audição, o `.aviso` que abre o Desligamento. Nada falha, nada avisa — o formulário só fica
+encostado ao filete. Medido a 1280 px, com a regra antiga: **0 px no Cadastro**, 12 px no
+Desligamento, 2 px na terceira aba da Audição; o 16 só aparecia onde o primeiro filho era mesmo um
+`<form>`.
+
+**A forma que não volta a partir**, e é a que está no código:
+
+```css
+.aba-painel > :first-child,
+.aba-painel > [hidden] + * { margin-top: 1rem; }
+```
+
+Três decisões, e cada uma fecha um regresso:
+
+1. **`:first-child`, e nunca `form:first-child`.** A pergunta não é «o primeiro filho é um
+   formulário?» — é «o que está em primeiro lugar tem o ar certo?». Um embrulho novo (`<div>` de
+   passos, uma `.caixa`, um aviso) recebe a margem como o formulário a recebia.
+2. **A margem é DEFINIDA, não somada — e por isso a regra não tem excepções.** Um `.aviso` traz
+   `12px` de margem própria, e deixá-lo de fora dava duas distâncias para a mesma fronteira (12 no
+   Desligamento, 16 nas Habilitações). O primeiro filho recebe `1rem`, venha ele com a margem que
+   vier; as suas margens de meio de texto não são tocadas.
+3. **`[hidden] + *` para o primeiro que se vê.** Na Audição o primeiro filho é um aviso que nasce
+   escondido: escondido não ocupa lugar, e sem esta linha o formulário subia até às abas exactamente
+   quando o aviso desaparecia.
+
+**Onde se mede.** `experimentos/provar-a-margem-da-aba.js` — geometria no navegador (jsdom não tem
+layout) e uma asserção sobre o CSS emitido que reprova a volta do `form:first-child`. É a segunda
+asserção que impede o quarto regresso: a primeira mede o sintoma, a segunda mede a forma.
 
 ### O vão do botão não se dá por acidente *(26/10/2026)*
 
