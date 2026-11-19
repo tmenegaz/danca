@@ -21,11 +21,18 @@
  *      que CONTA os despachos: sem contador, uma prova de «disparou» mede a intenção.
  *   §C O QUE NÃO SE PERDE — um disparo que falha não desfaz a gravação do verbete: a resposta leva o
  *      erro, e o ato fica. É a mesma regra do elenco («a falha do disparo não desfaz o ato»).
+ *   §D O DICIONÁRIO (T6) — a MESMA travessia, e a condição é dela: um termo em uso nomeia as
+ *      Turmas, um termo livre não nomeia nenhuma e a resposta di-lo. As quatro rotas que escrevem
+ *      o termo (POST, os dois caminhos do PUT, DELETE) têm de a chamar; isso lê-se no FONTE, e
+ *      diz-se — é a lista dos sítios, não uma execução de cada um.
  *
- * O CONTROLADOR NEGATIVO. Contra o `motor/servidor/bastidores.js` de antes desta correcção,
- * **9 das 12** reprovam: as duas funções não existem (e a prova degrada, em vez de estourar), nada é
- * disparado, e o mapa antigo continuaria a contar depois de migrado. Se o negativo passar, a prova
- * não está a medir nada.
+ * OS CONTROLADORES NEGATIVOS, e são dois porque são duas correcções de dias seguidos:
+ *   · contra o `bastidores.js` de antes do T5 **9 das 12** reprovavam (as duas funções não existem —
+ *     e a prova degrada em vez de estourar —, nada é disparado, e o mapa antigo continuaria a contar
+ *     depois de migrado);
+ *   · contra o `bastidores.js` do T5 sem o T6, **1 das 15** reprova: é exactamente a ligação das
+ *     rotas do dicionário, que é o que o T6 acrescenta.
+ * Se um negativo passar, a prova não está a medir nada.
  *
  *   node experimentos/provar-o-estilo-regera.js
  */
@@ -201,10 +208,45 @@ async function principal() {
   provar('depois de migrada, o mapa antigo deixa de contar — a memória não faz regerar',
     depoisDaMarca.length === 0, depoisDaMarca);
 
+  /* =========================================================================================== */
+  console.log('\nD. O DICIONÁRIO — a mesma travessia, condicionada ao uso (T6)');
+
+  /* A REGRA DELA para o dicionário é condicional, e é por palavras próprias: *«se eu fizer mudanças
+   * no dicionário, não dispara o fluxo […] excepto se a mudança que eu fizer no dicionário for de um
+   * exercício […] que já esteja vinculado à turma»*. A condição não vive na rota — vive na
+   * travessia, que já a sabe responder (§A e §B). O que a rota tem de fazer é **chamá-la** nos
+   * quatro caminhos que escrevem o termo.
+   *
+   * MEDE-SE O FONTE, e diz-se: é a lista dos sítios onde a colagem existe, e não uma execução de
+   * cada um (executá-los exigiria a escrita inteira do vocabulário no GitHub). Um sítio que perca a
+   * chamada numa edição futura reprova aqui — e é o defeito que se quer apanhar. */
+  const fs = require('fs');
+  const fonte = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
+  const trechoDoTermo = (() => {
+    const i = fonte.indexOf("if (path === '/api/bastidores/termo' && request.method === 'POST')");
+    const j = fonte.indexOf("POST e DELETE /api/bastidores/turma-conteudo", i);
+    return i === -1 || j === -1 ? '' : fonte.slice(i, j);
+  })();
+  provar('as três rotas do dicionário (POST, os dois caminhos do PUT, DELETE) chamam a travessia',
+    (trechoDoTermo.match(/comAGeracaoDoTermo\(/g) || []).length >= 4,
+    (trechoDoTermo.match(/comAGeracaoDoTermo\(/g) || []).length);
+
+  /* E A CONDIÇÃO, medida no comportamento e não no fonte: sobre o mesmo estado, o termo que uma
+   * Turma declara devolve a Turma (logo, dispara); o que ninguém declara devolve lista vazia e um
+   * aviso. É o par que separa «o dicionário mudou» de «um documento tem de ser refeito». */
+  const emUso = await turmasQueUsam(env, ESCOLA, 'Plié');
+  const livre = await turmasQueUsam(env, ESCOLA, 'Battement fondu');
+  provar('um termo EM USO nomeia as Turmas; um termo LIVRE não nomeia nenhuma — a condição do T6',
+    emUso.length === 1 && livre.length === 0, { emUso, livre });
+  provar('…e a travessia do termo livre responde com o aviso, sem disparar nada',
+    (await regerar(env, ESCOLA, 'Battement fondu')).disparos.length === 0
+      && /nenhuma Turma usa/i.test(String((await regerar(env, ESCOLA, 'Battement fondu')).aviso)));
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: a pergunta «que Turmas usam este exercício» responde '
       + 'pela composição e em nomes; editar o verbete regera uma vez por Turma com plano, e nenhuma '
-      + 'quando não há alvo — e diz-se; e um disparo que falha não desfaz a gravação.'
+      + 'quando não há alvo — e diz-se; um disparo que falha não desfaz a gravação; e as quatro '
+      + 'rotas do dicionário chamam a mesma travessia, que é condicional ao uso.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

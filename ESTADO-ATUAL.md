@@ -4715,6 +4715,15 @@ disparo; **e fica por mostrar**: a tela não exibe esse `geracao` ainda. **CONFI
 `provar-o-estilo-regera` (12; **9 de 12** reprovavam contra o `bastidores.js` anterior). **Próximo:**
 o T6 — o Dicionário, a mudança condicional.
 
+**RESOLVIDO a 19/11/2026 — o T6: o dicionário regera, mas só quando alguém usa o exercício.** É a
+regra dela por palavras próprias, e a condição não se escreve em nenhuma rota: as quatro que escrevem
+o termo (`POST`, os dois caminhos do `PUT`, o `DELETE`) chamam a mesma colagem do T5
+(`comAGeracaoDoTermo`), e é a travessia que pergunta quem usa o exercício — quando ninguém usa,
+responde com o aviso e não dispara nada. Uma regra, um sítio. **CONFIRMADO** por
+`provar-o-estilo-regera` (15; a §D nova, e **1 de 15** reprova contra o `bastidores.js` do T5 sem o
+T6 — é exactamente a ligação). **Próximo:** o T7 — o calendário: saber o que já passou. É o maior, e
+precisa de uma decisão dela: a data de cada aula é **declarada** ou **calculada**.
+
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
 `turma-professor` — desde o T2 —, `linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **sete
@@ -4736,6 +4745,11 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **T6: o dicionário regera, condicionado ao uso.** As quatro rotas que escrevem o
+  termo chamam a mesma travessia do T5; a condição — «só se um exercício estiver vinculado à turma» —
+  não se escreve em nenhuma delas, porque é a travessia que a responde. Um termo livre não dispara
+  nada, e a resposta di-lo.
 
 - **19/11/2026** — **T5: o estilo regera os documentos.** Editar o verbete de um exercício que uma
   Turma usa dispara a geração dos ciclos dela; a pergunta «que Turmas usam isto» responde-se pela

@@ -1704,6 +1704,28 @@ async function gerarOsCiclosDoTermo(env, escola, termo) {
 }
 
 /**
+ * A GERAÇÃO COLADA À RESPOSTA — e uma falha dela não derruba a gravação (T5/T6, 19/11/2026).
+ *
+ * A gravação já aconteceu quando isto corre: o verbete, ou o termo do dicionário, está gravado. O
+ * que se acrescenta é o que a travessia devolveu — as Turmas tocadas e cada disparo —, e se ela
+ * falhar a resposta leva o erro em vez de um 500 que faria parecer que o ato não aconteceu.
+ *
+ * É uma função, e não oito linhas repetidas em cinco rotas, pela razão de sempre: o dia em que a
+ * geração mudar, muda-se aqui.
+ */
+async function comAGeracaoDoTermo(env, escola, nome, resposta) {
+  if (!resposta || resposta.ok !== true) return resposta;
+  const termo = String(nome || '').trim();
+  if (!termo) return resposta;
+  try {
+    resposta.geracao = await gerarOsCiclosDoTermo(env, escola, termo);
+  } catch (erro) {
+    resposta.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
+  }
+  return resposta;
+}
+
+/**
  * OS PLANOS DE ENSINO, como PARES (professor, turma) (16/10/2026).
  *
  * É o que separa o que se **edita** do que se **deriva** — na turma e na curadoria. Cada
@@ -24889,13 +24911,7 @@ function parDaSalaNoCorpo(corpo, registo) {
     /* O DOCUMENTO VAI ATRÁS DA NOTAÇÃO (T5, 19/11/2026). A gravação já está feita — o disparo vem
      * depois, e uma falha dele não a desfaz. O que se acrescenta à resposta é o que aconteceu: as
      * Turmas tocadas e cada disparo, para o gasto ficar à vista. */
-    if (r && r.ok) {
-      try {
-        r.geracao = await gerarOsCiclosDoTermo(env, escola, corpo.nome);
-      } catch (erro) {
-        r.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
-      }
-    }
+    await comAGeracaoDoTermo(env, escola, corpo.nome, r);
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
@@ -24998,13 +25014,7 @@ function parDaSalaNoCorpo(corpo, registo) {
     /* APAGAR A NOTAÇÃO TAMBÉM MUDA O DOCUMENTO (T5) — o exercício sai do glossário e a notação deixa
      * de existir; o pacote que a citava passa a sair em lacuna, e é agora ou nunca. Mesma travessia,
      * mesma resposta. */
-    if (r && r.ok) {
-      try {
-        r.geracao = await gerarOsCiclosDoTermo(env, escola, nome);
-      } catch (erro) {
-        r.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
-      }
-    }
+    await comAGeracaoDoTermo(env, escola, nome, r);
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
@@ -25097,6 +25107,9 @@ function parDaSalaNoCorpo(corpo, registo) {
      * `categoria`, `tradicao` (com o rótulo), `descricao` e `fonte` — e vai também quando o termo
      * já existia, porque é o caso em que a página MENOS sabe dele. */
     const termoMesmo = r.termo || {};
+    const comGeracao = r.ok
+      ? await comAGeracaoDoTermo(env, escola, termoMesmo.termo, { ok: true })
+      : null;
     return json(r.jaExistia ? 200 : 201, {
       ok: true, termo: termoMesmo.termo, id: termoMesmo.id, commit: r.commit,
       dados: {
@@ -25114,6 +25127,12 @@ function parDaSalaNoCorpo(corpo, registo) {
         escola: termoMesmo.escola || '',
       },
       ...(r.jaExistia ? { jaExistia: true } : {}),
+      /* O DICIONÁRIO MUDA, E O DOCUMENTO SÓ VAI ATRÁS SE ALGUÉM O USAR (T6, 19/11/2026). Ela foi
+       * explícita: «se eu fizer mudanças no dicionário, não dispara o fluxo […] excepto se a
+       * mudança que eu fizer no dicionário for de um exercício […] que já esteja vinculado à
+       * turma». A condição não se escreve aqui: `gerarOsCiclosDoTermo` pergunta quem usa e, se
+       * ninguém usar, devolve o aviso sem disparar nada. Uma regra, um sítio. */
+      ...(comGeracao && comGeracao.geracao ? { geracao: comGeracao.geracao } : {}),
     });
   }
 
@@ -25168,6 +25187,7 @@ function parDaSalaNoCorpo(corpo, registo) {
          * `escolaDe` que o resto das rotas usa — a escola do Worker que serve a página. */
         escola: escolaDe(env, url),
       });
+      await comAGeracaoDoTermo(env, escola, String(corpo.nome || corpo.termo || '').trim(), r);
       return json(r.ok ? 200 : (r.status || 400), r);
     }
     const novoNome = String(corpo.novoNome || '').trim();
@@ -25180,6 +25200,9 @@ function parDaSalaNoCorpo(corpo, registo) {
       idAntigo, novoNome,
       escola: escolaDe(env, url),
     });
+    /* Renomear muda o `id` — e o `id` é o que os documentos declaram. Quem usa o termo tem de ser
+     * avisado com um documento novo, como em qualquer outra mudança de escala. */
+    await comAGeracaoDoTermo(env, escola, novoNome || idAntigo, r);
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
@@ -25263,11 +25286,16 @@ function parDaSalaNoCorpo(corpo, registo) {
       }
       if (mudou) await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
     }
+    /* APAGAR O TERMO MUDA OS DOCUMENTOS QUE O NOMEIAM (T6) — e só se alguém o usar, que é a regra
+     * dela para o dicionário. A travessia pergunta-o; sem uso, devolve o aviso e não dispara. */
+    const comGeracao = await comAGeracaoDoTermo(env, escola,
+      String((lista[idx] && lista[idx].termo) || id), { ok: true });
     /* `voltouAoCatalogo` DIZ O QUE ACONTECEU, e é o que a tela precisa para não prometer o
      * contrário: a cópia da escola saiu e a versão do catálogo passou a valer para ela. */
     return json(200, {
       ok: true, termo: id, removido: true,
       ...(aindaExiste ? { voltouAoCatalogo: true } : {}),
+      ...(comGeracao && comGeracao.geracao ? { geracao: comGeracao.geracao } : {}),
     });
   }
 

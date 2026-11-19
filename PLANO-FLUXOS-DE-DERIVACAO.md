@@ -47,7 +47,7 @@ aula, a regra «o passado não se mexe» não é implementável — é o T7.
 | Professor · `rubrica-do-professor` (a régua) | **não** | **a decidir** — muda o instrumento de medida |
 | Professor · `professor-desligar` | **não** | **sim** — marca, mas não percorre |
 | Estilo · `verbete` | **sim** desde o T5 | sim — **regera** (não deriva) |
-| Dicionário · `termo` | **não** | **sim, se em uso** — é o T6 |
+| Dicionário · `termo` | **sim, se em uso** — desde o T6 | sim |
 
 ---
 
@@ -286,7 +286,7 @@ regera, e o professor não vê a frase. É a peça que falta, e é de desenho �
 **controlo negativo: 9 de 12** contra o `bastidores.js` anterior. E o fecho do T4 vale aqui: depois da
 marca `conteudos-migrados`, o mapa antigo deixa de contar — a memória não faz regerar.
 
-### T6 — O Dicionário: a mudança condicional
+### T6 — O Dicionário: a mudança condicional — **FEITO a 19/11/2026**
 
 **O que é.** Ela foi explícita: mudar o dicionário **não** dispara — *excepto* se o exercício estiver
 em uso por uma Turma (o «exercício com verbete que já esteja vinculado à turma»).
@@ -295,11 +295,15 @@ em uso por uma Turma (o «exercício com verbete que já esteja vinculado à tur
 (`turmasPorTermo`), mas usa-o só para a etiqueta «em turma» da listagem. O passo é usar a mesma
 resposta como **condição do gatilho** — uma resposta, dois consumidores.
 
-**O que muda.** O `PUT /api/bastidores/termo` passa a devolver, quando o termo está em uso, o mesmo
-aviso do T5 (documentos desactualizados), e a lista de turmas que o usam.
+**O que passou a valer.** As quatro rotas que escrevem o termo — `POST`, os dois caminhos do `PUT`
+(os campos do Dicionário e o `novoNome`), e o `DELETE` — chamam `comAGeracaoDoTermo`, a mesma colagem
+que o T5 usa no verbete. **A condição não se escreve em nenhuma delas:** é a travessia que pergunta
+quem usa o exercício e, quando ninguém usa, devolve o aviso sem disparar nada. Uma regra, um sítio.
 
-**Como se mede.** Duas asserções que hoje não existem: editar um termo **livre** não avisa nada;
-editar um termo **em uso** avisa, e nomeia a turma.
+**Como se mede.** A §D do `provar-o-estilo-regera`: um termo **em uso** nomeia a Turma; um termo
+**livre** não nomeia nenhuma, e a travessia responde com o aviso sem disparar. E, lido no **fonte**, os
+quatro caminhos chamam a colagem — um sítio que a perca numa edição futura reprova. **Controlo
+negativo: 1 de 15** contra o `bastidores.js` do T5 sem o T6, e é exactamente essa ligação.
 
 ### T7 — O calendário: saber o que já passou *(o maior, e o que dá sentido aos outros)*
 
@@ -352,7 +356,7 @@ dia em que a correcção entra.
 T1 (a cópia) ─► T2 (professor dispara) ─► T3 (modalidade bloqueia)
                      │
                      ├─► T4 (conteúdos: migrar e fechar)
-                     ├─► T5 (Estilo: regera) ─► T6 (Dicionário condicional)
+                     ├─► T5 (Estilo: regera) ─► T6 (Dicionário: condicional)
                      └─► T7 (calendário) ─► T8 (o véu)
                                             └─► T9 (a cada passo)
 ```

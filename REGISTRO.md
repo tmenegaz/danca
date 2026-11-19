@@ -54638,3 +54638,31 @@ marca `conteudos-migrados`, o mapa antigo deixa de contar, e a memória não faz
 `provar-gestos-do-shard` 33, `provar-associar-grava` 49, `provar-dicionario` 123,
 `provar-salas-e-elencos` 132, `provar-avisos` 25, `provar-gravar-e-gravar` 49;
 `provar-verbete` 1 falha — a mesma de antes, medida nos dois lados.
+
+### 19/11/2026 — T6: o dicionário também regera — mas só quando alguém usa o exercício
+
+> «Se eu fizer mudanças no dicionário, não dispara o fluxo […] excepto se a mudança que eu fizer no
+> dicionário for de um exercício […] que já esteja vinculado à turma.»
+
+**O que estava.** O dicionário não disparava nada: mudar a categoria, a tradição, a classificação ou a
+definição de um exercício ficava no ficheiro do vocabulário, e os documentos que o nomeiam
+continuavam a dizer o que diziam.
+
+**O que passou a valer.** As quatro rotas que escrevem o termo — `POST`, os dois caminhos do `PUT` (os
+campos do Dicionário e o `novoNome`, que muda o `id`) e o `DELETE` — chamam **a mesma colagem** que o
+T5 usa no verbete. **E a condição não se escreve em nenhuma delas:** é a travessia que pergunta quem
+usa o exercício (`turmasQueUsamOTermo`) e, quando ninguém usa, devolve o aviso sem disparar nada. Uma
+regra, um sítio — que é a mesma razão pela qual o `comAGeracaoDoTermo` é uma função e não cinco
+blocos iguais.
+
+**O que isto tem de diferente do T5.** Nada, no mecanismo: a diferença é a **condição**, e ela foi
+dita por ela. Um verbete existe para ser lido por um documento; um termo do dicionário pode estar
+lá sem ninguém o ensinar. Por isso o dicionário **não** é incondicional — e a resposta diz qual dos
+dois casos aconteceu, em vez de ficar calada.
+
+**Medido.** `provar-o-estilo-regera` **12 → 15**: a §D nova mede o par que separa os dois casos (um
+termo em uso nomeia a Turma; um termo livre não nomeia nenhuma, e a travessia responde com o aviso sem
+disparar), e — **lido no fonte, e diz-se** — que os quatro caminhos chamam a colagem. **Controlo
+negativo: 1 de 15** contra o `bastidores.js` do T5 sem o T6, e é exactamente essa ligação. Vizinhas:
+`provar-dicionario` 123, `provar-gestos-do-shard` 33, `provar-salas-e-elencos` 132,
+`provar-os-fluxos-da-derivacao` 65, `provar-a-migracao-dos-conteudos` 24, `check-identidade` ok.
