@@ -969,6 +969,32 @@ vazio no casco; quem põe e tira avisos é o cliente. **A mensagem sobrevive à 
 mecanismo que a cadeia da geração já usa (`sessionStorage`, com prazo) — sem isso, o aviso de uma
 gravação morria no `location.reload()` que a própria gravação dispara.
 
+### O botão que grava diz «Gravar» — e só isso *(19/11/2026)*
+
+> «quando eu for gravar é só gravar, não precisa inventar tentando justificar o que é que eu estou
+> gravando ou explicar para o usuário o que é que está gravando. Gravar é gravar. […] é sempre
+> gravar. […] a gente mexe só em um lugar, porque afinal de contas gravar é gravar.»
+
+**A peça é a mesma de sempre** — `.acao grande` dentro de `.par-botoes` —, e o que esta linha fixa é
+o **texto**: `Gravar`, uma palavra, em todas as secções e nos três modos.
+
+| o que o botão diz | o que ele não diz mais | onde isso passou a viver |
+|:--|:--|:--|
+| `Gravar` | «Criar dicionário», «Gravar verbete», «Gravar cadastrar professor», «Gravar as habilitações» | — o acto é o mesmo em todas |
+| `Gravar` | «Cadastrar aluna», «Gravar a correção», «Gravar a anamnese nova» | o **efeito** vai no `title` («criar o elenco…» / «regravar este elenco…») |
+| `Gravar` | «Gravar turma», «Gravar ajuste», «Atribuir turma» | idem |
+| `Gravar` | «Criar elenco», «Gravar elenco», «Criar dicionário», «Gravar alterações» | idem |
+
+**A regra vale para os botões que gravam um formulário, e só para eles.** «Desligar o professor»,
+«Mover a aluna» e «Ler as anamneses» dizem o acto que fazem, e é isso que se quer: um «Gravar» num
+deles seria a tela a mentir sobre a consequência. A distinção é entre **gravar um formulário** (um
+rótulo) e **fazer outra coisa** (o nome dela).
+
+**E o rótulo escreve-se uma vez, no servidor** (`ROTULO_DO_GRAVAR`). Uma página que reescreva o texto
+do botão conforme o modo reabre a divergência na secção seguinte — e é por isso que a prova
+`provar-gravar-e-gravar` mede a **ausência** das frases antigas no script servido, e não a presença
+de «Gravar».
+
 ### As acções de uma lista — a barra da secção, e a coluna do painel da raiz *(19/11/2026)*
 
 > «E aqui você inventou uma regra própria também de listagem que ficou no topo da página, no topo

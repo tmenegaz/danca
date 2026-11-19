@@ -152,9 +152,12 @@ try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { JSDOM = null
   const avancar = doc.getElementById('prof-enviar');
   provar('o passo 1 fecha com «Avançar»', avancar && avancar.textContent.trim() === 'Avançar',
     avancar && avancar.textContent);
+  /* «GRAVAR É GRAVAR» (19/11/2026) — o rótulo do passo 2 passou a ser o mesmo de todas as
+   * secções. Era «Gravar cadastrar professor», que é a frase a explicar-se a si própria: dois
+   * verbos, e nenhum deles o que a pessoa faz. */
   const gravar = doc.getElementById('rubr-gravar');
-  provar('o passo 2 fecha com «Gravar cadastrar professor»',
-    gravar && /Gravar cadastrar professor/.test(gravar.textContent), gravar && gravar.textContent);
+  provar('o passo 2 fecha com «Gravar», como todas as secções',
+    gravar && gravar.textContent.trim() === 'Gravar', gravar && gravar.textContent);
 
   /* A URL IMENSA ERA O FORMULÁRIO A SUBMETER POR GET. Aqui o `submit` é cancelado, e a prova mede
    * exactamente isso: a URL não muda. */

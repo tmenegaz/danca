@@ -369,7 +369,7 @@ async function principal() {
        * esta secção mede), `comTexto` fica vazio, `comTexto[0].value` rebenta, e as três provas da
        * trava nunca chegavam a correr. */
       const umProfessor = comTexto.length ? comTexto[0].value : '';
-      provar('«Cadastrar aluna» só acende com os quatro campos (o CPF entrou em 18/11/2026)',
+      provar('o «Gravar» da aluna só acende com os quatro campos (o CPF entrou em 18/11/2026)',
         Boolean(botao) && botao.disabled === true,
         botao ? { disabled: botao.disabled, title: botao.title } : 'o botão não existe');
       const ap = d.getElementById('aprofessor');

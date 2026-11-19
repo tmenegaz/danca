@@ -271,6 +271,23 @@ function rotuloDaCategoria(categoria) {
  * gravado é a chave — a mesma regra da categoria. */
 const COMPLEXIDADES_DO_VOCABULARIO = require('./termo-repo.js').COMPLEXIDADES;
 const rotuloDaComplexidade = (c) => (String(c || '').trim() ? String(c).trim() : '—');
+/* «GRAVAR É GRAVAR» (19/11/2026) — um rótulo, um sítio.
+ *
+ * «quando eu for gravar é só gravar, não precisa inventar tentando justificar o que é que eu estou
+ *  gravando […] Não importa se eu estou derivando, editando ou criando um novo, é sempre gravar.
+ *  Então você vai varrer todos os botões e vai ver esses nomes e vai tudo se chamar gravar.»
+ *
+ * HAVIA OITO PALAVRAS PARA UM GESTO: «Criar dicionário», «Gravar verbete», «Cadastrar aluna»,
+ * «Gravar a correção», «Gravar a anamnese nova», «Gravar ajuste», «Gravar turma», «Atribuir
+ * turma», «Gravar cadastrar professor», «Gravar as habilitações», «Criar elenco», «Gravar elenco».
+ * Três delas eram reescritas pelo cliente conforme o modo — e cada reescrita era uma frase que
+ * precisava de concordar com o que o servidor ia fazer. Não precisava: o botão diz o gesto, e o
+ * gesto é sempre o mesmo.
+ *
+ * A CONSTANTE É UMA SÓ porque a regra é uma só, e quem escrever o nono botão tem aqui o nome para
+ * usar. O que NÃO se renomeia são os botões que não gravam um formulário — «Desligar o professor»
+ * e «Mover a aluna» dizem o que fazem, e é outra coisa que gravar. */
+const ROTULO_DO_GRAVAR = 'Gravar';
 // A RÉGUA DA RUBRICA — o padrão DECLARADO (Regra 10, camada 1: «plano do ciclo piloto»), e
 // a MESMA constante que a derivação do plano usa como reserva. A régua é da TURMA (a escola
 // a edita aqui); esta é a lista que nasce com uma turma nova e o que vale quando nenhuma foi
@@ -2950,7 +2967,20 @@ function normalizarTurma(corpo) {
 
 /** Monta o objeto-termo canónico a partir do que a Produção envia. */
 function normalizarTermo(corpo) {
-  const termo = String(corpo.termo || '').trim();
+  /* O FORMULÁRIO MANDA `nome`, E A ROTA LIA `termo` (19/11/2026).
+   *
+   * «No dicionário, quando eu tento criar um novo, eu preenchi todos os campos, tá? Ele diz assim:
+   *  erro, informe o termo.»
+   *
+   * O CAMPO EXISTE E CHAMA-SE `nome` — é o que o `<input id="dicnome">` envia e é o que a rota de
+   * EDIÇÃO (`PUT`) já aceitava (`corpo.nome || corpo.termo`). Só esta função, que serve o `POST`,
+   * lia a chave antiga — e um formulário inteiro e correcto era recusado por «informe o termo»,
+   * que é a mensagem de quem não recebeu nada.
+   *
+   * AS DUAS CHAVES SÃO ACEITAS porque as duas existem: `termo` é o nome do campo no DADO (e o
+   * que as rotas antigas e as provas mandam), `nome` é o rótulo do formulário. A ordem diz qual
+   * manda quando as duas vêm — e nunca vêm, porque quem escreve o corpo escreve uma. */
+  const termo = String(corpo.termo || corpo.nome || '').trim();
   const altos = Array.isArray(corpo.alternativos)
     ? corpo.alternativos.map((a) => String(a).trim()).filter(Boolean)
     : [];
@@ -8112,7 +8142,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="res" data-res="rubrica-prof"></div>' +
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="rubr-voltar">Voltar</button>' +
-    '<button type="submit" class="acao grande" id="rubr-gravar">Gravar cadastrar professor</button>' +
+    '<button type="submit" class="acao grande" id="rubr-gravar">' + ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario" id="rubr-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
@@ -8186,7 +8216,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="hab-nota">Escolha o professor para ver o que ele já declara.</p>' +
     '<div class="res" data-res="habilitacao"></div>' +
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="hab-enviar">Gravar as habilitações</button>' +
+    '<button type="submit" class="acao grande" id="hab-enviar">' + ROTULO_DO_GRAVAR + '</button>' +
     '</span>' +
     '</form>' +
     '</div>' +
@@ -8333,7 +8363,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * aceitou o clique. O servidor recusou com um «escolha o professor», e ela ficou sem saber se
      * o erro era dela ou do sistema. Um botão que só se acende quando há o que gravar não deixa
      * essa dúvida nascer. */
-    '<button type="submit" class="acao grande" id="aluna-gravar" disabled>Cadastrar aluna</button>' +
+    '<button type="submit" class="acao grande" id="aluna-gravar" disabled>' + ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario" id="aluna-cancelar-2" hidden>Cancelar</button>' +
     '</span>' +
     /* O QUE FALTA, DITO ONDE SE VÊ (18/11/2026). O botão apagado tinha o motivo só no `title` — um
@@ -8662,7 +8692,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // continua a LER o mapa antigo, e o cartão da turma continua a mostrá-lo.
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vinc-voltar">Voltar</button>' +
-    '<button type="button" class="acao grande" id="vinc-gravar" disabled>Gravar sala</button>' +
+    '<button type="button" class="acao grande" id="vinc-gravar" disabled>' + ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario cancelar-edicao" id="vinc-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '<p class="nota-pendencia" id="vinc-pendencia" hidden></p>' +
@@ -8782,12 +8812,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O RECADO DA GRAVAÇÃO, dentro do formulário e antes dos botões: é aqui que `alvoDoRecado`
     // procura, e é aqui que a recusa do repositório tem de aparecer.
     '<div class="res" data-res="dic"></div>' +
-    /* A AÇÃO QUE GRAVA, na fileira — a peça é a do «Cadastrar professor» (`.acao grande` dentro de
-     * `.par-botoes`). O rótulo diz o gesto pedido: «Criar dicionário». Em edição passa a «Gravar
-     * alterações», porque «Criar» sobre um verbete que já existe seria a tela a mentir sobre o que
-     * vai acontecer. */
+    /* A AÇÃO QUE GRAVA, na fileira — a peça é a do «Gravar» do professor (`.acao grande` dentro de
+     * `.par-botoes`). O RÓTULO É O MESMO EM TODAS AS SECÇÕES (19/11/2026): «Gravar». Era «Criar
+     * dicionário», e passava a «Gravar alterações» em edição — duas frases para o mesmo botão, a
+     * segunda a justificar-se a si própria. Quem lê o formulário sabe o que está a compor; o botão
+     * só tem de dizer o que faz. Ver `ROTULO_DO_GRAVAR`. */
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="dic-gravar">Criar dicionário</button>' +
+    '<button type="submit" class="acao grande" id="dic-gravar">' + ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario" id="dic-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '<p class="nota" id="dic-nota"></p>' +
@@ -9322,7 +9353,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" id="vb-voltar">← Voltar</button>' +
     // «AVANÇAR», E NÃO «SEGUIR» (19/11/2026) — o mesmo nome do gesto em todas as secções com passos.
     '<button type="button" class="acao" id="vb-seguir">Avançar</button>' +
-    '<button type="submit" class="acao grande" id="vb-gravar" hidden>Gravar verbete</button>' +
+    '<button type="submit" class="acao grande" id="vb-gravar" hidden>' + ROTULO_DO_GRAVAR + '</button>' +
     // GUARDAR COMO MÚSICA NOVA (02/11/2026). O «Gravar» de uma edição SUBSTITUI — se os tempos
     // mudaram, a música de onde se veio sai e o verbete fica com uma só. Esta caixa é a outra
     // intenção, e é explícita: «quero as duas», a de 8 e a de 16, o mesmo exercício em duas
@@ -9459,7 +9490,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // PADRÃO da folha — filete na marca, fundo de papel — e por isso tinha outra cor e outra
     // altura que o «Cadastrar professor» ao lado, na mesma página. A ação que grava é a
     // principal das três, e é a peça `.acao` que a desenha.
-    '<button type="submit" class="acao grande" id="cu-enviar">Atribuir turma</button>' +
+    '<button type="submit" class="acao grande" id="cu-enviar">' + ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario" id="cu-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
@@ -9635,10 +9666,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao secundario" id="lb-voltar" hidden>← Voltar</button>' +
     // «AVANÇAR», E NÃO «SEGUIR» (19/11/2026) — o mesmo nome do gesto em todas as secções com passos.
     '<button type="button" class="acao" id="lb-seguir">Avançar</button>' +
-    /* O RÓTULO NASCE «Criar elenco» E PASSA A «Gravar elenco» QUANDO HÁ UM ABERTO (12/11/2026).
-     * O `pintarTravasLb` reescreve-o a cada passo e a cada elenco aberto — ver a nota lá. O que
-     * está aqui é só o estado de repouso, para a página nascer certa sem JavaScript. */
-    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>Criar elenco</button>' +
+    /* O RÓTULO É «Gravar», COMO EM TODAS AS SECÇÕES (19/11/2026). Ele nasceu «Criar elenco» e o
+     * `pintarTravasLb` trocava-o por «Gravar elenco» quando havia um aberto (12/11/2026) — duas
+     * palavras para o mesmo gesto, e a primeira a dizer «criar» sobre um elenco que já existe. O
+     * `pintarTravasLb` continua a decidir o `disabled` e o `title`; o texto é o de `ROTULO_DO_GRAVAR`. */
+    '<button type="button" class="acao grande" id="lb-enviar" hidden disabled>' + ROTULO_DO_GRAVAR + '</button>' +
     /* O «CANCELAR» PASSOU A SER DA MESMA LINHA (18/11/2026).
      *
      * «eu tenho o botão seguir e o botão cancelar que está abaixo do seguir. O padrão é que vai
@@ -9757,6 +9789,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Elencos</h3>' +
+    /* O QUE A CADEIA FEZ FICA AQUI, E NÃO DENTRO DO FORMULÁRIO (19/11/2026).
+     *
+     * «mostra a mensagem no formulário ainda, não é no formulário, é na tela que tem que mostrar a
+     *  mensagem, e aí ele não colapsa.»
+     *
+     * A cadeia — o que a geração fez e o que falta, com o caminho para cada etapa — vivia no `.res`
+     * do formulário, e o formulário passou a FECHAR depois de gravar. Um recado escrito no sítio
+     * que se acabou de fechar não se lê: era a razão que me levou a manter o elenco fora da regra,
+     * e a razão estava certa e a conclusão errada. O que muda é o SÍTIO, não a regra: a coluna da
+     * lista fica sempre à vista, ao lado do formulário recolhido, e é lá que a travessia se lê.
+     *
+     * Sem classe nova: a peça é o `p.sub` que a cadeia já usava, e é a folha que o desenha. */
+    '<div id="lb-cadeia"></div>' +
     /* O CONTENTOR NÃO É `.lista` (05/11/2026), e a razão é de contentor, não de gosto:
      * `.lista li` é `display:flex` — as linhas simples do gabinete são UMA fita, e o cartão é
      * uma COLUNA. Medido com o contentor antigo: as três caixas ficavam com 110px numa coluna
@@ -11449,18 +11494,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (notaRegua) { notaRegua.hidden = true; notaRegua.textContent = ""; }' +
     '  var tradRegua = document.getElementById("rubr-tradicao");' +
     '  if (tradRegua) tradRegua.textContent = "—";' +
-    /* O CANCELAR VOLTA AO PASSO 1 (19/11/2026). Faltava: o «Cancelar» limpava a ficha e o foco, mas
-     * o painel à vista continuava a ser o da RÉGUA — e um formulário fechado que reabre no passo 2
-     * mostra a régua de ninguém. Pior: o passo 2 é um dos sinais de «há um professor a meio», e
-     * enquanto ele ficasse à vista as abas das Habilitações e do Desligamento continuavam travadas
-     * depois de o processo ter sido cancelado. Medido na bancada, nas duas portas do cancelar. */
+    /* O PASSO 1, E NÃO O 2 (19/11/2026). Faltava: enquanto o painel à vista fosse o da RÉGUA, um
+     * formulário fechado reabria no passo 2 e mostrava a régua de ninguém. Pior: o passo 2 é um dos
+     * sinais de «há um professor a meio», e enquanto ele ficasse à vista as abas das Habilitações e
+     * do Desligamento continuavam travadas. Medido na bancada, nas duas portas deste gesto. */
     '  if (typeof mostrarPassoDoProfessor === "function") mostrarPassoDoProfessor("cadastro");' +
     '  if (typeof abrirAbaDoProfessor === "function") abrirAbaDoProfessor("cadastro");' +
     '  if (typeof pintarCancelarDoProfessor === "function") pintarCancelarDoProfessor();' +
     '  recado("", "");' +
-    /* E O FORMULÁRIO FECHA-SE (18/11/2026). Esta função tem um só chamador — o «Cancelar» —, e é
-     * por isso que o fecho pode viver aqui: não há segundo caminho que a use para «acabei de
-     * gravar», e um formulário que se fecha depois de gravar seria outra regra. */
+    /* E O FORMULÁRIO FECHA-SE (18/11/2026). O fecho vive aqui porque «abandonar o cadastro» e
+     * «acabá-lo» passaram a ser o mesmo estado da tela (19/11/2026): depois de gravar, a secção tem
+     * de estar como quando se chega — ficha vazia, régua vazia, passo 1, sem ninguém em foco, e
+     * recolhida. Era a queixa dela com todas as letras: «Ficou na rubrica dois, tudo preenchido, e
+     * limpou apenas o cadastro […] Não pode, tem que limpar tudo.» A recarga que vem a seguir
+     * desenhava a régua do professor que acabou de ser gravado, porque o foco e o passo ficavam no
+     * `sessionStorage` — este gesto é quem os esquece. */
     '  cancelarOFormularioDe("sec-professores");' +
     '}' +
     /* ---------------------------- O CADASTRO DO PROFESSOR, EM DOIS PASSOS QUE GRAVAM UMA VEZ
@@ -11574,9 +11622,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var editando = derivando && String((document.getElementById("aluna-modo") || {}).value || "") === "editar";' +
     '  var blocoMotivo = document.getElementById("aluna-motivo-campo");' +
     '  if (blocoMotivo) blocoMotivo.hidden = !(alvo === 2 && derivando);' +
-    '  var rotulo = document.getElementById("aluna-gravar");' +
-    '  if (rotulo) rotulo.textContent = editando ? "Gravar a correção"' +
-    '    : (derivando ? "Gravar a anamnese nova" : "Cadastrar aluna");' +
     /* A NOTA DIZ O QUE VAI ACONTECER, e é diferente nos três casos: no cadastro, a aluna nasce; na
      * derivação, a aluna já existe e o que nasce é um vínculo novo; na correcção, o vínculo é o
      * mesmo e o que muda é o que ele declara. Deixar a nota do cadastro à vista enquanto se deriva
@@ -11585,8 +11630,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (nota) {' +
     '    nota.innerHTML = editando' +
     '      ? "Ao gravar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
-    '        "A correção não cria elo novo: o vínculo é o mesmo, corrigido, e a anamnese volta a ficar " +' +
-    '        "<strong>pedida</strong>. Se ela já tivesse sido feita, não se corrige aqui — deriva-se."' +
+    '        "A correção não cria elo novo: o vínculo é o mesmo, corrigido. É o acto certo enquanto a " +' +
+    '        "aluna estiver livre; se ela já estiver numa turma com plano de ensino, deriva-se."' +
     '      : (derivando' +
     '        ? "Ao gravar, o professor escolhido recebe um e-mail com o apelido da aluna e a modalidade. " +' +
     '          "A anamnese nova fica <strong>pedida</strong> até ele a fazer. Se a modalidade for a mesma, " +' +
@@ -11889,9 +11934,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (esperar++ < 40) setTimeout(tentar, 50);' +
     '  };' +
     '  tentar();' +
-    '  var rotulo = document.getElementById("aluna-gravar");' +
-    '  if (rotulo) rotulo.textContent = modo === "editar" ? "Gravar a correção"' +
-    '    : (id ? "Gravar a anamnese nova" : "Cadastrar aluna");' +
     '  recado("", "");' +
     '  mostrarPassoAluna(2);' +
     '  pintarTravasDaAluna();' +
@@ -14450,7 +14492,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A DATA SÓ NA DERIVAÇÃO, e o «Cancelar» aparece por haver edição em curso.
     '  document.getElementById("cu-vigencia-campo").hidden = !derivar;' +
     '  document.getElementById("cu-cancelar").hidden = false;' +
-    '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar turma";' +
     // Os dois `select` do par seguem o modo: travados no «Editar» (substitui no lugar), livres no
     // «Derivar» (elo novo).
     //
@@ -14581,7 +14622,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cumodo").value = "";' +
     '    document.getElementById("cu-vigencia-campo").hidden = true;' +
     '    document.getElementById("cu-cancelar").hidden = true;' +
-    '    document.getElementById("cu-enviar").textContent = "Atribuir turma";' +
     /* O «EXCLUIR» VOLTA A PODER (19/11/2026) — cancelada a edição, não há ficha em curso, e a
      * listagem tem de o dizer sem esperar por uma recarga. Este handler é o único caminho de saída
      * da curadoria que não passa pelo `pintarCancelares`. */
@@ -14690,10 +14730,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  enviar("/api/bastidores/rubrica-do-professor", {' +
     '    professor: slug, nome: nome, niveis: niveis' +
     '  }, "gravando a régua...", true, function(){' +
-    /* A FICHA A MEIO NÃO SOBREVIVE À GRAVAÇÃO (19/11/2026): o rascunho existia para o passo 2 ter o
-     * que o passo 1 compôs. Gravado o par, ele é trabalho concluído — e deixá-lo faria a próxima
-     * visita abrir o passo 1 com os dados de um professor que já está na lista. */
-    '    esquecerRascunhoDoProfessor();' +
+    /* GRAVADO O PAR, O CADASTRO INTEIRO É HISTÓRIA (19/11/2026). O `sairDaEdicaoDoProfessor` é o
+     * gesto que devolve a secção ao estado de quem acabou de chegar — e é o mesmo do «Cancelar»,
+     * porque o estado final é o mesmo: ficha vazia, régua vazia, passo 1, ninguém em foco,
+     * recolhido. Antes daqui só se esquecia o rascunho, e o foco e o passo ficavam: a página nova
+     * abria o passo 2 com a régua do professor que se tinha acabado de gravar, e isso lia-se como
+     * «não limpou».
+     *
+     * A ESCOLHA DE NÃO DEIXAR O FOCO É DELIBERADA e não apaga trabalho: a régua está gravada no
+     * perfil dele, e reabrir o professor é um clique na lista. O que se evita é o contrário — um
+     * formulário a dizer «Régua de Fulano» a quem já terminou. */
+    '    sairDaEdicaoDoProfessor();' +
     '  });' +
     '  return true;' +
     '}' +
@@ -17708,7 +17755,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var f = document.getElementById("form-dicionario");' +
     '  if (f && f.reset) f.reset();' +
     '  var oculto = document.getElementById("dicid"); if (oculto) oculto.value = "";' +
-    '  var b = document.getElementById("dic-gravar"); if (b) b.textContent = "Criar dicionário";' +
     '}' +
     /* A GRAVAÇÃO DO FORMULÁRIO — `POST` para criar, `PUT` para corrigir. Os dois caminhos são
      * distintos de propósito: criar um exercício que já existe é um facto a dizer («já está»),
@@ -17795,8 +17841,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("dictradicao").value = String(t.tradicao || "");' +
     '  document.getElementById("diccomplexidade").value = String(t.complexidade || "");' +
     '  document.getElementById("dicfrase").value = String(t.descricao || "");' +
-    '  var b = document.getElementById("dic-gravar");' +
-    '  if (b) b.textContent = "Gravar alterações";' +
     '  var f = document.getElementById("form-dicionario");' +
     '  if (f) { f.dispatchEvent(new Event("input", {bubbles: true})); }' +
     '  abrirOFormularioDe("sec-dicionario");' +
@@ -19050,6 +19094,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // alunos; uma lista de quatrocentas caixas não se lê, e a rolagem resolve o resto.
     'var LB_POR_VEZ = 10;' +
     'var LB_MOSTRADAS = 10;' +
+    /* A COLUNA É O SÍTIO DO REGISTO (19/11/2026) — o `#lb-cadeia` fica ao lado da lista, e por
+     * isso sobrevive ao recolhimento do formulário. É lá que a travessia se lê: o que a geração
+     * fez, o que falta, e a ordem que o elenco novo impõe às turmas. Acrescenta em vez de
+     * substituir: duas frases de dois gestos seguidos são duas informações. */
+    'function pintarCadeiaDaMudanca(texto) {' +
+    '  var alvo = document.getElementById("lb-cadeia");' +
+    '  if (!alvo || !texto) return;' +
+    '  var p = document.createElement("p");' +
+    '  p.className = "sub";' +
+    '  p.setAttribute("data-cadeia", "1");' +
+    '  p.textContent = texto;' +
+    '  alvo.appendChild(p);' +
+    '}' +
     'function corpoRes(estado, texto) {' +
     '  var alvo = document.querySelector("[data-res=\\"linha-base\\"]");' +
     '  if (!alvo) return;' +
@@ -19245,9 +19302,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (enviar) {' +
     '    var faltaEnvio = faltasAntesDeLb(LB_TOTAL + 1);' +
     '    var idAberto = (document.getElementById("lb-modo") || {}).value || "";' +
-    '    var rotuloEnvio = idAberto ? "Gravar elenco" : "Criar elenco";' +
     '    var verboEnvio = idAberto ? "gravar" : "criar";' +
-    '    enviar.textContent = rotuloEnvio;' +
     '    enviar.disabled = faltaEnvio.length > 0;' +
     '    enviar.setAttribute("aria-disabled", faltaEnvio.length ? "true" : "false");' +
     '    enviar.title = faltaEnvio.length' +
@@ -20371,7 +20426,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        }' +
     '      }' +
     '      if (!fila.length) return;' +
-    '      corpoRes("ok", "gravado. O elenco de «" + turma + "» mudou: a ordem é " +' +
+    /* A CASCATA ESCREVE NA COLUNA, E NÃO NO FORMULÁRIO (19/11/2026) — a mesma razão da cadeia:
+     * este aviso chega DEPOIS de o formulário se ter recolhido, e um recado escrito dentro de um
+     * painel fechado não se lê. A frase diz a ordem da travessia (a turma, o plano de ensino, a
+     * observação) e é registo, não retorno de gesto: fica ao lado da lista, onde a cadeia fica. */
+    '      pintarCadeiaDaMudanca("gravado. O elenco de «" + turma + "» mudou: a ordem é " +' +
     '        fila.join(", depois ") + " — por essa ordem, e com o seu olhar em cada um. " +' +
     '        "O sistema não faz essa travessia sozinho: é a decisão que ele não toma.");' +
     '    })' +
@@ -20402,13 +20461,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      return x.variante + (x.erro ? " (" + x.erro + ")" : ""); }).join(", ")' +
     '      + " — o elenco está gravado; regere pelo «Guardar» do plano ou do PO.";' +
     '    if (!feitos && !falhos.length && g.aviso) frase += " " + g.aviso;' +
-    '    corpoRes("ok", frase);' +
     /* O QUE A CADEIA FEZ — E O QUE FALTA, COM O CAMINHO (09/11/2026). A frase acima diz o que
      * aconteceu à GERAÇÃO; esta diz o que aconteceu à travessia: os vínculos, o plano de ensino
      * e a observação. Quando ela fechou, uma linha; quando não, cada etapa em falta com o
-     * endereço do sítio onde se resolve. */
-    '    pintarCadeia(g.cadeia, document.querySelector("[data-res=\\"linha-base\\"]"));' +
-    /* O FORMULÁRIO FICA VAZIO PARA O PRÓXIMO ELENCO (09/11/2026).
+     * endereço do sítio onde se resolve. O destino é a coluna da lista (`#lb-cadeia`), que
+     * sobrevive ao recolhimento do formulário — ver a nota do elemento. */
+    '    pintarCadeia(g.cadeia, document.getElementById("lb-cadeia"));' +
+    /* O FORMULÁRIO FICA VAZIO PARA O PRÓXIMO ELENCO (09/11/2026) — E AGORA TAMBÉM FECHA
+     * (19/11/2026).
      *
      * O DEFEITO QUE ISTO FECHA, e o pedido é dela: «Ao clicar em 'Concluir elenco', o formulário
      * deve ser limpo imediatamente para permitir a criação de um novo elenco, evitando que acabe
@@ -20416,15 +20476,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * id do elenco — a próxima gravação caía no MESMO elenco —, e o nome e as alunas continuavam no
      * ecrã como se o trabalho estivesse por fazer.
      *
-     * O QUE LIMPA É O `limparForm` que já existia (o do «Cancelar»): esvazia o id e o nome, desmarca
-     * as alunas e o recorte, e volta ao passo 1. NÃO se limpa o professor: é quem está a trabalhar,
-     * e o próximo elenco é habitualmente dele — mandá-lo para o primeiro da lista seria uma escolha
-     * silenciosa sobre um campo que ele não pediu para mudar.
+     * O `limparForm` — o mesmo do «Cancelar» — esvazia o id e o nome, desmarca as alunas e o
+     * recorte, e volta ao passo 1. NÃO se limpa o professor: é quem está a trabalhar, e o próximo
+     * elenco é habitualmente dele — mandá-lo para o primeiro da lista seria uma escolha silenciosa
+     * sobre um campo que ele não pediu para mudar.
      *
-     * A FRASE DO RESULTADO NÃO SE APAGA. Ela vive fora dos passos (dentro do formulário, mas fora
-     * dos painéis), e por isso continua à vista depois de o formulário voltar ao passo 1 — é ela que
-     * diz «elenco concluído» e o que aconteceu à geração. */
+     * E O QUE FALTAVA: O AVISO E O FECHO (19/11/2026). «mostra a mensagem no formulário ainda, não é
+     * no formulário, é na tela que tem que mostrar a mensagem, e aí ele não colapsa.» O
+     * `concluirOGesto` faz as três coisas que a regra dela pede — avisa no canto, limpa os
+     * formulários da secção e recolhe-a —, e é o mesmo caminho das outras quatro secções. A frase
+     * vai para o canto, e o que pertence ao registo (a cadeia, com os endereços das etapas em
+     * falta) fica na coluna da lista, que não se recolhe.
+     *
+     * O TIPO DO AVISO DIZ O DESFECHO: uma geração que não partiu é «atenção», e não «ok». */
     '    limparForm();' +
+    '    concluirOGesto("sec-corpo", (falhos.length || (g.cadeia && g.cadeia.ok === false))' +
+    '      ? "atencao" : "ok", frase);' +
     '    carregarLinhas();' +
     '    carregarAlunasComAnamnese();' +
     '    return true;' +
@@ -21521,16 +21588,30 @@ async function fetch(request, env, extras) {
      * histórico de uma versão que nunca valeu nada.
      *
      * A GUARDA É AQUI, e não no botão. A tela é uma leitura do estado, e entre a leitura e o clique
-     * a aluna pode ter entrado num elenco ou o professor pode ter feito a anamnese. Quando qualquer
-     * das duas já aconteceu, a resposta é 409 com a frase que a tela daria — derivar.
+     * a aluna pode ter entrado numa turma que já tem plano de ensino. Quando isso aconteceu, a
+     * resposta é 409 com a frase que a tela daria — derivar.
      *
-     * A ANAMNESE FEITA É O CASO QUE MAIS IMPORTA. O envelope é do par (aluna × modalidade), mas
-     * quem o assina é o professor. Corrigir o professor de um vínculo cuja anamnese já foi feita
-     * punha o retrato de um corpo debaixo do nome de outra pessoa — e nada no ecrã o diria. Nessa
-     * situação deriva-se: o elo novo pede a anamnese ao professor certo, e o anterior fica.
+     * O CRITÉRIO É O DA CASA, E SÓ ELE (19/11/2026): **livre edita-se, vinculada deriva-se** — a
+     * regra escrita a 16/10/2026 para a turma, e a mesma que a aluna já aplicava no «está numa turma
+     * com plano?». Havia uma SEGUNDA guarda, minha, que recusava a correcção quando a anamnese já
+     * estava feita, e ela derrubou-a com o caso concreto:
      *
-     * A LEITURA QUE FALHA CONTA COMO «JÁ FEITA». É a mesma regra de `usos === null` nos planos: na
-     * dúvida, não se mexe no que já assinou. E derivar está sempre à mão. */
+     *   «A anamnese da aluna B em dança moderna já foi feita pelo professor. […] mas não está ainda,
+     *    a aluna B é a aluna livre. […] o que tem de edição aqui para a aluna é só […] modalidade,
+     *    que daí ela poderia trocar de modalidade livremente, isso não tem problema nenhum, ou
+     *    trocar de professor, não pode ser impedida disso.»
+     *
+     * ELA TEM RAZÃO, E O ARGUMENTO É O DESTA CASA: uma aluna livre não está em nenhum plano, e o
+     * que não alimenta nenhum plano não tem passado a guardar. A guarda da anamnese tratava como
+     * irreversível um acto que ainda não produz efeito em nada — e proibia a direcção de corrigir um
+     * erro de cadastro (a modalidade errada, o professor trocado) que é exactamente o que «livre»
+     * quer dizer. Quem está vinculada continua a derivar, e é a turma com plano que o decide.
+     *
+     * O QUE FICA DITO, porque é uma consequência e não um detalhe: a anamnese já feita continua a
+     * ser lida pelo par (aluna × modalidade) e nomeia o professor que a assinou. Corrigir só o
+     * professor de um vínculo com anamnese feita não reescreve o que ele observou — o envelope
+     * fica como está —, e o estado mostrado continua a ser «feita». Se for preciso que a correcção
+     * peça uma anamnese nova, isso é uma decisão de produto, e não se toma por omissão aqui. */
     const editarDe = String(corpo.editarDe || '').trim();
     let corrigido = null;
     if (editarDe) {
@@ -21573,28 +21654,10 @@ async function fetch(request, env, extras) {
             + 'fica no histórico.',
         });
       }
-      let estado = null;
-      try {
-        const legado = criarCloudflare(env);
-        const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
-        const resumos = await porta.resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
-        estado = estadoDaAnamnese(registo, resumos.map((x) => x.resumo)).estado;
-      } catch (e) {
-        estado = null;
-      }
-      if (estado !== 'pedida') {
-        return json(409, {
-          ok: false,
-          vinculado: true,
-          erro: 'a anamnese de «' + aluna + '» em ' + modalidade + ' '
-            + (estado === 'concluida'
-              ? 'já foi feita pelo professor — corrigir o vínculo punha o que ele observou debaixo '
-                + 'do nome de outra pessoa'
-              : 'não se pôde confirmar como pendente agora')
-            + '. Use «Derivar»: o vínculo novo pede a anamnese ao professor certo, e o que já existe '
-            + 'fica no histórico.',
-        });
-      }
+      /* A LEITURA DA ANAMNESE SAIU DAQUI (19/11/2026). Ela existia para a guarda que recusava a
+       * correcção de um vínculo com a anamnese feita — e a guarda caiu (ver a nota acima). Manter a
+       * leitura seria pagar uma ida ao acervo por um estado que ninguém consulta: mede-se o que se
+       * usa, e o resto apaga-se. */
       corrigido = Object.assign({}, registo, {
         modalidade, professor, pedidaEm: hoje,
         por: String(corpo.por || 'direção').trim() || 'direção',

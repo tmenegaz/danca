@@ -3414,3 +3414,48 @@ formulário limpo e recolhido, nenhum «is not defined» e nenhuma excepção �
 123 reprova**, e o `.res` volta a dizer o erro **com o aviso a dizer «gravado»**, que é o sintoma
 dela reproduzido. Com o `try`, o mesmo defeito reprova pela outra ponta: o formulário que não
 recolheu.
+
+### 5.33 «Gravar é gravar» — o rótulo de um gesto, escrito uma vez *(19/11/2026)*
+
+> «Não importa se eu estou derivando, editando ou criando um novo, é sempre gravar. Então você vai
+> varrer todos os botões e vai ver esses nomes e vai tudo se chamar gravar. […] a gente mexe só em um
+> lugar, porque afinal de contas gravar é gravar.»
+
+**O que havia: oito frases para um gesto, e cinco delas reescritas em tempo de execução.** «Criar
+dicionário», «Gravar verbete», «Cadastrar aluna», «Gravar ajuste», «Atribuir turma», «Criar elenco»,
+«Gravar cadastrar professor», «Gravar as habilitações» — e, por cima, o cliente a trocar o texto do
+botão conforme o modo: «Gravar a correção» / «Gravar a anamnese nova» / «Cadastrar aluna»; «Gravar
+ajuste» / «Gravar turma»; «Criar dicionário» / «Gravar alterações»; «Criar elenco» / «Gravar elenco».
+
+Cada uma dessas reescritas era uma frase a **concordar** com o que o servidor ia fazer. A frase não
+precisava de concordar com nada: o botão diz o gesto, e o gesto é o mesmo nos três modos. Duas
+categorias distintas tinham sido fundidas numa só — o **acto** (gravar) e o **efeito** (criar um elenco
+novo, corrigir um vínculo, derivar um elo). O efeito é a resposta, e o lugar da resposta é o
+`.avisos` (§5.31) e o `title`; o botão carrega o acto.
+
+**A forma que não repete oito erros: uma constante no servidor.** `ROTULO_DO_GRAVAR = 'Gravar'`, usada
+na marcação dos oito botões. Quem escrever o nono tem aqui o nome para usar. As cinco reescritas foram
+**apagadas** e não substituídas — enquanto um `textContent = …` decidir o texto de um botão, a
+divergência reabre na secção seguinte. A prova é negativa por isso mesmo: mede a ausência das treze
+frases mortas no script servido, e não a presença de «Gravar».
+
+**E o que não se renomeia:** os botões que não gravam um formulário. «Desligar o professor» desliga,
+«Mover a aluna» move, «Ler as anamneses» lê. Esses dizem o acto que fazem, e é isso que se quer — um
+«Gravar» num deles seria a tela a mentir sobre a consequência.
+
+**O mesmo dia, e a mesma família de defeito, em três sítios:** o `POST` do vocabulário recusava o
+corpo que o formulário manda (`nome` vs `termo` — duas chaves para o mesmo campo, e a que faltava era
+a do formulário novo); a Audição não recolhia a secção nem tirava o recado de dentro do formulário; e
+o cadastro do professor limpava o passo 1 e deixava o 2 preenchido, porque o fim do gesto esquecia o
+rascunho e não o foco nem o passo. Ver o `REGISTRO.md` do dia — e a nota do §5.31 sobre o `.res` que
+vive dentro do painel que se fecha.
+
+**A regra que sai do caso da aluna livre, e é a que mais vale:** *uma guarda nova não pode cobrar de
+quem não tem o que ela protege.* A recusa de corrigir um vínculo com a anamnese feita foi escrita
+contra um perigo real — pôr o que um professor observou debaixo do nome de outro —, mas cobrava-o de
+quem está **livre**, que não alimenta plano nenhum. O critério deste repositório já estava escrito a
+16/10/2026: **livre edita-se, vinculada deriva-se**. Uma segunda guarda com um segundo critério proibiu
+a direcção de corrigir um erro de cadastro, que é exactamente o que «livre» quer dizer.
+
+**Medido:** `experimentos/provar-gravar-e-gravar.js`, **49 asserções**, com o gesto da Audição a correr
+num DOM. **A/B:** contra o `bastidores.js` anterior, **29 de 49 reprovam**; hoje, zero.

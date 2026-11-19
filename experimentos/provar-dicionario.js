@@ -119,8 +119,10 @@ console.log('\nB. O formulário: os cinco campos e as listas que vêm do dado');
     /<select id="diccomplexidade">\s*<option value="">— ainda não classificado —/.test(secao));
   provar('a acção que grava está na fileira, com o «Cancelar» ao lado',
     /<span class="par-botoes">[\s\S]{0,400}?id="dic-gravar"[\s\S]{0,400}?id="dic-cancelar"/.test(secao));
-  provar('o botão diz o gesto pedido: «Criar dicionário»',
-    /id="dic-gravar"[^>]*>Criar dicionário</.test(secao));
+  /* «GRAVAR É GRAVAR» (19/11/2026) — o rótulo é o mesmo em todas as secções. Era «Criar
+   * dicionário», e passou a «Gravar» por decisão dela: «quando eu for gravar é só gravar». */
+  provar('o botão diz o gesto, e diz «Gravar» como todos os outros',
+    /id="dic-gravar"[^>]*>Gravar</.test(secao), (secao.match(/id="dic-gravar"[^>]*>([^<]*)</) || [])[1]);
   provar('o botão da carga diz «Carregar verbetes», e não «turmas iniciais»',
     /id="dic-semear"[^>]*>Carregar verbetes</.test(secao) && !/turmas iniciais/i.test(secao));
 }
@@ -817,7 +819,7 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
    * é a sequência que ela pediu, e é a que o `concluirOGesto` faz. */
   provar('…e o formulário fica LIMPO e RECOLHIDO, pronto ao próximo',
     d.getElementById('dicid').value === ''
-      && d.getElementById('dic-gravar').textContent === 'Criar dicionário'
+      && d.getElementById('dic-gravar').textContent === 'Gravar'
       && d.getElementById('sec-dicionario').getAttribute('data-recolhido') === 'sim',
     { id: d.getElementById('dicid').value, botao: d.getElementById('dic-gravar').textContent,
       recolhido: d.getElementById('sec-dicionario').getAttribute('data-recolhido') });
@@ -862,7 +864,7 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
   provar('…e o verbete novo está na lista, sem F5', Boolean(cartao('cabriole')),
     d.getElementById('lista-dicionario').children.length);
   provar('…e o formulário fica pronto ao próximo, com o botão de criar',
-    d.getElementById('dicnome').value === '' && d.getElementById('dic-gravar').textContent === 'Criar dicionário',
+    d.getElementById('dicnome').value === '' && d.getElementById('dic-gravar').textContent === 'Gravar',
     [d.getElementById('dicnome').value, d.getElementById('dic-gravar').textContent]);
 
   /* ── A NEGATIVA, QUE É A LIÇÃO ───────────────────────────────────────────────────────── */

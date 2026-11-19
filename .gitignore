@@ -1666,3 +1666,9 @@ experimentos/modelo-formulario/*
 # páginas dos Bastidores emitem e devolve o nome chamado e não declarado, que é a única forma de
 # apanhar um `limparOVerbete()` sem corpo sem executar aquele caminho à mão.
 !experimentos/provar-o-script-nao-chama-o-que-nao-existe.js
+
+# «GRAVAR É GRAVAR» (19/11/2026). Sétima vez que a armadilha do `experimentos/*` aparece: a prova
+# nasceu ignorada. Ela mede uma coisa que nenhuma outra mede — que o rótulo do gesto é UM só, e que
+# o script servido não o reescreve —, e a asserção é negativa de propósito: é a reescrita que reabre
+# a divergência na próxima secção nova.
+!experimentos/provar-gravar-e-gravar.js

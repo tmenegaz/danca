@@ -54245,3 +54245,88 @@ estado que já está no `main`.
 **Medido:** `check-indices` **16 verificações, 0 falhas** (antes: 2 falhas na verificação 8);
 `check-pacote` do `demi-plie/ciclos/ciclo-01-breu-rosa` ok, 0 erros e 0 avisos; `check-glossario` ok;
 `provar-dicionario` 123; `check-sem-destruicao` ok.
+
+### 19/11/2026 — «Gravar é gravar» — um rótulo para oito botões, e o fim do gesto em todas as secções
+
+> «quando eu for gravar é só gravar, não precisa inventar tentando justificar o que é que eu estou
+> gravando […] Não importa se eu estou derivando, editando ou criando um novo, é sempre gravar. Então
+> você vai varrer todos os botões e vai ver esses nomes e vai tudo se chamar gravar. E aí evita
+> redundância de código, tá? Faz de um jeito bonitinho, com uma arquitetura bonita, boa, prática, e a
+> gente mexe só em um lugar, porque afinal de contas gravar é gravar.»
+
+O mesmo relato trazia cinco defeitos de três secções. Foram todos tratados, e o primeiro é o que dá
+nome ao dia.
+
+**1. Oito frases para um gesto.** O levantamento, botão a botão: «Criar dicionário», «Gravar verbete»,
+«Cadastrar aluna», «Gravar ajuste», «Atribuir turma», «Criar elenco», «Gravar cadastrar professor»,
+«Gravar as habilitações» — e, dentro destes, cinco eram **reescritos pelo cliente** conforme o modo:
+o da aluna dizia «Gravar a correção» / «Gravar a anamnese nova» / «Cadastrar aluna»; o da turma
+alternava com «Gravar ajuste»; o do dicionário passava a «Gravar alterações»; o do elenco alternava
+com «Criar elenco»; o da curadoria voltava a «Atribuir turma» no «Cancelar».
+
+Todos passaram a **`ROTULO_DO_GRAVAR`**, uma constante no servidor (`'Gravar'`), e as cinco reescritas
+foram **apagadas** — não substituídas. É a parte que responde ao «a gente mexe só em um lugar»: com o
+rótulo escrito oito vezes na marcação e reescrito em cinco sítios do script, a nona secção divergiria
+na primeira vez que precisasse de um caso novo. O que **não** se renomeia são os botões que não gravam
+um formulário — «Desligar o professor» desliga, «Mover a aluna» move, e dizem o que fazem.
+
+O que sobra a distinguir criar de regravar é o **`title`**, que diz o efeito sem mexer no rótulo. A
+distinção não se perdeu; deixou de estar no sítio onde ela obrigava a ler uma frase para saber o que
+o botão faz.
+
+**2. O Dicionário recusava um formulário inteiro.** «preenchi todos os campos […] Ele diz assim: erro,
+informe o termo.» O campo existe e chama-se `nome` — é o que o `<input id="dicnome">` envia, e é o que
+a rota de **edição** (`PUT`) já aceitava (`corpo.nome || corpo.termo`). Só o `normalizarTermo`, que
+serve o `POST`, lia a chave antiga. Duas chaves para o mesmo campo, e a que faltava era a do
+formulário novo. Passou a aceitar as duas, com a ordem a dizer qual manda; sem nome nenhum continua a
+recusar.
+
+**3. A Audição não fechava o gesto.** «mostra a mensagem no formulário ainda, não é no formulário, é na
+tela que tem que mostrar a mensagem, e aí ele não colapsa.» A gravação acontecia, o formulário limpava
+(desde 09/11/2026) — e o aviso ficava no `.res` **dentro** do formulário, e a secção não recolhia.
+Agora passa pelo `concluirOGesto`, que é o mesmo caminho das outras quatro secções.
+
+**E a razão que me tinha levado a deixar o elenco de fora estava certa, a conclusão é que não.** Eu
+mantivera o recado no `.res` porque é ele que carrega a **cadeia** — os elencos, o plano de ensino e a
+observação, com o endereço de cada etapa em falta —, e um aviso de oito segundos no canto não é sítio
+para uma lista de pendências. Verdade. O que estava errado era o sítio do `.res`: um recado escrito no
+painel que se acabou de fechar **não se lê**. A cadeia ganhou um sítio próprio — `#lb-cadeia`, na
+coluna da lista, que não se recolhe —, e a frase curta do gesto vai para o canto. A cascata que avisa
+a turma também escreve lá: é registo, e não retorno de gesto.
+
+**4. O professor limpava metade.** «Não limpou o formulário do cadastro. Ficou na rubrica dois, tudo
+preenchido, e limpou apenas o cadastro, que é o step um. […] Não pode, tem que limpar tudo.» O fim da
+gravação esquecia o **rascunho** e mais nada; o foco e o passo continuavam no `sessionStorage`, e a
+página seguinte — que recarrega — abria o passo 2 com a régua de quem se tinha acabado de gravar. O
+fim do gesto passou a ser o `sairDaEdicaoDoProfessor`, que é o **mesmo** do «Cancelar», porque o
+estado final é o mesmo: ficha vazia, régua vazia, passo 1, ninguém em foco, recolhido.
+
+**5. E a aluna livre não podia ser corrigida.** «A anamnese da aluna B em dança moderna já foi feita
+pelo professor. […] mas não está ainda, a aluna B é a aluna livre. […] ou trocar de professor, não pode
+ser impedida disso.»
+
+Havia **duas** guardas na rota da matrícula, e só uma é da casa. A primeira — «a aluna está numa turma
+que tem plano de ensino» — é a regra escrita a 16/10/2026 e a mesma que o cartão da turma aplica:
+**livre edita-se, vinculada deriva-se**. A segunda era **minha**: recusava a correcção quando a
+anamnese já estava feita, com o argumento de que corrigir o professor punha o que ele observou debaixo
+do nome de outra pessoa. O argumento é verdadeiro e o alcance é que estava errado — cobrava-o de quem
+está **livre**, que não alimenta plano nenhum e não tem passado a guardar. Era eu a proibir a direcção
+de corrigir um erro de cadastro (a modalidade errada, o professor trocado), que é exactamente o que
+«livre» quer dizer. **A guarda saiu**, e com ela a leitura de envelopes que só ela consultava.
+
+Uma consequência fica dita, porque é uma consequência e não um detalhe: a anamnese já feita continua a
+ser lida pelo par (aluna × modalidade) e nomeia quem a assinou. Corrigir só o professor não reescreve
+o que ele observou — o envelope fica como está —, e o estado mostrado continua a ser «feita». Se for
+preciso que a correcção peça uma anamnese nova, é uma decisão de produto, e não se toma por omissão.
+
+**Medido.** Prova nova `experimentos/provar-gravar-e-gravar.js` — **49 asserções**, e a secção D corre
+o gesto da Audição num DOM. **A/B medido:** contra o `motor/servidor/bastidores.js` do `HEAD` anterior,
+**29 de 49 reprovam**; hoje, zero. `provar-dicionario` **123** (três asserções do rótulo actualizadas
+— «Criar dicionário» deixou de existir), `provar-pagina-do-professor` **17/17** (a do rótulo do passo
+2), `provar-avisos` 25, `provar-o-script-nao-chama-o-que-nao-existe` 6, `provar-salas-e-elencos` 132,
+`provar-anamnese-da-aluna-certa` 18/18, `provar-associar-grava` 49, `provar-avancar-nao-grava` 24,
+`provar-excluir-travado` 29, `provar-a-margem-da-aba` 12/12, `provar-menu-da-producao` 55/55,
+`provar-painel` ok. **Vermelhas, e medidas nos dois lados:** `provar-producao` 142/159 (as mesmas 17),
+`provar-cadastro-da-aluna` (a secção K lê `#tmodalidade`, que deixou de existir em 19/11/2026 — a
+modalidade passou para o passo 2) e `provar-acordeoes` (uma excepção em `parentElement`, idêntica
+antes e depois). Nenhuma delas é deste dia.

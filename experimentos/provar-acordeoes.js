@@ -586,7 +586,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
       };
     });
     provar('Estilo · passo 6: o «Voltar» volta a estar à vista', noSeis.voltar && noSeis.voltar.visivel, noSeis.voltar);
-    provar('Estilo · passo 6: o «Cancelar» está na barra de navegação, com o «Gravar verbete»',
+    provar('Estilo · passo 6: o «Cancelar» está na barra de navegação, com o «Gravar»',
       noSeis.mesmaNav === true && noSeis.cancelar.visivel && noSeis.gravar.visivel, noSeis);
     provar('Estilo · passo 6: o «Limpar» está na MESMA linha do «Acrescentar trecho»',
       noSeis.limpar && noSeis.acrescentar && noSeis.limpar.visivel &&
