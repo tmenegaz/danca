@@ -54593,3 +54593,48 @@ isso que faz o negativo medir). `provar-os-fluxos-da-derivacao` 65 (§D, com a c
 Vizinhas: `provar-conteudos-e-estado-da-turma` 76/78 (as duas falhas são de antes, medidas nos dois
 lados), `provar-salas-e-elencos` 132, `provar-dicionario` 123, `provar-gestos-do-shard` 33,
 `provar-relacoes-do-ciclo` 23, `check-identidade` ok.
+
+### 19/11/2026 — T5: o estilo regera os documentos, e o miolo da geração passa a ser um só
+
+> A decisão, entre as três que estavam à mesa: **«regerar»** — automaticamente.
+
+**O que estava.** Editar o verbete de um exercício mudava a **notação** e o **glossário** que os
+documentos derivados imprimem, e não disparava nada: o pacote publicado continuava a mostrar a
+notação antiga, e quem lê o documento não tinha como saber que ela já não valia.
+
+**Porque aqui não se deriva, ao contrário de todos os outros passos.** A travessia dos outros passos
+acrescenta **elos**, porque alguém mudou uma decisão e o documento tem de passar a dizer outra coisa.
+Aqui o plano é o mesmo, o autor é o mesmo — o que muda é a **leitura** que o documento faz do
+exercício. Inventar um elo faria o passado dizer que alguém reescreveu uma decisão que ninguém tocou.
+É um **regerar**, e por isso não entra na cadeia dos elos: entra na geração.
+
+**O que passou a valer.** Gravar ou apagar um verbete percorre, **depois** da gravação, as Turmas que
+usam aquele exercício e dispara **uma geração por (professor, ciclo, turma) que já tenha plano**. As
+três perguntas que o gesto faz, e onde cada uma se responde:
+
+| pergunta | quem responde | e o que acontece se a resposta for vazia |
+|:--|:--|:--|
+| que Turmas usam este exercício? | `turmasQueUsamOTermo`, pela **composição** do mapa (as duas camadas, enquanto o mapa antigo falar) | nada é disparado, e a resposta **diz** que nenhuma Turma o usa |
+| que ciclos há para gerar? | `paresComPlano` — o par (professor, turma, ciclo) que o índice dos planos traz | nada é disparado, e a resposta diz que falta o plano |
+| o disparo partiu? | `disparar`, com a variante da Turma | a falha vem na resposta; **não** desfaz a gravação |
+
+**O miolo da geração passou a ser um só.** Estava dentro de `gerarOsCiclosDoElenco`, e foi extraído
+para `gerarOsCiclosDasTurmas` quando o **segundo** gesto precisou dele — é a regra que ela fixou no
+«Gravar é gravar»: um caminho, um sítio, e muda-se uma vez. As frases de «não há alvo» entram por
+parâmetro, porque cada gesto tem o seu motivo e um recado que mente sobre o que aconteceu é da mesma
+família do gatilho que mente sobre o gesto.
+
+**O custo, dito.** É a decisão com custo: uma geração são vários subpedidos (o teto é 50 por
+invocação, §5.26), e um professor a corrigir dez verbetes seguidos dispara dez gerações. O que se faz
+para não mentir é pôr o gasto na resposta: as Turmas tocadas e cada disparo. **E fica uma peça por
+mostrar:** a tela do Estilo ainda não exibe esse `geracao` — o gesto regeera e o professor não vê a
+frase. É desenho, e não se inventa aqui.
+
+**Medido.** `provar-o-estilo-regera` — prova nova, **12 asserções** §A quem usa / §B o disparo / §C o
+que não se perde; **controlo negativo: 9 de 12** contra o `bastidores.js` anterior (a prova degrada
+em vez de estourar, e é isso que faz o negativo medir). O contador de despachos é um `fetch` de
+mentira: sem contador, uma prova de «disparou» mede a intenção. E o fecho do T4 vale aqui — depois da
+marca `conteudos-migrados`, o mapa antigo deixa de contar, e a memória não faz regerar. Vizinhas:
+`provar-gestos-do-shard` 33, `provar-associar-grava` 49, `provar-dicionario` 123,
+`provar-salas-e-elencos` 132, `provar-avisos` 25, `provar-gravar-e-gravar` 49;
+`provar-verbete` 1 falha — a mesma de antes, medida nos dois lados.

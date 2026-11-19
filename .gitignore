@@ -1683,3 +1683,8 @@ experimentos/modelo-formulario/*
 # o repertorio e depois fechar»: o que entra sem duplicar, o que não tem destino e não é inventado, e
 # o par que prova a mudança (antes da marca o mapa fala, depois cala-se).
 !experimentos/provar-a-migracao-dos-conteudos.js
+
+# O ESTILO REGERA OS DOCUMENTOS (19/11/2026). Décima vez. Mede a decisão dela — «regerar
+# automaticamente»: que Turmas usam o exercício (pela composição, em nomes), uma geração por Turma
+# com plano e nenhuma sem alvo, e um disparo falhado que não desfaz a gravação.
+!experimentos/provar-o-estilo-regera.js

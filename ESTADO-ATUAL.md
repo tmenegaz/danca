@@ -4702,6 +4702,19 @@ expurgo no dia em que nasceu. **CONFIRMADO** por `provar-a-migracao-dos-conteudo
 reprovavam contra o código anterior) e pela §D do `provar-os-fluxos-da-derivacao` (65). **Próximo:** o
 T5 — o Estilo: editar um exercício que uma Turma usa.
 
+**RESOLVIDO a 19/11/2026 — o T5: o estilo regera os documentos.** Decisão dela: *«regerar»*, e
+automaticamente. Gravar ou apagar um verbete percorre as Turmas que usam aquele exercício — a
+pergunta responde-se pela **composição** do mapa, e não por uma lista à mão — e dispara **uma geração
+por (professor, ciclo, turma) que já tenha plano**; sem Turma que o use, ou sem plano, nada se
+dispara e a resposta diz porquê. **Aqui não se deriva**: o plano é o mesmo e o autor é o mesmo — o que
+muda é a leitura que o documento faz do exercício, e um elo novo faria o passado dizer que alguém
+reescreveu uma decisão que ninguém tocou. O miolo da geração, que vivia dentro do
+`gerarOsCiclosDoElenco`, foi extraído para `gerarOsCiclosDasTurmas` — um caminho, um sítio. **O custo
+é real** (uma geração são vários subpedidos) e é por isso que a resposta leva as Turmas e cada
+disparo; **e fica por mostrar**: a tela não exibe esse `geracao` ainda. **CONFIRMADO** por
+`provar-o-estilo-regera` (12; **9 de 12** reprovavam contra o `bastidores.js` anterior). **Próximo:**
+o T6 — o Dicionário, a mudança condicional.
+
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
 `turma-professor` — desde o T2 —, `linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **sete
@@ -4723,6 +4736,11 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **T5: o estilo regera os documentos.** Editar o verbete de um exercício que uma
+  Turma usa dispara a geração dos ciclos dela; a pergunta «que Turmas usam isto» responde-se pela
+  composição, e o miolo da geração passou a ser um só (`gerarOsCiclosDasTurmas`). Não se deriva: o
+  plano e o autor são os mesmos, o que muda é a leitura. Falta mostrar o `geracao` na tela.
 
 - **19/11/2026** — **T4: os conteúdos da Turma passam para o `repertorio`, e o mapa antigo fecha.** O
   `turma-conteudos` deixou de ser escrito e de ser lido, depois de migrado para o `repertorio` da

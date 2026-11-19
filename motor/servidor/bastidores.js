@@ -1638,6 +1638,72 @@ async function conteudosDaEscola(kv, escola, listaTurmas) {
 }
 
 /**
+ * AS TURMAS QUE USAM UM EXERCÍCIO — e é o que decide se uma edição do ESTILO chega a um documento
+ * (T5, 19/11/2026).
+ *
+ * A pergunta é a do `mapaDeConteudos` — que já compõe as duas camadas — e a resposta são NOMES, e
+ * não ids: o que a geração quer saber é «que Turma», e a Turma é o nome (é ele que o plano
+ * declara). Uma sala substituída continua a resolver o nome: o id muda quando a sala deriva, o
+ * nome não.
+ */
+async function turmasQueUsamOTermo(env, escola, termo) {
+  const id = idDe(String(termo || '').trim());
+  if (!id) return [];
+  const mapa = await conteudosDaEscola(env.PADD_KV, escola);
+  const salas = await turmas(env.PADD_KV, escola);
+  const nomeDe = new Map();
+  for (const t of (Array.isArray(salas) ? salas : [])) {
+    if (!t) continue;
+    nomeDe.set(String(t.id || '').trim() || idDe(t.nome), String(t.nome || '').trim());
+  }
+  const nomes = [];
+  for (const [idTurma, ids] of Object.entries(mapa || {})) {
+    if (!Array.isArray(ids) || ids.indexOf(id) === -1) continue;
+    const nome = nomeDe.get(idTurma) || idTurma;
+    if (nome && nomes.indexOf(nome) === -1) nomes.push(nome);
+  }
+  return nomes;
+}
+
+/**
+ * O ESTILO MUDA, E O DOCUMENTO VAI ATRÁS — automaticamente (T5, 19/11/2026).
+ *
+ * A DECISÃO DELA, entre as três que estavam à mesa, foi a mais directa: **regerar**. E é a que tem
+ * um custo, que fica dito: uma geração são vários subpedidos (o teto é 50 por invocação), e um
+ * professor a corrigir dez verbetes seguidos dispara dez gerações. O que se faz para não mentir:
+ * a resposta diz **quantas** Turmas foram tocadas e **o que** foi disparado — se o gasto é dela,
+ * ela tem de o ver.
+ *
+ * PORQUE NÃO SE DERIVA NADA. Aqui não é a mesma travessia dos outros passos: o plano não muda — o
+ * professor não escreveu outra coisa. O que muda é a LEITURA que os documentos fazem do exercício
+ * (a notação e o glossário). É um **regerar**, e por isso não entra na cadeia dos elos: entra na
+ * geração. Inventar um elo novo faria o passado dizer que alguém reescreveu uma decisão que
+ * ninguém tocou.
+ *
+ * SÓ AS TURMAS QUE USAM O EXERCÍCIO, e só as que já têm plano: sem plano não há ciclo para gerar, e
+ * um disparo sem alvo é trabalho que se lê na fatura e não aparece na tela.
+ *
+ * A FALHA DO DISPARO NÃO DESFAZ A GRAVAÇÃO. O verbete fica gravado e a resposta leva o que falhou.
+ */
+async function gerarOsCiclosDoTermo(env, escola, termo) {
+  const nomes = await turmasQueUsamOTermo(env, escola, termo);
+  if (!nomes.length) {
+    return {
+      disparos: [],
+      turmas: [],
+      aviso: 'nenhuma Turma usa este exercício — a notação mudou, e nenhum documento precisa de ser '
+        + 'regenerado. Associe-o a uma Turma e a geração parte desse ato.',
+    };
+  }
+  const r = await gerarOsCiclosDasTurmas(env, escola, nomes, {
+    semPlano: 'a(s) Turma(s) que usam este exercício ainda não têm plano de ensino — a notação mudou, '
+      + 'e não há ciclo para regenerar. A geração parte do «Guardar» do plano.',
+    semToken: 'sem GITHUB_TOKEN neste Worker: o verbete ficou gravado e o pacote não foi gerado.',
+  });
+  return Object.assign({ turmas: nomes }, r);
+}
+
+/**
  * OS PLANOS DE ENSINO, como PARES (professor, turma) (16/10/2026).
  *
  * É o que separa o que se **edita** do que se **deriva** — na turma e na curadoria. Cada
@@ -1889,9 +1955,29 @@ async function gerarOsCiclosDoElenco(env, escola, idElenco) {
         + 'nada foi gerado. Escolha-o numa Turma e a geração parte desse ato.',
     };
   }
+  return gerarOsCiclosDasTurmas(env, escola, turmas, {
+    semPlano: 'a Turma que usa este elenco ainda não tem plano de ensino — não há ciclo para gerar. '
+      + 'A geração parte do «Guardar» do plano ou do PO.',
+    semToken: 'sem GITHUB_TOKEN neste Worker: o elenco ficou gravado e o pacote não foi gerado.',
+  });
+}
+
+/**
+ * GERAR OS CICLOS DE UMA LISTA DE TURMAS — a travessia que faltava para o ESTILO (T5, 19/11/2026).
+ *
+ * O miolo estava dentro de `gerarOsCiclosDoElenco`, e foi extraído quando o SEGUNDO gesto passou a
+ * precisar dele. É a regra da casa: um caminho, um sítio — o dia em que a geração mudar, muda aqui.
+ *
+ * A diferença entre os dois chamadores é só o que dizer quando não há alvo, e é por isso que as
+ * frases entram por parâmetro: um recado que mente sobre o que aconteceu é da mesma família do
+ * gatilho que mente sobre o gesto.
+ */
+async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
+  const avisos = recados || {};
+  const disparos = [];
   const pares = await paresComPlano(env, escola);
   const alvos = [];
-  for (const turma of turmas) {
+  for (const turma of (Array.isArray(turmas) ? turmas : [])) {
     const doPar = (Array.isArray(pares) ? pares : []).filter((p) => p && p.turma === turma && p.ciclo);
     if (!doPar.length) continue;
     for (const p of doPar) {
@@ -1900,17 +1986,13 @@ async function gerarOsCiclosDoElenco(env, escola, idElenco) {
     }
   }
   if (!alvos.length) {
-    return {
-      disparos,
-      aviso: 'a Turma que usa este elenco ainda não tem plano de ensino — não há ciclo para gerar. '
-        + 'A geração parte do «Guardar» do plano ou do PO.',
-    };
+    return { disparos, aviso: avisos.semPlano || 'nenhuma destas Turmas tem plano de ensino — não há ciclo para gerar.' };
   }
   const disparar = criarDisparador({
     token: (env && env.GITHUB_TOKEN) || null, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
   });
   if (typeof disparar !== 'function') {
-    return { disparos, aviso: 'sem GITHUB_TOKEN neste Worker: o elenco ficou gravado e o pacote não foi gerado.' };
+    return { disparos, aviso: avisos.semToken || 'sem GITHUB_TOKEN neste Worker: o pacote não foi gerado.' };
   }
   for (const a of alvos) {
     try {
@@ -24804,6 +24886,16 @@ function parDaSalaNoCorpo(corpo, registo) {
       // escreveria no verbete do catálogo, que é o que se vende.
       escola: escola,
     });
+    /* O DOCUMENTO VAI ATRÁS DA NOTAÇÃO (T5, 19/11/2026). A gravação já está feita — o disparo vem
+     * depois, e uma falha dele não a desfaz. O que se acrescenta à resposta é o que aconteceu: as
+     * Turmas tocadas e cada disparo, para o gasto ficar à vista. */
+    if (r && r.ok) {
+      try {
+        r.geracao = await gerarOsCiclosDoTermo(env, escola, corpo.nome);
+      } catch (erro) {
+        r.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
+      }
+    }
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
@@ -24903,6 +24995,16 @@ function parDaSalaNoCorpo(corpo, registo) {
       // com `escola` vazia — e é a rota que não deixa uma escola apagar o que se vende.
       escola: escola,
     });
+    /* APAGAR A NOTAÇÃO TAMBÉM MUDA O DOCUMENTO (T5) — o exercício sai do glossário e a notação deixa
+     * de existir; o pacote que a citava passa a sair em lacuna, e é agora ou nunca. Mesma travessia,
+     * mesma resposta. */
+    if (r && r.ok) {
+      try {
+        r.geracao = await gerarOsCiclosDoTermo(env, escola, nome);
+      } catch (erro) {
+        r.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
+      }
+    }
     return json(r.ok ? 200 : (r.status || 400), r);
   }
 
@@ -26483,6 +26585,14 @@ module.exports = {
    * está quebrada e ainda não se sabe. */
   historicoDoAjuste,
   diferencaDeRitmo,
+  /* O ESTILO REGERA OS DOCUMENTOS — exportado para a bancada (T5, 19/11/2026).
+   *
+   * O que se quer medir são duas decisões que não se vêem pelo resultado de uma rota: **que Turmas
+   * usam este exercício** (a composição do mapa, não uma lista à mão) e **o que acontece quando
+   * nenhuma usa** (nada é disparado, e diz-se). Subir a rota do verbete para as medir obrigaria a
+   * uma fixture de escrita inteira — e mediria a escrita, não a travessia. */
+  turmasQueUsamOTermo,
+  gerarOsCiclosDoTermo,
   /* O ESTADO DA ANAMNESE DE UM VÍNCULO, exportado (18/11/2026). É ele que responde «a anamnese
    * desta modalidade já foi feita?», e a resposta depende de duas coisas que só se medem juntas:
    * a forma do registo (o envelope inteiro traz `contexto`; o resumo do índice traz os mesmos

@@ -46,7 +46,7 @@ aula, a regra «o passado não se mexe» não é implementável — é o T7.
 | Turma · `turma-conteudo` (conteúdos, um a um) | **fechado** desde o T4 | — o mapa antigo foi migrado para o `repertorio`, e a rota recusa |
 | Professor · `rubrica-do-professor` (a régua) | **não** | **a decidir** — muda o instrumento de medida |
 | Professor · `professor-desligar` | **não** | **sim** — marca, mas não percorre |
-| Estilo · `verbete` | **não** | **sim** — é o T5 |
+| Estilo · `verbete` | **sim** desde o T5 | sim — **regera** (não deriva) |
 | Dicionário · `termo` | **não** | **sim, se em uso** — é o T6 |
 
 ---
@@ -251,7 +251,7 @@ a mudança — antes da marca o mapa fala, depois cala-se —, §D o fecho da es
 14 de 24** contra o código anterior. `provar-os-fluxos-da-derivacao` 65 (§D: a chave nova do expurgo
 entra na lista no dia em que nasce — **medido**: sem ela, a §D reprova).
 
-### T5 — O Estilo: editar um exercício que uma Turma usa
+### T5 — O Estilo: editar um exercício que uma Turma usa — **FEITO a 19/11/2026** *(a decisão dela: regerar)*
 
 **O que é.** Editar o verbete de um exercício muda a **notação** e o **glossário** que os documentos
 derivados imprimem. Hoje não dispara nada.
@@ -259,10 +259,32 @@ derivados imprimem. Hoje não dispara nada.
 **O que a cadeia deve fazer** — e aqui não é a mesma travessia: **o plano não muda** (o professor não
 escreveu outra coisa), o que muda é a **derivação** dos documentos. É um **regerar**, não um derivar.
 
-**A decidir:** regerar automaticamente, ou marcar «os documentos estão desactualizados» e deixar o
-gesto de regerar ao professor? A recomendação é **marcar e oferecer**, porque uma geração custa
-subpedidos (o teto de 50 por invocação, §5.26) e um professor a corrigir dez verbetes seguidos
-dispararia dez gerações.
+**A decisão dela, a 19/11/2026:** *«regerar»* — automaticamente. É a mais directa, e é a que tem
+custo; o que se faz para não mentir é **dizer o que se gastou**: a resposta leva as Turmas tocadas e
+cada disparo.
+
+**O que passou a valer.** Gravar ou apagar um verbete (`POST`/`PUT`/`DELETE /api/bastidores/verbete`)
+percorre, depois da gravação, as **Turmas que usam aquele exercício** — a pergunta é respondida pela
+**composição** (`mapaDeConteudos`), e não por uma lista à mão — e dispara **uma geração por
+(professor, ciclo, turma) que já tenha plano**. Sem Turma que o use, ou sem plano, nada se dispara e
+a resposta **diz porquê**.
+
+**Porque não se deriva nada aqui.** Nos outros passos a travessia acrescenta **elos** (o documento
+muda porque alguém mudou uma decisão). Aqui não: o plano é o mesmo, o autor é o mesmo — o que muda é
+a **leitura** que os documentos fazem do exercício (a notação e o glossário). Inventar um elo faria o
+passado dizer que alguém reescreveu uma decisão que ninguém tocou. É um **regerar**.
+
+**O miolo da geração passou a ser um só.** Estava dentro de `gerarOsCiclosDoElenco`; foi extraído
+para `gerarOsCiclosDasTurmas` quando o **segundo** gesto precisou dele. Um caminho, um sítio — o dia
+em que a geração mudar, muda-se uma vez. As frases de «não há alvo» entram por parâmetro, porque um
+recado que mente sobre o que aconteceu é da mesma família do gatilho que mente sobre o gesto.
+
+**O que fica por mostrar.** A tela do Estilo ainda **não exibe** o `geracao` da resposta: o gesto
+regera, e o professor não vê a frase. É a peça que falta, e é de desenho — não se inventa aqui.
+
+**Medido.** `provar-o-estilo-regera` **12** (§A quem usa, §B o disparo, §C o que não se perde);
+**controlo negativo: 9 de 12** contra o `bastidores.js` anterior. E o fecho do T4 vale aqui: depois da
+marca `conteudos-migrados`, o mapa antigo deixa de contar — a memória não faz regerar.
 
 ### T6 — O Dicionário: a mudança condicional
 
@@ -330,7 +352,7 @@ dia em que a correcção entra.
 T1 (a cópia) ─► T2 (professor dispara) ─► T3 (modalidade bloqueia)
                      │
                      ├─► T4 (conteúdos: migrar e fechar)
-                     ├─► T5 (Estilo) ─► T6 (Dicionário condicional)
+                     ├─► T5 (Estilo: regera) ─► T6 (Dicionário condicional)
                      └─► T7 (calendário) ─► T8 (o véu)
                                             └─► T9 (a cada passo)
 ```
