@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 53,
+  "versao": 54,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -898,6 +898,47 @@
                   "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Peso, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
                   "repeticoes": 2,
                   "orientacao": "croise"
+                }
+              ],
+              "derriere": [
+                {
+                  "contagem": "1–2",
+                  "categoria": "Perna",
+                  "sinais": [
+                    "ED",
+                    "1ª",
+                    "○",
+                    "-",
+                    "●",
+                    "1ª"
+                  ],
+                  "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
+                  "repeticoes": 2
+                }
+              ]
+            },
+            "motivo": "ajuste do verbete"
+          },
+          {
+            "ate": "2026-11-19",
+            "cobre": 8,
+            "posicao": null,
+            "metodo": "compartilhada",
+            "celulas": {
+              "a-la-seconde": [
+                {
+                  "contagem": "1–2",
+                  "categoria": "Perna",
+                  "sinais": [
+                    "ED",
+                    "1ª",
+                    "○",
+                    "-",
+                    "●",
+                    "1ª"
+                  ],
+                  "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.\nLê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição.",
+                  "repeticoes": 2
                 }
               ],
               "derriere": [
