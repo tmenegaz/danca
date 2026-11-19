@@ -264,9 +264,17 @@ O cartão passou a ter a **mesma peça das outras três listas**: `li.turma > .l
 
 | Bloco | Fechado diz | Aberto diz | Leva a |
 |:--|:--|:--|:--|
-| **Sala** | o nome que a Turma declara | as quatro linhas do ritmo, a escala da régua e por que rubrica é medida | `#turmas`, com a linha da sala trazida à vista |
-| **Elenco** | «2 alunas» | as alunas e os aspectos do recorte, em chips | `#corpo`, com a linha do elenco trazida à vista |
-| **Conteúdo** | «3 exercícios» | a tabela dos três resumos — música, direção e notação, uma linha por exercício | `#verbetes` |
+| **Sala** | o nome que a Turma declara | as quatro linhas do ritmo, a escala da régua e por que rubrica é medida | `#salas` (antes `#turmas`), com a linha da sala trazida à vista |
+| **Elenco** | «2 alunas» | as alunas e os aspectos do recorte, em chips | `#audicao` (antes `#corpo`), com a linha do elenco trazida à vista |
+| **Conteúdo** | «3 exercícios» | a tabela dos três resumos — música, direção e notação, uma linha por exercício | `#estilo` (antes `#verbetes`) |
+
+**São DOIS NOMES PARA O MESMO SÍTIO (19/11/2026)** — «tem alguma coisa errada aqui com as URLs, com os
+endereços, que está descompassado com relação ao nome de onde eu estou». O `<section>` continua a
+chamar-se `sec-turmas`, `sec-corpo` e `sec-verbetes` (são os ids que as provas leem, e renomeá-los
+partiria atalhos e bancadas sem mudar nada do que se lê), mas o endereço que aparece na barra passou a
+ser o nome que está no menu: `#salas`, `#audicao`, `#estilo`. O mapa `APELIDOS_DE_SECAO`, no script da
+página, aceita os dois — quem chega por um atalho antigo aterra no mesmo lugar. Ver
+`provar-sala-e-portao.js`, secção D.
 
 **O RESUMO DO CONTEÚDO É O DA LISTAGEM DO ESTILO**, e não um segundo cálculo: as três medidas saem de
 `listarVerbetes` (`motor/servidor/verbete.js`), que é quem já as derivava das células do verbete. O

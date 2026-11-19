@@ -52766,3 +52766,64 @@ passo 1 já não manda modalidade, a sala nasce sem ela, e o passo 2 recusa sem 
 G mudaram de sítio — a modalidade deixou de estar no passo 1); `provar-producao` **17 falhas no `HEAD`,
 12 agora** (nenhuma nova: cinco das antigas — as dos passos e das abas — caíram com esta mudança); as
 restantes iguais.
+
+### 19/11/2026 — a sala chamada «turma», o preenchedor que disputava o teclado, e o campo de senha que ninguém pedia
+
+Ela estava a testar a `breu`, e trouxe quatro queixas que pareciam quatro assuntos: o erro ao
+renomear a sala, o preenchedor do teste, a senha, e o endereço. **Duas delas tinham a mesma causa** —
+e a causa era o preenchedor dos testes.
+
+1. **«Já existe uma turma com este nome» — a mensagem, e o defeito.** A palavra estava errada (é
+   SALA desde 07/11/2026), e por isso a recusa mandava procurar uma «turma» que já não existe em
+   sítio nenhum do menu. Mas a palavra era o sintoma: **o preenchedor da escola de teste escrevia no
+   formulário o nome de uma sala que já existe.** O fixture do teste 3 traz «Balé Nível 1 — Teste
+   3», e essa sala está no KV; o `autoProducao()` corria no arranque e escrevia-a no formulário de
+   CRIAR. Ela corrigia o nome, e o preenchimento voltava a pôr o antigo — e o envio saía com o nome
+   antigo, em modo de criar. O servidor respondia, com razão, que já existia. **Era o preenchedor a
+   fabricar o erro que ela tentava corrigir.** Medido: no `HEAD`, `#tnome` nasce com
+   `"Balé Nível 1 — Teste 3"`.
+2. **O preenchedor deixou de disputar o teclado.** Três guardas: campo tocado não se escreve; em
+   edição ou derivação não se preenche (passa a valer nos três formulários, e não só no
+   `modoEditando()` da memória); e o que já existe não se propõe criar. O preenchedor continua a
+   preencher — o que ele não faz é passar por cima de quem está a trabalhar.
+3. **A colisão do `turma-editar` olhava para registos substituídos.** O `POST /turma` já comparava
+   só com as salas vigentes (`turmaVigentePorNome`); a edição comparava com a **lista inteira**,
+   incluindo as que foram substituídas por uma derivação e que guardam o id do nome. A partir daí,
+   editar uma sala viva para um nome cujo id coincidisse com o de uma sala morta dava uma parede: a
+   sala que ocupava o lugar já não estava na tela, não havia nada para abrir. Passou a olhar
+   `turmasVigentes`, e a recusa **diz qual é** a sala que ocupa o nome.
+4. **O campo da senha existia quando ninguém a pedia.** «Toda vez que eu clico em editar ou cancelar
+   ele recarrega a página […] aí aparece aquela mensagem do navegador perguntando se eu quero
+   guardar a senha.» A página recarrega a cada gravação (é a regra: a lista e os ids vêm do
+   servidor), e em cada recarga o portão nascia **visível e com um `type="password"` no documento**
+   — com `autocomplete="current-password"` e `autofocus`, que é o sinal que o gestor de senhas
+   espera para autopreencher e oferecer «guardar». Ela estava a **retomar uma sessão que já
+   existia**; o navegador não tinha como saber. O formulário passou a nascer `hidden`, e quem o
+   mostra é o `mostrarPortao()` — o caminho de «não havia sessão» ou «a sessão caducou». Sem token,
+   o campo aparece (é a única entrada): as duas metades são o estado real.
+5. **O endereço passou a dizer o nome que se lê.** «Tem alguma coisa errada com as URLs, com os
+   endereços, que está descompassado com relação ao nome de onde eu estou.» Os ids das secções
+   ficaram com o nome antigo de propósito (são âncoras de link e de prova), mas o `#` da barra é o
+   que ela vê: «Salas» aparecia como `#turmas`, «Audição» como `#corpo`, «Estilo» como `#verbetes`.
+   O menu passou a apontar para `#salas`, `#audicao` e `#estilo`, e o mapa `APELIDOS_DE_SECAO`
+   aceita os dois — os endereços antigos continuam a cair no mesmo sítio, e o `<section>` continua
+   `sec-turmas`.
+6. **A tira de passos do Professor estava fora do padrão, e o padrão não estava escrito.** «Observa
+   como é que é o step, por exemplo, na audição. Tem que ser igual, é o mesmo padrão. […] Você não
+   documentou a identidade visual dos steps com abas.» Na Audição e nas Salas a tira vive dentro de
+   uma `.turmas-faixa`; a do Professor estava nua — e sem o embrulho não recolhia com o corpo nem
+   encurtava o rótulo no telemóvel. Passou a viver numa faixa, e a peça entrou no catálogo:
+   `IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba», com as sete regras tiradas do que já
+   estava feito (a faixa, um passo um painel, `aria-current="step"`, o rótulo em `.passo-t`, duas
+   chaves para duas tiras na mesma página, e a diferença entre passo e aba).
+
+**Medido, e não estimado** — `experimentos/provar-sala-e-portao.js`, 27 asserções em jsdom:
+**14 falham no `HEAD`, 27/27 com a correcção**. A secção A mede o preenchimento pelo caminho real (o
+script servido, o fixture do teste 3, o `<select>` do painel); a B mede as frases e a vigência; a C
+mede as duas metades do portão; a D mede os três endereços e os três apelidos; a E compara a tira do
+Professor com a da Audição.
+
+**Bancadas vizinhas, medidas antes e depois:** `provar-pagina-do-professor` 17/17,
+`provar-regua-do-professor` 42/42, `provar-salas-e-elencos` 132, `provar-abas-da-audicao` 125,
+`provar-menu-da-producao` 55/55, `provar-estado-da-turma` 28/28, `check-identidade` 11 checagens ok;
+`provar-producao` 147 de 159 — as mesmas 12 de antes, nenhuma nova.

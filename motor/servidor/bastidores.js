@@ -5085,12 +5085,15 @@ function lateralDaProducao(opcoes) {
      *
      * Os IDS das secções ficam (`#turmas`, `#corpo`, `#curadorias`): são âncoras de link e de
      * prova, não rótulos. Mudá-los partiria atalhos e provas sem mudar nada do que se lê. */
-    grupoDoMenu('Pedagogia', [['#turmas', 'turmas', 'Salas'],
+    /* O DESTINO DO MENU É O NOME QUE SE LÊ (19/11/2026): `#salas`, `#audicao`, `#estilo`. O
+     * `data-secao` continua a ser o id da secção (`turmas`, `corpo`, `verbetes`) — é ele que o
+     * script das secções procura, e é ele que as provas leem. Ver `APELIDOS_DE_SECAO`. */
+    grupoDoMenu('Pedagogia', [['#salas', 'turmas', 'Salas'],
       // O ELENCO ENTRA AQUI, E NÃO EM «PRODUÇÃO» (05/11/2026). Ele não é operação nem
       // configuração da casa: é a RÉGUA DO CORPO com que se lê a sala, ao lado da régua de
       // rubrica (que vive dentro de Salas). Duas réguas, dois assuntos, o mesmo grupo.
-      ['#corpo', 'corpo', 'Audição'],
-      ['#verbetes', 'verbetes', 'Estilo'],
+      ['#audicao', 'corpo', 'Audição'],
+      ['#estilo', 'verbetes', 'Estilo'],
       ['#curadorias', 'curadorias', 'Turmas']], nav) +
     '</div>' +
     '<div class="lateral-veu" id="lateral-veu"></div>' +
@@ -7613,9 +7616,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div id="gate">' +
     '<h1>Produção</h1>' +
     '<p>O gabinete da direção — só a direção entra.</p>' +
-    '<form id="form-senha">' +
+    /* O CAMPO DA SENHA SÓ EXISTE QUANDO SE PEDE A SENHA (19/11/2026).
+     *
+     * O DEFEITO, na letra dela: «Tem um erro ainda com relação à senha […] Toda vez que eu vou
+     * clicar em editar ou que eu clico em cancelar, ele recarrega a página […] quando eu troco de
+     * página, aí aparece aquela mensagem do navegador perguntando se eu quero guardar a senha».
+     *
+     * O QUE ACONTECIA. A página recarrega a cada gravação (é a regra: a lista e os ids vêm do
+     * servidor). Em cada recarga, o portão nasce VISÍVEL e com o campo `type="password"` no
+     * documento — e só depois de a resposta de `validar-producao` chegar é que ele se esconde. O
+     * gestor de senhas do navegador vê, em cada carregamento, um formulário de senha a aparecer; e
+     * o campo traz `autocomplete="current-password"` e `autofocus`, que é o sinal que ele espera
+     * para autopreencher e oferecer «guardar a senha». Ela nunca estava a pedir nada: estava a
+     * retomar uma sessão que já existia. O navegador não tinha como saber.
+     *
+     * A REGRA. Enquanto houver um token guardado, a sessão está a ser retomada — não se pede
+     * senha, e um campo de senha no DOM é uma pergunta que ninguém fez. O formulário nasce
+     * `hidden`; quem o mostra é `mostrarPortao()`, que é exatamente o caminho de «não havia
+     * sessão» ou «a sessão caducou». Os dois lados de `hidden` são o estado real.
+     *
+     * O `autofocus` SAIU, e o foco passa a ser dado por `mostrarPortao()`: num campo escondido
+     * ele não faz nada, e num campo que ninguém pediu ele rouba o foco a quem já estava a
+     * trabalhar. */
+    '<form id="form-senha" hidden>' +
     '<label class="campo-rotulo" for="dsenha">Senha da direção</label>' +
-    '<input id="dsenha" type="password" autocomplete="current-password" autofocus>' +
+    '<input id="dsenha" type="password" autocomplete="current-password">' +
     '<button type="submit" class="acao grande">Entrar</button>' +
     '</form>' +
     '<div class="res" id="res-gate"></div>' +
@@ -7755,12 +7780,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * página por `button.passo`. Uma chave igual faria a tira do professor mexer nos passos da
      * sala — a mesma armadilha que a 31/10/2026 obrigou a dar âmbitos diferentes à tira do verbete. */
     '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
-    '<ol class="passos" aria-label="Etapas do cadastro do professor" id="pf-passos">' +
+    /* A TIRA VEM DENTRO DA FAIXA (19/11/2026) — «aqui em professores você colocou o step fora do
+     * padrão. Observa como é que é o step, por exemplo, na audição. Tem que ser igual, é o mesmo
+     * padrão.»
+     *
+     * E ela tem razão na letra: na Audição a tira é `<div class="turmas-faixa"><ol class="passos">`,
+     * nas Salas a mesma coisa, e aqui o `<ol>` estava nu. A `.turmas-faixa` não é decoração — é ela
+     * que dá `grid-column:1/-1` (a tira atravessa o corpo em vez de ficar numa coluna), o
+     * `display:flex` com `min-width:0` (é o que faz o rótulo encurtar com reticências em vez de
+     * empurrar o passo para a linha de baixo no telefone), e é ela que a seta do título recolhe
+     * (`.secao[data-recolhido="sim"] .turmas-faixa{display:none}`). Sem o embrulho, a tira do
+     * professor não recolhia com o resto e não acompanhava o corpo.
+     *
+     * A peça está documentada em `IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba». */
+    '<div class="turmas-faixa" id="pf-faixa">' +
+    '<ol class="passos" aria-label="Etapas do cadastro do professor" id="pf-passos" data-editando="nao">' +
     '<li><button type="button" class="passo ativo" data-passo-prof="cadastro" aria-current="step">' +
     '<span class="passo-n">1</span> <span class="passo-t">Cadastro</span></button></li>' +
     '<li><button type="button" class="passo" data-passo-prof="rubrica">' +
     '<span class="passo-n">2</span> <span class="passo-t">Rubrica</span></button></li>' +
     '</ol>' +
+    '</div>' +
     '<div id="pf-cadastro-paineis">' +
     '<div class="passo-painel" id="passo-prof-cadastro">' +
     // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
@@ -10173,6 +10213,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  try { sessionStorage.setItem("producao:token", TOKEN); sessionStorage.removeItem("producao:senha"); } catch (err) {}' +
     '  document.getElementById("gate").hidden = true;' +
     '  document.getElementById("conteudo").hidden = false;' +
+    /* O FORMULÁRIO FECHA-SE COM O PORTÃO (19/11/2026): são o mesmo estado. Uma sessão que
+     * chegou depois de o portão ter subido — a retomada a responder com atraso — deixaria o
+     * campo de senha escondido dentro de um `#gate` escondido, à espera de ser autopreenchido na
+     * recarga seguinte. */
+    '  var f = document.getElementById("form-senha");' +
+    '  if (f) f.hidden = true;' +
     '  if (typeof aplicarEstadoDoFormulario === "function") aplicarEstadoDoFormulario();' +
     '  if (typeof mostrarPasso === "function") mostrarPasso(passoGuardado());' +
     '  if (typeof aplicarEditando === "function") aplicarEditando();' +
@@ -10181,9 +10227,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  TOKEN = "";' +
     '  try { sessionStorage.removeItem("producao:token"); sessionStorage.removeItem("producao:senha"); } catch (err) {}' +
     '}' +
+    /* MOSTRAR O PORTÃO É PEDIR A SENHA — e por isso é aqui que o formulário aparece e o cursor
+     * entra nele (19/11/2026). As duas metades andam juntas: um portão de pé sem campo é uma
+     * página sem saída, e um campo de pé sem portão é a pergunta que o navegador guardava. */
     'function mostrarPortao() {' +
     '  document.getElementById("gate").hidden = false;' +
     '  document.getElementById("conteudo").hidden = true;' +
+    '  var f = document.getElementById("form-senha");' +
+    '  if (f) f.hidden = false;' +
+    '  var campo = document.getElementById("dsenha");' +
+    '  if (campo && campo.focus) { try { campo.focus(); } catch (err) {} }' +
     '}' +
     'document.getElementById("form-senha").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -10199,7 +10252,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Migração silenciosa: quem tinha a senha guardada por uma aba antiga perde-a agora.
     '    if (sessionStorage.getItem("producao:senha")) sessionStorage.removeItem("producao:senha");' +
     '  } catch (err) {}' +
-    '  if (guardado) retomarSessao(guardado);' +
+    /* SEM TOKEN GUARDADO, A SENHA É A ÚNICA ENTRADA — e é agora que se pede (19/11/2026). Antes,
+     * o formulário vivia sempre no documento e este ramo não precisava de fazer nada; com o
+     * formulário a nascer fechado, é esta linha que o abre para quem chega de novo. */
+    '  if (guardado) retomarSessao(guardado); else mostrarPortao();' +
     '})();' +
     // O menu lateral: cada secção é uma <section class="secao">; o hash da URL escolhe
     // qual fica visível — clicar no item do menu só muda o hash. As secções continuam
@@ -10223,8 +10279,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var s = t && t.querySelector("span");' +
     '  return s ? s.textContent : "";' +
     '}' +
+    /* «O ENDEREÇO ESTÁ DESCOMPASSADO COM O NOME DE ONDE EU ESTOU» (19/11/2026).
+     *
+     * Os ids das secções ficaram com o nome antigo de propósito — são âncoras de link e de prova,
+     * e mudá-los partiria atalhos e bancadas sem mudar nada do que se lê. Mas o `#` da barra de
+     * endereços é o que ela VÊ, e ali «Salas» aparecia como `#turmas`, «Audição» como `#corpo` e
+     * «Estilo» como `#verbetes`. A decisão de 07/11/2026 protegia os ids, não os endereços.
+     *
+     * A SAÍDA SÃO DOIS NOMES PARA O MESMO SÍTIO. O menu passa a apontar para o nome que se lê, e
+     * este mapa aceita os dois: quem chega por um atalho velho (`#turmas`) aterra no mesmo lugar
+     * que quem clica no menu (`#salas`). Nada é renomeado — o `<section>` continua `sec-turmas`, e
+     * é isso que as provas leem. */
+    'var APELIDOS_DE_SECAO = {salas: "turmas", audicao: "corpo", estilo: "verbetes"};' +
     'function mostrarSecao() {' +
     '  var alvo = (location.hash || "#painel").replace("#", "");' +
+    '  if (APELIDOS_DE_SECAO[alvo]) alvo = APELIDOS_DE_SECAO[alvo];' +
     '  var secoes = document.querySelectorAll(".secao");' +
     '  var visivel = "painel";' +
     '  for (var i = 0; i < secoes.length; i++) {' +
@@ -20742,7 +20811,7 @@ async function fetch(request, env, extras) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
     const nova = normalizarTurma(corpo);
-    if (!nova.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
+    if (!nova.nome) return json(400, { ok: false, erro: 'informe o nome da sala' });
     // O RITMO é obrigatório: a turma completa é a que pode receber um plano. Sem isto, o
     // plano sairia com quatro campos vazios — e o professor não tem como saber a dose que a
     // escola decidiu (16/10/2026).
@@ -20759,8 +20828,15 @@ async function fetch(request, env, extras) {
     // O NOME só colide com uma turma VIGENTE (16/10/2026). Uma turma substituída mantém o
     // nome — é assim que a curadoria e o plano continuam a encontrá-la —, e recusar por causa
     // dela impediria a própria derivação.
+    /* «TURMA» SAIU DESTA FRASE (19/11/2026). Aqui a mensagem certa é «sala»: é o que o
+     * formulário pede e o que ela lê na tela desde 07/11/2026. «Já existe uma turma com este
+     * nome» era a nomenclatura velha a falar por cima do rótulo novo — e, pior, mandava-a
+     * procurar uma «turma» que já não existe em sítio nenhum do menu. */
     if (turmaVigentePorNome(lista, nova.nome)) {
-      return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+      return json(409, {
+        ok: false,
+        erro: 'já existe uma sala com o nome «' + nova.nome + '» — abra-a em «Editar» para a corrigir',
+      });
     }
     // A TURMA NOVA VAI PARA O TOPO (18/10/2026). Antes a direção escrevia a posição à mão
     // (ou deixava vazio, e a turma ia para o fim). A lista é ordenada por `ordem` crescente:
@@ -20807,7 +20883,7 @@ async function fetch(request, env, extras) {
       return json(409, { ok: false, erro: motivoDaRecusa(estado, alvo.nome), estado });
     }
     const declarado = normalizarTurma(Object.assign({}, corpo, { nome: corpo.nome || alvo.nome }));
-    if (!declarado.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
+    if (!declarado.nome) return json(400, { ok: false, erro: 'informe o nome da sala' });
     const falta = faltaNoRitmoDaTurma(declarado);
     if (falta.length) {
       return json(400, {
@@ -20821,8 +20897,21 @@ async function fetch(request, env, extras) {
     // id, e ficariam órfãos no id antigo.
     const novoId = declarado.id;
     const idAntigo = alvo.id;
-    if (novoId !== idAntigo && lista.some((t) => t && t.id === novoId)) {
-      return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+    /* A COLISÃO É CONTRA AS SALAS VIGENTES, E DIZ QUAL É (19/11/2026).
+     *
+     * Era «lista.some((t) => t.id === novoId)» — a lista INTEIRA, com os registos que já foram
+     * substituídos por uma derivação. Uma sala derivada guarda o id do nome; o registo antigo
+     * mantém o mesmo id e fica marcado com `substituidaPor`. A partir daí, editar a sala viva
+     * para um nome cujo id coincidisse com o de uma sala morta dava «já existe uma turma com
+     * este nome» — e a sala que ocupa o lugar já não existe na tela: não havia nada para abrir,
+     * nada para corrigir, e a recusa era uma parede. É a mesma regra que o `POST /turma` já
+     * aplicava (`turmaVigentePorNome`); esta metade ficou de fora. */
+    const ocupa = novoId !== idAntigo ? turmasVigentes(lista).find((t) => t && t.id === novoId) : null;
+    if (ocupa) {
+      return json(409, {
+        ok: false,
+        erro: 'já existe uma sala com o nome «' + ocupa.nome + '» — abra-a em «Editar» para a corrigir',
+      });
     }
     // Só os campos do formulário mudam; a régua (`rubricaId`) fica com quem a ligou.
     // «ORDEM» SAIU DA LISTA (18/10/2026): a posição não é mais um campo do formulário, e

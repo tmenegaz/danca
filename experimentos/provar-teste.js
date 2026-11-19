@@ -185,8 +185,21 @@ async function producaoNoNavegador() {
   };
 
   const primeira = await abrirProducao(false);
-  assert.equal(primeira.d.getElementById('tnome').value, FIXTURE.producao.turmas[0].nome);
-  assert.equal(primeira.d.getElementById('rubr-nome').value, FIXTURE.producao.rubricas[0].nome);
+  /* A SALA E A RÉGUA JÁ NÃO SE PREENCHEM, E ISSO É A CORRECÇÃO (19/11/2026).
+   *
+   * A SALA. As salas do fixture são as MESMAS que este teste põe no KV (`turmas` acima) — é uma
+   * escola de teste, e o fixture é o que ela já tem. Escrever o nome de uma delas num formulário de
+   * CRIAR é pedir ao servidor para criar o que já existe: era assim que a pesquisadora recebia «já
+   * existe uma turma com este nome» depois de corrigir o nome da sala e o preenchimento lhe pôr o
+   * antigo outra vez. Ver `provar-sala-e-portao.js`, secção A.
+   *
+   * A RÉGUA. `#rubr-nome` deixou de ser a rubrica da ESCOLA: a régua é do professor, e vive no
+   * passo 2 do cadastro dele. Preencher aqui seria escrever a régua de uma pessoa que o fixture
+   * não conhece.
+   *
+   * O QUE O PREENCHEDOR CONTINUA A FAZER: o termo e a aluna — esses sim, campos de criação. */
+  assert.equal(primeira.d.getElementById('tnome').value, '');
+  assert.equal(primeira.d.getElementById('rubr-nome').value, '');
   /* O TERMO PASSOU PARA O «+» DO VERBETE (01/11/2026). O preenchimento escreve agora em
    * `vnnome` — os campos do exercício —, e abre o modo do exercício antes, porque esses campos
    * só existem quando ele está aberto. O `vtermo` da secção do vocabulário deixou de existir. */
@@ -194,7 +207,7 @@ async function producaoNoNavegador() {
   assert.equal(primeira.d.getElementById('anome').value, FIXTURE.producao.alunas[0]);
   assert.ok(primeira.d.querySelector('details.teste-painel'), 'o painel de teste não apareceu na Produção');
   assert.deepEqual([...new Set(pedidos)], ['GET']);
-  ok('a Produção nasce com turma, rubrica, termo e aluna preenchidos — e só por GET');
+  ok('a Produção nasce com termo e aluna preenchidos — e a sala que já existe não se propõe criar');
   primeira.dom.window.close();
 
   const emEdicao = await abrirProducao(true);

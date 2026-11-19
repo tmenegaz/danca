@@ -541,10 +541,57 @@ desenho.
 | **Um bloco que se abre e fecha, na lista** | `.bloco-lista` (+ `.bloco-cabeca`, `.bloco-titulo`, `.bloco-resumo`, `.bloco-corpo`) | o contexto do ato, o filtro — um de cada vez | `<details class="bloco-lista" open>` + `<summary class="bloco-cabeca">`. É a `.caixa` que dá a moldura ao conjunto de campos, e **o `summary` é o botão de colapsar**. Os dois blocos da mesma lista **nunca estão abertos ao mesmo tempo** — quem o garante é o script, nos dois modos |
 | **O contexto de um ato, dentro da lista** | `.bloco-lista` (a moldura) + `.campos-do-ato`, `.acoes-do-ato`, `.estado-do-ato`, e `.seta-do-ato` como ícone | o professor, o ciclo, a aluna e a senha, sem sair da listagem | `<details class="bloco-lista" id="bloco-ato"><summary class="bloco-cabeca"><span class="bloco-titulo">Contexto do ato</span><span class="bloco-resumo"></span><span class="seta-do-ato" aria-hidden="true">▾</span></summary>` + o corpo. **A caixinha `trio-item` saiu**: o cabeçalho do bloco é que abre e fecha, e dois botões para a mesma coisa dentro do mesmo container seriam um clique a mais |
 | **Conteúdo que se divide em secções, e uma de cada vez à vista** | `.abas` (+ `.aba`, `.aba-painel`) | «A escola» (cadastro · contrato e pagamento · pagar), o financeiro (a chave · as mensalidades · os descontos), os Professores e a Audição. **É a forma adotada para todo o conteúdo listado que tem mais de um assunto** (16/11/2026) — «não cria assim desse jeito listado, que é muito feio» | `<nav class="abas" role="tablist"><button class="aba" role="tab" aria-selected="true" aria-controls="p-1">…</button></nav>` + `<div class="aba-painel" id="p-1" role="tabpanel">`. A tira leva `role="tablist"` e o painel `hidden` — o motor é de cada página, as **marcas** são o contrato. No telemóvel a tira sai e fica a `.acoes-do-menu` que sobe a folha com as mesmas abas |
+| **As etapas de um formulário, e uma de cada vez à vista** | `.passos` (+ `.passo`, `.passo-n`, `.passo-t`, `.passo-alerta`) dentro de `.turmas-faixa` | a sequência de um trabalho que tem passos: a Sala (Sala · Associar), a Audição, o Estilo e o cadastro do Professor (Cadastro · Rubrica). **Não é aba**: a aba é um assunto que fica aberto; o passo é a ordem de um mesmo trabalho — o segundo não existe antes do primeiro | `<div class="turmas-faixa"><ol class="passos" aria-label="Etapas da sala"><li><button type="button" class="passo ativo" aria-current="step"><span class="passo-n">1</span> <span class="passo-t">Sala</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>…</ol></div>` + um `<div class="passo-painel">` por passo, com `hidden` nos que não estão à vista. **O `.turmas-faixa` não é decoração** (ver «Os passos dentro de uma aba», abaixo) |
 | **A distância até um teto** | `.cota` (um `<progress>` nativo) | quanto do limite já foi usado: no Monitoramento, o GitHub, o Resend e o armazenamento do KV | `<progress class="cota" data-nivel="folga" value="420" max="1000">42%</progress>`. O `value` é a fracção em **milésimos** (`max="1000"`), para a barra não perder resolução nos primeiros por cento — que é onde ela está na maior parte do tempo. `data-nivel` pinta: `folga` · `atencao` (80%) · `agora` (95%). **É `<progress>` e não `<div>`**: a largura de uma barra é cálculo (não vai em `style=""`, regra 5), e o elemento nativo já anuncia o valor ao leitor de ecrã sem um `aria-label` inventado. O nome é `.cota` porque `.barra` já é a barra fixa da porta |
 | **A linha que está a ser apagada** | `.trio-plano[data-apagando="sim"]` | o registo já condenado, enquanto a rota de exclusão responde — a Action do GitHub corre em segundo plano, e entre o clique e a resposta há segundos | nada na marcação: é um **atributo de estado** no `<li class="trio-plano">`, posto e tirado pelo cliente (`listas-do-acervo.js`). O véu, o fio «apagando…» e o spinner são da folha |
 | **A operação em curso, que tranca a página** | `.veu` (+ `.veu-cartao`, `.veu-etiqueta`, `.veu-texto`, `.veu-nota`) | enquanto uma escrita corre e o passo seguinte depende dela: gravar o plano ou o PO, a geração do ciclo que vem depois — **e as OUTRAS ABAS** que mostrem o que aquele gesto muda | o `nav.js` garante a peça em todas as páginas e escreve o estado: `<div class="veu" id="veu"><div class="veu-cartao"><span class="selo veu-etiqueta">Derivação</span><p class="veu-texto">…</p><p class="veu-nota">…</p></div></div>`, com `data-ocupado="sim"` e, quando a operação é de outra aba, `data-remota="sim"`. **Não é decorativo**: é o `inert` do script que fecha teclado e leitor de ecrã, e sem ele o passo seguinte é clicável enquanto o anterior escreve — foi assim que duas gerações disputaram o mesmo `main`. O véu é **translúcido** de propósito: a página continua a ver-se por baixo. E o que se lê **não está numa caixa** (11/11/2026): a palavra em versalete bordô (`.veu-etiqueta`) e a frase na serifa (`.veu-texto`) ficam soltas sobre o véu, protegidas por um **halo** — três sombras do papel por baixo das letras, que abrem o fundo onde a letra precisa sem desenhar uma segunda superfície. O `.veu-cartao` continua a existir porque é ele que agrupa e centra o conteúdo, mas **não tem fundo, filete, sombra nem ar próprio**: um cartão opaco voltaria a tapar a página que se quis deixar ver  **É O MESMO VÉU EM TODOS OS GESTOS** (12/11/2026): a Turma, o Elenco (criar, regravar, guardar rascunho e ler as anamneses), o Verbete e a Sala (cadastro, gravação e ajuste). A frase de cada um vem do mapa dos passos do `bastidores.js` — nunca do rótulo do botão, que é curto por ter a largura de um botão. |
 | **O rodapé de páginas** | `.paginas` (+ `.paginas-ant`, `.paginas-info`, `.paginas-prox`) | uma lista que não cabe numa tela | `<div data-paginar data-por-pagina="25">` a embrulhar a `<ul>`; nasce `hidden` — sem JavaScript a lista mostra tudo |
+
+### Os passos dentro de uma aba — o padrão, e como se usa *(19/11/2026)*
+
+Ela comparou os dois desenhos e disse qual era o padrão:
+
+> «Aqui em professores você colocou o step fora do padrão. Observa como é que é o step, por
+> exemplo, na audição. Tem que ser igual, é o mesmo padrão. […] Você não documentou a identidade
+> visual dos steps com abas. Como é que a gente usa? Precisa documentar e aí seguir o que a gente
+> já tem.»
+
+A peça existia em quatro sítios e não estava no catálogo; o do Professor nasceu fora do embrulho
+e por isso não recolhia com o corpo nem encurtava o rótulo. As regras, tiradas do que já estava
+feito:
+
+1. **A tira vive dentro de um `.turmas-faixa`.** É o embrulho que dá `grid-column: 1/-1` (a tira
+   atravessa o corpo em vez de ficar numa coluna), o `display: flex` com `min-width: 0` — que é o
+   que faz o rótulo encurtar com reticências em vez de empurrar o passo para a linha de baixo no
+   telemóvel — e é ele que a seta do título recolhe
+   (`.secao[data-recolhido="sim"] .turmas-faixa { display: none }`). Um `<ol class="passos">` nu
+   não tem nada disso.
+2. **A tira é a primeira linha do corpo da secção** — ou a primeira linha do `aba-painel`, quando
+   o trabalho inteiro mora dentro de uma aba (é o caso do Cadastro do professor).
+3. **Um passo, um painel.** Um `<div class="passo-painel">` por passo; os que não estão à vista
+   levam `hidden`, e é o motor da página que troca. Dois painéis abertos não são dois passos: são
+   uma página com uma tira decorativa em cima.
+4. **A marca do passo atual é `aria-current="step"`**, além da classe `.ativo` — a classe pinta, o
+   atributo é o que o leitor de ecrã anuncia.
+5. **O rótulo vai dentro de um `<span class="passo-t">`.** Um texto solto dentro do botão não
+   encolhe, e era ele que quebrava a tira no telefone. O número vai em `.passo-n`, e o
+   `.passo-alerta` («!») marca o passo que tem trabalho pendente — é uma marca de sítio para onde
+   se pode ir, não a legenda de um painel já aberto.
+6. **Duas tiras na mesma página precisam de duas chaves.** O atributo que diz qual é o passo
+   (`data-passo`, `data-passo-prof`) não pode ser o mesmo nas duas: os motores varrem a página por
+   `button.passo`, e uma chave partilhada faria a tira de um formulário mexer nos passos do outro.
+   É a mesma armadilha que obrigou a dar âmbito próprio à tira do Estilo.
+7. **Passo não é aba.** A aba (`.abas`) é um assunto que fica aberto — «A escola», o financeiro.
+   O passo é a ordem de um mesmo trabalho, e o segundo não existe antes do primeiro: a régua do
+   professor é o passo 2 do cadastro dele porque não se avalia com uma régua que ainda não foi
+   escrita. Quando um trabalho de vários passos vive dentro de uma aba, a aba é o guarda-chuva e a
+   tira fica lá dentro.
+
+**Onde está declarada.** No `<style>` da própria página da Produção (`motor/servidor/bastidores.js`),
+e não em `tools/templates/ciclo.css`: a peça nasceu na Produção e é lá que ela vive. O `<style>` da
+página é a segunda fonte de desenho que este documento reconhece (como o `.par-botoes`), e a
+checagem 8 (Peça) reprova um nome de peça que não esteja neste catálogo — é por isso que esta
+secção existe.
 
 ### Quadro 2 — o inventário
 
@@ -585,6 +632,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.rolagem` / `.rolagem-caixa` / `.rolagem-setas` | `ciclo.css` | `[data-rolagem="sim"]` (há para onde ir: a fileira das setas aparece) e `"nao"`/ausente (não há: nada ocupa lugar). A caixa é `role="region"` + `tabindex="0"`; a tabela de dentro **não** tem scroller próprio |
 | `.par-botoes` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela — não na folha | fileira que quebra (`flex-wrap`), com o vão de `.55rem` acima. Carrega **sempre** uma `.acao` (e o `secundario` do cancelar, quando há). Medido: 9px entre o campo e o botão, o mesmo nos cinco formulários |
+| `.passos` / `.passo` / `.passo-n` / `.passo-t` / `.passo-alerta` / `.turmas-faixa` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela | base; `:hover`; `:focus-visible`; `[aria-current="step"]` (o `.ativo`: fundo de superfície e filete na cor dele); `[disabled]` (o passo que ainda não pode abrir); `.passo-alerta` (o «!» do que falta); e, no embrulho, `.turmas-faixa[hidden]` e `.secao[data-recolhido="sim"] .turmas-faixa` (recolhe com o corpo). Abaixo de 560px o rótulo encurta com reticências (`text-overflow`) e os conectores entre passos desaparecem |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
 
 ### A matriz que não cabe rola dentro de si — e as setas dizem-no *(06/11/2026)*

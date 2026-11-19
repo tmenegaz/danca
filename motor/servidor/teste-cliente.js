@@ -29,6 +29,12 @@ const SCRIPT = String.raw`(function () {
   var painel = null;
   var status = null;
 
+  /* OS CAMPOS SÃO OUVIDOS ANTES DE TUDO (19/11/2026) — ver a nota grande de «O PREENCHEDOR NÃO
+   * ESCREVE POR CIMA», mais abaixo. Um ouvinte registado só no fim do arranque deixaria passar
+   * tudo o que fosse escrito enquanto «/api/teste» responde — e é justamente nessa janela que a
+   * pessoa já está a trabalhar. */
+  ouvirOsCampos();
+
   function texto(tag, classe, conteudo) {
     var el = document.createElement(tag);
     if (classe) el.className = classe;
@@ -38,14 +44,77 @@ const SCRIPT = String.raw`(function () {
 
   function porId(id) { return document.getElementById(id); }
 
+  /* ============================ O PREENCHEDOR NÃO ESCREVE POR CIMA (19/11/2026)
+   *
+   * O DEFEITO, na letra dela: «o teste que eu tenho aqui vinculado, que preenche os formulários, ele
+   * está atrapalhando o preenchimento da sala. Ele não deixa eu fazer as edições, os nomes que eu
+   * quero, os valores que eu quero. […] Ele não deixa eu colocar o nome da sala que eu quiser.»
+   *
+   * E era pior do que atrapalhar: o fixture da escola de teste traz a sala «Balé Nível 1 — Teste 3»,
+   * que JÁ EXISTE no KV. O preenchedor escrevia esse nome no campo, ela corrigia-o, e o
+   * «autoProducao()» voltava a escrevê-lo no carregamento seguinte — e o envio saía com o nome
+   * antigo. Como o formulário estava em modo de CRIAR, o servidor respondia, com razão, «já existe
+   * uma turma com este nome». O preenchedor estava a fabricar o erro que ela estava a tentar
+   * corrigir.
+   *
+   * As três guardas, e cada uma fecha um caminho:
+   *
+   *   1. CAMPO SUJO NÃO SE ESCREVE. Qualquer «input»/«change» dentro do formulário marca o campo
+   *      como tocado, e o preenchedor salta-o. É o que impede a correcção dela de ser desfeita;
+   *   2. EM EDIÇÃO OU DERIVAÇÃO, NÃO SE PREENCHE. Já valia para a turma; passa a valer para os
+   *      três (turma, régua, aluna), e não só para o «modoEditando()» da memória;
+   *   3. O QUE JÁ EXISTE NÃO SE PROPÕE CRIAR. Uma sala do fixture com o nome de uma sala da
+   *      escola não se preenche: criar daria 409, e corrigir é no «Editar» dela.
+   *
+   * O QUE O PREENCHEDOR CONTINUA A FAZER: preencher. O fixture existe para poupar digitação; o que
+   * ele não pode é disputar o teclado com quem está a trabalhar. */
+  var TOCADOS = {};
+  var OUVINDO = false;
+  function marcarTocado(id) {
+    var el = porId(id);
+    if (!el) return;
+    TOCADOS[id] = true;
+  }
+  function ouvirOsCampos() {
+    if (OUVINDO) return;
+    OUVINDO = true;
+    document.addEventListener('input', function (e) {
+      var alvo = e.target;
+      if (alvo && alvo.id) TOCADOS[alvo.id] = true;
+    }, true);
+    document.addEventListener('change', function (e) {
+      var alvo = e.target;
+      if (alvo && alvo.id) TOCADOS[alvo.id] = true;
+    }, true);
+  }
+  function emEdicao() {
+    try {
+      if (typeof modoEditando === 'function' && modoEditando()) return true;
+    } catch (err) { /* sem a função, decide-se pelo DOM, abaixo */ }
+    var pares = [['tderivar', 'tturma'], ['tmodo', 'tturma'], ['prof-modo', 'pprof'], ['aluna-modo', 'aaluna']];
+    for (var i = 0; i < pares.length; i++) {
+      var el = porId(pares[i][0]);
+      if (!el) continue;
+      var v = String(el.value || '').trim();
+      if (!v) continue;
+      if (pares[i][0] === 'tderivar') return true;
+      if (pares[i][0] === 'tmodo' && v !== 'criar') return true;
+      if (pares[i][0] === 'prof-modo' && v === 'editar') return true;
+      if (pares[i][0] === 'aluna-modo' && v) return true;
+    }
+    return false;
+  }
   function preencher(id, valor) {
     var el = porId(id);
-    if (el && valor != null) el.value = String(valor);
+    if (!el || valor == null) return;
+    if (TOCADOS[id]) return;          // ela já escreveu aqui: o valor é dela
+    el.value = String(valor);
   }
 
   function escolher(id, valor) {
     var el = porId(id);
     if (!el || valor == null) return false;
+    if (TOCADOS[id]) return true;     // a escolha dela já está feita: não se troca
     var alvo = String(valor);
     for (var i = 0; i < el.options.length; i++) {
       if (el.options[i].value === alvo) { el.value = alvo; return true; }
@@ -85,6 +154,20 @@ const SCRIPT = String.raw`(function () {
 
   function preencherTurma(t) {
     if (!t) return;
+    /* A SALA QUE JÁ EXISTE NÃO SE PROPÕE CRIAR (19/11/2026) — ver a nota grande em «preencher».
+     * «TURMAS» é a lista que a página já tem (as vigentes), e é a mesma que o servidor confere no
+     * «POST /api/bastidores/turma». Preencher o nome de uma delas num formulário de CRIAR era
+     * fabricar um 409: corrigir essa sala é no «Editar» dela, e é lá que o preenchimento não entra
+     * (a guarda 2). */
+    try {
+      var vigentes = (typeof TURMAS !== 'undefined' && TURMAS) || [];
+      for (var i = 0; i < vigentes.length; i++) {
+        if (vigentes[i] && String(vigentes[i].nome || '') === String(t.nome || '')) {
+          dizer('A sala «' + t.nome + '» já existe — abra-a em «Editar» para a corrigir.');
+          return;
+        }
+      }
+    } catch (err) { /* sem a lista, segue: o servidor recusa e diz porquê */ }
     preencher('tnome', t.nome || '');
     // O «programa» e as «notas» já não têm campo no formulário da turma (03/11/2026): o
     // enquadramento passou para a curadoria e a nota saiu do cadastro. As duas linhas ficavam a
@@ -120,12 +203,16 @@ const SCRIPT = String.raw`(function () {
     dizer('Turma preenchida: ' + (t.nome || '(sem nome)') + '. Confira e envie manualmente.');
   }
 
+  /* A RÉGUA DEIXOU DE SER UMA LISTA DA ESCOLA (19/11/2026) — «a régua é do professor», e o campo
+   * «#rubr-nome» passou a viver no passo 2 do cadastro DELE. O preenchedor não tem o que preencher
+   * aqui: escrever neste campo seria escrever a régua de uma pessoa que o fixture não conhece, e
+   * «pintarEditorDaRubrica» apagaria os níveis que ela tivesse acabado de compor. A rubrica do
+   * fixture fica no painel como memória do que o teste já usou — e diz isso, em vez de fingir que
+   * preencheu. */
   function preencherRubrica(r) {
     if (!r) return;
-    preencher('rubr-nome', r.nome || '');
-    if (typeof pintarEditorDaRubrica === 'function') pintarEditorDaRubrica(r.niveis || []);
-    if (typeof gravarEstado === 'function') gravarEstado();
-    dizer('Rubrica preenchida: ' + (r.nome || '(sem nome)') + '. Confira e envie manualmente.');
+    dizer('A rubrica «' + (r.nome || '(sem nome)') + '» já não se preenche aqui: a régua é do '
+      + 'professor, no passo «Rubrica» do cadastro dele.');
   }
 
   /* O TERMO DO FIXTURE — E, QUANDO ELE JÁ EXISTE NO CATÁLOGO, O VERBETE INTEIRO (02/11/2026).
@@ -724,13 +811,14 @@ const SCRIPT = String.raw`(function () {
     if (!fixture) return;
     var tela = document.body.getAttribute('data-tela') || '';
     if (tela === 'bastidores') {
+      /* OUVIR OS CAMPOS ANTES DE PREENCHER (19/11/2026): a partir daqui, o que ela escrever fica
+       * marcado, e nenhum preenchimento posterior lhe toca. */
+      ouvirOsCampos();
       montarPainel(painelProducao());
       // EM EDIÇÃO, O PREENCHIMENTO AUTOMÁTICO NÃO ENTRA: ajustarTurma é quem põe a
       // turma clicada nos três formulários, e o fixture não pode passar por cima dela.
       // O painel continua disponível para quem quiser carregar outro registro à mão.
-      var editando = false;
-      try { editando = typeof modoEditando === 'function' && !!modoEditando(); } catch (err) {}
-      if (!editando) autoProducao();
+      if (!emEdicao()) autoProducao();
       return;
     }
     if (tela !== 'porta') return;
