@@ -5,7 +5,8 @@
     "anamnese-20261117-1407.json",
     "anamnese-20261118-1737.json",
     "anamnese-20261119-1145.json",
-    "plano-20261119-1143.json"
+    "plano-20261119-1143.json",
+    "po-20261119-1233.json"
   ],
   "resumos": {
     "anamnese-20261116-2201.json": {
@@ -74,6 +75,23 @@
         "Port de bras"
       ],
       "professorNome": "demi-plie"
+    },
+    "po-20261119-1233.json": {
+      "id": "po-20261119-1233",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-19T12:33",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "plano": [
+        "plano-20261119-1143"
+      ]
     }
   }
 }
