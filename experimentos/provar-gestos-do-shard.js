@@ -182,8 +182,14 @@ function rotasDaEscola({ armazenamento, escola, espiado }) {
     disparar: async (c) => { espiado.disparo.push(c); return { ok: true }; },
     lerCuradorias: async () => [{ professor: escola.professor, modalidade: 'bale-classico',
       tradicao: 'RAD', turmas: [escola.turma], alunas: [escola.aluna] }],
+    /* A SALA DECLARA A MODALIDADE, E ELA É OUTRA QUE A CÓPIA DA CURADORIA (T3, 19/11/2026) —
+     * de propósito. A porta passou a escrever `contexto.modalidade` no plano e no PO, e a fonte é
+     * a SALA (o cartão da turma e a autorização do plano leem o mesmo enquadramento). Com as duas
+     * a divergir, a asserção da secção 5 distingue «leu a Sala» de «leu a cópia»: se alguém voltar
+     * a ler a curadoria, ela reprova. */
     lerTurmas: async () => [{ nome: escola.turma, dias: ['2', '4'], duracaoMin: 60,
-      periodoSemana: null, periodoInicio: '2026-11-11', periodoFim: '2026-12-20' }],
+      periodoSemana: null, periodoInicio: '2026-11-11', periodoFim: '2026-12-20',
+      modalidade: 'danca-moderna' }],
     lerLinhasDeBase: async () => [{
       id: 'elenco-' + escola.slug, turma: escola.turma, alunas: [escola.aluna],
       enviada_em: '2026-11-10T10:00:00.000Z',
@@ -324,6 +330,18 @@ function kvDeMentira(inicial) {
     const elo = await porta.lerEnvelope(loja.vista(A.slug), idPlanoDerivado);
     provar('…e o elo novo aponta o anterior (`ajuste_de`) — a proveniência acrescenta',
       elo && elo.ajuste_de === idPlano, elo && elo.ajuste_de);
+
+    /* A MODALIDADE SOB A QUAL O DOCUMENTO FOI ESCRITO ENTRA NO CONTEXTO (T3, 19/11/2026). Sem ela
+     * a cadeia não tem como saber que o instrumento mudou — é o campo que a guarda da modalidade
+     * compara com a Sala de hoje. E a fonte é a SALA, não a cópia da curadoria («bale-classico»). */
+    const planoGravado = await porta.lerEnvelope(loja.vista(A.slug), idPlano);
+    provar('…e o plano declara a modalidade sob a qual foi escrito',
+      Boolean(planoGravado && planoGravado.contexto && planoGravado.contexto.modalidade),
+      planoGravado && planoGravado.contexto && planoGravado.contexto.modalidade);
+    provar('…e ela vem da SALA, e não da cópia da curadoria',
+      Boolean(planoGravado && planoGravado.contexto
+        && planoGravado.contexto.modalidade === 'danca-moderna'),
+      planoGravado && planoGravado.contexto && planoGravado.contexto.modalidade);
   }
 
   /* ── 6. PO — criar, concluir, gerar ────────────────────────────────────────────────────── */

@@ -306,10 +306,28 @@ function criarCadeia({
      * hoje. Se um dia deixar de ser, a derivação não acontece. */
     const autor = autorDoDocumento(anterior);
     if (autor) base.professor = autor;
-    /* A MODALIDADE NÃO ENTRA NO CONTEXTO, e não é esquecimento: o envelope só admite
-     * `escola`, `professor`, `ciclo`, `aluna` e `turma` (`CAMPOS_DE_CONTEXTO`). Quem declara a
-     * modalidade é a CURADORIA, e é dela que o plano e o PO a leem — repeti-la no contexto seria
-     * uma segunda declaração do mesmo facto, e a primeira a divergir. */
+    /* A MODALIDADE FICA COMO ESTAVA — e a partir de 19/11/2026 isso é uma REGRA, não um
+     * esquecimento (T3).
+     *
+     * O comentário que aqui estava dizia que o envelope não admite `modalidade` em
+     * `CAMPOS_DE_CONTEXTO`. Era FALSO: o campo está na lista desde sempre (`motor/nucleo/
+     * elicitar.js`). O que não havia era quem o escrevesse. A porta passou a escrevê-lo
+     * (`comAModalidadeDaSala`, em `rotas.js`), a partir da Sala.
+     *
+     * E PORQUE NÃO SE ATUALIZA AQUI — A ASSIMETRIA É DELIBERADA, e é a diferença entre os dois
+     * caminhos que produzem um elo:
+     *
+     *   · a derivação AUTOMÁTICA (esta função) **preserva** a modalidade do elo anterior. Ela relê
+     *     o CADASTRO — o ritmo, o professor —, e nada mais. Escrever aqui a modalidade de hoje
+     *     levantaria a trava da cadeia sem ninguém ter escrito nada: a guarda compara a modalidade
+     *     que o documento declara com a que a Sala declara, e o elo novo declarar-se-ia conforme
+     *     por construção. Aliás, quando a Sala já declara outra modalidade, a cadeia pára no plano
+     *     e nem chega a derivar.
+     *
+     *   · a PORTA (`POST /api/elicitar`, com `comAModalidadeDaSala`) **declara** a modalidade da
+     *     Sala. É um acto de quem escreve: o professor abriu o plano ou o PO e gravou-o. É isso que
+     *     levanta a trava, e é o que «ele escreve o dele, sob a modalidade que vale hoje» quer
+     *     dizer — não há outro caminho, e tem de haver um. */
     return base;
   }
 

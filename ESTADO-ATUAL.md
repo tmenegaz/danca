@@ -4670,7 +4670,25 @@ da cadeia devolve **`parouPor`**, a frase da etapa que parou, que o aviso leva a
 ponte:** `producao.js` declara os gestos para os quais a cadeia é montada, e o `turma-professor` estava
 de fora — um gesto fora dessa lista chama uma cadeia `null`, grava, responde `200` e não percorre nada.
 **CONFIRMADO** por `provar-os-fluxos-da-derivacao` (57; **14 de 56** reprovavam contra o `bastidores.js`
-anterior). **Próximo:** o T3 — a troca de **modalidade**, que já dispara mas ainda não tem regra.
+anterior).
+
+**RESOLVIDO a 19/11/2026 — o T3: a troca de modalidade bloqueia.** Decisão dela: *«bloquear»*. A
+modalidade não é etiqueta — é o **corpo de referência** com que se mede: a régua vem com o par
+(`conferirOParDaSala`), os níveis são outros, e as anamneses são por modalidade. E o pior é que até
+aqui nada falhava: o PO copia as `respostas` verbatim (é a regra), e é nelas que vivem os níveis — a
+escala mudava debaixo do documento, em silêncio. A guarda `modalidadeMudou(doc)` compara a modalidade
+que o **documento** declara com a que a **Sala** declara hoje e põe a etapa do plano — e a do PO — em
+`bloqueada`, com a frase que nomeia as duas e diz o que fazer. Nasceram duas peças para a guarda ter o
+que comparar: o documento passou a **declarar** `contexto.modalidade` (`comAModalidadeDaSala`, na
+porta, a partir da Sala — o campo já era admitido em `CAMPOS_DE_CONTEXTO`, e um comentário afirmava o
+contrário); e os dois caminhos que produzem um elo passaram a ser **assimétricos de propósito** — a
+derivação automática **preserva** a modalidade (senão o documento declarava-se conforme por construção
+e a trava levantava-se sozinha), a porta **declara** (abrir o plano e gravar é o acto de quem escreve).
+O vazio não é erro: um elo anterior a esta data não declara a modalidade, como um elo antigo não
+declara o professor. **CONFIRMADO** por `provar-os-fluxos-da-derivacao` (65; **5 de 65** reprovavam
+contra o `nucleo/cadeia.js` anterior) e por `provar-gestos-do-shard` (33; **2 de 33** contra o
+`rotas.js` anterior). **Próximo:** o T4 — os **conteúdos** da Turma, e o mapa antigo (`turma-conteudos`)
+que escreve sem guarda nenhuma.
 
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
@@ -4693,6 +4711,13 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **T3: a troca de modalidade bloqueia, e o documento passa a dizer sob que escala foi
+  escrito.** A guarda `modalidadeMudou` compara a modalidade do documento com a da Sala, e bloqueia o
+  plano e o PO — a régua vem com o par, e a cadeia não converte um instrumento noutro. A porta passou a
+  gravar `contexto.modalidade` a partir da Sala; a derivação automática **preserva**, a porta
+  **declara**, e é essa assimetria que impede a trava de se levantar sozinha. O vazio não é erro. Ver
+  `REGISTRO.md` e a §3.4 do `ARQUITETURA-GERAL.md`.
 
 - **19/11/2026** — **T2: o gesto de Salas percorre a cadeia, e o gatilho deixa de mentir.** Mudar o
   par (modalidade, professor) de uma Sala passou a chamar `rodarCadeia`, e a resposta traz `cadeia`,

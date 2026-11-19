@@ -54494,3 +54494,54 @@ do `HEAD` anterior. Vizinhas: `provar-a-autoria-na-troca-de-professor` 41,
 `provar-regua-do-professor` 44, `provar-gravar-e-gravar` 49, `provar-menu-da-producao` 55,
 `check-identidade` ok. `provar-acordeoes` continua vermelha — a mesma excepção em `parentElement`,
 medida nos dois lados.
+
+### 19/11/2026 — T3: a troca de modalidade bloqueia, e o documento passa a dizer sob que escala foi escrito
+
+> «A minha turma é iniciante; se eu botar algo complexo aqui já não está legal.» A classificação serve
+> de alerta. E, sobre a modalidade: **bloquear**.
+
+**O que estava.** O T2 deu à modalidade o gatilho — uma troca só de modalidade passou a percorrer a
+travessia — mas a travessia **não a via**: `direcaoDeHoje` comparava professor e sala, e o gesto
+percorria tudo sem encontrar o que dizer. Medido: a etapa ficava `pendente` e a cadeia **derivava** o
+plano e o PO com o mesmo autor.
+
+**A decisão, e por que é a certa.** A modalidade não é etiqueta: é o **corpo de referência** com que se
+mede. A régua vem com o par (`conferirOParDaSala`), os níveis são outros, e as anamneses são por
+modalidade — um plano escrito sob «Balé clássico» e um PO que mede contra a régua do clássico não
+passam a valer sob «Dança moderna». E o pior é que nada falhava: as `respostas` do PO são copiadas
+verbatim (é a regra — a cadeia preserva as respostas), e é nelas que vivem os níveis. A escala mudava
+debaixo do documento, em silêncio.
+
+**O que passou a valer.** `modalidadeMudou(doc)` compara a modalidade que o **documento** declara
+(`contexto.modalidade`) com a que a **Sala** declara hoje, e põe a etapa do plano — e a do PO — em
+`bloqueada`. A frase nomeia as duas modalidades, diz que a régua vem com o par e que os níveis são
+outros, e diz o que fazer: quem dirige escreve o dele, sob a modalidade que vale hoje.
+
+**Duas peças nasceram para a guarda ter o que comparar, e a segunda é a que dá sentido à trava.**
+
+1. **O documento passa a declarar a modalidade.** `comAModalidadeDaSala`, na porta, escreve
+   `contexto.modalidade` **a partir da Sala** — não do que o cliente mandar. O campo já era admitido
+   em `CAMPOS_DE_CONTEXTO` desde sempre; o que não havia era quem o escrevesse. E o comentário que
+   estava em `motor/servidor/cadeia.js` afirmava o contrário — que o envelope «só admite escola,
+   professor, ciclo, aluna e turma» —, e era **falso**: um comentário que justifica uma ausência com
+   uma regra que não existe é a pior espécie de documentação, porque ninguém vai conferir.
+2. **A assimetria dos dois caminhos que produzem um elo.** A derivação **automática** (`contextoDoElo`)
+   **preserva** a modalidade do elo anterior: se a escrevesse, o documento declarar-se-ia conforme por
+   construção e a trava levantava-se sozinha, sem ninguém ter escrito nada. A **porta** declara, porque
+   abrir o plano e gravar é o acto de quem escreve. É o caminho de saída — e tem de haver um, senão a
+   trava é uma parede.
+
+**E o que fica fora, de propósito.** Um elo anterior a esta data não declara a modalidade, e o **vazio
+não é erro** — a convenção de sempre (um elo antigo também não declara o professor). Sem isso, o
+acervo inteiro ficaria «bloqueado» no dia em que a correcção entrasse. E a mesma modalidade dos dois
+lados não dispara nada.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **57 → 65** (§E nova: a etapa bloqueada, as três frases, o
+PO, o vazio, a mesma modalidade, e o gesto da Sala a nomear a modalidade). **Controlo negativo: 5 de 65
+reprovam** contra o `motor/nucleo/cadeia.js` do `HEAD`. `provar-gestos-do-shard` **31 → 33** (o plano
+declara a modalidade, e ela vem da **Sala** — a cópia da curadoria foi posta a divergir de propósito,
+para a asserção distinguir «leu a Sala» de «leu a cópia»); **controlo negativo: 2 de 33** contra o
+`rotas.js` anterior. Vizinhas verdes: `provar-a-autoria-na-troca-de-professor` 41,
+`provar-cadeia-automatica` 62, `provar-salas-e-elencos` 132, `provar-direcao-do-documento` 32,
+`provar-carimbo-da-edicao` 56, `provar-po-unico` 18, `provar-turma-sem-professor` 23,
+`provar-cadeia-do-ajuste` 34, `check-identidade` ok, `check-sem-destruicao` ok.

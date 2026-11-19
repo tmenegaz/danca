@@ -1065,7 +1065,7 @@ derivação e o log) é de `motor/servidor/cadeia.js`. O log das travessias lê-
 ele DEIXA DE FAZER.** Elas foram escritas quando o par (modalidade, professor) vivia na Turma; a
 18/11/2026 ele passou para a Sala, e a 19/11/2026 a régua passou para o professor. O que se mede
 abaixo é o estado do código a 19/11/2026 — `experimentos/provar-os-fluxos-da-derivacao.js`,
-**57 asserções**, que é a bancada desta secção.
+**65 asserções**, que é a bancada desta secção.
 
 #### O que percorre a cadeia, hoje
 
@@ -1164,11 +1164,34 @@ dele. É a regra de 12/11/2026, e é ela que o `bloqueada` significa.
    facto**, e o aviso que atravessa a recarga leva-a. Sem isso o gesto devolvia `bloqueada` e a tela
    não tinha o que dizer — o professor ficava a saber que algo parou, sem saber o quê.
 
-**O que continua em aberto, e é o T3:** a **modalidade** mudou no mesmo gesto e passou a disparar a
-mesma travessia, mas ainda **não se decidiu** se a troca de modalidade deriva (mesmo autor, outro
-referencial) ou bloqueia (outros níveis, outra régua). Hoje ela percorre e não encontra o que
-bloquear, porque `direcaoDeHoje` só compara professor e sala. Ver o
-[`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md).
+#### T3 — a troca de modalidade **bloqueia** *(feito a 19/11/2026, por decisão dela)*
+
+O T2 deu à modalidade o gatilho; faltava a regra. A decisão foi **bloquear**: o plano e o PO escritos
+sob uma escala não passam a valer sob outra.
+
+**Por que a modalidade não é uma etiqueta.** É o **corpo de referência** com que se mede: a régua vem
+com o par (`conferirOParDaSala`), os níveis são outros, e as anamneses são por modalidade. Um plano
+escrito sob «Balé clássico» e um PO que mede contra a régua do clássico não se corrigem com uma
+derivação — corrigem-se com um documento. E a «Modalidade» que o **documento impresso** mostra não é
+esta: é a **habilitação do professor** (`tools/montar-publicacao.js` → `perfilDoProfessor`). A troca na
+Sala não muda o que o documento diz; muda a **escala** contra a qual ele mede — e é por isso que ela
+tem de ser dita.
+
+**A guarda.** `modalidadeMudou(doc)` compara a modalidade que o **documento** declara
+(`contexto.modalidade`) com a que a **Sala** declara hoje, e põe a etapa do plano — e a do PO — em
+`bloqueada`, com a frase que nomeia as duas modalidades, diz que a régua vem com o par, e diz o que
+fazer: quem dirige escreve o dele, sob a modalidade que vale hoje. `direcaoDeHoje` passou a ler a
+modalidade da Sala; `direcao(doc)`, a do elo.
+
+**Duas peças nasceram para a guarda ter o que comparar:**
+
+| peça | onde | o que faz |
+|:--|:--|:--|
+| o documento passa a **declarar** a modalidade | `comAModalidadeDaSala`, em `rotas.js` | escreve `contexto.modalidade` **a partir da Sala** — não do que o cliente mandar. O campo já era admitido (`CAMPOS_DE_CONTEXTO`); ninguém o escrevia, e um comentário em `cadeia.js` chegou a afirmar que não era admitido |
+| a **assimetria** dos dois caminhos que produzem um elo | `contextoDoElo` × a porta | a derivação **automática** preserva a modalidade do elo anterior (escrevê-la faria o documento declarar-se conforme por construção, e a trava levantava-se sozinha); a **porta** declara, porque abrir o plano e gravar é o acto de quem escreve. É o caminho de saída, e tem de haver um |
+
+**O vazio não é erro**, pela convenção de sempre: um elo anterior a esta data não declara a modalidade
+— tal como um elo antigo não declara o professor — e não declarar não é estar errado.
 
 #### Dois nomes que enganam
 

@@ -15,7 +15,9 @@
  *
  *   A. O GESTO «MUDAR O PROFESSOR DE UMA SALA» (`POST /api/bastidores/turma-professor`).
  *      · a SALA passa a declarar o professor novo, e a TURMA guarda a cópia antiga como MEMÓRIA;
- *      · a resposta ainda NÃO traz `cadeia`: o fluxo não é disparado (é o T2 do plano);
+ *      · a resposta traz `cadeia` e `trocou`, e a travessia CORRE (T2, implementado a 19/11/2026);
+ *        um gesto que reconfirma o mesmo par não finge travessia, e quando ela pára num facto a
+ *        resposta leva a frase desse facto (`parouPor`);
  *      · a lista que autoriza o plano passa a mostrar a turma a quem a dá — a direção de hoje lê-se
  *        da SALA (T1, implementado a 19/11/2026), e não da cópia.
  *   B. O QUE A CADEIA DIZ NOS DOIS ESTADOS. Com a cópia velha na Turma (o estado real depois de A),
@@ -28,10 +30,18 @@
  *   D. O EXPURGO. A lista declarada do expurgo cobre todas as chaves que o código escreve — a
  *      conferência é contra o código, e não contra a memória (é o que ela pediu: «precisa ser
  *      verificado no expurgo para não ficar para trás»).
+ *   E. A TROCA DE MODALIDADE BLOQUEIA (T3, 19/11/2026). «A minha turma é iniciante; se eu botar
+ *      algo complexo aqui já não está legal.» A modalidade não é etiqueta: é o instrumento — a
+ *      régua vem com o par. A guarda compara a modalidade que o DOCUMENTO declara
+ *      (`contexto.modalidade`, escrito pela porta a partir da Sala) com a que a SALA declara hoje;
+ *      o vazio não é erro, e a mesma modalidade dos dois lados não dispara nada.
  *
- * O CONTROLADOR NEGATIVO. Contra o `motor/servidor/bastidores.js` do `HEAD` anterior (antes do T2),
- * **14 de 56** reprovam: a resposta sem `cadeia`, a travessia que não corre, o gatilho que não
- * muda, e a rota fora da matriz. Se o negativo passar, a prova não está a medir nada.
+ * OS DOIS CONTROLADORES NEGATIVOS, e são dois porque são duas correcções de dias diferentes:
+ *   · contra o `motor/servidor/bastidores.js` de antes do T2, **15 de 64** reprovam (a resposta sem
+ *     `cadeia`, a travessia que não corre, o gatilho que não muda, a rota fora da matriz);
+ *   · contra o `motor/nucleo/cadeia.js` do `HEAD` (antes do T3), **5 de 65** reprovam (a etapa que
+ *     não bloqueia e as quatro frases que ela devia dizer).
+ * Se um negativo passar, a prova não está a medir nada.
  *
  *   node experimentos/provar-os-fluxos-da-derivacao.js
  */
@@ -508,13 +518,86 @@ async function principal() {
       declaradas.has(chave) && escritas.has(chave), { escrita: escritas.has(chave), declarada: declaradas.has(chave) });
   }
 
+  /* =========================================================================================== */
+  console.log('\nE. A troca de MODALIDADE bloqueia — o instrumento não se converte (T3, 19/11/2026)');
+
+  /* «A minha turma é iniciante; se eu botar algo complexo aqui já não está legal.» A modalidade não
+   * é etiqueta: é o corpo de referência com que se mede — a régua vem com o par
+   * (`conferirOParDaSala`), os níveis são outros, e as anamneses são por modalidade. Ela decidiu:
+   * **bloqueia**, como a autoria. O plano escrito sob o clássico não se converte em plano da
+   * moderna — quem o escreve é o professor.
+   *
+   * A guarda compara a modalidade que o DOCUMENTO declara (`contexto.modalidade`, escrito pela
+   * porta a partir da Sala) com a que a SALA declara hoje. */
+  const salaDaModalidade = (modalidade) => Object.assign({}, salaDepois, { modalidade });
+  const comModalidade = (declarada) => {
+    const ctx = (doc) => Object.assign({}, doc.contexto, declarada ? { modalidade: declarada } : {});
+    return {
+      quando: '2026-11-19T18:00:00.000Z', ciclo: '01', turma: 'Rosa',
+      sala: salaDaModalidade('Dança moderna'),
+      curadoria: Object.assign({}, turmaDepois, { professor: 'redinha-rosa', modalidade: 'Balé clássico' }),
+      elenco: ELENCO,
+      plano: { id: 'plano-20261110-1304', gerado_em: '2026-11-10T13:04:00.000Z',
+        contexto: ctx({ escola: ESCOLA, professor: 'redinha-rosa', turma: 'Rosa', ciclo: '01' }) },
+      po: { id: 'po-20261110-1400', gerado_em: '2026-11-10T14:00:00.000Z',
+        contexto: ctx({ escola: ESCOLA, professor: 'redinha-rosa', turma: 'Rosa', ciclo: '01' }) },
+    };
+  };
+  const etapa = (indice, chave) => (indice.etapas || []).find((p) => p.chave === chave) || {};
+
+  const trocou = nucleoCadeia.indice(comModalidade('Balé clássico'));
+  const planoDaTroca = etapa(trocou, 'plano-de-ensino');
+  provar('a modalidade mudou e o plano declara a antiga: a etapa fica BLOQUEADA',
+    planoDaTroca.estado === 'bloqueada', planoDaTroca);
+  provar('…e a frase nomeia as duas modalidades — a que o documento declara e a que vale hoje',
+    /Balé clássico/.test(String(planoDaTroca.falta || ''))
+      && /Dança moderna/.test(String(planoDaTroca.falta || '')),
+    String(planoDaTroca.falta || '').slice(0, 150));
+  provar('…e diz que NÃO é a mesma escala — a régua vem com o par, e os níveis são outros',
+    /régua vem com o par/i.test(String(planoDaTroca.falta || ''))
+      && /níveis são outros/i.test(String(planoDaTroca.falta || '')),
+    String(planoDaTroca.falta || '').slice(0, 150));
+  provar('…e diz o que fazer: quem dirige escreve o dele, sob a modalidade que vale hoje',
+    /escreve o dele/.test(String(planoDaTroca.falta || ''))
+      && /modalidade que vale hoje/i.test(String(planoDaTroca.falta || '')),
+    String(planoDaTroca.falta || '').slice(0, 150));
+  provar('…e o PO também fica BLOQUEADA — ele mede contra os níveis da régua do par',
+    etapa(trocou, 'plano-de-observacao').estado === 'bloqueada',
+    etapa(trocou, 'plano-de-observacao'));
+
+  /* O VAZIO NÃO CONTA, e é a convenção de sempre: o elo anterior a esta data não declara a
+   * modalidade, e não declarar não é estar errado. Sem isto, a correcção transformaria todo o
+   * acervo antigo em «bloqueado» no dia em que entrasse. */
+  const antigo = nucleoCadeia.indice(comModalidade(''));
+  provar('um elo que não declara modalidade NÃO é bloqueado — o vazio não é erro',
+    etapa(antigo, 'plano-de-ensino').estado !== 'bloqueada', etapa(antigo, 'plano-de-ensino'));
+
+  /* E O CONTRÁRIO, para a guarda não ser um «bloqueia tudo»: com a mesma modalidade dos dois
+   * lados, o que sobra é a data — e é `pendente`, que a cadeia sabe fazer. */
+  const planoIgual = etapa(nucleoCadeia.indice(comModalidade('Dança moderna')), 'plano-de-ensino');
+  provar('com a mesma modalidade de parte a parte, a guarda não dispara',
+    planoIgual.estado === 'pendente' && !/modalidade/i.test(String(planoIgual.falta || '')),
+    planoIgual);
+
+  /* E A ROTA JÁ DIZ QUE FOI A MODALIDADE, e não o professor — é o que a tela lê para escolher a
+   * frase. (O que a cadeia FAZ com a troca mede-se acima, no núcleo: aqui a travessia é contada,
+   * não executada.) */
+  provar('…e o gesto da Sala nomeia a modalidade como o que mudou, e não o professor',
+    Boolean(soModalidade.dados && soModalidade.dados.trocou
+      && soModalidade.dados.trocou.modalidade === true
+      && soModalidade.dados.trocou.professor === false),
+    soModalidade.dados && soModalidade.dados.trocou);
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: mudar o par de uma Sala percorre a cadeia pelos dois '
       + 'caminhos que existem (a rota do par e a derivação), e o gatilho diz o que mudou — ritmo ou '
       + 'direção; a direção de hoje lê-se da Sala (T1), a lista que autoriza o plano mostra a turma '
       + 'a quem a dá, e a cadeia apanha a troca com a frase da autoria; quando a travessia pára num '
       + 'facto, a resposta leva a frase desse facto (`parouPor`); a ponte monta a cadeia para as '
-      + 'rotas que a disparam, e a lista do expurgo cobre todas as chaves que o código escreve.'
+      + 'rotas que a disparam, e a lista do expurgo cobre todas as chaves que o código escreve. '
+      + 'E a troca de MODALIDADE bloqueia (T3): a guarda compara a modalidade que o documento '
+      + 'declara com a que a Sala declara hoje, o vazio não é erro, e a frase diz que a régua vem '
+      + 'com o par.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

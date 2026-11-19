@@ -107,6 +107,44 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     if (escolaCanonica) c.escola = escolaCanonica;
     return c;
   };
+  /* A MODALIDADE CONTRATADA ENTRA NO CONTEXTO DO DOCUMENTO (T3, 19/11/2026).
+   *
+   * PORQUE PASSOU A SER PRECISO. A modalidade não é uma etiqueta: é o **corpo de referência** com
+   * que se mede — a régua vem com o par (`conferirOParDaSala`), os níveis são outros, e as
+   * anamneses são por modalidade. Um plano escrito sob «Balé clássico» e um PO que mede contra a
+   * régua do clássico não continuam válidos quando a Sala passa a declarar «Dança moderna». Para a
+   * cadeia o dizer, o documento tem de declarar sob que modalidade foi escrito — e é isso que este
+   * campo passa a gravar.
+   *
+   * O CAMPO JÁ ERA ADMITIDO: `CAMPOS_DE_CONTEXTO` (em `motor/nucleo/elicitar.js`) inclui
+   * `modalidade` desde sempre; o que faltava era alguém a escrevê-lo. O comentário que estava em
+   * `motor/servidor/cadeia.js` dizia o contrário, e estava errado — fica corrigido lá.
+   *
+   * A FONTE É A SALA, e não o que o cliente mandar: é a mesma leitura do cartão da turma e da
+   * autorização do plano (`enquadramentoDaTurma`), e um cliente não é uma regra. Sem `lerTurmas`
+   * (uma bancada, um adaptador sem KV), o campo fica como veio — degradar, não rebentar.
+   *
+   * O CUSTO: duas leituras de lista por gravação de plano ou de PO. Não são cargas de página — são
+   * actos deliberados do professor, alguns por ciclo. */
+  const comAModalidadeDaSala = async (contexto) => {
+    const c = Object.assign({}, contexto || {});
+    const turma = String(c.turma || '').trim();
+    if (!turma || typeof lerTurmas !== 'function') return c;
+    try {
+      const escola = escolaDoWorker || identidade.escola;
+      const salas = await lerTurmas(escola);
+      const sala = (Array.isArray(salas) ? salas : [])
+        .find((t) => t && !t.substituidaPor && String(t.nome || '').trim() === turma) || null;
+      if (!sala) return c;
+      const curadorias = typeof lerCuradorias === 'function' ? await lerCuradorias(escola) : [];
+      const modalidade = require('../nucleo/enquadramento.js')
+        .enquadramentoDaTurma(sala, curadorias).modalidade;
+      if (modalidade) c.modalidade = modalidade;
+      return c;
+    } catch (erro) {
+      return c;
+    }
+  };
   // O relógio é injetável: as provas fixam-no para serem repetíveis. Sem injeção, o carimbo
   // é o do núcleo NO FUSO DECLARADO da escola — o Worker roda em UTC, e a data da ficha tem
   // de ser a hora da parede de quem a preencheu.
@@ -1218,6 +1256,13 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
     // (patológico) de um pedido SEM contexto: ele continua sem contexto, e não ganha um
     // `{escola}` sozinho — meia identidade é pior que identidade nenhuma.
     if (corpo.contexto) corpo.contexto = comAEscolaDoWorker(corpo.contexto);
+
+    /* E A MODALIDADE DO ATO, PARA O DOCUMENTO PODER DIZER SOB QUE ESCALA FOI ESCRITO (T3). Só para
+     * os documentos que são de uma TURMA — a anamnese é de uma pessoa e não tem modalidade de
+     * sala. O PO entra aqui também: ele mede contra os níveis da régua que veio com o par. */
+    if (corpo.contexto && (corpo.fonte === 'plano' || corpo.fonte === 'po')) {
+      corpo.contexto = await comAModalidadeDaSala(corpo.contexto);
+    }
 
     /* A TURMA DO PLANO TEM DE SER A DO PROFESSOR — E A REGRA É AQUI (27/10/2026).
      *

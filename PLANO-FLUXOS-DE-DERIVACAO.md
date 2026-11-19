@@ -2,7 +2,7 @@
 
 > **Estado:** aberto a 19/11/2026. **Dono das decisões:** a proprietária. **A bancada:**
 > [`experimentos/provar-os-fluxos-da-derivacao.js`](experimentos/provar-os-fluxos-da-derivacao.js)
-> (57 asserções). **O retrato do código:** [`ARQUITETURA-GERAL.md`](ARQUITETURA-GERAL.md) §3.4.
+> (65 asserções). **O retrato do código:** [`ARQUITETURA-GERAL.md`](ARQUITETURA-GERAL.md) §3.4.
 
 ## O que ela pediu, e em que termos
 
@@ -37,7 +37,7 @@ aula, a regra «o passado não se mexe» não é implementável — é o T7.
 |:--|:--:|:--:|
 | Sala · `turma-editar` (corrigir o ritmo no lugar) | **sim** | sim |
 | Sala · `turma-derivar` (ritmo novo, elo datado) | **sim** | sim |
-| Sala · **`turma-professor`** (mudar o professor/modalidade) | **sim** desde o T2 | sim |
+| Sala · **`turma-professor`** (mudar o professor/modalidade) | **sim** desde o T2 | sim — e a modalidade **bloqueia** (T3) |
 | Elenco · `linha-de-base` (gravar/concluir) | **sim** | sim |
 | Elenco · `elenco-mover` (transferir aluna) | **sim** | sim |
 | Elenco · `DELETE /linha-de-base` (apagar o elenco) | **não** | **sim** — deixa a Turma a apontar para o nada |
@@ -142,7 +142,7 @@ percorrer a mesma travessia, mas **ainda não se decidiu** se ela deriva (mesmo 
 referencial) ou bloqueia (outros níveis, outra régua). Hoje ela percorre e não encontra o que
 bloquear, porque `direcaoDeHoje` só compara professor e sala.
 
-### T3 — A troca de **modalidade** de uma Sala, e a tradição que vem com ela
+### T3 — A troca de **modalidade** de uma Sala — **FEITO a 19/11/2026** *(a decisão dela: bloquear)*
 
 **O que é.** O mesmo gesto (`turma-professor`) muda também a modalidade. Uma modalidade diferente não
 é o mesmo professor noutra sala: é **outro corpo de referência** (as anamneses são por modalidade, os
@@ -152,13 +152,12 @@ níveis são outros, a régua pode ser outra).
 **bloqueia** (autoria); a de modalidade **pode derivar** (o mesmo professor, outro enquadramento) — e
 é preciso decidir se deriva ou se bloqueia também.
 
-**O T2 já lhe deu o gatilho, e só o gatilho.** A modalidade passou a **percorrer** a travessia junto
-com o professor (`turma-professor`, `turma-editar` e `turma-derivar` leem as duas), mas a travessia
-**não a vê**: `direcaoDeHoje` compara professor e sala, e uma troca só de modalidade percorre tudo e
-não encontra o que bloquear. É por isso que este passo continua aberto — o que falta aqui não é o
-disparo, é a **decisão** e a regra que dela sai.
+**O T2 deu-lhe o gatilho, e não a regra.** A modalidade passou a **percorrer** a travessia junto com
+o professor (`turma-professor`, `turma-editar` e `turma-derivar` leem as duas), mas a travessia não a
+**via**: `direcaoDeHoje` comparava professor e sala, e uma troca só de modalidade percorria tudo sem
+encontrar o que dizer. O que faltava não era o disparo — era a decisão, e a regra que dela sai.
 
-**O que se sabe do código hoje, antes de decidir** — três factos, e o segundo é o que dá peso à
+**O que se sabia do código antes de decidir** — três factos, e o segundo é o que dava peso à
 pergunta:
 
 | o quê | onde se leu | o que diz |
@@ -171,10 +170,40 @@ E a «Modalidade» que o documento impresso mostra **não é** a modalidade cont
 **habilitação do professor** (`tools/montar-publicacao.js` → `perfilDoProfessor`). Logo, uma troca de
 modalidade na Sala não muda o que o documento diz — mas muda a **escala** contra a qual ele mede.
 
-**A decidir:** modalidade nova → deriva o plano (mesmo autor, outro referencial) ou exige plano novo?
-A recomendação é **derivar com aviso**, porque o autor é o mesmo e o que muda é a leitura do cadastro;
-mas os níveis e os conteúdos podem deixar de fazer sentido, e isso é pedagogia — provavelmente é
-**bloquear e dizer**, como a autoria.
+**A decisão dela, a 19/11/2026:** *«bloquear»*. A modalidade não se converte — o plano e o PO escritos
+sob uma escala não passam a valer sob outra.
+
+**O que passou a valer.** A guarda `modalidadeMudou(doc)` compara a modalidade que o **documento**
+declara (`contexto.modalidade`) com a que a **Sala** declara hoje, e põe a etapa `plano-de-ensino` — e
+a do `plano-de-observacao` — em **`bloqueada`**, com a frase que nomeia as duas modalidades, diz que a
+régua vem com o par e que os níveis são outros, e diz o que fazer: quem dirige escreve o dele, sob a
+modalidade que vale hoje. `direcaoDeHoje` passou a ler a modalidade da Sala (a cópia da curadoria é o
+recurso), e `direcao(doc)` passou a expor a do elo.
+
+**Duas peças tiveram de nascer para a guarda ter o que comparar:**
+
+1. **o documento passou a declarar a modalidade.** `contexto.modalidade` — campo que
+   `CAMPOS_DE_CONTEXTO` já admitia desde sempre, e que ninguém escrevia; o comentário em
+   `motor/servidor/cadeia.js` chegou a afirmar o contrário, e estava errado. A porta
+   (`comAModalidadeDaSala`) escreve-o **a partir da Sala**, e não do que o cliente mandar: um cliente
+   não é uma regra.
+2. **a assimetria dos dois caminhos que produzem um elo**, e é ela que faz a trava ter sentido:
+   a derivação **automática** (`contextoDoElo`) **preserva** a modalidade do elo anterior — se a
+   escrevesse, o documento declarar-se-ia conforme por construção e a trava levantava-se sozinha; a
+   **porta** declara, porque abrir o plano e gravar é o acto de quem escreve. É o caminho de saída, e
+   tem de haver um.
+
+**O que fica fora do bloqueio, de propósito:** um elo anterior a esta data **não declara** a
+modalidade, e o vazio não é erro — pela convenção de sempre (`professor` vazio também não é). A
+mesma modalidade dos dois lados não dispara nada.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **57 → 65** (a §E nova: a etapa bloqueada, as três frases,
+o PO, o vazio, a mesma modalidade, e o gesto da Sala a nomear a modalidade). **Controlo negativo: 5 de
+65 reprovam** contra o `motor/nucleo/cadeia.js` do `HEAD`. E `provar-gestos-do-shard` **31 → 33** (o
+plano declara a modalidade, e ela vem da **Sala**, com a cópia da curadoria a divergir de propósito);
+**controlo negativo: 2 de 33** contra o `rotas.js` anterior. Vizinhas verdes:
+`provar-a-autoria-na-troca-de-professor` 41, `provar-cadeia-automatica` 62,
+`provar-salas-e-elencos` 132, `provar-direcao-do-documento` 32, `provar-carimbo-da-edicao` 56.
 
 ### T4 — Os conteúdos da Turma, e o mapa antigo que escreve sem guarda
 
@@ -264,7 +293,7 @@ dia em que a correcção entra.
 ## A ordem, e por que é esta
 
 ```
-T1 (a cópia) ─► T2 (professor dispara) ─► T3 (modalidade)
+T1 (a cópia) ─► T2 (professor dispara) ─► T3 (modalidade bloqueia)
                      │
                      ├─► T4 (conteúdos)
                      ├─► T5 (Estilo) ─► T6 (Dicionário condicional)

@@ -120,6 +120,11 @@ function indice(estado) {
     return {
       professor: String(ctx.professor || '').trim(),
       turma: String(ctx.turma || '').trim(),
+      /* A MODALIDADE QUE O DOCUMENTO DECLARA (T3, 19/11/2026). O campo é admitido no contexto
+       * desde sempre (`CAMPOS_DE_CONTEXTO`, em `motor/nucleo/elicitar.js`) — o que faltava era
+       * alguém a escrevê-lo e alguém a lê-lo. Um elo de antes desta data não o declara, e o vazio
+       * não conta: quem não declara não está errado. */
+      modalidade: String(ctx.modalidade || '').trim(),
     };
   };
   /* A DIREÇÃO DE HOJE É A DA SALA (19/11/2026) — e a cópia da curadoria é o recurso.
@@ -137,6 +142,8 @@ function indice(estado) {
     professor: String((salaDeHoje && salaDeHoje.professor)
       || (e.curadoria && e.curadoria.professor) || '').trim(),
     turma: String(e.turma || ((e.curadoria && (e.curadoria.turmas || [])[0]) || '')).trim(),
+    modalidade: String((salaDeHoje && salaDeHoje.modalidade)
+      || (e.curadoria && e.curadoria.modalidade) || '').trim(),
   };
   /** O documento declara outra direção? Vazio não conta: um elo antigo que não declara professor
    *  não é um elo errado — é um elo de antes de haver esse campo. */
@@ -172,6 +179,36 @@ function indice(estado) {
     const d = direcao(doc);
     return Boolean(d.turma && direcaoDeHoje.turma && d.turma !== direcaoDeHoje.turma);
   };
+  /* A MODALIDADE CONTRATADA TAMBÉM MANDA, E ELA **BLOQUEIA** (T3, 19/11/2026).
+   *
+   * «A minha turma é iniciante; se eu botar algo complexo aqui já não está legal.» A modalidade não
+   * é uma etiqueta: é o **corpo de referência** com que se mede — as anamneses são por modalidade,
+   * os níveis são outros, e a régua vem com o par (`conferirOParDaSala`). Um plano escrito sob
+   * «Balé clássico» e um PO que mede contra a régua do clássico **não** continuam válidos quando a
+   * Sala passa a declarar «Dança moderna».
+   *
+   * PORQUE BLOQUEIA E NÃO DERIVA, ao contrário da sala. Mudar a sala é reler o cadastro: o mesmo
+   * professor, o mesmo documento, outra linha no `## Contexto`. Mudar a modalidade troca o
+   * INSTRUMENTO — e a cadeia não reinterpreta pedagogia. Ela pára e diz, como faz com a autoria: é
+   * o professor que escreve o plano da modalidade que vale hoje.
+   *
+   * E COMO A BLOCK SE LEVANTA: quando o plano (ou o PO) declarar a modalidade nova no seu contexto.
+   * É a mesma mecânica da autoria — o documento novo diz a verdade nova, e o antigo fica como
+   * passado. O que a cadeia **não** faz é escrever a modalidade nova num elo derivado: isso
+   * levantaria a trava sem ninguém ter escrito nada.
+   *
+   * O VAZIO NÃO CONTA, pela convenção de sempre: um elo anterior a esta data não declara a
+   * modalidade, e não declarar não é estar errado. */
+  const modalidadeMudou = (doc) => Boolean(direcao(doc).modalidade && direcaoDeHoje.modalidade
+    && direcao(doc).modalidade !== direcaoDeHoje.modalidade);
+  /** A frase da modalidade — a mesma para o plano e o PO, porque o facto é o mesmo. */
+  const fraseDaModalidade = (doc) => 'O documento «' + String((doc && doc.id) || '—') + '» foi '
+    + 'escrito sob a modalidade «' + direcao(doc).modalidade + '», e a Sala declara hoje «'
+    + direcaoDeHoje.modalidade + '». Não é a mesma escala — a régua vem com o par, os níveis são '
+    + 'outros, e as anamneses são por modalidade. A cadeia não converte um documento de uma '
+    + 'modalidade noutra: ' + (direcaoDeHoje.professor
+      ? '«' + direcaoDeHoje.professor + '» escreve o dele' : 'quem dirige escreve o seu')
+    + ', sob a modalidade que vale hoje.';
   /** O autor do documento que já não dirige esta turma — o nome que a frase precisa de dizer. */
   const autorDoOutro = () => {
     const de = e.planoDeOutro || e.poDeOutro || null;
@@ -230,6 +267,14 @@ function indice(estado) {
         + (direcaoDeHoje.professor || '—') + '». A autoria não se reescreve — este professor '
         + 'escreve o plano dele.',
     });
+  } else if (modalidadeMudou(e.plano)) {
+    /* ANTES DA SALA, E NÃO DEPOIS (T3). A ordem da escada é a gravidade: a autoria (o documento é
+     * de outra pessoa), o instrumento (a modalidade), e só então a leitura do cadastro (a sala).
+     * Um plano cuja modalidade mudou não se conserta derivando — tem de ser escrito. */
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'bloqueada', id: e.plano.id || null,
+      falta: fraseDaModalidade(e.plano),
+    });
   } else if (salaMudou(e.plano)) {
     passos.push({
       chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
@@ -269,6 +314,13 @@ function indice(estado) {
         + (direcao(e.po).professor || '—') + '», que já não dirige esta Turma. A autoria não se '
         + 'reescreve: ele continua a ser dele, e passa a «sem turma». O professor que dirige hoje '
         + 'faz o PO dele, sobre o plano dele.',
+    });
+  } else if (modalidadeMudou(e.po)) {
+    /* A MESMA REGRA DO PLANO, e pela mesma razão: o PO mede contra os níveis da régua que veio com
+     * o par (T3, 19/11/2026). */
+    passos.push({
+      chave: 'plano-de-observacao', estado: 'bloqueada', id: e.po.id || null,
+      falta: fraseDaModalidade(e.po),
     });
   } else if (salaMudou(e.po)) {
     passos.push({
