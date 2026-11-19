@@ -169,13 +169,17 @@ const RITMO = {
   conferir('o passo 1 já NÃO tem o campo do professor da sala',
     !/id="tprofessor"/.test(html), (html.match(/id="tprofessor"/g) || []).length);
   conferir('…nem a nota que o explicava', !/id="t-habilidade-nota"/.test(html), null);
-  conferir('…e a modalidade FICA, que é o que o passo 1 declara',
-    /id="tmodalidade"/.test(html), null);
+  /* A MODALIDADE SAIU DO PASSO 1 A 19/11/2026 — «você manteve, é para tirar […] aqui é que vem a
+   * modalidade da sala, no associar». Ela existe, e o que se afirma é o sítio: está no painel do
+   * «Associar» e não no da sala. A asserção anterior afirmava o contrário, e é essa a decisão que
+   * mudou — não a de a modalidade existir. */
+  conferir('…e a modalidade saiu do passo 1 — ela vive no «Associar» (19/11/2026)',
+    !/id="tmodalidade"/.test(html) && /id="vinc-modalidade"/.test(html), null);
   /* A MODALIDADE GUARDA O NOME, E NÃO O ID — a convenção da Turma e da curadoria, e a razão está
    * escrita no núcleo: «o perfil do professor guarda ids e a Turma guarda o nome que o formulário
    * oferece». Guardar um id aqui faria o `enquadramento.js` comparar um id com um nome. */
   const soDaSala = (() => {
-    const i = html.indexOf('id="tmodalidade"');
+    const i = html.indexOf('id="vinc-modalidade"');
     if (i === -1) return '';
     const j = html.indexOf('</select>', i);
     return j === -1 ? html.slice(i) : html.slice(i, j);
@@ -745,14 +749,17 @@ const RITMO = {
         valores('vinc-professor').length === 3, valores('vinc-professor'));
 
       /* ---- 2. ESCOLHIDO JAZZ, SAEM OS QUE DECLARAM OUTRA MODALIDADE. ---- */
-      await escolher('tmodalidade', 'Jazz');
+      /* A MODALIDADE MUDOU DE PASSO A 19/11/2026: era `tmodalidade` no passo 1 e passou a ser
+       * `vinc-modalidade` no «Associar». A regra medida é a mesma — é ela que recorta a lista de
+       * professores —, e o que mudou foi o sítio do campo. */
+      await escolher('vinc-modalidade', 'Jazz');
       conferir('escolher «Jazz» tira quem declara outra modalidade — e só esse',
         valores('vinc-professor').indexOf('pe-torto') === -1
           && valores('vinc-professor').indexOf('leticia') !== -1,
         valores('vinc-professor'));
 
       /* ---- 3. QUEM NÃO DECLAROU NADA NÃO DESAPARECE, e é dito. ---- */
-      await escolher('tmodalidade', 'Balé clássico');
+      await escolher('vinc-modalidade', 'Balé clássico');
       conferir('quem declara a modalidade fica',
         valores('vinc-professor').indexOf('pe-torto') !== -1, valores('vinc-professor'));
       conferir('…e quem ainda não declarou habilitações fica também, marcado',
@@ -837,7 +844,7 @@ const RITMO = {
       const opcoes = (id) => [...win3.document.querySelectorAll('#' + id + ' option')].map((o) => o.value);
       await esperar();
 
-      await escolher('tmodalidade', 'Balé clássico');
+      await escolher('vinc-modalidade', 'Balé clássico');
       await esperar(300);
       /* O PRIMEIRO PROFESSOR DA LISTA — a posição 0 é o `<option value="">`, o vazio explícito. */
       conferir('o passo 2 oferece os professores da modalidade, e o dono vem à frente',
@@ -858,7 +865,10 @@ const RITMO = {
 
       /* 4. A MESMA PESSOA, OUTRA MODALIDADE DA SALA: as tradições são as DAQUELA modalidade. É a
        *    prova de que o mapa é por modalidade, e não uma lista achatada. */
-      await escolher('tmodalidade', 'Jazz');
+      /* A MODALIDADE MUDOU DE PASSO A 19/11/2026: era `tmodalidade` no passo 1 e passou a ser
+       * `vinc-modalidade` no «Associar». A regra medida é a mesma — é ela que recorta a lista de
+       * professores —, e o que mudou foi o sítio do campo. */
+      await escolher('vinc-modalidade', 'Jazz');
       await esperar(300);
       conferir('…e trocando a modalidade da sala, as tradições mudam com ela',
         /não ensina tradição em Jazz/.test(tradicao()), tradicao());
@@ -866,7 +876,7 @@ const RITMO = {
       /* 5. A RÉGUA QUE A SALA PASSA A APLICAR (19/11/2026). Escolher a pessoa mostra o NOME e os
        *    NÍVEIS da régua dela — é a linha que fecha o circuito: a sala não escolhe a régua,
        *    escolhe quem a aplica. */
-      await escolher('tmodalidade', 'Balé clássico');
+      await escolher('vinc-modalidade', 'Balé clássico');
       await esperar(300);
       await escolher('vinc-professor', 'pe-torto');
       await esperar(300);
@@ -878,7 +888,7 @@ const RITMO = {
       await escolher('vinc-professor', 'marina');
       await esperar(300);
       conferir('…e um professor sem régua di-lo, com o caminho onde se compõe',
-        /ainda não tem régua/.test(regua()) && /Régua do professor/.test(regua()), regua());
+        /ainda não tem régua/.test(regua()) && /passo «Rubrica»/.test(regua()), regua());
     }
   }
 

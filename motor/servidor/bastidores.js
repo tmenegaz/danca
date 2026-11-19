@@ -4028,17 +4028,17 @@ const TITULOS_DAS_ABAS_DA_AUDICAO = [
  * é o mesmo formulário, em dois modos —, e um rótulo que diz «Novo» mentiria a quem está a
  * corrigir um nome.
  */
+/* AS TRÊS ABAS DO PROFESSOR, E UMA DELAS TEM DOIS PASSOS (19/11/2026).
+ *
+ * «Vão ter só três abas, cadastro do professor, habilitações e desligamento e vão ter dois steps,
+ * o cadastro e a rubrica.» A régua esteve aqui como quarta aba por poucas horas, e a correcção é
+ * dela: a régua não é um terceiro trabalho SOBRE a pessoa — é a segunda metade do primeiro, e só
+ * existe depois de a pessoa existir. Aba é o que se abre em qualquer ordem; passo é o que tem
+ * ordem. Ver `#pf-passos`, dentro do painel do cadastro. */
 const ABAS_DO_PROFESSOR_HTML = [
-  ['cadastro', 'Cadastro de professor'],
-  /* A RÉGUA ENTRA ENTRE O CADASTRO E AS HABILITAÇÕES (19/11/2026) — e o lugar é o pedido:
-   * «uma aba do lado da aba cadastro de professor e antes da aba habilitações […] ele é o step dois
-   * do cadastro de professor».
-   *
-   * PORQUE É QUE ELA SAIU DAS SALAS. Lá ela era o passo 2 de um formulário que não era dela: a sala
-   * declara o ritmo, e a régua é o critério de quem avalia. Colada ao cadastro do professor, ela
-   * passa a ser o que é — um atributo da pessoa, escrito uma vez, lido por todas as salas que ela
-   * dá. */
-  ['rubrica', 'Régua do professor'],
+  // O RÓTULO DIZ SÓ «Cadastro» (19/11/2026): o «de professor» repetia o título da secção, e o
+  // passo 1 da tira tem o mesmo nome — dois nomes iguais para o mesmo sítio confundem a leitura.
+  ['cadastro', 'Cadastro'],
   ['habilitacoes', 'Habilitações'],
   ['desligamento', 'Desligamento'],
 ];
@@ -5237,7 +5237,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       if (desligamento.estaDesligado(p)) continue;
       const sl = slugDoProfessor(p);
       if (!sl || sl === donoSlug) continue;
-      /* A RÉGUA VAI JUNTO (19/11/2026). É ela que a aba «Régua do professor» abre preenchida e é
+      /* A RÉGUA VAI JUNTO (19/11/2026). É ela que o passo «Rubrica» do cadastro abre preenchido e é
        * ela que o passo 2 das Salas lê para dizer com que critério a sala é medida. Sem ela aqui, o
        * cliente teria de pedir uma segunda vez por professor — uma leitura por pessoa que abre a
        * tela, para um dado que a página já tem na mão. */
@@ -7737,8 +7737,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</ul>' +
     '</div>' +
     '</div>' +
-    /* ---------------------------------------------- ABA 1 — O CADASTRO */
+    /* ---------------------------------------------- ABA 1 — O CADASTRO, EM DOIS PASSOS
+     *
+     * «Cadastro de professores é a nossa aba. Aí a gente tem a aba também de habilitações e de
+     * desligamento. A régua do professor vai ser um step […] então vai ser primeiro, primeiro step
+     * vai ser dados do professor, vão ser o cadastro, vai se chamar cadastro apenas. A segunda vai
+     * se chamar rubrica […] então vão ter só três abas […] e vão ter dois steps, o cadastro e a
+     * rubrica.» (19/11/2026)
+     *
+     * PORQUE É QUE ISTO NÃO É UMA QUARTA ABA. As abas são os três TRABALHOS sobre uma pessoa
+     * (quem é, o que sabe ensinar, quando sai) e ficam todas abertas em qualquer momento. Os passos
+     * são a SEQUÊNCIA de um deles: o cadastro grava a pessoa, e a régua é o que ela aplica — a
+     * segunda não existe antes da primeira, e é por isso que é passo e não aba.
+     *
+     * A TIRA USA A MESMA PEÇA DAS SALAS (`.passos`), e o atributo é `data-passo-prof` de propósito:
+     * `data-passo` é a chave da tira das Salas, e os `mostrarPasso`/`aplicarTravas` dela varrem a
+     * página por `button.passo`. Uma chave igual faria a tira do professor mexer nos passos da
+     * sala — a mesma armadilha que a 31/10/2026 obrigou a dar âmbitos diferentes à tira do verbete. */
     '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
+    '<ol class="passos" aria-label="Etapas do cadastro do professor" id="pf-passos">' +
+    '<li><button type="button" class="passo ativo" data-passo-prof="cadastro" aria-current="step">' +
+    '<span class="passo-n">1</span> <span class="passo-t">Cadastro</span></button></li>' +
+    '<li><button type="button" class="passo" data-passo-prof="rubrica">' +
+    '<span class="passo-n">2</span> <span class="passo-t">Rubrica</span></button></li>' +
+    '</ol>' +
+    '<div id="pf-cadastro-paineis">' +
+    '<div class="passo-painel" id="passo-prof-cadastro">' +
     // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
     // `prompt()` do navegador — a janelinha que parece um alert, com o nome num campo de uma
     // linha e sem nada em volta. O ato é o mesmo dos outros: muda-se um nome num formulário e
@@ -7804,8 +7828,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao secundario" id="prof-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
-    '</div>' +
-    /* ---------------------------------------------- ABA 2 — A RÉGUA DO PROFESSOR (19/11/2026)
+    '</div>' +   // /#passo-prof-cadastro
+    /* ---------------------------------------------- PASSO 2 — A RÉGUA DO PROFESSOR (19/11/2026)
      *
      * «Vai ter que criar mais uma aba ali. É uma aba do lado da aba cadastro de professor e antes
      * da aba habilitações. […] Apenas vai aparecer o nome do professor, a tradição que ele ensina,
@@ -7822,7 +7846,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O `#rubr-nome` e o `#rubr-niveis` SÃO OS MESMOS ids que as Salas tinham: as peças (o editor
      * da régua, o «Acrescentar nível», o «✕» que remove) já existem e já têm prova. O que mudou foi
      * a secção onde vivem — inventar ids novos obrigaria a duplicar os três handlers. */
-    '<div class="aba-painel" id="pf-painel-rubrica" role="tabpanel" aria-labelledby="pf-aba-rubrica" tabindex="0" hidden>' +
+    '<div class="passo-painel" id="passo-prof-rubrica" hidden>' +
     '<form id="form-rubrica-prof">' +
     '<input type="hidden" id="rubr-prof-alvo" value="">' +
     '<p class="turma-em-foco" id="rubr-prof-nome" hidden></p>' +
@@ -7840,7 +7864,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="button" class="acao secundario" id="rubr-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
-    '</div>' +
+    '</div>' +   // /#passo-prof-rubrica
+    '</div>' +   // /#pf-cadastro-paineis
+    '</div>' +   // /aba-painel do cadastro
     /* ---------------------------------------------- ABA 2 — AS HABILITAÇÕES
      *
      * O CONTEÚDO É O QUE JÁ EXISTIA (03/11/2026); o que saiu foi o `<details>` que o escondia.
@@ -8163,29 +8189,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<label class="campo-rotulo" for="tnome">Nome da sala</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
-    /* A MODALIDADE DA SALA — e SÓ ela (18/11/2026).
+    /* A MODALIDADE SAIU DO PASSO 1 (19/11/2026) — e o sítio novo é o «Associar».
      *
-     * «A modalidade que está aqui no step sala define o professor da sala no step professor. É lá
-     * que eu vou escolher o professor da sala e não aqui. […] O professor da sala não existe aqui
-     * como campo, tá? Tira ele daqui.»
+     * «Você manteve, é para tirar, você manteve modalidade da sala no step um da sala. Tem que
+     * tirar. Essa modalidade da sala não existe mais aqui. E o associar é professor que aplica
+     * régua. Aqui é que vem a modalidade da sala, no associar. Aí eu escolho a modalidade e aí eu
+     * escolho o professor.»
      *
-     * A VISÃO É A DA SECRETÁRIA, e é ela que manda na ordem: «essa sala é a sala que dá aula de
-     * balé. Então, quem é o professor? Aí ela vai para o professor. Então, primeiro ela vai pensar
-     * a sala.»
+     * A RAZÃO É A MESMA QUE TINHA POSTO A MODALIDADE AQUI, levada até ao fim. A 18/11/2026 o
+     * argumento foi «a sala diz que modalidade acontece neste horário, e é isso que decide quem a
+     * pode dar» — mas a modalidade não é do HORÁRIO: é do PAR (sala, professor), e é ele que a
+     * curadoria deriva. Enquanto viveu no passo 1, a pergunta «que balé é este?» era feita antes de
+     * haver quem o desse, e o passo 2 ficava a adivinhar a partir de um campo do passo anterior.
+     * No «Associar» ela é a PRIMEIRA das duas escolhas — modalidade, e depois o professor que a
+     * ensina —, e a lista de professores recolhe-se a ela como sempre.
      *
-     * Ou seja: o step 1 responde «que modalidade acontece neste horário»; o step 2 responde «quem a
-     * dá». Eram duas perguntas no mesmo passo, e a segunda depende da primeira — o que só se vê
-     * quando se separam. O professor continua a ser filtrado por esta modalidade (é o passo 2 que o
-     * faz); o que desaparece é o campo, não a relação.
-     *
-     * O `value` É O NOME, E NÃO O ID — a convenção da Turma e da curadoria, e não uma nova. O
-     * `idDaModalidade` do núcleo explica porquê: «o perfil do professor guarda ids
-     * (`bale-classico`) e a Turma guarda o nome que o formulário oferece (`Balé clássico`)». */
-    '<label class="campo-rotulo" for="tmodalidade">Modalidade da sala</label>' +
-    '<select id="tmodalidade" name="modalidade"><option value="">— escolher —</option>' +
-    MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
-      (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
-    '</select>' +
+     * O `value` CONTINUA A SER O NOME, e não o id: é a convenção da Turma e da curadoria (ver
+     * `idDaModalidade`, no núcleo), e a curadoria guarda o nome. */
+
     // «POSIÇÃO NA LISTA» SAIU (18/10/2026). Era um número que a direção tinha de inventar para
     // dizer o que já sabia: a turma nova é a que acabou de ser criada. O servidor põe cada
     // turma nova no TOPO, e a ordem das antigas não se mexe.
@@ -8278,12 +8299,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * «Na sala, o associar passa a ser associar o professor pela modalidade e o professor. E aí que
      * é assim que a sala sabe qual é a rubrica, pela associação ao professor.»
      *
-     * O QUE ESTE PASSO PERGUNTA, E O QUE ELE SÓ MOSTRA. Pergunta UMA coisa — quem dá esta sala —, e
-     * a lista já vem recortada pela modalidade declarada no passo 1 (a mesma regra de sempre: a
-     * sala diz o que aí acontece, e a modalidade filtra quem o pode dar). Mostra duas: a TRADIÇÃO
-     * que ele ensina (das habilitações, leitura) e a RÉGUA dele (leitura). Mostrar em vez de
-     * perguntar é o que impede a segunda resposta para a mesma pergunta — a tradição já foi
-     * declarada no perfil, e a régua já foi composta em Professores.
+     * O QUE ESTE PASSO PERGUNTA, E O QUE ELE SÓ MOSTRA (19/11/2026). Pergunta DUAS coisas, e nesta
+     * ordem: a MODALIDADE da sala, e o PROFESSOR que a dá — «aqui é que vem a modalidade da sala,
+     * no associar. Aí eu escolho a modalidade e aí eu escolho o professor». A lista de professores
+     * recolhe-se à modalidade escolhida, como sempre fez.
+     *
+     * Mostra duas: a TRADIÇÃO que ele ensina (das habilitações, leitura) e a RÉGUA dele (leitura).
+     * Mostrar em vez de perguntar é o que impede a segunda resposta para a mesma pergunta — a
+     * tradição já foi declarada no perfil, e a régua já foi composta em Professores.
      *
      * SEM PROFESSOR NÃO SE GRAVA, e sem régua também não — mas quem diz isso é o servidor
      * (`POST /api/bastidores/turma-professor`), com o nome de quem falta. A tela desabilita o
@@ -8296,9 +8319,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="turma-em-foco" id="vinc-turma-nome" hidden></p>' +
     '<fieldset class="bloco-assoc">' +
     '<legend>Quem dá esta sala</legend>' +
-    /* O `select` NASCE NO SERVIDOR com as opções (a peça da casa: marcação, e não `createElement`).
-     * Ele é REPINTADO pelo cliente quando a modalidade do passo 1 muda — e é por isso que a lista
-     * canónica de professores viaja na página (`PROFESSORES_DA_ESCOLA`). */
+    /* A MODALIDADE, PRIMEIRO — e é ela que recorta a lista de professores (19/11/2026). O campo veio
+     * do passo 1, com a sua razão: a modalidade não é do horário, é do par (sala, professor), e é
+     * ele que a curadoria deriva. Perguntá-la antes de haver quem dê obrigava o passo 2 a adivinhar
+     * a partir de um campo do passo anterior. */
+    '<label class="campo-rotulo" for="vinc-modalidade">Modalidade da sala</label>' +
+    '<select id="vinc-modalidade" name="modalidade"><option value="">— escolher —</option>' +
+    MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
+      (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
+    '</select>' +
+    /* O `select` DO PROFESSOR NASCE NO SERVIDOR com as opções (a peça da casa: marcação, e não
+     * `createElement`). Ele é REPINTADO pelo cliente quando a modalidade muda — e é por isso que a
+     * lista canónica de professores viaja na página (`PROFESSORES_DA_ESCOLA`). */
     '<label class="campo-rotulo" for="vinc-professor">Professor que aplica a régua</label>' +
     '<select id="vinc-professor" name="professor"><option value="">— escolher —</option>' +
     (opcoesDeProfessorDaRubrica || '') +
@@ -9701,18 +9733,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!dur || !(Number(dur.value) > 0)) falta.push("a duração de cada aula");' +
     '  if (!ini || !String(ini.value || "").trim()) falta.push("o início do período");' +
     '  if (!fim || !String(fim.value || "").trim()) falta.push("o fim do período");' +
-    /* A MODALIDADE ENTRA NA TRAVA (18/11/2026), E O PROFESSOR NÃO — porque ele já não está aqui.
+    /* A MODALIDADE SAIU DESTA TRAVA (19/11/2026) — ela é do passo 2 desde que o campo mudou de
+     * sítio. O passo 1 é o RITMO, e mais nada: nome, dias, duração e período. Filtrar a saída do
+     * passo 1 por um campo que já não está nele seria a receita para um «Avançar» que nunca acende.
      *
-     * «A modalidade que está aqui no step sala define o professor da sala no step professor.» Uma
-     * sala sem modalidade não se pode atribuir: é ela que diz à curadoria o que CABE naquele
-     * horário, e é ela que filtra quem o pode dar no passo 2.
-     *
-     * A TRAVA É DA TELA (o `disabled` do «Avançar»), e o servidor NÃO a repete. Isso é de
-     * propósito: as salas que já existem podem não a ter, e um servidor que a exigisse recusaria
-     * gravar a correção do RITMO de uma sala antiga — que é precisamente o que se quer poder fazer
-     * sem tocar no resto. */
-    '  var mod = document.getElementById("tmodalidade");' +
-    '  if (!mod || !String(mod.value || "").trim()) falta.push("a modalidade da sala");' +
+     * A trava da modalidade passa a estar onde a pergunta está — `faltaDaAssociacao`. E o servidor
+     * continua a não a exigir no cadastro, pelo motivo declarado a 18/11: as salas antigas podem
+     * não a ter, e um servidor que a exigisse recusaria gravar a correção do RITMO delas. */
     '  return falta;' +
     '}' +
     'function faltaDaAssociacao() {' +
@@ -9725,7 +9752,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var selP = document.getElementById("vinc-professor");' +
     // A SALA JÁ NÃO TEM `select` neste passo: ela é a que está em foco (a que se acabou de gravar
     // ou a que se mandou editar). Sem foco não há a quem associar.
+    /* A MODALIDADE VEIO PARA AQUI (19/11/2026) — e vem PRIMEIRO, porque é ela que recorta a lista de
+     * professores. Sem ela o passo 2 pergunta «quem?» sobre uma lista inteira, e o par que a
+     * curadoria deriva nasce sem a primeira metade. */
+    '  var selM = document.getElementById("vinc-modalidade");' +
     '  if (!turmaEmFoco()) falta.push("escolher a sala");' +
+    '  if (!selM || !String(selM.value || "").trim()) falta.push("escolher a modalidade");' +
     '  if (!selP || !String(selP.value || "").trim()) falta.push("escolher o professor");' +
     // A EXIGÊNCIA DE «PELO MENOS UM CONTEÚDO» SAIU A 03/11/2026, e pelo mesmo motivo que a do
     // servidor: os conteúdos deixaram de se associar aqui. Uma trava no cliente que exige o que
@@ -10478,7 +10510,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (id === "form-prof" && d.slug) {' +
     '        try {' +
     '          sessionStorage.setItem("producao:professor-em-foco", String(d.slug));' +
-    '          sessionStorage.setItem("producao:aba-professor", "rubrica");' +
+    /* O PASSO, E NÃO A ABA (19/11/2026): a régua é o passo 2 do cadastro. A chave da aba fica a
+     * apontar para «cadastro» — é onde o passo 2 vive, e é ela que a retomada lê primeiro. */
+    '          sessionStorage.setItem("producao:professor-passo", "rubrica");' +
+    '          sessionStorage.setItem("producao:aba-professor", "cadastro");' +
     '        } catch (err) {}' +
     '      }' +
     '      location.reload(); return;' +
@@ -10619,7 +10654,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * pronta a ser regravada por engano. */
     '  var focoDaRegua = document.getElementById("rubr-prof-alvo");' +
     '  if (focoDaRegua) focoDaRegua.value = "";' +
-    '  try { sessionStorage.removeItem("producao:professor-em-foco"); sessionStorage.removeItem("producao:aba-professor"); } catch (err) {}' +
+    '  try {' +
+    '    sessionStorage.removeItem("producao:professor-em-foco");' +
+    '    sessionStorage.removeItem("producao:aba-professor");' +
+    '    sessionStorage.removeItem("producao:professor-passo");' +
+    '  } catch (err) {}' +
     '  var nomeDaRegua = document.getElementById("rubr-nome");' +
     '  if (nomeDaRegua) nomeDaRegua.value = "";' +
     '  if (typeof pintarEditorDaRubrica === "function") pintarEditorDaRubrica([]);' +
@@ -11311,7 +11350,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * responde pelo `data-abas` do seu `<nav>`: o botão diz A QUE GRUPO pertence pelo sítio onde
      * está, e não por um prefixo no atributo. */
     'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
-    'var ABAS_DO_PROFESSOR = ["cadastro", "rubrica", "habilitacoes", "desligamento"];' +
+    'var ABAS_DO_PROFESSOR = ["cadastro", "habilitacoes", "desligamento"];' +
     /* «A ESCOLA» DEIXOU DE SER TRÊS ABAS (17/11/2026). As abas deram lugar a três CAIXAS que se
      * abrem, no cartão da listagem — a peça da Audição —, e com isso o grupo saiu da página. O
      * aviso fica: quem procurar a tira da escola não a encontra porque a decisão foi outra. */
@@ -11345,6 +11384,64 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
      * `data-aba-do-professor` no botão que o pede. */
     'function abrirCadastroDoProfessor() { abrirAbaDoProfessor("cadastro"); }' +
+    /* OS DOIS PASSOS DO CADASTRO DO PROFESSOR (19/11/2026).
+     *
+     * A peça é a das Salas (uma tira `.passos` e um painel por passo), mas o motor é OUTRO — porque
+     * as âmbitos são outros. `mostrarPasso` das Salas varre `#sec-turmas button.passo` e
+     * `#turmas-paineis .passo-painel`; reaproveitá-la aqui faria a tira do professor acender os
+     * passos da sala, que é exactamente o defeito que a 31/10/2026 obrigou a corrigir entre a tira
+     * da turma e a do verbete. Este motor varre `#pf-passos` e `#pf-cadastro-paineis`, e mais nada.
+     *
+     * O CHÃO: o passo 2 (a régua) só se alcança com um professor em foco. Sem ele não há de quem
+     * seja a régua, e um painel aberto sobre um sujeito vazio seria a tela a pedir uma coisa que
+     * não se pode dar. Quem preenche o foco é o «Avançar» (o slug vem na resposta do servidor) e o
+     * «Editar». */
+    'function professorEmFoco(){' +
+    '  return professorEmFocoNaRegua();' +
+    '}' +
+    'function passoDoProfessor(){' +
+    '  var sec = document.getElementById("pf-cadastro-paineis");' +
+    '  if (!sec) return "cadastro";' +
+    '  var paineis = sec.querySelectorAll(".passo-painel");' +
+    '  for (var i = 0; i < paineis.length; i++) {' +
+    '    if (!paineis[i].hidden) return String(paineis[i].id || "").replace("passo-prof-", "") || "cadastro";' +
+    '  }' +
+    '  return "cadastro";' +
+    '}' +
+    'function mostrarPassoDoProfessor(qual){' +
+    '  var alvo = String(qual) === "rubrica" ? "rubrica" : "cadastro";' +
+    // Sem professor não há passo 2: a régua é DELE, e não se compõe a régua de ninguém.
+    '  if (alvo === "rubrica" && !professorEmFoco()) alvo = "cadastro";' +
+    '  var sec = document.getElementById("pf-cadastro-paineis");' +
+    '  if (sec) {' +
+    '    Array.prototype.slice.call(sec.querySelectorAll(".passo-painel")).forEach(function(pp){' +
+    '      pp.hidden = pp.id !== "passo-prof-" + alvo;' +
+    '    });' +
+    '  }' +
+    '  Array.prototype.slice.call(document.querySelectorAll("#pf-passos button.passo")).forEach(function(b){' +
+    '    var ativo = b.getAttribute("data-passo-prof") === alvo;' +
+    '    b.className = ativo ? "passo ativo" : "passo";' +
+    '    if (ativo) { b.setAttribute("aria-current", "step"); } else { b.removeAttribute("aria-current"); }' +
+    // A TIRA SÓ FICA ACESSA ONDE HÁ ALGUÉM: no passo 1 sem professor, o 2 apagado diz que falta.
+    '    if (b.getAttribute("data-passo-prof") === "rubrica") {' +
+    '      b.disabled = !professorEmFoco();' +
+    '      if (!professorEmFoco()) b.setAttribute("title", "Cadastre ou abra um professor para compor a régua dele.");' +
+    '      else b.removeAttribute("title");' +
+    '    }' +
+    '  });' +
+    /* A ABA DO CADASTRO ABRE-SE JUNTO: o passo 2 vive dentro dela, e mudar de passo a partir de
+     * outra aba (o «Voltar» da régua, por exemplo) deixaria o painel escondido atrás de uma aba. */
+    '  if (typeof abrirAbaDoProfessor === "function") abrirAbaDoProfessor("cadastro");' +
+    '  try { sessionStorage.setItem("producao:professor-passo", alvo); } catch (err) {}' +
+    '  if (alvo === "rubrica") pintarReguaDoProfessor();' +
+    '  pintarCancelarDoProfessor();' +
+    '}' +
+    /* A TIRA É CLICÁVEL, e o clique não pode ser o das abas: aquele procura `[data-aba]`, e um
+     * passo não é uma aba. Um ouvinte próprio, com o âmbito da tira do professor. */
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("#pf-passos button.passo") : null;' +
+    '  if (b) { mostrarPassoDoProfessor(b.getAttribute("data-passo-prof")); }' +
+    '});' +
     /* A ABA E O PROFESSOR VOLTAM DEPOIS DA RECARGA (19/11/2026).
      *
      * «Avançar» do cadastro e «Gravar» da régua recarregam — é a regra da casa, e é o que mantém a
@@ -11354,19 +11451,44 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * do servidor) e lidas aqui, uma vez, no arranque.
      *
      * A ORDEM IMPORTA: o foco primeiro (é ele que preenche o nome, os níveis e a tradição), e só
-     * depois a aba — uma aba aberta sobre um painel vazio pareceria um defeito. */
+     * depois a aba — uma aba aberta sobre um painel vazio pareceria um defeito.
+     *
+     * A CHAMADA NÃO PODE FICAR AQUI (19/11/2026), e custou a página inteira. Esta função vive no
+     * meio do script; `PROFESSORES_DA_ESCOLA` é uma `var` declarada MUITO mais abaixo, e `var` não
+     * tem zona morta — vale `undefined` até à linha que a atribui. Chamada neste ponto, com um
+     * professor em foco no `sessionStorage`, `pintarReguaDoProfessor` lia
+     * `undefined.length` e lançava. Uma excepção a meio de um script único **não** desfaz as
+     * declarações de função (são içadas), mas aborta todas as instruções seguintes: os ouvintes de
+     * clique das abas, o `submit` do formulário da sala e o do cadastro do professor, o `Editar`,
+     * o `Avançar` — tudo o que vem depois desta linha deixava de existir. E como a chave fica no
+     * `sessionStorage`, a página nascia morta em TODAS as visitas a partir do primeiro «Editar»:
+     * era isso que se via como «a página professores trava» e como «o Editar não funciona», com a
+     * URL a encher-se dos campos porque o formulário passava a submeter por GET, sem `preventDefault`.
+     *
+     * A LIÇÃO, e é a de sempre nesta casa: a chamada vai para o FIM do script, depois de tudo o que
+     * ela lê estar atribuído — e `retomarAbaDoProfessor` passou a tolerar a ausência do mapa, para
+     * que uma ordem futura não volte a custar a página. */
     'function retomarAbaDoProfessor() {' +
-    '  var slug = ""; var aba = "";' +
+    '  var slug = ""; var aba = ""; var passo = "";' +
     '  try {' +
     '    slug = sessionStorage.getItem("producao:professor-em-foco") || "";' +
     '    aba = sessionStorage.getItem("producao:aba-professor") || "";' +
+    '    passo = sessionStorage.getItem("producao:professor-passo") || "";' +
     '  } catch (err) {}' +
     '  var foco = document.getElementById("rubr-prof-alvo");' +
     '  if (foco && slug) foco.value = slug;' +
     '  if (slug && typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
-    '  if (aba === "rubrica" && slug) abrirAbaDoProfessor("rubrica");' +
+    /* A ABA E O PASSO VOLTAM (19/11/2026). A régua deixou de ser aba e passou a ser o passo 2 do
+     * cadastro; quem grava e recarrega tem de reencontrar o sítio onde estava, ou o trabalho feito
+     * desaparece do ecrã e a leitura é «não gravou». O passo vem primeiro porque é ele que abre a
+     * aba do cadastro (ver `mostrarPassoDoProfessor`). */
+    '  if (passo === "rubrica" && slug) {' +
+    '    mostrarPassoDoProfessor("rubrica");' +
+    '    return;' +
+    '  }' +
+    '  if (aba === "habilitacoes" || aba === "desligamento") { abrirAbaDoProfessor(aba); return; }' +
+    '  if (slug) abrirCadastroDoProfessor();' +
     '}' +
-    'retomarAbaDoProfessor();' +
     'document.addEventListener("click", function(e){' +
     '  var alvo = e.target.closest ? e.target.closest("[data-aba]") : null;' +
     '  if (alvo) {' +
@@ -12243,7 +12365,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // passo 2, que é o passo de quem dá a aula. O servidor preserva o professor que a sala já tem
     // — a lista de campos dele é que decide o que é reescrito, e `professor` não está nela quando
     // o pedido não o traz.
-    '    modalidade: (document.getElementById("tmodalidade") || {}).value || "",' +
     // A NOTA TAMBÉM NÃO (03/11/2026): saiu do cadastro por decisão dela. Não se manda vazia —
     // mandá-la vazia apagaria a nota de uma turma antiga. Simplesmente deixou de existir aqui.
 
@@ -12376,7 +12497,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A MODALIDADE, SIM (18/11/2026) — e o professor NÃO, que ele vive no passo 2. Abrir a sala em
     // «Editar» repõe a modalidade; o filtro que se segue é o que enche a lista do passo 2 com quem
     // a pode dar.
-    '  preencherSelect("tmodalidade", t.modalidade || "");' +
+    /* A MODALIDADE VAI PARA O PASSO 2 (19/11/2026). O `preencherSelect` continua a ser a peça — o
+     * que mudou foi o `id`: o campo vivia no passo 1 e passou a viver no «Associar». */
+    '  preencherSelect("vinc-modalidade", t.modalidade || "");' +
     '  filtrarProfessoresPelaModalidade();' +
     // E A NOTA deixou de ter campo (03/11/2026): não há `<input>` para preencher.
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
@@ -12792,7 +12915,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O FORMULÁRIO MANDA ENQUANTO TEM VALOR — é ele que a pessoa acabou de mexer. Trocar a
     // modalidade de uma sala em edição tem de refiltrar a lista, e a sala em foco ainda guarda a
     // modalidade ANTIGA: preferi-la faria o filtro ignorar o gesto que o provocou.
-    '  var selM = document.getElementById("tmodalidade");' +
+    /* O CAMPO É O DO «ASSOCIAR» (19/11/2026) — a modalidade mudou de passo, e a leitura mudou com
+     * ela. O `tmodalidade` deixou de existir: quem manda é o `vinc-modalidade`, que é o sítio onde a
+     * pessoa escolhe. */
+    '  var selM = document.getElementById("vinc-modalidade");' +
     '  var doForm = selM ? String(selM.value || "") : "";' +
     '  if (doForm) return doForm;' +
     // SEM FORMULÁRIO, A SALA EM FOCO — é o caso do passo 2 depois de a sala estar gravada.
@@ -12940,7 +13066,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var mod = modalidadeQueManda();' +
     '  professoresDaModalidade(mod).then(function(lista){' +
     '    if (!temTela()) return;' +
-    '    var selA = document.getElementById("tmodalidade");' +
     // A RESPOSTA DE UMA MODALIDADE QUE JÁ NÃO ESTÁ ESCOLHIDA NÃO SE APLICA: quem trocou enquanto a
     // leitura corria ficaria com a lista da anterior.
     '    if (modalidadeQueManda() !== mod) return;' +
@@ -12971,7 +13096,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '  });' +
     '}' +
-    'var selModSala = document.getElementById("tmodalidade");' +
+    'var selModSala = document.getElementById("vinc-modalidade");' +
     'if (selModSala) selModSala.addEventListener("change", function(){ filtrarProfessoresPelaModalidade(); });' +
     /* A TIRA DA RÉGUA EM PROFESSORES (19/11/2026) — a tradição e os níveis do professor EM FOCO.
      *
@@ -13016,9 +13141,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var slug = professorEmFocoNaRegua();' +
     '  var nomeEl = document.getElementById("rubr-nome");' +
     '  var alvo = document.getElementById("rubr-prof-nome");' +
+    /* O MAPA PODE AINDA NÃO TER VALOR (19/11/2026). Ele é uma `var` atribuída a meio do script, e
+     * `var` não tem zona morta: antes dessa linha vale `undefined`, e ler `.length` de `undefined`
+     * lança. Foi assim que esta função custou a página inteira quando era chamada cedo. A guarda
+     * fica para que a ordem não volte a ser uma armadilha: sem mapa, pinta-se o que se sabe (nada),
+     * e quem chama de novo depois da atribuição pinta o resto. */
+    '  var mapa = (typeof PROFESSORES_DA_ESCOLA !== "undefined" && PROFESSORES_DA_ESCOLA) || [];' +
     '  var p = null;' +
-    '  for (var i = 0; i < PROFESSORES_DA_ESCOLA.length; i++) {' +
-    '    if (String(PROFESSORES_DA_ESCOLA[i].slug || "") === slug) p = PROFESSORES_DA_ESCOLA[i];' +
+    '  for (var i = 0; i < mapa.length; i++) {' +
+    '    if (String(mapa[i].slug || "") === slug) p = mapa[i];' +
     '  }' +
     '  if (alvo) {' +
     '    alvo.hidden = !slug;' +
@@ -13037,13 +13168,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A REGRA PASSA A SER DERIVADA DO MODO, e não do clique: há edição em curso quando `#prof-modo`
      * diz «editar», ou quando há uma régua aberta para compor (a aba 2 é um trabalho a meio, e
-     * sair dele também é cancelar). Um botão que só uma função mostra é um botão que se esquece. */
+     * sair dele também é cancelar). Um botão que só uma função mostra é um botão que se esquece.
+     *
+     * E A TIRA DOS PASSOS ACOMPANHA (19/11/2026): sem professor não há passo 2, e a tira desenhada
+     * no servidor nasce acesa. É a mesma pergunta — «há trabalho a meio?» —, e por isso é a mesma
+     * função que a responde. */
     'function pintarCancelarDoProfessor(){' +
     '  var editando = modoDoProfessor() === "editar" || !!professorEmFocoNaRegua();' +
     '  ["prof-cancelar", "rubr-cancelar"].forEach(function(id){' +
     '    var b = document.getElementById(id);' +
     '    if (b) b.hidden = !editando;' +
     '  });' +
+    '  var b2 = document.querySelector("#pf-passos button.passo[data-passo-prof=\\"rubrica\\"]");' +
+    '  if (b2) {' +
+    '    b2.disabled = !professorEmFocoNaRegua();' +
+    '    if (b2.disabled) b2.setAttribute("title", "Cadastre ou abra um professor para compor a régua dele.");' +
+    '    else b2.removeAttribute("title");' +
+    '  }' +
     '}' +
     'filtrarProfessoresPelaModalidade();' +
     'pintarReguaDoProfessor();' +
@@ -13450,8 +13591,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `irParaPassoTurma` que aqui estava apontava para o painel `rubrica` das Salas, que já não
      * existe: um botão que muda de secção por engano é pior do que um botão morto, porque a pessoa
      * acredita que avançou. */
+    /* «VOLTAR» É O PASSO ANTERIOR, e não a aba anterior (19/11/2026). A régua passou a ser o passo 2
+     * do cadastro; voltar é descer um passo da MESMA aba, e não trocar de aba. `mostrarPassoDoProfessor`
+     * abre a aba certa por dentro, para o gesto funcionar também quando a pessoa chegou por outro
+     * caminho. */
     'document.getElementById("rubr-voltar").addEventListener("click", function(){' +
-    '  abrirAbaDoProfessor("cadastro");' +
+    '  mostrarPassoDoProfessor("cadastro");' +
     '});' +
     'document.getElementById("rubr-cancelar").addEventListener("click", function(){' +
     '  sairDaEdicaoDoProfessor();' +
@@ -13480,7 +13625,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * frescos. Sem estas duas chaves, a pessoa gravava a régua e aterrava no Cadastro, com o
      * professor em foco perdido: o trabalho feito desaparecia do ecrã, e a leitura era «não gravou». */
     '  try {' +
-    '    sessionStorage.setItem("producao:aba-professor", "rubrica");' +
+    '    sessionStorage.setItem("producao:professor-passo", "rubrica");' +
+    '    sessionStorage.setItem("producao:aba-professor", "cadastro");' +
     '    sessionStorage.setItem("producao:professor-em-foco", slug);' +
     '  } catch (err) {}' +
     '  enviar("/api/bastidores/rubrica-do-professor", {' +
@@ -13585,7 +13731,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    else if (p && p.rubrica && (p.rubrica.niveis || []).length) {' +
     '      alvoRegua.textContent = "«" + (p.rubrica.nome || "sem nome") + "» — " + p.rubrica.niveis.join(" · ");' +
     '    } else {' +
-    '      alvoRegua.textContent = "este professor ainda não tem régua — componha-a em Professores, na aba «Régua do professor»";' +
+    /* A FRASE DIZ ONDE, E O «ONDE» MUDOU A 19/11/2026: a régua deixou de ser aba e passou a ser o
+     * passo 2 do cadastro do professor. Uma mensagem que manda procurar uma aba que já não existe é
+     * pior do que não dizer nada — a pessoa procura, não encontra, e conclui que o sistema está
+     * quebrado. */
+    '      alvoRegua.textContent = "este professor ainda não tem régua — componha-a em Professores, no passo «Rubrica» do cadastro";' +
     '    }' +
     '  }' +
     '}' +
@@ -13726,8 +13876,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!turma || falta.length) {' +
     '    alert("Para gravar a sala, falta " + fraseDaFaltaNoCliente(falta) + "."); return;' +
     '  }' +
+    /* A MODALIDADE VAI JUNTO (19/11/2026) — é a primeira das duas escolhas do passo, e é dela que o
+     * servidor deriva a habilitação e grava o par. Sem ela no corpo, a rota recusaria por falta de
+     * modalidade — e a recusa viria depois de a pessoa ter escolhido tudo. */
     '  var professor = document.getElementById("vinc-professor").value;' +
-    '  enviar("/api/bastidores/turma-professor", {turma: turma, professor: professor, concluir: true},' +
+    '  var modalidade = document.getElementById("vinc-modalidade").value;' +
+    '  enviar("/api/bastidores/turma-professor",' +
+    '    {turma: turma, modalidade: modalidade, professor: professor, concluir: true},' +
     '    "gravando a sala...", true, concluirTurma);' +
     '});' +
     // ================= OS VERBETES DA NOTAÇÃO (28/10/2026) ==================
@@ -18903,6 +19058,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o que tinha para repor, e é este o último instante em que isso já aconteceu e nada do que a
      * página mostra foi ainda escrito por ninguém. */
     'if (typeof limparOFormularioDoEstilo === "function") limparOFormularioDoEstilo();' +
+    /* A RETOMADA DO PROFESSOR VEM PARA AQUI (19/11/2026) — ver a nota em `retomarAbaDoProfessor`.
+     *
+     * É o último instante em que tudo o que ela lê já tem valor: o mapa `PROFESSORES_DA_ESCOLA`
+     * (atribuído a meio do script), e o documento inteiro, incluindo o véu. No meio do script ela
+     * lançava com um professor em foco, e uma excepção a meio aborta todas as instruções seguintes
+     * — inclusive os ouvintes de clique que esta página tem. */
+    'if (typeof retomarAbaDoProfessor === "function") retomarAbaDoProfessor();' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
     // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
@@ -21112,7 +21274,23 @@ async function fetch(request, env, extras) {
       || turmaVigentePorNome(lista, pedido);
     if (!sala) return json(404, { ok: false, erro: 'sala não encontrada: ' + pedido });
 
+    /* A MODALIDADE É A PRIMEIRA DAS DUAS ESCOLHAS DESTE PASSO (19/11/2026).
+     *
+     * «Aqui é que vem a modalidade da sala, no associar. Aí eu escolho a modalidade e aí eu escolho
+     * o professor.» Ela veio do passo 1 para cá porque não é do HORÁRIO: é do par (sala, professor),
+     * e é esse par que a curadoria deriva. Quem chega sem ela — um cliente de ontem, que ainda a
+     * manda no cadastro — cai na que a sala já guarda; e quem não tem nem uma nem outra é recusado,
+     * porque a habilitação do professor não se pode conferir contra nada. */
+    const modalidade = String(corpo.modalidade || sala.modalidade || '').trim();
     const professor = String(corpo.professor || '').trim();
+    if (!modalidade) {
+      return json(400, {
+        ok: false,
+        erro: 'escolha a modalidade que acontece nesta sala — é ela que diz quem a pode dar, e é o '
+          + 'par (sala, professor) que a turma deriva',
+        falta: ['modalidade'],
+      });
+    }
     if (!professor) {
       return json(400, {
         ok: false,
@@ -21134,7 +21312,7 @@ async function fetch(request, env, extras) {
         });
       }
     }
-    const recusa = await recusaPorHabilitacao(env, professor, sala.modalidade);
+    const recusa = await recusaPorHabilitacao(env, professor, modalidade);
     if (recusa) {
       return json(409, { ok: false, erro: recusa, falta: ['professor'], habilitacao: true });
     }
@@ -21145,7 +21323,7 @@ async function fetch(request, env, extras) {
       return json(400, {
         ok: false,
         erro: 'a régua de ' + (nome || professor) + ' ainda não existe — e é ela que mede esta sala. '
-          + 'Crie-a em Professores, na aba «Régua do professor» (o nome e os níveis), e grave a sala '
+          + 'Crie-a em Professores, no passo «Rubrica» do cadastro (o nome e os níveis), e grave a sala '
           + 'depois. Sem ela a sala cairia na régua padrão da escola, e o documento sairia medido '
           + 'contra uma escala que não é a de quem dá a aula.',
         falta: ['rubrica'], professor,
@@ -21163,12 +21341,18 @@ async function fetch(request, env, extras) {
         });
       }
     }
+    /* O PAR GRAVA-SE JUNTO, E NUMA ESCRITA SÓ (19/11/2026) — «esta sala, nesta modalidade, com este
+     * professor» é um acto da escola, não três. Duas escritas deixariam a janela em que a sala já
+     * tem professor e ainda declara a modalidade antiga, e a curadoria — que lê as duas — derivaria
+     * um par que nunca existiu. */
     sala.professor = professor;
+    sala.modalidade = modalidade;
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
     return json(200, {
       ok: true,
       turma: sala.nome,
       professor,
+      modalidade,
       rubrica: { nome: regua.nome, niveis: regua.niveis },
     });
   }

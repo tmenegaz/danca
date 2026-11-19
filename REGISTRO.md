@@ -52705,3 +52705,64 @@ duas. Nenhuma dessas foi tocada.
 
 **Documento actualizado:** `ARQUITETURA-GERAL.md` §3.3 — a tabela dos quatro nomes, a nota nova da
 régua com o quadro antes/agora, a tabela dos passos (1 e 6) e os dois diagramas.
+
+## 19/11/2026 — «A página professores fica completamente travada» — uma chamada cedo demais, e a URL que enchia
+
+**O relato:**
+
+> «Tem algo quebrando a página professores. Quando eu faço o Ctrl+Shift+R e recarrego a página, aí a
+> página professores fica completamente travada. A URL bastidores, produção, nome, ballet, nível, fica
+> uma URL imensa na página professores e eu não consigo editar. […] Não funciona o editar do professor.
+> Eu já troquei de página, já fui para outros lugares, não funciona.»
+
+**A causa é uma linha, e é de ordem.** `retomarAbaDoProfessor()` era chamada a MEIO do script e lê
+`PROFESSORES_DA_ESCOLA` — uma `var` atribuída muito mais abaixo. `var` não tem zona morta: vale
+`undefined` até à linha que a atribui, e `undefined.length` lança. Com um professor em foco no
+`sessionStorage`, a excepção acontecia em **todas** as visitas:
+
+- as declarações de função (içadas) continuavam a existir — `editarProfessor` era `function`, e é por
+  isso que a leitura «a função existe» não teria apanhado nada;
+- as **instruções** seguintes nunca corriam, e é nelas que vivem os ouvintes de clique de
+  `button.editar`, o `submit` do formulário da sala e o do cadastro do professor;
+- sem `preventDefault`, os formulários passavam a submeter por GET e a URL enchia-se dos campos
+  (`?nome=…&modalidade=…`) — a «URL imensa»;
+- e como a chave fica no `sessionStorage`, a página nascia morta a partir do primeiro «Editar» — daí
+  «já troquei de página, já fui para outros lugares, não funciona».
+
+**A correcção:** a chamada passou para o FIM do script, onde tudo o que ela lê já tem valor; e
+`pintarReguaDoProfessor` passou a tolerar a ausência do mapa (`var mapa = PROFESSORES_DA_ESCOLA || []`),
+para que uma ordem futura não volte a custar a página.
+
+**O que ela pediu na mesma mensagem, e foi feito:**
+
+1. **A régua deixou de ser aba e passou a ser o PASSO 2 do cadastro do professor** — «vão ter só três
+   abas, cadastro do professor, habilitações e desligamento e vão ter dois steps, o cadastro e a
+   rubrica». A aba «Cadastro» passou a ter uma tira `.passos` com «Cadastro» e «Rubrica», com o motor
+   próprio (`mostrarPassoDoProfessor`): o motor das Salas varre `#sec-turmas button.passo`, e
+   reaproveitá-lo faria a tira do professor acender os passos da sala — a armadilha que a 31/10/2026
+   já obrigou a corrigir entre a tira da turma e a do verbete.
+2. **A modalidade saiu do passo 1 da Sala e entrou no «Associar»** — «essa modalidade da sala não
+   existe mais aqui. E o associar […] aqui é que vem a modalidade da sala. Aí eu escolho a modalidade
+   e aí eu escolho o professor.» O passo 1 é o RITMO e mais nada; o passo 2 é o par (modalidade,
+   professor), e é a modalidade que recorta a lista de professores. `POST /api/bastidores/turma-professor`
+   passou a receber a modalidade e a gravar o par **numa escrita só** — duas deixariam a janela em que
+   a sala já tem professor e ainda declara a modalidade antiga.
+3. **A tradição e a régua do professor, no passo 2** — «tem que trazer a tradição que ensina que não
+   trouxe e tem que trazer com que régua a sala é medida, que também não trouxe porque ainda não
+   existe». A tradição vem do perfil (por modalidade, e não uma lista achatada); a régua vem do
+   registo do professor, e quando não existe a frase diz isso e manda ao passo «Rubrica» — a mensagem
+   antiga mandava a uma aba que já não existe, e uma mensagem que manda procurar o que não há é pior do
+   que o silêncio.
+
+**Medido, e não estimado** — `experimentos/provar-pagina-do-professor.js`, 17 asserções em jsdom com o
+`sessionStorage` semeado (o estado em que ela estava): **11 falham no `HEAD`, 17/17 com a correcção**.
+A secção A mede o arranque sem excepção e a retomada; a B mede os ouvintes **pelo efeito** (clicar
+«Editar» abre a ficha; submeter não muda a URL); a C mede a orgânica nova.
+
+`experimentos/provar-regua-do-professor.js` cresceu para **42 asserções** (9 falhavam no `HEAD`): o
+passo 1 já não manda modalidade, a sala nasce sem ela, e o passo 2 recusa sem o par.
+
+**Bancadas vizinhas, medidas antes e depois:** `provar-salas-e-elencos` 132 nas duas (as secções A1 e
+G mudaram de sítio — a modalidade deixou de estar no passo 1); `provar-producao` **17 falhas no `HEAD`,
+12 agora** (nenhuma nova: cinco das antigas — as dos passos e das abas — caíram com esta mudança); as
+restantes iguais.

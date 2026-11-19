@@ -402,8 +402,8 @@ A geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions
 > `motor/servidor/escrever-ciclo.js` (as fontes do ciclo) e `motor/nucleo/porta.js`
 > (`revalidacaoPendente`, `vinculos`). Não é o desenho que se pretende: é o que cada gesto grava
 > **hoje**. A revisão de 18/11/2026 é a da Sala que passou a declarar a modalidade e o professor, e a
-> de 19/11/2026 é a da RÉGUA que passou a ser dele — ver as duas notas abaixo da tabela dos quatro
-> nomes.
+> de 19/11/2026 é a da RÉGUA que passou a ser dele e do par que mudou de passo — ver as duas notas
+> abaixo da tabela dos quatro nomes.
 
 **A cadeia, em uma linha** — é a rotina de uma escola, e é a espinha do produto:
 
@@ -417,7 +417,7 @@ os documentos antigos encontra os nomes velhos; esta tabela é a tradução:
 
 | Rótulo na Produção | Entidade (onde vive) | O que é | O que **não** é |
 |:--|:--|:--|:--|
-| **Sala** | `turmas` (KV da escola) | o **ritmo** (dias e horários, duração, período) e o **enquadramento operacional** — a modalidade que aí acontece e quem a dá | não tem nível nem tradição (são da Turma) e **não tem régua**: a régua é do professor, e a sala lê-a dele |
+| **Sala** | `turmas` (KV da escola) | o **ritmo** (dias e horários, duração, período) e o **par que a dá** — a modalidade que aí acontece e o professor | não tem nível nem tradição (são da Turma) e **não tem régua**: a régua é do professor, e a sala lê-a dele |
 | **Audição** (o ato) → **Elenco** (o que fica) | `linhas-de-base` (repositório, *append-only*) | os **corpos** escolhidos, a leitura que se fez deles e o **recorte** | não declara ciclo, nem sala, nem nível |
 | **Turma** | `curadorias` (KV da escola) | a **relação**: professor × modalidade × tradição × nível × sala × elenco × conteúdos | não é o ritmo (é da Sala) e não é o elenco (é da Audição) |
 | **Estilo** | `verbetes` (KV da escola) | os exercícios que conduzem o elenco ao domínio daquele estilo | não é a turma nem o elenco; entra no plano pela notação (P-15/P-16) |
@@ -444,9 +444,16 @@ E aí que é assim que a sala sabe qual é a rubrica, pela associação ao profe
 | Antes (até 18/11) | Agora (19/11) |
 |:--|:--|
 | a régua era da ESCOLA: uma lista (`bastidores/<escola>/rubricas`), criada uma vez e ligada a N salas por `turma.rubricaId` | a régua é do **PROFESSOR**: `professores/<slug>/rubrica` (e `dono.rubrica` no principal) |
-| as Salas tinham **três passos**: Sala · Rubricas · Associar | as Salas têm **dois**: Sala · Associar (quem dá a sala) |
-| a régua editava-se no passo 2 das Salas | edita-se em **Professores → «Régua do professor»**, entre o Cadastro e as Habilitações |
-| a sala escolhia a régua num `select` | a sala escolhe **quem a dá**, e a régua vem com ele |
+| as Salas tinham **três passos**: Sala · Rubricas · Associar | as Salas têm **dois**: Sala · Associar |
+| a régua editava-se no passo 2 das Salas | edita-se em **Professores**, no **passo 2 do cadastro** («Rubrica») |
+| a sala escolhia a régua num `select` | a sala escolhe a **modalidade** e o **professor**, e a régua vem com ele |
+| a modalidade era declarada no passo 1 da Sala | a modalidade é do **par (sala, professor)**, e declara-se no «Associar» |
+
+**Os dois passos do cadastro do professor** (19/11/2026, e a correcção é dela): «vão ter só três abas,
+cadastro do professor, habilitações e desligamento e vão ter dois steps, o cadastro e a rubrica». Aba
+é o que se abre em qualquer ordem — quem é a pessoa, o que sabe ensinar, quando sai. Passo é o que
+tem ordem: a régua é o que a pessoa APLICA, e só existe depois de a pessoa existir. A régua esteve
+aqui como quarta aba por poucas horas.
 
 A leitura resolve-se num sítio só — `reguaDaSala(turma, listaDaEscola, rubricasDosProfessores)` — e
 por quatro degraus, nesta ordem: **régua do professor** → vínculo antigo (`turma.rubricaId`) → régua
@@ -465,7 +472,7 @@ em silêncio, porque a régua padrão também tem níveis. As bancadas são
 
 ```mermaid
 flowchart TB
-    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período<br/>modalidade · quem a dá"]
+    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período<br/>· o par (modalidade, professor)"]
     E --> P["Professor<br/>habilitado na modalidade<br/>e a régua dele"]
     E --> ST["Estilo<br/>os verbetes da notação"]
     A["Alunas<br/>o apelido estável"] --> AN["Anamnese<br/>datada · sem ciclo"]
@@ -523,7 +530,7 @@ Aula lançada — o passado, que não se reescreve
 | # | Passo | Onde (Produção / porta) | O que fica gravado | Quem lê |
 |:--|:--|:--|:--|:--|
 | 0 | **Escola** | página `danca` → `provisionar-escola.js`; `tools/criar-escola.sh` | Worker, segredos, `escola/<slug>/indice.json`, professor já habilitado na modalidade, ciclo e pacote-zero | tudo o resto |
-| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma` e, no passo 2, `POST /api/bastidores/turma-professor`) | `turmas`: nome, dias com hora, duração, início e fim do período, **modalidade** e **professor**. **Incompleta não grava** (400), e **sem professor não conclui** | a Turma (que dela deriva professor e modalidade), a régua (que vem do professor), o calendário, o prazo do lançamento |
+| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma` e, no passo 2, `POST /api/bastidores/turma-professor`) | `turmas`: nome, dias com hora, duração, início e fim do período — e, no **Associar**, **modalidade** e **professor**. **Incompleta não grava** (400), e **sem o par não conclui** | a Turma (que do par deriva professor e modalidade), a régua (que vem do professor), o calendário, o prazo do lançamento |
 | 2 | **Estilo** | Produção → **Estilo** (`POST /api/bastidores/verbete`) | `verbetes`: o exercício, a direção, o compasso, a contagem | o Plano de Ensino (notação) e a Aula 01 |
 | 3 | **Alunas** | Produção → **Alunas** (`POST /api/bastidores/aluna`) | `alunas`: **só o apelido estável** — não há nome completo, contacto nem saúde | a Audição (passo 2), a lista de presentes |
 | 4 | **Anamnese** | Área do Professor → `/anamnese/` (`POST /api/elicitar`, `fonte: anamnese`) | envelope `anamnese-<carimbo>.json`, cifrado, **datado e sem ciclo** (é da aluna, §5.4.2) | a Audição (passo 3), o PO, a §6 da Aula |

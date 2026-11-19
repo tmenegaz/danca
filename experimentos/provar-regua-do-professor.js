@@ -160,15 +160,27 @@ async function salas(env) {
     { modo: 'clara', paleta: 'bordo' }, null, [], new Set(),
     { ok: true, contrato: { plano: 'avancado', capacidade: {} } });
 
+  /* TRÊS ABAS E DOIS PASSOS (19/11/2026) — «vão ter só três abas, cadastro do professor,
+   * habilitações e desligamento e vão ter dois steps, o cadastro e a rubrica». A régua esteve aqui
+   * como quarta aba por poucas horas; a correcção é dela, e é de leitura: aba é o que se abre em
+   * qualquer ordem, passo é o que tem ordem — e a régua só existe depois de a pessoa existir. */
   const abas = (pagina.match(/id="pf-aba-([a-z]+)"/g) || []).map((x) => x.replace(/^.*pf-aba-|"$/g, ''));
-  provar('as abas do professor são quatro, e a régua vem logo a seguir ao cadastro',
-    JSON.stringify(abas) === JSON.stringify(['cadastro', 'rubrica', 'habilitacoes', 'desligamento']), abas);
-  provar('o painel da régua existe', /id="pf-painel-rubrica"/.test(pagina), null);
-  const iCad = pagina.indexOf('pf-aba-cadastro');
-  const iRub = pagina.indexOf('pf-aba-rubrica');
-  const iHab = pagina.indexOf('pf-aba-habilitacoes');
-  provar('…e a tira põe-na entre o cadastro e as habilitações', iCad < iRub && iRub < iHab,
-    { iCad, iRub, iHab });
+  provar('as abas do professor são três: cadastro, habilitações e desligamento',
+    JSON.stringify(abas) === JSON.stringify(['cadastro', 'habilitacoes', 'desligamento']), abas);
+  const passosProf = (pagina.match(/data-passo-prof="([a-z]+)"/g) || [])
+    .map((x) => x.replace(/^.*data-passo-prof="|"$/g, ''));
+  provar('…e o cadastro tem dois passos: cadastro e rubrica',
+    JSON.stringify(passosProf) === JSON.stringify(['cadastro', 'rubrica']), passosProf);
+  provar('o painel da régua existe, dentro do cadastro', /id="passo-prof-rubrica"/.test(pagina), null);
+  provar('…e o do cadastro também', /id="passo-prof-cadastro"/.test(pagina), null);
+  /* A JANELA É A DOS PAINÉIS, e não a dos botões da tira: os botões vêm todos antes de qualquer
+   * painel, e medir por eles daria «verdadeiro» mesmo com a tira fora da aba. O que se afirma é que
+   * a tira está ENTRE a abertura do painel do cadastro e a do painel das habilitações. */
+  const iPasso = pagina.indexOf('id="pf-passos"');
+  const iPainelCad = pagina.indexOf('id="pf-painel-cadastro"');
+  const iPainelHab = pagina.indexOf('id="pf-painel-habilitacoes"');
+  provar('a tira fica dentro do painel do cadastro, e antes do das habilitações',
+    iPainelCad < iPasso && iPasso < iPainelHab, { iPainelCad, iPasso, iPainelHab });
 
   provar('o nome do professor em foco é mostrado (e não um select de nomes)',
     /id="rubr-prof-nome"/.test(pagina) && !/id="rubr-professor"/.test(pagina), null);
@@ -204,13 +216,16 @@ async function salas(env) {
   // -------------------------------------------------------------------------------------------
   bloco('\nD. A RÉGUA QUE A SALA APLICA É A DO PROFESSOR — a mesma que o plano lê');
 
-  const sala = await postar(env, '/api/bastidores/turma',
-    Object.assign({ nome: SALA, modalidade: 'Balé clássico' }, RITMO));
-  provar('a sala é criada', sala.status === 201 || sala.status === 200,
+  /* O PASSO 1 JÁ NÃO MANDA MODALIDADE (19/11/2026) — «essa modalidade da sala não existe mais aqui.
+   * E o associar […] aqui é que vem a modalidade da sala». A sala nasce com o RITMO e mais nada; o
+   * par (modalidade, professor) entra no passo 2, no mesmo acto. */
+  const sala = await postar(env, '/api/bastidores/turma', Object.assign({ nome: SALA }, RITMO));
+  provar('a sala é criada só com o ritmo — sem modalidade no passo 1', sala.status === 201 || sala.status === 200,
     { status: sala.status, erro: sala.corpo && sala.corpo.erro });
   const gravada = (await salas(env)).find((t) => t.nome === SALA);
-  provar('e nasce SEM professor e SEM vínculo de rubrica (o passo 2 é que os traz)',
-    !gravada.professor && !gravada.rubricaId, { professor: gravada.professor, rubricaId: gravada.rubricaId });
+  provar('…e nasce SEM modalidade, SEM professor e SEM vínculo de rubrica (o passo 2 traz os três)',
+    !gravada.professor && !gravada.rubricaId && !gravada.modalidade,
+    { professor: gravada.professor, rubricaId: gravada.rubricaId, modalidade: gravada.modalidade });
 
   const antes = await pedir(env, '/api/bastidores/turmas');
   const antesSala = (antes.corpo.turmas || []).find((t) => t.nome === SALA);
@@ -218,10 +233,20 @@ async function salas(env) {
     Array.isArray(antesSala.rubrica) && antesSala.rubrica[0] === NIVEIS_DA_RUBRICA[0],
     antesSala.rubrica);
 
-  const associada = await postar(env, '/api/bastidores/turma-professor', {
+  /* SEM MODALIDADE O PASSO 2 NÃO CONCLUI — e a recusa é a primeira das duas escolhas, não a
+   * segunda: é a modalidade que diz quem a pode dar. */
+  const semModalidade = await postar(env, '/api/bastidores/turma-professor', {
     turma: gravada.id, professor: OUTRO, concluir: true,
   });
-  provar('«Gravar sala» associa o professor', associada.status === 200 && associada.corpo.ok,
+  provar('sem modalidade a sala não conclui (400)', semModalidade.status === 400,
+    { status: semModalidade.status, erro: semModalidade.corpo && semModalidade.corpo.erro });
+  provar('…e a falta nomeada é a modalidade', JSON.stringify(semModalidade.corpo.falta) === JSON.stringify(['modalidade']),
+    semModalidade.corpo && semModalidade.corpo.falta);
+
+  const associada = await postar(env, '/api/bastidores/turma-professor', {
+    turma: gravada.id, modalidade: 'Balé clássico', professor: OUTRO, concluir: true,
+  });
+  provar('«Gravar sala» associa a modalidade e o professor', associada.status === 200 && associada.corpo.ok,
     { status: associada.status, erro: associada.corpo && associada.corpo.erro });
   const depois = await pedir(env, '/api/bastidores/turmas');
   const depoisSala = (depois.corpo.turmas || []).find((t) => t.nome === SALA);
@@ -230,12 +255,13 @@ async function salas(env) {
     depoisSala.rubrica);
   const gravada2 = (await salas(env)).find((t) => t.nome === SALA);
   provar('…e a sala passa a declarar quem a dá', gravada2.professor === OUTRO, gravada2.professor);
+  provar('…e que modalidade aí acontece — o par grava-se numa escrita só',
+    gravada2.modalidade === 'Balé clássico', gravada2.modalidade);
 
   /* A SALA SEM RÉGUA NÃO CONCLUI — e a recusa diz o caminho. É a guarda que impede o desfecho
    * silencioso: sem ela, a sala cairia na régua padrão e o documento sairia medido contra uma
    * escala que não é a de quem dá a aula. */
-  const outro = await postar(env, '/api/bastidores/turma',
-    Object.assign({ nome: 'Estúdio', modalidade: 'Balé clássico' }, RITMO));
+  const outro = await postar(env, '/api/bastidores/turma', Object.assign({ nome: 'Estúdio' }, RITMO));
   provar('uma segunda sala é criada', outro.status === 201 || outro.status === 200,
     { status: outro.status, erro: outro.corpo && outro.corpo.erro });
   const semRegua = (await salas(env)).find((t) => t.nome === 'Estúdio');
@@ -243,14 +269,15 @@ async function salas(env) {
     JSON.stringify([{ nome: 'Redinha Rosa', slug: OUTRO, sal: 'a', hash: 'b' },
       { nome: 'Sem Régua', slug: 'sem-regua', sal: 'c', hash: 'd' }]));
   const recusada = await postar(env, '/api/bastidores/turma-professor', {
-    turma: semRegua.id, professor: 'sem-regua', concluir: true,
+    turma: semRegua.id, modalidade: 'Balé clássico', professor: 'sem-regua', concluir: true,
   });
   provar('um professor sem régua não conclui a sala (400)', recusada.status === 400,
     { status: recusada.status, erro: recusada.corpo && recusada.corpo.erro });
   provar('…e a frase diz o NOME dele e onde se compõe',
-    /Sem Régua/.test(String(recusada.corpo.erro)) && /Régua do professor/.test(String(recusada.corpo.erro)),
+    /Sem Régua/.test(String(recusada.corpo.erro)) && /passo «Rubrica»/.test(String(recusada.corpo.erro)),
     recusada.corpo && recusada.corpo.erro);
-  const semProfessor = await postar(env, '/api/bastidores/turma-professor', { turma: semRegua.id });
+  const semProfessor = await postar(env, '/api/bastidores/turma-professor',
+    { turma: semRegua.id, modalidade: 'Balé clássico' });
   provar('e sem professor a sala também não conclui', semProfessor.status === 400,
     { status: semProfessor.status, erro: semProfessor.corpo && semProfessor.corpo.erro });
 
