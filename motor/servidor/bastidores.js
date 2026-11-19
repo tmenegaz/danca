@@ -12681,20 +12681,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) {' +
-    /* QUEM ENCADEIA MANDA NA RECARGA (19/11/2026) — e sem isto a cadeia NÃO ACONTECIA.
+    /* QUEM ENCADEIA MANDA NA RECARGA (19/11/2026) — a guarda FICA, mesmo depois de a cadeia da sala
+     * ter deixado de existir.
      *
-     * O DEFEITO, medido: o «Gravar sala» de uma sala que já existe faz DOIS pedidos — a sala
-     * (`turma-editar` ou `turma-derivar`) e o par modalidade+professor (`turma-professor`) —, e o
-     * segundo vive no `aoOk` do primeiro. O `aoOk` era chamado e, na linha seguinte,
-     * `location.reload()` derrubava a página com o segundo pedido ainda em voo: a sala ficava
-     * gravada e o professor **nunca**. Era isso que ela viu — «quando eu gravei o professor na
-     * listagem não aparece nada no nicho professor», com a modalidade e a régua certas no passo 2.
+     * O DEFEITO QUE A TROUXE. O «Gravar sala» de uma sala que já existia fazia dois pedidos — a sala
+     * (`turma-editar`/`turma-derivar`) e o par modalidade+professor, no `aoOk` do primeiro —, e esta
+     * função chamava o `aoOk` e recarregava na linha seguinte. A navegação derrubava o segundo
+     * pedido a meio do voo: a sala gravada, o professor nunca. Era o «não persistiu os dados que eu
+     * gravei na associação».
      *
-     * A REGRA: um `aoOk` que devolve uma promessa está a dizer «eu continuo o trabalho» — e então a
-     * recarga é dele, não desta função. Quem devolve `undefined` (o `concluirCuradoria`, o
-     * `concluirTurma`, o `esquecerRascunhoDoProfessor`) não mudou nada, e a recarga fica aqui como
-     * sempre. É a mesma divisão que o `postar` já faz, e o motivo de ela estar escrita: um
-     * `reload()` depois de um `aoOk` assíncrono é uma corrida que se perde em silêncio. */
+     * A CORREÇÃO DE FUNDO foi tirar a cadeia — as rotas da sala passaram a gravar o par na mesma
+     * escrita, porque uma escrita que não existe não se perde. Esta guarda é a rede: um `aoOk` que
+     * devolve uma promessa está a dizer «eu continuo o trabalho», e a recarga passa a ser dele.
+     * Quem devolve `undefined` (`concluirCuradoria`, `concluirTurma`,
+     * `esquecerRascunhoDoProfessor`) não mudou nada, e a recarga fica aqui como sempre. É a divisão
+     * que o `postar` já fazia, e o motivo de ela estar escrita: um `reload()` depois de um `aoOk`
+     * assíncrono é uma corrida que se perde em silêncio — e esteve a perder-se. */
     '      if (typeof aoOk === "function") {' +
     '        var seguir = aoOk(d);' +
     '        if (seguir && typeof seguir.then === "function") return;' +
@@ -12861,32 +12863,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var professor = document.getElementById("vinc-professor").value;' +
     '  var modalidade = document.getElementById("vinc-modalidade").value;' +
-    // SEM SALA EM FOCO, ESTE É O PEDIDO QUE A CRIA — e leva o passo 1 inteiro no corpo.
+    /* UM PEDIDO, E UMA ESCRITA (19/11/2026) — «não persistiu os dados que eu gravei na associação no
+     * step dois associar».
+     *
+     * O «Gravar sala» de uma sala que já existia fazia DOIS pedidos: a sala (`turma-editar` ou
+     * `turma-derivar`) e, no callback do primeiro, o par (modalidade, professor) por
+     * `turma-professor`. A cadeia partia-se de duas maneiras, e as duas em silêncio: a recarga que
+     * segue a gravação derrubava o segundo pedido a meio do voo; e na derivação o segundo pedido
+     * apontava para o id ANTIGO, escrevendo o professor no elo que desceu ao histórico.
+     *
+     * As rotas da sala passaram a gravar o par na mesma escrita — com a mesma conferência da rota
+     * do par (`conferirOParDaSala`) —, e por isso aqui há UM pedido nos três casos. O que não tem
+     * onde se perder não se perde.
+     *
+     * O QUE CONTINUA A SER UM PEDIDO À PARTE: a sala que ainda NÃO existe. É a rota do par que a
+     * cria (`sala` no corpo), e ela é a única que sabe fazer as duas coisas de uma vez. */
     '  if (!turma) {' +
     '    enviar("/api/bastidores/turma-professor",' +
     '      {sala: campos, modalidade: modalidade, professor: professor, concluir: true},' +
     '      "gravando a sala...", true, concluirTurma);' +
     '    return;' +
     '  }' +
-    '  var aoGravarASala = function(d){' +
-    '    var alvo = (d && d.id) || turma;' +
-    /* O `return` É O QUE FAZ A CADEIA CHEGAR AO FIM (19/11/2026): a promessa devolvida diz ao
-     * `enviar` que ele não recarregue — quem recarrega é este segundo pedido, quando ele próprio
-     * responder. Sem o `return`, a página recarregava por cima do pedido do professor. */
-    '    return enviar("/api/bastidores/turma-professor",' +
-    '      {turma: alvo, modalidade: modalidade, professor: professor, concluir: true},' +
-    '      "gravando a sala...", true, concluirTurma);' +
-    '  };' +
     '  var modo = (document.getElementById("tmodo") || {}).value || "derivar";' +
     '  var derivando = doFormulario.derivando || turma;' +
     '  if (modo === "editar") {' +
     '    campos.id = derivando;' +
-    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, aoGravarASala); return;' +
+    '    campos.modalidade = modalidade;' +
+    '    campos.professor = professor;' +
+    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, concluirTurma); return;' +
     '  }' +
     // A DATA NÃO VAI (18/11/2026): o servidor põe o dia do acto, no fuso da instalação.
     '  campos.derivarDe = derivando;' +
     '  campos.motivo = (document.getElementById("tmotivo") || {}).value || "";' +
-    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, aoGravarASala);' +
+    '  campos.modalidade = modalidade;' +
+    '  campos.professor = professor;' +
+    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, concluirTurma);' +
     '}' +
     'document.getElementById("t-enviar").addEventListener("click", function(){' +
     '  irParaPassoTurma("vincular");' +
@@ -21480,21 +21491,31 @@ async function fetch(request, env, extras) {
      * para o registo, e um campo fora dela é um campo que o ecrã aceita e o servidor ignora. */
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
       'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
+    /* O PAR (modalidade, professor) GRAVA-SE AQUI, NA MESMA ESCRITA QUE O RITMO (19/11/2026).
+     *
+     * Ele era um SEGUNDO pedido (`/turma-professor`), encadeado no callback deste, e a cadeia
+     * perdia-se: a recarga que segue a gravação derrubava o segundo pedido a meio do voo, e a sala
+     * ficava gravada sem professor — «não listou, não carregou o professor aqui no nicho
+     * professores». Uma escrita só não tem onde se perder, e é a mesma decisão que a rota do par já
+     * toma quando a sala ainda não existe.
+     *
+     * A CONFERÊNCIA É A MESMA (`conferirOParDaSala`): modalidade, professor desta escola,
+     * habilitação e régua. Sem ela, esta porta aceitaria o que a outra recusa.
+     *
+     * E EM BRANCO NÃO APAGA: o passo 1 já não recolhe os dois, e um cliente que só corrige o ritmo
+     * não pode limpar a associação. `parDaSalaNoCorpo` completa o que falta com o que a sala tem. */
+    const par = parDaSalaNoCorpo(corpo, alvo);
+    if (par.modalidade && par.professor) {
+      const conferido = await conferirOParDaSala({
+        env, kv, escola, modalidade: par.modalidade, professor: par.professor,
+      });
+      if (!conferido.ok) return json(conferido.status, conferido.corpo);
+      declarado.modalidade = conferido.modalidade;
+      declarado.professor = conferido.professor;
+    }
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) {
       if (!(k in declarado)) continue;
-      /* O PAR (modalidade, professor) NÃO SE APAGA POR UMA GRAVAÇÃO QUE NÃO O TRAZ (19/11/2026).
-       *
-       * O `normalizarTurma` emite os dois SEMPRE — vazios quando o corpo não os manda —, e o
-       * `'modalidade' in declarado` era verdadeiro com `''`. Como o passo 1 já não os recolhe
-       * (foram para o «Associar»), corrigir o ritmo de uma sala passava a apagá-los: a sala ficava
-       * gravada, sem professor, e a listagem voltava a dizer «esta sala ainda não diz quem a dá».
-       * Era o mesmo defeito que o passo 2 tapava quando a cadeia chegava ao fim — e ficava à vista
-       * sempre que ela não chegava. Em branco aqui significa «não mexi», como no contato do
-       * professor: apagar a associação não é um efeito de não a reescrever.
-       *
-       * Quem os escreve é a rota do par (`/turma-professor`), que é a única que sabe se há
-       * professor com régua para os dois. */
       if ((k === 'modalidade' || k === 'professor') && !declarado[k]) continue;
       ajustado[k] = declarado[k];
     }
@@ -21586,21 +21607,22 @@ async function fetch(request, env, extras) {
     // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
       'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
+    /* O PAR VAI NO ELO NOVO, NA MESMA ESCRITA (19/11/2026) — a mesma razão do `turma-editar`, e
+     * aqui com uma consequência a mais: o elo novo nasce com um `id` diferente, e um segundo pedido
+     * a apontar para a sala ANTIGA escreveria o professor no elo que desceu ao histórico. A lista
+     * mostraria o elo novo sem professor, e o professor estaria no passado. */
+    const par = parDaSalaNoCorpo(corpo, anterior);
+    if (par.modalidade && par.professor) {
+      const conferido = await conferirOParDaSala({
+        env, kv, escola, modalidade: par.modalidade, professor: par.professor,
+      });
+      if (!conferido.ok) return json(conferido.status, conferido.corpo);
+      declarado.modalidade = conferido.modalidade;
+      declarado.professor = conferido.professor;
+    }
     const ajustado = {};
     for (const k of CAMPOS_DO_FORMULARIO) {
       if (!(k in declarado)) continue;
-      /* O PAR (modalidade, professor) NÃO SE APAGA POR UMA GRAVAÇÃO QUE NÃO O TRAZ (19/11/2026).
-       *
-       * O `normalizarTurma` emite os dois SEMPRE — vazios quando o corpo não os manda —, e o
-       * `'modalidade' in declarado` era verdadeiro com `''`. Como o passo 1 já não os recolhe
-       * (foram para o «Associar»), corrigir o ritmo de uma sala passava a apagá-los: a sala ficava
-       * gravada, sem professor, e a listagem voltava a dizer «esta sala ainda não diz quem a dá».
-       * Era o mesmo defeito que o passo 2 tapava quando a cadeia chegava ao fim — e ficava à vista
-       * sempre que ela não chegava. Em branco aqui significa «não mexi», como no contato do
-       * professor: apagar a associação não é um efeito de não a reescrever.
-       *
-       * Quem os escreve é a rota do par (`/turma-professor`), que é a única que sabe se há
-       * professor com régua para os dois. */
       if ((k === 'modalidade' || k === 'professor') && !declarado[k]) continue;
       ajustado[k] = declarado[k];
     }
@@ -21865,7 +21887,103 @@ async function fetch(request, env, extras) {
     });
   }
 
-  /* POST /api/bastidores/rubrica-do-professor — A RÉGUA É DELE (19/11/2026).
+  /* O PAR (MODALIDADE, PROFESSOR) DE UMA SALA — CONFERIDO NUMA FUNÇÃO SÓ (19/11/2026).
+ *
+ * PORQUE É UMA FUNÇÃO. A conferência vivia dentro da rota do par (`turma-professor`), e essa rota
+ * era a SEGUNDA metade de uma cadeia de dois pedidos: o «Gravar sala» de uma sala que já existia
+ * mandava primeiro a sala (`turma-editar`/`turma-derivar`) e só depois o par. A cadeia era frágil
+ * por construção — a recarga que segue a gravação derrubava o segundo pedido a meio do voo, e o
+ * resultado foi o que ela viu: «cliquei em gravar […] não tem nada aqui no step dois associar e por
+ * isso não listou, não carregou o professor aqui no nicho professores».
+ *
+ * A SAÍDA É NÃO HAVER CADEIA: as duas rotas da sala passam a saber escrever o par, e o cliente faz
+ * UM pedido. Para isso a conferência tem de ser a mesma nos três sítios — três cópias divergiriam
+ * na primeira correcção, e a que ficasse para trás seria a que aceita um professor sem régua.
+ *
+ * O QUE ELA CONFERE, e a ordem é a do diagnóstico: a modalidade vem primeiro porque é ela que diz
+ * quem pode dar a aula; depois o professor é desta escola; depois a habilitação dele cobre a
+ * modalidade; e por fim a régua, que é o instrumento com que a sala é medida.
+ *
+ * A RÉGUA VOLTA NA RESPOSTA: quem chama já a mostrou na tela e não precisa de a reler.
+ */
+async function conferirOParDaSala({ env, kv, escola, modalidade, professor }) {
+  const mod = String(modalidade || '').trim();
+  const prof = String(professor || '').trim();
+  if (!mod) {
+    return {
+      ok: false, status: 400,
+      corpo: {
+        ok: false,
+        erro: 'escolha a modalidade que acontece nesta sala — é ela que diz quem a pode dar, e é o '
+          + 'par (sala, professor) que a turma deriva',
+        falta: ['modalidade'],
+      },
+    };
+  }
+  if (!prof) {
+    return {
+      ok: false, status: 400,
+      corpo: {
+        ok: false,
+        erro: 'escolha o professor que dá esta sala — é ele que diz com que régua ela é medida',
+        falta: ['professor'],
+      },
+    };
+  }
+  /* O PROFESSOR TEM DE SER DESTA ESCOLA — a mesma conferência da régua, e a mesma mensagem que
+   * nomeia o slug em vez de dizer «inválido». */
+  const daCasa = new Set((await professores(kv, escola)).map((p) => slugDoProfessor(p)).filter(Boolean));
+  const doDono = String(slugDoDono(env) || '').trim();
+  if (doDono) daCasa.add(doDono);
+  if (!daCasa.has(prof)) {
+    return {
+      ok: false, status: 400,
+      corpo: {
+        ok: false,
+        erro: 'o professor «' + prof + '» não é professor desta escola — escolha um da lista',
+        falta: ['professor'],
+      },
+    };
+  }
+  const recusa = await recusaPorHabilitacao(env, prof, mod);
+  if (recusa) {
+    return { ok: false, status: 409, corpo: { ok: false, erro: recusa, falta: ['professor'], habilitacao: true } };
+  }
+  const regua = await rubricaDeUmProfessor({ env, kv, escola, slug: prof });
+  if (!regua) {
+    const nome = nomeDoProfessorDaSala(prof, await professores(kv, escola), slugDoDono(env),
+      await nomeDoDono(env, kv, escola));
+    return {
+      ok: false, status: 400,
+      corpo: {
+        ok: false,
+        erro: 'a régua de ' + (nome || prof) + ' ainda não existe — e é ela que mede esta sala. '
+          + 'Crie-a em Professores, no passo «Rubrica» do cadastro (o nome e os níveis), e grave a sala '
+          + 'depois. Sem ela a sala cairia na régua padrão da escola, e o documento sairia medido '
+          + 'contra uma escala que não é a de quem dá a aula.',
+        falta: ['rubrica'], professor: prof,
+      },
+    };
+  }
+  return { ok: true, modalidade: mod, professor: prof, regua };
+}
+
+/* O PAR QUE O PEDIDO TRAZ, COMPLETADO PELO QUE A SALA JÁ TEM (19/11/2026).
+ *
+ * `corpo.modalidade || registo.modalidade` é a regra de sempre — quem manda só metade não apaga a
+ * outra —, e é ela que deixa as rotas da sala aceitarem o par sem obrigarem o cliente a mandá-lo
+ * sempre: uma correcção de ritmo por um cliente antigo continua a não tocar na associação.
+ */
+function parDaSalaNoCorpo(corpo, registo) {
+  const c = corpo || {};
+  const r = registo || {};
+  return {
+    modalidade: String(c.modalidade || r.modalidade || '').trim(),
+    professor: String(c.professor || r.professor || '').trim(),
+  };
+}
+
+/* POST /api/bastidores/rubrica-do-professor — A RÉGUA É DELE (19/11/2026).
    *
    * «Lá em professor vai ter então a régua, que é dele […] apenas vai aparecer o nome do professor,
    * a tradição que ele ensina, o nome que tem que colocar a rubrica, tem que ter esse campo para o
@@ -21991,61 +22109,15 @@ async function fetch(request, env, extras) {
       corpo.criada = true;
     }
 
-    /* A MODALIDADE É A PRIMEIRA DAS DUAS ESCOLHAS DESTE PASSO (19/11/2026).
-     *
-     * «Aqui é que vem a modalidade da sala, no associar. Aí eu escolho a modalidade e aí eu escolho
-     * o professor.» Ela veio do passo 1 para cá porque não é do HORÁRIO: é do par (sala, professor),
-     * e é esse par que a curadoria deriva. Quem chega sem ela — um cliente de ontem, que ainda a
-     * manda no cadastro — cai na que a sala já guarda; e quem não tem nem uma nem outra é recusado,
-     * porque a habilitação do professor não se pode conferir contra nada. */
-    const modalidade = String(corpo.modalidade || sala.modalidade || '').trim();
-    const professor = String(corpo.professor || '').trim();
-    if (!modalidade) {
-      return json(400, {
-        ok: false,
-        erro: 'escolha a modalidade que acontece nesta sala — é ela que diz quem a pode dar, e é o '
-          + 'par (sala, professor) que a turma deriva',
-        falta: ['modalidade'],
-      });
-    }
-    if (!professor) {
-      return json(400, {
-        ok: false,
-        erro: 'escolha o professor que dá esta sala — é ele que diz com que régua ela é medida',
-        falta: ['professor'],
-      });
-    }
-    /* O PROFESSOR TEM DE SER DESTA ESCOLA — a mesma conferência da régua, e a mesma mensagem que
-     * nomeia o slug em vez de dizer «inválido». */
-    {
-      const daCasa = new Set((await professores(kv, escola)).map((p) => slugDoProfessor(p)).filter(Boolean));
-      const doDono = String(slugDoDono(env) || '').trim();
-      if (doDono) daCasa.add(doDono);
-      if (!daCasa.has(professor)) {
-        return json(400, {
-          ok: false,
-          erro: 'o professor «' + professor + '» não é professor desta escola — escolha um da lista',
-          falta: ['professor'],
-        });
-      }
-    }
-    const recusa = await recusaPorHabilitacao(env, professor, modalidade);
-    if (recusa) {
-      return json(409, { ok: false, erro: recusa, falta: ['professor'], habilitacao: true });
-    }
-    const regua = await rubricaDeUmProfessor({ env, kv, escola, slug: professor });
-    if (!regua) {
-      const nome = nomeDoProfessorDaSala(professor, await professores(kv, escola), slugDoDono(env),
-        await nomeDoDono(env, kv, escola));
-      return json(400, {
-        ok: false,
-        erro: 'a régua de ' + (nome || professor) + ' ainda não existe — e é ela que mede esta sala. '
-          + 'Crie-a em Professores, no passo «Rubrica» do cadastro (o nome e os níveis), e grave a sala '
-          + 'depois. Sem ela a sala cairia na régua padrão da escola, e o documento sairia medido '
-          + 'contra uma escala que não é a de quem dá a aula.',
-        falta: ['rubrica'], professor,
-      });
-    }
+    /* O PAR, CONFERIDO PELA FUNÇÃO QUE AS TRÊS ROTAS PARTILHAM (19/11/2026) — ver
+     * `conferirOParDaSala`. A modalidade que o pedido não traz cai na que a sala já guarda: um
+     * cliente de ontem, que ainda a manda no cadastro, continua a valer. */
+    const par = parDaSalaNoCorpo(corpo, sala);
+    const conferido = await conferirOParDaSala({
+      env, kv, escola, modalidade: par.modalidade, professor: par.professor,
+    });
+    if (!conferido.ok) return json(conferido.status, conferido.corpo);
+    const { modalidade, professor, regua } = conferido;
     /* A SALA COMPLETA É A QUE PODE CONCLUIR. O ritmo é a mesma regra do cadastro — e é o que o
      * botão «Gravar sala» significa: a sequência terminou. */
     if (corpo.concluir === true || corpo.concluir === 'sim') {

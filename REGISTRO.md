@@ -53263,3 +53263,50 @@ veio do formulário não se apaga».
 `provar-avancar-nao-grava` 24, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
 `provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-regua-do-professor`
 44, `provar-passos-uniformes` 45, `provar-teste` 41, `check-identidade` ok.
+
+### 19/11/2026 — O par do «Associar» não se perdia no caminho: passa a ser a mesma escrita
+
+«Eu estou em salas e não persistiu os dados que eu gravei na associação no step dois associar.
+Modalidade da sala eu escolhi, professor eu escolhi, os dados foram carregados aqui, cliquei em gravar,
+voltei em editar […] e aí não tem nada aqui no step dois associar e por isso não listou, não carregou
+o professor aqui no nicho professores.»
+
+**A causa é a cadeia de dois pedidos, e ela tem dois modos de se partir.** O «Gravar sala» de uma sala
+que já existe mandava primeiro a sala (`turma-editar` ou `turma-derivar`) e, no callback dessa
+resposta, o par por `turma-professor`. (i) A recarga que segue a gravação derrubava o segundo pedido a
+meio do voo — a sala gravada, o professor nunca. (ii) Na derivação o segundo pedido levava o id
+**antigo**: o elo novo — o que a lista mostra — nascia sem professor, e a associação ficava escrita no
+elo que já tinha descido ao histórico.
+
+**A correção de fundo é tirar a cadeia.** As três rotas da sala passam a partilhar **uma** conferência
+do par (`conferirOParDaSala`: modalidade, professor desta escola, habilitação, régua), e as duas que
+escrevem a sala — `turma-editar` e `turma-derivar` — gravam o par **na mesma escrita** que o ritmo. O
+cliente faz um pedido nos três casos. Uma escrita que não existe não se perde; uma cadeia, sim.
+
+A guarda que ficou no `enviar` (um callback que devolve promessa manda na recarga) **fica**, como rede:
+é a regra certa, e a razão de ela existir está escrita no código. Mas a correção não é ela — é não
+haver dois pedidos para o mesmo acto.
+
+**O segundo defeito, apanhado a medir o primeiro.** `normalizarTurma` emite `modalidade` e `professor`
+sempre — vazios quando o corpo não os manda —, e a edição copiava os campos presentes: um cliente que
+só corrigisse o ritmo apagava a associação. Em branco passou a significar «não mexi» (a mesma regra do
+contato do professor), e `parDaSalaNoCorpo` completa a metade que falta com o que a sala já declara.
+
+**Medido** — `experimentos/provar-associar-grava.js` reescrito: **36 asserções**, com as rotas a correr
+a sério num DOM a sério (o `fetch` da página é o `fetchSemRede` do módulo, com o KV da escola; só o
+perfil do professor, que vive no repositório, é um duplo). A secção A clica «Gravar sala» e conta o que
+saiu: **um** POST, com o par no corpo, e o KV com os dois depois. A B faz o mesmo na derivação e mede a
+asserção que o id obriga — o par no elo novo, e o elo antigo intocado. A C reabre «Editar» e vê a
+modalidade e o professor repostos no passo 2.
+
+**Controle negativo** (cliente reposto ao desenho de dois pedidos): falham as duas asserções da
+secção A e as duas da B — «faz UM pedido de escrita» devolve os dois POST, e o corpo do primeiro já
+não leva o par.
+
+`ARQUITETURA-GERAL.md` §3.3 passa a dizer as duas metades: o que se grava no mesmo acto vai na mesma
+escrita, e quem encadeia manda na recarga.
+
+**Bancadas, medidas:** `provar-associar-grava` 36, `provar-avancar-nao-grava` 24,
+`provar-salas-e-elencos` 132, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
+`provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-abas-da-audicao` 125,
+`provar-teste` 41, `check-identidade` ok.

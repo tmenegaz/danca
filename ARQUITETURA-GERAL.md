@@ -273,19 +273,25 @@ sala que **ainda não existe** — é por isso que `POST /api/bastidores/turma-p
 as mesmas três regras do cadastro; (ii) o recado de um erro tem de ser escrito num `.res` **à vista** —
 cada passo tem o seu, e o do passo 1 fica escondido quando o passo 2 abre.
 
-**E QUEM ENCADEIA MANDA NA RECARGA (19/11/2026).** Quando a conclusão de uma sequência precisa de
-**dois** pedidos — a sala, e só depois o par (modalidade, professor) —, o segundo vive no callback do
-primeiro. A página recarrega depois de gravar, e essa recarga é do **último** pedido: se o primeiro a
-pedir, a navegação derruba o segundo a meio do voo, e o resultado é o pior dos silêncios — a sala
-gravada e o professor não, sem erro nenhum. A regra: um callback que devolve uma promessa está a dizer
-«eu continuo», e o `enviar` não recarrega por ele. Medido em `provar-associar-grava.js`, com as duas
-respostas presas na mão: entre a resposta da sala e a do par, a página não pode recarregar.
+**UMA SEQUÊNCIA, UMA ESCRITA — E QUEM ENCADEIA MANDA NA RECARGA (19/11/2026).** A conclusão de um
+formulário com passos que compõem **duas** coisas (a sala, e o par modalidade × professor) era feita em
+dois pedidos, o segundo no callback do primeiro. Não funciona: a página recarrega depois de gravar, e
+a navegação derruba o segundo pedido a meio do voo — a sala fica gravada e o professor não, sem erro
+nenhum. Pior na derivação, em que o segundo pedido levava o id **antigo** e escrevia a associação no
+elo que já tinha descido ao histórico.
 
-**E O QUE NÃO VEIO DO FORMULÁRIO NÃO SE APAGA (19/11/2026).** O `normalizarTurma` emite `modalidade` e
+A regra, em duas metades: **(i)** o que se grava no mesmo acto vai na **mesma escrita** — as rotas da
+sala aceitam o par no corpo e conferem-no com a mesma função que a rota do par (`conferirOParDaSala`);
+**(ii)** quando houver mesmo uma cadeia, um callback que devolve uma promessa está a dizer «eu
+continuo», e a recarga é dele — o `enviar` não recarrega por ele. Uma escrita que não existe não se
+perde; uma cadeia, sim. Medido em `provar-associar-grava.js`, com as rotas a correr a sério: um POST
+por gravação, e o par no elo certo.
+
+**E O QUE NÃO VEIO DO FORMULÁRIO NÃO SE APAGA (19/11/2026).** `normalizarTurma` emite `modalidade` e
 `professor` sempre — vazios quando o corpo não os manda —, e a edição copia os campos presentes: um
 vazio copiado é um campo apagado. Como o passo 1 já não recolhe os dois, corrigir o ritmo de uma sala
-apagava a associação em silêncio. Em branco significa «não mexi», como no contato do professor: quem
-escreve o par é a rota do par.
+(por um cliente que não os mande) apagava a associação em silêncio. Em branco significa «não mexi»,
+como no contato do professor; e quando o par vem, é conferido antes de escrito.
 
 E a lista de professores de um passo 2 **nasce vazia** até a modalidade ser escolhida: é a modalidade
 que diz quem pode dar aquela sala, e oferecer a escola inteira antes disso deixava escolher quem talvez
