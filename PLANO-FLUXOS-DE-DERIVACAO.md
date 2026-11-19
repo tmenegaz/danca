@@ -2,7 +2,7 @@
 
 > **Estado:** aberto a 19/11/2026. **Dono das decisões:** a proprietária. **A bancada:**
 > [`experimentos/provar-os-fluxos-da-derivacao.js`](experimentos/provar-os-fluxos-da-derivacao.js)
-> (29 asserções). **O retrato do código:** [`ARQUITETURA-GERAL.md`](ARQUITETURA-GERAL.md) §3.4.
+> (57 asserções). **O retrato do código:** [`ARQUITETURA-GERAL.md`](ARQUITETURA-GERAL.md) §3.4.
 
 ## O que ela pediu, e em que termos
 
@@ -37,7 +37,7 @@ aula, a regra «o passado não se mexe» não é implementável — é o T7.
 |:--|:--:|:--:|
 | Sala · `turma-editar` (corrigir o ritmo no lugar) | **sim** | sim |
 | Sala · `turma-derivar` (ritmo novo, elo datado) | **sim** | sim |
-| Sala · **`turma-professor`** (mudar o professor/modalidade) | **não** | **sim** — é o T2 |
+| Sala · **`turma-professor`** (mudar o professor/modalidade) | **sim** desde o T2 | sim |
 | Elenco · `linha-de-base` (gravar/concluir) | **sim** | sim |
 | Elenco · `elenco-mover` (transferir aluna) | **sim** | sim |
 | Elenco · `DELETE /linha-de-base` (apagar o elenco) | **não** | **sim** — deixa a Turma a apontar para o nada |
@@ -98,24 +98,49 @@ autoria, e a §D é nova (o expurgo). `provar-a-autoria-na-troca-de-professor` 4
 `provar-regua-do-professor` 44, `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
 `provar-cadeia-do-ajuste` 34, `provar-remocao-do-elenco` 26, `provar-anamnese-da-aluna-certa` 18.
 
-### T2 — «Mudar o professor de uma Sala» dispara o fluxo *(o T1 está feito; este é o próximo)*
+### T2 — «Mudar o professor de uma Sala» dispara o fluxo — **FEITO a 19/11/2026**
 
-**O que é.** `POST /api/bastidores/turma-professor` passa a percorrer a cadeia, e devolve `cadeia` como
-as outras cinco rotas.
+**O que era.** `POST /api/bastidores/turma-professor` gravava o par e não percorria nada. Das oito
+rotas que deviam percorrer a cadeia e não o faziam, era a primeira — e a única que muda **quem dá a
+aula**.
 
-**O que a cadeia deve fazer neste caso** — e a regra já existe, é de 12/11/2026: **a autoria não se
-deriva**. O plano do professor que saiu **não** é reescrito com o nome de quem entra: ele fica, marcado
-`sem turma`, com «Quem fez» a dizer a verdade. O professor novo escreve o dele — e é isso que a etapa
-`bloqueada` diz, com o «!» no cabeçalho da porta.
+**O que passou a valer.** A rota chama `rodarCadeia` com o gatilho **`troca-de-direcao`** e devolve
+`cadeia` e `trocou: {professor, modalidade}`, o mesmo contrato das outras cinco. E o que a cadeia faz
+não é derivar: é **parar e dizer**. A etapa `plano-de-ensino` fica `bloqueada` com a frase da
+autoria — *«a autoria não se reescreve — este professor escreve o plano dele»* —, o plano do anterior
+fica `sem turma` a dizer quem o escreveu, e o professor novo escreve o dele. É a regra de 12/11/2026,
+e ela já existia no motor: faltava alguém a correr.
 
-**O que muda.** A resposta do gesto; o aviso no canto («o plano de X fica com X — o novo escreve o
-dele»); o véu, que passa a cobrir a travessia.
+**Três correcções que o gatilho obrigou a fazer primeiro** — e nenhuma delas é cosmética:
 
-**Como se mede.** A bancada passa a exigir: resposta com `cadeia`; a etapa `plano-de-ensino`
-`bloqueada` com a frase da autoria; o plano anterior listado com o selo `sem turma`; e o professor
-novo a ver a turma na lista que autoriza o plano. Alargar
-[`provar-a-autoria-na-troca-de-professor.js`](experimentos/provar-a-autoria-na-troca-de-professor.js),
-que já mede o selo e a porta.
+1. **A travessia só corre quando algo mudou.** A pergunta é feita **antes** da escrita, porque é aí
+   que a resposta ainda existe. Sem ela, um gesto que reconfirma o mesmo par escrevia uma entrada no
+   log sem fazer nada, o que se lê como trabalho e não é. A resposta di-lo: *«o par da sala não
+   mudou — não há nada a percorrer»*.
+2. **O gatilho passou a dizer o que mudou, nos dois caminhos que também mexem no par.** O
+   `turma-editar` e o `turma-derivar` mandavam sempre `mudanca-de-sala` — o rótulo do **ritmo** —,
+   mesmo quando quem mudou foi a direção. O log da cadeia lê-se por esse rótulo, e um rótulo que
+   mente sobre o gesto é a mesma família do `.catch` que escreve no `.res`.
+3. **`parouPor`.** A travessia passou a devolver **a frase** da etapa que a parou, e o aviso que
+   atravessa a recarga leva-a. Sem isso a tela recebia `bloqueada` e não tinha o que dizer.
+
+**E a ponte.** A cadeia não é montada dentro das rotas: `producao.js` tem a lista dos gestos para os
+quais ela é montada, e um gesto fora dessa lista chama uma cadeia `null` — grava, devolve `200`, e a
+travessia não acontece. Foi o que aconteceu aqui; a bancada passou a comparar as **duas listas**, e
+uma rota nova que chame a cadeia sem entrar na lista reprova.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **34 → 57**: a resposta com `cadeia`, a travessia a
+correr (`pedidos > 0`), o gatilho `troca-de-direcao`, o motivo a nomear os dois professores, o
+`parouPor` com o nome da turma, o «nada mudou» a não fingir travessia, a modalidade a disparar
+também, e as duas listas (rotas × ponte) a coincidir. **Controlo negativo: 14 de 56 reprovam**
+contra o `bastidores.js` anterior. Vizinhas: `provar-autoria-na-troca-de-professor` 41,
+`provar-salas-e-elencos` 132, `provar-turma-sem-professor` 23, `provar-cadeia-do-ajuste` 34,
+`provar-regua-do-professor` 44, `provar-gravar-e-gravar` 49.
+
+**O que fica para o T3, e não se resolveu aqui:** a **modalidade** mudou no mesmo gesto e passou a
+percorrer a mesma travessia, mas **ainda não se decidiu** se ela deriva (mesmo autor, outro
+referencial) ou bloqueia (outros níveis, outra régua). Hoje ela percorre e não encontra o que
+bloquear, porque `direcaoDeHoje` só compara professor e sala.
 
 ### T3 — A troca de **modalidade** de uma Sala, e a tradição que vem com ela
 
@@ -126,6 +151,12 @@ níveis são outros, a régua pode ser outra).
 **Por que separado do T2.** As duas mudanças têm o mesmo gatilho e efeitos diferentes: a de professor
 **bloqueia** (autoria); a de modalidade **pode derivar** (o mesmo professor, outro enquadramento) — e
 é preciso decidir se deriva ou se bloqueia também.
+
+**O T2 já lhe deu o gatilho, e só o gatilho.** A modalidade passou a **percorrer** a travessia junto
+com o professor (`turma-professor`, `turma-editar` e `turma-derivar` leem as duas), mas a travessia
+**não a vê**: `direcaoDeHoje` compara professor e sala, e uma troca só de modalidade percorre tudo e
+não encontra o que bloquear. É por isso que este passo continua aberto — o que falta aqui não é o
+disparo, é a **decisão** e a regra que dela sai.
 
 **A decidir:** modalidade nova → deriva o plano (mesmo autor, outro referencial) ou exige plano novo?
 A recomendação é **derivar com aviso**, porque o autor é o mesmo e o que muda é a leitura do cadastro;

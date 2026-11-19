@@ -4656,22 +4656,33 @@ antigo deixa de a ver, e a cadeia apanha a troca com a frase da autoria. O `id` 
 (é identidade) e a tradição continua na curadoria (não está na Sala). **E o expurgo foi conferido,
 como ela pediu:** faltavam-lhe **`matriculas`** e **`cadeia`** na lista declarada — a que vale no dia
 em que o `kv.list` não responde —, e a bancada passou a comparar a lista com as chaves que o **código**
-escreve. **Próximo:** o T2 (o gesto de Salas percorrer a cadeia), que agora já não derivaria o nome
-errado.
+escreve.
+
+**RESOLVIDO a 19/11/2026 — o T2: o gesto de Salas percorre a cadeia.** `turma-professor` passou a chamar
+`rodarCadeia` com o gatilho **`troca-de-direcao`** e devolve `cadeia` e `trocou: {professor, modalidade}`
+— o mesmo contrato das outras cinco rotas. E o que a cadeia faz não é derivar: é **parar e dizer**. A
+etapa `plano-de-ensino` fica `bloqueada` com a frase da autoria, o plano do anterior fica `sem turma` a
+dizer quem o escreveu, e o professor novo escreve o dele — a regra de 12/11/2026, que já existia no
+motor; faltava alguém a correr. Três correcções vieram antes do gatilho: a travessia **só corre quando
+algo mudou** (a pergunta é feita antes da escrita, e a resposta di-lo); o gatilho passou a dizer **o que
+mudou** também no `turma-editar` e no `turma-derivar`, que mandavam sempre `mudanca-de-sala`; e o estado
+da cadeia devolve **`parouPor`**, a frase da etapa que parou, que o aviso leva através da recarga. **E a
+ponte:** `producao.js` declara os gestos para os quais a cadeia é montada, e o `turma-professor` estava
+de fora — um gesto fora dessa lista chama uma cadeia `null`, grava, responde `200` e não percorre nada.
+**CONFIRMADO** por `provar-os-fluxos-da-derivacao` (57; **14 de 56** reprovavam contra o `bastidores.js`
+anterior). **Próximo:** o T3 — a troca de **modalidade**, que já dispara mas ainda não tem regra.
 
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
-verdade mediu o que dispara hoje: **cinco** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
-`linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **oito gestos** que deviam percorrê-la não a
-percorrem — o primeiro é o que ela nomeou, **mudar o professor de uma sala**. A causa de fundo não é o
-gatilho que falta: é a **cópia**. A Turma guarda `professor`, `modalidade` e `tradicao` copiados da
-Sala, e o gesto de Salas escreve só na Sala — medido: a Sala diz `redinha-rosa`, a Turma diz
-`pe-torto`, o professor novo não vê a turma que passou a dar, e a cadeia **não** apanha a troca (a
-etapa não fica `bloqueada`; sobra a data). Ligar o gatilho hoje derivaria o nome errado — é o que o
-comentário da própria rota diz, e tem razão. **O T1 do [`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md)
-está à espera de uma decisão dela:** a Turma passa a **ler** o par da Sala (A, recomendada), ou a Sala
-**propaga** para a Turma (B)? E, com o T7, falta o dado de que a regra «o passado não se mexe» precisa:
-o sistema conhece o **período**, não a **data de cada aula** — só sabe que aulas foram lançadas.
-**CONFIRMADO** por `provar-os-fluxos-da-derivacao` (29) e pela §3.4 do `ARQUITETURA-GERAL.md`.
+verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
+`turma-professor` — desde o T2 —, `linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **sete
+gestos** que deviam percorrê-la continuam a não a percorrer: a Turma gravada no lugar (o buraco é o
+**elenco**), os **conteúdos** (`turma-conteudo`, que escreve sem guarda nenhuma), o **Estilo**, o
+**Dicionário** (condicional), a **régua** do professor, o `professor-desligar` (marca, não percorre) e
+o `DELETE /linha-de-base`. A causa de fundo do primeiro caso era a **cópia** — resolvida no T1: a
+direção de hoje lê-se da Sala. E, com o T7, falta o dado de que a regra «o passado não se mexe»
+precisa: o sistema conhece o **período**, não a **data de cada aula** — só sabe que aulas foram
+lançadas. **CONFIRMADO** por `provar-os-fluxos-da-derivacao` (57) e pela §3.4 do
+`ARQUITETURA-GERAL.md`.
 
 **PENDENTE dela — o nome de arquivo do glossário é `_` ou `-`?** O ficheiro ficou
 `…-glossario-codigo_de_danca.md` porque o `slugDe` foi escrito para chaves e passou a nomear ficheiros.
@@ -4682,6 +4693,14 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **T2: o gesto de Salas percorre a cadeia, e o gatilho deixa de mentir.** Mudar o
+  par (modalidade, professor) de uma Sala passou a chamar `rodarCadeia`, e a resposta traz `cadeia`,
+  `trocou` e `parouPor`. A cadeia não deriva: **pára e diz** que a autoria não se reescreve. A
+  travessia só corre quando algo mudou; o gatilho dos três caminhos que mexem no par passou a dizer o
+  que mudou; e a ponte (`producao.js`) passou a montar a cadeia para esta rota — estava de fora, e uma
+  rota fora dessa lista grava, responde `200` e não percorre nada. Ver `REGISTRO.md`, a §3.4 do
+  `ARQUITETURA-GERAL.md` e o T3 aberto no `PLANO-FLUXOS-DE-DERIVACAO.md`.
 
 - **19/11/2026** — **A verificação da verdade dos fluxos: um gatilho que falta, e as duas cópias do
   professor.** Nenhum código mudou — mediu-se. Cinco rotas percorrem a cadeia e oito gestos que deviam

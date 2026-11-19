@@ -23,10 +23,15 @@
  *      produz), o plano é `bloqueada` — a cadeia fala, e diz que a autoria não se reescreve.
  *   C. A MATRIZ DE GATILHOS, lida do código-fonte. Quais rotas chamam `rodarCadeia` — e, portanto,
  *      quais gestos percorrem a cadeia hoje. Mede-se o FONTE, e diz-se isso: é a lista dos sítios,
- *      não uma execução de cada um.
+ *      não uma execução de cada um. E mede-se a SEGUNDA lista: a ponte (`producao.js`) só monta a
+ *      cadeia para as rotas que declara, e uma rota fora dela chama uma cadeia `null`.
  *   D. O EXPURGO. A lista declarada do expurgo cobre todas as chaves que o código escreve — a
  *      conferência é contra o código, e não contra a memória (é o que ela pediu: «precisa ser
  *      verificado no expurgo para não ficar para trás»).
+ *
+ * O CONTROLADOR NEGATIVO. Contra o `motor/servidor/bastidores.js` do `HEAD` anterior (antes do T2),
+ * **14 de 56** reprovam: a resposta sem `cadeia`, a travessia que não corre, o gatilho que não
+ * muda, e a rota fora da matriz. Se o negativo passar, a prova não está a medir nada.
  *
  *   node experimentos/provar-os-fluxos-da-derivacao.js
  */
@@ -67,7 +72,9 @@ function criarKV(inicial) {
 
 const SALA = {
   id: 'rosa', nome: 'Rosa', professor: 'pe-torto', modalidade: 'Balé clássico',
-  dias: [{ dia: 'segunda', hora: '18:00' }, { dia: 'quarta', hora: '18:00' }],
+  /* A FORMA DO CADASTRO: `dias` são NOMES, e a hora de cada um vive em `horarios` (16/10/2026) —
+   * o `normalizarTurma` descarta o par {dia, hora} em silêncio, e a sala fica sem ritmo. */
+  dias: ['segunda', 'quarta'], horarios: { segunda: '18:00', quarta: '18:00' },
   duracaoMin: 60, periodoInicio: '2026-11-02', periodoFim: '2026-12-20', ordem: 1,
 };
 const REGUA = { nome: 'Padrão', niveis: ['Ótimo', 'Bom', 'Regular', 'Insuficiente'] };
@@ -137,10 +144,125 @@ async function principal() {
   provar('…e a TURMA guarda a cópia antiga como MEMÓRIA — já não como autoridade',
     turmaDepois.professor === 'pe-torto', turmaDepois.professor);
 
-  /* O FLUXO NÃO É DISPARADO. A resposta é o sítio onde o gesto diria o que fez à cadeia — é o
-   * contrato que as cinco rotas que a chamam cumprem (`cadeia: {...}`). */
-  provar('…e o gesto NÃO dispara a cadeia: a resposta não traz `cadeia`',
-    par.dados && par.dados.cadeia === undefined, par.dados && Object.keys(par.dados));
+  /* O FLUXO PASSOU A SER DISPARADO (T2, 19/11/2026) — «se eu mudar um professor de sala, preciso
+   * que dispare o processo todo». A resposta traz `cadeia`, que é o contrato das outras cinco
+   * rotas que a chamam. Nesta bancada a cadeia não está montada (`extras.cadeia` ausente), por
+   * isso ela diz que não correu — e dizê-lo é o comportamento certo: a rota não inventa uma
+   * travessia que não existe. A chamada a sério mede-se a seguir, com uma cadeia espiã. */
+  provar('…e o gesto PASSA a trazer o estado da cadeia na resposta (T2)',
+    par.dados && par.dados.cadeia !== undefined, par.dados && Object.keys(par.dados));
+  provar('…e diz que a troca foi de professor',
+    par.dados && par.dados.trocou && par.dados.trocou.professor === true
+      && par.dados.trocou.modalidade === false, par.dados && par.dados.trocou);
+
+  /* A CHAMADA A SÉRIO — com uma cadeia espiã, que é o único modo de medir «disparou» sem correr
+   * a travessia inteira (escritores, envelopes, geração). O que se mede é o PEDIDO: o gatilho, a
+   * turma, e o motivo com os dois nomes. */
+  const pedidos = [];
+  const espia = {
+    enderecos: () => ({}),
+    enderecoDaEtapa: () => null,
+    executar: async (pedido) => {
+      pedidos.push(pedido);
+      return { ok: true, completa: true, alvos: [] };
+    },
+  };
+  const kv2 = criarKV({
+    [RAIZ + '/turmas']: JSON.stringify([Object.assign({}, SALA, { professor: 'pe-torto' })]),
+    [RAIZ + '/curadorias']: JSON.stringify([TURMA]),
+    [RAIZ + '/professores']: JSON.stringify(PROFESSORES),
+    [RAIZ + '/linhas-de-base']: JSON.stringify([ELENCO]),
+  });
+  const env2 = ambiente(kv2);
+  const chamar2 = async (corpo) => {
+    const r = await bastidores.fetch(new Request('https://breu.workers.dev/api/bastidores/turma-professor', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo),
+    }), env2, { cadeia: espia });
+    let d = null; try { d = await r.json(); } catch { d = null; }
+    return { status: r.status, dados: d };
+  };
+
+  const comCadeia = await chamar2({
+    senhaDirecao: 'segredo', turma: 'Rosa', professor: 'redinha-rosa',
+    modalidade: 'Balé clássico', concluir: true,
+  });
+  provar('com a cadeia montada, o gesto corre-a de facto', pedidos.length === 1,
+    { status: comCadeia.status, pedidos: pedidos.length });
+  provar('…com o gatilho «troca-de-direcao» — é a troca de quem dirige',
+    pedidos[0] && pedidos[0].gatilho === 'troca-de-direcao', pedidos[0] && pedidos[0].gatilho);
+  provar('…e com a turma da sala no pedido', pedidos[0] && (pedidos[0].turmas || []).join(',') === 'Rosa',
+    pedidos[0] && pedidos[0].turmas);
+  provar('…e o motivo nomeia os dois professores — é o que a tela lê',
+    /pe-torto/.test(String(pedidos[0] && pedidos[0].motivo))
+      && /redinha-rosa/.test(String(pedidos[0] && pedidos[0].motivo)),
+    pedidos[0] && pedidos[0].motivo);
+
+  /* O QUE A TELA RECEBE QUANDO A CADEIA PÁRA NUM FACTO. A resposta é a única coisa que sobrevive
+   * à recarga que segue a gravação — e o `parouPor` é a frase do facto (a etapa `bloqueada`), que
+   * antes não chegava ao canto. O resumo dizia «falta o plano de ensino» a quem acabou de mudar o
+   * professor, e isso lê-se como avaria. */
+  const travada = {
+    enderecos: () => ({}), enderecoDaEtapa: () => null,
+    executar: async () => ({ ok: false, completa: true, alvos: [{
+      turma: 'Rosa', ok: false, erro: null,
+      etapas: [
+        { chave: 'vinculos', estado: 'feita' },
+        { chave: 'plano-de-ensino', estado: 'bloqueada', falta: 'o plano é de «Pé Torto», e a '
+          + 'autoria não se reescreve: este professor escreve o dele.' },
+        { chave: 'plano-de-observacao', estado: 'bloqueada', falta: 'depende do plano' },
+        { chave: 'pacote', estado: 'pendente', falta: 'os documentos são os de antes' },
+      ],
+    }] }),
+  };
+  const kv3 = criarKV({
+    [RAIZ + '/turmas']: JSON.stringify([SALA]),
+    [RAIZ + '/curadorias']: JSON.stringify([TURMA]),
+    [RAIZ + '/professores']: JSON.stringify(PROFESSORES),
+    [RAIZ + '/linhas-de-base']: JSON.stringify([ELENCO]),
+  });
+  const comTravada = await bastidores.fetch(new Request(
+    'https://breu.workers.dev/api/bastidores/turma-professor', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'segredo', turma: 'Rosa', professor: 'redinha-rosa',
+        modalidade: 'Balé clássico', concluir: true }),
+    }), ambiente(kv3), { cadeia: travada }).then((r) => r.json());
+  provar('quando a cadeia pára num facto, a resposta traz a frase desse facto (`parouPor`)',
+    Boolean(comTravada.cadeia && comTravada.cadeia.parouPor)
+      && /autoria não se reescreve/.test(String(comTravada.cadeia.parouPor)),
+    comTravada.cadeia && comTravada.cadeia.parouPor);
+  provar('…e nomeia a turma, para a frase não ficar sem dono',
+    /Turma «Rosa»/.test(String(comTravada.cadeia && comTravada.cadeia.parouPor)),
+    comTravada.cadeia && comTravada.cadeia.parouPor);
+  provar('…e o resumo continua a dizer o que ficou gravado',
+    /ficou gravado/i.test(String(comTravada.cadeia && comTravada.cadeia.recado)),
+    comTravada.cadeia && comTravada.cadeia.recado);
+
+  /* E NÃO SE PERCORRE NADA QUANDO NADA MUDOU. A regra é a do `turma-derivar`: uma travessia sem
+   * mudança escreve uma entrada no log e não faz nada, e isso lê-se como «trabalho». */
+  const antes = pedidos.length;
+  const semMudanca = await chamar2({
+    senhaDirecao: 'segredo', turma: 'Rosa', professor: 'redinha-rosa',
+    modalidade: 'Balé clássico', concluir: true,
+  });
+  provar('…e gravar o MESMO par não percorre a cadeia', pedidos.length === antes,
+    { pedidos: pedidos.length, antes });
+  provar('…e a resposta di-lo, em vez de fingir uma travessia',
+    semMudanca.dados && semMudanca.dados.cadeia
+      && semMudanca.dados.cadeia.executada === false, semMudanca.dados && semMudanca.dados.cadeia);
+
+  /* E A TROCA DE MODALIDADE TAMBÉM DISPARA — é o mesmo par, e é o mesmo acto da escola. O que a
+   * cadeia FAZ com ela é o T3, e está declarado por decidir. */
+  const soModalidade = await chamar2({
+    senhaDirecao: 'segredo', turma: 'Rosa', professor: 'redinha-rosa',
+    modalidade: 'Dança moderna', concluir: true,
+  });
+  provar('trocar só a modalidade também percorre a cadeia', pedidos.length === antes + 1,
+    { pedidos: pedidos.length, antes });
+  provar('…e a resposta diz que foi a modalidade, e não o professor',
+    soModalidade.dados && soModalidade.dados.trocou
+      && soModalidade.dados.trocou.professor === false
+      && soModalidade.dados.trocou.modalidade === true,
+    soModalidade.dados && soModalidade.dados.trocou);
 
   /* A CONSEQUÊNCIA PRÁCTICA, e é a que ela sente: a lista que autoriza o plano é filtrada pelo
    * professor da TURMA. Quem passou a dar a sala não a vê; quem já não a dá continua a vê-la. */
@@ -157,6 +279,82 @@ async function principal() {
     Array.isArray(doAntigo.dados && doAntigo.dados.curadorias)
       && doAntigo.dados.curadorias.length === 0,
     doAntigo.dados && (doAntigo.dados.curadorias || []).length);
+
+  /* =========================================================================================== */
+  console.log('\nA2. O CAMINHO QUE ELA USA EM SALAS — «Derivar», e o gatilho a dizer o que mudou');
+
+  /* O CAMINHO REAL. Uma sala com Turma activa NÃO se edita no lugar (409 — `turma-editar`), e é
+   * isso que torna o «Derivar» o gesto dela: a escola corrige quem dá a sala, e o que fica gravado
+   * é um elo novo. Esta secção mede o que a rota diz à cadeia — e é aqui que estava um defeito que
+   * nenhuma outra bancada via: o gatilho era SEMPRE `mudanca-de-sala` (o rótulo do RITMO), mesmo
+   * quando o que mudou foi quem a dá. O log da cadeia lê-se por esse rótulo. */
+  {
+    const envD = ambiente(criarKV({
+      [RAIZ + '/turmas']: JSON.stringify([SALA]),
+      [RAIZ + '/curadorias']: JSON.stringify([TURMA]),
+      [RAIZ + '/professores']: JSON.stringify(PROFESSORES),
+      [RAIZ + '/linhas-de-base']: JSON.stringify([ELENCO]),
+    }));
+    const pedidosD = [];
+    const espiaD = {
+      enderecos: () => ({}), enderecoDaEtapa: () => null,
+      executar: async (pedido) => { pedidosD.push(pedido); return { ok: true, completa: true, alvos: [] }; },
+    };
+    const derivarD = async (corpo) => {
+      const r = await bastidores.fetch(new Request('https://breu.workers.dev/api/bastidores/turma-derivar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo),
+      }), envD, { cadeia: espiaD });
+      let d = null; try { d = await r.json(); } catch { d = null; }
+      return { status: r.status, dados: d };
+    };
+
+    /* A edição no lugar é RECUSADA quando a sala tem Turma — é a regra de 03/11/2026, e é o que
+     * faz do «Derivar» o caminho. Fica medido para a narrativa não inventar um caminho. */
+    const editar = await bastidores.fetch(new Request('https://breu.workers.dev/api/bastidores/turma-editar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senhaDirecao: 'segredo', id: 'rosa', nome: 'Rosa', professor: 'redinha-rosa' }),
+    }), envD);
+    provar('a sala com Turma NÃO se edita no lugar — 409, e é por isso que o caminho é derivar',
+      editar.status === 409, editar.status);
+
+    /* O RITMO VAI INTEIRO NO CORPO: a derivação exige a sala completa, e um campo em falta é uma
+     * recusa. `duracaoMin` é o que muda. */
+    const soRitmo = await derivarD({
+      senhaDirecao: 'segredo', derivarDe: 'rosa', professor: 'pe-torto',
+      modalidade: 'Balé clássico', duracaoMin: 75,
+      /* A FORMA DO CADASTRO: `dias` são NOMES, e a hora de cada um vive em `horarios` (16/10/2026) —
+   * o `normalizarTurma` descarta o par {dia, hora} em silêncio, e a sala fica sem ritmo. */
+  dias: ['segunda', 'quarta'], horarios: { segunda: '18:00', quarta: '18:00' },
+      periodoInicio: '2026-11-02', periodoFim: '2026-12-20',
+    });
+    provar('derivar mudando só o RITMO corre a cadeia', pedidosD.length === 1,
+      { status: soRitmo.status, erro: soRitmo.dados && soRitmo.dados.erro, pedidos: pedidosD.length });
+    provar('…e o gatilho diz «mudanca-de-sala» — é o ritmo que mudou',
+      pedidosD[0] && pedidosD[0].gatilho === 'mudanca-de-sala', pedidosD[0] && pedidosD[0].gatilho);
+
+    /* Agora a troca de professor, no elo que a derivação anterior deixou vigente. */
+    const vigente = JSON.parse(await envD.PADD_KV.get(RAIZ + '/turmas'))
+      .filter((t) => t && !t.substituidaPor)[0];
+    const troca = await derivarD({
+      senhaDirecao: 'segredo', derivarDe: vigente.id, professor: 'redinha-rosa',
+      modalidade: 'Balé clássico', duracaoMin: 75,
+      /* A FORMA DO CADASTRO: `dias` são NOMES, e a hora de cada um vive em `horarios` (16/10/2026) —
+   * o `normalizarTurma` descarta o par {dia, hora} em silêncio, e a sala fica sem ritmo. */
+  dias: ['segunda', 'quarta'], horarios: { segunda: '18:00', quarta: '18:00' },
+      periodoInicio: '2026-11-02', periodoFim: '2026-12-20',
+    });
+    provar('derivar mudando o PROFESSOR corre a cadeia', pedidosD.length === 2,
+      { status: troca.status, erro: troca.dados && troca.dados.erro, pedidos: pedidosD.length });
+    provar('…e o gatilho passa a dizer «troca-de-direcao» — o rótulo deixou de mentir',
+      pedidosD[1] && pedidosD[1].gatilho === 'troca-de-direcao', pedidosD[1] && pedidosD[1].gatilho);
+    provar('…e a sala derivada diz o professor novo, com o elo anterior marcado',
+      (() => {
+        const todas = JSON.parse(envD.PADD_KV.memoria.get(RAIZ + '/turmas'));
+        const nova = todas.filter((t) => t && !t.substituidaPor)[0];
+        const velha = todas.filter((t) => t && t.substituidaPor === nova.id)[0];
+        return nova.professor === 'redinha-rosa' && Boolean(velha) && velha.professor === 'pe-torto';
+      })(), null);
+  }
 
   /* =========================================================================================== */
   console.log('\nB. O que a cadeia diz — e a diferença é entre «silêncio» e «a cadeia fala»');
@@ -251,14 +449,30 @@ async function principal() {
     '/api/bastidores/linha-de-base',
     '/api/bastidores/elenco-mover',
     '/api/bastidores/curadoria-derivar',
+    /* T2, 19/11/2026 — o gesto que ela nomeou primeiro. */
+    '/api/bastidores/turma-professor',
   ]) {
     provar('dispara a cadeia: ' + caminho, disparam.indexOf(caminho) !== -1, disparam);
+  }
+
+  /* E A PONTE MONTA A CADEIA PARA TODAS ELAS (T2, 19/11/2026).
+   *
+   * O DEFEITO QUE ISTO APANHA, e ele esteve a ponto de entrar: `motor/servidor/producao.js` tem
+   * uma lista de GESTOS — as rotas para as quais vale a pena construir a cadeia. Uma rota que
+   * chame `rodarCadeia` sem estar nessa lista chama uma cadeia `null`, e a resposta é «a cadeia
+   * automática não está montada neste Worker». A bancada não via isto: ela injeta a cadeia de
+   * fora, e a ponte não entra no caminho. Duas listas, o mesmo facto — a mesma família de erro do
+   * `matriculas` no expurgo, e a mesma cura: comparar código com código. */
+  const ponte = fs.readFileSync(path.join(raiz, 'motor/servidor/producao.js'), 'utf8');
+  for (const caminho of disparam) {
+    if (caminho === '/api/bastidores/cadeia-pacote') continue;
+    provar('a ponte monta a cadeia para ' + caminho,
+      ponte.indexOf("'" + caminho + "'") !== -1, null);
   }
 
   /* E as que NÃO disparam, e deviam — é a lista das tarefas. Nomeadas uma a uma para que o
    * documento e a prova não possam divergir em silêncio. */
   const deviam = {
-    '/api/bastidores/turma-professor': 'mudar o professor (ou a modalidade) de uma sala',
     '/api/bastidores/curadoria': 'gravar a Turma sem plano (elenco, nível, grau, sala)',
     '/api/bastidores/turma-conteudos': 'os conteúdos da Turma',
     '/api/bastidores/turma-conteudo': 'um conteúdo da Turma, um a um',
@@ -295,11 +509,12 @@ async function principal() {
   }
 
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — ' + provas + ' asserções: o gesto de mudar o professor de uma sala grava a Sala, '
-      + 'guarda a cópia na Turma como memória e ainda NÃO dispara a cadeia; a direção de hoje lê-se '
-      + 'da Sala — a lista que autoriza o plano mostra a turma a quem a dá, e a cadeia apanha a '
-      + 'troca com a frase da autoria; a lista do expurgo cobre todas as chaves que o código escreve. '
-      + 'As cinco rotas que disparam a cadeia e as seis que deviam e não disparam estão nomeadas.'
+    ? 'TUDO CERTO — ' + provas + ' asserções: mudar o par de uma Sala percorre a cadeia pelos dois '
+      + 'caminhos que existem (a rota do par e a derivação), e o gatilho diz o que mudou — ritmo ou '
+      + 'direção; a direção de hoje lê-se da Sala (T1), a lista que autoriza o plano mostra a turma '
+      + 'a quem a dá, e a cadeia apanha a troca com a frase da autoria; quando a travessia pára num '
+      + 'facto, a resposta leva a frase desse facto (`parouPor`); a ponte monta a cadeia para as '
+      + 'rotas que a disparam, e a lista do expurgo cobre todas as chaves que o código escreve.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

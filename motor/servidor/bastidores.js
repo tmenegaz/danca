@@ -1765,10 +1765,26 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
   } else {
     recado = 'a cadeia não chegou a começar: a primeira etapa não fecha.';
   }
+  /* O MOTIVO DA PARAGEM, EM UMA FRASE QUE SE LÊ SOZINHA (T2, 19/11/2026).
+   *
+   * O resumo acima diz ONDE a cadeia parou e o que ficou gravado; a frase de cada etapa diz
+   * PORQUÊ. Na tela do `.res` as duas coisas aparecem juntas — a nota e a linha com o «abrir».
+   * Mas a maior parte das gravações recarrega a página, e no canto só cabe uma frase: era o
+   * resumo, e um resumo que diz «falta o plano de ensino» a quem acabou de mudar o professor
+   * lê-se como avaria. Quando a paragem é um FACTO — `bloqueada`, e não `pendente` —, a frase do
+   * facto vem junto, porque é ela que diz o que fazer (ou que não há nada a fazer).
+   *
+   * `pendente` não entra: essa resolve-se a repetir o gesto, e a frase seria ruído. */
+  const travada = faltam.find((f) => f.estado === 'bloqueada') || null;
+  const parouPor = travada
+    ? (travada.turma ? 'Turma «' + travada.turma + '»: ' : '') + String(travada.falta || '')
+    : null;
+
   return {
     executada: true,
     ok: Boolean(r.ok),
     completa: Boolean(r.completa),
+    parouPor,
     /* O QUE JÁ ESTÁ GRAVADO — a lista que o professor precisa para não refazer o feito. */
     fecharam,
     restam,
@@ -13251,8 +13267,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * volta a abrir. */
     '          cancelarOFormularioDe(idDaSecao);' +
     '        }' +
+    /* O AVISO QUE ATRAVESSA A RECARGA LEVA O FACTO, E NÃO SÓ O RESUMO (T2, 19/11/2026).
+     *
+     * No canto cabe uma frase, e ela é a única coisa que sobrevive à recarga. Levava só o
+     * `d.recado` — «falta o plano de ensino, o plano de observação e os documentos gerados» —, que
+     * a quem acabou de mudar o professor se lê como avaria. O `parouPor` é a frase do facto (a
+     * etapa `bloqueada`), e vem depois do resumo: primeiro o que ficou gravado, depois porquê. */
+    '        var fraseDoRecado = (d.recado || mensagem || "feito").replace(/\u2026$/, "").trim();' +
+    '        if (d.cadeia && d.cadeia.parouPor) fraseDoRecado += " " + d.cadeia.parouPor;' +
     '        avisarDepoisDaRecarga(d.ajustou || (d.cadeia && d.cadeia.faltam && d.cadeia.faltam.length)' +
-    '          ? "atencao" : "ok", (d.recado || mensagem || "feito").replace(/\u2026$/, "").trim());' +
+    '          ? "atencao" : "ok", fraseDoRecado);' +
     '        location.reload();' +
     '        return;' +
     '      }' +
@@ -22539,8 +22563,16 @@ async function fetch(request, env, extras) {
       ajustado[k] = declarado[k];
     }
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
+    /* O QUE MUDOU, ANTES DE MUDAR (T2, 19/11/2026). O gatilho da travessia dizia sempre
+     * «mudança de sala» — o rótulo do RITMO —, mesmo quando o que mudou foi quem a dá. O log da
+     * cadeia lê-se por esse rótulo, e um rótulo que mente sobre o gesto é a mesma família de erro
+     * do `.catch` que escreve no `.res`: o trabalho feito, com a resposta errada por cima. */
+    const professorAntes = String(alvo.professor || '').trim();
+    const modalidadeAntes = String(alvo.modalidade || '').trim();
     lista[indice] = Object.assign({}, alvo, ajustado, { id: novoId });
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    const parMudouNaEdicao = (ajustado.professor && String(ajustado.professor).trim() !== professorAntes)
+      || (ajustado.modalidade && String(ajustado.modalidade).trim() !== modalidadeAntes);
     if (novoId !== idAntigo) {
       try {
         const rel = await relacoes(kv, escola);
@@ -22558,9 +22590,14 @@ async function fetch(request, env, extras) {
       .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(lista[indice].nome) !== -1);
     const cadeiaDaEdicao = daSalaEditada.length
       ? await rodarCadeia(cadeia, contexto, {
-        gatilho: 'mudanca-de-sala',
+        /* O GATILHO DIZ O QUE MUDOU (T2, 19/11/2026): a troca de quem dirige é outra coisa que o
+         * ritmo, e a cadeia trata-as de maneira diferente — para o ritmo ela relê e deriva; para a
+         * direção ela pára e diz que a autoria não se reescreve. */
+        gatilho: parMudouNaEdicao ? 'troca-de-direcao' : 'mudanca-de-sala',
         turmas: [lista[indice].nome],
-        motivo: 'o ritmo da sala «' + lista[indice].nome + '» foi ajustado',
+        motivo: parMudouNaEdicao
+          ? 'o par (modalidade, professor) da sala «' + lista[indice].nome + '» mudou na edição'
+          : 'o ritmo da sala «' + lista[indice].nome + '» foi ajustado',
       })
       : { executada: false, motivo: 'nenhuma Turma ocupa esta sala' };
     return json(200, { ok: true, turma: novoId, nome: lista[indice].nome, id: novoId, modo: 'editar', eraId: idAntigo, cadeia: cadeiaDaEdicao });
@@ -22645,6 +22682,10 @@ async function fetch(request, env, extras) {
       if ((k === 'modalidade' || k === 'professor') && !declarado[k]) continue;
       ajustado[k] = declarado[k];
     }
+    /* O QUE MUDOU, ANTES DE DERIVAR (T2, 19/11/2026) — a mesma pergunta da edição, e pela mesma
+     * razão: o gatilho da travessia tem de dizer o gesto que aconteceu. */
+    const professorAntesDerivar = String(anterior.professor || '').trim();
+    const modalidadeAntesDerivar = String(anterior.modalidade || '').trim();
     const nova = Object.assign({}, anterior, ajustado);
     nova.id = idDerivado(anterior.nome, vigencia, lista);
     nova.nome = anterior.nome;
@@ -22710,12 +22751,18 @@ async function fetch(request, env, extras) {
      * linha filtrava as Salas por `turmasDaCuradoria` e devolvia sempre zero. */
     const turmasDaSala = (await curadorias(kv, escola))
       .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(nova.nome) !== -1);
+    const parMudouNaDerivacao = (String(nova.professor || '').trim() !== professorAntesDerivar)
+      || (String(nova.modalidade || '').trim() !== modalidadeAntesDerivar);
     const cadeiaDaSala = turmasDaSala.length
       ? await rodarCadeia(cadeia, contexto, {
-        gatilho: 'mudanca-de-sala',
+        /* O GATILHO DIZ O QUE MUDOU (T2, 19/11/2026) — ver a nota gémea no `turma-editar`. */
+        gatilho: parMudouNaDerivacao ? 'troca-de-direcao' : 'mudanca-de-sala',
         turmas: [nova.nome],
         quando: vigencia,
-        motivo: 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia,
+        motivo: parMudouNaDerivacao
+          ? 'o par (modalidade, professor) da sala «' + nova.nome + '» passou a valer a partir de '
+            + vigencia
+          : 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia,
       })
       : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
     return json(201, { ok: true, turma: nova.nome, nome: nova.nome, id: nova.id, modo: 'derivar',
@@ -23201,9 +23248,56 @@ function parDaSalaNoCorpo(corpo, registo) {
      * professor» é um acto da escola, não três. Duas escritas deixariam a janela em que a sala já
      * tem professor e ainda declara a modalidade antiga, e a curadoria — que lê as duas — derivaria
      * um par que nunca existiu. */
+    /* O QUE MUDOU, ANTES DE MUDAR (T2, 19/11/2026). A pergunta é feita aqui porque é aqui que a
+     * resposta ainda existe: depois da escrita, o valor anterior perdeu-se. Sem ela, o gesto
+     * percorreria a cadeia mesmo quando ninguém mudou nada — e uma travessia sem mudança escreve
+     * uma entrada no log e não faz nada, o que se lê como «trabalho» e não é. */
+    const professorAntes = String(sala.professor || '').trim();
+    const modalidadeAntes = String(sala.modalidade || '').trim();
+    const trocouOProfessor = professorAntes !== professor;
+    const trocouAModalidade = modalidadeAntes !== modalidade;
+
     sala.professor = professor;
     sala.modalidade = modalidade;
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+
+    /* O GESTO DE SALAS PERCORRE A CADEIA (T2, 19/11/2026) — «se eu mudar um professor de sala,
+     * preciso que dispare o processo todo».
+     *
+     * PORQUE SÓ AGORA. O comentário que aqui estava dizia que derivar por causa disto criaria um
+     * elo que não mudou nada do que o plano lê, «porque o professor da sala não está no plano: o
+     * envelope traz o seu próprio `contexto.professor`». Era verdade e era uma meia-verdade: o
+     * plano não se reescreve — a AUTORIA NÃO SE DERIVA (12/11/2026) —, mas a travessia tem de
+     * CORRER para o dizer. Enquanto ninguém a corria, o professor novo ficava com uma turma que
+     * não via na lista, e o documento impresso continuava a dizer o nome do anterior sem uma
+     * frase que o explicasse. Com o T1 (a Sala a mandar na direção), a cadeia passou a apanhar a
+     * troca: a etapa do plano fica `bloqueada`, com a frase da autoria.
+     *
+     * O QUE A CADEIA FAZ AQUI, e o que ela NÃO faz. Ela sincroniza os vínculos (o corpo do
+     * elenco), verifica a direção de cada documento e — quando a autoria mudou — PÁRA e diz. Não
+     * reescreve o plano do professor que saiu com o nome de quem entra: esse plano fica «sem
+     * turma», a dizer quem o escreveu, e o professor novo escreve o dele. É a regra de 12/11/2026,
+     * e é ela que o `bloqueada` significa.
+     *
+     * SÓ CORRE QUANDO HÁ TURMA NA SALA. Uma sala vaga mudou de par e não tem plano nem PO a
+     * reavaliar — a mesma regra do `turma-derivar`, e pela mesma razão: uma travessia sem alvo
+     * escreve um erro no log a cada ajuste. */
+    let cadeiaDoPar = { executada: false, motivo: 'o par da sala não mudou — não há nada a percorrer' };
+    if (trocouOProfessor || trocouAModalidade) {
+      const turmasDaSala = (await curadorias(kv, escola))
+        .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(sala.nome) !== -1);
+      cadeiaDoPar = turmasDaSala.length
+        ? await rodarCadeia(cadeia, contexto, {
+          gatilho: 'troca-de-direcao',
+          turmas: [sala.nome],
+          motivo: 'o par (modalidade, professor) da sala «' + sala.nome + '» mudou: '
+            + (trocouOProfessor ? 'quem a dá passou de «' + (professorAntes || 'ninguém') + '» para «'
+              + professor + '»' : 'a modalidade passou de «' + (modalidadeAntes || 'nenhuma') + '» para «'
+              + modalidade + '»'),
+        })
+        : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
+    }
+
     return json(200, {
       ok: true,
       turma: sala.nome,
@@ -23216,6 +23310,10 @@ function parDaSalaNoCorpo(corpo, registo) {
       professor,
       modalidade,
       rubrica: { nome: regua.nome, niveis: regua.niveis },
+      /* O ESTADO DA TRAVESSIA VAI NA RESPOSTA — é o contrato das outras cinco rotas que a
+       * chamam, e é dele que a tela tira a frase do que ficou por fazer. */
+      cadeia: cadeiaDoPar,
+      trocou: { professor: trocouOProfessor, modalidade: trocouAModalidade },
     });
   }
 

@@ -1065,25 +1065,31 @@ derivação e o log) é de `motor/servidor/cadeia.js`. O log das travessias lê-
 ele DEIXA DE FAZER.** Elas foram escritas quando o par (modalidade, professor) vivia na Turma; a
 18/11/2026 ele passou para a Sala, e a 19/11/2026 a régua passou para o professor. O que se mede
 abaixo é o estado do código a 19/11/2026 — `experimentos/provar-os-fluxos-da-derivacao.js`,
-**29 asserções**, que é a bancada desta secção.
+**57 asserções**, que é a bancada desta secção.
 
 #### O que percorre a cadeia, hoje
 
-Cinco rotas chamam `rodarCadeia` — e são as cinco que a §3.3 nomeia:
+Seis rotas chamam `rodarCadeia` — as cinco que a §3.3 nomeia, e a do par da Sala desde o T2:
 
 | rota | o gesto |
 |:--|:--|
 | `POST /api/bastidores/turma-editar` | a **Sala**, corrigida no lugar |
 | `POST /api/bastidores/turma-derivar` | a **Sala**, derivada (elo novo) |
+| `POST /api/bastidores/turma-professor` | o **par** (modalidade, professor) de uma Sala — **T2, feito** |
 | `POST /api/bastidores/linha-de-base` | o **Elenco**, gravado ou concluído |
 | `POST /api/bastidores/elenco-mover` | a **aluna transferida** entre elencos |
 | `POST /api/bastidores/curadoria-derivar` | a **Turma**, derivada |
+
+**E a ponte tem de as conhecer todas.** A travessia não é montada dentro das rotas: `producao.js`
+declara a lista de gestos para os quais a cadeia é montada, e uma rota fora dessa lista chama uma
+cadeia `null` — o gesto grava, devolve `200`, e a travessia não acontece. Foi o que aconteceu ao
+`turma-professor`, que ficou de fora quando a lista foi escrita; a bancada passou a comparar as duas
+listas, e é a §C do `provar-os-fluxos-da-derivacao`.
 
 #### O que NÃO percorre — e é a lista das divergências
 
 | rota | o gesto | por que importa |
 |:--|:--|:--|
-| `POST /api/bastidores/turma-professor` | **mudar o professor (ou a modalidade) de uma Sala** — «eu faço isso em salas» | é o primeiro gesto que ela nomeia, e é o único que muda quem dá a aula. Não dispara nada |
 | `POST /api/bastidores/curadoria` | a Turma gravada no lugar (elenco, nível, grau, tradição) | só acontece quando a Turma **não tem** plano — a vinculada já é recusada (409) e vai pela derivação. O buraco é o **elenco**: trocá-lo aqui re-carimba o corpo sem passar pela cadeia |
 | `POST /api/bastidores/turma-conteudo` (e `DELETE`) | os **conteúdos** da Sala, um a um (o mapa antigo `turma-conteudos`) | escreve a relação que os documentos derivados leem, **sem guarda nenhuma** — nem a de ter plano |
 | `POST/PUT/DELETE /api/bastidores/verbete` | o **Estilo** — o exercício com verbete | muda a notação e o glossário que os documentos derivados imprimem |
@@ -1128,15 +1134,41 @@ E o que **não** mudou, de propósito: o `id` da curadoria continua a nascer do 
 o que foi escrito naquele dia), a cópia continua gravada (é **memória**), e a **tradição** continua a
 vir da curadoria — ela não está na Sala, é lida do perfil do professor por modalidade.
 
-**O gatilho do T2 continua desligado**, e agora por uma razão diferente: já não derivaria o nome
-errado — falta decidir o que a cadeia faz quando a autoria muda. Ver o `PLANO-FLUXOS-DE-DERIVACAO.md`.
-
 **E é por isso que o gesto de Salas não disparava a cadeia: disparar antes do T1 gravaria o nome
 errado.** O
 comentário que está na rota (`turma-professor`) di-lo com todas as letras — «o professor da sala não
 está no plano: o envelope traz o seu próprio `contexto.professor`» —, e é verdade: derivar o plano
-com a cópia velha produziria um elo que declara o professor antigo. A correcção não é ligar o
-gatilho; é **primeiro** resolver a cópia, e só depois ligar.
+com a cópia velha produziria um elo que declara o professor antigo. A correcção não era ligar o
+gatilho; era **primeiro** resolver a cópia, e só depois ligar.
+
+#### T2 — o gesto de Salas percorre a cadeia *(feito a 19/11/2026, depois do T1)*
+
+O `turma-professor` passa a chamar `rodarCadeia` com o gatilho **`troca-de-direcao`**, e a resposta
+traz `cadeia` e `trocou: {professor, modalidade}` — o mesmo contrato das outras cinco. O que a
+cadeia faz com isso **não é derivar**: é **parar e dizer**. A etapa `plano-de-ensino` fica
+`bloqueada` com a frase da autoria (*«a autoria não se reescreve — este professor escreve o plano
+dele»*), o plano do anterior fica `sem turma` a dizer quem o escreveu, e o professor novo escreve o
+dele. É a regra de 12/11/2026, e é ela que o `bloqueada` significa.
+
+**Três coisas que o T2 teve de corrigir para o gatilho poder ser ligado:**
+
+1. **A travessia só corre quando algo mudou.** A pergunta é feita **antes** da escrita, porque é aí
+   que a resposta ainda existe. Sem ela, um gesto que reconfirma o mesmo par escreveria uma entrada
+   no log e não faria nada — o que se lê como trabalho e não é. A resposta di-lo: *«o par da sala
+   não mudou — não há nada a percorrer»*.
+2. **O gatilho passou a dizer o que mudou, nos dois caminhos que também mexem no par**
+   (`turma-editar` e `turma-derivar`). Dizia sempre `mudanca-de-sala` — o rótulo do **ritmo** —,
+   mesmo quando quem mudou foi quem a dá; e o log da cadeia lê-se por esse rótulo. O mesmo defeito
+   do `.catch` que escreve no `.res`: o trabalho feito, com a resposta errada por cima.
+3. **`parouPor`.** Quando a travessia pára num facto, a resposta passou a levar **a frase desse
+   facto**, e o aviso que atravessa a recarga leva-a. Sem isso o gesto devolvia `bloqueada` e a tela
+   não tinha o que dizer — o professor ficava a saber que algo parou, sem saber o quê.
+
+**O que continua em aberto, e é o T3:** a **modalidade** mudou no mesmo gesto e passou a disparar a
+mesma travessia, mas ainda **não se decidiu** se a troca de modalidade deriva (mesmo autor, outro
+referencial) ou bloqueia (outros níveis, outra régua). Hoje ela percorre e não encontra o que
+bloquear, porque `direcaoDeHoje` só compara professor e sala. Ver o
+[`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md).
 
 #### Dois nomes que enganam
 

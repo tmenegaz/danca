@@ -54447,3 +54447,50 @@ rótulo, herdadas de «Gravar é gravar»), `provar-salas-e-elencos` 132, `prova
 `provar-cadeia-do-ajuste` 34, `provar-remocao-do-elenco` 26, `provar-anamnese-da-aluna-certa` 18,
 `provar-menu-da-producao` 55, `provar-dicionario` 123, `provar-gravar-e-gravar` 49, `check-identidade`
 ok. `provar-acordeoes` continua vermelha — a mesma excepção em `parentElement`, medida nos dois lados.
+
+### 19/11/2026 — T2: o gesto de Salas percorre a cadeia, e o gatilho deixa de mentir
+
+> «Se eu mudar um professor de sala, preciso que dispare o processo todo e faça o ajuste respeitando
+> a proveniência nos documentos gerados.»
+
+**O que era.** Das oito rotas que deviam percorrer a cadeia e não o faziam, o `turma-professor` era a
+primeira — e a única que muda **quem dá a aula**. O comentário que lá estava dizia que derivar por
+causa disto criaria um elo que não mudava nada do que o plano lê. Era verdade e era meia-verdade: o
+plano não se reescreve, mas a travessia tem de **correr** para o dizer.
+
+**O que passou a valer.** A rota chama `rodarCadeia` com o gatilho **`troca-de-direcao`** e devolve
+`cadeia` e `trocou: {professor, modalidade}` — o mesmo contrato das outras cinco. E o que a cadeia faz
+não é derivar: é **parar e dizer**. A etapa `plano-de-ensino` fica `bloqueada` com a frase da autoria
+(*«a autoria não se reescreve — este professor escreve o plano dele»*), o plano do anterior fica
+`sem turma` a dizer quem o escreveu, e o professor novo escreve o dele. É a regra de 12/11/2026, e
+ela já existia no motor — faltava alguém a correr.
+
+**Três correcções que o gatilho obrigou a fazer primeiro.**
+
+| defeito | o que fazia | agora |
+|:--|:--|:--|
+| a travessia corria sempre | um gesto que reconfirmava o mesmo par escrevia uma entrada no log sem fazer nada — trabalho que não é trabalho | a pergunta é feita **antes** da escrita (é aí que a resposta ainda existe); a resposta di-lo: *«o par da sala não mudou — não há nada a percorrer»* |
+| o gatilho dizia sempre `mudanca-de-sala` | também no `turma-editar` e no `turma-derivar`, mesmo quando quem mudou foi a direção — e o log da cadeia lê-se por esse rótulo | os três caminhos escolhem o gatilho pelo que mudou |
+| a resposta dizia `bloqueada` e mais nada | a tela ficava a saber que algo parou, sem saber o quê | `montarEstadoDaCadeia` devolve **`parouPor`** — a frase da etapa que parou —, e o aviso que atravessa a recarga leva-a |
+
+**E a ponte, que é a mesma família de erro do expurgo.** A travessia não é montada dentro das rotas:
+`producao.js` declara a lista dos gestos para os quais a cadeia é montada, e um gesto **fora** dessa
+lista chama uma cadeia `null` — grava, devolve `200`, e a travessia não acontece. O `turma-professor`
+estava de fora. É a segunda vez na mesma semana que uma lista em dois sítios diverge em silêncio (a
+primeira foram `matriculas` e `cadeia` no expurgo); a cura é sempre a mesma — **comparar código com
+código**. A bancada passou a comparar as duas listas.
+
+**O que fica em aberto, e é o T3.** A **modalidade** mudou no mesmo gesto e passou a percorrer a mesma
+travessia, mas não se decidiu ainda se ela deriva (mesmo autor, outro referencial) ou bloqueia (outros
+níveis, outra régua). Hoje percorre e não encontra o que bloquear, porque `direcaoDeHoje` compara
+professor e sala. Não se resolveu por não ser uma correcção — é uma decisão dela.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **34 → 57**: a resposta com `cadeia`, a travessia a correr
+(`pedidos > 0`), o gatilho `troca-de-direcao`, o motivo a nomear os dois professores, o `parouPor` com
+o nome da turma, o «nada mudou» a não fingir travessia, a modalidade a disparar também, e as duas
+listas (rotas × ponte) a coincidir. **Controlo negativo: 14 de 56 reprovam** contra o `bastidores.js`
+do `HEAD` anterior. Vizinhas: `provar-a-autoria-na-troca-de-professor` 41,
+`provar-salas-e-elencos` 132, `provar-turma-sem-professor` 23, `provar-cadeia-do-ajuste` 34,
+`provar-regua-do-professor` 44, `provar-gravar-e-gravar` 49, `provar-menu-da-producao` 55,
+`check-identidade` ok. `provar-acordeoes` continua vermelha — a mesma excepção em `parentElement`,
+medida nos dois lados.

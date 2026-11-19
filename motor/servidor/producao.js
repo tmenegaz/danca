@@ -954,6 +954,12 @@ async function fetch(request, env) {
       // continuava a declarar o horário antigo (ver `motor/servidor/cadeia.js`).
       '/api/bastidores/turma-editar',
       '/api/bastidores/turma-derivar',
+      /* A TROCA DE QUEM DÁ A SALA (T2, 19/11/2026). Faltava aqui, e sem esta linha o gatilho que
+       * a rota passou a disparar não servia de nada em produção: a rota chamava uma cadeia que a
+       * ponte nunca montava para ela, e a resposta era «a cadeia automática não está montada
+       * neste Worker». É a armadilha de a mesma lista existir em dois sítios — a bancada mede a
+       * rota com uma cadeia injetada e não veria isto. A prova compara agora as duas listas. */
+      '/api/bastidores/turma-professor',
       // O FECHO DO PACOTE NUMA INVOCAÇÃO PRÓPRIA (10/11/2026) — é ele que dá à geração os 50
       // subpedidos inteiros, quando o gesto que a pediu já gastou a maior parte do teto. Sem a
       // montagem aqui, a rota responderia «a cadeia não está montada» e o professor voltava à
