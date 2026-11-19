@@ -43,7 +43,7 @@ aula, a regra «o passado não se mexe» não é implementável — é o T7.
 | Elenco · `DELETE /linha-de-base` (apagar o elenco) | **não** | **sim** — deixa a Turma a apontar para o nada |
 | Turma · `curadoria-derivar` | **sim** | sim |
 | Turma · `curadoria` (gravar no lugar, sem plano) | **não** | **sim** quando o **elenco** muda |
-| Turma · `turma-conteudo` (conteúdos, um a um) | **não** | **sim** — escreve o que os documentos leem |
+| Turma · `turma-conteudo` (conteúdos, um a um) | **fechado** desde o T4 | — o mapa antigo foi migrado para o `repertorio`, e a rota recusa |
 | Professor · `rubrica-do-professor` (a régua) | **não** | **a decidir** — muda o instrumento de medida |
 | Professor · `professor-desligar` | **não** | **sim** — marca, mas não percorre |
 | Estilo · `verbete` | **não** | **sim** — é o T5 |
@@ -205,7 +205,7 @@ plano declara a modalidade, e ela vem da **Sala**, com a cópia da curadoria a d
 `provar-a-autoria-na-troca-de-professor` 41, `provar-cadeia-automatica` 62,
 `provar-salas-e-elencos` 132, `provar-direcao-do-documento` 32, `provar-carimbo-da-edicao` 56.
 
-### T4 — Os conteúdos da Turma, e o mapa antigo que escreve sem guarda
+### T4 — Os conteúdos da Turma, e o mapa antigo que escreve sem guarda — **FEITO a 19/11/2026** *(a decisão dela: migrar)*
 
 **O que é.** Há dois caminhos para o mesmo facto: o `repertorio` da Turma (a via nova) e o mapa
 `turma-conteudos` (a antiga, por Sala). O segundo **escreve sem guarda nenhuma** — nem a de a Turma ter
@@ -214,8 +214,42 @@ plano. É o que os documentos derivados leem.
 **O que muda.** Um caminho só (o `repertorio`, que já é o dono desde 07/11/2026), com o mapa antigo lido
 como memória e não escrito; e o gesto a disparar a cadeia.
 
-**Como se mede.** Adicionar um conteúdo a uma Turma com plano passa a marcar o plano «a rever»; e o
-mapa antigo deixa de aceitar escrita nova (a rota passa a responder com o caminho certo).
+**A decisão dela, a 19/11/2026:** *«migrar»* — o mapa antigo passa para o `repertorio` das curadorias,
+e depois **fecha-se a leitura também**. Não basta fechar a escrita: enquanto o mapa for lido, é um
+segundo dono do mesmo facto, e a memória pode acrescentar conteúdos que o professor já não declarou.
+
+**O que passou a valer.** `migrarMapaAntigo` (núcleo) leva o mapa para o `repertorio` da curadoria
+**vigente** de cada turma, sem duplicar (a comparação é por id: «Plié» e `plie` são o mesmo) e
+mantendo a ordem da declaração. E **não inventa destino**:
+
+| caso | o que acontece |
+|:--|:--|
+| a turma não tem curadoria vigente | fica em `semDestino` — o repertório vive na curadoria, e criá-la é um acto da direção |
+| a curadoria ensina **mais de uma** turma | fica em `semDestino` — o repertório é um só, e migrar daria à outra o que não é dela |
+| a curadoria está substituída | não recebe nada: quem manda é a vigente |
+| correr outra vez | não muda nada (idempotente, e retomável) |
+
+A rota `POST /api/bastidores/migrar-conteudos` escreve as curadorias e a marca **`conteudos-migrados`**
+— e a marca só é escrita quando `semDestino` está vazio. Com uma turma sem destino, a resposta é
+**409** e a leitura **não** fecha: fechá-la nessa altura apagaria da tela os conteúdos dessa turma.
+`simular: true` mostra o plano sem escrever.
+
+**O fecho.** `relacoesDosConteudos` (leitura) e `mapaAntigoParaEscrita` (os gestos que mudam o id de
+uma turma: renomear, derivar, apagar) passam a responder **vazio/`null`** quando a marca existe. As
+rotas antigas `POST`/`DELETE /api/bastidores/turma-conteudo` **recusam com 409** e nomeiam o caminho
+(o formulário da Turma). O mapa **não se apaga**: fica no KV como memória, e a chave nova entra na
+lista do expurgo no dia em que nasce.
+
+**O que já estava certo, e não se mexeu:** a regra de 07/11/2026 — a **declaração viva vence a
+memória**, e o mapa só fala pelas turmas que nunca tiveram curadoria. Foi ela que impediu o resíduo de
+Outubro de voltar à tela. E o gatilho da cadeia: os conteúdos vivem no `repertorio`, que é gravado pelo
+`curadoria-derivar` — uma das seis rotas que já percorrem a cadeia. O caminho no lugar (`curadoria`)
+só acontece quando a Turma **não tem** plano, e nesse caso não há nada a re-derivar.
+
+**Como se mede.** `provar-a-migracao-dos-conteudos` **24** (§A o núcleo, §B a rota, §C o par que prova
+a mudança — antes da marca o mapa fala, depois cala-se —, §D o fecho da escrita); **controlo negativo:
+14 de 24** contra o código anterior. `provar-os-fluxos-da-derivacao` 65 (§D: a chave nova do expurgo
+entra na lista no dia em que nasce — **medido**: sem ela, a §D reprova).
 
 ### T5 — O Estilo: editar um exercício que uma Turma usa
 
@@ -295,7 +329,7 @@ dia em que a correcção entra.
 ```
 T1 (a cópia) ─► T2 (professor dispara) ─► T3 (modalidade bloqueia)
                      │
-                     ├─► T4 (conteúdos)
+                     ├─► T4 (conteúdos: migrar e fechar)
                      ├─► T5 (Estilo) ─► T6 (Dicionário condicional)
                      └─► T7 (calendário) ─► T8 (o véu)
                                             └─► T9 (a cada passo)

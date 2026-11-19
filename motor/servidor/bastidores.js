@@ -1582,6 +1582,42 @@ async function relacoes(kv, escola) {
 }
 
 /**
+ * O MAPA ANTIGO, ENQUANTO ELE FALA — E NUNCA MAIS, DEPOIS DE MIGRADO (T4, 19/11/2026).
+ *
+ * A decisão dela: *«migrar para o repertorio e depois fechar»*. Enquanto a escola não estiver
+ * migrada, o mapa `turma-conteudos` continua a ser lido como memória (a regra de 07/11/2026: ele
+ * fala pelas turmas que nunca tiveram curadoria). Depois de migrado, ele **não é lido** — a chave
+ * `conteudos-migrados` diz que o que lá estava passou para o `repertorio` das curadorias, e um
+ * segundo dono do mesmo facto é exactamente o que o §5.8 manda não ter.
+ *
+ * O MAPA NÃO SE APAGA. Ele fica no KV como memória do que foi declarado — nada se reescreve
+ * (P-03/P-04). O que muda é que deixa de responder.
+ *
+ * DEGRADA, NÃO REBENTA: se a chave não se puder ler, o mapa responde como antes. Uma falha de
+ * leitura não pode transformar-se em «esta turma não tem conteúdos».
+ */
+async function relacoesDosConteudos(kv, escola) {
+  const mapa = await mapaAntigoParaEscrita(kv, escola);
+  return mapa || {};
+}
+
+/**
+ * O MAPA ANTIGO, SE AINDA FOR ELE QUE FALA — e `null` quando já foi migrado (T4, 19/11/2026).
+ *
+ * É a mesma condição da leitura, e tem de ser: enquanto o mapa for lido, os gestos que MUDAM o id de
+ * uma turma (renomear, derivar, apagar) têm de arrastar a chave dele — senão a memória fica a
+ * apontar para uma turma que já não existe, e a tela mostra conteúdos que ninguém declarou. Depois
+ * de migrado, o mapa não é lido nem escrito: escrevê-lo seria manter vivo um segundo dono.
+ */
+async function mapaAntigoParaEscrita(kv, escola) {
+  try {
+    const marca = await kv.get(RAIZ + '/' + escola + '/conteudos-migrados');
+    if (marca) return null;
+  } catch (e) { /* sem a marca, o mapa responde: o comportamento de antes */ }
+  return relacoes(kv, escola);
+}
+
+/**
  * O QUE AS TURMAS DESTA ESCOLA APRENDEM (03/11/2026) — o mapa `{ turmaId: [termoId, …] }`, com o
  * mapa antigo `turma-conteudos` SOMADO ao que as curadorias declaram.
  *
@@ -1595,7 +1631,7 @@ async function relacoes(kv, escola) {
  */
 async function conteudosDaEscola(kv, escola, listaTurmas) {
   return conteudos.mapaDeConteudos({
-    legado: await relacoes(kv, escola),
+    legado: await relacoesDosConteudos(kv, escola),
     curadorias: await curadorias(kv, escola),
     turmas: listaTurmas || await turmas(kv, escola),
   });
@@ -20810,7 +20846,7 @@ async function fetch(request, env, extras) {
     // curadorias dela declaram. A ordem inverteu-se — as curadorias primeiro — porque a
     // composição precisa delas.
     const rel = conteudos.mapaDeConteudos({
-      legado: await relacoes(kv, escola), curadorias: curs, turmas: trms });
+      legado: await relacoesDosConteudos(kv, escola), curadorias: curs, turmas: trms });
     // Que (professor, turma) já têm plano de ensino: é o que decide, na turma e na curadoria,
     // entre «Editar» e «Derivar» (16/10/2026).
     const pares = await paresComPlano(env, escola);
@@ -22575,8 +22611,8 @@ async function fetch(request, env, extras) {
       || (ajustado.modalidade && String(ajustado.modalidade).trim() !== modalidadeAntes);
     if (novoId !== idAntigo) {
       try {
-        const rel = await relacoes(kv, escola);
-        if (Array.isArray(rel[idAntigo])) {
+        const rel = await mapaAntigoParaEscrita(kv, escola);
+        if (rel && Array.isArray(rel[idAntigo])) {
           rel[novoId] = rel[idAntigo].slice();
           delete rel[idAntigo];
           await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
@@ -22726,8 +22762,8 @@ async function fetch(request, env, extras) {
     // ligado a ela — e a escola perderia trabalho por ter corrigido uma hora. O que a turma
     // ENSINA não é o que se está a ajustar.
     try {
-      const rel = await relacoes(kv, escola);
-      if (Array.isArray(rel[anterior.id]) && rel[anterior.id].length) {
+      const rel = await mapaAntigoParaEscrita(kv, escola);
+      if (rel && Array.isArray(rel[anterior.id]) && rel[anterior.id].length) {
         rel[nova.id] = rel[anterior.id].slice();
         await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
       }
@@ -22881,8 +22917,8 @@ async function fetch(request, env, extras) {
     const removida = lista[idx].id;
     lista.splice(idx, 1);
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
-    const rel = await relacoes(kv, escola);
-    if (rel[removida]) { delete rel[removida]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
+    const rel = await mapaAntigoParaEscrita(kv, escola);
+    if (rel && rel[removida]) { delete rel[removida]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
     return json(200, { ok: true, turma: removida, removida: true });
   }
 
@@ -25115,7 +25151,7 @@ function parDaSalaNoCorpo(corpo, registo) {
      * `id`?», e não «o que é que eu acabei de apagar?». */
     const aindaExiste = lido.termos.some((t) => t && t.id === id);
     if (!aindaExiste) {
-      const rel = await relacoes(kv, escola);
+      const rel = await mapaAntigoParaEscrita(kv, escola) || {};
       let mudou = false;
       for (const k of Object.keys(rel)) {
         if (Array.isArray(rel[k]) && rel[k].indexOf(id) !== -1) {
@@ -25133,53 +25169,84 @@ function parDaSalaNoCorpo(corpo, registo) {
     });
   }
 
-  // POST /api/bastidores/turma-conteudo — associar um termo a uma turma (sem duplicar).
-  //
-  // LEGADO DESDE 03/11/2026: a página já não chama este endpoint — associar conteúdo passou a ser
-  // uma ficha do formulário da curadoria, que viaja no corpo do submit e é gravada com o resto. A
-  // rota fica porque o mapa antigo é memória e um cliente antigo (ou uma aba aberta de antes)
-  // ainda pode escrever nele; o que ela escreve continua a ser LIDO, porque a composição
-  // (`motor/nucleo/conteudos.js`) soma o mapa antigo ao das curadorias.
+  /* POST e DELETE /api/bastidores/turma-conteudo — FECHADOS (T4, 19/11/2026).
+   *
+   * A DECISÃO DELA: *«migrar para o repertorio e depois fechar»*. Havia dois donos do mesmo facto —
+   * o `repertorio` da Turma (o caminho que a página usa desde 03/11) e este mapa —, e dois donos
+   * divergem sempre. As rotas deixam de escrever e dizem qual é o caminho, em vez de aceitarem em
+   * silêncio uma associação que a tela não mostra.
+   *
+   * PORQUE 409 E NÃO 404: a rota existe, o pedido é que está no caminho errado. O código diz ao
+   * cliente de ontem — uma aba aberta de antes de 03/11 — o que fazer, e a frase nomeia o sítio.
+   *
+   * O MAPA NÃO SE APAGA. O que lá estava foi migrado para o `repertorio` (`POST /api/bastidores/
+   * migrar-conteudos`), e a chave fica no KV como memória.
+   */
+  const recusaDoMapaAntigo = () => json(409, {
+    ok: false,
+    erro: 'os conteúdos de uma turma vivem agora no repertório dela, no formulário da Turma — '
+      + 'associar ou remover por aqui deixou de ser possível a 19/11/2026. O mapa antigo foi '
+      + 'migrado e não é escrito.',
+    caminho: '/api/bastidores/curadoria',
+  });
   if (path === '/api/bastidores/turma-conteudo' && request.method === 'POST') {
-    let corpo = {};
-    try { corpo = await request.json(); } catch { corpo = {}; }
-    if (!(await autorizacaoDirecaoOk(env, corpo))) {
-      return json(401, { ok: false, erro: 'senha da direção inválida' });
-    }
-    const turmaId = idDe(String(corpo.turma || '').trim());
-    const termoId = idDe(String(corpo.termo || '').trim());
-    if (!turmaId || !termoId) return json(400, { ok: false, erro: 'informe a turma e o termo' });
-    const listaTurmas = await turmas(kv, escola);
-    const listaTermos = await termos(kv, escola);
-    if (!listaTurmas.some((t) => t && t.id === turmaId)) return json(404, { ok: false, erro: 'turma não encontrada' });
-    if (!listaTermos.some((t) => t && t.id === termoId)) return json(404, { ok: false, erro: 'termo não encontrado' });
-    const rel = await relacoes(kv, escola);
-    const atuais = Array.isArray(rel[turmaId]) ? rel[turmaId] : [];
-    if (atuais.indexOf(termoId) !== -1) return json(409, { ok: false, erro: 'associação já existe' });
-    atuais.push(termoId);
-    rel[turmaId] = atuais;
-    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
-    return json(201, { ok: true, turma: turmaId, termo: termoId, associado: true });
+    return recusaDoMapaAntigo();
+  }
+  if (path === '/api/bastidores/turma-conteudo' && request.method === 'DELETE') {
+    return recusaDoMapaAntigo();
   }
 
-  // DELETE /api/bastidores/turma-conteudo — remover a associação (não exclui o termo).
-  if (path === '/api/bastidores/turma-conteudo' && request.method === 'DELETE') {
+  /* POST /api/bastidores/migrar-conteudos — O MAPA ANTIGO PASSA PARA O `repertorio` (T4, 19/11/2026).
+   *
+   * A decisão dela: *«migrar para o repertorio e depois fechar»*. Esta rota é a migração, e é ela
+   * que escreve a marca `conteudos-migrados` — a chave que faz o mapa antigo deixar de ser lido
+   * (`relacoesDosConteudos`) e de ser escrito (`mapaAntigoParaEscrita`).
+   *
+   * DUAS COISAS QUE ELA NÃO FAZ, e são a razão de existir como rota e não como script:
+   *
+   *   1. **não inventa destino.** Uma turma sem curadoria vigente não tem onde receber — o
+   *      repertório vive na curadoria, e criá-la é um acto da direção. Uma curadoria que ensina
+   *      mais de uma turma também não serve: o repertório é um só, e migrar daria à outra o que não
+   *      é dela. Esses casos voltam em `semDestino`, com o motivo, e nada é escrito.
+   *
+   *   2. **não fecha a leitura quando sobra alguém.** Se `semDestino` não estiver vazio, a marca
+   *      NÃO é escrita: fechar a leitura nessa altura apagaria da tela os conteúdos dessas turmas.
+   *      A resposta é 409 e diz o que falta — a migração é retomável, e é idempotente.
+   *
+   * `simular: true` mostra o plano sem escrever nada. É o primeiro passo de quem quer ver antes.
+   */
+  if (path === '/api/bastidores/migrar-conteudos' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
     if (!(await autorizacaoDirecaoOk(env, corpo))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
-    const turmaId = idDe(String(corpo.turma || '').trim());
-    const termoId = idDe(String(corpo.termo || '').trim());
-    if (!turmaId || !termoId) return json(400, { ok: false, erro: 'informe a turma e o termo' });
-    const rel = await relacoes(kv, escola);
-    const atuais = Array.isArray(rel[turmaId]) ? rel[turmaId] : [];
-    const idx = atuais.indexOf(termoId);
-    if (idx === -1) return json(404, { ok: false, erro: 'associação não encontrada' });
-    atuais.splice(idx, 1);
-    rel[turmaId] = atuais;
-    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
-    return json(200, { ok: true, turma: turmaId, termo: termoId, removido: true });
+    const simular = corpo.simular === true || corpo.simular === 'sim';
+    const plano = conteudos.migrarMapaAntigo({
+      legado: await relacoes(kv, escola),
+      curadorias: await curadorias(kv, escola),
+      turmas: await turmas(kv, escola),
+    });
+    const resumo = {
+      ok: true, escola, simulado: simular,
+      migradas: plano.migradas, semDestino: plano.semDestino, mudou: plano.mudou,
+      termos: plano.migradas.reduce((n, m) => n + m.termos.length, 0),
+    };
+    if (simular) return json(200, resumo);
+    if (plano.semDestino.length) {
+      return json(409, Object.assign({}, resumo, {
+        ok: false,
+        erro: 'a migração não fechou a leitura: ' + plano.semDestino.length + ' turma(s) do mapa '
+          + 'antigo não têm para onde ir, e fechar agora apagaria da tela os conteúdos delas. '
+          + 'Resolva o destino e repita — a migração é retomável, e as que já entraram não repetem.',
+      }));
+    }
+    if (plano.mudou) await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(plano.curadorias));
+    await kv.put(RAIZ + '/' + escola + '/conteudos-migrados', JSON.stringify({
+      em: new Date().toISOString(),
+      termos: resumo.termos,
+    }));
+    return json(200, resumo);
   }
 
   // POST /api/bastidores/semear-catalogo — carrega o catálogo INICIAL (idempotente: só
@@ -25211,8 +25278,10 @@ function parDaSalaNoCorpo(corpo, registo) {
 
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
 
-    // A relação inicial: só pares em que a turma e o termo existem (após a carga).
-    const rel = await relacoes(kv, escola);
+    // A relação inicial: só pares em que a turma e o termo existem (após a carga). DEPOIS DE
+    // MIGRADA a escola, o mapa antigo não se semeia: o `repertorio` da curadoria é o dono, e
+    // escrever aqui seria ressuscitar a segunda camada (T4, 19/11/2026).
+    const rel = await mapaAntigoParaEscrita(kv, escola);
     let associacoes = 0;
     for (const r of CATALOGO.RELACOES) {
       const turmaId = idDe(String(r.turma || ''));
@@ -25226,7 +25295,7 @@ function parDaSalaNoCorpo(corpo, registo) {
       rel[turmaId] = atuais;
       associacoes += 1;
     }
-    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+    if (rel) await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
 
     return json(200, { ok: true, turmasNovas, termosNovos, associacoes });
   }

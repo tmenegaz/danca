@@ -203,6 +203,87 @@ function mapaDeConteudos({ legado, curadorias, turmas } = {}) {
   return mapa;
 }
 
+/**
+ * A MIGRAÇÃO DO MAPA ANTIGO PARA O `repertorio` DA TURMA (T4, 19/11/2026).
+ *
+ * A DECISÃO DELA: *«migrar para o repertorio e depois fechar»* — deixar de ler também. Até aqui o
+ * mapa antigo (`turma-conteudos`) era **lido** como memória: falava pelas turmas que nunca tiveram
+ * curadoria (§`conteudosDaTurma`, a regra de 07/11/2026). Enquanto ele for lido, é um segundo dono
+ * do mesmo facto, e a memória pode acrescentar conteúdos que o professor já não declarou.
+ *
+ * PORQUE A MIGRAÇÃO NÃO É UMA CÓPIA CEGA. O `repertorio` vive na CURADORIA, e uma curadoria pode
+ * ensinar mais de uma turma — nesse caso copiar o mapa de uma delas daria à outra o que não é dela.
+ * Uma turma sem curadoria vigente também não tem onde receber: o repertório não existe fora da
+ * curadoria, e criá-la é um acto da direção, não da migração. Esses casos NÃO são migrados: são
+ * **devolvidos**, com o motivo, para quem corre a migração decidir. Inventar seria o pior dos
+ * mundos — daria por migrado o que não está.
+ *
+ * A ORDEM É A DA DECLARAÇÃO. O que a curadoria já declara fica primeiro (o professor associa na
+ * ordem em que ensina); o que vem do mapa entra no fim, e só o que ainda não lá está. A comparação
+ * é por id (`idDeTermo`), porque o `repertorio` guarda o que veio do formulário — nome ou id — e o
+ * mapa guarda ids: sem normalizar, «Plié» e «plie» seriam dois.
+ *
+ * É IDEMPOTENTE: correr duas vezes não muda nada, e a segunda devolve `migradas` vazio.
+ *
+ * Devolve `{ curadorias, migradas, semDestino, mudou }`, e **não escreve nada** — quem escreve é a
+ * rota, que é onde vive o KV.
+ */
+function migrarMapaAntigo({ legado, curadorias, turmas } = {}) {
+  const mapa = legado && typeof legado === 'object' ? legado : {};
+  const lista = Array.isArray(curadorias) ? curadorias : [];
+  const novas = lista.map((c) => (c && typeof c === 'object' ? Object.assign({}, c) : c));
+  const daLista = Array.isArray(turmas) ? turmas : [];
+  const nomeDaTurma = (idTurma) => {
+    const achada = daLista.find((t) => t && (String(t.id || '').trim() || idDaTurma(t.nome)) === idTurma);
+    return achada ? String(achada.nome || '').trim() : '';
+  };
+  const migradas = [];
+  const semDestino = [];
+  for (const chave of Object.keys(mapa)) {
+    const ids = (Array.isArray(mapa[chave]) ? mapa[chave] : []).map(idDeTermo).filter(Boolean);
+    if (!ids.length) continue;
+    const idTurma = String(chave);
+    const nome = nomeDaTurma(idTurma) || idTurma;
+    const vigentes = novas.filter((c) => c && !c.substituidaPor
+      && curadoriasQueEnsinam([c], { nome, id: idTurma }).length > 0);
+    if (!vigentes.length) {
+      semDestino.push({ turma: nome, id: idTurma, termos: ids,
+        motivo: 'a turma não tem curadoria vigente, e o repertório vive na curadoria — criá-la é um '
+          + 'acto da direção' });
+      continue;
+    }
+    if (vigentes.length > 1) {
+      semDestino.push({ turma: nome, id: idTurma, termos: ids,
+        motivo: 'mais de uma curadoria vigente ensina esta turma — o destino seria ambíguo' });
+      continue;
+    }
+    const alvo = vigentes[0];
+    const outras = (Array.isArray(alvo.turmas) && alvo.turmas.length
+      ? alvo.turmas.map((x) => String(x || '').trim())
+      : [String(alvo.turma || '').trim()]).filter(Boolean);
+    if (outras.length > 1) {
+      semDestino.push({ turma: nome, id: idTurma, termos: ids,
+        motivo: 'a curadoria «' + (alvo.id || '—') + '» ensina ' + outras.length + ' turmas ('
+          + outras.join(', ') + ') e o repertório é um só — migrar daria às outras o que não é delas' });
+      continue;
+    }
+    const atuais = Array.isArray(alvo.repertorio) ? alvo.repertorio.slice() : [];
+    const vistos = new Set(atuais.map(idDeTermo).filter(Boolean));
+    const entraram = [];
+    for (const id of ids) {
+      if (vistos.has(id)) continue;
+      vistos.add(id);
+      atuais.push(id);
+      entraram.push(id);
+    }
+    if (!entraram.length) continue;
+    const indice = novas.indexOf(alvo);
+    novas[indice] = Object.assign({}, alvo, { repertorio: atuais });
+    migradas.push({ turma: nome, id: idTurma, curadoria: alvo.id || null, termos: entraram });
+  }
+  return { curadorias: novas, migradas, semDestino, mudou: migradas.length > 0 };
+}
+
 module.exports = {
   idDeTermo,
   idDaTurma,
@@ -210,4 +291,5 @@ module.exports = {
   curadoriasQueEnsinam,
   conteudosDaTurma,
   mapaDeConteudos,
+  migrarMapaAntigo,
 };

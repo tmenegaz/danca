@@ -4687,8 +4687,20 @@ e a trava levantava-se sozinha), a porta **declara** (abrir o plano e gravar é 
 O vazio não é erro: um elo anterior a esta data não declara a modalidade, como um elo antigo não
 declara o professor. **CONFIRMADO** por `provar-os-fluxos-da-derivacao` (65; **5 de 65** reprovavam
 contra o `nucleo/cadeia.js` anterior) e por `provar-gestos-do-shard` (33; **2 de 33** contra o
-`rotas.js` anterior). **Próximo:** o T4 — os **conteúdos** da Turma, e o mapa antigo (`turma-conteudos`)
-que escreve sem guarda nenhuma.
+`rotas.js` anterior). **Próximo:** o T4 — os **conteúdos** da Turma, e o mapa antigo (`turma-conteudos`), que ainda era
+escrito e lido.
+
+**RESOLVIDO a 19/11/2026 — o T4: os conteúdos passam para o `repertorio`, e o mapa antigo fecha.**
+Decisão dela: *«migrar»* — e depois fechar a leitura também, porque enquanto o mapa for lido é um
+segundo dono do mesmo facto. `migrarMapaAntigo` leva-o para o `repertorio` da curadoria **vigente**,
+sem duplicar e na ordem da declaração, e **não inventa destino**: turma sem curadoria, ou curadoria
+que ensina duas turmas, voltam em `semDestino` com o motivo. A rota `migrar-conteudos` só grava a
+marca `conteudos-migrados` quando `semDestino` está vazio — senão a leitura fechava e apagava da tela
+os conteúdos dessa turma (**409**); `simular` não escreve. As rotas antigas `turma-conteudo` recusam
+com o caminho certo, o mapa **não se apaga** (fica como memória) e a chave nova entrou na lista do
+expurgo no dia em que nasceu. **CONFIRMADO** por `provar-a-migracao-dos-conteudos` (24; **14 de 24**
+reprovavam contra o código anterior) e pela §D do `provar-os-fluxos-da-derivacao` (65). **Próximo:** o
+T5 — o Estilo: editar um exercício que uma Turma usa.
 
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
@@ -4711,6 +4723,12 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **T4: os conteúdos da Turma passam para o `repertorio`, e o mapa antigo fecha.** O
+  `turma-conteudos` deixou de ser escrito e de ser lido, depois de migrado para o `repertorio` da
+  curadoria vigente — sem duplicar, sem inventar destino, e com a marca `conteudos-migrados` a fechar
+  a leitura. A migração não fecha a leitura quando sobra uma turma sem para onde ir. Ver `REGISTRO.md`
+  e o T5 aberto no `PLANO-FLUXOS-DE-DERIVACAO.md`.
 
 - **19/11/2026** — **T3: a troca de modalidade bloqueia, e o documento passa a dizer sob que escala foi
   escrito.** A guarda `modalidadeMudou` compara a modalidade do documento com a da Sala, e bloqueia o

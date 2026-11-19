@@ -1678,3 +1678,8 @@ experimentos/modelo-formulario/*
 # uma sala grava a Sala e deixa a Turma a dizer o antigo, não dispara a cadeia, e o professor novo
 # não vê a turma que passou a dar — e lista, do código, as rotas que disparam e as que deviam.
 !experimentos/provar-os-fluxos-da-derivacao.js
+
+# A MIGRAÇÃO DO MAPA ANTIGO DOS CONTEÚDOS (19/11/2026). Nona vez. Mede a decisão dela — «migrar para
+# o repertorio e depois fechar»: o que entra sem duplicar, o que não tem destino e não é inventado, e
+# o par que prova a mudança (antes da marca o mapa fala, depois cala-se).
+!experimentos/provar-a-migracao-dos-conteudos.js

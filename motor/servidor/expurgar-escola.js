@@ -181,6 +181,12 @@ const CHAVES_FIXAS_DA_ESCOLA = [
    * prova `experimentos/provar-os-fluxos-da-derivacao.js` §D compara as duas listas, para a
    * próxima chave nova não voltar a ficar de fora em silêncio. */
   'matriculas', 'cadeia',
+  /* E UMA QUE NASCEU JÁ COM DONO (T4, 19/11/2026): `conteudos-migrados` é a marca de que o mapa
+   * antigo (`turma-conteudos`) já passou para o `repertorio` das curadorias. Se ficasse para trás
+   * numa escola expurgada, a escola NOVA — que nasce vazia — poderia nascer com a leitura fechada
+   * por uma marca de outra escola. Ela entra na lista no dia em que nasce, que é como devia ter
+   * acontecido às duas de cima. */
+  'conteudos-migrados',
 ];
 
 /** Os nomes completos das chaves fixas de uma escola. */

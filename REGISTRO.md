@@ -54545,3 +54545,51 @@ para a asserção distinguir «leu a Sala» de «leu a cópia»); **controlo neg
 `provar-cadeia-automatica` 62, `provar-salas-e-elencos` 132, `provar-direcao-do-documento` 32,
 `provar-carimbo-da-edicao` 56, `provar-po-unico` 18, `provar-turma-sem-professor` 23,
 `provar-cadeia-do-ajuste` 34, `check-identidade` ok, `check-sem-destruicao` ok.
+
+### 19/11/2026 — T4: os conteúdos da Turma passam para o `repertorio`, e o mapa antigo fecha
+
+> A decisão, entre as três que estavam à mesa: **«migrar»** — e depois fechar.
+
+**O que estava.** Dois donos do mesmo facto: o `repertorio` da curadoria (o caminho que a página usa
+desde 03/11/2026) e o mapa `turma-conteudos`, ainda escrito por `POST`/`DELETE /api/bastidores/
+turma-conteudo` e ainda **lido** como memória (a regra de 07/11: fala pelas turmas que nunca tiveram
+curadoria). Enquanto for lido, é um segundo dono — e dois donos divergem.
+
+**O que passou a valer.** `migrarMapaAntigo` leva o mapa para o `repertorio` da curadoria **vigente**
+de cada turma, sem duplicar (a comparação é por id — «Plié» e `plie` são o mesmo termo) e na ordem da
+declaração. E **não inventa destino**:
+
+| o caso | o que acontece, e porquê |
+|:--|:--|
+| a turma não tem curadoria vigente | `semDestino` — o repertório vive na curadoria, e criá-la é um acto da direção |
+| a curadoria ensina **mais de uma** turma | `semDestino` — o repertório é um só, e migrar daria à outra o que não é dela |
+| a curadoria está substituída | não recebe: quem manda é a vigente |
+| correr outra vez | não muda nada — idempotente, e retomável |
+
+**A marca que fecha.** A rota `POST /api/bastidores/migrar-conteudos` escreve as curadorias e a chave
+`conteudos-migrados`, e há uma regra nela que é o coração da coisa: **a marca só é escrita quando não
+sobra ninguém**. Com uma turma sem destino, a resposta é **409** e a leitura **não** fecha — fechá-la
+nessa altura apagaria da tela os conteúdos dessa turma, e ninguém saberia porquê. `simular: true`
+mostra o plano sem escrever, e é o primeiro passo de quem quer ver antes.
+
+**O fecho, dos dois lados.** A leitura (`relacoesDosConteudos`) e os gestos que mudam o id de uma
+turma — renomear, derivar, apagar, semear — (`mapaAntigoParaEscrita`) respondem vazio quando a marca
+existe. E as rotas antigas recusam com **409**, dizendo onde agora se associa conteúdo. **O mapa não se
+apaga:** fica no KV como memória, e é a mesma regra de sempre — o que está gravado não se reescreve.
+
+**A chave nova entra na lista do expurgo no dia em que nasce.** É o que devia ter acontecido a
+`matriculas` e `cadeia`, que faltavam; e foi medido: sem a entrada, a §D do `provar-os-fluxos-da-
+derivacao` **reprova** — a lista declarada é comparada com as chaves que o **código** escreve.
+
+**O que não se mexeu, e é de propósito.** A regra de 07/11/2026 — a **declaração viva vence a
+memória** — foi ela que impediu o resíduo de Outubro de voltar à tela; migrar não a substitui, só a
+torna desnecessária para o futuro. E o gatilho da cadeia já estava certo: os conteúdos vivem no
+`repertorio`, que é gravado pelo `curadoria-derivar` — uma das seis rotas que percorrem a cadeia. O
+caminho no lugar (`curadoria`) só acontece quando a Turma não tem plano, e aí não há nada a re-derivar.
+
+**Medido.** `provar-a-migracao-dos-conteudos` — prova nova, **24 asserções**; **controlo negativo: 14
+de 24** contra o `conteudos.js` e o `bastidores.js` de antes (a prova degrada em vez de estourar, e é
+isso que faz o negativo medir). `provar-os-fluxos-da-derivacao` 65 (§D, com a chave nova).
+Vizinhas: `provar-conteudos-e-estado-da-turma` 76/78 (as duas falhas são de antes, medidas nos dois
+lados), `provar-salas-e-elencos` 132, `provar-dicionario` 123, `provar-gestos-do-shard` 33,
+`provar-relacoes-do-ciclo` 23, `check-identidade` ok.
