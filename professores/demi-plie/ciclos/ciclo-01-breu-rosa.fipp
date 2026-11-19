@@ -10,12 +10,12 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-rosa
-hash_conteudo: 03ae5daf98254bfb7d67e1fcfc466bde3bdbf8b0579e512ad4e7148df1f1c801
+hash_conteudo: 6e9a011f159428e014c72bee45f1e79312484e5601e8757da0560490b80b4309
 parentHash: 
-hash: d168f21be2cf7cca4d38cc4587cc6133528ee1e47e9d27867ebbaabf23d032d1
+hash: 0edd3725c3a77f1747bb9dba5332a3d76dbd2dac8d97ad191074331f526a843c
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-19
 notacao: Código de dança
 notacao_modalidade: bale-classico
@@ -23,6 +23,14 @@ notacao_alfabeto: ballet-classico
 notacao_versao: 48
 notacao_sha: bf33a9a516e484dc28c6b3754c4e5c85db93ab4fa46268043a2e5a797694dced
 cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-codigo_de_danca.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf
   - professores/demi-plie/ciclos/ciclo-01.conf

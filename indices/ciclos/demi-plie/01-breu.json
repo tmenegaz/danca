@@ -4,24 +4,47 @@
     "ancorado_em": "2026-11-19",
     "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-codigo_de_danca.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "d168f21be2cf7cca4d38cc4587cc6133528ee1e47e9d27867ebbaabf23d032d1",
-    "hash_conteudo": "03ae5daf98254bfb7d67e1fcfc466bde3bdbf8b0579e512ad4e7148df1f1c801",
+    "hash": "0edd3725c3a77f1747bb9dba5332a3d76dbd2dac8d97ad191074331f526a843c",
+    "hash_conteudo": "6e9a011f159428e014c72bee45f1e79312484e5601e8757da0560490b80b4309",
     "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:demi-plie/01/breu/rosa/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
+    "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
+    "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
+    "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
+    "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
+    "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json",
+    "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
+    "documento:indice:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclos.json",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
+    "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-rosa-notacao.md",
     "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+    "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md",
+    "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-rosa-referencias.md",
+    "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu-rosa/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -29,9 +52,34 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 3,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "declaracao",
+        "valor": "declaracao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -40,11 +88,26 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
       },
       {
         "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
+      },
+      {
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -52,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bfe52fa"
+    "commit": "3572f5d"
   },
-  "gerado_em": "2026-11-19T14:45",
+  "gerado_em": "2026-11-19T15:34",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7

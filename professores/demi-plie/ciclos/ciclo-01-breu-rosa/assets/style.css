@@ -1,0 +1,3011 @@
+/* ============================================================================
+   Ciclos de Aprendizagem — folha de estilo única do pacote HTML (Regra 16).
+   Copiada para ciclos/ciclo-XX/assets/style.css pelo gerador. Não editar a
+   cópia: edite este arquivo e rode `tools/gerar-ciclo.sh` de novo.
+
+   Este arquivo é a FONTE DE VERDADE da identidade visual do Projeto Ciclo.
+   A regra, o papel de cada cor e as razões de contraste estão em
+   `IDENTIDADE-VISUAL.md` (raiz). Nenhum outro arquivo redeclara estes valores:
+   quem precisa deles consome o token daqui.
+   ========================================================================== */
+
+:root {
+  --burgundy: #6b1f2e;
+  --burgundy-claro: #8a2a3d;
+  --soft: #5a5348;
+  --cream: #fbf8f3;
+  --tinta: #1f1c1a;
+
+  /* --- O ouro, em quatro papéis -------------------------------------------------
+     O ouro é ORNAMENTO: a partir de um fundo claro ele não serve para texto. Medido,
+     não estimado (WCAG 2.1 — 4,5:1 para texto, 3,0:1 para traço com função):
+     `--gold` dá 3,65:1 sobre o burgundy (passa como ornamento) e apenas 2,92:1 sobre
+     o creme (não passa como nada). Por isso o ouro se divide, e cada papel recebe o
+     tom que foi medido para ele. */
+  --gold: #b08d57;        /* ornamento SOBRE BURGUNDY (3,65:1) e fundo do item ativo */
+  --gold-claro: #c9a878;  /* texto sobre burgundy (5,03:1) */
+  --gold-escuro: #8a6a3b; /* traço, filete e borda sobre fundo claro (>=4,26:1) */
+  --gold-texto: #7a5c31;  /* texto sobre fundo claro (>=5,26:1) */
+  --sobre-ouro: #2b1b10;  /* texto SOBRE o ouro (5,36:1) */
+  /* Borda de CAMPO DE FORMULÁRIO. É um traço de 1px, então o alvo é 3,0:1 — e o
+     `--gold-escuro` (4,26:1) é escuro demais para o desenho do campo: vira caixa
+     pesada. Este tom é o mais claro que ainda passa nos três papéis do formulário
+     (branco 3,35 · cream 3,16 · `--creme-1` 3,22). Para filete de texto, `--gold-escuro`. */
+  --gold-borda: #a08a58;
+
+  /* Tons de creme derivados. São sombras do `--cream`, usadas só neste arquivo —
+     não são identidade, são papel: por isso não sobem para o documento. */
+  --branco: #ffffff;
+  --creme-1: #fdfaf5;   /* linha ímpar de tabela */
+  --creme-2: #f3ece1;   /* fundo de `th`, de `.ficha` e de citação destacada */
+  --creme-3: #f5ecdf;   /* fundo do link sob o ponteiro */
+  --creme-4: #fff8ec;   /* fundo da citação */
+  --creme-5: #f1eae0;   /* fundo de `code` */
+  --creme-6: #f7f1e7;   /* fundo de `pre` */
+
+  /* --- Estados do formulário -----------------------------------------------------
+     São o quarto uso de cor da identidade: dizer o que aconteceu, sem julgamento.
+     O tom do ALERTA não pode ser o `#a06000` corrente: ele dá 4,29:1 sobre o
+     `--creme-2` e o rótulo de parcial aparece em cabeçalho de tabela. Escurecido
+     para `#8f5a12` (4,92:1 no pior fundo), os três passam em todos os papéis. */
+  --ok: #1d6b2f;      /* aconteceu (>=5,60:1) */
+  --alerta: #8f5a12;  /* parcial (>=4,92:1) */
+  --falha: #9b1c1c;   /* erro / não aconteceu (>=6,95:1) */
+
+  /* --- Fundos de estado -----------------------------------------------------------
+     O resultado do registro tem fundo próprio: a faixa que diz «aconteceu», «parcial»
+     ou «não aconteceu» é lida de longe, e pintá-la com o tom do papel a apagaria. Os
+     três tons já existiam espalhados nas páginas (raiz, bastidores); sobem para cá
+     porque são cor de ESTADO, não decoração — e precisam acompanhar o tema. Medidos
+     com o texto semântico por cima: ok 6,00:1 · alerta 5,22:1 · falha 7,04:1. */
+  --ok-fundo: #eef7ee;
+  --alerta-fundo: #fdf3d8;
+  --falha-fundo: #fdeaea;
+
+  /* --- O estado «derivada» --------------------------------------------------------
+     A turma que nasceu de um ajuste não é erro nem pendência: é linha de base. O lilás
+     a distingue do âmbar («ainda podes mexer») sem virar juízo. Texto sobre o fundo:
+     7,53:1. */
+  --derivada: #5a3f66;
+  --derivada-fundo: #efe9f2;
+
+  /* --- Tipografia -----------------------------------------------------------------
+     Duas pilhas, e só duas: o texto é serifado (a voz do projeto) e os CONTROLES —
+     campo, botão, menu — são sans, porque é onde se digita e se clica, e a serifa
+     atrapalha em corpo pequeno de interface. Nenhum arquivo redeclara estas listas. */
+  --serif: Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Altura da barra fixa. O valor aqui é o FALLBACK (sem JavaScript): cobre a
+     navbar de duas linhas, que é o pior caso. Com JS ligado, o script do
+     template mede a altura real e sobrescreve esta variável. */
+  --header-height: 120px;
+
+  /* Altura que o TÍTULO PRESO ocupa, e que portanto NÃO é leitura (21/10/2026).
+     Fica 0px quando não há título preso — a folha de captura, uma página sem
+     `header.doc`, ou o navegador sem JavaScript —, e o `scroll-padding-top` e a
+     coluna do índice voltam a ser exactamente o que eram. Publicada pelo
+     `assets/nav.js`, que é quem mede: é um número MEDIDO, não estimado, porque
+     ele muda com a largura (o título pode quebrar em duas linhas no celular). */
+  --titulo-preso: 0px;
+
+  /* --- A ESCALA (Fase 1) -----------------------------------------------------------
+     Espaço, raio e corpo de texto em degraus declarados. Os componentes usam estes
+     nomes; um valor que não esteja aqui é um desvio que se vê na revisão. As medidas
+     antigas das páginas continuam válidas até migrarem — a escala é o destino, não
+     uma reescrita de tudo de uma vez. */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  /* O RAIO É DA RÉGUA, como o espaço: três degraus e a pílula. Os valores são os da
+     pele adotada em 17/10/2026 (HarmonyOS): o controle é macio (12px) e o cartão é
+     mais macio ainda (20px) — a hierarquia do raio acompanha a da elevação. Trocar a
+     pele é trocar estes três números, e o sistema inteiro acompanha. */
+  --raio-1: 8px;    /* selo, chip, botão pequeno */
+  --raio-2: 12px;   /* campo e botão — o controle */
+  --raio-3: 20px;   /* cartão e modal — a superfície */
+  --raio-pilula: 999px;
+
+  /* --- OS PAPÉIS (Fase 2) ----------------------------------------------------------
+     Os nomes acima descrevem VALORES (`--cream`, `--burgundy`). Estes descrevem
+     FUNÇÕES, e são eles que os componentes usam. A distinção é o que permite um tema:
+     um tema troca o VALOR de um papel, e nenhum componente precisa saber que a marca
+     é bordô ou verde.
+
+     Na variante clara, cada papel aponta para o valor que a identidade já usava — o
+     desenho não muda. Na noturna, cada papel recebe o tom medido para o fundo escuro,
+     e é por isso que ela não é a clara invertida.
+
+     `color-scheme` faz os controles NATIVOS (select, checkbox, scrollbar) acompanharem:
+     sem ele, o tema escuro teria campos claros do sistema no meio da página. */
+  color-scheme: light;
+
+  --fundo: var(--cream);
+  --fundo-suave: var(--creme-1);
+  --fundo-faixa: var(--creme-2);
+  --fundo-hover: var(--creme-3);
+  --fundo-citacao: var(--creme-4);
+  --fundo-codigo: var(--creme-5);
+  --fundo-pre: var(--creme-6);
+
+  --superficie: var(--branco);
+  --superficie-elevada: var(--branco);
+
+  --texto: var(--tinta);
+  --texto-suave: var(--soft);
+
+  --borda: var(--gold-escuro);
+  --borda-campo: var(--gold-borda);
+  --borda-forte: var(--gold-escuro);
+  /* O campo tem DOIS fundos, porque tem dois contextos: sobre o papel, ele é a
+     superfície clara que se destaca; dentro de um cartão branco, ele desce um degrau
+     para não sumir. Na noturna, os dois acompanham o cartão. */
+  --campo-fundo: var(--branco);
+  --campo-fundo-cartao: var(--cream);
+
+  --marca: var(--burgundy);
+  --marca-texto: var(--gold-texto);
+  --marca-fundo: var(--burgundy);
+  --marca-fundo-hover: var(--burgundy-claro);
+  --sobre-marca: var(--cream);
+  --texto-destaque-marca: var(--gold-claro);
+
+  --ornamento: var(--gold-escuro);
+  --ornamento-forte: var(--gold-claro);
+
+  --acao-fundo: var(--burgundy);
+  --acao-texto: var(--gold-claro);
+  --ativo-fundo: var(--gold);
+  --ativo-texto: var(--sobre-ouro);
+  --foco: var(--gold-escuro);
+
+  --veu: rgba(31, 28, 26, .55);
+  --sombra: 0 18px 50px rgba(31, 28, 26, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+  /* A pele macia usa ELEVAÇÃO em vez de contorno: o botão de ação e o cartão têm
+     sombra curta, e o foco é um HALO em volta do controle, não um anel afastado.
+     Os dois são papel, não valor — a noturna troca os seus. */
+  --sombra-controle: 0 2px 6px rgba(107, 31, 46, .22);
+  --sombra-controle-alto: 0 4px 12px rgba(107, 31, 46, .28);
+  --sombra-cartao: 0 2px 10px rgba(31, 28, 26, .06);
+  --foco-halo: 0 0 0 4px rgba(107, 31, 46, .12);
+}
+
+/* ============================================================================
+   A VARIANTE NOTURNA — concebida para esta família, não invertida.
+   ----------------------------------------------------------------------------
+   Sobre o fundo escuro o bordô não é texto: `#6b1f2e` dá 1,64:1 sobre `#17130f`.
+   A voz passa a ser o OURO — que é a segunda cor da identidade, não uma cor nova —,
+   e o bordô permanece como superfície da barra, onde o texto é o creme (10,65:1).
+   Todos os pares estão medidos em `tools/check-identidade.js`, que passa a conferir
+   este bloco com o mesmo piso da variante clara.
+   ========================================================================== */
+[data-modo="noturna"] {
+  color-scheme: dark;
+
+  --fundo: #17130f;
+  --fundo-suave: #1c1712;
+  --fundo-faixa: #241d17;
+  --fundo-hover: #2a231b;
+  --fundo-citacao: #241d17;
+  --fundo-codigo: #241d17;
+  --fundo-pre: #1c1712;
+
+  --superficie: #211b15;
+  --superficie-elevada: #2a231b;
+
+  --texto: #f1eae0;
+  --texto-suave: #bfb2a0;
+
+  --borda: #7a6a55;
+  --borda-campo: #8a7860;
+  --borda-forte: #9c8870;
+  --campo-fundo: #241d17;
+  --campo-fundo-cartao: #1c1712;
+
+  --marca: #d9b98a;
+  --marca-texto: #e0c9a6;
+  --marca-fundo: #6b1f2e;
+  --marca-fundo-hover: #8a2a3d;
+  --sobre-marca: #fbf8f3;
+  --texto-destaque-marca: #e0c9a6;
+
+  --ornamento: #7a6a55;
+  --ornamento-forte: #c9a878;
+
+  --acao-fundo: #6b1f2e;
+  --acao-texto: #e0c9a6;
+  --ativo-fundo: #c9a878;
+  --ativo-texto: #2b1b10;
+  --foco: #d9b98a;
+
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #1c2b21;
+  --alerta-fundo: #2e2415;
+  --falha-fundo: #2e1919;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #251d28;
+
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  /* A sombra do controle na noturna é PRETA: a bordô não se lê como profundidade
+     sobre fundo escuro. O halo do foco clareia, porque escurecer não se vê. */
+  --sombra-controle: 0 2px 6px rgba(0, 0, 0, .45);
+  --sombra-controle-alto: 0 4px 12px rgba(0, 0, 0, .55);
+  --sombra-cartao: 0 2px 10px rgba(0, 0, 0, .4);
+  --foco-halo: 0 0 0 4px rgba(217, 185, 138, .22);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+/* ============================================================================
+   AS FAMÍLIAS — a segunda paleta *(18/10/2026)*
+
+   UMA FAMÍLIA NÃO É UMA COR: É UM CONJUNTO DE PAPÉIS. O sistema não pergunta
+   «qual é a cor do botão?» — pergunta «e o texto que fica SOBRE ele?», «e o filete
+   do campo, que tem de alcançar 3:1 em três fundos diferentes?». São trinta e um
+   pares medidos, e uma família só existe quando os trinta e um passam.
+
+   POR ISSO ESTE BLOCO DECLARA PAPÉIS, E NÃO PRIMITIVOS. A Bordô de Cena declara
+   primitivos (`--cream`, `--burgundy`) e deixa os papéis derivarem deles, porque
+   nasceu primeiro e a derivação é a sua história. Uma segunda família que
+   declarasse `--burgundy: #00afc3` estaria a mentir no nome — e a regra do
+   contrato é essa: um apelido não toma o nome de um papel. Aqui cada valor é o
+   que ele É.
+
+   O QUE NÃO SE REDECLARA: os semânticos de ESTADO (`--ok`, `--alerta`, `--falha`
+   e os fundos), porque eles INFORMAM e não decoram — o verde é verde em qualquer
+   família. Na clara são os mesmos da casa; na escura, os mesmos da noturna da
+   casa, com os fundos deslocados para o frio.
+
+   `data-paleta="bordo"` é o PADRÃO e não declara nada: o `:root` já é a Bordô de
+   Cena. Um atributo explícito no `<html>` serve para a página DIZER de que família
+   é, e para a prova poder conferir que disse.
+
+   A ORDEM IMPORTA. `[data-paleta="cortina"]` e `[data-modo="noturna"]` têm a mesma
+   especificidade (0,1,0), e o desempate é a posição: este bloco vem DEPOIS, e por
+   isso a Cortina clara vence a Bordô noturna. O par `[data-paleta][data-modo]`
+   tem (0,2,0) e vence os dois — é ele que faz «Cortina noturna» existir.
+   ========================================================================== */
+
+/* ---------- Cortina Turquesa — clara ----------
+   As âncoras vieram da imagem de referência e foram AMOSTRADAS: turquesa #00afc3
+   (medido; o texto de referência dizia #00b8c7, e os dois são o mesmo tom),
+   fundo #f5fafa, tinta #0d1b24.
+
+   TRÊS DESCOBERTAS DA MEDIÇÃO, e nenhuma delas está na imagem:
+
+   1. O TURQUESA NÃO SERVE DE TEXTO. Sobre o papel dá 2,52:1. `--marca` (o papel
+      dos títulos de secção) tem de ser o tom escurecido #00708c — 5,39:1 —, e o
+      turquesa cheio fica só como PREENCHIMENTO (`--marca-fundo`).
+   2. O TURQUESA NÃO ACEITA TEXTO CLARO. Branco sobre ele dá 2,65:1, e não há tom
+      claro nenhum que passe: o `--sobre-marca` desta família é ESCURO (#06202b,
+      6,34:1). É o oposto da Bordô, cuja barra é escura com texto creme — e é a
+      razão pela qual uma família não se faz trocando o acento.
+   3. O NEUTRO MUDA DE TEMPERATURA. O papel da Cortina é frio (#f5fafa) onde o da
+      casa é quente (--cream #fbf8f3). Sete primitivos e os papéis que derivam
+      deles acompanham — a família troca o clima, não só a cor. */
+[data-paleta="cortina"] {
+  --fundo: #f5fafa;
+  --fundo-suave: #edf5f6;
+  --fundo-faixa: #e3eff1;
+  --fundo-hover: #d9e9ec;
+  --fundo-citacao: #eaf4f6;
+  --fundo-codigo: #e7f1f3;
+  --fundo-pre: #eef6f8;
+  --superficie: #ffffff;
+  --superficie-elevada: #ffffff;
+  --texto: #0d1b24;
+  --texto-suave: #4c5f6a;
+  /* O filete é NEUTRO, não é o acento. Um campo com filete turquesa pareceria em
+     foco permanente; na Bordô o filete é ouro-esmaecido pela mesma razão. Este
+     tom alcança 3,12:1 no papel, 3,28:1 na superfície e 3,15:1 no cartão. */
+  --borda: #78929d;
+  --borda-campo: #78929d;
+  --borda-forte: #5a7987;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7fbfc;
+  --marca: #00708c;          /* o acento como TEXTO (5,39:1) */
+  --marca-texto: #00677f;    /* o mesmo, um degrau abaixo (5,51:1 no cabeçalho) */
+  --marca-fundo: #00afc3;    /* o acento como PREENCHIMENTO — a barra */
+  --marca-fundo-hover: #0093a6;
+  --sobre-marca: #06202b;    /* ESCURO: branco sobre turquesa não passa */
+  --texto-destaque-marca: #06202b;
+  --ornamento: #5e8e99;
+  --ornamento-forte: #04414d; /* o filete da barra, escuro sobre o turquesa (4,24:1) */
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;    /* o item ativo é um chip claro, como o ouro na Bordô */
+  --ativo-texto: #06202b;
+  --foco: #00708c;
+  --veu: rgba(13, 27, 36, .55);
+  --sombra: 0 18px 50px rgba(13, 27, 36, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+  /* A sombra do controle é do NAVY, não do turquesa: uma sombra colorida pelo
+     acento suja o papel em volta. Na Bordô ela é bordô porque o bordô é escuro;
+     aqui o acento é claro, e a profundidade tem de vir da tinta. */
+  --sombra-controle: 0 2px 6px rgba(13, 27, 36, .20);
+  --sombra-controle-alto: 0 4px 12px rgba(13, 27, 36, .26);
+  --sombra-cartao: 0 2px 10px rgba(13, 27, 36, .06);
+  --foco-halo: 0 0 0 4px rgba(0, 175, 195, .16);
+  --ok-fundo: #eaf5ec;
+  --alerta-fundo: #fbf2da;
+  --falha-fundo: #fbeaea;
+  --derivada-fundo: #ece7f0;
+}
+
+/* ---------- Cortina Turquesa — noturna ----------
+   Concebida, não invertida — a regra da casa. O fundo é o navy da referência
+   (#0a1923 / #0f2332), e o turquesa CONTINUA a ser o preenchimento: aqui ele
+   funciona melhor do que na clara, porque sobre o navy ele alcança 6,06:1 como
+   texto e 6,34:1 como fundo de botão. O `--marca-texto` clareia (#63dbe8) porque
+   sobre o papel escuro o tom de texto da clara desapareceria (10,91:1 contra
+   2,9:1). */
+[data-paleta="cortina"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #0a1923;
+  --fundo-suave: #0f2332;
+  --fundo-faixa: #142b39;
+  --fundo-hover: #19323f;
+  --fundo-citacao: #142b39;
+  --fundo-codigo: #142b39;
+  --fundo-pre: #0f2332;
+  --superficie: #0f2332;
+  --superficie-elevada: #19323f;
+  --texto: #e4eff2;
+  --texto-suave: #a3bcc4;
+  /* Os filetes clareiam: sobre o navy, o tom da clara dá 2,27:1 e um campo com
+     esse filete desaparece. Medidos: --borda 3,53 / 3,18 · --borda-campo 3,18 /
+     3,88 / 3,50 (fundo / superfície / campo). */
+  --borda: #547382;
+  --borda-campo: #5a7a87;
+  --borda-forte: #628594;
+  --campo-fundo: #142b39;
+  --campo-fundo-cartao: #0f2332;
+  --marca: #00afc3;
+  --marca-texto: #63dbe8;
+  --marca-fundo: #00afc3;
+  --marca-fundo-hover: #2ec3d3;
+  --sobre-marca: #06202b;
+  --texto-destaque-marca: #06202b;
+  --ornamento: #547382;
+  --ornamento-forte: #04333c;
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;
+  --ativo-texto: #06202b;
+  --foco: #63dbe8;
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #132a25;
+  --alerta-fundo: #2a2417;
+  --falha-fundo: #2e1b1f;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #241d28;
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  --sombra-controle: 0 2px 6px rgba(0, 0, 0, .45);
+  --sombra-controle-alto: 0 4px 12px rgba(0, 0, 0, .55);
+  --sombra-cartao: 0 2px 10px rgba(0, 0, 0, .4);
+  --foco-halo: 0 0 0 4px rgba(99, 219, 232, .22);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+/* ==================== VERDE DE ENSAIO — a terceira família ====================
+   Entrou em 18/10/2026, e é a ÚLTIMA: o catálogo fecha em TRÊS famílias — Bordô de Cena,
+   Cortina Turquesa e Verde de Ensaio. As outras quatro que chegaram a ser medidas (Azul de
+   Gala, Prata de Palco, Azul de Bastidores, Luz de Camarim) foram abandonadas por decisão de
+   produto; os valores delas ficam no histórico do Git, e voltar com uma é refazer a medição.
+
+   A PROCEDÊNCIA está dita valor a valor, e é o que permite discutir a família em vez de a
+   aceitar. QUATRO das cinco cores que o dono do produto nomeou entraram INTACTAS, no papel
+   que lhes cabe: o fundo #f4f0e7, o texto #303631, a sálvia #879783 (no preenchimento — a
+   barra e a ação principal) e a madeira #9a856c (no filete, onde dá 3,11:1 em vez dos 3,0
+   de piso). Todo o resto é DERIVADO e medido.
+
+   A ÂNCORA QUE NÃO SERVIU AO PAPEL QUE PARECIA SER O DELA, e o número que a recusou:
+     · a sálvia como TEXTO dá 2,72:1 sobre o papel e 2,92:1 sobre a superfície (piso 4,5:1) —
+       um verde de 15px que ninguém lê. Ela continua a ser a cor da família; o que muda é o
+       papel: `--marca-fundo` (a barra) e `--acao-fundo` (a ação), com texto escuro em cima
+       (5,19:1). O texto desce para `#4f6650` — 5,51:1 —, e o valor coincide quase
+       exactamente com o `#507048` medido na logo da mesma cor: dois caminhos, o mesmo tom.
+
+   AS 62 MEDIÇÕES (31 pares × 2 variantes) estão em `experimentos/medir-paletas.js`, que é
+   quem as fez e quem as explica; `tools/check-identidade.js` volta a medi-las a cada
+   verificação e reprova o primeiro par que caia. Nenhum valor aqui foi escolhido a olho. */
+/* ---- Verde de Ensaio — Tema 2 — Estúdio de dança, verde sálvia ---- */
+[data-paleta="verde"] {
+  --fundo: #f4f0e7;   /* a sua cor */
+  --fundo-suave: #ece7db;
+  --fundo-faixa: #e6e0d2;
+  --fundo-hover: #ded6c4;
+  --fundo-citacao: #eeeadf;
+  --fundo-codigo: #eae4d7;
+  --fundo-pre: #f0ebdf;
+  --superficie: #fbf8f2;
+  --superficie-elevada: #ffffff;
+  --texto: #303631;   /* a sua cor */
+  --texto-suave: #4d544e;
+  --borda: #9a856c;   /* a sua cor */
+  --borda-campo: #9a856c;   /* a sua cor */
+  --borda-forte: #6f5d48;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7f3ea;
+  --marca: #4f6650;
+  --marca-texto: #455a46;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #77876f;
+  --sobre-marca: #171c18;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #8a755c;
+  --ornamento-forte: #3d4a3e;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #4f6650;
+  --ok-fundo: #e8f0e4;
+  --alerta: #8c5812;
+  --alerta-fundo: #f7eed6;
+  --falha-fundo: #f6e6e2;
+  --derivada-fundo: #eae6ef;
+}
+
+[data-paleta="verde"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #2b2b27;   /* a sua cor */
+  --fundo-suave: #323230;
+  --fundo-faixa: #383834;
+  --fundo-hover: #3f3f3a;
+  --fundo-citacao: #343430;
+  --fundo-codigo: #343430;
+  --fundo-pre: #303030;
+  --superficie: #31312d;
+  --superficie-elevada: #3a3a35;
+  --texto: #e8e5d9;   /* a sua cor */
+  --texto-suave: #b9b6a9;
+  --borda: #797a71;   /* a sua cor */
+  --borda-campo: #808277;   /* a sua cor */
+  --borda-forte: #87897d;
+  --campo-fundo: #383834;
+  --campo-fundo-cartao: #31312d;
+  --marca: #a9bb9f;
+  --marca-texto: #bfcdb5;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #9aab8f;
+  --sobre-marca: #1c231d;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #6f7167;
+  --ornamento-forte: #1e211d;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #bfcdb5;
+  --ok: #9ec79b;
+  --alerta: #dfba75;
+  --falha: #e5a09a;
+  --derivada: #c6aed6;
+  --ok-fundo: #26302a;
+  --alerta-fundo: #332c1d;
+  --falha-fundo: #35221f;
+  --derivada-fundo: #2c2730;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela —
+     e abaixo TAMBÉM do título preso, quando ele existe (21/10/2026). Sem a segunda
+     parcela, o alvo de «Nesta página» parava debaixo do título: o `scroll-padding`
+     reservava só a barra, e os 25px do título ficavam por cima do que se foi buscar.
+     `--titulo-preso` é 0px onde não há título preso, então isto é o valor de antes. */
+  scroll-padding-top: calc(var(--header-height) + var(--titulo-preso) + 8px);
+}
+
+body {
+  margin: 0;
+  padding: var(--header-height) 0 40px;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 17px/1.65 var(--serif);
+}
+
+/* ---------- o estado «escondido» ------------------------------------------
+   `[hidden]` é o ATRIBUTO do estado escondido, e o `display: none` que o navegador
+   lhe dá vive na folha dele — logo, PERDE para qualquer regra de autor. Bastava um
+   `button { display: … }` numa página para o botão «escondido» continuar à vista e a
+   ocupar altura: foi o que aconteceu ao «Fechar a elicitação» do ato, que media 45px
+   com `hidden` posto, e empurrava a barra de ações para 114px de altura.
+
+   Um estado do sistema não pode depender de nenhuma página não lhe tocar. Fica aqui,
+   na base, com `!important` — é a única linha da folha que o usa, e o motivo é este:
+   `hidden` tem de ganhar de tudo, seja qual for a peça e a página. */
+[hidden] { display: none !important; }
+
+/* ---------- barra de navegação fixa (Regra 16, item 1) ---------- */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  background: var(--marca-fundo); border-bottom: 3px solid var(--ornamento-forte);
+  padding: 8px 16px; font-size: 15px;
+}
+/* Os ornamentos do nav são --gold-claro, e não --gold, porque o FUNDO do nav tem dois
+   tons: o burgundy (3,65:1 com --gold) e o burgundy-claro dos estados :hover e do menu
+   aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
+   então nenhum estado de interação pode ficar abaixo de AA. */
+.topnav .marca {
+  /* O SLOT DA MARCA (18/10/2026). Ele era um espaço de 9em, reservado desde que o
+     texto «Ciclo NN · escola» saiu do menu — servia só para o menu não colar à
+     esquerda. Agora ele RECEBE a logomarca, que chega em SVG inline daqui a pouco
+     (em `nav-html.js`), e a largura deixa de ser reservada: quem manda é o desenho.
+
+     A COR É O PONTO. A marca é `fill="currentColor"`, e o `color` daqui é o
+     `--sobre-marca` — o token que significa «a cor do que fica EM CIMA da barra».
+     É ele que faz a mesma marca servir às três famílias: na Bordô o conteúdo sobre
+     a barra é o creme, na Cortina é escuro (`#06202b`, porque branco sobre turquesa
+     não passa), na Verde é quase preto. A marca não escolhe cor; ela herda a que a
+     família já mediu para aquele fundo. */
+  display: inline-flex; align-items: center;
+  color: var(--sobre-marca); margin-right: var(--esp-4);
+  text-decoration: none; padding: 2px 0;
+}
+/* O TAMANHO DA MARCA NA BARRA. 30px de altura é o maior que cabe numa barra de 52px
+   sem empurrar o hambúrguer; a largura acompanha pela proporção do `viewBox` (a
+   marca é retrato, 249×292) e nunca é declarada — declarar as duas deformaria. */
+.topnav .marca svg {
+  display: block; height: 30px; width: auto;
+  fill: currentColor;
+}
+/* No :hover o fundo passa a --burgundy-claro, onde o ouro não alcança 4,5:1 em nenhum tom:
+   a marca volta ao creme (8,00:1), como todos os outros links do nav. */
+.topnav a.marca:hover { color: var(--sobre-marca); }
+.topnav a { color: var(--sobre-marca); text-decoration: none; padding: var(--esp-2) var(--esp-3); border-radius: 4px; }
+.topnav a:hover { background: var(--marca-fundo-hover); }
+.topnav a.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: bold; }
+.topnav details { position: relative; }
+.topnav details.menu[open] > summary { background: var(--marca-fundo-hover); }
+.topnav summary {
+  cursor: pointer; color: var(--sobre-marca); padding: var(--esp-2) var(--esp-3); border-radius: 4px;
+  list-style: none; display: inline-block;
+}
+.topnav summary::-webkit-details-marker { display: none; }
+.topnav summary::after { content: ' ▾'; }
+.topnav details[open] summary, .topnav summary:hover { background: var(--marca-fundo-hover); }
+.topnav .submenu {
+  position: absolute; top: 100%; left: 0; z-index: 21;
+  display: flex; flex-direction: column; gap: 4px; min-width: 300px;
+  background: var(--marca-fundo); border: 2px solid var(--ornamento-forte); border-radius: 6px;
+  padding: 8px; box-shadow: var(--sombra-menu);
+}
+.topnav .submenu a { padding: 8px 8px; }
+.topnav .pdf { margin-left: auto; border: 2px solid var(--ornamento-forte); }
+
+/* O botão do TEMA fica fora do `.nav-links` (o painel colapsa no celular): a
+   aparência continua alcançável com o menu fechado. Ele não é um link — é um
+   controle de estado, e o `aria-pressed` é o que o anuncia. */
+.tema {
+  margin-left: 8px; padding: 4px 8px;
+  background: transparent; border: 2px solid var(--borda);
+  color: var(--marca); border-radius: var(--raio-1);
+  font: 600 15px/1 var(--ui); cursor: pointer;
+}
+.tema:hover { background: var(--fundo-hover); }
+.tema[aria-pressed="true"] { background: var(--fundo-hover); }
+/* Sobre a BARRA o botão herda o tratamento dos vizinhos: ouro e creme no burgundy. */
+.topnav .tema { border-color: var(--ornamento-forte); color: var(--sobre-marca); }
+.topnav .tema:hover, .topnav .tema[aria-pressed="true"] { background: var(--marca-fundo-hover); }
+
+/* Os links ficam num contêiner para o menu mobile poder colapsá-los de uma vez.
+   O contêiner não muda o layout de desktop — é a mesma linha de antes. */
+.topnav .nav-links {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  flex: 1 1 auto; min-width: 0;
+}
+/* O BASTIDORES É SEMPRE O ÚLTIMO DA DIREITA (23/10/2026). Ele estava a seguir ao caminho do
+   documento, dentro de um contêiner que cresce (`flex: 1 1 auto`), e por isso ANDAVA com o
+   comprimento do título: «Notação» deixava-o a um sítio, «Referências Bibliográficas» a outro.
+   Um destino que muda de lugar conforme o texto da página é um destino que se procura.
+   Com a coluna, a barra só tem o Bastidores — e ele passa a encostar à direita. Na barra de
+   hoje (sem coluna) nada disto se aplica: lá a lista é o menu inteiro, e alinhá-la à direita
+   deixaria um vazio depois da marca. */
+.topnav[data-menu="coluna"] .nav-links { justify-content: flex-end; }
+/* O SUBMENU ENCOSTA À DIREITA COMO O MENU ENCOSTA (26/10/2026).
+ *
+ * O «Bastidores» está na ponta direita da barra, e o submenu abria a partir da ESQUERDA dele
+ * (`left: 0`) com 300px de largura fixa. Medido a 1280 e a 1440, em quatro páginas: o painel
+ * terminava 185px FORA da janela. E como a barra é `position: fixed`, o que transborda não gera
+ * rolagem — é CORTADO. Era isso que se lia como «Estúdio de Dan…» e, por baixo, só «Produção».
+ *
+ * A regra é de simetria: um submenu cresce para o lado onde há espaço. Na forma da coluna a
+ * barra tem um menu só, encostado à direita — por isso ele abre para a esquerda. Na forma de
+ * hoje (a lista É o menu inteiro, à esquerda) nada disto se aplica, e o `left: 0` fica como
+ * está: lá o painel tem a página inteira para crescer. */
+.topnav[data-menu="coluna"] .nav-links .submenu { left: auto; right: 0; }
+
+/* Botão hamburger: invisível no desktop; aparece só na media query de celular.
+ * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
+ * .topnav (20) e fica ABAIXO do painel do submenu (21) — é o que fazia o botão
+ * sumir depois de navegar, quando algum resíduo de estado mantinha o painel no
+ * caminho. `pointer-events: auto` é defesa contra regra herdada que desabilite
+ * o clique. */
+.topnav .hamburger {
+  display: none; margin-left: auto; cursor: pointer;
+  position: relative; z-index: 22; pointer-events: auto;
+  background: none; border: 2px solid var(--ornamento-forte); border-radius: 4px;
+  padding: 8px 8px;
+}
+.topnav .hamburger span {
+  display: block; width: 18px; height: 2px; margin: 4px 0; background: var(--fundo);
+}
+.topnav .hamburger[aria-expanded="true"] { background: var(--marca-fundo-hover); }
+
+/* ================= a COLUNA e o documento na barra (23/10/2026) =================
+
+   O MENU DEIXA DE CONTAR DOCUMENTOS. Até aqui, cada turma punha no menu um item por documento
+   gerado, e o menu crescia com o acervo: medido, 24 entradas com duas turmas e uma aula
+   publicada; com três turmas e as 18 aulas que o `.conf` já declara, 84. Nenhuma delas é um
+   destino — são todas documentos.
+
+   O que muda: o menu passa a ter os DESTINOS (Ciclos, Aulas, Planejamento, Área do Professor),
+   e cada um leva a uma página que lista o que existe. A coluna é COMPACTA — mostra os títulos e
+   mais nada; o grupo abre no ponteiro, empurra os de baixo e fecha quando ele sai. Medido:
+   485 px com tudo aberto, 284 px com o grupo actual aberto, 217 px com tudo fechado.
+
+   PORQUE FICA NA FOLHA, E NÃO NA PÁGINA. A barra é desenhada ao servir, para todas as páginas
+   da escola (`motor/nucleo/nav.js`). Uma peça que aparece em todas as páginas é uma peça do
+   SISTEMA: se o desenho dela morasse na marcação de cada uma, voltaríamos a ter quatro
+   desenhos a divergir — que é exactamente o problema que a barra desenhada resolveu.
+
+   SEM `opacity` NOS TEXTOS. `--gold-claro` sobre `--marca-fundo` dá 5,03:1, que é o mínimo AA:
+   qualquer transparência por cima reprova. A hierarquia faz-se por corpo e por espaço. */
+
+/* ============================================================================
+   A FOLHA QUE SOBE — UMA PEÇA, TRÊS USOS (26/10/2026)
+   ----------------------------------------------------------------------------
+   O DEFEITO, dito por quem usa: «no modo do celular, quando eu abro o menu, ele tem uma
+   identidade visual… e ela não é a mesma identidade visual de quando eu expando, por exemplo,
+   sessões… E o botão de ações… tem ainda uma terceira identidade visual, que não pode.»
+
+   E era literal. Medido a 390px, nos três lugares em que uma folha sobe:
+
+     · a navegação do ☰ (`.coluna`) — bordô, sombra de 50px, pegador em ouro-claro;
+     · o «Seções» da Produção (`.lateral-lista`) — branca, sombra de 34px, pegador em
+       `--borda-campo`;
+     · o «Ações» da Área do Professor (`.menu-de-acoes`) — branca, como a de cima.
+
+   Três desenhos para a mesma coisa, porque cada um nasceu no dia em que a sua página precisou
+   dele — e nenhum sabia dos outros. A regra do sistema é a contrária: o que se repete três
+   vezes é uma PEÇA, e mora na folha, não em três sítios a divergir.
+
+   A identidade escolhida é a do ☰ (é a da casa: o bordô da barra e o ouro dos ornamentos), e
+   as três passam a ser esta. O que cada uma guarda de seu é o que é dela: a posição, a
+   transição, e o estado de aberta.
+   ========================================================================== */
+.folha-do-menu {
+  border-radius: var(--raio-3) var(--raio-3) 0 0;
+  background: var(--marca-fundo); color: var(--sobre-marca);
+  box-shadow: var(--sombra);
+  padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
+  max-height: 78vh;
+}
+/* O PEGADOR — a linha que diz «isto desliza». É a mesma nos três, e por isso é um elemento só
+   (`<span class="folha-puxador">`), e não três implementações: um `::before` aqui, um `<span>`
+   ali e outro acolá acabariam em três medidas no dia em que uma delas mudasse. */
+.folha-puxador {
+  display: block; flex: 0 0 auto;
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--ornamento-forte); margin: 10px auto 2px;
+}
+
+/* A PÍLULA SECUNDÁRIA — o botão que ABRE uma folha (26/10/2026).
+ *
+ * O «Seções» da Produção era uma pílula vazada; o «Ações» da Área do Professor era um botão
+ * cheio de bordô com 45px de altura. Dois pesos para o mesmo papel, e o papel é um só: um
+ * controle SECUNDÁRIO, ao lado do conteúdo, que abre um menu. O principal é o ☰ — esse é que
+ * carrega o peso da navegação.
+ *
+ * É a pílula do «Seções», como o pedido diz: «o que a gente vai usar é o de sessões… porque ele
+ * é um botão secundário, ele não é o principal igual o do menu». */
+.pilula-do-menu {
+  display: inline-flex; align-items: center; gap: .35rem;
+  cursor: pointer; touch-action: manipulation;
+  border: 1px solid var(--borda-campo); border-radius: 999px;
+  background: var(--superficie); color: var(--marca);
+  padding: .5rem .85rem; font: 600 .82rem/1 var(--ui);
+}
+.pilula-do-menu:hover { background: var(--realce-suave); }
+.pilula-do-menu:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.pilula-do-menu .seta-do-ato { position: static; width: auto; height: auto; font-size: .78rem; }
+.pilula-do-menu[aria-expanded="true"] .seta-do-ato { transform: rotate(180deg); }
+
+/* A COLUNA NASCE FECHADA E FORA DA TELA. Ela é a folha do celular por omissão — e no
+   computador, a partir do corte de 1140, passa a ser a coluna da esquerda. Uma raiz, duas
+   formas: é o que impede haver uma lista para o computador e outra para o telefone.
+   A identidade (fundo, canto, sombra, medida) é a de `.folha-do-menu`; aqui fica só o que é
+   desta peça: o lugar, a forma de coluna e a transição. */
+.coluna {
+  display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  transform: translateY(101%); transition: transform .22s ease;
+}
+.coluna[data-aberta="sim"] { transform: translateY(0); }
+/* O véu mora FORA da coluna: ela é `overflow-y:auto`, e um véu dentro dela rolaria com o
+   conteúdo. Quem o acende é o `body`, pela classe que o `nav.js` do cliente põe. */
+.veu {
+  display: block; position: fixed; inset: 0; z-index: 55;
+  background: var(--veu); opacity: 0; pointer-events: none;
+  transition: opacity .2s ease;
+}
+body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
+
+.coluna-marca {
+  display: block; margin: 0; padding: var(--esp-3) var(--esp-5) var(--esp-2);
+  font: 700 12px/1.2 var(--ui); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ornamento-forte); text-decoration: none;
+}
+.coluna-marca:hover, .coluna-marca:focus-visible { color: var(--sobre-marca); }
+
+/* ============================================================================
+   A LINHA DA IDENTIDADE — a marca e o nome da área, lado a lado (15/11/2026)
+   ----------------------------------------------------------------------------
+   O pedido: «esse título, Sistema Lastro ou Bastidores, que é da coluna marca, ele está abaixo
+   da logomarca. Ele tem que ficar ao lado, do lado direito, com um espaçamento bonito que dê
+   para ler.»
+
+   O DEFEITO ERA DE LEITURA, e não de gosto. Empilhado, o nome da área ficava numa linha própria
+   abaixo de um desenho de 44 px, e o olho tinha de descer para saber onde estava — duas linhas
+   para uma informação só. Ao lado, marca e nome leem-se como UMA coisa, que é o que são.
+
+   A LINHA É UM CONTÊINER, e não um `float` nem um `margin-top` negativo: os dois elementos
+   passam a pertencer ao mesmo bloco, e quem os alinha é o `align-items` daqui. Um truque de
+   posicionamento funcionaria hoje e partiria no dia em que a marca mudasse de altura.
+
+   O `gap` é o ar que o pedido pedia — 12 px, o mesmo `--esp-3` que a folha usa entre um rótulo e
+   o que ele nomeia. E o `min-width: 0` no nome não é decoração: sem ele um `flex` recusa-se a
+   encolher o texto, e «Sistema Lastro» empurraria a linha para fora dos 248 px da coluna.
+
+   AS DUAS COLUNAS USAM ESTA MESMA PEÇA — o Sistema Lastro (corte de 1141) e os Bastidores (corte
+   de 769, em `motor/servidor/bastidores.js`). Os cortes diferem porque já diferiam; a linha, não. */
+.coluna-identidade {
+  display: flex; align-items: center;
+  gap: var(--esp-3);
+  min-width: 0;
+  /* O AR É O QUE A IDENTIFICAÇÃO JÁ TINHA NA FOLHA DO TELEFONE (era `padding: var(--esp-3)
+     var(--esp-5) var(--esp-2)` em `.coluna-marca`). Ele sobe para a linha porque é a linha que
+     agora encosta ao topo — e mantê-lo no nome daria à marca um ar que ela não tem onde aparecer
+     sozinha. Descendo a 1141/769, os dois blocos abaixo trocam-no pelo da coluna. */
+  padding: var(--esp-3) var(--esp-5) var(--esp-2);
+}
+/* O NOME NÃO EMPURRA A LINHA, e não ganha o ar que a linha já dá. */
+.coluna-identidade > .coluna-marca {
+  flex: 0 1 auto; min-width: 0;
+  padding: 0; margin: 0; border-bottom: 0;
+}
+
+/* ============================================================================
+   A LOGOMARCA MORA NA COLUNA (13/11/2026)
+   ----------------------------------------------------------------------------
+   O pedido, nas palavras de quem usa: «a logomarca deve ficar fixada sempre no topo da
+   coluna à esquerda, indo até ao topo; os títulos e identificações ficam logo abaixo
+   dela; e o dropdown de alternância entre estúdio de dança e produção fica onde está».
+
+   Então a marca sai da BARRA e sobe para a COLUNA, nos dois lugares onde há coluna — o
+   Sistema Lastro (esta folha) e os Bastidores, que desenham o mesmo `marca` na `.lateral`
+   (ver `motor/servidor/bastidores.js`). A identificação («Sistema Lastro» / «Bastidores»)
+   fica logo abaixo, e o menu começa depois.
+
+   A MARCA É A MESMA, e não uma segunda cópia: o `<a class="marca">` que a barra já usava,
+   com o mesmo SVG inline de `marca-lastro.js` e o mesmo `fill="currentColor"`. É o que faz
+   a cor continuar a ser um PAPEL: na coluna ela veste `--sobre-marca`, o token do que fica
+   em cima da barra, e nenhuma família precisa de exportação própria.
+
+   NO CELULAR NADA DISTO VALE. Abaixo do corte a coluna é a folha que sobe, e a marca que
+   aparece é a da barra — a mesma que sempre esteve lá. A regra que a esconde no computador
+   é a que a mantém no telefone.
+
+   O DESENHO FICA AQUI, E NÃO NO `<style>` DA PÁGINA. A coluna dos Bastidores declara o
+   resto de si em `motor/servidor/bastidores.js`, mas a marca é um COMPONENTE — a checagem
+   7a de `tools/check-identidade.js` reprova quem carrega a folha e redeclara um. Uma
+   declaração, dois donos: os seletores crescem, os valores não se repetem. */
+/* OS SELETORES SÃO OS DA LINHA (15/11/2026) — a marca deixou de ser filha direta da coluna
+   quando passou a partilhar a linha com o nome da área. `.coluna > .marca` deixaria de casar em
+   silêncio, e a marca voltaria a aparecer na folha do telefone, ao lado da que a barra já tem. */
+.coluna-identidade > .marca { display: none; }
+.coluna-identidade > .marca svg { display: block; height: 44px; width: auto; fill: currentColor; }
+
+/* A IDENTIFICAÇÃO DA PRODUÇÃO («Bastidores») nasce escondida como a marca: no celular a
+   barra da página já diz «Produção · Painel inicial», e repeti-lo dentro da folha seria
+   dizer duas vezes. A do Sistema Lastro NÃO entra nesta regra — ela já aparecia na folha do
+   telefone antes desta mudança, e continua a aparecer. */
+/* A LINHA INTEIRA SAI, e não só o nome (15/11/2026). Abaixo do corte dos Bastidores a marca
+   também está escondida — a barra é que a mostra —, e uma linha com duas coisas invisíveis
+   continuaria a gastar o seu ar: 20 px de vazio entre o puxador da folha e o «← Sistema Lastro».
+   Esconder a linha é dizer o que se quer dizer: aqui não há identificação nenhuma. */
+.lateral-lista > .coluna-identidade { display: none; }
+
+/* O SISTEMA LASTRO: coluna a partir dos 1141. */
+@media (min-width: 1141px) {
+  /* A LINHA DA IDENTIDADE, NA COLUNA DO SISTEMA (15/11/2026). O ar que a identificação tinha
+     passa para a LINHA — é ela que agora encosta ao topo, e é ela que leva o filete que separa o
+     cabeçalho do menu. Os filhos alinham-se pelo centro, e por isso a marca de 44 px e um nome
+     de 12 px ficam na mesma horizontal em vez de um por baixo do outro. */
+  .coluna > .coluna-identidade {
+    padding: 0 10px var(--esp-3);
+    margin: 0 0 var(--esp-3);
+    border-bottom: 1px solid var(--ornamento);
+  }
+  .coluna > .coluna-identidade > .marca {
+    display: block;
+    color: var(--sobre-marca);
+    text-decoration: none;
+  }
+}
+
+/* OS BASTIDORES: coluna a partir dos 769 — a mesma peça, o mesmo desenho, o mesmo ar. A
+   diferença é só o corte, que já existia: abaixo dele a `.lateral` é a barra com o botão
+   «Seções», e não há coluna onde pôr a marca. */
+@media (min-width: 769px) {
+  /* A MESMA LINHA, NO CORTE DOS BASTIDORES (15/11/2026). Sem o filete: aqui a identificação é
+     seguida do «← Sistema Lastro», que já separa por outro meio — e dois traços seguidos a dizer
+     a mesma coisa é o tipo de ruído que a folha evita. */
+  .lateral-lista > .coluna-identidade {
+    display: flex;
+    padding: 0 10px var(--esp-2);
+    margin: 0;
+  }
+  .lateral-lista > .coluna-identidade > .marca {
+    display: block;
+    color: var(--sobre-marca);
+    text-decoration: none;
+  }
+  .lateral-lista > .coluna-identidade > .coluna-marca {
+    display: block;
+    color: var(--ornamento-forte);
+  }
+}
+
+.coluna .coluna-grupo, .lateral .coluna-grupo { display: block; }
+/* O BLOCO DE FORA — o Bastidores, no fim da FOLHA (23/10/2026). Ele não é trabalho de sala: é
+   a escola a olhar-se. Na folha do celular entra como último item e leva um filete acima, que é
+   o que diz «daqui para baixo é outra natureza» sem o escrever.
+   NO COMPUTADOR ELE NÃO EXISTE AQUI. Lá o Bastidores está na barra, sozinho à direita, e
+   desenhá-lo também na coluna seria o mesmo destino em dois sítios — a começar pelo sítio
+   errado: quem procura a escola a olhar-se não a procura entre o trabalho de sala. */
+.coluna .coluna-fora {
+  margin-top: var(--esp-3); padding-top: var(--esp-2);
+  border-top: 1px solid var(--ornamento);
+}
+/* O título é um BOTÃO: no telemóvel e no teclado não há ponteiro, e o grupo tem de abrir na
+   mesma. `text-align:left` e `font:inherit` desfazem o que um `<button>` traz por omissão. */
+.coluna .coluna-titulo, .lateral .coluna-titulo {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--esp-2);
+  width: 100%; margin: 0; padding: var(--esp-3) var(--esp-5) var(--esp-1);
+  border: 0; background: none; border-radius: 0; cursor: pointer;
+  color: var(--texto-destaque-marca);
+  font: 700 10.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase;
+  text-align: left;
+}
+.coluna .coluna-titulo:hover, .lateral .coluna-titulo:hover { background: var(--marca-fundo-hover); }
+.coluna .coluna-titulo:focus-visible, .lateral .coluna-titulo:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+/* O GRUPO DO DOCUMENTO ACTUAL — o filete de ouro. Na folha (que é alta) o filete não vale; a
+   marca passa a ser a cor do título, e o item aceso leva o ✓, como na Produção. */
+.coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo,
+.lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo { color: var(--ornamento-forte); }
+.coluna .coluna-seta, .lateral .coluna-seta { display: none; flex: 0 0 auto; }
+
+/* O ACORDEÃO — a mesma peça nos dois menus: a coluna do sistema (`.coluna`) e a dos Bastidores
+   (`.lateral`), porque o pedido é que «o menu lateral… tenha o mesmo comportamento da página
+   principal, não pode ser diferente». Uma declaração, dois donos: os valores moram aqui, e o
+   seletor é que cresce. */
+.coluna .coluna-itens,
+.lateral .coluna-itens {
+  max-height: 0; overflow: hidden;
+  margin: 0; padding: 0;
+  transition: max-height .16s ease;
+}
+.coluna .coluna-itens a,
+.lateral .coluna-itens a {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .8rem var(--esp-5); border-radius: 0;
+  color: var(--sobre-marca); text-decoration: none; font: 15px/1.25 var(--ui);
+}
+.coluna .coluna-itens a:hover, .lateral .coluna-itens a:hover { background: var(--marca-fundo-hover); }
+.coluna .coluna-itens a:focus-visible,
+.lateral .coluna-itens a:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna .coluna-itens a[aria-current="page"],
+.lateral .coluna-itens a[aria-current="page"] {
+  background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700;
+}
+/* O ✓ DA PÁGINA ACTUAL. Na folha não há filete nem cor de grupo que se distinga com o dedo
+   em cima do item: o ✓ é o sinal que a Produção já usa, e é o mesmo vocabulário. */
+.coluna .coluna-itens a[aria-current="page"]::after,
+.lateral .coluna-itens a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
+/* NA FOLHA NÃO HÁ ACORDEÃO. A altura é a da tela quase inteira, e um menu que abre e fecha
+   dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista. */
+.coluna .coluna-itens, .lateral .coluna-itens { max-height: none; }
+
+/* «Aulas» é um DESTINO, não uma pasta: sem seta, e com o peso de um título. */
+.coluna a.coluna-direto,
+.lateral a.coluna-direto {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .8rem var(--esp-5); border-radius: 0;
+  color: var(--sobre-marca); text-decoration: none; font: 600 15px/1.25 var(--ui);
+}
+.coluna a.coluna-direto:hover, .lateral a.coluna-direto:hover { background: var(--marca-fundo-hover); }
+.coluna a.coluna-direto:focus-visible,
+.lateral a.coluna-direto:focus-visible { outline: 2px solid var(--ornamento-forte); outline-offset: -2px; }
+.coluna a.coluna-direto.ativo,
+.lateral a.coluna-direto.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: 700; }
+
+/* O DOCUMENTO NA BARRA — o caminho, à moda da Produção: o grupo miúdo e a página.
+   Numa página longa o `<h1>` sai da tela ao rolar; aqui fica sempre. `flex:0 1 auto` com
+   reticências: um título comprido encolhe, não empurra o menu para fora. */
+.topnav .doc-atual {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  flex: 0 1 auto; min-width: 0;
+  margin-left: var(--esp-3); padding-left: var(--esp-3);
+  border-left: 2px solid var(--ornamento-forte);
+  font: 700 14px/1.2 var(--ui); color: var(--sobre-marca);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topnav .doc-atual small {
+  font: 700 10px/1.3 var(--ui); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--texto-destaque-marca);
+}
+/* O CAMINHO PASSOU A TER TRÊS DEGRAUS, E O DO MEIO É UMA LIGAÇÃO (23/10/2026). Ele diz
+   «Ciclos · Referências · Referências Bibliográficas»: o grupo, a lista de onde o documento
+   veio, e o documento. O degrau do meio é o lastro — clicado, leva de volta à lista.
+   A ligação NÃO herda o `padding` de `.topnav a`: um alvo de 8px de padding no meio de uma
+   frase empurraria os degraus uns dos outros e faria o caminho medir o dobro. */
+.topnav .doc-atual a {
+  padding: 0; border-radius: 0; color: var(--texto-destaque-marca);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.topnav .doc-atual a:hover { background: transparent; color: var(--sobre-marca); }
+.topnav .doc-atual b { font-weight: 700; }
+/* O separador é do DESENHO, não do conteúdo: sem ele o `textContent` dos degraus corre junto
+   («CiclosReferênciasReferências Bibliográficas») e a leitura de ecrã não tem onde respirar.
+   Ele passou a valer entre TODOS os degraus, e não só depois do primeiro. */
+.topnav .doc-atual > * + *::before { content: "·"; margin-right: 5px; font-weight: 700; }
+
+/* O GRUPO DA BARRA QUE CONTÉM A PÁGINA. Na barra de `details` o item aceso está escondido
+   dentro do grupo fechado; a marca vai no `<summary>`, que está sempre à vista. */
+.topnav details.menu.atual > summary { color: var(--ornamento-forte); font-weight: 700; }
+
+/* O ☰ ABRE A FOLHA EM TODA A LARGURA EM QUE ELA EXISTE (23/10/2026).
+ *
+ * Havia aqui um BURACO, e ele media 371 px de largura. O `nav.js` do cliente usa o corte dos
+ * 1140 para decidir que o ☰ abre a FOLHA; mas o CSS só mostrava o ☰ abaixo dos 768, e só
+ * abaixo dos 768 escondia a lista da barra. Entre 769 e 1140 a página ficava assim: barra com
+ * a lista (que, com a coluna, é SÓ o Bastidores), ☰ escondido, e a folha — os quatro destinos,
+ * Ciclos, Aulas, Planejamento, Área do Professor — INALCANÇÁVEL. Um tablet, ou uma janela de
+ * computador a meia largura, não conseguia sair da página em que estava.
+ *
+ * A CONDIÇÃO É `body:has(> .coluna)`, e não o `data-menu` da barra: a barra é a mesma em toda a
+ * parte onde há coluna, e o atributo diria «sim» também onde a coluna não se desenha. A pergunta
+ * certa é «esta página tem folha?», e quem responde é o `<aside>` existir.
+ *
+ * A partir dos 1141 não há nada disto: a coluna é a coluna da esquerda, e a barra fica com a
+ * lista (o Bastidores) à direita. */
+@media (max-width: 1140px) {
+  body:has(> .coluna) .topnav .hamburger { display: block; }
+  body:has(> .coluna) .topnav .nav-links { display: none; }
+  /* AS MESMAS DUAS, EM REGRAS SEPARADAS — e a separação é o ponto. Um navegador que não conhece
+     `:has()` **descarta a lista de seletores inteira** quando um dos membros é inválido, e a
+     alternativa `[data-tem-coluna="sim"]` cairia com ela. Duas regras é a forma de o segundo
+     caminho sobreviver a um navegador que não entende o primeiro. */
+  [data-tem-coluna="sim"] .topnav .hamburger { display: block; }
+  [data-tem-coluna="sim"] .topnav .nav-links { display: none; }
+}
+
+/* A COLUNA, QUANDO ELA EXISTE — POR DUAS PORTAS (04/11/2026).
+   O `body:has(> .coluna)` responde «esta página tem folha?», e é a pergunta certa. Mas `:has()`
+   não existe em todo o lado — Firefox só a teve na 121 (Dez/2023), e o ESR 115 não a tem —, e
+   num desses navegadores estas regras simplesmente não valem: a barra fica em `left: 0`, a coluna
+   cobre-lhe os primeiros 248px, e o menu deixa de receber cliques (medido: o `elementFromPoint`
+   devolve a marca da coluna). O `assets/nav.js` escreve `data-tem-coluna="sim"` no `<html>` quando
+   encontra a coluna, e o seletor ao lado é o mesmo contrato sem depender de `:has()`. */
+/* A COLUNA, NO COMPUTADOR. O corte é o de 1140 — o mesmo em que o `.conteudo` deixa de ter as
+   duas colunas —, e não um número novo: abaixo dele a página é estreita de mais para pagar
+   248 px sem espremer o texto. */
+@media (min-width: 1141px) {
+  .coluna {
+    right: auto; bottom: 0; top: 0; width: 248px; max-height: none; z-index: 21;
+    border-radius: 0; border-right: 3px solid var(--ornamento-forte);
+    padding: var(--esp-4) var(--esp-3) var(--esp-5);
+    transform: none; transition: none;
+    background: var(--marca-fundo);
+  }
+  .coluna .folha-puxador, .lateral .folha-puxador { display: none; }
+  .coluna .coluna-fora { display: none; }
+  .veu { display: none; }
+  /* A identificação não tem mais ar próprio: quem o tem é a LINHA (`.coluna-identidade`), e
+     duas regras a dar o mesmo ar é a forma de elas divergirem. */
+  .coluna .coluna-titulo,
+  .lateral .coluna-titulo {
+    padding: 9px 10px; border-radius: var(--raio-2);
+    font: 15px/1.25 var(--ui); letter-spacing: 0; text-transform: none;
+    color: var(--sobre-marca);
+  }
+  .coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo,
+  .lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo {
+    color: var(--ornamento-forte); font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--ornamento-forte);
+  }
+  .coluna .coluna-seta,
+  .lateral .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
+  /* O ACORDEÃO. `max-height` em vez de `display:none` porque é o que ANIMA e o que EMPURRA os
+     de baixo — abrir desce os outros, fechar recompõe. O filete à esquerda diz que os itens
+     pertencem ao título de cima. */
+  .coluna .coluna-itens,
+  .lateral .coluna-itens {
+    max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
+    border-left: 1px solid var(--ornamento);
+  }
+  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens,
+  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta,
+  .lateral .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
+  .coluna .coluna-itens a,
+  .lateral .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
+  .coluna .coluna-itens a[aria-current="page"]::after,
+  .lateral .coluna-itens a[aria-current="page"]::after { content: none; }
+  .coluna a.coluna-direto,
+  .lateral a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
+  /* SÓ ONDE HÁ PONTEIRO: num telemóvel o `:hover` fica colado ao toque e o grupo nunca mais
+     fecharia. O `(hover: hover)` separa os dois mundos — e não a largura, que é outra coisa. */
+  @media (hover: hover) {
+    .coluna .coluna-grupo:hover > .coluna-itens,
+    .lateral .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .coluna .coluna-grupo:hover > .coluna-titulo,
+    .lateral .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
+    .coluna .coluna-grupo:hover .coluna-seta,
+    .lateral .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
+  }
+  /* A BARRA FICA AO LADO DA COLUNA, e o `body` é quem cede a largura: a coluna é fixa, e sem
+     este afastamento a coluna de leitura passaria por trás dela.
+     O `:has` é o que faz isto valer SÓ nas páginas que têm coluna — sem ele, uma página sem
+     menu lateral (a ficha, um estado) ficaria com 248 px de margem vazia. */
+  body:has(> .coluna) { padding-left: 248px; }
+  body:has(> .coluna) .topnav { left: 248px; }
+  /* em regras separadas, pelo mesmo motivo do ☰ (ver acima) */
+  [data-tem-coluna="sim"] body { padding-left: 248px; }
+  [data-tem-coluna="sim"] .topnav { left: 248px; }
+
+  /* A LOGOMARCA SAI DA BARRA ONDE HÁ COLUNA (13/11/2026) — porque ela passou a morar no
+     alto da coluna (ver a secção «A LOGOMARCA MORA NA COLUNA», acima). No celular ela
+     continua na barra: é a única que aparece, já que a coluna é a folha. */
+  body:has(> .coluna) .topnav .marca { display: none; }
+  [data-tem-coluna="sim"] .topnav .marca { display: none; }
+
+  /* O TÍTULO VOLTA A SER A PRIMEIRA COISA DA BARRA (13/11/2026). O caminho do documento
+     nascia depois da marca, com um filete à esquerda que a separava dela. Com a marca fora
+     da barra, o primeiro elemento não tem de quem se separar: o filete e o respiro saem, e
+     o título ocupa o vão que a logo deixou — o mesmo lugar de antes. */
+  body:has(> .coluna) .topnav .doc-atual,
+  [data-tem-coluna="sim"] .topnav .doc-atual {
+    margin-left: 0; padding-left: 0; border-left: 0;
+  }
+
+  /* ONDE A PÁGINA TEM A SUA PRÓPRIA COLUNA, A DO SISTEMA NÃO SE MOSTRA (23/10/2026).
+   *
+   * É o caso dos Bastidores: a Produção tem a `lateral`, com as secções dela. Duas colunas lado
+   * a lado dizem duas coisas diferentes sobre onde se está — e foi por isso que a do sistema já
+   * foi suprimida no desenho. Mas suprimi-la no DESENHO custava a folha do telemóvel, que é a
+   * única navegação abaixo dos 1140: a pesquisadora abria o ☰ dentro da Produção e só tinha o
+   * Bastidores.
+   *
+   * A coluna passa a ser desenhada sempre, e é AQUI que o duplo se resolve: acima dos 1140, onde
+   * as duas caberiam à vista, a do sistema sai de cena. Abaixo, ela é a folha — e aí não há
+   * duplo nenhum, porque a `lateral` só se abre pelo botão «Seções».
+   *
+   * O `padding-left` e o `left` da barra saem com ela: sem isto ficaria uma faixa de 248px vazia
+   * à esquerda, com a barra a começar no meio da tela.
+   *
+   * O SELETOR É DESCENDENTE, e não filho: a `lateral` vive dentro do `.corpo` da página, não
+   * pendurada no `body`. Com `> .lateral` a regra não pegava em nada — e o sintoma era o pior
+   * possível, porque silencioso: duas colunas à vista e 248px de margem, sem erro nenhum. */
+  body:has(.lateral) > .coluna { display: none; }
+  body[data-tem-lateral="sim"] > .coluna { display: none; }
+  body:has(.lateral) { padding-left: 0; }
+  /* o mesmo par, sem `:has()` — e DEPOIS dele: a especificidade é igual, e quem decide é a ordem.
+   * Sem estas duas, um navegador antigo escondia a coluna mas deixava os 248px de margem vazia.
+   * O `left` da barra NÃO se repõe aqui desde 13/11/2026: quem o decide é o bloco dos 769, logo
+   * abaixo, onde a coluna da Produção existe — e lá ele é 248px, não 0. */
+  body[data-tem-lateral="sim"] { padding-left: 0; }
+}
+
+/* ============================================================================
+   A PRODUÇÃO ENTRA NA MESMA MOLDURA (13/11/2026)
+   ----------------------------------------------------------------------------
+   A coluna dos Bastidores existia a partir dos 769 (abaixo disso ela é a barra com o botão
+   «Seções»), mas começava ABAIXO da barra e media 176px — enquanto a do Sistema Lastro media
+   248px e ia de cima a baixo. Eram duas colunas com dois desenhos, e o pedido é que a peça
+   seja uma.
+
+   O corte é o dos 769, e não o dos 1141: a coluna da Produção já existia nessa faixa, e
+   subir o corte tiraria o menu de um tablet. O que muda aqui é só o que a distingue:
+   começa no topo (a barra começa DEPOIS dela), e tem os 248px da coluna do sistema.
+
+   A geometria da coluna em si (posição, largura, fundo) mora no `<style>` da vista, em
+   `motor/servidor/bastidores.js` — é lá que o resto da `.lateral` é declarado. Aqui fica o
+   que é da BARRA, porque a barra é desta folha. */
+@media (min-width: 769px) {
+  body:has(.lateral) .topnav { left: 248px; }
+  body[data-tem-lateral="sim"] .topnav { left: 248px; }
+  body:has(.lateral) .topnav .marca { display: none; }
+  body[data-tem-lateral="sim"] .topnav .marca { display: none; }
+  /* O PEGADOR DA FOLHA não é da coluna: ele diz «isto desliza», e numa coluna fixa não há
+     nada a deslizar. O corte era o dos 1141 (o da coluna do sistema); a da Produção passou a
+     ser coluna aos 769, e o pegador ia com ela. */
+  .lateral .folha-puxador { display: none; }
+}
+
+/* ---------- cabeçalho, conteúdo e títulos ---------- */
+/* A CAIXA É DA FAIXA; O AR DE DENTRO É DA PEÇA (06/11/2026).
+ *
+ * Aqui estava `header.doc, main, footer.rodape, .rodape { … }` — e `footer.rodape` pesa
+ * (0,1,1), mais do que o `.rodape` da peça (0,1,0) que está mais abaixo no arquivo. O
+ * resultado, medido no documento real: a caixa do rodapé saía com `margin-top: 0px` e
+ * `padding-top: 0px`, e o `.rodape` declarava **40px** e **16px**. Ou seja, o rodapé ficava
+ * **0px** abaixo do último parágrafo do conteúdo (medido: `main` acabava em 465,4px e a
+ * linha do rodapé começava em 465,0px) e o texto ficava **5px** abaixo do seu próprio filete
+ * — os dois defeitos que a pesquisadora descreve como «colado na linha», e nenhum deles
+ * visível numa captura de perto: só lado a lado com o que a peça diz.
+ *
+ * É a mesma armadilha que a §«O cabeçalho respira» documenta: a caixa (largura, centragem)
+ * é da FAIXA e vive aqui; o ar de dentro é da PEÇA e vive na peça. Esta linha deixa de
+ * nomear `footer.rodape` — o rodapé já se nomeia em `.rodape`, uma vez, com o box model
+ * completo. Quem impede o retorno é a checagem «Respiro» de `tools/check-identidade.js`,
+ * que passou a medir as duas caixas. */
+header.doc, main, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+/* …e a matriz alarga a caixa em TODA a largura, não só a partir de 1200px: o contentor de um
+   documento é 900px (medida de leitura), e 900 é pouco para uma tabela de sete colunas. */
+[data-largura="matriz"] header.doc,
+[data-largura="matriz"] main,
+[data-largura="matriz"] .rodape { max-width: 1180px; }
+
+/* A TELA DE MONITORAMENTO LÊ-SE MAIS LARGA QUE O DOCUMENTO (17/11/2026).
+ *
+ * O DEFEITO, MEDIDO NUM NAVEGADOR: numa janela de 1920px o `main` ocupava a largura toda — o
+ * layout de painel já o destrava — e o `.conteudo` lá dentro continuava preso a **900px**, com a
+ * tabela da migração a 850. Ou seja: **47% da página usada**, e a coluna «Da receita» com 72px a
+ * partir o título em duas linhas. A pesquisadora: «está muito apertado, você não está usando nem a
+ * metade da página […] está tudo apertadinho».
+ *
+ * PORQUE NÃO SE ALARGA O `.conteudo` EM TODO O LADO: os 900px não são um número qualquer — são a
+ * medida de leitura da casa, e valem para a prosa (aula, caderno, relatório). Uma linha de 1350px
+ * de texto cansa. Mas o monitoramento não é prosa: é um painel de tabelas de cinco e seis colunas,
+ * e a matriz já tinha aberto esta excepção a 1180px pela mesma razão («900 é pouco para uma tabela
+ * de sete colunas»).
+ *
+ * O ESCOPO É A TELA, E NÃO O LAYOUT: `data-tela="monitoramento"` já existia no `<body>` (é o que
+ * diz em que ecrã se está), portanto não nasce vocabulário novo. As outras telas de painel ficam
+ * com a medida de sempre — «depois a gente vê as outras páginas, mas por enquanto faz só essa».
+ *
+ * O VALOR É O QUE ELA PEDIU — «uns 50% a mais do que já tem»: 900 × 1,5 = 1350. E o `calc` é
+ * cinto de segurança: numa janela de 1280 a caixa nunca passa do que cabe, com o mesmo ar de 24px
+ * de cada lado que o `padding` já declara. */
+[data-tela="monitoramento"] .conteudo {
+  max-width: min(1350px, calc(100vw - 48px));
+}
+/* A COLUNA DO TÍTULO NÃO SE PARTE. «Da receita» com 72px virava duas linhas e inflava a faixa do
+ * cabeçalho da tabela para 67px em todas as linhas. Com a caixa mais larga há espaço; o `nowrap`
+ * garante que o título não volta a partir-se numa janela mais estreita — e é só nos títulos, nunca
+ * no conteúdo das células, que precisa de quebrar. */
+[data-tela="monitoramento"] thead th { white-space: nowrap; }
+
+/* O CABEÇALHO RESPIRA, E O RESPIRO É PADDING — NÃO MARGEM (06/11/2026).
+ *
+ * Medido no documento real da aula 01, com a folha de hoje: no estado PRESO o `h1` começava
+ * a **0,3px** da barra (desktop) e a **0px** (celular), e o botão do documento acabava
+ * exactamente na linha da sombra — **0px**. Não era um caso de bordo: era sempre que se
+ * rolava, porque `position: sticky` + `top: var(--header-height)` põe a CAIXA encostada à
+ * barra e **descarta a margem**. O `margin-top: 8px` que aqui estava só valia com a página
+ * no topo; preso, ele desaparecia, e o cabeçalho ficava colado por cima e por baixo.
+ *
+ * A regra, e o motivo de ser padding: quem se prende e quem desenha a sombra é a CAIXA, e
+ * o padding mora dentro dela. Uma margem fica de fora — some no estado preso e não protege
+ * a linha. Por isso o ar é `--esp-3` (12px) acima e abaixo, nos dois estados e nos dois
+ * tamanhos de tela, e o último controle do cabeçalho perde a margem inferior para que o
+ * único responsável pelo vão seja o padding.
+ *
+ * Vale para o `header.doc` (documentos pandoc) e para o `.titulo-fixo` (o lançamento, que
+ * não é documento mas pede o mesmo mecanismo) — um mecanismo, uma regra. Quem confere são
+ * duas coisas: a checagem «Respiro» do `tools/check-identidade.js`, que lê esta declaração e
+ * resolve o token, e a `experimentos/provar-titulo-e-barra.js`, que mede a geometria num
+ * navegador. Uma garante que a linha existe; a outra, que ela produz o número. */
+header.doc, .titulo-fixo { padding-top: var(--esp-3); padding-bottom: var(--esp-3); }
+header.doc h1 {
+  color: var(--marca); font-size: 31px; line-height: 1.2; margin: 0 0 8px;
+  border-bottom: 2px solid var(--borda); padding-bottom: 8px;
+}
+header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0 0 8px; }
+.ficha { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.ficha span {
+  background: var(--fundo-faixa); border: 1px solid var(--borda); border-radius: 999px;
+  padding: 0 var(--esp-2); font-size: 13px; color: var(--marca-texto);
+}
+/* …E O VÃO DE BAIXO TEM UM RESPONSÁVEL SÓ — e ele vem DEPOIS das peças (06/11/2026).
+ *
+ * A regra nasceu acima, colada ao `padding`, e não funcionava: `header.doc .subtitulo`
+ * pesa (0,2,1) e `header.doc > :last-child` também (0,2,1) — empate, e a que vem depois
+ * no arquivo ganha. Como a do subtítulo vem depois, os 8px dele sobreviviam, e o vão de
+ * baixo saía **20px** nos documentos que acabam no subtítulo (plano, harmonização, folha
+ * de captura) e **12px** nos que acabam num botão (aula, notação). Dois valores para o
+ * mesmo lugar — exactamente o que esta folha persegue. Aqui, depois de todas as peças do
+ * cabeçalho, o empate resolve-se a favor do vão único. */
+header.doc > :last-child, .titulo-fixo > :last-child { margin-bottom: 0; }
+
+/* ---------- o título que fica (21/10/2026) -----------------------------------------
+   A página da aula tem 15 ecrãs; o título diz de que documento se trata e saía da
+   tela na primeira rolagem. A proposta escolhida — «B · encolhe», entre quatro
+   medidas — prende o cabeçalho ao topo e o ENCOLHE: o subtítulo e a ficha saem, o
+   `h1` desce de 31px para 17px. Ele continua a dizer o que é, e devolve a altura à
+   leitura. Medido no documento real da aula 01: 146px inteiro → 25px encolhido no
+   desktop, 46px no celular (onde o título quebra em duas linhas — 5,4% da tela).
+
+   É OPT-IN, e o atributo é do `<html>`: `data-titulo-fixo="sim"` só existe depois de
+   o `assets/nav.js` o pôr. Duas consequências, e as duas são de propósito:
+
+   · SEM JAVASCRIPT nada fica preso. O estado é de rolagem, e sem script ninguém o
+     sabe — a página fica como sempre esteve, em vez de ficar presa e nunca encolher;
+   · A FOLHA DE CAPTURA NÃO ENTRA. Ela é uma folha de marcação para usar DURANTE a
+     aula e imprimir; um título preso ali come a altura de um formulário denso e não
+     serve a nada. Quem a exclui é o script, pela rota (`/captura-aula-NN.html`), e
+     não uma lista de nomes de documento.
+
+   O `.titulo-fixo` é a MARCA do que pode ser preso, e não o próprio `header.doc`: o
+   `lancamento.html` não é documento pandoc — tem um `<h1>` solto e uma folha própria —
+   e ainda assim pede o mesmo comportamento. Um mecanismo, uma classe; cada superfície
+   diz onde ele mora. */
+[data-titulo-fixo="sim"] .titulo-fixo {
+  position: sticky; top: var(--header-height); z-index: 15;
+  /* o fundo é OPACO e cobre a caixa inteira: sem ele o texto que passa por baixo
+     aparece através do título, e o resultado é ilegível — não é decoração */
+  background: var(--fundo);
+  box-shadow: 0 1px 0 var(--borda);
+}
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 {
+  font-size: 17px; border-bottom-width: 1px; padding-bottom: 4px; margin-bottom: 2px;
+  transition: font-size .15s ease;
+}
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .subtitulo,
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .ficha { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 { transition: none; }
+}
+/* O PAPEL NÃO TEM ESTADO DE ROLAGEM: no papel o cabeçalho sai INTEIRO, no lugar, como
+   sempre saiu — e as duas declarações repõem o que a fonte já dizia, porque `display`
+   não tem como «voltar ao que era» (o `.ficha` é flex, e `revert` devolveria o `p`). */
+@media print {
+  [data-titulo-fixo="sim"] .titulo-fixo {
+    position: static !important; background: none !important; box-shadow: none !important;
+  }
+  /* sem transição no papel: ela faria o `h1` sair a 18px, a meio caminho do corpo com que
+     o documento é impresso */
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 {
+    font-size: 31px; transition: none; }
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .ficha { display: flex; }
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .subtitulo { display: block; }
+}
+
+/* O AR DEPOIS DA FAIXA DO CABEÇALHO É UM SÓ — e é do CONTENTOR (06/11/2026).
+ *
+ * Medido nas nove páginas do pacote, a 1280 e a 390: o vão entre a linha do cabeçalho e o
+ * primeiro bloco do documento era **32px** nos documentos que começam por um `##` (o plano,
+ * o índice, o glossário, as referências) e **8px** nos que começam por prosa (a aula 01 e a
+ * notação, cuja fonte composta abre por um parágrafo). Nenhum dos dois está errado em si —
+ * estão errados os DOIS valores para o mesmo lugar, que é o defeito que esta folha já
+ * registou três vezes («um valor, dois lugares»).
+ *
+ * A causa é a de sempre: o vão não era declarado, era o `margin-top` do que calhasse ser o
+ * primeiro filho (`32px` do `h2`, `8px` do `p`). Passa a ser do CONTENTOR, com o valor que
+ * os documentos já tinham quando começam por uma secção — `--esp-6`, os mesmos 32px do
+ * `main h2` —, e o primeiro filho perde a margem de topo para não haver dois responsáveis.
+ *
+ * O AR É DA COLUNA DE LEITURA, e não do `main`: no telemóvel o primeiro bloco do `main` é o
+ * índice dobrado («Nesta página»), que é navegação e não conteúdo — empurrá-lo mudaria a
+ * dobra sem serveder à leitura. Em `.conteudo` o vão fica onde se lê, nas duas larguras e
+ * nos dois regimes de layout (coluna única abaixo de 1200, grade de duas colunas acima).
+ *
+ * FICA DE FORA O PAINEL. A tela de trabalho (`data-layout="painel"`) tem o mesmo
+ * `header.doc` colado ao `main`, mas não é documento: é uma pilha densa de formulários, e
+ * 32px de ar por cima empurrariam tudo sem servir à leitura. Um regime, uma regra.
+ *
+ * Quem confere: a checagem «Respiro» de `tools/check-identidade.js` mede as nove páginas do
+ * pacote e reprova se o vão do cabeçalho ao conteúdo divergir entre elas. */
+body:not([data-layout="painel"]) header.doc + main > .conteudo { padding-top: var(--esp-6); }
+body:not([data-layout="painel"]) header.doc + main > .conteudo > :first-child { margin-top: 0; }
+
+main h2 { color: var(--marca); font-size: 23px; margin: 32px 0 8px; }
+main h3 { color: var(--marca); font-size: 19px; margin: 24px 0 8px; }
+main h4 { color: var(--marca-texto); font-size: 17px; margin: 16px 0 4px; }
+main a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+main a:hover { background: var(--fundo-hover); }
+
+p, ul, ol { margin: 8px 0; }
+li { margin: 4px 0; }
+
+/* ---------- índice da própria página (Regra 16, item 2) ---------- */
+.toc-local {
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px;
+  padding: 12px 20px 16px; margin: 20px 0 24px;
+}
+.toc-local .toc-titulo {
+  margin: 0 0 4px; color: var(--marca-texto); font-size: 14px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.toc-local ul { list-style: none; padding-left: 16px; margin: 4px 0; }
+.toc-local > ul { padding-left: 0; }
+.toc-local a { color: var(--texto-suave); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- a DOBRA do índice (18/10/2026) -----------------------------------------
+   O bloco do índice é uma COLUNA congelada à direita a partir de 1200px; abaixo disso
+   ele é um bloco no TOPO do texto — e num telefone isso é rolagem antes de se chegar ao
+   conteúdo. A dobra encolhe o bloco até o título e devolve a lista a quem a quiser.
+
+   O CONTROLE SÓ EXISTE ONDE A COLUNA NÃO EXISTE, e o critério é o MESMO do layout — a
+   largura, não o tamanho do aparelho. Um portátil de 1000px tem o bloco no topo e o
+   mesmo problema de rolagem; uma janela estreita no desktop também. Em tela larga não
+   há botão, e o índice nunca se fecha: ali ele É a navegação.
+
+   O BOTÃO É CRIADO PELO `assets/nav.js`, e não pelo HTML. O documento do pacote é
+   GERADO (pandoc + `ciclo.html`), e um documento já gerado — ou um pacote que não se
+   pode regerar porque o plano ainda não foi elicitado, que é o caso deste ciclo —
+   ficaria sem o controle até a geração seguinte. Criado no script, ele vale para todo
+   documento que carregue `assets/nav.js`, inclusive os que já estão no ar. E sem
+   JavaScript não há botão nenhum: nada morto na tela, e o índice fica como sempre. */
+.toc-dobra {
+  display: none;
+  width: 100%; margin: 0; padding: var(--esp-2) 0 2px;
+  /* Sem borda: o controle não é uma caixa, é o PEGADOR do bloco. E um botão com um
+     lado só é o defeito que a `provar-celular` existe para impedir («os quatro lados com
+     a mesma espessura») — se a separação fosse desenho, seria um filete falso. */
+  border: 0; border-radius: 0;
+  background: transparent; color: var(--texto-suave);
+  font: 700 13px/1 var(--ui); cursor: pointer;
+  justify-content: center; align-items: center;
+}
+.toc-dobra:hover:not(:disabled) { background: transparent; color: var(--marca); }
+.toc-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.toc-dobra .toc-dobra-sinal { display: block; line-height: 1; }
+
+@media (max-width: 1199px) {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: flex; }
+  /* RECOLHIDO, o bloco é uma FAIXA: o título e o botão, e mais nada. O padding de baixo
+     encurta para o bloco não ficar alto à toa — é o que se pediu: menos rolagem. */
+  .toc-local[data-recolhido="sim"] { padding-bottom: 6px; }
+  .toc-local[data-recolhido="sim"] .toc-titulo { margin-bottom: 0; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: none; }
+}
+/* O PAPEL NÃO TEM DOBRA: no papel o índice sai inteiro, e o botão não se imprime.
+   O `!important` aqui é o MESMO recurso que a impressão já usa para repor os papéis da
+   variante clara — e é necessário: o estado recolhido é um ATRIBUTO na tela, com
+   especificidade maior (`.toc-local[data-recolhido="sim"] ul`), e sem ele o papel sairia
+   com o índice escondido por causa de um toque dado no celular. Papel não tem estado. */
+@media print {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: none !important; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: block !important; }
+}
+
+/* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
+   Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
+   há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
+   leitura (900px) e o índice vira uma coluna à direita, presa abaixo da navbar
+   (`position: sticky`) — quem rola a página não perde a navegação.
+
+   Quem decide é a LARGURA, não o dispositivo: tablet largo, tela cheia e janela estreita
+   se comportam pelo mesmo critério. O `.rail` existe porque o elemento preso precisa de um
+   pai mais alto que ele para ter para onde subir — a coluna da grade estica, o índice não. */
+@media (min-width: 1200px) {
+  /* O LAYOUT É UM ATRIBUTO, não uma rota. `data-layout="documento"` é a leitura com
+     o índice à direita; `data-layout="painel"` é a tela de trabalho, que usa a largura
+     toda e não tem índice lateral. Quem não declara nada fica no documento. */
+  header.doc, main, footer.rodape, .rodape { max-width: 1180px; }
+    /* A MATRIZ OCUPA A COLUNA DO DOCUMENTO INTEIRA (06/11/2026). «Ele pode ocupar a mesma
+     dimensão que os outros formulários ocupam somando a essa dimensão a parte do roteiro.»
+     É literal: o documento gasta 828px de texto + 32 de vão + 272 do índice = 1132. O
+     formulário não tem índice, e a coluna do índice ficava VAZIA a roubar-lhe 304px
+     (medido: 828 onde cabiam 1132). Com `data-largura="matriz"` a coluna é uma só e leva a
+     largura toda do contentor. A medida de leitura de 900px continua a valer para a prosa —
+     a matriz é que não é prosa. */
+  [data-largura="matriz"] main { display: block; }
+  [data-largura="matriz"] .conteudo { max-width: none; }
+  [data-layout="painel"] header.doc,
+  [data-layout="painel"] main,
+  [data-layout="painel"] footer.rodape,
+  [data-layout="painel"] .rodape { max-width: none; }
+  [data-layout="painel"] main { display: block; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 2rem; }
+  .conteudo { grid-column: 1; grid-row: 1; min-width: 0; max-width: 900px; }
+  .rail { grid-column: 2; grid-row: 1; }
+  .toc-local {
+    position: sticky;
+    /* A coluna pára abaixo do TÍTULO PRESO, não abaixo da barra (21/10/2026): com o
+       título colado ao topo, o bloco «Nesta página» subia e o começo dele — o próprio
+       rótulo — ficava por baixo do título. Mesmo número, mesma variável. */
+    top: calc(var(--header-height) + var(--titulo-preso) + 8px);
+    /* para antes do botão "voltar ao topo" (fixo no canto), e rola por dentro se for longo */
+    max-height: calc(100vh - var(--header-height) - var(--titulo-preso) - 96px);
+    overflow-y: auto;
+  }
+}
+
+/* ---------- tabelas, citações, código ---------- */
+table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; }
+/* A MATRIZ DA AULA: 10rem por coluna, no mínimo — o número vem do dado (`--colunas`), não de
+   uma contagem feita à mão no CSS. Ver «a matriz que não cabe» na secção das peças. */
+.captura.matriz { min-width: calc(var(--colunas, 4) * 10rem); }
+th, td { border: 1px solid var(--borda); padding: 8px 8px; text-align: left; vertical-align: top; }
+th { background: var(--fundo-faixa); color: var(--marca-texto); }
+/* o pandoc marca as linhas com .odd / .even e o cabeçalho com .header */
+tr.header { background: var(--fundo-faixa); }
+tr.header th { color: var(--marca-texto); }
+tbody tr.odd { background: var(--fundo-suave); }
+tbody tr.even { background: var(--superficie); }
+
+blockquote {
+  margin: 16px 0; padding: 8px 16px; background: var(--fundo-citacao);
+  border-left: 4px solid var(--borda); color: var(--texto-suave);
+}
+blockquote p { margin: 8px 0; }
+
+code { background: var(--fundo-codigo); padding: 0 var(--esp-1); border-radius: 3px; font-size: 15px; }
+pre { background: var(--fundo-pre); border: 1px solid var(--borda); border-radius: 6px; padding: 12px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+
+hr { border: none; border-top: 1px solid var(--borda); margin: 28px 0; }
+
+/* ============================================================================
+   COMPONENTES — a camada que as páginas deixaram de reescrever (Fase 1).
+   ----------------------------------------------------------------------------
+   Antes desta seção, botão, campo, rótulo, selo, cartão, modal e mensagem de
+   resultado eram redefinidos em cada página: quatro tratamentos de botão, três de
+   rótulo, dois de superfície de campo. Aqui cada um é declarado UMA vez, e as
+   páginas só dizem o que é delas (a medida, a grade, o que é conteúdo).
+
+   As classes de ESTADO carregam mais de um nome quando o nome já está no dado ou
+   no markup (`.solta`, `.vinculada`, `.legado` vêm do estado da proveniência).
+   São aliases do MESMO desenho — não um segundo desenho.
+   ========================================================================== */
+
+/* ---------- botão ----------------------------------------------------------
+   `:where()` dá especificidade ZERO ao desenho base: ele é o piso, e qualquer
+   regra de página vence sem precisar de `!important`. Foi o que faltava — a
+   navbar e as abas tinham de reescrever o botão só para não herdarem o
+   preenchimento.
+
+   O botão SEM classe é o secundário: contorno na marca, fundo do papel — o que
+   as páginas de formulário já usavam. O `.acao` é a ação principal: fundo na
+   marca e texto no ouro claro (`--gold-claro`, 5,03:1 — o token declarado para
+   texto sobre burgundy). */
+:where(button) {
+  display: inline-block; margin: 0;
+  /* O CONTROLE TEM ALTURA DE DEDO (>=40px) E RAIO MACIO. A altura vem do padding
+     vertical sobre a linha de 22px, não de um `height` fixo: botão que cresce com a
+     fonte não corta o texto de quem aumenta o zoom do sistema. */
+  font: 500 15px/1.5 var(--ui);
+  padding: 10px var(--esp-4);
+  border: 1px solid var(--marca); border-radius: var(--raio-2);
+  background: var(--superficie); color: var(--marca);
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+:where(button:hover:not(:disabled)) { background: var(--marca-fundo); color: var(--sobre-marca); }
+:where(button:disabled) {
+  border-color: var(--borda-campo); color: var(--texto-suave);
+  background: var(--fundo-suave); cursor: default;
+}
+
+button.acao, a.acao {
+  display: inline-block; margin: 0;
+  font: 500 15px/1.5 var(--ui); padding: 10px var(--esp-4); white-space: nowrap;
+  border: 1px solid var(--marca); border-radius: var(--raio-2);
+  background: var(--marca-fundo); color: var(--texto-destaque-marca);
+  box-shadow: var(--sombra-controle);
+  cursor: pointer; text-decoration: none;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+/* A ARESTA DE BAIXO DO LINK-EM-BOTÃO: SÓLIDA, COMO AS OUTRAS TRÊS (22/10/2026).
+ *
+ * `main a` e `.rodape a` usam `border-bottom: 1px dotted` como sublinhado de prosa, e um
+ * `a.acao` dentro de `main` não deve herdar o pontilhado. A correção que aqui estava —
+ * `border-bottom: none` — cancelava o pontilhado AMPUTANDO a aresta: `button.acao, a.acao`
+ * declara `border: 1px solid`, e este `none`, com o mesmo peso e depois no arquivo, deixava a
+ * base em 0px. Todo link vestido de botão saía com TRÊS lados: o «Painel» da raiz, o «Abrir»
+ * do painel, o «Voltar à lista».
+ *
+ * O comentário abaixo do `.secundario` culpava a falta de fundo («a borda de baixo "sumia" na
+ * leitura»), e o fundo cheio só disfarçou o defeito. A causa era esta.
+ *
+ * Declara-se a aresta, não a ausência dela: estilo e largura da moldura, e a COR fica com a
+ * cascata — `--marca` do shorthand, ou `--borda` quando o `.secundario` a redefine. É a
+ * checagem 9 (Aresta) de `tools/check-identidade.js` que impede o retorno disto.
+ */
+a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
+/* O BOTÃO QUE VEM LOGO DEPOIS DE UM CONTROLE precisa do mesmo ar que separa um
+   campo do rótulo seguinte. Sem isto ele encosta no campo: o `.acao` tem
+   `margin: 0`, e a única coisa que o afastava era o acaso de estar dentro de um
+   `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de formulário — que é o
+   caso dos Bastidores — o campo e o botão ficavam colados.
+
+   A ESPECIFICIDADE É O PONTO. `button.acao` é (0,1,1) e diz `margin: 0`; uma
+   regra `:where(…) + .acao` é (0,1,0) e PERDE — foi o que aconteceu na primeira
+   tentativa, e o vão continuou 0. Por isso o seletor repete `button.acao`, que
+   empata em peso e vence por vir depois. */
+:where(form) > :where(input, select, textarea) + button.acao,
+:where(form) > :where(input, select, textarea) + button:not(.acao) { margin-top: var(--esp-4); }
+
+/* …E SÓ NA PILHA DO FORMULÁRIO. A primeira versão não tinha o `form >`, e o botão
+   «Associar» — que divide a linha com o `<select>` que ele lê — ganhou 16px de
+   margem de topo e desceu 8px em relação ao seletor. Um botão AO LADO de um campo
+   não é um botão ABAIXO dele, e o CSS não sabe distinguir os dois pelo pai: sabe
+   pelo pai ser ou não o formulário. */
+.par-associar > button, .escolhedor .entrada > button { margin-top: 0; }
+
+/* AS ACÇÕES DE UMA ESCOLHA, NA LINHA DE BAIXO (§6 da aula — 06/11/2026).
+ *
+ * O DEFEITO, medido no documento publicado: o `<select>` das alunas acabava em 3139,6px e o
+ * `<div>` das acções começava em 3139,6px — o botão ficava **1px** abaixo do menu, colado, em
+ * 1280 e em 390. A causa é a de sempre neste ficheiro: um `<div>` nu não tem ar nenhum. O
+ * `.acao` declara `margin: 0` (é o que o põe na linha dos outros controles), e nada lhe dava
+ * vão por cima.
+ *
+ * A VIZINHANÇA DO FORMULÁRIO NÃO SERVIA. A regra acima (`:where(form) > campo + button.acao`)
+ * mede o botão que vem DEPOIS de um campo e DENTRO do `<form>`; aqui não há formulário, os
+ * dois gestos são `a.acao` (ligações para a Área do Professor, e não botões que gravam), e há
+ * um `<div>` por aluna — porque cada aluna tem os seus. Uma peça, e não um caso daquela.
+ *
+ * O NOME É O DA CASA: `.acoes-do-ato` e `.acoes-da-lista` já dizem «as acções que pertencem a
+ * uma coisa»; estas pertencem a UMA aluna. A fileira tem `gap` porque dois botões separados só
+ * por um espaço de texto encostam no telemóvel — e é lá que o dedo os tem de distinguir.
+ * O vão é `--esp-3`, o passo do meio da escala: `--esp-4` fica para o botão que GRAVA, que é
+ * o que a regra da vizinhança protege. */
+.acoes-da-aluna {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--esp-2); margin: var(--esp-3) 0 0;
+}
+.acoes-da-aluna .acao { margin: 0; }
+
+/* AS ACÇÕES DE UMA LINHA DE TABELA, EMPILHADAS (16/11/2026).
+ *
+ * O PEDIDO. «A tabela das escolas vivas, na coluna acesso, aumenta um pouco a largura dela porque
+ * quando eu clico em habilitar fica truncado o habilitar e o desabilitar. […] Vamos deixar na coluna
+ * acesso os dois botões […] sempre um abaixo do outro na vertical, vamos colocar assim, empilhados.
+ * E aí arruma o espaço entre eles, tá? Porque as margens estão ficando acavaladas.»
+ *
+ * MEDIDO, E O DEFEITO ERA O VÃO, NÃO A LARGURA. Numa célula em que os dois não cabem lado a lado, os
+ * botões são `inline-block` e quebram para duas linhas — e o vão entre elas é o da linha **e nada
+ * mais**: `.acao` declara `margin: 0`, e não havia `gap` nenhum. Em 1440, 1280, 900 e 390 a distância
+ * entre o filete de baixo do «Habilitar» e o de cima do «Desabilitar» era **0px** — encostados, que é
+ * o «acavalado» que ela viu. Acrescentar largura sozinha não resolveria: o que faltava era ar.
+ *
+ * O VÃO É O DA CASA: `--esp-2` (8px), o mesmo que `.acoes-da-aluna` usa entre os seus dois botões.
+ * `--esp-4` (16px) é o do botão que GRAVA, e aqui não se grava nada: são dois gestos irmãos.
+ *
+ * A LARGURA MÍNIMA é a do rótulo mais largo («Desabilitar», 87px a 12.5px no Chromium e ~93px num
+ * tipo de letra mais largo) mais folga: 8rem. É a resposta ao «aumenta um pouco a largura dela» — a
+ * coluna deixa de ser do tamanho exacto do conteúdo, e um tipo de letra diferente do meu, ou o zoom
+ * do sistema, não estrangula o botão.
+ *
+ * E OS DOIS ESTICAM (`align-items: stretch`): empilhados com larguras diferentes lêem-se como dois
+ * desenhos; iguais, lêem-se como a coluna de gestos da mesma linha. Os estados continuam a ser os do
+ * `.acao` (base, `:hover`, `:focus-visible`, `:disabled`) — esta peça é o arranjo, não um botão novo.
+ */
+.acoes-da-linha {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: var(--esp-2);
+  min-width: 8rem;
+  margin: 0;
+}
+.acoes-da-linha .acao { margin: 0; }
+
+/* ---------- AS ABAS — o fichário, e a aba que pousa (16/11/2026) -------------------------
+ *
+ * A DECISÃO DELA, e é de identidade, não de um ecrã: «Anote aí também na nossa identidade visual que
+ * a gente vai adotar abas […] Da mesma forma que a gente já adotou lá na audição, a gente vai adotar
+ * abas. Então quando for criar as contas, não cria assim desse jeito listado, que é muito feio.
+ * Vamos criar as abas.»
+ *
+ * O DESENHO NASCEU NA AUDIÇÃO (09/11/2026), escrito no `<style>` daquela página. Com o segundo e o
+ * terceiro consumidor — o financeiro e «A escola» — havia duas saídas: copiar as vinte linhas, ou
+ * subir a peça para a folha. Copiar é o que se paga duas vezes, e a segunda cópia divergiria na
+ * primeira correcção: uma aba com o vão de um desenho e a tinta de outro é a mesma peça a fingir que
+ * é duas.
+ *
+ * A METÁFORA É A DELA: «um fichário ou um caderno de matérias na horizontal» — abas encostadas à
+ * linha, e a que está aberta pousa sobre ela. Por isso a aba activa tem fundo e o filete de baixo
+ * dela desaparece (fica na cor da superfície): é o que faz a aba POUSAR no conteúdo em vez de
+ * flutuar por cima de um filete.
+ *
+ * A LINHA NÃO PERTENCE À ABA, e é por isso que ela está no contentor: um filete desenhado só na aba
+ * activa mudaria de comprimento a cada clique, e a página inteira pareceria tremer.
+ *
+ * O QUE ESTA PEÇA NÃO TRAZ, e é de propósito: o motor. Abrir e fechar abas é script, e cada página
+ * liga o dela — o da Produção (`motorDeAbas`) e o do painel partilham as marcas (`role="tab"`,
+ * `aria-selected`, `hidden`), que são o contrato entre o desenho e o comportamento. */
+.abas {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  gap: .2rem; margin: var(--esp-1) 0 0; padding: 0 0 0 .15rem;
+  border-bottom: 1px solid var(--borda-campo);
+}
+.aba {
+  display: inline-flex; align-items: center; gap: .4rem;
+  margin: 0 0 -1px; padding: .5rem .9rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--raio-1) var(--raio-1) 0 0;
+  color: var(--texto-suave);
+  font: 600 .92rem/1.3 var(--ui);
+  cursor: pointer;
+}
+.aba:hover { background: var(--fundo-hover); color: var(--marca-texto); }
+.aba[aria-selected="true"] {
+  background: var(--superficie); border-color: var(--borda-campo);
+  border-bottom-color: var(--superficie); color: var(--marca);
+}
+.aba:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* A ABA QUE AINDA NÃO PODE ABRIR (15/11/2026) — «as abas recorte e transferência não podem estar
+   habilitadas enquanto não existir um elenco gravado». A tinta é a do estado inerte que a folha já
+   usa nos botões desligados; o que ela NÃO faz é desaparecer com a aba: quem lê tem de poder saber
+   que ela existe e por que espera, e o `title` diz o porquê. */
+.aba[disabled] {
+  color: var(--texto-tenue, var(--texto-suave)); opacity: .55; cursor: default;
+  background: transparent;
+}
+.aba[disabled]:hover { background: transparent; color: var(--texto-tenue, var(--texto-suave)); }
+/* O PAINEL DA ABA. Sem desenho próprio: quem desenha é o conteúdo lá dentro (o formulário, a
+   `.caixa`, os campos). O que ele precisa é de parar de ser uma coluna de grid — dentro do
+   `.col-form` ele é o único filho, e um `grid` a mais partiria o que a aba traz. */
+.aba-painel { min-width: 0; }
+/* AS ABAS NO TELEMÓVEL (09/11/2026 · corrigido em 16/11/2026). Três rótulos lado a lado a 360px não
+   caberiam sem reticências em todos — e uma aba com o nome cortado não se escolhe. A saída é a
+   pílula, que sobe uma folha com as mesmas abas; o corte é o do «Ações» da anamnese.
+
+   O QUE ESTAVA ERRADO, e apareceu quando a peça ganhou o quarto consumidor. Esta regra punha
+   `display: none` na tira — e uma página sem pílula ficava SEM NENHUMA forma de mudar de aba: o
+   painel da segunda e da terceira aba continuavam `hidden`, e o conteúdo era inalcançável num
+   telemóvel. A folha estava a decidir pela página uma coisa que só a página sabe: se ela tem, ou
+   não, uma pílula para pôr no lugar.
+
+   Agora a folha faz o que é dela — **a tira passa a rolar em vez de sair** —, e quem tem pílula
+   esconde a tira na sua própria folha de estilos, que é onde essa decisão pertence. A tira é a
+   mesma peça em todos os casos; o que muda é quem a substitui. */
+@media (max-width: 560px) {
+  .abas {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .abas::-webkit-scrollbar { display: none; }
+  .aba { flex: 0 0 auto; }
+}
+
+/* ---------- A MATRIZ QUE NÃO CABE ROLA DENTRO DE SI — e as setas dizem-no (06/11/2026) ----
+   O PEDIDO. «as colunas elas vão crescer de forma dinâmica […] tem que prever que quando
+   ultrapassar a largura da página precisa de um scroll horizontal […] E como é que fica o
+   layout dimensionado para celular de uma forma fácil de usar, que o usuário não se confunda
+   e ele perceba que tem que andar para o lado? Eu pensei em colocar aqueles botãozinhos que
+   tem geralmente para os carrosséis.»
+
+   PORQUE NÃO SE VÊ O QUE A FOLHA JÁ FAZIA. Abaixo de 900px a casa manda a `table` rolar
+   dentro de si — e isso **não se vê**: quem olha um telemóvel vê colunas cortadas ao meio e
+   não sabe se o corte é do desenho ou do fim do conteúdo. A seta é a resposta a essa
+   pergunta, e por isso ela é PEÇA, e não adorno: aparece **só quando há para onde ir**, e
+   desliga-se no fim do caminho.
+
+   AS MEDIDAS SÃO AS DA CASA: `--esp-2` entre as setas, `--esp-2` entre elas e a tabela. Não
+   há cor nova — as setas são `button.acao.secundario.pequena`, o mesmo botão de sempre.
+
+   A LARGURA MÍNIMA DA MATRIZ É DECLARADA PELO DADO. `--colunas` é escrito pelo formulário
+   quando monta a tabela (ele sabe quantas colunas tem), e a matriz fica com 10rem por
+   coluna: com poucas colunas ela enche o espaço e não rola; com muitas, rola. Sem isso, a
+   regra `table { width: 100% }` da casa ESPREMIA as colunas até caberem, que é o contrário
+   do que o professor precisa para marcar. */
+.rolagem { min-width: 0; }
+.rolagem-caixa { overflow-x: auto; overscroll-behavior-x: contain; }
+.rolagem-caixa:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* A tabela de dentro NÃO tem scroller próprio: quem rola é a caixa. Sem isto, no telemóvel
+   ficavam dois (o da casa, `table { display:block; overflow-x:auto }` abaixo de 900px, e o
+   da caixa), e o gesto ficava preso no de dentro. */
+.rolagem-caixa > table { display: table; overflow: visible; }
+.rolagem-setas {
+  display: none; justify-content: flex-end; align-items: center;
+  gap: var(--esp-2); margin: 0 0 var(--esp-2);
+}
+/* SÓ QUANDO HÁ PARA ONDE IR: o estado é escrito no bloco, e sem ele a fileira não ocupa
+   lugar nenhum — uma seta sempre presente seria mobília, e mobília não diz nada. */
+.rolagem[data-rolagem="sim"] .rolagem-setas { display: flex; }
+.rolagem-setas .acao { margin: 0; }
+.rolagem-setas .conta { margin-right: auto; }
+
+button.acao:hover:not(:disabled), a.acao:hover {
+  background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
+  box-shadow: var(--sombra-controle-alto);
+}
+.acao.secundario,
+.acao.secundario:hover:not(:disabled) {
+  /* PREENCHIDO, não transparente. Era `background: transparent`: sobre o papel sobrava
+     um filete de 1px, e o botão parecia sem caixa — a borda de baixo "sumia" na leitura
+     de quem olha a tela. O creme-1 separa do papel E da superfície branca, então o mesmo
+     desenho vale sobre os dois. */
+  background: var(--fundo-suave); color: var(--marca-texto); border-color: var(--borda);
+}
+.acao.secundario, .acao.perigo { box-shadow: none; }
+.acao.secundario:hover:not(:disabled) { background: var(--fundo-hover); }
+
+/* UMA AÇÃO NÃO GUARDA ESTADO (18/10/2026). Aqui houve um `[aria-pressed="true"]` sobre
+   `.acao`, para o botão da opção escolhida ficar aceso. Saiu, e a razão é de vocabulário, não
+   de gosto: `.acao` é uma ORDEM — algo que acontece quando se clica —, e o que ficou em vigor
+   depois do clique não é uma ordem pendente, é um ESTADO. Quem guarda estado é a pílula
+   (`.escolhas`/`.escolha`), com o `:checked` do próprio `<input>`; quem quer um cartão
+   escolhido usa `.cartao[aria-pressed]`, na raiz. Duas peças, dois significados — e um botão
+   não é nenhum dos dois.
+
+   O que este comentário guarda é a ARMADILHA que o desenho tinha, para não se repetir: a
+   variante `:hover` era obrigatória por ESPECIFICIDADE. Sem ela, `.acao.secundario` (0,4,0)
+   vencia no instante em que o rato pousasse e o botão apagava-se sob o dedo que ia
+   confirmá-lo. Uma peça cujo estado só se vê quando o ponteiro sai é uma peça mal declarada. */
+.acao.perigo,
+.acao.perigo:hover:not(:disabled) {
+  background: transparent; color: var(--falha); border-color: var(--falha);
+}
+.acao.perigo:hover:not(:disabled) { background: var(--falha-fundo); }
+.acao.grande { padding: 12px var(--esp-5); border-radius: var(--raio-2); font-size: 15.5px; }
+.acao.pequena { padding: var(--esp-1) var(--esp-3); font-size: 12.5px; border-radius: var(--raio-1); }
+.acao:disabled, .acao[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+.acao.secundario:disabled, .acao.perigo:disabled {
+  background: transparent; color: var(--texto-suave); border-color: var(--borda-campo);
+}
+
+/* botões-ícone (o «×» de fechar, o de tirar um item) não herdam o preenchimento */
+button.icone {
+  background: none; border: none; padding: 0 var(--esp-1); color: var(--texto-suave);
+  font: 400 1.4rem/1 var(--ui);
+}
+button.icone:hover:not(:disabled) { background: none; color: var(--marca); }
+
+/* ---------- campo ----------------------------------------------------------
+   O controle é sans (`--ui`), com o filete medido para 3:1 (`--gold-borda`) e o
+   raio do degrau 1. Sobre um CARTÃO, o campo desce para o creme: branco sobre
+   branco não separa a área de digitação. Sobre o papel, ele fica branco.
+   A base também usa `:where()` — o piso que qualquer página sobrepõe. */
+/* `input:not([type])` NÃO É DETALHE: um `<input>` sem o atributo `type` é um campo de
+   texto, mas não casa com `input[type=text]`. Era o caso de 15 campos do sistema — o
+   nome da escola, o do professor, a confirmação do expurgo — que ficavam com o desenho
+   CRU do navegador no meio de uma tela toda desenhada. Foi por isso que os formulários
+   pareciam sem CSS: parte deles estava. */
+:where(input[type=text], input:not([type]), input[type=password], input[type=number],
+  input[type=date], input[type=time], input[type=search], input[type=email],
+  input[type=url], textarea, select) {
+  width: 100%; box-sizing: border-box;
+  font: 15px/1.5 var(--ui);
+  /* Mesma altura de dedo do botão (22px de linha + 2x9 de padding + 2 de filete),
+     e o mesmo raio: campo e botão pertencem à mesma família de controle. */
+  padding: 9px var(--esp-3);
+  color: var(--texto); background: var(--campo-fundo);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+textarea { min-height: 4.5rem; resize: vertical; }
+
+/* A SETA DO `select`. A nativa fica encostada na borda direita e o navegador não
+   deixa afastá-la — o único jeito é desenhá-la. Sai o controle nativo
+   (`appearance: none`), entra um chevron em SVG no `background-image`, a
+   `var(--esp-3)` da borda. Sem `appearance: none` o Safari mantém a seta dele e
+   ficariam DUAS.
+
+   O SELETOR CARREGA PESO, e isso é de propósito. A versão anterior era um
+   `:where(select)` — peso zero — e o chevron desaparecia em DUAS superfícies: a
+   barra de contexto da porta (`.barra .campo select`) e o campo de termo dos
+   Bastidores (`select.sel-termo`). As duas pintam o próprio campo com o atalho
+   `background`, que ZERA `background-image`; e as duas são mais pesadas que zero e
+   ainda vêm depois, porque o `ciclo.css` entra ANTES do `<style>` da página — o
+   select ficava SEM SETA NENHUMA, pior do que a seta colada de que ele reclamou.
+
+   `:not([multiple])` e `:not([size])` são verdade: num select de lista não há seta,
+   e `appearance: none` num select múltiplo apagaria a lista. A terceira negação
+   existe SÓ para o peso — sem ela `.barra .campo select` empata em (0,2,1) e vence
+   por vir depois. Um `!important` faria o mesmo e não diria por quê. */
+select:not([multiple]):not([size]):not([hidden]) {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a5c31' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--esp-3) center;
+  padding-right: calc(var(--esp-3) * 2 + 12px);
+}
+/* O `background` ABREVIADO de quem pinta o campo dentro de um cartão apagaria a
+   seta (o atalho zera `background-image`). Por isso aquelas regras falam de
+   `background-color` — a imagem não é cor, e não deve ser reescrita por ela. */
+.caixa input, .caixa select, .caixa textarea,
+.modal-caixa input, .modal-caixa select, .modal-caixa textarea,
+form input, form select, form textarea { background-color: var(--campo-fundo-cartao); }
+/* O CAMPO BLOQUEADO (28/10/2026). A folha desenhava o BOTÃO bloqueado e não desenhava o
+   CAMPO bloqueado: um `<select disabled>` ficava a opacidade 1, idêntico a um activo, e o
+   bloqueio só se descobria ao clicar. Medido no navegador antes desta regra: opacidade 1
+   nos dois. Um bloqueio que não se vê é um controle que não responde sem dizer por quê.
+
+   O número é o MESMO do botão (`.4`, em `:where(button:disabled)` e em `.acao:disabled`),
+   e é de propósito: «bloqueado» tem de ter um significado só no sistema, e não um por
+   família de controle. O fundo desce para o papel recuado — o mesmo `--fundo-suave` que o
+   botão usa —, e o cursor diz o resto a quem aponta.
+
+   A especificidade é `:where(…)` mais um `:disabled`, que dá (0,1,1): empata com
+   `.caixa select` e vence por vir depois. Um `!important` faria o mesmo e não diria por quê. */
+:where(select, input, textarea):disabled {
+  opacity: .4; cursor: not-allowed; background-color: var(--fundo-suave);
+}
+/* Na noturna a seta clareia: `#7a5c31` sobre o campo escuro some. */
+[data-modo="noturna"] select:not([multiple]):not([size]):not([hidden]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+/* ============================================================================
+   O QUE SÓ O PAINEL VÊ — a marca `data-pagina` (25/11/2026).
+
+   A MESMA página serve `danca.padd.com.br` (o painel do proprietário) e
+   `lastro.padd.com.br` (a página pública, que só cria escola). O servidor põe no
+   `<html>` qual é: `data-pagina="painel"` ou `data-pagina="publica"`. As peças que
+   existem só no painel levam `data-dono`, e esta regra as esconde no público.
+
+   ISTO NÃO É PROTEÇÃO, E NÃO PODE SER LIDO COMO TAL. Quem protege é o servidor, que
+   no endereço público responde 404 a `/api/escolas`, `/api/apagar-escola`,
+   `/professores` e a tudo o resto que não seja a apresentação e o criar. O que esta
+   regra evita é a PROMESSA FALSA: um botão «Apagar escola» desenhado numa página cujo
+   pedido não abre. Um botão que se vê e não funciona é pior do que um botão ausente.
+
+   O NOME DO ATRIBUTO NÃO É `data-modo`. `data-modo` é a APARÊNCIA (`clara`/`noturna`,
+   com o anti-flash a escrevê-la antes de a página pintar) — e o botão do tema a
+   reescreve. Dois factos com o mesmo atributo seriam um só: ao primeiro clique no ◐,
+   a página pública perderia a marca e mostraria o painel.
+   ========================================================================== */
+[data-pagina="publica"] [data-dono] { display: none; }
+
+/* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a
+   linha com o controle (o lançamento de aula). */
+.campo-rotulo {
+  display: block; margin: var(--esp-4) 0 var(--esp-1);
+  color: var(--marca-texto); font-size: .9rem; font-weight: 600;
+}
+.campo-rotulo.em-linha {
+  display: inline; margin: 0 var(--esp-2) 0 0;
+}
+
+/* O foco é o mesmo em todo o sistema — e o traço é `--gold-escuro` (>=4,26:1
+   sobre o papel), não o `--gold`, que é ornamento e não alcança 3:1 ali. */
+/* O FOCO É UM HALO nos controles e um ANEL no resto. O halo é o desenho da pele
+   adotada: ele não desloca nada e acompanha o raio do controle. Links, resumos e o
+   que não tem caixa continuam com o anel — que é o que garante o foco visível onde
+   o halo não teria onde aparecer. */
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none; border-color: var(--marca); box-shadow: var(--foco-halo);
+}
+button:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--foco); outline-offset: 2px;
+}
+button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); }
+
+/* ---------- escolha em pílulas ---------------------------------------------
+   A LISTA CURTA, FECHADA E FIXA. Quando o número de opções é pequeno e não muda —
+   os sete dias da semana, os dois modos de aparência —, todas cabem à vista e a
+   escolha custa um clique. É a peça mais barata do sistema, e por isso é a que se
+   usa primeiro.
+
+   O CRITÉRIO NÃO É ESTÉTICO, É DE TAMANHO: quando a lista cresce (as turmas, as
+   alunas, os 84 termos do vocabulário), a pílula vira um tapete e o formulário
+   fica poluído — aí é o `escolhedor`, que escolhe no menu e mostra o escolhido em
+   ficha. As duas peças existem para o mesmo problema, em dois tamanhos. O quadro
+   completo, e o que NÃO cabe em nenhuma das duas, está no «catálogo das peças»,
+   em `IDENTIDADE-VISUAL.md`.
+
+   AO SERVIDOR NÃO IMPORTA O TIPO. Serve ao `radio` (uma escolha) e ao `checkbox`
+   (vários): o estado vem do `:checked`, e a peça é a mesma. Quem marca a opção em
+   vigor é quem escreve o HTML — o atributo `checked` sai do servidor, e não de um
+   script que lê o estado depois de a página pintar.
+
+   O `<input>` NÃO DESAPARECE, ENCOLHE. Ele fica com 1px e `opacity: 0`, mas
+   continua focável e continua a ser o que o leitor de ecrã anuncia — o que muda é
+   só quem o desenha: o `<span>` irmão, alcançado pelo `+`. O `<label>` em volta é
+   o que faz o clique chegar ao input (o `for` não seria necessário, mas a marcação
+   abaixo é `<label class="escolha"><input><span></span></label>` e é a única que a
+   peça aceita). */
+.escolhas {
+  display: flex; flex-wrap: wrap; gap: var(--esp-2);
+  margin: var(--esp-1) 0 var(--esp-4);
+  border: 0; padding: 0;      /* o `fieldset` — agrupamento certo de uma escolha
+                                 única — traz borda, margem e padding próprios, e
+                                 a caixa é da peça, não do elemento */
+  min-width: 0;
+}
+/* A legenda de um `fieldset` em `flex` não quebra a linha sozinha: ia parar ao lado
+   da primeira pílula. */
+.escolhas > legend, .escolhas > .campo-rotulo { flex: 1 1 100%; margin: 0 0 var(--esp-2); }
+.escolha {
+  display: inline-flex; align-items: center; margin: 0;
+  position: relative;         /* o input é absoluto: sem isto ele se posiciona
+                                 contra a página e pode empurrar a rolagem */
+  cursor: pointer;
+}
+.escolha input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.escolha span {
+  /* O `--esp-2` vertical NÃO é gordura: com `--esp-1` a pílula ficava com 29px, e o
+     alvo de toque no celular é o que se quer generoso — são sete pílulas seguidas nos
+     dias da semana, e quem erra o toque marca o dia errado. Com 8px em cima e em baixo
+     ela vai a ~37px, encosta na altura do campo (43px) sem deixar de ser compacta, e
+     continua acima do mínimo de 24px da WCAG 2.5.8 e perto dos 44px de conforto. */
+  display: inline-block; padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-pilula);
+  background: var(--superficie); color: var(--marca-texto);
+  font: 500 .87rem/1.35 var(--ui);
+}
+.escolha input:checked + span {
+  background: var(--marca-fundo); border-color: var(--marca-fundo);
+  /* `--texto-destaque-marca` e não `--sobre-marca`: é o MESMO par que a pílula já usava
+     nas sete pílulas dos dias da semana, e o desenho não muda ao subir para a folha. Os
+     dois tokens são ouro e creme, e a diferença é de papel — o escolhido é DESTAQUE sobre
+     a marca, não texto corrido sobre ela. */
+  color: var(--texto-destaque-marca); font-weight: 600;
+}
+/* O FOCO VAI PARA O `<span>`, porque é ele que se vê. O input está a 1px e
+   invisível: um `outline` nele seria um anel em volta de nada. */
+.escolha input:focus-visible + span { outline: 2px solid var(--foco); outline-offset: var(--esp-1); }
+.escolha input:disabled + span { opacity: .4; cursor: not-allowed; }
+
+/* ---------- barra de uma cota (17/11/2026) ---------------------------------
+   A DISTÂNCIA ATÉ UM TETO, desenhada. Nasceu com o painel de Monitoramento, onde
+   a pergunta que ela faz é sempre a mesma: «quanto falta para acabar?» — e a
+   resposta em percentagem num texto obriga a fazer a conta de cabeça.
+
+   O NOME É `.cota`, E NÃO `.barra` — `.barra` já é a barra fixa da porta (o cabeçalho do ato),
+   e duas peças com o mesmo nome é o defeito que a checagem «Forma» existe para apanhar. «Cota»
+   diz o que a peça mede, que é o que o nome de uma peça deve dizer.
+
+   É o `<progress>` NATIVO, e não um `<div>` com uma largura. Duas razões: a
+   largura de uma barra é cálculo, e cálculo mora no motor — a marcação não leva
+   `style=""` (regra 5); e o `<progress>` já É o que diz ser, com o valor
+   anunciado pelo leitor de ecrã sem um `aria-label` inventado que repita o
+   número visível.
+
+   O `data-nivel` pinta o estado, com a MESMA régua das outras cotas da casa:
+   `folga` (abaixo de 80%), `atencao` (80% a 95%) e `agora` (95% para cima). O
+   valor é a fracção em milésimos (`value`/`max="1000"`), para a barra não perder
+   resolução nos primeiros por cento — que é exactamente onde ela está hoje. */
+.cota {
+  appearance: none; -webkit-appearance: none;
+  display: block; width: 100%; height: .55rem;
+  margin: var(--esp-2) 0 0;
+  border: 1px solid var(--borda-campo); border-radius: 999px;
+  background: var(--fundo-faixa); overflow: hidden;
+}
+.cota::-webkit-progress-bar { background: var(--fundo-faixa); }
+.cota::-webkit-progress-value {
+  background: var(--ok); border-radius: 999px;
+  transition: width .3s ease;
+}
+.cota::-moz-progress-bar { background: var(--ok); border-radius: 999px; }
+.cota[data-nivel="atencao"]::-webkit-progress-value { background: var(--alerta); }
+.cota[data-nivel="atencao"]::-moz-progress-bar { background: var(--alerta); }
+.cota[data-nivel="agora"]::-webkit-progress-value { background: var(--falha); }
+.cota[data-nivel="agora"]::-moz-progress-bar { background: var(--falha); }
+/* A BARRA VAZIA NÃO É UM ERRO: `value="0"` pinta zero, e um zero com a cor da
+   falha leria como problema. É `--borda-campo` — a mesma tinta de «não há nada
+   aqui» que o resto da folha usa. */
+.cota[value="0"]::-webkit-progress-value { background: transparent; }
+.cota[value="0"]::-moz-progress-bar { background: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .cota::-webkit-progress-value { transition: none; }
+}
+
+/* ---------- selo -----------------------------------------------------------
+   A pastilha que marca um atributo ou um estado. O desenho base é o do cabeçalho
+   do ciclo (creme, filete de ouro, pílula); os estados trocam o par de cor pelo
+   token semântico, e o significado é o mesmo em toda a tela. */
+.selo {
+  display: inline-block; padding: var(--esp-1) var(--esp-2);
+  font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid var(--borda); border-radius: var(--raio-1);
+  color: var(--marca-texto); background: var(--fundo-faixa);
+}
+.selo.ok, .selo.vigente, .selo.vigencia, .selo.preenchido {
+  background: var(--ok-fundo); border-color: var(--ok); color: var(--ok);
+}
+/* `.livre` E `.solta` SÃO O MESMO ESTADO, e por isso têm de ser o mesmo desenho
+   (18/10/2026). Os dois nomes vêm do DADO: a listagem dos Bastidores diz que a
+   entidade ainda não entrou num plano (`livre`), e a proveniência do ato diz que o
+   envelope ainda não foi ligado a um Plano de Observação (`solta`). É a mesma
+   coisa — «ainda não entrou na cadeia, portanto ainda se corrige» —, e a tela
+   escreve «livre» nos dois lugares. Antes desta data `.solta` morava no grupo
+   discreto e levava filete tracejado: a MESMA palavra saía âmbar nos Bastidores e
+   cinza na anamnese. A declaração daqui de cima já dizia que `.solta`,
+   `.vinculada` e `.legado` são «aliases do MESMO desenho — não um segundo
+   desenho»; o CSS é que não a cumpria. */
+.selo.alerta, .selo.falta-ritmo, .selo.livre, .selo.solta {
+  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+}
+.selo.falha { background: var(--falha-fundo); border-color: var(--falha); color: var(--falha); }
+.selo.marca, .selo.obrig { background: transparent; border-color: var(--marca); color: var(--marca); }
+/* `.curada` ENTRA NO MESMO DESENHO DE `.vinculada` (03/11/2026), e não num terceiro. O estado é
+   outro — a turma está numa curadoria mas ainda não num plano —, mas o que a escola FAZ com ela é
+   o mesmo: deriva. Um desenho diferente para a mesma acção mandaria procurar uma diferença de
+   comportamento que não existe. A palavra é que muda, porque muda o motivo da recusa. */
+.selo.derivada, .selo.vinculada, .selo.curada {
+  background: var(--derivada-fundo); border-color: var(--derivada); color: var(--derivada);
+}
+.selo.discreto, .selo.dim, .selo.legado,
+.selo.sem-sujeito, .selo.ajuste {
+  background: var(--fundo-suave); border-color: var(--borda-campo); color: var(--texto-suave);
+}
+.selo.opt { border-style: dashed; }
+.selo.legado { border-style: dotted; }
+
+/* ---------- O TRIO DE NÚMEROS e a lista que o usa (23/10/2026) -----------------------
+
+   A PEÇA SUBIU PARA A FOLHA. Ela vivia em `motor/servidor/bastidores.js`, escrita linha a linha
+   na página da Produção — e enquanto estivesse lá, «usar a mesma peça» noutra lista seria
+   COPIAR, e a segunda cópia divergiria na primeira correcção. O que se quer é uma peça, duas
+   listas: a de turmas (Produção) e a de planos do ciclo.
+
+   O TRIO é três números à vista e um painel por número. O rótulo diz o quê, o valor diz quanto,
+   e o «?» diz que há mais dentro. Abre um de cada vez, e o painel não é prosa — é a peça: a
+   régua abre com a sua escala, os conteúdos em chips, o ritmo em pares rótulo/valor.
+
+   TODOS OS NOMES COMEÇAM POR `trio-`, e isto não é preciosismo: a checagem «Forma» dá CADA nome
+   de classe a um dono só, e `.lista`, `.nota`, `.escala` e `.nivel-neutro` já têm dono (a porta,
+   o lançamento, o formulário da Produção). Um prefixo é o que permite a peça ser uma sem
+   renomear as páginas que já a usavam.
+
+   TUDO EM PAPÉIS (`--fundo-suave`, `--superficie`, `--texto-suave`, `--raio-2`), e não em
+   valores: é o que faz a variante noturna disto funcionar sem uma linha de CSS a mais. A escala
+   usa os três papéis semânticos que já existem — `--ok`, `--alerta`, `--fundo-faixa` —, e não
+   cores novas: uma quarta família de verdes seria uma quarta coisa para manter. */
+
+.trio-lista { list-style: none; margin: 0; padding: 0; }
+
+/* ---------- A LINHA DE UM ITEM da lista --------------------------------------------------
+   A mesma forma da linha de uma turma na Produção — nome à esquerda, ações à direita, o
+   complemento por baixo —, com nomes `trio-*` porque a checagem «Forma» dá cada nome de classe
+   a um dono só, e `.nome`, `.acoes` e `.linha-turma` já são daquela página.
+
+   O NOME NUNCA DISPUTA ESPAÇO COM OS BOTÕES. Era `flex:1 1 auto`: numa tela de 360px o nome
+   ficava com o que sobrava e quebrava em quatro linhas ao lado dos botões. Com `flex-basis` de
+   14rem o nome PEDE 224px; se a linha não couber, as ações descem inteiras (o `flex-wrap`) em
+   vez de espremer o texto. Quem decide é o espaço que existe, não um breakpoint novo. */
+/* A LINHA QUE ESTÁ A SER APAGADA (05/11/2026) — a peça do LOCK.
+ *
+ * O DEFEITO, dito por ela: «quando o usuário clica em apagar um Plano de Observação, a Action do
+ * GitHub é disparada em background, mas o item continua visível e interativo na listagem enquanto
+ * o processo roda. Isso permite que o usuário abra, leia ou tente ajustar um documento que está
+ * sendo destruído.»
+ *
+ * A REGRA: a linha apagada é um estado da linha, não um aviso ao lado dela. Enquanto a rota não
+ * responde, a peça faz três coisas — cobre (o véu), diz (o fio de texto) e tranca (nada nela
+ * responde ao ponteiro). O `inert` que o cliente põe fecha também o teclado e o leitor de ecrã;
+ * `pointer-events` é o que segura o ponteiro onde `inert` ainda não existe.
+ *
+ * O VÉU NÃO É UM `opacity` NA LINHA: baixar a opacidade do conteúdo deixa o texto a 55% de
+ * contraste — ilegível, e ainda a prometer que se lê. O que se cobre é o conteúdo, com o papel do
+ * fundo; o que se lê é o estado.
+ *
+ * `data-apagando` é o atributo porque é ESTADO, e não classe (proibição 3): a classe do elemento é
+ * o que ele é (`trio-plano`), e o atributo é o que está a acontecer com ele.
+ */
+.trio-plano { display: block; margin-bottom: .6rem; position: relative; }
+.trio-plano[data-apagando="sim"] { pointer-events: none; }
+.trio-plano[data-apagando="sim"]::after {
+  content: 'apagando…'; position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--fundo); opacity: .82;
+  color: var(--texto-suave); font-size: .85rem; letter-spacing: .02em;
+}
+.trio-plano[data-apagando="sim"]::before {
+  content: ''; position: absolute; z-index: 2; left: 50%; top: 50%;
+  width: 14px; height: 14px; margin: -20px 0 0 -7px;
+  border: 2px solid var(--borda); border-top-color: var(--marca-texto);
+  border-radius: 50%; animation: apagando-gira 900ms linear infinite;
+}
+@keyframes apagando-gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .trio-plano[data-apagando="sim"]::before { animation: none; }
+}
+
+.trio-linha { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.trio-nome { flex: 1 1 14rem; min-width: 0; }
+.trio-acoes { margin-left: auto; display: inline-flex; gap: .3rem; flex-wrap: wrap; }
+.trio-dono { color: var(--texto-suave); font-size: .85rem; margin-top: .15rem; }
+
+/* A LINHA DE FACTOS — as listas que não têm nada para abrir (24/10/2026).
+ *
+ * As referências, o glossário e a notação têm dois ou três factos e nenhum painel: são documentos
+ * de uma turma, e o que há para saber antes de os abrir cabe numa linha. Três caixas aqui seriam
+ * três caixas a repetir «é da turma Balé Nível 1» — e uma caixa que não abre nada é decoração.
+ *
+ * A `.fatos` é a alternativa à `.trio`, e NÃO a substitui: onde há painel, há caixa. O desenho é o
+ * mesmo papel (`--texto` sobre `--fundo-suave` seria a caixa; aqui é texto solto), e é por isso
+ * que as duas se leem como a mesma família sem uma imitar a outra.
+ *
+ * Os `·` são do DESENHO, e não do texto: separados por CSS, a leitura de ecrã não cola as
+ * palavras umas nas outras — o mesmo cuidado que o caminho da barra tem. */
+.fatos { display: flex; flex-wrap: wrap; align-items: baseline; margin: .2rem 0 0; }
+.fatos span { font: 700 .88rem/1.4 var(--ui); color: var(--texto); }
+.fatos span + span::before { content: "·"; margin: 0 .4rem; color: var(--texto-suave); font-weight: 700; }
+
+/* ---------- O FILTRO da lista (23/10/2026) ------------------------------------------------
+   Três controles e um contador. Ele é do CLIENTE — filtra a marcação já montada, sem uma
+   chamada de rede: numa escola com três turmas e dezoito aulas a lista inteira cabe na página,
+   e ir ao servidor por um filtro seria gastar a cota do ar para esconder linhas que já ali estão.
+
+   No celular os três campos empilham de dois em dois: medido, o filtro empilhado custava 204 px
+   de uma tela de 850 — um quarto da página para três campos que caem num só. */
+/* ============================================================================
+   O FILTRO DOBRA — E NASCE FECHADO NO TELEMÓVEL (26/10/2026)
+   ----------------------------------------------------------------------------
+   «O procurar tem que tá colapsado, porque nas telas do celular fica mais restrito
+   ainda.» Ele ocupava meia tela antes de se ver um registo.
+
+   A PEÇA É A QUE O SISTEMA JÁ USA PARA DOBRAR: `details`/`summary`. No computador
+   nasce aberto (há espaço) e o `summary` fica discreto; no telemóvel o script
+   fecha-o ao carregar, e o `summary` vira o botão «Procurar» que o abre.
+
+   O `<form>` continua lá dentro, com os mesmos `id` — quem o liga não sabe que há
+   uma dobra.
+   ========================================================================== */
+.filtro-dobra { margin: 0 0 var(--esp-4); }
+.filtro-dobra > .filtro-cabeca {
+  display: none; align-items: center; gap: .4rem;
+  cursor: pointer; list-style: none;
+  padding: var(--esp-2) 0; font: 700 .95rem/1.3 var(--ui); color: var(--texto);
+}
+.filtro-dobra > .filtro-cabeca::-webkit-details-marker { display: none; }
+.filtro-dobra > .filtro-cabeca:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.filtro-dobra > .filtro-cabeca .seta-do-ato {
+  position: static; width: auto; height: auto; margin-left: auto;
+  font-size: .8rem; transition: transform .16s ease;
+}
+.filtro-dobra[open] > .filtro-cabeca .seta-do-ato { transform: rotate(180deg); }
+.filtro-dobra > .filtro { margin: 0; }
+
+.filtro { margin: 0 0 var(--esp-4); }
+.caixa.filtrar {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--esp-4);
+  margin: 0; padding: var(--esp-4);
+}
+.campo-filtro { display: flex; flex-direction: column; gap: var(--esp-1); }
+.campo-filtro .campo-rotulo { margin: 0; }
+.campo-filtro.busca { flex: 1 1 260px; }
+.campo-filtro select { min-width: 190px; }
+.filtro-conta { margin: 0 0 4px auto; font: 13px/1 var(--ui); color: var(--texto-suave); }
+/* NO TELEMÓVEL O «PROCURAR» É UM BOTÃO (26/10/2026): a dobra tem cabeça à vista, e o
+   formulário só quando se abre. */
+@media (max-width: 560px) {
+  .filtro-dobra > .filtro-cabeca { display: flex; }
+  .filtro-dobra { margin-bottom: var(--esp-3); }
+}
+
+@media (max-width: 768px) {
+  .caixa.filtrar { padding: var(--esp-3); gap: var(--esp-3); }
+  .campo-filtro select { min-width: 0; }
+  .campo-filtro:not(.busca) { flex: 1 1 45%; }
+  .filtro-conta { margin: 0; flex-basis: 100%; }
+}
+
+/* ---------- O RODAPÉ DE PÁGINAS (23/10/2026) ------------------------------------------------
+   A peça nasceu dentro do `bastidores.js`, para as sete listas do gabinete. Quando a lista de
+   aulas da publicação passou das 35 linhas e precisou do mesmo, ela veio para a folha — e a
+   Produção passou a consumi-la daqui. Duas declarações seriam a segunda cópia a divergir, e a
+   checagem «Forma» recusa exactamente isso.
+
+   `hidden` no `<div>` é o estado normal quando há uma página só: sem JavaScript o rodapé não
+   aparece, e a lista mostra tudo — degradar é melhor do que paginar sem quem vire a página. */
+/* O NOME É `paginas`, E NÃO `paginacao` (23/10/2026). `paginacao` já era a classe do rodapé
+   da barra de controle do LANÇAMENTO (`tools/templates/lancamento.html`, declarada lá, com a
+   barra compacta do celular a apertar-lhe o `gap`). A primeira versão desta peça usou esse nome,
+   e a regra nova passou a desenhar a barra do lançamento — que cresceu 5px e pôs o «voltar ao
+   topo» por cima do «⋯». Quem apanhou foi `provar-titulo-e-barra`; a lição é a de sempre: uma
+   classe é um contrato, e um nome já gasto noutra página não é um nome livre. */
+.paginas {
+  display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+  padding: .5rem 0 .1rem; font-size: .85rem; color: var(--texto-suave);
+}
+.paginas-info { font: 13px/1 var(--ui); letter-spacing: .04em; }
+
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin: .6rem 0 0; }
+/* EM 320px TRÊS COLUNAS NÃO CABEM: cada uma fica com 78px, e o rótulo a .66rem com
+   `letter-spacing` precisa de mais do que isso — medido, transbordava 7px. Abaixo de 360 a fila
+   passa a uma coluna e a célula fica larga; é o único ponto em que o desenho cede à largura em
+   vez de truncar a palavra. */
+@media (max-width: 360px) { .trio { grid-template-columns: minmax(0, 1fr); } }
+
+/* DUAS COLUNAS — O CARTÃO QUE FICOU COM DOIS FACTOS (07/11/2026).
+ *
+ * A `.trio` é de TRÊS porque é essa a forma de todas as listas do acervo: a primeira caixa diz
+ * «de quem é», a segunda «quem fez», a terceira «quando» (ver `motor/nucleo/lista-html.js`). O
+ * cartão da SALA não tem três: ficou com o RITMO em que a aula ocorre e a RÉGUA com que se mede —
+ * o terceiro número era «Conteúdos», e o conteúdo da aula passou a ser da Turma.
+ *
+ * Deixá-lo na `.trio` faria o desenho dizer o que já não é verdade: duas caixas de um terço cada
+ * e um TERÇO VAZIO à direita, que se lê como dado em falta. A modificação existe para o cartão
+ * dizer «dois» sem inventar um terceiro, e sem que as outras listas percam a forma delas.
+ *
+ * O nome é o da classe que a acompanha (`trio-duo`), e não um `:has()`: o desenho não adivinha
+ * quantos filhos tem — quem emite a marcação sabe. */
+.trio.trio-duo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* A MESMA CEDÊNCIA DE 360px, e tem de ser escrita: `.trio.trio-duo` tem DUAS classes e vence a
+   regra de uma do bloco de cima, tenha ela `@media` ou não — a especificidade não olha para a
+   largura. Sem esta linha, o cartão da sala ficaria com duas colunas num telefone de 320px. */
+@media (max-width: 360px) { .trio.trio-duo { grid-template-columns: minmax(0, 1fr); } }
+
+/* A CÉLULA É O CONTROLE. Na Produção era uma `<div>` com um `<button class="q">` de 20px
+   dentro; o alvo de toque medido era o do «?», e não o da caixa. Um alvo de 20px num telefone
+   pede pontaria, e o dedo tapa o que se quer ler. Agora a caixa inteira é o botão — 48 × 221 px
+   medidos — e o «?» passa a ser DESENHO (`aria-hidden`), não controle. De caminho sai um
+   aninhamento de botões que o leitor de ecrã anunciava duas vezes. */
+/* O VALOR NÃO SE CORTA (24/10/2026) — e isto era um defeito, medido, na lista já publicada.
+ *
+ * A caixa tem 111px a 390px. O `padding-right` de 1,9rem reservava 30,4px para o «?» — 27% da
+ * caixa —, e o valor ficava com **67px**. Medido na lista de planos do `batata`: «Balé Nível 2»
+ * precisa de 89px, «Cafe No Bule» de 97, «PO aguardando» de 118. Os três saíam cortados com
+ * reticências. O nome da turma cortado numa lista de planos não é um caso de bordo: é a linha.
+ *
+ * Duas correções, e as duas medidas:
+ *
+ *   1. o «?» deixa de reservar a faixa — fica sobre a linha do RÓTULO, que é pequena e não chega
+ *      ao canto, e a linha do valor passa a usar a caixa toda (67 → 97px);
+ *   2. o valor pode ocupar DUAS linhas. Com 97px × 2, tudo o que a listagem escreve cabe: o
+ *      período `02/02/27 → 29/04/27` (152px) em duas, «Açúcar Branco» (109) numa. A forma curta
+ *      do período é de quem escreve o dado — a listagem não abrevia o que recebe.
+ *
+ * O `-webkit-line-clamp` é o que corta na segunda linha com reticências quando não cabe: sem ele
+ * o valor empurrava a caixa para três linhas e as três caixas da fila ficavam desiguais. */
+.trio-item {
+  position: relative; display: block; width: 100%; margin: 0; min-width: 0;
+  text-align: left; cursor: pointer;
+  appearance: none; -webkit-appearance: none; font: inherit; color: inherit;
+  background: var(--fundo-suave); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-2); padding: .45rem .6rem;
+}
+.trio-item:hover { background: var(--fundo-hover); border-color: var(--borda-forte); }
+.trio-item:focus-visible { outline: 2px solid var(--marca); outline-offset: 1px; }
+.trio-k {
+  display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--texto-suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* O «?» fica POR CIMA desta linha, do lado direito — é ela que lhe cede o canto. */
+  padding-right: 1.25rem;
+}
+.trio-v {
+  display: block; font: 700 .95rem/1.25 var(--ui); color: var(--texto);
+  white-space: normal; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+/* A CÉLULA DIZ QUE ESTÁ ABERTA. Sem isto o painel aparece abaixo da fila e não se sabe de onde
+   veio — e com três células iguais, é a única pista. */
+.trio-item[aria-expanded="true"] { background: var(--fundo-citacao); border-color: var(--borda-forte); }
+.trio-item .trio-q {
+  position: absolute; top: .2rem; right: .2rem; width: 1.25rem; height: 1.25rem;
+  border-radius: var(--raio-pilula); border: 1px solid var(--borda-campo);
+  background: var(--superficie); color: var(--texto-suave);
+  font: 700 .72rem/1 var(--ui); display: grid; place-items: center;
+  pointer-events: none;
+}
+.trio-item[aria-expanded="true"] .trio-q {
+  background: var(--marca-fundo); color: var(--sobre-marca); border-color: var(--marca-fundo);
+}
+
+/* ============================================================================
+   O PAINEL DO ATO (25/10/2026) — a caixinha do «Turma» a abrir um formulário.
+   ----------------------------------------------------------------------------
+   PORQUE ESTA PEÇA EXISTE. A Área do Professor tinha duas páginas para o mesmo
+   assunto: a lista (que já tem o padrão das outras) e a porta, onde vive o
+   contexto do ato — professor, ciclo, aluna, senha. Criar exigia sair da lista,
+   e o mesmo registo aparecia em dois lugares. Decidido em 25/10/2026: o contexto
+   passa a ser um painel DENTRO da lista, e a caixinha que o abre é esta.
+
+   PORQUE É A MESMA PEÇA DO «TURMA». Não é um botão novo: é a `.trio-item` que a
+   listagem já usa, na faixa inteira em vez de um terço. A decisão foi de
+   vocabulário, não de gosto — «ele me parece mais orgânico pra entender do que se
+   trata». E foi verificada: as nove propriedades da caixinha (fundo, borda, raio,
+   espaçamento, família e as três do rótulo) são iguais às da caixa do cartão.
+
+   PORQUE A SETA E NÃO O «?». As outras células abrem um painel de DADOS sobre um
+   valor; o «?» promete uma explicação. Esta abre um formulário, e o que ela diz é
+   «há mais aqui dentro» — para baixo quando está fechada, para cima quando está
+   aberta. É a mesma gramática da `.coluna-seta`, que já roda 90° ao abrir o grupo.
+   ========================================================================== */
+
+/* O `summary` NÃO HERDA O DESENHO DA CAIXINHA. `display: list-item` é o que lhe desenha o
+   marcador nativo do navegador — um triângulo que não é peça desta folha, e que apareceria ao
+   lado do rótulo. `block` mais o marcador escondido deixam-no igual às outras células. */
+.painel-ato > summary.trio-item { display: block; list-style: none; }
+.painel-ato > summary.trio-item::-webkit-details-marker { display: none; }
+
+/* O ESTADO ABERTO. A folha conhece `[aria-expanded="true"]`, e um `summary` nunca o recebe:
+   quem está aberto é o `details`. Sem esta regra, abrir não muda nada no botão — e o professor
+   fica sem saber se o painel está aberto por ele ou por outra coisa. */
+.painel-ato[open] > summary.trio-item {
+  background: var(--fundo-citacao); border-color: var(--borda-forte);
+}
+
+/* A SETA. Ocupa o mesmo canto que o «?» das outras células, e o `.trio-k` já lhe cede a faixa
+   (`padding-right: 1.25rem`), por isso não há aqui nenhuma medida nova a acertar.
+   CHAMA-SE `.seta-do-ato` E NÃO `.seta` porque `.seta` JÁ É PEÇA — `.topnav .s5-secoes .seta`,
+   no bloco da sessão que o `bastidores.js` emite. A checagem «Forma» reprovou a primeira versão
+   por isso mesmo: dois desenhos com o mesmo nome, e o segundo a herdar o do primeiro. O sufixo
+   não é decoração — é o que mantém a peça identificável. */
+.painel-ato .seta-do-ato {
+  position: absolute; top: .2rem; right: .2rem; width: 1.25rem; height: 1.25rem;
+  display: grid; place-items: center; pointer-events: none;
+  color: var(--texto-suave); font: 700 .8rem/1 var(--ui);
+  transition: transform .16s ease;
+}
+/* PARA CIMA QUANDO ESTÁ ABERTA. Um só glifo, rodado — e não dois caracteres diferentes, que
+   mudariam de largura ao rodar e fariam o ícone saltar. */
+.painel-ato[open] .seta-do-ato { transform: rotate(180deg); color: var(--marca-texto); }
+
+.painel-ato { margin: 0 0 1rem; }
+.painel-ato .corpo-do-ato { padding: .65rem .1rem 0; }
+
+/* OS CAMPOS DO ATO. A fileira é a da barra da porta (`flex` com quebra), e os rótulos são os
+   `.campo-rotulo` que o formulário denso já usa — mas com a medida de uma faixa, não de uma
+   página: a margem grande do `.campo-rotulo` existe para separar campos de um formulário longo,
+   e aqui os campos são uma fileira. */
+.campos-do-ato { display: flex; gap: .5rem .9rem; align-items: flex-end; flex-wrap: wrap; }
+.campos-do-ato > .campo { display: grid; grid-template-columns: auto auto; gap: 2px 4px; align-items: center; }
+.campos-do-ato > .campo > .campo-rotulo {
+  grid-column: 1 / -1; margin: 0 0 2px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.campos-do-ato input[type="text"] { width: 4.5rem; }
+.campos-do-ato select { max-width: 13rem; }
+.campos-do-ato .campo-senha input { width: 9rem; }
+/* A turma observada é LEITURA no PO (vem do plano de ensino) — e uma leitura não se veste de
+   campo: não tem caixa, para não prometer que se escreve nela. */
+.campos-do-ato .leitura { font: 600 .95rem/1.9 var(--serif); color: var(--marca-texto); }
+
+/* AS ACÇÕES DE COMEÇAR — uma fileira só. Medido: com `.acao` em todas, a 390px elas pedem
+   97px e DUAS fileiras (o `.acao` tem `white-space: nowrap` e não encolhe); pequenas nos
+   secundários, 29px e uma. */
+.acoes-do-ato { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem; }
+
+/* OS CAMPOS NÃO SÃO OPCIONAIS, e isso diz-se: um formulário que só diz o que falta DEPOIS de a
+   pessoa tentar é um formulário que a mandou falhar primeiro. A linha fica acima das acções, em
+   corpo pequeno, e não é um aviso de erro (`--alerta`): é uma regra, e uma regra não pisca. */
+.obrigatorios { margin: .55rem 0 0; font: 400 .78rem/1.4 var(--ui); color: var(--texto-suave); }
+
+/* O QUE FALTA PARA SE PODER CRIAR. Na porta esta informação é o `title` do botão — e um
+   `title` não se lê no telemóvel, que é onde a Área do Professor mais se usa. */
+.estado-do-ato {
+  margin: .5rem 0 0; font-size: .8rem; line-height: 1.45; color: var(--texto-suave);
+}
+.estado-do-ato[data-falta="sim"] { color: var(--alerta); }
+
+/* ============================================================================
+   O MENU «AÇÕES» E OS DOIS BLOCOS (25/10/2026, terceira leitura)
+   ----------------------------------------------------------------------------
+   A SEGUNDA VERSÃO ESTAVA ERRADA, e a pesquisadora disse-o com precisão: «ele não
+   tá abrindo um menu igual o menu de opções… o botão de ações tá do lado esquerdo.
+   Ele tem que ficar lá do lado direito, porque ele é igual ao opções que eu te
+   mostrei que fica lá em produção». E: «tem que ter um container dentro desse
+   conjunto de campos… que daí eu posso colapsar isso».
+
+   Então:
+   · o «Ações» é o par do «Seções ▾» da Produção — pílula à DIREITA, e uma FOLHA
+     que sobe de baixo com véu (o mesmo desenho de `.lateral-lista`);
+   · cada acção abre o SEU bloco, e os dois blocos são MUTUAMENTE EXCLUSIVOS;
+   · cada bloco é uma `.caixa` — o container com as bordas — e o `summary` dela é
+     o botão de colapsar.
+   ========================================================================== */
+.acoes-da-lista { margin: 0 0 1rem; }
+
+/* A PÍLULA, À DIREITA. É a mesma do «Seções»: borda de campo, raio de pílula, e a
+   seta ao lado do rótulo.
+   O SELETOR LEVA O PAI (`.acoes-da-lista .acoes-do-menu`) porque `button.acao` tem
+   especificidade (0,1,1) e vencia o `display:none` daqui — o botão aparecia no
+   computador, que é exactamente o que não pode acontecer. Foi medido: a 1280 o botão
+   estava à vista.
+   `display:block` + `width:max-content` + `margin-left:auto` é o que o põe à
+   direita: `margin-left:auto` num `inline-block` dentro de um `div` de bloco não
+   alinha nada. */
+.acoes-da-lista .acoes-do-menu {
+  display: none;
+  width: max-content; margin-left: auto;
+  /* A DISTÂNCIA ATÉ AO BLOCO QUE VEM ABAIXO (26/10/2026). «O botão de ações está
+     completamente colado no contexto do ato… tá tocando as bordas.» Medido: 1px — a borda
+     de baixo do botão e a de cima do bloco encostadas. `.bloco-lista` tem `margin: 0 0 …`
+     (zero em cima), e o botão não tinha nada por baixo. */
+  margin-bottom: var(--esp-4);
+}
+
+/* A FOLHA DO «AÇÕES». A identidade vem de `.folha-do-menu` (a mesma das outras duas
+   folhas); aqui fica só o que é desta: o lugar, e ser uma lista. O `z-index` passa o véu. */
+.veu-do-menu {
+  position: fixed; inset: 0; z-index: 55;
+  background: var(--veu);
+}
+.menu-de-acoes {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  margin: 0; list-style: none; overflow-y: auto;
+}
+.menu-de-acoes-lista { margin: 0; padding: 0; list-style: none; }
+.menu-de-acoes li { margin: 0; }
+/* Os itens são os do menu da FOLHA — a mesma linha, o mesmo peso, os mesmos 15px das outras
+   duas. A cor vem de `.folha-do-menu` (`--sobre-marca` sobre `--marca-fundo`). */
+.menu-de-acoes-item {
+  display: flex; align-items: center; width: 100%; box-sizing: border-box;
+  padding: .8rem var(--esp-5); text-align: left;
+  font: 600 1rem/1.25 var(--ui); color: var(--sobre-marca); text-decoration: none;
+  background: none; border: 0; border-radius: 0; cursor: pointer;
+}
+.menu-de-acoes-item:hover, .menu-de-acoes-item:focus-visible {
+  background: var(--marca-fundo-hover); outline: none;
+}
+
+/* OS BLOCOS — o container com as bordas, e o `summary` como botão de colapsar. */
+.bloco-lista {
+  margin: 0 0 var(--esp-3);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-3);
+  background: var(--superficie); box-shadow: var(--sombra-cartao);
+}
+.bloco-cabeca {
+  display: flex; align-items: baseline; gap: .5rem;
+  padding: var(--esp-3) var(--esp-4);
+  cursor: pointer; list-style: none;
+}
+.bloco-cabeca::-webkit-details-marker { display: none; }
+.bloco-cabeca:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+/* DOIS NOMES PARA O MESMO BLOCO, e o que muda é o estado. FECHADO, o nome é o da ACÇÃO («Fazer
+   anamnese») — porque «contexto do ato» é vocabulário de quem está a programar, e quem chega à
+   página precisa de saber o que o botão FAZ. ABERTO, passa a «Contexto do ato», que é o que faz
+   sentido quando o que está à vista são os campos a preencher. */
+.bloco-titulo { font: 700 .95rem/1.3 var(--ui); color: var(--texto); }
+.bloco-nome-aberto { display: none; }
+.bloco-lista[open] .bloco-nome-fechado { display: none; }
+.bloco-lista[open] .bloco-nome-aberto { display: inline; }
+/* O RESUMO DO QUE JÁ SE ESCOLHEU SÓ APARECE ABERTO: fechado, o nome da barra é a acção, e um
+   resumo ao lado de um botão de acção é informação a competir com ela. */
+.bloco-resumo {
+  display: none; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  font-size: .82rem; color: var(--texto-suave);
+}
+.bloco-lista[open] .bloco-resumo { display: inline; }
+/* A EXCEPÇÃO: COM PREENCHIMENTO INTERROMPIDO, O RESUMO APARECE MESMO FECHADO (26/10/2026).
+   «há um preenchimento interrompido — 7 de 53 respondidas» é a única frase da barra que precisa
+   de ser lida sem um clique: é ela que diz que o trabalho de antes está à espera. O painel não se
+   abre sozinho por causa disso — a barra diz, e quem quer continuar abre. */
+.bloco-lista[data-pendente="sim"] > .bloco-cabeca .bloco-resumo { display: inline; color: var(--alerta); }
+.bloco-cabeca .seta-do-ato {
+  position: static; width: auto; height: auto; margin-left: auto;
+  font-size: .8rem; transition: transform .16s ease;
+}
+.bloco-lista[open] > .bloco-cabeca .seta-do-ato { transform: rotate(180deg); }
+.bloco-corpo { padding: 0 var(--esp-4) var(--esp-4); }
+/* O FILTRO JÁ NÃO TRAZ MOLDURA PRÓPRIA quando vive dentro do bloco (`semCaixa`): a
+   caixa é a do bloco, e a margem dele é a do corpo. */
+.bloco-corpo .filtro { margin: 0; }
+.bloco-corpo .filtrar { padding: 0; }
+
+/* NO TELEMÓVEL o botão aparece, à direita: é ele que manda. E os blocos nascem
+   FECHADOS — a tela é da listagem, e o «Ações» é a porta. */
+@media (max-width: 560px) {
+  .acoes-da-lista .acoes-do-menu { display: block; }
+  .bloco-lista { margin-bottom: 0; }
+  .bloco-lista[open] { margin-bottom: var(--esp-3); }
+}
+
+/* «VER A FICHA EM BRANCO» FICA FORA DO PAINEL. É a única acção que não depende do contexto nem
+   da senha — abre uma folha vazia e imprime-se —, e por isso está à vista em todos os estados,
+   com o painel aberto ou fechado. */
+.ficha-em-branco { margin: .5rem 0 0; }
+
+.trio-painel {
+  margin: .55rem 0 0; padding: .7rem .8rem;
+  background: var(--fundo-citacao); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-2);
+}
+.trio-painel[hidden] { display: none; }
+.trio-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem .9rem; }
+.trio-painel .trio-v { font-size: .88rem; line-height: 1.35; }
+.trio-frase { margin: 0 0 .6rem; font-size: .88rem; line-height: 1.45; color: var(--texto); }
+.trio-falta { list-style: none; margin: 0; padding: 0; display: grid; gap: .28rem; }
+.trio-falta li { display: flex; align-items: baseline; gap: .45rem; font-size: .88rem; color: var(--texto); }
+.trio-falta li::before { content: "○"; font-weight: 700; color: var(--alerta); }
+.trio-nota { margin: .6rem 0 0; font-size: .8rem; line-height: 1.4; color: var(--texto-suave); }
+.trio-nota:first-child { margin-top: 0; }
+.trio-chips { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
+.trio-par { display: flex; align-items: center; gap: .35rem; margin-top: .6rem; min-width: 0; }
+.trio-par select { flex: 1 1 auto; min-width: 0; max-width: none; }
+.trio-par button { flex: 0 0 auto; }
+
+/* A ESCALA DA RÉGUA — um degrau por nível, na cor do papel semântico de cada um. */
+.trio-escala {
+  display: flex; min-width: 0; border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-2); overflow: hidden; margin-top: .5rem;
+}
+.trio-escala span {
+  flex: 1 1 0; min-width: 0; text-align: center; padding: .3rem .2rem;
+  font: 700 .72rem/1.2 var(--ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.trio-escala .trio-ok { background: var(--ok); color: var(--superficie); }
+.trio-escala .trio-razoavel {
+  background: var(--ok-fundo); color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok);
+}
+.trio-escala .trio-alerta { background: var(--alerta); color: var(--superficie); }
+.trio-escala .trio-neutro { background: var(--fundo-faixa); color: var(--texto-suave); }
+
+/* O CHIP do painel — um conteúdo, uma etiqueta curta. Ele é desenhado pelo CONTEXTO
+   (`.trio-chips span`) e não por uma classe própria: o `.chip` da folha do formulário já existe,
+   e uma segunda classe para o mesmo desenho seria a duplicação que esta migração veio fechar. */
+.trio-chips span {
+  display: inline-block; margin: 0; padding: .1rem .45rem;
+  background: var(--fundo-faixa); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-pilula); font-size: .82rem; color: var(--texto);
+}
+
+/* ---------- cartão ---------------------------------------------------------
+   A superfície elevada: papel branco, filete de ouro, raio 3. O `.nota` é o
+   cartão de leitura (fundo creme-1); o `.falta` é o cartão que ainda não fechou. */
+.caixa {
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-3);
+  background: var(--superficie); padding: var(--esp-4) var(--esp-5);
+  margin: var(--esp-4) 0; box-shadow: var(--sombra-cartao);
+}
+.caixa.nota { background: var(--fundo-suave); }
+.caixa.falta { border-color: var(--falha); border-width: 2px; }
+.caixa.falta > h3 { color: var(--falha); }
+
+/* ---------- mensagem de resultado -----------------------------------------
+   O retorno de uma ação (criar, apagar, salvar). Nasce oculta e só aparece quando
+   há o que dizer; o estado é o que muda a cor. */
+.res {
+  margin-top: var(--esp-4); padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--raio-2); display: none;
+  font: 15px/1.45 var(--ui);
+}
+.res.ok { display: block; background: var(--ok-fundo); border: 1px solid var(--ok); color: var(--ok); }
+.res.erro { display: block; background: var(--falha-fundo); border: 1px solid var(--falha); color: var(--falha); }
+.res.aviso { display: block; background: var(--alerta-fundo); border: 1px solid var(--alerta); color: var(--alerta); }
+.res.ok a { color: inherit; }
+
+/* ---------- aviso ----------------------------------------------------------
+   A faixa de prosa que explica antes de agir. O `.alerta` é a pendência (âmbar);
+   o padrão é a nota de leitura, com o tratamento da citação do site. */
+.aviso {
+  background: var(--fundo-citacao); border-left: 4px solid var(--borda);
+  padding: var(--esp-3); margin: var(--esp-3) 0 var(--esp-4);
+  font-size: .92rem; color: var(--texto-suave);
+}
+.aviso.alerta {
+  background: var(--alerta-fundo); border-left-color: var(--alerta); color: var(--texto);
+  border-radius: var(--raio-1);
+}
+
+/* ---------- modal ----------------------------------------------------------
+   A janela sobre o véu. O véu usa o token do texto com transparência — no tema
+   noturno ele escurece junto, em vez de ficar um cinza fixo. */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; justify-content: center; padding: var(--esp-5);
+  /* O MODAL QUE NÃO CABE ROLA. Era `align-items: center` num contêiner sem
+     `overflow`: uma caixa de 1112px numa tela de 700px começava em `top: -206px`,
+     e o botão de cancelar e o de criar ficavam ABAIXO da dobra sem nada que
+     rolasse até eles — no celular o formulário não podia ser enviado nem
+     cancelado. O `margin: auto` da caixa centra quando há espaço e vira 0 quando
+     não há, que é o comportamento que `align-items: center` não tem. */
+  overflow-y: auto;
+  /* O `scrollIntoView({block:"nearest"})` encosta o elemento na borda. O respiro do
+     `padding` da caixa não basta: o que rola é o contêiner, e ele precisa de margem
+     própria para a mensagem não nascer colada no rodapé da tela. */
+  scroll-padding: var(--esp-4);
+}
+.modal[hidden] { display: none; }
+.modal-fundo { position: absolute; inset: 0; background: var(--veu); }
+.modal-caixa {
+  position: relative; width: 100%; max-width: 440px; margin: auto;
+  background: var(--superficie); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-3); box-shadow: var(--sombra);
+  padding: 0 var(--esp-5) var(--esp-5);
+}
+.modal-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--borda);
+  margin: 0 calc(var(--esp-5) * -1) var(--esp-4);
+  padding: var(--esp-4) var(--esp-5) var(--esp-3);
+}
+.modal-cab h2 { margin: 0; font-size: 1.25rem; color: var(--marca); }
+.modal-x {
+  background: none; border: none; font: 400 1.6rem/1 var(--ui);
+  color: var(--texto-suave); cursor: pointer; padding: 0 var(--esp-1);
+}
+.modal-x:hover { background: none; color: var(--marca); }
+.modal-acoes { display: flex; justify-content: flex-end; gap: var(--esp-3); margin-top: var(--esp-5); }
+
+/* ============================================================================
+   O MODAL LARGO E AS ETAPAS (25/11/2026) — o cadastro da escola em quatro
+   etapas, e a razão de existirem estas cinco peças.
+
+   O PROBLEMA, dito por ela: «Ele está parecendo uma tripa comprida e imensa. […]
+   Pode alargar esse modal e vamos dividir em duas colunas. E aí vamos colocar
+   steps.» A causa não era o número de campos — era a FORMA: um `.modal-caixa`
+   de 440px, uma coluna, catorze campos seguidos. Um formulário estreito e longo
+   lê-se como uma lista de tarefas sem fim.
+
+   PORQUE É QUE SE CHAMAM `etapa` E NÃO `passo`: `.passos` e `.passo` JÁ EXISTEM
+   — são o rasto de etapas do lançamento, em `bastidores.js`, com o desenho lá
+   dentro. A checagem 5 (Forma) reprovou a primeira versão destas peças por isso
+   mesmo, e tinha razão: duas peças com o mesmo nome e desenhos diferentes é o
+   defeito que este contrato existe para impedir. Os nomes de cá são outros.
+
+   O QUE CADA PEÇA É:
+   · `.modal-largo` — a modificação da janela. 440px é a largura de uma pergunta
+     («tem a certeza?»); um cadastro precisa de duas colunas para caber na altura
+     do ecrã. Vence por especificidade (duas classes), e não por vir depois.
+   · `.etapas` — o indicador das quatro etapas. É uma lista ordenada de verdade
+     (`<ol>`), porque a ordem é informação: quem lê com leitor de ecrã ouve «etapa
+     2 de 4». O estado vai em `aria-current="step"` e em `data-feito`, que são
+     atributos — um estado não é uma classe, e uma classe de estado esquece-se
+     sempre num sítio.
+   · `.etapa` — o painel de uma etapa. Fechado com `[hidden]`, que é o mecanismo
+     nativo: nada de `display:none` por classe, porque um painel escondido por
+     classe continua a ser lido por quem navega por teclado.
+   · `.etapa-campos` — as duas colunas dos campos. É um grid, e o desenho das
+     colunas é DELE: o campo não sabe em que coluna está.
+   · `.etapa-campo` — o par rótulo + controle, que é uma unidade. Sem ele, o
+     rótulo de um campo e o controle do seguinte caíam em linhas diferentes do
+     grid e o formulário mentia sobre o que pertencia a quê.
+   ========================================================================== */
+.modal-caixa.modal-largo { max-width: 880px; }
+.etapas {
+  display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-3);
+  list-style: none; margin: var(--esp-4) 0 var(--esp-5); padding: 0;
+  counter-reset: etapa;
+}
+.etapas li {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .82rem; line-height: 1.2; color: var(--texto-suave);
+}
+.etapas li::before {
+  counter-increment: etapa; content: counter(etapa);
+  display: inline-grid; place-items: center;
+  width: 1.45rem; height: 1.45rem; border-radius: 50%;
+  border: 1px solid var(--borda-campo); background: var(--fundo-suave);
+  font-size: .74rem; font-weight: 700; color: var(--texto-suave);
+}
+.etapas li[aria-current="step"] { color: var(--marca-texto); font-weight: 600; }
+.etapas li[aria-current="step"]::before {
+  border-color: var(--marca); background: var(--marca); color: var(--fundo);
+}
+.etapas li[data-feito]::before {
+  border-color: var(--marca); background: var(--superficie); color: var(--marca-texto);
+}
+.etapa { display: block; }
+.etapa[hidden] { display: none; }
+.etapa-titulo { margin: 0 0 var(--esp-4); font-size: 1rem; color: var(--marca-texto); }
+.etapa-campos {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-4) var(--esp-5); margin: 0 0 var(--esp-4);
+}
+/* A 760px a janela já não comporta duas colunas de leitura: abaixo disso os campos
+   descem um para baixo do outro, e o formulário fica mais alto — que é o que se
+   quer num ecrã vertical. */
+@media (max-width: 760px) { .etapa-campos { grid-template-columns: minmax(0, 1fr); } }
+.etapa-campo { margin: 0; min-width: 0; }
+.etapa-campo > .campo-rotulo { margin-top: 0; }
+.etapa-campo > input, .etapa-campo > select, .etapa-campo > textarea { width: 100%; }
+/* O CAMPO QUE OCUPA AS DUAS COLUNAS — o resumo do valor, a chave Pix e a escolha
+   do plano. Não é um campo: é a linha que fala do conjunto, e uma linha do conjunto
+   numa coluna parece pertencer só ao campo de cima. */
+.etapa-campo.largo { grid-column: 1 / -1; }
+.etapa-campo .res { margin: var(--esp-2) 0 0; }
+
+/* ---------- o véu da OPERAÇÃO (08/11/2026) -------------------------------
+   A CADEIA DO CICLO É DEPENDENTE, E A TELA TEM DE O DIZER. Criar a aluna, fazer a anamnese,
+   pô-la no elenco, concluir a turma, gravar o plano e gravar o PO: cada passo LÊ o que o
+   anterior gravou, e o último escreve no repositório e dispara a geração do pacote num
+   workflow. Clicados em sequência rápida, os gestos entram uns sobre os outros, duas gerações
+   disputam o mesmo `main` e o pacote sai pela metade — foi o que aconteceu a 08/11/2026.
+
+   Esta peça faz duas coisas, e as duas são de segurança, não de enfeite:
+     · COBRE — o véu é translúcido, do papel do fundo, e ocupa a janela inteira: o ponteiro não
+       chega ao que está por baixo. (O `inert` que o script põe no conteúdo fecha o teclado e o
+       leitor de ecrã — `pointer-events` sozinho não fecha nenhum dos dois.)
+     · DIZ — o texto nomeia a operação e o passo. Um `cursor: wait` sem palavra é
+       indistinguível de uma página pendurada. E DIZ SEM CAIXA (11/11/2026): o que
+       protege a leitura é um halo de papel, não uma segunda superfície a tapar a
+       página que se quis deixar ver.
+
+   É ESTADO, e não classe: `data-ocupado` diz o que está a acontecer ao elemento, e a classe
+   `.veu-de-operacao` diz o que ele é — a mesma distinção do `data-apagando` da linha que se apaga.
+
+   E O NOME DEIXOU DE SER `.veu` (15/11/2026). A colisão com o véu da FOLHA (acima, `z-index:55`,
+   que nasce `opacity:0` e é aceso por `body.coluna-aberta`) tinha um efeito que a prosa já
+   registava como dívida e que o navegador mostrava como defeito: esta regra vem DEPOIS na folha, e
+   o seu `display:none` apagava o véu da folha. Medido num Chromium a 414px: o véu da folha saía
+   `display:none`, o da operação saía `opacity:1`, e a folha do ☰ abria sem escurecer a página por
+   baixo. Resolver a ambiguidade era renomear uma das duas, e a escolhida foi ESTA: o véu da coluna
+   é o que a montagem escreve no HTML de todas as páginas, e o do `nav.js` que o desenha.
+
+   O `prefers-reduced-motion` não desliga o véu (ele informa), desliga só o giro. */
+.veu-de-operacao {
+  position: fixed; inset: 0; z-index: 120;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: var(--esp-4);
+  /* O VÉU DEIXA VER A PÁGINA (11/11/2026) — e a razão é dela:
+   *
+   *   «o véu precisa ser bem transparente para o professor que estiver usando perceber que ele
+   *    ainda tá na mesma página e tá processando. E aí ele consegue ver através do véu o
+   *    formulário, ele consegue ver através do véu a listagem.»
+   *
+   * Ele era OPACO (`var(--fundo)`), e um véu opaco responde a «está a acontecer alguma coisa?» com
+   * um sim, mas responde a «onde é que eu estou?» com um não. O que se quer é o contrário: a página
+   * continua reconhecível por baixo, e o que muda é que ela está lavada e não responde.
+   *
+   * A COR É O PAPEL DA VEZ, TRANSLÚCIDO — `color-mix` sobre o token, e não um `rgba` escrito à mão:
+   * escrito à mão seriam três temas × duas variantes de seis valores a manter em sincronia com a
+   * paleta, e o primeiro que ficasse para trás apareceria como uma mancha de outra cor.
+   * O `--veu` é o mesmo papel translúcido que a coluna já usa, e fica como REDE: um navegador sem
+   * `color-mix` (anterior a 2023) mostra o véu escurecido em vez de lavado. Nos dois casos vê-se
+   * a página por baixo, que é o que se pediu. */
+  background: var(--veu);
+  background: color-mix(in srgb, var(--fundo) 45%, transparent);
+  backdrop-filter: blur(1px);
+  /* A OPACIDADE TEM DE SER REPOSTA AQUI (11/11/2026) — e a linha vale um defeito medido.
+   *
+   * Esta folha tinha DUAS peças com a mesma classe `.veu`: a da COLUNA (acima, `z-index:55`, que
+   * nasce `opacity:0` e é acesa pela classe `body.coluna-aberta` que o `nav.js` põe) e esta, a da
+   * OPERAÇÃO. A da coluna declara `opacity:0; pointer-events:none`, e a da operação repunha
+   * `pointer-events` mas NÃO repunha `opacity`. Resultado, medido no navegador: o véu da operação
+   * ficava `display:flex`, com a caixa certa (1280×800), a cobrir a janela inteira — e
+   * **transparente**. A pesquisadora leu-o como «não tem o véu», e tinha razão: o que cobria a
+   * página não se via.
+   *
+   * A `opacity:1` é a correção mínima e não mexe na peça da coluna: cada uma declara o seu valor.
+   * A dívida que ela deixava anotada — «duas peças com o mesmo nome» — foi paga em 15/11/2026 pelo
+   * lado desta regra, que passou a `.veu-de-operacao`; o comentário do topo dela conta o que se
+   * mediu. */
+  opacity: 1;
+  padding: var(--esp-5);
+  text-align: center;
+  /* Enquanto o véu está de pé, o ponteiro não passa — e quem o recebe é ele. */
+  pointer-events: auto;
+  cursor: progress;
+}
+.veu-de-operacao[data-ocupado="sim"] { display: flex; }
+/* ============ A OPERAÇÃO, SEM CAIXA (11/11/2026) ============
+   A FORMA FOI ESCOLHIDA POR ELA, DEPOIS DE VER AS TRÊS:
+
+     «implementa a opção 2: o texto na tela, sem caixa»
+
+   O que sai é o CARTÃO. Ele existia por uma razão medida — com o véu translúcido, o texto solto
+   compete com o formulário que se vê por baixo, e uma caixa opaca resolve isso de uma vez. Mas
+   resolve por cima: a caixa é uma segunda superfície a tapar a página que se quis deixar ver, e
+   pesa como um diálogo que não é.
+
+   O QUE A SUBSTITUI É O HALO — três sombras do papel, cada vez mais largas, por baixo das letras.
+   É a mesma protecção da caixa sem desenhar nada: abre o fundo onde a letra precisa, e a página
+   continua reconhecível em volta. É «um pouco mais forte que uma marca d'água», que foi a imagem
+   dela, e a frase continua a contar o passo em vez de só girar.
+
+   A COR DO ACENTO É `--marca`, e não uma cor escrita à mão: em todos os temas deste projecto ela
+   é declarada como acento LEGÍVEL sobre o fundo (o tema ciano anota-o na própria definição,
+   «o acento como TEXTO (5,39:1)»). Medido no tema claro, sobre o halo: a palavra bordô a
+   **10,42:1** e o corpo da frase a **15,64:1**. Passa AA com folga, e é o halo que o garante. */
+.veu-cartao {
+  display: flex; flex-direction: column; align-items: center; gap: var(--esp-3);
+  max-width: min(46rem, 92vw);
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  text-align: center;
+}
+/* O GIRO. Fica, e fica com halo: um anel de 2 px sobre uma listagem cheia de filetes desaparece
+   sem ele — e o halo é o que faz o giro ler-se sobre QUALQUER fundo, sem desenhar uma caixa. */
+.veu-cartao::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  border: 2px solid color-mix(in srgb, var(--borda) 55%, transparent);
+  border-top-color: var(--marca);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--fundo) 55%, transparent);
+  animation: veu-gira 900ms linear infinite;
+}
+@keyframes veu-gira { to { transform: rotate(360deg); } }
+/* A ETIQUETA — a palavra que nomeia a operação («Derivação», «Vinculação», «Geração dos
+   documentos»). Deixa de ser o `.selo` com a cor de alerta e passa a ser a palavra em versalete
+   bordô: um selo é uma etiqueta colada a um objecto, e aqui não há objecto nenhum a que colar. */
+.veu-etiqueta {
+  margin: 0; padding: 0;
+  background: none; border: 0; border-radius: 0;
+  font: 700 13px/1.2 var(--ui);
+  letter-spacing: .22em;
+  color: var(--marca);
+  text-shadow: 0 0 10px var(--fundo), 0 0 18px var(--fundo), 0 0 30px var(--fundo);
+}
+/* A FRASE — o passo, na serifa do corpo. `clamp` porque a mesma frase tem de caber num telemóvel:
+   no ecrã largo mede o que foi aprovado (23,2 px), e abaixo de ~560 px desce até 18,4 px. */
+.veu-texto {
+  margin: 0; max-width: 46ch;
+  font: 400 clamp(1.15rem, 2.6vw, 1.45rem)/1.4 var(--serif);
+  color: var(--texto);
+  text-shadow: 0 0 12px var(--fundo), 0 0 22px var(--fundo), 0 0 40px var(--fundo),
+               0 0 60px var(--fundo);
+}
+/* A NOTA DA OUTRA ABA — só existe quando a operação vem de fora, e só então se mostra. É ela que
+   responde «porque é que esta página está travada se eu não cliquei em nada?». */
+.veu-nota {
+  display: none;
+  margin: 0; max-width: 40ch;
+  font: 400 .82rem/1.45 var(--ui);
+  color: var(--texto-suave);
+  text-shadow: 0 0 10px var(--fundo), 0 0 20px var(--fundo);
+}
+.veu-de-operacao[data-remota="sim"] .veu-nota { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .veu-cartao::before { animation: none; }
+}
+
+/* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
+.topo {
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: var(--marca-fundo); color: var(--sobre-marca); border: 2px solid var(--ornamento-forte);
+  border-radius: 50%; text-decoration: none; font-size: 21px; line-height: 1;
+}
+.topo:hover { background: var(--marca-fundo-hover); }
+
+/* ---------- rodapé (Regra 16, item 6) ---------- */
+.rodape {
+  max-width: 900px; margin: 40px auto 0; padding: var(--esp-4) var(--esp-5) 0;
+  border-top: 1px solid var(--borda); color: var(--texto-suave); font-size: 14px;
+}
+.rodape p { margin: 4px 0; }
+.rodape a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- responsividade (Regra 16) ---------- */
+
+/* tablet: navbar horizontal, com fonte e espaçamento menores */
+@media (max-width: 1024px) {
+  .topnav { font-size: 13.5px; padding: var(--esp-2) var(--esp-3); }
+  .topnav a { padding: var(--esp-1) var(--esp-2); }
+  /* A MARCA CEDE COM A BARRA (18/10/2026). Ela era um espaço de 9em que bastava
+     anular; agora é um desenho de 30px de altura, e num telefone de 320px — onde
+     a barra também tem o hambúrguer — 30px de altura com 26 de largura ainda cabem,
+     mas o vão à direita é o que sobra para o resto. 26px é o degrau que mantém a
+     forma legível e devolve 4px de respiro. */
+  .topnav .marca { margin-right: var(--esp-3); }
+  .topnav .marca svg { height: 26px; }
+}
+
+/* celular: menu colapsado atrás do hamburger */
+@media (max-width: 768px) {
+  .topnav { flex-wrap: wrap; }
+  .topnav .hamburger { display: block; }
+  .topnav .nav-links { display: none; }
+  .topnav.aberto .nav-links {
+    display: flex; flex-direction: column; align-items: stretch;
+    flex-basis: 100%; gap: 4px; padding: var(--esp-2) 0 var(--esp-1);
+    /* NO PAINEL DO CELULAR A LISTA NÃO ENCOSTA À DIREITA (23/10/2026). A regra que fixa o
+       Bastidores à direita vale para a barra em linha; num painel que é uma coluna, encostar os
+       itens à direita desalinha-os dos títulos dos grupos e faz a lista parecer torta. */
+    justify-content: flex-start;
+  }
+  .topnav.aberto .nav-links a { padding: var(--esp-2) var(--esp-3); }
+  /* o submenu de "Aulas" deixa de flutuar e passa a empilhar dentro do painel */
+  .topnav.aberto details { position: static; }
+  .topnav.aberto .submenu {
+    position: static; min-width: 0; box-shadow: none; border: none;
+    border-left: 2px solid var(--ornamento-forte); border-radius: 0; padding: var(--esp-1) 0 var(--esp-1) var(--esp-3);
+  }
+  .topnav.aberto .pdf { margin-left: 0; }
+  /* O CAMINHO NO TELEMÓVEL FICA SÓ COM O ÚLTIMO DEGRAU (26/10/2026).
+   *
+   * Os três degraus dão «Ciclos · Referências · Referências Bibliográficas», e na barra do
+   * telefone isso não cabe: medido, a 390 o caminho era cortado com reticências em «Notação em
+   * Benesh» e no glossário, e a 320 em quatro dos seis documentos — e o que o corte come é o
+   * FIM, que é justamente o nome do documento. O grupo e a lista são o caminho de volta, e no
+   * telefone a folha do ☰ já É esse caminho; o documento não tem substituto.
+   *
+   * É a mesma medida que a porta já tomava por script (`escreverOCaminhoDaBarra`, em
+   * `porta/index.html`, com o mesmo corte). Aqui ela vale para TODOS os documentos, inclusive os
+   * já gerados e os que nunca serão regerados: é a folha que decide, e a folha sobe com os
+   * assets. O separador (`·`) é do desenho e sai com eles, senão sobrava um ponto solto. */
+  .topnav .doc-atual small, .topnav .doc-atual a { display: none; }
+  .topnav .doc-atual > * + *::before { content: none; }
+}
+
+/* ---------- a tabela larga não alarga a PÁGINA (21/10/2026) -------------------------
+   Medido: a tabela da rubrica do plano tem cinco colunas e uma célula com
+   «[Preencher: o critério de cada aula — declarado no lançamento da aula dada]». Num
+   telefone de 360px ela não cabe, e como as tabelas são `width:100%` com `padding` de
+   8px em cada célula, o mínimo do conteúdo passa da largura da coluna: a página
+   ganhava **97px** de rolagem horizontal.
+
+   E não era só a tabela que se mexia. Num telemóvel a barra de navegação é
+   `position: fixed` e é medida pela LARGURA DO LAYOUT, não pela do ecrã: com a página
+   97px mais larga, a barra ficou 97px mais larga também — o ☰ saía do ecrã à direita,
+   só se lhe chegava rolando para o lado, e não era clicável. O mesmo acontecia ao
+   `position: sticky` do título, que passou a ter uma caixa mais larga do que a tela.
+   Um defeito de tabela, três sintomas.
+
+   A correção é a tabela ROLAR DENTRO DE SI MESMA, e só onde não há largura: abaixo de
+   900px — o mesmo corte do resto do layout. `display:block` no `<table>` faz dela uma
+   caixa de bloco (o algoritmo de tabela continua a valer para as linhas e células, que
+   formam uma tabela anónima lá dentro) com o seu próprio `overflow-x`. No desktop nada
+   muda: a tabela continua a ocupar 100% e a alinhar as colunas. */
+@media (max-width: 899px) {
+  table {
+    display: block; width: 100%; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* E O MESMO DEFEITO, POR OUTRA PEÇA: um trecho de `código` comprido não quebra linha
+     nenhuma. A folha de captura tem dois de 496px e 488px — e alargava a página em
+     **130px**. Um `overflow-wrap` deixa o texto partir-se onde não há espaço, e a
+     página volta a caber. A tabela mantém o seu `overflow-x`: código parte-se, tabela
+     não (partir uma célula ao meio esconderia a coluna). */
+  code, kbd, samp { overflow-wrap: anywhere; }
+}
+
+/* ---------- impressão: sem barra fixa nem botão, e SEMPRE clara ----------
+   O papel não tem tema. Se a página estiver na variante noturna, os papéis
+   voltam aos valores da clara — senão o texto sairia claro sobre uma folha
+   branca. É a única regra que vence o `[data-modo]`: ela vem depois e tem a
+   mesma especificidade, mas o `!important` é explícito porque a segurança da
+   impressão não pode depender da ordem de dois seletores. */
+@media print {
+  :root, [data-modo="noturna"] {
+    color-scheme: light !important;
+    --fundo: #fbf8f3 !important;
+    --fundo-suave: #fdfaf5 !important;
+    --fundo-faixa: #f3ece1 !important;
+    --fundo-hover: #f5ecdf !important;
+    --fundo-citacao: #fff8ec !important;
+    --fundo-codigo: #f1eae0 !important;
+    --fundo-pre: #f7f1e7 !important;
+    --superficie: #ffffff !important;
+    --superficie-elevada: #ffffff !important;
+    --texto: #1f1c1a !important;
+    --texto-suave: #5a5348 !important;
+    --borda: #8a6a3b !important;
+    --borda-campo: #a08a58 !important;
+    --borda-forte: #8a6a3b !important;
+    --campo-fundo: #ffffff !important;
+    --campo-fundo-cartao: #fbf8f3 !important;
+    --marca: #6b1f2e !important;
+    --marca-texto: #7a5c31 !important;
+    --marca-fundo: #6b1f2e !important;
+    --marca-fundo-hover: #8a2a3d !important;
+    --sobre-marca: #fbf8f3 !important;
+    --texto-destaque-marca: #c9a878 !important;
+    --ornamento: #8a6a3b !important;
+    --ornamento-forte: #c9a878 !important;
+    --acao-fundo: #6b1f2e !important;
+    --acao-texto: #c9a878 !important;
+    --ativo-fundo: #b08d57 !important;
+    --ativo-texto: #2b1b10 !important;
+    --foco: #8a6a3b !important;
+    --ok: #1d6b2f !important;
+    --alerta: #8f5a12 !important;
+    --falha: #9b1c1c !important;
+    --ok-fundo: #eef7ee !important;
+    --alerta-fundo: #fdf3d8 !important;
+    --falha-fundo: #fdeaea !important;
+    --derivada: #5a3f66 !important;
+    --derivada-fundo: #efe9f2 !important;
+  }
+  .topnav, .topo { display: none; }
+  body { padding: 0; background: var(--superficie); }
+  a { color: var(--texto); border: none; }
+  /* no papel não há rolagem: o índice volta a ser um bloco do fluxo */
+  .toc-local { position: static; max-height: none; overflow: visible; }
+}
