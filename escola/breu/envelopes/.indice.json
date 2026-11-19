@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261116-2201.json",
     "anamnese-20261117-1407.json",
-    "anamnese-20261118-1737.json"
+    "anamnese-20261118-1737.json",
+    "plano-20261119-1143.json"
   ],
   "resumos": {
     "anamnese-20261116-2201.json": {
@@ -42,6 +43,23 @@
       "alunaId": "aluna-a-3",
       "modalidade": "Balé clássico",
       "metodo": "Cubana"
+    },
+    "plano-20261119-1143.json": {
+      "id": "plano-20261119-1143",
+      "fonte": "plano",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-19T11:43",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "turma": "Rosa",
+      "repertorio": [
+        "Plié",
+        "Battement tendu",
+        "Port de bras"
+      ],
+      "professorNome": "demi-plie"
     }
   }
 }
