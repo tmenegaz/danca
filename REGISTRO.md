@@ -54395,3 +54395,55 @@ fecha antes de a bancada ficar verde.
 **Documentação.** `ARQUITETURA-GERAL.md` **§3.4** nova — a verificação da verdade, com as duas tabelas,
 as duas cópias, os dois nomes que enganam e o calendário. `PLANO-FLUXOS-DE-DERIVACAO.md` novo — os nove
 passos, um a um, com a dependência, o que muda, como se mede, e o que fica para ela decidir em cada um.
+
+### 19/11/2026 — T1: a Sala passa a mandar na direção da Turma, e o expurgo ganha as duas chaves que faltavam
+
+> «Estrada A, e a memória fica. Mas precisa ser verificado no expurgo para não ficar para trás.
+> Quando terminar esses testes vou fazer o expurgo da escola breu.»
+
+**A decisão, e de onde vinha.** A verificação da verdade do dia anterior mediu duas cópias do mesmo
+facto — `sala.professor` e `curadoria.professor` — e a divergência entre elas. As duas estradas
+estavam na mesa; ela escolheu a **A**: a Turma **lê** o par da Sala, e a cópia fica no registo como
+**memória**.
+
+**1. A direção de hoje passa a ler-se da Sala, em quatro sítios.**
+
+| sítio | antes | agora |
+|:--|:--|:--|
+| `enquadramentoDaTurma` — o cartão da sala e a marca de `descontinuada` | a cópia da curadoria | **a Sala** (`de: 'sala'`), e a cópia como memória (`de: 'curadoria'`) |
+| `GET /api/bastidores/curadoria-professor` — a lista que autoriza o plano | `c.professor === slug` | o **enquadramento** da Sala vigente |
+| `POST /api/elicitar` com `fonte: plano` — a autorização | a cópia | o **enquadramento** da Sala vigente |
+| a cadeia — `direcaoDeHoje`, `autoriaIntacta`, `fraseDaAutoria`, `professorEfetivo` | a cópia | **a Sala**, no estado que o adaptador monta (`salaDaTurma`) |
+
+**2. O que não mudou, e é de propósito.** O `id` da curadoria continua a nascer do par — é
+**identidade**, o que foi escrito naquele dia, e mudá-lo partiria a cadeia (`substitui`/
+`substituidaPor`, `ajuste_de`). A cópia continua gravada — é **memória**, e é dela que se lê uma
+turma de antes de a Sala declarar o par. A **tradição** continua a vir da curadoria: não está na
+Sala, é lida do perfil do professor por modalidade. E a **direção encerrada** continua a mandar: é
+um facto do presente.
+
+**3. O efeito, medido.** Depois de mudar o professor pela rota da Sala: o professor **novo** vê a
+turma na lista que autoriza o plano (antes: zero), o **antigo** deixa de a ver (antes: continuava), e
+a cadeia **apanha** a troca — `bloqueada`, com a frase da autoria. As duas asserções da bancada
+inverteram-se, e a inversão é a correcção. E o registo degenerado da `breu` (`-rosa`, com o professor
+em branco) deixou de esconder a turma: a Sala diz quem a dá.
+
+**4. O buraco do expurgo, que ela mandou verificar.** A lista **declarada** do expurgo — a que vale
+no dia em que o `kv.list` não responde, e que já custou uma limpeza a meio nesta casa — não conhecia
+**`matriculas`** nem **`cadeia`**. As duas ficariam para trás numa escola expurgada; a primeira é o
+vínculo de cada aluna com a escola. Entraram as duas, e a bancada passou a **comparar a lista com as
+chaves que o código escreve** — não com a memória de quem a escreveu. É a §D nova do
+`provar-os-fluxos-da-derivacao`, e ela falha se uma chave nova aparecer sem entrada na lista.
+
+**O que continua por fazer, e é o próximo.** O gatilho do T2 — o gesto de Salas **percorrer** a
+cadeia — continua desligado, e agora por uma razão diferente: já não derivaria o nome errado; falta
+decidir o que a cadeia faz quando a autoria muda (ela já sabe: *bloqueia*, e o professor novo escreve
+o dele). A §3.4 do `ARQUITETURA-GERAL` e o `PLANO-FLUXOS-DE-DERIVACAO.md` foram actualizados.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **31 → 34** (as duas da lista invertidas, as duas da Sala
+novas, a §D do expurgo). Vizinhas: `provar-a-autoria-na-troca-de-professor` 41,
+`provar-turma-sem-professor` 23 (uma asserção invertida), `provar-regua-do-professor` 44 (duas do
+rótulo, herdadas de «Gravar é gravar»), `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
+`provar-cadeia-do-ajuste` 34, `provar-remocao-do-elenco` 26, `provar-anamnese-da-aluna-certa` 18,
+`provar-menu-da-producao` 55, `provar-dicionario` 123, `provar-gravar-e-gravar` 49, `check-identidade`
+ok. `provar-acordeoes` continua vermelha — a mesma excepção em `parentElement`, medida nos dois lados.

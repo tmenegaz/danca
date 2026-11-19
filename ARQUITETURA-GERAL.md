@@ -1092,7 +1092,11 @@ Cinco rotas chamam `rodarCadeia` — e são as cinco que a §3.3 nomeia:
 | `POST /api/bastidores/professor-desligar` | o professor que sai | encerra a direção e marca a Turma `descontinuada` — **marca**, mas não percorre |
 | `DELETE /api/bastidores/linha-de-base` | apagar o elenco que uma Turma declara | deixa a Turma a apontar para um elenco que já não existe. A cadeia sabe dizê-lo (`bloqueada`), mas ninguém a corre |
 
-#### A causa de fundo: o professor da Turma é uma CÓPIA
+#### A causa de fundo: o professor da Turma era uma CÓPIA — resolvida a 19/11/2026 (T1)
+
+> **Correcção no mesmo dia.** A estrada escolhida foi a **A**: a Turma passa a **ler** o par da
+> Sala, e a cópia fica no registo como **memória**. O que se segue é o diagnóstico que a motivou; a
+> nota do fim diz o que passou a valer.
 
 A Turma continua a **guardar** `professor`, `modalidade` e `tradicao` — copiados da Sala no dia em
 que foi gravada. A Sala passou a ser a autoridade (18/11/2026), e a cópia ficou. São **duas cópias
@@ -1110,7 +1114,25 @@ do mesmo facto**, que é exactamente o que o §5.8 diz que acaba a divergir — 
   `bloqueada` e a frase é a certa: *«a autoria não se reescreve — este professor escreve o plano
   dele»*.
 
-**E é por isso que o gesto de Salas não dispara a cadeia: disparar hoje gravaria o nome errado.** O
+**Resolvido a 19/11/2026, e a ordem foi a que o diagnóstico pedia.** A direção de hoje passa a ser
+lida da Sala em quatro sítios, e a cópia deixou de ser autoridade em todos eles:
+
+| o sítio | antes | agora |
+|:--|:--|:--|
+| `enquadramentoDaTurma` (o cartão, a marca de `descontinuada`) | a cópia da curadoria | **a Sala**, e a cópia como memória (`de: 'curadoria'`) |
+| `GET /api/bastidores/curadoria-professor` (a lista que autoriza o plano) | `c.professor === slug` | o **enquadramento** da Sala vigente |
+| `POST /api/elicitar` com `fonte: plano` | a cópia | o **enquadramento** da Sala vigente |
+| a cadeia (`direcaoDeHoje`, `autoriaIntacta`, `professorEfetivo`) | a cópia | **a Sala**, no estado que o adaptador monta |
+
+E o que **não** mudou, de propósito: o `id` da curadoria continua a nascer do par (é **identidade**,
+o que foi escrito naquele dia), a cópia continua gravada (é **memória**), e a **tradição** continua a
+vir da curadoria — ela não está na Sala, é lida do perfil do professor por modalidade.
+
+**O gatilho do T2 continua desligado**, e agora por uma razão diferente: já não derivaria o nome
+errado — falta decidir o que a cadeia faz quando a autoria muda. Ver o `PLANO-FLUXOS-DE-DERIVACAO.md`.
+
+**E é por isso que o gesto de Salas não disparava a cadeia: disparar antes do T1 gravaria o nome
+errado.** O
 comentário que está na rota (`turma-professor`) di-lo com todas as letras — «o professor da sala não
 está no plano: o envelope traz o seu próprio `contexto.professor`» —, e é verdade: derivar o plano
 com a cópia velha produziria um elo que declara o professor antigo. A correcção não é ligar o

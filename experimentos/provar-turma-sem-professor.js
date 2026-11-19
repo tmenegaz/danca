@@ -213,8 +213,15 @@ async function oQueOSelectDaTurmaVe(env, professor) {
     repertorio: [], alunas: [],
   }]));
   const quebrada = await oQueOSelectDaTurmaVe(env2, PROFESSOR);
-  provar('com o registo do defeito, o select do plano fica vazio — é o que ela viu',
-    quebrada.lista.length === 0, quebrada);
+  /* ESTA ASSERÇÃO ERA O CONTRÁRIO, E A INVERSÃO É A CORRECÇÃO (19/11/2026).
+   *
+   * Ela dizia «o select do plano fica vazio — é o que ela viu», e era verdade: o registo
+   * degenerado (`-rosa`, com o professor em branco) não passava o filtro, e a turma desaparecia da
+   * lista de quem a dava. Com a SALA a mandar na direção (T1), o registo vazio deixa de esconder a
+   * turma que a Sala diz ser dele: o select volta a mostrá-la. O defeito do ID continua a ser
+   * defeito — as asserções seguintes medem-no, e a reparação continua a ser necessária. */
+  provar('com o registo do defeito, a SALA já diz quem a dá — e o select não fica vazio',
+    quebrada.lista.length === 1, quebrada);
 
   const corrigida = await postar(env2, '/api/bastidores/curadoria', {
     idAntigo: '-rosa', turmas: [SALA],

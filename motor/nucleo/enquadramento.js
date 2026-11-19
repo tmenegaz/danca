@@ -124,6 +124,10 @@ function nivelEfetivo(turma, curadoria) {
  * É esta função que a marca de `descontinuada` passou a usar. Antes da mudança de casa ela lia
  * `turma.modalidade` e `turma.professor`; esses campos deixaram de existir no cadastro novo, e
  * uma leitura directa passaria a devolver `undefined` — sem erro, e sem marcar nada.
+ *
+ * A ORDEM DAS FONTES, desde 19/11/2026: **a direcção encerrada** (um facto do presente) → **a
+ * SALA** (quem dá a turma hoje) → **a cópia da curadoria** (a memória do dia em que o elo foi
+ * escrito) → **o registo da turma** (o cadastro de antes de haver curadoria).
  */
 function enquadramentoDaTurma(turma, curadorias) {
   const t = turma && typeof turma === 'object' ? turma : {};
@@ -141,6 +145,38 @@ function enquadramentoDaTurma(turma, curadorias) {
         curadoria: null,
         encerrada: c,
         de: 'encerrada',
+      };
+    }
+    /* A SALA MANDA — E A CÓPIA DA CURADORIA PASSA A SER MEMÓRIA (19/11/2026).
+     *
+     * «Em turma, eu não tenho mais um vínculo com professor. Eu tenho uma relação direta com a
+     * sala. É a sala que é associada a um professor.»
+     *
+     * A 18/11/2026 o par (modalidade, professor) passou para a Sala, e a Turma continuou a
+     * guardá-lo — copiado no dia em que foi gravada. Duas cópias do mesmo facto, que é o que o
+     * §5.8 do `ARQUITETURA-GERAL` diz que acaba a divergir. Divergiu, e mediu-se: mudar o professor
+     * pela rota da Sala (`turma-professor`) deixava a Turma a dizer o anterior, o professor novo
+     * não via a turma que passou a dar, e a cadeia não apanhava a troca (`provar-os-fluxos-da-
+     * derivacao`, 19/11/2026).
+     *
+     * O QUE MUDA, E O QUE NÃO MUDA. A leitura passa a ser a da SALA — é ela que diz quem dá a
+     * turma hoje. A cópia **fica no registo**, e não se apaga: é a memória de quem a dirigia quando
+     * o elo foi escrito, e é dela que se lê uma turma de ontem, anterior a a Sala declarar o par
+     * (`de: 'curadoria'`). A **tradição** continua a vir da curadoria: ela não está na Sala, é
+     * lida do perfil do professor por modalidade, e a Sala não a guarda.
+     *
+     * E O `id` DA CURADORIA NÃO MUDA — o par faz parte dele (`pe-torto-bale-classico-rosa`). O id
+     * é **identidade**: o que foi escrito naquele dia, por aquela pessoa. Quem muda é a **direção
+     * de hoje**, e é isso que esta função devolve. */
+    const daSalaProfessor = String(t.professor || '').trim();
+    const daSalaModalidade = String(t.modalidade || '').trim();
+    if (daSalaProfessor || daSalaModalidade) {
+      return {
+        professor: daSalaProfessor || String(c.professor || '').trim(),
+        modalidade: daSalaModalidade || String(c.modalidade || '').trim(),
+        tradicao: String(c.tradicao || '').trim(),
+        curadoria: c,
+        de: 'sala',
       };
     }
     return {

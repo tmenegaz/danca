@@ -201,8 +201,11 @@ async function salas(env) {
   provar('…com o «Acrescentar nível»', /id="rubr-add"[^>]*>Acrescentar nível</.test(pagina), null);
   provar('…e cada nível com o «Remover» (o ✕ que já existe na peça)',
     /tirar-regua/.test(pagina), null);
-  provar('o fim do passo diz «Gravar cadastrar professor»',
-    /id="rubr-gravar"[^>]*>Gravar cadastrar professor</.test(pagina), null);
+  /* «GRAVAR É GRAVAR» (19/11/2026) — o rótulo é o mesmo de todas as secções. Era «Gravar
+   * cadastrar professor», que é a frase a explicar-se a si própria: dois verbos, e nenhum deles o
+   * que a pessoa faz. */
+  provar('o fim do passo diz «Gravar», como todas as secções',
+    /id="rubr-gravar"[^>]*>Gravar</.test(pagina), null);
   provar('…e tem o seu «Cancelar»', /id="rubr-cancelar"/.test(pagina), null);
   provar('o passo 1 do cadastro diz «Avançar» — e não «Cadastrar professor»',
     /id="prof-enviar"[^>]*>Avançar</.test(pagina), null);
@@ -221,8 +224,8 @@ async function salas(env) {
   provar('o passo 2 pergunta o professor', /<select id="vinc-professor"/.test(pagina), null);
   provar('…e mostra a tradição e a régua dele em leitura',
     /id="vinc-tradicao"/.test(pagina) && /id="vinc-regua"/.test(pagina), null);
-  provar('o gesto que conclui continua a ser «Gravar sala»',
-    /id="vinc-gravar"[^>]*>Gravar sala</.test(pagina), null);
+  provar('o gesto que conclui a sala diz «Gravar», como todas as secções',
+    /id="vinc-gravar"[^>]*>Gravar</.test(pagina), null);
 
   // -------------------------------------------------------------------------------------------
   bloco('\nD. A RÉGUA QUE A SALA APLICA É A DO PROFESSOR — a mesma que o plano lê');
@@ -257,7 +260,7 @@ async function salas(env) {
   const associada = await postar(env, '/api/bastidores/turma-professor', {
     turma: gravada.id, modalidade: 'Balé clássico', professor: OUTRO, concluir: true,
   });
-  provar('«Gravar sala» associa a modalidade e o professor', associada.status === 200 && associada.corpo.ok,
+  provar('o «Gravar» da sala associa a modalidade e o professor', associada.status === 200 && associada.corpo.ok,
     { status: associada.status, erro: associada.corpo && associada.corpo.erro });
   const depois = await pedir(env, '/api/bastidores/turmas');
   const depoisSala = (depois.corpo.turmas || []).find((t) => t.nome === SALA);

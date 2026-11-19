@@ -1250,13 +1250,29 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
       if (turmaPedida && professor) {
         try {
           const curadorias = await lerCuradorias(escolaDoWorker || identidade.escola);
-          const doProfessor = (Array.isArray(curadorias) ? curadorias : [])
-            .filter((c) => c && !c.substituidaPor && String(c.professor || '').trim() === professor);
+          /* QUEM DIRIGE A TURMA É A SALA (19/11/2026) — «é a sala que é associada a um professor».
+           *
+           * Aqui filtrava-se pela CÓPIA que a curadoria guarda (`c.professor`), e o efeito medido
+           * era o pior possível: mudado o professor pela rota da Sala, o professor NOVO recebia
+           * 403 ao escrever o plano da turma que passou a dar, e o ANTERIOR continuava autorizado
+           * a escrevê-lo. A leitura passa a ser o enquadramento — a mesma função do cartão da
+           * sala —, e a cópia responde só quando a Sala ainda não declara o par.
+           *
+           * DEGRADA, NÃO REBENTA: sem `lerTurmas` (uma bancada) lê-se a cópia, como antes. */
+          const salas = typeof lerTurmas === 'function'
+            ? await lerTurmas(escolaDoWorker || identidade.escola) : [];
+          const enquadramento = require('../nucleo/enquadramento.js');
+          const salaVigente = (nome) => (Array.isArray(salas) ? salas : [])
+            .find((t) => t && !t.substituidaPor && String(t.nome || '').trim() === nome) || null;
           const autorizadas = new Set();
-          for (const c of doProfessor) {
+          for (const c of (Array.isArray(curadorias) ? curadorias : [])) {
+            if (!c || c.substituidaPor) continue;
             for (const t of (Array.isArray(c.turmas) ? c.turmas : [])) {
               const nome = String(t == null ? '' : t).trim();
-              if (nome) autorizadas.add(nome);
+              if (!nome) continue;
+              const sala = salaVigente(nome);
+              const quem = enquadramento.enquadramentoDaTurma(sala || { nome }, curadorias).professor;
+              if (quem === professor) autorizadas.add(nome);
             }
           }
           if (!autorizadas.has(turmaPedida)) {

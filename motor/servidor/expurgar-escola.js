@@ -168,6 +168,19 @@ const CHAVES_FIXAS_DA_ESCOLA = [
    *   · `ensaio` — o relógio comprimido de quem testou a cobrança. Deixá-lo faria a escola NOVA
    *     nascer em ensaio, com meses por pagar que ninguém ligou: o oposto de «nascer certo». */
   'comercial', 'cadastro', 'linhas-de-base', 'ensaio',
+  /* DUAS QUE FALTAVAM, E A «VERIFICAÇÃO DA VERDADE» AS ENCONTROU (19/11/2026) — a lista declarada
+   * nasceu para o dia em que o `kv.list` não responde, e nesse dia o que não estiver aqui FICA.
+   *
+   *   · `matriculas` — os vínculos aluna × modalidade × professor. São o vínculo de cada pessoa com
+   *     a escola: deixá-los é deixar a escola expurgada a dizer quem estudava nela.
+   *   · `cadeia` — o log das travessias (o que cada gesto derivou, quando, e o que faltou). É
+   *     registo de operação, e morre com a escola como o resto.
+   *
+   * A CONFERÊNCIA É CONTRA O CÓDIGO, e não contra a memória: as chaves que os Bastidores escrevem
+   * são as que aparecem em `RAIZ + '/' + escola + '/'` pelo `motor/servidor/` — e eram treze. A
+   * prova `experimentos/provar-os-fluxos-da-derivacao.js` §D compara as duas listas, para a
+   * próxima chave nova não voltar a ficar de fora em silêncio. */
+  'matriculas', 'cadeia',
 ];
 
 /** Os nomes completos das chaves fixas de uma escola. */

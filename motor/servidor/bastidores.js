@@ -25264,7 +25264,25 @@ function parDaSalaNoCorpo(corpo, registo) {
     // SÓ AS VIGENTES (16/10/2026): uma curadoria substituída por uma derivação continua
     // guardada, mas não autoriza nada — quem a lê para trabalhar são as vigentes.
     const todas = curadoriasVigentes(await curadorias(kv, escola));
-    const dele = todas.filter((c) => c && c.professor === slug);
+    /* O PROFESSOR DA TURMA É O DA SALA (19/11/2026) — «é a sala que é associada a um professor».
+     *
+     * O filtro era `c.professor === slug`, e essa é a CÓPIA que a curadoria guarda do dia em que
+     * foi escrita. Medido a 19/11/2026: depois de mudar o professor pela rota da Sala, o professor
+     * novo recebia uma lista VAZIA — sem a turma que passou a dar — e o anterior continuava a
+     * vê-la, e portanto a poder escrever-lhe o plano. A leitura certa é a do enquadramento, que é
+     * a mesma que o cartão da sala e a marca de `descontinuada` já usam.
+     *
+     * A CÓPIA CONTINUA A RESPONDER quando a Sala ainda não declara o par (uma sala de antes de
+     * 18/11) — é o mesmo recurso do `enquadramentoDaTurma`, e não uma segunda regra. */
+    const salasDaEscola = await turmas(kv, escola);
+    const dele = todas.filter((c) => {
+      const nome = String((Array.isArray(c.turmas) ? c.turmas[0] : c.turmas) || '').trim();
+      /* A SALA VIGENTE, e não uma turma de mentira com o nome: o `enquadramentoDaTurma` decide pelo
+       * que o registo dela declara, e um objecto só com `nome` cairia de volta na cópia — que é
+       * exactamente o que esta correcção vem desfazer. */
+      const sala = nome ? (turmaVigentePorNome(salasDaEscola, nome) || { nome }) : { nome };
+      return enquadramento.enquadramentoDaTurma(sala, todas).professor === slug;
+    });
     /* OS RÓTULOS DAS TRADIÇÕES VÃO JUNTO (03/11/2026). O registo guarda a CHAVE (`francesa`); o
      * ecrã mostra o rótulo do catálogo (`Francesa`). O plano passou a LER a metodologia da
      * curadoria em vez de a perguntar — e a leitura tem o mesmo direito à grafia que o resto da

@@ -122,8 +122,20 @@ function indice(estado) {
       turma: String(ctx.turma || '').trim(),
     };
   };
+  /* A DIREÇÃO DE HOJE É A DA SALA (19/11/2026) — e a cópia da curadoria é o recurso.
+   *
+   * O par (modalidade, professor) vive na Sala desde 18/11/2026; a curadoria guarda uma cópia do
+   * dia em que foi escrita. Comparar a direção do documento com a cópia é comparar com o passado:
+   * medido a 19/11/2026, mudar o professor pela rota da Sala deixava `professorMudou` a responder
+   * «é o mesmo» — a guarda que existe para apanhar a troca de professor não a apanhava, e o único
+   * motivo que sobrava era a data (`experimentos/provar-os-fluxos-da-derivacao`).
+   *
+   * O `de` de hoje é a SALA; a cópia responde quando a Sala ainda não declara o par (uma sala de
+   * antes de 18/11, ou uma bancada que só monta a curadoria). */
+  const salaDeHoje = e.sala && typeof e.sala === 'object' ? e.sala : null;
   const direcaoDeHoje = {
-    professor: String((e.curadoria && e.curadoria.professor) || '').trim(),
+    professor: String((salaDeHoje && salaDeHoje.professor)
+      || (e.curadoria && e.curadoria.professor) || '').trim(),
     turma: String(e.turma || ((e.curadoria && (e.curadoria.turmas || [])[0]) || '')).trim(),
   };
   /** O documento declara outra direção? Vazio não conta: um elo antigo que não declara professor

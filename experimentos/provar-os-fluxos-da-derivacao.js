@@ -14,16 +14,19 @@
  * O QUE ESTA PROVA MEDE — e cada alínea é uma afirmação que vai para o documento:
  *
  *   A. O GESTO «MUDAR O PROFESSOR DE UMA SALA» (`POST /api/bastidores/turma-professor`).
- *      · a SALA passa a declarar o professor novo;
- *      · a TURMA continua a declarar o ANTIGO — as duas cópias do mesmo facto divergem;
- *      · a resposta NÃO traz `cadeia`: o fluxo não é disparado;
- *      · o professor novo não vê a turma na lista que autoriza o plano, e o antigo continua a vê-la.
+ *      · a SALA passa a declarar o professor novo, e a TURMA guarda a cópia antiga como MEMÓRIA;
+ *      · a resposta ainda NÃO traz `cadeia`: o fluxo não é disparado (é o T2 do plano);
+ *      · a lista que autoriza o plano passa a mostrar a turma a quem a dá — a direção de hoje lê-se
+ *        da SALA (T1, implementado a 19/11/2026), e não da cópia.
  *   B. O QUE A CADEIA DIZ NOS DOIS ESTADOS. Com a cópia velha na Turma (o estado real depois de A),
  *      o plano é dado por `feita` — silêncio. Com a cópia nova (o estado que a derivação da Turma
  *      produz), o plano é `bloqueada` — a cadeia fala, e diz que a autoria não se reescreve.
  *   C. A MATRIZ DE GATILHOS, lida do código-fonte. Quais rotas chamam `rodarCadeia` — e, portanto,
  *      quais gestos percorrem a cadeia hoje. Mede-se o FONTE, e diz-se isso: é a lista dos sítios,
  *      não uma execução de cada um.
+ *   D. O EXPURGO. A lista declarada do expurgo cobre todas as chaves que o código escreve — a
+ *      conferência é contra o código, e não contra a memória (é o que ela pediu: «precisa ser
+ *      verificado no expurgo para não ficar para trás»).
  *
  *   node experimentos/provar-os-fluxos-da-derivacao.js
  */
@@ -127,7 +130,11 @@ async function principal() {
   const turmaDepois = JSON.parse(await kv.get(RAIZ + '/curadorias'))[0];
   provar('…e a SALA passa a declarar o professor novo',
     salaDepois.professor === 'redinha-rosa', salaDepois.professor);
-  provar('…e a TURMA continua a declarar o ANTIGO — as duas cópias do mesmo facto divergiram',
+  /* A CÓPIA FICA, E É DE PROPÓSITO (T1, 19/11/2026): ela é a memória do dia em que o elo foi
+   * escrito, e é dela que se lê uma turma anterior a a Sala declarar o par. O que mudou é que ela
+   * deixou de ser a AUTORIDADE — a direção de hoje vem da Sala, e é o que as asserções seguintes
+   * medem. */
+  provar('…e a TURMA guarda a cópia antiga como MEMÓRIA — já não como autoridade',
     turmaDepois.professor === 'pe-torto', turmaDepois.professor);
 
   /* O FLUXO NÃO É DISPARADO. A resposta é o sítio onde o gesto diria o que fez à cadeia — é o
@@ -139,12 +146,17 @@ async function principal() {
    * professor da TURMA. Quem passou a dar a sala não a vê; quem já não a dá continua a vê-la. */
   const doNovo = await pedir(env, '/api/bastidores/curadoria-professor?professor=redinha-rosa');
   const doAntigo = await pedir(env, '/api/bastidores/curadoria-professor?professor=pe-torto');
-  provar('…e o professor NOVO não vê a turma na lista que autoriza o plano',
-    Array.isArray(doNovo.dados && doNovo.dados.curadorias) && doNovo.dados.curadorias.length === 0,
+  /* T1 (19/11/2026): ESTAS DUAS ASSERÇÕES ERAM O CONTRÁRIO, e eram a medida do defeito. Elas
+   * diziam «o professor novo NÃO vê a turma que passou a dar» e «o antigo continua a vê-la» — o
+   * retrato do dia em que a cópia da curadoria mandava. Com a Sala a mandar, o retrato inverte-se,
+   * e a inversão é a correcção. */
+  provar('…e o professor NOVO vê a turma que passou a dar — a lista lê a SALA',
+    Array.isArray(doNovo.dados && doNovo.dados.curadorias) && doNovo.dados.curadorias.length === 1,
     doNovo.dados && (doNovo.dados.curadorias || []).length);
-  provar('…e o professor ANTIGO continua a vê-la — e continua autorizado a escrever-lhe o plano',
+  provar('…e o professor ANTIGO deixa de a ver — já não é ele que a dá',
     Array.isArray(doAntigo.dados && doAntigo.dados.curadorias)
-      && doAntigo.dados.curadorias.length === 1, doAntigo.dados && (doAntigo.dados.curadorias || []).length);
+      && doAntigo.dados.curadorias.length === 0,
+    doAntigo.dados && (doAntigo.dados.curadorias || []).length);
 
   /* =========================================================================================== */
   console.log('\nB. O que a cadeia diz — e a diferença é entre «silêncio» e «a cadeia fala»');
@@ -166,6 +178,8 @@ async function principal() {
       contexto: { escola: ESCOLA, professor: 'pe-torto', turma: 'Rosa', ciclo: '01' },
     },
   };
+  /* SEM `sala` NO ESTADO, a cadeia cai na cópia — e é este o CONTROLADOR da correcção: mostra o
+   * que acontecia antes de a Sala ser a fonte. Com `sala`, o mesmo estado é apanhado. */
   const indiceReal = nucleoCadeia.indice(estadoReal);
   const etapaDoPlano = (indiceReal.etapas || []).find((p) => p.chave === 'plano-de-ensino') || {};
   /* A GUARDA QUE EXISTE PARA APANHAR A TROCA DE PROFESSOR NÃO A APANHA. `professorMudou` compara o
@@ -186,6 +200,19 @@ async function principal() {
 
   /* O ESTADO QUE A DERIVAÇÃO DA TURMA PRODUZ: a cópia da Turma passa a ser a nova, e o plano
    * continua a nomear o antigo. Aí a cadeia fala — e diz que a autoria não se reescreve. */
+  /* O ESTADO COM A SALA — é o que a produção passa a montar (T1): a direção de hoje vem do
+   * registo da Sala, e a cópia da curadoria fica como memória. */
+  const estadoComSala = Object.assign({}, estadoReal, {
+    sala: Object.assign({}, salaDepois, {}),
+  });
+  const indiceComSala = nucleoCadeia.indice(estadoComSala);
+  const planoComSala = (indiceComSala.etapas || []).find((p) => p.chave === 'plano-de-ensino') || {};
+  provar('com a SALA no estado, a cadeia APANHA a troca de professor — a guarda passa a ter dentes',
+    planoComSala.estado === 'bloqueada', planoComSala);
+  provar('…e a frase nomeia os dois professores, e diz que a autoria não se reescreve',
+    /a autoria não se reescreve/i.test(String(planoComSala.falta || '')),
+    String(planoComSala.falta || '').slice(0, 130));
+
   const estadoDerivado = Object.assign({}, estadoReal, {
     curadoria: Object.assign({}, turmaDepois, { professor: 'redinha-rosa' }),
   });
@@ -244,11 +271,35 @@ async function principal() {
     provar('…e NÃO dispara hoje: ' + deviam[caminho], disparam.indexOf(caminho) === -1, disparam);
   }
 
+  /* =========================================================================================== */
+  console.log('\nD. O expurgo não deixa nada para trás — a lista declarada cobre o que o código escreve');
+
+  /* A LISTA DO EXPURGO É O PLANO B do dia em que o `kv.list` não responde. Nesse dia, o que não
+   * estiver nela FICA — e ficar significa uma escola expurgada a dizer quem estudava nela. A
+   * conferência é contra o CÓDIGO: as chaves que os Bastidores escrevem. */
+  const { chavesFixasDaEscola } = require(path.join(raiz, 'motor/servidor/expurgar-escola.js'));
+  const escritas = new Set();
+  for (const ficheiro of ['motor/servidor/bastidores.js', 'motor/servidor/cadeia.js']) {
+    const texto = fs.readFileSync(path.join(raiz, ficheiro), 'utf8');
+    for (const m of texto.matchAll(/RAIZ \+ '\/' \+ escola \+ '\/([a-z0-9-]+)'/g)) escritas.add(m[1]);
+  }
+  const declaradas = new Set(chavesFixasDaEscola(ESCOLA)
+    .map((k) => k.split('/').pop()));
+  const fora = [...escritas].filter((k) => !declaradas.has(k)).sort();
+  provar('toda a chave que os Bastidores escrevem está na lista do expurgo',
+    fora.length === 0, { escritas: [...escritas].sort(), fora });
+  /* E AS DUAS QUE FALTAVAM, nomeadas: a asserção acima falha se uma delas sair, e esta diz qual. */
+  for (const chave of ['matriculas', 'cadeia']) {
+    provar('…incluindo `' + chave + '`, que faltava até 19/11/2026',
+      declaradas.has(chave) && escritas.has(chave), { escrita: escritas.has(chave), declarada: declaradas.has(chave) });
+  }
+
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — ' + provas + ' asserções: o gesto de mudar o professor de uma sala grava a Sala e '
-      + 'deixa a Turma a dizer o antigo, não dispara a cadeia, e o professor novo não vê a turma que '
-      + 'passou a dar; a cadeia dá esse estado por COMPLETO. As cinco rotas que disparam a cadeia e '
-      + 'as seis que deviam e não disparam estão nomeadas.'
+    ? 'TUDO CERTO — ' + provas + ' asserções: o gesto de mudar o professor de uma sala grava a Sala, '
+      + 'guarda a cópia na Turma como memória e ainda NÃO dispara a cadeia; a direção de hoje lê-se '
+      + 'da Sala — a lista que autoriza o plano mostra a turma a quem a dá, e a cadeia apanha a '
+      + 'troca com a frase da autoria; a lista do expurgo cobre todas as chaves que o código escreve. '
+      + 'As cinco rotas que disparam a cadeia e as seis que deviam e não disparam estão nomeadas.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

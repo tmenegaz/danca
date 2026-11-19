@@ -4647,7 +4647,19 @@ rótulo. O fim do gesto — aviso no canto, formulário limpo, secção recolhid
 com formulário. **O que a prova mede é a ausência**, e não a presença: enquanto um `textContent = …`
 decidir o texto de um botão, a nona secção divergirá na primeira vez que precisar de um caso novo.
 
-**ABERTO a 19/11/2026 — os fluxos de derivação, e a decisão que os destranca.** A verificação da
+**RESOLVIDO a 19/11/2026 — o T1: a Sala manda na direção da Turma.** Ela escolheu a estrada **A** («e a
+memória fica»): a Turma **lê** o par da Sala, e a cópia continua no registo como memória do dia em que
+o elo foi escrito. Quatro sítios passaram a ler a Sala — o `enquadramentoDaTurma`, o
+`GET /api/bastidores/curadoria-professor`, a autorização do plano em `POST /api/elicitar` e a cadeia
+(`direcaoDeHoje`, `autoriaIntacta`). **CONFIRMADO:** o professor novo vê a turma que passou a dar, o
+antigo deixa de a ver, e a cadeia apanha a troca com a frase da autoria. O `id` da curadoria não muda
+(é identidade) e a tradição continua na curadoria (não está na Sala). **E o expurgo foi conferido,
+como ela pediu:** faltavam-lhe **`matriculas`** e **`cadeia`** na lista declarada — a que vale no dia
+em que o `kv.list` não responde —, e a bancada passou a comparar a lista com as chaves que o **código**
+escreve. **Próximo:** o T2 (o gesto de Salas percorrer a cadeia), que agora já não derivaria o nome
+errado.
+
+**ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **cinco** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
 `linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **oito gestos** que deviam percorrê-la não a
 percorrem — o primeiro é o que ela nomeou, **mudar o professor de uma sala**. A causa de fundo não é o

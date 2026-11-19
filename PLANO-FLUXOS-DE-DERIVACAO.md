@@ -57,7 +57,7 @@ Cada passo tem: **o que é**, **por que antes dos outros** (a dependência), **o
 mede** e **o que fica para ela decidir**. Nenhum passo começa antes de o anterior estar publicado,
 medido e documentado.
 
-### T1 — O professor da Turma deixa de ser uma cópia *(decisão dela, primeiro)*
+### T1 — O professor da Turma deixa de ser uma cópia — **FEITO a 19/11/2026** *(estrada A)*
 
 **O que é.** A Turma guarda hoje `professor`, `modalidade` e `tradicao` — copiados da Sala no dia em
 que foi gravada. A Sala passou a ser a autoridade a 18/11/2026, e a cópia ficou: são **duas cópias do
@@ -74,14 +74,31 @@ errado.
 | **A — a Turma lê da Sala** (recomendada) | a Turma deixa de guardar o par; `enquadramento`, a autorização do plano e a cadeia passam a ler `sala.professor` e `sala.modalidade` | uma migração de leitura em três sítios; nenhum dado se apaga (o campo fica no registo antigo como memória, como já acontece com `turma.professor` do cadastro velho) |
 | **B — a Sala propaga para a Turma** | cada escrita da Sala sincroniza as Turmas que a usam, e uma guarda recusa deixá-las divergir | mais pequeno hoje; mantém duas cópias, e a sincronização é mais um sítio que se pode esquecer |
 
-**Como se mede.** A bancada de hoje reprova nas duas linhas do professor: depois de `turma-professor`,
-Sala e Turma dizem o mesmo; a lista `curadoria-professor` mostra a turma ao professor novo; a etapa do
-plano fica `bloqueada` com a frase da autoria — e não `pendente` por causa da data.
+**A decisão dela (19/11/2026):** *«A, e a memória fica. Mas precisa ser verificado no expurgo para
+não ficar para trás.»*
 
-**A decidir:** A ou B. E, se A, se o campo antigo fica no registo como memória (recomendado: sim —
-é proveniência, e as turmas de ontem continuam a ler-se).
+**O que ficou feito.** A direção de hoje lê-se da Sala em quatro sítios —
+`enquadramentoDaTurma` (que o cartão da sala e a marca de `descontinuada` usam),
+`GET /api/bastidores/curadoria-professor`, a autorização do plano em `POST /api/elicitar` e a cadeia
+(`direcaoDeHoje`, `autoriaIntacta`, `professorEfetivo`). A cópia continua no registo como **memória**,
+e responde só quando a Sala não declara o par — uma sala de antes de 18/11. O `id` da curadoria não
+muda: é identidade, e o par faz parte dela. A **tradição** continua a vir da curadoria, porque não
+está na Sala.
 
-### T2 — «Mudar o professor de uma Sala» dispara o fluxo *(depende do T1)*
+**E o expurgo foi conferido, como ela pediu** — e tinha um buraco: a lista declarada do expurgo
+(a que vale no dia em que o `kv.list` não responde) não conhecia **`matriculas`** nem **`cadeia`**.
+Duas chaves ficariam para trás numa escola expurgada, e a primeira é o vínculo de cada aluna com a
+escola. As duas entraram, e a bancada compara agora a lista com as chaves que o **código** escreve —
+para a próxima chave nova não ficar de fora em silêncio.
+
+**Medido.** `provar-os-fluxos-da-derivacao` **34** — as duas asserções da lista inverteram-se (o
+professor novo vê a turma, o antigo deixa de a ver), a cadeia passou a apanhar a troca com a frase da
+autoria, e a §D é nova (o expurgo). `provar-a-autoria-na-troca-de-professor` 41,
+`provar-turma-sem-professor` 23 (uma asserção invertida: o registo degenerado já não esconde a turma),
+`provar-regua-do-professor` 44, `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
+`provar-cadeia-do-ajuste` 34, `provar-remocao-do-elenco` 26, `provar-anamnese-da-aluna-certa` 18.
+
+### T2 — «Mudar o professor de uma Sala» dispara o fluxo *(o T1 está feito; este é o próximo)*
 
 **O que é.** `POST /api/bastidores/turma-professor` passa a percorrer a cadeia, e devolve `cadeia` como
 as outras cinco rotas.
