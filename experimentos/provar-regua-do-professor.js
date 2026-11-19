@@ -173,14 +173,25 @@ async function salas(env) {
     JSON.stringify(passosProf) === JSON.stringify(['cadastro', 'rubrica']), passosProf);
   provar('o painel da régua existe, dentro do cadastro', /id="passo-prof-rubrica"/.test(pagina), null);
   provar('…e o do cadastro também', /id="passo-prof-cadastro"/.test(pagina), null);
-  /* A JANELA É A DOS PAINÉIS, e não a dos botões da tira: os botões vêm todos antes de qualquer
-   * painel, e medir por eles daria «verdadeiro» mesmo com a tira fora da aba. O que se afirma é que
-   * a tira está ENTRE a abertura do painel do cadastro e a do painel das habilitações. */
+  /* A TIRA FICA FORA DA ABA, ACIMA DELA — COMO NA AUDIÇÃO (19/11/2026).
+   *
+   * «Em professores, você colocou os steps dentro de cadastro. Ele é acima do cadastro, ele é fora
+   * do cadastro.» A referência é a Audição, onde a faixa dos passos é a PRIMEIRA linha do corpo:
+   * irmã do `.col-form`, antes das abas. O que esta asserção afirma, então, é o contrário do que
+   * afirmava antes — e mede a ordem real: a tira antes da abertura do painel do cadastro, e essa
+   * antes das habilitações. */
   const iPasso = pagina.indexOf('id="pf-passos"');
   const iPainelCad = pagina.indexOf('id="pf-painel-cadastro"');
   const iPainelHab = pagina.indexOf('id="pf-painel-habilitacoes"');
-  provar('a tira fica dentro do painel do cadastro, e antes do das habilitações',
-    iPainelCad < iPasso && iPasso < iPainelHab, { iPainelCad, iPasso, iPainelHab });
+  provar('a tira fica ACIMA da aba do cadastro — fora dela, como na Audição',
+    iPasso < iPainelCad && iPainelCad < iPainelHab, { iPasso, iPainelCad, iPainelHab });
+  provar('…e continua a ser uma faixa (o embrulho que recolhe com o corpo)',
+    /class="turmas-faixa" id="pf-faixa"/.test(pagina), null);
+  /* A FAIXA É IRMÃ DO `.col-form` — é isso que a põe acima das abas e não dentro de uma delas. */
+  const iFaixa = pagina.indexOf('id="pf-faixa"');
+  const iColForm = pagina.indexOf('id="professores-miolo"');
+  provar('…e vem imediatamente antes da coluna que tem as abas',
+    iFaixa < iColForm && iColForm - iFaixa < 600, { iFaixa, iColForm });
 
   provar('o nome do professor em foco é mostrado (e não um select de nomes)',
     /id="rubr-prof-nome"/.test(pagina) && !/id="rubr-professor"/.test(pagina), null);

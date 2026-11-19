@@ -7749,6 +7749,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * a regra `#pf-abas` do recolhimento garantia à mão.
      *
      * O MESMO ACONTECE NA AUDIÇÃO, e pelo mesmo motivo. */
+    /* A TIRA DOS PASSOS FICA FORA DA ABA, E ACIMA DELA (19/11/2026).
+     *
+     * «Em professores, você colocou os steps dentro de cadastro. Ele é acima do cadastro, ele é fora
+     * do cadastro. Aí o step só aparece quando eu estou na aba cadastro. Se eu mudar para
+     * habilitação, por exemplo, ele não pode aparecer, isso está certo. Mas o lugar onde você
+     * colocou os steps é que está errado.»
+     *
+     * E a referência é a Audição, onde a tira é a PRIMEIRA LINHA DO CORPO: irmã do `.col-form`,
+     * dentro da faixa, acima das abas. Aqui ela estava dentro do `.aba-painel` do Cadastro — e um
+     * passo dentro de uma aba é um passo que pertence à aba, quando o que ele descreve é a
+     * sequência de um trabalho que a aba contém. A posição é a mesma das Salas e da Audição: a
+     * faixa é filha directa do `.turmas-corpo`, antes do formulário.
+     *
+     * O QUE CONTINUA VERDADE: ela só se vê na aba «Cadastro» — quem a esconde nas outras duas é o
+     * `aoTrocar` do motor das abas (`MOTOR_DO_PROFESSOR`), e não um `hidden` escrito à mão que a
+     * primeira troca de aba esqueceria. */
+    '<div class="turmas-faixa" id="pf-faixa">' +
+    '<ol class="passos" aria-label="Etapas do cadastro do professor" id="pf-passos" data-editando="nao">' +
+    '<li><button type="button" class="passo ativo" data-passo-prof="cadastro" aria-current="step">' +
+    '<span class="passo-n">1</span> <span class="passo-t">Cadastro</span></button></li>' +
+    '<li><button type="button" class="passo" data-passo-prof="rubrica">' +
+    '<span class="passo-n">2</span> <span class="passo-t">Rubrica</span></button></li>' +
+    '</ol>' +
+    '</div>' +
     '<div class="col-form" id="professores-miolo">' +
     '<nav class="abas" role="tablist" aria-label="Professores — seções" id="pf-abas" data-abas="professor">' +
     ABAS_DO_PROFESSOR_HTML.map(([n, t], i) => '<button type="button" class="aba" role="tab" id="pf-aba-' + n + '" ' +
@@ -7789,27 +7813,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * página por `button.passo`. Uma chave igual faria a tira do professor mexer nos passos da
      * sala — a mesma armadilha que a 31/10/2026 obrigou a dar âmbitos diferentes à tira do verbete. */
     '<div class="aba-painel" id="pf-painel-cadastro" role="tabpanel" aria-labelledby="pf-aba-cadastro" tabindex="0">' +
-    /* A TIRA VEM DENTRO DA FAIXA (19/11/2026) — «aqui em professores você colocou o step fora do
-     * padrão. Observa como é que é o step, por exemplo, na audição. Tem que ser igual, é o mesmo
-     * padrão.»
-     *
-     * E ela tem razão na letra: na Audição a tira é `<div class="turmas-faixa"><ol class="passos">`,
-     * nas Salas a mesma coisa, e aqui o `<ol>` estava nu. A `.turmas-faixa` não é decoração — é ela
-     * que dá `grid-column:1/-1` (a tira atravessa o corpo em vez de ficar numa coluna), o
-     * `display:flex` com `min-width:0` (é o que faz o rótulo encurtar com reticências em vez de
-     * empurrar o passo para a linha de baixo no telefone), e é ela que a seta do título recolhe
-     * (`.secao[data-recolhido="sim"] .turmas-faixa{display:none}`). Sem o embrulho, a tira do
-     * professor não recolhia com o resto e não acompanhava o corpo.
-     *
-     * A peça está documentada em `IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba». */
-    '<div class="turmas-faixa" id="pf-faixa">' +
-    '<ol class="passos" aria-label="Etapas do cadastro do professor" id="pf-passos" data-editando="nao">' +
-    '<li><button type="button" class="passo ativo" data-passo-prof="cadastro" aria-current="step">' +
-    '<span class="passo-n">1</span> <span class="passo-t">Cadastro</span></button></li>' +
-    '<li><button type="button" class="passo" data-passo-prof="rubrica">' +
-    '<span class="passo-n">2</span> <span class="passo-t">Rubrica</span></button></li>' +
-    '</ol>' +
-    '</div>' +
     '<div id="pf-cadastro-paineis">' +
     '<div class="passo-painel" id="passo-prof-cadastro">' +
     // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
@@ -8074,7 +8077,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // essa vizinhança. O `.par-botoes` é a peça que o professor e a turma já usam, e é ela
     // que dá o vão. Não se inventou contentor novo.
     '<span class="par-botoes">' +
-    '<button type="button" class="acao" id="aluna-seguir">Seguir →</button>' +
+    /* «AVANÇAR», E NÃO «SEGUIR» (19/11/2026) — «o que for de step, a gente vai usar avançar.
+     * Então, aonde tiver seguir, vai se tornar avançar.» Um nome para o mesmo gesto em todas as
+     * secções com passos: a Sala, o Professor, a Aluna, a Audição e o Estilo. */
+    '<button type="button" class="acao" id="aluna-seguir">Avançar</button>' +
     '<button type="button" class="acao secundario" id="aluna-cancelar-1" hidden>Cancelar</button>' +
     '</span>' +
     '</div>' +
@@ -8550,7 +8556,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * mais (…) deixa de existir.»
      *
      * O QUE MUDA, e é uma coisa só: criar o exercício passa a ser um PASSO, o primeiro. Não há
-     * «+», não há modo, não há «Gravar exercício» nem «Cancelar» — o «Seguir →» que já existia é
+     * «+», não há modo, não há «Gravar exercício» nem «Cancelar» — o «Avançar» que já existia é
      * que grava o termo e avança. Quem está no passo 1 vê a tira, e a tira diz que há seis.
      *
      * O QUE NÃO SE PERDE. O exercício criado entra na lista do passo 2, no grupo da categoria, já
@@ -8590,7 +8596,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A CATEGORIA E A TRADIÇÃO COMEÇAM VAZIAS (02/11/2026). Os dois `<select>` nasciam com a
     // primeira opção JÁ ESCOLHIDA, e por isso os dois campos que ela mandou tornar obrigatórios
     // nunca podiam faltar: a tela perguntava «qual é a categoria?» mostrando «passo» como se
-    // fosse a resposta. Com o vazio à frente, a pergunta é uma pergunta — e o «Seguir →» recusa
+    // fosse a resposta. Com o vazio à frente, a pergunta é uma pergunta — e o «Avançar» recusa
     // enquanto não houver resposta.
     '<select id="vncategoria">' +
     '<option value="">— escolha a categoria —</option>' +
@@ -8635,7 +8641,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *   · `#vb-oficial` — a definição do dicionário como referência, com a explicação de onde se
      *     edita. Quando o exercício tem definição, ela JÁ CHEGA ao campo;
      *   · `#vb-vigor-nota` — «A categoria, a tradição e o que acontece entram em vigor quando houver
-     *     um exercício…». A regra é do servidor e o «Seguir» aplica-a; uma frase a anunciá-la é a
+     *     um exercício…». A regra é do servidor e o «Avançar» aplica-a; uma frase a anunciá-la é a
      *     tela a explicar-se em vez de a funcionar.
      *
      * A REGRA QUE ISTO REPÕE é a da casa, e está escrita no `provar-producao`: o formulário não
@@ -8745,7 +8751,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // ELA VIVE AQUI, E NÃO NUM PAINEL PRÓPRIO, desde a fusão de 01/11/2026: a frase nasce da
     // escolha do exercício (o dicionário responde à escolha), e a posição é a lista curta que
     // acompanha o mesmo exercício. Desde 02/11/2026 as três são o passo 2 — o exercício novo é
-    // o passo 1, e é o «Seguir →» dele que grava o termo antes de se chegar aqui.
+    // o passo 1, e é o «Avançar» dele que grava o termo antes de se chegar aqui.
     '<div class="passo-painel" data-passo="2" hidden>' +
     '<label class="campo-rotulo" for="vbnome">Exercício</label>' +
     '<select id="vbnome"><option value="">— escolha o exercício —</option></select>' +
@@ -8978,12 +8984,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</span>' +
     '<div class="res" data-res="verbetes"></div>' +
     '</div>' +
-    // A NAVEGAÇÃO. «Voltar» e «Seguir» são os mesmos em todos os passos; o «Gravar» aparece só
+    // A NAVEGAÇÃO. «Voltar» e «Avançar» são os mesmos em todos os passos; o «Gravar» aparece só
     // no último — o formulário passa a ter um fim, em vez de um botão que se pode carregar a
     // qualquer momento e que só o servidor sabe recusar.
     '<span class="par-botoes" id="vb-nav">' +
     '<button type="button" id="vb-voltar">← Voltar</button>' +
-    '<button type="button" class="acao" id="vb-seguir">Seguir →</button>' +
+    // «AVANÇAR», E NÃO «SEGUIR» (19/11/2026) — o mesmo nome do gesto em todas as secções com passos.
+    '<button type="button" class="acao" id="vb-seguir">Avançar</button>' +
     '<button type="submit" class="acao grande" id="vb-gravar" hidden>Gravar verbete</button>' +
     // GUARDAR COMO MÚSICA NOVA (02/11/2026). O «Gravar» de uma edição SUBSTITUI — se os tempos
     // mudaram, a música de onde se veio sai e o verbete fica com uma só. Esta caixa é a outra
@@ -9184,7 +9191,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A TRAVA É A DO VERBETE, com outro nome: `faltasDoPasso(n)` devolve o que falta,
      * `podeIrParaVerbete(n)` fecha os passos à frente, e a tira pinta. Nenhum caminho chega a um passo
-     * com falta nos anteriores — nem o clique na tira, nem o «Seguir», nem o passo lembrado ao
+     * com falta nos anteriores — nem o clique na tira, nem o «Avançar», nem o passo lembrado ao
      * reabrir a página.
      *
      * SEM NENHUMA ANAMNESE NADA DISTO EXISTE. O estado vazio é o único que não tem passo nenhum a
@@ -9295,7 +9302,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="res" data-res="linha-base"></div>' +
     '<span class="par-botoes" id="lb-nav">' +
     '<button type="button" class="acao secundario" id="lb-voltar" hidden>← Voltar</button>' +
-    '<button type="button" class="acao" id="lb-seguir">Seguir →</button>' +
+    // «AVANÇAR», E NÃO «SEGUIR» (19/11/2026) — o mesmo nome do gesto em todas as secções com passos.
+    '<button type="button" class="acao" id="lb-seguir">Avançar</button>' +
     /* O RÓTULO NASCE «Criar elenco» E PASSA A «Gravar elenco» QUANDO HÁ UM ABERTO (12/11/2026).
      * O `pintarTravasLb` reescreve-o a cada passo e a cada elenco aberto — ver a nota lá. O que
      * está aqui é só o estado de repouso, para a página nascer certa sem JavaScript. */
@@ -9314,7 +9322,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</span>' +
     /* POR QUE NÃO SE AVANÇA — ESCRITO, E NÃO SÓ NO `title` (07/11/2026).
      *
-     * O motivo de o «Seguir» estar apagado vivia num `title`, que só aparece a quem pára o rato
+     * O motivo de o «Avançar» estar apagado vivia num `title`, que só aparece a quem pára o rato
      * em cima. No telemóvel não aparece de todo. Esta linha diz o mesmo onde o professor está a
      * olhar, e desaparece quando não há nada a dizer. */
     '<p class="sub" id="lb-seguir-nota" hidden></p>' +
@@ -9529,6 +9537,57 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // e um formulário que se reabre sozinho depois de cada associação desfaria o recolhimento
     // que a pessoa acabou de pedir. `sessionStorage`, não a URL: a URL já é do menu.
     'var CHAVE_RECOLHIDO = "producao:form-recolhido";' +
+    /* O «CANCELAR» EXISTE SEMPRE QUE O FORMULÁRIO ESTÁ ABERTO (19/11/2026).
+     *
+     * E A DECLARAÇÃO VIVE AQUI, NO ALTO DO SCRIPT, POR UMA RAZÃO MEDIDA: o
+     * `definirFormularioRecolhido` corre no ARRANQUE, e a lista era uma `var` declarada muito mais
+     * abaixo. `var` não tem zona morta — vale `undefined` até à linha que a atribui —, e
+     * `undefined.length` lançava «Cannot read properties of undefined (reading 'length')» a cada
+     * carregamento, abortando o resto do script. É a terceira vez que esta armadilha custa a
+     * página nesta frente; a defesa é sempre a mesma: o que o arranque lê, nasce antes dele.
+     *
+     * «Toda vez que expandir o formulário para começar um formulário novo, um registro novo, toda
+     * vez que expandir para começar um registro novo, tem que ter o botão cancelar também, porque
+     * pode ser que a pessoa que está utilizando o sistema desista do processo e queira cancelar. Aí
+     * ela cancela em qualquer etapa do processo.»
+     *
+     * O QUE ESTAVA ERRADO. Cada secção tinha a sua regra, e as cinco eram diferentes: umas
+     * mostravam o botão só em edição, outras só quando havia um registo aberto, outra só quando o
+     * nome já estava escrito. No caminho de CRIAR — o mais comum — o botão não existia, e quem
+     * desistia tinha de sair pela seta do título ou recarregar a página.
+     *
+     * A REGRA PASSOU A SER UMA, e é a que ela descreveu: o formulário aberto é o que dá sentido ao
+     * botão. Recolhido, não há processo nenhum em curso para cancelar — e um botão que se vê sem
+     * efeito é a mesma mentira dos «Excluir» apagados sem motivo.
+     *
+     * É UMA FUNÇÃO SÓ porque são seis secções, e a cópia que ficasse de fora seria a que ninguém
+     * notaria até alguém desistir a meio de um cadastro e não ter por onde. */
+    'var CANCELARES = [' +
+    '  ["sec-professores", ["prof-cancelar", "rubr-cancelar"]],' +
+    '  ["sec-alunas", ["aluna-cancelar-1", "aluna-cancelar-2"]],' +
+    '  ["sec-turmas", ["t-cancelar", "vinc-cancelar"]],' +
+    '  ["sec-corpo", ["lb-cancelar"]],' +
+    '  ["sec-verbetes", ["vb-cancelar"]],' +
+    '  ["sec-curadorias", ["cu-cancelar"]]' +
+    '];' +
+    /* AS SALAS TÊM OUTRA ENGENHARIA DE RECOLHIMENTO — o miolo é `#turmas-paineis`, com chave
+     * própria, e não o `data-recolhido` da secção. É o mesmo desvio que o `cancelarOFormularioDe`
+     * já faz, e pela mesma razão: duas engrenagens, um nome só. */
+    'function formularioDaSecaoAberto(id){' +
+    '  if (id === "sec-turmas") return !formularioRecolhido();' +
+    '  return !secaoRecolhida(id);' +
+    '}' +
+    'function pintarCancelares(){' +
+    '  for (var i = 0; i < CANCELARES.length; i++) {' +
+    '    var aberto = formularioDaSecaoAberto(CANCELARES[i][0]);' +
+    '    for (var j = 0; j < CANCELARES[i][1].length; j++) {' +
+    '      var b = document.getElementById(CANCELARES[i][1][j]);' +
+    // `hidden` E NÃO `disabled`: um botão apagado continua a ocupar lugar e a pedir uma
+    // explicação; o que não existe não se explica.
+    '      if (b) b.hidden = !aberto;' +
+    '    }' +
+    '  }' +
+    '}' +
     /* O FORMULÁRIO NASCE COLAPSADO, E O ESTADO TEM TRÊS VALORES (18/11/2026).
      *
      * «quando abrir a primeira vez, deve estar colapsado». Antes, a chave ausente valia «aberto»
@@ -9585,6 +9644,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    seta.setAttribute("title", sim ? "Abrir o formulário" : "Recolher o formulário");' +
     '    seta.textContent = sim ? "▸" : "▾";' +
     '  }' +
+    // O «CANCELAR» DAS SALAS SEGUE O MESMO RECOLHIMENTO (19/11/2026) — ver `pintarCancelares`.
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '}' +
     'var CHAVE_FILTRO = "producao:filtro-turmas";' +
     'function lerFiltroDeTurmas() {' +
@@ -9717,6 +9778,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    seta.setAttribute("title", rotulo);' +
     '    seta.textContent = sim ? "\\u25B8" : "\\u25BE";' +
     '  }' +
+    // O «CANCELAR» ACOMPANHA O FORMULÁRIO (19/11/2026) — ver `pintarCancelares`. Aberto, ele
+    // existe em qualquer secção e em qualquer etapa; recolhido, não há processo a cancelar.
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '}' +
     /* ABRIR O FORMULÁRIO DA SECÇÃO — o gesto que o «Editar» e o «Derivar» fazem ANTES de
      * preencher (18/11/2026).
@@ -9735,6 +9799,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * uma secção ausente deixaria uma chave no `sessionStorage` para uma secção que não existe. */
     'function abrirOFormularioDe(idDaSecao){' +
     '  if (!document.getElementById(idDaSecao)) return;' +
+    /* AS SALAS ABREM PELA CHAVE DELAS (19/11/2026) — o desvio que o `cancelarOFormularioDe` já
+     * fazia, e que faltava do lado de abrir. O miolo das Salas é `#turmas-paineis`, com chave
+     * própria; `definirSecaoRecolhida` procura um `.col-form`, que nesta secção não existe. O
+     * resultado era o botão de abrir não abrir nada — e, com o «Cancelar» a depender da abertura,
+     * ele também não aparecer. É a mesma regra dos dois lados, e agora está nos dois. */
+    '  if (idDaSecao === "sec-turmas") { definirFormularioRecolhido(false); return; }' +
     '  definirSecaoRecolhida(idDaSecao, false);' +
     '}' +
     /* CANCELAR FECHA O FORMULÁRIO (18/11/2026).
@@ -10088,7 +10158,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A PÁGINA DOS BASTIDORES É UMA SÓ FOLHA DE `function`. A turma, o verbete e a linha de base
      * têm cada um a sua navegação por passos, e todos nasceram com o mesmo nome: `irParaPasso`.
      * Em JavaScript a última declaração vence — e a última era a da LINHA DE BASE. A partir de
-     * 05/11/2026 (quando ela chegou), o «Seguir» do verbete e o «Avançar» da turma chamavam a
+     * 05/11/2026 (quando ela chegou), o «Avançar» do verbete e o «Avançar» da turma chamavam a
      * navegação da linha de base: mudavam de painel para um sítio que não era o deles, ou não
      * mudavam nada. O sintoma que ela relatou foi «o botão Seguir está habilitado e não executa
      * nenhuma ação» — e era isto.
@@ -10185,11 +10255,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function aplicarEditando(){' +
     '  var editando = !!modoEditando();' +
-    // O «Cancelar» existe nos TRÊS passos e é o mesmo ato em qualquer um deles: sair da
-    // edição e voltar a um formulário vazio. Ele só aparece quando há edição para cancelar.
-    '  Array.prototype.slice.call(document.querySelectorAll("button.cancelar-edicao")).forEach(function(b){' +
-    '    b.hidden = !editando;' +
-    '  });' +
+    /* O «CANCELAR» NÃO DEPENDE MAIS DO MODO (19/11/2026). Ele existia nos três passos e aparecia
+     * só em edição — e no caminho de CRIAR, que é o mais comum, não havia como desistir a meio.
+     * Quem o mostra agora é `pintarCancelares`, pela abertura do formulário; o que fica nesta
+     * função é o estado de EDIÇÃO, que a tira usa para marcar os passos com «!». */
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '  var ol = document.querySelector("#sec-turmas ol.passos");' +
     '  if (ol) ol.setAttribute("data-editando", editando ? "sim" : "nao");' +
     '}' +
@@ -10890,11 +10960,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     /* O «CANCELAR» APARECE QUANDO HÁ O QUE CANCELAR (18/11/2026) — a mesma regra que a Audição
      * já usa para o dela: um botão de cancelar num formulário vazio é um botão que não faz nada. */
-    '  var c1 = document.getElementById("aluna-cancelar-1");' +
-    '  var c2 = document.getElementById("aluna-cancelar-2");' +
-    '  var escrito = String((document.getElementById("anome") || {}).value || "").trim() !== "";' +
-    '  if (c1) c1.hidden = !(alvo === 1 && escrito);' +
-    '  if (c2) c2.hidden = alvo !== 2;' +
+    /* O «CANCELAR» DA ALUNA SEGUE A REGRA ÚNICA (19/11/2026) — ver `pintarCancelares`. Ele pedia
+     * o apelido já escrito no passo 1, e um formulário aberto e ainda vazio ficava sem saída. Os
+     * dois botões existem (um por passo), e é o painel à vista que mostra o do passo: não é
+     * preciso decidir aqui qual deles se vê. */
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     /* O MOTIVO SÓ EXISTE NA DERIVAÇÃO (18/11/2026). Um cadastro novo não tem «motivo do ajuste» —
      * não houve ajuste nenhum. Na derivação, o motivo é o que a etiqueta da listagem vai mostrar,
      * e é o que ela pediu: «acrescente também o motivo, se tiver, do ajuste». */
@@ -11541,9 +11611,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function pintarAbasDaAudicao() { MOTOR_DA_AUDICAO.pintar(); }' +
     /* O GRUPO DO PROFESSOR — três abas que abrem sempre. A ordem é a do trabalho: primeiro o
      * cadastro (quem é a pessoa), depois o que ela sabe ensinar, depois o que fazer quando sai. */
+    /* A TIRA SÓ SE VÊ NA ABA DO CADASTRO (19/11/2026) — «o step só aparece quando eu estou na aba
+     * cadastro. Se eu mudar para habilitação, por exemplo, ele não pode aparecer».
+     *
+     * O GANCHO É O `aoTrocar`, e não um `hidden` escrito em cada sítio que troca de aba: a troca
+     * tem três portas (a tira, a folha do telemóvel e o teclado) e todas passam pelo motor. É a
+     * mesma solução que a Audição já usa para a faixa dela. */
     'var MOTOR_DO_PROFESSOR = motorDeAbas({' +
     '  nomes: ABAS_DO_PROFESSOR, nav: "pf-abas", prefixoAba: "pf-aba-", prefixoPainel: "pf-painel-",' +
-    '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: ""' +
+    '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: "",' +
+    '  aoTrocar: function(n){' +
+    '    var faixa = document.getElementById("pf-faixa");' +
+    '    if (faixa) faixa.hidden = String(n) !== "cadastro";' +
+    '  }' +
     '});' +
     'function abrirAbaDoProfessor(n) { MOTOR_DO_PROFESSOR.abrir(String(n)); }' +
     /* A ABA DO PROFESSOR PODE SER PEDIDA DE FORA — é o que faz o «Editar» de uma linha levar à
@@ -12088,7 +12168,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * tem a aluna, e o destino já a tem, pelo que nenhum dos dois volta a ser oferecido para ela.
      *
      * E O FORMULÁRIO ABERTO ACOMPANHA (09/11/2026). Se o professor estava a editar um dos dois
-     * elencos, as caixas do passo 2 ainda têm a aluna que acabou de mudar — e o «Seguir» seguinte
+     * elencos, as caixas do passo 2 ainda têm a aluna que acabou de mudar — e o «Avançar» seguinte
      * gravaria o elenco velho por cima do acto. O estado é relido do servidor (`editarLinha`),
      * no passo em que ele estava: é a mesma regra da transferência — o que fica no ecrã tem de ser
      * o que está guardado. */
@@ -12610,7 +12690,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  irParaPassoTurma("vincular");' +
     '});' +
     /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
-     * vive agora num sítio só — o passo 1 do verbete —, e quem o grava é o handler do «Seguir →»
+     * vive agora num sítio só — o passo 1 do verbete —, e quem o grava é o handler do «Avançar»
      * (`criarExercicioDoPasso1`). Dois handlers a POSTar na mesma rota era a redundância que esta
      * alteração veio eliminar; deixar o `getElementById` aqui rebentaria o script da página
      * inteira no primeiro carregamento (`null.addEventListener`). */
@@ -13411,11 +13491,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * no servidor nasce acesa. É a mesma pergunta — «há trabalho a meio?» —, e por isso é a mesma
      * função que a responde. */
     'function pintarCancelarDoProfessor(){' +
-    '  var editando = modoDoProfessor() === "editar" || !!professorEmFocoNaRegua();' +
-    '  ["prof-cancelar", "rubr-cancelar"].forEach(function(id){' +
-    '    var b = document.getElementById(id);' +
-    '    if (b) b.hidden = !editando;' +
-    '  });' +
+    /* A REGRA DO «CANCELAR» É UMA SÓ DESDE 19/11/2026 — ver `pintarCancelares`. Ele existia em
+     * edição e faltava a quem estava a CRIAR, que é o caminho mais comum; agora acompanha o
+     * formulário aberto, como em todas as outras secções. O que fica aqui é o que é só desta
+     * secção: a trava do passo 2 da tira. */
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '  var b2 = document.querySelector("#pf-passos button.passo[data-passo-prof=\\"rubrica\\"]");' +
     '  if (b2) {' +
     '    b2.disabled = !professorEmFocoNaRegua();' +
@@ -13799,6 +13879,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    mostrarElenco("");' +
     // E O FORMULÁRIO FECHA-SE (18/11/2026). Ver `cancelarOFormularioDe`.
     '    cancelarOFormularioDe("sec-curadorias");' +
+    // …E O BOTÃO SAI COM ELE (19/11/2026): quem decide se ele existe é `pintarCancelares`, a
+    // partir da abertura do formulário — não uma linha escrita à mão que a próxima porta esquece.
+    '    if (typeof pintarCancelares === "function") pintarCancelares();' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -15325,7 +15408,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function irParaPassoVerbete(n){' +
     // O `irParaPassoVerbete` É O COLOCADOR DO ESTADO, e não a guarda. Quem guarda é a INTERFACE: a tira
-    // desactiva os passos que ainda não se abrem, e o «Seguir» desactiva-se quando falta algo no
+    // desactiva os passos que ainda não se abrem, e o «Avançar» desactiva-se quando falta algo no
     // passo actual (ver `pintarNavegacao`). A distinção é de propósito — há chamadas internas que
     // precisam de pôr o passo sem passar pelo caminho do utilizador (o «Editar» de um verbete vai
     // ao 1; o «Limpar» vai ao 2; e as provas colocam-se no passo que medem).
@@ -15547,12 +15630,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que sair — uma edição, uma derivação, ou um trecho em correcção —, e apaga-se quando não há.
      * A alternativa era repetir o `hidden = false` em cada caminho que abre um verbete, e a
      * segunda cópia é a que fica para trás no dia em que aparecer um terceiro caminho. */
+    /* …E O DO ESTILO TAMBÉM (19/11/2026) — ver `pintarCancelares`. Ele exigia uma música aberta ou
+     * um trecho em correcção, e um verbete novo composto do passo 1 ao 5 não tem nem uma nem
+     * outra: quem desistia a meio não tinha por onde. */
     'function pintarCancelarDoVerbete(){' +
-    '  var b = document.getElementById("vb-cancelar");' +
-    '  if (!b) return;' +
-    '  var haQueCancelar = Boolean(MUSICA_ABERTA) || Boolean(EM_EDICAO)' +
-    '    || String((document.getElementById("vbacao") || {}).value || "") === "atualizar";' +
-    '  b.hidden = !haQueCancelar;' +
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '}' +
     /* O FORMULÁRIO DO ESTILO NASCE LIMPO, E CONTINUA LIMPO (18/11/2026).
      *
@@ -15618,7 +15700,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * É A SUBSTITUIÇÃO DOS DOIS BOTÕES QUE HAVIA. O «Gravar exercício» e o «Cancelar» existiam
      * porque o cadastro era um widget com vida própria, aberto por um «+». Como passo, ele não
-     * tem vida própria: o «Seguir →» que já existia é que o grava e avança — e quem não tem nada
+     * tem vida própria: o «Avançar» que já existia é que o grava e avança — e quem não tem nada
      * a criar avança sem gravar nada.
      *
      * A ORDEM É A DO GESTO. Só se avança depois de o termo estar no repositório (`criarTermo`, no
@@ -15708,7 +15790,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // à pergunta que o campo faz, e sem ela a pessoa não sabe se o que vai criar já existe — que é
     // exactamente o duplicado que ela pediu para não acontecer.
     '  pintarEstadoDoExercicio();' +
-    // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Seguir» e a tira repintam-se com ele.
+    // O PASSO 1 É O OBRIGATÓRIO DA PRÓPRIA ETAPA: o «Avançar» e a tira repintam-se com ele.
     '  pintarNavegacao();' +
     '}' +
     /* A ETIQUETA QUE DIZ «JÁ EXISTE» OU «É NOVO» (10/11/2026) — e, desde 18/11/2026, uma ETIQUETA
@@ -16890,13 +16972,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '});' +
     // ---------------------------------------------------------------------------
-    // O PASSO 1 GRAVA O EXERCÍCIO — e é o «Seguir →» que o faz (02/11/2026).
+    // O PASSO 1 GRAVA O EXERCÍCIO — e é o «Avançar» que o faz (02/11/2026).
     //
     // NÃO HÁ «+», NÃO HÁ «Gravar exercício», NÃO HÁ «Cancelar». O «+» existia para abrir um
     // cadastro que agora é um passo; os dois botões existiam porque o cadastro tinha vida
     // própria, e um passo não tem: avança-se com a navegação que já estava lá.
     //
-    // O `Enter` no nome faz o mesmo que o «Seguir →»: cria e avança. Sem isto, o `Enter` dentro
+    // O `Enter` no nome faz o mesmo que o «Avançar»: cria e avança. Sem isto, o `Enter` dentro
     // do passo 1 submetia `#form-verbete` — um verbete sem exercício nenhum.
     // ---------------------------------------------------------------------------
     'var campoNovo = document.getElementById("vnnome");' +
@@ -16907,7 +16989,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // E CADA TECLA PROCURA (10/11/2026). A ordem é a das consequências: primeiro reconhecer o
     // nome (que pode escolher o exercício e preencher os três campos), depois pintar a lista, e só
-    // no fim o estado do bloco — que é quem diz se o «Seguir» já pode. Ao contrário, o botão
+    // no fim o estado do bloco — que é quem diz se o «Avançar» já pode. Ao contrário, o botão
     // acendia um instante antes de os campos estarem preenchidos.
     '  campoNovo.addEventListener("input", function(){' +
     '    sincronizarNomeDigitado();' +
@@ -17034,7 +17116,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarFica();' +
     /* ESCREVER A DEFINIÇÃO TEM DE ACORDAR O «SEGUIR» (07/11/2026). A frase é um dos quatro
      * obrigatórios do passo 1 — e era a única que não repintava a navegação. Quem escrevia o
-     * nome, escolhia categoria e tradição e deixava a definição para o fim ficava com o «Seguir»
+     * nome, escolhia categoria e tradição e deixava a definição para o fim ficava com o «Avançar»
      * apagado e a dizer «falta o que acontece», já com a frase escrita: o botão nunca mais
      * acordava, porque nada voltava a chamar `pintarNavegacao`. */
     '    pintarNavegacao();' +
@@ -17095,10 +17177,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * quando eu clico em voltar de novo, ele volta para o step quatro e daí chega no step três.
      * Não pode isso, tá? Isso é um bug.»
      *
-     * O salto existia só no «Seguir»: ele pulava os passos do trecho porque, fora de um trecho em
+     * O salto existia só no «Avançar»: ele pulava os passos do trecho porque, fora de um trecho em
      * curso, a tira os apaga — e ir para um passo apagado é abrir um painel que o botão ao lado
      * diz estar fechado. O «Voltar» era `PASSO - 1` e não sabia nada disto, por isso parava em
-     * cada degrau que o «Seguir» tinha saltado: dois caminhos para a mesma travessia, e só um
+     * cada degrau que o «Avançar» tinha saltado: dois caminhos para a mesma travessia, e só um
      * deles sabia a regra.
      *
      * Agora é uma função, e os dois sentidos passam por ela. Com um trecho em curso
@@ -17825,7 +17907,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * este número, ela desaparecia do ecrã sem explicação — e o professor saberia que a fez. */
     'var ALUNAS_FORA_DO_CADASTRO = 0;' +
     // O PASSO EM QUE SE ESTÁ, e as faltas de cada passo. Uma variável, não um atributo no DOM: é
-    // o mesmo desenho do verbete, e é o que faz a tira e o «Seguir» responderem à mesma verdade.
+    // o mesmo desenho do verbete, e é o que faz a tira e o «Avançar» responderem à mesma verdade.
     'var LB_PASSO = 1;' +
     'var LB_TOTAL = ' + LB_PASSOS.length + ';' +
     // QUANTAS ALUNAS SE MOSTRAM — dez de cada vez, e cresce. A escola pode ter quatrocentos
@@ -17912,7 +17994,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A REGRA PASSA A SER UMA SÓ, e é a do botão: chega-se ao passo `n` quando todos os anteriores
      * estão completos (`podeIrParaLb`). O que o próprio passo `n` ainda exige não fecha a ENTRADA
-     * nele — fecha a saída, e é o «Seguir» que o diz. */
+     * nele — fecha a saída, e é o «Avançar» que o diz. */
     'function podeVerPasso(n) {' +
     '  var passo = Number(n) || 1;' +
     '  if (passo <= LB_PASSO) return true;' +
@@ -17957,7 +18039,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * Era `semNada || (...)` — a ausência de anamnese fechava a TIRA INTEIRA, e com ela o passo 1,
      * onde não se lê retrato nenhum. Quem fecha é `podeVerPasso(n)`, que desde 15/11/2026 é a
-     * mesma regra do «Seguir»: um passo à frente só abre quando os anteriores estão completos.
+     * mesma regra do «Avançar»: um passo à frente só abre quando os anteriores estão completos.
      *
      * O «aberto para ler, fechado para avançar» saiu com a excepção que o justificava. Um passo ou
      * abre, ou não abre — manter dois estados seria manter uma distinção que já não separa nada. */
@@ -17979,7 +18061,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    seguir.title = faltas.length ? "Para seguir, falta " + faltas.join(", ") + "." : "";' +
     /* A MESMA RAZÃO, À VISTA (07/11/2026). O `title` não se vê no telemóvel e só aparece a quem
      * pára o rato em cima — e era a única explicação de o botão estar apagado. A nota só existe
-     * quando o «Seguir» está visível E há falta: no último passo ele está escondido, e uma frase
+     * quando o «Avançar» está visível E há falta: no último passo ele está escondido, e uma frase
      * sobre um botão que não está lá é ruído. */
     '    var notaSeguir = document.getElementById("lb-seguir-nota");' +
     '    if (notaSeguir) {' +
@@ -18044,18 +18126,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O `hidden` É DO BOTÃO, E MUDOU DE DONO A 18/11/2026. Ele punha-se no `<p>` que agrupava —
      * porque o vão vazio de um grupo sem filhos se vê. O grupo desapareceu (o botão passou a ser
-     * irmão do «Voltar» e do «Seguir», na mesma barra), e esconder o grupo deixaria de esconder
+     * irmão do «Voltar» e do «Avançar», na mesma barra), e esconder o grupo deixaria de esconder
      * coisa nenhuma: o `#lb-linha-cancelar` já não existe, e uma função que procura um elemento
      * ausente devolve cedo e cala-se — o botão ficaria à vista para sempre, e o defeito seria o
      * oposto do que 09/11 corrigiu. */
+    /* O «CANCELAR» DO ELENCO SEGUE A REGRA ÚNICA (19/11/2026) — ver `pintarCancelares`. Ele
+     * aparecia só com um elenco ABERTO, e no caminho de criar não existia: quem começava um elenco
+     * novo e desistia não tinha por onde. O gesto de cancelar sem nada aberto já estava certo
+     * (`limparForm` + recolher), e é o que passa a estar à mão. */
     'function pintarCancelarLb() {' +
-    '  var modo = document.getElementById("lb-modo");' +
-    '  var b = document.getElementById("lb-cancelar");' +
-    '  if (!b) return;' +
-    '  b.hidden = !(modo && modo.value);' +
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '}' +
     // TROCAR DE PASSO É SÓ TROCAR DE PAINEL — e a trava vale para TODOS os caminhos: a tira, o
-    // «Seguir», o passo lembrado ao reabrir. Quem tenta chegar a um passo com falta nos anteriores
+    // «Avançar», o passo lembrado ao reabrir. Quem tenta chegar a um passo com falta nos anteriores
     // fica onde está.
     'function mostrarPassoLb(qual) {' +
     '  var n = Number(qual) || 1;' +
@@ -18080,7 +18163,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* A PASSAGEM GRAVA — E É AQUI, NUM SÍTIO SÓ (05/11/2026).
      *
      * O SINTOMA QUE ISTO FECHA. A tira dos cinco passos chamava `mostrarPassoLb` directamente;
-     * `gravarLinha` só corria no «Seguir» do passo 1 e no fim do 4. Quem clicasse «3» na tira
+     * `gravarLinha` só corria no «Avançar» do passo 1 e no fim do 4. Quem clicasse «3» na tira
      * chegava à leitura com `lb-modo` vazio — a linha existia na lista e o formulário não sabia
      * dela. A resposta era «grave a linha de base primeiro», e não havia onde clicar.
      *
@@ -18282,7 +18365,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      pintarAlunas([]);' +
     '      travarTudo();' +
     /* E A REGRA DE CADA PASSO TAMBÉM, QUE `travarTudo` JÁ NÃO FAZ (07/11/2026). Ele fechava a tira
-     * inteira; agora só fecha os botões que leem o acervo, e quem fecha «Seguir» e «Concluir» é
+     * inteira; agora só fecha os botões que leem o acervo, e quem fecha «Avançar» e «Concluir» é
      * `pintarTravasLb`. Sem esta linha, uma resposta de rede falhada deixava os dois acesos. */
     '      pintarTravasLb();' +
     '    });' +
@@ -18332,7 +18415,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não haver como criar elenco nenhum antes da primeira anamnese.
      *
      * O QUE CONTINUA FECHADO: os botões que dependem do acervo — ler as anamneses, carregar mais
-     * alunas, e o «Seguir» enquanto o passo actual tiver falta (quem o decide é `pintarTravasLb`,
+     * alunas, e o «Avançar» enquanto o passo actual tiver falta (quem o decide é `pintarTravasLb`,
      * que corre logo depois e conhece a regra de cada passo). */
     'function travarTudo() {' +
     '  ["lb-ler", "lb-mais"].forEach(function(id){' +
@@ -19035,7 +19118,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // ------------------------------------------------------------------ A GRAVAÇÃO
     //
-    // GRAVAR ACONTECE A CADA PASSAGEM (05/11/2026), e a primeira versão gravava só no «Seguir» do
+    // GRAVAR ACONTECE A CADA PASSAGEM (05/11/2026), e a primeira versão gravava só no «Avançar» do
     // passo 1 e no fim do 4. O defeito mediu-se na tela: a tira dos cinco passos levava ao 3 sem
     // gravar nada, o `lb-modo` continuava vazio, e o «Ler as anamneses» respondia «grave a linha de
     // base primeiro — a leitura fica guardada nela» a quem já tinha gravado e não tinha onde
@@ -22168,7 +22251,7 @@ async function fetch(request, env, extras) {
     /* O `antes` PODE ESTAR NO REPOSITÓRIO (05/11/2026). Quando o professor reabre uma linha de
      * base já concluída para lhe mexer, o rascunho ainda não existe: o que existe é o acto. É dele
      * que se herdam a `leitura` do passo 3, o `lida` (proveniência) e o vínculo `turma`. Sem esta
-     * linha, reabrir uma linha concluída apagava-lhe o vínculo à turma no primeiro «Seguir». */
+     * linha, reabrir uma linha concluída apagava-lhe o vínculo à turma no primeiro «Avançar». */
     const actoAnterior = idx === -1 && repoLinhas.activo
       ? await repoLinhas.vigente(decidido.linha.id).catch(() => null)
       : null;
@@ -22790,7 +22873,7 @@ async function fetch(request, env, extras) {
       return json(404, { ok: false, erro: 'turma não encontrada: ' + turma });
     }
     /* ============================================================================================
-     * O ACTO GRAVA-SE NO REPOSITÓRIO (05/11/2026) — e é AQUI, neste clique, e não a cada «Seguir».
+     * O ACTO GRAVA-SE NO REPOSITÓRIO (05/11/2026) — e é AQUI, neste clique, e não a cada «Avançar».
      *
      * A pesquisadora foi precisa: «quando o professor editar, ou criar a linha de base, ele vai lá
      * no step 4 dele e manda então concluir e enviar para a turma. Nesse momento tem que colocar
@@ -23307,7 +23390,7 @@ async function fetch(request, env, extras) {
       /* E O QUE JÁ EXISTE É APROVEITADO, E NÃO RECUSADO (07/11/2026).
        *
        * O DEFEITO, medido: o professor escrevia «Battement jeté» no passo 1 do verbete, a
-       * definição e a categoria, e o «Seguir» respondia `409 «Battement jeté» já está no
+       * definição e a categoria, e o «Avançar» respondia `409 «Battement jeté» já está no
        * vocabulário desta escola`. A requisição abortava, a tela ficava no passo 1, e o exercício
        * que já estava cadastrado — o que ele quer usar — não podia ser escolhido no passo 2. O
        * passo 1 é «que exercício é este»; se ele JÁ EXISTE, a resposta certa é ele, não o erro.

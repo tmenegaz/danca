@@ -566,8 +566,15 @@ feito:
    telemóvel — e é ele que a seta do título recolhe
    (`.secao[data-recolhido="sim"] .turmas-faixa { display: none }`). Um `<ol class="passos">` nu
    não tem nada disso.
-2. **A tira é a primeira linha do corpo da secção** — ou a primeira linha do `aba-painel`, quando
-   o trabalho inteiro mora dentro de uma aba (é o caso do Cadastro do professor).
+2. **A tira é a primeira linha do corpo da secção — e fica FORA das abas.** Ela é irmã do
+   `.col-form` (o que tem as abas), e não filha de um `.aba-painel`. Um passo dentro de uma aba é um
+   passo que pertence à aba, quando o que ele descreve é a sequência de um trabalho que a aba
+   contém. *(19/11/2026: «Em professores, você colocou os steps dentro de cadastro. Ele é acima do
+   cadastro, ele é fora do cadastro.» O do Professor estava dentro do `aba-painel` do Cadastro e
+   passou a ser o primeiro filho do `.turmas-corpo`, como na Audição.)* Quando o trabalho de passos
+   mora num trabalho que TAMBÉM tem abas, a tira fica acima delas e **só se vê na aba a que
+   pertence** — quem a esconde nas outras é o `aoTrocar` do motor das abas, e não um `hidden`
+   escrito à mão que a primeira troca esqueceria.
 3. **Um passo, um painel.** Um `<div class="passo-painel">` por passo; os que não estão à vista
    levam `hidden`, e é o motor da página que troca. Dois painéis abertos não são dois passos: são
    uma página com uma tira decorativa em cima.
@@ -585,7 +592,22 @@ feito:
    O passo é a ordem de um mesmo trabalho, e o segundo não existe antes do primeiro: a régua do
    professor é o passo 2 do cadastro dele porque não se avalia com uma régua que ainda não foi
    escrita. Quando um trabalho de vários passos vive dentro de uma aba, a aba é o guarda-chuva e a
-   tira fica lá dentro.
+   tira fica **em cima** dele.
+8. **Um nome só para o gesto de avançar: «Avançar».** *(19/11/2026: «o que for de step, a gente vai
+   usar avançar. Então, onde tiver seguir, vai se tornar avançar.»)* O botão que leva ao passo
+   seguinte diz **Avançar** nas cinco secções com passos (Sala, Professor, Aluna, Audição, Estilo) —
+   não «Seguir», não «Próximo». O de gravar diz o que grava («Gravar sala», «Gravar cadastrar
+   professor», «Gravar verbete», «Concluir elenco»), e o de recuar diz «Voltar». Três verbos, um
+   por gesto.
+9. **O «Cancelar» existe sempre que o formulário está aberto** — inclusive a criar. *(19/11/2026:
+   «toda vez que expandir o formulário para começar um registro novo, tem que ter o botão cancelar
+   também, porque pode ser que a pessoa desista do processo. […] quando clicar em cancelar […] vai
+   colapsar o acordeon que guarda o formulário.»)* Antes de hoje cada secção tinha a sua regra (só
+   em edição, só com um registo aberto, só com o primeiro campo escrito) e no caminho de CRIAR o
+   botão não existia. A regra passou a ser uma e é a que ela descreveu: **aberto o formulário, há
+   «Cancelar»; recolhido, não há** — e clicá-lo fecha o formulário e descarta o que se escreveu. É
+   uma função só (`pintarCancelares`, no script da Produção) porque são seis secções, e a cópia que
+   ficasse de fora seria a que ninguém notaria até alguém desistir a meio.
 
 **Onde está declarada.** No `<style>` da própria página da Produção (`motor/servidor/bastidores.js`),
 e não em `tools/templates/ciclo.css`: a peça nasceu na Produção e é lá que ela vive. O `<style>` da

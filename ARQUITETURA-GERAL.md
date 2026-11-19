@@ -277,6 +277,17 @@ E a lista de professores de um passo 2 **nasce vazia** até a modalidade ser esc
 que diz quem pode dar aquela sala, e oferecer a escola inteira antes disso deixava escolher quem talvez
 não possa.
 
+**AS TRÊS ACÇÕES DE UM FORMULÁRIO COM PASSOS TÊM UM NOME CADA (19/11/2026).** «Avançar» é o gesto de
+ir ao passo seguinte e não grava nada; «Voltar» recua; o de concluir diz o que conclui («Gravar
+sala», «Gravar cadastrar professor», «Gravar verbete», «Concluir elenco»). «Seguir» era um quarto
+nome para o primeiro gesto, e ficou: as cinco secções dizem «Avançar».
+
+E o **«Cancelar» existe sempre que o formulário está aberto** — também a criar, que é o caminho mais
+comum e era justamente o que não o tinha. Uma função só decide (`pintarCancelares`), a partir da
+abertura do formulário: seis secções com seis regras diferentes davam cinco maneiras de não haver
+botão. Clicá-lo descarta o que se escreveu e colapsa o acordeão que guarda o formulário — a mesma
+coisa que ele já fazia em edição.
+
 **A TURMA É UMA RELAÇÃO, E O CARTÃO DELA DIZ AS TRÊS PONTAS (12/11/2026).** Sala × elenco × conteúdo:
 a sala dá o ritmo e a régua, o elenco traz o corpo e o recorte, o conteúdo é o que se ensina (e vive
 no Estilo). Até aqui a relação estava numa **linha de prosa** (`.dono`), onde o nome da sala competia

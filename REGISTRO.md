@@ -52962,3 +52962,71 @@ não de uma lista fixa.
 `provar-pagina-do-professor` 17, `provar-regua-do-professor` 42, `provar-cadastro-visivel` 12,
 `provar-editar-professor-principal` 33, `provar-estado-da-turma` 28, `provar-producao` 147/159 (as
 mesmas 12), `check-identidade` ok.
+
+### 19/11/2026 — os passos acima da aba, «Avançar» em vez de «Seguir», e o «Cancelar» que faltava a quem cria
+
+> «Em professores, você colocou os steps dentro de cadastro. Ele é acima do cadastro, ele é fora do
+> cadastro. Aí o step só aparece quando eu estou na aba cadastro. Se eu mudar para habilitação, por
+> exemplo, ele não pode aparecer, isso está certo. Mas o lugar onde você colocou os steps é que está
+> errado.»
+
+> «O que for de step, a gente vai usar avançar. Então, onde tiver seguir, vai se tornar avançar. E
+> toda vez que expandir o formulário para começar um registro novo, tem que ter o botão cancelar
+> também, porque pode ser que a pessoa desista do processo. Aí ela cancela em qualquer etapa. E
+> quando ela clicar em cancelar, da mesma forma como funciona em editar, ela cancela o processo dela
+> de criação do novo registro e fecha e aí vai colapsar o acordeon que guarda o formulário.»
+
+**1. A tira do Professor subiu para fora da aba.** A posição certa é a da Audição: a faixa é a
+primeira linha do corpo, irmã do `.col-form` que tem as abas — não filha do `.aba-painel` do
+Cadastro. Um passo dentro de uma aba é um passo que pertence à aba, quando o que ele descreve é a
+sequência de um trabalho que a aba contém. Quem a esconde nas outras duas abas é o `aoTrocar` do
+motor (`MOTOR_DO_PROFESSOR`), e não um `hidden` escrito à mão: a troca de aba tem três portas — a
+tira, a folha do telemóvel e o teclado — e todas passam pelo motor.
+
+**2. «Seguir» passou a «Avançar»** nos três botões que ainda o diziam (Aluna, Audição, Estilo), e os
+comentários que os nomeavam foram atrás. As cinco secções com passos dizem o mesmo: a Sala e o
+Professor já diziam «Avançar».
+
+**3. O «Cancelar» existe sempre que o formulário está aberto — inclusive a criar.** Era aqui que as
+seis secções se comportavam de seis maneiras: `pintarCancelarDoProfessor` mostrava-o em edição;
+`pintarCancelarLb`, só com um elenco aberto; `pintarCancelarDoVerbete`, só com música aberta ou
+trecho em correcção; o da Aluna, só com o apelido já escrito; os das Salas dependiam de
+`modoEditando()`. No caminho de CRIAR — o mais comum — o botão não existia em nenhuma delas, e quem
+desistia tinha de sair pela seta do título ou recarregar a página. Passou a haver uma regra só,
+`pintarCancelares`: **aberto o formulário, há «Cancelar»; recolhido, não há** — e ela corre de dentro
+do `definirSecaoRecolhida` e do `definirFormularioRecolhido`, que são os dois sítios onde a abertura
+muda.
+
+**Dois defeitos apanhados a medir, e o primeiro é a armadilha de sempre:**
+
+- **a lista `CANCELARES` era uma `var` declarada muito abaixo** do `definirFormularioRecolhido`, que
+  corre no arranque. `var` não tem zona morta: valia `undefined`, e `undefined.length` lançava
+  «Cannot read properties of undefined (reading 'length')» a **cada carregamento**, abortando o resto
+  do script. É a terceira vez nesta frente que a ordem custa a página; a defesa foi a mesma —
+  o que o arranque lê nasce antes dele —, e a declaração subiu para o alto do script, com a nota do
+  porquê;
+- **`abrirOFormularioDe` não abria as Salas.** O `cancelarOFormularioDe` já tinha o desvio para a
+  chave própria delas (`#turmas-paineis`), e o lado de abrir não: `definirSecaoRecolhida` procura um
+  `.col-form`, que naquela secção não existe. O botão de abrir não abria nada — e, com o «Cancelar»
+  a depender da abertura, ele também não aparecia. A regra passou a estar nos dois lados.
+
+**Medido** — `experimentos/provar-passos-uniformes.js`, novo, 45 asserções em jsdom: **20 falham no
+`HEAD`, 45/45 agora**. A secção A mede a posição da tira pelas três fronteiras (antes da coluna, antes
+das abas, fora do painel) e a troca de aba pelo motor; a B mede os cinco botões e procura «Seguir»
+nos rótulos (e não no texto do documento, que inclui o `<script>`); a C mede as seis secções
+recolhidas e abertas; a D clica o «Cancelar» de cada uma e mede o efeito — formulário fechado, botão
+fora, campo limpo (nas Salas, a memória do formulário apagada, que é como a limpeza delas funciona).
+
+Uma asserção de `provar-regua-do-professor` mudou de sinal de propósito: ela afirmava que a tira
+estava **dentro** do painel do Cadastro, que é exactamente o que ela mandou corrigir. Agora afirma o
+contrário, e a bancada cresceu para 44.
+
+`IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba»: a regra 2 passou a dizer «fora das abas», e
+entraram as regras 8 («um nome só: Avançar») e 9 («o Cancelar existe sempre que o formulário está
+aberto»). `ARQUITETURA-GERAL.md` §3.3 diz o mesmo junto ao quadro do passo que compõe.
+
+**Bancadas, medidas:** `provar-passos-uniformes` 45, `provar-regua-do-professor` 44,
+`provar-pagina-do-professor` 17, `provar-salas-e-elencos` 132, `provar-abas-da-audicao` 125,
+`provar-acordeoes` ok, `provar-estado-da-turma` 28, `provar-teste` 41, `provar-sala-e-portao` 27,
+`provar-avancar-nao-grava` 24, `provar-cadastro-visivel` 12, `provar-editar-professor-principal` 33,
+`provar-turma-sem-professor` 23, `provar-producao` 147/159 (as mesmas 12), `check-identidade` ok.
