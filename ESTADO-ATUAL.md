@@ -4596,6 +4596,17 @@ commit próprio), a folha de **cada aula criada** (hoje **uma**) e a reancora.
 **Publicação:** depois do push, uma única carga ao ar para confirmar os cinco passos e a listagem na
 página publicada — é a conferência final, não a exploração (ver §12 e a regra da cota do ar).
 
+**PENDENTE — a listagem das ALUNAS CADASTRADAS no padrão dos nichos (19/11/2026).** Pedido dela, na
+letra: «Tem que ajustar agora a listagem das alunas cadastradas também, porque ela precisa seguir o
+mesmo padrão que a gente adota, por exemplo, em salas. Nós temos aqui nichos na listagem que organiza
+para não ficar bagunçado, porque alunas está cheia de etiquetas e de informações e está meio
+bagunçado isso.» **CONFIRMADO** no código: o cartão da aluna (`paginaProducao`, secção das alunas)
+acumula, na mesma linha, os selos (`livre`/`vinculada`/`desligada`, o da passagem anterior), a coluna
+«turmas · …», o atalho do elenco, os botões, a linha de cada vínculo de modalidade com professor e
+anamnese, e a nota da passagem — sem a grelha de **nichos** que o cartão da Sala usa para arrumar os
+mesmos factos. **Não foi tocado** nesta entrega, por ordem dela (primeiro a anamnese); o registo da
+correcção da anamnese está no `REGISTRO.md` a 19/11/2026.
+
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):

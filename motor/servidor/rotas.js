@@ -736,23 +736,6 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         'a anamnese está VINCULADA (PO: ' + estado.por.join(', ') + ') e a proveniência não a apaga — ' +
         'ajuste-a, que acrescenta um elo.', 409);
     }
-    /* O RETRATO CITADO POR UM ELENCO OU POR UMA TURMA NÃO SE APAGA (19/11/2026).
-     *
-     * A GUARDA PERGUNTAVA SÓ AO PO, e por isso passava por cima de dois factos que já existiam:
-     * o elenco guarda no `lida` o carimbo da anamnese que LEU para cada aluna, e a Turma declara
-     * quem a compõe. Apagar o retrato deixava o elenco a apontar para um documento que já não
-     * existe — e a lista da anamnese dizia «livre», que quer dizer exactamente «podes apagar isto,
-     * não há história». Havia: é o mesmo registo que sustenta a leitura do corpo na Audição.
-     *
-     * A frase diz o que prende, porque a saída é outra em cada caso: um elenco resolve-se na
-     * Audição (tirar a aluna do elenco é uma versão nova), uma Turma resolve-se em Turmas. */
-    const citacao = await porta.citacaoDaAnamnese(armazenamento, envelope, await elencoDaEscola());
-    if (citacao.citada) {
-      return recusar(
-        'esta anamnese está CITADA (' + citacao.por.join(', ') + ') e a proveniência não a apaga: '
-        + 'um elenco já leu este retrato, ou a aluna está numa turma. Ela fica como memória do '
-        + 'corpo daquele momento — e o retrato de hoje faz-se com «Novo registo».', 409);
-    }
     await porta.apagarEnvelope(armazenamento, params.id);
     return { ok: true, apagada: params.id };
   });

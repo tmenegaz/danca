@@ -53521,3 +53521,55 @@ Ficam vermelhas, e **já estavam** antes desta frente (conferido com o `motor/` 
 
 `ARQUITETURA-GERAL.md` §«A aluna desligada» ganhou «o apelido não é a pessoa» e «livre passou a
 querer dizer podes apagar isto»; `experimentos/README.md` a linha da bancada.
+
+#### Correção — 19/11/2026: a listagem da anamnese segue o documento, e não o meu palpite
+
+**A nota acima está errada em duas coisas, e o erro era meu.** Ela diz que a anamnese de uma aluna
+num elenco «passa a vinculada e deixa de oferecer Apagar», e que a guarda do `DELETE` passou a
+recusar o retrato «citado». Ambas contradizem o documento que já existia:
+
+- `experimentos/po/README.md` §7 — «A proveniência da anamnese» —, com a tabela dos estados
+  (`vinculada` / `solta` / `legado`) e a regra de gravação de cada um;
+- `ARQUITETURA-GERAL.md` §5.24 e a sua prova, que derivam o vínculo do `sujeitos` do PO somado ao
+  elenco da turma **que o PO observa**, e medem a negativa: **«a aluna de um elenco sem PO continua
+  livre»**.
+
+**O que fica, e é o que já estava certo:** a **identidade**. O apelido é rótulo; o `id` é a pessoa
+(`alunaId` do registo, `lida` do elenco → carimbo da anamnese → pessoa). É isso que faz a Aluna B
+nova ler «nova» em vez de «desligada», e a antiga continuar desligada com a sala onde esteve —
+confirmado por ela: «a etiqueta da aluna B está correta agora, ela de fato é uma aluna nova».
+
+**O que se desfaz:** o alargamento do cadeado (elenco que leu o retrato, Turma que declara a aluna)
+sai do selo e da validação. Sem PO não há observação, e um elenco sem PO **não** fecha a edição —
+é a regra escrita, e a validação tem de a cumprir.
+
+**O que se corrige, e responde ao que ela viu:** o selo do registo dizia `livre`, que é vocabulário
+da **Sala** («fora de turma»), para responder a «posso mexer neste retrato?». Passa a dizer as
+palavras do documento — **`solta`** (nenhum PO a referencia: edita-se e apaga-se), **`vinculada`**
+(um PO a usa), **`nova`** (sem turma e sem linha de base) e **`desligada`** —, e a linha diz ao
+lado o facto da pessoa («turma Rosa · linha de base «Tami»»), que é onde ele pertence: um selo
+responde a uma pergunta.
+
+**E a linha volta a ser uma por sujeito.** O agrupamento pelo `id` da pessoa partia a história de
+quem tem retratos anteriores à existência do id: na `breu` deu **quatro** linhas onde havia duas, com
+«Aluna A» escrita duas vezes. Duas anamneses do mesmo apelido são «duas versões do mesmo sujeito», e
+a estante mostra o vigente e diz quantas guardou.
+
+**Medido** — `experimentos/provar-a-homonima.js`, reescrita nas secções C e D: **21 asserções**, com
+as duas metades da regra (sem PO → `solta` e apagável; com PO a observar a turma → `vinculada`, sem
+`Apagar`, com «Novo registo»). **Controle negativo** contra o estado anterior (o meu): **4 falhas** —
+as duas linhas do mesmo sujeito, a ausência de «1 versão anterior guardada», o `vinculada` sem PO e o
+`Apagar` retirado.
+
+`provar-listas-do-acervo` 113, `provar-apagar-da-listagem` ok, `provar-alunas-da-anamnese` 16,
+`provar-anamnese-da-aluna-certa` 18, `provar-lista-que-falha` 39, `provar-listas-sem-repeticao` 17,
+`provar-vigente-na-listagem` 20 de 21 (a falha é anterior, e é a mesma com o `motor/` reposto),
+`check-identidade` ok.
+
+**PENDENTE — a listagem das ALUNAS CADASTRADAS.** Ela pediu-o no mesmo relato, para uma frente
+seguida: «Tem que ajustar agora a listagem das alunas cadastradas também, porque ela precisa seguir
+o mesmo padrão que a gente adota, por exemplo, em salas. Nós temos aqui nichos na listagem que
+organiza para não ficar bagunçado, porque alunas está cheia de etiquetas e de informações e está
+meio bagunçado isso.» O cartão da aluna hoje acumula selos, a linha do vínculo, o elenco e a
+passagem anterior sem a grelha de nichos do cartão da sala. **Não foi tocado nesta entrega**, por
+pedido dela: primeiro a anamnese.

@@ -742,16 +742,35 @@ O PO fica de fora deste fio, e diz-se: o resumo dele declara os `sujeitos` por a
 que elenco os tirou. Para ele vale a regra do primeiro titular — o que erra para o lado da memória,
 e é o que o dado permite sem inventar.
 
-**«LIVRE» PASSOU A QUERER DIZER «PODES APAGAR ISTO» — e por isso cresceu (19/11/2026).** «a aluna A
-na anamnese de alunos tá dizendo que ela é uma aluna livre. Mas essa aluna, ela tá diretamente
-ligada a um elenco que está ligado a uma turma. Então ela não é mais uma aluna livre.»
+**O SELO DA ANAMNESE DIZ O ESTADO DO *REGISTO*, NAS PALAVRAS DO DOCUMENTO (19/11/2026).** «a
+aluna A na anamnese de alunos tá dizendo que ela é uma aluna livre. Mas essa aluna, ela tá
+diretamente ligada a um elenco que está ligado a uma turma. Então ela não é mais uma aluna livre.»
 
-O selo `vinculada` perguntava só ao Plano de Observação; tudo o resto caía em «livre», e a linha
-oferecia «Apagar». Mas «livre» é a palavra que promete «não há história» — e havia: o **elenco que
-leu o retrato** (o `lida`) e a **Turma que a declara**. As duas entram agora no selo, e a guarda do
-`DELETE` pergunta o mesmo (`porta.citacaoDaAnamnese`): um registo citado não se apaga, e a recusa
-diz quem o cita. Um selo e uma guarda que discordam são a mesma família de defeito que a lista já
-conheceu — a tela a prometer o que o servidor recusa.
+O incómodo era justo, e a correcção não é alargar o cadeado — é **mudar a palavra**. O selo dizia
+`livre`, que é vocabulário da **Sala** («fora de turma»), para responder a outra pergunta: «posso
+mexer neste retrato?». O estado do registo tem nome próprio, e está escrito em
+`experimentos/po/README.md` §7 — «A proveniência da anamnese»:
+
+| Estado | Quando | O que se pode fazer | Selo |
+|:--|:--|:--|:--|
+| **vinculada** | um **PO** a declara em `sujeitos`, **ou** observa a turma em cujo elenco ela está | não edita nem apaga; acrescenta elo | `vinculada` |
+| **solta** | nenhum PO a referencia | edita e apaga | `solta` |
+| **nova** | a aluna ainda não tem turma **nem** linha de base | (é a porta de entrada) | `nova` |
+| **desligada** | a pessoa já não está em nada, e o registo é memória | edita e apaga (o cadastro é limpeza) | `desligada` |
+
+**O cadeado é o PO, e não a turma.** Foi tentado o contrário — «vinculada» quando um elenco leu o
+retrato ou quando a Turma declara a aluna — e está **errado por duas razões escritas**: o §5.24 e a
+sua prova dizem que o vínculo se deriva do `sujeitos` do PO somado ao elenco da turma **que o PO
+observa**; e a mesma prova mede a negativa — **«a aluna de um elenco sem PO continua livre»**. Sem
+PO não há observação: fechar a edição de um retrato que nada observa seria a validação a recusar o
+que a regra permite. Uma aluna numa turma sem PO lê `solta` — e a linha diz, ao lado, o facto da
+pessoa: «turma Rosa · linha de base «Tami»» (o facto que ela sabe vai na **nota**, e não num segundo
+selo — `IDENTIDADE-VISUAL.md`).
+
+E a **linha continua a ser uma por sujeito**: duas anamneses do mesmo apelido são «duas versões do
+mesmo sujeito», e a estante mostra o vigente e diz quantas guardou. Agrupar pelo `id` da pessoa
+partia a história de quem tem retratos anteriores à existência do id — e foi o que se mediu: quatro
+linhas onde havia duas, com «Aluna A» escrita duas vezes.
 
 **O que NÃO muda, e é deliberado.** O «Excluir» do **cadastro** continua habilitado: apagar o
 **apelido** é limpeza, e não remove o que ficou dela nos elencos, nos planos e na anamnese — o ato

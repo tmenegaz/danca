@@ -21,10 +21,6 @@ const ficha = require('./ficha.js');
  * aqui a união das alunas nem a diferença entre o declarado e o derivado. Duas cópias da mesma
  * regra divergem na primeira correcção, e a que ficasse para trás seria a que marca o «rever». */
 const recorte = require('./linha-de-base.js');
-/* A IDENTIDADE DA ALUNA — «de quem é este apelido nesta fonte» (19/11/2026). A regra é a mesma da
- * etiqueta da lista (`desligamento.estadoDaAluna`), e por isso vem do módulo dela em vez de ser
- * reescrita aqui: a guarda do «apagar» e a etiqueta têm de responder o mesmo. */
-const desligamento = require('./desligamento.js');
 
 // As chaves do armazenamento. O envelope vive sob `envelope/<id>.json` — a
 // MESMA notação que o disco sempre usou, para o adaptador Node ser o motor de
@@ -685,21 +681,7 @@ function listaDeResposta(envelope, id) {
  * anteriores: esconder sem o dizer é a família de defeito que este repositório mais evita.
  */
 const CONTEXTO_DO_REGISTO = {
-  /* A ANAMNESE AGRUPA-SE PELA PESSOA, E NÃO PELO APELIDO (19/11/2026).
-   *
-   * «Eu criei a aluna B e eu fiz a anamnese da aluna B.» — e a anamnese da aluna B ANTIGA (outro
-   * CPF, já fora da escola) era lida como versão anterior da dela, porque as duas dizem «Aluna B».
-   * O `alunaId` entrou no resumo a 18/11 exatamente para isto; a chave é que ficou para trás, e
-   * com ela a estante escondia um retrato atrás do outro. Ausente (todo o acervo anterior), cai no
-   * apelido — a regra de sempre, e a certa para quem não declarava id.
-   *
-   * O `id` da pessoa não substitui o apelido na frente: ele qualifica-o. Dois registos do mesmo
-   * nome distinguem-se pelo id; um registo sem id continua a agrupar-se com os do seu tempo. */
-  anamnese: (r) => (r.aluna
-    ? ['aluna', r.escola || '', r.aluna, String(r.alunaId || '').trim()]
-    : null),
-  // `plano` fica SEM chave, de propósito: ver o parágrafo acima. A derivação (`ajuste_de`) é o que
-  // o substitui, e dois planos da mesma turma e ciclo são dois documentos.
+  anamnese: (r) => (r.aluna ? ['aluna', r.escola || '', r.aluna] : null),
   plano: () => null,
   po: (r) => {
     const planos = (Array.isArray(r.plano) ? r.plano : []).map(String).filter(Boolean).sort();
@@ -2800,71 +2782,6 @@ async function elicitar(armazenamento, corpo, dados) {
   };
 }
 
-/**
- * O RETRATO QUE JÁ ESTÁ CITADO — e por quem (19/11/2026).
- *
- * O DEFEITO, na letra dela: «a aluna A na anamnese de alunos tá dizendo que ela é uma aluna livre.
- * Mas essa aluna, ela tá diretamente ligada a um elenco que está ligado a uma turma. […] Tá errado
- * também essa etiqueta.» E a segunda metade do pedido: «verificar as validações, porque as
- * validações que você tá usando estão erradas».
- *
- * A ETIQUETA E A GUARDA ERRAVAM JUNTAS. O `DELETE` só perguntava aos Planos de Observação, e por
- * isso apagava o retrato que um ELENCO já tinha lido (o `lida` da linha de base guarda o carimbo
- * da anamnese de cada aluna) e o de uma aluna que já está numa Turma. A etiqueta dizia «livre» —
- * «podes apagar isto, não há história» — sobre um registo do qual já havia história.
- *
- * AS DUAS FONTES, e a pergunta é a mesma da etiqueta:
- *   1. um elenco (não apagado) cujo `lida` aponta para ESTE carimbo — foi este retrato que ele leu;
- *   2. uma Turma vigente que declara a aluna, resolvida por identidade (o elenco da Turma diz de
- *      quem se trata; ver `desligamento.idDaAlunaNoElenco`).
- *
- * `por` nomeia cada uma, porque a recusa tem de dizer o que impede — e a pessoa tem de saber se o
- * que a prende é um elenco ou uma turma.
- */
-async function citacaoDaAnamnese(armazenamento, envelope, elenco) {
-  const carimbo = String((envelope && envelope.id) || '').trim();
-  const contexto = (envelope && envelope.contexto) || {};
-  const apelido = String(contexto.aluna || '').trim();
-  const dados = elenco || {};
-  const linhas = Array.isArray(dados.linhas) ? dados.linhas : [];
-  const curadorias = Array.isArray(dados.curadorias) ? dados.curadorias : [];
-  if (!carimbo || !apelido) return { citada: false, por: [] };
-
-  const por = [];
-  for (const l of linhas) {
-    if (!l || l.apagada_em || !l.lida) continue;
-    if (String(l.lida[apelido] || '').trim() === carimbo) {
-      por.push('elenco «' + String(l.nome || l.id || '') + '»');
-    }
-  }
-
-  /* A IDENTIDADE VEM DO ÍNDICE, e é a única leitura nova desta função — a mesma que a lista já
-   * faz para dizer de quem é cada retrato. Quem chama sem armazenamento (a bancada antiga) fica
-   * com o mapa vazio, e aí a resolução cai no apelido, que é a regra do acervo sem id. */
-  let anamneses = null;
-  if (armazenamento) {
-    try {
-      const { resumos } = await lerIndice(armazenamento);
-      anamneses = new Map();
-      for (const [nome, resumo] of Object.entries(resumos || {})) {
-        const id = String((resumo && resumo.id) || String(nome).replace(/\.json$/, ''));
-        const alunoId = String((resumo && resumo.alunaId) || '').trim();
-        if (id && alunoId) anamneses.set(id, alunoId);
-      }
-    } catch (erro) { anamneses = null; }
-  }
-  const alvo = String(contexto.alunaId || '').trim() || desligamento.idDoApelido(apelido);
-  const linhasPorId = new Map(linhas.filter((l) => l && l.id).map((l) => [String(l.id), l]));
-  for (const c of curadorias) {
-    if (!c || c.substituidaPor) continue;
-    if (!Array.isArray(c.alunas) || c.alunas.indexOf(apelido) === -1) continue;
-    if (desligamento.idDaAlunaNaCuradoria(c, apelido, linhasPorId, anamneses) !== alvo) continue;
-    const sala = (Array.isArray(c.turmas) && c.turmas.length ? c.turmas[0] : c.turma) || '';
-    por.push('turma «' + String(sala) + '»');
-  }
-  return { citada: por.length > 0, por };
-}
-
 module.exports = {
   revalidacaoPendente,
   ciclosDaEscola,
@@ -2924,6 +2841,5 @@ module.exports = {
   vigenteDoSujeito,
   estadosDasAnamneses,
   estadoDaAnamnese,
-  citacaoDaAnamnese,
   elicitar,
 };

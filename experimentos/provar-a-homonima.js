@@ -82,6 +82,7 @@ const resposta = (valor) => ({ valor });
 const NAM_ANTIGA_B = 'anamnese-20261117-1407';
 const NAM_NOVA_B = 'anamnese-20261119-1145';
 const NAM_A = 'anamnese-20261118-1737';
+const NAM_A_ANTIGA = 'anamnese-20261116-2201';
 const NAM_SOLTA = 'anamnese-20261120-0900';
 
 const LINHAS = [
@@ -115,10 +116,43 @@ const REGISTOS = [
 
 const ANAMNESES = new Map([[NAM_A, 'aluna-a-3']]);
 
-function envelope({ id, aluna, alunaId, professor }) {
-  const contexto = { escola: ESCOLA, professor: professor || 'demi-plie', ciclo: null, aluna };
+function envelope({ id, aluna, alunaId, professor, turma, plano, sujeitos }) {
+  const contexto = { escola: ESCOLA, professor: professor || 'demi-plie', ciclo: null };
+  if (aluna) contexto.aluna = aluna;
   if (alunaId) contexto.alunaId = alunaId;
-  return { id, contexto, respostas: {}, gerado_em: '2026-11-19T10:00' };
+  const respostas = {};
+  if (turma) respostas['contexto-turma'] = resposta(turma);
+  if (plano) respostas['plano-de-ensino'] = resposta([plano]);
+  if (sujeitos) respostas.sujeitos = resposta(sujeitos);
+  return { id, contexto, respostas, gerado_em: '2026-11-19T10:00' };
+}
+
+/** A LISTAGEM da Área do Professor, montada com os envelopes que o caso pede. */
+async function listagem({ anamneses, plano, po }) {
+  const kv = kvDeMentira();
+  const env = { ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', PADD_KV: kv };
+  const arm = producao.__armazenamento(env);
+  const docs = (anamneses || []).slice();
+  if (plano) docs.push(envelope(Object.assign({ id: plano.id, turma: plano.turma }, plano)));
+  if (po) {
+    docs.push(envelope({ id: po.id, plano: po.plano, professor: po.professor,
+      sujeitos: po.sujeitos || [] }));
+  }
+  for (const d of docs) await porta.gravarEnvelope(arm, d, relatorioDe(d.id));
+  const pagina = await listasDoAcervo.pagina('/area-do-professor/anamnese/', {
+    env, menu: null, escola: ESCOLA, curadorias: CURADORIAS, linhasDeBase: LINHAS,
+  });
+  const html = pagina ? pagina.html : '';
+  const cartoes = [...html.matchAll(/<li class="trio-plano"[\s\S]*?<\/li>/g)].map((m) => m[0]);
+  const semTags = (c) => c.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+  const daAluna = (nome, carimbo) => cartoes.find((c) => c.indexOf(carimbo) !== -1
+    && semTags(c).indexOf(nome) !== -1) || '';
+  const nomeDoCartao = (c) => {
+    const m = /<b>([\s\S]*?)<\/b>/.exec(c);
+    return m ? m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim() : '';
+  };
+  const quantas = (nome) => cartoes.filter((c) => nomeDoCartao(c) === nome).length;
+  return { html, cartoes, daAluna, quantas };
 }
 
 (async () => {
@@ -180,90 +214,96 @@ function envelope({ id, aluna, alunaId, professor }) {
   }
 
   /* ========================================================================================= */
-  console.log('\nC. A listagem da anamnese: os dois selos que ela leu errados');
+  console.log('\nC. A listagem da anamnese: uma linha por sujeito, e o selo do REGISTO');
 
   {
-    const kv = kvDeMentira();
-    const env = { ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', PADD_KV: kv };
-    const arm = producao.__armazenamento(env);
-    const docs = [
-      envelope({ id: NAM_ANTIGA_B, aluna: 'Aluna B' }),
-      envelope({ id: NAM_NOVA_B, aluna: 'Aluna B', alunaId: 'aluna-b-2', professor: 'bom-bom' }),
-      envelope({ id: NAM_A, aluna: 'Aluna A', alunaId: 'aluna-a-3' }),
-      envelope({ id: NAM_SOLTA, aluna: 'Aluna C' }),
-    ];
-    for (const d of docs) await porta.gravarEnvelope(arm, d, relatorioDe(d.id));
-
-    const pagina = await listasDoAcervo.pagina('/area-do-professor/anamnese/', {
-      env, menu: null, escola: ESCOLA, curadorias: CURADORIAS, linhasDeBase: LINHAS,
+    /* AS DUAS SITUAÇÕES QUE O DOCUMENTO DISTINGUE (`experimentos/po/README.md` §7, §5.24):
+     *   · o registo não está preso a nenhum Plano de Observação → `solta`: edita-se e apaga-se,
+     *     mesmo que a aluna esteja numa turma. É a negativa que a prova da regra mede — «a aluna de
+     *     um elenco **sem** PO continua livre»;
+     *   · um PO observa a turma em cujo elenco ela está → `vinculada`: só se acrescenta elo. */
+    const semPo = await listagem({
+      anamneses: [
+        envelope({ id: NAM_ANTIGA_B, aluna: 'Aluna B' }),
+        envelope({ id: NAM_NOVA_B, aluna: 'Aluna B', alunaId: 'aluna-b-2', professor: 'bom-bom' }),
+        envelope({ id: NAM_A, aluna: 'Aluna A', alunaId: 'aluna-a-3' }),
+        envelope({ id: NAM_A_ANTIGA, aluna: 'Aluna A' }),
+        envelope({ id: NAM_SOLTA, aluna: 'Aluna C' }),
+      ],
     });
-    const html = pagina ? pagina.html : '';
-    const cartoes = [...html.matchAll(/<li class="trio-plano"[\s\S]*?<\/li>/g)].map((m) => m[0]);
-    const semTags = (c) => c.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
-    const daAluna = (nome, carimbo) => cartoes.find((c) => semTags(c).indexOf(nome) !== -1
-      && c.indexOf(carimbo) !== -1) || '';
-
-    const novaB = daAluna('Aluna B', NAM_NOVA_B);
+    const novaB = semPo.daAluna('Aluna B', NAM_NOVA_B);
     provar('a anamnese da aluna B NOVA não leva o selo «desligada»',
-      novaB !== '' && !/selo legado">desligada</.test(novaB), novaB.slice(0, 260));
-    provar('…e ela é uma linha própria, não uma «versão anterior» da antiga',
-      novaB !== '' && !/versão anterior guardada/.test(novaB), novaB.slice(0, 260));
+      novaB !== '' && !/selo legado">desligada</.test(novaB), novaB.slice(0, 200));
+    provar('…e é a ÚNICA linha daquele sujeito — as duas versões do mesmo apelido são uma linha',
+      semPo.quantas('Aluna B') === 1, semPo.quantas('Aluna B'));
+    provar('…e a linha diz que guardou a anterior',
+      /1 versão anterior guardada/.test(novaB), novaB.slice(0, 200));
 
-    const daA = daAluna('Aluna A', NAM_A);
-    provar('a anamnese da aluna A leva «vinculada» — o elenco leu-a e a turma declara-a',
-      /class="selo vinculada"[^>]*>vinculada</.test(daA), daA.slice(0, 320));
-    provar('…e NÃO oferece «Apagar»', daA !== '' && !/data-apagar=/.test(daA),
-      (daA.match(/data-apagar="[^"]*"/) || [])[0]);
+    const daA = semPo.daAluna('Aluna A', NAM_A);
+    provar('sem PO, a aluna A está numa turma mas o registo é «solta» — o cadeado é do PO',
+      /class="selo livre"[^>]*>solta</.test(daA), daA.slice(0, 260));
+    provar('…e a linha diz a turma e a linha de base, que é o facto da PESSOA',
+      /turma Rosa · linha de base «Tami»/.test(daA), null);
+    provar('…e oferece «Apagar», porque nada a prende',
+      /data-apagar="/.test(daA), (daA.match(/data-apagar="[^"]*"/) || [])[0]);
+
+    /* COM O PO — o mesmo retrato, agora observado. É a outra metade da regra. */
+    const comPo = await listagem({
+      anamneses: [
+        envelope({ id: NAM_A, aluna: 'Aluna A', alunaId: 'aluna-a-3' }),
+        envelope({ id: NAM_SOLTA, aluna: 'Aluna C' }),
+      ],
+      plano: { id: 'plano-rosa', turma: 'Rosa', professor: 'demi-plie' },
+      po: { id: 'po-rosa', plano: 'plano-rosa', professor: 'demi-plie' },
+    });
+    const daAComPo = comPo.daAluna('Aluna A', NAM_A);
+    provar('com um PO a observar a turma, o registo passa a «vinculada»',
+      /class="selo vinculada"[^>]*>vinculada</.test(daAComPo), daAComPo.slice(0, 260));
+    provar('…e deixa de oferecer «Apagar»', !/data-apagar=/.test(daAComPo),
+      (daAComPo.match(/data-apagar="[^"]*"/) || [])[0]);
     provar('…e oferece «Novo registo», que é o gesto certo para um retrato novo',
-      /Novo registo/.test(daA), null);
-
-    const solta = daAluna('Aluna C', NAM_SOLTA);
-    provar('a anamnese de quem não está em nada continua «nova», e apagável',
-      /selo livre">nova</.test(solta) && /data-apagar=/.test(solta), solta.slice(0, 260));
+      /Novo registo/.test(daAComPo), null);
+    /* A ALUNA C não tem turma nem linha de base: é «nova», e nada a prende. É o outro ramo da
+     * mesma pergunta — o PO existe, mas não a observa. */
+    provar('a aluna C, que ninguém observa, continua «nova» e apagável',
+      /class="selo livre"[^>]*>nova</.test(comPo.daAluna('Aluna C', NAM_SOLTA))
+        && /data-apagar=/.test(comPo.daAluna('Aluna C', NAM_SOLTA)),
+      comPo.daAluna('Aluna C', NAM_SOLTA).slice(0, 200));
   }
 
   /* ========================================================================================= */
   console.log('\nD. A guarda do apagar pergunta o mesmo que o selo');
 
   {
-    const elf = { linhas: LINHAS, curadorias: CURADORIAS };
     const kv = kvDeMentira();
     const env = { ESCOLA_SLUG: ESCOLA, SENHA_ADMIN: 's', PADD_KV: kv };
     const arm = producao.__armazenamento(env);
     for (const d of [
       envelope({ id: NAM_A, aluna: 'Aluna A', alunaId: 'aluna-a-3' }),
-      envelope({ id: NAM_NOVA_B, aluna: 'Aluna B', alunaId: 'aluna-b-2' }),
-      envelope({ id: NAM_ANTIGA_B, aluna: 'Aluna B' }),
       envelope({ id: NAM_SOLTA, aluna: 'Aluna C' }),
+      envelope({ id: 'plano-rosa', aluna: null, turma: 'Rosa' }),
+      envelope({ id: 'po-rosa', aluna: null, plano: 'plano-rosa', sujeitos: [] }),
     ]) await porta.gravarEnvelope(arm, d, relatorioDe(d.id));
 
-    /* O CONTROLE NEGATIVO NÃO PODE REBENTAR AQUI. Sem a função (o código de antes), as asserções
-     * desta secção reprovam — que é o que se quer medir —, e não derrubam a bancada. */
-    provar('a guarda da citação existe no núcleo',
-      typeof porta.citacaoDaAnamnese === 'function', typeof porta.citacaoDaAnamnese);
-    const cit = async (id) => (typeof porta.citacaoDaAnamnese === 'function'
-      ? porta.citacaoDaAnamnese(arm, await porta.lerEnvelope(arm, id), elf)
-      : { citada: false, por: [], ausente: true });
+    const elenco = { linhas: LINHAS, curadorias: CURADORIAS };
+    const estado = async (id) => porta.estadoDaAnamnese(arm,
+      await porta.lerEnvelope(arm, id), elenco);
 
-    const daA = await cit(NAM_A);
-    provar('o retrato que o elenco leu está CITADO', daA.citada === true, daA);
-    provar('…e a citação nomeia o elenco', /elenco «Tami»/.test(daA.por.join(' · ')), daA.por);
-    provar('…e a Turma que a declara', /turma «Rosa»/.test(daA.por.join(' · ')), daA.por);
+    const daA = await estado(NAM_A);
+    provar('com o PO, o estado da anamnese da aluna A é «vinculada»',
+      daA.vinculada === true, daA);
+    provar('…e a recusa nomeia o PO', (daA.por || []).length > 0, daA.por);
 
-    const novaB = await cit(NAM_NOVA_B);
-    provar('o retrato da aluna B NOVA não é citado pelo elenco da homónima',
-      novaB.por.filter((p) => /elenco/.test(p)).length === 0, novaB.por);
-    provar('…nem pela Turma antiga', novaB.citada === false, novaB);
-
-    const solta = await cit(NAM_SOLTA);
-    provar('o retrato de quem não está em nada não está citado', solta.citada === false, solta);
+    const solta = await estado(NAM_SOLTA);
+    provar('a anamnese de quem ninguém observa é «solta»', solta.vinculada === false, solta);
   }
 
   console.log('\n' + (falhas
     ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
     : 'TUDO CERTO — ' + provas + ' asserções: o apelido é rótulo e o id é identidade; quem chegou '
-      + 'não herda a memória da homónima, e quem já está num elenco ou numa turma não se lê '
-      + '«livre» nem se apaga.'));
+      + 'não herda a memória da homónima; a listagem da anamnese diz o estado do REGISTO pelas '
+      + 'palavras do documento (solta/vinculada/nova), e o cadeado continua a ser o Plano de '
+      + 'Observação.'));
   process.exit(falhas ? 1 : 0);
 })().catch((erro) => {
   console.error('erro na prova:', erro && erro.stack ? erro.stack : erro);
