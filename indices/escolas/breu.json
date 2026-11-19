@@ -194,14 +194,14 @@
       "ciclo:demi-plie/01/breu"
     ],
     "contagens": {
-      "anamneses": 3,
+      "anamneses": 4,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
       "pos": 0,
       "recortes": 1,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -219,6 +219,7 @@
       "anamnese:anamnese-20261116-2201",
       "anamnese:anamnese-20261117-1407",
       "anamnese:anamnese-20261118-1737",
+      "anamnese:anamnese-20261119-1145",
       "plano:plano-20261119-1143"
     ],
     "slug": "breu"
@@ -226,11 +227,12 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
           "anamnese:anamnese-20261118-1737",
+          "anamnese:anamnese-20261119-1145",
           "plano:plano-20261119-1143"
         ],
         "rotulo": "2026",
@@ -291,6 +293,14 @@
     ],
     "professores": [
       {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261119-1145"
+        ],
+        "rotulo": "bom-bom",
+        "valor": "bom-bom"
+      },
+      {
         "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261116-2201",
@@ -305,11 +315,12 @@
     ],
     "tipos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
-          "anamnese:anamnese-20261118-1737"
+          "anamnese:anamnese-20261118-1737",
+          "anamnese:anamnese-20261119-1145"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -334,9 +345,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8e2a048"
+    "commit": "bfe52fa"
   },
-  "gerado_em": "2026-11-19T14:44",
+  "gerado_em": "2026-11-19T14:45",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -548,6 +559,16 @@
       "data": "2026-11-18T17:37",
       "id": "anamnese:anamnese-20261118-1737",
       "professor": "demi-plie",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261119-1145",
+      "ciclo": null,
+      "data": "2026-11-19T11:45",
+      "id": "anamnese:anamnese-20261119-1145",
+      "professor": "bom-bom",
       "tipo": "anamnese"
     },
     {
