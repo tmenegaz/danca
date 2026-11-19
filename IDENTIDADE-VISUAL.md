@@ -909,6 +909,67 @@ e é provada em **navegador** pela `experimentos/provar-proveniencia-e-turma.js`
 mede o vão do menu ao primeiro botão e o vão entre os dois botões, em 1280 e em 390, e exige
 ≥12px e ≥8px. Contra a folha de antes, **8 das 53** asserções reprovam.
 
+### A lista de cartões: o contentor, a ordem e a paginação *(19/11/2026)*
+
+Ela viu o Dicionário e disse o que estava errado, e a frase aponta para o sítio certo:
+
+> «A listagem do dicionário não está seguindo o padrão, porque categoria, tradição e complexidade
+> não ficam na mesma linha, ficam abaixo. […] Veja que em audição, quando a gente lista os elencos,
+> os nichos, alunas e recorte estão abaixo da descrição […] e no dicionário elas estão ao lado do
+> botão editar e excluir.»
+
+**A causa era o contentor, e não o cartão.** O cartão (`.trio-plano`) é `display:block` — uma
+coluna: nome, descrição, nichos. Mas ele estava dentro de um `<ul class="lista">`, e `.lista li` é
+`display:flex`: a ficha de UMA linha. O `display` do pai vence, o cartão sai deitado, e as caixas
+ficam espremidas ao lado dos botões. É a mesma armadilha que a Audição já tinha corrigido a
+05/11/2026 — «as três caixas ficavam com 110px numa coluna de 1200px, porque eram itens de uma
+fita».
+
+**As três regras, e valem para qualquer lista de cartões:**
+
+1. **O `<ul>` é `.trio-lista`** (ou o `.lb-cartoes` da página que o declara). **Nunca `.lista`** —
+   essa é a fita de linhas simples do gabinete.
+2. **A ordem é: nome e gestos, a descrição, e os nichos no fim.** `li.trio-plano` >
+   `div.trio-linha` (`.trio-nome` + `.trio-acoes`) > a linha de descrição (`.trio-frase`, ou
+   `.fatos`/`.trio-dono` para o que não é prosa) > `div.trio` (as caixas) > um `.trio-painel` por
+   caixa. Os gestos vão em `.trio-acoes`, nunca num `.acoes` inventado.
+3. **A lista pagina, e o cliente chama `paginar()` depois de a encher.** O rodapé `.paginas` nasce
+   `hidden` e é o `paginar()` que o acende — e ele corre **no arranque**, quando uma lista montada
+   pelo cliente ainda tem o «carregando…». Sem a chamada, a lista mostra tudo e o rodapé nunca
+   aparece. O selector «por página» vive na barra (`data-tamanho-de`), e não no rodapé.
+
+### As acções de uma lista não são uma coluna *(19/11/2026)*
+
+> «E aqui você inventou uma regra própria também de listagem que ficou no topo da página, no topo
+> das tabelas. E a gente tem uma regra própria que já existe e você não está seguindo ela.»
+
+O que eu inventei: um `.rail rail-esq` preso à esquerda com os botões do painel dentro. O `.rail`
+existe para uma coisa só — dar ao `.toc-local` um pai mais alto onde ele se possa prender —, e usá-lo
+como barra de acções era dar-lhe um segundo trabalho.
+
+**A regra que já existia é a `.acoes-da-lista`** (o «Ações» da Área do Professor, o «Seções» da
+Produção, o «Abas» da Audição): a **pílula** no telemóvel, que sobe a folha com os mesmos destinos, e
+os **blocos à vista** no computador — a pílula não aparece lá, por desenho. A marcação, uma vez:
+
+```
+<div class="acoes-da-lista" id="acoes">
+  <button class="acoes-do-menu pilula-do-menu" data-folha="acoes" aria-expanded="false"
+    aria-controls="acoes-menu">Ações<span class="seta-do-ato" aria-hidden="true">▾</span></button>
+  <div class="veu-do-menu" id="acoes-veu" hidden></div>
+  <div class="menu-de-acoes folha-do-menu" id="acoes-menu" hidden>
+    <span class="folha-puxador" aria-hidden="true"></span>
+    <ul class="menu-de-acoes-lista">… os mesmos destinos …</ul>
+  </div>
+  <p class="acoes-do-ato">… os destinos à vista, no computador …</p>
+</div>
+```
+
+**E as tabelas do painel também paginam** — a mesma `.paginas`, com o «por página» na barra. As
+escolas, os professores e os contatos crescem com a operação (os contatos guardam os últimos 200
+pedidos), e uma tabela que cresce sem rodapé é a lista que deixa de se ler. O script da paginação
+passou a vir **no casco** do painel, uma vez por documento: carregá-lo também no corpo registaria os
+ouvintes duas vezes, e um clique no «›» adiantaria duas páginas.
+
 ## O catálogo das PALETAS — três famílias, três implementadas *(fechado em 18/10/2026)*
 
 > **Não confundir com o «catálogo das peças»**, acima: aquele é o dos **componentes** (o que

@@ -447,13 +447,54 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
   colunas.push('<th>Estado</th>');
   if (recorte !== 'vivas') colunas.push('<th>Registo</th>', '<th>Recriar</th>');
 
-  return '<table>' +
+  /* A LISTA É PAGINADA — a regra da casa, e não uma tabela que cresce. Com treze escolas a
+   * tabela ainda cabe; com as que ela criar em dois anos, não. A `.paginas` é a MESMA peça das
+   * listas da Produção e do mês a mês do Financeiro, com o mesmo «por página» (10/20/50/100) na
+   * barra de cima. */
+  const id = recorte === 'apagadas' ? 'pa-lista-apagadas' : 'pa-lista-vivas';
+  return tabelaPaginada(id,
+    '<table>' +
     '<thead><tr>' + colunas.join('') + '</tr></thead>' +
     '<tbody>' + lista.map(linha).join('') + '</tbody>' +
     '</table>' +
     '<p class="aviso">A coluna «' + (recorte === 'apagadas' ? 'Professores' : 'Professor') +
     '» ordena quando se clica no título. A ordem em vigor é a de cima; a data continua a ser a ' +
-    'ordem natural desta lista.</p>';
+    'ordem natural desta lista.</p>', 'Escolas por página');
+}
+
+/**
+ * A BARRA «POR PÁGINA» — a peça da casa, e não uma nova (19/11/2026).
+ *
+ * A regra da paginação diz onde vive o selector de quantos por página: na barra de filtros
+ * (`.caixa.filtrar` + `.campo-filtro`), acima da lista, e não no rodapé — o rodapé é navegação. É
+ * o que o Financeiro já faz desde 16/11/2026, e é a mesma marcação que o `paginacao.js` reconhece
+ * pelo `data-tamanho-de`: o selector declara DE QUE painel manda, e a peça do núcleo trata do
+ * resto. Nenhuma classe nasce aqui, e nenhum script também.
+ */
+function barraDeTamanho(id, rotulo) {
+  return '<div class="caixa filtrar">' +
+    '<div class="campo-filtro">' +
+    '<label class="campo-rotulo" for="' + id + '-por-pagina">' + esc(rotulo) + '</label>' +
+    '<select id="' + id + '-por-pagina" data-tamanho-de="' + id + '">' +
+    [10, 20, 50, 100].map((n) => '<option value="' + n + '"'
+      + (n === 10 ? ' selected' : '') + '>' + n + '</option>').join('') +
+    '</select></div></div>';
+}
+
+/**
+ * UMA TABELA PAGINADA — o embrulho, que é o contrato da `.paginas`.
+ *
+ * O `data-paginar` vai no DIV que embrulha a tabela, e o rodapé é FILHO dele: o script procura o
+ * `[data-paginar]`, depois a lista (`[data-linhas]`, o `tbody` ou o `ul`) e o `.paginas` dentro
+ * dele. Um rodapé fora do embrulho não seria encontrado — e a lista ficaria a mostrar tudo com um
+ * rodapé inerte ao lado, que é o pior dos dois estados.
+ */
+function tabelaPaginada(id, tabela, rotulo) {
+  return barraDeTamanho(id, rotulo) +
+    '<div data-paginar data-por-pagina="10" id="' + id + '">' +
+    tabela +
+    paginacao.marcacao() +
+    '</div>';
 }
 
 /**
@@ -527,7 +568,11 @@ function tabelaDeProfessores(professores, escolas, ordem) {
       '</tr>';
   }).join('');
 
-  return '<table>' +
+  /* PAGINADA PELA MESMA PEÇA (19/11/2026). «Um professor pode estar em mais de uma escola» — a
+   * lista é a das PESSOAS, e ela cresce com a operação, não com o catálogo. O rodapé e o «por
+   * página» são os da casa, iguais aos das escolas e do Financeiro. */
+  return tabelaPaginada('pa-lista-professores',
+    '<table>' +
     '<thead><tr>' +
     thOrdenavel('Nome', 'nome', criterio, '/professores') +
     '<th>Pasta</th>' +
@@ -537,7 +582,7 @@ function tabelaDeProfessores(professores, escolas, ordem) {
     '</table>' +
     '<p class="aviso">A <strong>pasta</strong> é o identificador do professor — aparece nos caminhos ' +
     'do repositório e nos documentos, e não muda quando o nome muda. Quem ordena são os títulos ' +
-    '«Nome» e «Escolas vivas»: a segunda junta quem partilha escola.</p>';
+    '«Nome» e «Escolas vivas»: a segunda junta quem partilha escola.</p>', 'Professores por página');
 }
 
 /**
@@ -663,6 +708,20 @@ function pagina({ titulo, subtitulo, atual, corpo }) {
     '</header>' +
     '<main><div class="conteudo">' + corpo + '</div></main>' +
     '<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>' +
+    /* A PAGINAÇÃO VEM NO CASCO, E NÃO NA PÁGINA QUE A USA (19/11/2026).
+     *
+     * A regra da casa é a `.paginas` do `motor/nucleo/paginacao.js`: `data-paginar` +
+     * `data-por-pagina`, o rodapé que nasce `hidden` (com uma página só não aparece, e sem
+     * JavaScript a lista mostra tudo), e o selector «por página» que declara de quem é
+     * (`data-tamanho-de`). Ela era carregada só pela página do Financeiro — e por isso as tabelas
+     * das escolas, dos professores e dos contatos cresciam sem paginação nenhuma: os contatos
+     * guardam 200 pedidos numa tabela só.
+     *
+     * Fica no CASCO porque é o comportamento de TODAS as listas deste painel, e uma página que o
+     * esquecesse seria a próxima a crescer sem rodapé. UMA vez por documento: carregá-lo também no
+     * corpo (como o Financeiro fazia) registaria os ouvintes duas vezes, e um clique no «›»
+     * adiantaria duas páginas. */
+    '<script>' + paginacao.script + '</script>' +
     '<script src="/assets/nav.js"></script>' +
     '</body></html>';
 }
@@ -1313,8 +1372,14 @@ function paginaDosContatos({ contatos } = {}) {
     return '<span class="selo alerta" title="' + esc(e.aviso.motivo || 'motivo não declarado') + '">não saiu</span>';
   };
 
+  /* A LISTA DOS PEDIDOS É PAGINADA (19/11/2026) — e é a que mais precisava: o registo guarda os
+   * ÚLTIMOS 200 pedidos, e 200 linhas numa tabela só não se leem. A peça é a da casa (`.paginas` +
+   * «por página»), a mesma das escolas e dos professores.
+   *
+   * O `data-paginar` embrulha a TABELA — e o script acha as linhas pelo `tbody`, como já faz no
+   * mês a mês do Financeiro. */
   const corpo = lista.length
-    ? '<table>' +
+    ? tabelaPaginada('pa-lista-contatos', '<table>' +
       '<thead><tr><th>Quando</th><th>Nome</th><th>Escola</th><th>Como falar</th><th>Mensagem</th>' +
       '<th>Aviso</th><th>Estado</th></tr></thead>' +
       '<tbody>' + lista.map((e) => {
@@ -1343,6 +1408,8 @@ function paginaDosContatos({ contatos } = {}) {
           '</td>' +
           '</tr>';
       }).join('') + '</tbody></table>' +
+      /* O `.aviso` e o script do «lido» ficam DENTRO do embrulho: são do bloco, como o parágrafo
+       * das escolas. Só as LINHAS é que paginam — o embrulho não esconde o que não é linha. */
       '<p class="aviso">Cada linha é um pedido feito no «Fale conosco» do site. O pedido é gravado ' +
       'aqui <strong>e</strong> o aviso é enviado por e-mail para lastro@padd.com.br — a coluna ' +
       '«Aviso» diz se ele saiu. Um pedido com «não saiu» está nesta lista e não na sua caixa de ' +
@@ -1358,7 +1425,7 @@ function paginaDosContatos({ contatos } = {}) {
       '    .then(function (d) { if (d && d.ok) location.reload(); else b.disabled = false; })' +
       '    .catch(function () { b.disabled = false; });' +
       '});' +
-      '</script>'
+      '</script>', 'Pedidos por página')
     : '<div class="caixa nota">' +
       '<h2>Ninguém procurou ainda</h2>' +
       '<p>Quando alguém escrever pelo «Fale conosco» do site, o pedido aparece aqui — com o nome, ' +
@@ -1769,7 +1836,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       painel('mensalidades', blocoDasContas, true) +
       painel('chave', blocoDaChave, false) +
       painel('descontos', blocoDoDesconto + tabela, false) +
-      SCRIPT_DAS_ABAS + SCRIPT_DAS_CONTAS + '<script>' + paginacao.script + '</script>' +
+      SCRIPT_DAS_ABAS + SCRIPT_DAS_CONTAS +
       SCRIPT_DO_FINANCEIRO +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });

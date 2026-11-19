@@ -135,6 +135,34 @@ console.log('\nC. A listagem: os três nichos, com a peça da casa');
    * espaço branco faria ler «falhou» onde está «ainda não classificado». */
   provar('a complexidade em branco diz «—», e não um vazio',
     /t\.complexidade \|\| "—"/.test(script));
+
+  /* ── O CARTÃO SEGUE O DA AUDIÇÃO (19/11/2026) ─────────────────────────────────────────────
+   *
+   * A CORRECÇÃO. «A listagem do dicionário não está seguindo o padrão, porque categoria,
+   * tradição e complexidade não ficam na mesma linha, ficam abaixo. […] Em audição […] os nichos
+   * estão abaixo da descrição […] e no dicionário elas estão ao lado do botão editar e excluir.»
+   *
+   * A CAUSA ERA O CONTENTOR: `ul.lista` tem `li{display:flex}`, e um cartão (`li.trio-plano`,
+   * `display:block`) dentro dela sai deitado. O que se mede é o que a correcção mudou: o
+   * contentor, a ORDEM (nome → descrição → nichos) e a peça dos gestos. */
+  const secaoDicionario = html.slice(html.indexOf('id="sec-dicionario"'), html.indexOf('id="sec-verbetes"'));
+  provar('a lista é um `.trio-lista`, e não um `.lista` (a fita flex)',
+    /<ul class="trio-lista" id="lista-dicionario">/.test(secaoDicionario)
+      && !/<ul class="lista" id="lista-dicionario">/.test(secaoDicionario));
+  provar('os gestos vão na peça da linha do cartão (`.trio-acoes`)',
+    /class=\\"trio-acoes\\"/.test(script) || /trio-acoes/.test(script));
+  /* A ORDEM É A DO CARTÃO DA AUDIÇÃO: a linha do nome, a descrição, e os nichos NO FIM. */
+  const corpoDoCartao = script.slice(script.indexOf('function linhaDoDicionario'), script.indexOf('function carregarDicionario'));
+  const posNome = corpoDoCartao.indexOf('trio-linha');
+  const posFrase = corpoDoCartao.indexOf('trio-frase');
+  const posTrio = corpoDoCartao.indexOf('"<div class=\\"trio\\">"');
+  provar('…e a descrição vem DEPOIS do nome e ANTES dos nichos',
+    posNome !== -1 && posFrase > posNome && posTrio > posFrase, { posNome, posFrase, posTrio });
+  provar('a paginação é a da casa: `.paginas` dentro do `[data-paginar]`',
+    /<div class="col-lista" data-paginar data-por-pagina="7">/.test(secaoDicionario)
+      && /class="paginas"/.test(secaoDicionario));
+  provar('…e o cliente a chama depois de encher a lista',
+    /if \(typeof paginar === "function"\) paginar\(\);/.test(script));
 }
 
 /* ============================================================================================= */

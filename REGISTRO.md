@@ -53761,3 +53761,68 @@ Vizinhas, todas verdes: `provar-salas-e-elencos` 132, `provar-pagina-do-professo
 `provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `check-identidade` ok.
 
 `ARQUITETURA-GERAL.md` §5.29 documenta a regra; `experimentos/README.md` a linha da bancada.
+
+### 19/11/2026 — «Não está igual à listagem da audição» — o contentor do cartão, a paginação e o rail que eu inventei
+
+**O relato, e ele tem três partes.**
+
+> «A listagem do dicionário não está seguindo o padrão, porque categoria, tradição e complexidade
+> não ficam na mesma linha, ficam abaixo. […] Em audição […] os nichos, alunas e recorte estão
+> abaixo da descrição […] e no dicionário elas estão ao lado do botão editar e excluir. […]
+> Existe uma regra também para paginação […] Essa mesma regra você não seguiu no dança.padd.com.br
+> […] E aqui você inventou uma regra própria de listagem que ficou no topo da página, no topo das
+> tabelas.»
+
+**1. O cartão: a causa era o contentor, e não o cartão.** O `li.trio-plano` é `display:block` — uma
+coluna (nome, descrição, nichos). Mas a lista estava num `<ul class="lista">`, e `.lista li` é
+`display:flex`: a ficha de UMA linha. O `display` do pai vence, o cartão sai deitado, e as três
+caixas ficam espremidas ao lado dos botões. É a mesma armadilha que a Audição corrigiu a 05/11/2026
+(«as três caixas ficavam com 110px numa coluna de 1200px, porque eram itens de uma fita»).
+
+Corrigido para a peça declarada — `<ul class="trio-lista">`, `li.trio-plano`, `.trio-linha` com
+`.trio-nome` + `.trio-acoes`, a descrição em `.trio-frase` e os nichos em `div.trio` **abaixo** dela
+—, com os painéis em `.trio-painel` e `aria-controls` por cartão. Nenhuma classe nasceu.
+
+**2. A paginação: faltava a chamada, não a peça.** A regra existe escrita (`IDENTIDADE-VISUAL`,
+Quadro 1: `.paginas`, `data-paginar`/`data-por-pagina`, o rodapé que nasce `hidden`). O dicionário
+tinha a marcação toda e **não chamava `paginar()`** depois de o cliente encher a lista — e o
+`paginar()` corre no arranque, quando a lista ainda tem o «carregando…». Resultado: 98 verbetes numa
+página e nenhum rodapé. Uma linha resolveu.
+
+**3. A raiz: duas regras, e as duas eram minhas.** As tabelas das escolas, dos professores e dos
+contatos cresciam sem paginação (os contatos guardam 200 pedidos), e os botões do painel estavam num
+`.rail rail-esq` que eu inventei — uma coluna presa à esquerda. O `.rail` existe para uma coisa só:
+dar ao `.toc-local` um pai mais alto onde ele se grude.
+
+- **As quatro tabelas passaram a paginar** pela mesma `.paginas`, com o selector «por página»
+  (10/20/50/100) na barra `.caixa.filtrar` — a marcação do Financeiro, extraída em duas funções
+  (`barraDeTamanho`, `tabelaPaginada`) para não haver uma terceira cópia. O script da paginação
+  passou a vir **no casco** do painel: carregá-lo também no corpo (como o Financeiro fazia)
+  registaria os ouvintes duas vezes e um clique no «›» adiantaria duas páginas.
+- **Os botões passaram a ser a `.acoes-da-lista`**: a pílula «Ações» no telemóvel (que sobe a folha
+  com os mesmos destinos) e a fileira `.acoes-do-ato` à vista no computador. A coluna de 13rem
+  desapareceu, e a grade do painel ficou com duas: a prosa e o índice. Os dois gestos repetidos na
+  folha (`Criar nova escola`, `Apagar escola`) fecham a folha e chamam **os mesmos** `abrir` e
+  `abrirApagar` — duas cópias divergiriam na primeira correcção.
+
+**4. A complexidade nos 98 verbetes.** Ela mandou classificar o dicionário inteiro: passo, posição,
+direção e ligação → `simples`; salto e giro → `complexo`. Feito nos 93 das seis categorias — e os
+cinco que não caem nelas (`Aplomb`, de *conceito*; `Adagio`, `Allegro`, `Ballon`, `Legato`, de
+*qualidade*) ficaram à espera da resposta dela, que veio: **`complexo`**. O vocabulário ficou com
+**98 termos e 0 sem classificação**.
+
+**Medido.** `provar-dicionario` passou a **56** (cinco asserções novas: o contentor, a peça dos
+gestos, a ordem nome → descrição → nichos, a marcação da paginação e a chamada a `paginar()`).
+`provar-painel` — que exigia o rail com «os CINCO destinos» — foi reescrita para a regra nova, e
+passou a medir a **negativa** (o rail das acções não pode voltar) e os dois gestos da folha; de
+passagem corrigiram-se duas asserções que já reprovavam no `HEAD` (o rail do índice com `data-dono`,
+e as colunas das vivas, que cresceram a 25/11). Vizinhas verdes: `provar-financeiro` 58,
+`provar-acoes-da-linha` 75, `provar-contatos-do-site` 57, `provar-cofre-e-shard` 138,
+`provar-escola-a-nascer` 48, `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
+`check-identidade` ok.
+
+`IDENTIDADE-VISUAL.md` ganhou as duas secções — «A lista de cartões: o contentor, a ordem e a
+paginação» e «As acções de uma lista não são uma coluna» —, e o resumo delas está em
+`.github/instructions/identidade-visual.instructions.md`. As três armadilhas ficam escritas porque
+ela já disse o que custa isto: «cada vez que eu tenho que puxar pela minha memória, pode ser que eu
+invente uma outra».

@@ -8793,7 +8793,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Dicionário</h3>' +
-    '<div class="rolagem"><ul class="lista" id="lista-dicionario"></ul></div>' +
+    /* O CONTENTOR É `.trio-lista`, E NÃO `.lista` (19/11/2026) — a correcção do desenho.
+     *
+     * `.lista li` é `display:flex`: é a ficha de UMA linha, e serve as listas do gabinete. Um
+     * CARTÃO (`.trio-plano`, `display:block`, nome em cima e nichos em baixo) dentro dela perde o
+     * `display` para o pai e sai deitado — as três caixas ficam ao lado dos botões e espremidas na
+     * coluna que sobra. É o mesmo defeito que a Audição corrigiu a 05/11/2026 com o `.lb-cartoes`,
+     * e a peça certa é a declarada na folha: `.trio-lista`, o `<ul>` dos cartões. */
+    '<div class="rolagem"><ul class="trio-lista" id="lista-dicionario"></ul></div>' +
     rodapePaginacao() +
     '</div>' +
     '</section>' +
@@ -17343,22 +17350,43 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * ========================================================================================== */
     'var DICIONARIO = [];' +
     'function dicionarioCarregado(){ return DICIONARIO; }' +
-    /* AS TRÊS CAIXAS DO CARTÃO SÃO UM NICHO, e o nicho é a peça que a lista de salas já fixou
-     * (`.trio`/`.trio-item`/`.trio-painel`). Elas respondem às três classificações que ela pediu:
-     * «vai ter também a categoria que a gente contempla, vai ter também a tradição que a gente
-     * contempla e vai ter também […] complexidade». */
-    'function caixaDoDicionario(qual, rotulo, valor, dica){' +
+    /* ==========================================================================================
+     * O CARTÃO DO DICIONÁRIO É O CARTÃO DA AUDIÇÃO (19/11/2026 — correcção).
+     *
+     * «A listagem do dicionário não está seguindo o padrão, porque categoria, tradição e
+     * complexidade não ficam na mesma linha, ficam abaixo. […] Veja que em audição […] os nichos,
+     * alunas e recorte estão abaixo da descrição […] e no dicionário elas estão ao lado do botão
+     * editar e excluir.»
+     *
+     * A CAUSA ERA O CONTENTOR, e não o cartão: a lista estava num `<ul class="lista">`, e
+     * `.lista li` é `display:flex` — a ficha de UMA linha. O `li.trio-plano` é `display:block`
+     * (um CARTÃO, em coluna), mas o `display:flex` do pai vencia: a linha do nome e o `.trio`
+     * ficavam lado a lado, e as três caixas eram espremidas dentro da coluna que sobrava. É o
+     * mesmo defeito que a Audição já tinha corrigido a 05/11/2026, e a nota dela está lá:
+     * «as três caixas ficavam com 110px numa coluna de 1200px, porque eram itens de uma fita».
+     *
+     * A PEÇA É A DECLARADA: `.trio-lista` (o `<ul>`), `.trio-plano` (o `<li>`), `.trio-linha`,
+     * `.trio-nome`, `.trio-acoes`, `.trio-frase` (a descrição), `.trio-dono` (o complemento) e
+     * `.trio`/`.trio-item`/`.trio-painel`. Nenhuma classe nasce aqui.
+     *
+     * A ORDEM É A DA AUDIÇÃO: nome e gestos na linha de cima; a descrição por baixo; e os nichos
+     * POR ÚLTIMO, abaixo do que descreve o registo — que é onde ela os quer.
+     * ========================================================================================== */
+    'function caixaDoDicionario(qual, rotulo, valor, dica, sufixo){' +
     '  return "<button type=\\"button\\" class=\\"trio-item\\" data-balao=\\"" + qual +' +
-    '    "\\" aria-expanded=\\"false\\" aria-label=\\"" + dica + "\\">" +' +
+    '    "\\" aria-expanded=\\"false\\" aria-controls=\\"dic-p-" + qual + "-" + sufixo + "\\" " +' +
+    '    "aria-label=\\"" + dica + "\\">" +' +
     '    "<span class=\\"trio-k\\">" + rotulo + "</span>" +' +
     '    "<span class=\\"trio-v\\">" + escHtml(valor) + "</span>" +' +
     '    "<span class=\\"trio-q\\" aria-hidden=\\"true\\">?</span></button>";' +
     '}' +
-    'function painelDoDicionario(qual, miolo){' +
-    '  return "<div class=\\"trio-painel\\" data-painel=\\"" + qual + "\\" hidden>" + miolo + "</div>";' +
+    'function painelDoDicionario(qual, sufixo, miolo){' +
+    '  return "<div class=\\"trio-painel\\" data-painel=\\"" + qual + "\\" " +' +
+    '    "id=\\"dic-p-" + qual + "-" + sufixo + "\\" hidden>" + miolo + "</div>";' +
     '}' +
     'function linhaDoDicionario(t){' +
     '  var nome = String(t.termo || "");' +
+    '  var id = String(t.id || "");' +
     '  var cat = String(t.categoriaRotulo || t.categoria || "");' +
     '  var tra = String(t.tradicaoRotulo || t.tradicao || "");' +
     /* A COMPLEXIDADE VAZIA DIZ-SE (19/11/2026). «—» é uma resposta — «ainda não classificado» —, e
@@ -17368,22 +17396,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var selo = daEscola' +
     '    ? "<span class=\\"selo vinculada\\" title=\\"verbete declarado por esta escola\\">da escola</span>"' +
     '    : "<span class=\\"selo livre\\" title=\\"verbete do catálogo — a escola ainda não o adoptou\\">catálogo</span>";' +
-    '  return "<li class=\\"trio-plano\\" data-dicionario=\\"" + escHtml(String(t.id || "")) + "\\">" +' +
-    '    "<div class=\\"trio-linha\\"><span class=\\"trio-nome\\"><b>" + escHtml(nome) + "</b> " + selo +' +
-    '    "</span><span class=\\"acoes\\">" +' +
+    /* A DEFINIÇÃO VAI NUMA LINHA SÓ, abaixo do nome — como a descrição do elenco. É o que o
+     * registo É, e é o que ela lê antes de abrir os nichos. Vazia, não se desenha: uma linha em
+     * branco promete um texto que não existe. */
+    '  var frase = String(t.descricao || "").trim();' +
+    '  return "<li class=\\"trio-plano\\" data-dicionario=\\"" + escHtml(id) + "\\">" +' +
+    '    "<div class=\\"trio-linha\\">" +' +
+    '    "<span class=\\"trio-nome\\"><b>" + escHtml(nome) + "</b> " + selo + "</span>" +' +
+    '    "<span class=\\"trio-acoes\\">" +' +
     '      "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-dicionario=\\"" +' +
-    '        escHtml(String(t.id || "")) + "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" +' +
+    '        escHtml(id) + "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" +' +
     '      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-dicionario=\\"" +' +
-    '        escHtml(String(t.id || "")) + "\\" title=\\"Excluir este verbete do dicionário\\">Excluir</button>" +' +
+    '        escHtml(id) + "\\" title=\\"Excluir este verbete do dicionário\\">Excluir</button>" +' +
     '    "</span></div>" +' +
+    '    (frase ? "<p class=\\"trio-frase\\">" + escHtml(frase) + "</p>" : "") +' +
     '    "<div class=\\"trio\\">" +' +
-    '      caixaDoDicionario("categoria", "Categoria", cat || "—", "ver a categoria") +' +
-    '      caixaDoDicionario("tradicao", "Tradição", tra || "—", "ver a tradição") +' +
-    '      caixaDoDicionario("complexidade", "Complexidade", cplx, "ver a complexidade") +' +
+    '      caixaDoDicionario("categoria", "Categoria", cat || "—", "ver a categoria", id) +' +
+    '      caixaDoDicionario("tradicao", "Tradição", tra || "—", "ver a tradição", id) +' +
+    '      caixaDoDicionario("complexidade", "Complexidade", cplx, "ver a complexidade", id) +' +
     '    "</div>" +' +
-    '    painelDoDicionario("categoria", "<p class=\\"trio-nota\\">A categoria diz o que o exercício é na gramática — passo, salto, ligação, giro. É ela que agrupa a lista de exercícios do Estilo.</p>") +' +
-    '    painelDoDicionario("tradicao", "<p class=\\"trio-nota\\">A tradição diz de onde vem o nome. É a mesma que o «Método deste exercício» herda no Estilo.</p>") +' +
-    '    painelDoDicionario("complexidade", "<p class=\\"trio-nota\\">A complexidade é a classificação de quem ensina: o mesmo exercício é simples para quem já o tem e complexo para quem o está a aprender. «—» quer dizer ainda não classificado.</p>") +' +
+    '    painelDoDicionario("categoria", id, "<p class=\\"trio-nota\\">A categoria diz o que o exercício é na gramática — passo, posição, direção, ligação, salto ou giro. É ela que separa os exercícios na lista do Estilo.</p>") +' +
+    '    painelDoDicionario("tradicao", id, "<p class=\\"trio-nota\\">A tradição diz de onde vem o nome. É a mesma que o «Método deste exercício» herda no Estilo.</p>") +' +
+    '    painelDoDicionario("complexidade", id, "<p class=\\"trio-nota\\">A complexidade é a classificação de quem ensina: o mesmo exercício é simples para quem já o tem e complexo para quem o está a aprender. «—» quer dizer ainda não classificado.</p>") +' +
     '    "</li>";' +
     '}' +
     'function carregarDicionario(){' +
@@ -17394,6 +17428,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    DICIONARIO = d.termos || [];' +
     '    lista.innerHTML = DICIONARIO.map(linhaDoDicionario).join("") ||' +
     '      "<li>O dicionário está vazio — declare o primeiro exercício no formulário, ao lado.</li>";' +
+    /* A PAGINAÇÃO DEPOIS DE ENCHER (19/11/2026). O rodapé de páginas nasce `hidden` e é o
+     * `paginar()` que o acende — mas ele corre no arranque da página, quando esta lista ainda tem
+     * o «carregando…» de uma linha. Sem esta chamada, o dicionário com 30 verbetes mostrava os 30
+     * e nenhum rodapé: a regra da casa (`.paginas`, 7 por página nesta coluna) existia na folha e
+     * não chegava a esta lista. A MESMA armadilha vale para qualquer lista que o cliente preencha
+     * depois do arranque — a da Audição já a tinha resolvido no `carregarLinhas`. */
+    '    if (typeof paginar === "function") paginar();' +
     '  }).catch(function(err){' +
     '    lista.innerHTML = "<li>Erro: " + (err && err.message ? err.message : err) + "</li>";' +
     '  });' +

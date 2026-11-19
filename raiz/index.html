@@ -336,37 +336,66 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 
            Nenhuma das duas é escrita à mão no conteúdo: o corpo de `.conteudo` é regerado por
            `tools/gerar-raiz.sh`, e os rails ficam fora dele. -->
-      <div class="rail rail-esq">
-        <!-- O QUE É DO PAINEL LEVA `data-dono` (25/11/2026). A MESMA página serve os dois
-             endereços, e no público só fica o que é público: criar escola. O `data-dono` não
-             protege nada — quem protege é o servidor, que recusa estes caminhos no endereço
-             público. Ele só evita MOSTRAR uma porta que não abre: «Apagar escola» desenhado
-             numa página onde o pedido responde 404 é uma promessa que a página não cumpre. -->
-        <button class="acao secundario" id="btn-apagar" type="button" data-dono>Apagar escola</button>
-        <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
-        <a class="acao secundario" href="/escolas-apagadas" data-dono>Ver só as apagadas</a>
-        <a class="acao secundario" href="/escolas-vivas" data-dono>Ver só as vivas</a>
-        <a class="acao secundario" href="/professores" data-dono>Professores</a>
-        <!-- QUEM PROCUROU O SISTEMA (18/11/2026). «Eu preciso ter um lugar lá no painel para poder
-             acessar quem me procurou.» É do dono pela mesma razão do Financeiro: são pedidos
-             dirigidos a ela, com o e-mail e o telefone de quem escreveu. No público o botão não
-             chega ao HTML, e o caminho responde 404 — a marca aqui é a segunda barreira. -->
-        <!-- O SININHO (18/11/2026) — «vale a pena colocar um sininho aqui em contatos sinalizando
-             para mim que chegou uma mensagem […], sempre sinalizando que chegou uma mensagem».
-             O número é o dos pedidos POR LER, e vem de `GET /api/contatos/quantos`, que lê a
-             mesma lista que a página mostra: um contador à parte passaria a divergir dela no dia
-             em que uma marca de lido falhasse. O selo nasce escondido e só aparece quando há o
-             que anunciar — «0» ao lado de um botão é ruído, não aviso. -->
-        <a class="acao secundario" href="/contatos" data-dono>Contatos<span class="selo alerta"
-          id="contatos-por-ler" hidden></span></a>
-        <!-- O FINANCEIRO É DO DONO E SÓ DELE (25/11/2026): uma chave Pix e uma lista de descontos
-             são a conta e a negociação dela. No público o botão nem chega ao HTML, e no servidor
-             o caminho responde 404 — a marca aqui é a segunda barreira, não a primeira. -->
-        <a class="acao secundario" href="/financeiro" data-dono>Financeiro</a>
-        <!-- O MONITORAMENTO (17/11/2026). «Eu preciso também de um monitor aqui no
-             danca.padd.com.br, um botão que vai ser monitoramento.» É do dono pela mesma razão do
-             Financeiro: as cotas, os custos e a receita são a conta dela. -->
-        <a class="acao secundario" href="/monitoramento" data-dono>Monitoramento</a>
+      <!-- AS ACÇÕES DA PÁGINA SÃO A PEÇA DA CASA (19/11/2026), e não um rail que eu inventei.
+           «A gente tem uma regra própria que já existe e você não está seguindo ela.»
+
+           A REGRA É A DO `.acoes-da-lista`, e ela tem duas metades: no TELEMÓVEL a pílula
+           «Ações» (a mesma do «Seções» da Produção) sobe uma folha com a lista; no COMPUTADOR a
+           pílula não aparece e os blocos ficam à vista. O desenho é da folha — `.acoes-da-lista`,
+           `.acoes-do-menu`, `.pilula-do-menu`, `.menu-de-acoes`, `.veu-do-menu`,
+           `.menu-de-acoes-item`, `.folha-puxador`, `.acoes-do-ato` —, e nenhuma classe nasce
+           aqui.
+
+           O QUE ISTO SUBSTITUI. Os mesmos botões viviam num `.rail rail-esq` preso à esquerda,
+           que era a COLUNA DO ÍNDICE (o `.rail` existe para o `.toc-local` ter onde grudar) a
+           fazer de barra de acções: uma segunda regra de listagem, inventada, no topo da página.
+
+           O QUE É DO PAINEL CONTINUA MARCADO COM `data-dono` (25/11/2026): a mesma página serve
+           os dois endereços, e no público só fica o que é público — criar escola. A marca não
+           protege nada (quem protege é o servidor, que responde 404 a estes caminhos); ela evita
+           MOSTRAR uma porta que não abre. -->
+      <div class="acoes-da-lista" id="acoes">
+        <button type="button" class="acoes-do-menu pilula-do-menu" id="acoes-botao"
+          data-folha="acoes" aria-expanded="false" aria-controls="acoes-menu">Ações<span
+            class="seta-do-ato" aria-hidden="true">&#9662;</span></button>
+        <div class="veu-do-menu" id="acoes-veu" hidden></div>
+        <div class="menu-de-acoes folha-do-menu" id="acoes-menu" hidden>
+          <span class="folha-puxador" aria-hidden="true"></span>
+          <ul class="menu-de-acoes-lista">
+            <li><button type="button" class="menu-de-acoes-item" id="acoes-criar">Criar nova escola</button></li>
+            <li><button type="button" class="menu-de-acoes-item" id="acoes-apagar" data-dono>Apagar escola</button></li>
+            <li><a class="menu-de-acoes-item" href="/escolas-vivas" data-dono>Ver só as vivas</a></li>
+            <li><a class="menu-de-acoes-item" href="/escolas-apagadas" data-dono>Ver só as apagadas</a></li>
+            <li><a class="menu-de-acoes-item" href="/professores" data-dono>Professores</a></li>
+            <!-- QUEM PROCUROU O SISTEMA (18/11/2026). «Eu preciso ter um lugar lá no painel para
+                 poder acessar quem me procurou.» É do dono pela mesma razão do Financeiro: são
+                 pedidos dirigidos a ela, com o e-mail e o telefone de quem escreveu.
+
+                 O SININHO — «vale a pena colocar um sininho aqui em contatos sinalizando para mim
+                 que chegou uma mensagem». O número é o dos pedidos POR LER, e vem de
+                 `GET /api/contatos/quantos`, que lê a mesma lista que a página mostra: um contador
+                 à parte passaria a divergir dela no dia em que uma marca de lido falhasse. O selo
+                 nasce escondido — «0» ao lado de um botão é ruído, não aviso. -->
+            <li><a class="menu-de-acoes-item" href="/contatos" data-dono>Contatos<span
+              class="selo alerta" id="contatos-por-ler-folha" hidden></span></a></li>
+            <!-- O FINANCEIRO É DO DONO E SÓ DELE (25/11/2026): uma chave Pix e uma lista de
+                 descontos são a conta e a negociação dela. -->
+            <li><a class="menu-de-acoes-item" href="/financeiro" data-dono>Financeiro</a></li>
+            <!-- O MONITORAMENTO (17/11/2026): as cotas, os custos e a receita. -->
+            <li><a class="menu-de-acoes-item" href="/monitoramento" data-dono>Monitoramento</a></li>
+          </ul>
+        </div>
+        <p class="acoes-do-ato">
+          <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+          <button class="acao secundario" id="btn-apagar" type="button" data-dono>Apagar escola</button>
+          <a class="acao secundario" href="/escolas-vivas" data-dono>Ver só as vivas</a>
+          <a class="acao secundario" href="/escolas-apagadas" data-dono>Ver só as apagadas</a>
+          <a class="acao secundario" href="/professores" data-dono>Professores</a>
+          <a class="acao secundario" href="/contatos" data-dono>Contatos<span class="selo alerta"
+            id="contatos-por-ler" hidden></span></a>
+          <a class="acao secundario" href="/financeiro" data-dono>Financeiro</a>
+          <a class="acao secundario" href="/monitoramento" data-dono>Monitoramento</a>
+        </p>
       </div>
       <div class="rail rail-dir" data-dono>
         <div id="indice-da-pagina"></div>
@@ -572,8 +601,12 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
              a grade global de duas colunas reservaria 17rem vazios à direita — a lista de
              escolas ficava a olhar para uma coluna fantasma.
 
-             Agora a grade é explícita e de TRÊS colunas: 13rem de ações, a prosa, e 15rem de
-             índice. O topo segue a medida de 1180px, que é a mesma da grade. */
+             A GRADE PASSOU A DUAS COLUNAS (19/11/2026), com a peça da casa no lugar do rail.
+             Eram três — 13rem de acções, a prosa e 15rem de índice —, e a coluna das acções era
+             um `.rail` preso à esquerda que eu tinha inventado. As acções passaram a
+             `.acoes-da-lista`, que é um BLOCO acima da lista (e uma folha no telemóvel), e não
+             uma coluna: o que sobra é a prosa e o índice, que é o que a página tem. O topo segue
+             a medida de 1180px, que é a mesma da grade. */
           @media (min-width: 1200px) {
             header.doc,
             main,
@@ -583,63 +616,27 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             }
 
             main {
-              grid-template-columns: 13rem minmax(0, 1fr) 15rem;
+              grid-template-columns: minmax(0, 1fr) 15rem;
             }
 
-            .conteudo {
-              grid-column: 2;
-              grid-row: 1;
-              max-width: none;
-            }
-
-            .rail.rail-esq {
+            /* AS ACÇÕES E A PROSA NA MESMA COLUNA, uma linha cada (19/11/2026). O bloco das
+               acções fica ACIMA da prosa — é onde as acções de uma lista vivem —, e o índice
+               atravessa as duas linhas, à direita. */
+            .acoes-da-lista {
               grid-column: 1;
               grid-row: 1;
             }
 
+            .conteudo {
+              grid-column: 1;
+              grid-row: 2;
+              max-width: none;
+            }
+
             .rail.rail-dir {
-              grid-column: 3;
-              grid-row: 1;
+              grid-column: 2;
+              grid-row: 1 / span 2;
             }
-
-            /* O PRESO É A COLUNA, e ela não estica (`align-self: start`): um item de grade
-               esticado ocupa toda a altura do conteúdo e não tem para onde grudar. É a mesma
-               razão do `.rail` da folha, resolvida no próprio elemento porque aqui não há um
-               filho único a prender — há quatro botões. */
-            .rail.rail-esq {
-              position: sticky;
-              /* O MESMO `top` do índice (`.toc-local`, na folha): as duas colunas começam
-                 na mesma linha horizontal — e é isso que faz a página parecer um painel e
-                 não duas coisas presas por acaso. */
-              top: calc(var(--header-height) + 8px);
-              align-self: start;
-              margin: 0;
-            }
-          }
-
-          /* A COLUNA DAS AÇÕES — empilhada. Em tela larga ela é presa (acima); em tela estreita
-             é o primeiro bloco da página, e os cinco destinos ficam à mão antes de qualquer
-             rolagem.
-
-             NÃO SE USA `.acoes` AQUI, e a razão é de vocabulário: na porta, `.acoes` é a BARRA
-             horizontal de ações (display: flex em linha). Dar-lhe um segundo desenho — em
-             coluna — seria a mesma palavra a significar duas coisas, que é o defeito que o
-             catálogo descreve («erro de vocabulário, não de gosto»). O contentor é o `.rail`,
-             que já é a peça da coluna presa. */
-          .rail-esq {
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-            margin: 20px 0 24px;
-          }
-
-          /* Os cinco destinos ocupam a COLUNA INTEIRA e centram o texto: `.acao` é
-             `inline-block` + `white-space: nowrap`, e um destino com nome comprido
-             («Ver só as apagadas») estouraria para fora de 13rem. */
-          .rail-esq > .acao {
-            display: block;
-            text-align: center;
-            white-space: normal;
           }
 
           /* A MARCA NO CABEÇALHO DA RAIZ (18/10/2026). Ela NÃO usa a regra do
@@ -1833,6 +1830,44 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           function fecharApagar() { modalApagar.hidden = true; }
 
           aoClicar("btn-apagar", abrirApagar);
+
+          /* ── A FOLHA DAS ACÇÕES (19/11/2026) ───────────────────────────────────────────
+           *
+           * A peça é a da casa — `.acoes-da-lista` com a pílula, o véu e a folha — e o
+           * comportamento é o mesmo das outras folhas do sistema: a pílula abre e fecha, o véu
+           * fecha, o `Escape` fecha, e a pílula diz o estado em `aria-expanded`.
+           *
+           * OS DOIS GESTOS QUE REPETEM (criar e apagar) NÃO TÊM CÓDIGO PRÓPRIO: fecham a folha
+           * e chamam o MESMO `abrir…` do botão da fileira. Duas cópias do mesmo gesto divergem no
+           * dia em que uma delas mudar — e aqui a segunda cópia nem teria por onde ser corrigida
+           * depois, porque o botão da fileira é o que se vê no computador.
+           *
+           * TUDO PERGUNTA ANTES DE LIGAR (`aoClicar`, acima): na página pública o bloco inteiro
+           * pode não existir. */
+          var folhaDasAcoes = document.getElementById("acoes-menu");
+          var veuDasAcoes = document.getElementById("acoes-veu");
+          var pilulaDasAcoes = document.getElementById("acoes-botao");
+          function pintarFolhaDasAcoes(abrir) {
+            if (!folhaDasAcoes) return;
+            folhaDasAcoes.hidden = !abrir;
+            if (veuDasAcoes) veuDasAcoes.hidden = !abrir;
+            if (pilulaDasAcoes) pilulaDasAcoes.setAttribute("aria-expanded", abrir ? "true" : "false");
+          }
+          if (pilulaDasAcoes) pilulaDasAcoes.addEventListener("click", function () {
+            pintarFolhaDasAcoes(folhaDasAcoes ? folhaDasAcoes.hidden : false);
+          });
+          if (veuDasAcoes) veuDasAcoes.addEventListener("click", function () { pintarFolhaDasAcoes(false); });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && folhaDasAcoes && !folhaDasAcoes.hidden) pintarFolhaDasAcoes(false);
+          });
+          /* O MODAL DE CRIAR CHAMA-SE `abrir` (é o nome dele nesta página, desde 25/11/2026), e o
+           * botão da fileira liga-o mais abaixo. A folha usa o mesmo — e o `typeof` é a guarda
+           * para a página em que ele não existir. */
+          aoClicar("acoes-criar", function () {
+            pintarFolhaDasAcoes(false);
+            if (typeof abrir === "function") abrir();
+          });
+          aoClicar("acoes-apagar", function () { pintarFolhaDasAcoes(false); abrirApagar(); });
           aoClicar("btn-fechar-apagar", fecharApagar);
           aoClicar("btn-cancelar-apagar", fecharApagar);
           if (modalApagar) modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
@@ -1847,18 +1882,28 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
            *
            * O selo NÃO é um alarme: se a leitura falhar, fica escondido. Um painel que anuncia
            * uma avaria no canto do botão ensina a ignorar o canto do botão. */
+          /* O SININHO SÃO DOIS (19/11/2026), e é o mesmo número: o «Contatos» aparece na fileira
+           * do computador (`#contatos-por-ler`) e na folha do telemóvel
+           * (`#contatos-por-ler-folha`) — dois botões da mesma coisa, cada um com o seu selo.
+           * Um contador pintado num só deixava o outro a dizer «Contatos» sem aviso, e o aviso
+           * existe para ser visto. A leitura é UMA: um número, dois destinos. */
           function pintarSininho() {
-            var selo = document.getElementById("contatos-por-ler");
-            if (!selo) return;
+            var selos = [
+              document.getElementById("contatos-por-ler"),
+              document.getElementById("contatos-por-ler-folha")
+            ].filter(Boolean);
+            if (!selos.length) return;
             fetch("/api/contatos/quantos", { headers: { "Accept": "application/json" } })
               .then(function (r) { return r.json(); })
               .then(function (d) {
                 var n = d && typeof d.porLer === "number" ? d.porLer : 0;
-                if (!n) { selo.hidden = true; selo.textContent = ""; return; }
-                selo.textContent = n > 99 ? "99+" : String(n);
-                selo.hidden = false;
+                selos.forEach(function (selo) {
+                  if (!n) { selo.hidden = true; selo.textContent = ""; return; }
+                  selo.textContent = n > 99 ? "99+" : String(n);
+                  selo.hidden = false;
+                });
               })
-              .catch(function () { selo.hidden = true; });
+              .catch(function () { selos.forEach(function (s) { s.hidden = true; }); });
           }
           pintarSininho();
 

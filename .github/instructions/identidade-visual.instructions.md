@@ -40,6 +40,25 @@ saíram **encostados** no campo, e que «Atribuir curadoria», sem `.acao`, saiu
 mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da fileira
 `.par-botoes`. Quem guarda isso é a `experimentos/provar-vao-do-botao.js`.
 
+## A lista de cartões — contentor, ordem e paginação *(19/11/2026)*
+
+Três armadilhas que já custaram um ecrã errado, e as três são de vocabulário:
+
+1. **O `<ul>` de uma lista de cartões é `.trio-lista`** (ou o `.lb-cartoes` da página que o declara).
+   **Nunca `.lista`**: `.lista li` é `display:flex` — a ficha de uma linha —, e o cartão
+   (`.trio-plano`, `display:block`) perde o `display` para o pai, sai deitado, e as caixas ficam
+   espremidas ao lado dos botões.
+2. **A ordem é a da Audição**: `li.trio-plano` > `.trio-linha` (`.trio-nome` + `.trio-acoes`) > a
+   descrição (`.trio-frase`, `.fatos` ou `.trio-dono`) > `div.trio` com as caixas > um
+   `.trio-painel` por caixa. Os gestos vão em `.trio-acoes`.
+3. **O cliente chama `paginar()` depois de encher a lista.** O rodapé `.paginas` nasce `hidden` e é
+   o `paginar()` que o acende — e ele corre no arranque, quando a lista ainda tem o «carregando…».
+   Sem a chamada, a lista mostra tudo e não há rodapé.
+
+**As acções de uma lista não são uma coluna.** O `.rail` existe para o `.toc-local` ter onde
+grudar; pôr botões lá dentro é dar-lhe um segundo trabalho. A peça é a `.acoes-da-lista`: pílula no
+telemóvel (que sobe a folha com os mesmos destinos) e os blocos à vista no computador.
+
 ## As seis regras que não se negociam
 
 1. **Nenhuma classe nasce no uso.** Se a marcação precisa de um contentor, ou ele é uma peça do
