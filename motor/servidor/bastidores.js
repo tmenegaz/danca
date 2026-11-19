@@ -11016,6 +11016,134 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var todos = document.querySelectorAll(".res[data-res]");' +
     '  for (var i = 0; i < todos.length; i++) { todos[i].className = "res"; todos[i].textContent = ""; }' +
     '}' +
+    /* ==========================================================================================
+     * O AVISO DO GESTO — a pilha do canto, e não o parágrafo do formulário (19/11/2026).
+     *
+     * O PEDIDO, na letra dela:
+     *
+     *   «Ao invés de colocar aqui dentro do formulário, vamos exibir na tela, no canto superior
+     *    direito, essas mensagens, de êxito ou de erro ou de atenção, qualquer que seja ela. E elas
+     *    são temporárias. Coloca que elas vão durar 8 segundos. Mesmo que elas fiquem uma sobre a
+     *    outra, vão criando uma lista, mas cada uma dura 8 segundos. E também coloca um botão de
+     *    fechar caso o usuário tenha pressa e queira fechar logo essas mensagens.»
+     *
+     * O `.res` NÃO DESAPARECE. Ele continua a ser o sítio do que se está a compor — «falta a
+     * categoria», «a música não fecha» —, que é do formulário e tem de ficar ao lado do campo que o
+     * resolve. O que muda de sítio é o RETORNO DE UM GESTO CONCLUÍDO: gravar, apagar, carregar.
+     *
+     * OITO SEGUNDOS, e o número é dela. A conta é POR AVISO, e não da pilha: três gravações
+     * seguidas dão três avisos que saem cada um a seu tempo — um prazo único apagaria os três no
+     * mesmo instante e leria como um só.
+     *
+     * A ORDEM É A MAIS RECENTE EM CIMA. `appendChild` põe no fim; o novo aviso entra com
+     * `insertBefore(…, primeiro)`. Sem isto, um aviso de erro ficava escondido por baixo do «ok» de
+     * um gesto anterior, dentro de uma pilha com `overflow`.
+     * ========================================================================================== */
+    'var TIPOS_DE_AVISO = ["ok", "erro", "atencao"];' +
+    'function fecharAviso(el){' +
+    '  if (!el || !el.parentElement) return;' +
+    '  el.parentElement.removeChild(el);' +
+    '}' +
+    'function avisar(tipo, texto){' +
+    '  var pilha = document.getElementById("avisos");' +
+    '  if (!pilha) return null;' +
+    '  var qual = TIPOS_DE_AVISO.indexOf(String(tipo || "")) === -1 ? "atencao" : String(tipo);' +
+    '  var el = document.createElement("div");' +
+    '  el.className = "aviso-do-gesto";' +
+    '  el.setAttribute("data-tipo", qual);' +
+    '  el.setAttribute("role", "alert");' +
+    '  var p = document.createElement("p");' +
+    '  p.className = "aviso-do-gesto-texto";' +
+    '  p.textContent = String(texto == null ? "" : texto);' +
+    '  var b = document.createElement("button");' +
+    '  b.type = "button";' +
+    '  b.className = "aviso-do-gesto-fechar";' +
+    '  b.setAttribute("aria-label", "Fechar este aviso");' +
+    '  b.title = "Fechar";' +
+    '  b.textContent = "\u00D7";' +
+    '  b.addEventListener("click", function(){ fecharAviso(el); });' +
+    '  el.appendChild(p);' +
+    '  el.appendChild(b);' +
+    '  pilha.insertBefore(el, pilha.firstChild || null);' +
+    /* O PRAZO DE CADA UM, e ele morre com o elemento: um aviso fechado à mão não deixa o seu
+     * `setTimeout` a correr para apagar o que já não existe (inofensivo, mas é lixo que se vê na
+     * leitura). O `null` é o estado normal de quem já saiu. */
+    '  el.avisoPrazo = setTimeout(function(){ fecharAviso(el); }, 8000);' +
+    '  return el;' +
+    '}' +
+    /* O AVISO ATRAVESSA A RECARGA (19/11/2026) — e sem isto ele morria sempre.
+     *
+     * A maior parte das gravações desta página termina em `location.reload()`, porque a página é
+     * desenhada no servidor. Um aviso pintado no canto e uma recarga no instante seguinte dão um
+     * aviso que ninguém vê — o pior dos dois mundos: o trabalho feito e a resposta perdida.
+     *
+     * O mecanismo é o que a cadeia da geração já usa desde 10/11/2026: `sessionStorage`, um
+     * carimbo de tempo, e um prazo. O carimbo é o que impede o aviso de ontem de ser pintado na
+     * sessão de hoje como se fosse de agora. */
+    'function avisarDepoisDaRecarga(tipo, texto){' +
+    '  try {' +
+    '    sessionStorage.setItem("producao:aviso", JSON.stringify({' +
+    '      tipo: String(tipo || "ok"), texto: String(texto == null ? "" : texto), em: Date.now() }));' +
+    '  } catch (err) {}' +
+    '}' +
+    'function repintarAvisosGuardados(){' +
+    '  var bruto = null;' +
+    '  try { bruto = sessionStorage.getItem("producao:aviso"); } catch (err) { return; }' +
+    '  if (!bruto) return;' +
+    '  var guardado = null;' +
+    '  try { guardado = JSON.parse(bruto); } catch (err) {' +
+    '    try { sessionStorage.removeItem("producao:aviso"); } catch (e2) {}' +
+    '    return;' +
+    '  }' +
+    /* Cinco minutos — o mesmo critério da cadeia, e mais largo do que os oito segundos do aviso:
+     * o que se guarda é a ponte para a página seguinte, não a vida do aviso. Um aviso com mais de
+     * cinco minutos é de outro trabalho. */
+    '  var velho = !guardado || !guardado.em || (Date.now() - guardado.em) > 300000;' +
+    '  try { sessionStorage.removeItem("producao:aviso"); } catch (err) {}' +
+    '  if (velho || !guardado.texto) return;' +
+    '  avisar(guardado.tipo, guardado.texto);' +
+    '}' +
+    /* ==========================================================================================
+     * CONCLUIR UM GESTO — limpar, recolher e dizer (19/11/2026).
+     *
+     *   «Quando eu clico em gravar […] precisa limpar completamente o formulário depois que gravar,
+     *    deixando-o completamente disponível para um novo. E aí fecha, colapsa ele quando fizer
+     *    isso.»
+     *
+     * AS TRÊS COISAS SÃO UMA SÓ, e por isso têm um nome. Feitas em separado, cada formulário
+     * acabaria com a sua combinação — um limpa e não recolhe, outro recolhe e deixa o `#id` da
+     * edição para trás (e o gesto seguinte gravaria por cima do registo anterior).
+     *
+     * O QUE É "LIMPAR COMPLETAMENTE": os `<form>` da secção (`reset()`), os campos ocultos que o
+     * `reset()` não toca (o `#id` da edição, o modo), as fichas `.escolhido` que não são campos, e
+     * o `.res` da composição. O que NÃO se limpa é o aviso — quem grava acabou de escrever nele.
+     * ========================================================================================== */
+    'function limparOSFormularioDe(idDaSecao){' +
+    '  var secao = document.getElementById(idDaSecao);' +
+    '  if (!secao) return;' +
+    '  Array.prototype.slice.call(secao.querySelectorAll("form")).forEach(function(f){' +
+    '    try { f.reset(); } catch (err) {}' +
+    '  });' +
+    '  Array.prototype.slice.call(secao.querySelectorAll("input[type=hidden]")).forEach(function(c){' +
+    '    c.value = "";' +
+    '  });' +
+    '  Array.prototype.slice.call(secao.querySelectorAll(".escolhido")).forEach(function(x){' +
+    '    if (x.parentElement) x.parentElement.removeChild(x);' +
+    '  });' +
+    '  Array.prototype.slice.call(secao.querySelectorAll(".res")).forEach(function(r){' +
+    '    r.className = "res"; r.textContent = "";' +
+    '  });' +
+    '  if (typeof limparFormularioDoDicionario === "function") {' +
+    '    if (idDaSecao === "sec-dicionario") limparFormularioDoDicionario();' +
+    '  }' +
+    '}' +
+    'function concluirOGesto(idDaSecao, tipo, texto, semRecolher){' +
+    '  if (idDaSecao) limparOSFormularioDe(idDaSecao);' +
+    /* O RECOLHER VEM DEPOIS DO LIMPAR, e a ordem importa: o «Cancelar» de algumas secções limpa
+     * ao fechar, e limpar primeiro garante que o que ele faça a seguir não encontra nada. */
+    '  if (idDaSecao && !semRecolher) cancelarOFormularioDe(idDaSecao);' +
+    '  return avisar(tipo, texto);' +
+    '}' +
     'function recado(estado, texto) {' +
     '  limparRecados();' +
     '  var res = alvoDoRecado();' +
@@ -11140,10 +11268,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        } catch (err) {}' +
     '      }' +
     '      if (typeof aoOk === "function") { devolverRotulo(); aoOk(d); return; }' +
+    /* O MESMO FIM DA `enviar`, E PELA MESMA RAZÃO (19/11/2026): o aviso sobrevive à recarga, e o
+     * formulário fecha antes de ela acontecer. Aqui a secção é a que está aberta — este caminho
+     * serve o professor e a aluna, e são duas secções diferentes. */
+    '      var onde = document.querySelector("#conteudo .secao:not([hidden])");' +
+    '      var secaoDoGesto = onde && onde.id ? onde.id : "";' +
+    '      if (secaoDoGesto) {' +
+    '        limparOSFormularioDe(secaoDoGesto);' +
+    '        if (typeof esquecerRascunhoDoProfessor === "function" && secaoDoGesto === "sec-professores") {' +
+    '          esquecerRascunhoDoProfessor();' +
+    '        }' +
+    /* O PROFESSOR E A ALUNA TÊM PASSOS, e o recolhimento das duas secções é o de sempre — mas o
+     * passo em que se estava vive numa chave à parte (`producao:professor-passo`,
+     * `producao:passo`), e sem a repor a página nova abria o formulário já no passo 2, vazio. */
+    '        try {' +
+    '          if (secaoDoGesto === "sec-professores") sessionStorage.removeItem("producao:professor-passo");' +
+    '          if (secaoDoGesto === "sec-alunas") sessionStorage.removeItem("producao:passo");' +
+    '        } catch (err) {}' +
+    '        cancelarOFormularioDe(secaoDoGesto);' +
+    '      }' +
+    '      avisarDepoisDaRecarga("ok", (id === "form-prof" ? "professor gravado." : "aluna gravada."));' +
     '      location.reload(); return;' +
     '    }' +
-    '    devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido"));' +
-    '  }).catch(function(err){ devolverRotulo(); recado("erro", "Erro: " + err.message); });' +
+    '    devolverRotulo(); avisar("erro", "Erro: " + (d.erro || "desconhecido"));' +
+    '  }).catch(function(err){ devolverRotulo(); avisar("erro", "Erro: " + err.message); });' +
     '}' +
     /*
      * O «EDITAR» DO PROFESSOR — A FICHA INTEIRA, E NÃO SÓ O NOME (16/11/2026).
@@ -11625,13 +11773,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* A PASSAGEM LIGADA DIZ-SE (18/11/2026). Quem cadastrou tem de saber que esta aluna já esteve na
      * escola e que a história dela está ligada — e que nada de antes é reaproveitado. */
     '    if (m.avisoDaPassagem) { feito += ". " + m.avisoDaPassagem; }' +
+    /* O DESFECHO VAI PARA A PILHA DO CANTO E ATRAVESSA A RECARGA (19/11/2026).
+     *
+     * Antes, os dois segundos e meio de `setTimeout` existiam para a pessoa LER o `.res` antes de a
+     * página se refazer. Com o aviso do canto a sobreviver à recarga, o prazo deixou de ter razão:
+     * o recado segue com ela, e o formulário pode fechar no mesmo instante.
+     *
+     * O E-MAIL QUE NÃO SAIU É UM AVISO DE ATENÇÃO, e não um «ok» — é a diferença entre «o professor
+     * sabe» e «o professor não sabe», e quem cadastrou tem de o ver sem procurar. */
     '    if (!c.enviado) {' +
-    '      recado("aviso", feito + ". O e-mail ao professor NÃO saiu: " +' +
+    '      avisarDepoisDaRecarga("atencao", feito + ". O e-mail ao professor NÃO saiu: " +' +
     '        (c.motivo || "motivo desconhecido") + ". Avise-o por outro caminho.");' +
     '    } else {' +
-    '      recado("ok", feito + ", e o pedido de anamnese seguiu para o professor.");' +
+    '      avisarDepoisDaRecarga("ok", feito + ", e o pedido de anamnese seguiu para o professor.");' +
     '    }' +
-    '    setTimeout(function(){ location.reload(); }, 2500);' +
+    '    limparOSFormularioDe("sec-alunas");' +
+    '    try { sessionStorage.removeItem("producao:passo"); } catch (err) {}' +
+    '    cancelarOFormularioDe("sec-alunas");' +
+    '    location.reload();' +
     '  }).catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
     '});' +
     /* ================== O ESTADO DA ANAMNESE NA LISTAGEM (18/11/2026) ====================
@@ -13018,6 +13177,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O VÉU NÃO SAI ANTES DA RECARGA: quem está a olhar não deve ver a página velha destrancada
      * por um instante. A recarga leva-o, e a página nova nasce sem véu. */
     '        guardarCadeiaDaGravacao(d.cadeia, res);' +
+    /* O AVISO SOBREVIVE À RECARGA, E O FORMULÁRIO FECHA ANTES DE ELA ACONTECER (19/11/2026).
+     *
+     * «precisa limpar completamente o formulário depois que gravar, deixando-o completamente
+     *  disponível para um novo. E aí fecha, colapsa ele quando fizer isso.»
+     *
+     * A ORDEM É O QUE FAZ ISTO FUNCIONAR. As duas memórias do recolhimento e do passo vivem em
+     * `sessionStorage`, portanto o que se escreve AQUI é o que a página nova vai ler: limpar e
+     * recolher antes do `reload` é dizer à página seguinte «este formulário está concluído». Feito
+     * depois da recarga seria tarde — a página antiga já não existe.
+     *
+     * A SECÇÃO A RECOLHER É A QUE ESTÁ ABERTA, e a leitura é a MESMA do `alvoDoRecado`
+     * (`#conteudo .secao:not([hidden])`) — uma segunda conta escolheria outra secção no primeiro
+     * dia em que duas mudassem de estado em sentidos diferentes. */
+    '        var ondeEstou = document.querySelector("#conteudo .secao:not([hidden])");' +
+    '        var idDaSecao = ondeEstou && ondeEstou.id ? ondeEstou.id : "";' +
+    /* A MENSAGEM DO GESTO VAI SOBREVIVER: o `d.mensagem` do servidor quando existe, e a frase com
+     * que o pedido foi pedido quando não. É o que a pessoa leu como «a trabalhar…». */
+    '        if (idDaSecao) {' +
+    '          limparOSFormularioDe(idDaSecao);' +
+    /* O RECOLHER É O `cancelarOFormularioDe`, e não um `hidden` posto à mão: é ele que grava o
+     * estado em `sessionStorage` (é de lá que a página nova o lê) e que acerta a seta do acordeão e
+     * o «Cancelar». Escrever o `hidden` directamente daria um formulário fechado que a recarga
+     * volta a abrir. */
+    '          cancelarOFormularioDe(idDaSecao);' +
+    '        }' +
+    '        avisarDepoisDaRecarga(d.ajustou || (d.cadeia && d.cadeia.faltam && d.cadeia.faltam.length)' +
+    '          ? "atencao" : "ok", (d.recado || mensagem || "feito").replace(/\u2026$/, "").trim());' +
     '        location.reload();' +
     '        return;' +
     '      }' +
@@ -17179,7 +17365,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A VERSÃO DO CATÁLOGO NÃO TEM GESTOS, e a razão é a de sempre: apagar o verbete do catálogo
      * pela tela de uma escola tirá-lo-ia a todas. O selo «do catálogo» já o diz. */
-    '          (i === 0 && m.escola' +
+    /* OS GESTOS SÃO DE TODA A GENTE — INCLUSIVE DA VERSÃO DO CATÁLOGO (19/11/2026).
+     *
+     * «Eu tenho o battement tendu […] e ele tem os botões de derivar e excluir. […] E na listagem eu
+     *  também tenho o plié […] e é do catálogo. E aí eu não tenho aqui o botão de derivar ou excluir
+     *  esse estilo. […] Isso é um erro, porque eu quero fazer os testes.»
+     *
+     * A CAUSA ERA UMA CONDIÇÃO SÓ PARA DOIS GESTOS: `i === 0 && m.escola` — e `m.escola` é vazio
+     * quando a versão à vista é a do CATÁLOGO. A regra que já existia («a versão do catálogo não tem
+     * botão de apagar», 03/11/2026) é verdadeira e continua; o que ela NÃO diz é que o exercício não
+     * se pode derivar. E derivar é exactamente o gesto seguro: a gravação leva a chave do dono
+     * (`<tempos>|<compasso>@<escola>`), portanto cria a versão desta escola e deixa o catálogo como
+     * está — é o que o `gravarVerbete` já faz, e é o que a rota do `DELETE` garante ao recusar
+     * apagar o do catálogo pela escola.
+     *
+     * Ficam três estados, e cada um tem a sua razão:
+     *
+     *  · EM TURMA — «Derivar» e «Excluir» desabilitado (18/11/2026: a versão que a turma lê fica).
+     *  · VERSÃO DA ESCOLA, livre — «Editar» e «Excluir», que é corrigir o que é dela.
+     *  · VERSÃO DO CATÁLOGO — «Derivar», e o «Excluir» NÃO EXISTE. A regra de 03/11 é explícita:
+     *    «um botão que recusa é pior do que a sua ausência». O `title` diz o que vai acontecer, para
+     *    ninguém gravar a pensar que corrige o catálogo. */
+    '          (i === 0' +
     '            ? "<span class=\\"acoes\\">" + (' +
     '                emTurma' +
     '                  ? "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
@@ -17189,11 +17396,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '                    "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" disabled ' +
     'title=\\"Não se exclui: o exercício está no repertório de uma turma. Retire-o do repertório ' +
     'dessa turma, ou derive este verbete\\">Excluir</button>"' +
-    '                  : "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
-    '                    escHtml(x.nome) + "\\" data-musica=\\"" + escHtml(m.chave) + ' +
-    '                    "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" + ' +
-    '                    "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" + ' +
-    '                    escHtml(x.nome) + "\\" title=\\"Excluir o verbete deste exercício\\">Excluir</button>"' +
+    '                  : (m.escola' +
+    '                    ? "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
+    '                      escHtml(x.nome) + "\\" data-musica=\\"" + escHtml(m.chave) + ' +
+    '                      "\\" title=\\"Abrir este verbete para corrigir\\">Editar</button>" + ' +
+    '                      "<button type=\\"button\\" class=\\"apagar acao perigo pequena\\" data-apagar-verbete=\\"" + ' +
+    '                      escHtml(x.nome) + "\\" title=\\"Excluir o verbete deste exercício\\">Excluir</button>"' +
+    '                    : "<button type=\\"button\\" class=\\"acao pequena\\" data-editar-verbete=\\"" + ' +
+    '                      escHtml(x.nome) + "\\" data-musica=\\"" + escHtml(m.chave) + ' +
+    '                      "\\" title=\\"Derivar: esta versão é do catálogo. Gravar cria a versão ' +
+    'desta escola, e o catálogo fica como está\\">Derivar</button>")' +
     '              ) + "</span>"' +
     '            : "") +' +
     '          "</div>" +' +
@@ -17477,13 +17689,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    lista.innerHTML = "<li>Erro: " + (err && err.message ? err.message : err) + "</li>";' +
     '  });' +
     '}' +
-    /* O RECADO DA LISTAGEM, escrito onde se lê (19/11/2026) — ver a nota do `#dic-res-lista`. */
-    'function recadoDoDicionario(texto, estado){' +
-    '  var alvo = document.getElementById("dic-res-lista");' +
-    '  if (!alvo) { recado(estado, texto); return; }' +
-    '  alvo.className = "res" + (estado ? " " + estado : "");' +
-    '  alvo.textContent = texto || "";' +
-    '}' +
+    /* O RECADO DA LISTAGEM VIROU AVISO NO CANTO (19/11/2026). Ele existia porque o formulário
+     * recolhe e um recado lá dentro não se lê — o problema era real, e a solução que ela pediu
+     * resolve-o melhor: a pilha do canto não pertence a nenhum formulário. O `.res` da listagem
+     * continua no HTML (é o alvo de quem não tem a pilha, e o `data-res` é procurado por
+     * `alvoDoRecado`), mas já não é escrito por este caminho. */
     /* LIMPAR O FORMULÁRIO É UM GESTO SÓ (19/11/2026): o «Cancelar» e a gravação fazem-no os dois, e
      * duas cópias divergiriam na primeira vez que um campo novo entrasse. O `.res` NÃO se limpa
      * aqui — quem grava acabou de escrever nele o que aconteceu. */
@@ -17559,9 +17769,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ? ("«" + corpo.nome + "» gravado.")' +
     '      : ("«" + corpo.nome + "» está no dicionário.");' +
     '    if (d.criouVersao) frase += " Passou a ter a versão desta escola — o catálogo fica como estava.";' +
-    '    limparFormularioDoDicionario();' +
-    '    if (res) { res.className = "res ok"; res.textContent = frase; } else { recado("ok", frase); }' +
+    /* LIMPAR, RECOLHER, AVISAR — os três de uma vez (19/11/2026). A regra é dela: «precisa limpar
+     * completamente o formulário depois que gravar […] E aí fecha, colapsa ele». O aviso vai para a
+     * pilha do canto, e não para o `.res` do formulário que acabou de se fechar. */
     '    carregarDicionario();' +
+    '    concluirOGesto("sec-dicionario", d.avisos && d.avisos.length ? "atencao" : "ok", frase);' +
     '  }).catch(function(err){' +
     '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
     '  });' +
@@ -17611,15 +17823,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    body: JSON.stringify({token: TOKEN, id: id})' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    liberar();' +
-    '    if (!d || !d.ok) { recadoDoDicionario("Erro: " + ((d && d.erro) || "desconhecido"), "erro"); return; }' +
+    '    if (!d || !d.ok) { avisar("erro", "Erro: " + ((d && d.erro) || "desconhecido")); return; }' +
     /* APAGAR TAMBÉM NÃO RECARREGA (19/11/2026) — e aqui a recarga era pior do que na gravação: o
      * cartão sai da lista, e a página inteira voltava ao topo por causa de uma linha que deixou de
-     * existir. A mensagem vai para o `.res` da LISTAGEM, e não para o do formulário, porque o
-     * «Excluir» está no cartão — o formulário pode estar fechado. */
+     * existir. O aviso vai para a pilha do canto: o «Excluir» está no cartão, e o formulário pode
+     * estar recolhido — um recado escrito lá dentro não se leria. */
     '    carregarDicionario();' +
-    '    recadoDoDicionario(d.voltouAoCatalogo' +
+    '    avisar("ok", d.voltouAoCatalogo' +
     '      ? ("«" + nome + "» saiu do dicionário desta escola — a versão do catálogo volta a valer aqui.")' +
-    '      : ("«" + nome + "» saiu do dicionário."), "ok");' +
+    '      : ("«" + nome + "» saiu do dicionário."));' +
     '  }).catch(function(err){' +
     '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
     '  });' +
@@ -17645,7 +17857,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  limparFormularioDoDicionario();' +
     '  var res = document.querySelector("[data-res=\\"dic\\"]");' +
     '  if (res) { res.className = "res"; res.textContent = ""; }' +
-    '  recadoDoDicionario("", "");' +
     '  recado("", "");' +
     '  cancelarOFormularioDe("sec-dicionario");' +
     '});' +
@@ -17667,12 +17878,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    body: JSON.stringify({token: TOKEN})' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    liberar();' +
-    '    if (!d || !d.ok) { recadoDoDicionario("Erro: " + ((d && d.erro) || "desconhecido"), "erro"); return; }' +
+    '    if (!d || !d.ok) { avisar("erro", "Erro: " + ((d && d.erro) || "desconhecido")); return; }' +
     '    var n = (d.acrescentados || []).length;' +
     '    carregarDicionario();' +
-    '    recadoDoDicionario(n' +
+    '    avisar("ok", n' +
     '      ? (n + (n === 1 ? " verbete carregado" : " verbetes carregados") + " — passam a ser desta escola.")' +
-    '      : "os verbetes da progressão já estavam todos aqui.", "ok");' +
+    '      : "os verbetes da progressão já estavam todos aqui.");' +
     '  }).catch(function(err){' +
     '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
     '  });' +
@@ -17838,7 +18049,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * reescreveu o passado: o estado anterior ficou no histórico, com a data em que deixou de
      * valer. Quem corrigiu tem de o saber — senão, ou pensa que o documento antigo mudou, ou pensa
      * que a correcção não pegou. */
-    '    recado("ok", d.ajustou' +
+    /* O AVISO PASSA A SER DA PILHA DO CANTO (19/11/2026), e não do `.res` do formulário — que é
+     * exactamente o que se vai limpar e recolher nas linhas seguintes. Um recado escrito no sítio
+     * que se fecha não se lê. */
+    '    avisar("ok", d.ajustou' +
     '      ? ("gravado — versão " + d.versao + ". Este exercício já compõe um plano, por isso a " +' +
     '         "gravação é um AJUSTE: a versão anterior fica no histórico, com a data em que deixou " +' +
     '         "de valer (" + d.ajustou + "), e os documentos dessa data continuam a ler-se como " +' +
@@ -17847,12 +18061,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O DESACORDO NÃO SE CALA DEPOIS DE GRAVAR (03/11/2026). O servidor aceitou — é a regra nova —
      * e devolve os avisos; a tela mostra-os em vez de dizer só «gravado». Uma gravação que aceita
      * em silêncio e depois sai em `conferir` no documento é a pior das duas: o professor pensa que
-     * está resolvido. */
+     * está resolvido. Agora é um aviso de ATENÇÃO ao lado do «ok», e entra POR CIMA dele. */
     '    if (d.avisos && d.avisos.length) {' +
-    '      recado("erro", "gravado — versão " + d.versao + ", mas há um desacordo por resolver: " + d.avisos.join(" "));' +
+    '      avisar("atencao", "há um desacordo por resolver: " + d.avisos.join(" "));' +
     '    }' +
     '    pintarDesacordo();' +
     '    carregarVerbetes();' +
+    /* E O FORMULÁRIO LIMPA-SE E RECOLHE — a regra dela, e é a MESMA sequência do «Cancelar». */
+    '    limparOVerbete();' +
+    '    cancelarOFormularioDe("sec-verbetes");' +
     '  });' +
     '});' +
     // ---------------------------------------------------------------------------
@@ -20292,9 +20509,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * É o mesmo cuidado que a porta tomou com a trava (`podePreencher` depois do `ajustar`):
      * primeiro o documento, depois quem o usa. `DOMContentLoaded` é o instante em que o véu
      * já está lá. */
+    /* O AVISO GUARDADO REPINTA-SE NO MESMO INSTANTE, e pela mesma razão: é a resposta de um gesto
+     * que terminou numa página que já não existe. Ordem: o aviso primeiro, porque é curto e é o que
+     * responde a «gravou?»; a cadeia depois, que é a que manda continuar trabalho. */
     'if (document.readyState === "loading") {' +
-    '  document.addEventListener("DOMContentLoaded", repintarCadeiaGuardada);' +
+    '  document.addEventListener("DOMContentLoaded", function(){' +
+    '    repintarAvisosGuardados(); repintarCadeiaGuardada(); });' +
     '} else {' +
+    '  repintarAvisosGuardados();' +
     '  repintarCadeiaGuardada();' +
     '}' +
     /* AS LEITURAS PREGUIÇOSAS DA SECÇÃO ABERTA, AGORA QUE TUDO EXISTE (18/11/2026).
@@ -20351,6 +20573,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não se inventa desenho novo. O que este sítio traz é o ESTADO e o TEXTO. */
     '<div class="veu-de-operacao" id="veu" role="status" aria-live="polite">' +
     '<p class="veu-texto" id="veu-texto">a trabalhar…</p></div>' +
+    /* A PILHA DOS AVISOS DO GESTO (19/11/2026) — a peça `.avisos`, declarada na folha.
+     *
+     * «vamos exibir na tela, no canto superior direito, essas mensagens, de êxito ou de erro ou de
+     * atenção. […] duram 8 segundos […] vão criando uma lista […] e coloca um botão de fechar.»
+     *
+     * O CONTENTOR NASCE VAZIO E É O CLIENTE QUE O ENCHE: um aviso por gesto concluído, cada um com
+     * a sua conta de 8 segundos. `aria-live="polite"` porque isto é o retorno de uma acção — quem
+     * não vê o canto tem de ouvir que a gravação terminou. `role="status"` no contentor, e não em
+     * cada aviso: o leitor de ecrã anuncia a região, não sete regiões.
+     *
+     * Ele fica FORA do `.conteudo` e ao lado do véu — é do casco, como o véu, e não de uma secção:
+     * um aviso de gravar a Turma não pertence ao formulário da Turma, e é essa separação que faz
+     * dele um aviso em vez de uma linha de resultado. */
+    '<div class="avisos" id="avisos" role="status" aria-live="polite"></div>' +
     fimDaVista();
 }
 

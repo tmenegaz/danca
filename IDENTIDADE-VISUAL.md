@@ -687,6 +687,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.selo` | `ciclo.css` | base + um estado por significado (`ok`, `vigente`, `livre`…) |
 | `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
 | `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
+| `.avisos` / `.aviso-do-gesto` | `ciclo.css` | `:empty` (a pilha vazia não ocupa lugar), `data-tipo="ok"/"erro"/"atencao"` (os três pares semânticos), a entrada animada e o `prefers-reduced-motion` que a desliga, e a folha do telemóvel (a pilha atravessa o ecrã, em baixo) |
 | `.acoes-da-aluna` | `ciclo.css` | base, e a quebra da fileira no telemóvel (`flex-wrap`) |
 | `.acoes-da-linha` | `ciclo.css` | base (coluna, `gap` de `--esp-2`, `min-width` de 8rem, botões esticados). Não tem estados próprios: os dos botões são os do `.acao` (`:hover`, `:focus-visible`, `:disabled`) |
 | `.ajuda` («?») | `porta/index.html` | base, `:hover`, `[aria-expanded="true"]`, e 30px de alvo no telefone |
@@ -937,6 +938,36 @@ fita».
    `hidden` e é o `paginar()` que o acende — e ele corre **no arranque**, quando uma lista montada
    pelo cliente ainda tem o «carregando…». Sem a chamada, a lista mostra tudo e o rodapé nunca
    aparece. O selector «por página» vive na barra (`data-tamanho-de`), e não no rodapé.
+
+### O retorno de um gesto sai do formulário — a pilha do canto *(19/11/2026)*
+
+> «Ao invés de colocar aqui dentro do formulário, vamos exibir na tela, no canto superior direito,
+> essas mensagens, de êxito ou de erro ou de atenção, qualquer que seja ela. E elas são temporárias.
+> Coloca que elas vão durar 8 segundos. Mesmo que elas fiquem uma sobre a outra, vão criando uma
+> lista, mas cada uma dura 8 segundos. E também coloca um botão de fechar.»
+
+**A peça são duas**, e a divisão é a mesma do `.veu-de-operacao`: o **contentor** `.avisos` é a pilha
+(fixa, no canto, uma coluna) e cada **`.aviso-do-gesto`** é um aviso. Nenhuma classe nasce fora desta
+declaração, e a cópia está no Quadro 2.
+
+**Porque o `.res` não serviu.** Ele é um parágrafo **no fluxo**: nasce dentro do formulário, empurra o
+que está abaixo, e desaparece quando o formulário recolhe — que é exactamente o que passa a acontecer
+depois de gravar. Um recado escrito no sítio que acabou de se fechar não se lê.
+
+| regra | valor | porquê |
+|:--|:--|:--|
+| posição | `top: calc(var(--header-height) + var(--esp-2))`, `right: var(--esp-4)` | o canto superior direito que ela pediu, abaixo da faixa — nunca por baixo dela |
+| `z-index` | `130` | acima do véu da operação (120): o aviso é a resposta que levanta o véu, e um aviso por baixo dele não se vê |
+| a pilha | `pointer-events: none`, e cada aviso `auto` | a zona não tapa a página; quem recebe o ponteiro é o aviso |
+| a cor | `data-tipo` = `ok` / `erro` / `atencao` | os três pares semânticos que o `.res` já usa; um quarto tipo não existe, e o JavaScript não o inventa |
+| a vida | **8 s**, e o `×` fecha antes | ela deu o número; o botão é para quem tem pressa |
+| a ordem | a mais recente **em cima** | um aviso novo não pode empurrar o anterior para fora do alcance |
+| o telemóvel | a pilha atravessa o ecrã e desce para o fundo | 25 rem não cabe em 360 px, e um aviso cortado esconde o fim da frase |
+
+**A peça é do sistema, e a página só a usa.** O contentor é um `<div class="avisos" id="avisos">`
+vazio no casco; quem põe e tira avisos é o cliente. **A mensagem sobrevive à recarga** pelo mesmo
+mecanismo que a cadeia da geração já usa (`sessionStorage`, com prazo) — sem isso, o aviso de uma
+gravação morria no `location.reload()` que a própria gravação dispara.
 
 ### As acções de uma lista — a barra da secção, e a coluna do painel da raiz *(19/11/2026)*
 

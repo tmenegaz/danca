@@ -3330,3 +3330,46 @@ da edição interna.
 > «licença» só aparece aqui na §5 (e não sobre isto). A frase verdadeira é outra, e está no
 > `REGISTRO.md:109`, na entrada de **18/09/2026**: «Licença do repositório (a definir)». O facto
 > sobreviveu; a atribuição não. Corrigida nos sítios onde vivia, com nota datada no `REGISTRO.md`.
+
+### 5.31 O aviso do gesto, e o formulário que se fecha sozinho *(19/11/2026)*
+
+> «Quando eu clico em gravar, quando eu estou criando um novo ou editando […] precisa limpar
+> completamente o formulário depois que gravar, deixando-o completamente disponível para um novo. E
+> aí fecha, colapsa ele quando fizer isso. […] Ao invés de colocar aqui dentro do formulário, vamos
+> exibir na tela, no canto superior direito, essas mensagens, de êxito ou de erro ou de atenção […]
+> duram 8 segundos […] vão criando uma lista […] e coloca um botão de fechar.»
+
+**Duas peças novas, e nenhuma delas é um segundo `.res`.** A pilha `.avisos` (fixa, no canto,
+`pointer-events: none` na zona e `auto` no aviso) e o aviso `.aviso-do-gesto`, com três
+`data-tipo` — `ok`, `erro`, `atencao` — que são os mesmos três pares semânticos que o `.res` já
+usava. A peça está declarada na folha e no Quadro 2 do `IDENTIDADE-VISUAL.md`; a geometria é medida
+por `experimentos/provar-avisos.js` num Chromium (16 px do bordo, no terço de cima, e no telemóvel a
+pilha atravessa o ecrã e desce ao fundo).
+
+**A divisão de trabalho entre o `.res` e o aviso é o que impede a duplicação:** o `.res` fica com o
+que se está a **compor** («falta a categoria», «a música não fecha») — erro de formulário, ao lado do
+campo que o resolve; o aviso fica com o **retorno de um gesto concluído** — gravar, apagar, carregar.
+O defeito que isto corrige é concreto: o `.res` vive **no fluxo** e **dentro** do formulário, e o
+formulário passa a fechar depois de gravar. Um recado escrito no sítio que se acabou de fechar não se
+lê.
+
+**As três coisas são uma só, e por isso têm um nome.** `concluirOGesto(seccao, tipo, texto)` limpa
+(todos os `<form>`, os campos ocultos, as fichas `.escolhido`, o `.res`), **recolhe** (pelo
+`cancelarOFormularioDe`, que é quem grava o estado em `sessionStorage`) e **avisa**. Feitas em
+separado, cada secção acabaria com a sua combinação — uma limpa e não recolhe, outra deixa o `#id` da
+edição para trás e o gesto seguinte grava por cima do registo anterior.
+
+**A maior parte das gravações recarrega a página**, porque a página é desenhada no servidor. O aviso
+sobrevive por `sessionStorage` com carimbo de tempo (o mesmo mecanismo da cadeia da geração, §5.20), e
+o limpar-e-recolher acontece **antes** do `reload` — é o que a página seguinte lê. Feito depois, era
+tarde.
+
+**E a pergunta que ela fez sobre a arquitectura, respondida aqui porque vai voltar:** isto não custa
+KV. Desde 19/10/2026 o acervo é o repositório e o vocabulário está empacotado no bundle; a lista do
+Dicionário compõe-se em memória. O que estava caro era redesenhar a página inteira para mostrar um
+campo que mudou (§5.30).
+
+**Medido:** `provar-avisos` 25 asserções (o prazo de 8 s é medido a esperar, não a ler o script);
+`provar-dicionario` 118, com a secção **K** a correr a listagem do Estilo num DOM e a exigir o
+«Derivar» na versão do catálogo — **controle negativo: 2 reprovam** com a condição antiga
+(`i === 0 && m.escola`).

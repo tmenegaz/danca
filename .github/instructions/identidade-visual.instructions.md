@@ -65,6 +65,26 @@ Duas peças, dois sítios:
   colunas. **Não se troca por uma `.acoes-da-lista`.** Eu troquei, e ela devolveu: «Eu não pedi para
   fazer isso. […] botar de volta no mesmo lugar: fixos empilhados do lado esquerdo.»
 
+## O retorno de um gesto vive no canto, não no formulário *(19/11/2026)*
+
+Gravar, apagar ou carregar termina com **um aviso na pilha do canto** (`.avisos` +
+`.aviso-do-gesto`) — nunca com o parágrafo `.res` dentro do formulário que acabou de se fechar. O
+`.res` continua a ser o sítio do que se está a **compor** («falta a categoria», «a música não
+fecha»): esse erro pertence ao campo que o resolve.
+
+| regra | valor |
+|:--|:--|
+| a peça | `.avisos` (a pilha) + `.aviso-do-gesto` (cada aviso), declaradas em `ciclo.css` |
+| o tipo | `data-tipo="ok"` / `"erro"` / `"atencao"` — os três pares semânticos; um quarto não existe |
+| a vida | **8 s**, e o `×` fecha antes. A conta é **por aviso**, não da pilha |
+| a ordem | a mais recente **em cima** (`insertBefore`, e não `appendChild`) |
+| a recarga | quando o gesto recarrega, o aviso **guarda-se** (`avisarDepoisDaRecarga`) e repinta-se no arranque |
+| o fim | depois de gravar: **limpar tudo** e **recolher** o formulário (`concluirOGesto`) |
+
+E a listagem do Estilo dá o gesto **também à versão do catálogo** — «Derivar», que cria a versão da
+escola. O que a versão do catálogo **não** tem é «Excluir» (apagá-la tirá-la-ia a todas), e a
+ausência é a regra de 03/11/2026: um botão que recusa é pior do que a sua ausência.
+
 ## As seis regras que não se negociam
 
 1. **Nenhuma classe nasce no uso.** Se a marcação precisa de um contentor, ou ele é uma peça do

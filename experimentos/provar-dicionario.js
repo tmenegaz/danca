@@ -724,6 +724,19 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
       w.confirm = () => true;
       w.alert = () => {};
       w.scrollTo = () => {};
+      /* O RECOLHIMENTO VIVE EM `sessionStorage` (ver `definirSecaoRecolhida`) — sem ele o
+       * `cancelarOFormularioDe` atira, e a prova mediria uma excepção em vez do comportamento. */
+      const memoria = new Map();
+      Object.defineProperty(w, 'sessionStorage', {
+        configurable: true,
+        value: {
+          getItem: (k) => (memoria.has(k) ? memoria.get(k) : null),
+          setItem: (k, v) => memoria.set(k, String(v)),
+          removeItem: (k) => memoria.delete(k),
+          clear: () => memoria.clear(),
+        },
+      });
+      w.limparOSFormularioDe = undefined;
       w.fetch = (u, o) => {
         const url = String(u);
         const metodo = (o && o.method) || 'GET';
@@ -800,32 +813,42 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
   provar('…e a classificação nova, no mesmo cartão',
     (cartao('plie') || { textContent: '' }).textContent.indexOf('complexo') !== -1,
     (cartao('plie') || {}).textContent);
-  provar('…e o formulário fica limpo, pronto ao próximo, em vez de fechado',
-    d.getElementById('dicid').value === '' && d.getElementById('dic-gravar').textContent === 'Criar dicionário',
-    [d.getElementById('dicid').value, d.getElementById('dic-gravar').textContent]);
-  provar('…e o recado diz o que aconteceu, ali no formulário',
-    /gravado/.test(d.querySelector('[data-res="dic"]').textContent),
+  /* «E AÍ FECHA, COLAPSA ELE QUANDO FIZER ISSO» (19/11/2026). O formulário fica vazio E recolhido —
+   * é a sequência que ela pediu, e é a que o `concluirOGesto` faz. */
+  provar('…e o formulário fica LIMPO e RECOLHIDO, pronto ao próximo',
+    d.getElementById('dicid').value === ''
+      && d.getElementById('dic-gravar').textContent === 'Criar dicionário'
+      && d.getElementById('sec-dicionario').getAttribute('data-recolhido') === 'sim',
+    { id: d.getElementById('dicid').value, botao: d.getElementById('dic-gravar').textContent,
+      recolhido: d.getElementById('sec-dicionario').getAttribute('data-recolhido') });
+  /* O RECADO SAIU DO FORMULÁRIO E FOI PARA A PILHA DO CANTO (19/11/2026) — «Ao invés de colocar
+   * aqui dentro do formulário, vamos exibir na tela, no canto superior direito». As asserções
+   * passaram a ler a pilha, e a ler o CONTEÚDO dela; o que não mudou é a exigência: a frase tem de
+   * dizer o que aconteceu. */
+  const avisosNoCanto = d.getElementById('avisos');
+  const textoDosAvisos = () => (avisosNoCanto ? avisosNoCanto.textContent : '');
+  provar('o recado aparece na PILHA DO CANTO, e não dentro do formulário',
+    /gravado/.test(textoDosAvisos()), textoDosAvisos());
+  provar('…e o `.res` do formulário fica vazio — o recado não vive no sítio que se fecha',
+    d.querySelector('[data-res="dic"]').textContent === '',
     d.querySelector('[data-res="dic"]').textContent);
   provar('…e diz TAMBÉM que a versão passou a ser desta escola (o catálogo não mudou)',
-    /versão desta escola/.test(d.querySelector('[data-res="dic"]').textContent),
-    d.querySelector('[data-res="dic"]').textContent);
+    /versão desta escola/.test(textoDosAvisos()), textoDosAvisos());
 
   /* ── APAGAR ───────────────────────────────────────────────────────────────────────────── */
   cartao('releve').querySelector('button[data-apagar-dicionario]').click();
   await esperar(160);
   provar('apagar não navegou', navegacoes.length === 0, navegacoes.slice(0, 2));
   provar('…e o cartão saiu da lista', !cartao('releve'), Boolean(cartao('releve')));
-  provar('…e o recado aparece ao lado da LISTA, porque o formulário pode estar fechado',
-    /saiu do dicionário/.test(d.getElementById('dic-res-lista').textContent),
-    d.getElementById('dic-res-lista').textContent);
+  provar('…e o recado aparece na pilha do canto, porque o formulário pode estar fechado',
+    /saiu do dicionário/.test(textoDosAvisos()), textoDosAvisos());
 
   /* ── CARREGAR VERBETES ───────────────────────────────────────────────────────────────── */
   d.getElementById('dic-semear').click();
   await esperar(160);
   provar('«Carregar verbetes» não navegou', navegacoes.length === 0, navegacoes.slice(0, 2));
   provar('…e a frase diz quantos entraram, em vez de «ok (feito)»',
-    /1 verbete carregado/.test(d.getElementById('dic-res-lista').textContent),
-    d.getElementById('dic-res-lista').textContent);
+    /1 verbete carregado/.test(textoDosAvisos()), textoDosAvisos());
 
   /* ── CRIAR, QUE É O OUTRO CAMINHO ────────────────────────────────────────────────────── */
   d.getElementById('dicnome').value = 'Cabriole';
@@ -854,6 +877,113 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
   dom.window.close();
 }
 
+/* ============================================================================================= */
+console.log('\nK. A listagem do Estilo dá os gestos à versão do CATÁLOGO também');
+
+{
+  /* O RELATO, que é o desta secção:
+   *
+   *   «Eu tenho o battement tendu […] e ele tem os botões de derivar e excluir. […] E na listagem eu
+   *    também tenho o plié […] e é do catálogo. E aí eu não tenho aqui o botão de derivar ou excluir
+   *    esse estilo. […] Isso é um erro, porque eu quero fazer os testes.»
+   *
+   * A LISTA É MONTADA NO CLIENTE a partir de `/api/bastidores/verbete`, portanto é a correr que se
+   * mede — a marcação da página não a tem. O stub devolve dois exercícios: um com a versão da
+   * ESCOLA e outro só com a do CATÁLOGO (é o caso do «Plié» que ela viu). */
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const vc = new VirtualConsole();
+  vc.on('jsdomError', () => {});
+  vc.on('error', () => {});
+
+  const umExercicio = (nome, escola) => ({
+    nome: nome,
+    musicas: ['8|2/4'],
+    descontinuado: false,
+    emTurma: null,
+    ajustadaEm: null,
+    escola: escola,
+    porMusica: [{
+      chave: '8|2/4', chaveGravada: escola ? '8|2/4@' + escola : '8|2/4',
+      escola: escola || null, tempos: 8, compasso: '2/4', cobre: 8, trechos: 1,
+      direcoes: [], orientacoes: [], categorias: ['passo'], linhas: [], motivo: '',
+    }],
+  });
+
+  const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    pretendToBeVisual: true, virtualConsole: vc,
+    beforeParse(w) {
+      w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+        addListener() {}, removeListener() {} });
+      w.confirm = () => true;
+      w.alert = () => {};
+      w.scrollTo = () => {};
+      const memoria = new Map();
+      Object.defineProperty(w, 'sessionStorage', {
+        configurable: true,
+        value: {
+          getItem: (k) => (memoria.has(k) ? memoria.get(k) : null),
+          setItem: (k, v) => memoria.set(k, String(v)),
+          removeItem: (k) => memoria.delete(k), clear: () => memoria.clear(),
+        },
+      });
+      /* O `text()` LEVA O MESMO CORPO QUE O `json()` — e não é preguiça: o `carregarVerbetes` lê a
+       * resposta com `lerResposta`, que faz `r.text()` e `JSON.parse`. Um stub que só preenchesse o
+       * `json()` fazia a lista responder «a resposta não veio em condições (HTTP 200)», e a prova
+       * media um stub em vez da página. */
+      const responde = (corpo) => Promise.resolve({
+        ok: true, status: 200,
+        json: () => Promise.resolve(corpo),
+        text: () => Promise.resolve(JSON.stringify(corpo)),
+      });
+      w.fetch = (u) => {
+        const url = String(u);
+        if (url.indexOf('/api/bastidores/verbete') !== -1) {
+          return responde({
+            ok: true,
+            exercicios: [umExercicio('Plié', ''), umExercicio('Battement tendu', 'breu')],
+            exerciciosDoVocabulario: [],
+            verbetes: {},
+          });
+        }
+        if (url.indexOf('/api/bastidores/termos') !== -1) return responde({ ok: true, termos: [] });
+        return responde({ ok: true });
+      };
+    },
+  });
+  const w = dom.window;
+  const d = w.document;
+  await new Promise((r) => setTimeout(r, 200));
+
+  const cartao = (nome) => d.querySelector('li[data-verbete="' + nome + '"]');
+  const acoes = (nome) => {
+    const el = cartao(nome);
+    const caixa = el ? el.querySelector('.acoes') : null;
+    return caixa ? [...caixa.querySelectorAll('button')].map((b) => b.textContent.trim()) : [];
+  };
+
+  provar('a listagem do Estilo desenhou os dois exercícios',
+    Boolean(cartao('Plié')) && Boolean(cartao('Battement tendu')),
+    d.getElementById('lista-verbetes') ? d.getElementById('lista-verbetes').children.length : null);
+
+  /* O CASO DELA: a versão do CATÁLOGO. Antes desta correcção não havia botão nenhum. */
+  provar('a versão do CATÁLOGO tem o gesto de derivar (era o defeito: não tinha botão nenhum)',
+    acoes('Plié').indexOf('Derivar') !== -1, acoes('Plié'));
+  provar('…e NÃO tem «Excluir» — a regra de 03/11: apagar o do catálogo tirá-lo-ia a todas',
+    acoes('Plié').indexOf('Excluir') === -1, acoes('Plié'));
+  provar('…e o `title` diz o que gravar faz: cria a versão desta escola, e o catálogo fica',
+    /cria a versão desta escola/.test(
+      (cartao('Plié').querySelector('.acoes button') || {}).title || ''),
+    (cartao('Plié').querySelector('.acoes button') || {}).title);
+
+  /* A VERSÃO DA ESCOLA continua com os dois gestos, e é a metade que já funcionava. */
+  provar('a versão da ESCOLA tem «Editar» e «Excluir»',
+    acoes('Battement tendu').indexOf('Editar') !== -1
+      && acoes('Battement tendu').indexOf('Excluir') !== -1, acoes('Battement tendu'));
+
+  dom.window.close();
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: o Dicionário é irmão das outras secções e guarda o '
@@ -862,8 +992,8 @@ console.log('\n' + (falhas
     + '«Carregar verbetes» adopta a progressão de referência, sem duplicar; e o que o vocabulário '
     + 'diz chega inteiro à tela — a ponte do catálogo não perde campo; e o dicionário é de cada '
     + 'escola, filtrado automaticamente pela escola do Worker; e a edição grava no termo dessa '
-    + 'escola, não no do catálogo; e gravar, apagar e semear mudam a lista no lugar, sem recarregar '
-    + 'a página.'));
+    + 'escola, não no do catálogo; gravar, apagar e semear mudam a lista no lugar, sem recarregar '
+    + 'a página; e a listagem do Estilo dá o gesto de derivar também à versão do catálogo.'));
 process.exit(falhas ? 1 : 0);
 }
 

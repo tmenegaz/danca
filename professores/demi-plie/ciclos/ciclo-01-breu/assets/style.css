@@ -2575,6 +2575,105 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .res.aviso { display: block; background: var(--alerta-fundo); border: 1px solid var(--alerta); color: var(--alerta); }
 .res.ok a { color: inherit; }
 
+/* ---------- o aviso do gesto — a pilha do canto (19/11/2026) -----------------
+   O RETORNO DEIXA DE VIVER DENTRO DO FORMULÁRIO.
+
+     «Ao invés de colocar aqui dentro do formulário, vamos exibir na tela, no canto
+      superior direito, essas mensagens, de êxito ou de erro ou de atenção […]. E elas
+      são temporárias. Coloca que elas vão durar 8 segundos. Mesmo que elas fiquem uma
+      sobre a outra, vão criando uma lista, mas cada uma dura 8 segundos. E também
+      coloca um botão de fechar.»
+
+   PORQUE O `.res` NÃO SERVIU. Ele é um parágrafo NO FLUXO: nasce dentro do formulário,
+   empurra o que está abaixo, e desaparece quando o formulário recolhe — que é
+   exactamente o que passa a acontecer depois de gravar. Um recado escrito no sítio
+   que acabou de se fechar não se lê.
+
+   A PEÇA SÃO DUAS, e a divisão é a mesma do `.veu-de-operacao`: o CONTENTOR `.avisos`
+   é a pilha (fixa, no canto, uma coluna) e cada `.aviso-do-gesto` é um aviso. A pilha
+   não recebe ponteiro nenhum (`pointer-events: none`) — ela é uma zona, não um painel,
+   e tapar a página com uma zona invisível seria trocar um defeito por outro. Quem
+   recebe o ponteiro é o aviso, e é por isso que o «fechar» funciona.
+
+   A COR É O PAPEL SEMÂNTICO da vez, e não uma cor escrita à mão: `data-tipo="ok"` usa
+   o par `--ok`/`--ok-fundo`, `"erro"` o par da falha, `"atencao"` o do alerta — os
+   mesmos três que o `.res` já usa, e que os dois temas declaram. Um quarto valor não
+   existe: o tipo é um dos três, e o JavaScript não inventa.
+
+   O `z-index` é 130 — acima do véu da operação (120). O aviso nasce quando o véu ainda
+   pode estar de pé (é a resposta que o levanta), e um aviso por baixo do véu seria a
+   resposta que ninguém vê. */
+.avisos {
+  position: fixed;
+  top: calc(var(--header-height) + var(--esp-2));
+  right: var(--esp-4);
+  z-index: 130;
+  display: flex; flex-direction: column; gap: var(--esp-2);
+  width: min(25rem, calc(100vw - 2 * var(--esp-4)));
+  max-height: calc(100vh - var(--header-height) - var(--esp-5));
+  overflow-y: auto;
+  /* A PILHA NÃO TAPA A PÁGINA. */
+  pointer-events: none;
+}
+/* Sem avisos não há caixa: uma zona vazia não ocupa lugar nenhum, e é a mesma regra do
+   `[hidden]` — o estado vazio não se vê. */
+.avisos:empty { display: none; }
+.aviso-do-gesto {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-4);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-2);
+  background: var(--superficie-elevada);
+  color: var(--texto);
+  box-shadow: var(--sombra-menu);
+  font: 15px/1.45 var(--ui);
+  animation: aviso-do-gesto-entra 180ms ease-out;
+}
+.aviso-do-gesto[data-tipo="ok"] {
+  background: var(--ok-fundo); border-color: var(--ok); color: var(--ok);
+}
+.aviso-do-gesto[data-tipo="erro"] {
+  background: var(--falha-fundo); border-color: var(--falha); color: var(--falha);
+}
+.aviso-do-gesto[data-tipo="atencao"] {
+  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+}
+.aviso-do-gesto-texto { flex: 1 1 auto; margin: 0; }
+.aviso-do-gesto-fechar {
+  flex: 0 0 auto;
+  /* O ALVO É DE 24px, e não do tamanho da letra: uma aspa de 14px num telefone pede
+     pontaria, e este botão existe para quem tem pressa. */
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 1.5rem; min-height: 1.5rem;
+  margin: calc(-1 * var(--esp-1)) calc(-1 * var(--esp-2)) 0 0;
+  padding: 0;
+  border: 0; border-radius: var(--raio-1);
+  background: transparent; color: inherit;
+  font: 700 15px/1 var(--ui); cursor: pointer;
+  opacity: .75;
+}
+.aviso-do-gesto-fechar:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+.aviso-do-gesto-fechar:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+@keyframes aviso-do-gesto-entra {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+/* No telemóvel a pilha atravessa o ecrã: 25rem não cabe em 360px, e um aviso cortado
+   à direita esconde o fim da frase. */
+@media (max-width: 560px) {
+  .avisos {
+    left: var(--esp-3); right: var(--esp-3);
+    width: auto;
+    top: auto; bottom: var(--esp-3);
+    flex-direction: column-reverse;
+    max-height: 50vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aviso-do-gesto { animation: none; }
+}
+
 /* ---------- aviso ----------------------------------------------------------
    A faixa de prosa que explica antes de agir. O `.alerta` é a pendência (âmbar);
    o padrão é a nota de leitura, com o tratamento da citação do site. */

@@ -54088,3 +54088,74 @@ sistema não inventar outro.
 `check-identidade` ok (22 verificações). Vizinhas: `provar-verbete` (a falha da §J, que já reprovava
 no `HEAD`), `provar-producao` 142/159 — **as mesmas 17 do `HEAD`**, comparadas uma a uma —,
 `provar-menu-da-producao` 55/55, `provar-painel` ok.
+
+### 19/11/2026 — «Não tenho o botão de derivar» — o catálogo sem gestos, e o aviso que sai do formulário
+
+**1. O defeito que ela viu na listagem do Estilo, e a causa em três caracteres.**
+
+> «Eu tenho aqui a listagem de exercícios com verbete. Eu tenho o battement tendu […] e ele tem os
+> botões de derivar e excluir. […] E na listagem eu também tenho o plié […] e é do catálogo. […] E aí
+> eu não tenho aqui o botão de derivar ou excluir esse estilo. […] Isso é um erro, porque eu quero
+> fazer os testes.»
+
+A condição que desenhava os gestos era `i === 0 && m.escola`, e `m.escola` é vazio quando a versão à
+vista é a do **catálogo**. Os dois gestos estavam debaixo da mesma condição, e a regra que os
+separava — a de 03/11/2026, «a versão do catálogo não tem botão de apagar» — arrastou consigo o
+**Derivar**, que é o gesto seguro: gravar leva a chave do dono (`8|2/4@breu`), cria a versão da
+escola e deixa o catálogo como está.
+
+Ficam três estados, e cada um com a sua razão: **em turma** → «Derivar» e «Excluir» desabilitado;
+**versão da escola, livre** → «Editar» e «Excluir»; **versão do catálogo** → «Derivar», e o
+«Excluir» **não existe** (a ausência é a regra: «um botão que recusa é pior do que a sua ausência»).
+O `title` do «Derivar» diz o que vai acontecer, para ninguém gravar a pensar que corrige o catálogo.
+
+**2. O retorno de um gesto saiu do formulário e foi para o canto.**
+
+> «Ao invés de colocar aqui dentro do formulário, vamos exibir na tela, no canto superior direito,
+> essas mensagens, de êxito ou de erro ou de atenção […] duram 8 segundos […] vão criando uma lista
+> […] e coloca um botão de fechar.»
+
+A peça nasceu inteira, como manda o catálogo: o desenho em `tools/templates/ciclo.css` (`.avisos` +
+`.aviso-do-gesto`, com os três `data-tipo` e o `prefers-reduced-motion`), as duas linhas nos Quadros 1
+e 2 do `IDENTIDADE-VISUAL.md`, a prova a medir geometria num Chromium, e a cópia em
+`raiz/assets/style.css` e nos pacotes. **Nenhuma classe nasceu no uso.**
+
+| regra | valor |
+|:--|:--|
+| o sítio | o canto superior direito, 16 px do bordo, abaixo da faixa — medido |
+| o `z-index` | 130, acima do véu da operação (120): o aviso é a resposta que levanta o véu |
+| a zona | `pointer-events: none` na pilha, `auto` no aviso — não tapa a página |
+| a vida | **8 s por aviso**, e o `×` fecha antes; a conta é de cada um, não da pilha |
+| a ordem | a mais recente em cima (`insertBefore`) |
+| a cor | os três pares semânticos; um tipo inventado cai em `atencao` |
+| o telemóvel | a pilha atravessa o ecrã e desce ao fundo, ao alcance do polegar |
+
+**3. Gravar limpa e fecha — em todas as secções.** `concluirOGesto(seccao, tipo, texto)` faz as três
+coisas de uma vez, e é chamado no fim do gesto: limpa todos os `<form>`, os campos ocultos, as fichas
+`.escolhido` e o `.res`; recolhe pelo `cancelarOFormularioDe` (que é quem grava o estado em
+`sessionStorage`); e avisa. Ligado em **Dicionário**, **Estilo** (o `limparOVerbete` nasceu da
+sequência do «Cancelar», para não haver duas limpezas a divergir), **`enviar`** (que serve Turma,
+Sala, Curadoria, Rubrica do professor) e **`postar`/matrícula** (Professor e Aluna — a aluna tinha um
+`setTimeout` de 2,5 s só para se ler o `.res`, que deixou de ser preciso quando o aviso passou a
+sobreviver à recarga).
+
+**A ordem importa, e é o que faz isto funcionar:** a página é desenhada no servidor, portanto a
+maioria destes gestos recarrega. Limpar e recolher acontecem **antes** do `reload` — é o que a página
+seguinte lê do `sessionStorage` —, e o aviso viaja com o mesmo mecanismo, com carimbo de tempo e um
+prazo de cinco minutos. Feito depois da recarga seria tarde: a página antiga já não existe.
+
+**Uma excepção declarada, e é deliberada:** no **Elenco** (Audição) a mensagem de conclusão fica no
+`.res` do formulário. É ele que carrega a **cadeia** — os elencos, o plano de ensino e a observação,
+com os endereços de onde se resolve cada etapa em falta. Passar a frase para o canto e recolher o
+formulário esconderia esses links, e um aviso de oito segundos não é sítio para uma lista de
+pendências. O formulário do elenco **já limpa** desde 09/11/2026 (o pedido dela dessa data); o que não
+faz é recolher.
+
+**Medido.** `provar-avisos` — **25 asserções**, e o prazo é **medido a esperar 8,6 s**, não a ler o
+`setTimeout` no script: um número escrito no código diz que alguém o escreveu, não que ele corre.
+`provar-dicionario` passou a **118** (a secção **K** corre a listagem do Estilo num DOM e exige o
+«Derivar» na versão do catálogo). **Controlo negativo:** repondo a condição `i === 0 && m.escola`,
+**2 de 118 reprovam**. `check-identidade` ok (22 verificações, com as cópias regeneradas),
+`check-sem-destruicao` ok. Vizinhas: `provar-painel` ok, `provar-salas-e-elencos` 132,
+`provar-pagina-do-professor` 17, `provar-a-margem-da-aba` 12/12. `provar-verbete` mantém a falha da
+§J e `provar-producao` as 142/159 — as mesmas de antes, medidas nos dois lados.
