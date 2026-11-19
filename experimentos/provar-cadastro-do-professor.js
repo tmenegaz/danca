@@ -93,26 +93,37 @@ function githubFalso(ficheiros) {
     /* A ÁRVORE — o `acervo.doAmbiente` lê `git/trees?recursive=1` para saber que envelopes
      * existem. Uma árvore vazia é uma casa sem planos, que é o caso desta bancada: o professor
      * está livre porque não há plano nenhum que o cite. */
+    /* `ok` É O CAMPO QUE OS LEITORES DA CASA CONFEREM (19/11/2026) — e sem ele a resposta era lida
+     * como falha com `status: 200`. É a armadilha do duplo de teste: `!resposta.ok` sobre um objeto
+     * que não tem `ok` é `true`, e o erro que sai («não li …: HTTP 200») aponta para o sítio
+     * errado. Um 200 com `ok` em falta é o pior dos dois mundos para diagnosticar. */
+    const ok = (status) => status >= 200 && status < 300;
     if (u.indexOf('/git/trees/') !== -1) {
-      return { status: 200, json: async () => ({ tree: [], sha: 'arvore' }), text: async () => '' };
+      return { ok: true, status: 200, json: async () => ({ tree: [], sha: 'arvore' }), text: async () => '' };
     }
     const caminho = decodeURIComponent(u.replace(/^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/]+\/contents\//, '').split('?')[0]);
     const metodo = (opcoes && opcoes.method) || 'GET';
     if (metodo === 'GET') {
-      if (!mapa.has(caminho)) return { status: 404, json: async () => ({}), text: async () => '' };
+      if (!mapa.has(caminho)) return { ok: false, status: 404, json: async () => ({}), text: async () => '' };
       const conteudo = mapa.get(caminho);
       return {
+        ok: true,
         status: 200,
         json: async () => ({ content: Buffer.from(conteudo, 'utf8').toString('base64'), sha: 'sha-' + caminho }),
-        text: async () => '',
+        /* O `text()` TAMBÉM ENTREGA O FICHEIRO (19/11/2026). O leitor do inventário pede o conteúdo
+         * cru (`Accept: raw`) e lê `.text()`; um `text()` vazio dava «não li escola/<slug>/
+         * indice.json: HTTP 200» — um 200 com corpo nenhum, que é o pior dos dois mundos para
+         * diagnosticar. Um duplo de teste que só responde por um dos caminhos mede o duplo, não a
+         * página. */
+        text: async () => conteudo,
       };
     }
     if (metodo === 'PUT') {
       const corpo = JSON.parse((opcoes && opcoes.body) || '{}');
       mapa.set(caminho, Buffer.from(String(corpo.content || ''), 'base64').toString('utf8'));
-      return { status: 200, json: async () => ({ commit: { sha: 'novo' } }), text: async () => '' };
+      return { ok: true, status: 200, json: async () => ({ commit: { sha: 'novo' } }), text: async () => '' };
     }
-    return { status: 405, json: async () => ({}), text: async () => '' };
+    return { ok: false, status: 405, json: async () => ({}), text: async () => '' };
   };
   return { fetch, ficheiros: mapa, chamadas };
 }
@@ -451,6 +462,70 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       dasCaixas.length === doCatalogo.length && doCatalogo.length > 0, doCatalogo.length);
   }
 
+  console.log('\nE. O CADASTRO NOVO GUARDA A FICHA — CPF, telefone, e-mail e habilidade');
+  {
+    /* O DEFEITO, na letra dela (19/11/2026): «Eu fui cadastrar o professor novo […] preenchi todos
+     * os campos: o nome, o sobrenome, o CPF, o telefone, o e-mail, a habilidade e a senha. […]
+     * Quando eu fui editar o Bombom, ele indica no cadastro, step um, que não tem CPF, telefone,
+     * e-mail. E aí quando eu fui vincular um aluno, não disparou o e-mail porque não tem e-mail
+     * vinculado a este professor Bombom.»
+     *
+     * A CAUSA: o `POST /professor` de CRIAÇÃO escrevia `{nome, slug, sal, hash}` e mais nada. Os
+     * três campos eram recolhidos pelo formulário, viajavam no corpo e eram deitados fora. A ficha
+     * e a habilidade só existiam se alguém voltasse a «Editar» e os escrevesse outra vez.
+     *
+     * O QUE ESTA SECÇÃO MEDE: o cadastro grava a ficha, e o que ele grava é o que a ficha DEVOLVE
+     * — a ida e a volta, que é onde o defeito se via. Sem a correcção, as quatro primeiras
+     * asserções falham (o `contato` não existe, e a ficha volta vazia). */
+    const kv = kvFalso({
+      'bastidores/breu/professores': JSON.stringify(PROFS),
+      'bastidores/breu/dono': JSON.stringify({ nome: 'Brise Volet', slug: 'brise-volet' }),
+    });
+    const gh = githubFalso({
+      'escola/breu/indice.json': JSON.stringify({ slug: 'breu', nome: 'Breu', professores: [] }),
+    });
+    const env = envCom(kv, gh);
+    globalThis.fetch = gh.fetch;
+
+    const novo = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({
+      nome: 'Bombom', sobrenome: 'Teste',
+      cpf: '529.982.247-25', telefone: '(51) 99175-2662', email: 'bombom@exemplo.com',
+      modalidade: 'danca-moderna', senha: 'segredo-do-bombom',
+    }));
+    conferir('o cadastro de um professor novo responde 201', novo.status === 201, novo.dados);
+    conferir('…e a resposta diz que a ficha foi gravada, e com que modalidade',
+      novo.dados.ficha && novo.dados.ficha.contato === true
+        && novo.dados.ficha.modalidade === 'danca-moderna', novo.dados.ficha);
+    const slug = String((novo.dados && novo.dados.slug) || '');
+    const contato = JSON.parse(kv.bruto.get('professores/' + slug + '/contato') || 'null');
+    conferir('…e o CPF, o telefone e o e-mail estão no contato do professor',
+      Boolean(contato) && contato.cpf === '52998224725'
+        && contato.telefone === '(51) 99175-2662' && contato.email === 'bombom@exemplo.com', contato);
+    conferir('…e a habilidade foi para o perfil, no repositório',
+      /danca-moderna/.test(gh.ficheiros.get('professores/' + slug + '/perfil.json') || ''),
+      gh.ficheiros.get('professores/' + slug + '/perfil.json'));
+
+    /* A IDA E A VOLTA — é o gesto dela: cadastrar, sair, abrir o «Editar». */
+    const ficha = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: slug }));
+    conferir('ao abrir o «Editar», a ficha traz o CPF, o telefone e o e-mail que se escreveu',
+      ficha.dados.cpf === '52998224725' && ficha.dados.telefone === '(51) 99175-2662'
+        && ficha.dados.email === 'bombom@exemplo.com', ficha.dados);
+    conferir('…e a modalidade, que é o que o e-mail do vínculo da aluna usa',
+      ficha.dados.modalidade === 'danca-moderna', ficha.dados.modalidade);
+
+    /* A RECUSA É ANTES DA ESCRITA: um CPF inválido não deixa um professor na lista sem ficha. */
+    const antesDaRecusa = JSON.parse(kv.bruto.get('bastidores/breu/professores')).length;
+    const recusado = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({
+      nome: 'Sem', sobrenome: 'Cpf', cpf: '111.111.111-11', modalidade: 'danca-moderna', senha: 'x',
+    }));
+    conferir('um CPF inválido recusa o cadastro', recusado.status === 400, recusado.dados);
+    conferir('…e nenhum professor entra na lista por causa disso',
+      JSON.parse(kv.bruto.get('bastidores/breu/professores')).length === antesDaRecusa,
+      JSON.parse(kv.bruto.get('bastidores/breu/professores')).map((p) => p.nome));
+
+    globalThis.fetch = fetchDeVerdade;
+  }
+
   console.log('\nF. O rótulo da ficha: «Editar» enquanto é livre, «Derivar» quando já está em turma');
   {
     /* A REGRA (18/11/2026). «O professor já está vinculado a uma turma. Então lá é derivar, não é
@@ -480,6 +555,116 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       /data-slug="ana-diag"/.test(linha('Ana Diag')));
     conferir('…e o título diz que é a mesma ficha, corrigida no lugar',
       /abre o mesmo formul/i.test(linha('Ana Diag')), linha('Ana Diag').slice(0, 200));
+  }
+
+  console.log('\nG. As abas «Habilitações» e «Desligamento» fecham enquanto há um professor a meio');
+  {
+    /* O PEDIDO (19/11/2026): «Enquanto eu faço o cadastro e navego pelos steps, cadastro e rubrica,
+     * até que eu conclua isso, o habilitação e o desligamento devem ficar desligados, tá? Não podem
+     * ser acessados. Eles só vão ser acessados essas duas abas quando eu não estiver num processo de
+     * criar um novo professor ou de editar um novo professor.»
+     *
+     * E A RAZÃO, na letra dela: a modalidade nasce no CADASTRO; a aba das Habilitações é o outro
+     * gesto — «quando eu quero incluir mais de uma modalidade para o professor ou apenas visualizar
+     * as modalidades dele». Sair do cadastro a meio deixaria metade do trabalho numa aba e metade na
+     * outra.
+     *
+     * O QUE SE MEDE: os quatro sinais que valem «em processo» (o modo de edição, o rascunho do
+     * «Avançar», o passo da régua e o nome escrito), um a um — e a volta ao normal quando o
+     * «Cancelar» limpa os quatro. */
+    const { JSDOM, VirtualConsole } = require('jsdom');
+    const html = pagina(PROFS);
+    const vc = new VirtualConsole();
+    const erros = [];
+    vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao', virtualConsole: vc,
+      beforeParse(w) {
+        w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+        Object.defineProperty(w, 'localStorage', { configurable: true, value: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
+        w.scrollTo = () => {};
+        w.fetch = () => Promise.resolve({
+          status: 200, ok: true,
+          json: () => Promise.resolve({ ok: true, slug: 'ana-diag', nome: 'Ana Diag', cpf: '', telefone: '', email: '', modalidade: 'bale-classico' }),
+        });
+      },
+    });
+    await new Promise((r) => setTimeout(r, 350));
+    const d = dom.window.document;
+    const W = dom.window;
+    d.getElementById('sec-professores').hidden = false;
+    const aba = (k) => d.getElementById('pf-aba-' + k);
+    const abertas = () => ['cadastro', 'habilitacoes', 'desligamento']
+      .filter((k) => !d.getElementById('pf-painel-' + k).hidden);
+    const travadas = () => ['habilitacoes', 'desligamento'].filter((k) => aba(k).disabled);
+    const clicar = (el) => el.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+
+    conferir('na carga, com o formulário vazio, as três abas abrem', travadas().length === 0, travadas());
+    clicar(aba('habilitacoes'));
+    conferir('…e a consulta às habilitações de quem já está na lista continua possível',
+      JSON.stringify(abertas()) === JSON.stringify(['habilitacoes']), abertas());
+    clicar(aba('cadastro'));
+
+    /* O SINAL 4 — o nome escrito. */
+    const nome = d.getElementById('pnome');
+    nome.value = 'Bombom';
+    nome.dispatchEvent(new W.Event('input', { bubbles: true }));
+    conferir('escrever o nome fecha as duas abas', JSON.stringify(travadas()) === JSON.stringify(['habilitacoes', 'desligamento']), travadas());
+    conferir('…e a aba travada diz PORQUE, e não fica muda',
+      /conclua ou cancele/i.test(aba('habilitacoes').getAttribute('title') || ''), aba('habilitacoes').getAttribute('title'));
+    conferir('…e o leitor de ecrã sabe que ela existe e está travada (aria-disabled)',
+      aba('habilitacoes').getAttribute('aria-disabled') === 'true'
+        && aba('desligamento').getAttribute('aria-disabled') === 'true', null);
+    /* A TRAVA É DO MOTOR, e não só do atributo: o clique e o teclado passam os dois pelo `pode`. */
+    clicar(aba('habilitacoes'));
+    conferir('clicar a aba travada não abre o painel',
+      JSON.stringify(abertas()) === JSON.stringify(['cadastro']), abertas());
+    d.getElementById('pf-abas').dispatchEvent(new W.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    conferir('…e o teclado também não a alcança',
+      JSON.stringify(abertas()) === JSON.stringify(['cadastro']), abertas());
+
+    /* A ABA ABERTA QUE PERDE O DIREITO FECHA-SE: quem está no Desligamento e começa a cadastrar
+     * não pode ficar a olhar para uma aba que já não se abre. */
+    nome.value = '';
+    nome.dispatchEvent(new W.Event('input', { bubbles: true }));
+    clicar(aba('desligamento'));
+    conferir('sem nada escrito, o Desligamento volta a abrir',
+      JSON.stringify(abertas()) === JSON.stringify(['desligamento']), abertas());
+    nome.value = 'Bombom';
+    nome.dispatchEvent(new W.Event('input', { bubbles: true }));
+    conferir('…e ao começar a escrever, a tela volta ao cadastro sozinha',
+      JSON.stringify(abertas()) === JSON.stringify(['cadastro']), abertas());
+
+    /* O SINAL 2 — o rascunho do «Avançar». O passo 1 compõe e vai para a régua. */
+    clicar(d.getElementById('prof-enviar'));
+    await new Promise((r) => setTimeout(r, 120));
+    conferir('o «Avançar» abre o passo da régua', !d.getElementById('passo-prof-rubrica').hidden, null);
+    conferir('…e as duas abas continuam fechadas no passo 2', travadas().length === 2, travadas());
+
+    /* E O «CANCELAR» DEVOLVE AS TRÊS — é o caminho de quem desiste a meio. */
+    clicar(d.getElementById('rubr-cancelar'));
+    await new Promise((r) => setTimeout(r, 120));
+    conferir('o «Cancelar» limpa o processo e devolve as duas abas',
+      travadas().length === 0, { travadas: travadas(), nome: d.getElementById('pnome').value });
+
+    /* O SINAL 1 — a edição de quem já está na lista. É o caminho em que ela viu o defeito. */
+    const ed = d.querySelector('#sec-professores button.editar');
+    clicar(ed);
+    await new Promise((r) => setTimeout(r, 200));
+    conferir('abrir um professor em «Editar» fecha as duas abas', travadas().length === 2, travadas());
+    conferir('…e a ficha dele continua na aba do cadastro', JSON.stringify(abertas()) === JSON.stringify(['cadastro']), abertas());
+    clicar(d.getElementById('prof-cancelar'));
+    await new Promise((r) => setTimeout(r, 120));
+    conferir('…e o «Cancelar» da ficha devolve-as', travadas().length === 0, travadas());
+
+    /* A FOLHA DO TELEMÓVEL TEM DE DIZER O MESMO — é a terceira porta das abas. */
+    nome.value = 'Bombom';
+    nome.dispatchEvent(new W.Event('input', { bubbles: true }));
+    const item = d.querySelector('#pf-abas-menu [data-aba="habilitacoes"]');
+    conferir('o item da folha do telemóvel também fica travado',
+      Boolean(item) && item.disabled === true, item ? item.outerHTML.slice(0, 90) : null);
+    conferir('os scripts da página não lançam', erros.length === 0, erros.slice(0, 1));
+    dom.window.close();
   }
 
   console.log('');

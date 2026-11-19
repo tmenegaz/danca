@@ -53121,3 +53121,79 @@ prosa — rótulo, campo e placeholder; o que se diz depois é a resposta da rot
 `provar-a-margem-da-aba` 12 (o painel do Desligamento passou a ter o `<form>` em primeiro e continua
 a 16 px — a regra não depende de quem está em primeiro), `provar-passos-uniformes` 45,
 `provar-pagina-do-professor` 17, `provar-cadastro-visivel` 12, `check-identidade` ok.
+
+### 19/11/2026 — O cadastro do professor guardava a ficha pela metade; e as abas irmãs fecham a meio
+
+«Eu fui cadastrar o professor novo […] preenchi todos os campos: o nome, o sobrenome, o CPF, o
+telefone, o e-mail, a habilidade e a senha. Cliquei em avançar, fui para a rubrica. Criei a régua
+[…] Mandei gravar a régua do professor. Gravou. […] Quando eu fui editar o Bombom, ele indica no
+cadastro, step um, que não tem CPF, telefone, e-mail. E aí quando eu fui vincular um aluno, não
+disparou o e-mail porque não tem e-mail vinculado a este professor Bombom.»
+
+**O defeito.** O `POST /api/bastidores/professor` de **criação** escrevia `{nome, slug, sal, hash}` e
+mais nada. O formulário recolhia os sete campos, o `corpoDoProfessor` punha-os no corpo do pedido, e
+a rota deitava fora quatro deles no último passo. A ficha e a habilidade só existiam se alguém
+voltasse a «Editar» e as escrevesse outra vez — e o `emailDoProfessor`, que é o que o vínculo da
+aluna lê para avisar o professor, procura em `professores/<slug>/contato`, que nunca tinha sido
+escrito. O e-mail não saía porque não havia para onde.
+
+**A causa de forma.** A conferência e a escrita da ficha viviam **dentro** do `editarProfessorDaEscola`,
+e o caminho de criar não as chamava — não por uma condição, mas porque não havia como: eram nove
+linhas no meio de uma função que só a edição usava. Duas cópias divergiriam na primeira correcção.
+
+**A correcção.** Duas funções, e os dois caminhos passam por elas: `conferirAFichaDoProfessor` (CPF
+normalizado e não repetido, telefone, e-mail, modalidade do catálogo — **sem escrever nada**) e
+`gravarAFichaDoProfessor` (o contato no KV e, depois, o perfil no repositório com a marcação das
+turmas que ficam sem quem as ensine). No cadastro a ordem é a do lado seguro: **conferir antes de
+tudo** (um CPF inválido não deixa um professor na lista sem ficha) e **gravar a ficha antes do
+registo**, para que uma falha no repositório recuse o cadastro em vez de deixar uma pessoa na lista
+sem contato. A pasta e o vínculo já criados não se perdem: os dois são idempotentes, e repetir o
+cadastro passa por eles sem duplicar nada.
+
+**Medido** — `provar-cadastro-do-professor.js`, secção E, nova: **8 asserções**, e o controle
+negativo (a escrita da ficha reposta por `{ok:true}`) **falha as quatro primeiras** — o `contato` não
+existe, o perfil não existe, e a ficha volta `"cpf":"","telefone":"","email":""`, que é literalmente
+o que ela viu. As asserções medem a **ida e a volta**: cadastrar com os quatro campos e abrir o
+`/ficha-do-professor` do slug que o servidor devolveu.
+
+**O segundo pedido.** «Enquanto eu faço o cadastro e navego pelos steps, cadastro e rubrica, até que
+eu conclua isso, o habilitação e o desligamento devem ficar desligados […] Eles só vão ser acessados
+essas duas abas quando eu não estiver num processo de criar um novo professor ou de editar um novo
+professor.» A razão é de desenho, e é dela: a modalidade nasce no **cadastro**; a aba das
+Habilitações é o outro gesto — «incluir mais de uma modalidade para o professor ou apenas visualizar
+as modalidades dele».
+
+O motor das abas já tinha a peça (`pode(n)` + `.aba[disabled]` com `title`, da trava dos elencos de
+15/11/2026); o que faltava era a regra. **«Em processo» são quatro estados que a tela já tem** — o
+modo de edição aberto, o rascunho do «Avançar», o passo 2 à vista, e o primeiro campo escrito. O
+formulário aberto e **vazio não conta**: ninguém está a cadastrar ninguém quando a página abre, e
+travar aí travaria a consulta. O repinte vive no funil que já corre na abertura da edição, no
+«Cancelar» e na troca de passo, mais um `input` no formulário — a quarta porta não fica de fora.
+
+**Um defeito apanhado a medir:** o «Cancelar» limpava a ficha e o foco mas **não voltava ao passo 1**.
+O painel da régua ficava à vista, e o passo 2 é um dos sinais de «há um professor a meio» — as duas
+abas continuavam travadas depois de o processo ter sido cancelado, e o formulário reabria no passo 2
+a mostrar a régua de ninguém. `sairDaEdicaoDoProfessor` passou a chamar `mostrarPassoDoProfessor
+("cadastro")`.
+
+**Medido** — secção G, nova: **17 asserções**, e o controle negativo (`pode` reposto a `true`)
+**falha 9**. Mede os quatro sinais um a um, o `title` e o `aria-disabled`, a guarda do **motor** (o
+clique e o teclado não abrem a aba travada), a aba aberta que se fecha sozinha quando perde o
+direito, o item da folha do telemóvel, e a volta ao normal pelo «Cancelar».
+
+**Duas asserções de `provar-habilitacao-do-professor` estavam vermelhas antes desta frente** (o passo
+2 das Salas chama-se «Associar» desde 19/11 e a régua passou para o cadastro do Professor): mudaram
+de sinal com nota, e a bancada cresceu de 80 para 81 — a medida da régua passou a ser feita dentro da
+secção do professor, e a ausência dela dentro das Salas passou a ser medida **na secção**, e não no
+documento inteiro (havia um `rubr-nome` homónimo noutro sítio, e a asserção reprovava a página certa).
+
+`IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba» ganhou a **regra 11** (as abas irmãs fecham
+enquanto há um registo a meio, com as três obrigações da peça), e `ARQUITETURA-GERAL.md` §3.3 a frase
+«o que o gravar leva tem de ser tudo o que o passo 1 recolheu».
+
+**Bancadas, medidas:** `provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81,
+`provar-editar-professor-principal` 33, `provar-transferencia-e-desligamento` 97,
+`provar-passos-uniformes` 45, `provar-regua-do-professor` 44, `provar-pagina-do-professor` 17,
+`provar-sala-e-portao` 27, `provar-avancar-nao-grava` 24, `provar-salas-e-elencos` 132,
+`provar-abas-da-audicao` 125, `provar-estado-da-turma` 28, `provar-teste` 41,
+`provar-cadastro-visivel` 12, `check-identidade` ok.

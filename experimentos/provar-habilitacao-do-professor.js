@@ -532,24 +532,53 @@ function oNivel() {
       antigo.ok && !('tradicoes' in antigo.perfil), antigo.perfil);
 
     // ---------------------------------------------------------------- A TELA
-    checar('o passo 2 chama-se «Professor»', /passo-t">Professor</.test(html), null);
-    checar('…e já não se chama «Rubricas»', !/passo-t">Rubricas</.test(html), null);
-    /* A ORDEM: professor, nome da rubrica, tradição. Mede-se pelas POSIÇÕES no HTML — é o que a
-     * pessoa vê de cima para baixo. */
-    const posProf = html.indexOf('for="rubr-professor"');
-    const posNome = html.indexOf('for="rubr-nome"');
+    /* O PASSO 2 DAS SALAS MUDOU DE NOME E DE OFÍCIO (19/11/2026), e estas duas asserções afirmavam
+     * o desenho de ontem — reprovavam a página certa.
+     *
+     * «Na sala, step um, fica apenas o nome da sala […] O step dois deixa de existir em salas. Todo o
+     * step dois, ele passa a ir para professores. […] Na sala, o associar passa a ser associar o
+     * professor pela modalidade e o professor.»
+     *
+     * O passo 2 das Salas chama-se agora «Associar» e compõe o par modalidade + professor; a régua
+     * deixou de ser composta ali e passou a ser o passo 2 do CADASTRO DO PROFESSOR (é dela que trata
+     * `provar-regua-do-professor`). Uma bancada que continue a exigir `rubr-professor` dentro das
+     * Salas está a pedir o ecrã antigo de volta. */
+    checar('o passo 2 das Salas chama-se «Associar»', /passo-t">Associar</.test(html), null);
+    checar('…e já não se chama «Rubricas» nem «Professor»',
+      !/passo-t">Rubricas</.test(html) && !/passo-t">Professor</.test(html), null);
+    /* A ORDEM: a modalidade primeiro, e só depois o professor — é a modalidade que diz quais
+     * professores existem («é pela modalidade que eu vou saber quais são os professores»). */
+    const posMod = html.indexOf('for="vinc-modalidade"');
+    const posProf = html.indexOf('for="vinc-professor"');
     const posTrad = html.indexOf('id="rubr-tradicao"');
-    checar('no passo 2, o professor vem antes do nome da rubrica',
-      posProf !== -1 && posNome !== -1 && posProf < posNome, { posProf, posNome });
-    checar('…e a tradição fica entre os dois', posTrad !== -1 && posProf < posTrad && posTrad < posNome,
-      { posProf, posTrad, posNome });
-    checar('…e é LEITURA, e não um campo: não há `input` nem `select` para a tradição',
-      !/id="rubr-tradicao"[^>]*>/.test(html.replace(/<p class="sub" id="rubr-tradicao">/, ''))
+    checar('no passo 2, a modalidade vem antes do professor',
+      posMod !== -1 && posProf !== -1 && posMod < posProf, { posMod, posProf });
+    /* A RÉGUA SAIU DAS SALAS: a sala sabe com que régua é medida pela ASSOCIAÇÃO ao professor, e é
+     * por isso que não há aqui nem `rubr-professor` nem `rubr-nome`. */
+    /* A MEDIDA É DENTRO DA SECÇÃO DAS SALAS — e não no documento inteiro: `rubr-nome` existe, mas na
+     * secção do PROFESSOR, que é onde a régua passou a ser composta. Uma asserção sobre o HTML
+     * inteiro reprovaria a página certa por causa de um id homónimo noutro sítio. */
+    const secSalas = html.slice(html.indexOf('id="sec-turmas"'), html.indexOf('id="sec-verbetes"'));
+    checar('…e a régua não se compõe nas Salas: não há `rubr-professor` nem `rubr-nome` na secção',
+      secSalas.indexOf('id="rubr-professor"') === -1 && secSalas.indexOf('id="rubr-nome"') === -1,
+      { rubrProfessor: secSalas.indexOf('id="rubr-professor"'), rubrNome: secSalas.indexOf('id="rubr-nome"') });
+    checar('…e a tradição continua a ser LEITURA, e não um campo: não há `input` nem `select` para ela',
+      posTrad !== -1
         && html.indexOf('<input id="rubr-tradicao"') === -1
-        && html.indexOf('<select id="rubr-tradicao"') === -1, null);
+        && html.indexOf('<select id="rubr-tradicao"') === -1, posTrad);
 
-    /* O PASSO 3 diz de quem é a régua escolhida — é o circuito que fecha. */
-    checar('o passo 3 tem a linha que diz de quem é a rubrica escolhida',
+    /* A RÉGUA VIVE NO CADASTRO DO PROFESSOR, e é lá que se mede a ordem dela: professor em foco,
+     * tradição que ele ensina, e o nome da régua. */
+    const secProf = html.slice(html.indexOf('id="sec-professores"'), html.indexOf('id="sec-alunas"'));
+    const posFoco = secProf.indexOf('id="rubr-prof-nome"');
+    const posTrad2 = secProf.indexOf('id="rubr-tradicao"');
+    const posNome2 = secProf.indexOf('id="rubr-nome"');
+    checar('no passo 2 do professor, a tradição fica entre quem ele é e o nome da régua',
+      posFoco !== -1 && posTrad2 !== -1 && posNome2 !== -1 && posFoco < posTrad2 && posTrad2 < posNome2,
+      { posFoco, posTrad2, posNome2 });
+
+    /* O PASSO 2 DAS SALAS diz de quem é a régua escolhida — é o circuito que fecha. */
+    checar('o «Associar» tem a linha que diz de quem é a rubrica escolhida',
       html.indexOf('id="vinc-professor"') !== -1, null);
 
     /* AS HABILITAÇÕES: um bloco por modalidade, para ela declarar a tradição lá. */

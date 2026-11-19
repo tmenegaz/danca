@@ -623,6 +623,32 @@ feito:
     carga, e é a única prosa que um painel pode ter. Um painel que fica em branco quando não há
     nada a fazer não é um painel limpo: é uma página que parece avariada.
 
+11. **Enquanto há um registo a meio, as abas que não são dele fecham.** *(19/11/2026: «Enquanto eu
+    faço o cadastro e navego pelos steps, cadastro e rubrica, até que eu conclua isso, o habilitação
+    e o desligamento devem ficar desligados, tá? Não podem ser acessados. Eles só vão ser acessados
+    essas duas abas quando eu não estiver num processo de criar um novo professor ou de editar um
+    novo professor.»)* A regra não é sobre o Professor em particular: é sobre o que uma **aba
+    irmã** pode fazer enquanto a pessoa está a compor um registo. Sair a meio deixa metade do
+    trabalho numa aba e metade na outra.
+
+    **O que conta como «a meio»** são estados que a tela já tem — e não um sinal novo inventado para
+    isto: o modo de edição aberto, um rascunho composto, o passo 2 à vista, ou o primeiro campo
+    escrito. O formulário aberto e **vazio não conta**: ninguém está a cadastrar ninguém no instante
+    em que a página abre, e travar aí seria travar a consulta.
+
+    **Três obrigações da peça**, e cada uma já existe no motor das abas:
+
+    - o `disabled` (com `aria-disabled`) **e** o `title` com a razão — uma aba apagada e muda manda
+      procurar um defeito que não existe;
+    - a **guarda no motor**, e não só no atributo: o clique, a folha do telemóvel e o teclado passam
+      todos pelo mesmo `pode(n)`, e é lá que a recusa vive;
+    - a aba que **perde o direito fecha-se** e volta à primeira, em vez de ficar aberta a mostrar um
+      painel que já não se pode alcançar.
+
+    E o «Cancelar» devolve tudo — inclusive o passo 1, que é o estado de quem acabou de chegar. Um
+    cancelar que deixe o passo 2 à vista mantém a tela a dizer «há um registo a meio» sobre um
+    registo que já não existe.
+
 **Onde está declarada.** No `<style>` da própria página da Produção (`motor/servidor/bastidores.js`),
 e não em `tools/templates/ciclo.css`: a peça nasceu na Produção e é lá que ela vive. O `<style>` da
 página é a segunda fonte de desenho que este documento reconhece (como o `.par-botoes`), e a

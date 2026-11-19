@@ -3541,6 +3541,121 @@ async function consumirBilheteDoAto(kv, escola, bilhete) {
 }
 
 /**
+ * O CPF, O TELEFONE E O E-MAIL — CONFERIDOS ANTES DE ESCRITOS (19/11/2026).
+ *
+ * PORQUE É UMA FUNÇÃO E NÃO NOVE LINHAS DENTRO DO «EDITAR». A conferência vivia lá, e o caminho de
+ * CRIAR não a chamava porque não gravava a ficha nenhuma: `POST /professor` escrevia
+ * `{nome, slug, sal, hash}` e mais nada. O resultado foi o dela, medido a 19/11/2026 — «quando eu
+ * fui editar o Bombom, ele indica no cadastro, step um, que não tem CPF, telefone, e-mail. E aí
+ * quando eu fui vincular um aluno, não disparou o e-mail porque não tem e-mail vinculado a este
+ * professor». Os dados entravam no formulário, viajavam no corpo do pedido, e eram deitados fora no
+ * último passo. Duas cópias da mesma conferência divergem na primeira correcção; uma só, usada
+ * pelos dois caminhos, não tem onde divergir.
+ *
+ * O QUE ELA NÃO FAZ: não escreve nada. Quem grava é `gravarAFichaDoProfessor`, e a separação é o
+ * que permite ao cadastro recusar um CPF inválido ANTES de o professor existir no KV — um cadastro
+ * recusado a meio deixaria uma pessoa na lista sem ficha.
+ */
+async function conferirAFichaDoProfessor({ env, corpo, slug }) {
+  const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
+  const cpfBruto = String((corpo && corpo.cpf) || '').trim();
+  let cpf = '';
+  if (cpfBruto) {
+    const normalizado = cadastroDaEscola.normalizarCpf(cpfBruto);
+    if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
+    cpf = normalizado.valor;
+    const deQuem = await require('./unicidade.js').cpfJaUsado(env, cpf, slug);
+    if (deQuem) {
+      return {
+        ok: false,
+        status: 409,
+        erro: 'o CPF ' + cpf + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
+          + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
+      };
+    }
+  }
+  const telefoneBruto = String((corpo && corpo.telefone) || '').trim();
+  let telefone = '';
+  if (telefoneBruto) {
+    const normalizado = cadastroDaEscola.normalizarTelefone(telefoneBruto, { de: 'telefone do professor' });
+    if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
+    telefone = normalizado.valor;
+  }
+  const emailBruto = String((corpo && corpo.email) || '').trim();
+  let email = '';
+  if (emailBruto) {
+    const normalizado = cadastroDaEscola.normalizarEmail(emailBruto, { de: 'e-mail do professor' });
+    if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
+    email = normalizado.valor;
+  }
+  const modalidade = String((corpo && corpo.modalidade) || '').trim();
+  if (modalidade) {
+    const nucleoPerfil = require('../nucleo/perfil-do-professor.js');
+    if (nucleoPerfil.idsDeModalidade().size && !nucleoPerfil.idsDeModalidade().has(modalidade)) {
+      return { ok: false, status: 400, erro: 'a habilidade «' + modalidade + '» não está no catálogo de modalidades' };
+    }
+  }
+  return { ok: true, cpf, telefone, email, modalidade };
+}
+
+/**
+ * A FICHA DA PESSOA — o contato no KV e a habilitação no repositório (19/11/2026).
+ *
+ * SÃO OS DOIS ÚLTIMOS PASSOS DO «EDITAR», extraídos para o CRIAR os poder usar. A ordem e as
+ * consequências são as mesmas: primeiro o contato (é o documento que o e-mail do vínculo lê), e
+ * depois a habilitação, com a marcação das turmas que ficam sem quem as ensine.
+ *
+ * `cpf`/`telefone`/`email` VAZIOS NÃO APAGAM O QUE ESTÁ — `contato.cpf || contato.cpf` é a regra de
+ * sempre: em branco significa «não mexi», e apagar o documento de uma pessoa não é um efeito de não
+ * o escrever. Quem quiser apagar fá-lo-á por um gesto que o diga.
+ */
+async function gravarAFichaDoProfessor({ env, kv, escola, slug, nome, cpf, telefone, email, modalidade, quando }) {
+  try {
+    const chave = 'professores/' + slug + '/contato';
+    const bruto = await kv.get(chave);
+    let contato = {};
+    try { contato = bruto ? JSON.parse(bruto) : {}; } catch (erro) { contato = {}; }
+    contato.nomeCompleto = nome;
+    contato.cpf = cpf || contato.cpf || null;
+    contato.telefone = telefone || contato.telefone || null;
+    contato.email = email || contato.email || null;
+    contato.atualizadoEm = quando;
+    if (!contato.criadoEm) contato.criadoEm = quando;
+    await kv.put(chave, JSON.stringify(contato));
+  } catch (erro) {
+    return {
+      ok: false,
+      status: 502,
+      erro: 'a ficha (CPF, telefone, e-mail) não foi gravada: ' + ((erro && erro.message) || String(erro)),
+    };
+  }
+
+  let perfil = null;
+  if (modalidade) {
+    const { lerPerfil, gravarPerfil, caminhoDoPerfil } = require('./perfil-professor.js');
+    const f = (u, o) => globalThis.fetch(u, o);
+    const token = env && env.GITHUB_TOKEN;
+    const atual = await lerPerfil({ f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug });
+    if (!atual.ok) return { ok: false, status: atual.status || 502, erro: atual.erro };
+    const gravado = await gravarPerfil({
+      f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug,
+      sha: atual.sha || undefined,
+      perfil: Object.assign({}, atual.perfil || {}, {
+        slug, nome, modalidades: [modalidade],
+        criado: (atual.perfil && atual.perfil.criado) || String(quando).slice(0, 10),
+      }),
+    });
+    if (!gravado.ok) return { ok: false, status: gravado.status || 502, erro: gravado.erro };
+    const marcadas = await marcarTurmasSemHabilitacao(kv, escola, slug, gravado.perfil);
+    perfil = {
+      caminho: caminhoDoPerfil(slug), modalidade,
+      descontinuadas: marcadas.descontinuadas, turmasMarcadas: marcadas.mudadas,
+    };
+  }
+  return { ok: true, perfil };
+}
+
+/**
  * A EDIÇÃO DE UM PROFESSOR — tudo, menos a pasta (16/11/2026).
  *
  * O QUE ELA PEDIU: «Pode editar tudo, não tem campo desabilitado.» A tela passou a abrir os sete
@@ -3601,38 +3716,12 @@ async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
     }
   }
 
-  /* O CPF, quando vem e quando mudou. `cpfJaUsado` ignora o próprio slug: gravar a ficha de quem
-   * não mudou o CPF não pode colidir consigo. */
-  const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
-  const cpfBruto = String(corpo.cpf || '').trim();
-  let cpf = '';
-  if (cpfBruto) {
-    const normalizado = cadastroDaEscola.normalizarCpf(cpfBruto);
-    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
-    cpf = normalizado.valor;
-    const deQuem = await require('./unicidade.js').cpfJaUsado(env, cpf, alvo);
-    if (deQuem) {
-      return json(409, {
-        ok: false,
-        erro: 'o CPF ' + cpf + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
-          + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
-      });
-    }
-  }
-  const telefoneBruto = String(corpo.telefone || '').trim();
-  let telefone = '';
-  if (telefoneBruto) {
-    const normalizado = cadastroDaEscola.normalizarTelefone(telefoneBruto, { de: 'telefone do professor' });
-    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
-    telefone = normalizado.valor;
-  }
-  const emailBruto = String(corpo.email || '').trim();
-  let email = '';
-  if (emailBruto) {
-    const normalizado = cadastroDaEscola.normalizarEmail(emailBruto, { de: 'e-mail do professor' });
-    if (!normalizado.ok) return json(400, { ok: false, erro: normalizado.erro });
-    email = normalizado.valor;
-  }
+  /* A FICHA CONFERIDA ANTES DE ESCRITA (19/11/2026) — a mesma função que o cadastro usa. O CPF é
+   * conferido contra os outros professores da casa (`cpfJaUsado` ignora o próprio slug): corrigir
+   * uma ficha não pode gravar um número que já é de outra pessoa. */
+  const ficha = await conferirAFichaDoProfessor({ env, corpo, slug: alvo });
+  if (!ficha.ok) return json(ficha.status || 400, { ok: false, erro: ficha.erro });
+  const { cpf, telefone, email } = ficha;
 
   const senha = String(corpo.senha || '');
   const quando = new Date().toISOString();
@@ -3667,57 +3756,25 @@ async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
     return json(502, { ok: false, erro: 'não foi possível gravar o professor: ' + ((erro && erro.message) || String(erro)) });
   }
 
-  /* ── 2. O CONTATO — o mesmo documento que a criação da escola escreve ────────────────────── */
-  try {
-    const chave = 'professores/' + alvo + '/contato';
-    const bruto = await kv.get(chave);
-    let contato = {};
-    try { contato = bruto ? JSON.parse(bruto) : {}; } catch (erro) { contato = {}; }
-    contato.nomeCompleto = nomeExibido;
-    contato.cpf = cpf || contato.cpf || null;
-    contato.telefone = telefone || contato.telefone || null;
-    contato.email = email || contato.email || null;
-    contato.atualizadoEm = quando;
-    if (!contato.criadoEm) contato.criadoEm = quando;
-    await kv.put(chave, JSON.stringify(contato));
-  } catch (erro) {
-    /* A FICHA É O QUE SE ESTAVA A CORRIGIR — falhar aqui em silêncio diria «gravado» sobre um
-     * CPF que não ficou. O nome e a senha já foram; o erro diz o que faltou, e não desfaz. */
-    return json(502, {
+  /* ── 2. A FICHA — o contato no KV e a habilitação no repositório ──────────────────────────
+   *
+   * A ORDEM É A DA DEPENDÊNCIA, e é a mesma nos dois caminhos (19/11/2026): o contato primeiro,
+   * porque é o documento que o e-mail do vínculo da aluna lê; a habilitação depois, com a marcação
+   * das turmas. Quem grava é uma função só (`gravarAFichaDoProfessor`), chamada aqui e no cadastro.
+   *
+   * A RECUSA NÃO DESFAZ O NOME: ele e a senha já foram gravados, e o erro diz o que faltou em vez
+   * de fingir que nada aconteceu. */
+  const gravadaFicha = await gravarAFichaDoProfessor({
+    env, kv, escola, slug: alvo, nome: nomeExibido,
+    cpf, telefone, email, modalidade: String(corpo.modalidade || '').trim(), quando,
+  });
+  if (!gravadaFicha.ok) {
+    return json(gravadaFicha.status || 502, {
       ok: false,
-      erro: 'o nome e a senha foram gravados, mas a ficha (CPF, telefone, e-mail) não: '
-        + ((erro && erro.message) || String(erro)),
+      erro: 'o nome e a senha foram gravados, mas ' + gravadaFicha.erro,
     });
   }
-
-  // ── 3. A HABILIDADE — o mesmo perfil que a aba das Habilitações escreve ───────────────────
-  const modalidade = String(corpo.modalidade || '').trim();
-  let perfil = null;
-  if (modalidade) {
-    const nucleoPerfil = require('../nucleo/perfil-do-professor.js');
-    if (nucleoPerfil.idsDeModalidade().size && !nucleoPerfil.idsDeModalidade().has(modalidade)) {
-      return json(400, { ok: false, erro: 'a habilidade «' + modalidade + '» não está no catálogo de modalidades' });
-    }
-    const { lerPerfil, gravarPerfil, caminhoDoPerfil } = require('./perfil-professor.js');
-    const f = (u, o) => globalThis.fetch(u, o);
-    const token = env && env.GITHUB_TOKEN;
-    const atual = await lerPerfil({ f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo });
-    if (!atual.ok) return json(atual.status || 502, { ok: false, erro: atual.erro });
-    const gravado = await gravarPerfil({
-      f, token, dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo,
-      sha: atual.sha || undefined,
-      perfil: Object.assign({}, atual.perfil || {}, {
-        slug: alvo, nome: nomeExibido, modalidades: [modalidade],
-        criado: (atual.perfil && atual.perfil.criado) || quando.slice(0, 10),
-      }),
-    });
-    if (!gravado.ok) return json(gravado.status || 502, { ok: false, erro: gravado.erro });
-    const marcadas = await marcarTurmasSemHabilitacao(kv, escola, alvo, gravado.perfil);
-    perfil = {
-      caminho: caminhoDoPerfil(alvo), modalidade,
-      descontinuadas: marcadas.descontinuadas, turmasMarcadas: marcadas.mudadas,
-    };
-  }
+  const perfil = gravadaFicha.perfil;
 
   return json(200, {
     ok: true, professor: nomeExibido, slug: alvo, dono: ehDono,
@@ -6347,6 +6404,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * cliente — escrita duas vezes, a segunda diria outra coisa no primeiro ajuste. */
   const temElencoGravado = elencosParaMover.length > 0;
   const FRASE_DA_ABA_SEM_ELENCO = 'Abre quando existir um elenco gravado.';
+  /* AS ABAS QUE NÃO SE ABREM ENQUANTO HÁ UM PROFESSOR EM COMPOSIÇÃO (19/11/2026).
+   *
+   * «Enquanto eu faço o cadastro e navego pelos steps, cadastro e rubrica, até que eu conclua isso,
+   * o habilitação e o desligamento devem ficar desligados, tá? Não podem ser acessados. Eles só vão
+   * ser acessados essas duas abas quando eu não estiver num processo de criar um novo professor ou
+   * de editar um novo professor.»
+   *
+   * A RAZÃO É DE DESENHO, e não de protecção: a modalidade do professor nasce no CADASTRO (é lá que
+   * ela se declara, e é ela que a sala associa). A aba das Habilitações é o outro gesto — «quando eu
+   * quero incluir mais de uma modalidade para o professor ou apenas visualizar as modalidades dele».
+   * Sair do cadastro para o meio de uma composição deixaria metade do trabalho numa aba e metade na
+   * outra, e a régua do passo 2 presa a um professor que ainda não existe.
+   *
+   * ESCRITA UMA VEZ, e é a mesma que o `pintar()` do motor usa no `title` e no servidor não há
+   * o que escrever: quem sabe se há composição a meio é a tela. */
+  const FRASE_DA_ABA_COM_CADASTRO_ABERTO = 'Conclua ou cancele o cadastro do professor para abrir esta aba.';
   const algumElencoTemAlunas = elencosParaMover.some((e) => e.alunas.length > 0);
   const podeMover = elencosParaMover.length >= 2 && algumElencoTemAlunas;
   const textoDeFalta = !algumElencoTemAlunas && elencosParaMover.length >= 2
@@ -9491,6 +9564,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * professor ficaria com abas que só respondem depois de recarregar a página. */
     'var ELENCOS_GRAVADOS = ' + (temElencoGravado ? 1 : 0) + ';' +
     'var FRASE_DA_ABA_SEM_ELENCO = ' + JSON.stringify(FRASE_DA_ABA_SEM_ELENCO) + ';' +
+    'var FRASE_DA_ABA_COM_CADASTRO_ABERTO = ' + JSON.stringify(FRASE_DA_ABA_COM_CADASTRO_ABERTO) + ';' +
     /* AS DUAS FRASES DO ELENCO VAZIO — do núcleo, como MODELO (12/11/2026). O `%ELENCO%` e o
      * `%TURMAS%` são preenchidos aqui com o que a lista já traz; a frase em si (e a sua
      * concordância) não se reescreve neste ficheiro, senão as duas versões divergiam. */
@@ -10892,6 +10966,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (notaRegua) { notaRegua.hidden = true; notaRegua.textContent = ""; }' +
     '  var tradRegua = document.getElementById("rubr-tradicao");' +
     '  if (tradRegua) tradRegua.textContent = "—";' +
+    /* O CANCELAR VOLTA AO PASSO 1 (19/11/2026). Faltava: o «Cancelar» limpava a ficha e o foco, mas
+     * o painel à vista continuava a ser o da RÉGUA — e um formulário fechado que reabre no passo 2
+     * mostra a régua de ninguém. Pior: o passo 2 é um dos sinais de «há um professor a meio», e
+     * enquanto ele ficasse à vista as abas das Habilitações e do Desligamento continuavam travadas
+     * depois de o processo ter sido cancelado. Medido na bancada, nas duas portas do cancelar. */
+    '  if (typeof mostrarPassoDoProfessor === "function") mostrarPassoDoProfessor("cadastro");' +
     '  if (typeof abrirAbaDoProfessor === "function") abrirAbaDoProfessor("cadastro");' +
     '  if (typeof pintarCancelarDoProfessor === "function") pintarCancelarDoProfessor();' +
     '  recado("", "");' +
@@ -10955,6 +11035,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
     '  avancarDoCadastroDoProfessor();' +
+    '});' +
+    /* ESCREVER O NOME JÁ É ESTAR A CADASTRAR (19/11/2026). As duas outras abas fecham assim que a
+     * ficha começa a ser composta, e não só no «Avançar»: «enquanto eu faço o cadastro […] o
+     * habilitação e o desligamento devem ficar desligados». O ouvinte é no formulário inteiro, e não
+     * só no `pnome`, para não haver um primeiro campo que não conta. */
+    'document.getElementById("form-prof").addEventListener("input", function(){' +
+    '  if (typeof pintarAbasDoProfessor === "function") pintarAbasDoProfessor();' +
     '});' +
     /* ================= O CADASTRO DA ALUNA EM DOIS PASSOS (18/11/2026) =================
      *
@@ -11642,14 +11729,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O GANCHO É O `aoTrocar`, e não um `hidden` escrito em cada sítio que troca de aba: a troca
      * tem três portas (a tira, a folha do telemóvel e o teclado) e todas passam pelo motor. É a
      * mesma solução que a Audição já usa para a faixa dela. */
+    /* «EM PROCESSO» É O QUE FECHA AS OUTRAS DUAS ABAS (19/11/2026).
+     *
+     * «Eles só vão ser acessados essas duas abas quando eu não estiver num processo de criar um novo
+     * professor ou de editar um novo professor.» — e é isso que a função responde. Quatro sinais, e
+     * cada um é um estado que a tela já tem:
+     *
+     *   1. o MODO diz «editar» — a ficha de alguém está aberta;
+     *   2. há um RASCUNHO — o «Avançar» compôs a ficha de um professor que ainda não existe;
+     *   3. o passo à vista é a RÉGUA — o passo 2 é trabalho a meio, e a régua é de quem está em foco;
+     *   4. o NOME já está escrito — cadastro começado é cadastro em curso, mesmo antes do «Avançar».
+     *
+     * O QUE NÃO CONTA: o formulário aberto e vazio. Ninguém está a cadastrar ninguém no instante em
+     * que a página abre, e travar as duas abas aí seria travar a consulta — que é um dos usos que ela
+     * nomeou («apenas visualizar as modalidades do professor»). Quem desiste tem o «Cancelar», que
+     * limpa os quatro sinais de uma vez. */
+    'function professorEmProcesso(){' +
+    '  if (modoDoProfessor() === "editar") return true;' +
+    '  if (rascunhoDoProfessor()) return true;' +
+    '  if (passoDoProfessor() === "rubrica") return true;' +
+    '  var n = document.getElementById("pnome");' +
+    '  return !!(n && String(n.value || "").trim());' +
+    '}' +
     'var MOTOR_DO_PROFESSOR = motorDeAbas({' +
     '  nomes: ABAS_DO_PROFESSOR, nav: "pf-abas", prefixoAba: "pf-aba-", prefixoPainel: "pf-painel-",' +
-    '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu", fraseSem: "",' +
+    '  menu: "pf-abas-menu", botao: "pf-abas-botao", veu: "pf-abas-veu",' +
+    '  fraseSem: FRASE_DA_ABA_COM_CADASTRO_ABERTO,' +
+    '  pode: function(n){ return String(n) === "cadastro" || !professorEmProcesso(); },' +
     '  aoTrocar: function(n){' +
     '    var faixa = document.getElementById("pf-faixa");' +
     '    if (faixa) faixa.hidden = String(n) !== "cadastro";' +
     '  }' +
     '});' +
+    /* O PINTOR É SEPARADO DO MOTOR POR CAUSA DA ORDEM: `pintarCancelarDoProfessor` corre no arranque
+     * (dentro do `definirSecaoRecolhida`), e `MOTOR_DO_PROFESSOR` é uma `var` atribuída aqui — vale
+     * `undefined` até esta linha. É a armadilha que já custou a página três vezes nesta frente; a
+     * guarda é `typeof`, e a chamada de arranque vive no fim do script, onde tudo já tem valor. */
+    'function pintarAbasDoProfessor(){' +
+    '  if (typeof MOTOR_DO_PROFESSOR !== "undefined" && MOTOR_DO_PROFESSOR) MOTOR_DO_PROFESSOR.pintar();' +
+    '}' +
     'function abrirAbaDoProfessor(n) { MOTOR_DO_PROFESSOR.abrir(String(n)); }' +
     /* A ABA DO PROFESSOR PODE SER PEDIDA DE FORA — é o que faz o «Editar» de uma linha levar à
      * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
@@ -13521,6 +13639,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * formulário aberto, como em todas as outras secções. O que fica aqui é o que é só desta
      * secção: a trava do passo 2 da tira. */
     '  if (typeof pintarCancelares === "function") pintarCancelares();' +
+    /* AS OUTRAS DUAS ABAS ACOMPANHAM O PROCESSO (19/11/2026). Este é o funil por onde passam a
+     * abertura da edição, o «Cancelar» e a troca de passo — os três sítios onde «há um professor a
+     * meio» muda de resposta. Pendurar o repinte aqui, e não em cada clique, é o que impede a quarta
+     * porta de esquecer uma das duas abas. */
+    '  if (typeof pintarAbasDoProfessor === "function") pintarAbasDoProfessor();' +
     '  var b2 = document.querySelector("#pf-passos button.passo[data-passo-prof=\\"rubrica\\"]");' +
     '  if (b2) {' +
     '    b2.disabled = !professorEmFocoNaRegua();' +
@@ -19451,6 +19574,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'if (typeof filtrarProfessoresPelaModalidade === "function") filtrarProfessoresPelaModalidade();' +
     'if (typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
     'if (typeof retomarAbaDoProfessor === "function") retomarAbaDoProfessor();' +
+    /* AS ABAS TRAVADAS DEPOIS DE TUDO (19/11/2026) — `professorEmProcesso` lê o passo, o rascunho e
+     * o nome, e os três só têm valor depois de a `retomarAbaDoProfessor` ter reposto o foco. Pintar
+     * antes deixaria a tela a dizer «pode» sobre um cadastro que já está a meio. */
+    'if (typeof pintarAbasDoProfessor === "function") pintarAbasDoProfessor();' +
     '</script>' +
     // O PREENCHEDOR NÃO ENTRA MAIS AQUI (19/11/2026) — ver a nota no alto de `paginaProducao`.
     // Ele continua a ser servido em `/scripts/teste-preenchimento.js` e injetado nas páginas da
@@ -19985,6 +20112,13 @@ async function fetch(request, env, extras) {
       });
     }
 
+    /* A FICHA É CONFERIDA ANTES DE TUDO (19/11/2026). Um CPF inválido, um e-mail sem arroba ou uma
+     * modalidade fora do catálogo recusam o cadastro AQUI — antes de a estrutura ser criada e antes
+     * de a pessoa entrar no KV. Conferir depois deixaria uma pasta no repositório e um professor na
+     * lista para uma ficha que nunca foi aceite. */
+    const ficha = await conferirAFichaDoProfessor({ env, corpo, slug });
+    if (!ficha.ok) return json(ficha.status || 400, { ok: false, erro: ficha.erro });
+
     const sal = gerarSal();
     const hash = await hashSenha(senha, sal);
 
@@ -20046,6 +20180,34 @@ async function fetch(request, env, extras) {
       });
     }
 
+    /* A FICHA GRAVA-SE ANTES DE A PESSOA ENTRAR NA LISTA (19/11/2026) — e é esta ordem que impede
+     * o defeito de voltar.
+     *
+     * «quando eu fui editar o Bombom, ele indica no cadastro, step um, que não tem CPF, telefone,
+     * e-mail. E aí quando eu fui vincular um aluno, não disparou o e-mail.» O cadastro escrevia
+     * `{nome, slug, sal, hash}` e mais nada: os três campos eram recolhidos pelo formulário,
+     * viajavam no corpo do pedido e eram deitados fora no último passo. A ficha e a habilidade só
+     * existiam se alguém voltasse a «Editar» e as escrevesse outra vez.
+     *
+     * A ORDEM É A DO LADO SEGURO. O contato e o perfil vão primeiro, e só depois o registo na lista:
+     * se a escrita no repositório falhar (token, rede), o cadastro é recusado com o motivo e NÃO
+     * fica um professor na lista sem ficha — que é exactamente o estado que ela viu. A pasta já
+     * criada e o vínculo já declarado não se perdem: os dois são idempotentes, e repetir o cadastro
+     * passa por eles sem duplicar nada. */
+    const gravadaFicha = await gravarAFichaDoProfessor({
+      env, kv, escola, slug, nome: nomeExibido,
+      cpf: ficha.cpf, telefone: ficha.telefone, email: ficha.email,
+      modalidade: ficha.modalidade, quando: new Date().toISOString(),
+    });
+    if (!gravadaFicha.ok) {
+      return json(gravadaFicha.status || 502, {
+        ok: false,
+        erro: 'o professor «' + nomeExibido + '» NÃO foi cadastrado: ' + gravadaFicha.erro
+          + ' A estrutura dele já está no repositório — cadastre outra vez para completar a ficha.',
+        ficha: false,
+      });
+    }
+
     // O `slug` é GRAVADO: é ele que fica, mesmo que o nome de exibição mude depois.
     const novoRegisto = { nome: nomeExibido, slug, sal, hash };
     const iVolta = voltando ? lista.findIndex((p) => p === voltando) : -1;
@@ -20057,6 +20219,14 @@ async function fetch(request, env, extras) {
       professor: nomeExibido,
       ...(voltando ? { reativado: true, anteriormenteDesligadoEm: voltando.desligado_em } : {}),
       slug,
+      // O que a ficha levou: o CPF, o telefone e o e-mail existem agora, e o e-mail é o que o
+      // vínculo da aluna lê para avisar o professor. Dizê-lo na resposta evita a leitura de que os
+      // campos se perderam outra vez.
+      ficha: {
+        contato: Boolean(ficha.cpf || ficha.telefone || ficha.email),
+        modalidade: ficha.modalidade || '',
+        perfil: Boolean(gravadaFicha.perfil),
+      },
       // O que foi feito no repositório, e com que ciclo(s). A tela recarrega em caso de `ok`, e
       // por isso o relatório vive aqui: quem precisar dele tem-no; quem não, não é incomodado.
       estrutura: {

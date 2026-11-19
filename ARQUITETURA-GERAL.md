@@ -277,6 +277,15 @@ E a lista de professores de um passo 2 **nasce vazia** até a modalidade ser esc
 que diz quem pode dar aquela sala, e oferecer a escola inteira antes disso deixava escolher quem talvez
 não possa.
 
+**O QUE O «GRAVAR» LEVA TEM DE SER TUDO O QUE O PASSO 1 RECOLHEU (19/11/2026).** O passo 1 compõe a
+ficha inteira, e a escrita é uma só — mas a rota de CRIAÇÃO do professor gravava `{nome, slug, sal,
+hash}` e deitava fora o CPF, o telefone, o e-mail e a modalidade. Os campos apareciam, viajavam no
+corpo do pedido e não ficavam: a ficha do professor só existia se alguém voltasse a «Editar» e os
+escrevesse outra vez — e o e-mail do vínculo da aluna, que lê `professores/<slug>/contato`, não
+achava destino. **A regra**: um passo que recolhe um campo é um passo cuja gravação o leva. E a
+conferência (CPF válido e não repetido, telefone, e-mail, modalidade do catálogo) vive numa função
+só, chamada pelos dois caminhos: criar e editar.
+
 **AS TRÊS ACÇÕES DE UM FORMULÁRIO COM PASSOS TÊM UM NOME CADA (19/11/2026).** «Avançar» é o gesto de
 ir ao passo seguinte e não grava nada; «Voltar» recua; o de concluir diz o que conclui («Gravar
 sala», «Gravar cadastrar professor», «Gravar verbete», «Concluir elenco»). «Seguir» era um quarto
